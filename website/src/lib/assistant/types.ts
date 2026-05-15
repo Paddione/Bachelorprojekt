@@ -7,7 +7,7 @@ export interface Message {
   conversationId: string;
   role: MessageRole;
   content: string;
-  createdAt: string; // ISO
+  createdAt: string;
   proposedAction?: ProposedAction;
 }
 
@@ -36,8 +36,17 @@ export interface ActionResult {
   data?: Record<string, unknown>;
 }
 
+export interface AssistantSource {
+  index: number;
+  bookTitle: string;
+  slug: string;
+  page: number | null;
+  excerpt: string;
+  chunkId: string;
+}
+
 export interface AssistantChatResult {
   reply: string;
   proposedAction?: ProposedAction;
-  sourcesUsed?: number;
+  sources?: AssistantSource[];
 }

@@ -2,8 +2,8 @@
 ticket_id: T000369
 title: Brett Mannequin — Implementierungsplan
 domains: []
-status: active
-pr_number: null
+status: done
+pr_number: 761
 ---
 
 # Brett Mannequin — Implementierungsplan

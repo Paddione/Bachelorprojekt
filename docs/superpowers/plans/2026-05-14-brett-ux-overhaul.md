@@ -2,8 +2,8 @@
 ticket_id: T000377
 title: Brett UX Overhaul Implementation Plan
 domains: []
-status: active
-pr_number: null
+status: done
+pr_number: 766
 ---
 
 # Brett UX Overhaul Implementation Plan

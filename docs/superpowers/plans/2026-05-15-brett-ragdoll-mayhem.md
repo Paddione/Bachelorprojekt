@@ -2,8 +2,8 @@
 ticket_id: T000388
 title: Brett Mayhem Mode Implementation Plan
 domains: []
-status: active
-pr_number: null
+status: done
+pr_number: 779
 ---
 
 # Brett Mayhem Mode Implementation Plan

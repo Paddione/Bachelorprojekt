@@ -313,18 +313,26 @@ function applyMutation(room, msg) {
     case 'jump':
       // transient — no persisted state
       break;
+    case 'mayhem_mode':
+      if (typeof msg.enabled === 'boolean') {
+        figs.set('__mayhem__', { id: '__mayhem__', enabled: msg.enabled });
+      }
+      break;
   }
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const figures = Array.from(figs.values()).filter(f => !['__optik__', '__stiffness__'].includes(f.id));
-  const optikEntry = figs.get('__optik__');
-  const stiffEntry = figs.get('__stiffness__');
+  const SPECIAL = ['__optik__', '__stiffness__', '__mayhem__'];
+  const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
+  const optikEntry  = figs.get('__optik__');
+  const stiffEntry  = figs.get('__stiffness__');
+  const mayhemEntry = figs.get('__mayhem__');
   const result = { figures };
-  if (optikEntry) result.optik = optikEntry.settings;
-  if (stiffEntry) result.stiffness = stiffEntry.value;
+  if (optikEntry)  result.optik     = optikEntry.settings;
+  if (stiffEntry)  result.stiffness = stiffEntry.value;
+  if (mayhemEntry) result.mayhem    = !!mayhemEntry.enabled;
   return result;
 }
 
@@ -356,6 +364,15 @@ async function flushImmediate(room) {
   await persistState(room);
 }
 
+const handleDisconnect = function(ws, broadcastFn = broadcast) {
+  const room = ws._room;
+  if (!room) return;
+  if (ws._playerId) {
+    broadcastFn(room, { type: "player_leave", playerId: ws._playerId }, ws);
+  }
+  leaveRoom(ws);
+  broadcastInfo(room);
+}
 wss.on('connection', (ws) => {
   ws.on('message', async (raw) => {
     try {
@@ -387,12 +404,18 @@ wss.on('connection', (ws) => {
       const room = ws._room;
       if (!room) return;
 
-      if (['add','move','update','delete','clear','optik','stiffness','jump'].includes(msg.type)) {
+      if (['add','move','update','delete','clear','optik','stiffness','jump',
+           'mayhem_mode','player_join','player_state','player_leave',
+           'hit','vehicle_spawn'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
-        if (msg.type === 'clear') {
+        if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
+          ws._playerId = msg.playerId;
+        } else if (msg.type === 'clear') {
           flushImmediate(room).catch(err => console.error('[brett] flush:', err));
-        } else if (msg.type !== 'jump') {
+        } else if (msg.type !== 'jump' && msg.type !== 'player_join' &&
+                   msg.type !== 'player_state' && msg.type !== 'player_leave' &&
+                   msg.type !== 'hit' && msg.type !== 'vehicle_spawn') {
           schedulePersist(room);
         }
       }
@@ -401,14 +424,14 @@ wss.on('connection', (ws) => {
     }
   });
 
+// ... inside the ws.on('connection') handler:
   ws.on('close', async () => {
-    const room = leaveRoom(ws);
+    handleDisconnect(ws);
+    const room = ws._room;
     if (!room) return;
     if (rooms.has(room)) {
       broadcastInfo(room);
     } else {
-      // Last client gone: flush any pending state and free the figure map,
-      // but only if no new client joined the room during the flush.
       try {
         await flushImmediate(room);
       } finally {
@@ -441,3 +464,4 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));
 
 module.exports = { app, server, pool, wss, applyMutation, buildStateFromMutations, figureMaps };
+module.exports.handleDisconnect = handleDisconnect;

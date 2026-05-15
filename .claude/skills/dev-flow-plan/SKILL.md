@@ -143,7 +143,7 @@ KEY_COUNT=$(kubectl --context mentolder -n workspace get cm brainstorm-sish-auth
   -o jsonpath='{.data.authorized_keys}' 2>/dev/null | grep -c '^ssh-' || echo 0)
 if [[ "$KEY_COUNT" -lt 1 ]]; then
   echo "⚠️  Keine authorized_keys in der ConfigMap. Patricks Public-Key in environments/.secrets/mentolder.yaml" \
-       "unter DEV_SISH_AUTHORIZED_KEYS ergänzen, dann: task env:seal ENV=mentolder && task brainstorm:materialise-keys"
+       "unter DEV_SISH_AUTHORIZED_KEYS ergänzen, dann: task env:seal ENV=mentolder && task brainstorm:_materialise-keys"
   exit 1
 fi
 ```

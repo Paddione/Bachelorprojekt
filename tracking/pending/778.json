@@ -1,0 +1,15 @@
+{
+  "pr_number": 778,
+  "title": "mayhem mode — running, flailing, ragdoll vehicles",
+  "description": "## Summary\n- Added 'Mayhem mode' to Brett: third-person chase camera, ragdoll physics for players and spawned vehicles.\n- Self-contained in mayhem/ module; minimal intrusion into Brett core.\n\n## Test plan\n- [x] npm test (physics + server mutations)\n- [x] task workspace:validate\n- [x] task test:all\n\nCloses T000388",
+  "category": "feat",
+  "scope": "brett",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-15T06:31:15Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": [
+    "T000388"
+  ]
+}

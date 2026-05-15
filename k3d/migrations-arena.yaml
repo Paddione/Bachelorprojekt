@@ -69,6 +69,15 @@ data:
     ALTER DEFAULT PRIVILEGES IN SCHEMA arena
       GRANT SELECT, INSERT, UPDATE ON TABLES TO arena_app;
 
+    -- Grant access to the website user for backups
+    GRANT USAGE ON SCHEMA arena TO website;
+    GRANT SELECT ON ALL TABLES IN SCHEMA arena TO website;
+    GRANT SELECT ON ALL SEQUENCES IN SCHEMA arena TO website;
+    ALTER DEFAULT PRIVILEGES FOR ROLE arena_app IN SCHEMA arena
+      GRANT SELECT ON TABLES TO website;
+    ALTER DEFAULT PRIVILEGES FOR ROLE arena_app IN SCHEMA arena
+      GRANT SELECT ON SEQUENCES TO website;
+
   0003_arena_app_ownership.sql: |
     -- Additional grants for arena_app so the arena-server startup migration
     -- (which runs `CREATE SCHEMA IF NOT EXISTS arena` and idempotent ALTERs

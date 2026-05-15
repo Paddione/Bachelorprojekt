@@ -110,23 +110,6 @@ spec:
     - ipBlock:
         cidr: 10.42.0.0/32
 ---
-# Website-Backend aus website-Namespace erlauben
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-website-ingress
-spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchExpressions:
-        - key: kubernetes.io/metadata.name
-          operator: In
-          values: ["website", "website-korczewski"]
----
 # workspace CronJobs → website API (billing, notify-unread)
 # Uses ipBlock for service CIDR (ClusterIP before DNAT) and pod CIDR (post-DNAT).
 # Short-lived CronJob pods have no stable label, so podSelector: {} (all workspace pods).

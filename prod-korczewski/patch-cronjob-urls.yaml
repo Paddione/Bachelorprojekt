@@ -44,7 +44,7 @@ spec:
                   curl -sf -X POST \
                     -H "Authorization: Bearer $CRON_SECRET" \
                     -H "Content-Type: application/json" \
-                    http://website.website-korczewski.svc.cluster.local:4321/api/cron/notify-unread
+                    http://website.website-korczewski.svc.cluster.local/api/cron/notify-unread
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -65,4 +65,4 @@ spec:
                   curl -sf -X POST \
                     -H "Content-Type: application/json" \
                     -H "X-Cron-Secret: $CRON_SECRET" \
-                    http://website.website-korczewski.svc.cluster.local:4321/api/admin/billing/create-monthly-invoices
+                    http://website.website-korczewski.svc.cluster.local/api/admin/billing/create-monthly-invoices

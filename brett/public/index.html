@@ -90,6 +90,15 @@
     }
     #fig-panel-add:hover { filter: brightness(1.1); }
 
+    #fig-scale-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    #fig-scale-slider { flex: 1; min-width: 80px; accent-color: #c8a96e; }
+    #fig-scale-val { font-size: 11px; color: rgba(231,234,208,0.6); min-width: 28px; }
+    .fig-size-btn {
+      background: rgba(231,234,208,0.07); border: 1px solid rgba(231,234,208,0.18);
+      color: inherit; border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer;
+    }
+    .fig-size-btn:hover, .fig-size-btn.active { background: rgba(200,169,110,0.22); border-color: #c8a96e; }
+
     body.placing-figure { cursor: crosshair !important; }
   </style>
 </head>
@@ -129,9 +138,17 @@
             <div class="fig-color-swatch" data-color="#c06be0" style="background:#c06be0;" title="Lila"></div>
             <div class="fig-color-swatch" data-color="#e0906b" style="background:#e0906b;" title="Orange"></div>
           </div>
+          <span class="fig-panel-label">Größe</span>
+          <div id="fig-scale-row">
+            <button class="fig-size-btn" data-scale="0.6">S</button>
+            <button class="fig-size-btn active" data-scale="1.0">M</button>
+            <button class="fig-size-btn" data-scale="1.5">L</button>
+            <input type="range" id="fig-scale-slider" min="0.3" max="2.5" step="0.05" value="1.0" />
+            <span id="fig-scale-val">1.0×</span>
+          </div>
           <span class="fig-panel-label">Name</span>
           <input id="fig-label-input" type="text" placeholder="Figur benennen …" maxlength="40" />
-          <button id="fig-panel-add">＋ Auf Brett setzen</button>
+          <button id="fig-panel-add">＋ Klick auf Brett zum Platzieren</button>
         </div>
       </div>
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
@@ -341,6 +358,9 @@
 
   // ── Panel state ──────────────────────────────────────────────────────────────
   let panelColor = '#b8c0a8'; // default body color for new figures
+  let panelScale = 1.0;       // scale for new figures
+  let placingMode = false;
+  window.placingMode_get = () => placingMode;
 
   function recolorFigure(fig, hexColor) {
     const threeColor = new THREE.Color(hexColor);
@@ -429,14 +449,34 @@
     if (fig) fig.label = e.target.value;
   });
 
-  // ── Add button ─────────────────────────────────────────────────────────────────
+  // ── Scale slider + size buttons ────────────────────────────────────────────────
+  const scaleSlider = document.getElementById('fig-scale-slider');
+  const scaleVal    = document.getElementById('fig-scale-val');
+  scaleSlider.addEventListener('input', () => {
+    panelScale = parseFloat(scaleSlider.value);
+    scaleVal.textContent = panelScale.toFixed(2).replace(/\.?0+$/, '') + '×';
+    document.querySelectorAll('.fig-size-btn').forEach(b => b.classList.remove('active'));
+  });
+  document.getElementById('fig-scale-row').addEventListener('click', e => {
+    const btn = e.target.closest('.fig-size-btn');
+    if (!btn) return;
+    panelScale = parseFloat(btn.dataset.scale);
+    scaleSlider.value = String(panelScale);
+    scaleVal.textContent = panelScale.toFixed(2).replace(/\.?0+$/, '') + '×';
+    document.querySelectorAll('.fig-size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Update selected figure's scale live
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) { fig.root.scale.setScalar(panelScale); }
+  });
+
+  // ── Add button — enters placing mode ──────────────────────────────────────────
   document.getElementById('fig-panel-add').addEventListener('click', () => {
-    const label = document.getElementById('fig-label-input').value.trim();
-    const x = (Math.random() - 0.5) * 4, z = (Math.random() - 0.5) * 4;
-    const fig = addFigure({ x, z });
-    recolorFigure(fig, panelColor);
-    if (label) fig.label = label;
     closeFigPanel();
+    placingMode = true;
+    document.body.classList.add('placing-figure');
+    const _pill = document.getElementById('status-pill');
+    if (_pill) _pill.textContent = 'Klick auf den Boden zum Platzieren — Esc zum Abbrechen';
   });
   // ----- Pose presets (target rotations in radians; only x and z used) -----
   // Each value is { x: pitch, z: roll } applied via group.rotation.x / .z.
@@ -734,6 +774,21 @@
   let dragging = null; // { figId, boneName, plane: Plane }
 
   renderer.domElement.addEventListener('mousedown', (e) => {
+    if (placingMode && e.button === 0) {
+      const floorPt = pickFloor(e);
+      if (floorPt) {
+        const label = document.getElementById('fig-label-input')?.value.trim() ?? '';
+        const fig = addFigure({ x: floorPt.x, z: floorPt.z });
+        recolorFigure(fig, panelColor);
+        fig.root.scale.setScalar(panelScale);
+        if (label) fig.label = label;
+      }
+      placingMode = false;
+      document.body.classList.remove('placing-figure');
+      updateStatusPill();
+      e.preventDefault();
+      return;
+    }
     if (e.button !== 0 || e.shiftKey) return;
     const sphere = pickContact(e);
     if (sphere) {
@@ -848,6 +903,13 @@
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (placingMode) {
+        placingMode = false;
+        document.body.classList.remove('placing-figure');
+        updateStatusPill();
+        e.preventDefault();
+        return;
+      }
       STATE.selectedId = null;
       for (const f of STATE.figures) f.ring.visible = false;
     } else if ((e.key === 'Delete' || e.key === 'Backspace') && STATE.selectedId) {

@@ -61,6 +61,8 @@ describe('upsertStepTemplate + listStepTemplates', () => {
     });
     expect(t.id).toBeTruthy();
     expect(t.stepName).toBe('Erstanamnese');
+    expect(t.inputSchema).toEqual([{ key: 'anlass', label: 'Anlass', required: true }]);
+    expect(t.keywords).toEqual(['anamnese']);
     const list = await listStepTemplates(pool, 'mentolder');
     expect(list).toHaveLength(1);
   });
@@ -80,6 +82,18 @@ describe('upsertStepTemplate + listStepTemplates', () => {
     });
     const t = await getStepTemplate(pool, 'mentolder', 1);
     expect(t?.stepName).toBe('Erstanamnese Updated');
+  });
+});
+
+describe('getStepTemplate', () => {
+  it('gibt null zurück wenn Template inaktiv', async () => {
+    await upsertStepTemplate(pool, {
+      brand: 'test-inactive', stepNumber: 1, stepName: 'Inaktiv',
+      phase: 'problem_ziel', systemPrompt: 's', userPromptTpl: 't',
+      inputSchema: [], keywords: [], isActive: false, sortOrder: 0,
+    });
+    const result = await getStepTemplate(pool, 'test-inactive', 1);
+    expect(result).toBeNull();
   });
 });
 

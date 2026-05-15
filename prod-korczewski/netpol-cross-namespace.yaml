@@ -22,7 +22,7 @@ spec:
     - to:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: workspace
+              kubernetes.io/metadata.name: workspace-korczewski
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

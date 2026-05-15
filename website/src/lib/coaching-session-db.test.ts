@@ -153,6 +153,8 @@ describe('updateSessionStatus', () => {
     await completeSession(pool, s.id, 'report');
     const result = await updateSessionStatus(pool, s.id, 'active', 'coach');
     expect(result).toBeNull();
+    const fetched = await getSession(pool, s.id);
+    expect(fetched!.status).toBe('completed');
   });
 });
 
@@ -191,6 +193,17 @@ describe('listSessions paginiert', () => {
     expect(result).toHaveProperty('total');
     expect(result).toHaveProperty('page');
     expect(result).toHaveProperty('pageSize');
+  });
+
+  it('gibt korrekte total-Anzahl zurück', async () => {
+    // Erstelle Sessions mit einer einzigartigen Brand um Isolation sicherzustellen
+    const brand = 'test-total-brand';
+    await createSession(pool, { brand, title: 'A', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'B', mode: 'live', createdBy: 'c' });
+    await createSession(pool, { brand, title: 'C', mode: 'live', createdBy: 'c' });
+    const result = await listSessions(pool, brand, {});
+    expect(result.total).toBe(3);
+    expect(result.sessions).toHaveLength(3);
   });
 });
 

@@ -148,7 +148,8 @@ export async function listSessions(
   const sortDir = opts.order === 'asc' ? 'ASC' : 'DESC';
 
   const statusFilter = (opts.status ?? []).length > 0 ? opts.status! : null;
-  const searchPattern = opts.q ? `%${opts.q}%` : null;
+  const escapedQ = opts.q?.replace(/[%_\\]/g, c => `\\${c}`);
+  const searchPattern = escapedQ ? `%${escapedQ}%` : null;
 
   // Build WHERE clauses dynamically to avoid ANY(null) which pg-mem doesn't support
   const whereParts: string[] = [`s.brand = $1`];
@@ -159,7 +160,7 @@ export async function listSessions(
     whereParts.push(`s.archived_at IS NULL`);
   }
   if (searchPattern) {
-    whereParts.push(`(s.title ILIKE $${p} OR s.client_name ILIKE $${p})`);
+    whereParts.push(`(s.title ILIKE $${p} ESCAPE '\\\\' OR s.client_name ILIKE $${p} ESCAPE '\\\\')`);
     baseParams.push(searchPattern);
     p++;
   }
@@ -226,19 +227,39 @@ export async function getStep(pool: Pool, sessionId: string, stepNumber: number)
 }
 
 export async function completeSession(pool: Pool, sessionId: string, reportMarkdown: string): Promise<void> {
-  await pool.query(
-    `UPDATE coaching.sessions SET status = 'completed', completed_at = now() WHERE id = $1`,
-    [sessionId],
-  );
-  await upsertStep(pool, {
-    sessionId,
-    stepNumber: 0,
-    stepName: 'Abschlussbericht',
-    phase: 'umsetzung',
-    coachInputs: {},
-    aiResponse: reportMarkdown,
-    status: 'accepted',
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE coaching.sessions SET status = 'completed', completed_at = now() WHERE id = $1`,
+      [sessionId],
+    );
+    await client.query(
+      `INSERT INTO coaching.session_steps
+         (session_id, step_number, step_name, phase, coach_inputs, ai_prompt, ai_response, coach_notes, status, generated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT (session_id, step_number) DO UPDATE SET
+         coach_inputs  = EXCLUDED.coach_inputs,
+         ai_prompt     = CASE WHEN EXCLUDED.ai_prompt IS NOT NULL THEN EXCLUDED.ai_prompt ELSE coaching.session_steps.ai_prompt END,
+         ai_response   = CASE WHEN EXCLUDED.ai_response IS NOT NULL THEN EXCLUDED.ai_response ELSE coaching.session_steps.ai_response END,
+         coach_notes   = CASE WHEN EXCLUDED.coach_notes IS NOT NULL THEN EXCLUDED.coach_notes ELSE coaching.session_steps.coach_notes END,
+         status        = EXCLUDED.status,
+         generated_at  = CASE WHEN EXCLUDED.generated_at IS NOT NULL THEN EXCLUDED.generated_at ELSE coaching.session_steps.generated_at END`,
+      [
+        sessionId, 0, 'Abschlussbericht', 'umsetzung',
+        JSON.stringify({}),
+        null, reportMarkdown, null,
+        'accepted',
+        new Date(),
+      ],
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function appendAuditLog(
@@ -259,26 +280,39 @@ export async function updateSessionStatus(
   newStatus: Session['status'],
   actor: string,
 ): Promise<Session | null> {
-  const current = await pool.query(
-    `SELECT status FROM coaching.sessions WHERE id = $1`,
-    [id],
-  );
-  if (!current.rows[0]) return null;
-  const fromStatus = current.rows[0].status as string;
-  if (fromStatus === 'completed' && newStatus === 'active') return null;
-
-  const r = await pool.query(
-    `UPDATE coaching.sessions SET status = $2 WHERE id = $1 RETURNING *`,
-    [id, newStatus],
-  );
-  await appendAuditLog(pool, {
-    sessionId: id,
-    eventType: 'status_change',
-    actor,
-    stepNumber: null,
-    payload: { from: fromStatus, to: newStatus },
-  });
-  return rowToSession(r.rows[0]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const current = await client.query(
+      `SELECT status FROM coaching.sessions WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    if (!current.rows[0]) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    const fromStatus = current.rows[0].status as string;
+    if (fromStatus === 'completed' && newStatus === 'active') {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    const r = await client.query(
+      `UPDATE coaching.sessions SET status = $2 WHERE id = $1 RETURNING *`,
+      [id, newStatus],
+    );
+    await client.query(
+      `INSERT INTO coaching.session_audit_log (session_id, event_type, actor, step_number, payload)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, 'status_change', actor, null, JSON.stringify({ from: fromStatus, to: newStatus })],
+    );
+    await client.query('COMMIT');
+    return rowToSession(r.rows[0]);
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function updateSessionFields(
@@ -287,63 +321,103 @@ export async function updateSessionFields(
   fields: Partial<{ title: string; clientId: string | null; clientName: string | null }>,
   actor: string,
 ): Promise<Session | null> {
-  const current = await pool.query(`SELECT * FROM coaching.sessions WHERE id = $1`, [id]);
-  if (!current.rows[0]) return null;
-  const row = current.rows[0];
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const current = await client.query(`SELECT * FROM coaching.sessions WHERE id = $1`, [id]);
+    if (!current.rows[0]) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    const row = current.rows[0];
 
-  const sets: string[] = [];
-  const vals: unknown[] = [id];
-  const changedFields: { field: string; from: unknown; to: unknown }[] = [];
+    const sets: string[] = [];
+    const vals: unknown[] = [id];
+    const changedFields: { field: string; from: unknown; to: unknown }[] = [];
 
-  if (fields.title !== undefined && fields.title !== row.title) {
-    vals.push(fields.title);
-    sets.push(`title = $${vals.length}`);
-    changedFields.push({ field: 'title', from: row.title, to: fields.title });
-  }
-  if (fields.clientId !== undefined && fields.clientId !== row.client_id) {
-    vals.push(fields.clientId);
-    sets.push(`client_id = $${vals.length}`);
-    changedFields.push({ field: 'client_id', from: row.client_id, to: fields.clientId });
-  }
-  if (fields.clientName !== undefined && fields.clientName !== row.client_name) {
-    vals.push(fields.clientName);
-    sets.push(`client_name = $${vals.length}`);
-    changedFields.push({ field: 'client_name', from: row.client_name, to: fields.clientName });
-  }
-  if (sets.length === 0) return rowToSession(row);
+    if (fields.title !== undefined && fields.title !== row.title) {
+      vals.push(fields.title);
+      sets.push(`title = $${vals.length}`);
+      changedFields.push({ field: 'title', from: row.title, to: fields.title });
+    }
+    if (fields.clientId !== undefined && fields.clientId !== row.client_id) {
+      vals.push(fields.clientId);
+      sets.push(`client_id = $${vals.length}`);
+      changedFields.push({ field: 'client_id', from: row.client_id, to: fields.clientId });
+    }
+    if (fields.clientName !== undefined && fields.clientName !== row.client_name) {
+      vals.push(fields.clientName);
+      sets.push(`client_name = $${vals.length}`);
+      changedFields.push({ field: 'client_name', from: row.client_name, to: fields.clientName });
+    }
+    if (sets.length === 0) {
+      await client.query('ROLLBACK');
+      return rowToSession(row);
+    }
 
-  const r = await pool.query(
-    `UPDATE coaching.sessions SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
-    vals,
-  );
-  for (const f of changedFields) {
-    await appendAuditLog(pool, {
-      sessionId: id, eventType: 'field_change', actor, stepNumber: null, payload: f,
-    });
+    const r = await client.query(
+      `UPDATE coaching.sessions SET ${sets.join(', ')} WHERE id = $1 RETURNING *`,
+      vals,
+    );
+    for (const f of changedFields) {
+      await client.query(
+        `INSERT INTO coaching.session_audit_log (session_id, event_type, actor, step_number, payload)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [id, 'field_change', actor, null, JSON.stringify(f)],
+      );
+    }
+    await client.query('COMMIT');
+    return rowToSession(r.rows[0]);
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
   }
-  return rowToSession(r.rows[0]);
 }
 
 export async function archiveSession(pool: Pool, id: string, actor: string): Promise<void> {
-  await pool.query(
-    `UPDATE coaching.sessions SET archived_at = now() WHERE id = $1`,
-    [id],
-  );
-  await appendAuditLog(pool, {
-    sessionId: id, eventType: 'status_change', actor, stepNumber: null,
-    payload: { action: 'archived' },
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE coaching.sessions SET archived_at = now() WHERE id = $1`,
+      [id],
+    );
+    await client.query(
+      `INSERT INTO coaching.session_audit_log (session_id, event_type, actor, step_number, payload)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, 'status_change', actor, null, JSON.stringify({ action: 'archived' })],
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function unarchiveSession(pool: Pool, id: string, actor: string): Promise<void> {
-  await pool.query(
-    `UPDATE coaching.sessions SET archived_at = null WHERE id = $1`,
-    [id],
-  );
-  await appendAuditLog(pool, {
-    sessionId: id, eventType: 'status_change', actor, stepNumber: null,
-    payload: { action: 'unarchived' },
-  });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE coaching.sessions SET archived_at = null WHERE id = $1`,
+      [id],
+    );
+    await client.query(
+      `INSERT INTO coaching.session_audit_log (session_id, event_type, actor, step_number, payload)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [id, 'status_change', actor, null, JSON.stringify({ action: 'unarchived' })],
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 export async function getAuditLog(pool: Pool, sessionId: string, limit = 50): Promise<AuditEntry[]> {

@@ -140,7 +140,7 @@
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====
-    window.STATE = { figures: [], selectedId: null, stiffness: 0.65, online: 1 };
+    window.STATE = { figures: [], selectedId: null, hoveredId: null, stiffness: 0.65, online: 1 };
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -220,6 +220,12 @@
     'lShoulder','rShoulder','lElbow','rElbow','lWrist','rWrist',
     'lHip','rHip','lKnee','rKnee','lAnkle','rAnkle'
   ];
+  const BODY_RADIUS = 0.30;
+  const JUMP_V0 = 4.5;
+  const GRAVITY = 12.0;
+  const BOUNCE_K_DRAG = 6.0;
+  const BOUNCE_K_LAND = 9.0;
+  const COLLISION_MAX_ITER = 3;
   const CONTACT_POINTS = [
     { bone:'lWrist', color:0xffd84a }, { bone:'rWrist', color:0xffd84a },
     { bone:'lAnkle', color:0x6be0a0 }, { bone:'rAnkle', color:0x6be0a0 },
@@ -317,6 +323,10 @@
       label: 'Figur',
       color: '#b8c0a8',
       facingY: 0,
+      jumping: false,
+      jumpV: 0,
+      jumpY: 0,
+      _lastCollisionCheck: 0,
     };
   }
 
@@ -563,7 +573,62 @@
           }
         }
       }
-      if (minY < 0) fig.root.position.y -= minY; // lift onto floor
+      if (fig.jumping) {
+        fig.jumpY += fig.jumpV * dt;
+        fig.jumpV -= GRAVITY * dt;
+        if (fig.jumpY <= 0) {
+          fig.jumpY = 0;
+          fig.jumpV = 0;
+          fig.jumping = false;
+          resolveCollisions(fig, BOUNCE_K_LAND); // Landungs-Impact
+        }
+        fig.root.position.y = fig.jumpY;
+      } else if (minY < 0) {
+        fig.root.position.y -= minY; // lift onto floor
+      }
+    }
+  }
+
+  function startJump(fig) {
+    fig.jumping = true;
+    fig.jumpV = JUMP_V0;
+    fig.jumpY = 0;
+  }
+
+  function resolveCollisions(movedFig, impulseK) {
+    for (let iter = 0; iter < COLLISION_MAX_ITER; iter++) {
+      let resolved = false;
+      for (const other of STATE.figures) {
+        if (other === movedFig) continue;
+        const dx = other.root.position.x - movedFig.root.position.x;
+        const dz = other.root.position.z - movedFig.root.position.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        const minDist = 2 * BODY_RADIUS;
+        if (dist >= minDist || dist === 0) continue;
+        const nx = dx / dist, nz = dz / dist;
+        const overlap = minDist - dist + 0.02;
+        other.root.position.x += nx * overlap;
+        other.root.position.z += nz * overlap;
+        for (const name of BONE_NAMES) {
+          other.bone[name].velocity.x += impulseK * nx;
+          other.bone[name].velocity.z += impulseK * nz;
+        }
+        sendMove(other.id, other.root.position.x, other.root.position.z, other.facingY);
+        resolved = true;
+      }
+      if (!resolved) break;
+    }
+  }
+
+  function sendMove(figId, x, z, facingY) {
+    if (typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'move', id: figId, x, z, facingY: facingY ?? 0 }));
+    }
+  }
+
+  function sendJump(figId) {
+    if (typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'jump', id: figId }));
     }
   }
 
@@ -686,7 +751,12 @@
   });
 
   window.addEventListener('mousemove', (e) => {
-    if (!dragging) return;
+    if (!dragging) {
+      // Hover-Tracking für Space-Jump-Fallback
+      const fig = pickMannequinBody(e);
+      STATE.hoveredId = fig ? fig.id : null;
+      return;
+    }
     setNdc(e);
     raycaster.setFromCamera(ndc, camera);
     const target = new THREE.Vector3();
@@ -696,6 +766,11 @@
     if (!fig) return;
     ccdIK(fig, dragging.boneName, target, 6);
     sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+    const now = performance.now();
+    if (now - (fig._lastCollisionCheck || 0) > 33) {
+      fig._lastCollisionCheck = now;
+      resolveCollisions(fig, BOUNCE_K_DRAG);
+    }
   });
 
   window.addEventListener('mouseup', () => {
@@ -755,6 +830,19 @@
     } else {
       addFigure({ x: floorPt.x, z: floorPt.z });
     }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space') return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
+    const id = STATE.selectedId || STATE.hoveredId;
+    if (!id) return;
+    const fig = STATE.figures.find(f => f.id === id);
+    if (!fig || fig.jumping) return;
+    e.preventDefault();
+    startJump(fig);
+    sendJump(fig.id);
   });
 
   window.addEventListener('keydown', (e) => {
@@ -839,6 +927,7 @@
           const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
           fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
           fig.root.rotation.y = fig.facingY;
+          resolveCollisions(fig, BOUNCE_K_DRAG);
         }
       }
       // Click-to-walk target
@@ -857,6 +946,7 @@
           fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
           fig.root.rotation.y = fig.facingY;
           fig.walking = true;
+          resolveCollisions(fig, BOUNCE_K_DRAG);
         } else {
           fig.walking = false;
         }
@@ -875,7 +965,7 @@
     if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
     if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
     if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
-    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Klick Boden = Ziel · Tab = nächste';
+    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Space = Sprung · Klick Boden = Ziel · Tab = nächste';
   }
 
   // ----- WebSocket sync -----
@@ -944,6 +1034,12 @@
         if (!fig) break;
         fig.root.position.x = msg.x; fig.root.position.z = msg.z;
         if (typeof msg.facingY === "number") { fig.facingY = msg.facingY; fig.root.rotation.y = fig.facingY; }
+        resolveCollisions(fig, BOUNCE_K_DRAG);
+        break;
+      }
+      case "jump": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (fig && !fig.jumping) startJump(fig);
         break;
       }
       case "delete": {

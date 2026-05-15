@@ -2,7 +2,7 @@
 // scene.js still runs as classic <script> (IIFE) and owns the canvas; this
 // module layers on cross-cutting concerns (WS reconnect-banner) that will
 // expand in later phases.
-import { connect } from './ws.js';
+import { connect } from './ws.mjs';
 
 const ws = connect();
 

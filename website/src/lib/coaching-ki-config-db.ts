@@ -38,7 +38,7 @@ export async function getActiveProvider(pool: Pool, brand: string): Promise<KiCo
   return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
 }
 
-export async function setActiveProvider(pool: Pool, brand: string, provider: string): Promise<void> {
+export async function setActiveProvider(pool: Pool, brand: string, provider: KiConfig['provider']): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

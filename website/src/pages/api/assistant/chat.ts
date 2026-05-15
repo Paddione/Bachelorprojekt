@@ -37,5 +37,5 @@ export const POST: APIRoute = async ({ request }) => {
 
   const stored = await appendMessage(conv.id, 'assistant', result.reply, result.proposedAction);
 
-  return json({ message: stored, sourcesUsed: result.sourcesUsed ?? 0 });
+  return json({ message: stored, sources: result.sources ?? [] });
 };

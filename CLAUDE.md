@@ -44,6 +44,16 @@ Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
 ## Common Commands
 
+### Interactive task picker
+```bash
+# Fuzzy-search all tasks — no copy-pasting needed
+bash scripts/t.sh          # opens fzf picker, prompts for ENV= and extra args
+bash scripts/t.sh website  # pre-filters to website tasks
+
+# Recommended shell alias (add to ~/.bashrc or ~/.zshrc):
+alias t='bash /home/patrick/Bachelorprojekt/scripts/t.sh'
+```
+
 ### Day-to-day workflows (fan out across BOTH prod clusters)
 ```bash
 task feature:deploy        # workspace:deploy + post-setup on mentolder + korczewski

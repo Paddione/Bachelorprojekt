@@ -101,6 +101,7 @@
       <button class="preset-btn" data-preset="prone">Prone</button>
       <button class="preset-btn" data-preset="crawl">Crawl</button>
       <button class="preset-btn" data-preset="slump">Slump</button>
+<button id="mayhem-btn" type="button" style="margin-left:8px;">🤸 Mayhem</button>
       <button class="preset-btn" data-preset="tpose">T-Pose</button>
     </div>
     <div class="sep"></div>
@@ -975,6 +976,18 @@
   let wsReady = false;
 
   ws.addEventListener("open", () => {
+  // --- Mayhem mode wiring ---
+  if (window.Mayhem) {
+    const mayhemSend = (msg) => { try { ws.send(JSON.stringify(msg)); } catch (e) { /* ignore */ } };
+    window.Mayhem.init({
+      scene, camera, canvas: renderer.domElement,
+      makeMannequin: (id, pos) => makeMannequin(id, pos),
+      sendMessage: mayhemSend,
+      roomToken: roomFromUrl,
+    });
+    document.getElementById("mayhem-btn").addEventListener("click", () => window.Mayhem.toggle());
+  }
+
     wsReady = true;
     ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
   });
@@ -1048,6 +1061,12 @@
         break;
       }
       case "info":
+      default:
+        if (window.Mayhem) {
+          if (msg.type === "snapshot") window.Mayhem.onSnapshot(msg);
+          else window.Mayhem.onMessage(msg);
+        }
+        break;
         STATE.online = msg.count || 1;
         document.getElementById("online-count").textContent = String(STATE.online);
         break;
@@ -1087,6 +1106,7 @@
     requestAnimationFrame(tick);
     const now = performance.now();
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
+    if (window.Mayhem) window.Mayhem.tick(dt);
     lastTickMs = now;
     tickWalk(dt, now / 1000);
     tickSpring(dt);
@@ -1097,5 +1117,10 @@
 
     console.log('[brett] scene up');
   </script>
+<script src="assets/mayhem/physics.js"></script>
+<script src="assets/mayhem/chase-camera.js"></script>
+<script src="assets/mayhem/player-avatar.js"></script>
+<script src="assets/mayhem/vehicle.js"></script>
+<script src="assets/mayhem/mayhem.js"></script>
 </body>
 </html>

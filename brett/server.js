@@ -364,6 +364,15 @@ async function flushImmediate(room) {
   await persistState(room);
 }
 
+const handleDisconnect = function(ws, broadcastFn = broadcast) {
+  const room = ws._room;
+  if (!room) return;
+  if (ws._playerId) {
+    broadcastFn(room, { type: "player_leave", playerId: ws._playerId }, ws);
+  }
+  leaveRoom(ws);
+  broadcastInfo(room);
+}
 wss.on('connection', (ws) => {
   ws.on('message', async (raw) => {
     try {
@@ -400,7 +409,9 @@ wss.on('connection', (ws) => {
            'hit','vehicle_spawn'].includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
-        if (msg.type === 'clear') {
+        if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
+          ws._playerId = msg.playerId;
+        } else if (msg.type === 'clear') {
           flushImmediate(room).catch(err => console.error('[brett] flush:', err));
         } else if (msg.type !== 'jump' && msg.type !== 'player_join' &&
                    msg.type !== 'player_state' && msg.type !== 'player_leave' &&
@@ -413,14 +424,14 @@ wss.on('connection', (ws) => {
     }
   });
 
+// ... inside the ws.on('connection') handler:
   ws.on('close', async () => {
-    const room = leaveRoom(ws);
+    handleDisconnect(ws);
+    const room = ws._room;
     if (!room) return;
     if (rooms.has(room)) {
       broadcastInfo(room);
     } else {
-      // Last client gone: flush any pending state and free the figure map,
-      // but only if no new client joined the room during the flush.
       try {
         await flushImmediate(room);
       } finally {
@@ -453,3 +464,4 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));
 
 module.exports = { app, server, pool, wss, applyMutation, buildStateFromMutations, figureMaps };
+module.exports.handleDisconnect = handleDisconnect;

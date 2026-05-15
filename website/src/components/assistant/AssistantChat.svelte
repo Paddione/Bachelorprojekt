@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { AssistantProfile, Message } from '../../lib/assistant/types';
+  import type { AssistantProfile, Message, AssistantSource } from '../../lib/assistant/types';
   import AssistantMessage from './AssistantMessage.svelte';
   import AssistantConfirmCard from './AssistantConfirmCard.svelte';
 
   let { profile, onClose }: { profile: AssistantProfile; onClose?: () => void } = $props();
 
-  let messages = $state<(Message & { sourcesUsed?: number })[]>([]);
+  let messages = $state<(Message & { sources?: AssistantSource[] })[]>([]);
   let input = $state('');
   let sending = $state(false);
   let busyAction = $state<string | null>(null);
@@ -30,7 +30,7 @@
         messages = [
           ...messages,
           { id: 'optimistic-' + Date.now(), conversationId: '', role: 'user', content, createdAt: new Date().toISOString() },
-          { ...data.message, sourcesUsed: data.sourcesUsed ?? 0 },
+          { ...data.message, sources: data.sources ?? [] },
         ];
       }
     } finally {
@@ -77,7 +77,7 @@
   </header>
   <div style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
     {#each messages as m (m.id)}
-      <AssistantMessage message={m} sourcesUsed={m.sourcesUsed ?? 0} />
+      <AssistantMessage message={m} sources={m.sources ?? []} />
       {#if m.role === 'assistant' && m.proposedAction}
         <AssistantConfirmCard
           action={m.proposedAction}

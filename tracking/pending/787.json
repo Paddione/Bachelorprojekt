@@ -1,0 +1,13 @@
+{
+  "pr_number": 787,
+  "title": "Session-Management-Erweiterung — Status, Archiv, Audit-Trail, KI-Provider, Prompt-Templates",
+  "description": "## Summary\n\n- **DB-Schema** erweitert: `sessions.status` (active/paused/completed/abandoned), `sessions.archived_at`, neue Tabellen `session_audit_log`, `ki_config`, `step_templates`\n- **TypeScript-Module**: `coaching-session-db.ts` um paginierte Suche/Sortierung, Status-/Archiv-Verwaltung und Audit-Log erweitert; neue Module `coaching-ki-config-db.ts` und `coaching-templates-db.ts`\n- **API-Routen**: Sessions-Liste mit Paginierung/Filter, PATCH für Session-Felder, Status/Archiv/Audit-Endpunkte, KI-Config und Step-Templates CRUD\n- **Generate-API** jetzt provider-aware (Claude/OpenAI/Mistral/Lumo) mit Audit-Logging\n- **Frontend**: `SessionsOverview.svelte` (Suche, Sortierung, Inline-Status-Dropdown, Archivieren), `CoachingSettings.svelte` (KI-Provider-Auswahl, Prompt-Template-Editor), neue Admin-Seite `/admin/coaching/settings`, Session-Detail mit Klient-Edit und Audit-Log-Timeline\n\n## Test plan\n\n- [ ] Coaching-Sessions-Übersicht unter `/admin/coaching/sessions` öffnen — SessionsOverview lädt mit Server-seitigem Initialwert\n- [ ] Suche nach Session-Titel/Klient-Name testen (debounced, 300ms)\n- [ ] Status per Dropdown ändern (active → paused, paused → completed) — Audit-Log prüfen\n- [ ] Session archivieren und unter \"Archivierte anzeigen\" wiederfinden, Archivierung aufheben\n- [ ] Session-Detail öffnen — Klient-Name bearbeiten, Audit-Log-Timeline sichtbar\n- [ ] `/admin/coaching/settings` öffnen — KI-Provider wechseln, Prompt-Template bearbeiten/löschen\n- [ ] Vitest-Suite: 347 Tests grün, keine neuen Fehler\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+  "category": "feat",
+  "scope": "coaching",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-15T20:11:34Z",
+  "merged_by": "gekko32",
+  "bug_refs": [],
+  "ticket_refs": []
+}

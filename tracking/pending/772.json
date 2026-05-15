@@ -1,0 +1,15 @@
+{
+  "pr_number": 772,
+  "title": "archive brainstorm-tunnel-stable → postgres [T000380]",
+  "description": "Plan archived to tickets.ticket_plans (linked to T000380 / PR #771). Deleting the on-disk plan per dev-flow-execute step 7.",
+  "category": "chore",
+  "scope": "plans",
+  "brand": null,
+  "requirement_id": null,
+  "merged_at": "2026-05-15T00:41:42Z",
+  "merged_by": "Paddione",
+  "bug_refs": [],
+  "ticket_refs": [
+    "T000380"
+  ]
+}

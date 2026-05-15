@@ -16,7 +16,19 @@ function capsuleCapsule(a, b) {
   return distSq < r * r;
 }
 
-const api = { capsuleCapsule };
+function aabbCapsule(box, cap) {
+  const capTop = cap.y + cap.height;
+  // y overlap
+  if (capTop < box.minY || cap.y > box.maxY) return false;
+  // closest point on box footprint to capsule center line (xz plane)
+  const cx = Math.max(box.minX, Math.min(cap.x, box.maxX));
+  const cz = Math.max(box.minZ, Math.min(cap.z, box.maxZ));
+  const dx = cap.x - cx;
+  const dz = cap.z - cz;
+  return (dx * dx + dz * dz) < (cap.radius * cap.radius);
+}
+
+const api = { capsuleCapsule, aabbCapsule };
 
 // Dual export: CommonJS (for node --test) and window global (for browser).
 if (typeof module !== 'undefined' && module.exports) {

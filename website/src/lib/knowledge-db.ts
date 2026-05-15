@@ -145,9 +145,20 @@ export async function recountChunks(collectionId: string): Promise<void> {
   );
 }
 
+export interface NearestChunk {
+  id: string;
+  text: string;
+  collection_id: string;
+  document_id: string;
+  score: number;
+  bookTitle: string | null;
+  collectionName: string;
+  page: number | null;
+}
+
 export async function queryNearest(args: {
   collectionIds: string[]; queryText: string; limit?: number; threshold?: number; signal?: AbortSignal;
-}): Promise<Array<{ id: string; text: string; collection_id: string; document_id: string; score: number }>> {
+}): Promise<NearestChunk[]> {
   const limit  = args.limit     ?? 6;
   const thresh = args.threshold ?? 0.65;
 
@@ -169,15 +180,31 @@ export async function queryNearest(args: {
   });
 
   const r = await p().query(
-    `SELECT id, text, collection_id, document_id,
-            1 - (embedding <=> $1) AS score
-       FROM knowledge.chunks
-      WHERE collection_id = ANY($2::uuid[])
-      ORDER BY embedding <=> $1
+    `SELECT kc.id, kc.text, kc.collection_id, kc.document_id,
+            1 - (kc.embedding <=> $1) AS score,
+            cb.title AS book_title,
+            col.name AS collection_name,
+            (kc.metadata->>'page')::int AS page
+       FROM knowledge.chunks kc
+       JOIN knowledge.collections col ON col.id = kc.collection_id
+       LEFT JOIN coaching.books cb ON cb.knowledge_collection_id = kc.collection_id
+      WHERE kc.collection_id = ANY($2::uuid[])
+      ORDER BY kc.embedding <=> $1
       LIMIT $3`,
     [vecLiteral(embedding), args.collectionIds, limit],
   );
-  return r.rows.filter((row: { score: number }) => row.score >= thresh);
+  return r.rows
+    .filter((row: { score: number }) => row.score >= thresh)
+    .map((row: { id: string; text: string; collection_id: string; document_id: string; score: number; book_title: string | null; collection_name: string; page: number | null }) => ({
+      id: row.id,
+      text: row.text,
+      collection_id: row.collection_id,
+      document_id: row.document_id,
+      score: row.score,
+      bookTitle: row.book_title,
+      collectionName: row.collection_name,
+      page: row.page,
+    }));
 }
 
 export async function ensureCollection(args: {

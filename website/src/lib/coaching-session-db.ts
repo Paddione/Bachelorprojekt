@@ -5,6 +5,7 @@ export interface Session {
   brand: string;
   clientId: string | null;
   clientName: string | null;
+  kiConfigId: number | null;
   mode: 'live' | 'prep';
   title: string;
   status: 'active' | 'paused' | 'completed' | 'abandoned';
@@ -59,6 +60,7 @@ export interface SessionStep {
 export interface CreateSessionArgs {
   brand: string;
   clientId?: string | null;
+  kiConfigId?: number | null;
   mode: 'live' | 'prep';
   title: string;
   createdBy: string;
@@ -82,6 +84,7 @@ function rowToSession(row: Record<string, unknown>, steps: SessionStep[] = []): 
     brand: row.brand as string,
     clientId: (row.client_id as string | null) ?? null,
     clientName: (row.client_name as string | null) ?? null,
+    kiConfigId: (row.ki_config_id as number | null) ?? null,
     mode: row.mode as 'live' | 'prep',
     title: row.title as string,
     status: row.status as Session['status'],
@@ -111,10 +114,10 @@ function rowToStep(row: Record<string, unknown>): SessionStep {
 
 export async function createSession(pool: Pool, args: CreateSessionArgs): Promise<Session> {
   const r = await pool.query(
-    `INSERT INTO coaching.sessions (brand, client_id, mode, title, created_by)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO coaching.sessions (brand, client_id, ki_config_id, mode, title, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [args.brand, args.clientId ?? null, args.mode, args.title, args.createdBy],
+    [args.brand, args.clientId ?? null, args.kiConfigId ?? null, args.mode, args.title, args.createdBy],
   );
   return rowToSession(r.rows[0]);
 }
@@ -318,7 +321,7 @@ export async function updateSessionStatus(
 export async function updateSessionFields(
   pool: Pool,
   id: string,
-  fields: Partial<{ title: string; clientId: string | null; clientName: string | null }>,
+  fields: Partial<{ title: string; clientId: string | null; clientName: string | null; kiConfigId: number | null }>,
   actor: string,
 ): Promise<Session | null> {
   const client = await pool.connect();
@@ -349,6 +352,11 @@ export async function updateSessionFields(
       vals.push(fields.clientName);
       sets.push(`client_name = $${vals.length}`);
       changedFields.push({ field: 'client_name', from: row.client_name, to: fields.clientName });
+    }
+    if (fields.kiConfigId !== undefined && fields.kiConfigId !== row.ki_config_id) {
+      vals.push(fields.kiConfigId);
+      sets.push(`ki_config_id = $${vals.length}`);
+      changedFields.push({ field: 'ki_config_id', from: row.ki_config_id, to: fields.kiConfigId });
     }
     if (sets.length === 0) {
       await client.query('ROLLBACK');

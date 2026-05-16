@@ -8,7 +8,27 @@ export interface KiConfig {
   modelName: string | null;
   displayName: string;
   createdAt: Date;
+  // Verbindung
+  apiKey: string | null;
+  apiEndpoint: string | null;
+  // Verhalten (gemeinsam)
+  temperature: number | null;
+  maxTokens: number | null;
+  topP: number | null;
+  systemPrompt: string | null;
+  notes: string | null;
+  // Anbieterspezifisch
+  topK: number | null;
+  thinkingMode: boolean;
+  presencePenalty: number | null;
+  frequencyPenalty: number | null;
+  safePrompt: boolean;
+  randomSeed: number | null;
+  organizationId: string | null;
+  euEndpoint: boolean;
 }
+
+export type UpdateKiProviderFields = Partial<Omit<KiConfig, 'id' | 'brand' | 'provider' | 'isActive' | 'createdAt'>>;
 
 function rowToKiConfig(row: Record<string, unknown>): KiConfig {
   return {
@@ -19,6 +39,21 @@ function rowToKiConfig(row: Record<string, unknown>): KiConfig {
     modelName: (row.model_name as string | null) ?? null,
     displayName: row.display_name as string,
     createdAt: row.created_at as Date,
+    apiKey: (row.api_key as string | null) ?? null,
+    apiEndpoint: (row.api_endpoint as string | null) ?? null,
+    temperature: (row.temperature != null ? Number(row.temperature) : null),
+    maxTokens: (row.max_tokens as number | null) ?? null,
+    topP: (row.top_p != null ? Number(row.top_p) : null),
+    systemPrompt: (row.system_prompt as string | null) ?? null,
+    notes: (row.notes as string | null) ?? null,
+    topK: (row.top_k as number | null) ?? null,
+    thinkingMode: (row.thinking_mode as boolean) ?? false,
+    presencePenalty: (row.presence_penalty != null ? Number(row.presence_penalty) : null),
+    frequencyPenalty: (row.frequency_penalty != null ? Number(row.frequency_penalty) : null),
+    safePrompt: (row.safe_prompt as boolean) ?? false,
+    randomSeed: (row.random_seed as number | null) ?? null,
+    organizationId: (row.organization_id as string | null) ?? null,
+    euEndpoint: (row.eu_endpoint as boolean) ?? false,
   };
 }
 
@@ -34,6 +69,14 @@ export async function getActiveProvider(pool: Pool, brand: string): Promise<KiCo
   const r = await pool.query(
     `SELECT * FROM coaching.ki_config WHERE brand = $1 AND is_active = true LIMIT 1`,
     [brand],
+  );
+  return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
+}
+
+export async function getKiProviderById(pool: Pool, id: number): Promise<KiConfig | null> {
+  const r = await pool.query(
+    `SELECT * FROM coaching.ki_config WHERE id = $1`,
+    [id],
   );
   return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
 }
@@ -66,17 +109,49 @@ export async function setActiveProvider(pool: Pool, brand: string, provider: KiC
   }
 }
 
+const COLUMN_MAP: Record<string, string> = {
+  modelName:        'model_name',
+  displayName:      'display_name',
+  apiKey:           'api_key',
+  apiEndpoint:      'api_endpoint',
+  temperature:      'temperature',
+  maxTokens:        'max_tokens',
+  topP:             'top_p',
+  systemPrompt:     'system_prompt',
+  notes:            'notes',
+  topK:             'top_k',
+  thinkingMode:     'thinking_mode',
+  presencePenalty:  'presence_penalty',
+  frequencyPenalty: 'frequency_penalty',
+  safePrompt:       'safe_prompt',
+  randomSeed:       'random_seed',
+  organizationId:   'organization_id',
+  euEndpoint:       'eu_endpoint',
+};
+
 export async function updateKiProvider(
   pool: Pool,
   id: number,
-  fields: { modelName: string | null; displayName: string },
+  fields: UpdateKiProviderFields,
 ): Promise<KiConfig> {
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  let i = 1;
+  for (const [k, v] of Object.entries(fields)) {
+    const col = COLUMN_MAP[k];
+    if (!col) continue;
+    sets.push(`${col} = $${i++}`);
+    vals.push(v);
+  }
+  if (sets.length === 0) {
+    const r = await pool.query(`SELECT * FROM coaching.ki_config WHERE id = $1`, [id]);
+    if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
+    return rowToKiConfig(r.rows[0]);
+  }
+  vals.push(id);
   const r = await pool.query(
-    `UPDATE coaching.ki_config
-     SET model_name = $1, display_name = $2
-     WHERE id = $3
-     RETURNING *`,
-    [fields.modelName, fields.displayName, id],
+    `UPDATE coaching.ki_config SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`,
+    vals,
   );
   if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
   return rowToKiConfig(r.rows[0]);

@@ -126,3 +126,4 @@ tests/unit/lib/bats-support/test/
 .gemini
 # docs-to-html plugin output
 docs-html-bundles/
+.worktrees/

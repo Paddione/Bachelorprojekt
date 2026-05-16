@@ -1,0 +1,982 @@
+// brett/public/assets/scene.js
+// Extracted from inline <script> in index.html during Phase 1 refactor.
+// Remains monolithic until Phase 3 splits it further.
+(function () {
+    // ===== Brett Mannequin Focus =====
+    window.STATE = { figures: [], selectedId: null, hoveredId: null, stiffness: 0.65, online: 1 };
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight - 36);
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = '36px';
+    renderer.domElement.style.left = '0';
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e1014);
+
+    const camera = new THREE.PerspectiveCamera(
+      50, window.innerWidth / (window.innerHeight - 36), 0.1, 200
+    );
+    camera.position.set(4, 4, 6);
+    camera.lookAt(0, 1, 0);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    scene.add(ambient);
+    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+    sun.position.set(5, 10, 4);
+    scene.add(sun);
+
+    // Floor grid
+    const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
+    grid.position.y = 0;
+    scene.add(grid);
+    const floorGeo = new THREE.PlaneGeometry(40, 40);
+    const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0;
+    scene.add(floor);
+
+    // Minimal manual orbit (mouse drag with middle button + wheel)
+    const cameraOrbit = { theta: Math.atan2(camera.position.x, camera.position.z), phi: 0.6, dist: Math.hypot(camera.position.x, camera.position.z, camera.position.y) };
+    function updateCameraFromOrbit() {
+      const r = cameraOrbit.dist;
+      camera.position.set(
+        Math.sin(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r,
+        Math.sin(cameraOrbit.phi) * r,
+        Math.cos(cameraOrbit.theta) * Math.cos(cameraOrbit.phi) * r
+      );
+      camera.lookAt(0, 1, 0);
+    }
+    updateCameraFromOrbit();
+    let dragMode = null, dragLast = null;
+    renderer.domElement.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || (e.button === 0 && e.shiftKey)) { dragMode = 'orbit'; dragLast = { x: e.clientX, y: e.clientY }; }
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (dragMode === 'orbit' && dragLast) {
+        const dx = e.clientX - dragLast.x, dy = e.clientY - dragLast.y;
+        cameraOrbit.theta -= dx * 0.005;
+        cameraOrbit.phi = Math.max(-1.2, Math.min(1.2, cameraOrbit.phi + dy * 0.005));
+        updateCameraFromOrbit();
+        dragLast = { x: e.clientX, y: e.clientY };
+      }
+    });
+    window.addEventListener('mouseup', () => { dragMode = null; dragLast = null; });
+    renderer.domElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      cameraOrbit.dist = Math.max(2, Math.min(40, cameraOrbit.dist * (1 + e.deltaY * 0.001)));
+      updateCameraFromOrbit();
+    }, { passive: false });
+
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight - 36);
+      camera.aspect = window.innerWidth / (window.innerHeight - 36);
+      camera.updateProjectionMatrix();
+    });
+
+  // ----- Mannequin model -----
+  const BONE_NAMES = [
+    'hips','head',
+    'lShoulder','rShoulder','lElbow','rElbow','lWrist','rWrist',
+    'lHip','rHip','lKnee','rKnee','lAnkle','rAnkle'
+  ];
+  const BODY_RADIUS = 0.30;
+  const JUMP_V0 = 4.5;
+  const GRAVITY = 12.0;
+  const BOUNCE_K_DRAG = 6.0;
+  const BOUNCE_K_LAND = 9.0;
+  const COLLISION_MAX_ITER = 3;
+  const CONTACT_POINTS = [
+    { bone:'lWrist', color:0xffd84a }, { bone:'rWrist', color:0xffd84a },
+    { bone:'lAnkle', color:0x6be0a0 }, { bone:'rAnkle', color:0x6be0a0 },
+    { bone:'lKnee',  color:0x4a9adf }, { bone:'rKnee',  color:0x4a9adf },
+    { bone:'lElbow', color:0xc8a96e }, { bone:'rElbow', color:0xc8a96e },
+    { bone:'head',   color:0xe09090 },
+  ];
+
+  function makeBone(parent, length, color = 0xb8c0a8) {
+    const g = new THREE.Group();
+    const geom = new THREE.CylinderGeometry(0.06, 0.06, length, 8);
+    geom.translate(0, -length / 2, 0); // pivot at top
+    const mat = new THREE.MeshLambertMaterial({ color });
+    const mesh = new THREE.Mesh(geom, mat);
+    g.add(mesh);
+    g.userData.length = length;
+    parent.add(g);
+    return g;
+  }
+
+  function makeMannequin(id, position = { x: 0, z: 0 }) {
+    const root = new THREE.Group();
+    root.position.set(position.x, 0, position.z);
+
+    // Hips at y≈1.0; spine up to head
+    const hips = new THREE.Group(); hips.position.y = 1.0; root.add(hips);
+    const torsoMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.5, 0.7, 0.25),
+      new THREE.MeshLambertMaterial({ color: 0xb8c0a8 })
+    );
+    torsoMesh.position.y = 0.35; hips.add(torsoMesh);
+
+    const head = new THREE.Group(); head.position.y = 0.85; hips.add(head);
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12),
+      new THREE.MeshLambertMaterial({ color: 0xd9c89b }));
+    head.add(headMesh);
+
+    // Arms
+    const lShoulder = new THREE.Group(); lShoulder.position.set( 0.28, 0.65, 0); hips.add(lShoulder);
+    const rShoulder = new THREE.Group(); rShoulder.position.set(-0.28, 0.65, 0); hips.add(rShoulder);
+    const lUpper = makeBone(lShoulder, 0.32); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
+    const rUpper = makeBone(rShoulder, 0.32); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
+    const lFore  = makeBone(lElbow, 0.30);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
+    const rFore  = makeBone(rElbow, 0.30);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+
+    // Legs
+    const lHip = new THREE.Group(); lHip.position.set( 0.12, 0, 0); hips.add(lHip);
+    const rHip = new THREE.Group(); rHip.position.set(-0.12, 0, 0); hips.add(rHip);
+    makeBone(lHip, 0.42); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
+    makeBone(rHip, 0.42); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
+    makeBone(lKnee, 0.40); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
+    makeBone(rKnee, 0.40); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+
+    const bones = { hips, head, lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle };
+
+    // Contact-point spheres (raycaster-hittable)
+    for (const cp of CONTACT_POINTS) {
+      const sphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.07, 12, 10),
+        new THREE.MeshLambertMaterial({ color: cp.color })
+      );
+      sphere.userData.isContact = true;
+      sphere.userData.boneName = cp.bone;
+      sphere.userData.figureId = id;
+      bones[cp.bone].add(sphere);
+    }
+
+    // Selection ellipse (hidden until selected)
+    const ringGeo = new THREE.RingGeometry(0.55, 0.62, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8a96e, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.01; ring.visible = false;
+    root.add(ring);
+
+    scene.add(root);
+
+    // Per-bone spring state (filled by preset/spring in later tasks)
+    const bone = {};
+    for (const name of BONE_NAMES) {
+      bone[name] = {
+        currentRot: { x: 0, z: 0 },
+        targetRot:  { x: 0, z: 0 },
+        velocity:   { x: 0, z: 0 },
+      };
+    }
+
+    return {
+      id,
+      type: 'mannequin',
+      root, hips, bones, ring,
+      bone,
+      walkTarget: null,
+      walking: false,
+      boneOverrides: {},
+      label: 'Figur',
+      color: '#b8c0a8',
+      facingY: 0,
+      jumping: false,
+      jumpV: 0,
+      jumpY: 0,
+      _lastCollisionCheck: 0,
+    };
+  }
+
+  function addFigure(position) {
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('f-' + Math.random().toString(36).slice(2,10));
+    const fig = makeMannequin(id, position);
+    STATE.figures.push(fig);
+    selectFigure(id);
+    return fig;
+  }
+
+  // ── Panel state ──────────────────────────────────────────────────────────────
+  let panelColor = '#b8c0a8'; // default body color for new figures
+
+  function recolorFigure(fig, hexColor) {
+    const threeColor = new THREE.Color(hexColor);
+    fig.root.traverse(o => {
+      if (o.isMesh && !o.userData.isContact && o !== fig.ring) {
+        if (o.material) o.material.color.set(threeColor);
+      }
+    });
+    fig.color = hexColor;
+  }
+
+  function syncPanelToSelection(id) {
+    const title  = document.getElementById('fig-panel-title');
+    const addBtn = document.getElementById('fig-panel-add');
+    const input  = document.getElementById('fig-label-input');
+    if (!title) return;
+    const fig = STATE.figures.find(f => f.id === id);
+    if (fig) {
+      title.textContent = 'FIGUR BEARBEITEN';
+      if (addBtn) addBtn.hidden = true;
+      if (input) input.value = fig.label || '';
+    } else {
+      title.textContent = 'NEUE FIGUR';
+      if (addBtn) addBtn.hidden = false;
+      if (input) input.value = '';
+    }
+  }
+
+  function selectFigure(id) {
+    STATE.selectedId = id;
+    for (const f of STATE.figures) {
+      f.ring.visible = (f.id === id);
+      f.root.traverse(o => {
+        if (o.isMesh && !o.userData.isContact && o !== f.ring) {
+          if (o.material && 'opacity' in o.material) {
+            o.material.transparent = true;
+            o.material.opacity = (f.id === id) ? 1.0 : 0.55;
+          }
+        }
+      });
+    }
+    syncPanelToSelection(id);
+  }
+
+  // ── Panel toggle ─────────────────────────────────────────────────────────────
+  const figPanelBtn   = document.getElementById('fig-panel-btn');
+  const figPanel      = document.getElementById('fig-panel');
+  const figPanelClose = document.getElementById('fig-panel-close');
+
+  function openFigPanel()  {
+    figPanel.hidden = false;
+    figPanelBtn.classList.add('open');
+    figPanelBtn.setAttribute('aria-expanded', 'true');
+    syncPanelToSelection(STATE.selectedId);
+  }
+  function closeFigPanel() {
+    figPanel.hidden = true;
+    figPanelBtn.classList.remove('open');
+    figPanelBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  figPanelBtn.addEventListener('click', () => {
+    figPanel.hidden ? openFigPanel() : closeFigPanel();
+  });
+  figPanelClose.addEventListener('click', closeFigPanel);
+  document.addEventListener('click', e => {
+    if (!figPanel.hidden && !figPanel.contains(e.target) && e.target !== figPanelBtn) {
+      closeFigPanel();
+    }
+  });
+
+  // ── Color swatches ────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-colors').addEventListener('click', e => {
+    const swatch = e.target.closest('.fig-color-swatch');
+    if (!swatch) return;
+    document.querySelectorAll('.fig-color-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    panelColor = swatch.dataset.color;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) recolorFigure(fig, panelColor);
+  });
+
+  // ── Label input ────────────────────────────────────────────────────────────────
+  document.getElementById('fig-label-input').addEventListener('input', e => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) fig.label = e.target.value;
+  });
+
+  // ── Add button ─────────────────────────────────────────────────────────────────
+  document.getElementById('fig-panel-add').addEventListener('click', () => {
+    const label = document.getElementById('fig-label-input').value.trim();
+    const x = (Math.random() - 0.5) * 4, z = (Math.random() - 0.5) * 4;
+    const fig = addFigure({ x, z });
+    recolorFigure(fig, panelColor);
+    if (label) fig.label = label;
+    closeFigPanel();
+  });
+  // ----- Pose presets (target rotations in radians; only x and z used) -----
+  // Each value is { x: pitch, z: roll } applied via group.rotation.x / .z.
+  const PRESETS = {
+    stand: {
+      hips:{x:0,z:0}, head:{x:0,z:0},
+      lShoulder:{x:0,z: 0.05}, rShoulder:{x:0,z:-0.05},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:0,z:0}, rHip:{x:0,z:0},
+      lKnee:{x:0,z:0}, rKnee:{x:0,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    kneel: {
+      hips:{x:0,z:0}, head:{x:-0.05,z:0},
+      lShoulder:{x:0.1,z: 0.25}, rShoulder:{x:0.1,z:-0.25},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:-1.3,z:0}, rHip:{x:-1.3,z:0},
+      lKnee:{x: 1.7,z:0}, rKnee:{x: 1.7,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    prone: {
+      hips:{x:-1.5,z:0}, head:{x:0.2,z:0},
+      lShoulder:{x:-1.2,z: 0.1}, rShoulder:{x:-1.2,z:-0.1},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:0,z:0}, rHip:{x:0,z:0},
+      lKnee:{x:0,z:0}, rKnee:{x:0,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    crawl: {
+      hips:{x:-1.4,z:0}, head:{x:0.15,z:0},
+      lShoulder:{x:-1.3,z: 0.05}, rShoulder:{x:-1.3,z:-0.05},
+      lElbow:{x:0.1,z:0}, rElbow:{x:0.1,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:-1.3,z:0}, rHip:{x:-1.3,z:0},
+      lKnee:{x: 1.55,z:0}, rKnee:{x: 1.55,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    slump: {
+      hips:{x:-0.7,z:0}, head:{x:0.5,z:0},
+      lShoulder:{x:0.6,z: 0.35}, rShoulder:{x:0.6,z:-0.35},
+      lElbow:{x:0.4,z:0}, rElbow:{x:0.4,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:-1.4,z:0}, rHip:{x:-1.4,z:0},
+      lKnee:{x: 1.3,z:0}, rKnee:{x: 1.3,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+    tpose: {
+      hips:{x:0,z:0}, head:{x:0,z:0},
+      lShoulder:{x:0,z: 1.5708}, rShoulder:{x:0,z:-1.5708},
+      lElbow:{x:0,z:0}, rElbow:{x:0,z:0},
+      lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+      lHip:{x:0,z:0}, rHip:{x:0,z:0},
+      lKnee:{x:0,z:0}, rKnee:{x:0,z:0},
+      lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+    },
+  };
+
+  function applyPreset(figId, presetKey) {
+    const fig = STATE.figures.find(f => f.id === figId);
+    if (!fig || !PRESETS[presetKey]) return;
+    const p = PRESETS[presetKey];
+    for (const name of BONE_NAMES) {
+      fig.bone[name].targetRot.x = p[name].x;
+      fig.bone[name].targetRot.z = p[name].z;
+    }
+
+    sendUpdate(fig, { preset: presetKey });
+  }
+
+
+
+  document.getElementById('presets').addEventListener('click', (e) => {
+    const btn = e.target.closest("button[data-preset]");
+    if (!btn || !STATE.selectedId) return;
+    applyPreset(STATE.selectedId, btn.dataset.preset);
+  });
+
+  // Seed one figure so the scene is not empty on first load
+  addFigure({ x: 0, z: 0 });
+
+  // Main render loop — figure ticks added in later tasks
+  // ----- Verlet spring -----
+  const K_SPRING = 80;
+  const DAMPING  = 0.85;
+  // Per-bone gravity offset (pitch x, roll z) when fully limp (stiffness=0)
+  const GRAVITY_OFFSET = {
+    hips:     { x: 0.2,  z: 0 },
+    head:     { x: 0.4,  z: 0 },
+    lShoulder:{ x: 0.6,  z: 0.3 }, rShoulder:{ x: 0.6, z: -0.3 },
+    lElbow:   { x: 0.3,  z: 0 },   rElbow:   { x: 0.3, z: 0 },
+    lWrist:   { x: 0,    z: 0 },   rWrist:   { x: 0,   z: 0 },
+    lHip:     { x: -0.2, z: 0 },   rHip:     { x: -0.2, z: 0 },
+    lKnee:    { x: 0.2,  z: 0 },   rKnee:    { x: 0.2, z: 0 },
+    lAnkle:   { x: 0,    z: 0 },   rAnkle:   { x: 0,   z: 0 },
+  };
+
+  let lastTickMs = performance.now();
+
+  function tickSpring(dt) {
+    const stiff = STATE.stiffness;
+    for (const fig of STATE.figures) {
+      for (const name of BONE_NAMES) {
+        const b = fig.bone[name];
+        if (fig.boneOverrides[name]) {
+          // IK has authoritative rotation for this bone; sync state and skip spring
+          b.currentRot.x = fig.boneOverrides[name].x;
+          b.currentRot.z = fig.boneOverrides[name].z;
+          b.velocity.x = 0; b.velocity.z = 0;
+        } else {
+          const grav = GRAVITY_OFFSET[name];
+          const tx = b.targetRot.x + grav.x * (1 - stiff);
+          const tz = b.targetRot.z + grav.z * (1 - stiff);
+          const ax = (tx - b.currentRot.x) * stiff * K_SPRING;
+          const az = (tz - b.currentRot.z) * stiff * K_SPRING;
+          b.velocity.x = b.velocity.x * DAMPING + ax * dt;
+          b.velocity.z = b.velocity.z * DAMPING + az * dt;
+          b.currentRot.x += b.velocity.x * dt;
+          b.currentRot.z += b.velocity.z * dt;
+        }
+        fig.bones[name].rotation.x = b.currentRot.x;
+        fig.bones[name].rotation.z = b.currentRot.z;
+      }
+      // Floor clamp: lift root if any ankle/knee contact sphere is below y=0
+      let minY = 0;
+      for (const cp of CONTACT_POINTS) {
+        if (cp.bone === 'lAnkle' || cp.bone === 'rAnkle' || cp.bone === 'lKnee' || cp.bone === 'rKnee') {
+          const s = fig.bones[cp.bone].children.find(c => c.userData && c.userData.isContact);
+          if (s) {
+            const world = new THREE.Vector3();
+            s.getWorldPosition(world);
+            if (world.y < minY) minY = world.y;
+          }
+        }
+      }
+      if (fig.jumping) {
+        fig.jumpY += fig.jumpV * dt;
+        fig.jumpV -= GRAVITY * dt;
+        if (fig.jumpY <= 0) {
+          fig.jumpY = 0;
+          fig.jumpV = 0;
+          fig.jumping = false;
+          resolveCollisions(fig, BOUNCE_K_LAND); // Landungs-Impact
+        }
+        fig.root.position.y = fig.jumpY;
+      } else if (minY < 0) {
+        fig.root.position.y -= minY; // lift onto floor
+      }
+    }
+  }
+
+  function startJump(fig) {
+    fig.jumping = true;
+    fig.jumpV = JUMP_V0;
+    fig.jumpY = 0;
+  }
+
+  function resolveCollisions(movedFig, impulseK) {
+    for (let iter = 0; iter < COLLISION_MAX_ITER; iter++) {
+      let resolved = false;
+      for (const other of STATE.figures) {
+        if (other === movedFig) continue;
+        const dx = other.root.position.x - movedFig.root.position.x;
+        const dz = other.root.position.z - movedFig.root.position.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        const minDist = 2 * BODY_RADIUS;
+        if (dist >= minDist || dist === 0) continue;
+        const nx = dx / dist, nz = dz / dist;
+        const overlap = minDist - dist + 0.02;
+        other.root.position.x += nx * overlap;
+        other.root.position.z += nz * overlap;
+        for (const name of BONE_NAMES) {
+          other.bone[name].velocity.x += impulseK * nx;
+          other.bone[name].velocity.z += impulseK * nz;
+        }
+        sendMove(other.id, other.root.position.x, other.root.position.z, other.facingY);
+        resolved = true;
+      }
+      if (!resolved) break;
+    }
+  }
+
+  function sendMove(figId, x, z, facingY) {
+    if (typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'move', id: figId, x, z, facingY: facingY ?? 0 }));
+    }
+  }
+
+  function sendJump(figId) {
+    if (typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'jump', id: figId }));
+    }
+  }
+
+  const stiffSlider = document.getElementById('stiffness');
+  stiffSlider.addEventListener('input', () => {
+    STATE.stiffness = parseFloat(stiffSlider.value);
+    sendStiffness(STATE.stiffness);
+  });
+
+
+  // ----- CCD-IK -----
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+
+  // Chains: end-effector first, root last. Only bones in the chain are rotated.
+  const IK_CHAINS = {
+    lWrist: ['lElbow', 'lShoulder'],
+    rWrist: ['rElbow', 'rShoulder'],
+    lAnkle: ['lKnee',  'lHip'],
+    rAnkle: ['rKnee',  'rHip'],
+    lKnee:  ['lHip'],
+    rKnee:  ['rHip'],
+    lElbow: ['lShoulder'],
+    rElbow: ['rShoulder'],
+    head:   ['hips'],
+  };
+
+  function setNdc(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.x =  ((ev.clientX - rect.left) / rect.width)  * 2 - 1;
+    ndc.y = -((ev.clientY - rect.top)  / rect.height) * 2 + 1;
+  }
+
+  function pickContact(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    const meshes = [];
+    for (const fig of STATE.figures) {
+      fig.root.traverse(o => { if (o.userData && o.userData.isContact) meshes.push(o); });
+    }
+    const hit = raycaster.intersectObjects(meshes, false)[0];
+    return hit ? hit.object : null;
+  }
+
+  function pickMannequinBody(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    for (const fig of STATE.figures) {
+      const hits = raycaster.intersectObject(fig.root, true);
+      const nonContact = hits.find(h => !(h.object.userData && h.object.userData.isContact));
+      if (nonContact) return fig;
+    }
+    return null;
+  }
+
+  function pickFloor(ev) {
+    setNdc(ev);
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObject(floor, false)[0];
+    return hit ? hit.point : null;
+  }
+
+  // CCD: rotate chain bones so end-effector sphere world position approaches targetWorld.
+  function ccdIK(fig, endBoneName, targetWorld, iterations = 8) {
+    const chain = IK_CHAINS[endBoneName];
+    if (!chain) return;
+    const endSphere = fig.bones[endBoneName].children.find(c => c.userData && c.userData.isContact);
+    if (!endSphere) return;
+    const endWorld = new THREE.Vector3();
+    const boneWorld = new THREE.Vector3();
+    const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+    const qWorld = new THREE.Quaternion();
+    for (let iter = 0; iter < iterations; iter++) {
+      for (const boneName of chain) {
+        const bone = fig.bones[boneName];
+        bone.updateMatrixWorld(true);
+        endSphere.getWorldPosition(endWorld);
+        bone.getWorldPosition(boneWorld);
+        tmpA.subVectors(endWorld, boneWorld).normalize();
+        tmpB.subVectors(targetWorld, boneWorld).normalize();
+        if (tmpA.lengthSq() < 1e-8 || tmpB.lengthSq() < 1e-8) continue;
+        const dot = Math.max(-1, Math.min(1, tmpA.dot(tmpB)));
+        const angle = Math.acos(dot);
+        if (angle < 1e-3) continue;
+        const axis = new THREE.Vector3().crossVectors(tmpA, tmpB).normalize();
+        if (!isFinite(axis.x)) continue;
+        qWorld.setFromAxisAngle(axis, angle);
+        // Convert world rotation to local
+        const parentQ = new THREE.Quaternion();
+        bone.parent.getWorldQuaternion(parentQ).invert();
+        const localDelta = new THREE.Quaternion().multiplyQuaternions(parentQ, qWorld).multiply(bone.parent.getWorldQuaternion(new THREE.Quaternion()));
+        bone.quaternion.premultiply(localDelta);
+        // Re-extract x/z Euler for the override store
+        const e = new THREE.Euler().setFromQuaternion(bone.quaternion, 'XYZ');
+        fig.boneOverrides[boneName] = { x: e.x, z: e.z };
+        bone.rotation.x = e.x; bone.rotation.z = e.z; bone.rotation.y = 0;
+      }
+    }
+  }
+
+  // ----- Drag handling -----
+  let dragging = null; // { figId, boneName, plane: Plane }
+
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.shiftKey) return;
+    const sphere = pickContact(e);
+    if (sphere) {
+      const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
+      if (!fig) return;
+      selectFigure(fig.id);
+      const worldPos = new THREE.Vector3();
+      sphere.getWorldPosition(worldPos);
+      // Drag plane parallel to camera, through the sphere
+      const camDir = new THREE.Vector3();
+      camera.getWorldDirection(camDir);
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPos);
+      dragging = { figId: fig.id, boneName: sphere.userData.boneName, plane };
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) {
+      // Hover-Tracking für Space-Jump-Fallback
+      const fig = pickMannequinBody(e);
+      STATE.hoveredId = fig ? fig.id : null;
+      return;
+    }
+    setNdc(e);
+    raycaster.setFromCamera(ndc, camera);
+    const target = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragging.plane, target);
+    if (!target) return;
+    const fig = STATE.figures.find(f => f.id === dragging.figId);
+    if (!fig) return;
+    ccdIK(fig, dragging.boneName, target, 6);
+    sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+    const now = performance.now();
+    if (now - (fig._lastCollisionCheck || 0) > 33) {
+      fig._lastCollisionCheck = now;
+      resolveCollisions(fig, BOUNCE_K_DRAG);
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    const fig = STATE.figures.find(f => f.id === dragging.figId);
+    if (fig) {
+      // Clear overrides for the dragged chain so spring resumes
+      const chain = IK_CHAINS[dragging.boneName] || [];
+      for (const b of chain) delete fig.boneOverrides[b];
+      // Also clear the end-effector entry if any
+      delete fig.boneOverrides[dragging.boneName];
+      sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+    }
+    dragging = null;
+  });
+
+  renderer.domElement.addEventListener('click', (e) => {
+    if (dragging) return;
+    if (e.shiftKey) return;
+    if (pickMannequinBody(e)) return; // selection click already happened
+    const floorPt = pickFloor(e);
+    if (!floorPt || !STATE.selectedId) return;
+    if (STATE.stiffness < 0.3) return; // body too limp
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      fig.walkTarget = { x: floorPt.x, z: floorPt.z };
+      fig.walking = true;
+      sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true });
+    }
+  });
+
+  function easeFigure(fig, tx, tz, durationMs) {
+    const sx = fig.root.position.x, sz = fig.root.position.z;
+    const start = performance.now();
+    function step() {
+      const t = Math.min(1, (performance.now() - start) / durationMs);
+      const e = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      fig.root.position.x = sx + (tx - sx) * e;
+      fig.root.position.z = sz + (tz - sz) * e;
+      if (t < 1) { requestAnimationFrame(step); }
+      else {
+        fig.root.position.x = tx; fig.root.position.z = tz;
+        if (wsReady) ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
+      }
+    }
+    fig.walkTarget = null; fig.walking = false;
+    requestAnimationFrame(step);
+  }
+  window.easeFigure = easeFigure;
+
+  renderer.domElement.addEventListener('dblclick', (e) => {
+    const floorPt = pickFloor(e);
+    if (!floorPt) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      easeFigure(fig, floorPt.x, floorPt.z, 300);
+    } else {
+      addFigure({ x: floorPt.x, z: floorPt.z });
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space') return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
+    const id = STATE.selectedId || STATE.hoveredId;
+    if (!id) return;
+    const fig = STATE.figures.find(f => f.id === id);
+    if (!fig || fig.jumping) return;
+    e.preventDefault();
+    startJump(fig);
+    sendJump(fig.id);
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      STATE.selectedId = null;
+      for (const f of STATE.figures) f.ring.visible = false;
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && STATE.selectedId) {
+      const idx = STATE.figures.findIndex(f => f.id === STATE.selectedId);
+      if (idx >= 0) {
+        scene.remove(STATE.figures[idx].root);
+        STATE.figures.splice(idx, 1);
+        STATE.selectedId = STATE.figures[0]?.id ?? null;
+        if (STATE.selectedId) selectFigure(STATE.selectedId);
+        sendDelete(idx);
+      }
+    } else if (e.key === 'Tab' && STATE.figures.length > 1) {
+      e.preventDefault();
+      const idx = STATE.figures.findIndex(f => f.id === STATE.selectedId);
+      const next = STATE.figures[(idx + 1) % STATE.figures.length];
+      selectFigure(next.id);
+    }
+  });
+
+
+  // ----- Walking -----
+  const WALK_SPEED = 2.0;          // units/s
+  const SPRINT_MULT = 3.0;         // Shift-sprint multiplier
+  const TURN_RATE  = 8.0;          // rad/s
+  const ARRIVE_EPS = 0.3;          // distance threshold
+  const wasdKeys = { w:false, a:false, s:false, d:false, shift:false };
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift') { wasdKeys.shift = true; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = true;
+    if (e.key === 'ArrowUp')    { wasdKeys.w = true; e.preventDefault(); }
+    if (e.key === 'ArrowDown')  { wasdKeys.s = true; e.preventDefault(); }
+    if (e.key === 'ArrowLeft')  { wasdKeys.a = true; e.preventDefault(); }
+    if (e.key === 'ArrowRight') { wasdKeys.d = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') { wasdKeys.shift = false; return; }
+    const k = e.key.toLowerCase();
+    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = false;
+    if (e.key === 'ArrowUp')    wasdKeys.w = false;
+    if (e.key === 'ArrowDown')  wasdKeys.s = false;
+    if (e.key === 'ArrowLeft')  wasdKeys.a = false;
+    if (e.key === 'ArrowRight') wasdKeys.d = false;
+  });
+
+  function tickWalkAnimation(fig, t) {
+    if (!fig.walking) return;
+    const phase = t * 4.0;
+    // Override-respecting: spring already left these bones alone if not in boneOverrides
+    if (!fig.boneOverrides.lHip)      fig.bone.lHip.targetRot.x      = Math.sin(phase) * 0.6;
+    if (!fig.boneOverrides.rHip)      fig.bone.rHip.targetRot.x      = Math.sin(phase + Math.PI) * 0.6;
+    if (!fig.boneOverrides.lKnee)     fig.bone.lKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*0.5)) * 0.8;
+    if (!fig.boneOverrides.rKnee)     fig.bone.rKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*1.5)) * 0.8;
+    if (!fig.boneOverrides.lShoulder) fig.bone.lShoulder.targetRot.x = Math.sin(phase + Math.PI) * 0.4;
+    if (!fig.boneOverrides.rShoulder) fig.bone.rShoulder.targetRot.x = Math.sin(phase) * 0.4;
+  }
+
+  function tickWalk(dt, t) {
+    const stiff = STATE.stiffness;
+    for (const fig of STATE.figures) {
+      // WASD only for selected figure
+      let dx = 0, dz = 0;
+      if (fig.id === STATE.selectedId && stiff >= 0.3) {
+        if (wasdKeys.w) { dx += -Math.sin(cameraOrbit.theta); dz += -Math.cos(cameraOrbit.theta); }
+        if (wasdKeys.s) { dx +=  Math.sin(cameraOrbit.theta); dz +=  Math.cos(cameraOrbit.theta); }
+        if (wasdKeys.a) { dx += -Math.cos(cameraOrbit.theta); dz +=  Math.sin(cameraOrbit.theta); }
+        if (wasdKeys.d) { dx +=  Math.cos(cameraOrbit.theta); dz += -Math.sin(cameraOrbit.theta); }
+        const mag = Math.hypot(dx, dz);
+        if (mag > 1e-3) {
+          dx /= mag; dz /= mag;
+          fig.walkTarget = null;
+          fig.walking = true;
+          const speed = WALK_SPEED * (wasdKeys.shift ? SPRINT_MULT : 1);
+          fig.root.position.x += dx * speed * dt;
+          fig.root.position.z += dz * speed * dt;
+          const want = Math.atan2(dx, dz);
+          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
+          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
+          fig.root.rotation.y = fig.facingY;
+          resolveCollisions(fig, BOUNCE_K_DRAG);
+        }
+      }
+      // Click-to-walk target
+      if (fig.walkTarget) {
+        const tx = fig.walkTarget.x - fig.root.position.x;
+        const tz = fig.walkTarget.z - fig.root.position.z;
+        const dist = Math.hypot(tx, tz);
+        if (dist < ARRIVE_EPS) {
+          fig.walkTarget = null; fig.walking = false;
+        } else if (stiff >= 0.3) {
+          const ndx = tx / dist, ndz = tz / dist;
+          fig.root.position.x += ndx * WALK_SPEED * dt;
+          fig.root.position.z += ndz * WALK_SPEED * dt;
+          const want = Math.atan2(ndx, ndz);
+          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
+          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
+          fig.root.rotation.y = fig.facingY;
+          fig.walking = true;
+          resolveCollisions(fig, BOUNCE_K_DRAG);
+        } else {
+          fig.walking = false;
+        }
+      } else if (Math.hypot(dx, dz) < 1e-3) {
+        fig.walking = false;
+      }
+      tickWalkAnimation(fig, t);
+    }
+  }
+
+  // ----- Status pill -----
+  const pillEl = document.getElementById('status-pill');
+  function updateStatusPill() {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
+    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
+    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
+    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Space = Sprung · Klick Boden = Ziel · Tab = nächste';
+  }
+
+  // ----- WebSocket sync -----
+  const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
+  const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+  let wsReady = false;
+
+  ws.addEventListener("open", () => {
+  // --- Mayhem mode wiring ---
+  if (window.Mayhem) {
+    const mayhemSend = (msg) => { try { ws.send(JSON.stringify(msg)); } catch (e) { /* ignore */ } };
+    window.Mayhem.init({
+      scene, camera, canvas: renderer.domElement,
+      makeMannequin: (id, pos) => makeMannequin(id, pos),
+      sendMessage: mayhemSend,
+      roomToken: roomFromUrl,
+    });
+    document.getElementById("mayhem-btn").addEventListener("click", () => window.Mayhem.toggle());
+  }
+
+    wsReady = true;
+    ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
+  });
+  ws.addEventListener("close", () => { wsReady = false; });
+
+  ws.addEventListener("message", (evt) => {
+    let msg; try { msg = JSON.parse(evt.data); } catch { return; }
+    switch (msg.type) {
+      case "snapshot":
+        // Reset world from server state
+        for (const f of STATE.figures) scene.remove(f.root);
+        STATE.figures.length = 0; STATE.selectedId = null;
+        for (const f of (msg.figures || [])) {
+          const fig = makeMannequin(f.id, { x: f.x ?? 0, z: f.z ?? 0 });
+          fig.facingY = f.facingY ?? 0; fig.root.rotation.y = fig.facingY;
+          if (f.preset && PRESETS[f.preset]) {
+            for (const name of BONE_NAMES) {
+              fig.bone[name].targetRot.x = PRESETS[f.preset][name].x;
+              fig.bone[name].targetRot.z = PRESETS[f.preset][name].z;
+            }
+          }
+          if (f.boneOverrides) fig.boneOverrides = { ...f.boneOverrides };
+          if (f.walkTarget) fig.walkTarget = f.walkTarget;
+          STATE.figures.push(fig);
+        }
+        if (typeof msg.stiffness === "number") {
+          STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
+        }
+        if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
+        break;
+      case "stiffness":
+        STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);
+        break;
+      case "add": {
+        if (STATE.figures.find(f => f.id === msg.figure.id)) break;
+        const fig = makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
+        STATE.figures.push(fig);
+        break;
+      }
+      case "update": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (!fig) break;
+        const c = msg.changes || {};
+        if (c.preset && PRESETS[c.preset]) {
+          for (const name of BONE_NAMES) {
+            fig.bone[name].targetRot.x = PRESETS[c.preset][name].x;
+            fig.bone[name].targetRot.z = PRESETS[c.preset][name].z;
+          }
+        }
+        if (c.boneOverrides !== undefined) fig.boneOverrides = { ...c.boneOverrides };
+        if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
+        if (c.walking !== undefined) fig.walking = !!c.walking;
+        break;
+      }
+      case "move": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (!fig) break;
+        fig.root.position.x = msg.x; fig.root.position.z = msg.z;
+        if (typeof msg.facingY === "number") { fig.facingY = msg.facingY; fig.root.rotation.y = fig.facingY; }
+        resolveCollisions(fig, BOUNCE_K_DRAG);
+        break;
+      }
+      case "jump": {
+        const fig = STATE.figures.find(f => f.id === msg.id);
+        if (fig && !fig.jumping) startJump(fig);
+        break;
+      }
+      case "delete": {
+        const idx = STATE.figures.findIndex(f => f.id === msg.id);
+        if (idx >= 0) { scene.remove(STATE.figures[idx].root); STATE.figures.splice(idx, 1); }
+        break;
+      }
+      case "info":
+      default:
+        if (window.Mayhem) {
+          if (msg.type === "snapshot") window.Mayhem.onSnapshot(msg);
+          else window.Mayhem.onMessage(msg);
+        }
+        break;
+        STATE.online = msg.count || 1;
+        document.getElementById("online-count").textContent = String(STATE.online);
+        break;
+    }
+  });
+
+  // Replace the placeholders defined earlier
+  window.sendUpdate = function(fig, changes) {
+    if (!wsReady) return;
+    ws.send(JSON.stringify({ type: "update", id: fig.id, changes }));
+  };
+  window.sendStiffness = function(value) {
+    if (!wsReady) return;
+    ws.send(JSON.stringify({ type: "stiffness", value }));
+  };
+  window.sendDelete = function(/* idx */) {
+    if (!wsReady || !STATE.selectedId) return;
+    ws.send(JSON.stringify({ type: "delete", id: STATE.selectedId }));
+  };
+
+  // When adding a figure locally, also broadcast it
+  const _origAdd = addFigure;
+  addFigure = function(position) {
+    const fig = _origAdd(position);
+    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z } }));
+    return fig;
+  };
+
+  // Periodically broadcast position for the selected figure so peers see walking
+  setInterval(() => {
+    if (!wsReady) return;
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) return;
+    ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
+  }, 100);
+  function tick() {
+    requestAnimationFrame(tick);
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastTickMs) / 1000);
+    if (window.Mayhem) window.Mayhem.tick(dt);
+    lastTickMs = now;
+    tickWalk(dt, now / 1000);
+    tickSpring(dt);
+    updateStatusPill();
+    renderer.render(scene, camera);
+  }
+    tick();
+
+    console.log('[brett] scene up');
+
+})();

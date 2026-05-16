@@ -405,10 +405,28 @@ const handleDisconnect = function(ws, broadcastFn = broadcast) {
   broadcastInfo(room);
 }
 wss.on('connection', (ws) => {
+  ws.isAlive = true;
   ws.on('message', async (raw) => {
     try {
       let msg;
       try { msg = JSON.parse(raw); } catch { return; }
+
+      if (msg.type === 'pong') { ws.isAlive = true; return; }
+
+      if (msg.type === 'request_state_snapshot') {
+        const room = ws._room;
+        if (!room) return;
+        const state = buildStateFromMutations(room);
+        if (state) {
+          ws.send(JSON.stringify({
+            type: 'snapshot',
+            figures: state.figures,
+            optik: state.optik,
+            stiffness: state.stiffness ?? 0.65,
+          }));
+        }
+        return;
+      }
 
       if (msg.type === 'join' && typeof msg.room === 'string' && msg.room) {
         if (ws._room) leaveRoom(ws);
@@ -487,6 +505,20 @@ wss.on('connection', (ws) => {
 
   ws.on('error', (err) => console.error('[brett] ws error:', err.message));
 });
+
+// ─── WS heartbeat (30s ping / terminate-on-miss) ─────────────────
+const HEARTBEAT_INTERVAL_MS = 30_000;
+const heartbeatTimer = setInterval(() => {
+  for (const ws of wss.clients) {
+    if (ws.isAlive === false) {
+      try { ws.terminate(); } catch {}
+      continue;
+    }
+    ws.isAlive = false;
+    try { ws.send(JSON.stringify({ type: 'ping', t: Date.now() })); } catch {}
+  }
+}, HEARTBEAT_INTERVAL_MS);
+heartbeatTimer.unref?.();
 
 // ─── Graceful Shutdown ───────────────────────────────────────────
 let shuttingDown = false;

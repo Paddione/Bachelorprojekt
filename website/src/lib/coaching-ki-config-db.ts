@@ -65,3 +65,19 @@ export async function setActiveProvider(pool: Pool, brand: string, provider: KiC
     client.release();
   }
 }
+
+export async function updateKiProvider(
+  pool: Pool,
+  id: number,
+  fields: { modelName: string | null; displayName: string },
+): Promise<KiConfig> {
+  const r = await pool.query(
+    `UPDATE coaching.ki_config
+     SET model_name = $1, display_name = $2
+     WHERE id = $3
+     RETURNING *`,
+    [fields.modelName, fields.displayName, id],
+  );
+  if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
+  return rowToKiConfig(r.rows[0]);
+}

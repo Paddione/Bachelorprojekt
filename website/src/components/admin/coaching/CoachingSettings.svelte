@@ -55,12 +55,13 @@
     return isNaN(v) ? null : v;
   }
 
+  // Feldsichtbarkeit exakt nach PDF-Tabelle
   function showField(provider: string, field: string): boolean {
     const map: Record<string, string[]> = {
       claude:  ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'topK', 'thinkingMode', 'systemPrompt', 'notes'],
       openai:  ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'presencePenalty', 'frequencyPenalty', 'organizationId', 'systemPrompt', 'notes'],
-      mistral: ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'safePrompt', 'randomSeed', 'euEndpoint', 'systemPrompt', 'notes'],
-      lumo:    ['apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'euEndpoint', 'systemPrompt', 'notes'],
+      mistral: ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'topK', 'safePrompt', 'randomSeed', 'euEndpoint', 'systemPrompt', 'notes'],
+      lumo:    ['euEndpoint', 'notes'],
     };
     return (map[provider] ?? []).includes(field);
   }
@@ -229,18 +230,27 @@
 
         {#if providerEditTab === 'connection'}
           <div class="edit-section">
+            <!-- Name / Label immer sichtbar -->
             <label class="field-label">Name / Label
               <input type="text" bind:value={providerFields.displayName} />
             </label>
-            <label class="field-label">Modell
-              <input type="text" bind:value={providerFields.modelName} placeholder="leer = Standard" />
-            </label>
 
             {#if editingProvider.provider === 'lumo'}
+              <!-- Lumo: kein API-Key, kein Endpoint, kein Modell — nur Infobox + EU-Endpoint -->
               <div class="lumo-info">
-                <strong>Lumo</strong> hat noch keine öffentliche API. Sobald eine API verfügbar ist, kann hier der Endpunkt konfiguriert werden.
+                <strong>Lumo (Proton)</strong> hat derzeit keine öffentliche API — das Profil dient als Platzhalter. Sobald eine API verfügbar ist, kann sie hier konfiguriert werden.
               </div>
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={providerFields.euEndpoint} />
+                EU-Endpunkt verwenden (DSGVO)
+              </label>
             {:else}
+              <!-- Modell: Claude, ChatGPT, Mistral -->
+              <label class="field-label">Modell (z.B. claude-sonnet-4-5, gpt-4o, mistral-small-latest)
+                <input type="text" bind:value={providerFields.modelName} placeholder="leer = Standardmodell" />
+              </label>
+
+              <!-- API-Key: Claude, ChatGPT, Mistral -->
               <label class="field-label">API-Key
                 <div class="api-key-row">
                   {#if showApiKey}
@@ -253,87 +263,103 @@
                   </button>
                 </div>
               </label>
-            {/if}
 
-            {#if showField(editingProvider.provider, 'apiEndpoint')}
-              <label class="field-label">API-Endpunkt (optional, überschreibt Standard)
+              <!-- API-Endpoint: Claude, ChatGPT, Mistral -->
+              <label class="field-label">API-Endpunkt (optional — überschreibt Standard-URL)
                 <input type="url" bind:value={providerFields.apiEndpoint} placeholder="https://api.example.com/v1" />
               </label>
-            {/if}
 
-            {#if showField(editingProvider.provider, 'organizationId')}
-              <label class="field-label">Organization ID (OpenAI)
-                <input type="text" bind:value={providerFields.organizationId} placeholder="org-..." />
-              </label>
-            {/if}
-
-            {#if showField(editingProvider.provider, 'euEndpoint')}
-              <label class="checkbox-label">
-                <input type="checkbox" bind:checked={providerFields.euEndpoint} />
-                EU-Endpunkt verwenden
-              </label>
-            {/if}
-          </div>
-        {:else}
-          <div class="edit-section">
-            <div class="field-row">
-              <label class="field-label">Temperature
-                <input type="number" step="0.01" min="0" max="2" bind:value={providerFields.temperature} placeholder="leer = Standard" />
-              </label>
-              <label class="field-label">Max Tokens
-                <input type="number" min="1" bind:value={providerFields.maxTokens} placeholder="leer = Standard" />
-              </label>
-              {#if showField(editingProvider.provider, 'topP')}
-                <label class="field-label">top_p
-                  <input type="number" step="0.01" min="0" max="1" bind:value={providerFields.topP} placeholder="leer = Standard" />
+              <!-- Organization-ID: nur OpenAI/ChatGPT -->
+              {#if showField(editingProvider.provider, 'organizationId')}
+                <label class="field-label">Organization ID (optional)
+                  <input type="text" bind:value={providerFields.organizationId} placeholder="org-..." />
                 </label>
               {/if}
-            </div>
 
-            {#if showField(editingProvider.provider, 'topK')}
+              <!-- EU-Endpoint Flag: Mistral -->
+              {#if showField(editingProvider.provider, 'euEndpoint')}
+                <label class="checkbox-label">
+                  <input type="checkbox" bind:checked={providerFields.euEndpoint} />
+                  EU-Endpunkt verwenden
+                </label>
+              {/if}
+            {/if}
+          </div>
+
+        {:else}
+          <!-- Verhalten-Tab -->
+          <div class="edit-section">
+            {#if editingProvider.provider === 'lumo'}
+              <p class="lumo-info">Lumo unterstützt derzeit keine konfigurierbaren Verhaltenparameter.</p>
+            {:else}
+              <!-- Temperature / Max Tokens / top_p: Claude, ChatGPT, Mistral -->
               <div class="field-row">
-                <label class="field-label">top_k (Claude)
-                  <input type="number" min="1" bind:value={providerFields.topK} placeholder="leer = Standard" />
+                <label class="field-label">Temperature (0.0–2.0)
+                  <input type="number" step="0.01" min="0" max="2" bind:value={providerFields.temperature} placeholder="leer = Standard" />
                 </label>
+                <label class="field-label">Max Tokens
+                  <input type="number" min="1" bind:value={providerFields.maxTokens} placeholder="leer = Standard" />
+                </label>
+                {#if showField(editingProvider.provider, 'topP')}
+                  <label class="field-label">top_p
+                    <input type="number" step="0.01" min="0" max="1" bind:value={providerFields.topP} placeholder="leer = Standard" />
+                  </label>
+                {/if}
               </div>
-            {/if}
 
-            {#if showField(editingProvider.provider, 'thinkingMode')}
-              <label class="checkbox-label">
-                <input type="checkbox" bind:checked={providerFields.thinkingMode} />
-                Extended Thinking aktivieren (Claude)
-              </label>
-            {/if}
+              <!-- top_k: Claude + Mistral -->
+              {#if showField(editingProvider.provider, 'topK')}
+                <div class="field-row">
+                  <label class="field-label">top_k
+                    <input type="number" min="1" bind:value={providerFields.topK} placeholder="leer = Standard" />
+                  </label>
+                </div>
+              {/if}
 
-            {#if showField(editingProvider.provider, 'presencePenalty')}
-              <div class="field-row">
-                <label class="field-label">Presence Penalty
-                  <input type="number" step="0.01" min="-2" max="2" bind:value={providerFields.presencePenalty} placeholder="leer = Standard" />
+              <!-- Extended Thinking: nur Claude -->
+              {#if showField(editingProvider.provider, 'thinkingMode')}
+                <label class="checkbox-label">
+                  <input type="checkbox" bind:checked={providerFields.thinkingMode} />
+                  Extended Thinking aktivieren (Claude)
                 </label>
-                <label class="field-label">Frequency Penalty
-                  <input type="number" step="0.01" min="-2" max="2" bind:value={providerFields.frequencyPenalty} placeholder="leer = Standard" />
+              {/if}
+
+              <!-- Presence- / Frequency-Penalty: nur ChatGPT -->
+              {#if showField(editingProvider.provider, 'presencePenalty')}
+                <div class="field-row">
+                  <label class="field-label">Presence Penalty (–2 bis 2)
+                    <input type="number" step="0.01" min="-2" max="2" bind:value={providerFields.presencePenalty} placeholder="leer = Standard" />
+                  </label>
+                  <label class="field-label">Frequency Penalty (–2 bis 2)
+                    <input type="number" step="0.01" min="-2" max="2" bind:value={providerFields.frequencyPenalty} placeholder="leer = Standard" />
+                  </label>
+                </div>
+              {/if}
+
+              <!-- Safe Prompt / Random Seed: nur Mistral -->
+              {#if showField(editingProvider.provider, 'safePrompt')}
+                <label class="checkbox-label">
+                  <input type="checkbox" bind:checked={providerFields.safePrompt} />
+                  Safe Prompt aktivieren (Mistral)
                 </label>
-              </div>
+              {/if}
+              {#if showField(editingProvider.provider, 'randomSeed')}
+                <label class="field-label">Random Seed (leer = zufällig)
+                  <input type="number" bind:value={providerFields.randomSeed} placeholder="z.B. 42" />
+                </label>
+              {/if}
+
+              <!-- System-Prompt: Claude, ChatGPT, Mistral -->
+              {#if showField(editingProvider.provider, 'systemPrompt')}
+                <label class="field-label">System-Prompt (überschreibt den Template-Prompt wenn gesetzt)
+                  <textarea rows="5" bind:value={providerFields.systemPrompt} placeholder="Optionaler System-Prompt für dieses KI-Profil…"></textarea>
+                </label>
+              {/if}
             {/if}
 
-            {#if showField(editingProvider.provider, 'safePrompt')}
-              <label class="checkbox-label">
-                <input type="checkbox" bind:checked={providerFields.safePrompt} />
-                Safe Prompt (Mistral)
-              </label>
-            {/if}
-
-            {#if showField(editingProvider.provider, 'randomSeed')}
-              <label class="field-label">Random Seed (Mistral)
-                <input type="number" bind:value={providerFields.randomSeed} placeholder="leer = zufällig" />
-              </label>
-            {/if}
-
-            <label class="field-label">System-Prompt (überschreibt Template-Prompt)
-              <textarea rows="5" bind:value={providerFields.systemPrompt} placeholder="Optionaler System-Prompt für dieses KI-Profil…"></textarea>
-            </label>
-            <label class="field-label">Notizen / Beschreibung
-              <textarea rows="2" bind:value={providerFields.notes} placeholder="Freitext für interne Notizen…"></textarea>
+            <!-- Notiz / Freitext: alle Provider -->
+            <label class="field-label">Notiz / Freitext
+              <textarea rows="2" bind:value={providerFields.notes} placeholder="Interne Beschreibung, Hinweise, Zweck dieses Profils…"></textarea>
             </label>
           </div>
         {/if}

@@ -1,0 +1,177 @@
+{
+  "$schema": "https://brett.mentolder.de/schemas/figure-pack-v1.json",
+  "version": "1.1.0-extension",
+  "_note": "Merge into the existing placement_spec.json's `accessories` object. Anchor / sizeMeters / positionOffset values follow the same conventions as the original spec.",
+  "_paletteUsed": {
+    "stroke": "#8e9a7c (sage-deep)",
+    "sage": "#b8c0a8",
+    "parchment": "#e7ead0",
+    "brass": "#c8a96e",
+    "brass-deep": "#8a7244",
+    "hair": "#2a2018 (warm dark)",
+    "skin": "#d9c89b",
+    "slate-ink": "#1f2330 (boots)"
+  },
+  "accessories": {
+
+    "hair-short": {
+      "file": "accessories/hair-short.png",
+      "bone": "head",
+      "anchorPx": [128, 188],
+      "sizeMeters": [0.42, 0.42],
+      "positionOffset": [0, 0.04, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Hugs the dome of the head sphere. Anchor below center so the cap-shape sits over the crown."
+    },
+
+    "hair-bun": {
+      "file": "accessories/hair-bun.png",
+      "bone": "head",
+      "anchorPx": [128, 168],
+      "sizeMeters": [0.46, 0.46],
+      "positionOffset": [0, 0.08, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Compact bun + base — anchor places the bun slightly above the head apex. Brass pin reads as small accent."
+    },
+
+    "hair-long": {
+      "file": "accessories/hair-long.png",
+      "bone": "head",
+      "anchorPx": [128, 56],
+      "sizeMeters": [0.50, 0.85],
+      "positionOffset": [0, -0.08, -0.01],
+      "rotation": [0, 0, 0],
+      "billboard": false,
+      "notes": "Cascades below shoulders. PNG is taller than wide — DO NOT billboard, pin to the BACK of the head so it sits behind. Slight negative Z so it doesn't clip the head sphere."
+    },
+
+    "hair-braid": {
+      "file": "accessories/hair-braid.png",
+      "bone": "head",
+      "anchorPx": [128, 80],
+      "sizeMeters": [0.36, 0.85],
+      "positionOffset": [0, -0.05, -0.01],
+      "rotation": [0, 0, 0],
+      "billboard": false,
+      "notes": "Center braid down the spine. Pin to back of head like hair-long. Brass tassel-tie at the bottom reads as a small accent."
+    },
+
+    "hair-curls": {
+      "file": "accessories/hair-curls.png",
+      "bone": "head",
+      "anchorPx": [128, 168],
+      "sizeMeters": [0.52, 0.42],
+      "positionOffset": [0, 0.03, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Wraps the head with a cloud of bumps. Wider than tall — the cluster extends past the head silhouette."
+    },
+
+    "tunic": {
+      "file": "accessories/tunic.png",
+      "bone": "hips",
+      "anchorPx": [128, 40],
+      "sizeMeters": [0.70, 0.95],
+      "positionOffset": [0, 0.45, 0.04],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Knee-length tunic with brass belt. Anchor at the neckline → positionOffset.y raises the plane so neckline lands at the shoulders."
+    },
+
+    "coat": {
+      "file": "accessories/coat.png",
+      "bone": "hips",
+      "anchorPx": [128, 32],
+      "sizeMeters": [0.80, 1.05],
+      "positionOffset": [0, 0.50, 0.05],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Open formal coat with V-lapels and three brass buttons. Slightly wider than tunic to read as outer layer."
+    },
+
+    "apron": {
+      "file": "accessories/apron.png",
+      "bone": "hips",
+      "anchorPx": [128, 56],
+      "sizeMeters": [0.65, 0.90],
+      "positionOffset": [0, 0.42, 0.06],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Bib-apron in parchment with brass tie at waist + bow. Z forward so it sits on top of any tunic underneath."
+    },
+
+    "robe": {
+      "file": "accessories/robe.png",
+      "bone": "hips",
+      "anchorPx": [128, 30],
+      "sizeMeters": [0.85, 1.20],
+      "positionOffset": [0, 0.58, 0.04],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Full-length flowing robe with V-neck and brass clasp. Tallest of the clothing items."
+    },
+
+    "vest": {
+      "file": "accessories/vest.png",
+      "bone": "hips",
+      "anchorPx": [128, 56],
+      "sizeMeters": [0.55, 0.55],
+      "positionOffset": [0, 0.42, 0.06],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "Short open vest, ends at waist. Z forward so it sits on top of any base layer."
+    },
+
+    "boots-work": {
+      "file": "accessories/boots-work.png",
+      "bone": "lAnkle",
+      "anchorPx": [128, 80],
+      "sizeMeters": [0.20, 0.20],
+      "positionOffset": [0, -0.05, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "PAIRED — instantiate the same PNG twice, parented to lAnkle and rAnkle. Anchor at the top of the boot-shaft puts the ankle at the cuff."
+    },
+
+    "shoes-dress": {
+      "file": "accessories/shoes-dress.png",
+      "bone": "lAnkle",
+      "anchorPx": [128, 132],
+      "sizeMeters": [0.22, 0.18],
+      "positionOffset": [0, -0.06, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "PAIRED — lAnkle + rAnkle. Sleek oxford. Anchor near top of upper means the ankle joint sits just above the shoe."
+    },
+
+    "sandals": {
+      "file": "accessories/sandals.png",
+      "bone": "lAnkle",
+      "anchorPx": [128, 132],
+      "sizeMeters": [0.22, 0.18],
+      "positionOffset": [0, -0.06, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "PAIRED — lAnkle + rAnkle. Skin-toned foot visible, brass straps over instep + ankle wrap."
+    },
+
+    "barefoot": {
+      "file": "accessories/barefoot.png",
+      "bone": "lAnkle",
+      "anchorPx": [128, 132],
+      "sizeMeters": [0.22, 0.18],
+      "positionOffset": [0, -0.06, 0],
+      "rotation": [0, 0, 0],
+      "billboard": "yAxis",
+      "notes": "PAIRED — lAnkle + rAnkle. Explicit 'none' marker. Use when persona is intentionally barefoot (child, contemplation, vulnerability)."
+    }
+  },
+
+  "_grouping": {
+    "hair":     ["hair-short", "hair-bun", "hair-long", "hair-braid", "hair-curls"],
+    "clothing": ["tunic", "coat", "apron", "robe", "vest"],
+    "shoes":    ["boots-work", "shoes-dress", "sandals", "barefoot"]
+  }
+}

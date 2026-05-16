@@ -4,7 +4,7 @@
 // Usage: PGURL=postgres://website:…@localhost:5432/website node scripts/tickets-sunset-audit.mjs
 import pg from 'pg';
 
-const PGURL = process.env.PGURL ?? process.env.TRACKING_DB_URL ?? 'postgres://website:website@localhost:5432/website';
+const PGURL = process.env.PGURL ?? 'postgres://website:website@localhost:5432/website';
 const client = new pg.Client({ connectionString: PGURL });
 
 const LEGACY_OBJECTS = [

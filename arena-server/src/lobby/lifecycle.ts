@@ -47,7 +47,6 @@ export class Lifecycle {
     putLobby(lobby);
     this.deps.persist.insertLobby({ code, phase: 'open', hostKey: req.hostKey, expiresAt: new Date(expiresAt) })
       .catch(() => {/* logged in caller */});
-    fillBots(lobby); // Fill with bots immediately so match can be started
     lobby.timers.open = setTimeout(() => this.toStarting(code), LOBBY_OPEN_DURATION_MS);
     this.deps.onBroadcast(code);
     return { code, expiresAt };

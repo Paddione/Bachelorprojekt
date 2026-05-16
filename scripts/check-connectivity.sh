@@ -105,7 +105,7 @@ check_service "Keycloak"       "auth"       "/"            "200,301,302"
 check_service "Nextcloud"      "files"      "/"            "200,301,302"
 check_service "Vaultwarden"    "vault"      "/"            "200,301,302"
 check_service "DocuSeal"       "sign"       "/"            "200,301,302"
-check_service "Tracking"       "tracking"   "/"            "200,301,302"
+
 check_service "Website"        "web"        "/"            "200,301,302"
 check_service "Docs"           "docs"       "/"            "200,301,302,401,403"
 

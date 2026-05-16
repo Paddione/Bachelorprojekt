@@ -287,29 +287,6 @@ spec:
     - port: 8080
       protocol: TCP
 ---
-# shared-db: allow ingress from korczewski namespace (tracking-import
-# CronJob in workspace-korczewski writes feature events into
-# bachelorprojekt.features on mentolder's shared-db; this is by design).
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-korczewski-to-shared-db-ingress
-  namespace: workspace
-spec:
-  podSelector:
-    matchLabels:
-      app: shared-db
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          kubernetes.io/metadata.name: workspace-korczewski
-    ports:
-    - port: 5432
-      protocol: TCP
----
 # shared-db: allow ingress from MCP monolith in default namespace
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

@@ -36,6 +36,8 @@ if [[ -z "$PGPOD" ]]; then
   echo "ERROR: no shared-db pod found in ns=$NS ctx=$CTX" >&2
   exit 1
 fi
+# Strip "pod/" prefix so kubectl cp works with bare pod name
+PGPOD_NAME="${PGPOD#pod/}"
 
 mime_for() {
   case "${1,,}" in
@@ -55,6 +57,15 @@ mime_for() {
     *)               echo "" ;;
   esac
 }
+
+# Temp file for the data URL (written locally, then copied into the pod)
+LOCAL_TMP=$(mktemp /tmp/_ticket_attach.XXXXXX)
+POD_TMP="/tmp/_ticket_attach.dataurl"
+
+cleanup() {
+  rm -f "$LOCAL_TMP"
+}
+trap cleanup EXIT
 
 attached=0
 skipped=0
@@ -81,18 +92,29 @@ for f in "$@"; do
   fi
 
   filename=$(basename -- "$f")
-  b64=$(base64 -w0 < "$f")
-  data_url="data:${mime};base64,${b64}"
 
-  kubectl exec -i "$PGPOD" -n "$NS" --context "$CTX" -- \
+  # Build the data URL in a local temp file to avoid ARG_MAX limits.
+  # base64 -w0 writes no line breaks; printf avoids a trailing newline on the prefix.
+  printf '%s' "data:${mime};base64," > "$LOCAL_TMP"
+  base64 -w0 < "$f" >> "$LOCAL_TMP"
+
+  # Copy the data URL file into the postgres pod.
+  kubectl cp --context "$CTX" -n "$NS" \
+    "$LOCAL_TMP" "${PGPOD_NAME}:${POD_TMP}"
+
+  # Use psql \set to read the file inside the pod, then INSERT.
+  kubectl exec "$PGPOD" -n "$NS" --context "$CTX" -- \
     psql -U website -d website -v ON_ERROR_STOP=1 \
     -v ticket="$TICKET_UUID" \
     -v fname="$filename" \
     -v mime="$mime" \
     -v size="$size" \
-    -v data="$data_url" \
-    -c "INSERT INTO tickets.ticket_attachments (ticket_id, filename, mime_type, file_size, data_url)
-        VALUES (:'ticket'::uuid, :'fname', :'mime', :'size'::bigint, :'data');" >/dev/null
+    -c "\\set data \`cat ${POD_TMP}\`
+INSERT INTO tickets.ticket_attachments (ticket_id, filename, mime_type, file_size, data_url)
+VALUES (:'ticket'::uuid, :'fname', :'mime', :'size'::bigint, :'data');" >/dev/null
+
+  # Clean up the temp file inside the pod.
+  kubectl exec "$PGPOD" -n "$NS" --context "$CTX" -- rm -f "$POD_TMP" 2>/dev/null || true
 
   echo "  ✓ attached $filename (${mime}, ${size} bytes)"
   attached=$((attached+1))

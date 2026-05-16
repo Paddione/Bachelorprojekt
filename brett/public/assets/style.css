@@ -1,114 +1,111 @@
-/* Brett — extracted from inline index.html styles.
- * Token system (ink-on-brass) declared here; Phase 2 migrates literals to vars.
+/* Mentolder Game Token Layer
+ * Single source for all game/HUD CSS. Companion to materials.js.
+ * No light-mode — this is a game tool.
  */
+
 :root {
-  --ink-900: #0b111c;
-  --ink-800: #17202e;
-  --brass:    #d7b06a;
-  --brass-hi: #f0d28c;
-  --brass-mute: rgba(215,176,106,0.35);
-  --stille-blau: #6fa8d8;
-  --blood-core: #a83a30;
-  --blood-deep: #5a1a14;
-  --fire-tip:  #fff5c8;
-  --line:      rgba(215,176,106,0.18);
+  --ink-900:      #0b111c;   /* Substrat (Body, Modal-BG) */
+  --ink-850:      #101826;   /* Panel / Card */
+  --ink-800:      #17202e;   /* Raised elements */
 
-  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --brass:        #d7b06a;   /* HUD-Akzent, active buttons */
+  --brass-hi:     #f0d28c;   /* Highlight, Hover */
+  --brass-mute:   rgba(215, 176, 106, 0.35);
+  --brass-tint:   rgba(215, 176, 106, 0.06);
+
+  --stille-blau:  #6fa8d8;   /* Slash-Glow, Info */
+  --sage:         #a8c9b0;   /* OK / Live / Verfügbar */
+
+  --blood-core:   #a83a30;
+  --blood-deep:   #5a1a14;
+  --blood-bright: #c4453a;
+  --fire-tip:     #fff5c8;
+
+  --line:         rgba(215, 176, 106, 0.18);
+  --line-2:       rgba(215, 176, 106, 0.10);
+  --mute:         rgba(215, 176, 106, 0.45);
+
+  --fg:           #e4ddd0;
+  --fg-soft:      rgba(228, 221, 208, 0.65);
+
+  --r-tile:       8px;
+  --r-chip:       4px;
 }
 
-*,*::before,*::after { box-sizing: border-box; }
-html, body { margin:0; height:100%; background:#0e1014; color:#e7ead0; font-family: ui-sans-serif, system-ui, sans-serif; overflow:hidden; }
-#topbar {
-  position:fixed; top:0; left:0; right:0; height:36px; display:flex; align-items:center; gap:8px;
-  padding:0 10px; background:rgba(14,16,20,0.85); backdrop-filter:blur(6px);
-  border-bottom:1px solid rgba(231,234,208,0.08); z-index:10; font-size:13px;
-}
-#topbar .group { display:flex; align-items:center; gap:6px; }
-#topbar .sep { width:1px; height:20px; background:rgba(231,234,208,0.12); margin:0 6px; }
-.preset-btn { background:transparent; color:inherit; border:1px solid rgba(231,234,208,0.18);
-  border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
-.preset-btn:hover { background:rgba(231,234,208,0.08); }
-.icon-btn { background:transparent; color:inherit; border:1px solid rgba(231,234,208,0.18);
-  border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
-#stiffness { width:160px; accent-color:#c8a96e; }
-#status-pill {
-  position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
-  padding:8px 14px; background:rgba(14,16,20,0.85); border:1px solid rgba(231,234,208,0.14);
-  border-radius:20px; font-size:13px; pointer-events:none; z-index:10;
-}
-canvas { display:block; }
-
-/* ── Character-Editor Panel ─────────────────────────────────── */
-#fig-panel-wrap { position: relative; display: inline-flex; align-items: center; }
-
-#fig-panel-btn {
-  background: transparent; color: inherit;
-  border: 1px solid rgba(231,234,208,0.18);
-  border-radius: 4px; padding: 4px 10px;
-  font: inherit; cursor: pointer; white-space: nowrap;
-}
-#fig-panel-btn:hover, #fig-panel-btn.open { background: rgba(231,234,208,0.12); }
-
-#fig-panel {
-  position: absolute; top: calc(100% + 8px); right: 0;
-  z-index: 200;
-  background: #161a22; border: 1px solid rgba(200,169,110,0.35);
-  border-radius: 10px; padding: 12px 14px;
-  width: 240px; display: flex; flex-direction: column; gap: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+/* ── Topbar ────────────────────────────────────────────────────── */
+#topbar, .topbar {
+  background: var(--ink-850);
+  border-bottom: 1px solid var(--line);
+  color: var(--fg);
 }
 
-#fig-panel-header {
-  display: flex; justify-content: space-between; align-items: center;
-}
-#fig-panel-title {
-  font-size: 10px; font-weight: 600; color: #c8a96e;
-  text-transform: uppercase; letter-spacing: 0.1em;
-}
-#fig-panel-close {
-  background: none; border: none; color: rgba(231,234,208,0.4);
-  cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
-}
-#fig-panel-close:hover { color: #e7ead0; }
-
-.fig-panel-label {
-  font-size: 10px; color: rgba(231,234,208,0.5);
-  text-transform: uppercase; letter-spacing: 0.08em;
+/* ── Status pill ───────────────────────────────────────────────── */
+.status-pill {
+  background: var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--fg-soft);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-#fig-panel-colors { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.status-pill.live { border-color: var(--sage); color: var(--sage); }
 
-.fig-color-swatch {
-  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
-  border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
+/* ── HUD weapon slots ──────────────────────────────────────────── */
+.hud-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--r-chip);
+  border: 1px solid transparent;
+  transition: border-color 0.1s, background 0.1s;
 }
-.fig-color-swatch:hover { transform: scale(1.15); }
-.fig-color-swatch.active { border-color: #c8a96e; }
 
-#fig-label-input {
-  background: rgba(231,234,208,0.06); border: 1px solid rgba(231,234,208,0.18);
-  border-radius: 5px; color: #e7ead0; font: inherit; font-size: 12px;
-  padding: 5px 8px; width: 100%;
+.hud-slot.active {
+  border-color: var(--brass);
+  background: var(--brass-tint);
 }
-#fig-label-input:focus { outline: none; border-color: rgba(200,169,110,0.5); }
-#fig-label-input::placeholder { color: rgba(231,234,208,0.3); }
 
-#fig-panel-add {
-  background: #c8a96e; color: #0a0a14;
-  border: none; border-radius: 6px;
-  padding: 7px 10px; font-size: 12px; font-weight: 600;
-  cursor: pointer; width: 100%;
+.hud-slot img {
+  width: 28px;
+  height: 28px;
+  display: block;
 }
-#fig-panel-add:hover { filter: brightness(1.1); }
 
-body.placing-figure { cursor: crosshair !important; }
+.hud-slot .key {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--mute);
+  font-family: monospace;
+}
 
-/* Reconnect-banner (Phase 1 task 1.5) */
-#reconnect-banner[hidden] { display: none; }
-#reconnect-banner {
-  position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
-  background: rgba(168,58,48,0.92); color: #fff5c8;
-  border: 1px solid rgba(255,245,200,0.3); border-radius: 6px;
-  padding: 6px 14px; font-size: 13px; z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+.hud-slot .wname {
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.hud-slot .wname b { color: var(--brass); font-weight: 500; }
+
+.hud-ammo {
+  font-family: monospace;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--brass);
+}
+
+/* ── Mode selector ─────────────────────────────────────────────── */
+.mode-btn {
+  background: var(--ink-800);
+  border: 1px solid var(--line);
+  color: var(--fg-soft);
+  border-radius: var(--r-chip);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.mode-btn:hover, .mode-btn.active {
+  border-color: var(--brass);
+  color: var(--brass);
 }

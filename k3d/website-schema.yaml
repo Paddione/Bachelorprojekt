@@ -261,12 +261,15 @@ data:
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
         client_id     UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+        client_name   TEXT,
         mode          TEXT NOT NULL DEFAULT 'live' CHECK (mode IN ('live','prep')),
         title         TEXT NOT NULL,
-        status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','abandoned')),
+        status        TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active','paused','completed','abandoned')),
         created_by    TEXT NOT NULL,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-        completed_at  TIMESTAMPTZ
+        completed_at  TIMESTAMPTZ,
+        archived_at   TIMESTAMPTZ
       );
       DO $$
       BEGIN
@@ -292,6 +295,63 @@ data:
         UNIQUE (session_id, step_number)
       );
       CREATE INDEX IF NOT EXISTS idx_session_steps_session ON coaching.session_steps(session_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.session_audit_log (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id  UUID NOT NULL REFERENCES coaching.sessions(id) ON DELETE CASCADE,
+        event_type  TEXT NOT NULL
+                      CHECK (event_type IN
+                        ('status_change','field_change','ai_request','notes_change')),
+        actor       TEXT NOT NULL,
+        step_number INT,
+        payload     JSONB NOT NULL DEFAULT '{}',
+        changed_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS idx_audit_session
+        ON coaching.session_audit_log(session_id, changed_at DESC);
+
+      CREATE TABLE IF NOT EXISTS coaching.ki_config (
+        id           SERIAL PRIMARY KEY,
+        brand        TEXT NOT NULL,
+        provider     TEXT NOT NULL
+                       CHECK (provider IN ('claude','openai','mistral','lumo')),
+        is_active    BOOLEAN NOT NULL DEFAULT false,
+        model_name   TEXT,
+        display_name TEXT NOT NULL,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, provider)
+      );
+      INSERT INTO coaching.ki_config (brand, provider, is_active, model_name, display_name)
+      VALUES
+        ('mentolder',  'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('mentolder',  'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('mentolder',  'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('mentolder',  'lumo',    false, null,                       'Lumo'),
+        ('korczewski', 'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('korczewski', 'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('korczewski', 'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('korczewski', 'lumo',    false, null,                       'Lumo')
+      ON CONFLICT (brand, provider) DO NOTHING;
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_ki_config_one_active_per_brand
+        ON coaching.ki_config (brand)
+        WHERE is_active = true;
+
+      CREATE TABLE IF NOT EXISTS coaching.step_templates (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        brand            TEXT NOT NULL,
+        step_number      INT NOT NULL,
+        step_name        TEXT NOT NULL,
+        phase            TEXT NOT NULL CHECK (phase IN ('problem_ziel','analyse','loesung','umsetzung')),
+        system_prompt    TEXT NOT NULL,
+        user_prompt_tpl  TEXT NOT NULL,
+        input_schema     JSONB NOT NULL DEFAULT '[]',
+        keywords         TEXT[] NOT NULL DEFAULT '{}',
+        is_active        BOOLEAN NOT NULL DEFAULT true,
+        sort_order       INT NOT NULL DEFAULT 0,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, step_number)
+      );
+      CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
 
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
@@ -847,17 +907,41 @@ data:
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         brand         TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT NULL DEFAULT 'mentolder',
         client_id     UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+        client_name   TEXT,
         mode          TEXT NOT NULL DEFAULT 'live' CHECK (mode IN ('live','prep')),
         title         TEXT NOT NULL,
-        status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','abandoned')),
+        status        TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active','paused','completed','abandoned')),
         created_by    TEXT NOT NULL,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-        completed_at  TIMESTAMPTZ
+        completed_at  TIMESTAMPTZ,
+        archived_at   TIMESTAMPTZ
       );
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_brand_fkey') THEN
           ALTER TABLE coaching.sessions ADD CONSTRAINT sessions_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
+      ALTER TABLE coaching.sessions ADD COLUMN IF NOT EXISTS client_name TEXT;
+      ALTER TABLE coaching.sessions ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'sessions_status_check'
+            AND conrelid = 'coaching.sessions'::regclass
+        ) THEN
+          ALTER TABLE coaching.sessions DROP CONSTRAINT sessions_status_check;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'sessions_status_check'
+            AND conrelid = 'coaching.sessions'::regclass
+        ) THEN
+          ALTER TABLE coaching.sessions
+            ADD CONSTRAINT sessions_status_check
+            CHECK (status IN ('active','paused','completed','abandoned'));
         END IF;
       END $$;
       CREATE INDEX IF NOT EXISTS idx_sessions_brand ON coaching.sessions(brand);
@@ -879,6 +963,63 @@ data:
       );
       CREATE INDEX IF NOT EXISTS idx_session_steps_session ON coaching.session_steps(session_id);
 
+      CREATE TABLE IF NOT EXISTS coaching.session_audit_log (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id  UUID NOT NULL REFERENCES coaching.sessions(id) ON DELETE CASCADE,
+        event_type  TEXT NOT NULL
+                      CHECK (event_type IN
+                        ('status_change','field_change','ai_request','notes_change')),
+        actor       TEXT NOT NULL,
+        step_number INT,
+        payload     JSONB NOT NULL DEFAULT '{}',
+        changed_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS idx_audit_session
+        ON coaching.session_audit_log(session_id, changed_at DESC);
+
+      CREATE TABLE IF NOT EXISTS coaching.ki_config (
+        id           SERIAL PRIMARY KEY,
+        brand        TEXT NOT NULL,
+        provider     TEXT NOT NULL
+                       CHECK (provider IN ('claude','openai','mistral','lumo')),
+        is_active    BOOLEAN NOT NULL DEFAULT false,
+        model_name   TEXT,
+        display_name TEXT NOT NULL,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, provider)
+      );
+      INSERT INTO coaching.ki_config (brand, provider, is_active, model_name, display_name)
+      VALUES
+        ('mentolder',  'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('mentolder',  'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('mentolder',  'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('mentolder',  'lumo',    false, null,                       'Lumo'),
+        ('korczewski', 'claude',  true,  'claude-haiku-4-5-20251001','Claude (Anthropic)'),
+        ('korczewski', 'openai',  false, 'gpt-4o-mini',              'ChatGPT (OpenAI)'),
+        ('korczewski', 'mistral', false, 'mistral-small-latest',     'Mistral'),
+        ('korczewski', 'lumo',    false, null,                       'Lumo')
+      ON CONFLICT (brand, provider) DO NOTHING;
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_ki_config_one_active_per_brand
+        ON coaching.ki_config (brand)
+        WHERE is_active = true;
+
+      CREATE TABLE IF NOT EXISTS coaching.step_templates (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        brand            TEXT NOT NULL,
+        step_number      INT NOT NULL,
+        step_name        TEXT NOT NULL,
+        phase            TEXT NOT NULL CHECK (phase IN ('problem_ziel','analyse','loesung','umsetzung')),
+        system_prompt    TEXT NOT NULL,
+        user_prompt_tpl  TEXT NOT NULL,
+        input_schema     JSONB NOT NULL DEFAULT '[]',
+        keywords         TEXT[] NOT NULL DEFAULT '{}',
+        is_active        BOOLEAN NOT NULL DEFAULT true,
+        sort_order       INT NOT NULL DEFAULT 0,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (brand, step_number)
+      );
+      CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
+
       -- Tables are owned by postgres (init script runs as postgres). Grant the
       -- application role explicit access; ALTER DEFAULT PRIVILEGES covers tables
       -- added in later migrations.
@@ -887,6 +1028,43 @@ data:
       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA coaching TO website;
       ALTER DEFAULT PRIVILEGES IN SCHEMA coaching GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO website;
       ALTER DEFAULT PRIVILEGES IN SCHEMA coaching GRANT USAGE, SELECT ON SEQUENCES TO website;
+
+      -- KI-Provider-Profile: erweiterte Konfigurationsfelder (idempotent)
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS api_key TEXT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS api_endpoint TEXT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS temperature NUMERIC(5,3);
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS max_tokens INT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS top_p NUMERIC(5,3);
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS system_prompt TEXT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS notes TEXT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS top_k INT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS thinking_mode BOOLEAN NOT NULL DEFAULT false;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS presence_penalty NUMERIC(5,3);
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS frequency_penalty NUMERIC(5,3);
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS safe_prompt BOOLEAN NOT NULL DEFAULT false;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS random_seed INT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS organization_id TEXT;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS eu_endpoint BOOLEAN NOT NULL DEFAULT false;
+
+      -- Custom KI-Anbieter: CHECK-Constraint entfernen + enabled_fields (idempotent)
+      DO $$
+      DECLARE v_con text;
+      BEGIN
+        SELECT c.conname INTO v_con
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        JOIN pg_namespace n ON t.relnamespace = n.oid
+        WHERE n.nspname = 'coaching' AND t.relname = 'ki_config'
+          AND c.contype = 'c' AND c.conname LIKE '%provider%'
+        LIMIT 1;
+        IF v_con IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE coaching.ki_config DROP CONSTRAINT ' || quote_ident(v_con);
+        END IF;
+      END $$;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS enabled_fields JSONB;
+
+      -- Per-Session KI-Auswahl
+      ALTER TABLE coaching.sessions ADD COLUMN IF NOT EXISTS ki_config_id INT REFERENCES coaching.ki_config(id) ON DELETE SET NULL;
 
       CREATE INDEX IF NOT EXISTS idx_meetings_customer ON meetings(customer_id);
       CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);

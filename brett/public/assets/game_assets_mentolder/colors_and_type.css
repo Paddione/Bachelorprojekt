@@ -1,0 +1,158 @@
+/* =========================================================================
+   Mentolder Design System — colors_and_type.css
+   Drop-in stylesheet. Loads fonts and exposes all design tokens.
+   Lifted faithfully from the Homepage Redesign reference.
+   ========================================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+
+:root {
+  /* ---------- Color · Ink Blue (page substrate) ----------------------- */
+  --ink-900: #0b111c;     /* page base — slightly warmer than navy */
+  --ink-850: #101826;     /* elevated surface */
+  --ink-800: #17202e;     /* panel */
+  --ink-750: #1d2736;
+  --ink-700: #25303f;
+
+  /* ---------- Color · Brass (primary accent) -------------------------- */
+  --brass:        oklch(0.80 0.09 75);
+  --brass-2:      oklch(0.86 0.09 75);
+  --brass-soft:   oklch(0.90 0.06 75);
+  --brass-print:  #8a6a2a;
+  --brass-deep:   #4a3814;
+  --brass-tint:   oklch(0.80 0.09 75 / .14);
+  --brass-tint-2: oklch(0.80 0.09 75 / .25);
+
+  /* legacy aliases for tooling expecting "copper" naming */
+  --copper:   var(--brass);
+  --copper-2: var(--brass-2);
+
+  /* ---------- Color · Sage (secondary accent / availability) ---------- */
+  --sage:      oklch(0.80 0.06 160);
+  --sage-2:    oklch(0.86 0.06 160);
+  --sage-tint: oklch(0.80 0.06 160 / .18);
+
+  /* ---------- Color · Foreground / utility ---------------------------- */
+  --fg:       #eef1f3;
+  --fg-soft:  #cdd3d9;
+  --mute:     #8c96a3;
+  --mute-2:   #6a727e;
+
+  --line:    rgba(255,255,255,0.07);
+  --line-2:  rgba(255,255,255,0.12);
+  --line-3:  rgba(255,255,255,0.20);
+
+  /* ---------- Color · Semantic ---------------------------------------- */
+  --ok:    var(--sage);
+  --warn:  var(--brass);
+  --fail:  #d77a6e;
+  --info:  #6fa8d8;
+
+  /* ---------- Type families ------------------------------------------- */
+  --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --sans:  "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:  "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---------- Type · semantic roles ----------------------------------- */
+  --fs-display: 88px;   --lh-display: 1.02; --ls-display: -0.025em;
+  --fs-h1: 60px;        --lh-h1: 1.05;      --ls-h1: -0.02em;
+  --fs-h2: 42px;        --lh-h2: 1.1;       --ls-h2: -0.02em;
+  --fs-h3: 26px;        --lh-h3: 1.2;       --ls-h3: -0.015em;
+  --fs-h4: 17px;        --lh-h4: 1.3;       --ls-h4: -0.01em;
+  --fs-lede: 18px;      --lh-lede: 1.6;
+  --fs-body: 15px;      --lh-body: 1.6;
+  --fs-small: 13px;     --lh-small: 1.55;
+  --fs-eyebrow: 11px;   --lh-eyebrow: 1.4;  --ls-eyebrow: 0.18em;
+  --fs-mono: 12px;      --lh-mono: 1.6;     --ls-mono: 0.06em;
+
+  /* ---------- Spacing (4px base) -------------------------------------- */
+  --s-1: 4px;   --s-2: 8px;   --s-3: 12px;  --s-4: 16px;  --s-5: 20px;
+  --s-6: 24px;  --s-8: 32px;  --s-10: 40px; --s-12: 48px; --s-16: 64px;
+  --s-20: 80px; --s-24: 96px; --s-32: 128px;
+
+  /* ---------- Radii --------------------------------------------------- */
+  --r-pill: 999px;
+  --r-card: 22px;
+  --r-tile: 16px;
+  --r-input: 10px;
+  --r-paper: 4px;
+  --r-chip: 6px;
+
+  /* ---------- Shadow / elevation -------------------------------------- */
+  --shadow-1: 0 12px 24px -12px rgba(0,0,0,.55);
+  --shadow-2: 0 30px 60px -30px rgba(0,0,0,.65);
+  --shadow-portrait: 0 40px 80px -30px rgba(0,0,0,.75);
+
+  /* ---------- Motion -------------------------------------------------- */
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+}
+
+/* =========================================================================
+   Base type roles
+   ========================================================================= */
+
+h1, .h1 { font-family: var(--serif); font-weight: 350; font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); }
+h2, .h2 { font-family: var(--serif); font-weight: 400; font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); }
+h3, .h3 { font-family: var(--serif); font-weight: 400; font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); }
+h4, .h4 { font-family: var(--sans);  font-weight: 600; font-size: var(--fs-h4); line-height: var(--lh-h4); letter-spacing: var(--ls-h4); }
+
+.lede { font-family: var(--sans); font-size: var(--fs-lede); line-height: var(--lh-lede); color: var(--fg-soft); }
+.body, p { font-family: var(--sans); font-size: var(--fs-body); line-height: var(--lh-body); }
+.small { font-size: var(--fs-small); line-height: var(--lh-small); }
+.mono, code, kbd, samp {
+  font-family: var(--mono);
+  font-size: var(--fs-mono);
+  line-height: var(--lh-mono);
+  letter-spacing: var(--ls-mono);
+}
+
+.eyebrow {
+  font-family: var(--mono); font-size: var(--fs-eyebrow);
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase;
+  color: var(--brass);
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.eyebrow::before {
+  content: ""; width: 22px; height: 1px;
+  background: currentColor; opacity: .8;
+}
+.eyebrow.no-rule::before { display: none; }
+
+em, .em {
+  font-style: italic; color: var(--brass-2); font-weight: 400;
+}
+
+/* =========================================================================
+   Surfaces
+   ========================================================================= */
+.surface-dark { background: var(--ink-900); color: var(--fg); }
+.surface-elev { background: var(--ink-850); color: var(--fg); }
+
+/* Subtle film grain */
+/* grain removed for standalone */
+
+/* Atmospheric warm halo (used behind hero & CTA) */
+.bg-halo { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.bg-halo::before {
+  content: ""; position: absolute; right: -20%; top: -30%;
+  width: 90vw; height: 90vw;
+  background: radial-gradient(closest-side, oklch(0.80 0.09 75 / .11), transparent 70%);
+  filter: blur(10px);
+}
+.bg-halo::after {
+  content: ""; position: absolute; left: -30%; bottom: -40%;
+  width: 80vw; height: 80vw;
+  background: radial-gradient(closest-side, oklch(0.60 0.05 250 / .25), transparent 70%);
+}
+
+/* =========================================================================
+   Reset-ish
+   ========================================================================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+a { color: inherit; }
+button { font: inherit; }

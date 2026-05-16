@@ -215,7 +215,7 @@ app.use((err, _req, res, _next) => {
 
 const server = require.main === module
   ? app.listen(PORT, () => { console.log(`brett listening on :${PORT}`); })
-  : app.listen(0);
+  : (() => { const s = require('http').createServer(app); if (process.env.MOCK_DB !== 'true') s.listen(0); return s; })();
 
 // ─── WebSocket sync ──────────────────────────────────────────────
 const WebSocket = require('ws');

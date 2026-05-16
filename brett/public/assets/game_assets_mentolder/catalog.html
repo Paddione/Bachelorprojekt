@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mentolder · Game Asset Pack</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  body { background: var(--ink-900); color: var(--fg); min-height: 100vh; position: relative; overflow-x: hidden; }
+  .grain-fixed { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .35; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+  .page { max-width: 1280px; margin: 0 auto; padding: 64px 48px 96px; position: relative; z-index: 1; }
+
+  header.hero { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; padding-bottom: 32px; border-bottom: 1px solid var(--line); margin-bottom: 48px; }
+  header.hero h1 { font-family: var(--serif); font-weight: 350; font-size: 64px; line-height: 1.02; letter-spacing: -0.02em; margin: 16px 0 0; }
+  header.hero h1 em { font-style: italic; color: var(--brass-2); font-weight: 400; }
+  header.hero .meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); text-align: right; line-height: 1.8; }
+  header.hero .meta b { color: var(--brass); font-weight: 500; }
+
+  .lede { max-width: 64ch; color: var(--fg-soft); font-size: 17px; line-height: 1.65; margin-top: 16px; }
+
+  section.row { margin: 64px 0; }
+  section.row > header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  section.row > header h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; margin: 0; flex: 0 0 auto; }
+  section.row > header .id { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); }
+  section.row > header .count { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); margin-left: auto; }
+
+  /* HUD icon strip */
+  .hud-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .hud-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 28px 20px 18px; display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; }
+  .hud-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(closest-side at 50% 0%, var(--brass-tint), transparent 70%); pointer-events: none; }
+  .hud-card .ico { width: 128px; height: 128px; display: grid; place-items: center; position: relative; z-index: 1; }
+  .hud-card .ico img { width: 100%; height: 100%; display: block; }
+  .hud-card .label { font-family: var(--serif); font-size: 18px; font-weight: 400; margin-top: 14px; }
+  .hud-card .filename { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); margin-top: 4px; }
+
+  /* HUD inline bar — game-style preview */
+  .hud-bar { margin-top: 20px; background: linear-gradient(to bottom, rgba(11,17,28,0.95), rgba(16,24,38,0.95)); border: 1px solid var(--line-2); border-radius: var(--r-tile); padding: 14px 18px; display: flex; align-items: center; gap: 18px; }
+  .hud-bar .slot { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--r-chip); border: 1px solid transparent; }
+  .hud-bar .slot.active { border-color: var(--brass); background: var(--brass-tint); }
+  .hud-bar .slot img { width: 28px; height: 28px; display: block; }
+  .hud-bar .key { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--mute); }
+  .hud-bar .name { font-family: var(--sans); font-size: 13px; color: var(--fg); }
+  .hud-bar .name b { color: var(--brass); font-weight: 500; }
+  .hud-bar .ammo { margin-left: auto; font-family: var(--mono); font-size: 13px; letter-spacing: 0.1em; color: var(--brass); }
+
+  /* Sprite cards */
+  .sprite-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .sprite-grid.wide { grid-template-columns: repeat(2, 1fr); }
+  .sprite-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; }
+  .sprite-card .canvas { position: relative; aspect-ratio: 1 / 1; background: var(--ink-900); display: grid; place-items: center; overflow: hidden; }
+  .sprite-card.wide-canvas .canvas { aspect-ratio: 2 / 1; }
+  .sprite-card.sheet-canvas .canvas { aspect-ratio: 4 / 1; }
+  .sprite-card .canvas img { max-width: 88%; max-height: 88%; display: block; }
+  .sprite-card .canvas.dark-grid {
+    background:
+      linear-gradient(var(--ink-800) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, var(--ink-800) 1px, transparent 1px) 0 0 / 24px 24px,
+      var(--ink-900);
+  }
+  .sprite-card .meta { padding: 14px 18px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
+  .sprite-card .meta .name { font-family: var(--serif); font-size: 18px; }
+  .sprite-card .meta .dim { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--brass); }
+  .sprite-card .meta .desc { grid-column: 1 / -1; font-family: var(--sans); font-size: 13px; color: var(--fg-soft); line-height: 1.5; }
+  .sprite-card .meta .file { grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--mute); text-transform: uppercase; margin-top: 4px; }
+
+  /* Blood splat row */
+  .splat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .splat-row .sprite-card .canvas { aspect-ratio: 1 / 1; }
+
+  /* Fire frame strip — show the 4 frames separated */
+  .fire-frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: absolute; inset: 0; pointer-events: none; }
+  .fire-frames span { border-right: 1px dashed rgba(215, 176, 106, 0.18); }
+  .fire-frames span:last-child { border-right: none; }
+  .fire-label { position: absolute; bottom: 8px; left: 0; right: 0; display: grid; grid-template-columns: repeat(4, 1fr); font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; color: var(--mute); text-transform: uppercase; pointer-events: none; }
+  .fire-label span { text-align: center; }
+
+  /* Spec callouts */
+  .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .spec { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 24px 28px; }
+  .spec h3 { font-family: var(--sans); font-weight: 600; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brass); margin: 0 0 14px; }
+  .spec table { width: 100%; border-collapse: collapse; }
+  .spec td { padding: 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 13px; line-height: 1.5; }
+  .spec td:first-child { font-family: var(--mono); color: var(--brass-2); font-size: 12px; letter-spacing: 0.06em; width: 38%; }
+  .spec td:last-child { color: var(--fg-soft); }
+  .spec tr:last-child td { border-bottom: none; }
+
+  /* Caveat box */
+  .caveat { background: var(--ink-850); border-left: 2px solid var(--brass); border-radius: 0 var(--r-tile) var(--r-tile) 0; padding: 20px 24px; margin-top: 24px; }
+  .caveat h4 { font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); margin: 0 0 8px; }
+  .caveat p { font-size: 14px; color: var(--fg-soft); line-height: 1.65; margin: 0 0 8px; }
+  .caveat code { font-family: var(--mono); font-size: 12px; color: var(--brass-2); background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 3px; }
+
+  /* Code blocks for integration specs */
+  .codeblock { background: #050810; border: 1px solid var(--line); border-left: 2px solid var(--brass); border-radius: var(--r-tile); padding: 20px 24px; margin: 16px 0 0; overflow-x: auto; }
+  .codeblock pre { margin: 0; font-family: var(--mono); font-size: 12px; line-height: 1.75; color: var(--fg-soft); white-space: pre; letter-spacing: 0.01em; }
+  .codeblock .kw { color: var(--brass-2); }
+  .codeblock .str { color: var(--sage); }
+  .codeblock .num { color: var(--info); }
+  .codeblock .cm { color: var(--mute); font-style: italic; }
+  .codeblock .sel { color: var(--brass); }
+  .codeblock .fn { color: var(--brass-hi, var(--brass-2)); }
+
+  .file-label { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .file-label .pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass); border: 1px solid var(--brass-tint-2); padding: 3px 8px; border-radius: var(--r-chip); }
+  .file-label .path { font-family: var(--mono); font-size: 12px; color: var(--fg-soft); }
+  .file-label .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+
+  .integration-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .integration-grid > .spec { padding: 24px 28px; }
+  .integration-grid > .full { grid-column: 1 / -1; }
+  .integration-grid h3 { font-family: var(--sans); font-weight: 600; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brass); margin: 0 0 8px; }
+  .integration-grid p { margin: 0 0 8px; font-size: 13px; color: var(--fg-soft); line-height: 1.6; }
+  .integration-grid ul { margin: 8px 0 0; padding: 0 0 0 16px; font-size: 13px; color: var(--fg-soft); line-height: 1.7; }
+  .integration-grid ul li::marker { color: var(--brass); }
+  .integration-grid ul b { color: var(--fg); font-weight: 500; }
+
+  /* Figure-pack extension — slate substrate, sage palette */
+  .figpack { background: #0e1014; border: 1px solid #2a3040; border-radius: var(--r-tile); padding: 32px; }
+  .figpack .palette-note { display: flex; gap: 18px; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c8071; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid #2a3040; }
+  .figpack .palette-note span { display: inline-flex; align-items: center; gap: 6px; }
+  .figpack .palette-note i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; border: 1px solid rgba(255,255,255,0.1); }
+  .figpack h4 { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #c8a96e; margin: 24px 0 14px; }
+  .figpack h4:first-child { margin-top: 0; }
+  .figpack .acc-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .figpack .acc-card { background: #161922; border: 1px solid #2a3040; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; align-items: center; }
+  .figpack .acc-card .thumb { width: 100%; aspect-ratio: 1/1; display: grid; place-items: center; background: linear-gradient(180deg, #1f2330 0%, #161922 100%); border-radius: 4px; overflow: hidden; }
+  .figpack .acc-card .thumb img { width: 92%; height: 92%; object-fit: contain; }
+  .figpack .acc-card .name { font-family: var(--serif); font-size: 13px; color: #e7ead0; margin-top: 8px; }
+  .figpack .acc-card .file { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; color: #7c8071; text-transform: uppercase; }
+
+  /* Footer */
+  footer { margin-top: 96px; padding-top: 32px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  footer .mark { font-family: var(--serif); font-size: 20px; }
+  footer .mark .dot { color: var(--brass); }
+  footer .meta { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); line-height: 1.8; text-align: right; }
+</style>
+</head>
+<body>
+<div class="grain-fixed"></div>
+<main class="page">
+
+<header class="hero">
+  <div>
+    <span class="eyebrow">Asset Pack · 01</span>
+    <h1>Game assets, <em>in Mentolder voice.</em></h1>
+    <p class="lede">HUD-Icons, Sprites und Spezifikationen für das Three.js-Game. Brass-Stroke auf ink-Substrat, gedämpftes Tonrot als Game-Blut. Editorial — bis ans Schlachtfeld.</p>
+  </div>
+  <div class="meta">
+    <div><b>14</b> Sprites · <b>5</b> HUD-Icons · <b>14</b> Figure-Pack</div>
+    <div>1× README · 1× Catalog</div>
+    <div>Build · 2026-05-15</div>
+  </div>
+</header>
+
+<!-- HUD ICONS -->
+<section class="row">
+  <header>
+    <h2>HUD-Icons</h2>
+    <span class="id">/hud · brass on ink</span>
+    <span class="count">5 weapons · 3 sizes</span>
+  </header>
+  <div class="hud-grid">
+    <div class="hud-card"><div class="ico"><img src="hud/icon-handgun-256.png" alt="Handgun"></div><div class="label">Handgun</div><div class="filename">icon-handgun.png</div></div>
+    <div class="hud-card"><div class="ico"><img src="hud/icon-rifle-256.png" alt="Rifle"></div><div class="label">Rifle</div><div class="filename">icon-rifle.png</div></div>
+    <div class="hud-card"><div class="ico"><img src="hud/icon-fireball-256.png" alt="Fireball"></div><div class="label">Fireball</div><div class="filename">icon-fireball.png</div></div>
+    <div class="hud-card"><div class="ico"><img src="hud/icon-club-256.png" alt="Club"></div><div class="label">Club</div><div class="filename">icon-club.png</div></div>
+    <div class="hud-card"><div class="ico"><img src="hud/icon-katana-256.png" alt="Katana"></div><div class="label">Katana</div><div class="filename">icon-katana.png</div></div>
+  </div>
+  <div class="hud-bar">
+    <div class="slot active"><img src="hud/icon-rifle.png" alt=""><div><div class="key">2</div><div class="name"><b>Rifle</b></div></div></div>
+    <div class="slot"><img src="hud/icon-handgun.png" alt=""><div><div class="key">1</div><div class="name">Handgun</div></div></div>
+    <div class="slot"><img src="hud/icon-fireball.png" alt=""><div><div class="key">3</div><div class="name">Fireball</div></div></div>
+    <div class="slot"><img src="hud/icon-club.png" alt=""><div><div class="key">4</div><div class="name">Club</div></div></div>
+    <div class="slot"><img src="hud/icon-katana.png" alt=""><div><div class="key">5</div><div class="name">Katana</div></div></div>
+    <div class="ammo">24 / 90</div>
+  </div>
+</section>
+
+<!-- BLOOD SPLATS -->
+<section class="row">
+  <header>
+    <h2>Blut-Decals</h2>
+    <span class="id">/sprites · blood-splat</span>
+    <span class="count">4 rotated variants</span>
+  </header>
+  <div class="splat-row">
+    <div class="sprite-card"><div class="canvas dark-grid"><img src="sprites/blood-splat-01.png" alt=""></div><div class="meta"><span class="name">Variante 01</span><span class="dim">512×512</span><span class="file">blood-splat-01.png</span></div></div>
+    <div class="sprite-card"><div class="canvas dark-grid"><img src="sprites/blood-splat-02.png" alt=""></div><div class="meta"><span class="name">Variante 02</span><span class="dim">512×512</span><span class="file">blood-splat-02.png</span></div></div>
+    <div class="sprite-card"><div class="canvas dark-grid"><img src="sprites/blood-splat-03.png" alt=""></div><div class="meta"><span class="name">Variante 03</span><span class="dim">512×512</span><span class="file">blood-splat-03.png</span></div></div>
+    <div class="sprite-card"><div class="canvas dark-grid"><img src="sprites/blood-splat-04.png" alt=""></div><div class="meta"><span class="name">Variante 04</span><span class="dim">512×512</span><span class="file">blood-splat-04.png</span></div></div>
+  </div>
+  <div class="caveat">
+    <h4>Einsatz</h4>
+    <p>Floor-/wall-decals nach Treffer. Bei <code>DecalGeometry</code>: zufällige Variante 1–4 + <code>rotation.z</code>-Streuung → 32+ unique Decals aus 4 Files. NormalBlending, kein additive.</p>
+  </div>
+</section>
+
+<!-- FIRE SPRITE SHEET -->
+<section class="row">
+  <header>
+    <h2>Fire-Sprite-Sheet</h2>
+    <span class="id">/sprites · fire-sprite</span>
+    <span class="count">4 frames horizontal · ~12 fps</span>
+  </header>
+  <div class="sprite-card sheet-canvas">
+    <div class="canvas dark-grid" style="position: relative;">
+      <img src="sprites/fire-sprite.png" alt="" style="max-width: 96%; max-height: 88%;">
+      <div class="fire-frames"><span></span><span></span><span></span><span></span></div>
+      <div class="fire-label"><span>frame 0</span><span>frame 1</span><span>frame 2</span><span>frame 3</span></div>
+    </div>
+    <div class="meta">
+      <span class="name">Fire-Sprite-Sheet</span>
+      <span class="dim">1024×256 · 4 × 256</span>
+      <span class="desc">Brennen-Effekt auf Spieler. Vier seed-variierte Frames für animiertes Lodern. <code>AdditiveBlending</code>, <code>depthWrite: false</code>, <code>texture.repeat.x = 0.25</code>.</span>
+      <span class="file">fire-sprite.png</span>
+    </div>
+  </div>
+</section>
+
+<!-- OPTIONAL SPRITES -->
+<section class="row">
+  <header>
+    <h2>Effekt-Sprites</h2>
+    <span class="id">/sprites · trails &amp; flashes</span>
+    <span class="count">3 one-shots</span>
+  </header>
+  <div class="sprite-grid">
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="sprites/smoke-puff.png" alt=""></div>
+      <div class="meta"><span class="name">Smoke-Puff</span><span class="dim">256×256</span><span class="desc">Rauchpartikel für Fireball-Trail. Normales Alpha-Blending; Scale-Lerp 0.5→2.0, Opacity 0.8→0 über 0.6s.</span><span class="file">smoke-puff.png</span></div>
+    </div>
+    <div class="sprite-card wide-canvas">
+      <div class="canvas dark-grid"><img src="sprites/slash-arc.png" alt=""></div>
+      <div class="meta"><span class="name">Slash-Arc</span><span class="dim">512×256</span><span class="desc">Katana-Bogen, brass-Core mit stille-blau Glow. <code>AdditiveBlending</code>; Quad an Klingen-Position, fade-out 0.15s.</span><span class="file">slash-arc.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="sprites/muzzle-flash.png" alt=""></div>
+      <div class="meta"><span class="name">Muzzle-Flash</span><span class="dim">256×256</span><span class="desc">Mündungsfeuer Handgun/Rifle. <code>AdditiveBlending</code>; zufällig <code>rotation.z</code> + Scale 0.9–1.2, sichtbar ~80ms.</span><span class="file">muzzle-flash.png</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3D / AUDIO SPECS -->
+<section class="row">
+  <header>
+    <h2>3D-Modelle &amp; Audio</h2>
+    <span class="id">/specs · external sourcing</span>
+    <span class="count">specs in README.md</span>
+  </header>
+  <div class="caveat">
+    <h4>Was nicht im Pack ist</h4>
+    <p><b style="color: var(--fg);">3D-Modelle (.glb)</b> und <b style="color: var(--fg);">Audio-Files (.ogg)</b> kann ich nicht binär erzeugen. Stattdessen in der <code>README.md</code>:</p>
+    <p>→ <b style="color: var(--brass-2);">Three.js-Fallback-Geometrie-Spec</b> für alle 9 Modelle — Primitive (Box, Cylinder, Icosahedron) mit konkreten Maßen, Material-Patterns und EdgesGeometry-Brass-Wireframe als Signature.</p>
+    <p>→ <b style="color: var(--brass-2);">Audio-Spec-Tabelle</b> mit Dauer, Tonalität, Such-Tags für Freesound.org &amp; Sonniss GameAudio GDC-Bundle (CC0).</p>
+  </div>
+
+  <div class="specs">
+    <div class="spec">
+      <h3>Three.js — Material-Library</h3>
+      <table>
+        <tr><td>inkBody</td><td>#17202e · metalness 0.55 · roughness 0.65 — Waffen, Fässer</td></tr>
+        <tr><td>brassDetail</td><td>#d7b06a · metalness 0.85 · emissive — Trigger, Sights, Klingen</td></tr>
+        <tr><td>woodWarm</td><td>#6a4a28 · roughness 0.85 — Keule, Holzkiste, Tsuka</td></tr>
+        <tr><td>concrete</td><td>#5a5852 · roughness 0.95 — Pfeiler, Mauer</td></tr>
+        <tr><td>edgeBrass</td><td>LineBasic #d7b06a opacity 0.35 — Wireframe-Signature auf allen Meshes</td></tr>
+      </table>
+    </div>
+    <div class="spec">
+      <h3>Sprite-Blending Cheat-Sheet</h3>
+      <table>
+        <tr><td>blood-splat</td><td>NormalBlending · depthWrite false · rotation.z für Variantz</td></tr>
+        <tr><td>fire-sprite</td><td>AdditiveBlending · texture.offset.x in 1/4-Schritten</td></tr>
+        <tr><td>smoke-puff</td><td>NormalBlending · Scale 0.5→2.0, Opacity 0.8→0 / 0.6s</td></tr>
+        <tr><td>slash-arc</td><td>AdditiveBlending · Quad an Klinge, 0.15s fade</td></tr>
+        <tr><td>muzzle-flash</td><td>AdditiveBlending · rand rotation+scale, 80ms</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COLOR ANCHOR -->
+<section class="row">
+  <header>
+    <h2>Farbpalette</h2>
+    <span class="id">/tokens · game-extension</span>
+    <span class="count">brand + game</span>
+  </header>
+  <div class="specs">
+    <div class="spec">
+      <h3>Brand-Anker</h3>
+      <table>
+        <tr><td>ink-900</td><td><span style="display:inline-block;width:14px;height:14px;background:#0b111c;border:1px solid var(--line-2);vertical-align:middle;margin-right:8px;"></span>#0b111c · Substrat</td></tr>
+        <tr><td>brass</td><td><span style="display:inline-block;width:14px;height:14px;background:#d7b06a;vertical-align:middle;margin-right:8px;"></span>#d7b06a · HUD-Akzent</td></tr>
+        <tr><td>brass-hi</td><td><span style="display:inline-block;width:14px;height:14px;background:#f0d28c;vertical-align:middle;margin-right:8px;"></span>#f0d28c · Highlight</td></tr>
+        <tr><td>stille-blau</td><td><span style="display:inline-block;width:14px;height:14px;background:#6fa8d8;vertical-align:middle;margin-right:8px;"></span>#6fa8d8 · Slash-Glow</td></tr>
+      </table>
+    </div>
+    <div class="spec">
+      <h3>Game-Erweiterung</h3>
+      <table>
+        <tr><td>blood-core</td><td><span style="display:inline-block;width:14px;height:14px;background:#a83a30;vertical-align:middle;margin-right:8px;"></span>#a83a30 · Splat-Mitte</td></tr>
+        <tr><td>blood-deep</td><td><span style="display:inline-block;width:14px;height:14px;background:#5a1a14;vertical-align:middle;margin-right:8px;"></span>#5a1a14 · Splat-Rand</td></tr>
+        <tr><td>blood-bright</td><td><span style="display:inline-block;width:14px;height:14px;background:#c4453a;vertical-align:middle;margin-right:8px;"></span>#c4453a · Highlight</td></tr>
+        <tr><td>fire-tip</td><td><span style="display:inline-block;width:14px;height:14px;background:#fff5c8;vertical-align:middle;margin-right:8px;"></span>#fff5c8 · Flammen-Spitze</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SEKTION 04 — VISUAL RESKIN INTEGRATION                       -->
+<!-- ============================================================ -->
+<section class="row">
+  <header>
+    <h2>Visual-Reskin</h2>
+    <span class="id">/integration · sektion 04</span>
+    <span class="count">tokens · materials · lighting · paths</span>
+  </header>
+
+  <p class="lede" style="margin-top: 0;">Integrations-Spec für das <code style="font-family: var(--mono); font-size: 13px; color: var(--brass-2);">brett/</code>-Game. Ein Token-Layer für UI, eine Three.js-Material-Library als single source, abgestimmte Beleuchtung — alle drei greifen über <code style="font-family: var(--mono); font-size: 13px; color: var(--brass-2);">applySignature()</code> auf das gleiche Brass-Vokabular zu. Kein Light-Mode (game-tool).</p>
+
+  <div class="integration-grid">
+
+    <!-- CSS TOKEN LAYER -->
+    <div class="spec full">
+      <div class="file-label">
+        <span class="pill">CSS · Token Layer</span>
+        <span class="path">brett/public/assets/style.css</span>
+        <span class="tag">neu · single source</span>
+      </div>
+      <p>Topbar, Status-Pill, Figuren-Editor, Mode-Selector und Combat-HUD ziehen alle aus diesen Tokens. Light-Mode entfällt — game-tool.</p>
+      <div class="codeblock"><pre><span class="sel">:root</span> {
+  <span class="kw">--ink-900</span>: <span class="str">#0b111c</span>;   <span class="cm">/* Substrat (Body, Modal-BG) */</span>
+  <span class="kw">--ink-800</span>: <span class="str">#17202e</span>;
+  <span class="kw">--brass</span>:     <span class="str">#d7b06a</span>;   <span class="cm">/* HUD-Akzent, aktive Buttons */</span>
+  <span class="kw">--brass-hi</span>:  <span class="str">#f0d28c</span>;   <span class="cm">/* Highlight, Hover */</span>
+  <span class="kw">--brass-mute</span>: <span class="str">rgba(215,176,106,0.35)</span>;
+  <span class="kw">--stille-blau</span>: <span class="str">#6fa8d8</span>; <span class="cm">/* Slash-Glow, Info */</span>
+  <span class="kw">--blood-core</span>: <span class="str">#a83a30</span>;
+  <span class="kw">--blood-deep</span>: <span class="str">#5a1a14</span>;
+  <span class="kw">--fire-tip</span>:   <span class="str">#fff5c8</span>;
+  <span class="kw">--line</span>:       <span class="str">rgba(215,176,106,0.18)</span>;
+}</pre></div>
+    </div>
+
+    <!-- THREE.JS MATERIAL LIBRARY -->
+    <div class="spec full">
+      <div class="file-label">
+        <span class="pill">Three.js · Material Library</span>
+        <span class="path">brett/public/assets/materials.js</span>
+        <span class="tag">neu · single source</span>
+      </div>
+      <ul>
+        <li><b>inkBody</b> — <code>MeshStandardMaterial({ color: 0x17202e, metalness: 0.55, roughness: 0.65 })</code> — Waffen-Bodies, Fässer</li>
+        <li><b>brassDetail</b> — emissive Brass für Trigger, Sights, Klingen</li>
+        <li><b>woodWarm</b> — Keulen, Holzkisten, Tsuka</li>
+        <li><b>concrete</b> — Pfeiler, Mauer, Boden-Variation</li>
+        <li><b>edgeBrass</b> — <code>LineBasicMaterial({ color: 0xd7b06a, opacity: 0.35 })</code> als EdgesGeometry-Wrapper</li>
+        <li>Zentrale <code>applySignature(mesh)</code>-Funktion fügt automatisch Edges-Brass an alle neuen Meshes</li>
+      </ul>
+      <div class="codeblock"><pre><span class="kw">import</span> * <span class="kw">as</span> THREE <span class="kw">from</span> <span class="str">'three'</span>;
+
+<span class="kw">export const</span> <span class="fn">inkBody</span> = <span class="kw">new</span> THREE.MeshStandardMaterial({
+  color: <span class="num">0x17202e</span>, metalness: <span class="num">0.55</span>, roughness: <span class="num">0.65</span>,
+});
+<span class="kw">export const</span> <span class="fn">brassDetail</span> = <span class="kw">new</span> THREE.MeshStandardMaterial({
+  color: <span class="num">0xd7b06a</span>, metalness: <span class="num">0.85</span>, roughness: <span class="num">0.35</span>,
+  emissive: <span class="num">0x4a3814</span>, emissiveIntensity: <span class="num">0.15</span>,
+});
+<span class="kw">export const</span> <span class="fn">woodWarm</span>  = <span class="kw">new</span> THREE.MeshStandardMaterial({ color: <span class="num">0x6a4a28</span>, roughness: <span class="num">0.85</span> });
+<span class="kw">export const</span> <span class="fn">concrete</span>  = <span class="kw">new</span> THREE.MeshStandardMaterial({ color: <span class="num">0x5a5852</span>, roughness: <span class="num">0.95</span> });
+<span class="kw">export const</span> <span class="fn">edgeBrass</span> = <span class="kw">new</span> THREE.LineBasicMaterial({
+  color: <span class="num">0xd7b06a</span>, transparent: <span class="kw">true</span>, opacity: <span class="num">0.35</span>,
+});
+
+<span class="cm">// brass wireframe signature on every mesh that opts in</span>
+<span class="kw">export function</span> <span class="fn">applySignature</span>(mesh) {
+  <span class="kw">const</span> edges = <span class="kw">new</span> THREE.EdgesGeometry(mesh.geometry, <span class="num">25</span>);
+  mesh.add(<span class="kw">new</span> THREE.LineSegments(edges, edgeBrass));
+  <span class="kw">return</span> mesh;
+}</pre></div>
+    </div>
+
+    <!-- LIGHTING + GROUND -->
+    <div class="spec">
+      <h3>Beleuchtung &amp; Boden</h3>
+      <ul>
+        <li>Aktuelle helle Szene-Beleuchtung → <b>30% reduziert</b>, kühler Tone</li>
+        <li><b>HemisphereLight</b> — sky = stille-blau (low-intensity), ground = ink-900</li>
+        <li><b>1–2 SpotLights</b> mit warmem Brass-Akzent über Spawn-Punkten</li>
+        <li>Brett-Bodenmaterial: <b>concrete</b>-Token + leichte Vignette</li>
+        <li><b>Coaching-Mode:</b> gleiche Beleuchtung, nur weniger dramatisch (Intensität +20%)</li>
+      </ul>
+      <div class="codeblock"><pre><span class="cm">// drop-in lighting rig — replace current AmbientLight setup</span>
+scene.add(<span class="kw">new</span> THREE.HemisphereLight(
+  <span class="num">0x6fa8d8</span>, <span class="cm">// sky · stille-blau</span>
+  <span class="num">0x0b111c</span>, <span class="cm">// ground · ink-900</span>
+  <span class="num">0.45</span>,
+));
+<span class="kw">const</span> spawn = <span class="kw">new</span> THREE.SpotLight(<span class="num">0xd7b06a</span>, <span class="num">1.2</span>, <span class="num">12</span>, Math.PI/<span class="num">5</span>, <span class="num">0.4</span>);
+spawn.position.set(<span class="num">0</span>, <span class="num">6</span>, <span class="num">2</span>);
+scene.add(spawn);
+
+<span class="cm">// coaching-mode override</span>
+<span class="kw">if</span> (mode === <span class="str">'coaching'</span>) hemi.intensity *= <span class="num">1.2</span>;</pre></div>
+    </div>
+
+    <!-- ASSET INTEGRATION -->
+    <div class="spec">
+      <h3>Asset-Pack-Integration</h3>
+      <ul>
+        <li>Sprites unter <code>brett/public/assets/sprites/</code></li>
+        <li>HUD-Icons unter <code>brett/public/assets/hud/</code></li>
+        <li>Asset-Pack-HTML wird zum Ticket-Anhang; Bild-Extraktion via Mini-Script</li>
+      </ul>
+      <div class="codeblock"><pre><span class="cm"># brett/public/assets/sprites/</span>
+blood-splat-01.png · blood-splat-02.png
+blood-splat-03.png · blood-splat-04.png
+fire-sprite.png    · smoke-puff.png
+slash-arc.png      · muzzle-flash.png
+
+<span class="cm"># brett/public/assets/hud/</span>
+icon-handgun.png · icon-rifle.png
+icon-fireball.png · icon-club.png
+icon-katana.png
+
+<span class="cm"># extractor (im Plan beschrieben)</span>
+scripts/brett/extract-asset-pack.sh</pre></div>
+    </div>
+
+  </div>
+
+  <div class="caveat">
+    <h4>Übergabe-Reihenfolge</h4>
+    <p><b style="color: var(--fg);">1.</b> Token-Layer (<code>style.css</code>) zuerst — alle Bestandskomponenten ziehen sofort um, ohne Logik-Änderungen. &nbsp;<b style="color: var(--fg);">2.</b> Material-Library + <code>applySignature()</code> in einem Sweep über alle <code>scene.add()</code>-Stellen. &nbsp;<b style="color: var(--fg);">3.</b> Lighting-Rig austauschen, Coaching-Mode-Override testen. &nbsp;<b style="color: var(--fg);">4.</b> Sprites + HUD-Icons via Extract-Script ins Public-Verzeichnis legen.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FIGURE-PACK EXTENSION · Character Editor accessories          -->
+<!-- ============================================================ -->
+<section class="row">
+  <header>
+    <h2>Character-Editor</h2>
+    <span class="id">/figure-pack-extension · systembrett</span>
+    <span class="count">5 hair · 5 clothing · 4 shoes</span>
+  </header>
+
+  <p class="lede" style="margin-top: 0;">Erweiterung der bestehenden <code style="font-family: var(--mono); font-size: 13px; color: var(--brass-2);">figure-pack/accessories/</code>-Bibliothek. Eigene Palette (sage / parchment / brass <code style="font-family: var(--mono); font-size: 13px; color: var(--brass-2);">#c8a96e</code>) — bewusst <em>nicht</em> die Game-Brass-Tokens, sondern das ruhige Coaching-Vokabular. 256×256 PNG mit Alpha, anchor-Werte + Three.js-Settings in <code style="font-family: var(--mono); font-size: 13px; color: var(--brass-2);">placement_spec.additions.json</code>.</p>
+
+  <div class="figpack">
+    <div class="palette-note">
+      <span><i style="background:#b8c0a8"></i> sage · body</span>
+      <span><i style="background:#e7ead0"></i> parchment · cloth</span>
+      <span><i style="background:#c8a96e"></i> brass · accent</span>
+      <span><i style="background:#2a2018"></i> hair · warm dark</span>
+      <span><i style="background:#d9c89b"></i> skin · parchment-warm</span>
+      <span><i style="background:#1f2330"></i> slate · boots</span>
+    </div>
+
+    <h4>Hair · head bone</h4>
+    <div class="acc-grid">
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/hair-short.png" alt=""></div><div class="name">Short</div><div class="file">hair-short.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/hair-bun.png" alt=""></div><div class="name">Bun</div><div class="file">hair-bun.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/hair-long.png" alt=""></div><div class="name">Long</div><div class="file">hair-long.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/hair-braid.png" alt=""></div><div class="name">Braid</div><div class="file">hair-braid.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/hair-curls.png" alt=""></div><div class="name">Curls</div><div class="file">hair-curls.png</div></div>
+    </div>
+
+    <h4>Clothing · hips bone</h4>
+    <div class="acc-grid">
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/tunic.png" alt=""></div><div class="name">Tunic</div><div class="file">tunic.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/coat.png" alt=""></div><div class="name">Coat</div><div class="file">coat.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/apron.png" alt=""></div><div class="name">Apron</div><div class="file">apron.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/robe.png" alt=""></div><div class="name">Robe</div><div class="file">robe.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/vest.png" alt=""></div><div class="name">Vest</div><div class="file">vest.png</div></div>
+    </div>
+
+    <h4>Shoes · paired lAnkle + rAnkle</h4>
+    <div class="acc-grid">
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/boots-work.png" alt=""></div><div class="name">Work Boots</div><div class="file">boots-work.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/shoes-dress.png" alt=""></div><div class="name">Dress</div><div class="file">shoes-dress.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/sandals.png" alt=""></div><div class="name">Sandals</div><div class="file">sandals.png</div></div>
+      <div class="acc-card"><div class="thumb"><img src="../figure_pack_extension/accessories/barefoot.png" alt=""></div><div class="name">Barefoot</div><div class="file">barefoot.png</div></div>
+      <div class="acc-card" style="background: transparent; border: 1px dashed #2a3040;"><div class="thumb" style="background: transparent; opacity: 0.5;"><div style="font-family: var(--mono); font-size: 9px; color: #7c8071; letter-spacing: 0.14em; text-align: center;">RESERVED<br>FOR HEELS</div></div><div class="name" style="color: #7c8071;">—</div><div class="file">tbd</div></div>
+    </div>
+  </div>
+
+  <div class="caveat">
+    <h4>Integration</h4>
+    <p>Drop in unter <code>brett/public/assets/figure-pack/accessories/</code>. Spec-Block aus <code>placement_spec.additions.json</code> mergen in den existierenden <code>accessories</code>-Hash. Schuhe sind <b style="color: var(--fg);">paired</b> — gleicher PNG wird zweimal instanziiert (lAnkle + rAnkle), das spart Texture-Memory. Long-Hair und Braid haben <code>billboard: false</code> + negativen Z-Offset, damit sie an der Hinterseite des Kopfs hängen statt zur Kamera zu drehen.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="mark">mentolder<span class="dot">.</span> <span style="color: var(--mute); font-size: 13px; margin-left: 8px;">game asset pack</span></div>
+  <div class="meta">
+    <div>14 sprites · 5 hud icons · 14 figure-pack · 1 readme</div>
+    <div>colors_and_type.css · shared with brand library</div>
+  </div>
+</footer>
+
+</main>
+</body>
+</html>
+

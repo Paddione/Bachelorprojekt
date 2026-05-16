@@ -249,11 +249,6 @@ task config:show ENV=<env>       # Show resolved PROD_DOMAIN/BRAND_NAME/CONTACT_
 ```
 
 ### Tracking, tickets, theming, and other day-to-day tasks
-```bash
-task tracking:psql ENV=<env>             # psql into the bachelorprojekt tracking schema
-task tracking:backfill                   # Re-emit tracking JSON for historical PRs into tracking/pending/
-task tracking:backfill:dry               # Dry-run of tracking:backfill (prints what would be written)
-task tracking:ingest:local               # Drain tracking/pending/ into bachelorprojekt.features (needs TRACKING_DB_URL)
 task keycloak:sync ENV=<env>             # Reconcile Keycloak realm + client config from JSON
 task workspace:sync-db-passwords ENV=<env>  # Reconcile shared-db role passwords against the current SealedSecret
 task workspace:fix-tickets-grants ENV=<env> # Re-grant ticket-schema permissions to service roles
@@ -445,11 +440,7 @@ After any cluster reset (including replacing a Sealed Secrets controller keypair
 `web.korczewski.de` and `web.mentolder.de` no longer share a layout. `website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.
 
 The Kore homepage shows a live PR-driven timeline:
-- Every merged PR triggers `.github/workflows/track-pr.yml` → writes `tracking/pending/<pr>.json` to main.
-- The `tracking-import` CronJob in workspace ns drains pending into `bachelorprojekt.features` every 5 minutes.
-- The homepage reads `bachelorprojekt.v_timeline` (joined to `bugs.bug_tickets.fixed_in_pr` for fix counts) via `/api/timeline`.
 
-To backfill historical PRs: `task tracking:backfill && task tracking:ingest:local` (the latter requires `TRACKING_DB_URL` from a port-forward to shared-db).
 
 The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRAND_ID` in local dev — `index.astro` reads both with `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`.
 
@@ -469,3 +460,6 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **SSH 2222 is publicly exposed** but ufw-deny-default'd. Per-CIDR allow rules apply via `task dev:firewall:open` (reads `DEV_SSH_ALLOWLIST` from `environments/mentolder.yaml`). Even allowlisted clients still need a key in `DEV_SISH_AUTHORIZED_KEYS` to publish tunnels.
 - **Dev secrets are sealed against the mentolder cert** (the dev-db-refresh CronJob runs in prod), but materialised inside dev k3d as plain Secrets by `task dev:_materialise-secrets`. Don't `kubectl apply environments/sealed-secrets/mentolder.yaml` to the `k3d-mentolder-dev` context — there's no sealed-secrets controller there.
 - **`workspace-dev` Keycloak client enforces `/dev-access` group membership at the oauth2-proxy layer** (`--allowed-groups=/dev-access`). Add yourself in the KC admin UI before the first visit, else you'll loop on 403.
+ as plain Secrets by `task dev:_materialise-secrets`. Don't `kubectl apply environments/sealed-secrets/mentolder.yaml` to the `k3d-mentolder-dev` context — there's no sealed-secrets controller there.
+- **`workspace-dev` Keycloak client enforces `/dev-access` group membership at the oauth2-proxy layer** (`--allowed-groups=/dev-access`). Add yourself in the KC admin UI before the first visit, else you'll loop on 403.
+p membership at the oauth2-proxy layer** (`--allowed-groups=/dev-access`). Add yourself in the KC admin UI before the first visit, else you'll loop on 403.

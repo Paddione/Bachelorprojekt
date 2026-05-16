@@ -1,7 +1,15 @@
 <script lang="ts">
-  import type { Message } from '../../lib/assistant/types';
-  let { message, sourcesUsed = 0 }: { message: Message; sourcesUsed?: number } = $props();
+  import type { Message, AssistantSource } from '../../lib/assistant/types';
+  import SourcesBox from './SourcesBox.svelte';
+
+  let { message, sources = [] }: { message: Message; sources?: AssistantSource[] } = $props();
   const isUser = $derived(message.role === 'user');
+
+  function renderCitations(text: string): string {
+    return text.replace(/\[(\d+)\]/g, (_, n) =>
+      `<sup style="font-size:9px;color:#d7b06a;font-weight:600;cursor:default;" title="Quelle ${n}">[${n}]</sup>`
+    );
+  }
 </script>
 
 <div
@@ -11,12 +19,11 @@
   style="font-size: 12px; line-height: 1.45; padding: 7px 10px; border-radius: 8px; max-width: 80%;
          font-family: var(--font-sans); color: var(--fg);"
 >
-  {#if !isUser && sourcesUsed > 0}
-    <div style="font-size: 10px; color: #d7b06a; margin-bottom: 4px; opacity: .85;">
-      📚 {sourcesUsed} {sourcesUsed === 1 ? 'Passage' : 'Passagen'} aus Coaching-Büchern
-    </div>
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+  {@html renderCitations(message.content)}
+  {#if !isUser}
+    <SourcesBox {sources} />
   {/if}
-  {message.content}
 </div>
 
 <style>

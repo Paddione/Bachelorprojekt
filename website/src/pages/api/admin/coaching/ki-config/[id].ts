@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { updateKiProvider, type UpdateKiProviderFields } from '../../../../../lib/coaching-ki-config-db';
+import { updateKiProvider, deleteKiProvider, type UpdateKiProviderFields } from '../../../../../lib/coaching-ki-config-db';
 import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;
@@ -41,4 +41,20 @@ export const PATCH: APIRoute = async ({ request, params }) => {
 
   const provider = await updateKiProvider(pool, id, fields);
   return new Response(JSON.stringify({ provider }), { headers: { 'content-type': 'application/json' } });
+};
+
+export const DELETE: APIRoute = async ({ request, params }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
+
+  const id = parseInt(params.id ?? '', 10);
+  if (isNaN(id)) return new Response(JSON.stringify({ error: 'Ungültige ID' }), { status: 400, headers: { 'content-type': 'application/json' } });
+
+  try {
+    await deleteKiProvider(pool, id);
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ error: msg }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
 };

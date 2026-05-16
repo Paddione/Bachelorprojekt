@@ -115,11 +115,12 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: psql
-          image: postgres:16-alpine
+          image: alpine:3.20
           command: ["/bin/sh", "-c"]
           args:
             - |
               set -euo pipefail
+              apk add --no-cache postgresql16-client >/dev/null
               export PGPASSWORD="$SHARED_DB_PASSWORD"
               psql "host=shared-db user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0001_init.sql
               psql "host=shared-db user=postgres dbname=website" -v ON_ERROR_STOP=1 -f /sql/0002_arena_app_grants.sql

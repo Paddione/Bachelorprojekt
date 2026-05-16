@@ -1,19 +1,27 @@
 ---
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import { listKiProviders } from '../../../../lib/coaching-ki-config-db';
 import { pool } from '../../../../lib/website-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
+const brand = process.env.BRAND || 'mentolder';
+
 let customers: { id: string; name: string }[] = [];
 try {
   const res = await pool.query(
     `SELECT id, name FROM public.customers WHERE brand = $1 ORDER BY name`,
-    [process.env.BRAND || 'mentolder']
+    [brand]
   );
   customers = res.rows;
+} catch { /* ignore */ }
+
+let kiProviders: { id: number; displayName: string; provider: string; isActive: boolean }[] = [];
+try {
+  kiProviders = await listKiProviders(pool, brand);
 } catch { /* ignore */ }
 
 const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -37,6 +45,17 @@ const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2
         <select id="clientId" name="clientId" class="input">
           <option value="">— Vorbereitungsrunde (kein Klient) —</option>
           {customers.map(c => <option value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+      <div class="field">
+        <label for="kiConfigId">KI-Provider (optional)</label>
+        <select id="kiConfigId" name="kiConfigId" class="input">
+          <option value="">— Standard (aktiver Provider) —</option>
+          {kiProviders.map(p => (
+            <option value={String(p.id)} selected={p.isActive}>
+              {p.displayName}{p.isActive ? ' ★' : ''}
+            </option>
+          ))}
         </select>
       </div>
       <div class="field">
@@ -64,7 +83,12 @@ const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2
     const res = await fetch('/api/admin/coaching/sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: data.title, clientId: data.clientId || null, mode: data.mode }),
+      body: JSON.stringify({
+        title: data.title,
+        clientId: data.clientId || null,
+        kiConfigId: data.kiConfigId ? parseInt(data.kiConfigId as string, 10) : null,
+        mode: data.mode,
+      }),
     });
     const json = await res.json();
     if (res.ok) {

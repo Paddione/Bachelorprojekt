@@ -1,3 +1,641 @@
+---
+ticket_id: T000418
+title: Custom KI-Anbieter Verwaltung — Implementation Plan
+domains: []
+status: active
+pr_number: null
+---
+
+# Custom KI-Anbieter Verwaltung — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Admin kann neue KI-Provider mit benutzerdefiniertem Namen und individuell wählbaren Parameterfeldern anlegen und löschen.
+
+**Architecture:** Die bestehende `coaching.ki_config`-Tabelle wird um `enabled_fields JSONB` erweitert; der `provider`-CHECK-Constraint wird entfernt, damit Custom-Provider-Slugs (`custom_*`) zulässig sind. DB-Layer, API und Svelte-UI werden um Create/Delete-Operationen ergänzt. Custom-Provider unterscheiden sich von Standard-Providern (claude/openai/mistral/lumo) nur durch den Prefix `custom_` im `provider`-Feld und durch ein nicht-NULL `enabled_fields`-Array.
+
+**Tech Stack:** PostgreSQL 16, TypeScript (Astro API Routes), Svelte 5 (runes), pg-mem (Tests), Vitest
+
+---
+
+**Worktree:** `/home/gekko/Bachelorprojekt/.worktrees/feature/coaching-ki-provider-profiles-und-klienten`
+**Branch:** `feature/coaching-ki-provider-profiles-und-klienten`
+**Ticket:** T000418
+
+## File Map
+
+| Datei | Änderung |
+|---|---|
+| `k3d/website-schema.yaml` | Neue Migration: CHECK-Constraint entfernen, `enabled_fields JSONB` hinzufügen |
+| `website/src/lib/coaching-ki-config-db.ts` | `enabledFields` zum Interface, `createKiProvider()`, `deleteKiProvider()` |
+| `website/src/lib/coaching-ki-config-db.test.ts` | Tests für neue Funktionen + Schema-Update |
+| `website/src/pages/api/admin/coaching/ki-config/index.ts` | POST-Handler hinzufügen |
+| `website/src/pages/api/admin/coaching/ki-config/[id].ts` | DELETE-Handler hinzufügen |
+| `website/src/components/admin/coaching/CoachingSettings.svelte` | `showField()` updaten, Anlegen-Formular, Löschen-Button |
+
+---
+
+## Task 1: DB-Migration — CHECK-Constraint entfernen + enabled_fields
+
+**Files:**
+- Modify: `k3d/website-schema.yaml` (nach Zeile 1047, vor Zeile 1049)
+
+Der `provider`-CHECK-Constraint (`provider IN ('claude','openai','mistral','lumo')`) ist inline mit CREATE TABLE definiert und hat einen auto-generierten Namen (`ki_config_provider_check`). Da `ALTER TABLE … DROP CONSTRAINT IF EXISTS` einen exakten Namen braucht, verwenden wir einen dynamischen DO-Block.
+
+- [ ] **Schritt 1: Migration im Schema einfügen**
+
+Öffne `k3d/website-schema.yaml`. Suche den Block der am Ende der KI-Provider-Migration liegt (nach Zeile 1047 `eu_endpoint`), und füge **vor** der Zeile `-- Per-Session KI-Auswahl` ein:
+
+```yaml
+      -- Custom KI-Anbieter: CHECK-Constraint entfernen + enabled_fields (idempotent)
+      DO $$
+      DECLARE v_con text;
+      BEGIN
+        SELECT c.conname INTO v_con
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        JOIN pg_namespace n ON t.relnamespace = n.oid
+        WHERE n.nspname = 'coaching' AND t.relname = 'ki_config'
+          AND c.contype = 'c' AND c.conname LIKE '%provider%'
+        LIMIT 1;
+        IF v_con IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE coaching.ki_config DROP CONSTRAINT ' || quote_ident(v_con);
+        END IF;
+      END $$;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS enabled_fields JSONB;
+```
+
+- [ ] **Schritt 2: Validierung (kein Cluster nötig)**
+
+```bash
+cd /home/gekko/Bachelorprojekt/.worktrees/feature/coaching-ki-provider-profiles-und-klienten
+task workspace:validate
+```
+
+Erwartung: `kustomize build` ohne Fehler.
+
+- [ ] **Schritt 3: Commit**
+
+```bash
+git add k3d/website-schema.yaml
+git commit -m "feat(coaching): drop provider CHECK, add enabled_fields for custom providers [T000418]"
+```
+
+---
+
+## Task 2: DB-Layer — Interface, createKiProvider, deleteKiProvider
+
+**Files:**
+- Modify: `website/src/lib/coaching-ki-config-db.ts`
+- Modify: `website/src/lib/coaching-ki-config-db.test.ts`
+
+- [ ] **Schritt 1: Failing-Tests schreiben**
+
+Öffne `website/src/lib/coaching-ki-config-db.test.ts`. Ersetze den gesamten Inhalt durch:
+
+```typescript
+import { describe, it, expect, beforeAll } from 'vitest';
+import { newDb } from 'pg-mem';
+import type { Pool } from 'pg';
+import {
+  listKiProviders, getActiveProvider, setActiveProvider,
+  updateKiProvider, createKiProvider, deleteKiProvider,
+  type KiConfig,
+} from './coaching-ki-config-db';
+
+let pool: Pool;
+
+beforeAll(async () => {
+  const db = newDb();
+  db.public.none(`
+    CREATE SCHEMA coaching;
+    CREATE TABLE coaching.ki_config (
+      id SERIAL PRIMARY KEY,
+      brand TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      is_active BOOLEAN NOT NULL DEFAULT false,
+      model_name TEXT,
+      display_name TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      api_key TEXT,
+      api_endpoint TEXT,
+      temperature NUMERIC(5,3),
+      max_tokens INT,
+      top_p NUMERIC(5,3),
+      system_prompt TEXT,
+      notes TEXT,
+      top_k INT,
+      thinking_mode BOOLEAN NOT NULL DEFAULT false,
+      presence_penalty NUMERIC(5,3),
+      frequency_penalty NUMERIC(5,3),
+      safe_prompt BOOLEAN NOT NULL DEFAULT false,
+      random_seed INT,
+      organization_id TEXT,
+      eu_endpoint BOOLEAN NOT NULL DEFAULT false,
+      enabled_fields JSONB,
+      UNIQUE (brand, provider)
+    );
+    INSERT INTO coaching.ki_config (brand, provider, is_active, model_name, display_name)
+    VALUES
+      ('mentolder', 'claude',  true,  'claude-haiku', 'Claude'),
+      ('mentolder', 'openai',  false, 'gpt-4o-mini',  'ChatGPT'),
+      ('mentolder', 'mistral', false, null,            'Mistral'),
+      ('mentolder', 'lumo',    false, null,            'Lumo');
+  `);
+  const { Pool: PgMemPool } = db.adapters.createPg();
+  pool = new PgMemPool() as unknown as Pool;
+});
+
+describe('listKiProviders', () => {
+  it('gibt alle 4 Provider für eine Brand zurück', async () => {
+    const providers = await listKiProviders(pool, 'mentolder');
+    expect(providers).toHaveLength(4);
+    expect(providers.map(p => p.provider)).toContain('claude');
+  });
+});
+
+describe('getActiveProvider', () => {
+  it('gibt den aktiven Provider zurück', async () => {
+    const p = await getActiveProvider(pool, 'mentolder');
+    expect(p?.provider).toBe('claude');
+    expect(p?.isActive).toBe(true);
+  });
+
+  it('gibt null zurück wenn kein Provider aktiv', async () => {
+    const p = await getActiveProvider(pool, 'unknown-brand');
+    expect(p).toBeNull();
+  });
+});
+
+describe('setActiveProvider', () => {
+  it('wechselt aktiven Provider — genau einer aktiv', async () => {
+    await setActiveProvider(pool, 'mentolder', 'openai');
+    const active = await getActiveProvider(pool, 'mentolder');
+    expect(active?.provider).toBe('openai');
+    const all = await listKiProviders(pool, 'mentolder');
+    expect(all.filter(p => p.isActive)).toHaveLength(1);
+    await setActiveProvider(pool, 'mentolder', 'claude');
+  });
+
+  it('wirft Fehler bei unbekanntem Provider — aktiver bleibt erhalten', async () => {
+    await expect(
+      setActiveProvider(pool, 'mentolder', 'nonexistent'),
+    ).rejects.toThrow("Provider 'nonexistent' not found for brand 'mentolder'");
+    const active = await getActiveProvider(pool, 'mentolder');
+    expect(active).not.toBeNull();
+  });
+});
+
+describe('updateKiProvider', () => {
+  it('aktualisiert modelName und displayName eines Providers', async () => {
+    const before = await listKiProviders(pool, 'mentolder');
+    const mistral = before.find(p => p.provider === 'mistral')!;
+    await updateKiProvider(pool, mistral.id, { modelName: 'mistral-large', displayName: 'Mistral Large' });
+    const after = await listKiProviders(pool, 'mentolder');
+    const updated = after.find(p => p.provider === 'mistral')!;
+    expect(updated.modelName).toBe('mistral-large');
+    expect(updated.displayName).toBe('Mistral Large');
+  });
+
+  it('erlaubt modelName als null (Modell zurücksetzen)', async () => {
+    const providers = await listKiProviders(pool, 'mentolder');
+    const claude = providers.find(p => p.provider === 'claude')!;
+    await updateKiProvider(pool, claude.id, { modelName: null, displayName: 'Claude' });
+    const after = await listKiProviders(pool, 'mentolder');
+    expect(after.find(p => p.provider === 'claude')!.modelName).toBeNull();
+  });
+});
+
+describe('createKiProvider', () => {
+  it('legt neuen Custom-Provider an und gibt ihn zurück', async () => {
+    const p = await createKiProvider(pool, 'mentolder', {
+      displayName: 'Mein GPT',
+      provider: 'custom_my-gpt',
+      enabledFields: ['apiKey', 'apiEndpoint', 'temperature', 'systemPrompt'],
+    });
+    expect(p.provider).toBe('custom_my-gpt');
+    expect(p.displayName).toBe('Mein GPT');
+    expect(p.enabledFields).toEqual(['apiKey', 'apiEndpoint', 'temperature', 'systemPrompt']);
+    expect(p.isActive).toBe(false);
+  });
+
+  it('wirft Fehler bei Duplikat (brand + provider)', async () => {
+    await expect(
+      createKiProvider(pool, 'mentolder', {
+        displayName: 'Duplikat',
+        provider: 'custom_my-gpt',
+        enabledFields: [],
+      }),
+    ).rejects.toThrow();
+  });
+});
+
+describe('deleteKiProvider', () => {
+  it('löscht Custom-Provider', async () => {
+    const p = await createKiProvider(pool, 'mentolder', {
+      displayName: 'Zu löschen',
+      provider: 'custom_to-delete',
+      enabledFields: [],
+    });
+    await deleteKiProvider(pool, p.id);
+    const all = await listKiProviders(pool, 'mentolder');
+    expect(all.find(x => x.id === p.id)).toBeUndefined();
+  });
+
+  it('wirft Fehler beim Löschen eines Standard-Providers', async () => {
+    const all = await listKiProviders(pool, 'mentolder');
+    const claude = all.find(p => p.provider === 'claude')!;
+    await expect(deleteKiProvider(pool, claude.id)).rejects.toThrow('Nur Custom-Provider');
+  });
+});
+```
+
+- [ ] **Schritt 2: Tests laufen lassen — müssen FAIL mit "createKiProvider not found"**
+
+```bash
+cd website && pnpm test coaching-ki-config-db 2>&1 | tail -20
+```
+
+Erwartung: FAIL mit Import-Fehler (`createKiProvider` nicht exportiert).
+
+- [ ] **Schritt 3: DB-Layer implementieren**
+
+Öffne `website/src/lib/coaching-ki-config-db.ts`. Ersetze den gesamten Inhalt durch:
+
+```typescript
+import type { Pool } from 'pg';
+
+const KNOWN_PROVIDERS = new Set(['claude', 'openai', 'mistral', 'lumo']);
+
+export interface KiConfig {
+  id: number;
+  brand: string;
+  provider: string;
+  isActive: boolean;
+  modelName: string | null;
+  displayName: string;
+  createdAt: Date;
+  // Verbindung
+  apiKey: string | null;
+  apiEndpoint: string | null;
+  // Verhalten (gemeinsam)
+  temperature: number | null;
+  maxTokens: number | null;
+  topP: number | null;
+  systemPrompt: string | null;
+  notes: string | null;
+  // Anbieterspezifisch
+  topK: number | null;
+  thinkingMode: boolean;
+  presencePenalty: number | null;
+  frequencyPenalty: number | null;
+  safePrompt: boolean;
+  randomSeed: number | null;
+  organizationId: string | null;
+  euEndpoint: boolean;
+  // Custom-Provider
+  enabledFields: string[] | null;
+}
+
+export type UpdateKiProviderFields = Partial<Omit<KiConfig, 'id' | 'brand' | 'provider' | 'isActive' | 'createdAt' | 'enabledFields'>>;
+
+function rowToKiConfig(row: Record<string, unknown>): KiConfig {
+  return {
+    id: row.id as number,
+    brand: row.brand as string,
+    provider: row.provider as string,
+    isActive: row.is_active as boolean,
+    modelName: (row.model_name as string | null) ?? null,
+    displayName: row.display_name as string,
+    createdAt: row.created_at as Date,
+    apiKey: (row.api_key as string | null) ?? null,
+    apiEndpoint: (row.api_endpoint as string | null) ?? null,
+    temperature: row.temperature != null ? Number(row.temperature) : null,
+    maxTokens: (row.max_tokens as number | null) ?? null,
+    topP: row.top_p != null ? Number(row.top_p) : null,
+    systemPrompt: (row.system_prompt as string | null) ?? null,
+    notes: (row.notes as string | null) ?? null,
+    topK: (row.top_k as number | null) ?? null,
+    thinkingMode: (row.thinking_mode as boolean) ?? false,
+    presencePenalty: row.presence_penalty != null ? Number(row.presence_penalty) : null,
+    frequencyPenalty: row.frequency_penalty != null ? Number(row.frequency_penalty) : null,
+    safePrompt: (row.safe_prompt as boolean) ?? false,
+    randomSeed: (row.random_seed as number | null) ?? null,
+    organizationId: (row.organization_id as string | null) ?? null,
+    euEndpoint: (row.eu_endpoint as boolean) ?? false,
+    enabledFields: Array.isArray(row.enabled_fields)
+      ? (row.enabled_fields as string[])
+      : row.enabled_fields != null
+        ? (JSON.parse(row.enabled_fields as string) as string[])
+        : null,
+  };
+}
+
+export async function listKiProviders(pool: Pool, brand: string): Promise<KiConfig[]> {
+  const r = await pool.query(
+    `SELECT * FROM coaching.ki_config WHERE brand = $1 ORDER BY id`,
+    [brand],
+  );
+  return r.rows.map(rowToKiConfig);
+}
+
+export async function getActiveProvider(pool: Pool, brand: string): Promise<KiConfig | null> {
+  const r = await pool.query(
+    `SELECT * FROM coaching.ki_config WHERE brand = $1 AND is_active = true LIMIT 1`,
+    [brand],
+  );
+  return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
+}
+
+export async function getKiProviderById(pool: Pool, id: number): Promise<KiConfig | null> {
+  const r = await pool.query(`SELECT * FROM coaching.ki_config WHERE id = $1`, [id]);
+  return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
+}
+
+export async function setActiveProvider(pool: Pool, brand: string, provider: string): Promise<void> {
+  const exists = await pool.query(
+    `SELECT id FROM coaching.ki_config WHERE brand = $1 AND provider = $2`,
+    [brand, provider],
+  );
+  if (exists.rows.length === 0) {
+    throw new Error(`Provider '${provider}' not found for brand '${brand}'`);
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`UPDATE coaching.ki_config SET is_active = false WHERE brand = $1`, [brand]);
+    await client.query(
+      `UPDATE coaching.ki_config SET is_active = true WHERE brand = $1 AND provider = $2`,
+      [brand, provider],
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    try { await client.query('ROLLBACK'); } catch { /* ignore */ }
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+const COLUMN_MAP: Record<string, string> = {
+  modelName: 'model_name', displayName: 'display_name',
+  apiKey: 'api_key', apiEndpoint: 'api_endpoint',
+  temperature: 'temperature', maxTokens: 'max_tokens', topP: 'top_p',
+  systemPrompt: 'system_prompt', notes: 'notes',
+  topK: 'top_k', thinkingMode: 'thinking_mode',
+  presencePenalty: 'presence_penalty', frequencyPenalty: 'frequency_penalty',
+  safePrompt: 'safe_prompt', randomSeed: 'random_seed',
+  organizationId: 'organization_id', euEndpoint: 'eu_endpoint',
+};
+
+export async function updateKiProvider(
+  pool: Pool,
+  id: number,
+  fields: UpdateKiProviderFields,
+): Promise<KiConfig> {
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  let i = 1;
+  for (const [k, v] of Object.entries(fields)) {
+    const col = COLUMN_MAP[k];
+    if (!col) continue;
+    sets.push(`${col} = $${i++}`);
+    vals.push(v);
+  }
+  if (sets.length === 0) {
+    const r = await pool.query(`SELECT * FROM coaching.ki_config WHERE id = $1`, [id]);
+    if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
+    return rowToKiConfig(r.rows[0]);
+  }
+  vals.push(id);
+  const r = await pool.query(
+    `UPDATE coaching.ki_config SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`,
+    vals,
+  );
+  if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
+  return rowToKiConfig(r.rows[0]);
+}
+
+export async function createKiProvider(
+  pool: Pool,
+  brand: string,
+  data: { displayName: string; provider: string; enabledFields: string[] },
+): Promise<KiConfig> {
+  const r = await pool.query(
+    `INSERT INTO coaching.ki_config (brand, provider, display_name, is_active, enabled_fields)
+     VALUES ($1, $2, $3, false, $4)
+     RETURNING *`,
+    [brand, data.provider, data.displayName, JSON.stringify(data.enabledFields)],
+  );
+  return rowToKiConfig(r.rows[0]);
+}
+
+export async function deleteKiProvider(pool: Pool, id: number): Promise<void> {
+  const r = await pool.query(`SELECT provider FROM coaching.ki_config WHERE id = $1`, [id]);
+  if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
+  const provider = r.rows[0].provider as string;
+  if (KNOWN_PROVIDERS.has(provider)) {
+    throw new Error('Nur Custom-Provider können gelöscht werden');
+  }
+  await pool.query(`DELETE FROM coaching.ki_config WHERE id = $1`, [id]);
+}
+```
+
+- [ ] **Schritt 4: Tests laufen lassen — müssen PASS**
+
+```bash
+cd website && pnpm test coaching-ki-config-db 2>&1 | tail -20
+```
+
+Erwartung: alle Tests PASS.
+
+- [ ] **Schritt 5: Commit**
+
+```bash
+git add website/src/lib/coaching-ki-config-db.ts website/src/lib/coaching-ki-config-db.test.ts
+git commit -m "feat(coaching): createKiProvider + deleteKiProvider + enabledFields [T000418]"
+```
+
+---
+
+## Task 3: API-Endpunkte — POST (Create) + DELETE
+
+**Files:**
+- Modify: `website/src/pages/api/admin/coaching/ki-config/index.ts`
+- Modify: `website/src/pages/api/admin/coaching/ki-config/[id].ts`
+
+Der `provider`-String für Custom-Provider kommt vom Client als Freitext — die API erzwingt den `custom_`-Prefix.
+
+- [ ] **Schritt 1: POST-Handler in index.ts hinzufügen**
+
+Ersetze den gesamten Inhalt von `website/src/pages/api/admin/coaching/ki-config/index.ts`:
+
+```typescript
+import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import { listKiProviders, createKiProvider } from '../../../../../lib/coaching-ki-config-db';
+import { pool } from '../../../../../lib/website-db';
+
+export const prerender = false;
+
+const ALL_FIELDS = [
+  'apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP',
+  'topK', 'thinkingMode', 'presencePenalty', 'frequencyPenalty',
+  'safePrompt', 'randomSeed', 'organizationId', 'euEndpoint',
+  'systemPrompt', 'notes',
+] as const;
+
+export const GET: APIRoute = async ({ request }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
+  const brand = process.env.BRAND || 'mentolder';
+  const providers = await listKiProviders(pool, brand);
+  return new Response(JSON.stringify({ providers }), { headers: { 'content-type': 'application/json' } });
+};
+
+export const POST: APIRoute = async ({ request }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
+
+  let body: Record<string, unknown>;
+  try { body = await request.json(); } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
+  const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : '';
+  if (!displayName) {
+    return new Response(JSON.stringify({ error: 'displayName darf nicht leer sein' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
+  const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') : '';
+  if (!slug) {
+    return new Response(JSON.stringify({ error: 'slug darf nicht leer sein' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
+  const rawFields = Array.isArray(body.enabledFields) ? body.enabledFields as string[] : [];
+  const enabledFields = rawFields.filter(f => (ALL_FIELDS as readonly string[]).includes(f));
+
+  const brand = process.env.BRAND || 'mentolder';
+  try {
+    const provider = await createKiProvider(pool, brand, {
+      displayName,
+      provider: `custom_${slug}`,
+      enabledFields,
+    });
+    return new Response(JSON.stringify({ provider }), { status: 201, headers: { 'content-type': 'application/json' } });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes('unique') || msg.includes('UNIQUE') || msg.includes('duplicate')) {
+      return new Response(JSON.stringify({ error: `Slug '${slug}' bereits vergeben` }), { status: 409, headers: { 'content-type': 'application/json' } });
+    }
+    throw e;
+  }
+};
+```
+
+- [ ] **Schritt 2: DELETE-Handler in [id].ts hinzufügen**
+
+Ersetze den gesamten Inhalt von `website/src/pages/api/admin/coaching/ki-config/[id].ts`:
+
+```typescript
+import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import { updateKiProvider, deleteKiProvider, type UpdateKiProviderFields } from '../../../../../lib/coaching-ki-config-db';
+import { pool } from '../../../../../lib/website-db';
+
+export const prerender = false;
+
+const ALLOWED_FIELDS: (keyof UpdateKiProviderFields)[] = [
+  'modelName', 'displayName', 'apiKey', 'apiEndpoint',
+  'temperature', 'maxTokens', 'topP', 'systemPrompt', 'notes',
+  'topK', 'thinkingMode', 'presencePenalty', 'frequencyPenalty',
+  'safePrompt', 'randomSeed', 'organizationId', 'euEndpoint',
+];
+
+export const PATCH: APIRoute = async ({ request, params }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
+
+  const id = parseInt(params.id ?? '', 10);
+  if (isNaN(id)) return new Response(JSON.stringify({ error: 'Ungültige ID' }), { status: 400, headers: { 'content-type': 'application/json' } });
+
+  let body: Record<string, unknown>;
+  try { body = await request.json(); } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
+  if ('displayName' in body && (typeof body.displayName !== 'string' || (body.displayName as string).trim() === '')) {
+    return new Response(JSON.stringify({ error: 'displayName darf nicht leer sein' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
+  const fields: UpdateKiProviderFields = {};
+  for (const key of ALLOWED_FIELDS) {
+    if (key in body) {
+      if (key === 'displayName') {
+        fields.displayName = (body.displayName as string).trim();
+      } else {
+        (fields as Record<string, unknown>)[key] = body[key];
+      }
+    }
+  }
+
+  const provider = await updateKiProvider(pool, id, fields);
+  return new Response(JSON.stringify({ provider }), { headers: { 'content-type': 'application/json' } });
+};
+
+export const DELETE: APIRoute = async ({ request, params }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
+
+  const id = parseInt(params.id ?? '', 10);
+  if (isNaN(id)) return new Response(JSON.stringify({ error: 'Ungültige ID' }), { status: 400, headers: { 'content-type': 'application/json' } });
+
+  try {
+    await deleteKiProvider(pool, id);
+    return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return new Response(JSON.stringify({ error: msg }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+};
+```
+
+- [ ] **Schritt 3: TypeScript-Check**
+
+```bash
+cd website && pnpm tsc --noEmit 2>&1 | grep -E "error TS" | head -20
+```
+
+Erwartung: keine Fehler.
+
+- [ ] **Schritt 4: Commit**
+
+```bash
+git add website/src/pages/api/admin/coaching/ki-config/index.ts \
+        website/src/pages/api/admin/coaching/ki-config/[id].ts
+git commit -m "feat(coaching): POST create + DELETE ki-config API endpoints [T000418]"
+```
+
+---
+
+## Task 4: UI — showField für Custom, Anlegen-Formular, Löschen-Button
+
+**Files:**
+- Modify: `website/src/components/admin/coaching/CoachingSettings.svelte`
+
+Das bestehende Svelte hat bereits das vollständige Bearbeitungsformular für Standard-Provider. Wir ergänzen:
+1. `showField()` für Custom-Provider: `enabledFields`-Array aus DB nutzen
+2. "+ Neuer KI-Anbieter" Button
+3. Anlegen-Formular mit Slug, Name, Feldauswahl-Checkboxen
+4. Löschen-Button auf Provider-Karten für `custom_*`-Provider
+
+- [ ] **Schritt 1: Script-Block aktualisieren**
+
+Öffne `website/src/components/admin/coaching/CoachingSettings.svelte`.
+
+Ersetze den gesamten `<script lang="ts">` Block (Zeilen 1–207) durch:
+
+```svelte
 <script lang="ts">
   import type { KiConfig } from '../../../lib/coaching-ki-config-db';
   import type { StepTemplate } from '../../../lib/coaching-templates-db';
@@ -147,21 +785,22 @@
       systemPrompt: providerFields.systemPrompt.trim() || null,
       notes: providerFields.notes.trim() || null,
     };
-    if (showField(p, 'topK'))             payload.topK = parseInt2(providerFields.topK);
-    if (showField(p, 'thinkingMode'))     payload.thinkingMode = providerFields.thinkingMode;
-    if (showField(p, 'presencePenalty'))  payload.presencePenalty = parseNum(providerFields.presencePenalty);
+    if (showField(p, 'topK'))            payload.topK = parseInt2(providerFields.topK);
+    if (showField(p, 'thinkingMode'))    payload.thinkingMode = providerFields.thinkingMode;
+    if (showField(p, 'presencePenalty')) payload.presencePenalty = parseNum(providerFields.presencePenalty);
     if (showField(p, 'frequencyPenalty')) payload.frequencyPenalty = parseNum(providerFields.frequencyPenalty);
-    if (showField(p, 'safePrompt'))       payload.safePrompt = providerFields.safePrompt;
-    if (showField(p, 'randomSeed'))       payload.randomSeed = parseInt2(providerFields.randomSeed);
-    if (showField(p, 'organizationId'))   payload.organizationId = providerFields.organizationId.trim() || null;
-    if (showField(p, 'euEndpoint'))       payload.euEndpoint = providerFields.euEndpoint;
+    if (showField(p, 'safePrompt'))      payload.safePrompt = providerFields.safePrompt;
+    if (showField(p, 'randomSeed'))      payload.randomSeed = parseInt2(providerFields.randomSeed);
+    if (showField(p, 'organizationId'))  payload.organizationId = providerFields.organizationId.trim() || null;
+    if (showField(p, 'euEndpoint'))      payload.euEndpoint = providerFields.euEndpoint;
 
     await fetch(`/api/admin/coaching/ki-config/${p.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    providers = (await (await fetch('/api/admin/coaching/ki-config')).json()).providers;
+    const res = await fetch('/api/admin/coaching/ki-config');
+    providers = (await res.json()).providers;
     editingProvider = null;
     savingProviderEdit = false;
   }
@@ -269,7 +908,13 @@
     templates = templates.filter(t => t.id !== id);
   }
 </script>
+```
 
+- [ ] **Schritt 2: HTML-Template aktualisieren**
+
+Ersetze den gesamten Bereich zwischen `<div class="settings">` und `</div>` (exkl. äußerstem div) sowie den `<style>`-Block. Ersetze den gesamten Template- und Style-Teil (ab Zeile 209 bis Ende) durch:
+
+```svelte
 <div class="settings">
   <div class="tabs">
     <button class="tab {activeTab === 'ki' ? 'active' : ''}" onclick={() => activeTab = 'ki'}>KI-Provider</button>
@@ -615,3 +1260,70 @@
   .edit-modal input, .edit-modal textarea { padding: 0.5rem 0.75rem; background: var(--bg-dark,#111); border: 1px solid var(--line,#333); border-radius: 6px; color: var(--text-light,#f0f0f0); font-size: 0.88rem; outline: none; resize: vertical; }
   .edit-modal select { padding: 0.5rem 0.75rem; background: var(--bg-dark,#111); border: 1px solid var(--line,#333); border-radius: 6px; color: var(--text-light,#f0f0f0); font-size: 0.88rem; }
 </style>
+```
+
+- [ ] **Schritt 3: TypeScript-Check + Build**
+
+```bash
+cd website && pnpm tsc --noEmit 2>&1 | grep "error TS" | head -20
+```
+
+Erwartung: keine TS-Fehler.
+
+- [ ] **Schritt 4: Commit**
+
+```bash
+git add website/src/components/admin/coaching/CoachingSettings.svelte
+git commit -m "feat(coaching): custom provider creation form + field selector + delete [T000418]"
+```
+
+---
+
+## Task 5: Gesamtverifikation
+
+- [ ] **Schritt 1: Alle Unit-Tests laufen lassen**
+
+```bash
+cd website && pnpm test 2>&1 | tail -30
+```
+
+Erwartung: alle Tests PASS, kein `coaching-ki-config-db` FAIL.
+
+- [ ] **Schritt 2: Manifest-Validierung**
+
+```bash
+cd .. && task workspace:validate 2>&1 | tail -5
+```
+
+Erwartung: kein Fehler.
+
+- [ ] **Schritt 3: Push + PR updaten**
+
+```bash
+git push origin feature/coaching-ki-provider-profiles-und-klienten
+```
+
+PR #795 wird automatisch aktualisiert.
+
+---
+
+## Self-Review
+
+**Spec Coverage:**
+- ✅ Formulare je Anbieter (Claude/ChatGPT/Mistral/Lumo) — bereits auf Branch, kein neuer Code nötig
+- ✅ Gemeinsame Felder: Name, API-Endpoint, API-Key (masked), Modell, Temperature, Max Tokens, System-Prompt, Notiz
+- ✅ Anbieterspezifische Felder: top_p/top_k (Claude+Mistral), Thinking-Modus (Claude), presence/frequency penalty + org-id (ChatGPT), safe_prompt/random_seed/EU-Endpoint (Mistral), Hinweistext (Lumo)
+- ✅ Custom-Provider anlegen mit individueller Feldzuordnung
+- ✅ Custom-Provider löschen (Standard-Provider geschützt)
+- ✅ DB-Migration: CHECK-Constraint weg, enabled_fields hinzu
+- ✅ API: POST (create), DELETE (delete)
+- ✅ UI: Anlegen-Formular mit Feldauswahl-Grid, Löschen-Button, Custom-Badge
+
+**Placeholder-Scan:** keine TBDs, alle Code-Blöcke vollständig.
+
+**Typ-Konsistenz:**
+- `KiConfig.provider` ist nun `string` statt Union — `setActiveProvider` akzeptiert `string` ✓
+- `enabledFields: string[] | null` konsistent durch alle Schichten ✓
+- `showField(p: KiConfig, field: string)` — nimmt jetzt `KiConfig` statt `string` für korrekte Custom-Auflösung ✓
+- `createKiProvider` gibt `KiConfig` zurück ✓
+- Test-Import: `createKiProvider, deleteKiProvider` neu im Import ✓

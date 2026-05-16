@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ request, params }) => {
 export const PATCH: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
-  let body: { title?: string; clientId?: string | null; clientName?: string | null };
+  let body: { title?: string; clientId?: string | null; clientName?: string | null; kiConfigId?: number | null };
   try { body = await request.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }

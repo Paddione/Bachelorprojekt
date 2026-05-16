@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../../../../lib/auth';
-import { upsertStep, appendAuditLog } from '../../../../../../../../lib/coaching-session-db';
-import { getActiveProvider } from '../../../../../../../../lib/coaching-ki-config-db';
+import { getSession as getCoachingSession, upsertStep, appendAuditLog } from '../../../../../../../../lib/coaching-session-db';
+import { getActiveProvider, getKiProviderById } from '../../../../../../../../lib/coaching-ki-config-db';
 import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../../lib/coaching-templates-db';
 import { getStepDef, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
 import { pool } from '../../../../../../../../lib/website-db';
@@ -25,7 +25,12 @@ export const POST: APIRoute = async ({ request, params }) => {
   }
 
   const brand = process.env.BRAND || 'mentolder';
-  const activeProvider = await getActiveProvider(pool, brand);
+
+  // Session-spezifischen KI-Provider laden oder auf aktiven zurückfallen
+  const coachingSession = await getCoachingSession(pool, sessionId);
+  const activeProvider = coachingSession?.kiConfigId
+    ? (await getKiProviderById(pool, coachingSession.kiConfigId)) ?? await getActiveProvider(pool, brand)
+    : await getActiveProvider(pool, brand);
   const providerName = activeProvider?.provider ?? 'claude';
 
   const dbTemplate = await getStepTemplate(pool, brand, stepNumber);
@@ -50,37 +55,62 @@ export const POST: APIRoute = async ({ request, params }) => {
   const startMs = Date.now();
   let aiResponse: string;
 
+  // System-Prompt aus KI-Profil überschreibt Template-Prompt, wenn gesetzt
+  const effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
+
   try {
     if (providerName === 'claude') {
-      const apiKey = process.env.ANTHROPIC_API_KEY;
+      const apiKey = activeProvider?.apiKey ?? process.env.ANTHROPIC_API_KEY;
       if (!apiKey) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY nicht konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
-      const client = new Anthropic({ apiKey });
+      const clientOpts: ConstructorParameters<typeof Anthropic>[0] = { apiKey };
+      if (activeProvider?.apiEndpoint) clientOpts.baseURL = activeProvider.apiEndpoint;
+      const client = new Anthropic(clientOpts);
       const model = activeProvider?.modelName ?? process.env.COACHING_SESSION_MODEL ?? 'claude-haiku-4-5-20251001';
       const msg = await client.messages.create({
-        model, max_tokens: 600, system: systemPrompt,
+        model,
+        max_tokens: activeProvider?.maxTokens ?? 600,
+        system: effectiveSystem,
+        temperature: activeProvider?.temperature ?? undefined,
+        top_p: activeProvider?.topP ?? undefined,
+        top_k: activeProvider?.topK ?? undefined,
         messages: [{ role: 'user', content: userPrompt }],
-      });
+      } as Parameters<typeof client.messages.create>[0]);
       aiResponse = msg.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map(b => b.text).join('');
     } else if (providerName === 'openai') {
-      const apiKey = process.env.OPENAI_API_KEY;
+      const apiKey = activeProvider?.apiKey ?? process.env.OPENAI_API_KEY;
       if (!apiKey) return new Response(JSON.stringify({ error: 'OPENAI_API_KEY nicht konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
       const { default: OpenAI } = await import('openai');
-      const client = new OpenAI({ apiKey });
+      const clientOpts: ConstructorParameters<typeof OpenAI>[0] = { apiKey };
+      if (activeProvider?.apiEndpoint) clientOpts.baseURL = activeProvider.apiEndpoint;
+      if (activeProvider?.organizationId) clientOpts.organization = activeProvider.organizationId;
+      const client = new OpenAI(clientOpts);
       const model = activeProvider?.modelName ?? 'gpt-4o-mini';
       const resp = await client.chat.completions.create({
-        model, max_tokens: 600,
-        messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+        model,
+        max_tokens: activeProvider?.maxTokens ?? 600,
+        temperature: activeProvider?.temperature ?? undefined,
+        top_p: activeProvider?.topP ?? undefined,
+        presence_penalty: activeProvider?.presencePenalty ?? undefined,
+        frequency_penalty: activeProvider?.frequencyPenalty ?? undefined,
+        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: userPrompt }],
       });
       aiResponse = resp.choices[0]?.message.content ?? '';
     } else if (providerName === 'mistral') {
-      const apiKey = process.env.MISTRAL_API_KEY;
+      const apiKey = activeProvider?.apiKey ?? process.env.MISTRAL_API_KEY;
       if (!apiKey) return new Response(JSON.stringify({ error: 'MISTRAL_API_KEY nicht konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
       const { Mistral } = await import('@mistralai/mistralai');
-      const client = new Mistral({ apiKey });
+      const clientOpts: ConstructorParameters<typeof Mistral>[0] = { apiKey };
+      if (activeProvider?.apiEndpoint) clientOpts.serverURL = activeProvider.apiEndpoint;
+      const client = new Mistral(clientOpts);
       const model = activeProvider?.modelName ?? 'mistral-small-latest';
       const resp = await client.chat.complete({
         model,
-        messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+        maxTokens: activeProvider?.maxTokens ?? undefined,
+        temperature: activeProvider?.temperature ?? undefined,
+        topP: activeProvider?.topP ?? undefined,
+        randomSeed: activeProvider?.randomSeed ?? undefined,
+        safePrompt: activeProvider?.safePrompt ?? false,
+        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: userPrompt }],
       });
       aiResponse = (resp.choices?.[0]?.message.content as string) ?? '';
     } else if (providerName === 'lumo') {

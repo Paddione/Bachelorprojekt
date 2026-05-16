@@ -7,7 +7,6 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
-const trackingUrl = process.env.TRACKING_EXTERNAL_URL ?? 'http://tracking.localhost';
 ---
 
 <AdminLayout title="Monitoring">
@@ -15,9 +14,9 @@ const trackingUrl = process.env.TRACKING_EXTERNAL_URL ?? 'http://tracking.localh
     <div class="max-w-7xl mx-auto">
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-light font-serif">Monitoring</h1>
-        <p class="text-muted text-sm mt-1">Cluster, Tests, Bugs & Anforderungs-Tracking</p>
+        <p class="text-muted text-sm mt-1">Cluster, Tests & Bugs</p>
       </div>
-      <MonitoringDashboard client:load {trackingUrl} />
+      <MonitoringDashboard client:load />
     </div>
   </section>
 </AdminLayout>

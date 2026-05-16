@@ -132,8 +132,8 @@ body.filter-reads .cell:not(.cell-r):not(.cell-p) { opacity: 0.15; }
 <text x="600" y="189" text-anchor="middle" class="step-label">build-website.yml</text>
 <rect x="496" y="208" width="208" height="32" rx="4" class="step-rect" data-step="dev-auto-deploy" data-family="ci"/>
 <text x="600" y="229" text-anchor="middle" class="step-label">dev-auto-deploy.yml</text>
-<rect x="496" y="248" width="208" height="32" rx="4" class="step-rect" data-step="argocd-reconcile" data-family="ci"/>
-<text x="600" y="269" text-anchor="middle" class="step-label">ArgoCD reconcile</text>
+<rect x="496" y="248" width="208" height="32" rx="4" class="step-rect" data-step="task-feature-deploy" data-family="ci"/>
+<text x="600" y="269" text-anchor="middle" class="step-label">task feature:* deploy</text>
 <rect x="736" y="48" width="208" height="32" rx="4" class="step-rect" data-step="keycloak-sso-login" data-family="app"/>
 <text x="840" y="69" text-anchor="middle" class="step-label">Keycloak SSO login</text>
 <rect x="736" y="88" width="208" height="32" rx="4" class="step-rect" data-step="nextcloud-talk-meeting" data-family="app"/>
@@ -397,7 +397,7 @@ body.filter-reads .cell:not(.cell-r):not(.cell-p) { opacity: 0.15; }
 <td class="cell"></td>
 <td class="cell"></td>
 </tr>
-<tr class="matrix-row" data-step-row="argocd-reconcile"><th class="matrix-step">ArgoCD reconcile</th>
+<tr class="matrix-row" data-step-row="task-feature-deploy"><th class="matrix-step">task feature:* deploy</th>
 <td class="cell"></td>
 <td class="cell"></td>
 <td class="cell"></td>
@@ -549,7 +549,7 @@ body.filter-reads .cell:not(.cell-r):not(.cell-p) { opacity: 0.15; }
 <p class="in-tables"><b>in (tables):</b> <code>bachelorprojekt.features</code>, <code>tickets.tickets</code></p>
 </article>
 <article class="step-card" data-step-card="bp-infra"><h4>bachelorprojekt-infra</h4>
-<p class="step-desc">Sub-agent for Kubernetes manifest work, Kustomize overlays, and ArgoCD.</p>
+<p class="step-desc">Sub-agent for Kubernetes manifest work, Kustomize overlays, and Taskfile deploy tasks.</p>
 <p class="out-files"><b>out (files):</b> <code>k3d/**/*.yaml</code>, <code>prod*/**/*.yaml</code></p>
 <p class="in-files"><b>in (files):</b> <code>k3d/**/*.yaml</code>, <code>Taskfile.yml</code></p>
 </article>
@@ -597,10 +597,9 @@ body.filter-reads .cell:not(.cell-r):not(.cell-p) { opacity: 0.15; }
 <p class="step-desc">GitHub Action: auto-deploys to dev.mentolder.de on relevant push.</p>
 <p class="in-files"><b>in (files):</b> <code>k3d/**</code>, <code>website/**</code>, <code>brett/**</code></p>
 </article>
-<article class="step-card" data-step-card="argocd-reconcile"><h4>ArgoCD reconcile</h4>
-<p class="step-desc">GitOps controller: continuously syncs cluster state to git HEAD.</p>
+<article class="step-card" data-step-card="task-feature-deploy"><h4>task feature:* deploy</h4>
+<p class="step-desc">Manual Taskfile deploy: <code>task feature:deploy</code>, <code>task feature:website</code>, <code>task feature:brett</code>, etc. fan out across both prod clusters (mentolder + korczewski) after merge.</p>
 <p class="in-files"><b>in (files):</b> <code>k3d/**/*.yaml</code>, <code>prod-mentolder/**</code>, <code>prod-korczewski/**</code></p>
-<p class="gap gap-workflow-to-db"><span class="gap-chip">workflow-to-db</span> ArgoCD sync events are not recorded in the shared-db; they are only visible in the ArgoCD UI and its own etcd.</p>
 </article>
 </section>
 <section class="family-group" data-family-group="app" style="--fam-color:#a87bc4">

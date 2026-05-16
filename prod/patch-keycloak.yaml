@@ -35,3 +35,13 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: SMTP_PASSWORD
+            - name: DEV_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: DEV_DOMAIN
+            - name: DEV_WORKSPACE_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: DEV_WORKSPACE_OIDC_SECRET

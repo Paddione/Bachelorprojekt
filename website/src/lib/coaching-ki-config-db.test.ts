@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { newDb } from 'pg-mem';
 import type { Pool } from 'pg';
-import { listKiProviders, getActiveProvider, setActiveProvider, type KiConfig } from './coaching-ki-config-db';
+import { listKiProviders, getActiveProvider, setActiveProvider, updateKiProvider, type KiConfig } from './coaching-ki-config-db';
 
 let pool: Pool;
 
@@ -68,5 +68,26 @@ describe('setActiveProvider', () => {
     ).rejects.toThrow("Provider 'nonexistent' not found for brand 'mentolder'");
     const active = await getActiveProvider(pool, 'mentolder');
     expect(active).not.toBeNull();
+  });
+});
+
+describe('updateKiProvider', () => {
+  it('aktualisiert modelName und displayName eines Providers', async () => {
+    const before = await listKiProviders(pool, 'mentolder');
+    const mistral = before.find(p => p.provider === 'mistral')!;
+    await updateKiProvider(pool, mistral.id, { modelName: 'mistral-large', displayName: 'Mistral Large' });
+    const after = await listKiProviders(pool, 'mentolder');
+    const updated = after.find(p => p.provider === 'mistral')!;
+    expect(updated.modelName).toBe('mistral-large');
+    expect(updated.displayName).toBe('Mistral Large');
+  });
+
+  it('erlaubt modelName als null (Modell zurücksetzen)', async () => {
+    const providers = await listKiProviders(pool, 'mentolder');
+    const claude = providers.find(p => p.provider === 'claude')!;
+    await updateKiProvider(pool, claude.id, { modelName: null, displayName: 'Claude' });
+    const after = await listKiProviders(pool, 'mentolder');
+    const updated = after.find(p => p.provider === 'claude')!;
+    expect(updated.modelName).toBeNull();
   });
 });

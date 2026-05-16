@@ -1046,6 +1046,23 @@ data:
       ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS organization_id TEXT;
       ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS eu_endpoint BOOLEAN NOT NULL DEFAULT false;
 
+      -- Custom KI-Anbieter: CHECK-Constraint entfernen + enabled_fields (idempotent)
+      DO $$
+      DECLARE v_con text;
+      BEGIN
+        SELECT c.conname INTO v_con
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        JOIN pg_namespace n ON t.relnamespace = n.oid
+        WHERE n.nspname = 'coaching' AND t.relname = 'ki_config'
+          AND c.contype = 'c' AND c.conname LIKE '%provider%'
+        LIMIT 1;
+        IF v_con IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE coaching.ki_config DROP CONSTRAINT ' || quote_ident(v_con);
+        END IF;
+      END $$;
+      ALTER TABLE coaching.ki_config ADD COLUMN IF NOT EXISTS enabled_fields JSONB;
+
       -- Per-Session KI-Auswahl
       ALTER TABLE coaching.sessions ADD COLUMN IF NOT EXISTS ki_config_id INT REFERENCES coaching.ki_config(id) ON DELETE SET NULL;
 

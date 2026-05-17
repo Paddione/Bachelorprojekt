@@ -63,6 +63,11 @@ const report = coachingSession.status === 'completed'
   : null;
 
 const session = coachingSession;
+
+const displayClient = customers.find(c => c.id === coachingSession.clientId)?.name ?? coachingSession.clientName ?? '—';
+const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.displayName
+  ?? kiProviders.find(p => p.isActive)?.displayName
+  ?? '— Standard —';
 ---
 
 <AdminLayout title={`Session: ${coachingSession.title}`}>
@@ -88,20 +93,28 @@ const session = coachingSession;
       <SessionWizard sessionId={id} initialSession={coachingSession} client:load />
     )}
 
-    <!-- Session-Metadaten editierbar -->
+    <!-- Session-Metadaten: Anzeige + expliziter Edit-Modus -->
     <div class="meta-edit-box">
-      <h2 class="meta-edit-title">Session bearbeiten</h2>
-      {saveOk && <p class="save-ok">Gespeichert ✓</p>}
-      {saveError && <p class="save-error">{saveError}</p>}
-      <form method="POST" class="meta-form">
+      <div class="meta-header">
+        <h2 class="meta-edit-title">Session-Info</h2>
+        {saveOk && <span class="save-ok">Gespeichert ✓</span>}
+        {saveError && <span class="save-error">{saveError}</span>}
+        <button id="meta-edit-btn" class="btn-edit" type="button">✏ Bearbeiten</button>
+      </div>
+
+      <!-- Lesemodus (Standard) -->
+      <div id="meta-view" class="meta-view">
+        <div class="meta-row"><span class="meta-lbl">Titel</span><span class="meta-val">{coachingSession.title}</span></div>
+        <div class="meta-row"><span class="meta-lbl">Klient</span><span class="meta-val">{displayClient}</span></div>
+        <div class="meta-row"><span class="meta-lbl">KI-Provider</span><span class="meta-val">{displayKi}</span></div>
+      </div>
+
+      <!-- Bearbeitungsmodus (versteckt bis Klick auf Bearbeiten) -->
+      <form id="meta-form" method="POST" class="meta-form" style="display:none">
         <input type="hidden" name="_action" value="update-meta" />
         <div class="meta-field">
           <label for="meta-title">Titel</label>
-          <input
-            id="meta-title" type="text" name="title"
-            value={coachingSession.title}
-            class="meta-input"
-          />
+          <input id="meta-title" type="text" name="title" value={coachingSession.title} class="meta-input" />
         </div>
         <div class="meta-field">
           <label for="meta-clientId">Klient (optional)</label>
@@ -123,7 +136,10 @@ const session = coachingSession;
             ))}
           </select>
         </div>
-        <button type="submit" class="meta-save-btn">Speichern</button>
+        <div class="meta-actions">
+          <button type="submit" class="meta-save-btn">Speichern</button>
+          <button type="button" id="meta-cancel-btn" class="meta-cancel-btn">Abbrechen</button>
+        </div>
       </form>
     </div>
 
@@ -163,6 +179,22 @@ const session = coachingSession;
     const a = document.createElement('a'); a.href = url; a.download = 'coaching-bericht.md'; a.click();
     URL.revokeObjectURL(url);
   });
+
+  const editBtn    = document.getElementById('meta-edit-btn') as HTMLButtonElement;
+  const cancelBtn  = document.getElementById('meta-cancel-btn') as HTMLButtonElement;
+  const view       = document.getElementById('meta-view') as HTMLElement;
+  const form       = document.getElementById('meta-form') as HTMLElement;
+
+  editBtn?.addEventListener('click', () => {
+    view.style.display = 'none';
+    form.style.display = 'flex';
+    editBtn.style.display = 'none';
+  });
+  cancelBtn?.addEventListener('click', () => {
+    form.style.display = 'none';
+    view.style.display = 'grid';
+    editBtn.style.display = '';
+  });
 </script>
 
 <style>
@@ -178,13 +210,22 @@ const session = coachingSession;
   .btn-secondary { padding: 0.5rem 1rem; border: 1px solid var(--line,#444); border-radius: 6px; color: var(--text-muted,#888); background: transparent; cursor: pointer; font-size: 0.85rem; }
   .btn-ghost { color: var(--text-muted,#888); text-decoration: underline; font-size: 0.85rem; }
   .meta-edit-box { background: var(--bg-2,#1a1a1a); border: 1px solid var(--line,#333); border-radius: 12px; padding: 1.25rem 1.5rem; margin-top: 2rem; }
-  .meta-edit-title { font-size: 0.85rem; font-weight: 600; color: var(--text-light,#f0f0f0); margin: 0 0 1rem; }
+  .meta-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .meta-edit-title { font-size: 0.85rem; font-weight: 600; color: var(--text-light,#f0f0f0); margin: 0; flex: 1; }
+  .meta-view { display: grid; grid-template-columns: 1fr; gap: 0.5rem; }
+  .meta-row { display: flex; gap: 0.75rem; align-items: baseline; }
+  .meta-lbl { font-size: 0.75rem; color: var(--text-muted,#888); min-width: 90px; }
+  .meta-val { font-size: 0.88rem; color: var(--text-light,#f0f0f0); }
+  .btn-edit { padding: 0.3rem 0.8rem; border: 1px solid var(--gold,#c9a55c); border-radius: 4px; color: var(--gold,#c9a55c); background: none; cursor: pointer; font-size: 0.78rem; white-space: nowrap; }
+  .btn-edit:hover { background: var(--gold,#c9a55c22); }
   .meta-form { display: flex; flex-direction: column; gap: 0.9rem; }
   .meta-field { display: flex; flex-direction: column; gap: 0.3rem; }
   .meta-field label { font-size: 0.78rem; color: var(--text-muted,#888); }
   .meta-input { padding: 0.5rem 0.75rem; background: var(--bg-dark,#111); border: 1px solid var(--line,#333); border-radius: 6px; color: var(--text-light,#f0f0f0); font-size: 0.88rem; outline: none; width: 100%; box-sizing: border-box; }
   .meta-input:focus { border-color: var(--gold,#c9a55c); }
-  .meta-save-btn { align-self: flex-start; padding: 0.5rem 1.25rem; background: var(--gold,#c9a55c); color: #111; border: none; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-  .save-ok { color: #4ade80; font-size: 0.82rem; margin: 0 0 0.5rem; }
-  .save-error { color: #f87171; font-size: 0.82rem; margin: 0 0 0.5rem; }
+  .meta-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .meta-save-btn { padding: 0.5rem 1.25rem; background: var(--gold,#c9a55c); color: #111; border: none; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+  .meta-cancel-btn { padding: 0.5rem 0.9rem; border: 1px solid var(--line,#444); border-radius: 6px; color: var(--text-muted,#888); background: none; font-size: 0.85rem; cursor: pointer; }
+  .save-ok { color: #4ade80; font-size: 0.82rem; }
+  .save-error { color: #f87171; font-size: 0.82rem; }
 </style>

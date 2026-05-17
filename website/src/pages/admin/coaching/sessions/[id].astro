@@ -2,7 +2,7 @@
 import AdminLayout from '../../../../layouts/AdminLayout.astro';
 import SessionWizard from '../../../../components/admin/coaching/SessionWizard.svelte';
 import { getSession as getAuthSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
-import { getSession as getCoachingSession, getAuditLog } from '../../../../lib/coaching-session-db';
+import { getSession as getCoachingSession, getAuditLog, updateSessionFields } from '../../../../lib/coaching-session-db';
 import { listKiProviders } from '../../../../lib/coaching-ki-config-db';
 import { pool } from '../../../../lib/website-db';
 
@@ -41,18 +41,17 @@ if (Astro.request.method === 'POST') {
     const clientId = form.get('clientId')?.toString().trim() || null;
     const kiConfigIdRaw = form.get('kiConfigId')?.toString().trim();
     const kiConfigId = kiConfigIdRaw ? parseInt(kiConfigIdRaw, 10) : null;
-    const res = await fetch(
-      `${Astro.url.origin}/api/admin/coaching/sessions/${id}`,
-      {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', cookie: Astro.request.headers.get('cookie') ?? '' },
-        body: JSON.stringify({ title, clientId, kiConfigId }),
+    try {
+      const updated = await updateSessionFields(
+        pool, id, { title, clientId, kiConfigId }, authSession.preferred_username
+      );
+      if (updated) {
+        coachingSession = updated;
+        saveOk = true;
+      } else {
+        saveError = 'Session nicht gefunden';
       }
-    );
-    if (res.ok) {
-      coachingSession = (await res.json()).session;
-      saveOk = true;
-    } else {
+    } catch {
       saveError = 'Fehler beim Speichern';
     }
   }
@@ -139,6 +138,7 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
         <div class="meta-actions">
           <button type="submit" class="meta-save-btn">Speichern</button>
           <button type="button" id="meta-cancel-btn" class="meta-cancel-btn">Abbrechen</button>
+          <button id="meta-delete-btn" class="meta-delete-btn" type="button">Löschen</button>
         </div>
       </form>
     </div>
@@ -195,6 +195,17 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
     view.style.display = 'grid';
     editBtn.style.display = '';
   });
+
+  document.getElementById('meta-delete-btn')?.addEventListener('click', async () => {
+    if (!confirm('Session wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+    const id = window.location.pathname.split('/').at(-1);
+    const res = await fetch(`/api/admin/coaching/sessions/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      window.location.href = '/admin/coaching/sessions';
+    } else {
+      alert('Fehler beim Löschen');
+    }
+  });
 </script>
 
 <style>
@@ -226,6 +237,8 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
   .meta-actions { display: flex; gap: 0.5rem; align-items: center; }
   .meta-save-btn { padding: 0.5rem 1.25rem; background: var(--gold,#c9a55c); color: #111; border: none; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
   .meta-cancel-btn { padding: 0.5rem 0.9rem; border: 1px solid var(--line,#444); border-radius: 6px; color: var(--text-muted,#888); background: none; font-size: 0.85rem; cursor: pointer; }
+  .meta-delete-btn { padding: 0.5rem 0.9rem; border: 1px solid #ef4444; border-radius: 6px; color: #ef4444; background: none; font-size: 0.85rem; cursor: pointer; margin-left: auto; }
+  .meta-delete-btn:hover { background: #ef444420; }
   .save-ok { color: #4ade80; font-size: 0.82rem; }
   .save-error { color: #f87171; font-size: 0.82rem; }
 </style>

@@ -432,6 +432,11 @@ export async function unarchiveSession(pool: Pool, id: string, actor: string): P
   }
 }
 
+export async function deleteSession(pool: Pool, id: string): Promise<boolean> {
+  const r = await pool.query(`DELETE FROM coaching.sessions WHERE id = $1`, [id]);
+  return (r.rowCount ?? 0) > 0;
+}
+
 export async function getAuditLog(pool: Pool, sessionId: string, limit = 50): Promise<AuditEntry[]> {
   const r = await pool.query(
     `SELECT * FROM coaching.session_audit_log WHERE session_id = $1

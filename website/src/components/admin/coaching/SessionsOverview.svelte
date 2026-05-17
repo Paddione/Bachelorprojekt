@@ -94,6 +94,19 @@
     await load();
   }
 
+  let confirmDeleteId = $state<string | null>(null);
+
+  async function doDelete(id: string) {
+    const res = await fetch(`/api/admin/coaching/sessions/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      sessions = sessions.filter(s => s.id !== id);
+      total = total - 1;
+    } else {
+      alert('Fehler beim Löschen');
+    }
+    confirmDeleteId = null;
+  }
+
   function fmtDate(d: Date | string | null) {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -178,6 +191,12 @@
                 <button class="btn-sm" onclick={() => confirmArchiveId = null}>Abbruch</button>
               {:else}
                 <button class="btn-sm" onclick={() => confirmArchiveId = s.id} title="Archivieren">📦</button>
+              {/if}
+              {#if confirmDeleteId === s.id}
+                <button class="btn-sm btn-danger" onclick={() => doDelete(s.id)}>Sicher?</button>
+                <button class="btn-sm" onclick={() => confirmDeleteId = null}>Abbruch</button>
+              {:else}
+                <button class="btn-sm btn-danger" onclick={() => confirmDeleteId = s.id} title="Löschen">×</button>
               {/if}
             </td>
           </tr>

@@ -128,6 +128,18 @@ describe('listProjects', () => {
     expect(r).toHaveProperty('pageSize');
     expect(Array.isArray(r.projects)).toBe(true);
   });
+
+  it('filtert nach Kundennummer via q', async () => {
+    // Kunden mit einzigartigen Kundennummern anlegen
+    const brand = 'test-search-brand';
+    const c1 = await pool.query(`INSERT INTO customers (name, customer_number) VALUES ('Such-A', 'SEARCH-001') RETURNING id`);
+    const c2 = await pool.query(`INSERT INTO customers (name, customer_number) VALUES ('Such-B', 'SEARCH-002') RETURNING id`);
+    await findOrCreateProject(pool, brand, c1.rows[0].id as string);
+    await findOrCreateProject(pool, brand, c2.rows[0].id as string);
+    const r = await listProjects(pool, brand, { q: 'SEARCH-001' });
+    expect(r.total).toBe(1);
+    expect(r.projects[0].customerNumber).toBe('SEARCH-001');
+  });
 });
 
 describe('updateProject', () => {

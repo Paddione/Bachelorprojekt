@@ -100,8 +100,12 @@ export async function listProjects(
   let p = 2;
 
   if (opts.q) {
+    const hasSpecial = /[%_\\]/.test(opts.q);
     const pattern = `%${opts.q.replace(/[%_\\]/g, c => `\\${c}`)}%`;
-    whereParts.push(`(p.customer_number ILIKE $${p} ESCAPE '\\\\' OR p.display_alias ILIKE $${p} ESCAPE '\\\\')`);
+    const ilike = hasSpecial
+      ? `(p.customer_number ILIKE $${p} ESCAPE '\\\\' OR p.display_alias ILIKE $${p} ESCAPE '\\\\')`
+      : `(p.customer_number ILIKE $${p} OR p.display_alias ILIKE $${p})`;
+    whereParts.push(ilike);
     params.push(pattern);
     p++;
   }

@@ -296,7 +296,7 @@ spec:
                         values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
           initContainers:
             - name: npm-install
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
               volumeMounts:
@@ -312,7 +312,7 @@ spec:
                   memory: 256Mi
           containers:
             - name: ingest
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-prs.mjs]
               env:
@@ -379,7 +379,7 @@ spec:
                         values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
           containers:
             - name: ingest
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-markdown.mjs]
               volumeMounts:
@@ -425,7 +425,7 @@ spec:
                         values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
           initContainers:
             - name: npm-install
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
               volumeMounts:
@@ -441,7 +441,7 @@ spec:
                   memory: 256Mi
           containers:
             - name: ingest
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-bug-tickets.mjs]
               env:
@@ -510,7 +510,7 @@ spec:
                         values: [gekko-hetzner-2, gekko-hetzner-3, gekko-hetzner-4, pk-hetzner, pk-hetzner-2, pk-hetzner-3]
           initContainers:
             - name: npm-install
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
               volumeMounts:
@@ -526,7 +526,7 @@ spec:
                   memory: 256Mi
           containers:
             - name: ingest
-              image: node:20-alpine
+              image: node:22-alpine
               imagePullPolicy: IfNotPresent
               command:
                 - sh

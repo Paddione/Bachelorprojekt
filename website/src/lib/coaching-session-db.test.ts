@@ -36,6 +36,7 @@ beforeAll(async () => {
       brand TEXT NOT NULL DEFAULT 'mentolder',
       client_id UUID,
       client_name TEXT,
+      ki_config_id INT,
       mode TEXT NOT NULL DEFAULT 'live',
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','paused','completed','abandoned')),
@@ -223,5 +224,18 @@ describe('updateSessionFields', () => {
   it('gibt null zurück bei unbekannter id', async () => {
     const result = await updateSessionFields(pool, '00000000-0000-4000-8000-000000000000', { title: 'X' }, 'coach');
     expect(result).toBeNull();
+  });
+
+  it('gibt Steps zurück wenn die Session Steps hat', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Session mit Steps', mode: 'live', createdBy: 'coach',
+    });
+    await upsertStep(pool, {
+      sessionId: s.id, stepNumber: 1, stepName: 'Schritt 1', phase: 'problem_ziel',
+      coachInputs: {}, status: 'pending',
+    });
+    const updated = await updateSessionFields(pool, s.id, { title: 'Geändert' }, 'coach');
+    expect(updated?.steps).toHaveLength(1);
+    expect(updated?.steps[0].stepNumber).toBe(1);
   });
 });

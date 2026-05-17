@@ -333,6 +333,10 @@ export async function updateSessionFields(
       return null;
     }
     const row = current.rows[0];
+    const stepsRes = await client.query(
+      `SELECT * FROM coaching.session_steps WHERE session_id = $1 ORDER BY step_number`, [id],
+    );
+    const steps = stepsRes.rows.map(rowToStep);
 
     const sets: string[] = [];
     const vals: unknown[] = [id];
@@ -360,7 +364,7 @@ export async function updateSessionFields(
     }
     if (sets.length === 0) {
       await client.query('ROLLBACK');
-      return rowToSession(row);
+      return rowToSession(row, steps);
     }
 
     const r = await client.query(
@@ -375,7 +379,7 @@ export async function updateSessionFields(
       );
     }
     await client.query('COMMIT');
-    return rowToSession(r.rows[0]);
+    return rowToSession(r.rows[0], steps);
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;

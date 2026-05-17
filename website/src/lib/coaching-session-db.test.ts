@@ -13,6 +13,7 @@ import {
   unarchiveSession,
   getAuditLog,
   updateSessionFields,
+  deleteSession,
 } from './coaching-session-db';
 
 let pool: Pool;
@@ -237,5 +238,22 @@ describe('updateSessionFields', () => {
     const updated = await updateSessionFields(pool, s.id, { title: 'Geändert' }, 'coach');
     expect(updated?.steps).toHaveLength(1);
     expect(updated?.steps[0].stepNumber).toBe(1);
+  });
+});
+
+describe('deleteSession', () => {
+  it('löscht eine Session und gibt true zurück', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Zu löschen', mode: 'live', createdBy: 'coach',
+    });
+    const result = await deleteSession(pool, s.id);
+    expect(result).toBe(true);
+    const fetched = await getSession(pool, s.id);
+    expect(fetched).toBeNull();
+  });
+
+  it('gibt false zurück bei unbekannter id', async () => {
+    const result = await deleteSession(pool, '00000000-0000-4000-8000-000000000099');
+    expect(result).toBe(false);
   });
 });

@@ -22,10 +22,7 @@ try { auditLog = await getAuditLog(pool, id); } catch {}
 
 let customers: { id: string; name: string }[] = [];
 try {
-  const res = await pool.query(
-    `SELECT id, name FROM public.customers WHERE brand = $1 ORDER BY name`,
-    [brand]
-  );
+  const res = await pool.query(`SELECT id, name FROM public.customers ORDER BY name`);
   customers = res.rows;
 } catch { /* ignore */ }
 

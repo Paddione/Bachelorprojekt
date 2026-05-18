@@ -23,7 +23,12 @@ try {
       <span style="margin:0 0.4rem;">›</span>
       Sessions
     </nav>
-    <h1 style="font-size:1.8rem;font-weight:700;color:var(--text-light,#f0f0f0);margin:0 0 1.5rem;padding:0 1.5rem;">Coaching-Sessions</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:0 1.5rem;margin:0 0 1.5rem;">
+      <h1 style="font-size:1.8rem;font-weight:700;color:var(--text-light,#f0f0f0);margin:0;">Coaching-Sessions</h1>
+      <a href="/admin/coaching/sessions/new" class="btn btn-primary">
+        + Neue Session
+      </a>
+    </div>
     <SessionsOverview client:load {initialResult} />
   </div>
 </AdminLayout>

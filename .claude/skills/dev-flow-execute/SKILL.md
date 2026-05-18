@@ -160,6 +160,40 @@ task test:all
 
 ---
 
+## Schritt 3.5: Admin-Menu Placement Gate
+
+Falls die Implementierung neue Seiten unter `website/src/pages/admin/` hinzugefügt hat, muss jede statische Route aus dem Sidemenu erreichbar sein (siehe Regel R1–R10 in `docs/superpowers/specs/2026-05-18-admin-menu-rules-design.md`).
+
+```bash
+bash scripts/admin-menu-gate.sh
+```
+
+| Exit | Bedeutung | Aktion |
+|---|---|---|
+| `0` (Gate PASSED) | Alles ok — weiter zu Schritt 4. | — |
+| `1` (Gate FAILED) | Mindestens eine Regel verletzt. | Output lesen, im AdminLayout.astro nachpflegen, erneut laufen. |
+| `2` | Wrong working directory. | In den Worktree wechseln und erneut versuchen. |
+
+### Bypass (nur in Ausnahmefällen)
+
+```bash
+ADMIN_MENU_GATE=skip bash scripts/admin-menu-gate.sh
+```
+
+Wenn der Gate übersprungen wird: **PR-Titel mit `[menu-gate-skip]` prefixen** und im PR-Body begründen (z.B. "absichtlich orphan — dynamic redirect target only, kein Bedarf für Menüplatz"). Reviewer haben damit ein klares Signal.
+
+### Häufige Failure-Modi
+
+| Failure | Typische Ursache | Fix |
+|---|---|---|
+| `R1 orphan` | Neue `/admin/foo.astro` ohne Eintrag in `navGroups`. | Item in passender Gruppe ergänzen, oder Parent-Route in `matches[]` listen. |
+| `R2 label` | `'Neue Session'` o.ä. als `label`. | Item entfernen, Create-Aktion als Button auf der Zielseite. |
+| `R4 group >6` | Zu viele Items in einer Gruppe. | Item in andere Gruppe verschieben, oder Gruppe aufteilen. |
+| `R5 groups >6` | Zu viele Gruppen. | Verwandte Gruppen zusammenführen. |
+| `R7 dashboard orphan` | KPI-Card linkt auf Route die nicht im Sidemenu liegt. | Entweder Route ins Sidemenu, oder Dashboard-Link entfernen. |
+
+---
+
 ## Schritt 4: Pre-Merge Preview auf dev k3d (optional)
 
 > **Status (2026-05-13):** Der k3d-Dev-Cluster läuft aktuell **nicht**. Dieser Schritt ist optional, sobald die Infrastruktur live ist. Bis dahin: lokal verifizieren und direkt auf Prod deployen.

@@ -244,6 +244,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
 
+  test:menu-gate:
+    desc: Enforce admin-menu rules (R1, R2, R4, R5, R7)
+    cmds:
+      - bash scripts/admin-menu-gate.sh
+
   test:dry-run:
     desc: Dry-run key tasks to catch Taskfile syntax errors
     cmds:
@@ -269,11 +274,12 @@ tasks:
         echo "Dry-run: All tasks parsed successfully"
 
   test:all:
-    desc: "Run all offline tests: unit + manifests + art-library + dry-run"
+    desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run"
     deps:
       - test:unit
       - test:manifests
       - test:art-library
+      - test:menu-gate
       - test:dry-run
 
   test:inventory:

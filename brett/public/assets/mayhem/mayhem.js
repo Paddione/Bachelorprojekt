@@ -7,6 +7,20 @@ const Mayhem = (() => {
 
   const MAX_PLAYERS = 4;
 
+  // Cardinal spawn slots — north/east/south/west at r=7, clear of obstacles
+  const SPAWN_SLOTS = [
+    { x:  0, z:  7 },
+    { x:  7, z:  0 },
+    { x:  0, z: -7 },
+    { x: -7, z:  0 },
+  ];
+  let _spawnSlot = 0;
+  function nextSpawnPoint() {
+    const pt = SPAWN_SLOTS[_spawnSlot % SPAWN_SLOTS.length];
+    _spawnSlot = (_spawnSlot + 1) % SPAWN_SLOTS.length;
+    return { x: pt.x + (Math.random() - 0.5) * 1.2, z: pt.z + (Math.random() - 0.5) * 1.2 };
+  }
+
   let scene, camera, canvas, makeMannequin, send, room;
   let enabled = false;
   let localAvatar = null;
@@ -24,6 +38,7 @@ const Mayhem = (() => {
   let effectsMgr  = null;
   let hud         = null;
   let playerId    = null;
+  let _lastWeaponKey = null;
 
   const input = {
     forward: false, backward: false, left: false, right: false,
@@ -130,11 +145,15 @@ const Mayhem = (() => {
     // HUD
     hud = buildHud();
 
-    // Spawn local player
+    // Spawn local player — slot 0 (north)
+    _spawnSlot = 0;
+    _lastWeaponKey = null;
     const color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
-    const edge = randomEdgeSpawn();
-    const mannequin = makeMannequin(playerId, edge);
+    const spawnPos = nextSpawnPoint();
+    const mannequin = makeMannequin(playerId, spawnPos);
     localAvatar = new window.MayhemPlayerAvatar({ id: playerId, mannequin, local: true, color });
+    localAvatar.setWeapon(weaponSystem.current);
+    _lastWeaponKey = weaponSystem.current?.key || null;
     chaseCam.attach(localAvatar.mannequin.root);
     send({ type: 'player_join', playerId, color });
 
@@ -147,7 +166,7 @@ const Mayhem = (() => {
   function spawnAIBot(colorIndex) {
     if (!window.MayhemAIBot) return; // guard: ai-bot.js not loaded
     const botId = 'bot-' + crypto.randomUUID();
-    const pos = randomEdgeSpawn();
+    const pos = nextSpawnPoint();
     const botMannequin = makeMannequin(botId, pos);
     const bot = new window.MayhemAIBot({
       id: botId,
@@ -165,6 +184,7 @@ const Mayhem = (() => {
         getGameMode: () => gameMode?.mode || 'warmup',
       },
     });
+    if (bot.avatar && bot.weaponDef) bot.avatar.setWeapon(bot.weaponDef);
     aiBots.set(botId, bot);
     remoteAvatars.set(botId, bot.avatar);
   }
@@ -198,7 +218,7 @@ const Mayhem = (() => {
   // ── Respawn ───────────────────────────────────────────────────────────────
   function localRespawn() {
     if (!localAvatar) return;
-    const pos = randomEdgeSpawn();
+    const pos = nextSpawnPoint();
     localAvatar.mannequin.root.position.set(pos.x, 0, pos.z);
     localAvatar.resetHp();
     localAvatar.state = window.MayhemPlayerAvatar.STATE.IDLE;
@@ -320,6 +340,13 @@ const Mayhem = (() => {
         weaponSystem.tryFire({ x: pos.x, y: pos.y, z: pos.z }, dir, playerId);
       }
       weaponSystem?.tick();
+
+      // Sync weapon model when selection changes
+      const curWeaponKey = weaponSystem?.current?.key || null;
+      if (curWeaponKey !== _lastWeaponKey) {
+        _lastWeaponKey = curWeaponKey;
+        if (weaponSystem?.current) localAvatar.setWeapon(weaponSystem.current);
+      }
     }
 
     // Tick AI bots — they drive their own avatars (already in remoteAvatars)
@@ -575,14 +602,6 @@ const Mayhem = (() => {
     document.body.appendChild(banner);
   }
   function hideBanner() { if (banner) { banner.remove(); banner = null; } }
-
-  function randomEdgeSpawn() {
-    const edge = Math.floor(Math.random() * 4), r = 4;
-    if (edge === 0) return { x: -r, z: (Math.random() - 0.5) * 2 * r };
-    if (edge === 1) return { x:  r, z: (Math.random() - 0.5) * 2 * r };
-    if (edge === 2) return { x: (Math.random() - 0.5) * 2 * r, z: -r };
-    return { x: (Math.random() - 0.5) * 2 * r, z:  r };
-  }
 
   return {
     init, toggle, setEnabled, onSnapshot, onMessage, tick,

@@ -406,6 +406,32 @@
       ]
     },
     {
+      "clientId": "brett-app",
+      "name": "Brett OIDC App",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BRETT_OIDC_SECRET}",
+      "redirectUris": [
+        "http://brett.localhost/auth/callback",
+        "http://localhost:3000/auth/callback"
+      ],
+      "webOrigins": [
+        "http://brett.localhost",
+        "http://localhost:3000"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "attributes": {
+        "oidc.ciba.grant.enabled": "false",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true"
+      }
+    },
+    {
       "clientId": "claude-code",
       "name": "Claude Code AI",
       "enabled": true,

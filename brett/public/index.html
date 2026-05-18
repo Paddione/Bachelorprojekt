@@ -1031,6 +1031,27 @@
     pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Space = Sprung · Klick Boden = Ziel · Tab = nächste';
   }
 
+  // ----- Admin bootstrap -----
+  (async function adminBootstrap() {
+    try {
+      const res = await fetch('/auth/me');
+      if (res.status === 401) {
+        if (new URLSearchParams(window.location.search).get('admin') === '1') {
+          window.location.href = '/auth/login?returnTo=' + encodeURIComponent(window.location.href);
+        }
+        return;
+      }
+      if (!res.ok) return;
+      const me = await res.json();
+      if (!me.isAdmin) return;
+      window._bretAdmin = me;
+      const roomParam = new URLSearchParams(window.location.search).get('room');
+      if (!roomParam && window.RoomBrowser) {
+        window.RoomBrowser.show(me.name);
+      }
+    } catch {}
+  })();
+
   // ----- WebSocket sync -----
   const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
   const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -1057,6 +1078,17 @@
 
       wsReady = true;
       ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
+      // Mount admin panel if admin
+      if (window._bretAdmin && window.AdminPanel) {
+        const joinMode = sessionStorage.getItem('brett_admin_join_mode') || 'spectator';
+        window.AdminPanel.mount({
+          sendFn: (msg) => { try { ws.send(JSON.stringify(msg)); } catch {} },
+          room: roomFromUrl,
+          roomName: roomFromUrl,
+          joinMode,
+        });
+        if (joinMode === 'spectator') window._mayhemSpectator = true;
+      }
     });
 
     ws.addEventListener("close", () => {
@@ -1144,6 +1176,7 @@
           if (msg.type === "snapshot") window.Mayhem.onSnapshot(msg);
           else window.Mayhem.onMessage(msg);
         }
+        if (window.AdminPanel) window.AdminPanel.onMessage(msg);
         break;
         STATE.online = msg.count || 1;
         document.getElementById("online-count").textContent = String(STATE.online);
@@ -1206,5 +1239,7 @@
 <script src="assets/mayhem/game-mode.js"></script>
 <script src="assets/mayhem/ai-bot.js"></script>
 <script src="assets/mayhem/mayhem.js"></script>
+<script src="assets/room-browser.js"></script>
+<script src="assets/admin-panel.js"></script>
 </body>
 </html>

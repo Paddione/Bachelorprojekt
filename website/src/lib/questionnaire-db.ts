@@ -125,14 +125,16 @@ export interface QTestStatus {
 
 async function seedSystemTestTemplates(): Promise<void> {
   const existing = await pool.query(
-    `SELECT COUNT(*)::int AS cnt FROM questionnaire_templates WHERE is_system_test = true`,
+    `SELECT title FROM questionnaire_templates WHERE is_system_test = true`,
   );
-  if ((existing.rows[0]?.cnt ?? 0) > 0) return;
+  const seededTitles = new Set<string>(existing.rows.map((r: { title: string }) => r.title));
+  const missing = SYSTEM_TEST_TEMPLATES.filter(tpl => !seededTitles.has(tpl.title));
+  if (missing.length === 0) return;
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    for (const tpl of SYSTEM_TEST_TEMPLATES) {
+    for (const tpl of missing) {
       await insertSystemTestTemplate(client, tpl);
     }
     await client.query('COMMIT');

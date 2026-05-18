@@ -214,9 +214,16 @@ async function main() {
 
   if (flags.dryRun) {
     console.log('[batch-ingest] --dry-run: no DB writes');
+    let i = 0;
     for (const c of toIngest) {
-      const { text, pageCount, format } = await extractText(c.filePath);
-      await ingestDual(null as any, c, text, pageCount ?? null, format, { dryRun: true });
+      i++;
+      console.log(`\n[${i}/${toIngest.length}] ${c.relPath}`);
+      try {
+        const { text, pageCount, format } = await extractText(c.filePath);
+        await ingestDual(null as any, c, text, pageCount ?? null, format, { dryRun: true });
+      } catch (err) {
+        console.error(`  failed: ${err instanceof Error ? err.message : err}`);
+      }
     }
     return;
   }

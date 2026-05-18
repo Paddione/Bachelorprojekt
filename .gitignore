@@ -123,7 +123,6 @@ tests/unit/lib/bats-assert/test/
 tests/unit/lib/bats-core/test/
 tests/unit/lib/bats-file/test/
 tests/unit/lib/bats-support/test/
-.gemini
 # docs-to-html plugin output
 docs-html-bundles/
 .worktrees/

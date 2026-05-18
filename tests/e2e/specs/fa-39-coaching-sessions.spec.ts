@@ -36,7 +36,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
 
   // ── Seitenstruktur ──────────────────────────────────────────────────────────
   test('T5: sessions overview page has expected heading and new-session link', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions`);
     await page.waitForURL(/\/admin\/coaching\/sessions$/);
@@ -46,7 +46,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T6: new session page has all required form fields', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions/new`);
     await page.waitForURL(/\/new$/);
@@ -61,7 +61,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
 
   // ── Session-Wizard ──────────────────────────────────────────────────────────
   test('T7: wizard shows 10 step buttons in the progress bar', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions/new`);
     await page.waitForURL(/\/new$/);
@@ -76,7 +76,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T8: wizard step 1 shows Erstanamnese with required inputs and disabled KI button', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions/new`);
     await page.waitForURL(/\/new$/);
@@ -87,12 +87,11 @@ test.describe('FA-39: Coaching-Sessions', () => {
     await expect(page.getByRole('heading', { name: /Schritt 1\/10.*Erstanamnese/ })).toBeVisible();
     await expect(page.locator('#anlass')).toBeVisible();
     await expect(page.locator('#situation')).toBeVisible();
-    // KI button disabled until required fields filled
     await expect(page.getByRole('button', { name: /KI befragen/ })).toBeDisabled();
   });
 
   test('T9: KI button enables when required fields are filled', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions/new`);
     await page.waitForURL(/\/new$/);
@@ -106,7 +105,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T10: skip advances wizard to the next step', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions/new`);
     await page.waitForURL(/\/new$/);
@@ -120,7 +119,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T11: back button returns to previous step', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     await page.goto(`${BASE}/admin/coaching/sessions/new`);
     await page.waitForURL(/\/new$/);
@@ -135,7 +134,7 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T12: session-info box shows title and edit button', async ({ page }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping authenticated tests');
+    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
 
     const title = `FA-39 Meta ${Date.now()}`;
     await page.goto(`${BASE}/admin/coaching/sessions/new`);

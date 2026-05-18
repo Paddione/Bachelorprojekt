@@ -163,3 +163,42 @@
   position: absolute; inset: 0; display: grid; place-items: center;
   font-size: 18px; color: var(--brass); opacity: 0.6;
 }
+
+/* ── Mode Select + Loadout Modal ───────────────────────────────── */
+.mode-select-overlay {
+  position: fixed; inset: 0; background: rgba(11,17,28,0.85);
+  display: grid; place-items: center; z-index: 100;
+}
+.mode-select-card {
+  background: var(--ink-800); border: 1px solid var(--brass-mute);
+  padding: 32px; border-radius: 12px; max-width: 720px; width: 90%;
+}
+.mode-select-card h2 { margin-top: 0; color: var(--brass-hi); }
+.mode-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  margin-top: 24px;
+}
+.mode-card {
+  background: var(--ink-900); border: 1px solid var(--brass-mute);
+  border-radius: 8px; padding: 24px; cursor: pointer; color: inherit;
+  text-align: left; transition: border-color 120ms, transform 120ms;
+}
+.mode-card:hover:not(.disabled) { border-color: var(--brass-hi); transform: translateY(-2px); }
+.mode-card.disabled { opacity: 0.4; cursor: not-allowed; }
+.mode-card .title { font-size: 20px; color: var(--brass-hi); }
+.mode-card .sub { font-size: 13px; color: var(--brass); margin-top: 4px; }
+.loadout-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 16px 0; }
+.loadout-cols h3 { color: var(--brass); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+.weapon-pick {
+  display: flex; gap: 12px; align-items: center; width: 100%;
+  background: var(--ink-900); border: 1px solid var(--brass-mute);
+  padding: 8px 12px; margin: 4px 0; border-radius: 6px;
+  cursor: pointer; color: inherit;
+}
+.weapon-pick.active { border-color: var(--brass-hi); background: var(--ink-800); }
+.weapon-pick img { width: 32px; height: 32px; }
+.confirm {
+  background: var(--brass); color: var(--ink-900); border: 0;
+  padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 600;
+}
+.confirm:hover { background: var(--brass-hi); }

@@ -96,8 +96,9 @@ export const POST: APIRoute = async ({ request, params }) => {
         temperature: activeProvider?.temperature ?? undefined,
         top_p: activeProvider?.topP ?? undefined,
         top_k: activeProvider?.topK ?? undefined,
+        stream: false,
         messages: [{ role: 'user', content: anonymizedUserPrompt }],
-      } as Parameters<typeof client.messages.create>[0]);
+      });
       aiResponse = msg.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map(b => b.text).join('');
     } else if (providerName === 'openai') {
       const apiKey = activeProvider?.apiKey ?? process.env.OPENAI_API_KEY;
@@ -135,7 +136,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         safePrompt: activeProvider?.safePrompt ?? false,
         messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: anonymizedUserPrompt }],
       });
-      aiResponse = (resp.choices?.[0]?.message.content as string) ?? '';
+      aiResponse = (resp.choices?.[0]?.message?.content as string) ?? '';
     } else if (providerName === 'lumo') {
       return new Response(JSON.stringify({ error: 'Lumo-Integration noch nicht verfügbar' }), { status: 503, headers: { 'content-type': 'application/json' } });
     } else {

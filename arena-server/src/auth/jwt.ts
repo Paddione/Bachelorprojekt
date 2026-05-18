@@ -1,4 +1,4 @@
-import { jwtVerify, type KeyLike } from 'jose';
+import { jwtVerify, type JWTVerifyGetKey } from 'jose';
 import { getJwks } from './jwks';
 import { log } from '../log';
 
@@ -17,7 +17,7 @@ export interface ArenaClaims {
 export interface VerifyOpts {
   trustedIssuers: TrustedIssuer[];
   /** Test seam: skip JWKS network fetch by supplying a key directly. */
-  keyResolver?: (issuer: string) => Promise<KeyLike>;
+  keyResolver?: (issuer: string) => Promise<JWTVerifyGetKey>;
 }
 
 export async function verifyArenaJwt(token: string, opts: VerifyOpts): Promise<ArenaClaims> {

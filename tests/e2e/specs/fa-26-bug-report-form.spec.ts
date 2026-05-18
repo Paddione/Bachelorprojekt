@@ -46,7 +46,7 @@ test.describe('FA-26: Bug report API', () => {
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.ticketId).toMatch(/^BR-\d{8}-[0-9a-f]{4}$/);
+    expect(body.ticketId).toMatch(/^T\d+$/);
   });
 
   test('POST /api/bug-report with description too long returns 400', async ({ request }) => {
@@ -61,8 +61,8 @@ test.describe('FA-26: Bug report API', () => {
   });
 
   test('GET /api/status with valid ticket format — API responds correctly', async ({ request }) => {
-    // Verify the ticket status API works (uses same BR-format)
-    const res = await request.get(`${BASE}/api/status?id=BR-20260101-0000`);
+    // Verify the ticket status API works (uses T-format IDs)
+    const res = await request.get(`${BASE}/api/status?id=T000001`);
     expect([200, 404]).toContain(res.status());
     const body = await res.json();
     expect(typeof body).toBe('object');

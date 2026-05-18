@@ -1,3 +1,4 @@
+(function () {
 'use strict';
 // Projectile manager.
 // Handles: spawn, per-frame movement, AABB/capsule collision, network hit emission.
@@ -158,3 +159,4 @@ class ProjectileManager {
 if (typeof window !== 'undefined') {
   window.MayhemProjectiles = { ProjectileManager };
 }
+})();

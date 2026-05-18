@@ -1,0 +1,9 @@
+# Binary game assets — prevent git from treating as text
+brett/public/assets/sfx/*.ogg    binary
+brett/public/assets/hud/*.png    binary
+brett/public/assets/hud/*.svg    linguist-language=SVG
+brett/public/assets/sprites/*.png binary
+brett/public/assets/figure-pack/accessories/*.png binary
+brett/public/assets/figure_pack_extension/accessories/*.png binary
+brett/public/assets/game_assets_mentolder/hud/*.png binary
+brett/public/assets/game_assets_mentolder/sprites/*.png binary

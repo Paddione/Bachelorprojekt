@@ -51,6 +51,7 @@ Bevor irgendein Agent Code schreibt, Branch auf `origin/main` rebsen — verhind
 ```bash
 git fetch origin main
 git rebase origin/main
+git submodule update --init --recursive
 ```
 
 Falls `git rebase` Konflikte meldet:

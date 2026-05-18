@@ -5,10 +5,13 @@ const Mayhem = (() => {
   const VEHICLE_COOLDOWN_MS = 5000;
   const MODES_CYCLE = ['warmup', 'deathmatch', 'lms'];
 
+  const MAX_PLAYERS = 4;
+
   let scene, camera, canvas, makeMannequin, send, room;
   let enabled = false;
   let localAvatar = null;
   const remoteAvatars = new Map();
+  const aiBots = new Map();         // botId → MayhemAIBot (subset of remoteAvatars)
   const vehicles = new Map();
   let chaseCam    = null;
   let banner      = null;
@@ -134,6 +137,36 @@ const Mayhem = (() => {
     localAvatar = new window.MayhemPlayerAvatar({ id: playerId, mannequin, local: true, color });
     chaseCam.attach(localAvatar.mannequin.root);
     send({ type: 'player_join', playerId, color });
+
+    // Fill remaining slots with AI bots so there are always MAX_PLAYERS combatants
+    const humanCount = remoteAvatars.size + 1; // +1 for local player
+    for (let i = humanCount; i < MAX_PLAYERS; i++) spawnAIBot(i - humanCount);
+  }
+
+  // ── AI Bots ───────────────────────────────────────────────────────────────
+  function spawnAIBot(colorIndex) {
+    if (!window.MayhemAIBot) return; // guard: ai-bot.js not loaded
+    const botId = 'bot-' + crypto.randomUUID();
+    const pos = randomEdgeSpawn();
+    const botMannequin = makeMannequin(botId, pos);
+    const bot = new window.MayhemAIBot({
+      id: botId,
+      mannequin: botMannequin,
+      colorIndex,
+      callbacks: {
+        onFire: (weaponDef, originPos, dirVec, shooterId) => {
+          if (projectileMgr) projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
+        },
+        onDeath: (id, killerId) => {
+          gameMode?.handleDeath(id, false);
+          if (killerId && killerId !== id) gameMode?.handleKill(killerId);
+          updateHud();
+        },
+        getGameMode: () => gameMode?.mode || 'warmup',
+      },
+    });
+    aiBots.set(botId, bot);
+    remoteAvatars.set(botId, bot.avatar);
   }
 
   function stop() {
@@ -144,6 +177,8 @@ const Mayhem = (() => {
       localAvatar.remove(scene);
       localAvatar = null;
     }
+    for (const bot of aiBots.values()) { bot.remove(scene); remoteAvatars.delete(bot.id); }
+    aiBots.clear();
     for (const a of remoteAvatars.values()) a.remove(scene);
     remoteAvatars.clear();
     for (const v of vehicles.values()) v.remove(scene);
@@ -193,6 +228,11 @@ const Mayhem = (() => {
     if (victimId === playerId && localAvatar) {
       processLocalHit(weaponKey, impulse, shooterId);
     } else {
+      const bot = aiBots.get(victimId);
+      if (bot) {
+        bot.processHit(weaponKey, impulse, shooterId, weaponSystem);
+        return;
+      }
       const a = remoteAvatars.get(victimId);
       if (a) a.applyHit(impulse, weaponKey || 'flail');
     }
@@ -282,6 +322,13 @@ const Mayhem = (() => {
       weaponSystem?.tick();
     }
 
+    // Tick AI bots — they drive their own avatars (already in remoteAvatars)
+    if (aiBots.size > 0) {
+      const allCombatants = new Map(remoteAvatars);
+      if (localAvatar) allCombatants.set(playerId, localAvatar);
+      for (const bot of aiBots.values()) bot.tick(dt, allCombatants);
+    }
+
     for (const a of remoteAvatars.values()) a.update(dt, 0);
     for (const v of vehicles.values()) {
       v.update(dt);
@@ -348,9 +395,17 @@ const Mayhem = (() => {
       case 'player_join':
         if (msg.playerId === playerId) return;
         if (remoteAvatars.has(msg.playerId)) return;
-        const m = makeMannequin(msg.playerId, { x: 0, z: 0 });
-        remoteAvatars.set(msg.playerId,
-          new window.MayhemPlayerAvatar({ id: msg.playerId, mannequin: m, local: false, color: msg.color || '#888' }));
+        // Retire one bot to make room for the real player
+        if (aiBots.size > 0) {
+          const [firstBotId] = aiBots.keys();
+          const firstBot = aiBots.get(firstBotId);
+          aiBots.delete(firstBotId);
+          remoteAvatars.delete(firstBotId);
+          firstBot.remove(scene);
+        }
+        { const m = makeMannequin(msg.playerId, { x: 0, z: 0 });
+          remoteAvatars.set(msg.playerId,
+            new window.MayhemPlayerAvatar({ id: msg.playerId, mannequin: m, local: false, color: msg.color || '#888' })); }
         break;
 
       case 'player_state':

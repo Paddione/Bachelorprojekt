@@ -86,6 +86,7 @@ export default defineConfig({
         '**/fa-24-*.spec.ts',    // Whiteboard
         '**/fa-25-*.spec.ts',    // Mailpit
         '**/fa-27-*.spec.ts',    // Systemisches Brett service
+        // brett-mayhem now lives in its own authenticated project (brett-mentolder)
         '**/fa-29-*.spec.ts',    // Requirements Tracking UI
         '**/fa-livekit.spec.ts', // LiveKit / Livestream auth-gating
         '**/sa-02-*.spec.ts',    // Authentication (wrong password → Keycloak error)
@@ -95,6 +96,29 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: websiteURL,
+      },
+    },
+
+    // ── brett-mentolder-setup: seeds mentolder brett auth state ─────
+    {
+      name: 'brett-mentolder-setup',
+      testMatch: '**/brett-mentolder-auth-setup.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+      },
+    },
+
+    // ── brett-mentolder: Mayhem 1v3 AI mode (authenticated) ─────────
+    // Run: playwright test --project=brett-mentolder
+    {
+      name: 'brett-mentolder',
+      dependencies: ['brett-mentolder-setup'],
+      testMatch: ['**/brett-mayhem.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+        storageState: '.auth/mentolder-brett.json',
       },
     },
 

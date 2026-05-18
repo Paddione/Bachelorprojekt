@@ -262,6 +262,20 @@ Das ist alles — die PR-Nummer landet in Schritt 6.5 als Comment-Body und in Sc
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
+```bash
+gh pr merge --squash --delete-branch
+```
+
+> **Bekannte Fehler-Meldung (kein echter Fehler):**
+> ```
+> fatal: 'main' is already used by worktree at '/home/patrick/Bachelorprojekt'
+> ```
+> Diese Meldung erscheint, wenn `gh` nach dem Merge versucht, `git checkout main` im sekundären Worktree auszuführen, und der Haupt-Repo bereits `main` ausgecheckt hat. **Der PR ist trotzdem erfolgreich gemergt** — nur der lokale Checkout-Seiteneffekt scheitert. Prüfen mit:
+> ```bash
+> gh pr view --json mergedAt -q '.mergedAt'   # leer = noch offen, Zeitstempel = gemergt
+> ```
+> Falls gemergt: einfach mit Schritt 6.5 weitermachen.
+
 ---
 
 ## Schritt 6.5: Ticket abschließen

@@ -1,7 +1,8 @@
 ---
-import { getSession, getLoginUrl, isAdmin } from '../../../../lib/auth';
+import { getSession } from '../../../../lib/auth';
 import { getFullInvoice } from '../../../../lib/stripe-billing';
-import { getSiteSetting, getCustomerByEmail } from '../../../../lib/website-db';
+import { getSiteSetting } from '../../../../lib/website-db';
+import { getCustomerByEmail } from '../../../../lib/native-billing';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -50,9 +51,10 @@ function fmtEur(n: number): string {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const addr = inv.buyerAddress;
-const dbCustomer = inv.customerEmail ? await getCustomerByEmail(inv.customerEmail).catch(() => null) : null;
-const customerNumber = dbCustomer?.customer_number ?? null;
+const dbCustomer = inv.customerEmail ? await getCustomerByEmail(brand, inv.customerEmail).catch(() => null) : null;
+const customerNumber = dbCustomer?.customerNumber ?? null;
+const addr = dbCustomer ? { line1: dbCustomer.addressLine1, postalCode: dbCustomer.postalCode, city: dbCustomer.city } : null;
+const buyerVatId = dbCustomer?.vatNumber ?? null;
 ---
 
 <!DOCTYPE html>
@@ -357,10 +359,10 @@ const customerNumber = dbCustomer?.customer_number ?? null;
               <div class="val">{fmtDate(inv.dueDate)}</div>
             </>
           )}
-          {inv.buyerVatId && (
+          {buyerVatId && (
             <>
               <div class="lab" style="margin-top:2mm">USt-IdNr. Empfänger</div>
-              <div class="val">{inv.buyerVatId}</div>
+              <div class="val">{buyerVatId}</div>
             </>
           )}
         </div>
@@ -404,10 +406,10 @@ const customerNumber = dbCustomer?.customer_number ?? null;
           </tr>
         </thead>
         <tbody>
-          {inv.lines.map(line => (
+          {inv.items.map(line => (
             <tr>
               <td><div class="desc">{line.description}</div></td>
-              <td class="right">{fmtEur(line.amountNet)} €</td>
+              <td class="right">{fmtEur(line.amount)} €</td>
             </tr>
           ))}
         </tbody>

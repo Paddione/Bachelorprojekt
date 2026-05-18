@@ -4,8 +4,8 @@ namespace: workspace-korczewski
 
 # Inherit full prod overlay (k3d base + all prod patches)
 resources:
-  - ../k3d/migrations-arena.yaml
-  - ../k3d/arena.yaml
+  - migrations-arena.yaml
+  - arena.yaml
   - ../prod
   - ddns-updater.yaml
   - netpol-cross-namespace.yaml

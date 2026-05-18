@@ -1,41 +1,35 @@
-import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
-// Import the inner module directly — pdf-parse's index.js triggers a debug-mode
-// fixture read when `module.parent` is undefined (which is always the case under ESM).
-// Types live in scripts/coaching/types.d.ts.
-import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { PDFParse } from 'pdf-parse';
 import EPub from 'epub2';
+import mammoth from 'mammoth';
 
 /**
- * Extracts plain text from a PDF or EPUB file.
+ * Extracts plain text from a PDF, EPUB, DOC, or DOCX file.
  * Returns { text, pageCount, pageMap?, format }.
  * pageMap is an array of { page, charStart } anchors when available (PDF only).
  */
 export async function extractText(filePath) {
   const ext = extname(filePath).toLowerCase();
-  if (ext === '.pdf') return extractPdf(filePath);
+  if (ext === '.pdf')  return extractPdf(filePath);
   if (ext === '.epub') return extractEpub(filePath);
+  if (ext === '.docx') return extractDoc(filePath, 'docx');
+  if (ext === '.doc')  return extractDoc(filePath, 'doc');
   throw new Error(`Unsupported extension: ${ext}`);
 }
 
 async function extractPdf(filePath) {
-  const buf = await readFile(filePath);
+  const parser = new PDFParse({ url: filePath });
+  const result = await parser.getText();
+
+  // Build pageMap (charStart per page) from the per-page text array
   const pageMap = [];
   let cursor = 0;
-  const data = await pdfParse(buf, {
-    pagerender: (pageData) => pageData.getTextContent().then((tc) => {
-      const pageText = tc.items.map((it) => it.str).join(' ');
-      pageMap.push({ page: pageData.pageNumber, charStart: cursor });
-      cursor += pageText.length + 1;
-      return pageText;
-    }),
-  });
-  return {
-    text: data.text,
-    pageCount: data.numpages,
-    pageMap,
-    format: 'pdf',
-  };
+  for (const p of result.pages) {
+    pageMap.push({ page: p.num, charStart: cursor });
+    cursor += p.text.length + 2; // +2 for '\n\n' separator added by getText()
+  }
+
+  return { text: result.text, pageCount: result.total, pageMap, format: 'pdf' };
 }
 
 async function extractEpub(filePath) {
@@ -48,12 +42,17 @@ async function extractEpub(filePath) {
     const text = stripHtml(html);
     if (text.trim()) chapters.push(text);
   }
-  return {
-    text: chapters.join('\n\n'),
-    pageCount: chapters.length,
-    pageMap: null,
-    format: 'epub',
-  };
+  return { text: chapters.join('\n\n'), pageCount: chapters.length, pageMap: null, format: 'epub' };
+}
+
+async function extractDoc(filePath, format) {
+  const result = await mammoth.extractRawText({ path: filePath });
+  for (const msg of result.messages) {
+    if (msg.type === 'warning') {
+      console.warn(`[extract] ${format} warning in ${filePath}: ${msg.message}`);
+    }
+  }
+  return { text: result.value, pageCount: null, pageMap: null, format };
 }
 
 function stripHtml(html) {

@@ -2,7 +2,7 @@
   import { STEP_DEFINITIONS } from '../../../lib/coaching-session-prompts';
   import type { Session, SessionStep } from '../../../lib/coaching-session-db';
 
-  let { sessionId, initialSession }: { sessionId: string; initialSession: Session } = $props();
+  let { sessionId, initialSession, providerName = 'claude' }: { sessionId: string; initialSession: Session; providerName?: string } = $props();
 
   const PHASE_COLORS: Record<string, string> = {
     problem_ziel: 'bg-blue-500',
@@ -23,6 +23,8 @@
   let coachNotes = $state(getStepNotes(getInitialStep()));
   let loading = $state(false);
   let error = $state('');
+  let streamingResponse = $state('');
+  const isClaudeProvider = $derived(providerName === 'claude');
 
   function getInitialStep(): number {
     const firstPending = initialSession.steps.find(s => s.status === 'pending' || s.status === 'generated');
@@ -65,22 +67,65 @@
   }
 
   async function generate() {
-    loading = true; error = '';
+    loading = true; error = ''; streamingResponse = '';
     try {
       await saveInputs();
-      const res = await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coachInputs: inputs }),
-      });
-      const json = await res.json();
-      if (!res.ok) { error = json.error ?? 'Fehler bei KI-Anfrage'; return; }
-      session = {
-        ...session,
-        steps: session.steps.find(s => s.stepNumber === currentStep)
-          ? session.steps.map(s => s.stepNumber === currentStep ? json.step : s)
-          : [...session.steps, json.step],
-      };
+
+      const url = `/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}/generate${isClaudeProvider ? '?stream=true' : ''}`;
+
+      if (isClaudeProvider) {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coachInputs: inputs }),
+        });
+        if (!res.ok || !res.body) { error = 'Fehler bei KI-Anfrage'; return; }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const event = JSON.parse(line.slice(6)) as { chunk?: string; done?: boolean; step?: SessionStep; error?: string };
+              if (event.chunk) {
+                streamingResponse += event.chunk;
+              } else if (event.done && event.step) {
+                session = {
+                  ...session,
+                  steps: session.steps.find(s => s.stepNumber === currentStep)
+                    ? session.steps.map(s => s.stepNumber === currentStep ? event.step! : s)
+                    : [...session.steps, event.step!],
+                };
+                streamingResponse = '';
+              } else if (event.error) {
+                error = event.error;
+              }
+            } catch { /* skip malformed event */ }
+          }
+        }
+      } else {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coachInputs: inputs }),
+        });
+        const json = await res.json();
+        if (!res.ok) { error = json.error ?? 'Fehler bei KI-Anfrage'; return; }
+        session = {
+          ...session,
+          steps: session.steps.find(s => s.stepNumber === currentStep)
+            ? session.steps.map(s => s.stepNumber === currentStep ? json.step : s)
+            : [...session.steps, json.step],
+        };
+      }
     } catch { error = 'Verbindungsfehler'; }
     finally { loading = false; }
   }
@@ -226,6 +271,14 @@
     >
       {loading ? 'KI antwortet…' : 'KI befragen →'}
     </button>
+  {/if}
+
+  <!-- Streaming-Vorschau -->
+  {#if streamingResponse}
+    <div class="ai-response-box streaming">
+      <p class="ai-label">KI generiert…</p>
+      <p class="ai-text">{streamingResponse}</p>
+    </div>
   {/if}
 
   <!-- KI-Antwort -->

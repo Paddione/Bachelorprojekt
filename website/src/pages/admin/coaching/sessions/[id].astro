@@ -89,7 +89,12 @@ const displayKi = kiProviders.find(p => p.id === coachingSession.kiConfigId)?.di
         <a href="/admin/coaching/sessions" class="btn-ghost">← Zur Übersicht</a>
       </div>
     ) : (
-      <SessionWizard sessionId={id} initialSession={coachingSession} client:load />
+      <SessionWizard
+        sessionId={id}
+        initialSession={coachingSession}
+        providerName={kiProviders.find(p => p.id === coachingSession.kiConfigId)?.provider ?? kiProviders.find(p => p.isActive)?.provider ?? 'claude'}
+        client:load
+      />
     )}
 
     <!-- Session-Metadaten: Anzeige + expliziter Edit-Modus -->

@@ -12,8 +12,18 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   const sessionId = params.id as string;
   const coachingSession = await getCoachingSession(pool, sessionId);
-  if (!coachingSession) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'content-type': 'application/json' } });
+  if (!coachingSession) {
+    return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'content-type': 'application/json' } });
+  }
 
+  // If the ClaudeSessionAgent already wrote the report via draft_session_report tool, reuse it
+  const existingReport = coachingSession.steps.find(s => s.stepNumber === 0 && s.aiResponse);
+  if (existingReport?.aiResponse) {
+    await completeSession(pool, sessionId, existingReport.aiResponse);
+    return new Response(JSON.stringify({ ok: true, sessionId }), { headers: { 'content-type': 'application/json' } });
+  }
+
+  // Legacy fallback: generate report inline (non-Claude providers or tool not called)
   const apiKey = process.env.ANTHROPIC_API_KEY;
   let report = '# Abschlussbericht\n\n*(KI nicht verfügbar — bitte manuell ergänzen)*';
 

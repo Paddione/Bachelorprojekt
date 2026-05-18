@@ -2649,8 +2649,8 @@ tasks:
           if [ "{{.ENV}}" != "dev" ]; then
             export ARENA_IMAGE="ghcr.io/paddione/arena-server@sha256:217da324d77995196721d84ccc41e227c26f4647cea9d8d71e2eb0fe9e62c163"
           fi
-          envsubst "\$WORKSPACE_NAMESPACE \$PROD_DOMAIN \$ARENA_IMAGE" < k3d/arena.yaml | kubectl $CTX_ARG apply -f -
-          envsubst "\$WORKSPACE_NAMESPACE" < k3d/migrations-arena.yaml | kubectl $CTX_ARG apply -f -
+          envsubst "\$WORKSPACE_NAMESPACE \$PROD_DOMAIN \$ARENA_IMAGE" < prod-korczewski/arena.yaml | kubectl $CTX_ARG apply -f -
+          envsubst "\$WORKSPACE_NAMESPACE" < prod-korczewski/migrations-arena.yaml | kubectl $CTX_ARG apply -f -
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" rollout restart deployment/arena-server || true
       - echo "✓ arena deployed to {{.ENV}}"
 

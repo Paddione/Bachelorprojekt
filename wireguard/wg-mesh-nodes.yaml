@@ -114,3 +114,14 @@ korczewski:
       wg_ip: "10.13.14.3"
       schema_key: WG_MESH_PK8
       public_key: "kpWJQzw+p8rurkFq/hPQH/z1gl3/f19SFukOMpPBJS0="
+
+  # GPU host — WSL2 on Windows with LM Studio (RTX 5070 Ti, 16 GB)
+  # wg-korczewski interface on WSL2; iptables DNAT forwards 10.13.14.10:1234 → 10.10.0.3:1234 (LM Studio).
+  # Endpoint is dynamic (WSL2 behind Windows NAT) — the host initiates outbound to Hetzner peers.
+  gpu_hosts:
+    - name: wsl2-gpu-korczewski
+      endpoint: ""        # dynamic NAT (initiates outbound)
+      wg_ip: "10.13.14.10"
+      schema_key: WG_MESH_WSL2_GPU_KORCZEWSKI
+      public_key: "BHYLRcy85XSxC2V7pXXmzY4KtfttPHLgWitAM6PdYnY="
+      keepalive: 25

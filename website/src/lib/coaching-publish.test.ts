@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { newDb } from 'pg-mem';
+import { newDb, DataType } from 'pg-mem';
 import type { Pool } from 'pg';
 
 vi.mock('./questionnaire-db', () => ({
@@ -29,7 +29,7 @@ let pgmem: ReturnType<typeof newDb>;
 beforeAll(async () => {
   pgmem = newDb();
   pgmem.public.registerFunction({
-    name: 'gen_random_uuid', returns: 'uuid', impure: true,
+    name: 'gen_random_uuid', returns: DataType.uuid, impure: true,
     implementation: () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
     }),

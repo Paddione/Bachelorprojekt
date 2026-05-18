@@ -19,6 +19,8 @@ export interface ServicePageContent {
   faq?: Array<{ question: string; answer: string }>;
   /** Optional custom FAQ section heading. Falls back to "Häufige Fragen zu {service title}". */
   faqTitle?: string;
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 export interface HomepageService {
@@ -143,6 +145,7 @@ export interface BrandConfig {
     sidebarCta: string;
     showPhone: boolean;
     showSteps?: boolean;
+    footerCity?: string;
   };
   faq: Array<{ question: string; answer: string }>;
   leistungenCta: {

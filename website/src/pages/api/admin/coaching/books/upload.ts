@@ -4,7 +4,7 @@ import { writeFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { createHash } from 'node:crypto';
-import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { PDFParse } from 'pdf-parse';
 import EPub from 'epub2';
 import { chunkText } from '../../../../../lib/chunking';
 import { embedBatch } from '../../../../../lib/embeddings';
@@ -49,9 +49,9 @@ export const POST: APIRoute = async ({ request }) => {
     let text: string;
     let pageCount: number;
     if (ext === 'pdf') {
-      const data = await pdfParse(buf);
-      text = data.text;
-      pageCount = data.numpages;
+      const result = await new PDFParse({ data: buf }).getText();
+      text = result.text;
+      pageCount = result.total;
     } else {
       const epub = await (EPub as any).createAsync(tmpPath);
       const chapters: string[] = [];

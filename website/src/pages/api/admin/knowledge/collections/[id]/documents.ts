@@ -44,9 +44,9 @@ export const POST: APIRoute = async ({ request, params }) => {
     const buf = Buffer.from(await file.arrayBuffer());
     let extracted: string;
     try {
-      const { default: pdfParse } = await import('pdf-parse/lib/pdf-parse.js');
-      const data = await pdfParse(buf);
-      extracted = data.text ?? '';
+      const { PDFParse } = await import('pdf-parse');
+      const result = await new PDFParse({ data: buf }).getText();
+      extracted = result.text ?? '';
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       return new Response(JSON.stringify({ error: `PDF-Extraktion fehlgeschlagen: ${msg}` }), { status: 422 });

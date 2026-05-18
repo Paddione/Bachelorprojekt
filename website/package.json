@@ -23,8 +23,8 @@
     "@mistralai/mistralai": "^2.2.1",
     "@stripe/stripe-js": "^9.5.0",
     "@types/pg": "^8.20.0",
-    "@types/react": "^18.3.28",
-    "@types/react-dom": "^18.3.7",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "astro": "^6.3.4",
     "epub2": "^3.0.2",
     "livekit-client": "^2.19.0",
@@ -32,18 +32,18 @@
     "nodemailer": "^8.0.4",
     "openai": "^6.38.0",
     "pdf-lib": "^1.17.1",
-    "pdf-parse": "^1.1.1",
+    "pdf-parse": "^2.4.5",
     "pdfkit": "^0.18.0",
     "pg": "^8.21.0",
     "pixi.js": "^8.18.1",
     "qrcode": "^1.5.4",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "rrweb": "^2.0.0-alpha.4",
     "rrweb-player": "^1.0.0-alpha.4",
     "socket.io-client": "^4.8.3",
     "svelte": "^5.55.7",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",
@@ -53,7 +53,7 @@
     "pg-mem": "^3.0.14",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.22.2",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.5"
   }
 }

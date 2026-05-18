@@ -39,6 +39,18 @@ mentolder:
       schema_key: WG_MESH_GEKKO4
       public_key: "mHjkm8YbesFZfneadLPZ8gHwyobakn1gRc+Cx82rP0Y="
 
+  # GPU host — WSL2 on Windows with LM Studio (RTX 5070 Ti, 16 GB)
+  # Configured in commit 05dbf9a8. The wg-gpu interface on WSL2 uses 192.168.100.10;
+  # iptables DNAT forwards 192.168.100.10:1234 → 10.10.0.3:1234 (Ollama/LM Studio).
+  # Endpoint is dynamic (WSL2 behind Windows NAT) — the host initiates outbound.
+  gpu_hosts:
+    - name: wsl2-gpu-mentolder
+      endpoint: ""        # dynamic NAT port (observed 45.155.142.74:51883, changes on reconnect)
+      wg_ip: "192.168.100.10"
+      schema_key: WG_MESH_WSL2_GPU
+      public_key: "UIe+lddIq+YgFeE4wltrEPXYnwu3hAY1bsUUD2yNBkE="
+      keepalive: 25
+
   # Proxmox home-LAN worker nodes — behind NAT (FritzBox), no fixed public endpoint.
   # Workers initiate outbound to Hetzner; PersistentKeepalive = 25 keeps NAT mapping alive.
   home_workers:

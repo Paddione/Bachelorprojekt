@@ -131,9 +131,9 @@ ${BRAND_NAME}`,
     }
   }
 
-  // Clean up old sent reminders (older than 1 hour past meeting time)
+  // Clean up sent reminders and stale unsent ones (SMTP down = stuck forever)
   await pool.query(
-    `DELETE FROM meeting_reminders WHERE sent = true AND meeting_start < NOW() - INTERVAL '1 hour'`
+    `DELETE FROM meeting_reminders WHERE meeting_start < NOW() - INTERVAL '1 hour'`
   );
 
   return sent;

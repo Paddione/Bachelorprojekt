@@ -361,15 +361,13 @@
     <p class="subtitle">Kurzanleitung für Gekko — wie du eine Session vorbereitest und durchführst</p>
   </header>
 
-  <!-- ── API-Key Hinweis ──────────────────────────────────────── -->
-  <div class="notice">
-    <span class="icon">⚠️</span>
+  <!-- ── KI-Provider Info ─────────────────────────────────────── -->
+  <div class="notice" style="border-color: var(--sage); background: color-mix(in srgb, var(--sage) 8%, var(--bg2));">
+    <span class="icon">🤖</span>
     <div>
-      <strong>Wichtig:</strong> Der KI-Schlüssel (Anthropic API-Key) auf dem Server ist
-      abgelaufen. Die Schaltfläche „KI befragen" zeigt momentan <em>„Stream-Fehler"</em>.
-      Patrick muss den Schlüssel erneuern — erst danach funktioniert die KI-Antwort wieder.
-      Alle anderen Funktionen (Session anlegen, Schritte überspringen, Metadaten bearbeiten)
-      laufen normal.
+      <strong>Lokale KI aktiv:</strong> Das System nutzt <em>Qwen 2.5 14B</em> —
+      ein KI-Modell, das direkt auf Patricks Rechner läuft. Deine Coaching-Daten
+      verlassen nie das Haus. Die „KI befragen"-Funktion ist vollständig einsatzbereit.
     </div>
   </div>
 
@@ -504,8 +502,8 @@
         <span class="anatomy-icon">🤖</span>
         <div class="anatomy-text">
           <strong>KI-Provider (optional)</strong><br/>
-          <span>Standard ist der aktive Provider (Claude von Anthropic).
-          Normalerweise brauchst du das nicht ändern.</span>
+          <span>Aktuell läuft <em>Qwen 2.5 14B (lokal)</em> auf Patricks Rechner —
+          kein Internetdienst, keine Extrakosten. Normalerweise brauchst du das nicht ändern.</span>
         </div>
       </div>
       <div class="anatomy-row">

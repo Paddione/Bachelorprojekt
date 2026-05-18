@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Coaching ingest pipeline scripts. node_modules is symlinked to ../../website/node_modules to avoid duplicate installs.",
   "dependencies": {
-    "pdf-parse": "1.1.1",
-    "epub2": "3.0.2"
+    "epub2": "3.0.2",
+    "pdf-parse": "^2.4.5"
   }
 }

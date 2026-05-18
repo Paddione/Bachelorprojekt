@@ -1,6 +1,6 @@
 // website/src/lib/coaching-project-db.test.ts
 import { describe, it, expect, beforeAll } from 'vitest';
-import { newDb } from 'pg-mem';
+import { newDb, DataType } from 'pg-mem';
 import type { Pool } from 'pg';
 import {
   findOrCreateProject,
@@ -17,7 +17,7 @@ beforeAll(async () => {
   const db = newDb();
   db.public.registerFunction({
     name: 'gen_random_uuid',
-    returns: 'uuid',
+    returns: DataType.uuid,
     impure: true,
     implementation: () =>
       'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {

@@ -830,6 +830,8 @@ export interface ServiceOverride {
     pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
     faq?: Array<{ question: string; answer: string }>;
     faqTitle?: string;
+    seoTitle?: string;
+    seoDescription?: string;
   };
 }
 

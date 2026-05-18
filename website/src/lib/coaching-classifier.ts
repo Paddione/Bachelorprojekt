@@ -38,7 +38,7 @@ const PayloadByKind: Record<TemplateKind, z.ZodTypeAny> = {
 
 const ClassifierEnvelope = z.object({
   kind: z.enum(['reflection', 'dialog_pattern', 'exercise', 'case_example', 'theory', 'noise']),
-  payload: z.record(z.unknown()).optional(),
+  payload: z.record(z.string(), z.unknown()).optional(),
   reason: z.string().max(280).optional(),
 });
 

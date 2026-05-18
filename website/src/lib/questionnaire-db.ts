@@ -1036,6 +1036,7 @@ export async function listTestStatusesForMonitoring(): Promise<{
 export interface QArchivedScore {
   assignment_id: string;
   dimension_id: string;
+  dimension_name: string;
   final_score: number;
   threshold_mid: number | null;
   threshold_high: number | null;
@@ -1045,11 +1046,12 @@ export interface QArchivedScore {
 
 export async function listArchivedScores(assignmentId: string): Promise<QArchivedScore[]> {
   const r = await pool.query(
-    `SELECT assignment_id, dimension_id, final_score,
-            threshold_mid, threshold_high, level, snapshot_at
-       FROM questionnaire_assignment_scores
-      WHERE assignment_id = $1
-      ORDER BY dimension_id`,
+    `SELECT s.assignment_id, s.dimension_id, d.name AS dimension_name,
+            s.final_score, s.threshold_mid, s.threshold_high, s.level, s.snapshot_at
+       FROM questionnaire_assignment_scores s
+       JOIN questionnaire_dimensions d ON d.id = s.dimension_id
+      WHERE s.assignment_id = $1
+      ORDER BY s.dimension_id`,
     [assignmentId],
   );
   return r.rows;

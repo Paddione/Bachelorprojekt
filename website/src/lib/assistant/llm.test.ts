@@ -101,7 +101,7 @@ describe('assistantChat — Claude path', () => {
       context: { currentRoute: '/admin' },
     });
     expect(result.reply).toBe('mocked claude response');
-    expect(result.sourcesUsed).toBe(0);
+    expect((result.sources ?? []).length).toBe(0);
     delete process.env.ANTHROPIC_API_KEY;
   });
 });

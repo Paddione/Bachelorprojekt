@@ -1,5 +1,5 @@
 import { describe, test, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { newDb } from 'pg-mem';
+import { newDb, DataType } from 'pg-mem';
 import type { Pool } from 'pg';
 import * as cdb from './coaching-db';
 import {
@@ -17,7 +17,7 @@ beforeAll(async () => {
   pgmem = newDb();
   pgmem.public.registerFunction({
     name: 'gen_random_uuid',
-    returns: 'uuid',
+    returns: DataType.uuid,
     impure: true,
     implementation: () => {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {

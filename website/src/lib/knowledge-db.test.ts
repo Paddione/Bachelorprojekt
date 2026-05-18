@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import { newDb } from 'pg-mem';
+import { newDb, DataType } from 'pg-mem';
 import * as kdb from './knowledge-db';
 
 let pool: ReturnType<ReturnType<typeof newDb>['adapters']['createPg']>['Pool'] extends new (...args: any[]) => infer T ? T : never;
@@ -11,7 +11,7 @@ beforeAll(async () => {
   // Register gen_random_uuid() since pg-mem doesn't ship it
   pgmem.public.registerFunction({
     name: 'gen_random_uuid',
-    returns: 'uuid',
+    returns: DataType.uuid,
     impure: true,
     implementation: () => {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {

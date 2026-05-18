@@ -81,28 +81,41 @@ try {
 
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
-    label: 'Übersicht',
+    label: 'Tagesgeschäft',
     items: [
-      { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
+      { href: '/admin/termine',     label: 'Termine',     icon: 'calendar' },
+      { href: '/admin/tickets',     label: 'Tickets',     icon: 'tag' },
+      { href: '/admin/inbox',       label: 'Inbox',       icon: 'inbox',     badge: inboxPending },
+      { href: '/admin/live',        label: 'Live',        icon: 'broadcast', matches: ['/admin/live'] },
+      { href: '/admin/nachrichten', label: 'Nachrichten', icon: 'message' },
+      { href: '/admin/raeume',      label: 'Räume',       icon: 'chat' },
     ],
   },
   {
-    label: 'Betrieb',
+    label: 'Klienten',
     items: [
-      { href: '/admin/live',          label: 'Live',          icon: 'broadcast' },
-      { href: '/admin/termine',       label: 'Termine',       icon: 'calendar' },
-      { href: '/admin/clients',       label: 'Clients',       icon: 'users' },
-      { href: '/admin/tickets',       label: 'Tickets',       icon: 'tag' },
-      { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt' },
-      { href: '/admin/kalender',      label: 'Kalender',      icon: 'calendar2' },
+      { href: '/admin/clients',   label: 'Klienten',  icon: 'users' },
+      { href: '/admin/projekte',  label: 'Projekte',  icon: 'folder',    matches: ['/admin/projekte'] },
+      { href: '/admin/meetings',  label: 'Meetings',  icon: 'calendar2', matches: ['/admin/meetings'] },
+      { href: '/admin/kalender',  label: 'Kalender',  icon: 'calendar2' },
+      { href: '/admin/followups', label: 'Followups', icon: 'clock' },
     ],
   },
   {
-    label: 'Inhalte',
+    label: 'Coaching',
+    items: [
+      { href: '/admin/coaching/sessions',  label: 'Sessions',          icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
+      { href: '/admin/coaching/projekte',  label: 'Projekte',          icon: 'folder',    matches: ['/admin/coaching/projekte'] },
+      { href: '/admin/brett',              label: 'Brett',             icon: 'brett',     matches: ['/admin/brett'] },
+      { href: '/admin/coaching/settings',  label: 'KI-Einstellungen',  icon: 'settings',  matches: ['/admin/coaching/settings'] },
+    ],
+  },
+  {
+    label: 'Wissen & Inhalte',
     items: [
       {
         href: '/admin/inhalte',
-        label: 'Inhalte',
+        label: 'Website-Inhalte',
         icon: 'layout',
         matches: [
           '/admin/inhalte',
@@ -116,56 +129,36 @@ const navGroups: { label: string; items: NavItem[] }[] = [
           '/admin/dokumente',
         ],
       },
+      { href: '/admin/knowledge/books',     label: 'Bücher',   icon: 'book',      matches: ['/admin/knowledge/books'] },
+      { href: '/admin/knowledge/drafts',    label: 'Drafts',   icon: 'edit',      matches: ['/admin/knowledge/drafts', '/admin/knowledge/snippets'], badge: draftsPending },
+      { href: '/admin/wissensquellen',      label: 'Quellen',  icon: 'clipboard' },
+      { href: '/admin/knowledge/templates', label: 'Vorlagen', icon: 'star',      matches: ['/admin/knowledge/templates'] },
     ],
   },
   {
-    label: 'Wissen',
+    label: 'Geld',
     items: [
-      { href: '/admin/wissensquellen',     label: 'Quellen', icon: 'clipboard' },
-      { href: '/admin/knowledge/books',    label: 'Bücher',  icon: 'book',
-        matches: ['/admin/knowledge/books'] },
-      { href: '/admin/knowledge/drafts',   label: 'Drafts',  icon: 'edit', badge: draftsPending,
-        matches: ['/admin/knowledge/drafts'] },
+      { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt', matches: ['/admin/rechnungen', '/admin/billing'] },
+      { href: '/admin/buchhaltung',   label: 'Buchhaltung',   icon: 'scale' },
+      { href: '/admin/zeiterfassung', label: 'Zeiterfassung', icon: 'clock' },
+      { href: '/admin/steuer',        label: 'Steuer',        icon: 'scale' },
     ],
   },
   {
-    label: 'Coaching',
+    label: 'Plattform',
     items: [
-      { href: '/admin/coaching/projekte',      label: 'Projekte',         icon: 'folder',
-        matches: ['/admin/coaching/projekte'] },
-      { href: '/admin/coaching/sessions',      label: 'Sessions',         icon: 'clipboard',
-        matches: ['/admin/coaching/sessions'] },
-      { href: '/admin/coaching/sessions/new',  label: 'Neue Session',     icon: 'plus' },
-      { href: '/admin/coaching/settings',      label: 'KI-Einstellungen', icon: 'settings',
-        matches: ['/admin/coaching/settings'] },
-    ],
-  },
-  {
-    label: 'System',
-    items: [
-      { href: '/admin/monitoring',       label: 'Monitoring',        icon: 'monitor' },
-      { href: '/admin/software-history', label: 'Software-History',  icon: 'clipboard' },
-      { href: '/admin/arena',            label: 'Arena',             icon: 'broadcast' },
-      { href: '/admin/ops',              label: 'Cluster-Steuerung', icon: 'server' },
-      { href: '/admin/inbox',            label: 'Inbox',             icon: 'inbox', badge: inboxPending },
-    ],
-  },
-  {
-    label: 'Einstellungen',
-    items: [
-      {
-        href: '/admin/einstellungen/benachrichtigungen',
-        label: 'Einstellungen',
-        icon: 'bell',
-        matches: ['/admin/einstellungen/'],
-      },
+      { href: '/admin/monitoring',                       label: 'Monitoring',        icon: 'monitor' },
+      { href: '/admin/software-history',                 label: 'Software-History',  icon: 'clipboard' },
+      { href: '/admin/systemtest/board',                 label: 'Systemtest',        icon: 'clipboard', matches: ['/admin/systemtest'] },
+      { href: '/admin/arena',                            label: 'Arena',             icon: 'broadcast' },
+      { href: '/admin/ops',                              label: 'Cluster-Steuerung', icon: 'server' },
+      { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen',     icon: 'bell',     matches: ['/admin/einstellungen/'] },
     ],
   },
 ];
 
 function isActive(href: string, matches?: string[]): boolean {
   if (matches) return matches.some(m => path === m || path.startsWith(m));
-  if (href === '/admin') return path === '/admin';
   return path.startsWith(href);
 }
 

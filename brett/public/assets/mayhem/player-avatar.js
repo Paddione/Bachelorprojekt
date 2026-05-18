@@ -30,6 +30,7 @@ class PlayerAvatar {
     this._t = 0;
     this.hp = 100;
     this.burnInterval = null;
+    this._weaponMesh = null;
     this._applyColor();
   }
   _applyColor() {
@@ -251,6 +252,69 @@ class PlayerAvatar {
   }
   remove(scene) {
     scene.remove(this.mannequin.root);
+  }
+
+  setWeapon(weaponDef) {
+    const rWrist = this.mannequin.bones && this.mannequin.bones.rWrist;
+    if (!rWrist) return;
+    if (this._weaponMesh) { rWrist.remove(this._weaponMesh); this._weaponMesh = null; }
+    if (!weaponDef) return;
+    this._weaponMesh = PlayerAvatar._mkWeaponMesh(weaponDef.key, window.THREE);
+    if (this._weaponMesh) rWrist.add(this._weaponMesh);
+  }
+
+  static _mkWeaponMesh(key, THREE) {
+    if (!THREE) return null;
+    switch (key) {
+      case 'handgun': {
+        const g = new THREE.Group();
+        const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.22), new THREE.MeshLambertMaterial({ color: 0x333333 }));
+        barrel.position.set(0.04, -0.06, -0.06);
+        const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.13, 0.07), new THREE.MeshLambertMaterial({ color: 0x222222 }));
+        grip.position.set(0.04, -0.15, 0.01);
+        g.add(barrel, grip);
+        return g;
+      }
+      case 'rifle': {
+        const g = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.52), new THREE.MeshLambertMaterial({ color: 0x3a3a3a }));
+        body.position.set(0.04, -0.08, -0.16);
+        const stock = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.10, 0.14), new THREE.MeshLambertMaterial({ color: 0x8B6914 }));
+        stock.position.set(0.04, -0.10, 0.10);
+        g.add(body, stock);
+        return g;
+      }
+      case 'fireball': {
+        const g = new THREE.Group();
+        const staff = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.42, 6), new THREE.MeshLambertMaterial({ color: 0x8B4513 }));
+        staff.position.set(0, -0.21, 0);
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.09, 7, 7), new THREE.MeshBasicMaterial({ color: 0xff6600 }));
+        orb.position.set(0, 0.06, 0);
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.055, 5, 5), new THREE.MeshBasicMaterial({ color: 0xffee00 }));
+        orb.add(glow);
+        g.add(staff, orb);
+        return g;
+      }
+      case 'club': {
+        const g = new THREE.Group();
+        const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.32, 6), new THREE.MeshLambertMaterial({ color: 0x8B6914 }));
+        handle.position.set(0, -0.16, 0);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 7, 6), new THREE.MeshLambertMaterial({ color: 0x5C4000 }));
+        head.position.set(0, 0.07, 0);
+        g.add(handle, head);
+        return g;
+      }
+      case 'katana': {
+        const g = new THREE.Group();
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.016, 0.68), new THREE.MeshLambertMaterial({ color: 0xd0d0d0 }));
+        blade.position.set(0.04, -0.08, -0.28);
+        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, 0.025), new THREE.MeshLambertMaterial({ color: 0xcc9900 }));
+        guard.position.set(0.04, -0.08, 0.06);
+        g.add(blade, guard);
+        return g;
+      }
+      default: return null;
+    }
   }
 }
 

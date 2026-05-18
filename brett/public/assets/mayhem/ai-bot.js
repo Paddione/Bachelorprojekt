@@ -37,6 +37,13 @@ class MayhemAIBot {
     this._onFire    = callbacks.onFire;
     this._onDeath   = callbacks.onDeath;
     this._getMode   = callbacks.getGameMode;
+
+    // Bots use ranged weapons so they can attack outside melee-AI state
+    const rangedKeys = ['handgun', 'rifle', 'fireball'];
+    const weaponKey  = rangedKeys[colorIndex % rangedKeys.length];
+    this.weaponDef = window.MayhemWeapons
+      ? window.MayhemWeapons.WEAPONS[weaponKey]
+      : { key: 'handgun', damage: 25, projectileSpeed: 18, projectileType: 'bullet' };
   }
 
   // allAvatars — Map<id, PlayerAvatar> of every other combatant (incl. local player)
@@ -164,8 +171,7 @@ class MayhemAIBot {
     const dlen = Math.hypot(dir.x, dir.y, dir.z) || 1;
     dir.x /= dlen; dir.y /= dlen; dir.z /= dlen;
 
-    const handgunDef = window.MayhemWeapons ? window.MayhemWeapons.WEAPONS.handgun : { key: 'handgun', damage: 25, projectileSpeed: 18, projectileType: 'bullet' };
-    this._onFire(handgunDef, { x: this._x, y: 1.2, z: this._z }, dir, this.id);
+    this._onFire(this.weaponDef, { x: this._x, y: 1.2, z: this._z }, dir, this.id);
   }
 
   remove(scene) {
@@ -174,11 +180,11 @@ class MayhemAIBot {
 
   static randomEdgeSpawn() {
     const edge = Math.floor(Math.random() * 4);
-    const r = 4;
-    if (edge === 0) return { x: -r, z: (Math.random() - 0.5) * 2 * r };
-    if (edge === 1) return { x:  r, z: (Math.random() - 0.5) * 2 * r };
-    if (edge === 2) return { x: (Math.random() - 0.5) * 2 * r, z: -r };
-    return { x: (Math.random() - 0.5) * 2 * r, z: r };
+    const r = 7;
+    if (edge === 0) return { x: -r, z: (Math.random() - 0.5) * 2.4 };
+    if (edge === 1) return { x:  r, z: (Math.random() - 0.5) * 2.4 };
+    if (edge === 2) return { x: (Math.random() - 0.5) * 2.4, z: -r };
+    return { x: (Math.random() - 0.5) * 2.4, z: r };
   }
 }
 

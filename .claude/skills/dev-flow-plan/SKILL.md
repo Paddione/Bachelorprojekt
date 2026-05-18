@@ -88,6 +88,11 @@ Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — d
 
 Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `feature/<kurzer-slug>`.
 
+> **Branch-Naming-Warnung:** Das native `EnterWorktree` Tool mangelt den Branch-Namen — aus `feature/admin-menu-rules` wird `worktree-feature+admin-menu-rules` (Slash → Plus, Prefix `worktree-`). Das verletzt die Repo-Konvention `feature/*`. Verifiziere nach dem Anlegen mit `git branch --show-current` und benenne ggf. um: `git branch -m feature/<slug>` (oder pushe direkt ohne Umbennung, dann `git push -u origin feature/<slug>:feature/<slug>`). Der vorhersagbarere Pfad ist die manuelle Form:
+> ```bash
+> git worktree add -b feature/<slug> .claude/worktrees/<slug> origin/main
+> ```
+
 ### Schritt 1.5: Optionale Asset-Sammlung
 
 **Bevor du das Brainstorming startest, frage den User aktiv:**
@@ -354,6 +359,8 @@ Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — d
 
 Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `fix/<kurzer-slug>`.
 
+> **Branch-Naming-Warnung:** Das native `EnterWorktree` Tool mangelt den Branch-Namen (Slash → Plus, Prefix `worktree-`). Verifiziere mit `git branch --show-current` und benenne ggf. um: `git branch -m fix/<slug>`. Vorhersagbar: `git worktree add -b fix/<slug> .claude/worktrees/<slug> origin/main`.
+
 ### Schritt 3: Failing Test schreiben
 
 Schreibe einen Test, der den Bug beweist (red-green-refactor — Pflicht):
@@ -443,6 +450,8 @@ fi
 Falls Worktree bereits existiert: **nicht** `using-git-worktrees` aufrufen — direkt in den vorhandenen Worktree wechseln.
 
 Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branch-Name: `chore/<kurzer-slug>`.
+
+> **Branch-Naming-Warnung:** Das native `EnterWorktree` Tool mangelt den Branch-Namen (Slash → Plus, Prefix `worktree-`). Verifiziere mit `git branch --show-current` und benenne ggf. um: `git branch -m chore/<slug>`. Vorhersagbar: `git worktree add -b chore/<slug> .claude/worktrees/<slug> origin/main`.
 
 ### Schritt 3: Änderung machen
 

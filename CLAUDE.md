@@ -188,6 +188,8 @@ Arena-server runs on **korczewski only** (`arena-ws.korczewski.de`). Both websit
 task arena:build                 # Build arena-server image (+ k3d import in dev)
 task arena:push                  # Push to ghcr.io/paddione/arena-server:latest
 task arena:deploy ENV=korczewski # Build, push, and roll out arena-server
+task arena:sync ENV=korczewski   # Fast dev-loop: hot-copy src into running pod + rebuild (no image push)
+task arena:deploy:all-prods      # Build + roll korczewski (arena's home cluster)
 task feature:arena               # Shorthand: build + deploy to korczewski
 task arena:status ENV=korczewski # Show arena-server pod + service status
 task arena:logs ENV=korczewski   # Tail arena-server logs
@@ -199,8 +201,12 @@ Note: `task arena:deploy ENV=mentolder` exits early with an explanation.
 ### Brainstorm tunnel
 Wraps the in-cluster `brainstorm-sish` Deployment (mentolder-only) — publishes a local port at `https://brainstorm.mentolder.de`. Key file: `Taskfile.brainstorm.yml`.
 ```bash
+task brainstorm:setup                    # One-time: open firewall on sish node + materialise SSH keys
+task brainstorm:materialise-keys         # Push DEV_SISH_AUTHORIZED_KEYS into brainstorm-sish ConfigMap and roll
+task brainstorm:firewall:open            # Open ufw tcp/<SSH_PORT> on the sish node
 task brainstorm:publish -- <localport>   # Publish a local port at https://brainstorm.mentolder.de
 task brainstorm:status                   # Pod status + curl check
+task brainstorm:cleanup-scratch          # Delete the ad-hoc brainstorm-proxy Pod (reuses existing Service+Ingress)
 ```
 
 ### Coaching & Knowledge
@@ -461,7 +467,7 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **`llm-gpu.yaml` and `llm-router.yaml` are in `prod/` overlay only.** Dev (k3d) has no GPU and no router; `embeddings.ts` falls through to direct Voyage when `LLM_ENABLED=false`. Don't add them to `k3d/kustomization.yaml`.
 - **`LLM_HOST_IP` is required when `LLM_ENABLED=true`.** Set it in `environments/<env>.yaml` to the GPU host's wg-mesh IP. The `llm:deploy` task aborts if unset.
 - **Model swap costs ~3-6s on first call after idle.** Ollama's `OLLAMA_KEEP_ALIVE=5m` evicts idle models; the next request pays the swap. Router's chat-class timeout is 30s — beyond that, it falls back to Anthropic. Don't set the timeout below ~10s without testing all four models cold.
-- **OpenClaw on the WSL host** (`openclaw/`, `Taskfile.openclaw.yml`) talks directly to Ollama on `10.10.0.3:11434/v1`, **not** through `llm-router` — llm-router has no Ingress, and adding one is Phase 2 work. Bootstrap: `task openclaw:install && task openclaw:configure`.
+- **OpenClaw on the WSL host** (`openclaw/`, `Taskfile.openclaw.yml`) talks directly to Ollama on `10.10.0.3:11434/v1`, **not** through `llm-router` — llm-router has no Ingress, and adding one is Phase 2 work. Bootstrap: `task openclaw:install && task openclaw:configure`. Operational: `task openclaw:start` (restart daemon), `task openclaw:status` (health probe), `task openclaw:logs` (journalctl tail), `task openclaw:backup` / `task openclaw:restore` (snapshot ~/.openclaw), `task openclaw:wipe CONFIRM=yes` (destructive reset).
 
 ### dev.mentolder.de stack
 

@@ -60,29 +60,29 @@ Diese Liste **vor `dev-flow-execute`** durchgehen — Antworten landen entweder 
 brett/
   server.js                                 (modify: damage_event, pickup_*, heartbeat)
   test/
-    damage.test.js                          (new)
-    pickups.test.js                         (new)
-    mode-state.test.js                      (new — client-state-machine, run as JSDOM)
-    ws-reconnect.test.js                    (new — server side)
+    damage.test.mjs                          (new)
+    pickups.test.mjs                         (new)
+    mode-state.test.mjs                      (new — client-state-machine, run as JSDOM)
+    ws-reconnect.test.mjs                    (new — server side)
     server.test.js                          (existing, may extend)
   public/
     index.html                              (modify: ~120 lines, only shell)
     assets/
       style.css                             (new — tokens + all extracted styles)
       main.js                               (new — entry, wires modules)
-      mode-state.js                         (new)
-      ws.js                                 (new — reconnect wrapper)
+      mode-state.mjs                         (new)
+      ws.mjs                                 (new — reconnect wrapper)
       materials.js                          (new — Three.js material lib)
       audio.js                              (new — no-op API placeholder)
       combat/
-        weapons.js                          (new)
-        damage.js                           (new)
-        pickups.js                          (new)
-        combat-hud.js                       (new)
-        fx.js                               (new — decals, sprites)
+        weapons.mjs                          (new)
+        damage.mjs                           (new)
+        pickups.mjs                          (new)
+        combat-hud.mjs                       (new)
+        fx.mjs                               (new — decals, sprites)
       touch/
-        joystick.js                         (new)
-        touch-hud.js                        (new)
+        joystick.mjs                         (new)
+        touch-hud.mjs                        (new)
       sprites/                              (new — from asset pack)
         blood-splat-{01..04}.png
         fire-sprite.png
@@ -233,8 +233,8 @@ Schritt-für-Schritt: jeden `<script>`-Block aus index.html in eine Datei unter 
 
 ```js
 // brett/public/assets/main.js
-import { connect } from './ws.js';
-import { initModeState } from './mode-state.js';
+import { connect } from './ws.mjs';
+import { initModeState } from './mode-state.mjs';
 import { mountMaterials } from './materials.js';
 import { initAudio } from './audio.js';
 import { initSceneAndPlayers } from './scene.js';
@@ -257,19 +257,19 @@ git add brett/public/index.html brett/public/assets/main.js brett/public/assets/
 git commit -m "refactor(brett): split index.html into ES modules"
 ```
 
-### Task 1.5: ws.js — Reconnect-Wrapper + Heartbeat
+### Task 1.5: ws.mjs — Reconnect-Wrapper + Heartbeat
 
 **Files:**
-- Create: `brett/public/assets/ws.js`
+- Create: `brett/public/assets/ws.mjs`
 - Modify: `brett/server.js` (heartbeat senden, pong-Timeout)
 
 - [ ] **Step 1: Test für Backoff-Sequenz schreiben** (run mit Node-Test-Runner gegen Pure-JS-Modul, Mock-WebSocket)
 
 ```js
-// brett/test/ws-reconnect.test.js
+// brett/test/ws-reconnect.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { backoffSequence } from '../public/assets/ws.js';
+import { backoffSequence } from '../public/assets/ws.mjs';
 
 test('backoff: 1s, 2s, 4s, 8s, 16s, 30s cap', () => {
   const seq = [];
@@ -281,13 +281,13 @@ test('backoff: 1s, 2s, 4s, 8s, 16s, 30s cap', () => {
 - [ ] **Step 2: Test laufen lassen — muss failen**
 
 ```bash
-node --test brett/test/ws-reconnect.test.js
+node --test brett/test/ws-reconnect.test.mjs
 ```
 
-- [ ] **Step 3: ws.js implementieren**
+- [ ] **Step 3: ws.mjs implementieren**
 
 ```js
-// brett/public/assets/ws.js
+// brett/public/assets/ws.mjs
 const HEARTBEAT_TIMEOUT_MS = 60_000;
 const MAX_BACKOFF = 30_000;
 const SESSION_CAP_MS = 5 * 60_000;
@@ -404,7 +404,7 @@ ws.on('open', () => {
 - [ ] **Step 9: Commit**
 
 ```bash
-git add brett/public/assets/ws.js brett/server.js brett/test/ws-reconnect.test.js
+git add brett/public/assets/ws.mjs brett/server.js brett/test/ws-reconnect.test.mjs
 git commit -m "feat(brett): WS reconnect wrapper + server heartbeat"
 ```
 
@@ -616,15 +616,15 @@ git commit -m "feat(brett): ink-on-brass lighting + concrete floor"
 
 **Ziel:** 5 Waffen, Hit-Detection, HP, Death/Respawn, Pickups, FX. Mode-Wechsel kommt erst in Phase 4 — bis dahin: Combat über einen Debug-Toggle (`?combat=1` URL-Param).
 
-### Task 3.1: weapons.js — Waffen-Tabelle
+### Task 3.1: weapons.mjs — Waffen-Tabelle
 
 **Files:**
-- Create: `brett/public/assets/combat/weapons.js`
+- Create: `brett/public/assets/combat/weapons.mjs`
 
 - [ ] **Step 1: Stats-Tabelle als Single Source of Truth**
 
 ```js
-// brett/public/assets/combat/weapons.js
+// brett/public/assets/combat/weapons.mjs
 export const WEAPONS = Object.freeze({
   handgun:  { type: 'ranged', dmg: 25, range: Infinity, cooldownMs: 250,  mag: 12, reloadMs: 1100, slot: 'ranged' },
   rifle:    { type: 'ranged', dmg: 35, range: Infinity, cooldownMs: 600,  mag: 5,  reloadMs: 1500, slot: 'ranged', pickupOnly: true },
@@ -639,24 +639,24 @@ export const STARTER_LOADOUT = { melee: 'club', ranged: 'handgun' };
 - [ ] **Step 2: Commit**
 
 ```bash
-git add brett/public/assets/combat/weapons.js
+git add brett/public/assets/combat/weapons.mjs
 git commit -m "feat(brett): weapons stats table"
 ```
 
-### Task 3.2: damage.js — Test-First
+### Task 3.2: damage.mjs — Test-First
 
 **Files:**
-- Create: `brett/test/damage.test.js`
-- Create: `brett/public/assets/combat/damage.js`
+- Create: `brett/test/damage.test.mjs`
+- Create: `brett/public/assets/combat/damage.mjs`
 
 - [ ] **Step 1: Tests schreiben**
 
 ```js
-// brett/test/damage.test.js
+// brett/test/damage.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateDamageEvent, applyDamage } from '../public/assets/combat/damage.js';
-import { WEAPONS } from '../public/assets/combat/weapons.js';
+import { validateDamageEvent, applyDamage } from '../public/assets/combat/damage.mjs';
+import { WEAPONS } from '../public/assets/combat/weapons.mjs';
 
 test('applyDamage reduces HP', () => {
   const victim = { hp: 100 };
@@ -702,14 +702,14 @@ test('validateDamageEvent rejects out-of-range melee', () => {
 - [ ] **Step 2: Tests laufen — alle fail erwartet**
 
 ```bash
-node --test brett/test/damage.test.js
+node --test brett/test/damage.test.mjs
 ```
 
-- [ ] **Step 3: damage.js implementieren**
+- [ ] **Step 3: damage.mjs implementieren**
 
 ```js
-// brett/public/assets/combat/damage.js
-import { WEAPONS } from './weapons.js';
+// brett/public/assets/combat/damage.mjs
+import { WEAPONS } from './weapons.mjs';
 
 export function applyDamage(victim, dmg) {
   victim.hp = Math.max(0, (victim.hp ?? 0) - dmg);
@@ -740,23 +740,23 @@ export function validateDamageEvent({ weapon, shooter, victim, shooterPos, now }
 - [ ] **Step 5: Commit**
 
 ```bash
-git add brett/test/damage.test.js brett/public/assets/combat/damage.js
+git add brett/test/damage.test.mjs brett/public/assets/combat/damage.mjs
 git commit -m "feat(brett): damage validation + HP application"
 ```
 
-### Task 3.3: pickups.js — Test-First
+### Task 3.3: pickups.mjs — Test-First
 
 **Files:**
-- Create: `brett/test/pickups.test.js`
-- Create: `brett/public/assets/combat/pickups.js`
+- Create: `brett/test/pickups.test.mjs`
+- Create: `brett/public/assets/combat/pickups.mjs`
 
 - [ ] **Step 1: Tests**
 
 ```js
-// brett/test/pickups.test.js
+// brett/test/pickups.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeSpawnPosition, canTakePickup } from '../public/assets/combat/pickups.js';
+import { computeSpawnPosition, canTakePickup } from '../public/assets/combat/pickups.mjs';
 
 test('computeSpawnPosition keeps min distance from players', () => {
   const players = [{ x: 0, y: 0, z: 0 }];
@@ -776,10 +776,10 @@ test('canTakePickup accepts in-range', () => {
 });
 ```
 
-- [ ] **Step 2: pickups.js implementieren**
+- [ ] **Step 2: pickups.mjs implementieren**
 
 ```js
-// brett/public/assets/combat/pickups.js
+// brett/public/assets/combat/pickups.mjs
 export function computeSpawnPosition({ players, boardRadius, minDist, rng = Math.random }) {
   for (let attempt = 0; attempt < 20; attempt++) {
     const a = rng() * Math.PI * 2;
@@ -803,7 +803,7 @@ export const PICKUP_TABLE = {
 - [ ] **Step 3: Tests grün, commit**
 
 ```bash
-git add brett/test/pickups.test.js brett/public/assets/combat/pickups.js
+git add brett/test/pickups.test.mjs brett/public/assets/combat/pickups.mjs
 git commit -m "feat(brett): pickup spawn logic + range check"
 ```
 
@@ -840,7 +840,7 @@ function spawnPickup(room, id, kind, pos) {
 // in der wss message handler:
 if (msg.type === 'damage_event') {
   // Minimal validation: shooter alive (client trusted for now), broadcast
-  // (Stricter validation lives client-side via damage.js — server is relay-with-allowlist)
+  // (Stricter validation lives client-side via damage.mjs — server is relay-with-allowlist)
   broadcast(ws.room, msg, ws);
   return;
 }
@@ -877,15 +877,15 @@ git add brett/server.js
 git commit -m "feat(brett): server damage_event + pickup state"
 ```
 
-### Task 3.5: fx.js — Decals & Sprites
+### Task 3.5: fx.mjs — Decals & Sprites
 
 **Files:**
-- Create: `brett/public/assets/combat/fx.js`
+- Create: `brett/public/assets/combat/fx.mjs`
 
 - [ ] **Step 1: Sprite-Helper + Decal-Spawner**
 
 ```js
-// brett/public/assets/combat/fx.js
+// brett/public/assets/combat/fx.mjs
 const loader = new THREE.TextureLoader();
 const cache = {};
 function tex(path) { return cache[path] ??= loader.load(path); }
@@ -980,23 +980,23 @@ export function spawnFireSprite(scene, pos) {
 }
 ```
 
-- [ ] **Step 2: Smoke-Test:** aus Browser-Console manuell `import('./assets/combat/fx.js').then(m => m.spawnBloodDecal(scene, new THREE.Vector3(0,0.5,0), new THREE.Vector3(0,1,0)))`
+- [ ] **Step 2: Smoke-Test:** aus Browser-Console manuell `import('./assets/combat/fx.mjs').then(m => m.spawnBloodDecal(scene, new THREE.Vector3(0,0.5,0), new THREE.Vector3(0,1,0)))`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add brett/public/assets/combat/fx.js
+git add brett/public/assets/combat/fx.mjs
 git commit -m "feat(brett): combat FX — decals, sprites, fire animation"
 ```
 
-### Task 3.6: combat-hud.js — Desktop-HUD
+### Task 3.6: combat-hud.mjs — Desktop-HUD
 
 **Files:**
-- Create: `brett/public/assets/combat/combat-hud.js`
+- Create: `brett/public/assets/combat/combat-hud.mjs`
 
 - [ ] **Step 1: HUD-Markup + Render-API**
 
 ```js
-// brett/public/assets/combat/combat-hud.js
+// brett/public/assets/combat/combat-hud.mjs
 export function mountCombatHud(root) {
   root.innerHTML = `
     <div id="combat-hud" hidden>
@@ -1106,7 +1106,7 @@ export function setVisible(root, on) {
 - [ ] **Step 4: Commit**
 
 ```bash
-git add brett/public/assets/combat/combat-hud.js brett/public/assets/style.css
+git add brett/public/assets/combat/combat-hud.mjs brett/public/assets/style.css
 git commit -m "feat(brett): combat HUD — HP, weapon slots, score"
 ```
 
@@ -1114,16 +1114,16 @@ git commit -m "feat(brett): combat HUD — HP, weapon slots, score"
 
 **Files:**
 - Modify: `brett/public/assets/main.js`
-- Create: `brett/public/assets/combat/controller.js` (wires inputs → weapons → damage → fx → hud)
+- Create: `brett/public/assets/combat/controller.mjs` (wires inputs → weapons → damage → fx → hud)
 
-- [ ] **Step 1: controller.js**
+- [ ] **Step 1: controller.mjs**
 
 ```js
-// brett/public/assets/combat/controller.js
-import { WEAPONS, STARTER_LOADOUT } from './weapons.js';
-import { validateDamageEvent, applyDamage } from './damage.js';
-import * as Hud from './combat-hud.js';
-import * as Fx from './fx.js';
+// brett/public/assets/combat/controller.mjs
+import { WEAPONS, STARTER_LOADOUT } from './weapons.mjs';
+import { validateDamageEvent, applyDamage } from './damage.mjs';
+import * as Hud from './combat-hud.mjs';
+import * as Fx from './fx.mjs';
 
 export function startCombat({ scene, camera, players, self, ws, hudRoot }) {
   const state = {
@@ -1233,8 +1233,8 @@ function meleeSweep(self, players, range) {
 ```js
 // brett/public/assets/main.js append
 if (new URLSearchParams(location.search).get('combat') === '1') {
-  import('./combat/combat-hud.js').then(Hud => Hud.mountCombatHud(document.getElementById('overlay-root')));
-  import('./combat/controller.js').then(C => {
+  import('./combat/combat-hud.mjs').then(Hud => Hud.mountCombatHud(document.getElementById('overlay-root')));
+  import('./combat/controller.mjs').then(C => {
     C.startCombat({ scene, camera, players, self: localPlayer, ws, hudRoot: document.getElementById('overlay-root') });
   });
 }
@@ -1244,7 +1244,7 @@ if (new URLSearchParams(location.search).get('combat') === '1') {
 - [ ] **Step 4: Commit**
 
 ```bash
-git add brett/public/assets/combat/controller.js brett/public/assets/main.js
+git add brett/public/assets/combat/controller.mjs brett/public/assets/main.js
 git commit -m "feat(brett): combat controller — fire, raycast, melee sweep"
 ```
 
@@ -1261,19 +1261,19 @@ git commit -m "feat(brett): combat controller — fire, raycast, melee sweep"
 
 **Ziel:** Saubere Mode-State-Machine, ersetzt den Debug-Toggle aus Phase 3.
 
-### Task 4.1: mode-state.js + Test
+### Task 4.1: mode-state.mjs + Test
 
 **Files:**
-- Create: `brett/test/mode-state.test.js`
-- Create: `brett/public/assets/mode-state.js`
+- Create: `brett/test/mode-state.test.mjs`
+- Create: `brett/public/assets/mode-state.mjs`
 
 - [ ] **Step 1: Tests**
 
 ```js
-// brett/test/mode-state.test.js
+// brett/test/mode-state.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createModeState } from '../public/assets/mode-state.js';
+import { createModeState } from '../public/assets/mode-state.mjs';
 
 test('default mode is coaching', () => {
   const ms = createModeState({ storage: new Map() });
@@ -1298,7 +1298,7 @@ test('setMode emits change event', () => {
 - [ ] **Step 2: Implementierung**
 
 ```js
-// brett/public/assets/mode-state.js
+// brett/public/assets/mode-state.mjs
 const VALID = new Set(['coaching', 'ffa', 'mode-select']);
 const STUB = new Set(['teams', 'coop']);
 const KEY_LOADOUT = 'brett.loadout';
@@ -1338,19 +1338,19 @@ export function createModeState({ storage = window.localStorage } = {}) {
 - [ ] **Step 3: Tests grün, commit**
 
 ```bash
-git add brett/test/mode-state.test.js brett/public/assets/mode-state.js
+git add brett/test/mode-state.test.mjs brett/public/assets/mode-state.mjs
 git commit -m "feat(brett): mode state machine + loadout persistence"
 ```
 
 ### Task 4.2: mode-select Overlay
 
 **Files:**
-- Create: `brett/public/assets/mode-select.js`
+- Create: `brett/public/assets/mode-select.mjs`
 
 - [ ] **Step 1: Markup + Logik**
 
 ```js
-// brett/public/assets/mode-select.js
+// brett/public/assets/mode-select.mjs
 export function showModeSelect(modeState) {
   return new Promise(resolve => {
     const el = document.createElement('div');
@@ -1421,19 +1421,19 @@ export function showModeSelect(modeState) {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add brett/public/assets/mode-select.js brett/public/assets/style.css
+git add brett/public/assets/mode-select.mjs brett/public/assets/style.css
 git commit -m "feat(brett): mode-select overlay with FFA active, Teams/Coop stubs"
 ```
 
 ### Task 4.3: Spawn-Loadout-Modal
 
 **Files:**
-- Create: `brett/public/assets/loadout-modal.js`
+- Create: `brett/public/assets/loadout-modal.mjs`
 
 - [ ] **Step 1: Implementierung**
 
 ```js
-// brett/public/assets/loadout-modal.js
+// brett/public/assets/loadout-modal.mjs
 const MELEE = ['club', 'katana'];
 const RANGED = ['handgun']; // only handgun is starter; rifle/fireball are pickups
 
@@ -1506,7 +1506,7 @@ export function showLoadoutModal(modeState) {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add brett/public/assets/loadout-modal.js brett/public/assets/style.css
+git add brett/public/assets/loadout-modal.mjs brett/public/assets/style.css
 git commit -m "feat(brett): spawn loadout modal"
 ```
 
@@ -1519,11 +1519,11 @@ git commit -m "feat(brett): spawn loadout modal"
 
 ```js
 // brett/public/assets/main.js
-import { createModeState } from './mode-state.js';
-import { showModeSelect } from './mode-select.js';
-import { showLoadoutModal } from './loadout-modal.js';
+import { createModeState } from './mode-state.mjs';
+import { showModeSelect } from './mode-select.mjs';
+import { showLoadoutModal } from './loadout-modal.mjs';
 import { setLightIntensity } from './scene.js';
-import * as Hud from './combat/combat-hud.js';
+import * as Hud from './combat/combat-hud.mjs';
 
 // ... existing imports + ws + scene init ...
 
@@ -1537,7 +1537,7 @@ modeState.on('change', mode => {
 async function startCombat() {
   await showLoadoutModal(modeState);
   Hud.mountCombatHud(document.getElementById('overlay-root'));
-  const { startCombat: start } = await import('./combat/controller.js');
+  const { startCombat: start } = await import('./combat/controller.mjs');
   start({ scene, camera, players, self: localPlayer, ws, hudRoot: document.getElementById('overlay-root') });
 }
 function stopCombat() {
@@ -1569,15 +1569,15 @@ git commit -m "feat(brett): wire mode-select → loadout → combat flow"
 
 **Ziel:** Dual-Joystick, Touch-HUD, Bottom-Sheet-Editor.
 
-### Task 5.1: joystick.js — Wiederverwendbar
+### Task 5.1: joystick.mjs — Wiederverwendbar
 
 **Files:**
-- Create: `brett/public/assets/touch/joystick.js`
+- Create: `brett/public/assets/touch/joystick.mjs`
 
 - [ ] **Step 1: Implementierung**
 
 ```js
-// brett/public/assets/touch/joystick.js
+// brett/public/assets/touch/joystick.mjs
 export function mountJoystick({ side, onMove, onSprint, onTap }) {
   const el = document.createElement('div');
   el.className = `joystick joystick-${side}`;
@@ -1663,19 +1663,19 @@ export function mountJoystick({ side, onMove, onSprint, onTap }) {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add brett/public/assets/touch/joystick.js brett/public/assets/style.css
+git add brett/public/assets/touch/joystick.mjs brett/public/assets/style.css
 git commit -m "feat(brett): touch joystick component"
 ```
 
-### Task 5.2: touch-hud.js — Fire + Reload + Weapon-Wheel
+### Task 5.2: touch-hud.mjs — Fire + Reload + Weapon-Wheel
 
 **Files:**
-- Create: `brett/public/assets/touch/touch-hud.js`
+- Create: `brett/public/assets/touch/touch-hud.mjs`
 
 - [ ] **Step 1: Implementierung**
 
 ```js
-// brett/public/assets/touch/touch-hud.js
+// brett/public/assets/touch/touch-hud.mjs
 export function mountTouchHud({ onFireStart, onFireEnd, onReload, onWeaponSwitch }) {
   const wrap = document.createElement('div');
   wrap.id = 'touch-hud';
@@ -1716,17 +1716,17 @@ export function mountTouchHud({ onFireStart, onFireEnd, onReload, onWeaponSwitch
 - [ ] **Step 3: Commit**
 
 ```bash
-git add brett/public/assets/touch/touch-hud.js brett/public/assets/style.css
+git add brett/public/assets/touch/touch-hud.mjs brett/public/assets/style.css
 git commit -m "feat(brett): touch fire + reload buttons"
 ```
 
 ### Task 5.3: Wire Touch in main + Combat-Controller
 
 **Files:**
-- Modify: `brett/public/assets/combat/controller.js` (Fire-API extrahieren)
+- Modify: `brett/public/assets/combat/controller.mjs` (Fire-API extrahieren)
 - Modify: `brett/public/assets/main.js`
 
-- [ ] **Step 1: Fire-Funktion exportierbar machen** in controller.js — `startCombat` returnt `{ fire, reload, toggleSlot, destroy }`
+- [ ] **Step 1: Fire-Funktion exportierbar machen** in controller.mjs — `startCombat` returnt `{ fire, reload, toggleSlot, destroy }`
 - [ ] **Step 2: Touch-Detection in main.js**
 
 ```js
@@ -1734,8 +1734,8 @@ git commit -m "feat(brett): touch fire + reload buttons"
 const isTouch = matchMedia('(pointer: coarse)').matches;
 const ctl = start({ … });
 if (isTouch) {
-  const { mountJoystick } = await import('./touch/joystick.js');
-  const { mountTouchHud } = await import('./touch/touch-hud.js');
+  const { mountJoystick } = await import('./touch/joystick.mjs');
+  const { mountTouchHud } = await import('./touch/touch-hud.mjs');
   const leftStick = mountJoystick({ side: 'left', onMove: ({x,y}) => localPlayer.setMoveInput(x, y) });
   const rightStick = mountJoystick({ side: 'right', onMove: ({x,y}) => localPlayer.setAimDelta(x, y) });
   const touchHud = mountTouchHud({
@@ -1750,7 +1750,7 @@ if (isTouch) {
 - [ ] **Step 5: Commit**
 
 ```bash
-git add brett/public/assets/combat/controller.js brett/public/assets/main.js brett/public/assets/mayhem/player-avatar.js
+git add brett/public/assets/combat/controller.mjs brett/public/assets/main.js brett/public/assets/mayhem/player-avatar.js
 git commit -m "feat(brett): wire dual joystick + touch fire button to combat"
 ```
 
@@ -1801,13 +1801,13 @@ git commit -m "feat(brett): mobile bottom-sheet editor + drag inertia"
 ### Task 6.1: Death-Cam + Respawn-Overlay
 
 **Files:**
-- Create: `brett/public/assets/combat/respawn.js`
-- Modify: `brett/public/assets/combat/controller.js`
+- Create: `brett/public/assets/combat/respawn.mjs`
+- Modify: `brett/public/assets/combat/controller.mjs`
 
 - [ ] **Step 1: Overlay-Komponente**
 
 ```js
-// brett/public/assets/combat/respawn.js
+// brett/public/assets/combat/respawn.mjs
 export function showRespawnOverlay({ killerName, durationMs = 3000 }) {
   return new Promise(resolve => {
     const el = document.createElement('div');
@@ -1845,13 +1845,13 @@ export function showRespawnOverlay({ killerName, durationMs = 3000 }) {
 .respawn-overlay .countdown { color: var(--brass); font-size: 64px; font-weight: 700; }
 ```
 
-- [ ] **Step 3: Wiring in controller.js bei death_event für lokalen Spieler**
+- [ ] **Step 3: Wiring in controller.mjs bei death_event für lokalen Spieler**
 - [ ] **Step 4: Commit**
 
 ### Task 6.2: Score-Map + Score-Updates
 
 **Files:**
-- Modify: `brett/public/assets/combat/controller.js`
+- Modify: `brett/public/assets/combat/controller.mjs`
 
 - [ ] **Step 1: In-Memory-Score-Map per Raum** (Map<player_id, kills>), incrementiert beim death_event mit killer_id
 - [ ] **Step 2: Hud.setScores nach jedem Update aufrufen**
@@ -1861,7 +1861,7 @@ export function showRespawnOverlay({ killerName, durationMs = 3000 }) {
 ### Task 6.3: Pickups visualisieren + auto-spawn
 
 **Files:**
-- Modify: `brett/public/assets/combat/controller.js`
+- Modify: `brett/public/assets/combat/controller.mjs`
 - Modify: `brett/server.js` (initial-spawn on first FFA-join)
 
 - [ ] **Step 1: Drei Pickup-Mesh-Slots auf dem Brett-Boden anlegen** (Three.js Octahedron mit applySignature, Brass-Glow via PointLight darüber)

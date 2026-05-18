@@ -1,0 +1,26 @@
+---
+// website/src/pages/admin/knowledge/merge-books.astro
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import BookMergePanel from '../../../components/admin/BookMergePanel.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+---
+<AdminLayout title="Bücher zusammenführen">
+  <div class="page">
+    <header class="page-head">
+      <nav class="crumbs">
+        <a href="/admin">Admin</a>
+        <span class="sep">›</span>
+        <a href="/admin/wissensquellen">Wissen</a>
+        <span class="sep">›</span>
+        Zusammenführen
+      </nav>
+      <h1>Bücher zusammenführen</h1>
+      <p class="subtitle">Kleine Bücher (≤5 Chunks) zu thematischen Gruppen (20–30 Chunks) zusammenfassen.</p>
+    </header>
+    <BookMergePanel client:load />
+  </div>
+</AdminLayout>

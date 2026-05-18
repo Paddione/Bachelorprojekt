@@ -1,3 +1,4 @@
+(function () {
 'use strict';
 const STATE = Object.freeze({
   IDLE: 'idle', RUNNING: 'running', FLAILING: 'flailing',
@@ -255,3 +256,4 @@ class PlayerAvatar {
 
 PlayerAvatar.STATE = STATE;
 if (typeof window !== 'undefined') window.MayhemPlayerAvatar = PlayerAvatar;
+})();

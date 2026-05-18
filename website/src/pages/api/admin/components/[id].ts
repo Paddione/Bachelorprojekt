@@ -28,6 +28,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   try { body = await request.json(); } catch { return new Response('bad json', { status: 400 }); }
   const parsed = PatchBody.safeParse(body);
   if (!parsed.success) return new Response(JSON.stringify(parsed.error.flatten()), { status: 400 });
+  if (Object.keys(parsed.data).length === 0) return new Response('nothing to update', { status: 400 });
 
   const row = await updateComponent(id, parsed.data);
   if (!row) return new Response('not found', { status: 404 });

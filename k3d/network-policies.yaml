@@ -74,6 +74,42 @@ spec:
         - 172.16.0.0/12
         - 192.168.0.0/16
 ---
+# LLM-Gateway-Hosts auf dem wg-mesh erreichen (192.168.100.x mentolder, 10.13.14.x korczewski)
+# allow-internet-egress blockiert RFC1918 — diese Policy öffnet gezielt die wg-mesh-Subnets.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-llm-gateway-egress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 192.168.100.0/24
+    ports:
+    - protocol: TCP
+      port: 1234
+    - protocol: TCP
+      port: 8081
+    - protocol: TCP
+      port: 8082
+    - protocol: TCP
+      port: 11434
+  - to:
+    - ipBlock:
+        cidr: 10.13.14.0/24
+    ports:
+    - protocol: TCP
+      port: 1234
+    - protocol: TCP
+      port: 8081
+    - protocol: TCP
+      port: 8082
+    - protocol: TCP
+      port: 11434
+---
 # Pod-zu-Pod-Kommunikation innerhalb des workspace-Namespace (Eingang) erlauben
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

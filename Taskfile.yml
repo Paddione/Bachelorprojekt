@@ -3125,6 +3125,32 @@ tasks:
           SOURCE="{{.SOURCE}}" \
           bash scripts/knowledge/reindex.sh
 
+  knowledge:crawl:
+    desc: "Crawl a web_crawl collection (COLLECTION_ID=<uuid>, ENV=dev|mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ -z "{{.COLLECTION_ID}}" ]; then
+          echo "Usage: task knowledge:crawl COLLECTION_ID=<uuid> ENV=<env>"
+          exit 1
+        fi
+
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-crawl-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        COLLECTION_ID="{{.COLLECTION_ID}}" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          node scripts/knowledge/ingest-web.mjs {{.CLI_ARGS}}
+
   coaching:ingest:
     desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
     cmds:

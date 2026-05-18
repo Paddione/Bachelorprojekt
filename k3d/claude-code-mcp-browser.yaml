@@ -19,6 +19,15 @@ spec:
         runAsUser: 65534
         seccompProfile:
           type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-location
+                    operator: In
+                    values:
+                      - hetzner
       containers:
         - name: mcp-browser
           image: mcr.microsoft.com/playwright:v1.50.1-jammy

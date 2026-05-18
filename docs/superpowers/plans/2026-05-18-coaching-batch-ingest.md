@@ -1,4 +1,5 @@
 ---
+ticket_id: T000473
 title: Coaching Batch-Ingest Pipeline Implementation Plan
 domains: []
 status: active

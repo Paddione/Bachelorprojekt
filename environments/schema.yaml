@@ -358,7 +358,7 @@ secrets:
   # 2. Shell-local script vars (defined and used in the same container
   #    script, never touched by envsubst):
   #      ARCH                (k3d/nextcloud.yaml — set via `uname -m`)
-  #      BACKUP_DIR, STAMP, PASS, UPLOAD_PATH, FILEN_PATH
+  #      BACKUP_DIR, STAMP, PASS, UPLOAD_PATH, FILEN_PATH, DUMP, SIZE
   #                          (k3d/backup-cronjob.yaml — script-local)
   #
   # 3. Pod env vars sourced from a ConfigMap/Secret reference (not
@@ -367,12 +367,24 @@ secrets:
   #                          (k3d/backup-cronjob.yaml — `backup-config` CM)
   #      BRAND               (k3d/knowledge-ingest-cronjob.yaml — hardcoded
   #                           value: "mentolder" in the env: block)
+  #      ARENA_DB_PASSWORD   (prod-korczewski/migrations-arena.yaml — injected
+  #                           via secretKeyRef from workspace-secrets; the
+  #                           shell script reads the container env, not envsubst)
   #
   # 4. Vaultwarden seed-job aliases (set inside the script from *_DOMAIN
   #    pod env vars; the manifest is NOT envsubst-substituted, only
   #    namespace-sed-rewritten in workspace:vaultwarden:seed):
   #      KC, NC, WEB, DOCS, OFFICE
   #                          (k3d/vaultwarden-seed-job.yaml lines 60-64)
+  #
+  # 5. Taskfile-derived deploy-time variables (computed or pinned in the
+  #    task body, passed directly to envsubst — not stored in environments/):
+  #      ARENA_IMAGE         (prod-korczewski/arena.yaml — set to either
+  #                           :latest or a pinned digest in arena:deploy)
+  #
+  # 6. Comment text matched by the audit regex (not real envsubst targets):
+  #      VAR                 (k3d/coturn-stack/coturn.yaml line ~43 — used
+  #                           in a YAML comment explaining $(VAR) vs ${VAR})
   # ─────────────────────────────────────────────────────────────────
   - name: SIGNALING_SECRET
     required: true

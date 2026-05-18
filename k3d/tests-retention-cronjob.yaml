@@ -29,6 +29,10 @@ spec:
               # from a Bitnami tag that has since been removed from Docker Hub
               # (ImagePullBackOff: "docker.io/bitnami/kubectl:1.31: not found").
               image: alpine/k8s:1.34.0
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
               command: [sh, -c]
               args:
                 - |

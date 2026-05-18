@@ -109,3 +109,57 @@
   border-color: var(--brass);
   color: var(--brass);
 }
+
+/* === Combat HUD === */
+#combat-hud {
+  position: fixed; inset: 0;
+  pointer-events: none; color: var(--brass-hi);
+  font-family: var(--font-ui);
+}
+#combat-hud .hp-wrap {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  width: 280px; height: 18px;
+  background: var(--ink-800); border: 1px solid var(--brass-mute);
+  border-radius: 9px; overflow: hidden;
+}
+#combat-hud .hp-fill {
+  background: linear-gradient(90deg, var(--blood-deep), var(--blood-core), var(--brass-hi));
+  height: 100%; width: 100%; transition: width 120ms ease-out;
+}
+#combat-hud .hp-text {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-weight: 600; text-shadow: 0 0 2px var(--ink-900);
+}
+#combat-hud .weapon-slots {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px;
+}
+#combat-hud .weapon-slots .slot {
+  width: 64px; height: 64px;
+  background: var(--ink-800); border: 1px solid var(--brass-mute); border-radius: 8px;
+  display: grid; place-items: center; position: relative;
+}
+#combat-hud .weapon-slots .slot.active { border-color: var(--brass-hi); box-shadow: 0 0 12px var(--brass-mute); }
+#combat-hud .weapon-slots .slot img { width: 48px; height: 48px; }
+#combat-hud .weapon-slots .slot .key {
+  position: absolute; top: 2px; right: 4px; font-size: 11px; color: var(--brass);
+}
+#combat-hud .ammo {
+  position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+  font-size: 18px; color: var(--brass-hi);
+}
+#combat-hud .score-board {
+  position: absolute; top: 16px; right: 16px;
+  background: var(--ink-800); border: 1px solid var(--brass-mute); border-radius: 8px;
+  padding: 8px 12px; min-width: 160px;
+}
+#combat-hud .score-row { display: flex; gap: 8px; font-size: 13px; }
+#combat-hud .score-row .name { flex: 1; }
+#combat-hud .mode-indicator {
+  position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; letter-spacing: 0.15em; color: var(--brass); text-transform: uppercase;
+}
+#combat-hud .crosshair {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 18px; color: var(--brass); opacity: 0.6;
+}

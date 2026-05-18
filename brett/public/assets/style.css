@@ -251,3 +251,15 @@
     margin: 8px auto; background: var(--brass-mute); border-radius: 2px;
   }
 }
+
+/* ── Respawn Overlay ─────────────────────────────────────────── */
+.respawn-overlay {
+  position: fixed; inset: 0; background: rgba(168,58,48,0.15);
+  backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 200;
+}
+.respawn-overlay .card {
+  background: var(--ink-800); border: 1px solid var(--brass);
+  padding: 32px 64px; border-radius: 12px; text-align: center;
+}
+.respawn-overlay .msg { color: var(--brass-hi); font-size: 18px; margin-bottom: 12px; }
+.respawn-overlay .countdown { color: var(--brass); font-size: 64px; font-weight: 700; }

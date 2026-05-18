@@ -11,6 +11,8 @@ export function startCombat({ scene, camera, players, self, ws, hudRoot }) {
     lastShotAt: 0,
   };
 
+  const scores = new Map(); // player_id → kill count
+
   Hud.mountCombatHud(hudRoot);
   Hud.setHP(hudRoot, self.hp ?? 100);
   Hud.setSlot(hudRoot, 'melee', state.loadout.melee);
@@ -37,11 +39,31 @@ export function startCombat({ scene, camera, players, self, ws, hudRoot }) {
     if (victim.hp <= 0) ws.send({ type: 'death_event', victim_id: victim.id, killer_id: msg.shooter_id });
   });
 
-  ws.on('death_event', _msg => {
-    // Score tracking comes in Phase 6
+  ws.on('death_event', msg => {
+    if (msg.killer_id) {
+      scores.set(msg.killer_id, (scores.get(msg.killer_id) ?? 0) + 1);
+    }
+    const sorted = [...scores.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([id, kills]) => ({ name: id.slice(0, 8), kills }));
+    Hud.setScores(hudRoot, sorted);
+    if (msg.victim_id === self.id) {
+      import('./respawn.mjs').then(({ showRespawnOverlay }) => {
+        const killer = msg.killer_id?.slice(0, 8);
+        showRespawnOverlay({ killerName: killer }).then(() => {
+          self.hp = 100;
+          Hud.setHP(hudRoot, 100);
+        });
+      });
+    }
   });
 
-  return state;
+  return {
+    ...state,
+    startFire: () => fire(state, { scene, camera, players, ws, hudRoot }),
+    stopFire: () => {},
+    reload: () => reload(state, { hudRoot }),
+  };
 }
 
 function fire(state, { scene, camera, players, ws, hudRoot }) {

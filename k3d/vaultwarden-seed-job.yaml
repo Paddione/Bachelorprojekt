@@ -10,6 +10,10 @@ spec:
         - name: seeder
           image: node:22-alpine
           imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
           command: ["/bin/sh", "-c"]
           args:
             - |

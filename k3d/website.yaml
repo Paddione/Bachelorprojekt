@@ -472,6 +472,10 @@ spec:
           containers:
             - name: trigger
               image: curlimages/curl:8.7.1
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
               securityContext:
                 allowPrivilegeEscalation: false
                 runAsNonRoot: true

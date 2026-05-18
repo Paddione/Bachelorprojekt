@@ -128,6 +128,10 @@ spec:
               # Apply password from the SealedSecret.
               psql "host=shared-db user=postgres dbname=website" -v ON_ERROR_STOP=1 -c "ALTER ROLE arena_app WITH PASSWORD '${ARENA_DB_PASSWORD}'"
               echo "arena bootstrap complete"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
           env:
             - name: SHARED_DB_PASSWORD
               valueFrom:

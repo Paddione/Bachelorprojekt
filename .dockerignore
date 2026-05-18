@@ -18,6 +18,7 @@ prod-mentolder
 prod-korczewski
 deploy
 scripts
+!scripts/knowledge
 whisper
 brett
 korczewski-website

@@ -1506,6 +1506,24 @@ data:
       WHERE e.kind <> 'irrelevant'
       ORDER BY f.merged_at DESC, e.id DESC;
 
+      CREATE TABLE IF NOT EXISTS bachelorprojekt.components (
+        id         BIGSERIAL PRIMARY KEY,
+        name       TEXT NOT NULL,
+        kind       TEXT NOT NULL CHECK (kind IN ('physical','non-physical')),
+        area       TEXT NOT NULL,
+        status     TEXT NOT NULL DEFAULT 'active'
+                     CHECK (status IN ('active','inactive','deprecated')),
+        cluster    TEXT NOT NULL DEFAULT 'both'
+                     CHECK (cluster IN ('mentolder','korczewski','both')),
+        url        TEXT,
+        hostname   TEXT,
+        notes      TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_components_name
+        ON bachelorprojekt.components (lower(name));
+
       GRANT USAGE ON SCHEMA bachelorprojekt TO website;
       GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA bachelorprojekt TO website;
       GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA bachelorprojekt TO website;

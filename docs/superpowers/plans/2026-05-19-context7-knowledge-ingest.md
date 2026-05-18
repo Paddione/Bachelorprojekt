@@ -54,16 +54,16 @@ pr_number: null
 
 ## Implementation Steps
 
-- [ ] **Step 1 — SQL migration** (`scripts/one-shot/20260519-context7-source.sql`)
+- [x] **Step 1 — SQL migration** (`scripts/one-shot/20260519-context7-source.sql`)
   - Drop `collections_source_check` and re-add with `context7_docs` appended
   - Also add `crawl_config` idempotently (may already exist)
   - Header comment: run on BOTH clusters after deploy
 
-- [ ] **Step 2 — TypeScript type** (`website/src/lib/knowledge-db.ts`)
+- [x] **Step 2 — TypeScript type** (`website/src/lib/knowledge-db.ts`)
   - Add `'context7_docs'` to the `CollectionSource` union type
   - No other changes needed (the type flows into `createCollection` / `listCollections` automatically)
 
-- [ ] **Step 3 — Ingest script** (`scripts/knowledge/ingest-context7.mjs`)
+- [x] **Step 3 — Ingest script** (`scripts/knowledge/ingest-context7.mjs`)
 
   Required env vars:
   - `COLLECTION_ID` — UUID of target collection
@@ -83,7 +83,7 @@ pr_number: null
   - Empty response (<200 chars) → same
   - Embed failure → exit 1 (propagate so caller can retry)
 
-- [ ] **Step 4 — Taskfile tasks** (add to `Taskfile.yml` after `knowledge:crawl`)
+- [x] **Step 4 — Taskfile tasks** (add to `Taskfile.yml` after `knowledge:crawl`)
 
   ```
   knowledge:seed-context7:
@@ -103,7 +103,7 @@ pr_number: null
   ```
   For ad-hoc re-ingestion of a single library without recreating all 10.
 
-- [ ] **Step 5 — Verification**
+- [x] **Step 5 — Verification**
   - `task test:all` → green (TS type change is additive; no test touches `CollectionSource` enum)
   - `task knowledge:seed-context7 ENV=mentolder` — dry-run check: confirm port-forward connects, SQL runs, at least one ingest succeeds (Astro or SealedSecrets as smoke test)
 

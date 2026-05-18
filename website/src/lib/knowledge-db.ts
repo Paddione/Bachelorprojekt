@@ -32,7 +32,7 @@ function p(): Pool {
 
 export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
 
-export type CollectionSource = 'pr_history' | 'specs_plans' | 'claude_md' | 'bug_tickets' | 'custom' | 'web_crawl';
+export type CollectionSource = 'pr_history' | 'specs_plans' | 'claude_md' | 'bug_tickets' | 'custom' | 'web_crawl' | 'context7_docs';
 
 export interface CrawlConfig {
   startUrl: string;

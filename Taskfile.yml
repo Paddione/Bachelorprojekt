@@ -3151,6 +3151,100 @@ tasks:
         PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
           node scripts/knowledge/ingest-web.mjs {{.CLI_ARGS}}
 
+  knowledge:seed-context7:
+    desc: "Create + ingest all 10 context7 library collections (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-context7-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website"
+
+        # Apply SQL migration (idempotent)
+        echo "=== Applying context7_docs source migration ==="
+        PGPASSWORD="${WEBSITE_DB_PASSWORD}" psql -h localhost -U website -d website \
+          < scripts/one-shot/20260519-context7-source.sql
+
+        # Library seed list: name → context7 ID
+        declare -A LIBS=(
+          ["Astro"]="/withastro/docs"
+          ["Svelte"]="/sveltejs/svelte"
+          ["Playwright"]="/microsoft/playwright"
+          ["Keycloak"]="/keycloak/keycloak-documentation"
+          ["LiveKit"]="/websites/livekit_io"
+          ["Kubernetes"]="/kubernetes/website"
+          ["SealedSecrets"]="/bitnami-labs/sealed-secrets"
+          ["Anthropic SDK (TS)"]="/anthropic-ai/anthropic-sdk-typescript"
+          ["pgvector"]="/pgvector/pgvector"
+          ["Taskfile (go-task)"]="/go-task/task"
+        )
+
+        SUMMARY=""
+        for NAME in "${!LIBS[@]}"; do
+          LIB_ID="${LIBS[$NAME]}"
+          echo ""
+          echo "=== $NAME ($LIB_ID) ==="
+
+          # Ensure collection exists (idempotent)
+          COL_ID=$(PGPASSWORD="${WEBSITE_DB_PASSWORD}" psql -h localhost -U website -d website -At -c \
+            "INSERT INTO knowledge.collections (name, source, description)
+             VALUES ('context7: $NAME', 'context7_docs', 'context7 docs for $NAME')
+             ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description
+             RETURNING id;")
+
+          echo "  Collection: $COL_ID"
+
+          COLLECTION_ID="$COL_ID" \
+          LIBRARY_ID="$LIB_ID" \
+          PGURL="$PGURL" \
+            node scripts/knowledge/ingest-context7.mjs || echo "  ⚠ Ingest failed for $NAME — continuing"
+
+          CHUNKS=$(PGPASSWORD="${WEBSITE_DB_PASSWORD}" psql -h localhost -U website -d website -At -c \
+            "SELECT chunk_count FROM knowledge.collections WHERE id = '$COL_ID';")
+          SUMMARY="$SUMMARY\n  $NAME: $CHUNKS chunks"
+        done
+
+        echo ""
+        echo "=== Summary ==="
+        echo -e "$SUMMARY"
+
+  knowledge:ingest-context7:
+    desc: "Ingest a single context7 library (LIBRARY_ID=/org/repo COLLECTION_ID=<uuid> ENV=...)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        if [ -z "{{.LIBRARY_ID}}" ] || [ -z "{{.COLLECTION_ID}}" ]; then
+          echo "Usage: task knowledge:ingest-context7 LIBRARY_ID=/org/repo COLLECTION_ID=<uuid> ENV=<env>"
+          exit 1
+        fi
+
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/knowledge-context7-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        COLLECTION_ID="{{.COLLECTION_ID}}" \
+        LIBRARY_ID="{{.LIBRARY_ID}}" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+          node scripts/knowledge/ingest-context7.mjs
+
   coaching:ingest:
     desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
     cmds:

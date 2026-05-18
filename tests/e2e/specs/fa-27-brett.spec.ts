@@ -27,13 +27,80 @@ test.describe('FA-27: Systemisches Brett', () => {
     expect(res.status()).toBe(200);
   });
 
-  test('T5: POST /api/snapshots creates a snapshot', async ({ request }) => {
-    const room = `e2e-snap-${Date.now()}`;
+  test('T5: POST /api/snapshots creates a snapshot (current schema)', async ({ request }) => {
+    const room_token = `e2e-snap-${Date.now()}`;
     const res = await request.post(`${BRETT_URL}/api/snapshots`, {
-      data: { room, name: 'e2e-test-snapshot', figures: [] },
+      data: { room_token, name: 'e2e-test-snapshot', state: { figures: [] } },
     });
     expect([200, 201]).toContain(res.status());
     const body = await res.json();
     expect(body).toHaveProperty('id');
+  });
+
+  test('T6: GET /api/snapshots without params returns 400', async ({ request }) => {
+    const res = await request.get(`${BRETT_URL}/api/snapshots`);
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body).toHaveProperty('error');
+  });
+
+  test('T7: GET /api/snapshots with room param returns array', async ({ request }) => {
+    const res = await request.get(`${BRETT_URL}/api/snapshots?room=e2e-snap-list-${Date.now()}`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+  });
+
+  test('T8: GET /api/snapshots/:id returns 404 for unknown UUID', async ({ request }) => {
+    const res = await request.get(`${BRETT_URL}/api/snapshots/00000000-0000-0000-0000-000000000000`);
+    expect(res.status()).toBe(404);
+  });
+
+  test('T9: POST /api/snapshots validates missing state.figures', async ({ request }) => {
+    const res = await request.post(`${BRETT_URL}/api/snapshots`, {
+      data: { name: 'bad-payload' },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/state\.figures/i);
+  });
+
+  test('T10: GET /api/customers returns array', async ({ request }) => {
+    const res = await request.get(`${BRETT_URL}/api/customers`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+  });
+
+  test('T11: GET /presets returns array', async ({ request }) => {
+    const res = await request.get(`${BRETT_URL}/presets`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+  });
+
+  test('T12: POST /presets creates preset and DELETE removes it', async ({ request }) => {
+    const createRes = await request.post(`${BRETT_URL}/presets`, {
+      data: { name: 'e2e-preset', appearance: { face: undefined, accessories: [] } },
+    });
+    expect(createRes.status()).toBe(201);
+    const preset = await createRes.json();
+    expect(preset).toHaveProperty('id');
+    expect(preset.name).toBe('e2e-preset');
+
+    const delRes = await request.delete(`${BRETT_URL}/presets/${preset.id}`);
+    expect(delRes.status()).toBe(204);
+
+    const delAgain = await request.delete(`${BRETT_URL}/presets/${preset.id}`);
+    expect(delAgain.status()).toBe(404);
+  });
+
+  test('T13: POST /presets validates name length', async ({ request }) => {
+    const res = await request.post(`${BRETT_URL}/presets`, {
+      data: { name: 'x'.repeat(101), appearance: {} },
+    });
+    expect(res.status()).toBe(400);
+    const body = await res.json();
+    expect(body).toHaveProperty('error');
   });
 });

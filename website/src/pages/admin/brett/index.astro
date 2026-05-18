@@ -1,9 +1,12 @@
 ---
-// Redirect /admin/brett/index -> /admin/brett
+// Redirect admin to the Brett service's admin console (?admin=1 triggers KC OIDC + room browser).
 import { getSession, isAdmin, getLoginUrl } from '../../../lib/auth';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl('/admin/brett'));
 if (!isAdmin(session)) return Astro.redirect('/admin');
-return Astro.redirect('/admin/brett');
+
+const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
+const proto = brettDomain.includes('localhost') ? 'http' : 'https';
+return Astro.redirect(`${proto}://${brettDomain}/?admin=1`);
 ---

@@ -320,8 +320,3 @@ describe.skipIf(!dbAvailable)('updateQAssignment archived reroute', () => {
     expect(snap.rows[0].n).toBe(1);
   });
 });
-,
-    );
-    expect(snap.rows[0].n).toBe(1);
-  });
-});

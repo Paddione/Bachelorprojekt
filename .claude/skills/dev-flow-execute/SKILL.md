@@ -124,6 +124,21 @@ Alternative: `superpowers:executing-plans` (sequenziell, wenn Tasks voneinander 
 - Backend / Skripte / k8s-Logik: TDD via `superpowers:test-driven-development`
 - UI-Arbeit: `frontend-design` Skill + Playwright Smoke Tests
 
+**⚠️ Subagent-CWD-Pflicht:** Jeder Sub-Agent-Prompt **muss** als ersten Satz den absoluten Worktree-Pfad nennen und den Agent anweisen, alle Dateioperationen relativ zu diesem Pfad auszuführen:
+
+```
+Work inside the worktree at: <WORKTREE_PATH>
+All file reads and writes must target paths under <WORKTREE_PATH>.
+Do NOT write to /home/patrick/Bachelorprojekt/ directly.
+```
+
+Worktree-Pfad ermitteln:
+```bash
+git worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '/^worktree/{wt=$2} $0==("branch " b){print wt}'
+```
+
+Ohne diese Anweisung schreiben Sub-Agents in das Haupt-Repo statt in den Worktree — Dateien landen auf `main` ohne PR-Review.
+
 ### Fix
 
 Implementiere bis der failing Test (aus `dev-flow-plan` Schritt 3) grün ist. Pflicht: red → green → refactor.

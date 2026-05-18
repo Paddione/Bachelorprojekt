@@ -47,20 +47,45 @@ REACH_SET=$(awk '
 REACH_SET=$(printf '%s\n/admin\n' "$REACH_SET" | sort -u)
 
 # --- Step 2: count groups and items (R4, R5) ---
-GROUP_COUNT=$(awk '/^ *label: *'\''/{c++} END{print c+0}' "$LAYOUT")
+# A group is uniquely identified by an `items: [` opener, regardless of whether
+# the group is written multi-line or inline.
+GROUP_COUNT=$(awk '/items: *\[/{c++} END{print c+0}' "$LAYOUT")
 
-# Per-group item count: walk navGroups, count items between '{ href:' lines
-# bracketed by the same group's label..]. A bit ugly; uses braces depth.
+# Per-group item count: walk navGroups, counting `href:` occurrences inside
+# every `items: [ ... ]` block. Handles both multi-line and inline shapes.
 MAX_GROUP_SIZE=$(awk '
-  BEGIN { depth=0; n=0; max=0; in_items=0 }
-  /label: *'\''/ {
-    if (n > max) max = n
-    n = 0
-    in_items = 0
+  BEGIN { n=0; max=0; in_items=0 }
+  {
+    if (match($0, /items: *\[/)) {
+      if (n > max) max = n
+      n = 0
+      in_items = 1
+      rest = substr($0, RSTART + RLENGTH)
+      while (match(rest, /href: *'\''/)) {
+        n++
+        rest = substr(rest, RSTART + RLENGTH)
+      }
+      # Inline form closes on the same line
+      if (match($0, /\]/)) {
+        if (n > max) max = n
+        n = 0
+        in_items = 0
+      }
+      next
+    }
+    if (in_items && /^ *\] *,? *$/) {
+      if (n > max) max = n
+      n = 0
+      in_items = 0
+      next
+    }
+    if (in_items) {
+      while (match($0, /href: *'\''/)) {
+        n++
+        $0 = substr($0, RSTART + RLENGTH)
+      }
+    }
   }
-  /items: *\[/ { in_items = 1; next }
-  in_items && /^ *\{ *href:/ { n++ }
-  /^ *\],? *$/ && in_items { in_items = 0 }
   END {
     if (n > max) max = n
     print max
@@ -69,7 +94,7 @@ MAX_GROUP_SIZE=$(awk '
 
 # --- Step 3: collect labels (R2 — destinations not actions) ---
 LABELS=$(awk '
-  /label: *'\''/ {
+  /^ *\{ *href:/ {
     match($0, /label: *'\''([^'\'']+)'\''/, m)
     if (m[1]) print m[1]
   }
@@ -77,7 +102,7 @@ LABELS=$(awk '
 
 # --- Step 4: detect new static /admin/* pages added vs base ---
 NEW_ROUTES=$(git diff --name-only --diff-filter=AM "$BASE_REF" \
-  -- 'website/src/pages/admin/**/*.astro' 2>/dev/null \
+  -- ':(glob)website/src/pages/admin/**/*.astro' 2>/dev/null \
   | grep -v '\[' \
   | grep -v '^website/src/pages/admin\.astro$' \
   || true)
@@ -134,10 +159,12 @@ if [[ -n "$ROUTE_HREFS" ]]; then
     if echo "$REACH_SET" | grep -qxF "$route"; then
       continue
     fi
-    # Check dynamic-parent reachability: walk up the path
+    # Check dynamic-parent reachability: walk up the path. Stop before /admin
+    # itself — the Dashboard header link doesn't count as making every page
+    # reachable; only a true parent like /admin/projekte counts.
     parent="$route"
     matched=""
-    while [[ "$parent" == /admin/* ]]; do
+    while [[ "$parent" == /admin/*/* ]]; do
       parent="${parent%/*}"
       if echo "$REACH_SET" | grep -qxF "$parent"; then
         matched="$parent"
@@ -168,10 +195,10 @@ if [[ -n "$DASHBOARD_HREFS" ]]; then
     if echo "$REACH_SET" | grep -qxF "$href"; then
       continue
     fi
-    # check dynamic parent
+    # check dynamic parent — stop before /admin itself
     parent="$href"
     matched=""
-    while [[ "$parent" == /admin/* ]]; do
+    while [[ "$parent" == /admin/*/* ]]; do
       parent="${parent%/*}"
       if echo "$REACH_SET" | grep -qxF "$parent"; then
         matched="$parent"

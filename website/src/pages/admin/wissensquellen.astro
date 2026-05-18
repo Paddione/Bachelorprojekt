@@ -129,22 +129,50 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
       });
     });
 
+    const crawlTimers = new Map();
+
+    function startCrawlPolling(btn) {
+      if (crawlTimers.has(btn)) return;
+      const id = btn.dataset.crawl;
+      btn.disabled = true;
+      btn.textContent = 'Läuft…';
+      const timer = setInterval(async () => {
+        try {
+          const r = await fetch(`/api/admin/knowledge/collections/${id}/crawl`);
+          const j = await r.json().catch(() => ({ running: false }));
+          if (!j.running) {
+            clearInterval(timer);
+            crawlTimers.delete(btn);
+            btn.disabled = false;
+            btn.textContent = 'Crawl starten';
+          }
+        } catch {
+          clearInterval(timer);
+          crawlTimers.delete(btn);
+          btn.disabled = false;
+          btn.textContent = 'Crawl starten';
+        }
+      }, 5000);
+      crawlTimers.set(btn, timer);
+    }
+
     document.querySelectorAll('[data-crawl]').forEach(btn => {
       btn.addEventListener('click', async () => {
+        if (crawlTimers.has(btn)) return;
         const id = btn.dataset.crawl;
         btn.disabled = true;
         btn.textContent = 'Crawling…';
         try {
           const r = await fetch(`/api/admin/knowledge/collections/${id}/crawl`, { method: 'POST' });
           const j = await r.json().catch(() => ({}));
-          if (r.status === 409) {
-            alert('Crawl läuft bereits.');
-          } else if (r.ok) {
-            alert('Crawl gestartet. Die Sammlung wird im Hintergrund aktualisiert.');
+          if (r.status === 409 || r.ok) {
+            startCrawlPolling(btn);
           } else {
+            btn.disabled = false;
+            btn.textContent = 'Crawl starten';
             alert(j.error ?? `Fehler (${r.status})`);
           }
-        } finally {
+        } catch {
           btn.disabled = false;
           btn.textContent = 'Crawl starten';
         }

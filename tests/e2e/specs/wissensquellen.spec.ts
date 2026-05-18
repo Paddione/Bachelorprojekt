@@ -304,6 +304,167 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
   });
 });
 
+// ── Crawl button progress UX ─────────────────────────────────────────────────
+//
+// These tests verify that clicking "Crawl starten" gives persistent visual
+// feedback while the crawl runs in the background — not just a one-shot alert.
+// Both tests use page.route() to mock the crawl endpoint for determinism.
+
+test.describe('Wissensquellen — Crawl button progress UX', () => {
+  test.beforeEach(({}, testInfo) => {
+    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS unset');
+  });
+  test.setTimeout(60_000);
+
+  test('button transitions to "Läuft…" + stays disabled after POST 202', async ({ page }) => {
+    await loginAsAdmin(page);
+    const cookie = (await page.context().cookies())
+      .map(c => `${c.name}=${c.value}`)
+      .join('; ');
+
+    const stamp = `e2e-crawl-ux-${Date.now()}`;
+    const create = await page.request.post(`${BASE}/api/admin/knowledge/collections`, {
+      data: {
+        name: stamp,
+        source: 'web_crawl',
+        crawlConfig: { startUrl: 'https://web.mentolder.de', maxDepth: 1, maxPages: 1 },
+      },
+      headers: { Cookie: cookie },
+    });
+    expect(create.status()).toBe(201);
+    const { id } = await create.json();
+
+    // Mock: POST → 202, GET → running: true (crawl is still going)
+    await page.route(`**/api/admin/knowledge/collections/${id}/crawl`, async route => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 202,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Crawl gestartet', collectionId: id }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ running: true }),
+        });
+      }
+    });
+
+    await page.goto(`${BASE}/admin/wissensquellen`);
+    const crawlBtn = page.locator(`[data-crawl="${id}"]`);
+    await expect(crawlBtn).toBeVisible();
+    await crawlBtn.click();
+
+    // After the mocked 202, the button must show a persistent running indicator
+    // instead of resetting to "Crawl starten".
+    await expect(crawlBtn).toHaveText('Läuft…', { timeout: 5_000 });
+    await expect(crawlBtn).toBeDisabled();
+
+    await page.request.delete(`${BASE}/api/admin/knowledge/collections/${id}`, {
+      headers: { Cookie: cookie },
+    });
+  });
+
+  test('button resets to "Crawl starten" when GET returns running: false', async ({ page }) => {
+    await loginAsAdmin(page);
+    const cookie = (await page.context().cookies())
+      .map(c => `${c.name}=${c.value}`)
+      .join('; ');
+
+    const stamp = `e2e-crawl-reset-${Date.now()}`;
+    const create = await page.request.post(`${BASE}/api/admin/knowledge/collections`, {
+      data: {
+        name: stamp,
+        source: 'web_crawl',
+        crawlConfig: { startUrl: 'https://web.mentolder.de', maxDepth: 1, maxPages: 1 },
+      },
+      headers: { Cookie: cookie },
+    });
+    expect(create.status()).toBe(201);
+    const { id } = await create.json();
+
+    // Mock: POST → 202, GET → running: false (crawl already done)
+    await page.route(`**/api/admin/knowledge/collections/${id}/crawl`, async route => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 202,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Crawl gestartet', collectionId: id }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ running: false }),
+        });
+      }
+    });
+
+    await page.goto(`${BASE}/admin/wissensquellen`);
+    const crawlBtn = page.locator(`[data-crawl="${id}"]`);
+    await expect(crawlBtn).toBeVisible();
+    await crawlBtn.click();
+
+    // Once the first poll sees running: false the button must re-enable.
+    await expect(crawlBtn).toHaveText('Crawl starten', { timeout: 15_000 });
+    await expect(crawlBtn).toBeEnabled();
+
+    await page.request.delete(`${BASE}/api/admin/knowledge/collections/${id}`, {
+      headers: { Cookie: cookie },
+    });
+  });
+
+  test('button shows "Läuft…" immediately when crawl already running (409)', async ({ page }) => {
+    await loginAsAdmin(page);
+    const cookie = (await page.context().cookies())
+      .map(c => `${c.name}=${c.value}`)
+      .join('; ');
+
+    const stamp = `e2e-crawl-409-${Date.now()}`;
+    const create = await page.request.post(`${BASE}/api/admin/knowledge/collections`, {
+      data: {
+        name: stamp,
+        source: 'web_crawl',
+        crawlConfig: { startUrl: 'https://web.mentolder.de', maxDepth: 1, maxPages: 1 },
+      },
+      headers: { Cookie: cookie },
+    });
+    expect(create.status()).toBe(201);
+    const { id } = await create.json();
+
+    // Mock: POST → 409 (already running), GET → running: true
+    await page.route(`**/api/admin/knowledge/collections/${id}/crawl`, async route => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Crawl läuft bereits für diese Sammlung' }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ running: true }),
+        });
+      }
+    });
+
+    await page.goto(`${BASE}/admin/wissensquellen`);
+    const crawlBtn = page.locator(`[data-crawl="${id}"]`);
+    await expect(crawlBtn).toBeVisible();
+    await crawlBtn.click();
+
+    // 409 means it's already running — button should show "Läuft…" not an alert.
+    await expect(crawlBtn).toHaveText('Läuft…', { timeout: 5_000 });
+    await expect(crawlBtn).toBeDisabled();
+
+    await page.request.delete(`${BASE}/api/admin/knowledge/collections/${id}`, {
+      headers: { Cookie: cookie },
+    });
+  });
+});
+
 // ── Web crawl source: UI creation via modal ─────────────────────────────────
 
 test.describe('Wissensquellen admin — web_crawl UI', () => {

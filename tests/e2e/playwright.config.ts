@@ -48,7 +48,10 @@ export default defineConfig({
         '**/fa-21-*.spec.ts',      // service catalog & billing
         '**/fa-26-*.spec.ts',      // bug report form
         '**/fa-poll.spec.ts',      // live poll
-        '**/fa-questionnaire.spec.ts', // Fragebögen
+        '**/fa-fragebogen.spec.ts',           // consolidated questionnaire E2E
+        '**/fa-coaching-drafts.spec.ts',      // coaching drafts auth-gates
+        '**/fa-coaching-knowledge.spec.ts',   // knowledge collections CRUD
+        '**/fa-coaching-publish.spec.ts',     // coaching publish flow
         '**/fa-slot-widget.spec.ts',   // slot widget
         '**/fa-client-portal.spec.ts', // client portal auth-gate
         '**/fa-meeting-history.spec.ts',  // meeting history & release
@@ -117,7 +120,11 @@ export default defineConfig({
     {
       name: 'brett-mentolder',
       dependencies: ['brett-mentolder-setup'],
-      testMatch: ['**/brett-mayhem.spec.ts'],
+      testMatch: [
+        '**/brett-mayhem.spec.ts',
+        '**/brett-controls.spec.ts',   // WASD movement
+        '**/brett-mannequin.spec.ts',  // mannequin focus
+      ],
       use: {
         ...devices['Desktop Chrome'],
         ignoreHTTPSErrors: true,
@@ -157,7 +164,11 @@ export default defineConfig({
     // Run: playwright test --project=smoke
     {
       name: 'smoke',
-      testMatch: ['**/integration-smoke.spec.ts'],
+      testMatch: [
+        '**/integration-smoke.spec.ts',
+        '**/fa-30-arena-banner.spec.ts',      // cross-brand arena banner
+        '**/fa-38-arena-game-client.spec.ts', // game client lobby flow
+      ],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: websiteURL,

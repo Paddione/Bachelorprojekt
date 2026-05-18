@@ -63,6 +63,38 @@ function savePresets(presets) {
 const asyncHandler = fn => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
+const session = require('express-session');
+const { Issuer } = require('openid-client');
+
+const SESSION_SECRET = process.env.BRETT_SESSION_SECRET || 'dev-session-secret-change-me';
+const sessionMiddleware = session({
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 8 * 60 * 60 * 1000,
+  },
+});
+
+let oidcClient = null;
+async function getOidcClient() {
+  if (oidcClient) return oidcClient;
+  const kcUrl      = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
+  const kcRealm    = process.env.KEYCLOAK_REALM || 'workspace';
+  const clientId   = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
+  const clientSecret = process.env.BRETT_OIDC_SECRET || '';
+  const issuerUrl  = `${kcUrl}/realms/${kcRealm}`;
+  const issuer     = await Issuer.discover(issuerUrl);
+  oidcClient = new issuer.Client({ client_id: clientId, client_secret: clientSecret, response_types: ['code'] });
+  return oidcClient;
+}
+
+function isAdminFromClaims(claims) {
+  return Array.isArray(claims?.realm_access?.roles) && claims.realm_access.roles.includes('admin');
+}
+
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 if (!process.env.DATABASE_URL && require.main === module) {
@@ -92,6 +124,7 @@ if (process.env.MOCK_DB === 'true') {
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
+app.use(sessionMiddleware);
 app.use(express.static('public', {
   setHeaders: (res, path) => {
     if (path.endsWith('.html')) {
@@ -103,6 +136,42 @@ app.use(express.static('public', {
 }));
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
+
+// ─── Auth (OIDC / Keycloak) ───────────────────────────────────────────────────
+const BRETT_PUBLIC_URL = process.env.BRETT_PUBLIC_URL || 'http://brett.localhost';
+
+app.get('/auth/login', asyncHandler(async (req, res) => {
+  const client = await getOidcClient();
+  const returnTo = typeof req.query.returnTo === 'string' ? req.query.returnTo : '/';
+  const state = Buffer.from(JSON.stringify({ returnTo })).toString('base64url');
+  const redirectUri = `${BRETT_PUBLIC_URL}/auth/callback`;
+  const url = client.authorizationUrl({ scope: 'openid profile', redirect_uri: redirectUri, state });
+  res.redirect(url);
+}));
+
+app.get('/auth/callback', asyncHandler(async (req, res) => {
+  const client = await getOidcClient();
+  const redirectUri = `${BRETT_PUBLIC_URL}/auth/callback`;
+  const params = client.callbackParams(req);
+  const tokenSet = await client.callback(redirectUri, params, { state: params.state });
+  const claims = tokenSet.claims();
+  let returnTo = '/';
+  try { returnTo = JSON.parse(Buffer.from(params.state, 'base64url').toString()).returnTo || '/'; } catch {}
+  req.session.userId   = claims.sub;
+  req.session.name     = claims.name || claims.preferred_username || claims.sub;
+  req.session.isAdmin  = isAdminFromClaims(claims);
+  res.redirect(returnTo);
+}));
+
+app.get('/auth/me', (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'not authenticated' });
+  res.json({ userId: req.session.userId, name: req.session.name, isAdmin: !!req.session.isAdmin });
+});
+
+function requireAdmin(req, res, next) {
+  if (!req.session.isAdmin) return res.status(403).json({ error: 'forbidden' });
+  next();
+}
 
 // Live state for a room.
 app.get('/api/state', asyncHandler(async (req, res) => {
@@ -154,6 +223,36 @@ app.get('/api/snapshots/:id', asyncHandler(async (req, res) => {
   );
   if (!rows[0]) return res.status(404).json({ error: 'not found' });
   res.json(rows[0]);
+}));
+
+// Admin room list.
+app.get('/api/admin/rooms', requireAdmin, asyncHandler(async (req, res) => {
+  const liveTokens = Array.from(rooms.keys());
+  let nameMap = {};
+  if (liveTokens.length > 0) {
+    const placeholders = liveTokens.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await pool.query(
+      `SELECT room_token, state->>'name' AS name FROM brett_rooms WHERE room_token = ANY(ARRAY[${placeholders}])`,
+      liveTokens
+    ).catch(() => ({ rows: [] }));
+    for (const r of rows.rows) nameMap[r.room_token] = r.name;
+  }
+  const result = liveTokens.map(token => {
+    const figs        = figureMaps.get(token);
+    const mayhemEntry = figs?.get('__mayhem__');
+    const modeEntry   = figs?.get('__game_mode__');
+    const playerCount = Array.from(rooms.get(token) || []).filter(ws => ws._playerId).length;
+    return {
+      token,
+      name:        nameMap[token] || token,
+      playerCount,
+      maxPlayers:  4,
+      mayhem:      !!mayhemEntry?.enabled,
+      gameMode:    modeEntry?.mode || 'warmup',
+      lastActive:  new Date().toISOString(),
+    };
+  });
+  res.json(result);
 }));
 
 // Create a snapshot.
@@ -235,6 +334,7 @@ const RELAY_TYPES = [
   'obstacle_layout','game_mode_change',
   'damage_event','death_event','pickup_request','pickup_taken','pickup_spawned',
   'snapshot','request_state_snapshot',
+  'bot_spawn','bot_despawn','round_reset',
 ];
 
 const TRANSIENT_TYPES = new Set([
@@ -419,7 +519,8 @@ const handleDisconnect = function(ws, broadcastFn = broadcast) {
   leaveRoom(ws);
   broadcastInfo(room);
 }
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
+  sessionMiddleware(req, {}, () => { ws._session = req.session; });
   ws.isAlive = true;
   ws.on('message', async (raw) => {
     try {
@@ -527,6 +628,84 @@ wss.on('connection', (ws) => {
           schedulePersist(room);
         }
       }
+
+      const ADMIN_TYPES = [
+        'admin_mayhem_toggle','admin_mode_set','admin_kick',
+        'admin_bot_spawn','admin_bot_despawn','admin_round_reset','admin_broadcast',
+      ];
+
+      if (ADMIN_TYPES.includes(msg.type)) {
+        if (!ws._session?.isAdmin) return;
+        const adminRoom = ws._room;
+        if (!adminRoom) return;
+
+        switch (msg.type) {
+          case 'admin_mayhem_toggle': {
+            const inner = { type: 'mayhem_mode', enabled: !!msg.enabled };
+            applyMutation(adminRoom, inner);
+            broadcast(adminRoom, inner);
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_mode_set': {
+            if (!['warmup','deathmatch','lms'].includes(msg.mode)) return;
+            const inner = { type: 'game_mode_change', mode: msg.mode };
+            applyMutation(adminRoom, inner);
+            broadcast(adminRoom, inner);
+            if (msg.mode === 'lms') {
+              const alive = new Set();
+              for (const sock of rooms.get(adminRoom) || []) { if (sock._playerId) alive.add(sock._playerId); }
+              lmsAlive.set(adminRoom, alive);
+            } else {
+              lmsAlive.delete(adminRoom);
+            }
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_kick': {
+            if (typeof msg.playerId !== 'string') return;
+            for (const sock of rooms.get(adminRoom) || []) {
+              if (sock._playerId === msg.playerId) {
+                broadcast(adminRoom, { type: 'player_leave', playerId: msg.playerId }, sock);
+                try { sock.close(); } catch {}
+                break;
+              }
+            }
+            break;
+          }
+          case 'admin_bot_spawn': {
+            const currentCount = rooms.get(adminRoom)?.size ?? 0;
+            if (currentCount >= 4) {
+              try { ws.send(JSON.stringify({ type: 'admin_error', reason: 'room_full' })); } catch {}
+              break;
+            }
+            broadcast(adminRoom, { type: 'bot_spawn' });
+            break;
+          }
+          case 'admin_bot_despawn': {
+            if (typeof msg.botId !== 'string') return;
+            const figs = figureMaps.get(adminRoom);
+            if (figs) figs.delete(msg.botId);
+            broadcast(adminRoom, { type: 'bot_despawn', botId: msg.botId });
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_round_reset': {
+            lmsAlive.delete(adminRoom);
+            broadcast(adminRoom, { type: 'round_reset' });
+            break;
+          }
+          case 'admin_broadcast': {
+            const websiteUrl = process.env.WEBSITE_INTERNAL_URL || 'http://website.website.svc.cluster.local:4321';
+            fetch(`${websiteUrl}/api/admin/brett/broadcast`, {
+              method: 'POST',
+              headers: { 'x-internal-admin': process.env.BRETT_INTERNAL_ADMIN_SECRET || '' },
+            }).catch(err => console.error('[brett] admin_broadcast failed:', err.message));
+            break;
+          }
+        }
+        return;
+      }
     } catch (err) {
       console.error('[brett] ws message handler error:', err.message);
     }
@@ -591,4 +770,5 @@ module.exports = {
   handleDisconnect,
   RELAY_TYPES, TRANSIENT_TYPES, lmsAlive, handleLmsDeath,
   pickupState, ensurePickups, spawnPickup,
+  isAdminFromClaims,
 };

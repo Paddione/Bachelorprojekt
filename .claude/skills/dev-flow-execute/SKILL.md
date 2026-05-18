@@ -299,11 +299,26 @@ echo "Ticket $TICKET_ID → done ($RESOLUTION)"
 
 Falls `$TICKET_ID` gesetzt und `$PLAN_FILE` vorhanden:
 
+> **Wichtig — Worktree-Zustand nach Schritt 6:** `gh pr merge --squash --delete-branch` löscht nicht nur Remote+Local-Branch, sondern führt im Worktree **silent** `git checkout main` aus. Du landest auf `main` am pre-PR HEAD, und die Plan-Datei ist von Disk verschwunden, bis `git pull` läuft. Deshalb **muss** dieser Schritt mit einem Sync starten:
+
+```bash
+git fetch origin main
+git reset --hard origin/main   # Worktree ist jetzt auf der gemergten Revision — Plan-Datei wieder auf Disk
+```
+
 ```bash
 PLAN_FILE="docs/superpowers/plans/<slug>.md"
 SLUG="<slug>"
-BRANCH=$(git branch --show-current)
+BRANCH="feature/<slug>"   # oder fix/<slug> — Branch wurde durch --delete-branch bereits gelöscht, also nicht aus `git branch --show-current` lesen
 PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
+
+# Precheck: Plan-Datei muss existieren UND nicht leer sein, sonst archivieren wir leere Bytes
+if [[ ! -s "$PLAN_FILE" ]]; then
+  echo "✗ Plan-Datei fehlt oder ist leer: $PLAN_FILE"
+  echo "  Möglicherweise wurde 'git pull/reset' oben übersprungen, oder der Plan wurde manuell gelöscht."
+  echo "  Abbruch — kein Archiv, kein Commit."
+  exit 1
+fi
 
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
@@ -322,6 +337,15 @@ TMPFILE=$(mktemp /tmp/plan-archive-XXXXXX.sql)
   cat "$PLAN_FILE"
   printf "\$plan\$,\n  %s\n);\n" "$PR_NUM_SQL"
 } > "$TMPFILE"
+
+# Sanity-Check: Datei sollte mehr als das nackte SQL-Gerüst enthalten
+ARCHIVE_BYTES=$(wc -c < "$TMPFILE")
+if (( ARCHIVE_BYTES < 200 )); then
+  echo "✗ Archiv-SQL ist verdächtig klein ($ARCHIVE_BYTES bytes) — vermutlich Plan-Inhalt verloren."
+  cat "$TMPFILE"
+  rm "$TMPFILE"
+  exit 1
+fi
 
 kubectl exec -i "$PGPOD" -n workspace --context mentolder -- \
   psql -U website -d website -v ON_ERROR_STOP=1 < "$TMPFILE"

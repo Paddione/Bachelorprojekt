@@ -1,1 +1,0 @@
-../../.claude/agents/bachelorprojekt-security.md

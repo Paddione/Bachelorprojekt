@@ -1993,8 +1993,27 @@ tasks:
         echo "Configured servers:"
         python3 -c "import json,sys; [print(f'  - {k}') for k in json.load(open(sys.argv[1]))['mcpServers']]" "$OUTPUT"
 
+  gemini:sync:
+    desc: "Mirror .claude/agents and .claude/skills into .gemini/ (per-worktree; .gemini/* is gitignored)"
+    cmds:
+      - |
+        set -euo pipefail
+        for sub in agents skills; do
+          src=".claude/$sub"
+          dst=".gemini/$sub"
+          if [[ ! -d "$src" ]]; then
+            echo "✗ $src missing — nothing to mirror"; exit 1
+          fi
+          rm -rf "$dst"
+          mkdir -p "$dst"
+          # Copy with -L to dereference symlinks; -a to preserve attributes
+          cp -aL "$src"/. "$dst"/
+        done
+        echo "✓ .gemini/agents and .gemini/skills mirrored from .claude/ ($(find .gemini/agents .gemini/skills -type f | wc -l) files)"
+
   gemini:setup:
     desc: "Generate Gemini CLI settings.json (usage: task gemini:setup -- cluster|business)"
+    deps: [gemini:sync]
     vars:
       ENV: '{{.ENV | default "dev"}}'
       PREFIX: '{{.PREFIX | default ""}}'

@@ -24,7 +24,7 @@ configMapGenerator:
   - name: dev-db-refresh-script
     namespace: workspace
     files:
-      - ../scripts/dev-db-refresh.sh
+      - dev-db-refresh.sh
 generatorOptions:
   disableNameSuffixHash: true
 

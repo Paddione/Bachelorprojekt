@@ -30,6 +30,18 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-mayhem",
+    "file": "tests/e2e/specs/brett-mayhem.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:brett-mentolder-auth-setup",
+    "file": "tests/e2e/specs/brett-mentolder-auth-setup.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",

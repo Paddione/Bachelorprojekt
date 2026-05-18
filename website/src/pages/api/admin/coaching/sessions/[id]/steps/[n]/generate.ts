@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../../../../lib/auth';
 import { getSession as getCoachingSession, upsertStep, appendAuditLog } from '../../../../../../../../lib/coaching-session-db';
 import { getActiveProvider, getKiProviderById } from '../../../../../../../../lib/coaching-ki-config-db';
@@ -65,9 +64,6 @@ export const POST: APIRoute = async ({ request, params }) => {
     phase = def.phase;
   }
 
-  const startMs = Date.now();
-  let aiResponse: string;
-
   // System-Prompt aus KI-Profil überschreibt Template-Prompt, wenn gesetzt
   let effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
   if (customerNumber) {
@@ -81,67 +77,72 @@ export const POST: APIRoute = async ({ request, params }) => {
     ? `Klient ${customerNumber}:\n${userPrompt}`
     : userPrompt;
 
+  const wantsStream = new URL(request.url).searchParams.get('stream') === 'true';
+
+  const { buildSessionHistory } = await import('../../../../../../../../lib/session-history');
+  const { createSessionAgent } = await import('../../../../../../../../lib/session-agent-factory');
+
+  const history = await buildSessionHistory(sessionId, stepNumber);
+  const agent = createSessionAgent(activeProvider!);
+
+  if (wantsStream && agent.stream) {
+    const encoder = new TextEncoder();
+    const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+    const writer = writable.getWriter();
+    const streamStart = Date.now();
+
+    (async () => {
+      let fullResponse = '';
+      try {
+        for await (const chunk of agent.stream!({
+          sessionId, stepNumber, coachInputs: body.coachInputs,
+          kiConfig: activeProvider!, brand, history,
+          effectiveSystemPrompt: effectiveSystem,
+          assembledUserPrompt: anonymizedUserPrompt,
+          stepName, phase,
+        })) {
+          fullResponse += chunk;
+          await writer.write(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
+        }
+        const durationMs = Date.now() - streamStart;
+        const step = await upsertStep(pool, {
+          sessionId, stepNumber, stepName, phase,
+          coachInputs: body.coachInputs,
+          aiPrompt: anonymizedUserPrompt,
+          aiResponse: fullResponse,
+          status: 'generated',
+        });
+        await appendAuditLog(pool, {
+          sessionId, eventType: 'ai_request', actor: session.preferred_username,
+          stepNumber,
+          payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPrompt, response: fullResponse, duration_ms: durationMs, streaming: true },
+        });
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ done: true, step, aiPrompt: anonymizedUserPrompt, durationMs })}\n\n`));
+      } catch (err) {
+        console.error('[coaching/generate] stream error', err);
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ error: 'Stream-Fehler' })}\n\n`));
+      } finally {
+        await writer.close();
+      }
+    })();
+
+    return new Response(readable, {
+      headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', 'x-content-type-options': 'nosniff' },
+    });
+  }
+
+  // Non-streaming path
+  let aiResponse: string;
+  const startMs = Date.now();
   try {
-    if (providerName === 'claude') {
-      const apiKey = activeProvider?.apiKey ?? process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY nicht konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
-      const clientOpts: ConstructorParameters<typeof Anthropic>[0] = { apiKey };
-      if (activeProvider?.apiEndpoint) clientOpts.baseURL = activeProvider.apiEndpoint;
-      const client = new Anthropic(clientOpts);
-      const model = activeProvider?.modelName ?? process.env.COACHING_SESSION_MODEL ?? 'claude-haiku-4-5-20251001';
-      const msg = await client.messages.create({
-        model,
-        max_tokens: activeProvider?.maxTokens ?? 600,
-        system: effectiveSystem,
-        temperature: activeProvider?.temperature ?? undefined,
-        top_p: activeProvider?.topP ?? undefined,
-        top_k: activeProvider?.topK ?? undefined,
-        stream: false,
-        messages: [{ role: 'user', content: anonymizedUserPrompt }],
-      });
-      aiResponse = msg.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map(b => b.text).join('');
-    } else if (providerName === 'openai') {
-      const apiKey = activeProvider?.apiKey ?? process.env.OPENAI_API_KEY;
-      if (!apiKey) return new Response(JSON.stringify({ error: 'OPENAI_API_KEY nicht konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
-      const { default: OpenAI } = await import('openai');
-      const clientOpts: ConstructorParameters<typeof OpenAI>[0] = { apiKey };
-      if (activeProvider?.apiEndpoint) clientOpts.baseURL = activeProvider.apiEndpoint;
-      if (activeProvider?.organizationId) clientOpts.organization = activeProvider.organizationId;
-      const client = new OpenAI(clientOpts);
-      const model = activeProvider?.modelName ?? 'gpt-4o-mini';
-      const resp = await client.chat.completions.create({
-        model,
-        max_tokens: activeProvider?.maxTokens ?? 600,
-        temperature: activeProvider?.temperature ?? undefined,
-        top_p: activeProvider?.topP ?? undefined,
-        presence_penalty: activeProvider?.presencePenalty ?? undefined,
-        frequency_penalty: activeProvider?.frequencyPenalty ?? undefined,
-        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: anonymizedUserPrompt }],
-      });
-      aiResponse = resp.choices[0]?.message.content ?? '';
-    } else if (providerName === 'mistral') {
-      const apiKey = activeProvider?.apiKey ?? process.env.MISTRAL_API_KEY;
-      if (!apiKey) return new Response(JSON.stringify({ error: 'MISTRAL_API_KEY nicht konfiguriert' }), { status: 503, headers: { 'content-type': 'application/json' } });
-      const { Mistral } = await import('@mistralai/mistralai');
-      const clientOpts: ConstructorParameters<typeof Mistral>[0] = { apiKey };
-      if (activeProvider?.apiEndpoint) clientOpts.serverURL = activeProvider.apiEndpoint;
-      const client = new Mistral(clientOpts);
-      const model = activeProvider?.modelName ?? 'mistral-small-latest';
-      const resp = await client.chat.complete({
-        model,
-        maxTokens: activeProvider?.maxTokens ?? undefined,
-        temperature: activeProvider?.temperature ?? undefined,
-        topP: activeProvider?.topP ?? undefined,
-        randomSeed: activeProvider?.randomSeed ?? undefined,
-        safePrompt: activeProvider?.safePrompt ?? false,
-        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: anonymizedUserPrompt }],
-      });
-      aiResponse = (resp.choices?.[0]?.message?.content as string) ?? '';
-    } else if (providerName === 'lumo') {
-      return new Response(JSON.stringify({ error: 'Lumo-Integration noch nicht verfügbar' }), { status: 503, headers: { 'content-type': 'application/json' } });
-    } else {
-      return new Response(JSON.stringify({ error: `Unbekannter Provider: '${providerName}'` }), { status: 503, headers: { 'content-type': 'application/json' } });
-    }
+    const result = await agent.generate({
+      sessionId, stepNumber, coachInputs: body.coachInputs,
+      kiConfig: activeProvider!, brand, history,
+      effectiveSystemPrompt: effectiveSystem,
+      assembledUserPrompt: anonymizedUserPrompt,
+      stepName, phase,
+    });
+    aiResponse = result.aiResponse;
   } catch (err) {
     console.error('[coaching/generate]', err);
     return new Response(JSON.stringify({ error: 'KI-Anfrage fehlgeschlagen' }), { status: 502, headers: { 'content-type': 'application/json' } });

@@ -97,7 +97,7 @@ function isAdminFromClaims(claims) {
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
-if (!process.env.DATABASE_URL && require.main === module) {
+if (!process.env.DATABASE_URL && require.main === module && process.env.MOCK_DB !== 'true') {
   console.error('DATABASE_URL is required');
   process.exit(1);
 }

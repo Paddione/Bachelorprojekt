@@ -69,6 +69,7 @@ export default defineConfig({
         '**/fa-admin-live.spec.ts',  // unified live cockpit
         '**/fa-30-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
         '**/fa-39-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
+        '**/fa-39-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
       ],
       use: {
         ...devices['Desktop Chrome'],

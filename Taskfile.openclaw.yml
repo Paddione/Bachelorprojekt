@@ -35,10 +35,9 @@ tasks:
     deps: [install]
     cmds:
       - |
-        if [[ ! -d "{{.OPENCLAW_HOME}}" ]]; then
-          openclaw onboard --install-daemon --non-interactive || \
-            openclaw onboard --install-daemon
-        fi
+        # Always re-run after install so the systemd unit stays current across upgrades
+        openclaw onboard --install-daemon --non-interactive || \
+          openclaw onboard --install-daemon
       - |
         if [[ ! -f "{{.OPENCLAW_HOME}}/.env" ]]; then
           cp "{{.OPENCLAW_ENV_TEMPLATE}}" "{{.OPENCLAW_HOME}}/.env"
@@ -50,17 +49,17 @@ tasks:
       - task: start
 
   start:
-    desc: "Restart the systemd --user openclaw service"
+    desc: "Restart the systemd --user openclaw-gateway service"
     cmds:
       - systemctl --user daemon-reload
-      - systemctl --user restart openclaw
-      - systemctl --user status openclaw --no-pager | head -20
+      - systemctl --user restart openclaw-gateway
+      - systemctl --user status openclaw-gateway --no-pager | head -20
 
   status:
     desc: "Show daemon status + gateway health probe"
     cmds:
       - |
-        systemctl --user is-active openclaw && echo "daemon: active" || echo "daemon: inactive"
+        systemctl --user is-active openclaw-gateway && echo "daemon: active" || echo "daemon: inactive"
       - |
         port="${OPENCLAW_GATEWAY_PORT:-18789}"
         curl -sS --max-time 3 "http://127.0.0.1:${port}/healthz" \
@@ -76,12 +75,12 @@ tasks:
   logs:
     desc: "Tail daemon log via journalctl --user"
     cmds:
-      - journalctl --user -u openclaw -n 100 --no-pager
+      - journalctl --user -u openclaw-gateway -n 100 --no-pager
 
   restore:
     desc: "Roll back: stop daemon, uninstall, remove fresh ~/.openclaw, move backup back"
     cmds:
-      - systemctl --user disable --now openclaw || true
+      - systemctl --user disable --now openclaw-gateway || true
       - sudo npm uninstall -g openclaw || true
       - rm -rf "{{.OPENCLAW_HOME}}"
       - |
@@ -100,7 +99,7 @@ tasks:
           echo "Refusing — set CONFIRM=yes to wipe both {{.OPENCLAW_HOME}} and {{.OPENCLAW_BACKUP_DIR}}"
           exit 1
         fi
-      - systemctl --user disable --now openclaw || true
+      - systemctl --user disable --now openclaw-gateway || true
       - sudo npm uninstall -g openclaw || true
       - rm -rf "{{.OPENCLAW_HOME}}" "{{.OPENCLAW_BACKUP_DIR}}"
       - echo "Wiped."

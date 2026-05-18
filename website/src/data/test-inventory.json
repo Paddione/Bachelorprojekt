@@ -666,6 +666,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-39",
+    "file": "tests/e2e/specs/fa-39-lmstudio-integration.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-40",
     "file": "tests/local/FA-40.sh",
     "category": "FA",

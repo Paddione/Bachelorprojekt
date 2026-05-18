@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
+const BASE        = process.env.WEBSITE_URL    ?? 'https://web.mentolder.de';
+const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
+const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 
 /**
  * FA-39: Coaching-Sessions — Grundfunktionen
@@ -9,6 +11,17 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
  * Skip-Navigation und Session-Meta-Bearbeitung.
  * KI-Generierung ist bewusst nicht getestet (erfordert gültigen Anthropic-API-Key).
  */
+
+async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/admin/coaching/sessions'): Promise<void> {
+  if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS is not set');
+  await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
+  await page.waitForURL(/realms\/workspace/, { timeout: 30_000 });
+  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
+  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
+  await page.locator('#kc-login, input[type="submit"]').first().click();
+  await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
+}
+
 test.describe('FA-39: Coaching-Sessions', () => {
 
   // ── Auth-Gating ─────────────────────────────────────────────────────────────
@@ -36,20 +49,20 @@ test.describe('FA-39: Coaching-Sessions', () => {
 
   // ── Seitenstruktur ──────────────────────────────────────────────────────────
   test('T5: sessions overview page has expected heading and new-session link', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions`);
-    await page.waitForURL(/\/admin\/coaching\/sessions$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions');
+    await page.waitForURL(/\/admin\/coaching\/sessions$/, { timeout: 20_000 });
 
     await expect(page.getByRole('heading', { name: 'Coaching-Sessions' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Neue Session/ }).first()).toBeVisible();
   });
 
   test('T6: new session page has all required form fields', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
 
     await expect(page.locator('#title')).toBeVisible();
     await expect(page.locator('#clientId')).toBeVisible();
@@ -61,13 +74,13 @@ test.describe('FA-39: Coaching-Sessions', () => {
 
   // ── Session-Wizard ──────────────────────────────────────────────────────────
   test('T7: wizard shows 10 step buttons in the progress bar', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
     await page.locator('#title').fill(`FA-39 E2E ${Date.now()}`);
     await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/);
+    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     const progressBar = page.locator('[aria-label="Fortschritt"]');
     await expect(progressBar).toBeVisible();
@@ -76,13 +89,13 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T8: wizard step 1 shows Erstanamnese with required inputs and disabled KI button', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
     await page.locator('#title').fill(`FA-39 E2E T8 ${Date.now()}`);
     await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/);
+    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await expect(page.getByRole('heading', { name: /Schritt 1\/10.*Erstanamnese/ })).toBeVisible();
     await expect(page.locator('#anlass')).toBeVisible();
@@ -91,13 +104,13 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T9: KI button enables when required fields are filled', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
     await page.locator('#title').fill(`FA-39 E2E T9 ${Date.now()}`);
     await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/);
+    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await page.locator('#anlass').fill('Führungsproblem im Team');
     await page.locator('#situation').fill('Konflikt zwischen Mitarbeitern, schlechte Stimmung');
@@ -105,13 +118,13 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T10: skip advances wizard to the next step', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
     await page.locator('#title').fill(`FA-39 E2E T10 ${Date.now()}`);
     await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/);
+    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
     await page.getByRole('button', { name: 'Schritt überspringen' }).click();
@@ -119,13 +132,13 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T11: back button returns to previous step', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
     await page.locator('#title').fill(`FA-39 E2E T11 ${Date.now()}`);
     await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/);
+    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
     await page.getByRole('button', { name: 'Schritt überspringen' }).click();
     await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
@@ -134,16 +147,16 @@ test.describe('FA-39: Coaching-Sessions', () => {
   });
 
   test('T12: session-info box shows title and edit button', async ({ page }) => {
-    if (!process.env.E2E_ADMIN_PASS) { test.skip(); return; }
+    if (!ADMIN_PASS) { test.skip(); return; }
 
     const title = `FA-39 Meta ${Date.now()}`;
-    await page.goto(`${BASE}/admin/coaching/sessions/new`);
-    await page.waitForURL(/\/new$/);
+    await loginAsAdmin(page, '/admin/coaching/sessions/new');
+    await page.waitForURL(/\/new$/, { timeout: 20_000 });
     await page.locator('#title').fill(title);
     await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/);
+    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    await expect(page.getByText(title)).toBeVisible();
+    await expect(page.getByText(title).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Bearbeiten/ })).toBeVisible();
   });
 });

@@ -68,6 +68,7 @@ export default defineConfig({
         '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
         '**/fa-admin-live.spec.ts',  // unified live cockpit
         '**/fa-30-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
+        '**/fa-39-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
       ],
       use: {
         ...devices['Desktop Chrome'],

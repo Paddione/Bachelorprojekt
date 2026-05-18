@@ -463,6 +463,14 @@ Rufe `commit-commands:commit-push-pr` auf.
 - Titel: `chore(<scope>): <kurze-beschreibung>`
 - Body: kurzes `## Summary` (1-2 Bullets) + `## Test plan` (was du gelaufen bist)
 
+> **Fallback** (falls `commit-commands` nicht verfügbar — z.B. Plugin deinstalliert):
+> ```bash
+> git add -p  # nur relevante Dateien
+> git commit -m "chore(<scope>): <kurze-beschreibung>"
+> git push -u origin chore/<slug>
+> gh pr create --title "chore(<scope>): <kurze-beschreibung>" --body "## Summary\n- ...\n\n## Test plan\n- ..."
+> ```
+
 ### Schritt 6: Auto-Merge wenn CI grün
 
 ### Schritt 7: Post-Merge Deploy

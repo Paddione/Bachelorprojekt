@@ -3,6 +3,12 @@ name: ticket-management
 description: Use when asked to work through, triage, or resolve open tickets in the mentolder ticket database. Covers fetching open tickets, categorizing by actionability, applying fixes autonomously for ai_ready tickets, and routing needs_human tickets with a clear request.
 ---
 
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
 # Ticket Management
 
 ## Overview
@@ -128,3 +134,9 @@ git branch -D <branch>
 | Writing vague human-needed notes | Include the specific question or action the human must take |
 | Fixing tests by changing the assertion | Find the source of the regression; fix the logic |
 | Acting on tickets before presenting categorization to user | Always confirm the triage grouping first |
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your
+accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
+cleanly with "No mishaps found."

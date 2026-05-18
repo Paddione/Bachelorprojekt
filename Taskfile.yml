@@ -3152,7 +3152,7 @@ tasks:
           node scripts/knowledge/ingest-web.mjs {{.CLI_ARGS}}
 
   knowledge:seed-context7:
-    desc: "Create + ingest all 10 context7 library collections (ENV=mentolder|korczewski)"
+    desc: "Create + ingest all 20 context7 library collections (ENV=mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -3195,6 +3195,16 @@ tasks:
           ["Anthropic SDK (TS)"]="/anthropics/anthropic-sdk-typescript"
           ["pgvector"]="/pgvector/pgvector"
           ["Taskfile (go-task)"]="/go-task/task"
+          ["Tailwind CSS v4"]="/tailwindlabs/tailwindcss.com"
+          ["Zod v4"]="/websites/zod_dev_v4"
+          ["Drizzle ORM"]="/drizzle-team/drizzle-orm-docs"
+          ["Vitest"]="/vitest-dev/vitest"
+          ["Socket.IO"]="/websites/socket_io_v4"
+          ["cert-manager"]="/cert-manager/website"
+          ["React 19"]="/websites/react_dev"
+          ["Traefik"]="/websites/doc_traefik_io_traefik"
+          ["Kustomize"]="/kubernetes-sigs/kustomize"
+          ["Express 5"]="/websites/expressjs_en_5"
         )
 
         # Phase 1: create all collections via kubectl exec (no port-forward needed)
@@ -3210,16 +3220,23 @@ tasks:
           echo "  $NAME → $COL_ID"
         done
 
-        # Phase 2: port-forward for Node.js ingestion (pg-pool keeps connection alive)
+        # Phase 2: port-forward for Node.js ingestion
+        # Use 15433 (not 5432) to avoid conflicts with other open port-forwards
         echo ""
         echo "=== Phase 2: ingesting via context7 API ==="
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+        fuser -k 15433/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15433:5432 \
           >/tmp/knowledge-context7-pf.log 2>&1 &
         PF=$!
         trap 'kill $PF 2>/dev/null' EXIT
-        sleep 5
+        sleep 4
+        if ! nc -z 127.0.0.1 15433 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15433:" >&2
+          cat /tmp/knowledge-context7-pf.log >&2
+          exit 1
+        fi
 
-        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website"
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:15433/website"
         SUMMARY=""
         for NAME in "${!LIBS[@]}"; do
           LIB_ID="${LIBS[$NAME]}"
@@ -3273,15 +3290,21 @@ tasks:
           -o jsonpath="{.data.VOYAGE_API_KEY}" 2>/dev/null | base64 -d)
         export VOYAGE_API_KEY
 
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+        fuser -k 15433/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15433:5432 \
           >/tmp/knowledge-context7-pf.log 2>&1 &
         PF=$!
         trap 'kill $PF 2>/dev/null || true' EXIT
-        sleep 5
+        sleep 4
+        if ! nc -z 127.0.0.1 15433 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15433:" >&2
+          cat /tmp/knowledge-context7-pf.log >&2
+          exit 1
+        fi
 
         COLLECTION_ID="{{.COLLECTION_ID}}" \
         LIBRARY_ID="{{.LIBRARY_ID}}" \
-        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
+        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:15433/website" \
           node scripts/knowledge/ingest-context7.mjs
 
   coaching:ingest:

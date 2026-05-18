@@ -357,6 +357,7 @@ Wenn mehrere Kategorien matchen: workspace → website → brett → livekit →
 - Copy/Visual-Änderungen: Screenshot via Playwright.
 - Funktionale Änderungen: `./tests/runner.sh local <FA-XX>` gegen Live-URL.
 - **Wenn Verify scheitert: KEINEN Fix auf `main` versuchen.** Neuen `fix/<slug>` Branch via `dev-flow-plan` Fix-Pfad öffnen und Patrick benachrichtigen.
+- **E2E Tests:** Nach erfolgreichem Verify `dev-flow-e2e` aufrufen, um Playwright-Specs für die neue Funktion zu schreiben und gegen Live zu laufen.
 
 ---
 

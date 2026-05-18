@@ -26,27 +26,19 @@ export function makeRoutes(deps: { lc: Lifecycle; repo: Repo; auth: AuthMiddlewa
   });
 
   r.post('/lobby/open', requireUser, requireAdmin, (req, res) => {
-    try {
-      const out = deps.lc.open({
-        hostKey: req.userKey!,
-        hostName: req.user!.displayName,
-      });
-      res.status(201).json(out);
-    } catch (e: any) {
-      res.status(e.code === 409 ? 409 : 500).json({ error: e.message });
-    }
+    const out = deps.lc.open({
+      hostKey: req.userKey!,
+      hostName: req.user!.displayName,
+    });
+    res.status(201).json(out);
   });
 
   r.post('/lobby/solo', requireUser, requireAdmin, (req, res) => {
-    try {
-      const out = deps.lc.openSolo({
-        hostKey: req.userKey!,
-        hostName: req.user!.displayName,
-      });
-      res.status(201).json(out);
-    } catch (e: any) {
-      res.status(e.code === 409 ? 409 : 500).json({ error: e.message });
-    }
+    const out = deps.lc.openSolo({
+      hostKey: req.userKey!,
+      hostName: req.user!.displayName,
+    });
+    res.status(201).json(out);
   });
 
   r.get('/match/:id', requireUser, async (req, res) => {

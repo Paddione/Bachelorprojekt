@@ -40,6 +40,11 @@ async function main() {
   const auth = makeAuthMiddleware({ issuers: cfg.issuers });
   app.use('/', makeRoutes({ lc, repo, auth }));
 
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    const status = typeof err.code === 'number' && err.code >= 400 && err.code < 600 ? err.code : 500;
+    res.status(status).json({ error: err.message ?? 'internal error' });
+  });
+
   httpServer.listen(cfg.port, () => log.info({ port: cfg.port }, 'arena-server listening'));
 
   const shutdown = async () => {

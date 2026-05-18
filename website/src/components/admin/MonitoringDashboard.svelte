@@ -3,15 +3,12 @@
   import ClusterTab from './monitoring/ClusterTab.svelte';
   import DeploymentsTab from './monitoring/DeploymentsTab.svelte';
   import OverviewTab from './monitoring/OverviewTab.svelte';
-  import BugsTab from './monitoring/BugsTab.svelte';
-  import ArgoCDTab from './monitoring/ArgoCDTab.svelte';
   import LogsTab from './monitoring/LogsTab.svelte';
-  import TestDataPanel from './monitoring/TestDataPanel.svelte';
 
-  type Tab = 'overview' | 'cluster' | 'deployments' | 'argocd' | 'logs' | 'bugs' | 'testdaten';
+  type Tab = 'overview' | 'cluster' | 'deployments' | 'logs';
 
   let activeTab: Tab = 'overview';
-  const VALID_TABS: Tab[] = ['overview', 'cluster', 'deployments', 'argocd', 'logs', 'bugs', 'testdaten'];
+  const VALID_TABS: Tab[] = ['overview', 'cluster', 'deployments', 'logs'];
 
   onMount(() => {
     const hash = location.hash.slice(1) as Tab;
@@ -29,10 +26,7 @@
     { id: 'overview',     label: 'Übersicht' },
     { id: 'cluster',      label: 'Cluster' },
     { id: 'deployments',  label: 'Deployments' },
-    { id: 'argocd',       label: 'ArgoCD' },
     { id: 'logs',         label: 'Logs' },
-    { id: 'bugs',         label: 'Bugs' },
-    { id: 'testdaten',    label: 'Testdaten' },
   ];
 </script>
 
@@ -59,14 +53,8 @@
       <ClusterTab />
     {:else if activeTab === 'deployments'}
       <DeploymentsTab />
-    {:else if activeTab === 'argocd'}
-      <ArgoCDTab />
     {:else if activeTab === 'logs'}
       <LogsTab />
-    {:else if activeTab === 'bugs'}
-      <BugsTab />
-    {:else if activeTab === 'testdaten'}
-      <TestDataPanel />
     {/if}
   </div>
 </div>

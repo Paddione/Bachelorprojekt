@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>livekit-setup — LiveKit WebRTC Setup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">livekit-setup</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Infrastruktur</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Infrastruktur</span>
+    <span class="badge-slug">livekit-setup</span>
+  </div>
+  <h1 class="hero-title">LiveKit WebRTC Setup</h1>
+  <p class="hero-subtitle">
+    Diagnosiert und repariert ICE-Verbindungsprobleme, broken Streams, RTMP-Ingestion-Fehler
+    und Recording-Ausfälle. LiveKit läuft nur auf mentolder — korczewski nutzt einen separaten
+    WebRTC-Pfad über arena-server.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    ICE fails, Stream broken, RTMP ingestion broken, Recording failing
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Mentolder-only.</strong>
+      Arena-server auf korczewski verwendet einen separaten WebRTC-Pfad und wird hier nicht behandelt.
+      LiveKit-Server läuft mit <code>hostNetwork: true</code> — Pod-Security ist <code>privileged</code>.
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="section-label mt-3">Architektur</div>
+  <ul class="kv-list">
+    <li><span class="kv-key">livekit-server</span><span class="kv-val">gekko-hetzner-3 (46.225.125.59), hostNetwork: true, NodeAffinity</span></li>
+    <li><span class="kv-key">livekit-ingress</span><span class="kv-val">RTMP-Ingestion, gleicher Node</span></li>
+    <li><span class="kv-key">livekit-egress</span><span class="kv-val">Recording auf PVC, beliebiger Node</span></li>
+    <li><span class="kv-key">livekit.&lt;domain&gt;</span><span class="kv-val">DNS MUSS auf 46.225.125.59 gepinnt sein</span></li>
+    <li><span class="kv-key">stream.&lt;domain&gt;</span><span class="kv-val">DNS MUSS auf 46.225.125.59 gepinnt sein</span></li>
+    <li><span class="kv-key">Admin-Seite</span><span class="kv-val"><code>/admin/stream</code></span></li>
+    <li><span class="kv-key">Zuschauer-Seite</span><span class="kv-val"><code>/portal/stream</code></span></li>
+  </ul>
+
+  <div class="section-label mt-3">Phasen</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">1</span>
+        <span class="phase-title">Status-Check</span>
+        <span class="phase-desc">Erster Überblick</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">task</span> livekit:status ENV=mentolder
+
+<span class="cm"># Detailliert</span>
+<span class="fn">kubectl</span> get pods -n workspace -l app=livekit-server
+<span class="fn">kubectl</span> get pods -n workspace -l app=livekit-ingress
+<span class="fn">kubectl</span> get pods -n workspace -l app=livekit-egress
+<span class="fn">kubectl</span> get ingress -n workspace | grep livekit
+
+<span class="cm"># Logs</span>
+<span class="fn">task</span> livekit:logs ENV=mentolder
+<span class="fn">task</span> livekit:logs ENV=mentolder -- ingress
+<span class="fn">task</span> livekit:logs ENV=mentolder -- egress</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">DNS-Pinning verifizieren</span>
+        <span class="phase-desc">Kritisch für ICE</span>
+      </div>
+      <div class="phase-body">
+        <div class="callout callout-critical">
+          <span class="callout-icon">&#9888;</span>
+          <div class="callout-body">
+            Browser treffen ~66% der Zeit einen Nicht-LiveKit-Node wenn DNS nicht gepinnt ist.
+            ICE schlägt dann stillschweigend fehl.
+          </div>
+        </div>
+        <pre><code><span class="cm"># DNS-Status prüfen</span>
+<span class="fn">dig</span> livekit.mentolder.de
+<span class="fn">dig</span> stream.mentolder.de
+
+<span class="cm"># Soll auf 46.225.125.59 zeigen!</span>
+<span class="cm"># Wenn falsch: DNS korrigieren</span>
+<span class="fn">task</span> livekit:dns-pin ENV=mentolder          <span class="cm"># Zeigt API-Calls</span>
+<span class="fn">task</span> livekit:dns-pin ENV=mentolder APPLY=true <span class="cm"># Führt aus</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">3</span>
+        <span class="phase-title">Firewall-Regeln prüfen</span>
+        <span class="phase-desc">UDP-Ports für ICE, TCP für Signaling</span>
+      </div>
+      <div class="phase-body">
+        <p>Auf dem Pin-Node (gekko-hetzner-3, 46.225.125.59) müssen folgende Ports offen sein:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Port</th><th>Protokoll</th><th>Verwendung</th></tr></thead>
+            <tbody>
+              <tr><td>7880</td><td>TCP</td><td>LiveKit-Server HTTP/WebSocket</td></tr>
+              <tr><td>7881</td><td>TCP</td><td>LiveKit-Server gRPC</td></tr>
+              <tr><td>50000–60000</td><td>UDP</td><td>ICE/TURN (LiveKit)</td></tr>
+              <tr><td>30000–40000</td><td>UDP</td><td>ICE/TURN (LiveKit Ingress)</td></tr>
+              <tr><td>20000–20200</td><td>UDP</td><td>Janus/TURN (separat — nicht in livekit:firewall-open)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code><span class="fn">task</span> livekit:firewall-open NODE=46.225.125.59
+
+<span class="cm"># Manuell auf Node (via SSH)</span>
+<span class="fn">ssh</span> root@46.225.125.59 <span class="st">"ufw status verbose"</span></code></pre>
+        <div class="callout callout-warn">
+          <span class="callout-icon">&#9888;</span>
+          <div class="callout-body">
+            <strong>Janus 20000-20200/udp</strong> ist NICHT in <code>livekit:firewall-open</code> enthalten.
+            Muss separat geöffnet werden wenn Nextcloud Talk auf diesem Node läuft.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">Node-Affinity verifizieren</span>
+        <span class="phase-desc">Pod muss auf gekko-hetzner-3 laufen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">kubectl</span> get pod -n workspace -l app=livekit-server -o wide
+
+<span class="cm"># Wenn Pod auf falschem Node: NodeAffinity-Label setzen</span>
+<span class="fn">kubectl</span> label node gekko-hetzner-3 \
+  livekit.io/pin-node=<span class="st">"true"</span>
+
+<span class="cm"># Pod neu starten</span>
+<span class="fn">kubectl</span> rollout restart deployment/livekit-server -n workspace</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">5</span>
+        <span class="phase-title">Stream-Test</span>
+        <span class="phase-desc">OBS RTMP + Browser WebRTC</span>
+      </div>
+      <div class="phase-body">
+        <p><strong>OBS RTMP-Test:</strong></p>
+        <ul>
+          <li>Stream-Key von <code>/admin/stream</code> holen</li>
+          <li>OBS: Server <code>rtmp://stream.mentolder.de/live</code></li>
+          <li>Stream starten, RTMP-Logs prüfen</li>
+        </ul>
+        <p><strong>Browser WebRTC-Test:</strong></p>
+        <ul>
+          <li>Muss aus einem User-Gesture heraus aufgerufen werden</li>
+          <li>Chrome blockiert AudioContext ohne User-Gesture</li>
+          <li><code>/portal/stream</code> im Browser öffnen — auf Klick warten</li>
+        </ul>
+        <pre><code><span class="fn">task</span> livekit:logs ENV=mentolder -- ingress <span class="cm"># RTMP-Verbindung beobachten</span>
+<span class="fn">task</span> livekit:logs ENV=mentolder           <span class="cm"># Room-Joins beobachten</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">6</span>
+        <span class="phase-title">Recording</span>
+        <span class="phase-desc">Egress + PVC-Speicher</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># MP4-Liste im Egress PVC</span>
+<span class="fn">task</span> livekit:recordings ENV=mentolder
+
+<span class="cm"># PVC-Speicher prüfen</span>
+<span class="fn">kubectl</span> get pvc -n workspace | grep livekit
+<span class="fn">kubectl</span> exec -n workspace deploy/livekit-egress -- df -h /recordings</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EMERGENCY -->
+  <div class="section-label mt-3">Notfall-Prozedur</div>
+  <div class="callout callout-critical">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Hängender Stream / keine Möglichkeit den Raum zu schließen:</strong>
+    </div>
+  </div>
+  <pre><code><span class="cm"># LiveKit-Server neu starten — schließt ALLE aktiven Räume</span>
+<span class="fn">task</span> livekit:end-stream ENV=mentolder</code></pre>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="hetzner-node.html" class="xref-card">
+      <span class="xref-name">hetzner-node</span>
+      <span class="xref-rel">Node-Provisioning für Pin-Node</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Stream-Produktionsvorfall</span>
+    </a>
+    <a href="deployment-assist.html" class="xref-card">
+      <span class="xref-name">deployment-assist</span>
+      <span class="xref-rel">Vollständiges Deployment</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Post-Execution Anomalien</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/livekit-setup/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

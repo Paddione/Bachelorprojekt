@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dev-flow-plan — Planung & Branch-Setup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">dev-flow-plan</span>
+  <div class="topnav-right">
+    <span class="badge badge-brass">Dev-Flow</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-brass">Dev-Flow</span>
+    <span class="badge-slug">dev-flow-plan</span>
+  </div>
+  <h1 class="hero-title">Planung &amp; Branch-Setup</h1>
+  <p class="hero-subtitle">
+    Entry-Point für alle Repo-Änderungen. Ermittelt den Pfad (feature/fix/chore),
+    richtet den Worktree ein, führt Brainstorming durch, schreibt den Plan und committet
+    ihn auf den Branch — dann wird gestoppt. Chores laufen vollständig inline.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Jede Änderungsanfrage im Repository (Feature, Bugfix, Chore)
+  </div>
+</header>
+
+<main class="content">
+
+  <!-- OVERVIEW -->
+  <div class="section-label">Übersicht</div>
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Immer dev-flow-plan zuerst.</strong>
+      Kein direktes Coden ohne Plan. Dieser Skill ist der einzige Einstiegspunkt für alle
+      Entwicklungsarbeiten — er stellt sicher, dass jede Änderung nachverfolgt, begründet
+      und auf einem isolierten Branch entwickelt wird.
+    </div>
+  </div>
+
+  <ul class="kv-list">
+    <li><span class="kv-key">Skill-Datei</span><span class="kv-val"><code>.claude/skills/dev-flow-plan/SKILL.md</code></span></li>
+    <li><span class="kv-key">Folge-Skill</span><span class="kv-val"><code>dev-flow-execute</code> — nach Plan-Commit</span></li>
+    <li><span class="kv-key">Chore-Pfad</span><span class="kv-val">Vollständig inline — kein separater Execute-Schritt</span></li>
+    <li><span class="kv-key">Output</span><span class="kv-val">Committed Plan in <code>docs/superpowers/plans/</code></span></li>
+  </ul>
+
+  <!-- PATHS -->
+  <div class="section-label mt-3">Pfad-Auswahl</div>
+  <div class="phases">
+
+    <!-- FEATURE PATH -->
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">F</span>
+        <span class="phase-title">Feature-Pfad</span>
+        <span class="phase-desc">Neue Funktionalität</span>
+      </div>
+      <div class="phase-body">
+        <ul class="step-list">
+          <li>
+            <span class="step-num phase-num-brass">1</span>
+            <div class="step-body">
+              <strong>Stale Worktree Audit</strong>
+              Bestehende Worktrees prüfen. Veraltete bereinigen oder dem Nutzer melden.
+              <pre><code><span class="fn">git</span> worktree list
+<span class="fn">git</span> worktree list --porcelain</code></pre>
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">2</span>
+            <div class="step-body">
+              <strong>Pfad-Deklaration</strong>
+              Branch-Typ festlegen: <code>feature/&lt;slug&gt;</code> für neue Features,
+              <code>fix/&lt;slug&gt;</code> für Bugfixes, <code>chore/&lt;slug&gt;</code> für Verwaltungsaufgaben.
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">3</span>
+            <div class="step-body">
+              <strong>Worktree erstellen</strong>
+              Isolierten Workspace aufsetzen via <code>superpowers:using-git-worktrees</code>.
+              Jeder Feature-Branch lebt in einem eigenen Verzeichnis.
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">4</span>
+            <div class="step-body">
+              <strong>Asset Collection</strong>
+              Alle relevanten Dateien lesen, bestehenden Code verstehen, Abhängigkeiten
+              identifizieren. Keine Annahmen treffen ohne Quellcode gelesen zu haben.
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">5</span>
+            <div class="step-body">
+              <strong>Brainstorm-Tunnel aufbauen (optional)</strong>
+              Für komplexe Features: Brainstorming-Session mit dem Nutzer via
+              <code>superpowers:brainstorming</code>. Fokus auf User Experience, nicht Implementierungsdetails.
+              <pre><code><span class="fn">bash</span> scripts/superpowers-helper-patch.sh</code></pre>
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">6</span>
+            <div class="step-body">
+              <strong>Plan schreiben</strong>
+              Detaillierten Implementierungsplan in <code>docs/superpowers/plans/&lt;slug&gt;.md</code> erstellen.
+              Skill: <code>superpowers:writing-plans</code>. Frontmatter-Hook danach ausführen:
+              <pre><code><span class="fn">bash</span> scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;file&gt;.md</code></pre>
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">7</span>
+            <div class="step-body">
+              <strong>Ticket erstellen</strong>
+              In der mentolder tickets-DB einen Eintrag anlegen.
+              Status: <code>backlog</code>, attention_mode: <code>ai_ready</code>.
+            </div>
+          </li>
+          <li>
+            <span class="step-num phase-num-brass">8</span>
+            <div class="step-body">
+              <strong>Assets anhängen &amp; Commit</strong>
+              Plan-Datei commiten und auf den Branch pushen. Danach: <strong>STOP.</strong>
+              <code>dev-flow-execute</code> übernimmt die Implementierung.
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FIX PATH -->
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">F</span>
+        <span class="phase-title">Fix-Pfad</span>
+        <span class="phase-desc">Bugfix mit Ticket-Pflicht</span>
+      </div>
+      <div class="phase-body">
+        <div class="callout callout-critical">
+          <span class="callout-icon">&#9888;</span>
+          <div class="callout-body">
+            <strong>Ticket erforderlich.</strong>
+            Fix-Branches benötigen zwingend eine Ticket-ID (<code>T######</code>).
+            Ohne Ticket kein Fix-Branch.
+          </div>
+        </div>
+        <ul class="step-list">
+          <li>
+            <span class="step-num" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);width:1.6rem;height:1.6rem;border-radius:50%;font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+            <div class="step-body"><strong>Ticket-ID validieren</strong> — Ticket aus DB abrufen, Status auf <code>in_progress</code> setzen</div>
+          </li>
+          <li>
+            <span class="step-num" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);width:1.6rem;height:1.6rem;border-radius:50%;font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
+            <div class="step-body"><strong>Asset Collection</strong> — betroffene Dateien lesen, Fehlerursache verstehen</div>
+          </li>
+          <li>
+            <span class="step-num" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);width:1.6rem;height:1.6rem;border-radius:50%;font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</span>
+            <div class="step-body"><strong>Worktree erstellen</strong> — Branch: <code>fix/T######-&lt;kurzbeschreibung&gt;</code></div>
+          </li>
+          <li>
+            <span class="step-num" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);width:1.6rem;height:1.6rem;border-radius:50%;font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</span>
+            <div class="step-body"><strong>Failing Test schreiben</strong> — TDD: Zuerst Test der den Bug reproduziert (für Backend-Fixes)</div>
+          </li>
+          <li>
+            <span class="step-num" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);width:1.6rem;height:1.6rem;border-radius:50%;font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</span>
+            <div class="step-body"><strong>Plan (bei nicht-trivialen Fixes)</strong> — Ursache, Fix-Ansatz, Verifikation dokumentieren. Commit &amp; <strong>STOP.</strong></div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- CHORE PATH -->
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">C</span>
+        <span class="phase-title">Chore-Pfad</span>
+        <span class="phase-desc">Inline — kein separater Execute-Schritt</span>
+      </div>
+      <div class="phase-body">
+        <p>Chores (Dokumentation, Config-Updates, Dependency-Updates, Refactoring ohne Feature-Änderung)
+        werden vollständig inline ausgeführt — kein separater <code>dev-flow-execute</code> nötig.</p>
+        <ul class="step-list">
+          <li>
+            <span class="step-num phase-num-sage">1</span>
+            <div class="step-body"><strong>Recurring Check</strong> — Hat ähnliche Chores in der Vergangenheit gegeben? Muster identifizieren.</div>
+          </li>
+          <li>
+            <span class="step-num phase-num-sage">2</span>
+            <div class="step-body"><strong>Worktree</strong> — Branch <code>chore/&lt;slug&gt;</code> erstellen</div>
+          </li>
+          <li>
+            <span class="step-num phase-num-sage">3</span>
+            <div class="step-body"><strong>Änderung durchführen</strong> — Direkt implementieren</div>
+          </li>
+          <li>
+            <span class="step-num phase-num-sage">4</span>
+            <div class="step-body"><strong>Verify &amp; PR</strong> — <code>task workspace:validate</code>, dann PR erstellen und mergen</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEPLOY TABLE -->
+  <div class="section-label">Deploy-Entscheidungstabelle (Chores)</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Geänderte Dateien</th>
+          <th>Task</th>
+          <th>Verify</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>website/src/**</code></td>
+          <td><code>task feature:website</code></td>
+          <td>web.mentolder.de + web.korczewski.de</td>
+        </tr>
+        <tr>
+          <td><code>brett/**</code></td>
+          <td><code>task feature:brett</code></td>
+          <td>brett.*.de</td>
+        </tr>
+        <tr>
+          <td><code>k3d/docs-content/**</code></td>
+          <td><code>task docs:deploy</code></td>
+          <td>docs.*.de</td>
+        </tr>
+        <tr>
+          <td><code>k3d/livekit*.yaml</code></td>
+          <td><code>task feature:livekit</code></td>
+          <td><code>task livekit:status</code></td>
+        </tr>
+        <tr>
+          <td><code>k3d/**, prod/**, sealed-secrets/**</code></td>
+          <td><code>task feature:deploy</code></td>
+          <td><code>task workspace:verify:all-prods</code></td>
+        </tr>
+        <tr>
+          <td><code>docs/, *.md, CLAUDE.md, scripts/</code></td>
+          <td><em>Kein Deploy</em></td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- KEY COMMANDS -->
+  <div class="section-label mt-3">Wichtige Befehle</div>
+  <pre><code><span class="cm"># Worktree-Status prüfen</span>
+<span class="fn">git</span> worktree list
+<span class="fn">git</span> worktree list --porcelain
+
+<span class="cm"># Brainstorm-Tunnel patchen</span>
+<span class="fn">bash</span> scripts/superpowers-helper-patch.sh
+
+<span class="cm"># Plan-Frontmatter nach Erstellung ausführen</span>
+<span class="fn">bash</span> scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;file&gt;.md
+
+<span class="cm"># Manifest-Validierung (immer vor Commit)</span>
+<span class="fn">task</span> workspace:validate</code></pre>
+
+  <!-- RULES -->
+  <div class="section-label mt-3">Regeln &amp; Constraints</div>
+  <div class="callout callout-info">
+    <span class="callout-icon">&#8505;</span>
+    <div class="callout-body">
+      <strong>Parallel-Sessions:</strong> Der Nutzer betreibt bis zu 8–10 gleichzeitige Claude-Prozesse.
+      Ein anderer Agent kann jederzeit den Working Tree ändern. Vor <code>git restore</code>:
+      immer <code>git stash list</code> + <code>git log --all --grep</code> prüfen.
+    </div>
+  </div>
+  <ul>
+    <li>Kein <code>git commit</code> ohne vorangehenden Plan</li>
+    <li>Branch-Naming: <code>feature/*</code>, <code>fix/*</code>, <code>chore/*</code></li>
+    <li>Plan-Datei muss <code>plan-frontmatter-hook.sh</code> durchlaufen (domains + status Frontmatter)</li>
+    <li>Nach Plan-Commit: <strong>STOP</strong> — <code>dev-flow-execute</code> übernimmt</li>
+    <li>Kein direkter Push auf <code>main</code></li>
+  </ul>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="dev-flow-execute.html" class="xref-card">
+      <span class="xref-name">dev-flow-execute</span>
+      <span class="xref-rel">Ruft auf → nach Plan-Commit</span>
+    </a>
+    <a href="dev-flow-e2e.html" class="xref-card">
+      <span class="xref-name">dev-flow-e2e</span>
+      <span class="xref-rel">Nachgelagert → nach Merge</span>
+    </a>
+    <a href="ticket-management.html" class="xref-card">
+      <span class="xref-name">ticket-management</span>
+      <span class="xref-rel">Ticket erstellen / Status setzen</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Post-Execution Anomalien</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/dev-flow-plan/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dev-flow-e2e — Playwright E2E Tests</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">dev-flow-e2e</span>
+  <div class="topnav-right">
+    <span class="badge badge-brass">Dev-Flow</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-brass">Dev-Flow</span>
+    <span class="badge-slug">dev-flow-e2e</span>
+  </div>
+  <h1 class="hero-title">Playwright E2E Tests</h1>
+  <p class="hero-subtitle">
+    Schreibt Playwright-Testspecs nach einem gemergten und deploymenten Feature.
+    Erkundet die Live-Umgebung via Browser-Tools, schreibt aussagekräftige Tests
+    und registriert sie in der Testsuite.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Nach dev-flow-execute gemergt und deployt — neue Funktionalität braucht E2E-Abdeckung
+  </div>
+</header>
+
+<main class="content">
+
+  <ul class="kv-list">
+    <li><span class="kv-key">Vorgänger-Skill</span><span class="kv-val"><code>dev-flow-execute</code> — nach Merge &amp; Deploy</span></li>
+    <li><span class="kv-key">Test-Runner</span><span class="kv-val">Playwright — <code>tests/e2e/</code></span></li>
+    <li><span class="kv-key">Config</span><span class="kv-val"><code>playwright.config.ts</code></span></li>
+    <li><span class="kv-key">Inventory</span><span class="kv-val"><code>website/src/data/test-inventory.json</code></span></li>
+    <li><span class="kv-key">Prod-URL</span><span class="kv-val"><code>web.mentolder.de</code> (Primär)</span></li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Test-Inventory-Check ist CI-blocking.</strong>
+      Nach jedem Test-File-Add muss <code>task test:inventory</code> lokal laufen und das generierte
+      <code>test-inventory.json</code> mitgecomimt werden. CI schlägt fehl wenn die Datei abweicht.
+    </div>
+  </div>
+
+  <div class="section-label mt-3">Schritte</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">0</span>
+        <span class="phase-title">Was wurde implementiert?</span>
+        <span class="phase-desc">Kontext sammeln</span>
+      </div>
+      <div class="phase-body">
+        <p>Den letzten gemergten PR + geänderte Dateien analysieren.
+        Bestimmen was getestet werden soll.</p>
+        <pre><code><span class="fn">gh</span> pr list --state merged --limit 5
+<span class="fn">gh</span> pr view &lt;nr&gt; --json files,title,body</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">1</span>
+        <span class="phase-title">Ziel-URL und Playwright-Projekt bestimmen</span>
+        <span class="phase-desc">Richtige Umgebung auswählen</span>
+      </div>
+      <div class="phase-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Projekt</th><th>URL</th><th>Beschreibung</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>website</code></td>
+                <td><code>web.mentolder.de</code></td>
+                <td>Astro+Svelte Website, Auth-gated Features</td>
+              </tr>
+              <tr>
+                <td><code>services</code></td>
+                <td>Diverse Services</td>
+                <td>Nextcloud, Keycloak, Vaultwarden etc.</td>
+              </tr>
+              <tr>
+                <td><code>korczewski</code></td>
+                <td><code>web.korczewski.de</code></td>
+                <td>Kore-Design-System, separates Cluster</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">2</span>
+        <span class="phase-title">Live-Exploration via Playwright MCP</span>
+        <span class="phase-desc">Vor dem Schreiben erkunden</span>
+      </div>
+      <div class="phase-body">
+        <p>Die Live-Umgebung mit Playwright-Browser-Tools erkunden.
+        Selektoren, Auth-Flows und Netzwerk-Requests dokumentieren.</p>
+        <div class="tag-strip">
+          <span class="tag">browser_navigate</span>
+          <span class="tag">browser_snapshot</span>
+          <span class="tag">browser_take_screenshot</span>
+          <span class="tag">browser_network_requests</span>
+          <span class="tag">browser_click</span>
+          <span class="tag">browser_fill_form</span>
+        </div>
+        <pre><code><span class="cm"># Beispiel-Exploration Flow</span>
+<span class="cm"># 1. Zur Feature-URL navigieren</span>
+<span class="cm"># 2. DOM-Snapshot für Selektoren</span>
+<span class="cm"># 3. Auth-Flow durchspielen</span>
+<span class="cm"># 4. Netzwerk-Requests beobachten</span>
+<span class="cm"># 5. Edge-Cases identifizieren</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">3</span>
+        <span class="phase-title">Test-Spec schreiben</span>
+        <span class="phase-desc">Naming-Konventionen einhalten</span>
+      </div>
+      <div class="phase-body">
+        <p><strong>Datei-Naming:</strong></p>
+        <ul>
+          <li>Neues Feature: <code>fa-&lt;NN&gt;-&lt;slug&gt;.spec.ts</code></li>
+          <li>Bug-Regression: <code>fa-bug-t&lt;TICKETID&gt;.spec.ts</code></li>
+        </ul>
+        <p><strong>Test-Template-Struktur:</strong></p>
+        <pre><code><span class="kw">import</span> { test, expect } <span class="kw">from</span> <span class="st">'@playwright/test'</span>;
+
+<span class="cm">// Gruppe 1: Auth-gating</span>
+test.describe(<span class="st">'Feature Auth-Gating'</span>, () => {
+  test(<span class="st">'unauthenticated user sees login redirect'</span>, <span class="kw">async</span> ({ page }) => {
+    <span class="kw">await</span> page.goto(<span class="st">'/feature-path'</span>);
+    <span class="kw">await</span> expect(page).toHaveURL(<span class="st">/auth\./</span>);
+  });
+});
+
+<span class="cm">// Gruppe 2: Funktionale Tests (nach Login)</span>
+test.describe(<span class="st">'Feature Funktionalität'</span>, () => {
+  test.beforeEach(<span class="kw">async</span> ({ page }) => {
+    <span class="cm">// Auth-Setup</span>
+  });
+
+  test(<span class="st">'happy path'</span>, <span class="kw">async</span> ({ page }) => {
+    <span class="cm">// Hauptfunktionalität testen</span>
+  });
+});
+
+<span class="cm">// Gruppe 3: Negative Tests</span>
+test.describe(<span class="st">'Feature Edge Cases'</span>, () => {
+  test(<span class="st">'invalid input shows error'</span>, <span class="kw">async</span> ({ page }) => {
+    <span class="cm">// Fehlerfälle</span>
+  });
+});</code></pre>
+        <div class="callout callout-info">
+          <span class="callout-icon">&#8505;</span>
+          <div class="callout-body">
+            Niemals Tests durch Ändern von Assertions "fixen". Ein roter Test zeigt einen echten Fehler an.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">4</span>
+        <span class="phase-title">Spec in playwright.config.ts registrieren</span>
+        <span class="phase-desc">Richtige Projektgruppe</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm">// playwright.config.ts</span>
+{
+  name: <span class="st">'website'</span>,
+  testMatch: <span class="st">'**/fa-*.spec.ts'</span>,
+  use: {
+    baseURL: process.env.WEBSITE_URL ?? <span class="st">'https://web.mentolder.de'</span>,
+  },
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">5</span>
+        <span class="phase-title">Tests ausführen</span>
+        <span class="phase-desc">Mit WEBSITE_URL env var</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># Gegen Produktion (mentolder)</span>
+<span class="vr">WEBSITE_URL</span>=https://web.mentolder.de npx playwright test fa-&lt;NN&gt;-&lt;slug&gt;.spec.ts
+
+<span class="cm"># Gegen korczewski</span>
+<span class="vr">WEBSITE_URL</span>=https://web.korczewski.de npx playwright test --project=korczewski
+
+<span class="cm"># Alle Website-Tests</span>
+npx playwright test --project=website
+
+<span class="cm"># Mit UI (lokal)</span>
+npx playwright test --ui</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">6</span>
+        <span class="phase-title">test-inventory.json aktualisieren</span>
+        <span class="phase-desc">CI-blocking — nicht vergessen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">task</span> test:inventory</code></pre>
+        <p>Das generierte <code>website/src/data/test-inventory.json</code> committen.
+        CI schlägt fehl wenn die Datei abweicht.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">7</span>
+        <span class="phase-title">Commit &amp; Push</span>
+        <span class="phase-desc">Test-Spec + Inventory zusammen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">git</span> add tests/e2e/fa-&lt;NN&gt;-&lt;slug&gt;.spec.ts website/src/data/test-inventory.json
+<span class="fn">git</span> commit -m <span class="st">"test(e2e): add FA-&lt;NN&gt; spec for &lt;feature&gt;"</span>
+<span class="fn">git</span> push origin main</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">8</span>
+        <span class="phase-title">Full Smoke Run (optional)</span>
+        <span class="phase-desc">Alle Tests gegen Prod</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># Nightly via GitHub Actions e2e.yml</span>
+<span class="cm"># Manuell:</span>
+<span class="fn">./tests/runner.sh</span> local
+<span class="fn">./tests/runner.sh</span> report</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TEST ID REFERENCE -->
+  <div class="section-label mt-3">Test-ID Referenz</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Bereich</th><th>ID-Range</th><th>Beschreibung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Funktional</td><td><code>FA-01</code>–<code>FA-29</code></td><td>Funktionale Akzeptanztests</td></tr>
+        <tr><td>Sicherheit</td><td><code>SA-01</code>–<code>SA-10</code></td><td>Security-Tests</td></tr>
+        <tr><td>Non-Functional</td><td><code>NFA-01</code>–<code>NFA-09</code></td><td>Performance, DSGVO, Verfügbarkeit</td></tr>
+        <tr><td>Akzeptanz</td><td><code>AK-03</code>, <code>AK-04</code></td><td>Akzeptanzkriterien</td></tr>
+        <tr><td>Bugs</td><td><code>fa-bug-t&lt;ID&gt;</code></td><td>Regressionstests für Tickets</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-note">
+    <span class="callout-icon">&#8505;</span>
+    <div class="callout-body">
+      <strong>Lücken in den ID-Ranges</strong> (FA-01..08, FA-22, SA-06, SA-09) spiegeln die
+      Entfernung von Mattermost und InvoiceNinja wider — nicht auffüllen.
+    </div>
+  </div>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="dev-flow-execute.html" class="xref-card">
+      <span class="xref-name">dev-flow-execute</span>
+      <span class="xref-rel">Vorgänger → implementiert Feature</span>
+    </a>
+    <a href="dev-flow-plan.html" class="xref-card">
+      <span class="xref-name">dev-flow-plan</span>
+      <span class="xref-rel">Ursprung des Feature-Plans</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Post-Execution Anomalien</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/dev-flow-e2e/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

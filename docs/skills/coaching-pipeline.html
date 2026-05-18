@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>coaching-pipeline — Coaching-Content Pipeline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">coaching-pipeline</span>
+  <div class="topnav-right">
+    <span class="badge badge-purple">Betrieb</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-purple">Betrieb</span>
+    <span class="badge-slug">coaching-pipeline</span>
+  </div>
+  <h1 class="hero-title">Coaching-Content Pipeline</h1>
+  <p class="hero-subtitle">
+    Verarbeitet Coaching-Inhalte von der Quelldatei bis zur Verfügbarkeit im Coaching-Assistenten.
+    Ingest → UNCLASSIFIED Chunks → Classify → DRAFT → Review → PUBLISHED.
+    Nur auf mentolder.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Neuen Coaching-Inhalt (PDF/EPUB) indizieren und klassifizieren
+  </div>
+</header>
+
+<main class="content">
+
+  <!-- PIPELINE OVERVIEW -->
+  <div class="section-label">Pipeline-Übersicht</div>
+  <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;font-size:.85rem;">
+    <span style="padding:.3em .8em;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);">Quelldatei</span>
+    <span style="color:var(--text-dim);">→</span>
+    <span style="padding:.3em .8em;background:rgba(122,143,192,.1);border:1px solid rgba(122,143,192,.3);border-radius:var(--radius);color:var(--blue);">coaching:ingest</span>
+    <span style="color:var(--text-dim);">→</span>
+    <span style="padding:.3em .8em;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);">UNCLASSIFIED Chunks</span>
+    <span style="color:var(--text-dim);">→</span>
+    <span style="padding:.3em .8em;background:rgba(122,143,192,.1);border:1px solid rgba(122,143,192,.3);border-radius:var(--radius);color:var(--blue);">coaching:classify</span>
+    <span style="color:var(--text-dim);">→</span>
+    <span style="padding:.3em .8em;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:var(--radius);color:var(--brass);">DRAFT</span>
+    <span style="color:var(--text-dim);">→</span>
+    <span style="padding:.3em .8em;background:rgba(124,158,130,.1);border:1px solid rgba(124,158,130,.3);border-radius:var(--radius);color:var(--sage);">Review</span>
+    <span style="color:var(--text-dim);">→</span>
+    <span style="padding:.3em .8em;background:rgba(124,158,130,.1);border:1px solid rgba(124,158,130,.3);border-radius:var(--radius);color:var(--sage);">PUBLISHED</span>
+  </div>
+
+  <ul class="kv-list">
+    <li><span class="kv-key">Cluster</span><span class="kv-val">Nur mentolder</span></li>
+    <li><span class="kv-key">Review-UI</span><span class="kv-val"><code>https://web.mentolder.de/admin/knowledge/drafts</code></span></li>
+    <li><span class="kv-key">Coaching-Portal</span><span class="kv-val"><code>https://web.mentolder.de/portal/coaching</code></span></li>
+    <li><span class="kv-key">bge-m3 Embeddings</span><span class="kv-val">GPU-Host TEI:8081 — fail-closed wenn down</span></li>
+  </ul>
+
+  <div class="section-label mt-3">Phasen</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">1</span>
+        <span class="phase-title">Ingest</span>
+        <span class="phase-desc">PDF oder EPUB in pgvector laden</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">task</span> coaching:ingest -- &lt;datei.pdf&gt; &lt;slug&gt; [--title=<span class="st">"Buchtitel"</span>] [--author=<span class="st">"Autorenname"</span>]
+
+<span class="cm"># Beispiele:</span>
+<span class="fn">task</span> coaching:ingest -- /tmp/mein-buch.pdf systemische-aufstellung \
+  --title=<span class="st">"Systemische Aufstellung"</span> --author=<span class="st">"Max Mustermann"</span>
+
+<span class="fn">task</span> coaching:ingest -- /tmp/coaching.epub coaching-grundlagen</code></pre>
+        <p>Nach Ingest: Chunks mit Status <code>UNCLASSIFIED</code> in der DB.
+        Embeddings werden während Ingest erstellt (bge-m3 oder voyage je nach Collection-Config).</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">2</span>
+        <span class="phase-title">Classify</span>
+        <span class="phase-desc">UNCLASSIFIED → DRAFT via LLM</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># Einzelnes Buch klassifizieren</span>
+<span class="fn">task</span> coaching:classify -- --slug=&lt;slug&gt;
+
+<span class="cm"># Alle UNCLASSIFIED klassifizieren</span>
+<span class="fn">task</span> coaching:classify -- --all</code></pre>
+
+        <p><strong>LLM-Pfade (Priorität):</strong></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pfad</th><th>Beschreibung</th><th>Voraussetzung</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>A</strong> — Cluster llm-router</td>
+                <td>Bevorzugt — GPU-Host auf wg-mesh</td>
+                <td>GPU-Host erreichbar, LLM_ENABLED=true</td>
+              </tr>
+              <tr>
+                <td><strong>B</strong> — Anthropic API</td>
+                <td>Fallback wenn GPU-Host down</td>
+                <td>Anthropic API-Key gültig (prüfen!)</td>
+              </tr>
+              <tr>
+                <td><strong>C</strong> — WSL Ollama</td>
+                <td>Workaround wenn A + B nicht verfügbar</td>
+                <td>Lokaler Docker LiteLLM, direkt zu Ollama</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-warn">
+          <span class="callout-icon">&#9888;</span>
+          <div class="callout-body">
+            <strong>Anthropic-Key auf mentolder kann ungültig sein</strong> (401-Fehler).
+            Bei B-Pfad-Problemen: key rotieren via <code>secret-rotation</code> Typ E.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">3</span>
+        <span class="phase-title">Drafts reviewen</span>
+        <span class="phase-desc">Im Admin-UI oder per SQL</span>
+      </div>
+      <div class="phase-body">
+        <p><strong>Browser UI:</strong></p>
+        <pre><code><span class="cm"># URL</span>
+https://web.mentolder.de/admin/knowledge/drafts</code></pre>
+        <p>Aktionen im UI: Approve (→ PUBLISHED), Reject (→ gelöscht), Edit (Text bearbeiten)</p>
+
+        <p><strong>Bulk-Approve via SQL:</strong></p>
+        <pre><code><span class="cm">-- Alle Drafts eines Buches approven</span>
+<span class="kw">UPDATE</span> coaching.chunks
+<span class="kw">SET</span> status = <span class="st">'PUBLISHED'</span>, updated_at = now()
+<span class="kw">WHERE</span> book_slug = <span class="st">'&lt;slug&gt;'</span>
+  <span class="kw">AND</span> status = <span class="st">'DRAFT'</span>;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">4</span>
+        <span class="phase-title">Verfügbarkeit verifizieren</span>
+        <span class="phase-desc">SQL + Live-Test</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm">-- Status-Count prüfen</span>
+<span class="kw">SELECT</span> status, <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> coaching.chunks
+<span class="kw">WHERE</span> book_slug = <span class="st">'&lt;slug&gt;'</span>
+<span class="kw">GROUP BY</span> status;
+
+<span class="cm">-- Erwartetes Ergebnis: PUBLISHED = N, kein UNCLASSIFIED</span></code></pre>
+        <p>Live-Test: <code>https://web.mentolder.de/portal/coaching</code> →
+        Frage zum neuen Inhalt stellen → Antwort mit Quellenangabe erhalten.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMMON ISSUES -->
+  <div class="section-label mt-3">Häufige Probleme</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Ursache</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>classify hängt / keine Antwort</td>
+          <td>GPU-Host nicht erreichbar (wg-mesh)</td>
+          <td>GPU-Host prüfen; zu Anthropic-Fallback wechseln</td>
+        </tr>
+        <tr>
+          <td>401 bei classify</td>
+          <td>Anthropic API-Key ungültig auf mentolder</td>
+          <td><code>secret-rotation</code> Typ E für ANTHROPIC_API_KEY</td>
+        </tr>
+        <tr>
+          <td>MixedEmbeddingModelError</td>
+          <td>Cross-Collection-Query bge-m3 + voyage</td>
+          <td>Collections trennen; NIEMALS modell-übergreifend abfragen</td>
+        </tr>
+        <tr>
+          <td>TEI 503</td>
+          <td>GPU-Host down oder TEI-Container gestoppt</td>
+          <td>GPU-Host neu starten; voyage-Collections unberührt</td>
+        </tr>
+        <tr>
+          <td>Chunks bleiben UNCLASSIFIED</td>
+          <td><code>coaching:classify</code> nicht ausgeführt</td>
+          <td><code>task coaching:classify -- --slug=&lt;slug&gt;</code></td>
+        </tr>
+        <tr>
+          <td>Ingest fehlgeschlagen</td>
+          <td>Dateiformat nicht unterstützt oder Encoding-Fehler</td>
+          <td>PDF/EPUB validieren; ggf. re-exportieren</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EMBEDDING NOTE -->
+  <div class="callout callout-info">
+    <span class="callout-icon">&#8505;</span>
+    <div class="callout-body">
+      <strong>Embedding-Isolation:</strong>
+      bge-m3 verwendet TEI auf dem GPU-Host (Port 8081).
+      voyage-multilingual-2 verwendet Voyage AI direkt.
+      Diese beiden Vektor-Räume sind inkompatibel — nie in derselben Query mischen.
+    </div>
+  </div>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="knowledge-reindex.html" class="xref-card">
+      <span class="xref-name">knowledge-reindex</span>
+      <span class="xref-rel">Allgemeines Re-Indexing</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Anthropic API-Key rotieren</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Bei Classify-Ausfällen</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Post-Execution Anomalien</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/coaching-pipeline/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

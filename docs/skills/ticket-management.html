@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ticket-management — Ticket-Triage & Auflösung</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">ticket-management</span>
+  <div class="topnav-right">
+    <span class="badge badge-purple">Betrieb</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-purple">Betrieb</span>
+    <span class="badge-slug">ticket-management</span>
+  </div>
+  <h1 class="hero-title">Ticket-Triage &amp; Auflösung</h1>
+  <p class="hero-subtitle">
+    Triagiert und löst offene Tickets in der mentolder Tickets-Datenbank.
+    Kategorisiert nach Actionability, schließt Resolved/Obsolete in Batches,
+    behebt AI-fixbare Tickets autonom und leitet Human-needed mit konkreten Anfragen weiter.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Offene Tickets durcharbeiten, triagieren oder lösen
+  </div>
+</header>
+
+<main class="content">
+
+  <ul class="kv-list">
+    <li><span class="kv-key">Verbindung</span><span class="kv-val"><code>task workspace:psql ENV=mentolder -- website</code></span></li>
+    <li><span class="kv-key">Tabelle</span><span class="kv-val"><code>tickets.tickets</code></span></li>
+    <li><span class="kv-key">UI</span><span class="kv-val"><code>https://web.mentolder.de/admin/bugs</code></span></li>
+    <li><span class="kv-key">ID-Format</span><span class="kv-val"><code>BR-YYYYMMDD-xxxx</code></span></li>
+  </ul>
+
+  <!-- CONSTRAINTS -->
+  <div class="section-label mt-3">Gültige Feldwerte — NUR diese verwenden</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feld</th><th>Gültige Werte</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>status</code></td>
+          <td>
+            <span class="pill" style="background:rgba(122,143,192,.1);color:var(--blue);">triage</span>
+            <span class="pill" style="background:rgba(122,143,192,.1);color:var(--blue);">backlog</span>
+            <span class="pill" style="background:rgba(201,168,76,.1);color:var(--brass);">in_progress</span>
+            <span class="pill" style="background:rgba(155,126,200,.1);color:var(--purple);">in_review</span>
+            <span class="pill" style="background:rgba(107,101,96,.1);color:var(--gray);">blocked</span>
+            <span class="pill pill-green">done</span>
+            <span class="pill" style="background:rgba(107,101,96,.1);color:var(--text-dim);">archived</span>
+          </td>
+        </tr>
+        <tr>
+          <td><code>resolution</code></td>
+          <td>
+            <code>fixed</code> | <code>shipped</code> | <code>wontfix</code> | <code>duplicate</code> | <code>cant_reproduce</code> | <code>obsolete</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attention_mode</code></td>
+          <td><code>auto</code> | <code>ai_ready</code> | <code>needs_human</code></td>
+        </tr>
+        <tr>
+          <td><code>priority</code></td>
+          <td><code>hoch</code> | <code>mittel</code> | <code>niedrig</code></td>
+        </tr>
+        <tr>
+          <td><code>severity</code></td>
+          <td>
+            <span class="pill pill-critical">critical</span>
+            <span class="pill pill-major">major</span>
+            <span class="pill pill-minor">minor</span>
+            <span class="pill pill-trivial">trivial</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-critical">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Freie Textwerte für status/resolution sind ungültig.</strong>
+      Immer exakt einen der oben gelisteten Werte verwenden.
+    </div>
+  </div>
+
+  <!-- SESSION WORKFLOW -->
+  <div class="section-label mt-3">Session-Workflow</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">1</span>
+        <span class="phase-title">Offene Tickets holen</span>
+        <span class="phase-desc">Aktuelle Ticket-Liste</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="kw">SELECT</span> id, type, status, severity, priority,
+       attention_mode, title, created_at
+<span class="kw">FROM</span> tickets.tickets
+<span class="kw">WHERE</span> status <span class="kw">NOT IN</span> (<span class="st">'done'</span>, <span class="st">'archived'</span>)
+<span class="kw">ORDER BY</span>
+  <span class="kw">CASE</span> severity
+    <span class="kw">WHEN</span> <span class="st">'critical'</span> <span class="kw">THEN</span> 1
+    <span class="kw">WHEN</span> <span class="st">'major'</span>    <span class="kw">THEN</span> 2
+    <span class="kw">WHEN</span> <span class="st">'minor'</span>    <span class="kw">THEN</span> 3
+    <span class="kw">ELSE</span> 4
+  <span class="kw">END</span>,
+  created_at <span class="kw">DESC</span>;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">2</span>
+        <span class="phase-title">In 4 Buckets kategorisieren</span>
+        <span class="phase-desc">Vor jeder Aktion zeigen und bestätigen lassen</span>
+      </div>
+      <div class="phase-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Bucket</th><th>Kriterium</th><th>Aktion</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Bereits gelöst</strong></td>
+                <td>In production deployed, kein Ticket-Update</td>
+                <td>Batch-close: status=done, resolution=fixed/shipped</td>
+              </tr>
+              <tr>
+                <td><strong>Obsolet</strong></td>
+                <td>Nicht mehr relevant, Stack-Entfernung, Duplicate</td>
+                <td>Batch-close: resolution=obsolete/duplicate/wontfix</td>
+              </tr>
+              <tr>
+                <td><strong>AI-fixbar</strong></td>
+                <td>Klare Beschreibung, attention_mode=ai_ready, kein Hardware/Auth-Zugriff nötig</td>
+                <td>Fan-out: dev-flow-plan + dev-flow-execute</td>
+              </tr>
+              <tr>
+                <td><strong>Human needed</strong></td>
+                <td>Erfordert physischen Zugriff, Nutzer-Entscheidung, externe Credentials</td>
+                <td>attention_mode=needs_human + spezifische Anfrage</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-warn">
+          <span class="callout-icon">&#9888;</span>
+          <div class="callout-body">
+            <strong>Kategorisierung immer zuerst zeigen — dann Nutzer-Bestätigung abwarten.</strong>
+            Niemals blind schließen oder fixen.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">3</span>
+        <span class="phase-title">Batch-Close bereits gelöster Tickets</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="kw">UPDATE</span> tickets.tickets
+<span class="kw">SET</span>
+  status = <span class="st">'done'</span>,
+  resolution = <span class="st">'shipped'</span>,
+  comment = <span class="st">'Deployed in PR #&lt;NR&gt;'</span>,
+  updated_at = now()
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="st">'T######'</span>, <span class="st">'T######'</span>);</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">4</span>
+        <span class="phase-title">AI-fixbare Tickets parallel fixen</span>
+        <span class="phase-desc">Fan-out mit dev-flow-plan</span>
+      </div>
+      <div class="phase-body">
+        <p>Für jedes ai_ready-Ticket: <code>dev-flow-plan</code> auf einem <code>fix/T######-...</code>-Branch starten.
+        Bei unabhängigen Fixes: parallel ausführen (Skill: <code>superpowers:dispatching-parallel-agents</code>).</p>
+        <pre><code><span class="cm">-- Ticket auf in_progress setzen bevor Fix beginnt</span>
+<span class="kw">UPDATE</span> tickets.tickets
+<span class="kw">SET</span> status = <span class="st">'in_progress'</span>, updated_at = now()
+<span class="kw">WHERE</span> id = <span class="st">'T######'</span>;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">5</span>
+        <span class="phase-title">Human-needed Tickets kommentieren</span>
+        <span class="phase-desc">Spezifische Anfrage — keine vagen Notizen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="kw">UPDATE</span> tickets.tickets
+<span class="kw">SET</span>
+  attention_mode = <span class="st">'needs_human'</span>,
+  comment = <span class="st">'Benötige: &lt;spezifische Information/Entscheidung/Zugriff&gt;.
+Dann kann ich: &lt;was danach automatisch passiert&gt;.'</span>,
+  updated_at = now()
+<span class="kw">WHERE</span> id = <span class="st">'T######'</span>;</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMMON MISTAKES -->
+  <div class="section-label mt-3">Häufige Fehler</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Fehler</th><th>Warum falsch</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>In-Progress Plan-Tickets schließen</td>
+          <td>dev-flow-execute schreibt Status zurück — verursacht Konflikte</td>
+        </tr>
+        <tr>
+          <td>Freie Resolution-Texte verwenden</td>
+          <td>DB-Constraint-Fehler; nur die 6 validen Werte erlaubt</td>
+        </tr>
+        <tr>
+          <td>Vage needs_human-Notizen</td>
+          <td>"Nutzer muss entscheiden" ist nutzlos — spezifisch welche Entscheidung</td>
+        </tr>
+        <tr>
+          <td>Tests durch Assertions-Änderungen "fixen"</td>
+          <td>Rote Tests zeigen echte Bugs an — nie Symptom behandeln</td>
+        </tr>
+        <tr>
+          <td>Ohne Nutzer-Bestätigung handeln</td>
+          <td>Kategorisierung zuerst zeigen, dann auf Bestätigung warten</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="dev-flow-plan.html" class="xref-card">
+      <span class="xref-name">dev-flow-plan</span>
+      <span class="xref-rel">Fix-Branch für ai_ready Tickets</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Critical-Tickets sofort behandeln</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Neue Anomalien als Tickets materialisiern</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/ticket-management/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

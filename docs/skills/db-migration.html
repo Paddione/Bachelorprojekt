@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>db-migration — Schema-Migration</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">db-migration</span>
+  <div class="topnav-right">
+    <span class="badge badge-blue">Datenbank</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">Datenbank</span>
+    <span class="badge-slug">db-migration</span>
+  </div>
+  <h1 class="hero-title">Schema-Migration</h1>
+  <p class="hero-subtitle">
+    Schreibt, testet und wendet Schema-Migrationen auf beiden Prod-Clustern an.
+    Beide Cluster sind unabhängig — eine Migration auf mentolder propagiert nicht
+    automatisch nach korczewski.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Schema-Änderungen in PostgreSQL — neue Tabellen, Spalten, Views, Schema-Grants
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-critical">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Beide Cluster sind unabhängig.</strong>
+      Eine Migration auf mentolder propagiert NICHT automatisch nach korczewski.
+      Immer explizit auf beiden Clustern anwenden.
+    </div>
+  </div>
+
+  <ul class="kv-list">
+    <li><span class="kv-key">DB-Typ</span><span class="kv-val">PostgreSQL 16 — shared-db in Namespace workspace</span></li>
+    <li><span class="kv-key">Migration-Pfad</span><span class="kv-val"><code>scripts/datamodel/&lt;NNN&gt;_&lt;name&gt;.sql</code></span></li>
+    <li><span class="kv-key">ER-Diagramm</span><span class="kv-val"><code>task db:diagram</code></span></li>
+    <li><span class="kv-key">Datenbanken</span><span class="kv-val">keycloak, nextcloud, vaultwarden, website, docuseal</span></li>
+  </ul>
+
+  <div class="section-label mt-3">Phasen</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">1</span>
+        <span class="phase-title">Migration SQL schreiben</span>
+        <span class="phase-desc">Idempotent und transaktional</span>
+      </div>
+      <div class="phase-body">
+        <p><strong>Dateiname:</strong> <code>scripts/datamodel/&lt;NNN&gt;_&lt;beschreibung&gt;.sql</code></p>
+        <p>Regeln:</p>
+        <ul>
+          <li><code>IF NOT EXISTS</code> für alle DDL-Statements</li>
+          <li>In <code>BEGIN</code>/<code>COMMIT</code> wrappen</li>
+          <li>Niemals <code>DROP</code> ohne vorherigen Backup</li>
+          <li>Migrations sind idempotent — mehrfaches Ausführen sicher</li>
+        </ul>
+        <pre><code><span class="cm">-- scripts/datamodel/042_add_coaching_topics.sql</span>
+<span class="kw">BEGIN</span>;
+
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> coaching.topics (
+  id       uuid <span class="kw">PRIMARY KEY DEFAULT</span> gen_random_uuid(),
+  slug     text <span class="kw">NOT NULL UNIQUE</span>,
+  title    text <span class="kw">NOT NULL</span>,
+  created  timestamptz <span class="kw">DEFAULT</span> now()
+);
+
+<span class="kw">ALTER TABLE</span> coaching.chunks
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> topic_id uuid
+  <span class="kw">REFERENCES</span> coaching.topics(id);
+
+<span class="kw">COMMIT</span>;</code></pre>
+        <p><strong>Idempotenz-Check mit DO $$:</strong></p>
+        <pre><code><span class="kw">DO</span> $$ <span class="kw">BEGIN</span>
+  <span class="kw">IF NOT EXISTS</span> (
+    <span class="kw">SELECT</span> 1 <span class="kw">FROM</span> information_schema.columns
+    <span class="kw">WHERE</span> table_schema = <span class="st">'public'</span>
+      <span class="kw">AND</span> table_name = <span class="st">'my_table'</span>
+      <span class="kw">AND</span> column_name = <span class="st">'new_col'</span>
+  ) <span class="kw">THEN</span>
+    <span class="kw">ALTER TABLE</span> public.my_table <span class="kw">ADD COLUMN</span> new_col text;
+  <span class="kw">END IF</span>;
+<span class="kw">END</span> $$;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">2</span>
+        <span class="phase-title">Auf Dev testen</span>
+        <span class="phase-desc">Niemals zuerst auf Prod</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># Via task (sicher)</span>
+<span class="fn">task</span> workspace:psql ENV=dev -- website &lt; scripts/datamodel/&lt;NNN&gt;_&lt;name&gt;.sql
+
+<span class="cm"># Oder interaktiv</span>
+<span class="fn">task</span> workspace:psql ENV=dev -- website
+<span class="cm">-- \i scripts/datamodel/&lt;NNN&gt;_&lt;name&gt;.sql</span>
+
+<span class="cm"># Schema verifizieren</span>
+<span class="cm">-- \d tablename</span>
+<span class="cm">-- SELECT * FROM information_schema.columns WHERE table_name='...';</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">3</span>
+        <span class="phase-title">Auf mentolder anwenden</span>
+        <span class="phase-desc">Backup bei destruktiven Änderungen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># Bei destruktiven Änderungen: Backup zuerst</span>
+<span class="fn">task</span> workspace:backup ENV=mentolder
+
+<span class="cm"># Migration anwenden</span>
+<span class="fn">task</span> workspace:psql ENV=mentolder -- website &lt; scripts/datamodel/&lt;NNN&gt;_&lt;name&gt;.sql
+
+<span class="cm"># Verifizieren</span>
+<span class="fn">task</span> workspace:psql ENV=mentolder -- website
+<span class="cm">-- \d neues_schema</span>
+<span class="cm">-- SELECT COUNT(*) FROM neues_schema.tabelle;</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">4</span>
+        <span class="phase-title">Auf korczewski anwenden</span>
+        <span class="phase-desc">Separater Cluster — separat anwenden!</span>
+      </div>
+      <div class="phase-body">
+        <div class="callout callout-critical">
+          <span class="callout-icon">&#9888;</span>
+          <div class="callout-body">
+            Korczewski hat eine eigene shared-db. Die Migration von mentolder gilt NICHT automatisch hier.
+          </div>
+        </div>
+        <pre><code><span class="fn">task</span> workspace:psql ENV=korczewski -- website &lt; scripts/datamodel/&lt;NNN&gt;_&lt;name&gt;.sql
+
+<span class="cm"># Verifizieren</span>
+<span class="fn">task</span> workspace:psql ENV=korczewski -- website
+<span class="cm">-- SELECT COUNT(*) FROM neues_schema.tabelle;</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">5</span>
+        <span class="phase-title">Grants neu setzen</span>
+        <span class="phase-desc">Service-Rollen brauchen Rechte auf neuen Objekten</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm"># Auf beiden Clustern!</span>
+<span class="fn">task</span> workspace:fix-tickets-grants ENV=mentolder
+<span class="fn">task</span> workspace:fix-tickets-grants ENV=korczewski</code></pre>
+        <p>Grants manuell (falls Schema-Grant nötig):</p>
+        <pre><code><span class="kw">GRANT USAGE ON SCHEMA</span> neues_schema <span class="kw">TO</span> website;
+<span class="kw">GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA</span> neues_schema <span class="kw">TO</span> website;
+<span class="kw">ALTER DEFAULT PRIVILEGES IN SCHEMA</span> neues_schema
+  <span class="kw">GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO</span> website;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">6</span>
+        <span class="phase-title">ER-Diagramm aktualisieren</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">task</span> db:diagram</code></pre>
+        <p>Generiertes Diagramm in <code>docs/db-schema-diagram.md</code> committen.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">7</span>
+        <span class="phase-title">Migration &amp; Diagramm committen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">git</span> add scripts/datamodel/&lt;NNN&gt;_&lt;name&gt;.sql docs/db-schema-diagram.md
+<span class="fn">git</span> commit -m <span class="st">"chore(db): add &lt;NNN&gt; migration — &lt;kurzbeschreibung&gt;"</span></code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMMON PATTERNS -->
+  <div class="section-label mt-3">Häufige SQL-Muster</div>
+  <pre><code><span class="cm">-- Spalte hinzufügen mit Default</span>
+<span class="kw">ALTER TABLE</span> schema.table
+  <span class="kw">ADD COLUMN IF NOT EXISTS</span> neue_spalte text <span class="kw">DEFAULT</span> <span class="st">''</span> <span class="kw">NOT NULL</span>;
+
+<span class="cm">-- Schema mit Rollen-Zugriff erstellen</span>
+<span class="kw">CREATE SCHEMA IF NOT EXISTS</span> neues_schema;
+<span class="kw">GRANT USAGE ON SCHEMA</span> neues_schema <span class="kw">TO</span> website;
+
+<span class="cm">-- View erstellen (idempotent)</span>
+<span class="kw">CREATE OR REPLACE VIEW</span> schema.meine_view <span class="kw">AS</span>
+  <span class="kw">SELECT</span> id, title, created_at <span class="kw">FROM</span> schema.tabelle;
+
+<span class="cm">-- Index hinzufügen</span>
+<span class="kw">CREATE INDEX IF NOT EXISTS</span> idx_tabelle_spalte
+  <span class="kw">ON</span> schema.tabelle(spalte);</code></pre>
+
+  <!-- ROLLBACK -->
+  <div class="section-label mt-3">Rollback</div>
+  <div class="callout callout-info">
+    <span class="callout-icon">&#8505;</span>
+    <div class="callout-body">
+      <strong>DDL ist in PostgreSQL transaktional.</strong> Wenn die Migration in <code>BEGIN/COMMIT</code>
+      gewickelt ist und fehlschlägt, wird automatisch zurückgerollt.
+      Bei bereits angewendeten Migrationen: Backup-Restore (<code>task workspace:restore</code>).
+    </div>
+  </div>
+  <pre><code><span class="cm"># Backup-Liste anzeigen</span>
+<span class="fn">task</span> workspace:backup:list ENV=mentolder
+
+<span class="cm"># Einzelne DB restoren</span>
+<span class="fn">task</span> workspace:restore -- website &lt;timestamp&gt; ENV=mentolder</code></pre>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="backup-check.html" class="xref-card">
+      <span class="xref-name">backup-check</span>
+      <span class="xref-rel">Backup vor destruktiven Änderungen</span>
+    </a>
+    <a href="knowledge-reindex.html" class="xref-card">
+      <span class="xref-name">knowledge-reindex</span>
+      <span class="xref-rel">Nach Schema-Änderungen an knowledge-Tabellen</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Bei Migration-Fehlern auf Prod</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Post-Execution Anomalien</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/db-migration/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

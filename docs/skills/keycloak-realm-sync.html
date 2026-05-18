@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>keycloak-realm-sync — Keycloak Realm-Synchronisation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">keycloak-realm-sync</span>
+  <div class="topnav-right">
+    <span class="badge badge-red">Sicherheit</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-red">Sicherheit</span>
+    <span class="badge-slug">keycloak-realm-sync</span>
+  </div>
+  <h1 class="hero-title">Keycloak Realm-Synchronisation</h1>
+  <p class="hero-subtitle">
+    Synchronisiert den Keycloak-Realm-Zustand mit den JSON-Definitionen.
+    Kein direktes UI-Bearbeiten ohne gleichzeitiges JSON-Update — sonst driften
+    Realm-State und IaC-Definition auseinander.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Neue OIDC-Clients, geänderte Redirect-URIs, Mapper-Probleme, SSO-Login-Fehler
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-critical">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>Niemals Realm-State in Keycloak UI editieren ohne JSON zu aktualisieren.</strong>
+      UI-Only-Änderungen werden beim nächsten <code>keycloak:sync</code> überschrieben.
+    </div>
+  </div>
+
+  <ul class="kv-list">
+    <li><span class="kv-key">dev</span><span class="kv-val"><code>k3d/realm-workspace-dev.json</code></span></li>
+    <li><span class="kv-key">mentolder</span><span class="kv-val"><code>prod-mentolder/realm-workspace-mentolder.json</code></span></li>
+    <li><span class="kv-key">korczewski</span><span class="kv-val"><code>prod-korczewski/realm-workspace-korczewski.json</code></span></li>
+    <li><span class="kv-key">SSO-Flow</span><span class="kv-val">Keycloak → Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code, Arena</span></li>
+  </ul>
+
+  <div class="section-label mt-3">Phasen</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">1</span>
+        <span class="phase-title">Pre-Sync Check</span>
+        <span class="phase-desc">Keycloak Pod muss Running sein</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">kubectl</span> get pods -n workspace -l app=keycloak
+<span class="fn">task</span> workspace:logs ENV=&lt;env&gt; -- keycloak</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">2</span>
+        <span class="phase-title">Realm JSON bearbeiten</span>
+        <span class="phase-desc">Wenn Änderungen nötig</span>
+      </div>
+      <div class="phase-body">
+        <p>Häufig geänderte Felder:</p>
+        <ul>
+          <li><code>redirectUris</code> — nach URL-Änderungen</li>
+          <li><code>webOrigins</code> — für CORS</li>
+          <li><code>protocolMappers</code> — User-Attribute in Token</li>
+          <li><code>groups</code> — Gruppen-Definitionen</li>
+        </ul>
+        <pre><code><span class="cm"># JSON validieren vor Sync</span>
+<span class="fn">python3</span> -c "import json; json.load(open('prod-mentolder/realm-workspace-mentolder.json'))"</code></pre>
+        <p>Wichtige Client-Konfigurationen:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client</th><th>Redirect Pattern</th><th>Besonderheit</th></tr></thead>
+            <tbody>
+              <tr><td>website</td><td><code>https://web.&lt;domain&gt;/*</code></td><td>Messaging + Coaching</td></tr>
+              <tr><td>nextcloud</td><td><code>https://files.&lt;domain&gt;/*</code></td><td>Files + Talk</td></tr>
+              <tr><td>vaultwarden</td><td><code>https://vault.&lt;domain&gt;/*</code></td><td>Passwort-Manager</td></tr>
+              <tr><td>docuseal</td><td><code>https://sign.&lt;domain&gt;/*</code></td><td>Signaturen</td></tr>
+              <tr><td>tracking</td><td><code>https://tracking.&lt;domain&gt;/*</code></td><td>Projekt-Tracking</td></tr>
+              <tr><td>claude-code</td><td><code>https://claude.&lt;domain&gt;/*</code></td><td>AI-Assistant</td></tr>
+              <tr><td>arena</td><td><code>https://arena-ws.&lt;domain&gt;/*</code></td><td>Multiplayer (korczewski only)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">3</span>
+        <span class="phase-title">Sync ausführen</span>
+        <span class="phase-desc">Realm-JSON auf Cluster anwenden</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">task</span> keycloak:sync ENV=&lt;env&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">4</span>
+        <span class="phase-title">Protocol Mappers sicherstellen</span>
+        <span class="phase-desc">Immer nach keycloak:sync</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">bash</span> scripts/keycloak-ensure-mappers.sh &lt;env&gt;</code></pre>
+        <p>Dieser Script stellt sicher, dass alle erforderlichen Protocol Mapper
+        (User-Attribute, Gruppen-Mitgliedschaften) in den Clients konfiguriert sind.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">5</span>
+        <span class="phase-title">OIDC-Clients verifizieren</span>
+        <span class="phase-desc">Redirect-URIs aller Clients prüfen</span>
+      </div>
+      <div class="phase-body">
+        <p>Im Keycloak Admin-UI oder via API prüfen:</p>
+        <pre><code><span class="cm"># Keycloak Admin-API (Token holen)</span>
+<span class="vr">KC_TOKEN</span>=$(curl -s -X POST \
+  https://auth.&lt;domain&gt;/realms/master/protocol/openid-connect/token \
+  -d "grant_type=password&client_id=admin-cli&username=admin&password=&lt;pw&gt;" \
+  | jq -r .access_token)
+
+<span class="cm"># Clients listen</span>
+<span class="fn">curl</span> -s -H "Authorization: Bearer $KC_TOKEN" \
+  "https://auth.&lt;domain&gt;/admin/realms/workspace/clients" | jq '.[].clientId'</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">6</span>
+        <span class="phase-title">SSO-Flow testen</span>
+        <span class="phase-desc">Incognito-Browser-Login</span>
+      </div>
+      <div class="phase-body">
+        <p>Im Incognito-Fenster testen:</p>
+        <ul>
+          <li><code>https://web.&lt;domain&gt;</code> → Login-Redirect zu Keycloak → Zurück zur Website</li>
+          <li><code>https://files.&lt;domain&gt;</code> → Nextcloud OIDC-Login</li>
+          <li><code>https://vault.&lt;domain&gt;</code> → Vaultwarden SSO</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red" style="background:rgba(192,84,77,.15);color:var(--red);border:1px solid rgba(192,84,77,.3);">7</span>
+        <span class="phase-title">Gruppen-Mitgliedschaften prüfen</span>
+        <span class="phase-desc">Besonders /dev-access für dev.mentolder.de</span>
+      </div>
+      <div class="phase-body">
+        <p>Dev-Cluster-Zugriff wird über <code>/dev-access</code>-Gruppe enforced.
+        Nutzer ohne diese Gruppe bekommen 403-Loop beim Login auf dev.mentolder.de.</p>
+        <pre><code><span class="cm"># In Keycloak Admin-UI:</span>
+<span class="cm"># Users → &lt;user&gt; → Groups → /dev-access hinzufügen</span></code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- POST-SYNC ISSUES -->
+  <div class="section-label mt-3">Post-Sync Fehler &amp; Lösungen</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Ursache</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Login-Loop nach Sync</td>
+          <td>Falsche redirectUris im JSON</td>
+          <td>JSON korrigieren, erneut syncen</td>
+        </tr>
+        <tr>
+          <td>Nextcloud OIDC-Error</td>
+          <td>Client-Secret-Mismatch</td>
+          <td>Secret-Rotation (Typ E) für Nextcloud-Client</td>
+        </tr>
+        <tr>
+          <td>"Invalid client secret"</td>
+          <td>Secret rotiert aber SealedSecret nicht aktualisiert</td>
+          <td><code>secret-rotation</code> Skill ausführen</td>
+        </tr>
+        <tr>
+          <td>403 auf dev.mentolder.de</td>
+          <td>Nutzer nicht in /dev-access Gruppe</td>
+          <td>Gruppe in KC Admin-UI hinzufügen</td>
+        </tr>
+        <tr>
+          <td>Arena JWT-Fehler</td>
+          <td>Realm-Key-ID stimmt nicht überein</td>
+          <td>Arena-Server neu starten, JWT-Algo prüfen</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Verbundene Skills</div>
+  <div class="xref-grid">
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Client-Secrets rotieren</span>
+    </a>
+    <a href="new-environment.html" class="xref-card">
+      <span class="xref-name">new-environment</span>
+      <span class="xref-rel">Initialer Realm-Setup</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Login-Ausfälle</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Post-Execution Anomalien</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/keycloak-realm-sync/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

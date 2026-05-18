@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mishap-tracker — Mishap-Log → Tickets</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">mishap-tracker</span>
+  <div class="topnav-right">
+    <span class="badge badge-gray">Querschnitt</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-gray">Querschnitt</span>
+    <span class="badge-slug">mishap-tracker</span>
+  </div>
+  <h1 class="hero-title">Mishap-Log → Tickets</h1>
+  <p class="hero-subtitle">
+    Konsumiert MISHAP_LOG-Einträge aus anderen Skills und materialisiert sie als
+    Tickets in der mentolder Postgres-Datenbank. Passiver Side-Effect —
+    wird niemals direkt aufgerufen.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span>
+    Automatisch aus Post-Execution-Section anderer Skills — NIEMALS direkt aufrufen
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-critical">
+    <span class="callout-icon">&#9888;</span>
+    <div class="callout-body">
+      <strong>NIEMALS direkt aufrufen.</strong>
+      Dieser Skill ist ausschließlich für die Post-Execution-Section anderer Skills vorgesehen.
+      Er hat keine eigenen Trigger-Bedingungen und kein direktes Interface.
+    </div>
+  </div>
+
+  <!-- ROLE EXPLANATION -->
+  <div class="section-label mt-3">Rolle im System</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
+      <div style="color:var(--text-muted);font-size:.78rem;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em;">Produzenten</div>
+      <p style="font-size:.85rem;">Alle anderen Skills pflegen während der Ausführung ein MISHAP_LOG. Sie notieren dort Anomalien, Abweichungen und potenzielle Probleme.</p>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
+      <div style="color:var(--text-muted);font-size:.78rem;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em;">Konsument</div>
+      <p style="font-size:.85rem;">mishap-tracker ist der einzige Konsument. Er liest das MISHAP_LOG am Ende jeder Skill-Ausführung und erstellt Tickets aus den Einträgen.</p>
+    </div>
+  </div>
+
+  <div class="section-label">Ablauf</div>
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-gray" style="background:rgba(107,101,96,.15);color:var(--gray);border:1px solid rgba(107,101,96,.3);">1</span>
+        <span class="phase-title">MISHAP_LOG prüfen</span>
+        <span class="phase-desc">Gibt es Einträge?</span>
+      </div>
+      <div class="phase-body">
+        <p>Falls MISHAP_LOG leer ist:</p>
+        <pre><code>Keine Mishaps gefunden. ✓</code></pre>
+        <p>Dann sofort stoppen — kein Ticket wird erstellt.</p>
+        <p>Falls Einträge vorhanden: Weiter mit Schritt 2.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-gray" style="background:rgba(107,101,96,.15);color:var(--gray);border:1px solid rgba(107,101,96,.3);">2</span>
+        <span class="phase-title">Severity-Mapping</span>
+        <span class="phase-desc">MISHAP_LOG-Typ → Ticket-Felder</span>
+      </div>
+      <div class="phase-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>MISHAP_LOG type</th>
+                <th>tickets.type</th>
+                <th>tickets.severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>broken</code></td>
+                <td><code>bug</code></td>
+                <td><span class="pill pill-major">major</span></td>
+              </tr>
+              <tr>
+                <td><code>degraded</code></td>
+                <td><code>bug</code></td>
+                <td><span class="pill pill-minor">minor</span></td>
+              </tr>
+              <tr>
+                <td><code>suspicious</code></td>
+                <td><code>task</code></td>
+                <td><span class="pill pill-minor">minor</span></td>
+              </tr>
+              <tr>
+                <td><code>security</code></td>
+                <td><code>bug</code></td>
+                <td><span class="pill pill-critical">critical</span></td>
+              </tr>
+              <tr>
+                <td><code>drift</code></td>
+                <td><code>task</code></td>
+                <td><span class="pill pill-trivial">trivial</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-gray" style="background:rgba(107,101,96,.15);color:var(--gray);border:1px solid rgba(107,101,96,.3);">3</span>
+        <span class="phase-title">Tickets in Postgres INSERT</span>
+        <span class="phase-desc">Für jeden MISHAP_LOG-Eintrag</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="cm">-- Verbindung: kubectl exec auf shared-db, mentolder Cluster</span>
+<span class="cm">-- psql -U website -d website</span>
+
+<span class="kw">INSERT INTO</span> tickets.tickets (
+  type,        <span class="cm">-- per Mapping-Tabelle</span>
+  brand,       <span class="cm">-- 'mentolder'</span>
+  status,      <span class="cm">-- 'triage'</span>
+  severity,    <span class="cm">-- per Mapping-Tabelle</span>
+  title,       <span class="cm">-- aus MISHAP_LOG-Eintrag</span>
+  description, <span class="cm">-- Eintrag + betroffene Komponente</span>
+  attention_mode <span class="cm">-- 'ai_ready' oder 'needs_human'</span>
+) <span class="kw">VALUES</span> (
+  &lt;type&gt;,
+  <span class="st">'mentolder'</span>,
+  <span class="st">'triage'</span>,
+  &lt;severity&gt;,
+  <span class="st">'[Auto] &lt;mishap-titel&gt;'</span>,
+  <span class="st">'Automatisch erkannt während &lt;skill-name&gt;.
+Komponente: &lt;betroffene-komponente&gt;
+Details: &lt;mishap-beschreibung&gt;'</span>,
+  <span class="st">'ai_ready'</span>
+);</code></pre>
+        <p><strong>Verbindungs-Methode:</strong></p>
+        <pre><code><span class="fn">kubectl</span> exec -n workspace deploy/shared-db -- \
+  psql -U website -d website -c <span class="st">"INSERT INTO ..."</span></code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MISHAP LOG FORMAT -->
+  <div class="section-label mt-3">MISHAP_LOG Format (für Skill-Autoren)</div>
+  <p>Jeder Skill, der Anomalien während der Ausführung erkennt, schreibt ins MISHAP_LOG:</p>
+  <pre><code><span class="cm"># MISHAP_LOG Eintrag-Struktur:</span>
+MISHAP_LOG += {
+  type: <span class="st">"broken"</span> | <span class="st">"degraded"</span> | <span class="st">"suspicious"</span> | <span class="st">"security"</span> | <span class="st">"drift"</span>,
+  component: <span class="st">"keycloak"</span> | <span class="st">"shared-db"</span> | <span class="st">"livekit"</span> | ...,
+  title: <span class="st">"Kurzer Titel"</span>,
+  description: <span class="st">"Ausführliche Beschreibung was beobachtet wurde"</span>
+}</code></pre>
+
+  <!-- EXAMPLES -->
+  <div class="section-label mt-3">Beispiel-Einträge</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Skill</th><th>Typ</th><th>Beispiel-Titel</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>backup-check</code></td>
+          <td><code>broken</code></td>
+          <td>CronJob db-backup suspended auf korczewski</td>
+        </tr>
+        <tr>
+          <td><code>livekit-setup</code></td>
+          <td><code>drift</code></td>
+          <td>DNS livekit.mentolder.de zeigt auf falschen Node</td>
+        </tr>
+        <tr>
+          <td><code>secret-rotation</code></td>
+          <td><code>security</code></td>
+          <td>Anthropic API-Key gibt 401 auf mentolder</td>
+        </tr>
+        <tr>
+          <td><code>deployment-assist</code></td>
+          <td><code>suspicious</code></td>
+          <td>Pod OOMKilled 3x in letzten 24h</td>
+        </tr>
+        <tr>
+          <td><code>db-migration</code></td>
+          <td><code>drift</code></td>
+          <td>Schema-Version auf korczewski hinter mentolder</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- NOTE ON DESIGN -->
+  <div class="callout callout-note">
+    <span class="callout-icon">&#8505;</span>
+    <div class="callout-body">
+      <strong>Design-Philosophie:</strong>
+      mishap-tracker entkoppelt Anomalie-Erkennung (in den Skills verteilt) von der
+      Ticket-Erstellung (zentralisiert hier). Skills müssen sich nicht um Datenbankverbindungen
+      kümmern — sie loggen nur. mishap-tracker macht daraus strukturierte, trackbare Tickets.
+    </div>
+  </div>
+
+  <!-- CROSS REFS -->
+  <div class="section-label mt-3">Aufgerufen von (alle Skills)</div>
+  <div class="xref-grid">
+    <a href="dev-flow-plan.html" class="xref-card">
+      <span class="xref-name">dev-flow-plan</span>
+      <span class="xref-rel">Produzent</span>
+    </a>
+    <a href="dev-flow-execute.html" class="xref-card">
+      <span class="xref-name">dev-flow-execute</span>
+      <span class="xref-rel">Produzent</span>
+    </a>
+    <a href="deployment-assist.html" class="xref-card">
+      <span class="xref-name">deployment-assist</span>
+      <span class="xref-rel">Produzent</span>
+    </a>
+    <a href="backup-check.html" class="xref-card">
+      <span class="xref-name">backup-check</span>
+      <span class="xref-rel">Produzent</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Produzent</span>
+    </a>
+    <a href="ticket-management.html" class="xref-card">
+      <span class="xref-name">ticket-management</span>
+      <span class="xref-rel">Konsumiert die erstellten Tickets</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/mishap-tracker/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

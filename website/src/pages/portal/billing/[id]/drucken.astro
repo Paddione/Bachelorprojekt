@@ -1,7 +1,8 @@
 ---
-import { getSession, getLoginUrl } from '../../../../lib/auth';
+import { getSession } from '../../../../lib/auth';
 import { getFullInvoice } from '../../../../lib/stripe-billing';
 import { getSiteSetting } from '../../../../lib/website-db';
+import { getCustomerByEmail } from '../../../../lib/native-billing';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -52,7 +53,10 @@ function fmtEur(n: number): string {
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const addr = inv.buyerAddress;
+const dbCustomer = inv.customerEmail ? await getCustomerByEmail(brand, inv.customerEmail).catch(() => null) : null;
+const customerNumber = dbCustomer?.customerNumber ?? null;
+const addr = dbCustomer ? { line1: dbCustomer.addressLine1, postalCode: dbCustomer.postalCode, city: dbCustomer.city } : null;
+const buyerVatId = dbCustomer?.vatNumber ?? null;
 ---
 
 <!DOCTYPE html>
@@ -79,7 +83,7 @@ const addr = inv.buyerAddress;
       --mono:        "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
-    /* ── B&W print overrides ── */
+    /* ── B&W print overrides — everything readable without colour ── */
     @media print {
       :root {
         --brass-print: #111111;
@@ -135,12 +139,14 @@ const addr = inv.buyerAddress;
       position: relative; overflow: hidden;
       font-size: 10pt; line-height: 1.45;
     }
+    /* warm brass halo top-right */
     .paper-doc::before {
       content: ""; position: absolute; right: -30mm; top: -30mm;
       width: 120mm; height: 120mm;
       background: radial-gradient(closest-side, oklch(0.80 0.09 75 / .16), transparent 70%);
       pointer-events: none;
     }
+    /* sage halo bottom-left */
     .paper-doc::after {
       content: ""; position: absolute; left: -30mm; bottom: -30mm;
       width: 120mm; height: 120mm;
@@ -301,7 +307,7 @@ const addr = inv.buyerAddress;
   <div class="no-print">
     <button class="btn-print" onclick="window.print()">Drucken / PDF ↓</button>
     {inv.hostedUrl && (
-      <a class="btn-stripe" href={inv.hostedUrl} target="_blank" rel="noopener">Online bezahlen ↗</a>
+      <a class="btn-stripe" href={inv.hostedUrl} target="_blank" rel="noopener">Stripe ↗</a>
     )}
   </div>
 
@@ -312,6 +318,7 @@ const addr = inv.buyerAddress;
       <div class="inv-head">
         <div>
           <div class="brand-row">
+            <!-- inline icon -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="width:42px;height:42px;border-radius:10px;flex-shrink:0">
               <defs>
                 <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
@@ -340,6 +347,12 @@ const addr = inv.buyerAddress;
         <div class="meta-block">
           <div class="lab">Rechnungsnummer</div>
           <div class="num">{inv.number}</div>
+          {customerNumber && (
+            <>
+              <div class="lab" style="margin-top:3mm">Kundennummer</div>
+              <div class="val">{customerNumber}</div>
+            </>
+          )}
           <div class="lab" style="margin-top:3mm">Datum</div>
           <div class="val">{fmtDate(inv.date)}</div>
           {inv.dueDate && (
@@ -348,10 +361,10 @@ const addr = inv.buyerAddress;
               <div class="val">{fmtDate(inv.dueDate)}</div>
             </>
           )}
-          {inv.buyerVatId && (
+          {buyerVatId && (
             <>
               <div class="lab" style="margin-top:2mm">USt-IdNr. Empfänger</div>
-              <div class="val">{inv.buyerVatId}</div>
+              <div class="val">{buyerVatId}</div>
             </>
           )}
         </div>
@@ -395,10 +408,10 @@ const addr = inv.buyerAddress;
           </tr>
         </thead>
         <tbody>
-          {inv.lines.map(line => (
+          {inv.items.map(line => (
             <tr>
               <td><div class="desc">{line.description}</div></td>
-              <td class="right">{fmtEur(line.amountNet)} €</td>
+              <td class="right">{fmtEur(line.amount)} €</td>
             </tr>
           ))}
         </tbody>
@@ -442,7 +455,7 @@ const addr = inv.buyerAddress;
         </div>
       </div>
 
-      <!-- ── thank-you note ── -->
+      <!-- ── thank-you ── -->
       <div class="thanks">
         <div class="seal">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">

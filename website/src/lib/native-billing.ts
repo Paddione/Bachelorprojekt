@@ -8,6 +8,7 @@ export { initBillingTables };
 
 export interface Customer {
   id: string; brand: string; name: string; email: string;
+  customerNumber?: string;
   company?: string; addressLine1?: string; city?: string;
   postalCode?: string; landIso: string; vatNumber?: string;
   sepaIban?: string; sepaBic?: string;
@@ -382,6 +383,7 @@ function mapCustomer(row: Record<string, unknown>): Customer {
   return {
     id: row.id as string, brand: row.brand as string,
     name: row.name as string, email: row.email as string,
+    customerNumber: (row.customer_number as string) ?? undefined,
     company: (row.company as string) ?? undefined,
     addressLine1: (row.address_line1 as string) ?? undefined,
     city: (row.city as string) ?? undefined,

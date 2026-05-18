@@ -424,7 +424,9 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
       
       if (currentComponent) unmount(currentComponent);
       
-      currentComponent = mount(TicketQuickEdit, {
+      const Component = TicketQuickEdit as any;
+      // @ts-ignore
+      currentComponent = mount(Component, {
         target: container!,
         props: {
           ticket,

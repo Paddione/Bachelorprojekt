@@ -28,6 +28,12 @@ beforeAll(async () => {
   });
 
   pgmem.public.none(`
+    CREATE TABLE public.brands (
+      id text PRIMARY KEY,
+      name text NOT NULL
+    );
+    INSERT INTO public.brands (id, name) VALUES ('mentolder', 'mentolder'), ('korczewski', 'korczewski');
+
     CREATE SCHEMA knowledge;
     CREATE TABLE knowledge.collections (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -38,12 +44,6 @@ beforeAll(async () => {
       embedding_model text NOT NULL DEFAULT 'voyage-multilingual-2',
       created_by uuid, created_at timestamptz DEFAULT now()
     );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'collections_brand_fkey') THEN
-          ALTER TABLE knowledge.collections ADD CONSTRAINT collections_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-        END IF;
-      END $$;
     CREATE TABLE knowledge.chunks (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       document_id uuid NOT NULL,

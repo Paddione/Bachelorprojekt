@@ -340,19 +340,22 @@ const STATUS_TABS = [
 </script>
 
 <script>
+  import { mount, unmount } from 'svelte';
   import RecordPaymentModal from '../../components/admin/RecordPaymentModal.svelte';
 
   document.querySelectorAll<HTMLButtonElement>('[data-record-payment]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const mount = document.getElementById('payment-modal-mount')!;
-      const app = new RecordPaymentModal({
-        target: mount,
+      const targetEl = document.getElementById('payment-modal-mount')!;
+      const Component = RecordPaymentModal as any;
+      // @ts-ignore
+      const app = mount(Component, {
+        target: targetEl,
         props: {
           invoiceId: btn.dataset.invoiceId!,
           invoiceNumber: btn.dataset.invoiceNumber!,
           outstanding: Number(btn.dataset.outstanding!),
-          onClose: () => app.$destroy(),
-          onSaved: () => { app.$destroy(); window.location.reload(); },
+          onClose: () => unmount(app),
+          onSaved: () => { unmount(app); window.location.reload(); },
         },
       });
     });

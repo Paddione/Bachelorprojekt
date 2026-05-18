@@ -1546,7 +1546,8 @@ data:
         name            TEXT NOT NULL UNIQUE,
         description     TEXT,
         source          TEXT NOT NULL CHECK (source IN
-                          ('pr_history','specs_plans','claude_md','bug_tickets','custom')),
+                          ('pr_history','specs_plans','claude_md','bug_tickets','custom','web_crawl')),
+        crawl_config    JSONB,
         brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         chunk_count     INT NOT NULL DEFAULT 0,
         last_indexed_at TIMESTAMPTZ,
@@ -1609,7 +1610,8 @@ data:
         name            TEXT NOT NULL UNIQUE,
         description     TEXT,
         source          TEXT NOT NULL CHECK (source IN
-                          ('pr_history','specs_plans','claude_md','bug_tickets','custom')),
+                          ('pr_history','specs_plans','claude_md','bug_tickets','custom','web_crawl')),
+        crawl_config    JSONB,
         brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         chunk_count     INT NOT NULL DEFAULT 0,
         last_indexed_at TIMESTAMPTZ,

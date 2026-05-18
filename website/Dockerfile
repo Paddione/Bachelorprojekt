@@ -34,6 +34,10 @@ COPY --from=build /app/src/assets ./src/assets
 COPY --chown=node:node tests ./tests
 RUN chmod +x tests/runner.sh tests/lib/*.sh tests/local/*.sh 2>/dev/null || true
 
+# Include knowledge crawler scripts for the web-crawl API route
+COPY scripts/knowledge/ /app/scripts/knowledge/
+RUN cd /app/scripts/knowledge && npm install --production 2>/dev/null || true
+
 ENV HOST=0.0.0.0
 ENV PORT=4321
 EXPOSE 4321

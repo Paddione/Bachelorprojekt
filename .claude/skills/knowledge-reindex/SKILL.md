@@ -147,6 +147,44 @@ task secrets:sync
 
 ---
 
+## Web-Quellen crawlen
+
+Web-crawl collections are NOT re-indexed via `task knowledge:reindex` — they use a separate task.
+
+### From CLI (with port-forward)
+
+```bash
+# Find the collection UUID:
+task workspace:psql ENV=mentolder -- website <<'SQL'
+SELECT id, name, crawl_config->>'startUrl' AS start_url
+FROM knowledge.collections
+WHERE source = 'web_crawl';
+SQL
+
+# Run the crawler:
+task knowledge:crawl ENV=mentolder COLLECTION_ID=<uuid>
+
+# Optional overrides:
+START_URL=https://other-url.com MAX_PAGES=50 task knowledge:crawl ENV=mentolder COLLECTION_ID=<uuid>
+```
+
+### From Admin UI
+
+Navigate to `/admin/wissensquellen` → "Web-Quellen" table → click **"Crawl starten"** next to the collection.
+
+The crawl runs in the background; the collection's `chunk_count` and `last_indexed_at` update when it finishes.
+
+### Failure modes
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| 0 pages crawled | robots.txt blocks all paths, or URL unreachable | Check robots.txt at `<startUrl>/robots.txt`; verify URL |
+| Script exits with "No startUrl configured" | `crawl_config` not set in DB | Use PATCH `/api/admin/knowledge/collections/<id>/crawl-config` or recreate collection |
+| Embedding error | VOYAGE_API_KEY missing or TEI down | Check env var / GPU host as per embedding model isolation section above |
+| 409 from API | Another crawl already running | Wait for it to finish (check pod logs) |
+
+---
+
 ## When to reindex
 
 | Event | Reindex needed? |

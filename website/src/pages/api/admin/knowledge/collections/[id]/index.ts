@@ -17,7 +17,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     await deleteCollection(params.id!);
     return new Response(null, { status: 204 });
   } catch (err: unknown) {
-    if (err instanceof Error && /custom/i.test(err.message))
+    if (err instanceof Error && err.message.startsWith('cannot delete'))
       return new Response(JSON.stringify({ error: err.message }), { status: 403 });
     if (err instanceof Error && err.message === 'not_found')
       return new Response(JSON.stringify({ error: err.message }), { status: 404 });

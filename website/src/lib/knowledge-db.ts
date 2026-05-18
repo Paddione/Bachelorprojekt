@@ -32,7 +32,15 @@ function p(): Pool {
 
 export function __setPoolForTests(testPool: Pool): void { _pool = testPool; }
 
-export type CollectionSource = 'pr_history' | 'specs_plans' | 'claude_md' | 'bug_tickets' | 'custom';
+export type CollectionSource = 'pr_history' | 'specs_plans' | 'claude_md' | 'bug_tickets' | 'custom' | 'web_crawl';
+
+export interface CrawlConfig {
+  startUrl: string;
+  maxDepth?: number;
+  maxPages?: number;
+  includePattern?: string;
+  userAgent?: string;
+}
 
 export interface Collection {
   id: string;
@@ -44,6 +52,7 @@ export interface Collection {
   last_indexed_at: Date | null;
   embedding_model: string;
   created_at: Date;
+  crawl_config: CrawlConfig | null;
 }
 
 export interface Document {
@@ -60,7 +69,7 @@ export interface ChunkInput { position: number; text: string; embedding: number[
 export async function listCollections(): Promise<Collection[]> {
   const r = await p().query(
     `SELECT id, name, description, source, brand, chunk_count,
-            last_indexed_at, embedding_model, created_at
+            last_indexed_at, embedding_model, created_at, crawl_config
        FROM knowledge.collections
       ORDER BY source, name`,
   );
@@ -70,7 +79,7 @@ export async function listCollections(): Promise<Collection[]> {
 export async function getCollection(id: string): Promise<Collection | null> {
   const r = await p().query(
     `SELECT id, name, description, source, brand, chunk_count,
-            last_indexed_at, embedding_model, created_at
+            last_indexed_at, embedding_model, created_at, crawl_config
        FROM knowledge.collections WHERE id = $1`,
     [id],
   );
@@ -79,16 +88,20 @@ export async function getCollection(id: string): Promise<Collection | null> {
 
 export async function createCollection(args: {
   name: string; source: CollectionSource; description?: string; brand?: string | null;
-  createdBy?: string | null; embeddingModel?: EmbeddingModel;
+  createdBy?: string | null; embeddingModel?: EmbeddingModel; crawlConfig?: CrawlConfig | null;
 }): Promise<Collection> {
   const model: EmbeddingModel = args.embeddingModel
     ?? (process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2');
   const r = await p().query(
-    `INSERT INTO knowledge.collections (name, source, description, brand, created_by, embedding_model)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO knowledge.collections (name, source, description, brand, created_by, embedding_model, crawl_config)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
      RETURNING id, name, description, source, brand, chunk_count,
-               last_indexed_at, embedding_model, created_at`,
-    [args.name, args.source, args.description ?? null, args.brand ?? null, args.createdBy ?? null, model],
+               last_indexed_at, embedding_model, created_at, crawl_config`,
+    [
+      args.name, args.source, args.description ?? null, args.brand ?? null,
+      args.createdBy ?? null, model,
+      args.crawlConfig ? JSON.stringify(args.crawlConfig) : null,
+    ],
   );
   return r.rows[0];
 }
@@ -96,8 +109,17 @@ export async function createCollection(args: {
 export async function deleteCollection(id: string): Promise<void> {
   const c = await getCollection(id);
   if (!c) throw new Error('not_found');
-  if (c.source !== 'custom') throw new Error('cannot delete non-custom collection');
+  if (c.source !== 'custom' && c.source !== 'web_crawl')
+    throw new Error('cannot delete non-custom collection');
   await p().query('DELETE FROM knowledge.collections WHERE id = $1', [id]);
+}
+
+export async function updateCrawlConfig(id: string, config: CrawlConfig): Promise<void> {
+  const result = await p().query(
+    `UPDATE knowledge.collections SET crawl_config = $2::jsonb WHERE id = $1`,
+    [id, JSON.stringify(config)],
+  );
+  if (result.rowCount === 0) throw new Error('not_found');
 }
 
 export async function addDocument(args: {

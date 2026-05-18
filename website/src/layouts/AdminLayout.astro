@@ -128,10 +128,12 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Coaching',
     items: [
-      { href: '/admin/coaching/sessions',     label: 'Sessions',     icon: 'clipboard',
+      { href: '/admin/coaching/projekte',      label: 'Projekte',         icon: 'folder',
+        matches: ['/admin/coaching/projekte'] },
+      { href: '/admin/coaching/sessions',      label: 'Sessions',         icon: 'clipboard',
         matches: ['/admin/coaching/sessions'] },
-      { href: '/admin/coaching/sessions/new', label: 'Neue Session', icon: 'plus' },
-      { href: '/admin/coaching/settings',     label: 'KI-Einstellungen', icon: 'settings',
+      { href: '/admin/coaching/sessions/new',  label: 'Neue Session',     icon: 'plus' },
+      { href: '/admin/coaching/settings',      label: 'KI-Einstellungen', icon: 'settings',
         matches: ['/admin/coaching/settings'] },
     ],
   },

@@ -163,7 +163,13 @@
         {#each sessions as s (s.id)}
           <tr class={s.archivedAt ? 'archived-row' : ''}>
             <td><a href={`/admin/coaching/sessions/${s.id}`}>{s.title}</a></td>
-            <td>{s.clientName ?? s.clientId ?? '—'}</td>
+            <td>
+              {#if s.clientName}
+                {s.clientName}{#if s.customerNumber} <span class="customer-number">({s.customerNumber})</span>{/if}
+              {:else}
+                —
+              {/if}
+            </td>
             <td>{fmtDate(s.createdAt)}</td>
             <td>
               {#if !s.archivedAt}
@@ -244,4 +250,5 @@
   .page-btn { padding: 0.3rem 0.6rem; border: 1px solid var(--line,#444); border-radius: 4px; background: none; color: var(--text-muted,#888); cursor: pointer; font-size: 0.82rem; }
   .page-btn.active { border-color: var(--gold,#c9a55c); color: var(--gold,#c9a55c); }
   .loading, .empty { text-align: center; color: var(--text-muted,#888); padding: 2rem; }
+  .customer-number { font-size: 0.75rem; color: var(--text-muted,#888); }
 </style>

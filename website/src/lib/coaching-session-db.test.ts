@@ -31,12 +31,31 @@ beforeAll(async () => {
       }),
   });
   db.public.none(`
+    CREATE TABLE customers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      customer_number TEXT
+    );
     CREATE SCHEMA coaching;
+    CREATE TABLE coaching.projects (
+      id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      brand           TEXT NOT NULL,
+      client_id       UUID REFERENCES customers(id),
+      customer_number TEXT NOT NULL,
+      display_alias   TEXT,
+      ki_context      TEXT,
+      notes           TEXT,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE UNIQUE INDEX coaching_projects_brand_client_idx
+      ON coaching.projects (brand, client_id);
     CREATE TABLE coaching.sessions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       brand TEXT NOT NULL DEFAULT 'mentolder',
       client_id UUID,
       client_name TEXT,
+      project_id UUID REFERENCES coaching.projects(id),
       ki_config_id INT,
       mode TEXT NOT NULL DEFAULT 'live',
       title TEXT NOT NULL,
@@ -255,5 +274,16 @@ describe('deleteSession', () => {
   it('gibt false zurück bei unbekannter id', async () => {
     const result = await deleteSession(pool, '00000000-0000-4000-8000-000000000099');
     expect(result).toBe(false);
+  });
+});
+
+describe('Session mit project_id', () => {
+  it('speichert und liest projectId + clientName', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Projekt-Test', createdBy: 'coach',
+      mode: 'live', clientName: 'Müller, Max', projectId: null,
+    });
+    expect(s.clientName).toBe('Müller, Max');
+    expect(s.projectId).toBeNull();
   });
 });

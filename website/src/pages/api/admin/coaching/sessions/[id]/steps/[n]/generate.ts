@@ -5,6 +5,7 @@ import { getSession as getCoachingSession, upsertStep, appendAuditLog } from '..
 import { getActiveProvider, getKiProviderById } from '../../../../../../../../lib/coaching-ki-config-db';
 import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../../lib/coaching-templates-db';
 import { getStepDef, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
+import { getProject } from '../../../../../../../../lib/coaching-project-db';
 import { pool } from '../../../../../../../../lib/website-db';
 
 export const prerender = false;
@@ -28,6 +29,18 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   // Session-spezifischen KI-Provider laden oder auf aktiven zurückfallen
   const coachingSession = await getCoachingSession(pool, sessionId);
+
+  // Projekt-Kontext und Anonymisierung
+  let customerNumber: string | null = null;
+  let projectKiContext: string | null = null;
+  if (coachingSession?.projectId) {
+    try {
+      const project = await getProject(pool, coachingSession.projectId);
+      customerNumber = project?.customerNumber ?? null;
+      projectKiContext = project?.kiContext ?? null;
+    } catch { /* Projekt-Fehler blockieren keine KI-Anfrage */ }
+  }
+
   const activeProvider = coachingSession?.kiConfigId
     ? (await getKiProviderById(pool, coachingSession.kiConfigId)) ?? await getActiveProvider(pool, brand)
     : await getActiveProvider(pool, brand);
@@ -56,7 +69,17 @@ export const POST: APIRoute = async ({ request, params }) => {
   let aiResponse: string;
 
   // System-Prompt aus KI-Profil überschreibt Template-Prompt, wenn gesetzt
-  const effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
+  let effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
+  if (customerNumber) {
+    effectiveSystem = effectiveSystem.replace(/\{\{KLIENT_ID\}\}/g, customerNumber);
+  }
+  if (projectKiContext) {
+    effectiveSystem = `${projectKiContext}\n\n${effectiveSystem}`;
+  }
+
+  const anonymizedUserPrompt = customerNumber
+    ? `Klient ${customerNumber}:\n${userPrompt}`
+    : userPrompt;
 
   try {
     if (providerName === 'claude') {
@@ -73,7 +96,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         temperature: activeProvider?.temperature ?? undefined,
         top_p: activeProvider?.topP ?? undefined,
         top_k: activeProvider?.topK ?? undefined,
-        messages: [{ role: 'user', content: userPrompt }],
+        messages: [{ role: 'user', content: anonymizedUserPrompt }],
       } as Parameters<typeof client.messages.create>[0]);
       aiResponse = msg.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map(b => b.text).join('');
     } else if (providerName === 'openai') {
@@ -92,7 +115,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         top_p: activeProvider?.topP ?? undefined,
         presence_penalty: activeProvider?.presencePenalty ?? undefined,
         frequency_penalty: activeProvider?.frequencyPenalty ?? undefined,
-        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: userPrompt }],
+        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: anonymizedUserPrompt }],
       });
       aiResponse = resp.choices[0]?.message.content ?? '';
     } else if (providerName === 'mistral') {
@@ -110,7 +133,7 @@ export const POST: APIRoute = async ({ request, params }) => {
         topP: activeProvider?.topP ?? undefined,
         randomSeed: activeProvider?.randomSeed ?? undefined,
         safePrompt: activeProvider?.safePrompt ?? false,
-        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: userPrompt }],
+        messages: [{ role: 'system', content: effectiveSystem }, { role: 'user', content: anonymizedUserPrompt }],
       });
       aiResponse = (resp.choices?.[0]?.message.content as string) ?? '';
     } else if (providerName === 'lumo') {
@@ -127,13 +150,13 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   const step = await upsertStep(pool, {
     sessionId, stepNumber, stepName, phase,
-    coachInputs: body.coachInputs, aiPrompt: userPrompt, aiResponse, status: 'generated',
+    coachInputs: body.coachInputs, aiPrompt: anonymizedUserPrompt, aiResponse, status: 'generated',
   });
 
   await appendAuditLog(pool, {
     sessionId, eventType: 'ai_request', actor: session.preferred_username,
     stepNumber,
-    payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: userPrompt, response: aiResponse, duration_ms: durationMs },
+    payload: { provider: providerName, model: activeProvider?.modelName ?? '?', prompt: anonymizedUserPrompt, response: aiResponse, duration_ms: durationMs },
   });
 
   return new Response(JSON.stringify({ step }), { headers: { 'content-type': 'application/json' } });

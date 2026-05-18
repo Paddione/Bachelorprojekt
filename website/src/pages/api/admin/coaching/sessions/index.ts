@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { createSession, listSessions } from '../../../../../lib/coaching-session-db';
+import { findOrCreateProject } from '../../../../../lib/coaching-project-db';
 import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;
@@ -34,9 +35,29 @@ export const POST: APIRoute = async ({ request }) => {
   if (!body.title?.trim()) {
     return new Response(JSON.stringify({ error: 'title required' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
+
+  // Klientenname nachschlagen
+  let clientName: string | null = body.clientName ?? null;
+  if (body.clientId && !clientName) {
+    try {
+      const cr = await pool.query(`SELECT name FROM customers WHERE id = $1`, [body.clientId]);
+      clientName = (cr.rows[0]?.name as string | null) ?? null;
+    } catch { /* ignore */ }
+  }
+
+  // Projekt auto-anlegen oder finden
+  let projectId: string | null = null;
+  if (body.clientId) {
+    try {
+      const project = await findOrCreateProject(pool, brand, body.clientId);
+      projectId = project.id;
+    } catch { /* projekt-fehler blockieren keine Session */ }
+  }
+
   const created = await createSession(pool, {
     brand, title: body.title, createdBy: session.preferred_username,
-    clientId: body.clientId ?? null, kiConfigId: body.kiConfigId ?? null, mode: body.mode ?? 'live',
+    clientId: body.clientId ?? null, clientName, projectId,
+    kiConfigId: body.kiConfigId ?? null, mode: body.mode ?? 'live',
   });
   return new Response(JSON.stringify({ session: created }), { status: 201, headers: { 'content-type': 'application/json' } });
 };

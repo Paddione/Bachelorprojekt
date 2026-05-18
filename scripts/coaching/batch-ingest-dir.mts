@@ -38,11 +38,15 @@ export async function scanAndDedup(dir: string): Promise<Omit<FileCandidate, 're
   const allFiles = await collectFiles(dir);
   const supported = allFiles.filter((f) => SUPPORTED_EXTS.has(extname(f).toLowerCase()));
 
-  const hashed = await Promise.all(supported.map(async (f) => {
+  const hashed = (await Promise.all(supported.map(async (f) => {
     const buf = await readFile(f);
+    if (buf.length === 0) {
+      console.warn(`[batch-ingest] skipping empty file (0 bytes): ${basename(f)}`);
+      return null;
+    }
     const hash = createHash('sha256').update(buf).digest('hex');
     return { filePath: f, filename: basename(f), sha256: hash };
-  }));
+  }))).filter((x): x is NonNullable<typeof x> => x !== null);
 
   const byHash = new Map<string, typeof hashed[0]>();
   for (const entry of hashed) {

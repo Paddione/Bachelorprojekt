@@ -48,6 +48,21 @@ test('scanAndDedup: deduplicates identical content, prefers clean name', async (
   }
 });
 
+test('scanAndDedup: skips 0-byte files', async () => {
+  const dir = join(tmpdir(), `empty-test-${Date.now()}`);
+  await mkdir(dir);
+  try {
+    await writeFile(join(dir, 'empty.doc'), '');
+    await writeFile(join(dir, 'real.pdf'), 'pdf content');
+
+    const results = await scanAndDedup(dir);
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].filename, 'real.pdf');
+  } finally {
+    await rm(dir, { recursive: true });
+  }
+});
+
 test('scanAndDedup: skips images and .mm files', async () => {
   const dir = join(tmpdir(), `skip-test-${Date.now()}`);
   await mkdir(dir);

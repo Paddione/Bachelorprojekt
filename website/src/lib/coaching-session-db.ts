@@ -21,7 +21,7 @@ export interface Session {
 export interface AuditEntry {
   id: string;
   sessionId: string;
-  eventType: 'status_change' | 'field_change' | 'ai_request' | 'notes_change';
+  eventType: 'status_change' | 'field_change' | 'ai_request' | 'notes_change' | 'tool_invocation';
   actor: string;
   stepNumber: number | null;
   payload: Record<string, unknown>;

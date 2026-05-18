@@ -156,7 +156,7 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
       crawlTimers.set(btn, timer);
     }
 
-    document.querySelectorAll('[data-crawl]').forEach(btn => {
+    document.querySelectorAll('[data-crawl]').forEach(async btn => {
       btn.addEventListener('click', async () => {
         if (crawlTimers.has(btn)) return;
         const id = btn.dataset.crawl;
@@ -177,6 +177,16 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
           btn.textContent = 'Crawl starten';
         }
       });
+
+      // Check on load if already running
+      const id = btn.dataset.crawl;
+      try {
+        const r = await fetch(`/api/admin/knowledge/collections/${id}/crawl`);
+        const j = await r.json().catch(() => ({ running: false }));
+        if (j.running) {
+          startCrawlPolling(btn);
+        }
+      } catch (e) {}
     });
 
     document.querySelectorAll('[data-delete]').forEach(btn => {

@@ -862,7 +862,7 @@ export async function initServiceConfigTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'service_config_brand_fkey') THEN
-          ALTER TABLE service_config ADD CONSTRAINT service_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE service_config ADD CONSTRAINT service_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -900,7 +900,7 @@ export async function initLeistungenConfigTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'leistungen_config_brand_fkey') THEN
-          ALTER TABLE leistungen_config ADD CONSTRAINT leistungen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE leistungen_config ADD CONSTRAINT leistungen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -940,7 +940,7 @@ export async function initSiteSettingsTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'site_settings_brand_fkey') THEN
-          ALTER TABLE site_settings ADD CONSTRAINT site_settings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE site_settings ADD CONSTRAINT site_settings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -1004,7 +1004,7 @@ export async function initLegalPagesTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'legal_pages_brand_fkey') THEN
-          ALTER TABLE legal_pages ADD CONSTRAINT legal_pages_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE legal_pages ADD CONSTRAINT legal_pages_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -1064,7 +1064,7 @@ export async function initReferenzenTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referenzen_config_brand_fkey') THEN
-          ALTER TABLE referenzen_config ADD CONSTRAINT referenzen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE referenzen_config ADD CONSTRAINT referenzen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -2554,7 +2554,7 @@ async function initBookingProjectLinks(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'booking_project_links_brand_fkey') THEN
-          ALTER TABLE booking_project_links ADD CONSTRAINT booking_project_links_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE booking_project_links ADD CONSTRAINT booking_project_links_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -2582,7 +2582,7 @@ async function initBookingInvoiceLinksTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'booking_invoice_links_brand_fkey') THEN
-          ALTER TABLE booking_invoice_links ADD CONSTRAINT booking_invoice_links_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE booking_invoice_links ADD CONSTRAINT booking_invoice_links_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -2705,7 +2705,7 @@ async function initSlotWhitelistTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'slot_whitelist_brand_fkey') THEN
-          ALTER TABLE slot_whitelist ADD CONSTRAINT slot_whitelist_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE slot_whitelist ADD CONSTRAINT slot_whitelist_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -2786,7 +2786,7 @@ async function initFreeTimeWindowsTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'free_time_windows_brand_fkey') THEN
-          ALTER TABLE free_time_windows ADD CONSTRAINT free_time_windows_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE free_time_windows ADD CONSTRAINT free_time_windows_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3157,7 +3157,7 @@ async function initInvoiceCountersTable(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'invoice_counters_brand_fkey') THEN
-          ALTER TABLE invoice_counters ADD CONSTRAINT invoice_counters_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE invoice_counters ADD CONSTRAINT invoice_counters_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3684,7 +3684,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_customers_brand_fkey') THEN
-          ALTER TABLE billing_customers ADD CONSTRAINT billing_customers_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_customers ADD CONSTRAINT billing_customers_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3768,7 +3768,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_invoices_brand_fkey') THEN
-          ALTER TABLE billing_invoices ADD CONSTRAINT billing_invoices_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_invoices ADD CONSTRAINT billing_invoices_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3815,7 +3815,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_invoice_dunnings_brand_fkey') THEN
-          ALTER TABLE billing_invoice_dunnings ADD CONSTRAINT billing_invoice_dunnings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_invoice_dunnings ADD CONSTRAINT billing_invoice_dunnings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3846,7 +3846,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_invoice_payments_brand_fkey') THEN
-          ALTER TABLE billing_invoice_payments ADD CONSTRAINT billing_invoice_payments_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_invoice_payments ADD CONSTRAINT billing_invoice_payments_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3873,7 +3873,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_quotes_brand_fkey') THEN
-          ALTER TABLE billing_quotes ADD CONSTRAINT billing_quotes_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_quotes ADD CONSTRAINT billing_quotes_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3901,7 +3901,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_nachweis_brand_fkey') THEN
-          ALTER TABLE billing_nachweis ADD CONSTRAINT billing_nachweis_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_nachweis ADD CONSTRAINT billing_nachweis_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3940,7 +3940,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'billing_suppliers_brand_fkey') THEN
-          ALTER TABLE billing_suppliers ADD CONSTRAINT billing_suppliers_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE billing_suppliers ADD CONSTRAINT billing_suppliers_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -3968,7 +3968,7 @@ export async function initBillingTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'supplier_invoices_brand_fkey') THEN
-          ALTER TABLE supplier_invoices ADD CONSTRAINT supplier_invoices_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE supplier_invoices ADD CONSTRAINT supplier_invoices_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -4114,7 +4114,7 @@ export async function initTaxMonitorTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tax_mode_changes_brand_fkey') THEN
-          ALTER TABLE tax_mode_changes ADD CONSTRAINT tax_mode_changes_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE tax_mode_changes ADD CONSTRAINT tax_mode_changes_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -4141,7 +4141,7 @@ export async function initEurTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'eur_bookings_brand_fkey') THEN
-          ALTER TABLE eur_bookings ADD CONSTRAINT eur_bookings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE eur_bookings ADD CONSTRAINT eur_bookings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);
@@ -4167,7 +4167,7 @@ export async function initEurTables(): Promise<void> {
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'assets_brand_fkey') THEN
-          ALTER TABLE assets ADD CONSTRAINT assets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+          ALTER TABLE assets ADD CONSTRAINT assets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
   `);

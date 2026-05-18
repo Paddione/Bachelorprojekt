@@ -1,6 +1,11 @@
 // brett/public/assets/scene.js
 // Extracted from inline <script> in index.html during Phase 1 refactor.
 // Remains monolithic until Phase 3 splits it further.
+import * as THREE from '../three.min.js';
+import { concrete } from './materials.js';
+
+let scene; // hoisted so setLightIntensity export can reference it
+
 (function () {
     // ===== Brett Mannequin Focus =====
     window.STATE = { figures: [], selectedId: null, hoveredId: null, stiffness: 0.65, online: 1 };
@@ -13,7 +18,7 @@
     renderer.domElement.style.left = '0';
     document.body.appendChild(renderer.domElement);
 
-    const scene = new THREE.Scene();
+    scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0e1014);
 
     const camera = new THREE.PerspectiveCamera(
@@ -22,19 +27,22 @@
     camera.position.set(4, 4, 6);
     camera.lookAt(0, 1, 0);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-    scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
-    sun.position.set(5, 10, 4);
-    scene.add(sun);
+    scene.add(new THREE.HemisphereLight(0x6fa8d8, 0x0b111c, 0.35)); // stille-blau / ink
+    const key = new THREE.DirectionalLight(0xf0d28c, 0.5);
+    key.position.set(8, 12, 6);
+    key.userData.baseIntensity = 0.5;
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0x6fa8d8, 0.15);
+    fill.position.set(-6, 4, -8);
+    fill.userData.baseIntensity = 0.15;
+    scene.add(fill);
 
     // Floor grid
     const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
     grid.position.y = 0;
     scene.add(grid);
     const floorGeo = new THREE.PlaneGeometry(40, 40);
-    const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
+    const floor = new THREE.Mesh(floorGeo, concrete);
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = 0;
     scene.add(floor);
@@ -980,3 +988,12 @@
     console.log('[brett] scene up');
 
 })();
+
+export function setLightIntensity(mode) {
+  const factor = mode === 'coaching' ? 1.2 : 1.0;
+  scene.traverse(o => {
+    if (o.isLight && o.userData.baseIntensity != null) {
+      o.intensity = o.userData.baseIntensity * factor;
+    }
+  });
+}

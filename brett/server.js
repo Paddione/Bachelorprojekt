@@ -233,6 +233,8 @@ const RELAY_TYPES = [
   'hit','vehicle_spawn',
   'hp_update','player_death','player_respawn',
   'obstacle_layout','game_mode_change',
+  'damage_event','death_event','pickup_request','pickup_taken','pickup_spawned',
+  'snapshot','request_state_snapshot',
 ];
 
 const TRANSIENT_TYPES = new Set([
@@ -292,6 +294,19 @@ const DEBOUNCE_MS = 1000;
 // Server-side authoritative figure list per room (mirrors connected clients' state).
 // Each room holds a Map<id, figure>.
 const figureMaps = new Map();   // roomToken -> Map<id, figure>
+
+const pickupState = new Map(); // room -> Map<pickupId, {id, kind, pos, takenBy, respawnAt}>
+
+function ensurePickups(room) {
+  if (!pickupState.has(room)) pickupState.set(room, new Map());
+  return pickupState.get(room);
+}
+
+function spawnPickup(room, id, kind, pos, wss) { // eslint-disable-line no-unused-vars
+  const m = ensurePickups(room);
+  m.set(id, { id, kind, pos, takenBy: null, respawnAt: null });
+  broadcast(room, { type: 'pickup_spawned', id, kind, pos }, null);
+}
 
 function ensureFigureMap(room) {
   if (!figureMaps.has(room)) figureMaps.set(room, new Map());
@@ -413,6 +428,29 @@ wss.on('connection', (ws) => {
 
       if (msg.type === 'pong') { ws.isAlive = true; return; }
 
+      if (msg.type === 'damage_event') {
+        broadcast(ws._room, msg, ws);
+        return;
+      }
+      if (msg.type === 'death_event') {
+        broadcast(ws._room, msg, ws);
+        return;
+      }
+      if (msg.type === 'pickup_request') {
+        const pickups = ensurePickups(ws._room);
+        const p = pickups.get(msg.id);
+        if (!p || p.takenBy) return;
+        p.takenBy = ws._playerId ?? 'unknown';
+        p.respawnAt = Date.now() + (msg.respawnMs || 30_000);
+        broadcast(ws._room, { type: 'pickup_taken', id: msg.id, by: p.takenBy });
+        setTimeout(() => {
+          p.takenBy = null;
+          p.respawnAt = null;
+          broadcast(ws._room, { type: 'pickup_spawned', id: p.id, kind: p.kind, pos: p.pos });
+        }, msg.respawnMs || 30_000);
+        return;
+      }
+
       if (msg.type === 'request_state_snapshot') {
         const room = ws._room;
         if (!room) return;
@@ -425,6 +463,13 @@ wss.on('connection', (ws) => {
             stiffness: state.stiffness ?? 0.65,
           }));
         }
+        // Also send current pickup positions
+        const pickups = ensurePickups(room);
+        pickups.forEach(p => {
+          if (!p.takenBy) {
+            try { ws.send(JSON.stringify({ type: 'pickup_spawned', id: p.id, kind: p.kind, pos: p.pos })); } catch {}
+          }
+        });
         return;
       }
 
@@ -545,4 +590,5 @@ module.exports = {
   applyMutation, buildStateFromMutations, figureMaps,
   handleDisconnect,
   RELAY_TYPES, TRANSIENT_TYPES, lmsAlive, handleLmsDeath,
+  pickupState, ensurePickups, spawnPickup,
 };

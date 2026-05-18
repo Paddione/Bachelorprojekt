@@ -84,10 +84,9 @@
   }
 
   const KNOWN_FIELD_MAP: Record<string, string[]> = {
-    claude:  ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'topK', 'thinkingMode', 'systemPrompt', 'notes'],
     openai:  ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'presencePenalty', 'frequencyPenalty', 'organizationId', 'systemPrompt', 'notes'],
     mistral: ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'topK', 'safePrompt', 'randomSeed', 'euEndpoint', 'systemPrompt', 'notes'],
-    lumo:    ['euEndpoint', 'notes'],
+    lumo:    ['apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'systemPrompt', 'notes'],
   };
 
   function showField(p: KiConfig, field: string): boolean {
@@ -96,7 +95,7 @@
   }
 
   const PROVIDER_BADGE: Record<string, string> = {
-    claude: 'Anthropic', openai: 'OpenAI', mistral: 'Mistral AI', lumo: 'Lumo',
+    openai: 'OpenAI', mistral: 'Mistral AI', lumo: 'Lumo',
   };
 
   function providerBadgeLabel(p: KiConfig): string {
@@ -297,15 +296,6 @@
             <label class="field-label">Name / Label
               <input type="text" bind:value={providerFields.displayName} />
             </label>
-            {#if editingProvider.provider === 'lumo'}
-              <div class="lumo-info">
-                <strong>Lumo (Proton)</strong> hat derzeit keine öffentliche API — das Profil dient als Platzhalter.
-              </div>
-              <label class="checkbox-label">
-                <input type="checkbox" bind:checked={providerFields.euEndpoint} />
-                EU-Endpunkt verwenden (DSGVO)
-              </label>
-            {:else}
               {#if showField(editingProvider, 'modelName')}
                 <label class="field-label">Modell
                   <input type="text" bind:value={providerFields.modelName} placeholder="leer = Standardmodell" />
@@ -324,7 +314,7 @@
                 </label>
               {/if}
               {#if showField(editingProvider, 'apiEndpoint')}
-                <label class="field-label">API-Endpunkt (optional)
+                <label class="field-label">API-Endpunkt{editingProvider.provider === 'lumo' ? '' : ' (optional)'}
                   <input type="url" bind:value={providerFields.apiEndpoint} placeholder="https://api.example.com/v1" />
                 </label>
               {/if}
@@ -339,14 +329,10 @@
                   EU-Endpunkt verwenden
                 </label>
               {/if}
-            {/if}
           </div>
         {:else}
           <div class="edit-section">
-            {#if editingProvider.provider === 'lumo'}
-              <p class="lumo-info">Lumo unterstützt derzeit keine konfigurierbaren Verhaltenparameter.</p>
-            {:else}
-              <div class="field-row">
+            <div class="field-row">
                 {#if showField(editingProvider, 'temperature')}
                   <label class="field-label">Temperature (0.0–2.0)
                     <input type="number" step="0.01" min="0" max="2" bind:value={providerFields.temperature} placeholder="leer = Standard" />
@@ -402,7 +388,6 @@
                   <textarea rows="5" bind:value={providerFields.systemPrompt} placeholder="Optionaler System-Prompt…"></textarea>
                 </label>
               {/if}
-            {/if}
             {#if showField(editingProvider, 'notes')}
               <label class="field-label">Notiz / Freitext
                 <textarea rows="2" bind:value={providerFields.notes} placeholder="Interne Beschreibung…"></textarea>
@@ -570,7 +555,6 @@
   .btn-activate:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .provider-badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; letter-spacing: 0.03em; }
-  .provider-badge.claude  { background: #7c3aed22; color: #a78bfa; border: 1px solid #7c3aed44; }
   .provider-badge.openai  { background: #16a34a22; color: #4ade80; border: 1px solid #16a34a44; }
   .provider-badge.mistral { background: #ea580c22; color: #fb923c; border: 1px solid #ea580c44; }
   .provider-badge.lumo    { background: #0891b222; color: #38bdf8; border: 1px solid #0891b244; }
@@ -596,7 +580,6 @@
   .api-key-row { display: flex; gap: 0.4rem; align-items: center; }
   .api-key-input { flex: 1; }
   .btn-icon { padding: 0.4rem 0.6rem; background: var(--bg-2,#1a1a1a); border: 1px solid var(--line,#333); border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-  .lumo-info { background: #0891b211; border: 1px solid #0891b244; border-radius: 8px; padding: 0.9rem 1rem; color: #38bdf8; font-size: 0.85rem; line-height: 1.5; }
   .fields-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.4rem 1rem; margin-top: 0.4rem; }
   code { font-family: monospace; background: var(--bg-dark,#111); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.85em; }
 

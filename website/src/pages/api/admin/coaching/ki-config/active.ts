@@ -12,7 +12,7 @@ export const PATCH: APIRoute = async ({ request }) => {
   try { body = await request.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
-  const allowed: KiConfig['provider'][] = ['claude', 'openai', 'mistral', 'lumo'];
+  const allowed: KiConfig['provider'][] = ['openai', 'mistral', 'lumo'];
   if (!allowed.includes(body.provider as KiConfig['provider'])) {
     return new Response(JSON.stringify({ error: 'Invalid provider' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }

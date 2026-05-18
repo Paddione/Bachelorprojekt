@@ -55,6 +55,29 @@ export class LegacySessionAgent implements SessionAgent {
       });
       aiResponse = (resp.choices?.[0]?.message?.content as string) ?? '';
 
+    } else if (provider === 'claude' || provider === 'lumo' || provider.startsWith('custom_')) {
+      // OpenAI-compatible path: used for local llm-router (claude), Lumo, and custom endpoints.
+      // apiEndpoint in the config must point to an OpenAI-compatible /v1 base URL.
+      const apiKey = kiConfig.apiKey ?? 'not-required';
+      const endpoint = kiConfig.apiEndpoint;
+      if (!endpoint) throw new Error(`Provider '${provider}': apiEndpoint muss gesetzt sein`);
+      const { default: OpenAI } = await import('openai');
+      const client = new OpenAI({ apiKey, baseURL: endpoint });
+      const resolvedModel = kiConfig.modelName ?? 'llama3';
+      const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+        { role: 'system', content: effectiveSystemPrompt },
+        ...history.map(t => ({ role: t.role as 'user' | 'assistant', content: t.content })),
+        { role: 'user', content: assembledUserPrompt },
+      ];
+      const resp = await client.chat.completions.create({
+        model: resolvedModel,
+        max_tokens: kiConfig.maxTokens ?? 600,
+        temperature: kiConfig.temperature ?? undefined,
+        top_p: kiConfig.topP ?? undefined,
+        messages,
+      });
+      aiResponse = resp.choices[0]?.message.content ?? '';
+
     } else {
       throw new Error(`LegacySessionAgent: unsupported provider '${provider}'`);
     }

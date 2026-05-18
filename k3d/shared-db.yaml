@@ -213,14 +213,7 @@ spec:
               mountPath: /docker-entrypoint-initdb.d/02-meetings-schema.sh
               subPath: init-meetings-schema.sh
             - name: website-schema
-              mountPath: /scripts/ensure-meetings-schema.sh
-              subPath: ensure-meetings-schema.sh
-            - name: website-schema
-              mountPath: /scripts/ensure-bachelorprojekt-schema.sh
-              subPath: ensure-bachelorprojekt-schema.sh
-            - name: website-schema
-              mountPath: /scripts/ensure-knowledge-schema.sh
-              subPath: ensure-knowledge-schema.sh
+              mountPath: /scripts
             - name: website-schema
               mountPath: /docker-entrypoint-initdb.d/03-init-knowledge-schema.sh
               subPath: init-knowledge-schema.sh

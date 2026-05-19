@@ -5,7 +5,6 @@ import { getInboxItem, updateInboxItemStatus, deleteInboxItem } from '../../../.
 import { createUser, sendPasswordResetEmail } from '../../../../../lib/keycloak';
 import { createCalendarEvent } from '../../../../../lib/caldav';
 import { createTalkRoom, inviteGuestByEmail, sendChatMessage } from '../../../../../lib/talk';
-import { scheduleReminder } from '../../../../../lib/reminders';
 import { sendRegistrationApproved, sendRegistrationDeclined, sendEmail } from '../../../../../lib/email';
 import { upsertCustomer, resolveBugTicket, setBookingInvoice, createMeeting, claimBrettLinkPost } from '../../../../../lib/website-db';
 import { getOrCreateCustomer, createBillingInvoice, SERVICES } from '../../../../../lib/stripe-billing';
@@ -127,18 +126,13 @@ export const POST: APIRoute = async ({ request, params }) => {
         });
         statusParts.push(calEvent ? 'Kalendereintrag erstellt' : 'Kalendereintrag fehlgeschlagen');
 
-        if (room) {
-          await scheduleReminder({ email: p.email, name: p.name, meetingStart, meetingUrl: room.url, meetingType: p.typeLabel });
-          statusParts.push('Erinnerung geplant (10 Min. vorher)');
-        }
-
         const meetingLinkHtml = room
           ? `<p><a href="${room.url}" style="display:inline-block;background:#e8c870;color:#0f1623;padding:12px 24px;border-radius:25px;text-decoration:none;font-weight:bold">Zum Meeting beitreten</a></p>`
           : '';
         await sendEmail({
           to: p.email,
           subject: `Termin bestätigt: ${p.typeLabel} am ${dateFormatted}`,
-          text: `Hallo ${p.name},\n\nIhr Termin wurde bestätigt!\n\n  Typ:     ${p.typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${p.slotDisplay}${room ? `\n\nIhr Meeting-Link:\n${room.url}\n\nSie erhalten 10 Minuten vor dem Termin eine Erinnerung.` : ''}\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
+          text: `Hallo ${p.name},\n\nIhr Termin wurde bestätigt!\n\n  Typ:     ${p.typeLabel}\n  Datum:   ${dateFormatted}\n  Uhrzeit: ${p.slotDisplay}${room ? `\n\nIhr Meeting-Link:\n${room.url}` : ''}\n\nMit freundlichen Grüßen\n${BRAND_NAME}`,
           html: `<p>Hallo ${p.name},</p><p><strong>Ihr Termin wurde bestätigt!</strong></p><table style="border-collapse:collapse;margin:16px 0"><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Typ</td><td>${p.typeLabel}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Datum</td><td>${dateFormatted}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#aabbcc">Uhrzeit</td><td>${p.slotDisplay}</td></tr></table>${meetingLinkHtml}<p>Mit freundlichen Grüßen<br>${BRAND_NAME}</p>`,
         });
         statusParts.push('Bestätigungs-E-Mail versendet');

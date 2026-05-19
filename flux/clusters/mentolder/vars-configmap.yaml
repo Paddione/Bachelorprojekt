@@ -11,7 +11,7 @@ data:
   BRAND_NAME: Mentolder
   BRAND_ID: mentolder
   WEBSITE_IMAGE: mentolder-website
-  LLM_HOST_IP: "192.168.100.10"
+  LLM_HOST_IP: "100.102.71.114"
   # TLS / cert-manager
   TLS_SECRET_NAME: workspace-wildcard-tls
   INFRA_NAMESPACE: mentolder-infra

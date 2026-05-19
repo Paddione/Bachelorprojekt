@@ -447,50 +447,6 @@ spec:
         - name: website
           port: 80
 ---
-# ── Reminder CronJob (every minute) ─────────────────────────────────────────
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: meeting-reminders
-  namespace: ${WEBSITE_NAMESPACE}
-spec:
-  schedule: "* * * * *"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 1
-  jobTemplate:
-    spec:
-      backoffLimit: 0
-      activeDeadlineSeconds: 25
-      template:
-        spec:
-          dnsConfig:
-            options:
-              - name: ndots
-                value: "3"
-          affinity:
-            podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app: website
-                  topologyKey: kubernetes.io/hostname
-          containers:
-            - name: trigger
-              image: curlimages/curl:8.7.1
-              resources:
-                requests:
-                  cpu: 10m
-                  memory: 16Mi
-              securityContext:
-                allowPrivilegeEscalation: false
-                runAsNonRoot: true
-                runAsUser: 65534
-                capabilities:
-                  drop: ["ALL"]
-              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/reminders/process"]
-          restartPolicy: Never
----
 # ── NetworkPolicies: website-Namespace ───────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -573,7 +529,7 @@ spec:
         matchLabels:
           app.kubernetes.io/name: traefik
 ---
-# CronJob-zu-Website-Service innerhalb website-Namespace (meeting-reminders)
+# Intra-namespace communication for website pods
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -600,9 +556,8 @@ spec:
   - from:
     - podSelector: {}
 ---
-# kube-router IPSet race fix: kurzlebige Job-Pods (z.B. meeting-reminders CronJob)
-# werden ggf. nicht schnell genug in das podSelector-IPSet aufgenommen. Das ipBlock-
-# Prädikat wird sofort ausgewertet — kein Lookup nötig.
+# kube-router IPSet race fix: short-lived Job pods may not be added to the podSelector
+# IPSet fast enough. ipBlock predicate is evaluated immediately — no lookup needed.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -617,8 +572,8 @@ spec:
     - ipBlock:
         cidr: 10.42.0.0/16
 ---
-# Service-CIDR Egress: CronJob-Pods müssen ClusterIP-Services erreichen können.
-# podSelector: {} deckt nur Pod-IPs ab, nicht 10.43.x.x ClusterIPs.
+# Service-CIDR Egress: pods must reach ClusterIP services.
+# podSelector: {} only covers pod IPs, not 10.43.x.x ClusterIPs.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

@@ -1462,8 +1462,10 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL \$ARENA_IMAGE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
+          # arena-server image: workspace:deploy uses :latest; arena:deploy pins to digest.
+          export ARENA_IMAGE="${ARENA_IMAGE:-ghcr.io/paddione/arena-server:latest}"
           # Ensure DEV_* defaults exist for non-mentolder envs (korczewski/dev).
           export DEV_DOMAIN="${DEV_DOMAIN:-}"
           export DEV_NODE="${DEV_NODE:-}"

@@ -35,9 +35,10 @@ data:
       # ── Chat-class aliases — local-only (503 on Ollama outage) ──────────────
       - model_name: workspace-chat
         litellm_params:
-          model: ollama/qwen2.5:14b-instruct-q4_K_M
-          api_base: http://llm-gateway-chat:11434
-          timeout: 30
+          model: openai/yemiao2745/qwen2.5-14b-instruct-uncensored
+          api_base: http://llm-gateway-lmstudio:1234/v1
+          api_key: "lm-studio"
+          timeout: 60
 
       - model_name: workspace-code
         litellm_params:

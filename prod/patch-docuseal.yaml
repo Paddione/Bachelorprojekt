@@ -37,3 +37,10 @@ spec:
                   key: SMTP_FROM
             - name: MAILER_FROM_NAME
               value: "${BRAND_NAME} Unterschriften"
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: "100m"
+            limits:
+              memory: 2Gi
+              cpu: "500m"

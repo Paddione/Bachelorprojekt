@@ -89,12 +89,22 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
   // statement so column adds are safe even on a fresh DB where the
   // referenced tables (questionnaire_test_evidence, tickets.tickets) may
   // not yet have all FK targets in place.
+  // questionnaire_test_status is guarded by an existence check because it is
+  // created by questionnaire-db.ts initDb(), which may not have run yet on
+  // fresh or partially-initialised prod DBs. Without the guard the whole
+  // statement fails and block 3 (source_kind column) never runs.
   await pool.query(`
-    ALTER TABLE questionnaire_test_status
-      ADD COLUMN IF NOT EXISTS evidence_id            UUID,
-      ADD COLUMN IF NOT EXISTS last_failure_ticket_id UUID,
-      ADD COLUMN IF NOT EXISTS retest_pending_at      TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS retest_attempt         INT NOT NULL DEFAULT 0;
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.tables
+                 WHERE table_schema = 'public'
+                   AND table_name   = 'questionnaire_test_status') THEN
+        ALTER TABLE questionnaire_test_status
+          ADD COLUMN IF NOT EXISTS evidence_id            UUID,
+          ADD COLUMN IF NOT EXISTS last_failure_ticket_id UUID,
+          ADD COLUMN IF NOT EXISTS retest_pending_at      TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS retest_attempt         INT NOT NULL DEFAULT 0;
+      END IF;
+    END$$;
 
     ALTER TABLE tickets.tickets
       ADD COLUMN IF NOT EXISTS source_test_assignment_id UUID,

@@ -8,12 +8,12 @@
 #     `kubectl cp`d from the prod backup pod.
 set -euo pipefail
 
-: "${BACKUP_DIR:=/backups}"
-: "${BACKUP_PASSPHRASE:?BACKUP_PASSPHRASE required}"
-: "${DEV_SHARED_DB_PASSWORD:?DEV_SHARED_DB_PASSWORD required}"
-: "${DEV_WEBSITE_DB_PASSWORD:?DEV_WEBSITE_DB_PASSWORD required}"
-: "${PGHOST:=127.0.0.1}"
-: "${PGPORT:=15432}"
+: "$${BACKUP_DIR:=/backups}"
+: "$${BACKUP_PASSPHRASE:?BACKUP_PASSPHRASE required}"
+: "$${DEV_SHARED_DB_PASSWORD:?DEV_SHARED_DB_PASSWORD required}"
+: "$${DEV_WEBSITE_DB_PASSWORD:?DEV_WEBSITE_DB_PASSWORD required}"
+: "$${PGHOST:=127.0.0.1}"
+: "$${PGPORT:=15432}"
 
 DBS=("website" "bugs" "bachelorprojekt")
 STAMP=$(ls -1 "$BACKUP_DIR" | sort -r | head -1)
@@ -25,7 +25,7 @@ echo "[dev-refresh] using snapshot $STAMP"
 
 export PGPASSWORD="$DEV_SHARED_DB_PASSWORD"
 
-for DB in "${DBS[@]}"; do
+for DB in "$${DBS[@]}"; do
   SRC="$BACKUP_DIR/$STAMP/${DB}.dump.enc"
   if [[ ! -f "$SRC" ]]; then
     echo "[dev-refresh] skip $DB — no $SRC"

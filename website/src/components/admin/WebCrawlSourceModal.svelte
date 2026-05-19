@@ -15,6 +15,7 @@
   let maxDepth    = $state(3);
   let maxPages    = $state(200);
   let includePattern = $state('');
+  let embeddingModel: 'voyage-multilingual-2' | 'bge-m3' = $state('voyage-multilingual-2');
   let busy        = $state(false);
   let error       = $state<string | null>(null);
   let info        = $state<string | null>(null);
@@ -30,6 +31,7 @@
     maxDepth = 3;
     maxPages = 200;
     includePattern = '';
+    embeddingModel = 'voyage-multilingual-2';
   }
 
   function closeModal() {
@@ -69,6 +71,7 @@
           description: description.trim() || undefined,
           brand:       brand === 'beide' ? null : brand,
           source:      'web_crawl',
+          embeddingModel,
           crawlConfig,
         }),
       });
@@ -108,6 +111,13 @@
         <option value="beide">beide</option>
         <option value="mentolder">mentolder</option>
         <option value="korczewski">korczewski</option>
+      </select>
+    </label>
+
+    <label>Einbettungsmodell
+      <select bind:value={embeddingModel}>
+        <option value="voyage-multilingual-2">Voyage (Cloud)</option>
+        <option value="bge-m3">Lokal (bge-m3)</option>
       </select>
     </label>
 

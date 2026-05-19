@@ -87,8 +87,39 @@ export async function callVoyage(inputs, inputType = 'document') {
   return { embeddings: j.data.map(d => d.embedding), tokens: j.usage.total_tokens };
 }
 
-export async function embedAll(texts, batch = 128) {
+function getRouterUrl() {
+  const u = process.env.LLM_ROUTER_URL;
+  try {
+    new URL(u);
+    return u;
+  } catch {
+    return 'http://llm-router.workspace.svc.cluster.local:4000';
+  }
+}
+
+export async function callRouter(texts, model = 'bge-m3') {
+  const url = getRouterUrl();
+  const r = await fetch(`${url}/v1/embeddings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, input: texts }),
+  });
+  if (!r.ok) throw new Error(`router ${r.status} ${await r.text()}`);
+  const j = await r.json();
+  return { embeddings: j.data.map(d => d.embedding) };
+}
+
+export async function embedAll(texts, model = 'voyage-multilingual-2', batch = 128) {
   const out = [];
+  if (model === 'bge-m3') {
+    const bgeBatch = 64;
+    for (let i = 0; i < texts.length; i += bgeBatch) {
+      const r = await callRouter(texts.slice(i, i + bgeBatch), model);
+      out.push(...r.embeddings);
+    }
+    return out;
+  }
+
   for (let i = 0; i < texts.length; i += batch) {
     const r = await callVoyage(texts.slice(i, i + batch), 'document');
     out.push(...r.embeddings);

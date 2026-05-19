@@ -759,6 +759,29 @@ setup_vars:
   - name: WG_MESH_GEKKO4_PUBLIC_KEY
     required: false
     description: "wg-mesh public key for gekko-hetzner-4"
+  # mentolder cluster — Proxmox home-LAN workers (wg-mesh 192.168.100.20-22, port 51821)
+  # Behind NAT — no fixed public endpoint. PersistentKeepalive keeps NAT mapping alive.
+  - name: WG_MESH_K3S1_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for k3s-1 (Proxmox vmid=100, wg_ip 192.168.100.20)"
+  - name: WG_MESH_K3S1_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for k3s-1"
+  - name: WG_MESH_K3S2_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for k3s-2 (Proxmox vmid=200, wg_ip 192.168.100.21)"
+  - name: WG_MESH_K3S2_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for k3s-2"
+  - name: WG_MESH_K3S3_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for k3s-3 (Proxmox vmid=300, wg_ip 192.168.100.22)"
+  - name: WG_MESH_K3S3_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for k3s-3"
   # korczewski cluster
   - name: WG_MESH_PK4_PRIVATE_KEY
     required: false

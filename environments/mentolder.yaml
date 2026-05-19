@@ -75,3 +75,17 @@ setup_vars:
   KC_USER2_USERNAME: gekko
   KC_USER2_EMAIL: quamain@web.de
   KC_USER2_PASSWORD: SEALED
+  # wg-mesh Hetzner CP keys — private keys sealed in .secrets/mentolder.yaml
+  WG_MESH_GEKKO2_PRIVATE_KEY: SEALED
+  WG_MESH_GEKKO2_PUBLIC_KEY: "iXnGP9bIwrofD6a96D5Fz5rM7smbIAc3gXJcUx5m6j0="
+  WG_MESH_GEKKO3_PRIVATE_KEY: SEALED
+  WG_MESH_GEKKO3_PUBLIC_KEY: "UyOC2keZx+1L73sOw+tVN1jNksgSkjX5zb1sZY3W/x0="
+  WG_MESH_GEKKO4_PRIVATE_KEY: SEALED
+  WG_MESH_GEKKO4_PUBLIC_KEY: "mHjkm8YbesFZfneadLPZ8gHwyobakn1gRc+Cx82rP0Y="
+  # wg-mesh home-worker keys — private keys sealed in .secrets/mentolder.yaml
+  WG_MESH_K3S1_PRIVATE_KEY: SEALED
+  WG_MESH_K3S1_PUBLIC_KEY: "bfEvZgmkMwGANBYapNdA0zNoLMgWfWyp5DmcEI3Awww="
+  WG_MESH_K3S2_PRIVATE_KEY: SEALED
+  WG_MESH_K3S2_PUBLIC_KEY: "GwixjV8fiawa29dPB5INfiuYclgewX1/nNkRoJGFfwU="
+  WG_MESH_K3S3_PRIVATE_KEY: SEALED
+  WG_MESH_K3S3_PUBLIC_KEY: "jHLICq2e4U7YluvsC689nme+bQAHc1FWO4Qasvkc8iM="

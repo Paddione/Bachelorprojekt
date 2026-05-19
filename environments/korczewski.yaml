@@ -24,8 +24,8 @@ env_vars:
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls
-  SMTP_FROM: mentolder@mailbox.org
-  SMTP_USER: mentolder@mailbox.org
+  SMTP_FROM: korczewski@mailbox.org
+  SMTP_USER: korczewski@mailbox.org
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
@@ -73,3 +73,10 @@ setup_vars:
   KC_USER2_USERNAME: gekko
   KC_USER2_EMAIL: quamain@web.de
   KC_USER2_PASSWORD: SEALED
+  # wg-mesh Hetzner CP keys — private keys sealed in .secrets/korczewski.yaml
+  WG_MESH_PK4_PRIVATE_KEY: SEALED
+  WG_MESH_PK4_PUBLIC_KEY: "WkEiNOdF3D66KVnGRMHdtnWZV/Czr6hlwpTE/u3ZxRE="
+  WG_MESH_PK6_PRIVATE_KEY: SEALED
+  WG_MESH_PK6_PUBLIC_KEY: "wXcvWH86uYyxWNM0l9Romml7Mq1Wegb3eWsVjf/R/HE="
+  WG_MESH_PK8_PRIVATE_KEY: SEALED
+  WG_MESH_PK8_PUBLIC_KEY: "kpWJQzw+p8rurkFq/hPQH/z1gl3/f19SFukOMpPBJS0="

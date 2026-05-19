@@ -804,3 +804,10 @@ setup_vars:
   - name: WG_MESH_PK8_PUBLIC_KEY
     required: false
     description: "wg-mesh public key for pk-hetzner-8"
+  - name: WG_MESH_PK_L1_WORKER_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for korczewski l1 worker node"
+  - name: WG_MESH_PK_L1_WORKER_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for korczewski l1 worker node"

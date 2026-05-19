@@ -1,6 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import TicketQuickEdit from '../../components/admin/TicketQuickEdit.svelte';
+import TicketsTableBody from '../../components/admin/TicketsTableBody.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import {
   listAdminTickets, countAdminTickets, listKnownComponents,
@@ -61,30 +62,6 @@ try {
 } catch (err) {
   console.error('[admin/tickets] DB error:', err);
   dbError = 'Datenbankfehler beim Laden der Tickets.';
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  triage: 'Triage', backlog: 'Backlog', in_progress: 'In Arbeit',
-  in_review: 'Review', blocked: 'Blockiert', done: 'Fertig', archived: 'Archiviert',
-};
-const STATUS_CLS: Record<string, string> = {
-  triage:      'bg-purple-900/40 text-purple-300 border-purple-800',
-  backlog:     'bg-slate-900/40 text-slate-300 border-slate-700',
-  in_progress: 'bg-yellow-900/40 text-yellow-300 border-yellow-800',
-  in_review:   'bg-blue-900/40 text-blue-300 border-blue-800',
-  blocked:     'bg-red-900/40 text-red-300 border-red-800',
-  done:        'bg-green-900/40 text-green-300 border-green-800',
-  archived:    'bg-dark text-muted border-dark-lighter',
-};
-const TYPE_LABEL: Record<string, string> = {
-  bug: '🐛 Bug', feature: '✨ Feature', task: '📋 Task', project: '📁 Projekt',
-};
-const PRIO_CLS: Record<string, string> = { hoch: 'text-red-400', mittel: 'text-yellow-400', niedrig: 'text-green-400' };
-const PRIO_ICON: Record<string, string> = { hoch: '▲', mittel: '●', niedrig: '▼' };
-
-function formatDate(d: Date | null | string): string {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function buildLink(ov: Record<string, string | undefined>): string {
@@ -250,60 +227,13 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
                   Keine Tickets für diese Filterauswahl.
                 </td>
               </tr>
-            ) : tickets.map(t => (
-              <tr class={`border-b border-dark-lighter/50 hover:bg-dark/30 transition-colors ${t.status === 'archived' ? 'opacity-50' : ''}`}>
-                <td class="px-4 py-3 font-mono text-xs text-gold whitespace-nowrap align-top">
-                  <a href={`/admin/tickets/${t.id}`} class="hover:underline">
-                    {t.externalId ?? t.id.slice(0, 8)}
-                  </a>
-                </td>
-                <td class="px-4 py-3 text-xs whitespace-nowrap align-top">
-                  {TYPE_LABEL[t.type] ?? t.type}
-                </td>
-                <td class="px-4 py-3 align-top">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <a href={`/admin/tickets/${t.id}`} class="text-light hover:text-gold text-sm font-medium">{t.title}</a>
-                    {t.effectiveAttentionMode === 'ai_ready' && (
-                      <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-900/30 text-green-400 border border-green-800/50 flex items-center gap-1">
-                        {t.attentionMode === 'auto' && <span class="opacity-70">⚙️</span>} 🤖 AI-ready
-                      </span>
-                    )}
-                    {t.effectiveAttentionMode === 'needs_human' && (
-                      <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-900/30 text-red-400 border border-red-800/50 flex items-center gap-1">
-                        {t.attentionMode === 'auto' && <span class="opacity-70">⚙️</span>} 👤 Mensch
-                      </span>
-                    )}
-                  </div>
-                  {t.tagNames.length > 0 && (
-                    <div class="flex flex-wrap gap-1 mt-1">
-                      {t.tagNames.map(tag => (
-                        <a href={buildLink({ tag })}
-                          class="text-[10px] px-1.5 py-0.5 rounded bg-dark border border-dark-lighter text-muted hover:text-light hover:border-gold/40">
-                          {tag}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </td>
-                <td class="px-4 py-3 align-top">
-                  <span class={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${STATUS_CLS[t.status] ?? ''}`}>
-                    {STATUS_LABEL[t.status] ?? t.status}
-                  </span>
-                </td>
-                <td class={`px-4 py-3 text-sm whitespace-nowrap align-top ${PRIO_CLS[t.priority] ?? ''}`}>
-                  {PRIO_ICON[t.priority]} {t.priority}
-                </td>
-                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{t.assigneeLabel ?? '—'}</td>
-                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{t.customerLabel ?? '—'}</td>
-                <td class="px-4 py-3 text-sm text-muted whitespace-nowrap align-top">{formatDate(t.dueDate)}</td>
-                <td class="px-4 py-3 text-right align-top">
-                   <button type="button" class="quick-edit-btn text-xs px-2 py-1 bg-dark-lighter border border-dark-border rounded hover:border-gold/40 hover:text-gold transition-colors"
-                     data-ticket={JSON.stringify(t)}>
-                     ✏️ Edit
-                   </button>
-                </td>
-              </tr>
-            ))}
+            ) : (
+              <TicketsTableBody
+                client:load
+                tickets={tickets}
+                admins={admins}
+              />
+            )}
           </tbody>
         </table>
       </div>
@@ -412,35 +342,35 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
     location.href = `/admin/tickets/${j.id}`;
   });
 
-  // Quick edit handling
+  // Quick edit handling — uses event delegation so it works with the Svelte-rendered table body
   const container = document.getElementById('quick-edit-container');
   let currentComponent: any = null;
 
-  document.querySelectorAll('.quick-edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const ticket = JSON.parse(btn.getAttribute('data-ticket') || '{}');
-      const admins = JSON.parse(document.getElementById('admins-data')?.textContent || '[]');
-      const components = JSON.parse(document.getElementById('components-data')?.textContent || '[]');
-      
-      if (currentComponent) unmount(currentComponent);
-      
-      const Component = TicketQuickEdit as any;
-      // @ts-ignore
-      currentComponent = mount(Component, {
-        target: container!,
-        props: {
-          ticket,
-          admins,
-          components,
-          onSave: () => location.reload(),
-          onClose: () => {
-            if (currentComponent) {
-              unmount(currentComponent);
-              currentComponent = null;
-            }
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.quick-edit-btn');
+    if (!btn) return;
+    const ticket = JSON.parse(btn.getAttribute('data-ticket') || '{}');
+    const admins = JSON.parse(document.getElementById('admins-data')?.textContent || '[]');
+    const components = JSON.parse(document.getElementById('components-data')?.textContent || '[]');
+
+    if (currentComponent) unmount(currentComponent);
+
+    const Component = TicketQuickEdit as any;
+    // @ts-ignore
+    currentComponent = mount(Component, {
+      target: container!,
+      props: {
+        ticket,
+        admins,
+        components,
+        onSave: () => location.reload(),
+        onClose: () => {
+          if (currentComponent) {
+            unmount(currentComponent);
+            currentComponent = null;
           }
         }
-      });
+      }
     });
   });
 </script>

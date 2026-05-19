@@ -47,6 +47,8 @@ export interface ListedTicket {
   tagNames: string[];
   createdAt: Date;
   updatedAt: Date;
+  aiQuestion:   string | null;
+  humanAnswer:  string | null;
 }
 
 export interface TicketDetail extends ListedTicket {
@@ -145,7 +147,8 @@ const LIST_COLS = `
          FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id
         WHERE tt.ticket_id = t.id), ARRAY[]::text[]
     ) AS "tagNames",
-    t.created_at AS "createdAt", t.updated_at AS "updatedAt"
+    t.created_at AS "createdAt", t.updated_at AS "updatedAt",
+    t.ai_question AS "aiQuestion", t.human_answer AS "humanAnswer"
 `;
 const LIST_FROM = `
   FROM tickets.tickets t
@@ -475,6 +478,8 @@ export async function patchAdminTicket(p: {
   startDate?: string | null;
   dueDate?: string | null;
   estimateMinutes?: number | null;
+  aiQuestion?:   string | null;
+  humanAnswer?:  string | null;
   actor: { id?: string; label: string };
 }): Promise<void> {
   await initTicketsSchema();
@@ -499,6 +504,8 @@ export async function patchAdminTicket(p: {
   if (p.startDate   !== undefined) push('start_date',      p.startDate);
   if (p.dueDate     !== undefined) push('due_date',        p.dueDate);
   if (p.estimateMinutes !== undefined) push('estimate_minutes', p.estimateMinutes);
+  if (p.aiQuestion   !== undefined) push('ai_question',  p.aiQuestion);
+  if (p.humanAnswer  !== undefined) push('human_answer', p.humanAnswer);
 
   if (sets.length === 0) return;
 

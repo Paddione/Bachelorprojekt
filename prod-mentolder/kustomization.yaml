@@ -13,6 +13,11 @@ resources:
   - dev-db-refresh-cron.yaml
   # ── brainstorm.mentolder.de reverse-SSH broker (sish) ─────────────
   - brainstorm-sish.yaml
+  # Whisper + Talk-Transcriber — now also on mentolder.
+  # k3s home workers (k3s-1/2/3: amd64, 8–16 GB, <5% util) have headroom.
+  # See whisper placement override in patches below.
+  - whisper.yaml
+  - talk-transcriber.yaml
 
 # Override realm with mentolder-specific config
 configMapGenerator:
@@ -106,3 +111,19 @@ patches:
       kind: Job
   - path: patch-backup-config.yaml
   - path: patch-livekit.yaml
+  # whisper Deployment: override the global NotIn patch so it lands on
+  # k3s-1/2/3 (amd64, 8–16 GB, <5% util) not on the already-loaded Hetzner CPs.
+  # Path matches what the global strategic-merge patch created.
+  - target:
+      kind: Deployment
+      name: whisper
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+        value:
+          key: kubernetes.io/hostname
+          operator: In
+          values:
+            - k3s-1
+            - k3s-2
+            - k3s-3

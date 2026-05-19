@@ -66,7 +66,7 @@ data:
         await pool.query(
           `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
            VALUES ($1, $2, $3, $4, $5)`,
-          [docId, collectionId, c.position, c.text, `[${c.embedding.join(',')}]`],
+          [docId, collectionId, c.position, c.text, `[$${c.embedding.join(',')}]`],
         );
       }
       return { docId, reused: false };
@@ -87,10 +87,10 @@ data:
       if (!k) throw new Error('VOYAGE_API_KEY unset');
       const r = await fetch('https://api.voyageai.com/v1/embeddings', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${k}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer $${k}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: inputs, model: 'voyage-multilingual-2', input_type: inputType }),
       });
-      if (!r.ok) throw new Error(`voyage ${r.status} ${await r.text()}`);
+      if (!r.ok) throw new Error(`voyage $${r.status} $${await r.text()}`);
       const j = await r.json();
       return { embeddings: j.data.map(d => d.embedding), tokens: j.usage.total_tokens };
     }
@@ -148,16 +148,16 @@ data:
             ORDER BY merged_at DESC`,
         );
 
-        console.log(`Found ${rows.length} PRs to ingest`);
+        console.log(`Found $${rows.length} PRs to ingest`);
 
         for (const row of rows) {
           const text = [
-            `PR #${row.pr_number}: ${row.title}`,
+            `PR #$${row.pr_number}: $${row.title}`,
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `pr:${row.pr_number}`;
+          const sourceUri = `pr:$${row.pr_number}`;
           const chunks = chunkPlain(text).map(c => ({ ...c, embedding: null }));
 
           const embeddings = await embedAll(chunks.map(c => c.text));
@@ -165,7 +165,7 @@ data:
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `PR #${row.pr_number}: ${row.title}`,
+            title: `PR #$${row.pr_number}: $${row.title}`,
             sourceUri,
             rawText: text,
             hash,
@@ -210,7 +210,7 @@ data:
           name: COLLECTION_NAME,
           source: COLLECTION_SOURCE,
           brand: BRAND,
-          description: `Bug tickets for brand: ${BRAND}`,
+          description: `Bug tickets for brand: $${BRAND}`,
         });
 
         const { rows } = await pool.query(
@@ -221,25 +221,25 @@ data:
           [BRAND],
         );
 
-        console.log(`Found ${rows.length} bug tickets for brand "${BRAND}"`);
+        console.log(`Found $${rows.length} bug tickets for brand "$${BRAND}"`);
 
         for (const row of rows) {
           const text = [
-            `${row.ticket_id}: ${row.description.slice(0, 100)}...`,
-            `Status: ${row.status}`,
-            row.fixed_in_pr ? `Fixed in PR #${row.fixed_in_pr}` : '',
+            `$${row.ticket_id}: $${row.description.slice(0, 100)}...`,
+            `Status: $${row.status}`,
+            row.fixed_in_pr ? `Fixed in PR #$${row.fixed_in_pr}` : '',
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `bug:${row.ticket_id}`;
+          const sourceUri = `bug:$${row.ticket_id}`;
           const rawChunks = chunkPlain(text);
           const embeddings = await embedAll(rawChunks.map(c => c.text));
           const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `${row.ticket_id}: ${row.description.slice(0, 100)}...`,
+            title: `$${row.ticket_id}: $${row.description.slice(0, 100)}...`,
             sourceUri,
             rawText: text,
             hash,

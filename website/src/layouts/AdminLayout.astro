@@ -96,18 +96,14 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/admin/clients',   label: 'Klienten',  icon: 'users' },
       { href: '/admin/projekte',  label: 'Projekte',  icon: 'folder',    matches: ['/admin/projekte'] },
-      { href: '/admin/meetings',  label: 'Meetings',  icon: 'calendar2', matches: ['/admin/meetings'] },
-      { href: '/admin/kalender',  label: 'Kalender',  icon: 'calendar2' },
       { href: '/admin/followups', label: 'Followups', icon: 'clock' },
     ],
   },
   {
     label: 'Coaching',
     items: [
-      { href: '/admin/coaching/sessions',  label: 'Sessions',          icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
-      { href: '/admin/coaching/projekte',  label: 'Projekte',          icon: 'folder',    matches: ['/admin/coaching/projekte'] },
-      { href: '/admin/brett',              label: 'Brett',             icon: 'brett',     matches: ['/admin/brett'] },
-      { href: '/admin/coaching/settings',  label: 'KI-Einstellungen',  icon: 'settings',  matches: ['/admin/coaching/settings'] },
+      { href: '/admin/coaching/sessions',  label: 'Sessions',  icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
+      { href: '/admin/brett',              label: 'Brett',     icon: 'brett',     matches: ['/admin/brett'] },
     ],
   },
   {
@@ -139,19 +135,14 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/admin/rechnungen',    label: 'Rechnungen',    icon: 'receipt', matches: ['/admin/rechnungen', '/admin/billing'] },
       { href: '/admin/buchhaltung',   label: 'Buchhaltung',   icon: 'scale' },
-      { href: '/admin/zeiterfassung', label: 'Zeiterfassung', icon: 'clock' },
-      { href: '/admin/steuer',        label: 'Steuer',        icon: 'scale' },
     ],
   },
   {
     label: 'Plattform',
     items: [
       { href: '/admin/monitoring',                       label: 'Monitoring',        icon: 'monitor' },
-      { href: '/admin/software-history',                 label: 'Software-History',  icon: 'clipboard' },
-      { href: '/admin/systemtest/board',                 label: 'Systemtest',        icon: 'clipboard', matches: ['/admin/systemtest'] },
-      { href: '/admin/arena',                            label: 'Arena',             icon: 'broadcast' },
       { href: '/admin/ops',                              label: 'Cluster-Steuerung', icon: 'server' },
-      { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen',     icon: 'bell',     matches: ['/admin/einstellungen/'] },
+      { href: '/admin/einstellungen/benachrichtigungen', label: 'Einstellungen',     icon: 'settings', matches: ['/admin/einstellungen/'] },
     ],
   },
 ];

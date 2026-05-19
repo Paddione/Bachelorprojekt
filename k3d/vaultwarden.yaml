@@ -37,6 +37,18 @@ spec:
         fsGroup: 65534
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.37
+          command: ['sh', '-c', 'until nc -w1 -z shared-db 5432 2>/dev/null; do echo "waiting for shared-db..."; sleep 3; done']
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: vaultwarden
           image: vaultwarden/server:1.35.3-alpine

@@ -88,6 +88,17 @@ spec:
             - name: config
               mountPath: /etc/janus/janus.plugin.videoroom.jcfg
               subPath: janus.plugin.videoroom.jcfg
+          startupProbe:
+            tcpSocket:
+              port: 8188
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 8188
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            failureThreshold: 3
           resources:
             requests:
               memory: 128Mi

@@ -1,4 +1,12 @@
+---
+title: Admin & Portal Menu Cleanup — Implementation Plan
+domains: []
+status: active
+pr_number: null
+---
+
 # Admin & Portal Menu Cleanup — Implementation Plan
+ticket_id: T000496
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

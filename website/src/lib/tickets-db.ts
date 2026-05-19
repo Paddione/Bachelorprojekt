@@ -209,6 +209,19 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_comments_ticket_idx ON tickets.ticket_comments (ticket_id, created_at)`);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.ticket_plans (
+      id          BIGSERIAL PRIMARY KEY,
+      ticket_id   UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
+      slug        TEXT NOT NULL,
+      branch      TEXT,
+      content     TEXT NOT NULL,
+      pr_number   INTEGER,
+      archived_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ticket_plans_ticket_idx ON tickets.ticket_plans (ticket_id)`);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_attachments (
       id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       ticket_id   UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,

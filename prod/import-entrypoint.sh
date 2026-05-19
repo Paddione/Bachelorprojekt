@@ -2,10 +2,10 @@
 # Substituiert Umgebungsvariablen in realm-workspace.json
 # und startet Keycloak mit --import-realm
 #
-# Production-Variante: substituiert alle ${VAR} Platzhalter, die das
+# Production-Variante: substituiert alle $${VAR} Platzhalter, die das
 # Realm-Template referenziert. Die Liste muss vollständig sein, weil
 # kc.sh start --import-realm den Realm nur beim ersten Start einliest.
-# Wenn hier eine Variable fehlt, landet ihr literaler ${VAR}-String in
+# Wenn hier eine Variable fehlt, landet ihr literaler $${VAR}-String in
 # der KC-Datenbank und Auth-Flows scheitern später mit
 # "Invalid client credentials".
 set -e
@@ -15,7 +15,7 @@ OUTPUT="/opt/keycloak/data/import/realm-workspace.json"
 
 mkdir -p "$(dirname "$OUTPUT")"
 
-# Alle ${VAR} Referenzen im JSON durch aktuelle Env-Werte ersetzen (sed-basiert)
+# Alle $${VAR} Referenzen im JSON durch aktuelle Env-Werte ersetzen (sed-basiert)
 cp "$TEMPLATE" "$OUTPUT"
 for var in \
     NEXTCLOUD_OIDC_SECRET \
@@ -42,18 +42,18 @@ for var in \
     BRETT_OIDC_SECRET \
     DEV_DOMAIN \
     DEV_WORKSPACE_OIDC_SECRET; do
-  eval val="\${${var}:-}"
+  eval val="\$${$${var}:-}"
   if [ -z "$val" ]; then
-    echo "[import-entrypoint] WARNUNG: ${var} ist nicht gesetzt!"
+    echo "[import-entrypoint] WARNUNG: $${var} ist nicht gesetzt!"
   else
-    sed -i "s|\${${var}}|${val}|g" "$OUTPUT"
+    sed -i "s|\$${$${var}}|$${val}|g" "$OUTPUT"
   fi
 done
 
-# Sanity check: keine unaufgelösten ${...} Platzhalter mehr im Output
-if grep -q '\${[A-Z_]*}' "$OUTPUT"; then
+# Sanity check: keine unaufgelösten $${...} Platzhalter mehr im Output
+if grep -q '\$${[A-Z_]*}' "$OUTPUT"; then
   echo "[import-entrypoint] FEHLER: Unaufgelöste Platzhalter im Realm-JSON:" >&2
-  grep -o '\${[A-Z_]*}' "$OUTPUT" | sort -u >&2
+  grep -o '\$${[A-Z_]*}' "$OUTPUT" | sort -u >&2
   exit 1
 fi
 

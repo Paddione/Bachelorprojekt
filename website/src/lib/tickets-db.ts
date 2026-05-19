@@ -3,6 +3,10 @@ import { pool } from './website-db';
 
 let schemaReady = false;
 
+// WARNING: If you manually create or alter tables in production, you MUST run
+// it as the `website` role, or run `ALTER TABLE ... OWNER TO website;`.
+// Otherwise, this schema init will fail on `CREATE INDEX IF NOT EXISTS` due
+// to permission denied. See Ticket T000028.
 export async function initTicketsSchema(): Promise<void> {
   if (schemaReady) return;
 
@@ -61,6 +65,17 @@ export async function initTicketsSchema(): Promise<void> {
         ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
       END IF;
     END $$
+  `);
+
+  // Idempotent column additions for older schema versions where CREATE TABLE IF NOT EXISTS skipped creation
+  await pool.query(`
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS type TEXT CHECK (type IN ('bug','feature','task','project')),
+      ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL,
+      ADD COLUMN IF NOT EXISTS brand TEXT,
+      ADD COLUMN IF NOT EXISTS url TEXT,
+      ADD COLUMN IF NOT EXISTS thesis_tag TEXT,
+      ADD COLUMN IF NOT EXISTS component TEXT
   `);
 
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);

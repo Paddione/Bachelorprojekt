@@ -298,7 +298,7 @@ spec:
             - name: npm-install
               image: node:22-alpine
               imagePullPolicy: IfNotPresent
-              command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
+              command: [sh, -c, "npm install pg --no-package-lock --silent --prefix /tmp && cp -r /tmp/node_modules/* /scripts/node_modules/"]
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
@@ -427,7 +427,7 @@ spec:
             - name: npm-install
               image: node:22-alpine
               imagePullPolicy: IfNotPresent
-              command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
+              command: [sh, -c, "npm install pg --no-package-lock --silent --prefix /tmp && cp -r /tmp/node_modules/* /scripts/node_modules/"]
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
@@ -512,7 +512,7 @@ spec:
             - name: npm-install
               image: node:22-alpine
               imagePullPolicy: IfNotPresent
-              command: [sh, -c, "cd /scripts && npm install pg --no-package-lock --silent"]
+              command: [sh, -c, "npm install pg --no-package-lock --silent --prefix /tmp && cp -r /tmp/node_modules/* /scripts/node_modules/"]
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts

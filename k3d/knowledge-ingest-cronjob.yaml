@@ -214,7 +214,7 @@ data:
         });
 
         const { rows } = await pool.query(
-          `SELECT id, title, description, status, brand, created_at, fixed_in_pr
+          `SELECT ticket_id, description, status, brand, created_at, fixed_in_pr
              FROM bugs.bug_tickets
             WHERE brand = $1
             ORDER BY created_at DESC`,
@@ -225,26 +225,26 @@ data:
 
         for (const row of rows) {
           const text = [
-            `${row.id}: ${row.title}`,
+            `${row.ticket_id}: ${row.description.slice(0, 100)}...`,
             `Status: ${row.status}`,
             row.fixed_in_pr ? `Fixed in PR #${row.fixed_in_pr}` : '',
             row.description ?? '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);
-          const sourceUri = `bug:${row.id}`;
+          const sourceUri = `bug:${row.ticket_id}`;
           const rawChunks = chunkPlain(text);
           const embeddings = await embedAll(rawChunks.map(c => c.text));
           const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
 
           await upsertDocumentAndChunks(pool, {
             collectionId,
-            title: `${row.id}: ${row.title}`,
+            title: `${row.ticket_id}: ${row.description.slice(0, 100)}...`,
             sourceUri,
             rawText: text,
             hash,
             metadata: {
-              ticket_id: row.id,
+              ticket_id: row.ticket_id,
               status: row.status,
               brand: row.brand,
               fixed_in_pr: row.fixed_in_pr,

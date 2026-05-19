@@ -391,6 +391,48 @@ spec:
     - port: 8080
       protocol: TCP
 ---
+# keycloak: allow ingress from website namespace (OIDC token exchange + userinfo)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-keycloak-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: keycloak
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+    ports:
+    - port: 8080
+      protocol: TCP
+---
+# nextcloud: allow ingress from website namespace (CalDAV, Files, Talk integration)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-nextcloud-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: nextcloud
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+    ports:
+    - port: 80
+      protocol: TCP
+---
 # brett: ingress from Traefik on 3000
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

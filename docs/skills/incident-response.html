@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>incident-response — Produktionsvorfall-Reaktion</title>
+  <title>incident-response — Produktions-Triage & Recovery</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,242 +15,121 @@
   <span class="topnav-divider">/</span>
   <span class="topnav-title">incident-response</span>
   <div class="topnav-right">
-    <span class="badge badge-purple">Betrieb</span>
+    <span class="badge badge-red">Security</span>
   </div>
 </nav>
 
 <header class="skill-hero">
   <div class="hero-meta">
-    <span class="badge badge-purple">Betrieb</span>
+    <span class="badge badge-red">Security</span>
     <span class="badge-slug">incident-response</span>
   </div>
-  <h1 class="hero-title">Produktionsvorfall-Reaktion</h1>
+  <h1 class="hero-title">Incident Response</h1>
   <p class="hero-subtitle">
-    Strukturierter Umgang mit Produktionsvorfällen: Scope eingrenzen, Ticket erstellen,
-    diagnostizieren, fixen oder rollbacken, verifizieren und Post-Mortem notieren.
-    Ziel: Wiederherstellung in &lt; 30 Minuten.
+    Strukturierte Fehlerbehebung in Produktion: Triage, Ticket-Erstellung, 
+    Root-Cause-Analyse und koordinierte Wiederherstellung des Dienstes.
   </p>
   <div class="trigger-chip">
-    <span class="label">Auslöser:</span>
-    "X is down", Pod crasht, 500-Fehler, Login nicht möglich, Health-Check schlägt fehl
+    <span class="label">Auslöser:</span> Produktions-Ausfall, 500er Fehler, Health-Check Failure oder User-Reports
   </div>
 </header>
 
 <main class="content">
 
-  <div class="section-label">Schweregrade</div>
-  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;">
-    <span class="pill pill-critical">critical — Dienst komplett ausgefallen</span>
-    <span class="pill pill-major">major — Stark beeinträchtigt</span>
-    <span class="pill" style="background:rgba(122,143,192,.15);color:var(--blue);">minor — Teilweise beeinträchtigt</span>
-  </div>
-
-  <div class="section-label">Phasen</div>
   <div class="phases">
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">1</span>
-        <span class="phase-title">Scope ermitteln (&lt; 2 Minuten)</span>
-        <span class="phase-desc">Was ist down, seit wann, wie viele Nutzer betroffen?</span>
+        <span class="phase-num phase-num-red">1</span>
+        <span class="phase-title">Triage & Ticket</span>
+        <span class="phase-desc">&lt; 2 min</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="cm"># Schnell-Überblick</span>
-<span class="fn">task</span> clusters:status
-<span class="fn">task</span> workspace:status ENV=mentolder
-<span class="fn">task</span> workspace:status ENV=korczewski
-
-<span class="cm"># Health-Check</span>
-<span class="fn">task</span> health</code></pre>
-        <p>Klären:</p>
-        <ul>
-          <li>Welche Services betroffen? (Keycloak, Nextcloud, Website, ...)</li>
-          <li>Welche Cluster? (mentolder / korczewski / beide)</li>
-          <li>Seit wann? (git log, kubectl events)</li>
-          <li>Blast Radius? (Login für alle, nur Datei-Upload, nur Talk, ...)</li>
-        </ul>
+        <p>Ermittle Scope, Cluster und betroffene Nutzer. Lege sofort ein Incident-Ticket an:</p>
+        <pre><code><span class="fn">task</span> tickets:create --title "Incident: &lt;desc&gt;" --type bug --severity critical</code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">2</span>
-        <span class="phase-title">Incident-Ticket erstellen</span>
-        <span class="phase-desc">In mentolder Tickets-DB</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="kw">INSERT INTO</span> tickets.tickets (
-  type, brand, status, severity, priority,
-  title, description, attention_mode
-) <span class="kw">VALUES</span> (
-  <span class="st">'bug'</span>,
-  <span class="st">'mentolder'</span>,
-  <span class="st">'in_progress'</span>,
-  <span class="st">'critical'</span>,  <span class="cm">-- oder major/minor</span>
-  <span class="st">'hoch'</span>,
-  <span class="st">'[Incident] &lt;Service&gt; down — &lt;kurzbeschreibung&gt;'</span>,
-  <span class="st">'Symptome: &lt;beschreibung&gt;
-Cluster: mentolder/korczewski
-Seit: &lt;uhrzeit&gt;
-Blast Radius: &lt;beschreibung&gt;'</span>,
-  <span class="st">'ai_ready'</span>
-);</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">3</span>
+        <span class="phase-num phase-num-red">2</span>
         <span class="phase-title">Diagnose</span>
-        <span class="phase-desc">Pod-Status, Logs, Events, letzte Deploys</span>
+        <span class="phase-desc">Status, Logs & Events</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="cm"># Pod-Status</span>
-<span class="fn">kubectl</span> get pods -n workspace
-<span class="fn">kubectl</span> describe pod &lt;pod-name&gt; -n workspace
-
-<span class="cm"># Logs</span>
-<span class="fn">kubectl</span> logs &lt;pod-name&gt; -n workspace --previous
-<span class="fn">task</span> workspace:logs ENV=&lt;env&gt; -- &lt;service&gt;
-
-<span class="cm"># Events</span>
-<span class="fn">kubectl</span> get events -n workspace --sort-by=.lastTimestamp | tail -20
-
-<span class="cm"># Letzte Deploys</span>
-<span class="fn">git</span> log --oneline -10
-<span class="fn">kubectl</span> rollout history deployment/&lt;service&gt; -n workspace</code></pre>
-
-        <div class="section-label mt-2">Log-Pattern Cheat Sheet</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Log-Pattern</th><th>Wahrscheinliche Ursache</th><th>Erste Maßnahme</th></tr></thead>
-            <tbody>
-              <tr><td><code>password authentication failed</code></td><td>DB-Passwort-Drift</td><td><code>workspace:sync-db-passwords</code></td></tr>
-              <tr><td><code>ECONNREFUSED</code></td><td>Abhängiger Service down</td><td>Abhängigkeit prüfen + starten</td></tr>
-              <tr><td><code>certificate verify failed</code></td><td>TLS-Zertifikat abgelaufen</td><td><code>cert:status</code>, Zertifikat erneuern</td></tr>
-              <tr><td><code>401 from Keycloak</code></td><td>OIDC Client-Secret rotiert</td><td><code>secret-rotation</code> Typ E</td></tr>
-              <tr><td><code>OOMKilled</code></td><td>Memory Limit überschritten</td><td>Limits erhöhen in Manifest</td></tr>
-              <tr><td><code>ImagePullBackOff</code></td><td>Falscher Image-Tag oder Registry-Auth</td><td>Tag / imagePullSecret prüfen</td></tr>
-              <tr><td><code>realm drift</code></td><td>Keycloak-Realm nicht synchron</td><td><code>keycloak:sync</code></td></tr>
-            </tbody>
-          </table>
-        </div>
+        <p>Prüfe Pod-Status und Error-Signaturen in den Logs:</p>
+        <pre><code><span class="fn">task</span> workspace:status ENV=mentolder
+<span class="fn">task</span> workspace:logs ENV=mentolder -- &lt;service&gt;
+<span class="fn">kubectl</span> get events -n workspace --context mentolder --sort-by=<span class="st">'.lastTimestamp'</span></code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">4</span>
-        <span class="phase-title">Fix oder Rollback</span>
-        <span class="phase-desc">Rollback wenn: letztes Deploy + keine DB-Migration</span>
+        <span class="phase-num phase-num-red">3</span>
+        <span class="phase-title">Mitigation</span>
+        <span class="phase-desc">Fix vs. Rollback</span>
       </div>
       <div class="phase-body">
-        <p><strong>Rollback (schnell):</strong></p>
-        <pre><code><span class="fn">kubectl</span> rollout undo deployment/&lt;service&gt; -n workspace
-<span class="fn">kubectl</span> rollout status deployment/&lt;service&gt; -n workspace</code></pre>
-
-        <p><strong>Config-Drift-Fix:</strong></p>
-        <pre><code><span class="fn">task</span> workspace:deploy ENV=&lt;env&gt;   <span class="cm"># Re-apply Manifeste</span></code></pre>
-
-        <p><strong>Keycloak Realm-Drift:</strong></p>
-        <pre><code><span class="fn">task</span> keycloak:sync ENV=&lt;env&gt;
-<span class="fn">bash</span> scripts/keycloak-ensure-mappers.sh &lt;env&gt;</code></pre>
-
-        <p><strong>DB-Passwort-Drift:</strong></p>
-        <pre><code><span class="fn">task</span> workspace:sync-db-passwords ENV=&lt;env&gt;</code></pre>
+        <p>Entscheide basierend auf der Ursache:</p>
+        <ul class="step-list">
+          <li><strong>Rollback:</strong> Falls durch letzten Deploy ausgelöst und kein DB-Schema-Change involviert.</li>
+          <li><strong>Fix in Place:</strong> Bei Config-Drift oder Secret-Problemen.</li>
+        </ul>
+        <pre><code><span class="cm"># Rollback Website auf vorherigen SHA</span>
+<span class="fn">kubectl</span> set image deployment/website website=ghcr.io/paddione/workspace-website:&lt;SHA&gt;</code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">5</span>
-        <span class="phase-title">Verifikation</span>
-        <span class="phase-desc">2 Minuten Log-Beobachtung nach Fix</span>
+        <span class="phase-num phase-num-red">4</span>
+        <span class="phase-title">Abschluss</span>
+        <span class="phase-desc">Post-Mortem</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">task</span> workspace:status ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:verify ENV=&lt;env&gt;
-
-<span class="cm"># SSO-Login testen (Incognito)</span>
-<span class="cm"># Logs 2 Minuten beobachten</span>
-<span class="fn">kubectl</span> logs -n workspace deploy/&lt;service&gt; -f --since=2m</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-purple" style="background:rgba(155,126,200,.15);color:var(--purple);border:1px solid rgba(155,126,200,.3);">6</span>
-        <span class="phase-title">Ticket schließen + Post-Mortem</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="kw">UPDATE</span> tickets.tickets
-<span class="kw">SET</span>
-  status = <span class="st">'done'</span>,
-  resolution = <span class="st">'fixed'</span>,
-  comment = <span class="st">'Was kaputt: &lt;ursache&gt;
-Warum: &lt;root cause&gt;
-Wie behoben: &lt;fix&gt;
-Prävention: &lt;was in Zukunft tun&gt;'</span>,
-  updated_at = now()
-<span class="kw">WHERE</span> id = <span class="st">'T######'</span>;</code></pre>
+        <p>Verifiziere die Lösung und hinterlasse eine Post-Mortem Note im Ticket:</p>
+        <pre><code><span class="kw">UPDATE</span> tickets.tickets <span class="kw">SET</span> status = <span class="st">'done'</span>, notes = <span class="st">'Root cause: ...'</span>;</code></pre>
       </div>
     </div>
 
   </div>
 
-  <!-- QUICK REFERENCE -->
-  <div class="section-label mt-3">Service Quick-Fix Referenz</div>
+  <h2 class="section-label">Log-Signaturen & Ursachen</h2>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Service</th><th>Symptom</th><th>Schnell-Fix</th></tr>
+        <tr><th>Log-Muster</th><th>Wahrscheinliche Ursache</th></tr>
       </thead>
       <tbody>
-        <tr><td>Keycloak</td><td>Pod CrashLoopBackOff</td><td><code>task workspace:restart ENV=&lt;env&gt; -- keycloak</code></td></tr>
-        <tr><td>shared-db</td><td>Pod nicht gestartet</td><td><code>task workspace:db:start ENV=&lt;env&gt;</code></td></tr>
-        <tr><td>Website 503</td><td>Pod pending/fehlt</td><td><code>task feature:website</code></td></tr>
-        <tr><td>Nextcloud 500</td><td>DB-Verbindung</td><td><code>workspace:sync-db-passwords</code></td></tr>
-        <tr><td>LiveKit ICE</td><td>Streams brechen ab</td><td>DNS-Pinning + <code>livekit-setup</code> Skill</td></tr>
-        <tr><td>Secrets 401</td><td>API-Key ungültig</td><td><code>secret-rotation</code> Typ E</td></tr>
-        <tr><td>Realm-Drift</td><td>Login-Loop</td><td><code>keycloak:sync</code></td></tr>
-        <tr><td>Talk HPB</td><td>Video-Calls fehlschlagen</td><td><code>workspace:talk-setup ENV=&lt;env&gt;</code></td></tr>
+        <tr><td><code>password authentication failed</code></td><td>DB-Passwort-Drift</td></tr>
+        <tr><td><code>401 Unauthorized</code> (Keycloak)</td><td>OIDC Client-Secret Mismatch</td></tr>
+        <tr><td><code>OOMKilled</code></td><td>Memory-Limit zu niedrig</td></tr>
+        <tr><td><code>ImagePullBackOff</code></td><td>Registry-Auth oder falsches Tag</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- CROSS REFS -->
-  <div class="section-label mt-3">Verbundene Skills</div>
+  <h2 class="section-label">Verbundene Skills</h2>
   <div class="xref-grid">
-    <a href="ticket-management.html" class="xref-card">
-      <span class="xref-name">ticket-management</span>
-      <span class="xref-rel">Ticket-Lifecycle verwalten</span>
-    </a>
-    <a href="keycloak-realm-sync.html" class="xref-card">
-      <span class="xref-name">keycloak-realm-sync</span>
-      <span class="xref-rel">SSO-Probleme lösen</span>
-    </a>
     <a href="secret-rotation.html" class="xref-card">
       <span class="xref-name">secret-rotation</span>
-      <span class="xref-rel">Auth-Fehler durch abgelaufene Secrets</span>
-    </a>
-    <a href="backup-check.html" class="xref-card">
-      <span class="xref-name">backup-check</span>
-      <span class="xref-rel">Bei Datenverlust-Incidents</span>
-    </a>
-    <a href="livekit-setup.html" class="xref-card">
-      <span class="xref-name">livekit-setup</span>
-      <span class="xref-rel">Stream/WebRTC-Incidents</span>
+      <span class="xref-rel">Bei Authentifizierungs-Fehlern</span>
     </a>
     <a href="mishap-tracker.html" class="xref-card">
       <span class="xref-name">mishap-tracker</span>
-      <span class="xref-rel">Post-Execution Anomalien</span>
+      <span class="xref-rel">Mishaps in Tickets umwandeln</span>
+    </a>
+    <a href="backup-check.html" class="xref-card">
+      <span class="xref-name">backup-check</span>
+      <span class="xref-rel">Falls Datenverlust droht</span>
     </a>
   </div>
 
 </main>
 
 <footer>
-  <span>Skills Übersicht / <code>.claude/skills/incident-response/SKILL.md</code></span>
+  <span>Skills Übersicht / <code>.agents/skills/incident-response/SKILL.md</code></span>
   <a href="../skills-overview.html">← Zurück zur Übersicht</a>
 </footer>
 

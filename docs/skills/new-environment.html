@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>new-environment — Neue Umgebung aufsetzen</title>
+  <title>new-environment — Cluster Bring-up & Initialisierung</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,294 +15,129 @@
   <span class="topnav-divider">/</span>
   <span class="topnav-title">new-environment</span>
   <div class="topnav-right">
-    <span class="badge badge-sage">Infrastruktur</span>
+    <span class="badge badge-sage">Infra</span>
   </div>
 </nav>
 
 <header class="skill-hero">
   <div class="hero-meta">
-    <span class="badge badge-sage">Infrastruktur</span>
+    <span class="badge badge-sage">Infra</span>
     <span class="badge-slug">new-environment</span>
   </div>
-  <h1 class="hero-title">Neue Umgebung aufsetzen</h1>
+  <h1 class="hero-title">New Environment Bring-up</h1>
   <p class="hero-subtitle">
-    Vollständiges Aufsetzen einer neuen Cluster-Umgebung von Grund auf.
-    Die Reihenfolge der Schritte ist zwingend — jede Abweichung führt zu
-    stillen Credential-Überschreibungen oder nicht-funktionierenden Services.
+    Initialisierung eines neuen Kubernetes-Clusters: Von der Konfigurations-Erstellung über 
+    Sealed Secrets und Cert-Manager bis zum finalen Workspace-Deployment.
   </p>
   <div class="trigger-chip">
-    <span class="label">Auslöser:</span>
-    Neuer Cluster oder neue Umgebung von Grund auf aufsetzen
+    <span class="label">Auslöser:</span> Aufbau eines neuen Standorts oder vollständiger Cluster-Reset
   </div>
 </header>
 
 <main class="content">
 
   <div class="callout callout-critical">
-    <span class="callout-icon">&#9888;</span>
+    <span class="callout-icon">🚫</span>
     <div class="callout-body">
-      <strong>KRITISCHE REIHENFOLGE — nicht überspringen.</strong>
-      Jeden Schritt in exakter Reihenfolge ausführen. Ein übersprungener Schritt führt zu
-      stillen Credential-Überschreibungen. SealedSecrets-Keypair-Rotation ist nach jedem
-      Cluster-Reset zu erwarten — alte Sealed-Files entschlüsseln danach nicht mehr.
+      <strong>Zwingende Reihenfolge:</strong> Das Überspringen von Schritten (z.B. Deploy vor Seal) 
+      führt dazu, dass Platzhalter-Secrets in Produktion landen oder Ressourcen fehlschlagen.
     </div>
   </div>
 
-  <div class="section-label mt-3">Pflicht-Reihenfolge</div>
   <div class="phases">
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-sage">0</span>
-        <span class="phase-title">Env-Config scaffolden</span>
-        <span class="phase-desc">Grundkonfiguration</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="cm"># Neue Umgebung aus Schema scaffolden</span>
-<span class="fn">task</span> env:init ENV=&lt;neue-umgebung&gt;
-
-<span class="cm"># Pflichtfelder ausfüllen:</span>
-<span class="cm"># - PROD_DOMAIN (z.B. "newenv.de")</span>
-<span class="cm"># - BRAND_NAME (z.B. "My Company")</span>
-<span class="cm"># - ENV_CONTEXT (kubectl-Kontext-Name)</span>
-<span class="cm"># - ENV_OVERLAY (z.B. "prod-newenv")</span>
-<span class="cm"># - CONTACT_EMAIL, LEGAL_* Felder</span>
-
-<span class="cm"># Validieren</span>
-<span class="fn">task</span> env:validate ENV=&lt;neue-umgebung&gt;
-<span class="fn">task</span> env:show ENV=&lt;neue-umgebung&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
         <span class="phase-num phase-num-sage">1</span>
-        <span class="phase-title">Sealed Secrets Controller installieren</span>
-        <span class="phase-desc">Muss laufen bevor irgendein SealedSecret angewendet wird</span>
+        <span class="phase-title">Config-Scaffolding</span>
+        <span class="phase-desc">Task env:init</span>
       </div>
       <div class="phase-body">
-        <div class="callout callout-critical">
-          <span class="callout-icon">&#9888;</span>
-          <div class="callout-body">
-            Controller MUSS existieren bevor SealedSecrets angewendet werden.
-            Reihenfolge: install → fetch-cert → seal → deploy.
-          </div>
-        </div>
-        <pre><code><span class="fn">task</span> sealed-secrets:install ENV=&lt;env&gt;
-
-<span class="cm"># Warten bis Pod Running</span>
-<span class="fn">kubectl</span> get pods -n kube-system -l app.kubernetes.io/name=sealed-secrets -w</code></pre>
+        <p>Erstelle das Environment-File basierend auf dem Schema:</p>
+        <pre><code><span class="fn">task</span> env:init <span class="vr">ENV</span>=&lt;new-env&gt;
+<span class="fn">task</span> env:validate <span class="vr">ENV</span>=&lt;new-env&gt;</code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
         <span class="phase-num phase-num-sage">2</span>
-        <span class="phase-title">Sealing-Certificate holen</span>
-        <span class="phase-desc">Cert des neuen Controllers fetchen und committen</span>
+        <span class="phase-title">Sealed Secrets Setup</span>
+        <span class="phase-desc">Controller & Cert Fetch</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">task</span> env:fetch-cert ENV=&lt;env&gt;
-
-<span class="cm"># Cert landet in environments/certs/&lt;env&gt;.pem</span>
-<span class="cm"># Committen!</span>
-<span class="fn">git</span> add environments/certs/&lt;env&gt;.pem
-<span class="fn">git</span> commit -m <span class="st">"chore: add sealing cert for &lt;env&gt;"</span></code></pre>
-        <div class="callout callout-warn">
-          <span class="callout-icon">&#9888;</span>
-          <div class="callout-body">
-            Nach jedem Cluster-Reset muss dieses Cert neu geholt werden —
-            Keypair-Rotation ist das Standardverhalten.
-          </div>
-        </div>
+        <p>Installiere den Controller und hole das Zertifikat des neuen Clusters:</p>
+        <pre><code><span class="fn">task</span> sealed-secrets:install <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> env:fetch-cert <span class="vr">ENV</span>=&lt;env&gt;</code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
         <span class="phase-num phase-num-sage">3</span>
-        <span class="phase-title">Secrets generieren</span>
-        <span class="phase-desc">Plaintext — gitignored</span>
+        <span class="phase-title">Secrets & Certificates</span>
+        <span class="phase-desc">Generate, Seal & Sync</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">task</span> env:generate ENV=&lt;env&gt;</code></pre>
-        <p>Alle <code>MANAGED_EXTERNALLY</code>-Placeholder manuell ersetzen:</p>
-        <ul>
-          <li>Signaling/TURN-Secrets für Nextcloud Talk HPB</li>
-          <li>SMTP-Credentials</li>
-          <li>IPV64 API-Key</li>
-          <li>Anthropic API-Key (falls LLM aktiviert)</li>
-        </ul>
-        <div class="callout callout-warn">
-          <span class="callout-icon">&#9888;</span>
-          <div class="callout-body">
-            <code>talk-hpb-setup.sh</code> bricht ab wenn <code>MANAGED_EXTERNALLY</code>-Werte noch vorhanden sind.
-          </div>
-        </div>
+        <p>Generiere und verschlüssele die Secrets, installiere Cert-Manager:</p>
+        <pre><code><span class="fn">task</span> env:generate <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> env:seal <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> cert:install <span class="vr">ENV</span>=&lt;env&gt;</code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
         <span class="phase-num phase-num-sage">4</span>
-        <span class="phase-title">Secrets versiegeln</span>
-        <span class="phase-desc">SealedSecret erstellen und committen</span>
+        <span class="phase-title">Deployment & Post-Setup</span>
+        <span class="phase-desc">Bring-up des Workspace</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">task</span> env:seal ENV=&lt;env&gt;
-
-<span class="cm"># environments/sealed-secrets/&lt;env&gt;.yaml wurde erstellt/aktualisiert</span>
-<span class="fn">git</span> add environments/sealed-secrets/&lt;env&gt;.yaml
-<span class="fn">git</span> commit -m <span class="st">"chore: seal secrets for &lt;env&gt;"</span>
-<span class="fn">git</span> push</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">5</span>
-        <span class="phase-title">cert-manager installieren</span>
-        <span class="phase-desc">Vor workspace:deploy zwingend</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="cm"># cert-manager CRDs installieren</span>
-<span class="fn">task</span> cert:install ENV=&lt;env&gt;
-
-<span class="cm"># IPV64 API-Key als Secret speichern</span>
-<span class="cm"># (in BEIDEN Namespaces: cert-manager UND workspace)</span>
-<span class="fn">task</span> cert:secret -- &lt;ipv64-api-key&gt; ENV=&lt;env&gt;
-
-<span class="cm"># Status prüfen</span>
-<span class="fn">task</span> cert:status ENV=&lt;env&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">6</span>
-        <span class="phase-title">Workspace deployen</span>
-        <span class="phase-desc">SealedSecrets + Kustomize-Overlay anwenden</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="fn">task</span> workspace:deploy ENV=&lt;env&gt;
-
-<span class="cm"># Status beobachten</span>
-<span class="fn">kubectl</span> get pods -n workspace -w
-
-<span class="cm"># Logs bei Fehlern</span>
-<span class="fn">task</span> workspace:logs ENV=&lt;env&gt; -- &lt;service&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">7</span>
-        <span class="phase-title">Post-Deploy Setup</span>
-        <span class="phase-desc">Services konfigurieren</span>
-      </div>
-      <div class="phase-body">
-        <p>In dieser Reihenfolge ausführen:</p>
-        <pre><code><span class="fn">task</span> workspace:office:deploy ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:post-setup ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:talk-setup ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:recording-setup ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:whiteboard-setup ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:systembrett-setup ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:admin-users-setup ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:theme ENV=&lt;env&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">8</span>
-        <span class="phase-title">Verifizieren</span>
-        <span class="phase-desc">Smoke-Tests</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="fn">task</span> workspace:verify ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:status ENV=&lt;env&gt;
-<span class="fn">task</span> workspace:dsgvo-check ENV=&lt;env&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">9</span>
-        <span class="phase-title">Keycloak Realm synchronisieren</span>
-        <span class="phase-desc">Clients + Mapper konfigurieren</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="fn">task</span> keycloak:sync ENV=&lt;env&gt;
-<span class="fn">bash</span> scripts/keycloak-ensure-mappers.sh &lt;env&gt;</code></pre>
-        <p>Realm-JSON Pfade:</p>
-        <ul>
-          <li>dev: <code>k3d/realm-workspace-dev.json</code></li>
-          <li>mentolder: <code>prod-mentolder/realm-workspace-mentolder.json</code></li>
-          <li>korczewski: <code>prod-korczewski/realm-workspace-korczewski.json</code></li>
-        </ul>
+        <p>Rolle den Workspace aus und konfiguriere die Dienste:</p>
+        <pre><code><span class="fn">task</span> workspace:deploy <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> workspace:post-setup <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> workspace:talk-setup <span class="vr">ENV</span>=&lt;env&gt;</code></pre>
       </div>
     </div>
 
   </div>
 
-  <!-- GOTCHAS -->
-  <div class="section-label mt-3">Bekannte Fallstricke</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Fallstrick</th><th>Symptom</th><th>Lösung</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>knowledge-secrets Konflikt</td>
-          <td>Controller refused to adopt Secret</td>
-          <td><code>kubectl delete secret knowledge-secrets -n $NS</code></td>
-        </tr>
-        <tr>
-          <td>$patch:delete fehlt</td>
-          <td>Prod-Secrets mit Dev-Werten überschrieben</td>
-          <td>Niemals den <code>$patch: delete</code> Block in <code>prod/kustomization.yaml</code> entfernen</td>
-        </tr>
-        <tr>
-          <td>env:fetch-cert vergessen nach Reset</td>
-          <td>SealedSecret entschlüsselt nicht</td>
-          <td><code>env:fetch-cert → env:seal → deploy</code></td>
-        </tr>
-        <tr>
-          <td>Collabora fehlt</td>
-          <td>Office in Nextcloud funktioniert nicht</td>
-          <td><code>task workspace:office:deploy</code> separat ausführen</td>
-        </tr>
-      </tbody>
-    </table>
+  <h2 class="section-label">Deployment Checkliste</h2>
+  <div class="step-list">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>Office Deployment:</strong> Separater Task für Collabora.</div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>Admin Users:</strong> Initiales Passwort-Seeding.</div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body"><strong>Keycloak Sync:</strong> Realm-Konfiguration importieren.</div>
+    </li>
   </div>
 
-  <!-- CROSS REFS -->
-  <div class="section-label mt-3">Verbundene Skills</div>
+  <h2 class="section-label">Verbundene Skills</h2>
   <div class="xref-grid">
-    <a href="deployment-assist.html" class="xref-card">
-      <span class="xref-name">deployment-assist</span>
-      <span class="xref-rel">Interaktiver Guide für bestehende Envs</span>
-    </a>
     <a href="hetzner-node.html" class="xref-card">
       <span class="xref-name">hetzner-node</span>
-      <span class="xref-rel">Nodes für neue Umgebungen provisionieren</span>
+      <span class="xref-rel">Nodes für das neue Environment provisionieren</span>
     </a>
     <a href="secret-rotation.html" class="xref-card">
       <span class="xref-name">secret-rotation</span>
-      <span class="xref-rel">Secrets nach Cluster-Reset rotieren</span>
+      <span class="xref-rel">Mandatory bei Cluster-Resets</span>
     </a>
     <a href="keycloak-realm-sync.html" class="xref-card">
       <span class="xref-name">keycloak-realm-sync</span>
-      <span class="xref-rel">Realm nach Setup konfigurieren</span>
+      <span class="xref-rel">Benutzer & OIDC-Clients abgleichen</span>
     </a>
   </div>
 
 </main>
 
 <footer>
-  <span>Skills Übersicht / <code>.claude/skills/new-environment/SKILL.md</code></span>
+  <span>Skills Übersicht / <code>.agents/skills/new-environment/SKILL.md</code></span>
   <a href="../skills-overview.html">← Zurück zur Übersicht</a>
 </footer>
 

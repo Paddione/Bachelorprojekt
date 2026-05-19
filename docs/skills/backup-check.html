@@ -24,211 +24,141 @@
     <span class="badge badge-blue">Datenbank</span>
     <span class="badge-slug">backup-check</span>
   </div>
-  <h1 class="hero-title">Backup-Audit &amp; Restore-Test</h1>
+  <h1 class="hero-title">Backup Check</h1>
   <p class="hero-subtitle">
-    Vollständiger Audit des Backup-Systems: Setup-Verifikation, Live-Backup auslösen,
-    verschlüsselte Dateien verifizieren und sicheren Restore-Test auf Temp-DB durchführen.
-    Immer auf beiden Clustern — außer der Nutzer gibt explizit einen an.
+    End-to-End Audit des Backup-Systems: Setup verifizieren → Live-Backup auslösen → 
+    Dateien prüfen → Sicherer Restore-Test → Fehler beheben.
   </p>
   <div class="trigger-chip">
-    <span class="label">Auslöser:</span>
-    Backup-Audit, Restore-Test, oder Backup-System-Diagnose
+    <span class="label">Auslöser:</span> Audit, Restore-Test, oder Backup-System-Diagnose
   </div>
 </header>
 
 <main class="content">
 
   <div class="callout callout-warn">
-    <span class="callout-icon">&#9888;</span>
+    <span class="callout-icon">⚠️</span>
     <div class="callout-body">
-      <strong>Immer auf beiden Clustern</strong> (mentolder + korczewski) — außer der Nutzer
-      gibt explizit einen Cluster an. Jeder Cluster hat seine eigene shared-db und eigene Backups.
+      <strong>Immer auf beiden Clustern:</strong> mentolder + korczewski prüfen, 
+      außer der Nutzer gibt explizit einen Cluster an. Jeder Cluster hat eigene shared-db und Backups.
     </div>
   </div>
 
-  <ul class="kv-list">
-    <li><span class="kv-key">Datenbanken</span><span class="kv-val">keycloak, nextcloud, vaultwarden, website, docuseal</span></li>
-    <li><span class="kv-key">Nicht im Backup</span><span class="kv-val">Nextcloud-File-PVC, VW-Attachments, LiveKit-Recordings</span></li>
-    <li><span class="kv-key">Backup-Schedule</span><span class="kv-val">Täglich 02:00 UTC (CronJob)</span></li>
-    <li><span class="kv-key">Verschlüsselung</span><span class="kv-val">AES — BACKUP_PASSPHRASE ≥ 32 Bytes</span></li>
-  </ul>
+  <h2 class="section-label">Datenbanken im Scope</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Datenbank</th><th>Owner</th><th>Inhalt</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>keycloak</td><td>keycloak</td><td>SSO User, Realms, Clients</td></tr>
+        <tr><td>nextcloud</td><td>nextcloud</td><td>File Index, Kalender, Kontakte</td></tr>
+        <tr><td>vaultwarden</td><td>vaultwarden</td><td>Passwort-Vault Struktur</td></tr>
+        <tr><td>website</td><td>website</td><td>App DB + Knowledge Schemas</td></tr>
+        <tr><td>docuseal</td><td>docuseal</td><td>Signatur-Workflows, Templates</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-dim"><em>Nicht im Backup: Nextcloud File PVC, VW Attachments, LiveKit Recordings.</em></p>
 
-  <div class="section-label mt-3">Phasen</div>
   <div class="phases">
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">1</span>
-        <span class="phase-title">Setup-Audit</span>
-        <span class="phase-desc">CronJob, PVC, Passphrase, ConfigMap</span>
+        <span class="phase-num phase-num-blue">1</span>
+        <span class="phase-title">Setup Audit</span>
+        <span class="phase-desc">CronJob, PVC, Passphrase</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="cm"># CronJob prüfen (Name: db-backup)</span>
-<span class="fn">kubectl</span> get cronjob -n workspace
-
-<span class="cm"># Schedule sollte "0 2 * * *" sein</span>
-<span class="cm"># Suspended sollte false sein</span>
-<span class="fn">kubectl</span> describe cronjob db-backup -n workspace
-
-<span class="cm"># PVC-Status</span>
-<span class="fn">kubectl</span> get pvc -n workspace | grep backup
-
-<span class="cm"># Letzte Job-History</span>
-<span class="fn">kubectl</span> get jobs -n workspace --sort-by=.metadata.creationTimestamp | tail -5</code></pre>
-
-        <div class="callout callout-warn">
-          <span class="callout-icon">&#9888;</span>
+        <p>Prüfe CronJob Name und Schedule (erwartet: <code>db-backup</code>, <code>0 2 * * *</code>):</p>
+        <pre><code><span class="fn">kubectl</span> get cronjob -n &lt;ns&gt; --context &lt;ctx&gt;</code></pre>
+        
+        <div class="callout callout-info">
+          <span class="callout-icon">ℹ️</span>
           <div class="callout-body">
-            <strong>Bekannter Name-Drift:</strong> CronJob heißt manchmal <code>backup-postgres</code> statt
-            <code>db-backup</code>. Wenn alter Name: <code>task workspace:deploy</code> ausführen
-            und alten CronJob löschen.
+            <strong>Name-Drift:</strong> Falls <code>backup-postgres</code> existiert, mit <code>task workspace:deploy</code> 
+            auf den neuen Namen <code>db-backup</code> migrieren.
           </div>
         </div>
+
+        <p>Prüfe BACKUP_PASSPHRASE Stärke (≥ 32 bytes):</p>
+        <pre><code><span class="fn">kubectl</span> get secret workspace-secrets -n &lt;ns&gt; -o jsonpath='{.data.BACKUP_PASSPHRASE}' | base64 -d | wc -c</code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">2</span>
-        <span class="phase-title">Live-Backup auslösen</span>
-        <span class="phase-desc">Sofortiges Backup triggern</span>
+        <span class="phase-num phase-num-blue">2</span>
+        <span class="phase-title">Live Backup Trigger</span>
+        <span class="phase-desc">On-demand Backup auslösen</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">task</span> workspace:backup ENV=mentolder
-<span class="fn">task</span> workspace:backup ENV=korczewski
-
-<span class="cm"># Logs beobachten bis "✓ Backup complete"</span>
-<span class="fn">kubectl</span> logs -n workspace job/&lt;backup-job-name&gt; -f</code></pre>
-        <p>Erfolgskriterium: Log zeigt "✓ Backup complete" — 5 <code>.dump.enc</code>-Dateien erstellt.</p>
+        <pre><code><span class="fn">bash</span> scripts/backup-restore.sh trigger --context mentolder
+<span class="fn">bash</span> scripts/backup-restore.sh trigger --context korczewski --namespace workspace-korczewski</code></pre>
+        <p>Erfolg wenn Log zeigt: <span class="text-sage">✓ Backup complete</span></p>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">3</span>
-        <span class="phase-title">Verschlüsselte Dateien verifizieren</span>
-        <span class="phase-desc">Busybox-Pod für PVC-Inspektion</span>
+        <span class="phase-num phase-num-blue">3</span>
+        <span class="phase-title">Dateien verifizieren</span>
+        <span class="phase-desc">Verschlüsselung prüfen</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="cm"># Busybox-Pod gegen backup-pvc starten</span>
-<span class="fn">kubectl</span> run backup-inspect --rm -it \
-  --image=busybox \
-  --overrides='{
-    "spec": {
-      "volumes": [{"name":"backup","persistentVolumeClaim":{"claimName":"backup-pvc"}}],
-      "containers": [{"name":"busybox","image":"busybox",
-        "command":["sh"],
-        "volumeMounts":[{"name":"backup","mountPath":"/backup"}]
-      }]
-    }
-  }' \
-  -n workspace -- sh
-
-<span class="cm"># Im Pod:</span>
-<span class="cm"># ls -lah /backup/  (sollte .dump.enc Dateien zeigen)</span>
-<span class="cm"># Jede Datei sollte > 1 KB sein</span></code></pre>
-        <p>Erwartetes Ergebnis: 5 Dateien — <code>keycloak.dump.enc</code>, <code>nextcloud.dump.enc</code>,
-        <code>vaultwarden.dump.enc</code>, <code>website.dump.enc</code>, <code>docuseal.dump.enc</code></p>
+        <p>Spawn Busybox Pod gegen <code>backup-pvc</code>:</p>
+        <pre><code><span class="fn">kubectl</span> run backup-verify-$$ -n &lt;ns&gt; --restart=Never --image=busybox --overrides='...'</code></pre>
+        <p>Alle 5 <code>.dump.enc</code> Dateien müssen vorhanden und &gt; 1 KB sein.</p>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">4</span>
+        <span class="phase-num phase-num-blue">4</span>
         <span class="phase-title">Sicherer Restore-Test</span>
-        <span class="phase-desc">NIEMALS auf Produktion — nur Temp-DB</span>
+        <span class="phase-desc">In Temp-DB (NIEMALS Prod)</span>
       </div>
       <div class="phase-body">
         <div class="callout callout-critical">
-          <span class="callout-icon">&#9888;</span>
+          <span class="callout-icon">🚫</span>
           <div class="callout-body">
-            <strong>NIEMALS</strong> den Restore-Test auf der Produktions-Datenbank ausführen.
-            Immer eine temporäre Test-DB verwenden.
+            <strong>NIEMALS</strong> eine Produktions-Datenbank für einen Test droppen.
+            Nutze immer <code>website_restore_test</code>.
           </div>
         </div>
-        <pre><code><span class="cm"># 1. Temp-DB erstellen</span>
-<span class="fn">task</span> workspace:psql ENV=mentolder -- postgres
-<span class="cm">-- CREATE DATABASE website_restore_test;</span>
-
-<span class="cm"># 2. Neuesten Backup-Timestamp ermitteln</span>
-<span class="fn">task</span> workspace:backup:list ENV=mentolder
-
-<span class="cm"># 3. Website-DB in Temp-DB restoren</span>
-<span class="cm"># (backup-restore.sh mit --target-db website_restore_test)</span>
-<span class="fn">bash</span> scripts/backup-restore.sh restore website &lt;timestamp&gt; \
-  --target-db website_restore_test \
-  --env mentolder
-
-<span class="cm"># 4. Tabellen-Anzahl prüfen</span>
-<span class="fn">task</span> workspace:psql ENV=mentolder -- website_restore_test
-<span class="cm">-- SELECT schemaname, COUNT(*) FROM pg_tables</span>
-<span class="cm">-- WHERE schemaname NOT IN ('pg_catalog','information_schema')</span>
-<span class="cm">-- GROUP BY schemaname;</span>
-
-<span class="cm"># 5. Temp-DB aufräumen</span>
-<span class="cm">-- DROP DATABASE website_restore_test;</span></code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">5</span>
-        <span class="phase-title">Issue-Report</span>
-        <span class="phase-desc">Alle Checks dokumentieren</span>
-      </div>
-      <div class="phase-body">
-        <p>Ergebnis-Tabelle für beide Cluster:</p>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Check</th><th>mentolder</th><th>korczewski</th><th>Fix angewendet</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>CronJob Schedule</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>CronJob nicht suspended</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>PVC gebunden</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>BACKUP_PASSPHRASE ≥ 32 Bytes</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>Live-Backup erfolgreich</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>5 .dump.enc Dateien vorhanden</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>Dateien &gt; 1 KB</td><td>—</td><td>—</td><td>—</td></tr>
-              <tr><td>Restore-Test erfolgreich</td><td>—</td><td>—</td><td>—</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <p>Erstelle einen temporären Restore-Job, der <code>website.dump.enc</code> in eine neue Test-DB einspielt und danach die Tabellen zählt.</p>
+        <pre><code><span class="kw">Restore succeeded. Table count:</span>
+<span class="nm">SELECT count(*) FROM information_schema.tables...</span></code></pre>
       </div>
     </div>
 
   </div>
 
-  <!-- REAL RESTORE RUNBOOK -->
-  <div class="section-label mt-3">Echter Restore-Runbook (Notfall)</div>
-  <pre><code><span class="cm"># 1. Verfügbare Backups anzeigen</span>
-<span class="fn">task</span> workspace:backup:list ENV=&lt;env&gt;
+  <h2 class="section-label">Notfall-Restore Runbook</h2>
+  <pre><code><span class="cm"># 1. Betroffenen Service stoppen</span>
+<span class="fn">kubectl</span> scale deployment/&lt;svc&gt; --replicas=0
+<span class="cm"># 2. Restore ausführen</span>
+<span class="fn">task</span> workspace:restore -- &lt;db&gt; &lt;timestamp&gt; ENV=&lt;env&gt; -y
+<span class="cm"># 3. Service starten</span>
+<span class="fn">kubectl</span> scale deployment/&lt;svc&gt; --replicas=1</code></pre>
 
-<span class="cm"># 2. Betroffenen Service auf 0 skalieren</span>
-<span class="fn">kubectl</span> scale deployment/&lt;service&gt; --replicas=0 -n workspace
-
-<span class="cm"># 3. Restore ausführen</span>
-<span class="fn">task</span> workspace:restore -- &lt;db&gt; &lt;timestamp&gt; ENV=&lt;env&gt;
-<span class="cm"># db: keycloak|nextcloud|vaultwarden|website|docuseal|all</span>
-
-<span class="cm"># 4. Service wieder hochfahren</span>
-<span class="fn">kubectl</span> scale deployment/&lt;service&gt; --replicas=1 -n workspace</code></pre>
-
-  <!-- CROSS REFS -->
-  <div class="section-label mt-3">Verbundene Skills</div>
+  <h2 class="section-label">Verbundene Skills</h2>
   <div class="xref-grid">
     <a href="db-migration.html" class="xref-card">
       <span class="xref-name">db-migration</span>
       <span class="xref-rel">Backup vor destruktiven Migrationen</span>
     </a>
-    <a href="incident-response.html" class="xref-card">
-      <span class="xref-name">incident-response</span>
-      <span class="xref-rel">Bei Datenverlust-Incidents</span>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Falls BACKUP_PASSPHRASE zu schwach</span>
     </a>
     <a href="mishap-tracker.html" class="xref-card">
       <span class="xref-name">mishap-tracker</span>
-      <span class="xref-rel">Post-Execution Anomalien</span>
+      <span class="xref-rel">Fehlgeschlagene CronJobs loggen</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Bei Datenverlust in Produktion</span>
     </a>
   </div>
 

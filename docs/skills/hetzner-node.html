@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>hetzner-node — Hetzner-Node Provisioning</title>
+  <title>hetzner-node — Server Provisioning & Reset</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,225 +15,77 @@
   <span class="topnav-divider">/</span>
   <span class="topnav-title">hetzner-node</span>
   <div class="topnav-right">
-    <span class="badge badge-sage">Infrastruktur</span>
+    <span class="badge badge-sage">Infra</span>
   </div>
 </nav>
 
 <header class="skill-hero">
   <div class="hero-meta">
-    <span class="badge badge-sage">Infrastruktur</span>
+    <span class="badge badge-sage">Infra</span>
     <span class="badge-slug">hetzner-node</span>
   </div>
-  <h1 class="hero-title">Hetzner-Node Provisioning</h1>
+  <h1 class="hero-title">Hetzner Node Management</h1>
   <p class="hero-subtitle">
-    Provisioniert neue Hetzner-Nodes oder stellt bestehende Nodes nach einem Rescue-Mode-Reset wieder her.
-    WireGuard-Key-Management ist der kritische Pfad — ein einmal generierter Key wird in
-    <code>.secrets/&lt;env&gt;.yaml</code> gespeichert und überlebt jeden Reset.
+    Geführtes Provisioning und Reset von Hetzner Cloud Servern: 
+    Key-Management, Cloud-Config Generierung, Rescue-Mode Reinstall und Cluster-Join.
   </p>
   <div class="trigger-chip">
-    <span class="label">Auslöser:</span>
-    Neuen Hetzner-Node provisionieren oder nach Rescue-Mode-Reset wiederherstellen
+    <span class="label">Auslöser:</span> Neuer Cluster-Node benötigt oder bestehender Node kompromittiert/defekt
   </div>
 </header>
 
 <main class="content">
 
-  <ul class="kv-list">
-    <li><span class="kv-key">Cluster mentolder</span><span class="kv-val">3 CP auf gekko-hetzner-2/3/4, 6 Worker k3s-1..3 + k3w-1..3</span></li>
-    <li><span class="kv-key">Cluster korczewski</span><span class="kv-val">1 CP pk-hetzner-4, 2 Worker pk-hetzner-6/8</span></li>
-    <li><span class="kv-key">WireGuard</span><span class="kv-val"><code>wg-mesh</code> — alle mentolder-Nodes müssen Mitglied sein</span></li>
-    <li><span class="kv-key">SSH mentolder</span><span class="kv-val"><code>root@gekko-hetzner-*</code></span></li>
-    <li><span class="kv-key">SSH korczewski</span><span class="kv-val"><code>patrick@pk-hetzner-4/6/8</code> (AllowUsers patrick)</span></li>
-  </ul>
-
-  <div class="callout callout-warn">
-    <span class="callout-icon">&#9888;</span>
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
     <div class="callout-body">
-      <strong>WireGuard-Key-Design:</strong> Der private Key wird einmalig generiert und in
-      <code>environments/.secrets/&lt;env&gt;.yaml</code> gespeichert. Bei Recovery eines bestehenden Nodes
-      den gleichen Key verwenden — dann sind keine Peer-Updates nötig.
+      <strong>Persistente Identität:</strong> WireGuard-Keys werden in <code>.secrets/&lt;env&gt;.yaml</code> gespeichert. 
+      Dies ermöglicht Resets, ohne dass Peers aktualisiert werden müssen.
     </div>
   </div>
 
-  <div class="section-label mt-3">Zwei Modi</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Modus</th><th>Beschreibung</th><th>cloud-init</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Neuer Server</strong></td>
-          <td>Frische Hetzner-Instanz</td>
-          <td>Via User Data (cloud-init YAML)</td>
-        </tr>
-        <tr>
-          <td><strong>Rescue Mode</strong></td>
-          <td>Bestehender Server, OS-Neuinstallation</td>
-          <td>KEIN cloud-init — Setup-Script manuell</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section-label mt-3">Phasen</div>
   <div class="phases">
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-sage">0</span>
-        <span class="phase-title">Input-Sammlung</span>
-        <span class="phase-desc">Alle Parameter vor Start klären</span>
-      </div>
-      <div class="phase-body">
-        <ul class="kv-list">
-          <li><span class="kv-key">Modus</span><span class="kv-val">Neuer Server oder Rescue Mode?</span></li>
-          <li><span class="kv-key">Rolle</span><span class="kv-val">control-plane-init / control-plane-join / worker</span></li>
-          <li><span class="kv-key">Umgebung</span><span class="kv-val">mentolder / korczewski</span></li>
-          <li><span class="kv-key">Node-Name</span><span class="kv-val">z.B. <code>gekko-hetzner-5</code></span></li>
-          <li><span class="kv-key">IP-Adresse</span><span class="kv-val">Öffentliche IPv4 des Nodes</span></li>
-          <li><span class="kv-key">K3S-Token</span><span class="kv-val">Für Join-Rollen aus dem Cluster holen</span></li>
-        </ul>
-        <pre><code><span class="cm"># K3S-Token aus bestehendem Cluster</span>
-<span class="fn">kubectl</span> get secret k3s-serving -n kube-system -o jsonpath='{.data.token}' | base64 -d</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">0b</span>
-        <span class="phase-title">WireGuard-Key-Entscheidung</span>
-        <span class="phase-desc">Bestehend oder neu generieren?</span>
-      </div>
-      <div class="phase-body">
-        <p><strong>Recovery-Pfad</strong> (Node existiert bereits in .secrets): Den bestehenden Key aus
-        <code>environments/.secrets/&lt;env&gt;.yaml</code> verwenden — keine Peer-Updates nötig.</p>
-        <p><strong>Neuer Node</strong>: Key generieren:</p>
-        <pre><code><span class="cm"># Primär</span>
-<span class="fn">wg</span> genkey
-
-<span class="cm"># Fallback (wenn wg nicht verfügbar)</span>
-<span class="fn">python3</span> -c "
-from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
-import base64
-k = X25519PrivateKey.generate()
-print(base64.b64encode(k.private_bytes_raw()).decode())
-"</code></pre>
-        <p>Privaten Key sofort in <code>environments/.secrets/&lt;env&gt;.yaml</code> speichern.</p>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
         <span class="phase-num phase-num-sage">1</span>
-        <span class="phase-title">Cloud-Config oder Setup-Script generieren</span>
-        <span class="phase-desc">Je nach Modus</span>
+        <span class="phase-title">Input & Key Selection</span>
+        <span class="phase-desc">Modus, Rolle & WG-Keys</span>
       </div>
       <div class="phase-body">
-        <p><strong>Neuer Server (cloud-init YAML):</strong></p>
-        <ul>
-          <li>WireGuard-Peer-Block: 6-Leerzeichen-Einrückung in YAML</li>
-          <li>k3s-Install-Script mit korrekter Rolle</li>
-          <li><code>node-ip</code> auf öffentliche IP setzen</li>
-          <li><code>flannel-iface=wg-mesh</code> für mentolder-Nodes</li>
-        </ul>
-        <p><strong>Rescue Mode (Bash-Script):</strong></p>
-        <ul>
-          <li>Kein cloud-init — Script manuell nach installimage ausführen</li>
-          <li>WireGuard konfigurieren, dann k3s installieren</li>
-        </ul>
-        <pre><code><span class="cm"># k3s control-plane-init</span>
-<span class="fn">curl</span> -sfL https://get.k3s.io | sh -s - server \
-  --cluster-init \
-  --node-ip=&lt;PUBLIC_IP&gt; \
-  --flannel-iface=wg-mesh \
-  --disable=traefik  <span class="cm"># nur wenn eigenes Traefik</span>
-
-<span class="cm"># k3s worker join</span>
-<span class="fn">curl</span> -sfL https://get.k3s.io | <span class="vr">K3S_URL</span>=https://&lt;CP_IP&gt;:6443 \
-  <span class="vr">K3S_TOKEN</span>=&lt;TOKEN&gt; sh -s - agent \
-  --node-ip=&lt;PUBLIC_IP&gt; \
-  --flannel-iface=wg-mesh</code></pre>
+        <p>Bestimme Modus (New vs. Reset) und Rolle (CP Init, CP Join, Worker). Prüfe vorhandene WG-Keys:</p>
+        <pre><code><span class="fn">grep</span> <span class="st">"WG_MESH"</span> environments/.secrets/mentolder.yaml</code></pre>
+        <p>Falls neu, generiere Keys und trage sie in <code>wireguard/wg-mesh-nodes.yaml</code> ein.</p>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-sage">2a</span>
-        <span class="phase-title">Neuen Server erstellen (New Server-Pfad)</span>
-        <span class="phase-desc">hcloud CLI</span>
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">Infrastruktur-Setup</span>
+        <span class="phase-desc">Hetzner Console / CLI</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">hcloud</span> server create \
-  --name &lt;node-name&gt; \
-  --type &lt;server-type&gt; \
-  --image ubuntu-24.04 \
-  --location &lt;hel1|nbg1|fsn1&gt; \
-  --user-data-from-file cloud-init-&lt;env&gt;-&lt;node&gt;.yaml \
-  --ssh-key &lt;key-name&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">2b</span>
-        <span class="phase-title">Rescue Mode (Rescue-Pfad)</span>
-        <span class="phase-desc">Kein cloud-init!</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="cm"># 1. Rescue Mode aktivieren</span>
-<span class="fn">hcloud</span> server enable-rescue --type linux64 &lt;server-id&gt;
-
-<span class="cm"># 2. Server neu starten</span>
-<span class="fn">hcloud</span> server reboot &lt;server-id&gt;
-
-<span class="cm"># 3. In Rescue booten und installimage ausführen</span>
-<span class="fn">ssh</span> root@&lt;ip&gt; <span class="st">"installimage -a -r no -i /root/.oldroot/nfs/install/../images/Ubuntu-2404-noble-amd64-base.tar.gz -p /,ext4,all -d sda -f yes -t yes -n &lt;hostname&gt;"</span>
-
-<span class="cm"># 4. Nach Reboot: Setup-Script ausführen</span>
-<span class="cm"># (KEIN cloud-init in Rescue Mode)</span>
-<span class="fn">scp</span> setup-script.sh root@&lt;ip&gt;:/root/
-<span class="fn">ssh</span> root@&lt;ip&gt; <span class="st">"bash /root/setup-script.sh"</span></code></pre>
+        <p><strong>Variante A: Neuer Server</strong> (Cloud-Init)</p>
+        <pre><code><span class="fn">hcloud</span> server create --user-data-from-file /tmp/cloud-init.yaml</code></pre>
+        <p><strong>Variante B: Reset</strong> (Rescue Mode)</p>
+        <pre><code><span class="fn">ssh</span> root@&lt;IP&gt; <span class="st">"/root/.oldroot/nfs/install/installimage -a -c /tmp/config"</span></code></pre>
       </div>
     </div>
 
     <div class="phase-card">
       <div class="phase-header">
         <span class="phase-num phase-num-sage">3</span>
-        <span class="phase-title">Setup-Script ausführen (Rescue) / cloud-init abwarten (New)</span>
+        <span class="phase-title">Node-Konfiguration</span>
+        <span class="phase-desc">Setup-Script ausführen</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="cm"># cloud-init Status prüfen (New Server)</span>
-<span class="fn">ssh</span> root@&lt;ip&gt; <span class="st">"cloud-init status --wait"</span>
-<span class="fn">ssh</span> root@&lt;ip&gt; <span class="st">"journalctl -u cloud-init -f"</span></code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">4</span>
-        <span class="phase-title">WireGuard Peer-Sync</span>
-        <span class="phase-desc">Recovery=auto, Neuer Key=alle Peers aktualisieren</span>
-      </div>
-      <div class="phase-body">
-        <p><strong>Recovery-Pfad:</strong> Existierender Key → kein Update nötig.</p>
-        <p><strong>Neuer Key-Pfad:</strong> Alle bestehenden Nodes mit dem neuen Public Key aktualisieren:</p>
-        <pre><code><span class="cm"># Neuen Public Key aus Private Key ableiten</span>
-<span class="fn">echo</span> "&lt;PRIVATE_KEY&gt;" | wg pubkey
-
-<span class="cm"># Auf jedem bestehenden Node:</span>
-<span class="fn">wg</span> set wg-mesh peer &lt;NEW_PUBLIC_KEY&gt; \
-  allowed-ips &lt;NEW_WG_IP&gt;/32 \
-  endpoint &lt;NEW_PUBLIC_IP&gt;:51820
-
-<span class="cm"># Persistent speichern</span>
-<span class="fn">wg-quick</span> save wg-mesh</code></pre>
-        <div class="callout callout-critical">
-          <span class="callout-icon">&#9888;</span>
+        <p>Führe das generierte Setup-Script auf dem frischen OS aus (SSH-Härtung, Pakete, k3s):</p>
+        <pre><code><span class="fn">ssh</span> root@&lt;NODE_IP&gt; bash -s < /tmp/setup-&lt;nodename&gt;.sh</code></pre>
+        <div class="callout callout-warn">
+          <span class="callout-icon">⚠️</span>
           <div class="callout-body">
-            <strong>wg-mesh-Mitgliedschaft ist load-bearing für mentolder.</strong>
-            Einen Node ohne wg-mesh-Join hinzufügen bricht stillschweigend den Pod-zu-Pod-Traffic
-            von diesem Node.
+            Nach dem Script ist <strong>Root-Login deaktiviert</strong>. Nutze <code>patrick@</code> für weiteren Zugriff.
           </div>
         </div>
       </div>
@@ -241,99 +93,54 @@ print(base64.b64encode(k.private_bytes_raw()).decode())
 
     <div class="phase-card">
       <div class="phase-header">
-        <span class="phase-num phase-num-sage">5</span>
-        <span class="phase-title">k3s Join verifizieren</span>
-        <span class="phase-desc">Node muss Ready sein</span>
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">Cluster-Integration</span>
+        <span class="phase-desc">Verify & Label</span>
       </div>
       <div class="phase-body">
-        <pre><code><span class="fn">kubectl</span> get nodes
-<span class="fn">kubectl</span> get nodes -o wide
-
-<span class="cm"># Node labels setzen</span>
-<span class="fn">kubectl</span> label node &lt;node-name&gt; \
-  kubernetes.io/role=worker \
-  node.kubernetes.io/instance-type=&lt;type&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-sage">6</span>
-        <span class="phase-title">Post-Provisioning Checkliste</span>
-      </div>
-      <div class="phase-body">
-        <ul>
-          <li>kubeconfig aktualisieren (<code>kubectl config merge</code> wenn nötig)</li>
-          <li>Firewall-Regeln prüfen (ufw: 7880/7881/tcp, 50000-60000/udp, 30000-40000/udp)</li>
-          <li>Janus-Ports falls Nextcloud Talk auf diesem Node: 20000-20200/udp</li>
-          <li>LiveKit-Pinning wenn benötigt: <code>task livekit:dns-pin APPLY=true ENV=&lt;env&gt;</code></li>
-          <li><code>task workspace:deploy ENV=&lt;env&gt;</code> um neue Node-Affinitäten zu aktivieren</li>
-        </ul>
+        <p>Prüfe den Node-Status und setze die Rollen-Labels:</p>
+        <pre><code><span class="fn">kubectl</span> get nodes --context &lt;env&gt;
+<span class="fn">kubectl</span> label node &lt;name&gt; node-role.kubernetes.io/worker=""</code></pre>
       </div>
     </div>
 
   </div>
 
-  <!-- COMMON BLOCKERS -->
-  <div class="section-label mt-3">Häufige Probleme</div>
+  <h2 class="section-label">Common Problems</h2>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Problem</th><th>Ursache</th><th>Lösung</th></tr></thead>
+      <thead>
+        <tr><th>Symptom</th><th>Lösung</th></tr>
+      </thead>
       <tbody>
-        <tr>
-          <td>wg genkey nicht gefunden</td>
-          <td>wireguard-tools nicht installiert</td>
-          <td>Python3-Fallback oder <code>apt install wireguard-tools</code></td>
-        </tr>
-        <tr>
-          <td>installimage Pfad falsch</td>
-          <td>Rescue-Image-Pfad variiert</td>
-          <td><code>ls /root/.oldroot/nfs/install/images/</code></td>
-        </tr>
-        <tr>
-          <td>cloud-init nicht verfügbar</td>
-          <td>Rescue Mode hat kein cloud-init</td>
-          <td>Setup-Script manuell über SSH ausführen</td>
-        </tr>
-        <tr>
-          <td>Node bleibt NotReady</td>
-          <td>Flannel über falsches Interface</td>
-          <td><code>flannel-iface=wg-mesh</code> in k3s-Config prüfen</td>
-        </tr>
-        <tr>
-          <td>Pod-zu-Pod-Traffic bricht</td>
-          <td>wg-mesh nicht konfiguriert</td>
-          <td>WireGuard-Interface auf Node aufsetzen, Peers hinzufügen</td>
-        </tr>
+        <tr><td><code>installimage</code> fehlt</td><td>Nutze absoluten Pfad in Rescue</td></tr>
+        <tr><td>YAML-Fehler in Cloud-Init</td><td>Check Indentation (6 Spaces)</td></tr>
+        <tr><td>k3s Join schlägt fehl</td><td>Check <code>wg-mesh</code> Handshake</td></tr>
+        <tr><td>TLS-Fehler in Kubeconfig</td><td>Alten Cluster-Context löschen</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- CROSS REFS -->
-  <div class="section-label mt-3">Verbundene Skills</div>
+  <h2 class="section-label">Verbundene Skills</h2>
   <div class="xref-grid">
     <a href="new-environment.html" class="xref-card">
       <span class="xref-name">new-environment</span>
-      <span class="xref-rel">Nach Node-Provisioning Umgebung aufsetzen</span>
+      <span class="xref-rel">Gesamt-Setup des Clusters</span>
     </a>
     <a href="secret-rotation.html" class="xref-card">
       <span class="xref-name">secret-rotation</span>
-      <span class="xref-rel">Nach Cluster-Reset Secrets neu versiegeln</span>
+      <span class="xref-rel">WireGuard Keys erneuern</span>
     </a>
-    <a href="livekit-setup.html" class="xref-card">
-      <span class="xref-name">livekit-setup</span>
-      <span class="xref-rel">LiveKit-Node-Pinning nach Provisioning</span>
-    </a>
-    <a href="incident-response.html" class="xref-card">
-      <span class="xref-name">incident-response</span>
-      <span class="xref-rel">Bei Netzwerkproblemen nach Provisioning</span>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Server-Ausfälle dokumentieren</span>
     </a>
   </div>
 
 </main>
 
 <footer>
-  <span>Skills Übersicht / <code>.claude/skills/hetzner-node/SKILL.md</code></span>
+  <span>Skills Übersicht / <code>.agents/skills/hetzner-node/SKILL.md</code></span>
   <a href="../skills-overview.html">← Zurück zur Übersicht</a>
 </footer>
 

@@ -1560,6 +1560,9 @@ tasks:
           # connections through cross-node Traefik, causing NegotiationError.
           if [ "{{.ENV}}" = "mentolder" ]; then
             task livekit:dns-pin ENV="{{.ENV}}" APPLY=true || true
+            # Re-materialise sish authorized_keys after every deploy — workspace:deploy
+            # re-applies the git ConfigMap (placeholder) which overwrites live keys.
+            task brainstorm:materialise-keys || true
           fi
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'

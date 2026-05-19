@@ -1,10 +1,10 @@
 # ════════════════════════════════════════════════════════════════════
-# brainstorm-sish — reverse-SSH tunnel broker for brainstorm.$(PROD_DOMAIN)
+# brainstorm-sish — reverse-SSH tunnel broker for brainstorm.${PROD_DOMAIN}
 # ════════════════════════════════════════════════════════════════════
 # Mirrors k3d/dev-stack/sish.yaml but pinned to a single hostname and
 # exposed on a dedicated NodePort (32223) so operators can publish
 # their local brainstorming visual-companion at
-# https://brainstorm.$(PROD_DOMAIN).
+# https://brainstorm.${PROD_DOMAIN}.
 #
 # authorized_keys is materialised at deploy time from
 # environments/.secrets/mentolder.yaml → DEV_SISH_AUTHORIZED_KEYS
@@ -45,7 +45,7 @@ spec:
         - name: sish
           image: antoniomika/sish:v2.22.1
           args:
-            - --domain=$(PROD_DOMAIN)
+            - --domain=${PROD_DOMAIN}
             - --ssh-address=:2222
             - --http-address=:80
             - --authentication=true
@@ -56,7 +56,7 @@ spec:
             - --idle-connection-timeout=24h
             - --service-console=false
             - --tcp-aliases=false
-            - --bind-hosts=brainstorm.$(PROD_DOMAIN)
+            - --bind-hosts=brainstorm.${PROD_DOMAIN}
             # Persist the SSH hostkey on the pinned node so operators
             # don't have to re-accept it after every pod restart. T000380.
             - --private-keys-directory=/etc/sish-hostkey
@@ -134,14 +134,14 @@ kind: Ingress
 metadata:
   name: brainstorm
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - brainstorm.$(PROD_DOMAIN)
+        - brainstorm.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: brainstorm.$(PROD_DOMAIN)
+    - host: brainstorm.${PROD_DOMAIN}
       http:
         paths:
           - path: /

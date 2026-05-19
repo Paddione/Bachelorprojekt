@@ -9,9 +9,9 @@ spec:
         - name: vaultwarden
           env:
             - name: DOMAIN
-              value: "https://vault.$(PROD_DOMAIN)"
+              value: "https://vault.${PROD_DOMAIN}"
             - name: SSO_AUTHORITY
-              value: "https://auth.$(PROD_DOMAIN)/realms/workspace"
+              value: "https://auth.${PROD_DOMAIN}/realms/workspace"
             - name: SMTP_HOST
               value: "${SMTP_HOST}"
             - name: SMTP_PORT

@@ -8,14 +8,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-apex
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-redirect-apex-to-web@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-redirect-apex-to-web@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - $(PROD_DOMAIN)
+        - ${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: $(PROD_DOMAIN)
+    - host: ${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -32,14 +32,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-auth
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-rate-limit-auth@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-auth@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - auth.$(PROD_DOMAIN)
+        - auth.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: auth.$(PROD_DOMAIN)
+    - host: auth.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -56,14 +56,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-files
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-rate-limit-files@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-files@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - files.$(PROD_DOMAIN)
+        - files.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: files.$(PROD_DOMAIN)
+    - host: files.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -80,14 +80,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-vault
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-rate-limit-vault@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-rate-limit-vault@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - vault.$(PROD_DOMAIN)
+        - vault.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: vault.$(PROD_DOMAIN)
+    - host: vault.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -104,14 +104,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-docs
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - docs.$(PROD_DOMAIN)
+        - docs.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: docs.$(PROD_DOMAIN)
+    - host: docs.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -128,14 +128,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-sign
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - sign.$(PROD_DOMAIN)
+        - sign.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: sign.$(PROD_DOMAIN)
+    - host: sign.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -152,16 +152,16 @@ kind: Ingress
 metadata:
   name: workspace-ingress-misc
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - meet.$(PROD_DOMAIN)
-        - board.$(PROD_DOMAIN)
-        - signaling.$(PROD_DOMAIN)
+        - meet.${PROD_DOMAIN}
+        - board.${PROD_DOMAIN}
+        - signaling.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: meet.$(PROD_DOMAIN)
+    - host: meet.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -171,7 +171,7 @@ spec:
                 name: spreed-signaling
                 port:
                   number: 8080
-    - host: board.$(PROD_DOMAIN)
+    - host: board.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -181,7 +181,7 @@ spec:
                 name: whiteboard
                 port:
                   number: 3002
-    - host: signaling.$(PROD_DOMAIN)
+    - host: signaling.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -195,20 +195,20 @@ spec:
 # ── Tracking (Bachelorprojekt) ──────────────────────────────────────
 # Bug-Tracking läuft inzwischen direkt im Website-Admin-Panel
 # (`/admin/bugs`, Schema `bugs.bug_tickets`); ein separater
-# `bug-tracker`-Service / `bug.$(PROD_DOMAIN)`-Host existiert nicht.
+# `bug-tracker`-Service / `bug.${PROD_DOMAIN}`-Host existiert nicht.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress-tracking
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - tracking.$(PROD_DOMAIN)
+        - tracking.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: tracking.$(PROD_DOMAIN)
+    - host: tracking.${PROD_DOMAIN}
       http:
         paths:
           - path: /
@@ -225,14 +225,14 @@ kind: Ingress
 metadata:
   name: workspace-ingress-brett
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - brett.$(PROD_DOMAIN)
+        - brett.${PROD_DOMAIN}
       secretName: ${TLS_SECRET_NAME}
   rules:
-    - host: brett.$(PROD_DOMAIN)
+    - host: brett.${PROD_DOMAIN}
       http:
         paths:
           - path: /

@@ -12,12 +12,12 @@ spec:
             - "--config=/run/config/oauth2-extra.cfg"
             - "--provider=keycloak-oidc"
             - "--client-id=mailpit-admin"
-            - "--client-secret=$(MAIL_OIDC_SECRET)"
-            - "--redirect-url=https://mail.$(PROD_DOMAIN)/oauth2/callback"
-            - "--oidc-issuer-url=https://auth.$(PROD_DOMAIN)/realms/workspace"
+            - "--client-secret=${MAIL_OIDC_SECRET}"
+            - "--redirect-url=https://mail.${PROD_DOMAIN}/oauth2/callback"
+            - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
             - "--ssl-insecure-skip-verify=true"
             - "--skip-oidc-discovery=true"
-            - "--login-url=https://auth.$(PROD_DOMAIN)/realms/workspace/protocol/openid-connect/auth"
+            - "--login-url=https://auth.${PROD_DOMAIN}/realms/workspace/protocol/openid-connect/auth"
             - "--redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token"
             - "--oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs"
             - "--profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo"
@@ -34,7 +34,7 @@ spec:
             - "--insecure-oidc-allow-unverified-email=true"
             - "--oidc-extra-audience=mailpit-admin"
             - "--scope=openid email profile"
-            - "--whitelist-domain=mail.$(PROD_DOMAIN)"
+            - "--whitelist-domain=mail.${PROD_DOMAIN}"
           env:
             - name: MAIL_OIDC_SECRET
               valueFrom:

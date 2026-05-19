@@ -1,5 +1,5 @@
 # ════════════════════════════════════════════════════════════════════
-# oauth2-proxy-dev — SSO gate for *.dev.$(PROD_DOMAIN).
+# oauth2-proxy-dev — SSO gate for *.dev.${PROD_DOMAIN}.
 # Upstream is the k3d HTTP loadbalancer bound to 127.0.0.1:18080 on
 # the gekko-hetzner-2 node, reached via hostNetwork + nodeSelector.
 # Same pod serves both the ForwardAuth /oauth2/auth probe (called by
@@ -11,7 +11,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oauth2-proxy-dev
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
   labels:
     app: oauth2-proxy-dev
 spec:
@@ -67,14 +67,14 @@ spec:
             - --config=/run/config/oauth2-extra.cfg
             - --provider=keycloak-oidc
             - --client-id=workspace-dev
-            - --client-secret=$(DEV_WORKSPACE_OIDC_SECRET)
-            - --oidc-issuer-url=https://auth.$(PROD_DOMAIN)/realms/workspace
-            - --redirect-url=https://$(DEV_DOMAIN)/oauth2/callback
+            - --client-secret=${DEV_WORKSPACE_OIDC_SECRET}
+            - --oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace
+            - --redirect-url=https://${DEV_DOMAIN}/oauth2/callback
             - --upstream=http://127.0.0.1:18080
             - --http-address=0.0.0.0:4181
             - --reverse-proxy=true
-            - --whitelist-domain=.$(DEV_DOMAIN)
-            - --cookie-domain=.$(DEV_DOMAIN)
+            - --whitelist-domain=.${DEV_DOMAIN}
+            - --cookie-domain=.${DEV_DOMAIN}
             - --cookie-name=_oauth2_dev
             - --cookie-secure=true
             - --email-domain=*
@@ -136,7 +136,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: oauth2-proxy-dev
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
 spec:
   selector:
     app: oauth2-proxy-dev

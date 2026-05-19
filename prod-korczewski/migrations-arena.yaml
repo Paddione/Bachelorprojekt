@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: arena-bootstrap-sql
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
 data:
   0001_init.sql: |
     CREATE SCHEMA IF NOT EXISTS arena;
@@ -106,7 +106,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: arena-bootstrap
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
 spec:
   ttlSecondsAfterFinished: 600
   backoffLimit: 3

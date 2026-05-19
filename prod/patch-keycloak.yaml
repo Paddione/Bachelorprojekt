@@ -9,9 +9,9 @@ spec:
         - name: keycloak
           env:
             - name: PROD_DOMAIN
-              value: "$(PROD_DOMAIN)"
+              value: "${PROD_DOMAIN}"
             - name: KC_HOSTNAME
-              value: "https://auth.$(PROD_DOMAIN)"
+              value: "https://auth.${PROD_DOMAIN}"
             - name: KC_HOSTNAME_STRICT
               value: "true"
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC

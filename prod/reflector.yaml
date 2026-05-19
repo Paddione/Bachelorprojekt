@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: tls-sync
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -27,13 +27,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: tls-sync
-    namespace: $(WORKSPACE_NAMESPACE)
+    namespace: ${WORKSPACE_NAMESPACE}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: tls-sync
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
 spec:
   schedule: "0 3 1 * *"
   concurrencyPolicy: Forbid
@@ -100,11 +100,11 @@ spec:
                   }
 
                   # Sync the cluster's wildcard TLS cert to all service namespaces.
-                  # $(WORKSPACE_NAMESPACE) and ${TLS_SECRET_NAME} are substituted by
+                  # ${WORKSPACE_NAMESPACE} and ${TLS_SECRET_NAME} are substituted by
                   # envsubst during workspace:deploy so the correct values per env land here.
                   # Destinations that don't exist on a given cluster are skipped gracefully.
-                  for NS in coturn workspace-office $(WEBSITE_NAMESPACE); do
-                    sync_secret $(WORKSPACE_NAMESPACE) ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
+                  for NS in coturn workspace-office ${WEBSITE_NAMESPACE}; do
+                    sync_secret ${WORKSPACE_NAMESPACE} ${TLS_SECRET_NAME} ${TLS_SECRET_NAME} "$NS" || \
                       echo "warn: sync to $NS failed or namespace absent — skipping"
                   done
               resources:

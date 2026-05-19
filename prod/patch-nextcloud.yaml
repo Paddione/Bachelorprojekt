@@ -18,11 +18,11 @@ spec:
             - name: OVERWRITEPROTOCOL
               value: "https"
             - name: OVERWRITECLIURL
-              value: "https://files.$(PROD_DOMAIN)"
+              value: "https://files.${PROD_DOMAIN}"
             - name: OVERWRITEHOST
-              value: "files.$(PROD_DOMAIN)"
+              value: "files.${PROD_DOMAIN}"
             - name: NEXTCLOUD_TRUSTED_DOMAINS
-              value: "files.$(PROD_DOMAIN) localhost"
+              value: "files.${PROD_DOMAIN} localhost"
             - name: SMTP_HOST
               value: "${SMTP_HOST}"
             - name: SMTP_PORT

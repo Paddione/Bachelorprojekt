@@ -15,5 +15,5 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - "*.$(PROD_DOMAIN)"
-    - "$(PROD_DOMAIN)"
+    - "*.${PROD_DOMAIN}"
+    - "${PROD_DOMAIN}"

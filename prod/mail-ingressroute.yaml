@@ -12,7 +12,7 @@ spec:
     - websecure
   routes:
     # oauth2-proxy endpoints — no auth middleware
-    - match: Host(`mail.$(PROD_DOMAIN)`) && PathPrefix(`/oauth2`)
+    - match: Host(`mail.${PROD_DOMAIN}`) && PathPrefix(`/oauth2`)
       kind: Rule
       middlewares:
         - name: hsts-headers
@@ -21,7 +21,7 @@ spec:
         - name: oauth2-proxy-mailpit
           port: 4180
     # Mailpit UI — require auth
-    - match: Host(`mail.$(PROD_DOMAIN)`)
+    - match: Host(`mail.${PROD_DOMAIN}`)
       kind: Rule
       middlewares:
         - name: hsts-headers

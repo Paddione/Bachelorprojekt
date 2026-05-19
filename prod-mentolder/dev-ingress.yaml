@@ -2,17 +2,17 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress-dev
-  namespace: $(WORKSPACE_NAMESPACE)
+  namespace: ${WORKSPACE_NAMESPACE}
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "$(WORKSPACE_NAMESPACE)-redirect-https@kubernetescrd,$(WORKSPACE_NAMESPACE)-hsts-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-security-headers@kubernetescrd,$(WORKSPACE_NAMESPACE)-oauth2-proxy-dev@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-oauth2-proxy-dev@kubernetescrd"
 spec:
   tls:
     - hosts:
-        - "$(DEV_DOMAIN)"
-        - "*.$(DEV_DOMAIN)"
+        - "${DEV_DOMAIN}"
+        - "*.${DEV_DOMAIN}"
       secretName: workspace-dev-wildcard-tls
   rules:
-    - host: "*.$(DEV_DOMAIN)"
+    - host: "*.${DEV_DOMAIN}"
       http:
         paths:
           - path: /
@@ -22,7 +22,7 @@ spec:
                 name: oauth2-proxy-dev
                 port:
                   number: 4181
-    - host: "$(DEV_DOMAIN)"
+    - host: "${DEV_DOMAIN}"
       http:
         paths:
           - path: /

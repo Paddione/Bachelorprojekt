@@ -4,9 +4,12 @@ namespace: website-korczewski
 resources:
   - ../../../k3d/website.yaml
   - ../../../k3d/website-seller-config.yaml
-  - website-vars-configmap.yaml
 patches:
   - path: image-tag.yaml
     target:
       kind: Deployment
       name: website
+  - path: website-config-patch.yaml
+    target:
+      kind: ConfigMap
+      name: website-config

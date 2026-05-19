@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+data:
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  LLM_ENABLED: "true"
+  LLM_RERANK_ENABLED: "false"
+  SYSTEMTEST_LOOP_ENABLED: "true"
+  LEGAL_ZIP: "21360"

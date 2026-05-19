@@ -29,6 +29,8 @@ task workspace:restart  ENV=<env> -- <svc>  # restart a specific service
 task livekit:status     ENV=<env>           # LiveKit pods + recording count
 task livekit:logs       ENV=<env>           # livekit-server logs
 task clusters:status                        # one-line status across both prod clusters
+flux get kustomizations --context <ctx>     # check Flux reconciliation status
+flux logs --context <ctx>                   # tail reconciler events
 ```
 
 ## Important constraints

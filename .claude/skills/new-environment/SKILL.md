@@ -139,6 +139,22 @@ This applies the SealedSecret first (inside the kustomize overlay), then all oth
 
 ---
 
+## Step 6.5: Bootstrap Flux
+
+Once base connectivity and secrets are present, install Flux to manage future updates via GitOps.
+
+```bash
+# Apply the Flux system components and Kustomizations
+kubectl apply -f flux/clusters/<env>/ --context <ctx>
+
+# Force initial sync
+flux reconcile source git flux-system --context <ctx>
+flux reconcile kustomization workspace --context <ctx>
+flux reconcile kustomization website --context <ctx>
+```
+
+---
+
 ## Step 7: Post-deploy setup
 
 Run in order — each step depends on the previous one completing:

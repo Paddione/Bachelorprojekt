@@ -23,10 +23,10 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 - PRs flow: GitHub Actions → `tracking/pending/<pr>.json` → `tracking-import` CronJob → `bachelorprojekt.features`
 
 ## Deploy rule (CRITICAL)
-Every change to `website/src/` or `website/public/` requires:
+Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, Flux picks up the new image tag automatically. For manual rollout/rebuild:
 ```bash
-task website:deploy ENV=mentolder
-task website:deploy ENV=korczewski
+task website:redeploy ENV=mentolder
+task website:redeploy ENV=korczewski
 ```
 **Only from a clean main branch.** Never deploy from a feature branch.
 

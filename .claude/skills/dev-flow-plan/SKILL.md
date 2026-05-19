@@ -489,7 +489,15 @@ Rufe `commit-commands:commit-push-pr` auf.
 > gh pr create --title "chore(<scope>): <kurze-beschreibung>" --body "## Summary\n- ...\n\n## Test plan\n- ..."
 > ```
 
-### Schritt 6: Auto-Merge wenn CI grün
+### Schritt 6: Auto-Merge
+
+```bash
+gh pr merge --squash --delete-branch
+git checkout main
+git pull --rebase origin main
+```
+
+> **Falls branch protection CI-Checks verlangt:** `gh pr merge --squash --delete-branch --auto` nutzen — `gh` wartet dann auf grüne Checks, bevor es mergt.
 
 ### Schritt 7: Post-Merge Deploy
 

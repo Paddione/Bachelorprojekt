@@ -371,10 +371,35 @@ rm "$TMPFILE"
 rm "$PLAN_FILE"
 git add "$PLAN_FILE"
 git commit -m "chore(plans): archive $SLUG → postgres [$TICKET_ID]"
-git push
+
+# Branch protection verhindert direkten Push auf main — ephemeren Arch-Branch nutzen
+ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
+git checkout -b "$ARCHIVE_BRANCH"
+git push -u origin "$ARCHIVE_BRANCH"
+gh pr create \
+  --title "chore(plans): archive $SLUG → postgres [$TICKET_ID]" \
+  --body "Removes \`docs/superpowers/plans/$SLUG.md\` after archiving to \`tickets.ticket_plans\`." \
+  --base main
+gh pr merge --squash --delete-branch
+git checkout main
+git pull --rebase origin main
 ```
 
-Falls `$TICKET_ID` leer (Chore ohne Ticket): SQL-Archivierung überspringen — nur `rm "$PLAN_FILE"` + commit.
+Falls `$TICKET_ID` leer (Chore ohne Ticket): SQL-Archivierung überspringen — nur `rm "$PLAN_FILE"` + commit + PR:
+
+```bash
+rm "$PLAN_FILE"
+git add "$PLAN_FILE"
+git commit -m "chore(plans): archive $SLUG"
+ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
+git checkout -b "$ARCHIVE_BRANCH"
+git push -u origin "$ARCHIVE_BRANCH"
+gh pr create --title "chore(plans): archive $SLUG" \
+  --body "Removes plan file after chore completed (no ticket)." --base main
+gh pr merge --squash --delete-branch
+git checkout main
+git pull --rebase origin main
+```
 
 **Hinweis Dollar-Quoting:** `$plan$...$plan$` ist psql-Dollar-Quoting; sicher für beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String `$plan$` enthält (praktisch ausgeschlossen).
 

@@ -10,7 +10,8 @@ metadata:
   name: ddns-updater
   namespace: workspace
 spec:
-  schedule: "*/5 * * * *"
+  # Daily at 06:00 UTC — Hetzner VPS IPs are static, no need to poll every 5 min
+  schedule: "0 6 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -40,43 +41,63 @@ spec:
                     secretKeyRef:
                       name: ipv64-api-key
                       key: IPV64_API_KEY
-                - name: DDNS_HOSTNAME
-                  value: "korczewski.de"
-                - name: DDNS_ALIASES
-                  value: "web.korczewski.de"
               command: ["/bin/sh", "-c"]
               args:
                 - |
-                  CURRENT_IP=$(curl -sf --max-time 5 https://api.ipify.org \
-                    || curl -sf --max-time 5 https://ifconfig.me \
-                    || curl -sf --max-time 5 https://icanhazip.com || true)
+                  # Static IPs — korczewski cluster Hetzner nodes (never change)
+                  IP_4="204.168.244.104"   # pk-hetzner-4
+                  IP_6="37.27.251.38"      # pk-hetzner-6
+                  IP_8="62.238.23.79"      # pk-hetzner-8
 
-                  if [ -z "$CURRENT_IP" ]; then
-                    echo "ERROR: could not determine public IP" >&2
-                    exit 1
-                  fi
+                  FAILED=0
 
-                  echo "Current IP: $CURRENT_IP — updating ipv64..."
-
-                  HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
-                    -H "Authorization: Bearer $IPV64_API_KEY" \
-                    "https://ipv64.net/api?update_record=$DDNS_HOSTNAME&type=A&content=$CURRENT_IP" \
-                    || echo "000")
-
-                  if [ "$HTTP_STATUS" != "200" ]; then
-                    echo "ERROR: ipv64 returned HTTP $HTTP_STATUS for $DDNS_HOSTNAME" >&2
-                    exit 1
-                  fi
-                  echo "✓ $DDNS_HOSTNAME -> $CURRENT_IP"
-
-                  for ALIAS in $DDNS_ALIASES; do
-                    ALIAS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+                  # api_call <endpoint-with-params>
+                  # Wraps curl with auth and returns HTTP status. Sleeps 2s after
+                  # each call to stay within ipv64.net's rate limit.
+                  api_call() {
+                    STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
                       -H "Authorization: Bearer $IPV64_API_KEY" \
-                      "https://ipv64.net/api?update_record=$ALIAS&type=A&content=$CURRENT_IP" \
-                      || echo "000")
-                    if [ "$ALIAS_STATUS" != "200" ]; then
-                      echo "WARN: ipv64 returned HTTP $ALIAS_STATUS for $ALIAS" >&2
-                    else
-                      echo "✓ $ALIAS -> $CURRENT_IP"
-                    fi
-                  done
+                      "https://ipv64.net/api?${1}")
+                    sleep 2
+                    echo "$STATUS"
+                  }
+
+                  # set_records <domain> <ip> [<ip> ...]
+                  # Deletes all existing A records then adds each IP. Idempotent.
+                  set_records() {
+                    DOMAIN="$1"
+                    shift
+                    api_call "del_record=${DOMAIN}&type=A" > /dev/null 2>&1 || true
+                    for IP in "$@"; do
+                      STATUS=$(api_call "add_record=${DOMAIN}&type=A&content=${IP}")
+                      if [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ]; then
+                        echo "  ✓ ${DOMAIN} -> ${IP}"
+                      else
+                        echo "  WARN: ipv64 returned HTTP ${STATUS} for ${DOMAIN} -> ${IP}" >&2
+                        FAILED=$((FAILED + 1))
+                      fi
+                    done
+                  }
+
+                  echo "=== Root domain + wildcard → all 3 nodes ==="
+                  # korczewski.de is managed as a DDNS record — use update_record
+                  # for the first IP, then add_record for the remaining two.
+                  STATUS=$(api_call "update_record=korczewski.de&type=A&content=${IP_4}")
+                  [ "$STATUS" = "200" ] && echo "  ✓ korczewski.de -> ${IP_4}" || { echo "  WARN: HTTP ${STATUS} for korczewski.de -> ${IP_4}" >&2; FAILED=$((FAILED + 1)); }
+                  STATUS=$(api_call "add_record=korczewski.de&type=A&content=${IP_6}")
+                  [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ] && echo "  ✓ korczewski.de -> ${IP_6}" || { echo "  WARN: HTTP ${STATUS} for korczewski.de -> ${IP_6}" >&2; FAILED=$((FAILED + 1)); }
+                  STATUS=$(api_call "add_record=korczewski.de&type=A&content=${IP_8}")
+                  [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ] && echo "  ✓ korczewski.de -> ${IP_8}" || { echo "  WARN: HTTP ${STATUS} for korczewski.de -> ${IP_8}" >&2; FAILED=$((FAILED + 1)); }
+                  set_records "*.korczewski.de" "$IP_4" "$IP_6" "$IP_8"
+
+                  echo "=== LiveKit domains → pk-hetzner-6 only (hostNetwork + STUN pin) ==="
+                  # Specific records override the wildcard for these pinned services.
+                  set_records "livekit.korczewski.de" "$IP_6"
+                  set_records "stream.korczewski.de"  "$IP_6"
+                  set_records "turn.korczewski.de"    "$IP_6"
+
+                  if [ "$FAILED" -gt 0 ]; then
+                    echo "ERROR: ${FAILED} API call(s) failed — check ipv64 account/quota" >&2
+                    exit 1
+                  fi
+                  echo "All DNS records updated successfully"

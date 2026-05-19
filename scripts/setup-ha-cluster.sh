@@ -325,11 +325,12 @@ kubectl get nodes
 echo ">>> Installing Traefik via Helm (DaemonSet)"
 helm repo add traefik https://traefik.github.io/charts
 helm repo update
+# Values file restricts DaemonSet to pk-hetzner-{4,6,8} only and fixes
+# the hostPort rolling-update deadlock via maxUnavailable=1/maxSurge=0.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 helm install traefik traefik/traefik -n kube-system \
-  --set ports.web.hostPort=80 \
-  --set ports.websecure.hostPort=443 \
-  --set deployment.kind=DaemonSet \
-  --set ingressRoute.dashboard.enabled=false
+  --version 40.2.0 \
+  --values "${SCRIPT_DIR}/../prod-korczewski/traefik-values.yaml"
 
 echo ">>> Installing Longhorn for distributed storage"
 helm repo add longhorn https://charts.longhorn.io

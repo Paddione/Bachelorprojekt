@@ -1133,6 +1133,31 @@ tasks:
     cmds:
       - ./scripts/setup-ha-cluster.sh
 
+  korczewski:ingress:setup:
+    desc: "Upgrade Traefik on korczewski cluster — restricts DaemonSet to pk-hetzner-4/6/8, fixes hostPort rolling-update strategy (idempotent)"
+    cmds:
+      - |
+        helm --kube-context korczewski repo update
+        helm --kube-context korczewski upgrade traefik traefik/traefik \
+          -n kube-system \
+          --version 40.2.0 \
+          --values prod-korczewski/traefik-values.yaml \
+          --reuse-values=false
+        kubectl --kube-context korczewski -n kube-system rollout status daemonset traefik --timeout=120s
+      - echo "✓ Traefik restricted to pk-hetzner-4/6/8, 3 nodes now serving as ingress"
+
+  korczewski:dns:update:
+    desc: "Manually trigger a ddns-updater run on korczewski — sets 3 A records for *.korczewski.de and root domain, pins livekit/stream/turn to pk-hetzner-6"
+    cmds:
+      - |
+        JOB="ddns-manual-$(date +%s)"
+        kubectl --context korczewski -n workspace-korczewski \
+          create job --from=cronjob/ddns-updater "$JOB"
+        echo "Waiting for job $JOB to complete..."
+        kubectl --context korczewski -n workspace-korczewski wait job/"$JOB" \
+          --for=condition=complete --timeout=120s
+        kubectl --context korczewski -n workspace-korczewski logs job/"$JOB"
+
   ha:import-image:
     desc: "Build a local Docker image and import to all HA nodes (usage: task ha:import-image -- <path> <image:tag>)"
     vars:

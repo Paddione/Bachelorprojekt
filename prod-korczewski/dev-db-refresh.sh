@@ -25,8 +25,8 @@ echo "[dev-refresh] using snapshot $STAMP"
 
 export PGPASSWORD="$DEV_SHARED_DB_PASSWORD"
 
-for DB in "${DBS[@]}"; do
-  SRC="$BACKUP_DIR/$STAMP/${DB}.dump.enc"
+for DB in "$${DBS[@]}"; do
+  SRC="$BACKUP_DIR/$STAMP/$DB.dump.enc"
   if [[ ! -f "$SRC" ]]; then
     echo "[dev-refresh] skip $DB — no $SRC"
     continue

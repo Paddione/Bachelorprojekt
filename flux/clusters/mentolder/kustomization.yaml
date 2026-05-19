@@ -4,6 +4,7 @@ resources:
   - flux-system/
   - image-update-automation.yaml
   - vars-configmap.yaml
+  - website-vars-configmap.yaml
   - website.yaml
   - workspace.yaml
 patches:

@@ -23,32 +23,14 @@ vars:
 tasks:
 
   setup:
-    desc: "[brainstorm] One-time setup: open firewall on the sish node + materialise authorized_keys"
+    desc: "[brainstorm] One-time setup: open firewall on the sish node (keys come from SealedSecret via workspace:deploy)"
     cmds:
       - task: firewall:open
-      - task: materialise-keys
 
   materialise-keys:
-    desc: "[brainstorm] Push DEV_SISH_AUTHORIZED_KEYS into the brainstorm-sish ConfigMap and roll sish"
+    desc: "[brainstorm] No-op: authorized_keys now come from workspace-secrets SealedSecret (DEV_SISH_AUTHORIZED_KEYS). Run workspace:deploy ENV=mentolder to apply."
     cmds:
-      - |
-        set -euo pipefail
-        source scripts/env-resolve.sh "{{.ENV}}"
-        SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
-        if [[ ! -f "$SECRETS_FILE" ]]; then
-          echo "Missing $SECRETS_FILE — run task env:generate ENV={{.ENV}} first." >&2
-          exit 1
-        fi
-        AUTHKEYS=$(yq -r '.DEV_SISH_AUTHORIZED_KEYS // ""' "$SECRETS_FILE")
-        if [[ -z "$AUTHKEYS" ]]; then
-          echo "DEV_SISH_AUTHORIZED_KEYS empty in $SECRETS_FILE — add at least one pubkey before publishing tunnels." >&2
-          exit 1
-        fi
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} create configmap brainstorm-sish-authorized-keys \
-          --from-literal=authorized_keys="$AUTHKEYS" \
-          --dry-run=client -o yaml | kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} apply -f -
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} rollout restart deploy/brainstorm-sish
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} rollout status deploy/brainstorm-sish --timeout=60s
+      - echo "brainstorm:materialise-keys is no longer needed — DEV_SISH_AUTHORIZED_KEYS is served from the workspace-secrets SealedSecret, applied automatically by workspace:deploy."
 
   publish:
     desc: "[brainstorm] Publish a local port at https://brainstorm.${PROD_DOMAIN}. Usage: task brainstorm:publish -- <localport>"

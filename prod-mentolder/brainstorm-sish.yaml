@@ -6,21 +6,12 @@
 # their local brainstorming visual-companion at
 # https://brainstorm.${PROD_DOMAIN}.
 #
-# authorized_keys is materialised at deploy time from
-# environments/.secrets/mentolder.yaml → DEV_SISH_AUTHORIZED_KEYS
-# (see task brainstorm:_materialise-keys in Taskfile.brainstorm.yml).
+# authorized_keys comes from the workspace-secrets SealedSecret
+# (key: DEV_SISH_AUTHORIZED_KEYS), which is applied by workspace:deploy
+# before this manifest. No separate materialise step is needed.
 # Lives in the prod-mentolder overlay only — there is no brainstorm
 # broker on korczewski.
 # ════════════════════════════════════════════════════════════════════
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: brainstorm-sish-authorized-keys
-data:
-  authorized_keys: |
-    # placeholder — overwritten by `task brainstorm:_materialise-keys`
-    # from the unsealed value of DEV_SISH_AUTHORIZED_KEYS at apply time.
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -80,10 +71,10 @@ spec:
               cpu: 500m
       volumes:
         - name: keys
-          configMap:
-            name: brainstorm-sish-authorized-keys
+          secret:
+            secretName: workspace-secrets
             items:
-              - key: authorized_keys
+              - key: DEV_SISH_AUTHORIZED_KEYS
                 path: authorized_keys
         # hostPath on gekko-hetzner-2 (the deployment is nodeSelector-pinned
         # there). Survives pod restarts; sish generates the ED25519 hostkey

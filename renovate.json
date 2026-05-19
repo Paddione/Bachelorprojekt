@@ -1,0 +1,57 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 9am on Monday"],
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "npm minor/patch ({{packageFileDir}})",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "npm major updates",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["kubernetes"],
+      "matchPackagePatterns": ["^livekit/"],
+      "groupName": "livekit images"
+    },
+    {
+      "matchManagers": ["kubernetes"],
+      "matchPackagePatterns": ["^nextcloud", "^ghcr.io/nextcloud"],
+      "groupName": "nextcloud images"
+    },
+    {
+      "matchManagers": ["kubernetes"],
+      "matchPackagePatterns": ["^quay.io/keycloak"],
+      "groupName": "keycloak images"
+    },
+    {
+      "matchManagers": ["kubernetes"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions digest pins",
+      "pinDigests": true
+    },
+    {
+      "matchPackagePatterns": ["^ghcr.io/paddione/"],
+      "enabled": false
+    }
+  ],
+  "kubernetes": {
+    "fileMatch": [
+      "^k3d/.+\\.yaml$",
+      "^prod/.+\\.yaml$",
+      "^prod-mentolder/.+\\.yaml$",
+      "^prod-korczewski/.+\\.yaml$"
+    ]
+  }
+}

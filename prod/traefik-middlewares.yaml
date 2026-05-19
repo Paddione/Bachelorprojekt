@@ -87,6 +87,6 @@ metadata:
   namespace: workspace
 spec:
   redirectRegex:
-    regex: "^https?://${PROD_DOMAIN}(.*)"
-    replacement: "https://web.${PROD_DOMAIN}$1"
+    regex: "^https?://$(PROD_DOMAIN)(.*)"
+    replacement: "https://web.$(PROD_DOMAIN)$1"
     permanent: true

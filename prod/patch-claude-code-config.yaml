@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: claude-code-config
 data:
-  OPENID_PROVIDER_URL: "https://auth.${PROD_DOMAIN}/realms/workspace/.well-known/openid-configuration"
+  OPENID_PROVIDER_URL: "https://auth.$(PROD_DOMAIN)/realms/workspace/.well-known/openid-configuration"

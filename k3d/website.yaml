@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${WEBSITE_NAMESPACE}
+  name: $(WEBSITE_NAMESPACE)
   labels:
     pod-security.kubernetes.io/enforce: baseline
     pod-security.kubernetes.io/warn: restricted
@@ -12,47 +12,47 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: website-config
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 data:
   # Brand
-  BRAND: "${BRAND_ID}"
-  PROD_DOMAIN: "${PROD_DOMAIN}"
-  CLUSTER_ENV: "${CLUSTER_ENV}"
-  DOCS_URL: "${DOCS_URL}"
-  AUTH_EXTERNAL_URL: "${AUTH_EXTERNAL_URL}"
-  VAULT_EXTERNAL_URL: "${VAULT_EXTERNAL_URL}"
-  WHITEBOARD_EXTERNAL_URL: "${WHITEBOARD_EXTERNAL_URL}"
+  BRAND: "$(BRAND_ID)"
+  PROD_DOMAIN: "$(PROD_DOMAIN)"
+  CLUSTER_ENV: "$(CLUSTER_ENV)"
+  DOCS_URL: "$(DOCS_URL)"
+  AUTH_EXTERNAL_URL: "$(AUTH_EXTERNAL_URL)"
+  VAULT_EXTERNAL_URL: "$(VAULT_EXTERNAL_URL)"
+  WHITEBOARD_EXTERNAL_URL: "$(WHITEBOARD_EXTERNAL_URL)"
   BUG_REPORT_CHANNEL: "bugs"
   # Keycloak
-  KEYCLOAK_URL: "http://keycloak.${WORKSPACE_NAMESPACE}.svc.cluster.local:8080"
+  KEYCLOAK_URL: "http://keycloak.$(WORKSPACE_NAMESPACE).svc.cluster.local:8080"
   KEYCLOAK_REALM: "workspace"
   KEYCLOAK_ADMIN_USER: "admin"
   # SMTP (dev: Mailpit; prod: smtp.mailbox.org via env registry)
-  SMTP_HOST: "${SMTP_HOST}"
-  SMTP_PORT: "${SMTP_PORT}"
-  SMTP_SECURE: "${SMTP_SECURE}"
-  SMTP_USER: "${SMTP_USER}"
-  FROM_EMAIL: "${CONTACT_EMAIL}"
-  FROM_NAME: "${BRAND_NAME}"
+  SMTP_HOST: "$(SMTP_HOST)"
+  SMTP_PORT: "$(SMTP_PORT)"
+  SMTP_SECURE: "$(SMTP_SECURE)"
+  SMTP_USER: "$(SMTP_USER)"
+  FROM_EMAIL: "$(CONTACT_EMAIL)"
+  FROM_NAME: "$(BRAND_NAME)"
   # Legal / Impressum
-  BRAND_NAME: "${BRAND_NAME}"
-  CONTACT_NAME: "${CONTACT_NAME}"
-  CONTACT_EMAIL: "${CONTACT_EMAIL}"
-  CONTACT_PHONE: "${CONTACT_PHONE}"
-  CONTACT_CITY: "${CONTACT_CITY}"
-  LEGAL_STREET: "${LEGAL_STREET}"
-  LEGAL_ZIP: "${LEGAL_ZIP}"
-  LEGAL_JOBTITLE: "${LEGAL_JOBTITLE}"
-  LEGAL_UST_ID: "${LEGAL_UST_ID}"
-  LEGAL_WEBSITE: "${LEGAL_WEBSITE}"
+  BRAND_NAME: "$(BRAND_NAME)"
+  CONTACT_NAME: "$(CONTACT_NAME)"
+  CONTACT_EMAIL: "$(CONTACT_EMAIL)"
+  CONTACT_PHONE: "$(CONTACT_PHONE)"
+  CONTACT_CITY: "$(CONTACT_CITY)"
+  LEGAL_STREET: "$(LEGAL_STREET)"
+  LEGAL_ZIP: "$(LEGAL_ZIP)"
+  LEGAL_JOBTITLE: "$(LEGAL_JOBTITLE)"
+  LEGAL_UST_ID: "$(LEGAL_UST_ID)"
+  LEGAL_WEBSITE: "$(LEGAL_WEBSITE)"
   # Nextcloud
-  NEXTCLOUD_URL: "http://nextcloud.${WORKSPACE_NAMESPACE}.svc.cluster.local"
-  NEXTCLOUD_EXTERNAL_URL: "${NEXTCLOUD_EXTERNAL_URL}"
+  NEXTCLOUD_URL: "http://nextcloud.$(WORKSPACE_NAMESPACE).svc.cluster.local"
+  NEXTCLOUD_EXTERNAL_URL: "$(NEXTCLOUD_EXTERNAL_URL)"
   NEXTCLOUD_ADMIN_USER: "admin"
   NEXTCLOUD_CALDAV_USER: "admin"
-  KEYCLOAK_FRONTEND_URL: "${KEYCLOAK_FRONTEND_URL}"
-  TRAEFIK_EXTERNAL_URL: "${TRAEFIK_EXTERNAL_URL}"
-  MAIL_EXTERNAL_URL: "${MAIL_EXTERNAL_URL}"
+  KEYCLOAK_FRONTEND_URL: "$(KEYCLOAK_FRONTEND_URL)"
+  TRAEFIK_EXTERNAL_URL: "$(TRAEFIK_EXTERNAL_URL)"
+  MAIL_EXTERNAL_URL: "$(MAIL_EXTERNAL_URL)"
   # Portal admin
   PORTAL_ADMIN_USERNAME: "gekko,paddione"
   CALENDAR_NAME: "personal"
@@ -63,39 +63,39 @@ data:
   BOOKING_HORIZON_DAYS: "21"
   MIN_ADVANCE_HOURS: "24"
   # Whisper
-  WHISPER_URL: "http://whisper.${WORKSPACE_NAMESPACE}.svc.cluster.local:8000"
+  WHISPER_URL: "http://whisper.$(WORKSPACE_NAMESPACE).svc.cluster.local:8000"
   # LLM router (local-first pipeline)
-  LLM_ROUTER_URL: "${LLM_ROUTER_URL}"
-  LLM_ENABLED: "${LLM_ENABLED}"
-  LLM_RERANK_ENABLED: "${LLM_RERANK_ENABLED}"
+  LLM_ROUTER_URL: "$(LLM_ROUTER_URL)"
+  LLM_ENABLED: "$(LLM_ENABLED)"
+  LLM_RERANK_ENABLED: "$(LLM_RERANK_ENABLED)"
   # KORE-Assistent (no-LLM keyword-search mode for now)
   ENABLE_ASSISTANT_ADMIN: "true"
   ENABLE_ASSISTANT_PORTAL: "true"
   # Brett
-  BRETT_DOMAIN: "${BRETT_DOMAIN}"
-  BRETT_INTERNAL_URL: "http://brett.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
+  BRETT_DOMAIN: "$(BRETT_DOMAIN)"
+  BRETT_INTERNAL_URL: "http://brett.$(WORKSPACE_NAMESPACE).svc.cluster.local:3000"
   # LiveKit
-  LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
-  STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
+  LIVEKIT_DOMAIN: "livekit.$(PROD_DOMAIN)"
+  STREAM_DOMAIN: "stream.$(PROD_DOMAIN)"
   # Arena (last-man-standing game server; same host on both brands — mentolder only)
-  ARENA_WS_URL: "${ARENA_WS_URL}"
+  ARENA_WS_URL: "$(ARENA_WS_URL)"
   # Site
-  SITE_URL: "${WEBSITE_SITE_URL}"
+  SITE_URL: "$(WEBSITE_SITE_URL)"
   # System-test failure loop (Task 10): off by default. Flip to "true" only
   # after the rollout checklist in feat/systemtest-failure-loop has been run.
-  SYSTEMTEST_LOOP_ENABLED: "${SYSTEMTEST_LOOP_ENABLED}"
+  SYSTEMTEST_LOOP_ENABLED: "$(SYSTEMTEST_LOOP_ENABLED)"
 ---
 # ── Monitoring RBAC ──────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: website
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  name: $(WEBSITE_NAMESPACE)-monitoring-reader
 rules:
   - apiGroups: [""]
     resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services"]
@@ -135,22 +135,22 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  name: $(WEBSITE_NAMESPACE)-monitoring-reader
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  name: $(WEBSITE_NAMESPACE)-monitoring-reader
 subjects:
   - kind: ServiceAccount
     name: website
-    namespace: ${WEBSITE_NAMESPACE}
+    namespace: $(WEBSITE_NAMESPACE)
 ---
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: website
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   replicas: 1
   # /var/evidence is an emptyDir — rrweb test artifacts are ephemeral and the
@@ -174,7 +174,7 @@ spec:
       serviceAccountName: website
       imagePullSecrets:
         - name: ghcr-pull-secret
-      # Lower ndots so FQDNs like shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local (4 dots)
+      # Lower ndots so FQDNs like shared-db.$(WORKSPACE_NAMESPACE).svc.cluster.local (4 dots)
       # are resolved as absolute names without iterating through search-path suffixes.
       # On clusters where the node inherits a home-router search domain (e.g. fritz.box),
       # the default ndots:5 causes those lookups to time out and Node.js (musl libc)
@@ -197,7 +197,7 @@ spec:
                       - gekko-hetzner-3
       containers:
         - name: website
-          image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
+          image: ghcr.io/paddione/$(WEBSITE_IMAGE):latest
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -218,7 +218,7 @@ spec:
                   name: website-secrets
                   key: WEBSITE_DB_PASSWORD
             - name: SESSIONS_DATABASE_URL
-              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.${WORKSPACE_NAMESPACE}.svc.cluster.local:5432/website"
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db.$(WORKSPACE_NAMESPACE).svc.cluster.local:5432/website"
             - name: REPO_ROOT
               value: /app
             - name: CRON_SECRET
@@ -277,7 +277,7 @@ spec:
                   key: DOCUSEAL_API_TOKEN
                   optional: true
             - name: DOCUSEAL_INTERNAL_URL
-              value: "http://docuseal.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
+              value: "http://docuseal.$(WORKSPACE_NAMESPACE).svc.cluster.local:3000"
             - name: SELLER_NAME
               valueFrom:
                 configMapKeyRef:
@@ -358,7 +358,7 @@ spec:
                   name: website-secrets
                   key: INTERNAL_API_TOKEN
             - name: LIVEKIT_SERVICE_URL
-              value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
+              value: "http://livekit-server.$(WORKSPACE_NAMESPACE).svc.cluster.local:7880"
             - name: ARENA_WS_URL
               valueFrom:
                 configMapKeyRef:
@@ -423,7 +423,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: website
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   selector:
     app: website
@@ -436,13 +436,13 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: website
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   entryPoints:
     - web
   routes:
     - kind: Rule
-      match: Host(`${WEBSITE_HOST}`)
+      match: Host(`$(WEBSITE_HOST)`)
       services:
         - name: website
           port: 80
@@ -452,7 +452,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: meeting-reminders
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   schedule: "* * * * *"
   concurrencyPolicy: Forbid
@@ -488,7 +488,7 @@ spec:
                 runAsUser: 65534
                 capabilities:
                   drop: ["ALL"]
-              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.${WEBSITE_NAMESPACE}.svc.cluster.local/api/reminders/process"]
+              command: ["curl", "-sf", "--max-time", "15", "-X", "POST", "http://website.$(WEBSITE_NAMESPACE).svc.cluster.local/api/reminders/process"]
           restartPolicy: Never
 ---
 # ── NetworkPolicies: website-Namespace ───────────────────────────────────────
@@ -496,7 +496,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -506,7 +506,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -516,7 +516,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-dns-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -543,7 +543,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-egress-to-workspace
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -552,14 +552,14 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
+          kubernetes.io/metadata.name: $(WORKSPACE_NAMESPACE)
 ---
 # Traefik-Ingress aus kube-system erlauben
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-traefik-ingress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -578,7 +578,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -591,7 +591,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace-ingress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -607,7 +607,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-pod-cidr-ingress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -623,7 +623,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-service-cidr-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -640,7 +640,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-livekit-management-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -655,7 +655,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-smtp-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -672,7 +672,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-https-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -689,7 +689,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-llm-egress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector: {}
   policyTypes:
@@ -707,7 +707,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-workspace-ingress
-  namespace: ${WEBSITE_NAMESPACE}
+  namespace: $(WEBSITE_NAMESPACE)
 spec:
   podSelector:
     matchLabels:
@@ -718,7 +718,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
+          kubernetes.io/metadata.name: $(WORKSPACE_NAMESPACE)
     ports:
     - port: 80
       protocol: TCP

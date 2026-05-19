@@ -1,0 +1,24 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: flux-image-updates-website
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: flux-bot
+        email: flux@mentolder.de
+      messageTemplate: 'chore(flux): update mentolder-website to {{range .Updated.Images}}{{.}}{{end}} [skip ci]'
+    push:
+      branch: main
+  update:
+    strategy: Setters
+    path: ./flux/apps/website-mentolder

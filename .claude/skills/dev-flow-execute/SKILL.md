@@ -159,6 +159,20 @@ task workspace:validate
 task test:all
 ```
 
+### CI-kritische Zusatzchecks
+
+`task test:all` deckt nur den `offline-tests`-Job ab. Die folgenden Checks haben **eigene CI-Jobs** — CI kann rot werden, auch wenn `task test:all` grün ist. Führe sie aus, wenn die entsprechenden Dateien geändert wurden:
+
+| Geänderte Dateien | Lokaler Check | CI-Job |
+|---|---|---|
+| `tests/**` oder neue/geänderte Test-IDs | `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — bei Abweichung committen | `offline-tests` |
+| `brett/**` | `npm ci --prefix brett && node --test brett/test/ws-reconnect.test.mjs brett/test/physics.test.js brett/test/damage.test.mjs brett/test/pickups.test.mjs brett/test/mode-state.test.mjs` | `brett-server-test` |
+| `brett/**` (Whiteboard-Template) | `./scripts/tests/systembrett-template.test.sh` | `offline-tests` |
+| `arena-server/**` | `cd arena-server && pnpm install --frozen-lockfile && pnpm test && pnpm build` | `arena-server` |
+| `arena-server/src/proto/messages.ts` ODER `website/src/components/arena/shared/lobbyTypes.ts` | `diff arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts` — bei Abweichung: `cp arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts` | `arena-proto-drift` |
+
+> Alle fünf CI-Jobs müssen grün sein vor dem Merge.
+
 ---
 
 ## Schritt 3.5: Admin-Menu Placement Gate

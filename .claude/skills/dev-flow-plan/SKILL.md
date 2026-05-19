@@ -474,6 +474,15 @@ task workspace:validate      # falls Manifests betroffen
 task website:dev             # falls website/src/ betroffen — Smoke-Test
 ```
 
+**CI-kritische Zusatzchecks** — `task test:all` deckt nur den `offline-tests`-CI-Job ab; die folgenden haben eigene Jobs:
+
+| Geänderte Dateien | Zusätzlicher Check |
+|---|---|
+| `tests/**` oder neue Test-IDs | `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — bei Abweichung committen |
+| `brett/**` | `npm ci --prefix brett && node --test brett/test/ws-reconnect.test.mjs brett/test/physics.test.js brett/test/damage.test.mjs brett/test/pickups.test.mjs brett/test/mode-state.test.mjs` + `./scripts/tests/systembrett-template.test.sh` |
+| `arena-server/**` | `cd arena-server && pnpm install --frozen-lockfile && pnpm test && pnpm build` |
+| `arena-server/src/proto/messages.ts` ODER `website/src/components/arena/shared/lobbyTypes.ts` | `diff arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts` — bei Abweichung sync-copy |
+
 ### Schritt 5: PR
 
 Rufe `commit-commands:commit-push-pr` auf.

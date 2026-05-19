@@ -61,6 +61,10 @@ spec:
               add: ["SYS_ADMIN", "MKNOD", "SETUID", "SETGID"]
             appArmorProfile:
               type: Unconfined
+            # containerd's RuntimeDefault seccomp profile blocks unshare(CLONE_NEWUSER)
+            # which coolwsd needs to create per-document sandbox jails.
+            seccompProfile:
+              type: Unconfined
           env:
             - name: aliasgroup1
               value: "${COLLABORA_ALIASGROUP1}"

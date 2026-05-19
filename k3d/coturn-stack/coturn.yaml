@@ -6,9 +6,10 @@
 # (Nextcloud Talk's preferred method).
 #
 # Required environment substitutions (kustomize-envsubst):
-#   ${TURN_NODE}      — kubernetes.io/hostname of the public node
-#   ${TURN_PUBLIC_IP} — public IP of that node (used as external-ip)
-#   ${PROD_DOMAIN}    — used for the realm (turn.${PROD_DOMAIN})
+#   ${TURN_NODE}       — kubernetes.io/hostname of the public node
+#   ${TURN_PUBLIC_IP}  — public IP of that node (used as external-ip)
+#   ${PROD_DOMAIN}     — used for the realm (turn.${PROD_DOMAIN})
+#   ${TLS_SECRET_NAME} — wildcard TLS secret name (env-specific; see environments/<env>.yaml)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -111,4 +112,4 @@ spec:
       volumes:
         - name: coturn-tls
           secret:
-            secretName: workspace-wildcard-tls
+            secretName: ${TLS_SECRET_NAME}

@@ -704,6 +704,24 @@ tasks:
       - task: workspace:talk-dns-fix
         vars: { ENV: "mentolder" }
 
+  workspace:coturn:deploy:
+    desc: "Deploy the coturn-stack (TURN/STUN + Janus in coturn ns, ENV=mentolder|korczewski — not for dev)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    preconditions:
+      - sh: kubectl cluster-info > /dev/null 2>&1
+        msg: "No cluster running."
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        context_flag=""
+        [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
+        kustomize build k3d/coturn-stack \
+          | envsubst '$TURN_NODE $TURN_PUBLIC_IP $PROD_DOMAIN $TLS_SECRET_NAME' \
+          | kubectl $context_flag apply -f -
+      - task: workspace:coturn:sync-secret
+        vars: { ENV: "{{.ENV}}" }
+
   workspace:coturn:sync-secret:
     desc: "Copy SIGNALING_SECRET and TURN_SECRET from workspace-secrets into coturn/coturn-secrets (ENV=dev|mentolder|korczewski)"
     vars:

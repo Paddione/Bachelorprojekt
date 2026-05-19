@@ -121,6 +121,7 @@ tasks:
           .
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
+        ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
         TMP_TAR=$(mktemp /tmp/website-dev-XXXXXX.tar)
         trap "rm -f $TMP_TAR" EXIT
         docker save ghcr.io/paddione/workspace-website:dev > "$TMP_TAR"
@@ -133,6 +134,7 @@ tasks:
       - docker build -t ghcr.io/paddione/workspace-brett:dev -f brett/Dockerfile brett/
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
+        ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
         TMP_TAR=$(mktemp /tmp/brett-dev-XXXXXX.tar)
         trap "rm -f $TMP_TAR" EXIT
         docker save ghcr.io/paddione/workspace-brett:dev > "$TMP_TAR"

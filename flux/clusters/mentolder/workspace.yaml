@@ -15,8 +15,7 @@ spec:
       - kind: ConfigMap
         name: cluster-vars
       - kind: Secret
-        name: workspace-secrets
-        namespace: workspace
+        name: workspace-flux-vars
         optional: true
   healthChecks:
     - apiVersion: apps/v1

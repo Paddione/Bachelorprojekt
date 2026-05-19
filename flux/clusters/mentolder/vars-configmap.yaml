@@ -11,3 +11,4 @@ data:
   BRAND_NAME: Mentolder
   BRAND_ID: mentolder
   WEBSITE_IMAGE: mentolder-website
+  LLM_HOST_IP: "192.168.100.10"

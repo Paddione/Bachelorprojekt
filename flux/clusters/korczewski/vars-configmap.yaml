@@ -11,3 +11,4 @@ data:
   BRAND_NAME: KORE
   BRAND_ID: korczewski
   WEBSITE_IMAGE: korczewski-website
+  LLM_HOST_IP: "10.13.14.10"

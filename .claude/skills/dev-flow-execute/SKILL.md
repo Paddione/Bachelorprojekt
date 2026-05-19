@@ -19,6 +19,33 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 ---
 
+## Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
+
+Bevor irgendetwas passiert: sicherstellen, dass `main` im Haupt-Repo aktuell ist.
+Dieser Schritt läuft **im Haupt-Repo** (nicht im Worktree).
+
+```bash
+# Haupt-Repo-Pfad ermitteln (erstes Ergebnis von worktree list = Haupt-Repo)
+MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+
+(cd "$MAIN_REPO" && \
+  git fetch origin main && \
+  if git diff --quiet HEAD; then
+    git pull --rebase origin main
+  else
+    echo "Lokale Änderungen im Haupt-Repo erkannt — stashe..."
+    git stash
+    git pull --rebase origin main
+    git stash pop
+    echo "Stash zurückgespielt. Konflikte bitte prüfen."
+  fi
+)
+```
+
+Falls `git stash pop` Konflikte meldet: dem User anzeigen und warten.
+
+---
+
 ## Schritt 0: Worktree-Konsistenz prüfen
 
 ```bash

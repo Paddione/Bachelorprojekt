@@ -9,6 +9,28 @@ description: Use when starting feature work that needs isolation from current wo
 > project-specific post-create requirements. Follow ALL upstream steps, then
 > apply the checklist below.
 
+## Pre-Create: Main-Branch aktualisieren (Pull-First)
+
+**Vor** dem Anlegen eines neuen Worktrees: sicherstellen, dass `origin/main` aktuell ist —
+der Worktree startet sonst auf einem veralteten Stand.
+
+```bash
+git fetch origin main
+if git diff --quiet HEAD; then
+  git pull --rebase origin main
+else
+  echo "Lokale Änderungen erkannt — stashe..."
+  git stash
+  git pull --rebase origin main
+  git stash pop
+  echo "Stash zurückgespielt. Konflikte bitte prüfen."
+fi
+```
+
+Falls `git stash pop` Konflikte meldet: dem User anzeigen und Klärung einholen.
+
+---
+
 ## Post-Create Checklist (MANDATORY for this repo)
 
 After `EnterWorktree` (or `git worktree add`) completes, a `PostToolUse` hook

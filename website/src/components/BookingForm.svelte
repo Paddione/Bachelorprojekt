@@ -199,17 +199,17 @@
 
 </script>
 
-<div class="space-y-8">
-  <!-- Step 1: Choose type -->
-  <div>
-    <h3 class="text-xl font-semibold text-light mb-4">1. Art des Termins</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div class="bf-root">
+
+  <!-- Step 1: Booking type segment control -->
+  <div class="bf-section">
+    <p class="bf-step-label">Art des Termins</p>
+    <div class="bf-type-row">
       {#each bookingTypes as bt}
         <button
           type="button"
-          class="p-4 rounded-xl border text-left transition-all {bookingType === bt.value
-            ? 'border-gold bg-gold-dim text-gold'
-            : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted'}"
+          class="bf-type-btn"
+          class:is-active={bookingType === bt.value}
           onclick={() => { bookingType = bt.value; selectedLeistungKey = ''; selectedSlot = null; days = []; }}
         >
           {bt.label}
@@ -218,173 +218,136 @@
     </div>
   </div>
 
-  <!-- Step 2: Choose Leistung (not needed for callback) -->
+  <!-- Step 2: Leistung -->
   {#if !isCallback && leistungenOptions.length > 0}
-  <div>
-    <h3 class="text-xl font-semibold text-light mb-4">2. Gewünschte Leistung</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {#each leistungenOptions as opt}
-        <button
-          type="button"
-          class="p-4 rounded-xl border text-left transition-all {selectedLeistungKey === opt.key
-            ? 'border-gold bg-gold-dim text-gold'
-            : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted'}"
-          onclick={() => { selectedLeistungKey = opt.key; selectedSlot = null; days = []; }}
-        >
-          <div class="font-medium">{opt.name}</div>
-          <div class="text-xs mt-1 opacity-70">{opt.category}{opt.durationMin ? ` · ${opt.durationMin} Min.` : ''}</div>
-        </button>
-      {/each}
-    </div>
-    {#if !leistungenLoaded}
-      <p class="text-muted text-sm mt-3">Leistungen werden geladen…</p>
-    {/if}
-  </div>
-  {/if}
-
-  <!-- Step 3: Choose date + slot (not needed for callback, requires leistung selection) -->
-  {#if showSlotSelection}
-  <div>
-    <h3 class="text-xl font-semibold text-light mb-4">{leistungenOptions.length > 0 ? '3' : '2'}. Termin wählen</h3>
-
-    {#if loading}
-      <div class="text-muted py-8 text-center">Verfügbare Termine werden geladen...</div>
-    {:else if slotLoadError}
-      <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
-        Termine konnten nicht geladen werden. Bitte laden Sie die Seite neu oder kontaktieren Sie uns direkt.
-      </div>
-    {:else if days.length === 0}
-      <div class="text-muted py-8 text-center bg-dark rounded-xl border border-dark-lighter">
-        Derzeit sind keine freien Termine für diese Leistung verfügbar. Bitte kontaktieren Sie uns direkt.
-      </div>
-    {:else}
-      <!-- Date tabs -->
-      <div class="flex gap-2 overflow-x-auto pb-2 mb-4">
-        {#each days as day}
+    <div class="bf-section">
+      <p class="bf-step-label">Gewünschte Leistung</p>
+      <div class="bf-leistung-row">
+        {#each leistungenOptions as opt}
           <button
             type="button"
-            class="flex-shrink-0 px-4 py-3 rounded-xl border text-center transition-all min-w-[100px] {selectedDate === day.date
-              ? 'border-gold bg-gold-dim text-gold'
-              : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted'}"
-            onclick={() => (selectedDate = day.date)}
+            class="bf-leistung-btn"
+            class:is-active={selectedLeistungKey === opt.key}
+            onclick={() => { selectedLeistungKey = opt.key; selectedSlot = null; days = []; }}
           >
-            <div class="text-sm font-medium">{day.weekday}</div>
-            <div class="text-xs mt-1">{formatDate(day.date)}</div>
+            <span class="bf-leistung-name">{opt.name}</span>
+            <span class="bf-leistung-sub">{opt.category}{opt.durationMin ? ` · ${opt.durationMin} Min.` : ''}</span>
           </button>
         {/each}
       </div>
+      {#if !leistungenLoaded}
+        <p class="bf-hint">Leistungen werden geladen…</p>
+      {/if}
+    </div>
+  {/if}
 
-      <!-- Time slots for selected date -->
-      {#if currentDaySlots}
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {#each currentDaySlots.slots as slot}
+  <!-- Step 3: Date + slot -->
+  {#if showSlotSelection}
+    <div class="bf-section">
+      <p class="bf-step-label">Termin wählen</p>
+
+      {#if loading}
+        <p class="bf-hint bf-hint--center">Verfügbare Termine werden geladen…</p>
+      {:else if slotLoadError}
+        <p class="bf-hint bf-hint--center">Termine konnten nicht geladen werden. Bitte laden Sie die Seite neu oder kontaktieren Sie uns direkt.</p>
+      {:else if days.length === 0}
+        <p class="bf-hint bf-hint--center">Derzeit sind keine freien Termine verfügbar. Bitte kontaktieren Sie uns direkt.</p>
+      {:else}
+        <!-- Date strip -->
+        <div class="bf-date-strip">
+          {#each days as day}
             <button
               type="button"
-              class="px-4 py-3 rounded-xl border text-center font-medium transition-all {selectedSlot?.start === slot.start
-                ? 'border-gold bg-gold text-dark'
-                : 'border-dark-lighter bg-dark hover:border-gold/30 text-muted hover:text-light'}"
-              onclick={() => selectSlot(slot)}
+              class="bf-date-btn"
+              class:is-active={selectedDate === day.date}
+              onclick={() => (selectedDate = day.date)}
             >
-              {formatSlotTime(slot.start, slot.end)}
+              <span class="bf-date-wd">{day.weekday}</span>
+              <span class="bf-date-dt">{formatDate(day.date)}</span>
             </button>
           {/each}
         </div>
-      {/if}
 
-      {#if selectedSlot}
-        <p class="mt-4 text-gold font-medium" data-testid="selected-slot-display">
-          Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} um {formatSlotTime(selectedSlot.start, selectedSlot.end)}
-        </p>
+        <!-- Slot pills -->
+        {#if currentDaySlots}
+          <div class="bf-slots">
+            {#each currentDaySlots.slots as slot}
+              <button
+                type="button"
+                class="bf-slot"
+                class:is-active={selectedSlot?.start === slot.start}
+                onclick={() => selectSlot(slot)}
+              >
+                {formatSlotTime(slot.start, slot.end)}
+              </button>
+            {/each}
+          </div>
+        {/if}
+
+        {#if selectedSlot}
+          <p class="bf-slot-confirm" data-testid="selected-slot-display">
+            <span class="bf-slot-confirm-dot" aria-hidden="true">·</span>
+            Gewählt: {currentDaySlots?.weekday}, {formatDate(selectedDate)} · {formatSlotTime(selectedSlot.start, selectedSlot.end)}
+          </p>
+        {/if}
       {/if}
-    {/if}
-  </div>
+    </div>
   {/if}
 
-  <!-- Last step: Contact details -->
+  <!-- Contact form -->
   {#if showContactForm}
-    <form onsubmit={handleSubmit} class="space-y-6">
-      <h3 class="text-xl font-semibold text-light">
-        {#if isCallback}2{:else if leistungenOptions.length > 0}4{:else}3{/if}. Ihre Kontaktdaten
-      </h3>
+    <form onsubmit={handleSubmit} class="bf-form">
+      <div class="bf-form-head">
+        <h3 class="bf-form-title">Ihre Angaben</h3>
+        <span class="bf-form-req">* Pflichtfeld</span>
+      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label for="b-name" class="block text-lg font-medium text-light mb-2">
-            Ihr Name <span class="text-gold">*</span>
-          </label>
-          <input
-            id="b-name"
-            type="text"
-            bind:value={name}
-            required
-            placeholder="Max Mustermann"
-            class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-          />
+      <div class="bf-field-row">
+        <div class="bf-field">
+          <label for="b-name" class="bf-label">Name <span class="bf-req">*</span></label>
+          <input id="b-name" type="text" bind:value={name} required
+            placeholder="Andrea Müller" class="bf-input" />
         </div>
-        <div>
-          <label for="b-email" class="block text-lg font-medium text-light mb-2">
-            E-Mail <span class="text-gold">*</span>
-          </label>
-          <input
-            id="b-email"
-            type="email"
-            bind:value={email}
-            required
-            placeholder="max@beispiel.de"
-            class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-          />
+        <div class="bf-field">
+          <label for="b-email" class="bf-label">E-Mail <span class="bf-req">*</span></label>
+          <input id="b-email" type="email" bind:value={email} required
+            placeholder="ihre@email.de" class="bf-input" />
         </div>
       </div>
 
-      <div>
-        <label for="b-phone" class="block text-lg font-medium text-light mb-2">
-          Telefon {#if isCallback}<span class="text-gold">*</span>{:else}<span class="text-muted-dark">(optional)</span>{/if}
-        </label>
-        <input
-          id="b-phone"
-          type="tel"
-          bind:value={phone}
-          required={isCallback}
-          placeholder="+49 ..."
-          class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-        />
-        {#if isCallback}
-          <p class="mt-1 text-sm text-muted">Wir rufen Sie unter dieser Nummer zurück.</p>
-        {/if}
+      <div class="bf-field-row">
+        <div class="bf-field">
+          <label for="b-phone" class="bf-label">
+            Telefon
+            {#if isCallback}<span class="bf-req"> *</span>{:else}<span class="bf-opt"> (optional)</span>{/if}
+          </label>
+          <input id="b-phone" type="tel" bind:value={phone}
+            required={isCallback} placeholder="+49 …" class="bf-input" />
+          {#if isCallback}<p class="bf-hint">Wir rufen Sie unter dieser Nummer zurück.</p>{/if}
+        </div>
+        <div class="bf-field">
+          <label class="bf-label">Format</label>
+          <div class="bf-format-group" role="radiogroup">
+            <input type="radio" id="bf-f-online" name="bf-format" value="online" /><label for="bf-f-online">Online</label>
+            <input type="radio" id="bf-f-vor-ort" name="bf-format" value="vor-ort" /><label for="bf-f-vor-ort">Vor Ort</label>
+            <input type="radio" id="bf-f-egal" name="bf-format" value="egal" checked /><label for="bf-f-egal">Egal</label>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label for="b-message" class="block text-lg font-medium text-light mb-2">
-          Anmerkungen <span class="text-muted-dark">(optional)</span>
+      <div class="bf-field">
+        <label for="b-message" class="bf-label">
+          Worum geht es? <span class="bf-opt">(optional)</span>
         </label>
-        <textarea
-          id="b-message"
-          bind:value={message}
-          rows="3"
-          placeholder="Worum geht es? Was sollen wir vorbereiten?"
-          class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors resize-y"
-        ></textarea>
-      </div>
-
-      <div class="flex items-start gap-3">
-        <input
-          id="b-agb"
-          type="checkbox"
-          bind:checked={agbAccepted}
-          required
-          class="mt-1 w-5 h-5 rounded border-dark-lighter bg-dark text-gold focus:ring-gold-dim cursor-pointer flex-shrink-0"
-        />
-        <label for="b-agb" class="text-muted text-sm leading-relaxed cursor-pointer">
-          Ich habe die <a href="/agb" class="text-gold hover:underline" target="_blank">AGB</a> gelesen
-          und akzeptiere sie. <span class="text-gold">*</span>
-        </label>
+        <textarea id="b-message" bind:value={message} rows="3"
+          placeholder="In zwei, drei Sätzen — was beschäftigt Sie gerade?"
+          class="bf-input bf-textarea"></textarea>
       </div>
 
       {#if portalProjects.length > 0}
-        <div>
-          <label class="block text-sm text-muted mb-1">Für welches Projekt? (optional)</label>
-          <select bind:value={selectedProjectId}
-            class="w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm">
+        <div class="bf-field">
+          <label class="bf-label">Für welches Projekt? <span class="bf-opt">(optional)</span></label>
+          <select bind:value={selectedProjectId} class="bf-input">
             <option value="">— Kein Projekt —</option>
             {#each portalProjects as p}
               <option value={p.id}>{p.name}</option>
@@ -393,27 +356,205 @@
         </div>
       {/if}
 
-      <button
-        type="submit"
-        disabled={submitting || !agbAccepted}
-        class="w-full bg-gold hover:bg-gold-light disabled:bg-dark-lighter disabled:text-muted-dark text-dark px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer disabled:cursor-not-allowed uppercase tracking-wide"
-      >
-        {#if submitting}
-          Wird gesendet...
-        {:else}
-          Termin anfragen
-        {/if}
-      </button>
+      <div class="bf-agb-row">
+        <input id="b-agb" type="checkbox" bind:checked={agbAccepted} required class="bf-checkbox" />
+        <label for="b-agb" class="bf-agb-label">
+          Ich habe die <a href="/agb" target="_blank">AGB</a> gelesen und akzeptiere sie. <span class="bf-req">*</span>
+        </label>
+      </div>
+
+      <div class="bf-submit-area">
+        <button type="submit" disabled={submitting || !agbAccepted} class="bf-btn">
+          {#if submitting}Wird gesendet…{:else}Termin vorschlagen →{/if}
+        </button>
+        <p class="bf-submit-note">
+          Mit dem Absenden bestätigen Sie die <a href="/datenschutz">Datenschutzerklärung</a>.
+        </p>
+      </div>
 
       {#if result}
-        <div
-          class="p-4 rounded-lg text-lg {result.success
-            ? 'bg-green-900/30 text-green-300 border border-green-800'
-            : 'bg-red-900/30 text-red-300 border border-red-800'}"
-        >
+        <div class="bf-result" class:is-success={result.success} class:is-error={!result.success}>
           {result.message}
         </div>
       {/if}
     </form>
   {/if}
+
 </div>
+
+<style>
+  .bf-root { display: flex; flex-direction: column; gap: 0; }
+
+  .bf-section {
+    padding: 28px 0;
+    border-top: 1px solid var(--line);
+  }
+  .bf-section:first-child { border-top: none; padding-top: 0; }
+
+  .bf-step-label {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--mute); margin: 0 0 18px;
+  }
+
+  /* Type segment */
+  .bf-type-row {
+    display: flex; gap: 0;
+    border: 1px solid var(--line-2);
+    border-radius: 999px; padding: 4px; width: fit-content;
+    flex-wrap: wrap;
+  }
+  .bf-type-btn {
+    padding: 8px 18px; border-radius: 999px;
+    background: transparent; border: none;
+    color: var(--fg-soft); font-family: var(--sans); font-size: 13px;
+    cursor: pointer; transition: all 200ms ease;
+  }
+  .bf-type-btn:hover { color: var(--fg); }
+  .bf-type-btn.is-active { background: var(--brass); color: #1a130a; font-weight: 500; }
+
+  /* Leistung buttons */
+  .bf-leistung-row { display: flex; flex-direction: column; gap: 0; }
+  .bf-leistung-btn {
+    padding: 16px 0; background: transparent; border: none;
+    border-bottom: 1px solid var(--line); text-align: left;
+    cursor: pointer; transition: all 200ms ease; width: 100%;
+  }
+  .bf-leistung-btn:hover .bf-leistung-name { color: var(--fg); }
+  .bf-leistung-btn.is-active .bf-leistung-name { color: var(--brass-2); }
+  .bf-leistung-name { font-family: var(--serif); font-size: 18px; color: var(--fg-soft); display: block; }
+  .bf-leistung-sub { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--mute); margin-top: 4px; display: block; }
+
+  /* Date strip */
+  .bf-date-strip {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding-bottom: 4px; margin-bottom: 24px;
+  }
+  .bf-date-btn {
+    flex-shrink: 0; padding: 12px 16px;
+    border: 1px solid var(--line-2); border-radius: 999px;
+    background: transparent; text-align: center;
+    cursor: pointer; transition: all 200ms ease;
+    min-width: 88px;
+  }
+  .bf-date-btn:hover { border-color: var(--brass); }
+  .bf-date-btn.is-active { background: var(--brass); border-color: var(--brass); }
+  .bf-date-wd {
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    color: var(--fg-soft); display: block;
+  }
+  .bf-date-btn.is-active .bf-date-wd,
+  .bf-date-btn.is-active .bf-date-dt { color: #1a130a; }
+  .bf-date-dt {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    color: var(--mute); margin-top: 3px; display: block;
+  }
+
+  /* Slot pills */
+  .bf-slots { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .bf-slot {
+    padding: 12px 10px; border: 1px solid var(--line-2);
+    border-radius: 999px; background: transparent;
+    color: var(--fg); font-family: var(--mono);
+    font-size: 13px; letter-spacing: 0.04em;
+    cursor: pointer; text-align: center;
+    transition: all 200ms ease; min-width: 78px;
+  }
+  .bf-slot:hover { border-color: var(--brass); color: var(--brass-2); }
+  .bf-slot.is-active { background: var(--brass); border-color: var(--brass); color: #1a130a; font-weight: 500; }
+
+  .bf-slot-confirm {
+    margin-top: 16px; font-family: var(--mono); font-size: 12px;
+    letter-spacing: 0.08em; color: var(--brass); display: flex; align-items: center; gap: 10px;
+  }
+  .bf-slot-confirm-dot { color: var(--mute); }
+
+  /* Form */
+  .bf-form { display: flex; flex-direction: column; gap: 22px; padding-top: 4px; }
+  .bf-form-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  }
+  .bf-form-title {
+    font-family: var(--serif); font-weight: 400; font-size: 22px;
+    letter-spacing: -0.01em; color: var(--fg); margin: 0;
+  }
+  .bf-form-req { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+
+  .bf-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .bf-field { display: flex; flex-direction: column; gap: 8px; }
+
+  .bf-label {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute);
+  }
+  .bf-req { color: var(--brass); }
+  .bf-opt { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 12px; color: var(--mute-2); }
+
+  .bf-input {
+    background: transparent; border: none;
+    border-bottom: 1px solid var(--line-2);
+    padding: 10px 0 12px; font-family: var(--sans); font-size: 16px;
+    color: var(--fg); outline: none; width: 100%;
+    transition: border-color 200ms ease;
+  }
+  .bf-input::placeholder { color: var(--mute-2); }
+  .bf-input:focus { border-color: var(--brass); }
+  .bf-textarea { resize: vertical; min-height: 72px; line-height: 1.55; }
+
+  /* Format radio group */
+  .bf-format-group {
+    display: flex; gap: 0;
+    border: 1px solid var(--line-2); border-radius: 999px;
+    padding: 4px; width: fit-content; margin-top: 2px;
+  }
+  .bf-format-group input[type="radio"] { display: none; }
+  .bf-format-group label {
+    text-transform: none; letter-spacing: 0;
+    font-family: var(--sans); font-size: 13px;
+    color: var(--fg-soft); padding: 7px 16px;
+    border-radius: 999px; cursor: pointer;
+    transition: all 200ms ease;
+  }
+  .bf-format-group input:checked + label { background: var(--brass); color: #1a130a; font-weight: 500; }
+  .bf-format-group label:hover { color: var(--fg); }
+
+  /* AGB row */
+  .bf-agb-row { display: flex; align-items: start; gap: 12px; }
+  .bf-checkbox {
+    width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0;
+    accent-color: var(--brass); cursor: pointer;
+  }
+  .bf-agb-label { font-size: 13px; color: var(--mute); line-height: 1.55; cursor: pointer; }
+  .bf-agb-label a { color: var(--fg-soft); border-bottom: 1px solid var(--brass); text-decoration: none; padding-bottom: 1px; }
+  .bf-agb-label a:hover { color: var(--brass-2); }
+
+  /* Submit */
+  .bf-submit-area { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .bf-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--brass); color: #1a130a; border: none;
+    padding: 15px 28px; border-radius: 999px;
+    font-family: var(--sans); font-size: 15px; font-weight: 600;
+    letter-spacing: -0.005em; cursor: pointer;
+    transition: background 200ms ease, transform 200ms ease;
+  }
+  .bf-btn:hover:not(:disabled) { background: var(--brass-2); transform: translateY(-1px); }
+  .bf-btn:disabled { background: var(--ink-800); color: var(--mute); cursor: not-allowed; }
+  .bf-submit-note { font-size: 13px; color: var(--mute); max-width: 38ch; line-height: 1.5; }
+  .bf-submit-note a { color: var(--fg-soft); border-bottom: 1px solid var(--brass); text-decoration: none; }
+  .bf-submit-note a:hover { color: var(--brass-2); }
+
+  /* Result */
+  .bf-result { padding: 16px; font-size: 14px; line-height: 1.55; border-radius: 8px; }
+  .bf-result.is-success { background: oklch(0.80 0.06 160 / .1); color: oklch(0.80 0.06 160); border: 1px solid oklch(0.80 0.06 160 / .25); }
+  .bf-result.is-error { background: oklch(0.62 0.18 22 / .1); color: oklch(0.75 0.12 22); border: 1px solid oklch(0.62 0.18 22 / .25); }
+
+  .bf-hint { font-size: 13px; color: var(--mute); line-height: 1.5; margin: 8px 0 0; }
+  .bf-hint--center { text-align: center; padding: 32px 0; }
+
+  @media (max-width: 640px) {
+    .bf-field-row { grid-template-columns: 1fr; }
+    .bf-type-row { flex-direction: column; border-radius: 12px; }
+    .bf-type-btn { border-radius: 8px; }
+  }
+</style>

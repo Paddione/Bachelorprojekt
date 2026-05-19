@@ -49,109 +49,112 @@
   }
 </script>
 
-<form onsubmit={handleSubmit} class="space-y-6">
-  <!-- Type -->
-  <div>
-    <label for="type" class="block text-lg font-medium text-light mb-2">
-      Wie können wir Ihnen helfen?
-    </label>
-    <select
-      id="type"
-      bind:value={type}
-      class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-    >
+<form onsubmit={handleSubmit} class="cf-form">
+
+  <div class="cf-field">
+    <label for="cf-type" class="cf-label">Wie kann ich helfen?</label>
+    <select id="cf-type" bind:value={type} class="cf-input">
       {#each types as t}
         <option value={t.value}>{t.label}</option>
       {/each}
     </select>
   </div>
 
-  <!-- Name -->
-  <div>
-    <label for="name" class="block text-lg font-medium text-light mb-2">
-      Ihr Name <span class="text-gold">*</span>
-    </label>
-    <input
-      id="name"
-      type="text"
-      bind:value={name}
-      required
-      placeholder="Max Mustermann"
-      class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-    />
+  <div class="cf-field-row">
+    <div class="cf-field">
+      <label for="cf-name" class="cf-label">Name <span class="cf-req">*</span></label>
+      <input id="cf-name" type="text" bind:value={name} required
+        placeholder="Andrea Müller" class="cf-input" />
+    </div>
+    <div class="cf-field">
+      <label for="cf-email" class="cf-label">E-Mail <span class="cf-req">*</span></label>
+      <input id="cf-email" type="email" bind:value={email} required
+        placeholder="ihre@email.de" class="cf-input" />
+    </div>
   </div>
 
-  <!-- Email -->
-  <div>
-    <label for="email" class="block text-lg font-medium text-light mb-2">
-      E-Mail-Adresse <span class="text-gold">*</span>
-    </label>
-    <input
-      id="email"
-      type="email"
-      bind:value={email}
-      required
-      placeholder="max@beispiel.de"
-      class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-    />
+  <div class="cf-field">
+    <label for="cf-phone" class="cf-label">Telefon <span class="cf-opt">(optional)</span></label>
+    <input id="cf-phone" type="tel" bind:value={phone}
+      placeholder="+49 …" class="cf-input" />
   </div>
 
-  <!-- Phone -->
-  <div>
-    <label for="phone" class="block text-lg font-medium text-light mb-2">
-      Telefon <span class="text-muted-dark">(optional)</span>
-    </label>
-    <input
-      id="phone"
-      type="tel"
-      bind:value={phone}
-      placeholder="+49 ..."
-      class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
-    />
+  <div class="cf-field">
+    <label for="cf-message" class="cf-label">Ihre Nachricht <span class="cf-req">*</span></label>
+    <textarea id="cf-message" bind:value={message} required rows="5"
+      placeholder="Beschreiben Sie kurz Ihr Anliegen…"
+      class="cf-input cf-textarea"></textarea>
   </div>
 
-  <!-- Message -->
-  <div>
-    <label for="message" class="block text-lg font-medium text-light mb-2">
-      Ihre Nachricht <span class="text-gold">*</span>
-    </label>
-    <textarea
-      id="message"
-      bind:value={message}
-      required
-      rows="5"
-      placeholder="Beschreiben Sie kurz Ihr Anliegen..."
-      class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors resize-y"
-    ></textarea>
+  <div class="cf-submit-area">
+    <button type="submit" disabled={submitting} class="cf-btn">
+      {#if submitting}Wird gesendet…{:else}Nachricht senden →{/if}
+    </button>
+    <p class="cf-submit-note">
+      Mit dem Absenden stimmen Sie der <a href="/datenschutz">Datenschutzerklärung</a> und den <a href="/agb">AGB</a> zu.
+    </p>
   </div>
 
-  <!-- Submit -->
-  <button
-    type="submit"
-    disabled={submitting}
-    class="w-full bg-gold hover:bg-gold-light disabled:bg-dark-lighter disabled:text-muted-dark text-dark px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer disabled:cursor-not-allowed uppercase tracking-wide"
-  >
-    {#if submitting}
-      Wird gesendet...
-    {:else}
-      Nachricht senden
-    {/if}
-  </button>
-
-  <!-- Result message -->
   {#if result}
-    <div
-      class="p-4 rounded-lg text-lg {result.success
-        ? 'bg-green-900/30 text-green-300 border border-green-800'
-        : 'bg-red-900/30 text-red-300 border border-red-800'}"
-    >
+    <div class="cf-result" class:is-success={result.success} class:is-error={!result.success}>
       {result.message}
     </div>
   {/if}
 
-  <p class="text-sm text-muted-dark text-center">
-    Mit dem Absenden stimmen Sie unserer
-    <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>
-    und unseren <a href="/agb" class="text-gold hover:underline">AGB</a> zu.
-  </p>
 </form>
+
+<style>
+  .cf-form { display: flex; flex-direction: column; gap: 22px; }
+  .cf-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .cf-field { display: flex; flex-direction: column; gap: 8px; }
+
+  .cf-label {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute);
+  }
+  .cf-req { color: var(--brass); }
+  .cf-opt { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 12px; color: var(--mute-2); }
+
+  .cf-input {
+    background: transparent; border: none;
+    border-bottom: 1px solid var(--line-2);
+    padding: 10px 0 12px; font-family: var(--sans); font-size: 16px;
+    color: var(--fg); outline: none; width: 100%;
+    transition: border-color 200ms ease;
+    -webkit-appearance: none; appearance: none;
+  }
+  .cf-input::placeholder { color: var(--mute-2); }
+  .cf-input:focus { border-color: var(--brass); }
+  .cf-textarea { resize: vertical; min-height: 100px; line-height: 1.55; }
+
+  /* select arrow */
+  select.cf-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238c96a3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 4px center;
+    padding-right: 24px;
+    cursor: pointer;
+  }
+
+  .cf-submit-area { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .cf-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--brass); color: #1a130a; border: none;
+    padding: 15px 28px; border-radius: 999px;
+    font-family: var(--sans); font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background 200ms ease, transform 200ms ease;
+  }
+  .cf-btn:hover:not(:disabled) { background: var(--brass-2); transform: translateY(-1px); }
+  .cf-btn:disabled { background: var(--ink-800); color: var(--mute); cursor: not-allowed; }
+  .cf-submit-note { font-size: 13px; color: var(--mute); max-width: 38ch; line-height: 1.5; }
+  .cf-submit-note a { color: var(--fg-soft); border-bottom: 1px solid var(--brass); text-decoration: none; }
+  .cf-submit-note a:hover { color: var(--brass-2); }
+
+  .cf-result { padding: 16px; font-size: 14px; line-height: 1.55; border-radius: 8px; }
+  .cf-result.is-success { background: oklch(0.80 0.06 160 / .1); color: oklch(0.80 0.06 160); border: 1px solid oklch(0.80 0.06 160 / .25); }
+  .cf-result.is-error { background: oklch(0.62 0.18 22 / .1); color: oklch(0.75 0.12 22); border: 1px solid oklch(0.62 0.18 22 / .25); }
+
+  @media (max-width: 640px) {
+    .cf-field-row { grid-template-columns: 1fr; }
+  }
+</style>

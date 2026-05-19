@@ -17,6 +17,30 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will: neue Funktion, Bug 
 
 **Sage zu Beginn:** "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
 
+## Schritt −2: Main-Branch sync (Pull-First)
+
+Führe **als allererstes** aus — bevor irgendetwas anderes passiert:
+
+```bash
+# Prüfen ob sauberer Zustand oder lokale Änderungen vorhanden
+git fetch origin main
+if git diff --quiet HEAD; then
+  # Sauber → direkt pullen
+  git pull --rebase origin main
+else
+  # Lokale Änderungen vorhanden → stashen, pullen, zurückholen
+  echo "Lokale Änderungen erkannt — stashe vor dem Pull..."
+  git stash
+  git pull --rebase origin main
+  git stash pop
+  echo "Stash zurückgespielt. Bitte Konflikte prüfen falls vorhanden."
+fi
+```
+
+Falls `git stash pop` Konflikte meldet: dem User anzeigen und Klärung einholen, bevor weitergemacht wird.
+
+---
+
 ## Schritt −1: Stale-Worktree-Audit
 
 Führe **immer als erstes** aus — bevor Pfad oder Branch bestimmt werden:

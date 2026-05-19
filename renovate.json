@@ -3,6 +3,14 @@
   "extends": ["config:recommended"],
   "schedule": ["before 9am on Monday"],
   "minimumReleaseAge": "3 days",
+  "ignorePaths": [
+    "**/node_modules/**",
+    "art-library/**",
+    "scripts/coaching/**",
+    "scripts/knowledge/**",
+    "tests/e2e/**",
+    "tests/unit/**"
+  ],
   "packageRules": [
     {
       "matchManagers": ["npm"],
@@ -43,6 +51,10 @@
     },
     {
       "matchPackagePatterns": ["^ghcr.io/paddione/"],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": ["fedirz/faster-whisper-server"],
       "enabled": false
     }
   ],

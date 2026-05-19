@@ -2,6 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import KnowledgeSourceModal from '../../components/admin/KnowledgeSourceModal.svelte';
 import WebCrawlSourceModal from '../../components/admin/WebCrawlSourceModal.svelte';
+import CollectionMergePanel from '../../components/admin/CollectionMergePanel.svelte';
 import { listCollections } from '../../lib/knowledge-db';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 
@@ -25,6 +26,7 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
     <header class="page-head">
       <h1>Wissensquellen</h1>
       <div class="head-actions">
+        <button id="merge-btn" class="secondary">Zusammenführen</button>
         <button id="new-crawl-btn" class="secondary">+ Web-Quelle</button>
         <button id="new-btn" class="primary">+ Neue Wissensquelle</button>
       </div>
@@ -106,9 +108,13 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
 
     <KnowledgeSourceModal client:load onCreated={() => location.reload()} />
     <WebCrawlSourceModal client:load onCreated={() => location.reload()} />
+    <CollectionMergePanel client:load />
   </div>
 
   <script is:inline>
+    document.getElementById('merge-btn').addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('open-collection-merge'));
+    });
     document.getElementById('new-btn').addEventListener('click', () => {
       window.dispatchEvent(new CustomEvent('open-wissensquellen-modal'));
     });

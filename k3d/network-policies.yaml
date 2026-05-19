@@ -323,6 +323,26 @@ spec:
     - port: 8080
       protocol: TCP
 ---
+# shared-db: allow ingress from website namespace (website app DB access)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-shared-db-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: shared-db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+    ports:
+    - port: 5432
+      protocol: TCP
+---
 # shared-db: allow ingress from MCP monolith in default namespace
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

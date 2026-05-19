@@ -1388,7 +1388,7 @@ tasks:
           LLM_ENABLED="${LLM_ENABLED:-false}" \
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-router.workspace.svc.cluster.local:4000}" \
-            kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL" | kubectl apply --server-side --force-conflicts -f -
+            kustomize build k3d/ --load-restrictor=LoadRestrictionsNone | envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$WEBSITE_NAMESPACE" | kubectl apply --server-side --force-conflicts -f -
           # Tests retention CronJob — applied separately so its Role+RoleBinding
           # can land in WEBSITE_NAMESPACE (kustomize's top-level namespace
           # transformer would otherwise force them into workspace).

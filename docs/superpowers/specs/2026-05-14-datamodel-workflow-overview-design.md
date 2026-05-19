@@ -26,7 +26,7 @@ Not in audience: end users, external reviewers, anyone needing a narrative tour.
 |---|---|
 | Dev-Flow Skills | `brainstorming`, `writing-plans`, `dev-flow-plan`, `dev-flow-execute`, `plan-context.sh`, `plan-frontmatter-hook.sh`, `using-git-worktrees` |
 | Agent Dispatch | `bachelorprojekt-{db,infra,ops,website,test,security}` from CLAUDE.md routing |
-| CI/CD Pipeline | `track-pr.yml`, `track-plans.yml`, `build-website.yml`, `dev-auto-deploy.yml`, `tracking-import` CronJob, ArgoCD reconcile |
+| CI/CD Pipeline | `track-pr.yml`, `track-plans.yml`, `build-website.yml`, `dev-auto-deploy.yml`, `tracking-import` CronJob |
 | App Data Flows | Keycloak SSO, Nextcloud Talk pipeline, Tickets/Bugs APIs, Coaching ingest, Arena gameplay, Brett snapshots |
 
 | DB domain | Anchor schemas |
@@ -273,7 +273,7 @@ Manual cadence: regenerate before any `docs:deploy` that follows a schema change
 
 3. **Mermaid pre-render cost.** The Domain Deep-dive section embeds 8 `erDiagram` blocks. `mmdc` runs serially today — building this page alone could add ~10–15 s to `task docs:build`. **Mitigation:** the existing `--fast` flag in `docs:build` already skips Mermaid pre-rendering (verified in `Taskfile.yml`); the developer iterates with `task docs:build FAST=true` and runs the full render only before deploy.
 
-4. **Schema introspection requires shared-db access.** The generator depends on the mentolder cluster being reachable. **Mitigation:** the task fails loudly if `kubectl --context mentolder` can't list the `shared-db` pod; documentation says "run after `task argocd:status` or any other cluster-reachable command."
+4. **Schema introspection requires shared-db access.** The generator depends on the mentolder cluster being reachable. **Mitigation:** the task fails loudly if `kubectl --context mentolder` can't list the `shared-db` pod; documentation says "run after `kubectl cluster-info --context mentolder` to verify cluster is reachable."
 
 5. **Sidebar conflict.** `_sidebar.md` is appended to by multiple PRs; merge conflicts likely if multiple in-flight branches add entries. **Mitigation:** none beyond normal rebase. The entry is one line.
 

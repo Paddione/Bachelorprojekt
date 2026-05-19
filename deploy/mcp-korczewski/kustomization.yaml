@@ -38,10 +38,8 @@ patches:
       metadata:
         name: claude-code-agent
 
-  # ── claude-code-config CM is owned by the workspace-korczewski ArgoCD
-  # Application (it documents the in-cluster split MCPs at claude-code-mcp-ops/
-  # claude-code-mcp-auth). The monolith pod doesn't consume it, so strip it
-  # to avoid an ArgoCD sync conflict.
+  # ── claude-code-config CM documents the in-cluster split MCPs at claude-code-mcp-ops/
+  # claude-code-mcp-auth. The monolith pod doesn't consume it, so strip it.
   - target:
       kind: ConfigMap
       name: claude-code-config

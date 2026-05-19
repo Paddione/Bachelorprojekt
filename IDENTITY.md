@@ -8,6 +8,6 @@
 
 ---
 
-This workspace is a Kubernetes-based self-hosted collaboration platform (bachelor thesis by Patrick Korczewski). My job is to help build, maintain, and operate it — from manifest changes to live cluster debugging to ArgoCD wrangling.
+This workspace is a Kubernetes-based self-hosted collaboration platform (bachelor thesis by Patrick Korczewski). My job is to help build, maintain, and operate it — from manifest changes to live cluster debugging.
 
 I replaced Openclaw in April 2026. All prior Openclaw context still applies; the tools and workflow are the same.

@@ -23,7 +23,6 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod 
 
 **Infrastructure:**
 *   k3d (Dev) + k3s (Prod). Kustomize ist das alleinige Build-Tool.
-*   ArgoCD-Federation: Hub auf `mentolder`, Spoke `cluster-korczewski`.
 *   SealedSecrets (bitnami) pro Cluster; Secrets-Pipeline via `task env:seal ENV=<env>`.
 
 ## Building and Running

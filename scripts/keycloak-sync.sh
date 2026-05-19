@@ -88,10 +88,9 @@ ADMIN_TOKEN=$(curl -sk \
 
 if [[ -z "$ADMIN_TOKEN" ]]; then
   warn "Admin-Token nicht erhältlich — Sync wird übersprungen."
-  warn "Hinweis: Admin-Passwort in workspace-secrets muss mit dem Passwort des 'admin'-Users im"
-  warn "Keycloak-Realm 'master' übereinstimmen. Bei Drift: Passwort in Keycloak zurücksetzen"
-  warn "(kcadm.sh set-password -r master --username admin --new-password \$NEU) oder"
-  warn "workspace-secrets auf den alten Wert zurücksetzen."
+  warn "Passwort-Drift erkannt: workspace-secrets-Passwort stimmt nicht mit dem live admin-User überein."
+  warn "Lösung: task keycloak:sync-admin-password ENV=${ENV}"
+  warn "Danach erneut: task keycloak:sync ENV=${ENV}"
   exit 0
 fi
 

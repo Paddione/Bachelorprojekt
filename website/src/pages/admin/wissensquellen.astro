@@ -2,6 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import KnowledgeSourceModal from '../../components/admin/KnowledgeSourceModal.svelte';
 import WebCrawlSourceModal from '../../components/admin/WebCrawlSourceModal.svelte';
+import KnowledgeJsonImport from '../../components/admin/KnowledgeJsonImport.svelte';
 import CollectionMergePanel from '../../components/admin/CollectionMergePanel.svelte';
 import { listCollections } from '../../lib/knowledge-db';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
@@ -28,6 +29,7 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
       <div class="head-actions">
         <button id="merge-btn" class="secondary">Zusammenführen</button>
         <button id="new-crawl-btn" class="secondary">+ Web-Quelle</button>
+        <button id="new-json-btn" class="secondary">+ JSON importieren</button>
         <button id="new-btn" class="primary">+ Neue Wissensquelle</button>
       </div>
     </header>
@@ -108,6 +110,7 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
 
     <KnowledgeSourceModal client:load onCreated={() => location.reload()} />
     <WebCrawlSourceModal client:load onCreated={() => location.reload()} />
+    <KnowledgeJsonImport client:load />
     <CollectionMergePanel client:load />
   </div>
 
@@ -120,6 +123,9 @@ const webCrawls = collections.filter(c => c.source === 'web_crawl');
     });
     document.getElementById('new-crawl-btn').addEventListener('click', () => {
       window.dispatchEvent(new CustomEvent('open-web-crawl-modal'));
+    });
+    document.getElementById('new-json-btn').addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('open-json-import-modal'));
     });
 
     document.querySelectorAll('[data-reindex]').forEach(btn => {

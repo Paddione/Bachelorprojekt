@@ -1,0 +1,17 @@
+[
+  {
+    "id": "test-entry-1",
+    "content": "Test content für Coaching-Einheit 1. Enthält ausreichend Text für Embedding.",
+    "metadata": { "type": "test", "language": "de" }
+  },
+  {
+    "id": "test-entry-2",
+    "content": "Test content für Coaching-Einheit 2. Zweiter Eintrag für die Testsammlung.",
+    "metadata": { "type": "test", "language": "de" }
+  },
+  {
+    "id": "test-entry-3",
+    "content": "Test content für Coaching-Einheit 3. Dritter und letzter Testeintrag.",
+    "metadata": { "type": "test", "language": "de" }
+  }
+]

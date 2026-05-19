@@ -127,3 +127,17 @@ patches:
             - k3s-1
             - k3s-2
             - k3s-3
+  # oauth2-proxy-dev: must run on DEV_NODE (k3s-1) because it uses hostNetwork
+  # to reach the k3d HTTP LB at 127.0.0.1:18080. Override the global NotIn patch
+  # to allow k3s-1 (matching the nodeSelector already set in the manifest).
+  - target:
+      kind: Deployment
+      name: oauth2-proxy-dev
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+        value:
+          key: kubernetes.io/hostname
+          operator: In
+          values:
+            - k3s-1

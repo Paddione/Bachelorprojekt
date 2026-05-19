@@ -296,6 +296,9 @@ async function initDb() {
     `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
   );
   await pool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
+  // ensureSystemtestSchema must run before the v_questionnaire_kpi view
+  // because the view references questionnaire_test_evidence (created there).
+  await ensureSystemtestSchema(pool);
   await pool.query(`
     CREATE OR REPLACE VIEW bachelorprojekt.v_questionnaire_kpi AS
     SELECT
@@ -328,7 +331,6 @@ async function initDb() {
     ) ev ON true
     WHERE a.status = 'archived'
   `);
-  await ensureSystemtestSchema(pool);
   await seedSystemTestTemplates();
 }
 

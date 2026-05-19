@@ -181,12 +181,12 @@ spec:
             - |
               set -eu
               sed \
-                -e "s|@@SIGNALING_SECRET@@|${SIGNALING_SECRET}|g" \
-                -e "s|@@TURN_SECRET@@|${TURN_SECRET}|g" \
-                -e "s|@@SESSION_HASHKEY@@|${SESSION_HASHKEY}|g" \
-                -e "s|@@SESSION_BLOCKKEY@@|${SESSION_BLOCKKEY}|g" \
-                -e "s|@@CLIENTS_INTERNALSECRET@@|${CLIENTS_INTERNALSECRET}|g" \
-                -e "s|@@TURN_APIKEY@@|${TURN_APIKEY}|g" \
+                -e "s|@@SIGNALING_SECRET@@|$${SIGNALING_SECRET}|g" \
+                -e "s|@@TURN_SECRET@@|$${TURN_SECRET}|g" \
+                -e "s|@@SESSION_HASHKEY@@|$${SESSION_HASHKEY}|g" \
+                -e "s|@@SESSION_BLOCKKEY@@|$${SESSION_BLOCKKEY}|g" \
+                -e "s|@@CLIENTS_INTERNALSECRET@@|$${CLIENTS_INTERNALSECRET}|g" \
+                -e "s|@@TURN_APIKEY@@|$${TURN_APIKEY}|g" \
                 /tpl/server.conf.template > /shared/server.conf
           resources:
             requests:

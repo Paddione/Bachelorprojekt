@@ -20,10 +20,11 @@ spec:
               echo "Installing Bitwarden CLI..."
               npm install -g @bitwarden/cli
 
-              export BW_URL="http://vault:80"
+              echo "Configuring Bitwarden CLI server..."
+              bw config server "https://${VAULT_DOMAIN:-vault.localhost}"
 
               echo "Logging into Vaultwarden..."
-              # Note: This requires the account to already exist
+              # Note: This requires the account to already exist (created via web vault)
               export BW_SESSION=$(bw login "$BW_EMAIL" "$BW_PASSWORD" --raw)
 
               if [ -z "$BW_SESSION" ]; then
@@ -88,6 +89,12 @@ spec:
                 secretKeyRef:
                   name: vaultwarden-seed-credentials
                   key: BW_PASSWORD
+            - name: VAULT_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: VAULT_DOMAIN
+                  optional: true
             - name: NC_DOMAIN
               valueFrom:
                 configMapKeyRef:

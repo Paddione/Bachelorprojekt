@@ -310,16 +310,16 @@ spec:
           args:
             - |
               ARCH=$(uname -m)
-              BIN="/var/www/html/apps/notify_push/bin/${ARCH}/notify_push"
-              until [ -x "$BIN" ]; do
-                echo "notify_push: waiting for binary at $BIN"
+              BIN="/var/www/html/apps/notify_push/bin/$${ARCH}/notify_push"
+              until [ -x "$$BIN" ]; do
+                echo "notify_push: waiting for binary at $$BIN"
                 sleep 30
               done
               until [ -r "/var/www/html/config/config.php" ]; do
                 echo "notify_push: waiting for config.php"
                 sleep 10
               done
-              exec "$BIN" /var/www/html/config/config.php
+              exec "$$BIN" /var/www/html/config/config.php
           volumeMounts:
             - name: app
               mountPath: /var/www/html

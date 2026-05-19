@@ -127,12 +127,12 @@ spec:
                   ELSE
                     EXECUTE format('ALTER ROLE website WITH PASSWORD %L', '$WEBSITE_DB_PASSWORD');
                   END IF;
-                  PERFORM 1 FROM pg_database WHERE datname='website';
-                  IF NOT FOUND THEN EXECUTE 'CREATE DATABASE website OWNER website'; END IF;
-                  PERFORM 1 FROM pg_database WHERE datname='bugs';
-                  IF NOT FOUND THEN EXECUTE 'CREATE DATABASE bugs OWNER website'; END IF;
-                  PERFORM 1 FROM pg_database WHERE datname='bachelorprojekt';
-                  IF NOT FOUND THEN EXECUTE 'CREATE DATABASE bachelorprojekt OWNER website'; END IF;
                 END \$\$;
+                SELECT 'CREATE DATABASE website OWNER website' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='website')
+                \gexec
+                SELECT 'CREATE DATABASE bugs OWNER website' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='bugs')
+                \gexec
+                SELECT 'CREATE DATABASE bachelorprojekt OWNER website' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='bachelorprojekt')
+                \gexec
               SQL
               echo "ok."

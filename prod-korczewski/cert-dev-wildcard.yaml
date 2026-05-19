@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: workspace-dev-wildcard-tls
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  secretName: workspace-dev-wildcard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - "${DEV_DOMAIN}"
+    - "*.${DEV_DOMAIN}"

@@ -5,11 +5,22 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
-  # dev.mentolder.de — persistent staging stack on gekko-hetzner-2.
+  # dev.mentolder.de — persistent staging stack on k3s-1.
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:
     taskfile: ./Taskfile.dev-stack.yml
     dir: .
+  # dev.korczewski.de — persistent staging stack on PK-L-1 (local WSL2).
+  dev-korczewski:
+    taskfile: ./Taskfile.dev-stack.yml
+    dir: .
+    vars:
+      ENV: korczewski
+      CTX_DEV: k3d-korczewski-dev
+      CTX_PROD: korczewski-ha
+      NS_DEV: workspace-korczewski-dev
+      NS_PROD: workspace-korczewski
+      CLUSTER_NAME: korczewski-dev
   # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
   # brainstorming visual companion. See Taskfile.brainstorm.yml.
   brainstorm:

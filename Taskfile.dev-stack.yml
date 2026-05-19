@@ -1,21 +1,18 @@
 # Taskfile.dev-stack.yml
 # ─────────────────────────────────────────────────────────────────────────────
-# dev.mentolder.de — k3d-in-k3s persistent dev stack.
-# All tasks here either:
-#   1) Run against the dev k3d cluster context `k3d-mentolder-dev`, OR
-#   2) Run against the prod mentolder cluster but provision the dev side.
-# ENV= is fixed to "mentolder" for this file — the dev stack is a
-# sub-deployment of the mentolder env.
+# Persistent k3d-in-k3s dev stack. Parameterisable per ENV.
+# Default: mentolder (dev.mentolder.de). Override via Taskfile.yml includes:
+#   dev-korczewski: vars: ENV/CTX_DEV/CTX_PROD/NS_DEV/NS_PROD/CLUSTER_NAME
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3"
 
 vars:
-  CTX_DEV: k3d-mentolder-dev
-  CTX_PROD: mentolder
-  NS_DEV: workspace-dev
-  NS_PROD: workspace
-  CLUSTER_NAME: mentolder-dev
-  ENV: mentolder
+  CTX_DEV: '{{.CTX_DEV | default "k3d-mentolder-dev"}}'
+  CTX_PROD: '{{.CTX_PROD | default "mentolder"}}'
+  NS_DEV: '{{.NS_DEV | default "workspace-dev"}}'
+  NS_PROD: '{{.NS_PROD | default "workspace"}}'
+  CLUSTER_NAME: '{{.CLUSTER_NAME | default "mentolder-dev"}}'
+  ENV: '{{.ENV | default "mentolder"}}'
 
 tasks:
 
@@ -26,41 +23,63 @@ tasks:
           source scripts/env-resolve.sh "{{.ENV}}"
           test -n "$DEV_NODE" && test -n "$DEV_DOMAIN"
         msg: |
-          DEV_NODE / DEV_DOMAIN unset. Add them to environments/mentolder.yaml first.
+          DEV_NODE / DEV_DOMAIN unset. Add them to environments/{{.ENV}}.yaml first.
 
   cluster:create:
     desc: "[dev] Create the dev k3d cluster on $DEV_NODE with the right port bindings"
     deps: [_node-guard]
     cmds:
       - |
+        set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
-        if k3d cluster list 2>/dev/null | grep -q "^{{.CLUSTER_NAME}} "; then
-          echo "Cluster {{.CLUSTER_NAME}} already exists locally. Use task dev:cluster:delete first."
-          exit 1
+        _LOCAL=false
+        [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]] && _LOCAL=true
+        K3D_CREATE() {
+          k3d cluster create {{.CLUSTER_NAME}} \
+            --servers 1 --agents 0 \
+            --port '127.0.0.1:18080:80@loadbalancer' \
+            --port '0.0.0.0:2222:2222@loadbalancer' \
+            --port '127.0.0.1:15432:30000@loadbalancer' \
+            --k3s-arg '--disable=metrics-server@server:*' \
+            --wait
+        }
+        if $_LOCAL; then
+          if k3d cluster list 2>/dev/null | grep -q "^{{.CLUSTER_NAME}} "; then
+            echo "Cluster {{.CLUSTER_NAME}} already exists locally. Use task dev:cluster:delete first."
+            exit 1
+          fi
+          K3D_CREATE
+          k3d kubeconfig merge {{.CLUSTER_NAME}} --kubeconfig-merge-default
+          echo "✓ Kubeconfig merged — context: {{.CTX_DEV}}"
+        else
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "
+            if k3d cluster list 2>/dev/null | grep -q '^{{.CLUSTER_NAME}} '; then
+              echo 'Cluster {{.CLUSTER_NAME}} already exists. Use task dev:cluster:delete first.' >&2; exit 1
+            fi
+            k3d cluster create {{.CLUSTER_NAME}} \
+              --servers 1 --agents 0 \
+              --port '127.0.0.1:18080:80@loadbalancer' \
+              --port '0.0.0.0:2222:2222@loadbalancer' \
+              --port '127.0.0.1:15432:30000@loadbalancer' \
+              --k3s-arg '--disable=metrics-server@server:*' \
+              --wait"
+          TMP=$(mktemp -d); trap "rm -rf \$TMP" EXIT
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d kubeconfig get {{.CLUSTER_NAME}}" > "$TMP/dev-kubeconfig.yaml"
+          echo "✓ Got kubeconfig — merge into ~/.kube/config:"
+          echo "  KUBECONFIG=\$HOME/.kube/config:$TMP/dev-kubeconfig.yaml kubectl config view --flatten > \$HOME/.kube/config"
+          echo "  kubectl config use-context {{.CTX_DEV}}"
         fi
-        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d cluster create {{.CLUSTER_NAME}} \
-          --servers 1 --agents 0 \
-          --port '127.0.0.1:18080:80@loadbalancer' \
-          --port '0.0.0.0:2222:2222@loadbalancer' \
-          --port '127.0.0.1:15432:30000@loadbalancer' \
-          --k3s-arg '--disable=metrics-server@server:*' \
-          --wait"
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
-        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d kubeconfig get {{.CLUSTER_NAME}}" > "$TMP/dev-kubeconfig.yaml"
-        # Rewrite server URL to the SSH host (k3d defaults to 0.0.0.0:<port>)
-        # so we can talk to the API server through an SSH local-forward.
-        echo "✓ Got kubeconfig — merge into ~/.kube/config manually if you want local access:"
-        echo "  KUBECONFIG=\$HOME/.kube/config:$TMP/dev-kubeconfig.yaml kubectl config view --flatten > \$HOME/.kube/config"
-        echo "  kubectl config use-context {{.CTX_DEV}}"
 
   cluster:delete:
     desc: "[dev] Destroy the dev k3d cluster (data lost — refresh from prod with dev:db:refresh)"
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d cluster delete {{.CLUSTER_NAME}}"
+        if [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]]; then
+          k3d cluster delete {{.CLUSTER_NAME}}
+        else
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d cluster delete {{.CLUSTER_NAME}}"
+        fi
 
   cluster:status:
     desc: "[dev] Show pod status on the dev k3d cluster"
@@ -117,14 +136,14 @@ tasks:
         docker build -t ghcr.io/paddione/workspace-website:dev \
           -f website/Dockerfile \
           --build-arg PROD_DOMAIN=$DEV_DOMAIN \
-          --build-arg BRAND=mentolder \
+          --build-arg BRAND=${BRAND_ID:-mentolder} \
           .
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         TMP_TAR=$(mktemp /tmp/website-dev-XXXXXX.tar)
         trap "rm -f $TMP_TAR" EXIT
         docker save ghcr.io/paddione/workspace-website:dev > "$TMP_TAR"
-        if [[ "$(hostname -s 2>/dev/null)" == "${DEV_NODE%%.*}" ]]; then
+        if [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]]; then
           k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
         else
           ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
@@ -141,7 +160,7 @@ tasks:
         TMP_TAR=$(mktemp /tmp/brett-dev-XXXXXX.tar)
         trap "rm -f $TMP_TAR" EXIT
         docker save ghcr.io/paddione/workspace-brett:dev > "$TMP_TAR"
-        if [[ "$(hostname -s 2>/dev/null)" == "${DEV_NODE%%.*}" ]]; then
+        if [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]]; then
           k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
         else
           ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
@@ -156,6 +175,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         kubectl kustomize k3d/dev-stack/ \
+          | sed "s|workspace-dev|{{.NS_DEV}}|g" \
           | envsubst '$DEV_DOMAIN $DEV_WEBSITE_HOST $DEV_BRETT_HOST $PROD_DOMAIN $CONTACT_EMAIL' \
           | kubectl --context {{.CTX_DEV}} apply -f -
       - kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} rollout status statefulset/shared-db-dev --timeout=180s

@@ -125,3 +125,14 @@ korczewski:
       schema_key: WG_MESH_WSL2_GPU_KORCZEWSKI
       public_key: "BHYLRcy85XSxC2V7pXXmzY4KtfttPHLgWitAM6PdYnY="
       keepalive: 25
+
+  # k3s worker — PK-L-1 (WSL2 dev workstation, Patrick's laptop).
+  # Runs k3d dev cluster (korczewski-dev) and serves as a k3s worker node.
+  # Interface: wg-korczewski-worker. Endpoint is dynamic (behind Windows NAT).
+  home_workers:
+    - name: pk-l-1-worker
+      endpoint: ""        # dynamic NAT (initiates outbound)
+      wg_ip: "10.13.14.11"
+      schema_key: WG_MESH_PK_L1_WORKER
+      public_key: "cLpIaLBkygvcX1D4Jm7syjoxqrRx3qhgTl7+aah1Nxw="
+      keepalive: 25

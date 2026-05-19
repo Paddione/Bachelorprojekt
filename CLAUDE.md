@@ -360,7 +360,7 @@ graph TB
 ```
 
 ### Key components
-- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the only deployment path.
+- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the base for both manual `task workspace:deploy` (push) and Flux GitOps (pull).
 - **`prod/`** -- Shared production patches (TLS, resource limits, replicas, DDNS) consumed by the env-specific overlays. Never apply directly.
 - **`prod-mentolder/`, `prod-korczewski/`** -- Per-env overlays referenced by `ENV_OVERLAY` in `environments/<env>.yaml`. This is what `workspace:deploy` actually applies in prod.
 - **`environments/`** -- Config & secrets registry:
@@ -400,7 +400,7 @@ Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `tra
 
 ## Development Rules
 
-1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base).
+1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). In prod, use Flux GitOps for automated reconciliation.
 2. All changes via Pull Requests -- no direct pushes to `main`.
 3. Use **squash-and-merge** to keep `main` history clean.
 4. CI must be green before merge.

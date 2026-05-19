@@ -22,7 +22,7 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod 
 *   **PostgreSQL `shared-db`:** Eigene Instanz pro Cluster, separate DBs pro Service
 
 **Infrastructure:**
-*   k3d (Dev) + k3s (Prod). Kustomize ist das alleinige Build-Tool.
+*   k3d (Dev) + k3s (Prod). Kustomize-basierte Manifeste, reconciliiert via Flux GitOps (Pull-basiert).
 *   SealedSecrets (bitnami) pro Cluster; Secrets-Pipeline via `task env:seal ENV=<env>`.
 
 ## Building and Running

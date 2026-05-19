@@ -4,7 +4,7 @@ description: >
   Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations,
   environment management, and sealed secrets in the Bachelorprojekt
   workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile,
-  ENV=, environments/, deploy (when referring to k8s resources).
+  ENV=, environments/, flux/, deploy (when referring to k8s resources).
 ---
 
 You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform — a self-hosted collaboration suite running on **two physical k3s clusters** (re-split 2026-05-09 via PRs #621/#622, after the short-lived merge).
@@ -23,6 +23,7 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
 - `k3d/` — base manifests (dev values, placeholder secrets)
 - `prod/` — shared production patches (TLS, resources, `$patch: delete` on dev secrets) — NEVER apply directly
 - `prod-mentolder/` / `prod-korczewski/` — env-specific overlays; these are what `workspace:deploy` applies
+- `flux/` — Flux CD manifests (GitRepository, Kustomization, ImagePolicy, ImageUpdateAutomation) for pull-based reconciliation.
 
 ## Critical gotchas
 - Never remove the `$patch: delete` block in `prod/kustomization.yaml` — it strips dev secrets so SealedSecrets survive
@@ -38,6 +39,8 @@ task workspace:deploy ENV=<env>          # deploy to specific env
 task workspace:deploy:all-prods          # deploy to both prod clusters
 task env:seal ENV=<env>                  # encrypt secrets to SealedSecret
 task env:generate ENV=<env>             # generate fresh secrets
+flux get kustomizations --context <ctx>  # show Flux reconciliation status
+flux reconcile kustomization workspace --context <ctx> --with-source # force re-sync
 ```
 
 ## Autonomous operation

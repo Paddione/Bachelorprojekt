@@ -658,10 +658,12 @@ secrets:
   - name: VOYAGE_API_KEY
     required: false
     generate: false
-    description: "Voyage AI API key for document embeddings (Coaching-Knowledge-Pipeline + knowledge-ingest CronJob). Get from https://dashboard.voyageai.com/api-keys."
+    description: "Voyage AI API key for document embeddings (Coaching-Knowledge-Pipeline + knowledge-ingest CronJob + web-crawl API). Get from https://dashboard.voyageai.com/api-keys."
     extra_namespaces:
       - namespace: workspace
         secret: knowledge-secrets
+      - namespace: website
+        secret: website-secrets
 
   - name: ANTHROPIC_API_KEY
     required: false

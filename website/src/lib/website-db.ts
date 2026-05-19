@@ -3028,6 +3028,7 @@ export interface KontaktContent {
   sidebarText: string;
   sidebarCta: string;
   showPhone: boolean;
+  showSteps?: boolean;
   footerEmail?: string;
   footerPhone?: string;
   footerCity?: string;

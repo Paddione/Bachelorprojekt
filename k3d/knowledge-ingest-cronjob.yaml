@@ -142,7 +142,7 @@ data:
         });
 
         const { rows } = await pool.query(
-          `SELECT pr_number, title, description, body, merged_at, labels
+          `SELECT pr_number, title, description, merged_at
              FROM bachelorprojekt.features
             WHERE merged_at IS NOT NULL
             ORDER BY merged_at DESC`,
@@ -154,8 +154,6 @@ data:
           const text = [
             `PR #${row.pr_number}: ${row.title}`,
             row.description ?? '',
-            row.body ?? '',
-            row.labels?.length ? `Labels: ${row.labels.join(', ')}` : '',
           ].filter(Boolean).join('\n\n');
 
           const hash = sha256(text);

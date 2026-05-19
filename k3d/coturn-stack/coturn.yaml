@@ -113,3 +113,28 @@ spec:
         - name: coturn-tls
           secret:
             secretName: ${TLS_SECRET_NAME}
+---
+# Cross-namespace service so internal components can reach coturn as
+# `coturn.coturn` from other namespaces. Points to the host network
+# IP (== TURN_PUBLIC_IP).
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn
+  namespace: coturn
+spec:
+  selector:
+    app: coturn
+  ports:
+    - port: 3478
+      targetPort: 3478
+      name: turn-udp
+      protocol: UDP
+    - port: 3478
+      targetPort: 3478
+      name: turn-tcp
+      protocol: TCP
+    - port: 5349
+      targetPort: 5349
+      name: turns-tcp
+      protocol: TCP

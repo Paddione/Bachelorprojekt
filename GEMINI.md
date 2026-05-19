@@ -81,5 +81,18 @@ task workspace:up
 7.  **Secrets Management:** Development secrets are in `k3d/secrets.yaml`. **Never commit real credentials.** Production uses Sealed Secrets.
 8.  **Testing:** Automated tests (Bash + Playwright + BATS) are run locally via `./tests/runner.sh local`.
 
+## Service Architecture: coturn & TLS Sync
+
+### coturn & High Performance Backend (HPB)
+*   **Namespace:** `coturn` (privileged PSA for hostNetwork access).
+*   **Deployment:** Pinned to a public node via `${TURN_NODE}` with `hostNetwork: true`.
+*   **Internal DNS:** Reachable as `coturn.coturn` and `janus.coturn` via dedicated ClusterIP services within the `coturn` namespace.
+*   **Signaling:** `spreed-signaling` uses hard `podAffinity` to co-locate with `janus` on the same physical node, ensuring WebSocket traffic stays on the loopback path and bypasses cross-node firewall blocks.
+
+### TLS Certificate Sync (`tls-sync`)
+*   **Mechanism:** A monthly CronJob (`prod/reflector.yaml`) copies the wildcard TLS secret from the authoritative workspace namespace to consumer namespaces (`coturn`, `workspace-office`, `website`).
+*   **Multi-Tenancy:** RBAC (ServiceAccount/ClusterRoleBinding) and metadata are parameterized via `${WORKSPACE_NAMESPACE}` to ensure correct permissions on per-environment namespaces (e.g., `workspace-korczewski`).
+*   **Manual Trigger:** To sync certs immediately after rotation: `kubectl create job --from=cronjob/tls-sync tls-sync-manual`.
+
 ## Documentation
 Additional detailed documentation (Architecture, Services, Keycloak SSO, Migration, etc.) can be served locally via `task docs:deploy` and viewed at `http://docs.localhost`. Markdown sources are located in `k3d/docs-content/`.

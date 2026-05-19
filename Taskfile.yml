@@ -852,7 +852,7 @@ tasks:
           *)
             export COLLABORA_SSL_TERMINATION="true"
             export COLLABORA_TLS_SECRET="${TLS_SECRET_NAME:-workspace-wildcard-tls}"
-            export COLLABORA_INGRESS_MIDDLEWARES="${INFRA_NAMESPACE:-workspace-infra}-redirect-https@kubernetescrd,${INFRA_NAMESPACE:-workspace-infra}-hsts-headers@kubernetescrd"
+            export COLLABORA_INGRESS_MIDDLEWARES="${WORKSPACE_NAMESPACE:-workspace}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE:-workspace}-hsts-headers@kubernetescrd"
             ;;
         esac
         context_flag=""

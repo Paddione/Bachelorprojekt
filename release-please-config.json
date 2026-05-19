@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "brett": {
+      "release-type": "node",
+      "package-name": "brett",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "arena-server": {
+      "release-type": "node",
+      "package-name": "arena-server",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "k3d/docs-content": {
+      "release-type": "simple",
+      "package-name": "docs",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

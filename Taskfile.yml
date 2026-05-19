@@ -224,6 +224,9 @@ tasks:
   # ─────────────────────────────────────────────
   test:unit:
     desc: Run BATS unit tests (assertion lib, scripts, configs)
+    preconditions:
+      - sh: '[ -f ./tests/unit/lib/bats-core/bin/bats ]'
+        msg: "bats-core not found — run: git submodule update --init --recursive"
     deps:
       - test:unit:assert
       - test:unit:scripts

@@ -12,3 +12,28 @@ data:
   BRAND_ID: korczewski
   WEBSITE_IMAGE: korczewski-website
   LLM_HOST_IP: "10.13.14.10"
+  # TLS / cert-manager
+  TLS_SECRET_NAME: korczewski-tls
+  INFRA_NAMESPACE: korczewski-infra
+  # SMTP (non-sensitive)
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
+  MAIL_FROM_LOCAL: noreply
+  MAIL_FROM_DOMAIN: korczewski.de
+  # Derived domain names (used in Keycloak realm JSON)
+  DOCS_DOMAIN: docs.korczewski.de
+  MAIL_DOMAIN: mail.korczewski.de
+  NC_DOMAIN: files.korczewski.de
+  TRAEFIK_DOMAIN: traefik.korczewski.de
+  VAULT_DOMAIN: vault.korczewski.de
+  WEB_DOMAIN: web.korczewski.de
+  # TURN / CoTURN
+  TURN_PUBLIC_IP: "37.27.251.38"
+  TURN_NODE: pk-hetzner-6
+  # Dev stack
+  DEV_NODE: pk-l-1
+  # Keycloak default users
+  KC_USER1_USERNAME: paddione
+  KC_USER1_EMAIL: patrick@korczewski.de
+  KC_USER2_USERNAME: gekko
+  KC_USER2_EMAIL: quamain@web.de

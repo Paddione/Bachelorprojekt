@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>knowledge-reindex — Knowledge Re-Indexing</title>
+  <title>knowledge-reindex — Knowledgebase-Management</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,198 +15,116 @@
   <span class="topnav-divider">/</span>
   <span class="topnav-title">knowledge-reindex</span>
   <div class="topnav-right">
-    <span class="badge badge-blue">Datenbank</span>
+    <span class="badge badge-brass">Website</span>
   </div>
 </nav>
 
 <header class="skill-hero">
   <div class="hero-meta">
-    <span class="badge badge-blue">Datenbank</span>
+    <span class="badge badge-brass">Website</span>
     <span class="badge-slug">knowledge-reindex</span>
   </div>
-  <h1 class="hero-title">Knowledge Re-Indexing</h1>
+  <h1 class="hero-title">Knowledge Reindex</h1>
   <p class="hero-subtitle">
-    Indiziert Knowledge-Collections neu — PRs, Markdown, Bugs und alle Quellen.
-    Kritisch: bge-m3 und voyage-multilingual-2 Vektoren dürfen niemals gemischt werden.
-    Jede Collection schlägt bei falschem Modell hart fehl (fail-closed).
+    Aktualisierung der Wissensdatenbank: Neu-Indexierung von PRs, Dokumentation und 
+    Tickets unter Berücksichtigung der Embedding-Modell-Isolation.
   </p>
   <div class="trigger-chip">
-    <span class="label">Auslöser:</span>
-    Knowledge-Daten veraltet, neue Inhalte indizieren, nach Schema-Änderungen an knowledge-Tabellen
+    <span class="label">Auslöser:</span> Neue Merges, Dokumentations-Updates oder Ticket-Datenbank-Änderungen
   </div>
 </header>
 
 <main class="content">
 
   <div class="callout callout-critical">
-    <span class="callout-icon">&#9888;</span>
+    <span class="callout-icon">🚫</span>
     <div class="callout-body">
-      <strong>Embedding-Isolation ist nicht verhandelbar.</strong>
-      bge-m3 und voyage-multilingual-2 Vektoren NIEMALS mischen.
-      Eine bge-m3-Collection fragt immer mit bge-m3 und schlägt hart fehl wenn TEI down ist.
-      Eine voyage-Collection fragt immer mit Voyage. <code>MixedEmbeddingModelError</code> bei
-      Cross-Model-Queries. Keinen stillen Fallback hinzufügen — Retrieval wäre wertlos.
+      <strong>Modell-Isolation:</strong> <code>bge-m3</code> (TEI) und <code>voyage-multilingual-2</code> 
+      sind nicht kompatibel. Mische niemals Vektoren aus verschiedenen Modellen in einer Query (<code>MixedEmbeddingModelError</code>).
     </div>
   </div>
 
-  <ul class="kv-list">
-    <li><span class="kv-key">bge-m3</span><span class="kv-val">GPU-Host wg-mesh → TEI auf Port 8081; fail-closed wenn down</span></li>
-    <li><span class="kv-key">voyage-multilingual-2</span><span class="kv-val">Voyage AI direkt; unabhängig vom GPU-Host</span></li>
-    <li><span class="kv-key">GPU-Host</span><span class="kv-val">RTX 5070 Ti, 16 GB — einzige Box im wg-mesh</span></li>
-    <li><span class="kv-key">Model-Swap-Latenz</span><span class="kv-val">3–6s beim ersten Call nach OLLAMA_KEEP_ALIVE=5m Eviction</span></li>
-  </ul>
-
-  <div class="section-label mt-3">Befehle</div>
-  <pre><code><span class="cm"># Alle Quellen re-indizieren</span>
-<span class="fn">task</span> knowledge:reindex ENV=&lt;env&gt;
-
-<span class="cm"># Nur PR-Quelle</span>
-<span class="fn">task</span> knowledge:reindex ENV=&lt;env&gt; SOURCE=prs
-
-<span class="cm"># Nur Markdown</span>
-<span class="fn">task</span> knowledge:reindex ENV=&lt;env&gt; SOURCE=markdown
-
-<span class="cm"># Nur Bugs</span>
-<span class="fn">task</span> knowledge:reindex ENV=&lt;env&gt; SOURCE=bugs
-
-<span class="cm"># Explizit alle</span>
-<span class="fn">task</span> knowledge:reindex ENV=&lt;env&gt; SOURCE=all</code></pre>
-
-  <div class="section-label mt-3">Pre-Checks</div>
-  <div class="phases">
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">1</span>
-        <span class="phase-title">LLM_ENABLED und GPU-Host prüfen</span>
-        <span class="phase-desc">Vor dem Start</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="cm"># GPU-Host erreichbar?</span>
-<span class="fn">curl</span> -s http://llm-gateway-embed.workspace:8081/health
-
-<span class="cm"># Alternativ via wg-mesh direkt:</span>
-<span class="fn">curl</span> -s http://&lt;LLM_HOST_IP&gt;:8081/health
-
-<span class="cm"># LLM_ENABLED im ConfigMap prüfen</span>
-<span class="fn">kubectl</span> get configmap -n workspace workspace-config -o yaml | grep LLM</code></pre>
-        <p>Wenn <code>LLM_ENABLED=false</code>: Nur voyage-Pfad funktioniert.
-        bge-m3-Collections können nicht indiziert werden.</p>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">2</span>
-        <span class="phase-title">Collection-Modell prüfen</span>
-        <span class="phase-desc">Welche Collection nutzt welches Modell?</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="fn">task</span> workspace:psql ENV=&lt;env&gt; -- website
-
-<span class="cm">-- Modell-Zuordnung prüfen</span>
-<span class="kw">SELECT</span> collection_name, embedding_model
-<span class="kw">FROM</span> knowledge.collections
-<span class="kw">ORDER BY</span> collection_name;
-
-<span class="cm">-- Chunk-Status pro Collection</span>
-<span class="kw">SELECT</span> c.collection_name, c.embedding_model,
-       <span class="kw">COUNT</span>(*) as chunks, <span class="kw">COUNT</span>(embedding) as indexed
-<span class="kw">FROM</span> knowledge.chunks ch
-<span class="kw">JOIN</span> knowledge.collections c <span class="kw">ON</span> c.id = ch.collection_id
-<span class="kw">GROUP BY</span> c.collection_name, c.embedding_model;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-blue" style="background:rgba(122,143,192,.15);color:var(--blue);border:1px solid rgba(122,143,192,.3);">3</span>
-        <span class="phase-title">Re-Indexing ausführen</span>
-        <span class="phase-desc">Logs beobachten</span>
-      </div>
-      <div class="phase-body">
-        <pre><code><span class="fn">task</span> knowledge:reindex ENV=mentolder
-
-<span class="cm"># Logs der Indexing-Pods</span>
-<span class="fn">kubectl</span> logs -n workspace -l app=knowledge-indexer -f</code></pre>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- FAILURE TABLE -->
-  <div class="section-label mt-3">Häufige Fehler</div>
+  <h2 class="section-label">Embedding Modelle</h2>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Symptom</th><th>Ursache</th><th>Lösung</th></tr>
+        <tr><th>Modell</th><th>Service / Host</th><th>Anforderung</th></tr>
       </thead>
       <tbody>
-        <tr>
-          <td>TEI 503</td>
-          <td>GPU-Host nicht erreichbar (wg-mesh)</td>
-          <td>GPU-Host VPN-Verbindung prüfen; voyage-Collections unberührt</td>
-        </tr>
-        <tr>
-          <td>LLM_ENABLED=false, bge-m3 fehlschlägt</td>
-          <td>Nur voyage-Pfad aktiv</td>
-          <td>LLM aktivieren oder nur voyage-Collections indizieren</td>
-        </tr>
-        <tr>
-          <td>MixedEmbeddingModelError</td>
-          <td>Cross-Collection-Query mit verschiedenen Modellen</td>
-          <td>Niemals multi-Collection-Query über bge-m3 + voyage mischen</td>
-        </tr>
-        <tr>
-          <td>3-6s Latenz beim ersten Call</td>
-          <td>Ollama model-swap nach KEEP_ALIVE-Eviction</td>
-          <td>Normal — warten; Router-Timeout nicht unter 10s senken</td>
-        </tr>
-        <tr>
-          <td>Chat 503</td>
-          <td>GPU-Host down, kein Cloud-Fallback</td>
-          <td>GPU-Host wiederherstellen; llm-router hat keinen Anthropic-Fallback</td>
-        </tr>
+        <tr><td><code>bge-m3</code></td><td>TEI @ llm-gateway-embed:8081</td><td>GPU-Host aktiv (wg-mesh)</td></tr>
+        <tr><td><code>voyage-multilingual-2</code></td><td>Voyage AI Cloud API</td><td>Gültiger <code>VOYAGE_API_KEY</code></td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- LLM ARCHITECTURE -->
-  <div class="section-label mt-3">LLM-Pipeline Architektur</div>
-  <ul class="kv-list">
-    <li><span class="kv-key">llm-gateway-embed:8081</span><span class="kv-val">TEI für bge-m3 Embeddings (GPU-Host)</span></li>
-    <li><span class="kv-key">llm-gateway-rerank:8082</span><span class="kv-val">Reranking-Service (GPU-Host)</span></li>
-    <li><span class="kv-key">llm-gateway-chat:11434</span><span class="kv-val">Ollama für Chat-Klasse (GPU-Host)</span></li>
-    <li><span class="kv-key">OLLAMA_KEEP_ALIVE</span><span class="kv-val">5m — Modell nach 5min Inaktivität evicted</span></li>
-    <li><span class="kv-key">Chat-Timeout</span><span class="kv-val">30s → danach Anthropic-Fallback</span></li>
-    <li><span class="kv-key">llm-router/llm-gpu.yaml</span><span class="kv-val">Nur in prod/ Overlay — nicht in k3d/ base</span></li>
-  </ul>
+  <div class="phases">
 
-  <!-- CROSS REFS -->
-  <div class="section-label mt-3">Verbundene Skills</div>
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">1</span>
+        <span class="phase-title">Pre-Checks</span>
+        <span class="phase-desc">Modell-Verfügbarkeit prüfen</span>
+      </div>
+      <div class="phase-body">
+        <p>Prüfe vorhandene Kollektionen und die Erreichbarkeit der Embedding-Services:</p>
+        <pre><code><span class="fn">task</span> workspace:psql ENV=mentolder -- website &lt;&lt;'SQL'
+<span class="kw">SELECT</span> collection_name, embedding_model <span class="kw">FROM</span> knowledge.collections;
+SQL</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">2</span>
+        <span class="phase-title">Indexierung ausführen</span>
+        <span class="phase-desc">task knowledge:reindex</span>
+      </div>
+      <div class="phase-body">
+        <p>Starte den Reindex für eine spezifische Quelle oder alles:</p>
+        <pre><code><span class="fn">task</span> knowledge:reindex ENV=mentolder <span class="vr">SOURCE</span>=prs
+<span class="fn">task</span> knowledge:reindex ENV=mentolder <span class="vr">SOURCE</span>=markdown
+<span class="fn">task</span> knowledge:reindex ENV=mentolder <span class="vr">SOURCE</span>=all</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">3</span>
+        <span class="phase-title">Verifizierung</span>
+        <span class="phase-desc">Document Counts</span>
+      </div>
+      <div class="phase-body">
+        <p>Prüfe, ob die Anzahl der Dokumente gestiegen ist:</p>
+        <pre><code><span class="kw">SELECT</span> collection_name, document_count, updated_at <span class="kw">FROM</span> knowledge.collections;</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Web-Crawler (Ad-hoc)</h2>
+  <p>Web-Quellen werden separat über ihre Collection-UUID gecrawlt:</p>
+  <pre><code><span class="fn">task</span> knowledge:crawl ENV=mentolder <span class="vr">COLLECTION_ID</span>=&lt;uuid&gt;</code></pre>
+
+  <h2 class="section-label">Verbundene Skills</h2>
   <div class="xref-grid">
     <a href="coaching-pipeline.html" class="xref-card">
       <span class="xref-name">coaching-pipeline</span>
-      <span class="xref-rel">Coaching-Inhalte indizieren</span>
-    </a>
-    <a href="db-migration.html" class="xref-card">
-      <span class="xref-name">db-migration</span>
-      <span class="xref-rel">Schema-Änderungen an knowledge-Tabellen</span>
-    </a>
-    <a href="incident-response.html" class="xref-card">
-      <span class="xref-name">incident-response</span>
-      <span class="xref-rel">Bei Index-Ausfall</span>
+      <span class="xref-rel">Klassifizierung von Coaching-Inhalten</span>
     </a>
     <a href="mishap-tracker.html" class="xref-card">
       <span class="xref-name">mishap-tracker</span>
-      <span class="xref-rel">Post-Execution Anomalien</span>
+      <span class="xref-rel">Indizierungs-Abbrüche loggen</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Voyage API Key erneuern</span>
     </a>
   </div>
 
 </main>
 
 <footer>
-  <span>Skills Übersicht / <code>.claude/skills/knowledge-reindex/SKILL.md</code></span>
+  <span>Skills Übersicht / <code>.agents/skills/knowledge-reindex/SKILL.md</code></span>
   <a href="../skills-overview.html">← Zurück zur Übersicht</a>
 </footer>
 

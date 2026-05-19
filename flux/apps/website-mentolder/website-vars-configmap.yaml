@@ -24,8 +24,16 @@ data:
   LEGAL_JOBTITLE: Coach und digitaler Begleiter
   LEGAL_WEBSITE: mentolder.de
   CLUSTER_ENV: mentolder
-  SYSTEMTEST_LOOP_ENABLED: "false"
-  LLM_ENABLED: "false"
+  SYSTEMTEST_LOOP_ENABLED: "true"
+  LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: http://llm-router.workspace.svc.cluster.local:4000
   SMTP_FROM: info@mentolder.de
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  SMTP_USER: mentolder@mailbox.org
+  CONTACT_PHONE: "+49 151 508 32 601"
+  LEGAL_STREET: "Ludwig-Erhard-Str. 18"
+  LEGAL_ZIP: "20459"
+  LEGAL_UST_ID: "33/023/05100"

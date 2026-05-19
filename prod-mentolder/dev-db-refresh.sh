@@ -44,7 +44,7 @@ done
 
 # Re-align role password (in case the prod dump altered the role definition).
 psql -h "$PGHOST" -p "$PGPORT" -U postgres -d postgres -v ON_ERROR_STOP=1 <<-SQL
-  ALTER ROLE website WITH PASSWORD '${DEV_WEBSITE_DB_PASSWORD}';
+  ALTER ROLE website WITH PASSWORD '$${DEV_WEBSITE_DB_PASSWORD}';
 SQL
 
 echo "[dev-refresh] done."

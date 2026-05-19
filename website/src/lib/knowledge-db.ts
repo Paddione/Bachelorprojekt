@@ -229,6 +229,105 @@ export async function queryNearest(args: {
     }));
 }
 
+export async function mergeCollections(args: {
+  sourceIds: string[];
+  name: string;
+  description?: string;
+  brand?: string | null;
+}): Promise<Collection> {
+  if (args.sourceIds.length < 2) throw new Error('mindestens 2 Quellen erforderlich');
+  if (!args.name.trim()) throw new Error('name erforderlich');
+
+  const client = await p().connect();
+  try {
+    await client.query('BEGIN');
+
+    const srcPlaceholders = args.sourceIds.map((_, i) => `$${i + 1}`).join(',');
+    const srcRes = await client.query<{ id: string; name: string; source: string; embedding_model: string }>(
+      `SELECT id, name, source, embedding_model FROM knowledge.collections WHERE id IN (${srcPlaceholders})`,
+      args.sourceIds,
+    );
+    if (srcRes.rows.length !== args.sourceIds.length) throw new Error('not_found');
+
+    for (const row of srcRes.rows) {
+      if (row.source !== 'custom' && row.source !== 'web_crawl') {
+        throw new Error(`cannot_delete: ${row.name}`);
+      }
+    }
+
+    const models = [...new Set(srcRes.rows.map(r => r.embedding_model))];
+    if (models.length > 1) throw new MixedEmbeddingModelError(models);
+
+    const newColRes = await client.query<Collection>(
+      `INSERT INTO knowledge.collections (name, source, description, brand, embedding_model)
+       VALUES ($1, 'custom', $2, $3, $4)
+       RETURNING id, name, description, source, brand, chunk_count,
+                 last_indexed_at, embedding_model, created_at, crawl_config`,
+      [args.name.trim(), args.description ?? null, args.brand ?? null, models[0]],
+    );
+    const newCol = newColRes.rows[0];
+
+    for (const srcId of args.sourceIds) {
+      const docsRes = await client.query<{ id: string; title: string; source_uri: string | null; raw_text: string; sha256: string | null; metadata: unknown }>(
+        `SELECT id, title, source_uri, raw_text, sha256, metadata
+           FROM knowledge.documents WHERE collection_id = $1`,
+        [srcId],
+      );
+      for (const doc of docsRes.rows) {
+        const newDocRes = await client.query<{ id: string }>(
+          `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text, sha256, metadata)
+           VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+           RETURNING id`,
+          [newCol.id, doc.title, doc.source_uri, doc.raw_text, doc.sha256 ?? null,
+           JSON.stringify(doc.metadata ?? {})],
+        );
+        const newDocId = newDocRes.rows[0].id;
+
+        await client.query(
+          `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding, metadata)
+           SELECT $1, $2, position, text, embedding, metadata
+             FROM knowledge.chunks WHERE document_id = $3`,
+          [newDocId, newCol.id, doc.id],
+        );
+      }
+    }
+
+    await client.query(
+      `UPDATE knowledge.collections
+          SET chunk_count = (SELECT COUNT(*) FROM knowledge.chunks WHERE collection_id = $1),
+              last_indexed_at = now()
+        WHERE id = $1`,
+      [newCol.id],
+    );
+
+    const delPlaceholders = args.sourceIds.map((_, i) => `$${i + 1}`).join(',');
+    await client.query(
+      `DELETE FROM coaching.books WHERE knowledge_collection_id IN (${delPlaceholders})`,
+      args.sourceIds,
+    ).catch(() => {});
+
+    await client.query(
+      `DELETE FROM knowledge.collections WHERE id IN (${delPlaceholders})`,
+      args.sourceIds,
+    );
+
+    await client.query('COMMIT');
+
+    const refreshed = await p().query<Collection>(
+      `SELECT id, name, description, source, brand, chunk_count,
+              last_indexed_at, embedding_model, created_at, crawl_config
+         FROM knowledge.collections WHERE id = $1`,
+      [newCol.id],
+    );
+    return refreshed.rows[0];
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export async function ensureCollection(args: {
   name: string;
   source: CollectionSource;

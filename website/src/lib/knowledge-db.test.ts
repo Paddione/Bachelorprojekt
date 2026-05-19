@@ -21,6 +21,7 @@ beforeAll(async () => {
     },
   });
   pgmem.public.none(`
+    CREATE TABLE public.brands (id text PRIMARY KEY);
     CREATE SCHEMA knowledge;
     CREATE TABLE knowledge.collections (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,14 +30,9 @@ beforeAll(async () => {
       chunk_count int NOT NULL DEFAULT 0,
       last_indexed_at timestamptz,
       embedding_model text NOT NULL DEFAULT 'voyage-multilingual-2',
-      created_by uuid, created_at timestamptz DEFAULT now()
+      created_by uuid, created_at timestamptz DEFAULT now(),
+      crawl_config jsonb
     );
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'collections_brand_fkey') THEN
-          ALTER TABLE knowledge.collections ADD CONSTRAINT collections_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
-        END IF;
-      END $$;
     CREATE TABLE knowledge.documents (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       collection_id uuid NOT NULL,
@@ -55,6 +51,14 @@ beforeAll(async () => {
       metadata jsonb DEFAULT '{}',
       UNIQUE (document_id, position)
     );
+    CREATE SCHEMA coaching;
+    CREATE TABLE coaching.books (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      knowledge_collection_id uuid NOT NULL UNIQUE REFERENCES knowledge.collections(id) ON DELETE CASCADE,
+      title text NOT NULL,
+      source_filename text NOT NULL DEFAULT 'test.pdf',
+      ingested_at timestamptz NOT NULL DEFAULT now()
+    );
   `);
   const { Pool } = pgmem.adapters.createPg();
   pool = new Pool();
@@ -64,9 +68,10 @@ beforeAll(async () => {
 afterAll(() => (pool as any).end());
 
 beforeEach(async () => {
-  await (pool as any).query('TRUNCATE knowledge.chunks');
-  await (pool as any).query('TRUNCATE knowledge.documents');
-  await (pool as any).query('TRUNCATE knowledge.collections');
+  await (pool as any).query('DELETE FROM knowledge.chunks');
+  await (pool as any).query('DELETE FROM knowledge.documents');
+  await (pool as any).query('DELETE FROM coaching.books');
+  await (pool as any).query('DELETE FROM knowledge.collections');
 });
 
 describe('knowledge-db', () => {
@@ -99,9 +104,10 @@ describe('knowledge-db — model-aware query path', () => {
   const ORIGINAL_LLM_ENABLED = process.env.LLM_ENABLED;
 
   beforeEach(async () => {
-    await (pool as any).query('TRUNCATE knowledge.chunks');
-    await (pool as any).query('TRUNCATE knowledge.documents');
-    await (pool as any).query('TRUNCATE knowledge.collections');
+    await (pool as any).query('DELETE FROM knowledge.chunks');
+    await (pool as any).query('DELETE FROM knowledge.documents');
+    await (pool as any).query('DELETE FROM coaching.books');
+    await (pool as any).query('DELETE FROM knowledge.collections');
     process.env.LLM_ENABLED = 'false';
   });
 
@@ -137,5 +143,100 @@ describe('knowledge-db — model-aware query path', () => {
     process.env.LLM_ENABLED = 'false';
     const b = await kdb.createCollection({ name: 'kn-default-voyage', source: 'custom' });
     expect(b.embedding_model).toBe('voyage-multilingual-2');
+  });
+});
+
+describe('mergeCollections', () => {
+  async function seedCollection(name: string, source: 'custom' | 'web_crawl' | 'pr_history', chunks: number, model = 'voyage-multilingual-2') {
+    const r = await (pool as any).query(
+      `INSERT INTO knowledge.collections (name, source, chunk_count, embedding_model)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
+      [name, source, chunks, model],
+    );
+    const colId: string = r.rows[0].id;
+    const docR = await (pool as any).query(
+      `INSERT INTO knowledge.documents (collection_id, title, source_uri, raw_text)
+       VALUES ($1, $2, $3, $4) RETURNING id`,
+      [colId, `${name}-doc`, `uri:${name}`, `text of ${name}`],
+    );
+    const docId: string = docR.rows[0].id;
+    for (let i = 0; i < chunks; i++) {
+      await (pool as any).query(
+        `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [docId, colId, i, `chunk ${i} of ${name}`, '[0.1,0.2]'],
+      );
+    }
+    return colId;
+  }
+
+  test('merges two custom collections: creates merged, deletes sources', async () => {
+    const a = await seedCollection('alpha', 'custom', 3);
+    const b = await seedCollection('beta', 'custom', 2);
+
+    const merged = await kdb.mergeCollections({ sourceIds: [a, b], name: 'merged-ab' });
+
+    expect(merged.name).toBe('merged-ab');
+    expect(merged.chunk_count).toBe(5);
+    expect(merged.source).toBe('custom');
+
+    const remaining = await kdb.listCollections();
+    const ids = remaining.map(c => c.id);
+    expect(ids).toContain(merged.id);
+    expect(ids).not.toContain(a);
+    expect(ids).not.toContain(b);
+  });
+
+  test('copies documents and chunks to new collection', async () => {
+    const a = await seedCollection('doc-a', 'custom', 2);
+    const b = await seedCollection('doc-b', 'custom', 3);
+
+    const merged = await kdb.mergeCollections({ sourceIds: [a, b], name: 'docs-merged' });
+
+    const docs = await (pool as any).query(
+      'SELECT * FROM knowledge.documents WHERE collection_id = $1', [merged.id],
+    );
+    expect(docs.rows).toHaveLength(2);
+
+    const chunks = await (pool as any).query(
+      'SELECT * FROM knowledge.chunks WHERE collection_id = $1', [merged.id],
+    );
+    expect(chunks.rows).toHaveLength(5);
+  });
+
+  test('deletes coaching.books records for source collections', async () => {
+    const a = await seedCollection('book-src', 'custom', 2);
+    const b = await seedCollection('book-src2', 'custom', 1);
+    await (pool as any).query(
+      `INSERT INTO coaching.books (knowledge_collection_id, title) VALUES ($1, $2)`,
+      [a, 'Test Book'],
+    );
+
+    await kdb.mergeCollections({ sourceIds: [a, b], name: 'book-merged' });
+
+    const books = await (pool as any).query(
+      'SELECT * FROM coaching.books WHERE knowledge_collection_id = $1', [a],
+    );
+    expect(books.rows).toHaveLength(0);
+  });
+
+  test('throws when fewer than 2 sourceIds provided', async () => {
+    const a = await seedCollection('solo', 'custom', 1);
+    await expect(kdb.mergeCollections({ sourceIds: [a], name: 'fail' }))
+      .rejects.toThrow('mindestens 2 Quellen erforderlich');
+  });
+
+  test('throws when a source collection is a builtin', async () => {
+    const a = await seedCollection('cust', 'custom', 1);
+    const b = await seedCollection('builtin', 'pr_history', 2);
+    await expect(kdb.mergeCollections({ sourceIds: [a, b], name: 'fail' }))
+      .rejects.toThrow(/cannot_delete/);
+  });
+
+  test('throws MixedEmbeddingModelError when models differ', async () => {
+    const a = await seedCollection('m-bge', 'custom', 1, 'bge-m3');
+    const b = await seedCollection('m-voy', 'custom', 1, 'voyage-multilingual-2');
+    await expect(kdb.mergeCollections({ sourceIds: [a, b], name: 'fail' }))
+      .rejects.toThrow(/MixedEmbeddingModelError/);
   });
 });

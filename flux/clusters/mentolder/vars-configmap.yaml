@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-vars
+  namespace: flux-system
+data:
+  PROD_DOMAIN: mentolder.de
+  WORKSPACE_NAMESPACE: workspace
+  WEBSITE_NAMESPACE: website
+  DEV_DOMAIN: dev.mentolder.de
+  BRAND_NAME: Mentolder
+  BRAND_ID: mentolder
+  WEBSITE_IMAGE: mentolder-website

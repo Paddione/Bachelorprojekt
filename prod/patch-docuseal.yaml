@@ -13,7 +13,7 @@ spec:
             - name: SMTP_PORT
               value: "587"
             - name: SMTP_DOMAIN
-              value: "sign.${PROD_DOMAIN}"
+              value: "sign.$(PROD_DOMAIN)"
             - name: SMTP_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -36,7 +36,7 @@ spec:
                   name: workspace-secrets
                   key: SMTP_FROM
             - name: MAILER_FROM_NAME
-              value: "${BRAND_NAME} Unterschriften"
+              value: "$(BRAND_NAME) Unterschriften"
           resources:
             requests:
               memory: 512Mi

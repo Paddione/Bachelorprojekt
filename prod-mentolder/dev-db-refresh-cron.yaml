@@ -10,7 +10,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: dev-db-refresh
-  namespace: ${WORKSPACE_NAMESPACE}
+  namespace: $(WORKSPACE_NAMESPACE)
 spec:
   schedule: "30 3 * * *"
   concurrencyPolicy: Forbid

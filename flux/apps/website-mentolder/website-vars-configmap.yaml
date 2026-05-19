@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-vars
+  namespace: flux-system
+data:
+  WEBSITE_HOST: web.mentolder.de
+  WEBSITE_SITE_URL: https://web.mentolder.de
+  KEYCLOAK_FRONTEND_URL: https://auth.mentolder.de
+  AUTH_EXTERNAL_URL: https://auth.mentolder.de
+  NEXTCLOUD_EXTERNAL_URL: https://files.mentolder.de
+  DOCS_URL: https://docs.mentolder.de
+  VAULT_EXTERNAL_URL: https://vault.mentolder.de
+  WHITEBOARD_EXTERNAL_URL: https://board.mentolder.de
+  TRAEFIK_EXTERNAL_URL: https://traefik.mentolder.de
+  MAIL_EXTERNAL_URL: https://mail.mentolder.de
+  BRETT_DOMAIN: brett.mentolder.de
+  LIVEKIT_DOMAIN: livekit.mentolder.de
+  STREAM_DOMAIN: stream.mentolder.de
+  ARENA_WS_URL: wss://arena-ws.korczewski.de
+  CONTACT_EMAIL: info@mentolder.de
+  CONTACT_NAME: Gerald Korczewski
+  CONTACT_CITY: "Lüneburg, Hamburg und Umgebung"
+  LEGAL_JOBTITLE: Coach und digitaler Begleiter
+  LEGAL_WEBSITE: mentolder.de
+  CLUSTER_ENV: mentolder
+  SYSTEMTEST_LOOP_ENABLED: "false"
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  LLM_ROUTER_URL: http://llm-router.workspace.svc.cluster.local:4000
+  SMTP_FROM: info@mentolder.de

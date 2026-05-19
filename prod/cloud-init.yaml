@@ -60,8 +60,8 @@ write_files:
   - path: /etc/rancher/k3s/config.yaml
     content: |
       tls-san:
-        - ${PROD_DOMAIN}
-        - "*.${PROD_DOMAIN}"
+        - $(PROD_DOMAIN)
+        - "*.$(PROD_DOMAIN)"
         - REPLACEME_NODE_PUBLIC_IP
       disable:
         - traefik

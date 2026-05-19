@@ -1,0 +1,25 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: workspace
+  namespace: flux-system
+spec:
+  interval: 5m0s
+  path: ./prod-mentolder
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: keycloak
+      namespace: workspace
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: shared-db
+      namespace: workspace

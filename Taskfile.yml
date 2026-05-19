@@ -3296,7 +3296,7 @@ tasks:
   # Knowledge Base (pgvector RAG)
   # ─────────────────────────────────────────────
   knowledge:reindex:
-    desc: "Re-index knowledge collections (SOURCE=prs|markdown|bugs|all, ENV=dev|mentolder|korczewski)"
+    desc: "Re-index knowledge collections (SOURCE=prs|markdown|bugs|context7|all, ENV=dev|mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
       SOURCE: '{{.SOURCE | default "all"}}'

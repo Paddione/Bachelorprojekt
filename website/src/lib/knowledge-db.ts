@@ -42,6 +42,11 @@ export interface CrawlConfig {
   userAgent?: string;
 }
 
+export interface Context7Config {
+  libraryId: string;
+  tokens?: number;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -109,9 +114,17 @@ export async function createCollection(args: {
 export async function deleteCollection(id: string): Promise<void> {
   const c = await getCollection(id);
   if (!c) throw new Error('not_found');
-  if (c.source !== 'custom' && c.source !== 'web_crawl')
+  if (c.source !== 'custom' && c.source !== 'web_crawl' && c.source !== 'context7_docs')
     throw new Error('cannot delete non-custom collection');
   await p().query('DELETE FROM knowledge.collections WHERE id = $1', [id]);
+}
+
+export async function updateContext7Config(id: string, config: Context7Config): Promise<void> {
+  const result = await p().query(
+    `UPDATE knowledge.collections SET crawl_config = $2::jsonb WHERE id = $1`,
+    [id, JSON.stringify(config)],
+  );
+  if (result.rowCount === 0) throw new Error('not_found');
 }
 
 export async function updateCrawlConfig(id: string, config: CrawlConfig): Promise<void> {

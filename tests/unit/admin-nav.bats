@@ -1,0 +1,116 @@
+#!/usr/bin/env bats
+# admin-nav.bats — Asserts the admin and portal sidebars contain only intended items.
+# Run: ./tests/unit/lib/bats-core/bin/bats tests/unit/admin-nav.bats
+
+load test_helper
+
+PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+ADMIN_LAYOUT="$PROJECT_DIR/website/src/layouts/AdminLayout.astro"
+PORTAL_LAYOUT="$PROJECT_DIR/website/src/layouts/PortalLayout.astro"
+EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.astro"
+
+# ── Admin nav: removed items ──────────────────────────────────────
+
+@test "AdminLayout: /admin/meetings not in navGroups" {
+  run grep -c "'/admin/meetings'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/kalender not in navGroups" {
+  run grep -c "'/admin/kalender'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/coaching/projekte not in navGroups" {
+  run grep -c "'/admin/coaching/projekte'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/coaching/settings not in navGroups" {
+  run grep -c "'/admin/coaching/settings'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/zeiterfassung not in navGroups" {
+  run grep -c "'/admin/zeiterfassung'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/steuer not in navGroups" {
+  run grep -c "'/admin/steuer'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/software-history not in navGroups" {
+  run grep -c "'/admin/software-history'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/systemtest not in navGroups" {
+  run grep -c "'/admin/systemtest'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: /admin/arena not in navGroups" {
+  run grep -c "'/admin/arena'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+@test "AdminLayout: Einstellungen uses settings icon not bell" {
+  run grep -c "label: 'Einstellungen'.*icon: 'bell'" "$ADMIN_LAYOUT"
+  assert_output "0"
+}
+
+# ── Portal nav ────────────────────────────────────────────────────
+
+@test "PortalLayout: arena not in navItems" {
+  run grep -c "id: 'arena'" "$PORTAL_LAYOUT"
+  assert_output "0"
+}
+
+@test "PortalLayout: buchung present in navItems" {
+  run grep -c "id: 'buchung'" "$PORTAL_LAYOUT"
+  refute_output "0"
+}
+
+# ── Consolidation tabs ────────────────────────────────────────────
+
+@test "AdminEinstellungenTabs: Coaching & KI tab present" {
+  run grep -c "coaching/settings" "$EINSTELLUNGEN_TABS"
+  refute_output "0"
+}
+
+@test "termine.astro: Kalender tab present" {
+  run grep -c "href=\"/admin/kalender\"" "$PROJECT_DIR/website/src/pages/admin/termine.astro"
+  refute_output "0"
+}
+
+@test "clients.astro: Meetings tab present" {
+  run grep -c "href=\"/admin/meetings\"" "$PROJECT_DIR/website/src/pages/admin/clients.astro"
+  refute_output "0"
+}
+
+@test "coaching/sessions/index.astro: Projekte tab present" {
+  run grep -c "href=\"/admin/coaching/projekte\"" "$PROJECT_DIR/website/src/pages/admin/coaching/sessions/index.astro"
+  refute_output "0"
+}
+
+@test "rechnungen.astro: Zeiterfassung tab present" {
+  run grep -c "href=\"/admin/zeiterfassung\"" "$PROJECT_DIR/website/src/pages/admin/rechnungen.astro"
+  refute_output "0"
+}
+
+@test "buchhaltung.astro: Steuer tab present" {
+  run grep -c "href=\"/admin/steuer\"" "$PROJECT_DIR/website/src/pages/admin/buchhaltung.astro"
+  refute_output "0"
+}
+
+@test "monitoring.astro: Software-History link present" {
+  run grep -c "software-history" "$PROJECT_DIR/website/src/pages/admin/monitoring.astro"
+  refute_output "0"
+}
+
+@test "monitoring.astro: Systemtest link present" {
+  run grep -c "systemtest" "$PROJECT_DIR/website/src/pages/admin/monitoring.astro"
+  refute_output "0"
+}

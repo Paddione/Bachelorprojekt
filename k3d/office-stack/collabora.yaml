@@ -66,6 +66,8 @@ spec:
             seccompProfile:
               type: Unconfined
           env:
+            - name: HOME
+              value: /opt/cool
             - name: aliasgroup1
               value: "${COLLABORA_ALIASGROUP1}"
             - name: server_name

@@ -203,14 +203,14 @@ async function main() {
 
   try {
     const colRes = await pool.query(
-      `SELECT name, crawl_config FROM knowledge.collections WHERE id = $1`,
+      `SELECT name, crawl_config, embedding_model FROM knowledge.collections WHERE id = $1`,
       [COLLECTION_ID],
     );
     if (colRes.rows.length === 0) {
       console.error(`Collection ${COLLECTION_ID} not found`);
       process.exit(1);
     }
-    const { name: colName, crawl_config } = colRes.rows[0];
+    const { name: colName, crawl_config, embedding_model } = colRes.rows[0];
     const cfg = crawl_config ?? {};
 
     const startUrl       = process.env.START_URL    || cfg.startUrl;
@@ -240,7 +240,7 @@ async function main() {
     console.log(`Embedding ${pages.length} pages…`);
     for (const page of pages) {
       const rawChunks = chunkPlain(page.text);
-      const embeddings = await embedAll(rawChunks.map(c => c.text));
+      const embeddings = await embedAll(rawChunks.map(c => c.text), embedding_model);
       const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
 
       await upsertDocumentAndChunks(pool, {

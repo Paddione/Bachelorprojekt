@@ -76,21 +76,21 @@ mentolder:
       keepalive: 25
 
     - name: k3w-1
-      endpoint: ""
-      wg_ip: ""           # not yet enrolled
-      public_key: ""
+      endpoint: ""        # behind NAT (RPi, LAN IP 10.0.31.1)
+      wg_ip: "192.168.100.11"
+      public_key: "mHmNX0rr12Aaobluut8XiYYPMMINi2egLAts0q5ipy4="
       keepalive: 25
 
     - name: k3w-2
-      endpoint: ""
-      wg_ip: ""           # not yet enrolled
-      public_key: ""
+      endpoint: ""        # behind NAT (RPi, LAN IP 10.0.31.2)
+      wg_ip: "192.168.100.12"
+      public_key: "3YrZtClochB2JuexyBlRQPJWksm9lPbANJIcZkGZxWU="
       keepalive: 25
 
     - name: k3w-3
-      endpoint: ""
-      wg_ip: ""           # not yet enrolled
-      public_key: ""
+      endpoint: ""        # behind NAT (RPi, LAN IP 10.0.31.3)
+      wg_ip: "192.168.100.13"
+      public_key: "nKFYOlWwF43RaeyFA3PIDBGLmWNJ073paOKvNVowyFI="
       keepalive: 25
 
 korczewski:

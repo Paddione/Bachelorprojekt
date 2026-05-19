@@ -131,4 +131,4 @@ docs-html-bundles/
 # Tracked symlinks (ccc12ccf) broke worktree stash/rebase ('path beyond a symbolic link').
 .gemini/agents/
 .gemini/skills/
-.gemini
+.geminiwebsite/node_modules

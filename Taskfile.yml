@@ -3329,6 +3329,10 @@ tasks:
     desc: "Ingest a coaching book (PDF/EPUB) into pgvector + coaching.books. Args: -- <file> <slug> [--title=...] [--author=...]"
     cmds:
       - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/ingest-book.mts {{.CLI_ARGS}}
+  coaching:ingest-json:
+    desc: "Ingest a pre-chunked JSON file into a knowledge collection. Args: -- <file.json> <slug> [--brand=mentolder|korczewski]"
+    cmds:
+      - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/ingest-json.mts {{.CLI_ARGS}}
 
   coaching:batch-ingest:
     desc: "Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]"

@@ -121,12 +121,16 @@ tasks:
           .
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
         TMP_TAR=$(mktemp /tmp/website-dev-XXXXXX.tar)
         trap "rm -f $TMP_TAR" EXIT
         docker save ghcr.io/paddione/workspace-website:dev > "$TMP_TAR"
-        scp "$TMP_TAR" ${DEV_SSH_USER:-root}@$DEV_NODE:/tmp/website-dev-import.tar
-        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d image import /tmp/website-dev-import.tar -c {{.CLUSTER_NAME}} && rm -f /tmp/website-dev-import.tar"
+        if [[ "$(hostname -s 2>/dev/null)" == "${DEV_NODE%%.*}" ]]; then
+          k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
+        else
+          ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
+          scp "$TMP_TAR" ${DEV_SSH_USER:-root}@$DEV_NODE:/tmp/website-dev-import.tar
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d image import /tmp/website-dev-import.tar -c {{.CLUSTER_NAME}} && rm -f /tmp/website-dev-import.tar"
+        fi
 
   build:brett:
     desc: "[dev] Build the brett image and import it into the dev k3d cluster"
@@ -134,12 +138,16 @@ tasks:
       - docker build -t ghcr.io/paddione/workspace-brett:dev -f brett/Dockerfile brett/
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
-        ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
         TMP_TAR=$(mktemp /tmp/brett-dev-XXXXXX.tar)
         trap "rm -f $TMP_TAR" EXIT
         docker save ghcr.io/paddione/workspace-brett:dev > "$TMP_TAR"
-        scp "$TMP_TAR" ${DEV_SSH_USER:-root}@$DEV_NODE:/tmp/brett-dev-import.tar
-        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d image import /tmp/brett-dev-import.tar -c {{.CLUSTER_NAME}} && rm -f /tmp/brett-dev-import.tar"
+        if [[ "$(hostname -s 2>/dev/null)" == "${DEV_NODE%%.*}" ]]; then
+          k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
+        else
+          ssh-keyscan -H "$DEV_NODE" >> ~/.ssh/known_hosts 2>/dev/null
+          scp "$TMP_TAR" ${DEV_SSH_USER:-root}@$DEV_NODE:/tmp/brett-dev-import.tar
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "k3d image import /tmp/brett-dev-import.tar -c {{.CLUSTER_NAME}} && rm -f /tmp/brett-dev-import.tar"
+        fi
 
   apply:
     desc: "[dev] Apply the dev-stack overlay to the dev k3d cluster (no image build)"

@@ -22,7 +22,7 @@ task workspace:post-setup      # Nextcloud-Apps + OIDC
 
 ## Produktion
 
-Zwei k3s-Cluster mit ArgoCD-Federation (Hub auf `mentolder`, Spoke `korczewski`). Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
+Zwei k3s-Cluster. Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
 
 ```bash
 task workspace:deploy ENV=mentolder
@@ -94,7 +94,6 @@ graph TB
 - `k3d/` — Kubernetes-Basis-Manifeste (Kustomize, einziger Deployment-Pfad)
 - `prod/`, `prod-mentolder/`, `prod-korczewski/` — Produktions-Overlays
 - `environments/` — Per-Env Config + SealedSecrets
-- `argocd/` — ApplicationSets + AppProject (Hub auf mentolder)
 - `website/` — Astro + Svelte (Brand-aware: mentolder + korczewski)
 - `brett/` — Node.js Systembrett-Service
 - `arena-server/` — Multiplayer-Backend (nur korczewski)

@@ -3,7 +3,7 @@
 # ever reschedules to a different node the pod stays Pending. longhorn replicates
 # across nodes so the volume is always accessible.
 # One-time live migration: delete livekit-recordings-pvc on the cluster, then
-# re-sync (ArgoCD will recreate it with longhorn). Existing recordings are lost.
+# re-apply (it will be recreated with longhorn). Existing recordings are lost.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

@@ -1,9 +1,9 @@
 ---
 name: bachelorprojekt-infra
 description: >
-  Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, ArgoCD
-  configuration, environment management, and sealed secrets in the Bachelorprojekt
-  workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, ArgoCD, Taskfile,
+  Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations,
+  environment management, and sealed secrets in the Bachelorprojekt
+  workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile,
   ENV=, environments/, deploy (when referring to k8s resources).
 ---
 
@@ -38,13 +38,7 @@ task workspace:deploy ENV=<env>          # deploy to specific env
 task workspace:deploy:all-prods          # deploy to both prod clusters
 task env:seal ENV=<env>                  # encrypt secrets to SealedSecret
 task env:generate ENV=<env>             # generate fresh secrets
-task argocd:status                       # show sync/health across all apps (hub-only, mentolder context)
 ```
-
-## ArgoCD rules
-- All `argocd:*` tasks run exclusively against `--context mentolder`
-- `ENV=korczewski` is silently ignored for ArgoCD tasks
-- Never apply ArgoCD manifests without the `_hub-guard` precondition passing
 
 ## Autonomous operation
 Execute Bash commands and file edits without asking for confirmation.

@@ -280,7 +280,7 @@ task claude-code:invite                  # Mint an invite token for a Claude Cod
 task claude-code:rotate-tokens           # Rotate the auth-proxy + agent tokens
 ```
 
-### Dev stack (`dev.mentolder.de` — persistent staging on gekko-hetzner-2)
+### Dev stack (`dev.mentolder.de` — persistent staging on k3s-1)
 ```bash
 task dev:cluster:create            # bootstrap the dev k3d cluster on the gekko node
 task dev:cluster:status            # pod status in workspace-dev
@@ -471,7 +471,7 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 
 ### dev.mentolder.de stack
 
-- **The dev k3d cluster runs on `gekko-hetzner-2` as a Docker sibling of the k3s control-plane.** `task dev:cluster:create` SSHes to that node — running it elsewhere fails. Recreating the cluster without `task dev:cluster:create` loses the load-bearing port mappings (`127.0.0.1:18080`, `0.0.0.0:2222`, `127.0.0.1:15432`).
+- **The dev k3d cluster runs on `k3s-1` as a Docker sibling of the k3s control-plane.** `task dev:cluster:create` SSHes to that node — running it elsewhere fails. Recreating the cluster without `task dev:cluster:create` loses the load-bearing port mappings (`127.0.0.1:18080`, `0.0.0.0:2222`, `127.0.0.1:15432`).
 - **Dev sees prod data.** The 03:30 UTC `dev-db-refresh` CronJob drops + recreates `website`, `bugs`, `bachelorprojekt` in `shared-db-dev` from the latest prod snapshot. Don't write production rituals against the dev DB — they will be erased nightly.
 - **SSH 2222 is publicly exposed** but ufw-deny-default'd. Per-CIDR allow rules apply via `task dev:firewall:open` (reads `DEV_SSH_ALLOWLIST` from `environments/mentolder.yaml`). Even allowlisted clients still need a key in `DEV_SISH_AUTHORIZED_KEYS` to publish tunnels.
 - **Dev secrets are sealed against the mentolder cert** (the dev-db-refresh CronJob runs in prod), but materialised inside dev k3d as plain Secrets by `task dev:_materialise-secrets`. Don't `kubectl apply environments/sealed-secrets/mentolder.yaml` to the `k3d-mentolder-dev` context — there's no sealed-secrets controller there.

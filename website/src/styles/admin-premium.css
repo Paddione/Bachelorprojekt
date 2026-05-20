@@ -33,14 +33,17 @@ html.sidebar-collapsed #admin-sidebar {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 2px 8px;
-  border-radius: 12px;
-  padding: 10px 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  margin: 1px 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--admin-text-mute);
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  min-height: 44px;
   position: relative;
   overflow: hidden;
-  min-height: 44px;
 }
 
 .sidebar-nav-item:hover {

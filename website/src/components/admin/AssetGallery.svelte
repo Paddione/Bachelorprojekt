@@ -50,6 +50,22 @@
     };
   }
 
+  // Map registry file_path to a public URL if one exists in the website build.
+  // branding/korczewski/* → /brand/korczewski/*, branding/mentolder/* → /brand/mentolder/*
+  function publicUrl(filePath: string): string | null {
+    if (filePath.startsWith('branding/')) {
+      return '/' + filePath.replace(/^branding\//, 'brand/');
+    }
+    return null;
+  }
+
+  function handleImgError(e: Event) {
+    const img = e.currentTarget as HTMLImageElement;
+    img.style.display = 'none';
+    const fallback = img.nextElementSibling as HTMLElement | null;
+    if (fallback) fallback.style.display = 'flex';
+  }
+
   $: c = counts(assets);
   $: visible = filtered(assets, filter);
 
@@ -100,14 +116,20 @@
           {#if filter === 'all'}<h2 class="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">Bilder</h2>{/if}
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {#each filtered(assets, 'image') as asset (asset.id)}
+              {@const url = publicUrl(asset.file_path)}
               <div class="group relative bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-gray-500 transition-colors">
                 <div class="aspect-square bg-gray-900 flex items-center justify-center overflow-hidden">
-                  {#if asset.file_path.endsWith('.svg')}
-                    <img src="/shared-assets/{asset.file_path}" alt={asset.name} class="w-full h-full object-contain p-2" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'" />
-                    <span class="hidden items-center justify-center text-xs text-gray-500 font-mono">SVG</span>
+                  {#if url}
+                    <img
+                      src={url}
+                      alt={asset.name}
+                      class="w-full h-full object-contain p-2"
+                      loading="lazy"
+                      on:error={handleImgError}
+                    />
+                    <span class="hidden items-center justify-center text-2xl" aria-hidden="true">🖼</span>
                   {:else}
-                    <img src="/shared-assets/{asset.file_path}" alt={asset.name} class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'" />
-                    <span class="hidden items-center justify-center text-2xl">🖼</span>
+                    <span class="text-2xl" aria-hidden="true">🖼</span>
                   {/if}
                 </div>
                 <div class="p-2">
@@ -135,19 +157,16 @@
           <div class="space-y-2">
             {#each filtered(assets, 'audio') as asset (asset.id)}
               <div class="flex items-center gap-3 bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 hover:border-gray-500 transition-colors">
-                <span class="text-xl">🔊</span>
+                <span class="text-xl" aria-hidden="true">🔊</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm text-gray-200 truncate">{asset.name}</p>
                   <p class="text-xs text-gray-500 font-mono truncate">{asset.file_path}</p>
                 </div>
-                <audio controls class="h-8 max-w-[200px]" preload="none">
-                  <source src="/shared-assets/{asset.file_path}" />
-                </audio>
                 <button
                   on:click={() => copyPath(asset.file_path)}
                   class="text-xs text-gray-500 hover:text-blue-400 transition-colors whitespace-nowrap"
                 >
-                  {copied === asset.file_path ? '✓' : 'Pfad'}
+                  {copied === asset.file_path ? '✓ Kopiert' : 'Pfad kopieren'}
                 </button>
               </div>
             {/each}
@@ -164,7 +183,7 @@
           <div class="space-y-1">
             {#each filtered(assets, 'document') as asset (asset.id)}
               <div class="flex items-center gap-3 bg-gray-800 rounded-lg px-4 py-2 border border-gray-700 hover:border-gray-500 transition-colors">
-                <span class="text-lg">📄</span>
+                <span class="text-lg" aria-hidden="true">📄</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm text-gray-200 truncate">{asset.name}</p>
                   <p class="text-xs text-gray-500 font-mono truncate">{asset.file_path}</p>

@@ -6,6 +6,8 @@ import { Renderer } from '../game/Renderer';
 import { Hud } from '../hud/Hud';
 import * as sfx from '../game/sfx';
 import { MAP_H } from '../game/mapData';
+import { start as startInputLoop } from '../game/input';
+import { ControlsPanel } from '../game/ControlsPanel';
 
 interface Props {
   socket: Socket;
@@ -29,6 +31,8 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
     sfx.toggleMute();
     setIsMuted(sfx.isMuted);
   }, []);
+  const [showControls, setShowControls] = useState(false);
+  const [showToast, setShowToast] = useState(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -102,12 +106,34 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
     return () => { socket.off('msg', onMsg); };
   }, [socket]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const stop = startInputLoop({
+      socket,
+      canvas,
+      getServerTick: () => stateRef.current.tick,
+      getPlayerFacing: () => {
+        const player = stateRef.current.players[myKey];
+        return (player as { facing?: number })?.facing ?? 0;
+      },
+    });
+    return stop;
+  }, [socket, myKey]);
+
+  useEffect(() => {
+    if (!showToast) return;
+    const t = setTimeout(() => setShowToast(false), 4000);
+    return () => clearTimeout(t);
+  }, [showToast]);
+
   const handleForfeit = useCallback(() => {
     socket.emit('msg', { t: 'forfeit' });
   }, [socket]);
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: 960, margin: '0 auto', userSelect: 'none' }}>
+      <style>{`@keyframes arenaToastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
       <canvas
         ref={canvasRef}
         style={{ display: 'block', width: '100%', aspectRatio: '960/540', background: '#120d1c' }}
@@ -122,7 +148,35 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
           pointerEvents: 'none',
         }}
       />
-      <Hud state={hudState} myKey={myKey} events={events} ping={ping} onForfeit={handleForfeit} isMuted={isMuted} onMuteToggle={handleMuteToggle} />
+      <Hud
+        state={hudState}
+        myKey={myKey}
+        events={events}
+        ping={ping}
+        onForfeit={handleForfeit}
+        isMuted={isMuted}
+        onMuteToggle={handleMuteToggle}
+        onControls={() => setShowControls(true)}
+      />
+      {showToast && (
+        <div
+          onClick={() => setShowToast(false)}
+          style={{
+            position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,.82)', border: '1px solid #3d2a6e', borderRadius: 6,
+            padding: '5px 14px', fontFamily: 'monospace', fontSize: 12, color: '#a89abb',
+            zIndex: 20, cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none',
+            animation: 'arenaToastIn .25s ease',
+          }}
+        >
+          <span style={{ color: '#c8f76a' }}>WASD</span> move ·{' '}
+          <span style={{ color: '#c8f76a' }}>LMB</span> fire ·{' '}
+          <span style={{ color: '#c8f76a' }}>E</span> melee ·{' '}
+          <span style={{ color: '#c8f76a' }}>Space</span> dodge ·{' '}
+          <span style={{ color: '#c8f76a' }}>⚙</span> controls
+        </div>
+      )}
+      {showControls && <ControlsPanel onClose={() => setShowControls(false)} />}
     </div>
   );
 }

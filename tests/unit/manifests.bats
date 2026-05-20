@@ -297,3 +297,10 @@ print('OK: no workspace-secrets Secret in prod overlays')
 "
   assert_success
 }
+
+@test "Taskfile.yml does not corrupt native Kubernetes expansions with sed" {
+  run grep -F 'sed '\''s/\$(\([^)]*\))/\${\1}/g'\''' "${PROJECT_DIR}/Taskfile.yml"
+  # We expect grep to fail (not find the pattern), meaning the breaking sed is gone.
+  assert_failure
+}
+

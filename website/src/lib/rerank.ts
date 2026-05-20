@@ -1,4 +1,3 @@
-const routerUrl = () => process.env.LLM_ROUTER_URL ?? 'http://llm-router.workspace.svc.cluster.local:4000';
 const rerankEnabled = () => process.env.LLM_RERANK_ENABLED === 'true';
 
 export interface RerankResult { doc: string; score: number; }
@@ -11,8 +10,11 @@ export async function rerankCandidates(
   if (docs.length === 0) return [];
   if (!rerankEnabled()) return docs.map(doc => ({ doc, score: 0 }));
 
+  const rerankerUrl = process.env.LLM_RERANKER_URL;
+  if (!rerankerUrl) return docs.map(doc => ({ doc, score: 0 }));
+
   try {
-    const r = await fetch(`${routerUrl()}/v1/rerank`, {
+    const r = await fetch(`${rerankerUrl}/v1/rerank`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'workspace-rerank', query, documents: docs }),

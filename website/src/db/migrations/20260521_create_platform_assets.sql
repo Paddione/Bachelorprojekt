@@ -50,7 +50,6 @@ VALUES
   ('brett',              'Brett',              '3D systemic-constellation board',       'dev',        '🧩', ARRAY['mentolder','korczewski'], 'workspace',            'brett',             ':latest',  'live',     70),
   ('mailpit',            'Mailpit',            'SMTP dev mailbox',                      'dev',        '📬', ARRAY['mentolder','korczewski'], 'workspace',            'mailpit',           ':latest',  'live',     80),
   ('docuseal',           'DocuSeal',           'Document signing',                      'other',      '📝', ARRAY['mentolder','korczewski'], 'workspace',            'docuseal',          ':latest',  'live',     90),
-  ('tracking',           'Tracking',           'Matomo Analytics replacement',          'other',      '📊', ARRAY['mentolder','korczewski'], 'workspace',            'tracking',          ':latest',  'live',    100),
   ('whiteboard',         'Whiteboard',         'Collaborative drawing',                 'other',      '🎨', ARRAY['mentolder','korczewski'], 'workspace',            'whiteboard',        ':latest',  'live',    110),
   ('arena',              'Arena',              'Multiplayer game server',               'other',      '🎮', ARRAY['korczewski'],             'workspace-korczewski', 'arena-server',       ':latest',  'live',    120),
   ('docs',               'Documentation',      'Platform documentation (Docsify)',      'other',      '📚', ARRAY['mentolder','korczewski'], 'workspace',            'docs',              ':latest',  'live',    130)

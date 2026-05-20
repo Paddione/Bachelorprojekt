@@ -7,7 +7,6 @@ resources:
   - ../k3d
   # Production-only (no equivalent in base)
   - llm-gpu.yaml
-  - llm-router.yaml
   - cluster-issuer.yaml
   - reflector.yaml
   - wildcard-certificate.yaml

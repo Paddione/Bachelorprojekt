@@ -136,6 +136,16 @@ export default defineConfig({
       },
     },
 
+    // ── arena-mentolder-setup: seeds mentolder portal auth state ───
+    {
+      name: 'arena-mentolder-setup',
+      testMatch: '**/arena-mentolder-auth-setup.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+      },
+    },
+
     // ── korczewski-setup: seeds auth state for korczewski tests ─────
     // Runs before `korczewski` via the `dependencies` field.
     // Performs real OIDC login and writes .auth/korczewski-*.json.
@@ -188,6 +198,22 @@ export default defineConfig({
       use: {
         ...devices['iPhone 15'],
         baseURL: websiteURL,
+      },
+    },
+
+    // ── android: Pixel 5 Chromium (mobile, touch, 393×851) ───────
+    // Run: playwright test --project=android
+    // Covers Brett and Arena mobile layout + tap-target compliance.
+    {
+      name: 'android',
+      dependencies: ['brett-mentolder-setup', 'arena-mentolder-setup'],
+      testMatch: [
+        '**/brett-mobile.spec.ts',
+        '**/arena-mobile.spec.ts',
+      ],
+      use: {
+        ...devices['Pixel 5'],
+        ignoreHTTPSErrors: true,
       },
     },
 

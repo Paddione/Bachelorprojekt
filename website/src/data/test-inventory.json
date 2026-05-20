@@ -12,6 +12,18 @@
     "kind": "shell"
   },
   {
+    "id": "E2E:arena-mentolder-auth-setup",
+    "file": "tests/e2e/specs/arena-mentolder-auth-setup.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:arena-mobile",
+    "file": "tests/e2e/specs/arena-mobile.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-art",
     "file": "tests/e2e/specs/brett-art.spec.ts",
     "category": "E2E",
@@ -38,6 +50,12 @@
   {
     "id": "E2E:brett-mentolder-auth-setup",
     "file": "tests/e2e/specs/brett-mentolder-auth-setup.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:brett-mobile",
+    "file": "tests/e2e/specs/brett-mobile.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

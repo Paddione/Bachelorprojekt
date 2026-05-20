@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Brett · Mannequin</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e1014'/%3E%3Ccircle cx='16' cy='11' r='4' fill='%23c8a96e'/%3E%3Cpath d='M9 27c0-3.9 3.1-7 7-7s7 3.1 7 7' stroke='%23c8a96e' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
   <style>
     *,*::before,*::after { box-sizing: border-box; }
     html, body { margin:0; height:100%; background:#0e1014; color:#e7ead0; font-family: ui-sans-serif, system-ui, sans-serif; overflow:hidden; }
@@ -100,6 +101,21 @@
     .fig-size-btn:hover, .fig-size-btn.active { background: rgba(200,169,110,0.22); border-color: #c8a96e; }
 
     body.placing-figure { cursor: crosshair !important; }
+
+    /* ── Mobile: topbar scrolls horizontally ─────────────────────── */
+    @media (max-width: 600px) {
+      #topbar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        min-height: 36px;
+        height: auto;
+        flex-wrap: nowrap;
+      }
+      #topbar::-webkit-scrollbar { display: none; }
+      #stiffness { width: 90px; }
+      #status-pill { font-size: 11px; padding: 6px 10px; }
+    }
   </style>
 </head>
 <body>

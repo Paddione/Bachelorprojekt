@@ -21,7 +21,7 @@ const Mayhem = (() => {
     return { x: pt.x + (Math.random() - 0.5) * 1.2, z: pt.z + (Math.random() - 0.5) * 1.2 };
   }
 
-  let scene, camera, canvas, makeMannequin, send, room;
+  let scene, camera, canvas, makeMannequin, send = () => {}, room;
   let enabled = false;
   let localAvatar = null;
   const remoteAvatars = new Map();

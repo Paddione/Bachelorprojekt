@@ -148,7 +148,7 @@
     <p class="lede">HUD-Icons, Sprites und Spezifikationen für das Three.js-Game. Brass-Stroke auf ink-Substrat, gedämpftes Tonrot als Game-Blut. Editorial — bis ans Schlachtfeld.</p>
   </div>
   <div class="meta">
-    <div><b>14</b> Sprites · <b>5</b> HUD-Icons · <b>14</b> Figure-Pack</div>
+    <div><b>14</b> Sprites · <b>5</b> HUD-Icons · <b>14</b> Figure-Pack · <b>12</b> SFX</div>
     <div>1× README · 1× Catalog</div>
     <div>Build · 2026-05-15</div>
   </div>
@@ -242,19 +242,137 @@
   </div>
 </section>
 
-<!-- 3D / AUDIO SPECS -->
+<!-- SFX -->
 <section class="row">
   <header>
-    <h2>3D-Modelle &amp; Audio</h2>
-    <span class="id">/specs · external sourcing</span>
+    <h2>Sound-Effekte</h2>
+    <span class="id">/sfx · Web Audio API · CC0</span>
+    <span class="count">12 files · OGG Vorbis · mono 44.1 kHz</span>
+  </header>
+
+  <style>
+    .sfx-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 900px) { .sfx-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .sfx-grid { grid-template-columns: 1fr; } }
+    .sfx-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .sfx-card .sfx-key { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); }
+    .sfx-card .sfx-name { font-family: var(--serif); font-size: 17px; font-weight: 400; color: var(--fg); }
+    .sfx-card .sfx-desc { font-family: var(--sans); font-size: 12px; color: var(--fg-soft); line-height: 1.5; }
+    .sfx-card .sfx-file { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+    .sfx-card audio { width: 100%; height: 28px; margin-top: 4px; accent-color: var(--brass); filter: invert(0.85) sepia(0.4) hue-rotate(5deg); }
+    .sfx-group-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); margin: 28px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    .sfx-group-label:first-child { margin-top: 0; }
+  </style>
+
+  <div class="sfx-group-label">Waffen</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">handgun</span>
+      <span class="sfx-name">Handgun</span>
+      <span class="sfx-desc">Pistolenschuss — kurzer Knall, trockener Abgang</span>
+      <span class="sfx-file">handgun.ogg</span>
+      <audio controls preload="none" src="../sfx/handgun.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">rifle</span>
+      <span class="sfx-name">Rifle</span>
+      <span class="sfx-desc">Gewehrschuss — lauterer Crack mit kurzem Nachhall</span>
+      <span class="sfx-file">rifle.ogg</span>
+      <audio controls preload="none" src="../sfx/rifle.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">katana</span>
+      <span class="sfx-name">Katana Swing</span>
+      <span class="sfx-desc">Klingenschwung — schnelles Whoosh mit Metallklang</span>
+      <span class="sfx-file">katana-swing.ogg</span>
+      <audio controls preload="none" src="../sfx/katana-swing.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">katana-hit</span>
+      <span class="sfx-name">Katana Treffer</span>
+      <span class="sfx-desc">Klinge trifft — Metallischen Aufprall, kurz</span>
+      <span class="sfx-file">katana-hit.ogg</span>
+      <audio controls preload="none" src="../sfx/katana-hit.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">club</span>
+      <span class="sfx-name">Club Hit</span>
+      <span class="sfx-desc">Keulentreffer — dumpfer Holzaufprall</span>
+      <span class="sfx-file">club-hit.ogg</span>
+      <audio controls preload="none" src="../sfx/club-hit.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">fireball</span>
+      <span class="sfx-name">Fire Burn Loop</span>
+      <span class="sfx-desc">Feuerball-Ambient — Looping-Brennen, gedämpft (0.25 vol)</span>
+      <span class="sfx-file">fire-burn-loop.ogg</span>
+      <audio controls preload="none" src="../sfx/fire-burn-loop.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Treffer &amp; Effekte</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">blood-splat</span>
+      <span class="sfx-name">Blood Splat</span>
+      <span class="sfx-desc">Aufpralllaut bei Treffern — nasses, kurzes Impact-Sample</span>
+      <span class="sfx-file">blood-splat.ogg</span>
+      <audio controls preload="none" src="../sfx/blood-splat.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">hit-marker</span>
+      <span class="sfx-name">Hit Marker</span>
+      <span class="sfx-desc">UI-Feedback bei Treffer — kurzer Tonal-Tick (0.45 vol)</span>
+      <span class="sfx-file">hit-marker.ogg</span>
+      <audio controls preload="none" src="../sfx/hit-marker.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Footsteps · 4 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-1</span>
+      <span class="sfx-name">Footstep Concrete 01</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante A</span>
+      <span class="sfx-file">footstep-concrete-01.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-01.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-2</span>
+      <span class="sfx-name">Footstep Concrete 02</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante B</span>
+      <span class="sfx-file">footstep-concrete-02.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-02.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-3</span>
+      <span class="sfx-name">Footstep Concrete 03</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante C</span>
+      <span class="sfx-file">footstep-concrete-03.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-03.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-4</span>
+      <span class="sfx-name">Footstep Concrete 04</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante D</span>
+      <span class="sfx-file">footstep-concrete-04.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-04.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="caveat" style="margin-top: 28px;">
+    <h4>Integration · MayhemAudio</h4>
+    <p>Alle 12 Files werden in <code>assets/mayhem/audio.js</code> via Web Audio API vorgeladen (nach erstem User-Gesture). Jeder Key entspricht einem Eintrag in <code>SFX_MAP</code>. Footstep-Variante wird per <code>Math.random()</code> gewählt; Pitch-Streuung über <code>playbackRate</code> (±6–12 Halbtöne) gibt jedem Sample genug Variation.</p>
+  </div>
+</section>
+
+<!-- 3D SPECS -->
+<section class="row">
+  <header>
+    <h2>3D-Modelle</h2>
+    <span class="id">/specs · Three.js-Primitives</span>
     <span class="count">specs in README.md</span>
   </header>
-  <div class="caveat">
-    <h4>Was nicht im Pack ist</h4>
-    <p><b style="color: var(--fg);">3D-Modelle (.glb)</b> und <b style="color: var(--fg);">Audio-Files (.ogg)</b> kann ich nicht binär erzeugen. Stattdessen in der <code>README.md</code>:</p>
-    <p>→ <b style="color: var(--brass-2);">Three.js-Fallback-Geometrie-Spec</b> für alle 9 Modelle — Primitive (Box, Cylinder, Icosahedron) mit konkreten Maßen, Material-Patterns und EdgesGeometry-Brass-Wireframe als Signature.</p>
-    <p>→ <b style="color: var(--brass-2);">Audio-Spec-Tabelle</b> mit Dauer, Tonalität, Such-Tags für Freesound.org &amp; Sonniss GameAudio GDC-Bundle (CC0).</p>
-  </div>
 
   <div class="specs">
     <div class="spec">

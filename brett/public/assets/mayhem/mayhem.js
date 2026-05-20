@@ -126,7 +126,11 @@ const Mayhem = (() => {
       stop();
     }
   }
-  function toggle() { send({ type: 'mayhem_mode', enabled: !enabled }); }
+  function toggle() {
+    const next = !enabled;
+    setEnabled(next);
+    send({ type: 'mayhem_mode', enabled: next });
+  }
 
   function cycleMode() {
     if (!enabled) return;

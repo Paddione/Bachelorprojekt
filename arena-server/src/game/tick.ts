@@ -212,7 +212,8 @@ export class Tick {
         const hits = tryMelee(player, this.state.players);
         for (const victimKey of hits) {
           const target = this.state.players[victimKey];
-          // Melee is OHKO (instant kill regardless of hp/armor, unless shielded)
+          // Melee is OHKO (instant kill regardless of hp/armor, unless shielded or in spawn invuln)
+          if (target.spawnInvulnRemainingMs > 0) continue;
           if (target.activePowerups.some(p => p.kind === 'shield')) continue;
           target.hp = 0;
           this.eliminatePlayer(target, key, 'melee', events);

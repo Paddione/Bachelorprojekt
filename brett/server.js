@@ -565,6 +565,8 @@ wss.on('connection', (ws, req) => {
             figures: state.figures,
             optik: state.optik,
             stiffness: state.stiffness ?? 0.65,
+            mayhem: state.mayhem ?? true,
+            gameMode: state.gameMode,
           }));
         }
         // Also send current pickup positions
@@ -591,10 +593,16 @@ wss.on('connection', (ws, req) => {
           if (state.optik && typeof state.optik === 'object') {
             figs.set('__optik__', { id: '__optik__', settings: state.optik });
           }
+          if (typeof state.mayhem === 'boolean') {
+            figs.set('__mayhem__', { id: '__mayhem__', enabled: state.mayhem });
+          }
+          if (typeof state.gameMode === 'string') {
+            figs.set('__game_mode__', { id: '__game_mode__', mode: state.gameMode });
+          }
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65 }));
+        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65, mayhem: state.mayhem ?? true, gameMode: state.gameMode }));
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
         if (meta && meta.coopWave > 0) {

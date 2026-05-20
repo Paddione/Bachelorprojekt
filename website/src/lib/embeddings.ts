@@ -32,7 +32,7 @@ const voyageKey = () => {
 };
 
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
-const routerUrl = () => process.env.LLM_ROUTER_URL ?? 'http://llm-router.workspace.svc.cluster.local:4000';
+const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
 
 async function callVoyageDirect(inputs: string[], inputType: 'query' | 'document', opts: EmbedOpts) {
   const max = opts.maxAttempts ?? 4;
@@ -64,7 +64,7 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
   const base = opts.baseDelayMs ?? 250;
   let lastErr: unknown;
   for (let attempt = 1; attempt <= max; attempt++) {
-    const r = await fetch(`${routerUrl()}/v1/embeddings`, {
+    const r = await fetch(`${embedUrl()}/v1/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': opts.purpose },
       body: JSON.stringify({ model: opts.model, input: inputs }),

@@ -64,8 +64,9 @@ data:
   MIN_ADVANCE_HOURS: "24"
   # Whisper
   WHISPER_URL: "http://whisper.${WORKSPACE_NAMESPACE}.svc.cluster.local:8000"
-  # LLM router (local-first pipeline)
+  # LLM (local-first pipeline — chat via Windows LM Studio, embed via TEI)
   LLM_ROUTER_URL: "${LLM_ROUTER_URL}"
+  LLM_EMBED_URL: "${LLM_EMBED_URL}"
   LLM_ENABLED: "${LLM_ENABLED}"
   LLM_RERANK_ENABLED: "${LLM_RERANK_ENABLED}"
   # KORE-Assistent (no-LLM keyword-search mode for now)
@@ -385,6 +386,12 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: VOYAGE_API_KEY
+                  optional: true
+            - name: LLM_ROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: LLM_ROUTER_API_KEY
                   optional: true
             - name: EVIDENCE_ROOT
               value: "/var/evidence"

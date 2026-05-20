@@ -1,3 +1,4 @@
+<!-- website/src/components/admin/TicketsTab.svelte -->
 <script lang="ts">
   import TicketQuickEdit from './TicketQuickEdit.svelte';
   import type { ListedTicket } from '../../lib/tickets/admin';
@@ -320,6 +321,7 @@
     }
   }
 
+  /* Create panel */
   .tickets-create-panel {
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);
@@ -404,6 +406,7 @@
     cursor: not-allowed;
   }
 
+  /* List panel */
   .tickets-list-panel {
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);

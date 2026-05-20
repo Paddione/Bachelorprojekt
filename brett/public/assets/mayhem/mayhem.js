@@ -60,26 +60,40 @@ const Mayhem = (() => {
 
   // ── Key / mouse bindings ──────────────────────────────────────────────────
   function bindKeys() {
-    const movMap = {
-      'KeyW': 'forward', 'KeyS': 'backward', 'KeyA': 'left', 'KeyD': 'right',
-      'ShiftLeft': 'sprint', 'ShiftRight': 'sprint', 'Space': 'jump', 'KeyF': 'flail',
-    };
+    let _b = window.MayhemKeybindings ? window.MayhemKeybindings.load() : null;
+    function b() { return _b || {}; }
+
     const weaponIdx = { 'Digit1': 0, 'Digit2': 1, 'Digit3': 2, 'Digit4': 3, 'Digit5': 4 };
 
     window.addEventListener('keydown', (e) => {
       if (!enabled) return;
-      if (movMap[e.code]) { input[movMap[e.code]] = true; e.preventDefault(); }
-      if (weaponIdx[e.code] !== undefined) weaponSystem?.select(weaponIdx[e.code]);
-      if (e.code === 'KeyQ') weaponSystem?.prev();
-      if (e.code === 'KeyE') weaponSystem?.next();
-      if (e.code === 'KeyR') gameMode?.onRespawnKey(playerId);
-      if (e.code === 'KeyV') spawnVehicleLocal();
-      if (e.code === 'KeyG') cycleMode();
-      if (e.code === 'KeyM') toggle();
+      const kb = b();
+      const code = e.code;
+      if (code === kb.forward)      { input.forward  = true; e.preventDefault(); }
+      if (code === kb.backward)     { input.backward = true; e.preventDefault(); }
+      if (code === kb.left)         { input.left     = true; e.preventDefault(); }
+      if (code === kb.right)        { input.right    = true; e.preventDefault(); }
+      if (code === kb.sprint || code === 'ShiftRight') { input.sprint = true; }
+      if (code === kb.jump)         { input.jump     = true; e.preventDefault(); }
+      if (code === kb.flail)        input.flail    = true;
+      if (weaponIdx[code] !== undefined) weaponSystem?.select(weaponIdx[code]);
+      if (code === kb.prevWeapon)   weaponSystem?.prev();
+      if (code === kb.nextWeapon)   weaponSystem?.next();
+      if (code === kb.reload)       gameMode?.onRespawnKey(playerId);
+      if (code === kb.vehicle)      spawnVehicleLocal();
+      if (code === kb.cycleMode)    cycleMode();
+      if (code === kb.toggleMayhem) toggle();
     });
     window.addEventListener('keyup', (e) => {
-      if (movMap[e.code]) input[movMap[e.code]] = false;
-      if (e.code === 'MouseLeft') input.fire = false;
+      const kb = b();
+      const code = e.code;
+      if (code === kb.forward)  input.forward  = false;
+      if (code === kb.backward) input.backward = false;
+      if (code === kb.left)     input.left     = false;
+      if (code === kb.right)    input.right    = false;
+      if (code === kb.sprint || code === 'ShiftRight') input.sprint = false;
+      if (code === kb.jump)     input.jump     = false;
+      if (code === kb.flail)    input.flail    = false;
     });
     canvas.addEventListener('mousedown', (e) => {
       if (!enabled) return;
@@ -92,13 +106,25 @@ const Mayhem = (() => {
       if (!enabled) return;
       if (e.deltaY < 0) weaponSystem?.prev(); else weaponSystem?.next();
     }, { passive: true });
+
+    // Allow controls-panel to notify mayhem to reload bindings after rebind
+    window.addEventListener('brett:keybindings-changed', () => {
+      if (window.MayhemKeybindings) _b = window.MayhemKeybindings.load();
+      // Clear all movement keys to avoid stuck states
+      Object.keys(input).forEach(k => { input[k] = false; });
+    });
   }
 
   // ── Enable / toggle ───────────────────────────────────────────────────────
   function setEnabled(on) {
     if (on === enabled) return;
     enabled = on;
-    if (on) start(); else stop();
+    if (on) {
+      start();
+      window.dispatchEvent(new CustomEvent('brett:mayhem-enabled'));
+    } else {
+      stop();
+    }
   }
   function toggle() { send({ type: 'mayhem_mode', enabled: !enabled }); }
 

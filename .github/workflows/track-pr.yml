@@ -1,0 +1,97 @@
+name: track-pr
+# Converts every merged PR into tracking/pending/<pr_number>.json.
+# That file is consumed by the in-cluster tracking-import CronJob which
+# feeds the live PR timeline on web.korczewski.de (Kore homepage).
+#
+# Uses pull_request_target so the workflow runs in the base-branch context
+# (with contents: write) even for fork PRs. All untrusted PR payload data
+# is passed through `jq --arg` — never interpolated into shell commands.
+on:
+  pull_request_target:
+    types: [closed]
+
+concurrency:
+  group: track-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  track:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and commit tracking entry
+        env:
+          PR_NUMBER:    ${{ github.event.pull_request.number }}
+          PR_TITLE:     ${{ github.event.pull_request.title }}
+          PR_BODY:      ${{ github.event.pull_request.body }}
+          PR_MERGED_AT: ${{ github.event.pull_request.merged_at }}
+          PR_MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+        run: |
+          set -euo pipefail
+
+          # Parse conventional-commit prefix: "feat(scope): rest" or "fix: rest"
+          CATEGORY=$(printf '%s' "$PR_TITLE" | grep -oE '^[a-z]+' || true)
+          SCOPE=$(printf '%s' "$PR_TITLE" | sed -n 's/^[a-z]*(\([^)]*\)):.*/\1/p' || true)
+
+          # Strip the conventional-commit prefix to get a clean display title
+          CLEAN_TITLE=$(printf '%s' "$PR_TITLE" \
+            | sed 's/^[a-z]*([^)]*): //' \
+            | sed 's/^[a-z]*: //')
+
+          # Extract T000xxx ticket refs and BR-YYYYMMDD-xxxx bug refs from body
+          TICKET_REFS=$(printf '%s' "$PR_BODY" \
+            | grep -oE 'T[0-9]{6}' | sort -u \
+            | jq -R . | jq -sc . 2>/dev/null || echo '[]')
+          BUG_REFS=$(printf '%s' "$PR_BODY" \
+            | grep -oE 'BR-[0-9]{8}-[A-Za-z0-9]+' | sort -u \
+            | jq -R . | jq -sc . 2>/dev/null || echo '[]')
+
+          # Truncate body to avoid huge files (keep first 4000 chars)
+          DESCRIPTION=$(printf '%s' "$PR_BODY" | head -c 4000)
+
+          mkdir -p tracking/pending
+
+          jq -n \
+            --argjson pr_number  "$PR_NUMBER" \
+            --arg     title      "$CLEAN_TITLE" \
+            --arg     description "$DESCRIPTION" \
+            --arg     category   "$CATEGORY" \
+            --arg     scope      "$SCOPE" \
+            --arg     merged_at  "$PR_MERGED_AT" \
+            --arg     merged_by  "$PR_MERGED_BY" \
+            --argjson ticket_refs "$TICKET_REFS" \
+            --argjson bug_refs    "$BUG_REFS" \
+            '{
+              pr_number:    $pr_number,
+              title:        $title,
+              description:  $description,
+              category:     (if $category != "" then $category else null end),
+              scope:        (if $scope      != "" then $scope    else null end),
+              brand:        null,
+              requirement_id: null,
+              merged_at:    $merged_at,
+              merged_by:    $merged_by,
+              bug_refs:     $bug_refs,
+              ticket_refs:  $ticket_refs
+            }' > "tracking/pending/${PR_NUMBER}.json"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "tracking/pending/${PR_NUMBER}.json"
+          git diff --staged --quiet \
+            || git commit -m "chore(tracking): add PR #${PR_NUMBER} to pending queue"
+
+          # Retry push up to 3 times to handle concurrent merges
+          for i in 1 2 3; do
+            git pull --rebase origin main \
+              && git push origin main \
+              && break \
+              || { [ "$i" -lt 3 ] && sleep $((i * 2)); }
+          done

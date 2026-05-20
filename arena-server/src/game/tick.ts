@@ -315,16 +315,16 @@ export class Tick {
 
   private buildResults(winnerKey: string | null): MatchResult[] {
     const players = Object.values(this.state.players);
-    // Sort: winner first (place=1), then by elimination order reversed
+    // Sort: winner first (place=1), then ascending by place (lower = survived longer = better rank)
     return players
       .sort((a, b) => {
         if (a.key === winnerKey) return -1;
         if (b.key === winnerKey) return 1;
-        return (b.place ?? 0) - (a.place ?? 0); // higher place number = earlier elimination = lower rank
+        return (a.place ?? 0) - (b.place ?? 0); // lower place number = survived longer = higher rank
       })
       .map((p, i) => ({
         playerKey: p.key, displayName: p.displayName, isBot: p.isBot,
-        place: p.key === winnerKey ? 1 : (i + 2),
+        place: p.key === winnerKey ? 1 : (i + 1),
         kills: p.kills, deaths: p.deaths, forfeit: p.forfeit,
       }));
   }

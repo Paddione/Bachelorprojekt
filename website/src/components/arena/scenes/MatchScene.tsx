@@ -22,7 +22,7 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
   const [ping, setPing] = useState(0);
   const lastTickAt = useRef(Date.now());
   const [isSlowMo, setIsSlowMo] = useState(false);
-  const prevAmmoRef = useRef<number | null>(null);
+  const prevAmmoMap = useRef<Map<string, number>>(new Map());
   const zoneWarnThreshold = Math.min(960, MAP_H) * 0.6 * 0.3; // 97.2
   const [isMuted, setIsMuted] = useState(sfx.isMuted);
   const handleMuteToggle = useCallback(() => {
@@ -52,19 +52,31 @@ export function MatchScene({ socket, initialState, myKey }: Props) {
         stateRef.current = m.state as MatchState;
         setHudState(m.state as MatchState);
         lastTickAt.current = Date.now();
-        prevAmmoRef.current = (m.state as MatchState).players[myKey]?.weapon.ammo ?? null;
+        // Seed ammo map so first diff doesn't false-fire tracers
+        for (const [k, p] of Object.entries((m.state as MatchState).players)) {
+          prevAmmoMap.current.set(k, p.weapon.ammo);
+        }
       }
       if (m.t === 'match:diff') {
         applyDiff(stateRef.current, m.ops as DiffOp[]);
         lastTickAt.current = Date.now();
-        // Shot detection: own player's ammo decreased
+        // Shot detection: any player's ammo decreased → tracer + (own player) sound
         for (const op of m.ops as DiffOp[]) {
-          if (op.p === `p.${myKey}.wammo` && typeof op.v === 'number') {
-            if (prevAmmoRef.current !== null && op.v < prevAmmoRef.current) {
-              const weaponId = stateRef.current.players[myKey]?.weapon.id;
-              if (weaponId) sfx.playShot(weaponId as 'glock' | 'deagle' | 'm4a1');
+          if (typeof op.v === 'number' && op.p.startsWith('p.')) {
+            const rest = op.p.slice(2);
+            const lastDot = rest.lastIndexOf('.');
+            if (lastDot >= 0 && rest.slice(lastDot + 1) === 'wammo') {
+              const pKey = rest.slice(0, lastDot);
+              const prevAmmo = prevAmmoMap.current.get(pKey) ?? null;
+              if (prevAmmo !== null && op.v < prevAmmo) {
+                const player = stateRef.current.players[pKey];
+                if (player) {
+                  rendererRef.current?.recordShot(player.x, player.y, player.facing, player.weapon.id);
+                  if (pKey === myKey) sfx.playShot(player.weapon.id as 'glock' | 'deagle' | 'm4a1');
+                }
+              }
+              prevAmmoMap.current.set(pKey, op.v);
             }
-            prevAmmoRef.current = op.v;
           }
         }
         // Zone warning: shrinking and below 30% of initial radius

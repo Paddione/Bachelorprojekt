@@ -2,6 +2,11 @@ import { Application, Graphics, Sprite, Texture, Assets, Container, Text } from 
 import type { MatchState, PlayerState } from '../shared/lobbyTypes';
 import { SOLID_WALLS, DOORS, MAP_W, MAP_H } from './mapData';
 
+const TRACER_LIFE_MS = 130;
+const WEAPON_RANGE: Record<string, number> = { glock: 500, deagle: 700, m4a1: 600 };
+
+interface Tracer { x1: number; y1: number; x2: number; y2: number; bornAt: number; }
+
 const KORE = {
   floor:       0x120d1c,
   wall:        0x1a1326,
@@ -46,6 +51,8 @@ export class Renderer {
   private backgroundG = new Graphics();
   private dynamicLayer = new Container();
   private zoneG = new Graphics();
+  private tracerG = new Graphics();
+  private tracers: Tracer[] = [];
   private playerSprites = new Map<string, PlayerSprite>();
   private itemSprites = new Map<string, Graphics>();
   private powerupSprites = new Map<string, Graphics>();
@@ -71,7 +78,7 @@ export class Renderer {
 
   private initScene() {
     this.drawBackground();
-    this.app.stage.addChild(this.backgroundG, this.dynamicLayer);
+    this.app.stage.addChild(this.backgroundG, this.dynamicLayer, this.tracerG);
     this.dynamicLayer.addChild(this.zoneG);
     this.ready = true;
   }
@@ -225,10 +232,32 @@ export class Renderer {
     }
   }
 
+  recordShot(x: number, y: number, facing: number, weaponId: string): void {
+    const range = WEAPON_RANGE[weaponId] ?? 500;
+    this.tracers.push({
+      x1: x, y1: y,
+      x2: x + Math.cos(facing) * range,
+      y2: y + Math.sin(facing) * range,
+      bornAt: Date.now(),
+    });
+  }
+
+  private drawTracers(): void {
+    const now = Date.now();
+    this.tracers = this.tracers.filter(t => now - t.bornAt < TRACER_LIFE_MS);
+    this.tracerG.clear();
+    for (const t of this.tracers) {
+      const alpha = (1 - (now - t.bornAt) / TRACER_LIFE_MS) * 0.7;
+      this.tracerG.setStrokeStyle({ width: 1.5, color: 0xffe066, alpha });
+      this.tracerG.moveTo(t.x1, t.y1).lineTo(t.x2, t.y2).stroke();
+    }
+  }
+
   drawFrame(state: MatchState, myKey: string) {
     if (!this.ready) return;
     this.drawDoors(state);
     this.drawZone(state);
+    this.drawTracers();
     this.syncItems(state);
     this.syncPowerups(state);
 

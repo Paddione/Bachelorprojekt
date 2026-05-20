@@ -1,6 +1,6 @@
 // brett/public/assets/combat/controller.mjs
 import { WEAPONS, STARTER_LOADOUT } from './weapons.mjs';
-import { validateDamageEvent, applyDamage } from './damage.mjs';
+import { validateDamageEvent, applyDamage, startBurnTimer, BURN_TICK_MS, sweepArcContains } from './damage.mjs';
 import * as Hud from './combat-hud.mjs';
 import * as Fx from './fx.mjs';
 
@@ -90,11 +90,24 @@ function fire(state, { scene, camera, players, ws, hudRoot }) {
       ws.send(ev);
       applyDamage(hit.player, w.dmg);
       Fx.spawnBloodDecal(scene, hit.point, hit.normal ?? new THREE.Vector3(0,1,0));
+
+      if (w.burn) {
+        const burnDmg = Math.ceil(w.burn.dps * BURN_TICK_MS / 1000);
+        const burnPos = [hit.point.x, hit.point.y, hit.point.z];
+        startBurnTimer(w.burn.durMs, () => {
+          if ((hit.player.hp ?? 0) <= 0) return;
+          ws.send({
+            type: 'damage_event', shooter_id: state.self.id, victim_id: hit.player.id,
+            weapon: weaponKey, damage: burnDmg, position: burnPos,
+          });
+          applyDamage(hit.player, burnDmg);
+        });
+      }
     }
   } else {
     const selfPos = state.self.mesh?.position ?? new THREE.Vector3();
     Fx.spawnSlashArc(scene, selfPos, new THREE.Vector3(0,0,-1));
-    const targets = meleeSweep(state.self, players, w.range);
+    const targets = meleeSweep(state.self, players, w.range, camera, w.sweepArcDeg);
     for (const t of targets) {
       const ev = {
         type: 'damage_event', shooter_id: state.self.id, victim_id: t.id,
@@ -130,11 +143,26 @@ function raycastPlayers(camera, players, self) {
   return null;
 }
 
-function meleeSweep(self, players, range) {
+function meleeSweep(self, players, range, camera, arcDeg) {
   const sx = self.x ?? self.mesh?.position?.x ?? 0;
   const sz = self.z ?? self.mesh?.position?.z ?? 0;
-  return players.filter(p =>
-    p.id !== self.id && (p.hp ?? 100) > 0 &&
-    Math.hypot((p.x ?? p.mesh?.position?.x ?? 0) - sx, (p.z ?? p.mesh?.position?.z ?? 0) - sz) <= range
-  );
+
+  let facingX = 0, facingZ = -1;
+  if (camera && arcDeg != null) {
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    facingX = dir.x;
+    facingZ = dir.z;
+  }
+
+  return players.filter(p => {
+    if (p.id === self.id || (p.hp ?? 100) <= 0) return false;
+    const tx = p.x ?? p.mesh?.position?.x ?? 0;
+    const tz = p.z ?? p.mesh?.position?.z ?? 0;
+    if (Math.hypot(tx - sx, tz - sz) > range) return false;
+    if (arcDeg != null) {
+      return sweepArcContains({ selfX: sx, selfZ: sz, targetX: tx, targetZ: tz, facingX, facingZ, arcDeg });
+    }
+    return true;
+  });
 }

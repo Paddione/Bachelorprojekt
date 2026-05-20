@@ -11,7 +11,6 @@ const BRETT_URL = `${brettProto}://${brettDomain}/?admin=1`;
 import PortalSidekick from '../components/PortalSidekick.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 import { countPendingByType } from '../lib/messaging-db';
-import { pool } from '../lib/website-db';
 
 interface Props {
   title: string;
@@ -77,12 +76,6 @@ try {
   const counts = await countPendingByType();
   inboxPending = Object.values(counts).reduce((a, b) => a + b, 0);
 } catch { /* ignore if messaging-db unavailable */ }
-
-let draftsPending = 0;
-try {
-  const r = await pool.query(`SELECT count(*)::int AS n FROM coaching.drafts WHERE status = 'open'`);
-  draftsPending = r.rows[0]?.n ?? 0;
-} catch { /* coaching schema may not exist yet */ }
 
 const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
   {

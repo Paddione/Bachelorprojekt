@@ -12,8 +12,9 @@ HOOKS=$(awk -v action="$ACTION" '
   in_hooks && in_action && $0 ~ "^    -" { sub(/^    - /, ""); print }
 ' "$SKILL_FILE")
 
+shift 2 # Remove SKILL_FILE and ACTION
 for hook in $HOOKS; do
   if [[ -f "scripts/hooks/$hook.sh" ]]; then
-    bash "scripts/hooks/$hook.sh"
+    bash "scripts/hooks/$hook.sh" "$@"
   fi
 done

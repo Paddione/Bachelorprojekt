@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.3.0...arena-server-v0.3.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **arena:** show shot tracers + fix win-on-death in results ([b6e7825](https://github.com/Paddione/Bachelorprojekt/commit/b6e78254729d0e380fd259ec27f06ccf5b04fc00))
+
 ## [0.3.0](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.2.0...arena-server-v0.3.0) (2026-05-20)
 
 

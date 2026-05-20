@@ -49,6 +49,13 @@ spec:
               drop: [ALL]
             seccompProfile:
               type: RuntimeDefault
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
       containers:
         - name: vaultwarden
           image: vaultwarden/server:1.35.3-alpine

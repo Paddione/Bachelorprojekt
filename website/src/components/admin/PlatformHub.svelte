@@ -1,4 +1,6 @@
 <script lang="ts">
+  import SoftwareTab from './platform/SoftwareTab.svelte';
+  import HardwareTab from './platform/HardwareTab.svelte';
   import HealthTab from './platform/HealthTab.svelte';
   import FluxCDTab from './platform/FluxCDTab.svelte';
   import DienstTab from './ops/DienstTab.svelte';
@@ -12,6 +14,8 @@
   
   const tabs = [
     { id: 'flux', label: 'GitOps', premium: true },
+    { id: 'software', label: 'Software', premium: true },
+    { id: 'hardware', label: 'Hardware' },
     { id: 'health', label: 'Integrität', premium: true },
     { id: 'dienste', label: 'Dienste' },
     { id: 'logs', label: 'Logs' },
@@ -46,6 +50,10 @@
   <main class="transition-all duration-300">
     {#if activeTab === 'flux'}
       <FluxCDTab {cluster} />
+    {:else if activeTab === 'software'}
+      <SoftwareTab {cluster} />
+    {:else if activeTab === 'hardware'}
+      <HardwareTab {cluster} />
     {:else if activeTab === 'health'}
       <HealthTab {cluster} />
     {:else if activeTab === 'dienste'}

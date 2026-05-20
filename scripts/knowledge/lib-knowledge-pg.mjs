@@ -4,6 +4,9 @@ import { createHash } from 'node:crypto';
 const { Pool } = pg;
 
 export function makePool() {
+  if (process.env.PGURL) {
+    return new Pool({ connectionString: process.env.PGURL });
+  }
   return new Pool({
     host:     process.env.PGHOST     ?? 'shared-db',
     port:     Number(process.env.PGPORT ?? 5432),

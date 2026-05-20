@@ -39,6 +39,9 @@ const Mayhem = (() => {
   let hud         = null;
   let playerId    = null;
   let _lastWeaponKey = null;
+  let isHost      = false;
+  let deadHumans  = new Set();
+  let coopStartTimer = null;
 
   const input = {
     forward: false, backward: false, left: false, right: false,
@@ -133,6 +136,9 @@ const Mayhem = (() => {
       (victimId, weaponKey, shooterId) => sendWeaponHit(victimId, weaponKey, shooterId),
     );
 
+    // Determine if this client is the host (first to join — no remote humans yet)
+    isHost = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
+
     // Game mode
     gameMode = new window.MayhemGameMode.GameModeManager({
       onRespawn: (pid) => {
@@ -140,6 +146,28 @@ const Mayhem = (() => {
       },
       onModeChange: (mode) => updateHud(),
       onLmsEnd: (result) => showLmsResult(result),
+    });
+
+    // Co-op callbacks (only host drives wave progression)
+    gameMode.setCoopCallbacks({
+      onWaveStart: ({ wave, def }) => {
+        deadHumans.clear();
+        spawnWave(def);
+        send({ type: 'wave_start', wave, enemyCount: def.count, boss: def.boss ?? false });
+        updateHud();
+      },
+      onWaveComplete: ({ wave }) => {
+        send({ type: 'wave_complete', wave });
+        setTimeout(() => {
+          for (const id of deadHumans) {
+            if (id === playerId) localRespawn();
+          }
+          deadHumans.clear();
+          updateHud();
+        }, 3000);
+      },
+      onCoopWin:  () => { send({ type: 'coop_win' });  showCoopBanner('YOU WIN — all waves cleared!'); },
+      onCoopLose: () => { send({ type: 'coop_lose' }); showCoopBanner('DEFEATED'); },
     });
 
     // HUD
@@ -189,9 +217,48 @@ const Mayhem = (() => {
     remoteAvatars.set(botId, bot.avatar);
   }
 
+  // ── Co-op wave spawning ───────────────────────────────────────────────────
+  function spawnWave(def) {
+    // Remove existing bots
+    for (const bot of aiBots.values()) { bot.remove(scene); remoteAvatars.delete(bot.id); }
+    aiBots.clear();
+
+    for (let i = 0; i < def.count; i++) {
+      const botId = 'bot-' + crypto.randomUUID();
+      const pos   = nextSpawnPoint();
+      const botMannequin = makeMannequin(botId, pos);
+      const bot = new window.MayhemAIBot({
+        id: botId,
+        mannequin: botMannequin,
+        colorIndex: i,
+        bossMultiplier: def.boss ? (def.multiplier || null) : null,
+        callbacks: {
+          onFire: (weaponDef, originPos, dirVec, shooterId) => {
+            if (projectileMgr) projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
+          },
+          onDeath: (id, killerId) => {
+            aiBots.delete(id);
+            remoteAvatars.delete(id);
+            if (killerId && killerId !== id) gameMode?.handleKill(killerId);
+            gameMode?.handleEnemyDeath(id);
+            updateHud();
+          },
+          getGameMode: () => gameMode?.mode || 'warmup',
+        },
+      });
+      if (bot.avatar && bot.weaponDef) bot.avatar.setWeapon(bot.weaponDef);
+      aiBots.set(botId, bot);
+      remoteAvatars.set(botId, bot.avatar);
+      gameMode?.registerEnemy(botId);
+    }
+  }
+
   function stop() {
     hideBanner();
     destroyHud();
+    deadHumans.clear();
+    if (coopStartTimer) { clearTimeout(coopStartTimer); coopStartTimer = null; }
+    isHost = false;
     if (localAvatar) {
       send({ type: 'player_leave', playerId });
       localAvatar.remove(scene);
@@ -245,6 +312,12 @@ const Mayhem = (() => {
   }
 
   function applyHitLocally(victimId, weaponKey, impulse, shooterId) {
+    // Co-op: no friendly fire between human players
+    if (gameMode?.mode === 'coop') {
+      const shooterIsHuman = shooterId && !shooterId.startsWith('bot-');
+      const victimIsHuman  = victimId  && !victimId.startsWith('bot-');
+      if (shooterIsHuman && victimIsHuman) return;
+    }
     if (victimId === playerId && localAvatar) {
       processLocalHit(weaponKey, impulse, shooterId);
     } else {
@@ -279,8 +352,14 @@ const Mayhem = (() => {
 
     if (localAvatar.isDead) {
       send({ type: 'player_death', playerId, killerId: shooterId });
-      gameMode?.handleDeath(playerId, true);
       if (shooterId && shooterId !== playerId) gameMode?.handleKill(shooterId);
+      if (gameMode?.mode === 'coop') {
+        deadHumans.add(playerId);
+        const allHumanIds = [playerId, ...[...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'))];
+        gameMode.handlePlayerDeathCoop(playerId, allHumanIds);
+      } else {
+        gameMode?.handleDeath(playerId, true);
+      }
     }
     updateHud();
   }
@@ -416,6 +495,10 @@ const Mayhem = (() => {
 
       case 'game_mode_change':
         if (gameMode && msg.mode) gameMode.setMode(msg.mode);
+        if (msg.mode === 'coop' && isHost) {
+          if (coopStartTimer) clearTimeout(coopStartTimer);
+          coopStartTimer = setTimeout(() => gameMode?.startCoop(), 3000);
+        }
         updateHud();
         break;
 
@@ -491,6 +574,27 @@ const Mayhem = (() => {
 
       case 'vehicle_spawn':
         if (!vehicles.has(msg.vehicleId)) spawnVehicleFromMsg(msg);
+        break;
+
+      case 'wave_start':
+        // Non-host clients spawn their own copy of the wave bots
+        if (!isHost && gameMode) {
+          const def = window.MayhemGameMode.WAVE_DEFS[msg.wave - 1];
+          if (def) {
+            deadHumans.clear();
+            spawnWave(def);
+            updateHud();
+          }
+        }
+        break;
+
+      case 'coop_wave_sync':
+        // Late-join sync: spawn bots for the current wave
+        if (gameMode && msg.wave > 0) {
+          const def = window.MayhemGameMode.WAVE_DEFS[msg.wave - 1];
+          if (def) spawnWave(def);
+          updateHud();
+        }
         break;
     }
   }
@@ -588,6 +692,16 @@ const Mayhem = (() => {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+  function showCoopBanner(text) {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
+      'background:#1a1a2e;border:2px solid #c9aa71;color:#c9aa71;font-family:monospace;' +
+      'font-size:32px;padding:24px 48px;z-index:9999;text-align:center;border-radius:8px;';
+    div.textContent = text;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 5000);
+  }
+
   function showBanner() {
     if (banner) return;
     banner = document.createElement('div');

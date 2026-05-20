@@ -14,9 +14,10 @@ interface Props {
   onForfeit: () => void;
   isMuted: boolean;
   onMuteToggle: () => void;
+  onControls: () => void;
 }
 
-export function Hud({ state, myKey, events, ping, onForfeit, isMuted, onMuteToggle }: Props) {
+export function Hud({ state, myKey, events, ping, onForfeit, isMuted, onMuteToggle, onControls }: Props) {
   const me = state.players[myKey];
   if (!me) return null;
 
@@ -33,8 +34,8 @@ export function Hud({ state, myKey, events, ping, onForfeit, isMuted, onMuteTogg
         <span style={{ marginLeft: 16, opacity: 0.5 }}>{ping}ms</span>
       </div>
 
-      {/* Top-right: mute button */}
-      <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'auto' }}>
+      {/* Top-right: mute button + controls button */}
+      <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'auto', display: 'flex', gap: 4 }}>
         <button
           onClick={onMuteToggle}
           title={isMuted ? 'Unmute SFX' : 'Mute SFX'}
@@ -47,6 +48,15 @@ export function Hud({ state, myKey, events, ping, onForfeit, isMuted, onMuteTogg
         >
           {isMuted ? '🔇' : '🔊'}
         </button>
+        <button
+          onClick={onControls}
+          title="Controls"
+          style={{
+            background: 'rgba(0,0,0,.5)', border: '1px solid #3d2a6e', borderRadius: 4,
+            color: '#6a5a8a', fontSize: 14, padding: '2px 8px', cursor: 'pointer',
+            fontFamily: 'monospace', marginLeft: 4,
+          }}
+        >⚙</button>
       </div>
 
       {/* Bottom-left: HP + ammo + powerups */}

@@ -5,7 +5,7 @@ import { config } from '../config/index';
 import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
-import ChatWidget from '../components/ChatWidget.svelte';
+import PortalSidekick from '../components/PortalSidekick.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 import { countPendingByType } from '../lib/messaging-db';
 import { pool } from '../lib/website-db';
@@ -279,7 +279,7 @@ const isKore = brandId === 'korczewski';
       <AssistantWidget client:load profile="admin" />
     ) : null}
     <TicketWidgetBar context="admin" showEdit={!ASSISTANT_ENABLED} />
-    <ChatWidget client:load />
+    <PortalSidekick client:load helpSection={helpSection} helpContext="admin" />
     <SessionExpiryWarning client:load />
 
     <script is:inline>

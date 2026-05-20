@@ -3,7 +3,7 @@ import '../styles/global.css';
 import { config } from '../config/index';
 import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
-import ChatWidget from '../components/ChatWidget.svelte';
+import PortalSidekick from '../components/PortalSidekick.svelte';
 import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_PORTAL ?? 'false') === 'true';
@@ -261,7 +261,7 @@ const isKore        = brandId === 'korczewski';
       <AssistantWidget client:load profile="portal" />
     ) : null}
     <TicketWidgetBar context="portal" showEdit={!ASSISTANT_ENABLED} />
-    <ChatWidget client:load />
+    <PortalSidekick client:load helpSection={section} helpContext="portal" />
     <SessionExpiryWarning client:load />
 
     <script is:inline>

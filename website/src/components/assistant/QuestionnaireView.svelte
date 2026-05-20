@@ -19,8 +19,8 @@
 
   type AnswerRecord = { question_id: string; option_key: string; details_text?: string | null };
 
-  let open = $state(false);
-  let visible = $state(false);
+  let { onCloseView }: { onCloseView?: () => void } = $props();
+
   let loading = $state(true);
   let assignments = $state<Assignment[]>([]);
   let instructions = $state('');
@@ -37,14 +37,13 @@
   let submitted = $state(false);
 
   let activeAssignment = $derived(assignments.find(a => a.id === activeId) ?? null);
-  let pendingCount = $derived(assignments.filter(a => a.status !== 'submitted' && a.status !== 'reviewed').length);
   let current = $derived(questions[currentIndex] ?? null);
   let total = $derived(questions.length);
   let answered = $derived(Object.keys(answers).length);
   let allAnswered = $derived(total > 0 && answered >= total);
 
   $effect(() => {
-    initWidget();
+    loadAssignments();
   });
 
   $effect(() => {
@@ -52,26 +51,18 @@
     pendingTestOption = qId ? (answers[qId] ?? '') : '';
   });
 
-  async function initWidget() {
+  async function loadAssignments() {
+    loading = true;
     try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json() as { authenticated: boolean; user?: { isAdmin: boolean } };
-      if (!data.authenticated) return;
-      visible = true;
-      await loadAssignments();
+      const res = await fetch('/api/portal/questionnaires');
+      if (res.ok) {
+        const data = await res.json() as Assignment[];
+        assignments = Array.isArray(data)
+          ? data.filter(a => a.status !== 'dismissed' && a.status !== 'archived')
+          : [];
+      }
     } finally {
       loading = false;
-    }
-  }
-
-  async function loadAssignments() {
-    const res = await fetch('/api/portal/questionnaires');
-    if (res.ok) {
-      const data = await res.json() as Assignment[];
-      // Defense-in-depth: API already filters, but never show dismissed/archived in widget.
-      assignments = Array.isArray(data)
-        ? data.filter(a => a.status !== 'dismissed' && a.status !== 'archived')
-        : [];
     }
   }
 
@@ -203,205 +194,200 @@
   }
 </script>
 
-{#if visible}
-  <div class="qw">
-    {#if open}
-      <div class="panel">
-        <div class="hdr">
-          {#if activeId}
-            <button class="back-btn" onclick={goBack}>← Liste</button>
-            <span class="hdr-title">{activeAssignment?.template_title ?? 'Fragebogen'}</span>
-          {:else}
-            <span class="hdr-title">📋 Meine Fragebögen</span>
-            <button class="refresh-btn" onclick={loadAssignments} title="Aktualisieren">↻</button>
-          {/if}
-          <button class="x" onclick={() => open = false}>✕</button>
-        </div>
-
-        <div class="body">
-          {#if !activeId}
-            {#if loading}
-              <p class="hint">Lade…</p>
-            {:else if assignments.length === 0}
-              <p class="hint">Keine Fragebögen zugewiesen.</p>
-            {:else}
-              {#each assignments as a (a.id)}
-                <div class="acard-row">
-                  <button class="acard" onclick={() => selectAssignment(a.id)}>
-                    <span class="acard-title">{a.template_title}</span>
-                    <span class="status-badge {statusCls(a.status)}">{statusLabel(a.status)}</span>
-                  </button>
-                  <button
-                    class="dismiss-x"
-                    onclick={() => dismissAssignment(a.id)}
-                    title="Ausblenden"
-                    aria-label="Fragebogen ausblenden"
-                  >✕</button>
-                </div>
-              {/each}
-            {/if}
-
-          {:else if detailLoading}
-            <p class="hint">Lade…</p>
-
-          {:else if submitted}
-            <div class="done-state">
-              <div class="done-icon">✓</div>
-              <p>Fragebogen abgegeben.</p>
-              <button class="btn-link" onclick={goBack}>← Zurück zur Liste</button>
-            </div>
-
-          {:else if current}
-            <div class="progress-wrap">
-              <div class="progress-bar" style={`width: ${Math.round((answered / total) * 100)}%`}></div>
-            </div>
-            <p class="progress-label">Schritt {currentIndex + 1} / {total} · {answered} beantwortet</p>
-
-            {#if instructions && currentIndex === 0}
-              <div class="instr">{instructions}</div>
-            {/if}
-
-            <div class="qcard">
-              {#if current.question_type === 'test_step'}
-                {#if current.test_role}
-                  <span class="role-badge {current.test_role}">
-                    {current.test_role === 'admin' ? '🔧 Admin-Schritt' : '👤 Nutzer-Schritt'}
-                  </span>
-                {/if}
-                <p class="qlabel">Was zu testen:</p>
-                <p class="qtext">{current.question_text}</p>
-                {#if current.test_expected_result}
-                  <div class="expected">
-                    <p class="qlabel">Erwartetes Ergebnis:</p>
-                    <p class="qmuted">{current.test_expected_result}</p>
-                  </div>
-                {/if}
-                {#if current.test_function_url}
-                  <a href={current.test_function_url} target="_blank" rel="noopener noreferrer" class="fn-link">
-                    ↗ Seite in neuem Tab öffnen
-                  </a>
-                {/if}
-                <p class="qlabel mt">Testergebnis:</p>
-                <div class="result-opts">
-                  {#each [
-                    { key: 'erfüllt', label: '✓ Erfüllt', cls: 'res-ok' },
-                    { key: 'teilweise', label: '~ Teilweise erfüllt', cls: 'res-partial' },
-                    { key: 'nicht_erfüllt', label: '✗ Nicht erfüllt', cls: 'res-fail' },
-                  ] as opt}
-                    {@const chosen = (pendingTestOption || answers[current.id]) === opt.key}
-                    <button
-                      class="res-btn {opt.cls} {chosen ? 'chosen' : ''}"
-                      onclick={() => pendingTestOption = opt.key}
-                      disabled={saving}
-                    >{opt.label}</button>
-                  {/each}
-                </div>
-                <textarea
-                  class="details-ta"
-                  placeholder="Beobachtungen (optional)"
-                  value={testDetails[current.id] ?? ''}
-                  oninput={(e) => { testDetails[current.id] = (e.target as HTMLTextAreaElement).value; }}
-                  rows="2"
-                ></textarea>
-              {:else if current.question_type === 'ab_choice'}
-                <p class="qmuted">Wählen Sie die passendere Aussage:</p>
-                <div class="ab-opts">
-                  {#each abOptions(current.question_text) as opt}
-                    {@const chosen = answers[current.id] === opt.key}
-                    <button
-                      class="ab-btn {chosen ? 'ab-chosen' : ''}"
-                      onclick={() => saveAnswer(opt.key)}
-                      disabled={saving}
-                    >{opt.label}</button>
-                  {/each}
-                </div>
-              {:else if current.question_type === 'ja_nein'}
-                <p class="qtext">{current.question_text}</p>
-                <div class="yn-opts">
-                  {#each ['Ja', 'Nein'] as opt}
-                    {@const chosen = answers[current.id] === opt}
-                    <button
-                      class="yn-btn {chosen ? 'yn-chosen' : ''}"
-                      onclick={() => saveAnswer(opt)}
-                      disabled={saving}
-                    >{opt}</button>
-                  {/each}
-                </div>
-              {:else}
-                <p class="qtext">{current.question_text}</p>
-                <p class="qmuted">Die Aussage trifft auf mich zu:</p>
-                <div class="lk-opts">
-                  {#each ['1','2','3','4','5'] as opt}
-                    {@const chosen = answers[current.id] === opt}
-                    <button
-                      class="lk-btn {chosen ? 'lk-chosen' : ''}"
-                      onclick={() => saveAnswer(opt)}
-                      disabled={saving}
-                    >{opt}</button>
-                  {/each}
-                </div>
-                <div class="lk-labels"><span>Gar nicht</span><span>Voll und ganz</span></div>
-              {/if}
-            </div>
-
-            {#if error}<p class="err">{error}</p>{/if}
-
-            <div class="nav">
-              <button
-                class="btn-prev"
-                onclick={() => currentIndex = Math.max(0, currentIndex - 1)}
-                disabled={currentIndex === 0}
-              >← Zurück</button>
-
-              {#if current.question_type === 'test_step'}
-                <button
-                  class="btn-next"
-                  onclick={saveTestStep}
-                  disabled={saving || (!pendingTestOption && !(current.id in answers))}
-                >
-                  {saving ? '…' : currentIndex < total - 1 ? 'Speichern & Weiter →' : 'Speichern ✓'}
-                </button>
-              {:else if currentIndex < total - 1}
-                <button
-                  class="btn-next"
-                  onclick={() => currentIndex++}
-                  disabled={!(current.id in answers)}
-                >Weiter →</button>
-              {/if}
-            </div>
-
-            {#if allAnswered}
-              <button
-                class="btn-submit"
-                onclick={submitQuestionnaire}
-                disabled={submitting}
-              >
-                {submitting ? 'Wird abgesendet…' : 'Fragebogen absenden ✓'}
-              </button>
-            {/if}
-          {/if}
-        </div>
-      </div>
-    {/if}
-
-    <button class="fab" onclick={() => open = !open} aria-label="Fragebögen">
-      {#if pendingCount > 0 && !open}
-        <span class="dot">{pendingCount > 9 ? '9+' : pendingCount}</span>
-      {/if}
-      {open ? '✕' : '📋'}
-    </button>
+<!-- Inner header nav (list ↔ detail), shown when in detail mode -->
+{#if activeId}
+  <div class="inner-hdr">
+    <button class="back-btn" onclick={goBack}>← Liste</button>
+    <span class="hdr-title">{activeAssignment?.template_title ?? 'Fragebogen'}</span>
+    <button class="refresh-btn" onclick={loadAssignments} title="Aktualisieren">↻</button>
+  </div>
+{:else}
+  <div class="inner-hdr">
+    <span class="hdr-title">Meine Fragebögen</span>
+    <button class="refresh-btn" onclick={loadAssignments} title="Aktualisieren">↻</button>
   </div>
 {/if}
 
-<style>
-  .qw { position: fixed; bottom: 24px; right: 184px; z-index: 9000; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-  .panel { width: min(420px, calc(100vw - 32px)); max-height: 580px; background: #1a2235; border: 1px solid #243049; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
+<div class="body">
+  {#if !activeId}
+    {#if loading}
+      <p class="hint">Lade…</p>
+    {:else if assignments.length === 0}
+      <p class="hint">Keine Fragebögen zugewiesen.</p>
+    {:else}
+      {#each assignments as a (a.id)}
+        <div class="acard-row">
+          <button class="acard" onclick={() => selectAssignment(a.id)}>
+            <span class="acard-title">{a.template_title}</span>
+            <span class="status-badge {statusCls(a.status)}">{statusLabel(a.status)}</span>
+          </button>
+          <button
+            class="dismiss-x"
+            onclick={() => dismissAssignment(a.id)}
+            title="Ausblenden"
+            aria-label="Fragebogen ausblenden"
+          >✕</button>
+        </div>
+      {/each}
+    {/if}
 
-  .hdr { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #243049; font-size: 14px; font-weight: 600; color: #e8e8f0; flex-shrink: 0; }
-  .hdr-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .x { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; flex-shrink: 0; }
+  {:else if detailLoading}
+    <p class="hint">Lade…</p>
+
+  {:else if submitted}
+    <div class="done-state">
+      <div class="done-icon">✓</div>
+      <p>Fragebogen abgegeben.</p>
+      <button class="btn-link" onclick={goBack}>← Zurück zur Liste</button>
+    </div>
+
+  {:else if current}
+    <div class="progress-wrap">
+      <div class="progress-bar" style={`width: ${Math.round((answered / total) * 100)}%`}></div>
+    </div>
+    <p class="progress-label">Schritt {currentIndex + 1} / {total} · {answered} beantwortet</p>
+
+    {#if instructions && currentIndex === 0}
+      <div class="instr">{instructions}</div>
+    {/if}
+
+    <div class="qcard">
+      {#if current.question_type === 'test_step'}
+        {#if current.test_role}
+          <span class="role-badge {current.test_role}">
+            {current.test_role === 'admin' ? '🔧 Admin-Schritt' : '👤 Nutzer-Schritt'}
+          </span>
+        {/if}
+        <p class="qlabel">Was zu testen:</p>
+        <p class="qtext">{current.question_text}</p>
+        {#if current.test_expected_result}
+          <div class="expected">
+            <p class="qlabel">Erwartetes Ergebnis:</p>
+            <p class="qmuted">{current.test_expected_result}</p>
+          </div>
+        {/if}
+        {#if current.test_function_url}
+          <a href={current.test_function_url} target="_blank" rel="noopener noreferrer" class="fn-link">
+            ↗ Seite in neuem Tab öffnen
+          </a>
+        {/if}
+        <p class="qlabel mt">Testergebnis:</p>
+        <div class="result-opts">
+          {#each [
+            { key: 'erfüllt', label: '✓ Erfüllt', cls: 'res-ok' },
+            { key: 'teilweise', label: '~ Teilweise erfüllt', cls: 'res-partial' },
+            { key: 'nicht_erfüllt', label: '✗ Nicht erfüllt', cls: 'res-fail' },
+          ] as opt}
+            {@const chosen = (pendingTestOption || answers[current.id]) === opt.key}
+            <button
+              class="res-btn {opt.cls} {chosen ? 'chosen' : ''}"
+              onclick={() => pendingTestOption = opt.key}
+              disabled={saving}
+            >{opt.label}</button>
+          {/each}
+        </div>
+        <textarea
+          class="details-ta"
+          placeholder="Beobachtungen (optional)"
+          value={testDetails[current.id] ?? ''}
+          oninput={(e) => { testDetails[current.id] = (e.target as HTMLTextAreaElement).value; }}
+          rows="2"
+        ></textarea>
+      {:else if current.question_type === 'ab_choice'}
+        <p class="qmuted">Wählen Sie die passendere Aussage:</p>
+        <div class="ab-opts">
+          {#each abOptions(current.question_text) as opt}
+            {@const chosen = answers[current.id] === opt.key}
+            <button
+              class="ab-btn {chosen ? 'ab-chosen' : ''}"
+              onclick={() => saveAnswer(opt.key)}
+              disabled={saving}
+            >{opt.label}</button>
+          {/each}
+        </div>
+      {:else if current.question_type === 'ja_nein'}
+        <p class="qtext">{current.question_text}</p>
+        <div class="yn-opts">
+          {#each ['Ja', 'Nein'] as opt}
+            {@const chosen = answers[current.id] === opt}
+            <button
+              class="yn-btn {chosen ? 'yn-chosen' : ''}"
+              onclick={() => saveAnswer(opt)}
+              disabled={saving}
+            >{opt}</button>
+          {/each}
+        </div>
+      {:else}
+        <p class="qtext">{current.question_text}</p>
+        <p class="qmuted">Die Aussage trifft auf mich zu:</p>
+        <div class="lk-opts">
+          {#each ['1','2','3','4','5'] as opt}
+            {@const chosen = answers[current.id] === opt}
+            <button
+              class="lk-btn {chosen ? 'lk-chosen' : ''}"
+              onclick={() => saveAnswer(opt)}
+              disabled={saving}
+            >{opt}</button>
+          {/each}
+        </div>
+        <div class="lk-labels"><span>Gar nicht</span><span>Voll und ganz</span></div>
+      {/if}
+    </div>
+
+    {#if error}<p class="err">{error}</p>{/if}
+
+    <div class="nav">
+      <button
+        class="btn-prev"
+        onclick={() => currentIndex = Math.max(0, currentIndex - 1)}
+        disabled={currentIndex === 0}
+      >← Zurück</button>
+
+      {#if current.question_type === 'test_step'}
+        <button
+          class="btn-next"
+          onclick={saveTestStep}
+          disabled={saving || (!pendingTestOption && !(current.id in answers))}
+        >
+          {saving ? '…' : currentIndex < total - 1 ? 'Speichern & Weiter →' : 'Speichern ✓'}
+        </button>
+      {:else if currentIndex < total - 1}
+        <button
+          class="btn-next"
+          onclick={() => currentIndex++}
+          disabled={!(current.id in answers)}
+        >Weiter →</button>
+      {/if}
+    </div>
+
+    {#if allAnswered}
+      <button
+        class="btn-submit"
+        onclick={submitQuestionnaire}
+        disabled={submitting}
+      >
+        {submitting ? 'Wird abgesendet…' : 'Fragebogen absenden ✓'}
+      </button>
+    {/if}
+  {/if}
+</div>
+
+<style>
+  .inner-hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #1e2a3a;
+    border-bottom: 1px solid #243049;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e8e8f0;
+    flex-shrink: 0;
+  }
+  .hdr-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
   .back-btn { background: transparent; border: none; color: #e8c870; cursor: pointer; font-size: 12px; padding: 0; white-space: nowrap; flex-shrink: 0; }
-  .refresh-btn { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 16px; padding: 0; line-height: 1; flex-shrink: 0; }
+  .refresh-btn { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 15px; padding: 0; line-height: 1; flex-shrink: 0; }
 
   .body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
   .hint { font-size: 12px; color: #8899aa; text-align: center; margin: auto; }
@@ -483,13 +469,4 @@
   .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
 
   .err { font-size: 11px; color: #f87171; margin: 0; flex-shrink: 0; }
-
-  .fab { position: relative; width: 52px; height: 52px; border-radius: 50%; background: #e8c870; color: #0f1623; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; transition: transform .15s, box-shadow .15s; }
-  .fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,.5); }
-  .dot { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700; padding: 2px 5px; font-family: monospace; min-width: 18px; text-align: center; line-height: 1.4; pointer-events: none; }
-
-  @media (max-width: 767px) {
-    .qw { right: 8px; bottom: 80px; }
-    .panel { width: calc(100vw - 16px); max-height: 70vh; }
-  }
 </style>

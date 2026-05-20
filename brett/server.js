@@ -164,8 +164,8 @@ app.get('/auth/callback', asyncHandler(async (req, res) => {
 }));
 
 app.get('/auth/me', (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ error: 'not authenticated' });
-  res.json({ userId: req.session.userId, name: req.session.name, isAdmin: !!req.session.isAdmin });
+  if (!req.session.userId) return res.json({ authenticated: false });
+  res.json({ authenticated: true, userId: req.session.userId, name: req.session.name, isAdmin: !!req.session.isAdmin });
 });
 
 function requireAdmin(req, res, next) {

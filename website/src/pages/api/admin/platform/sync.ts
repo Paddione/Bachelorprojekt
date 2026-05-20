@@ -34,6 +34,6 @@ export const POST: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'Failed to trigger sync', details: e.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Failed to trigger sync', details: (e as Error).message }), { status: 500 });
   }
 };

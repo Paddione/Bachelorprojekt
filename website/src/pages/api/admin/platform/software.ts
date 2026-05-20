@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { listSoftwareAssets, upsertSoftwareAsset } from '../../../../lib/platform-db';
-import { createK8sClient } from '../../../../lib/k8s';
+import { createK8sClient, type K8sClient } from '../../../../lib/k8s';
 
 export const prerender = false;
 
@@ -15,11 +15,11 @@ export const GET: APIRoute = async ({ request }) => {
     const assets = await listSoftwareAssets();
     
     // Enrich with k8s status if possible
-    let k8s;
+    let k8s: K8sClient | undefined;
     try {
       k8s = await createK8sClient();
     } catch (e) {
-      console.warn('[api/admin/platform/software] k8s client init failed:', e.message);
+      console.warn('[api/admin/platform/software] k8s client init failed:', (e as Error).message);
     }
 
     const currentCluster = process.env.BRAND_ID || 'mentolder';
@@ -63,7 +63,7 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 });
   }
 };
 
@@ -78,6 +78,6 @@ export const POST: APIRoute = async ({ request }) => {
     const result = await upsertSoftwareAsset(asset);
     return new Response(JSON.stringify(result), { status: 201 });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 });
   }
 };

@@ -53,8 +53,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 14px;
-    background: #1a2235;
-    border-bottom: 1px solid #243049;
+    background: #0f1623;
+    border-bottom: 1px solid rgba(232, 200, 112, 0.15);
     flex-shrink: 0;
     min-height: 44px;
   }
@@ -75,12 +75,15 @@
   }
 
   .title {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 500;
     color: #e8e8f0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: 'Geist Mono', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
 
   .icon-btn {

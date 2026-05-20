@@ -111,6 +111,7 @@
       <button class="preset-btn" data-preset="crawl">Crawl</button>
       <button class="preset-btn" data-preset="slump">Slump</button>
 <button id="mayhem-btn" type="button" style="margin-left:8px;">🤸 Mayhem</button>
+<button id="brett-controls-btn" type="button" style="margin-left:4px;" title="Steuerung anpassen">⚙</button>
       <button class="preset-btn" data-preset="tpose">T-Pose</button>
     </div>
     <div class="sep"></div>
@@ -1111,6 +1112,7 @@
         });
         if (joinMode === 'spectator') window._mayhemSpectator = true;
       }
+      window.MayhemControlsPanel?.showDiscoveryBanner();
     });
 
     ws.addEventListener("close", () => {
@@ -1124,6 +1126,14 @@
   connectWS();
 
   document.getElementById("mayhem-btn")?.addEventListener("click", () => window.Mayhem?.toggle());
+  document.getElementById("brett-controls-btn")?.addEventListener("click", () => {
+    window.MayhemControlsPanel?.openControlsPanel();
+  });
+
+  // Toast fires via custom event dispatched from mayhem.js setEnabled
+  window.addEventListener('brett:mayhem-enabled', () => {
+    window.MayhemControlsPanel?.showEntryToast();
+  });
 
   function onWsMessage(evt) {
     let msg; try { msg = JSON.parse(evt.data); } catch { return; }
@@ -1260,6 +1270,8 @@
 <script src="assets/mayhem/effects.js"></script>
 <script src="assets/mayhem/game-mode.js"></script>
 <script src="assets/mayhem/ai-bot.js"></script>
+<script src="assets/mayhem/keybindings.js"></script>
+<script src="assets/mayhem/controls-panel.js"></script>
 <script src="assets/mayhem/mayhem.js"></script>
 <script src="assets/room-browser.js"></script>
 <script src="assets/admin-panel.js"></script>

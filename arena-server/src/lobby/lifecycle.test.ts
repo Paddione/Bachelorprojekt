@@ -44,12 +44,12 @@ describe('Lifecycle', () => {
     expect(registry.getLobby(code)!.phase).toBe('starting');
   });
 
-  it('openSolo marks lobby as solo and holds at open until host starts it', () => {
+  it('openSolo marks lobby as one-v-three and holds at open until host starts it', () => {
     const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any, bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any });
     const { code } = lc.openSolo({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
     const lobby = registry.getLobby(code)!;
     expect(lobby.phase).toBe('open');
-    expect(lobby.solo).toBe(true);
+    expect(lobby.mode).toBe('one-v-three');
     expect(lobby.players.size).toBe(1);
     lc.startSolo(code);
     expect(lobby.phase).toBe('starting');
@@ -64,5 +64,45 @@ describe('Lifecycle', () => {
     const { code } = lc.open({ hostKey: 'h1@mentolder', hostName: 'h1' });
     lc.startSolo(code);
     expect(registry.getLobby(code)!.phase).toBe('open');
+  });
+
+  describe('1v3 mode', () => {
+    function makeLc() {
+      return new Lifecycle({
+        onBroadcast: () => {},
+        persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any,
+        bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any,
+      });
+    }
+
+    it('open() with mode one-v-three sets lobby.mode', () => {
+      const lc = makeLc();
+      const { code } = lc.open({ hostKey: 'patrick@mentolder', hostName: 'Patrick', mode: 'one-v-three' });
+      expect(registry.getLobby(code)!.mode).toBe('one-v-three');
+    });
+
+    it('openSolo() sets mode one-v-three (backwards compat)', () => {
+      const lc = makeLc();
+      const { code } = lc.openSolo({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
+      expect(registry.getLobby(code)!.mode).toBe('one-v-three');
+    });
+
+    it('open() defaults to ffa when no mode given', () => {
+      const lc = makeLc();
+      const { code } = lc.open({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
+      expect(registry.getLobby(code)!.mode).toBe('ffa');
+    });
+
+    it('1v3 lobby fills 3 bots on toStarting', () => {
+      const lc = makeLc();
+      const { code } = lc.openSolo({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
+      const lobby = registry.getLobby(code)!;
+      expect(lobby.players.size).toBe(1);
+      lc.startSolo(code);
+      expect(lobby.phase).toBe('starting');
+      expect(lobby.players.size).toBe(4);
+      const bots = [...lobby.players.values()].filter(p => p.isBot);
+      expect(bots).toHaveLength(3);
+    });
   });
 });

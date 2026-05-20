@@ -10,7 +10,7 @@ export interface Lobby {
   players: Map<string, PlayerSlot>;     // key = sub@brand or bot_<n>
   rematchYes: Set<string>;
   spectators?: Set<string>;
-  solo?: boolean;
+  mode: 'ffa' | 'one-v-three';
   timers: { [k: string]: NodeJS.Timeout | undefined };
   tick?: Tick;
 }

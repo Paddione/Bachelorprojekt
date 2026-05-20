@@ -41,6 +41,15 @@ export function makeRoutes(deps: { lc: Lifecycle; repo: Repo; auth: AuthMiddlewa
     res.status(201).json(out);
   });
 
+  r.post('/lobby/open-1v3', requireUser, requireAdmin, (req, res) => {
+    const out = deps.lc.open({
+      hostKey: req.userKey!,
+      hostName: req.user!.displayName,
+      mode: 'one-v-three',
+    });
+    res.status(201).json(out);
+  });
+
   r.get('/match/:id', requireUser, async (req, res) => {
     const rows = await deps.repo.getRecentMatches(50);
     const m = rows.find(r => r.id === req.params.id);

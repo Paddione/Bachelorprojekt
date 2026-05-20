@@ -1,7 +1,7 @@
 // Mirrored from arena-server/src/proto/messages.ts — CI diff guard enforces sync.
 // When updating messages.ts, update this file too.
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 export type LobbyPhase = 'open' | 'starting' | 'in-match' | 'slow-mo' | 'results' | 'closed';
 
@@ -69,7 +69,7 @@ export type GameEvent =
   | { e: 'powerup-expire'; player: string; kind: string };
 
 export type ClientMsg =
-  | { t: 'lobby:open' }
+  | { t: 'lobby:open'; mode?: 'ffa' | 'one-v-three' }
   | { t: 'lobby:join'; code: string }
   | { t: 'lobby:ready'; ready: boolean }
   | { t: 'lobby:start' }
@@ -85,7 +85,7 @@ export type ClientMsg =
 
 export type ServerMsg =
   | { t: 'lobby:state'; code: string; phase: LobbyPhase;
-        players: PlayerSlot[]; expiresAt?: number; countdownMs?: number }
+        players: PlayerSlot[]; expiresAt?: number; countdownMs?: number; mode: 'ffa' | 'one-v-three' }
   | { t: 'match:full-snapshot'; tick: number; state: MatchState }
   | { t: 'match:diff'; tick: number; ops: DiffOp[] }
   | { t: 'match:event'; events: GameEvent[] }

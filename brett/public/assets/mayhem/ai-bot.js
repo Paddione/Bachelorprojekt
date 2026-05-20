@@ -19,12 +19,23 @@ class MayhemAIBot {
   // callbacks: { onFire(weaponDef, originPos, dirVec, shooterId),
   //              onDeath(botId, killerId),
   //              getGameMode() }
-  constructor({ id, mannequin, colorIndex = 0, callbacks }) {
-    this.id     = id;
+  constructor({ id, mannequin, colorIndex = 0, bossMultiplier = null, callbacks }) {
+    this.isBoss = !!bossMultiplier;
+    const color = bossMultiplier ? '#e74c3c' : BOT_COLORS[colorIndex % BOT_COLORS.length];
     this.avatar = new window.MayhemPlayerAvatar({
-      id, mannequin, local: false, color: BOT_COLORS[colorIndex % BOT_COLORS.length],
+      id, mannequin, local: false, color,
     });
 
+    // Scale boss mannequin root
+    if (bossMultiplier && bossMultiplier.scale && bossMultiplier.scale !== 1.0) {
+      mannequin.root.scale.setScalar(bossMultiplier.scale);
+    }
+
+    this._hp         = bossMultiplier ? bossMultiplier.hp : 1;
+    this._shootRate  = bossMultiplier ? BOT_SHOOT_RATE / bossMultiplier.shootRate : BOT_SHOOT_RATE;
+    this._speed      = bossMultiplier ? BOT_SPEED * bossMultiplier.speed : BOT_SPEED;
+
+    this.id     = id;
     this._x = mannequin.root.position.x;
     this._z = mannequin.root.position.z;
     this._facingY    = Math.random() * Math.PI * 2;
@@ -32,7 +43,7 @@ class MayhemAIBot {
     this._wanderDx   = 0;
     this._wanderDz   = 1;
     this._wanderTtl  = 0;
-    this._shootTimer = Math.random() * BOT_SHOOT_RATE; // stagger initial shots
+    this._shootTimer = Math.random() * this._shootRate; // stagger initial shots
 
     this._onFire    = callbacks.onFire;
     this._onDeath   = callbacks.onDeath;
@@ -85,8 +96,8 @@ class MayhemAIBot {
     }
 
     // Move and clamp
-    this._x = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._x + moveX * BOT_SPEED * dt));
-    this._z = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._z + moveZ * BOT_SPEED * dt));
+    this._x = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._x + moveX * this._speed * dt));
+    this._z = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._z + moveZ * this._speed * dt));
 
     // Drive the avatar via the same setNetState path real network messages use
     const moving = moveX !== 0 || moveZ !== 0;
@@ -103,7 +114,7 @@ class MayhemAIBot {
       this._shootTimer -= dt;
       if (this._shootTimer <= 0) {
         this._shoot(target);
-        this._shootTimer = BOT_SHOOT_RATE;
+        this._shootTimer = this._shootRate;
       }
     }
   }
@@ -116,17 +127,25 @@ class MayhemAIBot {
     const damage = weaponDef ? weaponDef.damage
                  : weaponKey === 'vehicle' ? 30 : 15;
 
-    this.avatar.applyDamage(damage);
     this.avatar.applyHit(impulse, weaponKey || 'flail');
 
-    if (this.avatar.isDead) {
-      this._aiState = 'dead';
-      this._onDeath(this.id, shooterId);
+    if (this.isBoss) {
+      // Boss bots track HP as an integer hit-point pool; ignore avatar HP
+      this._hp -= 1;
+      if (this._hp > 0) return; // still alive
+    } else {
+      this.avatar.applyDamage(damage);
+      if (!this.avatar.isDead) return; // still alive
+    }
 
-      const mode = this._getMode ? this._getMode() : 'warmup';
-      if (mode === 'deathmatch') {
-        setTimeout(() => this._respawn(), DEATHMATCH_RESPAWN_S * 1000);
-      }
+    // Bot is dead
+    this._aiState = 'dead';
+    this.avatar.applyDamage(this.avatar.hp); // ensure avatar.isDead === true
+    this._onDeath(this.id, shooterId);
+
+    const mode = this._getMode ? this._getMode() : 'warmup';
+    if (mode === 'deathmatch') {
+      setTimeout(() => this._respawn(), DEATHMATCH_RESPAWN_S * 1000);
     }
   }
 
@@ -138,13 +157,16 @@ class MayhemAIBot {
     this.avatar.resetHp();
     this.avatar.state = window.MayhemPlayerAvatar.STATE.IDLE;
     this._aiState = 'wander';
-    this._shootTimer = Math.random() * BOT_SHOOT_RATE;
+    this._shootTimer = Math.random() * this._shootRate;
   }
 
   _findNearest(allAvatars) {
+    const inCoop = this._getMode && this._getMode() === 'coop';
     let best = null, bestDist = Infinity;
     for (const [id, av] of allAvatars) {
       if (id === this.id || av.isDead) continue;
+      // In co-op, bots only target human players (not other bots)
+      if (inCoop && id.startsWith('bot-')) continue;
       const d = this._dist(av);
       if (d < bestDist) { best = av; bestDist = d; }
     }

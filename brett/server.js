@@ -335,14 +335,17 @@ const RELAY_TYPES = [
   'damage_event','death_event','pickup_request','pickup_taken','pickup_spawned',
   'snapshot','request_state_snapshot',
   'bot_spawn','bot_despawn','round_reset',
+  'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
 ];
 
 const TRANSIENT_TYPES = new Set([
   'jump','player_join','player_state','player_leave','hit','vehicle_spawn',
   'hp_update','player_death','player_respawn',
+  'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
 ]);
 
-const lmsAlive = new Map(); // roomToken -> Set<playerId>
+const lmsAlive  = new Map(); // roomToken -> Set<playerId>
+const roomMeta  = new Map(); // roomToken -> { coopWave: number }
 
 function handleLmsDeath(room, victimId) {
   const alive = lmsAlive.get(room);
@@ -592,6 +595,11 @@ wss.on('connection', (ws, req) => {
 
         const state = buildStateFromMutations(msg.room);
         ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65 }));
+        // Sync co-op wave state to the newly joined client
+        const meta = roomMeta.get(msg.room);
+        if (meta && meta.coopWave > 0) {
+          try { ws.send(JSON.stringify({ type: 'coop_wave_sync', wave: meta.coopWave })); } catch {}
+        }
         broadcastInfo(msg.room);
         return;
       }
@@ -621,6 +629,9 @@ wss.on('connection', (ws, req) => {
           if (winner !== null || draw) {
             broadcast(room, draw ? { type: 'lms_draw' } : { type: 'lms_winner', playerId: winner });
           }
+        } else if (msg.type === 'wave_start' && typeof msg.wave === 'number') {
+          if (!roomMeta.has(room)) roomMeta.set(room, { coopWave: 0 });
+          roomMeta.get(room).coopWave = msg.wave;
         } else if (msg.type === 'clear') {
           flushImmediate(room).catch(err => console.error('[brett] flush:', err));
         }
@@ -648,7 +659,7 @@ wss.on('connection', (ws, req) => {
             break;
           }
           case 'admin_mode_set': {
-            if (!['warmup','deathmatch','lms'].includes(msg.mode)) return;
+            if (!['warmup','deathmatch','lms','coop'].includes(msg.mode)) return;
             const inner = { type: 'game_mode_change', mode: msg.mode };
             applyMutation(adminRoom, inner);
             broadcast(adminRoom, inner);

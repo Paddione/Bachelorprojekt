@@ -14,6 +14,7 @@ export function makeBroadcasters(io: Server) {
         phase: l.phase,
         players: [...l.players.values()],
         expiresAt: l.expiresAt,
+        mode: l.mode,
       };
       to(code).emit('msg', msg);
     },

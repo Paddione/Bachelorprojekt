@@ -37,6 +37,8 @@ export interface TickInit {
   matchId: string;
   players: Map<string, PlayerSlot>;
   bots: Map<string, BotAI>;
+  oneVsThree?: boolean;
+  hostKey?: string;
 }
 
 const WASD_DX = [0, 0, 0.707, 1, 0.707, 0, -0.707, -1, -0.707];
@@ -51,10 +53,14 @@ export class Tick {
   private readonly matchId: string;
   private matchElapsedMs = 0;
   private stopped = false;
+  private readonly oneVsThree: boolean;
+  private readonly hostKey: string | undefined;
 
   constructor(init: TickInit, private deps: TickDeps) {
     this.matchId = init.matchId;
     this.bots = init.bots;
+    this.oneVsThree = init.oneVsThree ?? false;
+    this.hostKey = init.hostKey;
 
     const spawns = CONCRETE_ARENA.spawns;
     const players: Record<string, PlayerState> = {};
@@ -257,6 +263,19 @@ export class Tick {
 
     // --- Phase 5: Win condition ---
     const alivePlayers = Object.values(this.state.players).filter(p => p.alive);
+
+    // 1v3: host death = immediate defeat (bots win)
+    if (this.oneVsThree && this.hostKey &&
+        this.state.everAliveCount >= 2 &&
+        !this.state.players[this.hostKey]?.alive) {
+      events.push({ e: 'slow-mo' });
+      if (events.length > 0) this.deps.broadcastEvent(this.matchId, events);
+      const results = this.buildResults(null);
+      this.stop();
+      this.deps.onEnd(null, results);
+      return;
+    }
+
     if (alivePlayers.length <= 1 && this.state.everAliveCount >= 2) {
       const winner = alivePlayers[0]?.key ?? null;
       events.push({ e: 'slow-mo' });

@@ -18,12 +18,13 @@ interface Props {
   countdownMs: number;
   myKey: string;
   isHost: boolean;
+  mode: 'ffa' | 'one-v-three';
   onCharacter: (characterId: CharacterId) => void;
   onLeave: () => void;
   onStart: () => void;
 }
 
-export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, onCharacter, onLeave, onStart }: Props) {
+export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, mode, onCharacter, onLeave, onStart }: Props) {
   const [charIdx, setCharIdx] = useState(0);
 
   function cycleChar(delta: 1 | -1) {
@@ -49,6 +50,14 @@ export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, o
           <h2 style={{ fontFamily: 'var(--font-serif, Georgia, serif)', fontSize: 36, margin: '12px 0 0' }}>
             Waiting for players &mdash; <em style={{ color: '#C8F76A' }}>{players.filter(p => !p.isBot).length} / 4</em>
           </h2>
+        )}
+        {mode === 'one-v-three' && (
+          <div style={{ display: 'inline-block', marginTop: 8, padding: '3px 10px',
+            background: 'rgba(201,170,113,.15)', border: '1px solid #c9aa71',
+            borderRadius: 3, fontFamily: 'var(--font-mono, monospace)',
+            fontSize: 11, letterSpacing: '.14em', color: '#c9aa71' }}>
+            1v3 · HOST vs BOTS — real players can join
+          </div>
         )}
       </div>
 

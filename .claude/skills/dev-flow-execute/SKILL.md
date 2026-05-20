@@ -358,8 +358,26 @@ Falls `$TICKET_ID` gesetzt und `$PLAN_FILE` vorhanden:
 > **Wichtig — Worktree-Zustand nach Schritt 6:** `gh pr merge --squash --delete-branch` löscht nicht nur Remote+Local-Branch, sondern führt im Worktree **silent** `git checkout main` aus. Du landest auf `main` am pre-PR HEAD, und die Plan-Datei ist von Disk verschwunden, bis `git pull` läuft. Deshalb **muss** dieser Schritt mit einem Sync starten:
 
 ```bash
+# Parallele-Session-Schutz: Haupt-Repo könnte auf einem anderen Branch liegen (z.B. fix/X).
+# Immer explizit in einen Worktree wechseln, der auf main ist.
+MAIN_REPO="/home/patrick/Bachelorprojekt"
+ARCHIVE_CWD=$(git worktree list --porcelain \
+  | awk '/^worktree/{wt=$2} /^branch refs\/heads\/main$/{print wt; exit}')
+if [[ -z "$ARCHIVE_CWD" ]]; then
+  # Kein Worktree auf main — Haupt-Repo auf main wechseln
+  ARCHIVE_CWD="$MAIN_REPO"
+  (cd "$ARCHIVE_CWD" && git checkout main)
+fi
+cd "$ARCHIVE_CWD"
 git fetch origin main
-git reset --hard origin/main   # Worktree ist jetzt auf der gemergten Revision — Plan-Datei wieder auf Disk
+git reset --hard origin/main   # Plan-Datei ist jetzt auf Disk (gemergter Revision)
+
+# Sicherheitsprüfung: CWD muss auf main sein
+CURRENT_BRANCH=$(git branch --show-current)
+if [[ "$CURRENT_BRANCH" != "main" ]]; then
+  echo "✗ CWD ist auf '$CURRENT_BRANCH' — Abbruch. Bitte Branch prüfen."
+  exit 1
+fi
 ```
 
 ```bash
@@ -443,6 +461,16 @@ git pull --rebase origin main
 ```
 
 **Hinweis Dollar-Quoting:** `$plan$...$plan$` ist psql-Dollar-Quoting; sicher für beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String `$plan$` enthält (praktisch ausgeschlossen).
+
+**kubeconfig für cicd-deploy generieren:** Statt `kubectl config view --raw -o jsonpath '{.clusters[?(@.name=="<hardcoded>")]...}'` (schlägt fehl wenn Context-Name ≠ Cluster-Name) immer das Hilfsskript nutzen:
+
+```bash
+# Erzeugt fertiges kubeconfig für cicd-deploy SA; --minify macht clusters[0] korrekt
+bash scripts/cicd-kubeconfig-gen.sh mentolder workspace | base64 -w0 \
+  | gh secret set MENTOLDER_KUBECONFIG --repo Paddione/Bachelorprojekt
+bash scripts/cicd-kubeconfig-gen.sh korczewski workspace-korczewski | base64 -w0 \
+  | gh secret set KORCZEWSKI_KUBECONFIG --repo Paddione/Bachelorprojekt
+```
 
 ---
 

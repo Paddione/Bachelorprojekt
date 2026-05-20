@@ -24,10 +24,10 @@ export function validateJsonEntries(raw: unknown): JsonEntry[] {
 
 export async function ingestJsonChunks(
   pool: Pool,
-  options: { entries: JsonEntry[]; slug: string; sourceUri: string },
+  options: { entries: JsonEntry[]; slug: string; sourceUri: string; brand?: string | null },
   onProgress: (done: number, total: number) => void,
 ): Promise<{ collectionId: string; count: number }> {
-  const { entries, slug, sourceUri } = options;
+  const { entries, slug, sourceUri, brand = null } = options;
   const embeddingModel = process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2';
 
   // Find or create collection by slug name
@@ -38,11 +38,16 @@ export async function ingestJsonChunks(
   let collectionId: string;
   if (existingRes.rows.length > 0) {
     collectionId = existingRes.rows[0].id;
+    // Sync brand and embedding_model in case either changed since collection was created
+    await pool.query(
+      `UPDATE knowledge.collections SET brand = $1, embedding_model = $2 WHERE id = $3`,
+      [brand, embeddingModel, collectionId],
+    );
   } else {
     const newCol = await pool.query<{ id: string }>(
-      `INSERT INTO knowledge.collections (name, source, embedding_model)
-       VALUES ($1, 'custom', $2) RETURNING id`,
-      [slug, embeddingModel],
+      `INSERT INTO knowledge.collections (name, source, embedding_model, brand)
+       VALUES ($1, 'custom', $2, $3) RETURNING id`,
+      [slug, embeddingModel, brand],
     );
     collectionId = newCol.rows[0].id;
   }

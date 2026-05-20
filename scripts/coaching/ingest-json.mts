@@ -40,7 +40,7 @@ async function main() {
         if (total > 0) process.stdout.write(`\r[ingest-json] ${done}/${total} Chunks embedded`);
       },
     );
-    console.log(`\n[ingest-json] done. collectionId=${result.collectionId}, chunks=${result.chunkCount}`);
+    console.log(`\n[ingest-json] done. collectionId=${result.collectionId}, chunks=${result.count}`);
   } finally {
     await pool.end();
   }

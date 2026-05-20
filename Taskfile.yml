@@ -3516,7 +3516,37 @@ tasks:
   coaching:ingest-json:
     desc: "Ingest a pre-chunked JSON file into a knowledge collection. Args: -- <file.json> <slug> [--brand=mentolder|korczewski]"
     cmds:
-      - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/ingest-json.mts {{.CLI_ARGS}}
+      - |
+        source scripts/env-resolve.sh "${ENV:-mentolder}"
+        ctx_flag=""
+        [ "${ENV:-mentolder}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        WEBSITE_DB_PASSWORD=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.WEBSITE_DB_PASSWORD}" 2>/dev/null | base64 -d)
+        if [ -z "$WEBSITE_DB_PASSWORD" ]; then
+          echo "ERROR: WEBSITE_DB_PASSWORD not found in workspace-secrets" >&2; exit 1
+        fi
+        VOYAGE_API_KEY=$(kubectl $ctx_flag get secret workspace-secrets -n "$NS" \
+          -o jsonpath="{.data.VOYAGE_API_KEY}" 2>/dev/null | base64 -d)
+        export VOYAGE_API_KEY
+
+        fuser -k 15433/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15433:5432 \
+          >/tmp/coaching-ingest-json-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null || true' EXIT
+        sleep 4
+        if ! nc -z 127.0.0.1 15433 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15433:" >&2
+          cat /tmp/coaching-ingest-json-pf.log >&2
+          exit 1
+        fi
+
+        cd website && PGHOST=localhost PGPORT=15433 PGDATABASE=website PGUSER=website \
+          PGPASSWORD="$WEBSITE_DB_PASSWORD" \
+          LLM_ENABLED=false \
+          npx tsx ../scripts/coaching/ingest-json.mts {{.CLI_ARGS}}
 
   coaching:batch-ingest:
     desc: "Batch-ingest a directory of coaching PDFs/DOCs — Usage: task coaching:batch-ingest -- <dir> <kurs-slug> [--dry-run] [--yes] [--classify]"

@@ -155,6 +155,33 @@ Audio/Video (`.mp3`/`.mp4`) wird nur archiviert (ans Ticket angehängt), nicht i
 
 Falls der User "keine" sagt: Array leer lassen und weiter.
 
+### Schritt 1.6: Codebase-Exploration (code-explorer)
+
+Dispatch `feature-dev:code-explorer` um die relevanten Codebase-Bereiche zu kartieren, bevor das Brainstorming beginnt. Das Ergebnis fließt als Kontext in Schritt 3 ein.
+
+**Auftrag an den Agent — leite diesen Prompt weiter:**
+
+> "Trace the execution paths and map the architecture relevant to: `<task-description>` (branch: `feature/<slug>`).
+> Focus on:
+> 1. Which files/modules are the entry points for this feature area?
+> 2. What existing patterns, abstractions, and data flows would this change touch or extend?
+> 3. Are there any extension points (interfaces, hooks, event emitters, DB tables) that the new feature should wire into?
+> 4. List any gotchas, coupling points, or non-obvious dependencies.
+>
+> Return a concise report (max 400 words) suitable for use as brainstorming context."
+
+Speichere den Report in einer Bash-Variable:
+
+```bash
+EXPLORER_REPORT="<output des code-explorer agents>"
+```
+
+Dieser Report wird in Schritt 3 als `<codebase-context>` Block dem Brainstorming vorangestellt.
+
+Falls der Agent fehlschlägt oder kein Output kommt: einfach fortfahren (kein Blocker).
+
+---
+
 ### Schritt 2: Pre-launch Brainstorming-Tunnel
 
 ```bash
@@ -225,7 +252,13 @@ Erst wenn Schritt e) grün ist, Patrick mitteilen: **"Brainstorming-Companion l�
 
 Rufe `superpowers:brainstorming` auf. Voranstellen vor dem ersten Brainstorming-Turn:
 
-> "Visual-Companion-Server läuft bereits (Port `$PORT`). `screen_dir=$SCREEN_DIR`, `state_dir=$STATE_DIR`. Rufe `start-server.sh` nicht nochmals auf. Nenne dem User immer `https://brainstorm.mentolder.de` — niemals `http://localhost:*`."
+> "Visual-Companion-Server läuft bereits (Port `$PORT`). `screen_dir=$SCREEN_DIR`, `state_dir=$STATE_DIR`. Rufe `start-server.sh` nicht nochmals auf. Nenne dem User immer `https://brainstorm.mentolder.de` — niemals `http://localhost:*`.
+>
+> <codebase-context>
+> $EXPLORER_REPORT
+> </codebase-context>
+>
+> Nutze den Codebase-Context aus `<codebase-context>` als Grundlage für Step 1 (Explore project context) — du musst die dort beschriebenen Dateien nicht erneut lesen, außer du brauchst spezifische Details."
 
 Ergebnis: Spec in `docs/superpowers/specs/<date>-<slug>-design.md`.
 

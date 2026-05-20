@@ -12,7 +12,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
   });
 
   test('T2: Subpages are reachable', async ({ page }) => {
-    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/digital-cafe,/coaching,/beratung').split(',');
+    const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/coaching,/beratung').split(',');
     const pages = [
       ...servicePages,
       '/ueber-mich',
@@ -36,24 +36,25 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
   // -- Contact Form --
   test('T4: Contact page loads', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    await expect(page.locator('h1')).toContainText('Kontakt');
+    // The h1 was changed in the premium overhaul PR #883
+    await expect(page.locator('h1')).toContainText(/In 30 Minuten.*wissen wir.*ob es passt/i);
   });
 
   test('T5: Contact form has all required fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    // Open "Nachricht schreiben" tab to reveal the message form
-    await page.getByRole('button', { name: /nachricht schreiben/i }).click();
-    await expect(page.getByRole('combobox', { name: /wie können wir/i })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /ihr name/i })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /e-mail-adresse/i })).toBeVisible();
+    // The new UI uses tabs. "Nachricht" is tab 02.
+    await page.getByRole('tab', { name: /Nachricht/i }).click();
+    await expect(page.getByRole('combobox', { name: /wie kann ich helfen/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();
     await expect(page.getByRole('textbox', { name: /ihre nachricht/i })).toBeVisible();
   });
 
   test('T6: Valid form submission succeeds', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
-    await page.getByRole('button', { name: /nachricht schreiben/i }).click();
-    await page.getByRole('textbox', { name: /ihr name/i }).fill('Test E2E User');
-    await page.getByRole('textbox', { name: /e-mail-adresse/i }).fill('test-e2e@example.de');
+    await page.getByRole('tab', { name: /Nachricht/i }).click();
+    await page.getByRole('textbox', { name: /name/i }).first().fill('Test E2E User');
+    await page.getByRole('textbox', { name: /e-mail/i }).fill('test-e2e@example.de');
     await page.getByRole('textbox', { name: /ihre nachricht/i }).fill('Dies ist eine automatisierte Testnachricht.');
     await page.getByRole('button', { name: /nachricht senden/i }).click();
     await expect(page.locator('text=Vielen Dank')).toBeVisible({ timeout: 10_000 });

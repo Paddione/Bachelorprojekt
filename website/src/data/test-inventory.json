@@ -678,6 +678,18 @@
     "kind": "shell"
   },
   {
+    "id": "FA-40",
+    "file": "tests/e2e/specs/fa-40-admin-assets.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-41",
+    "file": "tests/e2e/specs/fa-41-admin-hub.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

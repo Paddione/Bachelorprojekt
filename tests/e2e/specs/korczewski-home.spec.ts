@@ -114,7 +114,7 @@ test.describe('Korczewski: Homepage', () => {
 
 test.describe('Korczewski: Public pages', () => {
   const publicPages = [
-    { path: '/kontakt',          title: /kontakt/i },
+    { path: '/kontakt',          title: /30 Minuten.*wissen wir.*ob es passt/i },
     { path: '/ueber-mich',       title: /IT-Management|Security|über mich/i },
     { path: '/leistungen',       title: /leistungen/i },
     { path: '/registrieren',     title: /registrieren/i },
@@ -200,8 +200,8 @@ test.describe('Korczewski: Kontakt page', () => {
   test('T2: contact form has name, email, message fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
     // Try opening message form tab if it exists
-    const msgBtn = page.getByRole('button', { name: /nachricht schreiben/i });
-    if (await msgBtn.isVisible()) await msgBtn.click();
+    const msgTab = page.getByRole('tab', { name: /Nachricht/i });
+    if (await msgTab.isVisible()) await msgTab.click();
     await expect(page.getByRole('textbox', { name: /name/i }).first()).toBeVisible();
     await expect(page.getByRole('textbox', { name: /e-mail/i })).toBeVisible();
   });

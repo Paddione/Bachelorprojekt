@@ -73,6 +73,8 @@ export default defineConfig({
         '**/fa-30-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
         '**/fa-39-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
         '**/fa-39-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
+        '**/fa-40-admin-assets.spec.ts',            // central asset management (PR #884)
+        '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
         '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (PR #830)
       ],
       use: {

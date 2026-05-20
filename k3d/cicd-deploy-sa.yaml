@@ -1,0 +1,62 @@
+# k3d/cicd-deploy-sa.yaml
+# ── CI/CD deploy ServiceAccount ──────────────────────────────────────────────
+# One SA per cluster (in the workspace namespace).
+# RoleBindings in both workspace and website namespaces allow:
+#   kubectl rollout restart deployment/<name> -n <ns>
+# Applied separately from the kustomize build so cross-NS RoleBindings
+# land in ${WEBSITE_NAMESPACE} rather than being forced into ${WORKSPACE_NAMESPACE}.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-deploy
+  namespace: ${WORKSPACE_NAMESPACE}
+---
+# Role + RoleBinding in workspace namespace (brett, arena-server)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cicd-rollout
+  namespace: ${WORKSPACE_NAMESPACE}
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cicd-deploy-rollout
+  namespace: ${WORKSPACE_NAMESPACE}
+subjects:
+- kind: ServiceAccount
+  name: cicd-deploy
+  namespace: ${WORKSPACE_NAMESPACE}
+roleRef:
+  kind: Role
+  name: cicd-rollout
+  apiGroup: rbac.authorization.k8s.io
+---
+# Role + RoleBinding in website namespace (website deployment)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cicd-rollout
+  namespace: ${WEBSITE_NAMESPACE}
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cicd-deploy-rollout
+  namespace: ${WEBSITE_NAMESPACE}
+subjects:
+- kind: ServiceAccount
+  name: cicd-deploy
+  namespace: ${WORKSPACE_NAMESPACE}
+roleRef:
+  kind: Role
+  name: cicd-rollout
+  apiGroup: rbac.authorization.k8s.io

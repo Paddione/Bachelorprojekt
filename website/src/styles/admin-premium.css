@@ -30,6 +30,9 @@ html.sidebar-collapsed #admin-sidebar {
 }
 
 .sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 2px 8px;
   border-radius: 12px;
   padding: 10px 12px;
@@ -37,6 +40,7 @@ html.sidebar-collapsed #admin-sidebar {
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  min-height: 44px;
 }
 
 .sidebar-nav-item:hover {
@@ -62,12 +66,13 @@ html.sidebar-collapsed #admin-sidebar {
 }
 
 .nav-icon {
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .sidebar-nav-item:hover .nav-icon {
@@ -161,5 +166,66 @@ html.sidebar-collapsed #icon-expand   { display: block; }
   }
   #admin-main {
     padding-top: 60px;
+  }
+  #admin-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 39;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+  }
+  #admin-backdrop.visible {
+    display: block;
+  }
+}
+
+/* Tablet: icon-only rail (768–1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  #admin-sidebar {
+    width: 64px !important;
+  }
+  #admin-main {
+    padding-left: 64px !important;
+  }
+  .sidebar-label {
+    display: none !important;
+  }
+  .sidebar-group-label {
+    display: none !important;
+  }
+  .sidebar-nav-item {
+    justify-content: center;
+    padding: 8px;
+    margin: 1px 6px;
+    position: relative;
+  }
+  .sidebar-nav-item[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 68px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border-bright);
+    color: var(--admin-text);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    z-index: 200;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  #sidebar-toggle {
+    display: none !important;
+  }
+  #admin-sidebar > div:first-child .sidebar-label {
+    display: none !important;
+  }
+  #admin-sidebar > div:first-child {
+    padding: 16px 8px;
+    justify-content: center;
   }
 }

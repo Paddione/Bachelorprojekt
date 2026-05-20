@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.4.0...website-v1.4.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **platform:** resolve TS errors in admin/platform API routes [T000124] ([#950](https://github.com/Paddione/Bachelorprojekt/issues/950)) ([78be6f1](https://github.com/Paddione/Bachelorprojekt/commit/78be6f17ccb8ea6bc6be13459acc3d432856ace1))
+
 ## [1.4.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.3.1...website-v1.4.0) (2026-05-20)
 
 

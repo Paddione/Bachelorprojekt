@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.2.1...website-v1.3.0) (2026-05-20)
+
+
+### Features
+
+* **admin:** Wissen-Hub — unified 4-tab knowledge management page [T000115] ([#935](https://github.com/Paddione/Bachelorprojekt/issues/935)) ([8ec3d77](https://github.com/Paddione/Bachelorprojekt/commit/8ec3d77a1ea4d8125255bd87b72243980778a1ea))
+
 ## [1.2.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.2.0...website-v1.2.1) (2026-05-20)
 
 

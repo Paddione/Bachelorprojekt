@@ -1,6 +1,12 @@
 ---
 name: dev-flow-plan
 description: Use when beginning any repo change — feature, bug fix, or chore. Entry point for all development work in this repo. Routes to the correct path (feature/fix/chore) and produces a committed, pushed plan on the branch ready for dev-flow-execute. Chores complete inline without a separate execution step.
+hooks:
+  pre:
+    - inject-plan-context
+  post:
+    - mishap-tracker
+    - cleanup-tmp
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
@@ -15,7 +21,12 @@ description: Use when beginning any repo change — feature, bug fix, or chore. 
 
 Bei jeder Anfrage in diesem Repo, die etwas verändern will: neue Funktion, Bug fixen, Doku updaten, Dependencies bumpen, was auch immer.
 
-**Sage zu Beginn:** "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
+**Sage zu Beginn:**
+```bash
+# Unified Skill Framework: PRE-Execution
+bash scripts/skill-orchestrator.sh .claude/skills/dev-flow-plan/SKILL.md pre "infra"
+```
+"Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
 
 ## Schritt −2: Main-Branch sync (Pull-First)
 
@@ -591,6 +602,10 @@ Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md 
 
 ## Post-Execution: Mishap Report
 
-After completing all steps in this skill, invoke `mishap-tracker` with your
-accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
-cleanly with "No mishaps found."
+After completing all steps in this skill, run:
+```bash
+# Unified Skill Framework: POST-Execution
+bash scripts/skill-orchestrator.sh .claude/skills/dev-flow-plan/SKILL.md post
+```
+
+If no mishaps were found, `mishap-tracker` exits cleanly with "No mishaps found."

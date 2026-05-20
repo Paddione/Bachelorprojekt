@@ -7,12 +7,14 @@
   import LogsTab from './ops/LogsTab.svelte';
   import DatenbankTab from './ops/DatenbankTab.svelte';
   import DnsZertTab from './ops/DnsZertTab.svelte';
-  
+  import TicketsTab from './TicketsTab.svelte';
+
   export let cluster: string;
-  
-  let activeTab = 'flux';
-  
+
+  let activeTab = 'tickets';
+
   const tabs = [
+    { id: 'tickets', label: 'Tickets' },
     { id: 'flux', label: 'GitOps', premium: true },
     { id: 'software', label: 'Software', premium: true },
     { id: 'hardware', label: 'Hardware' },
@@ -33,22 +35,27 @@
     <p class="text-admin-text-mute">Zentralisierte Steuerung der Multicluster-Infrastruktur und GitOps-Pipelines.</p>
   </header>
 
-  <div class="flex flex-wrap gap-1 p-1 bg-admin-sidebar-bg backdrop-blur-xl border border-admin-border rounded-2xl w-fit mb-8">
-    {#each tabs as tab}
-      <button 
-        on:click={() => activeTab = tab.id}
-        class="px-5 py-2 rounded-xl text-sm font-bold transition-all {activeTab === tab.id ? 'bg-admin-primary text-admin-bg shadow-lg' : 'text-admin-text-mute hover:text-white'}"
-      >
-        {tab.label}
-        {#if tab.premium}
-          <span class="ml-1 text-[8px] opacity-50">✨</span>
-        {/if}
-      </button>
-    {/each}
+  <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px;">
+    <div class="flex gap-1 p-1 bg-admin-sidebar-bg backdrop-blur-xl border border-admin-border rounded-2xl w-fit mb-8" style="flex-wrap: nowrap;">
+      {#each tabs as tab}
+        <button
+          on:click={() => activeTab = tab.id}
+          class="px-5 py-2 rounded-xl text-sm font-bold transition-all {activeTab === tab.id ? 'bg-admin-primary text-admin-bg shadow-lg' : 'text-admin-text-mute hover:text-white'}"
+          style="white-space: nowrap; min-height: 44px;"
+        >
+          {tab.label}
+          {#if tab.premium}
+            <span class="ml-1 text-[8px] opacity-50">✨</span>
+          {/if}
+        </button>
+      {/each}
+    </div>
   </div>
 
   <main class="transition-all duration-300">
-    {#if activeTab === 'flux'}
+    {#if activeTab === 'tickets'}
+      <TicketsTab />
+    {:else if activeTab === 'flux'}
       <FluxCDTab {cluster} />
     {:else if activeTab === 'software'}
       <SoftwareTab {cluster} />

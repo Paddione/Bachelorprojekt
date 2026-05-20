@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.2.0...arena-server-v0.3.0) (2026-05-20)
+
+
+### Features
+
+* **arena+brett:** 1v3 lobby mode + co-op wave survival ([#910](https://github.com/Paddione/Bachelorprojekt/issues/910)) ([c3dcec8](https://github.com/Paddione/Bachelorprojekt/commit/c3dcec8ea18392fb729ace93c7406df38cbdf9aa))
+
 ## [0.2.0](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.1.0...arena-server-v0.2.0) (2026-05-20)
 
 

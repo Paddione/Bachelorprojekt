@@ -636,8 +636,12 @@ const Mayhem = (() => {
       'border-radius:10px', 'font:13px sans-serif', 'z-index:1001',
       'pointer-events:none', 'user-select:none',
     ].join(';');
+    const soloKiBadge = room && room.startsWith('solo-')
+      ? '<span id="mhud-solo-badge" style="background:rgba(124,58,237,0.25);color:#a78bfa;border:1px solid rgba(124,58,237,0.4);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;">🤖 vs. KI</span>'
+      : '';
     div.innerHTML = `
       <span id="mhud-mode" style="color:#aaa;text-transform:uppercase;font-size:11px"></span>
+      ${soloKiBadge}
       <div style="width:120px;height:12px;background:#333;border-radius:6px;overflow:hidden">
         <div id="mhud-hp-fill" style="height:100%;width:100%;background:#4c4;transition:width 0.15s,background 0.3s"></div>
       </div>

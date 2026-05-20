@@ -1159,6 +1159,14 @@
           STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
         }
         if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
+        // Solo AI Mayhem: auto-enable if triggered from mode-select
+        if (sessionStorage.getItem('brett_solo_mayhem') === '1') {
+          sessionStorage.removeItem('brett_solo_mayhem');
+          if (window.Mayhem && !window.Mayhem._internal.localAvatar) {
+            window.Mayhem.setEnabled(true);
+          }
+        }
+        if (window.Mayhem) window.Mayhem.onSnapshot(msg);
         break;
       case "stiffness":
         STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);

@@ -1,4 +1,5 @@
 ---
+ticket_id: T000075
 title: Admin Sidebar + Ticket Hub Implementation Plan
 domains: []
 status: active

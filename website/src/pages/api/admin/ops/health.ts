@@ -15,7 +15,7 @@ const SERVICES: Record<string, { name: string; internalUrl: string }[]> = {
   mentolder: [
     { name: 'Keycloak',     internalUrl: 'http://keycloak.workspace.svc.cluster.local:8080/health/ready' },
     { name: 'Nextcloud',    internalUrl: 'http://nextcloud.workspace.svc.cluster.local/status.php' },
-    { name: 'Collabora',    internalUrl: 'http://collabora.workspace.svc.cluster.local/hosting/capabilities' },
+    { name: 'Collabora',    internalUrl: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' },
     { name: 'Vaultwarden',  internalUrl: 'http://vaultwarden.workspace.svc.cluster.local/alive' },
     { name: 'DocuSeal',     internalUrl: 'http://docuseal.workspace.svc.cluster.local:3000' },
     { name: 'Website',      internalUrl: 'http://website.website.svc.cluster.local' },
@@ -23,8 +23,9 @@ const SERVICES: Record<string, { name: string; internalUrl: string }[]> = {
   korczewski: [
     { name: 'Keycloak',     internalUrl: 'http://keycloak.workspace-korczewski.svc.cluster.local:8080/health/ready' },
     { name: 'Nextcloud',    internalUrl: 'http://nextcloud.workspace-korczewski.svc.cluster.local/status.php' },
-    { name: 'Collabora',    internalUrl: 'http://collabora.workspace-korczewski.svc.cluster.local/hosting/capabilities' },
+    { name: 'Collabora',    internalUrl: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' },
     { name: 'Vaultwarden',  internalUrl: 'http://vaultwarden.workspace-korczewski.svc.cluster.local/alive' },
+    { name: 'DocuSeal',     internalUrl: 'http://docuseal.workspace-korczewski.svc.cluster.local:3000' },
     { name: 'Website',      internalUrl: 'http://website.website-korczewski.svc.cluster.local' },
   ],
 };
@@ -49,25 +50,26 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const results: Record<string, ServiceCheck[]> = {};
+  const currentCluster = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+  const services = SERVICES[currentCluster] ?? SERVICES['mentolder'];
 
-  for (const [cluster, services] of Object.entries(SERVICES)) {
-    results[cluster] = await Promise.all(
-      services.map(async (svc) => {
-        try {
-          const { latencyMs, ok } = await checkUrl(svc.internalUrl);
-          return {
-            name: svc.name,
-            url: svc.internalUrl,
-            status: !ok ? 'error' : latencyMs > 2000 ? 'slow' : 'ok',
-            latencyMs,
-          } satisfies ServiceCheck;
-        } catch (e: any) {
-          return { name: svc.name, url: svc.internalUrl, status: 'error', latencyMs: null, error: e.message };
-        }
-      })
-    );
-  }
+  const probeResults = await Promise.all(
+    services.map(async (svc) => {
+      try {
+        const { latencyMs, ok } = await checkUrl(svc.internalUrl);
+        return {
+          name: svc.name,
+          url: svc.internalUrl,
+          status: !ok ? 'error' : latencyMs > 2000 ? 'slow' : 'ok',
+          latencyMs,
+        } satisfies ServiceCheck;
+      } catch (e: any) {
+        return { name: svc.name, url: svc.internalUrl, status: 'error', latencyMs: null, error: e.message };
+      }
+    })
+  );
+
+  const results: Record<string, ServiceCheck[]> = { [currentCluster]: probeResults };
 
   return new Response(JSON.stringify({ results, checkedAt: new Date().toISOString() }), {
     headers: { 'Content-Type': 'application/json' },

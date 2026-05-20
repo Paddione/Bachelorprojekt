@@ -1,0 +1,61 @@
+import { test, expect } from '@playwright/test';
+
+const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
+
+test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', () => {
+  test('T1: /api/admin/platform/software requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/admin/platform/software`);
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('T2: /api/admin/ops/health requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/admin/ops/health`);
+    expect([401, 403]).toContain(res.status());
+  });
+
+  test('T3: health API returns only current cluster (no cross-cluster probe)', async ({ request }) => {
+    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skip authenticated test');
+
+    const loginRes = await request.post(`${BASE}/api/auth/login`, {
+      data: { username: 'paddione', password: process.env.E2E_ADMIN_PASS }
+    });
+    // If the endpoint doesn't exist, rely on cookie auth from global setup
+    const res = await request.get(`${BASE}/api/admin/ops/health`);
+    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveProperty('results');
+    expect(body).toHaveProperty('checkedAt');
+
+    // Must return exactly one cluster key matching the site's own cluster
+    const clusterKeys = Object.keys(body.results);
+    expect(clusterKeys).toHaveLength(1);
+    // The single key must be a known cluster name (not both)
+    expect(['mentolder', 'korczewski']).toContain(clusterKeys[0]);
+
+    // Each result entry must have name, status, latencyMs fields
+    const results: any[] = body.results[clusterKeys[0]];
+    expect(results.length).toBeGreaterThan(0);
+    for (const svc of results) {
+      expect(svc).toHaveProperty('name');
+      expect(svc).toHaveProperty('status');
+      expect(['ok', 'slow', 'error']).toContain(svc.status);
+    }
+  });
+
+  test('T4: software assets API returns collabora with workspace-office namespace', async ({ request }) => {
+    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skip authenticated test');
+
+    const res = await request.get(`${BASE}/api/admin/platform/software`);
+    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const collabora = (body.assets as any[]).find((a: any) => a.slug === 'collabora');
+    expect(collabora).toBeDefined();
+    expect(collabora.namespace).toBe('workspace-office');
+    // live_status must not be 'missing' — the deployment exists in workspace-office
+    expect(collabora.live_status).not.toBe('missing');
+  });
+});

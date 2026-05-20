@@ -76,6 +76,7 @@ export default defineConfig({
         '**/fa-40-admin-assets.spec.ts',            // central asset management (PR #884)
         '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
         '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
+        '**/fa-44-platform-health-integrity.spec.ts', // Platform Hub health API — single-cluster probe + Collabora namespace fix
         '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (PR #830)
       ],
       use: {

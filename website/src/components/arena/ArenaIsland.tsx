@@ -21,6 +21,7 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerSlot[]>([]);
   const [lobbyPhase, setLobbyPhase] = useState<'open' | 'starting'>('open');
+  const [lobbyMode, setLobbyMode] = useState<'ffa' | 'one-v-three'>('ffa');
   const [countdownMs, setCountdownMs] = useState(0);
   const [initialMatchState, setInitialMatchState] = useState<MatchState | null>(null);
   const [results, setResults] = useState<{ results: MatchResult[]; matchId: string } | null>(null);
@@ -65,6 +66,7 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
       switch (m.t) {
         case 'lobby:state': {
           setPlayers(m.players as PlayerSlot[]);
+          if (m.mode) setLobbyMode(m.mode);
           if (m.phase === 'in-match') {
             const playerKeys = new Set((m.players as PlayerSlot[]).map(p => p.key));
             if (!playerKeys.has(myKey)) {
@@ -159,6 +161,7 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
         countdownMs={countdownMs}
         myKey={myKey}
         isHost={isHost}
+        mode={lobbyMode}
         onCharacter={handleCharacter}
         onLeave={handleLeave}
         onStart={handleStart}

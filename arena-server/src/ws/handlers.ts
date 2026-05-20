@@ -23,6 +23,7 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
             const stateMsg: ServerMsg = {
               t: 'lobby:state', code: m.code, phase: targetLobby.phase,
               players: [...targetLobby.players.values()], expiresAt: targetLobby.expiresAt,
+              mode: targetLobby.mode,
             };
             socket.emit('msg', stateMsg);
             if ((targetLobby.phase === 'in-match' || targetLobby.phase === 'slow-mo') && targetLobby.tick) {
@@ -30,8 +31,8 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
               const snap: ServerMsg = { t: 'match:full-snapshot', tick: state.tick, state };
               socket.emit('msg', snap);
             }
-            // Solo lobbies wait for the host's WS connect before counting down.
-            if (targetLobby.solo && targetLobby.phase === 'open' && targetLobby.hostKey === key) {
+            // one-v-three (and legacy solo) lobbies wait for the host's WS connect before counting down.
+            if (targetLobby.mode === 'one-v-three' && targetLobby.phase === 'open' && targetLobby.hostKey === key) {
               deps.lc.startSolo(m.code);
             }
             break;
@@ -42,6 +43,7 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
             const stateMsg: ServerMsg = {
               t: 'lobby:state', code: m.code, phase: targetLobby.phase,
               players: [...targetLobby.players.values()], expiresAt: targetLobby.expiresAt,
+              mode: targetLobby.mode,
             };
             socket.emit('msg', stateMsg);
             break;

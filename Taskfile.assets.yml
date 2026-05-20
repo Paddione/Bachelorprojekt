@@ -1,0 +1,16 @@
+version: '3'
+
+tasks:
+  sync:
+    desc: "Sync root /assets to service public/ directories (run before website:build or brett:build)"
+    cmds:
+      - bash scripts/assets-sync.sh
+
+  index:
+    desc: "Index root /assets into assets.registry in the database (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/assets-index.sh

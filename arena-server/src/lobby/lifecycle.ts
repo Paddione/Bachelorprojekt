@@ -134,8 +134,12 @@ export class Lifecycle {
       if (player.isBot) bots.set(player.key, new BotAI(player.key, grid));
     }
 
+    const nonHostPlayers = [...lobby.players.values()].filter(p => p.key !== lobby.hostKey);
+    const allBots = nonHostPlayers.every(p => p.isBot);
+    const isOneVsThree = lobby.mode === 'one-v-three' && allBots;
+
     const tick = new Tick(
-      { matchId, players: lobby.players, bots },
+      { matchId, players: lobby.players, bots, oneVsThree: isOneVsThree, hostKey: lobby.hostKey },
       {
         broadcastSnapshot: (mid, state) => this.deps.bc.emitMatchSnapshot(code, mid, state),
         broadcastDiff: (mid, t, ops) => this.deps.bc.emitMatchDiff(code, mid, t, ops),

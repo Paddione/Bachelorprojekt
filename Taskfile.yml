@@ -2878,6 +2878,7 @@ tasks:
             fi
           fi
           envsubst "\$WORKSPACE_NAMESPACE \$PROD_DOMAIN \$ARENA_IMAGE" < prod-korczewski/arena.yaml | kubectl $CTX_ARG apply -f -
+          kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" delete job arena-bootstrap --ignore-not-found=true
           envsubst "\$WORKSPACE_NAMESPACE" < prod-korczewski/migrations-arena.yaml | kubectl $CTX_ARG apply -f -
           kubectl $CTX_ARG -n "$WORKSPACE_NAMESPACE" rollout restart deployment/arena-server || true
       - echo "✓ arena deployed to {{.ENV}}"

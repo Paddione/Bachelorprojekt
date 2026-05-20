@@ -11,6 +11,13 @@ if (!isAdmin(session)) return new Response('Forbidden', { status: 403 });
 const BRETT_INTERNAL = process.env.BRETT_INTERNAL_URL || 'http://brett.workspace.svc.cluster.local:3000';
 const path = Astro.params.path || '';
 
+// Empty path means index — redirect to the Brett service admin console
+if (!path) {
+  const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
+  const proto = brettDomain.includes('localhost') ? 'http' : 'https';
+  return Astro.redirect(`${proto}://${brettDomain}/?admin=1`);
+}
+
 // Nur erlaubte Pfade proxyen
 const allowed = [
   /^api\//,

@@ -93,8 +93,15 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
                 <h4 class="font-bold text-white truncate">{asset.name}</h4>
-                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {asset.live_status === 'ready' ? 'bg-green-500/10 text-green-500' : asset.live_status === 'degraded' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'}">
-                  {asset.live_status}
+                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider {
+                  asset.live_status === 'ready'         ? 'bg-green-500/10 text-green-500'  :
+                  asset.live_status === 'degraded'      ? 'bg-yellow-500/10 text-yellow-500':
+                  asset.live_status === 'other-cluster' ? 'bg-blue-500/10 text-blue-400'   :
+                  asset.live_status === 'optional'      ? 'bg-gray-500/10 text-gray-400'   :
+                  asset.live_status === 'unknown'       ? 'bg-gray-500/10 text-gray-500'   :
+                  asset.live_status === 'failing'       ? 'bg-red-500/10 text-red-400'     :
+                                                          'bg-orange-500/10 text-orange-400'}">
+                  {asset.live_status === 'other-cluster' ? '↗ remote' : asset.live_status}
                 </span>
               </div>
               <p class="text-xs text-admin-text-mute line-clamp-2 mb-3">{asset.description || 'Keine Beschreibung.'}</p>

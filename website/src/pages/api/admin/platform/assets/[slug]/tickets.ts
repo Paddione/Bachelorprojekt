@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getTicketsByAsset } from '../../../../../lib/platform-db';
+import { getSession, isAdmin } from '../../../../../../lib/auth';
+import { getTicketsByAsset } from '../../../../../../lib/platform-db';
 
 export const prerender = false;
 

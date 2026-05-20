@@ -74,6 +74,27 @@ html.sidebar-collapsed #admin-sidebar {
   transform: scale(1.1);
 }
 
+/* Per-group icon tint containers */
+.nav-icon-kern      { --ni-color: oklch(0.80 0.09 75); }
+.nav-icon-crm       { --ni-color: #2dd4bf; }
+.nav-icon-coaching  { --ni-color: #a78bfa; }
+.nav-icon-redaktion { --ni-color: #38bdf8; }
+.nav-icon-kapital   { --ni-color: #34d399; }
+.nav-icon-kontrolle { --ni-color: #818cf8; }
+
+[class*="nav-icon-"] {
+  border-radius: 8px;
+  padding: 5px;
+  background: color-mix(in srgb, var(--ni-color) 12%, transparent);
+  color: color-mix(in srgb, var(--ni-color) 70%, transparent);
+}
+
+.sidebar-nav-item:hover [class*="nav-icon-"],
+.sidebar-nav-item.is-active [class*="nav-icon-"] {
+  background: color-mix(in srgb, var(--ni-color) 18%, transparent);
+  color: var(--ni-color);
+}
+
 .sidebar-group-label {
   padding: 1.5rem 1.25rem 0.5rem;
   font-size: 0.7rem;

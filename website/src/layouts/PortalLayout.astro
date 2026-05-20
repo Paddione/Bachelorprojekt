@@ -20,14 +20,14 @@ interface Props {
 const { title, section, session, pendingSignatures, pendingQuestionnaires = 0 } = Astro.props;
 
 const icons: Record<string, string> = {
-  overview:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
-  dateien:        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h5.5L13 5.5V14H4V2z"/><path d="M9.5 2v3.5H13"/><path d="M6 8h4M6 10.5h4M6 13h2.5"/></svg>`,
-  unterschriften: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5c1-2 2-4 3-3s0 3 1.5 2 2-3 3-2"/><path d="M2.5 13.5h11"/></svg>`,
-  fragebögen:     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1.5" width="11" height="13" rx="1"/><path d="M5.5 5.5h5M5.5 8h3"/><circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>`,
-  kalender:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3M5.5 10h1M8 10h1M10.5 10h1"/></svg>`,
-  rechnungen:     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.5h8v13l-2-1.5-2 1.5-2-1.5-2 1.5z"/><path d="M6 6h4M6 8.5h4M6 11h2"/></svg>`,
-  buchung:        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v2.5l1.5 1.5"/></svg>`,
-  konto:          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2.5 14.5a5.5 5.5 0 0 1 11 0"/></svg>`,
+  overview:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="9" y="9" width="5" height="5" rx="0.5"/></svg>`,
+  dateien:        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h5.5L13 5.5V14H4V2z"/><path d="M9.5 2v3.5H13"/><path d="M6 8h4M6 10.5h4M6 13h2.5"/></svg>`,
+  unterschriften: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5c1-2 2-4 3-3s0 3 1.5 2 2-3 3-2"/><path d="M2.5 13.5h11"/></svg>`,
+  fragebögen:     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="1.5" width="11" height="13" rx="1"/><path d="M5.5 5.5h5M5.5 8h3"/><circle cx="8" cy="11.5" r="0.75" fill="currentColor" stroke="none"/></svg>`,
+  kalender:       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3M5.5 10h1M8 10h1M10.5 10h1"/></svg>`,
+  rechnungen:     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.5h8v13l-2-1.5-2 1.5-2-1.5-2 1.5z"/><path d="M6 6h4M6 8.5h4M6 11h2"/></svg>`,
+  buchung:        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v2.5l1.5 1.5"/></svg>`,
+  konto:          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2.5 14.5a5.5 5.5 0 0 1 11 0"/></svg>`,
 };
 
 interface NavItem {
@@ -47,6 +47,17 @@ const navItems: NavItem[] = [
   { id: 'rechnungen',  label: 'Rechnungen',  icon: 'rechnungen' },
   { id: 'buchung',     label: 'Buchung',     icon: 'buchung' },
 ];
+
+const portalIconColors: Record<string, string> = {
+  overview:       'var(--brass)',
+  dateien:        '#38bdf8',
+  'fragebögen':   '#a78bfa',
+  vertraege:      '#34d399',
+  kalender:       'var(--brass)',
+  rechnungen:     '#34d399',
+  buchung:        '#2dd4bf',
+  konto:          'var(--brass)',
+};
 
 const avatarInitial = (session.given_name || session.name || session.preferred_username || '?')[0].toUpperCase();
 const displayName   = session.given_name || session.name || session.preferred_username;
@@ -184,13 +195,17 @@ const isKore        = brandId === 'korczewski';
                 href={`/portal?section=${item.id}`}
                 class={`portal-nav-item${active ? ' is-active' : ''}`}
                 aria-current={active ? 'page' : undefined}
-                style={`display:flex; align-items:center; gap:9px; padding:7px 9px; border-radius:7px; text-decoration:none; font-size:12.5px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
+                style={`display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:7px; text-decoration:none; font-size:12.5px; font-weight:500; transition:background 0.1s ease, color 0.1s ease; ${
                   active ? 'background:var(--brass-d); color:var(--brass);' : 'color:var(--mute);'
                 }`}
               >
                 <span
                   class="nav-icon"
-                  style={`width:15px; height:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.1s ease; ${active ? 'color:var(--brass);' : 'color:var(--mute);'}`}
+                  style={`width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:color 0.1s ease, background 0.1s ease; border-radius:8px; padding:5px; ${
+                    active
+                      ? 'background:transparent; color:var(--brass);'
+                      : `background:color-mix(in srgb, ${portalIconColors[item.id] ?? 'var(--brass)'} 12%, transparent); color:color-mix(in srgb, ${portalIconColors[item.id] ?? 'var(--brass)'} 70%, transparent);`
+                  }`}
                   set:html={icons[item.icon]}
                 />
                 <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{item.label}</span>
@@ -233,7 +248,11 @@ const isKore        = brandId === 'korczewski';
         >
           <span
             class="nav-icon"
-            style={`flex-shrink:0; width:14px; height:14px; display:flex; align-items:center; justify-content:center; ${section === 'konto' ? 'color:var(--brass);' : 'color:var(--mute);'}`}
+            style={`flex-shrink:0; width:20px; height:20px; display:flex; align-items:center; justify-content:center; transition:color 0.1s ease, background 0.1s ease; border-radius:8px; padding:5px; ${
+              section === 'konto'
+                ? 'background:transparent; color:var(--brass);'
+                : `background:color-mix(in srgb, var(--brass) 12%, transparent); color:color-mix(in srgb, var(--brass) 70%, transparent);`
+            }`}
             set:html={icons['konto']}
           />
           <span>Konto</span>

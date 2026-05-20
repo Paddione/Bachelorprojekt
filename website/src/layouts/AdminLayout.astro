@@ -80,9 +80,10 @@ try {
   draftsPending = r.rows[0]?.n ?? 0;
 } catch { /* coaching schema may not exist yet */ }
 
-const navGroups: { label: string; items: NavItem[] }[] = [
+const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
   {
     label: 'Kern',
+    iconClass: 'nav-icon-kern',
     items: [
       { href: '/admin/termine',     label: 'Kalender',     icon: 'calendar' },
       { href: '/admin/tickets',     label: 'Anfragen',     icon: 'tag' },
@@ -92,6 +93,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   },
   {
     label: 'CRM',
+    iconClass: 'nav-icon-crm',
     items: [
       { href: '/admin/clients',   label: 'Klienten',  icon: 'users' },
       { href: '/admin/projekte',  label: 'Mandate',   icon: 'folder' },
@@ -99,31 +101,35 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   },
   {
     label: 'Coaching',
+    iconClass: 'nav-icon-coaching',
     items: [
-      { href: '/admin/coaching/sessions',  label: 'Sitzungen',  icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
+      { href: '/admin/coaching/sessions',  label: 'Sitzungen',   icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
       { href: '/admin/brett',              label: 'Systembrett', icon: 'brett' },
     ],
   },
   {
     label: 'Redaktion',
+    iconClass: 'nav-icon-redaktion',
     items: [
-      { href: '/admin/inhalte',         label: 'Content Hub', icon: 'layout', matches: ['/admin/inhalte', '/admin/startseite', '/admin/uebermich', '/admin/angebote', '/admin/faq', '/admin/kontakt', '/admin/referenzen', '/admin/rechtliches', '/admin/dokumente'] },
-      { href: '/admin/knowledge/drafts', label: 'Entwürfe',    icon: 'edit',   badge: draftsPending },
-      { href: '/admin/assets',           label: 'Assets',      icon: 'palette' },
+      { href: '/admin/inhalte',           label: 'Content Hub', icon: 'layout', matches: ['/admin/inhalte', '/admin/startseite', '/admin/uebermich', '/admin/angebote', '/admin/faq', '/admin/kontakt', '/admin/referenzen', '/admin/rechtliches', '/admin/dokumente'] },
+      { href: '/admin/knowledge/drafts',  label: 'Entwürfe',    icon: 'edit',   badge: draftsPending },
+      { href: '/admin/assets',            label: 'Assets',      icon: 'palette' },
     ],
   },
   {
     label: 'Kapital',
+    iconClass: 'nav-icon-kapital',
     items: [
-      { href: '/admin/rechnungen',    label: 'Fakturierung',  icon: 'receipt', matches: ['/admin/rechnungen', '/admin/billing'] },
-      { href: '/admin/buchhaltung',   label: 'Kontierung',    icon: 'scale' },
+      { href: '/admin/rechnungen',  label: 'Fakturierung', icon: 'receipt', matches: ['/admin/rechnungen', '/admin/billing'] },
+      { href: '/admin/buchhaltung', label: 'Kontierung',   icon: 'scale' },
     ],
   },
   {
     label: 'Kontrollzentrum',
+    iconClass: 'nav-icon-kontrolle',
     items: [
-      { href: '/admin/platform',   label: 'Plattform Hub', icon: 'monitor', matches: ['/admin/monitoring', '/admin/ops', '/admin/platform'] },
-      { href: '/admin/einstellungen/benachrichtigungen', label: 'System-Setup', icon: 'settings', matches: ['/admin/einstellungen/'] },
+      { href: '/admin/platform',                            label: 'Plattform Hub', icon: 'monitor', matches: ['/admin/monitoring', '/admin/ops', '/admin/platform'] },
+      { href: '/admin/einstellungen/benachrichtigungen',    label: 'System-Setup',  icon: 'settings', matches: ['/admin/einstellungen/'] },
     ],
   },
 ];
@@ -228,7 +234,7 @@ const isKore = brandId === 'korczewski';
             { 'is-active': path === '/admin' },
           ]}
         >
-          <span class="nav-icon" set:html={icons.dashboard} />
+          <span class="nav-icon nav-icon-kern" set:html={icons.dashboard} />
           <span class="sidebar-label" style="margin-left:12px;">Dashboard</span>
         </a>
 
@@ -243,7 +249,7 @@ const isKore = brandId === 'korczewski';
                   { 'is-active': isActive(item.href, item.matches) }
                 ]}
               >
-                <span class="nav-icon" set:html={icons[item.icon]} />
+                <span class={`nav-icon ${group.iconClass}`} set:html={icons[item.icon]} />
                 <span class="sidebar-label" style="margin-left:12px; flex:1;">{item.label}</span>
                 {item.badge ? (
                   <span class="sidebar-label" style="padding:2px 6px; border-radius:6px; background:var(--admin-primary); color:var(--admin-bg); font-size:10px; font-weight:800;">{item.badge}</span>

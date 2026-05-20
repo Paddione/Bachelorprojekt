@@ -5,7 +5,6 @@ import { listBugTickets, listProjects, listAdminShortcuts } from '../lib/website
 import type { AdminShortcut } from '../lib/website-db';
 import { getAllBillingInvoices } from '../lib/stripe-billing';
 import { getAvailableSlots } from '../lib/caldav';
-import ServiceLinks from '../components/ServiceLinks.astro';
 import AdminShortcuts from '../components/admin/AdminShortcuts.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
@@ -73,21 +72,21 @@ const SVG = {
 };
 
 const adminLinks = [
-  { href: '/admin/inbox', label: 'Inbox', icon: SVG.inbox },
+  { href: '/admin/inbox',                                        label: 'Inbox',      icon: SVG.inbox,    color: 'oklch(0.80 0.09 75)' },
   ...(ncBase ? [
-    { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: SVG.folder },
-    { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: SVG.calendar },
-    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte', icon: SVG.contacts },
-    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: SVG.video },
+    { href: `${ncBase}/apps/files/`,    label: 'Dateien',  icon: SVG.folder,   color: '#38bdf8' },
+    { href: `${ncBase}/apps/calendar/`, label: 'Kalender', icon: SVG.calendar, color: 'oklch(0.80 0.09 75)' },
+    { href: `${ncBase}/apps/contacts/`, label: 'Kontakte', icon: SVG.contacts, color: '#2dd4bf' },
+    { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: SVG.video,    color: '#a78bfa' },
   ] : []),
-  ...(bretUrl  ? [{ href: bretUrl, label: 'Brett', icon: SVG.brett }] : []),
-  { href: '/portal/arena', label: 'Arena', icon: SVG.arena },
-  { href: '/admin/rechnungen', label: 'Abrechnung', icon: SVG.receipt },
-  ...(vaultUrl   ? [{ href: vaultUrl,                                 label: 'Passwörter', icon: SVG.lock }] : []),
-  ...(authUrl    ? [{ href: `${authUrl}/admin/workspace/console/`,    label: 'Keycloak',   icon: SVG.key }] : []),
-  ...(docsUrl    ? [{ href: docsUrl,                                  label: 'Docs',       icon: SVG.book }] : []),
-  { href: '/admin/monitoring',                                          label: 'Monitoring', icon: SVG.dashboard },
-  ...(mailUrl    ? [{ href: mailUrl,                                  label: 'Mailpit',    icon: SVG.mail }] : []),
+  ...(bretUrl  ? [{ href: bretUrl,                               label: 'Brett',      icon: SVG.brett,    color: '#a78bfa' }] : []),
+  { href: '/portal/arena',                                       label: 'Arena',      icon: SVG.arena,    color: '#818cf8' },
+  { href: '/admin/rechnungen',                                   label: 'Abrechnung', icon: SVG.receipt,  color: '#34d399' },
+  ...(vaultUrl ? [{ href: vaultUrl,                              label: 'Passwörter', icon: SVG.lock,     color: '#34d399' }] : []),
+  ...(authUrl  ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak',   icon: SVG.key,      color: '#818cf8' }] : []),
+  ...(docsUrl  ? [{ href: docsUrl,                               label: 'Docs',       icon: SVG.book,     color: '#38bdf8' }] : []),
+  { href: '/admin/monitoring',                                   label: 'Monitoring', icon: SVG.dashboard, color: 'oklch(0.80 0.09 75)' },
+  ...(mailUrl  ? [{ href: mailUrl,                               label: 'Mailpit',    icon: SVG.mail,     color: '#2dd4bf' }] : []),
 ];
 
 const isKore = BRAND === 'korczewski';
@@ -175,32 +174,61 @@ const kpis = [
       </section>
     </main>
   ) : (
-    <section class="pt-10 pb-20 bg-dark min-h-screen">
-      <div class="max-w-5xl mx-auto px-6">
+    <section style="padding:2.5rem 0 5rem; min-height:100vh;">
+      <div style="max-width:56rem; margin:0 auto; padding:0 1.5rem;">
 
-        <div class="mb-10">
-          <h1 class="text-3xl font-bold text-light font-serif">Admin</h1>
-          <p class="text-muted mt-1">Verwaltung & Werkzeuge</p>
+        <!-- Header -->
+        <div style="margin-bottom:2.5rem;">
+          <p style="font-family:var(--font-mono); font-size:0.7rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.15em; margin:0 0 4px;">
+            Verwaltung &amp; Werkzeuge
+          </p>
+          <h1 style="font-family:var(--font-serif); font-size:2rem; font-weight:700; color:var(--admin-text); letter-spacing:-0.02em; margin:0;">Admin</h1>
         </div>
 
         <!-- KPI Banner -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          {[
-            { label: 'Aktive Projekte',   value: String(activeProjects),           href: '/admin/projekte',  cls: 'border-yellow-800' },
-            { label: 'Offene Rechnungen', value: openInvoices > 0 ? `${openInvoices} (${fmtCurrency(openInvoiceAmount)})` : '0', href: '/admin/rechnungen', cls: openInvoices > 0 ? 'border-yellow-800' : 'border-dark-lighter' },
-            { label: 'Überfällige Bugs',   value: String(openBugCount),             href: '/admin/bugs',      cls: openBugCount > 0 ? 'border-red-800' : 'border-dark-lighter' },
-            { label: 'Freie Slots (7 T)', value: String(freeSlots),                href: '/admin/termine',   cls: freeSlots > 0 ? 'border-green-800' : 'border-dark-lighter' },
-          ].map(k => (
-            <a href={k.href} class={`p-4 bg-dark-light rounded-xl border hover:border-gold/40 transition-colors ${k.cls}`}>
-              <div class="text-xl font-bold text-light">{k.value}</div>
-              <div class="text-xs text-muted mt-0.5">{k.label}</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); gap:0.75rem; margin-bottom:2rem;">
+          {kpis.map(k => (
+            <a href={k.href} class="admin-card" style={`text-decoration:none; display:block; border-left:3px solid ${
+              k.state === 'is-ok'   ? '#34d399' :
+              k.state === 'is-warn' ? 'oklch(0.80 0.09 75)' :
+              k.state === 'is-fail' ? '#f87171' :
+              'var(--admin-border)'
+            };`}>
+              <div style="font-size:1.5rem; font-weight:700; color:var(--admin-text); line-height:1.2;">{k.value}</div>
+              {k.unit && <div style="font-size:0.85rem; font-weight:600; color:var(--admin-text); margin-top:2px;">{k.unit}</div>}
+              <div style="font-size:0.7rem; color:var(--admin-text-mute); margin-top:4px;">{k.label}</div>
+              <div style="font-size:0.75rem; color:var(--admin-text-disabled); margin-top:2px;">{k.suffix}</div>
             </a>
           ))}
         </div>
 
-        <ServiceLinks links={adminLinks} heading="Dienste" />
+        <!-- Service Links -->
+        <div class="admin-card" style="margin-bottom:1.5rem;">
+          <p style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0 0 1rem;">Dienste</p>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(7rem, 1fr)); gap:0.75rem;">
+            {adminLinks.map(l => (
+              <a
+                href={l.href}
+                target={l.href.startsWith('http') ? '_blank' : undefined}
+                rel={l.href.startsWith('http') ? 'noopener' : undefined}
+                class="admin-card"
+                style="display:flex; flex-direction:column; align-items:center; gap:8px; text-decoration:none; text-align:center; padding:1rem;"
+              >
+                <span
+                  style={`width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:8px; padding:5px; background:color-mix(in srgb, ${l.color} 12%, transparent); color:${l.color};`}
+                  set:html={l.icon}
+                />
+                <span style="font-size:11px; color:var(--admin-text-mute);">{l.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
 
-        <AdminShortcuts client:load links={shortcuts} />
+        <!-- Custom Shortcuts -->
+        <div class="admin-card">
+          <p style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; margin:0 0 1rem;">Schnellzugriffe</p>
+          <AdminShortcuts client:load links={shortcuts} />
+        </div>
 
       </div>
     </section>

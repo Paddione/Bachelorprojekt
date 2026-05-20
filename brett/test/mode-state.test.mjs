@@ -27,3 +27,13 @@ test('stub modes do not change state', () => {
   assert.equal(result, false);
   assert.equal(ms.current(), 'coaching');
 });
+
+test('mayhem-solo is a valid mode', () => {
+  let last = null;
+  const ms = createModeState({ storage: new Map() });
+  ms.on('change', m => { last = m; });
+  const result = ms.setMode('mayhem-solo');
+  assert.equal(result, true);
+  assert.equal(ms.current(), 'mayhem-solo');
+  assert.equal(last, 'mayhem-solo');
+});

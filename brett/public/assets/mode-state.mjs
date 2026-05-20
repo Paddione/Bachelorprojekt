@@ -1,5 +1,5 @@
 // brett/public/assets/mode-state.mjs
-const VALID = new Set(['coaching', 'ffa', 'mode-select']);
+const VALID = new Set(['coaching', 'ffa', 'mode-select', 'mayhem-solo']);
 const STUB = new Set(['teams', 'coop']);
 const KEY_LOADOUT = 'brett.loadout';
 

@@ -73,11 +73,13 @@ window.RoomBrowser = (() => {
     const list = document.getElementById('rb-list');
     if (!list) return;
     list.innerHTML = '';
-    if (rooms.length === 0) {
+    // Solo AI rooms are private — never show them in the browser
+    const visible = rooms.filter(r => !r.token?.startsWith('solo-'));
+    if (visible.length === 0) {
       list.innerHTML = '<p style="color:#6b7280;font-size:12px;text-align:center;padding:20px">Keine aktiven Räume</p>';
       return;
     }
-    for (const r of rooms) {
+    for (const r of visible) {
       const div = document.createElement('div');
       div.className = 'rb-room';
       div.innerHTML = `

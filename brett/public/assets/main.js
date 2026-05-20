@@ -23,6 +23,8 @@ const overlayRoot = document.getElementById('overlay-root');
 modeState.on('change', async mode => {
   if (mode === 'ffa') {
     await startFFA();
+  } else if (mode === 'mayhem-solo') {
+    startMayhemSolo();
   } else if (mode === 'coaching') {
     stopCombat();
   }
@@ -67,6 +69,14 @@ function stopCombat() {
   if (!overlayRoot) return;
   const hud = overlayRoot.querySelector('#combat-hud');
   if (hud) hud.hidden = true;
+}
+
+function startMayhemSolo() {
+  // Create a private room that no other player can find or join via the room browser
+  const soloRoomId = 'solo-' + crypto.randomUUID();
+  // Signal to the page: auto-enable Mayhem as soon as the WS snapshot arrives
+  sessionStorage.setItem('brett_solo_mayhem', '1');
+  window.location.href = `/?room=${encodeURIComponent(soloRoomId)}`;
 }
 
 // Show mode selector on load

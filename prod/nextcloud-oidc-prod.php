@@ -22,6 +22,8 @@ $CONFIG = [
   'oidc_login_scope'             => 'openid email profile',
   'oidc_login_disable_registration' => false,
   'oidc_login_tls_verify'        => true,
+  'oidc_login_groups_attribute'  => 'roles',
+  'oidc_login_admin_group'       => 'admin',
   'allow_user_to_change_display_name' => false,
   'lost_password_link'           => 'disabled',
 ];

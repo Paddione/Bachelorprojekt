@@ -3,7 +3,7 @@ import https from 'node:https';
 import { readK8sCredentials } from '../../../../../lib/k8s';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 
-const ALLOWED_NS = ['workspace', 'workspace-korczewski', 'argocd', 'website', 'website-korczewski'];
+const ALLOWED_NS = ['workspace', 'workspace-korczewski', 'website', 'website-korczewski'];
 
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

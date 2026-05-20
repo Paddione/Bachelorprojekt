@@ -210,7 +210,7 @@ export const korczewskiConfig: BrandConfig = {
       iconSpriteId: 'icon-deployment',
       features: [
         'Kubernetes-Architektur und -Deployment',
-        'GitOps mit ArgoCD und GitHub Actions',
+        'GitOps mit FluxCD und GitHub Actions',
         'Self-Hosted Open-Source (Nextcloud, Mattermost, Keycloak)',
         'DSGVO-konforme Infrastruktur unter Ihrer Kontrolle',
       ],
@@ -227,7 +227,7 @@ export const korczewskiConfig: BrandConfig = {
         sections: [
           {
             title: 'Kubernetes-Deployment',
-            items: ['k3s, k3d, multi-cluster mit ArgoCD', 'Ingress, TLS, NetworkPolicies, Monitoring – der vollständige Stack'],
+            items: ['k3s, k3d, multi-cluster mit FluxCD', 'Ingress, TLS, NetworkPolicies, Monitoring – der vollständige Stack'],
           },
           {
             title: 'Self-Hosted Open-Source',
@@ -235,7 +235,7 @@ export const korczewskiConfig: BrandConfig = {
           },
           {
             title: 'GitOps & CI/CD',
-            items: ['ArgoCD für Multi-Cluster-Deployments', 'GitHub Actions, Kustomize, automatisierte Rollouts'],
+            items: ['FluxCD für Multi-Cluster-Deployments', 'GitHub Actions, Kustomize, automatisierte Rollouts'],
           },
           {
             title: 'Wartung & Monitoring',
@@ -284,9 +284,9 @@ export const korczewskiConfig: BrandConfig = {
       icon: '☁️',
       description: 'Production-grade Kubernetes, DSGVO-konforme Self-Hosted-Lösungen und GitOps-Workflows – gelebte Praxis, kein Lernprojekt.',
       services: [
-        { key: 'dep-kubernetes', name: 'Kubernetes-Architektur', price: '50 €', unit: '/ Stunde', desc: 'k3s, multi-cluster mit ArgoCD, Ingress, TLS, NetworkPolicies, Monitoring – der vollständige Stack.' },
+        { key: 'dep-kubernetes', name: 'Kubernetes-Architektur', price: '50 €', unit: '/ Stunde', desc: 'k3s, multi-cluster mit FluxCD, Ingress, TLS, NetworkPolicies, Monitoring – der vollständige Stack.' },
         { key: 'dep-opensource', name: 'Self-Hosted Open-Source', price: '50 €', unit: '/ Stunde', desc: 'Nextcloud, Mattermost, Keycloak SSO, Vaultwarden & mehr. DSGVO-konform, Ihre Daten, Ihre Kontrolle.' },
-        { key: 'dep-gitops', name: 'GitOps & CI/CD', price: '50 €', unit: '/ Stunde', desc: 'ArgoCD für Multi-Cluster-Deployments, GitHub Actions, Kustomize, automatisierte Rollouts.' },
+        { key: 'dep-gitops', name: 'GitOps & CI/CD', price: '50 €', unit: '/ Stunde', desc: 'FluxCD für Multi-Cluster-Deployments, GitHub Actions, Kustomize, automatisierte Rollouts.' },
         { key: 'dep-wartung', name: 'Wartung & Monitoring', price: '50 €', unit: '/ Stunde', desc: 'Prometheus, Grafana, Alerting, Updates, Backups. Damit Sie ruhig schlafen können.' },
       ],
     },

@@ -4,7 +4,6 @@
   const NAMESPACES = [
     { id: 'workspace',            label: 'mentolder (workspace)' },
     { id: 'workspace-korczewski', label: 'korczewski (workspace-korczewski)' },
-    { id: 'argocd',               label: 'argocd' },
     { id: 'website',              label: 'website (mentolder)' },
     { id: 'website-korczewski',   label: 'website (korczewski)' },
   ];

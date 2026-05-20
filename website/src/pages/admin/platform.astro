@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PlatformHub from '../../components/admin/PlatformHub.svelte';
+
+const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+---
+
+<AdminLayout title="Plattform Hub">
+  <PlatformHub client:load cluster={brandId} />
+</AdminLayout>

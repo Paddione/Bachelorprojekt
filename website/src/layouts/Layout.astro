@@ -2,7 +2,7 @@
 import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.svelte';
-import ChatWidget from '../components/ChatWidget.svelte';
+import PortalSidekick from '../components/PortalSidekick.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
 
@@ -66,6 +66,6 @@ const pageTitle = rawTitle ? title : `${title} | ${config.meta.siteTitle}`;
     <Footer />
 
     <CookieConsent client:load />
-    <ChatWidget client:load />
+    <PortalSidekick client:load />
   </body>
 </html>

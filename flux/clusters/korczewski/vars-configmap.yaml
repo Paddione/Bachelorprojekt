@@ -32,6 +32,9 @@ data:
   TURN_NODE: pk-hetzner-6
   # Dev stack
   DEV_NODE: pk-l-1
+  # Arena (korczewski-only)
+  ARENA_IMAGE: ghcr.io/paddione/arena-server:latest
+  ARENA_WS_URL: https://arena-ws.korczewski.de
   # Keycloak default users
   KC_USER1_USERNAME: paddione
   KC_USER1_EMAIL: patrick@korczewski.de

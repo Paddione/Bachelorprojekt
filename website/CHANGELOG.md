@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.1.0...website-v1.2.0) (2026-05-20)
+
+
+### Features
+
+* **admin:** admin portal overhaul — remove ArgoCD legacy, FluxCD brand copy ([#930](https://github.com/Paddione/Bachelorprojekt/issues/930)) ([954608f](https://github.com/Paddione/Bachelorprojekt/commit/954608fd7549bf8ffb81b73aff2b0bccdcb89e97))
+* **admin:** upgrade sidekick + remove ticket tab from Platform Hub ([#927](https://github.com/Paddione/Bachelorprojekt/issues/927)) ([c295a14](https://github.com/Paddione/Bachelorprojekt/commit/c295a14ad6fcf01d910b8cd60c8061e9cf70300e))
+
 ## [1.1.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.0.0...website-v1.1.0) (2026-05-20)
 
 

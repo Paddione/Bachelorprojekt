@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.3.1...arena-server-v0.4.0) (2026-05-20)
+
+
+### Features
+
+* **admin:** upgrade sidekick + remove ticket tab from Platform Hub ([#927](https://github.com/Paddione/Bachelorprojekt/issues/927)) ([c295a14](https://github.com/Paddione/Bachelorprojekt/commit/c295a14ad6fcf01d910b8cd60c8061e9cf70300e))
+
 ## [0.3.1](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.3.0...arena-server-v0.3.1) (2026-05-20)
 
 

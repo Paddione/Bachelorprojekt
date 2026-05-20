@@ -227,13 +227,11 @@ tasks:
   # ─────────────────────────────────────────────
   test:unit:
     desc: Run BATS unit tests (assertion lib, scripts, configs)
-    preconditions:
-      - sh: '[ -f ./tests/unit/lib/bats-core/bin/bats ]'
-        msg: "bats-core not found — run: git submodule update --init --recursive"
-    deps:
-      - test:unit:assert
-      - test:unit:scripts
-      - test:unit:figure-pack
+    cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - task: test:unit:assert
+      - task: test:unit:scripts
+      - task: test:unit:figure-pack
 
   test:unit:assert:
     internal: true
@@ -253,12 +251,14 @@ tasks:
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
     cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - cd art-library/_tooling && npm install --silent
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/test_art_library_manifest.bats
 
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
     cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
 
   test:menu-gate:

@@ -1,21 +1,16 @@
 ---
 // website/src/components/TicketWidgetBar.astro
 import TicketQuickCreate from './TicketQuickCreate.svelte';
-import TicketQuickEdit from './TicketQuickEdit.svelte';
 
 interface Props {
   context?: 'admin' | 'portal';
   showCreate?: boolean;
-  showEdit?: boolean;
 }
 
-const { context = 'portal', showCreate = true, showEdit = false } = Astro.props;
+const { context = 'portal', showCreate = true } = Astro.props;
 ---
 
 <div class="fixed bottom-6 right-6 z-40 flex items-center gap-2">
-  {showEdit && (
-    <TicketQuickEdit client:load context={context} />
-  )}
   {showCreate && (
     <TicketQuickCreate client:load context={context} />
   )}

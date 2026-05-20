@@ -5,6 +5,9 @@ import { config } from '../config/index';
 import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_ADMIN ?? 'false') === 'true';
+const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
+const brettProto = brettDomain.includes('localhost') ? 'http' : 'https';
+const BRETT_URL = `${brettProto}://${brettDomain}/?admin=1`;
 import PortalSidekick from '../components/PortalSidekick.svelte';
 import SessionExpiryWarning from '../components/SessionExpiryWarning.svelte';
 import { countPendingByType } from '../lib/messaging-db';
@@ -20,6 +23,7 @@ interface NavItem {
   icon: string;
   matches?: string[];
   badge?: number;
+  external?: boolean;
 }
 
 const { title } = Astro.props;
@@ -104,7 +108,7 @@ const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
     iconClass: 'nav-icon-coaching',
     items: [
       { href: '/admin/coaching/sessions',  label: 'Sitzungen',   icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
-      { href: '/admin/brett',              label: 'Systembrett', icon: 'brett' },
+      { href: BRETT_URL,                    label: 'Systembrett', icon: 'brett', external: true },
       { href: '/admin/arena',              label: 'Arena',       icon: 'arena' },
     ],
   },
@@ -265,6 +269,8 @@ const isKore = brandId === 'korczewski';
                   'sidebar-nav-item',
                   { 'is-active': isActive(item.href, item.matches) }
                 ]}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener noreferrer' : undefined}
               >
                 <span class={`nav-icon ${group.iconClass}`} set:html={icons[item.icon]} />
                 <span class="sidebar-label" style="margin-left:12px; flex:1;">{item.label}</span>

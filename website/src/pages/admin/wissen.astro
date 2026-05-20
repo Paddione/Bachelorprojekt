@@ -1,0 +1,33 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import WissenHub from '../../components/admin/WissenHub.svelte';
+import { listCollections } from '../../lib/knowledge-db';
+import { listBooks } from '../../lib/coaching-db';
+import { pool } from '../../lib/website-db';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+let collections: Awaited<ReturnType<typeof listCollections>> = [];
+let books: Awaited<ReturnType<typeof listBooks>> = [];
+let draftCount = 0;
+
+await Promise.allSettled([
+  listCollections().then(c => { collections = c; }),
+  listBooks(pool).then(b => { books = b; }),
+  pool
+    .query("SELECT count(*)::int AS n FROM coaching.drafts WHERE status = 'open'")
+    .then(r => { draftCount = r.rows[0]?.n ?? 0; }),
+]);
+---
+
+<AdminLayout title="Wissensbasis">
+  <WissenHub
+    client:load
+    initialCollections={collections}
+    initialBooks={books}
+    draftCount={draftCount}
+  />
+</AdminLayout>

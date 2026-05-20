@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     k8s = await createK8sClient();
   } catch (e) {
-    return new Response(JSON.stringify({ error: 'K8s client failed', details: e.message }), { status: 503 });
+    return new Response(JSON.stringify({ error: 'K8s client failed', details: (e as Error).message }), { status: 503 });
   }
 
   const results: any = {
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ request }) => {
     // For now, we'll just report node count as a proxy for health.
   } catch (e) {
     results.health.status = 'error';
-    results.health.error = e.message;
+    results.health.error = (e as Error).message;
   }
 
   // FluxCD Status (Mentolder only)

@@ -19,7 +19,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
     const result = await upsertSoftwareAsset(asset);
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 });
   }
 };
 
@@ -35,6 +35,6 @@ export const DELETE: APIRoute = async ({ params, request }) => {
     await deleteSoftwareAsset(id);
     return new Response(null, { status: 204 });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 });
   }
 };

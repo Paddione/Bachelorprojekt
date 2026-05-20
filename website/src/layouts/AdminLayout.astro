@@ -206,7 +206,23 @@ const isKore = brandId === 'korczewski';
   </head>
   <body class={isKore ? 'kore' : ''} style="min-height:100vh; background:var(--admin-bg); color:var(--admin-text); display:flex; font-family:var(--font-sans); overflow-x:hidden;">
     <div id="mobile-topbar" style="display:none;">
-      <!-- Mobile Topbar remains similar but styled with admin-premium tokens if needed -->
+      <button
+        id="mobile-hamburger"
+        aria-label="Menü öffnen"
+        style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; cursor:pointer; color:var(--admin-text); border-radius:10px; flex-shrink:0;"
+      >
+        <svg id="hamburger-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px; height:22px;"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg id="hamburger-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px; height:22px; display:none;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <a href="/admin" style="display:flex; align-items:center; gap:10px; text-decoration:none; flex:1; min-width:0;">
+        {isKore ? (<div class="ka-brand-mark" style="width:28px; height:28px;" />) : (
+          <div style="width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg, var(--admin-primary), #8a6a2a); box-shadow:0 2px 8px rgba(0,0,0,0.3); position:relative; flex-shrink:0;">
+            <div style="position:absolute; inset:6px; border-radius:2px; background:var(--admin-bg); clip-path:polygon(0 55%, 30% 55%, 30% 0, 70% 0, 70% 55%, 100% 55%, 100% 100%, 0 100%);"></div>
+          </div>
+        )}
+        <span style="font-family:var(--font-serif); font-size:15px; color:var(--admin-primary); font-weight:700;">{brandWord}</span>
+      </a>
+      <span style="font-family:var(--font-mono); font-size:10px; color:var(--admin-text-disabled); letter-spacing:0.1em; text-transform:uppercase;">Admin</span>
     </div>
 
     <div id="admin-backdrop"></div>
@@ -284,7 +300,7 @@ const isKore = brandId === 'korczewski';
     {ASSISTANT_ENABLED ? (
       <AssistantWidget client:load profile="admin" />
     ) : null}
-    <TicketWidgetBar context="admin" showEdit={!ASSISTANT_ENABLED} />
+    <TicketWidgetBar context="admin" showCreate={false} />
     <PortalSidekick client:load helpSection={helpSection} helpContext="admin" />
     <SessionExpiryWarning client:load />
 

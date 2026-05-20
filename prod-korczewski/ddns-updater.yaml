@@ -39,7 +39,7 @@ spec:
                 - name: IPV64_API_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: ipv64-api-key
+                      name: workspace-secrets
                       key: IPV64_API_KEY
               command: ["/bin/sh", "-c"]
               args:

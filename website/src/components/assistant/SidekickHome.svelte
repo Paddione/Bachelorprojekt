@@ -19,177 +19,228 @@
 
   const isAdmin = $derived(helpContext === 'admin');
 
-  // SVG icon strings — same 16px viewBox style as AdminLayout icons
-  const icons = {
-    clipboard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M5.5 2.5h5v2.5h-5V2.5z"/><rect x="3" y="2.5" width="10" height="12" rx="1"/><path d="M5.5 7.5h5M5.5 10.5h5M5.5 13.5h3"/></svg>`,
-    bug: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><circle cx="8" cy="9" r="3.5"/><path d="M8 5.5V3.5M5 7H2.5M11 7h2.5M5.5 5l-2-2M10.5 5l2-2M5 12l-2 1.5M11 12l2 1.5"/></svg>`,
-    tag: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M2 2.5h4.5l7 7a2 2 0 0 1 0 2.8l-2.2 2.2a2 2 0 0 1-2.8 0l-7-7V2.5z"/><circle cx="5.5" cy="5.5" r=".75" fill="currentColor" stroke="none"/></svg>`,
-    inbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><rect x="2" y="3.5" width="12" height="10" rx="1"/><path d="M2 10h3.5l1.5 2 1.5-2H12"/></svg>`,
-  };
+  type Item = { id: View; no: string; title: string; sub: string; badge?: number; show?: boolean };
+
+  const items = $derived<Item[]>([
+    { id: 'tickets',       no: '01', title: 'Anfragen',           sub: 'Tickets erstellen & bearbeiten', badge: pendingTickets > 0 ? pendingTickets : undefined,       show: isAdmin },
+    { id: 'inbox',         no: '02', title: 'Postfach',           sub: 'Nachrichten & Anfragen',         badge: pendingInbox > 0 ? pendingInbox : undefined,           show: isAdmin },
+    { id: 'questionnaire', no: isAdmin ? '03' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
+    { id: 'support',       no: isAdmin ? '04' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
+    { id: 'help',          no: isAdmin ? '05' : '03', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+  ].filter(i => i.show));
+
+  let hover = $state<string | null>(null);
 </script>
 
-<div class="home">
-  <p class="greeting">Wie kann ich dir helfen?</p>
+<div class="sk-home">
+  <!-- Eyebrow + headline -->
+  <div class="sk-intro">
+    <div class="sk-eyebrow">
+      <span class="sk-eyebrow-bar" aria-hidden="true"></span>
+      Helpdesk · {String(items.length).padStart(2, '0')} Bereiche
+    </div>
+    <h2 class="sk-headline">
+      Womit kann ich Ihnen <em>helfen?</em>
+    </h2>
+    <p class="sk-sub">Kein Skript, kein Bot — direkter Zugang zu Tickets, Nachrichten und Kontexthilfe.</p>
+  </div>
 
-  <div class="cards">
-    {#if isAdmin}
-      <button class="card" onclick={() => onNavigate('tickets')}>
-        <span class="card-icon">{@html icons.tag}</span>
-        <div class="card-body">
-          <span class="card-label">Anfragen</span>
-          <span class="card-desc">Tickets erstellen &amp; bearbeiten</span>
-        </div>
-        {#if pendingTickets > 0}
-          <span class="badge">{pendingTickets > 99 ? '99+' : pendingTickets}</span>
-        {/if}
-        <span class="chevron">›</span>
+  <!-- Numbered item list -->
+  <div class="sk-list" role="list">
+    {#each items as item (item.id)}
+      <button
+        class="sk-row"
+        class:sk-row--hover={hover === item.id}
+        onmouseenter={() => hover = item.id}
+        onmouseleave={() => hover = null}
+        onclick={() => onNavigate(item.id)}
+        role="listitem"
+        aria-label="{item.title} — {item.sub}"
+      >
+        <span class="sk-no" class:sk-no--active={hover === item.id}>{item.no}</span>
+
+        <span class="sk-body">
+          <span class="sk-item-title">{item.title}</span>
+          <span class="sk-item-sub">{item.sub}</span>
+        </span>
+
+        <span class="sk-badge-slot">
+          {#if item.badge}
+            <span class="sk-brass-badge">{Math.min(99, item.badge)}</span>
+          {/if}
+        </span>
+
+        <span class="sk-arrow" class:sk-arrow--active={hover === item.id} aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 5l7 7-7 7"/>
+          </svg>
+        </span>
       </button>
-
-      <button class="card" onclick={() => onNavigate('inbox')}>
-        <span class="card-icon">{@html icons.inbox}</span>
-        <div class="card-body">
-          <span class="card-label">Postfach</span>
-          <span class="card-desc">Nachrichten &amp; Anfragen</span>
-        </div>
-        {#if pendingInbox > 0}
-          <span class="badge">{pendingInbox > 99 ? '99+' : pendingInbox}</span>
-        {/if}
-        <span class="chevron">›</span>
-      </button>
-    {/if}
-
-    <button class="card" onclick={() => onNavigate('questionnaire')}>
-      <span class="card-icon">{@html icons.clipboard}</span>
-      <div class="card-body">
-        <span class="card-label">Fragebögen</span>
-        <span class="card-desc">Aufgaben beantworten</span>
-      </div>
-      {#if pendingQuestionnaires > 0}
-        <span class="badge">{pendingQuestionnaires > 99 ? '99+' : pendingQuestionnaires}</span>
-      {/if}
-      <span class="chevron">›</span>
-    </button>
-
-    <button class="card" onclick={() => onNavigate('support')}>
-      <span class="card-icon">{@html icons.bug}</span>
-      <div class="card-body">
-        <span class="card-label">Feedback &amp; Support</span>
-        <span class="card-desc">Fehler melden, Ideen teilen</span>
-      </div>
-      <span class="chevron">›</span>
-    </button>
-
-    {#if helpSection}
-      <button class="card" onclick={() => onNavigate('help')}>
-        <span class="card-icon card-icon-help">?</span>
-        <div class="card-body">
-          <span class="card-label">Hilfe</span>
-          <span class="card-desc">Kontexthilfe für diese Seite</span>
-        </div>
-        <span class="chevron">›</span>
-      </button>
-    {/if}
+    {/each}
   </div>
 </div>
 
 <style>
-  .home {
-    padding: 20px 16px;
+  .sk-home {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    flex: 1;
   }
 
-  .greeting {
-    font-size: 13px;
-    color: var(--admin-text-mute, #8899aa);
-    margin: 0;
-    font-weight: 500;
-  }
-
-  .cards {
+  /* ── Intro block ── */
+  .sk-intro {
+    padding: 28px 22px 8px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .card {
-    display: flex;
+  .sk-eyebrow {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: oklch(0.83 0.09 75);
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 12px;
-    background: var(--admin-surface, #131f33);
-    border: 1px solid var(--admin-border, #243049);
-    border-radius: 10px;
-    cursor: pointer;
+    gap: 10px;
+  }
+
+  .sk-eyebrow-bar {
+    width: 20px;
+    height: 1px;
+    background: oklch(0.83 0.09 75);
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+
+  .sk-headline {
+    margin: 0;
+    font-family: var(--font-serif, 'Newsreader', serif);
+    font-size: 26px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+    color: var(--admin-text, #e8e8f0);
+  }
+
+  .sk-headline em {
+    font-style: italic;
+    color: oklch(0.87 0.09 75);
+  }
+
+  .sk-sub {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--admin-text-mute, #8899aa);
+    max-width: 34ch;
+  }
+
+  /* ── Item list ── */
+  .sk-list {
+    margin-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sk-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto 28px;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: transparent;
+    color: inherit;
     text-align: left;
-    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+    position: relative;
+    transition: background 220ms ease;
     width: 100%;
   }
-  .card:hover {
-    border-color: rgba(232, 200, 112, 0.4);
-    background: #1a2438;
+
+  .sk-row--hover {
+    background: linear-gradient(to right, transparent, rgba(232,200,112,.04), transparent);
   }
 
-  .card-icon {
-    font-size: 20px;
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--admin-text-mute, #8899aa);
+  .sk-no {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--admin-text-disabled, #445);
+    transition: color 180ms ease;
   }
 
-  .card-icon-help {
-    background: #4f46e5;
-    border-radius: 50%;
-    font-size: 16px;
-    font-weight: 700;
-    color: #fff;
-    font-style: normal;
+  .sk-no--active {
+    color: oklch(0.83 0.09 75);
   }
 
-  .card-body {
-    flex: 1;
-    min-width: 0;
+  .sk-body {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
+    min-width: 0;
   }
 
-  .card-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #e8e8f0;
+  .sk-item-title {
+    font-family: var(--font-serif, 'Newsreader', serif);
+    font-size: 19px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    font-weight: 400;
+    color: var(--admin-text, #e8e8f0);
   }
 
-  .card-desc {
-    font-size: 11px;
-    color: var(--admin-text-mute, #5566aa);
+  .sk-item-sub {
+    font-size: 12px;
+    color: var(--admin-text-mute, #8899aa);
+    line-height: 1.4;
   }
 
-  .badge {
-    flex-shrink: 0;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: #ef4444;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
+  .sk-badge-slot {
     display: flex;
+    justify-content: flex-end;
+    min-width: 24px;
+  }
+
+  .sk-brass-badge {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: oklch(0.83 0.09 75);
+    color: #0b111c;
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: monospace;
+    flex-shrink: 0;
   }
 
-  .chevron {
-    font-size: 18px;
-    color: #5566aa;
+  .sk-arrow {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: transparent;
+    color: var(--admin-text-mute, #8899aa);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
     flex-shrink: 0;
-    line-height: 1;
+  }
+
+  .sk-arrow--active {
+    border-color: oklch(0.83 0.09 75);
+    background: oklch(0.83 0.09 75);
+    color: #0b111c;
   }
 </style>

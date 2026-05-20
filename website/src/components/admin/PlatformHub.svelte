@@ -7,14 +7,11 @@
   import LogsTab from './ops/LogsTab.svelte';
   import DatenbankTab from './ops/DatenbankTab.svelte';
   import DnsZertTab from './ops/DnsZertTab.svelte';
-  import TicketsTab from './TicketsTab.svelte';
-
   export let cluster: string;
 
-  let activeTab = 'tickets';
+  let activeTab = 'flux';
 
   const tabs = [
-    { id: 'tickets', label: 'Tickets' },
     { id: 'flux', label: 'GitOps', premium: true },
     { id: 'software', label: 'Software', premium: true },
     { id: 'hardware', label: 'Hardware' },
@@ -53,9 +50,7 @@
   </div>
 
   <main class="transition-all duration-300">
-    {#if activeTab === 'tickets'}
-      <TicketsTab />
-    {:else if activeTab === 'flux'}
+    {#if activeTab === 'flux'}
       <FluxCDTab {cluster} />
     {:else if activeTab === 'software'}
       <SoftwareTab {cluster} />

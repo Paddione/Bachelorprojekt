@@ -2,6 +2,9 @@
 version: "3"
 
 includes:
+  assets:
+    taskfile: ./Taskfile.assets.yml
+    dir: .
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
@@ -2412,6 +2415,8 @@ tasks:
     desc: "Build the Astro website Docker image (ENV=dev|mentolder|...)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
+    deps:
+      - assets:sync
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -2738,6 +2743,8 @@ tasks:
     desc: "Build brett image (and import into k3d in dev)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
+    deps:
+      - assets:sync
     cmds:
       - docker build -t ghcr.io/paddione/workspace-brett:latest brett/
       - |

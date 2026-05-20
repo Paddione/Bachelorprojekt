@@ -1,0 +1,65 @@
+/* Print/document shared styles — invoice, contract, questionnaire, newsletter.
+   Warm-paper palette. Kept lean so each document HTML can override locally. */
+@import url("colors_and_type.css");
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans);
+  background:#dad4c8;
+  color:var(--paper-ink);
+  font-size:14px; line-height:1.55;
+  letter-spacing:-0.005em;
+  padding:40px 0;
+}
+.page{
+  width:794px; min-height:1123px; /* A4 @ 96dpi */
+  margin:0 auto 32px;
+  background:var(--paper);
+  color:var(--paper-ink);
+  padding:64px 72px;
+  position:relative;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.35);
+}
+.page::before{
+  content:""; position:absolute; left:0; right:0; top:0; height:4px;
+  background:linear-gradient(to right, transparent, #A8823A 30%, #A8823A 70%, transparent);
+  opacity:.7;
+}
+
+.brand-row{display:flex;align-items:center;gap:14px;}
+.brand-row img{width:36px;height:36px;display:block;}
+.brand-row .name{font-family:var(--serif);font-size:24px;letter-spacing:-0.01em;color:var(--paper-ink);}
+.brand-row .dot{color:#A8823A;}
+
+.eyebrow-print{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#A8823A;display:inline-flex;align-items:center;gap:10px;}
+.eyebrow-print::before{content:"";width:22px;height:1px;background:currentColor;opacity:.8;}
+
+h1.print{font-family:var(--serif);font-weight:350;font-size:42px;line-height:1.05;letter-spacing:-0.02em;color:var(--paper-ink);margin:0;}
+h1.print em{font-style:italic;font-weight:400;color:#A8823A;}
+h2.print{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.2;letter-spacing:-0.01em;color:var(--paper-ink);margin:0;}
+h3.print{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:-0.005em;color:var(--paper-ink);margin:0;}
+
+.kicker-print{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--paper-mute);}
+.muted{color:var(--paper-mute);}
+.small{font-size:12px;}
+
+.rule{height:1px;background:var(--paper-line);border:0;}
+
+table.t{width:100%;border-collapse:collapse;}
+table.t th,table.t td{text-align:left;padding:14px 12px;font-size:14px;}
+table.t th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-mute);font-weight:500;border-bottom:1px solid var(--paper-line);}
+table.t td{border-bottom:1px solid var(--paper-line);}
+table.t .num{text-align:right;font-variant-numeric:tabular-nums;}
+
+.totals{display:flex;justify-content:flex-end;margin-top:14px;}
+.totals dl{display:grid;grid-template-columns:auto auto;gap:4px 32px;font-size:14px;min-width:280px;}
+.totals dt{color:var(--paper-mute);}
+.totals dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;}
+.totals .grand{font-family:var(--serif);font-size:24px;color:var(--paper-ink);letter-spacing:-0.01em;padding-top:10px;border-top:1px solid var(--paper-line);margin-top:6px;}
+.totals .grand-l{padding-top:10px;border-top:1px solid var(--paper-line);margin-top:6px;color:var(--paper-ink);font-weight:600;}
+
+.foot-print{margin-top:48px;padding-top:18px;border-top:1px solid var(--paper-line);
+  display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:11px;color:var(--paper-mute);}
+.foot-print h5{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#A8823A;margin:0 0 6px;font-weight:500;}
+.foot-print p{margin:2px 0;}

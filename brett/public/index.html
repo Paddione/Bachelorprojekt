@@ -155,6 +155,28 @@
     </div>
   </div>
   <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = Figur teleportieren / neue Figur</div>
+
+  <!-- Co-op Wave HUD -->
+  <div id="coop-hud" style="display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);
+    background:rgba(10,10,20,.82);border:1px solid #4a7;border-radius:8px;
+    padding:8px 20px;font-family:monospace;color:#ccd;font-size:13px;
+    flex-direction:column;gap:4px;min-width:220px;z-index:200;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#c9aa71;font-weight:bold;letter-spacing:.1em;">CO-OP</span>
+      <span id="coop-wave-label" style="font-size:15px;font-weight:bold;color:#fff;">WELLE 1 / 10</span>
+      <span id="coop-enemy-count" style="color:#e87;">Feinde: <strong>0</strong></span>
+    </div>
+    <div style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:4px;">
+      <div id="coop-progress-bar" style="width:10%;height:100%;background:linear-gradient(90deg,#4a7,#c9aa71);transition:width .5s;"></div>
+    </div>
+    <div id="boss-hp-wrap" style="display:none;margin-top:4px;">
+      <div style="color:#f44;font-size:11px;margin-bottom:2px;">&#9888; BOSS HP</div>
+      <div style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:6px;">
+        <div id="boss-hp-bar" style="width:100%;height:100%;background:#f44;transition:width .3s;"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="three.min.js"></script>
   <script>
     // ===== Brett Mannequin Focus =====

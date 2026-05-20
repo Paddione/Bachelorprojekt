@@ -632,6 +632,36 @@ const Mayhem = (() => {
   function updateHud() {
     if (!hud) return;
     updateHudFrame();
+    updateCoopHud();
+  }
+
+  function updateCoopHud() {
+    const hudEl = document.getElementById('coop-hud');
+    if (!hudEl || !gameMode) return;
+    const isCoop = gameMode.mode === 'coop';
+    hudEl.style.display = isCoop ? 'flex' : 'none';
+    if (!isCoop) return;
+    const wave    = gameMode.getCoopWave();
+    const enemies = gameMode._enemiesAlive.size;
+    const def     = gameMode.getCoopWaveDef();
+    const waveLabel = document.getElementById('coop-wave-label');
+    const enemyCount = document.getElementById('coop-enemy-count');
+    const progressBar = document.getElementById('coop-progress-bar');
+    if (waveLabel)   waveLabel.textContent = `WELLE ${wave} / 10`;
+    if (enemyCount)  enemyCount.innerHTML  = `Feinde: <strong>${enemies}</strong>`;
+    if (progressBar) progressBar.style.width = `${(wave / 10) * 100}%`;
+    const bossWrap = document.getElementById('boss-hp-wrap');
+    const bossBar  = document.getElementById('boss-hp-bar');
+    const isBossWave = def && def.boss;
+    if (bossWrap) bossWrap.style.display = isBossWave ? 'block' : 'none';
+    if (isBossWave && def && bossBar) {
+      const maxHp = def.multiplier.hp;
+      let currentHp = 0;
+      for (const bot of aiBots.values()) {
+        if (bot.isBoss) { currentHp = bot._hp; break; }
+      }
+      bossBar.style.width = `${Math.max(0, (currentHp / maxHp) * 100)}%`;
+    }
   }
 
   function updateHudFrame() {

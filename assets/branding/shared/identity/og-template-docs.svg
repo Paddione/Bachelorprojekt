@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="OG share card template — docs">
+  <defs>
+    <radialGradient id="og-brass" cx="85%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#d7b06a" stop-opacity="0.22"></stop>
+      <stop offset="100%" stop-color="#d7b06a" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="og-cool" cx="10%" cy="92%" r="55%">
+      <stop offset="0%" stop-color="#3a4a6e" stop-opacity="0.55"></stop>
+      <stop offset="100%" stop-color="#3a4a6e" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="og-grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"></feColorMatrix></filter>
+  </defs>
+  <rect width="1200" height="630" fill="#0b111c"></rect>
+  <rect width="1200" height="630" fill="url(#og-brass)"></rect>
+  <rect width="1200" height="630" fill="url(#og-cool)"></rect>
+  <rect width="1200" height="630" filter="url(#og-grain)" opacity="0.5"></rect>
+
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="#d7b06a" stroke-opacity="0.22"></rect>
+  <g stroke="#d7b06a" stroke-opacity="0.7" stroke-width="1" fill="none">
+    <path d="M40 60 L40 40 L60 40"></path>
+    <path d="M1160 60 L1160 40 L1140 40"></path>
+    <path d="M40 570 L40 590 L60 590"></path>
+    <path d="M1160 570 L1160 590 L1140 590"></path>
+  </g>
+
+  <g font-family="Geist Mono, monospace" font-size="13" letter-spacing="3">
+    <text x="72" y="90" fill="#d7b06a">— MENTOLDER · DOCS</text>
+    <text x="1128" y="90" fill="#8c96a3" text-anchor="end">{{ section.slug }}</text>
+  </g>
+
+  <g transform="translate(72, 230)">
+    <text font-family="Newsreader, serif" font-weight="350" font-size="72" letter-spacing="-1.8" fill="#eef1f3">{{ doc.title }}</text>
+    <text y="84" font-family="Newsreader, serif" font-weight="350" font-style="italic" font-size="72" letter-spacing="-1.8" fill="#d7b06a">— {{ doc.tagline }}</text>
+  </g>
+
+  <text x="72" y="430" font-family="Geist, sans-serif" font-weight="300" font-size="22" fill="#cdd3d9">{{ doc.lede }}</text>
+
+  <g transform="translate(72, 540)">
+    <rect x="0" y="-32" width="44" height="44" rx="6" fill="#d7b06a"></rect>
+    <text x="22" y="0" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-weight="600" font-size="30" fill="#0b111c">m</text>
+    <text x="60" y="-6" font-family="Newsreader, serif" font-style="italic" font-weight="500" font-size="22" fill="#eef1f3">mentolder<tspan fill="#d7b06a">.</tspan></text>
+    <text x="60" y="14" font-family="Geist Mono, monospace" font-size="11" letter-spacing="2.5" fill="#8c96a3">{{ doc.author }} · {{ doc.date }}</text>
+  </g>
+  <g transform="translate(1128, 540)" text-anchor="end">
+    <text font-family="Geist Mono, monospace" font-size="11" letter-spacing="2.5" fill="#8c96a3">{{ doc.reading_time }} MIN · LESEN</text>
+  </g>
+</svg>

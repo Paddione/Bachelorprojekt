@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240" role="img" aria-label="Subnet grid">
+  <defs>
+    <pattern id="sg" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#120D1C"></rect><path d="M24 0 L0 0 0 24" fill="none" stroke="#7a8b4f" stroke-opacity=".35" stroke-width="0.5"></path></pattern>
+    <pattern id="sgBig" width="120" height="120" patternUnits="userSpaceOnUse"><path d="M120 0 L0 0 0 120" fill="none" stroke="#C8F76A" stroke-opacity=".25" stroke-width="0.7"></path></pattern>
+  </defs>
+  <rect width="480" height="240" fill="url(#sg)"></rect>
+  <rect width="480" height="240" fill="url(#sgBig)"></rect>
+  <g fill="#C8F76A"><circle cx="120" cy="120" r="2"></circle><circle cx="240" cy="120" r="2"></circle><circle cx="360" cy="120" r="2"></circle><circle cx="60" cy="60" r="1.5" opacity=".7"></circle><circle cx="420" cy="180" r="1.5" opacity=".7"></circle></g>
+  <text x="14" y="22" font-family="Geist Mono, monospace" font-size="8" fill="#7a8b4f" letter-spacing="1">10.0.0.0/24</text>
+  <text x="200" y="22" font-family="Geist Mono, monospace" font-size="8" fill="#7a8b4f" letter-spacing="1">10.1.0.0/24</text>
+  <text x="380" y="22" font-family="Geist Mono, monospace" font-size="8" fill="#7a8b4f" letter-spacing="1">VPC-PROD</text>
+</svg>

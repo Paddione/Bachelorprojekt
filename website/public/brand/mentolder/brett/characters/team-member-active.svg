@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320" role="img" aria-label="Team member active">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#17202e"></stop><stop offset="100%" stop-color="#0b111c"></stop>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0"></feColorMatrix></filter>
+  </defs>
+  <rect x="0" y="0" width="240" height="320" fill="url(#g)"></rect>
+  <rect x="0" y="0" width="240" height="320" filter="url(#grain)" opacity=".5"></rect>
+  <rect x="14" y="14" width="212" height="292" fill="none" stroke="#d7b06a" stroke-opacity=".22" stroke-width="1"></rect>
+  <g stroke="#d7b06a" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M14 24 L14 14 L24 14"></path><path d="M226 24 L226 14 L216 14"></path>
+    <path d="M14 296 L14 306 L24 306"></path><path d="M226 296 L226 306 L216 306"></path>
+  </g>
+  
+  <g fill="#9fb39c">
+    <ellipse cx="124" cy="76" rx="20" ry="24"></ellipse>
+    <path d="M82 122 Q90 105 112 100 L146 100 Q166 108 170 130 L168 192 L74 184 Z"></path>
+    <path d="M152 124 Q186 138 196 168 L184 178 Q160 154 144 142 Z"></path>
+    <path d="M86 130 Q72 152 80 174 L92 168 Q98 150 100 138 Z"></path>
+    <path d="M96 190 L88 268 L106 270 L114 192 Z"></path>
+    <path d="M132 192 L148 268 L160 264 L150 190 Z"></path>
+    <ellipse cx="96" cy="272" rx="12" ry="5"></ellipse>
+    <ellipse cx="154" cy="270" rx="12" ry="5"></ellipse>
+  </g>
+  <path d="M196 168 L210 168 L204 162 M210 168 L204 174" stroke="#d7b06a" stroke-width="2" fill="none"></path>
+  <text x="120" y="296" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#d7b06a" letter-spacing="2">TEAM · ACTIVE</text>
+
+</svg>

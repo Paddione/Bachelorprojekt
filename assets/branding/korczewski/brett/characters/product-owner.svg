@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320" role="img" aria-label="Product owner">
+  <defs>
+    <radialGradient id="gk" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="#1c1428"></stop><stop offset="100%" stop-color="#120D1C"></stop></radialGradient>
+    <filter id="grainK"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0"></feColorMatrix></filter>
+  </defs>
+  <rect x="0" y="0" width="240" height="320" fill="url(#gk)"></rect>
+  <rect x="0" y="0" width="240" height="320" filter="url(#grainK)" opacity=".6"></rect>
+  <rect x="14" y="14" width="212" height="292" fill="none" stroke="#7a8b4f" stroke-opacity=".35"></rect>
+  <g stroke="#C8F76A" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M14 24 L14 14 L24 14"></path><path d="M226 24 L226 14 L216 14"></path>
+    <path d="M14 296 L14 306 L24 306"></path><path d="M226 296 L226 306 L216 306"></path>
+  </g>
+  
+  <g fill="#4c4d5b">
+    <ellipse cx="118" cy="74" rx="18" ry="22"></ellipse>
+    <path d="M84 108 Q88 96 106 96 L132 96 Q150 96 156 108 L160 200 L80 200 Z"></path>
+    <path d="M80 130 L62 188 L84 200 L98 158 Z"></path>
+    <path d="M160 130 L178 188 L156 200 L142 158 Z"></path>
+    <rect x="94" y="200" width="20" height="70" rx="4"></rect>
+    <rect x="126" y="200" width="20" height="70" rx="4"></rect>
+  </g>
+  <rect x="62" y="156" width="116" height="56" fill="#1c1428" stroke="#7a8b4f" stroke-width="1"></rect>
+  <g stroke="#7a8b4f" stroke-width="0.4" opacity=".7">
+    <line x1="72" y1="156" x2="72" y2="212"></line><line x1="92" y1="156" x2="92" y2="212"></line>
+    <line x1="112" y1="156" x2="112" y2="212"></line><line x1="132" y1="156" x2="132" y2="212"></line>
+    <line x1="152" y1="156" x2="152" y2="212"></line><line x1="168" y1="156" x2="168" y2="212"></line>
+    <line x1="62" y1="170" x2="178" y2="170"></line><line x1="62" y1="184" x2="178" y2="184"></line>
+    <line x1="62" y1="198" x2="178" y2="198"></line>
+  </g>
+  <rect x="78" y="174" width="40" height="20" fill="none" stroke="#C8F76A" stroke-width="1.2"></rect>
+  <line x1="124" y1="178" x2="166" y2="178" stroke="#C8F76A" stroke-width="1" opacity=".85"></line>
+  <line x1="124" y1="186" x2="158" y2="186" stroke="#C8F76A" stroke-width="1" opacity=".55"></line>
+  <text x="120" y="296" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#7a8b4f" letter-spacing="2">PRODUCT · OWNER</text>
+
+</svg>

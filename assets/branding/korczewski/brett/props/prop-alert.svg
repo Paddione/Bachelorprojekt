@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Alert">
+  <defs>
+    <radialGradient id="pgk" cx="50%" cy="45%" r="65%"><stop offset="0%" stop-color="#1c1428"></stop><stop offset="100%" stop-color="#120D1C"></stop></radialGradient>
+    <filter id="pgrainK"><feTurbulence type="fractalNoise" baseFrequency="1.0" numOctaves="2" seed="9"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0"></feColorMatrix></filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#pgk)"></rect>
+  <rect width="200" height="200" filter="url(#pgrainK)" opacity=".5"></rect>
+  <rect x="12" y="12" width="176" height="176" fill="none" stroke="#7a8b4f" stroke-opacity=".35"></rect>
+  
+  <path d="M100 32 L168 148 L32 148 Z" fill="#2a1f3a" stroke="#C8F76A" stroke-width="2"></path>
+  <path d="M100 50 L156 144 L44 144 Z" fill="none" stroke="#7a8b4f" stroke-width="0.6" stroke-dasharray="3 2" opacity=".6"></path>
+  <rect x="96" y="68" width="8" height="48" fill="#C8F76A"></rect>
+  <rect x="96" y="124" width="8" height="8" fill="#C8F76A"></rect>
+  <text x="100" y="180" text-anchor="middle" font-family="Geist Mono, monospace" font-size="8" fill="#7a8b4f" letter-spacing="2">ALERT · NODE FAIL</text>
+
+</svg>

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-label="Korczewski Keycloak login background">
+  <defs>
+    <radialGradient id="kbl-lime" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C8F76A" stop-opacity="0.45"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="kbl-purple" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6a3b8f" stop-opacity="0.55"></stop>
+      <stop offset="100%" stop-color="#6a3b8f" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="kbl-cyan" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5fb8c8" stop-opacity="0.4"></stop>
+      <stop offset="100%" stop-color="#5fb8c8" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="kbl-blur"><feGaussianBlur stdDeviation="45"></feGaussianBlur></filter>
+    <filter id="kbl-grain"><feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="7"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0"></feColorMatrix></filter>
+    <pattern id="kbl-scan" width="4" height="4" patternUnits="userSpaceOnUse">
+      <rect width="4" height="1" fill="#C8F76A" opacity="0.04"></rect>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#120D1C"></rect>
+  <g filter="url(#kbl-blur)">
+    <circle cx="360" cy="280" r="340" fill="url(#kbl-lime)"></circle>
+    <circle cx="1620" cy="820" r="400" fill="url(#kbl-purple)"></circle>
+    <circle cx="1720" cy="180" r="220" fill="url(#kbl-cyan)"></circle>
+    <circle cx="240" cy="900" r="260" fill="url(#kbl-purple)"></circle>
+  </g>
+  <rect width="1920" height="1080" fill="url(#kbl-scan)"></rect>
+  <rect width="1920" height="1080" filter="url(#kbl-grain)" opacity="0.75"></rect>
+
+  <rect x="80" y="80" width="1760" height="920" fill="none" stroke="#C8F76A" stroke-opacity="0.22"></rect>
+  <g stroke="#C8F76A" stroke-opacity="0.7" stroke-width="1" fill="none">
+    <path d="M80 110 L80 80 L110 80"></path>
+    <path d="M1840 110 L1840 80 L1810 80"></path>
+    <path d="M80 970 L80 1000 L110 1000"></path>
+    <path d="M1840 970 L1840 1000 L1810 1000"></path>
+  </g>
+
+  <g font-family="Geist Mono, monospace" font-size="13" letter-spacing="2.5">
+    <text x="110" y="138" fill="#C8F76A">$ auth --provider oidc</text>
+    <text x="110" y="158" fill="#7a8b4f">CLUSTER · KORCZEWSKI.DE</text>
+  </g>
+  <g font-family="Geist Mono, monospace" font-size="13" letter-spacing="2.5" text-anchor="end">
+    <text x="1810" y="138" fill="#C8F76A">KEYCLOAK · v25.0</text>
+    <text x="1810" y="158" fill="#7a8b4f">[SECURE] · TLS 1.3</text>
+  </g>
+
+  <g transform="translate(960, 440)" text-anchor="middle">
+    <text font-family="Geist Mono, monospace" font-size="13" letter-spacing="4" fill="#7a8b4f">› SYSTEM AUTH GATEWAY</text>
+  </g>
+  <g transform="translate(960, 580)" text-anchor="middle">
+    <text font-family="Geist, sans-serif" font-weight="600" font-size="108" fill="#eef1f3" letter-spacing="-2.5">korczewski<tspan fill="#C8F76A">.de</tspan></text>
+  </g>
+  <g transform="translate(960, 660)" text-anchor="middle">
+    <text font-family="Geist Mono, monospace" font-size="17" letter-spacing="4" fill="#7a8b4f">DEVOPS · PLATFORM · INFRASTRUCTURE</text>
+  </g>
+
+  <g transform="translate(960, 800)" text-anchor="middle">
+    <line x1="-60" y1="0" x2="60" y2="0" stroke="#C8F76A" stroke-opacity="0.55"></line>
+    <text y="36" font-family="Geist, sans-serif" font-weight="300" font-size="20" fill="#cdd3d9">Sign in with your platform account.</text>
+    <text y="68" font-family="Geist Mono, monospace" font-size="12" letter-spacing="2.5" fill="#7a8b4f">— KEYCLOAK FORM INJECTED HERE —</text>
+  </g>
+
+  <g font-family="Geist Mono, monospace" font-size="11" letter-spacing="2.5" fill="#5a6b3f">
+    <text x="110" y="975">© 2026 KORCZEWSKI.DE — INFRASTRUCTURE AS POSITION</text>
+    <text x="1810" y="975" text-anchor="end">CONTAINERIZED · OBSERVABLE · GITOPS</text>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240" role="img" aria-label="Namespace boundary">
+  <rect width="480" height="240" fill="#120D1C"></rect>
+  <rect x="14" y="14" width="220" height="212" fill="#1c1428" stroke="#7a8b4f" stroke-width="1" stroke-dasharray="6 4"></rect>
+  <text x="26" y="34" font-family="Geist Mono, monospace" font-size="9" fill="#C8F76A" letter-spacing="2">NS · WORKSPACE</text>
+  <rect x="246" y="14" width="220" height="212" fill="#1c1428" stroke="#7a8b4f" stroke-width="1" stroke-dasharray="6 4"></rect>
+  <text x="258" y="34" font-family="Geist Mono, monospace" font-size="9" fill="#C8F76A" letter-spacing="2">NS · WEBSITE</text>
+  <path d="M196 120 L284 120" stroke="#C8F76A" stroke-width="1.5" stroke-dasharray="3 3"></path>
+  <path d="M284 120 L278 116 M284 120 L278 124" stroke="#C8F76A" stroke-width="1.5" fill="none"></path>
+  <g fill="#4c4d5b" stroke="#7a8b4f" stroke-width="0.6">
+    <rect x="40" y="80" width="60" height="40" rx="2"></rect><rect x="118" y="80" width="60" height="40" rx="2"></rect>
+    <rect x="40" y="138" width="60" height="40" rx="2"></rect><rect x="118" y="138" width="60" height="40" rx="2"></rect>
+    <rect x="296" y="80" width="80" height="40" rx="2"></rect><rect x="296" y="138" width="80" height="40" rx="2"></rect>
+  </g>
+</svg>

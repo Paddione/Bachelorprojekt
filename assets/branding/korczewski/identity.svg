@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" role="img" aria-label="Korczewski identity placeholder">
+  <title>Placeholder identity — replace with commissioned portrait</title>
+  <desc>First-cut placeholder: brass/lime line-art K monogram inside a sage/teal circle on transparent background. The Hero pipeline currently expects identity.webp; this SVG ships in its place until a real portrait is commissioned.</desc>
+
+  <!-- Sage / teal halo ring -->
+  <circle cx="300" cy="380" r="240" fill="none" stroke="#5BD4D0" stroke-width="2" stroke-opacity="0.55"/>
+  <circle cx="300" cy="380" r="220" fill="none" stroke="#5BD4D0" stroke-width="1" stroke-opacity="0.25"/>
+
+  <!-- Inner faint frame -->
+  <circle cx="300" cy="380" r="180" fill="none" stroke="#C8F76A" stroke-width="1" stroke-opacity="0.18"/>
+
+  <!-- K monogram, brass/lime line-art, geometric -->
+  <g stroke="#C8F76A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- vertical stem of K -->
+    <line x1="240" y1="270" x2="240" y2="490"/>
+    <!-- upper diagonal -->
+    <line x1="240" y1="380" x2="360" y2="270"/>
+    <!-- lower diagonal -->
+    <line x1="240" y1="380" x2="360" y2="490"/>
+    <!-- accent dot at vertex -->
+    <circle cx="240" cy="380" r="5" fill="#C8F76A" stroke="none"/>
+  </g>
+
+  <!-- Eyebrow rule + label -->
+  <g transform="translate(300,640)" text-anchor="middle">
+    <line x1="-30" y1="-20" x2="30" y2="-20" stroke="#C8F76A" stroke-width="1"/>
+    <text font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="3" fill="#C8F76A" y="2">PLACEHOLDER</text>
+    <text font-family="'Instrument Serif', Georgia, serif" font-size="22" fill="#ECEFF3" y="34">korczewski</text>
+  </g>
+</svg>

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1A1326"></stop>
+      <stop offset="100%" stop-color="#120D1C"></stop>
+    </linearGradient>
+    <radialGradient id="glow" cx="92%" cy="6%" r="60%">
+      <stop offset="0%" stop-color="#C8F76A" stop-opacity="0.22"></stop>
+      <stop offset="55%" stop-color="#C8F76A" stop-opacity="0.05"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="markGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E6FFB0" stop-opacity="0.85"></stop>
+      <stop offset="50%" stop-color="#C8F76A" stop-opacity="0.45"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="lime" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D8FF8A"></stop>
+      <stop offset="100%" stop-color="#8FBE2E"></stop>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4"></feTurbulence>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0"></feColorMatrix>
+      <feComposite in2="SourceGraphic" operator="in"></feComposite>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#ink)"></rect>
+  <rect width="1200" height="630" fill="url(#glow)"></rect>
+  <rect width="1200" height="630" filter="url(#grain)" opacity="0.55" style="mix-blend-mode:overlay"></rect>
+
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="rgba(255,255,255,0.10)"></rect>
+
+  <g transform="translate(72,90)">
+    <line x1="0" y1="-4" x2="22" y2="-4" stroke="#C8F76A"></line>
+    <text class="mono" x="32" y="0" font-size="13" letter-spacing="3.6" fill="#C8F76A">[ KUBERNETES · INFRASTRUCTURE · SRE ]</text>
+  </g>
+
+  <g transform="translate(1128,90)">
+    <rect x="-156" y="-22" width="156" height="30" rx="15" fill="rgba(200,247,106,0.08)" stroke="rgba(200,247,106,0.32)"></rect>
+    <circle cx="-138" cy="-7" r="3" fill="#C8F76A"></circle>
+    <text class="mono" x="-126" y="-3" font-size="10" letter-spacing="2.2" fill="#D8FF8A">NOW DEPLOYING</text>
+  </g>
+
+  <g transform="translate(990,160)">
+    <rect x="0" y="0" width="140" height="140" rx="24" fill="#1A1326" stroke="rgba(255,255,255,0.08)"></rect>
+    <circle cx="70" cy="70" r="52" fill="url(#markGlow)"></circle>
+    <circle cx="70" cy="70" r="40" fill="none" stroke="#C8F76A" stroke-opacity="0.22"></circle>
+    <circle cx="70" cy="70" r="28" fill="none" stroke="#C8F76A" stroke-opacity="0.35"></circle>
+    <g stroke="url(#lime)" stroke-linecap="round" stroke-width="9" fill="none">
+      <line x1="94" y1="38" x2="50" y2="70"></line>
+      <line x1="50" y1="70" x2="94" y2="102"></line>
+    </g>
+    <circle cx="50" cy="70" r="6" fill="#D8FF8A"></circle>
+    <circle cx="50" cy="70" r="10" fill="none" stroke="#D8FF8A" stroke-opacity="0.4"></circle>
+  </g>
+
+  <text class="serif" x="72" y="232" font-size="76" fill="#ECEFF3" letter-spacing="-1.6">Kubernetes,</text>
+  <text class="iserif" x="72" y="312" font-size="76" fill="#D8FF8A" letter-spacing="-1.6">quietly run for you.</text>
+
+  <text class="sans" x="72" y="362" font-size="20" fill="#C6CCD4">A boutique studio for clusters that should not need attention.</text>
+
+  <g transform="translate(72,470)">
+    <line x1="0" y1="0" x2="1056" y2="0" stroke="rgba(255,255,255,0.20)"></line>
+    <g>
+      <text class="mono" x="0" y="22" font-size="11" letter-spacing="2.4" fill="#8A93A0">CLUSTER ADOPTION</text>
+      <text class="serif" x="0" y="78" font-size="56" fill="#ECEFF3">2<tspan class="mono" font-size="20" fill="#69707B" dx="6">WK</tspan></text>
+    </g>
+    <g transform="translate(290,0)">
+      <text class="mono" x="0" y="22" font-size="11" letter-spacing="2.4" fill="#8A93A0">SLO COMPLIANCE</text>
+      <text class="serif" x="0" y="78" font-size="56" fill="#ECEFF3">99.95<tspan class="mono" font-size="20" fill="#69707B" dx="4">%</tspan></text>
+    </g>
+    <g transform="translate(580,0)">
+      <text class="mono" x="0" y="22" font-size="11" letter-spacing="2.4" fill="#8A93A0">PAGES OUT-OF-HOURS</text>
+      <text class="serif" x="0" y="78" font-size="56" fill="#ECEFF3">0</text>
+    </g>
+    <g transform="translate(870,0)">
+      <text class="mono" x="0" y="22" font-size="11" letter-spacing="2.4" fill="#8A93A0">RETAINER · FROM</text>
+      <text class="serif" x="0" y="78" font-size="56" fill="#ECEFF3">€8k<tspan class="mono" font-size="20" fill="#69707B" dx="4">/MO</tspan></text>
+    </g>
+  </g>
+
+  <g transform="translate(72,575)">
+    <text class="serif" x="0" y="0" font-size="20" fill="#ECEFF3" letter-spacing="-0.2">Kore<tspan fill="#C8F76A">.</tspan></text>
+    <text class="mono" x="76" y="-2" font-size="10" letter-spacing="2.4" fill="#69707B">KORE.DEV  ·  HELSINKI ↔ BERLIN</text>
+    <text class="mono" x="1128" y="-2" text-anchor="end" font-size="10" letter-spacing="2.4" fill="#69707B">SIX-MONTH ENGAGEMENTS  ·  ZERO MAGIC</text>
+  </g>
+</svg>

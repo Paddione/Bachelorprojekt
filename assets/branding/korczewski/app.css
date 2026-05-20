@@ -1,0 +1,155 @@
+/* Kore — App shell + cross-cutting styles */
+html,body{background:var(--ink-900);color:var(--fg);min-height:100%;}
+body{position:relative;font-family:var(--sans);}
+
+/* film grain on dark surfaces */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:.55; mix-blend-mode:overlay;
+}
+main{position:relative; z-index:2;}
+
+a{color:inherit;}
+
+/* =========================================================================
+   App shell — top tab nav between the five artifacts
+   ========================================================================= */
+.shell-nav{
+  position:sticky; top:0; z-index:50;
+  backdrop-filter: blur(14px);
+  background: rgba(18,13,28,.78);
+  border-bottom:1px solid var(--line);
+}
+.shell-nav-inner{
+  max-width:1440px; margin:0 auto;
+  padding:14px 28px;
+  display:flex; align-items:center; gap:24px;
+}
+.shell-brand{
+  display:flex; align-items:center; gap:12px;
+  font-family:var(--serif); font-size:22px; letter-spacing:-0.01em;
+  text-decoration:none; color:var(--fg);
+}
+.shell-brand .dot{color:var(--copper);}
+.shell-brand .sep{color:var(--mute-2); margin: 0 4px; font-size:18px;}
+.shell-brand .crumb{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute);}
+.shell-tabs{
+  margin-left:auto;
+  display:flex; gap:2px; align-items:center;
+  padding:4px;
+  border:1px solid var(--line-2);
+  border-radius:999px;
+  background:rgba(255,255,255,.02);
+}
+.shell-tab{
+  font-family:var(--mono); font-size:11px;
+  letter-spacing:.14em; text-transform:uppercase;
+  padding:8px 14px; border-radius:999px;
+  color:var(--mute); cursor:pointer;
+  border:0; background:transparent;
+  transition: all 180ms var(--ease);
+  display:inline-flex; align-items:center; gap:8px;
+}
+.shell-tab:hover{color:var(--fg);}
+.shell-tab.active{
+  color:var(--copper-deep);
+  background:var(--copper);
+  box-shadow: var(--inner-copper);
+}
+.shell-tab .num{
+  font-size:9.5px; opacity:.7;
+}
+
+.shell-meta{
+  font-family:var(--mono); font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase;
+  color:var(--mute); margin-left:8px;
+}
+
+/* generic buttons reused across views */
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:11px 20px; border-radius:999px;
+  font-family:var(--sans); font-size:14px; font-weight:500;
+  cursor:pointer; border:1px solid transparent; text-decoration:none;
+  transition: all 200ms var(--ease);
+}
+.btn.primary{
+  background:var(--copper); color:var(--copper-deep);
+  box-shadow: var(--inner-copper), 0 8px 16px -8px rgba(200,247,106,.45);
+}
+.btn.primary:hover{background:var(--copper-2);}
+.btn.primary:active{transform:translateY(1px);}
+.btn.ghost{background:transparent; color:var(--fg); border-color:var(--line-2);}
+.btn.ghost:hover{border-color:var(--copper);}
+.btn.sm{padding:8px 14px; font-size:12.5px;}
+.btn.dark-on-paper{background:var(--ink-900); color:var(--paper); box-shadow: var(--inner-copper);}
+.btn.dark-on-paper:hover{background:var(--ink-800);}
+.btn.paper-ghost{background:transparent; color:var(--ink-text); border-color:var(--line-paper);}
+.btn.paper-ghost:hover{border-color:var(--copper-print);}
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--copper);
+  display:inline-flex; align-items:center; gap:10px;
+}
+.eyebrow::before{
+  content:""; width:22px; height:1px; background:currentColor;
+}
+.eyebrow.no-rule::before{display:none;}
+.eyebrow.on-paper{color:var(--copper-print);}
+
+em.kore, .em{font-style:italic; color:var(--copper-2); font-weight:400;}
+.on-paper em.kore, .on-paper .em{color:var(--copper-print);}
+
+/* shared: status pill */
+.pill{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:3px 10px; border-radius:999px;
+  font-family:var(--mono); font-size:10px;
+  letter-spacing:.12em; text-transform:uppercase;
+}
+.pill .dot{width:6px; height:6px; border-radius:50%;}
+.pill.ok{background:rgba(91,212,208,.10); color:var(--teal); border:1px solid rgba(91,212,208,.25);}
+.pill.ok .dot{background:var(--teal);}
+.pill.sync{background:rgba(200,247,106,.10); color:var(--copper); border:1px solid rgba(200,247,106,.25);}
+.pill.sync .dot{background:var(--copper); animation:pulse 1.4s ease-in-out infinite;}
+.pill.fail{background:rgba(226,107,107,.10); color:#E26B6B; border:1px solid rgba(226,107,107,.25);}
+.pill.fail .dot{background:#E26B6B;}
+.pill.paused{background:rgba(255,255,255,.04); color:var(--mute); border:1px solid var(--line-2);}
+.pill.paused .dot{background:var(--mute);}
+.pill.paid{background:rgba(91,212,208,.10); color:var(--teal-print); border:1px solid rgba(44,134,130,.30);}
+.pill.paid .dot{background:var(--teal-print);}
+@keyframes pulse{50%{opacity:.4;}}
+
+/* shared: paper documents (invoice, contract) */
+.paper-stage{
+  background: linear-gradient(180deg, var(--ink-900), var(--ink-850));
+  padding: 60px 28px 120px;
+  min-height: calc(100vh - 60px);
+}
+.paper-doc{
+  position:relative;
+  max-width: 880px;
+  margin: 0 auto;
+  background: var(--paper);
+  color: var(--ink-text);
+  border-radius: var(--r-paper);
+  box-shadow: var(--shadow-paper);
+  font-family: var(--sans);
+  overflow:hidden;
+}
+.paper-doc::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(50% 35% at 100% 0%, rgba(200,247,106,.12), transparent 60%),
+    radial-gradient(45% 35% at 0% 100%, rgba(91,212,208,.10), transparent 60%);
+  z-index:0;
+}
+.paper-doc > *{position:relative; z-index:1;}
+
+/* shared body containers */
+.surface-paper-rule{border-bottom: 1px solid var(--line-paper);}
+.row-rule{border-top:1px solid var(--line);}

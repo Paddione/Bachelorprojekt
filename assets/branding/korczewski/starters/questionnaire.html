@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kore — Onboarding questionnaire</title>
+<link rel="stylesheet" href="/brand/korczewski/colors_and_type.css">
+<link rel="stylesheet" href="/brand/korczewski/app.css">
+<style>
+  body{padding:32px 28px 96px;}
+  .q{max-width:760px; margin:0 auto; position:relative; z-index:2;}
+
+  /* Header strip */
+  .strip{display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:center; padding:14px 18px; border:1px solid var(--line-2); border-radius:14px; background:var(--ink-850); margin-bottom:32px;}
+  .strip .brand{display:flex; align-items:center; gap:10px; font-family:var(--serif); font-size:18px; letter-spacing:-0.01em;}
+  .strip .brand .dot{color:var(--copper);}
+  .strip .save{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); display:flex; align-items:center; gap:8px;}
+  .strip .save .dot{width:6px; height:6px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(91,212,208,.18); animation:pulse 1.6s ease-in-out infinite;}
+
+  /* Hero */
+  .hero{margin-bottom:40px;}
+  .hero .eye{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper); display:inline-flex; gap:10px; align-items:center;}
+  .hero .eye::before{content:""; width:22px; height:1px; background:currentColor;}
+  .hero h1{font-family:var(--serif); font-weight:400; font-size:48px; letter-spacing:-0.025em; line-height:1.05; margin:14px 0 0; max-width:18ch;}
+  .hero h1 em{font-style:italic; color:var(--copper-2);}
+  .hero p{font-family:var(--sans); font-size:16px; line-height:1.55; color:var(--fg-soft); margin:18px 0 0; max-width:60ch;}
+
+  /* Progress */
+  .prog{margin:28px 0 40px; display:flex; align-items:center; gap:18px;}
+  .prog .bar{flex:1; height:2px; background:var(--line-2); border-radius:1px; overflow:hidden; position:relative;}
+  .prog .bar i{position:absolute; left:0; top:0; bottom:0; background:var(--copper); width:62%;}
+  .prog .lab{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); white-space:nowrap;}
+  .prog .lab b{color:var(--copper); font-weight:500;}
+
+  /* Section */
+  .sec{padding:32px 0; border-top:1px solid var(--line);}
+  .sec:first-of-type{border-top:0; padding-top:0;}
+  .sec-head{display:grid; grid-template-columns:60px 1fr; gap:18px; align-items:baseline; margin-bottom:24px;}
+  .sec-head .num{font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--copper); text-transform:uppercase;}
+  .sec-head h2{font-family:var(--serif); font-weight:400; font-size:30px; letter-spacing:-0.02em; margin:0;}
+  .sec-head h2 em{font-style:italic; color:var(--copper-2);}
+
+  /* Question */
+  .q-row{display:grid; grid-template-columns:60px 1fr; gap:18px; padding:22px 0; border-top:1px dashed var(--line);}
+  .q-row:first-child{border-top:0;}
+  .q-row .qn{font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--mute); text-transform:uppercase; padding-top:3px;}
+  .q-row .ql{font-family:var(--serif); font-size:21px; letter-spacing:-0.01em; line-height:1.3; color:var(--fg);}
+  .q-row .ql em{font-style:italic; color:var(--copper-2);}
+  .q-row .help{font-family:var(--sans); font-size:13.5px; line-height:1.5; color:var(--fg-soft); margin-top:6px;}
+  .q-row .ans{margin-top:14px;}
+
+  /* Controls */
+  input.txt, textarea.txt{
+    width:100%; font:inherit; font-family:var(--sans); font-size:15px; color:var(--fg);
+    background:var(--ink-850); border:1px solid var(--line-2); border-radius:10px;
+    padding:14px 16px; outline:none; transition:all 200ms var(--ease);
+  }
+  textarea.txt{min-height:96px; resize:vertical; line-height:1.5;}
+  input.txt:focus, textarea.txt:focus{border-color:var(--copper); background:var(--ink-800); box-shadow:inset 0 1px 0 rgba(200,247,106,.2);}
+  input.txt::placeholder, textarea.txt::placeholder{color:var(--mute);}
+  .field-foot{display:flex; justify-content:space-between; margin-top:6px; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);}
+
+  .opts{display:grid; gap:8px;}
+  .opt{display:flex; align-items:flex-start; gap:14px; padding:14px 16px; border:1px solid var(--line-2); border-radius:12px; background:var(--ink-850); cursor:pointer; transition:all 200ms var(--ease);}
+  .opt:hover{border-color:var(--line-3);}
+  .opt.sel{border-color:var(--copper); background:var(--copper-tint);}
+  .opt .box{flex-shrink:0; width:18px; height:18px; border:1px solid var(--line-3); border-radius:5px; margin-top:2px; display:flex; align-items:center; justify-content:center;}
+  .opt.radio .box{border-radius:50%;}
+  .opt.sel .box{border-color:var(--copper); background:var(--copper);}
+  .opt.sel .box::after{content:""; width:8px; height:8px; border-radius:2px; background:var(--copper-deep);}
+  .opt.radio.sel .box::after{border-radius:50%;}
+  .opt .lab{font-family:var(--sans); font-size:14.5px; color:var(--fg);}
+  .opt .lab em{font-style:italic; color:var(--copper-2);}
+  .opt .sub{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mute); margin-top:4px;}
+
+  .opts-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
+
+  /* Segmented */
+  .seg{display:flex; padding:3px; border:1px solid var(--line-2); border-radius:999px; background:var(--ink-850); width:fit-content;}
+  .seg button{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; padding:8px 16px; border-radius:999px; color:var(--mute); border:0; background:transparent; cursor:pointer; transition:all 180ms var(--ease);}
+  .seg button.active{color:var(--copper-deep); background:var(--copper); box-shadow:var(--inner-copper);}
+
+  /* Slider */
+  .slider-wrap{margin-top:10px;}
+  .slider-wrap .ticks{display:flex; justify-content:space-between; font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-top:8px;}
+  .slider-wrap .v{font-family:var(--serif); font-size:30px; letter-spacing:-0.01em; line-height:1; color:var(--fg);}
+  .slider-wrap .v em{font-style:italic; color:var(--copper-2);}
+  .slider-wrap .v .u{font-family:var(--mono); font-size:12px; color:var(--mute); margin-left:4px;}
+  input[type=range].kr{
+    -webkit-appearance:none; appearance:none; width:100%; height:4px;
+    background:var(--line-2); border-radius:2px; outline:none; margin:14px 0 0;
+  }
+  input[type=range].kr::-webkit-slider-thumb{
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+    background:var(--copper); box-shadow:0 0 0 4px rgba(200,247,106,.18);
+    cursor:pointer;
+  }
+
+  /* Footer actions */
+  .actions{margin-top:48px; display:flex; align-items:center; gap:14px; padding-top:24px; border-top:1px solid var(--line);}
+  .actions .meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);}
+  .actions .right{margin-left:auto; display:flex; gap:10px;}
+</style>
+</head>
+<body>
+<main>
+  <form class="q" onsubmit="event.preventDefault();">
+    <div class="strip">
+      <div class="brand"><img src="../../assets/logo-mark.svg" width="26" height="26">Kore<span class="dot">.</span></div>
+      <span class="save"><span class="dot"></span>Saved 14:02 CET · auto</span>
+      <a class="btn ghost sm">Save & exit</a>
+    </div>
+
+    <header class="hero">
+      <span class="eye">Onboarding · 03 of 04</span>
+      <h1>Tell us about your <em>cluster,</em> not yourself.</h1>
+      <p>Eight questions, takes about six minutes. We'll use your answers to draft a runbook before our intro call — so we can spend the call talking, not asking.</p>
+    </header>
+
+    <div class="prog">
+      <span class="lab"><b>Section 03</b> / 04 · Operations</span>
+      <div class="bar"><i></i></div>
+      <span class="lab">62%</span>
+    </div>
+
+    <section class="sec">
+      <div class="sec-head">
+        <span class="num">§01</span>
+        <h2>The <em>shape</em> of things.</h2>
+      </div>
+
+      <div class="q-row">
+        <span class="qn">Q1</span>
+        <div>
+          <div class="ql">Where does your control plane <em>live</em>?</div>
+          <div class="help">Pick all that apply. We've worked with each.</div>
+          <div class="ans opts opts-grid">
+            <div class="opt sel"><div class="box"></div><div><div class="lab">EKS · AWS</div><div class="sub">us-east-1, eu-west-1</div></div></div>
+            <div class="opt sel"><div class="box"></div><div><div class="lab">GKE · GCP</div><div class="sub">europe-west3</div></div></div>
+            <div class="opt"><div class="box"></div><div><div class="lab">AKS · Azure</div><div class="sub">—</div></div></div>
+            <div class="opt"><div class="box"></div><div><div class="lab">Bare metal / colo</div><div class="sub">Equinix · Hetzner · own racks</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-row">
+        <span class="qn">Q2</span>
+        <div>
+          <div class="ql">How many <em>nodes</em>, roughly?</div>
+          <div class="help">A range is fine. We'll calibrate during adoption.</div>
+          <div class="ans slider-wrap">
+            <div class="v">42<span class="u">nodes</span> · <em>3</em> regions</div>
+            <input type="range" class="kr" min="1" max="200" value="42">
+            <div class="ticks"><span>1</span><span>50</span><span>100</span><span>150</span><span>200+</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-row">
+        <span class="qn">Q3</span>
+        <div>
+          <div class="ql">Single tenant or <em>multi-tenant</em>?</div>
+          <div class="ans"><div class="seg">
+            <button type="button">Single</button>
+            <button type="button" class="active">Multi-tenant</button>
+            <button type="button">Both, separately</button>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head">
+        <span class="num">§02</span>
+        <h2>The <em>boring</em> stuff.</h2>
+      </div>
+
+      <div class="q-row">
+        <span class="qn">Q4</span>
+        <div>
+          <div class="ql">Who carries the pager today?</div>
+          <div class="help">If "everyone" — give an estimate of the rotation size.</div>
+          <div class="ans opts">
+            <div class="opt radio"><div class="box"></div><div class="lab">A dedicated SRE team</div></div>
+            <div class="opt radio sel"><div class="box"></div><div class="lab">Platform engineers, on rotation</div></div>
+            <div class="opt radio"><div class="box"></div><div class="lab">Whoever wrote the service</div></div>
+            <div class="opt radio"><div class="box"></div><div class="lab">Nobody — alerts just pile up</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-row">
+        <span class="qn">Q5</span>
+        <div>
+          <div class="ql">Tell us about the <em>last incident</em> in one paragraph.</div>
+          <div class="help">No need to anonymise. We sign an MNDA before reading.</div>
+          <div class="ans">
+            <textarea class="txt" placeholder="What broke, when did you notice, how did you fix it, and what would have prevented it?">etcd quorum loss in eu-west-1 on 2026-04-09 around 03:14 CET. Noticed via PagerDuty after about 9 minutes — third-party check beat our own. Fixed by snapshot restore from a 02:55 backup; lost ~18 minutes of audit-log writes. Would have been prevented by the cross-AZ etcd we keep saying we'll do.</textarea>
+            <div class="field-foot"><span>463 / 2000</span><span>Markdown OK</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-row">
+        <span class="qn">Q6</span>
+        <div>
+          <div class="ql">Acceptable <em>downtime</em> per quarter?</div>
+          <div class="ans"><div class="seg">
+            <button type="button">0 min</button>
+            <button type="button" class="active">≤ 30 min</button>
+            <button type="button">≤ 2 h</button>
+            <button type="button">It depends</button>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <span class="meta">Section 03 of 04 · Operations</span>
+      <div class="right">
+        <a class="btn ghost">← Back</a>
+        <a class="btn primary">Continue → §04</a>
+      </div>
+    </div>
+  </form>
+</main>
+</body>
+</html>

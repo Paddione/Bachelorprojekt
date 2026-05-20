@@ -1,6 +1,6 @@
 import type { Pool } from 'pg';
 
-const KNOWN_PROVIDERS = new Set(['openai', 'mistral', 'lumo', 'claude']);
+const KNOWN_PROVIDERS = new Set(['openai', 'mistral', 'lumo', 'claude', 'custom_lmstudio']);
 
 export interface KiConfig {
   id: number;

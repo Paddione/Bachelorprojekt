@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/*.test.js"
+    "test": "MOCK_DB=true node --test test/*.test.js test/*.test.mjs"
   },
   "dependencies": {
     "express": "^5.2.1",

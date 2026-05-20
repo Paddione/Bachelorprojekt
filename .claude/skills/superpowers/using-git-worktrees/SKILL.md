@@ -33,15 +33,19 @@ Falls `git stash pop` Konflikte meldet: dem User anzeigen und Klärung einholen.
 
 ## Post-Create Checklist (MANDATORY for this repo)
 
-After `EnterWorktree` (or `git worktree add`) completes, a `PostToolUse` hook
-fires automatically and handles both items. If the hook did not run (e.g. you
-used the git fallback path), run these two commands manually from the worktree
-root before doing any other work:
+> **⚠️ Agent-specific behaviour:**
+> - **Claude Code**: A `PostToolUse` hook (matcher: `Bash` / `run_shell_command`) fires
+>   automatically after `EnterWorktree` or `git worktree add` and handles both steps.
+> - **Gemini CLI**: The hook does **NOT** fire — Gemini CLI's shell tool is named
+>   `run_command`, which does not match the hook matcher. **Always run the two
+>   commands below manually** immediately after creating a worktree.
 
-### 1. Initialize BATS submodules (T000387)
+Run these two commands from the new worktree root before doing any other work:
 
-`task test:unit` fails with `bats-core/bin/bats not found` in any fresh
-worktree because `git worktree add` does NOT initialize submodules.
+### 1. Initialize BATS submodules (T000387 / T000107)
+
+`task test:unit` / `task test:all` fails with `bats-core/bin/bats not found` in
+any fresh worktree because `git worktree add` does NOT initialize submodules.
 
 ```bash
 git submodule update --init --recursive
@@ -91,13 +95,18 @@ your first commit.
 
 ## Automation note
 
-The `PostToolUse` hook in `.claude/settings.json` (matcher: `EnterWorktree`)
-runs both steps automatically whenever `EnterWorktree` is used. The hook:
+The `PostToolUse` hook in `.claude/settings.json` (matcher: `run_shell_command`)
+runs both steps automatically for **Claude Code** whenever `EnterWorktree` or a
+shell command that creates a worktree is used. The hook:
 1. Resolves the new worktree path from the tool response (falls back to
    `git worktree list --porcelain | tail -1`).
 2. Runs `git submodule update --init --recursive --quiet`.
 3. Replaces `environments/.secrets` with a symlink to the main repo's copy.
 
 If you see the status message "Initializing submodules and symlinking secrets
-in new worktree…" the hook fired. If it is missing, run the two commands above
-manually.
+in new worktree…" the hook fired (Claude Code only).
+
+**Gemini CLI** does not trigger this hook. Always run the two commands manually
+(see Post-Create Checklist above). The `dev-flow-plan` SKILL.md (manual worktree
+path, lines ~128–130) already includes `git submodule update --init --recursive`
+in the worktree-add block — follow that pattern exactly (T000107).

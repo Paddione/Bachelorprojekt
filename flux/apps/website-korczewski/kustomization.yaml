@@ -13,3 +13,14 @@ patches:
     target:
       kind: ConfigMap
       name: website-config
+  # Replace mentolder node affinity with korczewski nodes
+  - target:
+      kind: Deployment
+      name: website
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value:
+          - pk-hetzner-4
+          - pk-hetzner-6
+          - pk-hetzner-8

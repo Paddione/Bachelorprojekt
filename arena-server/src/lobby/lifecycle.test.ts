@@ -44,12 +44,12 @@ describe('Lifecycle', () => {
     expect(registry.getLobby(code)!.phase).toBe('starting');
   });
 
-  it('openSolo marks lobby as solo and holds at open until host starts it', () => {
+  it('openSolo marks lobby as one-v-three and holds at open until host starts it', () => {
     const lc = new Lifecycle({ onBroadcast: () => {}, persist: { insertLobby: async () => {}, updateLobbyPhase: async () => {} } as any, bc: { emitMatchSnapshot: vi.fn(), emitMatchDiff: vi.fn(), emitMatchEvent: vi.fn(), emitMatchEnd: vi.fn() } as any });
     const { code } = lc.openSolo({ hostKey: 'patrick@mentolder', hostName: 'Patrick' });
     const lobby = registry.getLobby(code)!;
     expect(lobby.phase).toBe('open');
-    expect(lobby.solo).toBe(true);
+    expect(lobby.mode).toBe('one-v-three');
     expect(lobby.players.size).toBe(1);
     lc.startSolo(code);
     expect(lobby.phase).toBe('starting');

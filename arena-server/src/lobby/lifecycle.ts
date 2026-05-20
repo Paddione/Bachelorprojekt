@@ -19,7 +19,7 @@ export interface LifecycleDeps {
   bc: Broadcasters;
 }
 
-export interface OpenRequest { hostKey: string; hostName: string; }
+export interface OpenRequest { hostKey: string; hostName: string; mode?: 'ffa' | 'one-v-three'; }
 export interface OpenResult { code: string; expiresAt: number; }
 
 export class Lifecycle {
@@ -43,6 +43,7 @@ export class Lifecycle {
       openedAt: now, expiresAt,
       players: new Map([[host.key, host]]),
       rematchYes: new Set(), timers: {},
+      mode: req.mode ?? 'ffa',
     };
     putLobby(lobby);
     this.deps.persist.insertLobby({ code, phase: 'open', hostKey: req.hostKey, expiresAt: new Date(expiresAt) })
@@ -53,16 +54,13 @@ export class Lifecycle {
   }
 
   /**
-   * Solo mode: open a lobby with just the host and a `solo` flag.
+   * Solo mode: open a lobby with just the host in one-v-three mode.
    * The 5s starting countdown is held until the host's WS connects
    * (see `startSolo`), so the client has time to render the lobby
    * scene and the match snapshot.
    */
   openSolo(req: OpenRequest): OpenResult {
-    const out = this.open(req);
-    const lobby = getLobby(out.code);
-    if (lobby) lobby.solo = true;
-    return out;
+    return this.open({ ...req, mode: 'one-v-three' });
   }
 
   /**
@@ -80,7 +78,7 @@ export class Lifecycle {
    */
   startSolo(code: string): void {
     const lobby = getLobby(code);
-    if (!lobby || !lobby.solo || lobby.phase !== 'open') return;
+    if (!lobby || lobby.mode !== 'one-v-three' || lobby.phase !== 'open') return;
     this.toStarting(code);
   }
 

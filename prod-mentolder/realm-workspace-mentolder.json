@@ -36,7 +36,8 @@
       "lastName": "Korczewski",
       "realmRoles": [
         "default-roles-workspace",
-        "arena_admin"
+        "arena_admin",
+        "admin"
       ],
       "clientRoles": {
         "realm-management": [
@@ -52,7 +53,8 @@
       "firstName": "Gerald",
       "lastName": "Korczewski",
       "realmRoles": [
-        "default-roles-workspace"
+        "default-roles-workspace",
+        "admin"
       ],
       "clientRoles": {
         "realm-management": [
@@ -109,6 +111,21 @@
             "access.token.claim": "true",
             "claim.name": "preferred_username",
             "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "roles",
+            "access.token.claim": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "multivalued": "true"
           }
         }
       ]
@@ -610,6 +627,13 @@
       {
         "name": "arena_admin",
         "description": "Allowed to host an Arena match",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "workspace"
+      },
+      {
+        "name": "admin",
+        "description": "Platform administrator",
         "composite": false,
         "clientRole": false,
         "containerId": "workspace"

@@ -54,7 +54,7 @@ data:
   TRAEFIK_EXTERNAL_URL: "${TRAEFIK_EXTERNAL_URL}"
   MAIL_EXTERNAL_URL: "${MAIL_EXTERNAL_URL}"
   # Portal admin
-  PORTAL_ADMIN_USERNAME: "gekko,paddione"
+  PORTAL_ADMIN_USERNAME: "gekko,paddione,quamain"
   CALENDAR_NAME: "personal"
   WORK_START_HOUR: "9"
   WORK_END_HOUR: "17"

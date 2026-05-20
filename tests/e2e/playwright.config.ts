@@ -75,6 +75,7 @@ export default defineConfig({
         '**/fa-39-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test
         '**/fa-40-admin-assets.spec.ts',            // central asset management (PR #884)
         '**/fa-41-admin-hub.spec.ts',               // unified admin hub (PR #883)
+        '**/fa-43-ticket-widget.spec.ts',           // TicketWidgetBar showEdit fix + portal widget regression
         '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (PR #830)
       ],
       use: {

@@ -696,6 +696,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-43",
+    "file": "tests/e2e/specs/fa-43-ticket-widget.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

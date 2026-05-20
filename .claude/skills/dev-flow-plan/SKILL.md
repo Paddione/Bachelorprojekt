@@ -125,9 +125,11 @@ Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branc
 
 > **Branch-Naming-Warnung:** Das native `EnterWorktree` Tool mangelt den Branch-Namen — aus `feature/admin-menu-rules` wird `worktree-feature+admin-menu-rules` (Slash → Plus, Prefix `worktree-`). Das verletzt die Repo-Konvention `feature/*`. Verifiziere nach dem Anlegen mit `git branch --show-current` und benenne ggf. um: `git branch -m feature/<slug>` (oder pushe direkt ohne Umbennung, dann `git push -u origin feature/<slug>:feature/<slug>`). Der vorhersagbarere Pfad ist die manuelle Form:
 > ```bash
-> git worktree add -b feature/<slug> .claude/worktrees/<slug> origin/main
-> cd .claude/worktrees/<slug> && git submodule update --init --recursive
+> git worktree add -b feature/<slug> /tmp/wt-<slug> origin/main
+> cd /tmp/wt-<slug> && git submodule update --init --recursive
 > ```
+>
+> **⚠️ KEIN `.claude/worktrees/` verwenden** — dieses Verzeichnis ist in `.gitignore` eingetragen. Git-Worktrees in gitignorierten Pfaden können die Branch-Erkennung (`git branch --show-current`) brechen und staged Files können ungewollt in den Haupt-Index bluten. Immer `/tmp/wt-<slug>` (außerhalb des Repos) verwenden.
 
 ### Schritt 1.5: Optionale Asset-Sammlung
 
@@ -397,9 +399,11 @@ Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branc
 
 > **Branch-Naming-Warnung:** Das native `EnterWorktree` Tool mangelt den Branch-Namen (Slash → Plus, Prefix `worktree-`). Verifiziere mit `git branch --show-current` und benenne ggf. um: `git branch -m fix/<slug>`. Vorhersagbar:
 > ```bash
-> git worktree add -b fix/<slug> .claude/worktrees/<slug> origin/main
-> cd .claude/worktrees/<slug> && git submodule update --init --recursive
+> git worktree add -b fix/<slug> /tmp/wt-<slug> origin/main
+> cd /tmp/wt-<slug> && git submodule update --init --recursive
 > ```
+>
+> **⚠️ KEIN `.claude/worktrees/` verwenden** — gitignorierter Pfad, bricht Branch-Erkennung. Immer `/tmp/wt-<slug>` verwenden.
 
 ### Schritt 3: Failing Test schreiben
 
@@ -493,9 +497,11 @@ Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branc
 
 > **Branch-Naming-Warnung:** Das native `EnterWorktree` Tool mangelt den Branch-Namen (Slash → Plus, Prefix `worktree-`). Verifiziere mit `git branch --show-current` und benenne ggf. um: `git branch -m chore/<slug>`. Vorhersagbar:
 > ```bash
-> git worktree add -b chore/<slug> .claude/worktrees/<slug> origin/main
-> cd .claude/worktrees/<slug> && git submodule update --init --recursive
+> git worktree add -b chore/<slug> /tmp/wt-<slug> origin/main
+> cd /tmp/wt-<slug> && git submodule update --init --recursive
 > ```
+>
+> **⚠️ KEIN `.claude/worktrees/` verwenden** — gitignorierter Pfad, bricht Branch-Erkennung. Immer `/tmp/wt-<slug>` verwenden.
 
 ### Schritt 3: Änderung machen
 

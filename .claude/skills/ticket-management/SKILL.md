@@ -95,9 +95,10 @@ Set this before starting the fix. After the fix is complete, close with `done` +
 
 **Stale worktree/branch** (type=task, trivial):
 ```bash
-git worktree remove .claude/worktrees/<name> --force
+git worktree remove <path> --force   # path is /tmp/wt-<slug> (new convention) or .claude/worktrees/<name> (legacy)
 git branch -D <branch>
 ```
+**Note:** New worktrees use `/tmp/wt-<slug>` — `.claude/worktrees/` is gitignored and causes branch-detection failures.
 
 **Bash script bug** — fix the script, verify with `bash -n <script>`.
 
@@ -122,7 +123,7 @@ A worktree is stale when its branch is already merged to `main` or the owning pl
 ```bash
 # Verify merged first — never remove an unmerged worktree without checking
 git log main..<branch> --oneline   # empty = fully merged
-git worktree remove .claude/worktrees/<name> --force
+git worktree remove <path> --force  # path from `git worktree list` (new: /tmp/wt-<slug>, legacy: .claude/worktrees/<name>)
 ```
 
 **Do not remove** a worktree if:

@@ -42,7 +42,7 @@ async function run() {
          max_tokens, is_active, enabled_fields)
       VALUES
         ($1, 'custom_lmstudio', 'LM Studio (Qwen 2.5)',
-         'http://100.102.71.114:1234/v1',
+         'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1',
          'yemiao2745/qwen2.5-14b-instruct-uncensored',
          $2,
          800, true,

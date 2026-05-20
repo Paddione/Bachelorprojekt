@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.3.0...brett-v0.4.0) (2026-05-20)
+
+
+### Features
+
+* **brett:** Controls & Keybinding panel — entry toast, discovery banner, rebind modal ([#944](https://github.com/Paddione/Bachelorprojekt/issues/944)) ([2763fe9](https://github.com/Paddione/Bachelorprojekt/commit/2763fe9672d4796aa03c151b7cf85640c3332184))
+* **brett:** Mayhem Solo mode — private room with 3 AI bots ([#946](https://github.com/Paddione/Bachelorprojekt/issues/946)) ([9f2e462](https://github.com/Paddione/Bachelorprojekt/commit/9f2e462ffb66904a6648bd94a17f85e832949773))
+
+
+### Bug Fixes
+
+* **auth:** eliminate 401 console noise from /auth/me and inbox/count ([#948](https://github.com/Paddione/Bachelorprojekt/issues/948)) ([c31ee70](https://github.com/Paddione/Bachelorprojekt/commit/c31ee70184bd20d5951baf036c414f25d8c5bce1))
+
 ## [0.3.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.2.0...brett-v0.3.0) (2026-05-20)
 
 

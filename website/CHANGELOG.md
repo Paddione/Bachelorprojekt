@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.3.1...website-v1.4.0) (2026-05-20)
+
+
+### Features
+
+* **arena:** input loop — WASD/aim/fire/melee + entry toast + Controls rebinding panel ([#945](https://github.com/Paddione/Bachelorprojekt/issues/945)) ([8093eff](https://github.com/Paddione/Bachelorprojekt/commit/8093eff64f1869d54d8f597132b53717d1b3080c))
+* **ui:** avatar system + Sidekick editorial redesign ([#941](https://github.com/Paddione/Bachelorprojekt/issues/941)) ([200920b](https://github.com/Paddione/Bachelorprojekt/commit/200920bd7d2a3736f0436b5ccf2ce3ed6ec1f62a))
+
+
+### Bug Fixes
+
+* **auth:** eliminate 401 console noise from /auth/me and inbox/count ([#948](https://github.com/Paddione/Bachelorprojekt/issues/948)) ([c31ee70](https://github.com/Paddione/Bachelorprojekt/commit/c31ee70184bd20d5951baf036c414f25d8c5bce1))
+* **platform:** Collabora missing from software tab + health check false negatives ([6eac86c](https://github.com/Paddione/Bachelorprojekt/commit/6eac86ca047417dcdd3137ed7091cd12db3911c7))
+
 ## [1.3.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.3.0...website-v1.3.1) (2026-05-20)
 
 

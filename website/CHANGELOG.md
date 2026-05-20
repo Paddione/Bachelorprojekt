@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.2.0...website-v1.2.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **admin:** FluxCD tab — relative timestamps, visible reconcile feedback, auto-refresh [T000114] ([#933](https://github.com/Paddione/Bachelorprojekt/issues/933)) ([05acc74](https://github.com/Paddione/Bachelorprojekt/commit/05acc74114bc3c4d490c089717398d94bc0d702c))
+
 ## [1.2.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.1.0...website-v1.2.0) (2026-05-20)
 
 

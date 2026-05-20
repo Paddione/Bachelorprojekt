@@ -1,13 +1,32 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  
+  import { onMount, onDestroy } from 'svelte';
+
   export let cluster: string;
-  
+
   let data: any = null;
   let loading = true;
   let error: string | null = null;
   let syncing: string | null = null;
-  
+  let syncedOk = new Set<string>();
+  let pollInterval: ReturnType<typeof setInterval>;
+
+  function relativeTime(raw: string | null | undefined): string {
+    if (!raw) return 'Nie';
+    // git revision like "main@sha1:abc..." is not a timestamp
+    if (raw.includes('@sha1:') || raw.includes('@sha256:')) {
+      return raw.split('@')[0] + ' (kein Trigger)';
+    }
+    const ms = Date.now() - new Date(raw).getTime();
+    if (isNaN(ms)) return raw;
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return 'vor wenigen Sekunden';
+    const m = Math.floor(s / 60);
+    if (m < 60) return `vor ${m} Min.`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `vor ${h} Std.`;
+    return `vor ${Math.floor(h / 24)} Tagen`;
+  }
+
   async function fetchFlux() {
     try {
       const r = await fetch('/api/admin/platform/status');
@@ -19,24 +38,37 @@
       loading = false;
     }
   }
-  
+
   async function triggerSync(name: string, namespace: string) {
     syncing = name;
+    syncedOk.delete(name);
     try {
       const r = await fetch('/api/admin/platform/sync', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, namespace })
       });
-      if (!r.ok) throw new Error('Sync failed');
-      setTimeout(fetchFlux, 2000); // Wait a bit for reconciliation to start
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        throw new Error(body.error || `HTTP ${r.status}`);
+      }
+      syncedOk = new Set([...syncedOk, name]);
+      // Flux needs ~5–15s to reconcile and update lastHandledReconcileAt
+      setTimeout(() => { fetchFlux(); syncedOk.delete(name); syncedOk = new Set(syncedOk); }, 10_000);
     } catch (e: any) {
-      alert(e.message);
+      error = `Sync fehlgeschlagen: ${e.message}`;
+      setTimeout(() => { error = null; }, 5000);
     } finally {
       syncing = null;
     }
   }
-  
-  onMount(fetchFlux);
+
+  onMount(() => {
+    fetchFlux();
+    pollInterval = setInterval(fetchFlux, 30_000);
+  });
+
+  onDestroy(() => clearInterval(pollInterval));
 </script>
 
 <div class="space-y-6">
@@ -54,11 +86,14 @@
     <div class="p-8 text-center bg-admin-surface rounded-2xl border border-dashed border-admin-border">
       <p class="text-admin-text-mute italic">FluxCD Management läuft primär auf dem Mentolder Cluster.</p>
     </div>
-  {:else if error || (data && data.flux.error)}
+  {:else if data && data.flux.error && !data.flux.kustomizations?.length}
     <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
-      {error || data.flux.error}
+      {data.flux.error}
     </div>
   {:else if data}
+    {#if error}
+      <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs mb-2">{error}</div>
+    {/if}
     <div class="grid grid-cols-1 gap-4">
       {#each data.flux.kustomizations as ks}
         <div class="admin-card flex items-center justify-between">
@@ -68,19 +103,23 @@
             </div>
             <div>
               <h4 class="font-bold text-white">{ks.name}</h4>
-              <p class="text-xs text-admin-text-mute">{ks.namespace} · {ks.lastAttempt || 'Never'}</p>
+              <p class="text-xs text-admin-text-mute">{ks.namespace} · letzter Sync: {relativeTime(ks.lastAttempt)}</p>
               {#if ks.message}
                 <p class="text-[10px] text-red-400 mt-1 truncate max-w-md">{ks.message}</p>
               {/if}
             </div>
           </div>
-          
-          <button 
+
+          <button
             on:click={() => triggerSync(ks.name, ks.namespace)}
             disabled={syncing === ks.name}
-            class="px-4 py-2 rounded-lg bg-admin-primary/10 border border-admin-primary/20 text-admin-primary text-xs font-bold hover:bg-admin-primary/20 disabled:opacity-50 transition-all"
+            class="px-4 py-2 rounded-lg text-xs font-bold transition-all min-w-[120px]
+              {syncedOk.has(ks.name)
+                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                : 'bg-admin-primary/10 border border-admin-primary/20 text-admin-primary hover:bg-admin-primary/20'}
+              disabled:opacity-50"
           >
-            {syncing === ks.name ? 'Syncing...' : 'Reconcile'}
+            {syncing === ks.name ? '⏳ Triggering…' : syncedOk.has(ks.name) ? '✓ Triggered' : 'Reconcile'}
           </button>
         </div>
       {/each}

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320" role="img" aria-label="Security officer">
+  <defs>
+    <radialGradient id="gk" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="#1c1428"></stop><stop offset="100%" stop-color="#120D1C"></stop></radialGradient>
+    <filter id="grainK"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0"></feColorMatrix></filter>
+  </defs>
+  <rect x="0" y="0" width="240" height="320" fill="url(#gk)"></rect>
+  <rect x="0" y="0" width="240" height="320" filter="url(#grainK)" opacity=".6"></rect>
+  <rect x="14" y="14" width="212" height="292" fill="none" stroke="#7a8b4f" stroke-opacity=".35"></rect>
+  <g stroke="#C8F76A" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M14 24 L14 14 L24 14"></path><path d="M226 24 L226 14 L216 14"></path>
+    <path d="M14 296 L14 306 L24 306"></path><path d="M226 296 L226 306 L216 306"></path>
+  </g>
+  
+  <g fill="#5d5e6c">
+    <path d="M88 74 Q120 50 152 74 L156 116 L84 116 Z"></path>
+    <rect x="92" y="98" width="56" height="6" fill="#120D1C"></rect>
+    <line x1="92" y1="101" x2="148" y2="101" stroke="#C8F76A" stroke-width="0.6" opacity=".95"></line>
+    <path d="M78 122 L82 200 L120 220 L158 200 L162 122 Z"></path>
+    <path d="M64 130 Q60 152 70 174 L82 168 L82 130 Z"></path>
+    <path d="M176 130 Q180 152 170 174 L158 168 L158 130 Z"></path>
+    <rect x="92" y="222" width="22" height="56" rx="3"></rect>
+    <rect x="126" y="222" width="22" height="56" rx="3"></rect>
+  </g>
+  <path d="M120 142 L94 152 L94 198 Q94 212 120 222 Q146 212 146 198 L146 152 Z" fill="#1c1428" stroke="#7a8b4f" stroke-width="1.2"></path>
+  <circle cx="120" cy="178" r="10" fill="none" stroke="#C8F76A" stroke-width="1.5"></circle>
+  <rect x="118" y="186" width="4" height="14" fill="#C8F76A"></rect>
+  <rect x="116" y="194" width="8" height="2" fill="#C8F76A"></rect>
+  <rect x="116" y="198" width="6" height="2" fill="#C8F76A"></rect>
+  <text x="120" y="296" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#7a8b4f" letter-spacing="2">SEC · KEYCLOAK</text>
+
+</svg>

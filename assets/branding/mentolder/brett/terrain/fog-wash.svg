@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240" role="img" aria-label="Fog wash terrain">
+  <defs>
+    <radialGradient id="fg1" cx="32%" cy="40%" r="58%"><stop offset="0%" stop-color="#cdd3d9" stop-opacity="0.85"></stop><stop offset="60%" stop-color="#8c96a3" stop-opacity="0.45"></stop><stop offset="100%" stop-color="#17202e" stop-opacity="0.85"></stop></radialGradient>
+    <radialGradient id="fg2" cx="78%" cy="65%" r="48%"><stop offset="0%" stop-color="#cdd3d9" stop-opacity="0.55"></stop><stop offset="100%" stop-color="#17202e" stop-opacity="0"></stop></radialGradient>
+    <filter id="softGrain"><feTurbulence type="fractalNoise" baseFrequency=".6" numOctaves="3" seed="2"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .1 0"></feColorMatrix></filter>
+  </defs>
+  <rect width="480" height="240" fill="#101826"></rect>
+  <rect width="480" height="240" fill="url(#fg1)"></rect>
+  <rect width="480" height="240" fill="url(#fg2)"></rect>
+  <rect width="480" height="240" filter="url(#softGrain)" opacity=".5"></rect>
+  <path d="M0 120 Q120 100 240 130 T480 110" fill="none" stroke="#cdd3d9" stroke-width="0.6" opacity=".25"></path>
+  <path d="M0 160 Q140 150 280 168 T480 152" fill="none" stroke="#cdd3d9" stroke-width="0.6" opacity=".2"></path>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320" role="img" aria-label="Coachee figurine">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#17202e"></stop><stop offset="100%" stop-color="#0b111c"></stop>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0"></feColorMatrix></filter>
+  </defs>
+  <rect x="0" y="0" width="240" height="320" fill="url(#g)"></rect>
+  <rect x="0" y="0" width="240" height="320" filter="url(#grain)" opacity=".5"></rect>
+  <rect x="14" y="14" width="212" height="292" fill="none" stroke="#d7b06a" stroke-opacity=".22" stroke-width="1"></rect>
+  <g stroke="#d7b06a" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M14 24 L14 14 L24 14"></path><path d="M226 24 L226 14 L216 14"></path>
+    <path d="M14 296 L14 306 L24 306"></path><path d="M226 296 L226 306 L216 306"></path>
+  </g>
+  
+  <g fill="#e7ead0">
+    <ellipse cx="120" cy="74" rx="20" ry="24"></ellipse>
+    <path d="M84 110 Q88 100 102 98 L138 98 Q152 100 156 110 L162 180 L78 180 Z"></path>
+    <path d="M82 130 Q120 156 158 130 L154 158 Q120 178 86 158 Z" fill="#b8c0a8"></path>
+    <rect x="92" y="180" width="22" height="84" rx="5"></rect>
+    <rect x="126" y="180" width="22" height="84" rx="5"></rect>
+    <ellipse cx="103" cy="270" rx="14" ry="6"></ellipse>
+    <ellipse cx="137" cy="270" rx="14" ry="6"></ellipse>
+  </g>
+  <rect x="84" y="148" width="72" height="2" fill="#d7b06a" opacity=".7"></rect>
+  <text x="120" y="296" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#d7b06a" letter-spacing="2">COACHEE · FIGURINE</text>
+
+</svg>

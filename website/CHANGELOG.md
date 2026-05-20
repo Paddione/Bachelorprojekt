@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.3.0...website-v1.3.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **admin:** remove unused draftsPending query from AdminLayout [T000117] ([#938](https://github.com/Paddione/Bachelorprojekt/issues/938)) ([83479ef](https://github.com/Paddione/Bachelorprojekt/commit/83479ef108153c2cc2c1d2f92681ccad9700e79b))
+
 ## [1.3.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.2.1...website-v1.3.0) (2026-05-20)
 
 

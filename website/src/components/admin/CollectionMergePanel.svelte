@@ -10,6 +10,8 @@
     embedding_model: string;
   };
 
+  type SuggestSpec = { name: string; sourceIds: string[] };
+
   let open = $state(false);
   let collections = $state<Col[]>([]);
   let selected = $state(new Set<string>());
@@ -18,6 +20,9 @@
   let busy = $state(false);
   let error = $state<string | null>(null);
   let successMsg = $state<string | null>(null);
+  let suggestions = $state<SuggestSpec[]>([]);
+  let suggestLoading = $state(false);
+  let suggestError = $state<string | null>(null);
 
   onMount(() => {
     window.addEventListener('open-collection-merge', handleOpen);
@@ -39,6 +44,32 @@
     if (!res.ok) return;
     const all = await res.json() as Col[];
     collections = all.filter(c => c.source === 'custom' || c.source === 'web_crawl');
+  }
+
+  async function loadSuggestions() {
+    suggestLoading = true;
+    suggestError = null;
+    try {
+      const res = await fetch('/api/admin/knowledge/collections/suggest');
+      if (res.ok) {
+        const data = await res.json() as { suggestions: SuggestSpec[] };
+        suggestions = data.suggestions;
+        if (suggestions.length === 0) {
+          suggestError = 'Keine Vorschläge — Sammlungen zu verschieden oder Embeddings fehlen.';
+        }
+      } else {
+        suggestError = 'Fehler beim Laden der Vorschläge.';
+      }
+    } catch {
+      suggestError = 'Netzwerkfehler beim Laden der Vorschläge.';
+    } finally {
+      suggestLoading = false;
+    }
+  }
+
+  function applySuggestion(spec: SuggestSpec) {
+    selected = new Set(spec.sourceIds);
+    name = spec.name;
   }
 
   function close() { open = false; }
@@ -80,6 +111,7 @@
       const data = await res.json() as { error?: string; name?: string; chunk_count?: number };
       if (!res.ok) { error = data.error ?? 'Fehler'; return; }
       successMsg = `✓ "${data.name}" erstellt — ${data.chunk_count} Chunks übertragen.`;
+      void loadSuggestions();
       setTimeout(() => location.reload(), 1500);
     } catch {
       error = 'Netzwerkfehler';
@@ -127,6 +159,27 @@
         <li class="empty">Keine custom- oder web-Quellen vorhanden.</li>
       {/if}
     </ul>
+
+    <div class="suggest-section">
+      <button class="btn-suggest" disabled={suggestLoading} onclick={loadSuggestions}>
+        {suggestLoading ? 'Lade…' : '✨ Vorschläge laden'}
+      </button>
+      {#if suggestError}
+        <p class="suggest-hint">{suggestError}</p>
+      {/if}
+      {#if suggestions.length > 0}
+        <ul class="suggest-list">
+          {#each suggestions as spec}
+            {@const specChunks = collections.filter(c => spec.sourceIds.includes(c.id)).reduce((s, c) => s + c.chunk_count, 0)}
+            <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+            <li class="suggest-card" onclick={() => applySuggestion(spec)}>
+              <span class="suggest-title">{spec.name}</span>
+              <span class="suggest-meta">{spec.sourceIds.length} Sammlungen · {specChunks} Chunks</span>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
 
     <div class="form-section">
       {#if modelMismatch}
@@ -205,6 +258,28 @@
   .badge.model { color: var(--brass); border-color: color-mix(in srgb, var(--brass) 30%, transparent); }
   .chunks { font-size: 11px; color: var(--fg-soft); min-width: 2ch; text-align: right; }
   .empty { padding: 1rem 1.25rem; color: var(--fg-soft); font-style: italic; font-size: 0.82rem; }
+  .suggest-section {
+    padding: 0.75rem 1.25rem; border-top: 1px solid var(--ink-750);
+    display: flex; flex-direction: column; gap: 0.4rem; flex-shrink: 0;
+  }
+  .btn-suggest {
+    background: none; border: 1px solid var(--ink-750); color: var(--fg-soft);
+    padding: 0.35rem 0.7rem; border-radius: 4px; cursor: pointer;
+    font-size: 0.8rem; text-align: left;
+  }
+  .btn-suggest:hover:not(:disabled) { background: var(--ink-800); color: var(--fg); }
+  .btn-suggest:disabled { opacity: 0.5; cursor: not-allowed; }
+  .suggest-hint { font-size: 0.78rem; color: var(--fg-soft); margin: 0; }
+  .suggest-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+  .suggest-card {
+    display: flex; flex-direction: column; gap: 0.1rem;
+    padding: 0.4rem 0.6rem; border: 1px solid color-mix(in srgb, var(--brass) 30%, transparent);
+    border-radius: 4px; cursor: pointer;
+    background: color-mix(in srgb, var(--brass) 6%, transparent);
+  }
+  .suggest-card:hover { background: color-mix(in srgb, var(--brass) 12%, transparent); }
+  .suggest-title { font-size: 0.82rem; font-weight: 600; color: var(--fg); }
+  .suggest-meta { font-size: 0.75rem; color: var(--fg-soft); }
   .form-section {
     padding: 1rem 1.25rem; border-top: 1px solid var(--ink-750);
     display: flex; flex-direction: column; gap: 0.75rem; flex-shrink: 0;

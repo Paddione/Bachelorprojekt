@@ -29,16 +29,23 @@ function validateAppearance(a) {
   const faces = FACE_NAMES();
   const bodies = BODY_NAMES();
   const accs   = ACC_NAMES();
-  if (faces.length && a.face !== undefined && !faces.includes(a.face)) return `unknown face: ${a.face}`;
-  if (bodies.length && a.bodyPreset !== undefined && !bodies.includes(a.bodyPreset)) return `unknown bodyPreset: ${a.bodyPreset}`;
-  if (a.accessories !== undefined && !Array.isArray(a.accessories)) return 'accessories must be array';
-  if (Array.isArray(a.accessories)) {
-    for (const acc of a.accessories) {
-      if (accs.length && !accs.includes(acc)) return `unknown accessory: ${acc}`;
-    }
+  if (a.face !== null && a.face !== undefined) {
+    if (typeof a.face !== 'string') return 'face must be string or null';
+    if (faces.length && !faces.includes(a.face)) return `unknown face: ${a.face}`;
   }
-  if (a.proportions !== undefined && (typeof a.proportions !== 'object' || a.proportions === null)) {
-    return 'proportions must be object';
+  if (a.body !== null && a.body !== undefined) {
+    if (typeof a.body !== 'string') return 'body must be string or null';
+    if (bodies.length && !bodies.includes(a.body)) return `unknown body: ${a.body}`;
+  }
+  if (a.accessories !== undefined && a.accessories !== null) {
+    if (typeof a.accessories !== 'object' || Array.isArray(a.accessories)) return 'accessories must be object';
+    const { head, upper, feet } = a.accessories;
+    for (const [slot, val] of [['head', head], ['upper', upper], ['feet', feet]]) {
+      if (val !== null && val !== undefined) {
+        if (typeof val !== 'string') return `accessories.${slot} must be string or null`;
+        if (accs.length && !accs.includes(val)) return `unknown accessory: ${val}`;
+      }
+    }
   }
   return null;
 }
@@ -421,7 +428,11 @@ function applyMutation(room, msg) {
   switch (msg.type) {
     case 'add':
       if (msg.fig && typeof msg.fig.id === 'string' && figs.size < 200) {
-        figs.set(msg.fig.id, msg.fig);
+        const newFig = { ...msg.fig };
+        if (!newFig.appearance) {
+          newFig.appearance = { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } };
+        }
+        figs.set(newFig.id, newFig);
       }
       break;
     case 'move':
@@ -432,8 +443,19 @@ function applyMutation(room, msg) {
       break;
     case 'update':
       if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object' && !Array.isArray(msg.changes)) {
+        const existing = figs.get(msg.id);
         const { id: _ignoredId, ...safeChanges } = msg.changes;
-        figs.set(msg.id, { ...figs.get(msg.id), ...safeChanges });
+        if (safeChanges.appearance && existing.appearance && typeof existing.appearance === 'object') {
+          safeChanges.appearance = {
+            ...existing.appearance,
+            ...safeChanges.appearance,
+            accessories: {
+              ...(existing.appearance.accessories || {}),
+              ...(safeChanges.appearance.accessories || {}),
+            },
+          };
+        }
+        figs.set(msg.id, { ...existing, ...safeChanges });
       }
       break;
     case 'delete':
@@ -615,6 +637,22 @@ wss.on('connection', (ws, req) => {
       const room = ws._room;
       if (!room) return;
 
+      // Appearance validation for add / update
+      if (msg.type === 'add' && msg.fig?.appearance) {
+        const appErr = validateAppearance(msg.fig.appearance);
+        if (appErr) {
+          try { ws.send(JSON.stringify({ type: 'error', reason: appErr })); } catch {}
+          return;
+        }
+      }
+      if (msg.type === 'update' && msg.changes?.appearance) {
+        const appErr = validateAppearance(msg.changes.appearance);
+        if (appErr) {
+          try { ws.send(JSON.stringify({ type: 'error', reason: appErr })); } catch {}
+          return;
+        }
+      }
+
       if (RELAY_TYPES.includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
@@ -790,4 +828,5 @@ module.exports = {
   RELAY_TYPES, TRANSIENT_TYPES, lmsAlive, handleLmsDeath,
   pickupState, ensurePickups, spawnPickup,
   isAdminFromClaims,
+  validateAppearance,
 };

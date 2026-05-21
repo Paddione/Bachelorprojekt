@@ -196,7 +196,7 @@
     gap: 6px;
     padding: 12px 16px;
     overflow-x: auto;
-    border-bottom: 1px solid #1e2d42;
+    border-bottom: 1px solid rgba(232, 200, 112, 0.1);
     flex-shrink: 0;
   }
   .pill-row::-webkit-scrollbar { display: none; }
@@ -237,7 +237,7 @@
 
   .item {
     background: #0f1623;
-    border: 1px solid #1e2d42;
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 8px;
     padding: 10px 12px;
     display: flex;
@@ -339,7 +339,7 @@
     bottom: 0;
     padding: 12px 16px;
     background: #0f1623;
-    border-top: 1px solid #1e2d42;
+    border-top: 1px solid rgba(232, 200, 112, 0.1);
     font-size: 12px;
     font-weight: 600;
     color: #e8c870;

@@ -107,6 +107,13 @@
 </script>
 
 <div class="support-view">
+  <div class="sv-intro">
+    <span class="sv-eyebrow">
+      <span class="sv-eyebrow-bar" aria-hidden="true"></span>
+      Feedback &amp; Support
+    </span>
+    <p class="sv-desc">Fehler melden oder Verbesserungen vorschlagen.</p>
+  </div>
   <form onsubmit={handleSubmit}>
     <div class="field">
       <label for="sv-email">Ihre E-Mail <span class="req">*</span></label>
@@ -186,8 +193,41 @@
 </div>
 
 <style>
-  .support-view { padding: 16px; display: flex; flex-direction: column; gap: 0; }
-  form { display: flex; flex-direction: column; gap: 12px; }
+  .support-view { display: flex; flex-direction: column; gap: 0; }
+
+  /* ── Intro block ── */
+  .sv-intro {
+    padding: 20px 22px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sv-eyebrow {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: oklch(0.83 0.09 75);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sv-eyebrow-bar {
+    width: 16px;
+    height: 1px;
+    background: oklch(0.83 0.09 75);
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+  .sv-desc {
+    margin: 0;
+    font-size: 12px;
+    color: var(--admin-text-mute, #8899aa);
+    line-height: 1.5;
+  }
+
+  form { padding: 16px 22px; display: flex; flex-direction: column; gap: 12px; }
 
   .field { display: flex; flex-direction: column; gap: 4px; }
   label { font-size: 12px; font-weight: 600; color: #e8e8f0; }
@@ -206,9 +246,17 @@
     box-sizing: border-box;
     outline: none;
     transition: border-color 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
   }
-  .inp:focus { border-color: #e8c870; }
+  .inp:focus { border-color: oklch(0.83 0.09 75); }
   textarea.inp { resize: vertical; min-height: 80px; }
+  select.inp {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238899aa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
 
   .file-inp {
     display: block;

@@ -377,16 +377,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
-    background: #1e2a3a;
-    border-bottom: 1px solid #243049;
-    font-size: 13px;
-    font-weight: 600;
-    color: #e8e8f0;
+    padding: 16px 22px;
+    border-bottom: 1px solid rgba(232, 200, 112, 0.12);
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--admin-text, #e8e8f0);
     flex-shrink: 0;
   }
-  .hdr-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
-  .back-btn { background: transparent; border: none; color: #e8c870; cursor: pointer; font-size: 12px; padding: 0; white-space: nowrap; flex-shrink: 0; }
+  .hdr-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .back-btn { background: transparent; border: none; color: oklch(0.83 0.09 75); cursor: pointer; font-size: 10px; padding: 0; white-space: nowrap; flex-shrink: 0; font-family: var(--font-mono, 'Geist Mono', monospace); letter-spacing: 0.08em; text-transform: uppercase; }
   .refresh-btn { background: transparent; border: none; color: #aabbcc; cursor: pointer; font-size: 15px; padding: 0; line-height: 1; flex-shrink: 0; }
 
   .body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }

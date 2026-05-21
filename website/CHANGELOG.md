@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.4.1...website-v1.5.0) (2026-05-21)
+
+
+### Features
+
+* **coaching:** add collection merge auto-suggest via embedding clustering [T000480] ([#953](https://github.com/Paddione/Bachelorprojekt/issues/953)) ([4b5a7c8](https://github.com/Paddione/Bachelorprojekt/commit/4b5a7c8f0cefce82d0bd98fce24cc9a6940da504))
+
+
+### Bug Fixes
+
+* **website:** unify sidekick sub-view visual language with WidgetMainMenu [T000136] ([#957](https://github.com/Paddione/Bachelorprojekt/issues/957)) ([d9584f9](https://github.com/Paddione/Bachelorprojekt/commit/d9584f97c1afc389fc804e11e0727b3e543ada19))
+
 ## [1.4.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.4.0...website-v1.4.1) (2026-05-20)
 
 

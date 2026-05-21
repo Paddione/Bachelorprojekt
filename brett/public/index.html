@@ -116,6 +116,81 @@
       #stiffness { width: 90px; }
       #status-pill { font-size: 11px; padding: 6px 10px; }
     }
+
+    /* ── Appearance Drawer ─────────────────────────────── */
+    #appearance-btn {
+      background: transparent; color: inherit;
+      border: 1px solid rgba(231,234,208,0.18);
+      border-radius: 4px; padding: 4px 10px;
+      font: inherit; cursor: pointer; white-space: nowrap;
+    }
+    #appearance-btn:hover, #appearance-btn.open { background: rgba(231,234,208,0.12); }
+    #appearance-btn:disabled { opacity: 0.35; cursor: default; }
+
+    #appearance-drawer {
+      position: fixed; top: 36px; right: 0; bottom: 0;
+      width: 280px; z-index: 100;
+      background: #161a22; border-left: 1px solid rgba(200,169,110,0.25);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 200ms ease;
+      overflow-y: auto;
+    }
+    #appearance-drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 14px; border-bottom: 1px solid rgba(231,234,208,0.08);
+      font-size: 11px; font-weight: 600; color: #c8a96e;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .drawer-close { background: none; border: none; color: rgba(231,234,208,0.4); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; }
+    .drawer-close:hover { color: #e7ead0; }
+
+    .drawer-section { padding: 10px 14px; border-bottom: 1px solid rgba(231,234,208,0.06); }
+    .drawer-section-title {
+      font-size: 10px; color: rgba(231,234,208,0.45);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+    }
+
+    .thumb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .thumb-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+    .thumb-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; padding: 4px; border-radius: 6px;
+      border: 2px solid transparent; transition: border-color 0.12s;
+    }
+    .thumb-item:hover { border-color: rgba(200,169,110,0.4); }
+    .thumb-item.active { border-color: #c8a96e; }
+    .thumb-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; }
+    .thumb-item span { font-size: 9px; color: rgba(231,234,208,0.55); text-align: center; line-height: 1.2; }
+    .thumb-item.null-item img { opacity: 0.35; }
+    .thumb-item.null-item.active img { opacity: 0.7; }
+
+    .acc-group { margin-bottom: 8px; }
+    .acc-group-label { font-size: 9px; color: rgba(231,234,208,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+
+    .drawer-footer {
+      padding: 12px 14px; display: flex; gap: 8px; margin-top: auto;
+      border-top: 1px solid rgba(231,234,208,0.08);
+      position: sticky; bottom: 0; background: #161a22;
+    }
+    .drawer-cancel {
+      flex: 1; background: transparent; color: rgba(231,234,208,0.7);
+      border: 1px solid rgba(231,234,208,0.2); border-radius: 6px;
+      padding: 8px; font: inherit; font-size: 12px; cursor: pointer;
+    }
+    .drawer-cancel:hover { background: rgba(231,234,208,0.06); }
+    .drawer-apply {
+      flex: 1; background: #c8a96e; color: #0a0a14;
+      border: none; border-radius: 6px;
+      padding: 8px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .drawer-apply:hover { filter: brightness(1.1); }
+
+    @media (max-width: 480px) {
+      #appearance-drawer { width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -168,7 +243,41 @@
           <button id="fig-panel-add">＋ Klick auf Brett zum Platzieren</button>
         </div>
       </div>
+      <button id="appearance-btn" disabled title="Aussehen bearbeiten">✦ Aussehen</button>
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
+    </div>
+  </div>
+  <div id="appearance-drawer" role="dialog" aria-label="Aussehen bearbeiten" aria-modal="true">
+    <div class="drawer-header">
+      <span>Aussehen</span>
+      <button class="drawer-close" id="appearance-drawer-close" aria-label="Schließen">✕</button>
+    </div>
+    <div class="drawer-section" id="drawer-face-section">
+      <div class="drawer-section-title">Gesicht</div>
+      <div class="thumb-grid" id="drawer-face-grid"><!-- populated by JS --></div>
+    </div>
+    <div class="drawer-section" id="drawer-body-section">
+      <div class="drawer-section-title">Körpertyp</div>
+      <div class="thumb-grid two-col" id="drawer-body-grid"><!-- populated by JS --></div>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-section-title">Accessoires</div>
+      <div class="acc-group">
+        <div class="acc-group-label">Kopf</div>
+        <div class="thumb-grid" id="drawer-acc-head-grid"><!-- populated by JS --></div>
+      </div>
+      <div class="acc-group">
+        <div class="acc-group-label">Oberkörper</div>
+        <div class="thumb-grid" id="drawer-acc-upper-grid"><!-- populated by JS --></div>
+      </div>
+      <div class="acc-group">
+        <div class="acc-group-label">Füße</div>
+        <div class="thumb-grid" id="drawer-acc-feet-grid"><!-- populated by JS --></div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="drawer-cancel" id="appearance-cancel">Abbrechen</button>
+      <button class="drawer-apply" id="appearance-apply">Übernehmen</button>
     </div>
   </div>
   <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = Figur teleportieren / neue Figur</div>
@@ -374,6 +483,9 @@
       type: 'mannequin',
       root, hips, bones, ring,
       bone,
+      headMesh,
+      appearanceMeshes: {},
+      appearance: { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } },
       walkTarget: null,
       walking: false,
       boneOverrides: {},
@@ -442,6 +554,8 @@
       });
     }
     syncPanelToSelection(id);
+    const appBtn = document.getElementById('appearance-btn');
+    if (appBtn) appBtn.disabled = !id;
   }
 
   // ── Panel toggle ─────────────────────────────────────────────────────────────
@@ -1170,6 +1284,7 @@
           if (f.boneOverrides) fig.boneOverrides = { ...f.boneOverrides };
           if (f.walkTarget) fig.walkTarget = f.walkTarget;
           STATE.figures.push(fig);
+          if (f.appearance) applyAppearanceToFig(fig, f.appearance);
         }
         if (typeof msg.stiffness === "number") {
           STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
@@ -1190,6 +1305,7 @@
       case "add": {
         if (STATE.figures.find(f => f.id === msg.figure.id)) break;
         const fig = makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
+        if (msg.figure.appearance) applyAppearanceToFig(fig, msg.figure.appearance);
         STATE.figures.push(fig);
         break;
       }
@@ -1204,6 +1320,7 @@
           }
         }
         if (c.boneOverrides !== undefined) fig.boneOverrides = { ...c.boneOverrides };
+        if (c.appearance !== undefined) applyAppearanceToFig(fig, c.appearance);
         if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
         if (c.walking !== undefined) fig.walking = !!c.walking;
         break;
@@ -1258,7 +1375,7 @@
   const _origAdd = addFigure;
   addFigure = function(position) {
     const fig = _origAdd(position);
-    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z } }));
+    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z, appearance: fig.appearance } }));
     return fig;
   };
 
@@ -1283,6 +1400,240 @@
     tick();
 
     console.log('[brett] scene up');
+
+  // ── Appearance system ──────────────────────────────────────────────────────
+  let PLACEMENT_SPEC = { faces: {}, bodies: {}, accessories: {} };
+  const textureCache = new Map();
+  function loadTex(path) {
+    if (!textureCache.has(path))
+      textureCache.set(path, new THREE.TextureLoader().load(path, undefined, undefined, () => {}));
+    return textureCache.get(path);
+  }
+  (async function loadSpec() {
+    try {
+      const res = await fetch('/assets/figure-pack/placement_spec.json');
+      PLACEMENT_SPEC = await res.json();
+      buildDrawerContent();
+    } catch {}
+  })();
+
+  const ACC_GROUPS = {
+    head:  ['cap','blindfold','crown','veil','hair-short','hair-bun','hair-long','hair-braid','hair-curls'],
+    upper: ['satchel','cane','shawl','swaddle','tunic','coat','apron','robe','vest'],
+    feet:  ['boots-work','shoes-dress','sandals','barefoot'],
+  };
+
+  function applyFaceToFig(fig, faceName) {
+    if (!fig.headMesh) return;
+    if (faceName && PLACEMENT_SPEC.faces?.[faceName]) {
+      const tex = loadTex(`/assets/figure-pack/faces/${faceName}.png`);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.flipY = true;
+      tex.anisotropy = 4;
+      fig.headMesh.material.map = tex;
+      fig.headMesh.material.transparent = true;
+      fig.headMesh.material.alphaTest = 0.05;
+      fig.headMesh.material.needsUpdate = true;
+    } else {
+      fig.headMesh.material.map = null;
+      fig.headMesh.material.needsUpdate = true;
+    }
+  }
+
+  const ACC_PLANE_SIZE = 0.30;
+  function applyAccessorySlot(fig, slot, accName) {
+    // Remove old mesh for this slot
+    const old = fig.appearanceMeshes[slot];
+    if (old) { old.parent?.remove(old); delete fig.appearanceMeshes[slot]; }
+    if (!accName) return;
+    const spec = PLACEMENT_SPEC.accessories?.[accName];
+    if (!spec) return;
+    const boneName = spec.bone === 'neck' ? 'head' : spec.bone;
+    const boneGroup = fig.bones?.[boneName];
+    if (!boneGroup) return;
+    const [ax, ay] = spec.anchorPx || [128, 128];
+    const ox = -((ax - 128) / 256) * ACC_PLANE_SIZE;
+    const oy =  ((128 - ay) / 256) * ACC_PLANE_SIZE;
+    const tex = loadTex(`/assets/figure-pack/accessories/${accName}.png`);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, depthWrite: false });
+    const geo = new THREE.PlaneGeometry(ACC_PLANE_SIZE, ACC_PLANE_SIZE);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(ox, oy, 0.01);
+    mesh.userData.isAppearanceMesh = true;
+    boneGroup.add(mesh);
+    fig.appearanceMeshes[slot] = mesh;
+  }
+
+  function applyAppearanceToFig(fig, appearance) {
+    if (!appearance) return;
+    fig.appearance = { ...fig.appearance, ...appearance,
+      accessories: { ...fig.appearance?.accessories, ...appearance.accessories }
+    };
+    applyFaceToFig(fig, fig.appearance.face);
+    // Accessories
+    for (const slot of ['head','upper','feet']) {
+      applyAccessorySlot(fig, slot, fig.appearance.accessories?.[slot]);
+    }
+  }
+
+  // ── Appearance Drawer logic ─────────────────────────────────────────────────
+  const appearanceDrawer = document.getElementById('appearance-drawer');
+  const appearanceBtn    = document.getElementById('appearance-btn');
+  const drawerClose      = document.getElementById('appearance-drawer-close');
+  const cancelBtn        = document.getElementById('appearance-cancel');
+  const applyBtn         = document.getElementById('appearance-apply');
+
+  let _preOpenAppearance = null; // snapshot before drawer opens
+
+  function openAppearanceDrawer() {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) return;
+    _preOpenAppearance = JSON.parse(JSON.stringify(fig.appearance || {}));
+    syncDrawerToFig(fig);
+    appearanceDrawer.classList.add('open');
+    appearanceBtn.classList.add('open');
+  }
+
+  function closeAppearanceDrawer() {
+    appearanceDrawer.classList.remove('open');
+    appearanceBtn?.classList.remove('open');
+    _preOpenAppearance = null;
+  }
+
+  appearanceBtn?.addEventListener('click', () => {
+    if (appearanceDrawer.classList.contains('open')) { closeAppearanceDrawer(); return; }
+    openAppearanceDrawer();
+  });
+  drawerClose?.addEventListener('click', () => {
+    // Cancel: revert to pre-open state
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig && _preOpenAppearance) applyAppearanceToFig(fig, _preOpenAppearance);
+    closeAppearanceDrawer();
+  });
+  cancelBtn?.addEventListener('click', () => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig && _preOpenAppearance) applyAppearanceToFig(fig, _preOpenAppearance);
+    closeAppearanceDrawer();
+  });
+  applyBtn?.addEventListener('click', () => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) { closeAppearanceDrawer(); return; }
+    sendUpdate(fig, { appearance: { ...fig.appearance } });
+    closeAppearanceDrawer();
+  });
+
+  function buildDrawerContent() {
+    buildFaceGrid();
+    buildBodyGrid();
+    buildAccGrid('head', ACC_GROUPS.head);
+    buildAccGrid('upper', ACC_GROUPS.upper);
+    buildAccGrid('feet', ACC_GROUPS.feet);
+  }
+
+  function makeThumbItem(imgSrc, label, clickHandler, isNullItem = false) {
+    const el = document.createElement('div');
+    el.className = 'thumb-item' + (isNullItem ? ' null-item' : '');
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.alt = label;
+    img.loading = 'lazy';
+    const span = document.createElement('span');
+    span.textContent = label;
+    el.appendChild(img);
+    el.appendChild(span);
+    el.addEventListener('click', clickHandler);
+    return el;
+  }
+
+  function buildFaceGrid() {
+    const grid = document.getElementById('drawer-face-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const faces = Object.keys(PLACEMENT_SPEC.faces || {}).filter(k => !k.startsWith('_'));
+    // "No face" option
+    const nullEl = makeThumbItem('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="56" height="56" fill="%23222"/><text x="28" y="34" text-anchor="middle" fill="%23666" font-size="20">—</text></svg>', 'Keine', () => {
+      const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+      if (fig) applyAppearanceToFig(fig, { face: null });
+      syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));
+    }, true);
+    grid.appendChild(nullEl);
+    for (const face of faces) {
+      const el = makeThumbItem(`/assets/figure-pack/faces/${face}.png`, face, () => {
+        const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+        if (fig) applyAppearanceToFig(fig, { face });
+        syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));
+      });
+      grid.appendChild(el);
+    }
+  }
+
+  function buildBodyGrid() {
+    const grid = document.getElementById('drawer-body-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const bodies = Object.keys(PLACEMENT_SPEC.bodies || {}).filter(k => !k.startsWith('_'));
+    for (const body of bodies) {
+      const el = makeThumbItem(
+        'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="56" height="56" fill="#1a1f2a"/><text x="28" y="36" text-anchor="middle" fill="#c8a96e" font-size="11">${body}</text></svg>`),
+        body,
+        () => {
+          const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+          if (fig) applyAppearanceToFig(fig, { body });
+          syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));
+        }
+      );
+      grid.appendChild(el);
+    }
+  }
+
+  function buildAccGrid(slot, names) {
+    const grid = document.getElementById(`drawer-acc-${slot}-grid`);
+    if (!grid) return;
+    grid.innerHTML = '';
+    // "No accessory" option
+    const nullEl = makeThumbItem('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="56" height="56" fill="%23222"/><text x="28" y="34" text-anchor="middle" fill="%23666" font-size="20">—</text></svg>', 'Keine', () => {
+      const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+      if (fig) applyAppearanceToFig(fig, { accessories: { [slot]: null } });
+      syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));
+    }, true);
+    grid.appendChild(nullEl);
+    for (const name of names) {
+      const el = makeThumbItem(`/assets/figure-pack/accessories/${name}.png`, name, () => {
+        const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+        if (fig) applyAppearanceToFig(fig, { accessories: { [slot]: name } });
+        syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));
+      });
+      grid.appendChild(el);
+    }
+  }
+
+  function syncDrawerToFig(fig) {
+    if (!fig) return;
+    const app = fig.appearance || {};
+    // Face
+    const faceGrid = document.getElementById('drawer-face-grid');
+    faceGrid?.querySelectorAll('.thumb-item').forEach((el, i) => {
+      const faces = Object.keys(PLACEMENT_SPEC.faces || {}).filter(k => !k.startsWith('_'));
+      const faceName = i === 0 ? null : faces[i - 1];
+      el.classList.toggle('active', app.face === faceName);
+    });
+    // Body
+    const bodyGrid = document.getElementById('drawer-body-grid');
+    bodyGrid?.querySelectorAll('.thumb-item').forEach((el, i) => {
+      const bodies = Object.keys(PLACEMENT_SPEC.bodies || {}).filter(k => !k.startsWith('_'));
+      el.classList.toggle('active', app.body === bodies[i]);
+    });
+    // Accessories
+    for (const slot of ['head','upper','feet']) {
+      const grid = document.getElementById(`drawer-acc-${slot}-grid`);
+      const names = ACC_GROUPS[slot];
+      grid?.querySelectorAll('.thumb-item').forEach((el, i) => {
+        const accName = i === 0 ? null : names[i - 1];
+        el.classList.toggle('active', app.accessories?.[slot] === accName);
+      });
+    }
+  }
   </script>
 <script src="assets/mayhem/physics.js"></script>
 <script src="assets/mayhem/chase-camera.js"></script>

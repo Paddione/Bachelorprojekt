@@ -237,7 +237,7 @@
   }
 
   .section {
-    border-bottom: 1px solid #1e2d42;
+    border-bottom: 1px solid rgba(232, 200, 112, 0.1);
   }
 
   .section-header {
@@ -325,6 +325,14 @@
     padding: 7px 9px;
     font-family: inherit;
     resize: vertical;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238899aa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 26px;
   }
   .field input:focus,
   .field select:focus,
@@ -359,7 +367,7 @@
 
   .ticket-row {
     background: #0f1623;
-    border: 1px solid #1e2d42;
+    border: 1px solid rgba(255,255,255,0.06);
     border-radius: 8px;
     padding: 10px 12px;
     display: flex;
@@ -419,9 +427,14 @@
     border-radius: 5px;
     color: #8899aa;
     font-size: 11px;
-    padding: 4px 6px;
+    padding: 4px 22px 4px 6px;
     cursor: pointer;
     font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%235566aa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
   }
   .ticket-actions select:focus { outline: none; border-color: rgba(232,200,112,0.4); }
 

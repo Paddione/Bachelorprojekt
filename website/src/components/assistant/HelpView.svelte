@@ -14,6 +14,12 @@
 </script>
 
 <div class="help-body">
+  <div class="hv-intro">
+    <span class="hv-eyebrow">
+      <span class="hv-eyebrow-bar" aria-hidden="true"></span>
+      Kontexthilfe
+    </span>
+  </div>
   {#if content}
     <h3 class="section-title">{content.title}</h3>
     <p class="section-desc">{content.description}</p>
@@ -55,19 +61,45 @@
 </div>
 
 <style>
-  .help-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 0; }
+  .help-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
 
+  /* ── Intro block ── */
+  .hv-intro {
+    padding: 20px 22px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .hv-eyebrow {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: oklch(0.83 0.09 75);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hv-eyebrow-bar {
+    width: 16px;
+    height: 1px;
+    background: oklch(0.83 0.09 75);
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+
+  /* ── Content ── */
   .section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #818cf8;
-    margin: 0 0 6px;
+    font-family: var(--font-serif, 'Newsreader', serif);
+    font-size: 18px;
+    font-weight: 400;
+    color: oklch(0.87 0.09 75);
+    margin: 16px 22px 4px;
   }
 
   .section-desc {
     font-size: 12px;
     color: #aabbcc;
-    margin: 0 0 16px;
+    margin: 0 22px 16px;
     line-height: 1.55;
   }
 
@@ -77,11 +109,11 @@
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: #5566aa;
-    margin: 0 0 8px;
+    margin: 0 22px 8px;
   }
 
   .action-list {
-    margin: 0 0 16px;
+    margin: 0 22px 16px;
     padding: 0;
     list-style: none;
     display: flex;
@@ -96,16 +128,16 @@
     gap: 6px;
     line-height: 1.5;
   }
-  .action-dot { color: #818cf8; flex-shrink: 0; }
+  .action-dot { color: oklch(0.83 0.09 75); flex-shrink: 0; }
 
-  .guides { display: flex; flex-direction: column; gap: 6px; }
+  .guides { display: flex; flex-direction: column; gap: 6px; margin: 0 22px 16px; }
 
   .guide-item { border-radius: 6px; overflow: hidden; }
 
   .guide-summary {
     font-size: 12px;
-    color: #818cf8;
-    background: rgba(79,70,229,.12);
+    color: oklch(0.83 0.09 75);
+    background: rgba(232,200,112,.06);
     padding: 7px 10px;
     cursor: pointer;
     border-radius: 6px;
@@ -130,7 +162,7 @@
   .guide-steps {
     margin: 4px 0 0;
     padding: 8px 10px 8px 28px;
-    background: rgba(79,70,229,.06);
+    background: rgba(232,200,112,.03);
     border-radius: 0 0 6px 6px;
     display: flex;
     flex-direction: column;
@@ -142,5 +174,5 @@
     line-height: 1.5;
   }
 
-  .empty { font-size: 12px; color: #5566aa; }
+  .empty { font-size: 12px; color: #5566aa; padding: 16px 22px; }
 </style>

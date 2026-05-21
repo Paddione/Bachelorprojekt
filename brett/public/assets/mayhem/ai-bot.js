@@ -99,6 +99,25 @@ class MayhemAIBot {
     this._x = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._x + moveX * this._speed * dt));
     this._z = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._z + moveZ * this._speed * dt));
 
+    // Bot separation: prevent bots from stacking on the same target
+    const SEP_RADIUS = 1.2, SEP_STRENGTH = 1.5;
+    let sepX = 0, sepZ = 0;
+    for (const [otherId, other] of allAvatars) {
+      if (otherId === this.id || !otherId.startsWith('bot-')) continue;
+      const dx = this._x - other.mannequin.root.position.x;
+      const dz = this._z - other.mannequin.root.position.z;
+      const d = Math.hypot(dx, dz);
+      if (d < SEP_RADIUS && d > 0.001) {
+        const push = (SEP_RADIUS - d) / SEP_RADIUS;
+        sepX += (dx / d) * push;
+        sepZ += (dz / d) * push;
+      }
+    }
+    if (sepX !== 0 || sepZ !== 0) {
+      this._x = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._x + sepX * SEP_STRENGTH * dt));
+      this._z = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._z + sepZ * SEP_STRENGTH * dt));
+    }
+
     // Drive the avatar via the same setNetState path real network messages use
     const moving = moveX !== 0 || moveZ !== 0;
     // Set netTarget so the outer mayhem.js remoteAvatars loop handles interpolation

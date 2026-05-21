@@ -1,5 +1,27 @@
 import { WEAPONS } from './weapons.mjs';
 
+export function sweepArcContains({ selfX, selfZ, targetX, targetZ, facingX, facingZ, arcDeg }) {
+  const dx = targetX - selfX;
+  const dz = targetZ - selfZ;
+  const len = Math.sqrt(dx * dx + dz * dz);
+  if (len === 0) return true;
+  const dot = (dx / len) * facingX + (dz / len) * facingZ;
+  return dot >= Math.cos((arcDeg / 2) * Math.PI / 180);
+}
+
+export const BURN_TICK_MS = 1000;
+
+export function startBurnTimer(durMs, onTick) {
+  let tick = 0;
+  const ticks = Math.floor(durMs / BURN_TICK_MS);
+  const id = setInterval(() => {
+    tick++;
+    onTick(tick);
+    if (tick >= ticks) clearInterval(id);
+  }, BURN_TICK_MS);
+  return id;
+}
+
 export function applyDamage(victim, dmg) {
   victim.hp = Math.max(0, (victim.hp ?? 0) - dmg);
   return victim.hp;

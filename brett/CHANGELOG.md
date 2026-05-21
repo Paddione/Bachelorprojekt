@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.4.0...brett-v0.4.1) (2026-05-21)
+
+
+### Bug Fixes
+
+* **brett:** resolve T000135 — movement inversion, weapon visibility, bot stacking ([#956](https://github.com/Paddione/Bachelorprojekt/issues/956)) ([80254a9](https://github.com/Paddione/Bachelorprojekt/commit/80254a961920ab1a74d133e9b0b7e003206e745b))
+
 ## [0.4.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.3.0...brett-v0.4.0) (2026-05-20)
 
 

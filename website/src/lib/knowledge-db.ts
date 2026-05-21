@@ -341,6 +341,70 @@ export async function mergeCollections(args: {
   }
 }
 
+export interface SuggestSpec {
+  name: string;
+  sourceIds: string[];
+}
+
+export async function clusterByEmbedding(threshold = 0.75): Promise<SuggestSpec[]> {
+  const pairsRes = await p().query<{ id_a: string; id_b: string; name_a: string; name_b: string }>(
+    `WITH centroids AS (
+       SELECT kc.collection_id, avg(kc.embedding) AS centroid
+       FROM knowledge.chunks kc
+       JOIN knowledge.collections col ON col.id = kc.collection_id
+       WHERE col.source IN ('custom', 'web_crawl')
+       GROUP BY kc.collection_id
+       HAVING COUNT(*) > 0
+     )
+     SELECT
+       a.collection_id AS id_a,
+       col_a.name AS name_a,
+       b.collection_id AS id_b,
+       col_b.name AS name_b
+     FROM centroids a
+     JOIN centroids b ON a.collection_id < b.collection_id
+     JOIN knowledge.collections col_a ON col_a.id = a.collection_id
+     JOIN knowledge.collections col_b ON col_b.id = b.collection_id
+     WHERE (1 - (a.centroid <=> b.centroid)) > $1
+     ORDER BY (1 - (a.centroid <=> b.centroid)) DESC`,
+    [threshold],
+  );
+
+  // union-find to cluster pairs into groups
+  const parent = new Map<string, string>();
+  const names = new Map<string, string>();
+  function find(x: string): string {
+    if (!parent.has(x)) { parent.set(x, x); return x; }
+    const p = find(parent.get(x)!);
+    parent.set(x, p);
+    return p;
+  }
+  function union(a: string, b: string) {
+    parent.set(find(b), find(a));
+  }
+
+  for (const { id_a, id_b, name_a, name_b } of pairsRes.rows) {
+    names.set(id_a, name_a);
+    names.set(id_b, name_b);
+    union(id_a, id_b);
+  }
+
+  const groups = new Map<string, string[]>();
+  for (const id of Array.from(names.keys())) {
+    const root = find(id);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root)!.push(id);
+  }
+
+  return Array.from(groups.values())
+    .filter(ids => ids.length >= 2)
+    .map(ids => {
+      const sorted = ids.slice().sort((a, b) => (names.get(a) ?? '').localeCompare(names.get(b) ?? ''));
+      const baseName = names.get(sorted[0]) ?? 'Zusammengeführt';
+      return { name: baseName, sourceIds: sorted };
+    });
+}
+
 export async function ensureCollection(args: {
   name: string;
   source: CollectionSource;

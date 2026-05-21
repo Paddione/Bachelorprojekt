@@ -1,0 +1,16 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 0,
+  "edgesRestored": 2,
+  "crossBatchEdgesAdded": 1,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "Issues 1-3 (items.ts, powerups.ts, tick.test.ts -> game/proto/messages.ts): Already resolved by the merge script via recoveredFromImportMap edges. The target path arena-server/src/game/proto/messages.ts does not exist on disk — the correct path is arena-server/src/proto/messages.ts, and the merge script already added those 3 corrected import edges.",
+    "Issue 4 (config:k3d/realm-import-entrypoint.sh -> config:k3d/realm-workspace-dev.json): The source node was in the batch with type 'file' (ID: file:k3d/realm-import-entrypoint.sh) and exists in the assembled graph. The dropped edge referenced it with the wrong 'config:' prefix. Added the configures edge from file:k3d/realm-import-entrypoint.sh to config:k3d/realm-workspace-dev.json (weight 0.6).",
+    "Issue 5 (file:website/src/pages/api/admin/tests/traceability.ts -> file:website/src/data/test-inventory.json): The target node exists in the graph as config:website/src/data/test-inventory.json (the LLM correctly classified it as config). The dropped edge referenced it with the wrong 'file:' prefix. Added the imports edge pointing to the correct config: prefix node.",
+    "Cross-batch gap: Added a 'related' edge (weight 0.9) from file:arena-server/src/proto/messages.ts to file:website/src/components/arena/shared/lobbyTypes.ts, documenting the byte-identical protocol drift guard enforced by CI. This is not in the import map (neither file imports the other) but is explicitly stated in the task context and CLAUDE.md as a CI-enforced invariant.",
+    "All 14 import-map-backed import edges to arena-server/src/proto/messages.ts are present. All 11 import-map-backed import edges to website/src/components/arena/shared/lobbyTypes.ts are present.",
+    "Final graph: 1481 nodes, 2266 edges."
+  ]
+}

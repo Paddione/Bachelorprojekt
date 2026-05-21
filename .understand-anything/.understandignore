@@ -1,0 +1,104 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Lines below are suggestions — uncomment to activate.
+# Use ! prefix to force-include something excluded by defaults.
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+# --- From .gitignore (uncomment to exclude) ---
+
+# .env
+# .env.*
+# !.env.example
+# environments/.secrets/
+# deploy/mcp/openclaw-secrets.yaml
+# openclaw/.env
+# .openclaw/workspace/
+# deploy/mcp/claude-code-secrets.yaml
+# vaultwarden-import-*.json
+# *-bitwarden-export.json
+# claude-code/*-export.settings.json
+# k3d/vaultwarden-seed-credentials.yaml
+# k3d/vaultwarden-seed-job.yaml
+# data/
+# !website/src/data/
+# backup/*.sql
+# backup/*.sql.gz
+# backup/*.tar
+# backup/*.tar.gz
+# backup/*.dump
+# logs/
+# .DS_Store
+# Thumbs.db
+# Desktop.ini
+# *.swp
+# *.swo
+# *~
+# wireguard/*.conf
+# wireguard/*.key
+# wireguard/*.pub
+# .docker/
+# **/target/
+# tracking.db
+# website/dist/
+# website/.astro/
+# .worktrees/
+# .claude/*.local.md
+# .claude/settings.local.json
+# .claude/worktrees/
+# .git_corrupt/
+# docs-site/
+# *.tmp
+# *.bak
+# docs/superpowers/*
+# !docs/superpowers/specs/
+# !docs/superpowers/plans/
+# files_chore.txt
+# files_main.txt
+# website/node_modules.task/
+# .task/checksum
+# prod/realm-workspace-prod.json
+# prod/realm-workspace-prod.json
+# website/.superpowers.superpowers/
+# .superpowers/
+# .playwright-mcp/
+# test-results/
+# tests/e2e/results/outcomes/
+# .worktrees/
+# memory
+# whisper
+# environments/Assets
+# .claude/settings.json
+# .claude/scheduled_tasks.lock
+# Systemdesign_Buchhaltung-1.docx
+# ~$stemdesign_Buchhaltung-1.docx
+# .codex
+# *.pyc
+# *.pyo
+# coaching-sources/*
+# !coaching-sources/.gitkeep
+# scripts/coaching/node_modules
+# *:Zone.Identifier
+# k3d/docs-content-built/
+# tests/unit/lib/bats-assert/test/
+# tests/unit/lib/bats-core/test/
+# tests/unit/lib/bats-file/test/
+# tests/unit/lib/bats-support/test/
+# docs-html-bundles/
+# .worktrees/
+# .gemini/agents/
+# .gemini/skills/
+# .gemini
+
+# --- Detected directories (uncomment to exclude) ---
+
+tests/
+docs/
+scripts/
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# *.test.*
+# *.spec.*
+# *.snap

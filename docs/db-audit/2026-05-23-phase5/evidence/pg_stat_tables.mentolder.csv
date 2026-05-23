@@ -1,0 +1,105 @@
+website|assets|registry|29|0|18|319|29|29|0|0||||
+website|bachelorprojekt|features|0|0|12|0|0|0|0|0||||
+website|bachelorprojekt|pipeline|0|0|6|0|0|0|0|0||||
+website|bachelorprojekt|requirements|0|0|6|0|0|0|0|0||||
+website|bachelorprojekt|test_results|0|0|6|0|0|0|0|0||||
+website|bugs|bug_tickets|0|0|11|0|0|0|0|0||||
+website|coaching|books|0|0|56|0|5|0|0|0||||
+website|coaching|drafts|0|0|10|0|3877|0|0|0||||
+website|coaching|ki_config|9|5|149|1294|25|9|5|0||||
+website|coaching|projects|0|0|11|0|3|0|0|0||||
+website|coaching|session_audit_log|4|1|7|12|19|5|0|1||||
+website|coaching|session_steps|12|2|8|36|108|13|2|1||||
+website|coaching|sessions|50|1|30|1059|136|51|0|1||||2026-05-20 06:29:21.152123+00
+website|coaching|snippet_clusters|0|0|7|0|0|0|0|0||||
+website|coaching|snippets|0|0|3432|0|0|0|0|0||||
+website|coaching|step_templates|0|0|8|0|39|0|0|0||||
+website|coaching|template_assignments|0|0|8|0|0|0|0|0||||
+website|coaching|templates|0|0|12|0|0|0|0|0||||
+website|knowledge|chunks|5490|0|11|28156|728|8913|0|3423||2026-05-20 15:24:46.952148+00||2026-05-20 15:24:47.032181+00
+website|knowledge|collections|26|17|4947|80088|4838|32|76|5||||2026-05-22 03:00:07.260833+00
+website|knowledge|documents|597|11|8|2637|9590|597|75|0||||2026-05-20 15:17:46.50276+00
+website|platform|hardware_assets|12|2|16|170|12|12|2|0||||
+website|platform|software_assets|27|7|41|1045|33|31|10|4||||
+website|public|admin_shortcuts|0|0|108|0|0|0|0|0||||
+website|public|assets|0|0|4|0|0|0|0|0||||
+website|public|assistant_conversations|0|0|7|0|0|0|0|0||||
+website|public|assistant_first_seen|2|0|6|7|90|2|0|0||||
+website|public|assistant_messages|0|0|7|0|0|0|0|0||||
+website|public|assistant_nudge_dismissals|2|2|6|7|307|2|2|0||||
+website|public|billing_audit_log|0|0|7|0|4|0|0|0||||
+website|public|billing_customers|4|0|10|24|320|4|0|0||||
+website|public|billing_invoice_documents|0|0|6|0|4|0|0|0||||
+website|public|billing_invoice_dunnings|0|0|7|0|4|0|0|0||||
+website|public|billing_invoice_line_items|0|4|14|28|0|4|0|4||||
+website|public|billing_invoice_payments|0|0|1452|0|4|0|0|0||||
+website|public|billing_invoices|0|4|150|359|52|4|0|4||||
+website|public|billing_nachweis|0|0|7|0|4|0|0|0||||
+website|public|billing_quotes|0|0|11|0|0|0|0|0||||
+website|public|billing_suppliers|0|0|7|0|0|0|0|0||||
+website|public|brands|2|0|7|12|223|2|0|0||||
+website|public|brett_rooms|8|15|118|375|231|8|173|0||2026-05-21 10:24:28.262708+00||2026-05-21 02:16:03.104122+00
+website|public|brett_snapshots|0|0|5|0|2|0|0|0||||
+website|public|chat_message_reads|0|0|5|0|2|0|0|0||||
+website|public|chat_messages|0|0|23|0|0|0|0|0||||
+website|public|chat_room_members|0|0|5|0|2|0|0|0||||
+website|public|chat_rooms|0|0|7|0|0|0|0|0||||
+website|public|client_notes|0|0|5|0|1|0|0|0||||
+website|public|customers|1|26|1088|1166|915|2|25|1||||
+website|public|document_assignments|0|0|5|0|111|0|0|0||||
+website|public|document_templates|0|0|6|0|0|0|0|0||||
+website|public|eur_bookings|0|0|10|0|0|0|0|0||||
+website|public|free_time_windows|0|0|626|0|0|0|0|0||||
+website|public|inbox_items|7|10|43|255|864|10|7|3||||
+website|public|invoice_counters|1|3|6|5|4|1|3|0||||
+website|public|legal_pages|0|0|6|0|58|0|0|0||||
+website|public|leistungen_config|0|0|6|0|90|0|0|0||||
+website|public|meeting_artifacts|0|0|5|0|0|0|0|0||||
+website|public|meeting_insights|0|0|5|0|0|0|0|0||||
+website|public|meeting_reminders|0|0|1206|0|0|0|0|0||||
+website|public|meetings|0|0|23|0|2383|0|0|0||||
+website|public|message_threads|0|0|43|0|0|0|0|0||||
+website|public|messages|0|0|147|0|0|0|0|0||||
+website|public|newsletter_campaigns|0|0|7|0|0|0|0|0||||
+website|public|newsletter_send_log|0|0|4|0|0|0|0|0||||
+website|public|newsletter_subscribers|0|0|7|0|12|0|0|0||||
+website|public|onboarding_items|6|7|5|18|6|6|7|0||||
+website|public|poll_answers|0|0|5|0|0|0|0|0||||
+website|public|polls|0|0|5|0|0|0|0|0||||
+website|public|questionnaire_answer_options|0|0|6|0|0|0|0|0||||
+website|public|questionnaire_answers|0|0|42|0|0|0|0|0||||
+website|public|questionnaire_assignment_scores|0|0|43|0|0|0|0|0||||
+website|public|questionnaire_assignments|0|0|2098|0|0|0|0|0||||
+website|public|questionnaire_dimensions|0|0|6|0|0|0|0|0||||
+website|public|questionnaire_questions|0|0|6|0|0|0|0|0||||
+website|public|questionnaire_templates|0|0|12|0|0|0|0|0||||
+website|public|questionnaire_test_evidence|0|0|42|0|0|0|0|0||||
+website|public|questionnaire_test_fixtures|0|0|42|0|98|0|0|0||||
+website|public|questionnaire_test_seed_registry|0|0|7|0|0|0|0|0||||
+website|public|questionnaire_test_status|0|0|1240|0|0|0|0|0||||
+website|public|referenzen_config|0|0|6|0|14|0|0|0||||
+website|public|service_config|0|0|6|0|8124|0|0|0||||
+website|public|site_settings|0|0|6|0|8081|0|0|0||||
+website|public|supplier_invoices|0|0|6|0|0|0|0|0||||
+website|public|systemtest_failure_outbox|0|0|1205|0|0|0|0|0||||
+website|public|systemtest_magic_tokens|0|0|140|0|0|0|0|0||||
+website|public|tax_mode_changes|0|0|6|0|0|0|0|0||||
+website|public|test_results|0|0|43|0|0|0|0|0||||
+website|public|test_runs|0|0|41|0|0|0|0|0||||
+website|public|time_entries|0|0|7|0|0|0|0|0||||
+website|public|transcript_segments|0|0|5|0|0|0|0|0||||
+website|public|transcripts|0|0|5|0|0|0|0|0||||
+website|public|vat_id_validations|0|0|7|0|0|0|0|0||||
+website|public|web_sessions|3|6|9143|284464|736|174|652|171||2026-05-23 17:14:00.726274+00||2026-05-23 17:10:00.613731+00
+website|public|website_custom_sections|0|0|17|0|0|0|0|0||||
+website|tickets|pr_events|0|0|9|0|0|0|0|0||||
+website|tickets|tags|2|0|647|386|16|2|0|0||||
+website|tickets|ticket_activity|295|0|9|1294|23|295|0|0||||2026-05-20 18:58:48.434326+00
+website|tickets|ticket_attachments|4|0|8|6|41|4|0|0||||
+website|tickets|ticket_comments|24|1|9|107|25|24|1|0||||
+website|tickets|ticket_counters|1|29|62|61|223|1|131|0||2026-05-20 18:35:48.275335+00||2026-05-20 19:17:48.637539+00
+website|tickets|ticket_links|0|0|11|0|416|0|0|0||||
+website|tickets|ticket_plans|21|1|8|96|6|21|1|0||||
+website|tickets|ticket_tags|5|0|7|14|762|5|0|0||||
+website|tickets|ticket_watchers|0|0|6|0|27|0|0|0||||
+website|tickets|tickets|150|31|2592|83989|2251|156|243|0||2026-05-20 20:14:49.133487+00||2026-05-20 22:13:50.531156+00

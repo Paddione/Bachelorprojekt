@@ -1,0 +1,72 @@
+-- DB Audit Phase 5 — Add missing FK indexes (mentolder)
+-- Generated 2026-05-23 from evidence/missing-fk-indexes.mentolder.csv
+-- Idempotent (CREATE INDEX IF NOT EXISTS) and reversible (DROP INDEX IF EXISTS)
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_bachelorprojekt_features_requirement_id ON bachelorprojekt.features(requirement_id);
+CREATE INDEX IF NOT EXISTS idx_bachelorprojekt_features_brand ON bachelorprojekt.features(brand);
+CREATE INDEX IF NOT EXISTS idx_bachelorprojekt_pipeline_req_id ON bachelorprojekt.pipeline(req_id);
+CREATE INDEX IF NOT EXISTS idx_bachelorprojekt_test_results_req_id ON bachelorprojekt.test_results(req_id);
+CREATE INDEX IF NOT EXISTS idx_bugs_bug_tickets_brand ON bugs.bug_tickets(brand);
+CREATE INDEX IF NOT EXISTS idx_coaching_drafts_resulting_snippet_id ON coaching.drafts(resulting_snippet_id);
+CREATE INDEX IF NOT EXISTS idx_coaching_projects_client_id ON coaching.projects(client_id);
+CREATE INDEX IF NOT EXISTS idx_coaching_sessions_ki_config_id ON coaching.sessions(ki_config_id);
+CREATE INDEX IF NOT EXISTS idx_coaching_snippet_clusters_parent_id ON coaching.snippet_clusters(parent_id);
+CREATE INDEX IF NOT EXISTS idx_coaching_snippets_knowledge_chunk_id ON coaching.snippets(knowledge_chunk_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_collections_brand ON knowledge.collections(brand);
+CREATE INDEX IF NOT EXISTS idx_assets__brand ON assets(brand);
+CREATE INDEX IF NOT EXISTS idx_billing_customers__customers_id ON billing_customers(customers_id);
+CREATE INDEX IF NOT EXISTS idx_billing_invoice_dunnings__brand ON billing_invoice_dunnings(brand);
+CREATE INDEX IF NOT EXISTS idx_billing_invoice_line_items__invoice_id ON billing_invoice_line_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_billing_invoice_payments__brand ON billing_invoice_payments(brand);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices__brand ON billing_invoices(brand);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices__parent_invoice_id ON billing_invoices(parent_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices__customer_id ON billing_invoices(customer_id);
+CREATE INDEX IF NOT EXISTS idx_billing_invoices__cancels_invoice_id ON billing_invoices(cancels_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_billing_nachweis__brand ON billing_nachweis(brand);
+CREATE INDEX IF NOT EXISTS idx_billing_quotes__customer_id ON billing_quotes(customer_id);
+CREATE INDEX IF NOT EXISTS idx_billing_quotes__converted_to_invoice_id ON billing_quotes(converted_to_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_billing_quotes__brand ON billing_quotes(brand);
+CREATE INDEX IF NOT EXISTS idx_chat_message_reads__customer_id ON chat_message_reads(customer_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages__sender_customer_id ON chat_messages(sender_customer_id);
+CREATE INDEX IF NOT EXISTS idx_chat_room_members__customer_id ON chat_room_members(customer_id);
+CREATE INDEX IF NOT EXISTS idx_chat_rooms__direct_customer_id ON chat_rooms(direct_customer_id);
+CREATE INDEX IF NOT EXISTS idx_document_assignments__template_id ON document_assignments(template_id);
+CREATE INDEX IF NOT EXISTS idx_eur_bookings__invoice_id ON eur_bookings(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_eur_bookings__brand ON eur_bookings(brand);
+CREATE INDEX IF NOT EXISTS idx_free_time_windows__brand ON free_time_windows(brand);
+CREATE INDEX IF NOT EXISTS idx_inbox_items__bug_ticket_id ON inbox_items(bug_ticket_id);
+CREATE INDEX IF NOT EXISTS idx_messages__sender_customer_id ON messages(sender_customer_id);
+CREATE INDEX IF NOT EXISTS idx_message_threads__customer_id ON message_threads(customer_id);
+CREATE INDEX IF NOT EXISTS idx_newsletter_send_log__subscriber_id ON newsletter_send_log(subscriber_id);
+CREATE INDEX IF NOT EXISTS idx_newsletter_send_log__campaign_id ON newsletter_send_log(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_answer_options__question_id ON questionnaire_answer_options(question_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_answer_options__dimension_id ON questionnaire_answer_options(dimension_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_answers__question_id ON questionnaire_answers(question_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_assignments__template_id ON questionnaire_assignments(template_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_assignments__project_id ON questionnaire_assignments(project_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_dimensions__template_id ON questionnaire_dimensions(template_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_questions__template_id ON questionnaire_questions(template_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_test_evidence__question_id ON questionnaire_test_evidence(question_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_test_fixtures__question_id ON questionnaire_test_fixtures(question_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_test_seed_registry__question_id ON questionnaire_test_seed_registry(question_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_test_status__evidence_id ON questionnaire_test_status(evidence_id);
+CREATE INDEX IF NOT EXISTS idx_questionnaire_test_status__last_failure_ticket_id ON questionnaire_test_status(last_failure_ticket_id);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices__brand ON supplier_invoices(brand);
+CREATE INDEX IF NOT EXISTS idx_supplier_invoices__supplier_id ON supplier_invoices(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_tax_mode_changes__brand ON tax_mode_changes(brand);
+CREATE INDEX IF NOT EXISTS idx_time_entries__task_id ON time_entries(task_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_tags_brand ON tickets.tags(brand);
+CREATE INDEX IF NOT EXISTS idx_tickets_ticket_activity_actor_id ON tickets.ticket_activity(actor_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_ticket_attachments_uploaded_by ON tickets.ticket_attachments(uploaded_by);
+CREATE INDEX IF NOT EXISTS idx_tickets_ticket_comments_author_id ON tickets.ticket_comments(author_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_ticket_links_created_by ON tickets.ticket_links(created_by);
+CREATE INDEX IF NOT EXISTS idx_tickets_tickets_brand ON tickets.tickets(brand);
+CREATE INDEX IF NOT EXISTS idx_tickets_tickets_reporter_id ON tickets.tickets(reporter_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_tickets_source_test_result_id ON tickets.tickets(source_test_result_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_tickets_source_test_assignment_id ON tickets.tickets(source_test_assignment_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_ticket_tags_tag_id ON tickets.ticket_tags(tag_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_ticket_watchers_user_id ON tickets.ticket_watchers(user_id);
+
+COMMIT;

@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">🛡️</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Compliance · DSGVO</div>
     <div class="page-hero-title">DSGVO / Datenschutz</div>
     <p class="page-hero-desc">Datenschutz by Design: Alle Daten bleiben on-premises. Keine Cloud-Abhängigkeiten, keine Telemetrie.</p>
     <div class="page-hero-meta">

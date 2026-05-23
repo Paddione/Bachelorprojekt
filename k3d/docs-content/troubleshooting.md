@@ -1,4 +1,21 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🔧</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Support · Diagnose</div>
+    <div class="page-hero-title">Fehlerbehebung</div>
+    <p class="page-hero-desc">Bekannte Probleme, Diagnose-Befehle und Workarounds.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Fehlerbehebung
+
+<div class="callout callout-crit">
+<strong>Cluster reagiert nicht?</strong> Zuerst <code>task cluster:status</code> und <code>task workspace:status ENV=&lt;env&gt;</code> — dann Logs mit <code>task workspace:logs ENV=&lt;env&gt; -- &lt;service&gt;</code>.
+</div>
 
 ## Allgemeine Diagnose
 

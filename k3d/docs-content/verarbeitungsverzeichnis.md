@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">📎</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">DSGVO · Art. 30 DSGVO</div>
     <div class="page-hero-title">Verarbeitungsverzeichnis (Art. 30 DSGVO)</div>
     <p class="page-hero-desc">Dokumentation aller Verarbeitungstätigkeiten personenbezogener Daten: Verantwortlicher, Zweck, Datenkategorien, Empfänger und Löschfristen.</p>
     <div class="page-hero-meta">

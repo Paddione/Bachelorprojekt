@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">🤖</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Claude Code · MCP</div>
     <div class="page-hero-title">MCP Actions</div>
     <p class="page-hero-desc">Referenz aller Aktionen, die Claude Code über die verbundenen MCP-Server ausführen kann: Kubernetes, Postgres, Browser, GitHub.</p>
     <div class="page-hero-meta">

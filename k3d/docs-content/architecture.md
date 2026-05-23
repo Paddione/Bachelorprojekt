@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">🏗️</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Referenz · Kubernetes</div>
     <div class="page-hero-title">Systemarchitektur</div>
     <p class="page-hero-desc">Kubernetes-Cluster-Topologie, Service-Abhaengigkeiten, Netzwerkmodell und Infrastruktur-Design des Workspace MVP.</p>
     <div class="page-hero-meta">
@@ -23,6 +24,10 @@ Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine T
 ## Komponenten-Diagramm
 
 > Die Service-Boxen sind klickbar und fuehren zur jeweiligen Dokumentationsseite.
+
+<div class="callout callout-info">
+Alle Diagramme sind interaktiv — Scroll zum Zoomen, Ziehen zum Verschieben. Klick "Reset" zum Zurücksetzen.
+</div>
 
 ```mermaid
 flowchart TB

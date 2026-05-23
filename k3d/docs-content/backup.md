@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">💾</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Daten · Wiederherstellung</div>
+    <div class="page-hero-title">Backup & Wiederherstellung</div>
+    <p class="page-hero-desc">Tägliche verschlüsselte DB-Snapshots, Restore-Workflow und Backup-Monitoring.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">SA-07</span>
+      <span class="page-hero-tag">AES-256</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Backup & Wiederherstellung
 
 ## Überblick
@@ -11,8 +25,9 @@ Automatische Datenbank-Backups laufen täglich als Kubernetes CronJob (`k3d/back
 - **Speicherort:** PVC `backup-pvc` (1 Gi, ReadWriteOnce) im Namespace `workspace`
 - **Sicherheitsanforderung:** SA-07 (tägliche Backups mit Verschlüsselung)
 
-> **Hinweis:** Datei-PVCs (Nextcloud-Dateien, Vaultwarden-Anhänge, DocuSeal-Dokumente)
-> werden **nicht** automatisch gesichert — nur die Datenbankdaten.
+<div class="callout callout-warn">
+<strong>Datei-PVCs werden NICHT gesichert.</strong> Nextcloud-Dateien, Vaultwarden-Anhänge und DocuSeal-Dokumente liegen im Dateisystem — nur die Datenbankdaten sind im Backup enthalten.
+</div>
 
 ```mermaid
 sequenceDiagram
@@ -82,14 +97,29 @@ Das Skript erstellt einen Job aus dem CronJob-Template und folgt den Logs.
 > Alle aktuellen Daten gehen verloren. Services vorher stoppen, um inkonsistente
 > Schreibvorgänge zu vermeiden.
 
-### Schritt 1 — Verfügbare Backups auflisten
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">1</div>
+    <span class="phase-title">Verfügbare Backups auflisten</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task workspace:backup:list
 # Ausgabe: Zeitstempel, z.B. 20260427-020001
 ```
 
-### Schritt 2 — Service stoppen (empfohlen)
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-sage">2</div>
+    <span class="phase-title">Service stoppen (empfohlen)</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 kubectl scale deployment/<service> -n workspace --replicas=0
@@ -97,7 +127,16 @@ kubectl scale deployment/<service> -n workspace --replicas=0
 kubectl scale deployment/nextcloud -n workspace --replicas=0
 ```
 
-### Schritt 3 — Datenbank wiederherstellen
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-blue">3</div>
+    <span class="phase-title">Datenbank wiederherstellen</span>
+    <span class="phase-desc">~2 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 # Einzelne Datenbank
@@ -119,12 +158,24 @@ Das Restore-Skript (`scripts/backup-restore.sh restore`) führt folgende Schritt
 5. Spielt das Dump ein (`pg_restore --no-owner --exit-on-error`)
 6. Löscht die temporäre entschlüsselte Dump-Datei
 
-### Schritt 4 — Service neu starten
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">4</div>
+    <span class="phase-title">Service neu starten</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task workspace:restart -- nextcloud
 # oder: kubectl scale deployment/nextcloud -n workspace --replicas=1
 ```
+
+  </div>
+</div>
 
 ---
 

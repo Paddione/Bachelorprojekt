@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">📋</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Sicherheit · Bericht</div>
     <div class="page-hero-title">Sicherheitsbericht</div>
     <p class="page-hero-desc">Sicherheitsbericht zum Workspace MVP: Penetrationstest-Grundlagen, CTF-Objectives, Angriffsvektoren und SA-Testergebnisse.</p>
     <div class="page-hero-meta">

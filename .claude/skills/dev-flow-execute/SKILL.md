@@ -63,10 +63,39 @@ CURRENT_DIR=$(pwd)
 echo "Branch: $CURRENT_BRANCH | CWD: $CURRENT_DIR"
 ```
 
-Prüfe:
+**Zuerst: Erkennung von main + ungetrackter Plan-Datei (härtester Fall):**
+
+```bash
+if [[ "$(git branch --show-current)" == "main" ]]; then
+  UNTRACKED_PLANS=$(git ls-files --others --exclude-standard docs/superpowers/plans/ 2>/dev/null | grep '\.md$' | grep -v '/executed/')
+  if [[ -n "$UNTRACKED_PLANS" ]]; then
+    echo "🛑 HALT: Auf main-Branch mit ungetrackter Plan-Datei erkannt:"
+    echo "$UNTRACKED_PLANS"
+    # Slug + Branch-Prefix automatisch ableiten
+    PLAN_FILE=$(echo "$UNTRACKED_PLANS" | head -1)
+    PLAN_BASENAME=$(basename "$PLAN_FILE" .md)
+    PLAN_TYPE=$(grep -m1 '^type:' "$PLAN_FILE" 2>/dev/null | awk '{print $2}')
+    BRANCH_PREFIX="${PLAN_TYPE:-feature}"
+    TARGET_BRANCH="${BRANCH_PREFIX}/${PLAN_BASENAME}"
+    echo ""
+    echo "Automatische Korrektur (führe diese Befehle aus und starte dev-flow-execute erneut):"
+    echo "  git checkout -b $TARGET_BRANCH"
+    echo "  git add $PLAN_FILE"
+    echo "  git commit -m 'plan: add $PLAN_BASENAME'"
+    echo "  git push -u origin $TARGET_BRANCH"
+  fi
+fi
+```
+
+Falls der Block einen HALT ausgegeben hat: **STOP**. Branch erstellen + Plan committen, dann dev-flow-execute erneut starten. Oder die obigen Befehle automatisch ausführen und direkt fortfahren — nur wenn der User explizit bestätigt.
+
+---
+
+Prüfe danach:
 
 | Situation | Aktion |
 |---|---|
+| `$CURRENT_BRANCH` ist `main` **und** ungetrackte Plan-Datei existiert | 🛑 HALT (siehe oben). |
 | `$CURRENT_BRANCH` ist `main` und `$CURRENT_DIR` ist das Haupt-Repo | ⚠️ Falscher Ausgangspunkt. Wechsle in den Feature-Worktree: `git worktree list` zeigt den Pfad. |
 | Branch passt zum Pfad (z.B. `feature/foo` in `.../Bachelorprojekt-feature-foo`) | ✓ Fortfahren. |
 | Branch existiert, aber Worktree-Pfad ist ein anderer Claude-Prozess aktiv | ⚠️ Nicht in denselben Worktree schreiben. Warte auf den anderen Prozess oder nutze `git worktree list` zur Koordination. |

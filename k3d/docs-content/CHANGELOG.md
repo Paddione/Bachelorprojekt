@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Paddione/Bachelorprojekt/compare/docs-v0.2.0...docs-v0.3.0) (2026-05-23)
+
+
+### Features
+
+* **docs:** obsidian/brass/sage premium theme upgrade ([#983](https://github.com/Paddione/Bachelorprojekt/issues/983)) ([9f38e6d](https://github.com/Paddione/Bachelorprojekt/commit/9f38e6d5bdd3494a7a8e4a82083169116ca06cc2))
+
 ## [0.2.0](https://github.com/Paddione/Bachelorprojekt/compare/docs-v0.1.0...docs-v0.2.0) (2026-05-20)
 
 

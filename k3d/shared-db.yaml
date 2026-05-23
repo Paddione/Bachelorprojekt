@@ -148,6 +148,8 @@ spec:
             - "ssl_cert_file=/etc/postgresql/certs/server.crt"
             - "-c"
             - "ssl_key_file=/etc/postgresql/certs/server.key"
+            - "-c"
+            - "shared_preload_libraries=pg_stat_statements"
           env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata

@@ -18,12 +18,6 @@ resources:
   # Moved out of the shared base because the bot is useless without
   # a whisper backend, and whisper only lives on korczewski.
   - talk-transcriber.yaml
-  # ── dev.korczewski.de stack (prod-side SSO gate + TLS) ─────────────
-  - cert-dev-wildcard.yaml
-  - oauth2-proxy-dev.yaml
-  - oauth2-proxy-dev-middleware.yaml
-  - dev-ingress.yaml
-  - dev-db-refresh-cron.yaml
 
 # Override realm with korczewski-specific config
 configMapGenerator:
@@ -35,11 +29,6 @@ configMapGenerator:
     behavior: replace
     files:
       - zz-extra.config.php=nextcloud-extra-config-korczewski.php
-  # ── dev.korczewski.de — mount dev-db-refresh.sh as ConfigMap ──
-  - name: dev-db-refresh-script
-    namespace: workspace-korczewski
-    files:
-      - dev-db-refresh.sh
 generatorOptions:
   disableNameSuffixHash: true
 

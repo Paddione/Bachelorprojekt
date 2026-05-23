@@ -1,6 +1,6 @@
 // scripts/build-docs.js
 import { readFileSync, writeFileSync, mkdirSync, readdirSync,
-         existsSync, mkdtempSync, rmSync } from 'node:fs';
+         existsSync, mkdtempSync, rmSync, copyFileSync, cpSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -413,6 +413,18 @@ async function main() {
   // Asset Pass
   writeFileSync(join(OUT_DIR, 'style.css'), getPageCss(), 'utf8');
   writeFileSync(join(OUT_DIR, 'app.js'), getPageJs(), 'utf8');
+
+  // Copy skills visualization (standalone HTML — served at /skills-overview.html)
+  const SKILLS_OVERVIEW_SRC = join(__dirname, '../docs/skills-overview.html');
+  const SKILLS_DIR_SRC = join(__dirname, '../docs/skills');
+  if (existsSync(SKILLS_OVERVIEW_SRC)) {
+    copyFileSync(SKILLS_OVERVIEW_SRC, join(OUT_DIR, 'skills-overview.html'));
+    console.log('  → skills-overview.html ✓');
+  }
+  if (existsSync(SKILLS_DIR_SRC)) {
+    cpSync(SKILLS_DIR_SRC, join(OUT_DIR, 'skills'), { recursive: true });
+    console.log('  → skills/ ✓');
+  }
 
   // First pass: MD → raw HTML, collect titles for search index
   const pages = [];

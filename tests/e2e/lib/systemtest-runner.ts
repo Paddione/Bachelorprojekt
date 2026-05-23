@@ -62,6 +62,8 @@ export interface WalkOptions {
   onAgentNotes?: 'skip' | 'pause' | 'fail';
   /** Per-step navigation timeout (default 30s). */
   perStepTimeoutMs?: number;
+  /** Maximum steps before the runner aborts (default 200). Raise for large templates like Gesamt (103 steps). */
+  maxSteps?: number;
 }
 
 export interface StepOutcome {
@@ -263,6 +265,7 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
   const perStep = opts.perStepTimeoutMs ?? 30_000;
   const defaultOpt = opts.defaultOption ?? 'erfüllt';
   const onAgentNotes = opts.onAgentNotes ?? 'skip';
+  const maxSteps = opts.maxSteps ?? 200;
 
   const doneLocator = page.getByText(/Vielen Dank/i).first();
 
@@ -377,8 +380,8 @@ export async function walkSystemtest(page: Page, opts: WalkOptions): Promise<Wal
         recorded,
         notes: '',
       });
-      // Safety: stop if we've recorded more than 30 steps (largest template ~16)
-      if (steps.length > 30) throw new Error('runner overran 30 steps — likely stuck on the same question');
+      // Safety: abort if stuck on the same question
+      if (steps.length > maxSteps) throw new Error(`runner overran ${maxSteps} steps — likely stuck on the same question`);
     }
   }
 

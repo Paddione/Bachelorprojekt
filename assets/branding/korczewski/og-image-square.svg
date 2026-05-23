@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="1200" height="1200">
+  <title>Kore. — square social card · 1200 × 1200</title>
+  <defs>
+    <linearGradient id="sqInk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1A1326"></stop>
+      <stop offset="100%" stop-color="#120D1C"></stop>
+    </linearGradient>
+    <radialGradient id="sqCorner" cx="92%" cy="6%" r="70%">
+      <stop offset="0%" stop-color="#C8F76A" stop-opacity="0.20"></stop>
+      <stop offset="55%" stop-color="#C8F76A" stop-opacity="0.04"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="sqMarkGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E6FFB0" stop-opacity="0.92"></stop>
+      <stop offset="50%" stop-color="#C8F76A" stop-opacity="0.50"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="sqLime" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D8FF8A"></stop>
+      <stop offset="100%" stop-color="#8FBE2E"></stop>
+    </linearGradient>
+    <filter id="sqGrain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"></feTurbulence>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.07 0"></feColorMatrix>
+    </filter>
+  </defs>
+
+  
+  <rect width="1200" height="1200" fill="url(#sqInk)"></rect>
+  <rect width="1200" height="1200" fill="url(#sqCorner)"></rect>
+  <rect width="1200" height="1200" filter="url(#sqGrain)" opacity="0.55" style="mix-blend-mode:overlay"></rect>
+
+  
+  <rect x="48" y="48" width="1104" height="1104" fill="none" stroke="rgba(255,255,255,0.10)"></rect>
+
+  
+  <g transform="translate(96,140)">
+    <line x1="0" y1="-4" x2="22" y2="-4" stroke="#C8F76A" stroke-width="1"></line>
+    <text x="32" y="0" font-family="JetBrains Mono, ui-monospace, monospace" font-size="15" letter-spacing="4.2" fill="#C8F76A">[ 01 ]  KORE · DESIGN SYSTEM v1</text>
+  </g>
+
+  
+  <g transform="translate(1104,140)">
+    <rect x="-188" y="-22" width="188" height="32" rx="16" fill="rgba(200,247,106,0.08)" stroke="rgba(200,247,106,0.32)"></rect>
+    <circle cx="-170" cy="-6" r="3.5" fill="#C8F76A"></circle>
+    <text x="-156" y="-2" font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" letter-spacing="2.6" fill="#D8FF8A">NOW ACCEPTING WORK</text>
+  </g>
+
+  
+  <g transform="translate(96,200)">
+    <rect x="0" y="0" width="156" height="156" rx="28" ry="28" fill="#1A1326" stroke="rgba(255,255,255,0.08)"></rect>
+    <circle cx="78" cy="78" r="56" fill="url(#sqMarkGlow)"></circle>
+    <circle cx="78" cy="78" r="44" fill="none" stroke="#C8F76A" stroke-opacity="0.22" stroke-width="1"></circle>
+    <circle cx="78" cy="78" r="31" fill="none" stroke="#C8F76A" stroke-opacity="0.35" stroke-width="1"></circle>
+    <g stroke="url(#sqLime)" stroke-linecap="round" stroke-width="10" fill="none">
+      <line x1="103" y1="45" x2="58" y2="78"></line>
+      <line x1="58" y1="78" x2="103" y2="111"></line>
+    </g>
+    <circle cx="58" cy="78" r="7" fill="#D8FF8A"></circle>
+    <circle cx="58" cy="78" r="11" fill="none" stroke="#D8FF8A" stroke-opacity="0.4" stroke-width="1"></circle>
+  </g>
+
+  
+  <text x="96" y="496" font-family="Instrument Serif, Iowan Old Style, Georgia, serif" font-size="132" font-weight="400" fill="#ECEFF3" letter-spacing="-2.6">Kubernetes,</text>
+  <text x="96" y="636" font-family="Instrument Serif, Iowan Old Style, Georgia, serif" font-style="italic" font-size="132" font-weight="400" fill="#D8FF8A" letter-spacing="-2.6">quietly run</text>
+  <text x="96" y="776" font-family="Instrument Serif, Iowan Old Style, Georgia, serif" font-style="italic" font-size="132" font-weight="400" fill="#D8FF8A" letter-spacing="-2.6">for you.</text>
+
+  
+  <text x="96" y="842" font-family="Geist, ui-sans-serif, system-ui, sans-serif" font-size="28" font-weight="300" fill="#C6CCD4">A boutique studio for clusters that should not need attention.</text>
+
+  
+  <line x1="96" y1="924" x2="1104" y2="924" stroke="rgba(255,255,255,0.20)" stroke-width="1"></line>
+
+  
+  <g transform="translate(96,948)">
+    <text x="0" y="28" font-family="JetBrains Mono, ui-monospace, monospace" font-size="13" letter-spacing="3" fill="#8A93A0">CLUSTER ADOPTION</text>
+    <text x="0" y="100" font-family="Instrument Serif, Georgia, serif" font-size="72" fill="#ECEFF3">2<tspan font-family="JetBrains Mono, monospace" font-size="24" fill="#69707B" dx="10">WK</tspan></text>
+  </g>
+  <g transform="translate(420,948)">
+    <text x="0" y="28" font-family="JetBrains Mono, ui-monospace, monospace" font-size="13" letter-spacing="3" fill="#8A93A0">SLO COMPLIANCE</text>
+    <text x="0" y="100" font-family="Instrument Serif, Georgia, serif" font-size="72" fill="#ECEFF3">99.95<tspan font-family="JetBrains Mono, monospace" font-size="24" fill="#69707B" dx="6">%</tspan></text>
+  </g>
+  <g transform="translate(820,948)">
+    <text x="0" y="28" font-family="JetBrains Mono, ui-monospace, monospace" font-size="13" letter-spacing="3" fill="#8A93A0">PAGES O.O.H.</text>
+    <text x="0" y="100" font-family="Instrument Serif, Georgia, serif" font-size="72" fill="#ECEFF3">0</text>
+  </g>
+
+  
+  <line x1="96" y1="1072" x2="1104" y2="1072" stroke="rgba(255,255,255,0.10)" stroke-width="1"></line>
+
+  
+  <g transform="translate(96,1120)">
+    <text x="0" y="0" font-family="Instrument Serif, Georgia, serif" font-size="32" fill="#ECEFF3" letter-spacing="-0.4">Kore<tspan fill="#C8F76A">.</tspan></text>
+    <text x="96" y="-4" font-family="JetBrains Mono, ui-monospace, monospace" font-size="12" letter-spacing="3" fill="#69707B">KORE.DEV  ·  HELSINKI ↔ BERLIN</text>
+  </g>
+  <text x="1104" y="1116" text-anchor="end" font-family="JetBrains Mono, ui-monospace, monospace" font-size="12" letter-spacing="3" fill="#69707B">OG · SQUARE · 1200 × 1200</text>
+</svg>

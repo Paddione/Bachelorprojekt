@@ -1,40 +1,55 @@
-<div class="page-hero">
-  <span class="page-hero-icon">🏠</span>
-  <div class="page-hero-body">
-    <div class="page-hero-title">Workspace · Dokumentation</div>
-    <p class="page-hero-desc">Alles, was du zum Verstehen, Aufsetzen und Betreiben des Workspace brauchst — auf deinem Server, DSGVO by Design.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">Self-Hosted</span>
-      <span class="page-hero-tag">DSGVO</span>
-      <span class="page-hero-tag">Kubernetes</span>
-    </div>
+<div class="home-hero">
+  <div class="home-hero-tag">Workspace MVP · Self-Hosted · Kubernetes</div>
+  <h1 class="home-hero-title">Alles bleibt auf <em class="brass-accent">deinem Server</em>.</h1>
+  <p class="home-hero-sub">Kubernetes-Plattform für Coaching und Beratung — Nextcloud, Keycloak, LiveKit, Claude Code, Vaultwarden. DSGVO by Design.</p>
+</div>
+
+<div class="home-stats">
+  <div class="home-stat">
+    <div class="home-stat-value">12</div>
+    <div class="home-stat-label">Services</div>
+  </div>
+  <div class="home-stat">
+    <div class="home-stat-value">2</div>
+    <div class="home-stat-label">Cluster</div>
+  </div>
+  <div class="home-stat">
+    <div class="home-stat-value">45+</div>
+    <div class="home-stat-label">Seiten</div>
+  </div>
+  <div class="home-stat">
+    <div class="home-stat-value">100%</div>
+    <div class="home-stat-label">On-Premise</div>
   </div>
 </div>
 
-# Workspace — alles bleibt auf <em>deinem Server</em>.
-
-<p class="kicker">Startseite · Wähl deinen Einstieg</p>
-
-Workspace ist eine selbstgehostete Plattform für Coaching, Beratung und Office-Arbeit: Dateien, Talk, Kalender, KI-Assistenz, Passwörter — alles auf deiner Hardware, alles unter einem Single-Sign-On. Drei Einstiegswege:
-
 <div class="tracks">
   <a href="#/quickstart-enduser" class="track-card">
-    <span class="lab">Endnutzer</span>
-    <span class="ti">In 5 Minuten</span>
-    <span class="de">Login · Portal · erstes Talk-Call · Datei hochladen</span>
-    <span class="arrow">→ Quickstart</span>
+    <div class="track-bar"></div>
+    <div class="track-content">
+      <span class="track-label">Endnutzer</span>
+      <span class="track-title">In 5 Minuten</span>
+      <span class="track-desc">Login · Portal · erstes Talk-Call · Datei hochladen</span>
+      <span class="track-arrow">→ Quickstart</span>
+    </div>
   </a>
   <a href="#/quickstart-admin" class="track-card">
-    <span class="lab">Admin</span>
-    <span class="ti">Plattform aufsetzen</span>
-    <span class="de">Cluster · Workspace · Post-Setup · Backup</span>
-    <span class="arrow">→ Quickstart</span>
+    <div class="track-bar"></div>
+    <div class="track-content">
+      <span class="track-label">Admin</span>
+      <span class="track-title">Plattform aufsetzen</span>
+      <span class="track-desc">Cluster · Workspace · Post-Setup · Backup</span>
+      <span class="track-arrow">→ Quickstart</span>
+    </div>
   </a>
   <a href="#/quickstart-dev" class="track-card">
-    <span class="lab">Entwickler</span>
-    <span class="ti">Codebase-Tour</span>
-    <span class="de">k3d · environments · Tasks · Tests</span>
-    <span class="arrow">→ Quickstart</span>
+    <div class="track-bar"></div>
+    <div class="track-content">
+      <span class="track-label">Entwickler</span>
+      <span class="track-title">Codebase-Tour</span>
+      <span class="track-desc">k3d · environments · Tasks · Tests</span>
+      <span class="track-arrow">→ Quickstart</span>
+    </div>
   </a>
 </div>
 

@@ -24,7 +24,7 @@ env_vars:
   WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
   INFRA_NAMESPACE: korczewski-infra
   TLS_SECRET_NAME: korczewski-tls
-  SMTP_FROM: noreply@korczewski.de
+  SMTP_FROM: korczewski@mailbox.org
   SMTP_USER: korczewski@mailbox.org
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"

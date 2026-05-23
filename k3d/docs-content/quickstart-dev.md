@@ -1,7 +1,8 @@
 <div class="page-hero">
   <span class="page-hero-icon">🧭</span>
   <div class="page-hero-body">
-    <div class="page-hero-title">Quickstart — Entwickler</div>
+    <div class="page-hero-eyebrow">Entwickler · Codebase-Tour</div>
+    <div class="page-hero-title">Codebase-Einstieg</div>
     <p class="page-hero-desc">Codebase-Tour für neue Beitragende.</p>
     <div class="page-hero-meta">
       <span class="page-hero-tag">Codebase</span>
@@ -17,7 +18,13 @@
 
 Diese Seite ist die Karte. Jede ausführliche Erklärung steht woanders — hier findest du den Einstieg.
 
-## Repo-Layout
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">1</div>
+    <span class="phase-title">Repo-Layout</span>
+    <span class="phase-desc">Orientierung</span>
+  </div>
+  <div class="phase-body">
 
 | Verzeichnis | Inhalt |
 |-------------|--------|
@@ -31,7 +38,16 @@ Diese Seite ist die Karte. Jede ausführliche Erklärung steht woanders — hier
 | `tests/` | BATS + Playwright Test-Suite |
 | `Taskfile.yml` | Alle Build-/Deploy-/Ops-Befehle |
 
-## Drei Beispiel-Workflows
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-sage">2</div>
+    <span class="phase-title">Drei Beispiel-Workflows</span>
+    <span class="phase-desc">Praxis</span>
+  </div>
+  <div class="phase-body">
 
 ### Eine Website-Änderung
 
@@ -63,7 +79,16 @@ task test:unit               # BATS-Unit-Tests
 task test:manifests          # Kustomize-Output-Validierung
 ```
 
-## Taskfile-Tour
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-blue">3</div>
+    <span class="phase-title">Taskfile-Tour</span>
+    <span class="phase-desc">Befehle</span>
+  </div>
+  <div class="phase-body">
 
 ```mermaid
 flowchart TB
@@ -78,7 +103,16 @@ flowchart TB
   TF --> Test[test:unit / manifests / all]
 ```
 
-## CI/CD
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">4</div>
+    <span class="phase-title">CI/CD</span>
+    <span class="phase-desc">GitHub Actions</span>
+  </div>
+  <div class="phase-body">
 
 GitHub Actions (`.github/workflows/ci.yml`) läuft auf jeder PR:
 
@@ -86,6 +120,9 @@ GitHub Actions (`.github/workflows/ci.yml`) läuft auf jeder PR:
 - Image-Pin-Advisory + Hardcoded-Secret-Detection in `k3d/*.yaml`
 
 PRs werden squash-gemergt. Branch-Naming: `feature/*`, `fix/*`, `chore/*`.
+
+  </div>
+</div>
 
 ## Weiter geht's
 

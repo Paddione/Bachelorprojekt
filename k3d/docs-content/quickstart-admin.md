@@ -1,7 +1,8 @@
 <div class="page-hero">
   <span class="page-hero-icon">🛠️</span>
   <div class="page-hero-body">
-    <div class="page-hero-title">Quickstart — Admin</div>
+    <div class="page-hero-eyebrow">Admin · Erstinstallation</div>
+    <div class="page-hero-title">Workspace aufsetzen</div>
     <p class="page-hero-desc">Vom leeren Server zum laufenden Workspace.</p>
     <div class="page-hero-meta">
       <span class="page-hero-tag">~30 Minuten</span>
@@ -27,7 +28,13 @@ Diese Seite bringt einen leeren k3d-Cluster auf einen funktionierenden Workspace
 | task | Task-Runner (siehe `taskfile.dev`) |
 | git | Quellcode |
 
-## 1. Cluster anlegen
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">1</div>
+    <span class="phase-title">Cluster anlegen</span>
+    <span class="phase-desc">~2 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 git clone https://github.com/Paddione/Bachelorprojekt.git
@@ -37,7 +44,16 @@ task cluster:create
 
 Die Konfiguration steht in `k3d-config.yaml`. Wenn der Befehl durchläuft, gibt `kubectl get nodes` einen Eintrag mit Status `Ready` aus.
 
-## 2. Workspace deployen
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-sage">2</div>
+    <span class="phase-title">Workspace deployen</span>
+    <span class="phase-desc">~3 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task workspace:deploy
@@ -45,7 +61,16 @@ task workspace:deploy
 
 Dies wendet alle Manifeste aus `k3d/` per Kustomize an: Keycloak, Nextcloud, Vaultwarden, Talk-HPB, Whiteboard, Website, Postgres und mehr. Erwarte eine Wartezeit von zwei bis drei Minuten beim ersten Mal — Container-Images werden gepullt.
 
-## 3. Post-Setup ausführen
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-blue">3</div>
+    <span class="phase-title">Post-Setup ausführen</span>
+    <span class="phase-desc">~5 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task workspace:post-setup
@@ -54,7 +79,16 @@ task workspace:talk-setup
 
 Dies aktiviert Nextcloud-Apps (Calendar, Contacts, OIDC, Collabora) und konfiguriert Talk-HPB-Signaling.
 
-## 4. Erste Validierung
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">4</div>
+    <span class="phase-title">Erste Validierung</span>
+    <span class="phase-desc">~2 min</span>
+  </div>
+  <div class="phase-body">
 
 ```mermaid
 sequenceDiagram
@@ -77,13 +111,25 @@ Vier Health-Checks:
 3. `files.localhost` öffnen — Nextcloud-Login lädt, OIDC-Redirect funktioniert?
 4. `task workspace:backup` — Snapshot wird angelegt?
 
-## 5. Admin-User anlegen
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-sage">5</div>
+    <span class="phase-title">Admin-User anlegen</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task workspace:admin-users-setup
 ```
 
 Damit werden Default-Admins in Keycloak und Nextcloud erstellt. Passwörter siehe `environments/.secrets/dev.yaml`.
+
+  </div>
+</div>
 
 ## Weiter geht's
 

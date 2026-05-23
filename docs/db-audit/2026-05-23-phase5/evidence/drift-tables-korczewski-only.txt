@@ -1,0 +1,4 @@
+table|arena|_migrations
+table|arena|lobbies
+table|arena|match_players
+table|arena|matches

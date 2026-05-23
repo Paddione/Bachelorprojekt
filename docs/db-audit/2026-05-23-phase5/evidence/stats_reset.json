@@ -1,0 +1,25 @@
+{
+  "audit_date": "2026-05-23",
+  "clusters": {
+    "mentolder": {
+      "stats_reset_in_pg_stat_database": null,
+      "postgres_started_at": "2026-05-20T04:43:50Z",
+      "uptime_days": 3.54,
+      "pg_version": "PostgreSQL 16.10 (Debian 16.10-1.pgdg12+1)"
+    },
+    "korczewski": {
+      "stats_reset_in_pg_stat_database": null,
+      "postgres_started_at": "2026-05-20T05:02:28Z",
+      "uptime_days": 3.53,
+      "pg_version": "PostgreSQL 16.10 (Debian 16.10-1.pgdg12+1)"
+    }
+  },
+  "pg_stat_statements_available": {
+    "mentolder": false,
+    "korczewski": false
+  },
+  "eligible_for_drop_proposals": false,
+  "spec_rule": "Spec Section 4 safety rail 6 — stats_reset must be >30 days old on BOTH clusters.",
+  "decision": "Module 2 cold-table and cold-index DROP candidates are DOWNGRADED to advisory-only in this audit. They will appear in findings.md as advisory entries with action_class=advisory. Module 2 'hot table without supporting index' findings remain actionable (additive).",
+  "next_eligible_date": "2026-06-19 (postgres uptime >30 days, assuming no restarts)"
+}

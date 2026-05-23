@@ -1,0 +1,1093 @@
+column|assets|registry|created_at|timestamp with time zone|YES
+column|assets|registry|file_path|text|NO
+column|assets|registry|id|uuid|NO
+column|assets|registry|metadata|jsonb|YES
+column|assets|registry|name|text|NO
+column|assets|registry|tags|ARRAY|YES
+column|assets|registry|type|USER-DEFINED|NO
+column|assets|registry|updated_at|timestamp with time zone|YES
+column|bachelorprojekt|features|brand|text|YES
+column|bachelorprojekt|features|category|text|NO
+column|bachelorprojekt|features|created_at|timestamp with time zone|YES
+column|bachelorprojekt|features|description|text|YES
+column|bachelorprojekt|features|id|integer|NO
+column|bachelorprojekt|features|merged_at|timestamp with time zone|NO
+column|bachelorprojekt|features|merged_by|text|YES
+column|bachelorprojekt|features|pr_number|integer|YES
+column|bachelorprojekt|features|requirement_id|text|YES
+column|bachelorprojekt|features|scope|text|YES
+column|bachelorprojekt|features|status|text|NO
+column|bachelorprojekt|features|title|text|NO
+column|bachelorprojekt|pipeline|entered_at|timestamp with time zone|YES
+column|bachelorprojekt|pipeline|id|integer|NO
+column|bachelorprojekt|pipeline|notes|text|YES
+column|bachelorprojekt|pipeline|req_id|text|NO
+column|bachelorprojekt|pipeline|stage|text|NO
+column|bachelorprojekt|requirements|category|text|NO
+column|bachelorprojekt|requirements|created_at|timestamp with time zone|YES
+column|bachelorprojekt|requirements|criteria|text|YES
+column|bachelorprojekt|requirements|description|text|YES
+column|bachelorprojekt|requirements|id|text|NO
+column|bachelorprojekt|requirements|name|text|NO
+column|bachelorprojekt|requirements|test_case|text|YES
+column|bachelorprojekt|test_results|details|text|YES
+column|bachelorprojekt|test_results|id|integer|NO
+column|bachelorprojekt|test_results|req_id|text|NO
+column|bachelorprojekt|test_results|result|text|NO
+column|bachelorprojekt|test_results|run_at|timestamp with time zone|YES
+column|bachelorprojekt|v_latest_tests|details|text|YES
+column|bachelorprojekt|v_latest_tests|req_id|text|YES
+column|bachelorprojekt|v_latest_tests|result|text|YES
+column|bachelorprojekt|v_latest_tests|run_at|timestamp with time zone|YES
+column|bachelorprojekt|v_open_issues|category|text|YES
+column|bachelorprojekt|v_open_issues|current_stage|text|YES
+column|bachelorprojekt|v_open_issues|id|text|YES
+column|bachelorprojekt|v_open_issues|name|text|YES
+column|bachelorprojekt|v_open_issues|stage_since|timestamp with time zone|YES
+column|bachelorprojekt|v_pipeline_status|category|text|YES
+column|bachelorprojekt|v_pipeline_status|current_stage|text|YES
+column|bachelorprojekt|v_pipeline_status|id|text|YES
+column|bachelorprojekt|v_pipeline_status|name|text|YES
+column|bachelorprojekt|v_pipeline_status|stage_since|timestamp with time zone|YES
+column|bachelorprojekt|v_progress_summary|count|bigint|YES
+column|bachelorprojekt|v_progress_summary|stage|text|YES
+column|bachelorprojekt|v_timeline|brand|text|YES
+column|bachelorprojekt|v_timeline|category|text|YES
+column|bachelorprojekt|v_timeline|day|date|YES
+column|bachelorprojekt|v_timeline|description|text|YES
+column|bachelorprojekt|v_timeline|id|integer|YES
+column|bachelorprojekt|v_timeline|merged_at|timestamp with time zone|YES
+column|bachelorprojekt|v_timeline|pr_number|integer|YES
+column|bachelorprojekt|v_timeline|requirement_category|text|YES
+column|bachelorprojekt|v_timeline|requirement_id|text|YES
+column|bachelorprojekt|v_timeline|requirement_name|text|YES
+column|bachelorprojekt|v_timeline|scope|text|YES
+column|bachelorprojekt|v_timeline|title|text|YES
+column|bugs|bug_tickets|brand|text|NO
+column|bugs|bug_tickets|category|text|NO
+column|bugs|bug_tickets|created_at|timestamp with time zone|NO
+column|bugs|bug_tickets|description|text|NO
+column|bugs|bug_tickets|fixed_at|timestamp with time zone|YES
+column|bugs|bug_tickets|fixed_in_pr|integer|YES
+column|bugs|bug_tickets|reporter_email|text|NO
+column|bugs|bug_tickets|resolution_note|text|YES
+column|bugs|bug_tickets|resolved_at|timestamp with time zone|YES
+column|bugs|bug_tickets|screenshots_json|jsonb|YES
+column|bugs|bug_tickets|status|text|NO
+column|bugs|bug_tickets|ticket_id|text|NO
+column|bugs|bug_tickets|url|text|YES
+column|coaching|books|author|text|YES
+column|coaching|books|id|uuid|NO
+column|coaching|books|ingested_at|timestamp with time zone|NO
+column|coaching|books|knowledge_collection_id|uuid|NO
+column|coaching|books|license_note|text|YES
+column|coaching|books|source_filename|text|NO
+column|coaching|books|title|text|NO
+column|coaching|drafts|book_id|uuid|NO
+column|coaching|drafts|classifier_model|text|NO
+column|coaching|drafts|classifier_version|text|NO
+column|coaching|drafts|created_at|timestamp with time zone|NO
+column|coaching|drafts|id|uuid|NO
+column|coaching|drafts|knowledge_chunk_id|uuid|NO
+column|coaching|drafts|reject_reason|text|YES
+column|coaching|drafts|resulting_snippet_id|uuid|YES
+column|coaching|drafts|reviewed_at|timestamp with time zone|YES
+column|coaching|drafts|reviewed_by|text|YES
+column|coaching|drafts|status|text|NO
+column|coaching|drafts|suggested_payload|jsonb|NO
+column|coaching|drafts|template_kind|text|NO
+column|coaching|ki_config|api_endpoint|text|YES
+column|coaching|ki_config|api_key|text|YES
+column|coaching|ki_config|brand|text|NO
+column|coaching|ki_config|created_at|timestamp with time zone|NO
+column|coaching|ki_config|display_name|text|NO
+column|coaching|ki_config|enabled_fields|jsonb|YES
+column|coaching|ki_config|eu_endpoint|boolean|NO
+column|coaching|ki_config|frequency_penalty|numeric|YES
+column|coaching|ki_config|id|integer|NO
+column|coaching|ki_config|is_active|boolean|NO
+column|coaching|ki_config|max_tokens|integer|YES
+column|coaching|ki_config|model_name|text|YES
+column|coaching|ki_config|notes|text|YES
+column|coaching|ki_config|organization_id|text|YES
+column|coaching|ki_config|presence_penalty|numeric|YES
+column|coaching|ki_config|provider|text|NO
+column|coaching|ki_config|random_seed|integer|YES
+column|coaching|ki_config|safe_prompt|boolean|NO
+column|coaching|ki_config|system_prompt|text|YES
+column|coaching|ki_config|temperature|numeric|YES
+column|coaching|ki_config|thinking_mode|boolean|NO
+column|coaching|ki_config|top_k|integer|YES
+column|coaching|ki_config|top_p|numeric|YES
+column|coaching|projects|brand|text|NO
+column|coaching|projects|client_id|uuid|YES
+column|coaching|projects|created_at|timestamp with time zone|NO
+column|coaching|projects|customer_number|text|NO
+column|coaching|projects|display_alias|text|YES
+column|coaching|projects|id|uuid|NO
+column|coaching|projects|ki_context|text|YES
+column|coaching|projects|notes|text|YES
+column|coaching|projects|updated_at|timestamp with time zone|NO
+column|coaching|session_audit_log|actor|text|NO
+column|coaching|session_audit_log|changed_at|timestamp with time zone|NO
+column|coaching|session_audit_log|event_type|text|NO
+column|coaching|session_audit_log|id|uuid|NO
+column|coaching|session_audit_log|payload|jsonb|NO
+column|coaching|session_audit_log|session_id|uuid|NO
+column|coaching|session_audit_log|step_number|integer|YES
+column|coaching|session_steps|ai_prompt|text|YES
+column|coaching|session_steps|ai_response|text|YES
+column|coaching|session_steps|coach_inputs|jsonb|NO
+column|coaching|session_steps|coach_notes|text|YES
+column|coaching|session_steps|generated_at|timestamp with time zone|YES
+column|coaching|session_steps|id|uuid|NO
+column|coaching|session_steps|phase|text|NO
+column|coaching|session_steps|session_id|uuid|NO
+column|coaching|session_steps|status|text|NO
+column|coaching|session_steps|step_name|text|NO
+column|coaching|session_steps|step_number|integer|NO
+column|coaching|sessions|archived_at|timestamp with time zone|YES
+column|coaching|sessions|brand|text|NO
+column|coaching|sessions|client_id|uuid|YES
+column|coaching|sessions|client_name|text|YES
+column|coaching|sessions|completed_at|timestamp with time zone|YES
+column|coaching|sessions|created_at|timestamp with time zone|NO
+column|coaching|sessions|created_by|text|NO
+column|coaching|sessions|id|uuid|NO
+column|coaching|sessions|ki_config_id|integer|YES
+column|coaching|sessions|mode|text|NO
+column|coaching|sessions|project_id|uuid|YES
+column|coaching|sessions|status|text|NO
+column|coaching|sessions|title|text|NO
+column|coaching|snippet_clusters|book_id|uuid|YES
+column|coaching|snippet_clusters|created_at|timestamp with time zone|NO
+column|coaching|snippet_clusters|id|uuid|NO
+column|coaching|snippet_clusters|kind|text|NO
+column|coaching|snippet_clusters|name|text|NO
+column|coaching|snippet_clusters|parent_id|uuid|YES
+column|coaching|snippets|body|text|NO
+column|coaching|snippets|book_id|uuid|NO
+column|coaching|snippets|cluster_id|uuid|YES
+column|coaching|snippets|created_at|timestamp with time zone|NO
+column|coaching|snippets|created_by|text|YES
+column|coaching|snippets|created_from_draft|uuid|YES
+column|coaching|snippets|id|uuid|NO
+column|coaching|snippets|knowledge_chunk_id|uuid|YES
+column|coaching|snippets|page|integer|YES
+column|coaching|snippets|tags|ARRAY|NO
+column|coaching|snippets|title|text|NO
+column|coaching|step_templates|brand|text|NO
+column|coaching|step_templates|created_at|timestamp with time zone|NO
+column|coaching|step_templates|id|uuid|NO
+column|coaching|step_templates|input_schema|jsonb|NO
+column|coaching|step_templates|is_active|boolean|NO
+column|coaching|step_templates|keywords|ARRAY|NO
+column|coaching|step_templates|phase|text|NO
+column|coaching|step_templates|sort_order|integer|NO
+column|coaching|step_templates|step_name|text|NO
+column|coaching|step_templates|step_number|integer|NO
+column|coaching|step_templates|system_prompt|text|NO
+column|coaching|step_templates|user_prompt_tpl|text|NO
+column|coaching|template_assignments|assigned_at|timestamp with time zone|NO
+column|coaching|template_assignments|client_id|text|NO
+column|coaching|template_assignments|id|uuid|NO
+column|coaching|template_assignments|surface_specific_id|text|YES
+column|coaching|template_assignments|template_id|uuid|NO
+column|coaching|template_assignments|template_version|integer|NO
+column|coaching|templates|created_at|timestamp with time zone|NO
+column|coaching|templates|created_by|text|YES
+column|coaching|templates|id|uuid|NO
+column|coaching|templates|payload|jsonb|NO
+column|coaching|templates|published_at|timestamp with time zone|YES
+column|coaching|templates|snippet_id|uuid|NO
+column|coaching|templates|source_pointer|jsonb|NO
+column|coaching|templates|status|text|NO
+column|coaching|templates|surface_ref|text|YES
+column|coaching|templates|target_surface|text|NO
+column|coaching|templates|version|integer|NO
+column|knowledge|chunks|collection_id|uuid|NO
+column|knowledge|chunks|document_id|uuid|NO
+column|knowledge|chunks|embedding|USER-DEFINED|YES
+column|knowledge|chunks|id|uuid|NO
+column|knowledge|chunks|metadata|jsonb|YES
+column|knowledge|chunks|position|integer|NO
+column|knowledge|chunks|text|text|NO
+column|knowledge|collections|brand|text|YES
+column|knowledge|collections|chunk_count|integer|NO
+column|knowledge|collections|crawl_config|jsonb|YES
+column|knowledge|collections|created_at|timestamp with time zone|YES
+column|knowledge|collections|created_by|uuid|YES
+column|knowledge|collections|description|text|YES
+column|knowledge|collections|embedding_model|text|NO
+column|knowledge|collections|id|uuid|NO
+column|knowledge|collections|last_indexed_at|timestamp with time zone|YES
+column|knowledge|collections|name|text|NO
+column|knowledge|collections|source|text|NO
+column|knowledge|documents|collection_id|uuid|NO
+column|knowledge|documents|created_at|timestamp with time zone|YES
+column|knowledge|documents|id|uuid|NO
+column|knowledge|documents|metadata|jsonb|YES
+column|knowledge|documents|raw_text|text|NO
+column|knowledge|documents|sha256|text|YES
+column|knowledge|documents|source_uri|text|YES
+column|knowledge|documents|title|text|NO
+column|platform|hardware_assets|cluster|text|NO
+column|platform|hardware_assets|created_at|timestamp with time zone|NO
+column|platform|hardware_assets|description|text|YES
+column|platform|hardware_assets|id|uuid|NO
+column|platform|hardware_assets|ip|text|YES
+column|platform|hardware_assets|k8s_node_name|text|NO
+column|platform|hardware_assets|location|text|YES
+column|platform|hardware_assets|name|text|NO
+column|platform|hardware_assets|os|text|YES
+column|platform|hardware_assets|role|text|NO
+column|platform|hardware_assets|slug|text|NO
+column|platform|hardware_assets|sort_order|integer|NO
+column|platform|software_assets|base_status|text|NO
+column|platform|software_assets|category|text|NO
+column|platform|software_assets|clusters|ARRAY|NO
+column|platform|software_assets|created_at|timestamp with time zone|NO
+column|platform|software_assets|deployment_name|text|YES
+column|platform|software_assets|description|text|YES
+column|platform|software_assets|emoji|text|NO
+column|platform|software_assets|id|uuid|NO
+column|platform|software_assets|image_tag|text|YES
+column|platform|software_assets|namespace|text|YES
+column|platform|software_assets|name|text|NO
+column|platform|software_assets|slug|text|NO
+column|platform|software_assets|sort_order|integer|NO
+column|platform|software_assets|updated_at|timestamp with time zone|NO
+column|platform|software_assets|url|text|YES
+column|public|admin_shortcuts|created_at|timestamp with time zone|NO
+column|public|admin_shortcuts|id|uuid|NO
+column|public|admin_shortcuts|label|text|NO
+column|public|admin_shortcuts|sort_order|integer|NO
+column|public|admin_shortcuts|url|text|NO
+column|public|assets|brand|text|NO
+column|public|assets|correction_start_date|date|YES
+column|public|assets|created_at|timestamp with time zone|NO
+column|public|assets|description|text|NO
+column|public|assets|id|bigint|NO
+column|public|assets|is_gwg|boolean|NO
+column|public|assets|net_purchase_price|numeric|NO
+column|public|assets|purchase_date|date|NO
+column|public|assets|receipt_path|text|YES
+column|public|assets|useful_life_months|integer|NO
+column|public|assets|vat_paid|numeric|NO
+column|public|assistant_conversations|created_at|timestamp with time zone|NO
+column|public|assistant_conversations|id|uuid|NO
+column|public|assistant_conversations|last_active_at|timestamp with time zone|NO
+column|public|assistant_conversations|profile|text|NO
+column|public|assistant_conversations|user_sub|text|NO
+column|public|assistant_first_seen|first_seen_at|timestamp with time zone|NO
+column|public|assistant_first_seen|profile|text|NO
+column|public|assistant_first_seen|user_sub|text|NO
+column|public|assistant_messages|content|text|NO
+column|public|assistant_messages|conversation_id|uuid|NO
+column|public|assistant_messages|created_at|timestamp with time zone|NO
+column|public|assistant_messages|id|uuid|NO
+column|public|assistant_messages|proposed_action|jsonb|YES
+column|public|assistant_messages|role|text|NO
+column|public|assistant_nudge_dismissals|nudge_id|text|NO
+column|public|assistant_nudge_dismissals|snoozed_until|timestamp with time zone|NO
+column|public|assistant_nudge_dismissals|user_sub|text|NO
+column|public|billing_audit_log|action|text|NO
+column|public|billing_audit_log|actor_email|text|YES
+column|public|billing_audit_log|actor_user_id|text|YES
+column|public|billing_audit_log|created_at|timestamp with time zone|NO
+column|public|billing_audit_log|from_status|text|YES
+column|public|billing_audit_log|id|bigint|NO
+column|public|billing_audit_log|invoice_id|text|NO
+column|public|billing_audit_log|metadata|jsonb|YES
+column|public|billing_audit_log|reason|text|YES
+column|public|billing_audit_log|to_status|text|YES
+column|public|billing_customers|address_line1|text|YES
+column|public|billing_customers|brand|text|NO
+column|public|billing_customers|city|text|YES
+column|public|billing_customers|company|text|YES
+column|public|billing_customers|created_at|timestamp with time zone|NO
+column|public|billing_customers|customers_id|uuid|YES
+column|public|billing_customers|default_leitweg_id|text|YES
+column|public|billing_customers|email|text|NO
+column|public|billing_customers|id|text|NO
+column|public|billing_customers|land_iso|character|NO
+column|public|billing_customers|leitweg_id|character varying|YES
+column|public|billing_customers|name|text|NO
+column|public|billing_customers|postal_code|text|YES
+column|public|billing_customers|sepa_bic|text|YES
+column|public|billing_customers|sepa_iban|text|YES
+column|public|billing_customers|sepa_mandate_date|date|YES
+column|public|billing_customers|sepa_mandate_ref|text|YES
+column|public|billing_customers|typ|text|NO
+column|public|billing_customers|vat_number|text|YES
+column|public|billing_invoice_documents|content|bytea|NO
+column|public|billing_invoice_documents|format|text|NO
+column|public|billing_invoice_documents|invoice_id|text|NO
+column|public|billing_invoice_dunnings|brand|text|NO
+column|public|billing_invoice_dunnings|fee_amount|numeric|NO
+column|public|billing_invoice_dunnings|generated_at|timestamp with time zone|NO
+column|public|billing_invoice_dunnings|id|text|NO
+column|public|billing_invoice_dunnings|interest_amount|numeric|NO
+column|public|billing_invoice_dunnings|invoice_id|text|NO
+column|public|billing_invoice_dunnings|level|smallint|NO
+column|public|billing_invoice_dunnings|outstanding_at_generation|numeric|NO
+column|public|billing_invoice_dunnings|pdf_path|text|YES
+column|public|billing_invoice_dunnings|sent_at|timestamp with time zone|YES
+column|public|billing_invoice_dunnings|sent_by|text|YES
+column|public|billing_invoice_line_items|description|text|NO
+column|public|billing_invoice_line_items|id|bigint|NO
+column|public|billing_invoice_line_items|invoice_id|text|NO
+column|public|billing_invoice_line_items|net_amount|numeric|NO
+column|public|billing_invoice_line_items|quantity|numeric|NO
+column|public|billing_invoice_line_items|unit_price|numeric|NO
+column|public|billing_invoice_line_items|unit|text|YES
+column|public|billing_invoice_payments|amount|numeric|NO
+column|public|billing_invoice_payments|brand|text|NO
+column|public|billing_invoice_payments|created_at|timestamp with time zone|NO
+column|public|billing_invoice_payments|id|bigint|NO
+column|public|billing_invoice_payments|invoice_id|text|NO
+column|public|billing_invoice_payments|method|text|NO
+column|public|billing_invoice_payments|notes|text|YES
+column|public|billing_invoice_payments|paid_at|date|NO
+column|public|billing_invoice_payments|payment_currency_rate|numeric|YES
+column|public|billing_invoice_payments|recorded_by|text|NO
+column|public|billing_invoice_payments|reference|text|YES
+column|public|billing_invoices|brand|text|NO
+column|public|billing_invoices|cancels_invoice_id|text|YES
+column|public|billing_invoices|created_at|timestamp with time zone|NO
+column|public|billing_invoices|currency_rate|numeric|YES
+column|public|billing_invoices|currency|character|NO
+column|public|billing_invoices|customer_id|text|NO
+column|public|billing_invoices|due_date|date|NO
+column|public|billing_invoices|einvoice_validated_at|timestamp with time zone|YES
+column|public|billing_invoices|einvoice_validation_report|jsonb|YES
+column|public|billing_invoices|finalized_at|timestamp with time zone|YES
+column|public|billing_invoices|gross_amount_eur|numeric|YES
+column|public|billing_invoices|gross_amount|numeric|NO
+column|public|billing_invoices|hash_sha256|text|YES
+column|public|billing_invoices|id|text|NO
+column|public|billing_invoices|issue_date|date|NO
+column|public|billing_invoices|kind|text|NO
+column|public|billing_invoices|leitweg_id|text|YES
+column|public|billing_invoices|locked|boolean|NO
+column|public|billing_invoices|net_amount_eur|numeric|YES
+column|public|billing_invoices|net_amount|numeric|NO
+column|public|billing_invoices|notes|text|YES
+column|public|billing_invoices|number|text|NO
+column|public|billing_invoices|parent_invoice_id|text|YES
+column|public|billing_invoices|payment_reference|text|YES
+column|public|billing_invoices|pdf_mime|text|YES
+column|public|billing_invoices|pdf_path|text|YES
+column|public|billing_invoices|pdf_size_bytes|integer|YES
+column|public|billing_invoices|retain_until|date|NO
+column|public|billing_invoices|service_period_end|date|YES
+column|public|billing_invoices|service_period_start|date|YES
+column|public|billing_invoices|status|text|NO
+column|public|billing_invoices|supply_type|text|YES
+column|public|billing_invoices|tax_amount|numeric|NO
+column|public|billing_invoices|tax_mode|text|NO
+column|public|billing_invoices|tax_rate|numeric|NO
+column|public|billing_invoices|updated_at|timestamp with time zone|NO
+column|public|billing_nachweis|brand|text|NO
+column|public|billing_nachweis|created_at|timestamp with time zone|NO
+column|public|billing_nachweis|document_ref|text|YES
+column|public|billing_nachweis|id|bigint|NO
+column|public|billing_nachweis|invoice_id|text|NO
+column|public|billing_nachweis|notes|text|YES
+column|public|billing_nachweis|received_at|date|YES
+column|public|billing_nachweis|type|text|NO
+column|public|billing_quotes|brand|text|NO
+column|public|billing_quotes|converted_to_invoice_id|text|YES
+column|public|billing_quotes|created_at|timestamp with time zone|NO
+column|public|billing_quotes|customer_id|text|NO
+column|public|billing_quotes|gross_amount|numeric|NO
+column|public|billing_quotes|id|text|NO
+column|public|billing_quotes|issue_date|date|NO
+column|public|billing_quotes|net_amount|numeric|NO
+column|public|billing_quotes|notes|text|YES
+column|public|billing_quotes|number|text|NO
+column|public|billing_quotes|status|text|NO
+column|public|billing_quotes|tax_rate|numeric|NO
+column|public|billing_quotes|valid_until|date|YES
+column|public|billing_suppliers|address|text|YES
+column|public|billing_suppliers|bank_name|text|YES
+column|public|billing_suppliers|bic|text|YES
+column|public|billing_suppliers|brand|text|NO
+column|public|billing_suppliers|created_at|timestamp with time zone|NO
+column|public|billing_suppliers|email|text|YES
+column|public|billing_suppliers|iban|text|YES
+column|public|billing_suppliers|id|text|NO
+column|public|billing_suppliers|land_iso|character|NO
+column|public|billing_suppliers|name|text|NO
+column|public|billing_suppliers|steuernummer|text|YES
+column|public|billing_suppliers|typ|text|YES
+column|public|billing_suppliers|updated_at|timestamp with time zone|NO
+column|public|billing_suppliers|ustidnr|text|YES
+column|public|brands|id|text|NO
+column|public|brands|name|text|NO
+column|public|brett_rooms|last_modified_at|timestamp with time zone|NO
+column|public|brett_rooms|room_token|text|NO
+column|public|brett_rooms|state|jsonb|NO
+column|public|brett_snapshots|created_at|timestamp with time zone|NO
+column|public|brett_snapshots|customer_id|uuid|YES
+column|public|brett_snapshots|id|uuid|NO
+column|public|brett_snapshots|name|text|NO
+column|public|brett_snapshots|room_token|text|YES
+column|public|brett_snapshots|state|jsonb|NO
+column|public|chat_message_reads|customer_id|uuid|NO
+column|public|chat_message_reads|message_id|integer|NO
+column|public|chat_message_reads|read_at|timestamp with time zone|YES
+column|public|chat_messages|body|text|NO
+column|public|chat_messages|created_at|timestamp with time zone|YES
+column|public|chat_messages|id|integer|NO
+column|public|chat_messages|notification_sent_at|timestamp with time zone|YES
+column|public|chat_messages|room_id|integer|NO
+column|public|chat_messages|sender_customer_id|uuid|YES
+column|public|chat_messages|sender_id|text|NO
+column|public|chat_room_members|customer_id|uuid|NO
+column|public|chat_room_members|joined_at|timestamp with time zone|YES
+column|public|chat_room_members|room_id|integer|NO
+column|public|chat_rooms|archived_at|timestamp with time zone|YES
+column|public|chat_rooms|created_at|timestamp with time zone|YES
+column|public|chat_rooms|created_by|text|NO
+column|public|chat_rooms|direct_customer_id|uuid|YES
+column|public|chat_rooms|id|integer|NO
+column|public|chat_rooms|is_direct|boolean|NO
+column|public|chat_rooms|name|text|NO
+column|public|client_notes|content|text|NO
+column|public|client_notes|created_at|timestamp with time zone|NO
+column|public|client_notes|id|uuid|NO
+column|public|client_notes|keycloak_user_id|text|NO
+column|public|customers|admin_number|text|YES
+column|public|customers|company|text|YES
+column|public|customers|created_at|timestamp with time zone|YES
+column|public|customers|customer_number|text|YES
+column|public|customers|email|text|NO
+column|public|customers|enrollment_declined|boolean|NO
+column|public|customers|id|uuid|NO
+column|public|customers|is_admin|boolean|NO
+column|public|customers|keycloak_user_id|text|YES
+column|public|customers|name|text|NO
+column|public|customers|phone|text|YES
+column|public|customers|updated_at|timestamp with time zone|YES
+column|public|document_assignments|assigned_at|timestamp with time zone|NO
+column|public|document_assignments|customer_id|uuid|NO
+column|public|document_assignments|docuseal_embed_src|text|YES
+column|public|document_assignments|docuseal_submission_slug|text|YES
+column|public|document_assignments|docuseal_template_id|integer|YES
+column|public|document_assignments|id|uuid|NO
+column|public|document_assignments|signed_at|timestamp with time zone|YES
+column|public|document_assignments|status|text|NO
+column|public|document_assignments|template_id|uuid|NO
+column|public|document_templates|created_at|timestamp with time zone|NO
+column|public|document_templates|docuseal_template_id|integer|YES
+column|public|document_templates|html_body|text|NO
+column|public|document_templates|id|uuid|NO
+column|public|document_templates|stand_date|text|YES
+column|public|document_templates|title|text|NO
+column|public|document_templates|updated_at|timestamp with time zone|NO
+column|public|eur_bookings|belegnummer|text|YES
+column|public|eur_bookings|booking_date|date|NO
+column|public|eur_bookings|brand|text|NO
+column|public|eur_bookings|category|text|NO
+column|public|eur_bookings|created_at|timestamp with time zone|NO
+column|public|eur_bookings|description|text|NO
+column|public|eur_bookings|id|bigint|NO
+column|public|eur_bookings|invoice_id|text|YES
+column|public|eur_bookings|net_amount|numeric|NO
+column|public|eur_bookings|receipt_path|text|YES
+column|public|eur_bookings|skr_konto|text|YES
+column|public|eur_bookings|type|text|NO
+column|public|eur_bookings|vat_amount|numeric|NO
+column|public|free_time_windows|brand|text|NO
+column|public|free_time_windows|created_at|timestamp with time zone|NO
+column|public|free_time_windows|date|date|NO
+column|public|free_time_windows|id|text|NO
+column|public|free_time_windows|win_end|time without time zone|NO
+column|public|free_time_windows|win_start|time without time zone|NO
+column|public|inbox_items|actioned_at|timestamp with time zone|YES
+column|public|inbox_items|actioned_by|text|YES
+column|public|inbox_items|bug_ticket_id|text|YES
+column|public|inbox_items|created_at|timestamp with time zone|YES
+column|public|inbox_items|id|integer|NO
+column|public|inbox_items|is_test_data|boolean|NO
+column|public|inbox_items|payload|jsonb|YES
+column|public|inbox_items|reference_id|text|YES
+column|public|inbox_items|reference_table|text|YES
+column|public|inbox_items|status|text|NO
+column|public|inbox_items|type|text|NO
+column|public|invoice_counters|brand|text|NO
+column|public|invoice_counters|counter|integer|NO
+column|public|invoice_counters|kind|text|NO
+column|public|invoice_counters|year|integer|NO
+column|public|legal_pages|brand|text|NO
+column|public|legal_pages|content_html|text|NO
+column|public|legal_pages|page_key|text|NO
+column|public|legal_pages|updated_at|timestamp with time zone|NO
+column|public|leistungen_config|brand|text|NO
+column|public|leistungen_config|categories_json|jsonb|NO
+column|public|leistungen_config|updated_at|timestamp with time zone|NO
+column|public|meeting_artifacts|artifact_type|text|NO
+column|public|meeting_artifacts|content_text|text|YES
+column|public|meeting_artifacts|created_at|timestamp with time zone|YES
+column|public|meeting_artifacts|id|uuid|NO
+column|public|meeting_artifacts|meeting_id|uuid|NO
+column|public|meeting_artifacts|metadata|jsonb|YES
+column|public|meeting_artifacts|name|text|NO
+column|public|meeting_artifacts|storage_path|text|YES
+column|public|meeting_insights|content|text|NO
+column|public|meeting_insights|created_at|timestamp with time zone|YES
+column|public|meeting_insights|generated_by|text|YES
+column|public|meeting_insights|id|uuid|NO
+column|public|meeting_insights|insight_type|text|NO
+column|public|meeting_insights|meeting_id|uuid|NO
+column|public|meeting_reminders|created_at|timestamp with time zone|NO
+column|public|meeting_reminders|email|text|NO
+column|public|meeting_reminders|id|uuid|NO
+column|public|meeting_reminders|meeting_start|timestamp with time zone|NO
+column|public|meeting_reminders|meeting_type|text|NO
+column|public|meeting_reminders|meeting_url|text|NO
+column|public|meeting_reminders|name|text|NO
+column|public|meeting_reminders|reminder_time|timestamp with time zone|NO
+column|public|meeting_reminders|sent|boolean|NO
+column|public|meetings|brett_link_posted_at|timestamp with time zone|YES
+column|public|meetings|created_at|timestamp with time zone|YES
+column|public|meetings|customer_id|uuid|NO
+column|public|meetings|duration_seconds|integer|YES
+column|public|meetings|ended_at|timestamp with time zone|YES
+column|public|meetings|id|uuid|NO
+column|public|meetings|meeting_type|text|NO
+column|public|meetings|project_id|uuid|YES
+column|public|meetings|recording_path|text|YES
+column|public|meetings|scheduled_at|timestamp with time zone|YES
+column|public|meetings|started_at|timestamp with time zone|YES
+column|public|meetings|status|text|YES
+column|public|meetings|talk_room_token|text|YES
+column|public|message_threads|created_at|timestamp with time zone|YES
+column|public|message_threads|customer_id|uuid|YES
+column|public|message_threads|id|integer|NO
+column|public|message_threads|is_test_data|boolean|NO
+column|public|message_threads|last_message_at|timestamp with time zone|YES
+column|public|message_threads|subject|text|YES
+column|public|messages|body|text|NO
+column|public|messages|created_at|timestamp with time zone|YES
+column|public|messages|id|integer|NO
+column|public|messages|is_test_data|boolean|NO
+column|public|messages|notification_sent_at|timestamp with time zone|YES
+column|public|messages|read_at|timestamp with time zone|YES
+column|public|messages|sender_customer_id|uuid|YES
+column|public|messages|sender_id|text|NO
+column|public|messages|sender_role|text|NO
+column|public|messages|thread_id|integer|NO
+column|public|newsletter_campaigns|created_at|timestamp with time zone|NO
+column|public|newsletter_campaigns|html_body|text|NO
+column|public|newsletter_campaigns|id|uuid|NO
+column|public|newsletter_campaigns|recipient_count|integer|YES
+column|public|newsletter_campaigns|sent_at|timestamp with time zone|YES
+column|public|newsletter_campaigns|status|text|NO
+column|public|newsletter_campaigns|subject|text|NO
+column|public|newsletter_campaigns|updated_at|timestamp with time zone|NO
+column|public|newsletter_send_log|campaign_id|uuid|NO
+column|public|newsletter_send_log|id|uuid|NO
+column|public|newsletter_send_log|sent_at|timestamp with time zone|NO
+column|public|newsletter_send_log|status|text|NO
+column|public|newsletter_send_log|subscriber_id|uuid|NO
+column|public|newsletter_subscribers|confirm_token|text|YES
+column|public|newsletter_subscribers|confirmed_at|timestamp with time zone|YES
+column|public|newsletter_subscribers|created_at|timestamp with time zone|NO
+column|public|newsletter_subscribers|email|text|NO
+column|public|newsletter_subscribers|id|uuid|NO
+column|public|newsletter_subscribers|source|text|NO
+column|public|newsletter_subscribers|status|text|NO
+column|public|newsletter_subscribers|token_expires_at|timestamp with time zone|YES
+column|public|newsletter_subscribers|unsubscribe_token|text|NO
+column|public|onboarding_items|done|boolean|NO
+column|public|onboarding_items|id|uuid|NO
+column|public|onboarding_items|keycloak_user_id|text|NO
+column|public|onboarding_items|label|text|NO
+column|public|onboarding_items|sort_order|integer|NO
+column|public|poll_answers|answer|text|NO
+column|public|poll_answers|id|uuid|NO
+column|public|poll_answers|poll_id|uuid|NO
+column|public|poll_answers|submitted_at|timestamp with time zone|NO
+column|public|polls|created_at|timestamp with time zone|NO
+column|public|polls|id|uuid|NO
+column|public|polls|kind|text|NO
+column|public|polls|locked_at|timestamp with time zone|YES
+column|public|polls|options|ARRAY|YES
+column|public|polls|question|text|NO
+column|public|polls|room_tokens|ARRAY|NO
+column|public|polls|status|text|NO
+column|public|questionnaire_answer_options|dimension_id|uuid|YES
+column|public|questionnaire_answer_options|id|uuid|NO
+column|public|questionnaire_answer_options|label|text|NO
+column|public|questionnaire_answer_options|option_key|text|NO
+column|public|questionnaire_answer_options|question_id|uuid|NO
+column|public|questionnaire_answer_options|weight|integer|NO
+column|public|questionnaire_answers|assignment_id|uuid|NO
+column|public|questionnaire_answers|details_text|text|YES
+column|public|questionnaire_answers|id|uuid|NO
+column|public|questionnaire_answers|option_key|text|NO
+column|public|questionnaire_answers|question_id|uuid|NO
+column|public|questionnaire_answers|saved_at|timestamp with time zone|NO
+column|public|questionnaire_assignment_scores|assignment_id|uuid|NO
+column|public|questionnaire_assignment_scores|dimension_id|uuid|NO
+column|public|questionnaire_assignment_scores|final_score|integer|NO
+column|public|questionnaire_assignment_scores|id|uuid|NO
+column|public|questionnaire_assignment_scores|level|text|YES
+column|public|questionnaire_assignment_scores|snapshot_at|timestamp with time zone|NO
+column|public|questionnaire_assignment_scores|threshold_high|integer|YES
+column|public|questionnaire_assignment_scores|threshold_mid|integer|YES
+column|public|questionnaire_assignments|archived_at|timestamp with time zone|YES
+column|public|questionnaire_assignments|assigned_at|timestamp with time zone|NO
+column|public|questionnaire_assignments|coach_notes|text|NO
+column|public|questionnaire_assignments|customer_id|uuid|NO
+column|public|questionnaire_assignments|dismiss_reason|text|YES
+column|public|questionnaire_assignments|dismissed_at|timestamp with time zone|YES
+column|public|questionnaire_assignments|id|uuid|NO
+column|public|questionnaire_assignments|is_test_data|boolean|NO
+column|public|questionnaire_assignments|project_id|uuid|YES
+column|public|questionnaire_assignments|reviewed_at|timestamp with time zone|YES
+column|public|questionnaire_assignments|status|text|NO
+column|public|questionnaire_assignments|submitted_at|timestamp with time zone|YES
+column|public|questionnaire_assignments|template_id|uuid|NO
+column|public|questionnaire_dimensions|created_at|timestamp with time zone|NO
+column|public|questionnaire_dimensions|id|uuid|NO
+column|public|questionnaire_dimensions|name|text|NO
+column|public|questionnaire_dimensions|position|integer|NO
+column|public|questionnaire_dimensions|score_multiplier|integer|NO
+column|public|questionnaire_dimensions|template_id|uuid|NO
+column|public|questionnaire_dimensions|threshold_high|integer|YES
+column|public|questionnaire_dimensions|threshold_mid|integer|YES
+column|public|questionnaire_questions|created_at|timestamp with time zone|NO
+column|public|questionnaire_questions|id|uuid|NO
+column|public|questionnaire_questions|position|integer|NO
+column|public|questionnaire_questions|question_text|text|NO
+column|public|questionnaire_questions|question_type|text|NO
+column|public|questionnaire_questions|template_id|uuid|NO
+column|public|questionnaire_questions|test_expected_result|text|YES
+column|public|questionnaire_questions|test_function_url|text|YES
+column|public|questionnaire_questions|test_menu_path|text|YES
+column|public|questionnaire_questions|test_role|text|YES
+column|public|questionnaire_templates|created_at|timestamp with time zone|NO
+column|public|questionnaire_templates|description|text|NO
+column|public|questionnaire_templates|id|uuid|NO
+column|public|questionnaire_templates|instructions|text|NO
+column|public|questionnaire_templates|is_system_test|boolean|NO
+column|public|questionnaire_templates|status|text|NO
+column|public|questionnaire_templates|title|text|NO
+column|public|questionnaire_templates|updated_at|timestamp with time zone|NO
+column|public|questionnaire_test_evidence|assignment_id|uuid|NO
+column|public|questionnaire_test_evidence|attempt|integer|NO
+column|public|questionnaire_test_evidence|console_log|jsonb|YES
+column|public|questionnaire_test_evidence|created_at|timestamp with time zone|NO
+column|public|questionnaire_test_evidence|id|uuid|NO
+column|public|questionnaire_test_evidence|network_log|jsonb|YES
+column|public|questionnaire_test_evidence|partial|boolean|NO
+column|public|questionnaire_test_evidence|question_id|uuid|NO
+column|public|questionnaire_test_evidence|recorded_from|timestamp with time zone|YES
+column|public|questionnaire_test_evidence|recorded_to|timestamp with time zone|YES
+column|public|questionnaire_test_evidence|replay_path|text|YES
+column|public|questionnaire_test_fixtures|assignment_id|uuid|NO
+column|public|questionnaire_test_fixtures|attempt|integer|NO
+column|public|questionnaire_test_fixtures|created_at|timestamp with time zone|NO
+column|public|questionnaire_test_fixtures|id|uuid|NO
+column|public|questionnaire_test_fixtures|purge_error|text|YES
+column|public|questionnaire_test_fixtures|purged_at|timestamp with time zone|YES
+column|public|questionnaire_test_fixtures|question_id|uuid|NO
+column|public|questionnaire_test_fixtures|row_id|uuid|NO
+column|public|questionnaire_test_fixtures|table_name|text|NO
+column|public|questionnaire_test_seed_registry|id|uuid|NO
+column|public|questionnaire_test_seed_registry|question_id|uuid|YES
+column|public|questionnaire_test_seed_registry|seed_module|text|NO
+column|public|questionnaire_test_seed_registry|template_id|uuid|NO
+column|public|questionnaire_test_status|evidence_id|uuid|YES
+column|public|questionnaire_test_status|last_assignment_id|uuid|YES
+column|public|questionnaire_test_status|last_failure_ticket_id|uuid|YES
+column|public|questionnaire_test_status|last_result_at|timestamp with time zone|NO
+column|public|questionnaire_test_status|last_result|text|NO
+column|public|questionnaire_test_status|last_success_at|timestamp with time zone|YES
+column|public|questionnaire_test_status|question_id|uuid|NO
+column|public|questionnaire_test_status|retest_attempt|integer|NO
+column|public|questionnaire_test_status|retest_pending_at|timestamp with time zone|YES
+column|public|referenzen_config|brand|text|NO
+column|public|referenzen_config|items_json|jsonb|NO
+column|public|referenzen_config|updated_at|timestamp with time zone|NO
+column|public|service_config|brand|text|NO
+column|public|service_config|services_json|jsonb|NO
+column|public|service_config|updated_at|timestamp with time zone|NO
+column|public|site_settings|brand|text|NO
+column|public|site_settings|key|text|NO
+column|public|site_settings|updated_at|timestamp with time zone|NO
+column|public|site_settings|value|text|NO
+column|public|supplier_invoices|brand|text|NO
+column|public|supplier_invoices|created_at|timestamp with time zone|NO
+column|public|supplier_invoices|currency|character|NO
+column|public|supplier_invoices|description|text|YES
+column|public|supplier_invoices|gross_amount|numeric|NO
+column|public|supplier_invoices|id|text|NO
+column|public|supplier_invoices|invoice_date|date|NO
+column|public|supplier_invoices|invoice_number|text|YES
+column|public|supplier_invoices|leistungsdatum|date|YES
+column|public|supplier_invoices|locked|boolean|NO
+column|public|supplier_invoices|net_amount|numeric|NO
+column|public|supplier_invoices|paid_at|date|YES
+column|public|supplier_invoices|pdf_path|text|YES
+column|public|supplier_invoices|status|text|NO
+column|public|supplier_invoices|supplier_id|text|NO
+column|public|supplier_invoices|updated_at|timestamp with time zone|NO
+column|public|supplier_invoices|vat_amount|numeric|NO
+column|public|supplier_invoices|vat_rate|numeric|NO
+column|public|systemtest_failure_outbox|assignment_id|uuid|YES
+column|public|systemtest_failure_outbox|attempt|integer|NO
+column|public|systemtest_failure_outbox|created_at|timestamp with time zone|NO
+column|public|systemtest_failure_outbox|error_message|text|YES
+column|public|systemtest_failure_outbox|file_path|text|YES
+column|public|systemtest_failure_outbox|id|uuid|NO
+column|public|systemtest_failure_outbox|last_error|text|YES
+column|public|systemtest_failure_outbox|question_id|uuid|YES
+column|public|systemtest_failure_outbox|retry_after|timestamp with time zone|NO
+column|public|systemtest_failure_outbox|retry_count|integer|NO
+column|public|systemtest_failure_outbox|run_id|text|YES
+column|public|systemtest_failure_outbox|source_kind|text|NO
+column|public|systemtest_failure_outbox|test_id|text|YES
+column|public|systemtest_failure_outbox|test_name|text|YES
+column|public|systemtest_failure_outbox|test_result_id|bigint|YES
+column|public|systemtest_magic_tokens|created_at|timestamp with time zone|NO
+column|public|systemtest_magic_tokens|expires_at|timestamp with time zone|NO
+column|public|systemtest_magic_tokens|keycloak_user_id|uuid|NO
+column|public|systemtest_magic_tokens|redirect_uri|text|NO
+column|public|systemtest_magic_tokens|session_payload|jsonb|NO
+column|public|systemtest_magic_tokens|token|text|NO
+column|public|systemtest_magic_tokens|used_at|timestamp with time zone|YES
+column|public|tax_mode_changes|brand|text|NO
+column|public|tax_mode_changes|changed_at|timestamp with time zone|NO
+column|public|tax_mode_changes|from_mode|text|NO
+column|public|tax_mode_changes|id|bigint|NO
+column|public|tax_mode_changes|notes|text|YES
+column|public|tax_mode_changes|to_mode|text|NO
+column|public|tax_mode_changes|trigger_invoice_id|text|YES
+column|public|tax_mode_changes|year_revenue_at_change|numeric|YES
+column|public|test_results|category|text|NO
+column|public|test_results|created_at|timestamp with time zone|NO
+column|public|test_results|duration_ms|integer|YES
+column|public|test_results|id|bigint|NO
+column|public|test_results|message|text|YES
+column|public|test_results|run_id|text|NO
+column|public|test_results|status|text|NO
+column|public|test_results|test_id|text|NO
+column|public|test_runs|cluster|text|NO
+column|public|test_runs|duration_ms|integer|YES
+column|public|test_runs|fail|integer|YES
+column|public|test_runs|finished_at|timestamp with time zone|YES
+column|public|test_runs|id|text|NO
+column|public|test_runs|pass|integer|YES
+column|public|test_runs|skip|integer|YES
+column|public|test_runs|started_at|timestamp with time zone|NO
+column|public|test_runs|status|text|NO
+column|public|test_runs|test_ids|text|YES
+column|public|test_runs|tier|text|NO
+column|public|time_entries|billable|boolean|NO
+column|public|time_entries|created_at|timestamp with time zone|NO
+column|public|time_entries|description|text|YES
+column|public|time_entries|entry_date|date|NO
+column|public|time_entries|id|uuid|NO
+column|public|time_entries|leistung_key|text|YES
+column|public|time_entries|minutes|integer|NO
+column|public|time_entries|project_id|uuid|NO
+column|public|time_entries|rate_cents|integer|NO
+column|public|time_entries|stripe_invoice_id|text|YES
+column|public|time_entries|task_id|uuid|YES
+column|public|transcript_segments|end_time|numeric|NO
+column|public|transcript_segments|id|uuid|NO
+column|public|transcript_segments|segment_index|integer|NO
+column|public|transcript_segments|speaker|text|YES
+column|public|transcript_segments|start_time|numeric|NO
+column|public|transcript_segments|text|text|NO
+column|public|transcript_segments|transcript_id|uuid|NO
+column|public|transcripts|created_at|timestamp with time zone|YES
+column|public|transcripts|duration_seconds|numeric|YES
+column|public|transcripts|full_text|text|NO
+column|public|transcripts|id|uuid|NO
+column|public|transcripts|language|text|YES
+column|public|transcripts|meeting_id|uuid|NO
+column|public|transcripts|whisper_model|text|YES
+column|public|v_billing_invoices_with_state|brand|text|YES
+column|public|v_billing_invoices_with_state|cancels_invoice_id|text|YES
+column|public|v_billing_invoices_with_state|created_at|timestamp with time zone|YES
+column|public|v_billing_invoices_with_state|currency_rate|numeric|YES
+column|public|v_billing_invoices_with_state|currency|character|YES
+column|public|v_billing_invoices_with_state|customer_id|text|YES
+column|public|v_billing_invoices_with_state|due_date|date|YES
+column|public|v_billing_invoices_with_state|dunning_level|integer|YES
+column|public|v_billing_invoices_with_state|einvoice_validated_at|timestamp with time zone|YES
+column|public|v_billing_invoices_with_state|einvoice_validation_report|jsonb|YES
+column|public|v_billing_invoices_with_state|finalized_at|timestamp with time zone|YES
+column|public|v_billing_invoices_with_state|gross_amount_eur|numeric|YES
+column|public|v_billing_invoices_with_state|gross_amount|numeric|YES
+column|public|v_billing_invoices_with_state|hash_sha256|text|YES
+column|public|v_billing_invoices_with_state|id|text|YES
+column|public|v_billing_invoices_with_state|issue_date|date|YES
+column|public|v_billing_invoices_with_state|kind|text|YES
+column|public|v_billing_invoices_with_state|last_dunning_at|timestamp with time zone|YES
+column|public|v_billing_invoices_with_state|leitweg_id|text|YES
+column|public|v_billing_invoices_with_state|locked|boolean|YES
+column|public|v_billing_invoices_with_state|net_amount_eur|numeric|YES
+column|public|v_billing_invoices_with_state|net_amount|numeric|YES
+column|public|v_billing_invoices_with_state|notes|text|YES
+column|public|v_billing_invoices_with_state|number|text|YES
+column|public|v_billing_invoices_with_state|paid_amount|numeric|YES
+column|public|v_billing_invoices_with_state|paid_at|date|YES
+column|public|v_billing_invoices_with_state|parent_invoice_id|text|YES
+column|public|v_billing_invoices_with_state|payment_reference|text|YES
+column|public|v_billing_invoices_with_state|pdf_mime|text|YES
+column|public|v_billing_invoices_with_state|pdf_path|text|YES
+column|public|v_billing_invoices_with_state|pdf_size_bytes|integer|YES
+column|public|v_billing_invoices_with_state|retain_until|date|YES
+column|public|v_billing_invoices_with_state|service_period_end|date|YES
+column|public|v_billing_invoices_with_state|service_period_start|date|YES
+column|public|v_billing_invoices_with_state|status|text|YES
+column|public|v_billing_invoices_with_state|supply_type|text|YES
+column|public|v_billing_invoices_with_state|tax_amount|numeric|YES
+column|public|v_billing_invoices_with_state|tax_mode|text|YES
+column|public|v_billing_invoices_with_state|tax_rate|numeric|YES
+column|public|v_billing_invoices_with_state|updated_at|timestamp with time zone|YES
+column|public|v_systemtest_failure_board|assignment_id|uuid|YES
+column|public|v_systemtest_failure_board|column_key|text|YES
+column|public|v_systemtest_failure_board|evidence_id|uuid|YES
+column|public|v_systemtest_failure_board|last_failure_ticket_id|uuid|YES
+column|public|v_systemtest_failure_board|last_result_at|timestamp with time zone|YES
+column|public|v_systemtest_failure_board|last_result|text|YES
+column|public|v_systemtest_failure_board|pr_merged_at|timestamp with time zone|YES
+column|public|v_systemtest_failure_board|pr_number|integer|YES
+column|public|v_systemtest_failure_board|question_id|uuid|YES
+column|public|v_systemtest_failure_board|retest_attempt|integer|YES
+column|public|v_systemtest_failure_board|retest_pending_at|timestamp with time zone|YES
+column|public|v_systemtest_failure_board|ticket_external_id|text|YES
+column|public|v_systemtest_failure_board|ticket_id|uuid|YES
+column|public|v_systemtest_failure_board|ticket_resolution|text|YES
+column|public|v_systemtest_failure_board|ticket_status|text|YES
+column|public|vat_id_validations|country_code|character|NO
+column|public|vat_id_validations|customer_id|text|YES
+column|public|vat_id_validations|id|bigint|NO
+column|public|vat_id_validations|request_identifier|text|YES
+column|public|vat_id_validations|validated_at|timestamp with time zone|NO
+column|public|vat_id_validations|valid|boolean|NO
+column|public|vat_id_validations|vat_id|text|NO
+column|public|vat_id_validations|vies_address|text|YES
+column|public|vat_id_validations|vies_name|text|YES
+column|public|web_sessions|created_at|timestamp with time zone|NO
+column|public|web_sessions|data|jsonb|NO
+column|public|web_sessions|expires_at|timestamp with time zone|NO
+column|public|web_sessions|id|text|NO
+column|public|website_custom_sections|content|jsonb|NO
+column|public|website_custom_sections|created_at|timestamp with time zone|NO
+column|public|website_custom_sections|fields|jsonb|NO
+column|public|website_custom_sections|id|uuid|NO
+column|public|website_custom_sections|slug|text|NO
+column|public|website_custom_sections|sort_order|integer|NO
+column|public|website_custom_sections|title|text|NO
+column|public|website_custom_sections|updated_at|timestamp with time zone|NO
+column|tickets|pr_events|brand|text|YES
+column|tickets|pr_events|category|text|NO
+column|tickets|pr_events|created_at|timestamp with time zone|NO
+column|tickets|pr_events|description|text|YES
+column|tickets|pr_events|merged_at|timestamp with time zone|NO
+column|tickets|pr_events|merged_by|text|YES
+column|tickets|pr_events|pr_number|integer|NO
+column|tickets|pr_events|scope|text|YES
+column|tickets|pr_events|status|text|NO
+column|tickets|pr_events|title|text|NO
+column|tickets|tags|brand|text|YES
+column|tickets|tags|color|text|YES
+column|tickets|tags|id|uuid|NO
+column|tickets|tags|name|text|NO
+column|tickets|ticket_activity|actor_id|uuid|YES
+column|tickets|ticket_activity|actor_label|text|YES
+column|tickets|ticket_activity|created_at|timestamp with time zone|NO
+column|tickets|ticket_activity|field|text|NO
+column|tickets|ticket_activity|id|bigint|NO
+column|tickets|ticket_activity|new_value|jsonb|YES
+column|tickets|ticket_activity|old_value|jsonb|YES
+column|tickets|ticket_activity|ticket_id|uuid|NO
+column|tickets|ticket_attachments|data_url|text|YES
+column|tickets|ticket_attachments|file_size|bigint|YES
+column|tickets|ticket_attachments|filename|text|NO
+column|tickets|ticket_attachments|id|uuid|NO
+column|tickets|ticket_attachments|mime_type|text|NO
+column|tickets|ticket_attachments|nc_path|text|YES
+column|tickets|ticket_attachments|ticket_id|uuid|NO
+column|tickets|ticket_attachments|uploaded_at|timestamp with time zone|NO
+column|tickets|ticket_attachments|uploaded_by|uuid|YES
+column|tickets|ticket_comments|author_id|uuid|YES
+column|tickets|ticket_comments|author_label|text|NO
+column|tickets|ticket_comments|body|text|NO
+column|tickets|ticket_comments|created_at|timestamp with time zone|NO
+column|tickets|ticket_comments|id|bigint|NO
+column|tickets|ticket_comments|kind|text|NO
+column|tickets|ticket_comments|ticket_id|uuid|NO
+column|tickets|ticket_comments|visibility|text|NO
+column|tickets|ticket_counters|brand|text|NO
+column|tickets|ticket_counters|last_value|bigint|NO
+column|tickets|ticket_links|created_at|timestamp with time zone|NO
+column|tickets|ticket_links|created_by|uuid|YES
+column|tickets|ticket_links|from_id|uuid|NO
+column|tickets|ticket_links|id|bigint|NO
+column|tickets|ticket_links|kind|text|NO
+column|tickets|ticket_links|pr_number|integer|YES
+column|tickets|ticket_links|to_id|uuid|NO
+column|tickets|ticket_plans|archived_at|timestamp with time zone|NO
+column|tickets|ticket_plans|branch|text|YES
+column|tickets|ticket_plans|content|text|NO
+column|tickets|ticket_plans|id|bigint|NO
+column|tickets|ticket_plans|pr_number|integer|YES
+column|tickets|ticket_plans|slug|text|NO
+column|tickets|ticket_plans|ticket_id|uuid|NO
+column|tickets|ticket_tags|tag_id|uuid|NO
+column|tickets|ticket_tags|ticket_id|uuid|NO
+column|tickets|ticket_watchers|added_at|timestamp with time zone|NO
+column|tickets|ticket_watchers|ticket_id|uuid|NO
+column|tickets|ticket_watchers|user_id|uuid|NO
+column|tickets|tickets|ai_question|text|YES
+column|tickets|tickets|archived_at|timestamp with time zone|YES
+column|tickets|tickets|assignee_id|uuid|YES
+column|tickets|tickets|attention_mode|text|NO
+column|tickets|tickets|brand|text|NO
+column|tickets|tickets|component|text|YES
+column|tickets|tickets|created_at|timestamp with time zone|NO
+column|tickets|tickets|customer_id|uuid|YES
+column|tickets|tickets|description|text|YES
+column|tickets|tickets|done_at|timestamp with time zone|YES
+column|tickets|tickets|due_date|date|YES
+column|tickets|tickets|estimate_minutes|integer|YES
+column|tickets|tickets|external_id|text|YES
+column|tickets|tickets|human_answer|text|YES
+column|tickets|tickets|id|uuid|NO
+column|tickets|tickets|is_test_data|boolean|NO
+column|tickets|tickets|notes|text|YES
+column|tickets|tickets|parent_id|uuid|YES
+column|tickets|tickets|priority|text|NO
+column|tickets|tickets|reporter_email|text|YES
+column|tickets|tickets|reporter_id|uuid|YES
+column|tickets|tickets|resolution|text|YES
+column|tickets|tickets|severity|text|YES
+column|tickets|tickets|source_test_assignment_id|uuid|YES
+column|tickets|tickets|source_test_id|text|YES
+column|tickets|tickets|source_test_question_id|uuid|YES
+column|tickets|tickets|source_test_result_id|bigint|YES
+column|tickets|tickets|source_test_run_id|text|YES
+column|tickets|tickets|start_date|date|YES
+column|tickets|tickets|started_at|timestamp with time zone|YES
+column|tickets|tickets|status|text|NO
+column|tickets|tickets|thesis_tag|text|YES
+column|tickets|tickets|time_logged_minutes|integer|NO
+column|tickets|tickets|title|text|NO
+column|tickets|tickets|triaged_at|timestamp with time zone|YES
+column|tickets|tickets|type|text|NO
+column|tickets|tickets|updated_at|timestamp with time zone|NO
+column|tickets|tickets|url|text|YES
+table|assets|registry
+table|bachelorprojekt|features
+table|bachelorprojekt|pipeline
+table|bachelorprojekt|requirements
+table|bachelorprojekt|test_results
+table|bugs|bug_tickets
+table|coaching|books
+table|coaching|drafts
+table|coaching|ki_config
+table|coaching|projects
+table|coaching|session_audit_log
+table|coaching|session_steps
+table|coaching|sessions
+table|coaching|snippet_clusters
+table|coaching|snippets
+table|coaching|step_templates
+table|coaching|template_assignments
+table|coaching|templates
+table|knowledge|chunks
+table|knowledge|collections
+table|knowledge|documents
+table|platform|hardware_assets
+table|platform|software_assets
+table|public|admin_shortcuts
+table|public|assets
+table|public|assistant_conversations
+table|public|assistant_first_seen
+table|public|assistant_messages
+table|public|assistant_nudge_dismissals
+table|public|billing_audit_log
+table|public|billing_customers
+table|public|billing_invoice_documents
+table|public|billing_invoice_dunnings
+table|public|billing_invoice_line_items
+table|public|billing_invoice_payments
+table|public|billing_invoices
+table|public|billing_nachweis
+table|public|billing_quotes
+table|public|billing_suppliers
+table|public|brands
+table|public|brett_rooms
+table|public|brett_snapshots
+table|public|chat_message_reads
+table|public|chat_messages
+table|public|chat_room_members
+table|public|chat_rooms
+table|public|client_notes
+table|public|customers
+table|public|document_assignments
+table|public|document_templates
+table|public|eur_bookings
+table|public|free_time_windows
+table|public|inbox_items
+table|public|invoice_counters
+table|public|legal_pages
+table|public|leistungen_config
+table|public|meeting_artifacts
+table|public|meeting_insights
+table|public|meeting_reminders
+table|public|meetings
+table|public|message_threads
+table|public|messages
+table|public|newsletter_campaigns
+table|public|newsletter_send_log
+table|public|newsletter_subscribers
+table|public|onboarding_items
+table|public|poll_answers
+table|public|polls
+table|public|questionnaire_answer_options
+table|public|questionnaire_answers
+table|public|questionnaire_assignment_scores
+table|public|questionnaire_assignments
+table|public|questionnaire_dimensions
+table|public|questionnaire_questions
+table|public|questionnaire_templates
+table|public|questionnaire_test_evidence
+table|public|questionnaire_test_fixtures
+table|public|questionnaire_test_seed_registry
+table|public|questionnaire_test_status
+table|public|referenzen_config
+table|public|service_config
+table|public|site_settings
+table|public|supplier_invoices
+table|public|systemtest_failure_outbox
+table|public|systemtest_magic_tokens
+table|public|tax_mode_changes
+table|public|test_results
+table|public|test_runs
+table|public|time_entries
+table|public|transcript_segments
+table|public|transcripts
+table|public|vat_id_validations
+table|public|web_sessions
+table|public|website_custom_sections
+table|tickets|pr_events
+table|tickets|tags
+table|tickets|ticket_activity
+table|tickets|ticket_attachments
+table|tickets|ticket_comments
+table|tickets|ticket_counters
+table|tickets|ticket_links
+table|tickets|ticket_plans
+table|tickets|ticket_tags
+table|tickets|ticket_watchers
+table|tickets|tickets

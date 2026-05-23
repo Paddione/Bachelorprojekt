@@ -1,0 +1,8 @@
+column|public|meetings|project_id|uuid|YES
+column|public|systemtest_failure_outbox|error_message|text|YES
+column|public|systemtest_failure_outbox|file_path|text|YES
+column|public|systemtest_failure_outbox|run_id|text|YES
+column|public|systemtest_failure_outbox|source_kind|text|NO
+column|public|systemtest_failure_outbox|test_id|text|YES
+column|public|systemtest_failure_outbox|test_name|text|YES
+column|public|systemtest_failure_outbox|test_result_id|bigint|YES

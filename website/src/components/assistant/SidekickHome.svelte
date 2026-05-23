@@ -89,116 +89,127 @@
 
   /* ── Intro block ── */
   .sk-intro {
-    padding: 28px 22px 8px;
+    padding: 32px 22px 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   .sk-eyebrow {
-    font-family: var(--font-mono, 'Geist Mono', monospace);
-    font-size: 10px;
-    letter-spacing: 0.22em;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: oklch(0.83 0.09 75);
+    color: var(--brass);
     display: inline-flex;
     align-items: center;
     gap: 10px;
   }
 
   .sk-eyebrow-bar {
-    width: 20px;
+    width: 22px;
     height: 1px;
-    background: oklch(0.83 0.09 75);
-    opacity: 0.85;
+    background: currentColor;
+    opacity: 0.8;
     flex-shrink: 0;
   }
 
   .sk-headline {
     margin: 0;
-    font-family: var(--font-serif, 'Newsreader', serif);
-    font-size: 26px;
-    line-height: 1.1;
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1.08;
     letter-spacing: -0.02em;
     font-weight: 400;
-    color: var(--admin-text, #e8e8f0);
+    color: var(--fg);
   }
 
   .sk-headline em {
     font-style: italic;
-    color: oklch(0.87 0.09 75);
+    font-weight: 400;
+    color: var(--brass-2);
   }
 
   .sk-sub {
     margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--admin-text-mute, #8899aa);
-    max-width: 34ch;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--fg-soft);
+    max-width: 38ch;
   }
 
   /* ── Item list ── */
   .sk-list {
-    margin-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: 22px;
+    border-top: 1px solid var(--line);
     display: flex;
     flex-direction: column;
   }
 
   .sk-row {
     display: grid;
-    grid-template-columns: 36px 1fr auto 28px;
+    grid-template-columns: 40px 1fr auto 32px;
     align-items: center;
     gap: 14px;
-    padding: 18px 22px;
+    padding: 20px 22px;
+    min-height: 64px;            /* tap target ≥44px even on smallest items */
     border: none;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid var(--line);
     background: transparent;
     color: inherit;
     text-align: left;
     cursor: pointer;
     position: relative;
-    transition: background 220ms ease;
+    transition: background 220ms var(--ease-out, ease);
     width: 100%;
+  }
+  .sk-row:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: -2px;
   }
 
   .sk-row--hover {
-    background: linear-gradient(to right, transparent, rgba(232,200,112,.04), transparent);
+    background: linear-gradient(
+      to right,
+      transparent,
+      oklch(0.80 0.09 75 / 0.06),
+      transparent
+    );
   }
 
   .sk-no {
-    font-family: var(--font-mono, 'Geist Mono', monospace);
-    font-size: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--admin-text-disabled, #445);
-    transition: color 180ms ease;
+    color: var(--mute-2);
+    transition: color 180ms var(--ease-out, ease);
   }
 
   .sk-no--active {
-    color: oklch(0.83 0.09 75);
+    color: var(--brass);
   }
 
   .sk-body {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
   }
 
   .sk-item-title {
-    font-family: var(--font-serif, 'Newsreader', serif);
-    font-size: 19px;
+    font-family: var(--serif);
+    font-size: 20px;
     line-height: 1.15;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     font-weight: 400;
-    color: var(--admin-text, #e8e8f0);
+    color: var(--fg);
   }
 
   .sk-item-sub {
-    font-size: 12px;
-    color: var(--admin-text-mute, #8899aa);
-    line-height: 1.4;
+    font-size: 13px;
+    color: var(--mute);
+    line-height: 1.45;
   }
 
   .sk-badge-slot {
@@ -208,14 +219,14 @@
   }
 
   .sk-brass-badge {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 7px;
-    border-radius: 999px;
-    background: oklch(0.83 0.09 75);
-    color: #0b111c;
-    font-family: var(--font-mono, 'Geist Mono', monospace);
-    font-size: 10px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: var(--radius-pill, 999px);
+    background: var(--brass);
+    color: var(--ink-900);
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.04em;
     display: inline-flex;
@@ -225,22 +236,30 @@
   }
 
   .sk-arrow {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.1);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--line-2);
     background: transparent;
-    color: var(--admin-text-mute, #8899aa);
+    color: var(--mute);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
+    transition: border-color 200ms var(--ease-out, ease),
+                background 200ms var(--ease-out, ease),
+                color 200ms var(--ease-out, ease);
     flex-shrink: 0;
   }
 
   .sk-arrow--active {
-    border-color: oklch(0.83 0.09 75);
-    background: oklch(0.83 0.09 75);
-    color: #0b111c;
+    border-color: var(--brass);
+    background: var(--brass);
+    color: var(--ink-900);
+  }
+
+  @media (max-width: 480px) {
+    .sk-intro { padding: 28px 18px 10px; }
+    .sk-headline { font-size: 26px; }
+    .sk-row { padding: 18px; grid-template-columns: 36px 1fr auto 28px; }
   }
 </style>

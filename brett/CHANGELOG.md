@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.0...brett-v0.5.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **brett:** add missing damage.mjs exports — BURN_TICK_MS, startBurnTimer, sweepArcContains [T000137] ([0fb1a91](https://github.com/Paddione/Bachelorprojekt/commit/0fb1a918c60c5e903b3ce964cbda3fa0b73c90d0))
+
 ## [0.5.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.4.1...brett-v0.5.0) (2026-05-21)
 
 

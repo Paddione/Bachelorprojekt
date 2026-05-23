@@ -2603,12 +2603,10 @@ tasks:
           kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" rollout restart deployment/website
         fi
 
-        # For production: upgrade IngressRoute to HTTPS with letsencrypt
-        if [ "{{.ENV}}" != "dev" ]; then
-          kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" patch ingressroute website --type=merge \
-            -p "{\"spec\":{\"entryPoints\":[\"websecure\"],\"routes\":[{\"kind\":\"Rule\",\"match\":\"Host(\`${WEBSITE_HOST}\`)\",\"services\":[{\"name\":\"website\",\"port\":80}]}],\"tls\":{\"certResolver\":\"letsencrypt\"}}}"
-          echo "✓ IngressRoute patched for ${WEBSITE_HOST} (websecure + letsencrypt)"
-        fi
+        # TLS is handled by env-specific Flux overlays, not imperative patches:
+        # - mentolder: website-ingress-web Ingress (workspace-wildcard-tls + middlewares)
+        # - korczewski: IngressRoute patch in flux/apps/website-korczewski (korczewski-tls)
+        # Removed blanket certResolver:letsencrypt patch that broke korczewski (T000147).
 
         echo "Waiting for website..."
         kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" rollout status deployment/website --timeout=180s

@@ -4,6 +4,8 @@ namespace: website
 resources:
   - ../../../k3d/website.yaml
   - ../../../k3d/website-seller-config.yaml
+  # mentolder HTTPS Ingress (tracked here to survive cluster rebuilds — T000146)
+  - website-ingress-web.yaml
 patches:
   - path: image-tag.yaml
     target:

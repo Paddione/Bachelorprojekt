@@ -1,6 +1,22 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🗄️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Daten · PostgreSQL 16</div>
+    <div class="page-hero-title">Datenbankmodelle</div>
+    <p class="page-hero-desc">Alle Schemas auf shared-db — website, keycloak, nextcloud, vaultwarden, bachelorprojekt, docuseal.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">PostgreSQL 16</span>
+      <span class="page-hero-tag">shared-db</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Datenbank
 
-> Diese Seite wurde zu **[PostgreSQL (shared-db)](shared-db.md)** verschoben.
+<div class="callout callout-info">
+Die Betriebsdokumentation (Backup, Verbindung, psql-Zugang) wurde zu <a href="#/shared-db">PostgreSQL (shared-db)</a> verschoben. Diese Seite enthält die Schema-Modelle.
+</div>
 
 **Datenbankmodelle und Schemas** finden Sie in den Abschnitten unten.
 

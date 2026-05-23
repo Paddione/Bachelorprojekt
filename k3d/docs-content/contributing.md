@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">🤝</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Entwickler · Workflow</div>
+    <div class="page-hero-title">Beitragen zum Workspace</div>
+    <p class="page-hero-desc">Branch-Strategie, PR-Workflow, CI-Anforderungen und Merge-Regeln.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">GitHub Actions</span>
+      <span class="page-hero-tag">squash-merge</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Beitragen zum Workspace MVP
 
 ```mermaid
@@ -16,7 +30,13 @@ sequenceDiagram
   Main-->>Dev: trigger task feature:* (manuell)
 ```
 
-## Workflow
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">1</div>
+    <span class="phase-title">Branch anlegen</span>
+    <span class="phase-desc">Workflow</span>
+  </div>
+  <div class="phase-body">
 
 Alle Änderungen gehen durch Pull Requests. Direkte Pushes auf `main` sind nicht erlaubt.
 
@@ -30,21 +50,22 @@ main
                           └── grün → Squash & Merge → main
 ```
 
----
-
-## Branch-Namenskonvention
-
 | Präfix | Zweck |
 |--------|-------|
 | `feature/*` | Neue Funktionalität |
 | `fix/*` | Fehlerbehebungen |
 | `chore/*` | Refactoring, Abhängigkeiten, CI/CD |
 
----
+  </div>
+</div>
 
-## Lokale Entwicklung
-
-### Erstmaliges Setup
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-sage">2</div>
+    <span class="phase-title">Lokal entwickeln & testen</span>
+    <span class="phase-desc">Entwicklung</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task cluster:create     # k3d-Cluster erstellen
@@ -58,7 +79,7 @@ Alternativ als Einzeiler:
 task workspace:up   # Cluster + MVP + MCP in einem Schritt
 ```
 
-### Tägliche Befehle
+Tägliche Befehle:
 
 ```bash
 task workspace:status                # alles prüfen
@@ -68,28 +89,62 @@ task workspace:psql -- website       # psql-Shell zur Datenbank
 task workspace:port-forward          # shared-db auf localhost:5432
 ```
 
-Dev-Services erreichbar unter:
+  </div>
+</div>
 
-| Service | URL | Zugangsdaten |
-|---------|-----|--------------|
-| Keycloak (SSO) | `http://auth.localhost` | admin / devadmin |
-| Nextcloud | `http://files.localhost` | — |
-| Collabora | `http://office.localhost` | — |
-| Claude Code (MCP) | (kein Web-UI) | — |
-| Vaultwarden | `http://vault.localhost` | — |
-| Whiteboard | `http://board.localhost` | — |
-| Mailpit | `http://mail.localhost` | — |
-| Docs | `http://docs.localhost` | — |
-| Website | `http://web.localhost` | — |
-
----
-
-## Vor dem Commit validieren
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-blue">3</div>
+    <span class="phase-title">CI muss grün sein</span>
+    <span class="phase-desc">Vor dem Merge</span>
+  </div>
+  <div class="phase-body">
 
 ```bash
 task workspace:validate   # K8s-Manifeste per Dry-Run validieren
 shellcheck scripts/*.sh   # Shell-Skripte linten (falls geändert)
 ```
+
+Die GitHub Actions-Pipeline (`.github/workflows/ci.yml`) prüft:
+
+| Prüfung | Werkzeug |
+|---------|---------|
+| YAML-Linting | `yamllint` (200-Zeichen-Limit) |
+| Kubernetes-Manifest-Validierung | `kustomize build` + `kubeconform` (K8s 1.31.0) |
+| Shell-Linting | `shellcheck` auf alle Skripte |
+| Konfigurations-Validierung | Realm-JSON, PHP-OIDC-Config |
+| Security-Scan | Image-Pinning, Secret-Erkennung |
+
+  </div>
+</div>
+
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">4</div>
+    <span class="phase-title">PR erstellen & squash-mergen</span>
+    <span class="phase-desc">Merge</span>
+  </div>
+  <div class="phase-body">
+
+```bash
+git add k3d/mein-manifest.yaml
+git commit -m "fix: kurze Beschreibung der Änderung"
+
+gh pr create \
+  --title "fix: kurze Beschreibung" \
+  --body "## Änderung
+- Was wurde geändert
+- Warum
+
+## Testen
+- [ ] task workspace:validate
+- [ ] ./tests/runner.sh local <TEST-ID>"
+```
+
+PRs werden **squash-gemergt** — ein Commit pro Feature auf `main`.
+
+  </div>
+</div>
 
 ---
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.1...brett-v0.5.2) (2026-05-23)
+
+
+### Bug Fixes
+
+* **brett:** remove all combat modes and weapons [T000141] ([#965](https://github.com/Paddione/Bachelorprojekt/issues/965)) ([4f61435](https://github.com/Paddione/Bachelorprojekt/commit/4f614355ddedd9433df3b7f232d7fae5edd98455))
+
 ## [0.5.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.0...brett-v0.5.1) (2026-05-23)
 
 

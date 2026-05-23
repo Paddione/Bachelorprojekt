@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN
   ? `https://${process.env.NC_DOMAIN}`
-  : 'http://files.localhost');
+  : null);
 
 const SIGNALING_URL = process.env.TEST_SIGNALING_URL || (process.env.SIGNALING_DOMAIN
   ? `https://${process.env.SIGNALING_DOMAIN}`

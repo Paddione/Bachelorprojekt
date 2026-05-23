@@ -67,6 +67,9 @@ test.describe('FA-Fragebogen: Fill flow', () => {
 
   test.beforeEach(({ }, testInfo) => {
     if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
+    if (isProd && !process.env.SESSIONS_DATABASE_URL) {
+      testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
+    }
   });
 
   test.afterAll(async () => {
@@ -178,6 +181,9 @@ test.describe('FA-Fragebogen: Admin view', () => {
 
   test.beforeEach(({ }, testInfo) => {
     if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
+    if (isProd && !process.env.SESSIONS_DATABASE_URL) {
+      testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
+    }
   });
 
   test.afterAll(async () => {
@@ -226,6 +232,9 @@ test.describe('FA-Fragebogen: Archive → reassign → replay', () => {
 
   test.beforeEach(({ }, testInfo) => {
     if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
+    if (isProd && !process.env.SESSIONS_DATABASE_URL) {
+      testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
+    }
   });
 
   test.afterAll(async () => {
@@ -368,6 +377,9 @@ test.describe('FA-Fragebogen: Real-user handoff', () => {
   test.beforeEach(({ }, testInfo) => {
     if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
     if (!isProd) testInfo.skip(true, 'Real-user handoff only runs against prod (WEBSITE_URL must contain mentolder.de or korczewski.de)');
+    if (isProd && !process.env.SESSIONS_DATABASE_URL) {
+      testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
+    }
   });
 
   test('T1: assign systemtest-04 fragebogen template to admin user in prod', async ({ page }) => {

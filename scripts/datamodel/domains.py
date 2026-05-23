@@ -43,7 +43,8 @@ DOMAINS: dict[str, dict[str, list[str]]] = {
             "ticket_links", "ticket_tags", "ticket_watchers", "ticket_counters",
             "tags", "pr_events",
         ],
-        "public": ["bug_tickets", "inbox_items"],
+        "bugs": ["bug_tickets"],
+        "public": ["inbox_items"],
     },
     "Platform & Config": {
         "public": [
@@ -57,7 +58,7 @@ DOMAINS: dict[str, dict[str, list[str]]] = {
     "Testing & CI": {
         "public": [
             "test_runs", "test_results", "systemtest_failure_outbox",
-            "systemtest_magic_tokens", "playwright_reports",
+            "systemtest_magic_tokens",
         ],
     },
     "AI Assistant": {
@@ -68,7 +69,6 @@ DOMAINS: dict[str, dict[str, list[str]]] = {
     },
     "Bachelorprojekt & Superpowers": {
         "bachelorprojekt": ["requirements", "features", "pipeline", "test_results"],
-        "superpowers": ["plans", "plan_sections"],
     },
 }
 

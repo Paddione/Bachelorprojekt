@@ -90,6 +90,8 @@ git rebase origin/main
 git submodule update --init --recursive
 ```
 
+> **Nach Rebase — erster Push:** Falls der Branch schon gepusht war, schlägt `git push` fehl ("rejected ... non-fast-forward"). Lösung: `git push --force-with-lease origin <branch>`. `--force-with-lease` ist sicherer als `--force` — schlägt fehl wenn jemand anderes seit dem letzten Fetch gepusht hat.
+
 Falls `git rebase` Konflikte meldet:
 
 ```bash
@@ -314,14 +316,12 @@ Das ist alles — die PR-Nummer landet in Schritt 6.5 als Comment-Body und in Sc
 ## Schritt 6: Auto-Merge wenn CI grün
 
 ```bash
-gh pr merge --squash --delete-branch
+# Im Haupt-Repo ausführen — vermeidet den harmlosen "main already used by worktree" Git-Fehler
+MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+(cd "$MAIN_REPO" && gh pr merge --squash --delete-branch)
 ```
 
-> **Bekannte Fehler-Meldung (kein echter Fehler):**
-> ```
-> fatal: 'main' is already used by worktree at '/home/patrick/Bachelorprojekt'
-> ```
-> Diese Meldung erscheint, wenn `gh` nach dem Merge versucht, `git checkout main` im sekundären Worktree auszuführen, und der Haupt-Repo bereits `main` ausgecheckt hat. **Der PR ist trotzdem erfolgreich gemergt** — nur der lokale Checkout-Seiteneffekt scheitert. Prüfen mit:
+> **Falls der Merge-Fehler auftritt:** Prüfen ob der Merge trotzdem durchging:
 > ```bash
 > gh pr view --json mergedAt -q '.mergedAt'   # leer = noch offen, Zeitstempel = gemergt
 > ```
@@ -379,7 +379,17 @@ if [[ -z "$ARCHIVE_CWD" ]]; then
 fi
 cd "$ARCHIVE_CWD"
 git fetch origin main
+# Parallel-Session-Schutz: Unstaged-Änderungen aus anderen Sessions sichern vor reset
+STASHED_PLAN=0
+if ! git diff --quiet; then
+  echo "Unstaged Änderungen erkannt — stashe vor reset..."
+  git stash
+  STASHED_PLAN=1
+fi
 git reset --hard origin/main   # Plan-Datei ist jetzt auf Disk (gemergter Revision)
+if [[ "$STASHED_PLAN" == "1" ]]; then
+  git stash pop || echo "⚠️  Stash-Pop-Konflikte — bitte manuell auflösen."
+fi
 
 # Sicherheitsprüfung: CWD muss auf main sein
 CURRENT_BRANCH=$(git branch --show-current)

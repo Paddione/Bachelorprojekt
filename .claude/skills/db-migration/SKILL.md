@@ -72,6 +72,13 @@ SQL
 
 ## Phase 3: Apply to mentolder
 
+> **⚠️ Rollen-Eigentumshinweis:** `task workspace:psql` verbindet als `website`-Rolle. DDL auf `bachelorprojekt`, `coaching`, und `knowledge` Schemas (Tabellen gehören `postgres`) schlägt mit "must be owner of table" fehl. Für DDL auf diesen Schemas direkt mit `-U postgres` verbinden:
+> ```bash
+> PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
+> kubectl exec -i "$PGPOD" -n workspace --context mentolder -- psql -U postgres -d website < migration.sql
+> ```
+> Für `public`-Schema DDL ist `task workspace:psql` ausreichend.
+
 ```bash
 # Backup first for any destructive or large migration
 task workspace:backup

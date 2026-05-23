@@ -399,7 +399,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - **Arena protocol drift guard**: `arena-server/src/proto/messages.ts` and `website/src/components/arena/shared/lobbyTypes.ts` must be byte-identical — CI fails if they diverge
 
 Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main), `dev-auto-deploy.yml` (auto-deploy to dev.mentolder.de on relevant push), `dev-smoke.yml` (nightly BATS against dev.mentolder.de at 05:00 UTC).
-Note: `track-pr.yml` and the `tracking-import` CronJob were removed in PR #788 (2026-05-15). The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
+Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23) — both parts of the tracking pipeline are now gone. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
 
 ## Development Rules
 
@@ -460,7 +460,7 @@ After any cluster reset (including replacing a Sealed Secrets controller keypair
 
 `web.korczewski.de` and `web.mentolder.de` no longer share a layout. `website/src/pages/index.astro` branches on `process.env.BRAND_ID ?? process.env.BRAND` and renders the components under `website/src/components/kore/` for the `korczewski` brand. Mentolder still uses the existing Hero/WhyMe/ServiceRow/... Svelte components.
 
-The Kore homepage has a timeline section (`BrandConfig.homepage.timeline === true`) that reads from `v_timeline`. The tracking pipeline (`track-pr.yml` + `tracking-import` CronJob) was removed in PR #788; the timeline shows historical data only (last entry: PR #787). New PRs are no longer tracked automatically.
+The Kore homepage has a timeline section (`BrandConfig.homepage.timeline === true`) that reads from `v_timeline`. The tracking pipeline was fully removed: `tracking-import` CronJob in PR #788, `track-pr.yml` in PR #993; the timeline shows historical data only (last entry: PR #787). New PRs are no longer tracked automatically.
 
 The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRAND_ID` in local dev — `index.astro` reads both with `process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder'`.
 

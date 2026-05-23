@@ -194,6 +194,7 @@
   }
 </script>
 
+<div class="qv-outer">
 <!-- Inner header nav (list ↔ detail), shown when in detail mode -->
 {#if activeId}
   <div class="inner-hdr">
@@ -378,6 +379,7 @@
       </button>
     {/if}
   {/if}
+</div>
 </div>
 
 <style>

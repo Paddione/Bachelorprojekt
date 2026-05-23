@@ -126,7 +126,10 @@ async function findTemplate(page: Page, prefix: string): Promise<TemplateRow> {
 
 async function resolveAssignee(page: Page, override?: string): Promise<string> {
   if (override) return override;
-  if (process.env.E2E_ASSIGNEE_USER_ID) return process.env.E2E_ASSIGNEE_USER_ID;
+  // On korczewski, E2E_ASSIGNEE_USER_ID may hold a stale mentolder UUID — skip it and fall through
+  // to the email-based KC lookup. Use TEST_ADMIN_ASSIGNEE_ID for a korczewski-specific override.
+  if (isKorczewski && process.env.TEST_ADMIN_ASSIGNEE_ID) return process.env.TEST_ADMIN_ASSIGNEE_ID;
+  if (!isKorczewski && process.env.E2E_ASSIGNEE_USER_ID) return process.env.E2E_ASSIGNEE_USER_ID;
 
   // Use the current session email (reliable across brands where KC username ≠ email prefix).
   const meRes = await page.request.get(`${BASE}/api/auth/me`);
@@ -141,7 +144,7 @@ async function resolveAssignee(page: Page, override?: string): Promise<string> {
   const me = clients.find(c => c.email.toLowerCase() === myEmail);
   if (!me) {
     throw new Error(
-      `Admin "${myEmail}" has no client record — create one via /admin/clients or set E2E_ASSIGNEE_USER_ID`,
+      `Admin "${myEmail}" has no client record — create one via /admin/clients or set TEST_ADMIN_ASSIGNEE_ID (korczewski) or E2E_ASSIGNEE_USER_ID (mentolder)`,
     );
   }
   return me.id;

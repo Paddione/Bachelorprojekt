@@ -20,11 +20,22 @@ const MIN_ADVANCE_HOURS = parseInt(process.env.MIN_ADVANCE_HOURS || '24');
 
 const CALDAV_BASE = `${NC_URL}/remote.php/dav/calendars/${NC_USER}/${CALENDAR_NAME}`;
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
+// Nextcloud (PHP) can be slow — 1500ms was far too tight. Configurable via env.
+const CALDAV_TIMEOUT_MS = parseInt(process.env.CALDAV_TIMEOUT_MS || '8000');
 
 function getAuthHeader(): string {
   return 'Basic ' + Buffer.from(`${NC_USER}:${NC_PASS}`).toString('base64');
 }
 
+// Unfold RFC 5545 §3.1 line continuations (CRLF/LF followed by whitespace).
+// Without this, long ATTENDEE lines folded by Nextcloud at 75 chars will have
+// their mailto: address on the continuation line and go undetected.
+function unfoldIcal(ical: string): string {
+  return ical.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+}
+
+// Throws on network/timeout error so callers that need error visibility can
+// catch and surface it. Callers that need graceful degradation wrap in try-catch.
 async function fetchEventsRaw(from: Date, to: Date): Promise<string[]> {
   const fromStr = from.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const toStr = to.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -44,35 +55,30 @@ async function fetchEventsRaw(from: Date, to: Date): Promise<string[]> {
   </c:filter>
 </c:calendar-query>`;
 
-  try {
-    const res = await fetch(CALDAV_BASE, {
-      method: 'REPORT',
-      headers: {
-        Authorization: getAuthHeader(),
-        'Content-Type': 'application/xml; charset=utf-8',
-        Depth: '1',
-      },
-      body,
-      signal: AbortSignal.timeout(1500),
-    });
+  const res = await fetch(CALDAV_BASE, {
+    method: 'REPORT',
+    headers: {
+      Authorization: getAuthHeader(),
+      'Content-Type': 'application/xml; charset=utf-8',
+      Depth: '1',
+    },
+    body,
+    signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+  });
 
-    if (!res.ok) {
-      console.error('[caldav] REPORT failed:', res.status);
-      return [];
-    }
-
-    const xml = await res.text();
-    const icals: string[] = [];
-    const calDataRegex = /<c:calendar-data[^>]*>([\s\S]*?)<\/c:calendar-data>/gi;
-    let match;
-    while ((match = calDataRegex.exec(xml)) !== null) {
-      icals.push(match[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
-    }
-    return icals;
-  } catch (err) {
-    console.error('[caldav] Fetch error:', err);
-    return [];
+  if (!res.ok) {
+    throw new Error(`[caldav] REPORT failed: ${res.status}`);
   }
+
+  const xml = await res.text();
+  const icals: string[] = [];
+  const calDataRegex = /<c:calendar-data[^>]*>([\s\S]*?)<\/c:calendar-data>/gi;
+  let match;
+  while ((match = calDataRegex.exec(xml)) !== null) {
+    const raw = match[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    icals.push(unfoldIcal(raw));
+  }
+  return icals;
 }
 
 export interface CalEvent {
@@ -95,9 +101,16 @@ export interface DaySlots {
 
 const WEEKDAYS_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 
-// Fetch events from Nextcloud CalDAV for a date range
+// Fetch events from Nextcloud CalDAV for a date range.
+// Degrades gracefully on error — slot availability returns empty rather than throwing.
 async function fetchEvents(from: Date, to: Date): Promise<CalEvent[]> {
-  const icals = await fetchEventsRaw(from, to);
+  let icals: string[];
+  try {
+    icals = await fetchEventsRaw(from, to);
+  } catch (err) {
+    console.error('[caldav] fetchEvents failed, treating as no busy times:', err);
+    return [];
+  }
   const events: CalEvent[] = [];
 
   for (const ical of icals) {
@@ -216,7 +229,13 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
   const future = new Date(now);
   future.setDate(future.getDate() + BOOKING_HORIZON_DAYS);
 
-  const icals = await fetchEventsRaw(past, future);
+  let icals: string[];
+  try {
+    icals = await fetchEventsRaw(past, future);
+  } catch (err) {
+    console.error('[caldav] getClientBookings failed:', err);
+    return [];
+  }
   const bookings: ClientBooking[] = [];
 
   for (const ical of icals) {
@@ -382,7 +401,11 @@ async function findEventUrl(uid: string): Promise<string | null> {
   const rawUid = uid.replace(/@.+$/, '');
   const url = `${CALDAV_BASE}/${rawUid}.ics`;
   try {
-    const res = await fetch(url, { method: 'HEAD', headers: { Authorization: getAuthHeader() } });
+    const res = await fetch(url, {
+      method: 'HEAD',
+      headers: { Authorization: getAuthHeader() },
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
     if (res.ok) return url;
   } catch {}
   return null;
@@ -392,7 +415,11 @@ export async function deleteCalendarEvent(uid: string): Promise<boolean> {
   const url = await findEventUrl(uid);
   if (!url) return false;
   try {
-    const res = await fetch(url, { method: 'DELETE', headers: { Authorization: getAuthHeader() } });
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: { Authorization: getAuthHeader() },
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
     return res.ok || res.status === 204;
   } catch (err) {
     console.error('[caldav] Delete event error:', err);
@@ -404,7 +431,10 @@ export async function updateCalendarEventStatus(uid: string, status: 'CANCELLED'
   const url = await findEventUrl(uid);
   if (!url) return false;
   try {
-    const getRes = await fetch(url, { headers: { Authorization: getAuthHeader() } });
+    const getRes = await fetch(url, {
+      headers: { Authorization: getAuthHeader() },
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
     if (!getRes.ok) return false;
     let ical = await getRes.text();
     if (/STATUS:/i.test(ical)) {
@@ -416,6 +446,7 @@ export async function updateCalendarEventStatus(uid: string, status: 'CANCELLED'
       method: 'PUT',
       headers: { Authorization: getAuthHeader(), 'Content-Type': 'text/calendar; charset=utf-8' },
       body: ical,
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
     });
     return putRes.ok || putRes.status === 204;
   } catch (err) {

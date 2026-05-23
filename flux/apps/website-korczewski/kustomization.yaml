@@ -24,3 +24,17 @@ patches:
           - pk-hetzner-4
           - pk-hetzner-6
           - pk-hetzner-8
+  # Fix HTTPS: add websecure entryPoint + wildcard TLS cert (T000144)
+  - target:
+      kind: IngressRoute
+      name: website
+    patch: |-
+      - op: replace
+        path: /spec/entryPoints
+        value:
+          - web
+          - websecure
+      - op: add
+        path: /spec/tls
+        value:
+          secretName: korczewski-tls

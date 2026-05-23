@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-ingress-web
+  namespace: website
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-web@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.mentolder.de
+      secretName: workspace-wildcard-tls
+  rules:
+    - host: web.mentolder.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

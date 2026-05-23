@@ -7,6 +7,7 @@ import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 import { isE2ETestRequest } from '../../lib/e2e-marker';
 
 const BRAND_NAME = process.env.BRAND_NAME || 'Workspace';
+const BRAND = process.env.BRAND || 'mentolder';
 
 const TYPE_LABELS: Record<string, string> = {
   erstgespraech: 'Kostenloses Erstgespräch',
@@ -42,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Validate that the requested slot falls within an admin-defined time window.
     if (!isCallback && slotStart && slotEnd) {
-      const valid = await isSlotInAnyWindow(BRAND_NAME, new Date(slotStart), new Date(slotEnd));
+      const valid = await isSlotInAnyWindow(BRAND, new Date(slotStart), new Date(slotEnd));
       if (!valid) {
         return new Response(
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),

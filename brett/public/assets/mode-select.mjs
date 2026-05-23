@@ -15,10 +15,6 @@ export function showModeSelect(modeState) {
             <div class="title">FFA</div>
             <div class="sub">Jeder gegen jeden</div>
           </button>
-          <button class="mode-card" data-mode="mayhem-solo">
-            <div class="title">🥊 Mayhem — Solo</div>
-            <div class="sub">1 Spieler vs. 3 KI-Gegner · Sofort starten</div>
-          </button>
           <button class="mode-card disabled" data-mode="teams" disabled>
             <div class="title">Teams</div>
             <div class="sub">Coming soon</div>

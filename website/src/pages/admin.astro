@@ -80,7 +80,7 @@ const adminLinks = [
     { href: `${ncBase}/apps/spreed/`,   label: 'Talk',     icon: SVG.video,    color: '#a78bfa' },
   ] : []),
   ...(bretUrl  ? [{ href: bretUrl,                               label: 'Brett',      icon: SVG.brett,    color: '#a78bfa' }] : []),
-  { href: '/portal/arena',                                       label: 'Arena',      icon: SVG.arena,    color: '#818cf8' },
+  ...(BRAND === 'korczewski' ? [{ href: '/portal/arena',         label: 'Arena',      icon: SVG.arena,    color: '#818cf8' }] : []),
   { href: '/admin/rechnungen',                                   label: 'Abrechnung', icon: SVG.receipt,  color: '#34d399' },
   ...(vaultUrl ? [{ href: vaultUrl,                              label: 'Passwörter', icon: SVG.lock,     color: '#34d399' }] : []),
   ...(authUrl  ? [{ href: `${authUrl}/admin/workspace/console/`, label: 'Keycloak',   icon: SVG.key,      color: '#818cf8' }] : []),

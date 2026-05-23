@@ -90,6 +90,9 @@ try {
 
 const adminInitials = ((adminGivenName[0] ?? '') + (adminFamilyName[0] ?? '')).toUpperCase() || '?';
 
+const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+const isKore = brandId === 'korczewski';
+
 const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
   {
     label: 'Kern',
@@ -115,7 +118,7 @@ const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
     items: [
       { href: '/admin/coaching/sessions',  label: 'Sitzungen',   icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
       { href: BRETT_URL,                    label: 'Systembrett', icon: 'brett', external: true },
-      { href: '/admin/arena',              label: 'Arena',       icon: 'arena' },
+      ...(isKore ? [{ href: '/admin/arena', label: 'Arena',       icon: 'arena' }] : []),
     ],
   },
   {
@@ -151,8 +154,6 @@ function isActive(href: string, matches?: string[]): boolean {
 }
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
-const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
-const isKore = brandId === 'korczewski';
 ---
 
 <!doctype html>

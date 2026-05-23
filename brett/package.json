@@ -11,7 +11,7 @@
   "dependencies": {
     "express": "^5.2.1",
     "express-session": "^1.19.0",
-    "openid-client": "^6.8.4",
+    "openid-client": "^4.9.1",
     "pg": "^8.21.0",
     "ws": "^8.20.1"
   }

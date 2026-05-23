@@ -6,10 +6,22 @@
     "kind": "shell"
   },
   {
+    "id": "AK-03",
+    "file": "tests/e2e/specs/ak-03-technical.spec.ts",
+    "category": "AK",
+    "kind": "playwright"
+  },
+  {
     "id": "AK-04",
     "file": "tests/local/AK-04.sh",
     "category": "AK",
     "kind": "shell"
+  },
+  {
+    "id": "AK-04",
+    "file": "tests/e2e/specs/ak-04-prototype.spec.ts",
+    "category": "AK",
+    "kind": "playwright"
   },
   {
     "id": "E2E:arena-mentolder-auth-setup",
@@ -432,10 +444,22 @@
     "kind": "shell"
   },
   {
+    "id": "FA-12",
+    "file": "tests/e2e/specs/fa-12-mcp.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-13",
     "file": "tests/local/FA-13.sh",
     "category": "FA",
     "kind": "shell"
+  },
+  {
+    "id": "FA-13",
+    "file": "tests/e2e/specs/fa-13-docs.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
   },
   {
     "id": "FA-14",
@@ -606,6 +630,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-28",
+    "file": "tests/e2e/specs/fa-28-messaging.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-30",
     "file": "tests/local/FA-30.bats",
     "category": "FA",
@@ -614,6 +644,12 @@
   {
     "id": "FA-30",
     "file": "tests/e2e/specs/fa-30-arena-banner.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-30",
+    "file": "tests/e2e/specs/fa-30-einvoice.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -636,10 +672,22 @@
     "kind": "shell"
   },
   {
+    "id": "FA-32",
+    "file": "tests/e2e/specs/fa-32-llm-bge-m3.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-33",
     "file": "tests/local/FA-33.sh",
     "category": "FA",
     "kind": "shell"
+  },
+  {
+    "id": "FA-33",
+    "file": "tests/e2e/specs/fa-33-llm-voyage.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
   },
   {
     "id": "FA-34",
@@ -648,10 +696,22 @@
     "kind": "shell"
   },
   {
+    "id": "FA-34",
+    "file": "tests/e2e/specs/fa-34-llm-strict-fail.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-35",
     "file": "tests/local/FA-35.sh",
     "category": "FA",
     "kind": "shell"
+  },
+  {
+    "id": "FA-35",
+    "file": "tests/e2e/specs/fa-35-llm-mixed-error.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
   },
   {
     "id": "FA-36",
@@ -660,10 +720,22 @@
     "kind": "shell"
   },
   {
+    "id": "FA-36",
+    "file": "tests/e2e/specs/fa-36-rerank.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-37",
     "file": "tests/local/FA-37.sh",
     "category": "FA",
     "kind": "shell"
+  },
+  {
+    "id": "FA-37",
+    "file": "tests/e2e/specs/fa-37-workspace-chat.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
   },
   {
     "id": "FA-38",
@@ -676,6 +748,12 @@
     "file": "tests/local/FA-39.sh",
     "category": "FA",
     "kind": "shell"
+  },
+  {
+    "id": "FA-39",
+    "file": "tests/e2e/specs/fa-39-arena-db.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
   },
   {
     "id": "FA-39",
@@ -698,6 +776,12 @@
   {
     "id": "FA-40",
     "file": "tests/e2e/specs/fa-40-admin-assets.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-40",
+    "file": "tests/e2e/specs/fa-40-arena-spectator.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },
@@ -738,6 +822,12 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-01",
+    "file": "tests/e2e/specs/nfa-01-dsgvo.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-02",
     "file": "tests/local/NFA-02.sh",
     "category": "NFA",
@@ -750,10 +840,22 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-02",
+    "file": "tests/e2e/specs/nfa-02-performance.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-03",
     "file": "tests/local/NFA-03.sh",
     "category": "NFA",
     "kind": "shell"
+  },
+  {
+    "id": "NFA-03",
+    "file": "tests/e2e/specs/nfa-03-availability.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
   },
   {
     "id": "NFA-04",
@@ -766,6 +868,12 @@
     "file": "tests/prod/NFA-04.sh",
     "category": "NFA",
     "kind": "shell"
+  },
+  {
+    "id": "NFA-04",
+    "file": "tests/e2e/specs/nfa-04-scalability.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
   },
   {
     "id": "NFA-05",
@@ -786,10 +894,22 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-06",
+    "file": "tests/e2e/specs/nfa-06-website-restart.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-07",
     "file": "tests/local/NFA-07.sh",
     "category": "NFA",
     "kind": "shell"
+  },
+  {
+    "id": "NFA-07",
+    "file": "tests/e2e/specs/nfa-07-opensource.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
   },
   {
     "id": "NFA-08",
@@ -798,10 +918,22 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-08",
+    "file": "tests/e2e/specs/nfa-08-production-deploy.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-09",
     "file": "tests/local/NFA-09.sh",
     "category": "NFA",
     "kind": "shell"
+  },
+  {
+    "id": "NFA-09",
+    "file": "tests/e2e/specs/nfa-09-static-dns.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
   },
   {
     "id": "NFA-10",
@@ -810,16 +942,34 @@
     "kind": "shell"
   },
   {
+    "id": "NFA-10",
+    "file": "tests/e2e/specs/nfa-10-arena-health-perf.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-11",
     "file": "tests/local/NFA-11.sh",
     "category": "NFA",
     "kind": "shell"
   },
   {
+    "id": "NFA-11",
+    "file": "tests/e2e/specs/nfa-11-gpu-vram.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-12",
     "file": "tests/local/NFA-12.bats",
     "category": "NFA",
     "kind": "shell"
+  },
+  {
+    "id": "NFA-12",
+    "file": "tests/e2e/specs/nfa-12-brainstorm-tunnel.spec.ts",
+    "category": "NFA",
+    "kind": "playwright"
   },
   {
     "id": "SA-01",
@@ -840,6 +990,12 @@
     "kind": "shell"
   },
   {
+    "id": "SA-01",
+    "file": "tests/e2e/specs/sa-01-tls.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
     "id": "SA-02",
     "file": "tests/local/SA-02.sh",
     "category": "SA",
@@ -858,16 +1014,34 @@
     "kind": "shell"
   },
   {
+    "id": "SA-03",
+    "file": "tests/e2e/specs/sa-03-passwords.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
     "id": "SA-04",
     "file": "tests/local/SA-04.sh",
     "category": "SA",
     "kind": "shell"
   },
   {
+    "id": "SA-04",
+    "file": "tests/e2e/specs/sa-04-session-timeout.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
     "id": "SA-05",
     "file": "tests/local/SA-05.sh",
     "category": "SA",
     "kind": "shell"
+  },
+  {
+    "id": "SA-05",
+    "file": "tests/e2e/specs/sa-05-audit-log.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
   },
   {
     "id": "SA-06",
@@ -886,6 +1060,12 @@
     "file": "tests/prod/SA-07.sh",
     "category": "SA",
     "kind": "shell"
+  },
+  {
+    "id": "SA-07",
+    "file": "tests/e2e/specs/sa-07-backup.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
   },
   {
     "id": "SA-08",
@@ -930,10 +1110,22 @@
     "kind": "shell"
   },
   {
+    "id": "SA-10",
+    "file": "tests/e2e/specs/sa-10-mcp-forwardauth.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
     "id": "SA-11",
     "file": "tests/local/SA-11.bats",
     "category": "SA",
     "kind": "shell"
+  },
+  {
+    "id": "SA-11",
+    "file": "tests/e2e/specs/sa-11-arena-nonadmin.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
   },
   {
     "id": "SA-12",
@@ -942,9 +1134,21 @@
     "kind": "shell"
   },
   {
+    "id": "SA-12",
+    "file": "tests/e2e/specs/sa-12-korczewski-jwt.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
     "id": "SA-13",
     "file": "tests/local/SA-13.bats",
     "category": "SA",
     "kind": "shell"
+  },
+  {
+    "id": "SA-13",
+    "file": "tests/e2e/specs/sa-13-untrusted-jwt.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
   }
 ]

@@ -27,8 +27,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const BASE       = process.env.WEBSITE_URL    ?? 'http://localhost:4321';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
-const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
+const isKorczewski = BASE.includes('korczewski.de');
+const ADMIN_USER = isKorczewski
+  ? (process.env.TEST_ADMIN_USER ?? process.env.E2E_ADMIN_USER ?? 'test-admin')
+  : (process.env.E2E_ADMIN_USER ?? 'paddione');
+const ADMIN_PASS = isKorczewski
+  ? (process.env.TEST_ADMIN_PASSWORD ?? process.env.E2E_ADMIN_PASS)
+  : process.env.E2E_ADMIN_PASS;
 
 export type TestOption = 'erfüllt' | 'teilweise' | 'nicht_erfüllt';
 

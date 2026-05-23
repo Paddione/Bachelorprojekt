@@ -15,6 +15,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T3: /api/state returns JSON figures array for unknown room', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.get(`${BRETT_URL}/api/state?room=e2e-probe-${Date.now()}`);
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -28,6 +29,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T5: POST /api/snapshots creates a snapshot (current schema)', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const room_token = `e2e-snap-${Date.now()}`;
     const res = await request.post(`${BRETT_URL}/api/snapshots`, {
       data: { room_token, name: 'e2e-test-snapshot', state: { figures: [] } },
@@ -38,6 +40,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T6: GET /api/snapshots without params returns 400', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.get(`${BRETT_URL}/api/snapshots`);
     expect(res.status()).toBe(400);
     const body = await res.json();
@@ -45,6 +48,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T7: GET /api/snapshots with room param returns array', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.get(`${BRETT_URL}/api/snapshots?room=e2e-snap-list-${Date.now()}`);
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -52,11 +56,13 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T8: GET /api/snapshots/:id returns 404 for unknown UUID', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.get(`${BRETT_URL}/api/snapshots/00000000-0000-0000-0000-000000000000`);
     expect(res.status()).toBe(404);
   });
 
   test('T9: POST /api/snapshots validates missing state.figures', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.post(`${BRETT_URL}/api/snapshots`, {
       data: { name: 'bad-payload' },
     });
@@ -66,6 +72,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T10: GET /api/customers returns array', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.get(`${BRETT_URL}/api/customers`);
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -73,6 +80,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T11: GET /presets returns array', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.get(`${BRETT_URL}/presets`);
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -80,6 +88,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T12: POST /presets creates preset and DELETE removes it', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const createRes = await request.post(`${BRETT_URL}/presets`, {
       data: { name: 'e2e-preset', appearance: { face: undefined, accessories: [] } },
     });
@@ -96,6 +105,7 @@ test.describe('FA-27: Systemisches Brett', () => {
   });
 
   test('T13: POST /presets validates name length', async ({ request }) => {
+    test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod (oauth2-proxy)');
     const res = await request.post(`${BRETT_URL}/presets`, {
       data: { name: 'x'.repeat(101), appearance: {} },
     });

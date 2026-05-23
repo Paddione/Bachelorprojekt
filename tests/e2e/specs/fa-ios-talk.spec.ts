@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN
   ? `https://${process.env.NC_DOMAIN}`
-  : 'http://files.localhost');
+  : null);
 
 test.describe('FA-iOS: Nextcloud Talk + notify_push (iPhone WebKit)', () => {
   test('T1: Talk-Oberfläche auf iPhone erreichbar', async ({ page }) => {

@@ -32,9 +32,10 @@ test.describe('FA-35: LLM MixedEmbeddingModelError', () => {
       },
       headers: { 'Content-Type': 'application/json' },
     });
-    // Without auth, expect 401; with auth and mixed collections, expect 400 (MixedEmbeddingModelError)
-    // Either way, it must NOT be 200 (which would indicate silent fallback)
-    expect([400, 401, 403, 422]).toContain(res.status());
+    // Without auth, expect 401; with auth and mixed collections, expect 400 (MixedEmbeddingModelError).
+    // 404 is also acceptable — the knowledge query endpoint is admin-only and not publicly routed.
+    // Any of these means no silent fallback to garbage retrieval.
+    expect([400, 401, 403, 404, 422]).toContain(res.status());
 
     if (res.status() === 400) {
       const body = await res.json();

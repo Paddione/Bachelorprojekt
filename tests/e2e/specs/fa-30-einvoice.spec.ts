@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const EINVOICE_URL = process.env.EINVOICE_URL
-  ?? (process.env.PROD_DOMAIN ? `https://einvoice.${process.env.PROD_DOMAIN}` : null);
+// einvoice-sidecar is ClusterIP-only (no public Ingress). Set EINVOICE_URL explicitly via
+// port-forward (task workspace:port-forward) or from inside the cluster to run these tests.
+const EINVOICE_URL = process.env.EINVOICE_URL ?? null;
 
 /**
  * FA-30: E-Rechnung / XRechnung (einvoice-sidecar)
@@ -11,11 +12,11 @@ const EINVOICE_URL = process.env.EINVOICE_URL
  * T3: POST /validate → returns {"ok": true}.
  * T4: Im Browser — open the service landing page (no PDF fixture available in CI).
  *
- * All tests skip unless EINVOICE_URL or PROD_DOMAIN is set.
+ * All tests skip unless EINVOICE_URL is explicitly set.
  */
 
 test.describe('FA-30: E-Rechnung / XRechnung (einvoice-sidecar)', () => {
-  test.skip(!EINVOICE_URL, 'requires EINVOICE_URL or PROD_DOMAIN env var');
+  test.skip(!EINVOICE_URL, 'requires EINVOICE_URL env var (service is ClusterIP-only, no public ingress)');
 
   // T1: Service is reachable
   test('T1: einvoice-sidecar service is reachable', async ({ request }) => {

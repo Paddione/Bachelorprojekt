@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 const isKorczewski = BASE.includes('korczewski.de');
 const ADMIN_USER = isKorczewski
-  ? (process.env.TEST_ADMIN_USER ?? process.env.E2E_ADMIN_USER ?? 'test-admin')
+  ? (process.env.TEST_ADMIN_USER ?? 'test-admin')
   : (process.env.E2E_ADMIN_USER ?? 'paddione');
 const ADMIN_PASS = isKorczewski
   ? (process.env.TEST_ADMIN_PASSWORD ?? process.env.E2E_ADMIN_PASS)

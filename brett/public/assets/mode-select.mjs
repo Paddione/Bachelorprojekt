@@ -11,18 +11,6 @@ export function showModeSelect(modeState) {
             <div class="title">Coaching</div>
             <div class="sub">Systemische Aufstellung</div>
           </button>
-          <button class="mode-card" data-mode="ffa">
-            <div class="title">FFA</div>
-            <div class="sub">Jeder gegen jeden</div>
-          </button>
-          <button class="mode-card disabled" data-mode="teams" disabled>
-            <div class="title">Teams</div>
-            <div class="sub">Coming soon</div>
-          </button>
-          <button class="mode-card disabled" data-mode="coop" disabled>
-            <div class="title">Coop</div>
-            <div class="sub">Coming soon</div>
-          </button>
         </div>
       </div>
     `;

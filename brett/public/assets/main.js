@@ -1,8 +1,7 @@
-// brett/public/assets/main.js — ESM entry, Phase 4: full mode-select→loadout→combat flow.
+// brett/public/assets/main.js
 import { connect } from './ws.mjs';
 import { createModeState } from './mode-state.mjs';
 import { showModeSelect } from './mode-select.mjs';
-import { showLoadoutModal } from './loadout-modal.mjs';
 
 const ws = connect();
 
@@ -17,67 +16,6 @@ ws.on('open', () => { if (banner) banner.hidden = true; });
 window.__brettWs = ws;
 
 const modeState = createModeState();
-let combatCtl = null;
-const overlayRoot = document.getElementById('overlay-root');
-
-modeState.on('change', async mode => {
-  if (mode === 'ffa') {
-    await startFFA();
-  } else if (mode === 'mayhem-solo') {
-    startMayhemSolo();
-  } else if (mode === 'coaching') {
-    stopCombat();
-  }
-});
-
-async function startFFA() {
-  await showLoadoutModal(modeState);
-  const loadout = modeState.loadout();
-
-  const { startCombat } = await import('./combat/controller.mjs');
-  combatCtl = startCombat({
-    scene: window.scene,
-    camera: window.camera,
-    players: window.figures || [],
-    self: window.localPlayer || { id: 'local', hp: 100 },
-    ws,
-    hudRoot: overlayRoot,
-    loadout,
-  });
-
-  const isTouch = matchMedia('(pointer: coarse)').matches;
-  if (isTouch) {
-    const { mountJoystick } = await import('./touch/joystick.mjs');
-    const { mountTouchHud } = await import('./touch/touch-hud.mjs');
-    mountJoystick({
-      side: 'left',
-      onMove: ({ x, y }) => window.localPlayer?.setMoveInput?.(x, y),
-    });
-    mountJoystick({
-      side: 'right',
-      onMove: ({ x, y }) => window.localPlayer?.setAimDelta?.(x, y),
-    });
-    mountTouchHud({
-      onFireStart: () => combatCtl?.startFire?.(),
-      onFireEnd: () => combatCtl?.stopFire?.(),
-      onReload: () => combatCtl?.reload?.(),
-    });
-  }
-}
-
-function stopCombat() {
-  if (!overlayRoot) return;
-  const hud = overlayRoot.querySelector('#combat-hud');
-  if (hud) hud.hidden = true;
-}
-
-function startMayhemSolo() {
-  // Create a private room that no other player can find or join via the room browser
-  const soloRoomId = 'solo-' + crypto.randomUUID();
-  // Signal to the page: auto-enable Mayhem as soon as the WS snapshot arrives
-  sessionStorage.setItem('brett_solo_mayhem', '1');
-  window.location.href = `/?room=${encodeURIComponent(soloRoomId)}`;
-}
 
 // Show mode selector on load
 showModeSelect(modeState);

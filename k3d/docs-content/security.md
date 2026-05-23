@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">🔒</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Sicherheit · SA-01–SA-10</div>
     <div class="page-hero-title">Sicherheitsarchitektur</div>
     <p class="page-hero-desc">Defense-in-Depth: Mehrschichtiger Sicherheitsansatz vom Netzwerk bis zum Container.</p>
     <div class="page-hero-meta">
@@ -203,6 +204,10 @@ task cert:status                # Zertifikat-Status anzeigen
 Opportunistisches TLS mit selbst-signierten Zertifikaten — nur cluster-intern genutzt, bei jedem Pod-Restart neu generiert.
 
 ## Secrets-Management
+
+<div class="callout callout-warn">
+Nach jedem Cluster-Reset muss <code>task env:seal ENV=&lt;env&gt;</code> neu ausgeführt werden — das Sealed-Secrets-Keypair wechselt und alle alten SealedSecrets entschlüsseln nicht mehr.
+</div>
 
 ### Entwicklung
 

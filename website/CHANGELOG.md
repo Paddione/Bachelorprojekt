@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.5.0...website-v1.6.0) (2026-05-23)
+
+
+### Features
+
+* **tests:** add headed Playwright specs for all systemtest-fragebogen test IDs ([#973](https://github.com/Paddione/Bachelorprojekt/issues/973)) ([f613205](https://github.com/Paddione/Bachelorprojekt/commit/f613205a4023aeebce37346888b6bb753f496626))
+
 ## [1.5.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.4.1...website-v1.5.0) (2026-05-21)
 
 

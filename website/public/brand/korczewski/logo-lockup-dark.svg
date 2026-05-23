@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" width="320" height="96">
+  <title>Kore. — primary lockup, dark glyph for light backgrounds</title>
+  <defs>
+    <linearGradient id="lkdInk" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2C2240"></stop>
+      <stop offset="100%" stop-color="#120D1C"></stop>
+    </linearGradient>
+    <radialGradient id="lkdGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E6FFB0" stop-opacity="0.92"></stop>
+      <stop offset="50%" stop-color="#C8F76A" stop-opacity="0.50"></stop>
+      <stop offset="100%" stop-color="#C8F76A" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="lkdLime" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D8FF8A"></stop>
+      <stop offset="100%" stop-color="#8FBE2E"></stop>
+    </linearGradient>
+  </defs>
+
+  
+  <rect x="8" y="8" width="80" height="80" rx="18" ry="18" fill="url(#lkdInk)"></rect>
+  <rect x="8.5" y="8.5" width="79" height="79" rx="17.5" ry="17.5" fill="none" stroke="rgba(255,255,255,.06)"></rect>
+
+  
+  <circle cx="48" cy="48" r="26" fill="url(#lkdGlow)"></circle>
+  <circle cx="48" cy="48" r="20" fill="none" stroke="#C8F76A" stroke-opacity=".22" stroke-width="1"></circle>
+  <circle cx="48" cy="48" r="14" fill="none" stroke="#C8F76A" stroke-opacity=".35" stroke-width="1"></circle>
+
+  
+  <g stroke="url(#lkdLime)" stroke-linecap="round" stroke-width="6.5" fill="none">
+    <line x1="62" y1="30" x2="36" y2="48"></line>
+    <line x1="36" y1="48" x2="62" y2="66"></line>
+  </g>
+  <circle cx="36" cy="48" r="3.6" fill="#D8FF8A"></circle>
+  <circle cx="36" cy="48" r="6" fill="none" stroke="#D8FF8A" stroke-opacity=".45" stroke-width="1"></circle>
+
+  
+  <text x="106" y="62" font-family="Instrument Serif, Iowan Old Style, Georgia, serif" font-size="42" font-weight="400" fill="#16101E" letter-spacing="-0.5">Kore<tspan fill="#6B8B1F">.</tspan></text>
+</svg>

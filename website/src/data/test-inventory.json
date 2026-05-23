@@ -96,6 +96,30 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-admin-db-crud-clients",
+    "file": "tests/e2e/specs/fa-admin-db-crud-clients.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-db-crud-followups",
+    "file": "tests/e2e/specs/fa-admin-db-crud-followups.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-db-crud-projekte",
+    "file": "tests/e2e/specs/fa-admin-db-crud-projekte.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-admin-db-crud-shortcuts",
+    "file": "tests/e2e/specs/fa-admin-db-crud-shortcuts.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-admin-inbox",
     "file": "tests/e2e/specs/fa-admin-inbox.spec.ts",
     "category": "E2E",

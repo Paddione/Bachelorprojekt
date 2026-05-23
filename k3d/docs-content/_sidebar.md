@@ -54,3 +54,6 @@
   - [Glossar](glossary)
   - [Decision-Log](decisions)
   - [DB-Schema (ER-Diagramm)](db-schema)
+
+- **Agent Skills**
+  - [🧠 Skill-Übersicht](skills-overview)

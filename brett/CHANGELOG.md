@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.2...brett-v0.5.3) (2026-05-23)
+
+
+### Bug Fixes
+
+* **brett:** downgrade openid-client v6→v4 to restore OIDC [T000148] ([#969](https://github.com/Paddione/Bachelorprojekt/issues/969)) ([a3bfafa](https://github.com/Paddione/Bachelorprojekt/commit/a3bfafaebd070a4a75e5d11a358ff016dbc15d1d))
+
 ## [0.5.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.1...brett-v0.5.2) (2026-05-23)
 
 

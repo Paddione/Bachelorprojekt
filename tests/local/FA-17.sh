@@ -1,26 +1,16 @@
 #!/usr/bin/env bash
-# FA-17: Meeting Lifecycle — Talk, Channels, Reminders
+# FA-17: Meeting Lifecycle — Talk, Channels
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${SCRIPT_DIR}/lib/assert.sh"
 source "${SCRIPT_DIR}/lib/k3d.sh"
 
 WEB_NAMESPACE="${WEB_NAMESPACE:-website}"
 
-WEB_READY=$(kubectl get deployment website -n "$WEB_NAMESPACE" \
-  -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+# ── T1: Reminder feature removed (PR #871 — SMTP auth failure) ────
+skip_test "FA-17" "T1" "Reminders" "Feature entfernt in PR #871 (SMTP auth fehlgeschlagen)"
 
-# ── T1: Reminder process endpoint works ───────────────────────────
-if [[ "$WEB_READY" -gt 0 ]]; then
-  REM_CODE=$(kubectl exec -n "$WEB_NAMESPACE" deploy/website -- \
-    node -e "fetch('http://localhost:4321/api/reminders/process',{method:'POST'}).then(r=>console.log(r.status))" 2>/dev/null || echo "0")
-  assert_eq "$REM_CODE" "200" "FA-17" "T1" "Reminder-Endpoint erreichbar (200)"
-else
-  skip_test "FA-17" "T1" "Reminders" "Website nicht bereit"
-fi
-
-# ── T2: CronJob meeting-reminders defined ─────────────────────────
-CJ_COUNT=$(kubectl get cronjob meeting-reminders -n "$WEB_NAMESPACE" -o name 2>/dev/null | wc -l)
-assert_gt "$CJ_COUNT" 0 "FA-17" "T2" "CronJob meeting-reminders definiert"
+# ── T2: meeting-reminders CronJob removed (PR #871) ───────────────
+skip_test "FA-17" "T2" "meeting-reminders CronJob" "Feature entfernt in PR #871"
 
 # ── T3: Nextcloud Talk available (internal) ───────────────────────
 NC_NS="${NC_NS:-workspace}"

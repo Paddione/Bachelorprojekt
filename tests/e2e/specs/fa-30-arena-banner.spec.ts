@@ -11,6 +11,12 @@ const KORCZEWSKI_HOME = 'https://web.korczewski.de/';
 test.describe('FA-30 · Arena banner is cross-brand @smoke', () => {
 
   test('admin opens lobby on mentolder → banner appears on both brands', async ({ browser }) => {
+    // Requires MENTOLDER_ADMIN_USER + MENTOLDER_ADMIN_PW to log into web.mentolder.de.
+    // Skip gracefully when running against korczewski without cross-cluster credentials.
+    test.skip(
+      !process.env.MENTOLDER_ADMIN_USER || !process.env.MENTOLDER_ADMIN_PW,
+      'Skipping: MENTOLDER_ADMIN_USER / MENTOLDER_ADMIN_PW not set — cross-cluster arena test requires mentolder admin credentials'
+    );
     // Two clean contexts so each gets its own session cookie.
     const ctxAdmin = await browser.newContext();
     const ctxView  = await browser.newContext();

@@ -1,7 +1,12 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
 
-const KC_URL = process.env.TEST_KC_URL || 'http://auth.localhost';
-const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}` : 'http://files.localhost');
+const PROD_DOMAIN = process.env.PROD_DOMAIN;
+const KC_URL = process.env.TEST_KC_URL
+  || (PROD_DOMAIN ? `https://auth.${PROD_DOMAIN}` : 'http://auth.localhost');
+const NC_URL = process.env.TEST_NC_URL
+  || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}`
+      : PROD_DOMAIN ? `https://files.${PROD_DOMAIN}`
+      : 'http://files.localhost');
 const KC_USER = process.env.MM_TEST_USER || 'testuser1';
 const KC_PASS = process.env.MM_TEST_PASS || 'Testpassword123!';
 
@@ -43,6 +48,13 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
 
   test('T16: Nextcloud SSO-Login (Keycloak-Session)', async () => {
     test.skip(!NC_URL, 'TEST_NC_URL nicht gesetzt');
+    // Skip if test credentials are defaults (testuser1/Testpassword123!) — these are
+    // dev-only users and do not exist on prod korczewski/mentolder KC realms.
+    // Set MM_TEST_USER + MM_TEST_PASS to valid prod credentials to enable this test.
+    test.skip(
+      !process.env.MM_TEST_USER || !process.env.MM_TEST_PASS,
+      'MM_TEST_USER / MM_TEST_PASS not set — skipping SSO login test that requires valid KC credentials'
+    );
 
     await page.goto(`${NC_URL}/login`);
 

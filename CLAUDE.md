@@ -109,6 +109,8 @@ task workspace:db:drop -- <dbname> ENV=<env>             # Drop a database (asks
 task workspace:db:restore -- <db> <timestamp> ENV=<env>  # List backups then restore (db: keycloak|nextcloud|vaultwarden|website|docuseal|all)
 ```
 
+**Note on `pentest` database:** An empty `pentest` database (owned by `pentest` role) exists on both clusters. It is intentional — a CTF target defined in `k3d/pentest-flags.yaml` and `k3d/shared-db.yaml`. Do not flag it as anomalous during audits.
+
 ### Post-Deploy Setup
 ```bash
 task workspace:office:deploy ENV=<env>    # Deploy Collabora (separate overlay — required for full bring-up)

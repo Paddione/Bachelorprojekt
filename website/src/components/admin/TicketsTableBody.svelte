@@ -143,6 +143,28 @@
   }
 </script>
 
+<table class="w-full">
+  <thead>
+    <tr class="border-b border-dark-lighter">
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">ID</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Typ</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Titel</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Status</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Prio</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Zuständig</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Kunde</th>
+      <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
+      <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Aktion</th>
+    </tr>
+  </thead>
+  <tbody>
+{#if tickets.length === 0}
+  <tr>
+    <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">
+      Keine Tickets für diese Filterauswahl.
+    </td>
+  </tr>
+{:else}
 {#each tickets as t (t.id)}
   {@const rs = row(t.id)}
   {@const showWidget = rs.attentionMode === 'needs_human' && !!t.aiQuestion}
@@ -302,3 +324,6 @@
     </tr>
   {/if}
 {/each}
+{/if}
+  </tbody>
+</table>

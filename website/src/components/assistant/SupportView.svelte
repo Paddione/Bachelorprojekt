@@ -112,7 +112,8 @@
       <span class="sv-eyebrow-bar" aria-hidden="true"></span>
       Feedback &amp; Support
     </span>
-    <p class="sv-desc">Fehler melden oder Verbesserungen vorschlagen.</p>
+    <p class="sv-headline">Fehler melden oder eine <em>Idee teilen</em>.</p>
+    <p class="sv-desc">Was hat funktioniert, was nicht — wir lesen jede Meldung persönlich.</p>
   </div>
   <form onsubmit={handleSubmit}>
     <div class="field">
@@ -197,113 +198,212 @@
 
   /* ── Intro block ── */
   .sv-intro {
-    padding: 20px 22px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 24px 22px 20px;
+    border-bottom: 1px solid var(--line);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 10px;
   }
   .sv-eyebrow {
-    font-family: var(--font-mono, 'Geist Mono', monospace);
-    font-size: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: oklch(0.83 0.09 75);
+    color: var(--brass);
     display: inline-flex;
     align-items: center;
     gap: 10px;
   }
   .sv-eyebrow-bar {
-    width: 16px;
+    width: 22px;
     height: 1px;
-    background: oklch(0.83 0.09 75);
-    opacity: 0.85;
+    background: currentColor;
+    opacity: 0.8;
     flex-shrink: 0;
+  }
+  .sv-headline {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+    font-weight: 400;
+  }
+  .sv-headline em {
+    font-style: italic;
+    color: var(--brass-2);
   }
   .sv-desc {
     margin: 0;
-    font-size: 12px;
-    color: var(--admin-text-mute, #8899aa);
-    line-height: 1.5;
+    font-size: 13px;
+    color: var(--fg-soft);
+    line-height: 1.55;
+    max-width: 40ch;
   }
 
-  form { padding: 16px 22px; display: flex; flex-direction: column; gap: 12px; }
+  /* ── Form ─────────────────────────────────────────────── */
+  form {
+    padding: 20px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-  .field { display: flex; flex-direction: column; gap: 4px; }
-  label { font-size: 12px; font-weight: 600; color: #e8e8f0; }
-  .req { color: #e8c870; }
-  .opt { color: #5566aa; font-weight: 400; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+  .req { color: var(--brass); }
+  .opt { color: var(--mute-2); font-weight: 400; letter-spacing: 0.04em; text-transform: none; font-style: italic; }
 
   .inp {
     width: 100%;
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid #243049;
-    background: #0f1623;
-    color: #e8e8f0;
-    font-size: 13px;
-    font-family: inherit;
+    padding: 12px 14px;
+    min-height: 44px;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid var(--line-2);
+    background: var(--ink-850);
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 14px;
     box-sizing: border-box;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 180ms ease, background 180ms ease;
     appearance: none;
     -webkit-appearance: none;
   }
-  .inp:focus { border-color: oklch(0.83 0.09 75); }
-  textarea.inp { resize: vertical; min-height: 80px; }
+  .inp::placeholder { color: var(--mute-2); }
+  .inp:hover { border-color: rgba(255,255,255,0.18); }
+  .inp:focus { border-color: var(--brass); background: var(--ink-800); }
+  textarea.inp { resize: vertical; min-height: 110px; line-height: 1.55; }
   select.inp {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238899aa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cda260' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 30px;
+    background-position: right 14px center;
+    padding-right: 36px;
   }
 
+  /* ── File picker ─────────────────────────────────────── */
   .file-inp {
     display: block;
     width: 100%;
-    font-size: 12px;
-    color: #8899aa;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--fg-soft);
     cursor: pointer;
     box-sizing: border-box;
+    padding: 4px 0;
   }
   .file-inp::file-selector-button {
-    margin-right: 10px;
-    padding: 4px 10px;
-    border-radius: 4px;
+    margin-right: 12px;
+    padding: 10px 16px;
+    min-height: 40px;
+    border-radius: var(--radius-pill, 999px);
     border: 0;
-    background: #e8c870;
-    color: #0f1623;
-    font-size: 12px;
+    background: var(--brass);
+    color: var(--ink-900);
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     cursor: pointer;
+    transition: background 180ms ease;
   }
+  .file-inp::file-selector-button:hover { background: var(--brass-2); }
 
-  .file-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
-  .file-list li { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8899aa; }
-  .rm-btn { background: transparent; border: none; color: #e8c870; font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline; }
+  .file-list {
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .file-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-soft);
+    padding: 8px 10px;
+    background: var(--ink-850);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 12px);
+  }
+  .file-list li > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rm-btn {
+    background: transparent;
+    border: none;
+    color: oklch(0.78 0.14 22);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    padding: 4px 8px;
+    min-height: 28px;
+    transition: color 180ms ease;
+  }
+  .rm-btn:hover { color: oklch(0.85 0.14 22); }
 
-  .err { font-size: 11px; color: #f87171; margin: 2px 0 0; }
+  .err {
+    font-size: 12px;
+    color: oklch(0.78 0.14 22);
+    margin: 4px 0 0;
+  }
 
   .submit-btn {
     width: 100%;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 14px;
+    min-height: 48px;
+    border-radius: var(--radius-pill, 999px);
     border: none;
-    background: #e8c870;
-    color: #0f1623;
-    font-size: 13px;
-    font-weight: 700;
+    background: var(--brass);
+    color: var(--ink-900);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: background 180ms ease, transform 120ms ease;
+    margin-top: 4px;
+  }
+  .submit-btn:not(:disabled):hover {
+    background: var(--brass-2);
+    transform: translateY(-1px);
   }
   .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .result {
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    line-height: 1.5;
+    padding: 14px 16px;
+    border-radius: var(--radius-md, 12px);
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.55;
+    border: 1px solid;
   }
-  .result.success { background: rgba(74,222,128,.08); color: #4ade80; border: 1px solid rgba(74,222,128,.2); }
-  .result.error { background: rgba(248,113,113,.08); color: #f87171; border: 1px solid rgba(248,113,113,.2); }
+  .result.success {
+    background: oklch(0.80 0.06 160 / 0.1);
+    color: var(--sage);
+    border-color: oklch(0.80 0.06 160 / 0.4);
+  }
+  .result.error {
+    background: oklch(0.62 0.18 22 / 0.1);
+    color: oklch(0.78 0.14 22);
+    border-color: oklch(0.62 0.18 22 / 0.4);
+  }
+
+  @media (max-width: 480px) {
+    .sv-intro,
+    form { padding-inline: 18px; }
+    .sv-headline { font-size: 20px; }
+  }
 </style>

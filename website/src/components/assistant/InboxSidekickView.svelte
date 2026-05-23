@@ -123,6 +123,15 @@
 </script>
 
 <div class="view">
+  <!-- Intro -->
+  <div class="iv-intro">
+    <span class="iv-eyebrow">
+      <span class="iv-eyebrow-bar" aria-hidden="true"></span>
+      Postfach
+    </span>
+    <p class="iv-desc">Eingegangene Nachrichten, Buchungen und Anfragen an einem Ort.</p>
+  </div>
+
   <!-- Type filter pills -->
   <div class="pill-row">
     <button
@@ -191,96 +200,156 @@
     padding-bottom: 60px;
   }
 
+  /* ── Intro ──────────────────────────────────────────────── */
+  .iv-intro {
+    padding: 24px 22px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .iv-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .iv-eyebrow-bar {
+    width: 22px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+  .iv-desc {
+    margin: 0;
+    font-size: 13px;
+    color: var(--fg-soft);
+    line-height: 1.55;
+    max-width: 38ch;
+  }
+
+  /* ── Type filter pills ──────────────────────────────────── */
   .pill-row {
     display: flex;
-    gap: 6px;
-    padding: 12px 16px;
+    gap: 8px;
+    padding: 14px 22px;
     overflow-x: auto;
-    border-bottom: 1px solid rgba(232, 200, 112, 0.1);
+    border-bottom: 1px solid var(--line);
     flex-shrink: 0;
+    -webkit-overflow-scrolling: touch;
   }
   .pill-row::-webkit-scrollbar { display: none; }
 
   .pill {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid #243049;
+    gap: 6px;
+    padding: 8px 14px;
+    min-height: 36px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--line-2);
     background: transparent;
-    color: #8899aa;
+    color: var(--fg-soft);
+    font-family: var(--mono);
     font-size: 11px;
     font-weight: 500;
+    letter-spacing: 0.06em;
     cursor: pointer;
     white-space: nowrap;
-    transition: border-color 0.12s, color 0.12s, background 0.12s;
+    transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
     flex-shrink: 0;
   }
-  .pill:hover { border-color: rgba(232,200,112,0.35); color: #c8d0e0; }
-  .pill.active { background: #e8c870; color: #0f1623; border-color: #e8c870; font-weight: 700; }
+  .pill:hover {
+    border-color: var(--brass-d);
+    color: var(--fg);
+  }
+  .pill:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 2px;
+  }
+  .pill.active {
+    background: var(--brass);
+    color: var(--ink-900);
+    border-color: var(--brass);
+    font-weight: 600;
+  }
 
   .dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
   }
 
+  /* ── Items ──────────────────────────────────────────────── */
   .items {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 12px 16px;
+    gap: 10px;
+    padding: 14px 22px;
   }
 
   .item {
-    background: #0f1623;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 8px;
-    padding: 10px 12px;
+    background: var(--ink-800);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 12px);
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    transition: opacity 0.25s;
+    gap: 8px;
+    transition: opacity 250ms ease, border-color 180ms ease, background 180ms ease;
+    position: relative;
   }
   .item.fading { opacity: 0.4; pointer-events: none; }
-  .item:hover { border-color: rgba(232,200,112,0.2); }
+  .item:hover {
+    border-color: var(--brass-d);
+    background: var(--ink-750);
+  }
 
   .item-header {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 10px;
   }
 
   .type-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
+    box-shadow: 0 0 0 3px var(--ink-800);
   }
 
   .sender {
-    font-size: 12px;
-    font-weight: 600;
-    color: #c8d0e0;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--fg);
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    letter-spacing: -0.01em;
   }
 
   .time {
+    font-family: var(--mono);
     font-size: 10px;
-    color: #5566aa;
+    letter-spacing: 0.06em;
+    color: var(--mute-2);
     white-space: nowrap;
     flex-shrink: 0;
   }
 
   .preview {
-    font-size: 11px;
-    color: #6677aa;
+    font-size: 13px;
+    color: var(--fg-soft);
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -291,60 +360,105 @@
 
   .item-actions {
     display: flex;
-    gap: 6px;
+    gap: 8px;
+    padding-top: 4px;
   }
 
   .act-btn {
+    font-family: var(--mono);
     font-size: 11px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    min-height: 36px;
+    border-radius: var(--radius-pill, 999px);
     border: 1px solid;
     cursor: pointer;
-    transition: opacity 0.12s;
+    transition: opacity 120ms ease, background 180ms ease, border-color 180ms ease;
   }
   .act-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .act-done {
-    background: rgba(34,197,94,0.1);
-    color: #4ade80;
-    border-color: rgba(34,197,94,0.25);
+    background: oklch(0.80 0.06 160 / 0.1);
+    color: var(--sage);
+    border-color: oklch(0.80 0.06 160 / 0.35);
   }
-  .act-done:not(:disabled):hover { background: rgba(34,197,94,0.18); }
+  .act-done:not(:disabled):hover {
+    background: oklch(0.80 0.06 160 / 0.18);
+    border-color: var(--sage);
+  }
 
   .act-link {
+    font-family: var(--mono);
     font-size: 11px;
-    font-weight: 600;
-    color: #e8c870;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
     text-decoration: none;
-    padding: 4px 0;
+    padding: 8px 0;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    transition: color 180ms ease;
   }
-  .act-link:hover { text-decoration: underline; }
+  .act-link:hover { color: var(--brass-2); }
 
   .skeleton {
-    height: 84px;
-    background: linear-gradient(90deg, #1a2235 25%, #1e2a3f 50%, #1a2235 75%);
+    height: 96px;
+    background: linear-gradient(
+      90deg,
+      var(--ink-800) 25%,
+      var(--ink-750) 50%,
+      var(--ink-800) 75%
+    );
     background-size: 200% 100%;
     animation: shimmer 1.4s infinite;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 12px);
   }
-  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 
-  .empty { color: #5566aa; font-size: 12px; margin: 0; }
-  .err { color: #f87171; font-size: 11px; margin: 0; }
+  .empty {
+    color: var(--mute);
+    font-size: 13px;
+    margin: 0;
+    font-style: italic;
+  }
+  .err {
+    color: oklch(0.62 0.18 22);
+    font-size: 12px;
+    margin: 0;
+  }
 
   .footer-link {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
     position: sticky;
     bottom: 0;
-    padding: 12px 16px;
-    background: #0f1623;
-    border-top: 1px solid rgba(232, 200, 112, 0.1);
-    font-size: 12px;
-    font-weight: 600;
-    color: #e8c870;
+    padding: 14px 22px;
+    background: linear-gradient(to top, var(--ink-900), var(--ink-900) 70%, transparent);
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass);
     text-decoration: none;
-    text-align: right;
+    min-height: 44px;
+    transition: color 180ms ease;
   }
-  .footer-link:hover { text-decoration: underline; }
+  .footer-link:hover { color: var(--brass-2); }
+
+  @media (max-width: 480px) {
+    .iv-intro,
+    .pill-row,
+    .items { padding-inline: 18px; }
+  }
 </style>

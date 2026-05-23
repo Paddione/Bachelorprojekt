@@ -61,118 +61,184 @@
 </div>
 
 <style>
-  .help-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
+  .help-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 28px;
+  }
 
   /* ── Intro block ── */
   .hv-intro {
-    padding: 20px 22px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 24px 22px 18px;
+    border-bottom: 1px solid var(--line);
     flex-shrink: 0;
   }
   .hv-eyebrow {
-    font-family: var(--font-mono, 'Geist Mono', monospace);
-    font-size: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: oklch(0.83 0.09 75);
+    color: var(--brass);
     display: inline-flex;
     align-items: center;
     gap: 10px;
   }
   .hv-eyebrow-bar {
-    width: 16px;
+    width: 22px;
     height: 1px;
-    background: oklch(0.83 0.09 75);
-    opacity: 0.85;
+    background: currentColor;
+    opacity: 0.8;
     flex-shrink: 0;
   }
 
   /* ── Content ── */
   .section-title {
-    font-family: var(--font-serif, 'Newsreader', serif);
-    font-size: 18px;
+    font-family: var(--serif);
+    font-size: 24px;
     font-weight: 400;
-    color: oklch(0.87 0.09 75);
-    margin: 16px 22px 4px;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+    margin: 20px 22px 6px;
   }
 
   .section-desc {
-    font-size: 12px;
-    color: #aabbcc;
-    margin: 0 22px 16px;
+    font-size: 14px;
+    color: var(--fg-soft);
+    margin: 0 22px 20px;
     line-height: 1.55;
+    max-width: 50ch;
   }
 
   .section-label {
-    font-size: 10px;
-    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #5566aa;
-    margin: 0 22px 8px;
+    letter-spacing: 0.16em;
+    color: var(--mute);
+    margin: 0 22px 12px;
   }
 
+  /* ── Action list ───────────────────────────────────────── */
   .action-list {
-    margin: 0 22px 16px;
+    margin: 0 22px 22px;
     padding: 0;
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
   }
   .action-list li {
-    font-size: 12px;
-    color: #aabbcc;
+    font-size: 14px;
+    color: var(--fg-soft);
     display: flex;
     align-items: flex-start;
-    gap: 6px;
-    line-height: 1.5;
+    gap: 10px;
+    line-height: 1.55;
+    padding: 8px 0;
   }
-  .action-dot { color: oklch(0.83 0.09 75); flex-shrink: 0; }
+  .action-dot {
+    color: var(--brass);
+    flex-shrink: 0;
+    font-size: 12px;
+    line-height: 1.7;
+  }
 
-  .guides { display: flex; flex-direction: column; gap: 6px; margin: 0 22px 16px; }
+  /* ── Guides accordion ──────────────────────────────────── */
+  .guides {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 22px 22px;
+  }
 
-  .guide-item { border-radius: 6px; overflow: hidden; }
+  .guide-item {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md, 12px);
+    overflow: hidden;
+    background: var(--ink-800);
+    transition: border-color 180ms ease;
+  }
+  .guide-item[open] { border-color: var(--brass-d); }
 
   .guide-summary {
-    font-size: 12px;
-    color: oklch(0.83 0.09 75);
-    background: rgba(232,200,112,.06);
-    padding: 7px 10px;
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    color: var(--fg);
+    background: transparent;
+    padding: 14px 16px;
+    min-height: 48px;
     cursor: pointer;
-    border-radius: 6px;
     list-style: none;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 12px;
     user-select: none;
+    transition: background 180ms ease;
   }
+  .guide-summary:hover { background: var(--ink-750); }
   .guide-summary::-webkit-details-marker { display: none; }
 
   .summary-arrow {
+    font-family: var(--mono);
     font-size: 10px;
-    transition: transform 0.15s ease;
+    color: var(--brass);
+    transition: transform 220ms var(--ease-out, ease);
     display: inline-block;
+    line-height: 1;
+    width: 12px;
+    flex-shrink: 0;
   }
 
-  details[open] .summary-arrow {
-    transform: rotate(90deg);
-  }
+  details[open] .summary-arrow { transform: rotate(90deg); }
 
   .guide-steps {
-    margin: 4px 0 0;
-    padding: 8px 10px 8px 28px;
-    background: rgba(232,200,112,.03);
-    border-radius: 0 0 6px 6px;
+    margin: 0;
+    padding: 12px 18px 16px 44px;
+    background: var(--ink-850);
+    border-top: 1px solid var(--line);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    counter-reset: step-counter;
   }
   .guide-steps li {
-    font-size: 12px;
-    color: #aabbcc;
-    line-height: 1.5;
+    font-size: 13px;
+    color: var(--fg-soft);
+    line-height: 1.55;
+    position: relative;
+    counter-increment: step-counter;
+  }
+  .guide-steps li::marker {
+    color: var(--brass);
+    font-family: var(--mono);
+    font-size: 11px;
   }
 
-  .empty { font-size: 12px; color: #5566aa; padding: 16px 22px; }
+  .empty {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--mute);
+    padding: 24px 22px;
+    line-height: 1.55;
+  }
+
+  @media (max-width: 480px) {
+    .hv-intro,
+    .section-title,
+    .section-desc,
+    .section-label,
+    .action-list,
+    .guides,
+    .empty { margin-inline: 18px; }
+    .hv-intro { padding-inline: 18px; margin: 0; }
+    .section-title { font-size: 22px; }
+  }
 </style>

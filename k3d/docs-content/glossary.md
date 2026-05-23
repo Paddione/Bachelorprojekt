@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">📖</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Referenz · Glossar</div>
     <div class="page-hero-title">Glossar</div>
     <p class="page-hero-desc">Begriffe, die im Workspace immer wieder vorkommen — kurz erklärt.</p>
   </div>

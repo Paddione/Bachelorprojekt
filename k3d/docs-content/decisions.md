@@ -1,6 +1,7 @@
 <div class="page-hero">
   <span class="page-hero-icon">🧭</span>
   <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Referenz · Entscheidungen</div>
     <div class="page-hero-title">Decision-Log</div>
     <p class="page-hero-desc">Architekturentscheidungen mit Kontext, Konsequenz und Datum.</p>
   </div>

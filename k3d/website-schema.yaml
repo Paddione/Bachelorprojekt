@@ -73,7 +73,9 @@ data:
           recording_path TEXT,
           status TEXT DEFAULT 'scheduled'
               CHECK (status IN ('scheduled','active','ended','transcribed','finalized')),
-          created_at TIMESTAMPTZ DEFAULT now()
+          released_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ DEFAULT now(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
       );
 
       -- Full-text transcripts
@@ -713,6 +715,8 @@ data:
       ALTER TABLE customers ALTER COLUMN customer_number SET DEFAULT 'M' || LPAD(nextval('customer_number_seq')::text, 4, '0');
 
       ALTER TABLE customers ADD COLUMN IF NOT EXISTS enrollment_declined BOOLEAN NOT NULL DEFAULT FALSE;
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS admin_number TEXT UNIQUE;
 
       CREATE TABLE IF NOT EXISTS meetings (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -728,6 +732,28 @@ data:
               CHECK (status IN ('scheduled','active','ended','transcribed','finalized')),
           created_at TIMESTAMPTZ DEFAULT now()
       );
+
+      -- Columns added after initial schema; safe to run on existing tables.
+      ALTER TABLE meetings ADD COLUMN IF NOT EXISTS released_at TIMESTAMPTZ;
+      ALTER TABLE meetings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
+      -- project_id FK to tickets.tickets is added lazily by the app when
+      -- tickets schema is ready (initMeetingProjectLink). This mirrors that
+      -- migration so it lands on startup even before any TypeScript path runs.
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = 'tickets' AND table_name = 'tickets'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'meetings' AND column_name = 'project_id'
+          AND table_schema = 'public'
+        ) THEN
+          ALTER TABLE meetings ADD COLUMN project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL;
+          CREATE INDEX IF NOT EXISTS idx_meetings_project ON meetings(project_id);
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS transcripts (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

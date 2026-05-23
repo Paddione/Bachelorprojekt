@@ -8,6 +8,12 @@ test.describe('FA-38 · Arena game client @smoke', () => {
   test.setTimeout(120_000);
 
   test('admin opens lobby → lobby scene renders → bots fill → results screen shown', async ({ browser }) => {
+    // Requires MENTOLDER_ADMIN_USER + MENTOLDER_ADMIN_PW to authenticate to web.mentolder.de.
+    // Skip gracefully when running against korczewski without mentolder admin credentials.
+    test.skip(
+      !process.env.MENTOLDER_ADMIN_USER || !process.env.MENTOLDER_ADMIN_PW,
+      'Skipping: MENTOLDER_ADMIN_USER / MENTOLDER_ADMIN_PW not set — arena game client test requires mentolder admin credentials'
+    );
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
 

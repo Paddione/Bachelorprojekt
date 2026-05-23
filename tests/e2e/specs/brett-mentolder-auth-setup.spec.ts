@@ -28,6 +28,15 @@ setup('authenticate mentolder brett', async ({ page }) => {
     return;
   }
 
+  // When running against korczewski (PROD_DOMAIN set but not mentolder.de), skip this
+  // setup — it targets brett.mentolder.de which requires cross-cluster credentials.
+  const prodDomain = process.env.PROD_DOMAIN;
+  if (prodDomain && prodDomain !== 'mentolder.de') {
+    console.log(`[brett-mentolder-setup] PROD_DOMAIN=${prodDomain} — skipping mentolder brett auth setup`);
+    fs.writeFileSync(BRETT_AUTH_STATE, JSON.stringify({ cookies: [], origins: [] }));
+    return;
+  }
+
   // Navigate to brett — oauth2-proxy redirects to Keycloak
   await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded' });
 

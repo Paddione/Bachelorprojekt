@@ -27,6 +27,15 @@ setup('authenticate mentolder portal', async ({ page }) => {
     return;
   }
 
+  // When running against korczewski (PROD_DOMAIN set but not mentolder.de), skip this
+  // setup — it targets web.mentolder.de which requires cross-cluster credentials.
+  const prodDomain = process.env.PROD_DOMAIN;
+  if (prodDomain && prodDomain !== 'mentolder.de') {
+    console.log(`[arena-mentolder-setup] PROD_DOMAIN=${prodDomain} — skipping mentolder auth setup`);
+    fs.writeFileSync(PORTAL_AUTH_STATE, JSON.stringify({ cookies: [], origins: [] }));
+    return;
+  }
+
   // Navigate to protected page which triggers Keycloak redirect
   await page.goto(`${BASE}/portal/arena`, { waitUntil: 'domcontentloaded' });
   await page.waitForURL(/auth\.|realms\/workspace/, { timeout: 15_000 });

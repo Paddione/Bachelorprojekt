@@ -1,0 +1,19 @@
+# Security-headers Middleware for website-korczewski namespace.
+# Traefik on korczewski has allowCrossNamespace=false, so the IngressRoute in
+# website-korczewski cannot reference the middleware in workspace-korczewski.
+# This middleware mirrors prod/traefik-middlewares.yaml's security-headers definition
+# but lives in the website namespace so it can be referenced without cross-namespace access.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: website-security-headers
+  namespace: website-korczewski
+spec:
+  headers:
+    customResponseHeaders:
+      X-Frame-Options: "SAMEORIGIN"
+      X-Content-Type-Options: "nosniff"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
+      X-Robots-Tag: "noindex"

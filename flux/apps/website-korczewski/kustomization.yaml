@@ -4,6 +4,8 @@ namespace: website-korczewski
 resources:
   - ../../../k3d/website.yaml
   - ../../../k3d/website-seller-config.yaml
+  # Security-headers middleware in this namespace (allowCrossNamespace disabled on korczewski)
+  - website-security-headers.yaml
 patches:
   - path: image-tag.yaml
     target:
@@ -25,6 +27,9 @@ patches:
           - pk-hetzner-6
           - pk-hetzner-8
   # Fix HTTPS: add websecure entryPoint + wildcard TLS cert (T000144)
+  # Also adds security-headers middleware to the route so SA-01 headers are present (T000171)
+  # Note: allowCrossNamespace is disabled on korczewski Traefik — middleware must be in
+  # website-korczewski namespace to be usable from this IngressRoute.
   - target:
       kind: IngressRoute
       name: website
@@ -38,3 +43,8 @@ patches:
         path: /spec/tls
         value:
           secretName: korczewski-tls
+      - op: add
+        path: /spec/routes/0/middlewares
+        value:
+          - name: website-security-headers
+            namespace: website-korczewski

@@ -459,13 +459,15 @@ export interface WalkByTemplateOptions {
 
 export async function walkSystemtestByTemplate(
   page: Page,
-  n: number,
+  n: number | 'Gesamt',
   opts: WalkByTemplateOptions = {},
 ): Promise<WalkResult> {
-  const template = SYSTEM_TEST_TEMPLATES.find(t => t.title.startsWith(`System-Test ${n}:`));
+  const prefix = n === 'Gesamt' ? 'System-Test Gesamt:' : `System-Test ${n}:`;
+  const templateNumber = n === 'Gesamt' ? 0 : n;
+  const template = SYSTEM_TEST_TEMPLATES.find(t => t.title.startsWith(prefix));
   if (!template) {
     const have = SYSTEM_TEST_TEMPLATES.map(t => t.title).join(' | ');
-    throw new Error(`No seed template starts with "System-Test ${n}:". Have: ${have}`);
+    throw new Error(`No seed template starts with "${prefix}". Have: ${have}`);
   }
 
   const optionByPosition: Record<number, TestOption> = {
@@ -474,7 +476,7 @@ export async function walkSystemtestByTemplate(
   };
 
   const result = await walkSystemtest(page, {
-    templateTitlePrefix: `System-Test ${n}:`,
+    templateTitlePrefix: prefix,
     defaultOption: 'erfüllt',
     optionByPosition,
     onAgentNotes: opts.onAgentNotes,
@@ -486,10 +488,10 @@ export async function walkSystemtestByTemplate(
     `walked ${result.steps.length} steps but seed declares ${template.steps.length}`,
   ).toBe(template.steps.length);
   expect(result.submitted, 'wizard should reach the "Vielen Dank" screen').toBe(true);
-  expect(result.templateTitle).toMatch(new RegExp(`^System-Test ${n}:`));
+  expect(result.templateTitle).toMatch(new RegExp(`^${prefix.replace(':', ':')}`));
 
   try {
-    writeOutcomeFile(buildOutcomeFile(result, n, template, deriveEnv()));
+    writeOutcomeFile(buildOutcomeFile(result, templateNumber, template, deriveEnv()));
   } catch (err) {
     console.warn('[systemtest-runner] writeOutcomeFile failed (non-fatal):', err);
   }

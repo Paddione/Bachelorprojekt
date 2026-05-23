@@ -252,6 +252,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:systemtest-00-gesamt",
+    "file": "tests/e2e/specs/systemtest-00-gesamt.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:systemtest-01-auth",
     "file": "tests/e2e/specs/systemtest-01-auth.spec.ts",
     "category": "E2E",

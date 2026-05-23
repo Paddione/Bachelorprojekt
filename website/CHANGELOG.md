@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.6.0...website-v1.6.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **questionnaire:** fix broken links + add comprehensive German descriptions ([#991](https://github.com/Paddione/Bachelorprojekt/issues/991)) ([9d7f978](https://github.com/Paddione/Bachelorprojekt/commit/9d7f978bd8523c3c417531dc3bdac9ad43ab8401))
+* **tickets:** prevent double-render by moving &lt;table&gt; into TicketsTableBody ([#985](https://github.com/Paddione/Bachelorprojekt/issues/985)) ([2345507](https://github.com/Paddione/Bachelorprojekt/commit/2345507cfb9305e17d774d23cd18b99989c531b7))
+
 ## [1.6.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.5.0...website-v1.6.0) (2026-05-23)
 
 

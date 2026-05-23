@@ -10,10 +10,19 @@ hooks:
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
-> For every anomaly, unexpected state, broken component, security concern, or
-> configuration drift you notice — even if unrelated to the current task — add
-> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
-> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+> For every anomaly, unexpected state, broken component, security concern,
+> configuration drift, or **process friction** you notice — even if unrelated
+> to the current task — add an entry with:
+>   `type` (broken/degraded/suspicious/security/drift/**process**),
+>   `title`, `description`, and `component`.
+>
+> `process` = a step that required a manual workaround, had wrong/missing instructions,
+> or caused unexpected friction. `component` MUST use format `skills/<skill-name>`. Example:
+>   `{type: process, title: "wss patch required manual retry",
+>     description: "scripts/superpowers-helper-patch.sh failed silently — step 2b needs exit-code check",
+>     component: "skills/dev-flow-plan"}`
+>
+> Invoke `mishap-tracker` at the very end.
 
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
 

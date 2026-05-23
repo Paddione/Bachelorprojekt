@@ -4,10 +4,19 @@ description: Use after dev-flow-execute has merged and deployed a feature or fix
 ---
 
 > **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
-> For every anomaly, unexpected state, broken component, security concern, or
-> configuration drift you notice — even if unrelated to the current task — add
-> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
-> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+> For every anomaly, unexpected state, broken component, security concern,
+> configuration drift, or **process friction** you notice — even if unrelated
+> to the current task — add an entry with:
+>   `type` (broken/degraded/suspicious/security/drift/**process**),
+>   `title`, `description`, and `component`.
+>
+> `process` = a step that required a manual workaround, had wrong/missing instructions,
+> or caused unexpected friction. `component` MUST use format `skills/<skill-name>`. Example:
+>   `{type: process, title: "playwright config missing project entry",
+>     description: "new spec was not picked up — playwright.config.ts testMatch needs manual update per spec",
+>     component: "skills/dev-flow-e2e"}`
+>
+> Invoke `mishap-tracker` at the very end.
 
 # dev-flow-e2e — Playwright E2E Tests schreiben & ausführen
 
@@ -238,3 +247,76 @@ WEBSITE_URL=https://web.mentolder.de npx playwright test \
 After completing all steps in this skill, invoke `mishap-tracker` with your
 accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
 cleanly with "No mishaps found."
+
+---
+
+## Schritt 9: Loop-Restart & Skill-Verbesserung
+
+Nach dem Mishap Report: offene Skill-Improvement-Tickets prüfen und anwenden, dann nächsten Zyklus starten.
+
+### 9a — Skill-Improvement-Tickets abfragen
+
+```bash
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT external_id, title, description, component
+   FROM tickets.tickets
+   WHERE status NOT IN ('done', 'archived')
+     AND component LIKE 'skills/%'
+     AND attention_mode = 'ai_ready'
+   ORDER BY created_at ASC;"
+```
+
+Falls keine Ergebnisse: direkt zu **9c**.
+
+### 9b — Triviale Skill-Edits auto-anwenden
+
+Für jedes zurückgegebene Ticket:
+
+1. Skill-Name extrahieren: `SKILL_NAME="${component#skills/}"` (z.B. `dev-flow-plan`)
+2. SKILL.md lokalisieren: zuerst `.claude/skills/$SKILL_NAME/SKILL.md` (Projekt-Skill), dann `~/.claude/skills/$SKILL_NAME/SKILL.md` (User-Skill)
+3. Ticket `description` lesen — enthält die Reibungsstelle und den Fix
+4. Verbesserung direkt anwenden (falschen Command korrigieren, fehlenden Schritt ergänzen, Beispiel präzisieren)
+5. Via ephemeren Branch committen (branch protection blockiert direkten Push auf main):
+
+```bash
+SKILL_BRANCH="chore/skills-improve-${TICKET_EXT_ID,,}"
+git checkout -b "$SKILL_BRANCH"
+git add ".claude/skills/$SKILL_NAME/SKILL.md"
+git commit -m "chore(skills): <einzeilige Verbesserung> [$TICKET_EXT_ID]"
+git push -u origin "$SKILL_BRANCH"
+gh pr create \
+  --title "chore(skills): <einzeilige Verbesserung> [$TICKET_EXT_ID]" \
+  --body "Auto-applied from skill-friction ticket $TICKET_EXT_ID." \
+  --base main
+gh pr merge --squash --delete-branch
+git checkout main && git pull --rebase origin main
+```
+
+6. Ticket schließen:
+
+```bash
+kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -c \
+  "UPDATE tickets.tickets SET
+     status = 'done', resolution = 'fixed', done_at = now(),
+     notes = COALESCE(notes || E'\n\n', '') ||
+       '[loop-restart $(date +%Y-%m-%d)] Skill-Verbesserung angewandt und nach main gemergt.'
+   WHERE external_id = '$TICKET_EXT_ID';"
+```
+
+**Strukturelle Änderungen NICHT auto-anwenden.** Trivial vs. strukturell:
+- **Trivial:** Command korrigieren, Exit-Code-Check ergänzen, fehlendes `bash`-Schritt hinzufügen, Beispiel präzisieren
+- **Strukturell:** Nummerierte Schritte umordnen/entfernen, Skill-Aufruf-Zeitpunkt ändern, Routing-Tabelle in CLAUDE.md anpassen
+
+Strukturelle Tickets: `needs_human` setzen mit konkreter Frage, dann überspringen.
+
+### 9c — Loop neu starten
+
+```
+Schritt 9 abgeschlossen. Alle skill-improvement Tickets bearbeitet (oder keine vorhanden).
+→ Nächsten Zyklus starten: rufe `ticket-management` auf.
+```

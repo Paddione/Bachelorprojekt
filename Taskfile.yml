@@ -1025,6 +1025,8 @@ tasks:
         fi
         kubectl $ctx rollout status deployment/shared-db -n "$NS" --timeout=120s
         echo "✓ shared-db ready (ENV={{.ENV}}, ns=$NS)"
+      - task: workspace:sync-db-passwords
+        vars: { ENV: "{{.ENV}}" }
 
   workspace:db:drop:
     desc: "Drop a database from shared-db (usage: task workspace:db:drop -- <dbname> [ENV=...])"
@@ -1110,6 +1112,9 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
         kubectl $CTX rollout restart deployment/{{.CLI_ARGS}} -n "$NS"
         kubectl $CTX rollout status deployment/{{.CLI_ARGS}} -n "$NS" --timeout=120s
+        if [ "{{.CLI_ARGS}}" = "shared-db" ]; then
+          task workspace:sync-db-passwords ENV="{{.ENV}}"
+        fi
 
   # ─────────────────────────────────────────────
   # Multi-Cluster Overview

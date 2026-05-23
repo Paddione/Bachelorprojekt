@@ -57,6 +57,10 @@ generatorOptions:
 # pinned to pk-hetzner-6 by patch-livekit.yaml (hostNetwork + STUN
 # discovers the real public IP via TURN_PUBLIC_IP=37.27.251.38).
 patches:
+  # Fix mailpit-auth forwardAuth namespace (base hardcodes "workspace", korczewski
+  # uses "workspace-korczewski", causing Traefik 500 on unauthenticated requests).
+  - path: patch-mailpit-auth-middleware.yaml
+
   # livekit-recordings-pvc uses the base manifest's storage class.
   # Longhorn is NOT installed on korczewski; recordings live on local-path,
   # tied to the livekit pin-node (pk-hetzner-6). This is acceptable because

@@ -1,0 +1,14 @@
+# prod-korczewski/patch-mailpit-auth-middleware.yaml
+# The base mailpit-auth Middleware hardcodes "workspace.svc.cluster.local"
+# as the forwardAuth address. On korczewski the workspace namespace is
+# "workspace-korczewski", so the base address resolves to mentolder's
+# services instead of the local oauth2-proxy-mailpit pod.
+# This patch rewrites the address to the correct namespace.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: mailpit-auth
+  namespace: workspace
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-mailpit.workspace-korczewski.svc.cluster.local:4180/oauth2/auth

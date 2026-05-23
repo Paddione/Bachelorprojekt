@@ -11,7 +11,7 @@ spec:
             - "--config=/run/config/oauth2-extra.cfg"
             - "--provider=keycloak-oidc"
             - "--client-id=traefik-dashboard"
-            - "--client-secret=${TRAEFIK_OIDC_SECRET}"
+            - "--client-secret=$(TRAEFIK_OIDC_SECRET)"
             - "--relative-redirect-url=true"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
             - "--ssl-insecure-skip-verify=true"

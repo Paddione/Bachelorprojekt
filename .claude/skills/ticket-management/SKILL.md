@@ -9,6 +9,9 @@ description: Use when asked to work through, triage, or resolve open tickets in 
 > an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
 > `description`, and `component`. Invoke `mishap-tracker` at the very end.
 
+> **Loop Entry Point:** This skill starts every dev cycle. Before triaging user
+> work, auto-apply any open skill-improvement tickets (Phase 0 below).
+
 # Ticket Management
 
 ## Overview
@@ -242,6 +245,28 @@ gh issue list --state open --json number,title,labels,assignees,createdAt \
 - After code fixes: create one PR per logical group of tickets, reference ticket IDs in the commit and PR title.
 
 ## Session Workflow
+
+**Phase −1 — Skill-improvement tickets (loop feedback, always first)**
+
+```bash
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT external_id, title, description, component
+   FROM tickets.tickets
+   WHERE status NOT IN ('done', 'archived')
+     AND component LIKE 'skills/%'
+     AND attention_mode = 'ai_ready'
+   ORDER BY created_at ASC;"
+```
+
+Falls Ergebnisse: dieselbe auto-apply Logik wie `dev-flow-e2e` Schritt 9b (ephemerter Branch + PR + auto-merge + Ticket schließen). Danach weiter mit Phase 0.
+
+Falls keine Ergebnisse: direkt weiter mit Phase 0.
+
+*Idempotent — falls dev-flow-e2e Schritt 9 bereits alle Tickets bearbeitet hat, liefert diese Abfrage nichts zurück.*
 
 **Phase 0 — Repo hygiene (always first)**
 1. `git worktree list` → identify and remove stale worktrees (branch merged to main)

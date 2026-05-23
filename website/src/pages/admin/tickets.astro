@@ -204,38 +204,15 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
         <a href="/admin/tickets" class="px-3 py-1.5 text-sm text-muted hover:text-light">↺ Reset</a>
       </form>
 
-      {/* Table */}
+      {/* Table — TicketsTableBody owns the full <table> to avoid Astro island
+           being placed inside <tbody>, which the browser foster-parents out of
+           the table and causes Svelte hydration to double-render every row. */}
       <div class="bg-dark-light rounded-2xl border border-dark-lighter overflow-hidden">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-dark-lighter">
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">ID</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Typ</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Titel</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Status</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Prio</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Zuständig</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Kunde</th>
-              <th class="text-left px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Fällig</th>
-              <th class="text-right px-4 py-3 text-xs text-muted uppercase tracking-wide font-medium">Aktion</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tickets.length === 0 ? (
-              <tr>
-                <td colspan="9" class="px-4 py-10 text-center text-muted text-sm">
-                  Keine Tickets für diese Filterauswahl.
-                </td>
-              </tr>
-            ) : (
-              <TicketsTableBody
-                client:load
-                tickets={tickets}
-                admins={admins}
-              />
-            )}
-          </tbody>
-        </table>
+        <TicketsTableBody
+          client:load
+          tickets={tickets}
+          admins={admins}
+        />
       </div>
     </div>
   </section>

@@ -47,6 +47,7 @@ export default defineConfig({
         '**/fa-20-*.spec.ts',      // meeting finalization
         '**/fa-21-*.spec.ts',      // service catalog & billing
         '**/fa-26-*.spec.ts',      // bug report form
+        '**/fa-28-*.spec.ts',      // Website-Messaging (internes Chat-System)
         '**/fa-poll.spec.ts',      // live poll
         '**/fa-fragebogen.spec.ts',           // consolidated questionnaire E2E
         '**/fa-coaching-drafts.spec.ts',      // coaching drafts auth-gates
@@ -91,6 +92,8 @@ export default defineConfig({
       name: 'services',
       testMatch: [
         '**/fa-03-*.spec.ts',    // Nextcloud Talk / video
+        '**/fa-12-*.spec.ts',    // Claude Code AI Assistant / MCP infrastructure
+        '**/fa-13-*.spec.ts',    // Dokumentations-Service (Docsify)
         '**/fa-18-*.spec.ts',    // transcription service (cluster-internal URL)
         '**/fa-23-*.spec.ts',    // Vaultwarden
         '**/fa-24-*.spec.ts',    // Whiteboard
@@ -98,10 +101,41 @@ export default defineConfig({
         '**/fa-27-*.spec.ts',    // Systemisches Brett service
         // brett-mayhem now lives in its own authenticated project (brett-mentolder)
         '**/fa-29-*.spec.ts',    // Requirements Tracking UI
+        '**/fa-30-einvoice.spec.ts', // E-Rechnung / XRechnung (einvoice-sidecar)
+        '**/fa-32-*.spec.ts',    // LLM-Router bge-m3 Embeddings
+        '**/fa-33-*.spec.ts',    // LLM-Router voyage-multilingual-2
+        '**/fa-34-*.spec.ts',    // LLM-Router strict-fail (kein silent fallback)
+        '**/fa-35-*.spec.ts',    // LLM MixedEmbeddingModelError
+        '**/fa-36-*.spec.ts',    // Rerank-Endpunkt
+        '**/fa-37-*.spec.ts',    // workspace-chat Roundtrip
+        '**/fa-39-arena-db.spec.ts',        // Arena DB-Schema und Service-Health
+        '**/fa-40-arena-spectator.spec.ts', // Arena Spectator-join Smoke
         '**/fa-livekit.spec.ts', // LiveKit / Livestream auth-gating
+        '**/sa-01-*.spec.ts',    // Transportverschlüsselung (TLS + security headers)
         '**/sa-02-*.spec.ts',    // Authentication (wrong password → Keycloak error)
+        '**/sa-03-*.spec.ts',    // Passwörter (Hash, Policy, kein Klartext)
+        '**/sa-04-*.spec.ts',    // Session-Timeout (DSGVO-konform)
+        '**/sa-05-*.spec.ts',    // Audit-Log (Login- und Admin-Events)
+        '**/sa-07-*.spec.ts',    // Backup (pg_dump, PVCs)
         '**/sa-08-*.spec.ts',    // SSO integration browser flow
+        '**/sa-10-*.spec.ts',    // MCP-Endpunkt-Absicherung (ForwardAuth)
+        '**/sa-11-*.spec.ts',    // Arena non-admin 403
+        '**/sa-12-*.spec.ts',    // Korczewski-Realm JWT-Akzeptanz
+        '**/sa-13-*.spec.ts',    // Untrusted JWT abgelehnt
+        '**/nfa-01-*.spec.ts',   // Datenschutz / DSGVO
+        '**/nfa-02-*.spec.ts',   // Performance / Antwortzeiten
+        '**/nfa-03-*.spec.ts',   // Verfügbarkeit und Neustart-Resilienz
+        '**/nfa-04-*.spec.ts',   // Skalierbarkeit
         '**/nfa-05-*.spec.ts',   // usability / mobile
+        '**/nfa-06-*.spec.ts',   // Website Neustart-Resilienz
+        '**/nfa-07-*.spec.ts',   // Open-Source-Lizenz
+        '**/nfa-08-*.spec.ts',   // Produktions-Deployment (Hetzner/k3s)
+        '**/nfa-09-*.spec.ts',   // Statisches DNS (kein DDNS)
+        '**/nfa-10-*.spec.ts',   // Arena Health-Endpoint Performance
+        '**/nfa-11-*.spec.ts',   // GPU-VRAM nach Modell-Rotation
+        '**/nfa-12-*.spec.ts',   // Brainstorm-Tunnel ConfigMap-Persistenz
+        '**/ak-03-*.spec.ts',    // Technische Machbarkeit
+        '**/ak-04-*.spec.ts',    // Prototyp-Betrieb
       ],
       use: {
         ...devices['Desktop Chrome'],

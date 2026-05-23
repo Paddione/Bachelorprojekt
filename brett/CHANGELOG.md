@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.4.1...brett-v0.5.0) (2026-05-21)
+
+
+### Features
+
+* **brett:** add appearance picker — face, body type & accessories ([#959](https://github.com/Paddione/Bachelorprojekt/issues/959)) ([ea99586](https://github.com/Paddione/Bachelorprojekt/commit/ea995864153b8f47019d3d77996f5843417fac07))
+
 ## [0.4.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.4.0...brett-v0.4.1) (2026-05-21)
 
 

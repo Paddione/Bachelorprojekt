@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.6.1...website-v1.7.0) (2026-05-23)
+
+
+### Features
+
+* **website:** add sidekick-panels CSS + qv-outer wrapper to QuestionnaireView ([56d3d99](https://github.com/Paddione/Bachelorprojekt/commit/56d3d996a0eb60dd7c875ee319cd817c0cc96694))
+
+
+### Bug Fixes
+
+* **caldav:** increase timeout to 8s + unfold RFC 5545 line continuations [T000197] ([#999](https://github.com/Paddione/Bachelorprojekt/issues/999)) ([518a0c5](https://github.com/Paddione/Bachelorprojekt/commit/518a0c5801a7984c10d0b66d05faf3fadb68849b))
+* **website:** use BRAND (not BRAND_NAME) as DB brand ID in time-windows + booking APIs [T000191] ([2b84536](https://github.com/Paddione/Bachelorprojekt/commit/2b845361e6bb15448210509a794e414a7b50cc81))
+
 ## [1.6.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.6.0...website-v1.6.1) (2026-05-23)
 
 

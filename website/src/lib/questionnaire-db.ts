@@ -123,19 +123,27 @@ export interface QTestStatus {
   last_success_at: string | null;
 }
 
-async function seedSystemTestTemplates(): Promise<void> {
+// Syncs all system-test templates: inserts missing ones, updates existing ones.
+// This handles domain changes (PROD_DOMAIN env var) and text improvements
+// without requiring manual DB intervention.
+async function syncSystemTestTemplates(): Promise<void> {
   const existing = await pool.query(
-    `SELECT title FROM questionnaire_templates WHERE is_system_test = true`,
+    `SELECT id, title FROM questionnaire_templates WHERE is_system_test = true`,
   );
-  const seededTitles = new Set<string>(existing.rows.map((r: { title: string }) => r.title));
-  const missing = SYSTEM_TEST_TEMPLATES.filter(tpl => !seededTitles.has(tpl.title));
-  if (missing.length === 0) return;
+  const existingByTitle = new Map<string, string>(
+    existing.rows.map((r: { id: string; title: string }) => [r.title, r.id]),
+  );
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    for (const tpl of missing) {
-      await insertSystemTestTemplate(client, tpl);
+    for (const tpl of SYSTEM_TEST_TEMPLATES) {
+      const existingId = existingByTitle.get(tpl.title);
+      if (existingId) {
+        await updateSystemTestTemplate(client, existingId, tpl);
+      } else {
+        await insertSystemTestTemplate(client, tpl);
+      }
     }
     await client.query('COMMIT');
   } catch (err) {
@@ -166,10 +174,63 @@ async function insertSystemTestTemplate(
     await client.query(
       `INSERT INTO questionnaire_questions
          (template_id, position, question_text, question_type,
-          test_expected_result, test_function_url, test_role)
-       VALUES ($1, $2, $3, 'test_step', $4, $5, $6)`,
-      [templateId, i + 1, s.question_text, s.expected_result, s.test_function_url, s.test_role],
+          test_expected_result, test_function_url, test_menu_path, test_role)
+       VALUES ($1, $2, $3, 'test_step', $4, $5, $6, $7)`,
+      [templateId, i + 1, s.question_text, s.expected_result, s.test_function_url, s.test_menu_path ?? null, s.test_role],
     );
+  }
+}
+
+// Updates description, instructions, and all question fields for an existing
+// system-test template. Matches questions by position — updates in-place to
+// preserve existing answer/assignment rows. Appends new questions if the
+// seed grew; does NOT delete removed questions to avoid orphaning answers.
+async function updateSystemTestTemplate(
+  client: pg.PoolClient,
+  templateId: string,
+  tpl: SystemTestTemplate,
+): Promise<void> {
+  const instructions = tpl.instructions?.trim()
+    ? tpl.instructions
+    : SYSTEM_TEST_DEFAULT_INSTRUCTIONS;
+
+  await client.query(
+    `UPDATE questionnaire_templates
+        SET description=$1, instructions=$2, updated_at=now()
+      WHERE id=$3`,
+    [tpl.description, instructions, templateId],
+  );
+
+  const existingQ = await client.query(
+    `SELECT id, position FROM questionnaire_questions
+      WHERE template_id=$1 ORDER BY position`,
+    [templateId],
+  );
+  const byPos = new Map<number, string>(
+    existingQ.rows.map((r: { id: string; position: number }) => [r.position, r.id]),
+  );
+
+  for (let i = 0; i < tpl.steps.length; i++) {
+    const s = tpl.steps[i];
+    const pos = i + 1;
+    const qId = byPos.get(pos);
+    if (qId) {
+      await client.query(
+        `UPDATE questionnaire_questions
+            SET question_text=$1, test_expected_result=$2,
+                test_function_url=$3, test_menu_path=$4, test_role=$5
+          WHERE id=$6`,
+        [s.question_text, s.expected_result, s.test_function_url, s.test_menu_path ?? null, s.test_role, qId],
+      );
+    } else {
+      await client.query(
+        `INSERT INTO questionnaire_questions
+           (template_id, position, question_text, question_type,
+            test_expected_result, test_function_url, test_menu_path, test_role)
+         VALUES ($1, $2, $3, 'test_step', $4, $5, $6, $7)`,
+        [templateId, pos, s.question_text, s.expected_result, s.test_function_url, s.test_menu_path ?? null, s.test_role],
+      );
+    }
   }
 }
 
@@ -331,7 +392,7 @@ async function initDb() {
     ) ev ON true
     WHERE a.status = 'archived'
   `);
-  await seedSystemTestTemplates();
+  await syncSystemTestTemplates();
 }
 
 initDb().catch(err => console.error('[questionnaire-db] initDb error:', err));

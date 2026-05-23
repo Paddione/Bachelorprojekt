@@ -637,5 +637,12 @@
         "containerId": "workspace"
       }
     ]
-  }
+  },
+  "eventsEnabled": true,
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "eventsExpiration": 2592000,
+  "eventsListeners": [
+    "jboss-logging"
+  ]
 }

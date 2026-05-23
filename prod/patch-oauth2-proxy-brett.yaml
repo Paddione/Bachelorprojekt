@@ -12,7 +12,7 @@ spec:
             - "--config=/run/config/oauth2-extra.cfg"
             - "--provider=keycloak-oidc"
             - "--client-id=brett"
-            - "--client-secret=${BRETT_OIDC_SECRET}"
+            - "--client-secret=$(BRETT_OIDC_SECRET)"
             - "--redirect-url=https://brett.${PROD_DOMAIN}/oauth2/callback"
             - "--oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace"
             - "--ssl-insecure-skip-verify=true"

@@ -15,13 +15,40 @@ If `MISHAP_LOG` is empty or has no entries → print "No mishaps found." and sto
 
 Map each entry's `type` to DB fields before inserting:
 
-| type | tickets.type | tickets.severity |
-|---|---|---|
-| broken | bug | major |
-| security | bug | critical |
-| degraded | bug | minor |
-| suspicious | task | minor |
-| drift | task | trivial |
+| type | tickets.type | tickets.severity | notes |
+|---|---|---|---|
+| broken | bug | major | |
+| security | bug | critical | |
+| degraded | bug | minor | |
+| suspicious | task | minor | |
+| drift | task | trivial | |
+| process | task | trivial | `component` must be `skills/<skill-name>` (e.g. `skills/dev-flow-plan`); always sets `attention_mode: ai_ready` |
+
+**`process` entries — special INSERT rule:**
+
+For `process` type, the MISHAP_LOG `component` field must use the format `skills/<skill-name>`.
+mishap-tracker stores this verbatim in the DB `component` column and always adds
+`attention_mode = 'ai_ready'` to the INSERT:
+
+```bash
+kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "INSERT INTO tickets.tickets
+     (type, brand, title, description, severity, status, component, attention_mode)
+   VALUES (
+     'task',
+     'mentolder',
+     '<title>',
+     '<description>',
+     'trivial',
+     'triage',
+     '<skills/skill-name>',
+     'ai_ready'
+   )
+   RETURNING external_id;"
+```
+
+Other types use the standard INSERT (no `attention_mode` column — it defaults to `auto`).
 
 If an entry has no `component`, use `skill-execution` as the value.
 

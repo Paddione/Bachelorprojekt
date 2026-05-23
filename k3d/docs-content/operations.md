@@ -1,3 +1,17 @@
+<div class="page-hero">
+  <span class="page-hero-icon">⚙️</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Betrieb · Taskfile</div>
+    <div class="page-hero-title">Deployment & Betrieb</div>
+    <p class="page-hero-desc">Alle Task-Befehle für Cluster, Workspace, Secrets und Monitoring — für dev und prod.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">Für Administratoren</span>
+      <span class="page-hero-tag">Taskfile</span>
+    </div>
+  </div>
+  <a href="#/" class="page-hero-back">← Übersicht</a>
+</div>
+
 # Deployment & Betrieb
 
 ```mermaid
@@ -27,6 +41,10 @@ task workspace:up
 ```
 
 Dieser Befehl führt automatisch alle Schritte aus: Cluster erstellen, alle Workspace-Services deployen, Office-Stack, MCP-Server, Post-Setup, Talk-Konfiguration, Admin-Benutzer und Recording.
+
+<div class="callout callout-warn">
+<strong>ENV= immer angeben.</strong> Ohne <code>ENV=mentolder</code> oder <code>ENV=korczewski</code> läuft der Task gegen den aktiven kubectl-Kontext — das kann stillschweigend ins falsche Cluster deployen.
+</div>
 
 **Oder manuell Schritt für Schritt:**
 

@@ -35,6 +35,7 @@ title=$(grep -m1 '^# ' "$FILE" | sed 's/^# //' || echo "$slug")
 
 FRONTMATTER="---
 title: $title
+ticket_id: null
 domains: $domains_yaml
 status: active
 pr_number: null

@@ -85,7 +85,9 @@ class MinionManager {
 
   shieldOldest() {
     const oldest = this._minions.values().next().value;
-    if (oldest) oldest.shielded = true;
+    if (!oldest) return;
+    oldest.shielded = true;
+    if (oldest.mesh) window.MayhemEffects?.spawnShieldRing(oldest.mesh);
   }
 
   frenzyOldest() {
@@ -94,6 +96,7 @@ class MinionManager {
     oldest.frenzied   = true;
     oldest.speedMult  = 2;
     oldest._frenzyEnd = Date.now() + 3000;
+    if (oldest.mesh) window.MayhemEffects?.spawnFrenzyParticles(oldest.mesh);
   }
 
   tick(dt, nowMs) {
@@ -126,7 +129,11 @@ class MinionManager {
   takeDamage(minionId, dmg) {
     const m = this._minions.get(minionId);
     if (!m) return;
-    if (m.shielded) { m.shielded = false; return; }  // absorb
+    if (m.shielded) {
+      m.shielded = false;
+      if (m.mesh) window.MayhemEffects?.removeShieldRing(m.mesh);
+      return;  // absorb
+    }
     m.hp -= dmg;
     if (m.hp <= 0) this._killMinion(minionId);
   }

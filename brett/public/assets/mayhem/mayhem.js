@@ -57,6 +57,8 @@ const Mayhem = (() => {
   let _myHeroId     = null;
   let _opponentHeroId = null;
   let _duelRoundPause = false;
+  let _duelHpFillA  = null;   // HP bar DOM element for duel playerA
+  let _duelHpFillB  = null;   // HP bar DOM element for duel playerB
 
   let _specTarget = null;
   let _specMode   = 'follow';
@@ -474,6 +476,7 @@ const Mayhem = (() => {
               const newVehicle = window.MayhemVehicle.Vehicle.spawn(nextType, localAvatar.mannequin.root.position, scene);
               localAvatar._vehicle = newVehicle;
               window.MayhemAudio.onFire('vehicle-switch');
+              send({ type: 'vehicle_switch', playerId, vehicleType: nextType });
               if (nextType === 'car') {
                 window._autoTurret = new window.MayhemVehicle.AutoTurret({
                   vehicle: newVehicle, scene, THREE: window.THREE,
@@ -491,6 +494,7 @@ const Mayhem = (() => {
                 v.hp = Math.min(v.maxHp, (v.hp || 0) + 40);
                 effectsMgr?.spawnSmokePuff(scene, v.mesh ? v.mesh.position : localAvatar.mannequin.root.position);
                 window.MayhemAudio.onFire('vehicle-repair');
+                send({ type: 'vehicle_repair', playerId, amount: 40 });
               }
               return;
             }
@@ -500,6 +504,7 @@ const Mayhem = (() => {
                 v.speedMult = 2.5;
                 v.damagesOnContact = true;
                 window.MayhemAudio.onFire('motorcycle-engine');
+                send({ type: 'motorcycle_sprint', playerId, durationMs: 1500 });
                 setTimeout(() => { v.speedMult = 1; v.damagesOnContact = false; }, 1500);
               }
               return;
@@ -586,11 +591,27 @@ const Mayhem = (() => {
           }
           if (projectileMgr) projectileMgr.spawn(w, origin, dir, id);
         }),
+      onDeath: () => { _handleBotDeath(); },
     });
     bot.hp      = 100;
     bot.heroId  = heroId;
     window._pvAiBot = bot;
+    aiBots.set(botId, bot);
     remoteAvatars.set(botId, bot.avatar);  // so spectators can follow
+  }
+
+  function _handleBotDeath() {
+    if (!isHost || _duelRoundPause) return;
+    const result = gameMode.handleDuelDeath('bot-pvai');
+    const winsA  = gameMode.duelState.winsA;
+    const winsB  = gameMode.duelState.winsB;
+    if (result.matchOver) {
+      send({ type: 'duel_match_end', winner: result.matchWinner, winsA, winsB });
+      _onDuelEnd({ matchWinner: result.matchWinner, reason: null, winsA, winsB });
+    } else {
+      send({ type: 'duel_round_end', winner: result.roundWinner, winsA, winsB });
+      _onDuelRoundEnd({ winner: result.roundWinner, winsA, winsB });
+    }
   }
 
   function _onDuelRoundEnd({ winner, winsA, winsB }) {
@@ -615,38 +636,78 @@ const Mayhem = (() => {
           }
         }
         localRespawn();
+        _buildDuelHud(winsA, winsB);
+        if (_duelHpFillA) _duelHpFillA.style.width = '100%';
+        if (_duelHpFillB) _duelHpFillB.style.width = '100%';
         _duelRoundPause = false;
       }
     }, 3000);
   }
 
-  function _onDuelEnd({ matchWinner, reason }) {
-    _showDuelMatchResult(matchWinner, reason);
+  function _onDuelEnd({ matchWinner, reason, winsA, winsB }) {
+    const resolvedWinsA = winsA ?? gameMode?.duelState?.winsA ?? 0;
+    const resolvedWinsB = winsB ?? gameMode?.duelState?.winsB ?? 0;
+    _showDuelMatchResult(matchWinner, reason, resolvedWinsA, resolvedWinsB);
     // After 5s return to warmup
     setTimeout(() => {
       const resultOverlay = document.getElementById('duel-match-result-overlay');
       if (resultOverlay) resultOverlay.remove();
       const scoreHud = document.getElementById('duel-score-hud');
       if (scoreHud) scoreHud.remove();
+      _duelHpFillA = null;
+      _duelHpFillB = null;
       if (isHost && gameMode) {
         send({ type: 'game_mode_change', mode: 'warmup' });
       }
     }, 5000);
   }
 
-  function _buildDuelHud() {
+  function _buildDuelHud(winsA, winsB) {
     const existing = document.getElementById('duel-score-hud');
     if (existing) existing.remove();
-    const hud = document.createElement('div');
-    hud.id = 'duel-score-hud';
-    hud.style.cssText = `
-      position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
-      font-family: 'Geist Mono', monospace; font-size: 12px;
-      color: #d7b06a; letter-spacing: 0.12em;
-      pointer-events: none; text-align: center; z-index: 1000;
+    _duelHpFillA = null;
+    _duelHpFillB = null;
+
+    const ds = gameMode?.duelState || {};
+    const resolvedWinsA = winsA ?? ds.winsA ?? 0;
+    const resolvedWinsB = winsB ?? ds.winsB ?? 0;
+    const round = resolvedWinsA + resolvedWinsB + 1;
+
+    const HEROES = window.MayhemHeroes?.HEROES || {};
+    const nameA = HEROES[_myHeroId]?.name || 'A';
+    const nameB = _pvAiMode
+      ? (HEROES[_opponentHeroId]?.name || 'KI')
+      : (HEROES[_opponentHeroId]?.name || 'B');
+
+    const bar = document.createElement('div');
+    bar.id = 'duel-score-hud';
+    bar.style.cssText = `
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 16px;
+      background: rgba(0,0,0,.55); padding: 6px 14px; border-radius: 8px;
+      font-family: 'Geist Mono', monospace; color: #d7b06a; font-size: 11px;
+      pointer-events: none; z-index: 1000;
     `;
-    hud.textContent = `RUNDE ${gameMode.duelState.winsA + gameMode.duelState.winsB + 1}`;
-    document.body.appendChild(hud);
+    bar.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:80px">
+        <span style="letter-spacing:0.1em">${nameA}</span>
+        <div style="width:80px;height:6px;background:#333;border-radius:3px;overflow:hidden">
+          <div id="duel-hp-fill-a" style="height:100%;width:100%;background:#d7b06a;transition:width 0.15s;border-radius:3px;"></div>
+        </div>
+      </div>
+      <div style="text-align:center;letter-spacing:0.14em;white-space:nowrap">
+        RUNDE ${round} · ${resolvedWinsA}—${resolvedWinsB}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:80px">
+        <span style="letter-spacing:0.1em">${nameB}</span>
+        <div style="width:80px;height:6px;background:#333;border-radius:3px;overflow:hidden">
+          <div id="duel-hp-fill-b" style="height:100%;width:100%;background:#a0aec0;transition:width 0.15s;border-radius:3px;"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(bar);
+    _duelHpFillA = document.getElementById('duel-hp-fill-a');
+    _duelHpFillB = document.getElementById('duel-hp-fill-b');
   }
 
   function _showDuelRoundResult(winnerId, winsA, winsB) {
@@ -670,7 +731,7 @@ const Mayhem = (() => {
     setTimeout(() => overlay.remove(), 3000);
   }
 
-  function _showDuelMatchResult(matchWinnerId, reason) {
+  function _showDuelMatchResult(matchWinnerId, reason, winsA, winsB) {
     const overlay = document.createElement('div');
     overlay.id = 'duel-match-result-overlay';
     overlay.style.cssText = `
@@ -679,11 +740,27 @@ const Mayhem = (() => {
       background: rgba(11,17,28,0.88); z-index: 2000;
       font-family: 'Geist Mono', monospace;
     `;
-    const isWin  = matchWinnerId === playerId;
-    const label  = reason === 'disconnect' ? 'UNENTSCHIEDEN' : isWin ? 'SIEG' : 'NIEDERLAGE';
-    const color  = reason === 'disconnect' ? '#b9bda3' : isWin ? '#d7b06a' : '#a83a30';
+    const HEROES   = window.MayhemHeroes?.HEROES || {};
+    const myName   = HEROES[_myHeroId]?.name || 'Du';
+    let label, color;
+    if (reason === 'disconnect') {
+      label = 'UNENTSCHIEDEN';
+      color = '#b9bda3';
+    } else if (_pvAiMode && matchWinnerId === 'bot-pvai') {
+      label = 'NIEDERLAGE';
+      color = '#a83a30';
+    } else if (matchWinnerId === playerId) {
+      label = `SIEG — ${myName}!`;
+      color = '#d7b06a';
+    } else {
+      const oppName = HEROES[_opponentHeroId]?.name || 'Gegner';
+      label = `${oppName} GEWINNT!`;
+      color = '#a83a30';
+    }
+    const scoreStr = (winsA != null && winsB != null) ? `<div style="font-size:16px;color:#b9bda3;margin-top:10px;letter-spacing:0.14em;">${winsA} : ${winsB}</div>` : '';
     overlay.innerHTML = `
       <div style="font-size: 32px; color: ${color}; letter-spacing: 0.2em;">${label}</div>
+      ${scoreStr}
     `;
     document.body.appendChild(overlay);
   }
@@ -1079,7 +1156,7 @@ const Mayhem = (() => {
         break;
 
       case 'duel_match_end':
-        _onDuelEnd({ matchWinner: msg.winner, reason: msg.reason });
+        _onDuelEnd({ matchWinner: msg.winner, reason: msg.reason, winsA: msg.winsA, winsB: msg.winsB });
         break;
 
       case 'hero_stealth':
@@ -1155,6 +1232,17 @@ const Mayhem = (() => {
         { const al = remoteAvatars.get(msg.playerId); if (al) { al.remove(scene); remoteAvatars.delete(msg.playerId); } }
         break;
 
+      case 'vehicle_switch': {
+        const av = remoteAvatars.get(msg.playerId);
+        if (av && av.netTarget) av.netTarget.vehicleType = msg.vehicleType;
+        break;
+      }
+
+      case 'vehicle_repair':
+      case 'motorcycle_sprint':
+        // Visual-only relay — remote movement speed changes are evident from player_state interpolation
+        break;
+
       case 'hit':
         // Apply visual ragdoll for non-victim remote players
         if (msg.victimId !== playerId) {
@@ -1172,6 +1260,15 @@ const Mayhem = (() => {
         } else {
           const av = remoteAvatars.get(msg.playerId);
           if (av) av.hp = msg.hp;
+        }
+        if (_duelHpFillA || _duelHpFillB) {
+          const ds = gameMode?.duelState;
+          const pct = Math.max(0, msg.hp);
+          if (ds?.playerA === msg.playerId && _duelHpFillA) {
+            _duelHpFillA.style.width = pct + '%';
+          } else if (ds?.playerB === msg.playerId && _duelHpFillB) {
+            _duelHpFillB.style.width = pct + '%';
+          }
         }
         updateHud();
         break;
@@ -1261,6 +1358,20 @@ const Mayhem = (() => {
       <span id="mhud-weapon" style="color:#fc8">Handgun</span>
       <span id="mhud-kills" style="color:#fa0;display:none"></span>
       <span id="mhud-respawn" style="color:#ff4;display:none">Press R to respawn</span>
+      <div id="mhud-cooldowns" style="display:none;gap:6px;align-items:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+          <span style="font-size:9px;color:#888">4</span>
+          <div style="width:28px;height:4px;background:#333;border-radius:2px;overflow:hidden">
+            <div id="mhud-stealth-cd" style="height:100%;width:100%;background:#d7b06a;border-radius:2px;"></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+          <span style="font-size:9px;color:#888">5</span>
+          <div style="width:28px;height:4px;background:#333;border-radius:2px;overflow:hidden">
+            <div id="mhud-teleport-cd" style="height:100%;width:100%;background:#d7b06a;border-radius:2px;"></div>
+          </div>
+        </div>
+      </div>
     `;
     document.body.appendChild(div);
     return div;
@@ -1339,6 +1450,27 @@ const Mayhem = (() => {
       respawnEl.style.display = '';
     } else {
       respawnEl.style.display = 'none';
+    }
+
+    if (_pvAiMode && window._pvAiBot && _duelHpFillB) {
+      _duelHpFillB.style.width = Math.max(0, window._pvAiBot.hp) + '%';
+    }
+
+    const cooldownsEl = document.getElementById('mhud-cooldowns');
+    if (cooldownsEl) {
+      const isPatrick = _myHeroId === 'patrick';
+      cooldownsEl.style.display = isPatrick ? 'flex' : 'none';
+      if (isPatrick) {
+        const nowMs = Date.now();
+        const stealthEl = document.getElementById('mhud-stealth-cd');
+        const teleEl    = document.getElementById('mhud-teleport-cd');
+        if (stealthEl) {
+          stealthEl.style.width = Math.min(1, (nowMs - (_specialCooldowns['stealth'] || 0)) / 8000) * 100 + '%';
+        }
+        if (teleEl) {
+          teleEl.style.width = Math.min(1, (nowMs - (_specialCooldowns['teleport'] || 0)) / 6000) * 100 + '%';
+        }
+      }
     }
   }
 

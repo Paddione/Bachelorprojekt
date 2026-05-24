@@ -112,6 +112,19 @@ patches:
             - pk-hetzner-6
             - pk-hetzner-8
 
+  # brett Deployment — flip default mode to mayhem on korczewski.
+  # Base sets BRETT_DEFAULT_MODE=coaching; this overrides via JSON Patch
+  # add-to-env-array. mentolder keeps the base default (coaching only).
+  - target:
+      kind: Deployment
+      name: brett
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: BRETT_DEFAULT_MODE
+          value: mayhem
+
   # CronJobs that pin to mentolder Hetzner CPs:
   #   - tests-retention      (k3d/tests-retention-cronjob.yaml — applied separately, not via kustomize)
   #   - knowledge-ingest     (init + main containers both pinned)

@@ -712,13 +712,21 @@ sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" \
   docs/superpowers/plans/<slug>.md
 ```
 
+Plan sofort committen — damit er nach einem Cache-Reset oder Session-Verlust via `git` auffindbar ist:
+
+```bash
+git add docs/superpowers/plans/<slug>.md
+git commit -m "chore(plans): add <slug> fix plan [$TICKET_EXT_ID]"
+git push
+```
+
 ### Schritt 5: Commit & Push — dann STOPP
 
 ```bash
 # Immer dabei: der failing Test
 git add tests/<relevante-test-datei>
 
-# Falls ein Plan geschrieben wurde:
+# Plan wurde bereits in Schritt 4 committed; git add ist idempotent falls nötig
 git add docs/superpowers/plans/<slug>.md
 
 git commit -m "chore(plans): stage <slug> fix for execution [$TICKET_EXT_ID]"

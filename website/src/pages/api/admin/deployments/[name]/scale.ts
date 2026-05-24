@@ -47,8 +47,11 @@ export const POST: APIRoute = async ({ request, params }) => {
     });
   }
 
+  const brand = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+  const ns = brand === 'korczewski' ? 'workspace-korczewski' : 'workspace';
+
   try {
-    await k8s.patch(`/apis/apps/v1/namespaces/workspace/deployments/${name}`, {
+    await k8s.patch(`/apis/apps/v1/namespaces/${ns}/deployments/${name}`, {
       spec: { replicas },
     });
     return new Response(JSON.stringify({ ok: true, replicas }), {

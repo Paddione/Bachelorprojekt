@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
 
+  export let cluster: string = 'mentolder';
+
   const NAMESPACES = [
     { id: 'workspace',            label: 'mentolder (workspace)' },
     { id: 'workspace-korczewski', label: 'korczewski (workspace-korczewski)' },
@@ -10,7 +12,7 @@
 
   type Pod = { name: string; phase: string; ready: boolean; restarts: number; containers: string[] };
 
-  let ns = 'workspace';
+  let ns = cluster === 'korczewski' ? 'workspace-korczewski' : 'workspace';
   let pods: Pod[] = [];
   let selectedPod = '';
   let selectedContainer = '';

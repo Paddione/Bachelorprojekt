@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
 
+  export let cluster: string = 'mentolder';
+
   type Deployment = { ns: string; nsLabel: string; name: string; desired: number; ready: number; status: string };
   type Action = { type: 'restart' | 'scale'; deployment: Deployment };
 

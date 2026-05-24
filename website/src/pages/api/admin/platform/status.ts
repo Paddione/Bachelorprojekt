@@ -34,28 +34,26 @@ export const GET: APIRoute = async ({ request }) => {
     results.health.error = (e as Error).message;
   }
 
-  // FluxCD Status (Mentolder only)
-  if (results.cluster === 'mentolder') {
-    try {
-      const ks = await k8s.get('/apis/kustomize.toolkit.fluxcd.io/v1/kustomizations');
-      results.flux.kustomizations = ks.items.map((item: any) => ({
-        name: item.metadata.name,
-        namespace: item.metadata.namespace,
-        status: item.status?.conditions?.find((c: any) => c.type === 'Ready')?.status === 'True' ? 'ready' : 'error',
-        message: item.status?.conditions?.find((c: any) => c.type === 'Ready')?.message,
-        lastAttempt: item.status?.lastHandledReconcileAt || item.status?.lastAppliedRevision
-      }));
+  // FluxCD Status (both clusters run FluxCD)
+  try {
+    const ks = await k8s.get('/apis/kustomize.toolkit.fluxcd.io/v1/kustomizations');
+    results.flux.kustomizations = ks.items.map((item: any) => ({
+      name: item.metadata.name,
+      namespace: item.metadata.namespace,
+      status: item.status?.conditions?.find((c: any) => c.type === 'Ready')?.status === 'True' ? 'ready' : 'error',
+      message: item.status?.conditions?.find((c: any) => c.type === 'Ready')?.message,
+      lastAttempt: item.status?.lastHandledReconcileAt || item.status?.lastAppliedRevision
+    }));
 
-      const ip = await k8s.get('/apis/image.toolkit.fluxcd.io/v1/imagepolicies');
-      results.flux.imagePolicies = ip.items.map((item: any) => ({
-        name: item.metadata.name,
-        namespace: item.metadata.namespace,
-        latestImage: item.status?.latestImage,
-        status: item.status?.conditions?.find((c: any) => c.type === 'Ready')?.status === 'True' ? 'ready' : 'error'
-      }));
-    } catch (e) {
-      results.flux.error = 'FluxCD resources not available or error fetching';
-    }
+    const ip = await k8s.get('/apis/image.toolkit.fluxcd.io/v1/imagepolicies');
+    results.flux.imagePolicies = ip.items.map((item: any) => ({
+      name: item.metadata.name,
+      namespace: item.metadata.namespace,
+      latestImage: item.status?.latestImage,
+      status: item.status?.conditions?.find((c: any) => c.type === 'Ready')?.status === 'True' ? 'ready' : 'error'
+    }));
+  } catch (e) {
+    results.flux.error = 'FluxCD resources not available or error fetching';
   }
 
   return new Response(JSON.stringify(results), {

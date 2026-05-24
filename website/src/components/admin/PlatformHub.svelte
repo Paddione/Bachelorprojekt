@@ -60,15 +60,15 @@
       <HealthTab {cluster} />
     {:else if activeTab === 'dienste'}
       <div class="admin-card">
-        <DienstTab />
+        <DienstTab {cluster} />
       </div>
     {:else if activeTab === 'logs'}
       <div class="admin-card">
-        <LogsTab />
+        <LogsTab {cluster} />
       </div>
     {:else if activeTab === 'db'}
       <div class="admin-card">
-        <DatenbankTab />
+        <DatenbankTab {cluster} />
       </div>
     {:else if activeTab === 'dns'}
       <div class="admin-card">

@@ -32,12 +32,15 @@ export const GET: APIRoute = async ({ request }) => {
     );
   }
 
+  const brand = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+  const ns = brand === 'korczewski' ? 'workspace-korczewski' : 'workspace';
+
   try {
     const [podsData, eventsData, podMetricsResult, nodeMetricsResult, nodeCapacityResult] =
       await Promise.allSettled([
-        k8s.get('/api/v1/namespaces/workspace/pods'),
-        k8s.get('/api/v1/namespaces/workspace/events'),
-        k8s.get('/apis/metrics.k8s.io/v1beta1/namespaces/workspace/pods'),
+        k8s.get(`/api/v1/namespaces/${ns}/pods`),
+        k8s.get(`/api/v1/namespaces/${ns}/events`),
+        k8s.get(`/apis/metrics.k8s.io/v1beta1/namespaces/${ns}/pods`),
         k8s.get('/apis/metrics.k8s.io/v1beta1/nodes'),
         k8s.get('/api/v1/nodes'),
       ]);

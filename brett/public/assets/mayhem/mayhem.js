@@ -23,6 +23,7 @@ const Mayhem = (() => {
 
   let scene, camera, canvas, makeMannequin, send = () => {}, room;
   let enabled = false;
+  let _initDone = false;
   let localAvatar = null;
   const remoteAvatars = new Map();
   const aiBots = new Map();         // botId → MayhemAIBot (subset of remoteAvatars)
@@ -85,6 +86,11 @@ const Mayhem = (() => {
     window._mayhemMakeMannequin = makeMannequin;
     bindKeys();
     chaseCam = new window.MayhemChaseCamera(camera, canvas);
+    _initDone = true;
+    if (enabled) {
+      start();
+      window.dispatchEvent(new CustomEvent('brett:mayhem-enabled'));
+    }
   }
 
   // ── Key / mouse bindings ──────────────────────────────────────────────────
@@ -207,6 +213,7 @@ const Mayhem = (() => {
   function setEnabled(on) {
     if (on === enabled) return;
     enabled = on;
+    if (!_initDone) return; // init() will call start()/stop() once it runs
     if (on) {
       start();
       window.dispatchEvent(new CustomEvent('brett:mayhem-enabled'));
@@ -918,7 +925,7 @@ const Mayhem = (() => {
       for (const a of remoteAvatars.values()) a.update(dt, 0);
       projectileMgr?.update(dt);
       effectsMgr?.update(dt);
-      chaseCam.update();
+      chaseCam?.update();
       if (hud) updateHudFrame();
       return;
     }
@@ -994,7 +1001,7 @@ const Mayhem = (() => {
     }
     projectileMgr?.update(dt);
     effectsMgr?.update(dt);
-    chaseCam.update();
+    chaseCam?.update();
     detectCollisions();
     maybeSendState();
     if (hud) updateHudFrame();

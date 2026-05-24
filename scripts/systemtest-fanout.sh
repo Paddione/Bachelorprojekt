@@ -44,6 +44,9 @@ esac
 # Unset E2E_ASSIGNEE_USER_ID — it is realm-specific and must not leak across envs.
 export WEBSITE_URL PROD_DOMAIN ENV="$ENVIRONMENT"
 export E2E_ADMIN_USER="${E2E_ADMIN_USER:-paddione}"
+# Forward SKIP_DB_PURGE explicitly so Playwright's global-db-cleanup.ts sees it
+# when this script is invoked with `env -i bash ...` or similar clean-env wrappers.
+export SKIP_DB_PURGE="${SKIP_DB_PURGE:-0}"
 unset E2E_ASSIGNEE_USER_ID
 
 if [[ -z "${E2E_ADMIN_PASS:-}" ]]; then

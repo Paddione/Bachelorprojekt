@@ -21,7 +21,7 @@ const SFX_MAP = {
   'footstep-3': SFX_ROOT + 'footstep-concrete-03.ogg',
   'footstep-4': SFX_ROOT + 'footstep-concrete-04.ogg',
 
-  // Hero abilities — audio files to be delivered as separate chore
+  // Hero abilities
   'frostnova':          SFX_ROOT + 'frostnova.ogg',
   'chainlightning':     SFX_ROOT + 'chainlightning.ogg',
   'summon-minion':      SFX_ROOT + 'summon-minion.ogg',

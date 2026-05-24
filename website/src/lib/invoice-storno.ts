@@ -209,8 +209,14 @@ export async function generateCreditNotePdf(invoiceId: string): Promise<Buffer |
     content: pdf,
   });
   await pool.query(
-    `UPDATE billing_invoices SET pdf_blob=$2, pdf_mime='application/pdf', pdf_size_bytes=$3, pdf_path=COALESCE($4, pdf_path) WHERE id=$1`,
-    [invoiceId, pdf, pdf.length, pdfPath]
+    `UPDATE billing_invoices SET pdf_mime='application/pdf', pdf_size_bytes=$2, pdf_path=COALESCE($3, pdf_path) WHERE id=$1`,
+    [invoiceId, pdf.length, pdfPath]
+  );
+  await pool.query(
+    `INSERT INTO billing_invoice_documents (invoice_id, format, content)
+     VALUES ($1, 'pdf', $2)
+     ON CONFLICT (invoice_id, format) DO UPDATE SET content = EXCLUDED.content`,
+    [invoiceId, pdf]
   );
   return pdf;
 }

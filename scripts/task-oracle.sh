@@ -5,7 +5,8 @@ set -euo pipefail
 
 GOAL="${*:?Usage: task-oracle.sh '<goal>'}"
 REPO="/home/patrick/Bachelorprojekt"
-MODEL="qwen3-14b"
+MODEL="qwen/qwen3-4b-2507"
+HERMES="${HERMES:-$HOME/.local/bin/hermes}"
 
 # ── Infer target environment from goal keywords ───────────────────────────
 infer_env() {
@@ -21,12 +22,12 @@ infer_env() {
 
 # ── Wrapper: call Hermes, strip session_id noise ──────────────────────────
 ask_hermes() {
-  hermes chat -q "$1" -m "${MODEL}" --quiet 2>/dev/null \
+  "${HERMES}" chat -q "$1" -m "${MODEL}" --quiet 2>/dev/null \
     | grep -v "^session_id:" || true
 }
 
 # ── Primary: Hermes (local model, no API cost) ────────────────────────────
-if hermes status 2>/dev/null | grep -q "Model:"; then
+if [[ -x "${HERMES}" ]] && "${HERMES}" status 2>/dev/null | grep -q "Model:"; then
 
   # Full task list — no truncation
   set +o pipefail

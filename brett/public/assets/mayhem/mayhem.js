@@ -402,7 +402,88 @@ const Mayhem = (() => {
       onSelect(heroId) {
         _myHeroId = heroId;
         window.MayhemHeroes.assignHero(localAvatar, heroId,
-          window.MayhemWeapons.WeaponSystem, (w, origin, dir, id) => projectileMgr.spawn(w, origin, dir, id));
+          window.MayhemWeapons.WeaponSystem, (w, origin, dir, id) => {
+            if (w.projectileType === 'frostnova') {
+              effectsMgr?.spawnFrostnovaEffect(scene, localAvatar.mannequin.root.position);
+              window.MayhemAudio.onFire('frostnova');
+              for (const [remoteId, remoteAv] of remoteAvatars) {
+                const rp = remoteAv.mannequin.root.position;
+                const lp = localAvatar.mannequin.root.position;
+                const dist = Math.hypot(rp.x - lp.x, rp.z - lp.z);
+                if (dist <= w.aoeRadius) {
+                  const impulse = { x: 0, y: 0, z: 0 };
+                  const dx = rp.x - lp.x, dz = rp.z - lp.z;
+                  const len = Math.hypot(dx, dz) || 1;
+                  impulse.x = (dx / len) * 3;
+                  impulse.z = (dz / len) * 3;
+                  send({ type: 'hit', victimId: remoteId, weaponKey: 'frostnova', shooterId: playerId, impulse });
+                }
+              }
+              send({ type: 'hero_slow', slowFactor: w.slowFactor, durationMs: w.slowDurationMs });
+              return;
+            }
+            if (w.projectileType === 'summon') {
+              const mm = window._minionManager;
+              if (mm && mm.count < 2) {
+                const enemy = [...remoteAvatars.values()][0];
+                mm.spawn(localAvatar.mannequin.root.position, enemy
+                  ? { id: [...remoteAvatars.keys()][0], pos: enemy.mannequin.root.position }
+                  : null);
+                window.MayhemAudio.onFire('summon-minion');
+              }
+              return;
+            }
+            if (w.key === 'shield_minion') {
+              if (window._minionManager) { window._minionManager.shieldOldest(); window.MayhemAudio.onFire('shield-minion'); }
+              return;
+            }
+            if (w.key === 'frenzy_minion') {
+              if (window._minionManager) { window._minionManager.frenzyOldest(); window.MayhemAudio.onFire('frenzy-minion'); }
+              return;
+            }
+            if (w.projectileType === 'vehicle_switch') {
+              const current = localAvatar._vehicle;
+              const nextType = (!current || current.type === 'motorcycle') ? 'car' : 'motorcycle';
+              if (current) {
+                window.MayhemVehicle.Vehicle.despawn(current, scene);
+                if (window._autoTurret) { window._autoTurret.disable(); }
+              }
+              const newVehicle = window.MayhemVehicle.Vehicle.spawn(nextType, localAvatar.mannequin.root.position, scene);
+              localAvatar._vehicle = newVehicle;
+              window.MayhemAudio.onFire('vehicle-switch');
+              if (nextType === 'car') {
+                window._autoTurret = new window.MayhemVehicle.AutoTurret({
+                  vehicle: newVehicle, scene, THREE: window.THREE,
+                  onFire: ({ targetId, damage }) => {
+                    send({ type: 'hit', victimId: targetId, weaponKey: 'turret', shooterId: playerId, impulse: { x: 0, y: 0, z: 0 } });
+                  },
+                });
+                window._autoTurret.enable();
+              }
+              return;
+            }
+            if (w.projectileType === 'repair') {
+              const v = localAvatar._vehicle;
+              if (v) {
+                v.hp = Math.min(v.maxHp, (v.hp || 0) + 40);
+                effectsMgr?.spawnSmokePuff(scene, v.mesh ? v.mesh.position : localAvatar.mannequin.root.position);
+                window.MayhemAudio.onFire('vehicle-repair');
+              }
+              return;
+            }
+            if (w.projectileType === 'sprint') {
+              const v = localAvatar._vehicle;
+              if (v) {
+                v.speedMult = 2.5;
+                v.damagesOnContact = true;
+                window.MayhemAudio.onFire('motorcycle-engine');
+                setTimeout(() => { v.speedMult = 1; v.damagesOnContact = false; }, 1500);
+              }
+              return;
+            }
+
+            projectileMgr.spawn(w, origin, dir, id);
+          });
         send({ type: 'hero_select', heroId });
         _heroSelectUi.setStatus('Warte auf Gegner …');
         _checkBothHeroesSelected();

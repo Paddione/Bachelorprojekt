@@ -20,7 +20,7 @@ const HEROES = {
               hairTint: 'hue-rotate(320deg) saturate(180%)' },
     abilities: ['frostnova', 'fireball', 'chainlightning'],
     passive: null,
-    unlocked: false,   // unlocked in Scheibe 2
+    unlocked: true,   // Scheibe 2 complete
   },
   martina: {
     id: 'martina', name: 'Martina',

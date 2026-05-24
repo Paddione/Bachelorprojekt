@@ -26,6 +26,22 @@ function mkFireballMesh(THREE) {
   return mesh;
 }
 
+function mkChainMesh(THREE) {
+  // Randomly jittered arc via CatmullRomCurve3
+  const points = [];
+  for (let i = 0; i <= 5; i++) {
+    points.push(new THREE.Vector3(
+      (Math.random() - 0.5) * 0.3,
+      0.05 + Math.random() * 0.2,
+      -i * 0.3,
+    ));
+  }
+  const curve = new THREE.CatmullRomCurve3(points);
+  const geo   = new THREE.TubeGeometry(curve, 20, 0.035, 4, false);
+  const mat   = new THREE.MeshBasicMaterial({ color: 0x6fa8d8 });  // stille-blau
+  return new THREE.Mesh(geo, mat);
+}
+
 class ProjectileManager {
   // scene         — Three.js Scene
   // getAvatars    — () => Map<id, PlayerAvatar>
@@ -46,9 +62,14 @@ class ProjectileManager {
       return;
     }
     const THREE = this._THREE;
-    const mesh = weaponDef.projectileType === 'fireball'
-      ? mkFireballMesh(THREE)
-      : mkBulletMesh(THREE);
+    let mesh;
+    if (weaponDef.projectileType === 'fireball') {
+      mesh = mkFireballMesh(THREE);
+    } else if (weaponDef.projectileType === 'chain') {
+      mesh = mkChainMesh(THREE);
+    } else {
+      mesh = mkBulletMesh(THREE);
+    }
 
     mesh.position.set(originPos.x, originPos.y + 1.2, originPos.z);
     this._scene.add(mesh);

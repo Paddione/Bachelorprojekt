@@ -543,12 +543,17 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)   # z.B. T000301
 TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
 
-Trage `ticket_id` in das Plan-Frontmatter ein (nach der ersten `---`-Zeile):
+Ersetze den `ticket_id: null` Platzhalter im Frontmatter (den `plan-frontmatter-hook.sh` immer einfügt):
 
 ```bash
-awk 'NR==1{print; print "ticket_id: '"$TICKET_EXT_ID"'"; next} 1' \
-  docs/superpowers/plans/<date>-<slug>.md > /tmp/_plan_tmp.md && \
-  mv /tmp/_plan_tmp.md docs/superpowers/plans/<date>-<slug>.md
+sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" \
+  docs/superpowers/plans/<date>-<slug>.md
+```
+
+Verifiziere anschließend:
+```bash
+grep '^ticket_id:' docs/superpowers/plans/<date>-<slug>.md
+# Erwartete Ausgabe: ticket_id: T000XXX (kein "null")
 ```
 
 Injiziere dann brainstorm_choice + brainstorm_session (best-effort — kein Fehler wenn kein STATE_DIR oder keine Wahl):
@@ -702,10 +707,9 @@ Bei nicht-trivialem Fix: Rufe `superpowers:writing-plans` auf. Führe danach sof
 ```bash
 bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<slug>.md
 
-# ticket_id ins Frontmatter eintragen
-awk 'NR==1{print; print "ticket_id: '"$TICKET_EXT_ID"'"; next} 1' \
-  docs/superpowers/plans/<slug>.md > /tmp/_plan_tmp.md && \
-  mv /tmp/_plan_tmp.md docs/superpowers/plans/<slug>.md
+# ticket_id Platzhalter ersetzen
+sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" \
+  docs/superpowers/plans/<slug>.md
 ```
 
 ### Schritt 5: Commit & Push — dann STOPP

@@ -470,6 +470,18 @@ echo "Tickets: ${REINJECT_TICKETS[*]:-keine}"
 echo "═══════════════════════════════════════════"
 ```
 
+**1.5. Spec auf Branch committen (vor dem Reset!):**
+
+Damit die Spec nach dem `/compact` — auch in einer neuen Session oder nach Worktree-Verlust — via `git` auffindbar ist:
+
+```bash
+git add docs/superpowers/specs/<date>-<slug>-design.md
+git commit -m "chore(specs): add <slug> design spec"
+git push
+```
+
+Dieser Commit ist idempotent gegenüber Schritt 5 — `git add` einer bereits committeten Datei ist ein No-op.
+
 **2. ⚡ STOP — führe diese Befehle jetzt aus (in dieser Reihenfolge):**
 
 ```
@@ -586,6 +598,7 @@ fi
 ### Schritt 5: Commit & Push — dann STOPP
 
 ```bash
+# Die Spec wurde bereits in Schritt 3.7.1.5 committed; git add ist idempotent falls nötig
 git add docs/superpowers/specs/<date>-<slug>-design.md docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin feature/<slug>

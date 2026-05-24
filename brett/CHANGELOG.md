@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.11.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.10.0...brett-v0.11.0) (2026-05-24)
+
+
+### Features
+
+* **brett:** add character skins (Mayhem mode) ([#1079](https://github.com/Paddione/Bachelorprojekt/issues/1079)) ([622fa3f](https://github.com/Paddione/Bachelorprojekt/commit/622fa3f59ac97a0b5edbf5882865eacba0926917))
+
 ## [0.10.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.9.0...brett-v0.10.0) (2026-05-24)
 
 

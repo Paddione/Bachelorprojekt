@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>host-node-networking — Host, Firewalls & VPN Mesh</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">host-node-networking</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Netplan</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Netplan</span>
+    <span class="badge-slug">host-node-networking</span>
+  </div>
+  <h1 class="hero-title">Host, Firewalls & VPN Mesh</h1>
+  <p class="hero-subtitle">
+    Host node provisioning, WireGuard mesh networking configuration ("netplan"), host firewall (UFW) rules, LiveKit WebRTC setups, and WSL OpenClaw gateway operations.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Network config change, node provisioning required, LiveKit ICE issues, or WSL Ollama API changes.
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>VPN Mesh ("Netplan"):</strong> Physical nodes and workstations form a unified WireGuard VPN network overlay, securing all backend API and signaling traffic.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">1</span>
+        <span class="phase-title">Hetzner Node Provisioning</span>
+        <span class="phase-desc">Cloud-Init or Rescue Mode Reset</span>
+      </div>
+      <div class="phase-body">
+        <p>Determine server details (New vs. Reset) and role (Control Plane or Worker). Retrieve active tokens:</p>
+        <pre><code><span class="fn">ssh</span> patrick@&lt;CP_IP&gt; <span class="st">"sudo cat /var/lib/rancher/k3s/server/node-token"</span></code></pre>
+        <p>Inject user data cloud-config or boot via Rescue Mode and run the setup script.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">Host Firewall Setup (UFW)</span>
+        <span class="phase-desc">Rules & Port Mappings</span>
+      </div>
+      <div class="phase-body">
+        <p>Open required ports directly on nodes (SSH, Traefik, VPN, coturn, LiveKit RTC):</p>
+        <pre><code><span class="fn">ssh</span> patrick@&lt;node-ip&gt; <span class="st">"sudo ufw allow 7880/tcp && sudo ufw reload"</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">3</span>
+        <span class="phase-title">LiveKit WebRTC Stack</span>
+        <span class="phase-desc">DNS Pinning & Affinity</span>
+      </div>
+      <div class="phase-body">
+        <p>LiveKit is pinned to `gekko-hetzner-3`. Ensure DNS records point directly to its public IP:</p>
+        <pre><code><span class="fn">task</span> livekit:dns-pin ENV=mentolder APPLY=true</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">WSL OpenClaw Gateway</span>
+        <span class="phase-desc">Local Ollama Operations</span>
+      </div>
+      <div class="phase-body">
+        <p>Deploy the local gateway on WSL to route chat calls over the WireGuard VPN to the GPU worker:</p>
+        <pre><code><span class="fn">task</span> openclaw:start</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Troubleshooting</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>VPN Handshake fails</td><td>Re-derive public key and compare with registry configuration.</td></tr>
+        <tr><td>Flannel traffic blocked</td><td>Ensure UDP 8472 and VPN port 51820 are allowed in host UFW rules.</td></tr>
+        <tr><td>LiveKit ICE fails</td><td>Verify DNS matches the node hosting the LiveKit container.</td></tr>
+        <tr><td>OpenClaw 503</td><td>Confirm Ollama is running on the GPU host (10.10.0.3).</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="cluster-deployment.html" class="xref-card">
+      <span class="xref-name">cluster-deployment</span>
+      <span class="xref-rel">Bootstrap environment & deploying resources</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Rotate secrets and WireGuard keypairs</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/host-node-networking/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Skills Overview
 
-22 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+10 core project-local skills (plus dev-flow pipeline) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 ---
 
@@ -14,17 +14,13 @@
 
 ---
 
-## Infrastructure Lifecycle
+## Infrastructure & Networking
 
 | Skill | When to use |
 |---|---|
-| `hetzner-node` | Provision or reset a Hetzner node (cloud-config, Rescue Mode, k3s join, WireGuard mesh). Use **before** `new-environment`. |
-| `new-environment` | Stand up a brand-new cluster from scratch — enforces sealed-secrets → cert-manager → workspace:deploy ordering. Cross-ref: `secret-rotation` (Type C), `hetzner-node`. |
-| `deployment-assist` | Re-deploy or repair an existing but degraded cluster — phased credential check + task orchestration. Cross-ref: `new-environment` (fresh cluster), `fleet-ops`. |
-| `fleet-ops` | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and **Flux GitOps** reconciliation across mentolder + korczewski. Absorbs `flux-day2-ops`. |
-| `dev-stack-ops` | Operate the dev.mentolder.de k3d stack on k3s-1 — cluster create/destroy, dev DB refresh, firewall, Keycloak /dev-access group. |
-
-> **`flux-day2-ops`** is now a redirect to the "Flux GitOps Operations" section of `fleet-ops`.
+| `host-node-networking` | Host server provisioning (Hetzner, cloud-init, Rescue Mode resets), WireGuard mesh network topology ("netplan"), host UFW firewall ports, LiveKit WebRTC networking, and WSL OpenClaw local gateway setup. |
+| `cluster-deployment` | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), manage Flux GitOps, or operate the dev.mentolder.de stack. |
+| `fleet-ops` | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and **Flux GitOps** reconciliation across mentolder + korczewski. |
 
 ---
 
@@ -42,58 +38,43 @@
 | Skill | When to use |
 |---|---|
 | `arena-brett-deploy` | Build, push, and deploy arena-server (korczewski-only) or brett (both clusters). Covers proto-drift copy step. |
-| `livekit-setup` | Setup/repair LiveKit WebRTC stack — DNS pinning, ufw rules, node affinity, ICE failure diagnosis, RTMP/recording. |
-| `openclaw-ops` | Bootstrap, restart, debug, or reset OpenClaw on the WSL host (local AI gateway → GPU box Ollama). |
 
 ---
 
-## Knowledge & Coaching Content
+## Knowledge & Database Operations
 
 | Skill | When to use |
 |---|---|
-| `coaching-pipeline` | Ingest coaching books/PDFs → classify chunks with LLM → review drafts at `/admin/knowledge/drafts`. Cross-ref: `knowledge-reindex`. |
-| `knowledge-reindex` | Re-index general knowledge collections (PRs, docs, bugs, web crawls) after source data changes. Cross-ref: `coaching-pipeline`, `backup-check`. |
-
-> Both share embedding model isolation rules (bge-m3 vs voyage-multilingual-2 never interchangeable).
+| `knowledge-management` | Manage knowledge base ingestion (PDF/EPUB books), classifier LLMs, general indexing (`prs`, `markdown`, `bugs`), web crawling, and vector space isolation rules. |
+| `database-ops` | PostgreSQL schema migrations, default permission grants, automated backups audit, and safe restore verification. |
 
 ---
 
-## Database
+## Operations & Life-Cycle Management
 
 | Skill | When to use |
 |---|---|
-| `db-migration` | Add/change tables, columns, indexes, schemas, or roles — applies to both clusters, re-grants permissions, updates ER diagram. |
-| `backup-check` | Audit + test the DB backup/restore process end-to-end (trigger backup → verify encryption → safe restore to temp DB). |
-
----
-
-## Operations & Incident Management
-
-| Skill | When to use |
-|---|---|
-| `incident-response` | Production incident triage — scope → RCA → fix or rollback → verification → post-mortem. |
-| `ticket-management` | Work through open tickets, clean stale worktrees/branches, merge PRs, fix CI failures. |
-| `mishap-tracker` | **Internal utility** — converts `MISHAP_LOG` entries into DB tickets. Never invoke directly; always called from another skill's post-execution section. |
+| `operations-management` | Production incident response triage (scope, diagnose, rollback/fix), DB ticket management (triage, AI-fixes, routing), repository hygiene (pruning stale worktrees/branches), PR reviews, and mishap tracking. |
 
 ---
 
 ## Skill Relationships at a Glance
 
 ```
-hetzner-node
-    └→ new-environment
-           └→ secret-rotation (keypair refresh)
-           └→ deployment-assist
-                  └→ fleet-ops (includes Flux day-2)
+host-node-networking (WireGuard mesh/Netplan)
+    └→ cluster-deployment (SealedSecrets → cert-manager → deploy)
+           └→ secret-rotation (keypair refresh / rotation)
+           └→ fleet-ops (Flux cross-cluster reconciliation)
 
 dev-flow-plan
     └→ dev-flow-execute
            └→ dev-flow-e2e
 
-coaching-pipeline ←→ knowledge-reindex
-                             └→ backup-check (on 0-doc failure)
+knowledge-management
+         └→ database-ops (backup restore on reindex failures)
 
-incident-response → fleet-ops (Flux reconcile to fix drift)
-                  → secret-rotation (if auth broken)
-                  → keycloak-realm-sync (if SSO broken)
+operations-management
+         ├→ fleet-ops (reconcile drift)
+         ├→ secret-rotation (auth / key fixes)
+         └→ keycloak-realm-sync (SSO fixes)
 ```

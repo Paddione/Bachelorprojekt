@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cluster-deployment — Cluster Initialization & Deployment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">cluster-deployment</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Infra</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Infra</span>
+    <span class="badge-slug">cluster-deployment</span>
+  </div>
+  <h1 class="hero-title">Cluster Initialization & Deployment</h1>
+  <p class="hero-subtitle">
+    Deploying new environments from scratch, diagnosing cluster health, performing gap analysis, managing Flux GitOps reconciliations, and running dev.mentolder.de stack operations.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Environment initialization, cluster degraded state, manual Flux sync, or local dev stack tasks.
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Zwingende Reihenfolge:</strong> SealedSecrets must exist before applying SealedSecrets, and cert-manager CRDs must be present before running the main deployment.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">1</span>
+        <span class="phase-title">Environment Prep</span>
+        <span class="phase-desc">Scaffold Config & Secrets</span>
+      </div>
+      <div class="phase-body">
+        <p>Initialize environmental configs and validate against schema. Seal plaintext files using the retrieved certificate:</p>
+        <pre><code><span class="fn">task</span> env:init ENV=&lt;env&gt;
+<span class="fn">task</span> env:seal ENV=&lt;env&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">Deploy & Bootstrap</span>
+        <span class="phase-desc">Core & Flux Setup</span>
+      </div>
+      <div class="phase-body">
+        <p>Apply cert-manager resources, build base manifests, and bootstrap Flux GitOps for automated reconciliation:</p>
+        <pre><code><span class="fn">task</span> workspace:deploy ENV=&lt;env&gt;
+<span class="fn">flux</span> reconcile source git flux-system --context &lt;ctx&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">3</span>
+        <span class="phase-title">Gap Analysis & Repair</span>
+        <span class="phase-desc">Cluster Assistance</span>
+      </div>
+      <div class="phase-body">
+        <p>Inspect pod states, identify missing credentials or degraded deployments, and trigger appropriate task flows (OIDC sync, office suite setup, etc.) to resolve gaps.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">dev.mentolder.de Stack</span>
+        <span class="phase-desc">Local Dev Box Operations</span>
+      </div>
+      <div class="phase-body">
+        <p>Manage dev k3d clusters hosted on <code>k3s-1</code>. Apply unsealed secrets and trigger DB schema refreshes from prod snapshots:</p>
+        <pre><code><span class="fn">task</span> dev:_materialise-secrets
+<span class="fn">task</span> dev:db:refresh</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Troubleshooting</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SealedSecret rejected</td><td>Delete plain secret first: <code>kubectl delete secret knowledge-secrets -n &lt;ns&gt;</code>.</td></tr>
+        <tr><td>403 on dev.mentolder.de</td><td>Verify user is mapped to Keycloak <code>/dev-access</code> group.</td></tr>
+        <tr><td>Flux out of sync</td><td>Force-sync git repository source first, then reconcile the workspace kustomization.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="host-node-networking.html" class="xref-card">
+      <span class="xref-name">host-node-networking</span>
+      <span class="xref-rel">Provision servers and VPN routing</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Rotate DB passwords & SealedSecret keys</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/cluster-deployment/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

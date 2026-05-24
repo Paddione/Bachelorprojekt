@@ -1,0 +1,149 @@
+---
+name: database-ops
+description: Unified runbook for database operations, schema migrations, DDL ownership rules, and safe backup/restore audits.
+---
+
+> **Mishap Tracking:** As you execute this skill, maintain a running `MISHAP_LOG`.
+> For every anomaly, unexpected state, broken component, security concern, or
+> configuration drift you notice — even if unrelated to the current task — add
+> an entry with: `type` (broken/degraded/suspicious/security/drift), `title`,
+> `description`, and `component`. Invoke `mishap-tracker` at the very end.
+
+# database-ops
+
+This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across both cluster environments.
+
+---
+
+## ⚠️ Independent Shared Databases
+
+The `mentolder` and `korczewski` clusters each host their own independent `shared-db` instance. Schema migrations, DB password rotations, and backup audits must be executed explicitly on **both** clusters.
+
+---
+
+## Phase 1 — Database Schema Migrations
+
+Follow these steps to safely apply database schema updates:
+
+### Step 1.1: Write the Migration Script
+Create a migration SQL file in `scripts/datamodel/` (e.g. `scripts/datamodel/0042_add_coaching_sessions.sql`).
+* Use `IF NOT EXISTS` for table/index/schema creations (idempotency).
+* Wrap the migration in a transaction (`BEGIN;` ... `COMMIT;`).
+* For destructive migrations, trigger a backup first: `task workspace:backup`.
+
+Example pattern:
+```sql
+BEGIN;
+CREATE TABLE IF NOT EXISTS coaching.sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id TEXT NOT NULL,
+    started_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_coaching_sessions_user_id ON coaching.sessions(user_id);
+COMMIT;
+```
+
+### Step 1.2: Test on Dev Cluster
+Apply the migration against the local dev database:
+```bash
+task workspace:psql ENV=dev -- website < scripts/datamodel/<migration>.sql
+# Verify schema
+task workspace:psql ENV=dev -- website -c "\d coaching.sessions"
+```
+
+### Step 1.3: Apply to Production Clusters
+> **⚠️ DDL Ownership Warning:** `task workspace:psql` connects as the `website` role. For DDL on schemas where tables are owned by `postgres` (like `bachelorprojekt`, `coaching`, and `knowledge`), DDL will fail with "must be owner". You must connect as the `postgres` user directly inside the database pod:
+> ```bash
+> PGPOD=$(kubectl get pod -n workspace --context <env> -l app=shared-db -o name | head -1)
+> kubectl exec -i "$PGPOD" -n workspace --context <env> -- psql -U postgres -d website < migration.sql
+> ```
+
+Execute the migration sequentially on both clusters:
+```bash
+# Apply to mentolder
+task workspace:psql ENV=mentolder -- website < scripts/datamodel/<migration>.sql
+
+# Apply to korczewski
+task workspace:psql ENV=korczewski -- website < scripts/datamodel/<migration>.sql
+```
+
+### Step 1.4: Re-grant Permissions
+After creating schemas, tables, or views, default permissions may need fixing:
+```bash
+task workspace:fix-tickets-grants ENV=mentolder
+task workspace:fix-tickets-grants ENV=korczewski
+```
+If manual grants are required for other service roles:
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON <schema>.<table> TO <role>;
+```
+
+### Step 1.5: Update ER Diagram & Commit
+```bash
+task db:diagram
+# Commit the SQL file and updated diagram files.
+git add scripts/datamodel/<migration>.sql docs/db-schema-diagram.md
+git commit -m "chore(db): apply migration for <description>"
+```
+
+---
+
+## Phase 2 — Backup and Restore Audits
+
+Verify that automated encrypted backups are running and restorable.
+
+### Step 2.1: Verify Backup Configuration
+Confirm the backup CronJob, PVC, and passphrase secret are set up correctly:
+```bash
+# Check CronJob presence (should find db-backup scheduler)
+kubectl get cronjob -n <ns> --context <ctx>
+
+# Confirm PVC is bound
+kubectl get pvc backup-pvc -n <ns> --context <ctx>
+
+# Verify backup passphrase secret size
+kubectl get secret workspace-secrets -n <ns> --context <ctx> -o jsonpath='{.data.BACKUP_PASSPHRASE}' | base64 -d | wc -c
+```
+*Note: If you see the legacy `backup-postgres` CronJob, delete it and apply `k3d/backup-cronjob.yaml`.*
+
+### Step 2.2: Trigger Live Backup
+```bash
+bash scripts/backup-restore.sh trigger --context mentolder
+bash scripts/backup-restore.sh trigger --context korczewski --namespace workspace-korczewski
+```
+Wait for completion and verify logs. Confirm the new timestamp:
+```bash
+bash scripts/backup-restore.sh list --context mentolder
+```
+
+### Step 2.3: Verify Encrypted Dumps
+Verify that the encrypted dumps (`.dump.enc` for `keycloak`, `nextcloud`, `vaultwarden`, `website`, and `docuseal`) are non-empty:
+```bash
+STAMP=<latest-timestamp>
+# Run a temporary busybox pod to list files under the backups directory on backup-pvc.
+```
+
+### Step 2.4: Execute Safe Restore Test
+**NEVER overwrite production data during a test.** Restore into a temporary test database, then clean it up:
+1. Trigger a restore script or apply a temporary PG Job to restore the dump to `website_restore_test`.
+2. Verify the restored tables match expected counts.
+3. Drop the test database when complete:
+   ```sql
+   DROP DATABASE website_restore_test;
+   ```
+
+---
+
+## Troubleshooting & Common Blockers
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Migration fails with "must be owner of table" | Run via `task workspace:psql` (website role) instead of the `postgres` superuser | Connect directly to the postgres pod using the superuser credentials (`psql -U postgres`). |
+| Backup trigger fails with "cronjob not found" | Name-drift: CronJob named `backup-postgres` instead of `db-backup` | Deploy `k3d/backup-cronjob.yaml` and delete the old `backup-postgres` CronJob. |
+| Restore test fails: "pg_restore: exit code 1" | Schema conflicts / sequences already exist | Always restore to a fresh, temporary test database rather than an active one. |
+
+---
+
+## Post-Execution: Mishap Report
+
+After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.

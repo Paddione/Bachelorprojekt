@@ -569,25 +569,18 @@
       <section class="ov-section ov-cat-infra" data-cat="infra">
         <h2 class="ov-section-title"><span class="ov-section-icon">🏗️</span> Infrastructure &amp; Environment</h2>
         <div class="ov-grid">
-          <a href="skills/deployment-assist.html" class="ov-card" data-skill="deployment-assist">
-            <div class="ov-card-label"><code>deployment-assist</code></div>
-            <h3 class="ov-card-title">Deployment &amp; Setup</h3>
-            <p class="ov-card-desc">Begleitet das Setup neuer Umgebungen oder fixiert teil-deploite Cluster.</p>
-            <div class="ov-card-tags"><span class="ov-tag">K8s</span><span class="ov-tag">Setup</span></div>
+          <a href="skills/cluster-deployment.html" class="ov-card" data-skill="cluster-deployment">
+            <div class="ov-card-label"><code>cluster-deployment</code></div>
+            <h3 class="ov-card-title">Cluster Deployment</h3>
+            <p class="ov-card-desc">Stand up environments from scratch, diagnose cluster health, perform gap analysis, and manage dev.mentolder.de operations.</p>
+            <div class="ov-card-tags"><span class="ov-tag">K8s</span><span class="ov-tag">Setup</span><span class="ov-tag">Dev</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
-          <a href="skills/new-environment.html" class="ov-card" data-skill="new-environment">
-            <div class="ov-card-label"><code>new-environment</code></div>
-            <h3 class="ov-card-title">Cluster Provisioning</h3>
-            <p class="ov-card-desc">Mandatory Bring-Up Order für Sealed Secrets, Cert-Manager und Core-Services.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Provisioning</span><span class="ov-tag">Flux</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/hetzner-node.html" class="ov-card" data-skill="hetzner-node">
-            <div class="ov-card-label"><code>hetzner-node</code></div>
-            <h3 class="ov-card-title">Hetzner Node Lifecycle</h3>
-            <p class="ov-card-desc">Neu-Provisionierung oder Reset von Bare-Metal/Cloud-Nodes via Rescue Mode.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Hetzner</span><span class="ov-tag">OS</span></div>
+          <a href="skills/host-node-networking.html" class="ov-card" data-skill="host-node-networking">
+            <div class="ov-card-label"><code>host-node-networking</code></div>
+            <h3 class="ov-card-title">Host, Firewalls &amp; VPN Mesh</h3>
+            <p class="ov-card-desc">Host node provisioning, WireGuard mesh networking ("netplan"), host firewalls (UFW), LiveKit stack, and WSL gateway operations.</p>
+            <div class="ov-card-tags"><span class="ov-tag">Hetzner</span><span class="ov-tag">VPN</span><span class="ov-tag">WebRTC</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
           <a href="skills/fleet-ops.html" class="ov-card" data-skill="fleet-ops">
@@ -595,13 +588,6 @@
             <h3 class="ov-card-title">Zwei-Cluster Fleet-Betrieb</h3>
             <p class="ov-card-desc">Fan-Out-Deploys, Cross-Cluster Schema-Änderungen und Status-Checks über mentolder + korczewski.</p>
             <div class="ov-card-tags"><span class="ov-tag">Fleet</span><span class="ov-tag">K8s</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/flux-day2-ops.html" class="ov-card" data-skill="flux-day2-ops">
-            <div class="ov-card-label"><code>flux-day2-ops</code></div>
-            <h3 class="ov-card-title">Flux GitOps Day-2</h3>
-            <p class="ov-card-desc">Reconciliation nach PR-Merge, Drift-Debugging, Suspension und $${VAR}-Escaping in Manifesten.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Flux</span><span class="ov-tag">GitOps</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
           <a href="skills/arena-brett-deploy.html" class="ov-card" data-skill="arena-brett-deploy">
@@ -618,18 +604,11 @@
       <section class="ov-section ov-cat-db" data-cat="db">
         <h2 class="ov-section-title"><span class="ov-section-icon">🗄️</span> Database Management</h2>
         <div class="ov-grid">
-          <a href="skills/db-migration.html" class="ov-card" data-skill="db-migration">
-            <div class="ov-card-label"><code>db-migration</code></div>
-            <h3 class="ov-card-title">Schema-Migration</h3>
-            <p class="ov-card-desc">Führt SQL-Migrationen auf beiden Clustern aus und regelt Grant-Berechtigungen.</p>
-            <div class="ov-card-tags"><span class="ov-tag">SQL</span><span class="ov-tag">Migration</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/backup-check.html" class="ov-card" data-skill="backup-check">
-            <div class="ov-card-label"><code>backup-check</code></div>
-            <h3 class="ov-card-title">Backup Audit &amp; Restore</h3>
-            <p class="ov-card-desc">Verifiziert CronJobs, testet Verschlüsselung und führt Restore-Tests auf Temp-DBs durch.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Audit</span><span class="ov-tag">Security</span></div>
+          <a href="skills/database-ops.html" class="ov-card" data-skill="database-ops">
+            <div class="ov-card-label"><code>database-ops</code></div>
+            <h3 class="ov-card-title">Database Schema &amp; Backups</h3>
+            <p class="ov-card-desc">PostgreSQL schema migrations, default permission fixing, triggering backups, and running safe restore verification.</p>
+            <div class="ov-card-tags"><span class="ov-tag">SQL</span><span class="ov-tag">Migration</span><span class="ov-tag">Backup</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
         </div>
@@ -660,18 +639,18 @@
       <section class="ov-section ov-cat-ops" data-cat="ops">
         <h2 class="ov-section-title"><span class="ov-section-icon">🛠️</span> Platform Operations</h2>
         <div class="ov-grid">
-          <a href="skills/ticket-management.html" class="ov-card" data-skill="ticket-management">
-            <div class="ov-card-label"><code>ticket-management</code></div>
-            <h3 class="ov-card-title">Ticket &amp; Repo Hygiene</h3>
-            <p class="ov-card-desc">Triage von Tickets, Cleanup von stale Branches und Merge-Management.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Ops</span><span class="ov-tag">Maintenance</span></div>
+          <a href="skills/operations-management.html" class="ov-card" data-skill="operations-management">
+            <div class="ov-card-label"><code>operations-management</code></div>
+            <h3 class="ov-card-title">Operations &amp; incident Response</h3>
+            <p class="ov-card-desc">Production incident triage (scope, diagnose, fix/rollback), DB ticket management, repo hygiene, PR review, and mishap tracking.</p>
+            <div class="ov-card-tags"><span class="ov-tag">Ops</span><span class="ov-tag">Tickets</span><span class="ov-tag">Git</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
-          <a href="skills/coaching-pipeline.html" class="ov-card" data-skill="coaching-pipeline">
-            <div class="ov-card-label"><code>coaching-pipeline</code></div>
-            <h3 class="ov-card-title">Coaching &amp; Knowledge</h3>
-            <p class="ov-card-desc">Ingest von PDFs, Klassifizierung von Knowledge-Chunks und Indexierung.</p>
-            <div class="ov-card-tags"><span class="ov-tag">AI</span><span class="ov-tag">RAG</span></div>
+          <a href="skills/knowledge-management.html" class="ov-card" data-skill="knowledge-management">
+            <div class="ov-card-label"><code>knowledge-management</code></div>
+            <h3 class="ov-card-title">Knowledge Ingest &amp; Indexing</h3>
+            <p class="ov-card-desc">Ingesting PDFs/EPUBs, running classifier LLMs, re-indexing workspace collections, running crawlers, and managing model isolation.</p>
+            <div class="ov-card-tags"><span class="ov-tag">AI</span><span class="ov-tag">RAG</span><span class="ov-tag">Search</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
           <a href="skills/update-dependencies.html" class="ov-card" data-skill="update-dependencies">
@@ -679,55 +658,6 @@
             <h3 class="ov-card-title">Dependency Maintenance</h3>
             <p class="ov-card-desc">Aktualisierung von Packages, Fix von Deprecation-Warnings und Security-Vulnerabilities.</p>
             <div class="ov-card-tags"><span class="ov-tag">Node</span><span class="ov-tag">Update</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/knowledge-reindex.html" class="ov-card" data-skill="knowledge-reindex">
-            <div class="ov-card-label"><code>knowledge-reindex</code></div>
-            <h3 class="ov-card-title">Knowledge Indexing</h3>
-            <p class="ov-card-desc">Neu-Indexierung von PRs, Dokumentation und Tickets für die RAG-Pipeline.</p>
-            <div class="ov-card-tags"><span class="ov-tag">RAG</span><span class="ov-tag">Search</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/livekit-setup.html" class="ov-card" data-skill="livekit-setup">
-            <div class="ov-card-label"><code>livekit-setup</code></div>
-            <h3 class="ov-card-title">Streaming Infrastructure</h3>
-            <p class="ov-card-desc">Setup und Reparatur des LiveKit-Servers: DNS-Pinning, Firewall und Recording.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Streaming</span><span class="ov-tag">WebRTC</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/dev-stack-ops.html" class="ov-card" data-skill="dev-stack-ops">
-            <div class="ov-card-label"><code>dev-stack-ops</code></div>
-            <h3 class="ov-card-title">Dev-Stack Betrieb</h3>
-            <p class="ov-card-desc">Bring-Up, Reparatur und Day-2 des dev.mentolder.de k3d-Clusters auf k3s-1.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Dev</span><span class="ov-tag">k3d</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/openclaw-ops.html" class="ov-card" data-skill="openclaw-ops">
-            <div class="ov-card-label"><code>openclaw-ops</code></div>
-            <h3 class="ov-card-title">OpenClaw AI Gateway</h3>
-            <p class="ov-card-desc">Bootstrap, Restart und Reset des lokalen AI-Gateways auf dem WSL-Host (direkt zu Ollama).</p>
-            <div class="ov-card-tags"><span class="ov-tag">AI</span><span class="ov-tag">Ollama</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-        </div>
-      </section>
-
-      <!-- SUPPORT -->
-      <section class="ov-section ov-cat-support" data-cat="support">
-        <h2 class="ov-section-title"><span class="ov-section-icon">🆘</span> Support &amp; Debugging</h2>
-        <div class="ov-grid">
-          <a href="skills/mishap-tracker.html" class="ov-card" data-skill="mishap-tracker">
-            <div class="ov-card-label"><code>mishap-tracker</code></div>
-            <h3 class="ov-card-title">Mishap Tracking</h3>
-            <p class="ov-card-desc">Dokumentation von Anomalien während der Skill-Execution als Tickets.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Audit</span><span class="ov-tag">Tickets</span></div>
-            <div class="ov-card-link-hint">Details ansehen</div>
-          </a>
-          <a href="skills/incident-response.html" class="ov-card" data-skill="incident-response">
-            <div class="ov-card-label"><code>incident-response</code></div>
-            <h3 class="ov-card-title">Produktions-Triage</h3>
-            <p class="ov-card-desc">Geführte Fehlerbehebung bei Ausfällen: Diagnose, Ticket, Fix und Post-Mortem.</p>
-            <div class="ov-card-tags"><span class="ov-tag">Ops</span><span class="ov-tag">Security</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
         </div>

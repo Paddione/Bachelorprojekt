@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.6.0...brett-v0.7.0) (2026-05-24)
+
+
+### Features
+
+* **mayhem:** Duel-Mode mit 4 Helden, Crosshair, Arena, Spectators, PvAI ([#1046](https://github.com/Paddione/Bachelorprojekt/issues/1046)) ([842e418](https://github.com/Paddione/Bachelorprojekt/commit/842e41811b45c97d2fc4bc8e42575aa25dfc2a40))
+
 ## [0.6.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.3...brett-v0.6.0) (2026-05-24)
 
 

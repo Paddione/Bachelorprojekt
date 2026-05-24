@@ -220,6 +220,77 @@ class EffectsManager {
     requestAnimationFrame(animate);
   }
 
+  // ── Martina minion: shield ring ───────────────────────────────────────────────
+  spawnShieldRing(targetMesh) {
+    if (!targetMesh || !this._THREE) return;
+    this.removeShieldRing(targetMesh);
+    const geo = new this._THREE.TorusGeometry(0.35, 0.04, 8, 24);
+    const mat = new this._THREE.MeshLambertMaterial({ color: 0xd7b06a, transparent: true, opacity: 0.85 });
+    const ring = new this._THREE.Mesh(geo, mat);
+    ring.rotation.x = Math.PI / 2;
+    targetMesh.add(ring);
+    targetMesh._shieldRing = ring;
+  }
+
+  removeShieldRing(targetMesh) {
+    if (targetMesh && targetMesh._shieldRing) {
+      targetMesh.remove(targetMesh._shieldRing);
+      targetMesh._shieldRing.geometry.dispose();
+      targetMesh._shieldRing.material.dispose();
+      targetMesh._shieldRing = null;
+    }
+  }
+
+  // ── Martina minion: frenzy particles ─────────────────────────────────────────
+  spawnFrenzyParticles(targetMesh) {
+    if (!targetMesh || !this._THREE) return;
+    this.clearFrenzyParticles(targetMesh, this._scene);
+    const particles = [];
+    for (let i = 0; i < 5; i++) {
+      const geo = new this._THREE.SphereGeometry(0.04, 4, 4);
+      const mat = new this._THREE.MeshLambertMaterial({ color: 0xff6622, transparent: true, opacity: 0.9 });
+      const mesh = new this._THREE.Mesh(geo, mat);
+      const angle = (i / 5) * Math.PI * 2;
+      mesh.position.set(Math.cos(angle) * 0.3, 0.5, Math.sin(angle) * 0.3);
+      this._scene.add(mesh);
+      particles.push({ mesh, angle, baseAngle: angle });
+    }
+    targetMesh._frenzyParticles = particles;
+    const start = performance.now();
+    const duration = 3000;
+    const animate = (now) => {
+      const elapsed = now - start;
+      if (elapsed >= duration || !targetMesh._frenzyParticles) {
+        this.clearFrenzyParticles(targetMesh, this._scene);
+        return;
+      }
+      const worldPos = new this._THREE.Vector3();
+      targetMesh.getWorldPosition(worldPos);
+      for (const p of particles) {
+        p.angle += 0.04;
+        p.mesh.position.set(
+          worldPos.x + Math.cos(p.angle) * 0.3,
+          worldPos.y + 0.5,
+          worldPos.z + Math.sin(p.angle) * 0.3,
+        );
+        p.mesh.material.opacity = Math.max(0, 0.9 * (1 - elapsed / duration));
+      }
+      requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }
+
+  clearFrenzyParticles(targetMesh) {
+    if (targetMesh && targetMesh._frenzyParticles) {
+      for (const p of targetMesh._frenzyParticles) {
+        this._scene.remove(p.mesh);
+        p.mesh.geometry.dispose();
+        p.mesh.material.dispose();
+      }
+      targetMesh._frenzyParticles = null;
+    }
+  }
+
   // ── Per-frame update ─────────────────────────────────────────────────────────
   update(dt) {
     for (const p of this._particles) p.update(dt);

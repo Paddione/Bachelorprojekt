@@ -355,6 +355,7 @@ const RELAY_TYPES = [
   'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
   'hero_select', 'duel_start', 'duel_round_end', 'duel_match_end',
   'hero_stealth', 'hero_teleport', 'minion_spawn', 'minion_update', 'minion_die', 'hero_slow',
+  'vehicle_switch', 'vehicle_repair', 'motorcycle_sprint',
 ];
 
 const TRANSIENT_TYPES = new Set([
@@ -362,6 +363,7 @@ const TRANSIENT_TYPES = new Set([
   'hp_update','player_death','player_respawn',
   'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
   'hero_select', 'duel_start', 'hero_stealth', 'hero_teleport', 'minion_update', 'hero_slow',
+  'vehicle_switch', 'vehicle_repair', 'motorcycle_sprint',
 ]);
 
 const lmsAlive  = new Map(); // roomToken -> Set<playerId>

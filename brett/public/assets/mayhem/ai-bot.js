@@ -262,11 +262,12 @@ function _heroDecide(heroId, dist, hasLos, botHp) {
 }
 
 class AIBot {
-  constructor({ id, heroId, pos, scene, THREE, obstacles, weaponSystem }) {
+  constructor({ id, heroId, pos, scene, THREE, obstacles, weaponSystem, onDeath = () => {} }) {
     this.id = id;
     this.heroId = heroId;
     this.hp = 100;
     this.weaponSystem = weaponSystem;
+    this._onDeath = onDeath;
     this.obstacles = obstacles;
 
     const color = window.MayhemHeroes?.HEROES[heroId]?.color || 0x888888;

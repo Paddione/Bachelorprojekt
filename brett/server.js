@@ -44,6 +44,48 @@ function validateGlb(buffer) {
   return { ok: true, animations };
 }
 
+const SKINS_DIR_NAME = 'skins';
+const SKINS_DIR = path.join(__dirname, 'public', 'assets', SKINS_DIR_NAME);
+
+function listSkins(dir = SKINS_DIR) {
+  const out = [{ id: 'default', name: 'Mannequin', thumb: null, animations: [] }];
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const ent of entries) {
+    if (!ent.isDirectory()) continue;
+    if (ent.name === 'default') continue;
+    const skinDir = path.join(dir, ent.name);
+    let meta;
+    try {
+      meta = JSON.parse(fs.readFileSync(path.join(skinDir, 'meta.json'), 'utf8'));
+    } catch { continue; }
+    if (!meta || typeof meta.id !== 'string' || typeof meta.name !== 'string') continue;
+    const hasThumb = fs.existsSync(path.join(skinDir, 'thumb.png'));
+    out.push({
+      id: meta.id,
+      name: meta.name,
+      thumb: hasThumb ? `/assets/${SKINS_DIR_NAME}/${ent.name}/thumb.png` : null,
+      animations: Array.isArray(meta.animations) ? meta.animations : [],
+    });
+  }
+  return out;
+}
+
+function slugifyForSkin(name) {
+  const cleaned = String(name || '')
+    .toLowerCase()
+    .replace(/[^\x00-\x7F]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 32);
+  if (cleaned) return cleaned;
+  return 'skin-' + randomUUID().replace(/-/g, '').slice(0, 6);
+}
+
 const PRESETS_FILE = process.env.BRETT_PRESETS_PATH || path.join(__dirname, 'presets.json');
 
 const SPEC_PATH = path.join(__dirname, 'public', 'assets', 'figure-pack', 'placement_spec.json');
@@ -912,5 +954,8 @@ module.exports = {
   isAdminFromClaims,
   validateAppearance,
   validateGlb,
+  SKINS_DIR,
+  listSkins,
+  slugifyForSkin,
   buildConfig,
 };

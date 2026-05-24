@@ -2,9 +2,11 @@ name: dev-auto-deploy
 # Hardening notes:
 # - No untrusted event payload (issue/PR title/body/etc.) is read; only
 #   git-locally-computed paths and repo secrets feed the steps.
-# - The SSH wrapper on $DEV_NODE validates the requested subcommand
+# - The SSH wrapper on $DEV_NODE (k3s-1) validates the requested subcommand
 #   (see scripts/dev-deploy-wrapper.sh on the node) so even compromised
 #   secrets can only invoke the dev:* task family.
+# - k3s-1 is behind NAT; the connection is proxied through gekko-hetzner-2
+#   (DEV_PROXY_HOST) which is on the public internet and on the wg-mesh.
 on:
   push:
     branches: [main]
@@ -48,6 +50,9 @@ jobs:
           host: ${{ secrets.DEV_DEPLOY_HOST }}
           username: ${{ secrets.DEV_DEPLOY_USER }}
           key: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          proxy_host: ${{ secrets.DEV_PROXY_HOST }}
+          proxy_username: ${{ secrets.DEV_PROXY_USER }}
+          proxy_key: ${{ secrets.DEV_PROXY_SSH_KEY }}
           command_timeout: 20m
           script: dev:deploy
 
@@ -58,6 +63,9 @@ jobs:
           host: ${{ secrets.DEV_DEPLOY_HOST }}
           username: ${{ secrets.DEV_DEPLOY_USER }}
           key: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          proxy_host: ${{ secrets.DEV_PROXY_HOST }}
+          proxy_username: ${{ secrets.DEV_PROXY_USER }}
+          proxy_key: ${{ secrets.DEV_PROXY_SSH_KEY }}
           command_timeout: 10m
           script: dev:redeploy:website
 
@@ -68,5 +76,8 @@ jobs:
           host: ${{ secrets.DEV_DEPLOY_HOST }}
           username: ${{ secrets.DEV_DEPLOY_USER }}
           key: ${{ secrets.DEV_DEPLOY_SSH_KEY }}
+          proxy_host: ${{ secrets.DEV_PROXY_HOST }}
+          proxy_username: ${{ secrets.DEV_PROXY_USER }}
+          proxy_key: ${{ secrets.DEV_PROXY_SSH_KEY }}
           command_timeout: 10m
           script: dev:redeploy:brett

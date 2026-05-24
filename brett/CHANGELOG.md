@@ -1,6 +1,20 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.10.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.9.0...brett-v0.10.0) (2026-05-24)
+
+
+### Features
+
+* **brett:** add 10 hero/vehicle SFX and unify asset library catalogs ([#1077](https://github.com/Paddione/Bachelorprojekt/issues/1077)) ([c029e5b](https://github.com/Paddione/Bachelorprojekt/commit/c029e5b5f314142b1eb64e69bef1a0c4726b5e98))
+* **brett:** add named-person portraits and quick-spawn panel ([447bd08](https://github.com/Paddione/Bachelorprojekt/commit/447bd08eed0bfa408de8c87ab37b272ce1949391))
+
+
+### Bug Fixes
+
+* **brett:** buffer snapshot gameMode before Mayhem.init() to show duel hero-select ([#1075](https://github.com/Paddione/Bachelorprojekt/issues/1075)) ([5d66423](https://github.com/Paddione/Bachelorprojekt/commit/5d66423e30a2c3447b6751509e02c94a057d3463))
+* **brett:** WS figure persistence, static path, and dev launch config ([#1078](https://github.com/Paddione/Bachelorprojekt/issues/1078)) ([5bf5e1c](https://github.com/Paddione/Bachelorprojekt/commit/5bf5e1cc445f195aa8c5fd0e49770083d89dd968))
+
 ## [0.9.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.2...brett-v0.9.0) (2026-05-24)
 
 

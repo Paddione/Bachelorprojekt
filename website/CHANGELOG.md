@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.8.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.7.0...website-v1.8.0) (2026-05-24)
+
+
+### Features
+
+* **admin:** add inbox compose button + Neuer Termin label [T000103, T000105] ([#1005](https://github.com/Paddione/Bachelorprojekt/issues/1005)) ([22185eb](https://github.com/Paddione/Bachelorprojekt/commit/22185eb49a073b5bc3fecd0ce36b7231c15173c5))
+
+
+### Bug Fixes
+
+* **billing:** migrate blob storage to billing_invoice_documents [T000111, T000112] ([#1006](https://github.com/Paddione/Bachelorprojekt/issues/1006)) ([4091fce](https://github.com/Paddione/Bachelorprojekt/commit/4091fce1520ba957409167a44efe84f4d18580c6))
+* **kore:** fix Svelte onerror syntax in KoreHomepage + add missing CSS + starters ([#1007](https://github.com/Paddione/Bachelorprojekt/issues/1007)) ([a65d992](https://github.com/Paddione/Bachelorprojekt/commit/a65d992baf1abb107c2af7f4d9e74b2b39aa064c))
+* **live/rechnungen:** polls closed_at→locked_at, surface tokens, dialog centering [T000110, T000113] ([#1003](https://github.com/Paddione/Bachelorprojekt/issues/1003)) ([78add29](https://github.com/Paddione/Bachelorprojekt/commit/78add2902f3050f7472ef696ee8613e618e72160))
+
 ## [1.7.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.6.1...website-v1.7.0) (2026-05-23)
 
 

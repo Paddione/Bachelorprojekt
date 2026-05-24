@@ -1,6 +1,18 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.9.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.2...brett-v0.9.0) (2026-05-24)
+
+
+### Features
+
+* **brett:** mayhem duel-hero completion — 7 bug fixes [T000268] ([#1073](https://github.com/Paddione/Bachelorprojekt/issues/1073)) ([9dd92c5](https://github.com/Paddione/Bachelorprojekt/commit/9dd92c56a384d059b324ac12fbb22f07b25e293a))
+
+
+### Bug Fixes
+
+* **brett:** EROFS presets fix + korczewski dev start script [T000266] ([#1068](https://github.com/Paddione/Bachelorprojekt/issues/1068)) ([56e4cd4](https://github.com/Paddione/Bachelorprojekt/commit/56e4cd43861f7a88178a42a2be6ab65c8da33c0f))
+
 ## [0.8.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.1...brett-v0.8.2) (2026-05-24)
 
 

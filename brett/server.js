@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
-const PRESETS_FILE = path.join(__dirname, 'presets.json');
+const PRESETS_FILE = process.env.BRETT_PRESETS_PATH || path.join(__dirname, 'presets.json');
 
 const SPEC_PATH = path.join(__dirname, 'public', 'assets', 'figure-pack', 'placement_spec.json');
 let SPEC = { faces: {}, accessories: {}, bodies: {} };

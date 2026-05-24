@@ -247,7 +247,7 @@
   <header>
     <h2>Sound-Effekte</h2>
     <span class="id">/sfx · Web Audio API · CC0</span>
-    <span class="count">12 files · OGG Vorbis · mono 44.1 kHz</span>
+    <span class="count">22 files · OGG Vorbis · mono 44.1 kHz</span>
   </header>
 
   <style>
@@ -360,9 +360,91 @@
     </div>
   </div>
 
+  <div class="sfx-group-label">Hero-Fähigkeiten · 5 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">frostnova</span>
+      <span class="sfx-name">Frost Nova</span>
+      <span class="sfx-desc">Eisfeld-Explosion — Energie-Burst mit Freeze-Charakter</span>
+      <span class="sfx-file">frostnova.ogg</span>
+      <audio controls preload="none" src="../sfx/frostnova.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">chainlightning</span>
+      <span class="sfx-name">Chain Lightning</span>
+      <span class="sfx-desc">Kettenblitz — großer Lasercrack, springt visuell weiter</span>
+      <span class="sfx-file">chainlightning.ogg</span>
+      <audio controls preload="none" src="../sfx/chainlightning.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">summon-minion</span>
+      <span class="sfx-name">Minion beschwören</span>
+      <span class="sfx-desc">Magischer Aufstieg — positiver Ton, Minion erscheint</span>
+      <span class="sfx-file">summon-minion.ogg</span>
+      <audio controls preload="none" src="../sfx/summon-minion.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">shield-minion</span>
+      <span class="sfx-name">Minion Schild</span>
+      <span class="sfx-desc">Kraftfeld snap — Schutzkugel um den Minion</span>
+      <span class="sfx-file">shield-minion.ogg</span>
+      <audio controls preload="none" src="../sfx/shield-minion.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">frenzy-minion</span>
+      <span class="sfx-name">Minion Raserei</span>
+      <span class="sfx-desc">Glitch-Burst — chaotische Energie, Minion dreht auf</span>
+      <span class="sfx-file">frenzy-minion.ogg</span>
+      <audio controls preload="none" src="../sfx/frenzy-minion.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Fahrzeug · 3 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">motorcycle-engine</span>
+      <span class="sfx-name">Motor</span>
+      <span class="sfx-desc">Motorrad-Engine-Burst — 1,8 s Anlauf (trimmed loop)</span>
+      <span class="sfx-file">motorcycle-engine.ogg</span>
+      <audio controls preload="none" src="../sfx/motorcycle-engine.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">vehicle-switch</span>
+      <span class="sfx-name">Waffe wechseln</span>
+      <span class="sfx-desc">Mechanischer Switch — sauberer Klick beim Umschalten</span>
+      <span class="sfx-file">vehicle-switch.ogg</span>
+      <audio controls preload="none" src="../sfx/vehicle-switch.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">vehicle-repair</span>
+      <span class="sfx-name">Reparatur</span>
+      <span class="sfx-desc">Metall-Impact — Schrauben-/Werkzeug-Kontakt am Fahrzeug</span>
+      <span class="sfx-file">vehicle-repair.ogg</span>
+      <audio controls preload="none" src="../sfx/vehicle-repair.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Hero-Skills · 2 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">hero-stealth</span>
+      <span class="sfx-name">Stealth</span>
+      <span class="sfx-desc">Abstieg-Whoosh — UI-Tone fällt ab, Held wird unsichtbar</span>
+      <span class="sfx-file">hero-stealth.ogg</span>
+      <audio controls preload="none" src="../sfx/hero-stealth.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">hero-teleport</span>
+      <span class="sfx-name">Teleport</span>
+      <span class="sfx-desc">Sci-Fi-Thruster-Burst — kurzer Warp-Effekt (1,2 s trimmed)</span>
+      <span class="sfx-file">hero-teleport.ogg</span>
+      <audio controls preload="none" src="../sfx/hero-teleport.ogg"></audio>
+    </div>
+  </div>
+
   <div class="caveat" style="margin-top: 28px;">
     <h4>Integration · MayhemAudio</h4>
-    <p>Alle 12 Files werden in <code>assets/mayhem/audio.js</code> via Web Audio API vorgeladen (nach erstem User-Gesture). Jeder Key entspricht einem Eintrag in <code>SFX_MAP</code>. Footstep-Variante wird per <code>Math.random()</code> gewählt; Pitch-Streuung über <code>playbackRate</code> (±6–12 Halbtöne) gibt jedem Sample genug Variation.</p>
+    <p>Alle 22 Files werden in <code>assets/mayhem/audio.js</code> via Web Audio API vorgeladen (nach erstem User-Gesture). Jeder Key entspricht einem Eintrag in <code>SFX_MAP</code>. Footstep-Variante wird per <code>Math.random()</code> gewählt; Pitch-Streuung über <code>playbackRate</code> (±6–12 Halbtöne) gibt jedem Sample genug Variation. Hero-Ability-Sounds: Quellen Kenney Sci-Fi + Interface Sounds (CC0).</p>
   </div>
 </section>
 

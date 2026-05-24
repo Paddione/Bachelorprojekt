@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.8.1...website-v1.9.0) (2026-05-24)
+
+
+### Features
+
+* **e2e:** headed infrastructure E2E tests — mentolder auth + 17-service health sweep ([#1011](https://github.com/Paddione/Bachelorprojekt/issues/1011)) ([f40e34e](https://github.com/Paddione/Bachelorprojekt/commit/f40e34e391b6e62ff4b97db1386a4015a376925e))
+
 ## [1.8.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.8.0...website-v1.8.1) (2026-05-24)
 
 

@@ -4,70 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Beitragen zum Workspace MVP — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">contributing</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">GitHub Actions</span>
+    <span class="badge badge-blue">squash-merge</span>
+    <span class="badge-slug">contributing</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-  <li class="sidebar-section">Quickstarts</li>
-  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
-  <li class="sidebar-section">Services</li>
-  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
-  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
-  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
-  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
-  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
-  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
-  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
-  <li class="sidebar-section">Betrieb</li>
-  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
-  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
-  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
-  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
-  <li class="sidebar-section">Sicherheit</li>
-  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
-  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
-  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
-  <li class="sidebar-section">Entwicklung</li>
-  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
-  <li class="sidebar-item active"><a href="./contributing.html" class="active">Beitragen & CI/CD</a></li>
-  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
-  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
-  <li class="sidebar-section">Administration</li>
-  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
-  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
-  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
-  <li class="sidebar-section">Benutzerhandbuch</li>
-  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
-  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
-  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
-  <li class="sidebar-section">Referenz</li>
-  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
-  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><div class="page-hero">
-  <span class="page-hero-icon">🤝</span>
-  <div class="page-hero-body">
-    <div class="page-hero-eyebrow">Entwickler · Workflow</div>
-    <div class="page-hero-title">Beitragen zum Workspace</div>
-    <p class="page-hero-desc">Branch-Strategie, PR-Workflow, CI-Anforderungen und Merge-Regeln.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">GitHub Actions</span>
-      <span class="page-hero-tag">squash-merge</span>
-    </div>
-  </div>
-  <a href="./index.html" class="page-hero-back">← Übersicht</a>
-</div><div class="toc-box auto-toc">
+  <h1 class="hero-title">🤝 Beitragen zum Workspace</h1>
+  <p class="hero-subtitle">Branch-Strategie, PR-Workflow, CI-Anforderungen und Merge-Regeln.</p>
+  <div class="trigger-chip"><span class="label">Entwickler · Workflow</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#ci-pipeline"><span class="toc-num">1.</span>&nbsp;CI-Pipeline</a></li>
 <li class="toc-item"><a href="#monorepo-regeln"><span class="toc-num">2.</span>&nbsp;Monorepo-Regeln</a></li>
@@ -269,14 +230,9 @@ gh pr create \
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Test-IDs: <code>FA-01</code>–<code>FA-40</code> (funktional, mit Lücken), <code>SA-01</code>–<code>SA-10</code> (Sicherheit, mit Lücken), <code>NFA-01</code>–<code>NFA-09</code> (nicht-funktional), <code>AK-03</code>, <code>AK-04</code> (Abnahme). Lücken in der Nummerierung (FA-01..08, FA-22, FA-30, FA-38, SA-06, SA-09) spiegeln entfernte Services (Mattermost, InvoiceNinja) wider. Vollständige Liste: <a href="tests.md">Testframework</a>.</p>
 <p>Weitere Details: <a href="tests.md">Testframework</a></p>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

@@ -4,71 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Systemarchitektur — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">architecture</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">Fuer Administratoren</span>
+    <span class="badge badge-blue">Kubernetes</span>
+    <span class="badge badge-blue">Mermaid-Diagramme</span>
+    <span class="badge-slug">architecture</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-  <li class="sidebar-section">Quickstarts</li>
-  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
-  <li class="sidebar-section">Services</li>
-  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
-  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
-  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
-  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
-  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
-  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
-  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
-  <li class="sidebar-section">Betrieb</li>
-  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
-  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
-  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
-  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
-  <li class="sidebar-section">Sicherheit</li>
-  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
-  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
-  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
-  <li class="sidebar-section">Entwicklung</li>
-  <li class="sidebar-item active"><a href="./architecture.html" class="active">Architektur</a></li>
-  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
-  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
-  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
-  <li class="sidebar-section">Administration</li>
-  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
-  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
-  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
-  <li class="sidebar-section">Benutzerhandbuch</li>
-  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
-  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
-  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
-  <li class="sidebar-section">Referenz</li>
-  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
-  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><div class="page-hero">
-  <span class="page-hero-icon">🏗️</span>
-  <div class="page-hero-body">
-    <div class="page-hero-eyebrow">Referenz · Kubernetes</div>
-    <div class="page-hero-title">Systemarchitektur</div>
-    <p class="page-hero-desc">Kubernetes-Cluster-Topologie, Service-Abhaengigkeiten, Netzwerkmodell und Infrastruktur-Design des Workspace MVP.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">Fuer Administratoren</span>
-      <span class="page-hero-tag">Kubernetes</span>
-      <span class="page-hero-tag">Mermaid-Diagramme</span>
-    </div>
-  </div>
-  <a href="./index.html" class="page-hero-back">← Uebersicht</a>
-</div><div class="toc-box auto-toc">
+  <h1 class="hero-title">🏗️ Systemarchitektur</h1>
+  <p class="hero-subtitle">Kubernetes-Cluster-Topologie, Service-Abhaengigkeiten, Netzwerkmodell und Infrastruktur-Design des Workspace MVP.</p>
+  <div class="trigger-chip"><span class="label">Referenz · Kubernetes</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#ueberblick"><span class="toc-num">1.</span>&nbsp;Ueberblick</a></li>
 <li class="toc-item"><a href="#komponenten-diagramm"><span class="toc-num">2.</span>&nbsp;Komponenten-Diagramm</a></li>
@@ -80,7 +41,7 @@
 <li class="toc-item"><a href="#sso--oidc-flow"><span class="toc-num">8.</span>&nbsp;SSO / OIDC-Flow</a></li>
 <li class="toc-item"><a href="#deployment-pipeline"><span class="toc-num">9.</span>&nbsp;Deployment-Pipeline</a></li>
 <li class="toc-item"><a href="#persistenter-speicher"><span class="toc-num">10.</span>&nbsp;Persistenter Speicher</a></li></ul>
-</div><h1>Systemarchitektur</h1>
+</div>
 <h2 id="ueberblick">Ueberblick</h2>
 <p>Workspace MVP ist eine Kubernetes-basierte Kollaborationsplattform fuer kleine Teams. Alle Services laufen als Kubernetes Deployments und werden mit Kustomize gebaut — <code>k3d/</code> ist das einzige Basis-Manifest-Verzeichnis. Lokal laeuft der Cluster in k3d (Docker-in-Docker), in Produktion laufen zwei physische k3s-Cluster: <code>mentolder</code> (9 Nodes: 3 Hetzner-CPs + 6 Home-Worker via WireGuard-Mesh, Namespace <code>workspace</code>) und <code>korczewski</code> (3 Hetzner-Nodes, Namespace <code>workspace-korczewski</code>). Als Ingress Controller dient Traefik (k3s built-in), der alle eingehenden HTTP/HTTPS-Anfragen per Subdomain-Routing an die jeweiligen Services weiterleitet. Alle Nutzerdaten verbleiben vollstaendig on-premises (DSGVO by Design).</p>
 <hr>
@@ -488,14 +449,9 @@ Alle Diagramme sind interaktiv — Scroll zum Zoomen, Ziehen zum Verschieben. Kl
 <li><strong>Rotation:</strong> 30-Tage-Aufbewahrung, aeltere Backups werden automatisch geloescht</li>
 <li><strong>Speicher:</strong> 1 Gi PVC (<code>backup-pvc</code>)</li>
 </ul>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

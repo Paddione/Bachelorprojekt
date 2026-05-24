@@ -4,70 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Backup &amp; Wiederherstellung — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">backup</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-purple">SA-07</span>
+    <span class="badge badge-purple">AES-256</span>
+    <span class="badge-slug">backup</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-  <li class="sidebar-section">Quickstarts</li>
-  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
-  <li class="sidebar-section">Services</li>
-  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
-  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
-  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
-  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
-  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
-  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
-  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
-  <li class="sidebar-section">Betrieb</li>
-  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
-  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
-  <li class="sidebar-item active"><a href="./backup.html" class="active">Backup & Wiederherstellung</a></li>
-  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
-  <li class="sidebar-section">Sicherheit</li>
-  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
-  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
-  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
-  <li class="sidebar-section">Entwicklung</li>
-  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
-  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
-  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
-  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
-  <li class="sidebar-section">Administration</li>
-  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
-  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
-  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
-  <li class="sidebar-section">Benutzerhandbuch</li>
-  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
-  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
-  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
-  <li class="sidebar-section">Referenz</li>
-  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
-  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><div class="page-hero">
-  <span class="page-hero-icon">💾</span>
-  <div class="page-hero-body">
-    <div class="page-hero-eyebrow">Daten · Wiederherstellung</div>
-    <div class="page-hero-title">Backup &amp; Wiederherstellung</div>
-    <p class="page-hero-desc">Tägliche verschlüsselte DB-Snapshots, Restore-Workflow und Backup-Monitoring.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">SA-07</span>
-      <span class="page-hero-tag">AES-256</span>
-    </div>
-  </div>
-  <a href="./index.html" class="page-hero-back">← Übersicht</a>
-</div><div class="toc-box auto-toc">
+  <h1 class="hero-title">💾 Backup &amp; Wiederherstellung</h1>
+  <p class="hero-subtitle">Tägliche verschlüsselte DB-Snapshots, Restore-Workflow und Backup-Monitoring.</p>
+  <div class="trigger-chip"><span class="label">Daten · Wiederherstellung</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#ueberblick"><span class="toc-num">1.</span>&nbsp;Überblick</a></li>
 <li class="toc-item"><a href="#was-wird-gesichert"><span class="toc-num">2.</span>&nbsp;Was wird gesichert</a></li>
@@ -78,7 +39,7 @@
 <li class="toc-item"><a href="#nextcloud-dateien-sichern-manuell"><span class="toc-num">7.</span>&nbsp;Nextcloud-Dateien sichern (manuell)</a></li>
 <li class="toc-item"><a href="#aufbewahrungsstrategie"><span class="toc-num">8.</span>&nbsp;Aufbewahrungsstrategie</a></li>
 <li class="toc-item"><a href="#backup-passphrase-verwalten"><span class="toc-num">9.</span>&nbsp;Backup-Passphrase verwalten</a></li></ul>
-</div><h1>Backup &amp; Wiederherstellung</h1>
+</div>
 <h2 id="ueberblick">Überblick</h2>
 <p>Automatische Datenbank-Backups laufen täglich als Kubernetes CronJob (<code>k3d/backup-cronjob.yaml</code>):</p>
 <ul>
@@ -277,14 +238,9 @@ kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
 <li><strong>Rotation:</strong> <code>task env:generate ENV=&lt;env&gt;</code> → <code>task env:seal ENV=&lt;env&gt;</code> → Deploy</li>
 </ul>
 <p>Die Passphrase wird ausschließlich aus <code>workspace-secrets</code> gelesen — nie im Klartext in Logs oder Manifesten.</p>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

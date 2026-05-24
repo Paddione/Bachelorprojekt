@@ -4,21 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Shared DB — Schema Reference &amp; Normalization Audit — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">db-schema</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">db schema</span>
+    <span class="badge-slug">db-schema</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><h1>Shared DB — Schema Reference &amp; Normalization Audit</h1><div class="toc-box auto-toc">
+  <h1 class="hero-title">Shared DB — Schema Reference &amp; Normalization Audit</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#crm--communication"><span class="toc-num">1.</span>&nbsp;CRM &amp; Communication</a></li>
 <li class="toc-item"><a href="#billing--accounting"><span class="toc-num">2.</span>&nbsp;Billing &amp; Accounting</a></li>
@@ -144,14 +151,9 @@ Re-run: <code>task db:diagram ENV=mentolder</code></p>
 <td>Add a <code>users</code> view or table as FK target, or document the convention</td>
 </tr>
 </tbody></table>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

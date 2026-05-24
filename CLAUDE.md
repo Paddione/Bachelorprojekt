@@ -131,7 +131,10 @@ task gemini:setup -- cluster|business     # Generate Gemini CLI settings.json (p
 
 ### Docs
 ```bash
-task docs:deploy                # Build docs image (once), push, rollout on both prod clusters
+task docs:build                 # Compile docs/ Markdown → k3d/docs-content-built/ HTML (+ rebuild search.json)
+task docs:sync ENV=<env>        # Fast dev: push k3d/docs-content-built to running pod (no image rebuild)
+task docs:deploy                # Full release: build HTML, push Docker image, rollout on both prod clusters
+task docs:refresh-diagrams      # Regenerate auto-generated diagrams (DB schema, …) then redeploy
 ```
 
 ### Claude Code MCP Servers
@@ -276,6 +279,7 @@ task workspace:theme ENV=<env>           # Re-apply Nextcloud branding (logos, c
 task workspace:verify ENV=<env>          # Post-deploy smoke probes (per env)
 task workspace:verify:all-prods          # Same, fanned out across both prod clusters
 task db:diagram                          # Render a current schema ER diagram
+task billing:validate-einvoice           # Validate XML/PDF e-invoices via Mustangproject (no args = all fixtures)
 task gemini:setup:all                    # Generate Gemini CLI configs for all roles in one go
 task claude-code:export                  # Export the current Claude Code agent definitions
 task claude-code:invite                  # Mint an invite token for a Claude Code business user
@@ -305,11 +309,18 @@ See `docs/dev-stack/README.md` for the runbook. The dev cluster's HTTP LB binds 
 ./tests/runner.sh report             # Generate Markdown report
 task test:unit                        # Run BATS unit tests (assertion lib, scripts, configs)
 task test:manifests                   # Validate kustomize output structure (no cluster needed)
-task test:all                         # Run all offline tests: unit + manifests + dry-run
+task test:all                         # Run all offline tests: unit + manifests + art-library + menu-gate + dry-run
+task test:e2e ENV=mentolder           # Playwright e2e suite against mentolder (requires CRON_SECRET)
+task test:e2e ENV=korczewski          # Playwright e2e suite against korczewski
+task test:e2e:all-prods               # Playwright against mentolder then korczewski
+task systemtest:cycle CYCLE=1 ENV=mentolder  # Fan out 3 parallel Playwright sessions for System-Test cycle
+task systemtest:all ENV=mentolder     # Run all 12 system-test specs across 4 cycles
+task systemtest:all-prods             # Run all 12 specs on mentolder then korczewski
+task systemtest:analyze ENV=mentolder # Analyse outcome files + produce drift report
 ```
 
-Test IDs: `FA-01`--`FA-29` (functional), `SA-01`--`SA-10` (security), `NFA-01`--`NFA-09` (non-functional), `AK-03`, `AK-04` (acceptance).
-Note: gaps in FA-/SA- numbering (FA-01..08, FA-22, SA-06, SA-09) reflect the removal of Mattermost and InvoiceNinja from the stack — see git history. Many other tests have individual test cases conditionally skipped when their preconditions are not met.
+Test IDs: `FA-01`--`FA-45` + `FA-admin-*` (functional), `SA-01`--`SA-15` (security), `NFA-01`--`NFA-12` (non-functional), `AK-03`, `AK-04` (acceptance), `systemtest-00`--`systemtest-12` (Systembrett-Systemtest scenarios).
+Note: gaps in FA-/SA- numbering (FA-01..08, FA-22, SA-06, SA-09) reflect the removal of Mattermost and InvoiceNinja from the stack — see git history. Many specs are conditionally skipped on korczewski or when preconditions are not met. The Systemtest-Gesamt (`systemtest-00`) orchestrates all 12 sub-specs in sequence and has a 200-step limit.
 
 ## Architecture
 
@@ -377,7 +388,7 @@ graph TB
 - **`scripts/`** -- Bash utility scripts for migration, user import, DSGVO checks, MCP registration, Stripe setup, env resolution/generation/sealing, etc.
 - **`tests/`** -- Bash + Playwright test framework. `runner.sh` orchestrates all test categories.
 - **`website/`** -- Astro + Svelte website.
-- **`k3d/docs-content/`** -- Markdown + Docsify `index.html` served by the `docs` Deployment; deployed to both clusters via `task docs:deploy`.
+- **`k3d/docs-content-built/`** -- Pre-built HTML served by the `docs` Deployment. Source is compiled by `node scripts/build-docs.js` from the `docs/` directory and skill HTML. Deploy via `task docs:deploy` (builds image) or `task docs:sync ENV=<env>` (fast push to running pod, no image rebuild).
 
 ### Configuration patterns
 - **Centralized domains**: All hostnames defined in `k3d/configmap-domains.yaml`. Never hardcode hostnames elsewhere.
@@ -398,8 +409,8 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every PR:
 - `arena-server` build + unit/integration tests (pnpm, real Postgres service container)
 - **Arena protocol drift guard**: `arena-server/src/proto/messages.ts` and `website/src/components/arena/shared/lobbyTypes.ts` must be byte-identical — CI fails if they diverge
 
-Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `track-plans.yml`, `build-collabora.yml`, `build-tracking.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main), `dev-auto-deploy.yml` (auto-deploy to dev.mentolder.de on relevant push), `dev-smoke.yml` (nightly BATS against dev.mentolder.de at 05:00 UTC).
-Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23) — both parts of the tracking pipeline are now gone. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
+Other workflows: `e2e.yml` (nightly Playwright against both prod clusters), `build-brett.yml` (tag `brett-v*`), `build-arena-server.yml` (tag `arena-server-v*`), `build-docs.yml` (tag `docs-v*`), `build-collabora.yml`, `build-transcriber.yml`, `build-website.yml` / `build-website-korczewski.yml` (auto build+rollout on `website/**` push to main), `dev-auto-deploy.yml` (auto-deploy to dev.mentolder.de on relevant push), `dev-smoke.yml` (nightly BATS against dev.mentolder.de at 05:00 UTC).
+Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.yml` was removed in PR #993 (2026-05-23); `build-tracking.yml` and `track-plans.yml` are gone — both parts of the tracking pipeline are fully removed. The Kore homepage timeline still renders from `v_timeline` but shows only historical data (last tracked PR: #787).
 
 ## Development Rules
 
@@ -452,7 +463,7 @@ After any cluster reset (including replacing a Sealed Secrets controller keypair
 ### Operational
 - **Flux: reconcile source before kustomization.** After a PR merges, `flux reconcile kustomization workspace --context <env>` may apply the OLD revision if the GitRepository hasn't polled yet. Always prime with `flux reconcile source git flux-system --context <env>` first, then reconcile the kustomization. Applies to both clusters.
 - **Immer zuerst pullen (Pull-First).** Vor jeder Arbeit am Repo zuerst `git pull --rebase origin main` ausführen. Falls lokale Änderungen vorhanden sind (dirty worktree): `git stash && git pull --rebase origin main && git stash pop`. Falls `stash pop` Konflikte meldet, diese klären bevor weitergemacht wird. Die `dev-flow-plan`-, `dev-flow-execute`- und `using-git-worktrees`-Skills erzwingen diesen Schritt automatisch.
-- **Docs are served via Docker image, not ConfigMap.** `k3d/docs.yaml` runs `ghcr.io/paddione/workspace-docs:latest`; content is baked in at build time. After changing `k3d/docs-content/`, run `task docs:deploy` — it builds the image once, pushes, then rolls both clusters. `docs:configmap:apply` applies a ConfigMap that is not mounted in the running pods — it has no visible effect.
+- **Docs source is `k3d/docs-content-built/` (pre-built HTML), not a Markdown source tree.** The `docs/` directory holds the Markdown source; `node scripts/build-docs.js` compiles it to HTML in `k3d/docs-content-built/`. For quick iteration: `task docs:sync ENV=<env>` (pushes HTML to the running pod, live immediately). For a full release: `task docs:deploy` (build + Docker image push + rollout on both clusters). `docs:configmap:apply` is kept only for kustomize validation — it has no visible effect on running pods.
 - **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.
 - **LiveKit needs node-pinning + DNS-pinning + ufw rules.** `livekit-server` runs with `hostNetwork: true` (workspace ns is `pod-security: privileged` for this) and is pinned via `nodeAffinity` to `gekko-hetzner-3` (mentolder). The Hetzner host firewall blocks all inter-node traffic except 80/443 — `prod/cloud-init.yaml` opens 7880/tcp + 7881/tcp + 50000-60000/udp + 30000-40000/udp on every node. `livekit.<domain>` and `stream.<domain>` should DNS-pin to the pin-node IP via `task livekit:dns-pin` (browsers otherwise hit a non-LiveKit node ~66% of the time and ICE silently fails). `Room.connect()` must run from a user gesture — Chrome blocks the AudioContext otherwise.
 

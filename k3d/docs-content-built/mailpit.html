@@ -4,58 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Mailpit — Entwicklungs-Mailserver — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">mailpit</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">mailpit</span>
+    <span class="badge-slug">mailpit</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-  <li class="sidebar-section">Quickstarts</li>
-  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
-  <li class="sidebar-section">Services</li>
-  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
-  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
-  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
-  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
-  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
-  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
-  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
-  <li class="sidebar-section">Betrieb</li>
-  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
-  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
-  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
-  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
-  <li class="sidebar-section">Sicherheit</li>
-  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
-  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
-  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
-  <li class="sidebar-section">Entwicklung</li>
-  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
-  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
-  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
-  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
-  <li class="sidebar-section">Administration</li>
-  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
-  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
-  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
-  <li class="sidebar-section">Benutzerhandbuch</li>
-  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
-  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
-  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
-  <li class="sidebar-section">Referenz</li>
-  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
-  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><h1>Mailpit — Entwicklungs-Mailserver</h1><div class="toc-box auto-toc">
+  <h1 class="hero-title">Mailpit — Entwicklungs-Mailserver</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#uebersicht"><span class="toc-num">1.</span>&nbsp;Übersicht</a></li>
 <li class="toc-item"><a href="#funktionsweise"><span class="toc-num">2.</span>&nbsp;Funktionsweise</a></li>
@@ -419,14 +389,9 @@ SMTP_PASS: "password"
 <li><strong>Mailpit Dokumentation:</strong> <a href="https://mailpit.axllent.org/">https://mailpit.axllent.org/</a></li>
 <li><strong>Email-Testing Best Practices:</strong> <a href="https://www.mailpit.io/docs/">https://www.mailpit.io/docs/</a></li>
 </ul>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

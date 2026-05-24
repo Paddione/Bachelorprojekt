@@ -360,34 +360,36 @@ export function buildSearchIndex(pages) {
 }
 
 // ─── wrapPage ─────────────────────────────────────────────────────────────────
-export function wrapPage({ slug, title, content, sidebarHtml }) {
+export function wrapPage({ slug, title, content }) {
   return `<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${escHtml(title)} — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">${escHtml(slug)}</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge-slug">${escHtml(slug)}</span>
   </div>
-  ${sidebarHtml}
-</aside>
-<main id="main">${content}</main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+  <h1 class="hero-title">${escHtml(title)}</h1>
+</header>
+
+<main class="content">
+${content}
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>`;
@@ -408,8 +410,7 @@ async function rebuildPage(slug, mdPath, sidebarMd) {
   const title = $('h1').first().text().trim() || slug;
   if (!FAST) html = await Promise.resolve(renderMermaidBlocks(html));
   html = postProcess(html);
-  const sidebarHtml = parseSidebar(sidebarMd, slug);
-  const full = wrapPage({ slug, title, content: html, sidebarHtml });
+  const full = wrapPage({ slug, title, content: html });
   writeFileSync(join(OUT_DIR, `${slug}.html`), full, 'utf8');
   console.log(`  → ${slug}.html ✓`);
 }
@@ -460,10 +461,11 @@ async function main() {
   // Normal run: sync skills HTML, refresh assets, regenerate search.json
   // (HTML pages in OUT_DIR are the committed source — not rebuilt from MD)
 
-  // Write JS/CSS assets (regenerated from script — not committed separately)
+  // Write app.js (regenerated from script); style.css kept for legacy references
   writeFileSync(join(OUT_DIR, 'style.css'), getPageCss(), 'utf8');
   writeFileSync(join(OUT_DIR, 'app.js'), getPageJs(), 'utf8');
   console.log('  → style.css + app.js ✓');
+  // skills/style.css is the canonical stylesheet for all subpages — synced below via cpSync
 
   // Sync skills visualization from docs/ (their source of truth)
   const SKILLS_OVERVIEW_SRC = join(__dirname, '../docs/skills-overview.html');

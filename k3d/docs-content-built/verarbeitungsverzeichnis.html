@@ -4,70 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Verarbeitungsverzeichnis (Art. 30 DSGVO) — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">verarbeitungsverzeichnis</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-red">DSGVO Art. 30</span>
+    <span class="badge badge-red">Für Administratoren</span>
+    <span class="badge-slug">verarbeitungsverzeichnis</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-  <li class="sidebar-section">Quickstarts</li>
-  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
-  <li class="sidebar-section">Services</li>
-  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
-  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
-  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
-  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
-  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
-  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
-  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
-  <li class="sidebar-section">Betrieb</li>
-  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
-  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
-  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
-  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
-  <li class="sidebar-section">Sicherheit</li>
-  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
-  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
-  <li class="sidebar-item active"><a href="./verarbeitungsverzeichnis.html" class="active">Verarbeitungsverzeichnis</a></li>
-  <li class="sidebar-section">Entwicklung</li>
-  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
-  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
-  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
-  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
-  <li class="sidebar-section">Administration</li>
-  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
-  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
-  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
-  <li class="sidebar-section">Benutzerhandbuch</li>
-  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
-  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
-  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
-  <li class="sidebar-section">Referenz</li>
-  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
-  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><div class="page-hero">
-  <span class="page-hero-icon">📎</span>
-  <div class="page-hero-body">
-    <div class="page-hero-eyebrow">DSGVO · Art. 30 DSGVO</div>
-    <div class="page-hero-title">Verarbeitungsverzeichnis (Art. 30 DSGVO)</div>
-    <p class="page-hero-desc">Dokumentation aller Verarbeitungstätigkeiten personenbezogener Daten: Verantwortlicher, Zweck, Datenkategorien, Empfänger und Löschfristen.</p>
-    <div class="page-hero-meta">
-      <span class="page-hero-tag">DSGVO Art. 30</span>
-      <span class="page-hero-tag">Für Administratoren</span>
-    </div>
-  </div>
-  <a href="./index.html" class="page-hero-back">← Übersicht</a>
-</div><div class="toc-box auto-toc">
+  <h1 class="hero-title">📎 Verarbeitungsverzeichnis (Art. 30 DSGVO)</h1>
+  <p class="hero-subtitle">Dokumentation aller Verarbeitungstätigkeiten personenbezogener Daten: Verantwortlicher, Zweck, Datenkategorien, Empfänger und Löschfristen.</p>
+  <div class="trigger-chip"><span class="label">DSGVO · Art. 30 DSGVO</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#vt-01-nutzer-authentifizierung"><span class="toc-num">1.</span>&nbsp;VT-01: Nutzer-Authentifizierung</a></li>
 <li class="toc-item"><a href="#vt-02-teamkommunikation-chat"><span class="toc-num">2.</span>&nbsp;VT-02: Teamkommunikation (Chat)</a></li>
@@ -79,7 +40,7 @@
 <li class="toc-item"><a href="#vt-08-whiteboard"><span class="toc-num">8.</span>&nbsp;VT-08: Whiteboard</a></li>
 <li class="toc-item"><a href="#keine-drittlanduebermittlung-standardbetrieb"><span class="toc-num">9.</span>&nbsp;Keine Drittlandübermittlung (Standardbetrieb)</a></li>
 <li class="toc-item"><a href="#auftragsverarbeiter"><span class="toc-num">10.</span>&nbsp;Auftragsverarbeiter</a></li></ul>
-</div><h1>Verarbeitungsverzeichnis (Art. 30 DSGVO)</h1>
+</div>
 <p><strong>Verantwortlicher:</strong> Gemäß Impressum (<code>/impressum</code>)<br><strong>Letzte Aktualisierung:</strong> 2026-04-20<br><strong>Plattform:</strong> Workspace MVP — selbst-gehostete Kollaborationsplattform (On-Premises)</p>
 <blockquote>
 <p>Dieses Verzeichnis wird geführt gemäß Art. 30 Abs. 1 DSGVO. Es dokumentiert alle Verarbeitungstätigkeiten, bei denen personenbezogene Daten verarbeitet werden.</p>
@@ -445,14 +406,9 @@
 </tr>
 </tbody></table>
 <p>Alle übrigen Verarbeitungen erfolgen vollständig durch den Verantwortlichen selbst auf eigener On-Premises-Infrastruktur (kein weiterer Auftragsverarbeiter).</p>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

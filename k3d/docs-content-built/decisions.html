@@ -4,66 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Decision-Log — Workspace MVP</title>
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./skills/style.css">
 </head>
 <body>
-<div id="app">
-<aside class="sidebar">
-  <div class="sidebar-logo">⬡ Workspace MVP</div>
-  <div class="sidebar-search">
-    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
-      🔍 Suchen… <kbd>Ctrl K</kbd>
-    </button>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">decisions</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge-slug">decisions</span>
   </div>
-  <nav class="sidebar-nav"><ul>
-  <li class="sidebar-section">Quickstarts</li>
-  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
-  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
-  <li class="sidebar-section">Services</li>
-  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
-  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
-  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
-  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
-  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
-  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
-  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
-  <li class="sidebar-section">Betrieb</li>
-  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
-  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
-  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
-  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
-  <li class="sidebar-section">Sicherheit</li>
-  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
-  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
-  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
-  <li class="sidebar-section">Entwicklung</li>
-  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
-  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
-  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
-  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
-  <li class="sidebar-section">Administration</li>
-  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
-  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
-  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
-  <li class="sidebar-section">Benutzerhandbuch</li>
-  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
-  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
-  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
-  <li class="sidebar-section">Referenz</li>
-  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
-  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
-</ul></nav>
-</aside>
-<main id="main"><html><head></head><body><div class="page-hero">
-  <span class="page-hero-icon">🧭</span>
-  <div class="page-hero-body">
-    <div class="page-hero-eyebrow">Referenz · Entscheidungen</div>
-    <div class="page-hero-title">Decision-Log</div>
-    <p class="page-hero-desc">Architekturentscheidungen mit Kontext, Konsequenz und Datum.</p>
-  </div>
-  <a href="./index.html" class="page-hero-back">← Übersicht</a>
-</div><div class="toc-box auto-toc">
+  <h1 class="hero-title">🧭 Decision-Log</h1>
+  <p class="hero-subtitle">Architekturentscheidungen mit Kontext, Konsequenz und Datum.</p>
+  <div class="trigger-chip"><span class="label">Referenz · Entscheidungen</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#2026-05-15--argocd-entfernen--fluxcd"><span class="toc-num">1.</span>&nbsp;2026-05-15 — ArgoCD entfernen → FluxCD</a></li>
 <li class="toc-item"><a href="#2026-05-09--cluster-re-split-zurueck-zu-zwei-separaten-clustern"><span class="toc-num">2.</span>&nbsp;2026-05-09 — Cluster Re-Split: zurück zu zwei separaten Clustern</a></li>
@@ -74,7 +37,7 @@
 <li class="toc-item"><a href="#2026-05-04--livekit-fuer-streaming-statt-janus-only"><span class="toc-num">7.</span>&nbsp;2026-05-04 — LiveKit für Streaming (statt Janus-only)</a></li>
 <li class="toc-item"><a href="#2026-04-10--sealedsecrets-statt-envsubst-workflow"><span class="toc-num">8.</span>&nbsp;2026-04-10 — SealedSecrets statt envsubst-Workflow</a></li>
 <li class="toc-item"><a href="#foundation--k3dk3s--kustomize-als-einziger-deploy-pfad"><span class="toc-num">9.</span>&nbsp;Foundation — k3d/k3s + Kustomize als einziger Deploy-Pfad</a></li></ul>
-</div><h1>Decision-Log</h1>
+</div>
 <p class="kicker">Referenz · Architektur-Entscheidungen</p><p>Chronologisch, neueste zuerst. Jeder Eintrag hält fest, <em>warum</em> wir etwas geändert haben — nicht <em>was</em> (das steht im Code und im Git-Log).</p>
 <hr>
 <h2 id="2026-05-15--argocd-entfernen--fluxcd">2026-05-15 — ArgoCD entfernen → FluxCD</h2>
@@ -130,14 +93,9 @@
 <p><strong>Kontext:</strong> Anfangs gab es zusätzlich docker-compose-Dateien für lokale Entwicklung. Zwei Deploy-Pfade führten zu Drift (Service-A funktionierte in compose, nicht in k8s).</p>
 <p><strong>Entscheidung:</strong> docker-compose entfernt. Nur k3d (lokal) und k3s (prod), beide identisch via Kustomize gefüttert.</p>
 <p><strong>Konsequenz:</strong> Lokal = Prod (modulo Overlay). Onboarding braucht Docker + k3d, etwas mehr als compose. Wert: keine Drift-Klassen mehr.</p>
-</body></html></main>
-</div>
-<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
-  <div id="search-box">
-    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
-    <div id="search-results"></div>
-  </div>
-</div>
+
+</main>
+
 <script src="./app.js"></script>
 </body>
 </html>

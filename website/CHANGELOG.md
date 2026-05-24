@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.8.0...website-v1.8.1) (2026-05-24)
+
+
+### Bug Fixes
+
+* **platform:** fix korczewski Platform Control Center cluster connectivity ([#1009](https://github.com/Paddione/Bachelorprojekt/issues/1009)) ([1c41e6b](https://github.com/Paddione/Bachelorprojekt/commit/1c41e6b4453fd69e7e391de5084add77cdd3b50b))
+
 ## [1.8.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.7.0...website-v1.8.0) (2026-05-24)
 
 

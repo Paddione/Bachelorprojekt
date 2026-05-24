@@ -40,7 +40,7 @@ const HEROES = {
               hairTint: 'sepia(40%) hue-rotate(30deg)' },
     abilities: ['vehicle_switch', 'vehicle_repair', 'motorcycle_sprint'],
     passive: { startsInVehicle: 'motorcycle' },
-    unlocked: false,   // unlocked in Scheibe 4
+    unlocked: true,   // Scheibe 4 complete
   },
 };
 

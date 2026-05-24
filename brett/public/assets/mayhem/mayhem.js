@@ -549,6 +549,10 @@ const Mayhem = (() => {
     if (_pvAiMode && isHost) {
       _spawnPvAiBot(_opponentHeroId || 'patrick');
     }
+    if (_myHeroId === 'oskar') {
+      const vehicle = window.MayhemVehicle.Vehicle.spawn('motorcycle', localAvatar.mannequin.root.position, scene);
+      localAvatar._vehicle = vehicle;
+    }
     _buildDuelHud();
   }
 
@@ -910,6 +914,23 @@ const Mayhem = (() => {
       if (curWeaponKey !== _lastWeaponKey) {
         _lastWeaponKey = curWeaponKey;
         if (weaponSystem?.current) localAvatar.setWeapon(weaponSystem.current);
+      }
+      if (localAvatar._vehicle && localAvatar._vehicle.mesh) {
+        const lp = localAvatar.mannequin.root.position;
+        const v = localAvatar._vehicle;
+        v.mesh.position.set(lp.x, v.type === 'motorcycle' ? 0.35 : 0.45, lp.z);
+        v.mesh.rotation.y = localAvatar.facingY;
+
+        if (v.damagesOnContact) {
+          const vCapsule = { x: lp.x, y: 0.5, z: lp.z, radius: v.type === 'motorcycle' ? 0.6 : 1.0, height: 1.0 };
+          const physics = window.MayhemPhysics;
+          for (const [remoteId, remoteAv] of remoteAvatars) {
+            if (remoteAv.isDead) continue;
+            if (physics.capsuleCapsule(vCapsule, remoteAv.getCapsule())) {
+              send({ type: 'hit', victimId: remoteId, weaponKey: 'vehicle', shooterId: playerId, impulse: { x: 0, y: 0, z: 0 } });
+            }
+          }
+        }
       }
     }
 

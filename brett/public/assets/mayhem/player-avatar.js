@@ -53,6 +53,7 @@ class PlayerAvatar {
       anim: this.state,
       flailing: this.flailing,
       heroId: this.heroId,
+      vehicleType: this._vehicle ? this._vehicle.type : null,
     };
   }
   applyDamage(amount) {
@@ -74,6 +75,17 @@ class PlayerAvatar {
     if (this.weaponSystem && typeof this.weaponSystem.resetCooldowns === 'function') {
       this.weaponSystem.resetCooldowns();
     }
+    if (this._vehicle) {
+      if (typeof window !== 'undefined' && window.MayhemVehicle && window.MayhemVehicle.despawn) {
+        window.MayhemVehicle.despawn(this._vehicle, this.mannequin.root.parent);
+      }
+      this._vehicle = null;
+    }
+    if (this._remoteVehicleMesh) {
+      this.mannequin.root.remove(this._remoteVehicleMesh);
+      this._remoteVehicleMesh = null;
+    }
+    this._remoteVehicleType = null;
   }
 
   setTorsoColor(hexColor) {
@@ -185,6 +197,26 @@ class PlayerAvatar {
     r.rotation.y = this.facingY;
     this.state = this.netTarget.anim || STATE.IDLE;
     this.flailing = !!this.netTarget.flailing;
+
+    const netVehicle = this.netTarget.vehicleType;
+    if (netVehicle !== this._remoteVehicleType) {
+      if (this._remoteVehicleMesh) {
+        this.mannequin.root.remove(this._remoteVehicleMesh);
+        this._remoteVehicleMesh = null;
+      }
+      this._remoteVehicleType = netVehicle;
+      if (netVehicle) {
+        const THREE = window.THREE;
+        const size = netVehicle === 'motorcycle' ? { w: 0.6, h: 0.7, d: 1.4 } : { w: 1.6, h: 0.9, d: 2.0 };
+        const color = netVehicle === 'motorcycle' ? 0xc8a96e : 0x2a3040;
+        const geo = new THREE.BoxGeometry(size.w, size.h, size.d);
+        const mat = new THREE.MeshLambertMaterial({ color });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(0, size.h / 2, 0);
+        this.mannequin.root.add(mesh);
+        this._remoteVehicleMesh = mesh;
+      }
+    }
   }
   _updateRagdoll(dt, now) {
     const physics = window.MayhemPhysics;
@@ -288,6 +320,17 @@ class PlayerAvatar {
   }
   remove(scene) {
     scene.remove(this.mannequin.root);
+    if (this._vehicle) {
+      if (typeof window !== 'undefined' && window.MayhemVehicle && window.MayhemVehicle.despawn) {
+        window.MayhemVehicle.despawn(this._vehicle, scene);
+      }
+      this._vehicle = null;
+    }
+    if (this._remoteVehicleMesh) {
+      this.mannequin.root.remove(this._remoteVehicleMesh);
+      this._remoteVehicleMesh = null;
+    }
+    this._remoteVehicleType = null;
   }
 
   setWeapon(weaponDef) {

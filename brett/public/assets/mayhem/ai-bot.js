@@ -229,6 +229,218 @@ class MayhemAIBot {
   }
 }
 
+function _hasLos(botPos, enemyPos, obstacles) {
+  if (typeof window.MayhemPhysics === 'undefined') return true;
+  return !window.MayhemPhysics.aabbRay(
+    { x: botPos.x, y: 0.9, z: botPos.z },
+    { x: enemyPos.x, y: 0.9, z: enemyPos.z },
+    obstacles
+  );
+}
+
+function _heroDecide(heroId, dist, hasLos, botHp) {
+  switch (heroId) {
+    case 'tina':
+      if (!hasLos) return null;
+      if (dist < 2.5) return 'frostnova';
+      if (dist < 8)   return 'chainlightning';
+      return 'fireball';
+    case 'martina':
+      return null; // Handled by Martina bot minion manager tick
+    case 'oskar':
+      if (dist > 5 && botHp > 40) return 'motorcycle_sprint';
+      if (dist < 3) return 'vehicle_switch';
+      if (botHp < 40) return 'vehicle_repair';
+      return null;
+    case 'patrick':
+    default:
+      if (!hasLos) return null;
+      if (dist < 1.5) return 'katana';
+      if (dist < 6)   return 'handgun';
+      return 'rifle';
+  }
+}
+
+class AIBot {
+  constructor({ id, heroId, pos, scene, THREE, obstacles, weaponSystem }) {
+    this.id = id;
+    this.heroId = heroId;
+    this.hp = 100;
+    this.weaponSystem = weaponSystem;
+    this.obstacles = obstacles;
+
+    const color = window.MayhemHeroes?.HEROES[heroId]?.color || 0x888888;
+    const m = window._mayhemMakeMannequin ? window._mayhemMakeMannequin(id, pos) : null;
+    this.avatar = new window.MayhemPlayerAvatar({
+      id, mannequin: m, local: false, color,
+    });
+    this.avatar.heroId = heroId;
+    this.avatar.heroColor = color;
+    this.avatar.setTorsoColor(color);
+    if (this.avatar.resetHero) this.avatar.resetHero();
+
+    this.mannequin = m;
+    this._x = pos.x;
+    this._z = pos.z;
+    this._facingY = 0;
+    this._retreating = false;
+    this._shootTimer = 0;
+
+    if (heroId === 'martina') {
+      this._minionManager = new window.MayhemHeroes.MinionManager({
+        maxMinions: 2,
+        minionMeshFactory: mpos => {
+          const mm = window._mayhemMakeMannequin ? window._mayhemMakeMannequin(`bot-minion-${mpos.x}-${mpos.z}`, mpos) : null;
+          if (mm) {
+            mm.root.scale.setScalar(0.6);
+            mm.root.traverse(o => {
+              if (o.isMesh && o.material) {
+                o.material = o.material.clone();
+                o.material.color.setHex(0xb8c0a8);
+              }
+            });
+            return mm.root;
+          }
+          return null;
+        },
+        onHit: ({ targetId, damage }) => {
+          this.weaponSystem._onFire({ key: 'minion-melee', damage }, { x: this._x, y: 0.5, z: this._z }, { x: 0, y: 0, z: 0 }, this.id);
+        },
+        onSync: () => {},
+      });
+    }
+  }
+
+  tick(dt, enemy, obstacles) {
+    if (this.avatar.isDead) return;
+
+    const botPos = { x: this._x, y: 0, z: this._z };
+    const enemyPos = enemy.pos;
+    const dx = enemyPos.x - this._x;
+    const dz = enemyPos.z - this._z;
+    const dist = Math.hypot(dx, dz) || 1;
+
+    let moveX = dx / dist;
+    let moveZ = dz / dist;
+
+    if (this._retreating) {
+      moveX = -moveX;
+      moveZ = -moveZ;
+    }
+
+    this._facingY = Math.atan2(moveX, moveZ);
+
+    const speed = 2.2;
+    this._x = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._x + moveX * speed * dt));
+    this._z = Math.max(-ARENA_HALF, Math.min(ARENA_HALF, this._z + moveZ * speed * dt));
+
+    this.avatar.setNetState({
+      x: this._x, y: 0, z: this._z,
+      yaw: this._facingY,
+      anim: 'running',
+      flailing: false,
+      heroId: this.heroId,
+      vehicleType: this.avatar._vehicle ? this.avatar._vehicle.type : null,
+    });
+
+    if (this.mannequin) {
+      this.mannequin.root.position.set(this._x, 0, this._z);
+      this.mannequin.root.rotation.y = this._facingY;
+    }
+
+    if (this.avatar._vehicle && this.avatar._vehicle.mesh) {
+      this.avatar._vehicle.mesh.position.set(this._x, this.avatar._vehicle.type === 'motorcycle' ? 0.35 : 0.45, this._z);
+      this.avatar._vehicle.mesh.rotation.y = this._facingY;
+    }
+
+    if (this._minionManager) {
+      const now = Date.now();
+      if (this._minionManager.count < 2 && now - this._shootTimer > 4000) {
+        this._shootTimer = now;
+        this._minionManager.spawn(botPos, { id: 'local-player', pos: enemyPos });
+        window.MayhemAudio?.onFire('summon-minion');
+      }
+      this._minionManager.tick(dt, now);
+    }
+
+    const hasLos = _hasLos(botPos, enemyPos, obstacles);
+    const weaponKey = _heroDecide(this.heroId, dist, hasLos, this.hp);
+
+    if (weaponKey) {
+      if (weaponKey === 'frostnova') {
+        window.MayhemEffects?.spawnFrostnovaEffect(this.avatar.mannequin.root.parent, botPos);
+        window.MayhemAudio?.onFire('frostnova');
+        if (dist <= 2.5) {
+          const impulse = { x: (dx / dist) * 3, z: (dz / dist) * 3 };
+          this.weaponSystem._onFire({ key: 'frostnova', damage: 40 }, botPos, { x: dx / dist, y: 0.05, z: dz / dist }, this.id);
+        }
+      } else if (weaponKey === 'vehicle_switch') {
+        const current = this.avatar._vehicle;
+        const nextType = (!current || current.type === 'motorcycle') ? 'car' : 'motorcycle';
+        if (current) {
+          window.MayhemVehicle.Vehicle.despawn(current, this.avatar.mannequin.root.parent);
+        }
+        const newVehicle = window.MayhemVehicle.Vehicle.spawn(nextType, botPos, this.avatar.mannequin.root.parent);
+        this.avatar._vehicle = newVehicle;
+        window.MayhemAudio?.onFire('vehicle-switch');
+      } else if (weaponKey === 'vehicle_repair') {
+        const v = this.avatar._vehicle;
+        if (v) {
+          v.hp = Math.min(v.maxHp, (v.hp || 0) + 40);
+          window.MayhemEffects?.spawnSmokePuff(this.avatar.mannequin.root.parent, v.mesh ? v.mesh.position : botPos);
+          window.MayhemAudio?.onFire('vehicle-repair');
+        }
+      } else if (weaponKey === 'motorcycle_sprint') {
+        const v = this.avatar._vehicle;
+        if (v) {
+          v.speedMult = 2.5;
+          window.MayhemAudio?.onFire('motorcycle-engine');
+          setTimeout(() => { if (v) v.speedMult = 1; }, 1500);
+        }
+      } else {
+        if (this.weaponSystem.canFire(weaponKey)) {
+          const dir = { x: dx / dist, y: 0.05, z: dz / dist };
+          this.weaponSystem.fire(weaponKey, botPos, dir, this.id);
+        }
+      }
+    }
+
+    if (this.hp < 30 && !this._retreating) {
+      this._retreating = true;
+      setTimeout(() => { this._retreating = false; }, 3000);
+    }
+  }
+
+  processHit(weaponKey, impulse, shooterId, weaponSystem) {
+    if (this.avatar.isDead) return;
+    const weaponDef = weaponSystem ? weaponSystem.getWeaponDef(weaponKey) : null;
+    const damage = weaponDef ? weaponDef.damage
+                 : weaponKey === 'vehicle' ? 30 : 15;
+
+    this.avatar.applyHit(impulse, weaponKey || 'flail');
+    this.hp = Math.max(0, this.hp - damage);
+    this.avatar.hp = this.hp;
+
+    if (this.avatar.isDead) {
+      this._onDeath(this.id, shooterId);
+    }
+  }
+
+  remove(scene) {
+    this.avatar.remove(scene);
+    if (this.avatar._vehicle) {
+      window.MayhemVehicle.Vehicle.despawn(this.avatar._vehicle, scene);
+    }
+    if (this._minionManager) {
+      this._minionManager.clear();
+      this._minionManager = null;
+    }
+  }
+}
+
 MayhemAIBot.COLORS = BOT_COLORS;
 
-if (typeof window !== 'undefined') window.MayhemAIBot = MayhemAIBot;
+if (typeof window !== 'undefined') {
+  window.MayhemAIBot = MayhemAIBot;
+  window.MayhemAiBot = { AIBot, MayhemAIBot };
+}

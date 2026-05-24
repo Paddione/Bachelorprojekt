@@ -61,3 +61,33 @@ test('integrateRagdollBone: damps velocity and integrates rotation', () => {
   assert.ok(bone.velocity.x < 1.0, 'velocity should damp');
   assert.ok(bone.currentRot.x !== 0, 'rotation should integrate');
 });
+
+const { aabbRay } = require('../public/assets/mayhem/physics.js');
+
+test('aabbRay: clear line of sight returns false (no hit)', () => {
+  const from = { x: -5, y: 0.9, z: 0 };
+  const to   = { x:  5, y: 0.9, z: 0 };
+  const obstacles = [
+    { minX: -1, maxX: 1, minY: 0, maxY: 2, minZ: 3, maxZ: 5 }   // z-offset — not in path
+  ];
+  assert.strictEqual(aabbRay(from, to, obstacles), false);
+});
+
+test('aabbRay: wall in path returns true (hit)', () => {
+  const from = { x: -5, y: 0.9, z: 0 };
+  const to   = { x:  5, y: 0.9, z: 0 };
+  const obstacles = [
+    { minX: -0.5, maxX: 0.5, minY: 0, maxY: 2, minZ: -1, maxZ: 1 }  // center wall
+  ];
+  assert.strictEqual(aabbRay(from, to, obstacles), true);
+});
+
+test('aabbRay: empty obstacle list returns false', () => {
+  assert.strictEqual(aabbRay({ x: 0, y: 0, z: 0 }, { x: 10, y: 0, z: 0 }, []), false);
+});
+
+test('aabbRay: from and to same point returns false', () => {
+  const obstacles = [{ minX: -1, maxX: 1, minY: 0, maxY: 2, minZ: -1, maxZ: 1 }];
+  assert.strictEqual(aabbRay({ x: 0, y: 0.9, z: 0 }, { x: 0, y: 0.9, z: 0 }, obstacles), false);
+});
+

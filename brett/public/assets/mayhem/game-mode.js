@@ -5,7 +5,7 @@
 // LMS (Last Man Standing) — no respawn; last survivor wins; spectator cam on death
 // Coop — co-operative wave survival; bots attack humans only; 10-wave escalation
 
-const MODES = Object.freeze({ WARMUP: 'warmup', DEATHMATCH: 'deathmatch', LMS: 'lms', COOP: 'coop' });
+const MODES = Object.freeze({ WARMUP: 'warmup', DEATHMATCH: 'deathmatch', LMS: 'lms', COOP: 'coop', DUEL: 'duel' });
 const DEATHMATCH_RESPAWN_MS = 3000;
 
 const WAVE_DEFS = [
@@ -25,11 +25,15 @@ class GameModeManager {
   // onRespawn(playerId)    — called when a player should be respawned
   // onModeChange(mode)     — called when local mode display should update
   // onLmsEnd(result)       — called with { winner: id|null, draw: bool }
-  constructor({ onRespawn, onModeChange, onLmsEnd } = {}) {
+  constructor({ onRespawn, onModeChange, onLmsEnd, onDuelEnd } = {}) {
     this.mode          = MODES.WARMUP;
     this._onRespawn    = onRespawn    || (() => {});
     this._onModeChange = onModeChange || (() => {});
     this._onLmsEnd     = onLmsEnd     || (() => {});
+    // Duel state
+    this.phase     = 'hero-select';
+    this.duelState = { winsA: 0, winsB: 0, bestOf: 3, playerA: null, playerB: null };
+    this._onDuelEnd = onDuelEnd || (() => {});
     this._killCounts   = new Map();   // playerId → kills
     this._deathTimers  = new Map();   // playerId → timeoutId
     this._deadSet      = new Set();
@@ -60,6 +64,10 @@ class GameModeManager {
     this._enemiesAlive.clear();
     this._deadPlayers.clear();
     this._coopPhase = 'idle';
+    if (mode === MODES.DUEL) {
+      this.phase = 'hero-select';
+      this.duelState = { winsA: 0, winsB: 0, bestOf: 3, playerA: null, playerB: null };
+    }
     this._onModeChange(mode);
   }
 
@@ -185,8 +193,33 @@ class GameModeManager {
     entries.sort((a, b) => b.kills - a.kills || b.hp - a.hp);
     return { mode: this.mode, players: entries, spectating: this._spectating };
   }
+
+  // Call after both players have selected their hero.
+  startDuelFighting(playerA, playerB) {
+    this.duelState.playerA = playerA;
+    this.duelState.playerB = playerB;
+    this.phase = 'fighting';
+  }
+
+  // Call when a player dies during duel phase. Returns { roundWinner, matchOver, matchWinner }.
+  handleDuelDeath(deadPlayerId) {
+    const ds = this.duelState;
+    const isA = deadPlayerId === ds.playerA;
+    const roundWinner = isA ? ds.playerB : ds.playerA;
+    if (isA) ds.winsB++; else ds.winsA++;
+    const winsNeeded = Math.ceil(ds.bestOf / 2);
+    const matchOver  = ds.winsA >= winsNeeded || ds.winsB >= winsNeeded;
+    const matchWinner = matchOver ? (ds.winsA >= winsNeeded ? ds.playerA : ds.playerB) : null;
+    if (matchOver) {
+      this._onDuelEnd({ matchWinner, winsA: ds.winsA, winsB: ds.winsB });
+    }
+    return { roundWinner, matchOver, matchWinner };
+  }
 }
 
 if (typeof window !== 'undefined') {
   window.MayhemGameMode = { GameModeManager, MODES, WAVE_DEFS };
+}
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { GameModeManager, MODES, WAVE_DEFS };
 }

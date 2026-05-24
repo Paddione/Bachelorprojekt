@@ -20,6 +20,18 @@ const SFX_MAP = {
   'footstep-2': SFX_ROOT + 'footstep-concrete-02.ogg',
   'footstep-3': SFX_ROOT + 'footstep-concrete-03.ogg',
   'footstep-4': SFX_ROOT + 'footstep-concrete-04.ogg',
+
+  // Hero abilities — audio files to be delivered as separate chore
+  'frostnova':          SFX_ROOT + 'frostnova.ogg',
+  'chainlightning':     SFX_ROOT + 'chainlightning.ogg',
+  'summon-minion':      SFX_ROOT + 'summon-minion.ogg',
+  'shield-minion':      SFX_ROOT + 'shield-minion.ogg',
+  'frenzy-minion':      SFX_ROOT + 'frenzy-minion.ogg',
+  'motorcycle-engine':  SFX_ROOT + 'motorcycle-engine.ogg',
+  'vehicle-switch':     SFX_ROOT + 'vehicle-switch.ogg',
+  'vehicle-repair':     SFX_ROOT + 'vehicle-repair.ogg',
+  'hero-stealth':       SFX_ROOT + 'hero-stealth.ogg',
+  'hero-teleport':      SFX_ROOT + 'hero-teleport.ogg',
 };
 
 class MayhemAudio {

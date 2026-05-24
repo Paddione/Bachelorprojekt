@@ -52,28 +52,101 @@ const WEAPONS = {
     meleeRange: 1.8,
     meleeArc:   Math.PI * 0.45,
   },
+    // ── Tina (Hexe) ──────────────────────────────────────────────────────────
+    frostnova: {
+      key: 'frostnova', label: 'Frostnova', icon: 'icon-frostnova',
+      damage: 40, cooldownMs: 5000,
+      projectileType: 'frostnova',    // handled as AoE burst, not projectile
+      aoeRadius: 2.5, slowFactor: 0.4, slowDurationMs: 2000,
+      melee: false,
+    },
+    chainlightning: {
+      key: 'chainlightning', label: 'Kettenblitz', icon: 'icon-chainlightning',
+      damage: 55, cooldownMs: 4000,
+      projectileType: 'chain',
+      projectileSpeed: 22,
+      melee: false,
+    },
+    // ── Martina (Teamleiterin) ────────────────────────────────────────────────
+    summon_minion: {
+      key: 'summon_minion', label: 'Minion rufen', icon: 'icon-summon-minion',
+      damage: 0, cooldownMs: 4000,
+      projectileType: 'summon',
+      melee: false,
+    },
+    shield_minion: {
+      key: 'shield_minion', label: 'Minion schützen', icon: 'icon-shield-minion',
+      damage: 0, cooldownMs: 6000,
+      projectileType: 'buff',
+      melee: false,
+    },
+    frenzy_minion: {
+      key: 'frenzy_minion', label: 'Minion Raserei', icon: 'icon-frenzy-minion',
+      damage: 0, cooldownMs: 8000,
+      projectileType: 'buff',
+      melee: false,
+    },
+    // ── Oskar (Mechaniker) ────────────────────────────────────────────────────
+    vehicle_switch: {
+      key: 'vehicle_switch', label: 'Fahrzeug wechseln', icon: 'icon-vehicle-switch',
+      damage: 0, cooldownMs: 3000,
+      projectileType: 'vehicle_switch',
+      melee: false,
+    },
+    vehicle_repair: {
+      key: 'vehicle_repair', label: 'Reparieren', icon: 'icon-repair',
+      damage: -40, cooldownMs: 8000,   // negative damage = heal
+      projectileType: 'repair',
+      target: 'self',
+      melee: false,
+    },
+    motorcycle_sprint: {
+      key: 'motorcycle_sprint', label: 'Motorrad-Sprint', icon: 'icon-sprint',
+      damage: 20, cooldownMs: 2000,
+      projectileType: 'sprint',
+      durationMs: 1500, speedBoost: 2.5,
+      melee: false,
+    },
+    // ── Patrick (Softwareentwickler) — Specials ───────────────────────────────
+    stealth: {
+      key: 'stealth', label: 'Unsichtbarkeit', icon: 'icon-stealth',
+      damage: 0, cooldownMs: 8000, durationMs: 2000,
+      projectileType: 'stealth',
+      melee: false,
+    },
+    teleport: {
+      key: 'teleport', label: 'Teleportation', icon: 'icon-teleport',
+      damage: 0, cooldownMs: 6000, rangeTiles: 5,
+      projectileType: 'teleport',
+      melee: false,
+    },
 };
 
 const WEAPON_ORDER = ['handgun', 'rifle', 'fireball', 'club', 'katana'];
 
 class WeaponSystem {
-  constructor(onFire) {
+  constructor(abilities, onFire) {
+    if (typeof abilities === 'function') {
+      onFire = abilities;
+      abilities = WEAPON_ORDER;
+    }
+    this._abilities  = abilities || WEAPON_ORDER;
     this._onFire     = onFire;
-    this._cooldowns  = {};
+    this._cooldowns  = new Map();
     this._burstState = null;
     this.currentIndex = 0;
-    this.current = WEAPONS[WEAPON_ORDER[0]];
+    this.current = WEAPONS[this._abilities[0]];
   }
 
   select(indexOrKey) {
     if (typeof indexOrKey === 'string') {
-      const idx = WEAPON_ORDER.indexOf(indexOrKey);
+      const idx = this._abilities.indexOf(indexOrKey);
       if (idx < 0) return;
       this.currentIndex = idx;
     } else {
-      this.currentIndex = ((indexOrKey % WEAPON_ORDER.length) + WEAPON_ORDER.length) % WEAPON_ORDER.length;
+      this.currentIndex = ((indexOrKey % this._abilities.length) + this._abilities.length) % this._abilities.length;
     }
-    this.current = WEAPONS[WEAPON_ORDER[this.currentIndex]];
+    this.current = WEAPONS[this._abilities[this.currentIndex]];
   }
 
   next() { this.select(this.currentIndex + 1); }
@@ -82,9 +155,9 @@ class WeaponSystem {
   tryFire(originPos, dirVec, shooterId) {
     const now = performance.now();
     const w = this.current;
-    const last = this._cooldowns[w.key] || 0;
+    const last = this._cooldowns.get(w.key) || 0;
     if (now - last < w.cooldownMs) return false;
-    this._cooldowns[w.key] = now;
+    this._cooldowns.set(w.key, now);
 
     if (w.melee) {
       this._onFire(w, originPos, dirVec, shooterId);
@@ -135,7 +208,32 @@ class WeaponSystem {
   }
 
   getWeaponDef(key) { return WEAPONS[key] || null; }
-  getAllWeapons()    { return WEAPON_ORDER.map(k => WEAPONS[k]); }
+  getAllWeapons()    { return this._abilities.map(k => WEAPONS[k]); }
+
+  resetCooldowns() {
+    this._cooldowns.clear();
+  }
+
+  canFire(key) {
+    const w = WEAPONS[key];
+    if (!w) return false;
+    const now = performance.now();
+    const last = this._cooldowns.get(key) || 0;
+    return (now - last >= w.cooldownMs);
+  }
+
+  fire(key, originPos, dirVec, shooterId) {
+    const w = WEAPONS[key];
+    if (!w) return false;
+    const now = performance.now();
+    this._cooldowns.set(key, now);
+    if (w.melee) {
+      this._onFire(w, originPos, dirVec, shooterId);
+      return true;
+    }
+    this._fireSingle(w, originPos, dirVec, shooterId);
+    return true;
+  }
 }
 
 if (typeof window !== 'undefined') {

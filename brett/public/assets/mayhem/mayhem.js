@@ -3,7 +3,7 @@
 const Mayhem = (() => {
   const STATE_RATE_HZ    = 15;
   const VEHICLE_COOLDOWN_MS = 5000;
-  const MODES_CYCLE = ['warmup', 'deathmatch', 'lms'];
+  const MODES_CYCLE = ['warmup', 'deathmatch', 'lms', 'coop', 'duel'];
 
   const MAX_PLAYERS = 4;
 
@@ -43,10 +43,38 @@ const Mayhem = (() => {
   let deadHumans  = new Set();
   let coopStartTimer = null;
 
+  let _crosshairMesh = null;   // THREE.Mesh — ring on ground
+  let _aimPlane      = null;   // THREE.Plane — y=0 intersect target
+  let _aimDir        = null;   // THREE.Vector3 — current aim direction
+  let _aimPoint      = null;   // THREE.Vector3 — crosshair world position
+  let _mouseNDC      = null;   // THREE.Vector2 — normalized device coords
+  let _raycaster     = null;   // THREE.Raycaster
+
+  let _isSpectator  = false;
+  let _pvAiMode     = false;
+  let _heroSelectUi = null;   // { el, lockCard, setStatus, showPlayButton, destroy }
+  let _myHeroId     = null;
+  let _opponentHeroId = null;
+  let _duelRoundPause = false;
+
+  let _specTarget = null;
+  let _specMode   = 'follow';
+  let _specFlyVel = { x: 0, y: 0, z: 0 };
+  const _specKeys = {};
+  const _specialCooldowns = {};
+
   const input = {
     forward: false, backward: false, left: false, right: false,
     sprint: false, jump: false, flail: false, fire: false,
   };
+
+  function _canUseSpecial(key, cooldownMs) {
+    const now  = Date.now();
+    const last = _specialCooldowns[key] || 0;
+    if (now - last < cooldownMs) return false;
+    _specialCooldowns[key] = now;
+    return true;
+  }
 
   // ── Init ──────────────────────────────────────────────────────────────────
   function init(opts) {
@@ -54,6 +82,7 @@ const Mayhem = (() => {
     send = opts.sendMessage;
     playerId = crypto.randomUUID();
     window._mayhemCamera = camera;
+    window._mayhemMakeMannequin = makeMannequin;
     bindKeys();
     chaseCam = new window.MayhemChaseCamera(camera, canvas);
   }
@@ -67,6 +96,21 @@ const Mayhem = (() => {
 
     window.addEventListener('keydown', (e) => {
       if (!enabled) return;
+      _specKeys[e.code] = true;
+      if (_isSpectator) {
+        if (e.code === 'Tab') {
+          e.preventDefault();
+          _cycleSpecTarget();
+        }
+        if (e.code === 'KeyF') {
+          _specMode = _specMode === 'fly' ? 'follow' : 'fly';
+          if (_specMode === 'fly' && document.pointerLockElement === null) {
+            document.documentElement.requestPointerLock().catch(() => {});
+          } else if (_specMode === 'follow') {
+            document.exitPointerLock();
+          }
+        }
+      }
       const kb = b();
       const code = e.code;
       if (code === kb.forward)      { input.forward  = true; e.preventDefault(); }
@@ -76,7 +120,40 @@ const Mayhem = (() => {
       if (code === kb.sprint || code === 'ShiftRight') { input.sprint = true; }
       if (code === kb.jump)         { input.jump     = true; e.preventDefault(); }
       if (code === kb.flail)        input.flail    = true;
-      if (weaponIdx[code] !== undefined) weaponSystem?.select(weaponIdx[code]);
+      if (weaponIdx[code] !== undefined && weaponIdx[code] < (weaponSystem?.getAllWeapons().length || 5)) {
+        weaponSystem?.select(weaponIdx[code]);
+      }
+      if (e.code === 'Digit4' && _myHeroId === 'patrick') {
+        if (_canUseSpecial('stealth', 8000)) {
+          localAvatar.mannequin.root.traverse(o => {
+            if (o.isMesh && o.material) { o.material.transparent = true; o.material.opacity = 0.15; }
+          });
+          send({ type: 'hero_stealth', playerId, active: true });
+          window.MayhemAudio.onFire('hero-stealth');
+          setTimeout(() => {
+            localAvatar.mannequin.root.traverse(o => {
+              if (o.isMesh && o.material) { o.material.opacity = 1.0; }
+            });
+            send({ type: 'hero_stealth', playerId, active: false });
+          }, 2000);
+        }
+      }
+      if (e.code === 'Digit5' && _myHeroId === 'patrick') {
+        if (_canUseSpecial('teleport', 6000) && _aimPoint) {
+          const lp = localAvatar.mannequin.root.position;
+          const dx = _aimPoint.x - lp.x, dz = _aimPoint.z - lp.z;
+          const dist = Math.hypot(dx, dz);
+          const maxRange = 5;
+          const scale = dist > maxRange ? maxRange / dist : 1;
+          const tx = lp.x + dx * scale;
+          const tz = lp.z + dz * scale;
+          effectsMgr?.spawnSmokePuff(scene, { x: lp.x, y: 0.5, z: lp.z });
+          localAvatar.mannequin.root.position.set(tx, lp.y, tz);
+          effectsMgr?.spawnSmokePuff(scene, { x: tx, y: 0.5, z: tz });
+          send({ type: 'hero_teleport', playerId, x: tx, z: tz });
+          window.MayhemAudio.onFire('hero-teleport');
+        }
+      }
       if (code === kb.prevWeapon)   weaponSystem?.prev();
       if (code === kb.nextWeapon)   weaponSystem?.next();
       if (code === kb.reload)       gameMode?.onRespawnKey(playerId);
@@ -85,6 +162,7 @@ const Mayhem = (() => {
       if (code === kb.toggleMayhem) toggle();
     });
     window.addEventListener('keyup', (e) => {
+      _specKeys[e.code] = false;
       const kb = b();
       const code = e.code;
       if (code === kb.forward)  input.forward  = false;
@@ -107,12 +185,22 @@ const Mayhem = (() => {
       if (e.deltaY < 0) weaponSystem?.prev(); else weaponSystem?.next();
     }, { passive: true });
 
-    // Allow controls-panel to notify mayhem to reload bindings after rebind
-    window.addEventListener('brett:keybindings-changed', () => {
-      if (window.MayhemKeybindings) _b = window.MayhemKeybindings.load();
-      // Clear all movement keys to avoid stuck states
-      Object.keys(input).forEach(k => { input[k] = false; });
+    document.addEventListener('mousemove', _onMouseMove);
+    document.addEventListener('touchmove', _onTouchMove, { passive: true });
+
     });
+  }
+
+  function _onMouseMove(e) {
+    if (!_mouseNDC) return;
+    _mouseNDC.x = (e.clientX / window.innerWidth)  * 2 - 1;
+    _mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  }
+
+  function _onTouchMove(e) {
+    if (!_mouseNDC || !e.touches[0]) return;
+    _mouseNDC.x = (e.touches[0].clientX / window.innerWidth)  * 2 - 1;
+    _mouseNDC.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
   }
 
   // ── Enable / toggle ───────────────────────────────────────────────────────
@@ -142,14 +230,11 @@ const Mayhem = (() => {
   // ── Start / Stop ─────────────────────────────────────────────────────────
   function start() {
     showBanner();
+    const THREE = window.THREE;
 
     // Effects
     effectsMgr = new window.MayhemEffectsClass(scene);
     window.MayhemEffects = effectsMgr;
-
-    // Obstacles
-    obstacles = window.MayhemObstacles.buildObstacles(window.THREE, room || 'default');
-    window.MayhemObstacles.addObstaclesToScene(scene, obstacles);
 
     // Weapon system
     weaponSystem = new window.MayhemWeapons.WeaponSystem(
@@ -157,6 +242,23 @@ const Mayhem = (() => {
         projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
       }
     );
+
+    // Crosshair setup
+    _aimPlane  = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    _aimDir    = new THREE.Vector3(0, 0, -1);
+    _aimPoint  = new THREE.Vector3();
+    _mouseNDC  = new THREE.Vector2();
+    _raycaster = new THREE.Raycaster();
+
+    const crosshairGeo = new THREE.RingGeometry(0.18, 0.25, 32);
+    const crosshairMat = new THREE.MeshBasicMaterial({
+      color: 0xd7b06a,   // --brass-game
+      transparent: true, opacity: 0.85, side: THREE.DoubleSide,
+    });
+    _crosshairMesh = new THREE.Mesh(crosshairGeo, crosshairMat);
+    _crosshairMesh.rotation.x = -Math.PI / 2;
+    _crosshairMesh.position.y = 0.06;
+    scene.add(_crosshairMesh);
 
     // Projectile manager
     projectileMgr = new window.MayhemProjectiles.ProjectileManager(
@@ -174,9 +276,16 @@ const Mayhem = (() => {
       onRespawn: (pid) => {
         if (pid === playerId) localRespawn();
       },
-      onModeChange: (mode) => updateHud(),
+      onModeChange: (mode) => {
+        _rebuildObstacles(mode);
+        _onModeChange(mode);
+        updateHud();
+      },
       onLmsEnd: (result) => showLmsResult(result),
+      onDuelEnd: (result) => _onDuelEnd(result),
     });
+
+    _rebuildObstacles(gameMode.mode);
 
     // Co-op callbacks (only host drives wave progression)
     gameMode.setCoopCallbacks({
@@ -215,6 +324,13 @@ const Mayhem = (() => {
     chaseCam.attach(localAvatar.mannequin.root);
     send({ type: 'player_join', playerId, color });
 
+    if (gameMode && gameMode.mode === 'duel') {
+      const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
+      if (fighters.length >= 2) {
+        _isSpectator = true;
+        _enterSpectatorMode();
+      }
+    }
   }
 
   // ── Co-op wave spawning ───────────────────────────────────────────────────
@@ -253,6 +369,349 @@ const Mayhem = (() => {
     }
   }
 
+  function _rebuildObstacles(mode) {
+    if (obstacles.length) {
+      window.MayhemObstacles.removeObstaclesFromScene(scene, obstacles);
+      obstacles = [];
+    }
+    const THREE = window.THREE;
+    if (mode === 'duel') {
+      obstacles = window.MayhemObstacles.buildDuelArena(THREE);
+    } else {
+      obstacles = window.MayhemObstacles.buildObstacles(THREE, room || 'default');
+    }
+    window.MayhemObstacles.addObstaclesToScene(scene, obstacles);
+    if (projectileMgr) projectileMgr.clear();
+  }
+
+  function _onModeChange(mode) {
+    if (mode === 'duel') {
+      _showHeroSelectModal();
+    } else {
+      if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    }
+  }
+
+  function _showHeroSelectModal() {
+    if (_heroSelectUi) _heroSelectUi.destroy();
+    const pvAiAvailable = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
+    _heroSelectUi = window.MayhemHeroSelect.buildHeroSelectModal({
+      heroes:     window.MayhemHeroes.HEROES,
+      heroOrder:  window.MayhemHeroes.HERO_ORDER,
+      isSpectator: _isSpectator,
+      pvAiAvailable,
+      onSelect(heroId) {
+        _myHeroId = heroId;
+        if (window._minionManager) {
+          window._minionManager.clear();
+          window._minionManager = null;
+        }
+        if (window._remoteMinionMeshes) {
+          for (const m of window._remoteMinionMeshes.values()) {
+            scene.remove(m);
+          }
+          window._remoteMinionMeshes.clear();
+        }
+        if (window._autoTurret) {
+          window._autoTurret.disable();
+          window._autoTurret = null;
+        }
+        window._pvAiBot = null;
+        window.MayhemHeroes.assignHero(localAvatar, heroId,
+          window.MayhemWeapons.WeaponSystem, (w, origin, dir, id) => {
+            if (w.projectileType === 'frostnova') {
+              effectsMgr?.spawnFrostnovaEffect(scene, localAvatar.mannequin.root.position);
+              window.MayhemAudio.onFire('frostnova');
+              for (const [remoteId, remoteAv] of remoteAvatars) {
+                const rp = remoteAv.mannequin.root.position;
+                const lp = localAvatar.mannequin.root.position;
+                const dist = Math.hypot(rp.x - lp.x, rp.z - lp.z);
+                if (dist <= w.aoeRadius) {
+                  const impulse = { x: 0, y: 0, z: 0 };
+                  const dx = rp.x - lp.x, dz = rp.z - lp.z;
+                  const len = Math.hypot(dx, dz) || 1;
+                  impulse.x = (dx / len) * 3;
+                  impulse.z = (dz / len) * 3;
+                  send({ type: 'hit', victimId: remoteId, weaponKey: 'frostnova', shooterId: playerId, impulse });
+                }
+              }
+              send({ type: 'hero_slow', slowFactor: w.slowFactor, durationMs: w.slowDurationMs });
+              return;
+            }
+            if (w.projectileType === 'summon') {
+              const mm = window._minionManager;
+              if (mm && mm.count < 2) {
+                const enemy = [...remoteAvatars.values()][0];
+                mm.spawn(localAvatar.mannequin.root.position, enemy
+                  ? { id: [...remoteAvatars.keys()][0], pos: enemy.mannequin.root.position }
+                  : null);
+                window.MayhemAudio.onFire('summon-minion');
+              }
+              return;
+            }
+            if (w.key === 'shield_minion') {
+              if (window._minionManager) { window._minionManager.shieldOldest(); window.MayhemAudio.onFire('shield-minion'); }
+              return;
+            }
+            if (w.key === 'frenzy_minion') {
+              if (window._minionManager) { window._minionManager.frenzyOldest(); window.MayhemAudio.onFire('frenzy-minion'); }
+              return;
+            }
+            if (w.projectileType === 'vehicle_switch') {
+              const current = localAvatar._vehicle;
+              const nextType = (!current || current.type === 'motorcycle') ? 'car' : 'motorcycle';
+              if (current) {
+                window.MayhemVehicle.Vehicle.despawn(current, scene);
+                if (window._autoTurret) { window._autoTurret.disable(); }
+              }
+              const newVehicle = window.MayhemVehicle.Vehicle.spawn(nextType, localAvatar.mannequin.root.position, scene);
+              localAvatar._vehicle = newVehicle;
+              window.MayhemAudio.onFire('vehicle-switch');
+              if (nextType === 'car') {
+                window._autoTurret = new window.MayhemVehicle.AutoTurret({
+                  vehicle: newVehicle, scene, THREE: window.THREE,
+                  onFire: ({ targetId, damage }) => {
+                    send({ type: 'hit', victimId: targetId, weaponKey: 'turret', shooterId: playerId, impulse: { x: 0, y: 0, z: 0 } });
+                  },
+                });
+                window._autoTurret.enable();
+              }
+              return;
+            }
+            if (w.projectileType === 'repair') {
+              const v = localAvatar._vehicle;
+              if (v) {
+                v.hp = Math.min(v.maxHp, (v.hp || 0) + 40);
+                effectsMgr?.spawnSmokePuff(scene, v.mesh ? v.mesh.position : localAvatar.mannequin.root.position);
+                window.MayhemAudio.onFire('vehicle-repair');
+              }
+              return;
+            }
+            if (w.projectileType === 'sprint') {
+              const v = localAvatar._vehicle;
+              if (v) {
+                v.speedMult = 2.5;
+                v.damagesOnContact = true;
+                window.MayhemAudio.onFire('motorcycle-engine');
+                setTimeout(() => { v.speedMult = 1; v.damagesOnContact = false; }, 1500);
+              }
+              return;
+            }
+
+          });
+        if (heroId === 'martina') {
+          window._minionManager = new window.MayhemHeroes.MinionManager({
+            maxMinions: 2,
+            minionMeshFactory: pos => {
+              const m = makeMannequin(`minion-${pos.x}-${pos.z}`, pos);
+              m.root.scale.setScalar(0.6);
+              m.root.traverse(o => {
+                if (o.isMesh && o.material) {
+                  o.material = o.material.clone();
+                  o.material.color.setHex(0xb8c0a8);
+                }
+              });
+              return m.root;
+            },
+            onHit: ({ targetId, damage }) => {
+              send({ type: 'hit', victimId: targetId, damage, weaponKey: 'minion-melee', shooterId: playerId });
+            },
+            onSync: msg => send(msg),
+          });
+        }
+        send({ type: 'hero_select', heroId });
+        _heroSelectUi.setStatus('Warte auf Gegner …');
+        _checkBothHeroesSelected();
+      },
+      onPvAiToggle(active) { _pvAiMode = active; },
+    });
+    document.body.appendChild(_heroSelectUi.el);
+  }
+
+  function _checkBothHeroesSelected() {
+    if (!_myHeroId) return;
+    if (!_pvAiMode && !_opponentHeroId) return;
+    if (!isHost) return;  // only host drives start
+    if (_heroSelectUi) {
+      const startBtn = _heroSelectUi.showPlayButton(() => {
+        startBtn.style.display = 'none';
+        const pA = playerId;
+        const pB = _pvAiMode ? 'bot-pvai' : [...remoteAvatars.keys()][0];
+        gameMode.startDuelFighting(pA, pB);
+        send({ type: 'duel_start', playerA: pA, playerB: pB });
+        _startDuelRound(pA, pB);
+      });
+    }
+  }
+
+  function _startDuelRound(playerA, playerB) {
+    if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    _duelRoundPause = false;
+    if (_pvAiMode && isHost) {
+      _spawnPvAiBot(_opponentHeroId || 'patrick');
+    }
+    if (_myHeroId === 'oskar') {
+      const vehicle = window.MayhemVehicle.Vehicle.spawn('motorcycle', localAvatar.mannequin.root.position, scene);
+      localAvatar._vehicle = vehicle;
+    }
+    _buildDuelHud();
+  }
+
+  function _spawnPvAiBot(heroId) {
+    const botId  = 'bot-pvai';
+    const botPos = { x: 3, y: 0, z: 3 };   // opposite side of arena
+    const bot    = new window.MayhemAiBot.AIBot({
+      id: botId, heroId, pos: botPos, scene, THREE: window.THREE,
+      obstacles, weaponSystem: new window.MayhemWeapons.WeaponSystem(
+        window.MayhemHeroes.HEROES[heroId].abilities,
+        (w, origin, dir, id) => {
+          if (w.projectileType === 'frostnova') return;
+          if (w.melee) {
+            if (localAvatar) {
+              const lp = localAvatar.mannequin.root.position;
+              const dist = Math.hypot(lp.x - origin.x, lp.z - origin.z);
+              if (dist <= w.meleeRange) {
+                const impulse = { x: dir.x * 2, z: dir.z * 2 };
+                sendWeaponHit(playerId, w.key, id);
+              }
+            }
+            return;
+          }
+          if (projectileMgr) projectileMgr.spawn(w, origin, dir, id);
+        }),
+    });
+    bot.hp      = 100;
+    bot.heroId  = heroId;
+    window._pvAiBot = bot;
+    remoteAvatars.set(botId, bot.avatar);  // so spectators can follow
+  }
+
+  function _onDuelRoundEnd({ winner, winsA, winsB }) {
+    _duelRoundPause = true;
+    _showDuelRoundResult(winner, winsA, winsB);
+    setTimeout(() => {
+      if (winsA < 2 && winsB < 2) {
+        // New round, same heroes — reset positions, resetHero()
+        if (localAvatar) {
+          localAvatar.resetHero();
+          localAvatar.resetHp();
+        }
+        if (window._pvAiBot) {
+          window._pvAiBot.hp = 100;
+          window._pvAiBot.avatar.resetHp();
+          window._pvAiBot.avatar.resetHero();
+          window._pvAiBot._x = 3;
+          window._pvAiBot._z = 3;
+          if (window._pvAiBot.mannequin) {
+            window._pvAiBot.mannequin.root.position.set(3, 0, 3);
+            window._pvAiBot.mannequin.root.rotation.y = 0;
+          }
+        }
+        localRespawn();
+        _duelRoundPause = false;
+      }
+    }, 3000);
+  }
+
+  function _onDuelEnd({ matchWinner, reason }) {
+    _showDuelMatchResult(matchWinner, reason);
+    // After 5s return to warmup
+    setTimeout(() => {
+      const resultOverlay = document.getElementById('duel-match-result-overlay');
+      if (resultOverlay) resultOverlay.remove();
+      const scoreHud = document.getElementById('duel-score-hud');
+      if (scoreHud) scoreHud.remove();
+      if (isHost && gameMode) {
+        send({ type: 'game_mode_change', mode: 'warmup' });
+      }
+    }, 5000);
+  }
+
+  function _buildDuelHud() {
+    const existing = document.getElementById('duel-score-hud');
+    if (existing) existing.remove();
+    const hud = document.createElement('div');
+    hud.id = 'duel-score-hud';
+    hud.style.cssText = `
+      position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
+      font-family: 'Geist Mono', monospace; font-size: 12px;
+      color: #d7b06a; letter-spacing: 0.12em;
+      pointer-events: none; text-align: center; z-index: 1000;
+    `;
+    hud.textContent = `RUNDE ${gameMode.duelState.winsA + gameMode.duelState.winsB + 1}`;
+    document.body.appendChild(hud);
+  }
+
+  function _showDuelRoundResult(winnerId, winsA, winsB) {
+    const overlay = document.createElement('div');
+    overlay.id = 'duel-round-result-overlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(11,17,28,0.7); z-index: 2000;
+      font-family: 'Geist Mono', monospace; pointer-events: none;
+    `;
+    overlay.innerHTML = `
+      <div style="font-size: 22px; color: #f0d28c; letter-spacing: 0.18em; margin-bottom: 12px;">
+        RUNDE GEWONNEN
+      </div>
+      <div style="font-size: 14px; color: #b9bda3;">
+        ${winsA} : ${winsB}
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3000);
+  }
+
+  function _showDuelMatchResult(matchWinnerId, reason) {
+    const overlay = document.createElement('div');
+    overlay.id = 'duel-match-result-overlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(11,17,28,0.88); z-index: 2000;
+      font-family: 'Geist Mono', monospace;
+    `;
+    const isWin  = matchWinnerId === playerId;
+    const label  = reason === 'disconnect' ? 'UNENTSCHIEDEN' : isWin ? 'SIEG' : 'NIEDERLAGE';
+    const color  = reason === 'disconnect' ? '#b9bda3' : isWin ? '#d7b06a' : '#a83a30';
+    overlay.innerHTML = `
+      <div style="font-size: 32px; color: ${color}; letter-spacing: 0.2em;">${label}</div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  function _enterSpectatorMode() {
+    _isSpectator = true;
+    if (localAvatar) { localAvatar.mannequin.root.visible = false; }
+    _showSpectatorHud();
+    _specTarget = [...remoteAvatars.keys()].find(id => !id.startsWith('bot-')) || null;
+    _specMode   = 'follow';
+  }
+
+  function _cycleSpecTarget() {
+    const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
+    if (fighters.length === 0) return;
+    const idx = fighters.indexOf(_specTarget);
+    _specTarget = fighters[(idx + 1) % fighters.length] || null;
+  }
+
+  function _showSpectatorHud() {
+    const existing = document.getElementById('spectator-hud');
+    if (existing) existing.remove();
+    const hud = document.createElement('div');
+    hud.id = 'spectator-hud';
+    hud.style.cssText = `
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(11,17,28,0.8); border: 1px solid rgba(215,176,106,0.18);
+      border-radius: 999px; padding: 6px 18px;
+      font-family: 'Geist Mono', monospace; font-size: 11px;
+      color: #d7b06a; letter-spacing: 0.1em; pointer-events: none; z-index: 2000;
+    `;
+    hud.textContent = 'ZUSCHAUER · Tab = Spieler wechseln · F = Freie Kamera';
+    document.body.appendChild(hud);
+  }
+
   function stop() {
     hideBanner();
     destroyHud();
@@ -275,11 +734,40 @@ const Mayhem = (() => {
       obstacles = [];
     }
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
+    if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
+    if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    const specHud = document.getElementById('spectator-hud');
+    if (specHud) specHud.remove();
+    document.removeEventListener('mousemove', _onMouseMove);
+    document.removeEventListener('touchmove', _onTouchMove);
+    if (document.pointerLockElement) document.exitPointerLock();
     window.MayhemEffects = null;
     effectsMgr = null;
     weaponSystem = null;
     gameMode = null;
     chaseCam.detach();
+    if (window._minionManager) {
+      window._minionManager.clear();
+      window._minionManager = null;
+    }
+    if (window._remoteMinionMeshes) {
+      for (const m of window._remoteMinionMeshes.values()) {
+        scene.remove(m);
+      }
+      window._remoteMinionMeshes.clear();
+      window._remoteMinionMeshes = null;
+    }
+    if (window._autoTurret) {
+      window._autoTurret.disable();
+      window._autoTurret = null;
+    }
+    window._pvAiBot = null;
+    _myHeroId = null;
+    _opponentHeroId = null;
+    _duelRoundPause = false;
+    _isSpectator = false;
+    _specTarget = null;
+    _specMode = 'follow';
   }
 
   // ── Respawn ───────────────────────────────────────────────────────────────
@@ -407,6 +895,44 @@ const Mayhem = (() => {
     if (!enabled) return;
     const yaw = chaseCam ? chaseCam.getYaw() : 0;
 
+    if (_isSpectator) {
+      if (_specMode === 'follow' && _specTarget) {
+        const av = remoteAvatars.get(_specTarget);
+        if (av) chaseCam.attach(av.mannequin.root);
+      } else if (_specMode === 'fly') {
+        chaseCam.detach();
+        const FLYSPEED = 8;
+        const moveVector = new window.THREE.Vector3(0, 0, 0);
+        if (_specKeys['KeyW']) moveVector.z -= FLYSPEED * dt;
+        if (_specKeys['KeyS']) moveVector.z += FLYSPEED * dt;
+        if (_specKeys['KeyA']) moveVector.x -= FLYSPEED * dt;
+        if (_specKeys['KeyD']) moveVector.x += FLYSPEED * dt;
+        if (_specKeys['KeyQ']) moveVector.y -= FLYSPEED * dt;
+        if (_specKeys['KeyE']) moveVector.y += FLYSPEED * dt;
+        
+        camera.position.x = Math.max(-13, Math.min(13, camera.position.x + moveVector.x));
+        camera.position.y = Math.max(1,   Math.min(8,  camera.position.y + moveVector.y));
+        camera.position.z = Math.max(-13, Math.min(13, camera.position.z + moveVector.z));
+        camera.lookAt(0, 0, 0);
+      }
+      for (const a of remoteAvatars.values()) a.update(dt, 0);
+      projectileMgr?.update(dt);
+      effectsMgr?.update(dt);
+      chaseCam.update();
+      if (hud) updateHudFrame();
+      return;
+    }
+
+    // Update aim direction from mouse position
+    if (_raycaster && _mouseNDC && localAvatar) {
+      _raycaster.setFromCamera(_mouseNDC, camera);
+      if (_raycaster.ray.intersectPlane(_aimPlane, _aimPoint)) {
+        const lp = localAvatar.mannequin.root.position;
+        _aimDir.set(_aimPoint.x - lp.x, 0, _aimPoint.z - lp.z).normalize();
+        _crosshairMesh.position.set(_aimPoint.x, 0.06, _aimPoint.z);
+      }
+    }
+
     if (localAvatar) {
       localAvatar.setInput(input);
       localAvatar.update(dt, yaw);
@@ -414,8 +940,7 @@ const Mayhem = (() => {
       // Weapon fire
       if (input.fire && weaponSystem && !localAvatar.isDead) {
         const pos = localAvatar.mannequin.root.position;
-        const fy  = localAvatar.facingY;
-        const dir = { x: Math.sin(fy), y: 0.05, z: Math.cos(fy) };
+        const dir = { x: _aimDir.x, y: 0.05, z: _aimDir.z };
         weaponSystem.tryFire({ x: pos.x, y: pos.y, z: pos.z }, dir, playerId);
       }
       weaponSystem?.tick();
@@ -425,6 +950,23 @@ const Mayhem = (() => {
       if (curWeaponKey !== _lastWeaponKey) {
         _lastWeaponKey = curWeaponKey;
         if (weaponSystem?.current) localAvatar.setWeapon(weaponSystem.current);
+      }
+      if (localAvatar._vehicle && localAvatar._vehicle.mesh) {
+        const lp = localAvatar.mannequin.root.position;
+        const v = localAvatar._vehicle;
+        v.mesh.position.set(lp.x, v.type === 'motorcycle' ? 0.35 : 0.45, lp.z);
+        v.mesh.rotation.y = localAvatar.facingY;
+
+        if (v.damagesOnContact) {
+          const vCapsule = { x: lp.x, y: 0.5, z: lp.z, radius: v.type === 'motorcycle' ? 0.6 : 1.0, height: 1.0 };
+          const physics = window.MayhemPhysics;
+          for (const [remoteId, remoteAv] of remoteAvatars) {
+            if (remoteAv.isDead) continue;
+            if (physics.capsuleCapsule(vCapsule, remoteAv.getCapsule())) {
+              send({ type: 'hit', victimId: remoteId, weaponKey: 'vehicle', shooterId: playerId, impulse: { x: 0, y: 0, z: 0 } });
+            }
+          }
+        }
       }
     }
 
@@ -436,6 +978,16 @@ const Mayhem = (() => {
     }
 
     for (const a of remoteAvatars.values()) a.update(dt, 0);
+    if (window._minionManager) {
+      window._minionManager.tick(dt, Date.now());
+    }
+    if (window._autoTurret) {
+      window._autoTurret.tick(remoteAvatars, Date.now());
+    }
+    if (window._pvAiBot && _pvAiMode) {
+      const enemy = { pos: localAvatar.mannequin.root.position };
+      window._pvAiBot.tick(dt, enemy, obstacles);
+    }
     for (const v of vehicles.values()) {
       v.update(dt);
       if (!v.alive) { v.remove(scene); vehicles.delete(v.id); }
@@ -502,7 +1054,84 @@ const Mayhem = (() => {
         updateHud();
         break;
 
+      case 'hero_select':
+        _opponentHeroId = msg.heroId;
+        if (_heroSelectUi) {
+          _heroSelectUi.lockCard(msg.heroId);
+          _heroSelectUi.setStatus('Gegner hat gewählt ✓');
+        }
+        _checkBothHeroesSelected();
+        break;
+
+      case 'duel_start':
+        _startDuelRound(msg.playerA, msg.playerB);
+        break;
+
+      case 'duel_round_end':
+        _onDuelRoundEnd(msg);
+        break;
+
+      case 'duel_match_end':
+        _onDuelEnd({ matchWinner: msg.winner, reason: msg.reason });
+        break;
+
+      case 'hero_stealth':
+        {
+          const av = remoteAvatars.get(msg.playerId);
+          if (av) av.mannequin.root.visible = !msg.active;
+        }
+        break;
+
+      case 'hero_teleport':
+        {
+          const av = remoteAvatars.get(msg.playerId);
+          if (av) { av.mannequin.root.position.x = msg.x; av.mannequin.root.position.z = msg.z; }
+        }
+        break;
+
+      case 'hero_slow':
+        if (localAvatar) {
+          localAvatar.applySlowDebuff(msg.slowFactor, msg.durationMs);
+        }
+        break;
+
+      case 'minion_spawn':
+        {
+          const miniMesh = makeMannequin(`minion-${msg.minionId}`, { x: msg.x, z: msg.z });
+          miniMesh.root.scale.setScalar(0.6);
+          miniMesh.root.traverse(o => {
+            if (o.isMesh && o.material) {
+              o.material = o.material.clone();
+              o.material.color.setHex(0xb8c0a8);
+            }
+          });
+          window._remoteMinionMeshes = window._remoteMinionMeshes || new Map();
+          window._remoteMinionMeshes.set(msg.minionId, miniMesh.root);
+        }
+        break;
+
+      case 'minion_update':
+        {
+          const mesh = window._remoteMinionMeshes && window._remoteMinionMeshes.get(msg.minionId);
+          if (mesh) { mesh.position.x = msg.x; mesh.position.z = msg.z; }
+        }
+        break;
+
+      case 'minion_die':
+        {
+          const mesh = window._remoteMinionMeshes && window._remoteMinionMeshes.get(msg.minionId);
+          if (mesh) { scene.remove(mesh); window._remoteMinionMeshes.delete(msg.minionId); }
+        }
+        break;
+
       case 'player_join':
+        if (gameMode && gameMode.mode === 'duel') {
+          const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
+          if (fighters.length >= 2 && msg.playerId === playerId) {
+            _isSpectator = true;
+            _enterSpectatorMode();
+          }
+        }
         if (msg.playerId === playerId) return;
         if (remoteAvatars.has(msg.playerId)) return;
         { const m = makeMannequin(msg.playerId, { x: 0, z: 0 });
@@ -541,6 +1170,15 @@ const Mayhem = (() => {
         break;
 
       case 'player_death':
+        if (gameMode && gameMode.mode === 'duel' && isHost && !_duelRoundPause) {
+          const result = gameMode.handleDuelDeath(msg.playerId);
+          send({
+            type: result.matchOver ? 'duel_match_end' : 'duel_round_end',
+            winner: result.matchOver ? result.matchWinner : result.roundWinner,
+            winsA: gameMode.duelState.winsA,
+            winsB: gameMode.duelState.winsB,
+          });
+        }
         gameMode?.handleDeath(msg.playerId, msg.playerId === playerId);
         if (msg.killerId) gameMode?.handleKill(msg.killerId);
         updateHud();

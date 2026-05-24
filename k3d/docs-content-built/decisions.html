@@ -65,21 +65,35 @@
   <a href="./index.html" class="page-hero-back">← Übersicht</a>
 </div><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
-  <ul class="toc-list"><li class="toc-item"><a href="#2026-05-05--korczewski--und-mentolder-cluster-vereinen"><span class="toc-num">1.</span>&nbsp;2026-05-05 — Korczewski- und Mentolder-Cluster vereinen</a></li>
-<li class="toc-item"><a href="#2026-05-09--stripe-komplett-rausnehmen"><span class="toc-num">2.</span>&nbsp;2026-05-09 — Stripe komplett rausnehmen</a></li>
-<li class="toc-item"><a href="#2026-04-22--mattermost-und-invoiceninja-entfernen"><span class="toc-num">3.</span>&nbsp;2026-04-22 — Mattermost und InvoiceNinja entfernen</a></li>
-<li class="toc-item"><a href="#2026-04-16--custom-messaging-in-der-astro-website-statt-mattermost"><span class="toc-num">4.</span>&nbsp;2026-04-16 — Custom Messaging in der Astro-Website (statt Mattermost)</a></li>
-<li class="toc-item"><a href="#2026-05-04--livekit-fuer-streaming-statt-janus-only"><span class="toc-num">5.</span>&nbsp;2026-05-04 — LiveKit für Streaming (statt Janus-only)</a></li>
-<li class="toc-item"><a href="#2026-04-10--sealedsecrets-statt-envsubst-workflow"><span class="toc-num">6.</span>&nbsp;2026-04-10 — SealedSecrets statt envsubst-Workflow</a></li>
-<li class="toc-item"><a href="#foundation--k3dk3s--kustomize-als-einziger-deploy-pfad"><span class="toc-num">7.</span>&nbsp;Foundation — k3d/k3s + Kustomize als einziger Deploy-Pfad</a></li></ul>
+  <ul class="toc-list"><li class="toc-item"><a href="#2026-05-15--argocd-entfernen--fluxcd"><span class="toc-num">1.</span>&nbsp;2026-05-15 — ArgoCD entfernen → FluxCD</a></li>
+<li class="toc-item"><a href="#2026-05-09--cluster-re-split-zurueck-zu-zwei-separaten-clustern"><span class="toc-num">2.</span>&nbsp;2026-05-09 — Cluster Re-Split: zurück zu zwei separaten Clustern</a></li>
+<li class="toc-item"><a href="#2026-05-05--korczewski--und-mentolder-cluster-vereinen"><span class="toc-num">3.</span>&nbsp;2026-05-05 — Korczewski- und Mentolder-Cluster vereinen</a></li>
+<li class="toc-item"><a href="#2026-05-09--stripe-komplett-rausnehmen"><span class="toc-num">4.</span>&nbsp;2026-05-09 — Stripe komplett rausnehmen</a></li>
+<li class="toc-item"><a href="#2026-04-22--mattermost-und-invoiceninja-entfernen"><span class="toc-num">5.</span>&nbsp;2026-04-22 — Mattermost und InvoiceNinja entfernen</a></li>
+<li class="toc-item"><a href="#2026-04-16--custom-messaging-in-der-astro-website-statt-mattermost"><span class="toc-num">6.</span>&nbsp;2026-04-16 — Custom Messaging in der Astro-Website (statt Mattermost)</a></li>
+<li class="toc-item"><a href="#2026-05-04--livekit-fuer-streaming-statt-janus-only"><span class="toc-num">7.</span>&nbsp;2026-05-04 — LiveKit für Streaming (statt Janus-only)</a></li>
+<li class="toc-item"><a href="#2026-04-10--sealedsecrets-statt-envsubst-workflow"><span class="toc-num">8.</span>&nbsp;2026-04-10 — SealedSecrets statt envsubst-Workflow</a></li>
+<li class="toc-item"><a href="#foundation--k3dk3s--kustomize-als-einziger-deploy-pfad"><span class="toc-num">9.</span>&nbsp;Foundation — k3d/k3s + Kustomize als einziger Deploy-Pfad</a></li></ul>
 </div><h1>Decision-Log</h1>
 <p class="kicker">Referenz · Architektur-Entscheidungen</p><p>Chronologisch, neueste zuerst. Jeder Eintrag hält fest, <em>warum</em> wir etwas geändert haben — nicht <em>was</em> (das steht im Code und im Git-Log).</p>
 <hr>
+<h2 id="2026-05-15--argocd-entfernen--fluxcd">2026-05-15 — ArgoCD entfernen → FluxCD</h2>
+<p><strong>Status:</strong> akzeptiert · PR #782 · gerollt am 2026-05-15</p>
+<p><strong>Kontext:</strong> ArgoCD war als GitOps-Controller für beide Cluster im Einsatz. Nach dem Cluster-Re-Split war die Maintenance-Last (zwei ArgoCD-Instanzen, Application-CRDs, RBAC) zu hoch für ein 1-2-Personen-Team.</p>
+<p><strong>Entscheidung:</strong> ArgoCD vollständig entfernt. Flux CD ersetzt es auf beiden Clustern (mentolder + korczewski, je eine eigene Flux-Installation). Manifest-Reconciliation läuft weiterhin automatisch per GitRepository-Polling.</p>
+<p><strong>Konsequenz:</strong> Weniger CRDs, einfachere CLI (<code>flux</code> statt <code>argocd</code>), kein ArgoCD-UI. Reconcile-Befehle: <code>flux reconcile source git flux-system --context &lt;env&gt;</code> + <code>flux reconcile kustomization workspace</code>. Image-Rollouts (Website, Brett, Docs) weiterhin manuell via <code>task feature:*</code>.</p>
+<hr>
+<h2 id="2026-05-09--cluster-re-split-zurueck-zu-zwei-separaten-clustern">2026-05-09 — Cluster Re-Split: zurück zu zwei separaten Clustern</h2>
+<p><strong>Status:</strong> akzeptiert · PRs #621/#622 · gerollt am 2026-05-09 · supersedes 2026-05-05</p>
+<p><strong>Kontext:</strong> Die Cluster-Vereinigung vom 2026-05-05 wurde nach wenigen Tagen zurückgenommen. Die WireGuard-CNI-Partition (Flannel VXLAN traversierte den doppelten WG-Hop nicht) war zwar fixbar, aber die Komplexität (9-Node-Cluster, gemischte Netzwerk-Topologie, zwei Domains im gleichen Traefik) überwog den Vorteil. Außerdem hatte jeder Cluster unterschiedliche Hardware-Charakteristik und unterschiedliche Nutzergruppen.</p>
+<p><strong>Entscheidung:</strong> korczewski-Nodes verlassen den mentolder-Cluster und bilden wieder einen eigenständigen 3-Node-k3s-Cluster (<code>pk-hetzner-4/6/8</code>). Jeder Cluster hat eigene: Traefik-Instanz, shared-db, Keycloak-Realm, Sealed-Secrets-Controller, cert-manager.</p>
+<p><strong>Konsequenz:</strong> Cross-Cluster-Operationen (DB-Passwort-Rotation, Schema-Migrations, OIDC-Tweaks) müssen explizit auf beide Cluster angewendet werden — kein implizites Fan-out. Deploy-Umbrellas (<code>task feature:*</code>, <code>task workspace:*:all-prods</code>) fan-outen automatisch auf mentolder + korczewski.</p>
+<hr>
 <h2 id="2026-05-05--korczewski--und-mentolder-cluster-vereinen">2026-05-05 — Korczewski- und Mentolder-Cluster vereinen</h2>
-<p><strong>Status:</strong> akzeptiert · gerollt am 2026-05-05</p>
-<p><strong>Kontext:</strong> Wir betrieben zwei separate k3s-Cluster (mentolder + korczewski) hinter zwei Hostgruppen. Cross-Cluster-Operations waren teuer, die Nodes der Korczewski-Box waren im Schnitt zu 30 % ausgelastet, ArgoCD musste zwei Cluster verwalten.</p>
-<p><strong>Entscheidung:</strong> Die korczewski-Nodes traten der mentolder-Cluster bei. korczewski.de läuft jetzt im Namespace <code>workspace-korczewski</code> auf demselben physischen Cluster, mit demselben Traefik. Der <code>korczewski</code>-kubeconfig-Kontext zeigt jetzt auf <code>pk-hetzner</code> (Cluster-API).</p>
-<p><strong>Konsequenz:</strong> Eine Cluster-Version, eine ArgoCD-Instanz, eine Backup-Strategie. Im Gegenzug brauchen alle Korczewski-Workloads <code>workspace-namespace</code>-Annotationen + <code>workspace-korczewski</code>-Labels in den ApplicationSets.</p>
+<p><strong>Status:</strong> zurückgenommen am 2026-05-09 (PRs #621/#622) · superseded by Cluster Re-Split</p>
+<p><strong>Kontext:</strong> Wir betrieben zwei separate k3s-Cluster (mentolder + korczewski) hinter zwei Hostgruppen. Cross-Cluster-Operations waren teuer, die Nodes der Korczewski-Box waren im Schnitt zu 30 % ausgelastet.</p>
+<p><strong>Entscheidung:</strong> Die korczewski-Nodes traten der mentolder-Cluster bei. korczewski.de lief im Namespace <code>workspace-korczewski</code> auf demselben physischen Cluster.</p>
+<p><strong>Konsequenz:</strong> Entscheidung wurde 4 Tage später revidiert — siehe Re-Split-Eintrag oben.</p>
 <hr>
 <h2 id="2026-05-09--stripe-komplett-rausnehmen">2026-05-09 — Stripe komplett rausnehmen</h2>
 <p><strong>Status:</strong> akzeptiert</p>

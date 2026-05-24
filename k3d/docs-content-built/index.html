@@ -113,34 +113,37 @@
 </div><h2 id="architektur-auf-einen-blick">Architektur auf einen Blick</h2>
 <pre class="mermaid-fallback"><code>flowchart TB
   User([Browser])
-  subgraph cluster["k3s Cluster (vereint, betreibt mentolder.de + korczewski.de)"]
-    Traefik{{"Traefik Ingress · 443"}}
-    subgraph identity["Identität"]
-      KC[Keycloak · auth.{DOMAIN}]
-    end
-    subgraph collab["Zusammenarbeit"]
-      NC[Nextcloud + Talk · files.{DOMAIN}]
-      CO[Collabora · office.{DOMAIN}]
-      WB[Whiteboard · board.{DOMAIN}]
-    end
-    subgraph stream["Live"]
-      LK[LiveKit · livekit.{DOMAIN}]
-    end
-    subgraph tools["Tools"]
-      VW[Vaultwarden · vault.{DOMAIN}]
-      WEB[Portal · web.{DOMAIN}]
-      DS[DocuSeal · sign.{DOMAIN}]
-    end
-    subgraph data["Daten"]
-      DB[(shared-db · PG 16)]
-    end
+  subgraph mentolder["k3s Cluster mentolder (9 Nodes · mentolder.de)"]
+    TraefikM{{"Traefik · 443"}}
+    KCM[Keycloak · auth.mentolder.de]
+    NCM[Nextcloud + Talk · files.mentolder.de]
+    COM[Collabora · office.mentolder.de]
+    WBM[Whiteboard · board.mentolder.de]
+    LK[LiveKit · livekit.mentolder.de]
+    VWM[Vaultwarden · vault.mentolder.de]
+    WEBM[Portal · web.mentolder.de]
+    DSM[DocuSeal · sign.mentolder.de]
+    DBM[(shared-db · PG 16)]
+  end
+  subgraph korczewski["k3s Cluster korczewski (3 Nodes · korczewski.de)"]
+    TraefikK{{"Traefik · 443"}}
+    KCK[Keycloak · auth.korczewski.de]
+    NCK[Nextcloud · files.korczewski.de]
+    COK[Collabora · office.korczewski.de]
+    WEBK[Portal · web.korczewski.de]
+    DSK[DocuSeal · sign.korczewski.de]
+    DBK[(shared-db · PG 16)]
   end
 
-  User --&gt; Traefik
-  Traefik --&gt; KC &amp; NC &amp; CO &amp; WB &amp; LK &amp; VW &amp; WEB &amp; DS
-  KC -. OIDC .-&gt; NC &amp; VW &amp; WEB &amp; DS
-  NC --&gt; CO
-  KC &amp; NC &amp; VW &amp; WEB &amp; DS --&gt; DB
+  User --&gt; TraefikM &amp; TraefikK
+  TraefikM --&gt; KCM &amp; NCM &amp; COM &amp; WBM &amp; LK &amp; VWM &amp; WEBM &amp; DSM
+  TraefikK --&gt; KCK &amp; NCK &amp; COK &amp; WEBK &amp; DSK
+  KCM -. OIDC .-&gt; NCM &amp; VWM &amp; WEBM &amp; DSM
+  KCK -. OIDC .-&gt; NCK &amp; WEBK &amp; DSK
+  NCM --&gt; COM
+  NCK --&gt; COK
+  KCM &amp; NCM &amp; VWM &amp; WEBM &amp; DSM --&gt; DBM
+  KCK &amp; NCK &amp; WEBK &amp; DSK --&gt; DBK
 </code></pre>
 <h2 id="service-endpunkte">Service-Endpunkte</h2>
 <p><code>{DOMAIN}</code> ist <code>mentolder.de</code> oder <code>korczewski.de</code>.</p>
@@ -155,7 +158,7 @@
 <tbody><tr>
 <td>Portal &amp; Website</td>
 <td><code>https://web.{DOMAIN}</code></td>
-<td>Astro + Svelte Portal mit Chat und Buchung</td>
+<td>Astro + Svelte Portal mit Chat und Messaging</td>
 </tr>
 <tr>
 <td>Keycloak (SSO)</td>

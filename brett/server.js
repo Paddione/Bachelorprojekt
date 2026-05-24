@@ -132,7 +132,7 @@ if (process.env.MOCK_DB === 'true') {
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(sessionMiddleware);
-app.use(express.static('public', {
+app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, path) => {
     if (path.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-cache');

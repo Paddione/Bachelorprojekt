@@ -37,6 +37,147 @@ bash scripts/skill-orchestrator.sh .claude/skills/dev-flow-plan/SKILL.md pre "in
 ```
 "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
 
+---
+
+## Schritt −3: Deep Grilling (optional — für größere Feature-Projekte)
+
+Wenn die Anfrage komplex, unklar oder groß klingt (mehrere Subsysteme, unklarer Scope, cross-cutting concerns, mehr als ~3 Tage Arbeit), frage **direkt**:
+
+> "Klingt nach einem größeren Vorhaben. Möchtest du eine strukturierte Grilling-Session (5–10 min) bevor wir zum Brainstorming kommen? Du bekommst danach eine Anforderungsliste, eine Asset-Wunschliste und ein Ticket als Planungsgrundlage."
+
+**Falls der User 'Nein'** oder das Feature offensichtlich klein/klar ist: direkt zu Schritt −2 springen. Kein Blocker.
+
+**Falls der User 'Ja'** oder selbst um eine Grilling-Session bittet:
+
+### 1. Grilling-Runden (3–4 Runden à 2–3 Fragen)
+
+Führe die Runden **sequenziell** durch — stelle eine Runde, warte auf Antworten, dann die nächste. Nicht alle Fragen auf einmal.
+
+**Runde 1 — Kern & Ziel**
+- Was ist das eigentliche Problem, das gelöst werden soll? (Nicht die Lösung — das Problem dahinter. Warum jetzt?)
+- Wer sind die Hauptnutzer / Stakeholder, die das betrifft?
+- Was ist der Auslöser für dieses Feature genau jetzt?
+
+**Runde 2 — Scope & Grenzen**
+- Was gehört definitiv NICHT in dieses Feature? (Explizit Out-of-scope benennen)
+- Welche bestehenden Komponenten / Services werden tangiert oder müssen angepasst werden?
+- Gibt es technische, regulatorische oder zeitliche Constraints?
+
+**Runde 3 — Erfolg & Abnahme**
+- Woran erkennst du, dass das Feature fertig und erfolgreich ist? (Konkrete, messbare Akzeptanzkriterien)
+- Gibt es bekannte Edge-Cases oder Failure-Szenarien, die abgedeckt sein müssen?
+- Welche nicht-funktionalen Anforderungen gelten? (Performance, Sicherheit, DSGVO, Mobile-Responsive)
+
+**Runde 4 — Assets & Referenzen** (nur wenn nach Runde 3 noch Unklarheiten bestehen)
+- Gibt es Mockups, bestehende Implementierungen, Konkurrenz-Screenshots, Paper oder sonstige Referenzen?
+- Welche internen Dateien / Tickets / Gespräche haben den Kontext, den ich noch nicht kenne?
+- Wer ist der richtige Ansprechpartner bei Unklarheiten während der Implementierung?
+
+> **Grilling-Stil:** Frage präzise, nicht vage. Hake nach wenn Antworten ausweichen — nutze "Warum genau?" und "Was meinst du konkret mit X?" als Drill-down. Ziel: Keine wichtige Anforderung bleibt implizit.
+
+### 2. Synthese — zwei Listen ableiten
+
+Nach den Runden: synthetisiere in diesen beiden strukturierten Listen.
+
+**Anforderungsliste:**
+```
+FUNKTIONALE ANFORDERUNGEN:
+- [ ] <Anforderung 1>
+- [ ] <Anforderung 2>
+...
+
+NICHT-FUNKTIONALE ANFORDERUNGEN:
+- [ ] <NFR 1 — z.B. Mobile-Responsive ≥768px>
+- [ ] <NFR 2 — z.B. DSGVO-konform, keine externen Calls>
+...
+
+EXPLIZIT OUT-OF-SCOPE:
+- <Was nicht gebaut wird>
+...
+
+AKZEPTANZKRITERIEN:
+- [ ] <Kriterium 1 — messbar/testbar>
+- [ ] <Kriterium 2>
+...
+```
+
+**Asset-Wunschliste:**
+```
+SOFORT VERFÜGBAR:
+- <Datei/Link/Kontext der bereits vorliegt>
+
+ZU BESCHAFFEN:
+- [ ] <Asset 1 — z.B. Figma-Export von Designer X>
+- [ ] <Asset 2 — z.B. API-Doku von Service Y>
+- [ ] <Asset 3 — z.B. Screenshot bestehender Lösung>
+
+OPTIONAL / NICE-TO-HAVE:
+- <Asset das helfen würde, aber nicht blockiert>
+```
+
+Zeige beide Listen dem User und frage: **"Stimmt das so? Fehlt etwas Wichtiges?"**
+Passe nach Feedback an (max. 1 Korrektur-Runde).
+
+Speichere die Synthese für den weiteren Verlauf:
+```bash
+export GRILLING_REQUIREMENTS="<Anforderungsliste als kompakter Multi-line-String>"
+export GRILLING_ASSETS_TODO="<ZU-BESCHAFFEN-Liste>"
+```
+
+### 3. Ticket anlegen
+
+```bash
+PGPOD=$(kubectl get pod -n workspace --context mentolder \
+  -l app=shared-db -o name | head -1)
+
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "INSERT INTO tickets.tickets (type, brand, title, description, status)
+   VALUES (
+     'task', 'mentolder',
+     'Grilling: <kurzer-titel>',
+     \$\$GRILLING-ERGEBNIS
+
+FUNKTIONALE ANFORDERUNGEN:
+${GRILLING_REQUIREMENTS}
+
+ASSETS ZU BESCHAFFEN:
+${GRILLING_ASSETS_TODO}\$\$,
+     'triage'
+   )
+   RETURNING external_id, id;")
+
+export GRILLING_TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+export GRILLING_TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
+```
+
+Melde: **"Grilling-Ticket `$GRILLING_TICKET_EXT_ID` angelegt → https://web.mentolder.de/admin/bugs"**
+
+### 4. Bereits vorliegende Assets hochladen
+
+Falls der User in Runde 4 bereits konkrete Dateipfade genannt hat:
+
+```bash
+GRILLING_ATTACHMENT_PATHS=(/* genannte Pfade */)
+if [[ ${#GRILLING_ATTACHMENT_PATHS[@]} -gt 0 ]]; then
+  bash scripts/ticket-attach.sh "$GRILLING_TICKET_UUID" "${GRILLING_ATTACHMENT_PATHS[@]}"
+fi
+```
+
+Erlaubte Endungen: `.md .html .jpg .jpeg .png .gif .webp .mp3 .wav .mp4 .mov .webm .pdf .txt .log`
+
+### 5. Kontext-Übergabe an den weiteren Flow
+
+Die exportierten Variablen (`GRILLING_TICKET_EXT_ID`, `GRILLING_REQUIREMENTS`, `GRILLING_ASSETS_TODO`) fließen automatisch in:
+- **Schritt 1.5** (Asset-Sammlung): `GRILLING_ASSETS_TODO` zeigt was noch fehlt — dort gezielt nachfragen
+- **Schritt 1.6** (Codebase-Explorer): Scope und Anforderungen geben dem Explorer einen schärferen Fokus
+- **Schritt 3** (Brainstorming): wird als `<grilling-context>` Block injiziert
+- **Schritt 4.5** (Ticket): Plan-Ticket referenziert das Grilling-Ticket
+
+Fahre jetzt mit **Schritt −2** fort.
+
+---
+
 ## Schritt −2: Main-Branch sync (Pull-First)
 
 Führe **als allererstes** aus — bevor irgendetwas anderes passiert:
@@ -267,7 +408,19 @@ Rufe `superpowers:brainstorming` auf. Voranstellen vor dem ersten Brainstorming-
 > $EXPLORER_REPORT
 > </codebase-context>
 >
-> Nutze den Codebase-Context aus `<codebase-context>` als Grundlage für Step 1 (Explore project context) — du musst die dort beschriebenen Dateien nicht erneut lesen, außer du brauchst spezifische Details."
+> Nutze den Codebase-Context aus `<codebase-context>` als Grundlage für Step 1 (Explore project context) — du musst die dort beschriebenen Dateien nicht erneut lesen, außer du brauchst spezifische Details.
+>
+> $(if [[ -n "${GRILLING_TICKET_EXT_ID:-}" ]]; then echo "<grilling-context>
+> Grilling-Ticket: $GRILLING_TICKET_EXT_ID
+>
+> ANFORDERUNGEN (bereits erarbeitet — nicht erneut erfragen):
+> $GRILLING_REQUIREMENTS
+>
+> NOCH ZU BESCHAFFENDE ASSETS:
+> $GRILLING_ASSETS_TODO
+> </grilling-context>
+>
+> Die Anforderungen aus <grilling-context> sind bereits mit dem User abgestimmt. Nutze sie als gesetzten Rahmen — kein erneutes Erfragen der Grundlagen. Fokussiere Brainstorming auf Implementierungsansätze, UX-Details und technische Entscheidungen innerhalb dieses Rahmens."; fi)"
 
 Ergebnis: Spec in `docs/superpowers/specs/<date>-<slug>-design.md`.
 
@@ -316,13 +469,19 @@ PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
 
 # Ticket anlegen — Titel und Beschreibung aus Slug und Branch ableiten
+# Falls eine Grilling-Session vorausging, wird das Grilling-Ticket referenziert
+GRILLING_REF=""
+if [[ -n "${GRILLING_TICKET_EXT_ID:-}" ]]; then
+  GRILLING_REF=$'\n'"Grilling-Ticket: ${GRILLING_TICKET_EXT_ID}"
+fi
+
 TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status)
    VALUES (
      'task', 'mentolder',
      'Plan: <slug>',
-     'Branch: feature/<slug>' || E'\n' || 'Plan: docs/superpowers/plans/<date>-<slug>.md' || E'\n' || 'Spec: docs/superpowers/specs/<date>-<slug>-design.md',
+     'Branch: feature/<slug>' || E'\n' || 'Plan: docs/superpowers/plans/<date>-<slug>.md' || E'\n' || 'Spec: docs/superpowers/specs/<date>-<slug>-design.md' || E'${GRILLING_REF}',
      'triage'
    )
    RETURNING external_id, id;")

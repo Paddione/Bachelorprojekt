@@ -155,10 +155,11 @@ fi
 
 # ── Fallback: OpenClaw (Claude, reliable) ─────────────────────────────────
 if curl -sf http://localhost:18789/healthz >/dev/null 2>&1; then
-  exec openclaw agent \
+  openclaw agent \
     --agent task-runner \
     --message "$GOAL" \
-    --json
+    --json && exit 0
+  echo "OpenClaw agent failed (billing cooldown? run: openclaw configure --section model)" >&2
 fi
 
 echo "Neither Hermes nor OpenClaw is available." >&2

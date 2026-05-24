@@ -64,7 +64,7 @@ export const GET: APIRoute = async ({ request }) => {
           latencyMs,
         } satisfies ServiceCheck;
       } catch (e: any) {
-        return { name: svc.name, url: svc.internalUrl, status: 'error', latencyMs: null, error: e.message };
+        return { name: svc.name, url: svc.internalUrl, status: 'error', latencyMs: null, error: e.message } satisfies ServiceCheck;
       }
     })
   );

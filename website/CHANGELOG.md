@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.9.1...website-v1.9.2) (2026-05-24)
+
+
+### Bug Fixes
+
+* **billing:** update invoice validate and storno queries to use documents table [T000111][T000112] ([#1019](https://github.com/Paddione/Bachelorprojekt/issues/1019)) ([e74d722](https://github.com/Paddione/Bachelorprojekt/commit/e74d7227d511e4c1cf68c11600370fce1b03556b))
+
 ## [1.9.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.9.0...website-v1.9.1) (2026-05-24)
 
 

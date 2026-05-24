@@ -5,14 +5,14 @@ import { getSession, getLoginUrl } from '../../lib/auth';
 const user = await getSession(Astro.request.headers.get('cookie'));
 if (!user) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 
-const isAdmin = (user.realmRoles ?? []).includes('arena_admin') && user.brand === 'mentolder';
+const isAdmin = (user.realmRoles ?? []).includes('arena_admin');
 ---
 
 <AdminLayout title="Arena">
   <section class="arena-admin">
     <h1>Arena · admin</h1>
     {!isAdmin ? (
-      <p class="warn">This page requires the <code>arena_admin</code> realm role on the mentolder Keycloak realm.</p>
+      <p class="warn">This page requires the <code>arena_admin</code> realm role.</p>
     ) : (
       <>
         <div class="actions">

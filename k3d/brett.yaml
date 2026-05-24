@@ -84,6 +84,8 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: BRETT_OIDC_SECRET
+            - name: BRETT_DEFAULT_MODE
+              value: "coaching"
           ports:
             - containerPort: 3000
           readinessProbe:

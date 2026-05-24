@@ -26,8 +26,11 @@ export const GET: APIRoute = async ({ request }) => {
     );
   }
 
+  const brand = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+  const ns = brand === 'korczewski' ? 'workspace-korczewski' : 'workspace';
+
   try {
-    const data = await k8s.get('/apis/apps/v1/namespaces/workspace/deployments');
+    const data = await k8s.get(`/apis/apps/v1/namespaces/${ns}/deployments`);
     const deployments = (data.items ?? []).map((d: any) => {
       const desired: number = d.spec.replicas ?? 1;
       const ready: number = d.status.readyReplicas ?? 0;

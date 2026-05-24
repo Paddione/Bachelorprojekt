@@ -3,7 +3,7 @@
 
   type BackupJob = { name: string; trigger: string; startTime: string | null; completionTime: string | null; succeeded: boolean; failed: boolean };
 
-  let cluster = 'mentolder';
+  export let cluster: string = 'mentolder';
   let jobs: BackupJob[] = [];
   let jobsLoading = false;
   let triggerLoading = false;

@@ -82,10 +82,6 @@
       <div class="h-24 bg-admin-surface rounded-xl"></div>
       <div class="h-24 bg-admin-surface rounded-xl"></div>
     </div>
-  {:else if cluster !== 'mentolder'}
-    <div class="p-8 text-center bg-admin-surface rounded-2xl border border-dashed border-admin-border">
-      <p class="text-admin-text-mute italic">FluxCD Management läuft primär auf dem Mentolder Cluster.</p>
-    </div>
   {:else if data && data.flux.error && !data.flux.kustomizations?.length}
     <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
       {data.flux.error}

@@ -824,3 +824,22 @@ setup_vars:
   - name: WG_MESH_PK_L1_WORKER_PUBLIC_KEY
     required: false
     description: "wg-mesh public key for korczewski l1 worker node"
+
+  # ── SSH identity keys ────────────────────────────────────────────────────────
+  # One entry per permanent user identity. Private keys are sealed;
+  # public keys are plain. Allows cluster workloads / CronJobs to SSH into
+  # nodes as the correct OS user without embedding keys in images.
+  - name: PATRICK_SSH_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "SSH private key (OpenSSH ed25519) for user patrick"
+  - name: PATRICK_SSH_PUBLIC_KEY
+    required: false
+    description: "SSH public key (OpenSSH ed25519) for user patrick"
+  - name: GEKKO_SSH_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "SSH private key (OpenSSH ed25519) for user gekko"
+  - name: GEKKO_SSH_PUBLIC_KEY
+    required: false
+    description: "SSH public key (OpenSSH ed25519) for user gekko"

@@ -276,6 +276,18 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:mentolder-auth-setup",
+    "file": "tests/e2e/specs/mentolder-auth-setup.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:nfa-infra-health-sweep",
+    "file": "tests/e2e/specs/nfa-infra-health-sweep.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:systemtest-00-gesamt",
     "file": "tests/e2e/specs/systemtest-00-gesamt.spec.ts",
     "category": "E2E",
@@ -840,6 +852,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-45",
+    "file": "tests/e2e/specs/fa-45-authenticated-flows.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",
@@ -1178,6 +1196,12 @@
   {
     "id": "SA-13",
     "file": "tests/e2e/specs/sa-13-untrusted-jwt.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
+    "id": "SA-15",
+    "file": "tests/e2e/specs/sa-15-cross-cluster-health.spec.ts",
     "category": "SA",
     "kind": "playwright"
   }

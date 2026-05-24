@@ -17,5 +17,17 @@ window.__brettWs = ws;
 
 const modeState = createModeState();
 
-// Show mode selector on load
-showModeSelect(modeState);
+const cfg = await fetch('/api/config')
+  .then(r => r.json())
+  .catch(() => ({ defaultMode: 'coaching', availableModes: ['coaching'] }));
+
+// Remove Mayhem toolbar button when Mayhem is not available on this cluster
+if (!cfg.availableModes.includes('mayhem')) {
+  document.getElementById('mayhem-btn')?.remove();
+}
+
+const chosen = await showModeSelect(modeState, cfg);
+if (chosen === 'mayhem') {
+  // Mayhem boot is idempotent — main.js owns enabling it post-select
+  window.Mayhem?.setEnabled(true);
+}

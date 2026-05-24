@@ -411,6 +411,51 @@ tasks:
       - task: systemtest:all
         vars: { ENV: "korczewski" }
 
+  systemtest:all:headed:
+    desc: "Run all 12 system-test specs headed with 4 workers (ENV=mentolder|korczewski)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all:headed requires E2E_ADMIN_PASS in the env"
+    env:
+      PLAYWRIGHT_WORKERS: "4"
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - task: systemtest:cycle
+        vars: { CYCLE: "1", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "2", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "3", ENV: "{{.ENV}}" }
+        ignore_error: true
+      - task: systemtest:cycle
+        vars: { CYCLE: "4", ENV: "{{.ENV}}" }
+        ignore_error: true
+
+  systemtest:all:headed:both-prods:
+    desc: "Headed 4-worker systemtest against mentolder + korczewski concurrently"
+    preconditions:
+      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
+        msg: "systemtest:all:headed:both-prods requires E2E_ADMIN_PASS in the env"
+    env:
+      PLAYWRIGHT_WORKERS: "4"
+      SKIP_DB_PURGE: "1"
+    cmds:
+      - |
+        task systemtest:all:headed ENV=mentolder -- --headed &
+        PID_M=$!
+        task systemtest:all:headed ENV=korczewski -- --headed &
+        PID_K=$!
+        wait $PID_M; RC_M=$?
+        wait $PID_K; RC_K=$?
+        if [ $RC_M -ne 0 ] || [ $RC_K -ne 0 ]; then
+          echo "[e2e] mentolder exit=$RC_M  korczewski exit=$RC_K"
+          exit 1
+        fi
+
   systemtest:analyze:
     desc: "Analyse system-test outcome files and produce drift report (ENV=mentolder|korczewski)"
     vars:

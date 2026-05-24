@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync,
          existsSync, mkdtempSync, rmSync, copyFileSync, cpSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { marked } from 'marked';
 import * as cheerio from 'cheerio';
@@ -460,6 +460,15 @@ async function main() {
 
   // Normal run: sync skills HTML, refresh assets, regenerate search.json
   // (HTML pages in OUT_DIR are the committed source — not rebuilt from MD)
+
+  // Auto-generate missing skill pages and patch overview SVG/mini-list
+  console.log('  → syncing skill docs...');
+  const syncResult = spawnSync(process.execPath, [join(__dirname, 'sync-skill-docs.mjs')], {
+    stdio: 'inherit', cwd: join(__dirname, '..'),
+  });
+  if (syncResult.status !== 0) {
+    console.warn('  ⚠ sync-skill-docs.mjs exited with', syncResult.status);
+  }
 
   // Write app.js (regenerated from script); style.css kept for legacy references
   writeFileSync(join(OUT_DIR, 'style.css'), getPageCss(), 'utf8');

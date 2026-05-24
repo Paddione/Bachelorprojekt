@@ -1818,6 +1818,11 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
+  docs:sync-skills:
+    desc: Auto-generate missing docs/skills/*.html from .claude/skills/**/SKILL.md and patch skills-overview sidebar
+    cmds:
+      - node scripts/sync-skill-docs.mjs
+
   docs:build:
     desc: Sync skills HTML, refresh assets (style.css/app.js), rebuild search.json in k3d/docs-content-built/
     cmds:

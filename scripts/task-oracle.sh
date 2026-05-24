@@ -3,6 +3,140 @@
 # Three phases: namespace selection → task selection → ENV-aware execution
 set -euo pipefail
 
+# ── Interactive mode ──────────────────────────────────────────────────────────
+interactive_mode() {
+  local REPO="/home/patrick/Bachelorprojekt"
+
+  set +o pipefail
+  local ALL_TASKS
+  ALL_TASKS=$(cd "$REPO" && task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
+  set -o pipefail
+
+  if [[ -z "$ALL_TASKS" ]]; then
+    echo "✗ Could not load task list from Taskfile" >&2; return 1
+  fi
+
+  local HAS_FZF=0
+  if command -v fzf &>/dev/null; then HAS_FZF=1; fi
+
+  # ── Step 1: namespace ─────────────────────────────────────────────────────
+  local NS_LIST
+  NS_LIST=$(echo "$ALL_TASKS" | awk '
+  {
+    n = split($0, parts, /:  +/)
+    if (n < 2) next
+    ns = parts[1]; sub(/:.*/, "", ns)
+    ns_count[ns]++
+    if (!(ns in ns_first)) ns_first[ns] = parts[2]
+  }
+  END {
+    for (ns in ns_count)
+      printf "%-20s  %3d tasks — %s\n", ns, ns_count[ns], ns_first[ns]
+  }' | sort)
+
+  local SELECTED_NS=""
+  if [[ $HAS_FZF -eq 1 ]]; then
+    SELECTED_NS=$(echo "$NS_LIST" | fzf \
+      --height=50% --reverse --border \
+      --prompt="Namespace › " \
+      --header="Step 1/3 — Select namespace") || return 0
+    SELECTED_NS=$(echo "$SELECTED_NS" | awk '{print $1}')
+  else
+    echo "Step 1/3 — Select namespace:"; echo ""
+    local ns_arr=()
+    while IFS= read -r line; do ns_arr+=("$line"); done <<< "$NS_LIST"
+    PS3=$'\nNamespace: '
+    select choice in "${ns_arr[@]}"; do
+      [[ -n "$choice" ]] && SELECTED_NS=$(echo "$choice" | awk '{print $1}') && break
+    done
+  fi
+  [[ -z "$SELECTED_NS" ]] && return 0
+
+  # ── Step 2: task ──────────────────────────────────────────────────────────
+  local TASK_LIST
+  TASK_LIST=$(echo "$ALL_TASKS" | awk -v ns="$SELECTED_NS" '
+  {
+    n = split($0, parts, /:  +/)
+    if (n < 2) next
+    ns_part = parts[1]; sub(/:.*/, "", ns_part)
+    if (ns_part == ns) printf "%-40s  %s\n", parts[1], parts[2]
+  }')
+
+  local SELECTED_TASK=""
+  if [[ $HAS_FZF -eq 1 ]]; then
+    # Write a preview helper to avoid quoting hell inside --preview
+    local PREVIEW_SH
+    PREVIEW_SH=$(mktemp /tmp/oracle-preview-XXXX.sh)
+    {
+      echo '#!/usr/bin/env bash'
+      echo "task_name=\$(awk '{print \$1}' <<< \"\$1\")"
+      echo "cd \"${REPO}\" && task --summary \"\$task_name\" 2>/dev/null | head -25 || echo '(no summary)'"
+    } > "$PREVIEW_SH"
+    chmod +x "$PREVIEW_SH"
+    trap "rm -f \"$PREVIEW_SH\"" RETURN
+
+    SELECTED_TASK=$(echo "$TASK_LIST" | fzf \
+      --height=70% --reverse --border \
+      --prompt="Task › " \
+      --header="Step 2/3 — Tasks in '${SELECTED_NS}' (right pane: task --summary)" \
+      --preview="\"$PREVIEW_SH\" {}" \
+      --preview-window=right:50%:wrap) || return 0
+    SELECTED_TASK=$(echo "$SELECTED_TASK" | awk '{print $1}')
+  else
+    echo ""; echo "Step 2/3 — Tasks in '${SELECTED_NS}':"; echo ""
+    local task_arr=()
+    while IFS= read -r line; do task_arr+=("$line"); done <<< "$TASK_LIST"
+    PS3=$'\nTask: '
+    select choice in "${task_arr[@]}"; do
+      [[ -n "$choice" ]] && SELECTED_TASK=$(echo "$choice" | awk '{print $1}') && break
+    done
+  fi
+  [[ -z "$SELECTED_TASK" ]] && return 0
+
+  # ── Step 3: environment ───────────────────────────────────────────────────
+  local TASK_SUMMARY EXEC_ENV=""
+  TASK_SUMMARY=$(cd "$REPO" && task --summary "$SELECTED_TASK" 2>/dev/null || true)
+
+  if echo "$TASK_SUMMARY" | grep -q 'ENV='; then
+    local ENV_CHOICE=""
+    if [[ $HAS_FZF -eq 1 ]]; then
+      ENV_CHOICE=$(printf 'none\ndev\nmentolder\nkorczewski\nboth' | fzf \
+        --height=30% --reverse --border \
+        --prompt="ENV › " \
+        --header="Step 3/3 — Environment for '${SELECTED_TASK}'") || return 0
+    else
+      echo ""; echo "Step 3/3 — Environment for '${SELECTED_TASK}':"; echo ""
+      PS3=$'\nENV: '
+      select ENV_CHOICE in none dev mentolder korczewski both; do
+        [[ -n "$ENV_CHOICE" ]] && break
+      done
+    fi
+    case "${ENV_CHOICE:-none}" in
+      none|"") EXEC_ENV="" ;;
+      both)    EXEC_ENV="__BOTH__" ;;
+      *)       EXEC_ENV="ENV=${ENV_CHOICE}" ;;
+    esac
+  fi
+
+  # ── Execute ───────────────────────────────────────────────────────────────
+  echo ""
+  if [[ "$EXEC_ENV" == "__BOTH__" ]]; then
+    echo "→ ${SELECTED_TASK}  ENV=mentolder  then  ENV=korczewski" >&2
+    cd "$REPO" && task "$SELECTED_TASK" ENV=mentolder
+    cd "$REPO" && task "$SELECTED_TASK" ENV=korczewski
+  else
+    echo "→ ${SELECTED_TASK}${EXEC_ENV:+  ${EXEC_ENV}}" >&2
+    # shellcheck disable=SC2086
+    cd "$REPO" && task "$SELECTED_TASK" ${EXEC_ENV:-}
+  fi
+}
+# ─────────────────────────────────────────────────────────────────────────────
+
+if [[ $# -eq 0 || "${1:-}" == "-i" || "${1:-}" == "--interactive" ]]; then
+  interactive_mode
+  exit $?
+fi
+
 GOAL="${*:?Usage: task-oracle.sh '<goal>'}"
 
 # ── Structured fast-path: skip LLM for "namespace:action [ENV=X]" input ──────

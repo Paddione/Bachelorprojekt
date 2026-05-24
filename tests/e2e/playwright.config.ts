@@ -230,6 +230,7 @@ export default defineConfig({
       testMatch: [
         '**/korczewski-home.spec.ts',  // Kore brand homepage
         '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
+        '**/brett-duel-mode.spec.ts',  // Duel-Mode hero select & game mode constants
         '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
       ],
       use: {

@@ -48,6 +48,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-duel-mode",
+    "file": "tests/e2e/specs/brett-duel-mode.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-mannequin",
     "file": "tests/e2e/specs/brett-mannequin.spec.ts",
     "category": "E2E",

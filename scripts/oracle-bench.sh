@@ -7,7 +7,11 @@ GOAL="show cluster status"
 EXPECTED="clusters:status"
 
 set +o pipefail
-TASK_LIST=$(cd "${REPO}" && task --list-all 2>/dev/null | head -150)
+TASK_LIST=$(cd "${REPO}" && task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //' | awk '
+{
+  n = split($0, parts, /:  +/)
+  if (n >= 2) printf "%s — %s\n", parts[1], parts[2]
+}')
 set -o pipefail
 
 PROMPT="You are a shell executor. No explanations. No commentary. Output only the raw command result.

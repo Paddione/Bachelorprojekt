@@ -14,11 +14,14 @@ const RECOVER_DURATION_MS = 400;
 const HIT_DEBOUNCE_MS = 200;
 
 class PlayerAvatar {
-  constructor({ id, mannequin, local, color }) {
+  constructor({ id, mannequin, local, color, skinId }) {
     this.id = id;
     this.mannequin = mannequin;
     this.local = !!local;
     this.color = color;
+    this.skinId = skinId || 'default';
+    this.skin = null;            // set when SkinController.load() resolves
+    this._pendingWeaponDef = null; // re-applied once skin loads
     this.state = STATE.IDLE;
     this.vx = 0; this.vz = 0; this.vy = 0;
     this.facingY = 0;
@@ -31,12 +34,34 @@ class PlayerAvatar {
     this.hp = 100;
     this.burnInterval = null;
     this._weaponMesh = null;
-    this.heroId          = null;    // string | null
-    this.heroColor       = null;    // number (Three.js hex)
-    this.speedMultiplier = 1.0;     // slow debuff (Frostnova) or speed boost
-    this.shielded        = false;   // Martina shield minion absorbs next hit
+    this.heroId          = null;
+    this.heroColor       = null;
+    this.speedMultiplier = 1.0;
+    this.shielded        = false;
     this._slowTimer      = null;
     this._applyColor();
+
+    if (this.skinId !== 'default' && window.MayhemSkinController) {
+      window.MayhemSkinController.load(this.skinId, mannequin)
+        .then(ctrl => this._adoptSkin(ctrl))
+        .catch(err => {
+          console.warn(`[brett] skin "${this.skinId}" failed to load, falling back to mannequin:`, err.message);
+          this.skinId = 'default';
+        });
+    }
+  }
+
+  _adoptSkin(ctrl) {
+    if (!ctrl) return;
+    this.skin = ctrl;
+    // Hide all mannequin meshes (keep bones for capsule/wrist math).
+    this.mannequin.root.traverse(obj => {
+      if (obj.isMesh) obj.visible = false;
+    });
+    // Attach skin mesh under mannequin.root so it inherits root position/rotation.
+    this.mannequin.root.add(ctrl.mesh);
+    // Re-attach weapon to the skin's right wrist if we had one queued.
+    if (this._pendingWeaponDef) this.setWeapon(this._pendingWeaponDef);
   }
   _applyColor() {
     const torso = this.mannequin.hips.children[0];
@@ -148,11 +173,16 @@ class PlayerAvatar {
   update(dt, camYaw) {
     const now = performance.now();
     this._t += dt;
-    if (this.state === STATE.RAGDOLL) return this._updateRagdoll(dt, now);
-    if (this.state === STATE.RECOVERING) return this._updateRecover(dt, now);
-    if (this.local) this._updateLocal(dt, camYaw, now);
-    else this._updateRemote(dt);
-    this._animate(dt);
+    if (this.state === STATE.RAGDOLL) { this._updateRagdoll(dt, now); }
+    else if (this.state === STATE.RECOVERING) { this._updateRecover(dt, now); }
+    else {
+      if (this.local) this._updateLocal(dt, camYaw, now);
+      else this._updateRemote(dt);
+      this._animate(dt);
+    }
+    if (this.skin) {
+      this.skin.update(dt, { state: this.state, sprint: !!(this._input && this._input.sprint) });
+    }
   }
   _updateLocal(dt, camYaw, now) {
     const inp = this._input || {};
@@ -298,6 +328,13 @@ class PlayerAvatar {
     const r = this.mannequin.bone[name].currentRot;
     node.rotation.x = r.x;
     node.rotation.z = r.z;
+    if (this.skin) {
+      const skinBone = this.skin.getBone(name);
+      if (skinBone) {
+        skinBone.rotation.x = r.x;
+        skinBone.rotation.z = r.z;
+      }
+    }
   }
   getCapsule() {
     return {
@@ -319,6 +356,7 @@ class PlayerAvatar {
     return out;
   }
   remove(scene) {
+    if (this.skin) { this.skin.dispose(scene); this.skin = null; }
     scene.remove(this.mannequin.root);
     if (this._vehicle) {
       if (typeof window !== 'undefined' && window.MayhemVehicle && window.MayhemVehicle.despawn) {
@@ -334,12 +372,16 @@ class PlayerAvatar {
   }
 
   setWeapon(weaponDef) {
-    const rWrist = this.mannequin.bones && this.mannequin.bones.rWrist;
-    if (!rWrist) return;
-    if (this._weaponMesh) { rWrist.remove(this._weaponMesh); this._weaponMesh = null; }
+    this._pendingWeaponDef = weaponDef || null;
+    const attach = (this.skin && this.skin.getBone('rWrist')) || (this.mannequin.bones && this.mannequin.bones.rWrist);
+    if (!attach) return;
+    if (this._weaponMesh) {
+      if (this._weaponMesh.parent) this._weaponMesh.parent.remove(this._weaponMesh);
+      this._weaponMesh = null;
+    }
     if (!weaponDef) return;
     this._weaponMesh = PlayerAvatar._mkWeaponMesh(weaponDef.key, window.THREE);
-    if (this._weaponMesh) rWrist.add(this._weaponMesh);
+    if (this._weaponMesh) attach.add(this._weaponMesh);
   }
 
   static _mkWeaponMesh(key, THREE) {

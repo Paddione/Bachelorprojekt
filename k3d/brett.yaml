@@ -86,6 +86,8 @@ spec:
                   key: BRETT_OIDC_SECRET
             - name: BRETT_DEFAULT_MODE
               value: "coaching"
+            - name: BRETT_PRESETS_PATH
+              value: /app/presets/presets.json
           ports:
             - containerPort: 3000
           readinessProbe:
@@ -103,6 +105,12 @@ spec:
             limits:
               memory: 512Mi
               cpu: "500m"
+          volumeMounts:
+            - name: presets-data
+              mountPath: /app/presets
+      volumes:
+        - name: presets-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

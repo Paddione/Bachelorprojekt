@@ -61,7 +61,7 @@ async function fetchStreamStatus(): Promise<StreamLiveStatus> {
 async function fetchActivePoll(): Promise<ActivePoll | null> {
   try {
     const r = await pool.query<{ id: string; question: string; kind: 'multiple_choice' | 'text' }>(
-      `SELECT id, question, kind FROM polls WHERE closed_at IS NULL ORDER BY created_at DESC LIMIT 1`
+      `SELECT id, question, kind FROM polls WHERE locked_at IS NULL ORDER BY created_at DESC LIMIT 1`
     );
     return r.rows[0] ?? null;
   } catch (err) {

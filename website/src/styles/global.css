@@ -32,6 +32,11 @@
   /* Sage accent */
   --color-sage: oklch(0.80 0.06 160);
 
+  /* UI surface tokens */
+  --color-surface: #101826;
+  --color-surface-hover: #17202e;
+  --color-border: rgba(255, 255, 255, 0.10);
+
   /* Hairlines */
   --color-line: rgba(255, 255, 255, 0.07);
   --color-line-2: rgba(255, 255, 255, 0.12);
@@ -109,6 +114,15 @@ section {
   0%   { box-shadow: 0 0 0 0 oklch(0.80 0.06 160 / 0.6); }
   70%  { box-shadow: 0 0 0 10px oklch(0.80 0.06 160 / 0); }
   100% { box-shadow: 0 0 0 0 oklch(0.80 0.06 160 / 0); }
+}
+
+/* Native dialog centering */
+dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
 }
 
 /* Prose overrides for dark theme (impressum, datenschutz) */

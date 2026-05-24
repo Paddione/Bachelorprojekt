@@ -42,6 +42,7 @@ env_vars:
   LIVEKIT_DOMAIN: livekit.korczewski.de
   LIVEKIT_PIN_IP: "37.27.251.38"
   STREAM_DOMAIN: stream.korczewski.de
+  NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"

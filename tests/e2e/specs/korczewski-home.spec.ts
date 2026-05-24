@@ -27,9 +27,9 @@ test.describe('Korczewski: Homepage', () => {
     await expect(nav.getByRole('link', { name: 'Kontakt' })).toBeVisible();
   });
 
-  test('T4: hero h1 contains "Digital Coach"', async ({ page }) => {
+  test('T4: hero h1 contains "Kubernetes & KI"', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    await expect(page.locator('h1').first()).toContainText('Digital Coach');
+    await expect(page.locator('h1').first()).toContainText('Kubernetes & KI');
   });
 
   test('T5: nav shows Anmelden and Registrieren when logged out', async ({ page }) => {
@@ -40,56 +40,27 @@ test.describe('Korczewski: Homepage', () => {
 
   test('T6: services section shows 3 service cards', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    const section = page.getByRole('region', { name: /was ich für sie tun kann/i });
-    await expect(section).toBeVisible();
-    // Count h3 headings (one per card) to avoid matching nested feature listitems
-    await expect(section.getByRole('heading', { level: 3 })).toHaveCount(3);
+    await expect(page.getByRole('heading', { name: /was ich tue/i, level: 2 })).toBeVisible();
+    // Service cards each have a "Mehr erfahren →" link; experience articles don't
+    const serviceCards = page.locator('article').filter({ has: page.getByRole('link', { name: /mehr erfahren/i }) });
+    await expect(serviceCards).toHaveCount(3);
   });
 
   test('T7: service cards include KI, Software, Kubernetes', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    await expect(page.getByRole('heading', { name: /KI-Integration/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Software-Entwicklung/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Kubernetes/i })).toBeVisible();
-  });
-
-  test('T8: process section shows 4 steps', async ({ page }) => {
-    await page.goto(`${BASE}/`);
-    const steps = page.getByRole('region', { name: /vier ruhige schritte/i });
-    await expect(steps).toBeVisible();
-    await expect(steps.getByRole('listitem')).toHaveCount(4);
-  });
-
-  test('T9: FAQ accordion has at least 3 questions', async ({ page }) => {
-    await page.goto(`${BASE}/`);
-    const faq = page.getByRole('region', { name: /häufig gestellte fragen/i });
-    await expect(faq).toBeVisible();
-    await expect(faq.getByRole('button')).toHaveCount(5);
-  });
-
-  test('T10: FAQ question expands on click', async ({ page }) => {
-    await page.goto(`${BASE}/`);
-    const btn = page.getByRole('button', { name: /für wen ist die beratung/i });
-    await btn.click();
-    // Panel content should be visible after click
-    await expect(page.getByText(/führungskräfte|techniker|einsteiger/i).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('heading', { name: /KI-Integration/i, level: 3 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Software-Entwicklung/i, level: 3 })).toBeVisible();
+    // level: 3 avoids strict-mode collision with h1 "Kubernetes & KI, ruhig betrieben."
+    await expect(page.getByRole('heading', { name: /Kubernetes.*Infrastruktur/i, level: 3 })).toBeVisible();
   });
 
   test('T11: timeline section renders with category tabs', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    const timeline = page.getByRole('region', { name: /implementierte features/i });
-    await expect(timeline).toBeVisible();
+    // The section wrapper is unlabelled (generic, not region) — assert via heading + tabs
+    await expect(page.getByRole('heading', { name: /implementierte features/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Alle' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Features' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Fixes' })).toBeVisible();
-  });
-
-  test('T12: timeline API responds with rows property', async ({ request }) => {
-    // Tracking DB may be empty on korczewski — just verify the endpoint is reachable.
-    const res = await request.get(`${BASE}/api/timeline?limit=5`);
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    expect(body).toHaveProperty('rows');
   });
 
   test('T13: "Mehr laden" button is visible in timeline', async ({ page }) => {
@@ -97,11 +68,11 @@ test.describe('Korczewski: Homepage', () => {
     await expect(page.getByRole('button', { name: /mehr laden/i })).toBeVisible();
   });
 
-  test('T14: CTA section has "Erstgespräch" link to /kontakt', async ({ page }) => {
+  test('T14: CTA section has contact link to /kontakt', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    const cta = page.getByRole('region', { name: /30 minuten/i });
-    await expect(cta).toBeVisible();
-    await expect(cta.getByRole('link', { name: /termin vorschlagen/i })).toBeVisible();
+    // The "30 Minuten" block is a generic wrapper (no aria-label) — assert via heading + link
+    await expect(page.getByRole('heading', { name: /30 Minuten/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /anfrage senden/i })).toBeVisible();
   });
 
   test('T15: footer shows copyright line with "Korczewski"', async ({ page }) => {

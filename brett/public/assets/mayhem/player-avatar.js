@@ -31,6 +31,11 @@ class PlayerAvatar {
     this.hp = 100;
     this.burnInterval = null;
     this._weaponMesh = null;
+    this.heroId          = null;    // string | null
+    this.heroColor       = null;    // number (Three.js hex)
+    this.speedMultiplier = 1.0;     // slow debuff (Frostnova) or speed boost
+    this.shielded        = false;   // Martina shield minion absorbs next hit
+    this._slowTimer      = null;
     this._applyColor();
   }
   _applyColor() {
@@ -47,6 +52,7 @@ class PlayerAvatar {
       yaw: this.facingY,
       anim: this.state,
       flailing: this.flailing,
+      heroId: this.heroId,
     };
   }
   applyDamage(amount) {
@@ -59,6 +65,36 @@ class PlayerAvatar {
   resetHp() {
     this.hp = 100;
     if (this.burnInterval) { clearInterval(this.burnInterval); this.burnInterval = null; }
+  }
+
+  resetHero() {
+    this.speedMultiplier = 1.0;
+    this.shielded        = false;
+    if (this._slowTimer) { clearTimeout(this._slowTimer); this._slowTimer = null; }
+    if (this.weaponSystem && typeof this.weaponSystem.resetCooldowns === 'function') {
+      this.weaponSystem.resetCooldowns();
+    }
+  }
+
+  setTorsoColor(hexColor) {
+    // Mannequin body parts use MeshLambertMaterial.
+    // Walk the mesh hierarchy and tint non-joint materials.
+    if (!this.mannequin || !this.mannequin.root) return;
+    this.mannequin.root.traverse(obj => {
+      if (obj.isMesh && obj.material && !obj.userData.isJoint) {
+        obj.material = obj.material.clone();
+        obj.material.color.setHex(hexColor);
+      }
+    });
+  }
+
+  applySlowDebuff(factor, durationMs) {
+    this.speedMultiplier = factor;
+    if (this._slowTimer) clearTimeout(this._slowTimer);
+    this._slowTimer = setTimeout(() => {
+      this.speedMultiplier = 1.0;
+      this._slowTimer = null;
+    }, durationMs);
   }
 
   startBurn(damagePerSec, durationSec, onTick) {
@@ -114,7 +150,7 @@ class PlayerAvatar {
     if (inp.left)     { fx += Math.sin(camYaw - Math.PI/2); fz += Math.cos(camYaw - Math.PI/2); }
     if (inp.right)    { fx += Math.sin(camYaw + Math.PI/2); fz += Math.cos(camYaw + Math.PI/2); }
     const mag = Math.hypot(fx, fz);
-    const speed = WALK_SPEED * (inp.sprint ? SPRINT_MUL : 1);
+    const speed = WALK_SPEED * (inp.sprint ? SPRINT_MUL : 1) * this.speedMultiplier;
     if (mag > 0.01) {
       this.vx = (fx / mag) * speed;
       this.vz = (fz / mag) * speed;

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.1...brett-v0.8.2) (2026-05-24)
+
+
+### Bug Fixes
+
+* **brett:** guard mayhem init order + fix z-fighting floor flicker ([553efed](https://github.com/Paddione/Bachelorprojekt/commit/553efed66214816e8fd153eb4abc86d8026dc05a))
+
 ## [0.8.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.0...brett-v0.8.1) (2026-05-24)
 
 

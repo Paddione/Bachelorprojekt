@@ -38,7 +38,7 @@ Goal: ${GOAL}"
   fi
 
   # Tail hermes log to stderr during execution
-  tail -f ~/.hermes/logs/agent.log >&2 2>/dev/null &
+  tail -fn 0 ~/.hermes/logs/agent.log >&2 2>/dev/null &
   TAIL_PID=$!
   trap "kill $TAIL_PID 2>/dev/null || true" EXIT
 

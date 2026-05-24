@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.4.0...arena-server-v0.4.1) (2026-05-24)
+
+
+### Bug Fixes
+
+* **arena-server:** WS integration tests + spectator death guard [T000253] ([#1055](https://github.com/Paddione/Bachelorprojekt/issues/1055)) ([13e9d0f](https://github.com/Paddione/Bachelorprojekt/commit/13e9d0f707c79901b1ceae134c4b6f6295fb6134))
+
 ## [0.4.0](https://github.com/Paddione/Bachelorprojekt/compare/arena-server-v0.3.1...arena-server-v0.4.0) (2026-05-20)
 
 

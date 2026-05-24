@@ -28,7 +28,7 @@ _psql() {
 }
 
 _is_trivial() {
-  echo "$1" | grep -qiE 'command|flag|example|typo|wrong.*path|missing.*step|exit.?code|add.*check'
+  echo "$1" | grep -qiE 'command|flag|example|typo|wrong.*path|missing.*step|exit.?code|add.*check|directory|collision|env.*var|variable|export|propagat|not.*read|never.*read|fix:|include|rename'
 }
 
 case "${1:-}" in

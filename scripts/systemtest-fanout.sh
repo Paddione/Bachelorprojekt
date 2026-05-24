@@ -53,7 +53,7 @@ fi
 
 E2E_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/tests/e2e"
 TS="$(date +%Y%m%d-%H%M%S)"
-LOG_DIR="$E2E_DIR/results/systemtest-cycle-$CYCLE-$TS"
+LOG_DIR="$E2E_DIR/results/systemtest-cycle-$CYCLE-$ENVIRONMENT-$TS"
 mkdir -p "$LOG_DIR"
 
 echo "==> Fanning out 3 Playwright sessions for cycle $CYCLE against $WEBSITE_URL"

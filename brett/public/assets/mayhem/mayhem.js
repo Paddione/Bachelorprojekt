@@ -59,6 +59,7 @@ const Mayhem = (() => {
   let _duelRoundPause = false;
   let _duelHpFillA  = null;   // HP bar DOM element for duel playerA
   let _duelHpFillB  = null;   // HP bar DOM element for duel playerB
+  let _pendingGameMode = null; // snapshot gameMode received before init(); applied in start()
 
   let _specTarget = null;
   let _specMode   = 'follow';
@@ -294,7 +295,13 @@ const Mayhem = (() => {
       onDuelEnd: (result) => _onDuelEnd(result),
     });
 
-    _rebuildObstacles(gameMode.mode);
+    // Apply game mode from snapshot (arrived before init()), or default warmup obstacles
+    if (_pendingGameMode) {
+      gameMode.setMode(_pendingGameMode); // triggers _rebuildObstacles + _showHeroSelectModal via callback
+      _pendingGameMode = null;
+    } else {
+      _rebuildObstacles(gameMode.mode);
+    }
 
     // Co-op callbacks (only host drives wave progression)
     gameMode.setCoopCallbacks({
@@ -1120,7 +1127,10 @@ const Mayhem = (() => {
   // ── Network message handling ──────────────────────────────────────────────
   function onSnapshot(snap) {
     setEnabled(!!snap.mayhem);
-    if (snap.gameMode && gameMode) gameMode.setMode(snap.gameMode);
+    if (snap.gameMode) {
+      if (gameMode) gameMode.setMode(snap.gameMode);
+      else _pendingGameMode = snap.gameMode;
+    }
   }
 
   function onMessage(msg) {

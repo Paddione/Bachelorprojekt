@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "brett",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["brett/server.js"],
+      "port": 3000,
+      "env": {
+        "PORT": "3000",
+        "MOCK_DB": "true",
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}

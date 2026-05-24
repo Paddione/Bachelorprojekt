@@ -196,8 +196,6 @@ const Mayhem = (() => {
 
     document.addEventListener('mousemove', _onMouseMove);
     document.addEventListener('touchmove', _onTouchMove, { passive: true });
-
-    });
   }
 
   function _onMouseMove(e) {
@@ -334,7 +332,11 @@ const Mayhem = (() => {
     const color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
     const spawnPos = nextSpawnPoint();
     const mannequin = makeMannequin(playerId, spawnPos);
-    localAvatar = new window.MayhemPlayerAvatar({ id: playerId, mannequin, local: true, color });
+    const skinId = (() => {
+      try { return window.localStorage.getItem('brett.skinId') || 'default'; }
+      catch { return 'default'; }
+    })();
+    localAvatar = new window.MayhemPlayerAvatar({ id: playerId, mannequin, local: true, color, skinId });
     localAvatar.setWeapon(weaponSystem.current);
     _lastWeaponKey = weaponSystem.current?.key || null;
     chaseCam.attach(localAvatar.mannequin.root);

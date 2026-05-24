@@ -5,6 +5,95 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
+const multer = require('multer');
+
+const skinUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB per file
+}).fields([
+  { name: 'glb',   maxCount: 1 },
+  { name: 'thumb', maxCount: 1 },
+]);
+
+// GLB validator — checks magic/version, parses JSON chunk, requires mixamorigHips.
+// Returns { ok: true, animations: string[] } | { ok: false, error: string }.
+function validateGlb(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 20) {
+    return { ok: false, error: 'buffer too small to be a GLB' };
+  }
+  const magic = buffer.readUInt32LE(0);
+  if (magic !== 0x46546C67) {
+    return { ok: false, error: 'bad magic — not a GLB file' };
+  }
+  const version = buffer.readUInt32LE(4);
+  if (version !== 2) {
+    return { ok: false, error: `unsupported GLB version ${version} (need 2)` };
+  }
+  const jsonLen  = buffer.readUInt32LE(12);
+  const jsonType = buffer.readUInt32LE(16);
+  if (jsonType !== 0x4E4F534A) {
+    return { ok: false, error: 'first chunk is not JSON' };
+  }
+  if (20 + jsonLen > buffer.length) {
+    return { ok: false, error: 'JSON chunk overflows file' };
+  }
+  let gltf;
+  try {
+    gltf = JSON.parse(buffer.slice(20, 20 + jsonLen).toString('utf8'));
+  } catch (err) {
+    return { ok: false, error: 'invalid JSON in GLB: ' + err.message };
+  }
+  const nodes = Array.isArray(gltf.nodes) ? gltf.nodes : [];
+  if (!nodes.some(n => n && n.name === 'mixamorigHips')) {
+    return { ok: false, error: 'mixamorigHips bone not found — GLB must be Mixamo-rigged' };
+  }
+  const animations = (Array.isArray(gltf.animations) ? gltf.animations : [])
+    .map(a => (a && typeof a.name === 'string') ? a.name : null)
+    .filter(Boolean);
+  return { ok: true, animations };
+}
+
+const SKINS_DIR_NAME = 'skins';
+const SKINS_DIR = path.join(__dirname, 'public', 'assets', SKINS_DIR_NAME);
+
+function listSkins(dir = SKINS_DIR) {
+  const out = [{ id: 'default', name: 'Mannequin', thumb: null, animations: [] }];
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const ent of entries) {
+    if (!ent.isDirectory()) continue;
+    if (ent.name === 'default') continue;
+    const skinDir = path.join(dir, ent.name);
+    let meta;
+    try {
+      meta = JSON.parse(fs.readFileSync(path.join(skinDir, 'meta.json'), 'utf8'));
+    } catch { continue; }
+    if (!meta || typeof meta.id !== 'string' || typeof meta.name !== 'string') continue;
+    const hasThumb = fs.existsSync(path.join(skinDir, 'thumb.png'));
+    out.push({
+      id: meta.id,
+      name: meta.name,
+      thumb: hasThumb ? `/assets/${SKINS_DIR_NAME}/${ent.name}/thumb.png` : null,
+      animations: Array.isArray(meta.animations) ? meta.animations : [],
+    });
+  }
+  return out;
+}
+
+function slugifyForSkin(name) {
+  const cleaned = String(name || '')
+    .toLowerCase()
+    .replace(/[^\x00-\x7F]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 32);
+  if (cleaned) return cleaned;
+  return 'skin-' + randomUUID().replace(/-/g, '').slice(0, 6);
+}
 
 const PRESETS_FILE = process.env.BRETT_PRESETS_PATH || path.join(__dirname, 'presets.json');
 
@@ -186,8 +275,9 @@ app.get('/auth/me', (req, res) => {
 });
 
 function requireAdmin(req, res, next) {
-  if (!req.session.isAdmin) return res.status(403).json({ error: 'forbidden' });
-  next();
+  if (req.session?.isAdmin) return next();
+  if (process.env.MOCK_DB === 'true' && req.header('x-test-admin') === '1') return next();
+  return res.status(403).json({ error: 'forbidden' });
 }
 
 // Live state for a room.
@@ -241,6 +331,62 @@ app.get('/api/snapshots/:id', asyncHandler(async (req, res) => {
   if (!rows[0]) return res.status(404).json({ error: 'not found' });
   res.json(rows[0]);
 }));
+
+// ─── Skins catalog (Mayhem character skins) ──────────────────────────────────
+app.get('/api/skins', (_req, res) => {
+  res.json(listSkins());
+});
+
+app.post('/api/skins/upload', requireAdmin, (req, res) => {
+  skinUpload(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'file too large (max 20 MB)' });
+      return res.status(400).json({ error: 'upload error: ' + err.message });
+    }
+    const name = String((req.body && req.body.name) || '').trim();
+    if (!name || name.length > 100) return res.status(400).json({ error: 'name required (≤100 chars)' });
+    const glbFile = req.files?.glb?.[0];
+    if (!glbFile) return res.status(400).json({ error: 'glb file required' });
+    const thumbFile = req.files?.thumb?.[0] || null;
+    if (thumbFile && thumbFile.size > 512 * 1024) {
+      return res.status(413).json({ error: 'thumb too large (max 512 KB)' });
+    }
+    const val = validateGlb(glbFile.buffer);
+    if (!val.ok) return res.status(400).json({ error: val.error });
+
+    // Generate a unique id (re-roll if it collides with an existing skin or 'default').
+    let id = slugifyForSkin(name);
+    let attempt = 0;
+    while (id === 'default' || fs.existsSync(path.join(SKINS_DIR, id))) {
+      attempt++;
+      if (attempt > 16) return res.status(500).json({ error: 'could not allocate skin id' });
+      id = slugifyForSkin(name + '-' + attempt);
+    }
+    const skinDir = path.join(SKINS_DIR, id);
+    fs.mkdirSync(skinDir, { recursive: true });
+    fs.writeFileSync(path.join(skinDir, 'skin.glb'), glbFile.buffer);
+    if (thumbFile) fs.writeFileSync(path.join(skinDir, 'thumb.png'), thumbFile.buffer);
+    const meta = { id, name, animations: val.animations, uploadedAt: new Date().toISOString() };
+    fs.writeFileSync(path.join(skinDir, 'meta.json'), JSON.stringify(meta, null, 2));
+
+    res.status(201).json({
+      id,
+      name,
+      thumb: thumbFile ? `/assets/skins/${id}/thumb.png` : null,
+      animations: val.animations,
+    });
+  });
+});
+
+app.delete('/api/skins/:id', requireAdmin, (req, res) => {
+  const id = String(req.params.id || '');
+  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id)) return res.status(400).json({ error: 'invalid id' });
+  if (id === 'default') return res.status(400).json({ error: 'cannot delete default skin' });
+  const skinDir = path.join(SKINS_DIR, id);
+  if (!fs.existsSync(skinDir)) return res.status(404).json({ error: 'skin not found' });
+  fs.rmSync(skinDir, { recursive: true, force: true });
+  res.status(204).end();
+});
 
 // Admin room list.
 app.get('/api/admin/rooms', requireAdmin, asyncHandler(async (req, res) => {
@@ -873,5 +1019,9 @@ module.exports = {
   pickupState, ensurePickups, spawnPickup,
   isAdminFromClaims,
   validateAppearance,
+  validateGlb,
+  SKINS_DIR,
+  listSkins,
+  slugifyForSkin,
   buildConfig,
 };

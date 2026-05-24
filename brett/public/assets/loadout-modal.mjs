@@ -1,12 +1,79 @@
 // brett/public/assets/loadout-modal.mjs
 const MELEE = ['club', 'katana'];
 const RANGED = ['handgun'];
+const SKIN_STORAGE_KEY = 'brett.skinId';
+
+function readSkinId() {
+  try { return window.localStorage.getItem(SKIN_STORAGE_KEY) || 'default'; }
+  catch { return 'default'; }
+}
+function writeSkinId(id) {
+  try { window.localStorage.setItem(SKIN_STORAGE_KEY, id); }
+  catch { /* private mode etc. */ }
+}
+
+async function fetchSkins() {
+  try {
+    const r = await fetch('/api/skins', { credentials: 'same-origin' });
+    if (!r.ok) return [{ id: 'default', name: 'Mannequin', thumb: null }];
+    return await r.json();
+  } catch {
+    return [{ id: 'default', name: 'Mannequin', thumb: null }];
+  }
+}
+
+function renderSkinPicker(skins, currentId, onPick) {
+  const overlay = document.createElement('div');
+  overlay.className = 'mode-select-overlay skin-picker-overlay';
+  overlay.innerHTML = `
+    <div class="mode-select-card skin-picker-card">
+      <h2>Charakter-Skin wählen</h2>
+      <div class="skin-grid">
+        ${skins.map(s => `
+          <button class="skin-tile ${s.id === currentId ? 'active' : ''}" data-skin-id="${s.id}">
+            <div class="skin-thumb">${s.thumb ? `<img src="${s.thumb}" alt="${s.name}">` : '<span>👤</span>'}</div>
+            <span class="skin-name">${s.name}</span>
+          </button>
+        `).join('')}
+      </div>
+      <button class="confirm skin-cancel">Schließen</button>
+    </div>
+  `;
+  overlay.addEventListener('click', e => {
+    const tile = e.target.closest('.skin-tile');
+    if (tile) {
+      const id = tile.dataset.skinId;
+      onPick(id, skins.find(s => s.id === id));
+      overlay.remove();
+      return;
+    }
+    if (e.target.classList.contains('skin-cancel')) overlay.remove();
+  });
+  document.body.appendChild(overlay);
+}
 
 export function showLoadoutModal(modeState) {
   const current = modeState.loadout();
+  let currentSkinId = readSkinId();
+  let currentSkinName = 'Mannequin';
+
   return new Promise(resolve => {
     const el = document.createElement('div');
     el.className = 'mode-select-overlay';
+
+    function renderSkinRow() {
+      return `
+        <div class="loadout-skin-row">
+          <span class="loadout-skin-label">Charakter-Skin</span>
+          <button class="loadout-skin-current" data-action="open-skin-picker">
+            <span class="skin-thumb-small">👤</span>
+            <span class="skin-name-small">${currentSkinName}</span>
+            <span class="skin-change">Ändern</span>
+          </button>
+        </div>
+      `;
+    }
+
     el.innerHTML = `
       <div class="mode-select-card">
         <h2>Wähle deine Startausrüstung</h2>
@@ -26,22 +93,45 @@ export function showLoadoutModal(modeState) {
             </button>`).join('')}
           </div>
         </div>
+        ${renderSkinRow()}
         <button class="confirm">Spielen</button>
       </div>
     `;
     document.body.appendChild(el);
+
+    // Fire the catalog fetch in the background so the row updates when it lands.
+    fetchSkins().then(skins => {
+      const match = skins.find(s => s.id === currentSkinId);
+      currentSkinName = match ? match.name : 'Mannequin';
+      const row = el.querySelector('.loadout-skin-row');
+      if (row) row.outerHTML = renderSkinRow();
+      // Re-bind the action delegated below.
+    });
+
     const sel = { ...current };
-    el.addEventListener('click', e => {
+    el.addEventListener('click', async e => {
       const w = e.target.closest('.weapon-pick');
       if (w) {
         sel[w.dataset.slot] = w.dataset.w;
         el.querySelectorAll(`[data-slot="${w.dataset.slot}"]`).forEach(b => b.classList.toggle('active', b === w));
         return;
       }
+      const skinBtn = e.target.closest('[data-action="open-skin-picker"]');
+      if (skinBtn) {
+        const skins = await fetchSkins();
+        renderSkinPicker(skins, currentSkinId, (id, def) => {
+          currentSkinId = id;
+          currentSkinName = def ? def.name : 'Mannequin';
+          writeSkinId(id);
+          const row = el.querySelector('.loadout-skin-row');
+          if (row) row.outerHTML = renderSkinRow();
+        });
+        return;
+      }
       if (e.target.classList.contains('confirm')) {
         modeState.setLoadout(sel);
         el.remove();
-        resolve(sel);
+        resolve({ ...sel, skinId: currentSkinId });
       }
     });
   });

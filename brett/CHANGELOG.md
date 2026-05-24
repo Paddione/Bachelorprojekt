@@ -1,4 +1,5 @@
 # Changelog
+<!-- dev-deploy smoke test -->
 
 ## [0.8.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.1...brett-v0.8.2) (2026-05-24)
 

@@ -90,6 +90,8 @@ Goal: ${GOAL}"
   TASK_PROMPT="Output ONLY the single best matching task name (e.g. 'workspace:deploy'). /no_think
 If no task matches, output: NONE
 
+Note: For deploying a specific service image (brett, website, livekit, docs), prefer 'feature:<service>' tasks (e.g. 'feature:brett', 'feature:website') over 'workspace:deploy'. Use 'workspace:deploy' only for full cluster rollouts.
+
 ${TASK_LIST}
 
 Goal: ${GOAL}"

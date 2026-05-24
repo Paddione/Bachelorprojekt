@@ -66,15 +66,16 @@ BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ### Credentials: korczewski-Projekt
 
 Das `korczewski`-Projekt verwendet einen dedizierten `test-admin`-User auf dem
-Korczewski-Keycloak-Cluster. Das Passwort steht **nicht** in
-`environments/.secrets/korczewski.yaml` oder im `playwright-test-credentials`-Secret.
+Korczewski-Keycloak-Cluster. Das Passwort ist in `environments/.secrets/korczewski.yaml`
+unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert (nach dem ersten KC Admin-API-Reset
+dort eingetragen und via `task env:seal ENV=korczewski` versiegelt).
 
-Falls der Login fehlschlägt oder das Passwort unbekannt ist:
+Falls das Passwort fehlt oder unbekannt ist (Ersteinrichtung / Secret-Rotation):
 - Passwortrichtlinie: **mindestens 12 Zeichen, Groß+Klein+Zahl+Sonderzeichen**  
   (z.B. `TestAdmin1!` mit 11 Zeichen schlägt mit HTTP 400 fehl — auf 12+ erhöhen)
 - Reset per KC Admin-API:
   ```bash
-  # Token holen (Credentials aus environments/.secrets/korczewski.yaml)
+  # Token holen (Admin-Credentials aus environments/.secrets/korczewski.yaml)
   TOKEN=$(curl -s -X POST https://auth.korczewski.de/realms/master/protocol/openid-connect/token \
     -d "client_id=admin-cli&username=<admin>&password=<pw>&grant_type=password" \
     | jq -r '.access_token')
@@ -85,13 +86,16 @@ Falls der Login fehlschlägt oder das Passwort unbekannt ist:
     | jq -r '.[0].id')
 
   # Passwort setzen (12+ Zeichen, upper+lower+digit+special)
+  NEW_PASS="<NewPass123!>"
   curl -s -X PUT -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     https://auth.korczewski.de/admin/realms/workspace/users/$USER_ID/reset-password \
-    -d '{"type":"password","value":"<NewPass123!>","temporary":false}'
+    -d "{\"type\":\"password\",\"value\":\"${NEW_PASS}\",\"temporary\":false}"
   ```
-- Das neue Passwort als `E2E_ADMIN_PASS` exportieren oder in
-  `environments/.secrets/korczewski.yaml` ergänzen.
+- Nach dem Reset: Passwort in `environments/.secrets/korczewski.yaml` als
+  `E2E_TEST_ADMIN_PASSWORD: <NewPass123!>` eintragen, dann `task env:seal ENV=korczewski`
+  und ins Repo committen — so muss kein destruktiver Reset vor jedem E2E-Lauf gemacht werden.
+- Das neue Passwort als `E2E_ADMIN_PASS` exportieren: `export E2E_ADMIN_PASS="$NEW_PASS"` [T000241]
 
 ---
 

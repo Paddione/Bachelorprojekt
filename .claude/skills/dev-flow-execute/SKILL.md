@@ -237,6 +237,8 @@ task test:all
 > ```
 > `node_modules` nicht in den Worktree symlinken — das funktioniert nur im nächsten Prozess, nicht wiederholbar. Der `--project <abs-path>` Ansatz ist worktree-agnostisch.
 
+> **`npm ci` in frischen Worktrees:** `brett/` und `arena-server/` haben ihre eigene `package.json`, aber kein `node_modules/` im Worktree. Vor dem ersten `npm test`/`node --test` explizit ausführen: `npm ci --prefix brett` bzw. `cd arena-server && pnpm install --frozen-lockfile`. [T000245]
+
 ### CI-kritische Zusatzchecks
 
 `task test:all` deckt nur den `offline-tests`-Job ab. Die folgenden Checks haben **eigene CI-Jobs** — CI kann rot werden, auch wenn `task test:all` grün ist. Führe sie aus, wenn die entsprechenden Dateien geändert wurden:

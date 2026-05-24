@@ -659,6 +659,10 @@ task brainstorm:status   # Pod-Status + curl gegen brainstorm.mentolder.de
 
 ---
 
+## Bekannte Kustomize-Gotchas
+
+> **JSON Patch für bestehende env-Vars:** Verwende `op: replace /env/{index}/value`, **nicht** `op: add /env/-`, wenn eine env-Variable im Basis-Manifest bereits existiert. `add /env/-` erzeugt einen zweiten Eintrag mit demselben `name`, was `kustomize build` toleriert (last-wins), aber der Kubernetes API-Server lehnt per Dry-Run wegen Duplikat-Keys ab. Den richtigen Index mit `kubectl ... -o jsonpath='{.spec.template.spec.containers[0].env[*].name}'` bestimmen und ersetzen. [T000244]
+
 ## Agent-Routing
 
 Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md Agent-Routing-Tabelle):

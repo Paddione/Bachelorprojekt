@@ -50,6 +50,73 @@
   // refs into children
   let searchInput: HTMLInputElement | null = $state(null);
   let replyTextarea: HTMLTextAreaElement | null = $state(null);
+
+  // ── Compose (Neue Nachricht) ──────────────────────────────────────────────
+  interface CustomerOption { id: string; name: string; email: string; }
+  let composeOpen = $state(false);
+  let composeCustomers = $state<CustomerOption[]>([]);
+  let composeCustomersLoaded = $state(false);
+  let composeSearch = $state('');
+  let composeSelectedCustomer = $state<CustomerOption | null>(null);
+  let composeBody = $state('');
+  let composeSending = $state(false);
+  let composeError = $state('');
+  let composeSuccess = $state('');
+
+  const composeFiltered = $derived(
+    composeSearch.length < 1
+      ? composeCustomers
+      : composeCustomers.filter(
+          c =>
+            c.name.toLowerCase().includes(composeSearch.toLowerCase()) ||
+            c.email.toLowerCase().includes(composeSearch.toLowerCase()),
+        ),
+  );
+
+  async function openCompose(): Promise<void> {
+    composeOpen = true;
+    composeError = '';
+    composeSuccess = '';
+    composeBody = '';
+    composeSearch = '';
+    composeSelectedCustomer = null;
+    if (!composeCustomersLoaded) {
+      try {
+        const res = await fetch('/api/admin/customers-list');
+        if (res.ok) composeCustomers = await res.json();
+      } catch { /* dropdown stays empty */ } finally {
+        composeCustomersLoaded = true;
+      }
+    }
+  }
+
+  function closeCompose(): void {
+    if (composeSending) return;
+    composeOpen = false;
+  }
+
+  async function sendCompose(): Promise<void> {
+    composeError = '';
+    if (!composeSelectedCustomer) { composeError = 'Bitte einen Empfänger auswählen.'; return; }
+    if (!composeBody.trim()) { composeError = 'Bitte eine Nachricht eingeben.'; return; }
+    composeSending = true;
+    try {
+      const res = await fetch('/api/admin/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId: composeSelectedCustomer.id, body: composeBody.trim() }),
+      });
+      const data = await res.json() as { error?: string };
+      if (!res.ok) { composeError = data.error ?? `Fehler (${res.status})`; return; }
+      composeSuccess = 'Nachricht gesendet.';
+      // Reload inbox so the new thread appears
+      setTimeout(() => { closeCompose(); void reload(); }, 1200);
+    } catch {
+      composeError = 'Netzwerkfehler. Bitte erneut versuchen.';
+    } finally {
+      composeSending = false;
+    }
+  }
   let awaitingG = false;
   let pointerFine = $state(true);
 
@@ -420,6 +487,14 @@
       >Archiv</button>
     </div>
 
+    <button
+      type="button"
+      class="compose-btn"
+      data-testid="inbox-compose-btn"
+      onclick={() => { void openCompose(); }}
+      title="Neue Nachricht verfassen"
+    >+ Neue Nachricht</button>
+
     <div class="search-hint" aria-hidden="true">
       <span class="ksk">/</span>
       <span>Suchen</span>
@@ -481,6 +556,109 @@
       />
     </div>
   </div>
+
+  {#if composeOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div
+      class="compose-backdrop"
+      data-testid="inbox-compose-modal"
+      onclick={(e) => { if (e.target === e.currentTarget) closeCompose(); }}
+    >
+      <div class="compose-modal">
+        <div class="compose-header">
+          <h2 class="compose-title">Neue Nachricht</h2>
+          <button
+            type="button"
+            class="compose-close"
+            onclick={closeCompose}
+            disabled={composeSending}
+            aria-label="Schließen"
+          >✕</button>
+        </div>
+
+        <div class="compose-body">
+          {#if composeError}
+            <div class="compose-alert compose-alert-err">{composeError}</div>
+          {/if}
+          {#if composeSuccess}
+            <div class="compose-alert compose-alert-ok">{composeSuccess}</div>
+          {/if}
+
+          <div class="compose-field">
+            <label class="compose-label">Empfänger</label>
+            {#if composeSelectedCustomer}
+              <div class="compose-selected-customer">
+                <span class="compose-selected-name">{composeSelectedCustomer.name}</span>
+                <span class="compose-selected-email">{composeSelectedCustomer.email}</span>
+                <button
+                  type="button"
+                  class="compose-clear"
+                  onclick={() => { composeSelectedCustomer = null; composeSearch = ''; }}
+                  disabled={composeSending}
+                >✕</button>
+              </div>
+            {:else}
+              <input
+                type="text"
+                class="compose-input"
+                placeholder="Name oder E-Mail suchen…"
+                bind:value={composeSearch}
+                disabled={composeSending}
+                data-testid="inbox-compose-recipient-search"
+              />
+              {#if composeSearch.length > 0}
+                {#if composeFiltered.length > 0}
+                  <div class="compose-dropdown" data-testid="inbox-compose-recipient-dropdown">
+                    {#each composeFiltered.slice(0, 10) as c}
+                      <button
+                        type="button"
+                        class="compose-dropdown-item"
+                        onclick={() => { composeSelectedCustomer = c; composeSearch = ''; }}
+                        disabled={composeSending}
+                      >
+                        <span class="compose-dropdown-name">{c.name}</span>
+                        <span class="compose-dropdown-email">{c.email}</span>
+                      </button>
+                    {/each}
+                  </div>
+                {:else}
+                  <div class="compose-dropdown-empty">Kein Kunde gefunden.</div>
+                {/if}
+              {/if}
+            {/if}
+          </div>
+
+          <div class="compose-field">
+            <label class="compose-label">Nachricht</label>
+            <textarea
+              class="compose-textarea"
+              rows="5"
+              placeholder="Nachricht an den Kunden…"
+              bind:value={composeBody}
+              disabled={composeSending}
+              data-testid="inbox-compose-body"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="compose-footer">
+          <button
+            type="button"
+            class="compose-cancel"
+            onclick={closeCompose}
+            disabled={composeSending}
+          >Abbrechen</button>
+          <button
+            type="button"
+            class="compose-send"
+            onclick={() => { void sendCompose(); }}
+            disabled={composeSending || !composeSelectedCustomer || !composeBody.trim()}
+            data-testid="inbox-compose-send"
+          >{composeSending ? '…' : 'Senden'}</button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -561,6 +739,241 @@
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.2);
     color: var(--fg-soft);
+  }
+
+  .compose-btn {
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 12px;
+    background: oklch(0.80 0.09 75 / 0.15);
+    border: 1px solid oklch(0.80 0.09 75 / 0.35);
+    border-radius: 6px;
+    color: var(--brass);
+    font: 600 12px var(--font-sans);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s ease, border-color 0.1s ease;
+  }
+  .compose-btn:hover {
+    background: oklch(0.80 0.09 75 / 0.25);
+    border-color: oklch(0.80 0.09 75 / 0.55);
+  }
+
+  /* ── Compose modal ────────────────────────────────────────────── */
+  .compose-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+  }
+
+  .compose-modal {
+    width: 100%;
+    max-width: 520px;
+    background: var(--ink-850);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .compose-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--ink-900);
+  }
+
+  .compose-title {
+    font: 600 15px var(--font-serif);
+    color: var(--fg);
+    margin: 0;
+  }
+
+  .compose-close {
+    background: none;
+    border: none;
+    color: var(--mute);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: color 0.1s ease;
+  }
+  .compose-close:hover { color: var(--fg); }
+  .compose-close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .compose-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .compose-alert {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font: 400 13px var(--font-sans);
+  }
+  .compose-alert-err { background: oklch(0.40 0.20 15 / 0.2); border: 1px solid oklch(0.55 0.22 15 / 0.4); color: oklch(0.80 0.16 15); }
+  .compose-alert-ok  { background: oklch(0.40 0.15 145 / 0.2); border: 1px solid oklch(0.55 0.18 145 / 0.4); color: oklch(0.80 0.14 145); }
+
+  .compose-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+  }
+
+  .compose-label {
+    font: 500 11px var(--font-sans);
+    color: var(--mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .compose-input,
+  .compose-textarea {
+    width: 100%;
+    background: var(--ink-900);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font: 400 13px var(--font-sans);
+    color: var(--fg);
+    outline: none;
+    transition: border-color 0.1s ease;
+    box-sizing: border-box;
+  }
+  .compose-input:focus,
+  .compose-textarea:focus { border-color: var(--brass); }
+  .compose-input::placeholder,
+  .compose-textarea::placeholder { color: var(--mute-2); }
+  .compose-input:disabled,
+  .compose-textarea:disabled { opacity: 0.5; }
+  .compose-textarea { resize: vertical; min-height: 100px; }
+
+  .compose-selected-customer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: oklch(0.80 0.09 75 / 0.08);
+    border: 1px solid oklch(0.80 0.09 75 / 0.35);
+    border-radius: 7px;
+    font: 400 13px var(--font-sans);
+  }
+  .compose-selected-name { color: var(--fg); font-weight: 500; }
+  .compose-selected-email { color: var(--mute); font-size: 12px; flex: 1; }
+  .compose-clear {
+    background: none;
+    border: none;
+    color: var(--mute);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0 2px;
+    border-radius: 3px;
+    transition: color 0.1s ease;
+    flex-shrink: 0;
+  }
+  .compose-clear:hover { color: var(--fg); }
+  .compose-clear:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .compose-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--ink-850);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .compose-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s ease;
+  }
+  .compose-dropdown-item:last-child { border-bottom: none; }
+  .compose-dropdown-item:hover { background: var(--ink-900); }
+  .compose-dropdown-item:disabled { opacity: 0.4; cursor: not-allowed; }
+  .compose-dropdown-name { font: 500 13px var(--font-sans); color: var(--fg); }
+  .compose-dropdown-email { font: 400 12px var(--font-sans); color: var(--mute); flex: 1; text-align: right; }
+
+  .compose-dropdown-empty {
+    padding: 10px 12px;
+    font: 400 13px var(--font-sans);
+    color: var(--mute);
+  }
+
+  .compose-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--line);
+    background: var(--ink-900);
+  }
+
+  .compose-cancel {
+    background: none;
+    border: none;
+    color: var(--mute);
+    font: 500 13px var(--font-sans);
+    cursor: pointer;
+    padding: 7px 14px;
+    border-radius: 6px;
+    transition: color 0.1s ease;
+  }
+  .compose-cancel:hover { color: var(--fg); }
+  .compose-cancel:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .compose-send {
+    background: oklch(0.80 0.09 75 / 0.18);
+    border: 1px solid oklch(0.80 0.09 75 / 0.4);
+    color: var(--brass);
+    font: 600 13px var(--font-sans);
+    cursor: pointer;
+    padding: 7px 18px;
+    border-radius: 6px;
+    transition: background 0.1s ease, border-color 0.1s ease, opacity 0.1s ease;
+  }
+  .compose-send:hover:not(:disabled) {
+    background: oklch(0.80 0.09 75 / 0.28);
+    border-color: oklch(0.80 0.09 75 / 0.6);
+  }
+  .compose-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  @media (max-width: 767px) {
+    .compose-btn { font-size: 11px; padding: 0 8px; }
+    .compose-modal { max-width: 100%; border-radius: 10px 10px 0 0; }
+    .compose-backdrop { align-items: flex-end; padding: 0; }
   }
 
   .cols {

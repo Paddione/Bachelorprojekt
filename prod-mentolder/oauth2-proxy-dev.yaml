@@ -1,11 +1,11 @@
 # ════════════════════════════════════════════════════════════════════
 # oauth2-proxy-dev — SSO gate for *.dev.${PROD_DOMAIN}.
 # Upstream is the k3d HTTP loadbalancer bound to 127.0.0.1:18080 on
-# the gekko-hetzner-2 node, reached via hostNetwork + nodeSelector.
-# Same pod serves both the ForwardAuth /oauth2/auth probe (called by
-# the Traefik Middleware in prod-mentolder/oauth2-proxy-dev-middleware.yaml)
-# AND the reverse-proxy data path (proxying authenticated requests to
-# 127.0.0.1:18080).
+# the k3s-1 node, reached via hostNetwork + nodeSelector.
+# Acts as a full reverse proxy: unauthenticated requests are redirected
+# to Keycloak; authenticated requests are proxied to 127.0.0.1:18080.
+# The ForwardAuth Middleware in oauth2-proxy-dev-middleware.yaml is
+# kept for services that need header injection but NOT on dev-ingress.
 # ════════════════════════════════════════════════════════════════════
 apiVersion: apps/v1
 kind: Deployment

@@ -215,6 +215,8 @@ Für `systemtest` läuft der vollständige Zyklus gegen beide Cluster (via `task
 > gestartet werden. `npx playwright` vom Repo-Root aus findet zwei Versionen von
 > `@playwright/test` (Repo-Root + `tests/e2e/node_modules`) und bricht ab.
 
+> **Wichtig — korczewski-setup auth overwrite:** Das Ausführen von Tests im `korczewski`-Projekt (selbst mit `--grep`) triggert automatisch das dependency-Projekt `korczewski-setup`. Wenn `TEST_ADMIN_PASSWORD` nicht gesetzt ist, überschreibt dies bestehende gültige Auth-Cookies in `.auth/korczewski-*.json` mit leeren Werten! Wenn du bestehende gültige Cookies behalten willst, überspringe `korczewski-setup` (indem du den Test direkt ohne das Projekt oder mit einem Mock ausführst) oder setze `TEST_ADMIN_PASSWORD` vor dem Ausführen.
+
 ```bash
 # Wähle Ausführungsmodus basierend auf dem Playwright-Projekt
 

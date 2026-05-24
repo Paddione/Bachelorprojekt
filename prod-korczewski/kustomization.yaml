@@ -122,6 +122,15 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/env/11/value
         value: mayhem
+      - op: replace
+        path: /spec/template/spec/containers/0/env/3/value
+        value: "http://keycloak.workspace-korczewski.svc.cluster.local:8080"
+      - op: replace
+        path: /spec/template/spec/containers/0/env/7/value
+        value: "https://brett.korczewski.de"
+      - op: replace
+        path: /spec/template/spec/containers/0/env/8/value
+        value: "http://website.website-korczewski.svc.cluster.local"
 
   # CronJobs that pin to mentolder Hetzner CPs:
   #   - tests-retention      (k3d/tests-retention-cronjob.yaml — applied separately, not via kustomize)

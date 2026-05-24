@@ -61,11 +61,20 @@ const Mayhem = (() => {
   let _specMode   = 'follow';
   let _specFlyVel = { x: 0, y: 0, z: 0 };
   const _specKeys = {};
+  const _specialCooldowns = {};
 
   const input = {
     forward: false, backward: false, left: false, right: false,
     sprint: false, jump: false, flail: false, fire: false,
   };
+
+  function _canUseSpecial(key, cooldownMs) {
+    const now  = Date.now();
+    const last = _specialCooldowns[key] || 0;
+    if (now - last < cooldownMs) return false;
+    _specialCooldowns[key] = now;
+    return true;
+  }
 
   // ── Init ──────────────────────────────────────────────────────────────────
   function init(opts) {
@@ -110,7 +119,40 @@ const Mayhem = (() => {
       if (code === kb.sprint || code === 'ShiftRight') { input.sprint = true; }
       if (code === kb.jump)         { input.jump     = true; e.preventDefault(); }
       if (code === kb.flail)        input.flail    = true;
-      if (weaponIdx[code] !== undefined) weaponSystem?.select(weaponIdx[code]);
+      if (weaponIdx[code] !== undefined && weaponIdx[code] < (weaponSystem?.getAllWeapons().length || 5)) {
+        weaponSystem?.select(weaponIdx[code]);
+      }
+      if (e.code === 'Digit4' && _myHeroId === 'patrick') {
+        if (_canUseSpecial('stealth', 8000)) {
+          localAvatar.mannequin.root.traverse(o => {
+            if (o.isMesh && o.material) { o.material.transparent = true; o.material.opacity = 0.15; }
+          });
+          send({ type: 'hero_stealth', playerId, active: true });
+          window.MayhemAudio.onFire('hero-stealth');
+          setTimeout(() => {
+            localAvatar.mannequin.root.traverse(o => {
+              if (o.isMesh && o.material) { o.material.opacity = 1.0; }
+            });
+            send({ type: 'hero_stealth', playerId, active: false });
+          }, 2000);
+        }
+      }
+      if (e.code === 'Digit5' && _myHeroId === 'patrick') {
+        if (_canUseSpecial('teleport', 6000) && _aimPoint) {
+          const lp = localAvatar.mannequin.root.position;
+          const dx = _aimPoint.x - lp.x, dz = _aimPoint.z - lp.z;
+          const dist = Math.hypot(dx, dz);
+          const maxRange = 5;
+          const scale = dist > maxRange ? maxRange / dist : 1;
+          const tx = lp.x + dx * scale;
+          const tz = lp.z + dz * scale;
+          effectsMgr?.spawnSmokePuff(scene, { x: lp.x, y: 0.5, z: lp.z });
+          localAvatar.mannequin.root.position.set(tx, lp.y, tz);
+          effectsMgr?.spawnSmokePuff(scene, { x: tx, y: 0.5, z: tz });
+          send({ type: 'hero_teleport', playerId, x: tx, z: tz });
+          window.MayhemAudio.onFire('hero-teleport');
+        }
+      }
       if (code === kb.prevWeapon)   weaponSystem?.prev();
       if (code === kb.nextWeapon)   weaponSystem?.next();
       if (code === kb.reload)       gameMode?.onRespawnKey(playerId);

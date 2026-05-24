@@ -57,6 +57,11 @@ const Mayhem = (() => {
   let _opponentHeroId = null;
   let _duelRoundPause = false;
 
+  let _specTarget = null;
+  let _specMode   = 'follow';
+  let _specFlyVel = { x: 0, y: 0, z: 0 };
+  const _specKeys = {};
+
   const input = {
     forward: false, backward: false, left: false, right: false,
     sprint: false, jump: false, flail: false, fire: false,
@@ -81,6 +86,21 @@ const Mayhem = (() => {
 
     window.addEventListener('keydown', (e) => {
       if (!enabled) return;
+      _specKeys[e.code] = true;
+      if (_isSpectator) {
+        if (e.code === 'Tab') {
+          e.preventDefault();
+          _cycleSpecTarget();
+        }
+        if (e.code === 'KeyF') {
+          _specMode = _specMode === 'fly' ? 'follow' : 'fly';
+          if (_specMode === 'fly' && document.pointerLockElement === null) {
+            document.documentElement.requestPointerLock().catch(() => {});
+          } else if (_specMode === 'follow') {
+            document.exitPointerLock();
+          }
+        }
+      }
       const kb = b();
       const code = e.code;
       if (code === kb.forward)      { input.forward  = true; e.preventDefault(); }
@@ -99,6 +119,7 @@ const Mayhem = (() => {
       if (code === kb.toggleMayhem) toggle();
     });
     window.addEventListener('keyup', (e) => {
+      _specKeys[e.code] = false;
       const kb = b();
       const code = e.code;
       if (code === kb.forward)  input.forward  = false;
@@ -260,6 +281,13 @@ const Mayhem = (() => {
     chaseCam.attach(localAvatar.mannequin.root);
     send({ type: 'player_join', playerId, color });
 
+    if (gameMode && gameMode.mode === 'duel') {
+      const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
+      if (fighters.length >= 2) {
+        _isSpectator = true;
+        _enterSpectatorMode();
+      }
+    }
   }
 
   // ── Co-op wave spawning ───────────────────────────────────────────────────
@@ -456,6 +484,37 @@ const Mayhem = (() => {
     document.body.appendChild(overlay);
   }
 
+  function _enterSpectatorMode() {
+    _isSpectator = true;
+    if (localAvatar) { localAvatar.mannequin.root.visible = false; }
+    _showSpectatorHud();
+    _specTarget = [...remoteAvatars.keys()].find(id => !id.startsWith('bot-')) || null;
+    _specMode   = 'follow';
+  }
+
+  function _cycleSpecTarget() {
+    const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
+    if (fighters.length === 0) return;
+    const idx = fighters.indexOf(_specTarget);
+    _specTarget = fighters[(idx + 1) % fighters.length] || null;
+  }
+
+  function _showSpectatorHud() {
+    const existing = document.getElementById('spectator-hud');
+    if (existing) existing.remove();
+    const hud = document.createElement('div');
+    hud.id = 'spectator-hud';
+    hud.style.cssText = `
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(11,17,28,0.8); border: 1px solid rgba(215,176,106,0.18);
+      border-radius: 999px; padding: 6px 18px;
+      font-family: 'Geist Mono', monospace; font-size: 11px;
+      color: #d7b06a; letter-spacing: 0.1em; pointer-events: none; z-index: 2000;
+    `;
+    hud.textContent = 'ZUSCHAUER · Tab = Spieler wechseln · F = Freie Kamera';
+    document.body.appendChild(hud);
+  }
+
   function stop() {
     hideBanner();
     destroyHud();
@@ -480,8 +539,11 @@ const Mayhem = (() => {
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
     if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
     if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    const specHud = document.getElementById('spectator-hud');
+    if (specHud) specHud.remove();
     document.removeEventListener('mousemove', _onMouseMove);
     document.removeEventListener('touchmove', _onTouchMove);
+    if (document.pointerLockElement) document.exitPointerLock();
     window.MayhemEffects = null;
     effectsMgr = null;
     weaponSystem = null;
@@ -490,6 +552,9 @@ const Mayhem = (() => {
     _myHeroId = null;
     _opponentHeroId = null;
     _duelRoundPause = false;
+    _isSpectator = false;
+    _specTarget = null;
+    _specMode = 'follow';
   }
 
   // ── Respawn ───────────────────────────────────────────────────────────────
@@ -616,6 +681,34 @@ const Mayhem = (() => {
   function tick(dt) {
     if (!enabled) return;
     const yaw = chaseCam ? chaseCam.getYaw() : 0;
+
+    if (_isSpectator) {
+      if (_specMode === 'follow' && _specTarget) {
+        const av = remoteAvatars.get(_specTarget);
+        if (av) chaseCam.attach(av.mannequin.root);
+      } else if (_specMode === 'fly') {
+        chaseCam.detach();
+        const FLYSPEED = 8;
+        const moveVector = new window.THREE.Vector3(0, 0, 0);
+        if (_specKeys['KeyW']) moveVector.z -= FLYSPEED * dt;
+        if (_specKeys['KeyS']) moveVector.z += FLYSPEED * dt;
+        if (_specKeys['KeyA']) moveVector.x -= FLYSPEED * dt;
+        if (_specKeys['KeyD']) moveVector.x += FLYSPEED * dt;
+        if (_specKeys['KeyQ']) moveVector.y -= FLYSPEED * dt;
+        if (_specKeys['KeyE']) moveVector.y += FLYSPEED * dt;
+        
+        camera.position.x = Math.max(-13, Math.min(13, camera.position.x + moveVector.x));
+        camera.position.y = Math.max(1,   Math.min(8,  camera.position.y + moveVector.y));
+        camera.position.z = Math.max(-13, Math.min(13, camera.position.z + moveVector.z));
+        camera.lookAt(0, 0, 0);
+      }
+      for (const a of remoteAvatars.values()) a.update(dt, 0);
+      projectileMgr?.update(dt);
+      effectsMgr?.update(dt);
+      chaseCam.update();
+      if (hud) updateHudFrame();
+      return;
+    }
 
     // Update aim direction from mouse position
     if (_raycaster && _mouseNDC && localAvatar) {
@@ -763,6 +856,13 @@ const Mayhem = (() => {
         break;
 
       case 'player_join':
+        if (gameMode && gameMode.mode === 'duel') {
+          const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
+          if (fighters.length >= 2 && msg.playerId === playerId) {
+            _isSpectator = true;
+            _enterSpectatorMode();
+          }
+        }
         if (msg.playerId === playerId) return;
         if (remoteAvatars.has(msg.playerId)) return;
         { const m = makeMannequin(msg.playerId, { x: 0, z: 0 });

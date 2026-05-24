@@ -87,6 +87,33 @@ export default defineConfig({
       },
     },
 
+    // ── mentolder-setup: seeds mentolder website auth state ─────────
+    {
+      name: 'mentolder-setup',
+      testMatch: '**/mentolder-auth-setup.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+      },
+    },
+
+    // ── mentolder: Authenticated mentolder tests ─────────────────────────
+    // Run: playwright test --project=mentolder
+    {
+      name: 'mentolder',
+      dependencies: ['mentolder-setup'],
+      testMatch: [
+        '**/fa-45-*.spec.ts',
+        '**/nfa-infra-health-sweep.spec.ts',
+        '**/sa-15-*.spec.ts',
+      ],
+      use: {
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+        storageState: '.auth/mentolder-website-admin.json',
+      },
+    },
+
     // ── services: Infrastructure & supporting services ───────────
     // Run: playwright test --project=services
     {
@@ -135,6 +162,8 @@ export default defineConfig({
         '**/nfa-10-*.spec.ts',   // Arena Health-Endpoint Performance
         '**/nfa-11-*.spec.ts',   // GPU-VRAM nach Modell-Rotation
         '**/nfa-12-*.spec.ts',   // Brainstorm-Tunnel ConfigMap-Persistenz
+        '**/nfa-infra-health-sweep.spec.ts', // Service health sweep (all 17 services)
+        '**/sa-15-*.spec.ts',    // Cross-cluster health verification
         '**/ak-03-*.spec.ts',    // Technische Machbarkeit
         '**/ak-04-*.spec.ts',    // Prototyp-Betrieb
       ],

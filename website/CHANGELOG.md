@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.9.2...website-v1.10.0) (2026-05-24)
+
+
+### Features
+
+* **docs:** collapsible Netzplan sidebar for skills-overview ([#1032](https://github.com/Paddione/Bachelorprojekt/issues/1032)) ([e0ee2ab](https://github.com/Paddione/Bachelorprojekt/commit/e0ee2ab257d1dbcfed37cf30adb3cd027a517087))
+
 ## [1.9.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.9.1...website-v1.9.2) (2026-05-24)
 
 

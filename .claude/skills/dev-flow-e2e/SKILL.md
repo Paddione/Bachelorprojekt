@@ -63,6 +63,36 @@ Ermittle daraus:
 BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ```
 
+### Credentials: korczewski-Projekt
+
+Das `korczewski`-Projekt verwendet einen dedizierten `test-admin`-User auf dem
+Korczewski-Keycloak-Cluster. Das Passwort steht **nicht** in
+`environments/.secrets/korczewski.yaml` oder im `playwright-test-credentials`-Secret.
+
+Falls der Login fehlschlägt oder das Passwort unbekannt ist:
+- Passwortrichtlinie: **mindestens 12 Zeichen, Groß+Klein+Zahl+Sonderzeichen**  
+  (z.B. `TestAdmin1!` mit 11 Zeichen schlägt mit HTTP 400 fehl — auf 12+ erhöhen)
+- Reset per KC Admin-API:
+  ```bash
+  # Token holen (Credentials aus environments/.secrets/korczewski.yaml)
+  TOKEN=$(curl -s -X POST https://auth.korczewski.de/realms/master/protocol/openid-connect/token \
+    -d "client_id=admin-cli&username=<admin>&password=<pw>&grant_type=password" \
+    | jq -r '.access_token')
+
+  # User-ID ermitteln
+  USER_ID=$(curl -s -H "Authorization: Bearer $TOKEN" \
+    https://auth.korczewski.de/admin/realms/workspace/users?username=test-admin \
+    | jq -r '.[0].id')
+
+  # Passwort setzen (12+ Zeichen, upper+lower+digit+special)
+  curl -s -X PUT -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    https://auth.korczewski.de/admin/realms/workspace/users/$USER_ID/reset-password \
+    -d '{"type":"password","value":"<NewPass123!>","temporary":false}'
+  ```
+- Das neue Passwort als `E2E_ADMIN_PASS` exportieren oder in
+  `environments/.secrets/korczewski.yaml` ergänzen.
+
 ---
 
 ## Schritt 2: Live-Erkundung mit Playwright MCP
@@ -172,6 +202,15 @@ Falls Bug-Spec: in den `website`-Block einfügen (oder `services`, je nach Servi
 `PLAYWRIGHT_PROJECT` ergibt sich aus Schritt 1 (URL-Mapping-Tabelle).
 Für `systemtest` läuft der vollständige Zyklus gegen beide Cluster (via `task systemtest:all:headed:both-prods`).
 
+> **Wichtig — globalSetup/globalTeardown:** `global-db-cleanup.ts` läuft als
+> globalSetup/globalTeardown für **alle** Playwright-Projekte (nicht nur systemtest).
+> Lokal schlägt der Start sofort fehl, wenn `CRON_SECRET` nicht gesetzt ist.
+> Lösung: `SKIP_DB_PURGE=1` setzen (überspringt den DB-Purge, Tests laufen normal).
+
+> **Wichtig — working directory:** Playwright **muss** aus `tests/e2e/` heraus
+> gestartet werden. `npx playwright` vom Repo-Root aus findet zwei Versionen von
+> `@playwright/test` (Repo-Root + `tests/e2e/node_modules`) und bricht ab.
+
 ```bash
 # Wähle Ausführungsmodus basierend auf dem Playwright-Projekt
 
@@ -186,10 +225,10 @@ if [[ "$PLAYWRIGHT_PROJECT" == "systemtest" ]]; then
 
 else
   # Alle anderen Projekte: 1 Worker headless (Standardpfad)
-  WEBSITE_URL="$BASE_URL" npx playwright test \
-    --config tests/e2e/playwright.config.ts \
+  # SKIP_DB_PURGE=1 überspringt global-db-cleanup.ts (nötig ohne CRON_SECRET lokal)
+  cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" npx playwright test \
     --project "$PLAYWRIGHT_PROJECT" \
-    tests/e2e/specs/<neu>.spec.ts
+    specs/<neu>.spec.ts
 fi
 
 # Bei Fehlern: Trace und Screenshot ansehen
@@ -240,9 +279,8 @@ Kein neuer PR nötig — dieser Commit geht direkt auf `main` (sofern kein offen
 Falls die Änderung kritisch ist oder neue Service-Endpunkte betrifft:
 
 ```bash
-# Alle website-Tests gegen Mentolder-Live
-WEBSITE_URL=https://web.mentolder.de npx playwright test \
-  --config tests/e2e/playwright.config.ts \
+# Alle website-Tests gegen Mentolder-Live — aus tests/e2e/ ausführen!
+cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de npx playwright test \
   --project website
 ```
 

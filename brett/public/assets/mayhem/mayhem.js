@@ -50,6 +50,13 @@ const Mayhem = (() => {
   let _mouseNDC      = null;   // THREE.Vector2 — normalized device coords
   let _raycaster     = null;   // THREE.Raycaster
 
+  let _isSpectator  = false;
+  let _pvAiMode     = false;
+  let _heroSelectUi = null;   // { el, lockCard, setStatus, showPlayButton, destroy }
+  let _myHeroId     = null;
+  let _opponentHeroId = null;
+  let _duelRoundPause = false;
+
   const input = {
     forward: false, backward: false, left: false, right: false,
     sprint: false, jump: false, flail: false, fire: false,
@@ -207,9 +214,11 @@ const Mayhem = (() => {
       },
       onModeChange: (mode) => {
         _rebuildObstacles(mode);
+        _onModeChange(mode);
         updateHud();
       },
       onLmsEnd: (result) => showLmsResult(result),
+      onDuelEnd: (result) => _onDuelEnd(result),
     });
 
     _rebuildObstacles(gameMode.mode);
@@ -304,6 +313,149 @@ const Mayhem = (() => {
     if (projectileMgr) projectileMgr.clear();
   }
 
+  function _onModeChange(mode) {
+    if (mode === 'duel') {
+      _showHeroSelectModal();
+    } else {
+      if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    }
+  }
+
+  function _showHeroSelectModal() {
+    if (_heroSelectUi) _heroSelectUi.destroy();
+    const pvAiAvailable = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
+    _heroSelectUi = window.MayhemHeroSelect.buildHeroSelectModal({
+      heroes:     window.MayhemHeroes.HEROES,
+      heroOrder:  window.MayhemHeroes.HERO_ORDER,
+      isSpectator: _isSpectator,
+      pvAiAvailable,
+      onSelect(heroId) {
+        _myHeroId = heroId;
+        window.MayhemHeroes.assignHero(localAvatar, heroId,
+          window.MayhemWeapons.WeaponSystem, (w, origin, dir, id) => projectileMgr.spawn(w, origin, dir, id));
+        send({ type: 'hero_select', heroId });
+        _heroSelectUi.setStatus('Warte auf Gegner …');
+        _checkBothHeroesSelected();
+      },
+      onPvAiToggle(active) { _pvAiMode = active; },
+    });
+    document.body.appendChild(_heroSelectUi.el);
+  }
+
+  function _checkBothHeroesSelected() {
+    if (!_myHeroId) return;
+    if (!_pvAiMode && !_opponentHeroId) return;
+    if (!isHost) return;  // only host drives start
+    if (_heroSelectUi) {
+      const startBtn = _heroSelectUi.showPlayButton(() => {
+        startBtn.style.display = 'none';
+        const pA = playerId;
+        const pB = _pvAiMode ? 'bot-pvai' : [...remoteAvatars.keys()][0];
+        gameMode.startDuelFighting(pA, pB);
+        send({ type: 'duel_start', playerA: pA, playerB: pB });
+        _startDuelRound(pA, pB);
+      });
+    }
+  }
+
+  function _startDuelRound(playerA, playerB) {
+    if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    _duelRoundPause = false;
+    if (_pvAiMode && isHost) {
+      _spawnPvAiBot(_opponentHeroId || 'patrick');
+    }
+    _buildDuelHud();
+  }
+
+  function _spawnPvAiBot(heroId) {
+    // Stub for now. Full implementation in Task 17.
+    console.log('Spawning PvAI bot with hero:', heroId);
+  }
+
+  function _onDuelRoundEnd({ winner, winsA, winsB }) {
+    _duelRoundPause = true;
+    _showDuelRoundResult(winner, winsA, winsB);
+    setTimeout(() => {
+      if (winsA < 2 && winsB < 2) {
+        // New round, same heroes — reset positions, resetHero()
+        if (localAvatar) {
+          localAvatar.resetHero();
+          localAvatar.resetHp();
+        }
+        localRespawn();
+        _duelRoundPause = false;
+      }
+    }, 3000);
+  }
+
+  function _onDuelEnd({ matchWinner, reason }) {
+    _showDuelMatchResult(matchWinner, reason);
+    // After 5s return to warmup
+    setTimeout(() => {
+      const resultOverlay = document.getElementById('duel-match-result-overlay');
+      if (resultOverlay) resultOverlay.remove();
+      const scoreHud = document.getElementById('duel-score-hud');
+      if (scoreHud) scoreHud.remove();
+      if (isHost && gameMode) {
+        send({ type: 'game_mode_change', mode: 'warmup' });
+      }
+    }, 5000);
+  }
+
+  function _buildDuelHud() {
+    const existing = document.getElementById('duel-score-hud');
+    if (existing) existing.remove();
+    const hud = document.createElement('div');
+    hud.id = 'duel-score-hud';
+    hud.style.cssText = `
+      position: fixed; top: 44px; left: 50%; transform: translateX(-50%);
+      font-family: 'Geist Mono', monospace; font-size: 12px;
+      color: #d7b06a; letter-spacing: 0.12em;
+      pointer-events: none; text-align: center; z-index: 1000;
+    `;
+    hud.textContent = `RUNDE ${gameMode.duelState.winsA + gameMode.duelState.winsB + 1}`;
+    document.body.appendChild(hud);
+  }
+
+  function _showDuelRoundResult(winnerId, winsA, winsB) {
+    const overlay = document.createElement('div');
+    overlay.id = 'duel-round-result-overlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(11,17,28,0.7); z-index: 2000;
+      font-family: 'Geist Mono', monospace; pointer-events: none;
+    `;
+    overlay.innerHTML = `
+      <div style="font-size: 22px; color: #f0d28c; letter-spacing: 0.18em; margin-bottom: 12px;">
+        RUNDE GEWONNEN
+      </div>
+      <div style="font-size: 14px; color: #b9bda3;">
+        ${winsA} : ${winsB}
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3000);
+  }
+
+  function _showDuelMatchResult(matchWinnerId, reason) {
+    const overlay = document.createElement('div');
+    overlay.id = 'duel-match-result-overlay';
+    overlay.style.cssText = `
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(11,17,28,0.88); z-index: 2000;
+      font-family: 'Geist Mono', monospace;
+    `;
+    const isWin  = matchWinnerId === playerId;
+    const label  = reason === 'disconnect' ? 'UNENTSCHIEDEN' : isWin ? 'SIEG' : 'NIEDERLAGE';
+    const color  = reason === 'disconnect' ? '#b9bda3' : isWin ? '#d7b06a' : '#a83a30';
+    overlay.innerHTML = `
+      <div style="font-size: 32px; color: ${color}; letter-spacing: 0.2em;">${label}</div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
   function stop() {
     hideBanner();
     destroyHud();
@@ -327,6 +479,7 @@ const Mayhem = (() => {
     }
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
     if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
+    if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
     document.removeEventListener('mousemove', _onMouseMove);
     document.removeEventListener('touchmove', _onTouchMove);
     window.MayhemEffects = null;
@@ -334,6 +487,9 @@ const Mayhem = (() => {
     weaponSystem = null;
     gameMode = null;
     chaseCam.detach();
+    _myHeroId = null;
+    _opponentHeroId = null;
+    _duelRoundPause = false;
   }
 
   // ── Respawn ───────────────────────────────────────────────────────────────
@@ -565,6 +721,47 @@ const Mayhem = (() => {
         updateHud();
         break;
 
+      case 'hero_select':
+        _opponentHeroId = msg.heroId;
+        if (_heroSelectUi) {
+          _heroSelectUi.lockCard(msg.heroId);
+          _heroSelectUi.setStatus('Gegner hat gewählt ✓');
+        }
+        _checkBothHeroesSelected();
+        break;
+
+      case 'duel_start':
+        _startDuelRound(msg.playerA, msg.playerB);
+        break;
+
+      case 'duel_round_end':
+        _onDuelRoundEnd(msg);
+        break;
+
+      case 'duel_match_end':
+        _onDuelEnd({ matchWinner: msg.winner, reason: msg.reason });
+        break;
+
+      case 'hero_stealth':
+        {
+          const av = remoteAvatars.get(msg.playerId);
+          if (av) av.mannequin.root.visible = !msg.active;
+        }
+        break;
+
+      case 'hero_teleport':
+        {
+          const av = remoteAvatars.get(msg.playerId);
+          if (av) { av.mannequin.root.position.x = msg.x; av.mannequin.root.position.z = msg.z; }
+        }
+        break;
+
+      case 'hero_slow':
+        if (localAvatar) {
+          localAvatar.applySlowDebuff(msg.slowFactor, msg.durationMs);
+        }
+        break;
+
       case 'player_join':
         if (msg.playerId === playerId) return;
         if (remoteAvatars.has(msg.playerId)) return;
@@ -604,6 +801,15 @@ const Mayhem = (() => {
         break;
 
       case 'player_death':
+        if (gameMode && gameMode.mode === 'duel' && isHost && !_duelRoundPause) {
+          const result = gameMode.handleDuelDeath(msg.playerId);
+          send({
+            type: result.matchOver ? 'duel_match_end' : 'duel_round_end',
+            winner: result.matchOver ? result.matchWinner : result.roundWinner,
+            winsA: gameMode.duelState.winsA,
+            winsB: gameMode.duelState.winsB,
+          });
+        }
         gameMode?.handleDeath(msg.playerId, msg.playerId === playerId);
         if (msg.killerId) gameMode?.handleKill(msg.killerId);
         updateHud();

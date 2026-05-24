@@ -200,6 +200,7 @@ infer_env() {
   local g="${1,,}"
   if echo "$g" | grep -qE 'both prod|all.?prod|all.?cluster|mentolder.{1,15}korczewski|korczewski.{1,15}mentolder'; then
     echo "both"
+  elif echo "$g" | grep -qE '\bkorczewski\b.{0,30}\bdev\b|\bdev\b.{0,30}\bkorczewski\b'; then echo ""
   elif echo "$g" | grep -qE '\bkorczewski\b'; then echo "korczewski"
   elif echo "$g" | grep -qE '\bmentolder\b';  then echo "mentolder"
   elif echo "$g" | grep -qE '\bdev\b|\blocal\b|\bk3d\b';  then echo "dev"
@@ -247,6 +248,8 @@ if [[ -x "${HERMES}" ]] && "${HERMES}" status 2>/dev/null | grep -q "Model:"; th
     local g="${1,,}"
     if echo "$g" | grep -qE '(seal|encrypt).{0,20}(env|environment|secret)|(env|environment|secret).{0,20}(seal|encrypt)|\benv:seal\b'; then
       echo "env"
+    elif echo "$g" | grep -qE '\bkorczewski\b.{0,30}\bdev\b|\bdev\b.{0,30}\bkorczewski\b'; then
+      echo "dev-korczewski"
     fi
   }
 
@@ -254,7 +257,7 @@ if [[ -x "${HERMES}" ]] && "${HERMES}" status 2>/dev/null | grep -q "Model:"; th
 
   NS_PROMPT="Output ONLY the 1-2 namespace names (one per line) most relevant to the goal. No explanation. /no_think
 
-Note: 'mentolder' and 'korczewski' are environment names, NOT task namespaces — ignore them when selecting namespaces.
+Note: 'mentolder' and 'korczewski' are environment names, NOT task namespaces — ignore them when selecting namespaces. EXCEPTION: 'dev-korczewski' IS a valid task namespace (korczewski dev stack tasks like dev-korczewski:cluster:status, dev-korczewski:redeploy:website etc.).
 Note: 'sealed-secrets' namespace is for installing/managing the Sealed Secrets controller itself. For sealing or encrypting environment variables/credentials, use the 'env' namespace (env:seal, env:fetch-cert, etc.).
 
 ${NS_SUMMARY}

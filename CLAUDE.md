@@ -59,7 +59,7 @@ bash scripts/task-oracle.sh 'run all offline tests'
 bash scripts/task-oracle.sh 'create a fresh k3d cluster'
 ```
 
-Routes to Hermes (local `qwen3-coder:30b-a3b-q4_K_M`, free) → OpenClaw `task-runner` agent (Claude fallback) → error with `task --list` hint.
+Routes to Hermes (local `qwen/qwen3-4b-2507` via LM Studio at `100.102.71.114:1234`, free) → OpenClaw `task-runner` agent (Claude fallback) → error with `task --list` hint.
 
 ## Architecture
 

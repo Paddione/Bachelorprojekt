@@ -1,6 +1,6 @@
 ---
 title: Brett Korczewski Dev Start Script + EROFS Fix Implementation Plan
-ticket_id: null
+ticket_id: T000266
 domains: []
 status: active
 pr_number: null

@@ -54,15 +54,32 @@ if [[ -x "${HERMES}" ]] && "${HERMES}" status 2>/dev/null | grep -q "Model:"; th
 
   KNOWN_NS=$(echo "$ALL_TASKS" | awk -F: '{print $1}' | sort -u)
 
+  # Keyword overrides: bypass LLM for namespaces the model reliably gets wrong.
+  # 'sealed-secrets' (controller install) vs 'env' (env:seal) is the canonical case.
+  keyword_ns_override() {
+    local g="${1,,}"
+    if echo "$g" | grep -qE '(seal|encrypt).{0,20}(env|environment|secret)|(env|environment|secret).{0,20}(seal|encrypt)|\benv:seal\b'; then
+      echo "env"
+    fi
+  }
+
+  OVERRIDE_NS=$(keyword_ns_override "$GOAL")
+
   NS_PROMPT="Output ONLY the 1-2 namespace names (one per line) most relevant to the goal. No explanation. /no_think
 
 Note: 'mentolder' and 'korczewski' are environment names, NOT task namespaces — ignore them when selecting namespaces.
+Note: 'sealed-secrets' namespace is for installing/managing the Sealed Secrets controller itself. For sealing or encrypting environment variables/credentials, use the 'env' namespace (env:seal, env:fetch-cert, etc.).
 
 ${NS_SUMMARY}
 
 Goal: ${GOAL}"
 
-  SELECTED_NS=$(ask_hermes "$NS_PROMPT" \
+  SELECTED_NS=$(
+    if [[ -n "$OVERRIDE_NS" ]]; then
+      echo "$OVERRIDE_NS"
+    else
+      ask_hermes "$NS_PROMPT"
+    fi \
     | grep -oE '\b[a-z][a-z0-9_-]+\b' \
     | grep -xF -f <(echo "$KNOWN_NS") \
     | head -2 || true)
@@ -98,13 +115,23 @@ Goal: ${GOAL}"
 
   RAW=$(ask_hermes "$TASK_PROMPT")
 
+  # Build set of valid task names for exact-match fallback
+  VALID_TASKS=$(echo "$NS_TASKS" | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
+
   SELECTED=""
   if ! echo "$RAW" | grep -qiE '^none\b'; then
-    SELECTED=$(echo "$RAW" \
-      | grep -oE '`[a-z][a-z0-9_-]*:[a-z][a-z0-9_:-]*`' | head -1 | tr -d '`' \
-      || echo "$RAW" \
-      | grep -oE '\b[a-z][a-z0-9_-]*:[a-z][a-z0-9_:-]*\b' | head -1 \
-      || true)
+    # Tier 1: backtick-quoted task name
+    SELECTED=$(echo "$RAW" | grep -oE '`[a-z][a-z0-9_-]*:[a-z][a-z0-9_:-]*`' | head -1 | tr -d '`' || true)
+    # Tier 2: bare task name pattern anywhere in output
+    if [[ -z "$SELECTED" ]]; then
+      SELECTED=$(echo "$RAW" | grep -oE '\b[a-z][a-z0-9_-]*:[a-z][a-z0-9_:-]*\b' | head -1 || true)
+    fi
+    # Tier 3: scan RAW for any known task name verbatim (handles prose/think output)
+    if [[ -z "$SELECTED" ]]; then
+      SELECTED=$(echo "$VALID_TASKS" | while IFS= read -r t; do
+        if echo "$RAW" | grep -qF "$t"; then echo "$t"; fi
+      done | head -1 || true)
+    fi
   fi
 
   if [[ -z "$SELECTED" ]]; then

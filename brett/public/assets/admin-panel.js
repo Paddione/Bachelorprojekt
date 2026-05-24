@@ -45,6 +45,36 @@ window.AdminPanel = (() => {
     #ap-switch-mode{background:#374151;color:#9ca3af;border:none;border-radius:4px;
       padding:2px 6px;font-size:9px;cursor:pointer;align-self:flex-start;}
     #ap-switch-mode:hover{background:#4b5563;color:#e5e7eb;}
+    .ap-skins-overlay {
+      position: fixed; inset: 0; background: rgba(10,13,18,0.95); z-index: 9000;
+      display: flex; flex-direction: column; padding: 32px; overflow-y: auto;
+      font-family: ui-sans-serif, system-ui, sans-serif; color: #e5e7eb;
+    }
+    .ap-skins-overlay h2 { color: #f59e0b; margin: 0 0 16px 0; }
+    .ap-skins-close {
+      align-self: flex-end; background: #1f2937; color: #e5e7eb;
+      border: 1px solid #374151; border-radius: 4px; padding: 6px 12px;
+      font-size: 11px; cursor: pointer; margin-bottom: 16px;
+    }
+    .ap-skins-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .ap-skin-card {
+      background: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .ap-skin-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; background: #0e1014; }
+    .ap-skin-anim { color: #9ca3af; font-size: 10px; }
+    .ap-skin-delete { background: #dc2626; color: white; border: none; border-radius: 4px; padding: 6px; cursor: pointer; font-size: 11px; }
+    .ap-skin-delete:disabled { background: #4b5563; cursor: not-allowed; }
+    .ap-skin-upload {
+      margin-top: 24px; padding: 16px; background: #1f2937; border-radius: 6px;
+      display: flex; flex-direction: column; gap: 8px; max-width: 480px;
+    }
+    .ap-skin-upload input, .ap-skin-upload button {
+      padding: 6px 10px; background: #0e1014; color: #e5e7eb; border: 1px solid #374151; border-radius: 4px;
+    }
+    .ap-skin-upload button { cursor: pointer; }
+    .ap-skin-status { color: #10b981; font-size: 11px; }
+    .ap-skin-status.err { color: #f87171; }
   `;
 
   let _open = false;
@@ -120,6 +150,7 @@ window.AdminPanel = (() => {
       <hr class="ap-sep" style="margin-top:auto">
       <button class="ap-action" data-action="reset">↩ Runde neu starten</button>
       <button class="ap-action blue" data-action="broadcast">🔗 Link senden</button>
+      <button class="ap-action" data-action="skins">👤 Charakter-Skins</button>
     `;
     panel.querySelectorAll('[data-action]').forEach(el => {
       el.addEventListener('click', onAction);
@@ -155,6 +186,7 @@ window.AdminPanel = (() => {
       }
       case 'reset':     send({ type: 'admin_round_reset' }); break;
       case 'broadcast': send({ type: 'admin_broadcast' }); break;
+      case 'skins':     openSkinsOverlay(); break;
     }
     renderPanel();
   }
@@ -207,6 +239,88 @@ window.AdminPanel = (() => {
     } else if (msg.type === 'info') {
       _state.playerCount = msg.count || 0;
       renderPanel();
+    }
+  }
+
+  async function openSkinsOverlay() {
+    let overlay = document.getElementById('ap-skins-overlay');
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.id = 'ap-skins-overlay';
+    overlay.className = 'ap-skins-overlay';
+    overlay.innerHTML = `
+      <button class="ap-skins-close" data-action="skins-close">Schließen</button>
+      <h2>Charakter-Skins</h2>
+      <div class="ap-skins-list" id="ap-skins-list">Lade…</div>
+      <form class="ap-skin-upload" id="ap-skin-upload-form">
+        <h3 style="margin:0;color:#f59e0b;">Neuen Skin hochladen</h3>
+        <input type="text" name="name" placeholder="Anzeigename (z.B. Patrick)" maxlength="100" required>
+        <label>GLB (max 20 MB):
+          <input type="file" name="glb" accept=".glb,model/gltf-binary" required>
+        </label>
+        <label>Thumbnail (optional, PNG, max 512 KB):
+          <input type="file" name="thumb" accept="image/png">
+        </label>
+        <button type="submit">Hochladen</button>
+        <div class="ap-skin-status" id="ap-skin-status"></div>
+      </form>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('[data-action="skins-close"]').addEventListener('click', () => overlay.remove());
+    overlay.querySelector('#ap-skin-upload-form').addEventListener('submit', onUploadSubmit);
+    await refreshSkinList(overlay);
+  }
+
+  async function refreshSkinList(overlay) {
+    const list = overlay.querySelector('#ap-skins-list');
+    list.textContent = 'Lade…';
+    const r = await fetch('/api/skins', { credentials: 'same-origin' });
+    const skins = r.ok ? await r.json() : [];
+    if (!skins.length) { list.textContent = 'Keine Skins.'; return; }
+    list.innerHTML = skins.map(s => `
+      <div class="ap-skin-card">
+        ${s.thumb ? `<img src="${escAttr(s.thumb)}" alt="${escHtml(s.name)}">` : '<div style="height:120px;background:#0e1014;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:36px;">👤</div>'}
+        <strong>${escHtml(s.name)}</strong>
+        <span class="ap-skin-anim">Animationen: ${(s.animations && s.animations.length) ? s.animations.join(', ') : '—'}</span>
+        <button class="ap-skin-delete" data-skin-id="${escAttr(s.id)}" ${s.id === 'default' ? 'disabled' : ''}>Löschen</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('.ap-skin-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (btn.disabled) return;
+        if (!confirm(`Skin "${btn.dataset.skinId}" wirklich löschen?`)) return;
+        const r = await fetch(`/api/skins/${encodeURIComponent(btn.dataset.skinId)}`, {
+          method: 'DELETE', credentials: 'same-origin',
+        });
+        if (r.ok) refreshSkinList(overlay);
+        else alert('Löschen fehlgeschlagen: ' + r.status);
+      });
+    });
+  }
+
+  async function onUploadSubmit(evt) {
+    evt.preventDefault();
+    const form   = evt.currentTarget;
+    const status = form.querySelector('#ap-skin-status');
+    status.classList.remove('err'); status.textContent = 'Lade hoch…';
+    const fd = new FormData(form);
+    try {
+      const r = await fetch('/api/skins/upload', {
+        method: 'POST', body: fd, credentials: 'same-origin',
+      });
+      const out = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        status.classList.add('err');
+        status.textContent = 'Fehler: ' + (out.error || r.status);
+        return;
+      }
+      status.textContent = `✓ "${out.name}" hochgeladen (${(out.animations || []).length} Animationen)`;
+      form.reset();
+      await refreshSkinList(document.getElementById('ap-skins-overlay'));
+    } catch (err) {
+      status.classList.add('err');
+      status.textContent = 'Netzwerkfehler: ' + err.message;
     }
   }
 

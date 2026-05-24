@@ -449,6 +449,59 @@ grep -n "r\.\(get\|post\|put\)(" arena-server/src/http/routes.ts | head -20
 ```
 Niemals Endpfad annehmen (z.B. `/health`) ohne im Quellcode verifiziert zu haben (z.B. tatsächlich `/healthz`). Test schlägt sonst mit 404 fehl und erzeugt unnötige Fix-Tickets.
 
+### Schritt 3.7: Kontext-Reset + Opus 4.7 (xhigh) — Pflicht vor Plan-Schreibung
+
+Der Kontext ist jetzt mit Brainstorming-Verlauf, Explorer-Reports und Tool-Outputs gefüllt. Bevor `superpowers:writing-plans` gerufen wird: Kontext bereinigen, stärkeres Modell laden, Spec + Ticket neu injizieren — so bekommt der Plan-Schreiber einen sauberen, fokussierten Startpunkt.
+
+**1. Reinjektion-Anker sichern (vor dem Reset!):**
+
+```bash
+SPEC_FILE="docs/superpowers/specs/<date>-<slug>-design.md"
+
+# Tickets für Reinjektion sammeln
+REINJECT_TICKETS=()
+[[ -n "${TICKET_EXT_ID:-}" ]]          && REINJECT_TICKETS+=("$TICKET_EXT_ID")
+[[ -n "${GRILLING_TICKET_EXT_ID:-}" ]] && REINJECT_TICKETS+=("$GRILLING_TICKET_EXT_ID")
+
+echo "══ REINJEKTION-ANKER ══════════════════════"
+echo "Spec:    $SPEC_FILE"
+echo "Branch:  $(git branch --show-current)"
+echo "Tickets: ${REINJECT_TICKETS[*]:-keine}"
+echo "═══════════════════════════════════════════"
+```
+
+**2. ⚡ STOP — führe diese Befehle jetzt aus (in dieser Reihenfolge):**
+
+```
+/model claude-opus-4-7
+```
+```
+/compact Behalte für Plan-Schreibung: Spec-Pfad=<SPEC_FILE>, Branch=<aktiver-branch>, Ticket-IDs=<REINJECT_TICKETS>. Alles andere (Brainstorming, Explorer-Report, Worktree-Setup) verwerfen.
+```
+
+**3. Kontext-Injektion nach Reset:**
+
+Als allererstes nach dem Compact — vor `superpowers:writing-plans` — ausführen:
+
+```bash
+# Spec vollständig einlesen (Read Tool)
+# → docs/superpowers/specs/<date>-<slug>-design.md
+
+# Ticket-Content aus DB holen (für jede ID in REINJECT_TICKETS)
+PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
+for TID in "${REINJECT_TICKETS[@]}"; do
+  kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+    psql -U website -d website -At -c \
+    "SELECT '=== ' || external_id || ' ===' || E'\nTitle: ' || title
+            || E'\n\n' || COALESCE(description,'(kein Inhalt)')
+     FROM tickets.tickets WHERE external_id='$TID';"
+done
+```
+
+Erst nach dieser Injektion mit **Schritt 4** fortfahren.
+
+---
+
 ### Schritt 4: Plan schreiben
 
 Rufe `superpowers:writing-plans` auf. Führe danach sofort aus:

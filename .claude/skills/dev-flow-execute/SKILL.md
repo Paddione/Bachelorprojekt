@@ -28,6 +28,23 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 ---
 
+## Schritt −2: Kontext-Reset + Sonnet 4.6 (medium) — Execute-Gate
+
+dev-flow-execute braucht keinen Brainstorming- oder Plan-Geschichte-Ballast — der Plan liegt auf Disk. Frischer Kontext + schnelleres Modell = sauberere, zügigere Ausführung.
+
+**⚡ STOP — führe diese Befehle jetzt aus (falls nicht bereits geschehen), dann lies Schritt −1:**
+
+```
+/model claude-sonnet-4-6
+```
+```
+/clear
+```
+
+Nach dem Clear: Der Plan-Pfad und Branch-Name sind die einzigen Inputs — beide stehen auf Disk (Schritt 1 liest sie). Kein weiterer Kontext nötig.
+
+---
+
 ## Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
 
 Bevor irgendetwas passiert: sicherstellen, dass `main` im Haupt-Repo aktuell ist.

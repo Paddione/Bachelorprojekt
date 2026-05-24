@@ -302,6 +302,21 @@ task dev:redeploy:brett   # nur Brett-Pod
 
 ## Schritt 5: PR
 
+**Pre-commit branch guard (parallel-session safety):** Verify the branch immediately before any `git add` / `git commit` — not just at Schritt 0. In environments with concurrent Claude sessions, the checked-out branch can silently change between startup and commit time.
+
+```bash
+EXPECTED_BRANCH="<feature-or-fix-branch>"   # the branch from Schritt 0
+ACTUAL_BRANCH=$(git branch --show-current)
+if [[ "$ACTUAL_BRANCH" != "$EXPECTED_BRANCH" ]]; then
+  echo "🛑 HALT: Branch mismatch before commit!"
+  echo "  Expected: $EXPECTED_BRANCH"
+  echo "  Actual:   $ACTUAL_BRANCH"
+  echo "  Another session may have switched branches. Do NOT commit. Abort and investigate."
+  exit 1
+fi
+echo "✓ Branch confirmed: $ACTUAL_BRANCH — safe to commit."
+```
+
 Rufe `commit-commands:commit-push-pr` auf.
 
 ### Titel-Format

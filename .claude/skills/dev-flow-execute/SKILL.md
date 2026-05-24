@@ -226,6 +226,8 @@ task workspace:validate
 task test:all
 ```
 
+> **`task test:all` exit 128 im Worktree (erster Lauf):** Kann beim ersten Aufruf transient mit exit 128 auf `test:art-library` fehlschlagen — Ursache ist eine Race-Condition zwischen `npm install` und dem BATS-Submodul-Check. Einfach nochmal ausführen; zweiter Lauf läuft durch. [T000218]
+
 > **TypeScript-Check in Worktrees:** `tests/e2e/` hat im Worktree kein `node_modules`. Niemals `tsc` blank aufrufen — das schlägt mit "Cannot find module" fehl. Immer absoluten Pfad nutzen:
 > ```bash
 > # Im Worktree: tsc mit absolutem tsconfig-Pfad
@@ -606,6 +608,7 @@ Wenn mehrere Kategorien matchen: workspace → website → brett → livekit →
        'internal'
      FROM tickets.tickets WHERE external_id = '$TICKET_ID';"
   ```
+- **`openclaw approvals get` gibt keine JSON-Ausgabe zurück:** Der Befehl gibt dekorierten Tabellenoutput aus, keinen JSON. Falls ein Plan-Schritt `openclaw approvals get 2>/dev/null | python3 -c 'import sys,json; ...'` verwendet, schlägt das fehl. Lösung: `~/.openclaw/exec-approvals.json` direkt lesen. [T000214]
 - **Deploy scheitert post-merge:** Loggen, Patrick benachrichtigen, Cluster wie ist lassen. Kein Auto-Rollback. Ticket bleibt auf `in_progress` — Patrick muss manuell auf `done` oder `blocked` setzen.
 - **Verify scheitert post-merge:** Neuen `fix/<slug>` Branch via `dev-flow-plan` Fix-Pfad. Behandle die Regression als Bug. Hinterlasse am aktuellen Ticket einen internen Kommentar mit dem neuen Ticket-Link.
 

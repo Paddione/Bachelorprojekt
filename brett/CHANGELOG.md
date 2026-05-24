@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.7.0...brett-v0.8.0) (2026-05-24)
+
+
+### Features
+
+* **mayhem:** add 8 CC0 SFX for hero abilities and vehicle sounds ([01e32a7](https://github.com/Paddione/Bachelorprojekt/commit/01e32a757caaa71522387acc86adf15df7ff03b7))
+
 ## [0.7.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.6.0...brett-v0.7.0) (2026-05-24)
 
 

@@ -169,12 +169,28 @@ Falls Bug-Spec: in den `website`-Block einfügen (oder `services`, je nach Servi
 
 ## Schritt 5: Tests ausführen und verifizieren
 
+`PLAYWRIGHT_PROJECT` ergibt sich aus Schritt 1 (URL-Mapping-Tabelle).
+Für `systemtest` läuft der vollständige Zyklus gegen beide Cluster (via `task systemtest:all:headed:both-prods`).
+
 ```bash
-# Einzelnen Spec gegen die Live-URL ausführen
-WEBSITE_URL="$BASE_URL" npx playwright test \
-  --config tests/e2e/playwright.config.ts \
-  --project website \
-  tests/e2e/specs/<neu>.spec.ts
+# Wähle Ausführungsmodus basierend auf dem Playwright-Projekt
+
+if [[ "$PLAYWRIGHT_PROJECT" == "systemtest" ]]; then
+  # systemtest: 4 headed workers, beide Cluster parallel
+  # Voraussetzung: E2E_ADMIN_PASS muss gesetzt sein
+  if [[ -z "${E2E_ADMIN_PASS:-}" ]]; then
+    echo "ERROR: E2E_ADMIN_PASS required for systemtest runs" >&2
+    exit 1
+  fi
+  task systemtest:all:headed:both-prods
+
+else
+  # Alle anderen Projekte: 1 Worker headless (Standardpfad)
+  WEBSITE_URL="$BASE_URL" npx playwright test \
+    --config tests/e2e/playwright.config.ts \
+    --project "$PLAYWRIGHT_PROJECT" \
+    tests/e2e/specs/<neu>.spec.ts
+fi
 
 # Bei Fehlern: Trace und Screenshot ansehen
 ls tests/results/playwright-traces/
@@ -252,69 +268,49 @@ cleanly with "No mishaps found."
 
 ## Schritt 9: Loop-Restart & Skill-Verbesserung
 
-Nach dem Mishap Report: offene Skill-Improvement-Tickets prüfen und anwenden, dann nächsten Zyklus starten.
+Nach dem Mishap Report: offene Skill-Improvement-Tickets prüfen, triviale Fixes auto-anwenden, dann nächsten Zyklus starten.
 
-### 9a — Skill-Improvement-Tickets abfragen
-
-```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
-  -l app=shared-db -o name | head -1)
-
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
-  psql -U website -d website -At -c \
-  "SELECT external_id, title, description, component
-   FROM tickets.tickets
-   WHERE status NOT IN ('done', 'archived')
-     AND component LIKE 'skills/%'
-     AND attention_mode = 'ai_ready'
-   ORDER BY created_at ASC;"
-```
-
-Falls keine Ergebnisse: direkt zu **9c**.
-
-### 9b — Triviale Skill-Edits auto-anwenden
-
-Für jedes zurückgegebene Ticket:
-
-1. Skill-Name extrahieren: `SKILL_NAME="${component#skills/}"` (z.B. `dev-flow-plan`)
-2. SKILL.md lokalisieren: zuerst `.claude/skills/$SKILL_NAME/SKILL.md` (Projekt-Skill), dann `~/.claude/skills/$SKILL_NAME/SKILL.md` (User-Skill)
-3. Ticket `description` lesen — enthält die Reibungsstelle und den Fix
-4. Verbesserung direkt anwenden (falschen Command korrigieren, fehlenden Schritt ergänzen, Beispiel präzisieren)
-5. Via ephemeren Branch committen (branch protection blockiert direkten Push auf main):
+### 9a — Triviale Tickets ermitteln
 
 ```bash
-SKILL_BRANCH="chore/skills-improve-${TICKET_EXT_ID,,}"
-git checkout -b "$SKILL_BRANCH"
-git add ".claude/skills/$SKILL_NAME/SKILL.md"
-git commit -m "chore(skills): <einzeilige Verbesserung> [$TICKET_EXT_ID]"
-git push -u origin "$SKILL_BRANCH"
-gh pr create \
-  --title "chore(skills): <einzeilige Verbesserung> [$TICKET_EXT_ID]" \
-  --body "Auto-applied from skill-friction ticket $TICKET_EXT_ID." \
-  --base main
-gh pr merge --squash --delete-branch
-git checkout main && git pull --rebase origin main
+TRIVIAL_TICKETS=$(bash scripts/e2e-skill-selfpatch.sh --list-trivial)
 ```
 
-6. Ticket schließen:
+Falls `$TRIVIAL_TICKETS` leer: direkt zu **9c**.
+
+### 9b — Triviale Fixes anwenden
+
+Für jedes Ticket aus `$TRIVIAL_TICKETS` (Format: `EXT_ID|DESCRIPTION`):
 
 ```bash
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
-  psql -U website -d website -c \
-  "UPDATE tickets.tickets SET
-     status = 'done', resolution = 'fixed', done_at = now(),
-     notes = COALESCE(notes || E'\n\n', '') ||
-       '[loop-restart $(date +%Y-%m-%d)] Skill-Verbesserung angewandt und nach main gemergt.'
-   WHERE external_id = '$TICKET_EXT_ID';"
+while IFS='|' read -r EXT_ID DESCRIPTION; do
+  [[ -z "$EXT_ID" ]] && continue
+
+  echo "Applying fix for $EXT_ID: $DESCRIPTION"
+
+  # 1. Patch anwenden: DESCRIPTION lesen und SKILL.md editieren (Edit-Tool verwenden)
+  #    Triviale Fixes: falschen Command korrigieren, fehlenden Schritt ergänzen, Beispiel präzisieren
+  #    NIEMALS strukturelle Änderungen hier — nur Zeilen-Level-Korrekturen
+
+  # 2. Nach dem Edit: Branch anlegen und via Script committen + mergen
+  BRANCH="chore/e2e-skill-selfpatch-${EXT_ID,,}"
+  git checkout -b "$BRANCH"
+  bash scripts/e2e-skill-selfpatch.sh --commit "$EXT_ID" "$BRANCH"
+
+done <<< "$TRIVIAL_TICKETS"
 ```
 
-**Strukturelle Änderungen NICHT auto-anwenden.** Trivial vs. strukturell:
+**Trivial vs. strukturell:**
 - **Trivial:** Command korrigieren, Exit-Code-Check ergänzen, fehlendes `bash`-Schritt hinzufügen, Beispiel präzisieren
 - **Strukturell:** Nummerierte Schritte umordnen/entfernen, Skill-Aufruf-Zeitpunkt ändern, Routing-Tabelle in CLAUDE.md anpassen
 
-Strukturelle Tickets: `needs_human` setzen mit konkreter Frage, dann überspringen.
+### 9c — Strukturelle Tickets zurückstellen
 
-### 9c — Loop neu starten
+```bash
+bash scripts/e2e-skill-selfpatch.sh --defer-structural
+```
+
+### 9d — Loop neu starten
 
 ```
 Schritt 9 abgeschlossen. Alle skill-improvement Tickets bearbeitet (oder keine vorhanden).

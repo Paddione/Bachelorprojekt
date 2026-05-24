@@ -5,7 +5,7 @@ set -euo pipefail
 
 GOAL="${*:?Usage: task-oracle.sh '<goal>'}"
 REPO="/home/patrick/Bachelorprojekt"
-MODEL="qwen3:8b"
+MODEL="qwen3-14b"
 
 # ── Infer target environment from goal keywords ───────────────────────────
 infer_env() {
@@ -53,7 +53,9 @@ if hermes status 2>/dev/null | grep -q "Model:"; then
 
   KNOWN_NS=$(echo "$ALL_TASKS" | awk -F: '{print $1}' | sort -u)
 
-  NS_PROMPT="Output ONLY the 1-2 namespace names (one per line) most relevant to the goal. No explanation.
+  NS_PROMPT="Output ONLY the 1-2 namespace names (one per line) most relevant to the goal. No explanation. /no_think
+
+Note: 'mentolder' and 'korczewski' are environment names, NOT task namespaces — ignore them when selecting namespaces.
 
 ${NS_SUMMARY}
 
@@ -84,7 +86,7 @@ Goal: ${GOAL}"
     printf "%s — %s\n", parts[1], parts[2]
   }')
 
-  TASK_PROMPT="Output ONLY the single best matching task name (e.g. 'workspace:deploy').
+  TASK_PROMPT="Output ONLY the single best matching task name (e.g. 'workspace:deploy'). /no_think
 If no task matches, output: NONE
 
 ${TASK_LIST}

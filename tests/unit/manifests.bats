@@ -40,7 +40,11 @@ YAML
   # expand them here with dev defaults so host/image assertions still
   # see literal strings.
   export RENDERED="${BATS_FILE_TMPDIR}/rendered.yaml"
-  kubectl kustomize "${MANIFESTS_DIR}" --load-restrictor=LoadRestrictionsNone > "$RENDERED" 2>&1
+  if ! kubectl kustomize "${MANIFESTS_DIR}" --load-restrictor=LoadRestrictionsNone > "$RENDERED" 2>&1; then
+    echo "kubectl kustomize failed — output:" >&2
+    cat "$RENDERED" >&2
+    return 1
+  fi
   printf '\n---\n' >> "$RENDERED"
   (
     export PROD_DOMAIN=localhost

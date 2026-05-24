@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.8.0...brett-v0.8.1) (2026-05-24)
+
+
+### Bug Fixes
+
+* **brett:** isolate coaching mode — remove combat UI bleed [T000251] ([#1051](https://github.com/Paddione/Bachelorprojekt/issues/1051)) ([6757ec5](https://github.com/Paddione/Bachelorprojekt/commit/6757ec55b810162954dabbe8c42425c6ff40dbac))
+
 ## [0.8.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.7.0...brett-v0.8.0) (2026-05-24)
 
 

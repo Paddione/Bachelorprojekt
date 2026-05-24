@@ -88,3 +88,31 @@ test('slugifyForSkin: empty / pure-symbol input gets a random fallback id', () =
   const out = slugifyForSkin('!!!');
   assert.match(out, /^skin-[0-9a-f]{6}$/);
 });
+
+const { app } = require('../server.js');
+
+// Minimal in-process HTTP request helper — avoids pulling in supertest.
+function getJson(routePath) {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(0, () => {
+      const port = server.address().port;
+      const http = require('http');
+      http.get({ host: '127.0.0.1', port, path: routePath }, res => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => {
+          server.close();
+          try { resolve({ status: res.statusCode, body: JSON.parse(body) }); }
+          catch (err) { reject(err); }
+        });
+      }).on('error', err => { server.close(); reject(err); });
+    });
+  });
+}
+
+test('GET /api/skins: returns at least the default entry', async () => {
+  const r = await getJson('/api/skins');
+  assert.strictEqual(r.status, 200);
+  assert.ok(Array.isArray(r.body));
+  assert.ok(r.body.some(s => s.id === 'default'));
+});

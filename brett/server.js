@@ -322,6 +322,11 @@ app.get('/api/snapshots/:id', asyncHandler(async (req, res) => {
   res.json(rows[0]);
 }));
 
+// ─── Skins catalog (Mayhem character skins) ──────────────────────────────────
+app.get('/api/skins', (_req, res) => {
+  res.json(listSkins());
+});
+
 // Admin room list.
 app.get('/api/admin/rooms', requireAdmin, asyncHandler(async (req, res) => {
   const liveTokens = Array.from(rooms.keys());

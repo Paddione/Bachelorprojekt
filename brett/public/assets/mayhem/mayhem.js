@@ -3,7 +3,7 @@
 const Mayhem = (() => {
   const STATE_RATE_HZ    = 15;
   const VEHICLE_COOLDOWN_MS = 5000;
-  const MODES_CYCLE = ['warmup', 'deathmatch', 'lms'];
+  const MODES_CYCLE = ['warmup', 'deathmatch', 'lms', 'coop', 'duel'];
 
   const MAX_PLAYERS = 4;
 
@@ -42,6 +42,13 @@ const Mayhem = (() => {
   let isHost      = false;
   let deadHumans  = new Set();
   let coopStartTimer = null;
+
+  let _crosshairMesh = null;   // THREE.Mesh — ring on ground
+  let _aimPlane      = null;   // THREE.Plane — y=0 intersect target
+  let _aimDir        = null;   // THREE.Vector3 — current aim direction
+  let _aimPoint      = null;   // THREE.Vector3 — crosshair world position
+  let _mouseNDC      = null;   // THREE.Vector2 — normalized device coords
+  let _raycaster     = null;   // THREE.Raycaster
 
   const input = {
     forward: false, backward: false, left: false, right: false,
@@ -107,12 +114,22 @@ const Mayhem = (() => {
       if (e.deltaY < 0) weaponSystem?.prev(); else weaponSystem?.next();
     }, { passive: true });
 
-    // Allow controls-panel to notify mayhem to reload bindings after rebind
-    window.addEventListener('brett:keybindings-changed', () => {
-      if (window.MayhemKeybindings) _b = window.MayhemKeybindings.load();
-      // Clear all movement keys to avoid stuck states
-      Object.keys(input).forEach(k => { input[k] = false; });
+    document.addEventListener('mousemove', _onMouseMove);
+    document.addEventListener('touchmove', _onTouchMove, { passive: true });
+
     });
+  }
+
+  function _onMouseMove(e) {
+    if (!_mouseNDC) return;
+    _mouseNDC.x = (e.clientX / window.innerWidth)  * 2 - 1;
+    _mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  }
+
+  function _onTouchMove(e) {
+    if (!_mouseNDC || !e.touches[0]) return;
+    _mouseNDC.x = (e.touches[0].clientX / window.innerWidth)  * 2 - 1;
+    _mouseNDC.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
   }
 
   // ── Enable / toggle ───────────────────────────────────────────────────────
@@ -142,6 +159,7 @@ const Mayhem = (() => {
   // ── Start / Stop ─────────────────────────────────────────────────────────
   function start() {
     showBanner();
+    const THREE = window.THREE;
 
     // Effects
     effectsMgr = new window.MayhemEffectsClass(scene);
@@ -157,6 +175,23 @@ const Mayhem = (() => {
         projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
       }
     );
+
+    // Crosshair setup
+    _aimPlane  = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    _aimDir    = new THREE.Vector3(0, 0, -1);
+    _aimPoint  = new THREE.Vector3();
+    _mouseNDC  = new THREE.Vector2();
+    _raycaster = new THREE.Raycaster();
+
+    const crosshairGeo = new THREE.RingGeometry(0.18, 0.25, 32);
+    const crosshairMat = new THREE.MeshBasicMaterial({
+      color: 0xd7b06a,   // --brass-game
+      transparent: true, opacity: 0.85, side: THREE.DoubleSide,
+    });
+    _crosshairMesh = new THREE.Mesh(crosshairGeo, crosshairMat);
+    _crosshairMesh.rotation.x = -Math.PI / 2;
+    _crosshairMesh.position.y = 0.06;
+    scene.add(_crosshairMesh);
 
     // Projectile manager
     projectileMgr = new window.MayhemProjectiles.ProjectileManager(
@@ -275,6 +310,9 @@ const Mayhem = (() => {
       obstacles = [];
     }
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
+    if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
+    document.removeEventListener('mousemove', _onMouseMove);
+    document.removeEventListener('touchmove', _onTouchMove);
     window.MayhemEffects = null;
     effectsMgr = null;
     weaponSystem = null;
@@ -407,6 +445,16 @@ const Mayhem = (() => {
     if (!enabled) return;
     const yaw = chaseCam ? chaseCam.getYaw() : 0;
 
+    // Update aim direction from mouse position
+    if (_raycaster && _mouseNDC && localAvatar) {
+      _raycaster.setFromCamera(_mouseNDC, camera);
+      if (_raycaster.ray.intersectPlane(_aimPlane, _aimPoint)) {
+        const lp = localAvatar.mannequin.root.position;
+        _aimDir.set(_aimPoint.x - lp.x, 0, _aimPoint.z - lp.z).normalize();
+        _crosshairMesh.position.set(_aimPoint.x, 0.06, _aimPoint.z);
+      }
+    }
+
     if (localAvatar) {
       localAvatar.setInput(input);
       localAvatar.update(dt, yaw);
@@ -414,8 +462,7 @@ const Mayhem = (() => {
       // Weapon fire
       if (input.fire && weaponSystem && !localAvatar.isDead) {
         const pos = localAvatar.mannequin.root.position;
-        const fy  = localAvatar.facingY;
-        const dir = { x: Math.sin(fy), y: 0.05, z: Math.cos(fy) };
+        const dir = { x: _aimDir.x, y: 0.05, z: _aimDir.z };
         weaponSystem.tryFire({ x: pos.x, y: pos.y, z: pos.z }, dir, playerId);
       }
       weaponSystem?.tick();

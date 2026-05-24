@@ -27,11 +27,6 @@ tasks:
     cmds:
       - task: firewall:open
 
-  materialise-keys:
-    desc: "[brainstorm] No-op: authorized_keys now come from workspace-secrets SealedSecret (DEV_SISH_AUTHORIZED_KEYS). Run workspace:deploy ENV=mentolder to apply."
-    cmds:
-      - echo "brainstorm:materialise-keys is no longer needed — DEV_SISH_AUTHORIZED_KEYS is served from the workspace-secrets SealedSecret, applied automatically by workspace:deploy."
-
   publish:
     desc: "[brainstorm] Publish a local port at https://brainstorm.${PROD_DOMAIN}. Usage: task brainstorm:publish -- <localport>"
     cmds:

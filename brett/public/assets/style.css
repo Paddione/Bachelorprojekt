@@ -263,3 +263,23 @@
 }
 .respawn-overlay .msg { color: var(--brass-hi); font-size: 18px; margin-bottom: 12px; }
 .respawn-overlay .countdown { color: var(--brass); font-size: 64px; font-weight: 700; }
+
+/* Mode-select Mayhem highlight */
+.mode-card-mayhem {
+  border: 2px solid #e07a3a;
+  box-shadow: 0 0 12px rgba(224, 122, 58, 0.35);
+}
+.mode-card-mayhem.mode-card-default {
+  background: linear-gradient(135deg, rgba(224, 122, 58, 0.12), transparent);
+}
+.mode-card-mayhem .badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: #e07a3a;
+  border-radius: 4px;
+  vertical-align: middle;
+}

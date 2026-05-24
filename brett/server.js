@@ -144,6 +144,16 @@ app.use(express.static('public', {
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
 
+function buildConfig(env) {
+  const mode = env.BRETT_DEFAULT_MODE === 'mayhem' ? 'mayhem' : 'coaching';
+  return {
+    defaultMode: mode,
+    availableModes: mode === 'mayhem' ? ['coaching', 'mayhem'] : ['coaching'],
+  };
+}
+
+app.get('/api/config', (_req, res) => res.json(buildConfig(process.env)));
+
 // ─── Auth (OIDC / Keycloak) ───────────────────────────────────────────────────
 const BRETT_PUBLIC_URL = process.env.BRETT_PUBLIC_URL || 'http://brett.localhost';
 
@@ -829,4 +839,5 @@ module.exports = {
   pickupState, ensurePickups, spawnPickup,
   isAdminFromClaims,
   validateAppearance,
+  buildConfig,
 };

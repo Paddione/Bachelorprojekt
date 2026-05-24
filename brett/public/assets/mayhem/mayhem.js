@@ -215,36 +215,6 @@ const Mayhem = (() => {
     chaseCam.attach(localAvatar.mannequin.root);
     send({ type: 'player_join', playerId, color });
 
-    // Fill remaining slots with AI bots so there are always MAX_PLAYERS combatants
-    const humanCount = remoteAvatars.size + 1; // +1 for local player
-    for (let i = humanCount; i < MAX_PLAYERS; i++) spawnAIBot(i - humanCount);
-  }
-
-  // ── AI Bots ───────────────────────────────────────────────────────────────
-  function spawnAIBot(colorIndex) {
-    if (!window.MayhemAIBot) return; // guard: ai-bot.js not loaded
-    const botId = 'bot-' + crypto.randomUUID();
-    const pos = nextSpawnPoint();
-    const botMannequin = makeMannequin(botId, pos);
-    const bot = new window.MayhemAIBot({
-      id: botId,
-      mannequin: botMannequin,
-      colorIndex,
-      callbacks: {
-        onFire: (weaponDef, originPos, dirVec, shooterId) => {
-          if (projectileMgr) projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
-        },
-        onDeath: (id, killerId) => {
-          gameMode?.handleDeath(id, false);
-          if (killerId && killerId !== id) gameMode?.handleKill(killerId);
-          updateHud();
-        },
-        getGameMode: () => gameMode?.mode || 'warmup',
-      },
-    });
-    if (bot.avatar && bot.weaponDef) bot.avatar.setWeapon(bot.weaponDef);
-    aiBots.set(botId, bot);
-    remoteAvatars.set(botId, bot.avatar);
   }
 
   // ── Co-op wave spawning ───────────────────────────────────────────────────
@@ -535,14 +505,6 @@ const Mayhem = (() => {
       case 'player_join':
         if (msg.playerId === playerId) return;
         if (remoteAvatars.has(msg.playerId)) return;
-        // Retire one bot to make room for the real player
-        if (aiBots.size > 0) {
-          const [firstBotId] = aiBots.keys();
-          const firstBot = aiBots.get(firstBotId);
-          aiBots.delete(firstBotId);
-          remoteAvatars.delete(firstBotId);
-          firstBot.remove(scene);
-        }
         { const m = makeMannequin(msg.playerId, { x: 0, z: 0 });
           remoteAvatars.set(msg.playerId,
             new window.MayhemPlayerAvatar({ id: msg.playerId, mannequin: m, local: false, color: msg.color || '#888' })); }

@@ -21,3 +21,9 @@ test('invalid modes do not change state', () => {
   assert.equal(result, false);
   assert.equal(ms.current(), 'coaching');
 });
+
+test('setMode("mayhem") is accepted', () => {
+  const state = createModeState({ storage: { getItem: () => null, setItem: () => {} } });
+  assert.strictEqual(state.setMode('mayhem'), true);
+  assert.strictEqual(state.current(), 'mayhem');
+});

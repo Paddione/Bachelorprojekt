@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>operations-management — Incident Response & Repo Hygiene</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">operations-management</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Ops</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Ops</span>
+    <span class="badge-slug">operations-management</span>
+  </div>
+  <h1 class="hero-title">Incident Response & Repo Hygiene</h1>
+  <p class="hero-subtitle">
+    Production incident triage (scope, diagnose, rollback or fix), DB ticket management (triage, close, route), git repo hygiene (prune worktrees & branches), PR reviews, and mishap tracking.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Service out or degraded, ticket queue triage, or daily git housekeeping.
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>Incident Triage:</strong> Answer service, cluster, start time, and blast radius within 2 minutes of discovering a failure.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">1</span>
+        <span class="phase-title">Incident Scope</span>
+        <span class="phase-desc">Open a Bug Ticket</span>
+      </div>
+      <div class="phase-body">
+        <p>Determine scope and register a bug ticket inside the tickets schema:</p>
+        <pre><code><span class="fn">INSERT INTO</span> tickets.tickets (type, status, severity) <span class="fn">VALUES</span> ('bug', 'in_progress', 'critical');</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">Fix or Rollback</span>
+        <span class="phase-desc">Restore Stability</span>
+      </div>
+      <div class="phase-body">
+        <p>If introduced by the latest deploy (no migrations), roll back container image digests:</p>
+        <pre><code><span class="fn">kubectl set image</span> deployment/website website=ghcr.io/paddione/workspace-website:&lt;PREV_SHA&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">3</span>
+        <span class="phase-title">Ticket Triage</span>
+        <span class="phase-desc">Work the Queue</span>
+      </div>
+      <div class="phase-body">
+        <p>Fetch open tickets, classify them (AI-actionable, human needed, obsolete, or resolved), and resolve/update notes accordingly.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">Git & PR Hygiene</span>
+        <span class="phase-desc">Cleanup Resources</span>
+      </div>
+      <div class="phase-body">
+        <p>Prune stale branches and remove merged git worktrees to keep the repository clean:</p>
+        <pre><code><span class="fn">git worktree remove</span> /tmp/wt-&lt;slug&gt; --force
+<span class="fn">git fetch</span> --prune</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Troubleshooting</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mishaps not logging</td><td>Check connection to mentolder DB. If down, print logs to console for manual registry.</td></tr>
+        <tr><td>Branch delete fails</td><td>Ensure the branch is fully merged to main before running force deletion.</td></tr>
+        <tr><td>Rollback leaves pod pending</td><td>Image tag doesn't exist on ghcr.io. Check commit SHA of previous stable build.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="fleet-ops.html" class="xref-card">
+      <span class="xref-name">fleet-ops</span>
+      <span class="xref-rel">Force-sync Flux to correct configuration drifts</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Fix auth credentials or DB password access issues</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/operations-management/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>knowledge-management — Knowledge & Ingest Operations</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">knowledge-management</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">AI</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">AI</span>
+    <span class="badge-slug">knowledge-management</span>
+  </div>
+  <h1 class="hero-title">Knowledge Ingestion & Indexing</h1>
+  <p class="hero-subtitle">
+    Ingesting coaching resources (PDFs, EPUBs), running the classifier LLM pipeline, re-indexing workspace collections, managing web source crawlers, and ensuring vector space model isolation.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Ingesting books, indexing PRs/docs/bugs, or resolving vector schema mismatches.
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body">
+      <strong>Model Isolation:</strong> <code>bge-m3</code> (local TEI container) and <code>voyage-multilingual-2</code> (Voyage AI cloud) are completely incompatible vector spaces. Never mix them in the same query.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">1</span>
+        <span class="phase-title">Coaching Ingest</span>
+        <span class="phase-desc">Split & Store Chunks</span>
+      </div>
+      <div class="phase-body">
+        <p>Load PDFs or EPUB files into pgvector. Chunks start with <code>status = 'UNCLASSIFIED'</code>:</p>
+        <pre><code><span class="fn">task</span> coaching:ingest -- /path/to/book.pdf book-slug</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">LLM Classification</span>
+        <span class="phase-desc">Categorization Workflow</span>
+      </div>
+      <div class="phase-body">
+        <p>Classify chunks using chat LLM (in-cluster router or Anthropic API fallback) into <code>DRAFT</code> status:</p>
+        <pre><code><span class="fn">task</span> coaching:classify -- --slug=book-slug</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">3</span>
+        <span class="phase-title">Admin Review</span>
+        <span class="phase-desc">Approve Drafts</span>
+      </div>
+      <div class="phase-body">
+        <p>Open <code>/admin/knowledge/drafts</code> to review draft categories. Once approved, chunks are promoted to <code>PUBLISHED</code> and ready for searches.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">General Reindexing</span>
+        <span class="phase-desc">PRs, Docs & Tickets</span>
+      </div>
+      <div class="phase-body">
+        <p>Trigger re-indexing for other workspace knowledge bases:</p>
+        <pre><code><span class="fn">task</span> knowledge:reindex ENV=mentolder SOURCE=prs</code></pre>
+        <p>Sources: <code>prs</code>, <code>markdown</code> (docs), <code>bugs</code> (tickets), or <code>all</code>.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Troubleshooting</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0 docs indexed (API down)</td><td>Do not commit. Immediately restore database: <code>task workspace:restore -- website &lt;timestamp&gt;</code>.</td></tr>
+        <tr><td>MixedEmbeddingModelError</td><td>Query spans both bge-m3 and Voyage collections. Split queries in code.</td></tr>
+        <tr><td>Classify hangs (GPU down)</td><td>Verify TEI container: <code>docker restart tei-embed</code> on GPU host.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="database-ops.html" class="xref-card">
+      <span class="xref-name">database-ops</span>
+      <span class="xref-rel">PostgreSQL backups and schema updates</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/knowledge-management/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

@@ -102,6 +102,26 @@
     "blocked": {
       "file": "faces/blocked.png",
       "stance": "horizontal slate bar across eyes — cannot see"
+    },
+    "portrait-patrick": {
+      "file": "faces/portrait-patrick.png",
+      "stance": "Patrick Korczewski — real photo portrait"
+    },
+    "portrait-christina": {
+      "file": "faces/portrait-christina.png",
+      "stance": "Christina — real photo portrait"
+    },
+    "portrait-papa": {
+      "file": "faces/portrait-papa.png",
+      "stance": "Papa — real photo portrait"
+    },
+    "portrait-martina": {
+      "file": "faces/portrait-martina.png",
+      "stance": "Martina — real photo portrait"
+    },
+    "portrait-oskar": {
+      "file": "faces/portrait-oskar.png",
+      "stance": "Oskar — real photo portrait"
     }
   },
   "bodies": {

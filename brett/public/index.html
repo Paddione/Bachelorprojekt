@@ -236,6 +236,8 @@
             <input type="range" id="fig-scale-slider" min="0.3" max="2.5" step="0.05" value="1.0" />
             <span id="fig-scale-val">1.0×</span>
           </div>
+          <span class="fig-panel-label">Personen</span>
+          <div id="fig-panel-persons" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;"></div>
           <span class="fig-panel-label">Name</span>
           <input id="fig-label-input" type="text" placeholder="Figur benennen …" maxlength="40" />
           <button id="fig-panel-add">＋ Klick auf Brett zum Platzieren</button>
@@ -1602,6 +1604,52 @@
       grid.appendChild(el);
     }
   }
+
+  // ── Named Persons quick-spawn ────────────────────────────────────────────
+  const NAMED_PERSONS = [
+    { key: 'portrait-patrick',   label: 'Patrick',   color: '#6f8db8' },
+    { key: 'portrait-christina', label: 'Christina', color: '#c06be0' },
+    { key: 'portrait-papa',      label: 'Papa',      color: '#808080' },
+    { key: 'portrait-martina',   label: 'Martina',   color: '#6be0a0' },
+    { key: 'portrait-oskar',     label: 'Oskar',     color: '#c8a96e' },
+  ];
+
+  (function buildPersonsPanel() {
+    const grid = document.getElementById('fig-panel-persons');
+    if (!grid) return;
+    for (const p of NAMED_PERSONS) {
+      const btn = document.createElement('button');
+      btn.className = 'fig-size-btn';
+      btn.style.cssText = `border-left:3px solid ${p.color};text-align:left;padding:4px 7px;` +
+        `font-size:11px;display:flex;align-items:center;gap:6px;`;
+      const img = document.createElement('img');
+      img.src = `/assets/figure-pack/faces/${p.key}.png`;
+      img.style.cssText = 'width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;';
+      img.alt = p.label;
+      const span = document.createElement('span');
+      span.textContent = p.label;
+      btn.appendChild(img);
+      btn.appendChild(span);
+      btn.addEventListener('click', () => {
+        const x = (Math.random() - 0.5) * 4;
+        const z = (Math.random() - 0.5) * 4;
+        const fig = addFigure({ x, z });
+        fig.label = p.label;
+        recolorFigure(fig, p.color);
+        function tryApply() {
+          if (PLACEMENT_SPEC.faces?.[p.key]) {
+            applyAppearanceToFig(fig, { face: p.key });
+            sendUpdate(fig, { appearance: fig.appearance });
+          } else {
+            setTimeout(tryApply, 100);
+          }
+        }
+        tryApply();
+        closeFigPanel();
+      });
+      grid.appendChild(btn);
+    }
+  })();
 
   function syncDrawerToFig(fig) {
     if (!fig) return;

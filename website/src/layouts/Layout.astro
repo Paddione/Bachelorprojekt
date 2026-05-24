@@ -52,6 +52,7 @@ const pageTitle = rawTitle ? title : `${title} | ${config.meta.siteTitle}`;
     {isKore && <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />}
     <title>{pageTitle}</title>
     {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
+    {isKore && <link rel="stylesheet" href="/brand/korczewski/app.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-website.css" />}
   </head>
   <body class={`min-h-screen flex flex-col${isKore ? ' kore' : ''}`} style="background:var(--ink-900); color:var(--fg);">

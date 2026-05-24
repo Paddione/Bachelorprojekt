@@ -41,7 +41,36 @@ function integrateRagdollBone(bone, dt) {
   bone.currentRot.z += bone.velocity.z * dt;
 }
 
-const api = { capsuleCapsule, aabbCapsule, integrateRagdollRoot, integrateRagdollBone };
+// Slab-method ray-AABB test. Returns true if segment [from→to] is blocked by
+// any box in obstacles. Used for AI line-of-sight and AoE range checks.
+// obstacles: Array of { minX, maxX, minY, maxY, minZ, maxZ }
+function aabbRay(from, to, obstacles) {
+  const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
+  const lenSq = dx*dx + dy*dy + dz*dz;
+  if (lenSq === 0) return false;
+
+  for (const b of obstacles) {
+    // Per-axis slab intersect
+    let tmin = 0, tmax = 1;
+    for (const [o, d, bmin, bmax] of [
+      [from.x, dx, b.minX, b.maxX],
+      [from.y, dy, b.minY, b.maxY],
+      [from.z, dz, b.minZ, b.maxZ],
+    ]) {
+      if (Math.abs(d) < 1e-9) {
+        if (o < bmin || o > bmax) { tmin = 1; break; }
+      } else {
+        const t1 = (bmin - o) / d, t2 = (bmax - o) / d;
+        tmin = Math.max(tmin, Math.min(t1, t2));
+        tmax = Math.min(tmax, Math.max(t1, t2));
+      }
+    }
+    if (tmin <= tmax) return true;
+  }
+  return false;
+}
+
+const api = { capsuleCapsule, aabbCapsule, integrateRagdollRoot, integrateRagdollBone, aabbRay };
 
 // Dual export: CommonJS (for node --test) and window global (for browser).
 if (typeof module !== 'undefined' && module.exports) {
@@ -50,3 +79,4 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
   window.MayhemPhysics = api;
 }
+

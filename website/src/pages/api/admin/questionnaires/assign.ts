@@ -38,20 +38,20 @@ export const POST: APIRoute = async ({ request }) => {
   }
   if (!customer) return new Response(JSON.stringify({ error: 'Kundeneintrag nicht gefunden.' }), { status: 404 });
 
-  const projectTitle = tpl.is_system_test
-    ? tpl.title
-    : `${tpl.title} — ${clientName}`;
-
-  const projectId = await createProject({
-    brand: BRAND,
-    name: projectTitle,
-    status: 'entwurf',
-    priority: 'mittel',
-    customerId: customer.id,
-  }).catch((err) => {
-    console.error('[assign] project creation failed, continuing without project_id:', err);
-    return null;
-  });
+  let projectId: string | null = null;
+  if (!tpl.is_system_test) {
+    const projectTitle = `${tpl.title} — ${clientName}`;
+    projectId = await createProject({
+      brand: BRAND,
+      name: projectTitle,
+      status: 'entwurf',
+      priority: 'mittel',
+      customerId: customer.id,
+    }).catch((err) => {
+      console.error('[assign] project creation failed, continuing without project_id:', err);
+      return null;
+    });
+  }
 
   const assignment = await createQAssignment({
     customerId: customer.id,

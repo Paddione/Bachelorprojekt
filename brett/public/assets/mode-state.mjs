@@ -1,5 +1,5 @@
 // brett/public/assets/mode-state.mjs
-const VALID = new Set(['coaching', 'mode-select']);
+const VALID = new Set(['coaching', 'mode-select', 'mayhem']);
 
 export function createModeState({ storage = window.localStorage } = {}) {
   let mode = 'coaching';

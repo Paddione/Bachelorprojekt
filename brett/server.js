@@ -353,15 +353,19 @@ const RELAY_TYPES = [
   'snapshot','request_state_snapshot',
   'bot_spawn','bot_despawn','round_reset',
   'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
+  'hero_select', 'duel_start', 'duel_round_end', 'duel_match_end',
+  'hero_stealth', 'hero_teleport', 'minion_spawn', 'minion_update', 'minion_die', 'hero_slow',
 ];
 
 const TRANSIENT_TYPES = new Set([
   'jump','player_join','player_state','player_leave','hit','vehicle_spawn',
   'hp_update','player_death','player_respawn',
   'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
+  'hero_select', 'duel_start', 'hero_stealth', 'hero_teleport', 'minion_update', 'hero_slow',
 ]);
 
 const lmsAlive  = new Map(); // roomToken -> Set<playerId>
+const duelRooms = new Map(); // roomToken -> { playerA, playerB, winsA, winsB, bestOf }
 const roomMeta  = new Map(); // roomToken -> { coopWave: number }
 
 function handleLmsDeath(room, victimId) {
@@ -371,6 +375,19 @@ function handleLmsDeath(room, victimId) {
   if (alive.size === 0) return { winner: null, draw: true };
   if (alive.size === 1) return { winner: [...alive][0], draw: false };
   return { winner: null, draw: false };
+}
+
+function handleDuelDeath(room, deadPlayerId) {
+  const ds = duelRooms.get(room);
+  if (!ds) return { roundWinner: null, matchOver: false, matchWinner: null };
+  const isA = deadPlayerId === ds.playerA;
+  const roundWinner = isA ? ds.playerB : ds.playerA;
+  if (isA) ds.winsB++; else ds.winsA++;
+  const winsNeeded = Math.ceil(ds.bestOf / 2);
+  const matchOver  = ds.winsA >= winsNeeded || ds.winsB >= winsNeeded;
+  const matchWinner = matchOver ? (ds.winsA >= winsNeeded ? ds.playerA : ds.playerB) : null;
+  if (matchOver) duelRooms.delete(room);
+  return { roundWinner, matchOver, matchWinner };
 }
 
 function joinRoom(ws, room) {
@@ -663,6 +680,13 @@ wss.on('connection', (ws, req) => {
         }
       }
 
+      if (msg.type === 'duel_start' && msg.playerA && msg.playerB) {
+        duelRooms.set(room, {
+          playerA: msg.playerA, playerB: msg.playerB,
+          winsA: 0, winsB: 0, bestOf: 3,
+        });
+      }
+
       if (RELAY_TYPES.includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
@@ -681,9 +705,14 @@ wss.on('connection', (ws, req) => {
             lmsAlive.delete(room);
           }
         } else if (msg.type === 'player_death' && typeof msg.playerId === 'string') {
-          const { winner, draw } = handleLmsDeath(room, msg.playerId);
-          if (winner !== null || draw) {
-            broadcast(room, draw ? { type: 'lms_draw' } : { type: 'lms_winner', playerId: winner });
+          const state = buildStateFromMutations(room);
+          if (state.gameMode === 'lms') {
+            const { winner, draw } = handleLmsDeath(room, msg.playerId);
+            if (winner !== null || draw) {
+              broadcast(room, draw ? { type: 'lms_draw' } : { type: 'lms_winner', playerId: winner });
+            }
+          } else if (state.gameMode === 'duel') {
+            handleDuelDeath(room, msg.playerId);
           }
         } else if (msg.type === 'wave_start' && typeof msg.wave === 'number') {
           if (!roomMeta.has(room)) roomMeta.set(room, { coopWave: 0 });
@@ -715,7 +744,7 @@ wss.on('connection', (ws, req) => {
             break;
           }
           case 'admin_mode_set': {
-            if (!['warmup','deathmatch','lms','coop'].includes(msg.mode)) return;
+            if (!['warmup','deathmatch','lms','coop','duel'].includes(msg.mode)) return;
             const inner = { type: 'game_mode_change', mode: msg.mode };
             applyMutation(adminRoom, inner);
             broadcast(adminRoom, inner);
@@ -836,6 +865,7 @@ module.exports = {
   applyMutation, buildStateFromMutations, figureMaps,
   handleDisconnect,
   RELAY_TYPES, TRANSIENT_TYPES, lmsAlive, handleLmsDeath,
+  duelRooms, handleDuelDeath,
   pickupState, ensurePickups, spawnPickup,
   isAdminFromClaims,
   validateAppearance,

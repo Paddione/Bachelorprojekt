@@ -67,3 +67,38 @@ test('handleLmsDeath: declares draw when last two die simultaneously', () => {
   assert.strictEqual(result.winner, null);
   assert.strictEqual(result.draw, true);
 });
+
+const { duelRooms, handleDuelDeath: serverHandleDuelDeath, RELAY_TYPES: RT } = require('../server.js');
+
+test('RELAY_TYPES includes duel message types', () => {
+  const required = ['hero_select', 'duel_start', 'duel_round_end', 'duel_match_end',
+                    'hero_stealth', 'hero_teleport', 'minion_spawn', 'minion_update', 'minion_die'];
+  for (const t of required) {
+    assert.ok(RT.includes(t), `RELAY_TYPES missing: ${t}`);
+  }
+});
+
+test('mutation: game_mode_change to duel persists mode', () => {
+  const room = 'test-duel-mode-1';
+  applyMutation(room, { type: 'game_mode_change', mode: 'duel' });
+  const state = buildStateFromMutations(room);
+  assert.strictEqual(state.gameMode, 'duel');
+});
+
+test('serverHandleDuelDeath: playerB wins when playerA dies', () => {
+  const room = 'test-duel-death-1';
+  duelRooms.set(room, { playerA: 'alice', playerB: 'bob', winsA: 0, winsB: 0, bestOf: 3 });
+  const result = serverHandleDuelDeath(room, 'alice');
+  assert.strictEqual(result.roundWinner, 'bob');
+  assert.strictEqual(result.matchOver, false);
+  assert.strictEqual(duelRooms.get(room).winsB, 1);
+});
+
+test('serverHandleDuelDeath: match ends after 2 wins', () => {
+  const room = 'test-duel-death-2';
+  duelRooms.set(room, { playerA: 'alice', playerB: 'bob', winsA: 1, winsB: 0, bestOf: 3 });
+  const result = serverHandleDuelDeath(room, 'bob');
+  assert.strictEqual(result.matchOver, true);
+  assert.strictEqual(result.matchWinner, 'alice');
+});
+

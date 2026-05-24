@@ -1,0 +1,919 @@
+# Skills Overview — Collapsible Netzplan Sidebar Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Add a collapsible left sidebar with an SVG Netzplan (directed skill-workflow graph) and category filter chips to `docs/skills-overview.html`.
+
+**Architecture:** All changes are confined to `docs/skills-overview.html`. A `<div class="page-layout">` wrapper turns the body into a flex row; `<aside class="ov-sidebar">` sits left of `<div class="ov-main-wrapper">` which holds the existing legend + card grid. Sidebar state (open/collapsed) is toggled by a CSS class; interactivity (chip filter, node→card scroll) is vanilla JS at the bottom of the file.
+
+**Tech Stack:** HTML5, CSS3 (inline `<style>` block, reuses CSS custom-props from `skills/style.css`), vanilla JS (inline `<script>` block), inline SVG.
+
+---
+
+## File map
+
+| File | Change |
+|------|--------|
+| `docs/skills-overview.html` | All changes: restructure body layout, add sidebar HTML, add `<style>` block, add `<script>` block |
+
+No other files touched.
+
+---
+
+### Task 1: Restructure page body into sidebar + main flex layout
+
+**Files:**
+- Modify: `docs/skills-overview.html`
+
+Add a wrapping flex container between `<header>` and `<footer>`, with a sidebar placeholder and a main wrapper that holds the existing legend + `<main>`.
+
+- [ ] **Step 1: Wrap existing content**
+
+Open `docs/skills-overview.html`. Replace this block (lines 16–237):
+
+```html
+<div class="ov-legend">
+  ...legend items...
+</div>
+
+<main class="content">
+  ...sections...
+</main>
+```
+
+with:
+
+```html
+<div class="page-layout">
+
+  <aside class="ov-sidebar" id="ov-sidebar">
+    <!-- filled in Task 2 -->
+  </aside>
+
+  <div class="ov-main-wrapper">
+
+    <div class="ov-legend">
+      <div class="ov-legend-item ov-cat-devflow"><span class="ov-legend-dot"></span> Dev-Flow</div>
+      <div class="ov-legend-item ov-cat-infra"><span class="ov-legend-dot"></span> Infra</div>
+      <div class="ov-legend-item ov-cat-db"><span class="ov-legend-dot"></span> Database</div>
+      <div class="ov-legend-item ov-cat-security"><span class="ov-legend-dot"></span> Security</div>
+      <div class="ov-legend-item ov-cat-ops"><span class="ov-legend-dot"></span> Operations</div>
+      <div class="ov-legend-item ov-cat-support"><span class="ov-legend-dot"></span> Support</div>
+    </div>
+
+    <main class="content">
+      <!-- all existing sections unchanged, but add data-cat to each <section> — see below -->
+    </main>
+
+  </div><!-- /.ov-main-wrapper -->
+</div><!-- /.page-layout -->
+```
+
+Also add `data-cat` attributes to each existing `<section>` so JS can filter them:
+
+```html
+<section class="ov-section ov-cat-devflow" data-cat="devflow">
+<section class="ov-section ov-cat-infra"   data-cat="infra">
+<section class="ov-section ov-cat-db"      data-cat="db">
+<section class="ov-section ov-cat-security" data-cat="security">
+<section class="ov-section ov-cat-ops"     data-cat="ops">
+<section class="ov-section ov-cat-support" data-cat="support">
+```
+
+Also add `data-skill` to every `.ov-card` `<a>` tag derived from its href (strip `skills/` prefix and `.html` suffix):
+
+```html
+<a href="skills/dev-flow-plan.html"     class="ov-card" data-skill="dev-flow-plan">
+<a href="skills/dev-flow-execute.html"  class="ov-card" data-skill="dev-flow-execute">
+<a href="skills/dev-flow-e2e.html"      class="ov-card" data-skill="dev-flow-e2e">
+<a href="skills/using-git-worktrees.html" class="ov-card" data-skill="using-git-worktrees">
+<a href="skills/deployment-assist.html" class="ov-card" data-skill="deployment-assist">
+<a href="skills/new-environment.html"   class="ov-card" data-skill="new-environment">
+<a href="skills/hetzner-node.html"      class="ov-card" data-skill="hetzner-node">
+<a href="skills/fleet-ops.html"         class="ov-card" data-skill="fleet-ops">
+<a href="skills/flux-day2-ops.html"     class="ov-card" data-skill="flux-day2-ops">
+<a href="skills/arena-brett-deploy.html" class="ov-card" data-skill="arena-brett-deploy">
+<a href="skills/db-migration.html"      class="ov-card" data-skill="db-migration">
+<a href="skills/backup-check.html"      class="ov-card" data-skill="backup-check">
+<a href="skills/secret-rotation.html"   class="ov-card" data-skill="secret-rotation">
+<a href="skills/keycloak-realm-sync.html" class="ov-card" data-skill="keycloak-realm-sync">
+<a href="skills/ticket-management.html" class="ov-card" data-skill="ticket-management">
+<a href="skills/coaching-pipeline.html" class="ov-card" data-skill="coaching-pipeline">
+<a href="skills/update-dependencies.html" class="ov-card" data-skill="update-dependencies">
+<a href="skills/knowledge-reindex.html" class="ov-card" data-skill="knowledge-reindex">
+<a href="skills/livekit-setup.html"     class="ov-card" data-skill="livekit-setup">
+<a href="skills/dev-stack-ops.html"     class="ov-card" data-skill="dev-stack-ops">
+<a href="skills/openclaw-ops.html"      class="ov-card" data-skill="openclaw-ops">
+<a href="skills/mishap-tracker.html"    class="ov-card" data-skill="mishap-tracker">
+<a href="skills/docs-to-html.html"      class="ov-card" data-skill="docs-to-html">
+<a href="skills/incident-response.html" class="ov-card" data-skill="incident-response">
+```
+
+- [ ] **Step 2: Add layout CSS — insert before `</head>`**
+
+```html
+<style>
+/* ── PAGE LAYOUT ── */
+.page-layout {
+  display: flex;
+  min-height: calc(100vh - 120px); /* header ~80px + footer ~40px */
+}
+
+.ov-main-wrapper {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* ── SIDEBAR SHELL ── */
+.ov-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #0d1117;
+  border-right: 1px solid #21262d;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 250ms ease;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.ov-sidebar.collapsed {
+  width: 36px;
+}
+
+/* Hide expanded content when collapsed */
+.ov-sidebar.collapsed .ov-sb-title,
+.ov-sidebar.collapsed .ov-sb-filters,
+.ov-sidebar.collapsed .ov-sb-graph,
+.ov-sidebar.collapsed .ov-sb-list {
+  display: none;
+}
+
+/* Show collapsed strip only when collapsed */
+.ov-sb-collapsed-strip {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  gap: 8px;
+  flex: 1;
+}
+.ov-sidebar.collapsed .ov-sb-collapsed-strip {
+  display: flex;
+}
+
+.ov-sb-collapsed-icon {
+  font-size: 14px;
+  color: #586069;
+}
+
+.ov-collapsed-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.ov-collapsed-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+</style>
+```
+
+- [ ] **Step 3: Verify layout renders**
+
+Open `docs/skills-overview.html` in a browser (or `python3 -m http.server 8080` from `docs/`). Confirm:
+- Empty 220px sidebar column visible on left
+- Legend + cards still visible on right
+- No layout breakage
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "feat(docs): add page-layout flex wrapper + sidebar shell CSS"
+```
+
+---
+
+### Task 2: Sidebar header + collapse toggle
+
+**Files:**
+- Modify: `docs/skills-overview.html`
+
+- [ ] **Step 1: Replace the sidebar placeholder with header HTML**
+
+Replace `<!-- filled in Task 2 -->` inside `<aside class="ov-sidebar">` with:
+
+```html
+<div class="ov-sb-header">
+  <span class="ov-sb-title">◈ Netzplan</span>
+  <button class="ov-sb-toggle" id="ov-sb-toggle" aria-label="Sidebar ein/ausklappen">‹</button>
+</div>
+
+<!-- collapsed strip (visible only when .collapsed) -->
+<div class="ov-sb-collapsed-strip">
+  <button class="ov-sb-toggle ov-sb-toggle-collapsed" id="ov-sb-toggle-collapsed" aria-label="Sidebar öffnen">›</button>
+  <span class="ov-sb-collapsed-icon">◈</span>
+  <div class="ov-collapsed-dots">
+    <div class="ov-collapsed-dot" style="background: var(--brass)"   title="Dev-Flow"></div>
+    <div class="ov-collapsed-dot" style="background: var(--sage)"    title="Infra"></div>
+    <div class="ov-collapsed-dot" style="background: var(--blue)"    title="Database"></div>
+    <div class="ov-collapsed-dot" style="background: var(--red)"     title="Security"></div>
+    <div class="ov-collapsed-dot" style="background: var(--purple)"  title="Operations"></div>
+    <div class="ov-collapsed-dot" style="background: var(--gray)"    title="Support"></div>
+  </div>
+</div>
+
+<!-- filter chips — filled in Task 3 -->
+<!-- svg graph    — filled in Task 4 -->
+<!-- mini list    — filled in Task 5 -->
+```
+
+- [ ] **Step 2: Add header CSS to the `<style>` block**
+
+Append inside the existing `<style>` block:
+
+```css
+/* ── SIDEBAR HEADER ── */
+.ov-sb-header {
+  padding: 11px 12px 9px;
+  border-bottom: 1px solid #21262d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.ov-sb-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #586069;
+}
+
+.ov-sb-toggle {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: #161b22;
+  border: 1px solid #21262d;
+  color: #586069;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+
+.ov-sb-toggle:hover {
+  background: #21262d;
+  color: #e2e8f0;
+}
+
+.ov-sb-toggle-collapsed {
+  margin-top: 0;
+}
+```
+
+- [ ] **Step 3: Add toggle JS — insert before `</body>`**
+
+```html
+<script>
+(function () {
+  var sidebar  = document.getElementById('ov-sidebar');
+  var btnOpen  = document.getElementById('ov-sb-toggle');
+  var btnClose = document.getElementById('ov-sb-toggle-collapsed');
+  var open = true;
+
+  function setOpen(v) {
+    open = v;
+    sidebar.classList.toggle('collapsed', !open);
+  }
+
+  btnOpen.addEventListener('click',  function () { setOpen(false); });
+  btnClose.addEventListener('click', function () { setOpen(true);  });
+})();
+</script>
+```
+
+- [ ] **Step 4: Verify toggle works**
+
+Open the page in browser. Click `‹` — sidebar collapses to 36px strip with `›` button + dots. Click `›` — sidebar expands back to 220px. Confirm transition animates smoothly.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "feat(docs): sidebar header + collapse toggle"
+```
+
+---
+
+### Task 3: Category filter chips
+
+**Files:**
+- Modify: `docs/skills-overview.html`
+
+- [ ] **Step 1: Add chips HTML inside sidebar, after the header**
+
+Replace `<!-- filter chips — filled in Task 3 -->` with:
+
+```html
+<div class="ov-sb-filters">
+  <button class="ov-chip ov-chip-all active" data-cat="all">Alle</button>
+  <button class="ov-chip ov-chip-devflow"    data-cat="devflow">Dev</button>
+  <button class="ov-chip ov-chip-infra"      data-cat="infra">Infra</button>
+  <button class="ov-chip ov-chip-db"         data-cat="db">DB</button>
+  <button class="ov-chip ov-chip-security"   data-cat="security">Sec</button>
+  <button class="ov-chip ov-chip-ops"        data-cat="ops">Ops</button>
+  <button class="ov-chip ov-chip-support"    data-cat="support">Support</button>
+</div>
+```
+
+- [ ] **Step 2: Add chip CSS**
+
+Append inside the `<style>` block:
+
+```css
+/* ── FILTER CHIPS ── */
+.ov-sb-filters {
+  padding: 7px 8px;
+  border-bottom: 1px solid #21262d;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.ov-chip {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  background: #161b22;
+  color: #586069;
+  transition: background .15s, color .15s;
+}
+
+.ov-chip.active,
+.ov-chip:hover {
+  background: rgba(212,175,55,.15);
+  border-color: rgba(212,175,55,.3);
+  color: var(--brass-light);
+}
+
+.ov-chip-devflow.active { background: rgba(212,175,55,.12); border-color: rgba(212,175,55,.3); color: var(--brass-light); }
+.ov-chip-infra.active   { background: rgba(134,166,141,.12); border-color: rgba(134,166,141,.3); color: var(--sage-light); }
+.ov-chip-db.active      { background: rgba(130,170,255,.12); border-color: rgba(130,170,255,.3); color: var(--blue); }
+.ov-chip-security.active { background: rgba(255,117,127,.12); border-color: rgba(255,117,127,.3); color: var(--red); }
+.ov-chip-ops.active     { background: rgba(192,153,255,.12); border-color: rgba(192,153,255,.3); color: var(--purple); }
+.ov-chip-support.active { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.3); color: var(--gray); }
+
+/* Card dim when filtered out */
+.ov-section-dimmed {
+  opacity: 0.35;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.ov-section {
+  transition: opacity .2s;
+}
+
+/* highlight pulse on scroll-target card */
+.ov-card-highlight {
+  border-color: var(--brass) !important;
+  box-shadow: 0 0 0 2px rgba(212,175,55,.3);
+  transition: box-shadow .15s, border-color .15s;
+}
+```
+
+- [ ] **Step 3: Add chip filter JS — append inside the `<script>` block, inside the IIFE**
+
+```js
+  // ── Chip filter ──
+  var chips    = document.querySelectorAll('.ov-chip');
+  var sections = document.querySelectorAll('.ov-section');
+  var netNodes = [];  // populated in Task 4 JS
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var cat = chip.dataset.cat;
+      chips.forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+
+      sections.forEach(function (sec) {
+        var match = cat === 'all' || sec.dataset.cat === cat;
+        sec.classList.toggle('ov-section-dimmed', !match);
+      });
+
+      // dim SVG nodes (netNodes array filled after Task 4)
+      netNodes.forEach(function (node) {
+        var match = cat === 'all' || node.dataset.cat === cat;
+        node.style.opacity = match ? '1' : '0.2';
+      });
+    });
+  });
+```
+
+- [ ] **Step 4: Verify chips filter cards**
+
+Open page. Click "Dev" chip — only Dev-Flow section at full opacity, others dimmed. Click "Alle" — all back to full opacity.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "feat(docs): sidebar filter chips + section dim logic"
+```
+
+---
+
+### Task 4: SVG Netzplan graph
+
+**Files:**
+- Modify: `docs/skills-overview.html`
+
+- [ ] **Step 1: Add SVG graph CSS**
+
+Append inside the `<style>` block:
+
+```css
+/* ── SVG GRAPH ── */
+.ov-sb-graph {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 6px 4px;
+}
+
+.ov-sb-graph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.net-node {
+  cursor: pointer;
+  transition: opacity .2s;
+}
+
+.net-node:hover rect {
+  filter: brightness(1.3);
+}
+```
+
+- [ ] **Step 2: Replace `<!-- svg graph — filled in Task 4 -->` with the full SVG**
+
+```html
+<div class="ov-sb-graph">
+<svg viewBox="0 0 210 300" xmlns="http://www.w3.org/2000/svg" aria-label="Skill Netzplan">
+  <defs>
+    <marker id="arr"     markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#374151"/></marker>
+    <marker id="arr-df"  markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#d4af37"/></marker>
+    <marker id="arr-inf" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#86a68d"/></marker>
+    <marker id="arr-db"  markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#82aaff"/></marker>
+    <marker id="arr-sec" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#ff757f"/></marker>
+    <marker id="arr-sup" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <!-- ═══ EDGES (drawn before nodes so nodes sit on top) ═══ -->
+  <!-- Dev-Flow chain col-1 -->
+  <line x1="34" y1="27" x2="34" y2="37" stroke="#d4af37" stroke-width="1" marker-end="url(#arr-df)"/>
+  <line x1="34" y1="58" x2="34" y2="68" stroke="#d4af37" stroke-width="1" marker-end="url(#arr-df)"/>
+  <!-- plan → worktrees (dashed) -->
+  <line x1="65" y1="16" x2="77" y2="16" stroke="#374151" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+  <!-- DB chain col-1 -->
+  <line x1="34" y1="110" x2="34" y2="120" stroke="#82aaff" stroke-width="1" marker-end="url(#arr-db)"/>
+  <!-- Security chain col-1 -->
+  <line x1="34" y1="153" x2="34" y2="163" stroke="#ff757f" stroke-width="1" marker-end="url(#arr-sec)"/>
+  <!-- Support chain col-1 -->
+  <line x1="34" y1="207" x2="34" y2="217" stroke="#94a3b8" stroke-width="1" marker-end="url(#arr-sup)"/>
+  <!-- Infra chain col-3 -->
+  <line x1="176" y1="27" x2="176" y2="37" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-inf)"/>
+  <line x1="176" y1="58" x2="176" y2="68" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-inf)"/>
+  <line x1="176" y1="89" x2="176" y2="99" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-inf)"/>
+  <line x1="176" y1="120" x2="176" y2="130" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-inf)"/>
+  <!-- fleet → arena-brett (dashed) -->
+  <line x1="155" y1="109" x2="143" y2="109" stroke="#374151" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+  <!-- Ops chain col-2 -->
+  <line x1="106" y1="110" x2="106" y2="120" stroke="#374151" stroke-width="1" marker-end="url(#arr)"/>
+  <!-- incident → mishap col-1→col-2 -->
+  <line x1="65" y1="216" x2="77" y2="216" stroke="#94a3b8" stroke-width="1" marker-end="url(#arr-sup)"/>
+
+  <!-- ═══ NODES ═══ -->
+  <!-- COL 1: x=4..64 (center 34) -->
+
+  <!-- dev-flow-plan -->
+  <g class="net-node" data-skill="dev-flow-plan" data-cat="devflow">
+    <rect x="4" y="6" width="61" height="20" rx="3" fill="#1a1300" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="34" y="14" text-anchor="middle" font-size="5.5" fill="#eac04d" font-weight="700">dev-flow</text>
+    <text x="34" y="22" text-anchor="middle" font-size="5"   fill="#d4af37">plan</text>
+  </g>
+
+  <!-- dev-flow-execute -->
+  <g class="net-node" data-skill="dev-flow-execute" data-cat="devflow">
+    <rect x="4" y="37" width="61" height="20" rx="3" fill="#1a1300" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="34" y="45" text-anchor="middle" font-size="5.5" fill="#eac04d" font-weight="700">dev-flow</text>
+    <text x="34" y="53" text-anchor="middle" font-size="5"   fill="#d4af37">execute</text>
+  </g>
+
+  <!-- dev-flow-e2e -->
+  <g class="net-node" data-skill="dev-flow-e2e" data-cat="devflow">
+    <rect x="4" y="68" width="61" height="20" rx="3" fill="#1a1300" stroke="#d4af37" stroke-width="1.5"/>
+    <text x="34" y="76" text-anchor="middle" font-size="5.5" fill="#eac04d" font-weight="700">dev-flow</text>
+    <text x="34" y="84" text-anchor="middle" font-size="5"   fill="#d4af37">e2e</text>
+  </g>
+
+  <!-- db-migration -->
+  <g class="net-node" data-skill="db-migration" data-cat="db">
+    <rect x="4" y="99" width="61" height="20" rx="3" fill="#0a0a20" stroke="#82aaff" stroke-width="1.5"/>
+    <text x="34" y="111" text-anchor="middle" font-size="5.5" fill="#82aaff">db-migration</text>
+  </g>
+
+  <!-- backup-check -->
+  <g class="net-node" data-skill="backup-check" data-cat="db">
+    <rect x="4" y="130" width="61" height="20" rx="3" fill="#0a0a20" stroke="#82aaff" stroke-width="1"/>
+    <text x="34" y="142" text-anchor="middle" font-size="5.5" fill="#82aaff">backup-check</text>
+  </g>
+
+  <!-- secret-rotation -->
+  <g class="net-node" data-skill="secret-rotation" data-cat="security">
+    <rect x="4" y="162" width="61" height="20" rx="3" fill="#1e0a0a" stroke="#ff757f" stroke-width="1.5"/>
+    <text x="34" y="174" text-anchor="middle" font-size="5.5" fill="#ff757f">secret-rotation</text>
+  </g>
+
+  <!-- keycloak-realm-sync -->
+  <g class="net-node" data-skill="keycloak-realm-sync" data-cat="security">
+    <rect x="4" y="193" width="61" height="20" rx="3" fill="#1e0a0a" stroke="#ff757f" stroke-width="1"/>
+    <text x="34" y="201" text-anchor="middle" font-size="5" fill="#ff757f">keycloak-</text>
+    <text x="34" y="209" text-anchor="middle" font-size="5" fill="#ff757f">realm-sync</text>
+  </g>
+
+  <!-- incident-response -->
+  <g class="net-node" data-skill="incident-response" data-cat="support">
+    <rect x="4" y="224" width="61" height="20" rx="3" fill="#140a0a" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="34" y="232" text-anchor="middle" font-size="5" fill="#94a3b8">incident-</text>
+    <text x="34" y="240" text-anchor="middle" font-size="5" fill="#94a3b8">response</text>
+  </g>
+
+  <!-- COL 2: x=78..140 (center 109) -->
+
+  <!-- using-git-worktrees (dashed) -->
+  <g class="net-node" data-skill="using-git-worktrees" data-cat="devflow">
+    <rect x="78" y="6" width="62" height="20" rx="3" fill="#111111" stroke="#8a7126" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="109" y="14" text-anchor="middle" font-size="5" fill="#8a7126">using-git-</text>
+    <text x="109" y="22" text-anchor="middle" font-size="5" fill="#8a7126">worktrees</text>
+  </g>
+
+  <!-- arena-brett-deploy (dashed, branch from fleet) -->
+  <g class="net-node" data-skill="arena-brett-deploy" data-cat="infra">
+    <rect x="78" y="99" width="62" height="20" rx="3" fill="#111111" stroke="#5a7360" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="109" y="107" text-anchor="middle" font-size="5" fill="#5a7360">arena-brett-</text>
+    <text x="109" y="115" text-anchor="middle" font-size="5" fill="#5a7360">deploy</text>
+  </g>
+
+  <!-- coaching-pipeline -->
+  <g class="net-node" data-skill="coaching-pipeline" data-cat="ops">
+    <rect x="78" y="130" width="62" height="20" rx="3" fill="#110d1e" stroke="#c099ff" stroke-width="1.5"/>
+    <text x="109" y="142" text-anchor="middle" font-size="5.5" fill="#c099ff">coaching-pipeline</text>
+  </g>
+
+  <!-- knowledge-reindex -->
+  <g class="net-node" data-skill="knowledge-reindex" data-cat="ops">
+    <rect x="78" y="161" width="62" height="20" rx="3" fill="#110d1e" stroke="#c099ff" stroke-width="1"/>
+    <text x="109" y="173" text-anchor="middle" font-size="5.5" fill="#c099ff">knowledge-reindex</text>
+  </g>
+
+  <!-- ticket-management -->
+  <g class="net-node" data-skill="ticket-management" data-cat="ops">
+    <rect x="78" y="192" width="62" height="20" rx="3" fill="#110d1e" stroke="#7a59b3" stroke-width="1"/>
+    <text x="109" y="204" text-anchor="middle" font-size="5.5" fill="#c099ff">ticket-management</text>
+  </g>
+
+  <!-- mishap-tracker -->
+  <g class="net-node" data-skill="mishap-tracker" data-cat="support">
+    <rect x="78" y="224" width="62" height="20" rx="3" fill="#140a0a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="109" y="236" text-anchor="middle" font-size="5.5" fill="#94a3b8">mishap-tracker</text>
+  </g>
+
+  <!-- COL 3: x=145..206 (center 176) -->
+
+  <!-- hetzner-node -->
+  <g class="net-node" data-skill="hetzner-node" data-cat="infra">
+    <rect x="145" y="6" width="61" height="20" rx="3" fill="#0a1a0f" stroke="#86a68d" stroke-width="1"/>
+    <text x="176" y="18" text-anchor="middle" font-size="5.5" fill="#86a68d">hetzner-node</text>
+  </g>
+
+  <!-- new-environment -->
+  <g class="net-node" data-skill="new-environment" data-cat="infra">
+    <rect x="145" y="37" width="61" height="20" rx="3" fill="#0a1a0f" stroke="#86a68d" stroke-width="1.5"/>
+    <text x="176" y="45" text-anchor="middle" font-size="5" fill="#a8c7ae">new-</text>
+    <text x="176" y="53" text-anchor="middle" font-size="5" fill="#a8c7ae">environment</text>
+  </g>
+
+  <!-- deployment-assist -->
+  <g class="net-node" data-skill="deployment-assist" data-cat="infra">
+    <rect x="145" y="68" width="61" height="20" rx="3" fill="#0a1a0f" stroke="#86a68d" stroke-width="1.5"/>
+    <text x="176" y="76" text-anchor="middle" font-size="5" fill="#a8c7ae">deployment-</text>
+    <text x="176" y="84" text-anchor="middle" font-size="5" fill="#a8c7ae">assist</text>
+  </g>
+
+  <!-- fleet-ops -->
+  <g class="net-node" data-skill="fleet-ops" data-cat="infra">
+    <rect x="145" y="99" width="61" height="20" rx="3" fill="#0a1a0f" stroke="#86a68d" stroke-width="1.5"/>
+    <text x="176" y="111" text-anchor="middle" font-size="5.5" fill="#86a68d">fleet-ops</text>
+  </g>
+
+  <!-- flux-day2-ops -->
+  <g class="net-node" data-skill="flux-day2-ops" data-cat="infra">
+    <rect x="145" y="130" width="61" height="20" rx="3" fill="#0a1a0f" stroke="#86a68d" stroke-width="1"/>
+    <text x="176" y="142" text-anchor="middle" font-size="5.5" fill="#86a68d">flux-day2-ops</text>
+  </g>
+
+  <!-- dev-stack-ops -->
+  <g class="net-node" data-skill="dev-stack-ops" data-cat="ops">
+    <rect x="145" y="161" width="61" height="20" rx="3" fill="#110d1e" stroke="#7a59b3" stroke-width="1"/>
+    <text x="176" y="173" text-anchor="middle" font-size="5.5" fill="#c099ff">dev-stack-ops</text>
+  </g>
+
+  <!-- openclaw-ops -->
+  <g class="net-node" data-skill="openclaw-ops" data-cat="ops">
+    <rect x="145" y="192" width="61" height="20" rx="3" fill="#110d1e" stroke="#7a59b3" stroke-width="1"/>
+    <text x="176" y="204" text-anchor="middle" font-size="5.5" fill="#c099ff">openclaw-ops</text>
+  </g>
+
+  <!-- livekit-setup -->
+  <g class="net-node" data-skill="livekit-setup" data-cat="ops">
+    <rect x="145" y="223" width="61" height="20" rx="3" fill="#110d1e" stroke="#7a59b3" stroke-width="1"/>
+    <text x="176" y="235" text-anchor="middle" font-size="5.5" fill="#c099ff">livekit-setup</text>
+  </g>
+
+  <!-- update-dependencies + docs-to-html overflow below -->
+  <g class="net-node" data-skill="update-dependencies" data-cat="ops">
+    <rect x="78" y="255" width="62" height="20" rx="3" fill="#110d1e" stroke="#7a59b3" stroke-width="1"/>
+    <text x="109" y="263" text-anchor="middle" font-size="5" fill="#c099ff">update-</text>
+    <text x="109" y="271" text-anchor="middle" font-size="5" fill="#c099ff">dependencies</text>
+  </g>
+
+  <g class="net-node" data-skill="docs-to-html" data-cat="support">
+    <rect x="145" y="255" width="61" height="20" rx="3" fill="#140a0a" stroke="#94a3b8" stroke-width="1"/>
+    <text x="176" y="267" text-anchor="middle" font-size="5.5" fill="#94a3b8">docs-to-html</text>
+  </g>
+</svg>
+</div>
+```
+
+- [ ] **Step 3: Wire up `netNodes` in the JS script**
+
+In the `<script>` block, after the `var netNodes = [];` line, replace it with:
+
+```js
+  var netNodes = Array.from(document.querySelectorAll('.net-node'));
+```
+
+- [ ] **Step 4: Verify graph renders**
+
+Open page in browser. Confirm:
+- SVG graph fills the sidebar height
+- Nodes visible in three columns with coloured borders
+- Edges (arrows) connect plan→execute→e2e, fleet chain, etc.
+- Clicking "Dev" chip dims all non-devflow nodes to 0.2 opacity
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "feat(docs): SVG Netzplan graph with nodes and directed edges"
+```
+
+---
+
+### Task 5: Mini list at sidebar bottom
+
+**Files:**
+- Modify: `docs/skills-overview.html`
+
+- [ ] **Step 1: Replace `<!-- mini list — filled in Task 5 -->` with:**
+
+```html
+<div class="ov-sb-list">
+  <div class="ov-sb-list-section">
+    <span class="ov-sbl-head">Dev-Flow</span>
+    <span class="ov-sbl-item" data-skill="dev-flow-plan">dev-flow-plan</span>
+    <span class="ov-sbl-item" data-skill="dev-flow-execute">dev-flow-execute</span>
+    <span class="ov-sbl-item" data-skill="dev-flow-e2e">dev-flow-e2e</span>
+    <span class="ov-sbl-item" data-skill="using-git-worktrees">using-git-worktrees</span>
+  </div>
+  <div class="ov-sb-list-section">
+    <span class="ov-sbl-head">Infra</span>
+    <span class="ov-sbl-item" data-skill="hetzner-node">hetzner-node</span>
+    <span class="ov-sbl-item" data-skill="new-environment">new-environment</span>
+    <span class="ov-sbl-item" data-skill="deployment-assist">deployment-assist</span>
+    <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
+    <span class="ov-sbl-item" data-skill="flux-day2-ops">flux-day2-ops</span>
+    <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
+  </div>
+  <div class="ov-sb-list-section">
+    <span class="ov-sbl-head">DB</span>
+    <span class="ov-sbl-item" data-skill="db-migration">db-migration</span>
+    <span class="ov-sbl-item" data-skill="backup-check">backup-check</span>
+  </div>
+  <div class="ov-sb-list-section">
+    <span class="ov-sbl-head">Security</span>
+    <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
+    <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
+  </div>
+  <div class="ov-sb-list-section">
+    <span class="ov-sbl-head">Ops</span>
+    <span class="ov-sbl-item" data-skill="coaching-pipeline">coaching-pipeline</span>
+    <span class="ov-sbl-item" data-skill="knowledge-reindex">knowledge-reindex</span>
+    <span class="ov-sbl-item" data-skill="ticket-management">ticket-management</span>
+    <span class="ov-sbl-item" data-skill="livekit-setup">livekit-setup</span>
+    <span class="ov-sbl-item" data-skill="dev-stack-ops">dev-stack-ops</span>
+    <span class="ov-sbl-item" data-skill="openclaw-ops">openclaw-ops</span>
+    <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
+  </div>
+  <div class="ov-sb-list-section">
+    <span class="ov-sbl-head">Support</span>
+    <span class="ov-sbl-item" data-skill="incident-response">incident-response</span>
+    <span class="ov-sbl-item" data-skill="mishap-tracker">mishap-tracker</span>
+    <span class="ov-sbl-item" data-skill="docs-to-html">docs-to-html</span>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Add list CSS**
+
+Append inside the `<style>` block:
+
+```css
+/* ── MINI LIST ── */
+.ov-sb-list {
+  height: 110px;
+  overflow-y: auto;
+  border-top: 1px solid #21262d;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+
+.ov-sb-list::-webkit-scrollbar { width: 3px; }
+.ov-sb-list::-webkit-scrollbar-thumb { background: #21262d; border-radius: 2px; }
+
+.ov-sb-list-section {
+  margin-bottom: 5px;
+}
+
+.ov-sbl-head {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.ov-sbl-item {
+  display: block;
+  font-size: 9px;
+  color: #586069;
+  font-family: monospace;
+  padding: 1px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+
+.ov-sbl-item:hover {
+  background: #161b22;
+  color: #c9d1d9;
+}
+```
+
+- [ ] **Step 3: Wire up list item clicks in the JS script**
+
+Append inside the IIFE in the `<script>` block:
+
+```js
+  // ── List item click → scroll to card ──
+  document.querySelectorAll('.ov-sbl-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      scrollToSkill(item.dataset.skill);
+    });
+  });
+```
+
+- [ ] **Step 4: Verify scrollable list**
+
+Open page. Confirm list is visible at bottom of sidebar (110px), scrollable, monospace font. All 24 skills listed.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "feat(docs): sidebar mini list with all skills"
+```
+
+---
+
+### Task 6: Node click → scroll + highlight card
+
+**Files:**
+- Modify: `docs/skills-overview.html`
+
+- [ ] **Step 1: Add `scrollToSkill` helper and wire up SVG node clicks**
+
+In the `<script>` block, append inside the IIFE (after the list item click block):
+
+```js
+  // ── Node click → scroll & highlight card ──
+  function scrollToSkill(skill) {
+    var card = document.querySelector('.ov-card[data-skill="' + skill + '"]');
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('ov-card-highlight');
+    setTimeout(function () { card.classList.remove('ov-card-highlight'); }, 2000);
+  }
+
+  netNodes.forEach(function (node) {
+    node.addEventListener('click', function () {
+      scrollToSkill(node.dataset.skill);
+    });
+  });
+```
+
+- [ ] **Step 2: Verify end-to-end interactivity**
+
+Open page in browser. Test:
+1. Click `dev-flow-plan` node → page scrolls to Dev-Flow section, `dev-flow-plan` card gets brass border glow for 2 seconds
+2. Click `fleet-ops` node → scrolls to Infra section, fleet-ops card highlighted
+3. Click "Infra" chip → Dev/DB/Security/Ops/Support sections dim; infra SVG nodes stay full opacity, rest dim
+4. Click `‹` → sidebar collapses to 36px strip with dots
+5. Click `›` → sidebar re-expands, graph and list visible again
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "feat(docs): node + list click scrolls to skill card with highlight"
+```
+
+---
+
+### Task 7: Final check + update `.gitignore`
+
+**Files:**
+- Modify: `.gitignore` (if `.superpowers/` not already ignored)
+
+- [ ] **Step 1: Check `.gitignore`**
+
+```bash
+grep -n "superpowers" /home/patrick/Bachelorprojekt/.gitignore
+```
+
+If no match:
+
+```bash
+echo ".superpowers/" >> /home/patrick/Bachelorprojekt/.gitignore
+git add .gitignore
+git commit -m "chore: ignore .superpowers/ brainstorm session files"
+```
+
+- [ ] **Step 2: Visual smoke test — all 5 interactions**
+
+Open `docs/skills-overview.html` via `python3 -m http.server 8080` from `docs/`:
+
+| # | Action | Expected |
+|---|--------|----------|
+| 1 | Page load | Sidebar visible 220px, graph rendered, cards in 2-col grid |
+| 2 | Click any SVG node | Card scrolls into view + brass glow 2s |
+| 3 | Click a category chip | Other sections dim to 0.35, other SVG nodes dim to 0.2 |
+| 4 | Click "Alle" | All sections/nodes back to full opacity |
+| 5 | Click `‹` then `›` | Collapse → 36px strip → expand, graph/list intact |
+
+- [ ] **Step 3: Commit if any fixups needed**
+
+```bash
+git add docs/skills-overview.html
+git commit -m "fix(docs): netzplan sidebar polish"
+```
+
+- [ ] **Step 4: Update docs in prod**
+
+```bash
+bash scripts/task-oracle.sh 'sync docs to both prod clusters'
+```
+
+Run whatever task that returns.

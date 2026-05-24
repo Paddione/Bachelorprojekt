@@ -141,3 +141,13 @@ patches:
           operator: In
           values:
             - k3s-1
+  - target:
+      kind: Deployment
+      name: brett
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/7/value
+        value: "https://brett.mentolder.de"
+      - op: replace
+        path: /spec/template/spec/containers/0/env/8/value
+        value: "http://website.website.svc.cluster.local"

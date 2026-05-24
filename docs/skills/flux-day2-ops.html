@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>flux-day2-ops — Flux GitOps Day-2 Operations</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">flux-day2-ops</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Infra</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Infra</span>
+    <span class="badge-slug">flux-day2-ops</span>
+  </div>
+  <h1 class="hero-title">Flux GitOps Day-2 Operations</h1>
+  <p class="hero-subtitle">
+    Erzwungene Reconciliation nach PR-Merge, Debugging von Drift und Flux-Suspension —
+    auf beiden Prod-Clustern unabhängig voneinander.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> PR gemerged, Manifeste driften, Flux suspendiert oder ImageUpdateAutomation hängt
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Immer zuerst die Source reconcilen.</strong> <code>flux reconcile kustomization</code>
+      wendet die zuletzt geholte Revision an — nicht den aktuellen <code>main</code>.
+      Ohne Source-Prime bekommt der Cluster den alten Commit.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue">1</span>
+        <span class="phase-title">Source primen</span>
+        <span class="phase-desc">GitRepository fetchen</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">flux</span> reconcile source git flux-system --context mentolder
+<span class="fn">flux</span> reconcile source git flux-system --context korczewski</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-blue">2</span>
+        <span class="phase-title">Kustomization reconcilen</span>
+        <span class="phase-desc">Manifeste anwenden</span>
+      </div>
+      <div class="phase-body">
+        <pre><code><span class="fn">flux</span> reconcile kustomization workspace --context mentolder
+<span class="fn">flux</span> reconcile kustomization workspace-korczewski --context korczewski</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Flux-Status prüfen</h2>
+  <pre><code><span class="cm"># Gesamtstatus</span>
+<span class="fn">flux</span> get all --context mentolder
+<span class="fn">flux</span> get all --context korczewski
+
+<span class="cm"># Nur Kustomizations (häufigster Drift-Punkt)</span>
+<span class="fn">flux</span> get kustomizations --context mentolder
+<span class="fn">flux</span> get kustomizations --context korczewski
+
+<span class="cm"># Source-Status (sieht Flux den aktuellen main?)</span>
+<span class="fn">flux</span> get sources git --context mentolder</code></pre>
+
+  <h2 class="section-label">Suspend / Resume</h2>
+  <p>Suspension vor manuellen Notfall-Änderungen verhindert, dass Flux sie sofort zurücksetzt:</p>
+  <pre><code><span class="cm"># Suspendieren</span>
+<span class="fn">flux</span> suspend kustomization workspace --context mentolder
+
+<span class="cm"># Manuelle kubectl-Änderungen hier...</span>
+
+<span class="cm"># Wieder aktivieren — Flux übernimmt wieder</span>
+<span class="fn">flux</span> resume kustomization workspace --context mentolder</code></pre>
+  <div class="callout callout-warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Nicht vergessen zu resumeн.</strong> Eine suspendierte Kustomization verfolgt
+      <code>main</code> stillschweigend nicht mehr.
+    </div>
+  </div>
+
+  <h2 class="section-label"><code>$$</code>-Escaping in substituteFrom</h2>
+  <p>Flux behandelt <code>${VAR}</code> in YAML-Werten als Variablenreferenz. Um ein literales <code>$</code> zu emittieren, <code>$$</code> verwenden:</p>
+  <pre><code><span class="cm"># ❌ substituteFrom ersetzt ${PROD_DOMAIN}</span>
+value: <span class="st">"https://${PROD_DOMAIN}/path"</span>
+
+<span class="cm"># ✅ Literales $ im gerenderten Manifest</span>
+value: <span class="st">"https://$${PROD_DOMAIN}/path"</span></code></pre>
+
+  <h2 class="section-label">ImageUpdateAutomation Debug</h2>
+  <p>Nicht für <code>website</code>, <code>brett</code> und <code>docs</code> (die nutzen <code>task feature:*</code> mit <code>:latest</code>):</p>
+  <pre><code><span class="fn">flux</span> get image update --context mentolder
+<span class="fn">flux</span> reconcile image repository &lt;name&gt; --context mentolder
+<span class="fn">flux</span> reconcile image update &lt;name&gt; --context mentolder
+<span class="fn">flux</span> logs --kind=ImageUpdateAutomation --context mentolder</code></pre>
+
+  <h2 class="section-label">Häufige Fehlerbilder</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Ursache</th><th>Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Kustomization wendet alten Commit an</td><td>Source nicht reconciled</td><td><code>flux reconcile source git flux-system</code> zuerst</td></tr>
+        <tr><td><code>health check failed</code></td><td>Pod nicht Ready im Timeout</td><td><code>kubectl describe pod</code> — meist ImagePull oder CrashLoop</td></tr>
+        <tr><td><code>$$</code> wird zu leerem String</td><td>Einzel-<code>$</code> in substituteFrom-Manifest</td><td><code>${VAR}</code> durch <code>$${VAR}</code> ersetzen</td></tr>
+        <tr><td>Kustomization stuck Suspended</td><td>Manuelles Suspend nie resumed</td><td><code>flux resume kustomization workspace</code></td></tr>
+        <tr><td><code>secrets/xxx not found</code></td><td>SealedSecret noch nicht entschlüsselt</td><td><code>kubectl get sealedsecret -n workspace</code> — Controller evtl. hinterher</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="fleet-ops.html" class="xref-card">
+      <span class="xref-name">fleet-ops</span>
+      <span class="xref-rel">Beide Cluster gleichzeitig betreiben</span>
+    </a>
+    <a href="new-environment.html" class="xref-card">
+      <span class="xref-name">new-environment</span>
+      <span class="xref-rel">Flux-Bootstrap bei neuem Cluster</span>
+    </a>
+    <a href="deployment-assist.html" class="xref-card">
+      <span class="xref-name">deployment-assist</span>
+      <span class="xref-rel">Wenn workspace:deploy nötig</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/flux-day2-ops/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

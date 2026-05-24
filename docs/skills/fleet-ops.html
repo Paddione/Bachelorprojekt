@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fleet-ops — Zwei-Cluster Fleet-Betrieb</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">fleet-ops</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Infra</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Infra</span>
+    <span class="badge-slug">fleet-ops</span>
+  </div>
+  <h1 class="hero-title">Fleet Operations</h1>
+  <p class="hero-subtitle">
+    Gleichzeitiger Betrieb beider Prod-Cluster (mentolder + korczewski): Fan-Out-Deploys,
+    Cross-Cluster Schema-Änderungen und Cluster-Health-Checks.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Deploy, Schema-Änderung oder Operation die beide Cluster betrifft
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <strong>Zwei unabhängige Cluster:</strong> mentolder und korczewski teilen keinen Storage,
+      keine DB und keinen Sealed-Secrets-Controller. Jede Shared-State-Änderung muss
+      explizit auf <strong>beiden</strong> angewendet werden.
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Cluster</th><th>Context</th><th>Namespace</th><th>Domain</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>mentolder</code></td><td><code>mentolder</code></td><td><code>workspace</code></td><td>web.mentolder.de</td></tr>
+        <tr><td><code>korczewski</code></td><td><code>korczewski</code></td><td><code>workspace-korczewski</code></td><td>web.korczewski.de</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Fan-Out Deploy-Kommandos</h2>
+  <pre><code><span class="fn">task</span> feature:deploy         <span class="cm"># workspace:deploy + post-setup auf BEIDEN Clustern</span>
+<span class="fn">task</span> feature:website        <span class="cm"># Astro website rebuild + rollout auf BEIDEN Clustern</span>
+<span class="fn">task</span> feature:brett          <span class="cm"># Brett rebuild + rollout auf BEIDEN Clustern</span>
+<span class="fn">task</span> feature:livekit        <span class="cm"># LiveKit DNS-Pin auf BEIDEN Clustern</span>
+<span class="fn">task</span> health                  <span class="cm"># Cross-Cluster Status + Konnektivitäts-Check</span>
+<span class="fn">task</span> workspace:verify:all-prods  <span class="cm"># Smoke-Probes auf BEIDEN Clustern</span>
+<span class="fn">task</span> clusters:status         <span class="cm"># One-Line Status über beide</span></code></pre>
+
+  <h2 class="section-label">Cross-Cluster Schema- / DB-Änderungen</h2>
+  <p>Jeder Cluster hat seine eigene <code>shared-db</code>. Schema-Änderungen müssen auf beide angewendet werden:</p>
+  <pre><code><span class="cm"># Apply to mentolder</span>
+<span class="fn">task</span> workspace:psql ENV=mentolder -- website
+<span class="cm"># Run SQL here</span>
+
+<span class="cm"># Apply to korczewski</span>
+<span class="fn">task</span> workspace:psql ENV=korczewski -- website
+<span class="cm"># Run SQL here</span></code></pre>
+
+  <h2 class="section-label">SealedSecrets — Cluster-unabhängig</h2>
+  <p>Jeder Cluster hat seinen eigenen Controller mit eigenem Keypair. Ein für mentolder versiegeltes Secret kann von korczewski <strong>nicht</strong> entschlüsselt werden.</p>
+  <pre><code><span class="cm"># Cluster-spezifisches Sealing-Cert holen</span>
+<span class="fn">task</span> env:fetch-cert ENV=mentolder
+<span class="fn">task</span> env:fetch-cert ENV=korczewski
+
+<span class="cm"># Dann mit dem richtigen Cert versiegeln</span>
+<span class="fn">task</span> env:seal ENV=mentolder
+<span class="fn">task</span> env:seal ENV=korczewski</code></pre>
+
+  <h2 class="section-label">Keycloak Realm — pro Cluster</h2>
+  <p>Jeder Cluster hat seinen eigenen Realm. OIDC-Client-Änderungen müssen in beiden gemacht werden:</p>
+  <pre><code><span class="fn">task</span> keycloak:sync ENV=mentolder
+<span class="fn">task</span> keycloak:sync ENV=korczewski</code></pre>
+
+  <h2 class="section-label">Korczewski-spezifische Constraints</h2>
+  <ul class="step-list">
+    <li>Arena läuft <strong>nur auf korczewski</strong> — <code>task arena:deploy ENV=mentolder</code> bricht mit Erklärung ab.</li>
+    <li>Website-Namespace ist <code>website-korczewski</code>, nicht <code>website</code>.</li>
+    <li>SSH-Zugang: <code>patrick@pk-hetzner-4/6/8</code> (AllowUsers auf <code>patrick</code> gesperrt).</li>
+    <li>Nach erneutem Versiegeln: <code>task workspace:sync-db-passwords ENV=korczewski</code> ausführen.</li>
+  </ul>
+
+  <h2 class="section-label">Häufige Fehlerbilder</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Ursache</th><th>Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Deploy trifft falschen Cluster</td><td>Fehlendes <code>ENV=</code></td><td>Immer <code>ENV=mentolder</code> oder <code>ENV=korczewski</code> übergeben</td></tr>
+        <tr><td>SealedSecret entschlüsselt nicht (korczewski)</td><td>Mit mentolder-Cert versiegelt</td><td><code>env:fetch-cert ENV=korczewski</code> → <code>env:seal ENV=korczewski</code></td></tr>
+        <tr><td>Post-Setup schreibt in falschen Namespace</td><td>Script hardcoded <code>-n workspace</code></td><td><code>task workspace:post-setup ENV=korczewski</code> nutzen</td></tr>
+        <tr><td>Schema-Änderung nur auf einem Cluster</td><td>Zweiter Cluster vergessen</td><td>Schema immer auf beide <code>shared-db</code>-Instanzen anwenden</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="flux-day2-ops.html" class="xref-card">
+      <span class="xref-name">flux-day2-ops</span>
+      <span class="xref-rel">Flux-Reconcile nach PR-Merge</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Cross-Cluster Secret-Rotation</span>
+    </a>
+    <a href="db-migration.html" class="xref-card">
+      <span class="xref-name">db-migration</span>
+      <span class="xref-rel">Schema-Änderungen auf beiden DBs</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/fleet-ops/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

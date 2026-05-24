@@ -9,8 +9,10 @@ function jsonError(msg: string, status: number) {
 }
 
 export const DELETE: APIRoute = async ({ request }) => {
+  const cronSecret = request.headers.get('X-Cron-Secret');
+  const isCron = !!cronSecret && cronSecret === process.env.CRON_SECRET;
   const session = await getSession(request.headers.get('cookie'));
-  if (!session || !isAdmin(session)) return jsonError('Nicht autorisiert', 401);
+  if (!isCron && (!session || !isAdmin(session))) return jsonError('Nicht autorisiert', 401);
 
   try {
     const client = await pool.connect();

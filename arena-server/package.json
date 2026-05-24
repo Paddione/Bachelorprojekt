@@ -19,17 +19,17 @@
     "pg": "^8.21.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^22.19.19",
-    "@types/pg": "^8.11.10",
+    "@types/node": "^25.9.1",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
-    "supertest": "^7.0.0",
-    "tsx": "^4.22.2",
+    "supertest": "^7.2.2",
+    "tsx": "^4.22.3",
     "typescript": "^6.0.3",
-    "vite": "^6.0.0",
-    "vitest": "^4.1.6"
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
   }
 }

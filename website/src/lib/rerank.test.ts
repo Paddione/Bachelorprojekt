@@ -4,16 +4,19 @@ import { rerankCandidates } from './rerank';
 const ORIGINAL_FETCH = global.fetch;
 const ORIGINAL_ENABLED = process.env.LLM_RERANK_ENABLED;
 const ORIGINAL_URL = process.env.LLM_ROUTER_URL;
+const ORIGINAL_RERANKER_URL = process.env.LLM_RERANKER_URL;
 
 describe('rerank client', () => {
   beforeEach(() => {
     process.env.LLM_RERANK_ENABLED = 'true';
     process.env.LLM_ROUTER_URL = 'http://llm-router.test:4000';
+    process.env.LLM_RERANKER_URL = 'http://llm-router.test:4000';
     global.fetch = ORIGINAL_FETCH;
   });
   afterEach(() => {
     process.env.LLM_RERANK_ENABLED = ORIGINAL_ENABLED;
     process.env.LLM_ROUTER_URL = ORIGINAL_URL;
+    process.env.LLM_RERANKER_URL = ORIGINAL_RERANKER_URL;
   });
 
   test('returns docs sorted descending by score on happy path', async () => {

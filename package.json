@@ -11,8 +11,8 @@
     "pg": "^8.21.0"
   },
   "devDependencies": {
-    "@mermaid-js/mermaid-cli": "^11.0.0",
+    "@mermaid-js/mermaid-cli": "^11.15.0",
     "cheerio": "^1.2.0",
-    "marked": "^18.0.3"
+    "marked": "^18.0.4"
   }
 }

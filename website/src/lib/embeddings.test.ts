@@ -47,15 +47,18 @@ describe('embeddings client', () => {
 describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
   const ORIGINAL_ENV = process.env.LLM_ENABLED;
   const ORIGINAL_URL = process.env.LLM_ROUTER_URL;
+  const ORIGINAL_EMBED_URL = process.env.LLM_EMBED_URL;
 
   beforeEach(() => {
     process.env.LLM_ENABLED = 'true';
     process.env.LLM_ROUTER_URL = 'http://llm-router.test:4000';
+    process.env.LLM_EMBED_URL = 'http://llm-router.test:4000';
     global.fetch = ORIGINAL_FETCH;
   });
   afterEach(() => {
     process.env.LLM_ENABLED = ORIGINAL_ENV;
     process.env.LLM_ROUTER_URL = ORIGINAL_URL;
+    process.env.LLM_EMBED_URL = ORIGINAL_EMBED_URL;
   });
 
   test('routes bge-m3 query to LLM_ROUTER_URL with X-LLM-Purpose=query', async () => {

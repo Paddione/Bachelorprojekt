@@ -230,9 +230,11 @@ if [[ "$PLAYWRIGHT_PROJECT" == "systemtest" ]]; then
 else
   # Alle anderen Projekte: 1 Worker headless (Standardpfad)
   # SKIP_DB_PURGE=1 überspringt global-db-cleanup.ts (nötig ohne CRON_SECRET lokal)
+  # Spec path must come BEFORE --project; Playwright treats positional args after
+  # --project as project names and throws "project not found".
   cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" npx playwright test \
-    --project "$PLAYWRIGHT_PROJECT" \
-    specs/<neu>.spec.ts
+    specs/<neu>.spec.ts \
+    --project "$PLAYWRIGHT_PROJECT"
 fi
 
 # Bei Fehlern: Trace und Screenshot ansehen

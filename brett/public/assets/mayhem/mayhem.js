@@ -82,6 +82,7 @@ const Mayhem = (() => {
     send = opts.sendMessage;
     playerId = crypto.randomUUID();
     window._mayhemCamera = camera;
+    window._mayhemMakeMannequin = makeMannequin;
     bindKeys();
     chaseCam = new window.MayhemChaseCamera(camera, canvas);
   }
@@ -557,8 +558,32 @@ const Mayhem = (() => {
   }
 
   function _spawnPvAiBot(heroId) {
-    // Stub for now. Full implementation in Task 17.
-    console.log('Spawning PvAI bot with hero:', heroId);
+    const botId  = 'bot-pvai';
+    const botPos = { x: 3, y: 0, z: 3 };   // opposite side of arena
+    const bot    = new window.MayhemAiBot.AIBot({
+      id: botId, heroId, pos: botPos, scene, THREE: window.THREE,
+      obstacles, weaponSystem: new window.MayhemWeapons.WeaponSystem(
+        window.MayhemHeroes.HEROES[heroId].abilities,
+        (w, origin, dir, id) => {
+          if (w.projectileType === 'frostnova') return;
+          if (w.melee) {
+            if (localAvatar) {
+              const lp = localAvatar.mannequin.root.position;
+              const dist = Math.hypot(lp.x - origin.x, lp.z - origin.z);
+              if (dist <= w.meleeRange) {
+                const impulse = { x: dir.x * 2, z: dir.z * 2 };
+                sendWeaponHit(playerId, w.key, id);
+              }
+            }
+            return;
+          }
+          if (projectileMgr) projectileMgr.spawn(w, origin, dir, id);
+        }),
+    });
+    bot.hp      = 100;
+    bot.heroId  = heroId;
+    window._pvAiBot = bot;
+    remoteAvatars.set(botId, bot.avatar);  // so spectators can follow
   }
 
   function _onDuelRoundEnd({ winner, winsA, winsB }) {
@@ -570,6 +595,17 @@ const Mayhem = (() => {
         if (localAvatar) {
           localAvatar.resetHero();
           localAvatar.resetHp();
+        }
+        if (window._pvAiBot) {
+          window._pvAiBot.hp = 100;
+          window._pvAiBot.avatar.resetHp();
+          window._pvAiBot.avatar.resetHero();
+          window._pvAiBot._x = 3;
+          window._pvAiBot._z = 3;
+          if (window._pvAiBot.mannequin) {
+            window._pvAiBot.mannequin.root.position.set(3, 0, 3);
+            window._pvAiBot.mannequin.root.rotation.y = 0;
+          }
         }
         localRespawn();
         _duelRoundPause = false;

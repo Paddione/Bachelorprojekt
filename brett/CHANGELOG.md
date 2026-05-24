@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.3...brett-v0.6.0) (2026-05-24)
+
+
+### Features
+
+* **brett:** separate coaching from mayhem; remove fill-bots ([#1040](https://github.com/Paddione/Bachelorprojekt/issues/1040)) ([5f52c74](https://github.com/Paddione/Bachelorprojekt/commit/5f52c745c4c85dda3cb0684fcd3064389a8cc937))
+
 ## [0.5.3](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.5.2...brett-v0.5.3) (2026-05-23)
 
 

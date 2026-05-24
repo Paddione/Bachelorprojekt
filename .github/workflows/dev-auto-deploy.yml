@@ -2,11 +2,9 @@ name: dev-auto-deploy
 # Hardening notes:
 # - No untrusted event payload (issue/PR title/body/etc.) is read; only
 #   git-locally-computed paths and repo secrets feed the steps.
-# - The SSH wrapper on $DEV_NODE (k3s-1) validates the requested subcommand
-#   (see scripts/dev-deploy-wrapper.sh on the node) so even compromised
-#   secrets can only invoke the dev:* task family.
 # - k3s-1 is behind NAT; the connection is proxied through gekko-hetzner-2
 #   (DEV_PROXY_HOST) which is on the public internet and on the wg-mesh.
+# - task is installed at ~/.local/bin/task on k3s-1 (no system-wide install).
 on:
   push:
     branches: [main]
@@ -54,7 +52,13 @@ jobs:
           proxy_username: ${{ secrets.DEV_PROXY_USER }}
           proxy_key: ${{ secrets.DEV_PROXY_SSH_KEY }}
           command_timeout: 20m
-          script: dev:deploy
+          script: |
+            set -e
+            cd ~/Bachelorprojekt
+            git fetch --depth 1 origin main
+            git reset --hard origin/main
+            export PATH="$HOME/.local/bin:$PATH"
+            task dev:deploy
 
       - name: SSH dev-node (website only)
         if: steps.changes.outputs.full == 'false' && steps.changes.outputs.website == 'true'
@@ -67,7 +71,13 @@ jobs:
           proxy_username: ${{ secrets.DEV_PROXY_USER }}
           proxy_key: ${{ secrets.DEV_PROXY_SSH_KEY }}
           command_timeout: 10m
-          script: dev:redeploy:website
+          script: |
+            set -e
+            cd ~/Bachelorprojekt
+            git fetch --depth 1 origin main
+            git reset --hard origin/main
+            export PATH="$HOME/.local/bin:$PATH"
+            task dev:redeploy:website
 
       - name: SSH dev-node (brett only)
         if: steps.changes.outputs.full == 'false' && steps.changes.outputs.brett == 'true'
@@ -80,4 +90,10 @@ jobs:
           proxy_username: ${{ secrets.DEV_PROXY_USER }}
           proxy_key: ${{ secrets.DEV_PROXY_SSH_KEY }}
           command_timeout: 10m
-          script: dev:redeploy:brett
+          script: |
+            set -e
+            cd ~/Bachelorprojekt
+            git fetch --depth 1 origin main
+            git reset --hard origin/main
+            export PATH="$HOME/.local/bin:$PATH"
+            task dev:redeploy:brett

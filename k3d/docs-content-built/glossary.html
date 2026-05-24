@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Glossar — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item active"><a href="./glossary.html" class="active">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><div class="page-hero">
+  <span class="page-hero-icon">📖</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Referenz · Glossar</div>
+    <div class="page-hero-title">Glossar</div>
+    <p class="page-hero-desc">Begriffe, die im Workspace immer wieder vorkommen — kurz erklärt.</p>
+  </div>
+  <a href="./index.html" class="page-hero-back">← Übersicht</a>
+</div><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#b"><span class="toc-num">1.</span>&nbsp;B</a></li>
+<li class="toc-item"><a href="#c"><span class="toc-num">2.</span>&nbsp;C</a></li>
+<li class="toc-item"><a href="#d"><span class="toc-num">3.</span>&nbsp;D</a></li>
+<li class="toc-item"><a href="#e"><span class="toc-num">4.</span>&nbsp;E</a></li>
+<li class="toc-item"><a href="#h"><span class="toc-num">5.</span>&nbsp;H</a></li>
+<li class="toc-item"><a href="#i"><span class="toc-num">6.</span>&nbsp;I</a></li>
+<li class="toc-item"><a href="#k"><span class="toc-num">7.</span>&nbsp;K</a></li>
+<li class="toc-item"><a href="#l"><span class="toc-num">8.</span>&nbsp;L</a></li>
+<li class="toc-item"><a href="#m"><span class="toc-num">9.</span>&nbsp;M</a></li>
+<li class="toc-item"><a href="#n"><span class="toc-num">10.</span>&nbsp;N</a></li>
+<li class="toc-item"><a href="#o"><span class="toc-num">11.</span>&nbsp;O</a></li>
+<li class="toc-item"><a href="#p"><span class="toc-num">12.</span>&nbsp;P</a></li>
+<li class="toc-item"><a href="#s"><span class="toc-num">13.</span>&nbsp;S</a></li>
+<li class="toc-item"><a href="#t"><span class="toc-num">14.</span>&nbsp;T</a></li>
+<li class="toc-item"><a href="#v"><span class="toc-num">15.</span>&nbsp;V</a></li>
+<li class="toc-item"><a href="#w"><span class="toc-num">16.</span>&nbsp;W</a></li></ul>
+</div><h1>Glossar</h1>
+<p class="kicker">Referenz · Begriffe von A bis Z</p><h2 id="b">B</h2>
+<p><strong>Brand</strong> — Visuelles Identitätsset. Workspace betreibt zwei Brands: <code>mentolder</code> und <code>korczewski</code>. Erscheint als <code>BRAND_ID</code>-ConfigMap und steuert Theme/Logo/Texte in Website und Docs.</p>
+<p><strong>Backup</strong> — Tägliche Postgres-Dumps via <code>db-backup</code> CronJob; Restore über <code>task workspace:restore</code>. Siehe <a href="backup">Backup &amp; Wiederherstellung</a>.</p>
+<h2 id="c">C</h2>
+<p><strong>Collabora</strong> — Office-Suite (Word, Excel, PowerPoint) im Browser. Öffnet Dokumente aus Nextcloud. Eigene Subdomain <code>office.{DOMAIN}</code>. Siehe <a href="collabora">Collabora (Office)</a>.</p>
+<p><strong>ConfigMap</strong> — Kubernetes-Ressource für unverschlüsselte Konfiguration (z. B. <code>docs-content</code>, <code>realm-template</code>). Geheimnisse gehören in <code>Secret</code> / <code>SealedSecret</code>.</p>
+<h2 id="d">D</h2>
+<p><strong>Docsify</strong> — JS-basierter Markdown-Renderer. Lädt <code>index.html</code> und alle <code>*.md</code> aus <code>k3d/docs-content/</code> zur Laufzeit im Browser. Kein Build-Schritt.</p>
+<p><strong>DSGVO</strong> — Datenschutz-Grundverordnung. Kernprinzip des Workspace: alle Daten bleiben on-premises. Siehe <a href="dsgvo">DSGVO / Datenschutz</a>.</p>
+<h2 id="e">E</h2>
+<p><strong>ENV</strong> — Eine Umgebung wie <code>dev</code>, <code>mentolder</code>, <code>korczewski</code>. Steuert Cluster-Kontext, Sealed Secret und Kustomize-Overlay. Wird Tasks via <code>ENV=mentolder</code> mitgegeben.</p>
+<h2 id="h">H</h2>
+<p><strong>HPB (High-Performance Backend)</strong> — Talk-Signaling-Server (Janus + NATS). Wird benötigt für Mehrteilnehmer-Calls. Eigene Subdomain <code>signaling.{DOMAIN}</code>. Siehe <a href="talk-hpb">Talk HPB (Signaling)</a>.</p>
+<h2 id="i">I</h2>
+<p><strong>Ingress</strong> — Traefik (k3s built-in). Routet HTTP/HTTPS nach Subdomain an die richtigen Services.</p>
+<h2 id="k">K</h2>
+<p><strong>k3d</strong> — k3s in Docker. Lokaler Single-Node-Cluster für Entwicklung. Konfiguration: <code>k3d-config.yaml</code>.</p>
+<p><strong>k3s</strong> — Lightweight Kubernetes von Rancher. Läuft in Produktion (Hetzner-Nodes + Home-Worker via WireGuard).</p>
+<p><strong>Keycloak</strong> — Identity Provider. Realm <code>workspace</code>. Alle Services authentifizieren über OIDC. Siehe <a href="keycloak">Keycloak (SSO)</a>.</p>
+<p><strong>Kustomize</strong> — Manifest-Builder. Base in <code>k3d/</code>, Overlays in <code>prod-mentolder/</code> / <code>prod-korczewski/</code>.</p>
+<h2 id="l">L</h2>
+<p><strong>LiveKit</strong> — WebRTC-Server für Webinare und Livestreams. Läuft mit <code>hostNetwork: true</code> und Node-Pinning. Siehe <a href="livestream">Livestream (LiveKit)</a>.</p>
+<h2 id="m">M</h2>
+<p><strong>MCP (Model Context Protocol)</strong> — Protokoll für Claude-Code-Erweiterungen. Workspace betreibt einen MCP-Monolith mit Postgres-, Browser-, GitHub-, Keycloak- und Kubernetes-Servern. Siehe <a href="claude-code">MCP-Server (Claude Code)</a>.</p>
+<p><strong>Mermaid</strong> — Markdown-Diagramm-Sprache. Wird in Docsify gerendert; pro Brand eigene Themen-Variablen.</p>
+<h2 id="n">N</h2>
+<p><strong>Nextcloud</strong> — Selbstgehostete Cloud (Dateien, Kalender, Kontakte, Talk). Subdomain <code>files.{DOMAIN}</code>. Siehe <a href="nextcloud">Nextcloud + Talk</a>.</p>
+<h2 id="o">O</h2>
+<p><strong>OIDC</strong> — OpenID Connect. Authentifizierungs-Layer auf OAuth 2.0. Keycloak ist der Provider; Clients sind Nextcloud, Vaultwarden, Website, DocuSeal, Tracking, MCP-Server.</p>
+<p><strong>Overlay</strong> — Kustomize-Verzeichnis, das die Base patcht. <code>prod-mentolder/</code> und <code>prod-korczewski/</code> sind die zwei produktiven Overlays.</p>
+<h2 id="p">P</h2>
+<p><strong>Portal</strong> — Frontend-Sektion der Website unter <code>/portal</code>. Authentifizierter Bereich für Endnutzer mit Dashboard, Chat, Buchung.</p>
+<p><strong>Post-Setup</strong> — Schritte nach <code>task workspace:deploy</code>: Nextcloud-Apps aktivieren, OIDC verdrahten, Talk-Signaling konfigurieren. Siehe <a href="quickstart-admin">Quickstart Admin</a>.</p>
+<h2 id="s">S</h2>
+<p><strong>SealedSecret</strong> — Verschlüsseltes Secret, das im Repo committed werden darf. Der Sealed-Secrets-Controller im Cluster entschlüsselt zur Laufzeit zu einem normalen <code>Secret</code>.</p>
+<p><strong>SSO (Single Sign-On)</strong> — Einmaliger Login deckt alle Workspace-Services ab. Implementiert via Keycloak + OIDC.</p>
+<p><strong>shared-db</strong> — Zentrale PostgreSQL-16-Instanz im Cluster. Pro Service eine eigene Datenbank (<code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code>, <code>tracking</code>). Siehe <a href="shared-db">PostgreSQL (shared-db)</a>.</p>
+<h2 id="t">T</h2>
+<p><strong>Talk</strong> — Nextcloud Talk: Chat, Audio-/Videocalls, integriert in Nextcloud. Mehrteilnehmer-Calls via HPB.</p>
+<p><strong>Taskfile</strong> — Task-Runner-Konfiguration (<code>taskfile.dev</code>). Single-Source-of-Truth für alle Build-/Deploy-/Ops-Befehle.</p>
+<h2 id="v">V</h2>
+<p><strong>Vaultwarden</strong> — Bitwarden-kompatibler Passwort-Manager. Subdomain <code>vault.{DOMAIN}</code>. Siehe <a href="vaultwarden">Vaultwarden (Passwörter)</a>.</p>
+<h2 id="w">W</h2>
+<p><strong>Whiteboard</strong> — Excalidraw-basiertes kollaboratives Zeichenbrett. Subdomain <code>board.{DOMAIN}</code>. Siehe <a href="whiteboard">Whiteboard</a>.</p>
+<p><strong>Whisper</strong> — OpenAI-Whisper-basierter Transkriptions-Service. Talk-Transcriber-Bot nutzt ihn für Live-Untertitel.</p>
+<p><strong>WireGuard</strong> — VPN-Mesh, das Home-Worker-Nodes mit dem Hetzner-Cluster verbindet. Hub: <code>pk-hetzner</code>.</p>
+<p><strong>Workspace</strong> — Die Plattform als Ganzes; auch der Kubernetes-Namespace (<code>workspace</code> für mentolder, <code>workspace-korczewski</code> für korczewski).</p>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

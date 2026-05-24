@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>new-environment — Cluster Bring-up & Initialisierung</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">new-environment</span>
+  <div class="topnav-right">
+    <span class="badge badge-sage">Infra</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">Infra</span>
+    <span class="badge-slug">new-environment</span>
+  </div>
+  <h1 class="hero-title">New Environment Bring-up</h1>
+  <p class="hero-subtitle">
+    Initialisierung eines neuen Kubernetes-Clusters: Von der Konfigurations-Erstellung über 
+    Sealed Secrets und Cert-Manager bis zum finalen Workspace-Deployment.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Aufbau eines neuen Standorts oder vollständiger Cluster-Reset
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-critical">
+    <span class="callout-icon">🚫</span>
+    <div class="callout-body">
+      <strong>Zwingende Reihenfolge:</strong> Das Überspringen von Schritten (z.B. Deploy vor Seal) 
+      führt dazu, dass Platzhalter-Secrets in Produktion landen oder Ressourcen fehlschlagen.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">1</span>
+        <span class="phase-title">Config-Scaffolding</span>
+        <span class="phase-desc">Task env:init</span>
+      </div>
+      <div class="phase-body">
+        <p>Erstelle das Environment-File basierend auf dem Schema:</p>
+        <pre><code><span class="fn">task</span> env:init <span class="vr">ENV</span>=&lt;new-env&gt;
+<span class="fn">task</span> env:validate <span class="vr">ENV</span>=&lt;new-env&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">2</span>
+        <span class="phase-title">Sealed Secrets Setup</span>
+        <span class="phase-desc">Controller & Cert Fetch</span>
+      </div>
+      <div class="phase-body">
+        <p>Installiere den Controller und hole das Zertifikat des neuen Clusters:</p>
+        <pre><code><span class="fn">task</span> sealed-secrets:install <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> env:fetch-cert <span class="vr">ENV</span>=&lt;env&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">3</span>
+        <span class="phase-title">Secrets & Certificates</span>
+        <span class="phase-desc">Generate, Seal & Sync</span>
+      </div>
+      <div class="phase-body">
+        <p>Generiere und verschlüssele die Secrets, installiere Cert-Manager:</p>
+        <pre><code><span class="fn">task</span> env:generate <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> env:seal <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> cert:install <span class="vr">ENV</span>=&lt;env&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-sage">4</span>
+        <span class="phase-title">Deployment & Post-Setup</span>
+        <span class="phase-desc">Bring-up des Workspace</span>
+      </div>
+      <div class="phase-body">
+        <p>Rolle den Workspace aus und konfiguriere die Dienste:</p>
+        <pre><code><span class="fn">task</span> workspace:deploy <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> workspace:post-setup <span class="vr">ENV</span>=&lt;env&gt;
+<span class="fn">task</span> workspace:talk-setup <span class="vr">ENV</span>=&lt;env&gt;</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Deployment Checkliste</h2>
+  <div class="step-list">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>Office Deployment:</strong> Separater Task für Collabora.</div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>Admin Users:</strong> Initiales Passwort-Seeding.</div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-body"><strong>Keycloak Sync:</strong> Realm-Konfiguration importieren.</div>
+    </li>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="hetzner-node.html" class="xref-card">
+      <span class="xref-name">hetzner-node</span>
+      <span class="xref-rel">Nodes für das neue Environment provisionieren</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Mandatory bei Cluster-Resets</span>
+    </a>
+    <a href="keycloak-realm-sync.html" class="xref-card">
+      <span class="xref-name">keycloak-realm-sync</span>
+      <span class="xref-rel">Benutzer & OIDC-Clients abgleichen</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.agents/skills/new-environment/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

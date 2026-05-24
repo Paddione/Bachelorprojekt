@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>using-git-worktrees — Isolierte Workspaces & Git Flow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">using-git-worktrees</span>
+  <div class="topnav-right">
+    <span class="badge badge-brass">Development</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-brass">Development</span>
+    <span class="badge-slug">using-git-worktrees</span>
+  </div>
+  <h1 class="hero-title">Using Git Worktrees</h1>
+  <p class="hero-subtitle">
+    Verwaltung isolierter Arbeitsumgebungen: Korrektes Setup von Submodulen, 
+    Symlinking von Secrets und Branch-Renaming für den Bachelorprojekt Git-Flow.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Start einer neuen Feature- oder Fix-Implementierung
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-important">
+    <span class="callout-icon">❗</span>
+    <div class="callout-body">
+      <strong>Pull First:</strong> Aktualisiere immer <code>origin/main</code>, 
+      bevor du einen neuen Worktree anlegst, um Merge-Konflikte zu minimieren.
+    </div>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">1</span>
+        <span class="phase-title">Worktree anlegen</span>
+        <span class="phase-desc">Isolation schaffen</span>
+      </div>
+      <div class="phase-body">
+        <p>Erstelle einen neuen Worktree für den Branch:</p>
+        <pre><code><span class="fn">git</span> worktree add .claude/worktrees/&lt;name&gt; feature/&lt;slug&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">2</span>
+        <span class="phase-title">Submodule Init</span>
+        <span class="phase-desc">T000387</span>
+      </div>
+      <div class="phase-body">
+        <p>Da <code>git worktree add</code> keine Submodule initialisiert, muss dies manuell nachgeholt werden (für BATS Tests):</p>
+        <pre><code><span class="fn">git</span> submodule update --init --recursive</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">3</span>
+        <span class="phase-title">Secret Symlinking</span>
+        <span class="phase-desc">T000383</span>
+      </div>
+      <div class="phase-body">
+        <p>Verknüpfe die Secrets des Haupt-Repos, damit Tasks im Worktree funktionieren:</p>
+        <pre><code><span class="fn">ln</span> -sfn /home/patrick/Bachelorprojekt/environments/.secrets \
+       environments/.secrets</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-brass">4</span>
+        <span class="phase-title">Branch Renaming</span>
+        <span class="phase-desc">T000381</span>
+      </div>
+      <div class="phase-body">
+        <p>Falls Tools wie <code>EnterWorktree</code> Slashes im Branch-Namen kodiert haben (<code>+</code>), benenne den Branch um:</p>
+        <pre><code><span class="fn">git</span> branch -m feature/my-task</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Automatisierung</h2>
+  <p>In diesem Repository feuert ein <code>PostToolUse</code> Hook (Matcher: <code>EnterWorktree</code>), der die Schritte 2 und 3 automatisch übernimmt. Überprüfe die Statusmeldung: <em>"Initializing submodules and symlinking secrets..."</em></p>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="dev-flow-plan.html" class="xref-card">
+      <span class="xref-name">dev-flow-plan</span>
+      <span class="xref-rel">Worktree-Anlage als Teil der Planung</span>
+    </a>
+    <a href="dev-flow-execute.html" class="xref-card">
+      <span class="xref-name">dev-flow-execute</span>
+      <span class="xref-rel">Arbeiten innerhalb des Worktrees</span>
+    </a>
+    <a href="ticket-management.html" class="xref-card">
+      <span class="xref-name">ticket-management</span>
+      <span class="xref-rel">Stale Worktrees bereinigen</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.claude/skills/superpowers/using-git-worktrees/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

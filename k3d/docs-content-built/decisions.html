@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Decision-Log — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><div class="page-hero">
+  <span class="page-hero-icon">🧭</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Referenz · Entscheidungen</div>
+    <div class="page-hero-title">Decision-Log</div>
+    <p class="page-hero-desc">Architekturentscheidungen mit Kontext, Konsequenz und Datum.</p>
+  </div>
+  <a href="./index.html" class="page-hero-back">← Übersicht</a>
+</div><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#2026-05-05--korczewski--und-mentolder-cluster-vereinen"><span class="toc-num">1.</span>&nbsp;2026-05-05 — Korczewski- und Mentolder-Cluster vereinen</a></li>
+<li class="toc-item"><a href="#2026-05-09--stripe-komplett-rausnehmen"><span class="toc-num">2.</span>&nbsp;2026-05-09 — Stripe komplett rausnehmen</a></li>
+<li class="toc-item"><a href="#2026-04-22--mattermost-und-invoiceninja-entfernen"><span class="toc-num">3.</span>&nbsp;2026-04-22 — Mattermost und InvoiceNinja entfernen</a></li>
+<li class="toc-item"><a href="#2026-04-16--custom-messaging-in-der-astro-website-statt-mattermost"><span class="toc-num">4.</span>&nbsp;2026-04-16 — Custom Messaging in der Astro-Website (statt Mattermost)</a></li>
+<li class="toc-item"><a href="#2026-05-04--livekit-fuer-streaming-statt-janus-only"><span class="toc-num">5.</span>&nbsp;2026-05-04 — LiveKit für Streaming (statt Janus-only)</a></li>
+<li class="toc-item"><a href="#2026-04-10--sealedsecrets-statt-envsubst-workflow"><span class="toc-num">6.</span>&nbsp;2026-04-10 — SealedSecrets statt envsubst-Workflow</a></li>
+<li class="toc-item"><a href="#foundation--k3dk3s--kustomize-als-einziger-deploy-pfad"><span class="toc-num">7.</span>&nbsp;Foundation — k3d/k3s + Kustomize als einziger Deploy-Pfad</a></li></ul>
+</div><h1>Decision-Log</h1>
+<p class="kicker">Referenz · Architektur-Entscheidungen</p><p>Chronologisch, neueste zuerst. Jeder Eintrag hält fest, <em>warum</em> wir etwas geändert haben — nicht <em>was</em> (das steht im Code und im Git-Log).</p>
+<hr>
+<h2 id="2026-05-05--korczewski--und-mentolder-cluster-vereinen">2026-05-05 — Korczewski- und Mentolder-Cluster vereinen</h2>
+<p><strong>Status:</strong> akzeptiert · gerollt am 2026-05-05</p>
+<p><strong>Kontext:</strong> Wir betrieben zwei separate k3s-Cluster (mentolder + korczewski) hinter zwei Hostgruppen. Cross-Cluster-Operations waren teuer, die Nodes der Korczewski-Box waren im Schnitt zu 30 % ausgelastet, ArgoCD musste zwei Cluster verwalten.</p>
+<p><strong>Entscheidung:</strong> Die korczewski-Nodes traten der mentolder-Cluster bei. korczewski.de läuft jetzt im Namespace <code>workspace-korczewski</code> auf demselben physischen Cluster, mit demselben Traefik. Der <code>korczewski</code>-kubeconfig-Kontext zeigt jetzt auf <code>pk-hetzner</code> (Cluster-API).</p>
+<p><strong>Konsequenz:</strong> Eine Cluster-Version, eine ArgoCD-Instanz, eine Backup-Strategie. Im Gegenzug brauchen alle Korczewski-Workloads <code>workspace-namespace</code>-Annotationen + <code>workspace-korczewski</code>-Labels in den ApplicationSets.</p>
+<hr>
+<h2 id="2026-05-09--stripe-komplett-rausnehmen">2026-05-09 — Stripe komplett rausnehmen</h2>
+<p><strong>Status:</strong> akzeptiert</p>
+<p><strong>Kontext:</strong> Stripe-Integration war vorgesehen für Coaching-Buchungen, wurde aber nie aktiv genutzt. Die Maintenance-Last (Webhooks, PCI-Zone-Hygiene, Test-Mocks) war hoch.</p>
+<p><strong>Entscheidung:</strong> Stripe-Code, -Webhooks, -Tasks und -Secrets vollständig entfernt. Services-Seiten linken auf Kontakt-Formular, keine Buchungs-Buttons.</p>
+<p><strong>Konsequenz:</strong> ~1500 Zeilen Code weg, weniger Compliance-Pflichten. Falls Buchung später kommt, wird sie neu evaluiert.</p>
+<hr>
+<h2 id="2026-04-22--mattermost-und-invoiceninja-entfernen">2026-04-22 — Mattermost und InvoiceNinja entfernen</h2>
+<p><strong>Status:</strong> akzeptiert · superseded by Custom Messaging in Astro-Website (siehe nächster Eintrag)</p>
+<p><strong>Kontext:</strong> Mattermost als Chat und InvoiceNinja als Rechnungs-Tool waren als externe Container eingebunden. Beide hatten eigene Backups, eigene OIDC-Klemmen, eigene UI-Sprünge — Reibung im Tagesbetrieb.</p>
+<p><strong>Entscheidung:</strong> Beide Services entfernt. Chat zieht in die Astro-Website. Rechnungslogik wird durch DocuSeal + manuelle ZUGFeRD-Erstellung ersetzt.</p>
+<p><strong>Konsequenz:</strong> Weniger bewegliche Teile, einheitlicher SSO-Pfad. Test-Suite hat einige FA-/SA-Lücken (FA-22, SA-06, SA-09 entfernt) — Gaps in der Nummerierung sind beabsichtigt.</p>
+<hr>
+<h2 id="2026-04-16--custom-messaging-in-der-astro-website-statt-mattermost">2026-04-16 — Custom Messaging in der Astro-Website (statt Mattermost)</h2>
+<p><strong>Status:</strong> akzeptiert</p>
+<p><strong>Kontext:</strong> Nach Mattermost-Entfernung brauchten wir weiter Chat. Die Astro-Website hatte bereits eigenes Auth + DB.</p>
+<p><strong>Entscheidung:</strong> Chat als Svelte-Insel direkt in <code>web.{DOMAIN}/portal/chat</code>. Backend = <code>/api/chat/*</code>-Endpoints in der Website, Storage in der <code>website</code>-DB.</p>
+<p><strong>Konsequenz:</strong> Ein einziges Frontend, keine OIDC-Verkettung mehr für Chat. Featureset bleibt schlank — bewusst kein Mattermost-Klon.</p>
+<hr>
+<h2 id="2026-05-04--livekit-fuer-streaming-statt-janus-only">2026-05-04 — LiveKit für Streaming (statt Janus-only)</h2>
+<p><strong>Status:</strong> akzeptiert</p>
+<p><strong>Kontext:</strong> Janus reichte für Talk-Calls, aber nicht für RTMP-Ingest und Webinar-Recording. Wir wollten OBS-Integration und MP4-Aufzeichnungen.</p>
+<p><strong>Entscheidung:</strong> LiveKit-Server, -Ingress (RTMP) und -Egress (Recording) deployen. <code>hostNetwork: true</code> + Node-Pinning auf <code>gekko-hetzner-3</code>. DNS-Pin der <code>livekit.{DOMAIN}</code>-A-Records auf den Pin-Node.</p>
+<p><strong>Konsequenz:</strong> RTMP funktioniert, Recordings landen im Egress-PVC. Trade-off: ein hostNetwork-Pod im <code>workspace</code>-Namespace + privilegiertes pod-security-Profil dort.</p>
+<hr>
+<h2 id="2026-04-10--sealedsecrets-statt-envsubst-workflow">2026-04-10 — SealedSecrets statt envsubst-Workflow</h2>
+<p><strong>Status:</strong> akzeptiert · PR #61</p>
+<p><strong>Kontext:</strong> Vorheriger Ansatz: <code>.env</code>-Datei + <code>envsubst</code> über Manifeste. Geheimnisse waren nie im Repo, dafür auf jedem Maintainer-Laptop. Onboarding-Schmerz, Rotation-Chaos.</p>
+<p><strong>Entscheidung:</strong> Bitnami SealedSecrets. Plaintext in <code>environments/.secrets/&lt;env&gt;.yaml</code> (gitignoriert), versiegelt nach <code>environments/sealed-secrets/&lt;env&gt;.yaml</code> (committed). Cluster entschlüsselt mit privatem Key.</p>
+<p><strong>Konsequenz:</strong> Geheimnisse leben mit dem Code im Repo, sind reproduzierbar deploybar. Rotation = neuer <code>env:seal</code>-Lauf. Drift-Gefahr: jede manuelle <code>kubectl edit secret</code>-Aktion wird beim nächsten Deploy überschrieben.</p>
+<hr>
+<h2 id="foundation--k3dk3s--kustomize-als-einziger-deploy-pfad">Foundation — k3d/k3s + Kustomize als einziger Deploy-Pfad</h2>
+<p><strong>Status:</strong> akzeptiert · keine Alternative aktiv</p>
+<p><strong>Kontext:</strong> Anfangs gab es zusätzlich docker-compose-Dateien für lokale Entwicklung. Zwei Deploy-Pfade führten zu Drift (Service-A funktionierte in compose, nicht in k8s).</p>
+<p><strong>Entscheidung:</strong> docker-compose entfernt. Nur k3d (lokal) und k3s (prod), beide identisch via Kustomize gefüttert.</p>
+<p><strong>Konsequenz:</strong> Lokal = Prod (modulo Overlay). Onboarding braucht Docker + k3d, etwas mehr als compose. Wert: keine Drift-Klassen mehr.</p>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>deployment-assist — Interaktiver Deployment-Guide</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">deployment-assist</span>
+  <div class="topnav-right">
+    <span class="badge badge-purple">Ops</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-purple">Ops</span>
+    <span class="badge-slug">deployment-assist</span>
+  </div>
+  <h1 class="hero-title">Deployment Assist</h1>
+  <p class="hero-subtitle">
+    Geführte Bereitstellung der Plattform: Assessment von Tools, Credentials und Clustern 
+    mit anschließender sequentieller Ausführung aller Setup-Tasks.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Erst-Deployment, Recovery nach Cluster-Reset oder Diagnose von Deploy-Fehlern
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple">0</span>
+        <span class="phase-title">Environment Selection</span>
+        <span class="phase-desc">Ziel-Cluster wählen</span>
+      </div>
+      <div class="phase-body">
+        <p>Wähle zwischen <code>dev</code> (k3d), <code>mentolder</code> (Prod), <code>korczewski</code> (Prod) oder <code>all-prods</code>.</p>
+        <div class="callout callout-warn">
+          <span class="callout-icon">⚠️</span>
+          <div class="callout-body">
+            <strong>Context-Check:</strong> Prüfe vor dem Deployment immer, ob der aktive kubectl Context zum Ziel-Cluster passt.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple">1</span>
+        <span class="phase-title">Prerequisite Check</span>
+        <span class="phase-desc">Tools & Config</span>
+      </div>
+      <div class="phase-body">
+        <p>Prüfe Vorhandensein von: <code>docker</code>, <code>kubectl</code>, <code>task</code>, <code>flux</code>, <code>kubeseal</code>.</p>
+        <pre><code><span class="fn">task</span> env:validate ENV=&lt;env&gt;
+<span class="fn">flux</span> check --context &lt;ctx&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple">2</span>
+        <span class="phase-title">Gap Analysis</span>
+        <span class="phase-desc">Was fehlt?</span>
+      </div>
+      <div class="phase-body">
+        <p>Erstelle eine Übersicht über den Status von:</p>
+        <ul class="step-list">
+          <li><strong>Sealed Secrets:</strong> Vorhanden und entschlüsselbar?</li>
+          <li><strong>Flux:</strong> GitRepository und Kustomizations <code>Ready</code>?</li>
+          <li><strong>Pods:</strong> Core-Services Running?</li>
+          <li><strong>Post-Setup:</strong> Nextcloud konfiguriert? Talk HPB aktiv?</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-purple">3</span>
+        <span class="phase-title">Execution</span>
+        <span class="phase-desc">Tasks in Reihenfolge</span>
+      </div>
+      <div class="phase-body">
+        <p>Führe die benötigten Tasks sequentiell aus. Beispiel für ein frisches Dev-Setup:</p>
+        <pre><code><span class="nm">1.</span> <span class="fn">task</span> cluster:create
+<span class="nm">2.</span> <span class="fn">task</span> workspace:up</code></pre>
+        <p>Beispiel für Prod Recovery:</p>
+        <pre><code><span class="nm">1.</span> <span class="fn">task</span> sealed-secrets:install
+<span class="nm">2.</span> <span class="fn">task</span> env:fetch-cert
+<span class="nm">3.</span> <span class="fn">task</span> env:seal
+<span class="nm">4.</span> <span class="fn">task</span> workspace:deploy</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Flux CD Architektur (Prod)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Komponente</th><th>Verantwortung</th><th>Task / Tool</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Workspace manifests</td><td>Git-Reconcile</td><td>Flux Kustomization</td></tr>
+        <tr><td>Website Deployment</td><td>Image-Sync & Rollout</td><td>Flux ImagePolicy</td></tr>
+        <tr><td>SealedSecrets</td><td>Verschlüsselung</td><td><code>task env:seal</code></td></tr>
+        <tr><td>Post-Setup</td><td>Manuelle Konfig</td><td><code>task workspace:post-setup</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="new-environment.html" class="xref-card">
+      <span class="xref-name">new-environment</span>
+      <span class="xref-rel">Detaillierter Guide für Erst-Setup</span>
+    </a>
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Falls Secrets fehlen oder korrupt sind</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Deployment-Fehler dokumentieren</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.agents/skills/deployment-assist/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

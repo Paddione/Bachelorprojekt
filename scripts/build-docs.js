@@ -9,7 +9,6 @@ import { marked } from 'marked';
 import * as cheerio from 'cheerio';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-export const SRC_DIR = join(__dirname, '../k3d/docs-content');
 export const OUT_DIR = join(__dirname, '../k3d/docs-content-built');
 
 // ─── parseSidebar ─────────────────────────────────────────────────────────────
@@ -398,23 +397,75 @@ function escHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// ─── rebuildPage ──────────────────────────────────────────────────────────────
+// Converts a single MD file to HTML and writes it to OUT_DIR.
+// Used by docs:refresh-diagrams and datamodel:build for auto-generated pages.
+async function rebuildPage(slug, mdPath, sidebarMd) {
+  const FAST = process.argv.includes('--fast');
+  const mdSrc = readFileSync(mdPath, 'utf8');
+  let html = marked.parse(mdSrc);
+  const $ = cheerio.load(html);
+  const title = $('h1').first().text().trim() || slug;
+  if (!FAST) html = await Promise.resolve(renderMermaidBlocks(html));
+  html = postProcess(html);
+  const sidebarHtml = parseSidebar(sidebarMd, slug);
+  const full = wrapPage({ slug, title, content: html, sidebarHtml });
+  writeFileSync(join(OUT_DIR, `${slug}.html`), full, 'utf8');
+  console.log(`  → ${slug}.html ✓`);
+}
+
+// ─── rebuildSearchIndex ───────────────────────────────────────────────────────
+// Regenerates search.json by scanning committed HTML files in OUT_DIR.
+function rebuildSearchIndex() {
+  const htmlFiles = readdirSync(OUT_DIR)
+    .filter(f => f.endsWith('.html'))
+    .sort();
+  const index = htmlFiles.map(file => {
+    const slug = file.replace(/\.html$/, '');
+    const src = readFileSync(join(OUT_DIR, file), 'utf8');
+    const $ = cheerio.load(src);
+    const title = $('h1').first().text().trim()
+      || $('title').text().replace(/ — Workspace MVP$/, '').trim()
+      || slug;
+    const excerpt = $('#main p, main p').first().text().trim().slice(0, 120).replace(/\s+/g, ' ');
+    return { slug, title, excerpt };
+  });
+  writeFileSync(join(OUT_DIR, 'search.json'), JSON.stringify(index), 'utf8');
+  console.log(`  → search.json (${index.length} pages) ✓`);
+}
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 async function main() {
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const sidebarMd = readFileSync(join(SRC_DIR, '_sidebar.md'), 'utf8');
-  const mdFiles = readdirSync(SRC_DIR)
-    .filter(f => f.endsWith('.md') && f !== '_sidebar.md')
-    .sort();
+  // --rebuild-page <slug> <mdfile>: re-render a single auto-generated MD page
+  const rebuildIdx = process.argv.indexOf('--rebuild-page');
+  if (rebuildIdx !== -1) {
+    const slug = process.argv[rebuildIdx + 1];
+    const mdPath = process.argv[rebuildIdx + 2];
+    if (!slug || !mdPath) {
+      console.error('Usage: build-docs.js --rebuild-page <slug> <mdfile>');
+      process.exit(1);
+    }
+    const sidebarSrc = join(OUT_DIR, '_sidebar.html');
+    const sidebarMd = existsSync(sidebarSrc)
+      ? readFileSync(sidebarSrc, 'utf8')
+      : '';
+    await rebuildPage(slug, mdPath, sidebarMd);
+    rebuildSearchIndex();
+    console.log(`\n✓ Rebuilt ${slug}.html and refreshed search.json`);
+    return;
+  }
 
-  const FAST = process.argv.includes('--fast');
-  if (FAST) console.log('⚡ Fast mode: skipping Mermaid pre-rendering');
+  // Normal run: sync skills HTML, refresh assets, regenerate search.json
+  // (HTML pages in OUT_DIR are the committed source — not rebuilt from MD)
 
-  // Asset Pass
+  // Write JS/CSS assets (regenerated from script — not committed separately)
   writeFileSync(join(OUT_DIR, 'style.css'), getPageCss(), 'utf8');
   writeFileSync(join(OUT_DIR, 'app.js'), getPageJs(), 'utf8');
+  console.log('  → style.css + app.js ✓');
 
-  // Copy skills visualization (standalone HTML — served at /skills-overview.html)
+  // Sync skills visualization from docs/ (their source of truth)
   const SKILLS_OVERVIEW_SRC = join(__dirname, '../docs/skills-overview.html');
   const SKILLS_DIR_SRC = join(__dirname, '../docs/skills');
   if (existsSync(SKILLS_OVERVIEW_SRC)) {
@@ -426,35 +477,11 @@ async function main() {
     console.log('  → skills/ ✓');
   }
 
-  // First pass: MD → raw HTML, collect titles for search index
-  const pages = [];
-  for (const file of mdFiles) {
-    const slug = file === 'README.md' ? 'index' : file.replace(/\.md$/, '');
-    const mdSrc = readFileSync(join(SRC_DIR, file), 'utf8');
-    const rawHtml = marked.parse(mdSrc);
-    const $ = cheerio.load(rawHtml);
-    const title = $('h1').first().text().trim()
-      || $('.page-hero-title').first().text().trim()
-      || slug;
-    pages.push({ slug, file, rawHtml, title });
-  }
+  // Regenerate search.json from committed HTML pages
+  rebuildSearchIndex();
 
-  const searchIndex = buildSearchIndex(pages);
-  writeFileSync(join(OUT_DIR, 'search.json'), JSON.stringify(searchIndex), 'utf8');
-
-  // Second pass: Mermaid → SVG, post-process, wrap, write
-  for (const { slug, rawHtml, title } of pages) {
-    process.stdout.write(`  → ${slug}.html`);
-    let html = rawHtml;
-    if (!FAST) html = renderMermaidBlocks(html);
-    html = postProcess(html);
-    const sidebarHtml = parseSidebar(sidebarMd, slug);
-    const full = wrapPage({ slug, title, content: html, sidebarHtml });
-    writeFileSync(join(OUT_DIR, `${slug}.html`), full, 'utf8');
-    console.log(' ✓');
-  }
-
-  console.log(`\n✓ Built ${pages.length} pages → k3d/docs-content-built/`);
+  const pageCount = readdirSync(OUT_DIR).filter(f => f.endsWith('.html')).length;
+  console.log(`\n✓ Assets refreshed, search index rebuilt (${pageCount} pages)`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

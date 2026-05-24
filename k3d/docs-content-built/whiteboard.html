@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Whiteboard — Kollaboratives Zeichnen — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Whiteboard — Kollaboratives Zeichnen</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#uebersicht"><span class="toc-num">1.</span>&nbsp;Übersicht</a></li>
+<li class="toc-item"><a href="#integration-mit-nextcloud"><span class="toc-num">2.</span>&nbsp;Integration mit Nextcloud</a></li>
+<li class="toc-item"><a href="#betrieb"><span class="toc-num">3.</span>&nbsp;Betrieb</a></li>
+<li class="toc-item"><a href="#kubernetes-konfiguration"><span class="toc-num">4.</span>&nbsp;Kubernetes-Konfiguration</a></li>
+<li class="toc-item"><a href="#betrieb-in-produktion"><span class="toc-num">5.</span>&nbsp;Betrieb in Produktion</a></li>
+<li class="toc-item"><a href="#fehlerbehebung"><span class="toc-num">6.</span>&nbsp;Fehlerbehebung</a></li>
+<li class="toc-item"><a href="#weiterfuehrend"><span class="toc-num">7.</span>&nbsp;Weiterführend</a></li></ul>
+</div>
+<h2 id="uebersicht">Übersicht</h2>
+<p>Das Whiteboard ist ein WebSocket-basierter Backend-Service für die Nextcloud Whiteboard-App. Benutzer können in Nextcloud kollaborativ Diagramme, Notizen und Skizzen zeichnen — das Whiteboard speichert die Änderungen in Echtzeit und synchronisiert sie über WebSocket mit allen verbundenen Clients.</p>
+<p><strong>Wichtig:</strong> Das Whiteboard hat KEINE eigene Web-UI. Es ist ein reines Backend für die Nextcloud-App. Die gesamte Interaktion erfolgt über die Nextcloud Web-Oberfläche.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Dev</th>
+<th>Produktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL Backend</td>
+<td><code>http://board.localhost</code></td>
+<td><code>https://board.mentolder.de</code> (intern)</td>
+</tr>
+<tr>
+<td>Nextcloud App</td>
+<td><code>whiteboard</code></td>
+<td><code>whiteboard</code></td>
+</tr>
+<tr>
+<td>Image</td>
+<td><code>ghcr.io/nextcloud-releases/whiteboard:v1.5.7</code></td>
+<td>gleich</td>
+</tr>
+<tr>
+<td>Port (intern)</td>
+<td>3002</td>
+<td>3002</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td><code>ws://board.localhost</code></td>
+<td><code>wss://board.mentolder.de</code> (Prod)</td>
+</tr>
+</tbody></table>
+<p><strong>Abhängigkeiten:</strong></p>
+<ul>
+<li>Nextcloud (mit <code>whiteboard</code> App installiert)</li>
+<li>PostgreSQL (optional, falls Whiteboard-Dokumente persistent sein sollen)</li>
+</ul>
+<p><strong>Namespace:</strong> <code>workspace</code></p>
+<pre class="mermaid-fallback"><code>flowchart LR
+  User([Browser]) -- HTTPS --&gt; NC[Nextcloud]
+  NC --&gt; WBapp[Whiteboard App]
+  WBapp -- WebSocket --&gt; Backend[board.{DOMAIN} Backend]
+  Backend --&gt; Store[Whiteboard Store]
+  WBapp -- iframe --&gt; Excalidraw[Excalidraw Frontend]
+</code></pre>
+<hr>
+<h2 id="integration-mit-nextcloud">Integration mit Nextcloud</h2>
+<h3>Nextcloud Whiteboard-App</h3>
+<p>Die Nextcloud Whiteboard-App (<code>whiteboard</code>) muss zunächst installiert werden:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:post-setup
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Alternativ manuell im Nextcloud Admin-Panel:</p>
+<ol>
+<li><strong>Nextcloud UI</strong> → <strong>Apps</strong> → <strong>Office &amp; Text</strong></li>
+<li>Suchen nach „Whiteboard" und installieren</li>
+</ol>
+<h3>Konfiguration</h3>
+<p>Nach der Installation muss die Nextcloud Whiteboard-App die Backend-URL des Whiteboard-Services kennen. Dies geschieht über die Nextcloud-Config:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:whiteboard-setup
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Oder manuell (via <code>occ</code> command in Nextcloud Pod):</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl exec -n workspace pod/nextcloud-&lt;pod-id&gt; -- \
+  php occ config:app:set whiteboard \
+  collabora_board_url "http://board" \
+  --value=http://board
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Die Konfiguration speichert:</p>
+<ul>
+<li><strong>Collabora Board URL (intern):</strong> <code>http://board</code> (für Pod-zu-Pod-Kommunikation)</li>
+<li><strong>Collabora Board URL (extern):</strong> <code>http://board.localhost</code> (für Browser-WebSocket)</li>
+</ul>
+<h3>JWT-Authentifizierung</h3>
+<p>Das Whiteboard authentifiziert Anfragen von Nextcloud per JWT (JSON Web Token). Der JWT-Secret muss zwischen Nextcloud und Whiteboard identisch sein:</p>
+<ol>
+<li><p><strong>In Nextcloud:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">php occ config:app:set whiteboard jwt_secret_key "&lt;secret&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>Im Whiteboard Deployment (<code>k3d/whiteboard.yaml</code>):</strong></p>
+<div class="code-wrapper"><pre><code class="language-yaml">env:
+  - name: JWT_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: workspace-secrets
+        key: WHITEBOARD_JWT_SECRET
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<p>Falls die Secrets nicht übereinstimmen, zeigt die Whiteboard-App in Nextcloud die Fehlermeldung: <strong>"Problem mit Authentifizierungskonfiguration"</strong>.</p>
+<hr>
+<h2 id="betrieb">Betrieb</h2>
+<h3>Deployment prüfen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:status
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Suchen Sie nach dem <code>whiteboard</code>-Pod.</p>
+<h3>Logs ansehen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:logs -- whiteboard
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Oder manuell:</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl logs -n workspace deployment/whiteboard --tail=100 -f
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Pod neu starten</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:restart -- whiteboard
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>WebSocket-Verbindung testen</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Im Pod
+kubectl exec -n workspace deployment/whiteboard -- curl http://localhost:3002/
+
+# Von außen (Browser Console)
+const ws = new WebSocket('ws://board.localhost');
+ws.onopen = () =&gt; console.log('Connected to Whiteboard');
+ws.onerror = (e) =&gt; console.error('WebSocket error:', e);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Service prüfen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl get svc -n workspace | grep whiteboard
+kubectl get endpoints -n workspace whiteboard
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="kubernetes-konfiguration">Kubernetes-Konfiguration</h2>
+<h3>Deployment</h3>
+<p>Siehe <code>k3d/whiteboard.yaml</code>:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whiteboard
+  namespace: workspace
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: whiteboard
+          image: ghcr.io/nextcloud-releases/whiteboard:v1.5.7
+          ports:
+            - containerPort: 3002
+          env:
+            - name: NEXTCLOUD_URL
+              value: "http://nextcloud"
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: WHITEBOARD_JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 20
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Wichtige Umgebungsvariablen:</strong></p>
+<ul>
+<li><code>NEXTCLOUD_URL</code>: Interne Kubernetes Service-URL (<code>http://nextcloud</code>)</li>
+<li><code>JWT_SECRET_KEY</code>: Geheimer Schlüssel für JWT-Validierung (aus Secret)</li>
+</ul>
+<h3>Service</h3>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: whiteboard
+  namespace: workspace
+spec:
+  type: ClusterIP
+  selector:
+    app: whiteboard
+  ports:
+    - port: 80
+      targetPort: 3002
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Ingress</h3>
+<p>Wird automatisch via <code>k3d/configmap-domains.yaml</code> konfiguriert:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">board.localhost=whiteboard:80          # Dev
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Traefik routet alle WebSocket-Anfragen an <code>board.localhost</code> zum Whiteboard-Service weiter.</p>
+<hr>
+<h2 id="betrieb-in-produktion">Betrieb in Produktion</h2>
+<h3>TLS/HTTPS</h3>
+<p>In der Produktion wird Whiteboard über HTTPS (WSS für WebSocket) erreichbar sein. Das wird durch cert-manager automatisch konfiguriert.</p>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: whiteboard
+  namespace: workspace
+spec:
+  tls:
+    - hosts:
+        - board.mentolder.de
+      secretName: whiteboard-tls
+  rules:
+    - host: board.mentolder.de
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: whiteboard
+                port:
+                  number: 80
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Nextcloud extern konfigurieren</h3>
+<p>Falls Nextcloud auf einem anderen Host läuft, wird die externe URL benötigt:</p>
+<div class="code-wrapper"><pre><code class="language-bash">php occ config:app:set whiteboard \
+  collabora_board_url_external "https://board.mentolder.de"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="fehlerbehebung">Fehlerbehebung</h2>
+<h3>Whiteboard-App zeigt "Problem mit Authentifizierungskonfiguration"</h3>
+<p><strong>Ursachen:</strong></p>
+<ol>
+<li>JWT-Secret stimmt nicht überein (Nextcloud ≠ Whiteboard)</li>
+<li>Whiteboard-Pod läuft nicht (CrashLoopBackOff)</li>
+<li>WebSocket-Verbindung wird blockiert (Firewall/Proxy)</li>
+</ol>
+<p><strong>Lösung:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Secrets überprüfen
+kubectl get secret workspace-secrets -n workspace -o jsonpath='{.data.WHITEBOARD_JWT_SECRET}' | base64 -d
+
+# 2. In Nextcloud vergleichen
+kubectl exec -n workspace pod/nextcloud-&lt;pod-id&gt; -- \
+  php occ config:app:get whiteboard jwt_secret_key
+
+# 3. Werte müssen identisch sein. Falls nicht:
+task workspace:whiteboard-setup
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Whiteboard-App lädt nicht</h3>
+<p><strong>Ursachen:</strong></p>
+<ol>
+<li>Nextcloud ist nicht erreichbar</li>
+<li>Whiteboard-Backend antwortet nicht (Port 3002)</li>
+<li>NEXTCLOUD_URL im Whiteboard falsch konfiguriert</li>
+</ol>
+<p><strong>Lösung:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Pod-Status
+kubectl get pod -n workspace | grep whiteboard
+
+# Logs
+task workspace:logs -- whiteboard
+
+# Verbindung testen (vom Pod aus)
+kubectl exec -n workspace deployment/whiteboard -- \
+  curl -v http://nextcloud/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>WebSocket-Fehler in Browser-Console</h3>
+<p><strong>Fehler:</strong> <code>WebSocket connection to 'ws://board.localhost' failed</code></p>
+<p><strong>Ursachen:</strong></p>
+<ol>
+<li>Whiteboard nicht über Ingress erreichbar</li>
+<li>Browser unterstützt WebSocket nicht</li>
+<li>Proxy blockiert WebSocket-Upgrade</li>
+</ol>
+<p><strong>Lösung:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Ingress prüfen
+kubectl get ingress -n workspace | grep board
+
+# Service erreichbar?
+kubectl get svc -n workspace | grep whiteboard
+
+# Manuell testen
+curl http://board.localhost/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Performance-Probleme</h3>
+<ul>
+<li>Whiteboard wird langsam mit vielen Clients</li>
+<li>Große Zeichnungen frieren ein</li>
+</ul>
+<p><strong>Lösungen:</strong></p>
+<ol>
+<li>Pod-Ressourcen erhöhen (CPU/Memory Limits)</li>
+<li>Mehr Replicas (mit Load-Balancer)</li>
+<li>Whiteboard-Version upgraden</li>
+</ol>
+<hr>
+<h2 id="weiterfuehrend">Weiterführend</h2>
+<ul>
+<li><strong>Nextcloud Whiteboard:</strong> <a href="https://apps.nextcloud.com/apps/whiteboard">https://apps.nextcloud.com/apps/whiteboard</a></li>
+<li><strong>Nextcloud Talk HPB (für Video):</strong> <a href="talk-hpb.md">Talk HPB</a></li>
+<li><strong>Nextcloud-Integration:</strong> <a href="nextcloud.md">Nextcloud</a></li>
+</ul>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>incident-response — Produktions-Triage & Recovery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">incident-response</span>
+  <div class="topnav-right">
+    <span class="badge badge-red">Security</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-red">Security</span>
+    <span class="badge-slug">incident-response</span>
+  </div>
+  <h1 class="hero-title">Incident Response</h1>
+  <p class="hero-subtitle">
+    Strukturierte Fehlerbehebung in Produktion: Triage, Ticket-Erstellung, 
+    Root-Cause-Analyse und koordinierte Wiederherstellung des Dienstes.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> Produktions-Ausfall, 500er Fehler, Health-Check Failure oder User-Reports
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">1</span>
+        <span class="phase-title">Triage & Ticket</span>
+        <span class="phase-desc">&lt; 2 min</span>
+      </div>
+      <div class="phase-body">
+        <p>Ermittle Scope, Cluster und betroffene Nutzer. Lege sofort ein Incident-Ticket an:</p>
+        <pre><code><span class="fn">task</span> tickets:create --title "Incident: &lt;desc&gt;" --type bug --severity critical</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">2</span>
+        <span class="phase-title">Diagnose</span>
+        <span class="phase-desc">Status, Logs & Events</span>
+      </div>
+      <div class="phase-body">
+        <p>Prüfe Pod-Status und Error-Signaturen in den Logs:</p>
+        <pre><code><span class="fn">task</span> workspace:status ENV=mentolder
+<span class="fn">task</span> workspace:logs ENV=mentolder -- &lt;service&gt;
+<span class="fn">kubectl</span> get events -n workspace --context mentolder --sort-by=<span class="st">'.lastTimestamp'</span></code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">3</span>
+        <span class="phase-title">Mitigation</span>
+        <span class="phase-desc">Fix vs. Rollback</span>
+      </div>
+      <div class="phase-body">
+        <p>Entscheide basierend auf der Ursache:</p>
+        <ul class="step-list">
+          <li><strong>Rollback:</strong> Falls durch letzten Deploy ausgelöst und kein DB-Schema-Change involviert.</li>
+          <li><strong>Fix in Place:</strong> Bei Config-Drift oder Secret-Problemen.</li>
+        </ul>
+        <pre><code><span class="cm"># Rollback Website auf vorherigen SHA</span>
+<span class="fn">kubectl</span> set image deployment/website website=ghcr.io/paddione/workspace-website:&lt;SHA&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">4</span>
+        <span class="phase-title">Abschluss</span>
+        <span class="phase-desc">Post-Mortem</span>
+      </div>
+      <div class="phase-body">
+        <p>Verifiziere die Lösung und hinterlasse eine Post-Mortem Note im Ticket:</p>
+        <pre><code><span class="kw">UPDATE</span> tickets.tickets <span class="kw">SET</span> status = <span class="st">'done'</span>, notes = <span class="st">'Root cause: ...'</span>;</code></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Log-Signaturen & Ursachen</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Log-Muster</th><th>Wahrscheinliche Ursache</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>password authentication failed</code></td><td>DB-Passwort-Drift</td></tr>
+        <tr><td><code>401 Unauthorized</code> (Keycloak)</td><td>OIDC Client-Secret Mismatch</td></tr>
+        <tr><td><code>OOMKilled</code></td><td>Memory-Limit zu niedrig</td></tr>
+        <tr><td><code>ImagePullBackOff</code></td><td>Registry-Auth oder falsches Tag</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Bei Authentifizierungs-Fehlern</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Mishaps in Tickets umwandeln</span>
+    </a>
+    <a href="backup-check.html" class="xref-card">
+      <span class="xref-name">backup-check</span>
+      <span class="xref-rel">Falls Datenverlust droht</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.agents/skills/incident-response/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

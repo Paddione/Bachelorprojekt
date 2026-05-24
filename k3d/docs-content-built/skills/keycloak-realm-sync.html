@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>keycloak-realm-sync — SSO & Identitäts-Abgleich</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="../skills-overview.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Alle Skills
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">keycloak-realm-sync</span>
+  <div class="topnav-right">
+    <span class="badge badge-red">Security</span>
+  </div>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-red">Security</span>
+    <span class="badge-slug">keycloak-realm-sync</span>
+  </div>
+  <h1 class="hero-title">Keycloak Realm Sync</h1>
+  <p class="hero-subtitle">
+    Reconcile der Keycloak Realm-Konfiguration: OIDC Clients, Group Mappings, 
+    Attribute Mapper und Login-Flows basierend auf den JSON-Definitionen.
+  </p>
+  <div class="trigger-chip">
+    <span class="label">Auslöser:</span> SSO-Fehler, neue OIDC Clients, Drift zwischen UI und Code oder Deployment-Verify
+  </div>
+</header>
+
+<main class="content">
+
+  <div class="callout callout-critical">
+    <span class="callout-icon">🚫</span>
+    <div class="callout-body">
+      <strong>Source of Truth:</strong> Bearbeite Realm-Einstellungen niemals nur im UI. 
+      Änderungen müssen immer in die <code>realm-*.json</code> Dateien zurückfließen, sonst werden sie beim nächsten Sync überschrieben.
+    </div>
+  </div>
+
+  <h2 class="section-label">JSON Locations</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Environment</th><th>Datei-Pfad</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>dev</td><td><code>k3d/realm-workspace-dev.json</code></td></tr>
+        <tr><td>mentolder</td><td><code>prod-mentolder/realm-workspace-mentolder.json</code></td></tr>
+        <tr><td>korczewski</td><td><code>prod-korczewski/realm-workspace-korczewski.json</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="phases">
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">1</span>
+        <span class="phase-title">Pre-Sync Check</span>
+        <span class="phase-desc">Pod Status & Logs</span>
+      </div>
+      <div class="phase-body">
+        <p>Stelle sicher, dass Keycloak läuft und die Admin-Schnittstelle bereit ist:</p>
+        <pre><code><span class="fn">task</span> workspace:status ENV=&lt;env&gt;
+<span class="fn">task</span> workspace:logs ENV=&lt;env&gt; -- keycloak</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">2</span>
+        <span class="phase-title">Sync ausführen</span>
+        <span class="phase-desc">scripts/keycloak-sync.sh</span>
+      </div>
+      <div class="phase-body">
+        <p>Starte den Abgleich für das gewünschte Environment:</p>
+        <pre><code><span class="fn">task</span> keycloak:sync ENV=mentolder</code></pre>
+        <p>Das Script nutzt die Admin-API, um Clients, Scopes und Rollen zu aktualisieren.</p>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">3</span>
+        <span class="phase-title">Protocol Mapper ensure</span>
+        <span class="phase-desc">Custom Claims</span>
+      </div>
+      <div class="phase-body">
+        <p>Stelle sicher, dass spezialisierte Mapper (z.B. für JWT Claims) korrekt gesetzt sind:</p>
+        <pre><code><span class="fn">bash</span> scripts/keycloak-ensure-mappers.sh &lt;env&gt;</code></pre>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-header">
+        <span class="phase-num phase-num-red">4</span>
+        <span class="phase-title">SSO Test</span>
+        <span class="phase-desc">End-to-End Verifizierung</span>
+      </div>
+      <div class="phase-body">
+        <p>Testen des Login-Flows für die Website:</p>
+        <ul class="step-list">
+          <li>Öffne <code>https://web.&lt;domain&gt;</code> im Inkognito-Modus.</li>
+          <li>Prüfe Redirect auf <code>auth.&lt;domain&gt;</code>.</li>
+          <li>Login mit Test-User durchführen.</li>
+          <li>Verify Redirect zurück zur Website mit gültiger Session.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 class="section-label">Häufige Fehler nach Sync</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Symptom</th><th>Ursache</th><th>Lösung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Login-Loop</td><td>Falsche <code>redirectUris</code></td><td>Check JSON Clients → website</td></tr>
+        <tr><td>Nextcloud OIDC Error</td><td>Client-Secret Mismatch</td><td>SealedSecret rotieren & redeploy</td></tr>
+        <tr><td><code>401 Unauthorized</code></td><td>Admin-Credentials falsch</td><td>Check <code>keycloak-admin</code> Secret</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-label">Verbundene Skills</h2>
+  <div class="xref-grid">
+    <a href="secret-rotation.html" class="xref-card">
+      <span class="xref-name">secret-rotation</span>
+      <span class="xref-rel">Client Secrets in K8s aktualisieren</span>
+    </a>
+    <a href="mishap-tracker.html" class="xref-card">
+      <span class="xref-name">mishap-tracker</span>
+      <span class="xref-rel">Sync-Fehler dokumentieren</span>
+    </a>
+    <a href="incident-response.html" class="xref-card">
+      <span class="xref-name">incident-response</span>
+      <span class="xref-rel">Bei totalem SSO-Ausfall</span>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <span>Skills Übersicht / <code>.agents/skills/keycloak-realm-sync/SKILL.md</code></span>
+  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
+</footer>
+
+<script>
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  };
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>

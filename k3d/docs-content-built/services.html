@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Services — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Services</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#kern-services"><span class="toc-num">1.</span>&nbsp;Kern-Services</a></li>
+<li class="toc-item"><a href="#mcp--ki-integration"><span class="toc-num">2.</span>&nbsp;MCP &amp; KI-Integration</a></li>
+<li class="toc-item"><a href="#business-services"><span class="toc-num">3.</span>&nbsp;Business-Services</a></li>
+<li class="toc-item"><a href="#kollaboration"><span class="toc-num">4.</span>&nbsp;Kollaboration</a></li>
+<li class="toc-item"><a href="#infrastruktur-services"><span class="toc-num">5.</span>&nbsp;Infrastruktur-Services</a></li>
+<li class="toc-item"><a href="#ressourcen-uebersicht"><span class="toc-num">6.</span>&nbsp;Ressourcen-Uebersicht</a></li></ul>
+</div>
+<blockquote>
+<p><strong>Hinweis für Mitarbeiter:</strong> Eine verständliche Erklärung aller Dienste mit konkreten Anwendungsbeispielen findest Du im <a href="benutzerhandbuch.md">Benutzerhandbuch</a>. Diese Seite enthält die technischen Details für Administratoren.</p>
+</blockquote>
+<p>Alle Services laufen als Kubernetes Deployments. Jeder Service hat definierte Resource Requests/Limits und Health Checks.</p>
+<h2 id="kern-services">Kern-Services</h2>
+<h3>Keycloak (SSO)</h3>
+<p><strong>Für Mitarbeiter:</strong> Keycloak ist der zentrale Login-Dienst. Du loggst Dich einmal ein und bist danach automatisch in allen anderen Diensten angemeldet (Single Sign-On). Keycloak verwaltet auch Passwort-Regeln und Benutzerkonten.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>quay.io/keycloak/keycloak:26.6</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>8080</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://auth.localhost">http://auth.localhost</a></td>
+</tr>
+<tr>
+<td>Datenbank</td>
+<td>PostgreSQL (shared-db/keycloak)</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>250m--1 CPU, 512Mi--1Gi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/keycloak.yaml</code></td>
+</tr>
+</tbody></table>
+<p>OIDC-Provider fuer alle Services. Realm <code>workspace</code> wird beim Start automatisch importiert. Siehe <a href="keycloak.md">Keycloak &amp; SSO</a> fuer Details.</p>
+<h3>Nextcloud (Dateien + Talk)</h3>
+<p><strong>Für Mitarbeiter:</strong> Nextcloud ist Dein interner Cloud-Speicher. Hier lädst Du Dateien hoch, teilst Ordner mit Kollegen, führst Kalender und startest Videokonferenzen (über Nextcloud Talk). Dokumente lassen sich direkt im Browser bearbeiten.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>nextcloud:33-apache</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>80</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://files.localhost">http://files.localhost</a></td>
+</tr>
+<tr>
+<td>Datenbank</td>
+<td>PostgreSQL (shared-db/nextcloud)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>2 Gi (App) + 50 Gi (Daten)</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>200m CPU, 256Mi--1Gi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/nextcloud.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Dateiverwaltung mit Kalender, Kontakte, Talk (Video), Collabora-Integration. OIDC ueber <code>nextcloud-oidc-dev.php</code> ConfigMap. Apps werden nach Deploy per <code>task workspace:post-setup</code> aktiviert:</p>
+<ul>
+<li>calendar, contacts, oidc_login, richdocuments, spreed</li>
+</ul>
+<h3>Collabora Online (Office)</h3>
+<p><strong>Für Mitarbeiter:</strong> Collabora ist das integrierte Büroprogramm. Du kannst Word-, Excel- und PowerPoint-Dateien direkt im Browser öffnen und bearbeiten – ohne zusätzliche Software. Mehrere Personen können gleichzeitig am selben Dokument arbeiten. Collabora öffnet sich automatisch aus Nextcloud heraus, Du musst es nicht separat aufrufen.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>collabora/code:25.04.9.4.1</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>9980</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://office.localhost">http://office.localhost</a> (antwortet mit "OK" — kein eigenstaendiges UI)</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>200m CPU, 256Mi--1Gi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/collabora.yaml</code></td>
+</tr>
+</tbody></table>
+<p>LibreOffice-basiertes Online-Office. Verbunden mit Nextcloud ueber WOPI — Dokumente werden direkt aus Nextcloud heraus geoeffnet, nicht ueber die Collabora-URL. Woerterbuecher: Deutsch + Englisch.</p>
+<h3>Talk HPB (Signaling)</h3>
+<p><strong>Für Mitarbeiter:</strong> Dieser Dienst arbeitet unsichtbar im Hintergrund und sorgt dafür, dass Videokonferenzen in Nextcloud Talk stabil funktionieren. Du interagierst nicht direkt damit – er wird automatisch genutzt, wenn Du einen Videoanruf startest.</p>
+<p>Drei Deployments fuer WebRTC-Videokonferenzen:</p>
+<table>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Image</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>spreed-signaling</td>
+<td><code>strukturag/nextcloud-spreed-signaling:2.1.1</code></td>
+<td>8080</td>
+</tr>
+<tr>
+<td>Janus Gateway</td>
+<td><code>canyan/janus-gateway:master</code></td>
+<td>8188</td>
+</tr>
+<tr>
+<td>NATS</td>
+<td><code>nats:2.10-alpine</code></td>
+<td>4222</td>
+</tr>
+<tr>
+<td>coturn</td>
+<td><code>coturn/coturn:4.6-alpine</code></td>
+<td>3478</td>
+</tr>
+</tbody></table>
+<p><strong>Manifest:</strong> <code>k3d/talk-hpb.yaml</code> (signaling + Janus + NATS), <code>k3d/coturn.yaml</code></p>
+<p>Janus konfiguriert mit STUN/TURN ueber coturn. RTP-Port-Range: 20000--40000. Alle Konfigurationen ueber ConfigMaps inline im Manifest.</p>
+<h2 id="mcp--ki-integration">MCP &amp; KI-Integration</h2>
+<h3>Claude Code (MCP-Server)</h3>
+<p>Claude Code ist ein lokaler KI-Client (CLI/Desktop/IDE), der ueber MCP-Server (Model Context Protocol) mit dem Kubernetes-Cluster interagiert. Die MCP-Server laufen als Pods im Cluster; kein Web-UI ist oeffentlich exponiert.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MCP-Server</td>
+<td>9 Server in separaten Pods</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Anthropic API (Claude Sonnet 4)</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/claude-code-config.yaml</code>, <code>k3d/claude-code-rbac.yaml</code></td>
+</tr>
+</tbody></table>
+<p><strong>MCP-Server (k3d/):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Pod / Manifest</th>
+<th>Container</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>claude-code-mcp-ops.yaml</code></td>
+<td>mcp-kubernetes, mcp-postgres, mcp-meetings</td>
+<td>Cluster-Management, DB-Abfragen, Meeting-Daten</td>
+</tr>
+<tr>
+<td><code>claude-code-mcp-browser.yaml</code></td>
+<td>mcp-browser</td>
+<td>Playwright Browser-Automatisierung</td>
+</tr>
+<tr>
+<td><code>claude-code-mcp-auth.yaml</code></td>
+<td>mcp-keycloak</td>
+<td>Benutzer-/Rollenverwaltung</td>
+</tr>
+<tr>
+<td><code>claude-code-mcp-github.yaml</code></td>
+<td>mcp-github</td>
+<td>GitHub Repos, Issues, PRs (PAT erforderlich)</td>
+</tr>
+</tbody></table>
+<p><strong>Produktion (deploy/mcp/):</strong></p>
+<ul>
+<li><code>mcp-auth-proxy.yaml</code> -- ForwardAuth-Proxy fuer Token-Validierung (RBAC)</li>
+<li>Konsolidierte Pods: <code>claude-code-mcp-core.yaml</code>, <code>claude-code-mcp-auth.yaml</code></li>
+</ul>
+<p><strong>Zugehoerige Manifeste:</strong></p>
+<ul>
+<li><code>k3d/claude-code-config.yaml</code> -- Umgebungskonfiguration (MCP-URLs, API-Keys)</li>
+<li><code>k3d/claude-code-rbac.yaml</code> -- Kubernetes RBAC fuer MCP-Zugriff (ClusterRole + ServiceAccount)</li>
+<li><code>claude-code/system-prompt.md</code> -- System-Prompt fuer Claude Code</li>
+<li><code>claude-code/cluster.settings.json</code> -- MCP-Konfiguration fuer Cluster-Admin-Rolle</li>
+<li><code>claude-code/business.settings.json</code> -- MCP-Konfiguration fuer Business-Benutzer-Rolle</li>
+</ul>
+<h3>Whisper (Transkription, optional)</h3>
+<p><strong>Für Mitarbeiter:</strong> Whisper wandelt gesprochene Sprache automatisch in Text um (Spracherkennung). Dieser Dienst ist optional und wird nicht standardmäßig aktiviert.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>fedirz/faster-whisper-server:latest-cpu</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>8000</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>1--4 CPU, 2--4Gi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/whisper.yaml</code></td>
+</tr>
+</tbody></table>
+<p>CPU-basierte Spracherkennung mit dem Medium-Modell. GPU-Variante: <code>k3d/whisper-gpu.yaml</code>. Deploy: <code>task whisper:deploy</code>.</p>
+<h3>Talk Recording (Anruf-Aufzeichnung)</h3>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>nextcloud/aio-talk-recording</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>1234</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/talk-recording.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Firefox/geckodriver-basierter Aufzeichnungsservice fuer Nextcloud Talk. Tritt Anrufen ueber spreed-signaling bei und zeichnet Audio/Video auf. Aufnahmen werden im Nextcloud-Dateiverzeichnis des Anruf-Erstellers gespeichert.</p>
+<h3>Talk Transcriber (Live-Transkription)</h3>
+<p><strong>Für Mitarbeiter:</strong> Der Talk Transcriber transkribiert laufende Nextcloud-Talk-Videokonferenzen in Echtzeit und stellt das Transkript als Textdatei bereit.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>ghcr.io/paddione/talk-transcriber:latest</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>intern</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>nach Konfiguration</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/talk-transcriber.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Verbindet sich mit dem spreed-signaling-Server, nimmt am Anruf teil und uebertraegt Audio an den Whisper-Dienst zur Transkription.</p>
+<h2 id="business-services">Business-Services</h2>
+<h3>Vaultwarden (Passwoerter)</h3>
+<p><strong>Für Mitarbeiter:</strong> Vaultwarden ist der sichere Passwort-Safe des Teams. Hier speicherst Du Zugangsdaten und kannst sie sicher mit Kollegen teilen – alles verschlüsselt auf Deinen eigenen Servern. Du kannst auch das Bitwarden-Browser-Plugin nutzen, um Passwörter automatisch ausfüllen zu lassen. Achtung: Du benötigst ein eigenes Master-Passwort, das Du Dir gut merken musst.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>vaultwarden/server:1.35.3-alpine</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>80</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://vault.localhost">http://vault.localhost</a></td>
+</tr>
+<tr>
+<td>Datenbank</td>
+<td>PostgreSQL (shared-db/vaultwarden)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>5 Gi PVC</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>50m CPU, 64--256Mi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/vaultwarden.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Bitwarden-kompatibler Passwort-Manager mit SSO-Login ueber Keycloak. Seed-Job fuer initiale Ordnerstruktur: <code>task workspace:vaultwarden:seed</code>.</p>
+<h2 id="kollaboration">Kollaboration</h2>
+<h3>Whiteboard</h3>
+<p><strong>Für Mitarbeiter:</strong> Das digitale Whiteboard dient zum gemeinsamen Skizzieren, Brainstormen und Visualisieren – wie ein echtes Whiteboard in einem Besprechungsraum, nur online. Mehrere Personen können gleichzeitig zeichnen und schreiben.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>ghcr.io/nextcloud-releases/whiteboard:v1.5.7</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>3002</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://board.localhost">http://board.localhost</a></td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>100m CPU, 128--256Mi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/whiteboard.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Nextcloud-integriertes kollaboratives Whiteboard mit JWT-Authentifizierung.</p>
+<h2 id="infrastruktur-services">Infrastruktur-Services</h2>
+<h3>shared-db (PostgreSQL)</h3>
+<p><strong>Für Mitarbeiter:</strong> Die zentrale Datenbank. Du interagierst nicht direkt damit — sie laeuft im Hintergrund und speichert Daten aller Dienste sicher auf dem eigenen Server.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>pgvector/pgvector:0.8.0-pg16</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>5432</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>25 Gi PVC</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>100m CPU, 256Mi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/shared-db.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Gemeinsame PostgreSQL-16-Instanz fuer alle Services. Beherbergt separate Datenbanken und User fuer keycloak, nextcloud, vaultwarden und website. Zugriff per <code>task workspace:psql -- &lt;db&gt;</code> oder Port-Forward via <code>task workspace:port-forward</code>.</p>
+<h3>Mailpit (Dev-Mail)</h3>
+<p><strong>Für Mitarbeiter:</strong> Mailpit wird nur in der Entwicklungsumgebung verwendet und ist kein normaler E-Mail-Dienst. Es fängt alle ausgehenden E-Mails ab, damit sie nicht versehentlich echte Empfänger erreichen. In der Produktivumgebung wird ein normaler E-Mail-Server eingesetzt.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>axllent/mailpit:v1.29</code></td>
+</tr>
+<tr>
+<td>Ports</td>
+<td>1025 (SMTP), 8025 (Web UI)</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://mail.localhost">http://mail.localhost</a></td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>25m CPU, 32--128Mi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/mailpit.yaml</code></td>
+</tr>
+</tbody></table>
+<p>SMTP-Server fuer Entwicklung. Alle Services senden E-Mails an Mailpit.</p>
+<h3>Docs (Docsify)</h3>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>joseluisq/static-web-server:2.36-alpine</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>80</td>
+</tr>
+<tr>
+<td>URL</td>
+<td><a href="http://docs.localhost">http://docs.localhost</a> (SSO-geschuetzt)</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>10m CPU, 16--64Mi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/docs.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Static-Web-Server serviert die Docsify-Dokumentation aus einem Kubernetes ConfigMap. Kein Git-Sync -- Inhalte sind direkt im ConfigMap eingebettet. Zugriff ist per Keycloak-Login geschuetzt (oauth2-proxy-docs vorgelagert).</p>
+<h3>oauth2-proxy-docs (Docs SSO-Gateway)</h3>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Image</td>
+<td><code>quay.io/oauth2-proxy/oauth2-proxy:v7.9.0</code></td>
+</tr>
+<tr>
+<td>Port</td>
+<td>4180</td>
+</tr>
+<tr>
+<td>Upstream</td>
+<td><code>http://docs:80</code></td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>50m CPU, 64--128Mi RAM</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/oauth2-proxy-docs.yaml</code></td>
+</tr>
+</tbody></table>
+<p>Keycloak-OIDC-Proxy vor dem Docs-Dienst. Benutzer werden zur Keycloak-Anmeldeseite weitergeleitet; nach erfolgreicher Authentifizierung wird die Anfrage an <code>docs:80</code> weitergeleitet.</p>
+<h3>Messaging (Chat + Inbox)</h3>
+<p><strong>Für Mitarbeiter:</strong> Das integrierte Messaging-System der Website bietet Chat-Raeume (themenbasierte Gruppen), Direktnachrichten zwischen Kunden und Admins sowie eine zentrale Inbox fuer eingehende Anfragen (Kontaktformulare, Buchungen, Bug-Reports). Erreichbar ueber das Benutzer-Portal nach dem Login.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tabellen</td>
+<td><code>chat_rooms</code>, <code>chat_messages</code>, <code>message_threads</code>, <code>messages</code>, <code>inbox_items</code></td>
+</tr>
+<tr>
+<td>Datenbank</td>
+<td>PostgreSQL (shared-db/website)</td>
+</tr>
+<tr>
+<td>Ungelesen-Benachrichtigungen</td>
+<td><code>notify-unread-cronjob</code> (K8s CronJob)</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td>Eingebettet in <code>k3d/website-schema.yaml</code></td>
+</tr>
+</tbody></table>
+<h3>Website (Astro + Svelte)</h3>
+<p><strong>Für Mitarbeiter:</strong> Die öffentliche Unternehmenswebsite, die Besucher von außen sehen. Das Kontaktformular leitet Anfragen in die Admin-Inbox weiter.</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL</td>
+<td><a href="http://web.localhost">http://web.localhost</a></td>
+</tr>
+<tr>
+<td>Namespace</td>
+<td><code>website</code> (eigener Namespace)</td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>k3d/website.yaml</code></td>
+</tr>
+<tr>
+<td>Datenbank</td>
+<td>PostgreSQL (shared-db/website)</td>
+</tr>
+<tr>
+<td>Deploy</td>
+<td><code>task website:deploy</code></td>
+</tr>
+</tbody></table>
+<p>Multi-Brand-Unternehmenswebsite (mentolder / korczewski) mit:</p>
+<ul>
+<li><strong>Kontaktformular</strong> — leitet Anfragen in die Admin-Inbox</li>
+<li><strong>Leistungen-Seite</strong> — Preistabelle mit Kontakt-CTA</li>
+<li><strong>OIDC-Login</strong> — Keycloak SSO fuer Kunden und Administratoren</li>
+<li><strong>Messaging</strong> — Chat-Raeume, DMs, Inbox fuer eingehende Anfragen</li>
+<li><strong>Admin-Panel</strong> (<code>/admin</code>) — Brand-Konfiguration: Services, Leistungen, Site-Einstellungen, Rechtstexte, Referenzen</li>
+<li><strong>Projektmanagement</strong> (<code>/admin/projekte</code>) — Projekte, Teilprojekte und Aufgaben je Kunde; Gantt-Diagramm</li>
+<li><strong>Bug-Reporting</strong> — Formular (<code>/admin/bugs</code>) mit Ticket-Tracking in der <code>website</code>-Datenbank</li>
+<li><strong>Monitoring</strong> (<code>/admin/monitoring</code>) — Live-Uebersicht Pod-Status, Ressourcen und Events</li>
+</ul>
+<p>Admin: Siehe <a href="admin-projekte.md">Projektmanagement-Admin</a>.</p>
+<h2 id="ressourcen-uebersicht">Ressourcen-Uebersicht</h2>
+<div class="mermaid-svg-wrapper"><svg id="my-svg" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 571.844px; background-color: transparent;" viewBox="0 0 571.84375 538" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#my-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#my-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#my-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#my-svg .error-icon{fill:#552222;}#my-svg .error-text{fill:#552222;stroke:#552222;}#my-svg .edge-thickness-normal{stroke-width:1px;}#my-svg .edge-thickness-thick{stroke-width:3.5px;}#my-svg .edge-pattern-solid{stroke-dasharray:0;}#my-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#my-svg .edge-pattern-dashed{stroke-dasharray:3;}#my-svg .edge-pattern-dotted{stroke-dasharray:2;}#my-svg .marker{fill:#333333;stroke:#333333;}#my-svg .marker.cross{stroke:#333333;}#my-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#my-svg p{margin:0;}#my-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#my-svg .cluster-label text{fill:#333;}#my-svg .cluster-label span{color:#333;}#my-svg .cluster-label span p{background-color:transparent;}#my-svg .label text,#my-svg span{fill:#333;color:#333;}#my-svg .node rect,#my-svg .node circle,#my-svg .node ellipse,#my-svg .node polygon,#my-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#my-svg .rough-node .label text,#my-svg .node .label text,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-anchor:middle;}#my-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#my-svg .rough-node .label,#my-svg .node .label,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-align:center;}#my-svg .node.clickable{cursor:pointer;}#my-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#my-svg .arrowheadPath{fill:#333333;}#my-svg .edgePath .path{stroke:#333333;stroke-width:1px;}#my-svg .flowchart-link{stroke:#333333;fill:none;}#my-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#my-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#my-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#my-svg .cluster text{fill:#333;}#my-svg .cluster span{color:#333;}#my-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#my-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#my-svg rect.text{fill:none;stroke-width:0;}#my-svg .icon-shape,#my-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .icon-shape p,#my-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#my-svg .icon-shape .label rect,#my-svg .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#my-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#my-svg .node .neo-node{stroke:#9370DB;}#my-svg [data-look="neo"].node rect,#my-svg [data-look="neo"].cluster rect,#my-svg [data-look="neo"].node polygon{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node path{stroke:#9370DB;stroke-width:1px;}#my-svg [data-look="neo"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node .neo-line path{stroke:#9370DB;filter:none;}#my-svg [data-look="neo"].node circle{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node circle .state-start{fill:#000000;}#my-svg [data-look="neo"].icon-shape .icon{fill:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].icon-shape .icon-neo path{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="my-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="my-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="my-svg_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M81.814,268L94.499,237.833C107.183,207.667,132.553,147.333,148.737,117.167C164.922,87,171.922,87,175.422,87L178.922,87" id="my-svg-L_KC_NC_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_KC_NC_0" data-points="W3sieCI6ODEuODE0MDM5OTYzOTQyMywieSI6MjY4fSx7IngiOjE1Ny45MjE4NzUsInkiOjg3fSx7IngiOjE4Mi45MjE4NzUsInkiOjg3fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M93.167,268L103.96,255.167C114.752,242.333,136.337,216.667,153.111,203.833C169.885,191,181.849,191,187.831,191L193.813,191" id="my-svg-L_KC_VW_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_KC_VW_0" data-points="W3sieCI6OTMuMTY3MTQyNDI3ODg0NjEsInkiOjI2OH0seyJ4IjoxNTcuOTIxODc1LCJ5IjoxOTF9LHsieCI6MTk3LjgxMjUsInkiOjE5MX1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M132.922,295L137.089,295C141.255,295,149.589,295,157.255,295C164.922,295,171.922,295,175.422,295L178.922,295" id="my-svg-L_KC_WEB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_KC_WEB_0" data-points="W3sieCI6MTMyLjkyMTg3NSwieSI6Mjk1fSx7IngiOjE1Ny45MjE4NzUsInkiOjI5NX0seyJ4IjoxODIuOTIxODc1LCJ5IjoyOTV9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M93.167,322L103.96,334.833C114.752,347.667,136.337,373.333,154.644,386.167C172.951,399,187.979,399,195.493,399L203.008,399" id="my-svg-L_KC_DS_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_KC_DS_0" data-points="W3sieCI6OTMuMTY3MTQyNDI3ODg0NjEsInkiOjMyMn0seyJ4IjoxNTcuOTIxODc1LCJ5IjozOTl9LHsieCI6MjA3LjAwNzgxMjUsInkiOjM5OX1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M81.814,322L94.499,352.167C107.183,382.333,132.553,442.667,153.469,472.833C174.385,503,190.849,503,199.081,503L207.313,503" id="my-svg-L_KC_TR_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_KC_TR_0" data-points="W3sieCI6ODEuODE0MDM5OTYzOTQyMywieSI6MzIyfSx7IngiOjE1Ny45MjE4NzUsInkiOjUwM30seyJ4IjoyMTEuMzEyNSwieSI6NTAzfV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M330.77,60L339.886,55.833C349.003,51.667,367.236,43.333,381.927,39.167C396.617,35,407.766,35,413.34,35L418.914,35" id="my-svg-L_NC_CO_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_CO_0" data-points="W3sieCI6MzMwLjc2OTk4MTk3MTE1Mzg3LCJ5Ijo2MH0seyJ4IjozODUuNDY4NzUsInkiOjM1fSx7IngiOjQyMi45MTQwNjI1LCJ5IjozNX1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M330.77,114L339.886,118.167C349.003,122.333,367.236,130.667,380.815,134.833C394.393,139,403.318,139,407.78,139L412.242,139" id="my-svg-L_NC_WB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_WB_0" data-points="W3sieCI6MzMwLjc2OTk4MTk3MTE1Mzg3LCJ5IjoxMTR9LHsieCI6Mzg1LjQ2ODc1LCJ5IjoxMzl9LHsieCI6NDE2LjI0MjE4NzUsInkiOjEzOX1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M330.77,268L339.886,263.833C349.003,259.667,367.236,251.333,383.631,247.167C400.026,243,414.583,243,421.862,243L429.141,243" id="my-svg-L_WEB_LK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_WEB_LK_0" data-points="W3sieCI6MzMwLjc2OTk4MTk3MTE1Mzg3LCJ5IjoyNjh9LHsieCI6Mzg1LjQ2ODc1LCJ5IjoyNDN9LHsieCI6NDMzLjE0MDYyNSwieSI6MjQzfV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M330.77,322L339.886,326.167C349.003,330.333,367.236,338.667,379.852,342.833C392.469,347,399.469,347,402.969,347L406.469,347" id="my-svg-L_WEB_CHAT_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_WEB_CHAT_0" data-points="W3sieCI6MzMwLjc2OTk4MTk3MTE1Mzg3LCJ5IjozMjJ9LHsieCI6Mzg1LjQ2ODc1LCJ5IjozNDd9LHsieCI6NDEwLjQ2ODc1LCJ5IjozNDd9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_KC_NC_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_KC_VW_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_KC_WEB_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_KC_DS_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_KC_TR_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_NC_CO_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_NC_WB_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_WEB_LK_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_WEB_CHAT_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="my-svg-flowchart-KC-0" data-look="classic" transform="translate(70.4609375, 295)"><rect class="basic label-container" style="" x="-62.4609375" y="-27" width="124.921875" height="54"></rect><g class="label" style="" transform="translate(-32.4609375, -12)"><rect></rect><foreignObject width="64.921875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Keycloak</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-NC-1" data-look="classic" transform="translate(271.6953125, 87)"><rect class="basic label-container" style="" x="-88.7734375" y="-27" width="177.546875" height="54"></rect><g class="label" style="" transform="translate(-58.7734375, -12)"><rect></rect><foreignObject width="117.546875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Nextcloud + Talk</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-VW-3" data-look="classic" transform="translate(271.6953125, 191)"><rect class="basic label-container" style="" x="-73.8828125" y="-27" width="147.765625" height="54"></rect><g class="label" style="" transform="translate(-43.8828125, -12)"><rect></rect><foreignObject width="87.765625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Vaultwarden</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-WEB-5" data-look="classic" transform="translate(271.6953125, 295)"><rect class="basic label-container" style="" x="-88.7734375" y="-27" width="177.546875" height="54"></rect><g class="label" style="" transform="translate(-58.7734375, -12)"><rect></rect><foreignObject width="117.546875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Website + Portal</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-DS-7" data-look="classic" transform="translate(271.6953125, 399)"><rect class="basic label-container" style="" x="-64.6875" y="-27" width="129.375" height="54"></rect><g class="label" style="" transform="translate(-34.6875, -12)"><rect></rect><foreignObject width="69.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>DocuSeal</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-TR-9" data-look="classic" transform="translate(271.6953125, 503)"><rect class="basic label-container" style="" x="-60.3828125" y="-27" width="120.765625" height="54"></rect><g class="label" style="" transform="translate(-30.3828125, -12)"><rect></rect><foreignObject width="60.765625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Tracking</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-CO-11" data-look="classic" transform="translate(487.15625, 35)"><rect class="basic label-container" style="" x="-64.2421875" y="-27" width="128.484375" height="54"></rect><g class="label" style="" transform="translate(-34.2421875, -12)"><rect></rect><foreignObject width="68.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Collabora</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-WB-13" data-look="classic" transform="translate(487.15625, 139)"><rect class="basic label-container" style="" x="-70.9140625" y="-27" width="141.828125" height="54"></rect><g class="label" style="" transform="translate(-40.9140625, -12)"><rect></rect><foreignObject width="81.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Whiteboard</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-LK-15" data-look="classic" transform="translate(487.15625, 243)"><rect class="basic label-container" style="" x="-54.015625" y="-27" width="108.03125" height="54"></rect><g class="label" style="" transform="translate(-24.015625, -12)"><rect></rect><foreignObject width="48.03125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>LiveKit</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-CHAT-17" data-look="classic" transform="translate(487.15625, 347)"><rect class="basic label-container" style="" x="-76.6875" y="-27" width="153.375" height="54"></rect><g class="label" style="" transform="translate(-46.6875, -12)"><rect></rect><foreignObject width="93.375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Custom Chat</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="my-svg-drop-shadow" height="130%" width="130%"><fedropshadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs><defs><filter id="my-svg-drop-shadow-small" height="150%" width="150%"><fedropshadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs></svg><span class="mermaid-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

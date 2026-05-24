@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin-Webinterface — Benutzerhandbuch — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item active"><a href="./admin-webinterface.html" class="active">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Admin-Webinterface — Benutzerhandbuch</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#zugang"><span class="toc-num">1.</span>&nbsp;Zugang</a></li>
+<li class="toc-item"><a href="#uebersicht-aller-bereiche"><span class="toc-num">2.</span>&nbsp;Übersicht aller Bereiche</a></li>
+<li class="toc-item"><a href="#bereiche-im-detail"><span class="toc-num">3.</span>&nbsp;Bereiche im Detail</a></li>
+<li class="toc-item"><a href="#haeufige-probleme"><span class="toc-num">4.</span>&nbsp;Häufige Probleme</a></li>
+<li class="toc-item"><a href="#weiterfuehrende-dokumentation"><span class="toc-num">5.</span>&nbsp;Weiterführende Dokumentation</a></li></ul>
+</div>
+<p>Das Admin-Panel ist die zentrale Verwaltungsoberfläche der Website. Es ermöglicht die Verwaltung von Kunden, Projekten, Terminen, Rechnungen, Inhalten und Systeminformationen — alles über den Browser, ohne direkten Serverzugriff.</p>
+<hr>
+<h2 id="zugang">Zugang</h2>
+<table>
+<thead>
+<tr>
+<th>Umgebung</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mentolder</td>
+<td><code>https://web.mentolder.de/admin</code></td>
+</tr>
+<tr>
+<td>korczewski</td>
+<td><code>https://web.korczewski.de/admin</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Für Entwicklung steht zusätzlich <code>http://web.localhost/admin</code> im lokalen k3d-Cluster zur Verfügung.</p>
+</blockquote>
+<p><strong>Voraussetzung:</strong> Workspace-Konto mit der Gruppe <code>workspace-admins</code>. Ohne Login wirst Du zur zentralen Anmeldeseite (Keycloak SSO) weitergeleitet. Konten ohne Admin-Rechte werden automatisch auf das Kundenportal (<code>/portal</code>) gelenkt.</p>
+<hr>
+<h2 id="uebersicht-aller-bereiche">Übersicht aller Bereiche</h2>
+<table>
+<thead>
+<tr>
+<th>Bereich</th>
+<th>Pfad</th>
+<th>Kurzbeschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Inbox</td>
+<td><code>/admin/inbox</code></td>
+<td>Eingehende Kontaktanfragen</td>
+</tr>
+<tr>
+<td>Nachrichten</td>
+<td><code>/admin/nachrichten</code></td>
+<td>Kunden-Chats und Direktnachrichten</td>
+</tr>
+<tr>
+<td>Räume</td>
+<td><code>/admin/raeume</code></td>
+<td>Gruppenkanäle verwalten</td>
+</tr>
+<tr>
+<td>Kunden</td>
+<td><code>/admin/clients</code></td>
+<td>Kundenverwaltung und -profile</td>
+</tr>
+<tr>
+<td>Kundenprofil</td>
+<td><code>/admin/[clientId]</code></td>
+<td>Detailansicht eines Kunden</td>
+</tr>
+<tr>
+<td>Projekte</td>
+<td><code>/admin/projekte</code></td>
+<td>Projektmanagement mit Gantt-Diagramm</td>
+</tr>
+<tr>
+<td>Kalender</td>
+<td><code>/admin/kalender</code></td>
+<td>Aufgabenkalender (Monatsansicht)</td>
+</tr>
+<tr>
+<td>Termine</td>
+<td><code>/admin/termine</code></td>
+<td>Buchungsverwaltung und Slot-Konfiguration</td>
+</tr>
+<tr>
+<td>Follow-ups</td>
+<td><code>/admin/followups</code></td>
+<td>Wiedervorlagen und Erinnerungsaufgaben</td>
+</tr>
+<tr>
+<td>Zeiterfassung</td>
+<td><code>/admin/zeiterfassung</code></td>
+<td>Arbeitszeiterfassung und CSV-Export</td>
+</tr>
+<tr>
+<td>Rechnungen</td>
+<td><code>/admin/rechnungen</code></td>
+<td>Rechnungserstellung (ZUGFeRD-PDF, SEPA-Lastschrift)</td>
+</tr>
+<tr>
+<td>Meetings</td>
+<td><code>/admin/meetings</code></td>
+<td>Aufgezeichnete Meetings und Transkripte</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td><code>/admin/monitoring</code></td>
+<td>Live-Kubernetes-Cluster-Übersicht</td>
+</tr>
+<tr>
+<td>Bugs</td>
+<td><code>/admin/bugs</code></td>
+<td>Bug-Reports und Ticket-Tracking</td>
+</tr>
+<tr>
+<td>Startseite</td>
+<td><code>/admin/startseite</code></td>
+<td>Inhalte der Startseite bearbeiten</td>
+</tr>
+<tr>
+<td>Leistungen</td>
+<td><code>/admin/angebote</code></td>
+<td>Dienstleistungen und Preise pflegen</td>
+</tr>
+<tr>
+<td>Über mich</td>
+<td><code>/admin/uebermich</code></td>
+<td>„Über mich"-Seite bearbeiten</td>
+</tr>
+<tr>
+<td>Referenzen</td>
+<td><code>/admin/referenzen</code></td>
+<td>Kundennachweise verwalten</td>
+</tr>
+<tr>
+<td>Kontakt</td>
+<td><code>/admin/kontakt</code></td>
+<td>Kontaktseite bearbeiten</td>
+</tr>
+<tr>
+<td>FAQ</td>
+<td><code>/admin/faq</code></td>
+<td>Häufige Fragen bearbeiten</td>
+</tr>
+<tr>
+<td>Rechtliches</td>
+<td><code>/admin/rechtliches</code></td>
+<td>Impressum, Datenschutz, AGB, Barrieref.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="bereiche-im-detail">Bereiche im Detail</h2>
+<h3>Inbox <code>/admin/inbox</code></h3>
+<p>Zeigt alle eingehenden Kontaktanfragen gruppiert nach Status. Statusübersichten (offen, bearbeitet, archiviert) werden als Zählerkarten dargestellt.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Nachrichten filtern (nach Typ und Status)</li>
+<li>Einzelne Anfrage aufrufen und beantworten</li>
+<li>Als bearbeitet markieren oder archivieren</li>
+</ul>
+<hr>
+<h3>Nachrichten <code>/admin/nachrichten</code></h3>
+<p>Thread-basierte Messaging-Zentrale für die Kundenkommunikation. Zeigt alle laufenden Gespräche mit Kunden.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Kundenkonversation auswählen und lesen</li>
+<li>Direkt antworten (Admin-Antwort erscheint im Kundenportal)</li>
+<li>Neues Gespräch mit einem Kunden starten</li>
+</ul>
+<hr>
+<h3>Räume <code>/admin/raeume</code></h3>
+<p>Verwaltung von Gruppenkanälen (Chat-Räumen), die mehrere Teilnehmer umfassen können.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Bestehende Räume anzeigen und betreten</li>
+<li>Nachrichten in Gruppenkanälen lesen und senden</li>
+</ul>
+<hr>
+<h3>Kunden <code>/admin/clients</code></h3>
+<p>Listet alle Keycloak-Benutzer als Kunden auf. Einstiegspunkt für die Kundendetailansicht.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Neuen Kunden anlegen (Keycloak-Konto wird erstellt)</li>
+<li>Kundenstatus ein-/ausblenden</li>
+<li>Zum Kundenprofil navigieren</li>
+</ul>
+<hr>
+<h3>Kundenprofil <code>/admin/[clientId]</code></h3>
+<p>Detailansicht eines einzelnen Kunden mit Tabs für alle kundenbezogenen Daten.</p>
+<p><strong>Tabs:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Inhalt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Buchungen</td>
+<td>Termine des Kunden; neue Buchung für den Kunden erstellen</td>
+</tr>
+<tr>
+<td>Rechnungen</td>
+<td>Rechnungen des Kunden; Status und Links</td>
+</tr>
+<tr>
+<td>Notizen</td>
+<td>Interne Notizen zu diesem Kunden</td>
+</tr>
+<tr>
+<td>Dateien</td>
+<td>Hochgeladene Dokumente des Kunden</td>
+</tr>
+<tr>
+<td>Signaturen</td>
+<td>Unterzeichnete Dokumente</td>
+</tr>
+<tr>
+<td>Meetings</td>
+<td>Aufgezeichnete Meetings mit diesem Kunden</td>
+</tr>
+<tr>
+<td>Onboarding</td>
+<td>Onboarding-Status und Checkliste</td>
+</tr>
+</tbody></table>
+<p>Zusätzlich: Keycloak-Rollen des Kunden anzeigen und anpassen.</p>
+<hr>
+<h3>Projekte <code>/admin/projekte</code></h3>
+<p>Vollständiges Projektmanagementsystem mit Gantt-Diagramm.</p>
+<p><strong>Datenstruktur:</strong></p>
+<div class="code-wrapper"><pre><code>Kunde → Projekt → Teilprojekt → Aufgabe
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Projekte anlegen, bearbeiten, löschen</li>
+<li>Teilprojekte und Aufgaben zuordnen</li>
+<li>Status setzen: <code>entwurf → wartend → geplant → aktiv → erledigt → archiviert</code></li>
+<li>Priorität: <code>hoch | mittel | niedrig</code></li>
+<li>Nach Status, Priorität oder Freitext filtern</li>
+<li>Gantt-Diagramm anzeigen (Zeitachse aller terminierten Projekte)</li>
+<li>CSV-Export aller Projekte (<code>/api/admin/projekte/export</code>)</li>
+<li>Statistik-Kacheln: Gesamt / Aktiv / Überfällig / Erledigt</li>
+</ul>
+<p>Detailseite eines Projekts: <code>/admin/projekte/[id]</code></p>
+<hr>
+<h3>Kalender <code>/admin/kalender</code></h3>
+<p>Monatsansicht aller Aufgaben aus dem Projektmanagementsystem.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Monat vor-/zurückblättern</li>
+<li>Aufgaben nach Priorität und Status farblich differenziert anzeigen</li>
+<li>Auf eine Aufgabe klicken → Weiterleitung zur Projektdetailseite</li>
+</ul>
+<hr>
+<h3>Termine <code>/admin/termine</code></h3>
+<p>Verwaltung aller Buchungen (Termine, Beratungsgespräche).</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Alle Buchungen anzeigen (kommende / vergangene)</li>
+<li>Termin bestätigen oder stornieren</li>
+<li>Termin einem Projekt oder einer Leistung zuordnen</li>
+<li>Rechnung mit einem Termin verknüpfen</li>
+<li>Slot-Whitelist verwalten (erlaubte Buchungszeiten konfigurieren)</li>
+</ul>
+<hr>
+<h3>Follow-ups <code>/admin/followups</code></h3>
+<p>Wiedervorlagen und Erinnerungsaufgaben mit Kundenbezug.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Follow-up-Liste einsehen (offen / erledigt / überfällig)</li>
+<li>Neues Follow-up mit Fälligkeitsdatum erstellen</li>
+<li>Als erledigt markieren oder löschen</li>
+<li>Kontaktdaten des zugehörigen Kunden direkt einsehen</li>
+</ul>
+<hr>
+<h3>Zeiterfassung <code>/admin/zeiterfassung</code></h3>
+<p>Erfassung und Auswertung von Arbeitszeiten.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Zeiteintrag hinzufügen (Datum, Dauer, Beschreibung, abrechenbar ja/nein)</li>
+<li>Einträge nach abrechenbar / nicht-abrechenbar filtern</li>
+<li>Zeiteintrag löschen</li>
+<li>CSV-Export aller Einträge</li>
+<li>Stundensatz konfigurieren</li>
+<li>KPI-Kacheln: Gesamtstunden, abrechenbare Stunden, Umsatz</li>
+</ul>
+<hr>
+<h3>Rechnungen <code>/admin/rechnungen</code></h3>
+<p>Rechnungserstellung und -verwaltung mit ZUGFeRD-Integration.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Neue Rechnung als Entwurf erstellen</li>
+<li>Status filtern: offen / bezahlt / überfällig</li>
+<li>ZUGFeRD-konformes PDF herunterladen</li>
+<li>KPI-Kacheln: Offene Forderungen, Einnahmen, überfällige Rechnungen</li>
+</ul>
+<hr>
+<h3>Meetings <code>/admin/meetings</code></h3>
+<p>Übersicht aller aufgezeichneten Videokonferenzen.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Meetings filtern (alle / nicht zugewiesen)</li>
+<li>Status, Transkript-Verfügbarkeit und Artefakte einsehen</li>
+<li>Zur Meeting-Detailseite navigieren (<code>/admin/meetings/[id]</code>)</li>
+<li>Transkript lesen oder herunterladen</li>
+</ul>
+<hr>
+<h3>Monitoring <code>/admin/monitoring</code></h3>
+<p>Live-Systemübersicht des Kubernetes-Clusters.</p>
+<p><strong>Angezeigt werden:</strong></p>
+<ul>
+<li>Pod-Status aller Dienste (Running / Pending / Error)</li>
+<li>CPU- und RAM-Auslastung pro Pod</li>
+<li>Kubernetes-Events (Fehler, Warnungen)</li>
+</ul>
+<p>Kein direktes Eingreifen möglich — reine Leseansicht. Für Aktionen: CLI-Befehle im <a href="adminhandbuch.md">Adminhandbuch</a>.</p>
+<hr>
+<h3>Bugs <code>/admin/bugs</code></h3>
+<p>Ticket-System für eingehende Bug-Reports von Nutzern.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Tickets nach Status und Kategorie filtern</li>
+<li>Freitextsuche über alle Tickets</li>
+<li>Screenshot in Lightbox anzeigen</li>
+<li>Ticket als gelöst markieren (mit optionaler Notiz)</li>
+<li>Ticket archivieren oder löschen</li>
+</ul>
+<p>Tickets werden über das Bug-Report-Formular auf der Website erstellt (Endnutzer-seitig).</p>
+<hr>
+<h3>Startseite <code>/admin/startseite</code></h3>
+<p>Inhaltseditor für die öffentliche Startseite.</p>
+<p><strong>Bearbeitbare Bereiche:</strong></p>
+<ul>
+<li>Hero-Sektion: Tagline, Titel, Untertitel</li>
+<li>Vertrauens-Statistiken (Kennzahlen)</li>
+<li>Leistungs-Sektion</li>
+<li>„Warum ich?"-Punkte</li>
+<li>Portrait-Bild und Initialen-Fallback</li>
+<li>Zitat / Testimonial auf der Startseite</li>
+</ul>
+<hr>
+<h3>Leistungen <code>/admin/angebote</code></h3>
+<p>Pflege der angebotenen Dienstleistungen und Preise.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Leistungskarten bearbeiten (Titel, Icon, Preis, Funktionen)</li>
+<li>Detailseiten-Inhalt pro Leistung anpassen</li>
+<li>Preistabelle (Stundensätze und Pakete) bearbeiten</li>
+<li>URL zur Preisliste konfigurieren</li>
+</ul>
+<hr>
+<h3>Über mich <code>/admin/uebermich</code></h3>
+<p>Editor für die „Über mich"-Seite.</p>
+<p><strong>Bearbeitbare Bereiche:</strong></p>
+<ul>
+<li>Einleitungstexte (mehrere Absätze)</li>
+<li>Inhaltssektionen mit Titel und Fließtext</li>
+<li>Karriere-Meilensteine (Zeitstrahl)</li>
+<li>„Was ich nicht mache"-Liste</li>
+<li>Private Textvorlage (intern, nicht öffentlich)</li>
+</ul>
+<hr>
+<h3>Referenzen <code>/admin/referenzen</code></h3>
+<p>Verwaltung öffentlicher Kundenreferenzen.</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Neue Referenz hinzufügen (Name, URL, Logo, Beschreibung)</li>
+<li>Bestehende Referenz bearbeiten oder löschen</li>
+<li>Vorschau-Link zur öffentlichen Referenzseite</li>
+</ul>
+<hr>
+<h3>Kontakt <code>/admin/kontakt</code></h3>
+<p>Editor für die Kontaktseite.</p>
+<p><strong>Bearbeitbare Bereiche:</strong></p>
+<ul>
+<li>Einleitungstext der Kontaktseite</li>
+<li>Sidebar-Box (Titel, Inhalt, Call-to-Action-Button)</li>
+<li>Telefonnummer-Sichtbarkeit ein-/ausschalten</li>
+</ul>
+<hr>
+<h3>FAQ <code>/admin/faq</code></h3>
+<p>Verwaltung der häufig gestellten Fragen (wird auf der Startseite angezeigt).</p>
+<p><strong>Aktionen:</strong></p>
+<ul>
+<li>Neue Frage/Antwort-Paar hinzufügen</li>
+<li>Reihenfolge ändern (nach oben / nach unten verschieben)</li>
+<li>Eintrag löschen (Felder leeren und speichern)</li>
+</ul>
+<hr>
+<h3>Rechtliches <code>/admin/rechtliches</code></h3>
+<p>Editor für rechtlich relevante Seiten mit HTML-Eingabefeldern.</p>
+<p><strong>Bearbeitbare Seiten:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Seite</th>
+<th>Live-Vorschau</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Impressum (Ergänzung)</td>
+<td><code>/impressum</code></td>
+</tr>
+<tr>
+<td>Datenschutzerklärung</td>
+<td><code>/datenschutz</code></td>
+</tr>
+<tr>
+<td>AGB</td>
+<td><code>/agb</code></td>
+</tr>
+<tr>
+<td>Barrierefreiheitserklärung</td>
+<td><code>/barrierefreiheit</code></td>
+</tr>
+</tbody></table>
+<p>Änderungen werden sofort gespeichert und auf der öffentlichen Seite sichtbar.</p>
+<hr>
+<h2 id="haeufige-probleme">Häufige Probleme</h2>
+<h3>Weiterleitung auf /portal statt /admin</h3>
+<p>Die Workspace-Gruppe <code>workspace-admins</code> fehlt für dieses Konto. Behebung im Keycloak Admin-UI:</p>
+<ol>
+<li><code>https://auth.{DOMAIN}/admin</code> öffnen (z. B. <code>https://auth.mentolder.de/admin</code>)</li>
+<li>Realm <strong>workspace</strong> wählen</li>
+<li><strong>Benutzer</strong> → den betreffenden Benutzer öffnen</li>
+<li>Reiter <strong>Gruppen</strong> → <code>workspace-admins</code> zuweisen</li>
+<li>Benutzer aus- und wieder einloggen lassen</li>
+</ol>
+<h3>Admin-Panel lädt nicht / 500-Fehler</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:logs -- website
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Häufige Ursachen: Datenbankverbindung unterbrochen, Keycloak nicht erreichbar.</p>
+<h3>Änderungen werden nicht gespeichert</h3>
+<ol>
+<li>Netzwerkfehler im Browser prüfen (F12 → Konsole)</li>
+<li>Session abgelaufen → neu anmelden</li>
+<li>Website-Logs prüfen: <code>task workspace:logs -- website</code></li>
+</ol>
+<h3>Monitoring zeigt keine Daten</h3>
+<p>Das Monitoring-Panel benötigt Zugriff auf die Kubernetes-API. Im lokalen k3d-Cluster ist dieser Zugang eingeschränkt. In der Produktion werden Daten über die MCP-Kubernetes-Integration abgerufen.</p>
+<hr>
+<h2 id="weiterfuehrende-dokumentation">Weiterführende Dokumentation</h2>
+<table>
+<thead>
+<tr>
+<th>Thema</th>
+<th>Dokument</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Benutzerverwaltung (Keycloak)</td>
+<td><a href="adminhandbuch.md#benutzerverwaltung">Adminhandbuch</a></td>
+</tr>
+<tr>
+<td>Projektmanagement (API-Details)</td>
+<td><a href="admin-projekte.md">Projektmanagement-Admin</a></td>
+</tr>
+<tr>
+<td>Monitoring (CLI)</td>
+<td><a href="adminhandbuch.md#monitoring--observability">Adminhandbuch → Monitoring</a></td>
+</tr>
+<tr>
+<td>Fehlerbehebung</td>
+<td><a href="troubleshooting.md">Fehlerbehebung</a></td>
+</tr>
+</tbody></table>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Nextcloud — Dateiverwaltung, Kalender &amp; Talk — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item active"><a href="./nextcloud.html" class="active">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Nextcloud — Dateiverwaltung, Kalender &amp; Talk</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#uebersicht"><span class="toc-num">1.</span>&nbsp;Übersicht</a></li>
+<li class="toc-item"><a href="#aktivierte-apps"><span class="toc-num">2.</span>&nbsp;Aktivierte Apps</a></li>
+<li class="toc-item"><a href="#oidc-integration"><span class="toc-num">3.</span>&nbsp;OIDC-Integration</a></li>
+<li class="toc-item"><a href="#redis-cache"><span class="toc-num">4.</span>&nbsp;Redis-Cache</a></li>
+<li class="toc-item"><a href="#collabora-integration"><span class="toc-num">5.</span>&nbsp;Collabora-Integration</a></li>
+<li class="toc-item"><a href="#talk--video-calls"><span class="toc-num">6.</span>&nbsp;Talk / Video-Calls</a></li>
+<li class="toc-item"><a href="#konfiguration"><span class="toc-num">7.</span>&nbsp;Konfiguration</a></li>
+<li class="toc-item"><a href="#betrieb"><span class="toc-num">8.</span>&nbsp;Betrieb</a></li>
+<li class="toc-item"><a href="#fehlerbehebung"><span class="toc-num">9.</span>&nbsp;Fehlerbehebung</a></li></ul>
+</div>
+<h2 id="uebersicht">Übersicht</h2>
+<p>Nextcloud ist die zentrale Dateiverwaltungs- und Kollaborationsplattform des Workspace MVP. Es stellt folgende Funktionen bereit:</p>
+<ul>
+<li><strong>Dateien</strong>: Hochladen, teilen, versionieren und gemeinsam bearbeiten</li>
+<li><strong>Kalender &amp; Kontakte</strong>: Gruppen- und Einzelkalender, Adressbuch</li>
+<li><strong>Talk</strong>: Video- und Audioanrufe sowie Gruppen-Chat direkt im Browser</li>
+<li><strong>Office-Dokumente</strong>: Gemeinsames Bearbeiten von Dokumenten, Tabellen und Präsentationen via Collabora Online</li>
+<li><strong>Whiteboard</strong>: Kollaboratives Zeichnen und Brainstormen</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Umgebung</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dev (k3d)</td>
+<td><a href="http://files.localhost">http://files.localhost</a></td>
+</tr>
+<tr>
+<td>Produktion</td>
+<td><a href="https://files.korczewski.de">https://files.korczewski.de</a></td>
+</tr>
+</tbody></table>
+<p><strong>Image:</strong> <code>nextcloud:33-apache</code></p>
+<p><strong>Abhängigkeiten:</strong> PostgreSQL (Datenbank), Redis (Cache &amp; Locking), Collabora (Office), Talk HPB/Signaling (Video-Calls)</p>
+<div class="mermaid-svg-wrapper"><svg id="my-svg" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 802.027px; background-color: transparent;" viewBox="0 0 802.02685546875 610.1355590820312" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#my-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#my-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#my-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#my-svg .error-icon{fill:#552222;}#my-svg .error-text{fill:#552222;stroke:#552222;}#my-svg .edge-thickness-normal{stroke-width:1px;}#my-svg .edge-thickness-thick{stroke-width:3.5px;}#my-svg .edge-pattern-solid{stroke-dasharray:0;}#my-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#my-svg .edge-pattern-dashed{stroke-dasharray:3;}#my-svg .edge-pattern-dotted{stroke-dasharray:2;}#my-svg .marker{fill:#333333;stroke:#333333;}#my-svg .marker.cross{stroke:#333333;}#my-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#my-svg p{margin:0;}#my-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#my-svg .cluster-label text{fill:#333;}#my-svg .cluster-label span{color:#333;}#my-svg .cluster-label span p{background-color:transparent;}#my-svg .label text,#my-svg span{fill:#333;color:#333;}#my-svg .node rect,#my-svg .node circle,#my-svg .node ellipse,#my-svg .node polygon,#my-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#my-svg .rough-node .label text,#my-svg .node .label text,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-anchor:middle;}#my-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#my-svg .rough-node .label,#my-svg .node .label,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-align:center;}#my-svg .node.clickable{cursor:pointer;}#my-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#my-svg .arrowheadPath{fill:#333333;}#my-svg .edgePath .path{stroke:#333333;stroke-width:1px;}#my-svg .flowchart-link{stroke:#333333;fill:none;}#my-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#my-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#my-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#my-svg .cluster text{fill:#333;}#my-svg .cluster span{color:#333;}#my-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#my-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#my-svg rect.text{fill:none;stroke-width:0;}#my-svg .icon-shape,#my-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .icon-shape p,#my-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#my-svg .icon-shape .label rect,#my-svg .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#my-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#my-svg .node .neo-node{stroke:#9370DB;}#my-svg [data-look="neo"].node rect,#my-svg [data-look="neo"].cluster rect,#my-svg [data-look="neo"].node polygon{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node path{stroke:#9370DB;stroke-width:1px;}#my-svg [data-look="neo"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node .neo-line path{stroke:#9370DB;filter:none;}#my-svg [data-look="neo"].node circle{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node circle .state-start{fill:#000000;}#my-svg [data-look="neo"].icon-shape .icon{fill:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].icon-shape .icon-neo path{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="my-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="my-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="my-svg_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M91.917,315.636L100.372,315.552C108.826,315.469,125.735,315.302,142.061,315.219C158.386,315.136,174.128,315.136,181.999,315.136L189.871,315.136" id="my-svg-L_User_NC_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_User_NC_0" data-points="W3sieCI6OTEuOTE3NDYyNDMxODI4MTYsInkiOjMxNS42MzU1MzYxOTM4NDc3fSx7IngiOjE0Mi42NDQwMjc3MDk5NjA5NCwieSI6MzE1LjEzNTUzNjE5Mzg0NzY2fSx7IngiOjE5My44NzA1OTAyMDk5NjA5NCwieSI6MzE1LjEzNTUzNjE5Mzg0NzY2fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M270.321,288.136L287.31,245.946C304.298,203.757,338.276,119.379,363.878,77.189C389.48,35,406.707,35,415.32,35L423.933,35" id="my-svg-L_NC_KC_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_KC_0" data-points="W3sieCI6MjcwLjMyMTA0NzIzODUyNzM0LCJ5IjoyODguMTM1NTM2MTkzODQ3NjZ9LHsieCI6MzcyLjI1MzQwMjcwOTk2MDk0LCJ5IjozNX0seyJ4Ijo0MjcuOTMzMDkwMjA5OTYwOTQsInkiOjM1fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M277.789,288.136L293.533,264.958C309.277,241.78,340.765,195.424,366.352,172.246C391.938,149.068,411.623,149.068,421.466,149.068L431.308,149.068" id="my-svg-L_NC_DB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_DB_0" data-points="W3sieCI6Mjc3Ljc4ODk3ODMyOTA2NTM0LCJ5IjoyODguMTM1NTM2MTkzODQ3NjZ9LHsieCI6MzcyLjI1MzQwMjcwOTk2MDk0LCJ5IjoxNDkuMDY3NzY4MDk2OTIzODN9LHsieCI6NDM1LjMwODA5MDIwOTk2MDk0LCJ5IjoxNDkuMDY3NzY4MDk2OTIzODN9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M318.02,288.136L327.059,283.969C336.098,279.802,354.176,271.469,371.311,267.302C388.446,263.136,404.639,263.136,412.735,263.136L420.832,263.136" id="my-svg-L_NC_Files_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_Files_0" data-points="W3sieCI6MzE4LjAyMDM3OTg3MzQyMjUsInkiOjI4OC4xMzU1MzYxOTM4NDc2Nn0seyJ4IjozNzIuMjUzNDAyNzA5OTYwOTQsInkiOjI2My4xMzU1MzYxOTM4NDc2Nn0seyJ4Ijo0MjQuODMxNTI3NzA5OTYwOTQsInkiOjI2My4xMzU1MzYxOTM4NDc2Nn1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M318.02,342.136L327.059,346.302C336.098,350.469,354.176,358.802,372.198,362.969C390.22,367.136,408.186,367.136,417.169,367.136L426.152,367.136" id="my-svg-L_NC_Talk_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_Talk_0" data-points="W3sieCI6MzE4LjAyMDM3OTg3MzQyMjUsInkiOjM0Mi4xMzU1MzYxOTM4NDc2Nn0seyJ4IjozNzIuMjUzNDAyNzA5OTYwOTQsInkiOjM2Ny4xMzU1MzYxOTM4NDc2Nn0seyJ4Ijo0MzAuMTUxODQwMjA5OTYwOTQsInkiOjM2Ny4xMzU1MzYxOTM4NDc2Nn1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M550.636,367.136L556.582,367.136C562.527,367.136,574.417,367.136,583.863,367.136C593.308,367.136,600.308,367.136,603.808,367.136L607.308,367.136" id="my-svg-L_Talk_HPB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Talk_HPB_0" data-points="W3sieCI6NTUwLjYzNjIxNTIwOTk2MDksInkiOjM2Ny4xMzU1MzYxOTM4NDc2Nn0seyJ4Ijo1ODYuMzA4MDkwMjA5OTYwOSwieSI6MzY3LjEzNTUzNjE5Mzg0NzY2fSx7IngiOjYxMS4zMDgwOTAyMDk5NjA5LCJ5IjozNjcuMTM1NTM2MTkzODQ3NjZ9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M278.973,342.136L294.519,363.636C310.066,385.136,341.16,428.136,365.023,449.636C388.886,471.136,405.519,471.136,413.835,471.136L422.152,471.136" id="my-svg-L_NC_CO_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_CO_0" data-points="W3sieCI6Mjc4Ljk3MjYwMzQzMTExNDgsInkiOjM0Mi4xMzU1MzYxOTM4NDc2Nn0seyJ4IjozNzIuMjUzNDAyNzA5OTYwOTQsInkiOjQ3MS4xMzU1MzYxOTM4NDc2Nn0seyJ4Ijo0MjYuMTUxODQwMjA5OTYwOTQsInkiOjQ3MS4xMzU1MzYxOTM4NDc2Nn1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M271.163,342.136L288.011,380.969C304.86,419.802,338.557,497.469,362.609,536.302C386.662,575.136,401.071,575.136,408.276,575.136L415.48,575.136" id="my-svg-L_NC_WB_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_NC_WB_0" data-points="W3sieCI6MjcxLjE2MzA0ODE0MjY1MzIsInkiOjM0Mi4xMzU1MzYxOTM4NDc2Nn0seyJ4IjozNzIuMjUzNDAyNzA5OTYwOTQsInkiOjU3NS4xMzU1MzYxOTM4NDc3fSx7IngiOjQxOS40Nzk5NjUyMDk5NjA5NCwieSI6NTc1LjEzNTUzNjE5Mzg0Nzd9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel" transform="translate(142.64402770996094, 315.13553619384766)"><g class="label" data-id="L_User_NC_0" transform="translate(-26.2265625, -12)"><foreignObject width="52.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>HTTPS</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(372.25340270996094, 35)"><g class="label" data-id="L_NC_KC_0" transform="translate(-20, -12)"><foreignObject width="40" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>OIDC</p></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_NC_DB_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_NC_Files_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_NC_Talk_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Talk_HPB_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(372.25340270996094, 471.13553619384766)"><g class="label" data-id="L_NC_CO_0" transform="translate(-21.3359375, -12)"><foreignObject width="42.671875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>WOPI</p></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(372.25340270996094, 575.1355361938477)"><g class="label" data-id="L_NC_WB_0" transform="translate(-22.2265625, -12)"><foreignObject width="44.453125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>iframe</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="my-svg-flowchart-User-0" data-look="classic" transform="translate(49.70873260498047, 315.13553619384766)"><g class="basic label-container outer-path"><path d="M-22.21875 -19.5 C-5.325216336269833 -19.5, 11.568317327460335 -19.5, 22.21875 -19.5 C22.21875 -19.5, 22.21875 -19.5, 22.21875 -19.5 C22.653526683552816 -19.48605755799994, 23.088303367105627 -19.472115115999877, 23.4681192896239 -19.45993515863156 C23.755194232795198 -19.432241384121955, 24.042269175966496 -19.404547609612354, 24.712354652847864 -19.3399052695533 C25.078638252774184 -19.280687377688952, 25.4449218527005 -19.22146948582461, 25.94634325967676 -19.140403561325776 C26.408562362165128 -19.034905067444335, 26.870781464653493 -18.92940657356289, 27.16501438623539 -18.862249829261074 C27.52088850218803 -18.756628259667686, 27.876762618140667 -18.651006690074297, 28.363360251460602 -18.50658706670804 C28.82683192271372 -18.33602520740173, 29.29030359396684 -18.165463348095415, 29.536456595147794 -18.074876768247425 C29.782001489098096 -17.966181327526108, 30.027546383048403 -17.857485886804792, 30.67948291279238 -17.568892924097174 C31.00409614355871 -17.39954240953108, 31.328709374325033 -17.230191894964985, 31.787742264076783 -16.990714730406097 C32.12713563511905 -16.78497247438344, 32.466529006161316 -16.579230218360784, 32.8566805736057 -16.342718045390892 C33.13036499962915 -16.151807637404787, 33.4040494256526 -15.960897229418677, 33.88190534457871 -15.627565626425154 C34.19673141917228 -15.376500209810475, 34.51155749376585 -15.125434793195796, 34.859203708501866 -14.848196188198123 C35.148141198490435 -14.58579080465757, 35.437078688479 -14.323385421117015, 35.78455973676799 -14.007812326905688 C36.009904721589415 -13.775125128910238, 36.23524970641083 -13.542437930914788, 36.65417094296865 -13.10986736009568 C36.895718881982475 -12.826131406462947, 37.1372668209963 -12.542395452830215, 37.46446390812658 -12.158051136245305 C37.639223198101554 -11.923889608577682, 37.813982488076526 -11.68972808091006, 38.212108964640635 -11.156274872382312 C38.446019414694014 -10.796925607349726, 38.6799298647474 -10.43757634231714, 38.89403387860425 -10.108655082055241 C39.11116611313332 -9.72311481262593, 39.328298347662404 -9.337574543196617, 39.507436474273504 -9.019496659696287 C39.65220499138671 -8.71888173636066, 39.79697350849992 -8.418266813025033, 40.04979614880834 -7.893275190886684 C40.15741477881674 -7.627455094101289, 40.265033408825126 -7.3616349973158925, 40.518884229970325 -6.734618561215508 C40.67312872595666 -6.2700587148276945, 40.827373221942985 -5.805498868439882, 40.91277313421488 -5.548287939305138 C41.034268444582125 -5.084973664474246, 41.15576375494936 -4.621659389643354, 41.22984428754556 -4.339158212148133 C41.27969894250171 -4.083165095733364, 41.32955359745786 -3.827171979318593, 41.468794776581774 -3.1121979531509023 C41.52934565205387 -2.642577320112123, 41.58989652752597 -2.172956687073344, 41.62864270250937 -1.872449005199798 C41.65090482317645 -1.525698506149689, 41.673166943843526 -1.1789480070995801, 41.70873121591342 -0.6250057626472757 C41.70873121591342 -0.12913955505232472, 41.70873121591342 0.36672665254262626, 41.70873121591342 0.625005762647271 C41.68798353498445 0.9481676403425627, 41.66723585405548 1.2713295180378545, 41.62864270250937 1.8724490051997846 C41.57380143167768 2.297787072136517, 41.518960160845985 2.723125139073249, 41.468794776581774 3.1121979531508885 C41.40299238852588 3.4500793084782715, 41.33719000046999 3.787960663805654, 41.22984428754556 4.339158212148129 C41.13235693408318 4.710919742186473, 41.034869580620786 5.082681272224817, 40.91277313421489 5.548287939305125 C40.79498636296418 5.903042927538818, 40.67719959171348 6.25779791577251, 40.518884229970325 6.734618561215495 C40.358963118696295 7.129626797926696, 40.19904200742227 7.524635034637898, 40.04979614880834 7.893275190886679 C39.8743471177834 8.257598857817854, 39.69889808675846 8.621922524749028, 39.507436474273504 9.019496659696284 C39.290756858121895 9.404233259363822, 39.07407724197028 9.788969859031361, 38.89403387860425 10.108655082055236 C38.728674657746744 10.362691250460468, 38.56331543688925 10.616727418865699, 38.21210896464064 11.156274872382301 C38.03692684431708 11.391002954196393, 37.861744723993525 11.625731036010485, 37.46446390812658 12.158051136245302 C37.28610006341945 12.367567457428585, 37.107736218712304 12.57708377861187, 36.65417094296866 13.10986736009567 C36.4073780847738 13.36470124825234, 36.16058522657895 13.61953513640901, 35.78455973676799 14.007812326905684 C35.5719364561194 14.200911164687001, 35.359313175470824 14.39401000246832, 34.85920370850189 14.848196188198111 C34.51675060725604 15.121293423381925, 34.17429750601019 15.394390658565738, 33.88190534457871 15.627565626425152 C33.58183014925827 15.836885092634848, 33.281754953937835 16.046204558844543, 32.85668057360571 16.34271804539089 C32.59652292916809 16.500427138304996, 32.33636528473046 16.6581362312191, 31.787742264076787 16.990714730406093 C31.415708990956315 17.18480425069436, 31.043675717835846 17.378893770982625, 30.679482912792388 17.56889292409717 C30.282909385037446 17.744444260898558, 29.886335857282504 17.91999559769994, 29.536456595147804 18.07487676824742 C29.126763930559836 18.225647455973267, 28.71707126597187 18.376418143699116, 28.363360251460616 18.506587066708033 C27.906909445771028 18.64205926987753, 27.45045864008144 18.77753147304703, 27.165014386235413 18.86224982926107 C26.768388892887355 18.95277700989454, 26.371763399539294 19.043304190528005, 25.946343259676766 19.140403561325773 C25.52791194728217 19.20805229093044, 25.10948063488758 19.275701020535106, 24.71235465284788 19.3399052695533 C24.26587802920033 19.382976332469877, 23.81940140555278 19.426047395386455, 23.4681192896239 19.45993515863156 C23.045111366177085 19.473500199401524, 22.622103442730275 19.48706524017149, 22.218750000000004 19.5 C22.218750000000004 19.5, 22.218750000000004 19.5, 22.21875 19.5 C12.154500812595877 19.5, 2.0902516251917547 19.5, -22.218749999999996 19.5 C-22.474401027637093 19.491801769138217, -22.730052055274193 19.483603538276434, -23.468119289623893 19.45993515863156 C-23.9350293011933 19.414892911356905, -24.401939312762707 19.369850664082247, -24.71235465284787 19.3399052695533 C-25.087772703364394 19.27921059055625, -25.463190753880912 19.2185159115592, -25.94634325967676 19.140403561325773 C-26.375039248955506 19.04255649927567, -26.803735238234253 18.944709437225566, -27.165014386235388 18.862249829261074 C-27.445818704297466 18.778908581632194, -27.72662302235954 18.695567334003314, -28.36336025146059 18.506587066708043 C-28.64260409539744 18.403822750837485, -28.921847939334295 18.301058434966926, -29.536456595147797 18.074876768247425 C-29.790330825044524 17.9624941775836, -30.044205054941248 17.850111586919777, -30.67948291279238 17.568892924097174 C-30.94929373228766 17.428132792388563, -31.219104551782944 17.287372660679953, -31.78774226407678 16.990714730406097 C-32.09280867419038 16.805781679826012, -32.397875084303976 16.62084862924593, -32.856680573605686 16.3427180453909 C-33.24276425602758 16.07340278182663, -33.628847938449475 15.804087518262358, -33.88190534457871 15.627565626425156 C-34.22337539404803 15.355252348873016, -34.56484544351735 15.082939071320876, -34.859203708501866 14.848196188198125 C-35.182674028044644 14.554429002545033, -35.50614434758742 14.260661816891943, -35.784559736767974 14.007812326905697 C-36.10353559134209 13.678443568653229, -36.4225114459162 13.349074810400761, -36.654170942968655 13.109867360095677 C-36.957796897431585 12.753211037177282, -37.26142285189451 12.396554714258885, -37.464463908126575 12.158051136245307 C-37.65676283675821 11.900388090671706, -37.849061765389855 11.642725045098105, -38.212108964640635 11.156274872382316 C-38.39821757621133 10.870362067850058, -38.584326187782025 10.5844492633178, -38.89403387860425 10.108655082055249 C-39.04498480988219 9.840626418131974, -39.195935741160135 9.572597754208697, -39.507436474273504 9.019496659696289 C-39.696820256598414 8.626237183534814, -39.886204038923324 8.232977707373337, -40.04979614880834 7.893275190886686 C-40.14573901363042 7.65629445984706, -40.24168187845249 7.419313728807435, -40.518884229970325 6.73461856121551 C-40.65944770974703 6.311263755877169, -40.80001118952374 5.8879089505388285, -40.91277313421488 5.5482879393051325 C-40.99616208094718 5.230289744416738, -41.079551027679486 4.912291549528344, -41.22984428754556 4.339158212148136 C-41.30303604823792 3.9633339900769573, -41.37622780893028 3.5875097680057793, -41.468794776581774 3.112197953150904 C-41.52987257005948 2.6384906481123407, -41.59095036353719 2.1647833430737777, -41.62864270250937 1.872449005199809 C-41.64850067537988 1.563145048674436, -41.66835864825038 1.2538410921490633, -41.70873121591342 0.6250057626472781 C-41.70873121591342 0.18378826549418847, -41.70873121591342 -0.2574292316589012, -41.70873121591342 -0.6250057626472687 C-41.68630756800103 -0.9742721789255719, -41.66388392008864 -1.3235385952038752, -41.62864270250937 -1.8724490051997822 C-41.587655849822745 -2.1903349408676926, -41.54666899713612 -2.508220876535603, -41.468794776581774 -3.112197953150895 C-41.402387134308846 -3.4531871609622287, -41.33597949203592 -3.7941763687735617, -41.22984428754556 -4.339158212148126 C-41.16300666261484 -4.594039043618839, -41.09616903768413 -4.848919875089551, -40.91277313421489 -5.548287939305123 C-40.82979388788518 -5.798208208302738, -40.746814641555474 -6.048128477300354, -40.51888422997033 -6.734618561215485 C-40.399761876853454 -7.028853076488199, -40.280639523736575 -7.3230875917609115, -40.04979614880834 -7.893275190886676 C-39.883288723075985 -8.239031423108091, -39.71678129734363 -8.584787655329507, -39.507436474273504 -9.019496659696282 C-39.29014159625674 -9.40532571910743, -39.072846718239965 -9.791154778518578, -38.89403387860425 -10.108655082055243 C-38.64282477209694 -10.494579728740732, -38.391615665589626 -10.880504375426222, -38.21210896464064 -11.156274872382308 C-38.021084851312935 -11.412229781586706, -37.83006073798523 -11.668184690791104, -37.46446390812659 -12.158051136245302 C-37.226008109747696 -12.438154885540456, -36.9875523113688 -12.718258634835612, -36.65417094296866 -13.10986736009567 C-36.464035211979066 -13.306198112776258, -36.27389948098946 -13.502528865456847, -35.784559736767996 -14.007812326905677 C-35.51744249294689 -14.25040114020902, -35.250325249125794 -14.492989953512362, -34.85920370850189 -14.848196188198107 C-34.542391805095804 -15.10084525044564, -34.22557990168973 -15.353494312693172, -33.88190534457872 -15.627565626425149 C-33.58906528588033 -15.831838174531319, -33.29622522718194 -16.03611072263749, -32.856680573605715 -16.342718045390885 C-32.576768765025854 -16.51240222869637, -32.29685695644599 -16.68208641200185, -31.78774226407679 -16.99071473040609 C-31.443311487391483 -17.170404045984373, -31.098880710706176 -17.350093361562656, -30.679482912792388 -17.56889292409717 C-30.24059421527961 -17.763175931315438, -29.801705517766838 -17.9574589385337, -29.536456595147804 -18.07487676824742 C-29.109916502553062 -18.23184746521568, -28.683376409958324 -18.388818162183938, -28.36336025146062 -18.506587066708033 C-27.905240330432505 -18.64255465454864, -27.44712040940439 -18.778522242389247, -27.165014386235413 -18.862249829261067 C-26.90205488577604 -18.922268619269815, -26.639095385316665 -18.98228740927856, -25.946343259676766 -19.140403561325773 C-25.6180985181979 -19.19347162555209, -25.289853776719035 -19.246539689778402, -24.712354652847882 -19.3399052695533 C-24.216987851538846 -19.38769270910984, -23.72162105022981 -19.43548014866638, -23.468119289623903 -19.45993515863156 C-23.16335907952071 -19.469708225389805, -22.858598869417516 -19.47948129214805, -22.218750000000007 -19.5 C-22.218750000000007 -19.5, -22.218750000000004 -19.5, -22.21875 -19.5" stroke="none" stroke-width="0" fill="#ECECFF" style=""></path><path d="M-22.21875 -19.5 C-6.16225865822987 -19.5, 9.89423268354026 -19.5, 22.21875 -19.5 M-22.21875 -19.5 C-6.002440532176298 -19.5, 10.213868935647405 -19.5, 22.21875 -19.5 M22.21875 -19.5 C22.21875 -19.5, 22.21875 -19.5, 22.21875 -19.5 M22.21875 -19.5 C22.21875 -19.5, 22.21875 -19.5, 22.21875 -19.5 M22.21875 -19.5 C22.705371869771252 -19.484394983788444, 23.1919937395425 -19.468789967576893, 23.4681192896239 -19.45993515863156 M22.21875 -19.5 C22.674784681435575 -19.48537585538402, 23.130819362871154 -19.47075171076804, 23.4681192896239 -19.45993515863156 M23.4681192896239 -19.45993515863156 C23.827893904339728 -19.425228134242204, 24.187668519055556 -19.390521109852845, 24.712354652847864 -19.3399052695533 M23.4681192896239 -19.45993515863156 C23.935079929887372 -19.414888027267676, 24.402040570150845 -19.369840895903796, 24.712354652847864 -19.3399052695533 M24.712354652847864 -19.3399052695533 C25.10738000395221 -19.2760406342541, 25.502405355056553 -19.2121759989549, 25.94634325967676 -19.140403561325776 M24.712354652847864 -19.3399052695533 C24.981665179536105 -19.296365232132672, 25.25097570622435 -19.252825194712045, 25.94634325967676 -19.140403561325776 M25.94634325967676 -19.140403561325776 C26.431298337981648 -19.02971572933032, 26.91625341628654 -18.919027897334864, 27.16501438623539 -18.862249829261074 M25.94634325967676 -19.140403561325776 C26.37312719365941 -19.042992913419678, 26.799911127642066 -18.945582265513583, 27.16501438623539 -18.862249829261074 M27.16501438623539 -18.862249829261074 C27.575305406816586 -18.740477608014093, 27.985596427397777 -18.618705386767108, 28.363360251460602 -18.50658706670804 M27.16501438623539 -18.862249829261074 C27.42146801889776 -18.786135737239473, 27.67792165156013 -18.710021645217868, 28.363360251460602 -18.50658706670804 M28.363360251460602 -18.50658706670804 C28.733004476332237 -18.37055457500152, 29.102648701203872 -18.234522083295, 29.536456595147794 -18.074876768247425 M28.363360251460602 -18.50658706670804 C28.759269747918527 -18.360888712264256, 29.155179244376452 -18.21519035782047, 29.536456595147794 -18.074876768247425 M29.536456595147794 -18.074876768247425 C29.906059960788983 -17.911264322172364, 30.275663326430177 -17.7476518760973, 30.67948291279238 -17.568892924097174 M29.536456595147794 -18.074876768247425 C29.779210384562806 -17.96741686670871, 30.021964173977818 -17.859956965169992, 30.67948291279238 -17.568892924097174 M30.67948291279238 -17.568892924097174 C31.024742268267616 -17.388771339494916, 31.37000162374285 -17.208649754892658, 31.787742264076783 -16.990714730406097 M30.67948291279238 -17.568892924097174 C30.94269633004913 -17.431574652910566, 31.205909747305885 -17.29425638172396, 31.787742264076783 -16.990714730406097 M31.787742264076783 -16.990714730406097 C32.06715496975074 -16.821333106215224, 32.3465676754247 -16.65195148202435, 32.8566805736057 -16.342718045390892 M31.787742264076783 -16.990714730406097 C32.169408062173524 -16.75934668068266, 32.55107386027027 -16.527978630959225, 32.8566805736057 -16.342718045390892 M32.8566805736057 -16.342718045390892 C33.16311554604832 -16.12896227397108, 33.469550518490934 -15.915206502551266, 33.88190534457871 -15.627565626425154 M32.8566805736057 -16.342718045390892 C33.25203568611277 -16.06693543355294, 33.647390798619845 -15.791152821714988, 33.88190534457871 -15.627565626425154 M33.88190534457871 -15.627565626425154 C34.11647206757319 -15.440504906919704, 34.35103879056767 -15.253444187414255, 34.859203708501866 -14.848196188198123 M33.88190534457871 -15.627565626425154 C34.105270790072105 -15.44943762764831, 34.3286362355655 -15.271309628871466, 34.859203708501866 -14.848196188198123 M34.859203708501866 -14.848196188198123 C35.129451640067245 -14.602764167118886, 35.39969957163263 -14.35733214603965, 35.78455973676799 -14.007812326905688 M34.859203708501866 -14.848196188198123 C35.1624565866974 -14.572789947852412, 35.465709464892946 -14.297383707506702, 35.78455973676799 -14.007812326905688 M35.78455973676799 -14.007812326905688 C36.10686022952171 -13.675010606774904, 36.42916072227542 -13.342208886644121, 36.65417094296865 -13.10986736009568 M35.78455973676799 -14.007812326905688 C36.1025304985275 -13.679481409503946, 36.42050126028701 -13.351150492102203, 36.65417094296865 -13.10986736009568 M36.65417094296865 -13.10986736009568 C36.858062769340414 -12.87036441906582, 37.06195459571218 -12.63086147803596, 37.46446390812658 -12.158051136245305 M36.65417094296865 -13.10986736009568 C36.883981398330405 -12.839918922642406, 37.11379185369217 -12.56997048518913, 37.46446390812658 -12.158051136245305 M37.46446390812658 -12.158051136245305 C37.73273591447748 -11.79859108781766, 38.00100792082838 -11.439131039390016, 38.212108964640635 -11.156274872382312 M37.46446390812658 -12.158051136245305 C37.663773003957694 -11.890995105263777, 37.863082099788805 -11.623939074282248, 38.212108964640635 -11.156274872382312 M38.212108964640635 -11.156274872382312 C38.41288339761307 -10.84783142785251, 38.61365783058552 -10.53938798332271, 38.89403387860425 -10.108655082055241 M38.212108964640635 -11.156274872382312 C38.4121624927652 -10.84893893128891, 38.61221602088976 -10.541602990195507, 38.89403387860425 -10.108655082055241 M38.89403387860425 -10.108655082055241 C39.10002302508258 -9.742900493820054, 39.30601217156091 -9.377145905584866, 39.507436474273504 -9.019496659696287 M38.89403387860425 -10.108655082055241 C39.09453097899235 -9.752652177783215, 39.29502807938046 -9.39664927351119, 39.507436474273504 -9.019496659696287 M39.507436474273504 -9.019496659696287 C39.68313298937238 -8.654659086790273, 39.85882950447126 -8.289821513884261, 40.04979614880834 -7.893275190886684 M39.507436474273504 -9.019496659696287 C39.637147502718264 -8.750148933759341, 39.766858531163024 -8.480801207822395, 40.04979614880834 -7.893275190886684 M40.04979614880834 -7.893275190886684 C40.156920853689336 -7.628675098715351, 40.26404555857033 -7.364075006544018, 40.518884229970325 -6.734618561215508 M40.04979614880834 -7.893275190886684 C40.14466069875178 -7.658957918445093, 40.239525248695216 -7.424640646003502, 40.518884229970325 -6.734618561215508 M40.518884229970325 -6.734618561215508 C40.6678605296152 -6.285925682835077, 40.81683682926006 -5.837232804454645, 40.91277313421488 -5.548287939305138 M40.518884229970325 -6.734618561215508 C40.62076287340406 -6.427776319350565, 40.72264151683779 -6.120934077485623, 40.91277313421488 -5.548287939305138 M40.91277313421488 -5.548287939305138 C41.000528799457186 -5.213637554190335, 41.088284464699484 -4.878987169075533, 41.22984428754556 -4.339158212148133 M40.91277313421488 -5.548287939305138 C41.00721971399935 -5.1881221971803475, 41.10166629378382 -4.827956455055558, 41.22984428754556 -4.339158212148133 M41.22984428754556 -4.339158212148133 C41.31752498801826 -3.888936346543397, 41.405205688490966 -3.4387144809386605, 41.468794776581774 -3.1121979531509023 M41.22984428754556 -4.339158212148133 C41.299749921912095 -3.980207554237042, 41.36965555627862 -3.621256896325951, 41.468794776581774 -3.1121979531509023 M41.468794776581774 -3.1121979531509023 C41.524594818174144 -2.6794238495250378, 41.580394859766514 -2.2466497458991737, 41.62864270250937 -1.872449005199798 M41.468794776581774 -3.1121979531509023 C41.5168866548393 -2.7392068422011113, 41.56497853309681 -2.3662157312513203, 41.62864270250937 -1.872449005199798 M41.62864270250937 -1.872449005199798 C41.64650842219861 -1.5941760000904597, 41.664374141887855 -1.3159029949811212, 41.70873121591342 -0.6250057626472757 M41.62864270250937 -1.872449005199798 C41.65234568528739 -1.5032559157287158, 41.67604866806542 -1.1340628262576335, 41.70873121591342 -0.6250057626472757 M41.70873121591342 -0.6250057626472757 C41.70873121591342 -0.20002611513996127, 41.70873121591342 0.22495353236735316, 41.70873121591342 0.625005762647271 M41.70873121591342 -0.6250057626472757 C41.70873121591342 -0.3232435240070732, 41.70873121591342 -0.02148128536687066, 41.70873121591342 0.625005762647271 M41.70873121591342 0.625005762647271 C41.688707541788425 0.9368906499628169, 41.66868386766344 1.2487755372783629, 41.62864270250937 1.8724490051997846 M41.70873121591342 0.625005762647271 C41.68981758213873 0.9196008754984665, 41.670903948364035 1.2141959883496618, 41.62864270250937 1.8724490051997846 M41.62864270250937 1.8724490051997846 C41.57548914012177 2.2846975387198913, 41.52233557773417 2.6969460722399985, 41.468794776581774 3.1121979531508885 M41.62864270250937 1.8724490051997846 C41.59516568069643 2.132090175595213, 41.5616886588835 2.3917313459906415, 41.468794776581774 3.1121979531508885 M41.468794776581774 3.1121979531508885 C41.40800907902885 3.424319663023425, 41.34722338147593 3.736441372895962, 41.22984428754556 4.339158212148129 M41.468794776581774 3.1121979531508885 C41.3817784645856 3.5590083243471797, 41.294762152589435 4.005818695543471, 41.22984428754556 4.339158212148129 M41.22984428754556 4.339158212148129 C41.11091516943845 4.792686483696386, 40.99198605133134 5.246214755244642, 40.91277313421489 5.548287939305125 M41.22984428754556 4.339158212148129 C41.11548342031514 4.775265763211129, 41.00112255308471 5.211373314274129, 40.91277313421489 5.548287939305125 M40.91277313421489 5.548287939305125 C40.82399455497484 5.815674875030469, 40.73521597573479 6.083061810755813, 40.518884229970325 6.734618561215495 M40.91277313421489 5.548287939305125 C40.79117771108099 5.914513980184731, 40.669582287947094 6.280740021064337, 40.518884229970325 6.734618561215495 M40.518884229970325 6.734618561215495 C40.40294451378842 7.020991901726717, 40.28700479760652 7.307365242237939, 40.04979614880834 7.893275190886679 M40.518884229970325 6.734618561215495 C40.41513761393474 6.990874708627764, 40.31139099789915 7.247130856040034, 40.04979614880834 7.893275190886679 M40.04979614880834 7.893275190886679 C39.866653674584676 8.27357445723332, 39.68351120036101 8.65387372357996, 39.507436474273504 9.019496659696284 M40.04979614880834 7.893275190886679 C39.9194615893885 8.163917692234811, 39.789127029968654 8.434560193582945, 39.507436474273504 9.019496659696284 M39.507436474273504 9.019496659696284 C39.31863064419101 9.354740529671197, 39.129824814108524 9.689984399646109, 38.89403387860425 10.108655082055236 M39.507436474273504 9.019496659696284 C39.28664695490069 9.411530808705898, 39.065857435527874 9.803564957715514, 38.89403387860425 10.108655082055236 M38.89403387860425 10.108655082055236 C38.641969379206806 10.495893841925124, 38.38990487980936 10.883132601795012, 38.21210896464064 11.156274872382301 M38.89403387860425 10.108655082055236 C38.661898619037586 10.465277177794832, 38.429763359470925 10.821899273534427, 38.21210896464064 11.156274872382301 M38.21210896464064 11.156274872382301 C37.925669735406544 11.540077344405388, 37.63923050617244 11.923879816428473, 37.46446390812658 12.158051136245302 M38.21210896464064 11.156274872382301 C37.926446741769155 11.539036226666216, 37.640784518897675 11.921797580950129, 37.46446390812658 12.158051136245302 M37.46446390812658 12.158051136245302 C37.20462318837623 12.463274831019874, 36.944782468625874 12.768498525794444, 36.65417094296866 13.10986736009567 M37.46446390812658 12.158051136245302 C37.17435843126617 12.498825536834815, 36.88425295440575 12.839599937424328, 36.65417094296866 13.10986736009567 M36.65417094296866 13.10986736009567 C36.3595846764848 13.414051866222536, 36.06499841000093 13.7182363723494, 35.78455973676799 14.007812326905684 M36.65417094296866 13.10986736009567 C36.432079078072434 13.33919544468224, 36.209987213176206 13.568523529268807, 35.78455973676799 14.007812326905684 M35.78455973676799 14.007812326905684 C35.51435088901832 14.253208853097595, 35.244142041268645 14.498605379289508, 34.85920370850189 14.848196188198111 M35.78455973676799 14.007812326905684 C35.58964543603606 14.184828337680628, 35.394731135304134 14.361844348455572, 34.85920370850189 14.848196188198111 M34.85920370850189 14.848196188198111 C34.5534671914698 15.092012924540793, 34.24773067443771 15.335829660883475, 33.88190534457871 15.627565626425152 M34.85920370850189 14.848196188198111 C34.61686086068394 15.041458160318902, 34.37451801286599 15.234720132439694, 33.88190534457871 15.627565626425152 M33.88190534457871 15.627565626425152 C33.47387894568861 15.91218717911276, 33.06585254679851 16.196808731800367, 32.85668057360571 16.34271804539089 M33.88190534457871 15.627565626425152 C33.52801709327979 15.874422750955787, 33.17412884198088 16.121279875486422, 32.85668057360571 16.34271804539089 M32.85668057360571 16.34271804539089 C32.44429518250404 16.592708492922277, 32.03190979140237 16.842698940453666, 31.787742264076787 16.990714730406093 M32.85668057360571 16.34271804539089 C32.4637534848978 16.5809127556615, 32.070826396189894 16.819107465932113, 31.787742264076787 16.990714730406093 M31.787742264076787 16.990714730406093 C31.479886754200475 17.1513227527177, 31.172031244324167 17.311930775029307, 30.679482912792388 17.56889292409717 M31.787742264076787 16.990714730406093 C31.434563051692532 17.174968099284875, 31.08138383930828 17.35922146816366, 30.679482912792388 17.56889292409717 M30.679482912792388 17.56889292409717 C30.377666793816246 17.70249796691084, 30.075850674840105 17.83610300972451, 29.536456595147804 18.07487676824742 M30.679482912792388 17.56889292409717 C30.244482556179392 17.761454678142638, 29.8094821995664 17.954016432188105, 29.536456595147804 18.07487676824742 M29.536456595147804 18.07487676824742 C29.073621730254935 18.245204276926586, 28.610786865362066 18.415531785605754, 28.363360251460616 18.506587066708033 M29.536456595147804 18.07487676824742 C29.20676778315361 18.196205298671256, 28.877078971159413 18.317533829095087, 28.363360251460616 18.506587066708033 M28.363360251460616 18.506587066708033 C28.121169927604996 18.57846788354543, 27.87897960374938 18.650348700382825, 27.165014386235413 18.86224982926107 M28.363360251460616 18.506587066708033 C28.057232055241645 18.597444308446132, 27.751103859022678 18.68830155018423, 27.165014386235413 18.86224982926107 M27.165014386235413 18.86224982926107 C26.797376739132105 18.94616072315255, 26.4297390920288 19.030071617044026, 25.946343259676766 19.140403561325773 M27.165014386235413 18.86224982926107 C26.83682841975841 18.93715613449587, 26.50864245328141 19.01206243973067, 25.946343259676766 19.140403561325773 M25.946343259676766 19.140403561325773 C25.579666375977812 19.19968503626052, 25.212989492278858 19.25896651119526, 24.71235465284788 19.3399052695533 M25.946343259676766 19.140403561325773 C25.490792349639 19.21405349961061, 25.035241439601233 19.287703437895445, 24.71235465284788 19.3399052695533 M24.71235465284788 19.3399052695533 C24.249197064749424 19.38458552504866, 23.786039476650974 19.42926578054402, 23.4681192896239 19.45993515863156 M24.71235465284788 19.3399052695533 C24.24581582278159 19.38491170939476, 23.779276992715307 19.42991814923622, 23.4681192896239 19.45993515863156 M23.4681192896239 19.45993515863156 C22.994747106090195 19.475115283194427, 22.521374922556493 19.49029540775729, 22.218750000000004 19.5 M23.4681192896239 19.45993515863156 C23.093805130483005 19.471938685156896, 22.71949097134211 19.483942211682233, 22.218750000000004 19.5 M22.218750000000004 19.5 C22.218750000000004 19.5, 22.21875 19.5, 22.21875 19.5 M22.218750000000004 19.5 C22.218750000000004 19.5, 22.21875 19.5, 22.21875 19.5 M22.21875 19.5 C7.861083365058343 19.5, -6.496583269883313 19.5, -22.218749999999996 19.5 M22.21875 19.5 C11.049735528606417 19.5, -0.11927894278716522 19.5, -22.218749999999996 19.5 M-22.218749999999996 19.5 C-22.57565476706742 19.488554758793132, -22.93255953413484 19.477109517586268, -23.468119289623893 19.45993515863156 M-22.218749999999996 19.5 C-22.563270866838085 19.48895188636969, -22.907791733676177 19.477903772739378, -23.468119289623893 19.45993515863156 M-23.468119289623893 19.45993515863156 C-23.80272119296232 19.427656515434165, -24.137323096300747 19.39537787223677, -24.71235465284787 19.3399052695533 M-23.468119289623893 19.45993515863156 C-23.77904078747535 19.429940935671638, -24.089962285326802 19.39994671271172, -24.71235465284787 19.3399052695533 M-24.71235465284787 19.3399052695533 C-25.15724531200815 19.267978797958854, -25.60213597116843 19.19605232636441, -25.94634325967676 19.140403561325773 M-24.71235465284787 19.3399052695533 C-25.149815224059783 19.269180036957152, -25.587275795271697 19.19845480436101, -25.94634325967676 19.140403561325773 M-25.94634325967676 19.140403561325773 C-26.25255399530636 19.07051295913011, -26.558764730935966 19.000622356934446, -27.165014386235388 18.862249829261074 M-25.94634325967676 19.140403561325773 C-26.226612280577935 19.076433986231365, -26.50688130147911 19.012464411136953, -27.165014386235388 18.862249829261074 M-27.165014386235388 18.862249829261074 C-27.521636574050866 18.756406235865505, -27.878258761866345 18.650562642469936, -28.36336025146059 18.506587066708043 M-27.165014386235388 18.862249829261074 C-27.441603556160562 18.780159615473462, -27.71819272608574 18.69806940168585, -28.36336025146059 18.506587066708043 M-28.36336025146059 18.506587066708043 C-28.704851145354375 18.380915261047914, -29.04634203924816 18.25524345538778, -29.536456595147797 18.074876768247425 M-28.36336025146059 18.506587066708043 C-28.780609922122917 18.353035330890634, -29.197859592785242 18.199483595073225, -29.536456595147797 18.074876768247425 M-29.536456595147797 18.074876768247425 C-29.957946119716414 17.88829585876341, -30.37943564428503 17.701714949279395, -30.67948291279238 17.568892924097174 M-29.536456595147797 18.074876768247425 C-29.84566883315704 17.937997682935876, -30.154881071166276 17.801118597624328, -30.67948291279238 17.568892924097174 M-30.67948291279238 17.568892924097174 C-30.944647747971352 17.43055659943049, -31.209812583150327 17.2922202747638, -31.78774226407678 16.990714730406097 M-30.67948291279238 17.568892924097174 C-31.073527308610558 17.363320215196314, -31.46757170442873 17.15774750629545, -31.78774226407678 16.990714730406097 M-31.78774226407678 16.990714730406097 C-32.04753674294938 16.833225790591705, -32.30733122182199 16.67573685077731, -32.856680573605686 16.3427180453909 M-31.78774226407678 16.990714730406097 C-32.15585782120403 16.767560916388422, -32.523973378331284 16.544407102370748, -32.856680573605686 16.3427180453909 M-32.856680573605686 16.3427180453909 C-33.22933525157667 16.082770273999348, -33.601989929547656 15.822822502607798, -33.88190534457871 15.627565626425156 M-32.856680573605686 16.3427180453909 C-33.149460672303846 16.138487322785263, -33.442240771002005 15.934256600179628, -33.88190534457871 15.627565626425156 M-33.88190534457871 15.627565626425156 C-34.11827930253469 15.439063685130453, -34.35465326049067 15.25056174383575, -34.859203708501866 14.848196188198125 M-33.88190534457871 15.627565626425156 C-34.17985040145458 15.389962372217596, -34.47779545833045 15.152359118010034, -34.859203708501866 14.848196188198125 M-34.859203708501866 14.848196188198125 C-35.22298152198146 14.517822803029466, -35.58675933546106 14.187449417860805, -35.784559736767974 14.007812326905697 M-34.859203708501866 14.848196188198125 C-35.21600257325593 14.524160899609134, -35.57280143800998 14.200125611020141, -35.784559736767974 14.007812326905697 M-35.784559736767974 14.007812326905697 C-36.0362379847098 13.747933872737326, -36.287916232651625 13.488055418568953, -36.654170942968655 13.109867360095677 M-35.784559736767974 14.007812326905697 C-35.98876378650689 13.79695488008599, -36.192967836245806 13.586097433266282, -36.654170942968655 13.109867360095677 M-36.654170942968655 13.109867360095677 C-36.81992268606777 12.91516593111009, -36.985674429166885 12.720464502124502, -37.464463908126575 12.158051136245307 M-36.654170942968655 13.109867360095677 C-36.83841413737769 12.893444820208071, -37.022657331786725 12.677022280320466, -37.464463908126575 12.158051136245307 M-37.464463908126575 12.158051136245307 C-37.70875790822759 11.830719431751204, -37.9530519083286 11.5033877272571, -38.212108964640635 11.156274872382316 M-37.464463908126575 12.158051136245307 C-37.729731354225194 11.802616924834652, -37.994998800323806 11.447182713423995, -38.212108964640635 11.156274872382316 M-38.212108964640635 11.156274872382316 C-38.39336933577575 10.877810267093954, -38.57462970691087 10.599345661805595, -38.89403387860425 10.108655082055249 M-38.212108964640635 11.156274872382316 C-38.35029789909424 10.943979560136942, -38.48848683354784 10.731684247891568, -38.89403387860425 10.108655082055249 M-38.89403387860425 10.108655082055249 C-39.1032345706447 9.737198069470248, -39.31243526268516 9.365741056885247, -39.507436474273504 9.019496659696289 M-38.89403387860425 10.108655082055249 C-39.06365905874111 9.80746839831022, -39.233284238877964 9.506281714565194, -39.507436474273504 9.019496659696289 M-39.507436474273504 9.019496659696289 C-39.71251349994822 8.593649827937323, -39.917590525622934 8.16780299617836, -40.04979614880834 7.893275190886686 M-39.507436474273504 9.019496659696289 C-39.700916743138926 8.617730741582665, -39.894397012004355 8.215964823469042, -40.04979614880834 7.893275190886686 M-40.04979614880834 7.893275190886686 C-40.147576731545854 7.6517552610660635, -40.24535731428337 7.410235331245441, -40.518884229970325 6.73461856121551 M-40.04979614880834 7.893275190886686 C-40.181738452018436 7.567375151026865, -40.313680755228525 7.241475111167043, -40.518884229970325 6.73461856121551 M-40.518884229970325 6.73461856121551 C-40.66826350339121 6.284711990026878, -40.81764277681209 5.834805418838245, -40.91277313421488 5.5482879393051325 M-40.518884229970325 6.73461856121551 C-40.629769863869186 6.400648699138655, -40.74065549776804 6.0666788370618, -40.91277313421488 5.5482879393051325 M-40.91277313421488 5.5482879393051325 C-40.997796380696066 5.224057451164252, -41.08281962717725 4.899826963023371, -41.22984428754556 4.339158212148136 M-40.91277313421488 5.5482879393051325 C-40.97909121746227 5.295388345443756, -41.04540930070965 5.042488751582379, -41.22984428754556 4.339158212148136 M-41.22984428754556 4.339158212148136 C-41.30562801928949 3.9500247665403965, -41.38141175103343 3.5608913209326576, -41.468794776581774 3.112197953150904 M-41.22984428754556 4.339158212148136 C-41.32426410011486 3.8543324302392215, -41.41868391268416 3.3695066483303076, -41.468794776581774 3.112197953150904 M-41.468794776581774 3.112197953150904 C-41.53215357427888 2.6207996298219585, -41.59551237197598 2.129401306493013, -41.62864270250937 1.872449005199809 M-41.468794776581774 3.112197953150904 C-41.52934157096086 2.6426089722636275, -41.589888365339945 2.173019991376351, -41.62864270250937 1.872449005199809 M-41.62864270250937 1.872449005199809 C-41.657854813481045 1.41744679722442, -41.687066924452715 0.962444589249031, -41.70873121591342 0.6250057626472781 M-41.62864270250937 1.872449005199809 C-41.64710095430866 1.5849468341931023, -41.66555920610796 1.2974446631863956, -41.70873121591342 0.6250057626472781 M-41.70873121591342 0.6250057626472781 C-41.70873121591342 0.1648407481413885, -41.70873121591342 -0.29532426636450115, -41.70873121591342 -0.6250057626472687 M-41.70873121591342 0.6250057626472781 C-41.70873121591342 0.28574751626115996, -41.70873121591342 -0.05351073012495822, -41.70873121591342 -0.6250057626472687 M-41.70873121591342 -0.6250057626472687 C-41.69109288322471 -0.8997370316796897, -41.673454550536015 -1.1744683007121106, -41.62864270250937 -1.8724490051997822 M-41.70873121591342 -0.6250057626472687 C-41.6881406376283 -0.945720639853636, -41.66755005934318 -1.2664355170600032, -41.62864270250937 -1.8724490051997822 M-41.62864270250937 -1.8724490051997822 C-41.564971603058225 -2.3662694792620877, -41.50130050360709 -2.8600899533243935, -41.468794776581774 -3.112197953150895 M-41.62864270250937 -1.8724490051997822 C-41.56830548875516 -2.340412520146875, -41.507968275000955 -2.808376035093968, -41.468794776581774 -3.112197953150895 M-41.468794776581774 -3.112197953150895 C-41.42042790425732 -3.3605516201948524, -41.37206103193288 -3.6089052872388097, -41.22984428754556 -4.339158212148126 M-41.468794776581774 -3.112197953150895 C-41.37579243767633 -3.5897453073790597, -41.28279009877089 -4.067292661607224, -41.22984428754556 -4.339158212148126 M-41.22984428754556 -4.339158212148126 C-41.14457403875165 -4.664330627158911, -41.05930378995774 -4.989503042169696, -40.91277313421489 -5.548287939305123 M-41.22984428754556 -4.339158212148126 C-41.14216987876202 -4.673498731168909, -41.05449546997848 -5.007839250189691, -40.91277313421489 -5.548287939305123 M-40.91277313421489 -5.548287939305123 C-40.80655839303467 -5.8681898167191235, -40.70034365185445 -6.188091694133123, -40.51888422997033 -6.734618561215485 M-40.91277313421489 -5.548287939305123 C-40.821827017478526 -5.822203152619155, -40.73088090074217 -6.096118365933187, -40.51888422997033 -6.734618561215485 M-40.51888422997033 -6.734618561215485 C-40.383632574935035 -7.068692764065521, -40.248380919899745 -7.402766966915556, -40.04979614880834 -7.893275190886676 M-40.51888422997033 -6.734618561215485 C-40.353113326868375 -7.144075896839703, -40.18734242376642 -7.55353323246392, -40.04979614880834 -7.893275190886676 M-40.04979614880834 -7.893275190886676 C-39.84813734511633 -8.312024011560322, -39.646478541424315 -8.730772832233965, -39.507436474273504 -9.019496659696282 M-40.04979614880834 -7.893275190886676 C-39.90732171755711 -8.189126395844328, -39.76484728630589 -8.48497760080198, -39.507436474273504 -9.019496659696282 M-39.507436474273504 -9.019496659696282 C-39.289583806731436 -9.406316130891915, -39.07173113918937 -9.793135602087549, -38.89403387860425 -10.108655082055243 M-39.507436474273504 -9.019496659696282 C-39.353326006399534 -9.293135400783575, -39.199215538525564 -9.566774141870868, -38.89403387860425 -10.108655082055243 M-38.89403387860425 -10.108655082055243 C-38.67134985016186 -10.450757548777046, -38.448665821719466 -10.792860015498851, -38.21210896464064 -11.156274872382308 M-38.89403387860425 -10.108655082055243 C-38.66884348784611 -10.454607994346553, -38.443653097087974 -10.80056090663786, -38.21210896464064 -11.156274872382308 M-38.21210896464064 -11.156274872382308 C-37.93365222847113 -11.529381530918917, -37.65519549230163 -11.902488189455525, -37.46446390812659 -12.158051136245302 M-38.21210896464064 -11.156274872382308 C-37.96193745854017 -11.491481899463883, -37.71176595243969 -11.826688926545458, -37.46446390812659 -12.158051136245302 M-37.46446390812659 -12.158051136245302 C-37.182590238475385 -12.489155987683771, -36.90071656882419 -12.820260839122241, -36.65417094296866 -13.10986736009567 M-37.46446390812659 -12.158051136245302 C-37.14893659318328 -12.528687474390546, -36.83340927823997 -12.899323812535789, -36.65417094296866 -13.10986736009567 M-36.65417094296866 -13.10986736009567 C-36.32338424580692 -13.451431783008077, -35.99259754864518 -13.792996205920485, -35.784559736767996 -14.007812326905677 M-36.65417094296866 -13.10986736009567 C-36.369794069673794 -13.403509829548126, -36.08541719637893 -13.697152299000582, -35.784559736767996 -14.007812326905677 M-35.784559736767996 -14.007812326905677 C-35.546884287765664 -14.223662881141816, -35.30920883876333 -14.439513435377954, -34.85920370850189 -14.848196188198107 M-35.784559736767996 -14.007812326905677 C-35.57573329351994 -14.197462977418647, -35.36690685027188 -14.387113627931617, -34.85920370850189 -14.848196188198107 M-34.85920370850189 -14.848196188198107 C-34.58284419908847 -15.068585542719905, -34.30648468967505 -15.288974897241703, -33.88190534457872 -15.627565626425149 M-34.85920370850189 -14.848196188198107 C-34.57974910560756 -15.071053797407032, -34.30029450271324 -15.293911406615955, -33.88190534457872 -15.627565626425149 M-33.88190534457872 -15.627565626425149 C-33.60801575853096 -15.81861914516298, -33.334126172483195 -16.009672663900812, -32.856680573605715 -16.342718045390885 M-33.88190534457872 -15.627565626425149 C-33.66829449228703 -15.77657130991907, -33.45468363999535 -15.92557699341299, -32.856680573605715 -16.342718045390885 M-32.856680573605715 -16.342718045390885 C-32.581773417672466 -16.509368378851388, -32.30686626173922 -16.67601871231189, -31.78774226407679 -16.99071473040609 M-32.856680573605715 -16.342718045390885 C-32.51240465265347 -16.551420131862013, -32.16812873170124 -16.760122218333144, -31.78774226407679 -16.99071473040609 M-31.78774226407679 -16.99071473040609 C-31.538524657285926 -17.12073139623739, -31.289307050495065 -17.250748062068688, -30.679482912792388 -17.56889292409717 M-31.78774226407679 -16.99071473040609 C-31.490382454737187 -17.145847152470512, -31.193022645397583 -17.30097957453494, -30.679482912792388 -17.56889292409717 M-30.679482912792388 -17.56889292409717 C-30.44615891669324 -17.672178535859835, -30.21283492059409 -17.775464147622497, -29.536456595147804 -18.07487676824742 M-30.679482912792388 -17.56889292409717 C-30.30905107607538 -17.732872109741773, -29.938619239358378 -17.896851295386377, -29.536456595147804 -18.07487676824742 M-29.536456595147804 -18.07487676824742 C-29.142781063955013 -18.219753002823087, -28.749105532762222 -18.364629237398752, -28.36336025146062 -18.506587066708033 M-29.536456595147804 -18.07487676824742 C-29.202576477220862 -18.19774773799851, -28.868696359293924 -18.320618707749603, -28.36336025146062 -18.506587066708033 M-28.36336025146062 -18.506587066708033 C-27.897263960872156 -18.644921999165334, -27.431167670283692 -18.783256931622635, -27.165014386235413 -18.862249829261067 M-28.36336025146062 -18.506587066708033 C-27.996565410044724 -18.61544985029486, -27.629770568628828 -18.724312633881684, -27.165014386235413 -18.862249829261067 M-27.165014386235413 -18.862249829261067 C-26.708752862409668 -18.9663885446896, -26.252491338583923 -19.070527260118133, -25.946343259676766 -19.140403561325773 M-27.165014386235413 -18.862249829261067 C-26.729870630372677 -18.961568551958358, -26.294726874509937 -19.06088727465565, -25.946343259676766 -19.140403561325773 M-25.946343259676766 -19.140403561325773 C-25.650657194909922 -19.1882077911976, -25.354971130143078 -19.23601202106942, -24.712354652847882 -19.3399052695533 M-25.946343259676766 -19.140403561325773 C-25.546243662365054 -19.205088561400412, -25.146144065053342 -19.269773561475052, -24.712354652847882 -19.3399052695533 M-24.712354652847882 -19.3399052695533 C-24.333367299920305 -19.376465723691243, -23.954379946992727 -19.41302617782919, -23.468119289623903 -19.45993515863156 M-24.712354652847882 -19.3399052695533 C-24.42371907004621 -19.367749597091102, -24.135083487244536 -19.3955939246289, -23.468119289623903 -19.45993515863156 M-23.468119289623903 -19.45993515863156 C-23.147544858461266 -19.47021535667867, -22.826970427298633 -19.480495554725778, -22.218750000000007 -19.5 M-23.468119289623903 -19.45993515863156 C-23.078802620450606 -19.47241978645302, -22.689485951277312 -19.48490441427448, -22.218750000000007 -19.5 M-22.218750000000007 -19.5 C-22.218750000000007 -19.5, -22.218750000000004 -19.5, -22.21875 -19.5 M-22.218750000000007 -19.5 C-22.218750000000004 -19.5, -22.218750000000004 -19.5, -22.21875 -19.5" stroke="#9370DB" stroke-width="1.3" fill="none" stroke-dasharray="0 0" style=""></path></g><g class="label" style="" transform="translate(-29.34375, -12)"><rect></rect><foreignObject width="58.6875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Browser</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-NC-1" data-look="classic" transform="translate(259.44871520996094, 315.13553619384766)"><rect class="basic label-container" style="" x="-65.578125" y="-27" width="131.15625" height="54"></rect><g class="label" style="" transform="translate(-35.578125, -12)"><rect></rect><foreignObject width="71.15625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Nextcloud</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-KC-3" data-look="classic" transform="translate(490.39402770996094, 35)"><rect class="basic label-container" style="" x="-62.4609375" y="-27" width="124.921875" height="54"></rect><g class="label" style="" transform="translate(-32.4609375, -12)"><rect></rect><foreignObject width="64.921875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Keycloak</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-DB-5" data-look="classic" transform="translate(490.39402770996094, 149.06776809692383)"><path d="M0,11.711846388944258 a55.0859375,11.711846388944258 0,0,0 110.171875,0 a55.0859375,11.711846388944258 0,0,0 -110.171875,0 l0,50.71184638894426 a55.0859375,11.711846388944258 0,0,0 110.171875,0 l0,-50.71184638894426" class="basic label-container outer-path" style="" transform="translate(-55.0859375, -37.067769583416386)"></path><g class="label" style="" transform="translate(-47.5859375, -2)"><rect></rect><foreignObject width="95.171875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>nextcloud DB</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Files-7" data-look="classic" transform="translate(490.39402770996094, 263.13553619384766)"><rect class="basic label-container" style="" x="-65.5625" y="-27" width="131.125" height="54"></rect><g class="label" style="" transform="translate(-35.5625, -12)"><rect></rect><foreignObject width="71.125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Files PVC</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Talk-9" data-look="classic" transform="translate(490.39402770996094, 367.13553619384766)"><rect class="basic label-container" style="" x="-60.2421875" y="-27" width="120.484375" height="54"></rect><g class="label" style="" transform="translate(-30.2421875, -12)"><rect></rect><foreignObject width="60.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Talk App</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-HPB-11" data-look="classic" transform="translate(702.6674652099609, 367.13553619384766)"><rect class="basic label-container" style="" x="-91.359375" y="-27" width="182.71875" height="54"></rect><g class="label" style="" transform="translate(-61.359375, -12)"><rect></rect><foreignObject width="122.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Talk HPB · Janus</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-CO-13" data-look="classic" transform="translate(490.39402770996094, 471.13553619384766)"><rect class="basic label-container" style="" x="-64.2421875" y="-27" width="128.484375" height="54"></rect><g class="label" style="" transform="translate(-34.2421875, -12)"><rect></rect><foreignObject width="68.484375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Collabora</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-WB-15" data-look="classic" transform="translate(490.39402770996094, 575.1355361938477)"><rect class="basic label-container" style="" x="-70.9140625" y="-27" width="141.828125" height="54"></rect><g class="label" style="" transform="translate(-40.9140625, -12)"><rect></rect><foreignObject width="81.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Whiteboard</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="my-svg-drop-shadow" height="130%" width="130%"><fedropshadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs><defs><filter id="my-svg-drop-shadow-small" height="150%" width="150%"><fedropshadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs></svg><span class="mermaid-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>
+<hr>
+<h2 id="aktivierte-apps">Aktivierte Apps</h2>
+<p>Die folgenden Apps werden einmalig nach dem Deployment via <code>task workspace:post-setup</code> aktiviert:</p>
+<table>
+<thead>
+<tr>
+<th>App</th>
+<th>Funktion</th>
+<th>Aktiviert via</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>calendar</code></td>
+<td>Kalender (CalDAV)</td>
+<td>post-setup</td>
+</tr>
+<tr>
+<td><code>contacts</code></td>
+<td>Kontakte (CardDAV)</td>
+<td>post-setup</td>
+</tr>
+<tr>
+<td><code>user_oidc</code></td>
+<td>Keycloak SSO-Login (OIDC)</td>
+<td>post-setup</td>
+</tr>
+<tr>
+<td><code>richdocuments</code></td>
+<td>Office-Integration mit Collabora</td>
+<td>post-setup</td>
+</tr>
+<tr>
+<td><code>whiteboard</code></td>
+<td>Kollaboratives Whiteboard</td>
+<td>post-setup</td>
+</tr>
+<tr>
+<td><code>notify_push</code></td>
+<td>Client-Push via WebSocket</td>
+<td>post-setup</td>
+</tr>
+<tr>
+<td><code>talk</code></td>
+<td>Video/Audio-Calls &amp; Chat</td>
+<td>post-setup</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="oidc-integration">OIDC-Integration</h2>
+<p>Nextcloud nutzt die App <code>user_oidc</code> für die Anmeldung via Keycloak (Single Sign-On). Die Konfiguration erfolgt nicht im Admin-Panel, sondern als PHP-ConfigMap, die in den Container gemountet wird.</p>
+<p><strong>Datei:</strong> <code>k3d/nextcloud-oidc-dev.php</code> → gemountet als <code>/var/www/html/config/oidc.config.php</code></p>
+<h3>Konfigurationsparameter</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Wert (Dev)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Provider-URL</td>
+<td><code>http://keycloak:8080/realms/workspace</code></td>
+</tr>
+<tr>
+<td>Client-ID</td>
+<td><code>nextcloud</code></td>
+</tr>
+<tr>
+<td>Client-Secret</td>
+<td>aus Secret <code>workspace-secrets</code> (Key: <code>NEXTCLOUD_OIDC_SECRET</code>)</td>
+</tr>
+<tr>
+<td>Auto-Redirect</td>
+<td><code>true</code> (direkt zu Keycloak)</td>
+</tr>
+<tr>
+<td>Button-Text</td>
+<td>„Mit Keycloak anmelden"</td>
+</tr>
+<tr>
+<td>Passwort-Formular</td>
+<td>ausgeblendet in Produktion</td>
+</tr>
+<tr>
+<td>TLS-Verifizierung</td>
+<td><code>false</code> (Dev-only; in Produktion aktivieren)</td>
+</tr>
+</tbody></table>
+<h3>User-Mapping (Keycloak → Nextcloud)</h3>
+<table>
+<thead>
+<tr>
+<th>Nextcloud-Feld</th>
+<th>Keycloak-Claim</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Username (<code>id</code>)</td>
+<td><code>preferred_username</code></td>
+</tr>
+<tr>
+<td>Anzeigename</td>
+<td><code>name</code></td>
+</tr>
+<tr>
+<td>E-Mail</td>
+<td><code>email</code></td>
+</tr>
+</tbody></table>
+<p>Der Scope ist <code>openid email profile</code>. Passwort-Vergessen-Link ist deaktiviert (<code>lost_password_link: disabled</code>), da Passwörter ausschliesslich über Keycloak verwaltet werden.</p>
+<hr>
+<h2 id="redis-cache">Redis-Cache</h2>
+<p>Redis wird als In-Memory-Cache und Distributed Locking Backend betrieben. Dies ist Voraussetzung für <code>notify_push</code> und verbessert die allgemeine Performance erheblich.</p>
+<p><strong>Deployment:</strong> <code>k3d/nextcloud-redis.yaml</code> — Redis 7 Alpine, rein In-Memory (kein Persistenz-AOF/RDB)</p>
+<p><strong>Konfiguration in</strong> <code>k3d/nextcloud-extra-config.php</code>:</p>
+<div class="code-wrapper"><pre><code>memcache.local       → APCu
+memcache.distributed → Redis
+memcache.locking     → Redis
+Redis-Host: nextcloud-redis.workspace.svc.cluster.local:6379
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Redis-Limits: max. 256 MB RAM, Eviction-Policy <code>allkeys-lru</code>.</p>
+<hr>
+<h2 id="collabora-integration">Collabora-Integration</h2>
+<p>Die App <code>richdocuments</code> verbindet Nextcloud mit Collabora Online über das WOPI-Protokoll. Beim Öffnen eines Office-Dokuments in Nextcloud wird Collabora im Browser gestartet.</p>
+<p><strong>Collabora-URL (Dev):</strong> <code>http://office.localhost</code></p>
+<p><strong>Einrichtung nach dem Deployment:</strong></p>
+<ol>
+<li>In Nextcloud Admin-Panel: <strong>Office → Collabora Online</strong></li>
+<li>WOPI-URL eintragen: <code>http://office.localhost</code> (Dev) bzw. <code>https://office.korczewski.de</code> (Prod)</li>
+<li>Verbindungstest durchführen</li>
+</ol>
+<p>Der <code>COLLABORA_DOMAIN</code> wird als Umgebungsvariable aus der ConfigMap <code>domain-config</code> in den Nextcloud-Container injiziert.</p>
+<hr>
+<h2 id="talk--video-calls">Talk / Video-Calls</h2>
+<p>Talk ermöglicht Video- und Audioanrufe sowie Gruppen-Chat direkt in Nextcloud. Die Infrastruktur besteht aus mehreren Komponenten:</p>
+<table>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>talk</code> (App)</td>
+<td>Nextcloud-App für Chat &amp; Calls</td>
+</tr>
+<tr>
+<td><code>spreed-signaling</code> (HPB)</td>
+<td>High-Performance Backend für Signalisierung bei mehreren Teilnehmern</td>
+</tr>
+<tr>
+<td><code>coturn</code></td>
+<td>TURN/STUN-Server für NAT-Traversal (Firewall-Durchquerung)</td>
+</tr>
+<tr>
+<td><code>janus</code> + <code>nats</code></td>
+<td>Medienserver und Message-Broker</td>
+</tr>
+</tbody></table>
+<h3>Signaling-Proxy</h3>
+<p>Da PHP/libcurl <code>*.localhost</code>-Adressen intern auf <code>127.0.0.1</code> auflöst, wird ein Apache-Proxy in Nextcloud konfiguriert (<code>nextcloud-signaling-proxy</code> ConfigMap). Dieser leitet PHP-seitige Signaling-Aufrufe (<code>/api/v1/</code>) intern an <code>spreed-signaling:8080</code> weiter, ohne den Browser-WebSocket-Traffic zu beeinflussen.</p>
+<hr>
+<h2 id="konfiguration">Konfiguration</h2>
+<h3>Extra-Konfiguration</h3>
+<p><strong>Datei:</strong> <code>k3d/nextcloud-extra-config.php</code> → gemountet als <code>/var/www/html/config/zz-extra.config.php</code></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>trusted_proxies</code></td>
+<td>RFC1918-CIDRs (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.1/32)</td>
+</tr>
+<tr>
+<td><code>forwarded_for_headers</code></td>
+<td><code>HTTP_X_FORWARDED_FOR</code></td>
+</tr>
+<tr>
+<td><code>default_phone_region</code></td>
+<td><code>DE</code></td>
+</tr>
+<tr>
+<td><code>maintenance_window_start</code></td>
+<td><code>1</code> (Uhr; Wartung um 01:00 Uhr nachts)</td>
+</tr>
+<tr>
+<td><code>log_rotate_size</code></td>
+<td>100 MB</td>
+</tr>
+</tbody></table>
+<h3>SMTP-Konfiguration (Dev → Mailpit)</h3>
+<p>Nextcloud sendet E-Mails im Dev-Betrieb an Mailpit (kein echter Mailversand):</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>SMTP_HOST</code></td>
+<td><code>mailpit</code></td>
+</tr>
+<tr>
+<td><code>SMTP_PORT</code></td>
+<td><code>1025</code></td>
+</tr>
+<tr>
+<td><code>MAIL_FROM_ADDRESS</code></td>
+<td><code>nextcloud</code></td>
+</tr>
+<tr>
+<td><code>MAIL_DOMAIN</code></td>
+<td><code>workspace.local</code></td>
+</tr>
+</tbody></table>
+<p>Eingehende Mails sind unter <a href="http://mail.localhost">http://mail.localhost</a> einsehbar.</p>
+<h3>Persistenz</h3>
+<table>
+<thead>
+<tr>
+<th>PVC</th>
+<th>Zweck</th>
+<th>Grösse</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nextcloud-app</code></td>
+<td>Nextcloud-Anwendungsdaten, Apps</td>
+<td>2 Gi</td>
+</tr>
+<tr>
+<td><code>nextcloud-data-pvc</code></td>
+<td>Nutzerdaten (Dateien)</td>
+<td>50 Gi</td>
+</tr>
+</tbody></table>
+<h3>Sidecars im Pod</h3>
+<p>Das Nextcloud-Deployment enthält zwei Container in einem Pod:</p>
+<table>
+<thead>
+<tr>
+<th>Container</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nextcloud</code></td>
+<td>Hauptanwendung (Apache)</td>
+</tr>
+<tr>
+<td><code>nextcloud-cron</code></td>
+<td>Führt <code>cron.php</code> alle 5 Minuten aus</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="betrieb">Betrieb</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Apps einmalig nach dem Deployment aktivieren
+task workspace:post-setup
+
+# Logs anzeigen
+task workspace:logs -- nextcloud
+
+# Pod neu starten
+task workspace:restart -- nextcloud
+
+# occ-Befehle ausführen (als www-data, UID 33)
+kubectl exec -n workspace deploy/nextcloud -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups php occ &lt;befehl&gt;
+
+# Beispiel: App-Liste anzeigen
+kubectl exec -n workspace deploy/nextcloud -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups php occ app:list
+
+# Beispiel: Nextcloud-Status
+kubectl exec -n workspace deploy/nextcloud -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups php occ status
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="fehlerbehebung">Fehlerbehebung</h2>
+<h3>Datei-Upload schlägt fehl</h3>
+<ul>
+<li>Max-Upload-Grösse prüfen: Standard ist 512 MB (konfigurierbar via PHP-INI)</li>
+<li><code>trusted_proxies</code> in <code>nextcloud-extra-config.php</code> muss die Traefik-CIDR enthalten</li>
+<li>Ingress-Annotation <code>proxy-body-size</code> prüfen</li>
+</ul>
+<h3>Talk-Video funktioniert nicht</h3>
+<ul>
+<li>coturn-Pod-Status prüfen: <code>kubectl get pods -n workspace | grep coturn</code></li>
+<li>TURN-Credentials in Nextcloud Admin unter <strong>Talk → TURN-Server</strong> kontrollieren</li>
+<li>HPB-Signaling-Logs: <code>task workspace:logs -- spreed-signaling</code></li>
+<li>coturn-Logs: <code>task workspace:logs -- coturn</code></li>
+</ul>
+<h3>OIDC-Login schlägt fehl</h3>
+<ul>
+<li><code>user_oidc</code>-App in Nextcloud aktiviert? <code>task workspace:post-setup</code> erneut ausführen</li>
+<li>Keycloak-Client <code>nextcloud</code> vorhanden und Secret korrekt? Secret unter <code>workspace-secrets</code> Key <code>NEXTCLOUD_OIDC_SECRET</code> prüfen</li>
+<li>Keycloak-Pod läuft: <code>kubectl get pods -n workspace | grep keycloak</code></li>
+<li>Provider-URL erreichbar: <code>http://keycloak:8080/realms/workspace/.well-known/openid-configuration</code></li>
+</ul>
+<h3>Collabora nicht erreichbar</h3>
+<ul>
+<li>Pod-Status: <code>kubectl get pods -n workspace | grep collabora</code></li>
+<li>WOPI-URL im Nextcloud Admin-Panel korrekt gesetzt?</li>
+<li>Logs: <code>task workspace:logs -- collabora</code></li>
+</ul>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

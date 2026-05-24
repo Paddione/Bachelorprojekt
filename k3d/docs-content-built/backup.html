@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Backup &amp; Wiederherstellung — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item active"><a href="./backup.html" class="active">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><div class="page-hero">
+  <span class="page-hero-icon">💾</span>
+  <div class="page-hero-body">
+    <div class="page-hero-eyebrow">Daten · Wiederherstellung</div>
+    <div class="page-hero-title">Backup &amp; Wiederherstellung</div>
+    <p class="page-hero-desc">Tägliche verschlüsselte DB-Snapshots, Restore-Workflow und Backup-Monitoring.</p>
+    <div class="page-hero-meta">
+      <span class="page-hero-tag">SA-07</span>
+      <span class="page-hero-tag">AES-256</span>
+    </div>
+  </div>
+  <a href="./index.html" class="page-hero-back">← Übersicht</a>
+</div><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#ueberblick"><span class="toc-num">1.</span>&nbsp;Überblick</a></li>
+<li class="toc-item"><a href="#was-wird-gesichert"><span class="toc-num">2.</span>&nbsp;Was wird gesichert</a></li>
+<li class="toc-item"><a href="#backup-status-pruefen"><span class="toc-num">3.</span>&nbsp;Backup-Status prüfen</a></li>
+<li class="toc-item"><a href="#manuelles-backup-ausloesen"><span class="toc-num">4.</span>&nbsp;Manuelles Backup auslösen</a></li>
+<li class="toc-item"><a href="#wiederherstellung"><span class="toc-num">5.</span>&nbsp;Wiederherstellung</a></li>
+<li class="toc-item"><a href="#direktzugriff-auf-backup-pvc"><span class="toc-num">6.</span>&nbsp;Direktzugriff auf Backup-PVC</a></li>
+<li class="toc-item"><a href="#nextcloud-dateien-sichern-manuell"><span class="toc-num">7.</span>&nbsp;Nextcloud-Dateien sichern (manuell)</a></li>
+<li class="toc-item"><a href="#aufbewahrungsstrategie"><span class="toc-num">8.</span>&nbsp;Aufbewahrungsstrategie</a></li>
+<li class="toc-item"><a href="#backup-passphrase-verwalten"><span class="toc-num">9.</span>&nbsp;Backup-Passphrase verwalten</a></li></ul>
+</div><h1>Backup &amp; Wiederherstellung</h1>
+<h2 id="ueberblick">Überblick</h2>
+<p>Automatische Datenbank-Backups laufen täglich als Kubernetes CronJob (<code>k3d/backup-cronjob.yaml</code>):</p>
+<ul>
+<li><strong>Zeitplan:</strong> Täglich um 02:00 UTC</li>
+<li><strong>Gesicherte Datenbanken:</strong> <code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code></li>
+<li><strong>Verschlüsselung:</strong> AES-256-CBC mit PBKDF2 (Passphrase aus <code>workspace-secrets</code>)</li>
+<li><strong>Aufbewahrung:</strong> 30 Tage (automatische Bereinigung)</li>
+<li><strong>Speicherort:</strong> PVC <code>backup-pvc</code> (1 Gi, ReadWriteOnce) im Namespace <code>workspace</code></li>
+<li><strong>Sicherheitsanforderung:</strong> SA-07 (tägliche Backups mit Verschlüsselung)</li>
+</ul>
+<div class="callout callout-warn">
+<strong>Datei-PVCs werden NICHT gesichert.</strong> Nextcloud-Dateien, Vaultwarden-Anhänge und DocuSeal-Dokumente liegen im Dateisystem — nur die Datenbankdaten sind im Backup enthalten.
+</div><pre class="mermaid-fallback"><code>sequenceDiagram
+  participant Cron as Backup CronJob
+  participant DB as shared-db
+  participant PVC as Backup PVC
+  participant Off as Off-Site
+  Note over Cron: Täglich 02:30
+  Cron-&gt;&gt;DB: pg_dump --all
+  DB--&gt;&gt;Cron: SQL-Stream
+  Cron-&gt;&gt;PVC: gzip + verschlüsseln
+  PVC--&gt;&gt;Cron: Snapshot abgelegt
+  Cron-&gt;&gt;Off: rsync (nur Diff)
+  Off--&gt;&gt;Cron: OK
+  Cron-&gt;&gt;Cron: alte Snapshots &gt; 30 Tage löschen
+</code></pre>
+<hr>
+<h2 id="was-wird-gesichert">Was wird gesichert</h2>
+<table>
+<thead>
+<tr>
+<th>Datenbank</th>
+<th>Inhalt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>keycloak</code></td>
+<td>SSO-Konfiguration, Benutzer, Realms, Clients</td>
+</tr>
+<tr>
+<td><code>nextcloud</code></td>
+<td>Datei-Index, Kalender, Kontakte, Metadaten</td>
+</tr>
+<tr>
+<td><code>vaultwarden</code></td>
+<td>Passwort-Vault-Struktur (nicht: Datei-Anhänge)</td>
+</tr>
+<tr>
+<td><code>website</code></td>
+<td>Website-Anwendungsdatenbank</td>
+</tr>
+<tr>
+<td><code>docuseal</code></td>
+<td>Signaturprozesse, Vorlagen (nicht: Dokumentendateien)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="backup-status-pruefen">Backup-Status prüfen</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Verfügbare Backup-Zeitstempel anzeigen
+task workspace:backup:list
+
+# Oder mit Prod-Context
+task workspace:backup:list -- --context mentolder
+
+# CronJob- und Job-Status
+kubectl get cronjobs -n workspace
+kubectl get jobs -n workspace | grep db-backup
+kubectl logs -n workspace -l app=db-backup --tail=50
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="manuelles-backup-ausloesen">Manuelles Backup auslösen</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Sofort-Backup starten (außerhalb des Zeitplans)
+task workspace:backup
+
+# Prod-Cluster
+task workspace:backup -- --context mentolder
+task workspace:backup -- --context korczewski
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Das Skript erstellt einen Job aus dem CronJob-Template und folgt den Logs.</p>
+<hr>
+<h2 id="wiederherstellung">Wiederherstellung</h2>
+<blockquote>
+<p><strong>Achtung:</strong> Die Wiederherstellung <strong>löscht</strong> die Datenbank und stellt sie neu auf.
+Alle aktuellen Daten gehen verloren. Services vorher stoppen, um inkonsistente
+Schreibvorgänge zu vermeiden.</p>
+</blockquote>
+<div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">1</div>
+    <span class="phase-title">Verfügbare Backups auflisten</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body"><div class="code-wrapper"><pre><code class="language-bash">task workspace:backup:list
+# Ausgabe: Zeitstempel, z.B. 20260427-020001
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+  </div>
+</div><div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-sage">2</div>
+    <span class="phase-title">Service stoppen (empfohlen)</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body"><div class="code-wrapper"><pre><code class="language-bash">kubectl scale deployment/&lt;service&gt; -n workspace --replicas=0
+# z.B. für nextcloud:
+kubectl scale deployment/nextcloud -n workspace --replicas=0
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+  </div>
+</div><div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-blue">3</div>
+    <span class="phase-title">Datenbank wiederherstellen</span>
+    <span class="phase-desc">~2 min</span>
+  </div>
+  <div class="phase-body"><div class="code-wrapper"><pre><code class="language-bash"># Einzelne Datenbank
+task workspace:restore -- nextcloud 20260427-020001
+
+# Alle Datenbanken auf einmal
+task workspace:restore -- all 20260427-020001
+
+# Prod-Cluster (mit Context + ohne Bestätigungsprompt)
+task workspace:restore -- nextcloud 20260427-020001 --context mentolder -y
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Das Restore-Skript (<code>scripts/backup-restore.sh restore</code>) führt folgende Schritte durch:</p>
+<ol>
+<li>Entschlüsselt die <code>.dump.enc</code>-Datei mit dem <code>BACKUP_PASSPHRASE</code>-Secret</li>
+<li>Trennt aktive Verbindungen zur Zieldatenbank</li>
+<li>Löscht die bestehende Datenbank (<code>dropdb</code>)</li>
+<li>Erstellt eine neue leere Datenbank (<code>createdb</code>)</li>
+<li>Spielt das Dump ein (<code>pg_restore --no-owner --exit-on-error</code>)</li>
+<li>Löscht die temporäre entschlüsselte Dump-Datei</li>
+</ol>
+  </div>
+</div><div class="phase-card">
+  <div class="phase-header">
+    <div class="phase-num phase-num-brass">4</div>
+    <span class="phase-title">Service neu starten</span>
+    <span class="phase-desc">~1 min</span>
+  </div>
+  <div class="phase-body"><div class="code-wrapper"><pre><code class="language-bash">task workspace:restart -- nextcloud
+# oder: kubectl scale deployment/nextcloud -n workspace --replicas=1
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+  </div>
+</div><hr>
+<h2 id="direktzugriff-auf-backup-pvc">Direktzugriff auf Backup-PVC</h2>
+<p>Für manuelle Inspektion der gespeicherten Backups:</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl run --rm -it backup-check --image=busybox \
+  --overrides='{"spec":{"volumes":[{"name":"b","persistentVolumeClaim":{"claimName":"backup-pvc"}}],"containers":[{"name":"c","image":"busybox","command":["ls","-lRh","/backups"],"volumeMounts":[{"name":"b","mountPath":"/backups"}]}]}}' \
+  --restart=Never -n workspace
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="nextcloud-dateien-sichern-manuell">Nextcloud-Dateien sichern (manuell)</h2>
+<p>Nextcloud-Benutzerdaten liegen auf <code>nextcloud-data-pvc</code> und werden <strong>nicht</strong> automatisch gesichert.
+Für eine vollständige Sicherung:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Nextcloud in Wartungsmodus
+kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
+  su -s /bin/bash www-data -c "php occ maintenance:mode --on"
+
+# Datei-Backup per kubectl cp
+kubectl cp workspace/$(kubectl get pod -n workspace -l app=nextcloud -o name | head -1 | cut -d/ -f2):/var/www/html/data ./nextcloud-data-backup-$(date +%Y%m%d)/
+
+# Wartungsmodus beenden
+kubectl exec -n workspace -c nextcloud deploy/nextcloud -- \
+  su -s /bin/bash www-data -c "php occ maintenance:mode --off"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="aufbewahrungsstrategie">Aufbewahrungsstrategie</h2>
+<table>
+<thead>
+<tr>
+<th>Kategorie</th>
+<th>Aufbewahrung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Automatische DB-Backups</td>
+<td>30 Tage (automatische Bereinigung)</td>
+</tr>
+<tr>
+<td>Job-Historieneinträge (erfolgreich)</td>
+<td>3 Jobs</td>
+</tr>
+<tr>
+<td>Job-Historieneinträge (fehlgeschlagen)</td>
+<td>3 Jobs</td>
+</tr>
+<tr>
+<td>Nextcloud-Dateien</td>
+<td>Manuell (kein Automatik-Backup)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="backup-passphrase-verwalten">Backup-Passphrase verwalten</h2>
+<ul>
+<li><strong>Dev:</strong> Platzhalter in <code>k3d/secrets.yaml</code> (<code>BACKUP_PASSPHRASE: "devbackuppassphrase1234567890abcd"</code>)</li>
+<li><strong>Prod:</strong> Versiegelt in <code>environments/sealed-secrets/&lt;env&gt;.yaml</code>, angewendet vor dem Deploy</li>
+<li><strong>Rotation:</strong> <code>task env:generate ENV=&lt;env&gt;</code> → <code>task env:seal ENV=&lt;env&gt;</code> → Deploy</li>
+</ul>
+<p>Die Passphrase wird ausschließlich aus <code>workspace-secrets</code> gelesen — nie im Klartext in Logs oder Manifesten.</p>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

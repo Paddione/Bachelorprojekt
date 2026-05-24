@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Systemisches Brett — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item active"><a href="./systemisches-brett.html" class="active">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Systemisches Brett</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#brett-oeffnen"><span class="toc-num">1.</span>&nbsp;Brett öffnen</a></li>
+<li class="toc-item"><a href="#speichern-und-laden"><span class="toc-num">2.</span>&nbsp;Speichern und Laden</a></li>
+<li class="toc-item"><a href="#status"><span class="toc-num">3.</span>&nbsp;Status</a></li>
+<li class="toc-item"><a href="#hinweise"><span class="toc-num">4.</span>&nbsp;Hinweise</a></li></ul>
+</div>
+<p>Das <strong>Systemische Brett</strong> ist ein 3D-Aufstellungsbrett, das direkt aus einer
+Nextcloud-Talk-Sitzung heraus geöffnet werden kann. Beide Teilnehmer:innen
+sehen jede Bewegung in Echtzeit.</p>
+<h2 id="brett-oeffnen">Brett öffnen</h2>
+<p>Es gibt zwei Wege:</p>
+<p><strong>1. In jeder Talk-Konversation:</strong> den Befehl <code>/brett</code> in den Chat schreiben.
+Der Bot antwortet mit einem Link zum Brett. Beide Teilnehmer:innen klicken
+diesen Link und landen im selben Raum.</p>
+<p><strong>2. Bei geplanten Coaching-Sitzungen:</strong> der Brett-Link wird automatisch
+beim Erstellen des Termins in den Chat gepostet.</p>
+<h2 id="speichern-und-laden">Speichern und Laden</h2>
+<p>Das Brett kann jederzeit als <strong>Snapshot</strong> gespeichert werden — zum Beispiel
+"vor Intervention" oder "Familienaufstellung 1".</p>
+<ul>
+<li><strong>Speichern</strong>: Button „↓ Speichern". Klient:in (optional) und Name eingeben.</li>
+<li><strong>Laden</strong>: Button „↑ Laden". Filter wählen (Klient oder aktueller Raum)
+und Snapshot anklicken.</li>
+</ul>
+<p>Snapshots, die mit einem Klienten verknüpft sind, können in jedem späteren
+Raum geladen werden. Snapshots ohne Klient sind nur im selben Raum
+auffindbar.</p>
+<h2 id="status">Status</h2>
+<p>Oben rechts in der Werkzeugleiste zeigt eine kleine Anzeige den
+Verbindungsstatus an:</p>
+<ul>
+<li><strong>Verbunden ✓ — N Teilnehmer</strong> — alles in Ordnung.</li>
+<li><strong>Verbindung getrennt — versuche neu …</strong> — der Server stellt selbst neu
+zu (3 Sekunden). Wenn das nach mehreren Versuchen nicht klappt: Seite neu
+laden.</li>
+</ul>
+<h2 id="hinweise">Hinweise</h2>
+<ul>
+<li>Das Brett wird laufend automatisch gespeichert. Wenn alle Teilnehmer:innen
+die Seite schließen und später wiederkommen, ist das letzte Bild noch da.</li>
+<li>Snapshots sind unveränderlich. Um eine Änderung dauerhaft festzuhalten,
+einfach einen neuen Snapshot mit angepasstem Namen speichern.</li>
+<li>Das <strong>Systemische Brett</strong> (3D) ist nicht zu verwechseln mit dem
+<em>Systembrett im Whiteboard</em> — letzteres ist eine 2D-Vorlage in Nextcloud
+Whiteboard für allgemeine Workshops.</li>
+</ul>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

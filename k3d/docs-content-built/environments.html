@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Umgebungen — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item active"><a href="./environments.html" class="active">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Umgebungen</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#uberblick"><span class="toc-num">1.</span>&nbsp;Uberblick</a></li>
+<li class="toc-item"><a href="#umgebungsvergleich"><span class="toc-num">2.</span>&nbsp;Umgebungsvergleich</a></li>
+<li class="toc-item"><a href="#env-registry-environments"><span class="toc-num">3.</span>&nbsp;Env-Registry (environments/)</a></li>
+<li class="toc-item"><a href="#secrets-management-sealed-secrets"><span class="toc-num">4.</span>&nbsp;Secrets-Management: Sealed Secrets</a></li>
+<li class="toc-item"><a href="#env-skripte"><span class="toc-num">5.</span>&nbsp;Env-Skripte</a></li>
+<li class="toc-item"><a href="#neue-umgebung-einrichten"><span class="toc-num">6.</span>&nbsp;Neue Umgebung einrichten</a></li></ul>
+</div>
+<h2 id="uberblick">Uberblick</h2>
+<div class="mermaid-svg-wrapper"><svg id="my-svg" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 1803.31px; background-color: transparent;" viewBox="0 0 1803.3125 198" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#my-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#my-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#my-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#my-svg .error-icon{fill:#552222;}#my-svg .error-text{fill:#552222;stroke:#552222;}#my-svg .edge-thickness-normal{stroke-width:1px;}#my-svg .edge-thickness-thick{stroke-width:3.5px;}#my-svg .edge-pattern-solid{stroke-dasharray:0;}#my-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#my-svg .edge-pattern-dashed{stroke-dasharray:3;}#my-svg .edge-pattern-dotted{stroke-dasharray:2;}#my-svg .marker{fill:#333333;stroke:#333333;}#my-svg .marker.cross{stroke:#333333;}#my-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#my-svg p{margin:0;}#my-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#my-svg .cluster-label text{fill:#333;}#my-svg .cluster-label span{color:#333;}#my-svg .cluster-label span p{background-color:transparent;}#my-svg .label text,#my-svg span{fill:#333;color:#333;}#my-svg .node rect,#my-svg .node circle,#my-svg .node ellipse,#my-svg .node polygon,#my-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#my-svg .rough-node .label text,#my-svg .node .label text,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-anchor:middle;}#my-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#my-svg .rough-node .label,#my-svg .node .label,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-align:center;}#my-svg .node.clickable{cursor:pointer;}#my-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#my-svg .arrowheadPath{fill:#333333;}#my-svg .edgePath .path{stroke:#333333;stroke-width:1px;}#my-svg .flowchart-link{stroke:#333333;fill:none;}#my-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#my-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#my-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#my-svg .cluster text{fill:#333;}#my-svg .cluster span{color:#333;}#my-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#my-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#my-svg rect.text{fill:none;stroke-width:0;}#my-svg .icon-shape,#my-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .icon-shape p,#my-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#my-svg .icon-shape .label rect,#my-svg .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#my-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#my-svg .node .neo-node{stroke:#9370DB;}#my-svg [data-look="neo"].node rect,#my-svg [data-look="neo"].cluster rect,#my-svg [data-look="neo"].node polygon{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node path{stroke:#9370DB;stroke-width:1px;}#my-svg [data-look="neo"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node .neo-line path{stroke:#9370DB;filter:none;}#my-svg [data-look="neo"].node circle{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node circle .state-start{fill:#000000;}#my-svg [data-look="neo"].icon-shape .icon{fill:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].icon-shape .icon-neo path{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="my-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="my-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="my-svg_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M281.438,163L290.643,163C299.849,163,318.26,163,330.966,163C343.672,163,350.672,163,354.172,163L357.672,163" id="my-svg-L_YAML_Resolve_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_YAML_Resolve_0" data-points="W3sieCI6MjgxLjQzNzUsInkiOjE2M30seyJ4IjozMzYuNjcxODc1LCJ5IjoxNjN9LHsieCI6MzYxLjY3MTg3NSwieSI6MTYzfV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M576.391,163L580.557,163C584.724,163,593.057,163,606.052,163C619.047,163,636.703,163,645.531,163L654.359,163" id="my-svg-L_Resolve_ENV_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Resolve_ENV_0" data-points="W3sieCI6NTc2LjM5MDYyNSwieSI6MTYzfSx7IngiOjYwMS4zOTA2MjUsInkiOjE2M30seyJ4Ijo2NTguMzU5Mzc1LCJ5IjoxNjN9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M311.672,47L315.839,47C320.005,47,328.339,47,341.116,47C353.893,47,371.115,47,379.725,47L388.336,47" id="my-svg-L_Secret_Seal_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Secret_Seal_0" data-points="W3sieCI6MzExLjY3MTg3NSwieSI6NDd9LHsieCI6MzM2LjY3MTg3NSwieSI6NDd9LHsieCI6MzkyLjMzNTkzNzUsInkiOjQ3fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M545.727,47L555.004,47C564.281,47,582.836,47,595.613,47C608.391,47,615.391,47,618.891,47L622.391,47" id="my-svg-L_Seal_Sealed_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Seal_Sealed_0" data-points="W3sieCI6NTQ1LjcyNjU2MjUsInkiOjQ3fSx7IngiOjYwMS4zOTA2MjUsInkiOjQ3fSx7IngiOjYyNi4zOTA2MjUsInkiOjQ3fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M886.391,47L890.557,47C894.724,47,903.057,47,918.719,51.905C934.382,56.81,957.373,66.62,968.868,71.525L980.364,76.43" id="my-svg-L_Sealed_Apply_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Sealed_Apply_0" data-points="W3sieCI6ODg2LjM5MDYyNSwieSI6NDd9LHsieCI6OTExLjM5MDYyNSwieSI6NDd9LHsieCI6OTg0LjA0MjY5OTM1MzQ0ODMsInkiOjc4fV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M854.422,163L863.917,163C873.411,163,892.401,163,913.391,158.095C934.382,153.19,957.373,143.38,968.868,138.475L980.364,133.57" id="my-svg-L_ENV_Apply_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_ENV_Apply_0" data-points="W3sieCI6ODU0LjQyMTg3NSwieSI6MTYzfSx7IngiOjkxMS4zOTA2MjUsInkiOjE2M30seyJ4Ijo5ODQuMDQyNjk5MzUzNDQ4MywieSI6MTMyfV0=" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M1158.25,105L1162.417,105C1166.583,105,1174.917,105,1182.583,105C1190.25,105,1197.25,105,1200.75,105L1204.25,105" id="my-svg-L_Apply_Cluster_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Apply_Cluster_0" data-points="W3sieCI6MTE1OC4yNSwieSI6MTA1fSx7IngiOjExODMuMjUsInkiOjEwNX0seyJ4IjoxMjA4LjI1LCJ5IjoxMDV9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M1348.281,105L1367.788,105C1387.294,105,1426.307,105,1464.654,105C1503,105,1540.68,105,1559.52,105L1578.359,105" id="my-svg-L_Cluster_K8sSec_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Cluster_K8sSec_0" data-points="W3sieCI6MTM0OC4yODEyNSwieSI6MTA1fSx7IngiOjE0NjUuMzIwMzEyNSwieSI6MTA1fSx7IngiOjE1ODIuMzU5Mzc1LCJ5IjoxMDV9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_YAML_Resolve_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Resolve_ENV_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Secret_Seal_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Seal_Sealed_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Sealed_Apply_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_ENV_Apply_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Apply_Cluster_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(1465.3203125, 105)"><g class="label" data-id="L_Cluster_K8sSec_0" transform="translate(-92.0390625, -12)"><foreignObject width="184.078125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"><p>Sealed-Secrets-Controller</p></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="my-svg-flowchart-YAML-0" data-look="classic" transform="translate(159.8359375, 163)"><rect class="basic label-container" style="" x="-121.6015625" y="-27" width="243.203125" height="54"></rect><g class="label" style="" transform="translate(-91.6015625, -12)"><rect></rect><foreignObject width="183.203125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>environments/&lt;env&gt;.yaml</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Resolve-1" data-look="classic" transform="translate(469.03125, 163)"><rect class="basic label-container" style="" x="-107.359375" y="-27" width="214.71875" height="54"></rect><g class="label" style="" transform="translate(-77.359375, -12)"><rect></rect><foreignObject width="154.71875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>scripts/env-resolve.sh</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-ENV-3" data-look="classic" transform="translate(756.390625, 163)"><rect class="basic label-container" style="" x="-98.03125" y="-27" width="196.0625" height="54"></rect><g class="label" style="" transform="translate(-68.03125, -12)"><rect></rect><foreignObject width="136.0625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Exported ENV vars</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Secret-4" data-look="classic" transform="translate(159.8359375, 47)"><rect class="basic label-container" style="" x="-151.8359375" y="-27" width="303.671875" height="54"></rect><g class="label" style="" transform="translate(-121.8359375, -12)"><rect></rect><foreignObject width="243.671875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel"><p>environments/.secrets/&lt;env&gt;.yaml</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Seal-5" data-look="classic" transform="translate(469.03125, 47)"><rect class="basic label-container" style="" x="-76.6953125" y="-27" width="153.390625" height="54"></rect><g class="label" style="" transform="translate(-46.6953125, -12)"><rect></rect><foreignObject width="93.390625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>task env:seal</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Sealed-7" data-look="classic" transform="translate(756.390625, 47)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"></rect><g class="label" style="" transform="translate(-100, -24)"><rect></rect><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel"><p>environments/sealed-secrets/&lt;env&gt;.yaml</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Apply-9" data-look="classic" transform="translate(1047.3203125, 105)"><rect class="basic label-container" style="" x="-110.9296875" y="-27" width="221.859375" height="54"></rect><g class="label" style="" transform="translate(-80.9296875, -12)"><rect></rect><foreignObject width="161.859375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>task workspace:deploy</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Cluster-13" data-look="classic" transform="translate(1278.265625, 105)"><rect class="basic label-container" style="" x="-70.015625" y="-27" width="140.03125" height="54"></rect><g class="label" style="" transform="translate(-40.015625, -12)"><rect></rect><foreignObject width="80.03125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>k8s Cluster</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-K8sSec-15" data-look="classic" transform="translate(1688.8359375, 105)"><rect class="basic label-container" style="" x="-106.4765625" y="-27" width="212.953125" height="54"></rect><g class="label" style="" transform="translate(-76.4765625, -12)"><rect></rect><foreignObject width="152.953125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Secret · entschlüsselt</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="my-svg-drop-shadow" height="130%" width="130%"><fedropshadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs><defs><filter id="my-svg-drop-shadow-small" height="150%" width="150%"><fedropshadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs></svg><span class="mermaid-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>
+<p>Das Projekt unterstutzt drei Deployment-Umgebungen:</p>
+<ul>
+<li><strong>dev</strong> -- Lokaler k3d-Cluster fur Entwicklung und Tests. Keine TLS, Mailpit statt echtem SMTP, Klartext-Secrets.</li>
+<li><strong>mentolder</strong> -- Hetzner k3s-Produktionscluster fur mentolder.de. Let's Encrypt TLS, DDNS fur dynamische IP, echter SMTP.</li>
+<li><strong>korczewski</strong> -- Hetzner k3s-Produktionscluster fur korczewski.de. Gleiche Infrastruktur wie mentolder, andere Domain und Branding.</li>
+</ul>
+<p>Die gesamte Konfiguration liegt im Verzeichnis <code>environments/</code> als YAML-Dateien.</p>
+<hr>
+<h2 id="umgebungsvergleich">Umgebungsvergleich</h2>
+<table>
+<thead>
+<tr>
+<th>Merkmal</th>
+<th>dev (k3d)</th>
+<th>mentolder</th>
+<th>korczewski</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Domain</td>
+<td>localhost</td>
+<td>mentolder.de</td>
+<td>korczewski.de</td>
+</tr>
+<tr>
+<td>TLS</td>
+<td>Kein TLS (HTTP)</td>
+<td>Let's Encrypt Wildcard</td>
+<td>Let's Encrypt Wildcard</td>
+</tr>
+<tr>
+<td>Cluster-Typ</td>
+<td>k3d (lokal)</td>
+<td>k3s auf Hetzner</td>
+<td>k3s auf Hetzner</td>
+</tr>
+<tr>
+<td>Sealed Secrets</td>
+<td>Nein (Klartext)</td>
+<td>Ja</td>
+<td>Ja</td>
+</tr>
+<tr>
+<td>DDNS</td>
+<td>Nein</td>
+<td>Ja (ipv64)</td>
+<td>Nein (statische IP)</td>
+</tr>
+<tr>
+<td>E-Mail</td>
+<td>Mailpit (lokal, kein Versand)</td>
+<td>smtp.mailbox.org</td>
+<td>smtp.mailbox.org</td>
+</tr>
+<tr>
+<td>Secrets-Modus</td>
+<td><code>plaintext</code></td>
+<td>Sealed Secrets</td>
+<td>Sealed Secrets</td>
+</tr>
+<tr>
+<td>Kustomize-Overlay</td>
+<td><code>k3d/</code></td>
+<td><code>prod-mentolder/</code></td>
+<td><code>prod-korczewski/</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="env-registry-environments">Env-Registry (environments/)</h2>
+<p>Das <code>environments/</code>-Verzeichnis ist die zentrale Konfigurationsquelle fur alle Umgebungen:</p>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>environments/schema.yaml</code></td>
+<td>Konfigurations-Schema: alle erlaubten Variablen mit Typen, Default-Werten und Validierungsregeln</td>
+</tr>
+<tr>
+<td><code>environments/dev.yaml</code></td>
+<td>Konfiguration fur lokale Entwicklung (verwendet schema-Defaults)</td>
+</tr>
+<tr>
+<td><code>environments/mentolder.yaml</code></td>
+<td>Produktionskonfiguration fur mentolder.de</td>
+</tr>
+<tr>
+<td><code>environments/korczewski.yaml</code></td>
+<td>Produktionskonfiguration fur korczewski.de</td>
+</tr>
+<tr>
+<td><code>environments/sealed-secrets/</code></td>
+<td>Verschlusselte Secrets pro Umgebung (sicher in Git)</td>
+</tr>
+<tr>
+<td><code>environments/certs/</code></td>
+<td>TLS-Zertifikatsreferenzen pro Umgebung</td>
+</tr>
+</tbody></table>
+<p>Jede Umgebungsdatei definiert mindestens:</p>
+<ul>
+<li><code>environment</code> -- Name der Umgebung</li>
+<li><code>context</code> -- kubectl-Kontext</li>
+<li><code>domain</code> -- Basis-Domain</li>
+<li><code>env_vars</code> -- Umgebungsspezifische Variablen (Domain, Brand, SMTP, TURN, externe URLs usw.)</li>
+<li><code>secrets_mode</code> -- <code>plaintext</code> (dev) oder <code>sealed</code> (Produktion)</li>
+<li><code>overlay</code> -- Kustomize-Overlay-Pfad</li>
+</ul>
+<p><strong>Schlusselvariablen aus schema.yaml:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Bedeutung</th>
+<th>Dev-Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PROD_DOMAIN</code></td>
+<td>Basis-Domain</td>
+<td><code>localhost</code></td>
+</tr>
+<tr>
+<td><code>BRAND_NAME</code></td>
+<td>Anzeigename der Plattform</td>
+<td><code>Workspace</code></td>
+</tr>
+<tr>
+<td><code>BRAND_ID</code></td>
+<td>Interner Bezeichner</td>
+<td><code>mentolder</code></td>
+</tr>
+<tr>
+<td><code>CONTACT_EMAIL</code></td>
+<td>Kontakt-E-Mail-Adresse</td>
+<td><code>dev@localhost</code></td>
+</tr>
+<tr>
+<td><code>CONTACT_NAME</code></td>
+<td>Vollstandiger Kontaktname</td>
+<td><code>Dev User</code></td>
+</tr>
+<tr>
+<td><code>LEGAL_STREET</code> / <code>LEGAL_ZIP</code></td>
+<td>Impressum-Adresse</td>
+<td>Platzhalter</td>
+</tr>
+<tr>
+<td><code>SMTP_HOST</code> / <code>SMTP_PORT</code></td>
+<td>E-Mail-Relay</td>
+<td>-- (Mailpit in dev)</td>
+</tr>
+<tr>
+<td><code>TURN_PUBLIC_IP</code></td>
+<td>TURN-Server IP fur Nextcloud Talk</td>
+<td>--</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="secrets-management-sealed-secrets">Secrets-Management: Sealed Secrets</h2>
+<p>In Produktionsumgebungen werden keine Klartext-Secrets verwendet.</p>
+<p><strong>Funktionsweise:</strong></p>
+<ol>
+<li>Der <strong>Sealed Secrets Controller</strong> (bitnami) lauft als Deployment im Cluster.</li>
+<li>Er besitzt ein asymmetrisches Schlusselparar -- der private Schlussel verlasst den Cluster nie.</li>
+<li>Secrets werden mit dem offentlichen Schlussel verschlusselt (<code>kubeseal</code>).</li>
+<li>Die verschlusselten YAML-Dateien (<code>SealedSecret</code>) konnen sicher in Git gespeichert werden.</li>
+<li>Nur der Controller im jeweiligen Cluster kann sie entschlusseln.</li>
+</ol>
+<p><strong>Wichtig:</strong> Ein SealedSecret ist cluster- und namespace-spezifisch. Eine fur <code>mentolder</code> verschlusselte Datei funktioniert nicht auf <code>korczewski</code>.</p>
+<p><strong>Sealed Secrets installieren:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task sealed-secrets:install    # Controller per Helm installieren
+task sealed-secrets:status     # Status pruefen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="env-skripte">Env-Skripte</h2>
+<table>
+<thead>
+<tr>
+<th>Skript</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scripts/env-generate.sh --env &lt;name&gt;</code></td>
+<td>Secrets aus schema.yaml generieren (Zufallspassworter oder interaktiv). Ausgabe: <code>environments/.secrets/&lt;name&gt;.yaml</code></td>
+</tr>
+<tr>
+<td><code>scripts/env-seal.sh --env &lt;name&gt;</code></td>
+<td>Klartext-Secrets als SealedSecret verschlusseln. Liest <code>.secrets/&lt;name&gt;.yaml</code>, Ausgabe: <code>environments/sealed-secrets/&lt;name&gt;.yaml</code></td>
+</tr>
+<tr>
+<td><code>scripts/env-resolve.sh &lt;env&gt;</code></td>
+<td>Secrets fur eine Umgebung auflosen (nur mit Cluster-Zugriff moglich)</td>
+</tr>
+<tr>
+<td><code>scripts/env-validate.sh</code></td>
+<td>Env-Konfiguration gegen schema.yaml validieren</td>
+</tr>
+</tbody></table>
+<p><strong>Typischer Workflow fur neue Secrets:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Secrets generieren (erstellt environments/.secrets/mentolder.yaml)
+bash scripts/env-generate.sh --env mentolder
+
+# 2. Als SealedSecret verschlusseln (erstellt environments/sealed-secrets/mentolder.yaml)
+bash scripts/env-seal.sh --env mentolder
+
+# 3. Verschlusselte Datei committen (sicher fur Git)
+git add environments/sealed-secrets/mentolder.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="neue-umgebung-einrichten">Neue Umgebung einrichten</h2>
+<p>Schritt-fur-Schritt-Anleitung fur eine neue Produktionsumgebung:</p>
+<p><strong>1. Umgebungsdatei anlegen</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># environments/schema.yaml als Vorlage verwenden
+cp environments/korczewski.yaml environments/meinecluster.yaml
+# Werte anpassen: domain, env_vars, overlay, etc.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>2. Kustomize-Overlay erstellen</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># prod/ oder prod-korczewski/ als Vorlage kopieren
+cp -r prod-korczewski prod-meinecluster
+# Overlay-spezifische Patches anpassen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>3. Secrets generieren und verschlusseln</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/env-generate.sh --env meinecluster
+bash scripts/env-seal.sh --env meinecluster
+git add environments/sealed-secrets/meinecluster.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>4. Sealed Secrets Controller auf Ziel-Cluster installieren</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task sealed-secrets:install  # (kubeconfig auf Ziel-Cluster zeigen)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>5. Workspace deployen</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:deploy ENV=&lt;neue-umgebung&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

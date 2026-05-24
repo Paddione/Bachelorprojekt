@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Adminhandbuch — Workspace — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item active"><a href="./adminhandbuch.html" class="active">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Adminhandbuch — Workspace</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#voraussetzungen"><span class="toc-num">1.</span>&nbsp;Voraussetzungen</a></li>
+<li class="toc-item"><a href="#umgebungen"><span class="toc-num">2.</span>&nbsp;Umgebungen</a></li>
+<li class="toc-item"><a href="#erstmalige-einrichtung"><span class="toc-num">3.</span>&nbsp;Erstmalige Einrichtung</a></li>
+<li class="toc-item"><a href="#dienste-uebersicht-mit-admin-zugaengen"><span class="toc-num">4.</span>&nbsp;Dienste-Übersicht mit Admin-Zugängen</a></li>
+<li class="toc-item"><a href="#benutzerverwaltung"><span class="toc-num">5.</span>&nbsp;Benutzerverwaltung</a></li>
+<li class="toc-item"><a href="#website-admin-panel"><span class="toc-num">6.</span>&nbsp;Website-Admin-Panel</a></li>
+<li class="toc-item"><a href="#nextcloud-administration"><span class="toc-num">7.</span>&nbsp;Nextcloud-Administration</a></li>
+<li class="toc-item"><a href="#e-rechnung-xrechnung--zugferd"><span class="toc-num">8.</span>&nbsp;E-Rechnung (XRechnung / ZUGFeRD)</a></li>
+<li class="toc-item"><a href="#monitoring--observability"><span class="toc-num">9.</span>&nbsp;Monitoring &amp; Observability</a></li>
+<li class="toc-item"><a href="#secrets-management-produktion"><span class="toc-num">10.</span>&nbsp;Secrets-Management (Produktion)</a></li>
+<li class="toc-item"><a href="#deployment-in-produktion"><span class="toc-num">11.</span>&nbsp;Deployment in Produktion</a></li>
+<li class="toc-item"><a href="#backups"><span class="toc-num">12.</span>&nbsp;Backups</a></li>
+<li class="toc-item"><a href="#livekit--livestream-betrieb"><span class="toc-num">13.</span>&nbsp;LiveKit — Livestream-Betrieb</a></li>
+<li class="toc-item"><a href="#brett-systembrett"><span class="toc-num">14.</span>&nbsp;Brett (Systembrett)</a></li>
+<li class="toc-item"><a href="#arena-server-multiplayer"><span class="toc-num">15.</span>&nbsp;Arena-Server (Multiplayer)</a></li>
+<li class="toc-item"><a href="#coaching-pipeline--wissensdatenbank"><span class="toc-num">16.</span>&nbsp;Coaching-Pipeline &amp; Wissensdatenbank</a></li>
+<li class="toc-item"><a href="#datenbankzugang-postgresql"><span class="toc-num">17.</span>&nbsp;Datenbankzugang (PostgreSQL)</a></li>
+<li class="toc-item"><a href="#routineaufgaben--schnellreferenz"><span class="toc-num">18.</span>&nbsp;Routineaufgaben — Schnellreferenz</a></li>
+<li class="toc-item"><a href="#haeufige-admin-fragen"><span class="toc-num">19.</span>&nbsp;Häufige Admin-Fragen</a></li>
+<li class="toc-item"><a href="#weiterfuehrende-dokumentation"><span class="toc-num">20.</span>&nbsp;Weiterführende Dokumentation</a></li></ul>
+</div>
+<p>Dieses Handbuch richtet sich an Plattform-Administratoren, die den Workspace betreiben. Für Endnutzer-Themen siehe das <a href="benutzerhandbuch.md">Benutzerhandbuch</a>. Für die vollständige Referenz aller Admin-UI-Bereiche siehe das <a href="admin-webinterface.md">Admin-Webinterface</a>.</p>
+<h2 id="voraussetzungen">Voraussetzungen</h2>
+<table>
+<thead>
+<tr>
+<th>Werkzeug</th>
+<th>Zweck</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>kubectl</code></td>
+<td>Kubernetes CLI mit Kontext für den Ziel-Cluster (<code>mentolder</code> oder <code>korczewski</code>)</td>
+</tr>
+<tr>
+<td><code>task</code> (go-task)</td>
+<td>Aufgaben-Orchestrierer (<code>Taskfile.yml</code>)</td>
+</tr>
+<tr>
+<td><code>kubeseal</code></td>
+<td>Erzeugen von SealedSecrets für Produktion</td>
+</tr>
+<tr>
+<td><code>git</code> + <code>gh</code></td>
+<td>Quellcode; alle Änderungen über Pull Requests</td>
+</tr>
+</tbody></table>
+<p>Für lokale Entwicklung zusätzlich Docker und <a href="https://k3d.io">k3d</a>; siehe <a href="contributing.md">Beitragen &amp; CI/CD</a>.</p>
+<hr>
+<h2 id="umgebungen">Umgebungen</h2>
+<p>Der Workspace läuft auf <strong>zwei getrennten physischen k3s-Clustern</strong> (seit PR #621/#622, 2026-05-09). Jeder Cluster hat seine eigene Domain, eigene Datenbank und eigene SealedSecrets-Schlüssel. Die Auswahl erfolgt über <code>ENV=</code> an task-Aufrufen.</p>
+<table>
+<thead>
+<tr>
+<th>Umgebung</th>
+<th>Cluster</th>
+<th>Domain</th>
+<th>Namespace</th>
+<th>Secrets</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>mentolder</code></td>
+<td>k3s (9 Nodes, Hetzner + Home-LAN via WireGuard)</td>
+<td><code>mentolder.de</code></td>
+<td><code>workspace</code></td>
+<td>Bitnami Sealed Secrets</td>
+</tr>
+<tr>
+<td><code>korczewski</code></td>
+<td>k3s (3 Nodes, Hetzner)</td>
+<td><code>korczewski.de</code></td>
+<td><code>workspace-korczewski</code></td>
+<td>Bitnami Sealed Secrets</td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td>k3d (lokal, auf <code>gekko-hetzner-2</code>)</td>
+<td><code>dev.mentolder.de</code></td>
+<td><code>workspace-dev</code></td>
+<td>Klartext (nur Entwicklung)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Wichtig:</strong> Env-sensitive Tasks setzen <code>ENV=dev</code> als Standard-Default. Bei Produktionsarbeit <strong>immer explizit</strong> <code>ENV=mentolder</code> oder <code>ENV=korczewski</code> setzen — sonst landet der Deploy auf dem aktiven kubectl-Kontext.</p>
+</blockquote>
+<blockquote>
+<p><strong>Keine Cross-Cluster-Propagation:</strong> DB-Passwort-Rotationen, Schema-Änderungen und OIDC-Client-Konfigurationen müssen <strong>explizit auf beiden Clustern</strong> ausgeführt werden. Jeder Cluster hat seinen eigenen <code>shared-db</code>.</p>
+</blockquote>
+<p>Details: <a href="environments.md">Umgebungen</a>.</p>
+<hr>
+<h2 id="erstmalige-einrichtung">Erstmalige Einrichtung</h2>
+<h3>Produktion (mentolder / korczewski)</h3>
+<p>Produktionsumgebungen werden manuell ausgerollt. Workloads werden nur aktualisiert, wenn du es explizit auslöst (<code>task feature:*</code>). Die Reihenfolge beim Erstaufbau ist zwingend:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task sealed-secrets:install ENV=&lt;env&gt;      # 1. Controller vor allem anderen
+task env:fetch-cert ENV=&lt;env&gt;              # 2. Sealing-Zertifikat holen
+task env:seal ENV=&lt;env&gt;                    # 3. Secrets verschlüsseln
+task cert:install ENV=&lt;env&gt;               # 4. cert-manager + DNS-01 Webhook
+task cert:secret -- &lt;ipv64-key&gt; ENV=&lt;env&gt;  # 5. ACME-Schlüssel speichern
+task workspace:deploy ENV=&lt;env&gt;            # 6. Alles ausrollen
+task workspace:office:deploy ENV=&lt;env&gt;     # 7. Collabora (separates Overlay)
+task workspace:post-setup ENV=&lt;env&gt;        # 8. Nextcloud-Apps aktivieren
+task workspace:talk-setup ENV=&lt;env&gt;        # 9. Talk-HPB + CoTURN konfigurieren
+task workspace:admin-users-setup ENV=&lt;env&gt; # 10. Admin-Benutzer anlegen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Ausführliche Anleitung: <a href="environments.md#neue-umgebung-einrichten">Umgebungen → Neue Umgebung</a>.</p>
+<h3>Lokale Entwicklung (k3d)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">git clone https://github.com/Paddione/Bachelorprojekt.git
+cd Bachelorprojekt
+task workspace:up   # Vollautomatisch: Cluster + MVP + Office + MCP + Post-Config
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Schrittweise:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task cluster:create              # k3d-Cluster erstellen
+task workspace:deploy            # Alle Services deployen
+task workspace:post-setup        # Nextcloud-Apps aktivieren
+task workspace:vaultwarden:seed  # Vaultwarden befüllen
+task mcp:deploy                  # MCP-Server für Claude Code deployen
+task website:deploy              # Astro-Website bauen und deployen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="dienste-uebersicht-mit-admin-zugaengen">Dienste-Übersicht mit Admin-Zugängen</h2>
+<p><code>{DOMAIN}</code> ist <code>mentolder.de</code> oder <code>korczewski.de</code>. Lokal stehen dieselben Endpunkte unter <code>*.localhost</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Dienst</th>
+<th>URL</th>
+<th>Admin-Zugang</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Portal &amp; Website</td>
+<td><code>https://web.{DOMAIN}</code></td>
+<td><code>https://web.{DOMAIN}/admin</code> (Gruppe <code>workspace-admins</code>)</td>
+</tr>
+<tr>
+<td>Keycloak (SSO)</td>
+<td><code>https://auth.{DOMAIN}</code></td>
+<td><code>https://auth.{DOMAIN}/admin</code> → Realm <code>workspace</code></td>
+</tr>
+<tr>
+<td>Nextcloud</td>
+<td><code>https://files.{DOMAIN}</code></td>
+<td><code>https://files.{DOMAIN}/settings/admin</code></td>
+</tr>
+<tr>
+<td>Collabora</td>
+<td><code>https://office.{DOMAIN}</code></td>
+<td>Konfiguration über Nextcloud (WOPI)</td>
+</tr>
+<tr>
+<td>Vaultwarden</td>
+<td><code>https://vault.{DOMAIN}</code></td>
+<td><code>https://vault.{DOMAIN}/admin</code> (Token-Login)</td>
+</tr>
+<tr>
+<td>Whiteboard</td>
+<td><code>https://board.{DOMAIN}</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>DocuSeal</td>
+<td><code>https://sign.{DOMAIN}</code></td>
+<td><code>https://sign.{DOMAIN}</code> (Admin-Konto)</td>
+</tr>
+<tr>
+<td>Dokumentation</td>
+<td><code>https://docs.{DOMAIN}</code></td>
+<td>SSO-geschützt (Keycloak)</td>
+</tr>
+<tr>
+<td>LiveKit</td>
+<td><code>https://livekit.{DOMAIN}</code></td>
+<td>Admin-Steuerseite: <code>https://web.{DOMAIN}/admin/stream</code></td>
+</tr>
+<tr>
+<td>Arena</td>
+<td><code>https://arena-ws.korczewski.de</code></td>
+<td>nur auf korczewski</td>
+</tr>
+<tr>
+<td>Mailpit</td>
+<td><code>http://mail.localhost</code></td>
+<td>nur in Entwicklung</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="benutzerverwaltung">Benutzerverwaltung</h2>
+<h3>Keycloak Admin-UI</h3>
+<p>Alle Benutzerkonten werden zentral in Keycloak gepflegt. Änderungen gelten sofort für alle Dienste (Single Sign-On).</p>
+<p>Aufruf: <code>https://auth.mentolder.de/admin</code> bzw. <code>https://auth.korczewski.de/admin</code> → Realm <strong>workspace</strong></p>
+<h4>Neuen Benutzer anlegen</h4>
+<ol>
+<li><strong>Benutzer → Benutzer hinzufügen</strong></li>
+<li>Felder: Benutzername (Kleinbuchstaben, kein Leerzeichen), E-Mail, Vorname, Nachname</li>
+<li>Reiter <strong>Zugangsdaten</strong> → temporäres Passwort vergeben (Pflicht zur Änderung beim ersten Login)</li>
+<li>Reiter <strong>Gruppen</strong> → Benutzer zuweisen:<ul>
+<li><code>workspace-users</code> — normaler Mitarbeiter-Zugang</li>
+<li><code>workspace-admins</code> — Administratorzugang (Website-Admin-Panel, erweiterte Rechte)</li>
+<li><code>/dev-access</code> — Zugang zur Dev-Umgebung <code>dev.mentolder.de</code></li>
+</ul>
+</li>
+</ol>
+<h4>Passwort zurücksetzen</h4>
+<p><strong>Benutzer</strong> → Benutzer auswählen → <strong>Zugangsdaten</strong> → <strong>Passwort zurücksetzen</strong> → Temporär: Ja → Speichern.</p>
+<h4>Benutzer deaktivieren</h4>
+<p><strong>Benutzer</strong> → Benutzer auswählen → <strong>Details</strong> → Schalter <strong>Aktiviert</strong> ausschalten → Speichern. Daten bleiben erhalten.</p>
+<h3>Massenimport via CSV</h3>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/import-users.sh --csv users.csv \
+  --url https://auth.mentolder.de \
+  --admin admin \
+  --pass &lt;ADMIN_PASSWORT&gt;
+
+# Trockenlauf (keine Änderungen)
+scripts/import-users.sh --csv users.csv --dry-run
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>CSV-Format: <code>username,email,firstname,lastname</code></p>
+<h3>Admin-User einrichten</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:admin-users-setup ENV=&lt;env&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Provisioniert die in der Umgebung definierten Admin-Benutzer (<code>KC_USER1</code>, <code>KC_USER2</code>). Idempotent — bei bereits vorhandenen Benutzern wird nur aktualisiert.</p>
+<h3>Keycloak-Realm synchronisieren</h3>
+<p>Nach Änderungen an der Realm-JSON oder OIDC-Client-Settings:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task keycloak:sync ENV=&lt;env&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Details: <a href="keycloak.md">Keycloak</a>.</p>
+<hr>
+<h2 id="website-admin-panel">Website-Admin-Panel</h2>
+<p>Das Admin-Panel ist erreichbar unter <code>https://web.{DOMAIN}/admin</code> (Login mit Gruppe <code>workspace-admins</code> erforderlich). Eine vollständige Referenz aller Bereiche findet sich im <a href="admin-webinterface.md">Admin-Webinterface-Handbuch</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Bereich</th>
+<th>Pfad</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Inbox</td>
+<td><code>/admin/inbox</code></td>
+<td>Eingehende Kontaktanfragen</td>
+</tr>
+<tr>
+<td>Nachrichten</td>
+<td><code>/admin/nachrichten</code></td>
+<td>Kundenkommunikation und Direktnachrichten</td>
+</tr>
+<tr>
+<td>Räume</td>
+<td><code>/admin/raeume</code></td>
+<td>Gruppenkanäle verwalten</td>
+</tr>
+<tr>
+<td>Kunden</td>
+<td><code>/admin/clients</code></td>
+<td>Kundenverwaltung (Keycloak-Integration)</td>
+</tr>
+<tr>
+<td>Projekte</td>
+<td><code>/admin/projekte</code></td>
+<td>Projektmanagement mit Gantt-Diagramm</td>
+</tr>
+<tr>
+<td>Kalender</td>
+<td><code>/admin/kalender</code></td>
+<td>Aufgabenkalender (Monatsansicht)</td>
+</tr>
+<tr>
+<td>Termine</td>
+<td><code>/admin/termine</code></td>
+<td>Buchungen und Slot-Konfiguration</td>
+</tr>
+<tr>
+<td>Follow-ups</td>
+<td><code>/admin/followups</code></td>
+<td>Wiedervorlagen und Erinnerungen</td>
+</tr>
+<tr>
+<td>Zeiterfassung</td>
+<td><code>/admin/zeiterfassung</code></td>
+<td>Arbeitszeiterfassung mit CSV-Export</td>
+</tr>
+<tr>
+<td>Rechnungen</td>
+<td><code>/admin/rechnungen</code></td>
+<td>ZUGFeRD-PDF, E-Rechnung, SEPA-Lastschrift</td>
+</tr>
+<tr>
+<td>Meetings</td>
+<td><code>/admin/meetings</code></td>
+<td>Aufgezeichnete Meetings und Transkripte</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td><code>/admin/monitoring</code></td>
+<td>Live-Kubernetes-Cluster-Übersicht (beide Cluster)</td>
+</tr>
+<tr>
+<td>Bugs</td>
+<td><code>/admin/bugs</code></td>
+<td>Bug-Reports und Ticket-Tracking</td>
+</tr>
+<tr>
+<td>Stream</td>
+<td><code>/admin/stream</code></td>
+<td>LiveKit-Livestream-Steuerung</td>
+</tr>
+<tr>
+<td>Startseite</td>
+<td><code>/admin/startseite</code></td>
+<td>Inhalte der Startseite bearbeiten</td>
+</tr>
+<tr>
+<td>Leistungen</td>
+<td><code>/admin/angebote</code></td>
+<td>Dienstleistungen und Preise pflegen</td>
+</tr>
+<tr>
+<td>Über mich</td>
+<td><code>/admin/uebermich</code></td>
+<td>„Über mich"-Seite bearbeiten</td>
+</tr>
+<tr>
+<td>Referenzen</td>
+<td><code>/admin/referenzen</code></td>
+<td>Kundennachweise verwalten</td>
+</tr>
+<tr>
+<td>Kontakt</td>
+<td><code>/admin/kontakt</code></td>
+<td>Kontaktseite bearbeiten</td>
+</tr>
+<tr>
+<td>FAQ</td>
+<td><code>/admin/faq</code></td>
+<td>Häufige Fragen bearbeiten</td>
+</tr>
+<tr>
+<td>Rechtliches</td>
+<td><code>/admin/rechtliches</code></td>
+<td>Impressum, Datenschutz, AGB, Barrieref.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="nextcloud-administration">Nextcloud-Administration</h2>
+<h3>occ-Befehle ausführen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl exec -n workspace deploy/nextcloud \
+  -c nextcloud -- \
+  setpriv --reuid=999 --regid=999 --clear-groups \
+  php occ &lt;befehl&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nützliche occ-Befehle:</p>
+<div class="code-wrapper"><pre><code class="language-bash">php occ app:enable &lt;app&gt;                         # App aktivieren
+php occ user:setting &lt;user&gt; files quota &lt;limit&gt;  # Speicherlimit setzen
+php occ maintenance:mode --on                    # Wartungsmodus an
+php occ maintenance:mode --off                   # Wartungsmodus aus
+php occ status                                   # Systemstatus anzeigen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Apps nach Deploy aktivieren</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:post-setup ENV=&lt;env&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Aktiviert: calendar, contacts, user_oidc, richdocuments (Collabora), whiteboard, notify_push, talk.</p>
+<h3>Talk-Infrastruktur konfigurieren</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:talk-setup ENV=&lt;env&gt;        # HPB-Signaling + CoTURN
+task workspace:recording-setup ENV=&lt;env&gt;   # Aufzeichnungs-Backend
+task workspace:whiteboard-setup ENV=&lt;env&gt;  # Whiteboard-App
+task workspace:systembrett-setup ENV=&lt;env&gt; # Brett-Integration in Talk
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Details: <a href="nextcloud.md">Nextcloud</a> · <a href="talk-hpb.md">Talk HPB</a>.</p>
+<hr>
+<h2 id="e-rechnung-xrechnung--zugferd">E-Rechnung (XRechnung / ZUGFeRD)</h2>
+<p>Drei Profile stehen beim Rechnungsversand und -download zur Auswahl:</p>
+<table>
+<thead>
+<tr>
+<th>Profil</th>
+<th>Verwendung</th>
+<th>Endpoint</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>factur-x-minimum</code></td>
+<td>B2C / interne Archivierung</td>
+<td><code>/api/billing/invoice/&lt;id&gt;/pdf?profile=factur-x-minimum</code></td>
+</tr>
+<tr>
+<td><code>xrechnung-cii</code></td>
+<td>B2G (Bund/Länder), CII-Syntax</td>
+<td><code>/api/billing/invoice/&lt;id&gt;/pdf?profile=xrechnung-cii</code></td>
+</tr>
+<tr>
+<td><code>xrechnung-ubl</code></td>
+<td>B2G, UBL-2.1-Syntax (ZRE/OZG-RE)</td>
+<td><code>/api/billing/invoice/&lt;id&gt;/pdf?profile=xrechnung-ubl</code></td>
+</tr>
+</tbody></table>
+<p>Für <code>xrechnung-*</code> muss die <strong>Leitweg-ID</strong> des Empfängers gesetzt sein (Format <code>&lt;grob&gt;-[&lt;fein&gt;-]&lt;prüfziffer&gt;</code> nach KoSIT 2.0.2):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Leitweg-ID setzen
+PATCH /api/admin/billing/customers/&lt;customer-id&gt;/leitweg
+{ "leitwegId": "991-01234-44" }
+
+# Nur XML abrufen
+GET /api/billing/invoice/&lt;id&gt;/zugferd?profile=&lt;profile&gt;
+
+# Lokal validieren
+task billing:validate-einvoice -- ./rechnung.pdf
+task billing:validate-einvoice -- ./factur-x.xml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="monitoring--observability">Monitoring &amp; Observability</h2>
+<h3>Live-Übersicht im Admin-Panel</h3>
+<p><code>https://web.{DOMAIN}/admin/monitoring</code> zeigt Pod-Status, CPU- und RAM-Auslastung sowie Kubernetes-Events — für beide Cluster. Die Daten werden über die MCP-Kubernetes-Integration abgerufen.</p>
+<h3>Kommandozeile</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:status ENV=&lt;env&gt;            # Pods, Services, Ingress, PVCs
+task workspace:logs ENV=&lt;env&gt; -- keycloak  # Logs eines Services
+task workspace:logs ENV=&lt;env&gt; -- nextcloud
+task workspace:logs ENV=&lt;env&gt; -- website
+task health                                # Cross-Cluster-Connectivity beider Cluster
+task clusters:status                       # Einzeiliger Status beider Cluster
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Service neu starten</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:restart ENV=&lt;env&gt; -- nextcloud
+task workspace:restart ENV=&lt;env&gt; -- keycloak
+task workspace:restart ENV=&lt;env&gt; -- vaultwarden
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="secrets-management-produktion">Secrets-Management (Produktion)</h2>
+<p>Produktions-Secrets werden <strong>nie im Klartext</strong> eingecheckt. Der Bitnami Sealed Secrets Controller verschlüsselt sie clusterspezifisch.</p>
+<blockquote>
+<p><strong>Wichtig:</strong> Ein SealedSecret ist cluster-spezifisch — eine für <code>mentolder</code> verschlüsselte Datei funktioniert <strong>nicht</strong> auf <code>korczewski</code>. Jede Rotation muss auf beiden Clustern separat durchgeführt werden.</p>
+</blockquote>
+<p><strong>Workflow für neue oder rotierte Secrets:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Klartext-Secrets editieren
+task env:generate ENV=mentolder
+
+# 2. Als SealedSecret verschlüsseln
+task env:seal ENV=mentolder
+
+# 3. Verschlüsselte Datei committen (sicher für Git)
+git add environments/sealed-secrets/mentolder.yaml
+
+# 4. Konfiguration validieren
+task env:validate ENV=mentolder
+
+# 5. Auf den Cluster anwenden (ohne Workload-Roll)
+task secrets:sync
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>Fußangel:</strong> Den <code>$patch: delete</code>-Block in <code>prod/kustomization.yaml</code> <strong>niemals entfernen</strong> — er strippt Dev-Platzhalter aus <code>k3d/secrets.yaml</code>, sodass SealedSecrets-gemanagte Produktions-Secrets bei jedem Deploy erhalten bleiben.</p>
+</blockquote>
+<p>Details: <a href="environments.md">Umgebungen</a>.</p>
+<hr>
+<h2 id="deployment-in-produktion">Deployment in Produktion</h2>
+<h3>Workloads ausrollen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task feature:deploy               # Alle Services auf BEIDEN Clustern (empfohlen)
+task workspace:deploy ENV=mentolder   # Nur mentolder
+task workspace:deploy ENV=korczewski  # Nur korczewski
+task feature:website              # Website neu bauen + rollen (beide Cluster)
+task feature:brett                # Brett neu bauen + rollen (beide Cluster)
+task feature:livekit              # LiveKit DNS-Pinning + Rollen (beide Cluster)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Kustomize-Overlays</h3>
+<ul>
+<li><code>prod/</code> — gemeinsame Patches; <strong>niemals allein anwenden</strong> (enthält den <code>$patch: delete</code>-Block)</li>
+<li><code>prod-mentolder/</code> / <code>prod-korczewski/</code> — die tatsächlich applizierbaren Overlays</li>
+<li><code>k3d/office-stack</code> (Collabora) und <code>k3d/coturn-stack</code> werden separat via <code>task workspace:office:deploy ENV=&lt;env&gt;</code> ausgerollt</li>
+</ul>
+<h3>Docs-Image aktualisieren</h3>
+<p>Der Docs-Inhalt ist im Docker-Image eingebaut — nach Änderungen an <code>k3d/docs-content/</code> muss das Image neu gebaut werden:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task docs:deploy   # Baut Image, pusht, rollt beide Cluster
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><code>docs:configmap:apply</code> hat keine Wirkung auf laufende Pods — immer <code>docs:deploy</code> verwenden.</p>
+</blockquote>
+<hr>
+<h2 id="backups">Backups</h2>
+<p>Backups werden automatisch per Kubernetes CronJob erstellt.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Sofortiges Backup auslösen
+task workspace:backup ENV=&lt;env&gt;
+
+# Verfügbare Snapshots auflisten
+task workspace:backup:list ENV=&lt;env&gt;
+
+# Einzelne Datenbank wiederherstellen
+task workspace:restore -- &lt;db&gt; &lt;timestamp&gt; ENV=&lt;env&gt;
+# db: keycloak | nextcloud | vaultwarden | website | docuseal | all
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Backup-Inhalt: PostgreSQL-Dumps (alle Datenbanken), Nextcloud-Daten, Vaultwarden-Vault.</p>
+<p>Details: <a href="backup.md">Backup &amp; Wiederherstellung</a>.</p>
+<hr>
+<h2 id="livekit--livestream-betrieb">LiveKit — Livestream-Betrieb</h2>
+<p>LiveKit läuft auf <code>hostNetwork</code> und ist via <code>nodeAffinity</code> auf die Pin-Node <code>gekko-hetzner-3</code> (mentolder) fixiert. Admin-Steuerseite: <code>https://web.{DOMAIN}/admin/stream</code>. Zuschauer-Seite: <code>https://web.{DOMAIN}/portal/stream</code>.</p>
+<div class="code-wrapper"><pre><code class="language-bash">task livekit:status ENV=&lt;env&gt;           # Pods, Services, Ingress, Recordings
+task livekit:logs ENV=&lt;env&gt;             # livekit-server Logs
+task livekit:logs ENV=&lt;env&gt; -- ingress  # RTMP-Ingress Logs
+task livekit:logs ENV=&lt;env&gt; -- egress   # Recording-Egress Logs
+task livekit:recordings ENV=&lt;env&gt;       # MP4-Liste im Egress-PVC
+task livekit:end-stream ENV=&lt;env&gt;       # Notfall: Server neu starten
+task livekit:dns-pin ENV=&lt;env&gt;          # DNS auf Pin-Node zeigen (APPLY=true zum Anwenden)
+task livekit:firewall-open NODE=&lt;ip&gt;    # ufw-Ports öffnen (7880/7881 TCP, 50000-60000/30000-40000 UDP)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><strong>DNS-Pinning ist erforderlich.</strong> Ohne Pinning treffen Browser-Clients ~66% der Zeit auf einen Nicht-LiveKit-Node → ICE-Fehler, kein Stream.</p>
+</blockquote>
+<p>Details: <a href="livestream.md">Livestream</a>.</p>
+<hr>
+<h2 id="brett-systembrett">Brett (Systembrett)</h2>
+<p>Brett ist der 3D-Systembrett-Service unter <code>brett.{DOMAIN}</code>. Er läuft auf beiden Clustern.</p>
+<div class="code-wrapper"><pre><code class="language-bash">task brett:build                  # Image bauen (+ k3d-Import in dev)
+task brett:deploy ENV=&lt;env&gt;       # Bauen, pushen, ausrollen
+task brett:logs ENV=&lt;env&gt;         # Brett-Logs
+task brett:bot-setup ENV=&lt;env&gt;    # /brett Slash-Command in Nextcloud Talk registrieren
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Details: <a href="systembrett.md">Systembrett</a>.</p>
+<hr>
+<h2 id="arena-server-multiplayer">Arena-Server (Multiplayer)</h2>
+<p>Der Arena-Server läuft <strong>ausschließlich auf dem korczewski-Cluster</strong> (<code>arena-ws.korczewski.de</code>). Beide Websites können darauf zugreifen; der Server validiert JWT von beiden Keycloak-Realms.</p>
+<div class="code-wrapper"><pre><code class="language-bash">task arena:build                  # Image bauen
+task arena:deploy ENV=korczewski  # Bauen, pushen, ausrollen
+task feature:arena                # Kurzform: Build + Deploy auf korczewski
+task arena:status ENV=korczewski  # Pod + Service-Status
+task arena:logs ENV=korczewski    # Logs
+task arena:db ENV=korczewski      # psql in das arena-Schema
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><code>task arena:deploy ENV=mentolder</code> bricht mit Erklärung ab — Arena läuft nur auf korczewski.</p>
+</blockquote>
+<p>Details: <a href="arena.md">Arena</a>.</p>
+<hr>
+<h2 id="coaching-pipeline--wissensdatenbank">Coaching-Pipeline &amp; Wissensdatenbank</h2>
+<p>Die Coaching-Pipeline verarbeitet PDF/EPUB-Bücher in Wissens-Chunks und macht sie über pgvector abrufbar.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Buch hochladen und verarbeiten
+task coaching:ingest -- &lt;file.pdf&gt; &lt;slug&gt; --title="Titel" --author="Autor"
+
+# KI-Klassifikation (benötigt Anthropic-API oder lokales Ollama)
+task coaching:classify -- --slug=&lt;slug&gt;
+task coaching:classify -- --all
+
+# Embeddings neu indizieren
+task knowledge:reindex ENV=&lt;env&gt;
+# Mit Quellauswahl: SOURCE=prs|markdown|bugs|all
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Entwürfe zur Prüfung: <code>https://web.mentolder.de/admin/knowledge/drafts</code></p>
+<blockquote>
+<p><strong>Lokale Klassifikation:</strong> Bei fehlendem Anthropic-API-Schlüssel — lokales Ollama + Docker-LiteLLM als Übersetzer. Details: <a href="coaching-pipeline.md">Coaching-Pipeline</a>.</p>
+</blockquote>
+<hr>
+<h2 id="datenbankzugang-postgresql">Datenbankzugang (PostgreSQL)</h2>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:psql ENV=&lt;env&gt; -- &lt;db&gt;          # psql-Shell öffnen
+task workspace:port-forward ENV=&lt;env&gt;          # DB auf localhost:5432 forwarden
+task workspace:db:drop -- &lt;dbname&gt; ENV=&lt;env&gt;   # DB löschen (mit Bestätigung)
+task workspace:db:restore -- &lt;db&gt; &lt;ts&gt; ENV=&lt;env&gt;  # Backup einspielen
+task workspace:sync-db-passwords ENV=&lt;env&gt;     # Rollen-Passwörter abgleichen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Verfügbare Datenbanken: <code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code>, <code>arena</code>, <code>bachelorprojekt</code>.</p>
+<p>Schema-Diagramm erzeugen: <code>task db:diagram</code></p>
+<hr>
+<h2 id="routineaufgaben--schnellreferenz">Routineaufgaben — Schnellreferenz</h2>
+<table>
+<thead>
+<tr>
+<th>Aufgabe</th>
+<th>Befehl</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Alle Services deployen (beide Cluster)</td>
+<td><code>task feature:deploy</code></td>
+</tr>
+<tr>
+<td>Nur Website deployen (beide Cluster)</td>
+<td><code>task feature:website</code></td>
+</tr>
+<tr>
+<td>Post-Deploy-Setup</td>
+<td><code>task workspace:post-setup ENV=&lt;env&gt;</code></td>
+</tr>
+<tr>
+<td>DB-Shell öffnen</td>
+<td><code>task workspace:psql ENV=&lt;env&gt; -- website</code></td>
+</tr>
+<tr>
+<td>Keycloak-Realm synchronisieren</td>
+<td><code>task keycloak:sync ENV=&lt;env&gt;</code></td>
+</tr>
+<tr>
+<td>DB-Passwörter abgleichen</td>
+<td><code>task workspace:sync-db-passwords ENV=&lt;env&gt;</code></td>
+</tr>
+<tr>
+<td>DSGVO-Compliance prüfen</td>
+<td><code>task workspace:dsgvo-check</code></td>
+</tr>
+<tr>
+<td>Beide Cluster prüfen</td>
+<td><code>task health</code></td>
+</tr>
+<tr>
+<td>Alle Tests ausführen</td>
+<td><code>./tests/runner.sh local</code></td>
+</tr>
+<tr>
+<td>Docs deployen</td>
+<td><code>task docs:deploy</code></td>
+</tr>
+<tr>
+<td>Vaultwarden-Seed</td>
+<td><code>task workspace:vaultwarden:seed</code></td>
+</tr>
+<tr>
+<td>Nextcloud-Branding neu anwenden</td>
+<td><code>task workspace:theme ENV=&lt;env&gt;</code></td>
+</tr>
+<tr>
+<td>Smoke-Tests nach Deploy</td>
+<td><code>task workspace:verify:all-prods</code></td>
+</tr>
+</tbody></table>
+<p>Vollständige Task-Referenz: <a href="operations.md">Operations</a>.</p>
+<hr>
+<h2 id="haeufige-admin-fragen">Häufige Admin-Fragen</h2>
+<h3>Ein Service startet nicht</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:logs ENV=&lt;env&gt; -- &lt;service&gt;
+kubectl describe pod -n workspace -l app=&lt;service&gt;
+kubectl get events -n workspace --sort-by='.lastTimestamp'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Häufige Ursachen: Datenbankverbindung fehlgeschlagen, fehlendes Secret, unaufgelöste <code>${VAR}</code>-Platzhalter in Manifests oder Realm-JSON, unzureichende Ressourcen.</p>
+<h3>Keycloak-Login funktioniert nicht für einen Dienst</h3>
+<ol>
+<li>OIDC-Client in Keycloak prüfen: <strong>Clients</strong> → Client auswählen</li>
+<li>Redirect-URIs prüfen (exakt, inkl. Protokoll und Pfad)</li>
+<li><code>task keycloak:sync ENV=&lt;env&gt;</code> ausführen</li>
+<li>Dienst neu starten: <code>task workspace:restart ENV=&lt;env&gt; -- &lt;dienst&gt;</code></li>
+</ol>
+<p>Details: <a href="keycloak.md">Keycloak &amp; SSO</a>.</p>
+<h3>Wie füge ich eine neue Domain/Hostname hinzu?</h3>
+<ol>
+<li><code>k3d/configmap-domains.yaml</code> anpassen</li>
+<li>Ingress-Regel in <code>k3d/ingress.yaml</code> ergänzen</li>
+<li><code>task workspace:validate</code> ausführen</li>
+<li>Falls neuer Envvar: in <code>environments/schema.yaml</code> deklarieren und in <code>envsubst</code>-Listen der betroffenen Tasks ergänzen</li>
+<li>PR erstellen, nach Merge: <code>task feature:deploy</code></li>
+</ol>
+<h3>Wie richte ich eine neue Produktionsumgebung ein?</h3>
+<p>Schritt-für-Schritt: <a href="environments.md#neue-umgebung-einrichten">Umgebungen → Neue Umgebung einrichten</a>.</p>
+<h3>Secrets rotieren</h3>
+<p>Klartext in <code>.secrets/&lt;env&gt;.yaml</code> aktualisieren → <code>task env:seal ENV=&lt;env&gt;</code> → Commit → <code>task secrets:sync</code>. Details: oben unter Secrets-Management.</p>
+<h3>LiveKit — ICE schlägt fehl / kein Stream</h3>
+<ol>
+<li><code>task livekit:dns-pin ENV=&lt;env&gt;</code> → DNS auf Pin-Node zeigen lassen</li>
+<li>Firewall prüfen: 7880/7881 TCP und 50000-60000 UDP + 30000-40000 UDP offen?</li>
+<li><code>task livekit:status ENV=&lt;env&gt;</code> → Pods auf der richtigen Node (<code>gekko-hetzner-3</code>)?</li>
+</ol>
+<h3>Nach Cluster-Reset funktionieren Secrets nicht</h3>
+<p>Nach jedem Cluster-Reset rotiert der Sealed-Secrets-Controller seinen Keypair. Pflichtschritte:</p>
+<div class="code-wrapper"><pre><code class="language-bash">task env:fetch-cert ENV=&lt;env&gt;  # neues Zertifikat holen
+task env:seal ENV=&lt;env&gt;        # Secrets neu verschlüsseln
+# committen + secrets:sync
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="weiterfuehrende-dokumentation">Weiterführende Dokumentation</h2>
+<table>
+<thead>
+<tr>
+<th>Thema</th>
+<th>Dokument</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Systemarchitektur</td>
+<td><a href="architecture.md">Architektur</a></td>
+</tr>
+<tr>
+<td>Umgebungen und Secrets</td>
+<td><a href="environments.md">Umgebungen</a></td>
+</tr>
+<tr>
+<td>Alle Services (technisch)</td>
+<td><a href="services.md">Services</a></td>
+</tr>
+<tr>
+<td>Keycloak &amp; SSO</td>
+<td><a href="keycloak.md">Keycloak</a></td>
+</tr>
+<tr>
+<td>Nextcloud</td>
+<td><a href="nextcloud.md">Nextcloud</a></td>
+</tr>
+<tr>
+<td>Admin-Webinterface (vollständig)</td>
+<td><a href="admin-webinterface.md">Admin-Webinterface</a></td>
+</tr>
+<tr>
+<td>Projektmanagement (API)</td>
+<td><a href="admin-projekte.md">Projekt-Verwaltung</a></td>
+</tr>
+<tr>
+<td>MCP-Server (Claude Code)</td>
+<td><a href="claude-code.md">Claude Code</a></td>
+</tr>
+<tr>
+<td>Deployment &amp; Taskfile</td>
+<td><a href="operations.md">Operations</a></td>
+</tr>
+<tr>
+<td>Sicherheit &amp; DSGVO</td>
+<td><a href="security.md">Sicherheit</a> · <a href="dsgvo.md">DSGVO</a></td>
+</tr>
+<tr>
+<td>Backup &amp; Wiederherstellung</td>
+<td><a href="backup.md">Backup</a></td>
+</tr>
+<tr>
+<td>Livestream (LiveKit)</td>
+<td><a href="livestream.md">Livestream</a></td>
+</tr>
+<tr>
+<td>Systembrett (Brett)</td>
+<td><a href="systembrett.md">Systembrett</a></td>
+</tr>
+<tr>
+<td>Arena-Server</td>
+<td><a href="arena.md">Arena</a></td>
+</tr>
+<tr>
+<td>Fehlerbehebung</td>
+<td><a href="troubleshooting.md">Fehlerbehebung</a></td>
+</tr>
+<tr>
+<td>Testframework</td>
+<td><a href="tests.md">Tests</a></td>
+</tr>
+</tbody></table>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

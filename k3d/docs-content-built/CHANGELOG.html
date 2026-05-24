@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Changelog — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Changelog</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#020-2026-05-20"><span class="toc-num">1.</span>&nbsp;0.2.0 (2026-05-20)</a></li>
+<li class="toc-item"><a href="#changelog"><span class="toc-num">2.</span>&nbsp;Changelog</a></li></ul>
+</div>
+<h2 id="020-2026-05-20"><a href="https://github.com/Paddione/Bachelorprojekt/compare/docs-v0.1.0...docs-v0.2.0">0.2.0</a> (2026-05-20)</h2>
+<h3>Features</h3>
+<ul>
+<li><strong>brett:</strong> camera controls rework — RMB orbit, preset angles, figure interaction (<a href="https://github.com/Paddione/Bachelorprojekt/issues/749">#749</a>) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/a99dcb20a9181cce836febdb34f27099e79a6e3e">a99dcb2</a>)</li>
+<li><strong>brett:</strong> rework camera controls, scene angles &amp; figure interaction (<a href="https://github.com/Paddione/Bachelorprojekt/commit/1c052e5a5a9cbb34fec5bfd763443709f485cdbb">1c052e5</a>)</li>
+<li><strong>datamodel:</strong> datamodel × workflow overview generator + interactive docs page (<a href="https://github.com/Paddione/Bachelorprojekt/issues/737">#737</a>) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/859c99e008388f1337c648b0b392377eecae0ccf">859c99e</a>)</li>
+<li><strong>db:</strong> add brands table and foreign key constraints (Audit Phase 2) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/a5e4667187e62d1fbcd29ee6e142c3d466117d54">a5e4667</a>)</li>
+<li><strong>db:</strong> cleanup denormalized text fields (Audit Phase 1) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/6488be6f603763fc4f9e0c54f8b49f513164bc25">6488be6</a>)</li>
+<li><strong>docs:</strong> add DB schema ER diagram to docs site and refresh-diagrams task (<a href="https://github.com/Paddione/Bachelorprojekt/commit/8ba267579251a5f2e1307729f72f32ccf33cf3ec">8ba2675</a>)</li>
+<li><strong>release:</strong> package versioning — release-please + Renovate + Flux semver (<a href="https://github.com/Paddione/Bachelorprojekt/issues/879">#879</a>) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/e944e9841ae3fad5c68baa6812c44b1f02d99a94">e944e98</a>)</li>
+</ul>
+<h3>Bug Fixes</h3>
+<ul>
+<li><strong>arena:</strong> alpine:3.20 bootstrap image + ticket triage [T000399] (<a href="https://github.com/Paddione/Bachelorprojekt/issues/798">#798</a>) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/1b515e0d9b88c7242b4635fa5935f9e55d5bd522">1b515e0</a>)</li>
+<li><strong>docs:</strong> hardcode workspace-docs image in docs.yaml, remove DOCS_IMAGE envsubst (<a href="https://github.com/Paddione/Bachelorprojekt/commit/62474845583aa1c6086f59e4f1abb1825d00e111">6247484</a>)</li>
+<li><strong>tickets:</strong> batch ticket resolution — arena test, worktree setup, script fixes [T000382,T000383,T000387,T000402,T000406,T000414] (<a href="https://github.com/Paddione/Bachelorprojekt/issues/797">#797</a>) (<a href="https://github.com/Paddione/Bachelorprojekt/commit/631ee7ccd63a1dc6752744de96f67cabe842e39e">631ee7c</a>)</li>
+</ul>
+<h2 id="changelog">Changelog</h2>
+<p>All notable changes to docs will be documented in this file.</p>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

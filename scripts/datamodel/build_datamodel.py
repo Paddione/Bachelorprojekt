@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Generate k3d/docs-content/datamodel-workflow.md.
+"""Generate datamodel-workflow markdown (piped into build-docs.js --rebuild-page).
 
 Usage:
     KUBECTL_CTX=mentolder KUBECTL_NS=workspace \
         python3 scripts/datamodel/build_datamodel.py \
             --map scripts/datamodel/workflow-map.yaml \
-            --out k3d/docs-content/datamodel-workflow.md
+            --out /tmp/datamodel-workflow.md
+    node scripts/build-docs.js --rebuild-page datamodel-workflow /tmp/datamodel-workflow.md
 
 Environment:
     KUBECTL_CTX  Required for live mode (e.g. "mentolder")

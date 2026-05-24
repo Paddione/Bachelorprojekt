@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Migration — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Migration</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#migrations-assistent"><span class="toc-num">1.</span>&nbsp;Migrations-Assistent</a></li>
+<li class="toc-item"><a href="#import-details"><span class="toc-num">2.</span>&nbsp;Import-Details</a></li>
+<li class="toc-item"><a href="#datenexport"><span class="toc-num">3.</span>&nbsp;Datenexport</a></li>
+<li class="toc-item"><a href="#quellen-erkennung"><span class="toc-num">4.</span>&nbsp;Quellen-Erkennung</a></li>
+<li class="toc-item"><a href="#hilfs-bibliothek"><span class="toc-num">5.</span>&nbsp;Hilfs-Bibliothek</a></li></ul>
+</div>
+<p>Das Migrations-Framework ermöglicht den Import von Daten aus Slack, Microsoft Teams und Google Workspace in die Workspace-Plattform. Alle Skripte laufen lokal auf dem Rechner des Administrators.</p>
+<div class="code-wrapper"><pre><code>Quellen                   migrate.sh             Ziele
+──────────────────────    ──────────────────     ──────────────────────
+Slack Export (ZIP)     ─┐                    ─→ Website Messaging
+Teams GDPR-Export      ─┤  Interaktives Menü ─→ Nextcloud (Dateien,
+Google Takeout (ZIP)   ─┤                    ─→   Kalender, Kontakte)
+CSV / LDIF             ─┘                    ─→ Keycloak (Benutzer)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="migrations-assistent">Migrations-Assistent</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Interaktives Menü starten
+scripts/migrate.sh
+
+# Nur scannen (keine Migration)
+scripts/migrate.sh --no-scan
+
+# Trockenlauf (keine Daten ändern)
+scripts/migrate.sh --dry-run
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Voraussetzungen:</strong> bash 4+, curl, jq, python3, unzip</p>
+<h3>Menü-Optionen</h3>
+<table>
+<thead>
+<tr>
+<th>Nr.</th>
+<th>Aktion</th>
+<th>Quelle</th>
+<th>Ziel</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Slack importieren</td>
+<td>Slack Export ZIP</td>
+<td>Website Messaging (Chat-Räume via API)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Teams importieren</td>
+<td>GDPR-Export oder lokaler Cache</td>
+<td>Website Messaging + Nextcloud</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Google importieren</td>
+<td>Google Takeout</td>
+<td>Website Messaging + Nextcloud</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Benutzer importieren</td>
+<td>CSV oder LDIF</td>
+<td>Keycloak</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Daten exportieren</td>
+<td>Website Messaging + Nextcloud + Keycloak</td>
+<td>ZIP-Archiv</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Server konfigurieren</td>
+<td>—</td>
+<td>Verbindungsdaten setzen</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Quellen scannen</td>
+<td>Lokales System</td>
+<td>Erkennung vorhandener Exporte</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="import-details">Import-Details</h2>
+<h3>Slack nach Website Messaging</h3>
+<p><strong>Skript:</strong> <code>scripts/lib/slack-import.sh</code></p>
+<ul>
+<li>Akzeptiert Slack Export ZIP oder entpacktes Verzeichnis</li>
+<li>Konvertiert Channels zu Chat-Räumen und Direktnachrichten zu DMs im Website-Messaging</li>
+<li>Wandelt um: Channels, Benutzer, Nachrichten, Threads, Mentions, Links</li>
+<li>Import via Website-API (<code>/api/messaging/import</code>)</li>
+</ul>
+<h3>Microsoft Teams nach Website Messaging + Nextcloud</h3>
+<p><strong>Skript:</strong> <code>scripts/lib/teams-import.sh</code></p>
+<ul>
+<li>Unterstützt GDPR-Datenexport (myaccount.microsoft.com) und lokalen Teams-Cache</li>
+<li>Erkennt Export-Typ automatisch</li>
+<li>Chat-Nachrichten → Website Messaging (Chat-Räume)</li>
+<li>Dateien → Nextcloud (WebDAV)</li>
+<li>Kalender → <code>.ics</code>-Dateien, Kontakte → <code>.vcf</code>-Dateien</li>
+</ul>
+<h3>Google Workspace nach Website Messaging + Nextcloud</h3>
+<p><strong>Skript:</strong> <code>scripts/lib/google-import.sh</code></p>
+<ul>
+<li>Google Takeout Export (takeout.google.com)</li>
+<li>Google Chat → Website Messaging (Chat-Räume)</li>
+<li>Drive → Nextcloud (WebDAV)</li>
+<li>Kalender → Nextcloud Calendar (CalDAV)</li>
+<li>Kontakte → Nextcloud Contacts (CardDAV)</li>
+<li>Erkennt deutsche und englische Ordnernamen</li>
+</ul>
+<h3>Benutzer nach Keycloak</h3>
+<p><strong>Skript:</strong> <code>scripts/import-users.sh</code></p>
+<div class="code-wrapper"><pre><code class="language-bash"># CSV-Import
+scripts/import-users.sh --csv users.csv --url http://auth.localhost --admin admin --pass devadmin
+
+# LDIF-Import
+scripts/import-users.sh --ldif users.ldif --realm workspace
+
+# Trockenlauf
+scripts/import-users.sh --csv users.csv --dry-run
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Parameter:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--csv FILE</code> / <code>--ldif FILE</code></td>
+<td>Eingabedatei</td>
+</tr>
+<tr>
+<td><code>--url URL</code></td>
+<td>Keycloak-URL (Standard: <code>http://auth.localhost</code>)</td>
+</tr>
+<tr>
+<td><code>--admin USER</code></td>
+<td>Admin-Benutzer (Standard: <code>admin</code>)</td>
+</tr>
+<tr>
+<td><code>--pass PASS</code></td>
+<td>Admin-Passwort</td>
+</tr>
+<tr>
+<td><code>--realm REALM</code></td>
+<td>Realm (Standard: <code>workspace</code>)</td>
+</tr>
+<tr>
+<td><code>--group GROUP</code></td>
+<td>Standardgruppe für importierte Benutzer</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>Nur anzeigen, nicht importieren</td>
+</tr>
+</tbody></table>
+<p>Fehlende Gruppen werden automatisch erstellt. Importierte Benutzer erhalten temporäre Passwörter (Änderung beim ersten Login erforderlich).</p>
+<hr>
+<h2 id="datenexport">Datenexport</h2>
+<p>Option 5 im Migrations-Assistenten erstellt ein ZIP-Archiv mit selektiv exportierten Daten:</p>
+<ul>
+<li><strong>Website Messaging:</strong> Nachrichten und Räume (JSON via API)</li>
+<li><strong>Nextcloud:</strong> Dateien (WebDAV), Kalender (CalDAV/iCal), Kontakte (CardDAV/vCard)</li>
+<li><strong>Keycloak:</strong> Benutzer (CSV + LDIF), Realm-Konfiguration (JSON)</li>
+</ul>
+<p><strong>Skript:</strong> <code>scripts/lib/export.sh</code></p>
+<hr>
+<h2 id="quellen-erkennung">Quellen-Erkennung</h2>
+<p><strong>Skript:</strong> <code>scripts/lib/scan.sh</code></p>
+<p>Scannt automatisch typische Speicherorte für vorhandene Exporte:</p>
+<ul>
+<li>Slack: Cache und Download-Verzeichnisse</li>
+<li>Teams: lokaler Cache und GDPR-Exporte</li>
+<li>Nextcloud: Desktop-Client-Synchronisierung</li>
+<li>Google Takeout: Download-Verzeichnisse</li>
+</ul>
+<p>Erkennt Betriebssystem (Linux, macOS, WSL) und durchsucht die entsprechenden Pfade.</p>
+<hr>
+<h2 id="hilfs-bibliothek">Hilfs-Bibliothek</h2>
+<p><strong>Skript:</strong> <code>scripts/lib/nextcloud-api.sh</code></p>
+<p>Wiederverwendbare Funktionen für Nextcloud-Operationen:</p>
+<ul>
+<li>WebDAV: Verzeichnisse erstellen, Dateien hoch-/herunterladen</li>
+<li>CalDAV: Kalender erstellen, <code>.ics</code> importieren/exportieren</li>
+<li>CardDAV: Adressbücher erstellen, <code>.vcf</code> importieren/exportieren</li>
+</ul>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

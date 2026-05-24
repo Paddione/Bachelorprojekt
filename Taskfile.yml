@@ -1075,7 +1075,7 @@ tasks:
         echo "Written to docs/db-schema-diagram.md"
 
   datamodel:build:
-    desc: "Regenerate k3d/docs-content/datamodel-workflow.md from shared-db + workflow-map.yaml"
+    desc: "Regenerate datamodel-workflow.html in docs-content-built from shared-db + workflow-map.yaml"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -1085,8 +1085,9 @@ tasks:
         KUBECTL_CTX="${ENV_CONTEXT}" KUBECTL_NS="$NS" \
           python3 scripts/datamodel/build_datamodel.py \
             --map scripts/datamodel/workflow-map.yaml \
-            --out k3d/docs-content/datamodel-workflow.md
-        echo "Written. Review the diff, then commit + task docs:deploy."
+            --out /tmp/datamodel-workflow.md
+        node scripts/build-docs.js --rebuild-page datamodel-workflow /tmp/datamodel-workflow.md
+        echo "Written. Review k3d/docs-content-built/datamodel-workflow.html, commit + task docs:deploy."
 
   workspace:teardown:
     desc: Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
@@ -1899,7 +1900,7 @@ tasks:
   # Documentation
   # ─────────────────────────────────────────────
   docs:build:
-    desc: Build docs MD -> static HTML (output to k3d/docs-content-built/)
+    desc: Sync skills HTML, refresh assets (style.css/app.js), rebuild search.json in k3d/docs-content-built/
     cmds:
       - node scripts/build-docs.js {{if .FAST}}--fast{{end}}
     vars:
@@ -1927,7 +1928,7 @@ tasks:
       ENV: '{{.ENV | default "mentolder"}}'
 
   docs:sync:
-    desc: "Fast-sync docs MD -> HTML and push to running pod (ENV=dev|mentolder|...)"
+    desc: "Refresh assets + push k3d/docs-content-built to running pod (ENV=dev|mentolder|...)"
     vars:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
@@ -1937,10 +1938,10 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
         POD=$(kubectl $CTX get pod -n "$NS" -l app=docs -o name | head -n 1 | cut -d'/' -f2)
         if [[ -z "$POD" ]]; then echo "ERROR: No docs pod found in $NS" >&2; exit 1; fi
-        
-        echo "1/2 Building docs MD -> HTML..."
+
+        echo "1/2 Refreshing assets and search index..."
         node scripts/build-docs.js
-        
+
         echo "2/2 Syncing k3d/docs-content-built to $POD:/public..."
         kubectl $CTX cp k3d/docs-content-built "$NS/$POD:/public"
         echo "✓ Docs synced. Changes should be live immediately (static server)."
@@ -1982,8 +1983,8 @@ tasks:
           python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "  Written to docs/db-schema-diagram.md"
       - |
-        echo "→ Copying to k3d/docs-content/db-schema.md..."
-        cp docs/db-schema-diagram.md k3d/docs-content/db-schema.md
+        echo "→ Rebuilding db-schema.html from generated MD..."
+        node scripts/build-docs.js --rebuild-page db-schema docs/db-schema-diagram.md
       - task: docs:deploy
     silent: false
 

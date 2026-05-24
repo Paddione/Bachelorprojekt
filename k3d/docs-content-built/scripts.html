@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Skripte-Referenz — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item"><a href="./benutzerhandbuch.html">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Skripte-Referenz</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#admin-users-setupsh"><span class="toc-num">1.</span>&nbsp;admin-users-setup.sh</a></li>
+<li class="toc-item"><a href="#check-connectivitysh"><span class="toc-num">2.</span>&nbsp;check-connectivity.sh</a></li>
+<li class="toc-item"><a href="#check-updatessh"><span class="toc-num">3.</span>&nbsp;check-updates.sh</a></li>
+<li class="toc-item"><a href="#dsgvo-compliance-checksh"><span class="toc-num">4.</span>&nbsp;dsgvo-compliance-check.sh</a></li>
+<li class="toc-item"><a href="#env-generatesh"><span class="toc-num">5.</span>&nbsp;env-generate.sh</a></li>
+<li class="toc-item"><a href="#env-resolvesh"><span class="toc-num">6.</span>&nbsp;env-resolve.sh</a></li>
+<li class="toc-item"><a href="#env-sealsh"><span class="toc-num">7.</span>&nbsp;env-seal.sh</a></li>
+<li class="toc-item"><a href="#env-validatesh"><span class="toc-num">8.</span>&nbsp;env-validate.sh</a></li>
+<li class="toc-item"><a href="#import-entrypointsh"><span class="toc-num">9.</span>&nbsp;import-entrypoint.sh</a></li>
+<li class="toc-item"><a href="#import-userssh"><span class="toc-num">10.</span>&nbsp;import-users.sh</a></li>
+<li class="toc-item"><a href="#keycloak-syncsh"><span class="toc-num">11.</span>&nbsp;keycloak-sync.sh</a></li>
+<li class="toc-item"><a href="#mcp-selectsh"><span class="toc-num">12.</span>&nbsp;mcp-select.sh</a></li>
+<li class="toc-item"><a href="#migratesh"><span class="toc-num">13.</span>&nbsp;migrate.sh</a></li>
+<li class="toc-item"><a href="#recording-setupsh"><span class="toc-num">14.</span>&nbsp;recording-setup.sh</a></li>
+<li class="toc-item"><a href="#seed-test-meetingssh"><span class="toc-num">15.</span>&nbsp;seed-test-meetings.sh</a></li>
+<li class="toc-item"><a href="#setup-ha-clustersh"><span class="toc-num">16.</span>&nbsp;setup-ha-cluster.sh</a></li>
+<li class="toc-item"><a href="#setup-wireguardsh"><span class="toc-num">17.</span>&nbsp;setup-wireguard.sh</a></li>
+<li class="toc-item"><a href="#setupsh"><span class="toc-num">18.</span>&nbsp;setup.sh</a></li>
+<li class="toc-item"><a href="#talk-hpb-setupsh"><span class="toc-num">19.</span>&nbsp;talk-hpb-setup.sh</a></li>
+<li class="toc-item"><a href="#transcriber-setupsh"><span class="toc-num">20.</span>&nbsp;transcriber-setup.sh</a></li>
+<li class="toc-item"><a href="#whiteboard-setupsh"><span class="toc-num">21.</span>&nbsp;whiteboard-setup.sh</a></li></ul>
+</div>
+<p>Alle Bash-Hilfsskripte liegen im Verzeichnis <code>scripts/</code>. Sie können direkt aufgerufen oder über <code>task</code>-Tasks gestartet werden.</p>
+<hr>
+<h2 id="admin-users-setupsh">admin-users-setup.sh</h2>
+<p><strong>Zweck:</strong> Provisioniert SSO-Admin-Benutzer in Keycloak.</p>
+<p>Erstellt die in <code>.env</code> definierten Benutzer (<code>KC_USER1</code>, <code>KC_USER2</code>) im workspace-Realm. Idempotent — vorhandene Benutzer werden aktualisiert, nicht doppelt angelegt.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/admin-users-setup.sh
+
+# Mit anderem Environment
+ENV=mentolder bash scripts/admin-users-setup.sh
+
+# Via Task
+task workspace:admin-users-setup
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="check-connectivitysh">check-connectivity.sh</h2>
+<p><strong>Zweck:</strong> Prüft die HTTPS-Erreichbarkeit aller Workspace-Dienste.</p>
+<p>Liest Domains aus <code>.env</code> und sendet HTTP-Anfragen an alle konfigurierten Endpunkte.</p>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/check-connectivity.sh           # Alle Dienste prüfen
+scripts/check-connectivity.sh --local   # Nur lokale Ports prüfen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="check-updatessh">check-updates.sh</h2>
+<p><strong>Zweck:</strong> Vergleicht laufende Container-Image-Digests mit ihren Registries und meldet verfügbare Updates.</p>
+<p>Zeigt an, welche Services neuere Images haben und welche <code>:latest</code>-Images beim nächsten Neustart aktualisiert werden (imagePullPolicy: Always).</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/check-updates.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="dsgvo-compliance-checksh">dsgvo-compliance-check.sh</h2>
+<p><strong>Zweck:</strong> Prüft DSGVO-Compliance des Workspace (NFA-01).</p>
+<p>Überprüft: keine externen DNS-Auflösungen aus Pods, keine Container-Images von US-Cloud-Providern, keine Telemetrie-Abflüsse.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Lesbare Ausgabe
+bash scripts/dsgvo-compliance-check.sh
+
+# JSON-Ausgabe für Grafana-Ingestion
+bash scripts/dsgvo-compliance-check.sh --json
+
+# Via Task
+task workspace:dsgvo-check
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="env-generatesh">env-generate.sh</h2>
+<p><strong>Zweck:</strong> Generiert Secrets aus dem Schema für eine Umgebung.</p>
+<p>Liest den <code>secrets</code>-Abschnitt aus <code>environments/schema.yaml</code> und generiert zufällige Passwörter oder fragt interaktiv nach.</p>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/env-generate.sh --env &lt;name&gt;
+scripts/env-generate.sh --env production --env-dir environments/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="env-resolvesh">env-resolve.sh</h2>
+<p><strong>Zweck:</strong> Löst alle Variablen einer Umgebung auf und exportiert sie als Shell-Umgebungsvariablen.</p>
+<p>Liest eine Umgebungsdatei zusammen mit Schema-Standardwerten.</p>
+<div class="code-wrapper"><pre><code class="language-bash">source scripts/env-resolve.sh &lt;env-name&gt;
+source scripts/env-resolve.sh production environments/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="env-sealsh">env-seal.sh</h2>
+<p><strong>Zweck:</strong> Verschlüsselt Plaintext-Secrets zu einem SealedSecret.</p>
+<p>Liest Secrets aus <code>environments/.secrets/&lt;name&gt;.yaml</code>, baut ein temporäres K8s-Secret und verschlüsselt es mit <code>kubeseal</code>.</p>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/env-seal.sh --env &lt;name&gt;
+scripts/env-seal.sh --env production --env-dir environments/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="env-validatesh">env-validate.sh</h2>
+<p><strong>Zweck:</strong> Validiert Umgebungsdateien gegen <code>environments/schema.yaml</code> (Pre-Deploy-Gate).</p>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/env-validate.sh --env &lt;name&gt;
+scripts/env-validate.sh --env production --strict
+scripts/env-validate.sh --drift              # Drift aller Umgebungen prüfen
+scripts/env-validate.sh --env prod --schema-only
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--env &lt;name&gt;</code></td>
+<td>Umgebung validieren</td>
+</tr>
+<tr>
+<td><code>--drift</code></td>
+<td>Alle Umgebungen auf Schema-Drift prüfen</td>
+</tr>
+<tr>
+<td><code>--schema-only</code></td>
+<td>Nur Schema-Struktur prüfen</td>
+</tr>
+<tr>
+<td><code>--strict</code></td>
+<td>Schlägt fehl bei unbekannten Schlüsseln</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="import-entrypointsh">import-entrypoint.sh</h2>
+<p><strong>Zweck:</strong> Interner Container-Entrypoint: ersetzt Umgebungsvariablen in <code>realm-workspace.json</code> und startet Keycloak mit <code>--import-realm</code>.</p>
+<p>Wird als Container-Command im Keycloak-Deployment verwendet, nicht direkt aufgerufen.</p>
+<hr>
+<h2 id="import-userssh">import-users.sh</h2>
+<p><strong>Zweck:</strong> Importiert Benutzer aus CSV oder LDIF in Keycloak über die Admin REST API.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># CSV-Import
+scripts/import-users.sh --csv users.csv \
+  --url http://auth.localhost \
+  --admin admin \
+  --pass devadmin
+
+# LDIF-Import
+scripts/import-users.sh --ldif users.ldif --realm workspace
+
+# Trockenlauf
+scripts/import-users.sh --csv users.csv --dry-run
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--csv FILE</code></td>
+<td>CSV-Eingabedatei</td>
+</tr>
+<tr>
+<td><code>--ldif FILE</code></td>
+<td>LDIF-Eingabedatei</td>
+</tr>
+<tr>
+<td><code>--url URL</code></td>
+<td>Keycloak-URL (Standard: <code>http://auth.localhost</code>)</td>
+</tr>
+<tr>
+<td><code>--admin USER</code></td>
+<td>Admin-Benutzer (Standard: <code>admin</code>)</td>
+</tr>
+<tr>
+<td><code>--pass PASS</code></td>
+<td>Admin-Passwort</td>
+</tr>
+<tr>
+<td><code>--realm REALM</code></td>
+<td>Realm (Standard: <code>workspace</code>)</td>
+</tr>
+<tr>
+<td><code>--group GROUP</code></td>
+<td>Standardgruppe für importierte Benutzer</td>
+</tr>
+<tr>
+<td><code>--dry-run</code></td>
+<td>Nur anzeigen, nicht importieren</td>
+</tr>
+</tbody></table>
+<p>Fehlende Gruppen werden automatisch erstellt. Importierte Benutzer erhalten temporäre Passwörter (Änderung beim ersten Login erforderlich).</p>
+<hr>
+<h2 id="keycloak-syncsh">keycloak-sync.sh</h2>
+<p><strong>Zweck:</strong> Synchronisiert OIDC-Clients + Secrets aus dem <code>realm-template</code> ConfigMap und <code>workspace-secrets</code> in die Keycloak-Datenbank via Admin REST API. Fehlende Clients werden per POST angelegt; existierende bekommen nur ihr Secret aktualisiert.</p>
+<p>Idempotent — kann jederzeit mehrfach ausgeführt werden.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/keycloak-sync.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="mcp-selectsh">mcp-select.sh</h2>
+<p><strong>Zweck:</strong> Interaktiver MCP-Server-Selektor. Generiert eine <code>.mcp.json</code> für Claude Code basierend auf der gewählten Umgebung und den MCP-Servern.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/mcp-select.sh
+
+# Via Task
+task mcp:select
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="migratesh">migrate.sh</h2>
+<p><strong>Zweck:</strong> Interaktives Migrations-Werkzeug zum Import von Daten aus Slack, Microsoft Teams und Google Workspace sowie zum Export.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Interaktives Menü starten
+scripts/migrate.sh
+
+# Nur scannen (keine Migration)
+scripts/migrate.sh --no-scan
+
+# Trockenlauf
+scripts/migrate.sh --dry-run
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Menü-Optionen:</p>
+<table>
+<thead>
+<tr>
+<th>Nr.</th>
+<th>Aktion</th>
+<th>Quelle</th>
+<th>Ziel</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Slack importieren</td>
+<td>Slack Export ZIP</td>
+<td>Website Messaging</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Teams importieren</td>
+<td>GDPR-Export oder lokaler Cache</td>
+<td>Website Messaging + Nextcloud</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Google importieren</td>
+<td>Google Takeout</td>
+<td>Website Messaging + Nextcloud</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Benutzer importieren</td>
+<td>CSV oder LDIF</td>
+<td>Keycloak</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Daten exportieren</td>
+<td>Website Messaging + Nextcloud + Keycloak</td>
+<td>ZIP-Archiv</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Server konfigurieren</td>
+<td>—</td>
+<td>Verbindungsdaten setzen</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Quellen scannen</td>
+<td>Lokales System</td>
+<td>Erkennung vorhandener Exporte</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="recording-setupsh">recording-setup.sh</h2>
+<p><strong>Zweck:</strong> Konfiguriert Nextcloud Talk für die Nutzung des Recording-Backends.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/recording-setup.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Muss ausgeführt werden, nachdem der <code>talk-recording</code>-Pod deployed und Nextcloud bereit ist.
+Optionale Umgebungsvariable: <code>KUBE_CONTEXT</code> (kubectl-Kontext, Standard: aktueller Kontext).</p>
+<hr>
+<h2 id="seed-test-meetingssh">seed-test-meetings.sh</h2>
+<p><strong>Zweck:</strong> Befüllt die Website-Datenbank mit Test-Meetings, Transkripten und Artefakten für Entwicklungszwecke.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/seed-test-meetings.sh         # Test-Daten einfügen
+bash scripts/seed-test-meetings.sh --clean # Zuerst löschen, dann einfügen (idempotent)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="setup-ha-clustersh">setup-ha-cluster.sh</h2>
+<p><strong>Zweck:</strong> Bootet einen 3-Knoten k3s HA-Cluster auf rohen Hetzner-Servern.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/setup-ha-cluster.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Knotenkonfiguration und IP-Adressen werden im Skript-Header definiert.</p>
+<hr>
+<h2 id="setup-wireguardsh">setup-wireguard.sh</h2>
+<p><strong>Zweck:</strong> Richtet einen WireGuard-Tunnel zwischen WSL2-Workstation und Hetzner-Knoten ein.</p>
+<p>Aktiviert die Workstation als GPU-Worker für den Prod-Cluster.</p>
+<div class="code-wrapper"><pre><code>Subnetz: 10.13.13.0/24
+  10.13.13.1  Hetzner Node 1
+  10.13.13.2  WSL2 Workstation (GPU Worker)
+  10.13.13.3  Hetzner Node 2
+  10.13.13.4  Hetzner Node 3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/setup-wireguard.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="setupsh">setup.sh</h2>
+<p><strong>Zweck:</strong> Prüft alle Voraussetzungen für den Workspace MVP (Prerequisite Checker).</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/setup.sh           # Prüfung ausführen (Standard)
+./scripts/setup.sh --check   # Explizit Prüfmodus
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Prüft das Vorhandensein aller benötigten Werkzeuge: Docker, k3d, kubectl, task, git, curl, jq.</p>
+<hr>
+<h2 id="talk-hpb-setupsh">talk-hpb-setup.sh</h2>
+<p><strong>Zweck:</strong> Konfiguriert Nextcloud Talk für die Nutzung des spreed-signaling HPB, des coturn TURN-Servers und des STUN-Ports.</p>
+<p>Liest Secrets aus dem <code>workspace/workspace-secrets</code>-Secret, sodass Dev und Prod denselben Stack nutzen.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/talk-hpb-setup.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="transcriber-setupsh">transcriber-setup.sh</h2>
+<p><strong>Zweck:</strong> Legt den <code>transcriber-bot</code>-Nextcloud-Benutzer für den <code>talk-transcriber</code>-Pod an.</p>
+<p>Idempotent — bei bereits vorhandenem Benutzer wird nur das Passwort aktualisiert.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/transcriber-setup.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="whiteboard-setupsh">whiteboard-setup.sh</h2>
+<p><strong>Zweck:</strong> Installiert und konfiguriert die Nextcloud Whiteboard-App und synchronisiert das JWT-Secret mit dem Whiteboard-Collaboration-Backend.</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/whiteboard-setup.sh
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

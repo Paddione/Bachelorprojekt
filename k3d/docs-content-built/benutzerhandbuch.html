@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Benutzerhandbuch — Workspace — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+<aside class="sidebar">
+  <div class="sidebar-logo">⬡ Workspace MVP</div>
+  <div class="sidebar-search">
+    <button class="sidebar-search-btn" aria-label="Suchen (Ctrl+K)">
+      🔍 Suchen… <kbd>Ctrl K</kbd>
+    </button>
+  </div>
+  <nav class="sidebar-nav"><ul>
+  <li class="sidebar-section">Quickstarts</li>
+  <li class="sidebar-item"><a href="./quickstart-enduser.html">Endnutzer (5 Min)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-admin.html">Admin (Setup)</a></li>
+  <li class="sidebar-item"><a href="./quickstart-dev.html">Entwickler (Tour)</a></li>
+  <li class="sidebar-section">Services</li>
+  <li class="sidebar-item"><a href="./keycloak.html">Keycloak (SSO)</a></li>
+  <li class="sidebar-item"><a href="./nextcloud.html">Nextcloud + Talk</a></li>
+  <li class="sidebar-item"><a href="./collabora.html">Collabora (Office)</a></li>
+  <li class="sidebar-item"><a href="./vaultwarden.html">Vaultwarden (Passwörter)</a></li>
+  <li class="sidebar-item"><a href="./website.html">Website (Astro & Svelte)</a></li>
+  <li class="sidebar-item"><a href="./livestream.html">Livestream (LiveKit)</a></li>
+  <li class="sidebar-item"><a href="./claude-code.html">MCP-Server (Claude Code)</a></li>
+  <li class="sidebar-section">Betrieb</li>
+  <li class="sidebar-item"><a href="./operations.html">Deployment & Taskfile</a></li>
+  <li class="sidebar-item"><a href="./environments.html">Umgebungen & Secrets</a></li>
+  <li class="sidebar-item"><a href="./backup.html">Backup & Wiederherstellung</a></li>
+  <li class="sidebar-item"><a href="./monitoring.html">Monitoring</a></li>
+  <li class="sidebar-section">Sicherheit</li>
+  <li class="sidebar-item"><a href="./security.html">Sicherheitsarchitektur</a></li>
+  <li class="sidebar-item"><a href="./dsgvo.html">DSGVO / Datenschutz</a></li>
+  <li class="sidebar-item"><a href="./verarbeitungsverzeichnis.html">Verarbeitungsverzeichnis</a></li>
+  <li class="sidebar-section">Entwicklung</li>
+  <li class="sidebar-item"><a href="./architecture.html">Architektur</a></li>
+  <li class="sidebar-item"><a href="./contributing.html">Beitragen & CI/CD</a></li>
+  <li class="sidebar-item"><a href="./tests.html">Tests</a></li>
+  <li class="sidebar-item"><a href="./troubleshooting.html">Fehlerbehebung</a></li>
+  <li class="sidebar-section">Administration</li>
+  <li class="sidebar-item"><a href="./adminhandbuch.html">Adminhandbuch</a></li>
+  <li class="sidebar-item"><a href="./admin-webinterface.html">Admin-Webinterface</a></li>
+  <li class="sidebar-item"><a href="./admin-tickets.html">Tickets (Unified Inbox)</a></li>
+  <li class="sidebar-section">Benutzerhandbuch</li>
+  <li class="sidebar-item active"><a href="./benutzerhandbuch.html" class="active">Für Endnutzer</a></li>
+  <li class="sidebar-item"><a href="./systembrett.html">Systembrett im Whiteboard</a></li>
+  <li class="sidebar-item"><a href="./systemisches-brett.html">Systemisches Brett (3D)</a></li>
+  <li class="sidebar-section">Referenz</li>
+  <li class="sidebar-item"><a href="./glossary.html">Glossar</a></li>
+  <li class="sidebar-item"><a href="./db-schema.html">DB-Schema (ER-Diagramm)</a></li>
+</ul></nav>
+</aside>
+<main id="main"><html><head></head><body><h1>Benutzerhandbuch — Workspace</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#willkommen"><span class="toc-num">1.</span>&nbsp;Willkommen</a></li>
+<li class="toc-item"><a href="#erster-login"><span class="toc-num">2.</span>&nbsp;Erster Login</a></li>
+<li class="toc-item"><a href="#portal--deine-startseite"><span class="toc-num">3.</span>&nbsp;Portal — Deine Startseite</a></li>
+<li class="toc-item"><a href="#nachrichten--chat"><span class="toc-num">4.</span>&nbsp;Nachrichten &amp; Chat</a></li>
+<li class="toc-item"><a href="#nextcloud--dateien-kalender--kontakte"><span class="toc-num">5.</span>&nbsp;Nextcloud — Dateien, Kalender &amp; Kontakte</a></li>
+<li class="toc-item"><a href="#talk--video-calls--chat"><span class="toc-num">6.</span>&nbsp;Talk — Video-Calls &amp; Chat</a></li>
+<li class="toc-item"><a href="#collabora-online--dokumente-bearbeiten"><span class="toc-num">7.</span>&nbsp;Collabora Online — Dokumente bearbeiten</a></li>
+<li class="toc-item"><a href="#whiteboard"><span class="toc-num">8.</span>&nbsp;Whiteboard</a></li>
+<li class="toc-item"><a href="#vaultwarden--passwort-manager"><span class="toc-num">9.</span>&nbsp;Vaultwarden — Passwort-Manager</a></li>
+<li class="toc-item"><a href="#docuseal--dokumente-unterzeichnen"><span class="toc-num">10.</span>&nbsp;DocuSeal — Dokumente unterzeichnen</a></li>
+<li class="toc-item"><a href="#brett--systemisches-brett-3d"><span class="toc-num">11.</span>&nbsp;Brett — Systemisches Brett (3D)</a></li>
+<li class="toc-item"><a href="#livestream"><span class="toc-num">12.</span>&nbsp;Livestream</a></li>
+<li class="toc-item"><a href="#arena--multiplayer"><span class="toc-num">13.</span>&nbsp;Arena — Multiplayer</a></li>
+<li class="toc-item"><a href="#kontakt-und-hilfe"><span class="toc-num">14.</span>&nbsp;Kontakt und Hilfe</a></li>
+<li class="toc-item"><a href="#haeufige-fragen"><span class="toc-num">15.</span>&nbsp;Häufige Fragen</a></li>
+<li class="toc-item"><a href="#kurzuebersicht-welcher-dienst-wofuer"><span class="toc-num">16.</span>&nbsp;Kurzübersicht: Welcher Dienst wofür?</a></li></ul>
+</div>
+<h2 id="willkommen">Willkommen</h2>
+<p>Der Workspace ist Deine sichere, betriebsinterne Plattform für die tägliche Zusammenarbeit im Team. Alle Daten werden ausschließlich auf eigenen Servern gespeichert — nichts davon gelangt zu externen Anbietern wie Microsoft, Google oder Dropbox. Die Plattform ist DSGVO-konform aufgebaut.</p>
+<p>Du brauchst <strong>nur einen einzigen Account</strong>: ein Login öffnet alle Dienste (Single Sign-On).</p>
+<h3>Verfügbare Dienste</h3>
+<table>
+<thead>
+<tr>
+<th>Dienst</th>
+<th>Beschreibung</th>
+<th>Adresse</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Portal</td>
+<td>Persönliche Startseite, Nachrichten, Inbox</td>
+<td><code>https://web.{DOMAIN}/portal</code></td>
+</tr>
+<tr>
+<td>Nextcloud</td>
+<td>Dateien, Kalender, Kontakte</td>
+<td><code>https://files.{DOMAIN}</code></td>
+</tr>
+<tr>
+<td>Nextcloud Talk</td>
+<td>Video-Calls und Team-Chat</td>
+<td>in Nextcloud → Talk</td>
+</tr>
+<tr>
+<td>Collabora Online</td>
+<td>Office-Suite im Browser</td>
+<td>öffnet aus Nextcloud heraus</td>
+</tr>
+<tr>
+<td>Whiteboard</td>
+<td>Kollaboratives Zeichnen</td>
+<td><code>https://board.{DOMAIN}</code></td>
+</tr>
+<tr>
+<td>Vaultwarden</td>
+<td>Passwort-Safe</td>
+<td><code>https://vault.{DOMAIN}</code></td>
+</tr>
+<tr>
+<td>DocuSeal</td>
+<td>Dokumente unterzeichnen</td>
+<td><code>https://sign.{DOMAIN}</code></td>
+</tr>
+<tr>
+<td>Livestream</td>
+<td>Live-Übertragungen ansehen</td>
+<td><code>https://web.{DOMAIN}/portal/stream</code></td>
+</tr>
+<tr>
+<td>Brett (Systembrett)</td>
+<td>3D-Systemisches Brett</td>
+<td><code>https://brett.{DOMAIN}</code></td>
+</tr>
+<tr>
+<td>Dokumentation</td>
+<td>Dieses Handbuch</td>
+<td><code>https://docs.{DOMAIN}</code></td>
+</tr>
+</tbody></table>
+<p><code>{DOMAIN}</code> ist die Domain Deiner Umgebung — typischerweise <strong><code>mentolder.de</code></strong> oder <strong><code>korczewski.de</code></strong>. Frage Deinen Administrator, falls Du unsicher bist.</p>
+<hr>
+<h2 id="erster-login">Erster Login</h2>
+<h3>Schritt-für-Schritt</h3>
+<ol>
+<li>Rufe das Portal in Deinem Browser auf: <code>https://web.{DOMAIN}/portal</code></li>
+<li>Klicke auf <strong>„Anmelden"</strong></li>
+<li>Du wirst zur zentralen Login-Seite weitergeleitet (Keycloak)</li>
+<li>Gib Benutzername und Passwort ein, die Du vom Administrator erhalten hast</li>
+<li>Beim ersten Login wirst Du aufgefordert, ein neues Passwort zu setzen — mindestens 12 Zeichen, sicher und einzigartig</li>
+<li>Nach erfolgreichem Login bist Du in allen Diensten automatisch angemeldet</li>
+</ol>
+<blockquote>
+<p><strong>Tipp:</strong> Setze ein Lesezeichen auf das Portal — von dort aus erreichst Du alle weiteren Dienste.</p>
+</blockquote>
+<h3>Passwort vergessen</h3>
+<p>Klicke auf der Login-Seite auf <strong>„Passwort vergessen?"</strong>. Du erhältst eine E-Mail mit einem Reset-Link. Falls keine E-Mail ankommt, prüfe den Spam-Ordner oder wende Dich an den Administrator.</p>
+<h3>Passwort ändern</h3>
+<p>Rufe <code>https://auth.{DOMAIN}/realms/workspace/account</code> auf und wähle <strong>„Passwort"</strong>. Das neue Passwort gilt sofort für alle Dienste.</p>
+<blockquote>
+<p><strong>Sicherheitshinweis:</strong> Speichere Dein Workspace-Passwort im Vaultwarden-Tresor, nicht im Browser.</p>
+</blockquote>
+<hr>
+<h2 id="portal--deine-startseite">Portal — Deine Startseite</h2>
+<p>Das Portal unter <code>https://web.{DOMAIN}/portal</code> ist Dein zentraler Einstiegspunkt. Es bündelt alle tagesrelevanten Informationen:</p>
+<ul>
+<li><strong>Nachrichten &amp; Chat:</strong> Direktnachrichten mit Kollegen und Admins, Gruppenräume</li>
+<li><strong>Inbox:</strong> Eingehende Anfragen und Benachrichtigungen</li>
+<li><strong>Termine:</strong> Buchungen und Kalenderansicht</li>
+<li><strong>Dokumente &amp; Signaturen:</strong> Hochgeladene Dokumente und zu unterzeichnende Verträge</li>
+<li><strong>Meetings:</strong> Geplante und zurückliegende Videomeetings mit Transkripten</li>
+</ul>
+<p>Das Portal ist responsiv und funktioniert am Desktop, Tablet und Smartphone.</p>
+<hr>
+<h2 id="nachrichten--chat">Nachrichten &amp; Chat</h2>
+<p>Das integrierte Messaging-System ermöglicht direkte Kommunikation mit dem Team und dem Administrator.</p>
+<h3>Direktnachrichten</h3>
+<ul>
+<li>Im Portal unter <strong>„Nachrichten"</strong>: auf einen Kontakt klicken und schreiben</li>
+<li>Nachrichten werden in Echtzeit zugestellt</li>
+<li>Anhänge (Bilder, Dateien) können direkt im Chat geteilt werden</li>
+</ul>
+<h3>Gruppenräume</h3>
+<ul>
+<li>Unter <strong>„Räume"</strong> findest Du alle Gruppen, denen Du angehörst</li>
+<li>Räume eignen sich für projektbezogene oder thematische Kommunikation</li>
+</ul>
+<hr>
+<h2 id="nextcloud--dateien-kalender--kontakte">Nextcloud — Dateien, Kalender &amp; Kontakte</h2>
+<p>Nextcloud ist Dein persönlicher Cloud-Speicher auf eigenem Server. Aufruf: <code>https://files.{DOMAIN}</code></p>
+<h3>Dateien</h3>
+<ul>
+<li><strong>Hochladen:</strong> Dateien per Drag &amp; Drop in den Browser ziehen oder über <strong>„+" → Datei hochladen</strong></li>
+<li><strong>Ordner erstellen:</strong> <strong>„+" → „Neuer Ordner"</strong></li>
+<li><strong>Teilen:</strong> Rechtsklick auf eine Datei → <strong>„Teilen"</strong> → Empfänger eingeben oder öffentlichen Link erstellen</li>
+<li><strong>Berechtigungen:</strong> Beim Teilen zwischen „nur lesen" und „bearbeiten" wählen</li>
+</ul>
+<h3>Kalender</h3>
+<ul>
+<li><strong>Neuer Termin:</strong> In der Kalender-App auf ein Datum klicken → Termindaten eingeben</li>
+<li><strong>Kalender teilen:</strong> Kalender-Einstellungen → <strong>„Teilen"</strong> → Empfänger eingeben</li>
+<li><strong>App-Synchronisation:</strong> Der Kalender lässt sich mit mobilen Geräten per CalDAV synchronisieren</li>
+</ul>
+<h3>Kontakte</h3>
+<ul>
+<li><strong>Neuer Kontakt:</strong> In der Kontakte-App auf <strong>„Neuer Kontakt"</strong> klicken</li>
+<li><strong>vCard-Import:</strong> <strong>„Einstellungen" → „Importieren"</strong></li>
+<li><strong>CardDAV-Sync:</strong> Kontakte lassen sich mit dem Smartphone synchronisieren</li>
+</ul>
+<h3>Nextcloud-App für iOS und Android</h3>
+<p>Die offizielle Nextcloud-App ermöglicht Zugriff auf Dateien, Kalender und Talk auch unterwegs.</p>
+<hr>
+<h2 id="talk--video-calls--chat">Talk — Video-Calls &amp; Chat</h2>
+<p>Nextcloud Talk ist das integrierte System für Video-Meetings und Chat. Aufruf: <code>https://files.{DOMAIN}</code> → <strong>Talk</strong> in der Seitenleiste.</p>
+<h3>Meeting starten</h3>
+<ol>
+<li>Klicke auf <strong>„+ Neues Gespräch erstellen"</strong></li>
+<li>Vergib einen Namen und füge Teilnehmer hinzu</li>
+<li>Starte den Anruf über das Kamera-Symbol</li>
+</ol>
+<p>Der Browser fragt beim ersten Mal nach Zugriff auf Kamera und Mikrofon — bitte <strong>erlauben</strong>.</p>
+<h3>Im Meeting</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Schaltfläche</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mikrofon stummschalten</td>
+<td>Mikrofon-Symbol</td>
+</tr>
+<tr>
+<td>Kamera deaktivieren</td>
+<td>Kamera-Symbol</td>
+</tr>
+<tr>
+<td>Bildschirm teilen</td>
+<td>Monitor-Symbol → Fenster oder Bildschirm auswählen</td>
+</tr>
+<tr>
+<td>Meeting-Chat öffnen</td>
+<td>Sprechblasen-Symbol</td>
+</tr>
+</tbody></table>
+<h3>Gäste einladen</h3>
+<p>Erstelle ein Gespräch → kopiere den Einladungslink → sende ihn an die Person. Gäste benötigen <strong>keinen eigenen Account</strong>.</p>
+<h3>Aufzeichnung und Transkription</h3>
+<p>Falls vom Administrator aktiviert, können Calls aufgezeichnet und automatisch transkribiert werden. Die Aufzeichnung erscheint nach dem Meeting als Datei im Nextcloud-Ordner des Gastgebers.</p>
+<hr>
+<h2 id="collabora-online--dokumente-bearbeiten">Collabora Online — Dokumente bearbeiten</h2>
+<p>Collabora öffnet sich automatisch aus Nextcloud heraus — kein separates Programm notwendig.</p>
+<p>Klicke in Nextcloud auf eine Datei; sie öffnet sich im Browser-Editor.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Anwendung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.odt</code>, <code>.docx</code></td>
+<td>Writer (Textdokument)</td>
+</tr>
+<tr>
+<td><code>.ods</code>, <code>.xlsx</code></td>
+<td>Calc (Tabelle)</td>
+</tr>
+<tr>
+<td><code>.odp</code>, <code>.pptx</code></td>
+<td>Impress (Präsentation)</td>
+</tr>
+</tbody></table>
+<p><strong>Neues Dokument:</strong> In Nextcloud <strong>„+" → „Neues Dokument"</strong> (je nach Typ wählen).</p>
+<p><strong>Gleichzeitig bearbeiten:</strong> Mehrere Personen können parallel am selben Dokument arbeiten — Änderungen sind in Echtzeit sichtbar.</p>
+<hr>
+<h2 id="whiteboard">Whiteboard</h2>
+<p>Das Whiteboard ermöglicht gemeinsames Zeichnen und Visualisieren im Browser.</p>
+<p>Aufruf in Nextcloud: <strong>„+" → „Neues Whiteboard"</strong> oder direkt unter <code>https://board.{DOMAIN}</code>.</p>
+<p>Verfügbare Werkzeuge: Freihand, Formen, Text, Pfeile, Post-its, Bilder einfügen.</p>
+<p><strong>Teilen:</strong> Kopiere den Board-Link und sende ihn an Kolleginnen und Kollegen — alle sehen die Änderungen in Echtzeit.</p>
+<hr>
+<h2 id="vaultwarden--passwort-manager">Vaultwarden — Passwort-Manager</h2>
+<p>Vaultwarden speichert Passwörter sicher und füllt sie automatisch aus. Es ist kompatibel mit dem Bitwarden-Browser-Plugin und den Bitwarden-Apps für iOS und Android.</p>
+<h3>Ersteinrichtung</h3>
+<ol>
+<li>Installiere das <strong>Bitwarden</strong>-Browser-Plugin (Chrome, Firefox, Edge)</li>
+<li>Öffne die Plugin-Einstellungen → <strong>„Server-URL"</strong></li>
+<li>Trage <code>https://vault.{DOMAIN}</code> ein und speichere</li>
+<li>Melde Dich mit Deinem Workspace-Konto an</li>
+</ol>
+<h3>Passwörter verwalten</h3>
+<ul>
+<li><strong>Speichern:</strong> Beim Ausfüllen eines Login-Formulars erscheint ein Speichern-Dialog im Plugin</li>
+<li><strong>Automatisch ausfüllen:</strong> Das Plugin erkennt Login-Formulare und bietet gespeicherte Daten an</li>
+<li><strong>Teilen:</strong> Geteilte Sammlungen im Vaultwarden-Webinterface für Team-Passwörter</li>
+</ul>
+<blockquote>
+<p><strong>Wichtig:</strong> Das Vaultwarden-Master-Passwort ist unabhängig vom Workspace-Passwort. Notiere es sicher auf — ein Verlust bedeutet den Verlust aller gespeicherten Passwörter.</p>
+</blockquote>
+<hr>
+<h2 id="docuseal--dokumente-unterzeichnen">DocuSeal — Dokumente unterzeichnen</h2>
+<p>DocuSeal ermöglicht das digitale Unterzeichnen von Dokumenten im Browser. Aufruf: <code>https://sign.{DOMAIN}</code></p>
+<ul>
+<li>Erhältst Du eine Unterzeichnungsanfrage, erscheint ein Link im Portal oder per E-Mail</li>
+<li>Öffne das Dokument und unterzeichne es digital mit wenigen Klicks</li>
+<li>Unterzeichnete Dokumente sind im Portal unter <strong>„Signaturen"</strong> abrufbar</li>
+</ul>
+<hr>
+<h2 id="brett--systemisches-brett-3d">Brett — Systemisches Brett (3D)</h2>
+<p>Das Brett ermöglicht systemische Aufstellungen im Browser — räumlich, interaktiv, dreidimensional. Aufruf: <code>https://brett.{DOMAIN}</code></p>
+<ul>
+<li>Figuren platzieren und im 3D-Raum bewegen</li>
+<li>Räume für Einzel- oder Gruppenarbeit erstellen</li>
+<li>Integration in Nextcloud Talk: Slash-Command <code>/brett</code> öffnet direkt eine neue Session</li>
+</ul>
+<hr>
+<h2 id="livestream">Livestream</h2>
+<p>Über das Portal kannst Du Live-Übertragungen ansehen. Aufruf: <code>https://web.{DOMAIN}/portal/stream</code></p>
+<ul>
+<li>Der Livestream ist an Deinen Workspace-Login gebunden — nur angemeldete Nutzer können zuschauen</li>
+<li>Eine aktive Übertragung erscheint automatisch auf der Stream-Seite</li>
+<li>Aufzeichnungen vergangener Streams können vom Administrator bereitgestellt werden</li>
+</ul>
+<hr>
+<h2 id="arena--multiplayer">Arena — Multiplayer</h2>
+<p>Arena ist ein browserbasiertes Multiplayer-Erlebnis, das direkt über das Portal zugänglich ist.</p>
+<ul>
+<li>Gemeinsam im Team spielen oder an interaktiven Szenarien teilnehmen</li>
+<li>Kein separates Programm notwendig — funktioniert vollständig im Browser</li>
+<li>Arena läuft zentral und ist von beiden Plattformen (<code>mentolder.de</code> und <code>korczewski.de</code>) aus erreichbar</li>
+</ul>
+<hr>
+<h2 id="kontakt-und-hilfe">Kontakt und Hilfe</h2>
+<h3>Technisches Problem melden</h3>
+<p>Nutze das Bug-Report-Formular direkt im Portal — erreichbar über den Hilfe-Button am Bildschirmrand. Tickets gehen automatisch an den Administrator.</p>
+<p>Für nicht-technische Fragen: Nachricht an den Administrator im Portal unter <strong>„Nachrichten"</strong> schreiben.</p>
+<h3>Dokumentation</h3>
+<p>Die vollständige Dokumentation findest Du unter <code>https://docs.{DOMAIN}</code>. Der Zugriff ist an Deinen Workspace-Login gekoppelt.</p>
+<hr>
+<h2 id="haeufige-fragen">Häufige Fragen</h2>
+<h3>Ich habe mein Passwort vergessen</h3>
+<p>Klicke auf der Login-Seite auf <strong>„Passwort vergessen?"</strong> und folge den Anweisungen. Falls keine E-Mail ankommt, wende Dich an den Administrator.</p>
+<h3>Kann ich die Dienste auf dem Smartphone nutzen?</h3>
+<p>Ja. Empfohlene Apps:</p>
+<ul>
+<li><strong>Nextcloud-App</strong> (iOS / Android) — Dateien, Kalender, Kontakte und Talk</li>
+<li><strong>Bitwarden-App</strong> (iOS / Android) — für Vaultwarden</li>
+</ul>
+<p>Portal, Whiteboard und alle anderen Dienste sind außerdem als responsive Website im mobilen Browser nutzbar.</p>
+<h3>Wer hat Zugriff auf meine Dateien?</h3>
+<p>Nur berechtigte Teammitglieder und Administratoren. Die Daten verlassen die eigenen Server nicht. Details in der <a href="dsgvo.md">DSGVO-Dokumentation</a>.</p>
+<h3>Darf ich Verträge oder Kundendaten hochladen?</h3>
+<p>Ja — das ist der Zweck der Plattform. Da alle Daten auf eigenen Servern liegen, ist die Nutzung für personenbezogene und vertrauliche Geschäftsdaten datenschutzrechtlich unbedenklich.</p>
+<h3>Warum sehe ich manche Bereiche nicht?</h3>
+<p>Administrative Bereiche (z. B. <code>/admin</code>) sind nur für Konten der Gruppe <code>workspace-admins</code> sichtbar. Wende Dich bei Bedarf an den Administrator.</p>
+<h3>Die Startseite sieht auf mentolder.de und korczewski.de unterschiedlich aus</h3>
+<p>Richtig — beide Plattformen haben bewusst unterschiedliche Designs und Funktionsschwerpunkte, teilen sich aber dieselbe Infrastruktur und denselben Login.</p>
+<h3>Etwas funktioniert nicht</h3>
+<p>Schreibe im Portal eine Nachricht an den Administrator oder nutze das Bug-Report-Formular.</p>
+<hr>
+<h2 id="kurzuebersicht-welcher-dienst-wofuer">Kurzübersicht: Welcher Dienst wofür?</h2>
+<table>
+<thead>
+<tr>
+<th>Ich möchte …</th>
+<th>Dienst</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Einer Person eine Nachricht schicken</td>
+<td>Portal — Nachrichten</td>
+</tr>
+<tr>
+<td>Eine Datei teilen</td>
+<td>Nextcloud</td>
+</tr>
+<tr>
+<td>Gemeinsam ein Dokument bearbeiten</td>
+<td>Nextcloud + Collabora</td>
+</tr>
+<tr>
+<td>Ein Video-Meeting starten</td>
+<td>Nextcloud Talk</td>
+</tr>
+<tr>
+<td>Ideen gemeinsam skizzieren</td>
+<td>Whiteboard</td>
+</tr>
+<tr>
+<td>Eine systemische Aufstellung machen</td>
+<td>Brett</td>
+</tr>
+<tr>
+<td>Passwörter sicher aufbewahren</td>
+<td>Vaultwarden</td>
+</tr>
+<tr>
+<td>Einen Vertrag unterzeichnen</td>
+<td>DocuSeal</td>
+</tr>
+<tr>
+<td>Einen Livestream ansehen</td>
+<td>Portal → Stream</td>
+</tr>
+<tr>
+<td>Multiplayer-Aktivitäten</td>
+<td>Portal → Arena</td>
+</tr>
+<tr>
+<td>Diese Dokumentation lesen</td>
+<td><code>https://docs.{DOMAIN}</code></td>
+</tr>
+</tbody></table>
+</body></html></main>
+</div>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Seite suchen…" autocomplete="off" spellcheck="false">
+    <div id="search-results"></div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

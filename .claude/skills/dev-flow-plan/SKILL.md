@@ -711,6 +711,22 @@ Schreibe einen Test, der den Bug beweist (red-green-refactor — Pflicht):
 # Erwartet: FAIL
 ```
 
+> **BATS 1.13 stderr-Falle:** `$output` enthält nur stdout. Wenn dein Test Inhalt aus stderr prüfen muss (z.B. Fehlermeldungen, `>&2`-Ausgaben), verwende `run --separate-stderr` — dann steht der Stderr-Inhalt in `$stderr`:
+> ```bash
+> run --separate-stderr my_function
+> assert_output --partial "expected stdout content"
+> assert [ "$stderr" = "expected stderr content" ]
+> ```
+> Ohne `--separate-stderr` fehlen alle `>&2`-Ausgaben in `$output`, und Assertions darauf schlagen still fehl.
+>
+> **HERMES/curl-Unterdrückung:** Wenn du OpenClaw via `HERMES=/dev/null` deaktivierst, unterdrückt das nur den Hermes-Aufruf — `curl` läuft trotzdem. Für deterministisches Test-Verhalten muss auch `curl` durch eine Fake-Binary ersetzt werden:
+> ```bash
+> FAKE_BIN=$(mktemp -d)
+> echo '#!/bin/bash' > "$FAKE_BIN/curl"; chmod +x "$FAKE_BIN/curl"
+> PATH="$FAKE_BIN:$PATH" HERMES=/dev/null run my_script
+> rm -rf "$FAKE_BIN"
+> ```
+
 ### Schritt 4: Plan schreiben (nicht-triviale Fixes)
 
 Bei Einzeilern: kurze Inline-Begründung im Commit reicht — Schritt 4 überspringen (Ticket-ID trotzdem im Commit erwähnen).

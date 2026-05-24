@@ -397,11 +397,14 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" && gh pr merge --squash --delete-branch)
 ```
 
-> **Falls der Merge-Fehler auftritt:** Prüfen ob der Merge trotzdem durchging:
+> **Erwarteter Exit-1 nach Squash-Merge — kein echter Fehler:** Nach einem Squash-Merge weicht der lokale Branch vom Remote-main ab (neuer Squash-Commit ≠ lokale Commit-Historie). `gh pr merge` schlägt dann mit `not possible to fast-forward` fehl (exit 1), obwohl der PR erfolgreich gemergt wurde. Das ist **normales Verhalten**, kein Bug.
+>
+> **Immer nach dem Merge-Befehl verifizieren:**
 > ```bash
 > gh pr view --json mergedAt -q '.mergedAt'   # leer = noch offen, Zeitstempel = gemergt
 > ```
-> Falls gemergt: einfach mit Schritt 6.5 weitermachen.
+> Zeigt einen Zeitstempel → Merge war erfolgreich, weiter mit Schritt 6.5.
+> Leer → Merge ist tatsächlich fehlgeschlagen → PR manuell prüfen.
 
 ---
 

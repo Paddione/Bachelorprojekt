@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Korczewski · Game Asset Pack</title>
+<link rel="stylesheet" href="colors_and_type.css" />
+<style>
+  body { background: var(--ink-900); color: var(--fg); min-height: 100vh; position: relative; overflow-x: hidden; }
+  .grain-fixed { position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .3; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+
+  .page { max-width: 1280px; margin: 0 auto; padding: 64px 48px 96px; position: relative; z-index: 1; }
+
+  header.hero { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; padding-bottom: 32px; border-bottom: 1px solid var(--line); margin-bottom: 48px; }
+  header.hero h1 { font-family: var(--serif); font-weight: 350; font-size: 64px; line-height: 1.02; letter-spacing: -0.02em; margin: 16px 0 0; }
+  header.hero h1 em { font-style: italic; color: var(--brass-2); font-weight: 400; }
+  header.hero .meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); text-align: right; line-height: 1.8; }
+  header.hero .meta b { color: var(--brass); font-weight: 500; }
+
+  .lede { max-width: 64ch; color: var(--fg-soft); font-size: 17px; line-height: 1.65; margin-top: 16px; }
+
+  section.row { margin: 64px 0; }
+  section.row > header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  section.row > header h2 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.1; letter-spacing: -0.02em; margin: 0; flex: 0 0 auto; }
+  section.row > header .id { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); }
+  section.row > header .count { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); margin-left: auto; }
+
+  /* HUD icon strip */
+  .hud-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .hud-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 28px 20px 18px; display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; }
+  .hud-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(closest-side at 50% 0%, var(--brass-tint), transparent 70%); pointer-events: none; }
+  .hud-card .ico { width: 128px; height: 128px; display: grid; place-items: center; position: relative; z-index: 1; }
+  .hud-card .ico img { width: 100%; height: 100%; display: block; }
+  .hud-card .label { font-family: var(--serif); font-size: 18px; font-weight: 400; margin-top: 14px; }
+  .hud-card .filename { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); margin-top: 4px; }
+
+  /* Sprite cards */
+  .sprite-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .sprite-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden; }
+  .sprite-card .canvas { position: relative; aspect-ratio: 1 / 1; background: var(--ink-900); display: grid; place-items: center; overflow: hidden; }
+  .sprite-card .canvas img { max-width: 88%; max-height: 88%; display: block; }
+  .sprite-card .canvas.dark-grid {
+    background:
+      linear-gradient(var(--ink-800) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, var(--ink-800) 1px, transparent 1px) 0 0 / 24px 24px,
+      var(--ink-900);
+  }
+  .sprite-card .meta { padding: 14px 18px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
+  .sprite-card .meta .name { font-family: var(--serif); font-size: 18px; }
+  .sprite-card .meta .desc { grid-column: 1 / -1; font-family: var(--sans); font-size: 13px; color: var(--fg-soft); line-height: 1.5; }
+  .sprite-card .meta .file { grid-column: 1 / -1; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--mute); text-transform: uppercase; margin-top: 4px; }
+
+  /* SFX cards */
+  .sfx-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .sfx-grid { grid-template-columns: repeat(2, 1fr); } .hud-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px) { .sfx-grid { grid-template-columns: 1fr; } .hud-grid { grid-template-columns: repeat(2, 1fr); } }
+  .sfx-card { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .sfx-card .sfx-key { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); }
+  .sfx-card .sfx-name { font-family: var(--serif); font-size: 17px; font-weight: 400; color: var(--fg); }
+  .sfx-card .sfx-desc { font-family: var(--sans); font-size: 12px; color: var(--fg-soft); line-height: 1.5; }
+  .sfx-card .sfx-file { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+  .sfx-card audio { width: 100%; height: 28px; margin-top: 4px; accent-color: var(--brass); filter: invert(0.85) sepia(0.2) hue-rotate(190deg); }
+  .sfx-group-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brass); margin: 28px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .sfx-group-label:first-child { margin-top: 0; }
+
+  /* Callout */
+  .caveat { background: var(--ink-800); border: 1px solid var(--line-2); border-left: 3px solid var(--brass); border-radius: var(--r-tile); padding: 20px 24px; }
+  .caveat h4 { font-family: var(--sans); font-weight: 600; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--brass); margin: 0 0 8px; }
+  .caveat p { font-family: var(--sans); font-size: 13px; color: var(--fg-soft); line-height: 1.6; margin: 0; }
+  .caveat code { font-family: var(--mono); font-size: 12px; background: var(--ink-750); padding: 1px 5px; border-radius: 4px; color: var(--brass-2); }
+
+  /* Splat row */
+  .splat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 96px; padding: 32px 0; display: flex; justify-content: space-between; align-items: baseline; }
+  footer .mark { font-family: var(--serif); font-size: 20px; font-weight: 400; letter-spacing: -0.02em; color: var(--fg); }
+  footer .mark .dot { color: var(--brass); }
+  footer .meta { text-align: right; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="grain-fixed"></div>
+<div class="bg-halo"></div>
+<main class="page">
+
+<header class="hero">
+  <div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass);display:flex;align-items:center;gap:10px">
+      <span style="width:22px;height:1px;background:currentColor;display:inline-block"></span>
+      Korczewski · Shared Game Assets
+    </div>
+    <h1>Game Asset <em>Pack</em></h1>
+    <p class="lede">Alle Brett-Spiel-Assets für beide Cluster. Shared Docker Image — Mentolder und Korczewski referenzieren identische Dateien. HUD-Icons, Sprites und SFX sind vollständig CC0.</p>
+  </div>
+  <div class="meta">
+    <div><b>v2.0</b> · Mai 2026</div>
+    <div>Shared · Korczewski + Mentolder</div>
+    <div>CC0 / Public Domain</div>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- HUD ICONS                                                      -->
+<!-- ============================================================ -->
+<section class="row">
+  <header>
+    <h2>HUD-Icons</h2>
+    <span class="id">/game_assets_mentolder/hud · shared</span>
+    <span class="count">5 Waffen · 3 Größen · SVG + PNG</span>
+  </header>
+
+  <div class="hud-grid">
+    <div class="hud-card">
+      <div class="ico"><img src="../game_assets_mentolder/hud/icon-handgun-128.png" alt="Handgun"></div>
+      <span class="label">Handgun</span>
+      <span class="filename">icon-handgun.png</span>
+    </div>
+    <div class="hud-card">
+      <div class="ico"><img src="../game_assets_mentolder/hud/icon-rifle-128.png" alt="Rifle"></div>
+      <span class="label">Rifle</span>
+      <span class="filename">icon-rifle.png</span>
+    </div>
+    <div class="hud-card">
+      <div class="ico"><img src="../game_assets_mentolder/hud/icon-katana-128.png" alt="Katana"></div>
+      <span class="label">Katana</span>
+      <span class="filename">icon-katana.png</span>
+    </div>
+    <div class="hud-card">
+      <div class="ico"><img src="../game_assets_mentolder/hud/icon-club-128.png" alt="Club"></div>
+      <span class="label">Club</span>
+      <span class="filename">icon-club.png</span>
+    </div>
+    <div class="hud-card">
+      <div class="ico"><img src="../game_assets_mentolder/hud/icon-fireball-128.png" alt="Fireball"></div>
+      <span class="label">Fireball</span>
+      <span class="filename">icon-fireball.png</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SPRITES                                                        -->
+<!-- ============================================================ -->
+<section class="row">
+  <header>
+    <h2>Effekt-Sprites</h2>
+    <span class="id">/game_assets_mentolder/sprites · shared</span>
+    <span class="count">9 PNG · Particle &amp; Decal Textures</span>
+  </header>
+
+  <div class="splat-row" style="margin-bottom:20px">
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/blood-splat-01.png" alt=""></div>
+      <div class="meta"><span class="name">Splat 01</span><span class="file">blood-splat-01.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/blood-splat-02.png" alt=""></div>
+      <div class="meta"><span class="name">Splat 02</span><span class="file">blood-splat-02.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/blood-splat-03.png" alt=""></div>
+      <div class="meta"><span class="name">Splat 03</span><span class="file">blood-splat-03.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/blood-splat-04.png" alt=""></div>
+      <div class="meta"><span class="name">Splat 04</span><span class="file">blood-splat-04.png</span></div>
+    </div>
+  </div>
+
+  <div class="sprite-grid">
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/fire-sprite.png" alt=""></div>
+      <div class="meta"><span class="name">Fire Sprite</span><span class="desc">4-frame animated spritesheet</span><span class="file">fire-sprite.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/muzzle-flash.png" alt=""></div>
+      <div class="meta"><span class="name">Muzzle Flash</span><span class="desc">Muzzle flash, billboarded quad</span><span class="file">muzzle-flash.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/slash-arc.png" alt=""></div>
+      <div class="meta"><span class="name">Slash Arc</span><span class="desc">Katana swing arc overlay</span><span class="file">slash-arc.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/smoke-puff.png" alt=""></div>
+      <div class="meta"><span class="name">Smoke Puff</span><span class="desc">Impact dust particle texture</span><span class="file">smoke-puff.png</span></div>
+    </div>
+    <div class="sprite-card">
+      <div class="canvas dark-grid"><img src="../game_assets_mentolder/sprites/blood-splat.png" alt=""></div>
+      <div class="meta"><span class="name">Blood Splat</span><span class="desc">Ground decal, fades over 8s</span><span class="file">blood-splat.png</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SOUND EFFECTS                                                  -->
+<!-- ============================================================ -->
+<section class="row">
+  <header>
+    <h2>Sound-Effekte</h2>
+    <span class="id">/sfx · Web Audio API · CC0</span>
+    <span class="count">22 files · OGG Vorbis · mono 44.1 kHz</span>
+  </header>
+
+  <style>
+    .sfx-card audio { accent-color: oklch(0.65 0.14 240); filter: invert(0.85) sepia(0.2) hue-rotate(190deg); }
+  </style>
+
+  <div class="sfx-group-label">Waffen</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">handgun</span><span class="sfx-name">Handgun</span>
+      <span class="sfx-desc">Pistolenschuss — kurzer Knall, trockener Abgang</span>
+      <span class="sfx-file">handgun.ogg</span>
+      <audio controls preload="none" src="../sfx/handgun.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">rifle</span><span class="sfx-name">Rifle</span>
+      <span class="sfx-desc">Gewehrschuss — lauterer Crack mit kurzem Nachhall</span>
+      <span class="sfx-file">rifle.ogg</span>
+      <audio controls preload="none" src="../sfx/rifle.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">katana</span><span class="sfx-name">Katana Swing</span>
+      <span class="sfx-desc">Klingenschwung — schnelles Whoosh mit Metallklang</span>
+      <span class="sfx-file">katana-swing.ogg</span>
+      <audio controls preload="none" src="../sfx/katana-swing.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">katana-hit</span><span class="sfx-name">Katana Treffer</span>
+      <span class="sfx-desc">Klinge trifft — metallischer Aufprall, kurz</span>
+      <span class="sfx-file">katana-hit.ogg</span>
+      <audio controls preload="none" src="../sfx/katana-hit.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">club</span><span class="sfx-name">Club Hit</span>
+      <span class="sfx-desc">Keulentreffer — dumpfer Holzaufprall</span>
+      <span class="sfx-file">club-hit.ogg</span>
+      <audio controls preload="none" src="../sfx/club-hit.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">fireball</span><span class="sfx-name">Fire Burn Loop</span>
+      <span class="sfx-desc">Feuerball-Ambient — Looping-Brennen, gedämpft</span>
+      <span class="sfx-file">fire-burn-loop.ogg</span>
+      <audio controls preload="none" src="../sfx/fire-burn-loop.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Treffer &amp; Effekte</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">blood-splat</span><span class="sfx-name">Blood Splat</span>
+      <span class="sfx-desc">Aufpralllaut bei Treffern — nasses, kurzes Impact-Sample</span>
+      <span class="sfx-file">blood-splat.ogg</span>
+      <audio controls preload="none" src="../sfx/blood-splat.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">hit-marker</span><span class="sfx-name">Hit Marker</span>
+      <span class="sfx-desc">UI-Feedback bei Treffer — kurzer Tonal-Tick</span>
+      <span class="sfx-file">hit-marker.ogg</span>
+      <audio controls preload="none" src="../sfx/hit-marker.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Footsteps · 4 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-1</span><span class="sfx-name">Footstep Concrete 01</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante A</span>
+      <span class="sfx-file">footstep-concrete-01.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-01.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-2</span><span class="sfx-name">Footstep Concrete 02</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante B</span>
+      <span class="sfx-file">footstep-concrete-02.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-02.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-3</span><span class="sfx-name">Footstep Concrete 03</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante C</span>
+      <span class="sfx-file">footstep-concrete-03.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-03.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">footstep-4</span><span class="sfx-name">Footstep Concrete 04</span>
+      <span class="sfx-desc">Schritt auf Beton — Variante D</span>
+      <span class="sfx-file">footstep-concrete-04.ogg</span>
+      <audio controls preload="none" src="../sfx/footstep-concrete-04.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Hero-Fähigkeiten · 5 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">frostnova</span><span class="sfx-name">Frost Nova</span>
+      <span class="sfx-desc">Eisfeld-Explosion — Energie-Burst mit Freeze-Charakter</span>
+      <span class="sfx-file">frostnova.ogg</span>
+      <audio controls preload="none" src="../sfx/frostnova.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">chainlightning</span><span class="sfx-name">Chain Lightning</span>
+      <span class="sfx-desc">Kettenblitz — großer Lasercrack, springt weiter</span>
+      <span class="sfx-file">chainlightning.ogg</span>
+      <audio controls preload="none" src="../sfx/chainlightning.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">summon-minion</span><span class="sfx-name">Minion beschwören</span>
+      <span class="sfx-desc">Magischer Aufstieg — Minion erscheint</span>
+      <span class="sfx-file">summon-minion.ogg</span>
+      <audio controls preload="none" src="../sfx/summon-minion.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">shield-minion</span><span class="sfx-name">Minion Schild</span>
+      <span class="sfx-desc">Kraftfeld snap — Schutzkugel um den Minion</span>
+      <span class="sfx-file">shield-minion.ogg</span>
+      <audio controls preload="none" src="../sfx/shield-minion.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">frenzy-minion</span><span class="sfx-name">Minion Raserei</span>
+      <span class="sfx-desc">Glitch-Burst — chaotische Energie, Minion dreht auf</span>
+      <span class="sfx-file">frenzy-minion.ogg</span>
+      <audio controls preload="none" src="../sfx/frenzy-minion.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Fahrzeug · 3 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">motorcycle-engine</span><span class="sfx-name">Motor</span>
+      <span class="sfx-desc">Motorrad-Engine-Burst — 1,8 s Anlauf</span>
+      <span class="sfx-file">motorcycle-engine.ogg</span>
+      <audio controls preload="none" src="../sfx/motorcycle-engine.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">vehicle-switch</span><span class="sfx-name">Waffe wechseln</span>
+      <span class="sfx-desc">Mechanischer Switch — sauberer Klick</span>
+      <span class="sfx-file">vehicle-switch.ogg</span>
+      <audio controls preload="none" src="../sfx/vehicle-switch.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">vehicle-repair</span><span class="sfx-name">Reparatur</span>
+      <span class="sfx-desc">Metall-Impact — Werkzeug-Kontakt am Fahrzeug</span>
+      <span class="sfx-file">vehicle-repair.ogg</span>
+      <audio controls preload="none" src="../sfx/vehicle-repair.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="sfx-group-label">Hero-Skills · 2 Varianten</div>
+  <div class="sfx-grid">
+    <div class="sfx-card">
+      <span class="sfx-key">hero-stealth</span><span class="sfx-name">Stealth</span>
+      <span class="sfx-desc">Abstieg-Whoosh — Held wird unsichtbar</span>
+      <span class="sfx-file">hero-stealth.ogg</span>
+      <audio controls preload="none" src="../sfx/hero-stealth.ogg"></audio>
+    </div>
+    <div class="sfx-card">
+      <span class="sfx-key">hero-teleport</span><span class="sfx-name">Teleport</span>
+      <span class="sfx-desc">Sci-Fi-Thruster-Burst — kurzer Warp-Effekt (1,2 s)</span>
+      <span class="sfx-file">hero-teleport.ogg</span>
+      <audio controls preload="none" src="../sfx/hero-teleport.ogg"></audio>
+    </div>
+  </div>
+
+  <div class="caveat" style="margin-top: 28px;">
+    <h4>Integration · MayhemAudio · Shared Assets</h4>
+    <p>Alle 22 SFX-Files sind im gemeinsamen Docker Image gebündelt (<code>ghcr.io/paddione/workspace-brett:latest</code>). Mentolder und Korczewski referenzieren exakt dieselben Dateien aus <code>assets/sfx/</code>. Quellen: Freesound.org (CC0, Freesound-IDs in <code>assets/sfx/CREDITS.md</code>) + Kenney.nl Sci-Fi/Interface/Impact Sounds (CC0).</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ASSET PROVENANCE                                               -->
+<!-- ============================================================ -->
+<section class="row">
+  <header>
+    <h2>Asset-Provenienz</h2>
+    <span class="id">/sfx/CREDITS.md · vollständige Quellangaben</span>
+  </header>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div class="caveat">
+      <h4>Freesound.org · Waffen &amp; Footsteps</h4>
+      <p>Handgun (FS 645317) · Rifle (FS 854231) · Hit Marker (FS 237105) · Blood Splat (FS 222363) · Katana Swing (FS 471097) · Katana Hit (FS 395370) · Fire Loop (FS 650574) · Club Hit (FS 653233) · Footsteps 01/02 (FS 476697) · Footstep 03 (FS 816019) · Footstep 04 (FS 816017)</p>
+    </div>
+    <div class="caveat">
+      <h4>Kenney.nl · Hero &amp; Vehicle SFX</h4>
+      <p><b style="color:var(--fg)">Sci-Fi Sounds:</b> Frostnova (forceField_002) · Chain Lightning (laserLarge_003) · Shield (forceField_000) · Motorcycle Engine (engineCircular_002, 1.8s) · Teleport (thrusterFire_001, 1.2s)<br><br><b style="color:var(--fg)">Interface Sounds:</b> Summon Minion (maximize_006) · Frenzy (glitch_003) · Vehicle Switch (switch_003) · Stealth (minimize_005)<br><br><b style="color:var(--fg)">Impact Sounds:</b> Vehicle Repair (impactPlate_heavy_001)</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="mark">korczewski<span class="dot">.</span> <span style="color: var(--mute); font-size: 13px; margin-left: 8px;">game asset pack · shared with mentolder</span></div>
+  <div class="meta">
+    <div>22 sfx · 5 hud icons · 9 sprites · CC0</div>
+    <div>colors_and_type.css · Kore design system</div>
+  </div>
+</footer>
+
+</main>
+</body>
+</html>

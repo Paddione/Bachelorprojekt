@@ -165,10 +165,6 @@ const Mayhem = (() => {
     effectsMgr = new window.MayhemEffectsClass(scene);
     window.MayhemEffects = effectsMgr;
 
-    // Obstacles
-    obstacles = window.MayhemObstacles.buildObstacles(window.THREE, room || 'default');
-    window.MayhemObstacles.addObstaclesToScene(scene, obstacles);
-
     // Weapon system
     weaponSystem = new window.MayhemWeapons.WeaponSystem(
       (weaponDef, originPos, dirVec, shooterId) => {
@@ -209,9 +205,14 @@ const Mayhem = (() => {
       onRespawn: (pid) => {
         if (pid === playerId) localRespawn();
       },
-      onModeChange: (mode) => updateHud(),
+      onModeChange: (mode) => {
+        _rebuildObstacles(mode);
+        updateHud();
+      },
       onLmsEnd: (result) => showLmsResult(result),
     });
+
+    _rebuildObstacles(gameMode.mode);
 
     // Co-op callbacks (only host drives wave progression)
     gameMode.setCoopCallbacks({
@@ -286,6 +287,21 @@ const Mayhem = (() => {
       remoteAvatars.set(botId, bot.avatar);
       gameMode?.registerEnemy(botId);
     }
+  }
+
+  function _rebuildObstacles(mode) {
+    if (obstacles.length) {
+      window.MayhemObstacles.removeObstaclesFromScene(scene, obstacles);
+      obstacles = [];
+    }
+    const THREE = window.THREE;
+    if (mode === 'duel') {
+      obstacles = window.MayhemObstacles.buildDuelArena(THREE);
+    } else {
+      obstacles = window.MayhemObstacles.buildObstacles(THREE, room || 'default');
+    }
+    window.MayhemObstacles.addObstaclesToScene(scene, obstacles);
+    if (projectileMgr) projectileMgr.clear();
   }
 
   function stop() {

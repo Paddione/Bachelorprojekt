@@ -122,6 +122,113 @@ function removeObstaclesFromScene(scene, obstacles) {
   for (const o of obstacles) scene.remove(o.mesh);
 }
 
-if (typeof window !== 'undefined') {
-  window.MayhemObstacles = { buildObstacles, addObstaclesToScene, removeObstaclesFromScene };
+// Hand-crafted symmetric 1v1 duel arena. Returns same interface as buildObstacles().
+// Call instead of buildObstacles() when game mode is 'duel'.
+function buildDuelArena(THREE) {
+  const obstacles = [];
+  const INK800    = 0x17202e;
+  const SLATE3    = 0x2a3040;
+  const BRASS     = 0xd7b06a;
+  const HALF      = 9;
+
+  function makeBox(x, y, z, w, h, d, color) {
+    const geo  = new THREE.BoxGeometry(w, h, d);
+    const mat  = new THREE.MeshLambertMaterial({ color });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y + h / 2, z);
+    mesh.castShadow = mesh.receiveShadow = true;
+    // Add EdgesGeometry outline in brass
+    const edges = new THREE.EdgesGeometry(geo);
+    const lineMat = new THREE.LineBasicMaterial({ color: BRASS, transparent: true, opacity: 0.4 });
+    const lines = new THREE.LineSegments(edges, lineMat);
+    mesh.add(lines);
+    return {
+      mesh,
+      aabb: {
+        minX: x - w / 2, maxX: x + w / 2,
+        minY: 0,         maxY: h,
+        minZ: z - d / 2, maxZ: z + d / 2,
+      }
+    };
+  }
+
+  // ── Outer walls (invisible AABB only — stop movement + projectiles) ──────
+  // North / South
+  [HALF, -HALF].forEach(z => {
+    const g = new THREE.BoxGeometry(HALF * 2, 3, 0.4);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ visible: false }));
+    m.position.set(0, 1.5, z);
+    obstacles.push({
+      mesh: m,
+      aabb: { minX: -HALF, maxX: HALF, minY: 0, maxY: 3, minZ: z - 0.2, maxZ: z + 0.2 }
+    });
+  });
+  // East / West
+  [-HALF, HALF].forEach(x => {
+    const g = new THREE.BoxGeometry(0.4, 3, HALF * 2);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ visible: false }));
+    m.position.set(x, 1.5, 0);
+    obstacles.push({
+      mesh: m,
+      aabb: { minX: x - 0.2, maxX: x + 0.2, minY: 0, maxY: 3, minZ: -HALF, maxZ: HALF }
+    });
+  });
+
+  // ── Corner pillars ──────────────────────────────────────────────────────
+  [[-7, -7], [7, -7], [-7, 7], [7, 7]].forEach(([x, z]) => {
+    const geo  = new THREE.CylinderGeometry(0.4, 0.4, 3, 16);
+    const mat  = new THREE.MeshLambertMaterial({ color: SLATE3 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, 1.5, z);
+    mesh.castShadow = mesh.receiveShadow = true;
+    const edges = new THREE.EdgesGeometry(geo);
+    mesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: BRASS, opacity: 0.5, transparent: true })));
+    obstacles.push({
+      mesh,
+      aabb: { minX: x - 0.45, maxX: x + 0.45, minY: 0, maxY: 3, minZ: z - 0.45, maxZ: z + 0.45 }
+    });
+  });
+
+  // ── Symmetric cover boxes (4) ────────────────────────────────────────────
+  [[-4, -4], [4, -4], [-4, 4], [4, 4]].forEach(([x, z]) => {
+    obstacles.push(makeBox(x, 0, z, 2, 1.5, 1, INK800));
+  });
+
+  // ── Centre L-covers (2, mirrored) ───────────────────────────────────────
+  // Left L
+  obstacles.push(makeBox(-1.5, 0,  0,   1, 2, 2.5, INK800));
+  obstacles.push(makeBox(-2.5, 0,  0.75, 1, 2, 1,  INK800));
+  // Right L (mirrored)
+  obstacles.push(makeBox( 1.5, 0,  0,   1, 2, 2.5, INK800));
+  obstacles.push(makeBox( 2.5, 0, -0.75, 1, 2, 1,  INK800));
+
+  // ── Centre floor ring (decorative) ───────────────────────────────────────
+  const ringGeo = new THREE.RingGeometry(0.8, 1.0, 48);
+  const ringMat = new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.02;
+  obstacles.push({
+    mesh: ring,
+    aabb: { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 }
+  });
+
+  // ── Corner accent lights ──────────────────────────────────────────────────
+  [[-6, -6], [6, -6], [-6, 6], [6, 6]].forEach(([x, z]) => {
+    const light = new THREE.PointLight(BRASS, 0.4, 8);
+    light.position.set(x, 2.5, z);
+    const dummy = new THREE.Group();
+    dummy.add(light);
+    obstacles.push({
+      mesh: dummy,
+      aabb: { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 }
+    });
+  });
+
+  return obstacles;
 }
+
+if (typeof window !== 'undefined') {
+  window.MayhemObstacles = { buildObstacles, buildDuelArena, addObstaclesToScene, removeObstaclesFromScene };
+}
+

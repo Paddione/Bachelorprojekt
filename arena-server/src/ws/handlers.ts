@@ -95,6 +95,9 @@ export function attachHandlers(socket: Socket, deps: { lc: Lifecycle; user: Aren
           if (specLobby.phase !== 'in-match' && specLobby.phase !== 'slow-mo') {
             sendError(socket, 'not-in-match', 'match not in progress'); break;
           }
+          if (specLobby.players.has(key)) {
+            sendError(socket, 'already-player', 'already registered as a match player'); break;
+          }
           if (!specLobby.spectators) specLobby.spectators = new Set();
           specLobby.spectators.add(key);
           const currentState = specLobby.tick?.getState();

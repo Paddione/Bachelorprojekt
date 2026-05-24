@@ -17,7 +17,12 @@ function rateLimit(ip: string): boolean {
   a.push(now); handshakes.set(ip, a); return true;
 }
 
-export function startWs(server: HttpServer, cfg: Config, lc: Lifecycle): Server {
+export function startWs(
+  server: HttpServer,
+  cfg: Config,
+  lc: Lifecycle,
+  opts?: { keyResolver?: (issuer: string) => Promise<any> },
+): Server {
   const io = new Server(server, { path: '/ws', cors: { origin: '*' } });
 
   io.use(async (socket, next) => {
@@ -28,7 +33,7 @@ export function startWs(server: HttpServer, cfg: Config, lc: Lifecycle): Server 
     if (proto !== PROTOCOL_VERSION) return next(new Error(`protocol mismatch: client=${proto} server=${PROTOCOL_VERSION}`));
     if (!token) return next(new Error('missing token'));
     try {
-      const claims = await verifyArenaJwt(token, { trustedIssuers: cfg.issuers });
+      const claims = await verifyArenaJwt(token, { trustedIssuers: cfg.issuers, keyResolver: opts?.keyResolver });
       (socket.data as any).user = claims;
       next();
     } catch (e: any) {

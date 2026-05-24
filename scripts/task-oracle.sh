@@ -4,6 +4,59 @@
 set -euo pipefail
 
 GOAL="${*:?Usage: task-oracle.sh '<goal>'}"
+
+# ── Structured fast-path: skip LLM for "namespace:action [ENV=X]" input ──────
+# Matches e.g. "workspace:deploy ENV=mentolder", "feature:website", "brett:build ENV=both"
+FASTPATH_REGEX='^([a-z][a-z0-9_-]*:[a-z][a-z0-9_:-]*)([[:space:]]+ENV=(dev|mentolder|korczewski|both))?[[:space:]]*$'
+if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
+  FP_TASK="${BASH_REMATCH[1]}"
+  FP_ENV="${BASH_REMATCH[3]}"   # "dev"|"mentolder"|"korczewski"|"both"|""
+
+  REPO_FP="/home/patrick/Bachelorprojekt"
+
+  # Validate task exists in the Taskfile
+  set +o pipefail
+  VALID_FP=$(cd "$REPO_FP" && task --list-all 2>/dev/null \
+    | grep '^\* ' | sed 's/^\* //' \
+    | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
+  set -o pipefail
+
+  if ! echo "$VALID_FP" | grep -qxF "$FP_TASK"; then
+    echo "✗ Unknown task: '${FP_TASK}' — run 'task --list-all' to see valid tasks" >&2
+    exit 1
+  fi
+
+  FP_FINAL="$FP_TASK"
+  FP_EXEC_ENV=""
+
+  if [[ "$FP_ENV" == "both" ]]; then
+    ALL_PRODS="${FP_TASK}:all-prods"
+    if echo "$VALID_FP" | grep -qxF "$ALL_PRODS"; then
+      FP_FINAL="$ALL_PRODS"
+      echo "→ [fast-path] Using :all-prods variant: ${FP_FINAL}" >&2
+    else
+      FP_EXEC_ENV="__BOTH__"
+    fi
+  elif [[ -n "$FP_ENV" ]]; then
+    FP_EXEC_ENV="ENV=${FP_ENV}"
+  fi
+
+  TASK_DESC_FP=$(cd "$REPO_FP" && task --summary "$FP_FINAL" 2>/dev/null | sed -n '3p' || true)
+  echo "→ [fast-path] Task: ${FP_FINAL}${FP_EXEC_ENV:+  ${FP_EXEC_ENV}}" >&2
+  [[ -n "$TASK_DESC_FP" ]] && echo "  ${TASK_DESC_FP}" >&2
+
+  if [[ "${FP_EXEC_ENV:-}" == "__BOTH__" ]]; then
+    echo "→ Running on mentolder then korczewski..." >&2
+    cd "$REPO_FP" && task "$FP_FINAL" ENV=mentolder
+    cd "$REPO_FP" && task "$FP_FINAL" ENV=korczewski
+  else
+    # shellcheck disable=SC2086
+    cd "$REPO_FP" && task "$FP_FINAL" ${FP_EXEC_ENV:-}
+  fi
+  exit $?
+fi
+# ─────────────────────────────────────────────────────────────────────────────
+
 REPO="/home/patrick/Bachelorprojekt"
 MODEL="qwen/qwen3-4b-2507"
 HERMES="${HERMES:-$HOME/.local/bin/hermes}"

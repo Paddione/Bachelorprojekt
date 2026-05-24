@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Korczewski — {{NEWSLETTER_TITLE}}</title>
+<link rel="stylesheet" href="/brand/korczewski/colors_and_type.css">
+<link rel="stylesheet" href="/brand/korczewski/app.css">
+<style>
+  body{padding:48px 28px 96px;}
+  .nl{max-width:760px; margin:0 auto; position:relative; z-index:2;}
+
+  .masthead{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding-bottom:22px; border-bottom:1px solid var(--line-2);}
+  .masthead .brand{display:flex; align-items:center; gap:14px; font-family:var(--serif); font-size:30px; letter-spacing:-0.01em;}
+  .masthead .brand .dot{color:var(--copper);}
+  .masthead .meta{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); text-align:right; line-height:1.7;}
+
+  .issue{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper); margin-top:48px;}
+  h1.title{font-family:var(--serif); font-weight:400; font-size:64px; line-height:1.02; letter-spacing:-0.025em; margin:14px 0 0; max-width:14ch;}
+  h1.title em{font-style:italic; color:var(--copper-2);}
+  p.lede{font-family:var(--sans); font-size:18px; color:var(--fg-soft); line-height:1.55; margin:24px 0 0; max-width:60ch;}
+  .by{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); margin-top:24px;}
+  .by b{color:var(--fg); font-weight:500;}
+  .hr{height:1px; background:var(--line); margin:48px 0;}
+
+  /* Table of contents */
+  .toc{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:32px;}
+  .toc a{display:flex; flex-direction:column; gap:4px; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--ink-850); text-decoration:none; transition:all 200ms var(--ease);}
+  .toc a:hover{border-color:var(--copper); background:var(--ink-800);}
+  .toc .n{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--copper);}
+  .toc .t{font-family:var(--serif); font-size:18px; color:var(--fg); letter-spacing:-0.005em;}
+
+  /* Section headings */
+  h2.sec{font-family:var(--serif); font-weight:400; font-size:34px; letter-spacing:-0.02em; margin:0 0 6px;}
+  h2.sec em{font-style:italic; color:var(--copper-2);}
+  .sec-eye{display:flex; align-items:baseline; gap:14px; margin-bottom:18px;}
+  .sec-eye .num{font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--copper); text-transform:uppercase;}
+
+  /* Change log entries */
+  .change{display:grid; grid-template-columns:80px 1fr; gap:18px; padding:22px 0; border-top:1px solid var(--line);}
+  .change .tag{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; padding:3px 8px; border-radius:6px; height:fit-content; text-align:center; line-height:1.4;}
+  .change .tag.add{background:rgba(200,247,106,.12); color:var(--copper); border:1px solid rgba(200,247,106,.3);}
+  .change .tag.fix{background:rgba(91,212,208,.10); color:var(--teal); border:1px solid rgba(91,212,208,.25);}
+  .change .tag.brk{background:rgba(226,107,107,.10); color:#E26B6B; border:1px solid rgba(226,107,107,.25);}
+  .change .tag.dep{background:rgba(255,255,255,.04); color:var(--mute); border:1px solid var(--line-2);}
+  .change h3{font-family:var(--serif); font-weight:400; font-size:21px; letter-spacing:-0.01em; margin:0 0 6px;}
+  .change h3 em{font-style:italic; color:var(--copper-2);}
+  .change p{font-family:var(--sans); font-size:15px; line-height:1.55; color:var(--fg-soft); margin:0;}
+  .change code{font-family:var(--mono); font-size:12.5px; padding:1px 6px; background:var(--ink-850); border:1px solid var(--line); border-radius:4px; color:var(--copper-2);}
+  .change .who{margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mute);}
+
+  /* Pull quote */
+  .pull{padding:28px 32px; border:1px solid var(--line); border-radius:16px; background:var(--ink-850); position:relative; overflow:hidden; margin:32px 0;}
+  .pull::after{content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(70% 80% at 100% 0%, rgba(200,247,106,.08), transparent 60%);}
+  .pull > *{position:relative;}
+  .pull blockquote{font-family:var(--serif); font-style:italic; font-size:22px; line-height:1.45; color:var(--fg); margin:0 0 14px; padding-left:18px; border-left:2px solid var(--copper);}
+  .pull .who{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mute);}
+
+  /* Stats row */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:24px 0;}
+  .stat{padding:18px; background:var(--ink-800); border-radius:12px; box-shadow:inset 0 1px 0 var(--copper);}
+  .stat .lab{font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute);}
+  .stat .v{font-family:var(--serif); font-size:28px; color:var(--fg); margin-top:6px; letter-spacing:-0.01em; line-height:1;}
+  .stat .v em{font-style:italic; color:var(--copper-2);}
+  .stat .v .u{font-family:var(--mono); font-size:11px; color:var(--mute); margin-left:3px;}
+
+  /* Code snippet block */
+  .upgrade{padding:28px 32px; border:1px solid var(--line-2); border-radius:14px; background:var(--ink-900); margin-top:18px;}
+  .upgrade .lab{font-family:var(--mono); font-size:10px; letter-spacing:.18em; color:var(--copper); text-transform:uppercase;}
+  .upgrade pre{font-family:var(--mono); font-size:13px; line-height:1.7; color:var(--fg-soft); margin:14px 0 0; padding:18px; background:var(--ink-850); border-radius:10px; border:1px solid var(--line); overflow-x:auto;}
+  .upgrade pre b{color:var(--copper); font-weight:500;}
+
+  /* Body text */
+  .body-text{font-family:var(--sans); font-size:15px; line-height:1.65; color:var(--fg-soft); margin:16px 0;}
+  .body-text a{color:var(--copper); text-decoration:none;}
+  .body-text a:hover{text-decoration:underline; text-underline-offset:4px;}
+
+  /* Footer */
+  .foot{margin-top:64px; padding-top:32px; border-top:1px solid var(--line); display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:32px;}
+  .foot .col h5{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); margin:0 0 12px;}
+  .foot .col a{display:block; font-family:var(--sans); font-size:13.5px; color:var(--fg-soft); padding:4px 0; text-decoration:none;}
+  .foot .col a:hover{color:var(--copper);}
+  .foot .signoff{font-family:var(--serif); font-style:italic; font-size:18px; color:var(--fg-soft); line-height:1.5;}
+  .foot .signoff em{color:var(--copper-2);}
+  .foot .sig{margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);}
+  .foot .sig b{color:var(--fg-soft);}
+</style>
+</head>
+<body>
+<main>
+  <article class="nl">
+
+    <!-- Masthead -->
+    <header class="masthead">
+      <div class="brand">
+        <img src="/brand/korczewski/kore-assets/logo-mark.svg" width="40" height="40" alt="Korczewski">
+        Korczewski<span class="dot">.</span> Notizen
+      </div>
+      <div class="meta">
+        Ausgabe {{ISSUE_NUMBER}}<br>
+        {{ISSUE_DATE}}<br>
+        Lüneburg · Remote
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <div class="issue">[ Ausgabe {{ISSUE_NUMBER}} — {{ISSUE_TOPIC}} ]</div>
+    <h1 class="title">{{NEWSLETTER_HEADLINE}} <em>{{NEWSLETTER_HEADLINE_EM}}</em></h1>
+    <p class="lede">{{NEWSLETTER_LEDE}}</p>
+    <p class="by">Von <b>Patrick Korczewski</b> · {{ISSUE_DATE}}</p>
+
+    <div class="hr"></div>
+
+    <!-- Inhaltsverzeichnis -->
+    <div class="toc">
+      <a href="#section-1">
+        <span class="n">01</span>
+        <span class="t">{{TOC_1}}</span>
+      </a>
+      <a href="#section-2">
+        <span class="n">02</span>
+        <span class="t">{{TOC_2}}</span>
+      </a>
+      <a href="#section-3">
+        <span class="n">03</span>
+        <span class="t">{{TOC_3}}</span>
+      </a>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Abschnitt 1 -->
+    <section id="section-1">
+      <div class="sec-eye">
+        <span class="num">01</span>
+      </div>
+      <h2 class="sec">{{SECTION_1_TITLE}} <em>{{SECTION_1_TITLE_EM}}</em></h2>
+
+      <!-- Einträge mit Tags: add / fix / brk / dep -->
+      <div class="change">
+        <span class="tag add">Neu</span>
+        <div>
+          <h3>{{CHANGE_1_TITLE}} <em>{{CHANGE_1_EM}}</em></h3>
+          <p>{{CHANGE_1_BODY}}</p>
+          <p class="who">{{CHANGE_1_META}}</p>
+        </div>
+      </div>
+
+      <div class="change">
+        <span class="tag fix">Fix</span>
+        <div>
+          <h3>{{CHANGE_2_TITLE}}</h3>
+          <p>{{CHANGE_2_BODY}} Betrifft <code>{{CHANGE_2_CODE}}</code>.</p>
+          <p class="who">{{CHANGE_2_META}}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pull Quote -->
+    <div class="pull">
+      <blockquote>
+        {{PULL_QUOTE}}
+      </blockquote>
+      <p class="who">— {{PULL_QUOTE_ATTRIBUTION}}</p>
+    </div>
+
+    <!-- Abschnitt 2 -->
+    <section id="section-2">
+      <div class="sec-eye">
+        <span class="num">02</span>
+      </div>
+      <h2 class="sec">{{SECTION_2_TITLE}} <em>{{SECTION_2_TITLE_EM}}</em></h2>
+
+      <!-- Statistiken -->
+      <div class="stats">
+        <div class="stat">
+          <div class="lab">{{STAT_1_LAB}}</div>
+          <div class="v">{{STAT_1_VAL}}<span class="u">{{STAT_1_UNIT}}</span></div>
+        </div>
+        <div class="stat">
+          <div class="lab">{{STAT_2_LAB}}</div>
+          <div class="v"><em>{{STAT_2_VAL}}</em></div>
+        </div>
+        <div class="stat">
+          <div class="lab">{{STAT_3_LAB}}</div>
+          <div class="v">{{STAT_3_VAL}}<span class="u">{{STAT_3_UNIT}}</span></div>
+        </div>
+        <div class="stat">
+          <div class="lab">{{STAT_4_LAB}}</div>
+          <div class="v">{{STAT_4_VAL}}<span class="u">{{STAT_4_UNIT}}</span></div>
+        </div>
+      </div>
+
+      <p class="body-text">{{SECTION_2_BODY}}</p>
+    </section>
+
+    <!-- Abschnitt 3 — Code-Snippet / Upgrade-Hinweis -->
+    <section id="section-3">
+      <div class="sec-eye">
+        <span class="num">03</span>
+      </div>
+      <h2 class="sec">{{SECTION_3_TITLE}} <em>{{SECTION_3_TITLE_EM}}</em></h2>
+
+      <p class="body-text">{{SECTION_3_BODY}}</p>
+
+      <div class="upgrade">
+        <span class="lab">[ {{SNIPPET_LABEL}} ]</span>
+        <pre>{{SNIPPET_CODE}}</pre>
+      </div>
+    </section>
+
+    <div class="hr"></div>
+
+    <!-- Footer / Signatur -->
+    <footer class="foot">
+      <div>
+        <p class="signoff">
+          Bis zur nächsten Ausgabe —<br>
+          <em>bleibt die Infrastruktur ruhig.</em>
+        </p>
+        <p class="sig">Patrick Korczewski · <b>Lüneburg</b></p>
+        <div style="margin-top:18px; display:flex; gap:10px;">
+          <a class="btn primary sm" href="/kontakt">Anfragen →</a>
+          <a class="btn ghost sm" href="/impressum">Abmelden</a>
+        </div>
+      </div>
+      <div class="col">
+        <h5>Leistungen</h5>
+        <a href="/ki-beratung">KI-Integration</a>
+        <a href="/software-dev">Software</a>
+        <a href="/deployment">Kubernetes</a>
+      </div>
+      <div class="col">
+        <h5>Studio</h5>
+        <a href="/ueber-mich">Über mich</a>
+        <a href="/kontakt">Kontakt</a>
+        <a href="/impressum">Impressum</a>
+      </div>
+    </footer>
+
+  </article>
+</main>
+</body>
+</html>

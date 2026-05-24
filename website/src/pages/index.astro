@@ -7,7 +7,7 @@ import FAQ from '../components/FAQ.svelte';
 import WhyMe from '../components/WhyMe.svelte';
 import Process from '../components/Process.astro';
 import SlotWidget from '../components/SlotWidget.astro';
-import Timeline from '../components/Timeline.svelte';
+import KoreHomepage from '../components/kore/KoreHomepage.svelte';
 import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
@@ -52,124 +52,125 @@ const processSteps = homepage.processSteps ?? [];
 ---
 
 <Layout title={pageTitle} rawTitle={!isKore} description={metaDescription} brand={layoutBrand}>
-  <!-- Hero with Portrait -->
-  <Hero
-    client:load
-    title={homepage.hero.title}
-    titleEmphasis={homepage.hero.titleEmphasis}
-    subtitle={homepage.hero.subtitle}
-    tagline={homepage.hero.tagline}
-    avatarType={homepage.avatarType}
-    avatarSrc={homepage.avatarSrc}
-    avatarInitials={homepage.avatarInitials}
-    personName={contact.name}
-    personRole={config.legal.jobtitle}
-  />
+  {isKore ? (
+    <KoreHomepage
+      client:load
+      services={services}
+      homepage={config.homepage}
+      contact={config.contact}
+      legal={config.legal}
+      footerColumns={config.footer?.columns ?? []}
+      footerCopyright={config.footer?.copyright ?? ''}
+      nextDay={nextDay}
+      initialTimeline={initialTimeline}
+      wantsTimeline={wantsTimeline}
+    />
+  ) : (
+    <Fragment>
+      <!-- Hero with Portrait -->
+      <Hero
+        client:load
+        title={homepage.hero.title}
+        titleEmphasis={homepage.hero.titleEmphasis}
+        subtitle={homepage.hero.subtitle}
+        tagline={homepage.hero.tagline}
+        avatarType={homepage.avatarType}
+        avatarSrc={homepage.avatarSrc}
+        avatarInitials={homepage.avatarInitials}
+        personName={contact.name}
+        personRole={config.legal.jobtitle}
+      />
 
-  <!-- Stats + Availability strip -->
-  <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
-    <!-- Stats -->
-    <div class="stats" aria-label="Kennzahlen">
-      {homepage.stats.map((stat) => (
-        <div class="stat">
-          <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
-          <span class="stat-lab">{stat.label}</span>
+      <!-- Stats + Availability strip -->
+      <div class="strip" role="region" aria-label="Eckdaten und Verfügbarkeit">
+        <!-- Stats -->
+        <div class="stats" aria-label="Kennzahlen">
+          {homepage.stats.map((stat) => (
+            <div class="stat">
+              <span class="stat-num" set:html={stat.value.replace(/([+]|KI|K8s|B\.Sc\.)/, '<em>$1</em>')}></span>
+              <span class="stat-lab">{stat.label}</span>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
 
-    <!-- Availability -->
-    {nextDay
-      ? <SlotWidget day={nextDay} />
-      : (
-        <div class="availability-placeholder">
-          <p style="color:var(--mute); font-size:14px;">
-            <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
-          </p>
-        </div>
-      )
-    }
-  </div>
-
-  <!-- Offers -->
-  <section id="angebote" class="section" aria-labelledby="offers-heading">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Meine Angebote</p>
-          <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
-        </div>
-        <p class="section-intro">{homepage.servicesSubheadline}</p>
+        <!-- Availability -->
+        {nextDay
+          ? <SlotWidget day={nextDay} />
+          : (
+            <div class="availability-placeholder">
+              <p style="color:var(--mute); font-size:14px;">
+                <a href="/termin" style="color:var(--brass); text-decoration:none;">Termine ansehen →</a>
+              </p>
+            </div>
+          )
+        }
       </div>
 
-      <div class="offers" role="list" aria-label="Angebote">
-        {services.map((service, i) => (
-          <div role="listitem">
-            <ServiceRow
-              num={String(i + 1).padStart(2, '0')}
-              title={service.title}
-              meta={service.meta}
-              description={service.description}
-              features={service.features}
-              price={service.price}
-              href={`/${service.slug}`}
-              icon={service.icon}
-              iconSpriteId={service.iconSpriteId}
-              iconSpriteBrand={BRAND_ID}
-              stripeServiceKey={service.stripeServiceKey}
-              client:visible
-            />
+      <!-- Offers -->
+      <section id="angebote" class="section" aria-labelledby="offers-heading">
+        <div class="wrap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Meine Angebote</p>
+              <h2 id="offers-heading">{homepage.servicesHeadline}</h2>
+            </div>
+            <p class="section-intro">{homepage.servicesSubheadline}</p>
           </div>
-        ))}
-      </div>
-    </div>
-  </section>
 
-  <!-- Why Me + Quote -->
-  <WhyMe
-    client:visible
-    headline={homepage.whyMeHeadline}
-    intro={homepage.whyMeIntro}
-    points={homepage.whyMePoints}
-    quote={homepage.quote}
-    quoteName={homepage.quoteName}
-    quoteRole={config.legal.jobtitle}
-  />
-
-  <!-- Process -->
-  <Process
-    steps={processSteps}
-    eyebrow={homepage.processEyebrow}
-    headline={homepage.processHeadline}
-  />
-
-  <!-- FAQ -->
-  <FAQ items={faq.map((item) => ({
-    ...item,
-    answer: item.answer.replace('{city}', contact.city),
-  }))} client:visible />
-
-  <!-- CTA -->
-  <CallToAction
-    client:visible
-    secondaryText={contact.email}
-    secondaryHref={`mailto:${contact.email}`}
-  />
-
-  <!-- Live PR-feed Timeline (korczewski only, gated by BrandConfig.homepage.timeline) -->
-  {wantsTimeline && (
-    <section class="section timeline-section" id="timeline" aria-labelledby="timeline-heading">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Live aus der Timeline</p>
-            <h2 id="timeline-heading">Implementierte Features.</h2>
+          <div class="offers" role="list" aria-label="Angebote">
+            {services.map((service, i) => (
+              <div role="listitem">
+                <ServiceRow
+                  num={String(i + 1).padStart(2, '0')}
+                  title={service.title}
+                  meta={service.meta}
+                  description={service.description}
+                  features={service.features}
+                  price={service.price}
+                  href={`/${service.slug}`}
+                  icon={service.icon}
+                  iconSpriteId={service.iconSpriteId}
+                  iconSpriteBrand={BRAND_ID}
+                  stripeServiceKey={service.stripeServiceKey}
+                  client:visible
+                />
+              </div>
+            ))}
           </div>
-          <p class="section-intro">Jede merged Pull Request landet hier — direkt aus der Datenbank, ohne Filter.</p>
         </div>
-        <Timeline client:load initialRows={initialTimeline} />
-      </div>
-    </section>
+      </section>
+
+      <!-- Why Me + Quote -->
+      <WhyMe
+        client:visible
+        headline={homepage.whyMeHeadline}
+        intro={homepage.whyMeIntro}
+        points={homepage.whyMePoints}
+        quote={homepage.quote}
+        quoteName={homepage.quoteName}
+        quoteRole={config.legal.jobtitle}
+      />
+
+      <!-- Process -->
+      <Process
+        steps={processSteps}
+        eyebrow={homepage.processEyebrow}
+        headline={homepage.processHeadline}
+      />
+
+      <!-- FAQ -->
+      <FAQ items={faq.map((item) => ({
+        ...item,
+        answer: item.answer.replace('{city}', contact.city),
+      }))} client:visible />
+
+      <!-- CTA -->
+      <CallToAction
+        client:visible
+        secondaryText={contact.email}
+        secondaryHref={`mailto:${contact.email}`}
+      />
+    </Fragment>
   )}
 </Layout>
 

@@ -455,15 +455,17 @@ function ensureFigureMap(room) {
 function applyMutation(room, msg) {
   const figs = ensureFigureMap(room);
   switch (msg.type) {
-    case 'add':
-      if (msg.fig && typeof msg.fig.id === 'string' && figs.size < 200) {
-        const newFig = { ...msg.fig };
+    case 'add': {
+      const figData = msg.figure ?? msg.fig;
+      if (figData && typeof figData.id === 'string' && figs.size < 200) {
+        const newFig = { ...figData };
         if (!newFig.appearance) {
           newFig.appearance = { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } };
         }
         figs.set(newFig.id, newFig);
       }
       break;
+    }
     case 'move':
       if (figs.has(msg.id)) {
         const f = figs.get(msg.id);
@@ -667,8 +669,8 @@ wss.on('connection', (ws, req) => {
       if (!room) return;
 
       // Appearance validation for add / update
-      if (msg.type === 'add' && msg.fig?.appearance) {
-        const appErr = validateAppearance(msg.fig.appearance);
+      if (msg.type === 'add' && (msg.figure ?? msg.fig)?.appearance) {
+        const appErr = validateAppearance((msg.figure ?? msg.fig).appearance);
         if (appErr) {
           try { ws.send(JSON.stringify({ type: 'error', reason: appErr })); } catch {}
           return;

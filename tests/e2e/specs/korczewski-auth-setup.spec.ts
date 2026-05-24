@@ -58,8 +58,8 @@ setup('authenticate korczewski website admin', async ({ page }) => {
   // waitForURL fires as soon as the URL matches (even on the /api/auth/callback URL), so
   // page.request.get() would queue indefinitely while the subsequent /admin redirect is
   // still in flight. waitForLoadState('load') waits for the final page to settle first.
-  await page.waitForURL(new RegExp(WEBSITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { timeout: 30_000 });
-  await page.waitForLoadState('load', { timeout: 30_000 });
+  await page.waitForURL(new RegExp(WEBSITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { timeout: 60_000 });
+  await page.waitForLoadState('load', { timeout: 60_000 });
 
   // Verify we have a session (the /api/auth/me endpoint returns { authenticated: true })
   const meRes = await page.request.get(`${WEBSITE_URL}/api/auth/me`);

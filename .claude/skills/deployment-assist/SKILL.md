@@ -376,6 +376,14 @@ flux events --context <ctx> -n flux-system --for Kustomization/website
 
 ---
 
+## Related skills
+
+- **`new-environment`** — use instead if the cluster doesn't exist yet or needs fresh SealedSecrets keypair + cert-manager install from scratch.
+- **`fleet-ops`** — for cross-cluster fan-out deploys after the environment is healthy.
+- **`dev-stack-ops`** — for the dev.mentolder.de k3d stack specifically.
+
+---
+
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your

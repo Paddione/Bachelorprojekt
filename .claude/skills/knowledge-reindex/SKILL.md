@@ -198,6 +198,13 @@ The crawl runs in the background; the collection's `chunk_count` and `last_index
 
 ---
 
+## Related skills
+
+- **`coaching-pipeline`** — handles coaching book ingest + classification into `coaching.chunks`. Coaching content is NOT re-indexed via `task knowledge:reindex`; each shares the same embedding model isolation rules.
+- **`backup-check`** — if reindex produces "0 documents indexed", restore from backup before proceeding (see Phase 4 failure handling above).
+
+---
+
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your

@@ -1,6 +1,6 @@
 ---
 name: fleet-ops
-description: Use when deploying, verifying, or operating across both prod clusters simultaneously — mentolder and korczewski. Covers task feature:* fan-out, cross-cluster schema changes, cluster status checks, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
+description: Use when deploying, verifying, or operating across both prod clusters simultaneously — mentolder and korczewski. Covers task feature:* fan-out, cross-cluster schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
 ---
 
 # fleet-ops — Two-Cluster Fleet Operations
@@ -102,4 +102,86 @@ task keycloak:sync ENV=korczewski
 | SealedSecret not decrypting on korczewski | Sealed with mentolder cert | `task env:fetch-cert ENV=korczewski` → `task env:seal ENV=korczewski` |
 | Post-setup writes to wrong namespace | Script hardcodes `-n workspace` | Use `task workspace:post-setup ENV=korczewski` — it exports `WORKSPACE_NAMESPACE` |
 | Schema change only on one cluster | Forgot the second cluster | Always apply schema to both shared-db instances |
-| `flux reconcile` applies old revision | Didn't reconcile source first | See `flux-day2-ops` skill |
+| `flux reconcile` applies old revision | Didn't reconcile source first | See Flux GitOps section below |
+
+---
+
+## Flux GitOps Operations
+
+Flux watches the `main` branch and reconciles both prod clusters automatically — but it polls on its own schedule. Force reconciliation, debug drift, and handle the subtleties below.
+
+**Both clusters run Flux independently.** Any Flux operation must be run against **each cluster separately**.
+
+### Forced Reconcile After PR Merge
+
+Always prime the GitRepository before reconciling the kustomization. Skipping step 1 silently applies the previous revision.
+
+```bash
+# Step 1: prime the git source (fetches latest main)
+flux reconcile source git flux-system --context mentolder
+flux reconcile source git flux-system --context korczewski
+
+# Step 2: reconcile the kustomization
+flux reconcile kustomization workspace --context mentolder
+flux reconcile kustomization workspace-korczewski --context korczewski
+```
+
+> **Why source first?** `flux reconcile kustomization` re-applies whatever revision the GitRepository last fetched. If that's 5 minutes old, the kustomization gets the wrong commit.
+
+### Check Flux Status
+
+```bash
+flux get all --context mentolder
+flux get all --context korczewski
+
+# Just kustomizations (most common drift point)
+flux get kustomizations --context mentolder
+flux get kustomizations --context korczewski
+```
+
+### Suspend / Resume Reconciliation
+
+Suspend before manual emergency changes to prevent Flux from immediately reverting them:
+
+```bash
+flux suspend kustomization workspace --context mentolder
+# Do your manual kubectl apply / patch here...
+flux resume kustomization workspace --context mentolder
+```
+
+> **Don't forget to resume.** A suspended kustomization silently stops tracking main.
+
+### `$$`-Escaping in substituteFrom
+
+Flux's `substituteFrom` treats `${VAR}` in YAML values as variable references. To emit a literal `$`, use `$$`:
+
+```yaml
+# ❌ variable substitution fires
+value: "https://${PROD_DOMAIN}/path"
+
+# ✅ literal dollar sign in the rendered manifest
+value: "https://$${PROD_DOMAIN}/path"
+```
+
+This bites most often in Ingress annotations, env vars, and shell-script ConfigMaps.
+
+### ImageUpdateAutomation
+
+Image auto-update is **not** used for `website`, `brett`, or `docs` (they use `task feature:*` with `:latest`). For other images:
+
+```bash
+flux get image update --context mentolder
+flux reconcile image repository <name> --context mentolder
+flux reconcile image update <name> --context mentolder
+flux logs --kind=ImageUpdateAutomation --context mentolder
+```
+
+### Flux Failure Modes
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Kustomization applies old commit | Didn't reconcile source first | `flux reconcile source git flux-system` then kustomization |
+| `health check failed` | Pod not Ready within timeout | `kubectl describe pod` — usually image pull or CrashLoop |
+| `$$` becomes empty string | Forgot double-dollar in substituteFrom manifest | Replace `${VAR}` with `$${VAR}` in the YAML |
+| Kustomization stuck Suspended | Manual suspend never resumed | `flux resume kustomization workspace` |
+| `secrets/xxx not found` | SealedSecret not yet decrypted | `kubectl get sealedsecret -n workspace` — controller may be behind |

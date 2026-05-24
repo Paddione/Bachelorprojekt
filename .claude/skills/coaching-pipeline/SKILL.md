@@ -167,6 +167,13 @@ Test a retrieval query via the coaching assistant at `https://web.mentolder.de/p
 
 ---
 
+## Related skills
+
+- **`knowledge-reindex`** — re-indexes general knowledge collections (PRs, docs, bugs, web crawls) that live in `knowledge.collections`. Coaching ingestion manages its own embeddings in `coaching.chunks` and does NOT require a knowledge reindex, but both share embedding model isolation rules.
+- **`secret-rotation`** — when `coaching:classify` returns `401`, the Anthropic API key needs rotation.
+
+---
+
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your

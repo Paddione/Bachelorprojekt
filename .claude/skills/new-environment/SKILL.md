@@ -214,6 +214,14 @@ See `keycloak-realm-sync` skill for detailed verification steps.
 
 ---
 
+## Related skills
+
+- **`secret-rotation`** — for Type C (SealedSecrets keypair refresh after cluster reset): the step ordering here and the rotation steps there are complementary; run both when recovering from a full cluster reset.
+- **`deployment-assist`** — for incremental re-deployment on a cluster that already exists but is partially degraded.
+- **`hetzner-node`** — for provisioning the underlying nodes before running this skill.
+
+---
+
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your

@@ -120,3 +120,54 @@ test('POST /api/skins/upload: rejects missing name field', async () => {
   assert.strictEqual(r.status, 400);
   assert.match(r.body.error, /name/);
 });
+
+function del(routePath, { admin } = {}) {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(0, () => {
+      const port = server.address().port;
+      const req = http.request({
+        host: '127.0.0.1', port, path: routePath, method: 'DELETE',
+        headers: admin ? { 'x-test-admin': '1' } : {},
+      }, res => {
+        let out = '';
+        res.on('data', c => { out += c; });
+        res.on('end', () => {
+          server.close();
+          resolve({ status: res.statusCode, body: out ? JSON.parse(out) : null });
+        });
+      });
+      req.on('error', err => { server.close(); reject(err); });
+      req.end();
+    });
+  });
+}
+
+test('DELETE /api/skins/:id: rejects without admin', async () => {
+  const r = await del('/api/skins/anything');
+  assert.strictEqual(r.status, 403);
+});
+
+test('DELETE /api/skins/default: returns 400', async () => {
+  const r = await del('/api/skins/default', { admin: true });
+  assert.strictEqual(r.status, 400);
+  assert.match(r.body.error, /default/);
+});
+
+test('DELETE /api/skins/:id: removes existing skin directory', async () => {
+  const skinDir = path.join(__dirname, '..', 'public', 'assets', 'skins', 'to-delete');
+  fs.mkdirSync(skinDir, { recursive: true });
+  fs.writeFileSync(path.join(skinDir, 'meta.json'), JSON.stringify({ id: 'to-delete', name: 'X' }));
+  const r = await del('/api/skins/to-delete', { admin: true });
+  assert.strictEqual(r.status, 204);
+  assert.strictEqual(fs.existsSync(skinDir), false);
+});
+
+test('DELETE /api/skins/:id: returns 404 if skin does not exist', async () => {
+  const r = await del('/api/skins/does-not-exist', { admin: true });
+  assert.strictEqual(r.status, 404);
+});
+
+test('DELETE /api/skins/:id: rejects path-traversal id', async () => {
+  const r = await del('/api/skins/..%2F..%2Fetc', { admin: true });
+  assert.ok(r.status === 400 || r.status === 404);
+});

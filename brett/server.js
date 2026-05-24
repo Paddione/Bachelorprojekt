@@ -378,6 +378,16 @@ app.post('/api/skins/upload', requireAdmin, (req, res) => {
   });
 });
 
+app.delete('/api/skins/:id', requireAdmin, (req, res) => {
+  const id = String(req.params.id || '');
+  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id)) return res.status(400).json({ error: 'invalid id' });
+  if (id === 'default') return res.status(400).json({ error: 'cannot delete default skin' });
+  const skinDir = path.join(SKINS_DIR, id);
+  if (!fs.existsSync(skinDir)) return res.status(404).json({ error: 'skin not found' });
+  fs.rmSync(skinDir, { recursive: true, force: true });
+  res.status(204).end();
+});
+
 // Admin room list.
 app.get('/api/admin/rooms', requireAdmin, asyncHandler(async (req, res) => {
   const liveTokens = Array.from(rooms.keys());

@@ -9,7 +9,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   const id = params.id!;
   const r = await pool.query<{ pdf_a3_blob: Buffer | null }>(
-    `SELECT pdf_a3_blob FROM billing_invoices WHERE id = $1`, [id]
+    `SELECT content AS pdf_a3_blob FROM billing_invoice_documents WHERE invoice_id = $1 AND format = 'pdf-a3'`, [id]
   );
   if (r.rowCount === 0 || !r.rows[0].pdf_a3_blob) {
     return new Response(JSON.stringify({ error: 'no PDF/A-3 stored for this invoice' }), { status: 404 });

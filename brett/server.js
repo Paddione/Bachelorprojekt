@@ -6,6 +6,44 @@ const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
+// GLB validator — checks magic/version, parses JSON chunk, requires mixamorigHips.
+// Returns { ok: true, animations: string[] } | { ok: false, error: string }.
+function validateGlb(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 20) {
+    return { ok: false, error: 'buffer too small to be a GLB' };
+  }
+  const magic = buffer.readUInt32LE(0);
+  if (magic !== 0x46546C67) {
+    return { ok: false, error: 'bad magic — not a GLB file' };
+  }
+  const version = buffer.readUInt32LE(4);
+  if (version !== 2) {
+    return { ok: false, error: `unsupported GLB version ${version} (need 2)` };
+  }
+  const jsonLen  = buffer.readUInt32LE(12);
+  const jsonType = buffer.readUInt32LE(16);
+  if (jsonType !== 0x4E4F534A) {
+    return { ok: false, error: 'first chunk is not JSON' };
+  }
+  if (20 + jsonLen > buffer.length) {
+    return { ok: false, error: 'JSON chunk overflows file' };
+  }
+  let gltf;
+  try {
+    gltf = JSON.parse(buffer.slice(20, 20 + jsonLen).toString('utf8'));
+  } catch (err) {
+    return { ok: false, error: 'invalid JSON in GLB: ' + err.message };
+  }
+  const nodes = Array.isArray(gltf.nodes) ? gltf.nodes : [];
+  if (!nodes.some(n => n && n.name === 'mixamorigHips')) {
+    return { ok: false, error: 'mixamorigHips bone not found — GLB must be Mixamo-rigged' };
+  }
+  const animations = (Array.isArray(gltf.animations) ? gltf.animations : [])
+    .map(a => (a && typeof a.name === 'string') ? a.name : null)
+    .filter(Boolean);
+  return { ok: true, animations };
+}
+
 const PRESETS_FILE = process.env.BRETT_PRESETS_PATH || path.join(__dirname, 'presets.json');
 
 const SPEC_PATH = path.join(__dirname, 'public', 'assets', 'figure-pack', 'placement_spec.json');
@@ -873,5 +911,6 @@ module.exports = {
   pickupState, ensurePickups, spawnPickup,
   isAdminFromClaims,
   validateAppearance,
+  validateGlb,
   buildConfig,
 };

@@ -287,7 +287,7 @@ Wenn der Gate übersprungen wird: **PR-Titel mit `[menu-gate-skip]` prefixen** u
 
 ## Schritt 4: Pre-Merge Preview auf dev k3d (optional)
 
-> **Status (2026-05-13):** Der k3d-Dev-Cluster läuft aktuell **nicht**. Dieser Schritt ist optional, sobald die Infrastruktur live ist. Bis dahin: lokal verifizieren und direkt auf Prod deployen.
+> Der dev.mentolder.de Stack läuft auf k3s-1 (SSH-Zugang erforderlich). Prüfe mit `task dev:cluster:status`. Dieser Schritt ist optional — falls kein dev-Stack erreichbar, lokal verifizieren und direkt auf Prod deployen.
 
 ```bash
 task dev:cluster:status
@@ -570,7 +570,7 @@ Schau dir die geänderten Dateien an (`gh pr view <pr> --json files`) und führe
 |---|---|---|
 | `website/src/**`, `website/public/**`, `website/package*.json` | `task feature:website` | `https://web.mentolder.de` + `https://web.korczewski.de` |
 | `brett/**` | `task feature:brett` | `https://brett.mentolder.de` + `https://brett.korczewski.de` |
-| `k3d/docs-content/**` | `task docs:deploy` | `https://docs.mentolder.de` + `https://docs.korczewski.de` |
+| `k3d/docs-content-built/**` | `task docs:deploy` | `https://docs.mentolder.de` + `https://docs.korczewski.de` |
 | `k3d/livekit*.yaml` | `task feature:livekit` | `task livekit:status ENV=mentolder` + `ENV=korczewski` |
 | `k3d/**`, `prod/**`, `prod-mentolder/**`, `prod-korczewski/**`, `environments/sealed-secrets/**` | `task feature:deploy` | `task workspace:verify:all-prods` + `task health` |
 | Nur `docs/`, `*.md`, `CLAUDE.md`, `tests/`, `.github/`, `Taskfile*.yml`, `scripts/`, `.claude/` | KEIN Deploy | — |

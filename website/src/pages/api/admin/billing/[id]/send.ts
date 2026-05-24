@@ -190,7 +190,10 @@ export const POST: APIRoute = async ({ request, params }) => {
   if (!finalized) return new Response('Failed to finalize invoice', { status: 409 });
 
   await pool.query(
-    `UPDATE billing_invoices SET zugferd_xml=$2 WHERE id=$1`, [id, xml]
+    `INSERT INTO billing_invoice_documents (invoice_id, format, content)
+     VALUES ($1, 'zugferd', $2::bytea)
+     ON CONFLICT (invoice_id, format) DO UPDATE SET content = EXCLUDED.content`,
+    [id, Buffer.from(xml, 'utf8')]
   );
 
   // Interpolate and send email
@@ -211,11 +214,11 @@ export const POST: APIRoute = async ({ request, params }) => {
 
   const attachments: any[] = [{ filename: `${finalized.number}.pdf`, content: pdf }];
   if (finalized.leitwegId) {
-    const r = await pool.query<{ xrechnung_xml: string | null }>(`SELECT xrechnung_xml FROM billing_invoices WHERE id=$1`, [id]);
-    if (r.rows[0]?.xrechnung_xml) {
+    const r = await pool.query<{ content: Buffer | null }>(`SELECT content FROM billing_invoice_documents WHERE invoice_id=$1 AND format='xrechnung'`, [id]);
+    if (r.rows[0]?.content) {
       attachments.push({
         filename: `xrechnung-${finalized.number}.xml`,
-        content: Buffer.from(r.rows[0].xrechnung_xml, 'utf8'),
+        content: r.rows[0].content,
         contentType: 'application/xml',
       });
     }

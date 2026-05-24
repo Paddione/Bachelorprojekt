@@ -20,9 +20,10 @@ export const GET: APIRoute = async ({ request, params }) => {
   // Auth: archive-blob path requires either admin or owner-by-email.
   // For ?profile= path: admin-only (regenerated docs include seller env data).
   const r = await pool.query(
-    `SELECT i.pdf_blob, i.pdf_mime, i.number, c.email AS customer_email
+    `SELECT d.content AS pdf_blob, i.pdf_mime, i.number, c.email AS customer_email
        FROM billing_invoices i
        JOIN billing_customers c ON c.id = i.customer_id
+       LEFT JOIN billing_invoice_documents d ON d.invoice_id = i.id AND d.format = 'pdf'
       WHERE i.id=$1`,
     [id]
   );

@@ -233,14 +233,25 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
 
       await client.query(
         `UPDATE billing_invoices
-           SET factur_x_xml=$1,
-               xrechnung_xml=$2,
-               pdf_a3_blob=$3,
-               einvoice_validated_at=$4,
-               einvoice_validation_report=$5
-         WHERE id=$6`,
-        [facturXXml, xrechnungXml, pdfA3 ?? null, validation ? new Date() : null, validation ? JSON.stringify(validation) : null, id]
+             SET einvoice_validated_at=$2,
+                 einvoice_validation_report=$3
+           WHERE id=$1`,
+        [id, validation ? new Date() : null, validation ? JSON.stringify(validation) : null]
       );
+      const einvoiceDocs: [string, Buffer | string | null][] = [
+        ['factur-x', facturXXml],
+        ['xrechnung', xrechnungXml],
+        ['pdf-a3', pdfA3 ?? null],
+      ];
+      for (const [fmt, content] of einvoiceDocs) {
+        if (content == null) continue;
+        await client.query(
+          `INSERT INTO billing_invoice_documents (invoice_id, format, content)
+           VALUES ($1, $2, $3::bytea)
+           ON CONFLICT (invoice_id, format) DO UPDATE SET content = EXCLUDED.content`,
+          [id, fmt, typeof content === 'string' ? Buffer.from(content, 'utf8') : content]
+        );
+      }
     }
 
     const linesR = await client.query(
@@ -266,15 +277,21 @@ export async function finalizeInvoice(id: string, opts: FinalizeOpts = {}): Prom
     await client.query(
       `UPDATE billing_invoices
          SET hash_sha256=$2,
-             pdf_blob=$3,
-             pdf_mime=$4,
-             pdf_size_bytes=$5
+             pdf_mime=$3,
+             pdf_size_bytes=$4
        WHERE id=$1`,
       [id, hash,
-       opts.pdfBlob ?? null,
        opts.pdfMime ?? (opts.pdfBlob ? 'application/pdf' : null),
        opts.pdfBlob?.length ?? null]
     );
+    if (opts.pdfBlob) {
+      await client.query(
+        `INSERT INTO billing_invoice_documents (invoice_id, format, content)
+         VALUES ($1, 'pdf', $2)
+         ON CONFLICT (invoice_id, format) DO UPDATE SET content = EXCLUDED.content`,
+        [id, opts.pdfBlob]
+      );
+    }
 
     if (opts.pdfBlob) {
       const { archiveBillingPdf } = await import('./billing-archive');

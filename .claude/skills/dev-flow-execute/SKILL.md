@@ -226,6 +226,15 @@ task workspace:validate
 task test:all
 ```
 
+> **TypeScript-Check in Worktrees:** `tests/e2e/` hat im Worktree kein `node_modules`. Niemals `tsc` blank aufrufen — das schlägt mit "Cannot find module" fehl. Immer absoluten Pfad nutzen:
+> ```bash
+> # Im Worktree: tsc mit absolutem tsconfig-Pfad
+> tsc --project /home/patrick/Bachelorprojekt/tests/e2e/tsconfig.json --noEmit
+> # Alternativ: system-tsc mit explizitem Projekt-Pfad
+> npx --prefix /home/patrick/Bachelorprojekt/tests/e2e tsc --noEmit
+> ```
+> `node_modules` nicht in den Worktree symlinken — das funktioniert nur im nächsten Prozess, nicht wiederholbar. Der `--project <abs-path>` Ansatz ist worktree-agnostisch.
+
 ### CI-kritische Zusatzchecks
 
 `task test:all` deckt nur den `offline-tests`-Job ab. Die folgenden Checks haben **eigene CI-Jobs** — CI kann rot werden, auch wenn `task test:all` grün ist. Führe sie aus, wenn die entsprechenden Dateien geändert wurden:

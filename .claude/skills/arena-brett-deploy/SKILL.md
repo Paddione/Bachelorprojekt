@@ -76,6 +76,17 @@ task feature:brett             # Fan-out: build + deploy to BOTH clusters
 task brett:logs ENV=<env>      # Tail logs
 ```
 
+### Brett Skin Management API
+
+Mixamo-GLB skins are managed via an admin-protected REST API. Files land under `brett/public/assets/skins/<id>/`.
+
+```
+GET  /api/skins           — skin catalog (public); first entry is always the "default" mannequin
+POST /api/skins/upload    — admin-only; multipart/form-data with name, glb (≤20 MB), thumb (optional, ≤512 KB)
+                            validateGlb() rejects any GLB missing a mixamorigHips bone → HTTP 400
+DELETE /api/skins/:id     — admin-only; "default" is write-protected → HTTP 400
+```
+
 ### Brett Unit Tests (required before PR)
 
 ```bash
@@ -84,7 +95,10 @@ npm ci --prefix brett && \
        brett/test/physics.test.js \
        brett/test/damage.test.mjs \
        brett/test/pickups.test.mjs \
-       brett/test/mode-state.test.mjs
+       brett/test/mode-state.test.mjs \
+       brett/test/skin-validator.test.js \
+       brett/test/skin-catalog.test.js \
+       brett/test/skin-upload.test.js
 ```
 
 Also run the Systembrett template validation:

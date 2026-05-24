@@ -840,7 +840,7 @@ task website:dev             # falls website/src/ betroffen — Smoke-Test
 | Geänderte Dateien | Zusätzlicher Check |
 |---|---|
 | `tests/**` oder neue Test-IDs | `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — bei Abweichung committen |
-| `brett/**` | `npm ci --prefix brett && node --test brett/test/ws-reconnect.test.mjs brett/test/physics.test.js brett/test/damage.test.mjs brett/test/pickups.test.mjs brett/test/mode-state.test.mjs` + `./scripts/tests/systembrett-template.test.sh` |
+| `brett/**` | `npm ci --prefix brett && node --test brett/test/ws-reconnect.test.mjs brett/test/physics.test.js brett/test/damage.test.mjs brett/test/pickups.test.mjs brett/test/mode-state.test.mjs brett/test/skin-validator.test.js brett/test/skin-catalog.test.js brett/test/skin-upload.test.js` + `./scripts/tests/systembrett-template.test.sh` |
 | `arena-server/**` | `cd arena-server && pnpm install --frozen-lockfile && pnpm test && pnpm build` |
 | `arena-server/src/proto/messages.ts` ODER `website/src/components/arena/shared/lobbyTypes.ts` | `diff arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts` — bei Abweichung sync-copy |
 

@@ -435,27 +435,6 @@ tasks:
         vars: { CYCLE: "4", ENV: "{{.ENV}}" }
         ignore_error: true
 
-  systemtest:all:headed:both-prods:
-    desc: "Headed 4-worker systemtest against mentolder + korczewski concurrently"
-    preconditions:
-      - sh: '[ -n "${E2E_ADMIN_PASS:-}" ]'
-        msg: "systemtest:all:headed:both-prods requires E2E_ADMIN_PASS in the env"
-    env:
-      PLAYWRIGHT_WORKERS: "4"
-      SKIP_DB_PURGE: "1"
-    cmds:
-      - |
-        task systemtest:all:headed ENV=mentolder -- --headed &
-        PID_M=$!
-        task systemtest:all:headed ENV=korczewski -- --headed &
-        PID_K=$!
-        wait $PID_M; RC_M=$?
-        wait $PID_K; RC_K=$?
-        if [ $RC_M -ne 0 ] || [ $RC_K -ne 0 ]; then
-          echo "[e2e] mentolder exit=$RC_M  korczewski exit=$RC_K"
-          exit 1
-        fi
-
   systemtest:analyze:
     desc: "Analyse system-test outcome files and produce drift report (ENV=mentolder|korczewski)"
     vars:
@@ -556,13 +535,6 @@ tasks:
       - 'echo ""'
       - 'echo "  Next → task workspace:vaultwarden:seed  (optional — seeds production secret templates)"'
 
-  workspace:sso-bridge:build:
-    desc: Build and push sso-bridge image to local registry
-    cmds:
-      - docker build -t {{.REGISTRY}}/sso-bridge:latest sso-bridge/
-      - docker push {{.REGISTRY}}/sso-bridge:latest
-      - 'echo "✓ sso-bridge image pushed to {{.REGISTRY}}"'
-
   workspace:theme:nextcloud:
     desc: Apply dark+gold Nextcloud branding via OCC (idempotent)
     vars:
@@ -580,13 +552,6 @@ tasks:
         $NC_EXEC "php occ config:app:set theming color          --value=#e8c870"   || true
         $NC_EXEC "php occ config:app:set theming enforce-theme --value=dark"       || true
         echo "Nextcloud theme applied."
-
-  workspace:theme:
-    desc: Apply dark+gold theme to Nextcloud (idempotent, run after post-setup)
-    cmds:
-      - echo "=== Nextcloud Theme ==="
-      - task: workspace:theme:nextcloud
-      - echo "All themes applied."
 
   workspace:post-setup:
     desc: Enable Nextcloud apps, wire WOPI to office-stack collabora, run hardening (indices, MIME repair)
@@ -997,16 +962,6 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
         kubectl $CTX exec -it -n "$NS" deploy/shared-db -- psql -U postgres -d {{.CLI_ARGS | default "postgres"}}
 
-  software-history:classify:
-    desc: 'Classify all unclassified PRs into bachelorprojekt.software_events'
-    cmds:
-      - cd website && npx tsx ../scripts/software-history-classify.mts {{.CLI_ARGS}}
-
-  software-history:psql:
-    desc: 'psql into shared-db with software_events focus'
-    cmds:
-      - source scripts/env-resolve.sh "{{.ENV}}" && kubectl exec -it -n "${WORKSPACE_NAMESPACE:-workspace}" --context "${ENV_CONTEXT:-k3d-mentolder}" deploy/shared-db -- psql -U postgres -d postgres
-
   plans:query:
     desc: "Show active plan sections for a given role. Usage: task plans:query -- <role>"
     cmds:
@@ -1044,11 +999,6 @@ tasks:
     desc: "List available database backup timestamps (usage: task workspace:backup:list [-- --context <ctx>])"
     cmds:
       - bash scripts/backup-restore.sh list {{.CLI_ARGS}}
-
-  workspace:restore:
-    desc: "Restore a database from backup (usage: task workspace:restore -- <db> <timestamp> [--context <ctx>])"
-    cmds:
-      - bash scripts/backup-restore.sh restore {{.CLI_ARGS}}
 
   workspace:db:start:
     desc: "Ensure shared-db is running; scale up if at 0 replicas, otherwise restart (ENV=dev|mentolder|korczewski)"
@@ -1234,29 +1184,6 @@ tasks:
         rm -f /tmp/ha-image-import.tar
       - echo "✓ {{.IMAGE_TAG}} imported to all HA nodes"
 
-  ha:cert-renew:
-    desc: Renew wildcard TLS cert via acme.sh on node 1 and update K8s secret
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-      SSH_KEY: "$HOME/.ssh/id_ed25519_hetzner"
-      NODE1_IP: "178.104.169.206"
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} \
-          "export IPv64_Token=\"\$(cat /root/.acme.sh/account.conf 2>/dev/null | grep SAVED_IPv64_Token | cut -d= -f2 | tr -d \"'\\\"\" || echo \"\")\" && \
-           /root/.acme.sh/acme.sh --renew -d \"*.${PROD_DOMAIN}\" -d \"${PROD_DOMAIN}\" --ecc"
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        echo "Updating K8s TLS secret..."
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        TLS="${TLS_SECRET_NAME:-workspace-wildcard-tls}"
-        CERT=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.${PROD_DOMAIN}_ecc/fullchain.cer'" | base64 -w0)
-        KEY=$(ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@{{.NODE1_IP}} "cat '/root/.acme.sh/*.${PROD_DOMAIN}_ecc/*.${PROD_DOMAIN}.key'" | base64 -w0)
-        kubectl --context "${ENV_CONTEXT}" patch secret "$TLS" -n "$NS" \
-          -p "{\"data\":{\"tls.crt\":\"$CERT\",\"tls.key\":\"$KEY\"}}"
-      - echo "✓ Wildcard cert renewed and K8s secret updated"
-
   ha:status:
     desc: Show HA cluster node and pod status (ENV=mentolder|korczewski)
     vars:
@@ -1348,15 +1275,6 @@ tasks:
           bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only || errors=$((errors + 1))
         done
         exit "$errors"
-
-  env:show:
-    desc: Show resolved config for an environment
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        echo "=== Environment: {{.ENV}} ==="
-        cat "environments/{{.ENV}}.yaml"
 
   env:generate:
     desc: Generate secrets for an environment from schema
@@ -1625,9 +1543,6 @@ tasks:
           # connections through cross-node Traefik, causing NegotiationError.
           if [ "{{.ENV}}" = "mentolder" ]; then
             task livekit:dns-pin ENV="{{.ENV}}" APPLY=true || true
-            # Re-materialise sish authorized_keys after every deploy — workspace:deploy
-            # re-applies the git ConfigMap (placeholder) which overwrites live keys.
-            task brainstorm:materialise-keys || true
           fi
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
@@ -1661,47 +1576,6 @@ tasks:
 
         PGURL="postgres://postgres:${PG_PW}@localhost:5432/website" \
           node scripts/fix-tickets-grants.mjs --apply
-
-  tickets:sunset:audit:
-    desc: "Audit legacy table activity before sunset (reads pg_stat_user_tables)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ctx_flag=""
-        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
-          >/tmp/tickets-sunset-audit-pf.log 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null' EXIT
-        sleep 3
-
-        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
-          node scripts/tickets-sunset-audit.mjs
-
-  tickets:sunset:
-    desc: "Drop legacy back-compat views + _legacy tables (PR1–3 migration window end)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-      APPLY: '{{.APPLY | default ""}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        ctx_flag=""
-        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
-          >/tmp/tickets-sunset-pf.log 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null' EXIT
-        sleep 3
-
-        PGURL="postgres://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website" \
-          node scripts/tickets-sunset.mjs {{if .APPLY}}--apply{{else}}{{end}}
 
   workspace:sync-db-passwords:
     desc: "Sync alle DB-Passwörter aus workspace-secrets → PostgreSQL ALTER USER (ENV=dev|mentolder|korczewski)"
@@ -1951,46 +1825,6 @@ tasks:
     vars:
       FAST: '{{.FAST | default ""}}'
 
-  docs:image:build:
-    desc: Build docs Docker image
-    deps: [docs:build]
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
-        docker build -t "${IMAGE}:latest" -f scripts/docs.Dockerfile .
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-
-  docs:image:push:
-    desc: Push docs Docker image
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        IMAGE="ghcr.io/paddione/${DOCS_IMAGE:-workspace-docs}"
-        docker push "${IMAGE}:latest"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-
-  docs:sync:
-    desc: "Refresh assets + push k3d/docs-content-built to running pod (ENV=dev|mentolder|...)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX="${ENV_CONTEXT:+--context $ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        POD=$(kubectl $CTX get pod -n "$NS" -l app=docs -o name | head -n 1 | cut -d'/' -f2)
-        if [[ -z "$POD" ]]; then echo "ERROR: No docs pod found in $NS" >&2; exit 1; fi
-
-        echo "1/2 Refreshing assets and search index..."
-        node scripts/build-docs.js
-
-        echo "2/2 Syncing k3d/docs-content-built to $POD:/public..."
-        kubectl $CTX cp k3d/docs-content-built "$NS/$POD:/public"
-        echo "✓ Docs synced. Changes should be live immediately (static server)."
-
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
@@ -2032,11 +1866,6 @@ tasks:
         node scripts/build-docs.js --rebuild-page db-schema docs/db-schema-diagram.md
       - task: docs:deploy
     silent: false
-
-  docs:configmap:apply:
-    desc: "NOTE: ConfigMap not mounted in docs pods — use docs:deploy for real updates. Kept for kustomize validation."
-    cmds:
-      - bash scripts/docs-configmap-apply.sh
 
   # ─────────────────────────────────────────────
   # Claude Code MCP Servers

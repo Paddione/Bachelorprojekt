@@ -30,7 +30,7 @@ const HEROES = {
               hairTint: 'sepia(60%) hue-rotate(30deg)' },
     abilities: ['summon_minion', 'shield_minion', 'frenzy_minion'],
     passive: { maxMinions: 2 },
-    unlocked: false,   // unlocked in Scheibe 3
+    unlocked: true,   // Scheibe 3 complete
   },
   oskar: {
     id: 'oskar', name: 'Oskar',

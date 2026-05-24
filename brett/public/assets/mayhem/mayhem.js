@@ -401,6 +401,21 @@ const Mayhem = (() => {
       pvAiAvailable,
       onSelect(heroId) {
         _myHeroId = heroId;
+        if (window._minionManager) {
+          window._minionManager.clear();
+          window._minionManager = null;
+        }
+        if (window._remoteMinionMeshes) {
+          for (const m of window._remoteMinionMeshes.values()) {
+            scene.remove(m);
+          }
+          window._remoteMinionMeshes.clear();
+        }
+        if (window._autoTurret) {
+          window._autoTurret.disable();
+          window._autoTurret = null;
+        }
+        window._pvAiBot = null;
         window.MayhemHeroes.assignHero(localAvatar, heroId,
           window.MayhemWeapons.WeaponSystem, (w, origin, dir, id) => {
             if (w.projectileType === 'frostnova') {
@@ -482,8 +497,27 @@ const Mayhem = (() => {
               return;
             }
 
-            projectileMgr.spawn(w, origin, dir, id);
           });
+        if (heroId === 'martina') {
+          window._minionManager = new window.MayhemHeroes.MinionManager({
+            maxMinions: 2,
+            minionMeshFactory: pos => {
+              const m = makeMannequin(`minion-${pos.x}-${pos.z}`, pos);
+              m.root.scale.setScalar(0.6);
+              m.root.traverse(o => {
+                if (o.isMesh && o.material) {
+                  o.material = o.material.clone();
+                  o.material.color.setHex(0xb8c0a8);
+                }
+              });
+              return m.root;
+            },
+            onHit: ({ targetId, damage }) => {
+              send({ type: 'hit', victimId: targetId, damage, weaponKey: 'minion-melee', shooterId: playerId });
+            },
+            onSync: msg => send(msg),
+          });
+        }
         send({ type: 'hero_select', heroId });
         _heroSelectUi.setStatus('Warte auf Gegner …');
         _checkBothHeroesSelected();
@@ -672,6 +706,22 @@ const Mayhem = (() => {
     weaponSystem = null;
     gameMode = null;
     chaseCam.detach();
+    if (window._minionManager) {
+      window._minionManager.clear();
+      window._minionManager = null;
+    }
+    if (window._remoteMinionMeshes) {
+      for (const m of window._remoteMinionMeshes.values()) {
+        scene.remove(m);
+      }
+      window._remoteMinionMeshes.clear();
+      window._remoteMinionMeshes = null;
+    }
+    if (window._autoTurret) {
+      window._autoTurret.disable();
+      window._autoTurret = null;
+    }
+    window._pvAiBot = null;
     _myHeroId = null;
     _opponentHeroId = null;
     _duelRoundPause = false;
@@ -871,6 +921,16 @@ const Mayhem = (() => {
     }
 
     for (const a of remoteAvatars.values()) a.update(dt, 0);
+    if (window._minionManager) {
+      window._minionManager.tick(dt, Date.now());
+    }
+    if (window._autoTurret) {
+      window._autoTurret.tick(remoteAvatars, Date.now());
+    }
+    if (window._pvAiBot && _pvAiMode) {
+      const enemy = { pos: localAvatar.mannequin.root.position };
+      window._pvAiBot.tick(dt, enemy, obstacles);
+    }
     for (const v of vehicles.values()) {
       v.update(dt);
       if (!v.alive) { v.remove(scene); vehicles.delete(v.id); }
@@ -975,6 +1035,35 @@ const Mayhem = (() => {
       case 'hero_slow':
         if (localAvatar) {
           localAvatar.applySlowDebuff(msg.slowFactor, msg.durationMs);
+        }
+        break;
+
+      case 'minion_spawn':
+        {
+          const miniMesh = makeMannequin(`minion-${msg.minionId}`, { x: msg.x, z: msg.z });
+          miniMesh.root.scale.setScalar(0.6);
+          miniMesh.root.traverse(o => {
+            if (o.isMesh && o.material) {
+              o.material = o.material.clone();
+              o.material.color.setHex(0xb8c0a8);
+            }
+          });
+          window._remoteMinionMeshes = window._remoteMinionMeshes || new Map();
+          window._remoteMinionMeshes.set(msg.minionId, miniMesh.root);
+        }
+        break;
+
+      case 'minion_update':
+        {
+          const mesh = window._remoteMinionMeshes && window._remoteMinionMeshes.get(msg.minionId);
+          if (mesh) { mesh.position.x = msg.x; mesh.position.z = msg.z; }
+        }
+        break;
+
+      case 'minion_die':
+        {
+          const mesh = window._remoteMinionMeshes && window._remoteMinionMeshes.get(msg.minionId);
+          if (mesh) { scene.remove(mesh); window._remoteMinionMeshes.delete(msg.minionId); }
         }
         break;
 

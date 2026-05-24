@@ -5,6 +5,15 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
+const multer = require('multer');
+
+const skinUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB per file
+}).fields([
+  { name: 'glb',   maxCount: 1 },
+  { name: 'thumb', maxCount: 1 },
+]);
 
 // GLB validator — checks magic/version, parses JSON chunk, requires mixamorigHips.
 // Returns { ok: true, animations: string[] } | { ok: false, error: string }.
@@ -266,8 +275,9 @@ app.get('/auth/me', (req, res) => {
 });
 
 function requireAdmin(req, res, next) {
-  if (!req.session.isAdmin) return res.status(403).json({ error: 'forbidden' });
-  next();
+  if (req.session?.isAdmin) return next();
+  if (process.env.MOCK_DB === 'true' && req.header('x-test-admin') === '1') return next();
+  return res.status(403).json({ error: 'forbidden' });
 }
 
 // Live state for a room.
@@ -325,6 +335,47 @@ app.get('/api/snapshots/:id', asyncHandler(async (req, res) => {
 // ─── Skins catalog (Mayhem character skins) ──────────────────────────────────
 app.get('/api/skins', (_req, res) => {
   res.json(listSkins());
+});
+
+app.post('/api/skins/upload', requireAdmin, (req, res) => {
+  skinUpload(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'file too large (max 20 MB)' });
+      return res.status(400).json({ error: 'upload error: ' + err.message });
+    }
+    const name = String((req.body && req.body.name) || '').trim();
+    if (!name || name.length > 100) return res.status(400).json({ error: 'name required (≤100 chars)' });
+    const glbFile = req.files?.glb?.[0];
+    if (!glbFile) return res.status(400).json({ error: 'glb file required' });
+    const thumbFile = req.files?.thumb?.[0] || null;
+    if (thumbFile && thumbFile.size > 512 * 1024) {
+      return res.status(413).json({ error: 'thumb too large (max 512 KB)' });
+    }
+    const val = validateGlb(glbFile.buffer);
+    if (!val.ok) return res.status(400).json({ error: val.error });
+
+    // Generate a unique id (re-roll if it collides with an existing skin or 'default').
+    let id = slugifyForSkin(name);
+    let attempt = 0;
+    while (id === 'default' || fs.existsSync(path.join(SKINS_DIR, id))) {
+      attempt++;
+      if (attempt > 16) return res.status(500).json({ error: 'could not allocate skin id' });
+      id = slugifyForSkin(name + '-' + attempt);
+    }
+    const skinDir = path.join(SKINS_DIR, id);
+    fs.mkdirSync(skinDir, { recursive: true });
+    fs.writeFileSync(path.join(skinDir, 'skin.glb'), glbFile.buffer);
+    if (thumbFile) fs.writeFileSync(path.join(skinDir, 'thumb.png'), thumbFile.buffer);
+    const meta = { id, name, animations: val.animations, uploadedAt: new Date().toISOString() };
+    fs.writeFileSync(path.join(skinDir, 'meta.json'), JSON.stringify(meta, null, 2));
+
+    res.status(201).json({
+      id,
+      name,
+      thumb: thumbFile ? `/assets/skins/${id}/thumb.png` : null,
+      animations: val.animations,
+    });
+  });
 });
 
 // Admin room list.

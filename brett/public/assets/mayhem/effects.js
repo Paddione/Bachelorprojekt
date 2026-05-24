@@ -147,6 +147,14 @@ class EffectsManager {
     }
   }
 
+  spawnSmokePuff(scene, pos) {
+    // If scene is passed as first arg (per the plan), we can use it or ignore it.
+    // Let's support both signature signatures: spawnSmokePuff(pos) and spawnSmokePuff(scene, pos)
+    const actualPos = pos || scene;
+    this.spawnImpactDust(actualPos);
+  }
+
+
   // ── Floating damage number ───────────────────────────────────────────────────
   spawnDamageNumber(pos, amount) {
     // Uses a canvas texture — works without a font asset.

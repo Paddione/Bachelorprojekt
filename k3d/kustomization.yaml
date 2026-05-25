@@ -40,6 +40,7 @@ resources:
   - backup-config.yaml
   - notify-unread-cronjob.yaml
   # Abrechnung
+  - admin-actions-cronjobs.yaml
   - cronjob-monthly-billing.yaml
   - cronjob-dunning-detection.yaml
   - einvoice-sidecar.yaml

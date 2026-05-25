@@ -33,3 +33,19 @@
   [ "$status" -eq 0 ]
   [ "$output" = "1" ]
 }
+
+@test "admin-actions-cronjobs manifest exists" {
+  [ -f k3d/admin-actions-cronjobs.yaml ]
+}
+
+@test "k3d/kustomization.yaml includes admin-actions-cronjobs" {
+  grep -q 'admin-actions-cronjobs.yaml' k3d/kustomization.yaml
+}
+
+@test "stale-cleanup CronJob has correct schedule (every 30 min)" {
+  grep -A10 'name: admin-actions-cleanup' k3d/admin-actions-cronjobs.yaml | grep -q 'schedule: "\*/30 \* \* \* \*"'
+}
+
+@test "prune CronJob has correct schedule (daily 04:00)" {
+  grep -A10 'name: admin-actions-prune' k3d/admin-actions-cronjobs.yaml | grep -q 'schedule: "0 4 \* \* \*"'
+}

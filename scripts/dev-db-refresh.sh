@@ -37,9 +37,12 @@ for DB in "${DBS[@]}"; do
     DROP DATABASE IF EXISTS "$DB";
     CREATE DATABASE "$DB" OWNER website;
 SQL
-  openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -salt \
+  # Must match the encrypt flags used by the prod db-backup CronJob exactly
+  # (aes-256-cbc, -pbkdf2, -salt, default iter=10000). Any mismatch silently
+  # derives the wrong key and pg_restore gets garbage.
+  openssl enc -d -aes-256-cbc -pbkdf2 -salt \
     -pass env:BACKUP_PASSPHRASE -in "$SRC" \
-    | pg_restore -h "$PGHOST" -p "$PGPORT" -U postgres -d "$DB" --no-owner --role=website --clean --if-exists
+    | pg_restore -h "$PGHOST" -p "$PGPORT" -U postgres -d "$DB" --no-owner --clean --if-exists
 done
 
 # Re-align role password (in case the prod dump altered the role definition).

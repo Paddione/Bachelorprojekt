@@ -71,11 +71,14 @@ test('handleLmsDeath: declares draw when last two die simultaneously', () => {
 const { duelRooms, handleDuelDeath: serverHandleDuelDeath, RELAY_TYPES: RT } = require('../server.js');
 
 test('RELAY_TYPES includes duel message types', () => {
-  const required = ['hero_select', 'duel_start', 'duel_round_end', 'duel_match_end',
+  // duel_round_end and duel_match_end are now server-broadcast (not relayed) — excluded intentionally
+  const required = ['hero_select', 'duel_start',
                     'hero_stealth', 'hero_teleport', 'minion_spawn', 'minion_update', 'minion_die'];
   for (const t of required) {
     assert.ok(RT.includes(t), `RELAY_TYPES missing: ${t}`);
   }
+  assert.ok(!RT.includes('duel_round_end'), 'duel_round_end must not be in RELAY_TYPES (server-authoritative)');
+  assert.ok(!RT.includes('duel_match_end'), 'duel_match_end must not be in RELAY_TYPES (server-authoritative)');
 });
 
 test('mutation: game_mode_change to duel persists mode', () => {

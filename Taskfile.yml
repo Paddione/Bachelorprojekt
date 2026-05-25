@@ -1484,6 +1484,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"
           ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL \$ARENA_IMAGE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
           # arena-server image: workspace:deploy uses :latest; arena:deploy pins to digest.
@@ -1502,6 +1503,8 @@ tasks:
           export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
           export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
           export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}"
+          export COMFY_HOST_IP="${COMFY_HOST_IP:-}"
+          export COMFY_PORT="${COMFY_PORT:-}"
           # Delete immutable Jobs before re-apply so field changes don't cause
           # "field is immutable" errors (Jobs cannot be patched in-place).
           kubectl --context "$ENV_CONTEXT" -n "$_ws_ns" delete job arena-bootstrap --ignore-not-found=true

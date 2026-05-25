@@ -527,6 +527,11 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: COMFY_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
   # Claude Code
   - name: CLAUDE_CODE_OIDC_SECRET
     required: true

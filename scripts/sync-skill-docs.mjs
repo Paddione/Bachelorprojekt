@@ -89,6 +89,17 @@ function parseFrontmatter(content) {
   return { ...meta, body: content.slice(m[0].length).trimStart() };
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function titleFromBody(name, body) {
+  const m = body.match(/^#\s+(.+)/m);
+  return m ? m[1].trim() : name.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 // ── HTML generator for auto-pages ────────────────────────────────────────────
 
 const COPY_SCRIPT = `\n<script>
@@ -282,22 +293,65 @@ function generateMiniList(skills) {
   return html;
 }
 
+// Insert a card into the right <section data-cat="CAT"> in skills-overview.html.
+// No-ops if a card for this skill already exists anywhere in the overview.
+function insertCardIntoOverview(name, cat, title, description) {
+  if (!existsSync(OVERVIEW)) return;
+  let html = readFileSync(OVERVIEW, 'utf8');
+
+  if (html.includes(`data-skill="${name}"`)) return; // already present
+
+  const { label } = CAT_META[cat] ?? CAT_META.ops;
+  const card = [
+    `          <a href="skills/${name}.html" class="ov-card" data-skill="${name}">`,
+    `            <div class="ov-card-label"><code>${name}</code></div>`,
+    `            <h3 class="ov-card-title">${escapeHtml(title)}</h3>`,
+    `            <p class="ov-card-desc">${escapeHtml(description || '')}</p>`,
+    `            <div class="ov-card-tags"><span class="ov-tag">${label}</span></div>`,
+    `            <div class="ov-card-link-hint">Details ansehen</div>`,
+    `          </a>`,
+  ].join('\n');
+
+  // Insert at end of ov-grid inside the matching section
+  const sectionRe = new RegExp(
+    `(<section[^>]*\\bdata-cat="${cat}"[^>]*>[\\s\\S]*?<div class="ov-grid">)([\\s\\S]*?)(\\s*<\\/div>\\s*<\\/section>)`,
+    'g'
+  );
+  let inserted = false;
+  const patched = html.replace(sectionRe, (_, pre, grid, post) => {
+    inserted = true;
+    return `${pre}${grid}\n${card}\n        ${post.trim().replace(/^/, '')}`;
+  });
+
+  if (!inserted) {
+    console.warn(`  ⚠ Could not find <section data-cat="${cat}"> — add card for '${name}' manually`);
+    return;
+  }
+
+  writeFileSync(OVERVIEW, patched, 'utf8');
+}
+
 // Replaces SVG + mini-list blocks in overview HTML in-place
 function patchOverview(skills) {
   let html = readFileSync(OVERVIEW, 'utf8');
 
   // Replace SVG block
   const svgNew = generateSvg(skills);
-  html = html.replace(
-    /<svg[\s\S]*?<\/svg>/,
-    svgNew
-  );
+  html = html.replace(/<svg[\s\S]*?<\/svg>/, svgNew);
 
-  // Replace mini-list block (between <div class="ov-sb-list"> and </div>)
+  // Replace mini-list block — generate the entire outer div to avoid nested-</div> ambiguity
   const miniNew = generateMiniList(skills);
-  html = html.replace(
-    /(<div class="ov-sb-list">)[\s\S]*?(<\/div>)/,
-    `$1\n${miniNew}    $2`
+  const listBlock = `    <div class="ov-sb-list">\n${miniNew}    </div>`;
+  // Match the entire ov-sb-list div: opening tag through the matching 4-space-indented </div>
+  // Anchored to "</aside>" that immediately follows so we never overshoot
+  const replaced = html.replace(
+    /    <div class="ov-sb-list">[\s\S]*?    <\/div>(\s*\n\s*<\/aside>)/,
+    `${listBlock}$1`
+  );
+  // Fallback: if anchor didn't match, try replacing up to </aside> directly
+  html = replaced !== html ? replaced : html.replace(
+    /(<div class="ov-sb-list">)[\s\S]*?(?=\s*<\/aside>)/,
+    `    <div class="ov-sb-list">\n${miniNew}`
   );
 
   writeFileSync(OVERVIEW, html, 'utf8');
@@ -316,11 +370,13 @@ async function main() {
     if (CHECK_ONLY) continue;
 
     const raw = readFileSync(mdPath, 'utf8');
-    const { name: _, description, body } = parseFrontmatter(raw);
-    const cat = 'ops'; // default for new; update manually or add frontmatter `category:` field
+    const { description, category, body } = parseFrontmatter(raw);
+    const cat = (category && CAT_META[category]) ? category : 'ops';
+    const title = titleFromBody(name, body ?? '');
     const html = generateSkillHtml(name, cat, description ?? '', body ?? '');
     writeFileSync(htmlPath, html, 'utf8');
-    console.log(`  → generated docs/skills/${name}.html`);
+    insertCardIntoOverview(name, cat, title, description ?? '');
+    console.log(`  → generated docs/skills/${name}.html + overview card (${cat})`);
   }
 
   if (CHECK_ONLY) {
@@ -339,7 +395,7 @@ async function main() {
 
   if (missing.length) {
     console.log(`  → generated ${missing.length} new page(s): ${missing.join(', ')}`);
-    console.log('  ℹ  New pages default to "ops" category — set category: in SKILL.md frontmatter to override');
+    console.log('  ℹ  Add `category: <devflow|infra|db|security|ops|support>` to SKILL.md frontmatter to control placement');
   } else {
     console.log('  ✓ No new skill pages needed');
   }

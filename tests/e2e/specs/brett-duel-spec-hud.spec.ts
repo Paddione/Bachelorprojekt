@@ -33,6 +33,13 @@ test('spectator HUD shows portraits + BO3 round dots during a duel', async ({ br
   const room = `e2e-spec-hud-${Date.now()}`;
 
   await pageSpec.goto(`${BRETT_URL}/?room=${room}`);
+  
+  // If mode select overlay is visible, click "mayhem" to boot the game
+  const mayhemCard = pageSpec.locator('.mode-card-mayhem');
+  if (await mayhemCard.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await mayhemCard.click();
+  }
+
   await pageSpec.waitForFunction(() => !!(window as W).Mayhem?._initialized, { timeout: 20_000 });
 
   // Spectator HUD will be visible when _isSpectator is true and gameMode.mode === 'duel'

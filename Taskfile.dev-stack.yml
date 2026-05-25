@@ -211,9 +211,9 @@ tasks:
         set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
         SECRETS_FILE="environments/.secrets/{{.ENV}}.yaml"
-        export BACKUP_PASSPHRASE=$(yq -r '.BACKUP_PASSPHRASE // empty' "$SECRETS_FILE")
-        export DEV_SHARED_DB_PASSWORD=$(yq -r '.DEV_SHARED_DB_PASSWORD // empty' "$SECRETS_FILE")
-        export DEV_WEBSITE_DB_PASSWORD=$(yq -r '.DEV_WEBSITE_DB_PASSWORD // empty' "$SECRETS_FILE")
+        export BACKUP_PASSPHRASE=$(yq -r '.BACKUP_PASSPHRASE // ""' "$SECRETS_FILE")
+        export DEV_SHARED_DB_PASSWORD=$(yq -r '.DEV_SHARED_DB_PASSWORD // ""' "$SECRETS_FILE")
+        export DEV_WEBSITE_DB_PASSWORD=$(yq -r '.DEV_WEBSITE_DB_PASSWORD // ""' "$SECRETS_FILE")
         if [[ -z "$BACKUP_PASSPHRASE" || -z "$DEV_SHARED_DB_PASSWORD" ]]; then
           echo "Missing BACKUP_PASSPHRASE or DEV_SHARED_DB_PASSWORD in $SECRETS_FILE." >&2; exit 1
         fi

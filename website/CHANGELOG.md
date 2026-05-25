@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.11.0...website-v1.12.0) (2026-05-25)
+
+
+### Features
+
+* **3d:** ComfyUI Hunyuan3D-2 -&gt; Brett skin pipeline ([#1093](https://github.com/Paddione/Bachelorprojekt/issues/1093)) ([03e679d](https://github.com/Paddione/Bachelorprojekt/commit/03e679d4893e2d185c21c5fecedfb8d35bc4adaa))
+* **brett:** polished 1v1 duel — spectator HUD, SFX, server-auth scoring, rematch flow ([#1096](https://github.com/Paddione/Bachelorprojekt/issues/1096)) ([de3a09b](https://github.com/Paddione/Bachelorprojekt/commit/de3a09becceb1233cfea3ed642b37581ce234ca2))
+
 ## [1.11.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.10.0...website-v1.11.0) (2026-05-25)
 
 

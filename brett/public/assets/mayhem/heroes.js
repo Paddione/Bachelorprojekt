@@ -6,6 +6,7 @@ const HEROES = {
   patrick: {
     id: 'patrick', name: 'Patrick',
     description: 'Softwareentwickler · Katana · Pistole · Rifle',
+    portrait: 'assets/figure-pack/faces/portrait-patrick.png',
     color: 0x6f8db8,
     figure: { face: 'present', hair: 'hair-short', clothing: null, hairTint: null },
     abilities: ['katana', 'handgun', 'rifle'],
@@ -15,6 +16,7 @@ const HEROES = {
   tina: {
     id: 'tina', name: 'Tina',
     description: 'Hexe · Frostnova · Feuerball · Kettenblitz',
+    portrait: 'assets/figure-pack/faces/portrait-christina.png',
     color: 0xa83a30,
     figure: { face: 'curious', hair: 'hair-long', clothing: 'robe',
               hairTint: 'hue-rotate(320deg) saturate(180%)' },
@@ -25,6 +27,7 @@ const HEROES = {
   martina: {
     id: 'martina', name: 'Martina',
     description: 'Teamleiterin · Minion · Shield · Raserei',
+    portrait: 'assets/figure-pack/faces/portrait-martina.png',
     color: 0xb8c0a8,
     figure: { face: 'resolved', hair: 'hair-long', clothing: 'coat',
               hairTint: 'sepia(60%) hue-rotate(30deg)' },
@@ -35,6 +38,7 @@ const HEROES = {
   oskar: {
     id: 'oskar', name: 'Oskar',
     description: 'Mechaniker · Motorrad · Auto · Reparatur',
+    portrait: 'assets/figure-pack/faces/portrait-oskar.png',
     color: 0xc8a96e,
     figure: { face: 'observing', hair: 'hair-short', clothing: 'vest',
               hairTint: 'sepia(40%) hue-rotate(30deg)' },

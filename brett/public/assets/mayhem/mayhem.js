@@ -585,6 +585,7 @@ const Mayhem = (() => {
       localAvatar._vehicle = vehicle;
     }
     _buildDuelHud();
+    window.MayhemAudio?.play('duel-gong');
   }
 
   function _spawnPvAiBot(heroId) {
@@ -633,6 +634,7 @@ const Mayhem = (() => {
   }
 
   function _onDuelRoundEnd({ winner, winsA, winsB }) {
+    window.MayhemAudio?.play('ko-stinger');
     _duelRoundPause = true;
     _showDuelRoundResult(winner, winsA, winsB);
     setTimeout(() => {
@@ -663,6 +665,7 @@ const Mayhem = (() => {
   }
 
   function _onDuelEnd({ matchWinner, reason, winsA, winsB }) {
+    window.MayhemAudio?.play('crowd-cheer');
     const resolvedWinsA = winsA ?? gameMode?.duelState?.winsA ?? 0;
     const resolvedWinsB = winsB ?? gameMode?.duelState?.winsB ?? 0;
     _showDuelMatchResult(matchWinner, reason, resolvedWinsA, resolvedWinsB);
@@ -799,19 +802,128 @@ const Mayhem = (() => {
   }
 
   function _showSpectatorHud() {
-    const existing = document.getElementById('spectator-hud');
+    const existing = document.getElementById('spectator-hud-v2');
     if (existing) existing.remove();
+
+    const HEROES = window.MayhemHeroes?.HEROES || {};
+    const ds = gameMode?.duelState || {};
+    const heroA = HEROES[ds.heroA] || HEROES[_myHeroId] || null;
+    const heroB = HEROES[ds.heroB] || HEROES[_opponentHeroId] || null;
+    const nameA = heroA?.name || 'A';
+    const nameB = heroB?.name || 'B';
+    const portraitA = heroA?.portrait || '';
+    const portraitB = heroB?.portrait || '';
+    const winsA = ds.winsA || 0;
+    const winsB = ds.winsB || 0;
+    const round = winsA + winsB + 1;
+
     const hud = document.createElement('div');
-    hud.id = 'spectator-hud';
-    hud.style.cssText = `
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: rgba(11,17,28,0.8); border: 1px solid rgba(215,176,106,0.18);
-      border-radius: 999px; padding: 6px 18px;
-      font-family: 'Geist Mono', monospace; font-size: 11px;
-      color: #d7b06a; letter-spacing: 0.1em; pointer-events: none; z-index: 2000;
+    hud.id = 'spectator-hud-v2';
+    hud.innerHTML = `
+      <div class="sh-fighter sh-fighter-a">
+        <img src="${portraitA}" onerror="this.style.display='none'" alt="">
+        <div class="sh-meta">
+          <div class="sh-name">${nameA.toUpperCase()}</div>
+          <div class="sh-hp"><div class="sh-hp-fill" data-fighter="a" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="sh-score">
+        <div class="sh-dots">
+          ${[0,1,2].map(i => {
+            const filled = i < winsA;
+            const leading = i === winsA && winsA >= winsB;
+            return `<div data-role="round-dot" class="sh-dot ${filled?'filled':''} ${leading?'leading':''}"></div>`;
+          }).join('')}
+        </div>
+        <div class="sh-round">RUNDE ${round} · BO3</div>
+      </div>
+      <div class="sh-fighter sh-fighter-b">
+        <div class="sh-meta sh-meta-right">
+          <div class="sh-name">${nameB.toUpperCase()}</div>
+          <div class="sh-hp"><div class="sh-hp-fill" data-fighter="b" style="width:100%"></div></div>
+        </div>
+        <img src="${portraitB}" onerror="this.style.display='none'" alt="">
+      </div>
     `;
-    hud.textContent = 'ZUSCHAUER · Tab = Spieler wechseln · F = Freie Kamera';
+    hud.style.cssText = `
+      position:fixed;top:14px;left:50%;transform:translateX(-50%);
+      display:flex;align-items:center;gap:18px;
+      background:rgba(11,17,28,.92);border:1px solid rgba(215,176,106,.32);
+      border-radius:14px;padding:10px 18px;
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+      font-family:'Geist Mono',monospace;color:#d7b06a;
+      pointer-events:none;z-index:2000;
+    `;
+    _injectSpectatorHudCss();
     document.body.appendChild(hud);
+
+    // Bottom-right footer (controls hint)
+    const footer = document.createElement('div');
+    footer.id = 'spectator-hud-footer';
+    footer.style.cssText = `
+      position:fixed;bottom:14px;right:18px;
+      display:flex;align-items:center;gap:14px;
+      background:rgba(11,17,28,.85);border:1px solid rgba(215,176,106,.2);
+      border-radius:10px;padding:8px 14px;
+      font-family:'Geist Mono',monospace;font-size:10px;color:#d7b06a;
+      pointer-events:none;z-index:2000;
+    `;
+    const targetHeroId = _specTarget ? (remoteAvatars.get(_specTarget) || (_specTarget === playerId ? localAvatar : null))?.heroId : null;
+    const targetName = targetHeroId ? (window.MayhemHeroes?.HEROES?.[targetHeroId]?.name || 'Spieler') : 'niemand';
+    footer.innerHTML = `
+      <span>ZUSCHAUER · folgst ${targetName.toUpperCase()}</span>
+      <span><kbd>Tab</kbd> wechseln  <kbd>F</kbd> freie Kamera</span>
+    `;
+    document.body.appendChild(footer);
+  }
+
+  function _injectSpectatorHudCss() {
+    if (document.getElementById('spectator-hud-v2-css')) return;
+    const s = document.createElement('style');
+    s.id = 'spectator-hud-v2-css';
+    s.textContent = `
+      #spectator-hud-v2 .sh-fighter { display:flex; align-items:center; gap:10px; }
+      #spectator-hud-v2 .sh-fighter img { width:48px; height:48px; border-radius:8px; border:2px solid #d7b06a; object-fit:cover; }
+      #spectator-hud-v2 .sh-name { font-size:12px; letter-spacing:.14em; color:#fff; }
+      #spectator-hud-v2 .sh-hp { width:130px; height:6px; background:#222; border-radius:3px; margin-top:4px; overflow:hidden; }
+      #spectator-hud-v2 .sh-meta-right { text-align:right; }
+      #spectator-hud-v2 .sh-meta-right .sh-hp { display:flex; justify-content:flex-end; }
+      #spectator-hud-v2 .sh-hp-fill { height:100%; background:linear-gradient(90deg,#d7b06a,#e5c885); border-radius:3px; transition:width .15s; }
+      #spectator-hud-v2 .sh-score { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 10px; }
+      #spectator-hud-v2 .sh-dots { display:flex; gap:6px; }
+      #spectator-hud-v2 .sh-dot { width:10px; height:10px; border-radius:99px; border:1.5px solid rgba(215,176,106,.45); background:transparent; }
+      #spectator-hud-v2 .sh-dot.filled { background:#d7b06a; border-color:#d7b06a; }
+      #spectator-hud-v2 .sh-dot.leading { background:rgba(215,176,106,.18); border-color:#d7b06a; box-shadow:0 0 0 2px rgba(215,176,106,.25); }
+      #spectator-hud-v2 .sh-round { font-size:10px; letter-spacing:.18em; color:#8A8497; }
+      #spectator-hud-footer kbd { background:#1a2233; color:#d7b06a; border:1px solid #2a3344; padding:2px 6px; border-radius:4px; font-size:10px; font-family:inherit; margin-right:2px; }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function _updateSpectatorHud() {
+    const hud = document.getElementById('spectator-hud-v2');
+    if (!hud) return;
+    const ds = gameMode?.duelState;
+    if (!ds) return;
+    // Update HP bars
+    const fillA = hud.querySelector('.sh-hp-fill[data-fighter="a"]');
+    const fillB = hud.querySelector('.sh-hp-fill[data-fighter="b"]');
+    if (fillA) {
+      const av = remoteAvatars.get(ds.playerA) || (ds.playerA === playerId ? localAvatar : null);
+      if (av) fillA.style.width = Math.max(0, av.hp) + '%';
+    }
+    if (fillB) {
+      const av = remoteAvatars.get(ds.playerB) || (ds.playerB === playerId ? localAvatar : null);
+      if (av) fillB.style.width = Math.max(0, av.hp) + '%';
+    }
+    // Update round dots
+    const dots = hud.querySelectorAll('[data-role="round-dot"]');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < ds.winsA);
+      dot.classList.toggle('leading', i === ds.winsA && ds.winsA >= ds.winsB);
+    });
+    const roundEl = hud.querySelector('.sh-round');
+    if (roundEl) roundEl.textContent = `RUNDE ${ds.winsA + ds.winsB + 1} · BO3`;
   }
 
   function stop() {
@@ -838,8 +950,10 @@ const Mayhem = (() => {
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
     if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
     if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
-    const specHud = document.getElementById('spectator-hud');
+    const specHud = document.getElementById('spectator-hud-v2');
     if (specHud) specHud.remove();
+    const specFooter = document.getElementById('spectator-hud-footer');
+    if (specFooter) specFooter.remove();
     document.removeEventListener('mousemove', _onMouseMove);
     document.removeEventListener('touchmove', _onTouchMove);
     if (document.pointerLockElement) document.exitPointerLock();
@@ -1295,6 +1409,7 @@ const Mayhem = (() => {
             _duelHpFillB.style.width = pct + '%';
           }
         }
+        if (_isSpectator) _updateSpectatorHud();
         updateHud();
         break;
 
@@ -1310,6 +1425,7 @@ const Mayhem = (() => {
         }
         gameMode?.handleDeath(msg.playerId, msg.playerId === playerId);
         if (msg.killerId) gameMode?.handleKill(msg.killerId);
+        if (_isSpectator) _updateSpectatorHud();
         updateHud();
         break;
 

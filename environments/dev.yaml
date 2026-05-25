@@ -1,6 +1,6 @@
 # environments/dev.yaml
 environment: dev
-context: k3d-korczewski
+context: k3d-korczewski-dev
 domain: localhost
 
 env_vars:

@@ -327,7 +327,9 @@ secrets:
 
   - name: KEYCLOAK_ADMIN_PASSWORD
     required: true
-    generate: false
+    generate: true
+    length: 24
+    description: "Random by default — retrieve via `kubectl get secret workspace-secrets -n <ns> -o jsonpath='{.data.KEYCLOAK_ADMIN_PASSWORD}' | base64 -d`. Override by setting KEYCLOAK_ADMIN_PASSWORD in env_vars: of the env file before running env:generate."
     extra_namespaces:
       - namespace: website
         secret: website-secrets
@@ -342,7 +344,9 @@ secrets:
 
   - name: NEXTCLOUD_ADMIN_PASSWORD
     required: true
-    generate: false
+    generate: true
+    length: 24
+    description: "Random by default — retrieve via `kubectl get secret workspace-secrets -n <ns> -o jsonpath='{.data.NEXTCLOUD_ADMIN_PASSWORD}' | base64 -d`. Override via env_vars: in the env file."
     extra_namespaces:
       - namespace: website
         secret: website-secrets
@@ -492,6 +496,8 @@ secrets:
   - name: SMTP_PASSWORD
     required: true
     generate: false
+    default_dev: "dev"
+    description: "Mailpit (dev) accepts any password. For prod set in env_vars: of the env file before env:generate, or paste at the prompt."
     extra_namespaces:
       - namespace: website
         secret: website-secrets
@@ -635,7 +641,9 @@ secrets:
 
   - name: MONITORING_WEBHOOK_TOKEN
     required: true
-    generate: false
+    generate: true
+    length: 32
+    description: "Internal token for the monitoring webhook — random by default."
     extra_namespaces:
       - namespace: website
         secret: website-secrets
@@ -665,9 +673,9 @@ secrets:
         secret: website-secrets
 
   - name: TRACKING_DB_URL
-    required: true
+    required: false
     generate: false
-    description: "PostgreSQL connection URL for the tracking-import CronJob"
+    description: "Legacy — tracking-import CronJob was removed in PR #788 (2026-05-15). Retained only so existing sealed-secrets that still carry the key continue to deserialize cleanly. Safe to drop from new envs."
 
   - name: INTERNAL_API_TOKEN
     required: true
@@ -741,14 +749,17 @@ secrets:
 setup_vars:
   - name: KC_USER1_USERNAME
     required: true
+    default_dev: "admin"
 
   - name: KC_USER1_EMAIL
     required: true
     validate: "^.+@.+$"
+    default_dev: "admin@localhost"
 
   - name: KC_USER1_PASSWORD
     required: true
     sealed: true
+    default_dev: "DevAdmin123!"
 
   - name: KC_USER2_USERNAME
     required: false

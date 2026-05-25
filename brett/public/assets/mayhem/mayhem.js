@@ -1,5 +1,12 @@
 'use strict';
 
+// crypto.randomUUID is only available in secure contexts (HTTPS/localhost).
+// Fall back to a getRandomValues-based v4 UUID for plain-HTTP dev.
+const randomUUID = typeof crypto.randomUUID === 'function'
+  ? () => crypto.randomUUID()
+  : () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+
 const Mayhem = (() => {
   const STATE_RATE_HZ    = 15;
   const VEHICLE_COOLDOWN_MS = 5000;
@@ -84,7 +91,7 @@ const Mayhem = (() => {
   function init(opts) {
     ({ scene, camera, canvas, makeMannequin, roomToken: room } = opts);
     send = opts.sendMessage;
-    playerId = crypto.randomUUID();
+    playerId = randomUUID();
     window._mayhemCamera = camera;
     window._mayhemMakeMannequin = makeMannequin;
     bindKeys();
@@ -220,6 +227,7 @@ const Mayhem = (() => {
       window.dispatchEvent(new CustomEvent('brett:mayhem-enabled'));
     } else {
       stop();
+      window.dispatchEvent(new CustomEvent('brett:mayhem-disabled'));
     }
   }
   function toggle() {
@@ -358,7 +366,7 @@ const Mayhem = (() => {
     aiBots.clear();
 
     for (let i = 0; i < def.count; i++) {
-      const botId = 'bot-' + crypto.randomUUID();
+      const botId = 'bot-' + randomUUID();
       const pos   = nextSpawnPoint();
       const botMannequin = makeMannequin(botId, pos);
       const bot = new window.MayhemAIBot({
@@ -520,6 +528,7 @@ const Mayhem = (() => {
             }
 
           });
+        weaponSystem = localAvatar.weaponSystem;
         if (heroId === 'martina') {
           window._minionManager = new window.MayhemHeroes.MinionManager({
             maxMinions: 2,
@@ -559,7 +568,14 @@ const Mayhem = (() => {
         const pA = playerId;
         const pB = _pvAiMode ? 'bot-pvai' : [...remoteAvatars.keys()][0];
         gameMode.startDuelFighting(pA, pB);
-        send({ type: 'duel_start', playerA: pA, playerB: pB });
+        send({
+          type: 'duel_start',
+          playerA: pA, playerB: pB,
+          heroA: _myHeroId,
+          heroB: _pvAiMode ? (_opponentHeroId || 'patrick') : (_opponentHeroId),
+          nameA: window._currentUser?.displayName || pA,
+          nameB: _pvAiMode ? 'KI' : (window._knownNames?.[pB] || pB),
+        });
         _startDuelRound(pA, pB);
       });
     }
@@ -576,6 +592,7 @@ const Mayhem = (() => {
       localAvatar._vehicle = vehicle;
     }
     _buildDuelHud();
+    window.MayhemAudio?.play('duel-gong');
   }
 
   function _spawnPvAiBot(heroId) {
@@ -611,64 +628,23 @@ const Mayhem = (() => {
 
   function _handleBotDeath() {
     if (!isHost || _duelRoundPause) return;
-    const result = gameMode.handleDuelDeath('bot-pvai');
-    const winsA  = gameMode.duelState.winsA;
-    const winsB  = gameMode.duelState.winsB;
-    if (result.matchOver) {
-      send({ type: 'duel_match_end', winner: result.matchWinner, winsA, winsB });
-      _onDuelEnd({ matchWinner: result.matchWinner, reason: null, winsA, winsB });
-    } else {
-      send({ type: 'duel_round_end', winner: result.roundWinner, winsA, winsB });
-      _onDuelRoundEnd({ winner: result.roundWinner, winsA, winsB });
-    }
+    // Server is authoritative — route bot death through server like any player_death
+    send({ type: 'player_death', playerId: 'bot-pvai' });
   }
 
   function _onDuelRoundEnd({ winner, winsA, winsB }) {
+    window.MayhemAudio?.play('ko-stinger');
     _duelRoundPause = true;
     _showDuelRoundResult(winner, winsA, winsB);
-    setTimeout(() => {
-      if (winsA < 2 && winsB < 2) {
-        // New round, same heroes — reset positions, resetHero()
-        if (localAvatar) {
-          localAvatar.resetHero();
-          localAvatar.resetHp();
-        }
-        if (window._pvAiBot) {
-          window._pvAiBot.hp = 100;
-          window._pvAiBot.avatar.resetHp();
-          window._pvAiBot.avatar.resetHero();
-          window._pvAiBot._x = 3;
-          window._pvAiBot._z = 3;
-          if (window._pvAiBot.mannequin) {
-            window._pvAiBot.mannequin.root.position.set(3, 0, 3);
-            window._pvAiBot.mannequin.root.rotation.y = 0;
-          }
-        }
-        localRespawn();
-        _buildDuelHud(winsA, winsB);
-        if (_duelHpFillA) _duelHpFillA.style.width = '100%';
-        if (_duelHpFillB) _duelHpFillB.style.width = '100%';
-        _duelRoundPause = false;
-      }
-    }, 3000);
+    // Server fires duel_round_start after 3s — that handler resets HP / respawn.
   }
 
-  function _onDuelEnd({ matchWinner, reason, winsA, winsB }) {
+  function _onDuelEnd({ matchWinner, reason, winsA, winsB, heroA, heroB, nameA, nameB }) {
+    window.MayhemAudio?.play('crowd-cheer');
     const resolvedWinsA = winsA ?? gameMode?.duelState?.winsA ?? 0;
     const resolvedWinsB = winsB ?? gameMode?.duelState?.winsB ?? 0;
-    _showDuelMatchResult(matchWinner, reason, resolvedWinsA, resolvedWinsB);
-    // After 5s return to warmup
-    setTimeout(() => {
-      const resultOverlay = document.getElementById('duel-match-result-overlay');
-      if (resultOverlay) resultOverlay.remove();
-      const scoreHud = document.getElementById('duel-score-hud');
-      if (scoreHud) scoreHud.remove();
-      _duelHpFillA = null;
-      _duelHpFillB = null;
-      if (isHost && gameMode) {
-        send({ type: 'game_mode_change', mode: 'warmup' });
-      }
-    }, 5000);
+    _showDuelMatchResult(matchWinner, reason, resolvedWinsA, resolvedWinsB, heroA, heroB, nameA, nameB);
+    // Server fires duel_abandoned (60s timeout) or duel_reset (rematch) — those handlers clean up.
   }
 
   function _buildDuelHud(winsA, winsB) {
@@ -740,38 +716,83 @@ const Mayhem = (() => {
     setTimeout(() => overlay.remove(), 3000);
   }
 
-  function _showDuelMatchResult(matchWinnerId, reason, winsA, winsB) {
+  function _showDuelMatchResult(matchWinnerId, reason, winsA, winsB, heroAId, heroBId, nameAOverride, nameBOverride) {
+    const existing = document.getElementById('duel-match-result-overlay');
+    if (existing) existing.remove();
+
+    const HEROES = window.MayhemHeroes?.HEROES || {};
+    const ds = gameMode?.duelState || {};
+    const resolvedHeroAId = heroAId || ds.heroA || _myHeroId;
+    const resolvedHeroBId = heroBId || ds.heroB || _opponentHeroId;
+    const heroA = HEROES[resolvedHeroAId] || {};
+    const heroB = HEROES[resolvedHeroBId] || {};
+    const winnerIsA = matchWinnerId === ds.playerA || (_pvAiMode && matchWinnerId !== 'bot-pvai');
+    const displayNameA = nameAOverride || heroA.name || 'A';
+    const displayNameB = nameBOverride || (_pvAiMode ? (heroB.name || 'KI') : (heroB.name || 'B'));
+    const winnerDisplayName = winnerIsA ? displayNameA : displayNameB;
+
     const overlay = document.createElement('div');
     overlay.id = 'duel-match-result-overlay';
     overlay.style.cssText = `
-      position: fixed; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: rgba(11,17,28,0.88); z-index: 2000;
-      font-family: 'Geist Mono', monospace;
+      position:fixed;inset:0;
+      background:radial-gradient(ellipse at center,rgba(0,0,0,.4),rgba(0,0,0,.8));
+      display:flex;align-items:center;justify-content:center;z-index:3000;
+      font-family:'Geist Mono',monospace;
     `;
-    const HEROES   = window.MayhemHeroes?.HEROES || {};
-    const myName   = HEROES[_myHeroId]?.name || 'Du';
-    let label, color;
-    if (reason === 'disconnect') {
-      label = 'UNENTSCHIEDEN';
-      color = '#b9bda3';
-    } else if (_pvAiMode && matchWinnerId === 'bot-pvai') {
-      label = 'NIEDERLAGE';
-      color = '#a83a30';
-    } else if (matchWinnerId === playerId) {
-      label = `SIEG — ${myName}!`;
-      color = '#d7b06a';
-    } else {
-      const oppName = HEROES[_opponentHeroId]?.name || 'Gegner';
-      label = `${oppName} GEWINNT!`;
-      color = '#a83a30';
-    }
-    const scoreStr = (winsA != null && winsB != null) ? `<div style="font-size:16px;color:#b9bda3;margin-top:10px;letter-spacing:0.14em;">${winsA} : ${winsB}</div>` : '';
+
+    const borderA = winnerIsA ? '2px solid #d7b06a' : '1px solid rgba(255,255,255,.1)';
+    const bgA     = winnerIsA ? 'rgba(215,176,106,.08)' : 'rgba(255,255,255,.02)';
+    const opA     = winnerIsA ? '1' : '0.7';
+    const borderB = winnerIsA ? '1px solid rgba(255,255,255,.1)' : '2px solid #d7b06a';
+    const bgB     = winnerIsA ? 'rgba(255,255,255,.02)' : 'rgba(215,176,106,.08)';
+    const opB     = winnerIsA ? '0.7' : '1';
+    const imgBorderA = winnerIsA ? '#d7b06a' : 'rgba(255,255,255,.15)';
+    const imgBorderB = winnerIsA ? 'rgba(255,255,255,.15)' : '#d7b06a';
+
+    const isFighter = ds.playerA === playerId || ds.playerB === playerId;
+
     overlay.innerHTML = `
-      <div style="font-size: 32px; color: ${color}; letter-spacing: 0.2em;">${label}</div>
-      ${scoreStr}
+      <div style="background:rgba(11,17,28,.96);border:1px solid rgba(215,176,106,.32);border-radius:16px;padding:28px 32px;width:520px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.8);color:#d7b06a">
+        <div style="text-align:center;margin-bottom:18px">
+          <div style="font-size:10px;letter-spacing:.24em;color:#8A8497;text-transform:uppercase">Match End · BO3</div>
+          <div style="font-size:24px;letter-spacing:.18em;color:#d7b06a;margin-top:6px;font-weight:600">${winnerDisplayName.toUpperCase()} GEWINNT</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:24px">
+          <div style="flex:1;text-align:center;padding:14px;border:${borderA};border-radius:12px;background:${bgA};opacity:${opA}">
+            <img src="${heroA.portrait||''}" onerror="this.style.display='none'" style="width:72px;height:72px;border-radius:10px;border:2px solid ${imgBorderA};object-fit:cover">
+            <div style="margin-top:10px;font-size:14px;color:#fff">${displayNameA.toUpperCase()}</div>
+            <div style="font-size:10px;color:#8A8497;letter-spacing:.14em;margin-top:2px">${(heroA.description||'').toUpperCase()}</div>
+          </div>
+          <div style="text-align:center;padding:0 8px">
+            <div style="font-size:38px;color:#fff;font-weight:700;letter-spacing:.04em">${winsA} — ${winsB}</div>
+            <div style="font-size:9px;color:#8A8497;letter-spacing:.2em;margin-top:2px">FINAL</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:14px;border:${borderB};border-radius:12px;background:${bgB};opacity:${opB}">
+            <img src="${heroB.portrait||''}" onerror="this.style.display='none'" style="width:72px;height:72px;border-radius:10px;border:2px solid ${imgBorderB};object-fit:cover">
+            <div style="margin-top:10px;font-size:14px;color:#fff">${displayNameB.toUpperCase()}</div>
+            <div style="font-size:10px;color:#8A8497;letter-spacing:.14em;margin-top:2px">${(heroB.description||'').toUpperCase()}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="duel-rematch-buttons">
+          <button data-rematch="same" style="background:#d7b06a;color:#0b111c;border:none;padding:12px;border-radius:8px;font-family:inherit;font-size:12px;letter-spacing:.16em;font-weight:600;cursor:pointer">REMATCH · GLEICHE HELDEN</button>
+          <button data-rematch="select" style="background:transparent;color:#d7b06a;border:1px solid #d7b06a;padding:11px;border-radius:8px;font-family:inherit;font-size:12px;letter-spacing:.16em;font-weight:600;cursor:pointer">REMATCH · NEUE HELDEN WÄHLEN</button>
+          <button data-rematch="abandon" style="background:transparent;color:#8A8497;border:1px solid rgba(255,255,255,.12);padding:9px;border-radius:8px;font-family:inherit;font-size:11px;letter-spacing:.14em;cursor:pointer">ZURÜCK ZUM WARMUP</button>
+        </div>
+        <div id="duel-rematch-waiting" style="display:none;margin-top:14px;text-align:center;font-size:10px;letter-spacing:.16em;color:#d7b06a"></div>
+      </div>
     `;
     document.body.appendChild(overlay);
+
+    overlay.querySelectorAll('[data-rematch]').forEach(btn => {
+      if (!isFighter) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; return; }
+      btn.addEventListener('click', () => {
+        btn.disabled = true;
+        const action = btn.getAttribute('data-rematch');
+        if (action === 'same') send({ type: 'rematch_request', sameHeroes: true });
+        else if (action === 'select') send({ type: 'rematch_request', sameHeroes: false });
+        else if (action === 'abandon') send({ type: 'duel_abandoned_request' });
+      }, { once: true });
+    });
   }
 
   function _enterSpectatorMode() {
@@ -790,19 +811,128 @@ const Mayhem = (() => {
   }
 
   function _showSpectatorHud() {
-    const existing = document.getElementById('spectator-hud');
+    const existing = document.getElementById('spectator-hud-v2');
     if (existing) existing.remove();
+
+    const HEROES = window.MayhemHeroes?.HEROES || {};
+    const ds = gameMode?.duelState || {};
+    const heroA = HEROES[ds.heroA] || HEROES[_myHeroId] || null;
+    const heroB = HEROES[ds.heroB] || HEROES[_opponentHeroId] || null;
+    const nameA = heroA?.name || 'A';
+    const nameB = heroB?.name || 'B';
+    const portraitA = heroA?.portrait || '';
+    const portraitB = heroB?.portrait || '';
+    const winsA = ds.winsA || 0;
+    const winsB = ds.winsB || 0;
+    const round = winsA + winsB + 1;
+
     const hud = document.createElement('div');
-    hud.id = 'spectator-hud';
-    hud.style.cssText = `
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: rgba(11,17,28,0.8); border: 1px solid rgba(215,176,106,0.18);
-      border-radius: 999px; padding: 6px 18px;
-      font-family: 'Geist Mono', monospace; font-size: 11px;
-      color: #d7b06a; letter-spacing: 0.1em; pointer-events: none; z-index: 2000;
+    hud.id = 'spectator-hud-v2';
+    hud.innerHTML = `
+      <div class="sh-fighter sh-fighter-a">
+        <img src="${portraitA}" onerror="this.style.display='none'" alt="">
+        <div class="sh-meta">
+          <div class="sh-name">${nameA.toUpperCase()}</div>
+          <div class="sh-hp"><div class="sh-hp-fill" data-fighter="a" style="width:100%"></div></div>
+        </div>
+      </div>
+      <div class="sh-score">
+        <div class="sh-dots">
+          ${[0,1,2].map(i => {
+            const filled = i < winsA;
+            const leading = i === winsA && winsA >= winsB;
+            return `<div data-role="round-dot" class="sh-dot ${filled?'filled':''} ${leading?'leading':''}"></div>`;
+          }).join('')}
+        </div>
+        <div class="sh-round">RUNDE ${round} · BO3</div>
+      </div>
+      <div class="sh-fighter sh-fighter-b">
+        <div class="sh-meta sh-meta-right">
+          <div class="sh-name">${nameB.toUpperCase()}</div>
+          <div class="sh-hp"><div class="sh-hp-fill" data-fighter="b" style="width:100%"></div></div>
+        </div>
+        <img src="${portraitB}" onerror="this.style.display='none'" alt="">
+      </div>
     `;
-    hud.textContent = 'ZUSCHAUER · Tab = Spieler wechseln · F = Freie Kamera';
+    hud.style.cssText = `
+      position:fixed;top:14px;left:50%;transform:translateX(-50%);
+      display:flex;align-items:center;gap:18px;
+      background:rgba(11,17,28,.92);border:1px solid rgba(215,176,106,.32);
+      border-radius:14px;padding:10px 18px;
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+      font-family:'Geist Mono',monospace;color:#d7b06a;
+      pointer-events:none;z-index:2000;
+    `;
+    _injectSpectatorHudCss();
     document.body.appendChild(hud);
+
+    // Bottom-right footer (controls hint)
+    const footer = document.createElement('div');
+    footer.id = 'spectator-hud-footer';
+    footer.style.cssText = `
+      position:fixed;bottom:14px;right:18px;
+      display:flex;align-items:center;gap:14px;
+      background:rgba(11,17,28,.85);border:1px solid rgba(215,176,106,.2);
+      border-radius:10px;padding:8px 14px;
+      font-family:'Geist Mono',monospace;font-size:10px;color:#d7b06a;
+      pointer-events:none;z-index:2000;
+    `;
+    const targetHeroId = _specTarget ? (remoteAvatars.get(_specTarget) || (_specTarget === playerId ? localAvatar : null))?.heroId : null;
+    const targetName = targetHeroId ? (window.MayhemHeroes?.HEROES?.[targetHeroId]?.name || 'Spieler') : 'niemand';
+    footer.innerHTML = `
+      <span>ZUSCHAUER · folgst ${targetName.toUpperCase()}</span>
+      <span><kbd>Tab</kbd> wechseln  <kbd>F</kbd> freie Kamera</span>
+    `;
+    document.body.appendChild(footer);
+  }
+
+  function _injectSpectatorHudCss() {
+    if (document.getElementById('spectator-hud-v2-css')) return;
+    const s = document.createElement('style');
+    s.id = 'spectator-hud-v2-css';
+    s.textContent = `
+      #spectator-hud-v2 .sh-fighter { display:flex; align-items:center; gap:10px; }
+      #spectator-hud-v2 .sh-fighter img { width:48px; height:48px; border-radius:8px; border:2px solid #d7b06a; object-fit:cover; }
+      #spectator-hud-v2 .sh-name { font-size:12px; letter-spacing:.14em; color:#fff; }
+      #spectator-hud-v2 .sh-hp { width:130px; height:6px; background:#222; border-radius:3px; margin-top:4px; overflow:hidden; }
+      #spectator-hud-v2 .sh-meta-right { text-align:right; }
+      #spectator-hud-v2 .sh-meta-right .sh-hp { display:flex; justify-content:flex-end; }
+      #spectator-hud-v2 .sh-hp-fill { height:100%; background:linear-gradient(90deg,#d7b06a,#e5c885); border-radius:3px; transition:width .15s; }
+      #spectator-hud-v2 .sh-score { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 10px; }
+      #spectator-hud-v2 .sh-dots { display:flex; gap:6px; }
+      #spectator-hud-v2 .sh-dot { width:10px; height:10px; border-radius:99px; border:1.5px solid rgba(215,176,106,.45); background:transparent; }
+      #spectator-hud-v2 .sh-dot.filled { background:#d7b06a; border-color:#d7b06a; }
+      #spectator-hud-v2 .sh-dot.leading { background:rgba(215,176,106,.18); border-color:#d7b06a; box-shadow:0 0 0 2px rgba(215,176,106,.25); }
+      #spectator-hud-v2 .sh-round { font-size:10px; letter-spacing:.18em; color:#8A8497; }
+      #spectator-hud-footer kbd { background:#1a2233; color:#d7b06a; border:1px solid #2a3344; padding:2px 6px; border-radius:4px; font-size:10px; font-family:inherit; margin-right:2px; }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function _updateSpectatorHud() {
+    const hud = document.getElementById('spectator-hud-v2');
+    if (!hud) return;
+    const ds = gameMode?.duelState;
+    if (!ds) return;
+    // Update HP bars
+    const fillA = hud.querySelector('.sh-hp-fill[data-fighter="a"]');
+    const fillB = hud.querySelector('.sh-hp-fill[data-fighter="b"]');
+    if (fillA) {
+      const av = remoteAvatars.get(ds.playerA) || (ds.playerA === playerId ? localAvatar : null);
+      if (av) fillA.style.width = Math.max(0, av.hp) + '%';
+    }
+    if (fillB) {
+      const av = remoteAvatars.get(ds.playerB) || (ds.playerB === playerId ? localAvatar : null);
+      if (av) fillB.style.width = Math.max(0, av.hp) + '%';
+    }
+    // Update round dots
+    const dots = hud.querySelectorAll('[data-role="round-dot"]');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < ds.winsA);
+      dot.classList.toggle('leading', i === ds.winsA && ds.winsA >= ds.winsB);
+    });
+    const roundEl = hud.querySelector('.sh-round');
+    if (roundEl) roundEl.textContent = `RUNDE ${ds.winsA + ds.winsB + 1} · BO3`;
   }
 
   function stop() {
@@ -829,8 +959,10 @@ const Mayhem = (() => {
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
     if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
     if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
-    const specHud = document.getElementById('spectator-hud');
+    const specHud = document.getElementById('spectator-hud-v2');
     if (specHud) specHud.remove();
+    const specFooter = document.getElementById('spectator-hud-footer');
+    if (specFooter) specFooter.remove();
     document.removeEventListener('mousemove', _onMouseMove);
     document.removeEventListener('touchmove', _onTouchMove);
     if (document.pointerLockElement) document.exitPointerLock();
@@ -1064,10 +1196,14 @@ const Mayhem = (() => {
     }
 
     // Tick AI bots — they drive their own avatars (already in remoteAvatars)
+    // pvAiBot is skipped here; it is ticked separately below with the correct enemy ref
     if (aiBots.size > 0) {
       const allCombatants = new Map(remoteAvatars);
       if (localAvatar) allCombatants.set(playerId, localAvatar);
-      for (const bot of aiBots.values()) bot.tick(dt, allCombatants);
+      for (const [id, bot] of aiBots) {
+        if (id === 'bot-pvai') continue;
+        bot.tick(dt, allCombatants);
+      }
     }
 
     for (const a of remoteAvatars.values()) a.update(dt, 0);
@@ -1112,7 +1248,7 @@ const Mayhem = (() => {
     const dirX = Math.cos(yaw), dirZ = -Math.sin(yaw);
     const fromX = localAvatar.mannequin.root.position.x - dirX * 6;
     const fromZ = localAvatar.mannequin.root.position.z - dirZ * 6;
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     send({ type: 'vehicle_spawn', vehicleId: id, kind: 'cart',
            fromX, fromZ, dirX, dirZ, speed: window.MayhemVehicle.SPEED, spawnedAt: Date.now() });
     spawnVehicleFromMsg({ vehicleId: id, fromX, fromZ, dirX, dirZ });
@@ -1164,11 +1300,75 @@ const Mayhem = (() => {
         break;
 
       case 'duel_round_end':
-        _onDuelRoundEnd(msg);
+        if (gameMode && gameMode.mode === 'duel') {
+          if (gameMode.duelState) { gameMode.duelState.winsA = msg.winsA; gameMode.duelState.winsB = msg.winsB; }
+          _onDuelRoundEnd({ winner: msg.winner, winsA: msg.winsA, winsB: msg.winsB });
+          if (_isSpectator) _updateSpectatorHud();
+        }
         break;
 
       case 'duel_match_end':
-        _onDuelEnd({ matchWinner: msg.winner, reason: msg.reason, winsA: msg.winsA, winsB: msg.winsB });
+        if (gameMode && gameMode.mode === 'duel') {
+          if (gameMode.duelState) { gameMode.duelState.winsA = msg.winsA; gameMode.duelState.winsB = msg.winsB; }
+          _onDuelEnd({ matchWinner: msg.winner, reason: msg.reason, winsA: msg.winsA, winsB: msg.winsB, heroA: msg.heroA, heroB: msg.heroB, nameA: msg.nameA, nameB: msg.nameB });
+        }
+        break;
+
+      case 'duel_round_start':
+        if (gameMode && gameMode.mode === 'duel') {
+          if (localAvatar) { localAvatar.resetHero(); localAvatar.resetHp(); localRespawn(); }
+          if (window._pvAiBot) {
+            window._pvAiBot.hp = 100;
+            window._pvAiBot.avatar.resetHp();
+            window._pvAiBot.avatar.resetHero();
+            window._pvAiBot._x = 3; window._pvAiBot._z = 3;
+            if (window._pvAiBot.mannequin) {
+              window._pvAiBot.mannequin.root.position.set(3, 0, 3);
+              window._pvAiBot.mannequin.root.rotation.y = 0;
+            }
+          }
+          if (_duelHpFillA) _duelHpFillA.style.width = '100%';
+          if (_duelHpFillB) _duelHpFillB.style.width = '100%';
+          _duelRoundPause = false;
+          _buildDuelHud(msg.winsA ?? 0, msg.winsB ?? 0);
+          if (_isSpectator) _updateSpectatorHud();
+        }
+        break;
+
+      case 'rematch_state':
+        {
+          const waitEl = document.getElementById('duel-rematch-waiting');
+          if (waitEl) {
+            const isWaiting = msg.requested && msg.requested.includes(playerId) && msg.requested.length === 1;
+            waitEl.style.display = isWaiting ? 'block' : 'none';
+            waitEl.textContent = isWaiting ? '⏳ Warte auf Gegner...' : '';
+          }
+        }
+        break;
+
+      case 'duel_reset':
+        {
+          const resultOverlay = document.getElementById('duel-match-result-overlay');
+          if (resultOverlay) resultOverlay.remove();
+          if (msg.mode === 'same') {
+            if (localAvatar) { localAvatar.resetHero(); localAvatar.resetHp(); localRespawn(); }
+            _buildDuelHud(0, 0);
+          } else {
+            _myHeroId = null; _opponentHeroId = null;
+            if (gameMode && typeof gameMode.enterHeroSelect === 'function') gameMode.enterHeroSelect();
+          }
+        }
+        break;
+
+      case 'duel_abandoned':
+        {
+          const overlay = document.getElementById('duel-match-result-overlay');
+          if (overlay) overlay.remove();
+          const scoreHud = document.getElementById('duel-score-hud');
+          if (scoreHud) scoreHud.remove();
+          _duelHpFillA = null; _duelHpFillB = null;
+          if (isHost && gameMode) send({ type: 'game_mode_change', mode: 'warmup' });
+        }
         break;
 
       case 'hero_stealth':
@@ -1282,21 +1482,15 @@ const Mayhem = (() => {
             _duelHpFillB.style.width = pct + '%';
           }
         }
+        if (_isSpectator) _updateSpectatorHud();
         updateHud();
         break;
 
       case 'player_death':
-        if (gameMode && gameMode.mode === 'duel' && isHost && !_duelRoundPause) {
-          const result = gameMode.handleDuelDeath(msg.playerId);
-          send({
-            type: result.matchOver ? 'duel_match_end' : 'duel_round_end',
-            winner: result.matchOver ? result.matchWinner : result.roundWinner,
-            winsA: gameMode.duelState.winsA,
-            winsB: gameMode.duelState.winsB,
-          });
-        }
+        // Server now owns duel scoring — it sees player_death and emits round/match end.
         gameMode?.handleDeath(msg.playerId, msg.playerId === playerId);
         if (msg.killerId) gameMode?.handleKill(msg.killerId);
+        if (_isSpectator) _updateSpectatorHud();
         updateHud();
         break;
 
@@ -1534,7 +1728,19 @@ const Mayhem = (() => {
 
   return {
     init, toggle, setEnabled, onSnapshot, onMessage, tick,
-    _internal: { remoteAvatars, vehicles, get localAvatar() { return localAvatar; } },
+    get _initialized() { return _initDone; },
+    _internal: {
+      remoteAvatars,
+      vehicles,
+      get localAvatar() { return localAvatar; },
+      get _isSpectator() { return _isSpectator; },
+      set _isSpectator(val) { _isSpectator = val; },
+      get _specTarget() { return _specTarget; },
+      set _specTarget(val) { _specTarget = val; },
+      get gameMode() { return gameMode; },
+      set gameMode(val) { gameMode = val; },
+      _showSpectatorHud,
+    },
   };
 })();
 

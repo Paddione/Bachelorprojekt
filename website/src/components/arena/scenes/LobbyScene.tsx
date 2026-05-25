@@ -18,7 +18,7 @@ interface Props {
   countdownMs: number;
   myKey: string;
   isHost: boolean;
-  mode: 'ffa' | 'one-v-three';
+  mode: 'ffa' | 'one-v-three' | 'duel';
   onCharacter: (characterId: CharacterId) => void;
   onLeave: () => void;
   onStart: () => void;
@@ -46,6 +46,10 @@ export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, m
           <h2 style={{ fontFamily: 'var(--font-serif, Georgia, serif)', fontSize: 36, margin: '12px 0 0', color: '#C8F76A' }}>
             Starting in {countdownSec}s&hellip;
           </h2>
+        ) : mode === 'duel' ? (
+          <h2 style={{ fontFamily: 'var(--font-serif, Georgia, serif)', fontSize: 36, margin: '12px 0 0' }}>
+            Waiting for opponent &mdash; <em style={{ color: '#a78bfa' }}>{players.filter(p => !p.isBot).length} / 2</em>
+          </h2>
         ) : (
           <h2 style={{ fontFamily: 'var(--font-serif, Georgia, serif)', fontSize: 36, margin: '12px 0 0' }}>
             Waiting for players &mdash; <em style={{ color: '#C8F76A' }}>{players.filter(p => !p.isBot).length} / 4</em>
@@ -57,6 +61,14 @@ export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, m
             borderRadius: 3, fontFamily: 'var(--font-mono, monospace)',
             fontSize: 11, letterSpacing: '.14em', color: '#c9aa71' }}>
             1v3 · HOST vs BOTS — real players can join
+          </div>
+        )}
+        {mode === 'duel' && (
+          <div style={{ display: 'inline-block', marginTop: 8, padding: '3px 10px',
+            background: 'rgba(167,139,250,.15)', border: '1px solid #a78bfa',
+            borderRadius: 3, fontFamily: 'var(--font-mono, monospace)',
+            fontSize: 11, letterSpacing: '.14em', color: '#a78bfa' }}>
+            ⚔ 1v1 DUEL · Share code {code} with your opponent
           </div>
         )}
       </div>
@@ -103,7 +115,7 @@ export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, m
             <div style={{ width: 8, height: 8, borderRadius: 99, background: p.isBot ? '#3A2E52' : '#C8F76A' }} />
           </div>
         ))}
-        {Array.from({ length: Math.max(0, 4 - players.length) }).map((_, i) => (
+        {Array.from({ length: Math.max(0, (mode === 'duel' ? 2 : 4) - players.length) }).map((_, i) => (
           <div key={`empty-${i}`} style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,.06)', color: '#3A2E52', fontSize: 13 }}>
             &mdash; waiting&hellip;
           </div>
@@ -118,7 +130,7 @@ export function LobbyScene({ code, players, phase, countdownMs, myKey, isHost, m
           Leave lobby
         </button>
 
-        {isHost && phase === 'open' && (
+        {isHost && phase === 'open' && mode !== 'duel' && (
           <button
             onClick={onStart}
             style={{ background: '#C8F76A', border: 'none', color: '#1a0e22', padding: '10px 24px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}

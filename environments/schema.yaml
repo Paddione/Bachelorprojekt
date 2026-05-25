@@ -222,6 +222,16 @@ env_vars:
     description: "If true, knowledge query path reranks results via LLM_RERANKER_URL. Reranker service is not deployed; keep false."
     validate: "^(true|false)$"
 
+  - name: COMFY_HOST_IP
+    required: false
+    default_dev: ""
+    description: "Mesh IP of the GPU host running ComfyUI. Empty disables 3D generation (returns 503)."
+
+  - name: COMFY_PORT
+    required: false
+    default_dev: ""
+    description: "Port ComfyUI listens on. Must NOT be 8188 (conflicts with Janus WebSocket)."
+
   - name: LLM_ROUTER_URL
     required: true
     default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
@@ -510,6 +520,14 @@ secrets:
     length: 40
 
   - name: BRETT_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: COMFY_OIDC_SECRET
     required: true
     generate: true
     length: 40

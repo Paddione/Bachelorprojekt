@@ -183,7 +183,8 @@ window.RoomBrowser = (() => {
       </div>
     `;
     _overlay.querySelector('#rb-new-btn').addEventListener('click', () => {
-      const token = crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+      const uuid = (typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+      const token = uuid.replace(/-/g, '').slice(0, 12);
       sessionStorage.setItem('brett_admin_join_mode', 'spectator');
       window.location.href = `/?room=${token}`;
     });

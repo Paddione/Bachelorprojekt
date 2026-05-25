@@ -110,3 +110,13 @@ spec:
                 name: oauth2-proxy-brett
                 port:
                   number: 4180
+    - host: comfy.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-comfy
+                port:
+                  number: 4180

@@ -515,7 +515,7 @@ const RELAY_TYPES = [
   'snapshot','request_state_snapshot',
   'bot_spawn','bot_despawn','round_reset',
   'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
-  'hero_select', 'duel_start', 'duel_round_end', 'duel_match_end',
+  'hero_select', 'duel_start',
   'hero_stealth', 'hero_teleport', 'minion_spawn', 'minion_update', 'minion_die', 'hero_slow',
   'vehicle_switch', 'vehicle_repair', 'motorcycle_sprint',
 ];
@@ -529,7 +529,9 @@ const TRANSIENT_TYPES = new Set([
 ]);
 
 const lmsAlive  = new Map(); // roomToken -> Set<playerId>
-const duelRooms = new Map(); // roomToken -> { playerA, playerB, winsA, winsB, bestOf }
+const duelRooms = new Map(); // roomToken -> { playerA, playerB, winsA, winsB, bestOf, startedAt }
+const rematchRequests = new Map(); // roomToken -> { playerA?: { sameHeroes }, playerB?: { sameHeroes } }
+const duelInactivityTimers = new Map(); // roomToken -> NodeJS.Timeout
 const roomMeta  = new Map(); // roomToken -> { coopWave: number }
 
 function handleLmsDeath(room, victimId) {
@@ -550,8 +552,25 @@ function handleDuelDeath(room, deadPlayerId) {
   const winsNeeded = Math.ceil(ds.bestOf / 2);
   const matchOver  = ds.winsA >= winsNeeded || ds.winsB >= winsNeeded;
   const matchWinner = matchOver ? (ds.winsA >= winsNeeded ? ds.playerA : ds.playerB) : null;
-  if (matchOver) duelRooms.delete(room);
+  // Cleanup now happens via rematch/abandon/inactivity — not auto-delete here
   return { roundWinner, matchOver, matchWinner };
+}
+
+function _armDuelInactivityTimer(room) {
+  if (duelInactivityTimers.has(room)) clearTimeout(duelInactivityTimers.get(room));
+  duelInactivityTimers.set(room, setTimeout(() => {
+    duelInactivityTimers.delete(room);
+    duelRooms.delete(room);
+    rematchRequests.delete(room);
+    broadcast(room, { type: 'duel_abandoned', reason: 'timeout' });
+  }, 60_000));
+}
+
+function _clearDuelInactivityTimer(room) {
+  if (duelInactivityTimers.has(room)) {
+    clearTimeout(duelInactivityTimers.get(room));
+    duelInactivityTimers.delete(room);
+  }
 }
 
 function joinRoom(ws, room) {
@@ -849,8 +868,50 @@ wss.on('connection', (ws, req) => {
       if (msg.type === 'duel_start' && msg.playerA && msg.playerB) {
         duelRooms.set(room, {
           playerA: msg.playerA, playerB: msg.playerB,
+          heroA: msg.heroA, heroB: msg.heroB,
+          nameA: msg.nameA || msg.playerA,
+          nameB: msg.nameB || msg.playerB,
           winsA: 0, winsB: 0, bestOf: 3,
+          startedAt: Date.now(),
         });
+        _clearDuelInactivityTimer(room);
+        rematchRequests.delete(room);
+      }
+
+      if (msg.type === 'rematch_request') {
+        const ds = duelRooms.get(room);
+        if (!room || !ds || typeof msg.sameHeroes !== 'boolean') return;
+        const slot = ws._playerId === ds.playerA ? 'playerA'
+                   : ws._playerId === ds.playerB ? 'playerB' : null;
+        if (!slot) return;
+        if (!rematchRequests.has(room)) rematchRequests.set(room, {});
+        const reqs = rematchRequests.get(room);
+        reqs[slot] = { sameHeroes: msg.sameHeroes };
+        if (reqs.playerA && reqs.playerB) {
+          const bothSame = reqs.playerA.sameHeroes && reqs.playerB.sameHeroes;
+          const mode = bothSame ? 'same' : 'select';
+          _clearDuelInactivityTimer(room);
+          ds.winsA = 0;
+          ds.winsB = 0;
+          rematchRequests.delete(room);
+          broadcast(room, { type: 'duel_reset', mode });
+          if (mode === 'select') _armDuelInactivityTimer(room);
+        } else {
+          broadcast(room, { type: 'rematch_state', requested: Object.keys(reqs) });
+        }
+        return;
+      }
+
+      if (msg.type === 'duel_abandoned_request') {
+        const ds = duelRooms.get(room);
+        if (!room || !ds) return;
+        const isFighter = ws._playerId === ds.playerA || ws._playerId === ds.playerB;
+        if (!isFighter) return;
+        _clearDuelInactivityTimer(room);
+        duelRooms.delete(room);
+        rematchRequests.delete(room);
+        broadcast(room, { type: 'duel_abandoned', reason: 'fighter_request' });
+        return;
       }
 
       if (RELAY_TYPES.includes(msg.type)) {
@@ -878,7 +939,38 @@ wss.on('connection', (ws, req) => {
               broadcast(room, draw ? { type: 'lms_draw' } : { type: 'lms_winner', playerId: winner });
             }
           } else if (state.gameMode === 'duel') {
-            handleDuelDeath(room, msg.playerId);
+            const result = handleDuelDeath(room, msg.playerId);
+            if (result.roundWinner) {
+              const ds = duelRooms.get(room) || {};
+              if (result.matchOver) {
+                broadcast(room, {
+                  type: 'duel_match_end',
+                  winner: result.matchWinner,
+                  nameA: ds.nameA, nameB: ds.nameB,
+                  heroA: ds.heroA, heroB: ds.heroB,
+                  winsA: ds.winsA ?? 0, winsB: ds.winsB ?? 0,
+                });
+                _armDuelInactivityTimer(room);
+              } else {
+                broadcast(room, {
+                  type: 'duel_round_end',
+                  winner: result.roundWinner,
+                  nameA: ds.nameA, nameB: ds.nameB,
+                  heroA: ds.heroA, heroB: ds.heroB,
+                  winsA: ds.winsA ?? 0, winsB: ds.winsB ?? 0,
+                });
+                setTimeout(() => {
+                  const stillThere = duelRooms.get(room);
+                  if (!stillThere) return;
+                  broadcast(room, {
+                    type: 'duel_round_start',
+                    round: (stillThere.winsA + stillThere.winsB) + 1,
+                    winsA: stillThere.winsA,
+                    winsB: stillThere.winsB,
+                  });
+                }, 3000);
+              }
+            }
           }
         } else if (msg.type === 'wave_start' && typeof msg.wave === 'number') {
           if (!roomMeta.has(room)) roomMeta.set(room, { coopWave: 0 });

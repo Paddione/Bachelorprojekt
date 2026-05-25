@@ -19,7 +19,7 @@ export interface LifecycleDeps {
   bc: Broadcasters;
 }
 
-export interface OpenRequest { hostKey: string; hostName: string; mode?: 'ffa' | 'one-v-three'; }
+export interface OpenRequest { hostKey: string; hostName: string; mode?: 'ffa' | 'one-v-three' | 'duel'; }
 export interface OpenResult { code: string; expiresAt: number; }
 
 export class Lifecycle {
@@ -88,7 +88,8 @@ export class Lifecycle {
     if (lobby.phase !== 'open') throw new Error('409 lobby not joinable');
     lobby.players.set(slot.key, slot);
     const humans = [...lobby.players.values()].filter(p => !p.isBot).length;
-    if (humans >= 4) this.toStarting(code);
+    const autoStartAt = lobby.mode === 'duel' ? 2 : 4;
+    if (humans >= autoStartAt) this.toStarting(code);
     else this.deps.onBroadcast(code);
   }
 
@@ -114,7 +115,7 @@ export class Lifecycle {
     const lobby = getLobby(code);
     if (!lobby || lobby.phase !== 'open') return;
     clearTimeout(lobby.timers.open);
-    fillBots(lobby);
+    if (lobby.mode !== 'duel') fillBots(lobby);
     lobby.phase = 'starting';
     this.deps.persist.updateLobbyPhase(code, 'starting').catch(() => {});
     this.deps.onBroadcast(code);

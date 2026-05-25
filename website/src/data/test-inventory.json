@@ -54,6 +54,18 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-duel-rematch",
+    "file": "tests/e2e/specs/brett-duel-rematch.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:brett-duel-spec-hud",
+    "file": "tests/e2e/specs/brett-duel-spec-hud.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:brett-mannequin",
     "file": "tests/e2e/specs/brett-mannequin.spec.ts",
     "category": "E2E",
@@ -1220,6 +1232,12 @@
   {
     "id": "SA-15",
     "file": "tests/e2e/specs/sa-15-cross-cluster-health.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
+  },
+  {
+    "id": "SA-21",
+    "file": "tests/e2e/specs/sa-21-admin-actions.spec.ts",
     "category": "SA",
     "kind": "playwright"
   }

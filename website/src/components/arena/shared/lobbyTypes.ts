@@ -69,7 +69,7 @@ export type GameEvent =
   | { e: 'powerup-expire'; player: string; kind: string };
 
 export type ClientMsg =
-  | { t: 'lobby:open'; mode?: 'ffa' | 'one-v-three' }
+  | { t: 'lobby:open'; mode?: 'ffa' | 'one-v-three' | 'duel' }
   | { t: 'lobby:join'; code: string }
   | { t: 'lobby:ready'; ready: boolean }
   | { t: 'lobby:start' }
@@ -85,7 +85,7 @@ export type ClientMsg =
 
 export type ServerMsg =
   | { t: 'lobby:state'; code: string; phase: LobbyPhase;
-        players: PlayerSlot[]; expiresAt?: number; countdownMs?: number; mode: 'ffa' | 'one-v-three' }
+        players: PlayerSlot[]; expiresAt?: number; countdownMs?: number; mode: 'ffa' | 'one-v-three' | 'duel' }
   | { t: 'match:full-snapshot'; tick: number; state: MatchState }
   | { t: 'match:diff'; tick: number; ops: DiffOp[] }
   | { t: 'match:event'; events: GameEvent[] }

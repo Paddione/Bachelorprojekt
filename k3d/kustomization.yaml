@@ -34,12 +34,15 @@ resources:
   - mail-ingressroute-dev.yaml
   # Brett SSO gateway
   - oauth2-proxy-brett.yaml
+  # ComfyUI SSO gateway
+  - oauth2-proxy-comfy.yaml
   # Backup (SA-07)
   - backup-pvc.yaml
   - backup-cronjob.yaml
   - backup-config.yaml
   - notify-unread-cronjob.yaml
   # Abrechnung
+  - admin-actions-cronjobs.yaml
   - cronjob-monthly-billing.yaml
   - cronjob-dunning-detection.yaml
   - einvoice-sidecar.yaml

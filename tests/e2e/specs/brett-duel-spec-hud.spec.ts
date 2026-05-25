@@ -3,12 +3,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 const BRETT_URL = (process.env.BRETT_URL
-  ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://brett.localhost')
+  ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://localhost:3000')
 ).replace(/\/$/, '');
 
 const BRETT_STATE_FILE = path.join(__dirname, '..', '.auth', 'mentolder-brett.json');
 
 function hasAuthState(): boolean {
+  if (BRETT_URL.includes('localhost') || BRETT_URL.includes('127.0.0.1')) return true;
   if (!fs.existsSync(BRETT_STATE_FILE)) return false;
   try {
     const raw = JSON.parse(fs.readFileSync(BRETT_STATE_FILE, 'utf-8'));
@@ -24,7 +25,10 @@ type W = any;
 test('spectator HUD shows portraits + BO3 round dots during a duel', async ({ browser }) => {
   if (!hasAuthState()) { test.skip(); return; }
 
-  const ctxSpec = await browser.newContext({ ignoreHTTPSErrors: true, storageState: BRETT_STATE_FILE });
+  const ctxSpec = (BRETT_URL.includes('localhost') || BRETT_URL.includes('127.0.0.1'))
+    ? await browser.newContext({ ignoreHTTPSErrors: true })
+    : await browser.newContext({ ignoreHTTPSErrors: true, storageState: BRETT_STATE_FILE });
+
   const pageSpec = await ctxSpec.newPage();
   const room = `e2e-spec-hud-${Date.now()}`;
 

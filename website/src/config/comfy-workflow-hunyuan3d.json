@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "input_image_node": "1",
+    "description": "Hunyuan3D-2 image-to-3D workflow. __INPUT_IMAGE__ is replaced at runtime with the uploaded filename."
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "__INPUT_IMAGE__",
+      "upload": "image"
+    }
+  },
+  "2": {
+    "class_type": "Hunyuan3D_SVI",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ]
+    }
+  },
+  "3": {
+    "class_type": "Hunyuan3D_Gen",
+    "inputs": {
+      "svi": [
+        "2",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "SaveGLB",
+    "inputs": {
+      "glb": [
+        "3",
+        0
+      ],
+      "filename_prefix": "hunyuan3d"
+    }
+  }
+}

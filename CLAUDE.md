@@ -6,12 +6,12 @@ Before responding to any request, check these signals and delegate to the named 
 
 | Signals | Agent |
 |---------|-------|
-| `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend | `bachelorprojekt-website` |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing" | `bachelorprojekt-ops` |
-| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
-| test, `FA-*`, `SA-*`, `NFA-*`, BATS, Playwright, `runner.sh`, test case | `bachelorprojekt-test` |
-| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline | `bachelorprojekt-db` |
-| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate | `bachelorprojekt-security` |
+| `website/`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend, design | `bachelorprojekt-website` |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running" | `bachelorprojekt-ops` |
+| `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, `flux/`, deploy | `bachelorprojekt-infra` |
+| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, BATS, Playwright, `runner.sh`, test case, "test failing", "write a test" | `bachelorprojekt-test` |
+| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` |
+| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
 
 **Before dispatching any agent, inject active plan context:**
 Run `bash scripts/plan-context.sh <role>` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output (no active plans for that role), omit the block entirely.

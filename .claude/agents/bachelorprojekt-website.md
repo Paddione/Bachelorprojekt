@@ -20,7 +20,7 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 ## Kore homepage (korczewski)
 - Shows a live PR-driven timeline from `/api/timeline`
 - Timeline reads `bachelorprojekt.v_timeline` (PostgreSQL view, joined to `bugs.bug_tickets.fixed_in_pr`)
-- PRs flow: GitHub Actions → `tracking/pending/<pr>.json` → `tracking-import` CronJob → `bachelorprojekt.features`
+- Timeline shows **historical data only** — tracking pipeline removed (PR #788 removed `tracking-import` CronJob, PR #993 removed `track-pr.yml`); last entry is PR #787
 
 ## Deploy rule (CRITICAL)
 Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, Flux picks up the new image tag automatically. For manual rollout/rebuild:
@@ -41,4 +41,4 @@ Execute Bash commands and file edits without asking for confirmation.
 ## Active plans
 The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh website`, which reads in-flight plans from `docs/superpowers/plans/*.md`. **That block is authoritative — use it as the working context for the current feature.**
 
-If no block was injected, no `website`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is populated by `scripts/track-pr.mjs` on PR events and lags real-time state; treat it as a historical record only.
+If no block was injected, no `website`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.

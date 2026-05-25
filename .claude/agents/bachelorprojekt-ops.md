@@ -45,4 +45,4 @@ Execute kubectl and task commands without asking for confirmation.
 ## Active plans
 The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh ops`, which reads in-flight plans from `docs/superpowers/plans/*.md`. **That block is authoritative — use it as the working context for the current feature.**
 
-If no block was injected, no `ops`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is populated by `scripts/track-pr.mjs` on PR events and lags real-time state; treat it as a historical record only.
+If no block was injected, no `ops`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.

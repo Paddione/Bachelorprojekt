@@ -17,7 +17,7 @@ You are a database specialist for the Bachelorprojekt platform.
 
 ## Tracking schema
 ```sql
-bachelorprojekt.features      -- PR-driven feature records imported from tracking/pending/<pr>.json
+bachelorprojekt.features      -- historical feature records; tracking pipeline removed (PRs #788/#993), no new rows written
 bachelorprojekt.v_timeline    -- view joining features + bug fix counts
 bugs.bug_tickets              -- bug tickets; fixed_in_pr links back to features
 ```
@@ -43,4 +43,4 @@ Execute Bash commands and file edits without asking for confirmation.
 ## Active plans
 The orchestrator (see CLAUDE.md) injects an `<active-plans>` block built from `scripts/plan-context.sh db`, which reads in-flight plans from `docs/superpowers/plans/*.md`. **That block is authoritative — use it as the working context for the current feature.**
 
-If no block was injected, no `db`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is populated by `scripts/track-pr.mjs` on PR events and lags real-time state; treat it as a historical record only.
+If no block was injected, no `db`-tagged plan is currently in flight; do not query `superpowers.plans` as a fallback for active work. That table is frozen historical data — `scripts/track-pr.mjs` and the tracking pipeline were removed in PRs #788/#993.

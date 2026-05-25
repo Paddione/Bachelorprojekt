@@ -85,13 +85,42 @@
 <span class="fn">task</span> feature:brett             <span class="cm"># Fan-Out: build + deploy auf BEIDE Cluster</span>
 <span class="fn">task</span> brett:logs ENV=&lt;env&gt;      <span class="cm"># Logs tailen</span></code></pre>
 
+  <h2 class="section-label">Brett Skin Management API</h2>
+  <p>Mixamo-GLB-Skins können über die Admin-geschützte REST-API hoch- und heruntergeladen werden.
+     Alle Skin-Dateien landen unter <code>brett/public/assets/skins/&lt;id&gt;/</code>.</p>
+
+  <pre><code><span class="cm"># Alle verfügbaren Skins abrufen (öffentlich)</span>
+GET /api/skins
+<span class="cm"># → [{ id, name, thumb, animations }, …]  (erstes Element immer "default" Mannequin)</span>
+
+<span class="cm"># Skin hochladen (Admin, multipart/form-data)</span>
+POST /api/skins/upload
+<span class="cm">#   fields: name (string), glb (file, max 20 MB), thumb (file, optional, max 512 KB)</span>
+<span class="cm">#   Das GLB muss ein mixamorigHips-Bone enthalten — sonst HTTP 400</span>
+<span class="cm"># → 201 { id, name, thumb, animations }</span>
+
+<span class="cm"># Skin löschen (Admin; "default"-Skin ist schreibgeschützt)</span>
+DELETE /api/skins/:id
+<span class="cm"># → 204 (gelöscht) | 400 (default) | 404 (nicht gefunden)</span></code></pre>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body">
+      <code>POST /api/skins/upload</code> läuft durch <code>validateGlb()</code> — GLBs ohne
+      <code>mixamorigHips</code>-Bone werden mit HTTP 400 abgelehnt. Nur Mixamo-Rigs sind kompatibel.
+    </div>
+  </div>
+
   <h2 class="section-label">Brett Unit Tests (vor PR erforderlich)</h2>
   <pre><code>npm ci --prefix brett && \
   node --test brett/test/ws-reconnect.test.mjs \
        brett/test/physics.test.js \
        brett/test/damage.test.mjs \
        brett/test/pickups.test.mjs \
-       brett/test/mode-state.test.mjs
+       brett/test/mode-state.test.mjs \
+       brett/test/skin-validator.test.js \
+       brett/test/skin-catalog.test.js \
+       brett/test/skin-upload.test.js
 
 <span class="cm"># Systembrett-Template-Validierung</span>
 ./scripts/tests/systembrett-template.test.sh</code></pre>

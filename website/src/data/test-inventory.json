@@ -84,6 +84,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:debug-auth",
+    "file": "tests/e2e/specs/debug-auth.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-admin-backup-settings",
     "file": "tests/e2e/specs/fa-admin-backup-settings.spec.ts",
     "category": "E2E",
@@ -860,6 +866,12 @@
   {
     "id": "FA-45",
     "file": "tests/e2e/specs/fa-45-authenticated-flows.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-46",
+    "file": "tests/e2e/specs/fa-46-brett-skins.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },

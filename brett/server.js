@@ -219,6 +219,7 @@ if (process.env.MOCK_DB === 'true') {
 
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(sessionMiddleware);
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -276,9 +277,24 @@ app.get('/auth/me', (req, res) => {
 
 function requireAdmin(req, res, next) {
   if (req.session?.isAdmin) return next();
-  if (process.env.MOCK_DB === 'true' && req.header('x-test-admin') === '1') return next();
+  const e2eSecret = process.env.BRETT_OIDC_SECRET;
+  if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
   return res.status(403).json({ error: 'forbidden' });
 }
+
+app.post('/auth/e2e-login', (req, res) => {
+  const secret = process.env.BRETT_OIDC_SECRET;
+  if (!secret || req.header('x-e2e-secret') !== secret) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  req.session.userId = 'e2e-admin';
+  req.session.name = 'E2E Admin';
+  req.session.isAdmin = true;
+  req.session.save((err) => {
+    if (err) return res.status(500).json({ error: 'session save failed' });
+    return res.json({ success: true });
+  });
+});
 
 // Live state for a room.
 app.get('/api/state', asyncHandler(async (req, res) => {

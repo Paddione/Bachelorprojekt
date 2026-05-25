@@ -192,6 +192,7 @@ export default defineConfig({
         '**/brett-mayhem.spec.ts',
         '**/brett-controls.spec.ts',   // WASD movement
         '**/brett-mannequin.spec.ts',  // mannequin focus
+        '**/fa-46-*.spec.ts',          // Brett character skins
       ],
       use: {
         ...devices['Desktop Chrome'],

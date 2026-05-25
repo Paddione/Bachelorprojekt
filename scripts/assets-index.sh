@@ -21,6 +21,7 @@ classify_type() {
     ogg|mp3|wav|flac|aac) echo "audio" ;;
     png|jpg|jpeg|webp|svg|gif|avif|ico) echo "image" ;;
     mp4|webm|mov|avi) echo "video" ;;
+    glb|gltf) echo "model_3d" ;;
     *) echo "document" ;;
   esac
 }

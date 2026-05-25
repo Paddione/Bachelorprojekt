@@ -397,6 +397,15 @@ spec:
                   optional: true
             - name: EVIDENCE_ROOT
               value: "/var/evidence"
+            - name: COMFY_HOST_IP
+              value: "${COMFY_HOST_IP}"
+            - name: COMFY_PORT
+              value: "${COMFY_PORT}"
+            - name: BRETT_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: BRETT_OIDC_SECRET
           volumeMounts:
             - name: evidence
               mountPath: /var/evidence

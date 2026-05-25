@@ -227,6 +227,7 @@ const Mayhem = (() => {
       window.dispatchEvent(new CustomEvent('brett:mayhem-enabled'));
     } else {
       stop();
+      window.dispatchEvent(new CustomEvent('brett:mayhem-disabled'));
     }
   }
   function toggle() {

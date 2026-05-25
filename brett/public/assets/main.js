@@ -29,7 +29,7 @@ if (chosen === 'mayhem') {
     const mayhemBtn = document.createElement('button');
     mayhemBtn.id = 'mayhem-btn';
     mayhemBtn.type = 'button';
-    mayhemBtn.style.marginLeft = '8px';
+    mayhemBtn.style.cssText = 'margin-left:8px;border:1px solid rgba(231,234,208,0.18);border-radius:4px;padding:4px 10px;background:transparent;color:inherit;font:inherit;cursor:pointer;';
     mayhemBtn.textContent = '🤸 Mayhem';
     mayhemBtn.addEventListener('click', () => window.Mayhem?.toggle());
     presets.appendChild(mayhemBtn);
@@ -42,6 +42,15 @@ if (chosen === 'mayhem') {
     ctrlBtn.textContent = '⚙';
     ctrlBtn.addEventListener('click', () => window.MayhemControlsPanel?.openControlsPanel());
     presets.appendChild(ctrlBtn);
+
+    // Reflect Mayhem on/off state visually on the toggle button
+    const setMayhemBtnActive = (on) => {
+      mayhemBtn.style.borderColor = on ? '#c8f76a' : 'rgba(231,234,208,0.18)';
+      mayhemBtn.style.color = on ? '#c8f76a' : 'inherit';
+      mayhemBtn.title = on ? 'Mayhem beenden (M)' : 'Mayhem starten (M)';
+    };
+    window.addEventListener('brett:mayhem-enabled',  () => setMayhemBtnActive(true));
+    window.addEventListener('brett:mayhem-disabled', () => setMayhemBtnActive(false));
   }
 
   // Init Mayhem via deferred bridge (WS is open by the time mode select resolves)

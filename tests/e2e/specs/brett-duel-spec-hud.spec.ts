@@ -30,14 +30,23 @@ test('spectator HUD shows portraits + BO3 round dots during a duel', async ({ br
     : await browser.newContext({ ignoreHTTPSErrors: true, storageState: BRETT_STATE_FILE });
 
   const pageSpec = await ctxSpec.newPage();
+  
+  // Log console and errors from page
+  pageSpec.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  pageSpec.on('pageerror', err => console.log('PAGE ERROR:', err.message));
+
   const room = `e2e-spec-hud-${Date.now()}`;
 
   await pageSpec.goto(`${BRETT_URL}/?room=${room}`);
   
-  // If mode select overlay is visible, click "mayhem" to boot the game
-  const mayhemCard = pageSpec.locator('.mode-card-mayhem');
-  if (await mayhemCard.isVisible({ timeout: 5000 }).catch(() => false)) {
+  // Wait for the mode select overlay to become visible and click "mayhem" to boot the game
+  try {
+    const mayhemCard = pageSpec.locator('.mode-card-mayhem');
+    await mayhemCard.waitFor({ state: 'visible', timeout: 5000 });
     await mayhemCard.click({ force: true });
+    console.log('Clicked mayhemCard successfully');
+  } catch (err) {
+    console.log('Mode select overlay did not appear or click failed:', err.message);
   }
 
   await pageSpec.waitForFunction(() => !!(window as W).Mayhem?._initialized, { timeout: 20_000 });

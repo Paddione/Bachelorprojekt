@@ -1,6 +1,6 @@
 ---
 name: fleet-ops
-description: Use when deploying, verifying, or operating across both prod clusters simultaneously — mentolder and korczewski. Covers task feature:* fan-out, cross-cluster schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
+description: Use when deploying, verifying, or operating across both prod clusters simultaneously — mentolder and korczewski. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-cluster schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
 ---
 
 # fleet-ops — Two-Cluster Fleet Operations
@@ -31,6 +31,73 @@ task clusters:status       # One-line status across both
 ```
 
 Use `task workspace:deploy ENV=mentolder` + `ENV=korczewski` sequentially when you need finer control than the fan-out tasks.
+
+---
+
+## Promotion with Smoke Gate (`feature:promote`)
+
+`task feature:promote` is the dev → prod flow for service-image changes (website, brett, arena, docs). Differs from `feature:website` / `feature:brett` etc. in three ways:
+
+1. **Build-once-deploy-many** — one image tag (`promote-<sha>-<epoch>`) is built and pushed once, then `kubectl set image` applies the *byte-identical* artifact to dev and prod. Exception: `website` is brand-baked at build time, so mentolder + korczewski each build their own image (still build-once within each brand's dev→prod lineage).
+2. **Playwright smoke gate** between dev and prod. Failure aborts before any prod rollout.
+3. **Auto-rollback** — every `kubectl set image` is gated by `rollout status`; failure runs `rollout undo` on that deployment and exits non-zero. Cross-cluster rollback is *not* automatic — clusters that already shipped stay shipped.
+
+### Docs to both clusters
+
+`docs` has no dev stage and ignores `TARGET` (always fans out to both). Full happy path:
+
+```bash
+# 1. Dry-run first to see exactly what would execute.
+DRY_RUN=1 SERVICE=docs TARGET=both task feature:promote
+
+# 2. Real run.
+SERVICE=docs TARGET=both task feature:promote
+```
+
+What it does, in order:
+
+| Phase | Side effect |
+|---|---|
+| 1 | `node scripts/build-docs.js` regenerates `k3d/docs-content-built/` from the Markdown source. |
+| 1 | `docker build -f scripts/docs.Dockerfile .` produces `ghcr.io/paddione/workspace-docs:promote-<sha>-<epoch>`. |
+| 1 | `docker push` uploads that tag to ghcr. |
+| 2-3 | Skipped (docs has no dev cluster mapping). |
+| 4 | `kubectl --context mentolder -n workspace set image deploy/docs docs=<tag>` + `rollout status --timeout=180s`. Failure → `rollout undo`. |
+| 4 | Same against `korczewski` / `workspace-korczewski`. Mentolder failure does *not* roll back korczewski; korczewski failure rolls back korczewski only. |
+
+### Other services
+
+| Service | dev stage? | TARGET behavior |
+|---|---|---|
+| `website` | yes (`workspace-dev` / `workspace-korczewski-dev`) | `both` builds two images (brand-per-cluster); single target builds one |
+| `brett` | yes (same ns as website) | one image shared across clusters |
+| `arena` | korczewski-only | `TARGET=mentolder` rejected; `TARGET=both` downgrades to `korczewski`. Migrations & bootstrap Job are *not* promoted — run `task arena:deploy ENV=korczewski` for those. |
+| `docs` | no | always both, `TARGET` ignored |
+
+### Smoke spec overrides
+
+`feature:promote` resolves the Playwright `--grep` pattern in this order:
+
+1. `SMOKE_GREP` env var (per-run override) — `SMOKE_GREP="fa-46-brett-skins" task feature:promote`
+2. `tests/e2e/smoke/<service>.txt` — one pattern per non-comment line, joined with `|`
+3. Built-in default in `scripts/feature-promote.sh`
+
+The override files live next to the Playwright suite and document the convention in `tests/e2e/smoke/README.md`.
+
+### Useful knobs
+
+| Env var | Purpose |
+|---|---|
+| `DRY_RUN=1` | Echo docker/kubectl/playwright commands without executing |
+| `PROMOTE_TAG=v1.2.3` | Override the auto-generated tag (e.g. for human-meaningful semver) |
+| `ROLLBACK_TIMEOUT=300s` | Raise rollout-status timeout from the default 180s |
+| `SMOKE_GREP=...` | Override Playwright filter for this run only |
+
+### When *not* to use `feature:promote`
+
+- **Manifest or kustomize changes** — `feature:promote` only moves the image bits via `kubectl set image`. If a Deployment YAML, ConfigMap, Service, or kustomize overlay changed, run the full `task <svc>:deploy ENV=…` (or `feature:website` / `feature:brett`) once so the manifest lands.
+- **Schema migrations or bootstrap Jobs** — these run in `*:deploy` tasks, not in `feature:promote`. Arena migrations specifically: `task arena:deploy ENV=korczewski`.
+- **First-time deploy of a service** — the target Deployment must already exist; `kubectl set image` fails if `deploy/<name>` is missing.
 
 ---
 

@@ -79,6 +79,12 @@ tasks:
       - task: livekit:dns-pin
         vars: { ENV: "korczewski", APPLY: "true" }
 
+  feature:promote:
+    desc: "Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett|arena|docs TARGET=mentolder|korczewski|both; prompts if unset)"
+    interactive: true
+    cmds:
+      - bash scripts/feature-promote.sh
+
   health:
     desc: "Cross-cluster health check (status + connectivity + deployment verification)"
     cmds:

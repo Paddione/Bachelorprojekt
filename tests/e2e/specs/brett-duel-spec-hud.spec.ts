@@ -43,7 +43,10 @@ test('spectator HUD shows portraits + BO3 round dots during a duel', async ({ br
   try {
     const mayhemCard = pageSpec.locator('.mode-card-mayhem');
     await mayhemCard.waitFor({ state: 'visible', timeout: 5000 });
-    await mayhemCard.click({ force: true });
+    await pageSpec.evaluate(() => {
+      const btn = document.querySelector('.mode-card-mayhem') as HTMLButtonElement;
+      if (btn) btn.click();
+    });
     console.log('Clicked mayhemCard successfully');
   } catch (err) {
     console.log('Mode select overlay did not appear or click failed:', err.message);

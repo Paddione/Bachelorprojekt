@@ -1663,7 +1663,19 @@ const Mayhem = (() => {
 
   return {
     init, toggle, setEnabled, onSnapshot, onMessage, tick,
-    _internal: { remoteAvatars, vehicles, get localAvatar() { return localAvatar; } },
+    get _initialized() { return _initDone; },
+    _internal: {
+      remoteAvatars,
+      vehicles,
+      get localAvatar() { return localAvatar; },
+      get _isSpectator() { return _isSpectator; },
+      set _isSpectator(val) { _isSpectator = val; },
+      get _specTarget() { return _specTarget; },
+      set _specTarget(val) { _specTarget = val; },
+      get gameMode() { return gameMode; },
+      set gameMode(val) { gameMode = val; },
+      _showSpectatorHud,
+    },
   };
 })();
 

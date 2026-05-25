@@ -1,6 +1,18 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.13.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.12.0...brett-v0.13.0) (2026-05-25)
+
+
+### Features
+
+* **brett:** polished 1v1 duel — spectator HUD, SFX, server-auth scoring, rematch flow ([#1096](https://github.com/Paddione/Bachelorprojekt/issues/1096)) ([de3a09b](https://github.com/Paddione/Bachelorprojekt/commit/de3a09becceb1233cfea3ed642b37581ce234ca2))
+
+
+### Bug Fixes
+
+* **brett:** mayhem button toggle state + disable event ([#1091](https://github.com/Paddione/Bachelorprojekt/issues/1091)) ([b217a88](https://github.com/Paddione/Bachelorprojekt/commit/b217a88868fb412e59b6e098f8fb28f44da60889))
+
 ## [0.12.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.11.0...brett-v0.12.0) (2026-05-25)
 
 

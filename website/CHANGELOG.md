@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.12.0...website-v1.13.0) (2026-05-25)
+
+
+### Features
+
+* **admin:** Aktionen-Tab — Gekko-operative Selbstständigkeit [T000272] ([#1097](https://github.com/Paddione/Bachelorprojekt/issues/1097)) ([ddd5ecc](https://github.com/Paddione/Bachelorprojekt/commit/ddd5ecc4c5f514f6609ba3ecf46bba182846b366))
+
 ## [1.12.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.11.0...website-v1.12.0) (2026-05-25)
 
 

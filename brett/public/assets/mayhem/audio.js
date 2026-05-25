@@ -32,6 +32,11 @@ const SFX_MAP = {
   'vehicle-repair':     SFX_ROOT + 'vehicle-repair.ogg',
   'hero-stealth':       SFX_ROOT + 'hero-stealth.ogg',
   'hero-teleport':      SFX_ROOT + 'hero-teleport.ogg',
+
+  // Duel theatre
+  'duel-gong':          SFX_ROOT + 'duel-gong.ogg',
+  'ko-stinger':         SFX_ROOT + 'ko-stinger.ogg',
+  'crowd-cheer':        SFX_ROOT + 'crowd-cheer.ogg',
 };
 
 class MayhemAudio {
@@ -40,6 +45,11 @@ class MayhemAudio {
     this._buffers = {};
     this._ready = false;
     this._fireLoop = null;   // currently playing fire ambient node
+  }
+
+  // Public method to play one-shot sounds
+  play(key, volume = 1, pitchShift = 0) {
+    this._play(key, volume, pitchShift);
   }
 
   // Call once after a user gesture to unlock AudioContext and preload all buffers.

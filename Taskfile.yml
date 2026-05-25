@@ -1299,11 +1299,11 @@ tasks:
       ENV: '{{.ENV}}'
     cmds:
       - |
-        context="$(grep 'context:' environments/{{.ENV}}.yaml | head -1 | sed 's/.*: *//' | tr -d '\"')"
+        source scripts/env-resolve.sh "{{.ENV}}"
         mkdir -p environments/certs
         kubeseal --controller-name=sealed-secrets \
                  --controller-namespace=sealed-secrets \
-                 --context "$context" \
+                 --context "$ENV_CONTEXT" \
                  --fetch-cert > "environments/certs/{{.ENV}}.pem"
         echo "Certificate saved to environments/certs/{{.ENV}}.pem"
 
@@ -1464,6 +1464,8 @@ tasks:
             "pod-security.kubernetes.io/enforce=privileged" \
             "pod-security.kubernetes.io/warn=restricted" \
             --overwrite
+          # Apply website-schema ConfigMap first as shared-db expects it for schema init
+          kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f k3d/website-schema.yaml
           sed "s/namespace: workspace$/namespace: ${_ws_ns}/g" k3d/shared-db.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
@@ -2982,43 +2984,31 @@ tasks:
   # Cert-Manager — wildcard TLS via DNS-01/lego
   # ─────────────────────────────────────────────
   cert:install:
-    desc: Install cert-manager + lego DNS-01 webhook for wildcard certs
-    preconditions:
-      - sh: kubectl cluster-info > /dev/null 2>&1
-        msg: "No cluster running. Run 'task cluster:create' first."
+    desc: Install cert-manager + lego DNS-01 webhook for wildcard certs (ENV=dev|mentolder|korczewski selects cluster context)
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
     cmds:
-      # Install cert-manager.
-      #
-      # podDnsPolicy=Default forces the cert-manager controller to use the
-      # node's /etc/resolv.conf instead of the cluster's CoreDNS service.
-      # On hybrid clusters where the only public-IP node (e.g. korczewski's
-      # pk-hetzner) cannot reach pods on private home nodes via the CNI
-      # overlay, the in-cluster CoreDNS Service is unreachable and ACME
-      # registration fails with `dial tcp: lookup acme-v02.api.letsencrypt.org:
-      # i/o timeout`. Default DNS policy bypasses this entirely. Harmless
-      # on single-network clusters.
-      - helm repo add jetstack https://charts.jetstack.io --force-update
-      - helm repo update
       - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if ! kubectl --context "$ENV_CONTEXT" cluster-info >/dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}} context $ENV_CONTEXT" >&2; exit 1
+        fi
+
+        helm repo add jetstack https://charts.jetstack.io --force-update
+        helm repo update
+
         helm upgrade --install cert-manager jetstack/cert-manager \
           --namespace cert-manager --create-namespace \
+          --kube-context "$ENV_CONTEXT" \
           --set crds.enabled=true \
           --set podDnsPolicy=Default \
           --wait --timeout=180s
-      # If cert-manager was installed before this fix landed, the running
-      # Deployment still has dnsPolicy=ClusterFirst. Patch it idempotently
-      # so reruns of cert:install also fix existing installations.
-      - |
-        kubectl patch deploy -n cert-manager cert-manager \
+
+        kubectl patch deploy -n cert-manager cert-manager --context "$ENV_CONTEXT" \
           --type=merge -p '{"spec":{"template":{"spec":{"dnsPolicy":"Default"}}}}' \
           2>/dev/null || true
-      # Pin cert-manager controller to Hetzner nodes. On the mentolder hybrid
-      # cluster, home-LAN nodes (k3s-* / k3w-*) NAT outbound traffic and
-      # can't establish a reliable HTTPS connection to acme-v02.api.letsencrypt.org.
-      # The controller must run on a Hetzner node with direct public internet access.
-      # Same constraint as the lego-webhook below.
-      - |
-        kubectl patch deploy -n cert-manager cert-manager \
+
+        kubectl patch deploy -n cert-manager cert-manager --context "$ENV_CONTEXT" \
           --type=merge -p '{
             "spec":{"template":{"spec":{"affinity":{"nodeAffinity":{
               "requiredDuringSchedulingIgnoredDuringExecution":{
@@ -3030,23 +3020,18 @@ tasks:
               }
             }}}}}
           }' 2>/dev/null || true
-      # Install cert-manager-lego-webhook
-      - helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update
-      - helm repo update
-      - |
+
+        helm repo add cert-manager-lego-webhook https://yxwuxuanl.github.io/cert-manager-lego-webhook/ --force-update
+        helm repo update
+
         helm upgrade --install cert-manager-lego-webhook cert-manager-lego-webhook/cert-manager-lego-webhook \
           --namespace cert-manager \
+          --kube-context "$ENV_CONTEXT" \
           --set certManager.namespace=cert-manager \
           --set certManager.serviceAccountName=cert-manager \
           --wait --timeout=120s
-      # Pin the lego webhook to Hetzner CPs. The kube-apiserver runs on host
-      # network of the Hetzner CPs and APIService discovery (`/apis/...`) dials
-      # the webhook pod IP directly. From a Hetzner CP host → home-LAN worker
-      # pod CIDR (e.g. 10.42.6.0/24 on k3w-2), the Flannel tunnel route isn't
-      # reliable, so kube-apiserver times out and APIService goes FailedDiscovery.
-      # Same constraint as CoreDNS: stay on Hetzner nodes.
-      - |
-        kubectl patch deploy -n cert-manager cert-manager-lego-webhook \
+
+        kubectl patch deploy -n cert-manager cert-manager-lego-webhook --context "$ENV_CONTEXT" \
           --type=merge -p '{
             "spec":{"template":{"spec":{"affinity":{"nodeAffinity":{
               "requiredDuringSchedulingIgnoredDuringExecution":{
@@ -3058,8 +3043,8 @@ tasks:
               }
             }}}}}
           }' 2>/dev/null || true
-      - echo "✓ cert-manager + lego webhook installed"
-      - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key>'' to store credentials"'
+      - echo "✓ cert-manager + lego webhook installed on {{.ENV}}"
+      - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key> ENV={{.ENV}}'' to store credentials"'
 
   cert:secret:
     desc: "Override ipv64 API key imperatively (normally managed via sealed secrets in environments/sealed-secrets/<env>.yaml). ENV=dev|mentolder|korczewski selects target cluster + workspace ns."
@@ -3076,20 +3061,26 @@ tasks:
         if ! kubectl $CTX cluster-info > /dev/null 2>&1; then
           echo "No cluster reachable for ENV={{.ENV}}." >&2; exit 1
         fi
-        # Ensure target namespace exists (workspace may not yet exist on a fresh cluster)
+        # Ensure target namespaces exist
         kubectl $CTX create namespace "$NS" --dry-run=client -o yaml | kubectl $CTX apply -f -
+        kubectl $CTX create namespace cert-manager --dry-run=client -o yaml | kubectl $CTX apply -f -
+
         kubectl $CTX create secret generic ipv64-api-key \
           --namespace cert-manager \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
           --dry-run=client -o yaml | kubectl $CTX apply -f -
         kubectl $CTX annotate secret ipv64-api-key -n cert-manager sealedsecrets.bitnami.com/managed="true" --overwrite
+
         kubectl $CTX create secret generic ipv64-api-key \
           --namespace "$NS" \
           --from-literal=IPV64_API_KEY={{.CLI_ARGS}} \
           --dry-run=client -o yaml | kubectl $CTX apply -f -
         kubectl $CTX annotate secret ipv64-api-key -n "$NS" sealedsecrets.bitnami.com/managed="true" --overwrite
-        kubectl $CTX set env deployment/cert-manager-lego-webhook \
-          -n cert-manager --from=secret/ipv64-api-key
+
+        if kubectl $CTX get deployment/cert-manager-lego-webhook -n cert-manager &>/dev/null; then
+          kubectl $CTX set env deployment/cert-manager-lego-webhook \
+            -n cert-manager --from=secret/ipv64-api-key
+        fi
         echo "✓ Secret 'ipv64-api-key' created/updated in cert-manager + ${NS} (ENV={{.ENV}})"
 
   cert:status:

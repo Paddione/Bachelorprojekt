@@ -12,7 +12,7 @@ check_prerequisites() {
   local exit_code=0
 
   # Required tools
-  local required=(kubectl docker k3d jq curl kustomize)
+  local required=(kubectl docker k3d jq curl kustomize yq)
   for cmd in "${required[@]}"; do
     if command -v "$cmd" &>/dev/null; then
       echo "  [OK]  ${cmd} ($(command -v "$cmd"))"

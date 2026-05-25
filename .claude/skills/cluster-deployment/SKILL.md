@@ -23,7 +23,8 @@ When setting up a new environment from scratch, you must execute the steps in th
 2. **Fetch cluster sealing certificate** (`env:fetch-cert`) must run *after* a cluster reset to update the sealing keys.
 3. **Seal secrets** (`env:seal`) must occur *after* fetching the certificate, using the correct keypair.
 4. **Install cert-manager** (`cert:install`) must be done to provision CRDs *before* `workspace:deploy` is called.
-5. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
+5. **DNS API Secret** (`cert:secret -- <key>`) must be stored in both namespaces *before* deploying to avoid ACME challenge failures.
+6. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
 
 ---
 

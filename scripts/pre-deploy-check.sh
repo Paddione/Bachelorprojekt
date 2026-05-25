@@ -88,7 +88,7 @@ IS_DEV=false
 section "1. Tool prerequisites"
 # ════════════════════════════════════════════════════════════════════
 
-for tool in kubectl kustomize envsubst python3; do
+for tool in kubectl kustomize envsubst python3 yq; do
   if command -v "$tool" >/dev/null 2>&1; then
     pass "$tool found ($(command -v "$tool"))"
   else

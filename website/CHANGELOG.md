@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.10.0...website-v1.11.0) (2026-05-25)
+
+
+### Features
+
+* **brett:** add /auth/e2e-login bypass + FA-46 character skins E2E tests ([4804416](https://github.com/Paddione/Bachelorprojekt/commit/48044160d14380c37cce287f5f56d50e80924b63))
+
 ## [1.10.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.9.2...website-v1.10.0) (2026-05-24)
 
 

@@ -219,12 +219,35 @@ tasks:
         fi
         # Copy the latest backup snapshot from prod backup-pvc to a local tempdir,
         # then run dev-db-refresh.sh against the dev k3d Postgres at 127.0.0.1:15432.
-        TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
-        BACKUP_POD=$(kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get pod -l app=backup -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-        if [[ -z "$BACKUP_POD" ]]; then
-          echo "No pod with label app=backup in {{.NS_PROD}} on {{.CTX_PROD}}." >&2; exit 1
-        fi
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} cp "$BACKUP_POD:/backups" "$TMP/backups"
+        TMP=$(mktemp -d)
+        HELPER="db-refresh-helper-$$"
+        cleanup() {
+          kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} delete pod "$HELPER" --ignore-not-found --wait=false >/dev/null 2>&1 || true
+          rm -rf "$TMP"
+        }
+        trap cleanup EXIT
+        # Spawn an ephemeral pod mounting backup-pvc so we can kubectl cp from it.
+        # The CronJob's pods are Completed, so they can't be cp'd from.
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} apply -f - <<EOF
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          name: $HELPER
+          labels: { app: db-refresh-helper }
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: c
+            image: busybox:1.36
+            command: ["sh","-c","sleep 600"]
+            volumeMounts:
+            - { name: backup, mountPath: /backups, readOnly: true }
+          volumes:
+          - name: backup
+            persistentVolumeClaim: { claimName: backup-pvc }
+        EOF
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} wait --for=condition=Ready pod/$HELPER --timeout=120s
+        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} cp "$HELPER:/backups" "$TMP/backups"
         BACKUP_DIR="$TMP/backups" PGHOST=127.0.0.1 PGPORT=15432 bash scripts/dev-db-refresh.sh
 
   tunnel:

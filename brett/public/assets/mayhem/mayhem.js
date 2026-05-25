@@ -528,6 +528,7 @@ const Mayhem = (() => {
             }
 
           });
+        weaponSystem = localAvatar.weaponSystem;
         if (heroId === 'martina') {
           window._minionManager = new window.MayhemHeroes.MinionManager({
             maxMinions: 2,
@@ -1072,10 +1073,14 @@ const Mayhem = (() => {
     }
 
     // Tick AI bots — they drive their own avatars (already in remoteAvatars)
+    // pvAiBot is skipped here; it is ticked separately below with the correct enemy ref
     if (aiBots.size > 0) {
       const allCombatants = new Map(remoteAvatars);
       if (localAvatar) allCombatants.set(playerId, localAvatar);
-      for (const bot of aiBots.values()) bot.tick(dt, allCombatants);
+      for (const [id, bot] of aiBots) {
+        if (id === 'bot-pvai') continue;
+        bot.tick(dt, allCombatants);
+      }
     }
 
     for (const a of remoteAvatars.values()) a.update(dt, 0);

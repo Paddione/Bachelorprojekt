@@ -19,8 +19,9 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin');
           <button id="open-lobby" class="primary">Open lobby</button>
           <button id="start-solo" class="secondary" title="Start immediately against 3 AI bots — for testing">Start solo match</button>
           <button id="start-1v3" class="secondary" title="1v3 — you vs 3 bots, defeat means instant loss" style="background:#c9aa71;border-color:#c9aa71;color:#1a0e22;">1v3 vs Bots</button>
+          <button id="open-duel" class="secondary" title="1v1 Duel — share the code with one opponent, no bots" style="background:#a78bfa;border-color:#a78bfa;color:#1a0e22;">⚔ 1v1 Duel</button>
         </div>
-        <p class="hint"><strong>Open lobby</strong>: a 6-character code is generated and a banner appears across both brands for 60 seconds. <strong>Start solo match</strong>: skip the wait and drop straight into a 5-second countdown against 3 AI bots. <strong>1v3 vs Bots</strong>: same as solo, but your death ends the match immediately.</p>
+        <p class="hint"><strong>Open lobby</strong>: a 6-character code is generated and a banner appears across both brands for 60 seconds. <strong>Start solo match</strong>: skip the wait and drop straight into a 5-second countdown against 3 AI bots. <strong>1v3 vs Bots</strong>: same as solo, but your death ends the match immediately. <strong>1v1 Duel</strong>: opens a private lobby for exactly 2 humans — share the code, match starts automatically when your opponent joins.</p>
         <h2>Recent matches</h2>
         <table id="recent">
           <thead><tr><th>Started</th><th>Code</th><th>Winner</th><th>Humans</th><th>Bots</th></tr></thead>
@@ -35,6 +36,7 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin');
   const btn = document.getElementById('open-lobby') as HTMLButtonElement | null;
   const soloBtn = document.getElementById('start-solo') as HTMLButtonElement | null;
   const btn1v3 = document.getElementById('start-1v3') as HTMLButtonElement | null;
+  const btnDuel = document.getElementById('open-duel') as HTMLButtonElement | null;
   const tbody = document.querySelector('#recent tbody') as HTMLElement | null;
 
   async function postAndJoin(endpoint: string, source: HTMLButtonElement) {
@@ -42,6 +44,7 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin');
     if (btn) btn.disabled = true;
     if (soloBtn) soloBtn.disabled = true;
     if (btn1v3) btn1v3.disabled = true;
+    if (btnDuel) btnDuel.disabled = true;
     try {
       const res = await fetch(endpoint, { method: 'POST' });
       if (!res.ok) {
@@ -57,12 +60,14 @@ const isAdmin = (user.realmRoles ?? []).includes('arena_admin');
       if (btn) btn.disabled = false;
       if (soloBtn) soloBtn.disabled = false;
       if (btn1v3) btn1v3.disabled = false;
+      if (btnDuel) btnDuel.disabled = false;
     }
   }
 
   btn?.addEventListener('click', () => postAndJoin('/api/arena/start', btn));
   soloBtn?.addEventListener('click', () => postAndJoin('/api/arena/solo', soloBtn));
   btn1v3?.addEventListener('click', () => postAndJoin('/api/arena/1v3', btn1v3));
+  btnDuel?.addEventListener('click', () => postAndJoin('/api/arena/duel', btnDuel));
 
   async function loadMatches() {
     if (!tbody) return;

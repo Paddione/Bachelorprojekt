@@ -21,7 +21,7 @@ export function ArenaIsland({ wsUrl, lobbyCode, myKey }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [players, setPlayers] = useState<PlayerSlot[]>([]);
   const [lobbyPhase, setLobbyPhase] = useState<'open' | 'starting'>('open');
-  const [lobbyMode, setLobbyMode] = useState<'ffa' | 'one-v-three'>('ffa');
+  const [lobbyMode, setLobbyMode] = useState<'ffa' | 'one-v-three' | 'duel'>('ffa');
   const [countdownMs, setCountdownMs] = useState(0);
   const [initialMatchState, setInitialMatchState] = useState<MatchState | null>(null);
   const [results, setResults] = useState<{ results: MatchResult[]; matchId: string } | null>(null);

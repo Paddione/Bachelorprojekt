@@ -1234,5 +1234,11 @@
     "file": "tests/e2e/specs/sa-15-cross-cluster-health.spec.ts",
     "category": "SA",
     "kind": "playwright"
+  },
+  {
+    "id": "SA-21",
+    "file": "tests/e2e/specs/sa-21-admin-actions.spec.ts",
+    "category": "SA",
+    "kind": "playwright"
   }
 ]

@@ -192,3 +192,25 @@ export async function removeRealmRole(userId: string, roles: KcRole[]): Promise<
   const res = await kcApi('DELETE', `/users/${encodeURIComponent(userId)}/role-mappings/realm`, roles);
   return res.ok;
 }
+
+export interface KcGroup {
+  id: string;
+  name: string;
+  path?: string;
+}
+
+export async function listGroups(): Promise<KcGroup[]> {
+  const res = await kcApi('GET', '/groups?briefRepresentation=true');
+  if (!res.ok) throw new Error(`Keycloak listGroups failed: ${res.status}`);
+  return res.json();
+}
+
+export async function assignUserToGroups(userId: string, groupIds: string[]): Promise<boolean> {
+  for (const gid of groupIds) {
+    const res = await kcApi('PUT', `/users/${encodeURIComponent(userId)}/groups/${encodeURIComponent(gid)}`);
+    if (!res.ok && res.status !== 204) {
+      throw new Error(`Keycloak assignUserToGroups failed (gid=${gid}): ${res.status}`);
+    }
+  }
+  return true;
+}

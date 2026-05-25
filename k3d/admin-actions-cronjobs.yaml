@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: admin-actions-cleanup
+  namespace: workspace
+  labels:
+    app: admin-actions
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: psql
+              image: postgres:16-alpine
+              env:
+                - name: PGPASSWORD
+                  valueFrom: { secretKeyRef: { name: workspace-secrets, key: WEBSITE_DB_PASSWORD } }
+                - name: PGHOST
+                  value: shared-db
+                - name: PGUSER
+                  value: website
+                - name: PGDATABASE
+                  value: website
+              command:
+                - sh
+                - -c
+                - |
+                  psql -v ON_ERROR_STOP=1 -c "
+                    UPDATE public.admin_actions
+                    SET status = 'failed',
+                        error = 'Timeout — Aktion wurde nicht abgeschlossen',
+                        completed_at = now()
+                    WHERE status = 'in_progress'
+                      AND created_at < now() - interval '30 minutes';
+                  "
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: admin-actions-prune
+  namespace: workspace
+  labels:
+    app: admin-actions
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: psql
+              image: postgres:16-alpine
+              env:
+                - name: PGPASSWORD
+                  valueFrom: { secretKeyRef: { name: workspace-secrets, key: WEBSITE_DB_PASSWORD } }
+                - name: PGHOST
+                  value: shared-db
+                - name: PGUSER
+                  value: website
+                - name: PGDATABASE
+                  value: website
+              command:
+                - sh
+                - -c
+                - |
+                  psql -v ON_ERROR_STOP=1 -c "
+                    DELETE FROM public.admin_actions
+                    WHERE created_at < now() - interval '90 days';
+                  "

@@ -3,6 +3,7 @@
   import HardwareTab from './platform/HardwareTab.svelte';
   import HealthTab from './platform/HealthTab.svelte';
   import FluxCDTab from './platform/FluxCDTab.svelte';
+  import AktionenTab from './aktionen/AktionenTab.svelte';
   import DienstTab from './ops/DienstTab.svelte';
   import LogsTab from './ops/LogsTab.svelte';
   import DatenbankTab from './ops/DatenbankTab.svelte';
@@ -17,6 +18,7 @@
     { id: 'hardware', label: 'Hardware' },
     { id: 'health', label: 'Integrität', premium: true },
     { id: 'dienste', label: 'Dienste' },
+    { id: 'aktionen', label: 'Aktionen' },
     { id: 'logs', label: 'Logs' },
     { id: 'db', label: 'Datenbank' },
     { id: 'dns', label: 'Netzwerk' }
@@ -61,6 +63,10 @@
     {:else if activeTab === 'dienste'}
       <div class="admin-card">
         <DienstTab {cluster} />
+      </div>
+    {:else if activeTab === 'aktionen'}
+      <div class="admin-card">
+        <AktionenTab {cluster} />
       </div>
     {:else if activeTab === 'logs'}
       <div class="admin-card">

@@ -404,7 +404,7 @@ spec:
             - name: BRETT_OIDC_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: workspace-secrets
+                  name: website-secrets
                   key: BRETT_OIDC_SECRET
           volumeMounts:
             - name: evidence

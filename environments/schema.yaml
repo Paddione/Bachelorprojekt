@@ -523,6 +523,9 @@ secrets:
     required: true
     generate: true
     length: 40
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
 
   # Claude Code
   - name: CLAUDE_CODE_OIDC_SECRET

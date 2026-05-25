@@ -141,6 +141,21 @@ patches:
           operator: In
           values:
             - k3s-1
+  # dev-db-refresh CronJob: must run on DEV_NODE (k3s-1) — uses hostNetwork to
+  # reach the k3d Postgres at 127.0.0.1:15432. Override the global CronJob
+  # NotIn patch so k3s-1 is allowed. The JSON path includes jobTemplate because
+  # CronJob wraps the PodSpec one level deeper than a Deployment.
+  - target:
+      kind: CronJob
+      name: dev-db-refresh
+    patch: |-
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
+        value:
+          key: kubernetes.io/hostname
+          operator: In
+          values:
+            - k3s-1
   - target:
       kind: Deployment
       name: brett

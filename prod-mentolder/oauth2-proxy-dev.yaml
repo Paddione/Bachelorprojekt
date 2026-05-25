@@ -16,6 +16,8 @@ metadata:
     app: oauth2-proxy-dev
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: oauth2-proxy-dev

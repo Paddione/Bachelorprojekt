@@ -295,6 +295,7 @@
   <line x1="34" y1="150" x2="34" y2="161" stroke="#ff757f" stroke-width="1" marker-end="url(#arr-security)"/>
   <line x1="109" y1="26" x2="109" y2="37" stroke="#c099ff" stroke-width="1" marker-end="url(#arr-ops)"/>
   <line x1="109" y1="57" x2="109" y2="68" stroke="#c099ff" stroke-width="1" marker-end="url(#arr-ops)"/>
+  <line x1="109" y1="88" x2="109" y2="99" stroke="#c099ff" stroke-width="1" marker-end="url(#arr-ops)"/>
   <line x1="176" y1="26" x2="176" y2="37" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-infra)"/>
   <line x1="176" y1="57" x2="176" y2="68" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-infra)"/>
   <line x1="176" y1="88" x2="176" y2="99" stroke="#86a68d" stroke-width="1" marker-end="url(#arr-infra)"/>
@@ -333,20 +334,25 @@
     <text x="34" y="200" text-anchor="middle" font-size="4.8" fill="#d4af37" font-weight="700">using-git</text>
     <text x="34" y="208" text-anchor="middle" font-size="4.8" fill="#d4af37">worktrees</text>
   </g>
-  <g class="net-node" data-skill="knowledge-management" data-cat="ops">
+  <g class="net-node" data-skill="dev-flow-iterate" data-cat="ops">
     <rect x="79" y="6" width="61" height="20" rx="3" fill="#110d1e" stroke="#c099ff" stroke-width="1"/>
-    <text x="109" y="14" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">knowledge</text>
-    <text x="109" y="22" text-anchor="middle" font-size="4.8" fill="#c099ff">management</text>
+    <text x="109" y="14" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">dev-flow</text>
+    <text x="109" y="22" text-anchor="middle" font-size="4.8" fill="#c099ff">iterate</text>
   </g>
-  <g class="net-node" data-skill="operations-management" data-cat="ops">
+  <g class="net-node" data-skill="knowledge-management" data-cat="ops">
     <rect x="79" y="37" width="61" height="20" rx="3" fill="#110d1e" stroke="#c099ff" stroke-width="1"/>
-    <text x="109" y="45" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">operations</text>
+    <text x="109" y="45" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">knowledge</text>
     <text x="109" y="53" text-anchor="middle" font-size="4.8" fill="#c099ff">management</text>
   </g>
-  <g class="net-node" data-skill="update-dependencies" data-cat="ops">
+  <g class="net-node" data-skill="operations-management" data-cat="ops">
     <rect x="79" y="68" width="61" height="20" rx="3" fill="#110d1e" stroke="#c099ff" stroke-width="1"/>
-    <text x="109" y="76" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">update</text>
-    <text x="109" y="84" text-anchor="middle" font-size="4.8" fill="#c099ff">dependencies</text>
+    <text x="109" y="76" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">operations</text>
+    <text x="109" y="84" text-anchor="middle" font-size="4.8" fill="#c099ff">management</text>
+  </g>
+  <g class="net-node" data-skill="update-dependencies" data-cat="ops">
+    <rect x="79" y="99" width="61" height="20" rx="3" fill="#110d1e" stroke="#c099ff" stroke-width="1"/>
+    <text x="109" y="107" text-anchor="middle" font-size="4.8" fill="#c099ff" font-weight="400">update</text>
+    <text x="109" y="115" text-anchor="middle" font-size="4.8" fill="#c099ff">dependencies</text>
   </g>
   <g class="net-node" data-skill="arena-brett-deploy" data-cat="infra">
     <rect x="146" y="6" width="61" height="20" rx="3" fill="#0a1a0f" stroke="#86a68d" stroke-width="1"/>
@@ -371,7 +377,7 @@
 </svg>
     </div>
 
-    <div class="ov-sb-list">
+        <div class="ov-sb-list">
       <div class="ov-sb-list-section">
         <span class="ov-sbl-head">DevFlow</span>
         <span class="ov-sbl-item" data-skill="dev-flow-e2e">dev-flow-e2e</span>
@@ -397,178 +403,10 @@
       </div>
       <div class="ov-sb-list-section">
         <span class="ov-sbl-head">Ops</span>
+        <span class="ov-sbl-item" data-skill="dev-flow-iterate">dev-flow-iterate</span>
         <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
         <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
         <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
-        <span class="ov-sbl-item" data-skill="cluster-deployment">cluster-deployment</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="host-node-networking">host-node-networking</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Database</span>
-        <span class="ov-sbl-item" data-skill="database-ops">database-ops</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Ops</span>
-        <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
-        <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
-        <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
-        <span class="ov-sbl-item" data-skill="cluster-deployment">cluster-deployment</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="host-node-networking">host-node-networking</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Database</span>
-        <span class="ov-sbl-item" data-skill="database-ops">database-ops</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Ops</span>
-        <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
-        <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
-        <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
-        <span class="ov-sbl-item" data-skill="cluster-deployment">cluster-deployment</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="host-node-networking">host-node-networking</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Database</span>
-        <span class="ov-sbl-item" data-skill="database-ops">database-ops</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Ops</span>
-        <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
-        <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
-        <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
-        <span class="ov-sbl-item" data-skill="cluster-deployment">cluster-deployment</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="host-node-networking">host-node-networking</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Database</span>
-        <span class="ov-sbl-item" data-skill="database-ops">database-ops</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Ops</span>
-        <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
-        <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
-        <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
-        <span class="ov-sbl-item" data-skill="cluster-deployment">cluster-deployment</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="host-node-networking">host-node-networking</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Database</span>
-        <span class="ov-sbl-item" data-skill="database-ops">database-ops</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Ops</span>
-        <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
-        <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
-        <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="cluster-deployment">cluster-deployment</span>
-        <span class="ov-sbl-item" data-skill="database-ops">database-ops</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="host-node-networking">host-node-networking</span>
-        <span class="ov-sbl-item" data-skill="knowledge-management">knowledge-management</span>
-        <span class="ov-sbl-item" data-skill="operations-management">operations-management</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Support</span>
-        <span class="ov-sbl-item" data-skill="dev-flow-e2e">dev-flow-e2e</span>
-      </div>
-    </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Infra</span>
-        <span class="ov-sbl-item" data-skill="hetzner-node">hetzner-node</span>
-        <span class="ov-sbl-item" data-skill="new-environment">new-environment</span>
-        <span class="ov-sbl-item" data-skill="deployment-assist">deployment-assist</span>
-        <span class="ov-sbl-item" data-skill="fleet-ops">fleet-ops</span>
-        <span class="ov-sbl-item" data-skill="flux-day2-ops">flux-day2-ops</span>
-        <span class="ov-sbl-item" data-skill="arena-brett-deploy">arena-brett-deploy</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">DB</span>
-        <span class="ov-sbl-item" data-skill="db-migration">db-migration</span>
-        <span class="ov-sbl-item" data-skill="backup-check">backup-check</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Security</span>
-        <span class="ov-sbl-item" data-skill="secret-rotation">secret-rotation</span>
-        <span class="ov-sbl-item" data-skill="keycloak-realm-sync">keycloak-realm-sync</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Ops</span>
-        <span class="ov-sbl-item" data-skill="coaching-pipeline">coaching-pipeline</span>
-        <span class="ov-sbl-item" data-skill="knowledge-reindex">knowledge-reindex</span>
-        <span class="ov-sbl-item" data-skill="ticket-management">ticket-management</span>
-        <span class="ov-sbl-item" data-skill="livekit-setup">livekit-setup</span>
-        <span class="ov-sbl-item" data-skill="dev-stack-ops">dev-stack-ops</span>
-        <span class="ov-sbl-item" data-skill="openclaw-ops">openclaw-ops</span>
-        <span class="ov-sbl-item" data-skill="update-dependencies">update-dependencies</span>
-      </div>
-      <div class="ov-sb-list-section">
-        <span class="ov-sbl-head">Support</span>
-        <span class="ov-sbl-item" data-skill="incident-response">incident-response</span>
-        <span class="ov-sbl-item" data-skill="mishap-tracker">mishap-tracker</span>
       </div>
     </div>
 
@@ -617,6 +455,13 @@
             <h3 class="ov-card-title">Worktree Management</h3>
             <p class="ov-card-desc">Native Isolation für parallele Tasks. Handhabt Submodules und Secrets-Symlinks.</p>
             <div class="ov-card-tags"><span class="ov-tag">Git</span><span class="ov-tag">Isolation</span></div>
+            <div class="ov-card-link-hint">Details ansehen</div>
+          </a>
+          <a href="skills/dev-flow-iterate.html" class="ov-card" data-skill="dev-flow-iterate">
+            <div class="ov-card-label"><code>dev-flow-iterate</code></div>
+            <h3 class="ov-card-title">dev-flow-iterate — Dev Cluster Full-Loop Iteration</h3>
+            <p class="ov-card-desc">Use when iterating on a dev k3d cluster (mentolder or korczewski) — deploys a surface, browses with Playwright MCP, tails pod logs, synthesizes issues, applies fixes, and loops until clean or user stops. Invoke standalone any time, or automatically from dev-flow-execute Step 4. Triggers on: &quot;iterate on dev&quot;, &quot;check dev cluster&quot;, &quot;test on dev&quot;, &quot;preview on dev&quot;, &quot;dev loop&quot;.</p>
+            <div class="ov-card-tags"><span class="ov-tag">DevFlow</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
         </div>
@@ -715,6 +560,13 @@
             <h3 class="ov-card-title">Dependency Maintenance</h3>
             <p class="ov-card-desc">Aktualisierung von Packages, Fix von Deprecation-Warnings und Security-Vulnerabilities.</p>
             <div class="ov-card-tags"><span class="ov-tag">Node</span><span class="ov-tag">Update</span></div>
+            <div class="ov-card-link-hint">Details ansehen</div>
+          </a>
+          <a href="skills/dev-flow-iterate.html" class="ov-card" data-skill="dev-flow-iterate">
+            <div class="ov-card-label"><code>dev-flow-iterate</code></div>
+            <h3 class="ov-card-title">dev-flow-iterate — Dev Cluster Full-Loop Iteration</h3>
+            <p class="ov-card-desc">Use when iterating on a dev k3d cluster (mentolder or korczewski) — deploys a surface, browses with Playwright MCP, tails pod logs, synthesizes issues, applies fixes, and loops until clean or user stops. Invoke standalone any time, or automatically from dev-flow-execute Step 4. Triggers on: &quot;iterate on dev&quot;, &quot;check dev cluster&quot;, &quot;test on dev&quot;, &quot;preview on dev&quot;, &quot;dev loop&quot;.</p>
+            <div class="ov-card-tags"><span class="ov-tag">Ops</span></div>
             <div class="ov-card-link-hint">Details ansehen</div>
           </a>
         </div>

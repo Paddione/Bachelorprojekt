@@ -1,6 +1,7 @@
 ---
 name: dev-flow-iterate
 description: Use when iterating on a dev k3d cluster (mentolder or korczewski) — deploys a surface, browses with Playwright MCP, tails pod logs, synthesizes issues, applies fixes, and loops until clean or user stops. Invoke standalone any time, or automatically from dev-flow-execute Step 4. Triggers on: "iterate on dev", "check dev cluster", "test on dev", "preview on dev", "dev loop".
+category: devflow
 ---
 
 # dev-flow-iterate — Dev Cluster Full-Loop Iteration

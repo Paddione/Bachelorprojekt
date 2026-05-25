@@ -57,7 +57,7 @@ env_vars:
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace-korczewski.svc.cluster.local:8081"
   ARENA_WS_URL: https://arena-ws.korczewski.de
   # Dev stack — k3d-korczewski-dev on PK-Desktop (local WSL2 workstation).
-  DEV_NODE: pk-desktop
+  DEV_NODE: k3d-dev
   DEV_SSH_USER: patrick
   DEV_DOMAIN: dev.korczewski.de
   DEV_WEBSITE_HOST: web.dev.korczewski.de

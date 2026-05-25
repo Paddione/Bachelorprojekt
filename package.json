@@ -7,6 +7,9 @@
     "test:build-docs": "node --test scripts/build-docs.test.js",
     "build:docs": "node scripts/build-docs.js"
   },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "dependencies": {
     "pg": "^8.21.0"
   },

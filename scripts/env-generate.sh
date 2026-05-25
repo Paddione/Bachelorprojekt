@@ -26,7 +26,7 @@ die() {
 }
 
 info() {
-  echo "INFO: $*"
+  echo "INFO: $*" >&2
 }
 
 usage() {
@@ -68,13 +68,14 @@ schema_field() {
   ' "$file"
 }
 
-# env_file_var <file> <key> — read a scalar from the env_vars: section of an env file
+# env_file_var <file> <key> [section] — read a scalar from a section of an env file
+# Section defaults to env_vars. Use setup_vars to read identity/setup values.
 env_file_var() {
-  local file="$1" key="$2"
+  local file="$1" key="$2" section="${3:-env_vars}"
   [[ -f "$file" ]] || return 0
-  awk -v keyname="$key" '
-    /^env_vars:/ { in_sect=1; next }
-    /^[a-z_]+:/ && !/^env_vars:/ { in_sect=0 }
+  awk -v keyname="$key" -v sect="$section" '
+    $0 ~ "^" sect ":" { in_sect=1; next }
+    /^[a-z_]+:/ { in_sect=0 }
     in_sect && $0 ~ "^[[:space:]]+" keyname ":" {
       val = $0
       sub(/^[^:]*:[[:space:]]*/, "", val)
@@ -84,6 +85,14 @@ env_file_var() {
       exit
     }
   ' "$file"
+}
+
+# can_prompt — true if a tty is reachable for an interactive read.
+# `-r /dev/tty` is not enough: the special file exists even in non-interactive
+# contexts (cron, CI), but opening it fails with ENXIO. Probe by actually
+# attempting to open it for reading.
+can_prompt() {
+  ( : </dev/tty ) 2>/dev/null
 }
 
 # ── Parse Arguments ──────────────────────────────────────────────
@@ -134,6 +143,8 @@ setup_keys=$(schema_keys "$SCHEMA" "setup_vars")
     generate=$(schema_field "$SCHEMA" "secrets" "$key" "generate")
     length=$(schema_field "$SCHEMA" "secrets" "$key" "length")
     encoding=$(schema_field "$SCHEMA" "secrets" "$key" "encoding")
+    required=$(schema_field "$SCHEMA" "secrets" "$key" "required")
+    default_dev=$(schema_field "$SCHEMA" "secrets" "$key" "default_dev")
 
     if [[ "$generate" == "true" ]]; then
       hex_len=${length:-32}
@@ -148,16 +159,44 @@ setup_keys=$(schema_keys "$SCHEMA" "setup_vars")
 
       echo "${key}: \"${value}\""
       info "  Generated: ${key} (${hex_len} hex chars)"
-    else
-      # If the same key is defined in env_vars of the env file, copy it.
-      # This keeps SMTP_FROM/SMTP_USER from diverging via typo at the prompt.
-      env_value=$(env_file_var "$ENV_FILE" "$key")
-      if [[ -n "$env_value" ]]; then
-        echo "${key}: \"${env_value}\""
-        info "  Set: ${key} (copied from ${ENV_FILE})"
+      continue
+    fi
+
+    # generate: false — try several sources before prompting
+
+    # 1. Copy from env file env_vars (keeps SMTP_FROM/SMTP_USER in sync)
+    env_value=$(env_file_var "$ENV_FILE" "$key")
+    if [[ -n "$env_value" ]]; then
+      echo "${key}: \"${env_value}\""
+      info "  Set: ${key} (copied from ${ENV_FILE})"
+      continue
+    fi
+
+    # 2. Schema default_dev (dev env only). Check the secret entry first, then
+    # the matching env_vars entry — some keys (SMTP_FROM, SMTP_USER) appear in
+    # both sections and only the env_vars entry carries a default.
+    if [[ "$ENV_NAME" == "dev" ]]; then
+      if [[ -n "$default_dev" ]]; then
+        echo "${key}: \"${default_dev}\""
+        info "  Set: ${key} (schema default_dev)"
         continue
       fi
+      env_default=$(schema_field "$SCHEMA" "env_vars" "$key" "default_dev")
+      if [[ -n "$env_default" ]]; then
+        echo "${key}: \"${env_default}\""
+        info "  Set: ${key} (schema env_vars.default_dev)"
+        continue
+      fi
+    fi
 
+    # 3. Optional + no source — skip silently
+    if [[ "$required" != "true" ]]; then
+      info "  Skipped: ${key} (optional, no value provided)"
+      continue
+    fi
+
+    # 4. Required — prompt if a tty is reachable, else die
+    if can_prompt; then
       echo "" >&2
       read -rp "Enter value for ${key}: " user_value </dev/tty
       if [[ -z "$user_value" ]]; then
@@ -165,22 +204,53 @@ setup_keys=$(schema_keys "$SCHEMA" "setup_vars")
       fi
       echo "${key}: \"${user_value}\""
       info "  Set: ${key} (user-provided)"
+    else
+      die "Required secret '${key}' has no value and no tty for prompting. Add it to ${ENV_FILE} (env_vars:) or pipe input."
     fi
   done <<< "$secret_keys"
 
-  # Prompt for setup_vars that are sealed: true (passwords that live in the K8s secret)
+  # setup_vars with sealed: true live in the K8s secret too.
   while IFS= read -r key; do
     [[ -z "$key" ]] && continue
     sealed=$(schema_field "$SCHEMA" "setup_vars" "$key" "sealed")
     [[ "$sealed" != "true" ]] && continue
 
-    echo "" >&2
-    read -rp "Enter value for ${key} (setup_var, sealed): " user_value </dev/tty
-    if [[ -z "$user_value" ]]; then
-      die "No value provided for sealed setup_var: ${key}"
+    required=$(schema_field "$SCHEMA" "setup_vars" "$key" "required")
+    default_dev=$(schema_field "$SCHEMA" "setup_vars" "$key" "default_dev")
+
+    # 1. Copy from env file setup_vars section
+    env_value=$(env_file_var "$ENV_FILE" "$key" "setup_vars")
+    if [[ -n "$env_value" ]]; then
+      echo "${key}: \"${env_value}\""
+      info "  Set: ${key} (copied from ${ENV_FILE} setup_vars)"
+      continue
     fi
-    echo "${key}: \"${user_value}\""
-    info "  Set: ${key} (sealed setup_var, user-provided)"
+
+    # 2. Schema default_dev (dev only)
+    if [[ "$ENV_NAME" == "dev" && -n "$default_dev" ]]; then
+      echo "${key}: \"${default_dev}\""
+      info "  Set: ${key} (schema default_dev)"
+      continue
+    fi
+
+    # 3. Optional + no source — skip
+    if [[ "$required" != "true" ]]; then
+      info "  Skipped: ${key} (optional setup_var, no value provided)"
+      continue
+    fi
+
+    # 4. Required — prompt or die
+    if can_prompt; then
+      echo "" >&2
+      read -rp "Enter value for ${key} (setup_var, sealed): " user_value </dev/tty
+      if [[ -z "$user_value" ]]; then
+        die "No value provided for sealed setup_var: ${key}"
+      fi
+      echo "${key}: \"${user_value}\""
+      info "  Set: ${key} (sealed setup_var, user-provided)"
+    else
+      die "Required sealed setup_var '${key}' has no value and no tty for prompting. Add it to ${ENV_FILE} (setup_vars:)."
+    fi
   done <<< "$setup_keys"
 } > "$OUTPUT"
 

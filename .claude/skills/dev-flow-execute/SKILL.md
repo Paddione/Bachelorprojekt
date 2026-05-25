@@ -308,16 +308,14 @@ Wenn der Gate übersprungen wird: **PR-Titel mit `[menu-gate-skip]` prefixen** u
 
 ---
 
-## Schritt 4: Pre-Merge Preview auf dev k3d (optional)
+## Schritt 4: Dev-Iteration (optional)
 
-> Der dev.mentolder.de Stack läuft auf k3s-1 (SSH-Zugang erforderlich). Prüfe mit `task dev:cluster:status`. Dieser Schritt ist optional — falls kein dev-Stack erreichbar, lokal verifizieren und direkt auf Prod deployen.
+Rufe `dev-flow-iterate` auf. Übergib:
+- `ENV`: Branch-Kontext (`mentolder` für alle mentolder-Branches, `korczewski` für korczewski-spezifische)
+- `SURFACE`: nicht setzen — der Skill erkennt es automatisch aus `git diff --name-only origin/main`
 
-```bash
-task dev:cluster:status
-task dev:deploy           # voller Stack — oder gezielt:
-task dev:redeploy:website # nur Website-Pod
-task dev:redeploy:brett   # nur Brett-Pod
-```
+Der Skill prüft Cluster-Erreichbarkeit selbst. Falls nicht erreichbar, beendet er sich sofort.
+Nach dem letzten Cycle übergibt er die Kontrolle zurück an Schritt 5 (PR).
 
 ---
 

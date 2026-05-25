@@ -12,6 +12,7 @@ data:
   BRAND_ID: korczewski
   WEBSITE_IMAGE: korczewski-website
   LLM_HOST_IP: "10.13.14.10"
+  COMFY_HOST_IP: "10.13.14.10"
   # TLS / cert-manager
   TLS_SECRET_NAME: korczewski-tls
   INFRA_NAMESPACE: korczewski-infra

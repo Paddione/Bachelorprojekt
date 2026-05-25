@@ -1,5 +1,12 @@
 'use strict';
 
+// crypto.randomUUID is only available in secure contexts (HTTPS/localhost).
+// Fall back to a getRandomValues-based v4 UUID for plain-HTTP dev.
+const randomUUID = typeof crypto.randomUUID === 'function'
+  ? () => crypto.randomUUID()
+  : () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+
 const Mayhem = (() => {
   const STATE_RATE_HZ    = 15;
   const VEHICLE_COOLDOWN_MS = 5000;
@@ -84,7 +91,7 @@ const Mayhem = (() => {
   function init(opts) {
     ({ scene, camera, canvas, makeMannequin, roomToken: room } = opts);
     send = opts.sendMessage;
-    playerId = crypto.randomUUID();
+    playerId = randomUUID();
     window._mayhemCamera = camera;
     window._mayhemMakeMannequin = makeMannequin;
     bindKeys();
@@ -358,7 +365,7 @@ const Mayhem = (() => {
     aiBots.clear();
 
     for (let i = 0; i < def.count; i++) {
-      const botId = 'bot-' + crypto.randomUUID();
+      const botId = 'bot-' + randomUUID();
       const pos   = nextSpawnPoint();
       const botMannequin = makeMannequin(botId, pos);
       const bot = new window.MayhemAIBot({
@@ -1112,7 +1119,7 @@ const Mayhem = (() => {
     const dirX = Math.cos(yaw), dirZ = -Math.sin(yaw);
     const fromX = localAvatar.mannequin.root.position.x - dirX * 6;
     const fromZ = localAvatar.mannequin.root.position.z - dirZ * 6;
-    const id = crypto.randomUUID();
+    const id = randomUUID();
     send({ type: 'vehicle_spawn', vehicleId: id, kind: 'cart',
            fromX, fromZ, dirX, dirZ, speed: window.MayhemVehicle.SPEED, spawnedAt: Date.now() });
     spawnVehicleFromMsg({ vehicleId: id, fromX, fromZ, dirX, dirZ });

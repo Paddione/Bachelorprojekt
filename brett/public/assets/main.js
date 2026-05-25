@@ -3,7 +3,7 @@ import { connect } from './ws.mjs';
 import { createModeState } from './mode-state.mjs';
 import { showModeSelect } from './mode-select.mjs';
 
-const ws = connect();
+const ws = connect({ url: `${location.origin.replace(/^http/, 'ws')}/sync` });
 
 const banner = document.getElementById('reconnect-banner');
 ws.on('reconnect-pending', ({ delay }) => {

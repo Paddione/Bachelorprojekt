@@ -1,5 +1,6 @@
 'use strict';
 process.env.MOCK_DB = 'true';
+process.env.BRETT_OIDC_SECRET = 'test-secret';
 const test   = require('node:test');
 const assert = require('node:assert');
 const fs     = require('fs');
@@ -56,7 +57,7 @@ function postMultipart(routePath, fields, { admin } = {}) {
         headers: {
           'content-type': `multipart/form-data; boundary=${boundary}`,
           'content-length': body.length,
-          ...(admin ? { 'x-test-admin': '1' } : {}),
+          ...(admin ? { 'x-e2e-secret': 'test-secret' } : {}),
         },
       }, res => {
         let out = '';
@@ -127,7 +128,7 @@ function del(routePath, { admin } = {}) {
       const port = server.address().port;
       const req = http.request({
         host: '127.0.0.1', port, path: routePath, method: 'DELETE',
-        headers: admin ? { 'x-test-admin': '1' } : {},
+        headers: admin ? { 'x-e2e-secret': 'test-secret' } : {},
       }, res => {
         let out = '';
         res.on('data', c => { out += c; });

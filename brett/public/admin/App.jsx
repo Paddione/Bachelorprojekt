@@ -20,7 +20,7 @@ function App() {
 
   // ── phase state
   const [phase, setPhase] = useState(tweaks.startPhase || 'login'); // login | lobby | setup | live
-  const [user, setUser]   = useState('paddione');
+  const [user, setUser]   = useState(window._bretAdmin?.name || 'paddione');
 
   // ── live state (shared across screens)
   const [bots, setBots]       = useState([]);
@@ -36,12 +36,44 @@ function App() {
     { t: '08:12', who: 'system',   msg: 'KRB-9A2 vergeben' },
   ]);
 
-  // Players (mocked)
-  const players = [
-    { name: 'paddione', you: true,  ping: 14, kd: '4 / 3' },
-    { name: 'Tina',     coadmin: true, ping: 38, kd: '12 / 4' },
-    { name: 'Martina',  ping: 52, kd: '7 / 5' },
-  ];
+  const [players, setPlayers] = useState([
+    { name: window._bretAdmin?.name || 'paddione', you: true, ping: 14, kd: '0 / 0' }
+  ]);
+  const [sessionCode, setSessionCode] = useState('KRB-9A2');
+  const [adminTokenHolder, setAdminTokenHolder] = useState(null);
+
+  const refreshPlayers = (overrideAdminToken) => {
+    const activeToken = overrideAdminToken !== undefined ? overrideAdminToken : adminTokenHolder;
+    if (window.Mayhem && window.Mayhem._internal && typeof window.Mayhem._internal.getAvatars === 'function') {
+      const avatars = window.Mayhem._internal.getAvatars();
+      const list = Array.from(avatars.keys())
+        .filter(id => !id.startsWith('bot-'))
+        .map(id => {
+          const av = avatars.get(id);
+          const isYou = id === user;
+          const isCoAdmin = id === activeToken;
+          return {
+            name: id,
+            you: isYou,
+            coadmin: isCoAdmin && !isYou,
+            isAdmin: id === 'paddione' || id === activeToken,
+            ping: av.ping || 42,
+            kd: av.kd || '0 / 0'
+          };
+        });
+      if (list.length === 0) {
+        setPlayers([{ name: user, you: true, ping: 14, kd: '0 / 0' }]);
+      } else {
+        setPlayers(list);
+      }
+    }
+  };
+
+  useEffect(() => {
+    refreshPlayers();
+    const timer = setInterval(() => refreshPlayers(), 2000);
+    return () => clearInterval(timer);
+  }, [user, adminTokenHolder]);
 
   // ── react to tweaks
   useEffect(() => { setMode(tweaks.mode); }, [tweaks.mode]);
@@ -68,6 +100,8 @@ function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, [phase, cmdkOpen]);
+
   useEffect(() => {
     function handleWsMessage(msg) {
       const formatTime = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -84,6 +118,7 @@ function App() {
           if (msg.adminTokenHolder) {
             setAdminTokenHolder(msg.adminTokenHolder);
           }
+          refreshPlayers(msg.adminTokenHolder);
           break;
         case 'session_phase_change':
           setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Phase: ${msg.phase} (${msg.reason||'manual'})` }]);
@@ -92,6 +127,7 @@ function App() {
           break;
         case 'admin_token_changed':
           setAdminTokenHolder(msg.holderPlayerId);
+          refreshPlayers(msg.holderPlayerId);
           setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Admin-Token an ${msg.holderPlayerId || '(niemand)'} (${msg.reason})` }]);
           break;
         case 'session_ended':
@@ -102,19 +138,31 @@ function App() {
           setSessionCode(msg.code);
           setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Session-Code: ${msg.code}` }]);
           break;
+        case 'player_join':
+        case 'player_leave':
+        case 'info':
+          refreshPlayers();
+          break;
       }
     }
     window.__brettAdminOnMessage = handleWsMessage;
     return () => { window.__brettAdminOnMessage = null; };
-  }, [phase]);
-
-  const [sessionCode, setSessionCode] = useState('KRB-9A2');
-  const [adminTokenHolder, setAdminTokenHolder] = useState(null);
+  }, [phase, user, adminTokenHolder]);
 
   const logFn = (msg) => {
     const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
     setLog(prev => [...prev, { t, who: user, msg }]);
   };
+
+  const computedRole = useMemo(() => {
+    if (!adminTokenHolder || adminTokenHolder === user) {
+      const otherPlayers = players.filter(p => !p.you);
+      return otherPlayers.length > 0 ? 'coadmin' : 'solo';
+    }
+    return 'readonly';
+  }, [adminTokenHolder, user, players]);
+
+  const role = new URLSearchParams(location.search).has('tweaks') ? tweaks.role : computedRole;
 
   const state = { bots, mode, map, mayhem, botKind, players, log, sessionCode, adminTokenHolder };
   const set = {
@@ -167,16 +215,21 @@ function App() {
                 setOpen={setSidebarOpen}
                 position={tweaks.position}
                 state={state} set={set}
-                role={tweaks.role}
-                onHandoff={(target) => setTweak('role', 'readonly')}
+                role={role}
+                onHandoff={(target) => {
+                  if (window.__brettSendFn) {
+                    window.__brettSendFn({ type: 'admin_handoff_token', targetPlayerId: target });
+                  }
+                  logFn(`Admin-Token an ${target} übergeben`);
+                }}
               />
             )}
-            <CommandPalette open={cmdkOpen} onClose={() => setCmdkOpen(false)} state={state} set={set} role={tweaks.role} />
+            <CommandPalette open={cmdkOpen} onClose={() => setCmdkOpen(false)} state={state} set={set} role={role} />
           </>
         )}
 
         {phase === 'live' && isMobile && (
-          <MobileBottomSheet state={state} set={set} role={tweaks.role} />
+          <MobileBottomSheet state={state} set={set} role={role} />
         )}
       </div>
 

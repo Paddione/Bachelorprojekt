@@ -379,6 +379,9 @@ secrets:
   #      ARCH                (k3d/nextcloud.yaml — set via `uname -m`)
   #      BACKUP_DIR, STAMP, PASS, UPLOAD_PATH, FILEN_PATH, DUMP, SIZE
   #                          (k3d/backup-cronjob.yaml — script-local)
+  #      DOMAIN, IP, IP_4, IP_6, IP_8, STATUS, FAILED
+  #                          (prod-korczewski/ddns-updater.yaml — script-local
+  #                           shell vars inside the ipv64 DDNS CronJob)
   #
   # 3. Pod env vars sourced from a ConfigMap/Secret reference (not
   #    envsubst — the `${VAR}` in the script reads the container env):

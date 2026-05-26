@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { background: #0e1014; padding: 16px;}
+  .editor {
+    background: #161a22; border: 1px solid rgba(200,169,110,0.35);
+    border-radius: 10px; padding: 14px 16px;
+    width: 280px; display: flex; flex-direction: column; gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .head { display: flex; justify-content: space-between; align-items: center;}
+  .title { font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: #c8a96e; text-transform: uppercase; letter-spacing: 0.18em; }
+  .close { background: none; border: none; color: rgba(231,234,208,0.4); font-size: 14px; cursor: pointer;}
+  .pl { font-family: var(--font-mono); font-size: 10px; color: rgba(231,234,208,0.5); text-transform: uppercase; letter-spacing: 0.08em;}
+  .swatches { display:flex; gap:6px; flex-wrap:wrap;}
+  .sw {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid transparent;
+  }
+  .sw.active { border-color: #c8a96e; }
+  .input {
+    background: rgba(231,234,208,0.06); border: 1px solid rgba(231,234,208,0.18);
+    border-radius: 5px; color: #e7ead0;
+    font-family: var(--font-sans); font-size: 12px; padding: 6px 9px; width: 100%;
+  }
+  .add {
+    background: #c8a96e; color: #0a0a14; border: none; border-radius: 6px;
+    padding: 8px 10px; font-family: var(--font-sans); font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .sizes { display:flex; gap:6px; align-items: center;}
+  .sb { background: rgba(231,234,208,0.07); border: 1px solid rgba(231,234,208,0.18); color: var(--parchment); border-radius: 4px; padding: 3px 9px; font-family: var(--font-sans); font-size: 11px; cursor: pointer;}
+  .sb.active { background: rgba(200,169,110,0.22); border-color: #c8a96e;}
+  .slider { flex: 1; accent-color: #c8a96e;}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="editor">
+    <div class="head"><span class="title">Neue Figur</span><button class="close">✕</button></div>
+    <span class="pl">Farbe</span>
+    <div class="swatches">
+      <div class="sw active" style="background:#b8c0a8"></div>
+      <div class="sw" style="background:#e06b6b"></div>
+      <div class="sw" style="background:#6ba8e0"></div>
+      <div class="sw" style="background:#6be0a0"></div>
+      <div class="sw" style="background:#e0c06b"></div>
+      <div class="sw" style="background:#c06be0"></div>
+      <div class="sw" style="background:#e0906b"></div>
+    </div>
+    <span class="pl">Größe</span>
+    <div class="sizes">
+      <button class="sb">S</button>
+      <button class="sb active">M</button>
+      <button class="sb">L</button>
+      <input type="range" class="slider" min="0.3" max="2.5" value="1.0" step="0.05">
+      <span style="font-family: var(--font-mono); font-size: 11px; color: rgba(231,234,208,0.6);">1.0×</span>
+    </div>
+    <span class="pl">Name</span>
+    <input class="input" placeholder="Figur benennen …" value="Vater">
+    <button class="add">＋ Klick auf Brett zum Platzieren</button>
+  </div>
+</div>
+</body></html>

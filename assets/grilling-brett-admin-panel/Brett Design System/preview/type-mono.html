@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  .spec { display:flex; flex-direction: column; gap: 16px; }
+  .row-type { display:flex; align-items: baseline; gap: 20px; }
+  .meta { font-family: var(--font-mono); font-size: 10px; letter-spacing:.14em; text-transform:uppercase; color: var(--parchment-3); min-width: 150px;}
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing:.18em; text-transform:uppercase;
+    color: #c8a96e; font-weight: 500; display:inline-flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before { content:""; width: 22px; height:1px; background: currentColor; opacity:.8; }
+  code {
+    font-family: var(--font-mono); font-size:12px; letter-spacing:.06em; color: var(--parchment-2);
+    background: rgba(0,0,0,.3); padding: 1px 6px; border-radius:3px;
+  }
+  .ammo { font-family: var(--font-mono); font-size: 22px; letter-spacing:.1em; color: #d7b06a;}
+  .key  { font-family: var(--font-mono); font-size: 10px; letter-spacing:.14em; color: #7c8071;}
+  .wave { font-family: var(--font-mono); font-size: 14px; letter-spacing:.12em; color: #fff; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="card-root spec">
+  <div class="row-type"><span class="meta">eyebrow · mono 11</span><span class="eyebrow">ASSET PACK · 01</span></div>
+  <div class="row-type"><span class="meta">label · mono 11 caps</span><span style="font-family: var(--font-mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#7c8071;">NEUE FIGUR</span></div>
+  <div class="row-type"><span class="meta">code · mono 12</span><span><code>placement_spec.json</code></span></div>
+  <div class="row-type"><span class="meta">hud ammo · mono 22</span><span class="ammo">24 / 90</span></div>
+  <div class="row-type"><span class="meta">wave label · mono 14</span><span class="wave">WELLE 7 / 10</span></div>
+  <div class="row-type"><span class="meta">key hint</span><span class="key">SHIFT · DRAG</span></div>
+</div>
+</body></html>

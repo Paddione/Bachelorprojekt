@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { background: #0b111c; padding: 14px 18px;}
+  .grid {
+    display:grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+  }
+  .hud-card {
+    background: #101826; border: 1px solid rgba(215,176,106,0.18); border-radius: 8px;
+    padding: 14px 12px 10px; display:flex; flex-direction: column; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .hud-card::before {
+    content:""; position: absolute; inset:0;
+    background: radial-gradient(closest-side at 50% 0%, rgba(215,176,106,.08), transparent 70%);
+    pointer-events: none;
+  }
+  .hud-card .ico { width: 64px; height: 64px; display: grid; place-items: center; position: relative; z-index:1;}
+  .hud-card .ico img { width: 100%; height: 100%; display: block;}
+  .hud-card .label { font-family: var(--font-serif); font-size: 14px; margin-top: 6px; color: #eef1f3;}
+  .hud-card .filename { font-family: var(--font-mono); font-size: 9px; letter-spacing:.14em; text-transform: uppercase; color: #8c96a3; margin-top: 2px;}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="grid">
+    <div class="hud-card"><div class="ico"><img src="../assets/icons/icon-handgun-256.png"></div><div class="label">Handgun</div><div class="filename">icon-handgun</div></div>
+    <div class="hud-card"><div class="ico"><img src="../assets/icons/icon-rifle-256.png"></div><div class="label">Rifle</div><div class="filename">icon-rifle</div></div>
+    <div class="hud-card"><div class="ico"><img src="../assets/icons/icon-fireball-256.png"></div><div class="label">Fireball</div><div class="filename">icon-fireball</div></div>
+    <div class="hud-card"><div class="ico"><img src="../assets/icons/icon-club-256.png"></div><div class="label">Club</div><div class="filename">icon-club</div></div>
+    <div class="hud-card"><div class="ico"><img src="../assets/icons/icon-katana-256.png"></div><div class="label">Katana</div><div class="filename">icon-katana</div></div>
+  </div>
+</div>
+</body></html>

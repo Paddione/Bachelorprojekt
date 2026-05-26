@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { background: #0e1014; padding: 14px 18px;}
+  .row { display: flex; gap: 14px; align-items: stretch;}
+  .panel {
+    background: #161922; border: 1px solid rgba(215,176,106,0.18); border-radius: 14px;
+    padding: 18px 20px; flex: 1; display: flex; flex-direction: column; gap: 8px;
+  }
+  .panel.active {
+    border-color: #c8a96e;
+    box-shadow: 0 0 0 1px #c8a96e, 0 0 24px rgba(200,169,110,0.25);
+  }
+  .panel .eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing:.18em; color: #c8a96e; text-transform: uppercase; display:inline-flex; align-items: center; gap: 10px;}
+  .panel .eyebrow::before { content:""; width: 22px; height:1px; background: currentColor; opacity:.8;}
+  .panel h3 { font-family: var(--font-serif); font-size: 20px; color: var(--parchment); font-weight: 400; margin: 4px 0 0;}
+  .panel p { font-family: var(--font-sans); font-size: 13px; color: var(--parchment-2); margin:0; line-height: 1.5;}
+  .panel .row-x { display: flex; gap: 8px; margin-top: auto; padding-top: 8px;}
+  .chip {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing:.14em; text-transform: uppercase;
+    background: rgba(215,176,106,0.06); border: 1px solid rgba(215,176,106,0.35);
+    color: #c8a96e; padding: 4px 8px; border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="row">
+    <div class="panel">
+      <span class="eyebrow">Default</span>
+      <h3>Aufstellung</h3>
+      <p>Brass-mute hairline · slate-1 surface · 14px radius.</p>
+      <div class="row-x"><span class="chip">14 figuren</span><span class="chip">live</span></div>
+    </div>
+    <div class="panel active">
+      <span class="eyebrow">Selected</span>
+      <h3>Aufstellung</h3>
+      <p>Adds ring-brass shadow + brass border. Same chrome, brighter ink.</p>
+      <div class="row-x"><span class="chip">aktiv</span><span class="chip">welle 7</span></div>
+    </div>
+  </div>
+</div>
+</body></html>

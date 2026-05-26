@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  .stack { display: flex; gap: 22px; align-items: flex-end; padding: 14px 0;}
+  .box {
+    background: rgba(215,176,106,0.1);
+    border: 1px solid var(--brass-mute);
+    display:flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    min-width: 38px; min-height: 38px;
+    position: relative;
+  }
+  .box .px { font-family: var(--font-mono); font-size: 10px; color: var(--parchment-3); letter-spacing: .08em; position:absolute; bottom: -22px; left:0; right:0; text-align:center;}
+  .box .var { font-family: var(--font-mono); font-size: 9px; color: var(--parchment-3); letter-spacing: .12em; text-transform: uppercase; position:absolute; top: -18px; left:0; right:0; text-align:center;}
+  .legend { font-family: var(--font-mono); font-size: 10px; letter-spacing:.18em; text-transform:uppercase; color: var(--parchment-3); margin-top: 28px;}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="stack">
+    <div class="box" style="width: 4px;  height: 4px;"><span class="var">s-1</span><span class="px">4</span></div>
+    <div class="box" style="width: 8px;  height: 8px;"><span class="var">s-2</span><span class="px">8</span></div>
+    <div class="box" style="width:12px;  height:12px;"><span class="var">s-3</span><span class="px">12</span></div>
+    <div class="box" style="width:16px;  height:16px;"><span class="var">s-4</span><span class="px">16</span></div>
+    <div class="box" style="width:20px;  height:20px;"><span class="var">s-5</span><span class="px">20</span></div>
+    <div class="box" style="width:24px;  height:24px;"><span class="var">s-6</span><span class="px">24</span></div>
+    <div class="box" style="width:32px;  height:32px;"><span class="var">s-8</span><span class="px">32</span></div>
+    <div class="box" style="width:48px;  height:48px;"><span class="var">s-12</span><span class="px">48</span></div>
+    <div class="box" style="width:64px;  height:64px;"><span class="var">s-16</span><span class="px">64</span></div>
+    <div class="box" style="width:80px;  height:80px;"><span class="var">s-20</span><span class="px">80</span></div>
+  </div>
+  <div class="legend">4 px base · use the scale never raw px</div>
+</div>
+</body></html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { padding: 14px 16px;}
+  .grp { font-family: var(--font-mono); font-size: 10px; letter-spacing:.18em; text-transform:uppercase; color: #c8a96e; margin: 6px 0 4px;}
+  .grid {
+    display:grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+  }
+  .it {
+    background: #161922; border: 1px solid var(--line); border-radius: 6px;
+    display:flex; flex-direction: column; align-items: center; padding: 6px 6px 4px;
+  }
+  .it .thumb { width:100%; aspect-ratio: 1/1; display:grid; place-items:center; background: linear-gradient(180deg, #1f2330 0%, #161922 100%); border-radius:4px;}
+  .it .thumb img { width:90%; height:90%; object-fit: contain;}
+  .it .n { font-family: var(--font-mono); font-size: 9px; letter-spacing:.1em; color: #b9bda3; margin-top: 4px;}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="grp">Hair · 5 variants · head bone</div>
+  <div class="grid">
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/hair-short.png"></div><div class="n">short</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/hair-bun.png"></div><div class="n">bun</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/hair-long.png"></div><div class="n">long</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/hair-braid.png"></div><div class="n">braid</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/hair-curls.png"></div><div class="n">curls</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/cap.png"></div><div class="n">cap</div></div>
+  </div>
+  <div class="grp">Clothing · 5 variants · hips bone</div>
+  <div class="grid">
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/tunic.png"></div><div class="n">tunic</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/coat.png"></div><div class="n">coat</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/apron.png"></div><div class="n">apron</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/robe.png"></div><div class="n">robe</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/vest.png"></div><div class="n">vest</div></div>
+    <div class="it"><div class="thumb"><img src="../assets/figure-pack/accessories/shawl.png"></div><div class="n">shawl</div></div>
+  </div>
+</div>
+</body></html>

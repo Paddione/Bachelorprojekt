@@ -15,5 +15,8 @@ All sounds sourced from Freesound.org under the CC0 / Public Domain license.
 | footstep-concrete-01/02.ogg | footstep_concrete_walking_running… | EricsSoundschmiede | 476697 |
 | footstep-concrete-03.ogg | FPS Footsteps Loop | qubodup | 816019 |
 | footstep-concrete-04.ogg | Dry Footsteps Loop | qubodup | 816017 |
+| duel-gong.ogg | Synthesized Gong Effect | FFmpeg Synthesizer | CC0 |
+| ko-stinger.ogg | Synthesized KO Stinger | FFmpeg Synthesizer | CC0 |
+| crowd-cheer.ogg | Synthesized Crowd Cheer | FFmpeg Synthesizer | CC0 |
 
 CC0 requires no attribution, but these credits are kept for provenance.

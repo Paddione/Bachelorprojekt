@@ -693,6 +693,39 @@ function shouldRejectReconnect(room, playerId) {
   return { reject: false };
 }
 
+const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
+
+function touchSessionActivity(room) {
+  applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
+}
+
+function checkSessionIdle(room) {
+  const figs = figureMaps.get(room);
+  if (!figs) return { ended: false, reason: 'no-room' };
+  const phase = figs.get('__session_phase__')?.phase;
+  if (!phase || phase === 'ended' || phase === 'warmup') {
+    return { ended: false, reason: 'not-applicable' };
+  }
+  const lastActivityIso = figs.get('__session_last_activity__')?.ts;
+  if (!lastActivityIso) return { ended: false, reason: 'no-activity-marker' };
+  const lastActivity = Date.parse(lastActivityIso);
+  if (Date.now() - lastActivity > IDLE_TIMEOUT_MS) {
+    transitionPhase(room, 'ended');
+    return { ended: true, reason: 'idle-timeout', room };
+  }
+  return { ended: false, reason: 'within-timeout', room };
+}
+
+function checkAllSessions() {
+  const results = [];
+  for (const room of figureMaps.keys()) {
+    const r = checkSessionIdle(room);
+    r.room = r.room || room;
+    results.push(r);
+  }
+  return results;
+}
+
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = new Map();
 
@@ -1005,6 +1038,8 @@ wss.on('connection', (ws, req) => {
     try {
       let msg;
       try { msg = JSON.parse(raw); } catch { return; }
+
+      if (ws._room) touchSessionActivity(ws._room);
 
       if (msg.type === 'pong') { ws.isAlive = true; return; }
 
@@ -1405,6 +1440,25 @@ const heartbeatTimer = setInterval(() => {
 }, HEARTBEAT_INTERVAL_MS);
 heartbeatTimer.unref?.();
 
+// ─── Idle-timeout backstop check ──────────────────────────────────
+if (process.env.MOCK_DB !== 'true') {
+  setInterval(() => {
+    const results = checkAllSessions();
+    for (const r of results) {
+      if (r.ended) {
+        broadcast(r.room, {
+          type: 'session_phase_change',
+          phase: 'ended',
+          transitionedAt: new Date().toISOString(),
+          reason: 'idle-timeout',
+        });
+        broadcast(r.room, { type: 'session_ended', reason: 'idle-timeout' });
+        schedulePersist(r.room);
+      }
+    }
+  }, 60_000);
+}
+
 // ─── Graceful Shutdown ───────────────────────────────────────────
 let shuttingDown = false;
 async function shutdown(signal) {
@@ -1461,4 +1515,7 @@ module.exports = {
   trackPlayerInRoom,
   wasPreviouslyInRoom,
   shouldRejectReconnect,
+  touchSessionActivity,
+  checkSessionIdle,
+  checkAllSessions,
 };

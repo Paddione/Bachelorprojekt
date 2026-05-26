@@ -699,25 +699,76 @@ function applyMutation(room, msg) {
         figs.set('__game_mode__', { id: '__game_mode__', mode: msg.mode });
       }
       break;
+    case 'session_phase_set': {
+      figs.set('__session_phase__', { id: '__session_phase__', phase: msg.phase });
+      break;
+    }
+    case 'session_code_set': {
+      figs.set('__session_code__', { id: '__session_code__', code: msg.code });
+      break;
+    }
+    case 'session_admin_token_set': {
+      figs.set('__admin_token_holder__', { id: '__admin_token_holder__', playerId: msg.playerId });
+      break;
+    }
+    case 'session_created_at_set': {
+      figs.set('__session_created_at__', { id: '__session_created_at__', ts: msg.ts });
+      break;
+    }
+    case 'session_last_activity_set': {
+      figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: msg.ts });
+      break;
+    }
   }
+}
+
+const TERMINAL_PHASES = new Set(['ended']);
+const VALID_PHASES = new Set(['warmup', 'active', 'paused', 'ended']);
+
+function transitionPhase(room, newPhase) {
+  if (!VALID_PHASES.has(newPhase)) {
+    return { ok: false, reason: 'invalid-phase' };
+  }
+  const figs = figureMaps.get(room);
+  const current = figs?.get('__session_phase__')?.phase || null;
+  if (current && TERMINAL_PHASES.has(current)) {
+    return { ok: false, reason: 'terminal-phase' };
+  }
+  applyMutation(room, { type: 'session_phase_set', phase: newPhase });
+  return { ok: true, from: current, to: newPhase };
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const SPECIAL = ['__optik__', '__stiffness__', '__mayhem__', '__game_mode__'];
+  const SPECIAL = [
+    '__optik__', '__stiffness__', '__mayhem__', '__game_mode__',
+    '__session_phase__', '__session_code__', '__admin_token_holder__',
+    '__session_created_at__', '__session_last_activity__',
+  ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
-  const optikEntry    = figs.get('__optik__');
-  const stiffEntry    = figs.get('__stiffness__');
+  const optikEntry        = figs.get('__optik__');
+  const stiffEntry        = figs.get('__stiffness__');
   const mayhemEntry   = figs.get('__mayhem__');
   const gameModeEntry = figs.get('__game_mode__');
+  const phaseEntry         = figs.get('__session_phase__');
+  const codeEntry          = figs.get('__session_code__');
+  const adminTokenEntry    = figs.get('__admin_token_holder__');
+  const createdAtEntry     = figs.get('__session_created_at__');
+  const lastActivityEntry  = figs.get('__session_last_activity__');
   const result = { figures };
   if (optikEntry)    result.optik     = optikEntry.settings;
   if (stiffEntry)    result.stiffness = stiffEntry.value;
   if (mayhemEntry)   result.mayhem    = !!mayhemEntry.enabled;
   if (gameModeEntry) result.gameMode  = gameModeEntry.mode;
+  if (phaseEntry)        result.sessionPhase       = phaseEntry.phase;
+  if (codeEntry)         result.sessionCode        = codeEntry.code;
+  if (adminTokenEntry)   result.adminTokenHolder   = adminTokenEntry.playerId;
+  if (createdAtEntry)    result.sessionCreatedAt   = createdAtEntry.ts;
+  if (lastActivityEntry) result.sessionLastActivity = lastActivityEntry.ts;
   return result;
 }
+
 
 async function persistState(room) {
   const state = buildStateFromMutations(room);
@@ -1132,4 +1183,5 @@ module.exports = {
   listSkins,
   slugifyForSkin,
   buildConfig,
+  transitionPhase,
 };

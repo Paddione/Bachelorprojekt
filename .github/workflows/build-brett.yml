@@ -37,7 +37,7 @@ jobs:
             -t "${IMAGE}:v${VERSION}" \
             -t "${IMAGE}:latest" \
             -f brett/Dockerfile \
-            .
+            brett
           docker push "${IMAGE}:v${VERSION}"
           docker push "${IMAGE}:latest"
 

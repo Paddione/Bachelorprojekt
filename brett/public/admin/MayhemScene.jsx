@@ -46,6 +46,9 @@ function SpawnRing({ x, z, ready }) {
 }
 
 function MayhemScene({ variant = 'combat' }) {
+  const tweaks = new URLSearchParams(location.search).has('tweaks');
+  if (!tweaks) return null;  // Prod: Three.js scene runs outside React tree
+
   if (variant === 'coaching') {
     return <CoachingScene />;
   }

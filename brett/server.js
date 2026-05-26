@@ -502,6 +502,41 @@ const wss = new WebSocket.Server({ server, path: '/sync', maxPayload: 64 * 1024 
 
 // roomToken -> Set<WebSocket>
 const rooms = new Map();
+
+// roomToken -> sessionCode (reverse map for lookups)
+const sessionCodeIndex = new Map();  // sessionCode -> roomToken
+
+const CROCKFORD = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 31 chars, excludes I,L,O,0,1
+
+function generateSessionCode() {
+  let attempt = 0;
+  while (attempt < 16) {
+    let chars = '';
+    for (let i = 0; i < 6; i++) {
+      chars += CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)];
+    }
+    const code = chars.slice(0, 3) + '-' + chars.slice(3);
+    if (!sessionCodeIndex.has(code)) return code;
+    attempt++;
+  }
+  throw new Error('session-code: 16 collisions in a row — population too dense');
+}
+
+function registerSessionCode(code, roomToken) {
+  sessionCodeIndex.set(code, roomToken);
+}
+
+function resolveSessionCode(code) {
+  return sessionCodeIndex.get(code) || null;
+}
+
+function rebuildSessionCodeIndexFromStates(rows) {
+  for (const row of rows) {
+    const code = row.state?.sessionCode;
+    if (code) sessionCodeIndex.set(code, row.room_token);
+  }
+}
+
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = new Map();
 
@@ -884,10 +919,38 @@ wss.on('connection', (ws, req) => {
           if (typeof state.gameMode === 'string') {
             figs.set('__game_mode__', { id: '__game_mode__', mode: state.gameMode });
           }
+          if (typeof state.sessionPhase === 'string') {
+            figs.set('__session_phase__', { id: '__session_phase__', phase: state.sessionPhase });
+          }
+          if (typeof state.sessionCode === 'string') {
+            figs.set('__session_code__', { id: '__session_code__', code: state.sessionCode });
+            registerSessionCode(state.sessionCode, msg.room);
+          }
+          if (typeof state.adminTokenHolder === 'string') {
+            figs.set('__admin_token_holder__', { id: '__admin_token_holder__', playerId: state.adminTokenHolder });
+          }
+          if (typeof state.sessionCreatedAt === 'string') {
+            figs.set('__session_created_at__', { id: '__session_created_at__', ts: state.sessionCreatedAt });
+          }
+          if (typeof state.sessionLastActivity === 'string') {
+            figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: state.sessionLastActivity });
+          }
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65, mayhem: state.mayhem ?? true, gameMode: state.gameMode }));
+        ws.send(JSON.stringify({
+          type: 'snapshot',
+          figures: state.figures,
+          optik: state.optik,
+          stiffness: state.stiffness ?? 0.65,
+          mayhem: state.mayhem ?? true,
+          gameMode: state.gameMode,
+          sessionPhase: state.sessionPhase,
+          sessionCode: state.sessionCode,
+          adminTokenHolder: state.adminTokenHolder,
+          sessionCreatedAt: state.sessionCreatedAt,
+          sessionLastActivity: state.sessionLastActivity,
+        }));
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
         if (meta && meta.coopWave > 0) {
@@ -1184,4 +1247,9 @@ module.exports = {
   slugifyForSkin,
   buildConfig,
   transitionPhase,
+  generateSessionCode,
+  registerSessionCode,
+  resolveSessionCode,
+  sessionCodeIndex,
+  rebuildSessionCodeIndexFromStates,
 };

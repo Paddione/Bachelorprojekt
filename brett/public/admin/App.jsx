@@ -86,7 +86,8 @@ function App() {
   return (
     <>
       {/* dev-strip · phase scrubber so the user can navigate the flow */}
-      <DevStrip phase={phase} setPhase={setPhase} user={user} setTweak={setTweak} cmdkOpen={cmdkOpen} setCmdkOpen={setCmdkOpen} />
+      {new URLSearchParams(location.search).has('tweaks') &&
+        <DevStrip phase={phase} setPhase={setPhase} user={user} setTweak={setTweak} cmdkOpen={cmdkOpen} setCmdkOpen={setCmdkOpen} />}
 
       <div className="phase-body">
         {/* The scene under the overlay (visible from setup onwards) */}
@@ -139,7 +140,8 @@ function App() {
       </div>
 
       {/* Tweaks panel · custom */}
-      <BrettTweaks tweaks={tweaks} setTweak={setTweak} />
+      {new URLSearchParams(location.search).has('tweaks') &&
+        <BrettTweaks tweaks={tweaks} setTweak={setTweak} />}
     </>
   );
 }

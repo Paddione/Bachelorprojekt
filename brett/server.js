@@ -498,7 +498,26 @@ const server = require.main === module
 // ─── WebSocket sync ──────────────────────────────────────────────
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ server, path: '/sync', maxPayload: 64 * 1024 });
+const wss = new WebSocket.Server({
+  server,
+  path: '/sync',
+  maxPayload: 64 * 1024,
+  verifyClient: (info, cb) => {
+    try {
+      const url = new URL(info.req.url, 'http://x');
+      const room = url.searchParams.get('room');
+      if (!room) return cb(true);
+      const decision = shouldRejectReconnect(room, null);
+      if (decision.reject) {
+        return cb(false, decision.code, decision.message);
+      }
+      cb(true);
+    } catch (err) {
+      console.error('[brett] verifyClient error:', err);
+      cb(true);
+    }
+  },
+});
 
 // roomToken -> Set<WebSocket>
 const rooms = new Map();
@@ -635,6 +654,43 @@ function handleAdminRoundPause(room, broadcastFn) {
     reason: next === 'paused' ? 'admin-pause' : 'admin-resume'
   });
   return result;
+}
+
+const roomPreviousPlayers = new Map();   // roomToken -> Set<playerId>
+
+function trackPlayerInRoom(room, playerId) {
+  if (!playerId) return;
+  let set = roomPreviousPlayers.get(room);
+  if (!set) {
+    set = new Set();
+    roomPreviousPlayers.set(room, set);
+  }
+  set.add(playerId);
+}
+
+function wasPreviouslyInRoom(room, playerId) {
+  return !!roomPreviousPlayers.get(room)?.has(playerId);
+}
+
+function shouldRejectReconnect(room, playerId) {
+  const phase = figureMaps.get(room)?.get('__session_phase__')?.phase;
+  if (!phase || phase === 'warmup') return { reject: false };
+  // active or paused: forbid all incoming connects from non-current sockets
+  if (phase === 'active' || phase === 'paused') {
+    return {
+      reject: true,
+      code: 409,
+      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
+    };
+  }
+  if (phase === 'ended') {
+    return {
+      reject: true,
+      code: 410,
+      message: 'Session ist beendet.',
+    };
+  }
+  return { reject: false };
 }
 
 // roomToken -> NodeJS.Timeout (debounced persistence)
@@ -1133,6 +1189,7 @@ wss.on('connection', (ws, req) => {
         broadcast(room, msg, ws);
         if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
           ws._playerId = msg.playerId;
+          trackPlayerInRoom(room, msg.playerId);
           const alive = lmsAlive.get(room);
           if (alive) alive.add(msg.playerId);
         } else if (msg.type === 'game_mode_change' && typeof msg.mode === 'string') {
@@ -1401,4 +1458,7 @@ module.exports = {
   handleAdminHandoffMessage,
   handleAdminRoundStop,
   handleAdminRoundPause,
+  trackPlayerInRoom,
+  wasPreviouslyInRoom,
+  shouldRejectReconnect,
 };

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.14.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.13.0...website-v1.14.0) (2026-05-26)
+
+
+### Features
+
+* **brett-r1-p2:** muzzle flash and bullet tracers ([#1120](https://github.com/Paddione/Bachelorprojekt/issues/1120)) ([e4717e3](https://github.com/Paddione/Bachelorprojekt/commit/e4717e30aa5ba652ff83bb47b191a48b3b740a93))
+* **brett:** P1 - unified pointer lock, crosshair logic and hit/kill audio triggers ([#1119](https://github.com/Paddione/Bachelorprojekt/issues/1119)) ([20346e7](https://github.com/Paddione/Bachelorprojekt/commit/20346e7d27e33e28aa07ad5ffb6e676ddfc825df))
+* **brett:** P4 art pass + mobile touch controls ([#1121](https://github.com/Paddione/Bachelorprojekt/issues/1121)) ([505e714](https://github.com/Paddione/Bachelorprojekt/commit/505e714921dcbcfe5a7d8a5d32a34d11f7f2e66c))
+
 ## [1.13.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.12.0...website-v1.13.0) (2026-05-25)
 
 

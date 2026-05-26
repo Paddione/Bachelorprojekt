@@ -1,6 +1,20 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.14.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.13.0...brett-v0.14.0) (2026-05-26)
+
+
+### Features
+
+* **brett-r1-p2:** muzzle flash and bullet tracers ([#1120](https://github.com/Paddione/Bachelorprojekt/issues/1120)) ([e4717e3](https://github.com/Paddione/Bachelorprojekt/commit/e4717e30aa5ba652ff83bb47b191a48b3b740a93))
+* **brett:** P1 - unified pointer lock, crosshair logic and hit/kill audio triggers ([#1119](https://github.com/Paddione/Bachelorprojekt/issues/1119)) ([20346e7](https://github.com/Paddione/Bachelorprojekt/commit/20346e7d27e33e28aa07ad5ffb6e676ddfc825df))
+* **brett:** P4 art pass + mobile touch controls ([#1121](https://github.com/Paddione/Bachelorprojekt/issues/1121)) ([505e714](https://github.com/Paddione/Bachelorprojekt/commit/505e714921dcbcfe5a7d8a5d32a34d11f7f2e66c))
+
+
+### Bug Fixes
+
+* remove pnpm-workspace.yaml that breaks arena-server CI install ([bd929fc](https://github.com/Paddione/Bachelorprojekt/commit/bd929fc0f72b0ce3d52d59ec14fd7134f56f2934))
+
 ## [0.13.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.12.0...brett-v0.13.0) (2026-05-25)
 
 

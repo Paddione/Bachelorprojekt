@@ -310,4 +310,42 @@ function BrettTweaks({ tweaks, setTweak }) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+// Brett mount API — replaces vanilla admin-panel.js
+const __brettAdminState = {
+  root: null,
+  appRef: null,
+  pendingMessages: [],
+};
+
+window.AdminPanel = {
+  mount({ sendFn, room, roomName, joinMode, isAdmin }) {
+    if (__brettAdminState.root) return;
+    const container = document.getElementById('admin-root');
+    if (!container) {
+      console.error('[brett-admin] #admin-root not found in DOM');
+      return;
+    }
+    window.__brettSendFn = sendFn;
+    window.__brettRoom = room;
+    window.__brettRoomName = roomName;
+    window.__brettJoinMode = joinMode;
+    __brettAdminState.root = ReactDOM.createRoot(container);
+    __brettAdminState.root.render(<App />);
+    // Flush pending messages
+    setTimeout(() => {
+      const fn = window.__brettAdminOnMessage;
+      if (fn) {
+        for (const m of __brettAdminState.pendingMessages) fn(m);
+        __brettAdminState.pendingMessages = [];
+      }
+    }, 0);
+  },
+  onMessage(msg) {
+    const fn = window.__brettAdminOnMessage;
+    if (fn) fn(msg);
+    else __brettAdminState.pendingMessages.push(msg);
+  },
+  toggle() {
+    window.dispatchEvent(new CustomEvent('brett-admin:toggle'));
+  },
+};

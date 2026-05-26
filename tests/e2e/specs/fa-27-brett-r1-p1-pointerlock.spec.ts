@@ -7,6 +7,9 @@ test.describe('FA-27 Brett R1 P1: Pointer-Lock Unification', () => {
   test('T1: Clicking canvas requests pointer lock on the canvas element', async ({ page }) => {
     await page.goto(BRETT_URL);
 
+    // Wait for either the mode selector or canvas to load
+    await page.waitForSelector('.mode-card[data-mode="mayhem"], #canvas, canvas', { timeout: 10000 });
+
     // If mode select screen is shown, choose mayhem
     const selector = page.locator('.mode-card[data-mode="mayhem"]');
     if (await selector.isVisible()) {
@@ -15,7 +18,7 @@ test.describe('FA-27 Brett R1 P1: Pointer-Lock Unification', () => {
 
     // Wait for the canvas to be visible
     const canvas = page.locator('#canvas, canvas');
-    await expect(canvas).toBeVisible();
+    await canvas.waitFor({ state: 'visible', timeout: 10000 });
 
     // Verify pointer lock capability functions exist in browser context
     const isPointerLockSupported = await page.evaluate(() => {

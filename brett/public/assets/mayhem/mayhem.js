@@ -1433,6 +1433,7 @@ const Mayhem = (() => {
         { const m = makeMannequin(msg.playerId, { x: 0, z: 0 });
           remoteAvatars.set(msg.playerId,
             new window.MayhemPlayerAvatar({ id: msg.playerId, mannequin: m, local: false, color: msg.color || '#888' })); }
+        isHost = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
         break;
 
       case 'player_state':
@@ -1441,7 +1442,14 @@ const Mayhem = (() => {
         break;
 
       case 'player_leave':
-        { const al = remoteAvatars.get(msg.playerId); if (al) { al.remove(scene); remoteAvatars.delete(msg.playerId); } }
+        {
+          const al = remoteAvatars.get(msg.playerId);
+          if (al) {
+            al.remove(scene);
+            remoteAvatars.delete(msg.playerId);
+          }
+          isHost = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
+        }
         break;
 
       case 'vehicle_switch': {
@@ -1535,6 +1543,77 @@ const Mayhem = (() => {
           if (def) spawnWave(def);
           updateHud();
         }
+        break;
+
+      case 'bot_spawn':
+        if (isHost) {
+          const botId = 'bot-' + randomUUID();
+          const pos = nextSpawnPoint();
+          const botMannequin = makeMannequin(botId, pos);
+          const bot = new window.MayhemAIBot({
+            id: botId,
+            mannequin: botMannequin,
+            colorIndex: aiBots.size,
+            callbacks: {
+              onFire: (weaponDef, originPos, dirVec, shooterId) => {
+                if (projectileMgr) projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
+              },
+              onDeath: (id, killerId) => {
+                aiBots.delete(id);
+                remoteAvatars.delete(id);
+                if (killerId && killerId !== id) gameMode?.handleKill(killerId);
+                gameMode?.handleEnemyDeath(id);
+                updateHud();
+              },
+              getGameMode: () => gameMode?.mode || 'warmup',
+            },
+          });
+          if (bot.avatar && bot.weaponDef) bot.avatar.setWeapon(bot.weaponDef);
+          aiBots.set(botId, bot);
+          remoteAvatars.set(botId, bot.avatar);
+          gameMode?.registerEnemy(botId);
+          // Broadcast to other clients
+          send({
+            type: 'add',
+            figure: {
+              id: botId,
+              type: 'mannequin',
+              x: pos.x,
+              z: pos.z,
+              appearance: bot.avatar.appearance || { color: bot.avatar.color }
+            }
+          });
+        }
+        break;
+
+      case 'bot_despawn': {
+        const bot = aiBots.get(msg.botId);
+        if (bot) {
+          bot.remove(scene);
+          aiBots.delete(msg.botId);
+        }
+        const av = remoteAvatars.get(msg.botId);
+        if (av) {
+          av.remove(scene);
+          remoteAvatars.delete(msg.botId);
+        }
+        updateHud();
+        break;
+      }
+
+      case 'round_reset':
+        if (localAvatar) {
+          localAvatar.resetHero();
+          localAvatar.resetHp();
+          localRespawn();
+        }
+        for (const bot of aiBots.values()) {
+          bot.remove(scene);
+          remoteAvatars.delete(bot.id);
+        }
+        aiBots.clear();
+        deadHumans.clear();
+        updateHud();
         break;
     }
   }

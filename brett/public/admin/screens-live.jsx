@@ -60,12 +60,28 @@ function BotCardStack({ bots, onRemove, onSwap }) {
 function BotControls({ bots, setBots }) {
   const add = () => {
     if (bots.length >= 5) return;
-    const next = [...bots, window.makeBot(bots.length + Math.floor(Math.random() * 20))];
-    setBots(next);
+    if (window.__brettSendFn) {
+      window.__brettSendFn({ type: 'admin_bot_spawn' });
+    } else {
+      const next = [...bots, window.makeBot(bots.length + Math.floor(Math.random() * 20))];
+      setBots(next);
+    }
   };
   const sub = () => {
     if (bots.length === 0) return;
-    setBots(bots.slice(0, -1));
+    if (window.__brettSendFn) {
+      const topBot = bots[bots.length - 1];
+      if (topBot) window.__brettSendFn({ type: 'admin_bot_despawn', botId: topBot.id });
+    } else {
+      setBots(bots.slice(0, -1));
+    }
+  };
+  const clearAll = () => {
+    if (window.__brettSendFn) {
+      bots.forEach(b => window.__brettSendFn({ type: 'admin_bot_despawn', botId: b.id }));
+    } else {
+      setBots([]);
+    }
   };
   return (
     <div className="bot-controls">
@@ -74,7 +90,7 @@ function BotControls({ bots, setBots }) {
         <div className="val">{bots.length}</div>
         <button onClick={add} disabled={bots.length >= 5}>+</button>
       </div>
-      <button className="btn btn-ghost btn-sm" onClick={() => setBots([])}>Alle despawnen</button>
+      <button className="btn btn-ghost btn-sm" onClick={clearAll}>Alle despawnen</button>
     </div>
   );
 }
@@ -135,7 +151,11 @@ function TabMatch({ state, set, role }) {
             <button
               key={m.id}
               className={state.mode === m.id ? 'active' : ''}
-              onClick={() => !readonly && set.setMode(m.id)}
+              onClick={() => {
+                if (readonly) return;
+                if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_mode_set', mode: m.id });
+                set.setMode(m.id);
+              }}
               disabled={readonly}
             >
               <span className="k">[{m.key}]</span>
@@ -153,7 +173,12 @@ function TabMatch({ state, set, role }) {
         </div>
         <div
           className={`toggle-row ${state.mayhem ? 'mayhem-row' : ''}`}
-          onClick={() => !readonly && set.setMayhem(!state.mayhem)}
+          onClick={() => {
+            if (readonly) return;
+            const nextVal = !state.mayhem;
+            if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_mayhem_toggle', enabled: nextVal });
+            set.setMayhem(nextVal);
+          }}
           style={readonly ? {opacity: 0.5, pointerEvents: 'none'} : {}}
         >
           <div className="l">
@@ -170,19 +195,31 @@ function TabMatch({ state, set, role }) {
           <span className="meta">RTT &lt; 200ms</span>
         </div>
         <div className="action-row">
-          <button className="action-tile" disabled={readonly} onClick={() => set.log('Runde zurückgesetzt')}>
+          <button className="action-tile" disabled={readonly} onClick={() => {
+            if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_round_reset' });
+            set.log('Runde zurückgesetzt');
+          }}>
             <span className="l">Runde</span>
             <span className="v">↻ Reset</span>
           </button>
-          <button className="action-tile" disabled={readonly} onClick={() => set.log('Spawns zurückgesetzt')}>
+          <button className="action-tile" disabled={readonly} onClick={() => {
+            if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_round_reset' });
+            set.log('Spawns zurückgesetzt');
+          }}>
             <span className="l">Spawns</span>
             <span className="v">⌖ Reset Positionen</span>
           </button>
-          <button className="action-tile warn" disabled={readonly} onClick={() => set.log('Runde abgebrochen')}>
+          <button className="action-tile warn" disabled={readonly} onClick={() => {
+            if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_round_stop' });
+            set.log('Runde abgebrochen');
+          }}>
             <span className="l">Stop</span>
             <span className="v">⏹ Runde beenden</span>
           </button>
-          <button className="action-tile" disabled={readonly} onClick={() => set.log('Pause')}>
+          <button className="action-tile" disabled={readonly} onClick={() => {
+            if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_round_pause' });
+            set.log('Pause');
+          }}>
             <span className="l">Pause</span>
             <span className="v">⏸ Spiel pausieren</span>
           </button>
@@ -203,7 +240,11 @@ function TabBots({ state, set, role }) {
         </div>
         <BotCardStack
           bots={state.bots}
-          onRemove={(id) => !readonly && set.setBots(state.bots.filter(b => b.id !== id))}
+          onRemove={(id) => {
+            if (readonly) return;
+            if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_bot_despawn', botId: id });
+            set.setBots(state.bots.filter(b => b.id !== id));
+          }}
           onSwap={(id) => !readonly && set.log(`Bot ${id} loadout getauscht`)}
         />
       </div>
@@ -253,7 +294,29 @@ function TabPlayers({ state, set, role }) {
                 <span className="sub">{p.you ? 'Admin · Du' : (p.coadmin ? 'Co-Admin' : 'Spieler')} · {p.ping}ms</span>
               </div>
               <span className="kd">{p.kd}</span>
-              {!p.you && !readonly && <button className="kick" onClick={() => set.log(`${p.name} gekickt`)}>Kick</button>}
+              {!p.you && !readonly && (
+                <>
+                  <button
+                    className="kick"
+                    style={{ marginRight: 6 }}
+                    onClick={() => {
+                      if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_handoff_token', targetPlayerId: p.name });
+                      set.log(`Admin-Token an ${p.name} übergeben`);
+                    }}
+                  >
+                    Handoff
+                  </button>
+                  <button
+                    className="kick"
+                    onClick={() => {
+                      if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_kick', playerId: p.name });
+                      set.log(`${p.name} gekickt`);
+                    }}
+                  >
+                    Kick
+                  </button>
+                </>
+              )}
             </div>
           ))}
           {state.bots.slice(0, 4).map(b => (
@@ -272,12 +335,15 @@ function TabPlayers({ state, set, role }) {
       <div className="group">
         <div className="group-head">
           <h5>Einladen</h5>
-          <span className="meta">Code KRB-9A2</span>
+          <span className="meta">Code {state.sessionCode || 'KRB-9A2'}</span>
         </div>
         <div className="invite-block" style={{padding: 12}}>
           <div className="invite-link">
-            <div className="link">brett.dev/s/KRB-9A2</div>
-            <button className="btn btn-mono btn-sm">⧉ Kopieren</button>
+            <div className="link">brett.dev/s/{state.sessionCode || 'KRB-9A2'}</div>
+            <button className="btn btn-mono btn-sm" onClick={() => {
+              navigator.clipboard.writeText(state.sessionCode || 'KRB-9A2');
+              set.log('Einladungscode kopiert');
+            }}>⧉ Kopieren</button>
           </div>
           <div className="search">
             <span className="glyph">⌕</span>
@@ -300,14 +366,14 @@ function TabSystem({ state, set, role, onHandoff }) {
         <HandoffBlock
           role={role}
           onHandoff={(target) => { set.log(`Admin-Token an ${target} übergeben`); onHandoff && onHandoff(target); }}
-          otherAdmins={['Tina']}
+          otherAdmins={state.players.filter(p => !p.you).map(p => p.name)}
         />
       </div>
 
       <div className="group">
         <div className="group-head">
           <h5>Session</h5>
-          <span className="meta">KRB-9A2 · 8m 12s</span>
+          <span className="meta">{state.sessionCode || 'KRB-9A2'} · 8m 12s</span>
         </div>
         <div className="log">
           {state.log.slice().reverse().slice(0, 12).map((e, i) => (

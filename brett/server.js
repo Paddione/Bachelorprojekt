@@ -498,10 +498,234 @@ const server = require.main === module
 // ─── WebSocket sync ──────────────────────────────────────────────
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ server, path: '/sync', maxPayload: 64 * 1024 });
+const wss = new WebSocket.Server({
+  server,
+  path: '/sync',
+  maxPayload: 64 * 1024,
+  verifyClient: (info, cb) => {
+    try {
+      const url = new URL(info.req.url, 'http://x');
+      const room = url.searchParams.get('room');
+      if (!room) return cb(true);
+      const decision = shouldRejectReconnect(room, null);
+      if (decision.reject) {
+        return cb(false, decision.code, decision.message);
+      }
+      cb(true);
+    } catch (err) {
+      console.error('[brett] verifyClient error:', err);
+      cb(true);
+    }
+  },
+});
 
 // roomToken -> Set<WebSocket>
 const rooms = new Map();
+
+// roomToken -> sessionCode (reverse map for lookups)
+const sessionCodeIndex = new Map();  // sessionCode -> roomToken
+
+const CROCKFORD = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 31 chars, excludes I,L,O,0,1
+
+function generateSessionCode() {
+  let attempt = 0;
+  while (attempt < 16) {
+    let chars = '';
+    for (let i = 0; i < 6; i++) {
+      chars += CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)];
+    }
+    const code = chars.slice(0, 3) + '-' + chars.slice(3);
+    if (!sessionCodeIndex.has(code)) return code;
+    attempt++;
+  }
+  throw new Error('session-code: 16 collisions in a row — population too dense');
+}
+
+function registerSessionCode(code, roomToken) {
+  sessionCodeIndex.set(code, roomToken);
+}
+
+function resolveSessionCode(code) {
+  return sessionCodeIndex.get(code) || null;
+}
+
+function rebuildSessionCodeIndexFromStates(rows) {
+  for (const row of rows) {
+    const code = row.state?.sessionCode;
+    if (code) sessionCodeIndex.set(code, row.room_token);
+  }
+}
+
+function getAdminTokenHolder(room) {
+  return figureMaps.get(room)?.get('__admin_token_holder__')?.playerId || null;
+}
+
+function assignAdminToken(room, playerId) {
+  if (getAdminTokenHolder(room)) return { ok: false, reason: 'already-held' };
+  applyMutation(room, { type: 'session_admin_token_set', playerId });
+  return { ok: true, holder: playerId };
+}
+
+function handoffAdminToken(room, fromPlayerId, toPlayerId) {
+  const current = getAdminTokenHolder(room);
+  if (current !== fromPlayerId) return { ok: false, reason: 'not-current-holder' };
+  applyMutation(room, { type: 'session_admin_token_set', playerId: toPlayerId });
+  return { ok: true, from: fromPlayerId, to: toPlayerId };
+}
+
+function releaseAdminToken(room) {
+  const figs = figureMaps.get(room);
+  if (figs) figs.delete('__admin_token_holder__');
+}
+
+const GRACE_TIMEOUT_DEFAULT_MS = 30_000;
+const tokenGraceTimers = new Map();       // room -> Timeout
+const roomAdminPresence = new Map();      // room -> Set<playerId> of admins currently in the room
+
+function setRoomAdminPresence(room, adminIds) {
+  roomAdminPresence.set(room, new Set(adminIds));
+}
+
+function beginTokenGrace(room, departingPlayerId, opts = {}) {
+  const ms = opts.timeoutMs ?? GRACE_TIMEOUT_DEFAULT_MS;
+  if (tokenGraceTimers.has(room)) clearTimeout(tokenGraceTimers.get(room));
+  const timer = setTimeout(() => {
+    tokenGraceTimers.delete(room);
+    if (getAdminTokenHolder(room) === departingPlayerId) {
+      // Auto-claim if another admin present
+      const presentAdmins = [...(roomAdminPresence.get(room) || [])]
+        .filter(id => id !== departingPlayerId);
+      if (presentAdmins.length > 0) {
+        applyMutation(room, { type: 'session_admin_token_set', playerId: presentAdmins[0] });
+      } else {
+        releaseAdminToken(room);
+      }
+    }
+  }, ms);
+  tokenGraceTimers.set(room, timer);
+}
+
+function reclaimAdminToken(room, playerId) {
+  if (getAdminTokenHolder(room) !== playerId) return { ok: false, reason: 'not-holder' };
+  if (tokenGraceTimers.has(room)) {
+    clearTimeout(tokenGraceTimers.get(room));
+    tokenGraceTimers.delete(room);
+  }
+  return { ok: true };
+}
+
+function handleAdminSessionCreate(room, adminPlayerId) {
+  const code = generateSessionCode();
+  registerSessionCode(code, room);
+  applyMutation(room, { type: 'session_code_set', code });
+  applyMutation(room, { type: 'session_phase_set', phase: 'warmup' });
+  applyMutation(room, { type: 'session_admin_token_set', playerId: adminPlayerId });
+  applyMutation(room, { type: 'session_created_at_set', ts: new Date().toISOString() });
+  applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
+  return { ok: true, code };
+}
+
+function handleAdminHandoffMessage(room, fromPlayerId, toPlayerId, broadcastFn) {
+  const result = handoffAdminToken(room, fromPlayerId, toPlayerId);
+  if (!result.ok) return result;
+  broadcastFn({ type: 'admin_token_changed', holderPlayerId: toPlayerId, reason: 'handoff' });
+  return result;
+}
+
+function handleAdminRoundStop(room, broadcastFn) {
+  const result = transitionPhase(room, 'ended');
+  if (!result.ok) return result;
+  broadcastFn({ type: 'session_phase_change', phase: 'ended', transitionedAt: new Date().toISOString(), reason: 'admin-stop' });
+  broadcastFn({ type: 'session_ended', reason: 'admin-stop' });
+  return result;
+}
+
+function handleAdminRoundPause(room, broadcastFn) {
+  const figs = figureMaps.get(room);
+  const current = figs?.get('__session_phase__')?.phase;
+  const next = current === 'active' ? 'paused' : current === 'paused' ? 'active' : null;
+  if (!next) return { ok: false, reason: 'invalid-source-phase' };
+  const result = transitionPhase(room, next);
+  if (!result.ok) return result;
+  broadcastFn({
+    type: 'session_phase_change',
+    phase: next,
+    transitionedAt: new Date().toISOString(),
+    reason: next === 'paused' ? 'admin-pause' : 'admin-resume'
+  });
+  return result;
+}
+
+const roomPreviousPlayers = new Map();   // roomToken -> Set<playerId>
+
+function trackPlayerInRoom(room, playerId) {
+  if (!playerId) return;
+  let set = roomPreviousPlayers.get(room);
+  if (!set) {
+    set = new Set();
+    roomPreviousPlayers.set(room, set);
+  }
+  set.add(playerId);
+}
+
+function wasPreviouslyInRoom(room, playerId) {
+  return !!roomPreviousPlayers.get(room)?.has(playerId);
+}
+
+function shouldRejectReconnect(room, playerId) {
+  const phase = figureMaps.get(room)?.get('__session_phase__')?.phase;
+  if (!phase || phase === 'warmup') return { reject: false };
+  // active or paused: forbid all incoming connects from non-current sockets
+  if (phase === 'active' || phase === 'paused') {
+    return {
+      reject: true,
+      code: 409,
+      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
+    };
+  }
+  if (phase === 'ended') {
+    return {
+      reject: true,
+      code: 410,
+      message: 'Session ist beendet.',
+    };
+  }
+  return { reject: false };
+}
+
+const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
+
+function touchSessionActivity(room) {
+  applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
+}
+
+function checkSessionIdle(room) {
+  const figs = figureMaps.get(room);
+  if (!figs) return { ended: false, reason: 'no-room' };
+  const phase = figs.get('__session_phase__')?.phase;
+  if (!phase || phase === 'ended' || phase === 'warmup') {
+    return { ended: false, reason: 'not-applicable' };
+  }
+  const lastActivityIso = figs.get('__session_last_activity__')?.ts;
+  if (!lastActivityIso) return { ended: false, reason: 'no-activity-marker' };
+  const lastActivity = Date.parse(lastActivityIso);
+  if (Date.now() - lastActivity > IDLE_TIMEOUT_MS) {
+    transitionPhase(room, 'ended');
+    return { ended: true, reason: 'idle-timeout', room };
+  }
+  return { ended: false, reason: 'within-timeout', room };
+}
+
+function checkAllSessions() {
+  const results = [];
+  for (const room of figureMaps.keys()) {
+    const r = checkSessionIdle(room);
+    r.room = r.room || room;
+    results.push(r);
+  }
+  return results;
+}
+
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = new Map();
 
@@ -699,25 +923,76 @@ function applyMutation(room, msg) {
         figs.set('__game_mode__', { id: '__game_mode__', mode: msg.mode });
       }
       break;
+    case 'session_phase_set': {
+      figs.set('__session_phase__', { id: '__session_phase__', phase: msg.phase });
+      break;
+    }
+    case 'session_code_set': {
+      figs.set('__session_code__', { id: '__session_code__', code: msg.code });
+      break;
+    }
+    case 'session_admin_token_set': {
+      figs.set('__admin_token_holder__', { id: '__admin_token_holder__', playerId: msg.playerId });
+      break;
+    }
+    case 'session_created_at_set': {
+      figs.set('__session_created_at__', { id: '__session_created_at__', ts: msg.ts });
+      break;
+    }
+    case 'session_last_activity_set': {
+      figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: msg.ts });
+      break;
+    }
   }
+}
+
+const TERMINAL_PHASES = new Set(['ended']);
+const VALID_PHASES = new Set(['warmup', 'active', 'paused', 'ended']);
+
+function transitionPhase(room, newPhase) {
+  if (!VALID_PHASES.has(newPhase)) {
+    return { ok: false, reason: 'invalid-phase' };
+  }
+  const figs = figureMaps.get(room);
+  const current = figs?.get('__session_phase__')?.phase || null;
+  if (current && TERMINAL_PHASES.has(current)) {
+    return { ok: false, reason: 'terminal-phase' };
+  }
+  applyMutation(room, { type: 'session_phase_set', phase: newPhase });
+  return { ok: true, from: current, to: newPhase };
 }
 
 function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
-  const SPECIAL = ['__optik__', '__stiffness__', '__mayhem__', '__game_mode__'];
+  const SPECIAL = [
+    '__optik__', '__stiffness__', '__mayhem__', '__game_mode__',
+    '__session_phase__', '__session_code__', '__admin_token_holder__',
+    '__session_created_at__', '__session_last_activity__',
+  ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
-  const optikEntry    = figs.get('__optik__');
-  const stiffEntry    = figs.get('__stiffness__');
+  const optikEntry        = figs.get('__optik__');
+  const stiffEntry        = figs.get('__stiffness__');
   const mayhemEntry   = figs.get('__mayhem__');
   const gameModeEntry = figs.get('__game_mode__');
+  const phaseEntry         = figs.get('__session_phase__');
+  const codeEntry          = figs.get('__session_code__');
+  const adminTokenEntry    = figs.get('__admin_token_holder__');
+  const createdAtEntry     = figs.get('__session_created_at__');
+  const lastActivityEntry  = figs.get('__session_last_activity__');
   const result = { figures };
   if (optikEntry)    result.optik     = optikEntry.settings;
   if (stiffEntry)    result.stiffness = stiffEntry.value;
   if (mayhemEntry)   result.mayhem    = !!mayhemEntry.enabled;
   if (gameModeEntry) result.gameMode  = gameModeEntry.mode;
+  if (phaseEntry)        result.sessionPhase       = phaseEntry.phase;
+  if (codeEntry)         result.sessionCode        = codeEntry.code;
+  if (adminTokenEntry)   result.adminTokenHolder   = adminTokenEntry.playerId;
+  if (createdAtEntry)    result.sessionCreatedAt   = createdAtEntry.ts;
+  if (lastActivityEntry) result.sessionLastActivity = lastActivityEntry.ts;
   return result;
 }
+
 
 async function persistState(room) {
   const state = buildStateFromMutations(room);
@@ -763,6 +1038,8 @@ wss.on('connection', (ws, req) => {
     try {
       let msg;
       try { msg = JSON.parse(raw); } catch { return; }
+
+      if (ws._room) touchSessionActivity(ws._room);
 
       if (msg.type === 'pong') { ws.isAlive = true; return; }
 
@@ -833,10 +1110,38 @@ wss.on('connection', (ws, req) => {
           if (typeof state.gameMode === 'string') {
             figs.set('__game_mode__', { id: '__game_mode__', mode: state.gameMode });
           }
+          if (typeof state.sessionPhase === 'string') {
+            figs.set('__session_phase__', { id: '__session_phase__', phase: state.sessionPhase });
+          }
+          if (typeof state.sessionCode === 'string') {
+            figs.set('__session_code__', { id: '__session_code__', code: state.sessionCode });
+            registerSessionCode(state.sessionCode, msg.room);
+          }
+          if (typeof state.adminTokenHolder === 'string') {
+            figs.set('__admin_token_holder__', { id: '__admin_token_holder__', playerId: state.adminTokenHolder });
+          }
+          if (typeof state.sessionCreatedAt === 'string') {
+            figs.set('__session_created_at__', { id: '__session_created_at__', ts: state.sessionCreatedAt });
+          }
+          if (typeof state.sessionLastActivity === 'string') {
+            figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: state.sessionLastActivity });
+          }
         }
 
         const state = buildStateFromMutations(msg.room);
-        ws.send(JSON.stringify({ type: 'snapshot', figures: state.figures, optik: state.optik, stiffness: state.stiffness ?? 0.65, mayhem: state.mayhem ?? true, gameMode: state.gameMode }));
+        ws.send(JSON.stringify({
+          type: 'snapshot',
+          figures: state.figures,
+          optik: state.optik,
+          stiffness: state.stiffness ?? 0.65,
+          mayhem: state.mayhem ?? true,
+          gameMode: state.gameMode,
+          sessionPhase: state.sessionPhase,
+          sessionCode: state.sessionCode,
+          adminTokenHolder: state.adminTokenHolder,
+          sessionCreatedAt: state.sessionCreatedAt,
+          sessionLastActivity: state.sessionLastActivity,
+        }));
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
         if (meta && meta.coopWave > 0) {
@@ -919,6 +1224,7 @@ wss.on('connection', (ws, req) => {
         broadcast(room, msg, ws);
         if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
           ws._playerId = msg.playerId;
+          trackPlayerInRoom(room, msg.playerId);
           const alive = lmsAlive.get(room);
           if (alive) alive.add(msg.playerId);
         } else if (msg.type === 'game_mode_change' && typeof msg.mode === 'string') {
@@ -986,6 +1292,7 @@ wss.on('connection', (ws, req) => {
       const ADMIN_TYPES = [
         'admin_mayhem_toggle','admin_mode_set','admin_kick',
         'admin_bot_spawn','admin_bot_despawn','admin_round_reset','admin_broadcast',
+        'admin_session_create','admin_handoff_token','admin_round_stop','admin_round_pause',
       ];
 
       if (ADMIN_TYPES.includes(msg.type)) {
@@ -1057,6 +1364,41 @@ wss.on('connection', (ws, req) => {
             }).catch(err => console.error('[brett] admin_broadcast failed:', err.message));
             break;
           }
+          case 'admin_session_create': {
+            const playerId = ws._playerId || ws._session?.name;
+            if (!playerId) return;
+            const result = handleAdminSessionCreate(adminRoom, playerId);
+            broadcast(adminRoom, {
+              type: 'session_phase_change', phase: 'warmup',
+              transitionedAt: new Date().toISOString(), reason: 'admin-create',
+            });
+            broadcast(adminRoom, {
+              type: 'admin_token_changed', holderPlayerId: playerId, reason: 'handoff',
+            });
+            schedulePersist(adminRoom);
+            // Echo session code to creator
+            try { ws.send(JSON.stringify({ type: 'session_created', code: result.code })); } catch {}
+            break;
+          }
+          case 'admin_handoff_token': {
+            if (typeof msg.targetPlayerId !== 'string') return;
+            const fromPlayerId = ws._playerId || ws._session?.name;
+            if (!fromPlayerId) return;
+            handleAdminHandoffMessage(adminRoom, fromPlayerId, msg.targetPlayerId,
+              (out) => broadcast(adminRoom, out));
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_round_stop': {
+            handleAdminRoundStop(adminRoom, (m) => broadcast(adminRoom, m));
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_round_pause': {
+            handleAdminRoundPause(adminRoom, (m) => broadcast(adminRoom, m));
+            schedulePersist(adminRoom);
+            break;
+          }
         }
         return;
       }
@@ -1098,6 +1440,25 @@ const heartbeatTimer = setInterval(() => {
 }, HEARTBEAT_INTERVAL_MS);
 heartbeatTimer.unref?.();
 
+// ─── Idle-timeout backstop check ──────────────────────────────────
+if (process.env.MOCK_DB !== 'true') {
+  setInterval(() => {
+    const results = checkAllSessions();
+    for (const r of results) {
+      if (r.ended) {
+        broadcast(r.room, {
+          type: 'session_phase_change',
+          phase: 'ended',
+          transitionedAt: new Date().toISOString(),
+          reason: 'idle-timeout',
+        });
+        broadcast(r.room, { type: 'session_ended', reason: 'idle-timeout' });
+        schedulePersist(r.room);
+      }
+    }
+  }, 60_000);
+}
+
 // ─── Graceful Shutdown ───────────────────────────────────────────
 let shuttingDown = false;
 async function shutdown(signal) {
@@ -1132,4 +1493,29 @@ module.exports = {
   listSkins,
   slugifyForSkin,
   buildConfig,
+  transitionPhase,
+  generateSessionCode,
+  registerSessionCode,
+  resolveSessionCode,
+  sessionCodeIndex,
+  rebuildSessionCodeIndexFromStates,
+  assignAdminToken,
+  handoffAdminToken,
+  releaseAdminToken,
+  getAdminTokenHolder,
+  beginTokenGrace,
+  reclaimAdminToken,
+  setRoomAdminPresence,
+  roomAdminPresence,
+  tokenGraceTimers,
+  handleAdminSessionCreate,
+  handleAdminHandoffMessage,
+  handleAdminRoundStop,
+  handleAdminRoundPause,
+  trackPlayerInRoom,
+  wasPreviouslyInRoom,
+  shouldRejectReconnect,
+  touchSessionActivity,
+  checkSessionIdle,
+  checkAllSessions,
 };

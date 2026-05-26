@@ -1,0 +1,324 @@
+/* ui_kits/mayhem/mayhem.css — chrome for the Mayhem combat surface */
+@import url('../colors_and_type.css');
+
+html, body, #root {
+  height: 100%;
+  background: var(--ink-900);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* ── 3D placeholder scene ───────────────────────────────────── */
+.mayhem-scene {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  background: radial-gradient(closest-side at 50% 70%, #101826, var(--ink-900) 75%);
+  perspective: 900px;
+}
+.mayhem-floor {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 200vw; height: 200vw;
+  transform: translate(-50%, 0%) rotateX(72deg);
+  transform-origin: 50% 50%;
+}
+.mayhem-grid {
+  width: 100%; height: 100%;
+  background:
+    linear-gradient(to right, rgba(90,72,40,0.65) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(to bottom, rgba(90,72,40,0.65) 1px, transparent 1px) 0 0 / 64px 64px,
+    linear-gradient(to right, rgba(50,40,28,0.5) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(to bottom, rgba(50,40,28,0.5) 1px, transparent 1px) 0 0 / 16px 16px;
+  mask-image: radial-gradient(closest-side at 50% 50%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, #000 30%, transparent 75%);
+}
+.mayhem-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(closest-side at 50% 50%, transparent 55%, rgba(0,0,0,0.65));
+  pointer-events: none;
+}
+.mayhem-figs { position: absolute; inset: 0; }
+.mayhem-fig {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(calc(-50% + var(--fig-x)), calc(-50% + var(--fig-z))) scale(var(--fig-scale, 1)) rotate(var(--fig-tilt, 0deg));
+  transform-origin: 50% 100%;
+}
+.mayhem-fig svg { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+.mayhem-splat {
+  position: absolute;
+  width: 100px; height: 100px;
+  left: 50%; top: 90%;
+  transform: translate(-50%, -30%);
+  opacity: 0.85;
+  pointer-events: none;
+  mix-blend-mode: normal;
+}
+.mayhem-flash {
+  position: absolute;
+  width: 200px; height: 200px;
+  right: 12%; bottom: 22%;
+  mix-blend-mode: screen;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ── Mode-select overlay (shared with loadout modal) ────────── */
+.mode-select-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,17,28,0.85);
+  display: grid; place-items: center;
+  z-index: 100;
+}
+.mode-select-card {
+  background: var(--ink-800);
+  border: 1px solid var(--brass-mute);
+  padding: 32px;
+  border-radius: 12px;
+  max-width: 720px; width: 90%;
+}
+.mode-select-card h2 {
+  font-family: var(--font-serif); font-weight: 400;
+  margin-top: 0; margin-bottom: 0;
+  color: var(--brass-hi); font-size: 32px;
+}
+.mode-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-top: 24px;
+}
+.mode-card {
+  background: var(--ink-900); border: 1px solid var(--brass-mute);
+  border-radius: 8px; padding: 24px;
+  cursor: pointer; color: inherit;
+  text-align: left;
+  transition: border-color 120ms, transform 120ms;
+  font-family: var(--font-sans);
+}
+.mode-card:hover { border-color: var(--brass-hi); transform: translateY(-2px); }
+.mode-card .title { font-family: var(--font-serif); font-size: 22px; color: var(--brass-hi); font-weight: 400; }
+.mode-card .sub   { font-size: 13px; color: var(--brass-game); margin-top: 6px; }
+.mode-card-mayhem {
+  border: 2px solid #e07a3a;
+  box-shadow: 0 0 12px rgba(224, 122, 58, 0.35);
+}
+.mode-card-mayhem.mode-card-default {
+  background: linear-gradient(135deg, rgba(224, 122, 58, 0.12), transparent), var(--ink-900);
+}
+.mode-card-mayhem .badge {
+  display: inline-block; margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.55em; font-weight: 600;
+  color: #1a1a1a;
+  background: #e07a3a;
+  border-radius: 4px;
+  vertical-align: middle;
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+}
+
+/* ── Loadout modal ──────────────────────────────────────────── */
+.loadout-cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 24px 0 16px;
+}
+.loadout-cols h3 {
+  font-family: var(--font-mono);
+  color: var(--brass-game);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  margin: 0 0 12px;
+}
+.weapon-pick {
+  display: flex; gap: 12px; align-items: center; width: 100%;
+  background: var(--ink-900); border: 1px solid var(--brass-mute);
+  padding: 8px 12px; margin: 4px 0;
+  border-radius: 6px;
+  cursor: pointer; color: inherit;
+  font-family: var(--font-sans); font-size: 14px;
+  text-transform: capitalize;
+}
+.weapon-pick.active { border-color: var(--brass-hi); background: var(--ink-800); color: var(--brass-hi); }
+.weapon-pick img { width: 32px; height: 32px; }
+.loadout-footer { display: flex; justify-content: flex-end; margin-top: 8px; }
+.confirm {
+  background: var(--brass-game); color: var(--ink-900); border: 0;
+  padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 600;
+  font-family: var(--font-sans); font-size: 14px;
+}
+.confirm:hover { background: var(--brass-hi); }
+
+/* ── Combat HUD ─────────────────────────────────────────────── */
+.combat-hud {
+  position: fixed; inset: 0;
+  pointer-events: none; color: var(--brass-hi);
+  font-family: var(--font-sans);
+}
+.combat-hud .hp-wrap {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  width: 280px; height: 18px;
+  background: var(--ink-800); border: 1px solid var(--brass-mute);
+  border-radius: 9px; overflow: hidden;
+}
+.combat-hud .hp-fill {
+  background: linear-gradient(90deg, var(--blood-deep), var(--blood-core), var(--brass-hi));
+  height: 100%; transition: width 120ms ease-out;
+}
+.combat-hud .hp-text {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-weight: 600; font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.1em;
+  text-shadow: 0 0 2px var(--ink-900);
+}
+.combat-hud .mode-indicator {
+  position: absolute; top: 42px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.18em;
+  color: var(--brass-game); text-transform: uppercase;
+}
+.combat-hud .weapon-slots {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px;
+}
+.combat-hud .slot {
+  width: 60px; height: 60px;
+  background: var(--ink-800); border: 1px solid var(--brass-mute);
+  border-radius: 8px;
+  display: grid; place-items: center; position: relative;
+}
+.combat-hud .slot.active {
+  border-color: var(--brass-hi);
+  box-shadow: 0 0 12px var(--brass-mute);
+  background: rgba(215,176,106,0.06);
+}
+.combat-hud .slot.dimmed img { opacity: 0.35; }
+.combat-hud .slot img { width: 42px; height: 42px; }
+.combat-hud .slot .key {
+  position: absolute; top: 3px; right: 6px;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--brass-game); letter-spacing: 0.06em;
+}
+.combat-hud .ammo {
+  position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.1em;
+  color: var(--brass-hi);
+}
+.combat-hud .crosshair {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: 18px; color: var(--brass-game); opacity: 0.55;
+}
+
+/* ── Co-op wave HUD ─────────────────────────────────────────── */
+.coop-hud {
+  position: fixed;
+  top: 50px; left: 50%; transform: translateX(-50%);
+  background: rgba(10,10,20,.82);
+  border: 1px solid #4a7;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-family: var(--font-mono);
+  color: #ccd; font-size: 13px;
+  display: flex; flex-direction: column; gap: 6px;
+  min-width: 240px;
+  z-index: 50;
+}
+.coop-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.coop-label  { color: var(--brass-game); font-weight: bold; letter-spacing: 0.12em; }
+.coop-wave   { font-size: 14px; font-weight: bold; color: #fff; letter-spacing: 0.1em; }
+.coop-enemies{ color: #e87; }
+.coop-bar    { background: #1e1e1e; border-radius: 4px; overflow: hidden; height: 4px; }
+.coop-fill   { height: 100%; background: linear-gradient(90deg, #4a7, var(--brass-game)); transition: width 400ms; }
+.boss-wrap   { margin-top: 4px; }
+.boss-label  { color: #f44; font-size: 11px; margin-bottom: 2px; letter-spacing: 0.1em; }
+.boss-bar    { background: #1e1e1e; border-radius: 4px; overflow: hidden; height: 6px; }
+.boss-fill   { height: 100%; background: #f44; transition: width 200ms; }
+.coop-debug {
+  margin-top: 6px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.55);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer;
+}
+.coop-debug:hover { border-color: var(--brass-game); color: var(--brass-game); }
+
+/* ── Respawn overlay ────────────────────────────────────────── */
+.respawn-overlay {
+  position: fixed; inset: 0;
+  background: rgba(168,58,48,0.15);
+  backdrop-filter: blur(4px);
+  display: grid; place-items: center;
+  z-index: 200;
+}
+.respawn-card {
+  background: var(--ink-800); border: 1px solid var(--brass-game);
+  padding: 36px 72px; border-radius: 12px; text-align: center;
+  box-shadow: var(--shadow-modal);
+}
+.respawn-card .msg {
+  color: var(--brass-hi); font-size: 18px;
+  font-family: var(--font-serif); margin-bottom: 12px;
+}
+.respawn-card .countdown {
+  color: var(--brass-game); font-size: 80px; font-weight: 700;
+  font-family: var(--font-serif); line-height: 1;
+}
+.respawn-cancel {
+  display: block; margin: 16px auto 0;
+  background: transparent;
+  border: 1px solid rgba(231,234,208,0.2);
+  color: rgba(231,234,208,0.6);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font: inherit; font-size: 12px;
+  cursor: pointer;
+}
+.respawn-cancel:hover { border-color: var(--brass-mute); color: var(--brass-hi); }
+
+/* ── Scoreboard ─────────────────────────────────────────────── */
+.score-board {
+  position: fixed; top: 16px; right: 16px;
+  background: var(--ink-800); border: 1px solid var(--brass-mute);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 180px;
+  font-family: var(--font-sans);
+  z-index: 40;
+}
+.score-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-bottom: 6px; margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.sb-label { font-family: var(--font-mono); font-size: 10px; color: var(--brass-game); letter-spacing: 0.18em; }
+.sb-count { font-family: var(--font-mono); font-size: 10px; color: var(--fg-soft); letter-spacing: 0.08em; }
+.score-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: 13px; color: var(--fg-soft);
+  padding: 3px 0;
+}
+.score-row .kills {
+  font-family: var(--font-mono); color: var(--brass-game);
+}
+.score-row.leading .name  { color: var(--brass-hi); }
+.score-row.leading .kills { color: var(--brass-hi); }
+
+/* ── Quick switcher button ─────────────────────────────────── */
+.mayhem-switcher {
+  position: fixed; top: 16px; left: 16px;
+  background: var(--ink-800);
+  border: 1px solid var(--brass-mute);
+  border-radius: 6px;
+  color: var(--brass-game);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  z-index: 40;
+}
+.mayhem-switcher:hover { border-color: var(--brass-hi); color: var(--brass-hi); }

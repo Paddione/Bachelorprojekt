@@ -51,6 +51,13 @@ class Vehicle {
     const mat = new THREE.MeshLambertMaterial({ color });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(position.x, size.h / 2, position.z);
+
+    const edges = new THREE.EdgesGeometry(geo);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+      color: 0x695a3a, linewidth: 2, transparent: true, opacity: 0.7,
+    }));
+    mesh.add(line);
+
     scene.add(mesh);
 
     const vehicle = {

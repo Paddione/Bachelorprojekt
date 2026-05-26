@@ -65,6 +65,9 @@ const Mayhem = (() => {
   let _opponentHeroId = null;
   let _lastFireMs     = 0;
   let _muzzleFlashTex = null;
+  let _tinaFrostnovaTex = null;
+  let _tinaFireballTex = null;
+  let _tinaChainTex = null;
   let _duelRoundPause = false;
   let _duelHpFillA  = null;   // HP bar DOM element for duel playerA
   let _duelHpFillB  = null;   // HP bar DOM element for duel playerB
@@ -95,6 +98,7 @@ const Mayhem = (() => {
     send = opts.sendMessage;
     playerId = randomUUID();
     window._mayhemCamera = camera;
+    window._mayhemScene = scene;
     window._mayhemMakeMannequin = makeMannequin;
     bindKeys();
     chaseCam = new window.MayhemChaseCamera(camera, canvas);
@@ -252,6 +256,9 @@ const Mayhem = (() => {
   function start() {
     showBanner();
     const THREE = window.THREE;
+    if (room && room.startsWith('solo-')) {
+      _pvAiMode = true;
+    }
 
     // Effects
     effectsMgr = new window.MayhemEffectsClass(scene);
@@ -259,6 +266,14 @@ const Mayhem = (() => {
 
     if (window.MayhemMuzzleFlash) {
       _muzzleFlashTex = window.MayhemMuzzleFlash.makeMuzzleFlashTexture();
+    }
+    if (window.MayhemTinaVfx) {
+      _tinaFrostnovaTex = window.MayhemTinaVfx.makeFrostnovaTexture();
+      _tinaFireballTex = window.MayhemTinaVfx.makeFireballTexture();
+      _tinaChainTex = window.MayhemTinaVfx.makeChainSegmentTexture();
+      window._mayhemTinaFrostnovaTex = _tinaFrostnovaTex;
+      window._mayhemTinaFireballTex = _tinaFireballTex;
+      window._mayhemTinaChainTex = _tinaChainTex;
     }
 
     // Weapon system
@@ -370,7 +385,7 @@ const Mayhem = (() => {
       try { return window.localStorage.getItem('brett.skinId') || 'default'; }
       catch { return 'default'; }
     })();
-    localAvatar = new window.MayhemPlayerAvatar({ id: playerId, mannequin, local: true, color, skinId });
+    localAvatar = new window.MayhemPlayerAvatar({ id: playerId, mannequin, local: true, color, skinId, scene });
     localAvatar.setWeapon(weaponSystem.current);
     _lastWeaponKey = weaponSystem.current?.key || null;
     chaseCam.attach(localAvatar.mannequin.root);
@@ -563,12 +578,25 @@ const Mayhem = (() => {
           window._minionManager = new window.MayhemHeroes.MinionManager({
             maxMinions: 2,
             minionMeshFactory: pos => {
-              const m = makeMannequin(`minion-${pos.x}-${pos.z}`, pos);
+              const m = makeMannequin(`minion-${pos.x}-${pos.z}`, pos, {
+                bodyColor: 0x5a1a14,   // blood-deep
+                skinColor: 0x8a6258,   // skin-deep (gaunt)
+                trimColor: 0x695a3a,   // brass-mute
+                jointFactor: 0.55,
+              });
               m.root.scale.setScalar(0.6);
-              m.root.traverse(o => {
-                if (o.isMesh && o.material) {
-                  o.material = o.material.clone();
-                  o.material.color.setHex(0xb8c0a8);
+              // Apply corrupted pose
+              const torso = m.root.getObjectByName('torso');
+              const head = m.root.getObjectByName('head');
+              if (torso) torso.rotation.x = 0.18;
+              if (head) { head.position.z = 0.10; head.rotation.x = 0.25; }
+              m.root.children.forEach((child) => {
+                if (child.name === 'hips') {
+                  child.children.forEach(c => {
+                    if (c.name === 'lShoulder' || c.name === 'rShoulder') {
+                      c.rotation.x = 0.22;
+                    }
+                  });
                 }
               });
               return m.root;
@@ -1485,12 +1513,25 @@ const Mayhem = (() => {
 
       case 'minion_spawn':
         {
-          const miniMesh = makeMannequin(`minion-${msg.minionId}`, { x: msg.x, z: msg.z });
+          const miniMesh = makeMannequin(`minion-${msg.minionId}`, { x: msg.x, z: msg.z }, {
+            bodyColor: 0x5a1a14,   // blood-deep
+            skinColor: 0x8a6258,   // skin-deep (gaunt)
+            trimColor: 0x695a3a,   // brass-mute
+            jointFactor: 0.55,
+          });
           miniMesh.root.scale.setScalar(0.6);
-          miniMesh.root.traverse(o => {
-            if (o.isMesh && o.material) {
-              o.material = o.material.clone();
-              o.material.color.setHex(0xb8c0a8);
+          // Apply corrupted pose
+          const torso = miniMesh.root.getObjectByName('torso');
+          const head = miniMesh.root.getObjectByName('head');
+          if (torso) torso.rotation.x = 0.18;
+          if (head) { head.position.z = 0.10; head.rotation.x = 0.25; }
+          miniMesh.root.children.forEach((child) => {
+            if (child.name === 'hips') {
+              child.children.forEach(c => {
+                if (c.name === 'lShoulder' || c.name === 'rShoulder') {
+                  c.rotation.x = 0.22;
+                }
+              });
             }
           });
           window._remoteMinionMeshes = window._remoteMinionMeshes || new Map();
@@ -1524,7 +1565,7 @@ const Mayhem = (() => {
         if (remoteAvatars.has(msg.playerId)) return;
         { const m = makeMannequin(msg.playerId, { x: 0, z: 0 });
           remoteAvatars.set(msg.playerId,
-            new window.MayhemPlayerAvatar({ id: msg.playerId, mannequin: m, local: false, color: msg.color || '#888' })); }
+            new window.MayhemPlayerAvatar({ id: msg.playerId, mannequin: m, local: false, color: msg.color || '#888', scene })); }
         isHost = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
         break;
 
@@ -1913,6 +1954,8 @@ const Mayhem = (() => {
     isFirstPersonActive() {
       return _isFirstPersonActive();
     },
+    /** P4.4 — touch controllers: read/write the input state object directly */
+    getInput() { return input; },
     get _initialized() { return _initDone; },
     _internal: {
       remoteAvatars,
@@ -1929,4 +1972,8 @@ const Mayhem = (() => {
   };
 })();
 
-if (typeof window !== 'undefined') window.Mayhem = Mayhem;
+if (typeof window !== 'undefined') {
+  window.Mayhem = Mayhem;
+  window.__brettMayhem = Mayhem;  // P4.4: shorthand for touch controller wiring
+}
+

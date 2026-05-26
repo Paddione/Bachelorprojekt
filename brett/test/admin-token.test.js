@@ -13,6 +13,7 @@ const {
   beginTokenGrace,
   reclaimAdminToken,
   setRoomAdminPresence,
+  handleAdminHandoffMessage,
 } = require('../server.js');
 
 test('assignAdminToken: sets holder when none exists', () => {
@@ -81,4 +82,16 @@ test('beginTokenGrace expiry: auto-claim to other admin present in room', async 
   beginTokenGrace(room, 'paddione', { timeoutMs: 50 });
   await new Promise(r => setTimeout(r, 100));
   assert.strictEqual(getAdminTokenHolder(room), 'gekko', 'gekko auto-claims after grace expiry');
+});
+
+test('handleAdminHandoffMessage: paddione hands off → gekko, broadcast fired', () => {
+  const room = 'handoff-test-1';
+  assignAdminToken(room, 'paddione');
+  const broadcasts = [];
+  const result = handleAdminHandoffMessage(room, 'paddione', 'gekko', (msg) => broadcasts.push(msg));
+  assert.strictEqual(result.ok, true);
+  assert.strictEqual(getAdminTokenHolder(room), 'gekko');
+  assert.deepStrictEqual(broadcasts, [{
+    type: 'admin_token_changed', holderPlayerId: 'gekko', reason: 'handoff'
+  }]);
 });

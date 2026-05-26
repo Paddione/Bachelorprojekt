@@ -595,6 +595,48 @@ function reclaimAdminToken(room, playerId) {
   return { ok: true };
 }
 
+function handleAdminSessionCreate(room, adminPlayerId) {
+  const code = generateSessionCode();
+  registerSessionCode(code, room);
+  applyMutation(room, { type: 'session_code_set', code });
+  applyMutation(room, { type: 'session_phase_set', phase: 'warmup' });
+  applyMutation(room, { type: 'session_admin_token_set', playerId: adminPlayerId });
+  applyMutation(room, { type: 'session_created_at_set', ts: new Date().toISOString() });
+  applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
+  return { ok: true, code };
+}
+
+function handleAdminHandoffMessage(room, fromPlayerId, toPlayerId, broadcastFn) {
+  const result = handoffAdminToken(room, fromPlayerId, toPlayerId);
+  if (!result.ok) return result;
+  broadcastFn({ type: 'admin_token_changed', holderPlayerId: toPlayerId, reason: 'handoff' });
+  return result;
+}
+
+function handleAdminRoundStop(room, broadcastFn) {
+  const result = transitionPhase(room, 'ended');
+  if (!result.ok) return result;
+  broadcastFn({ type: 'session_phase_change', phase: 'ended', transitionedAt: new Date().toISOString(), reason: 'admin-stop' });
+  broadcastFn({ type: 'session_ended', reason: 'admin-stop' });
+  return result;
+}
+
+function handleAdminRoundPause(room, broadcastFn) {
+  const figs = figureMaps.get(room);
+  const current = figs?.get('__session_phase__')?.phase;
+  const next = current === 'active' ? 'paused' : current === 'paused' ? 'active' : null;
+  if (!next) return { ok: false, reason: 'invalid-source-phase' };
+  const result = transitionPhase(room, next);
+  if (!result.ok) return result;
+  broadcastFn({
+    type: 'session_phase_change',
+    phase: next,
+    transitionedAt: new Date().toISOString(),
+    reason: next === 'paused' ? 'admin-pause' : 'admin-resume'
+  });
+  return result;
+}
+
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = new Map();
 
@@ -1158,6 +1200,7 @@ wss.on('connection', (ws, req) => {
       const ADMIN_TYPES = [
         'admin_mayhem_toggle','admin_mode_set','admin_kick',
         'admin_bot_spawn','admin_bot_despawn','admin_round_reset','admin_broadcast',
+        'admin_session_create','admin_handoff_token','admin_round_stop','admin_round_pause',
       ];
 
       if (ADMIN_TYPES.includes(msg.type)) {
@@ -1227,6 +1270,41 @@ wss.on('connection', (ws, req) => {
               method: 'POST',
               headers: { 'x-internal-admin': process.env.BRETT_INTERNAL_ADMIN_SECRET || '' },
             }).catch(err => console.error('[brett] admin_broadcast failed:', err.message));
+            break;
+          }
+          case 'admin_session_create': {
+            const playerId = ws._playerId || ws._session?.name;
+            if (!playerId) return;
+            const result = handleAdminSessionCreate(adminRoom, playerId);
+            broadcast(adminRoom, {
+              type: 'session_phase_change', phase: 'warmup',
+              transitionedAt: new Date().toISOString(), reason: 'admin-create',
+            });
+            broadcast(adminRoom, {
+              type: 'admin_token_changed', holderPlayerId: playerId, reason: 'handoff',
+            });
+            schedulePersist(adminRoom);
+            // Echo session code to creator
+            try { ws.send(JSON.stringify({ type: 'session_created', code: result.code })); } catch {}
+            break;
+          }
+          case 'admin_handoff_token': {
+            if (typeof msg.targetPlayerId !== 'string') return;
+            const fromPlayerId = ws._playerId || ws._session?.name;
+            if (!fromPlayerId) return;
+            handleAdminHandoffMessage(adminRoom, fromPlayerId, msg.targetPlayerId,
+              (out) => broadcast(adminRoom, out));
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_round_stop': {
+            handleAdminRoundStop(adminRoom, (m) => broadcast(adminRoom, m));
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_round_pause': {
+            handleAdminRoundPause(adminRoom, (m) => broadcast(adminRoom, m));
+            schedulePersist(adminRoom);
             break;
           }
         }
@@ -1319,4 +1397,8 @@ module.exports = {
   setRoomAdminPresence,
   roomAdminPresence,
   tokenGraceTimers,
+  handleAdminSessionCreate,
+  handleAdminHandoffMessage,
+  handleAdminRoundStop,
+  handleAdminRoundPause,
 };

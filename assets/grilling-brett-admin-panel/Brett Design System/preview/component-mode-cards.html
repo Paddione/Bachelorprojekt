@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { background: rgba(11,17,28,0.85); }
+  .mode-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .mode-card {
+    background: #0b111c;
+    border: 1px solid rgba(215,176,106,0.35);
+    border-radius: 8px; padding: 22px;
+    text-align: left;
+    transition: transform 120ms;
+  }
+  .mode-card .title { font-family: var(--font-serif); font-size: 24px; color: #f0d28c; font-weight: 400; }
+  .mode-card .sub { font-family: var(--font-sans); font-size: 13px; color: #d7b06a; margin-top: 6px;}
+  .mode-card.mayhem {
+    border: 2px solid #e07a3a;
+    box-shadow: 0 0 12px rgba(224, 122, 58, 0.35);
+    background: linear-gradient(135deg, rgba(224, 122, 58, 0.12), transparent), #0b111c;
+  }
+  .mode-card.mayhem .title { color: #f0d28c; }
+  .mode-card.mayhem .badge {
+    display: inline-block; margin-left: 6px; padding: 2px 8px;
+    font-size: 0.55em; font-weight: 600; color: #1a1a1a;
+    background: #e07a3a; border-radius: 4px; vertical-align: middle;
+    font-family: var(--font-sans);
+  }
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="mode-grid">
+    <div class="mode-card">
+      <div class="title">Coaching</div>
+      <div class="sub">Systemische Aufstellung</div>
+    </div>
+    <div class="mode-card mayhem">
+      <div class="title">🤸 Mayhem <span class="badge">STANDARD</span></div>
+      <div class="sub">3D Kampfmodus · Waffen · Fahrzeuge</div>
+    </div>
+  </div>
+</div>
+</body></html>

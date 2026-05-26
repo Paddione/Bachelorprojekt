@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision">
+  
+  
+  <path d="M16 50 C 22 38, 34 22, 56 10 L 54 14 C 32 26, 22 40, 18 52 Z"></path>
+  
+  <path d="M22 46 C 28 36, 36 26, 50 16" opacity=".45"></path>
+  
+  <path d="M12 48 L20 56 M20 48 L12 56"></path>
+  <rect x="10" y="50" width="10" height="4" transform="rotate(-45 15 52)"></rect>
+  
+  <path d="M9 51 L4 56"></path>
+  
+  <path d="M7 53 L5.5 54.5" opacity=".5"></path>
+  
+  <path d="M6 10 H10 V14" opacity=".35"></path>
+  <path d="M58 54 H54 V50" opacity=".35"></path>
+</svg>

@@ -1,0 +1,197 @@
+/* =========================================================================
+   Brett — colors_and_type.css
+   Unified design tokens for "Systemisches Brett" (Brett).
+   Two voices share one substrate:
+     · Coaching/Therapy mode  →  sage + parchment + slate
+     · Mayhem/Combat mode     →  ink + brass + blood
+   Both live on dark ink, both use brass as the key accent, both are
+   no-light-mode (game-tool & contemplative tool — never airy).
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ── Surfaces · ink/slate ──────────────────────────────────────────
+     Slightly-warm dark navy. Never pure black. Two scales are layered
+     because the app has two voices: "ink-*" is the game vocabulary,
+     "slate-*" is the coaching vocabulary. They live together on disk.
+  */
+  --ink-900:      #0b111c;  /* page substrate (mayhem)            */
+  --ink-850:      #101826;  /* panel / card                       */
+  --ink-800:      #17202e;  /* raised element                     */
+  --ink-750:      #1d2736;
+  --ink-700:      #25303f;
+
+  --slate-0:      #0e1014;  /* app bg (coaching)                  */
+  --slate-1:      #161922;  /* card / panel                       */
+  --slate-2:      #1f2330;  /* raised / hover                     */
+  --slate-3:      #2a3040;  /* divider / hairline                 */
+
+  /* ── Brass · the keystone accent ───────────────────────────────────
+     Selection rings, active states, HUD highlights, eyebrows. Used
+     as a fine line, never as a fill except for primary buttons.
+  */
+  --brass:        #c8a96e;  /* coaching brass — slightly softer   */
+  --brass-deep:   #8a7244;  /* pressed / shadow                   */
+  --brass-soft:   #e0c690;  /* hover lift                         */
+
+  --brass-game:   #d7b06a;  /* mayhem brass — slightly warmer     */
+  --brass-hi:     #f0d28c;  /* mayhem highlight                   */
+  --brass-mute:   rgba(215, 176, 106, 0.35);
+  --brass-tint:   rgba(215, 176, 106, 0.06);
+  --brass-tint-2: rgba(215, 176, 106, 0.18);
+
+  /* ── Sage · coaching secondary (figure material) ────────────────── */
+  --sage:         #b8c0a8;  /* primary body color (Lambert)       */
+  --sage-deep:    #8e9a7c;  /* shadow side of figure              */
+  --sage-soft:    #cdd4c0;  /* highlight side                     */
+
+  /* ── Parchment · text / cloth ──────────────────────────────────── */
+  --parchment:    #e7ead0;  /* primary text on slate              */
+  --parchment-2:  #b9bda3;  /* secondary text                     */
+  --parchment-3:  #7c8071;  /* tertiary / labels                  */
+
+  /* Mayhem-vocabulary foreground (cooler, less olive) */
+  --fg:           #eef1f3;
+  --fg-soft:      #cdd3d9;
+  --mute:         #8c96a3;
+  --mute-2:       #6a727e;
+
+  /* ── Skin (head sphere) ──────────────────────────────────────────── */
+  --skin:         #d9c89b;  /* warm parchment skin                */
+  --skin-deep:    #a89567;  /* head shadow                        */
+
+  /* ── Game · combat extension (mayhem only) ──────────────────────── */
+  --stille-blau:  #6fa8d8;  /* slash glow / info                  */
+  --blood-core:   #a83a30;  /* splat center                       */
+  --blood-deep:   #5a1a14;  /* splat edge                         */
+  --blood-bright: #c4453a;  /* highlight                          */
+  --fire-tip:     #fff5c8;  /* flame apex                         */
+
+  /* ── Semantic joint markers — DO NOT REDESIGN ───────────────────── */
+  --joint-wrist:  #e4c452;  /* yellow  · wrists                   */
+  --joint-ankle:  #7fa37a;  /* green   · ankles                   */
+  --joint-knee:   #6f8db8;  /* blue    · knees                    */
+  --joint-elbow:  #c8a96e;  /* brass   · elbows                   */
+  --joint-head:   #d29c8a;  /* blush   · head pivot               */
+
+  /* ── Semantic ──────────────────────────────────────────────────── */
+  --ok:           var(--sage);
+  --warn:         var(--brass);
+  --fail:         #d77a6e;
+  --info:         var(--stille-blau);
+
+  /* ── Lines & dividers ──────────────────────────────────────────── */
+  --line:         rgba(215, 176, 106, 0.18);  /* brass hairline    */
+  --line-2:       rgba(215, 176, 106, 0.10);
+  --line-3:       rgba(255, 255, 255, 0.07);  /* neutral hairline  */
+  --hairline:     1px solid var(--slate-3);
+  --hairline-soft:1px solid rgba(231, 234, 208, 0.08);
+
+  /* ── Type · families ───────────────────────────────────────────── */
+  --font-serif:   'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --font-sans:    'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* aliases used by some surfaces */
+  --serif:        var(--font-serif);
+  --sans:         var(--font-sans);
+  --mono:         var(--font-mono);
+
+  /* ── Type · scale (generous, never shouty) ─────────────────────── */
+  --fs-display:   72px;   --lh-display: 1.02; --ls-display: -0.025em;
+  --fs-h1:        44px;   --lh-h1:      1.05; --ls-h1:      -0.02em;
+  --fs-h2:        32px;   --lh-h2:      1.10; --ls-h2:      -0.02em;
+  --fs-h3:        22px;   --lh-h3:      1.20; --ls-h3:      -0.015em;
+  --fs-h4:        17px;   --lh-h4:      1.30; --ls-h4:      -0.01em;
+  --fs-lede:      18px;   --lh-lede:    1.65;
+  --fs-body-lg:   18px;   --lh-body-lg: 1.70;
+  --fs-body:      15px;   --lh-body:    1.60;
+  --fs-small:     13px;   --lh-small:   1.55;
+  --fs-label:     11px;   --lh-label:   1.40;  --ls-label: 0.18em;
+  --fs-mono:      12px;   --lh-mono:    1.60;  --ls-mono:  0.06em;
+
+  /* ── Spacing (4px base) ────────────────────────────────────────── */
+  --s-1: 4px;   --s-2: 8px;   --s-3: 12px;  --s-4: 16px;  --s-5: 20px;
+  --s-6: 24px;  --s-8: 32px;  --s-10: 40px; --s-12: 48px; --s-16: 64px;
+  --s-20: 80px; --s-24: 96px; --s-32: 128px;
+
+  /* ── Radii ─────────────────────────────────────────────────────── */
+  --r-pill:   999px;
+  --r-card:   14px;   /* coaching cards stay restrained */
+  --r-tile:   8px;    /* HUD slots, mode tiles          */
+  --r-chip:   4px;    /* small chips, weapon slots      */
+  --r-input:  6px;
+  --r-paper:  4px;
+
+  /* ── Shadow / elevation ────────────────────────────────────────── */
+  --shadow-1:        0 1px 0 rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.35);
+  --shadow-2:        0 8px 24px rgba(0,0,0,.45);
+  --shadow-modal:    0 30px 60px -30px rgba(0,0,0,.65), 0 12px 24px -12px rgba(0,0,0,.55);
+  --shadow-ring-brass: 0 0 0 1px var(--brass), 0 0 24px rgba(200,169,110,0.25);
+  --glow-brass:      0 0 12px var(--brass-mute);
+
+  /* ── Motion ────────────────────────────────────────────────────── */
+  --ease:      cubic-bezier(.2,.7,.2,1);
+  --dur-fast:  120ms;
+  --dur:       200ms;
+  --dur-slow:  320ms;
+}
+
+/* =========================================================================
+   Semantic type roles — heads stay serif (calm, dignified, editorial).
+   Sans is for UI affordances. Mono is for the HUD voice (game/labels).
+   ========================================================================= */
+h1, .h1 { font-family: var(--font-serif); font-weight: 400; font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); color: var(--parchment); margin: 0; }
+h2, .h2 { font-family: var(--font-serif); font-weight: 400; font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); color: var(--parchment); margin: 0; }
+h3, .h3 { font-family: var(--font-serif); font-weight: 400; font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--ls-h3); color: var(--parchment); margin: 0; }
+h4, .h4 { font-family: var(--font-sans);  font-weight: 600; font-size: var(--fs-h4); line-height: var(--lh-h4); letter-spacing: var(--ls-h4); color: var(--parchment); margin: 0; }
+.h-display { font-family: var(--font-serif); font-weight: 400; font-size: var(--fs-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); color: var(--parchment); }
+
+.lede     { font-family: var(--font-sans);  font-size: var(--fs-lede);    line-height: var(--lh-lede);    color: var(--parchment-2); }
+.body-lg  { font-family: var(--font-serif); font-size: var(--fs-body-lg); line-height: var(--lh-body-lg); color: var(--parchment); font-weight: 400; }
+.body, p  { font-family: var(--font-sans);  font-size: var(--fs-body);    line-height: var(--lh-body);    color: var(--parchment); }
+.small    { font-size: var(--fs-small);     line-height: var(--lh-small); color: var(--parchment-2); }
+
+.label, .eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--brass);
+  font-weight: 500;
+}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.eyebrow::before {
+  content: ""; width: 22px; height: 1px;
+  background: currentColor; opacity: .8;
+}
+.eyebrow.no-rule::before { display: none; }
+
+.mono, code, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: var(--lh-mono);
+  letter-spacing: var(--ls-mono);
+  color: var(--parchment-2);
+}
+
+em, .em { font-style: italic; color: var(--brass-soft); font-weight: 400; }
+
+/* =========================================================================
+   Surfaces
+   ========================================================================= */
+.surface-slate { background: var(--slate-0); color: var(--parchment); }
+.surface-ink   { background: var(--ink-900);  color: var(--fg); }
+.surface-panel { background: var(--slate-1); border: var(--hairline); border-radius: var(--r-card); }
+.surface-elev  { background: var(--ink-850); border: 1px solid var(--line); border-radius: var(--r-tile); }
+
+/* =========================================================================
+   Reset-ish
+   ========================================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+a { color: inherit; }
+button { font: inherit; }

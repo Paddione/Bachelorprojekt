@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  .joint-row { display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; justify-content:space-between; padding: 6px 0;}
+  .joint {
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    min-width: 110px;
+  }
+  .joint .dot {
+    width: 56px; height: 56px; border-radius: 50%;
+    box-shadow: inset 0 -8px 18px rgba(0,0,0,0.35), inset 0 6px 14px rgba(255,255,255,0.12);
+  }
+  .joint .name { font-family: var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color: var(--parchment);}
+  .joint .role { font-family: var(--font-sans); font-size:12px; color: var(--parchment-3); }
+  .joint .hex { font-family: var(--font-mono); font-size:10px; color: var(--parchment-3); letter-spacing:.06em;}
+  .note { font-family: var(--font-mono); font-size: 10px; letter-spacing:.16em; text-transform:uppercase; color: var(--parchment-3); margin-top: 6px;}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="joint-row">
+    <div class="joint"><div class="dot" style="background:#e4c452"></div><span class="name">wrist</span><span class="role">lWrist · rWrist</span><span class="hex">#e4c452</span></div>
+    <div class="joint"><div class="dot" style="background:#7fa37a"></div><span class="name">ankle</span><span class="role">lAnkle · rAnkle</span><span class="hex">#7fa37a</span></div>
+    <div class="joint"><div class="dot" style="background:#6f8db8"></div><span class="name">knee</span><span class="role">lKnee · rKnee</span><span class="hex">#6f8db8</span></div>
+    <div class="joint"><div class="dot" style="background:#c8a96e"></div><span class="name">elbow</span><span class="role">lElbow · rElbow</span><span class="hex">#c8a96e</span></div>
+    <div class="joint"><div class="dot" style="background:#d29c8a"></div><span class="name">head</span><span class="role">head pivot</span><span class="hex">#d29c8a</span></div>
+  </div>
+  <div class="note">Semantic — inviolable · these colors map 1:1 to draggable joint spheres on the mannequin</div>
+</div>
+</body></html>

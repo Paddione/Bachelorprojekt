@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { padding: 14px 16px;}
+  .grid {
+    display:grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+  }
+  .face {
+    background: #1f2330; border-radius: 8px;
+    aspect-ratio: 1/1; overflow:hidden; position: relative;
+    border: 1px solid var(--line);
+  }
+  .face img { width:100%; height:100%; object-fit: cover; display:block; mix-blend-mode: normal;}
+  .face .lbl {
+    position: absolute; left:0; right:0; bottom:0;
+    background: linear-gradient(to top, rgba(11,17,28,0.95), transparent);
+    color: var(--parchment); font-family: var(--font-mono); font-size: 9px; letter-spacing:.1em; text-transform: uppercase; padding: 6px 6px 4px; text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="grid">
+    <div class="face"><img src="../assets/figure-pack/faces/neutral.png"><span class="lbl">neutral</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/observing.png"><span class="lbl">observing</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/present.png"><span class="lbl">present</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/curious.png"><span class="lbl">curious</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/yearning.png"><span class="lbl">yearning</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/protective.png"><span class="lbl">protective</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/distant.png"><span class="lbl">distant</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/withdrawn.png"><span class="lbl">withdrawn</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/overwhelmed.png"><span class="lbl">overwhelmed</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/mourning.png"><span class="lbl">mourning</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/resolved.png"><span class="lbl">resolved</span></div>
+    <div class="face"><img src="../assets/figure-pack/faces/blocked.png"><span class="lbl">blocked</span></div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  .row-s { display:flex; gap: 14px; }
+  .tile {
+    flex:1; min-width: 0;
+    background: var(--slate-1);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 14px 16px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .name { font-family: var(--font-mono); font-size: 10px; letter-spacing:.14em; text-transform:uppercase; color: #c8a96e; font-weight:500;}
+  .desc { font-family: var(--font-sans); font-size: 12px; color: var(--parchment-2); line-height: 1.5;}
+  .ramp { height: 38px; border-radius: 4px; background: var(--slate-2); border: 1px solid var(--line);}
+  .e1 { box-shadow: 0 1px 0 rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.35); }
+  .e2 { box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+  .ring { box-shadow: 0 0 0 1px #c8a96e, 0 0 24px rgba(200,169,110,0.25); border-color: #c8a96e; }
+  .modal { box-shadow: 0 30px 60px -30px rgba(0,0,0,.65), 0 12px 24px -12px rgba(0,0,0,.55); }
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="row-s">
+    <div class="tile"><span class="name">shadow-1</span><div class="ramp e1"></div><span class="desc">Pressed chips · 1px black + 2px soft</span></div>
+    <div class="tile"><span class="name">shadow-2</span><div class="ramp e2"></div><span class="desc">Floating panels · 24px diffuse</span></div>
+  </div>
+  <div class="row-s">
+    <div class="tile"><span class="name">ring-brass</span><div class="ramp ring"></div><span class="desc">Selected figure · 1px brass + halo</span></div>
+    <div class="tile"><span class="name">shadow-modal</span><div class="ramp modal"></div><span class="desc">Modals · stacked vertical lift</span></div>
+  </div>
+</div>
+</body></html>

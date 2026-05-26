@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { background: #0b111c; padding: 14px 18px;}
+  .row-h { display: flex; gap: 14px; }
+  .coop {
+    flex: 1;
+    background: rgba(10,10,20,.82);
+    border: 1px solid #4a7; border-radius: 8px;
+    padding: 10px 18px;
+    font-family: var(--font-mono); color: #ccd; font-size: 12px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .coop .topl { display:flex; justify-content: space-between; align-items: center;}
+  .coop .cooplabel { color: #c9aa71; font-weight: bold; letter-spacing: .12em;}
+  .coop .wave { font-size: 14px; font-weight: bold; color: #fff; letter-spacing:.1em;}
+  .coop .enemies { color: #e87; }
+  .coop .bar { background: #1e1e1e; border-radius: 4px; overflow: hidden; height: 4px;}
+  .coop .fill { width: 60%; height: 100%; background: linear-gradient(90deg, #4a7, #c9aa71);}
+  .coop .boss { color: #f44; font-size: 11px;}
+  .coop .bossbar { background: #1e1e1e; border-radius: 4px; overflow: hidden; height: 6px;}
+  .coop .bossfill { width: 35%; height: 100%; background: #f44;}
+  .respawn {
+    flex: 1;
+    background: #17202e; border: 1px solid #c8a96e;
+    padding: 14px 28px; border-radius: 12px; text-align: center;
+  }
+  .respawn .msg { color: #f0d28c; font-family: var(--font-serif); font-size: 16px; margin-bottom: 6px;}
+  .respawn .countdown { color: #d7b06a; font-family: var(--font-serif); font-size: 48px; font-weight: 700; line-height: 1;}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="row-h">
+    <div class="coop">
+      <div class="topl">
+        <span class="cooplabel">CO-OP</span>
+        <span class="wave">WELLE 7 / 10</span>
+        <span class="enemies">Feinde: <strong>3</strong></span>
+      </div>
+      <div class="bar"><div class="fill"></div></div>
+      <div class="boss">⚠ BOSS HP</div>
+      <div class="bossbar"><div class="bossfill"></div></div>
+    </div>
+  </div>
+  <div class="row-h">
+    <div class="respawn">
+      <div class="msg">Gefallen — Respawn in</div>
+      <div class="countdown">3</div>
+    </div>
+    <div class="coop" style="border-color: rgba(215,176,106,0.18);">
+      <div class="topl">
+        <span class="cooplabel">SCOREBOARD</span>
+        <span style="color: #d7b06a;">3 / 4</span>
+      </div>
+      <div style="display:flex; justify-content: space-between; font-family: var(--font-sans); font-size: 12px;"><span>Tina</span><span>14</span></div>
+      <div style="display:flex; justify-content: space-between; font-family: var(--font-sans); font-size: 12px;"><span>Martina</span><span>9</span></div>
+      <div style="display:flex; justify-content: space-between; font-family: var(--font-sans); font-size: 12px;"><span>Oskar</span><span>7</span></div>
+    </div>
+  </div>
+</div>
+</body></html>

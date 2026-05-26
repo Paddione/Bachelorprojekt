@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Brett · Mayhem — UI Kit</title>
+<link rel="stylesheet" href="mayhem.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ModeSelect.jsx"></script>
+<script type="text/babel" src="LoadoutModal.jsx"></script>
+<script type="text/babel" src="CombatHUD.jsx"></script>
+<script type="text/babel" src="CoopHUD.jsx"></script>
+<script type="text/babel" src="RespawnOverlay.jsx"></script>
+<script type="text/babel" src="Scoreboard.jsx"></script>
+<script type="text/babel" src="MayhemScene.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const PHASES = { MODE: 'mode', LOADOUT: 'loadout', PLAYING: 'playing' };
+
+function App() {
+  const [phase, setPhase]     = useState(PHASES.MODE);
+  const [loadout, setLoadout] = useState({ melee: 'katana', ranged: 'rifle' });
+  const [hp, setHp]           = useState(84);
+  const [respawn, setRespawn] = useState(null);
+  const [wave, setWave]       = useState(7);
+  const [progress, setProgress] = useState(45);
+  const [enemies, setEnemies]   = useState(3);
+  const [bossHp, setBossHp]     = useState(null);
+  const [activeKey, setActiveKey] = useState('2');
+
+  // Show boss HP at wave 10
+  useEffect(() => {
+    if (wave >= 10) setBossHp(70); else setBossHp(null);
+  }, [wave]);
+
+  // 1..9 hotkeys + Esc to reset
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape' && phase === PHASES.PLAYING) {
+        setPhase(PHASES.MODE);
+        return;
+      }
+      if (phase !== PHASES.PLAYING) return;
+      if (['1','2','3','4','5'].includes(e.key)) setActiveKey(e.key);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [phase]);
+
+  // Respawn countdown
+  useEffect(() => {
+    if (respawn == null) return;
+    if (respawn === 0) {
+      setRespawn(null);
+      setHp(100);
+      return;
+    }
+    const t = setTimeout(() => setRespawn(r => (r ?? 1) - 1), 1000);
+    return () => clearTimeout(t);
+  }, [respawn]);
+
+  return (
+    <>
+      {phase === PHASES.PLAYING && <MayhemScene />}
+
+      {phase === PHASES.MODE && (
+        <ModeSelect
+          defaultMode="mayhem"
+          onPick={(m) => {
+            if (m === 'mayhem') setPhase(PHASES.LOADOUT);
+            else {
+              // For demo: link out to coaching kit, otherwise pop back
+              window.location.href = '../coaching/index.html';
+            }
+          }}
+        />
+      )}
+
+      {phase === PHASES.LOADOUT && (
+        <LoadoutModal
+          initial={loadout}
+          onConfirm={(l) => { setLoadout(l); setPhase(PHASES.PLAYING); }}
+        />
+      )}
+
+      {phase === PHASES.PLAYING && (
+        <>
+          <button className="mayhem-switcher" onClick={() => setPhase(PHASES.MODE)}>↩ Modus</button>
+          <CoopHUD
+            wave={wave} totalWaves={10}
+            enemies={enemies}
+            progress={progress}
+            bossHp={bossHp}
+            onTriggerDeath={() => setRespawn(3)}
+          />
+          <Scoreboard players={[
+            { name: 'Tina',    kills: 14 },
+            { name: 'Martina', kills: 9 },
+            { name: 'Oskar',   kills: 7 },
+            { name: 'Patrick', kills: 4 },
+          ]} />
+          <CombatHUD hp={hp} hpMax={100} activeKey={activeKey} loadout={loadout} mode="MAYHEM · CO-OP" />
+          <RespawnOverlay countdown={respawn} onCancel={() => setRespawn(null)} />
+        </>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  body { background: #0e1014; padding: 0; overflow: hidden;}
+  .topbar {
+    height: 40px; background: rgba(14,16,20,0.85); backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(231,234,208,0.08);
+    display: flex; align-items: center; gap: 8px; padding: 0 14px;
+    font-family: var(--font-sans); font-size: 13px; color: var(--parchment);
+  }
+  .preset-btn {
+    background: transparent; color: inherit;
+    border: 1px solid rgba(231,234,208,0.18);
+    border-radius: 4px; padding: 4px 10px; cursor: pointer; font: inherit;
+  }
+  .preset-btn.active { background: rgba(200,169,110,0.14); border-color: #c8a96e; color: #f0d28c;}
+  .sep { width:1px; height: 22px; background: rgba(231,234,208,0.12); margin: 0 4px;}
+  .stiffness { width: 110px; accent-color: #c8a96e;}
+  .topbar .right { margin-left: auto; display: flex; gap: 8px; align-items: center;}
+  .online {
+    font-family: var(--font-mono); font-size: 11px; color: #7fa37a; letter-spacing:.1em;
+  }
+  .pill {
+    margin: 24px auto 0;
+    width: fit-content;
+    padding: 8px 14px;
+    background: rgba(14,16,20,0.85);
+    border: 1px solid rgba(231,234,208,0.14);
+    border-radius: 999px;
+    font-family: var(--font-sans); font-size: 13px; color: var(--parchment-2);
+  }
+  .pill .sep-dot { color: var(--parchment-3); margin: 0 6px; }
+  .legend { font-family: var(--font-mono); font-size: 10px; letter-spacing:.16em; text-transform: uppercase; color: var(--parchment-3); padding: 0 18px; margin-top: 18px; text-align: center;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="preset-btn active">Stand</button>
+  <button class="preset-btn">Kneel</button>
+  <button class="preset-btn">Prone</button>
+  <button class="preset-btn">Crawl</button>
+  <button class="preset-btn">Slump</button>
+  <button class="preset-btn">T-Pose</button>
+  <div class="sep"></div>
+  <span style="color: var(--parchment-3); font-size: 12px;">🌡 PHYS</span>
+  <input type="range" class="stiffness" min="0" max="1" step=".01" value=".65">
+  <span style="color: var(--parchment-3); font-size: 12px;">IK 🎯</span>
+  <div class="right">
+    <button class="preset-btn">＋ Figur ▾</button>
+    <button class="preset-btn">✦ Aussehen</button>
+    <span class="online">● 3 online</span>
+  </div>
+</div>
+<div class="pill">Klick = Figur wählen <span class="sep-dot">·</span> Doppelklick Boden = Figur teleportieren / neue Figur</div>
+<div class="legend">Topbar 36px · status pill bottom-center · backdrop-blur over the 3D canvas</div>
+</body></html>

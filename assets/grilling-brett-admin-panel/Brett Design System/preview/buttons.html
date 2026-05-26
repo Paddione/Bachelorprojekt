@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"/><link rel="stylesheet" href="_card.css"/>
+<style>
+  .row-b { display:flex; gap: 12px; align-items: center; flex-wrap: wrap;}
+  .preset-btn {
+    background: transparent; color: var(--parchment);
+    border: 1px solid rgba(231,234,208,0.18);
+    border-radius: 4px; padding: 6px 14px;
+    font: inherit; font-family: var(--font-sans); font-size: 13px;
+    cursor: pointer;
+  }
+  .preset-btn:hover { background: rgba(231,234,208,0.08); }
+  .preset-btn.active { background: rgba(200,169,110,0.14); border-color: #c8a96e; color: #f0d28c; }
+  .primary {
+    background: #c8a96e; color: #0a0a14;
+    border: none; border-radius: 6px;
+    padding: 8px 14px; font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+    cursor: pointer;
+  }
+  .primary:hover { filter: brightness(1.1); }
+  .ghost {
+    background: transparent; color: rgba(231,234,208,0.7);
+    border: 1px solid rgba(231,234,208,0.2); border-radius: 6px;
+    padding: 8px 14px; font-family: var(--font-sans); font-size: 13px;
+  }
+  .legend { font-family: var(--font-mono); font-size: 10px; letter-spacing:.18em; text-transform:uppercase; color: var(--parchment-3);}
+</style>
+</head>
+<body>
+<div class="card-root">
+  <div class="legend">Preset toolbar — slate · pill-square 4px</div>
+  <div class="row-b">
+    <button class="preset-btn active">Stand</button>
+    <button class="preset-btn">Kneel</button>
+    <button class="preset-btn">Prone</button>
+    <button class="preset-btn">Crawl</button>
+    <button class="preset-btn">Slump</button>
+    <button class="preset-btn">T-Pose</button>
+  </div>
+  <div class="legend">Primary / ghost — modal footers, drawer apply</div>
+  <div class="row-b">
+    <button class="primary">＋ Klick auf Brett zum Platzieren</button>
+    <button class="ghost">Abbrechen</button>
+    <button class="primary">Übernehmen</button>
+    <button class="primary">Spielen</button>
+  </div>
+</div>
+</body></html>

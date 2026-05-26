@@ -53,6 +53,7 @@ function renderSkinPicker(skins, currentId, onPick) {
 }
 
 export function showLoadoutModal(modeState) {
+  document.body.setAttribute('data-overlay', '');
   const current = modeState.loadout();
   let currentSkinId = readSkinId();
   let currentSkinName = 'Mannequin';
@@ -130,7 +131,11 @@ export function showLoadoutModal(modeState) {
       }
       if (e.target.classList.contains('confirm')) {
         modeState.setLoadout(sel);
+        document.body.removeAttribute('data-overlay');
         el.remove();
+        if (window.Mayhem && typeof window.Mayhem.requestPointerLock === 'function') {
+          window.Mayhem.requestPointerLock();
+        }
         resolve({ ...sel, skinId: currentSkinId });
       }
     });

@@ -101,6 +101,11 @@ class MayhemAudio {
     this._play('hit-marker',  0.45);
   }
 
+  // Call when a kill is confirmed.
+  onKill() {
+    this._play('kill-confirmed', 0.85);
+  }
+
   // Call from EffectsManager.spawnBloodSplat.
   onBloodSplat() {
     this._play('blood-splat', 0.5 + Math.random() * 0.25, randCents(-12, 12));

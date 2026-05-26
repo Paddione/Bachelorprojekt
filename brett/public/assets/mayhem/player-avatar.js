@@ -355,6 +355,32 @@ class PlayerAvatar {
     }
     return out;
   }
+  flashRed(durationMs = 80) {
+    if (!this._origColors) {
+      this._origColors = new Map();
+      this._traverseColored((mat) => this._origColors.set(mat, mat.color.clone()));
+    }
+    this._traverseColored((mat) => mat.color.setRGB(1.0, 0.25, 0.25));
+    clearTimeout(this._flashTO);
+    this._flashTO = setTimeout(() => {
+      this._traverseColored((mat) => {
+        const orig = this._origColors.get(mat);
+        if (orig) mat.color.copy(orig);
+      });
+    }, durationMs);
+  }
+  _traverseColored(fn) {
+    this.mannequin.root.traverse((obj) => {
+      if (obj.isMesh && obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(m => { if (m.color) fn(m); });
+        } else if (obj.material.color) {
+          fn(obj.material);
+        }
+      }
+    });
+  }
+
   remove(scene) {
     if (this.skin) { this.skin.dispose(scene); this.skin = null; }
     scene.remove(this.mannequin.root);

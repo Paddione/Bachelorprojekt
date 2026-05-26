@@ -4,7 +4,7 @@
 // Handles: spawn, per-frame movement, AABB/capsule collision, network hit emission.
 // Effects (blood splat, fire) are delegated to MayhemEffects.
 
-const GRAVITY = -9.8;
+const GRAVITY = -4.5;
 const MAX_LIFETIME_MS = 4000;
 const PROJECTILE_RADIUS = 0.08;
 const FIREBALL_RADIUS   = 0.22;
@@ -84,6 +84,8 @@ class ProjectileManager {
       shooterId,
       born: performance.now(),
       dead: false,
+      startX: originPos.x,
+      startZ: originPos.z,
     });
   }
 
@@ -105,6 +107,11 @@ class ProjectileManager {
       p.mesh.position.z += p.vz * dt;
 
       if (p.mesh.position.y < 0) { this._kill(p); continue; }
+
+      if (p.weaponDef.range !== undefined) {
+        const distXZ = Math.hypot(p.mesh.position.x - p.startX, p.mesh.position.z - p.startZ);
+        if (distXZ > p.weaponDef.range) { this._kill(p); continue; }
+      }
 
       const pos = p.mesh.position;
 

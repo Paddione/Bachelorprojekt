@@ -63,6 +63,7 @@ const Mayhem = (() => {
   let _heroSelectUi = null;   // { el, lockCard, setStatus, showPlayButton, destroy }
   let _myHeroId     = null;
   let _opponentHeroId = null;
+  let _lastFireMs     = 0;
   let _duelRoundPause = false;
   let _duelHpFillA  = null;   // HP bar DOM element for duel playerA
   let _duelHpFillB  = null;   // HP bar DOM element for duel playerB
@@ -121,9 +122,12 @@ const Mayhem = (() => {
         if (e.code === 'KeyF') {
           _specMode = _specMode === 'fly' ? 'follow' : 'fly';
           if (_specMode === 'fly' && document.pointerLockElement === null) {
-            document.documentElement.requestPointerLock().catch(() => {});
+            canvas.requestPointerLock().catch(() => {});
           } else if (_specMode === 'follow') {
             document.exitPointerLock();
+            if (_isFirstPersonActive() && canvas) {
+              requestAnimationFrame(() => canvas.requestPointerLock());
+            }
           }
         }
       }
@@ -256,6 +260,7 @@ const Mayhem = (() => {
     weaponSystem = new window.MayhemWeapons.WeaponSystem(
       (weaponDef, originPos, dirVec, shooterId) => {
         projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
+        _lastFireMs = performance.now();
       }
     );
 
@@ -382,6 +387,9 @@ const Mayhem = (() => {
             aiBots.delete(id);
             remoteAvatars.delete(id);
             if (killerId && killerId !== id) gameMode?.handleKill(killerId);
+            if (killerId === playerId) {
+              window.MayhemAudio?.onKill();
+            }
             gameMode?.handleEnemyDeath(id);
             updateHud();
           },
@@ -414,12 +422,13 @@ const Mayhem = (() => {
     if (mode === 'duel') {
       _showHeroSelectModal();
     } else {
-      if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+      if (_heroSelectUi) { _closeOverlay(_heroSelectUi); _heroSelectUi = null; }
     }
   }
 
   function _showHeroSelectModal() {
-    if (_heroSelectUi) _heroSelectUi.destroy();
+    document.body.setAttribute('data-overlay', '');
+    if (_heroSelectUi) _closeOverlay(_heroSelectUi);
     const pvAiAvailable = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-')).length === 0;
     _heroSelectUi = window.MayhemHeroSelect.buildHeroSelectModal({
       heroes:     window.MayhemHeroes.HEROES,
@@ -582,7 +591,7 @@ const Mayhem = (() => {
   }
 
   function _startDuelRound(playerA, playerB) {
-    if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    if (_heroSelectUi) { _closeOverlay(_heroSelectUi); _heroSelectUi = null; }
     _duelRoundPause = false;
     if (_pvAiMode && isHost) {
       _spawnPvAiBot(_opponentHeroId || 'patrick');
@@ -717,8 +726,9 @@ const Mayhem = (() => {
   }
 
   function _showDuelMatchResult(matchWinnerId, reason, winsA, winsB, heroAId, heroBId, nameAOverride, nameBOverride) {
+    document.body.setAttribute('data-overlay', '');
     const existing = document.getElementById('duel-match-result-overlay');
-    if (existing) existing.remove();
+    if (existing) _closeOverlay(existing);
 
     const HEROES = window.MayhemHeroes?.HEROES || {};
     const ds = gameMode?.duelState || {};
@@ -958,14 +968,19 @@ const Mayhem = (() => {
     }
     if (projectileMgr) { projectileMgr.clear(); projectileMgr = null; }
     if (_crosshairMesh) { scene.remove(_crosshairMesh); _crosshairMesh = null; }
-    if (_heroSelectUi) { _heroSelectUi.destroy(); _heroSelectUi = null; }
+    if (_heroSelectUi) { _closeOverlay(_heroSelectUi); _heroSelectUi = null; }
     const specHud = document.getElementById('spectator-hud-v2');
     if (specHud) specHud.remove();
     const specFooter = document.getElementById('spectator-hud-footer');
     if (specFooter) specFooter.remove();
     document.removeEventListener('mousemove', _onMouseMove);
     document.removeEventListener('touchmove', _onTouchMove);
-    if (document.pointerLockElement) document.exitPointerLock();
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+      if (_isFirstPersonActive() && canvas) {
+        requestAnimationFrame(() => canvas.requestPointerLock());
+      }
+    }
     window.MayhemEffects = null;
     effectsMgr = null;
     weaponSystem = null;
@@ -995,6 +1010,40 @@ const Mayhem = (() => {
     _specMode = 'follow';
   }
 
+  function _isFirstPersonActive() {
+    return enabled && !_isSpectator && localAvatar;
+  }
+
+  function _closeOverlay(node) {
+    if (node) {
+      if (typeof node.destroy === 'function') node.destroy();
+      else if (node.parentNode) node.parentNode.removeChild(node);
+      else if (typeof node.remove === 'function') node.remove();
+    }
+    document.body.removeAttribute('data-overlay');
+    if (_isFirstPersonActive() && canvas) {
+      requestAnimationFrame(() => canvas.requestPointerLock());
+    }
+  }
+
+  function _updateCrosshairTint() {
+    const now = performance.now();
+    const recentlyFired = (now - (_lastFireMs || 0)) < 150;
+    const heroIsCool = _myHeroId === 'tina';
+    let target;
+    if (recentlyFired) target = 0xc4453a;       // blood-bright
+    else if (heroIsCool) target = 0x6fa8d8;     // stille-blau
+    else target = 0xc8a96e;                     // brass-game (default)
+    
+    if (_crosshairMesh && _crosshairMesh.material) {
+      if (_crosshairMesh.material.color.lerp) {
+        _crosshairMesh.material.color.lerp(new THREE.Color(target), 0.18);
+      } else {
+        _crosshairMesh.material.color.set(target);
+      }
+    }
+  }
+
   // ── Respawn ───────────────────────────────────────────────────────────────
   function localRespawn() {
     if (!localAvatar) return;
@@ -1012,16 +1061,21 @@ const Mayhem = (() => {
     const impulse = { x: (Math.random() - 0.5) * 3, z: (Math.random() - 0.5) * 3 };
     send({ type: 'hit', victimId, weaponKey, shooterId: shooterId || playerId, impulse, source: 'weapon' });
     applyHitLocally(victimId, weaponKey, impulse, shooterId || playerId);
+    if ((shooterId || playerId) === playerId) {
+      window.MayhemAudio?.onHit(weaponKey);
+    }
   }
 
   function sendFlailHit(victimId, impulse) {
     send({ type: 'hit', victimId, weaponKey: 'fist', shooterId: playerId, impulse, source: 'flail' });
     applyHitLocally(victimId, 'fist', impulse, playerId);
+    window.MayhemAudio?.onHit('fist');
   }
 
   function sendVehicleHit(victimId, impulse) {
     send({ type: 'hit', victimId, weaponKey: 'vehicle', shooterId: playerId, impulse, source: 'vehicle' });
     applyHitLocally(victimId, 'vehicle', impulse, playerId);
+    window.MayhemAudio?.onHit('vehicle');
   }
 
   function applyHitLocally(victimId, weaponKey, impulse, shooterId) {
@@ -1047,6 +1101,10 @@ const Mayhem = (() => {
   // Victim-authoritative: only the victim applies damage and broadcasts hp_update.
   function processLocalHit(weaponKey, impulse, shooterId) {
     if (!localAvatar || localAvatar.isDead) return;
+    const hpBefore = localAvatar.hp;
+
+    window.MayhemAudio?.onHit(weaponKey);
+
     const weaponDef = weaponSystem ? weaponSystem.getWeaponDef(weaponKey) : null;
     const damage = weaponDef ? weaponDef.damage
                  : weaponKey === 'vehicle' ? 30 : 15;
@@ -1062,6 +1120,11 @@ const Mayhem = (() => {
     }
 
     send({ type: 'hp_update', playerId, hp: localAvatar.hp });
+    const hpAfter = localAvatar.hp;
+
+    if (hpBefore > 0 && hpAfter <= 0) {
+      window.MayhemAudio?.onKill();
+    }
 
     if (localAvatar.isDead) {
       send({ type: 'player_death', playerId, killerId: shooterId });
@@ -1146,6 +1209,14 @@ const Mayhem = (() => {
       chaseCam?.update();
       if (hud) updateHudFrame();
       return;
+    }
+
+    if (_crosshairMesh) {
+      const overlayOpen = document.body.hasAttribute('data-overlay');
+      _crosshairMesh.visible = !overlayOpen && _isFirstPersonActive();
+      if (!overlayOpen) {
+        _updateCrosshairTint();
+      }
     }
 
     // Update aim direction from mouse position
@@ -1349,7 +1420,7 @@ const Mayhem = (() => {
       case 'duel_reset':
         {
           const resultOverlay = document.getElementById('duel-match-result-overlay');
-          if (resultOverlay) resultOverlay.remove();
+          if (resultOverlay) _closeOverlay(resultOverlay);
           if (msg.mode === 'same') {
             if (localAvatar) { localAvatar.resetHero(); localAvatar.resetHp(); localRespawn(); }
             _buildDuelHud(0, 0);
@@ -1363,7 +1434,7 @@ const Mayhem = (() => {
       case 'duel_abandoned':
         {
           const overlay = document.getElementById('duel-match-result-overlay');
-          if (overlay) overlay.remove();
+          if (overlay) _closeOverlay(overlay);
           const scoreHud = document.getElementById('duel-score-hud');
           if (scoreHud) scoreHud.remove();
           _duelHpFillA = null; _duelHpFillB = null;
@@ -1498,6 +1569,9 @@ const Mayhem = (() => {
         // Server now owns duel scoring — it sees player_death and emits round/match end.
         gameMode?.handleDeath(msg.playerId, msg.playerId === playerId);
         if (msg.killerId) gameMode?.handleKill(msg.killerId);
+        if (msg.killerId === playerId) {
+          window.MayhemAudio?.onKill();
+        }
         if (_isSpectator) _updateSpectatorHud();
         updateHud();
         break;
@@ -1562,6 +1636,9 @@ const Mayhem = (() => {
                 aiBots.delete(id);
                 remoteAvatars.delete(id);
                 if (killerId && killerId !== id) gameMode?.handleKill(killerId);
+                if (killerId === playerId) {
+                  window.MayhemAudio?.onKill();
+                }
                 gameMode?.handleEnemyDeath(id);
                 updateHud();
               },
@@ -1807,6 +1884,14 @@ const Mayhem = (() => {
 
   return {
     init, toggle, setEnabled, onSnapshot, onMessage, tick,
+    requestPointerLock() {
+      if (_isFirstPersonActive() && canvas) {
+        requestAnimationFrame(() => canvas.requestPointerLock());
+      }
+    },
+    isFirstPersonActive() {
+      return _isFirstPersonActive();
+    },
     get _initialized() { return _initDone; },
     _internal: {
       remoteAvatars,

@@ -16,30 +16,71 @@ function mkBulletMesh(THREE) {
 }
 
 function mkFireballMesh(THREE) {
-  const geo = new THREE.SphereGeometry(FIREBALL_RADIUS, 8, 8);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xff5500 });
-  const mesh = new THREE.Mesh(geo, mat);
-  // Inner glow
-  const gGeo = new THREE.SphereGeometry(FIREBALL_RADIUS * 0.6, 6, 6);
-  const gMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
-  mesh.add(new THREE.Mesh(gGeo, gMat));
-  return mesh;
+  const tex = window._mayhemTinaFireballTex;
+  if (!tex) {
+    const geo = new THREE.SphereGeometry(FIREBALL_RADIUS, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xff5500 });
+    const mesh = new THREE.Mesh(geo, mat);
+    // Inner glow
+    const gGeo = new THREE.SphereGeometry(FIREBALL_RADIUS * 0.6, 6, 6);
+    const gMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
+    mesh.add(new THREE.Mesh(gGeo, gMat));
+    return mesh;
+  }
+
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.setScalar(1.0);
+  sprite.userData.isFireballSprite = true;
+  sprite.userData.spawnTime = performance.now();
+  return sprite;
 }
 
 function mkChainMesh(THREE) {
-  // Randomly jittered arc via CatmullRomCurve3
-  const points = [];
-  for (let i = 0; i <= 5; i++) {
-    points.push(new THREE.Vector3(
-      (Math.random() - 0.5) * 0.3,
-      0.05 + Math.random() * 0.2,
-      -i * 0.3,
-    ));
+  const tex = window._mayhemTinaChainTex;
+  if (!tex) {
+    // Randomly jittered arc via CatmullRomCurve3
+    const points = [];
+    for (let i = 0; i <= 5; i++) {
+      points.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 0.3,
+        0.05 + Math.random() * 0.2,
+        -i * 0.3,
+      ));
+    }
+    const curve = new THREE.CatmullRomCurve3(points);
+    const geo   = new THREE.TubeGeometry(curve, 20, 0.035, 4, false);
+    const mat   = new THREE.MeshBasicMaterial({ color: 0x6fa8d8 });  // stille-blau
+    return new THREE.Mesh(geo, mat);
   }
-  const curve = new THREE.CatmullRomCurve3(points);
-  const geo   = new THREE.TubeGeometry(curve, 20, 0.035, 4, false);
-  const mat   = new THREE.MeshBasicMaterial({ color: 0x6fa8d8 });  // stille-blau
-  return new THREE.Mesh(geo, mat);
+
+  const geo = new THREE.PlaneGeometry(1, 0.4);
+  geo.rotateY(Math.PI / 2);
+  const posAttr = geo.attributes.position;
+  for (let i = 0; i < posAttr.count; i++) {
+    posAttr.setZ(i, posAttr.getZ(i) + 0.34);
+  }
+  posAttr.needsUpdate = true;
+
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.userData.isChainMesh = true;
+  mesh.userData.spawnTime = performance.now();
+  return mesh;
 }
 
 class ProjectileManager {
@@ -85,7 +126,9 @@ class ProjectileManager {
       born: performance.now(),
       dead: false,
       startX: originPos.x,
+      startY: originPos.y,
       startZ: originPos.z,
+      currentPos: new THREE.Vector3(originPos.x, originPos.y + 1.2, originPos.z),
     });
 
     if (window.MayhemTracer) {
@@ -108,18 +151,38 @@ class ProjectileManager {
 
       // Integrate
       if (p.weaponDef.projectileType !== 'fireball') p.vy += GRAVITY * dt;
-      p.mesh.position.x += p.vx * dt;
-      p.mesh.position.y += p.vy * dt;
-      p.mesh.position.z += p.vz * dt;
+      p.currentPos.x += p.vx * dt;
+      p.currentPos.y += p.vy * dt;
+      p.currentPos.z += p.vz * dt;
 
-      if (p.mesh.position.y < 0) { this._kill(p); continue; }
+      if (p.currentPos.y < 0) { this._kill(p); continue; }
 
       if (p.weaponDef.range !== undefined) {
-        const distXZ = Math.hypot(p.mesh.position.x - p.startX, p.mesh.position.z - p.startZ);
+        const distXZ = Math.hypot(p.currentPos.x - p.startX, p.currentPos.z - p.startZ);
         if (distXZ > p.weaponDef.range) { this._kill(p); continue; }
       }
 
-      const pos = p.mesh.position;
+      if (!p.mesh.userData.isChainMesh) {
+        p.mesh.position.copy(p.currentPos);
+        if (p.mesh.userData.isFireballSprite) {
+          const elapsed = now - p.mesh.userData.spawnTime;
+          p.mesh.material.rotation = Math.sin(elapsed * 0.01) * (8 * Math.PI / 180);
+          const wobble = 1.0 + Math.sin(elapsed * 0.02) * 0.12;
+          p.mesh.scale.setScalar(wobble);
+        }
+      } else {
+        const startPos = new THREE.Vector3(p.startX, p.startY + 1.2, p.startZ);
+        p.mesh.position.copy(startPos);
+        p.mesh.lookAt(p.currentPos);
+        const dist = startPos.distanceTo(p.currentPos);
+        p.mesh.scale.set(1.0, 1.0, dist);
+
+        // Flicker opacity
+        const flicker = Math.random() > 0.3 ? 1.0 : 0.2;
+        p.mesh.material.opacity = 0.95 * flicker;
+      }
+
+      const pos = p.currentPos;
 
       // Obstacle collision
       const projSphere = { x: pos.x, y: pos.y, z: pos.z, radius: p.radius, height: p.radius * 2 };
@@ -161,7 +224,33 @@ class ProjectileManager {
   _kill(p) {
     if (p.dead) return;
     p.dead = true;
-    this._scene.remove(p.mesh);
+    if (p.mesh.userData.isFireballSprite) {
+      const sprite = p.mesh;
+      const mat = sprite.material;
+      const start = performance.now();
+      const DURATION = 200; // ms
+      const fadeOut = () => {
+        const elapsed = performance.now() - start;
+        const t = Math.min(1.0, elapsed / DURATION);
+        sprite.scale.setScalar(1.0 + t * 1.2);
+        mat.opacity = 0.9 * (1.0 - t);
+        if (t < 1.0) {
+          requestAnimationFrame(fadeOut);
+        } else {
+          this._scene.remove(sprite);
+          mat.dispose();
+        }
+      };
+      requestAnimationFrame(fadeOut);
+    } else {
+      this._scene.remove(p.mesh);
+      if (p.mesh.material && typeof p.mesh.material.dispose === 'function') {
+        p.mesh.material.dispose();
+      }
+      if (p.mesh.geometry && typeof p.mesh.geometry.dispose === 'function') {
+        p.mesh.geometry.dispose();
+      }
+    }
   }
 
   _doMeleeCheck(weaponDef, originPos, dirVec, shooterId) {

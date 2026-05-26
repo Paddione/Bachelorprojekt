@@ -188,31 +188,69 @@ class EffectsManager {
 
   spawnFrostnovaEffect(scene, origin) {
     const THREE = this._THREE;
-    const mat = new THREE.MeshBasicMaterial({
-      color: 0x6fa8d8, transparent: true, opacity: 0.8, side: THREE.DoubleSide,
-    });
-    let radius = 0.05;
-    const updateGeo = () => new THREE.TorusGeometry(radius, 0.06, 8, 32);
-    const mesh = new THREE.Mesh(updateGeo(), mat);
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.set(origin.x, 0.15, origin.z);
-    scene.add(mesh);
+    const tex = window._mayhemTinaFrostnovaTex;
+    if (!tex) {
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0x6fa8d8, transparent: true, opacity: 0.8, side: THREE.DoubleSide,
+      });
+      let radius = 0.05;
+      const updateGeo = () => new THREE.TorusGeometry(radius, 0.06, 8, 32);
+      const mesh = new THREE.Mesh(updateGeo(), mat);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(origin.x, 0.15, origin.z);
+      scene.add(mesh);
 
-    const start  = performance.now();
-    const EXPAND = 300;    // ms to reach max radius
-    const FADE   = 200;    // ms to fade after expanding
+      const start  = performance.now();
+      const EXPAND = 300;    // ms to reach max radius
+      const FADE   = 200;    // ms to fade after expanding
+
+      const animate = (now) => {
+        const elapsed = now - start;
+        if (elapsed < EXPAND) {
+          radius = 2.5 * (elapsed / EXPAND);
+          mesh.geometry.dispose();
+          mesh.geometry = updateGeo();
+        } else if (elapsed < EXPAND + FADE) {
+          mat.opacity = 0.8 * (1 - (elapsed - EXPAND) / FADE);
+        } else {
+          scene.remove(mesh);
+          mesh.geometry.dispose();
+          return;
+        }
+        requestAnimationFrame(animate);
+      };
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    const mat = new THREE.SpriteMaterial({
+      map: tex,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.position.set(origin.x, 1.15, origin.z);
+    sprite.scale.setScalar(0.2);
+    scene.add(sprite);
+
+    const start = performance.now();
+    const DURATION = 1400;
 
     const animate = (now) => {
       const elapsed = now - start;
-      if (elapsed < EXPAND) {
-        radius = 2.5 * (elapsed / EXPAND);
-        mesh.geometry.dispose();
-        mesh.geometry = updateGeo();
-      } else if (elapsed < EXPAND + FADE) {
-        mat.opacity = 0.8 * (1 - (elapsed - EXPAND) / FADE);
+      const t = Math.min(1.0, elapsed / DURATION);
+      sprite.scale.setScalar(0.2 + t * 2.2);
+      sprite.material.rotation = t * (70 * Math.PI / 180);
+      if (t > 0.5) {
+        sprite.material.opacity = 0.8 * (1.0 - (t - 0.5) / 0.5);
       } else {
-        scene.remove(mesh);
-        mesh.geometry.dispose();
+        sprite.material.opacity = 0.8;
+      }
+      if (t >= 1.0) {
+        scene.remove(sprite);
+        mat.dispose();
         return;
       }
       requestAnimationFrame(animate);

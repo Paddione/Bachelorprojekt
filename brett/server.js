@@ -1107,8 +1107,18 @@ wss.on('connection', (ws, req) => {
           if (typeof state.mayhem === 'boolean') {
             figs.set('__mayhem__', { id: '__mayhem__', enabled: state.mayhem });
           }
-          if (typeof state.gameMode === 'string') {
-            figs.set('__game_mode__', { id: '__game_mode__', mode: state.gameMode });
+          let initialGameMode = state.gameMode;
+          if (!initialGameMode && typeof msg.room === 'string') {
+            if (msg.room.startsWith('solo-')) {
+              initialGameMode = 'duel';
+            } else if (msg.room.startsWith('duel-')) {
+              initialGameMode = 'duel';
+            } else if (msg.room.startsWith('ffa-')) {
+              initialGameMode = 'deathmatch';
+            }
+          }
+          if (typeof initialGameMode === 'string') {
+            figs.set('__game_mode__', { id: '__game_mode__', mode: initialGameMode });
           }
           if (typeof state.sessionPhase === 'string') {
             figs.set('__session_phase__', { id: '__session_phase__', phase: state.sessionPhase });

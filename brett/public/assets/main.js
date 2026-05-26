@@ -56,4 +56,45 @@ if (chosen === 'mayhem') {
   // Init Mayhem via deferred bridge (WS is open by the time mode select resolves)
   window.__brettInitMayhem?.();
   window.Mayhem?.setEnabled(true);
+
+  // P4.4 — Mobile touch wire-up
+  if ('ontouchstart' in window) {
+    const { mountJoystick } = await import('./touch/joystick.mjs');
+    mountJoystick({
+      side: 'left',
+      onMove: ({ x, y }) => {
+        const input = window.__brettMayhem?.getInput?.();
+        if (!input) return;
+        input.forward  = y < -0.3;
+        input.backward = y >  0.3;
+        input.left     = x < -0.3;
+        input.right    = x >  0.3;
+      },
+      onSprint: (on) => {
+        const input = window.__brettMayhem?.getInput?.();
+        if (input) input.sprint = on;
+      },
+    });
+
+    const { mountTouchHud } = await import('./touch/touch-hud.mjs');
+    mountTouchHud({
+      onFireStart: () => {
+        const input = window.__brettMayhem?.getInput?.();
+        if (input) input.fire = true;
+        if (navigator.vibrate) navigator.vibrate(30);  // haptic feedback
+      },
+      onFireEnd: () => {
+        const input = window.__brettMayhem?.getInput?.();
+        if (input) input.fire = false;
+      },
+    });
+
+    // Landscape orientation guard
+    const orient = window.matchMedia('(orientation: portrait)');
+    function checkOrient() {
+      document.body.classList.toggle('portrait-warning', orient.matches);
+    }
+    orient.addEventListener('change', checkOrient);
+    checkOrient();
+  }
 }

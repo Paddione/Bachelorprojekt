@@ -317,3 +317,95 @@
 }
 .skin-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .skin-name { font-size: 12px; }
+
+/* ── P4.4 Touch Controls ─────────────────────────────────────── */
+.joystick {
+  position: fixed;
+  bottom: 80px;
+  width: 140px;
+  height: 140px;
+  display: none;            /* shown only when touch-active */
+  touch-action: none;
+  z-index: 200;
+  user-select: none;
+}
+.joystick-left  { left: 24px; }
+.joystick-right { right: 24px; }
+.joystick .ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(215, 176, 106, 0.35);
+  background: rgba(11, 17, 28, 0.45);
+}
+.joystick .knob {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 52px; height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: var(--brass-mute);
+  border: 2px solid var(--brass);
+  transition: transform 0.03s;
+  pointer-events: none;
+}
+.joystick.visible { display: block; }
+
+/* Touch HUD (fire / reload buttons) */
+#touch-hud {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 200;
+  pointer-events: auto;
+}
+#touch-hud .fire-btn,
+#touch-hud .reload-btn {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid var(--brass);
+  background: rgba(11, 17, 28, 0.55);
+  color: var(--brass);
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.08s;
+  -webkit-tap-highlight-color: transparent;
+}
+#touch-hud .fire-btn:active {
+  background: rgba(215, 176, 106, 0.28);
+  transform: scale(0.92);
+}
+#touch-hud .reload-btn {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+  opacity: 0.75;
+}
+
+/* Portrait warning overlay */
+body.portrait-warning::before {
+  content: "Bitte drehe dein Gerät ins Querformat ↻";
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 17, 28, 0.92);
+  color: var(--brass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: monospace;
+  font-size: 18px;
+  text-align: center;
+  padding: 32px;
+  pointer-events: none;
+}
+

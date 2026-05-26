@@ -320,10 +320,30 @@
     renderer.domElement.style.position = 'absolute';
     renderer.domElement.style.top = '36px';
     renderer.domElement.style.left = '0';
+    // P4.1 — ACESFilmic tone-mapping (constant 4 in bundled three.min.js)
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     document.body.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e1014);
+
+    // P4.2 — Procedural gradient sky (no external HDRI needed)
+    (function buildSky() {
+      const skyGeo = new THREE.SphereGeometry(120, 24, 12);
+      const skyCanvas = document.createElement('canvas');
+      skyCanvas.width = 128; skyCanvas.height = 256;
+      const skyCtx = skyCanvas.getContext('2d');
+      const grad = skyCtx.createLinearGradient(0, 0, 0, 256);
+      grad.addColorStop(0,    '#0d1520');  // midnight zenith
+      grad.addColorStop(0.45, '#1a2c45');  // deep blue mid
+      grad.addColorStop(0.78, '#2d3d55');  // horizon fade
+      grad.addColorStop(1,    '#1c2030');  // ground ambient
+      skyCtx.fillStyle = grad;
+      skyCtx.fillRect(0, 0, 128, 256);
+      const skyTex = new THREE.CanvasTexture(skyCanvas);
+      const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide });
+      scene.add(new THREE.Mesh(skyGeo, skyMat));
+    })();
 
     const camera = new THREE.PerspectiveCamera(
       50, window.innerWidth / (window.innerHeight - 36), 0.1, 200
@@ -331,22 +351,60 @@
     camera.position.set(4, 4, 6);
     camera.lookAt(0, 1, 0);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    const ambient = new THREE.AmbientLight(0xb8c8e8, 0.45);
     scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+    const sun = new THREE.DirectionalLight(0xf0d28c, 1.1);  // warm key
     sun.position.set(5, 10, 4);
     scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x6fa8d8, 0.18);  // cold fill
+    fill.position.set(-6, 4, -8);
+    scene.add(fill);
 
     // Floor grid
-    const grid = new THREE.GridHelper(40, 40, 0x445566, 0x2a3340);
+    const grid = new THREE.GridHelper(40, 40, 0x2a3d5a, 0x1a2535);
     grid.position.y = 0;
     scene.add(grid);
-    const floorGeo = new THREE.PlaneGeometry(40, 40);
-    const floorMat = new THREE.MeshBasicMaterial({ color: 0x10131a, transparent: true, opacity: 0.6 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.001;
-    scene.add(floor);
+
+    // P4.3 — PBR-like procedural arena floor (concrete + subtle tile variation)
+    (function buildFloor() {
+      const tc = document.createElement('canvas');
+      tc.width = 512; tc.height = 512;
+      const ctx = tc.getContext('2d');
+      // Base concrete colour
+      ctx.fillStyle = '#111620';
+      ctx.fillRect(0, 0, 512, 512);
+      // Tile grid grooves
+      ctx.strokeStyle = 'rgba(10,15,28,0.6)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= 512; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+      }
+      // Subtle noise / roughness variation
+      for (let k = 0; k < 4000; k++) {
+        const x = Math.random() * 512, y = Math.random() * 512;
+        const a = Math.random() * 0.06;
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+      const floorTex = new THREE.CanvasTexture(tc);
+      floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+      floorTex.repeat.set(10, 10);
+      const floorMat = new THREE.MeshStandardMaterial({
+        map: floorTex,
+        roughness: 0.88,
+        metalness: 0.04,
+      });
+      const floorGeo = new THREE.PlaneGeometry(40, 40);
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -0.001;
+      scene.add(floor);
+      // Expose for raycaster (click-to-walk)
+      window.__brettFloor = floor;
+    })();
+    // Alias for click-to-walk raycaster (floor defined inside IIFE above)
+    const floor = window.__brettFloor;
 
     // Minimal manual orbit (mouse drag with middle button + wheel)
     const cameraOrbit = { theta: Math.atan2(camera.position.x, camera.position.z), phi: 0.6, dist: Math.hypot(camera.position.x, camera.position.z, camera.position.y) };
@@ -381,9 +439,12 @@
     }, { passive: false });
 
     window.addEventListener('resize', () => {
-      renderer.setSize(window.innerWidth, window.innerHeight - 36);
-      camera.aspect = window.innerWidth / (window.innerHeight - 36);
+      const w = window.innerWidth, h = window.innerHeight - 36;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      // P4.1b: resize bloom overlay to match
+      window.__brettPostFx?.resize(w, h);
     });
 
   // ----- Mannequin model -----
@@ -418,46 +479,106 @@
     return g;
   }
 
-  function makeMannequin(id, position = { x: 0, z: 0 }) {
+  function makeMannequin(id, position = { x: 0, z: 0 }, opts = {}) {
+    if (typeof id === 'object' && id !== null) {
+      opts = id;
+      id = undefined;
+    }
+    if (typeof position === 'object' && position !== null && position.x === undefined && position.z === undefined) {
+      opts = position;
+      position = { x: 0, z: 0 };
+    }
+    if (!id) {
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('m-' + Math.random().toString(36).slice(2,10));
+    }
+
     const root = new THREE.Group();
     root.position.set(position.x, 0, position.z);
 
+    const bodyColor = opts.bodyColor !== undefined ? opts.bodyColor : 0xb8c0a8;
+    const skinColor = opts.skinColor !== undefined ? opts.skinColor : 0xd9c89b;
+    const trimColor = opts.trimColor !== undefined ? opts.trimColor : null;
+    const jointFactor = opts.jointFactor !== undefined ? opts.jointFactor : 1.0;
+
+    function getJointColor(baseHex) {
+      if (jointFactor === 1.0) return baseHex;
+      const c = new THREE.Color(baseHex);
+      c.multiplyScalar(jointFactor);
+      return c.getHex();
+    }
+
     // Hips at y≈1.0; spine up to head
     const hips = new THREE.Group(); hips.position.y = 1.0; root.add(hips);
+    hips.name = 'hips';
     const torsoMesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.5, 0.7, 0.25),
-      new THREE.MeshLambertMaterial({ color: 0xb8c0a8 })
+      new THREE.MeshLambertMaterial({ color: bodyColor })
     );
     torsoMesh.position.y = 0.35; hips.add(torsoMesh);
+    torsoMesh.name = 'torso';
 
     const head = new THREE.Group(); head.position.y = 0.85; hips.add(head);
+    head.name = 'head';
     const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12),
-      new THREE.MeshLambertMaterial({ color: 0xd9c89b }));
+      new THREE.MeshLambertMaterial({ color: skinColor }));
     head.add(headMesh);
+    headMesh.name = 'headMesh';
+
+    if (trimColor !== null) {
+      const band = new THREE.Mesh(
+        new THREE.TorusGeometry(0.205, 0.012, 8, 28),
+        new THREE.MeshLambertMaterial({ color: trimColor })
+      );
+      band.rotation.x = Math.PI / 2;
+      band.position.y = 0.08;
+      head.add(band);
+      band.name = 'headband';
+
+      const belt = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.04, 0.24),
+        new THREE.MeshLambertMaterial({ color: trimColor })
+      );
+      belt.position.y = -0.44;
+      hips.add(belt);
+      belt.name = 'belt';
+    }
 
     // Arms
     const lShoulder = new THREE.Group(); lShoulder.position.set( 0.28, 0.65, 0); hips.add(lShoulder);
     const rShoulder = new THREE.Group(); rShoulder.position.set(-0.28, 0.65, 0); hips.add(rShoulder);
-    const lUpper = makeBone(lShoulder, 0.32); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
-    const rUpper = makeBone(rShoulder, 0.32); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
-    const lFore  = makeBone(lElbow, 0.30);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
-    const rFore  = makeBone(rElbow, 0.30);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+    lShoulder.name = 'lShoulder';
+    rShoulder.name = 'rShoulder';
+    const lUpper = makeBone(lShoulder, 0.32, bodyColor); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
+    const rUpper = makeBone(rShoulder, 0.32, bodyColor); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
+    lElbow.name = 'lElbow';
+    rElbow.name = 'rElbow';
+    const lFore  = makeBone(lElbow, 0.30, bodyColor);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
+    const rFore  = makeBone(rElbow, 0.30, bodyColor);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+    lWrist.name = 'lWrist';
+    rWrist.name = 'rWrist';
 
     // Legs
     const lHip = new THREE.Group(); lHip.position.set( 0.12, 0, 0); hips.add(lHip);
     const rHip = new THREE.Group(); rHip.position.set(-0.12, 0, 0); hips.add(rHip);
-    makeBone(lHip, 0.42); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
-    makeBone(rHip, 0.42); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
-    makeBone(lKnee, 0.40); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
-    makeBone(rKnee, 0.40); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+    lHip.name = 'lHip';
+    rHip.name = 'rHip';
+    makeBone(lHip, 0.42, bodyColor); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
+    makeBone(rHip, 0.42, bodyColor); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
+    lKnee.name = 'lKnee';
+    rKnee.name = 'rKnee';
+    makeBone(lKnee, 0.40, bodyColor); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
+    makeBone(rKnee, 0.40, bodyColor); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+    lAnkle.name = 'lAnkle';
+    rAnkle.name = 'rAnkle';
 
     const bones = { hips, head, lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle };
 
     // Contact-point spheres (raycaster-hittable)
     for (const cp of CONTACT_POINTS) {
+      const jointColor = getJointColor(cp.color);
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(0.07, 12, 10),
-        new THREE.MeshLambertMaterial({ color: cp.color })
+        new THREE.MeshLambertMaterial({ color: jointColor })
       );
       sphere.userData.isContact = true;
       sphere.userData.boneName = cp.bone;
@@ -1253,7 +1374,7 @@
     if (!window.Mayhem || window.Mayhem._initialized) return;
     window.Mayhem.init({
       scene, camera, canvas: renderer.domElement,
-      makeMannequin: (id, pos) => makeMannequin(id, pos),
+      makeMannequin: (id, pos, opts) => makeMannequin(id, pos, opts),
       sendMessage: mayhemSend,
       roomToken: roomFromUrl,
     });
@@ -1398,9 +1519,19 @@
     tickWalk(dt, now / 1000);
     tickSpring(dt);
     updateStatusPill();
-    renderer.render(scene, camera);
+    // P4.1: Use PostFx render (includes ACESFilmic + bloom overlay)
+    if (window.__brettPostFx) {
+      window.__brettPostFx.render(scene, camera);
+    } else {
+      renderer.render(scene, camera);
+    }
   }
     tick();
+
+    // P4.1b: Init post-fx after scene is up (PostFx script loaded below)
+    if (window.BrettPostFx) {
+      window.__brettPostFx = window.BrettPostFx.init(renderer);
+    }
 
     console.log('[brett] scene up');
 
@@ -1701,6 +1832,9 @@
 <script src="assets/mayhem/controls-panel.js"></script>
 <script src="assets/mayhem/muzzle-flash.js"></script>
 <script src="assets/mayhem/tracer.js"></script>
+<script src="assets/mayhem/katana-trail.js"></script>
+<script src="assets/mayhem/tina-vfx.js"></script>
+<script src="assets/mayhem/post-fx.js"></script>
 <script src="assets/mayhem/mayhem.js"></script>
 <script src="assets/room-browser.js"></script>
 <div id="admin-root"></div>

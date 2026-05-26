@@ -117,46 +117,106 @@ let scene; // hoisted so setLightIntensity export can reference it
     return g;
   }
 
-  function makeMannequin(id, position = { x: 0, z: 0 }) {
+  function makeMannequin(id, position = { x: 0, z: 0 }, opts = {}) {
+    if (typeof id === 'object' && id !== null) {
+      opts = id;
+      id = undefined;
+    }
+    if (typeof position === 'object' && position !== null && position.x === undefined && position.z === undefined) {
+      opts = position;
+      position = { x: 0, z: 0 };
+    }
+    if (!id) {
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('m-' + Math.random().toString(36).slice(2,10));
+    }
+
     const root = new THREE.Group();
     root.position.set(position.x, 0, position.z);
 
+    const bodyColor = opts.bodyColor !== undefined ? opts.bodyColor : 0xb8c0a8;
+    const skinColor = opts.skinColor !== undefined ? opts.skinColor : 0xd9c89b;
+    const trimColor = opts.trimColor !== undefined ? opts.trimColor : null;
+    const jointFactor = opts.jointFactor !== undefined ? opts.jointFactor : 1.0;
+
+    function getJointColor(baseHex) {
+      if (jointFactor === 1.0) return baseHex;
+      const c = new THREE.Color(baseHex);
+      c.multiplyScalar(jointFactor);
+      return c.getHex();
+    }
+
     // Hips at y≈1.0; spine up to head
     const hips = new THREE.Group(); hips.position.y = 1.0; root.add(hips);
+    hips.name = 'hips';
     const torsoMesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.5, 0.7, 0.25),
-      new THREE.MeshLambertMaterial({ color: 0xb8c0a8 })
+      new THREE.MeshLambertMaterial({ color: bodyColor })
     );
     torsoMesh.position.y = 0.35; hips.add(torsoMesh);
+    torsoMesh.name = 'torso';
 
     const head = new THREE.Group(); head.position.y = 0.85; hips.add(head);
+    head.name = 'head';
     const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12),
-      new THREE.MeshLambertMaterial({ color: 0xd9c89b }));
+      new THREE.MeshLambertMaterial({ color: skinColor }));
     head.add(headMesh);
+    headMesh.name = 'headMesh';
+
+    if (trimColor !== null) {
+      const band = new THREE.Mesh(
+        new THREE.TorusGeometry(0.205, 0.012, 8, 28),
+        new THREE.MeshLambertMaterial({ color: trimColor })
+      );
+      band.rotation.x = Math.PI / 2;
+      band.position.y = 0.08;
+      head.add(band);
+      band.name = 'headband';
+
+      const belt = new THREE.Mesh(
+        new THREE.BoxGeometry(0.42, 0.04, 0.24),
+        new THREE.MeshLambertMaterial({ color: trimColor })
+      );
+      belt.position.y = -0.44;
+      hips.add(belt);
+      belt.name = 'belt';
+    }
 
     // Arms
     const lShoulder = new THREE.Group(); lShoulder.position.set( 0.28, 0.65, 0); hips.add(lShoulder);
     const rShoulder = new THREE.Group(); rShoulder.position.set(-0.28, 0.65, 0); hips.add(rShoulder);
-    const lUpper = makeBone(lShoulder, 0.32); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
-    const rUpper = makeBone(rShoulder, 0.32); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
-    const lFore  = makeBone(lElbow, 0.30);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
-    const rFore  = makeBone(rElbow, 0.30);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+    lShoulder.name = 'lShoulder';
+    rShoulder.name = 'rShoulder';
+    const lUpper = makeBone(lShoulder, 0.32, bodyColor); const lElbow = new THREE.Group(); lElbow.position.y = -0.32; lShoulder.add(lElbow);
+    const rUpper = makeBone(rShoulder, 0.32, bodyColor); const rElbow = new THREE.Group(); rElbow.position.y = -0.32; rShoulder.add(rElbow);
+    lElbow.name = 'lElbow';
+    rElbow.name = 'rElbow';
+    const lFore  = makeBone(lElbow, 0.30, bodyColor);    const lWrist = new THREE.Group(); lWrist.position.y = -0.30; lElbow.add(lWrist);
+    const rFore  = makeBone(rElbow, 0.30, bodyColor);    const rWrist = new THREE.Group(); rWrist.position.y = -0.30; rElbow.add(rWrist);
+    lWrist.name = 'lWrist';
+    rWrist.name = 'rWrist';
 
     // Legs
     const lHip = new THREE.Group(); lHip.position.set( 0.12, 0, 0); hips.add(lHip);
     const rHip = new THREE.Group(); rHip.position.set(-0.12, 0, 0); hips.add(rHip);
-    makeBone(lHip, 0.42); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
-    makeBone(rHip, 0.42); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
-    makeBone(lKnee, 0.40); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
-    makeBone(rKnee, 0.40); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+    lHip.name = 'lHip';
+    rHip.name = 'rHip';
+    makeBone(lHip, 0.42, bodyColor); const lKnee = new THREE.Group(); lKnee.position.y = -0.42; lHip.add(lKnee);
+    makeBone(rHip, 0.42, bodyColor); const rKnee = new THREE.Group(); rKnee.position.y = -0.42; rHip.add(rKnee);
+    lKnee.name = 'lKnee';
+    rKnee.name = 'rKnee';
+    makeBone(lKnee, 0.40, bodyColor); const lAnkle = new THREE.Group(); lAnkle.position.y = -0.40; lKnee.add(lAnkle);
+    makeBone(rKnee, 0.40, bodyColor); const rAnkle = new THREE.Group(); rAnkle.position.y = -0.40; rKnee.add(rAnkle);
+    lAnkle.name = 'lAnkle';
+    rAnkle.name = 'rAnkle';
 
     const bones = { hips, head, lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle };
 
     // Contact-point spheres (raycaster-hittable)
     for (const cp of CONTACT_POINTS) {
+      const jointColor = getJointColor(cp.color);
       const sphere = new THREE.Mesh(
         new THREE.SphereGeometry(0.07, 12, 10),
-        new THREE.MeshLambertMaterial({ color: cp.color })
+        new THREE.MeshLambertMaterial({ color: jointColor })
       );
       sphere.userData.isContact = true;
       sphere.userData.boneName = cp.bone;
@@ -851,7 +911,7 @@ let scene; // hoisted so setLightIntensity export can reference it
     const mayhemSend = (msg) => { try { ws.send(JSON.stringify(msg)); } catch (e) { /* ignore */ } };
     window.Mayhem.init({
       scene, camera, canvas: renderer.domElement,
-      makeMannequin: (id, pos) => makeMannequin(id, pos),
+      makeMannequin: (id, pos, opts) => makeMannequin(id, pos, opts),
       sendMessage: mayhemSend,
       roomToken: roomFromUrl,
     });

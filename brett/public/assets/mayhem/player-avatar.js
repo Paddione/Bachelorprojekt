@@ -14,12 +14,13 @@ const RECOVER_DURATION_MS = 400;
 const HIT_DEBOUNCE_MS = 200;
 
 class PlayerAvatar {
-  constructor({ id, mannequin, local, color, skinId }) {
+  constructor({ id, mannequin, local, color, skinId, scene }) {
     this.id = id;
     this.mannequin = mannequin;
     this.local = !!local;
     this.color = color;
     this.skinId = skinId || 'default';
+    this.scene = scene || (typeof window !== 'undefined' ? window._mayhemScene : null);
     this.skin = null;            // set when SkinController.load() resolves
     this._pendingWeaponDef = null; // re-applied once skin loads
     this.state = STATE.IDLE;
@@ -183,6 +184,9 @@ class PlayerAvatar {
     if (this.skin) {
       this.skin.update(dt, { state: this.state, sprint: !!(this._input && this._input.sprint) });
     }
+    if (this._katanaTrail && this._weaponMesh) {
+      this._katanaTrail.sampleFromBlade(this._weaponMesh);
+    }
   }
   _updateLocal(dt, camYaw, now) {
     const inp = this._input || {};
@@ -243,6 +247,13 @@ class PlayerAvatar {
         const mat = new THREE.MeshLambertMaterial({ color });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(0, size.h / 2, 0);
+
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+          color: 0x695a3a, linewidth: 2, transparent: true, opacity: 0.7,
+        }));
+        mesh.add(line);
+
         this.mannequin.root.add(mesh);
         this._remoteVehicleMesh = mesh;
       }
@@ -383,6 +394,7 @@ class PlayerAvatar {
 
   remove(scene) {
     if (this.skin) { this.skin.dispose(scene); this.skin = null; }
+    if (this._katanaTrail) { this._katanaTrail.destroy(); this._katanaTrail = null; }
     scene.remove(this.mannequin.root);
     if (this._vehicle) {
       if (typeof window !== 'undefined' && window.MayhemVehicle && window.MayhemVehicle.despawn) {
@@ -405,9 +417,18 @@ class PlayerAvatar {
       if (this._weaponMesh.parent) this._weaponMesh.parent.remove(this._weaponMesh);
       this._weaponMesh = null;
     }
+    if (this._katanaTrail) {
+      this._katanaTrail.destroy();
+      this._katanaTrail = null;
+    }
     if (!weaponDef) return;
     this._weaponMesh = PlayerAvatar._mkWeaponMesh(weaponDef.key, window.THREE);
-    if (this._weaponMesh) attach.add(this._weaponMesh);
+    if (this._weaponMesh) {
+      attach.add(this._weaponMesh);
+      if (weaponDef.key === 'katana' && window.MayhemKatanaTrail && this.scene) {
+        this._katanaTrail = new window.MayhemKatanaTrail(this.scene, window.THREE);
+      }
+    }
   }
 
   static _mkWeaponMesh(key, THREE) {
@@ -457,9 +478,21 @@ class PlayerAvatar {
         // Blade extends in +Z so tip points toward enemy (fire direction)
         const blade = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.80), new THREE.MeshBasicMaterial({ color: 0xe8e8e8 }));
         blade.position.set(0.05, -0.08, 0.32);
+        blade.name = 'blade';
         const guard = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.02, 0.03), new THREE.MeshBasicMaterial({ color: 0xddaa00 }));
         guard.position.set(0.05, -0.08, -0.07);
         g.add(blade, guard);
+
+        const tipMarker = new THREE.Object3D();
+        tipMarker.position.set(0, 0, 0.40);
+        tipMarker.name = 'tipMarker';
+        blade.add(tipMarker);
+
+        const baseMarker = new THREE.Object3D();
+        baseMarker.position.set(0, 0, -0.40);
+        baseMarker.name = 'baseMarker';
+        blade.add(baseMarker);
+
         return g;
       }
       default: return null;

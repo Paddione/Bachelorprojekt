@@ -366,7 +366,7 @@ function AdminSidebar({
         <div className="admin-head">
           <div className="id">
             <span className="label">Session</span>
-            <span className="code">KRB-9A2</span>
+            <span className="code">{state.sessionCode || 'KRB-9A2'}</span>
           </div>
           <span className={`role-chip ${role === 'readonly' ? 'readonly' : (role === 'coadmin' ? 'coadmin' : '')}`}>
             {role === 'solo' ? 'Admin · paddione' : role === 'readonly' ? 'Co · Read-only' : 'Co · Admin'}

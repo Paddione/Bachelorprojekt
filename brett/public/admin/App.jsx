@@ -68,16 +68,57 @@ function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [phase, cmdkOpen]);
+  useEffect(() => {
+    function handleWsMessage(msg) {
+      const formatTime = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      switch (msg.type) {
+        case 'snapshot':
+          if (msg.sessionPhase) {
+            if (msg.sessionPhase === 'warmup' && phase !== 'setup') setPhase('setup');
+            else if ((msg.sessionPhase === 'active' || msg.sessionPhase === 'paused') && phase !== 'live') setPhase('live');
+            else if (msg.sessionPhase === 'ended' && phase !== 'lobby') setPhase('lobby');
+          }
+          if (msg.sessionCode) {
+            setSessionCode(msg.sessionCode);
+          }
+          if (msg.adminTokenHolder) {
+            setAdminTokenHolder(msg.adminTokenHolder);
+          }
+          break;
+        case 'session_phase_change':
+          setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Phase: ${msg.phase} (${msg.reason||'manual'})` }]);
+          if (msg.phase === 'active' && phase !== 'live') setPhase('live');
+          if (msg.phase === 'ended') setPhase('lobby');
+          break;
+        case 'admin_token_changed':
+          setAdminTokenHolder(msg.holderPlayerId);
+          setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Admin-Token an ${msg.holderPlayerId || '(niemand)'} (${msg.reason})` }]);
+          break;
+        case 'session_ended':
+          setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Session beendet: ${msg.reason}` }]);
+          setPhase('lobby');
+          break;
+        case 'session_created':
+          setSessionCode(msg.code);
+          setLog(prev => [...prev, { t: formatTime(), who: 'system', msg: `Session-Code: ${msg.code}` }]);
+          break;
+      }
+    }
+    window.__brettAdminOnMessage = handleWsMessage;
+    return () => { window.__brettAdminOnMessage = null; };
+  }, [phase]);
+
+  const [sessionCode, setSessionCode] = useState('KRB-9A2');
+  const [adminTokenHolder, setAdminTokenHolder] = useState(null);
 
   const logFn = (msg) => {
     const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
     setLog(prev => [...prev, { t, who: user, msg }]);
   };
 
-  const state = { bots, mode, map, mayhem, botKind, players, log };
+  const state = { bots, mode, map, mayhem, botKind, players, log, sessionCode, adminTokenHolder };
   const set = {
-    setBots, setMode, setMap, setMayhem, setBotKind, log: logFn,
+    setBots, setMode, setMap, setMayhem, setBotKind, log: logFn, setSessionCode, setAdminTokenHolder,
   };
 
   // ── render shell

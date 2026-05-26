@@ -164,7 +164,7 @@ function SetupScreen({
     }
   };
 
-  const inviteLink = 'brett.dev/s/KRB-9A2';
+  const inviteLink = 'brett.dev/s/' + (state.sessionCode || 'KRB-9A2');
 
   return (
     <>
@@ -197,7 +197,7 @@ function SetupScreen({
               <div className="row"><span>Karte</span><b>{map}</b></div>
               <div className="row"><span>Bots</span><b>{bots.length}</b></div>
               <div className="row"><span>Spieler</span><b>1 + {bots.length}</b></div>
-              <div className="row"><span>Code</span><b>KRB-9A2</b></div>
+              <div className="row"><span>Code</span><b>{state.sessionCode || 'KRB-9A2'}</b></div>
             </div>
           </aside>
 
@@ -257,7 +257,7 @@ function SetupScreen({
                   <button className="btn btn-mono btn-sm">Kopieren</button>
                 </div>
                 <div className="code-row">
-                  {'KRB9A2'.split('').map((c, i) => (
+                  {(state.sessionCode || 'KRB-9A2').replace('-', '').split('').map((c, i) => (
                     <div key={i} className="code-cell">{c}</div>
                   ))}
                 </div>

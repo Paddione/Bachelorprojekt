@@ -80,7 +80,10 @@ function LobbyHome({ user, onCreateSession }) {
                 Wähle <em>Modus</em>, füge <em>Bots</em> hinzu, lade Spieler ein —
                 und starte, sobald die Aufstellung steht.
               </div>
-              <button className="btn btn-primary start-match-cta" onClick={onCreateSession}>
+              <button className="btn btn-primary start-match-cta" onClick={() => {
+                if (window.__brettSendFn) window.__brettSendFn({ type: 'admin_session_create' });
+                onCreateSession();
+              }}>
                 Mayhem-Session erstellen
                 <span style={{marginLeft: 6}}>→</span>
               </button>

@@ -537,6 +537,64 @@ function rebuildSessionCodeIndexFromStates(rows) {
   }
 }
 
+function getAdminTokenHolder(room) {
+  return figureMaps.get(room)?.get('__admin_token_holder__')?.playerId || null;
+}
+
+function assignAdminToken(room, playerId) {
+  if (getAdminTokenHolder(room)) return { ok: false, reason: 'already-held' };
+  applyMutation(room, { type: 'session_admin_token_set', playerId });
+  return { ok: true, holder: playerId };
+}
+
+function handoffAdminToken(room, fromPlayerId, toPlayerId) {
+  const current = getAdminTokenHolder(room);
+  if (current !== fromPlayerId) return { ok: false, reason: 'not-current-holder' };
+  applyMutation(room, { type: 'session_admin_token_set', playerId: toPlayerId });
+  return { ok: true, from: fromPlayerId, to: toPlayerId };
+}
+
+function releaseAdminToken(room) {
+  const figs = figureMaps.get(room);
+  if (figs) figs.delete('__admin_token_holder__');
+}
+
+const GRACE_TIMEOUT_DEFAULT_MS = 30_000;
+const tokenGraceTimers = new Map();       // room -> Timeout
+const roomAdminPresence = new Map();      // room -> Set<playerId> of admins currently in the room
+
+function setRoomAdminPresence(room, adminIds) {
+  roomAdminPresence.set(room, new Set(adminIds));
+}
+
+function beginTokenGrace(room, departingPlayerId, opts = {}) {
+  const ms = opts.timeoutMs ?? GRACE_TIMEOUT_DEFAULT_MS;
+  if (tokenGraceTimers.has(room)) clearTimeout(tokenGraceTimers.get(room));
+  const timer = setTimeout(() => {
+    tokenGraceTimers.delete(room);
+    if (getAdminTokenHolder(room) === departingPlayerId) {
+      // Auto-claim if another admin present
+      const presentAdmins = [...(roomAdminPresence.get(room) || [])]
+        .filter(id => id !== departingPlayerId);
+      if (presentAdmins.length > 0) {
+        applyMutation(room, { type: 'session_admin_token_set', playerId: presentAdmins[0] });
+      } else {
+        releaseAdminToken(room);
+      }
+    }
+  }, ms);
+  tokenGraceTimers.set(room, timer);
+}
+
+function reclaimAdminToken(room, playerId) {
+  if (getAdminTokenHolder(room) !== playerId) return { ok: false, reason: 'not-holder' };
+  if (tokenGraceTimers.has(room)) {
+    clearTimeout(tokenGraceTimers.get(room));
+    tokenGraceTimers.delete(room);
+  }
+  return { ok: true };
+}
+
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = new Map();
 
@@ -1252,4 +1310,13 @@ module.exports = {
   resolveSessionCode,
   sessionCodeIndex,
   rebuildSessionCodeIndexFromStates,
+  assignAdminToken,
+  handoffAdminToken,
+  releaseAdminToken,
+  getAdminTokenHolder,
+  beginTokenGrace,
+  reclaimAdminToken,
+  setRoomAdminPresence,
+  roomAdminPresence,
+  tokenGraceTimers,
 };

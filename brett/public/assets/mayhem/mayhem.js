@@ -64,6 +64,7 @@ const Mayhem = (() => {
   let _myHeroId     = null;
   let _opponentHeroId = null;
   let _lastFireMs     = 0;
+  let _muzzleFlashTex = null;
   let _duelRoundPause = false;
   let _duelHpFillA  = null;   // HP bar DOM element for duel playerA
   let _duelHpFillB  = null;   // HP bar DOM element for duel playerB
@@ -256,11 +257,31 @@ const Mayhem = (() => {
     effectsMgr = new window.MayhemEffectsClass(scene);
     window.MayhemEffects = effectsMgr;
 
+    if (window.MayhemMuzzleFlash) {
+      _muzzleFlashTex = window.MayhemMuzzleFlash.makeMuzzleFlashTexture();
+    }
+
     // Weapon system
     weaponSystem = new window.MayhemWeapons.WeaponSystem(
       (weaponDef, originPos, dirVec, shooterId) => {
         projectileMgr.spawn(weaponDef, originPos, dirVec, shooterId);
         _lastFireMs = performance.now();
+
+        if (!weaponDef.melee && shooterId === playerId && localAvatar) {
+          const attach = (localAvatar.skin && typeof localAvatar.skin.getBone === 'function' && localAvatar.skin.getBone('rWrist'))
+                      || (localAvatar.mannequin.bones && localAvatar.mannequin.bones.rWrist);
+          if (attach) {
+            const handPos = new THREE.Vector3();
+            attach.getWorldPosition(handPos);
+            if (window.MayhemMuzzleFlash && _muzzleFlashTex) {
+              window.MayhemMuzzleFlash.spawnMuzzleFlash(
+                scene, handPos, dirVec,
+                weaponDef.muzzleClass || 'rifle',
+                _muzzleFlashTex
+              );
+            }
+          }
+        }
       }
     );
 

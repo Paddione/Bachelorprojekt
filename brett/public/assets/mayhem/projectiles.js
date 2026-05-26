@@ -87,6 +87,12 @@ class ProjectileManager {
       startX: originPos.x,
       startZ: originPos.z,
     });
+
+    if (window.MayhemTracer) {
+      const from = new THREE.Vector3(originPos.x, originPos.y + 1.2, originPos.z);
+      const to = from.clone().addScaledVector(new THREE.Vector3(dirVec.x, dirVec.y, dirVec.z), weaponDef.range || 25);
+      window.MayhemTracer.spawnTracer(this._scene, from, to, weaponDef.muzzleClass || 'rifle');
+    }
   }
 
   update(dt) {

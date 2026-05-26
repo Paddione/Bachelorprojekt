@@ -12,6 +12,7 @@ const WEAPONS = {
     projectileSpeed: 28,
     projectileType: 'bullet',
     range:      18,
+    muzzleClass: 'handgun',
   },
   rifle: {
     key:        'rifle',
@@ -24,6 +25,7 @@ const WEAPONS = {
     projectileSpeed: 42,
     projectileType: 'bullet',
     range:      30,
+    muzzleClass: 'rifle',
   },
   fireball: {
     key:        'fireball',
@@ -36,6 +38,7 @@ const WEAPONS = {
     burnDamagePerSec: 8,
     burnDurationSec:  4,
     range:      6,
+    muzzleClass: 'fireball',
   },
   club: {
     key:        'club',
@@ -70,6 +73,7 @@ const WEAPONS = {
       projectileSpeed: 22,
       melee: false,
       range: 25,
+      muzzleClass: 'stille',
     },
     // ── Martina (Teamleiterin) ────────────────────────────────────────────────
     summon_minion: {

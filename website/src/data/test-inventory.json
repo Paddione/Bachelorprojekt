@@ -697,6 +697,12 @@
   },
   {
     "id": "FA-27",
+    "file": "tests/e2e/specs/fa-27-brett-r1-p2-muzzle-tracer.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
+    "id": "FA-27",
     "file": "tests/e2e/specs/fa-27-brett.spec.ts",
     "category": "FA",
     "kind": "playwright"

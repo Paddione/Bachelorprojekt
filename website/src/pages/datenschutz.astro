@@ -1,15 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { config } from '../config/index';
 import { getLegalPage } from '../lib/website-db';
 import { getDefaultDatenschutz } from '../lib/legal-defaults';
+import { resolveTokens } from '../lib/legal-tokens';
+import { getEffectiveStammdaten } from '../lib/content';
 
-const { contact, legal } = config;
 const BRAND = process.env.BRAND || 'mentolder';
 const BRAND_ID = process.env.BRAND_ID ?? BRAND;
 const isKore = BRAND_ID === 'korczewski';
-const customHtml = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
-const contentHtml = customHtml?.trim() ? customHtml : getDefaultDatenschutz();
+const sd = await getEffectiveStammdaten().catch(() => ({} as any));
+const stored = await getLegalPage(BRAND, 'datenschutz').catch(() => null);
+const contentHtml = resolveTokens(stored?.trim() ? stored : getDefaultDatenschutz(), sd);
 ---
 
 {isKore ? (

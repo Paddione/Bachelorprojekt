@@ -24,3 +24,14 @@ it('defaults emit tokens, not baked contact values', () => {
   expect(ds).toContain('{{stammdaten.email}}');
   expect(ds).not.toMatch(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/); // no literal email
 });
+
+describe('proposeRetokenize', () => {
+  it('proposes replacing baked contact strings with tokens', async () => {
+    const { proposeRetokenize } = await import('./legal-tokens');
+    const html = '<p>Mail: a@b.de, Stadt: Lüneburg</p>';
+    const sd = { email: 'a@b.de', city: 'Lüneburg' } as any;
+    const { result, replacements } = proposeRetokenize(html, sd);
+    expect(result).toBe('<p>Mail: {{stammdaten.email}}, Stadt: {{stammdaten.city}}</p>');
+    expect(replacements).toContainEqual({ from: 'a@b.de', to: '{{stammdaten.email}}' });
+  });
+});

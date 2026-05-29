@@ -1,0 +1,7 @@
+{
+  "id": "male-casual",
+  "name": "Mann · Casual",
+  "animations": ["HumanArmature|Man_Clapping","HumanArmature|Man_Death","HumanArmature|Man_Idle","HumanArmature|Man_Jump","HumanArmature|Man_Punch","HumanArmature|Man_Run","HumanArmature|Man_RunningJump","HumanArmature|Man_Sitting","HumanArmature|Man_Standing","HumanArmature|Man_SwordSlash","HumanArmature|Man_Walk"],
+  "uploadedAt": "2026-05-26T06:40:10Z",
+  "source": "Quaternius — Animated Men/Women Characters Feb 2019 (CC0)"
+}

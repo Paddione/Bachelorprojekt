@@ -135,3 +135,11 @@ docs-html-bundles/
 .github/.openclaw/workspace-state.json
 assets/grilling-brett-admin-panel/Brett Design System/_source/placement_spec.json
 environments/certs/dev.pem
+
+# ── Raw asset source & scratch (keep local, never commit) ──
+# Processed, game-ready assets live in brett/public/assets/ (.glb/.ogg) — those ARE committed.
+# These are the bulky raw sources (Blender/FBX/OBJ dumps, sound-library archives) and debug captures.
+/assets/new/
+/*.zip
+/*.7z
+dev-iterate-*.png

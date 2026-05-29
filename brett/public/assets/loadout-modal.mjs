@@ -3,16 +3,16 @@ const MELEE = ['club', 'katana'];
 const RANGED = ['handgun'];
 const SKIN_STORAGE_KEY = 'brett.skinId';
 
-function readSkinId() {
+export function readSkinId() {
   try { return window.localStorage.getItem(SKIN_STORAGE_KEY) || 'default'; }
   catch { return 'default'; }
 }
-function writeSkinId(id) {
+export function writeSkinId(id) {
   try { window.localStorage.setItem(SKIN_STORAGE_KEY, id); }
   catch { /* private mode etc. */ }
 }
 
-async function fetchSkins() {
+export async function fetchSkins() {
   try {
     const r = await fetch('/api/skins', { credentials: 'same-origin' });
     if (!r.ok) return [{ id: 'default', name: 'Mannequin', thumb: null }];
@@ -22,7 +22,7 @@ async function fetchSkins() {
   }
 }
 
-function renderSkinPicker(skins, currentId, onPick) {
+export function renderSkinPicker(skins, currentId, onPick) {
   const overlay = document.createElement('div');
   overlay.className = 'mode-select-overlay skin-picker-overlay';
   overlay.innerHTML = `
@@ -43,13 +43,37 @@ function renderSkinPicker(skins, currentId, onPick) {
     const tile = e.target.closest('.skin-tile');
     if (tile) {
       const id = tile.dataset.skinId;
+      window.MayhemAudio?.onUiConfirm?.();
       onPick(id, skins.find(s => s.id === id));
       overlay.remove();
       return;
     }
-    if (e.target.classList.contains('skin-cancel')) overlay.remove();
+    if (e.target.classList.contains('skin-cancel')) {
+      window.MayhemAudio?.onMenuClose?.();
+      overlay.remove();
+    }
   });
   document.body.appendChild(overlay);
+  window.MayhemAudio?.onMenuOpen?.();
+}
+
+// Standalone entry: open just the skin picker overlay, persist the choice in
+// localStorage, and live-swap the local avatar's skin if Mayhem is running.
+export async function openSkinPickerStandalone() {
+  const skins = await fetchSkins();
+  const currentId = readSkinId();
+  window.MayhemAudio?.onMenuOpen?.();
+  return new Promise(resolve => {
+    renderSkinPicker(skins, currentId, (id) => {
+      writeSkinId(id);
+      // Live swap if a local avatar exists
+      const swap = window.MayhemSwapLocalSkin;
+      if (typeof swap === 'function') {
+        try { swap(id); } catch (err) { console.warn('[brett] live skin swap failed:', err); }
+      }
+      resolve(id);
+    });
+  });
 }
 
 export function showLoadoutModal(modeState) {
@@ -115,10 +139,12 @@ export function showLoadoutModal(modeState) {
       if (w) {
         sel[w.dataset.slot] = w.dataset.w;
         el.querySelectorAll(`[data-slot="${w.dataset.slot}"]`).forEach(b => b.classList.toggle('active', b === w));
+        window.MayhemAudio?.onUiClick?.();
         return;
       }
       const skinBtn = e.target.closest('[data-action="open-skin-picker"]');
       if (skinBtn) {
+        window.MayhemAudio?.onUiClick?.();
         const skins = await fetchSkins();
         renderSkinPicker(skins, currentSkinId, (id, def) => {
           currentSkinId = id;
@@ -130,6 +156,7 @@ export function showLoadoutModal(modeState) {
         return;
       }
       if (e.target.classList.contains('confirm')) {
+        window.MayhemAudio?.onMatchStart?.();
         modeState.setLoadout(sel);
         document.body.removeAttribute('data-overlay');
         el.remove();

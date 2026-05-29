@@ -449,7 +449,7 @@ grep -n "r\.\(get\|post\|put\)(" arena-server/src/http/routes.ts | head -20
 ```
 Niemals Endpfad annehmen (z.B. `/health`) ohne im Quellcode verifiziert zu haben (z.B. tatsächlich `/healthz`). Test schlägt sonst mit 404 fehl und erzeugt unnötige Fix-Tickets.
 
-### Schritt 3.7: Kontext-Reset + Opus 4.7 (xhigh) — Pflicht vor Plan-Schreibung
+### Schritt 3.7: Kontext-Reset + Opus 4.8 (xhigh) — Pflicht vor Plan-Schreibung
 
 Der Kontext ist jetzt mit Brainstorming-Verlauf, Explorer-Reports und Tool-Outputs gefüllt. Bevor `superpowers:writing-plans` gerufen wird: Kontext bereinigen, stärkeres Modell laden, Spec + Ticket neu injizieren — so bekommt der Plan-Schreiber einen sauberen, fokussierten Startpunkt.
 
@@ -485,7 +485,7 @@ Dieser Commit ist idempotent gegenüber Schritt 5 — `git add` einer bereits co
 **2. ⚡ STOP — führe diese Befehle jetzt aus (in dieser Reihenfolge):**
 
 ```
-/model claude-opus-4-7
+/model claude-opus-4-8
 ```
 ```
 /compact Behalte für Plan-Schreibung: Spec-Pfad=<SPEC_FILE>, Branch=<aktiver-branch>, Ticket-IDs=<REINJECT_TICKETS>. Alles andere (Brainstorming, Explorer-Report, Worktree-Setup) verwerfen.

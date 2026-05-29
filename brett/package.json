@@ -1,6 +1,6 @@
 {
   "name": "workspace-brett",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "private": true,
   "main": "server.js",
   "type": "commonjs",

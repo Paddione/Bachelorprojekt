@@ -50,7 +50,18 @@ const navLinks = effectiveNav
         <meta name="twitter:image" content="/brand/korczewski/og-image.png" />
       </>
     ) : (
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      <>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={`https://web.mentolder.de${Astro.url.pathname}`} />
+        <meta property="og:image" content="/brand/mentolder/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="/brand/mentolder/og-image.png" />
+      </>
     )}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

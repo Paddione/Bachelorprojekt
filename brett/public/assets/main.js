@@ -1,19 +1,7 @@
-// brett/public/assets/main.js
+import { shouldConnectAuxWs } from './coaching/ws-gate.mjs';
 import { connect } from './ws.mjs';
 import { createModeState } from './mode-state.mjs';
 import { showModeSelect } from './mode-select.mjs';
-
-const ws = connect({ url: `${location.origin.replace(/^http/, 'ws')}/sync` });
-
-const banner = document.getElementById('reconnect-banner');
-ws.on('reconnect-pending', ({ delay }) => {
-  if (!banner) return;
-  banner.hidden = false;
-  banner.textContent = `Verbindung verloren · reconnect in ${Math.ceil(delay / 1000)}s …`;
-});
-ws.on('open', () => { if (banner) banner.hidden = true; });
-
-window.__brettWs = ws;
 
 const modeState = createModeState();
 
@@ -22,6 +10,21 @@ const cfg = await fetch('/api/config')
   .catch(() => ({ defaultMode: 'coaching', availableModes: ['coaching'] }));
 
 const chosen = await showModeSelect(modeState, cfg);
+
+if (shouldConnectAuxWs(chosen)) {
+  const ws = connect({ url: `${location.origin.replace(/^http/, 'ws')}/sync` });
+
+  const banner = document.getElementById('reconnect-banner');
+  ws.on('reconnect-pending', ({ delay }) => {
+    if (!banner) return;
+    banner.hidden = false;
+    banner.textContent = `Verbindung verloren · reconnect in ${Math.ceil(delay / 1000)}s …`;
+  });
+  ws.on('open', () => { if (banner) banner.hidden = true; });
+
+  window.__brettWs = ws;
+}
+
 if (chosen === 'mayhem') {
   // Add Mayhem toolbar buttons dynamically (not in static HTML to avoid coaching-mode bleed)
   const presets = document.getElementById('presets');

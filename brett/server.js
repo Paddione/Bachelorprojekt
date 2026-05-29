@@ -222,6 +222,14 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(sessionMiddleware);
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (req.path !== '/' && req.path !== '/index.html') return next();
+  const redirect = boardAuthRedirect(req, process.env);
+  if (redirect) return res.redirect(redirect);
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, path) => {
     if (path.endsWith('.html')) {
@@ -244,6 +252,16 @@ function buildConfig(env) {
 
 function resolveBrand(env) {
   return env.BRETT_BRAND || 'mentolder';
+}
+
+// Returns a redirect URL when the coaching board must be gated, else null.
+function boardAuthRedirect(req, env) {
+  if (buildConfig(env).defaultMode !== 'coaching') return null; // mayhem stays public
+  if (req.session && req.session.userId) return null;
+  const e2eSecret = env.BRETT_OIDC_SECRET;
+  if (e2eSecret && typeof req.header === 'function' && req.header('x-e2e-secret') === e2eSecret) return null;
+  const returnTo = encodeURIComponent(req.path || '/');
+  return `/auth/login?returnTo=${returnTo}`;
 }
 
 app.get('/api/config', (_req, res) =>
@@ -1509,6 +1527,7 @@ module.exports = {
   slugifyForSkin,
   buildConfig,
   resolveBrand,
+  boardAuthRedirect,
   transitionPhase,
   generateSessionCode,
   registerSessionCode,

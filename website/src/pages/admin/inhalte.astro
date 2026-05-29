@@ -2,7 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import InhalteEditor from '../../components/admin/InhalteEditor.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getEffectiveLeistungen, getPriceListUrl, getEffectiveFaq, getEffectiveKontakt, getEffectiveReferenzen } from '../../lib/content';
+import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getEffectiveLeistungen, getPriceListUrl, getEffectiveFaq, getEffectiveKontakt, getEffectiveReferenzen, getEffectiveStammdaten, getEffectiveNavigation, getEffectiveFooter, getEffectiveKoreFlags } from '../../lib/content';
 import { getEffectiveCoaching } from '../../lib/coaching-content';
 import { getEffectiveFuehrung } from '../../lib/fuehrung-content';
 import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
@@ -43,7 +43,8 @@ function serviceToEditorData(svc: any) {
 const allServices = await getEffectiveServices();
 
 const [startseite, uebermich, leistungen, priceListUrl, faq, kontakt, referenzen, coaching, fuehrung,
-  dbImpressum, dbDatenschutz, dbAgb, dbBarrierefreiheit, customSections] = await Promise.all([
+  dbImpressum, dbDatenschutz, dbAgb, dbBarrierefreiheit, customSections,
+  stammdaten, navigation, footer, koreFlags] = await Promise.all([
   getEffectiveHomepage(), getEffectiveUebermich(), getEffectiveLeistungen(),
   getPriceListUrl().then(u => u ?? ''), getEffectiveFaq(), getEffectiveKontakt(), getEffectiveReferenzen(),
   getEffectiveCoaching(BRAND), getEffectiveFuehrung(BRAND),
@@ -52,6 +53,7 @@ const [startseite, uebermich, leistungen, priceListUrl, faq, kontakt, referenzen
   getLegalPage(BRAND, 'agb'),
   getLegalPage(BRAND, 'barrierefreiheit'),
   listCustomSections(),
+  getEffectiveStammdaten(), getEffectiveNavigation(), getEffectiveFooter(), getEffectiveKoreFlags(),
 ]);
 
 // Rechtliches: DB-Wert wenn vorhanden, sonst Standardtext als Vorschau
@@ -96,6 +98,7 @@ const initialData = JSON.parse(JSON.stringify({
   rechtliches,
   rechtlichesHasCustom,
   customSections,
+  navigation, footer, stammdaten, koreFlags,
 }));
 ---
 

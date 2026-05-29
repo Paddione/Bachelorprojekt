@@ -11,7 +11,7 @@ import KoreHomepage from '../components/kore/KoreHomepage.svelte';
 import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
-import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq } from '../lib/content';
+import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq, getEffectiveStammdaten, getEffectiveNavigation, getEffectiveFooter, getEffectiveKoreFlags } from '../lib/content';
 import { listTimeline, getSiteSetting, getSeoTitle } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
@@ -28,14 +28,19 @@ const homeTitle = !isKore
   : null;
 const pageTitle = homeTitle ?? config.meta.siteTitle;
 
-const { contact } = config;
-const homepage = await getEffectiveHomepage();
-const faq = await getEffectiveFaq();
-const allServices = await getEffectiveServices();
+const [homepage, faq, allServices, stammdaten, effectiveNav, effectiveFooter, effectiveKoreFlags] = await Promise.all([
+  getEffectiveHomepage(),
+  getEffectiveFaq(),
+  getEffectiveServices(),
+  getEffectiveStammdaten(),
+  getEffectiveNavigation(),
+  getEffectiveFooter(),
+  getEffectiveKoreFlags(),
+]);
 const services = allServices.filter((s) => !s.hidden);
 
-// Timeline (live PR feed) is gated on BrandConfig.homepage.timeline.
-const wantsTimeline = config.homepage.timeline === true;
+// Timeline (live PR feed) gated on editable kore flags (DB wins; fallback: static BrandConfig).
+const wantsTimeline = effectiveKoreFlags.timeline;
 const initialTimeline = wantsTimeline
   ? await listTimeline({ limit: 20 }).catch(() => [])
   : [];
@@ -57,10 +62,10 @@ const processSteps = homepage.processSteps ?? [];
       client:load
       services={services}
       homepage={config.homepage}
-      contact={config.contact}
-      legal={config.legal}
-      footerColumns={config.footer?.columns ?? []}
-      footerCopyright={config.footer?.copyright ?? ''}
+      contact={{ name: stammdaten.name, email: stammdaten.email, phone: stammdaten.phone, city: stammdaten.city }}
+      legal={{ jobtitle: stammdaten.role, tagline: config.legal.tagline, street: stammdaten.street, zip: stammdaten.zip, ustId: stammdaten.ustId, website: stammdaten.website, chamber: config.legal.chamber }}
+      footerColumns={effectiveFooter.columns}
+      footerCopyright={effectiveFooter.copyright}
       nextDay={nextDay}
       initialTimeline={initialTimeline}
       wantsTimeline={wantsTimeline}
@@ -77,8 +82,8 @@ const processSteps = homepage.processSteps ?? [];
         avatarType={homepage.avatarType}
         avatarSrc={homepage.avatarSrc}
         avatarInitials={homepage.avatarInitials}
-        personName={contact.name}
-        personRole={config.legal.jobtitle}
+        personName={stammdaten.name}
+        personRole={stammdaten.role}
       />
 
       <!-- Stats + Availability strip -->
@@ -148,7 +153,7 @@ const processSteps = homepage.processSteps ?? [];
         points={homepage.whyMePoints}
         quote={homepage.quote}
         quoteName={homepage.quoteName}
-        quoteRole={config.legal.jobtitle}
+        quoteRole={stammdaten.role}
       />
 
       <!-- Process -->

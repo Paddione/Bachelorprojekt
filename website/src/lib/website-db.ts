@@ -843,16 +843,24 @@ export interface ServiceOverride {
   title: string;
   description: string;
   icon: string;
-  price: string;
+  /** @deprecated legacy headline price — derived from the catalog post-migration. Kept for read fallback. */
+  price?: string;
   features: string[];
   hidden?: boolean;
   /** Short eyebrow-label shown under the title on the homepage card. */
   meta?: string;
+  /** Catalog category (`LeistungCategoryOverride.id`) this card draws its prices from. */
+  leistungCategoryId?: string;
+  /** Catalog row key whose price is shown as the card headline. */
+  headlineKey?: string;
+  /** Prefix the headline price with "ab ". */
+  headlinePrefix?: boolean;
   pageContent?: {
     headline?: string;
     intro?: string;
     forWhom?: string[];
     sections?: Array<{ title: string; items: string[] }>;
+    /** @deprecated detail tiers now render the linked catalog category. Kept for read fallback. */
     pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
     faq?: Array<{ question: string; answer: string }>;
     faqTitle?: string;
@@ -1001,6 +1009,37 @@ export async function setSiteSetting(brand: string, key: string, value: string):
     [brand, key, value]
   );
 }
+
+// ── Content-Hub: new editable sections (stored as JSON under site_settings) ──
+export const NAV_KEY = 'navigation' as const;
+export const FOOTER_KEY = 'footer' as const;
+export const STAMMDATEN_KEY = 'stammdaten' as const;
+export const KORE_FLAGS_KEY = 'kore_flags' as const;
+export const PRICING_HIGHLIGHT_KEY = 'pricing_highlight' as const;
+
+export interface NavItem { label: string; href: string; order: number }
+export interface FooterLink { label: string; href: string }
+export interface FooterColumn { heading: string; links: FooterLink[] }
+export interface FooterConfig { columns: FooterColumn[]; copyright: string }
+export interface Stammdaten {
+  name: string; role: string; email: string; phone: string;
+  street: string; zip: string; city: string;
+  ustId: string; website: string; avatarInitials: string;
+}
+export interface KoreFlags { timeline: boolean }
+
+/** Read a JSON-valued site_setting; returns null when absent or unparseable. */
+export async function getJsonSetting<T>(brand: string, key: string): Promise<T | null> {
+  const raw = await getSiteSetting(brand, key).catch(() => null);
+  if (raw == null) return null;
+  try { return JSON.parse(raw) as T; } catch { return null; }
+}
+
+/** Persist a JSON-valued site_setting. */
+export async function setJsonSetting<T>(brand: string, key: string, value: T): Promise<void> {
+  await setSiteSetting(brand, key, JSON.stringify(value));
+}
+
 
 // ── SEO Title overrides (key/value, stored as seo_title_<pageKey>) ──────────
 

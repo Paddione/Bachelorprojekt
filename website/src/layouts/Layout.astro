@@ -5,6 +5,7 @@ import CookieConsent from '../components/CookieConsent.svelte';
 import PortalSidekick from '../components/PortalSidekick.svelte';
 import '../styles/global.css';
 import { config } from '../config/index';
+import { getEffectiveNavigation } from '../lib/content';
 
 interface Props {
   title: string;
@@ -17,6 +18,11 @@ interface Props {
 const { title, rawTitle = false, description = config.meta.siteDescription, brand } = Astro.props;
 const isKore = brand === 'korczewski-kore';
 const pageTitle = rawTitle ? title : `${title} | ${config.meta.siteTitle}`;
+const effectiveNav = await getEffectiveNavigation().catch(() => null);
+// Map NavItem[] (with order) to NavigationLink[] shape expected by Navigation component
+const navLinks = effectiveNav
+  ? [...effectiveNav].sort((a, b) => a.order - b.order).map(n => ({ label: n.label, href: n.href }))
+  : config.navigation;
 ---
 
 <!doctype html>
@@ -59,7 +65,7 @@ const pageTitle = rawTitle ? title : `${title} | ${config.meta.siteTitle}`;
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded" style="background:var(--brass); color:var(--ink-900); font-weight:600;">
       Zum Hauptinhalt springen
     </a>
-    <Navigation client:load siteTitle={config.meta.siteTitle} links={config.navigation} />
+    <Navigation client:load siteTitle={config.meta.siteTitle} links={navLinks} />
     <main id="main-content" class="flex-1">
       <slot />
     </main>

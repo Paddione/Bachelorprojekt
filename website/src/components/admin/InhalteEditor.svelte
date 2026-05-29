@@ -15,7 +15,11 @@
   import ReferenzenSection from './inhalte/ReferenzenSection.svelte';
   import RechtlichesSection from './inhalte/RechtlichesSection.svelte';
   import CustomSection from './inhalte/CustomSection.svelte';
-  import type { HomepageContent, UebermichContent, FaqItem, KontaktContent, ReferenzenConfig, CustomSection as CustomSectionType, ServiceOverride, LeistungCategoryOverride } from '../../lib/website-db';
+  import NavigationSection from './inhalte/NavigationSection.svelte';
+  import FooterSection from './inhalte/FooterSection.svelte';
+  import StammdatenSection from './inhalte/StammdatenSection.svelte';
+  import KoreFlagsSection from './inhalte/KoreFlagsSection.svelte';
+  import type { HomepageContent, UebermichContent, FaqItem, KontaktContent, ReferenzenConfig, CustomSection as CustomSectionType, ServiceOverride, LeistungCategoryOverride, NavItem, FooterConfig, Stammdaten, KoreFlags } from '../../lib/website-db';
   import type { CoachingContent } from '../../lib/coaching-content';
   import type { FuehrungContent } from '../../lib/fuehrung-content';
 
@@ -28,6 +32,8 @@
     referenzen: ReferenzenConfig; rechtliches: Record<string, string>;
     rechtlichesHasCustom: Record<string, boolean>;
     customSections: CustomSectionType[];
+    navigation: NavItem[]; footer: FooterConfig;
+    stammdaten: Stammdaten; koreFlags: KoreFlags;
   };
   type RechnungsvorlagenData = { invoice_intro_text: string; invoice_kleinunternehmer_notice: string; invoice_outro_text: string; invoice_email_subject: string; invoice_email_body: string; };
   type PrimaryTab = 'website' | 'newsletter' | 'fragebogen' | 'vertraege' | 'rechnungen';
@@ -105,6 +111,9 @@
     '50plus-digital': '50+ digital', 'ki-transition': 'KI-Transition', beratung: 'Beratung',
     angebote: 'Angebote', faq: 'FAQ', kontakt: 'Kontakt',
     referenzen: 'Referenzen', rechtliches: 'Rechtliches',
+    stammdaten: 'Stammdaten', navigation: 'Navigation', footer: 'Footer',
+    // Kore-Flags only apply to the korczewski brand homepage.
+    ...(brand === 'korczewski' ? { 'kore-flags': 'Kore-Flags' } : {}),
   };
 
   const STANDARD_FIELD_TYPES = [
@@ -161,6 +170,10 @@
       {:else if activeSection === 'referenzen'}<ReferenzenSection initialData={initialData.referenzen} />
       {:else if activeSection === 'rechtliches'}
         <RechtlichesSection initialData={initialData.rechtliches} rechtlichesHasCustom={initialData.rechtlichesHasCustom} />
+      {:else if activeSection === 'stammdaten'}<StammdatenSection initialData={initialData.stammdaten} />
+      {:else if activeSection === 'navigation'}<NavigationSection initialData={initialData.navigation} />
+      {:else if activeSection === 'footer'}<FooterSection initialData={initialData.footer} />
+      {:else if activeSection === 'kore-flags' && brand === 'korczewski'}<KoreFlagsSection initialData={initialData.koreFlags} />
       {:else}
         {@const cs = customSections.find(s => s.slug === activeSection)}
         {#if cs}<CustomSection section={cs} onDeleted={() => onCustomDeleted(cs.slug)} />{/if}

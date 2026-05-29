@@ -2,19 +2,20 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
-import { getEffectiveUebermich } from '../lib/content';
+import { getEffectiveUebermich, getEffectiveStammdaten } from '../lib/content';
 import { getSiteSetting, getSeoTitle } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
-const { contact } = config;
 const uebermich = await getEffectiveUebermich();
+const stammdaten = await getEffectiveStammdaten().catch(() => null);
+const sName = stammdaten?.name ?? config.contact.name;
 
 const seoTitle = await getSeoTitle(BRAND_ID, 'ueber-mich').catch(() => null)
   ?? `Gerald Korczewski – Coach, Mentor & KI-Pionier`;
 const seoDesc = await getSiteSetting(BRAND_ID, 'seo_meta_desc_ueber-mich').catch(() => null)
-  ?? `Über ${contact.name} – ${config.legal.tagline}`;
+  ?? `Über ${sName} – ${config.legal.tagline}`;
 ---
 
 <Layout title={seoTitle} rawTitle={true} description={seoDesc} brand={layoutBrand}>

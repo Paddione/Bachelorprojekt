@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import ContactHub from '../components/ContactHub.svelte';
 import BookingForm from '../components/BookingForm.svelte';
 import { config } from '../config/index';
-import { getEffectiveKontakt } from '../lib/content';
+import { getEffectiveKontakt, getEffectiveStammdaten } from '../lib/content';
 import { getSiteSetting } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
@@ -11,11 +11,12 @@ const isKore = BRAND_ID === 'korczewski';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
 
 const kontakt = await getEffectiveKontakt();
+const stammdaten = await getEffectiveStammdaten().catch(() => null);
 
-// Kontaktdaten: DB-Override hat Vorrang über Build-Args
-const displayPhone = (kontakt as any).footerPhone?.trim() || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
-const displayEmail = (kontakt as any).footerEmail?.trim() || config.contact.email;
-const displayCity  = (kontakt as any).footerCity?.trim()  || config.contact.city;
+// Kontaktdaten: stammdaten (DB site_settings) wins; legacy kontaktOverride.footer* as fallback; static config as final fallback
+const displayPhone = stammdaten?.phone || (kontakt as any).footerPhone?.trim() || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
+const displayEmail = stammdaten?.email || (kontakt as any).footerEmail?.trim() || config.contact.email;
+const displayCity  = stammdaten?.city  || (kontakt as any).footerCity?.trim()  || config.contact.city;
 
 const rawMode = Astro.url.searchParams.get('mode') ?? '';
 const initialMode = ['message', 'termin', 'callback'].includes(rawMode)

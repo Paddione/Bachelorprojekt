@@ -1,27 +1,32 @@
 ---
 // Footer.astro — brand-aware site footer.
 import { config } from '../config/index';
-import { getEffectiveServices, getEffectiveKontakt } from '../lib/content';
+import { getEffectiveServices, getEffectiveKontakt, getEffectiveStammdaten, getEffectiveFooter } from '../lib/content';
 import type { HomepageService } from '../config/types';
 
 const allServices = await getEffectiveServices().catch(() => config.services);
 const footerServices = (allServices as (HomepageService & { hidden?: boolean })[]).filter(s => !s.hidden);
 const kontaktOverride = await getEffectiveKontakt().catch(() => null);
-const footerEmail   = kontaktOverride?.footerEmail?.trim()   || config.contact.email;
-const footerPhone   = kontaktOverride?.footerPhone?.trim()   || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
-const footerCity    = kontaktOverride?.footerCity?.trim()    || config.contact.city;
-const footerTagline = kontaktOverride?.footerTagline?.trim() || config.legal.tagline;
-const gestaltetsIn  = kontaktOverride?.footerCity?.trim()    || config.contact.city || 'Lüneburg';
+const stammdaten = await getEffectiveStammdaten().catch(() => null);
+const effectiveFooter = await getEffectiveFooter().catch(() => null);
 
-// Copyright: pflegbar über Admin → Kontakt → footerCopyright
-// Fallback: "© {Jahr} mentolder" (kleines m, einheitlich)
-const copyrightText = (kontaktOverride as any)?.footerCopyright?.trim()
+// Contact fields: stammdaten (DB site_settings) wins; legacy kontaktOverride.footer* as fallback;
+// static config as final fallback
+const footerEmail   = stammdaten?.email     || kontaktOverride?.footerEmail?.trim()   || config.contact.email;
+const footerPhone   = stammdaten?.phone     || kontaktOverride?.footerPhone?.trim()   || (config.contact.phone && config.contact.phone !== '***' ? config.contact.phone : '');
+const footerCity    = stammdaten?.city      || kontaktOverride?.footerCity?.trim()    || config.contact.city;
+const footerTagline = config.legal.tagline  || kontaktOverride?.footerTagline?.trim() || '';
+const gestaltetsIn  = stammdaten?.city      || kontaktOverride?.footerCity?.trim()    || config.contact.city || 'Lüneburg';
+
+// Copyright: effective footer config (DB) wins; legacy kontaktOverride; static config; hardcoded fallback
+const copyrightText = effectiveFooter?.copyright
+  || (kontaktOverride as any)?.footerCopyright?.trim()
   || config.footer.copyright
   || `© ${new Date().getFullYear()} mentolder — Alle Rechte vorbehalten`;
 
 const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 const brandInitial = brandWord.charAt(0).toLowerCase();
-const extraCols = config.footer.columns ?? [];
+const extraCols = effectiveFooter?.columns ?? config.footer.columns ?? [];
 ---
 
 <footer class="site-foot">

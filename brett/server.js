@@ -242,7 +242,12 @@ function buildConfig(env) {
   };
 }
 
-app.get('/api/config', (_req, res) => res.json(buildConfig(process.env)));
+function resolveBrand(env) {
+  return env.BRETT_BRAND || 'mentolder';
+}
+
+app.get('/api/config', (_req, res) =>
+  res.json({ ...buildConfig(process.env), brand: resolveBrand(process.env) }));
 
 // ─── Auth (OIDC / Keycloak) ───────────────────────────────────────────────────
 const BRETT_PUBLIC_URL = process.env.BRETT_PUBLIC_URL || 'http://brett.localhost';
@@ -1503,6 +1508,7 @@ module.exports = {
   listSkins,
   slugifyForSkin,
   buildConfig,
+  resolveBrand,
   transitionPhase,
   generateSessionCode,
   registerSessionCode,

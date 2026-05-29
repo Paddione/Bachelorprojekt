@@ -145,6 +145,11 @@ tasks:
     desc: "[dev] Build the website image and import it into the dev k3d cluster"
     cmds:
       - |
+        # Kill any stale docker build from a previous timed-out SSH session (T000315).
+        # Without this, two concurrent Astro+pixi.js builds exhaust dev-node memory.
+        pkill -f "docker.*website/Dockerfile" 2>/dev/null || true
+        sleep 1
+      - |
         source scripts/env-resolve.sh "{{.ENV}}"
         docker build -t ghcr.io/paddione/workspace-website:dev \
           -f website/Dockerfile \

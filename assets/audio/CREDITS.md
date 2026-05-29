@@ -52,6 +52,40 @@ Source: https://opengameart.org/content/100-cc0-sfx
 | File | Source | Origin |
 |------|--------|--------|
 | footstep-grass.ogg | Fantozzi-SandL1.ogg | "Fantozzi's Footsteps" by LordNelson33, OpenGameArt.org — https://opengameart.org/content/fantozzis-footsteps-grasssand-stone |
-| footstep-mud.ogg | mud_01.ogg | "25 CC0 mud sfx" by rubberduck, OpenGameArt.org — https://opengameart.org/content/25-cc0-mud-sfx |
+| footstep-stone-01..04.ogg | Fantozzi-StoneL1/R1/L2/R2.ogg | same — Fantozzi's Footsteps |
+| footstep-mud.ogg / footstep-mud-01.ogg | mud_01.ogg | "25 CC0 mud sfx" by rubberduck, OpenGameArt.org — https://opengameart.org/content/25-cc0-mud-sfx |
+| footstep-mud-02..04.ogg | mud_02/05/08.ogg | same — 25 CC0 mud sfx |
+
+## UI / Menu (from OpenGameArt.org — "GUI Sound Effects" by Lokif, CC0)
+Source: https://opengameart.org/content/gui-sound-effects
+
+| File | Source file |
+|------|-------------|
+| ui-click.ogg | click.wav |
+| ui-click-alt.ogg | click_2.wav |
+| ui-confirm.ogg | positive.wav |
+| ui-cancel.ogg | negative.wav |
+| ui-error.ogg | negative_2.wav |
+| menu-open.ogg | misc_menu.wav |
+| menu-close.ogg | misc_menu_2.wav |
+| menu-hover.ogg | misc_menu_3.wav |
+| alert.ogg | sharp_echo.wav |
+| match-start.ogg | load.wav |
+| match-end.ogg | save.wav |
+
+All WAV→OGG converted with ffmpeg, normalized to -14 LUFS mono 44.1 kHz, libvorbis q4.
+
+## Combat & World extras (from OpenGameArt.org — "100 CC0 SFX" by rubberduck, CC0)
+Same source as Brett Collaboration entries above.
+
+| File | Source file |
+|------|-------------|
+| explosion.ogg | explosion.ogg |
+| vehicle-crash.ogg | slam_03.ogg |
+| shatter.ogg | glass_02.ogg |
+| phase-gong.ogg | gong_02.ogg |
+| unlock.ogg | key_open_01.ogg |
+| bell-ui.ogg | bell_01.ogg |
+| bounce.ogg | spring_02.ogg |
 
 CC0 requires no attribution, but these credits are kept for provenance.

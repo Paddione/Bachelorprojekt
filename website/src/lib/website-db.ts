@@ -28,6 +28,32 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
+// Schema initialisation must run ONCE per process, not on every request.
+// Running idempotent DDL (CREATE TABLE IF NOT EXISTS / ALTER ... ADD CONSTRAINT)
+// on the hot path races concurrent requests on the Postgres system catalog,
+// throwing "tuple concurrently updated" and poisoning the pooled connection
+// (every later save then fails until the pod restarts). The map memoises the
+// init promise per logical schema key; a rejected init is evicted so a later
+// request can retry. See ticket T000304.
+const _schemaInitOnce = new Map<string, Promise<void>>();
+export function ensureSchemaOnce(key: string, init: () => Promise<void>): Promise<void> {
+  let p = _schemaInitOnce.get(key);
+  if (!p) {
+    p = init().catch((err) => {
+      _schemaInitOnce.delete(key);
+      throw err;
+    });
+    _schemaInitOnce.set(key, p);
+  }
+  return p;
+}
+
+// Test-only: reset the run-once cache so each test starts cold.
+export function __resetSchemaInitCacheForTests(): void {
+  _schemaInitOnce.clear();
+}
+
+
 // ── Timeline (PR5: reads from tickets.pr_events on the same DB) ─────────────
 // Historical note: an earlier implementation used a separate tracking pool
 // against bachelorprojekt.v_timeline. That view + its source tables were
@@ -853,19 +879,21 @@ export interface LeistungCategoryOverride {
 }
 
 export async function initServiceConfigTable(): Promise<void> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS service_config (
-      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-      services_json JSONB NOT NULL,
-      updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-    );
+  return ensureSchemaOnce('service_config', async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS service_config (
+        brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
+        services_json JSONB NOT NULL,
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'service_config_brand_fkey') THEN
           ALTER TABLE service_config ADD CONSTRAINT service_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
-  `);
+    `);
+  });
 }
 
 export async function getServiceConfig(brand: string): Promise<ServiceOverride[] | null> {
@@ -891,19 +919,21 @@ export async function saveServiceConfig(brand: string, overrides: ServiceOverrid
 // ── Leistungen Config (Preistabelle Overrides) ───────────────────────────────
 
 export async function initLeistungenConfigTable(): Promise<void> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS leistungen_config (
-      brand            TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-      categories_json  JSONB NOT NULL,
-      updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
-    );
+  return ensureSchemaOnce('leistungen_config', async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS leistungen_config (
+        brand            TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
+        categories_json  JSONB NOT NULL,
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'leistungen_config_brand_fkey') THEN
           ALTER TABLE leistungen_config ADD CONSTRAINT leistungen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
-  `);
+    `);
+  });
 }
 
 export async function getLeistungenConfig(brand: string): Promise<LeistungCategoryOverride[] | null> {
@@ -929,21 +959,28 @@ export async function saveLeistungenConfig(brand: string, categories: LeistungCa
 // ── Site Settings (key/value store per brand) ────────────────────────────────
 
 export async function initSiteSettingsTable(): Promise<void> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS site_settings (
-      brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-      key        TEXT,
-      value      TEXT NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      PRIMARY KEY (brand, key)
-    );
+  return ensureSchemaOnce('site_settings', async () => {
+    // Transaction-scoped advisory lock serialises concurrent processes/replicas
+    // racing the same DDL on a cold DB. The lock auto-releases at COMMIT/ROLLBACK.
+    await pool.query(`
+      BEGIN;
+      SELECT pg_advisory_xact_lock(hashtext('init:site_settings'));
+      CREATE TABLE IF NOT EXISTS site_settings (
+        brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        key        TEXT,
+        value      TEXT NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (brand, key)
+      );
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'site_settings_brand_fkey') THEN
           ALTER TABLE site_settings ADD CONSTRAINT site_settings_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
-  `);
+      COMMIT;
+    `);
+  });
 }
 
 export async function getSiteSetting(brand: string, key: string): Promise<string | null> {
@@ -993,21 +1030,23 @@ export async function saveVacationPeriods(brand: string, periods: VacationPeriod
 // ── Legal Pages (admin-editable HTML content) ────────────────────────────────
 
 export async function initLegalPagesTable(): Promise<void> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS legal_pages (
-      brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
-      page_key     TEXT,
-      content_html TEXT NOT NULL,
-      updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-      PRIMARY KEY (brand, page_key)
-    );
+  return ensureSchemaOnce('legal_pages', async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS legal_pages (
+        brand        TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        page_key     TEXT,
+        content_html TEXT NOT NULL,
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY (brand, page_key)
+      );
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'legal_pages_brand_fkey') THEN
           ALTER TABLE legal_pages ADD CONSTRAINT legal_pages_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
-  `);
+    `);
+  });
 }
 
 export async function getLegalPage(brand: string, pageKey: string): Promise<string | null> {
@@ -1055,19 +1094,21 @@ export interface ReferenzenConfig {
 }
 
 export async function initReferenzenTable(): Promise<void> {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS referenzen_config (
-      brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
-      items_json JSONB NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    );
+  return ensureSchemaOnce('referenzen_config', async () => {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS referenzen_config (
+        brand      TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
+        items_json JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'referenzen_config_brand_fkey') THEN
           ALTER TABLE referenzen_config ADD CONSTRAINT referenzen_config_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID;
         END IF;
       END $$;
-  `);
+    `);
+  });
 }
 
 function normalizeReferenzen(raw: unknown): ReferenzenConfig {

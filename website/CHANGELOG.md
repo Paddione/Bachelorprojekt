@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.14.0...website-v1.14.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* **website:** unblock Collabora health probe in Platform Control Center [T000287] ([#1125](https://github.com/Paddione/Bachelorprojekt/issues/1125)) ([268266e](https://github.com/Paddione/Bachelorprojekt/commit/268266e836c412cf4eade6678f0836d70993a746))
+
 ## [1.14.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.13.0...website-v1.14.0) (2026-05-26)
 
 

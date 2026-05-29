@@ -1,6 +1,17 @@
 import https from 'node:https';
 import fs from 'node:fs/promises';
 
+/** Error carrying the HTTP status so callers can distinguish 403 (no-access)
+ *  from 404 (missing) instead of collapsing both into a generic failure. */
+export class K8sApiError extends Error {
+  readonly status: number;
+  constructor(status: number, statusMessage: string | undefined, body: string) {
+    super(`K8s API ${status}: ${statusMessage ?? ''} — ${body}`);
+    this.name = 'K8sApiError';
+    this.status = status;
+  }
+}
+
 export type K8sClient = {
   get: (path: string) => Promise<any>;
   patch: (path: string, body: object) => Promise<any>;
@@ -36,7 +47,7 @@ export async function createK8sClient(): Promise<K8sClient> {
           res.on('data', (chunk: string) => { data += chunk; });
           res.on('end', () => {
             if (res.statusCode && res.statusCode >= 400) {
-              reject(new Error(`K8s API ${res.statusCode}: ${res.statusMessage} — ${data}`));
+              reject(new K8sApiError(res.statusCode, res.statusMessage, data));
             } else {
               try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
             }

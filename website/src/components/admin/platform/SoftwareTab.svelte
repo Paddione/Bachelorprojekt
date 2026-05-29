@@ -99,9 +99,10 @@
                   asset.live_status === 'other-cluster' ? 'bg-blue-500/10 text-blue-400'   :
                   asset.live_status === 'optional'      ? 'bg-gray-500/10 text-gray-400'   :
                   asset.live_status === 'unknown'       ? 'bg-gray-500/10 text-gray-500'   :
+                  asset.live_status === 'no-access'     ? 'bg-purple-500/10 text-purple-400':
                   asset.live_status === 'failing'       ? 'bg-red-500/10 text-red-400'     :
                                                           'bg-orange-500/10 text-orange-400'}">
-                  {asset.live_status === 'other-cluster' ? '↗ remote' : asset.live_status}
+                  {asset.live_status === 'other-cluster' ? '↗ remote' : asset.live_status === 'no-access' ? '⊘ no-access' : asset.live_status}
                 </span>
               </div>
               <p class="text-xs text-admin-text-mute line-clamp-2 mb-3">{asset.description || 'Keine Beschreibung.'}</p>

@@ -43,6 +43,18 @@ if (chosen === 'mayhem') {
     ctrlBtn.addEventListener('click', () => window.MayhemControlsPanel?.openControlsPanel());
     presets.appendChild(ctrlBtn);
 
+    const skinBtn = document.createElement('button');
+    skinBtn.id = 'brett-skin-btn';
+    skinBtn.type = 'button';
+    skinBtn.style.marginLeft = '4px';
+    skinBtn.title = 'Charakter-Skin wählen';
+    skinBtn.textContent = '👤';
+    skinBtn.addEventListener('click', async () => {
+      const mod = await import('./loadout-modal.mjs');
+      mod.openSkinPickerStandalone();
+    });
+    presets.appendChild(skinBtn);
+
     // Reflect Mayhem on/off state visually on the toggle button
     const setMayhemBtnActive = (on) => {
       mayhemBtn.style.borderColor = on ? '#c8f76a' : 'rgba(231,234,208,0.18)';

@@ -391,6 +391,26 @@ const Mayhem = (() => {
     chaseCam.attach(localAvatar.mannequin.root);
     send({ type: 'player_join', playerId, color });
 
+    // Live skin swap entry point used by the toolbar's skin picker. Detaches
+    // the current SkinController (if any) and triggers a fresh load.
+    window.MayhemSwapLocalSkin = (newSkinId) => {
+      if (!localAvatar) return;
+      const weaponDef = localAvatar._pendingWeaponDef;
+      if (localAvatar.skin) {
+        localAvatar.skin.dispose(scene);
+        localAvatar.skin = null;
+      }
+      // Re-show mannequin meshes that were hidden when the previous skin attached.
+      localAvatar.mannequin.root.traverse(obj => { if (obj.isMesh) obj.visible = true; });
+      localAvatar.skinId = newSkinId || 'default';
+      if (localAvatar.skinId !== 'default' && window.MayhemSkinController) {
+        window.MayhemSkinController.load(localAvatar.skinId, localAvatar.mannequin)
+          .then(ctrl => localAvatar._adoptSkin(ctrl))
+          .catch(err => console.warn(`[brett] live skin "${newSkinId}" load failed:`, err.message));
+      }
+      if (weaponDef) localAvatar.setWeapon(weaponDef);
+    };
+
     if (gameMode && gameMode.mode === 'duel') {
       const fighters = [...remoteAvatars.keys()].filter(id => !id.startsWith('bot-'));
       if (fighters.length >= 2) {
@@ -1125,6 +1145,7 @@ const Mayhem = (() => {
     send({ type: 'hit', victimId, weaponKey: 'vehicle', shooterId: playerId, impulse, source: 'vehicle' });
     applyHitLocally(victimId, 'vehicle', impulse, playerId);
     window.MayhemAudio?.onHit('vehicle');
+    window.MayhemAudio?.play('vehicle-crash', 0.7);
   }
 
   function applyHitLocally(victimId, weaponKey, impulse, shooterId) {

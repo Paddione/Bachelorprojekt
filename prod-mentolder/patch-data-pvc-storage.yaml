@@ -2,13 +2,9 @@
 # local-path PVCs are node-pinned RWO; pvc-backup cannot mount PVCs from two nodes.
 # Longhorn is distributed — any Hetzner node can access the volume.
 # NOTE: storageClass is immutable on existing PVCs. Apply this patch AFTER manual migration.
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: nextcloud-data-pvc
-spec:
-  storageClassName: longhorn
----
+# NOTE: nextcloud-data-pvc (50Gi) is excluded — Longhorn cluster lacks sufficient
+# disk headroom on Hetzner nodes (~15–25 GB free vs 3×50 GB required for 3 replicas).
+# See T000317 follow-up for nextcloud backup strategy.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

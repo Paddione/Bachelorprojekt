@@ -69,7 +69,8 @@ assert_contains "$RESTORE_HELP" "pvc-restore" "SA-07" "T10" "backup-restore.sh u
 # This is a manifest-level test: checks kustomize build output, no cluster access needed.
 PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 KUSTOMIZE_OUT=$(kustomize build "${PROJECT_DIR}/prod-mentolder" 2>/dev/null)
-for pvc in nextcloud-data-pvc vaultwarden-data-pvc docuseal-data-pvc; do
+# nextcloud-data-pvc excluded: Longhorn lacks disk headroom for 50Gi on 3 replicas (T000317)
+for pvc in vaultwarden-data-pvc docuseal-data-pvc; do
   # Extract storageClassName from the built manifest for this specific PVC
   SC=$(echo "$KUSTOMIZE_OUT" \
     | python3 -c "

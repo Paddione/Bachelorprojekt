@@ -891,6 +891,27 @@ function listFigureLocks(room) {
   return [...m.entries()].map(([figureId, o]) => ({ figureId, ...o }));
 }
 
+const PARTICIPANT_PALETTE = ['#4ea1ff', '#3fb950', '#f0a35e', '#c06be0', '#e06b8b', '#6be0d0'];
+const roomParticipants = new Map(); // roomToken -> Map<userId, { userId, name, color }>
+function addParticipant(room, { userId, name }) {
+  if (!userId) return null;
+  if (!roomParticipants.has(room)) roomParticipants.set(room, new Map());
+  const m = roomParticipants.get(room);
+  if (m.has(userId)) { m.get(userId).name = name || m.get(userId).name; return m.get(userId); }
+  const color = PARTICIPANT_PALETTE[m.size % PARTICIPANT_PALETTE.length];
+  const p = { userId, name: name || userId, color };
+  m.set(userId, p);
+  return p;
+}
+function removeParticipant(room, userId) {
+  const m = roomParticipants.get(room);
+  if (m) m.delete(userId);
+}
+function listParticipants(room) {
+  const m = roomParticipants.get(room);
+  return m ? [...m.values()] : [];
+}
+
 const pickupState = new Map(); // room -> Map<pickupId, {id, kind, pos, takenBy, respawnAt}>
 
 function ensurePickups(room) {
@@ -1143,6 +1164,7 @@ wss.on('connection', (ws, req) => {
             gameMode: state.gameMode,
             coachingSteps: state.coachingSteps,
             locks: listFigureLocks(room),
+            participants: listParticipants(room),
           }));
         }
         // Also send current pickup positions
@@ -1225,7 +1247,12 @@ wss.on('connection', (ws, req) => {
           sessionLastActivity: state.sessionLastActivity,
           coachingSteps: state.coachingSteps,
           locks: listFigureLocks(msg.room),
+          participants: listParticipants(msg.room),
         }));
+        if (ws._session?.userId) {
+          const p = addParticipant(msg.room, { userId: ws._session.userId, name: ws._session.name });
+          if (p) broadcast(msg.room, { type: 'presence_join', ...p });
+        }
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
         if (meta && meta.coopWave > 0) {
@@ -1529,6 +1556,10 @@ wss.on('connection', (ws, req) => {
       releaseLocksForUser(room, uid);
       broadcast(room, { type: 'locks_released_for', userId: uid });
     }
+    if (uid && ws._session?.userId) {
+      removeParticipant(room, ws._session.userId);
+      broadcast(room, { type: 'presence_leave', userId: ws._session.userId });
+    }
     if (rooms.has(room)) {
       broadcastInfo(room);
     } else {
@@ -1616,6 +1647,9 @@ module.exports = {
   releaseFigureLock,
   releaseLocksForUser,
   listFigureLocks,
+  addParticipant,
+  removeParticipant,
+  listParticipants,
   transitionPhase,
   generateSessionCode,
   registerSessionCode,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.15.0...website-v1.16.0) (2026-05-29)
+
+
+### Features
+
+* **content-hub:** legal SSOT, versioning, concurrency, universal editor, e2e specs [T000306] ([#1153](https://github.com/Paddione/Bachelorprojekt/issues/1153)) ([2377604](https://github.com/Paddione/Bachelorprojekt/commit/23776048e1b867860478e42ba953ef591adb0e04))
+
 ## [1.15.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.14.2...website-v1.15.0) (2026-05-29)
 
 

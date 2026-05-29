@@ -71,7 +71,7 @@ spec:
               set -e
               npm install -g supergateway @modelcontextprotocol/server-postgres
               exec /tmp/npm-global/bin/supergateway \
-                --stdio "/tmp/npm-global/bin/mcp-server-postgres postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/postgres" \
+                --stdio "/tmp/npm-global/bin/mcp-server-postgres postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db:5432/website" \
                 --outputTransport streamableHttp \
                 --port 3001 \
                 --streamableHttpPath /mcp \

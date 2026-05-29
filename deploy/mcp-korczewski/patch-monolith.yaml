@@ -16,7 +16,7 @@ spec:
                   name: claude-code-secrets
                   key: SHARED_DB_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace-korczewski.svc.cluster.local:5432/postgres"
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db.workspace-korczewski.svc.cluster.local:5432/website"
         - name: keycloak
           env:
             - name: KC_URL

@@ -528,6 +528,27 @@ spec:
         matchLabels:
           kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
 ---
+# Website-Pod darf Collabora im workspace-office-Namespace erreichen
+# (Platform Hub System-Integrität Health-Probe → collabora:9980, T000287).
+# workspace-office trägt denselben Namespace-Namen auf beiden Clustern → literal, keine Variable.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-to-workspace-office
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: workspace-office
+    ports:
+    - port: 9980
+      protocol: TCP
+---
 # Traefik-Ingress aus kube-system erlauben
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

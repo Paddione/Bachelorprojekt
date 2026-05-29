@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { listSoftwareAssets, upsertSoftwareAsset } from '../../../../lib/platform-db';
-import { createK8sClient, type K8sClient } from '../../../../lib/k8s';
+import { createK8sClient, K8sApiError, type K8sClient } from '../../../../lib/k8s';
 
 export const prerender = false;
 
@@ -47,8 +47,10 @@ export const GET: APIRoute = async ({ request }) => {
           readyReplicas = dep.status?.readyReplicas || 0;
           totalReplicas = dep.spec?.replicas || 0;
           liveStatus = readyReplicas > 0 ? (readyReplicas >= totalReplicas ? 'ready' : 'degraded') : 'failing';
-        } catch {
-          liveStatus = 'missing';
+        } catch (e) {
+          // 403 = RBAC denied (no-access) must not masquerade as a deleted
+          // deployment (404 = missing). T000287.
+          liveStatus = e instanceof K8sApiError && e.status === 403 ? 'no-access' : 'missing';
         }
       }
 

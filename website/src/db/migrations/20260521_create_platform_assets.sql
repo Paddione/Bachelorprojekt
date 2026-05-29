@@ -44,7 +44,7 @@ VALUES
   ('website',            'Website',            'Astro + Svelte frontend',               'frontend',   '🌐', ARRAY['mentolder','korczewski'], 'website',              'website',           ':latest',  'live',     10),
   ('keycloak',           'Keycloak',           'SSO / OIDC identity provider',          'auth',       '🔑', ARRAY['mentolder','korczewski'], 'workspace',            'keycloak',          ':22.0',    'live',     20),
   ('nextcloud',          'Nextcloud',          'File storage + groupware',              'storage',    '☁️', ARRAY['mentolder','korczewski'], 'workspace',            'nextcloud',         ':29',      'live',     30),
-  ('collabora',          'Collabora',          'Online office suite',                   'storage',    '📄', ARRAY['mentolder','korczewski'], 'workspace',            'collabora',         ':latest',  'live',     40),
+  ('collabora',          'Collabora',          'Online office suite',                   'storage',    '📄', ARRAY['mentolder','korczewski'], 'workspace-office',     'collabora',         ':latest',  'live',     40),
   ('vaultwarden',        'Vaultwarden',        'Password manager (Bitwarden-compat)',   'security',   '🔒', ARRAY['mentolder','korczewski'], 'workspace',            'vaultwarden',       ':latest',  'live',     50),
   ('nextcloud-talk-hpb', 'Talk HPB',           'Nextcloud Talk signaling server',       'messaging',  '📡', ARRAY['mentolder','korczewski'], 'workspace',            'talk-hpb',          ':latest',  'live',     60),
   ('brett',              'Brett',              '3D systemic-constellation board',       'dev',        '🧩', ARRAY['mentolder','korczewski'], 'workspace',            'brett',             ':latest',  'live',     70),

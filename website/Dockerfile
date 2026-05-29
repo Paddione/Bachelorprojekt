@@ -8,6 +8,10 @@ RUN npm ci
 
 COPY website/ .
 
+# Cap Node.js heap to force GC before hitting kernel OOM (T000315).
+# The pixi.js + Astro build is memory-hungry; without an explicit limit,
+# the dev node (k3s-1) crashes with SIGSEGV or esbuild memory-corruption.
+ENV NODE_OPTIONS=--max-old-space-size=3072
 RUN npm run build
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────

@@ -234,6 +234,18 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-content-hub-editability",
+    "file": "tests/e2e/specs/fa-content-hub-editability.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-content-hub-price-ssot",
+    "file": "tests/e2e/specs/fa-content-hub-price-ssot.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-document-signing",
     "file": "tests/e2e/specs/fa-document-signing.spec.ts",
     "category": "E2E",

@@ -111,6 +111,8 @@ export default defineConfig({
         '**/fa-45-*.spec.ts',
         '**/nfa-infra-health-sweep.spec.ts',
         '**/sa-15-*.spec.ts',
+        '**/fa-content-hub-price-ssot.spec.ts',
+        '**/fa-content-hub-editability.spec.ts',
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -1012,6 +1012,42 @@ tasks:
     cmds:
       - bash scripts/backup-restore.sh list {{.CLI_ARGS}}
 
+  workspace:backup:pvcs:
+    desc: "Trigger an immediate PVC backup (nextcloud-files, vaultwarden-data, docuseal-data) [ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_arg=""
+        [ "{{.ENV}}" != "dev" ] && ctx_arg="--context $ENV_CONTEXT"
+        bash scripts/backup-restore.sh pvc-trigger $ctx_arg {{.CLI_ARGS}}
+
+  workspace:backup:pvcs:list:
+    desc: "List available PVC backup timestamps [ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_arg=""
+        [ "{{.ENV}}" != "dev" ] && ctx_arg="--context $ENV_CONTEXT"
+        bash scripts/backup-restore.sh pvc-list $ctx_arg
+
+  workspace:pvc:restore:
+    desc: "List available PVC backups then restore a service (usage: task workspace:pvc:restore -- <service> <timestamp> [ENV=...])"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_arg=""
+        [ "{{.ENV}}" != "dev" ] && ctx_arg="--context $ENV_CONTEXT"
+        echo "Available PVC backups:"
+        bash scripts/backup-restore.sh pvc-list $ctx_arg
+        echo ""
+        bash scripts/backup-restore.sh pvc-restore {{.CLI_ARGS}} $ctx_arg
+
   workspace:db:start:
     desc: "Ensure shared-db is running; scale up if at 0 replicas, otherwise restart (ENV=dev|mentolder|korczewski)"
     vars:

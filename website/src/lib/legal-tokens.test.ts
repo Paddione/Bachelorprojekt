@@ -17,3 +17,10 @@ describe('resolveTokens', () => {
     expect(STAMMDATEN_TOKENS).toContain('{{stammdaten.email}}');
   });
 });
+
+import { getDefaultDatenschutz, getDefaultAgb } from './legal-defaults';
+it('defaults emit tokens, not baked contact values', () => {
+  const ds = getDefaultDatenschutz();
+  expect(ds).toContain('{{stammdaten.email}}');
+  expect(ds).not.toMatch(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/); // no literal email
+});

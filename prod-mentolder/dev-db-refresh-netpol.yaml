@@ -1,0 +1,41 @@
+# ════════════════════════════════════════════════════════════════════
+# allow-devnode-hostnet-to-shared-db-ingress (mentolder, T000286)
+#
+# The dev-db-refresh CronJob runs with hostNetwork:true pinned to the dev
+# node ($DEV_NODE = k3s-1) so it can reach the k3d-published dev Postgres
+# NodePort at 127.0.0.1:15432. Since #1130 it pulls a live pg_dump from the
+# prod shared-db Service over the cluster network instead of mounting the
+# (un-attachable) Longhorn backup-pvc.
+#
+# shared-db sits behind default-deny-ingress + per-client allow policies.
+# A hostNetwork pod has NO pod IP, so podSelector/namespaceSelector rules
+# (incl. allow-intra-namespace-ingress) can never match it — its traffic
+# arrives at shared-db with the source IP of the dev node's flannel VTEP
+# (10.42.3.0 for k3s-1's 10.42.3.0/24 podCIDR), exactly like the Traefik
+# hostNetwork case handled by allow-traefik-ingress (10.42.0.0/32).
+# We therefore whitelist the dev node's VTEP and node IP on 5432 only.
+#
+# Scoped to k3s-1 alone (not the whole pod CIDR) to preserve shared-db's
+# least-privilege ingress. mentolder-only: this overlay is not applied to
+# korczewski, which has no dev node.
+# ════════════════════════════════════════════════════════════════════
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-devnode-hostnet-to-shared-db-ingress
+  namespace: workspace
+spec:
+  podSelector:
+    matchLabels:
+      app: shared-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 10.42.3.0/32       # k3s-1 flannel VTEP (hostNetwork src after encap)
+        - ipBlock:
+            cidr: 192.168.100.20/32  # k3s-1 node InternalIP (belt-and-suspenders, no-masquerade path)
+      ports:
+        - port: 5432
+          protocol: TCP

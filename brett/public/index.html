@@ -1745,17 +1745,18 @@
 
   // ── Named Persons quick-spawn ────────────────────────────────────────────
   const NAMED_PERSONS = [
-    { key: 'portrait-patrick',   label: 'Patrick',   color: '#6f8db8' },
-    { key: 'portrait-christina', label: 'Christina', color: '#c06be0' },
-    { key: 'portrait-papa',      label: 'Papa',      color: '#808080' },
-    { key: 'portrait-martina',   label: 'Martina',   color: '#6be0a0' },
-    { key: 'portrait-oskar',     label: 'Oskar',     color: '#c8a96e' },
+    { key: 'portrait-patrick',   label: 'Patrick',   color: '#6f8db8', brand: 'korczewski' },
+    { key: 'portrait-christina', label: 'Christina', color: '#c06be0', brand: 'korczewski' },
+    { key: 'portrait-papa',      label: 'Papa',      color: '#808080', brand: 'korczewski' },
+    { key: 'portrait-martina',   label: 'Martina',   color: '#6be0a0', brand: 'korczewski' },
+    { key: 'portrait-oskar',     label: 'Oskar',     color: '#c8a96e', brand: 'korczewski' },
   ];
 
-  (function buildPersonsPanel() {
+  function buildPersonsPanel(persons) {
     const grid = document.getElementById('fig-panel-persons');
     if (!grid) return;
-    for (const p of NAMED_PERSONS) {
+    grid.innerHTML = '';
+    for (const p of persons) {
       const btn = document.createElement('button');
       btn.className = 'fig-size-btn';
       btn.style.cssText = `border-left:3px solid ${p.color};text-align:left;padding:4px 7px;` +
@@ -1787,7 +1788,11 @@
       });
       grid.appendChild(btn);
     }
-  })();
+  }
+  fetch('/api/config').then((r) => r.json()).then(async (cfg) => {
+    const { filterPersonsForBrand } = await import('/assets/coaching/brand.mjs');
+    buildPersonsPanel(filterPersonsForBrand(NAMED_PERSONS, cfg.brand));
+  }).catch(() => buildPersonsPanel([])); // fail safe: hide brand-tagged persons
 
   function syncDrawerToFig(fig) {
     if (!fig) return;

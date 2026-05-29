@@ -10,9 +10,21 @@ spec:
     spec:
       template:
         spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
           containers:
           - name: detector
             image: curlimages/curl:8.7.1
+            securityContext:
+              allowPrivilegeEscalation: false
+              runAsNonRoot: true
+              runAsUser: 65534
+              capabilities:
+                drop: ["ALL"]
             command:
             - /bin/sh
             - -c
@@ -32,4 +44,3 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: CRON_SECRET
-          restartPolicy: OnFailure

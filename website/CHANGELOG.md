@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.16.1...website-v1.16.2) (2026-05-29)
+
+
+### Bug Fixes
+
+* **dev-build:** prevent OOM crashes in Astro build on dev node [T000315] ([#1160](https://github.com/Paddione/Bachelorprojekt/issues/1160)) ([3e0046c](https://github.com/Paddione/Bachelorprojekt/commit/3e0046c60b3560e192aceb5b3be381cc73e87810))
+
 ## [1.16.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.16.0...website-v1.16.1) (2026-05-29)
 
 

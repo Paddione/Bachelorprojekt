@@ -237,6 +237,7 @@ tasks:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - task: test:unit:assert
       - task: test:unit:scripts
+      - task: test:unit:agents
       - task: test:unit:figure-pack
 
   test:unit:assert:
@@ -248,6 +249,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/scripts.bats
+
+  test:unit:agents:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/agent-ops-output-trust.bats
 
   test:unit:figure-pack:
     internal: true

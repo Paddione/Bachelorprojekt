@@ -1,0 +1,254 @@
+# ═══════════════════════════════════════════════════════════════════
+# PVC Data Backup — daily encrypted tar archives of file-backed PVCs
+# SA-07: Daily at 03:00 UTC (one hour after db-backup at 02:00)
+#
+# Design constraint: All three data PVCs (nextcloud-data-pvc,
+# vaultwarden-data-pvc, docuseal-data-pvc) must be on the same
+# Kubernetes node for the backup pod to mount them (RWO single-node).
+# podAffinity to the nextcloud pod enforces co-location. In production
+# (Longhorn), co-location is the default for stateful workloads.
+# In dev (local-path), PVCs are strictly node-pinned; SA-07 T8-T10
+# only run against the live cluster, not the dev k3d stack.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pvc-backup
+  namespace: workspace
+  labels:
+    app: pvc-backup
+spec:
+  schedule: "0 3 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: pvc-backup
+        spec:
+          restartPolicy: OnFailure
+          # Must run on the same node as nextcloud to mount its RWO PVC.
+          # requiredDuringScheduling ensures this; if nextcloud is down
+          # the backup will be rescheduled (OnFailure) once it is up again.
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: nextcloud
+                  topologyKey: kubernetes.io/hostname
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: NotIn
+                        values: [k3s-1, k3s-2, k3s-3, k3w-1, k3w-2, k3w-3]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            fsGroup: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: backup
+              image: alpine:3
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                runAsUser: 65534
+                capabilities:
+                  drop: ["ALL"]
+              env:
+                - name: BACKUP_PASSPHRASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: BACKUP_PASSPHRASE
+                - name: BRAND
+                  valueFrom:
+                    configMapKeyRef:
+                      name: backup-config
+                      key: BRAND
+                - name: FILEN_DEFAULT_UPLOAD_PATH
+                  valueFrom:
+                    configMapKeyRef:
+                      name: backup-config
+                      key: FILEN_DEFAULT_UPLOAD_PATH
+                - name: FILEN_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_EMAIL
+                      optional: true
+                - name: FILEN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_PASSWORD
+                      optional: true
+              command: ["/bin/sh", "-c"]
+              # Shell vars (STAMP, BACKUP_DIR, PASS, FILEN_PATH) evaluated at runtime.
+              args:
+                - |
+                  set -euo pipefail
+                  sleep 5
+
+                  STAMP=$(date +%Y%m%d-%H%M%S)
+                  BACKUP_DIR=/backups/pvc-${STAMP}
+                  mkdir -p "${BACKUP_DIR}"
+
+                  FAILED=0
+
+                  # ── Nextcloud user files ─────────────────────────────────
+                  echo "Backing up nextcloud-data (/nextcloud-data)..."
+                  if [ "$(ls -A /nextcloud-data 2>/dev/null)" ]; then
+                    tar czf - -C /nextcloud-data . \
+                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
+                          -out "${BACKUP_DIR}/nextcloud-files.tar.gz.enc" \
+                          -pass env:BACKUP_PASSPHRASE \
+                      && echo "  ✓ nextcloud-files OK ($(ls -lh "${BACKUP_DIR}/nextcloud-files.tar.gz.enc" | awk '{print $5}'))" \
+                      || { echo "  ✗ nextcloud-files FAILED"; FAILED=$((FAILED+1)); }
+                  else
+                    echo "  ⚠ /nextcloud-data is empty — skipping"
+                  fi
+
+                  # ── Vaultwarden file attachments ─────────────────────────
+                  echo "Backing up vaultwarden-data (/vaultwarden-data)..."
+                  if [ "$(ls -A /vaultwarden-data 2>/dev/null)" ]; then
+                    tar czf - -C /vaultwarden-data . \
+                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
+                          -out "${BACKUP_DIR}/vaultwarden-data.tar.gz.enc" \
+                          -pass env:BACKUP_PASSPHRASE \
+                      && echo "  ✓ vaultwarden-data OK ($(ls -lh "${BACKUP_DIR}/vaultwarden-data.tar.gz.enc" | awk '{print $5}'))" \
+                      || { echo "  ✗ vaultwarden-data FAILED"; FAILED=$((FAILED+1)); }
+                  else
+                    echo "  ⚠ /vaultwarden-data is empty — skipping"
+                  fi
+
+                  # ── DocuSeal documents ──────────────────────────────────
+                  echo "Backing up docuseal-data (/docuseal-data)..."
+                  if [ "$(ls -A /docuseal-data 2>/dev/null)" ]; then
+                    tar czf - -C /docuseal-data . \
+                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
+                          -out "${BACKUP_DIR}/docuseal-data.tar.gz.enc" \
+                          -pass env:BACKUP_PASSPHRASE \
+                      && echo "  ✓ docuseal-data OK ($(ls -lh "${BACKUP_DIR}/docuseal-data.tar.gz.enc" | awk '{print $5}'))" \
+                      || { echo "  ✗ docuseal-data FAILED"; FAILED=$((FAILED+1)); }
+                  else
+                    echo "  ⚠ /docuseal-data is empty — skipping"
+                  fi
+
+                  # ── Retention: remove PVC backups older than 30 days ─────
+                  find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
+
+                  # ── Signal filen-upload sidecar ──────────────────────────
+                  FILEN_PATH="${FILEN_DEFAULT_UPLOAD_PATH}"
+                  printf '%s' "${FILEN_PATH}" > /staging/.filen_path
+                  printf '%s' "pvc-${STAMP}" > /staging/.done
+
+                  echo "PVC backup complete: ${BACKUP_DIR}"
+                  ls -lh "${BACKUP_DIR}/"
+
+                  [ "${FAILED}" -eq 0 ] || { echo "WARN: ${FAILED} PVC backup(s) failed — see above"; exit 1; }
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                - name: nextcloud-data
+                  mountPath: /nextcloud-data
+                  readOnly: true
+                - name: vaultwarden-data
+                  mountPath: /vaultwarden-data
+                  readOnly: true
+                - name: docuseal-data
+                  mountPath: /docuseal-data
+                  readOnly: true
+                - name: staging
+                  mountPath: /staging
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: "200m"
+                limits:
+                  memory: 1Gi
+                  cpu: "1"
+
+            - name: filen-upload
+              image: node:22-alpine
+              imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  if [ -z "${FILEN_EMAIL}" ] || [ -z "${FILEN_PASSWORD}" ]; then
+                    echo "Filen not configured — skipping remote PVC backup upload"
+                    until [ -f /staging/.done ]; do sleep 2; done
+                    exit 0
+                  fi
+
+                  echo "Waiting for PVC backup to complete..."
+                  until [ -f /staging/.done ]; do sleep 2; done
+
+                  STAMP=$(cat /staging/.done)
+                  UPLOAD_PATH=$(cat /staging/.filen_path)
+
+                  echo "Installing Filen CLI..."
+                  export HOME=/tmp
+                  npm install -g @filen/cli --prefix /tmp/npm-global --silent 2>&1 | tail -3
+                  export PATH="/tmp/npm-global/bin:$PATH"
+
+                  echo "Uploading ${STAMP} to Filen: ${UPLOAD_PATH}/${STAMP}/"
+                  filen --email "${FILEN_EMAIL}" --password "${FILEN_PASSWORD}" \
+                    upload "/backups/${STAMP}/" "${UPLOAD_PATH}/${STAMP}/" \
+                    || echo "WARNING: Filen upload failed — local PVC backup intact"
+
+                  echo "Filen PVC upload done"
+              env:
+                - name: FILEN_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_EMAIL
+                      optional: true
+                - name: FILEN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: workspace-secrets
+                      key: FILEN_PASSWORD
+                      optional: true
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                  readOnly: true
+                - name: staging
+                  mountPath: /staging
+                  readOnly: true
+              resources:
+                requests:
+                  memory: 256Mi
+                  cpu: "100m"
+                limits:
+                  memory: 512Mi
+                  cpu: "500m"
+
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+            - name: nextcloud-data
+              persistentVolumeClaim:
+                claimName: nextcloud-data-pvc
+            - name: vaultwarden-data
+              persistentVolumeClaim:
+                claimName: vaultwarden-data-pvc
+            - name: docuseal-data
+              persistentVolumeClaim:
+                claimName: docuseal-data-pvc
+            - name: staging
+              emptyDir: {}

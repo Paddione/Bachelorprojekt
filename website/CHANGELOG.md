@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.15.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.14.2...website-v1.15.0) (2026-05-29)
+
+
+### Features
+
+* **content-hub:** price SSOT + full homepage editability [T000305] ([#1152](https://github.com/Paddione/Bachelorprojekt/issues/1152)) ([1cb7187](https://github.com/Paddione/Bachelorprojekt/commit/1cb718769f174b1c07330e4ff9f9eebeae12324b))
+
+
+### Bug Fixes
+
+* **website:** run schema-init once, not per request [T000304] ([#1150](https://github.com/Paddione/Bachelorprojekt/issues/1150)) ([44a74e7](https://github.com/Paddione/Bachelorprojekt/commit/44a74e7e7e403f3cf5c277c1bb8dec7785cd875d))
+
 ## [1.14.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.14.1...website-v1.14.2) (2026-05-29)
 
 

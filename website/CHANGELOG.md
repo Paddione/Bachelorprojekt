@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.16.0...website-v1.16.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* **website:** replace undefined contact var with stammdaten in homepage SSR [T000311] ([#1156](https://github.com/Paddione/Bachelorprojekt/issues/1156)) ([fdaeb34](https://github.com/Paddione/Bachelorprojekt/commit/fdaeb344ab64317dd92c061e97a70184c0b3bf98))
+
 ## [1.16.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.15.0...website-v1.16.0) (2026-05-29)
 
 

@@ -502,47 +502,219 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
       ],
       guides: [],
     },
+    inhalte: {
+      title: 'Content Hub',
+      description: 'Hier pflegst du alle Inhalte deiner Website — Texte, Preise, Rechtliches und mehr. Wähle oben einen Tab und dann eine Sektion, um deren spezifische Hilfe zu sehen.',
+      actions: [
+        'Tab „website" wählen → Seiteninhalt bearbeiten',
+        'Tab „newsletter" wählen → E-Mail-Kampagnen anlegen',
+        'Tab „fragebogen" wählen → Fragebogen-Vorlagen bearbeiten',
+        'Tab „vertraege" wählen → Vertragsvorlagen pflegen',
+        'Tab „rechnungen" wählen → Rechnungsvorlagen anpassen',
+      ],
+      guides: [
+        {
+          title: 'Website-Inhalt bearbeiten (Überblick)',
+          steps: [
+            'Klicke auf den Tab „website" oben im Content Hub.',
+            'Wähle eine Sektion aus der zweiten Tab-Reihe (z.B. „Startseite", „Angebote", „FAQ").',
+            'Bearbeite die Felder im Editor — der Sidekick zeigt dann die Anleitung für genau diese Sektion.',
+            'Klicke auf „Speichern". Die Änderung ist sofort live auf der Website.',
+          ],
+        },
+        {
+          title: 'Änderungen in Echtzeit prüfen',
+          steps: [
+            'Speichere deine Änderung im Admin.',
+            'Öffne die öffentliche Website in einem neuen Tab (z.B. web.mentolder.de).',
+            'Lade die Seite neu — die Änderung ist sofort sichtbar (kein Deploy nötig).',
+          ],
+        },
+      ],
+    },
+    seo: {
+      title: 'SEO',
+      description: 'Meta-Titel und -Beschreibungen für alle Website-Seiten pflegen — relevant für Suchmaschinen und Social-Sharing.',
+      actions: [
+        'Meta-Titel bearbeiten (50–70 Zeichen)',
+        'Meta-Beschreibung bearbeiten (120–160 Zeichen)',
+        'Änderungen speichern',
+      ],
+      guides: [
+        {
+          title: 'Meta-Titel und Beschreibung setzen',
+          steps: [
+            'Öffne Tab „website" → Sektion „SEO".',
+            'Wähle die Seite aus der Liste (z.B. Startseite, Coaching).',
+            'Bearbeite „Meta-Titel" (50–70 Zeichen) und „Meta-Beschreibung" (120–160 Zeichen).',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
     startseite: {
       title: 'Startseite',
-      description: 'Inhalte der öffentlichen Startseite (Hero, Angebote, USPs) bearbeiten.',
+      description: 'Inhalte der öffentlichen Startseite bearbeiten — Hero, Kennzahlen, Warum-ich-Punkte und Prozessschritte.',
       actions: ['Texte bearbeiten', 'Änderungen speichern', 'Vorschau öffnen'],
-      guides: [],
+      guides: [
+        {
+          title: 'Hero-Bereich bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Startseite".',
+            'Bearbeite „Überschrift", „Unterzeile" und „Call-to-Action-Text" im Hero-Block.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+        {
+          title: 'Kennzahlen (Stats) anpassen',
+          steps: [
+            'Scrolle in der Sektion „Startseite" zum Block „Kennzahlen".',
+            'Ändere Zahl, Einheit und Beschreibung für jede Kennzahl.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+        {
+          title: 'Why-Me-Punkte bearbeiten',
+          steps: [
+            'Scrolle zum Block „Warum ich".',
+            'Bearbeite Titel und Beschreibung jedes Punktes.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     uebermich: {
       title: 'Über mich',
       description: 'Die „Über mich"-Seite der Website bearbeiten.',
       actions: ['Text bearbeiten', 'Bild aktualisieren', 'Änderungen speichern'],
-      guides: [],
+      guides: [
+        {
+          title: 'Profiltext bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Über mich".',
+            'Bearbeite die Textfelder für Vita, Hintergrund und Schwerpunkte.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     angebote: {
       title: 'Angebote',
-      description: 'Leistungsangebote auf der Website pflegen.',
+      description: 'Leistungsangebote auf der Website pflegen — Karten, Preise und Reihenfolge.',
       actions: ['Angebot bearbeiten', 'Neues Angebot anlegen', 'Angebot deaktivieren'],
-      guides: [],
+      guides: [
+        {
+          title: 'Angebots-Karte bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Angebote".',
+            'Klicke auf die Karte die du bearbeiten möchtest.',
+            'Ändere Titel, Beschreibung, Preis und CTA-Text.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+        {
+          title: 'Reihenfolge der Angebote ändern',
+          steps: [
+            'Klicke in der Sektion „Angebote" auf die Pfeil-Buttons (↑ ↓) neben einem Angebot.',
+            'Die Reihenfolge gilt sowohl für die Website-Karten als auch für den Footer.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     faq: {
       title: 'FAQ',
       description: 'Häufig gestellte Fragen auf der Website pflegen.',
       actions: ['Frage hinzufügen', 'Frage bearbeiten', 'Reihenfolge ändern'],
-      guides: [],
+      guides: [
+        {
+          title: 'Neue Frage hinzufügen',
+          steps: [
+            'Öffne Tab „website" → Sektion „FAQ".',
+            'Klicke auf „+ Frage hinzufügen".',
+            'Gib Frage und Antwort ein.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+        {
+          title: 'Frage-Reihenfolge ändern',
+          steps: [
+            'Klicke auf die Pfeil-Buttons (↑ ↓) neben der Frage.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     kontakt: {
       title: 'Kontakt',
-      description: 'Kontaktinformationen und Kontaktformular-Einstellungen verwalten.',
+      description: 'Kontaktinformationen pflegen — Änderungen gelten auf der gesamten Website.',
       actions: ['Kontaktdaten bearbeiten', 'Benachrichtigungs-E-Mail setzen'],
-      guides: [],
+      guides: [
+        {
+          title: 'Kontaktdaten aktualisieren',
+          steps: [
+            'Öffne Tab „website" → Sektion „Kontakt".',
+            'Die Felder hier spiegeln deine Stammdaten — Änderungen gelten auf der ganzen Website.',
+            'Ändere E-Mail, Telefon oder Ort.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     referenzen: {
       title: 'Referenzen',
       description: 'Kundenstimmen und Referenzen auf der Website pflegen.',
       actions: ['Referenz hinzufügen', 'Referenz bearbeiten', 'Referenz ausblenden'],
-      guides: [],
+      guides: [
+        {
+          title: 'Neue Referenz hinzufügen',
+          steps: [
+            'Öffne Tab „website" → Sektion „Referenzen".',
+            'Klicke auf „+ Referenz hinzufügen".',
+            'Gib Name, Unternehmen, Zitat und optional ein Bild ein.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+        {
+          title: 'Referenz ausblenden',
+          steps: [
+            'Klicke auf das Auge-Icon neben der Referenz.',
+            'Die Referenz bleibt gespeichert, erscheint aber nicht mehr auf der Website.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     rechtliches: {
       title: 'Rechtliches',
-      description: 'Impressum, Datenschutzerklärung und AGB pflegen.',
+      description: 'Impressum, Datenschutzerklärung, AGB und Barrierefreiheitserklärung pflegen.',
       actions: ['Impressum bearbeiten', 'Datenschutzerklärung aktualisieren', 'AGB anpassen'],
-      guides: [],
+      guides: [
+        {
+          title: 'Impressum aktualisieren',
+          steps: [
+            'Öffne Tab „website" → Sektion „Rechtliches" → Tab „Impressum".',
+            'Bearbeite den Text im Editor.',
+            'Klicke auf „Speichern" — die Änderung ist sofort live.',
+          ],
+        },
+        {
+          title: 'Datenschutzerklärung aktualisieren',
+          steps: [
+            'Wechsle innerhalb „Rechtliches" auf den Tab „Datenschutz".',
+            'Bearbeite den Freitext oder passe Token-Felder an.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+        {
+          title: 'AGB anpassen',
+          steps: [
+            'Wechsle innerhalb „Rechtliches" auf den Tab „AGB".',
+            'Bearbeite den Text.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
     einstellungen: {
       title: 'Einstellungen',
@@ -554,6 +726,167 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
         'Logo und Farben (Branding) setzen',
       ],
       guides: [],
+    },
+    stammdaten: {
+      title: 'Stammdaten',
+      description: 'Zentrale Daten (Name, E-Mail, Telefon, Ort) pflegen — werden auf der gesamten Website verwendet.',
+      actions: ['Stammdaten bearbeiten', 'Änderungen speichern'],
+      guides: [
+        {
+          title: 'Stammdaten bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Stammdaten".',
+            'Hier pflegst du zentrale Daten (Name, E-Mail, Telefon, Ort), die auf der gesamten Website verwendet werden.',
+            'Ändere die gewünschten Felder.',
+            'Klicke auf „Speichern" — die Änderung gilt sofort überall.',
+          ],
+        },
+      ],
+    },
+    navigation: {
+      title: 'Navigation',
+      description: 'Hauptmenü der Website bearbeiten — Einträge, Reihenfolge und Links.',
+      actions: ['Menü-Reihenfolge anpassen', 'Eintrag bearbeiten', 'Änderungen speichern'],
+      guides: [
+        {
+          title: 'Menü-Reihenfolge anpassen',
+          steps: [
+            'Öffne Tab „website" → Sektion „Navigation".',
+            'Verschiebe Einträge per Pfeil-Buttons (↑ ↓).',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
+    footer: {
+      title: 'Footer',
+      description: 'Footer-Texte und -Links der Website bearbeiten.',
+      actions: ['Tagline bearbeiten', 'Copyright-Text anpassen', 'Änderungen speichern'],
+      guides: [
+        {
+          title: 'Footer-Text bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Footer".',
+            'Bearbeite Tagline und Copyright-Text.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
+    coaching: {
+      title: 'Coaching',
+      description: 'Inhalte der „Coaching"-Seite bearbeiten — Überschrift, Einleitung, Für-wen-Liste, Leistungsblöcke und CTA.',
+      actions: [
+        'Seitenüberschrift und Unterzeile bearbeiten',
+        'Einleitungstext anpassen',
+        'Für-wen-Punkte ergänzen oder ändern',
+        'Leistungsblöcke bearbeiten',
+        'CTA-Text und -Link anpassen',
+      ],
+      guides: [
+        {
+          title: 'Coaching-Seite bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Coaching".',
+            'Bearbeite Überschrift, Unterzeile und Einleitungstext.',
+            'Passe die „Für wen"-Punkte an (Klick auf Punkt → Text bearbeiten).',
+            'Bearbeite die Leistungsblöcke darunter.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
+    'fuehrung-persoenlichkeit': {
+      title: 'Führung & Persönlichkeit',
+      description: 'Inhalte der „Führung & Persönlichkeit"-Seite bearbeiten — Überschrift, Einleitung, Für-wen-Liste, Leistungsblöcke und CTA.',
+      actions: [
+        'Seitenüberschrift und Unterzeile bearbeiten',
+        'Einleitungstext anpassen',
+        'Für-wen-Punkte ergänzen oder ändern',
+        'Leistungsblöcke bearbeiten',
+        'CTA-Text und -Link anpassen',
+      ],
+      guides: [
+        {
+          title: 'Führung & Persönlichkeit-Seite bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Führung & Persönlichkeit".',
+            'Bearbeite Überschrift, Unterzeile und Einleitungstext.',
+            'Passe die „Für wen"-Punkte an (Klick auf Punkt → Text bearbeiten).',
+            'Bearbeite die Leistungsblöcke darunter.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
+    '50plus-digital': {
+      title: '50plus Digital',
+      description: 'Inhalte der „50plus Digital"-Seite bearbeiten — Überschrift, Einleitung, Für-wen-Liste, Leistungsblöcke und CTA.',
+      actions: [
+        'Seitenüberschrift und Unterzeile bearbeiten',
+        'Einleitungstext anpassen',
+        'Für-wen-Punkte ergänzen oder ändern',
+        'Leistungsblöcke bearbeiten',
+        'CTA-Text und -Link anpassen',
+      ],
+      guides: [
+        {
+          title: '50plus Digital-Seite bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „50plus Digital".',
+            'Bearbeite Überschrift, Unterzeile und Einleitungstext.',
+            'Passe die „Für wen"-Punkte an (Klick auf Punkt → Text bearbeiten).',
+            'Bearbeite die Leistungsblöcke darunter.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
+    'ki-transition': {
+      title: 'KI-Transition',
+      description: 'Inhalte der „KI-Transition"-Seite bearbeiten — Überschrift, Einleitung, Für-wen-Liste, Leistungsblöcke und CTA.',
+      actions: [
+        'Seitenüberschrift und Unterzeile bearbeiten',
+        'Einleitungstext anpassen',
+        'Für-wen-Punkte ergänzen oder ändern',
+        'Leistungsblöcke bearbeiten',
+        'CTA-Text und -Link anpassen',
+      ],
+      guides: [
+        {
+          title: 'KI-Transition-Seite bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „KI-Transition".',
+            'Bearbeite Überschrift, Unterzeile und Einleitungstext.',
+            'Passe die „Für wen"-Punkte an (Klick auf Punkt → Text bearbeiten).',
+            'Bearbeite die Leistungsblöcke darunter.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
+    },
+    beratung: {
+      title: 'Beratung',
+      description: 'Inhalte der „Beratung"-Seite bearbeiten — Überschrift, Einleitung, Für-wen-Liste, Leistungsblöcke und CTA.',
+      actions: [
+        'Seitenüberschrift und Unterzeile bearbeiten',
+        'Einleitungstext anpassen',
+        'Für-wen-Punkte ergänzen oder ändern',
+        'Leistungsblöcke bearbeiten',
+        'CTA-Text und -Link anpassen',
+      ],
+      guides: [
+        {
+          title: 'Beratung-Seite bearbeiten',
+          steps: [
+            'Öffne Tab „website" → Sektion „Beratung".',
+            'Bearbeite Überschrift, Unterzeile und Einleitungstext.',
+            'Passe die „Für wen"-Punkte an (Klick auf Punkt → Text bearbeiten).',
+            'Bearbeite die Leistungsblöcke darunter.',
+            'Klicke auf „Speichern".',
+          ],
+        },
+      ],
     },
   },
 };

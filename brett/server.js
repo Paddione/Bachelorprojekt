@@ -862,6 +862,35 @@ const DEBOUNCE_MS = 1000;
 // Each room holds a Map<id, figure>.
 const figureMaps = new Map();   // roomToken -> Map<id, figure>
 
+const figureLocks = new Map(); // roomToken -> Map<figureId, { userId, name, color }>
+function ensureFigureLocks(room) {
+  if (!figureLocks.has(room)) figureLocks.set(room, new Map());
+  return figureLocks.get(room);
+}
+function acquireFigureLock(room, figureId, owner) {
+  const m = ensureFigureLocks(room);
+  if (m.has(figureId)) return false;
+  m.set(figureId, { userId: owner.userId, name: owner.name, color: owner.color });
+  return true;
+}
+function releaseFigureLock(room, figureId, userId) {
+  const m = figureLocks.get(room);
+  const cur = m && m.get(figureId);
+  if (!cur || cur.userId !== userId) return false;
+  m.delete(figureId);
+  return true;
+}
+function releaseLocksForUser(room, userId) {
+  const m = figureLocks.get(room);
+  if (!m) return;
+  for (const [fig, o] of m) if (o.userId === userId) m.delete(fig);
+}
+function listFigureLocks(room) {
+  const m = figureLocks.get(room);
+  if (!m) return [];
+  return [...m.entries()].map(([figureId, o]) => ({ figureId, ...o }));
+}
+
 const pickupState = new Map(); // room -> Map<pickupId, {id, kind, pos, takenBy, respawnAt}>
 
 function ensurePickups(room) {
@@ -1113,6 +1142,7 @@ wss.on('connection', (ws, req) => {
             mayhem: state.mayhem ?? true,
             gameMode: state.gameMode,
             coachingSteps: state.coachingSteps,
+            locks: listFigureLocks(room),
           }));
         }
         // Also send current pickup positions
@@ -1194,6 +1224,7 @@ wss.on('connection', (ws, req) => {
           sessionCreatedAt: state.sessionCreatedAt,
           sessionLastActivity: state.sessionLastActivity,
           coachingSteps: state.coachingSteps,
+          locks: listFigureLocks(msg.room),
         }));
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
@@ -1269,6 +1300,27 @@ wss.on('connection', (ws, req) => {
         duelRooms.delete(room);
         rematchRequests.delete(room);
         broadcast(room, { type: 'duel_abandoned', reason: 'fighter_request' });
+        return;
+      }
+
+      if (msg.type === 'figure_lock' && typeof msg.id === 'string') {
+        const owner = {
+          userId: ws._session?.userId || ws._playerId || 'anon',
+          name: ws._session?.name || 'Teilnehmer',
+          color: msg.color || '#4ea1ff',
+        };
+        if (acquireFigureLock(room, msg.id, owner)) {
+          broadcast(room, { type: 'figure_locked', id: msg.id, userId: owner.userId, name: owner.name, color: owner.color });
+        } else {
+          try { ws.send(JSON.stringify({ type: 'figure_lock_denied', id: msg.id })); } catch {}
+        }
+        return;
+      }
+      if (msg.type === 'figure_unlock' && typeof msg.id === 'string') {
+        const uid = ws._session?.userId || ws._playerId || 'anon';
+        if (releaseFigureLock(room, msg.id, uid)) {
+          broadcast(room, { type: 'figure_unlocked', id: msg.id });
+        }
         return;
       }
 
@@ -1472,6 +1524,11 @@ wss.on('connection', (ws, req) => {
     handleDisconnect(ws);
     const room = ws._room;
     if (!room) return;
+    const uid = ws._session?.userId || ws._playerId;
+    if (uid) {
+      releaseLocksForUser(room, uid);
+      broadcast(room, { type: 'locks_released_for', userId: uid });
+    }
     if (rooms.has(room)) {
       broadcastInfo(room);
     } else {
@@ -1555,6 +1612,10 @@ module.exports = {
   buildConfig,
   resolveBrand,
   boardAuthRedirect,
+  acquireFigureLock,
+  releaseFigureLock,
+  releaseLocksForUser,
+  listFigureLocks,
   transitionPhase,
   generateSessionCode,
   registerSessionCode,

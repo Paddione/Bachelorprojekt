@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ServiceOverride, LeistungCategoryOverride } from '../../../lib/website-db';
+  import { deriveHeadlinePrice } from '../../../lib/content-projection';
 
   let { initialServices, initialLeistungen, initialPriceListUrl, staticSlugs }: {
     initialServices: ServiceOverride[];
@@ -18,7 +19,7 @@
   function uniqueSlug(base:string){const used=new Set(services.map((s:ServiceOverride)=>s.slug));if(!used.has(base)&&base)return base||`karte-${services.length+1}`;let n=2;while(used.has(`${base}-${n}`))n++;return base?`${base}-${n}`:`karte-${services.length+1}`;}
 
   function addService(){const slug=uniqueSlug(slugify('neue Leistungskarte'));services=[...services,{slug,title:'Neue Leistungskarte',description:'',icon:'✨',price:'',features:[],meta:'',hidden:false,pageContent:{headline:'',intro:'',forWhom:[],sections:[],pricing:[],faq:[]}} satisfies ServiceOverride];}
-  function removeService(idx:number){if(!confirm(`Leistungskarte „${services[idx].title}“ entfernen?`))return;services=services.filter((_:ServiceOverride,i:number)=>i!==idx);}
+  function removeService(idx:number){if(!confirm(`Leistungskarte „${services[idx].title}" entfernen?`))return;services=services.filter((_:ServiceOverride,i:number)=>i!==idx);}
 
   async function save(){
     saving=true;msg='';
@@ -39,6 +40,17 @@
   function removePricing(svc:ServiceOverride,pIdx:number){if(!svc.pageContent?.pricing)return;svc.pageContent.pricing=svc.pageContent.pricing.filter((_:unknown,i:number)=>i!==pIdx);services=[...services];}
   function movePricing(svc:ServiceOverride,pIdx:number,delta:number){const arr=svc.pageContent?.pricing;if(!arr)return;const next=pIdx+delta;if(next<0||next>=arr.length)return;[arr[pIdx],arr[next]]=[arr[next],arr[pIdx]];services=[...services];}
   function moveLeistungService(cat:LeistungCategoryOverride,sIdx:number,delta:number){const arr=cat.services??[];const next=sIdx+delta;if(next<0||next>=arr.length)return;[arr[sIdx],arr[next]]=[arr[next],arr[sIdx]];leistungen=[...leistungen];}
+
+  /** Returns the linked LeistungCategoryOverride or undefined */
+  function linkedCat(svc: ServiceOverride): LeistungCategoryOverride | undefined {
+    return svc.leistungCategoryId ? leistungen.find((c: LeistungCategoryOverride) => c.id === svc.leistungCategoryId) : undefined;
+  }
+  /** Derived headline price preview for a linked card */
+  function previewPrice(svc: ServiceOverride): string {
+    const cat = linkedCat(svc);
+    if (!cat) return '';
+    return deriveHeadlinePrice(cat, svc.headlineKey, svc.headlinePrefix ?? false);
+  }
 
   const inputCls='w-full px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-light text-sm focus:outline-none focus:border-gold/50';
   const labelCls='block text-xs text-muted mb-1';
@@ -95,7 +107,53 @@
         {/if}
         <div class="grid grid-cols-2 gap-4">
           <div><label class={labelCls}>Titel (= Footer-Link-Text)</label><input type="text" bind:value={svc.title} class={inputCls} /></div>
-          <div><label class={labelCls}>Preis</label><input type="text" bind:value={svc.price} class={inputCls} /></div>
+          {#if !svc.leistungCategoryId}
+            <div><label class={labelCls}>Preis (Legacy – bitte Katalog-Verknüpfung nutzen)</label><input type="text" bind:value={svc.price} class={inputCls} /></div>
+          {:else}
+            <div>
+              <label class={labelCls}>Abgeleiteter Preis (Vorschau)</label>
+              <div class="px-3 py-2 bg-dark-lighter/50 border border-gold/20 rounded-lg text-gold text-sm font-semibold">{previewPrice(svc) || '—'}</div>
+            </div>
+          {/if}
+        </div>
+
+        <!-- Catalog price hub: category + headline row + "ab" prefix -->
+        <div class="border border-gold/20 rounded-xl p-4 bg-dark-lighter/20 space-y-3">
+          <p class="text-xs font-mono uppercase tracking-widest text-gold">Preiskatalog-Verknüpfung</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class={labelCls}>Kategorie</label>
+              <select
+                id={`${svc.slug}-cat`}
+                bind:value={svc.leistungCategoryId}
+                onchange={() => { svc.headlineKey = undefined; services = [...services]; }}
+                class={inputCls}
+              >
+                <option value={undefined}>— keine Verknüpfung —</option>
+                {#each leistungen as cat}
+                  <option value={cat.id}>{cat.title ?? cat.id}</option>
+                {/each}
+              </select>
+            </div>
+            <div>
+              <label class={labelCls}>Headline-Zeile</label>
+              {#if linkedCat(svc)}
+                <select id={`${svc.slug}-headline`} bind:value={svc.headlineKey} onchange={() => { services = [...services]; }} class={inputCls}>
+                  {#each (linkedCat(svc)?.services ?? []) as row}
+                    <option value={row.key}>{row.name} – {row.price}</option>
+                  {/each}
+                </select>
+              {:else}
+                <div class="px-3 py-2 bg-dark border border-dark-lighter rounded-lg text-muted text-sm">Erst Kategorie wählen</div>
+              {/if}
+            </div>
+          </div>
+          {#if svc.leistungCategoryId}
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-muted">
+              <input type="checkbox" bind:checked={svc.headlinePrefix} class="accent-gold" onchange={() => { services = [...services]; }} />
+              <span>Preis mit „ab" prefixen</span>
+            </label>
+          {/if}
         </div>
         <div><label class={labelCls}>Beschreibung</label><textarea bind:value={svc.description} rows={2} class="{inputCls} resize-none"></textarea></div>
         <div>
@@ -125,25 +183,40 @@
                 </div>
               {/each}
             </div>
-            <div class="border-t border-dark-lighter pt-3">
-              <div class="flex items-center justify-between mb-2"><span class="text-sm font-semibold text-light">Investition</span><button type="button" onclick={() => addPricing(svc)} class="px-2 py-1 text-xs rounded-md border border-gold/40 text-gold hover:bg-gold/10">+ Preis</button></div>
-              {#each (svc.pageContent?.pricing??[]) as p, pIdx}
-                <div class="p-3 bg-dark-lighter/30 rounded-lg space-y-2 mb-2">
-                  <div class="flex items-center gap-2">
-                    <button type="button" onclick={() => movePricing(svc,pIdx,-1)} disabled={pIdx===0} class={moveBtnCls}>↑</button>
-                    <button type="button" onclick={() => movePricing(svc,pIdx,1)} disabled={pIdx===(svc.pageContent?.pricing?.length??0)-1} class={moveBtnCls}>↓</button>
-                    <span class="text-xs text-muted">#{pIdx+1}</span>
-                    <button type="button" onclick={() => removePricing(svc,pIdx)} class="ml-auto px-2 py-1 text-xs rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10">Entfernen</button>
+            {#if !svc.leistungCategoryId}
+              <!-- Legacy pricing editor: only shown when card is not yet catalog-linked -->
+              <div class="border-t border-dark-lighter pt-3">
+                <div class="flex items-center justify-between mb-2"><span class="text-sm font-semibold text-light">Investition</span><button type="button" onclick={() => addPricing(svc)} class="px-2 py-1 text-xs rounded-md border border-gold/40 text-gold hover:bg-gold/10">+ Preis</button></div>
+                {#each (svc.pageContent?.pricing??[]) as p, pIdx}
+                  <div class="p-3 bg-dark-lighter/30 rounded-lg space-y-2 mb-2">
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick={() => movePricing(svc,pIdx,-1)} disabled={pIdx===0} class={moveBtnCls}>↑</button>
+                      <button type="button" onclick={() => movePricing(svc,pIdx,1)} disabled={pIdx===(svc.pageContent?.pricing?.length??0)-1} class={moveBtnCls}>↓</button>
+                      <span class="text-xs text-muted">#{pIdx+1}</span>
+                      <button type="button" onclick={() => removePricing(svc,pIdx)} class="ml-auto px-2 py-1 text-xs rounded-md border border-red-500/40 text-red-400 hover:bg-red-500/10">Entfernen</button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                      <div><label class={labelCls}>Bezeichnung</label><input type="text" bind:value={p.label} class={inputCls} /></div>
+                      <div><label class={labelCls}>Preis</label><input type="text" bind:value={p.price} class={inputCls} /></div>
+                      <div><label class={labelCls}>Einheit</label><input type="text" bind:value={p.unit} class={inputCls} /></div>
+                    </div>
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-muted"><input type="checkbox" bind:checked={p.highlight} class="accent-gold" /><span>Hervorheben</span></label>
                   </div>
-                  <div class="grid grid-cols-3 gap-2">
-                    <div><label class={labelCls}>Bezeichnung</label><input type="text" bind:value={p.label} class={inputCls} /></div>
-                    <div><label class={labelCls}>Preis</label><input type="text" bind:value={p.price} class={inputCls} /></div>
-                    <div><label class={labelCls}>Einheit</label><input type="text" bind:value={p.unit} class={inputCls} /></div>
+                {/each}
+              </div>
+            {:else}
+              <!-- Catalog-linked: show derived tiers as read-only preview (edit in Leistungskatalog below) -->
+              <div class="border-t border-dark-lighter pt-3">
+                <p class="text-xs text-muted mb-2">Preis-Tiers werden aus dem Katalog abgeleitet. Zum Ändern → Leistungskatalog unten.</p>
+                {#each (linkedCat(svc)?.services ?? []) as row}
+                  <div class="flex items-center gap-3 px-3 py-1.5 bg-dark-lighter/20 rounded text-xs text-muted mb-1">
+                    <span class={row.highlight ? 'text-gold font-semibold' : ''}>{row.name}</span>
+                    <span class="ml-auto font-mono">{row.price}{row.unit ? ' ' + row.unit : ''}</span>
+                    {#if row.highlight}<span class="text-gold text-[10px] border border-gold/30 rounded px-1">Headline</span>{/if}
                   </div>
-                  <label class="flex items-center gap-2 cursor-pointer text-xs text-muted"><input type="checkbox" bind:checked={p.highlight} class="accent-gold" /><span>Hervorheben</span></label>
-                </div>
-              {/each}
-            </div>
+                {/each}
+              </div>
+            {/if}
           </div>
         </details>
       </div>

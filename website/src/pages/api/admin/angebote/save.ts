@@ -30,8 +30,25 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return new Response(JSON.stringify({ error: 'services and leistungen are required arrays' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
     try {
+      // Strip legacy price/pageContent.pricing from cards that are linked to the
+      // catalog — those values are now derived. Unlinked cards keep their price.
+      const sanitizedServices: ServiceOverride[] = body.services.map((card) => {
+        if (!card.leistungCategoryId) return card; // legacy path — preserve as-is
+        const { price: _price, pageContent, ...rest } = card;
+        const cleanPageContent = pageContent
+          ? (({ pricing: _p, ...pc }) => pc)(pageContent as Record<string, unknown>) as typeof pageContent
+          : undefined;
+        return {
+          ...rest,
+          leistungCategoryId: card.leistungCategoryId,
+          headlineKey: card.headlineKey,
+          headlinePrefix: card.headlinePrefix ?? false,
+          ...(cleanPageContent ? { pageContent: cleanPageContent } : {}),
+        } as ServiceOverride;
+      });
+
       await Promise.all([
-        saveServiceConfig(BRAND, body.services),
+        saveServiceConfig(BRAND, sanitizedServices),
         saveLeistungenConfig(BRAND, body.leistungen),
         setSiteSetting(BRAND, 'price_list_url', body.priceListUrl ?? ''),
       ]);

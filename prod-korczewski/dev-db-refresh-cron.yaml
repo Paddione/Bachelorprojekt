@@ -1,10 +1,17 @@
 # ════════════════════════════════════════════════════════════════════
-# dev-db-refresh — nightly pg_restore of the latest prod snapshot into
-# shared-db-dev (inside the k3d cluster on $DEV_NODE).
-# Uses hostNetwork + nodeSelector so we can reach 127.0.0.1:15432 (the
-# k3d-published Postgres NodePort).
-# The script body lives in scripts/dev-db-refresh.sh and is mounted via
-# a ConfigMap generated from that file by prod-korczewski/kustomization.yaml.
+# dev-db-refresh — nightly refresh of the dev k3d shared-db-dev from prod.
+# Pinned to $DEV_NODE with hostNetwork so it can reach the k3d-published
+# Postgres NodePort at 127.0.0.1:15432.
+#
+# T000286 (mentolder): the dev node has no Longhorn CSI driver, so this pod
+# can never attach the RWO Longhorn backup-pvc. Fix: drop the backup-pvc
+# mount and stream a live pg_dump from the prod shared-db Service over the
+# cluster network (dnsPolicy ClusterFirstWithHostNet resolves shared-db)
+# straight into dev Postgres. Mirrored here for parity (this CronJob is not
+# currently wired into prod-korczewski/kustomization.yaml).
+# The script (scripts/dev-db-refresh.sh, mounted via ConfigMap by
+# prod-korczewski/kustomization.yaml) takes the live path when SOURCE_PGHOST
+# is set; the local `task dev:db:refresh` path still restores snapshot files.
 # ════════════════════════════════════════════════════════════════════
 apiVersion: batch/v1
 kind: CronJob
@@ -31,17 +38,22 @@ spec:
               image: pgvector/pgvector:0.8.0-pg16
               command: [/bin/bash, /scripts/dev-db-refresh.sh]
               env:
-                - name: BACKUP_DIR
-                  value: /backups
+                # Destination: dev k3d Postgres via the k3d NodePort.
                 - name: PGHOST
                   value: 127.0.0.1
                 - name: PGPORT
                   value: "15432"
-                - name: BACKUP_PASSPHRASE
+                # Source: live prod shared-db over the cluster network.
+                # Resolves via ClusterFirstWithHostNet → shared-db.<ns>.svc.
+                - name: SOURCE_PGHOST
+                  value: shared-db
+                - name: SOURCE_PGPORT
+                  value: "5432"
+                - name: SOURCE_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: workspace-secrets
-                      key: BACKUP_PASSPHRASE
+                      key: WEBSITE_DB_PASSWORD
                 - name: DEV_SHARED_DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -53,9 +65,6 @@ spec:
                       name: workspace-secrets
                       key: DEV_WEBSITE_DB_PASSWORD
               volumeMounts:
-                - name: backup-pvc
-                  mountPath: /backups
-                  readOnly: true
                 - name: scripts
                   mountPath: /scripts
               resources:
@@ -66,9 +75,6 @@ spec:
                   memory: 1Gi
                   cpu: 1000m
           volumes:
-            - name: backup-pvc
-              persistentVolumeClaim:
-                claimName: backup-pvc
             - name: scripts
               configMap:
                 name: dev-db-refresh-script

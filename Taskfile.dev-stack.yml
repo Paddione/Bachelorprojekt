@@ -86,6 +86,19 @@ tasks:
     cmds:
       - kubectl --context {{.CTX_DEV}} get pods,svc,ing -n {{.NS_DEV}}
 
+  cluster:autostart:
+    desc: "[dev] Install a systemd unit on $DEV_NODE so the k3d cluster restarts on host boot (T000290)"
+    deps: [_node-guard]
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if [[ "$(hostname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "${DEV_NODE%%.*}" ]]; then
+          CLUSTER_NAME={{.CLUSTER_NAME}} bash scripts/dev-cluster-autostart.sh
+        else
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "CLUSTER_NAME={{.CLUSTER_NAME}} bash -s" < scripts/dev-cluster-autostart.sh
+        fi
+
   logs:
     desc: "[dev] Tail logs of a pod (usage: task dev:logs -- website|brett|shared-db-dev|sish)"
     cmds:

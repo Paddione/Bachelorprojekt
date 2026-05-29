@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveHeadlinePrice, detailTiers, resolveHighlightTable } from './content-projection';
+import { deriveHeadlinePrice, detailTiers, resolveHighlightTable, resolveStammdaten } from './content-projection';
 import type { LeistungCategoryOverride } from './website-db';
 
 const cat: LeistungCategoryOverride = {
@@ -53,5 +53,22 @@ describe('resolveHighlightTable', () => {
   });
   it('drops references whose catalog key no longer exists', () => {
     expect(resolveHighlightTable([{ catalogKey: 'gone' }], cats)).toEqual([]);
+  });
+});
+
+describe('resolveStammdaten', () => {
+  const fallback = { name: 'Patrick', role: 'Coach', email: 'env@x.de', phone: '0', street: 's', zip: 'z', city: 'c', ustId: 'u', website: 'w', avatarInitials: 'PK' };
+  it('returns the DB record when present', () => {
+    const db = { ...fallback, email: 'db@x.de' };
+    expect(resolveStammdaten(db, fallback).email).toBe('db@x.de');
+  });
+  it('fills missing DB fields from the static fallback', () => {
+    const partial = { email: 'db@x.de' } as any;
+    const r = resolveStammdaten(partial, fallback);
+    expect(r.email).toBe('db@x.de');
+    expect(r.city).toBe('c');
+  });
+  it('returns the full fallback when DB row is null', () => {
+    expect(resolveStammdaten(null, fallback)).toEqual(fallback);
   });
 });

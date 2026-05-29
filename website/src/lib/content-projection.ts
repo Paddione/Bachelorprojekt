@@ -1,4 +1,4 @@
-import type { LeistungCategoryOverride, LeistungServiceOverride } from './website-db';
+import type { LeistungCategoryOverride, LeistungServiceOverride, Stammdaten } from './website-db';
 
 /** True for prices that are not a concrete amount (e.g. "nach Vereinbarung"). */
 function isFreeText(price: string): boolean {
@@ -53,4 +53,20 @@ export function resolveHighlightTable(
     }
   }
   return out;
+}
+
+export function resolveStammdaten(db: Partial<Stammdaten> | null, fallback: Stammdaten): Stammdaten {
+  if (!db) return fallback;
+  return {
+    name: db.name ?? fallback.name,
+    role: db.role ?? fallback.role,
+    email: db.email ?? fallback.email,
+    phone: db.phone ?? fallback.phone,
+    street: db.street ?? fallback.street,
+    zip: db.zip ?? fallback.zip,
+    city: db.city ?? fallback.city,
+    ustId: db.ustId ?? fallback.ustId,
+    website: db.website ?? fallback.website,
+    avatarInitials: db.avatarInitials ?? fallback.avatarInitials,
+  };
 }

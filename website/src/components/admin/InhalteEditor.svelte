@@ -6,8 +6,8 @@
   import SeoEditor from './SeoEditor.svelte';
   import StartseiteSection from './inhalte/StartseiteSection.svelte';
   import UebermichSection from './inhalte/UebermichSection.svelte';
-  import CoachingSection from './inhalte/CoachingSection.svelte';
-  import FuehrungSection from './inhalte/FuehrungSection.svelte';
+  import SchemaEditor from './framework/SchemaEditor.svelte';
+  import { schemaFor } from '../../lib/admin/schemas/index';
   import ServicePageSection from './inhalte/ServicePageSection.svelte';
   import AngeboteSection from './inhalte/AngeboteSection.svelte';
   import FaqSection from './inhalte/FaqSection.svelte';
@@ -20,12 +20,9 @@
   import StammdatenSection from './inhalte/StammdatenSection.svelte';
   import KoreFlagsSection from './inhalte/KoreFlagsSection.svelte';
   import type { HomepageContent, UebermichContent, FaqItem, KontaktContent, ReferenzenConfig, CustomSection as CustomSectionType, ServiceOverride, LeistungCategoryOverride, NavItem, FooterConfig, Stammdaten, KoreFlags } from '../../lib/website-db';
-  import type { CoachingContent } from '../../lib/coaching-content';
-  import type { FuehrungContent } from '../../lib/fuehrung-content';
-
   type InitialData = {
     startseite: HomepageContent; uebermich: UebermichContent;
-    coaching: CoachingContent; fuehrung: FuehrungContent;
+    coaching: { value: any; version: number }; fuehrung: { value: any; version: number };
     '50plus-digital': any; 'ki-transition': any; beratung: any;
     services: ServiceOverride[]; leistungen: LeistungCategoryOverride[];
     priceListUrl: string; faq: FaqItem[]; kontakt: KontaktContent;
@@ -188,8 +185,8 @@
       {#if activeSection === 'seo'}<SeoEditor />
       {:else if activeSection === 'startseite'}<StartseiteSection initialData={initialData.startseite} />
       {:else if activeSection === 'uebermich'}<UebermichSection initialData={initialData.uebermich} />
-      {:else if activeSection === 'coaching'}<CoachingSection initialData={initialData.coaching} />
-      {:else if activeSection === 'fuehrung-persoenlichkeit'}<FuehrungSection initialData={initialData.fuehrung} />
+      {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? null} initialVersion={initialData.coaching?.version ?? 0} />
+      {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? null} initialVersion={initialData.fuehrung?.version ?? 0} />
       {:else if activeSection === '50plus-digital'}
         <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital" />
       {:else if activeSection === 'ki-transition'}

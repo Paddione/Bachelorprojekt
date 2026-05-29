@@ -3,9 +3,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import InhalteEditor from '../../components/admin/InhalteEditor.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
 import { getEffectiveHomepage, getEffectiveUebermich, getEffectiveServices, getEffectiveLeistungen, getPriceListUrl, getEffectiveFaq, getEffectiveKontakt, getEffectiveReferenzen, getEffectiveStammdaten, getEffectiveNavigation, getEffectiveFooter, getEffectiveKoreFlags } from '../../lib/content';
-import { getEffectiveCoaching } from '../../lib/coaching-content';
-import { getEffectiveFuehrung } from '../../lib/fuehrung-content';
-import { getLegalPage, listCustomSections, getSiteSetting } from '../../lib/website-db';
+import { getLegalPage, listCustomSections, getSiteSetting, readContent } from '../../lib/website-db';
 import { getDefaultDatenschutz, getDefaultAgb, getDefaultBarrierefreiheit, getDefaultImpressumZusatz } from '../../lib/legal-defaults';
 import { config } from '../../config/index';
 
@@ -42,12 +40,13 @@ function serviceToEditorData(svc: any) {
 
 const allServices = await getEffectiveServices();
 
-const [startseite, uebermich, leistungen, priceListUrl, faq, kontakt, referenzen, coaching, fuehrung,
+const [startseite, uebermich, leistungen, priceListUrl, faq, kontakt, referenzen, coachingContent, fuehrungContent,
   dbImpressum, dbDatenschutz, dbAgb, dbBarrierefreiheit, customSections,
   stammdaten, navigation, footer, koreFlags] = await Promise.all([
   getEffectiveHomepage(), getEffectiveUebermich(), getEffectiveLeistungen(),
   getPriceListUrl().then(u => u ?? ''), getEffectiveFaq(), getEffectiveKontakt(), getEffectiveReferenzen(),
-  getEffectiveCoaching(BRAND), getEffectiveFuehrung(BRAND),
+  readContent(BRAND, 'service:coaching').catch(() => ({ value: null, version: 0 })),
+  readContent(BRAND, 'service:fuehrung-persoenlichkeit').catch(() => ({ value: null, version: 0 })),
   getLegalPage(BRAND, 'impressum-zusatz'),
   getLegalPage(BRAND, 'datenschutz'),
   getLegalPage(BRAND, 'agb'),
@@ -91,7 +90,8 @@ const initialData = JSON.parse(JSON.stringify({
   startseite, uebermich,
   services: allServices,
   leistungen, priceListUrl, faq, kontakt, referenzen,
-  coaching, fuehrung,
+  coaching: { value: coachingContent.value, version: coachingContent.version },
+  fuehrung: { value: fuehrungContent.value, version: fuehrungContent.version },
   '50plus-digital': serviceToEditorData(svc50plus),
   'ki-transition':  serviceToEditorData(svcKiTransition),
   'beratung':       serviceToEditorData(svcBeratung),

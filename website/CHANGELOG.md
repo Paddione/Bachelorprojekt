@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.16.2...website-v1.17.0) (2026-05-29)
+
+
+### Features
+
+* **admin:** German context-sensitive help for content hub [T000316] ([#1162](https://github.com/Paddione/Bachelorprojekt/issues/1162)) ([3032ede](https://github.com/Paddione/Bachelorprojekt/commit/3032ede880f2ad303efbb79f315e7b01c99b6cbb))
+
 ## [1.16.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.16.1...website-v1.16.2) (2026-05-29)
 
 

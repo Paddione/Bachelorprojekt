@@ -222,6 +222,14 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(sessionMiddleware);
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (req.path !== '/' && req.path !== '/index.html') return next();
+  const redirect = boardAuthRedirect(req, process.env);
+  if (redirect) return res.redirect(redirect);
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, path) => {
     if (path.endsWith('.html')) {
@@ -242,7 +250,33 @@ function buildConfig(env) {
   };
 }
 
-app.get('/api/config', (_req, res) => res.json(buildConfig(process.env)));
+function resolveBrand(env) {
+  return env.BRETT_BRAND || 'mentolder';
+}
+
+// Returns a redirect URL when the coaching board must be gated, else null.
+function boardAuthRedirect(req, env) {
+  if (buildConfig(env).defaultMode !== 'coaching') return null; // mayhem stays public
+  if (req.session && req.session.userId) return null;
+  const e2eSecret = env.BRETT_OIDC_SECRET;
+  if (e2eSecret && typeof req.header === 'function' && req.header('x-e2e-secret') === e2eSecret) return null;
+  const returnTo = encodeURIComponent(req.path || '/');
+  return `/auth/login?returnTo=${returnTo}`;
+}
+
+app.get('/api/config', (_req, res) =>
+  res.json({ ...buildConfig(process.env), brand: resolveBrand(process.env) }));
+
+function resolveJoinTarget(code) {
+  const room = typeof code === 'string' ? resolveSessionCode(code) : null;
+  return room ? { redirect: `/?room=${room}` } : { error: 'unknown-code' };
+}
+
+app.get('/api/join', (req, res) => {
+  const result = resolveJoinTarget(req.query.code);
+  if (result.redirect) return res.redirect(result.redirect);
+  return res.status(404).type('text/plain').send('Unbekannter oder abgelaufener Session-Code.');
+});
 
 // ─── Auth (OIDC / Keycloak) ───────────────────────────────────────────────────
 const BRETT_PUBLIC_URL = process.env.BRETT_PUBLIC_URL || 'http://brett.localhost';
@@ -839,6 +873,56 @@ const DEBOUNCE_MS = 1000;
 // Each room holds a Map<id, figure>.
 const figureMaps = new Map();   // roomToken -> Map<id, figure>
 
+const figureLocks = new Map(); // roomToken -> Map<figureId, { userId, name, color }>
+function ensureFigureLocks(room) {
+  if (!figureLocks.has(room)) figureLocks.set(room, new Map());
+  return figureLocks.get(room);
+}
+function acquireFigureLock(room, figureId, owner) {
+  const m = ensureFigureLocks(room);
+  if (m.has(figureId)) return false;
+  m.set(figureId, { userId: owner.userId, name: owner.name, color: owner.color });
+  return true;
+}
+function releaseFigureLock(room, figureId, userId) {
+  const m = figureLocks.get(room);
+  const cur = m && m.get(figureId);
+  if (!cur || cur.userId !== userId) return false;
+  m.delete(figureId);
+  return true;
+}
+function releaseLocksForUser(room, userId) {
+  const m = figureLocks.get(room);
+  if (!m) return;
+  for (const [fig, o] of m) if (o.userId === userId) m.delete(fig);
+}
+function listFigureLocks(room) {
+  const m = figureLocks.get(room);
+  if (!m) return [];
+  return [...m.entries()].map(([figureId, o]) => ({ figureId, ...o }));
+}
+
+const PARTICIPANT_PALETTE = ['#4ea1ff', '#3fb950', '#f0a35e', '#c06be0', '#e06b8b', '#6be0d0'];
+const roomParticipants = new Map(); // roomToken -> Map<userId, { userId, name, color }>
+function addParticipant(room, { userId, name }) {
+  if (!userId) return null;
+  if (!roomParticipants.has(room)) roomParticipants.set(room, new Map());
+  const m = roomParticipants.get(room);
+  if (m.has(userId)) { m.get(userId).name = name || m.get(userId).name; return m.get(userId); }
+  const color = PARTICIPANT_PALETTE[m.size % PARTICIPANT_PALETTE.length];
+  const p = { userId, name: name || userId, color };
+  m.set(userId, p);
+  return p;
+}
+function removeParticipant(room, userId) {
+  const m = roomParticipants.get(room);
+  if (m) m.delete(userId);
+}
+function listParticipants(room) {
+  const m = roomParticipants.get(room);
+  return m ? [...m.values()] : [];
+}
+
 const pickupState = new Map(); // room -> Map<pickupId, {id, kind, pos, takenBy, respawnAt}>
 
 function ensurePickups(room) {
@@ -943,6 +1027,14 @@ function applyMutation(room, msg) {
       figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: msg.ts });
       break;
     }
+    case 'coaching_steps_set': {
+      if (Array.isArray(msg.steps) && msg.steps.length &&
+          msg.steps.every((s) => typeof s === 'string' && s.length)) {
+        const idx = Math.max(0, Math.min((msg.index | 0), msg.steps.length - 1));
+        figs.set('__coaching_steps__', { id: '__coaching_steps__', steps: msg.steps.slice(), index: idx });
+      }
+      break;
+    }
   }
 }
 
@@ -969,6 +1061,7 @@ function buildStateFromMutations(room) {
     '__optik__', '__stiffness__', '__mayhem__', '__game_mode__',
     '__session_phase__', '__session_code__', '__admin_token_holder__',
     '__session_created_at__', '__session_last_activity__',
+    '__coaching_steps__',
   ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
@@ -990,6 +1083,8 @@ function buildStateFromMutations(room) {
   if (adminTokenEntry)   result.adminTokenHolder   = adminTokenEntry.playerId;
   if (createdAtEntry)    result.sessionCreatedAt   = createdAtEntry.ts;
   if (lastActivityEntry) result.sessionLastActivity = lastActivityEntry.ts;
+  const coachingStepsEntry = figs.get('__coaching_steps__');
+  if (coachingStepsEntry) result.coachingSteps = { steps: coachingStepsEntry.steps, index: coachingStepsEntry.index };
   return result;
 }
 
@@ -1078,6 +1173,9 @@ wss.on('connection', (ws, req) => {
             stiffness: state.stiffness ?? 0.65,
             mayhem: state.mayhem ?? true,
             gameMode: state.gameMode,
+            coachingSteps: state.coachingSteps,
+            locks: listFigureLocks(room),
+            participants: listParticipants(room),
           }));
         }
         // Also send current pickup positions
@@ -1136,6 +1234,13 @@ wss.on('connection', (ws, req) => {
           if (typeof state.sessionLastActivity === 'string') {
             figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: state.sessionLastActivity });
           }
+          if (state.coachingSteps && Array.isArray(state.coachingSteps.steps)) {
+            figs.set('__coaching_steps__', {
+              id: '__coaching_steps__',
+              steps: state.coachingSteps.steps,
+              index: state.coachingSteps.index | 0,
+            });
+          }
         }
 
         const state = buildStateFromMutations(msg.room);
@@ -1151,7 +1256,14 @@ wss.on('connection', (ws, req) => {
           adminTokenHolder: state.adminTokenHolder,
           sessionCreatedAt: state.sessionCreatedAt,
           sessionLastActivity: state.sessionLastActivity,
+          coachingSteps: state.coachingSteps,
+          locks: listFigureLocks(msg.room),
+          participants: listParticipants(msg.room),
         }));
+        if (ws._session?.userId) {
+          const p = addParticipant(msg.room, { userId: ws._session.userId, name: ws._session.name });
+          if (p) broadcast(msg.room, { type: 'presence_join', ...p });
+        }
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
         if (meta && meta.coopWave > 0) {
@@ -1229,6 +1341,27 @@ wss.on('connection', (ws, req) => {
         return;
       }
 
+      if (msg.type === 'figure_lock' && typeof msg.id === 'string') {
+        const owner = {
+          userId: ws._session?.userId || ws._playerId || 'anon',
+          name: ws._session?.name || 'Teilnehmer',
+          color: msg.color || '#4ea1ff',
+        };
+        if (acquireFigureLock(room, msg.id, owner)) {
+          broadcast(room, { type: 'figure_locked', id: msg.id, userId: owner.userId, name: owner.name, color: owner.color });
+        } else {
+          try { ws.send(JSON.stringify({ type: 'figure_lock_denied', id: msg.id })); } catch {}
+        }
+        return;
+      }
+      if (msg.type === 'figure_unlock' && typeof msg.id === 'string') {
+        const uid = ws._session?.userId || ws._playerId || 'anon';
+        if (releaseFigureLock(room, msg.id, uid)) {
+          broadcast(room, { type: 'figure_unlocked', id: msg.id });
+        }
+        return;
+      }
+
       if (RELAY_TYPES.includes(msg.type)) {
         applyMutation(room, msg);
         broadcast(room, msg, ws);
@@ -1303,6 +1436,7 @@ wss.on('connection', (ws, req) => {
         'admin_mayhem_toggle','admin_mode_set','admin_kick',
         'admin_bot_spawn','admin_bot_despawn','admin_round_reset','admin_broadcast',
         'admin_session_create','admin_handoff_token','admin_round_stop','admin_round_pause',
+        'admin_coaching_steps_set',
       ];
 
       if (ADMIN_TYPES.includes(msg.type)) {
@@ -1409,6 +1543,12 @@ wss.on('connection', (ws, req) => {
             schedulePersist(adminRoom);
             break;
           }
+          case 'admin_coaching_steps_set': {
+            applyMutation(adminRoom, { type: 'coaching_steps_set', steps: msg.steps, index: msg.index });
+            broadcast(adminRoom, { type: 'coaching_steps_change', steps: msg.steps, index: msg.index });
+            schedulePersist(adminRoom);
+            break;
+          }
         }
         return;
       }
@@ -1422,6 +1562,15 @@ wss.on('connection', (ws, req) => {
     handleDisconnect(ws);
     const room = ws._room;
     if (!room) return;
+    const uid = ws._session?.userId || ws._playerId;
+    if (uid) {
+      releaseLocksForUser(room, uid);
+      broadcast(room, { type: 'locks_released_for', userId: uid });
+    }
+    if (uid && ws._session?.userId) {
+      removeParticipant(room, ws._session.userId);
+      broadcast(room, { type: 'presence_leave', userId: ws._session.userId });
+    }
     if (rooms.has(room)) {
       broadcastInfo(room);
     } else {
@@ -1503,10 +1652,20 @@ module.exports = {
   listSkins,
   slugifyForSkin,
   buildConfig,
+  resolveBrand,
+  boardAuthRedirect,
+  acquireFigureLock,
+  releaseFigureLock,
+  releaseLocksForUser,
+  listFigureLocks,
+  addParticipant,
+  removeParticipant,
+  listParticipants,
   transitionPhase,
   generateSessionCode,
   registerSessionCode,
   resolveSessionCode,
+  resolveJoinTarget,
   sessionCodeIndex,
   rebuildSessionCodeIndexFromStates,
   assignAdminToken,

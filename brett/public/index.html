@@ -726,7 +726,10 @@
   // ── Label input ────────────────────────────────────────────────────────────────
   document.getElementById('fig-label-input').addEventListener('input', e => {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (fig) fig.label = e.target.value;
+    if (fig) {
+      fig.label = e.target.value;
+      sendUpdate(fig, { label: fig.label });
+    }
   });
 
   // ── Scale slider + size buttons ────────────────────────────────────────────────
@@ -1051,6 +1054,79 @@
   }
 
   // ----- Drag handling -----
+  const lockSprites = new Map(); // figureId -> Sprite
+  const activeLocks = new Map();  // figureId -> { userId, name, color }
+  let currentUser = { userId: 'anon', name: 'Teilnehmer', color: '#4ea1ff' };
+  fetch('/auth/me').then(r => r.json()).then(me => {
+    if (me.userId) {
+      currentUser.userId = me.userId;
+      currentUser.name = me.name;
+    }
+  }).catch(() => {});
+
+  function setFigureLockBadge(figureId, name, color) {
+    clearFigureLockBadge(figureId);
+    const fig = STATE.figures.find(f => f.id === figureId);
+    if (!fig) return;
+
+    // Create a canvas to draw the lock text
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw background bubble
+    ctx.fillStyle = color || '#4ea1ff';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(4, 4, 248, 56, 12);
+    } else {
+      ctx.rect(4, 4, 248, 56);
+    }
+    ctx.fill();
+    
+    // Draw text
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.fillStyle = '#161b22';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`🔒 ${name}`, 128, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.5, 0.375, 1);
+    sprite.position.set(0, 1.45, 0); // Position above hips/head
+
+    fig.root.add(sprite);
+    lockSprites.set(figureId, sprite);
+  }
+
+  function clearFigureLockBadge(figureId) {
+    const fig = STATE.figures.find(f => f.id === figureId);
+    const sprite = lockSprites.get(figureId);
+    if (sprite) {
+      if (fig) fig.root.remove(sprite);
+      sprite.material.map.dispose();
+      sprite.material.dispose();
+      lockSprites.delete(figureId);
+    }
+  }
+
+  function cancelDragFor(figureId) {
+    if (dragging && dragging.figId === figureId) {
+      dragging = null;
+    }
+  }
+
+  function clearLockBadgesForUser(userId) {
+    for (const [figId, lock] of activeLocks.entries()) {
+      if (lock.userId === userId) {
+        clearFigureLockBadge(figId);
+      }
+    }
+  }
+
   let dragging = null; // { figId, boneName, plane: Plane }
 
   renderer.domElement.addEventListener('mousedown', (e) => {
@@ -1074,7 +1150,16 @@
     if (sphere) {
       const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
       if (!fig) return;
+
+      const lock = activeLocks.get(fig.id);
+      if (lock && lock.userId !== currentUser.userId) {
+        e.preventDefault();
+        return; // block!
+      }
+
       selectFigure(fig.id);
+      if (wsReady) ws.send(JSON.stringify({ type: "figure_lock", id: fig.id, color: currentUser.color }));
+
       const worldPos = new THREE.Vector3();
       sphere.getWorldPosition(worldPos);
       // Drag plane parallel to camera, through the sphere
@@ -1119,6 +1204,7 @@
       // Also clear the end-effector entry if any
       delete fig.boneOverrides[dragging.boneName];
       sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+      if (wsReady) ws.send(JSON.stringify({ type: "figure_unlock", id: fig.id }));
     }
     dragging = null;
   });
@@ -1344,6 +1430,7 @@
 
   function connectWS() {
     ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+    window.__brettWS = ws;
 
     ws.addEventListener("open", () => {
       wsReady = true;
@@ -1413,6 +1500,17 @@
           STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
         }
         if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
+
+        // Clear all visual lock badges first
+        for (const figId of activeLocks.keys()) {
+          clearFigureLockBadge(figId);
+        }
+        activeLocks.clear();
+        // Rehydrate locks
+        for (const l of (msg.locks || [])) {
+          activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
+          setFigureLockBadge(l.figureId, l.name, l.color);
+        }
         // Solo AI Mayhem: auto-enable if triggered from mode-select
         if (sessionStorage.getItem('brett_solo_mayhem') === '1') {
           sessionStorage.removeItem('brett_solo_mayhem');
@@ -1446,6 +1544,23 @@
         if (c.appearance !== undefined) applyAppearanceToFig(fig, c.appearance);
         if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
         if (c.walking !== undefined) fig.walking = !!c.walking;
+        break;
+      }
+      case "figure_locked": {
+        activeLocks.set(msg.id, { userId: msg.userId, name: msg.name, color: msg.color });
+        setFigureLockBadge(msg.id, msg.name, msg.color);
+        break;
+      }
+      case "figure_unlocked": {
+        clearFigureLockBadge(msg.id);
+        break;
+      }
+      case "figure_lock_denied": {
+        cancelDragFor(msg.id);
+        break;
+      }
+      case "locks_released_for": {
+        clearLockBadgesForUser(msg.userId);
         break;
       }
       case "move": {
@@ -1499,7 +1614,7 @@
   const _origAdd = addFigure;
   addFigure = function(position) {
     const fig = _origAdd(position);
-    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z, appearance: fig.appearance } }));
+    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z, appearance: fig.appearance, label: fig.label || '' } }));
     return fig;
   };
 
@@ -1744,17 +1859,18 @@
 
   // ── Named Persons quick-spawn ────────────────────────────────────────────
   const NAMED_PERSONS = [
-    { key: 'portrait-patrick',   label: 'Patrick',   color: '#6f8db8' },
-    { key: 'portrait-christina', label: 'Christina', color: '#c06be0' },
-    { key: 'portrait-papa',      label: 'Papa',      color: '#808080' },
-    { key: 'portrait-martina',   label: 'Martina',   color: '#6be0a0' },
-    { key: 'portrait-oskar',     label: 'Oskar',     color: '#c8a96e' },
+    { key: 'portrait-patrick',   label: 'Patrick',   color: '#6f8db8', brand: 'korczewski' },
+    { key: 'portrait-christina', label: 'Christina', color: '#c06be0', brand: 'korczewski' },
+    { key: 'portrait-papa',      label: 'Papa',      color: '#808080', brand: 'korczewski' },
+    { key: 'portrait-martina',   label: 'Martina',   color: '#6be0a0', brand: 'korczewski' },
+    { key: 'portrait-oskar',     label: 'Oskar',     color: '#c8a96e', brand: 'korczewski' },
   ];
 
-  (function buildPersonsPanel() {
+  function buildPersonsPanel(persons) {
     const grid = document.getElementById('fig-panel-persons');
     if (!grid) return;
-    for (const p of NAMED_PERSONS) {
+    grid.innerHTML = '';
+    for (const p of persons) {
       const btn = document.createElement('button');
       btn.className = 'fig-size-btn';
       btn.style.cssText = `border-left:3px solid ${p.color};text-align:left;padding:4px 7px;` +
@@ -1786,7 +1902,11 @@
       });
       grid.appendChild(btn);
     }
-  })();
+  }
+  fetch('/api/config').then((r) => r.json()).then(async (cfg) => {
+    const { filterPersonsForBrand } = await import('/assets/coaching/brand.mjs');
+    buildPersonsPanel(filterPersonsForBrand(NAMED_PERSONS, cfg.brand));
+  }).catch(() => buildPersonsPanel([])); // fail safe: hide brand-tagged persons
 
   function syncDrawerToFig(fig) {
     if (!fig) return;
@@ -1815,6 +1935,34 @@
     }
   }
   </script>
+<script type="module">
+  import { createWire } from '/assets/coaching/wire.mjs';
+  import { mountCoachingHud } from '/assets/coaching/hud.mjs';
+  const cfg = await fetch('/api/config').then((r) => r.json());
+  if (cfg.defaultMode === 'coaching') {
+    const me = await fetch('/auth/me').then((r) => r.json()).catch(() => ({}));
+    const wire = createWire(() => window.__brettWS);
+    const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
+    tryAttach();
+    
+    const hasRoom = new URLSearchParams(location.search).has('room');
+    if (!hasRoom) {
+      const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
+      mountJoinOverlay({});
+    } else {
+      mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
+    }
+
+    wire.on('session_created', (m) => {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+      toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
+        `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
+        `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
+      document.body.appendChild(toast);
+    });
+  }
+</script>
 <script src="assets/mayhem/physics.js"></script>
 <script src="assets/mayhem/chase-camera.js"></script>
 <script src="assets/mayhem/skin-controller.js"></script>

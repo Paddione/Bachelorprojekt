@@ -46,3 +46,19 @@ test('inline script does not call MayhemControlsPanel.showDiscoveryBanner() unco
     'showDiscoveryBanner() must not be called directly in the WS open handler'
   );
 });
+
+test('index.html loads the coaching HUD bootstrap module', () => {
+  assert.ok(
+    html.includes("import { mountCoachingHud }") || html.includes("coaching/hud.mjs"),
+    'coaching HUD module must be imported in index.html'
+  );
+});
+
+test('named persons are brand-tagged so mentolder can hide them', () => {
+  assert.ok(html.includes("brand: 'korczewski'"), 'NAMED_PERSONS entries must carry a brand tag');
+});
+
+test('add message carries the figure label', () => {
+  // The add payload must include label so it syncs/persists.
+  assert.ok(/type:\s*['"]add['"][\s\S]{0,400}label/.test(html), 'add payload should include label');
+});

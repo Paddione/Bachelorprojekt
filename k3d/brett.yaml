@@ -88,6 +88,8 @@ spec:
               value: "coaching"
             - name: BRETT_PRESETS_PATH
               value: /app/presets/presets.json
+            - name: BRETT_BRAND
+              value: "mentolder"
           ports:
             - containerPort: 3000
           readinessProbe:

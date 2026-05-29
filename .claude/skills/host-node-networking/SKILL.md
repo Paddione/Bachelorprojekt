@@ -37,6 +37,28 @@ The platform operates across stands of physical servers and local workstations c
 
 Interactive flow for provisioning a new server or resetting an existing server in Rescue Mode.
 
+### Step 1.0: Authenticate hcloud CLI
+
+The Hetzner Cloud API token is stored per-env in `environments/.secrets/<env>.yaml` as `HETZNER_API_KEY`.
+
+```bash
+# Read the token for the target env (file is gitignored/local)
+HETZNER_API_KEY=$(grep '^HETZNER_API_KEY' environments/.secrets/<env>.yaml | awk '{print $2}' | tr -d '"')
+
+# Create or switch to the env's hcloud context (token stored in ~/.config/hcloud/cli.toml)
+hcloud context create <env>   # prompts for token — paste $HETZNER_API_KEY
+# — or update an existing context:
+hcloud context use <env>
+```
+
+Verify the correct project is active before proceeding:
+```bash
+hcloud context active   # should show <env>
+hcloud server list      # should list the env's nodes
+```
+
+> **Tip:** Use `mentolder` and `korczewski` as context names so `hcloud context use <env>` switches cleanly between clusters.
+
 ### Step 1.1: Input Collection
 
 Collect the target details from the user:
@@ -102,11 +124,13 @@ For **Rescue Mode Resets**, prepare a bash setup script saved to `/tmp/setup-<no
 
 * **New Server:** Create the server using the hcloud CLI or console, injecting the cloud-init:
   ```bash
-  hcloud server create --name <hostname> --type cx32 --image ubuntu-24.04 --user-data-from-file /tmp/cloud-init-ready.yaml
+  hcloud server create --context <env> --name <hostname> --type cx32 --image ubuntu-24.04 \
+    --user-data-from-file /tmp/cloud-init-ready.yaml
   ```
 * **Rescue Mode Reset:** Re-install the base image from rescue:
   ```bash
-  hcloud server enable-rescue --type linux64 <server-id> && hcloud server reset <server-id>
+  hcloud server enable-rescue --context <env> --type linux64 <server-id> && \
+  hcloud server reset --context <env> <server-id>
   # SSH into rescue, partition, and install base image:
   /root/.oldroot/nfs/install/installimage -a -c /tmp/installimage.conf
   reboot

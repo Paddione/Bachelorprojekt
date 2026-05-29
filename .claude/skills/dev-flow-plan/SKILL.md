@@ -369,12 +369,20 @@ fi
 ```
 
 ```bash
-# d) Tunnel publishen (run_in_background: true) — STDOUT/STDERR in Log-File schreiben
+# d) Stale SSH-Tunnel töten — verhindert "remote port forwarding failed" bei Wiederverwendung
+# Bracket-Trick [3]2223 verhindert Self-Match des pkill-Kommandos selbst
+pkill -f "ssh.*[3]2223" 2>/dev/null && echo "Stale ssh tunnel(s) killed" || echo "Kein staler Tunnel gefunden"
+sleep 1  # kurze Pause damit der Remote-Forward auf sish freigegeben wird
+```
+
+```bash
+# e) Tunnel publishen (run_in_background: true) — STDOUT/STDERR in Log-File schreiben
 task brainstorm:publish -- $PORT >/tmp/brainstorm-publish.log 2>&1
 ```
 
 ```bash
-# e) Verify — bis zu 15s auf den Tunnel warten. Erst wenn 200/302 kommt, ist die URL benutzbar.
+# f) Verify — bis zu 15s auf den Tunnel warten. Erst wenn 200/302 kommt, ist die URL benutzbar.
+# Zusätzlich: lokalen Listener prüfen — wenn der Companion-Server stirbt, bekommt der User 502.
 for i in $(seq 1 15); do
   CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 https://brainstorm.mentolder.de/ || echo 000)
   if [[ "$CODE" == "200" || "$CODE" == "302" || "$CODE" == "301" ]]; then
@@ -393,6 +401,13 @@ if [[ "$CODE" != "200" && "$CODE" != "302" && "$CODE" != "301" ]]; then
   echo "  • sish pod restartet/crashed → 'task brainstorm:status'"
   echo "  • PORT $PORT lauscht nicht lokal → 'ss -ltn | grep $PORT'"
   exit 1
+fi
+# Lokalen Listener noch oben? Wenn nicht, Server neu starten (Companion stirbt manchmal nach verify)
+if ! ss -ltn 2>/dev/null | grep -q ":${PORT} "; then
+  echo "⚠️  Lokaler Listener auf Port $PORT nicht mehr aktiv — Companion-Server neu starten"
+  RESULT=$(bash "$START_SCRIPT" --project-dir /home/patrick/Bachelorprojekt)
+  PORT=$(echo "$RESULT" | jq -r '.port')
+  echo "Companion neu gestartet auf Port $PORT"
 fi
 ```
 
@@ -601,7 +616,17 @@ fi
 # Die Spec wurde bereits in Schritt 3.7.1.5 committed; git add ist idempotent falls nötig
 git add docs/superpowers/specs/<date>-<slug>-design.md docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
-git push -u origin feature/<slug>
+
+# Push mit automatischer Force-with-lease-Fallback bei divergiertem Remote (Prior-Session Stale Commits)
+BRANCH=$(git branch --show-current)
+if ! git push -u origin "$BRANCH" 2>/tmp/_push_err.txt; then
+  if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
+    echo "Remote divergiert — wende --force-with-lease an"
+    git push --force-with-lease origin "$BRANCH"
+  else
+    cat /tmp/_push_err.txt; exit 1
+  fi
+fi
 ```
 
 **STOPP.** Sage: "Plan auf Branch `feature/<slug>` gepusht → `docs/superpowers/plans/<date>-<slug>.md` (Ticket: `$TICKET_EXT_ID`). Ruf `dev-flow-execute` auf, wenn du bereit bist zur Implementierung."
@@ -759,7 +784,17 @@ git add tests/<relevante-test-datei>
 git add docs/superpowers/plans/<slug>.md
 
 git commit -m "chore(plans): stage <slug> fix for execution [$TICKET_EXT_ID]"
-git push -u origin fix/<slug>
+
+# Push mit automatischer Force-with-lease-Fallback bei divergiertem Remote
+BRANCH=$(git branch --show-current)
+if ! git push -u origin "$BRANCH" 2>/tmp/_push_err.txt; then
+  if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
+    echo "Remote divergiert — wende --force-with-lease an"
+    git push --force-with-lease origin "$BRANCH"
+  else
+    cat /tmp/_push_err.txt; exit 1
+  fi
+fi
 ```
 
 **STOPP.** Sage: "Failing Test + Plan auf Branch `fix/<slug>` gepusht (Ticket: `$TICKET_EXT_ID`). Ruf `dev-flow-execute` auf, wenn du bereit bist zur Implementierung."

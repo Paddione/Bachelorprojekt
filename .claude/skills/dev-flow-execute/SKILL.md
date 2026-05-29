@@ -151,7 +151,22 @@ git rebase origin/main
 git submodule update --init --recursive
 ```
 
-> **Nach Rebase — erster Push:** Falls der Branch schon gepusht war, schlägt `git push` fehl ("rejected ... non-fast-forward"). Lösung: `git push --force-with-lease origin <branch>`. `--force-with-lease` ist sicherer als `--force` — schlägt fehl wenn jemand anderes seit dem letzten Fetch gepusht hat.
+> **Nach Rebase — erster Push:** Falls der Branch schon gepusht war (z.B. Prior-Session ließ Stale Commits), schlägt `git push` mit "rejected ... non-fast-forward" fehl. Erkenne und handle automatisch:
+>
+> ```bash
+> BRANCH=$(git branch --show-current)
+> if ! git push -u origin "$BRANCH" 2>/tmp/_push_err.txt; then
+>   if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
+>     echo "Remote divergiert (Stale Commits aus Prior-Session) — wende --force-with-lease an"
+>     git push --force-with-lease origin "$BRANCH"
+>     echo "✓ Force-with-lease push erfolgreich"
+>   else
+>     cat /tmp/_push_err.txt; exit 1
+>   fi
+> fi
+> ```
+>
+> `--force-with-lease` ist sicherer als `--force` — schlägt fehl wenn jemand anderes seit dem letzten Fetch gepusht hat (schützt Fremdarbeit).
 
 Falls `git rebase` Konflikte meldet:
 
@@ -259,6 +274,29 @@ Implementiere dann bis der failing Test (aus `dev-flow-plan` Schritt 3) grün is
 ```bash
 ./tests/runner.sh local <test-id>
 # Ziel: PASS
+```
+
+### Milestone-Checkboxen aktualisieren (Pflicht nach jeder abgeschlossenen Aufgabe)
+
+**Nach jeder abgeschlossenen Milestone / Task-Gruppe den Plan in-place aktualisieren:**
+
+```bash
+PLAN_FILE="docs/superpowers/plans/<date>-<slug>.md"
+
+# Checkbox für abgeschlossene Milestone setzen — z.B. M1
+# Vorher:  - [ ] M1: <titel>
+# Nachher: - [x] M1: <titel>
+sed -i 's/^- \[ \] M1:/- [x] M1:/' "$PLAN_FILE"
+```
+
+**Warum:** Die Plan-Datei ist der einzige persistente State der Implementierung. Bleiben Checkboxen unchecked, kann keine spätere Session (nach `/compact` oder Session-Verlust) den tatsächlichen Fortschritt erkennen — sie liest nur den Plan. Ohne Checkbox-Update muss der Zustand durch Filesystem-Analyse rekonstruiert werden, was fehleranfällig ist und Zeit kostet.
+
+**Wann:** Direkt nach dem Commit jedes Milestones — nicht am Ende gebündelt. Nach `git commit -m "feat(…): complete M1 …"` sofort:
+
+```bash
+sed -i 's/^- \[ \] M1:/- [x] M1:/' "$PLAN_FILE"
+git add "$PLAN_FILE"
+git commit -m "chore(plans): check off M1 in plan"
 ```
 
 ---

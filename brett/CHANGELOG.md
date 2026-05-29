@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.15.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.14.0...brett-v0.15.0) (2026-05-29)
+
+
+### Features
+
+* **brett:** brett coaching multiuser product [T000301] ([#1144](https://github.com/Paddione/Bachelorprojekt/issues/1144)) ([945ae61](https://github.com/Paddione/Bachelorprojekt/commit/945ae61c70e236531d12339ec3e5485c45b11aa2))
+
 ## [0.14.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.13.0...brett-v0.14.0) (2026-05-26)
 
 

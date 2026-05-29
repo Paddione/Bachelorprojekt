@@ -36,7 +36,7 @@ T11 in `tests/local/SA-07.sh` is already written and failing (red). This task ma
 - Create: `prod-mentolder/patch-data-pvc-storage.yaml`
 - Modify: `prod-mentolder/kustomization.yaml`
 
-- [ ] **Step 1: Create the storage patch file**
+- [x] **Step 1: Create the storage patch file**
 
 ```bash
 cat > prod-mentolder/patch-data-pvc-storage.yaml << 'EOF'
@@ -67,7 +67,7 @@ spec:
 EOF
 ```
 
-- [ ] **Step 2: Wire the patch into the kustomization**
+- [x] **Step 2: Wire the patch into the kustomization**
 
 In `prod-mentolder/kustomization.yaml`, find the existing `- path: patch-backup-config.yaml` line and add the new patch directly after it:
 
@@ -77,7 +77,7 @@ In `prod-mentolder/kustomization.yaml`, find the existing `- path: patch-backup-
   - path: patch-livekit.yaml
 ```
 
-- [ ] **Step 3: Verify kustomize build includes the Longhorn storageClass**
+- [x] **Step 3: Verify kustomize build includes the Longhorn storageClass**
 
 ```bash
 kustomize build prod-mentolder/ | grep -A5 "nextcloud-data-pvc" | grep storageClassName
@@ -88,21 +88,21 @@ kustomize build prod-mentolder/ | grep -A5 "docuseal-data-pvc" | grep storageCla
 # Expected output: storageClassName: longhorn
 ```
 
-- [ ] **Step 4: Run T11 — should now pass**
+- [x] **Step 4: Run T11 — should now pass**
 
 ```bash
 NAMESPACE=workspace RESULTS_FILE=/tmp/sa07-t11.jsonl bash tests/local/SA-07.sh 2>&1 | grep T11
 # Expected: 3× "✓ SA-07/T11-*"
 ```
 
-- [ ] **Step 5: Run full offline test suite**
+- [x] **Step 5: Run full offline test suite**
 
 ```bash
 task test:all
 # Expected: all tests pass (T1-T5 may skip if dev cluster is not running — that is OK)
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add prod-mentolder/patch-data-pvc-storage.yaml prod-mentolder/kustomization.yaml tests/local/SA-07.sh

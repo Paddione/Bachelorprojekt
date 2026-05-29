@@ -1,5 +1,5 @@
 // website/src/lib/tickets-db.ts
-import { pool } from './website-db';
+import { pool, ensureSchemaOnce } from './website-db';
 
 let schemaReady = false;
 
@@ -9,6 +9,11 @@ let schemaReady = false;
 // to permission denied. See Ticket T000028.
 export async function initTicketsSchema(): Promise<void> {
   if (schemaReady) return;
+  return ensureSchemaOnce('tickets', async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(`SELECT pg_advisory_lock(hashtext('init:tickets'))`);
+      try {
 
   await pool.query(`CREATE SCHEMA IF NOT EXISTS tickets AUTHORIZATION website`);
 
@@ -477,6 +482,13 @@ export async function initTicketsSchema(): Promise<void> {
       ) sub
      WHERE tc.brand = sub.brand AND tc.last_value < sub.max_v
   `);
+      } finally {
+        await client.query(`SELECT pg_advisory_unlock(hashtext('init:tickets'))`);
+      }
+    } finally {
+      client.release();
+    }
 
-  schemaReady = true;
+    schemaReady = true;
+  });
 }

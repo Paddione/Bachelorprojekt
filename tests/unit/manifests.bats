@@ -341,6 +341,51 @@ PY
   assert_success
 }
 
+# ── billing-dunning-detection targets the website namespace (T000295) ──
+# The website Deployment lives in its own `website` (mentolder) /
+# `website-korczewski` namespace — never in `workspace`. The base
+# k3d/cronjob-dunning-detection.yaml curls website.workspace.svc.cluster.local,
+# which does not resolve on either prod cluster, so curl -s exits non-zero
+# and the daily Job fails forever (silently — lastSuccessfulTime never set).
+# Its sibling cronjobs (notify-unread, monthly-billing) already use the
+# correct website.website* target. Assert no prod overlay renders the dunning
+# job pointed at the workspace namespace.
+@test "prod overlays: billing-dunning-detection does not target workspace ns [T000295]" {
+  if ! command -v python3 &>/dev/null; then
+    skip "python3 not installed"
+  fi
+  run python3 - "${PROJECT_DIR}" <<'PY'
+import subprocess, sys, yaml, glob, os
+project = sys.argv[1]
+overlays = sorted(d for d in glob.glob(os.path.join(project, 'prod-*')) if os.path.isdir(d))
+bad = []
+for ov in overlays:
+    r = subprocess.run(
+        ['kubectl', 'kustomize', ov, '--load-restrictor=LoadRestrictionsNone'],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f'kustomize build failed for {ov}: {r.stderr}', file=sys.stderr)
+        sys.exit(2)
+    for doc in yaml.safe_load_all(r.stdout):
+        if not doc:
+            continue
+        if doc.get('kind') == 'CronJob' and \
+                doc.get('metadata', {}).get('name') == 'billing-dunning-detection':
+            cmd = ' '.join(
+                doc['spec']['jobTemplate']['spec']['template']['spec']
+                   ['containers'][0].get('command', []))
+            if 'website.workspace.svc' in cmd:
+                bad.append(f"{os.path.basename(ov)}: {cmd}")
+if bad:
+    print('dunning CronJob still targets the workspace ns (website lives elsewhere):')
+    for b in bad:
+        print('  ' + b)
+    sys.exit(1)
+print('OK: dunning CronJob targets the website namespace in all prod overlays')
+PY
+  assert_success
+}
+
 @test "Taskfile.yml does not corrupt native Kubernetes expansions with sed" {
   run grep -F 'sed '\''s/\$(\([^)]*\))/\${\1}/g'\''' "${PROJECT_DIR}/Taskfile.yml"
   # We expect grep to fail (not find the pattern), meaning the breaking sed is gone.

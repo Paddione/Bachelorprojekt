@@ -113,6 +113,10 @@ export default defineConfig({
         '**/sa-15-*.spec.ts',
         '**/fa-content-hub-price-ssot.spec.ts',
         '**/fa-content-hub-editability.spec.ts',
+        '**/fa-content-hub-legal-ssot.spec.ts',
+        '**/fa-content-hub-editor.spec.ts',
+        '**/fa-content-hub-versioning.spec.ts',
+        '**/fa-content-hub-service-consolidation.spec.ts',
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -173,6 +177,7 @@ export default defineConfig({
         '**/sa-15-*.spec.ts',    // Cross-cluster health verification
         '**/ak-03-*.spec.ts',    // Technische Machbarkeit
         '**/ak-04-*.spec.ts',    // Prototyp-Betrieb
+        '**/fa-content-hub-concurrency.spec.ts',
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -240,6 +245,7 @@ export default defineConfig({
         '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
         '**/brett-duel-mode.spec.ts',  // Duel-Mode hero select & game mode constants
         '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
+        '**/fa-content-hub-legal-ssot.spec.ts',
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -25,7 +25,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: write-cookie-secret
-          image: busybox:1.36
+          image: busybox:1.37
           imagePullPolicy: Always
           # Write a TOML config with the cookie_secret truncated to 32 bytes.
           # env-generate produces a 64-char hex string which is too long for AES.

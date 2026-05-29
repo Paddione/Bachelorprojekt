@@ -8,9 +8,17 @@ import {
   getUebermichContent,
   getFaqContent,
   getKontaktContent,
+  getJsonSetting,
+  NAV_KEY,
+  FOOTER_KEY,
+  STAMMDATEN_KEY,
+  KORE_FLAGS_KEY,
+  PRICING_HIGHLIGHT_KEY,
 } from './website-db';
+import { deriveHeadlinePrice, detailTiers, resolveStammdaten, resolveHighlightTable } from './content-projection';
+import type { HighlightEntry, ResolvedHighlight } from './content-projection';
 import type { HomepageService, LeistungCategory } from '../config/types';
-import type { ReferenzenConfig } from './website-db';
+import type { ReferenzenConfig, Stammdaten, NavItem, FooterConfig, KoreFlags } from './website-db';
 import type {
   HomepageContent,
   UebermichContent,
@@ -44,6 +52,17 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
   const overrides = await getServiceConfig(BRAND).catch(() => null);
   if (!overrides) return config.services;
 
+  const cats = (await getLeistungenConfig(BRAND).catch(() => null)) ?? config.leistungen;
+  const catById = new Map(cats.map((c) => [c.id, c]));
+  const headlineFor = (o: typeof overrides[number], staticPrice: string) =>
+    o.leistungCategoryId && catById.get(o.leistungCategoryId)
+      ? deriveHeadlinePrice(catById.get(o.leistungCategoryId)!, o.headlineKey, o.headlinePrefix ?? false)
+      : (o.price ?? staticPrice);
+  const tiersFor = (o: typeof overrides[number], staticTiers: any[]) =>
+    o.leistungCategoryId && catById.get(o.leistungCategoryId)
+      ? detailTiers(catById.get(o.leistungCategoryId))
+      : staticTiers;
+
   const staticBySlug = new Map(config.services.map((s) => [s.slug, s]));
   const merge = (svc: HomepageService, o: typeof overrides[number]) => {
     const pc = o.pageContent;
@@ -52,7 +71,7 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
       title: o.title ?? svc.title,
       description: o.description ?? svc.description,
       icon: o.icon ?? svc.icon,
-      price: o.price ?? svc.price,
+      price: headlineFor(o, svc.price),
       features: o.features ?? svc.features,
       hidden: o.hidden ?? false,
       meta: o.meta,
@@ -62,11 +81,14 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
             intro: pc.intro ?? svc.pageContent.intro,
             forWhom: pc.forWhom ?? svc.pageContent.forWhom,
             sections: pc.sections ?? svc.pageContent.sections,
-            pricing: pc.pricing ?? svc.pageContent.pricing,
+            pricing: tiersFor(o, pc.pricing ?? svc.pageContent.pricing),
             faq: pc.faq ?? svc.pageContent.faq,
             faqTitle: pc.faqTitle ?? svc.pageContent.faqTitle,
           }
-        : svc.pageContent,
+        : {
+            ...svc.pageContent,
+            pricing: tiersFor(o, svc.pageContent.pricing),
+          },
     };
   };
 
@@ -78,7 +100,7 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
       description: o.description ?? '',
       icon: o.icon ?? '✨',
       features: o.features ?? [],
-      price: o.price ?? '',
+      price: headlineFor(o, ''),
       hidden: o.hidden ?? false,
       meta: o.meta,
       pageContent: {
@@ -86,7 +108,7 @@ export async function getEffectiveServices(): Promise<(HomepageService & { hidde
         intro: pc.intro ?? o.description ?? '',
         forWhom: pc.forWhom ?? [],
         sections: pc.sections ?? [],
-        pricing: pc.pricing ?? [],
+        pricing: tiersFor(o, pc.pricing ?? []),
         faq: pc.faq ?? [],
         faqTitle: pc.faqTitle,
       },
@@ -212,3 +234,78 @@ export async function getEffectiveKontakt(): Promise<KontaktContent> {
   if (!db) return config.kontakt;
   return db;
 }
+
+export async function getEffectiveStammdaten(): Promise<Stammdaten> {
+  const db = await getJsonSetting<Partial<Stammdaten>>(BRAND, STAMMDATEN_KEY).catch(() => null);
+  return resolveStammdaten(db, staticStammdaten());
+}
+
+export async function getEffectiveNavigation(): Promise<NavItem[]> {
+  return (await getJsonSetting<NavItem[]>(BRAND, NAV_KEY).catch(() => null)) ?? staticNavigation();
+}
+
+export async function getEffectiveFooter(): Promise<FooterConfig> {
+  return (await getJsonSetting<FooterConfig>(BRAND, FOOTER_KEY).catch(() => null)) ?? staticFooter();
+}
+
+export async function getEffectiveKoreFlags(): Promise<KoreFlags> {
+  return (await getJsonSetting<KoreFlags>(BRAND, KORE_FLAGS_KEY).catch(() => null)) ?? { timeline: !!config.homepage.timeline };
+}
+
+/**
+ * Returns the effective pricing-highlight table rows.
+ * DB (`site_settings.pricing_highlight`) wins; fallback is the static
+ * `config.leistungenPricingHighlight` array (converted to plain HighlightEntry
+ * shape — no catalog key references needed for the static default).
+ */
+export async function getEffectiveHighlightTable(): Promise<ResolvedHighlight[]> {
+  const cats = (await getLeistungenConfig(BRAND).catch(() => null)) ?? config.leistungen;
+  const dbEntries = await getJsonSetting<HighlightEntry[]>(BRAND, PRICING_HIGHLIGHT_KEY).catch(() => null);
+  if (dbEntries && dbEntries.length > 0) {
+    return resolveHighlightTable(dbEntries, cats);
+  }
+  // Fallback: convert static LeistungPricingHighlight[] to plain HighlightEntries
+  const staticEntries: HighlightEntry[] = (config.leistungenPricingHighlight ?? []).map((h) => ({
+    label: h.label,
+    price: h.price,
+    note: h.note,
+    highlight: h.highlight ?? false,
+  }));
+  return resolveHighlightTable(staticEntries, cats);
+}
+
+function getInitials(name: string): string {
+  if (!name) return BRAND === 'korczewski' ? 'PK' : 'GK';
+  const parts = name.split(/\s+/).filter(Boolean);
+  return parts.map(p => p[0]).join('').toUpperCase().substring(0, 2);
+}
+
+function staticStammdaten(): Stammdaten {
+  return {
+    name: config.contact.name,
+    role: config.legal.jobtitle,
+    email: config.contact.email,
+    phone: config.contact.phone,
+    street: config.legal.street,
+    zip: config.legal.zip,
+    city: config.contact.city,
+    ustId: config.legal.ustId,
+    website: config.legal.website,
+    avatarInitials: getInitials(config.contact.name),
+  };
+}
+
+function staticNavigation(): NavItem[] {
+  return config.navigation.map((n, i) => ({ label: n.label, href: n.href, order: i }));
+}
+
+function staticFooter(): FooterConfig {
+  return {
+    columns: config.footer.columns.map((c) => ({
+      heading: c.heading,
+      links: c.links.map((l) => ({ label: l.label, href: l.href })),
+    })),
+    copyright: config.footer.copyright ?? `© ${new Date().getFullYear()} ${config.contact.name || BRAND}`,
+  };
+}
+

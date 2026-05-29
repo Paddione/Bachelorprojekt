@@ -1015,6 +1015,7 @@ export const NAV_KEY = 'navigation' as const;
 export const FOOTER_KEY = 'footer' as const;
 export const STAMMDATEN_KEY = 'stammdaten' as const;
 export const KORE_FLAGS_KEY = 'kore_flags' as const;
+export const PRICING_HIGHLIGHT_KEY = 'pricing_highlight' as const;
 
 export interface NavItem { label: string; href: string; order: number }
 export interface FooterLink { label: string; href: string }

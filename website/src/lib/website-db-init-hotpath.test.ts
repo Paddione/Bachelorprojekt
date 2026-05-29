@@ -123,7 +123,7 @@ vi.mock('./tickets/transition', () => ({
 
 // Import AFTER the mocks are registered. website-db's module-level
 // `new Pool(...)` is now our CountingPool.
-import { setSiteSetting, getSiteSetting, pool } from './website-db';
+import { setSiteSetting, getSiteSetting, pool, __resetSchemaInitCacheForTests } from './website-db';
 
 // The pool instance is a CountingPool; reach its constructor to read/reset the
 // static counter without re-importing the mocked module.
@@ -133,6 +133,7 @@ const CountingPool = (pool as unknown as { constructor: { siteSettingsInitDdlCou
 describe('website-db site_settings schema init is NOT on the hot path (T000304)', () => {
   beforeEach(() => {
     CountingPool.siteSettingsInitDdlCount = 0;
+    __resetSchemaInitCacheForTests();
   });
 
   it('runs site_settings init DDL at most once across multiple setSiteSetting calls', async () => {

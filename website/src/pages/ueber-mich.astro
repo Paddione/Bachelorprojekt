@@ -85,5 +85,7 @@ const seoDesc = await getSiteSetting(BRAND_ID, 'seo_meta_desc_ueber-mich').catch
     </div>
   </section>
 
-  <CallToAction client:visible secondaryText={contact.email} secondaryHref={`mailto:${contact.email}`} />
+  {stammdaten && (
+    <CallToAction client:visible secondaryText={stammdaten.email || config.contact.email} secondaryHref={`mailto:${stammdaten.email || config.contact.email}`} />
+  )}
 </Layout>

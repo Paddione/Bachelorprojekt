@@ -2,15 +2,16 @@
 import Layout from '../layouts/Layout.astro';
 import CallToAction from '../components/CallToAction.svelte';
 import { config } from '../config/index';
-import { getEffectiveLeistungen, getPriceListUrl } from '../lib/content';
+import { getEffectiveLeistungen, getPriceListUrl, getEffectiveStammdaten } from '../lib/content';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
 
 const { leistungenCta, contact } = config;
-const [leistungen, priceListUrl] = await Promise.all([
+const [leistungen, priceListUrl, stammdaten] = await Promise.all([
   getEffectiveLeistungen(),
   getPriceListUrl(),
+  getEffectiveStammdaten().catch(() => null),
 ]);
 ---
 
@@ -155,6 +156,6 @@ const [leistungen, priceListUrl] = await Promise.all([
     </div>
   </section>
 
-  <CallToAction client:visible secondaryText={contact.email} secondaryHref={`mailto:${contact.email}`} />
+  <CallToAction client:visible secondaryText={stammdaten?.email || contact.email} secondaryHref={`mailto:${stammdaten?.email || contact.email}`} />
 </Layout>
 

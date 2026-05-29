@@ -6,8 +6,8 @@
   import SeoEditor from './SeoEditor.svelte';
   import StartseiteSection from './inhalte/StartseiteSection.svelte';
   import UebermichSection from './inhalte/UebermichSection.svelte';
-  import CoachingSection from './inhalte/CoachingSection.svelte';
-  import FuehrungSection from './inhalte/FuehrungSection.svelte';
+  import SchemaEditor from './framework/SchemaEditor.svelte';
+  import { schemaFor } from '../../lib/admin/schemas/index';
   import ServicePageSection from './inhalte/ServicePageSection.svelte';
   import AngeboteSection from './inhalte/AngeboteSection.svelte';
   import FaqSection from './inhalte/FaqSection.svelte';
@@ -20,12 +20,9 @@
   import StammdatenSection from './inhalte/StammdatenSection.svelte';
   import KoreFlagsSection from './inhalte/KoreFlagsSection.svelte';
   import type { HomepageContent, UebermichContent, FaqItem, KontaktContent, ReferenzenConfig, CustomSection as CustomSectionType, ServiceOverride, LeistungCategoryOverride, NavItem, FooterConfig, Stammdaten, KoreFlags } from '../../lib/website-db';
-  import type { CoachingContent } from '../../lib/coaching-content';
-  import type { FuehrungContent } from '../../lib/fuehrung-content';
-
   type InitialData = {
     startseite: HomepageContent; uebermich: UebermichContent;
-    coaching: CoachingContent; fuehrung: FuehrungContent;
+    coaching: { value: any; version: number }; fuehrung: { value: any; version: number };
     '50plus-digital': any; 'ki-transition': any; beratung: any;
     services: ServiceOverride[]; leistungen: LeistungCategoryOverride[];
     priceListUrl: string; faq: FaqItem[]; kontakt: KontaktContent;
@@ -61,6 +58,7 @@
     ]
   );
   let newSaving = $state(false); let newMsg = $state('');
+  let sectionSearch = $state('');
 
   $effect(() => {
     const params = new URLSearchParams();
@@ -116,6 +114,29 @@
     ...(brand === 'korczewski' ? { 'kore-flags': 'Kore-Flags' } : {}),
   };
 
+  const filteredSections = $derived.by(() => {
+    const q = sectionSearch.trim().toLowerCase();
+    const staticEntries = Object.entries(SECTION_LABELS).filter(([, label]) =>
+      !q || label.toLowerCase().includes(q)
+    );
+    const customEntries = customSections.filter(cs =>
+      !q || cs.title.toLowerCase().includes(q)
+    );
+    return { staticEntries, customEntries };
+  });
+
+  function onSectionSearchKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      const { staticEntries, customEntries } = filteredSections;
+      if (staticEntries.length > 0) {
+        activeSection = staticEntries[0][0];
+      } else if (customEntries.length > 0) {
+        activeSection = customEntries[0].slug;
+      }
+      sectionSearch = '';
+    }
+  }
+
   const STANDARD_FIELD_TYPES = [
     { value: 'text', label: 'Einzeiliger Text' },
     { value: 'textarea', label: 'Mehrzeiliger Text' },
@@ -136,11 +157,20 @@
   </div>
 
   {#if activeTab === 'website'}
+    <div class="flex items-center gap-2 px-2 py-1.5 border-b border-dark-lighter/40 bg-dark/20 flex-shrink-0">
+      <input
+        type="search"
+        bind:value={sectionSearch}
+        onkeydown={onSectionSearchKeydown}
+        placeholder="Abschnitt suchen…"
+        class="w-40 px-2 py-1 text-xs rounded bg-dark border border-dark-lighter text-light placeholder:text-muted focus:outline-none focus:border-gold/60"
+      />
+    </div>
     <div class="flex items-center gap-0 border-b border-dark-lighter/60 overflow-x-auto bg-dark/30 flex-shrink-0">
-      {#each Object.keys(SECTION_LABELS) as sec}
-        <button onclick={() => activeSection = sec} class={secBtnCls(activeSection===sec)}>{SECTION_LABELS[sec]}</button>
+      {#each filteredSections.staticEntries as [sec, label]}
+        <button onclick={() => activeSection = sec} class={secBtnCls(activeSection===sec)}>{label}</button>
       {/each}
-      {#each customSections as cs}
+      {#each filteredSections.customEntries as cs}
         <button onclick={() => activeSection = cs.slug} class={secBtnCls(activeSection===cs.slug)}>{cs.title} ★</button>
       {/each}
       <button onclick={() => showNewDialog = true}
@@ -155,8 +185,8 @@
       {#if activeSection === 'seo'}<SeoEditor />
       {:else if activeSection === 'startseite'}<StartseiteSection initialData={initialData.startseite} />
       {:else if activeSection === 'uebermich'}<UebermichSection initialData={initialData.uebermich} />
-      {:else if activeSection === 'coaching'}<CoachingSection initialData={initialData.coaching} />
-      {:else if activeSection === 'fuehrung-persoenlichkeit'}<FuehrungSection initialData={initialData.fuehrung} />
+      {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? null} initialVersion={initialData.coaching?.version ?? 0} />
+      {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? null} initialVersion={initialData.fuehrung?.version ?? 0} />
       {:else if activeSection === '50plus-digital'}
         <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital" />
       {:else if activeSection === 'ki-transition'}

@@ -234,14 +234,44 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-content-hub-concurrency",
+    "file": "tests/e2e/specs/fa-content-hub-concurrency.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-content-hub-editability",
     "file": "tests/e2e/specs/fa-content-hub-editability.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-content-hub-editor",
+    "file": "tests/e2e/specs/fa-content-hub-editor.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-content-hub-legal-ssot",
+    "file": "tests/e2e/specs/fa-content-hub-legal-ssot.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-content-hub-price-ssot",
     "file": "tests/e2e/specs/fa-content-hub-price-ssot.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-content-hub-service-consolidation",
+    "file": "tests/e2e/specs/fa-content-hub-service-consolidation.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-content-hub-versioning",
+    "file": "tests/e2e/specs/fa-content-hub-versioning.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

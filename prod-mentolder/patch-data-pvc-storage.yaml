@@ -1,0 +1,24 @@
+# Overrides storageClassName from local-path (base) to longhorn (prod).
+# local-path PVCs are node-pinned RWO; pvc-backup cannot mount PVCs from two nodes.
+# Longhorn is distributed — any Hetzner node can access the volume.
+# NOTE: storageClass is immutable on existing PVCs. Apply this patch AFTER manual migration.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-data-pvc
+spec:
+  storageClassName: longhorn
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vaultwarden-data-pvc
+spec:
+  storageClassName: longhorn
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docuseal-data-pvc
+spec:
+  storageClassName: longhorn

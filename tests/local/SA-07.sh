@@ -63,3 +63,25 @@ assert_contains "$PVC_VOLS" "docuseal-data-pvc"    "SA-07" "T9c" "pvc-backup sic
 # T10: backup-restore.sh supports pvc-restore subcommand
 RESTORE_HELP=$(bash "${SCRIPT_DIR}/../scripts/backup-restore.sh" --help 2>&1 || true)
 assert_contains "$RESTORE_HELP" "pvc-restore" "SA-07" "T10" "backup-restore.sh unterstützt pvc-restore Subcommand"
+
+# T11: Data PVCs used by pvc-backup must use Longhorn in prod overlay
+# (local-path PVCs are node-pinned RWO — backup pod cannot mount PVCs from different nodes)
+# This is a manifest-level test: checks kustomize build output, no cluster access needed.
+PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+KUSTOMIZE_OUT=$(kustomize build "${PROJECT_DIR}/prod-mentolder" 2>/dev/null)
+for pvc in nextcloud-data-pvc vaultwarden-data-pvc docuseal-data-pvc; do
+  # Extract storageClassName from the built manifest for this specific PVC
+  SC=$(echo "$KUSTOMIZE_OUT" \
+    | python3 -c "
+import sys, yaml
+docs = list(yaml.safe_load_all(sys.stdin))
+for d in docs:
+    if d and d.get('kind')=='PersistentVolumeClaim' and d.get('metadata',{}).get('name')=='${pvc}':
+        print(d.get('spec',{}).get('storageClassName','MISSING'))
+        break
+else:
+    print('NOT_FOUND')
+" 2>/dev/null || echo "ERROR")
+  assert_eq "$SC" "longhorn" "SA-07" "T11-${pvc}" \
+    "Datei-PVC ${pvc} nutzt Longhorn in prod-mentolder (aktuell: ${SC}) [T000317]"
+done

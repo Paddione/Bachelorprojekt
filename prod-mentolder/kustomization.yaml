@@ -111,6 +111,7 @@ patches:
     target:
       kind: Job
   - path: patch-backup-config.yaml
+  - path: patch-data-pvc-storage.yaml
   - path: patch-livekit.yaml
   # whisper Deployment: override the global NotIn patch so it lands on
   # k3s-1/2/3 (amd64, 8–16 GB, <5% util) not on the already-loaded Hetzner CPs.

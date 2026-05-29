@@ -267,6 +267,17 @@ function boardAuthRedirect(req, env) {
 app.get('/api/config', (_req, res) =>
   res.json({ ...buildConfig(process.env), brand: resolveBrand(process.env) }));
 
+function resolveJoinTarget(code) {
+  const room = typeof code === 'string' ? resolveSessionCode(code) : null;
+  return room ? { redirect: `/?room=${room}` } : { error: 'unknown-code' };
+}
+
+app.get('/api/join', (req, res) => {
+  const result = resolveJoinTarget(req.query.code);
+  if (result.redirect) return res.redirect(result.redirect);
+  return res.status(404).type('text/plain').send('Unbekannter oder abgelaufener Session-Code.');
+});
+
 // ─── Auth (OIDC / Keycloak) ───────────────────────────────────────────────────
 const BRETT_PUBLIC_URL = process.env.BRETT_PUBLIC_URL || 'http://brett.localhost';
 
@@ -1654,6 +1665,7 @@ module.exports = {
   generateSessionCode,
   registerSessionCode,
   resolveSessionCode,
+  resolveJoinTarget,
   sessionCodeIndex,
   rebuildSessionCodeIndexFromStates,
   assignAdminToken,

@@ -1344,6 +1344,7 @@
 
   function connectWS() {
     ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+    window.__brettWS = ws;
 
     ws.addEventListener("open", () => {
       wsReady = true;
@@ -1815,6 +1816,18 @@
     }
   }
   </script>
+<script type="module">
+  import { createWire } from '/assets/coaching/wire.mjs';
+  import { mountCoachingHud } from '/assets/coaching/hud.mjs';
+  const cfg = await fetch('/api/config').then((r) => r.json());
+  if (cfg.defaultMode === 'coaching') {
+    const me = await fetch('/auth/me').then((r) => r.json()).catch(() => ({}));
+    const wire = createWire(() => window.__brettWS);
+    const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
+    tryAttach();
+    mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
+  }
+</script>
 <script src="assets/mayhem/physics.js"></script>
 <script src="assets/mayhem/chase-camera.js"></script>
 <script src="assets/mayhem/skin-controller.js"></script>

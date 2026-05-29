@@ -24,7 +24,8 @@ When setting up a new environment from scratch, you must execute the steps in th
 3. **Seal secrets** (`env:seal`) must occur *after* fetching the certificate, using the correct keypair.
 4. **Install cert-manager** (`cert:install`) must be done to provision CRDs *before* `workspace:deploy` is called.
 5. **DNS API Secret** (`cert:secret -- <key>`) must be stored in both namespaces *before* deploying to avoid ACME challenge failures.
-6. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
+6. **Install the Longhorn storage provisioner** (`task ha:setup`, or the helm install + `iscsid` enable inside `scripts/setup-ha-cluster.sh`) must exist *before* `workspace:deploy`. The `prod-mentolder/` overlay declares `storageClassName: longhorn` for `livekit-recordings-pvc`, `nextcloud-data-pvc`, `vaultwarden-data-pvc`, and `docuseal-data-pvc` (the last three added by #1165 / T000317). On a fresh cluster these PVCs stay **Pending forever** — and nextcloud, vaultwarden, docuseal, and livekit-egress never start — unless the `longhorn` StorageClass and the host-level `iscsid` service are present first. `local-path` (k3s built-in) does **not** satisfy these claims.
+7. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
 
 ---
 
@@ -70,6 +71,21 @@ task cert:install ENV=<env>
 
 # Install the ipv64 DNS API key (required for ACME challenge)
 task cert:secret -- <ipv64-api-key> ENV=<env>
+```
+
+### Step 1.4b: Install Longhorn Storage Provisioner (mentolder)
+The `prod-mentolder/` overlay binds four PVCs to `storageClassName: longhorn`. Longhorn is **not** part of `workspace:deploy` — it is installed once by the HA bootstrap script. After a true teardown it must be re-installed before the workspace deploy.
+```bash
+# Full HA bootstrap (provisions k3s nodes + Traefik + Longhorn + iscsid)
+task ha:setup
+# ...or, if the k3s cluster already exists and only storage is missing, install Longhorn directly:
+#   helm repo add longhorn https://charts.longhorn.io && helm repo update
+#   helm install longhorn longhorn/longhorn -n longhorn-system --create-namespace
+#   kubectl patch storageclass longhorn -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+# iscsid must be enabled on EVERY node or Longhorn volumes fail to attach (see setup-ha-cluster.sh).
+
+# Verify the StorageClass exists before deploying — else longhorn PVCs hang Pending:
+kubectl --context <ctx> get storageclass longhorn
 ```
 
 ### Step 1.5: Workspace Deploy & Flux Bootstrap

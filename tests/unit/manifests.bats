@@ -308,3 +308,44 @@ print('OK: no workspace-secrets Secret in prod overlays')
   assert_failure
 }
 
+# ── Website cross-namespace egress (T000287) ─────────────────────
+# The Platform Hub System-Integrität health probe runs from the website pod
+# and must reach Collabora, which lives in the `workspace-office` namespace.
+# The website namespace enforces default-deny-egress with only an
+# allow-egress-to-workspace exception — so without an explicit
+# allow-egress-to-workspace-office NetworkPolicy the probe is blocked and the
+# dashboard reports Collabora as a false-negative `error` (T000287).
+@test "website overlay allows egress to workspace-office (collabora health probe)" {
+  if ! command -v python3 &>/dev/null; then
+    skip "python3 not installed"
+  fi
+  run python3 - "${PROJECT_DIR}/flux/apps/website-mentolder" <<'PY'
+import subprocess, sys, yaml
+overlay = sys.argv[1]
+out = subprocess.run(
+    ["kubectl", "kustomize", overlay, "--load-restrictor=LoadRestrictionsNone"],
+    capture_output=True, text=True)
+if out.returncode != 0:
+    print("kustomize build failed:", out.stderr, file=sys.stderr)
+    sys.exit(2)
+
+def allows_office(doc):
+    if not doc or doc.get("kind") != "NetworkPolicy":
+        return False
+    spec = doc.get("spec", {})
+    if "Egress" not in (spec.get("policyTypes") or []):
+        return False
+    for rule in spec.get("egress") or []:
+        for peer in rule.get("to") or []:
+            ns = (peer.get("namespaceSelector") or {}).get("matchLabels") or {}
+            if ns.get("kubernetes.io/metadata.name") == "workspace-office":
+                return True
+    return False
+
+found = any(allows_office(d) for d in yaml.safe_load_all(out.stdout))
+print("OK" if found else "MISSING: no NetworkPolicy grants egress to workspace-office")
+sys.exit(0 if found else 1)
+PY
+  assert_success
+}
+

@@ -9,12 +9,13 @@ declare -a entries=()
 
 for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod"; do
   [[ -d "$dir" ]] || continue
+  tier="$(basename "$dir")"
   while IFS= read -r -d '' f; do
     base="$(basename "$f")"
     id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)-([0-9]+).*/\1-\2/')"
     [[ "$id" == "$base" ]] && continue
     rel="${f#${REPO_ROOT}/}"
-    entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" '{id:$id, file:$path, category:$category, kind:"shell"}')")
+    entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
   done < <(find "$dir" -maxdepth 1 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
 done
 
@@ -29,8 +30,24 @@ for f in "${REPO_ROOT}"/tests/e2e/specs/*.spec.ts; do
     id="E2E:$base"
     category="E2E"
   fi
-  entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "$category" '{id:$id, file:$path, category:$category, kind:"playwright"}')")
+  entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "$category" '{id:$id, file:$path, category:$category, kind:"playwright", tier:"e2e"}')")
 done
 
-printf '%s\n' "${entries[@]}" | jq -s 'sort_by(.id)' > "$OUT"
-echo "Wrote $(jq 'length' "$OUT") inventory entries to $OUT"
+TMP_OUT=$(mktemp)
+if printf '%s\n' "${entries[@]}" | jq -s '
+  . as $orig | group_by({id, kind, tier}) | map(select(length > 1 and .[0].kind != "playwright")) as $dupes
+  | if ($dupes | length) > 0 then
+      "Error: Duplicate test IDs found in inventory:\n" +
+      ($dupes | map(map("  - " + .id + " [" + .kind + "/" + .tier + "] (" + .file + ")") | join("\n")) | join("\n")) + "\n"
+      | halt_error(1)
+    else
+      # Strip the temporary tier field before writing to JSON to keep the schema clean
+      $orig | map(del(.tier)) | sort_by(.id)
+    end
+' > "$TMP_OUT"; then
+  mv "$TMP_OUT" "$OUT"
+  echo "Wrote $(jq 'length' "$OUT") inventory entries to $OUT"
+else
+  rm -f "$TMP_OUT"
+  exit 1
+fi

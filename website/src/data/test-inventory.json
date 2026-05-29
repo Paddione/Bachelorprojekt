@@ -1093,12 +1093,6 @@
   },
   {
     "id": "SA-01",
-    "file": "tests/local/SA-01.sh",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-01",
     "file": "tests/prod/SA-01.sh",
     "category": "SA",
     "kind": "shell"
@@ -1183,19 +1177,7 @@
   },
   {
     "id": "SA-08",
-    "file": "tests/local/SA-08-sso.sh",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-08",
     "file": "tests/local/SA-08.sh",
-    "category": "SA",
-    "kind": "shell"
-  },
-  {
-    "id": "SA-08",
-    "file": "tests/prod/SA-08-sso.sh",
     "category": "SA",
     "kind": "shell"
   },

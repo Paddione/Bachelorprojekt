@@ -46,6 +46,7 @@ tasks:
         echo "Publishing localhost:$PORT as https://brainstorm.$PROD_DOMAIN — leave this terminal open."
         echo "  ssh -p {{.SSH_PORT}} -R brainstorm:80:localhost:$PORT tunnel@$TARGET"
         exec ssh -p {{.SSH_PORT}} -N \
+          -o StrictHostKeyChecking=accept-new \
           -o ServerAliveInterval=30 \
           -o ServerAliveCountMax=3 \
           -o ExitOnForwardFailure=yes \

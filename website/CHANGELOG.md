@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.14.1...website-v1.14.2) (2026-05-29)
+
+
+### Bug Fixes
+
+* **brett:** add 26 referenced SFX to canonical assets/audio/ source ([#1140](https://github.com/Paddione/Bachelorprojekt/issues/1140)) ([30b1940](https://github.com/Paddione/Bachelorprojekt/commit/30b19400fce3a266927a6c30463e505523df71d2))
+
 ## [1.14.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.14.0...website-v1.14.1) (2026-05-29)
 
 

@@ -1080,6 +1080,12 @@
     "kind": "playwright"
   },
   {
+    "id": "NFA-13",
+    "file": "tests/local/NFA-13.sh",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",

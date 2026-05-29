@@ -34,7 +34,7 @@ pr_number: null
 **Files:**
 - Modify: `website/src/layouts/AdminLayout.astro:39`
 
-- [ ] **Schritt 1: Zeile 39 in `AdminLayout.astro` ersetzen**
+- [x] **Schritt 1: Zeile 39 in `AdminLayout.astro` ersetzen**
 
 Öffne `website/src/layouts/AdminLayout.astro`. Zeile 39 lautet aktuell:
 
@@ -51,7 +51,7 @@ const helpSection = sectionParam || adminSection(path);
 
 `Astro.url` ist in jeder `.astro`-Datei immer verfügbar (SSR). `searchParams.get('section')` gibt `null` zurück wenn der Param fehlt — der `?? ''` wandelt das in einen leeren String um, sodass `|| adminSection(path)` greift.
 
-- [ ] **Schritt 2: TypeScript-Check ausführen**
+- [x] **Schritt 2: TypeScript-Check ausführen**
 
 ```bash
 cd website && pnpm astro check 2>&1 | tail -20
@@ -59,7 +59,7 @@ cd website && pnpm astro check 2>&1 | tail -20
 
 Erwartete Ausgabe: keine Fehler (0 errors, 0 warnings oder ähnlich).
 
-- [ ] **Schritt 3: Commit**
+- [x] **Schritt 3: Commit**
 
 ```bash
 cd /tmp/wt-content-hub-help-de
@@ -76,7 +76,7 @@ git commit -m "feat(admin): read ?section= param for context-sensitive help in s
 
 Der `admin`-Block in `helpContent.ts` endet aktuell mit dem `einstellungen`-Eintrag. Alle neuen/geänderten Einträge kommen **innerhalb des bestehenden `admin: { ... }` Objekts**.
 
-- [ ] **Schritt 1: Neuen `inhalte`-Eintrag direkt vor `startseite` einfügen**
+- [x] **Schritt 1: Neuen `inhalte`-Eintrag direkt vor `startseite` einfügen**
 
 Suche in `website/src/lib/helpContent.ts` die Zeile `startseite: {` im `admin`-Block. Füge **davor** ein:
 
@@ -113,7 +113,7 @@ Suche in `website/src/lib/helpContent.ts` die Zeile `startseite: {` im `admin`-B
     },
 ```
 
-- [ ] **Schritt 2: Bestehenden `seo`-Eintrag hinzufügen (fehlt komplett im admin-Block)**
+- [x] **Schritt 2: Bestehenden `seo`-Eintrag hinzufügen (fehlt komplett im admin-Block)**
 
 Suche `startseite: {` im `admin`-Block. Füge **davor** (nach `inhalte`) ein:
 
@@ -140,7 +140,7 @@ Suche `startseite: {` im `admin`-Block. Füge **davor** (nach `inhalte`) ein:
     },
 ```
 
-- [ ] **Schritt 3: TypeScript-Check**
+- [x] **Schritt 3: TypeScript-Check**
 
 ```bash
 cd website && pnpm astro check 2>&1 | tail -10
@@ -148,7 +148,7 @@ cd website && pnpm astro check 2>&1 | tail -10
 
 Erwartete Ausgabe: 0 errors.
 
-- [ ] **Schritt 4: Commit**
+- [x] **Schritt 4: Commit**
 
 ```bash
 cd /tmp/wt-content-hub-help-de
@@ -165,7 +165,7 @@ git commit -m "feat(admin): add inhalte overview + seo help entries"
 
 Die folgenden Einträge existieren bereits im `admin`-Block, haben aber `guides: []`. Ersetze jeweils `guides: [],` mit dem vollständigen Inhalt.
 
-- [ ] **Schritt 1: `startseite` — guides ersetzen**
+- [x] **Schritt 1: `startseite` — guides ersetzen**
 
 Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ersetzt:
 
@@ -203,7 +203,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 2: `uebermich` — guides ersetzen**
+- [x] **Schritt 2: `uebermich` — guides ersetzen**
 
 ```typescript
     uebermich: {
@@ -223,7 +223,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 3: `angebote` — guides ersetzen**
+- [x] **Schritt 3: `angebote` — guides ersetzen**
 
 ```typescript
     angebote: {
@@ -252,7 +252,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 4: `faq` — guides ersetzen**
+- [x] **Schritt 4: `faq` — guides ersetzen**
 
 ```typescript
     faq: {
@@ -280,7 +280,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 5: `kontakt` — guides ersetzen**
+- [x] **Schritt 5: `kontakt` — guides ersetzen**
 
 ```typescript
     kontakt: {
@@ -301,7 +301,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 6: `referenzen` — guides ersetzen**
+- [x] **Schritt 6: `referenzen` — guides ersetzen**
 
 ```typescript
     referenzen: {
@@ -330,7 +330,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 7: `rechtliches` — guides ersetzen**
+- [x] **Schritt 7: `rechtliches` — guides ersetzen**
 
 ```typescript
     rechtliches: {
@@ -366,7 +366,7 @@ Suche `startseite: {` im `admin`-Block. Der aktuelle `guides: [],` Wert wird ers
     },
 ```
 
-- [ ] **Schritt 8: TypeScript-Check**
+- [x] **Schritt 8: TypeScript-Check**
 
 ```bash
 cd website && pnpm astro check 2>&1 | tail -10
@@ -374,7 +374,7 @@ cd website && pnpm astro check 2>&1 | tail -10
 
 Erwartete Ausgabe: 0 errors.
 
-- [ ] **Schritt 9: Commit**
+- [x] **Schritt 9: Commit**
 
 ```bash
 cd /tmp/wt-content-hub-help-de
@@ -389,7 +389,7 @@ git commit -m "feat(admin): fill guides for startseite/uebermich/angebote/faq/ko
 **Files:**
 - Modify: `website/src/lib/helpContent.ts`
 
-- [ ] **Schritt 1: `stammdaten` — guides ersetzen**
+- [x] **Schritt 1: `stammdaten` — guides ersetzen**
 
 ```typescript
     stammdaten: {
@@ -410,7 +410,7 @@ git commit -m "feat(admin): fill guides for startseite/uebermich/angebote/faq/ko
     },
 ```
 
-- [ ] **Schritt 2: `navigation` — guides ersetzen**
+- [x] **Schritt 2: `navigation` — guides ersetzen**
 
 ```typescript
     navigation: {
@@ -430,7 +430,7 @@ git commit -m "feat(admin): fill guides for startseite/uebermich/angebote/faq/ko
     },
 ```
 
-- [ ] **Schritt 3: `footer` — guides ersetzen**
+- [x] **Schritt 3: `footer` — guides ersetzen**
 
 ```typescript
     footer: {
@@ -450,7 +450,7 @@ git commit -m "feat(admin): fill guides for startseite/uebermich/angebote/faq/ko
     },
 ```
 
-- [ ] **Schritt 4: Neue Service-Seiten-Einträge einfügen**
+- [x] **Schritt 4: Neue Service-Seiten-Einträge einfügen**
 
 Füge die folgenden 5 neuen Einträge **nach dem `footer`-Eintrag** im `admin`-Block ein (vor dem schließenden `},` des admin-Objekts):
 
@@ -572,7 +572,7 @@ Füge die folgenden 5 neuen Einträge **nach dem `footer`-Eintrag** im `admin`-B
     },
 ```
 
-- [ ] **Schritt 5: TypeScript-Check**
+- [x] **Schritt 5: TypeScript-Check**
 
 ```bash
 cd website && pnpm astro check 2>&1 | tail -10
@@ -580,7 +580,7 @@ cd website && pnpm astro check 2>&1 | tail -10
 
 Erwartete Ausgabe: 0 errors.
 
-- [ ] **Schritt 6: Commit**
+- [x] **Schritt 6: Commit**
 
 ```bash
 cd /tmp/wt-content-hub-help-de
@@ -594,7 +594,7 @@ git commit -m "feat(admin): fill guides for settings + add service page help ent
 
 **Files:** keine neuen Änderungen
 
-- [ ] **Schritt 1: Offline-Tests ausführen**
+- [x] **Schritt 1: Offline-Tests ausführen**
 
 ```bash
 cd /tmp/wt-content-hub-help-de
@@ -603,7 +603,7 @@ task test:all 2>&1 | tail -20
 
 Erwartete Ausgabe: alle Tests grün (keine neuen Tests nötig — reine Datei-Änderung).
 
-- [ ] **Schritt 2: Manuelle Verifikation (Browser)**
+- [x] **Schritt 2: Manuelle Verifikation (Browser)**
 
 Starte den Dev-Server:
 
@@ -618,7 +618,7 @@ Prüfe folgende URLs im Browser (Admin-Login via Keycloak erforderlich):
 3. `http://localhost:4321/admin/inhalte?tab=website&section=rechtliches` → Sidekick → Hilfe → **Titel „Rechtliches" + 3 Guides sichtbar**
 4. `http://localhost:4321/admin/inhalte?tab=newsletter` → Sidekick → Hilfe → **Titel „Content Hub" (Übersicht, kein section-Param)**
 
-- [ ] **Schritt 3: PR erstellen**
+- [x] **Schritt 3: PR erstellen**
 
 ```bash
 cd /tmp/wt-content-hub-help-de
@@ -631,7 +631,7 @@ gh pr create \
 - `helpContent.ts`: new `admin.inhalte` overview entry + detailed guides for all page/settings/service-page sections
 
 ## Test plan
-- [ ] `task test:all` passes
+- [x] `task test:all` passes
 - [ ] `/admin/inhalte` → Sidekick → Hilfe shows Content Hub overview
 - [ ] `/admin/inhalte?tab=website&section=angebote` → Hilfe shows Angebote guides
 - [ ] `/admin/inhalte?tab=website&section=rechtliches` → Hilfe shows 3 Rechtliches guides
@@ -642,14 +642,14 @@ EOF
 )"
 ```
 
-- [ ] **Schritt 4: CI abwarten und mergen**
+- [x] **Schritt 4: CI abwarten und mergen**
 
 ```bash
 # Warte auf grüne CI-Checks, dann:
 gh pr merge --squash --delete-branch --repo Paddione/Bachelorprojekt
 ```
 
-- [ ] **Schritt 5: Post-Merge Deploy**
+- [x] **Schritt 5: Post-Merge Deploy**
 
 ```bash
 # website/src/** geändert → Website-Deploy auf beiden Clustern

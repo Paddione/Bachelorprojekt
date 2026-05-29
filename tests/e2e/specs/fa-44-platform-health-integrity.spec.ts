@@ -58,4 +58,19 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', ()
     // live_status must not be 'missing' — the deployment exists in workspace-office
     expect(collabora.live_status).not.toBe('missing');
   });
+
+  test('T5: health API reports Collabora reachable (not error)', async ({ request }) => {
+    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skip authenticated test');
+
+    const res = await request.get(`${BASE}/api/admin/ops/health`);
+    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const clusterKey = Object.keys(body.results)[0];
+    const collabora = (body.results[clusterKey] as any[]).find((s: any) => s.name === 'Collabora');
+    expect(collabora).toBeDefined();
+    // The website pod must be able to reach collabora.workspace-office:9980.
+    expect(['ok', 'slow']).toContain(collabora.status);
+  });
 });

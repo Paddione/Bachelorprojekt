@@ -726,7 +726,10 @@
   // ── Label input ────────────────────────────────────────────────────────────────
   document.getElementById('fig-label-input').addEventListener('input', e => {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (fig) fig.label = e.target.value;
+    if (fig) {
+      fig.label = e.target.value;
+      sendUpdate(fig, { label: fig.label });
+    }
   });
 
   // ── Scale slider + size buttons ────────────────────────────────────────────────
@@ -1051,6 +1054,79 @@
   }
 
   // ----- Drag handling -----
+  const lockSprites = new Map(); // figureId -> Sprite
+  const activeLocks = new Map();  // figureId -> { userId, name, color }
+  let currentUser = { userId: 'anon', name: 'Teilnehmer', color: '#4ea1ff' };
+  fetch('/auth/me').then(r => r.json()).then(me => {
+    if (me.userId) {
+      currentUser.userId = me.userId;
+      currentUser.name = me.name;
+    }
+  }).catch(() => {});
+
+  function setFigureLockBadge(figureId, name, color) {
+    clearFigureLockBadge(figureId);
+    const fig = STATE.figures.find(f => f.id === figureId);
+    if (!fig) return;
+
+    // Create a canvas to draw the lock text
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw background bubble
+    ctx.fillStyle = color || '#4ea1ff';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(4, 4, 248, 56, 12);
+    } else {
+      ctx.rect(4, 4, 248, 56);
+    }
+    ctx.fill();
+    
+    // Draw text
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.fillStyle = '#161b22';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`🔒 ${name}`, 128, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.5, 0.375, 1);
+    sprite.position.set(0, 1.45, 0); // Position above hips/head
+
+    fig.root.add(sprite);
+    lockSprites.set(figureId, sprite);
+  }
+
+  function clearFigureLockBadge(figureId) {
+    const fig = STATE.figures.find(f => f.id === figureId);
+    const sprite = lockSprites.get(figureId);
+    if (sprite) {
+      if (fig) fig.root.remove(sprite);
+      sprite.material.map.dispose();
+      sprite.material.dispose();
+      lockSprites.delete(figureId);
+    }
+  }
+
+  function cancelDragFor(figureId) {
+    if (dragging && dragging.figId === figureId) {
+      dragging = null;
+    }
+  }
+
+  function clearLockBadgesForUser(userId) {
+    for (const [figId, lock] of activeLocks.entries()) {
+      if (lock.userId === userId) {
+        clearFigureLockBadge(figId);
+      }
+    }
+  }
+
   let dragging = null; // { figId, boneName, plane: Plane }
 
   renderer.domElement.addEventListener('mousedown', (e) => {
@@ -1074,7 +1150,16 @@
     if (sphere) {
       const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
       if (!fig) return;
+
+      const lock = activeLocks.get(fig.id);
+      if (lock && lock.userId !== currentUser.userId) {
+        e.preventDefault();
+        return; // block!
+      }
+
       selectFigure(fig.id);
+      if (wsReady) ws.send(JSON.stringify({ type: "figure_lock", id: fig.id, color: currentUser.color }));
+
       const worldPos = new THREE.Vector3();
       sphere.getWorldPosition(worldPos);
       // Drag plane parallel to camera, through the sphere
@@ -1119,6 +1204,7 @@
       // Also clear the end-effector entry if any
       delete fig.boneOverrides[dragging.boneName];
       sendUpdate(fig, { boneOverrides: fig.boneOverrides });
+      if (wsReady) ws.send(JSON.stringify({ type: "figure_unlock", id: fig.id }));
     }
     dragging = null;
   });
@@ -1414,6 +1500,17 @@
           STATE.stiffness = msg.stiffness; stiffSlider.value = String(msg.stiffness);
         }
         if (STATE.figures[0]) selectFigure(STATE.figures[0].id);
+
+        // Clear all visual lock badges first
+        for (const figId of activeLocks.keys()) {
+          clearFigureLockBadge(figId);
+        }
+        activeLocks.clear();
+        // Rehydrate locks
+        for (const l of (msg.locks || [])) {
+          activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
+          setFigureLockBadge(l.figureId, l.name, l.color);
+        }
         // Solo AI Mayhem: auto-enable if triggered from mode-select
         if (sessionStorage.getItem('brett_solo_mayhem') === '1') {
           sessionStorage.removeItem('brett_solo_mayhem');
@@ -1447,6 +1544,23 @@
         if (c.appearance !== undefined) applyAppearanceToFig(fig, c.appearance);
         if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
         if (c.walking !== undefined) fig.walking = !!c.walking;
+        break;
+      }
+      case "figure_locked": {
+        activeLocks.set(msg.id, { userId: msg.userId, name: msg.name, color: msg.color });
+        setFigureLockBadge(msg.id, msg.name, msg.color);
+        break;
+      }
+      case "figure_unlocked": {
+        clearFigureLockBadge(msg.id);
+        break;
+      }
+      case "figure_lock_denied": {
+        cancelDragFor(msg.id);
+        break;
+      }
+      case "locks_released_for": {
+        clearLockBadgesForUser(msg.userId);
         break;
       }
       case "move": {
@@ -1500,7 +1614,7 @@
   const _origAdd = addFigure;
   addFigure = function(position) {
     const fig = _origAdd(position);
-    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z, appearance: fig.appearance } }));
+    if (wsReady) ws.send(JSON.stringify({ type: "add", figure: { id: fig.id, type: "mannequin", x: position.x, z: position.z, appearance: fig.appearance, label: fig.label || '' } }));
     return fig;
   };
 

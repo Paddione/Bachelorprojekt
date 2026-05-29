@@ -372,6 +372,7 @@ Rufe `commit-commands:commit-push-pr` auf.
 
 - Feature: `feat(<scope>): <kurze-beschreibung>`
 - Fix: `fix(<scope>): <kurze-beschreibung>` — Body **MUSS** `Closes $TICKET_ID` (z.B. `Closes T000301`) enthalten, sonst Push blockieren und nochmal nachfragen.
+- **Subject startet kleingeschrieben** (gilt für **jeden** Commit auf dem Branch, nicht nur den PR-Titel): commitlint (`subject-case`) lehnt Subjects ab, die mit einem Großbuchstaben/Akronym/Konstante beginnen — z.B. `feat(brett): BRETT_BRAND env …` ❌ oder `fix(sse): OIDC redirect …` ❌. Umformulieren, sodass ein kleingeschriebenes Wort führt: `feat(brett): add BRETT_BRAND env …` ✅, `fix(sse): repair OIDC redirect …` ✅.
 
 Beispiele:
 

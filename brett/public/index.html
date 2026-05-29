@@ -1944,7 +1944,23 @@
     const wire = createWire(() => window.__brettWS);
     const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
     tryAttach();
-    mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
+    
+    const hasRoom = new URLSearchParams(location.search).has('room');
+    if (!hasRoom) {
+      const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
+      mountJoinOverlay({});
+    } else {
+      mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
+    }
+
+    wire.on('session_created', (m) => {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+      toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
+        `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
+        `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
+      document.body.appendChild(toast);
+    });
   }
 </script>
 <script src="assets/mayhem/physics.js"></script>

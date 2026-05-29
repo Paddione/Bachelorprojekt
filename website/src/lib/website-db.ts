@@ -1010,6 +1010,36 @@ export async function setSiteSetting(brand: string, key: string, value: string):
   );
 }
 
+// ── Content-Hub: new editable sections (stored as JSON under site_settings) ──
+export const NAV_KEY = 'navigation' as const;
+export const FOOTER_KEY = 'footer' as const;
+export const STAMMDATEN_KEY = 'stammdaten' as const;
+export const KORE_FLAGS_KEY = 'kore_flags' as const;
+
+export interface NavItem { label: string; href: string; order: number }
+export interface FooterLink { label: string; href: string }
+export interface FooterColumn { heading: string; links: FooterLink[] }
+export interface FooterConfig { columns: FooterColumn[]; copyright: string }
+export interface Stammdaten {
+  name: string; role: string; email: string; phone: string;
+  street: string; zip: string; city: string;
+  ustId: string; website: string; avatarInitials: string;
+}
+export interface KoreFlags { timeline: boolean }
+
+/** Read a JSON-valued site_setting; returns null when absent or unparseable. */
+export async function getJsonSetting<T>(brand: string, key: string): Promise<T | null> {
+  const raw = await getSiteSetting(brand, key).catch(() => null);
+  if (raw == null) return null;
+  try { return JSON.parse(raw) as T; } catch { return null; }
+}
+
+/** Persist a JSON-valued site_setting. */
+export async function setJsonSetting<T>(brand: string, key: string, value: T): Promise<void> {
+  await setSiteSetting(brand, key, JSON.stringify(value));
+}
+
+
 // ── SEO Title overrides (key/value, stored as seo_title_<pageKey>) ──────────
 
 export async function getSeoTitle(brand: string, pageKey: string): Promise<string | null> {

@@ -302,6 +302,45 @@ print('OK: no workspace-secrets Secret in prod overlays')
   assert_success
 }
 
+# ── MCP consolidation: prod runs only the monolith (T000289) ─────
+# Prod serves all MCP via claude-code-mcp-monolith (default ns), routed
+# by the mcp-gateway IngressRoute. The k3d base also defines split MCP
+# pods (claude-code-mcp-ops/-auth/mcp-browser/mcp-github) for the dev
+# cluster — these must NOT reach the prod overlay, or they run idle in
+# the workspace ns duplicating the monolith. browser/github were already
+# $patch:delete'd since PR #246; ops/auth are added in this fix.
+@test "prod overlays exclude split MCP pods (consolidated on monolith) [T000289]" {
+  if ! command -v python3 &>/dev/null; then
+    skip "python3 not installed"
+  fi
+  run python3 - "${PROJECT_DIR}" <<'PY'
+import subprocess, sys, yaml, glob, os
+project = sys.argv[1]
+overlays = sorted(d for d in glob.glob(os.path.join(project, 'prod-*')) if os.path.isdir(d))
+SPLIT = {'claude-code-mcp-ops', 'claude-code-mcp-auth', 'mcp-browser', 'mcp-github'}
+bad = []
+for ov in overlays:
+    r = subprocess.run(
+        ['kubectl', 'kustomize', ov, '--load-restrictor=LoadRestrictionsNone'],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f'kustomize build failed for {ov}: {r.stderr}', file=sys.stderr)
+        sys.exit(2)
+    for doc in yaml.safe_load_all(r.stdout):
+        if not doc:
+            continue
+        if doc.get('kind') in ('Deployment', 'Service') and \
+                doc.get('metadata', {}).get('name') in SPLIT:
+            bad.append(f"{os.path.basename(ov)}:{doc['kind']}/{doc['metadata']['name']}")
+if bad:
+    print('Split MCP resources still rendered in prod (should be monolith-only): '
+          + ', '.join(sorted(bad)))
+    sys.exit(1)
+print('OK: prod overlays render no split MCP ops/auth/browser/github resources')
+PY
+  assert_success
+}
+
 @test "Taskfile.yml does not corrupt native Kubernetes expansions with sed" {
   run grep -F 'sed '\''s/\$(\([^)]*\))/\${\1}/g'\''' "${PROJECT_DIR}/Taskfile.yml"
   # We expect grep to fail (not find the pattern), meaning the breaking sed is gone.

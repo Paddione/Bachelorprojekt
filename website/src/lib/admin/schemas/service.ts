@@ -25,6 +25,16 @@ export const serviceSchema: SectionSchema = {
       fields: [{ key: 'item', label: 'Zielgruppe', type: 'text' }],
     },
     {
+      key: 'process',
+      label: 'Prozess / Ablauf',
+      type: 'list',
+      fields: [
+        { key: 'step', label: 'Schritt-Label', type: 'text' },
+        { key: 'title', label: 'Titel', type: 'text' },
+        { key: 'text', label: 'Beschreibung', type: 'textarea' },
+      ],
+    },
+    {
       key: 'sections',
       label: 'Abschnitte',
       type: 'list',

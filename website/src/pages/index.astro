@@ -172,8 +172,8 @@ const processSteps = homepage.processSteps ?? [];
       <!-- CTA -->
       <CallToAction
         client:visible
-        secondaryText={contact.email}
-        secondaryHref={`mailto:${contact.email}`}
+        secondaryText={stammdaten?.email || contact.email}
+        secondaryHref={`mailto:${stammdaten?.email || contact.email}`}
       />
     </Fragment>
   )}

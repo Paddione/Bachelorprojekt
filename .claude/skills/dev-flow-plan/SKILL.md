@@ -358,12 +358,12 @@ Falls `$PORT` leer: Abbruch. Mitteilen: "brainstorm server konnte nicht gestarte
 task brainstorm:status >/tmp/brainstorm-status.log 2>&1 || true
 grep -q 'Running' /tmp/brainstorm-status.log || { echo "sish pod not Running — aborting"; cat /tmp/brainstorm-status.log; exit 1; }
 
-# Stelle sicher dass mindestens ein Authorized-Key in der ConfigMap liegt — sonst hängt ssh -R lautlos
-KEY_COUNT=$(kubectl --context mentolder -n workspace get cm brainstorm-sish-authorized-keys \
-  -o jsonpath='{.data.authorized_keys}' 2>/dev/null | grep -c '^ssh-' || echo 0)
+# Stelle sicher dass mindestens ein Authorized-Key im Secret liegt — sonst hängt ssh -R lautlos
+KEY_COUNT=$(kubectl --context mentolder -n workspace get secret workspace-secrets \
+  -o jsonpath='{.data.DEV_SISH_AUTHORIZED_KEYS}' 2>/dev/null | base64 -d 2>/dev/null | grep -c '^ssh-' || echo 0)
 if [[ "$KEY_COUNT" -lt 1 ]]; then
-  echo "⚠️  Keine authorized_keys in der ConfigMap. Patricks Public-Key in environments/.secrets/mentolder.yaml" \
-       "unter DEV_SISH_AUTHORIZED_KEYS ergänzen, dann: task env:seal ENV=mentolder && task brainstorm:_materialise-keys"
+  echo "⚠️  Keine authorized_keys im Secret workspace-secrets. Patricks Public-Key in environments/.secrets/mentolder.yaml" \
+       "unter DEV_SISH_AUTHORIZED_KEYS ergänzen, dann: task env:seal ENV=mentolder"
   exit 1
 fi
 ```
@@ -894,7 +894,7 @@ Diese Sektion ist für Diagnose und manuelle Eingriffe. Der Feature-Pfad (Schrit
 task brainstorm:firewall:open
 # Public-Key in environments/.secrets/mentolder.yaml unter DEV_SISH_AUTHORIZED_KEYS ergänzen
 task env:seal ENV=mentolder
-task brainstorm:materialise-keys
+# task workspace:deploy ENV=mentolder rolls the updated SealedSecret
 ```
 
 ### `ws://`→`wss://` Auto-Patch

@@ -462,3 +462,58 @@ YAML
   assert_success
   rm -rf "$tmpdir"
 }
+
+@test "build-test-inventory.sh detects duplicate test IDs and exits non-zero" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/scripts"
+  mkdir -p "${tmpdir}/tests/local"
+  mkdir -p "${tmpdir}/tests/prod"
+  mkdir -p "${tmpdir}/tests/e2e/specs"
+  mkdir -p "${tmpdir}/website/src/data"
+
+  # Copy the script
+  cp "${PROJECT_DIR}/scripts/build-test-inventory.sh" "${tmpdir}/scripts/"
+
+  # Create duplicate tests in the same directory/tier
+  touch "${tmpdir}/tests/local/FA-1-login.bats"
+  touch "${tmpdir}/tests/local/FA-1-logout.bats"
+
+  # Run it
+  run bash "${tmpdir}/scripts/build-test-inventory.sh"
+  assert_failure
+  assert_output --partial "Duplicate test IDs found"
+  assert_output --partial "FA-1"
+
+  rm -rf "$tmpdir"
+}
+
+@test "build-test-inventory.sh succeeds when there are no duplicate test IDs" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/scripts"
+  mkdir -p "${tmpdir}/tests/local"
+  mkdir -p "${tmpdir}/tests/prod"
+  mkdir -p "${tmpdir}/tests/e2e/specs"
+  mkdir -p "${tmpdir}/website/src/data"
+
+  # Copy the script
+  cp "${PROJECT_DIR}/scripts/build-test-inventory.sh" "${tmpdir}/scripts/"
+
+  # Create unique tests
+  touch "${tmpdir}/tests/local/FA-1-login.bats"
+  touch "${tmpdir}/tests/prod/FA-2-logout.bats"
+  touch "${tmpdir}/tests/e2e/specs/fa-3-reset.spec.ts"
+
+  # Run it
+  run bash "${tmpdir}/scripts/build-test-inventory.sh"
+  assert_success
+
+  # Check output JSON
+  [ -f "${tmpdir}/website/src/data/test-inventory.json" ]
+  run jq '. | length' "${tmpdir}/website/src/data/test-inventory.json"
+  assert_output "3"
+
+  rm -rf "$tmpdir"
+}
+

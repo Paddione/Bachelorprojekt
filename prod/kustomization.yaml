@@ -154,6 +154,46 @@ patches:
       metadata:
         name: mcp-browser
       $patch: delete
+  # Split in-cluster MCP pods (ops = k8s+postgres+meetings, auth = keycloak).
+  # Prod serves all MCP via claude-code-mcp-monolith (default ns) behind the
+  # mcp-gateway IngressRoute, so these dev-only split pods must not reach prod —
+  # else they run idle in the workspace ns duplicating the monolith. [T000289]
+  - target:
+      kind: Deployment
+      name: claude-code-mcp-ops
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: claude-code-mcp-ops
+      $patch: delete
+  - target:
+      kind: Service
+      name: claude-code-mcp-ops
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: claude-code-mcp-ops
+      $patch: delete
+  - target:
+      kind: Deployment
+      name: claude-code-mcp-auth
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: claude-code-mcp-auth
+      $patch: delete
+  - target:
+      kind: Service
+      name: claude-code-mcp-auth
+    patch: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: claude-code-mcp-auth
+      $patch: delete
   # Override domains
   - path: configmap-domains.yaml
   # Override ingress (add TLS + real hostnames)

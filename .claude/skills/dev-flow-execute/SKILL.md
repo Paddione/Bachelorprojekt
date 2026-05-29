@@ -130,6 +130,21 @@ Kein Blocker — nur Warnung und Bestätigung vom User, wenn Überschneidung erk
 
 Bevor irgendein Agent Code schreibt, Branch auf `origin/main` rebsen — verhindert Merge-Konflikte im PR.
 
+**Branch-Guard VOR jeder destruktiven Git-Op (parallel-session safety):** Eine parallele Claude-Session kann zwischen Schritt 0 und hier den ausgecheckten Branch im selben Repo gewechselt haben (Merge + `--delete-branch` einer anderen Session lässt den primären Worktree silent auf `main` zurück). Der `git stash`/`git rebase` unten würde dann auf dem falschen Branch laufen und Arbeit zerstören. Verifiziere den Branch **bevor** irgendetwas gestasht oder rebased wird:
+
+```bash
+EXPECTED_BRANCH="<feature-or-fix-branch>"   # der Branch aus Schritt 0
+ACTUAL_BRANCH=$(git branch --show-current)
+if [[ "$ACTUAL_BRANCH" != "$EXPECTED_BRANCH" ]]; then
+  echo "🛑 HALT: Branch-Mismatch VOR rebase/stash!"
+  echo "  Erwartet: $EXPECTED_BRANCH"
+  echo "  Aktuell:  $ACTUAL_BRANCH"
+  echo "  Eine parallele Session hat den Branch gewechselt. KEIN stash/rebase. Abbrechen und prüfen."
+  exit 1
+fi
+echo "✓ Branch bestätigt: $ACTUAL_BRANCH — sicher zu rebasen."
+```
+
 ```bash
 git fetch origin main
 git rebase origin/main
@@ -226,7 +241,20 @@ Ohne diese Anweisung schreiben Sub-Agents in das Haupt-Repo statt in den Worktre
 
 ### Fix
 
-Implementiere bis der failing Test (aus `dev-flow-plan` Schritt 3) grün ist. Pflicht: red → green → refactor.
+**Test-Gate (Pflicht — vor jeder Implementierung):** Der Fix-Pfad setzt voraus, dass `dev-flow-plan` Schritt 3 einen *failing* Regressionstest gestaged hat. Verifiziere das, **bevor** du Implementierungscode schreibst — fehlt der Test, ist die red→green-Disziplin verletzt (genau die Lücke, durch die PR #1134 testlos shipte). Dann: NICHT implementieren, sondern zuerst den failing Test schreiben (zurück zu `dev-flow-plan` Fix-Pfad Schritt 3).
+
+```bash
+# Test-Diff gegenüber main prüfen — der Fix-Branch MUSS mindestens eine Test-Datei berühren
+TEST_TOUCHED=$(git diff --name-only origin/main...HEAD | grep -E '^tests/|\.test\.(ts|js|mjs)$|\.spec\.ts$|\.bats$' | head -5)
+if [[ -z "$TEST_TOUCHED" ]]; then
+  echo "🛑 HALT: Fix-Branch hat keinen Test angefasst. Kein Regressionstest = kein Merge."
+  echo "  Schreibe zuerst einen failing Test (dev-flow-plan Fix-Pfad Schritt 3), dann implementiere."
+  exit 1
+fi
+echo "✓ Regressionstest vorhanden:"; echo "$TEST_TOUCHED"
+```
+
+Implementiere dann bis der failing Test (aus `dev-flow-plan` Schritt 3) grün ist. Pflicht: red → green → refactor.
 
 ```bash
 ./tests/runner.sh local <test-id>
@@ -394,6 +422,17 @@ Das ist alles — die PR-Nummer landet in Schritt 6.5 als Comment-Body und in Sc
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" && gh pr merge --squash --delete-branch)
 ```
+
+> **`--auto` aus einem Worktree no-oppt silent (CI noch nicht grün):** Wenn CI noch läuft und du `gh pr merge <n> --squash --delete-branch --auto` brauchst, darf das **nicht** aus dem `/tmp/wt-*`-Worktree laufen — dort scheitert es entweder mit `fatal: 'main' is already used by worktree at <primary>`, oder ein Re-Run aus einem neutralen Verzeichnis exit-0t, ohne den Auto-Merge tatsächlich zu setzen (silent no-op). Zwei sichere Varianten:
+> ```bash
+> # A) --auto immer mit --repo aus dem Haupt-Repo (außerhalb jedes Worktrees):
+> (cd "$MAIN_REPO" && gh pr merge <n> --squash --delete-branch --auto --repo Paddione/Bachelorprojekt)
+>
+> # B) Fallback ohne --auto: CI grün pollen, dann direkt mergen:
+> until [[ "$(gh pr checks <n> --json state -q '[.[]|select(.state!="SUCCESS"and .state!="SKIPPED")]|length')" == "0" ]]; do sleep 20; done
+> (cd "$MAIN_REPO" && gh pr merge <n> --squash --delete-branch)
+> ```
+> Danach immer per Zeitstempel verifizieren (siehe unten), nie per Exit-Code. [T000298]
 
 > **Erwarteter Exit-1 nach Squash-Merge — kein echter Fehler:** Nach einem Squash-Merge weicht der lokale Branch vom Remote-main ab (neuer Squash-Commit ≠ lokale Commit-Historie). `gh pr merge` schlägt dann mit `not possible to fast-forward` fehl (exit 1), obwohl der PR erfolgreich gemergt wurde. Das ist **normales Verhalten**, kein Bug.
 >

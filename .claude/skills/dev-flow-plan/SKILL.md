@@ -704,7 +704,7 @@ Falls kein Worktree existiert: Rufe `superpowers:using-git-worktrees` auf. Branc
 
 ### Schritt 3: Failing Test schreiben
 
-Schreibe einen Test, der den Bug beweist (red-green-refactor — Pflicht):
+Schreibe einen Test, der den Bug beweist (red-green-refactor — Pflicht). Dieser Test ist **harte Voraussetzung** für den Fix-Pfad: ohne gestageten failing Test darf `dev-flow-execute` weder implementieren noch mergen (es prüft den Test-Diff und HALTet sonst). Der Test wird in Schritt 5 zusammen mit dem Plan committed — nie nachträglich als Follow-up (genau das passierte bei PR #1134/#1135 und ist der Grund für dieses Gate).
 
 ```bash
 ./tests/runner.sh local <neue-test-id>
@@ -867,7 +867,7 @@ git checkout main
 git pull --rebase origin main
 ```
 
-> **Falls branch protection CI-Checks verlangt:** `gh pr merge --squash --delete-branch --auto` nutzen — `gh` wartet dann auf grüne Checks, bevor es mergt.
+> **Falls branch protection CI-Checks verlangt:** `gh pr merge --squash --delete-branch --auto` nutzen — `gh` wartet dann auf grüne Checks, bevor es mergt. **Aus einem `/tmp/wt-*`-Worktree no-oppt `--auto` silent** (oder scheitert an `'main' is already used by worktree`). Dann `--auto` mit `--repo Paddione/Bachelorprojekt` aus dem Haupt-Repo (außerhalb jedes Worktrees) aufrufen, oder CI grün pollen und ohne `--auto` mergen. [T000298]
 
 ### Schritt 7: Post-Merge Deploy
 

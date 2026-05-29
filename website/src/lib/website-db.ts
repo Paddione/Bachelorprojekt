@@ -843,16 +843,24 @@ export interface ServiceOverride {
   title: string;
   description: string;
   icon: string;
-  price: string;
+  /** @deprecated legacy headline price — derived from the catalog post-migration. Kept for read fallback. */
+  price?: string;
   features: string[];
   hidden?: boolean;
   /** Short eyebrow-label shown under the title on the homepage card. */
   meta?: string;
+  /** Catalog category (`LeistungCategoryOverride.id`) this card draws its prices from. */
+  leistungCategoryId?: string;
+  /** Catalog row key whose price is shown as the card headline. */
+  headlineKey?: string;
+  /** Prefix the headline price with "ab ". */
+  headlinePrefix?: boolean;
   pageContent?: {
     headline?: string;
     intro?: string;
     forWhom?: string[];
     sections?: Array<{ title: string; items: string[] }>;
+    /** @deprecated detail tiers now render the linked catalog category. Kept for read fallback. */
     pricing?: Array<{ label: string; price: string; unit?: string; highlight?: boolean }>;
     faq?: Array<{ question: string; answer: string }>;
     faqTitle?: string;

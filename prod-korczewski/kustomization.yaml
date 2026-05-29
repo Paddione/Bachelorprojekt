@@ -131,6 +131,9 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/env/8/value
         value: "http://website.website-korczewski.svc.cluster.local"
+      - op: replace
+        path: /spec/template/spec/containers/0/env/13/value
+        value: korczewski
 
   # CronJobs that pin to mentolder Hetzner CPs:
   #   - tests-retention      (k3d/tests-retention-cronjob.yaml — applied separately, not via kustomize)

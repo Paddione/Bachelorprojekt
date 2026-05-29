@@ -966,6 +966,14 @@ function applyMutation(room, msg) {
       figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: msg.ts });
       break;
     }
+    case 'coaching_steps_set': {
+      if (Array.isArray(msg.steps) && msg.steps.length &&
+          msg.steps.every((s) => typeof s === 'string' && s.length)) {
+        const idx = Math.max(0, Math.min((msg.index | 0), msg.steps.length - 1));
+        figs.set('__coaching_steps__', { id: '__coaching_steps__', steps: msg.steps.slice(), index: idx });
+      }
+      break;
+    }
   }
 }
 
@@ -992,6 +1000,7 @@ function buildStateFromMutations(room) {
     '__optik__', '__stiffness__', '__mayhem__', '__game_mode__',
     '__session_phase__', '__session_code__', '__admin_token_holder__',
     '__session_created_at__', '__session_last_activity__',
+    '__coaching_steps__',
   ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
@@ -1013,6 +1022,8 @@ function buildStateFromMutations(room) {
   if (adminTokenEntry)   result.adminTokenHolder   = adminTokenEntry.playerId;
   if (createdAtEntry)    result.sessionCreatedAt   = createdAtEntry.ts;
   if (lastActivityEntry) result.sessionLastActivity = lastActivityEntry.ts;
+  const coachingStepsEntry = figs.get('__coaching_steps__');
+  if (coachingStepsEntry) result.coachingSteps = { steps: coachingStepsEntry.steps, index: coachingStepsEntry.index };
   return result;
 }
 
@@ -1101,6 +1112,7 @@ wss.on('connection', (ws, req) => {
             stiffness: state.stiffness ?? 0.65,
             mayhem: state.mayhem ?? true,
             gameMode: state.gameMode,
+            coachingSteps: state.coachingSteps,
           }));
         }
         // Also send current pickup positions
@@ -1159,6 +1171,13 @@ wss.on('connection', (ws, req) => {
           if (typeof state.sessionLastActivity === 'string') {
             figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: state.sessionLastActivity });
           }
+          if (state.coachingSteps && Array.isArray(state.coachingSteps.steps)) {
+            figs.set('__coaching_steps__', {
+              id: '__coaching_steps__',
+              steps: state.coachingSteps.steps,
+              index: state.coachingSteps.index | 0,
+            });
+          }
         }
 
         const state = buildStateFromMutations(msg.room);
@@ -1174,6 +1193,7 @@ wss.on('connection', (ws, req) => {
           adminTokenHolder: state.adminTokenHolder,
           sessionCreatedAt: state.sessionCreatedAt,
           sessionLastActivity: state.sessionLastActivity,
+          coachingSteps: state.coachingSteps,
         }));
         // Sync co-op wave state to the newly joined client
         const meta = roomMeta.get(msg.room);
@@ -1326,6 +1346,7 @@ wss.on('connection', (ws, req) => {
         'admin_mayhem_toggle','admin_mode_set','admin_kick',
         'admin_bot_spawn','admin_bot_despawn','admin_round_reset','admin_broadcast',
         'admin_session_create','admin_handoff_token','admin_round_stop','admin_round_pause',
+        'admin_coaching_steps_set',
       ];
 
       if (ADMIN_TYPES.includes(msg.type)) {
@@ -1429,6 +1450,12 @@ wss.on('connection', (ws, req) => {
           }
           case 'admin_round_pause': {
             handleAdminRoundPause(adminRoom, (m) => broadcast(adminRoom, m));
+            schedulePersist(adminRoom);
+            break;
+          }
+          case 'admin_coaching_steps_set': {
+            applyMutation(adminRoom, { type: 'coaching_steps_set', steps: msg.steps, index: msg.index });
+            broadcast(adminRoom, { type: 'coaching_steps_change', steps: msg.steps, index: msg.index });
             schedulePersist(adminRoom);
             break;
           }

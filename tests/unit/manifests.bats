@@ -233,6 +233,13 @@ all_images() {
   grep -q 'kind: CronJob' "$RENDERED"
 }
 
+@test "pvc-backup CronJob references critical data PVCs" {
+  grep -q 'name: pvc-backup' "$RENDERED"
+  grep -q 'nextcloud-data-pvc' "$RENDERED"
+  grep -q 'vaultwarden-data-pvc' "$RENDERED"
+  grep -q 'docuseal-data-pvc' "$RENDERED"
+}
+
 # ── PVCs ─────────────────────────────────────────────────────────
 
 @test "PersistentVolumeClaims exist for stateful services" {

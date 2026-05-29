@@ -715,6 +715,11 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: HETZNER_API_KEY
+    required: false
+    generate: false
+    description: "Hetzner Cloud API token for the cluster's project. Used for node provisioning and automation via the Hetzner Cloud API."
+
   # ─────────────────────────────────────────────────────────────────
   # Dev stack — sealed against mentolder cluster cert.
   # The shared-db-dev passwords are DISTINCT from prod's shared-db

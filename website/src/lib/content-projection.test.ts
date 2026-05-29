@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveHeadlinePrice } from './content-projection';
+import { deriveHeadlinePrice, detailTiers, resolveHighlightTable } from './content-projection';
 import type { LeistungCategoryOverride } from './website-db';
 
 const cat: LeistungCategoryOverride = {
@@ -26,5 +26,32 @@ describe('deriveHeadlinePrice', () => {
   });
   it('returns empty string when category has no rows', () => {
     expect(deriveHeadlinePrice({ id: 'x', services: [] }, 'k', true)).toBe('');
+  });
+});
+
+describe('detailTiers', () => {
+  it('returns all rows of the linked category as {label, price, unit, highlight}', () => {
+    expect(detailTiers(cat)).toEqual([
+      { label: 'Einzelstunde', price: '60 €', unit: '/ Stunde', highlight: false },
+      { label: 'Paket S', price: '330 €', unit: '', highlight: true },
+    ]);
+  });
+  it('returns [] for a missing category', () => {
+    expect(detailTiers(undefined)).toEqual([]);
+  });
+});
+
+describe('resolveHighlightTable', () => {
+  const cats = [cat];
+  it('resolves a catalog-key reference to label+price, keeping the local note', () => {
+    expect(resolveHighlightTable([{ catalogKey: '50plus-digital-einzel', note: 'Netto §19' }], cats))
+      .toEqual([{ label: 'Einzelstunde', price: '60 €', unit: '/ Stunde', note: 'Netto §19', highlight: false }]);
+  });
+  it('passes literal rows through unchanged', () => {
+    expect(resolveHighlightTable([{ label: 'Erstgespräch', price: 'Kostenlos', note: 'Unverbindlich' }], cats))
+      .toEqual([{ label: 'Erstgespräch', price: 'Kostenlos', unit: '', note: 'Unverbindlich', highlight: false }]);
+  });
+  it('drops references whose catalog key no longer exists', () => {
+    expect(resolveHighlightTable([{ catalogKey: 'gone' }], cats)).toEqual([]);
   });
 });

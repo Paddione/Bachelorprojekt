@@ -23,3 +23,34 @@ export function deriveHeadlinePrice(
   if (headlinePrefix && !isFreeText(row.price)) return `ab ${base}`;
   return base;
 }
+
+export interface Tier { label: string; price: string; unit: string; highlight: boolean }
+
+export function detailTiers(cat: LeistungCategoryOverride | undefined): Tier[] {
+  return (cat?.services ?? []).map((r) => ({
+    label: r.name ?? '', price: r.price ?? '', unit: r.unit ?? '', highlight: r.highlight ?? false,
+  }));
+}
+
+export type HighlightEntry =
+  | { catalogKey: string; note?: string; highlight?: boolean }
+  | { label: string; price: string; note?: string; highlight?: boolean };
+
+export interface ResolvedHighlight { label: string; price: string; unit: string; note: string; highlight: boolean }
+
+export function resolveHighlightTable(
+  entries: HighlightEntry[],
+  categories: LeistungCategoryOverride[],
+): ResolvedHighlight[] {
+  const out: ResolvedHighlight[] = [];
+  for (const e of entries ?? []) {
+    if ('catalogKey' in e) {
+      const row = categories.flatMap((c) => c.services ?? []).find((r) => r.key === e.catalogKey);
+      if (!row) continue; // reference to a deleted row → drop
+      out.push({ label: row.name ?? '', price: row.price ?? '', unit: row.unit ?? '', note: e.note ?? '', highlight: e.highlight ?? false });
+    } else {
+      out.push({ label: e.label, price: e.price, unit: '', note: e.note ?? '', highlight: e.highlight ?? false });
+    }
+  }
+  return out;
+}

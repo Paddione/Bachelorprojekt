@@ -190,10 +190,12 @@ flux reconcile source git flux-system --context korczewski
 
 # Step 2: reconcile the kustomization
 flux reconcile kustomization workspace --context mentolder
-flux reconcile kustomization workspace-korczewski --context korczewski
+flux reconcile kustomization workspace --context korczewski
 ```
 
 > **Why source first?** `flux reconcile kustomization` re-applies whatever revision the GitRepository last fetched. If that's 5 minutes old, the kustomization gets the wrong commit.
+
+> **Kustomization name ≠ git path.** The Flux `Kustomization` resource is named `workspace` on **both** clusters (`metadata.name` in `flux/clusters/<env>/workspace.yaml`); only the `path:` differs (`./prod-mentolder` vs `./prod-korczewski`). Likewise the website kustomization is named `website` on both (paths `./flux/apps/website-mentolder` / `-korczewski`). `flux reconcile kustomization <name>` takes the **name**, not the path — so `flux reconcile kustomization workspace-korczewski` fails with "not found". Always reconcile by the base name and select the cluster with `--context`.
 
 ### Check Flux Status
 

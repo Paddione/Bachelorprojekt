@@ -166,14 +166,14 @@ const processSteps = homepage.processSteps ?? [];
       <!-- FAQ -->
       <FAQ items={faq.map((item) => ({
         ...item,
-        answer: item.answer.replace('{city}', contact.city),
+        answer: item.answer.replace('{city}', stammdaten.city),
       }))} client:visible />
 
       <!-- CTA -->
       <CallToAction
         client:visible
-        secondaryText={stammdaten?.email || contact.email}
-        secondaryHref={`mailto:${stammdaten?.email || contact.email}`}
+        secondaryText={stammdaten?.email}
+        secondaryHref={`mailto:${stammdaten?.email}`}
       />
     </Fragment>
   )}

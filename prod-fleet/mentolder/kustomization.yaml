@@ -110,6 +110,15 @@ patches:
                         - key: kubernetes.io/hostname
                           operator: In
                           values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+  # The prod-mentolder base hard-pins brainstorm-sish via nodeSelector to
+  # gekko-hetzner-2 (a node that does not exist on fleet). nodeSelector is ANDed
+  # with the nodeAffinity above, so it must be removed or the pod stays Pending.
+  - target:
+      kind: Deployment
+      name: brainstorm-sish
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/nodeSelector
   # whisper needs a GPU node on mentolder (k3s home workers); fleet pk nodes have
   # no GPU, so transcription is best-effort here — repoint so the pod at least
   # schedules instead of staying Pending (flag for Phase 2b capacity review).

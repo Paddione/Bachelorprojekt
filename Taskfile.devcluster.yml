@@ -1,0 +1,21 @@
+version: "3"
+
+vars:
+  CTX: devc
+  NS: workspace-dev
+  VIP: 10.0.0.20
+
+tasks:
+  deploy:
+    desc: "[devcluster] Materialise secrets + apply dev-stack to the HA k3s cluster"
+    cmds:
+      - task: dev:_materialise-secrets
+        vars: {CTX_DEV: "{{.CTX}}", NS_DEV: "{{.NS}}"}
+      - task: dev:apply
+        vars: {CTX_DEV: "{{.CTX}}", NS_DEV: "{{.NS}}"}
+
+  status:
+    desc: "[devcluster] Pod + ingress status on the HA cluster"
+    cmds:
+      - kubectl --context {{.CTX}} -n {{.NS}} get pods,svc,ingress -o wide
+      - 'curl -sSI --max-time 5 -H "Host: web.dev.mentolder.de" http://{{.VIP}}/ || true'

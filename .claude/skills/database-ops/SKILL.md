@@ -11,7 +11,7 @@ description: Unified runbook for database operations, schema migrations, DDL own
 
 # database-ops
 
-This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across both cluster environments.
+This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand).
 
 ---
 
@@ -19,7 +19,7 @@ This runbook covers PostgreSQL database schema migrations, permissions managemen
 
 The `mentolder` cluster and the `fleet` cluster (which hosts the `korczewski` brand in namespace `workspace-korczewski`) each host their own independent `shared-db` instance. Schema migrations, DB password rotations, and backup audits must be executed explicitly on **both**.
 
-> **Fleet Stage 2 note (in progress as of 2026-05-30).** The standalone `korczewski` cluster was torn down; the `korczewski` brand now lives on the unified **`fleet`** cluster (hosts `pk-hetzner-4/6/8`). The `ENV=korczewski` task invocations below remain correct (env-resolve targets the right context), but any raw `kubectl`/script `--context korczewski` is **DEAD** — substitute `--context fleet`. Note `task fleet:deploy` has not yet run, so the korczewski-brand `shared-db` may not exist on `fleet` until cutover.
+> **Fleet Stage 2 note (as of 2026-05-30).** The standalone `korczewski` cluster was torn down; the `korczewski` brand now lives on the unified **`fleet`** cluster (hosts `pk-hetzner-4/6/8`). The `ENV=korczewski` task invocations below remain correct (env-resolve targets the right context), but any raw `kubectl`/script `--context korczewski` is **DEAD** — substitute `--context fleet`. `task fleet:deploy` HAS been run (Phase 2a complete) — the korczewski-brand `shared-db` exists on fleet in namespace `workspace-korczewski` with 26/26 pods running.
 
 ---
 
@@ -65,7 +65,7 @@ Execute the migration sequentially on both clusters:
 # Apply to mentolder
 task workspace:psql ENV=mentolder -- website < scripts/datamodel/<migration>.sql
 
-# Apply to korczewski
+# Apply to korczewski brand (fleet cluster, namespace workspace-korczewski)
 task workspace:psql ENV=korczewski -- website < scripts/datamodel/<migration>.sql
 ```
 
@@ -136,7 +136,7 @@ STAMP=<latest-timestamp>
 
 ### Step 2.5: Filen remote-backup invariant (2FA must stay OFF)
 
-The `filen-upload` sidecar in `k3d/backup-cronjob.yaml` and the `filen-pull` restore job in `scripts/backup-restore.sh` both shell out to the official `@filen/cli` with raw `FILEN_EMAIL` + `FILEN_PASSWORD` (sealed per-cluster in `environments/sealed-secrets/{mentolder,korczewski}.yaml`). The CLI performs the full Filen auth-v2 flow internally — PBKDF2-200k key derivation, login-password/master-key split, `/v3/login`, master-key fetch — so we deliberately do **not** reimplement any of that crypto.
+The `filen-upload` sidecar in `k3d/backup-cronjob.yaml` and the `filen-pull` restore job in `scripts/backup-restore.sh` both shell out to the official `@filen/cli` with raw `FILEN_EMAIL` + `FILEN_PASSWORD` (sealed per-environment in `environments/sealed-secrets/{mentolder,korczewski}.yaml` (mentolder = standalone cluster; korczewski = fleet cluster, namespace `workspace-korczewski`)). The CLI performs the full Filen auth-v2 flow internally — PBKDF2-200k key derivation, login-password/master-key split, `/v3/login`, master-key fetch — so we deliberately do **not** reimplement any of that crypto.
 
 **Hard invariant: 2FA is disabled on both Filen accounts (mentolder and korczewski).** The CLI invocation passes no TOTP code, so an enabled 2FA would fail login permanently. If you rotate Filen credentials, store the *plaintext account password* (not a pre-derived hash) and keep 2FA off, then `task env:seal ENV=<env>`.
 

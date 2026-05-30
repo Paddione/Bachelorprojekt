@@ -24,7 +24,7 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 ## Keycloak realm files
 - Dev: `k3d/realm-workspace-dev.json`
 - Prod mentolder: `prod-mentolder/realm-workspace-mentolder.json`
-- Prod korczewski: `prod-korczewski/realm-workspace-korczewski.json`
+- Prod korczewski (fleet cluster, ns `workspace-korczewski`): `prod-korczewski/realm-workspace-korczewski.json`
 - SSO consumers: Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code (all OIDC via Keycloak)
 
 > **Two clusters, two of everything (Fleet Stage 2).** The standalone `mentolder` cluster and the `fleet` cluster each have their OWN sealed-secrets controller, cert-manager, and Keycloak realm. Secret rotation and realm sync must be applied to BOTH the `mentolder` context AND the `fleet` context explicitly. The old `korczewski` context is DEAD (T000340) — use `fleet` for korczewski-brand secrets/realm work.

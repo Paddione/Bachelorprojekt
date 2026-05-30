@@ -21,7 +21,7 @@
 |---|---|
 | `host-node-networking` | Host server provisioning (Hetzner, cloud-init, Rescue Mode resets), WireGuard mesh network topology ("netplan"), host UFW firewall ports, LiveKit WebRTC networking, and WSL OpenClaw local gateway setup. |
 | `cluster-deployment` | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), manage Flux GitOps, or operate the dev.mentolder.de stack. |
-| `fleet-ops` | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and **Flux GitOps** reconciliation across mentolder + korczewski. |
+| `fleet-ops` | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and **Flux GitOps** reconciliation across the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand). |
 
 ---
 
@@ -29,7 +29,7 @@
 
 | Skill | When to use |
 |---|---|
-| `secret-rotation` | Rotate DB passwords, API keys, SealedSecrets keypair (post-reset), Claude Code tokens, or service credentials across both clusters. |
+| `secret-rotation` | Rotate DB passwords, API keys, SealedSecrets keypair (post-reset), Claude Code tokens, or service credentials across the mentolder standalone cluster and the fleet cluster. |
 | `keycloak-realm-sync` | Reconcile Keycloak realm JSON → push OIDC client changes, group mappings, mappers, SSO login fixes. |
 
 ---
@@ -38,7 +38,7 @@
 
 | Skill | When to use |
 |---|---|
-| `arena-brett-deploy` | Build, push, and deploy arena-server (korczewski-only) or brett (both clusters). Covers proto-drift copy step. |
+| `arena-brett-deploy` | Build, push, and deploy arena-server (korczewski brand on fleet only) or brett (mentolder standalone + fleet). Covers proto-drift copy step. |
 
 ---
 

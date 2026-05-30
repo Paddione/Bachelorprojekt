@@ -64,7 +64,7 @@ After sourcing, the following shell variables are available:
 ### Step 1.0: Provision Hetzner Nodes
 
 Node roles for each environment:
-- **korczewski**: `pk-hetzner-4` = control-plane (server); `pk-hetzner-6`, `pk-hetzner-8` = workers (agent)
+- **korczewski** (fleet cluster): `pk-hetzner-4` = control-plane (server); `pk-hetzner-6`, `pk-hetzner-8` = workers (agent)
 - **mentolder**: `gekko-hetzner-2/3/4` = control-plane (server); Raspberry Pi `k3w-*` = workers (agent)
 
 > **Fleet Stage 2 status (as of 2026-05-30).** The standalone `korczewski` cluster has been torn down; `pk-hetzner-4/6/8` now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8) with the same node/WireGuard layout shown below. The procedure here is exactly how that fleet cluster is (re)created on these hosts — keep it. Note that the old `korczewski` kubeconfig context (`204.168.244.104:6443`) is now **DEAD** (that IP serves the fleet k3s CA, x509 error = T000340); the fleet context is named `fleet` and the API is reached via the **pk-4 public IP**, not the `127.0.0.1:16443` tunnel — use `--context fleet` in the `kubectl ... get nodes -w` watches below.
@@ -93,7 +93,7 @@ hcloud server create \
   --image ubuntu-24.04 \
   --ssh-key <KEY_NAME> \
   --user-data-from-file /tmp/ci-pk4.yaml
-kubectl --context korczewski get nodes -w
+kubectl --context fleet get nodes -w
 ```
 
 **Worker node (agent — joins existing CP):**
@@ -117,7 +117,7 @@ hcloud server create \
   --image ubuntu-24.04 \
   --ssh-key <KEY_NAME> \
   --user-data-from-file /tmp/ci-pk6.yaml
-kubectl --context korczewski get nodes -w
+kubectl --context fleet get nodes -w
 ```
 
 > Node data (IPs, WG IPs, schema keys) is the source of truth in `wireguard/wg-mesh-nodes.yaml`.

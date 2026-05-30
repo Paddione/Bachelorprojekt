@@ -1,34 +1,36 @@
 ---
 name: fleet-ops
-description: Use when deploying, verifying, or operating across both prod clusters simultaneously — mentolder and korczewski. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-cluster schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
+description: Use when deploying, verifying, or operating across both prod environments simultaneously — mentolder standalone and fleet (hosting korczewski brand). Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-cluster schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
 ---
 
-# fleet-ops — Two-Cluster Fleet Operations
+# fleet-ops — Multi-Cluster Operations (mentolder + fleet)
 
 ## Overview
 
-Production runs as **two independent k3s clusters**. They share no storage, no database, no sealed-secrets controller — any operation that changes shared state (DB schema, role passwords, sealed secrets, OIDC config) must be applied to **both explicitly**.
+Production runs as **two independent k3s clusters** — the standalone `mentolder` cluster and the unified `fleet` cluster. They share no storage, no database, no sealed-secrets controller — any operation that changes shared state (DB schema, role passwords, sealed secrets, OIDC config) must be applied to **both explicitly**.
 
-| Cluster | Context | Namespace | Domain |
+| Brand | Cluster context | Namespace | Domain |
 |---|---|---|---|
-| mentolder | `mentolder` | `workspace` | `web.mentolder.de` |
-| korczewski (brand) | `fleet` | `workspace-korczewski` | `web.korczewski.de` |
+| mentolder | `mentolder` (standalone) | `workspace` | `web.mentolder.de` |
+| korczewski | `fleet` | `workspace-korczewski` | `web.korczewski.de` |
 
-> **Transitional topology (Fleet Stage 2, in progress as of 2026-05-30).** The standalone `korczewski` cluster has been torn down. Its hosts (`pk-hetzner-4/6/8`) now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8). The korczewski **brand** lives on, but is now operated via the **`fleet`** kubeconfig context in namespace `workspace-korczewski` — **not** the old `korczewski` context. The old `korczewski` context (`204.168.244.104:6443`) is **DEAD**: that IP now serves the fleet k3s CA, so it throws an x509 error (T000340). `ENV=korczewski` / `BRAND=korczewski` remain valid brand identifiers. **The `--context korczewski` invocations below are stale for the korczewski brand — substitute `--context fleet` until this skill is fully reconciled.** Note: `task fleet:deploy` has not yet been run, so the `fleet` cluster currently carries only cert-manager + Traefik and the brand namespaces are still empty (korczewski.de returns 404 behind the Traefik default cert — expected until cutover). The DNS cutover mechanism is merged (PR #1189: `scripts/fleet-dns-cutover.sh`, `task fleet:dns:cutover|rollback`, runbook `docs/fleet-stage2-cutover-runbook.md`) but the live cutover is not done.
+> **Fleet Stage 2 topology (as of 2026-05-30).** The standalone `korczewski` cluster has been torn down. Its hosts (`pk-hetzner-4/6/8`) now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8). The korczewski **brand** lives on, operated via the **`fleet`** kubeconfig context in namespace `workspace-korczewski`. The old `korczewski` context (`204.168.244.104:6443`) is **DEAD**: that IP now serves the fleet k3s CA, so it throws an x509 error (T000340). `ENV=korczewski` / `BRAND=korczewski` remain valid brand identifiers.
+>
+> **`task fleet:deploy` HAS been run (Phase 2a complete).** Both brands' core workloads are deployed and Running on the fleet cluster — namespaces `workspace` (mentolder brand) and `workspace-korczewski` are each at **26/26** pods (PRs #1193, #1205, #1206, #1213). **Still pending (Phase 2b / 2c):** Collabora office-stack + CoTURN live deploy on fleet (mechanism merged #1197, not yet run), the wildcard cert won't issue (T000351, coturn cert-gated), website apps are not on fleet, and the **DNS cutover is NOT done** — `mentolder` remains a live STANDALONE cluster (reversible DNS flip). See `docs/fleet-stage2-cutover-runbook.md` and plan T000338.
 
 ---
 
 ## Fan-Out Deploy Commands
 
-These are the primary interfaces for cross-cluster work:
+These are the primary interfaces for cross-environment work:
 
 ```bash
-task feature:deploy        # workspace:deploy + post-setup on BOTH clusters
-task feature:website       # Rebuild + roll Astro website on BOTH clusters
-task feature:brett         # Rebuild + roll brett on BOTH clusters
-task feature:livekit       # Re-pin LiveKit DNS on BOTH clusters
-task health                # Cross-cluster status + connectivity check
-task workspace:verify:all-prods  # Smoke probes on BOTH clusters
+task feature:deploy        # workspace:deploy + post-setup on BOTH environments
+task feature:website       # Rebuild + roll Astro website on BOTH environments
+task feature:brett         # Rebuild + roll brett on BOTH environments
+task feature:livekit       # Re-pin LiveKit DNS on BOTH environments
+task health                # Cross-environment status + connectivity check
+task workspace:verify:all-prods  # Smoke probes on BOTH environments
 task clusters:status       # One-line status across both
 ```
 
@@ -40,7 +42,7 @@ Use `task workspace:deploy ENV=mentolder` + `ENV=korczewski` sequentially when y
 
 ## Deploy Every Service to Both Brands
 
-The base kustomization (`workspace:deploy`) leaves four services undeployed: **Collabora** (office-stack), **CoTURN/Janus** (coturn-stack), the **website** (own namespace), and **arena** (korczewski only). To bring up the *complete* platform on both brands, fan each pass across both `ENV=mentolder` and `ENV=korczewski`:
+The base kustomization (`workspace:deploy`) leaves four services undeployed: **Collabora** (office-stack), **CoTURN/Janus** (coturn-stack), the **website** (own namespace), and **arena** (korczewski only). To bring up the *complete* platform on both brands, fan each pass across both `ENV=mentolder` (standalone cluster) and `ENV=korczewski` (fleet cluster, namespace `workspace-korczewski`):
 
 ```bash
 # 1. Full umbrella per brand: workspace:deploy → office:deploy → mcp:deploy →
@@ -66,7 +68,7 @@ task feature:arena              # arena:deploy ENV=korczewski (mentolder is a no
 
 ### Per-Brand Ingress Accessibility Verification
 
-A two-cluster deploy is **not done until every host answers on both brands**. The base kustomization deploying clean does not prove the ingress is reachable — verify each brand explicitly:
+A two-environment deploy is **not done until every host answers on both brands**. The base kustomization deploying clean does not prove the ingress is reachable — verify each brand explicitly:
 
 ```bash
 task workspace:verify:all-prods                       # smoke probes, both clusters
@@ -122,7 +124,7 @@ What it does, in order:
 | 1 | `docker push` uploads that tag to ghcr. |
 | 2-3 | Skipped (docs has no dev cluster mapping). |
 | 4 | `kubectl --context mentolder -n workspace set image deploy/docs docs=<tag>` + `rollout status --timeout=180s`. Failure → `rollout undo`. |
-| 4 | Same against `korczewski` / `workspace-korczewski`. Mentolder failure does *not* roll back korczewski; korczewski failure rolls back korczewski only. |
+| 4 | Same against `--context fleet -n workspace-korczewski`. Mentolder failure does *not* roll back korczewski; korczewski failure rolls back korczewski only. |
 
 ### Other services
 
@@ -169,7 +171,7 @@ Each cluster has its own `shared-db`. Schema changes must be applied to both:
 task workspace:psql ENV=mentolder -- website
 # Run SQL
 
-# Apply to korczewski
+# Apply to korczewski (fleet cluster, namespace workspace-korczewski)
 task workspace:psql ENV=korczewski -- website
 # Run SQL
 ```
@@ -224,9 +226,9 @@ task keycloak:sync ENV=korczewski
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Deploy hits wrong cluster | Missing `ENV=` flag | Always pass `ENV=mentolder` or `ENV=korczewski` explicitly |
-| SealedSecret not decrypting on korczewski | Sealed with mentolder cert | `task env:fetch-cert ENV=korczewski` → `task env:seal ENV=korczewski` |
-| Post-setup writes to wrong namespace | Script hardcodes `-n workspace` | Use `task workspace:post-setup ENV=korczewski` — it exports `WORKSPACE_NAMESPACE` |
+| Deploy hits wrong cluster | Missing `ENV=` flag | Always pass `ENV=mentolder` or `ENV=korczewski` (or `ENV=fleet-mentolder` / `ENV=fleet-korczewski`) explicitly |
+| SealedSecret not decrypting on fleet (workspace-korczewski) | Sealed with mentolder cert | `task env:fetch-cert ENV=korczewski` → `task env:seal ENV=korczewski` |
+| Post-setup writes to wrong namespace | Script hardcodes `-n workspace` | Use `task workspace:post-setup ENV=korczewski` — it exports `WORKSPACE_NAMESPACE` (resolves to `workspace-korczewski` on fleet) |
 | Schema change only on one cluster | Forgot the second cluster | Always apply schema to both shared-db instances |
 | `flux reconcile` applies old revision | Didn't reconcile source first | See Flux GitOps section below |
 
@@ -234,9 +236,9 @@ task keycloak:sync ENV=korczewski
 
 ## Flux GitOps Operations
 
-Flux watches the `main` branch and reconciles both prod clusters automatically — but it polls on its own schedule. Force reconciliation, debug drift, and handle the subtleties below.
+Flux watches the `main` branch and reconciles both prod environments automatically — but it polls on its own schedule. Force reconciliation, debug drift, and handle the subtleties below.
 
-**Both clusters run Flux independently.** Any Flux operation must be run against **each cluster separately**.
+**Both clusters run Flux independently.** Any Flux operation must be run against **each cluster separately** (mentolder standalone and fleet).
 
 ### Forced Reconcile After PR Merge
 
@@ -245,11 +247,11 @@ Always prime the GitRepository before reconciling the kustomization. Skipping st
 ```bash
 # Step 1: prime the git source (fetches latest main)
 flux reconcile source git flux-system --context mentolder
-flux reconcile source git flux-system --context korczewski
+flux reconcile source git flux-system --context fleet
 
 # Step 2: reconcile the kustomization
 flux reconcile kustomization workspace --context mentolder
-flux reconcile kustomization workspace --context korczewski
+flux reconcile kustomization workspace --context fleet
 ```
 
 > **Why source first?** `flux reconcile kustomization` re-applies whatever revision the GitRepository last fetched. If that's 5 minutes old, the kustomization gets the wrong commit.
@@ -260,11 +262,11 @@ flux reconcile kustomization workspace --context korczewski
 
 ```bash
 flux get all --context mentolder
-flux get all --context korczewski
+flux get all --context fleet
 
 # Just kustomizations (most common drift point)
 flux get kustomizations --context mentolder
-flux get kustomizations --context korczewski
+flux get kustomizations --context fleet
 ```
 
 ### Suspend / Resume Reconciliation

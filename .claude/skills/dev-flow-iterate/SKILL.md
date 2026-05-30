@@ -21,7 +21,7 @@ Werden vom Caller übergeben (dev-flow-execute) oder zu Beginn abgefragt:
 
 | Parameter | Werte | Default |
 |-----------|-------|---------|
-| `ENV` | `mentolder` / `korczewski` | Frage User |
+| `ENV` | `mentolder` / `korczewski` (fleet cluster) | Frage User |
 | `SURFACE` | `website` / `brett` / `full` | Auto-detect |
 
 ---
@@ -83,7 +83,7 @@ echo "Ziel-URL: $DEV_URL"
 
 Für brett-Surface: `DEV_URL="https://brett.${DEV_DOMAIN#dev.}"` (z.B. `brett.mentolder.de`).
 
-Für korczewski ohne öffentlichen Hostname: prüfe `DEV_DOMAIN` aus env-resolve — bei reiner
+Für korczewski (fleet cluster): prüfe `DEV_DOMAIN` aus env-resolve — bei reiner
 IP/internem Hostname `http://` statt `https://` verwenden.
 
 ---

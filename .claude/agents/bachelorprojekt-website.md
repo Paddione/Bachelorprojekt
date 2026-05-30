@@ -28,7 +28,7 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, Flux picks up the new image tag automatically. For manual rollout/rebuild:
 ```bash
 task website:redeploy ENV=mentolder
-task website:redeploy ENV=korczewski
+task website:redeploy ENV=fleet-korczewski
 ```
 **Only from a clean main branch.** Never deploy from a feature branch.
 

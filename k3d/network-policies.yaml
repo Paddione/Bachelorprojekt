@@ -265,6 +265,12 @@ spec:
     ports:
     - port: 8188
       protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 10.20.0.0/24    # fleet wg-mesh node IPs (Janus hostNetwork on pk-hetzner-4)
+    ports:
+    - port: 8188
+      protocol: TCP
 ---
 # Nextcloud → Collabora (workspace-office Namespace, WOPI Port 9980)
 apiVersion: networking.k8s.io/v1

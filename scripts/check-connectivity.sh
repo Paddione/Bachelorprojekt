@@ -87,6 +87,7 @@ echo -e "${BOLD}Workspace Connectivity Check${RESET}  ${CYAN}ENV=${ENV}  domain=
 section "Core Services"
 check_service "Keycloak"       "auth"       "/"            "200,301,302"
 check_service "Nextcloud"      "files"      "/"            "200,301,302"
+check_service "Talk (meet)"    "meet"       "/"            "200,301,302"
 check_service "Vaultwarden"    "vault"      "/"            "200,301,302"
 check_service "DocuSeal"       "sign"       "/"            "200,301,302"
 
@@ -103,12 +104,6 @@ check_service "Mailpit"        "mail"       "/"            "200,301,302,401"
 # comfy/livekit are behind oauth2-proxy or serve a health root; accept broad codes.
 check_service "ComfyUI"        "comfy"      "/"            "200,301,302,401,403"
 check_service "LiveKit"        "livekit"    "/"            "200,204,301,302,404"
-
-# Arena game server is korczewski-brand only (arena-ws.korczewski.de).
-if [[ "$ENV" == korczewski || "$ENV" == fleet-korczewski ]]; then
-  section "Brand-Specific (korczewski)"
-  check_service "Arena WS"     "arena-ws"   "/"            "200,301,302,400,401,426"
-fi
 
 section "Infrastructure"
 check_service "Traefik"        "traefik"    "/"            "200,301,302,401,404"

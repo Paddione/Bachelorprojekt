@@ -1,0 +1,66 @@
+#cloud-config
+# Hetzner worker node bootstrap — rendered by scripts/hetzner/render-cloud-init.sh
+# Variables: NODE_IP, K3S_VERSION, K3S_URL, K3S_TOKEN, SSH_PUBLIC_KEY, WG_CONF_B64
+
+package_update: true
+package_upgrade: false
+package_reboot_if_required: false
+
+packages:
+  - open-iscsi
+  - wireguard
+  - ufw
+  - curl
+  - jq
+  - apt-transport-https
+
+ssh_authorized_keys:
+  - ${SSH_PUBLIC_KEY}
+
+write_files:
+  # WireGuard config (base64-encoded to survive YAML embedding)
+  - path: /etc/wireguard/wg0.conf
+    encoding: b64
+    permissions: "0600"
+    content: ${WG_CONF_B64}
+
+  # k3s agent config — sets node IP and WireGuard interface for Flannel
+  - path: /etc/rancher/k3s/config.yaml
+    content: |
+      node-ip: "${NODE_IP}"
+      flannel-iface: "wg0"
+      node-label:
+        - "node-role.kubernetes.io/worker=true"
+
+runcmd:
+  # iscsid — required by Longhorn for iSCSI volume attach
+  - systemctl enable iscsid
+  - systemctl start iscsid
+
+  # Firewall — default deny; allow management + cluster + LiveKit ports
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp comment 'SSH'
+  - ufw allow 80/tcp comment 'HTTP'
+  - ufw allow 443/tcp comment 'HTTPS'
+  - ufw allow 6443/tcp comment 'k3s API'
+  - ufw allow 10250/tcp comment 'kubelet'
+  - ufw allow 51821/udp comment 'WireGuard mesh'
+  - ufw allow 8472/udp comment 'Flannel VXLAN'
+  - ufw allow 50000:60000/udp comment 'LiveKit ICE'
+  - ufw allow 30000:40000/udp comment 'LiveKit TURN'
+  - ufw --force enable
+
+  # WireGuard — bring up mesh interface
+  - systemctl enable wg-quick@wg0
+  - systemctl start wg-quick@wg0
+
+  # k3s agent install — pinned version, joins cluster via WireGuard
+  - >-
+    INSTALL_K3S_VERSION="${K3S_VERSION}"
+    K3S_URL="${K3S_URL}"
+    K3S_TOKEN="${K3S_TOKEN}"
+    curl -sfL https://get.k3s.io | sh -
+
+final_message: |
+  Worker node ${NODE_IP} bootstrapped. k3s agent registered against ${K3S_URL}.

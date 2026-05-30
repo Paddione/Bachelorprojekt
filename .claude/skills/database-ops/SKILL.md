@@ -132,6 +132,17 @@ STAMP=<latest-timestamp>
    DROP DATABASE website_restore_test;
    ```
 
+### Step 2.5: Filen remote-backup invariant (2FA must stay OFF)
+
+The `filen-upload` sidecar in `k3d/backup-cronjob.yaml` and the `filen-pull` restore job in `scripts/backup-restore.sh` both shell out to the official `@filen/cli` with raw `FILEN_EMAIL` + `FILEN_PASSWORD` (sealed per-cluster in `environments/sealed-secrets/{mentolder,korczewski}.yaml`). The CLI performs the full Filen auth-v2 flow internally — PBKDF2-200k key derivation, login-password/master-key split, `/v3/login`, master-key fetch — so we deliberately do **not** reimplement any of that crypto.
+
+**Hard invariant: 2FA is disabled on both Filen accounts (mentolder and korczewski).** The CLI invocation passes no TOTP code, so an enabled 2FA would fail login permanently. If you rotate Filen credentials, store the *plaintext account password* (not a pre-derived hash) and keep 2FA off, then `task env:seal ENV=<env>`.
+
+**Failure surfacing:** the upload no longer swallows errors. On failure it exits non-zero → `restartPolicy: OnFailure` retries transients in-pod → a permanent break (bad creds / 2FA enabled) escalates to a Failed Job, kept visible by `failedJobsHistoryLimit`. The local encrypted backup on `backup-pvc` is always written first and stays intact regardless of remote-upload outcome. To check the remote leg:
+```bash
+kubectl get jobs -n <ns> --context <ctx> -l app=db-backup   # any Failed → inspect filen-upload logs
+```
+
 ---
 
 ## Troubleshooting & Common Blockers
@@ -141,6 +152,7 @@ STAMP=<latest-timestamp>
 | Migration fails with "must be owner of table" | Run via `task workspace:psql` (website role) instead of the `postgres` superuser | Connect directly to the postgres pod using the superuser credentials (`psql -U postgres`). |
 | Backup trigger fails with "cronjob not found" | Name-drift: CronJob named `backup-postgres` instead of `db-backup` | Deploy `k3d/backup-cronjob.yaml` and delete the old `backup-postgres` CronJob. |
 | Restore test fails: "pg_restore: exit code 1" | Schema conflicts / sequences already exist | Always restore to a fresh, temporary test database rather than an active one. |
+| `db-backup` Job shows Failed but local dumps exist | `filen-upload` sidecar failed remote upload (bad `FILEN_EMAIL`/`FILEN_PASSWORD`, or 2FA was enabled on the Filen account) | Check `filen-upload` container logs. Confirm 2FA is OFF and creds are correct, re-seal (`task env:seal ENV=<env>`). Local backup on `backup-pvc` is unaffected. See Step 2.5. |
 
 ---
 

@@ -222,9 +222,20 @@ spec:
                   export PATH="/tmp/npm-global/bin:$$PATH"
 
                   echo "Uploading $${STAMP} to Filen: $${UPLOAD_PATH}/$${STAMP}/"
-                  filen --email "$${FILEN_EMAIL}" --password "$${FILEN_PASSWORD}" \
-                    upload "/backups/$${STAMP}/" "$${UPLOAD_PATH}/$${STAMP}/" \
-                    || echo "WARNING: Filen upload failed — local backup intact"
+                  # @filen/cli authenticates with raw email+password; it derives the
+                  # PBKDF2 key / master keys / API token internally (Filen auth v2).
+                  # This invocation passes NO 2FA code, so it assumes 2FA is OFF on the
+                  # Filen account — an invariant that holds for both mentolder and
+                  # korczewski. If 2FA is ever enabled, login fails permanently here.
+                  if ! filen --email "$${FILEN_EMAIL}" --password "$${FILEN_PASSWORD}" \
+                       upload "/backups/$${STAMP}/" "$${UPLOAD_PATH}/$${STAMP}/"; then
+                    echo "ERROR: Filen remote upload failed for $${STAMP} — the LOCAL encrypted backup on backup-pvc is intact."
+                    echo "       Likely cause: invalid FILEN_EMAIL/FILEN_PASSWORD, or 2FA was enabled on the Filen account (this job requires 2FA OFF)."
+                    echo "       Exiting non-zero so the broken remote backup surfaces as a Failed Job instead of being silently swallowed."
+                    # restartPolicy: OnFailure retries transients in-pod; a permanent
+                    # failure escalates to a Failed Job (failedJobsHistoryLimit keeps it visible).
+                    exit 1
+                  fi
 
                   echo "Filen upload done"
               env:

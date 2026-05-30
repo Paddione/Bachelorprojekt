@@ -862,6 +862,31 @@ setup_vars:
     required: false
     description: "wg-mesh public key for korczewski l1 worker node"
 
+  # ── Proxmox hypervisor SSH keys ─────────────────────────────────────────────
+  # Root SSH keys for the three Proxmox host nodes. Private keys are sealed;
+  # public keys are plain. Used for VM management and console access.
+  - name: PVE_SSH_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "SSH private key for root@pvemain (10.0.0.7) — Proxmox node 1 (hosts k3s-1)"
+  - name: PVE_SSH_PUBLIC_KEY
+    required: false
+    description: "SSH public key for root@pvemain"
+  - name: PVE2_SSH_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "SSH private key for root@pve2 — Proxmox node 2 (hosts devc-2 at 10.0.0.22)"
+  - name: PVE2_SSH_PUBLIC_KEY
+    required: false
+    description: "SSH public key for root@pve2"
+  - name: PVE3_SSH_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "SSH private key for root@pve3 — Proxmox node 3 (hosts devc-3 at 10.0.0.23)"
+  - name: PVE3_SSH_PUBLIC_KEY
+    required: false
+    description: "SSH public key for root@pve3"
+
   # ── SSH identity keys ────────────────────────────────────────────────────────
   # One entry per permanent user identity. Private keys are sealed;
   # public keys are plain. Allows cluster workloads / CronJobs to SSH into

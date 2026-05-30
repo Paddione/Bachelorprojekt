@@ -34,7 +34,7 @@ Live prod ENV identifiers a test run might target:
 - `fleet-mentolder` and `fleet-korczewski` — both on the unified `fleet` cluster (context `fleet`); `fleet-korczewski` serves `korczewski.de`.
 - `dev` — k3d (`dev.mentolder.de`).
 
-The old standalone `korczewski` context (204.168.244.104:6443) is DEAD (T000340) — never point tests at it.
+The old standalone `korczewski` context is DEAD (its IP now serves the fleet CA, T000340) — never point tests at it. Use `fleet` context for the korczewski brand.
 
 ## Test file locations
 - `tests/` — all test scripts and fixtures

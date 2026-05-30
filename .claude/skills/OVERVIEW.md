@@ -66,7 +66,7 @@
 host-node-networking (WireGuard mesh/Netplan)
     └→ cluster-deployment (SealedSecrets → cert-manager → deploy)
            └→ secret-rotation (keypair refresh / rotation)
-           └→ fleet-ops (Flux cross-cluster reconciliation)
+           └→ fleet-ops (Flux cross-environment reconciliation)
 
 dev-flow-plan
     └→ dev-flow-execute

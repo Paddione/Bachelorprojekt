@@ -1,6 +1,6 @@
 ---
 name: fleet-ops
-description: Use when deploying, verifying, or operating across both prod environments simultaneously — mentolder standalone and fleet (hosting korczewski brand). Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-cluster schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
+description: Use when deploying, verifying, or operating across both prod environments simultaneously — mentolder standalone and fleet (hosting korczewski brand). Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-environment schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each cluster has its own independent shared-db and sealed-secrets controller.
 ---
 
 # fleet-ops — Multi-Cluster Operations (mentolder + fleet)
@@ -71,7 +71,7 @@ task feature:arena              # arena:deploy ENV=korczewski (mentolder is a no
 A two-environment deploy is **not done until every host answers on both brands**. The base kustomization deploying clean does not prove the ingress is reachable — verify each brand explicitly:
 
 ```bash
-task workspace:verify:all-prods                       # smoke probes, both clusters
+task workspace:verify:all-prods                       # smoke probes, both environments
 task workspace:check-connectivity ENV=mentolder       # curls every host on web.mentolder.de
 task workspace:check-connectivity ENV=korczewski      # curls every host on web.korczewski.de
 ```
@@ -103,7 +103,7 @@ task workspace:check-connectivity ENV=korczewski      # curls every host on web.
 2. **Playwright smoke gate** between dev and prod. Failure aborts before any prod rollout.
 3. **Auto-rollback** — every `kubectl set image` is gated by `rollout status`; failure runs `rollout undo` on that deployment and exits non-zero. Cross-cluster rollback is *not* automatic — clusters that already shipped stay shipped.
 
-### Docs to both clusters
+### Docs to both environments
 
 `docs` has no dev stage and ignores `TARGET` (always fans out to both). Full happy path:
 

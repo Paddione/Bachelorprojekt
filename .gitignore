@@ -12,6 +12,7 @@ deploy/mcp/openclaw-secrets.yaml
 openclaw/.env
 .openclaw/workspace/
 deploy/mcp/claude-code-secrets.yaml
+.mcp.json
 vaultwarden-import-*.json
 *-bitwarden-export.json
 claude-code/*-export.settings.json
@@ -143,3 +144,5 @@ environments/certs/dev.pem
 /*.zip
 /*.7z
 dev-iterate-*.png
+environments/.secrets
+deeps.sh

@@ -60,37 +60,63 @@ After sourcing, the following shell variables are available:
 
 ## Phase 1 — Environment Initialization & Deployment (New Cluster)
 
-### Step 1.0: Provision Hetzner Worker Nodes
+### Step 1.0: Provision Hetzner Nodes
 
-Fork based on context:
+Node roles for each environment:
+- **korczewski**: `pk-hetzner-4` = control-plane (server); `pk-hetzner-6`, `pk-hetzner-8` = workers (agent)
+- **mentolder**: `gekko-hetzner-2/3/4` = control-plane (server); Raspberry Pi `k3w-*` = workers (agent)
 
-**Fresh node (cloud-init):**
+Fork based on role:
+
+**Control-plane node (cluster-init — first CP only):**
 ```bash
-# Generate WireGuard config for this node (base64-encoded)
-# See wireguard/wg-mesh-nodes.yaml and wireguard/wg0-hetzner.conf.tpl
-WG_CONF_B64=$(NODE_NAME=<name> NODE_PRIVATE_KEY=<key> NODE_WG_IP=<wg-ip> \
-  NODE_IP=<public-ip> WS_PUBLIC_KEY=<ws-pubkey> \
-  envsubst < wireguard/wg0-hetzner.conf.tpl | base64 -w0)
+# WireGuard private key from environments/.secrets/<env>.yaml → WG_MESH_<SCHEMA_KEY>_PRIVATE_KEY
+WG_KEY=$(grep WG_MESH_PK4_PRIVATE_KEY environments/.secrets/korczewski.yaml | awk '{print $2}')
+WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh \
+  --env korczewski --node-name pk-hetzner-4 --private-key "$WG_KEY" | base64 -w0)
 
-# Render cloud-init
 bash scripts/hetzner/render-cloud-init.sh \
-  --node-ip <PUBLIC_IP> \
-  --k3s-url <K3S_URL> \
-  --k3s-token <TOKEN> \
+  --template scripts/hetzner/cloud-init-server.yaml.tmpl \
+  --node-ip 204.168.244.104 --node-wg-ip 10.13.14.1 --wg-listen-port 51820 \
+  --k3s-url "" --k3s-token <TOKEN> \
   --ssh-key "$(cat ~/.ssh/id_ed25519.pub)" \
   --wg-conf-b64 "$WG_CONF_B64" \
-  > /tmp/ci-<name>.yaml
+  > /tmp/ci-pk4.yaml
 
-# Create server
 hcloud server create \
-  --name <name> --type cx22 \
+  --name pk-hetzner-4 --type cx22 \
   --image ubuntu-24.04 \
   --ssh-key <KEY_NAME> \
-  --user-data-from-file /tmp/ci-<name>.yaml
-
-# Wait for Ready
-kubectl --context <ctx> get nodes -w
+  --user-data-from-file /tmp/ci-pk4.yaml
+kubectl --context korczewski get nodes -w
 ```
+
+**Worker node (agent — joins existing CP):**
+```bash
+# Retrieve k3s join token from the running CP node
+K3S_TOKEN=$(ssh patrick@204.168.244.104 "sudo cat /var/lib/rancher/k3s/server/node-token")
+
+WG_KEY=$(grep WG_MESH_PK6_PRIVATE_KEY environments/.secrets/korczewski.yaml | awk '{print $2}')
+WG_CONF_B64=$(bash scripts/hetzner/generate-wg-conf.sh \
+  --env korczewski --node-name pk-hetzner-6 --private-key "$WG_KEY" | base64 -w0)
+
+bash scripts/hetzner/render-cloud-init.sh \
+  --node-ip 37.27.251.38 --node-wg-ip 10.13.14.2 --wg-listen-port 51820 \
+  --k3s-url https://10.13.14.1:6443 --k3s-token "$K3S_TOKEN" \
+  --ssh-key "$(cat ~/.ssh/id_ed25519.pub)" \
+  --wg-conf-b64 "$WG_CONF_B64" \
+  > /tmp/ci-pk6.yaml
+
+hcloud server create \
+  --name pk-hetzner-6 --type cx22 \
+  --image ubuntu-24.04 \
+  --ssh-key <KEY_NAME> \
+  --user-data-from-file /tmp/ci-pk6.yaml
+kubectl --context korczewski get nodes -w
+```
+
+> Node data (IPs, WG IPs, schema keys) is the source of truth in `wireguard/wg-mesh-nodes.yaml`.
+> Adding a node there automatically includes it in every other node's WireGuard peer list.
 
 **Scaling/replacement (snapshot):**
 ```bash

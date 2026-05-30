@@ -34,9 +34,9 @@ env_vars:
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
   # TURN_NODE repointed to a fleet node (gekko-hetzner-2 does not exist on fleet).
-  # TURN_PUBLIC_IP still the inherited gekko IP — must be set to pk-hetzner-4's
-  # public IP at deploy time (runtime asset: IP reachability check).
-  TURN_PUBLIC_IP: "178.104.169.206"
+  # TURN_PUBLIC_IP pinned to pk-hetzner-4's public IP — the fleet node TURN_NODE
+  # resolves to. Must stay in sync with the fleet-dns-cutover allowlist.
+  TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
   NEXTCLOUD_EXTERNAL_URL: "https://files.fleet-m.korczewski.de"
   DOCS_URL: "https://docs.fleet-m.korczewski.de"
@@ -47,8 +47,8 @@ env_vars:
   MAIL_EXTERNAL_URL: "https://mail.fleet-m.korczewski.de"
   BRETT_DOMAIN: brett.fleet-m.korczewski.de
   LIVEKIT_DOMAIN: livekit.fleet-m.korczewski.de
-  # Inherited mentolder pin IP; re-pin at runtime via task livekit:dns-pin (2b).
-  LIVEKIT_PIN_IP: "46.225.125.59"
+  # Pinned to pk-hetzner-4 (fleet node) — livekit/stream/turn all resolve here.
+  LIVEKIT_PIN_IP: "204.168.244.104"
   STREAM_DOMAIN: stream.fleet-m.korczewski.de
   WEBSITE_HOST: web.fleet-m.korczewski.de
   WEBSITE_SITE_URL: "https://web.fleet-m.korczewski.de"

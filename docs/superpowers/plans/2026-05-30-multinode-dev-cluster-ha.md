@@ -27,7 +27,7 @@ pr_number: null
 | Thing | Value |
 |-------|-------|
 | API + ingress VIP | `10.0.0.20` |
-| LAN / gateway | `10.0.0.0/24` / `10.0.0.1` (CONFIRM gw in Step 0.1) |
+| LAN / gateway | `10.0.0.0/8` / `10.0.0.1` (CONFIRM gw in Step 0.1) |
 | k3s version | `v1.31.5+k3s1` |
 | Template VMID | `9000` (`debian12-cloud`) |
 | `devc-1` | VMID `9011`, host `pve`,  IP `10.0.0.21`, 8 GB / 4 vCPU, data 900 GB |
@@ -237,9 +237,9 @@ Expected: migrations finish `successfully`.
 Run:
 ```bash
 ssh -i /tmp/pve_key root@10.0.0.7 '
-qm set 9012 --memory 10240 --cores 4 --ipconfig0 ip=10.0.0.22/24,gw=10.0.0.1 &&
+qm set 9012 --memory 10240 --cores 4 --ipconfig0 ip=10.0.0.22/8,gw=10.0.0.1 &&
 qm resize 9012 scsi0 40G &&
-qm set 9013 --memory 10240 --cores 4 --ipconfig0 ip=10.0.0.23/24,gw=10.0.0.1 &&
+qm set 9013 --memory 10240 --cores 4 --ipconfig0 ip=10.0.0.23/8,gw=10.0.0.1 &&
 qm resize 9013 scsi0 40G'
 ```
 Expected: `qm resize` prints new size; others return 0.
@@ -903,7 +903,7 @@ Run:
 ```bash
 ssh -i /tmp/pve_key root@10.0.0.7 '
 qm clone 9000 9011 --name devc-1 --full --target pve &&
-qm set 9011 --memory 8192 --cores 4 --ipconfig0 ip=10.0.0.21/24,gw=10.0.0.1 &&
+qm set 9011 --memory 8192 --cores 4 --ipconfig0 ip=10.0.0.21/8,gw=10.0.0.1 &&
 qm resize 9011 scsi0 40G &&
 qm set 9011 --scsi1 local-data:900 &&
 qm start 9011 && sleep 45 &&

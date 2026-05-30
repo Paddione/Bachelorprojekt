@@ -45,26 +45,10 @@ else
   SCHEME="https"
 fi
 
-# ── Service list ──────────────────────────────────────────────────
-# Format: "label|subdomain|path|acceptable_http_codes"
-# Codes: comma-separated; any listed code = reachable (200,301,302,401,403 typical)
-declare -a SERVICES=(
-  "Keycloak|auth|/|200,301,302"
-  "Nextcloud|files|/|200,301,302"
-  "Vaultwarden|vault|/|200,301,302"
-  "DocuSeal|sign|/|200,301,302"
-  "Tracking|tracking|/|200,301,302"
-  "Website|web|/|200,301,302"
-  "Docs|docs|/|200,301,302,401,403"
-  "Brett|brett|/|200,301,302"
-  "Traefik|traefik|/dashboard/|200,301,302"
-  "Collabora|office|/|200,301,302"
-  "Whiteboard|board|/|200,301,302"
-  "Talk Signaling|signaling|/|200,301,302,404"
-  "Mailpit|mail|/|200,301,302"
-)
-
 # ── Check helper ──────────────────────────────────────────────────
+# The probed services are the explicit check_service calls in Main below.
+# Acceptable codes are comma-separated; any listed code = reachable.
+# A 404 behind the Traefik default cert means the ingress never landed.
 check_service() {
   local label="$1" subdomain="$2" path="$3" ok_codes="$4"
 
@@ -108,6 +92,7 @@ check_service "DocuSeal"       "sign"       "/"            "200,301,302"
 
 check_service "Website"        "web"        "/"            "200,301,302"
 check_service "Docs"           "docs"       "/"            "200,301,302,401,403"
+check_service "Tracking"       "tracking"   "/"            "200,301,302"
 
 section "Optional Services"
 check_service "Brett"          "brett"      "/"            "200,301,302"
@@ -115,6 +100,15 @@ check_service "Collabora"      "office"     "/"            "200,301,302"
 check_service "Whiteboard"     "board"      "/"            "200,301,302"
 check_service "Talk Signaling" "signaling"  "/"            "200,301,302,404"
 check_service "Mailpit"        "mail"       "/"            "200,301,302,401"
+# comfy/livekit are behind oauth2-proxy or serve a health root; accept broad codes.
+check_service "ComfyUI"        "comfy"      "/"            "200,301,302,401,403"
+check_service "LiveKit"        "livekit"    "/"            "200,204,301,302,404"
+
+# Arena game server is korczewski-brand only (arena-ws.korczewski.de).
+if [[ "$ENV" == korczewski || "$ENV" == fleet-korczewski ]]; then
+  section "Brand-Specific (korczewski)"
+  check_service "Arena WS"     "arena-ws"   "/"            "200,301,302,400,401,426"
+fi
 
 section "Infrastructure"
 check_service "Traefik"        "traefik"    "/"            "200,301,302,401,404"

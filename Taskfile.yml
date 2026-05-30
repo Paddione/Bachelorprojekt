@@ -25,10 +25,15 @@ includes:
       NS_PROD: workspace-korczewski
       CLUSTER_NAME: korczewski-dev
   # dev.mentolder.de HA cluster — 3-node k3s on Proxmox (context: devc, VIP 10.0.0.20).
-  # See Taskfile.devcluster.yml.
+  # Reuses dev-stack logic with the devc kubeconfig context.
   devcluster:
-    taskfile: ./Taskfile.devcluster.yml
+    taskfile: ./Taskfile.dev-stack.yml
     dir: .
+    vars:
+      CTX_DEV: devc
+      CTX_PROD: mentolder
+      NS_DEV: workspace-dev
+      ENV: mentolder
   # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
   # brainstorming visual companion. See Taskfile.brainstorm.yml.
   brainstorm:

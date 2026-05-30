@@ -25,7 +25,7 @@ The two canonical siblings — `scripts/import-entrypoint.sh` and `k3d/realm-imp
 
 The fix is a global de-doubling. Verified by dry-run that `sed 's/\$\$/\$/g'` reconstructs the **exact** canonical idiom — e.g. line 45 `\$${$${var}:-}` → `\${${var}:-}`, byte-identical to `scripts/import-entrypoint.sh:27`. The de-double does not touch the prod-specific variable list.
 
-- [ ] **Step 1: Apply the de-double**
+- [x] **Step 1: Apply the de-double**
 
 ```bash
 sed -i 's/\$\$/\$/g' prod/import-entrypoint.sh

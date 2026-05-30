@@ -49,9 +49,9 @@ makes lego compute a single-level praefix, matching the proven-working mentolder
 
 ## Task 1 — Codify `IPV64_API_KEY` wiring in `cert:install` (TDD, offline)
 
-- [ ] Failing test already staged: `tests/unit/fleet-phase2b.bats` →
+- [x] Failing test already staged: `tests/unit/fleet-phase2b.bats` →
       *"cert:install wires IPV64_API_KEY into the lego webhook (not just cert:secret)"* (red).
-- [ ] In `Taskfile.yml` `cert:install`, after the lego webhook helm install + nodeAffinity
+- [x] In `Taskfile.yml` `cert:install`, after the lego webhook helm install + nodeAffinity
       patch (~line 3252), add a conditional that injects the key from the existing secret:
       ```bash
       if kubectl --context "$ENV_CONTEXT" get secret ipv64-api-key -n cert-manager >/dev/null 2>&1; then
@@ -60,8 +60,8 @@ makes lego compute a single-level praefix, matching the proven-working mentolder
       fi
       ```
       (Idempotent; no-op when the sealed/imperative key is absent — `cert:secret` still wires it later.)
-- [ ] Make the test green: `tests/unit/lib/bats-core/bin/bats tests/unit/fleet-phase2b.bats`
-- [ ] `task test:all` green.
+- [x] Make the test green: `tests/unit/lib/bats-core/bin/bats tests/unit/fleet-phase2b.bats`
+- [x] `task test:all` green.
 
 ## Task 2 — Confirm lego's exact failure on the nested host (live diagnostic)
 
@@ -74,7 +74,7 @@ makes lego compute a single-level praefix, matching the proven-working mentolder
 
 ## Task 3 — Fix the nested-domain issuance (chosen: register ipv64 subdomains)
 
-- [ ] Register `fleet-m.korczewski.de` and `fleet.korczewski.de` as their own ipv64
+- [x] Register `fleet-m.korczewski.de` and `fleet.korczewski.de` as their own ipv64
       subdomains/zones (ipv64 UI, or API `add_domain` from a probe pod with the key in env —
       never printed). Verify via `get_domains` they appear as managed zones.
 - [ ] Ensure the wildcard A records resolve for `*.fleet-m.korczewski.de` /
@@ -82,13 +82,13 @@ makes lego compute a single-level praefix, matching the proven-working mentolder
 - [ ] Delete + recreate the `workspace-wildcard` CertificateRequest on fleet so lego now writes a
       single-level `_acme-challenge` praefix in the new zone.
 - **Alternatives if registration is unsupported/undesired (do NOT do both):**
-  - [ ] Switch the fleet test hostnames in `environments/fleet-mentolder.yaml` /
+  - [x] Switch the fleet test hostnames in `environments/fleet-mentolder.yaml` /
         `fleet-korczewski.yaml` to registrable single-label-under-registrable-domain hosts; OR
   - [ ] Pin/replace the lego ipv64 provider config to handle multi-level praefixes (upstream fix).
 
 ## Task 4 — Verify end-to-end on fleet
 
-- [ ] `kubectl --context fleet get certificate workspace-wildcard -n workspace` → READY=True.
+- [x] `kubectl --context fleet get certificate workspace-wildcard -n workspace` → READY=True.
 - [ ] Trigger the already-deployed copy job: `kubectl --context fleet create job --from=cronjob/tls-sync
       tls-sync-manual -n workspace`; confirm `workspace-wildcard-tls` appears in ns `coturn`.
 - [ ] `kubectl --context fleet get pods -n coturn` → `coturn` Running (was ContainerCreating).

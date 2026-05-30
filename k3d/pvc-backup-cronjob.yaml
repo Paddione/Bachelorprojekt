@@ -145,7 +145,7 @@ spec:
                           seccompProfile: { type: RuntimeDefault }
                         containers:
                           - name: backup
-                            image: alpine/k8s:1.30.4
+                            image: pgvector/pgvector:0.8.0-pg16
                             imagePullPolicy: IfNotPresent
                             securityContext:
                               allowPrivilegeEscalation: false

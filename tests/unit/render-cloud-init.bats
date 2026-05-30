@@ -34,6 +34,7 @@ _base_args() {
   echo --versions-file "${TMPDIR}/versions.yaml" \
        --template "${TMPDIR}/tpl.yaml" \
        --node-ip 1.2.3.4 \
+       --wg-listen-port 51820 \
        --k3s-url "https://192.168.100.1:6443" \
        --k3s-token "testtoken" \
        --ssh-key "ssh-ed25519 AAAA testkey"
@@ -85,6 +86,7 @@ _base_args() {
     --versions-file "/nonexistent/versions.yaml" \
     --template "${TMPDIR}/tpl.yaml" \
     --node-ip 1.2.3.4 \
+    --wg-listen-port 51820 \
     --k3s-url "https://192.168.100.1:6443" \
     --k3s-token "testtoken" \
     --ssh-key "ssh-ed25519 AAAA testkey"
@@ -97,6 +99,7 @@ _base_args() {
     --versions-file "${TMPDIR}/versions.yaml" \
     --template "/nonexistent/tpl.yaml" \
     --node-ip 1.2.3.4 \
+    --wg-listen-port 51820 \
     --k3s-url "https://192.168.100.1:6443" \
     --k3s-token "testtoken" \
     --ssh-key "ssh-ed25519 AAAA testkey"

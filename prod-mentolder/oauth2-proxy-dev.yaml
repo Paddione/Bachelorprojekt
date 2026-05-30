@@ -72,7 +72,7 @@ spec:
             - --client-secret=${DEV_WORKSPACE_OIDC_SECRET}
             - --oidc-issuer-url=https://auth.${PROD_DOMAIN}/realms/workspace
             - --redirect-url=https://${DEV_DOMAIN}/oauth2/callback
-            - --upstream=http://127.0.0.1:18080
+            - --upstream=http://10.0.0.20:80
             - --http-address=0.0.0.0:4181
             - --reverse-proxy=true
             - --whitelist-domain=.${DEV_DOMAIN}

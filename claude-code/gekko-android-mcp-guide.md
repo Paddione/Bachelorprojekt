@@ -4,7 +4,7 @@
 > ohne Fachbegriffe geschrieben — einfach Schritt für Schritt durchgehen.
 >
 > **Geltungsbereich:** Diese Anleitung bezieht sich auf den MCP-Server unter `mcp.mentolder.de`
-> (mentolder-Cluster). Für korczewski.de gibt es einen separaten MCP-Endpunkt unter `mcp.korczewski.de`.
+> (fleet cluster, mentolder brand). Für korczewski.de gibt es einen separaten MCP-Endpunkt unter `mcp.korczewski.de`.
 >
 > **Vor dem Verschicken:** Patrick muss an einer Stelle (Schritt 2) den
 > Bearer-Token einsetzen. Anweisung dafür ganz unten.
@@ -124,7 +124,7 @@ Bei Fragen: einfach Patrick anrufen 😄
 So bekommst du den Bearer-Token, den du oben in Schritt 2 einsetzen musst:
 
 ```bash
-kubectl --context mentolder -n default get secret mcp-tokens \
+kubectl --context fleet -n default get secret mcp-tokens \
   -o jsonpath='{.data.BUSINESS_TOKEN}' | base64 -d; echo
 ```
 

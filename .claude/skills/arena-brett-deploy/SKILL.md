@@ -72,7 +72,7 @@ cd arena-server && pnpm install --frozen-lockfile && pnpm test && pnpm build
 task brett:build               # Build image (+ k3d import in dev)
 task brett:push                # Push to registry
 task brett:deploy ENV=<env>    # Build, import/push, and roll out
-task feature:brett             # Fan-out: build + deploy to mentolder standalone + fleet cluster (korczewski brand)
+task feature:brett             # Fan-out: build + deploy to both brands on the fleet cluster
 task brett:logs ENV=<env>      # Tail logs
 ```
 

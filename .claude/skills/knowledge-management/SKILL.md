@@ -78,11 +78,11 @@ Index repository documentation, GitHub PRs, and platform bug reports.
 Ensure the embedding backend for the target collection is reachable:
 * **TEI (bge-m3):** Check GPU host health and logs:
   ```bash
-  kubectl exec -n workspace --context mentolder -c llm-gateway -- curl -s http://localhost:8081/health
+  kubectl exec -n workspace --context fleet -c llm-gateway -- curl -s http://localhost:8081/health
   ```
 * **Voyage AI:** Verify api key length is valid:
   ```bash
-  kubectl get secret workspace-secrets -n workspace --context mentolder -o jsonpath='{.data.VOYAGE_API_KEY}' | base64 -d | wc -c
+  kubectl get secret workspace-secrets -n workspace --context fleet -o jsonpath='{.data.VOYAGE_API_KEY}' | base64 -d | wc -c
   ```
 
 ### Step 2.2: Execute Reindex

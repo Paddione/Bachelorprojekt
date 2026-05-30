@@ -11,15 +11,15 @@ description: Unified runbook for database operations, schema migrations, DDL own
 
 # database-ops
 
-This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand).
+This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across both brands on the fleet cluster.
 
 ---
 
 ## ⚠️ Independent Shared Databases
 
-The `mentolder` cluster and the `fleet` cluster (which hosts the `korczewski` brand in namespace `workspace-korczewski`) each host their own independent `shared-db` instance. Schema migrations, DB password rotations, and backup audits must be executed explicitly on **both**.
+Both brands on the fleet cluster (`workspace` for mentolder, `workspace-korczewski` for korczewski) each have their own independent `shared-db` instance. Schema migrations, DB password rotations, and backup audits must be executed explicitly on **both**.
 
-> **Fleet Stage 2 note (as of 2026-05-30).** The standalone `korczewski` cluster was torn down; the `korczewski` brand now lives on the unified **`fleet`** cluster (hosts `pk-hetzner-4/6/8`). The `ENV=korczewski` task invocations below remain correct (env-resolve targets the right context), but any raw `kubectl`/script `--context korczewski` is **DEAD** — substitute `--context fleet`. `task fleet:deploy` HAS been run (Phase 2a complete) — the korczewski-brand `shared-db` exists on fleet in namespace `workspace-korczewski` with 26/26 pods running.
+> **Fleet Stage 3 complete (as of 2026-05-31).** The mentolder-standalone cluster has been decommissioned. Both brands (mentolder + korczewski) run on the unified **`fleet`** cluster (pk-hetzner-4/6/8 CPs + gekko-hetzner-2/3/4 workers). The old `mentolder` kubeconfig context is **DEAD** — substitute `--context fleet -n workspace`. The `korczewski` context was already dead — substitute `--context fleet -n workspace-korczewski`. Each brand has its own `shared-db` in its namespace, both at 26/26 pods.
 
 ---
 
@@ -110,12 +110,12 @@ kubectl get secret workspace-secrets -n <ns> --context <ctx> -o jsonpath='{.data
 
 ### Step 2.2: Trigger Live Backup
 ```bash
-bash scripts/backup-restore.sh trigger --context mentolder
+bash scripts/backup-restore.sh trigger --context fleet -n workspace  # mentolder brand on the fleet cluster
 bash scripts/backup-restore.sh trigger --context fleet --namespace workspace-korczewski  # korczewski brand now on the fleet cluster (old --context korczewski is dead, T000340)
 ```
 Wait for completion and verify logs. Confirm the new timestamp:
 ```bash
-bash scripts/backup-restore.sh list --context mentolder
+bash scripts/backup-restore.sh list --context fleet -n workspace
 ```
 
 ### Step 2.3: Verify Encrypted Dumps
@@ -136,7 +136,7 @@ STAMP=<latest-timestamp>
 
 ### Step 2.5: Filen remote-backup invariant (2FA must stay OFF)
 
-The `filen-upload` sidecar in `k3d/backup-cronjob.yaml` and the `filen-pull` restore job in `scripts/backup-restore.sh` both shell out to the official `@filen/cli` with raw `FILEN_EMAIL` + `FILEN_PASSWORD` (sealed per-environment in `environments/sealed-secrets/{mentolder,korczewski}.yaml` (mentolder = standalone cluster; korczewski = fleet cluster, namespace `workspace-korczewski`)). The CLI performs the full Filen auth-v2 flow internally — PBKDF2-200k key derivation, login-password/master-key split, `/v3/login`, master-key fetch — so we deliberately do **not** reimplement any of that crypto.
+The `filen-upload` sidecar in `k3d/backup-cronjob.yaml` and the `filen-pull` restore job in `scripts/backup-restore.sh` both shell out to the official `@filen/cli` with raw `FILEN_EMAIL` + `FILEN_PASSWORD` (sealed per-environment in `environments/sealed-secrets/{mentolder,korczewski}.yaml` (both on the fleet cluster: workspace for mentolder, workspace-korczewski for korczewski)). The CLI performs the full Filen auth-v2 flow internally — PBKDF2-200k key derivation, login-password/master-key split, `/v3/login`, master-key fetch — so we deliberately do **not** reimplement any of that crypto.
 
 **Hard invariant: 2FA is disabled on both Filen accounts (mentolder and korczewski).** The CLI invocation passes no TOTP code, so an enabled 2FA would fail login permanently. If you rotate Filen credentials, store the *plaintext account password* (not a pre-derived hash) and keep 2FA off, then `task env:seal ENV=<env>`.
 

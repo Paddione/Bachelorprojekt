@@ -11,7 +11,7 @@ description: Use when rotating secrets across clusters — DB passwords, API key
 
 # secret-rotation
 
-Safe, ordered secret rotation across the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand).
+Safe, ordered secret rotation across both brands on the fleet cluster.
 
 ---
 
@@ -162,16 +162,16 @@ task mcp:logs -- keycloak
 
 ---
 
-## Cross-cluster checklist
+## Cross-brand checklist (both on fleet)
 
-Each cluster has its own sealed-secrets controller, sealing cert, and shared-db. Any secret rotation that touches both environments must be applied independently:
+Each brand namespace has its own SealedSecrets (on the same fleet cluster), sealing cert, and shared-db. Any secret rotation that touches both environments must be applied independently:
 
 ```bash
 task env:fetch-cert ENV=mentolder
 task env:seal ENV=mentolder
 task workspace:deploy ENV=mentolder
 
-# korczewski brand → fleet cluster, namespace workspace-korczewski
+# korczewski brand — on the same fleet cluster, namespace workspace-korczewski
 task env:fetch-cert ENV=korczewski
 task env:seal ENV=korczewski
 task workspace:deploy ENV=korczewski

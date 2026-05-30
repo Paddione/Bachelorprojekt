@@ -127,10 +127,10 @@ export GRILLING_ASSETS_TODO="<ZU-BESCHAFFEN-Liste>"
 ### 3. Ticket anlegen
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status)
    VALUES (
@@ -361,7 +361,7 @@ task brainstorm:status >/tmp/brainstorm-status.log 2>&1 || true
 grep -q 'Running' /tmp/brainstorm-status.log || { echo "sish pod not Running — aborting"; cat /tmp/brainstorm-status.log; exit 1; }
 
 # Stelle sicher dass mindestens ein Authorized-Key im Secret liegt — sonst hängt ssh -R lautlos
-KEY_COUNT=$(kubectl --context mentolder -n workspace get secret workspace-secrets \
+KEY_COUNT=$(kubectl --context fleet -n workspace get secret workspace-secrets \
   -o jsonpath='{.data.DEV_SISH_AUTHORIZED_KEYS}' 2>/dev/null | base64 -d 2>/dev/null | grep -c '^ssh-' || echo 0)
 if [[ "$KEY_COUNT" -lt 1 ]]; then
   echo "⚠️  Keine authorized_keys im Secret workspace-secrets. Patricks Public-Key in environments/.secrets/mentolder.yaml" \
@@ -517,9 +517,9 @@ Als allererstes nach dem Compact — vor `superpowers:writing-plans` — ausfüh
 # → docs/superpowers/specs/<date>-<slug>-design.md
 
 # Ticket-Content aus DB holen (für jede ID in REINJECT_TICKETS)
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 for TID in "${REINJECT_TICKETS[@]}"; do
-  kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+  kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
     psql -U website -d website -At -c \
     "SELECT '=== ' || external_id || ' ===' || E'\nTitle: ' || title
             || E'\n\n' || COALESCE(description,'(kein Inhalt)')
@@ -549,7 +549,7 @@ Lege ein Ticket vom Typ `task` in der Produktionsdatenbank an und speichere die 
 
 ```bash
 # Postgres-Pod ermitteln (mentolder-Cluster)
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
 # Ticket anlegen — Titel und Beschreibung aus Slug und Branch ableiten
@@ -559,7 +559,7 @@ if [[ -n "${GRILLING_TICKET_EXT_ID:-}" ]]; then
   GRILLING_REF=$'\n'"Grilling-Ticket: ${GRILLING_TICKET_EXT_ID}"
 fi
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status)
    VALUES (
@@ -656,8 +656,8 @@ Frage den User nach der Ticket-ID (Format: `T######`, z.B. `T000288`).
 **Wenn eine Ticket-ID vorhanden ist:** direkt übernehmen → `TICKET_EXT_ID=T######`. Hole zusätzlich die UUID für etwaige Attachments:
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_EXT_ID';")
 ```
@@ -681,10 +681,10 @@ Falls `.txt`/`.log`/`.md`/`.png`/`.jpg`: zusätzlich vor der Ticket-Anlage `Read
 **Wenn keine Ticket-ID existiert:** frage nach Titel, Schweregrad und kurzer Beschreibung, lege dann das Ticket via SQL an:
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
    VALUES (

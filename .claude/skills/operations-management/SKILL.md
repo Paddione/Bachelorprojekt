@@ -31,8 +31,8 @@ Never use `tickets.ticket_links` for PR references — it is ticket→ticket onl
 
 All SQL below assumes:
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-psql() { kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website "$@"; }
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
 ```
 
 ---
@@ -44,15 +44,15 @@ Use this process when a core platform service is down or degraded.
 ### Step 1.1: Scope the Incident (< 2 min)
 Determine:
 1. **Affected Service:** Keycloak, Nextcloud, Website, Brett, Arena, Vaultwarden, Docs, LiveKit, or Shared-DB.
-2. **Target Cluster:** `mentolder` (standalone), `fleet` (for korczewski brand, namespace `workspace-korczewski`), or both.
+2. **Target Cluster:** `mentolder` brand (fleet cluster), `korczewski` brand (fleet cluster), or both.
 3. **Onset Time:** Since when has it been failing? Check git log or deployment status.
 4. **Blast Radius:** All users or a subset of features?
 
 ### Step 1.2: Open an Incident Ticket
 Create a ticket in the database:
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website -At -c \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
    VALUES ('bug', 'mentolder', 'Incident: <desc>', 'Affected: <svc>\nCluster: <env>\nSymptoms: <symptoms>', 'in_progress', '<critical|major|minor>', 'hoch')
    RETURNING external_id;"
@@ -182,8 +182,8 @@ Convert local execution `MISHAP_LOG` entries into tickets.
 ### Step 4.2: Insert Tickets
 For each entry in the log:
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website -At -c \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, severity, status, component)
    VALUES ('<type>', 'mentolder', '<title>', '<description>', '<severity>', 'triage', '<component>')
    RETURNING external_id;"

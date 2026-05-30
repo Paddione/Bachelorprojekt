@@ -1,5 +1,10 @@
 # Fleet Stage 2 — Cutover Runbook
 
+> **ARCHIVAL NOTICE:** This runbook documents a completed migration (executed 2026-05-30/31).
+> The mentolder-standalone cluster has been **decommissioned**. Both brands now run on the
+> unified `fleet` cluster (3 CP pk-hetzner-4/6/8, 3 workers gekko-hetzner-2/3/4).
+> This document is retained as a historical reference only.
+
 Spec: `docs/superpowers/specs/2026-05-30-fleet-stage2-dns-cutover-design.md`
 Order: **fleet platform deploy** → **mentolder** (data copy + reversible DNS flip) →
 same-day soak → **korczewski** (fresh deploy + DNS cleanup).
@@ -15,9 +20,8 @@ same-day soak → **korczewski** (fresh deploy + DNS cleanup).
 >   brand via the `fleet` context, namespace `workspace-korczewski`** — do NOT try to "fix"
 >   the `korczewski` context (ticket T000340). The fleet deploy has run; korczewski.de
 >   availability now depends on DNS/cert readiness (Phase 2b/2c + cutover still pending).
-> - **mentolder-standalone is still live** on separate gekko hardware, with intact local
->   backups. So mentolder is a reversible DNS flip with a warm fallback; korczewski is a
->   fresh deploy (its data is NOT being restored — see §3).
+> - **mentolder-standalone has been decommissioned** (was still live when this runbook was
+>   written; Phase 3 completed 2026-05-31). No fallback exists — both brands are fleet-only.
 
 ## 0. Prerequisite gate — fleet platform deploy (Phase 2a COMPLETE, 2b/2c pending)
 

@@ -23,31 +23,45 @@ same-day soak → **korczewski** (fresh deploy + DNS cleanup).
 
 The fleet cluster has no brand workloads yet. These must all be true before any DNS work.
 
-**Operator assets required (currently MISSING — must be supplied):**
-- [ ] `environments/.secrets/fleet-mentolder.yaml` and `environments/.secrets/fleet-korczewski.yaml`
-      (plaintext secret inputs; gitignored).
-- [ ] ipv64 ACME DNS-01 API key (for `task cert:secret`).
+**Operator assets — PREPARED 2026-05-30 (was MISSING):**
+- [x] `environments/.secrets/fleet-mentolder.yaml` and `environments/.secrets/fleet-korczewski.yaml`
+      assembled from the standalone secrets (gitignored). **fleet-mentolder** = mentolder's
+      app/data secrets (so the restored data decrypts — same `BACKUP_PASSPHRASE`/DB passwords)
+      with the WG node keys swapped to korczewski's `pk-4/6/8` keys (fleet runs on those hosts);
+      `DEV_*` keys kept. **fleet-korczewski** = korczewski's secrets minus `DEV_*` (dev stack is
+      Phase 2c). Both pass `env-seal`'s dev-value/duplicate/completeness checks.
+- [x] ipv64 ACME DNS-01 API key — **already carried in both standalone `.secrets`**, so
+      `env:seal` emitted a `cert-manager/ipv64-api-key` SealedSecret automatically. `task cert:secret`
+      is now only an imperative fallback. Verified the key controls BOTH `mentolder.de` and
+      `korczewski.de` (see DNS prereqs below).
 - [ ] Confirm capacity on pk-4/6/8 for both brands' workloads.
 
 **Bring-up order on the `fleet` context** (mirrors CLAUDE.md fresh-cluster order):
-- [ ] `task sealed-secrets:install ENV=fleet-mentolder` — controller before any SealedSecret.
-- [ ] `task cert:install ENV=fleet-mentolder` — cert-manager CRDs (already running; idempotent).
-- [ ] Install Longhorn on fleet (StorageClass for backup-pvc + data PVCs).
-- [ ] `task env:fetch-cert ENV=fleet-mentolder` — fetch fleet sealing cert → `environments/certs/fleet.pem`.
-- [ ] `task env:seal ENV=fleet-mentolder` and `task env:seal ENV=fleet-korczewski` →
-      writes `environments/sealed-secrets/fleet-*.yaml`.
-- [ ] `task cert:secret -- <ipv64-key> ENV=fleet-mentolder` (creates the ACME key in
-      `cert-manager` AND the workspace ns).
+- [x] `task sealed-secrets:install ENV=fleet-mentolder` — controller installed, 1/1 ready
+      (NB: the task does not pass `--version`; installed chart ≠ pinned `2.18.6` in versions.yaml).
+- [x] `task cert:install ENV=fleet-mentolder` — cert-manager already running (4 pods).
+- [x] Install Longhorn on fleet — Helm chart `1.11.2`, all 3 pk nodes schedulable, CSI 3/3.
+      Installed with `persistence.defaultClass=false` so **`local-path` stays the sole default**
+      (data PVCs name `storageClassName: longhorn` explicitly). The chart's default would have
+      created a SECOND default StorageClass — avoid that.
+- [x] `env:seal` auto-fetched the fleet sealing cert → `environments/certs/fleet-mentolder.pem`
+      and `fleet-korczewski.pem` (per-ENV path; both are the same fleet controller cert — the
+      `certs/fleet.pem` name in older notes is wrong).
+- [x] `task env:seal ENV=fleet-mentolder` and `task env:seal ENV=fleet-korczewski` →
+      wrote `environments/sealed-secrets/fleet-*.yaml` (committed).
+- [ ] `task cert:secret -- <ipv64-key> ENV=fleet-mentolder` — optional fallback only; the key
+      is already sealed into `cert-manager/ipv64-api-key`.
 - [ ] `task fleet:deploy` — runs `fleet:platform` once, then `fleet:deploy:brand` for
       `fleet-mentolder` (ns `workspace`) and `fleet-korczewski` (ns `workspace-korczewski`).
+      **This is the next operator action.**
 - [ ] Verify: `kubectl --context fleet get pods -n workspace` and `-n workspace-korczewski`
       all Ready.
 
 **DNS + cert prerequisites:**
 - [ ] `environments/fleet-mentolder.yaml` TURN/LIVEKIT pin = `204.168.244.104` (pk-4) — DONE.
-- [ ] `IPV64_API_KEY` on fleet controls BOTH domains — verify:
-      `curl -fsS "https://ipv64.net/api?get_domains" -H "Authorization: Bearer $IPV64_API_KEY" | jq '.subdomains // .record_info'`
-      Confirm both `mentolder.de` and `korczewski.de` appear. **Confirm the JSON path used by
+- [x] `IPV64_API_KEY` on fleet controls BOTH domains — **verified 2026-05-30**: a
+      `get_domains` call returned both `mentolder.de` and `korczewski.de` as object keys
+      (under `.subdomains`/`.domains`/`.record_info`). **Confirm the JSON path used by
       `capture_rollback_state()` in `scripts/fleet-dns-cutover.sh` matches this real
       response**; adjust the jq filter if the live shape differs, then re-run
       `bats tests/unit/fleet-dns-cutover.bats`.

@@ -23,13 +23,13 @@ if [[ ! -s "$CM_FILE" ]]; then
   exit 1
 fi
 
-# mentolder
+# mentolder brand (fleet cluster, namespace workspace)
 echo "→ mentolder (namespace: workspace)..."
-kubectl --context mentolder apply -f "$CM_FILE" -n workspace --server-side --force-conflicts
-kubectl --context mentolder rollout restart deployment/docs -n workspace
-kubectl --context mentolder rollout status deployment/docs -n workspace --timeout=120s
+kubectl --context fleet apply -f "$CM_FILE" -n workspace --server-side --force-conflicts
+kubectl --context fleet rollout restart deployment/docs -n workspace
+kubectl --context fleet rollout status deployment/docs -n workspace --timeout=120s
 
-# korczewski uses a different namespace
+# korczewski brand (fleet cluster, different namespace)
 python3 -c "
 import yaml
 with open('$CM_FILE') as f:
@@ -40,9 +40,9 @@ with open('$CM_FILE_K', 'w') as f:
 "
 
 echo "→ korczewski (namespace: workspace-korczewski)..."
-kubectl --context korczewski apply -f "$CM_FILE_K" -n workspace-korczewski --server-side --force-conflicts
-kubectl --context korczewski rollout restart deployment/docs -n workspace-korczewski
-kubectl --context korczewski rollout status deployment/docs -n workspace-korczewski --timeout=120s
+kubectl --context fleet apply -f "$CM_FILE_K" -n workspace-korczewski --server-side --force-conflicts
+kubectl --context fleet rollout restart deployment/docs -n workspace-korczewski
+kubectl --context fleet rollout status deployment/docs -n workspace-korczewski --timeout=120s
 
 echo
 echo "✓ Docs ConfigMap updated on both clusters"

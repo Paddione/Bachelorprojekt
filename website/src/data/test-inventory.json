@@ -1300,5 +1300,11 @@
     "file": "tests/e2e/specs/sa-21-admin-actions.spec.ts",
     "category": "SA",
     "kind": "playwright"
+  },
+  {
+    "id": "SA-22",
+    "file": "tests/local/SA-22.sh",
+    "category": "SA",
+    "kind": "shell"
   }
 ]

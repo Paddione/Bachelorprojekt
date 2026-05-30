@@ -1,6 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
+# Cross-brand DB-isolation NetworkPolicy (SA-22) — lands in each brand's
+# workspace ns via the ${WORKSPACE_NAMESPACE} field, resolved at deploy.
+resources:
+  - netpol-deny-cross-brand.yaml
+
 # Shared fleet behavior applied to BOTH brand overlays.
 #
 # Job: $patch: delete the cluster-scoped singletons now owned ONCE by

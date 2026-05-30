@@ -2,13 +2,14 @@
 # PVC Data Backup — daily encrypted tar archives of file-backed PVCs
 # SA-07: Daily at 03:00 UTC (one hour after db-backup at 02:00)
 #
-# Design constraint: All three data PVCs (nextcloud-data-pvc,
-# vaultwarden-data-pvc, docuseal-data-pvc) must be on the same
-# Kubernetes node for the backup pod to mount them (RWO single-node).
-# podAffinity to the nextcloud pod enforces co-location. In production
-# (Longhorn), co-location is the default for stateful workloads.
-# In dev (local-path), PVCs are strictly node-pinned; SA-07 T8-T10
-# only run against the live cluster, not the dev k3d stack.
+# Design (T000317): the orchestrator pod clones the two Longhorn data
+# PVCs (vaultwarden, docuseal) via CSI dataSource so the backup mounts
+# placement-independent copies — never the live RWO volumes, which
+# deadlock on Multi-Attach when the app pod runs on another node.
+# nextcloud-data stays on local-path (no clone support) and is mounted
+# directly by the mounter, which is co-located with the nextcloud pod
+# via podAffinity (same node → local-path is shareable). After the
+# mounter Job completes, the orchestrator deletes the clones.
 # ═══════════════════════════════════════════════════════════════════
 apiVersion: batch/v1
 kind: CronJob
@@ -19,42 +20,28 @@ metadata:
     app: pvc-backup
 spec:
   schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3600
       template:
         metadata:
           labels:
             app: pvc-backup
         spec:
-          restartPolicy: OnFailure
-          # Must run on the same node as nextcloud to mount its RWO PVC.
-          # requiredDuringScheduling ensures this; if nextcloud is down
-          # the backup will be rescheduled (OnFailure) once it is up again.
-          affinity:
-            podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app: nextcloud
-                  topologyKey: kubernetes.io/hostname
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: kubernetes.io/hostname
-                        operator: NotIn
-                        values: [k3s-1, k3s-2, k3s-3, k3w-1, k3w-2, k3w-3]
+          serviceAccountName: pvc-backup
+          restartPolicy: Never
           securityContext:
             runAsNonRoot: true
             runAsUser: 65534
-            fsGroup: 65534
             seccompProfile:
               type: RuntimeDefault
           containers:
-            - name: backup
-              image: alpine:3
+            - name: orchestrator
+              image: rancher/kubectl:v1.30.2
               imagePullPolicy: IfNotPresent
               securityContext:
                 allowPrivilegeEscalation: false
@@ -62,193 +49,221 @@ spec:
                 runAsUser: 65534
                 capabilities:
                   drop: ["ALL"]
-              env:
-                - name: BACKUP_PASSPHRASE
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: BACKUP_PASSPHRASE
-                - name: BRAND
-                  valueFrom:
-                    configMapKeyRef:
-                      name: backup-config
-                      key: BRAND
-                - name: FILEN_DEFAULT_UPLOAD_PATH
-                  valueFrom:
-                    configMapKeyRef:
-                      name: backup-config
-                      key: FILEN_DEFAULT_UPLOAD_PATH
-                - name: FILEN_EMAIL
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: FILEN_EMAIL
-                      optional: true
-                - name: FILEN_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: FILEN_PASSWORD
-                      optional: true
               command: ["/bin/sh", "-c"]
-              # Shell vars (STAMP, BACKUP_DIR, PASS, FILEN_PATH) evaluated at runtime.
               args:
                 - |
-                  set -euo pipefail
-                  sleep 5
-
+                  set -eu
+                  NS=workspace
                   STAMP=$(date +%Y%m%d-%H%M%S)
-                  BACKUP_DIR=/backups/pvc-${STAMP}
-                  mkdir -p "${BACKUP_DIR}"
+                  MOUNTER="pvc-backup-mounter-${STAMP}"
+                  CLONES="vaultwarden-data-backup-clone docuseal-data-backup-clone"
 
-                  FAILED=0
+                  cleanup() {
+                    echo "Cleanup: deleting mounter Job and clone PVCs..."
+                    kubectl -n "$NS" delete job "$MOUNTER" --ignore-not-found --wait=true || true
+                    for c in $CLONES; do
+                      kubectl -n "$NS" delete pvc "$c" --ignore-not-found || true
+                    done
+                  }
+                  trap cleanup EXIT
 
-                  # ── Nextcloud user files ─────────────────────────────────
-                  echo "Backing up nextcloud-data (/nextcloud-data)..."
-                  if [ "$(ls -A /nextcloud-data 2>/dev/null)" ]; then
-                    tar czf - -C /nextcloud-data . \
-                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
-                          -out "${BACKUP_DIR}/nextcloud-files.tar.gz.enc" \
-                          -pass env:BACKUP_PASSPHRASE \
-                      && echo "  ✓ nextcloud-files OK ($(ls -lh "${BACKUP_DIR}/nextcloud-files.tar.gz.enc" | awk '{print $5}'))" \
-                      || { echo "  ✗ nextcloud-files FAILED"; FAILED=$((FAILED+1)); }
-                  else
-                    echo "  ⚠ /nextcloud-data is empty — skipping"
-                  fi
+                  # Stale clones from a crashed prior run would block creation.
+                  for c in $CLONES; do
+                    kubectl -n "$NS" delete pvc "$c" --ignore-not-found || true
+                  done
 
-                  # ── Vaultwarden file attachments ─────────────────────────
-                  echo "Backing up vaultwarden-data (/vaultwarden-data)..."
-                  if [ "$(ls -A /vaultwarden-data 2>/dev/null)" ]; then
-                    tar czf - -C /vaultwarden-data . \
-                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
-                          -out "${BACKUP_DIR}/vaultwarden-data.tar.gz.enc" \
-                          -pass env:BACKUP_PASSPHRASE \
-                      && echo "  ✓ vaultwarden-data OK ($(ls -lh "${BACKUP_DIR}/vaultwarden-data.tar.gz.enc" | awk '{print $5}'))" \
-                      || { echo "  ✗ vaultwarden-data FAILED"; FAILED=$((FAILED+1)); }
-                  else
-                    echo "  ⚠ /vaultwarden-data is empty — skipping"
-                  fi
+                  echo "Creating clone PVCs from live Longhorn volumes..."
+                  VW_SIZE=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.resources.requests.storage}')
+                  DS_SIZE=$(kubectl -n "$NS" get pvc docuseal-data-pvc   -o jsonpath='{.spec.resources.requests.storage}')
+                  kubectl -n "$NS" apply -f - <<CLONE
+                  apiVersion: v1
+                  kind: PersistentVolumeClaim
+                  metadata:
+                    name: vaultwarden-data-backup-clone
+                    labels: { app: pvc-backup }
+                  spec:
+                    storageClassName: longhorn
+                    accessModes: ["ReadWriteOnce"]
+                    resources: { requests: { storage: ${VW_SIZE} } }
+                    dataSource: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
+                  ---
+                  apiVersion: v1
+                  kind: PersistentVolumeClaim
+                  metadata:
+                    name: docuseal-data-backup-clone
+                    labels: { app: pvc-backup }
+                  spec:
+                    storageClassName: longhorn
+                    accessModes: ["ReadWriteOnce"]
+                    resources: { requests: { storage: ${DS_SIZE} } }
+                    dataSource: { kind: PersistentVolumeClaim, name: docuseal-data-pvc }
+                  CLONE
 
-                  # ── DocuSeal documents ──────────────────────────────────
-                  echo "Backing up docuseal-data (/docuseal-data)..."
-                  if [ "$(ls -A /docuseal-data 2>/dev/null)" ]; then
-                    tar czf - -C /docuseal-data . \
-                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
-                          -out "${BACKUP_DIR}/docuseal-data.tar.gz.enc" \
-                          -pass env:BACKUP_PASSPHRASE \
-                      && echo "  ✓ docuseal-data OK ($(ls -lh "${BACKUP_DIR}/docuseal-data.tar.gz.enc" | awk '{print $5}'))" \
-                      || { echo "  ✗ docuseal-data FAILED"; FAILED=$((FAILED+1)); }
-                  else
-                    echo "  ⚠ /docuseal-data is empty — skipping"
-                  fi
+                  echo "Waiting for clone PVCs to bind..."
+                  for c in $CLONES; do
+                    for i in $(seq 1 60); do
+                      PHASE=$(kubectl -n "$NS" get pvc "$c" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+                      [ "$PHASE" = "Bound" ] && break
+                      sleep 5
+                    done
+                    [ "$PHASE" = "Bound" ] || { echo "Clone $c did not bind (phase=$PHASE)"; exit 1; }
+                    echo "  ✓ $c Bound"
+                  done
 
-                  # ── Retention: remove PVC backups older than 30 days ─────
-                  find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
+                  echo "Launching mounter Job $MOUNTER..."
+                  kubectl -n "$NS" apply -f - <<MJOB
+                  apiVersion: batch/v1
+                  kind: Job
+                  metadata:
+                    name: ${MOUNTER}
+                    labels: { app: pvc-backup, role: mounter }
+                  spec:
+                    backoffLimit: 0
+                    activeDeadlineSeconds: 3000
+                    template:
+                      metadata:
+                        labels: { app: pvc-backup, role: mounter }
+                      spec:
+                        restartPolicy: Never
+                        affinity:
+                          podAffinity:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                              - labelSelector: { matchLabels: { app: nextcloud } }
+                                topologyKey: kubernetes.io/hostname
+                          nodeAffinity:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                              nodeSelectorTerms:
+                                - matchExpressions:
+                                    - key: kubernetes.io/hostname
+                                      operator: NotIn
+                                      values: [k3s-1, k3s-2, k3s-3, k3w-1, k3w-2, k3w-3]
+                        securityContext:
+                          runAsNonRoot: true
+                          runAsUser: 65534
+                          fsGroup: 65534
+                          seccompProfile: { type: RuntimeDefault }
+                        containers:
+                          - name: backup
+                            image: alpine:3
+                            imagePullPolicy: IfNotPresent
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              runAsNonRoot: true
+                              runAsUser: 65534
+                              capabilities: { drop: ["ALL"] }
+                            env:
+                              - name: BACKUP_PASSPHRASE
+                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } }
+                              - name: BRAND
+                                valueFrom: { configMapKeyRef: { name: backup-config, key: BRAND } }
+                              - name: FILEN_DEFAULT_UPLOAD_PATH
+                                valueFrom: { configMapKeyRef: { name: backup-config, key: FILEN_DEFAULT_UPLOAD_PATH } }
+                              - name: FILEN_EMAIL
+                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_EMAIL, optional: true } }
+                              - name: FILEN_PASSWORD
+                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_PASSWORD, optional: true } }
+                            command: ["/bin/sh", "-c"]
+                            args:
+                              - |
+                                set -euo pipefail
+                                sleep 5
+                                STAMP=\$(date +%Y%m%d-%H%M%S)
+                                BACKUP_DIR=/backups/pvc-\${STAMP}
+                                mkdir -p "\${BACKUP_DIR}"
+                                FAILED=0
+                                backup_dir() {
+                                  SRC="\$1"; OUT="\$2"; LABEL="\$3"
+                                  echo "Backing up \${LABEL} (\${SRC})..."
+                                  if [ "\$(ls -A "\${SRC}" 2>/dev/null)" ]; then
+                                    tar czf - -C "\${SRC}" . \
+                                      | openssl enc -aes-256-cbc -salt -pbkdf2 \
+                                          -out "\${BACKUP_DIR}/\${OUT}" -pass env:BACKUP_PASSPHRASE \
+                                      && echo "  ✓ \${LABEL} OK (\$(ls -lh "\${BACKUP_DIR}/\${OUT}" | awk '{print \$5}'))" \
+                                      || { echo "  ✗ \${LABEL} FAILED"; FAILED=\$((FAILED+1)); }
+                                  else
+                                    echo "  ⚠ \${SRC} empty — skipping"
+                                  fi
+                                }
+                                backup_dir /nextcloud-data   nextcloud-files.tar.gz.enc  nextcloud-data
+                                backup_dir /vaultwarden-data vaultwarden-data.tar.gz.enc vaultwarden-data
+                                backup_dir /docuseal-data    docuseal-data.tar.gz.enc    docuseal-data
+                                find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
+                                printf '%s' "\${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
+                                printf '%s' "pvc-\${STAMP}" > /staging/.done
+                                echo "PVC backup complete: \${BACKUP_DIR}"
+                                ls -lh "\${BACKUP_DIR}/"
+                                [ "\${FAILED}" -eq 0 ] || { echo "WARN: \${FAILED} backup(s) failed"; exit 1; }
+                            volumeMounts:
+                              - { name: backup-storage,   mountPath: /backups }
+                              - { name: nextcloud-data,   mountPath: /nextcloud-data,   readOnly: true }
+                              - { name: vaultwarden-data, mountPath: /vaultwarden-data, readOnly: true }
+                              - { name: docuseal-data,    mountPath: /docuseal-data,    readOnly: true }
+                              - { name: staging,          mountPath: /staging }
+                            resources:
+                              requests: { memory: 256Mi, cpu: "200m" }
+                              limits:   { memory: 1Gi,   cpu: "1" }
+                          - name: filen-upload
+                            image: node:22-alpine
+                            imagePullPolicy: IfNotPresent
+                            securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities: { drop: ["ALL"] }
+                            command: ["/bin/sh", "-c"]
+                            args:
+                              - |
+                                if [ -z "\${FILEN_EMAIL}" ] || [ -z "\${FILEN_PASSWORD}" ]; then
+                                  echo "Filen not configured — skipping upload"
+                                  until [ -f /staging/.done ]; do sleep 2; done
+                                  exit 0
+                                fi
+                                echo "Waiting for backup to complete..."
+                                until [ -f /staging/.done ]; do sleep 2; done
+                                STAMP=\$(cat /staging/.done)
+                                UPLOAD_PATH=\$(cat /staging/.filen_path)
+                                export HOME=/tmp
+                                npm install -g @filen/cli --prefix /tmp/npm-global --silent 2>&1 | tail -3
+                                export PATH="/tmp/npm-global/bin:\$PATH"
+                                echo "Uploading \${STAMP} to Filen: \${UPLOAD_PATH}/\${STAMP}/"
+                                filen --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
+                                  upload "/backups/\${STAMP}/" "\${UPLOAD_PATH}/\${STAMP}/" \
+                                  || echo "WARNING: Filen upload failed — local backup intact"
+                                echo "Filen upload done"
+                            env:
+                              - name: FILEN_EMAIL
+                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_EMAIL, optional: true } }
+                              - name: FILEN_PASSWORD
+                                valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_PASSWORD, optional: true } }
+                            volumeMounts:
+                              - { name: backup-storage, mountPath: /backups, readOnly: true }
+                              - { name: staging,        mountPath: /staging, readOnly: true }
+                            resources:
+                              requests: { memory: 256Mi, cpu: "100m" }
+                              limits:   { memory: 512Mi, cpu: "500m" }
+                        volumes:
+                          - name: backup-storage
+                            persistentVolumeClaim: { claimName: backup-pvc }
+                          - name: nextcloud-data
+                            persistentVolumeClaim: { claimName: nextcloud-data-pvc }
+                          - name: vaultwarden-data
+                            persistentVolumeClaim: { claimName: vaultwarden-data-backup-clone }
+                          - name: docuseal-data
+                            persistentVolumeClaim: { claimName: docuseal-data-backup-clone }
+                          - name: staging
+                            emptyDir: {}
+                  MJOB
 
-                  # ── Signal filen-upload sidecar ──────────────────────────
-                  FILEN_PATH="${FILEN_DEFAULT_UPLOAD_PATH}"
-                  printf '%s' "${FILEN_PATH}" > /staging/.filen_path
-                  printf '%s' "pvc-${STAMP}" > /staging/.done
-
-                  echo "PVC backup complete: ${BACKUP_DIR}"
-                  ls -lh "${BACKUP_DIR}/"
-
-                  [ "${FAILED}" -eq 0 ] || { echo "WARN: ${FAILED} PVC backup(s) failed — see above"; exit 1; }
-              volumeMounts:
-                - name: backup-storage
-                  mountPath: /backups
-                - name: nextcloud-data
-                  mountPath: /nextcloud-data
-                  readOnly: true
-                - name: vaultwarden-data
-                  mountPath: /vaultwarden-data
-                  readOnly: true
-                - name: docuseal-data
-                  mountPath: /docuseal-data
-                  readOnly: true
-                - name: staging
-                  mountPath: /staging
+                  echo "Waiting for mounter Job to finish..."
+                  kubectl -n "$NS" wait --for=condition=complete --timeout=3000s job/"$MOUNTER" &
+                  CW=$!
+                  kubectl -n "$NS" wait --for=condition=failed --timeout=3000s job/"$MOUNTER" &
+                  FW=$!
+                  wait -n "$CW" "$FW" || true
+                  STATUS=$(kubectl -n "$NS" get job "$MOUNTER" -o jsonpath='{.status.conditions[?(@.status=="True")].type}')
+                  echo "Mounter logs:"
+                  kubectl -n "$NS" logs job/"$MOUNTER" --all-containers --tail=80 || true
+                  echo "Mounter terminal status: ${STATUS:-Unknown}"
+                  [ "$STATUS" = "Complete" ] || { echo "Backup mounter did not complete"; exit 1; }
+                  echo "pvc-backup orchestration succeeded."
               resources:
-                requests:
-                  memory: 256Mi
-                  cpu: "200m"
-                limits:
-                  memory: 1Gi
-                  cpu: "1"
-
-            - name: filen-upload
-              image: node:22-alpine
-              imagePullPolicy: IfNotPresent
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop: ["ALL"]
-              command: ["/bin/sh", "-c"]
-              args:
-                - |
-                  if [ -z "${FILEN_EMAIL}" ] || [ -z "${FILEN_PASSWORD}" ]; then
-                    echo "Filen not configured — skipping remote PVC backup upload"
-                    until [ -f /staging/.done ]; do sleep 2; done
-                    exit 0
-                  fi
-
-                  echo "Waiting for PVC backup to complete..."
-                  until [ -f /staging/.done ]; do sleep 2; done
-
-                  STAMP=$(cat /staging/.done)
-                  UPLOAD_PATH=$(cat /staging/.filen_path)
-
-                  echo "Installing Filen CLI..."
-                  export HOME=/tmp
-                  npm install -g @filen/cli --prefix /tmp/npm-global --silent 2>&1 | tail -3
-                  export PATH="/tmp/npm-global/bin:$PATH"
-
-                  echo "Uploading ${STAMP} to Filen: ${UPLOAD_PATH}/${STAMP}/"
-                  filen --email "${FILEN_EMAIL}" --password "${FILEN_PASSWORD}" \
-                    upload "/backups/${STAMP}/" "${UPLOAD_PATH}/${STAMP}/" \
-                    || echo "WARNING: Filen upload failed — local PVC backup intact"
-
-                  echo "Filen PVC upload done"
-              env:
-                - name: FILEN_EMAIL
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: FILEN_EMAIL
-                      optional: true
-                - name: FILEN_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: FILEN_PASSWORD
-                      optional: true
-              volumeMounts:
-                - name: backup-storage
-                  mountPath: /backups
-                  readOnly: true
-                - name: staging
-                  mountPath: /staging
-                  readOnly: true
-              resources:
-                requests:
-                  memory: 256Mi
-                  cpu: "100m"
-                limits:
-                  memory: 512Mi
-                  cpu: "500m"
-
-          volumes:
-            - name: backup-storage
-              persistentVolumeClaim:
-                claimName: backup-pvc
-            - name: nextcloud-data
-              persistentVolumeClaim:
-                claimName: nextcloud-data-pvc
-            - name: vaultwarden-data
-              persistentVolumeClaim:
-                claimName: vaultwarden-data-pvc
-            - name: docuseal-data
-              persistentVolumeClaim:
-                claimName: docuseal-data-pvc
-            - name: staging
-              emptyDir: {}
+                requests: { memory: 64Mi, cpu: "50m" }
+                limits:   { memory: 256Mi, cpu: "500m" }

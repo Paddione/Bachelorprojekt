@@ -40,6 +40,7 @@ resources:
   - backup-pvc.yaml
   - backup-cronjob.yaml
   - pvc-backup-cronjob.yaml
+  - pvc-backup-rbac.yaml
   - backup-config.yaml
   - notify-unread-cronjob.yaml
   # Abrechnung

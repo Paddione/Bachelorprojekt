@@ -52,13 +52,14 @@ assert_contains "$FILEN_IMAGE" "node" "SA-07" "T7" "filen-upload nutzt node-Imag
 PVC_CJ_COUNT=$(kubectl get cronjob pvc-backup -n "$NAMESPACE" -o name 2>/dev/null | wc -l)
 assert_gt "$PVC_CJ_COUNT" 0 "SA-07" "T8" "CronJob pvc-backup vorhanden (sichert Datei-PVCs)"
 
-# T9: pvc-backup CronJob references all three critical data PVCs as volumes
-PVC_VOLS=$(kubectl get cronjob pvc-backup -n "$NAMESPACE" \
-  -o jsonpath='{.spec.jobTemplate.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}' \
-  2>/dev/null || echo "")
-assert_contains "$PVC_VOLS" "nextcloud-data-pvc"  "SA-07" "T9a" "pvc-backup sichert nextcloud-data-pvc"
-assert_contains "$PVC_VOLS" "vaultwarden-data-pvc" "SA-07" "T9b" "pvc-backup sichert vaultwarden-data-pvc"
-assert_contains "$PVC_VOLS" "docuseal-data-pvc"    "SA-07" "T9c" "pvc-backup sichert docuseal-data-pvc"
+# T9: pvc-backup wires up all three data sources [T000317]
+# The orchestrator pod's top-level volumes only carry the backup-pvc and the
+# nextcloud direct mount; vaultwarden+docuseal appear as *-backup-clone names
+# inside the embedded mounter Job spec (in the orchestrator args string).
+CJ_SPEC=$(kubectl get cronjob pvc-backup -n "$NAMESPACE" -o yaml 2>/dev/null || echo "")
+assert_contains "$CJ_SPEC" "nextcloud-data-pvc"            "SA-07" "T9a" "pvc-backup mountet nextcloud-data-pvc direkt (co-located)"
+assert_contains "$CJ_SPEC" "vaultwarden-data-backup-clone" "SA-07" "T9b" "pvc-backup nutzt vaultwarden Clone-PVC"
+assert_contains "$CJ_SPEC" "docuseal-data-backup-clone"    "SA-07" "T9c" "pvc-backup nutzt docuseal Clone-PVC"
 
 # T10: backup-restore.sh supports pvc-restore subcommand
 RESTORE_HELP=$(bash "${SCRIPT_DIR}/../scripts/backup-restore.sh" --help 2>&1 || true)
@@ -85,4 +86,51 @@ else:
 " 2>/dev/null || echo "ERROR")
   assert_eq "$SC" "longhorn" "SA-07" "T11-${pvc}" \
     "Datei-PVC ${pvc} nutzt Longhorn in prod-mentolder (aktuell: ${SC}) [T000317]"
+done
+
+# T12: pvc-backup must NOT mount the live Longhorn data PVCs directly [T000317]
+# Verified 2026-05-30: mounting a live Longhorn RWO PVC in the backup pod
+# deadlocks on FailedAttachVolume Multi-Attach when the owning app pod runs on a
+# different node (the backup pod is pinned to nextcloud's node via podAffinity,
+# but docuseal/vaultwarden may run elsewhere). The fix clones each Longhorn data
+# PVC (CSI dataSource) and mounts the placement-independent clone instead.
+# nextcloud-data is EXEMPT: it is on local-path (no clone/snapshot support) and
+# is correctly co-located with the nextcloud pod via podAffinity, so its direct
+# RO mount shares the volume on the same node without contention.
+# This is a static manifest test (no cluster access needed).
+PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+BACKUP_VOL_CLAIMS=$(python3 -c "
+import yaml
+with open('${PROJECT_DIR}/k3d/pvc-backup-cronjob.yaml') as f:
+    cj = yaml.safe_load(f)
+vols = cj['spec']['jobTemplate']['spec']['template']['spec'].get('volumes', [])
+claims = [v.get('persistentVolumeClaim', {}).get('claimName', '') for v in vols]
+print(' '.join(c for c in claims if c))
+" 2>/dev/null || echo "PARSE_ERROR")
+
+# Only the Longhorn-backed PVCs must be clone-mounted; nextcloud (local-path) is exempt.
+for live_pvc in vaultwarden-data-pvc docuseal-data-pvc; do
+  if echo "$BACKUP_VOL_CLAIMS" | grep -qw "$live_pvc"; then
+    HAS_LIVE="yes"
+  else
+    HAS_LIVE="no"
+  fi
+  assert_eq "$HAS_LIVE" "no" "SA-07" "T12-${live_pvc}" \
+    "pvc-backup mountet die Live-Longhorn-PVC ${live_pvc} NICHT direkt (Clone-basiert, kein Multi-Attach) [T000317]"
+done
+
+# T13: orchestrator RBAC objects are declared in the base kustomization [T000317]
+PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+RBAC_OUT=$(kustomize build "${PROJECT_DIR}/k3d" 2>/dev/null)
+for kind_name in "ServiceAccount/pvc-backup" "Role/pvc-backup" "RoleBinding/pvc-backup"; do
+  KIND="${kind_name%/*}"; NAME="${kind_name#*/}"
+  FOUND=$(echo "$RBAC_OUT" | python3 -c "
+import sys, yaml
+for d in yaml.safe_load_all(sys.stdin):
+    if d and d.get('kind')=='${KIND}' and d.get('metadata',{}).get('name')=='${NAME}':
+        print('yes'); break
+else:
+    print('no')
+" 2>/dev/null || echo "ERROR")
+  assert_eq "$FOUND" "yes" "SA-07" "T13-${KIND}" "pvc-backup ${KIND} im base kustomize build vorhanden [T000317]"
 done

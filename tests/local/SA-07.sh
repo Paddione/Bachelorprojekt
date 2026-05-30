@@ -69,7 +69,7 @@ assert_contains "$RESTORE_HELP" "pvc-restore" "SA-07" "T10" "backup-restore.sh u
 # (local-path PVCs are node-pinned RWO — backup pod cannot mount PVCs from different nodes)
 # This is a manifest-level test: checks kustomize build output, no cluster access needed.
 PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
-KUSTOMIZE_OUT=$(kustomize build "${PROJECT_DIR}/prod-mentolder" 2>/dev/null)
+KUSTOMIZE_OUT=$(kustomize build "${PROJECT_DIR}/prod-fleet/mentolder" 2>/dev/null)
 # nextcloud-data-pvc excluded: Longhorn lacks disk headroom for 50Gi on 3 replicas (T000317)
 for pvc in vaultwarden-data-pvc docuseal-data-pvc; do
   # Extract storageClassName from the built manifest for this specific PVC
@@ -85,7 +85,7 @@ else:
     print('NOT_FOUND')
 " 2>/dev/null || echo "ERROR")
   assert_eq "$SC" "longhorn" "SA-07" "T11-${pvc}" \
-    "Datei-PVC ${pvc} nutzt Longhorn in prod-mentolder (aktuell: ${SC}) [T000317]"
+    "Datei-PVC ${pvc} nutzt Longhorn in prod-fleet/mentolder (aktuell: ${SC}) [T000317]"
 done
 
 # T12: pvc-backup must NOT mount the live Longhorn data PVCs directly [T000317]

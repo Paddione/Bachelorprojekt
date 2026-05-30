@@ -1,0 +1,40 @@
+# fleet platform layer — cluster-scoped tls-sync RBAC, owned ONCE.
+#
+# Trimmed from prod/reflector.yaml on purpose: that file bundles the
+# cluster-scoped ClusterRole/Binding together with a namespaced ServiceAccount
+# and CronJob that carry a ${WORKSPACE_NAMESPACE} placeholder. The fleet:platform
+# task applies WITHOUT envsubst, so pulling the whole file would apply a literal
+# "${WORKSPACE_NAMESPACE}" namespace and fail. The namespaced SA + CronJob stay
+# owned by each brand overlay (via its ../prod base); only these two
+# cluster-singletons live here so both brands' fleet-common component can
+# $patch: delete them and avoid the SharedResource conflict that reverted the
+# 2026-05 merge.
+#
+# The ClusterRoleBinding lists BOTH brand SAs (workspace + workspace-korczewski)
+# so the per-namespace tls-sync CronJob in EITHER brand is authorized. The fleet
+# brand namespaces are fixed for Phase 2a, so they are hardcoded here rather than
+# templated.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tls-sync
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tls-sync
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tls-sync
+subjects:
+  - kind: ServiceAccount
+    name: tls-sync
+    namespace: workspace
+  - kind: ServiceAccount
+    name: tls-sync
+    namespace: workspace-korczewski

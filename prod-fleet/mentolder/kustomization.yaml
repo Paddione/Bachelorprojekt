@@ -1,0 +1,131 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# mentolder brand on fleet — reuse the existing prod-mentolder overlay, then
+# apply fleet-common (delete the cluster singletons now owned by
+# prod-fleet/platform). Namespace stays workspace (set by the prod-mentolder/k3d
+# base). Node-affinity repoints for fleet pk nodes are added to fleet-common at
+# deploy time (Task 8); website affinity comes from WEBSITE_NODE_AFFINITY in
+# environments/fleet-mentolder.yaml.
+resources:
+  - ../../prod-mentolder
+components:
+  - ../components/fleet-common
+
+# Exclude the dev.mentolder.de stack from fleet Phase 2a (dev migration is 2c).
+# prod-mentolder renders these dev resources; with DEV_* blanked in
+# environments/fleet-mentolder.yaml they would either be invalid (the dev
+# Ingress/Certificate render with empty hosts -> "*." / null dnsNames, rejected
+# by the API — surfaced by the Task 8 server-side dry-run) or dangerous (the
+# dev-db-refresh CronJob drops + recreates databases). Delete them here in the
+# mentolder wrapper (NOT fleet-common — korczewski has no equivalents, so a shared
+# delete would error). The harmless *.localhost dev IngressRoutes are left intact.
+patches:
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-dev }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata: { name: workspace-ingress-dev }
+  - target: { group: cert-manager.io, version: v1, kind: Certificate, name: workspace-dev-wildcard-tls }
+    patch: |-
+      $patch: delete
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata: { name: workspace-dev-wildcard-tls }
+  - target: { group: batch, version: v1, kind: CronJob, name: dev-db-refresh }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata: { name: dev-db-refresh }
+  - target: { version: v1, kind: ConfigMap, name: dev-db-refresh-script }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata: { name: dev-db-refresh-script }
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-devnode-hostnet-to-shared-db-ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata: { name: allow-devnode-hostnet-to-shared-db-ingress }
+  - target: { version: v1, kind: Service, name: oauth2-proxy-dev }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata: { name: oauth2-proxy-dev }
+  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-dev }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: { name: oauth2-proxy-dev }
+  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: oauth2-proxy-dev }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata: { name: oauth2-proxy-dev }
+
+  # ── node-affinity repoints to fleet pk nodes (Task 8 empirical findings) ──
+  # The blanket prod-mentolder NotIn [home workers] is already satisfied on the
+  # fleet pk nodes, so most workloads schedule fine. These 3 are the only ones
+  # In-pinned to nodes that do NOT exist on fleet (server-side dry-run + scan):
+  #   brainstorm-sish -> gekko-hetzner-2, livekit-server -> gekko-hetzner-3,
+  #   whisper -> k3s home workers. Repoint to the fleet pk pool so they schedule.
+  # (Kept in the mentolder wrapper, NOT fleet-common: korczewski deliberately
+  # pins livekit-server to pk-hetzner-6 for its hostNetwork DNS-pin and must not
+  # be broadened.) livekit-server keeps a single-node pin (hostNetwork).
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: livekit-server
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values: [pk-hetzner-4]
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: brainstorm-sish
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+  # whisper needs a GPU node on mentolder (k3s home workers); fleet pk nodes have
+  # no GPU, so transcription is best-effort here — repoint so the pod at least
+  # schedules instead of staying Pending (flag for Phase 2b capacity review).
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: whisper
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: kubernetes.io/hostname
+                          operator: In
+                          values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]

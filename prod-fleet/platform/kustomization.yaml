@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# fleet platform layer — cluster-scoped singletons applied ONCE to the fleet
+# cluster. Per-brand overlays delete their own copies via the fleet-common
+# component so only this layer owns them (avoids the SharedResource conflict that
+# reverted the 2026-05 merge). The tls-sync ClusterRole/Binding come from the
+# trimmed reflector-rbac.yaml (NOT the full prod/reflector.yaml — that one carries
+# a namespaced SA + CronJob with a ${WORKSPACE_NAMESPACE} placeholder this
+# no-envsubst apply can't resolve; those stay owned per-brand). sealed-secrets
+# controller + cert-manager + Longhorn are installed via tasks, not here.
+resources:
+  - cluster-issuer.yaml
+  - ingressclass.yaml
+  - reflector-rbac.yaml
+  - claude-code-agent-rbac.yaml

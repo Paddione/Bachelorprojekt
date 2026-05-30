@@ -1,0 +1,36 @@
+# Cross-brand DB isolation for the fleet cluster (Phase 2a) — verified by SA-22.
+#
+# Both brands share one physical cluster, so a pod in workspace-korczewski could
+# otherwise reach shared-db in workspace (and vice-versa), breaking DSGVO logical
+# isolation. Enforcement is on the TARGET's ingress, NOT the source's egress,
+# because NetworkPolicy is additive (allow-only): the leftover
+# prod-korczewski/allow-egress-to-workspace policy — inert on the standalone
+# korczewski cluster but live on fleet — cannot override a target ingress deny.
+#
+# Selecting shared-db with this ingress policy puts it in default-deny-ingress
+# mode, so any source NOT listed here (notably the other brand's namespace) is
+# dropped, while same-namespace clients and this brand's own website namespace
+# stay allowed. ${WORKSPACE_NAMESPACE} / ${WEBSITE_NAMESPACE} are resolved per
+# brand by the deploy-time envsubst (both are in workspace:deploy's var list).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: shared-db-same-brand-only
+  namespace: ${WORKSPACE_NAMESPACE}
+spec:
+  podSelector:
+    matchLabels:
+      app: shared-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # same-namespace clients (keycloak, nextcloud, etc.)
+        - podSelector: {}
+        # this brand's own website namespace (website / website-korczewski)
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+      ports:
+        - port: 5432
+          protocol: TCP

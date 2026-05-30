@@ -276,8 +276,14 @@ all_images() {
 import subprocess, sys, yaml, glob, os
 from concurrent.futures import ThreadPoolExecutor
 
-overlays = sorted(glob.glob('${PROJECT_DIR}/prod*'))
-overlays = [o for o in overlays if os.path.isdir(o)]
+def _is_overlay(d):
+    return os.path.isdir(d) and any(
+        os.path.exists(os.path.join(d, k))
+        for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization'))
+
+# Skip container dirs (e.g. prod-fleet/) that hold nested overlays but have no
+# top-level kustomization of their own.
+overlays = sorted(o for o in glob.glob('${PROJECT_DIR}/prod*') if _is_overlay(o))
 
 def check_overlay(overlay):
     try:
@@ -323,7 +329,11 @@ print('OK: no workspace-secrets Secret in prod overlays')
   run python3 - "${PROJECT_DIR}" <<'PY'
 import subprocess, sys, yaml, glob, os
 project = sys.argv[1]
-overlays = sorted(d for d in glob.glob(os.path.join(project, 'prod-*')) if os.path.isdir(d))
+overlays = sorted(
+    d for d in glob.glob(os.path.join(project, 'prod-*'))
+    if os.path.isdir(d) and any(
+        os.path.exists(os.path.join(d, k))
+        for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization')))
 SPLIT = {'claude-code-mcp-ops', 'claude-code-mcp-auth', 'mcp-browser', 'mcp-github'}
 bad = []
 for ov in overlays:
@@ -364,7 +374,11 @@ PY
   run python3 - "${PROJECT_DIR}" <<'PY'
 import subprocess, sys, yaml, glob, os
 project = sys.argv[1]
-overlays = sorted(d for d in glob.glob(os.path.join(project, 'prod-*')) if os.path.isdir(d))
+overlays = sorted(
+    d for d in glob.glob(os.path.join(project, 'prod-*'))
+    if os.path.isdir(d) and any(
+        os.path.exists(os.path.join(d, k))
+        for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization')))
 bad = []
 for ov in overlays:
     r = subprocess.run(

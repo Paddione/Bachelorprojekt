@@ -1446,6 +1446,37 @@ tasks:
           --personal \
           --components-extra=image-reflector-controller,image-automation-controller
 
+  fleet:platform:
+    desc: "Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand."
+    cmds:
+      - |
+        set -euo pipefail
+        kubectl config use-context fleet
+        # Platform manifests are placeholder-free, so no envsubst is needed here.
+        kustomize build prod-fleet/platform/ --load-restrictor=LoadRestrictionsNone \
+          | kubectl --context fleet apply --server-side --force-conflicts -f -
+
+  fleet:deploy:brand:
+    desc: "Deploy ONE brand to fleet via the standard workspace:deploy path. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
+    requires:
+      vars: [BRAND]
+    cmds:
+      # Reuse workspace:deploy entirely — the fleet-<brand> env file sets
+      # context=fleet and overlay=prod-fleet/<brand>, so the full prod deploy
+      # path (SealedSecret, ns labels, shared-db ordering, envsubst, separately
+      # applied CronJobs) runs unchanged against the fleet cluster.
+      - task: workspace:deploy
+        vars: { ENV: "{{.BRAND}}" }
+
+  fleet:deploy:
+    desc: "Full Phase 2a deploy: platform once, then both brands (mentolder + korczewski) on the fleet cluster."
+    cmds:
+      - task: fleet:platform
+      - task: fleet:deploy:brand
+        vars: { BRAND: fleet-mentolder }
+      - task: fleet:deploy:brand
+        vars: { BRAND: fleet-korczewski }
+
   workspace:deploy:
     desc: "Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)"
     vars:

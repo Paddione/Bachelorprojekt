@@ -44,10 +44,10 @@ Options:
 
 Examples:
   $SCRIPT list
-  $SCRIPT pvc-list --context mentolder
+  $SCRIPT pvc-list --context fleet -n workspace
   $SCRIPT pvc-trigger
-  $SCRIPT pvc-restore nextcloud-files pvc-20260427-030001 --context mentolder -y
-  $SCRIPT restore all 20260427-020001 --context mentolder -y
+  $SCRIPT pvc-restore nextcloud-files pvc-20260427-030001 --context fleet -n workspace -y
+  $SCRIPT restore all 20260427-020001 --context fleet -n workspace-korczewski -y
 EOF
 }
 

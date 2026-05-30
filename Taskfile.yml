@@ -1226,58 +1226,6 @@ tasks:
         echo "  Workspace pods:"
         kubectl --context fleet get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
 
-  # ─────────────────────────────────────────────
-  # HA Cluster (3-node Hetzner)
-  # ─────────────────────────────────────────────
-  ha:setup:
-    desc: Bootstrap 3-node k3s HA cluster on Hetzner (run once)
-    cmds:
-      - ./scripts/setup-ha-cluster.sh
-
-  korczewski:ingress:setup:
-    desc: "Upgrade Traefik on korczewski cluster — restricts DaemonSet to pk-hetzner-4/6/8, fixes hostPort rolling-update strategy (idempotent)"
-    cmds:
-      - |
-        helm --kube-context korczewski repo update
-        helm --kube-context korczewski upgrade traefik traefik/traefik \
-          -n kube-system \
-          --version 40.2.0 \
-          --values prod-korczewski/traefik-values.yaml \
-          --reuse-values=false
-        kubectl --kube-context korczewski -n kube-system rollout status daemonset traefik --timeout=120s
-      - echo "✓ Traefik restricted to pk-hetzner-4/6/8, 3 nodes now serving as ingress"
-
-  korczewski:dns:update:
-    desc: "Manually trigger a ddns-updater run on korczewski — sets 3 A records for *.korczewski.de and root domain, pins livekit/stream/turn to pk-hetzner-6"
-    cmds:
-      - |
-        JOB="ddns-manual-$(date +%s)"
-        kubectl --context korczewski -n workspace-korczewski \
-          create job --from=cronjob/ddns-updater "$JOB"
-        echo "Waiting for job $JOB to complete..."
-        kubectl --context korczewski -n workspace-korczewski wait job/"$JOB" \
-          --for=condition=complete --timeout=120s
-        kubectl --context korczewski -n workspace-korczewski logs job/"$JOB"
-
-  ha:import-image:
-    desc: "Build a local Docker image and import to all HA nodes (usage: task ha:import-image -- <path> <image:tag>)"
-    vars:
-      BUILD_PATH: '{{index .CLI_ARGS_LIST 0}}'
-      IMAGE_TAG: '{{index .CLI_ARGS_LIST 1}}'
-      SSH_KEY: "$HOME/.ssh/id_ed25519_hetzner"
-      HA_NODES: "178.104.169.206 46.225.125.59 178.104.159.79"
-    cmds:
-      - docker build -t {{.IMAGE_TAG}} {{.BUILD_PATH}}
-      - docker save {{.IMAGE_TAG}} -o /tmp/ha-image-import.tar
-      - |
-        for IP in {{.HA_NODES}}; do
-          echo "  Importing to $IP..."
-          scp -o StrictHostKeyChecking=no -i {{.SSH_KEY}} /tmp/ha-image-import.tar root@$IP:/tmp/
-          ssh -o StrictHostKeyChecking=no -i {{.SSH_KEY}} root@$IP "k3s ctr images import /tmp/ha-image-import.tar && rm /tmp/ha-image-import.tar"
-        done
-        rm -f /tmp/ha-image-import.tar
-      - echo "✓ {{.IMAGE_TAG}} imported to all HA nodes"
-
   ha:status:
     desc: Show HA cluster node and pod status (ENV=mentolder|korczewski)
     vars:
@@ -1442,31 +1390,11 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         flux logs --context "${ENV_CONTEXT}" --follow
 
-  flux:bootstrap:mentolder:
-    desc: "Bootstrap Flux on the mentolder cluster (run once after sealed-secrets:install)"
-    cmds:
-      - |
-        flux bootstrap github \
-          --context=mentolder \
-          --owner=Paddione \
-          --repository=Bachelorprojekt \
-          --branch=main \
-          --path=flux/clusters/mentolder \
-          --personal \
-          --components-extra=image-reflector-controller,image-automation-controller
-
-  flux:bootstrap:korczewski:
-    desc: "Bootstrap Flux on the korczewski cluster (run once after sealed-secrets:install)"
-    cmds:
-      - |
-        flux bootstrap github \
-          --context=korczewski \
-          --owner=Paddione \
-          --repository=Bachelorprojekt \
-          --branch=main \
-          --path=flux/clusters/korczewski \
-          --personal \
-          --components-extra=image-reflector-controller,image-automation-controller
+  # NOTE: The per-brand standalone Flux bootstrap tasks (flux:bootstrap:mentolder /
+  # flux:bootstrap:korczewski) were removed with the Fleet Stage 3 consolidation —
+  # both standalone clusters are decommissioned. The unified fleet cluster is
+  # GitOps-bootstrapped once (manually) via `flux bootstrap github --context=fleet
+  # --path=flux/clusters/fleet`, per docs/superpowers/specs/2026-05-30-fleet-unified-cluster-design.md.
 
   fleet:platform:
     desc: "Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand."

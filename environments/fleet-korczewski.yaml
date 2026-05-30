@@ -1,0 +1,92 @@
+# environments/fleet-korczewski.yaml
+# korczewski brand on the fleet cluster (Phase 2a). Derived from korczewski.yaml:
+# only context, domain, and *.korczewski.de routing hosts change (host segment
+# gets a `fleet.` infix so test hosts live under fleet.korczewski.de and never
+# touch the live korczewski.de records). Namespaces, legal/contact/SMTP identity,
+# internal cluster-DNS service URLs, and node-affinity are unchanged.
+environment: fleet-korczewski
+context: fleet
+domain: fleet.korczewski.de
+
+env_vars:
+  PROD_DOMAIN: fleet.korczewski.de
+  CLUSTER_ENV: fleet-korczewski
+  BRAND_NAME: "KORE"
+  BRAND_ID: korczewski
+  CONTACT_EMAIL: info@korczewski.de
+  CONTACT_PHONE: ""
+  CONTACT_CITY: "Lüneburg"
+  CONTACT_NAME: "Patrick Korczewski"
+  LEGAL_STREET: "In der Twiet 4"
+  LEGAL_ZIP: "21360"
+  LEGAL_JOBTITLE: "Software Engineer, IT-Security-Berater"
+  LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
+  LEGAL_WEBSITE: korczewski.de
+  WEBSITE_IMAGE: korczewski-website
+  DOCS_IMAGE: korczewski-docs
+  WEBSITE_NAMESPACE: website-korczewski
+  WORKSPACE_NAMESPACE: workspace-korczewski
+  WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
+  INFRA_NAMESPACE: korczewski-infra
+  TLS_SECRET_NAME: korczewski-tls
+  SMTP_FROM: korczewski@mailbox.org
+  SMTP_USER: korczewski@mailbox.org
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  # Infra IPs/nodes inherited from korczewski.yaml; pk-hetzner-6 is on fleet so
+  # these are valid. TURN/LiveKit reachability is a Phase-2b/runtime concern.
+  TURN_PUBLIC_IP: "37.27.251.38"
+  TURN_NODE: "pk-hetzner-6"
+  NEXTCLOUD_EXTERNAL_URL: "https://files.fleet.korczewski.de"
+  DOCS_URL: "https://docs.fleet.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.fleet.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.fleet.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.fleet.korczewski.de/apps/files"
+  TRAEFIK_EXTERNAL_URL: "https://traefik.fleet.korczewski.de"
+  MAIL_EXTERNAL_URL: "https://mail.fleet.korczewski.de"
+  BRETT_DOMAIN: brett.fleet.korczewski.de
+  LIVEKIT_DOMAIN: livekit.fleet.korczewski.de
+  LIVEKIT_PIN_IP: "37.27.251.38"
+  STREAM_DOMAIN: stream.fleet.korczewski.de
+  NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
+  WEBSITE_HOST: web.fleet.korczewski.de
+  WEBSITE_SITE_URL: "https://web.fleet.korczewski.de"
+  KEYCLOAK_FRONTEND_URL: "https://auth.fleet.korczewski.de"
+  # System-test failure loop master kill-switch.
+  SYSTEMTEST_LOOP_ENABLED: "true"
+  LLM_HOST_IP: "100.102.71.114"
+  COMFY_HOST_IP: "10.13.14.10"
+  COMFY_PORT: "8189"
+  LLM_ENABLED: "true"
+  LLM_RERANK_ENABLED: "false"
+  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace-korczewski.svc.cluster.local:8081"
+  ARENA_WS_URL: https://arena-ws.fleet.korczewski.de
+  # Dev stack intentionally omitted — dev migration is Phase 2c.
+  DEV_SSH_ALLOWLIST: ""
+
+overlay: prod-korczewski
+workspace_namespace: workspace-korczewski
+website_namespace: website-korczewski
+secrets_ref: sealed-secrets/fleet-korczewski.yaml
+
+setup_vars:
+  KC_USER1_USERNAME: paddione
+  KC_USER1_EMAIL: patrick@korczewski.de
+  KC_USER1_PASSWORD: SEALED
+  KC_USER2_USERNAME: gekko
+  KC_USER2_EMAIL: quamain@web.de
+  KC_USER2_PASSWORD: SEALED
+  # wg-mesh Hetzner CP keys — private keys sealed in .secrets/fleet-korczewski.yaml
+  WG_MESH_PK4_PRIVATE_KEY: SEALED
+  WG_MESH_PK4_PUBLIC_KEY: "WkEiNOdF3D66KVnGRMHdtnWZV/Czr6hlwpTE/u3ZxRE="
+  WG_MESH_PK6_PRIVATE_KEY: SEALED
+  WG_MESH_PK6_PUBLIC_KEY: "wXcvWH86uYyxWNM0l9Romml7Mq1Wegb3eWsVjf/R/HE="
+  WG_MESH_PK8_PRIVATE_KEY: SEALED
+  WG_MESH_PK8_PUBLIC_KEY: "kpWJQzw+p8rurkFq/hPQH/z1gl3/f19SFukOMpPBJS0="
+  # SSH identity keys — private keys sealed in .secrets/fleet-korczewski.yaml
+  PATRICK_SSH_PRIVATE_KEY: SEALED
+  PATRICK_SSH_PUBLIC_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de"
+  GEKKO_SSH_PRIVATE_KEY: SEALED
+  GEKKO_SSH_PUBLIC_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513"

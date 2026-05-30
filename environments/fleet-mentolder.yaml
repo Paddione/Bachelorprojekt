@@ -1,0 +1,92 @@
+# environments/fleet-mentolder.yaml
+# mentolder brand on the fleet cluster (Phase 2a). Derived from mentolder.yaml:
+# routing hosts are re-rooted off mentolder.de onto fleet-m.korczewski.de so the
+# test hosts never touch live mentolder.de records. Namespaces stay
+# workspace/website; node-affinity repointed to the fleet pk nodes.
+environment: fleet-mentolder
+context: fleet
+domain: fleet-m.korczewski.de
+
+env_vars:
+  PROD_DOMAIN: fleet-m.korczewski.de
+  CLUSTER_ENV: fleet-mentolder
+  BRAND_NAME: "Mentolder"
+  BRAND_ID: mentolder
+  CONTACT_EMAIL: info@mentolder.de
+  CONTACT_PHONE: "+49 151 508 32 601"
+  CONTACT_CITY: "Hamburg"
+  CONTACT_NAME: "Gerald Korczewski"
+  LEGAL_STREET: "Ludwig-Erhard-Str. 18"
+  LEGAL_ZIP: "20459"
+  LEGAL_JOBTITLE: "Coach und digitaler Begleiter"
+  LEGAL_UST_ID: "33/023/05100"
+  LEGAL_WEBSITE: mentolder.de
+  WEBSITE_IMAGE: mentolder-website
+  DOCS_IMAGE: mentolder-docs
+  WEBSITE_NAMESPACE: website
+  WORKSPACE_NAMESPACE: workspace
+  WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
+  INFRA_NAMESPACE: mentolder-infra
+  TLS_SECRET_NAME: workspace-wildcard-tls
+  SMTP_FROM: mentolder@mailbox.org
+  SMTP_USER: mentolder@mailbox.org
+  SMTP_HOST: smtp.mailbox.org
+  SMTP_PORT: "587"
+  SMTP_SECURE: "false"
+  # TURN_NODE repointed to a fleet node (gekko-hetzner-2 does not exist on fleet).
+  # TURN_PUBLIC_IP still the inherited gekko IP — must be set to pk-hetzner-4's
+  # public IP at deploy time (runtime asset: IP reachability check).
+  TURN_PUBLIC_IP: "178.104.169.206"
+  TURN_NODE: "pk-hetzner-4"
+  NEXTCLOUD_EXTERNAL_URL: "https://files.fleet-m.korczewski.de"
+  DOCS_URL: "https://docs.fleet-m.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.fleet-m.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.fleet-m.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.fleet-m.korczewski.de/apps/files"
+  TRAEFIK_EXTERNAL_URL: "https://traefik.fleet-m.korczewski.de"
+  MAIL_EXTERNAL_URL: "https://mail.fleet-m.korczewski.de"
+  BRETT_DOMAIN: brett.fleet-m.korczewski.de
+  LIVEKIT_DOMAIN: livekit.fleet-m.korczewski.de
+  # Inherited mentolder pin IP; re-pin at runtime via task livekit:dns-pin (2b).
+  LIVEKIT_PIN_IP: "46.225.125.59"
+  STREAM_DOMAIN: stream.fleet-m.korczewski.de
+  WEBSITE_HOST: web.fleet-m.korczewski.de
+  WEBSITE_SITE_URL: "https://web.fleet-m.korczewski.de"
+  KEYCLOAK_FRONTEND_URL: "https://auth.fleet-m.korczewski.de"
+  # System-test failure loop master kill-switch.
+  SYSTEMTEST_LOOP_ENABLED: "true"
+  LLM_HOST_IP: "100.102.71.114"
+  COMFY_HOST_IP: "192.168.100.10"
+  COMFY_PORT: "8189"
+  LLM_ENABLED: "true"
+  LLM_RERANK_ENABLED: "false"
+  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
+  ARENA_WS_URL: https://arena-ws.fleet-m.korczewski.de
+  # Dev stack intentionally omitted — dev migration is Phase 2c.
+  DEV_SSH_ALLOWLIST: ""
+
+overlay: prod-mentolder
+workspace_namespace: workspace
+website_namespace: website
+secrets_ref: sealed-secrets/fleet-mentolder.yaml
+
+setup_vars:
+  KC_USER1_USERNAME: paddione
+  KC_USER1_EMAIL: patrick@korczewski.de
+  KC_USER1_PASSWORD: SEALED
+  KC_USER2_USERNAME: gekko
+  KC_USER2_EMAIL: quamain@web.de
+  KC_USER2_PASSWORD: SEALED
+  # wg-mesh fleet CP keys — private keys sealed in .secrets/fleet-mentolder.yaml
+  WG_MESH_PK4_PRIVATE_KEY: SEALED
+  WG_MESH_PK4_PUBLIC_KEY: "WkEiNOdF3D66KVnGRMHdtnWZV/Czr6hlwpTE/u3ZxRE="
+  WG_MESH_PK6_PRIVATE_KEY: SEALED
+  WG_MESH_PK6_PUBLIC_KEY: "wXcvWH86uYyxWNM0l9Romml7Mq1Wegb3eWsVjf/R/HE="
+  WG_MESH_PK8_PRIVATE_KEY: SEALED
+  WG_MESH_PK8_PUBLIC_KEY: "kpWJQzw+p8rurkFq/hPQH/z1gl3/f19SFukOMpPBJS0="
+  # SSH identity keys — private keys sealed in .secrets/fleet-mentolder.yaml
+  PATRICK_SSH_PRIVATE_KEY: SEALED
+  PATRICK_SSH_PUBLIC_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de"
+  GEKKO_SSH_PRIVATE_KEY: SEALED
+  GEKKO_SSH_PUBLIC_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513"

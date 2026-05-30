@@ -1531,24 +1531,39 @@ tasks:
       - |
         set -euo pipefail
         kubectl config use-context fleet
+        # --- TLS cert sync: copy wildcard certs to workspace-office and coturn ---
+        # tls-sync-manual runs before certs are issued; sync here as a fallback.
+        for NS in workspace-office coturn; do
+          kubectl --context fleet get secret workspace-wildcard-tls -n workspace -o json \
+            | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
+            | kubectl --context fleet apply -f - || echo "warn: failed to sync workspace-wildcard-tls to $NS"
+          kubectl --context fleet get secret korczewski-tls -n workspace-korczewski -o json \
+            | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
+            | kubectl --context fleet apply -f - || echo "warn: failed to sync korczewski-tls to $NS"
+        done
         # --- Collabora (shared, dual-host) ---
         # Primary host vars from fleet-mentolder; second host from fleet-korczewski.
         source scripts/env-resolve.sh fleet-mentolder
-        export COLLABORA_HOST="collabora.${PROD_DOMAIN}"
-        export COLLABORA_SERVER_NAME="collabora.${PROD_DOMAIN}"
-        export COLLABORA_ALIASGROUP1="https://cloud\\.${PROD_DOMAIN}:443"
+        export COLLABORA_HOST="office.${PROD_DOMAIN}"
+        export COLLABORA_SERVER_NAME="office.${PROD_DOMAIN}"
+        export COLLABORA_ALIASGROUP1="https://files\\.${PROD_DOMAIN}:443"
         export COLLABORA_SSL_TERMINATION="true"
-        export COLLABORA_TLS_SECRET="collabora-tls"
+        export COLLABORA_TLS_SECRET="workspace-wildcard-tls"
         export COLLABORA_INGRESS_MIDDLEWARES="workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
         # Capture mentolder TURN vars BEFORE re-sourcing korczewski.
         MENTOLDER_TURN_NODE="$TURN_NODE"; MENTOLDER_TURN_PUBLIC_IP="${TURN_PUBLIC_IP:-$LIVEKIT_PIN_IP}"
         MENTOLDER_TLS_SECRET_NAME="${TLS_SECRET_NAME:-workspace-tls}"; MENTOLDER_PROD_DOMAIN="$PROD_DOMAIN"
-        ( source scripts/env-resolve.sh fleet-korczewski; echo "collabora.${PROD_DOMAIN}|https://cloud\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
+        ( source scripts/env-resolve.sh fleet-korczewski; echo "office.${PROD_DOMAIN}|https://files\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
         export COLLABORA_HOST_2="$(cut -d'|' -f1 /tmp/_kore_collabora.txt)"
         export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 /tmp/_kore_collabora.txt)"
         kustomize build k3d/office-stack \
           | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_HOST_2 $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
           | kubectl --context fleet apply -f -
+        # Patch ingress to give korczewski its own TLS entry (its cert is in korczewski-tls).
+        kubectl --context fleet patch ingress office-ingress -n workspace-office --type=json -p='[
+          {"op":"replace","path":"/spec/tls/0/hosts/1","value":"office.korczewski.de"},
+          {"op":"add","path":"/spec/tls/-","value":{"hosts":["office.korczewski.de"],"secretName":"korczewski-tls"}}
+        ]' 2>/dev/null || true
         kubectl --context fleet rollout status deploy/collabora -n workspace-office --timeout=300s
         # --- CoTURN/Janus (shared) ---
         export TURN_NODE="$MENTOLDER_TURN_NODE"; export TURN_PUBLIC_IP="$MENTOLDER_TURN_PUBLIC_IP"

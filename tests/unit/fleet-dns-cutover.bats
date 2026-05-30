@@ -131,3 +131,19 @@ STATE
   assert_output --partial 'fleet:dns:cutover:'
   assert_output --partial 'fleet:dns:rollback:'
 }
+
+@test "fleet:shared-services uses office.* hosts not collabora.* for Collabora" {
+  # Collabora ingress host must be office.<domain> so Nextcloud public_wopi_url resolves.
+  run grep -A 20 'fleet:shared-services:' "$REPO_ROOT/Taskfile.yml"
+  assert_success
+  assert_output --partial 'COLLABORA_HOST="office.'
+  refute_output --partial 'COLLABORA_HOST="collabora.'
+}
+
+@test "fleet:shared-services aliasgroup references files.* not cloud.*" {
+  # WOPI aliasgroup must match the Nextcloud host (files.<domain>), not cloud.*.
+  run grep -A 20 'fleet:shared-services:' "$REPO_ROOT/Taskfile.yml"
+  assert_success
+  assert_output --partial 'ALIASGROUP1="https://files\.'
+  refute_output --partial 'ALIASGROUP1="https://cloud\.'
+}

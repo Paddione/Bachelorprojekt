@@ -35,18 +35,18 @@ pr_number: null
 
 ## Task 1 — Add `--stateful` to all six supergateway invocations
 
-- [ ] In `deploy/mcp/claude-code-mcp-monolith.yaml`, for each of the postgres (~L87), browser/playwright (~L162), github (~L190) `exec supergateway \` blocks, insert `--stateful \` immediately after the `--outputTransport streamableHttp \` line (keeping the trailing `--healthEndpoint /health` last).
-- [ ] In `k3d/dev-stack/mcp-monolith-dev.yaml`, do the same for postgres (~L105), playwright (~L141), github (~L166).
-- [ ] Keep formatting/indentation identical to the surrounding args (continuation `\`). Do NOT touch the kubernetes container.
-- [ ] (Decision) `--sessionTimeout`: leave **unset** initially (supergateway default keeps the session until the stream closes). Only add an explicit timeout if dev validation shows stale-session buildup. Document this choice in a manifest comment near one invocation.
+- [x] In `deploy/mcp/claude-code-mcp-monolith.yaml`, for each of the postgres (~L87), browser/playwright (~L162), github (~L190) `exec supergateway \` blocks, insert `--stateful \` immediately after the `--outputTransport streamableHttp \` line (keeping the trailing `--healthEndpoint /health` last).
+- [x] In `k3d/dev-stack/mcp-monolith-dev.yaml`, do the same for postgres (~L105), playwright (~L141), github (~L166).
+- [x] Keep formatting/indentation identical to the surrounding args (continuation `\`). Do NOT touch the kubernetes container.
+- [x] (Decision) `--sessionTimeout`: leave **unset** initially (supergateway default keeps the session until the stream closes). Only add an explicit timeout if dev validation shows stale-session buildup. Document this choice in a manifest comment near one invocation.
 
 ## Task 2 — Local verification (offline)
 
-- [ ] `./tests/runner.sh local <test-id>` (or run the bats directly) → the new test now PASSES.
-- [ ] `task test:all` green.
-- [ ] `task workspace:validate` green (kustomize builds for `deploy/mcp` overlay and `k3d/dev-stack`).
-- [ ] `kubectl kustomize deploy/mcp/ | grep -c -- --stateful` → 3; same for `k3d/dev-stack/`.
-- [ ] `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — commit if it changed.
+- [x] `./tests/runner.sh local <test-id>` (or run the bats directly) → the new test now PASSES.
+- [x] `task test:all` green.
+- [x] `task workspace:validate` green (kustomize builds for `deploy/mcp` overlay and `k3d/dev-stack`).
+- [x] `kubectl kustomize deploy/mcp/ | grep -c -- --stateful` → 3; same for `k3d/dev-stack/`.
+- [x] `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — commit if it changed.
 
 ## Task 3 — Deploy + live validation (post-merge)
 

@@ -56,6 +56,9 @@ jobs:
           command_timeout: 20m
           script: |
             set -e
+            if [ ! -d ~/Bachelorprojekt ]; then
+              git clone --depth 1 https://github.com/Paddione/Bachelorprojekt.git ~/Bachelorprojekt
+            fi
             cd ~/Bachelorprojekt
             git fetch --depth 1 origin main
             git reset --hard origin/main

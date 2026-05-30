@@ -37,12 +37,12 @@ export FAIL_FAST="${FAIL_FAST:-false}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    local|prod|report) TIER="$1"; shift ;;
+    local|prod|report|unit) TIER="$1"; shift ;;
     --verbose) export VERBOSE="true"; shift ;;
     --fail-fast) export FAIL_FAST="true"; shift ;;
     -j|--jobs) export JOBS="$2"; shift 2 ;;
     -h|--help)
-      echo "Usage: $0 <local|prod|report> [TEST_IDS...] [--verbose] [-j|--jobs N]"
+      echo "Usage: $0 <local|prod|unit|report> [TEST_IDS...] [--verbose] [-j|--jobs N]"
       echo "  -j N, --jobs N        Parallel jobs (default: nproc/2, max 4)"
       echo "  --fail-fast           Abort on first failure"
       exit 0 ;;
@@ -52,7 +52,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$TIER" ]]; then
-  echo "Error: Tier required. Usage: $0 <local|prod|report>"
+  echo "Error: Tier required. Usage: $0 <local|prod|unit|report>"
   exit 1
 fi
 
@@ -163,6 +163,24 @@ if [[ "$TIER" == "report" ]]; then
     md_file="${json_file%.json}.md"
     generate_markdown "$json_file" "$md_file"
   done
+  exit 0
+fi
+
+# ── Unit-only mode (no cluster required) ─────────────────────────
+# Runs tests/unit/ BATS files directly without k3d_wait or port-forwards.
+# Use for structural/offline tests that don't need a live cluster.
+if [[ "$TIER" == "unit" ]]; then
+  check_prereqs
+  mkdir -p "$RESULTS_DIR"
+  DATE_TAG=$(date +%Y-%m-%d)
+  export RESULTS_FILE="${RESULTS_DIR}/.tmp-unit-${DATE_TAG}.jsonl"
+  > "$RESULTS_FILE"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo "  Workspace MVP — Test Runner (unit / offline)"
+  echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+  echo "═══════════════════════════════════════════════════════════════"
+  run_test_files "${SCRIPT_DIR}/unit"
+  generate_summary "$RESULTS_FILE"
   exit 0
 fi
 

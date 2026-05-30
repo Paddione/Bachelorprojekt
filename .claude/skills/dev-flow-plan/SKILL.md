@@ -130,7 +130,7 @@ export GRILLING_ASSETS_TODO="<ZU-BESCHAFFEN-Liste>"
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status)
    VALUES (
@@ -519,7 +519,7 @@ Als allererstes nach dem Compact — vor `superpowers:writing-plans` — ausfüh
 # Ticket-Content aus DB holen (für jede ID in REINJECT_TICKETS)
 PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
 for TID in "${REINJECT_TICKETS[@]}"; do
-  kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
     psql -U website -d website -At -c \
     "SELECT '=== ' || external_id || ' ===' || E'\nTitle: ' || title
             || E'\n\n' || COALESCE(description,'(kein Inhalt)')
@@ -559,7 +559,7 @@ if [[ -n "${GRILLING_TICKET_EXT_ID:-}" ]]; then
   GRILLING_REF=$'\n'"Grilling-Ticket: ${GRILLING_TICKET_EXT_ID}"
 fi
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status)
    VALUES (
@@ -657,7 +657,7 @@ Frage den User nach der Ticket-ID (Format: `T######`, z.B. `T000288`).
 
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_EXT_ID';")
 ```
@@ -684,7 +684,7 @@ Falls `.txt`/`.log`/`.md`/`.png`/`.jpg`: zusätzlich vor der Ticket-Anlage `Read
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
    VALUES (

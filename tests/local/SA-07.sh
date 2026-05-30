@@ -52,13 +52,14 @@ assert_contains "$FILEN_IMAGE" "node" "SA-07" "T7" "filen-upload nutzt node-Imag
 PVC_CJ_COUNT=$(kubectl get cronjob pvc-backup -n "$NAMESPACE" -o name 2>/dev/null | wc -l)
 assert_gt "$PVC_CJ_COUNT" 0 "SA-07" "T8" "CronJob pvc-backup vorhanden (sichert Datei-PVCs)"
 
-# T9: pvc-backup CronJob references all three critical data PVCs as volumes
-PVC_VOLS=$(kubectl get cronjob pvc-backup -n "$NAMESPACE" \
-  -o jsonpath='{.spec.jobTemplate.spec.template.spec.volumes[*].persistentVolumeClaim.claimName}' \
-  2>/dev/null || echo "")
-assert_contains "$PVC_VOLS" "nextcloud-data-pvc"  "SA-07" "T9a" "pvc-backup sichert nextcloud-data-pvc"
-assert_contains "$PVC_VOLS" "vaultwarden-data-pvc" "SA-07" "T9b" "pvc-backup sichert vaultwarden-data-pvc"
-assert_contains "$PVC_VOLS" "docuseal-data-pvc"    "SA-07" "T9c" "pvc-backup sichert docuseal-data-pvc"
+# T9: pvc-backup wires up all three data sources [T000317]
+# The orchestrator pod's top-level volumes only carry the backup-pvc and the
+# nextcloud direct mount; vaultwarden+docuseal appear as *-backup-clone names
+# inside the embedded mounter Job spec (in the orchestrator args string).
+CJ_SPEC=$(kubectl get cronjob pvc-backup -n "$NAMESPACE" -o yaml 2>/dev/null || echo "")
+assert_contains "$CJ_SPEC" "nextcloud-data-pvc"            "SA-07" "T9a" "pvc-backup mountet nextcloud-data-pvc direkt (co-located)"
+assert_contains "$CJ_SPEC" "vaultwarden-data-backup-clone" "SA-07" "T9b" "pvc-backup nutzt vaultwarden Clone-PVC"
+assert_contains "$CJ_SPEC" "docuseal-data-backup-clone"    "SA-07" "T9c" "pvc-backup nutzt docuseal Clone-PVC"
 
 # T10: backup-restore.sh supports pvc-restore subcommand
 RESTORE_HELP=$(bash "${SCRIPT_DIR}/../scripts/backup-restore.sh" --help 2>&1 || true)

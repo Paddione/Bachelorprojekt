@@ -1046,6 +1046,18 @@ tasks:
         [ "{{.ENV}}" != "dev" ] && ctx_arg="--context $ENV_CONTEXT"
         bash scripts/backup-restore.sh pvc-list $ctx_arg
 
+  workspace:backup:filen-pull:
+    desc: "Download a backup timestamp from Filen cloud into backup-pvc (usage: task workspace:backup:filen-pull -- <timestamp> [--remote-path <p>]) [ENV=dev|mentolder|korczewski]"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_arg=""
+        [ "{{.ENV}}" != "dev" ] && ctx_arg="--context $ENV_CONTEXT"
+        ns_arg="--namespace ${WORKSPACE_NAMESPACE:-workspace}"
+        bash scripts/backup-restore.sh filen-pull {{.CLI_ARGS}} $ctx_arg $ns_arg
+
   workspace:pvc:restore:
     desc: "List available PVC backups then restore a service (usage: task workspace:pvc:restore -- <service> <timestamp> [ENV=...])"
     vars:

@@ -44,7 +44,7 @@ Use this process when a core platform service is down or degraded.
 ### Step 1.1: Scope the Incident (< 2 min)
 Determine:
 1. **Affected Service:** Keycloak, Nextcloud, Website, Brett, Arena, Vaultwarden, Docs, LiveKit, or Shared-DB.
-2. **Target Cluster:** `mentolder`, `korczewski`, or both.
+2. **Target Cluster:** `mentolder` (standalone), `fleet` (for korczewski brand, namespace `workspace-korczewski`), or both.
 3. **Onset Time:** Since when has it been failing? Check git log or deployment status.
 4. **Blast Radius:** All users or a subset of features?
 

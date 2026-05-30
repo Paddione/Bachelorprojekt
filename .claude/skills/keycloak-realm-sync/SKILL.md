@@ -11,7 +11,7 @@ description: Use when Keycloak realm configuration needs to be reconciled — OI
 
 # keycloak-realm-sync
 
-Reconcile Keycloak realm configuration from the checked-in realm JSON files. Covers both clusters.
+Reconcile Keycloak realm configuration from the checked-in realm JSON files. Covers the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand).
 
 ---
 
@@ -31,7 +31,7 @@ Reconcile Keycloak realm configuration from the checked-in realm JSON files. Cov
 |---|---|
 | dev | `k3d/realm-workspace-dev.json` |
 | mentolder | `prod-mentolder/realm-workspace-mentolder.json` |
-| korczewski | `prod-korczewski/realm-workspace-korczewski.json` |
+| korczewski | `prod-korczewski/realm-workspace-korczewski.json` (applied to fleet cluster, namespace `workspace-korczewski`) |
 
 **Never edit realm state directly in the Keycloak admin UI without also updating the JSON.** The sync overwrites UI changes that aren't in the JSON.
 
@@ -96,7 +96,7 @@ python3 -c "import json; json.load(open('prod-mentolder/realm-workspace-mentolde
 
 ```bash
 task keycloak:sync ENV=mentolder
-# For korczewski:
+# For korczewski brand (on the fleet cluster):
 task keycloak:sync ENV=korczewski
 ```
 

@@ -22,7 +22,7 @@ When bootstrapping a new WSL workstation for the Workspace MVP development, keep
   ```
 
 ### 4. PostgreSQL Client Missing for Dev DB Refresh
-* **Problem**: `task dev-mentolder:db:refresh` / `task dev-korczewski:db:refresh` calls `scripts/dev-db-refresh.sh`, which shells out to `pg_restore`/`psql` on the host. On a fresh Ubuntu, only `postgresql-client-common` (the `pg_wrapper` shim) is present, so every invocation fails with `You must install at least one postgresql-client-<version> package`.
+* **Problem**: `task dev-mentolder:db:refresh` / `task dev-korczewski:db:refresh` calls `scripts/dev-db-refresh.sh`, which shells out to `pg_restore`/`psql` on the host. On a fresh Ubuntu, only `postgresql-client-common` (the `pg_wrapper` shim) is present, so every invocation fails with `You must install at least one postgresql-client-<version> package`. **Note:** `dev-korczewski:db:refresh` targets the fleet cluster (the old standalone korczewski context is DEAD — T000340).
 * **Fix**: Install a versioned client that is ≥ the server version. Prod runs PostgreSQL 16, so:
   ```bash
   sudo apt-get install -y postgresql-client-16

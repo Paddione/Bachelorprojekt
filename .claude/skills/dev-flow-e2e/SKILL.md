@@ -43,7 +43,7 @@ gh pr view "$PR_NUM" --json files -q '.files[].path' | sort
 
 Ermittle daraus:
 - **Welche URLs/Endpunkte** wurden neu erstellt oder verändert?
-- **Welches Playwright-Projekt** passt: `website` (web.*), `services` (brett.*, files.*, vault.*), `korczewski`?
+- **Welches Playwright-Projekt** passt: `website` (web.*), `services` (brett.*, files.*, vault.*), `korczewski` (korczewski brand on fleet)?
 - **Ticket-ID** aus dem PR-Titel (Format `T######`)?
 
 ---
@@ -56,7 +56,7 @@ Ermittle daraus:
 | `brett/**` | `https://brett.mentolder.de` | `services` |
 | `k3d/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
 | `k3d/livekit*.yaml` | `https://livekit.mentolder.de` | `services` |
-| korczewski-spezifisch | `https://web.korczewski.de` | `korczewski` |
+| korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` |
 
 ```bash
 # Live-URL für spätere Schritte festlegen
@@ -66,7 +66,7 @@ BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ### Credentials: korczewski-Projekt
 
 Das `korczewski`-Projekt verwendet einen dedizierten `test-admin`-User auf dem
-Korczewski-Keycloak-Cluster. Das Passwort ist in `environments/.secrets/korczewski.yaml`
+Korczewski-Keycloak (fleet cluster, namespace `workspace-korczewski`). Das Passwort ist in `environments/.secrets/korczewski.yaml`
 unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert (nach dem ersten KC Admin-API-Reset
 dort eingetragen und via `task env:seal ENV=korczewski` versiegelt).
 

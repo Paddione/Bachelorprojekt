@@ -57,7 +57,7 @@ hcloud context active   # should show <env>
 hcloud server list      # should list the env's nodes
 ```
 
-> **Tip:** Use `mentolder` and `korczewski` as context names so `hcloud context use <env>` switches cleanly between clusters.
+> **Tip:** Use `mentolder` and `fleet` as context names so `hcloud context use <env>` switches cleanly between clusters. (The `korczewski` hcloud context now manages the fleet cluster's hosts pk-hetzner-4/6/8.)
 
 ### Step 1.1: Input Collection
 
@@ -72,7 +72,7 @@ Role?
   [2] Control-Plane JOIN    → prod/cloud-init-join-cp.yaml
   [3] Worker / Agent        → prod/cloud-init-worker.yaml
 
-Target env?       mentolder / korczewski
+Target env?       mentolder / fleet
 Node name?        e.g. gekko-hetzner-5
 Node public IP?   e.g. 178.104.x.x
 ```

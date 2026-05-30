@@ -11,7 +11,7 @@ description: Use when rotating secrets across clusters — DB passwords, API key
 
 # secret-rotation
 
-Safe, ordered secret rotation across the mentolder and korczewski clusters.
+Safe, ordered secret rotation across the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand).
 
 ---
 
@@ -65,7 +65,7 @@ task workspace:sync-db-passwords ENV=<env>
 
 ```bash
 task workspace:sync-db-passwords ENV=mentolder
-task workspace:sync-db-passwords ENV=korczewski
+task workspace:sync-db-passwords ENV=korczewski   # korczewski brand on fleet cluster
 ```
 
 Verify by restarting the affected pod and tailing logs:
@@ -164,19 +164,20 @@ task mcp:logs -- keycloak
 
 ## Cross-cluster checklist
 
-Each cluster has its own sealed-secrets controller, sealing cert, and shared-db. Any secret rotation that touches both clusters must be applied independently:
+Each cluster has its own sealed-secrets controller, sealing cert, and shared-db. Any secret rotation that touches both environments must be applied independently:
 
 ```bash
 task env:fetch-cert ENV=mentolder
 task env:seal ENV=mentolder
 task workspace:deploy ENV=mentolder
 
+# korczewski brand → fleet cluster, namespace workspace-korczewski
 task env:fetch-cert ENV=korczewski
 task env:seal ENV=korczewski
 task workspace:deploy ENV=korczewski
 ```
 
-Do not assume a mentolder-sealed file works on korczewski — the certs are different.
+Do not assume a mentolder-sealed file works on the fleet cluster's korczewski brand namespace — the certs are different.
 
 ---
 

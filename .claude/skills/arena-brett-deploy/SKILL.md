@@ -18,11 +18,11 @@ description: Use when building, deploying, or debugging the arena-server (korcze
 ```bash
 task arena:build                   # Build image (+ k3d import in dev)
 task arena:push                    # Push to ghcr.io/paddione/arena-server:latest
-task arena:deploy ENV=korczewski   # Build, push, and roll out
-task feature:arena                 # Shorthand: build + deploy to korczewski
+task arena:deploy ENV=korczewski   # Build, push, and roll out to fleet cluster (workspace-korczewski)
+task feature:arena                 # Shorthand: build + deploy to the korczewski brand on fleet
 ```
 
-**`task arena:deploy ENV=mentolder` exits early with an explanation** — arena intentionally lives only on korczewski.
+**`task arena:deploy ENV=mentolder` exits early with an explanation** — arena intentionally lives only on the korczewski brand (namespace `workspace-korczewski` on the fleet cluster).
 
 ### Proto-Drift Copy Step (CI enforced)
 
@@ -72,7 +72,7 @@ cd arena-server && pnpm install --frozen-lockfile && pnpm test && pnpm build
 task brett:build               # Build image (+ k3d import in dev)
 task brett:push                # Push to registry
 task brett:deploy ENV=<env>    # Build, import/push, and roll out
-task feature:brett             # Fan-out: build + deploy to BOTH clusters
+task feature:brett             # Fan-out: build + deploy to mentolder standalone + fleet cluster (korczewski brand)
 task brett:logs ENV=<env>      # Tail logs
 ```
 

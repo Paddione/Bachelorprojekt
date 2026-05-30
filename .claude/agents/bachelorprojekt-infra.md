@@ -41,7 +41,7 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
 ```bash
 task workspace:validate                  # dry-run manifest validation (run before every commit)
 task workspace:deploy ENV=<env>          # deploy to specific env
-task workspace:deploy:all-prods          # deploy to both prod clusters
+task workspace:deploy:all-prods          # deploy to both environments
 task env:seal ENV=<env>                  # encrypt secrets to SealedSecret
 task env:generate ENV=<env>             # generate fresh secrets
 flux get kustomizations --context <ctx>  # show Flux reconciliation status

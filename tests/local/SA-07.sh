@@ -117,3 +117,19 @@ for live_pvc in vaultwarden-data-pvc docuseal-data-pvc; do
   assert_eq "$HAS_LIVE" "no" "SA-07" "T12-${live_pvc}" \
     "pvc-backup mountet die Live-Longhorn-PVC ${live_pvc} NICHT direkt (Clone-basiert, kein Multi-Attach) [T000317]"
 done
+
+# T13: orchestrator RBAC objects are declared in the base kustomization [T000317]
+PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+RBAC_OUT=$(kustomize build "${PROJECT_DIR}/k3d" 2>/dev/null)
+for kind_name in "ServiceAccount/pvc-backup" "Role/pvc-backup" "RoleBinding/pvc-backup"; do
+  KIND="${kind_name%/*}"; NAME="${kind_name#*/}"
+  FOUND=$(echo "$RBAC_OUT" | python3 -c "
+import sys, yaml
+for d in yaml.safe_load_all(sys.stdin):
+    if d and d.get('kind')=='${KIND}' and d.get('metadata',{}).get('name')=='${NAME}':
+        print('yes'); break
+else:
+    print('no')
+" 2>/dev/null || echo "ERROR")
+  assert_eq "$FOUND" "yes" "SA-07" "T13-${KIND}" "pvc-backup ${KIND} im base kustomize build vorhanden [T000317]"
+done

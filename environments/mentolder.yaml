@@ -1,11 +1,11 @@
 # environments/mentolder.yaml
 environment: mentolder
-context: mentolder
+context: fleet
 domain: mentolder.de
 
 env_vars:
   PROD_DOMAIN: mentolder.de
-  CLUSTER_ENV: mentolder
+  CLUSTER_ENV: fleet-mentolder
   BRAND_NAME: "Mentolder"
   BRAND_ID: mentolder
   CONTACT_EMAIL: info@mentolder.de
@@ -28,8 +28,9 @@ env_vars:
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
-  TURN_PUBLIC_IP: "178.104.169.206"
-  TURN_NODE: "gekko-hetzner-2"
+  WEBSITE_NODE_AFFINITY: '["pk-hetzner-4","pk-hetzner-6","pk-hetzner-8"]'
+  TURN_PUBLIC_IP: "204.168.244.104"
+  TURN_NODE: "pk-hetzner-4"
   NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
   DOCS_URL: "https://docs.mentolder.de"
   AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
@@ -39,7 +40,7 @@ env_vars:
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   BRETT_DOMAIN: brett.mentolder.de
   LIVEKIT_DOMAIN: livekit.mentolder.de
-  LIVEKIT_PIN_IP: "46.225.125.59"
+  LIVEKIT_PIN_IP: "204.168.244.104"
   STREAM_DOMAIN: stream.mentolder.de
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"
@@ -53,7 +54,7 @@ env_vars:
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
-  ARENA_WS_URL: https://arena-ws.korczewski.de
+  ARENA_WS_URL: https://arena-ws.mentolder.de
   # ── Dev stack (dev.mentolder.de) ─────────────────────────────────────
   DEV_DOMAIN: "dev.mentolder.de"
   DEV_NODE: "k3s-1"
@@ -68,10 +69,10 @@ env_vars:
   # the dev sish (brainstorm.dev.mentolder.de) [T000364].
   DEV_SSH_ALLOWLIST: "217.195.151.153/32"
 
-overlay: prod-mentolder
+overlay: prod-fleet/mentolder
 workspace_namespace: workspace
 website_namespace: website
-secrets_ref: sealed-secrets/mentolder.yaml
+secrets_ref: sealed-secrets/fleet-mentolder.yaml
 
 setup_vars:
   KC_USER1_USERNAME: paddione

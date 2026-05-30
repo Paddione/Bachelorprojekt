@@ -145,7 +145,7 @@ spec:
                           seccompProfile: { type: RuntimeDefault }
                         containers:
                           - name: backup
-                            image: alpine:3
+                            image: alpine/k8s:1.30.4
                             imagePullPolicy: IfNotPresent
                             securityContext:
                               allowPrivilegeEscalation: false
@@ -163,11 +163,10 @@ spec:
                                 valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_EMAIL, optional: true } }
                               - name: FILEN_PASSWORD
                                 valueFrom: { secretKeyRef: { name: workspace-secrets, key: FILEN_PASSWORD, optional: true } }
-                            command: ["/bin/sh", "-c"]
+                            command: ["/bin/bash", "-c"]
                             args:
                               - |
                                 set -euo pipefail
-                                apk add -q --no-cache openssl >/dev/null 2>&1
                                 sleep 5
                                 STAMP=\$(date +%Y%m%d-%H%M%S)
                                 BACKUP_DIR=/backups/pvc-\${STAMP}

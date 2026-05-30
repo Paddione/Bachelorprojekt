@@ -38,7 +38,7 @@ SSH user: `patrick` (verified reachable to all three; sudo available). k3s versi
 
 **Files:** none (local environment)
 
-- [ ] **Step 1: Verify required local tools**
+- [x] **Step 1: Verify required local tools**
 
 Run:
 ```bash
@@ -47,12 +47,12 @@ command -v wg >/dev/null && echo "OK wg" || echo "MISSING wg (install wireguard-
 ```
 Expected: all `OK`. If `wg` is MISSING, install it (`sudo apt-get install -y wireguard-tools`) — needed to generate the fresh CP keypairs. `yq` is used to edit the mesh registry; if missing, install `yq` (mikefarah) or edit YAML by hand.
 
-- [ ] **Step 2: Confirm pinned k3s version**
+- [x] **Step 2: Confirm pinned k3s version**
 
 Run: `grep '^k3s:' environments/versions.yaml`
 Expected: `k3s: v1.36.1+k3s1`
 
-- [ ] **Step 3: Re-verify SSH reachability (non-destructive)**
+- [x] **Step 3: Re-verify SSH reachability (non-destructive)**
 
 Run:
 ```bash
@@ -67,7 +67,7 @@ Expected: `OK pk-hetzner-4`, `OK pk-hetzner-6`, `OK pk-hetzner-8`.
 
 **Files:** none (verification only); record evidence in commit message of Task 4.
 
-- [ ] **Step 1: Confirm a fresh restorable korczewski backup exists on Filen**
+- [x] **Step 1: Confirm a fresh restorable korczewski backup exists on Filen**
 
 Run:
 ```bash
@@ -81,7 +81,7 @@ Expected: a recent (today) backup artifact listed covering the korczewski DB and
 > and use the documented subcommand. Do NOT proceed past this task without a confirmed,
 > dated, restorable backup.
 
-- [ ] **Step 2: Record the backup evidence**
+- [x] **Step 2: Record the backup evidence**
 
 Capture the snapshot id/timestamp into a scratch note:
 ```bash
@@ -89,7 +89,7 @@ echo "korczewski backup verified $(date -u +%FT%TZ): <SNAPSHOT_ID/PATH>" | tee /
 ```
 Expected: file written. This string goes into the Task 4 commit body.
 
-- [ ] **Step 3: GATE — explicit human confirmation**
+- [x] **Step 3: GATE — explicit human confirmation**
 
 STOP. Do not continue to Task 2's destructive steps until a human confirms the backup
 is acceptable. Teardown of pk-4 destroys live korczewski etcd irreversibly.
@@ -101,12 +101,12 @@ is acceptable. Teardown of pk-4 destroys live korczewski etcd irreversibly.
 **Files:**
 - Create: `environments/.secrets/fleet.yaml` (gitignored)
 
-- [ ] **Step 1: Confirm `.secrets/` is gitignored**
+- [x] **Step 1: Confirm `.secrets/` is gitignored**
 
 Run: `git check-ignore environments/.secrets/fleet.yaml && echo IGNORED || echo "NOT IGNORED — STOP"`
 Expected: `IGNORED`. If not ignored, stop and fix `.gitignore` before writing secrets.
 
-- [ ] **Step 2: Generate 3 fresh WireGuard keypairs**
+- [x] **Step 2: Generate 3 fresh WireGuard keypairs**
 
 Run:
 ```bash
@@ -119,12 +119,12 @@ done
 Expected: three private keys + their public keys printed. **Record the public keys** —
 they go into `wg-mesh-nodes.yaml` (Task 3); private keys go into the secrets file.
 
-- [ ] **Step 3: Generate the k3s cluster token**
+- [x] **Step 3: Generate the k3s cluster token**
 
 Run: `echo "K3S_FLEET_TOKEN: $(openssl rand -hex 32)"`
 Expected: a 64-char hex token.
 
-- [ ] **Step 4: Write `environments/.secrets/fleet.yaml`**
+- [x] **Step 4: Write `environments/.secrets/fleet.yaml`**
 
 Create the file with the four secrets from steps 2–3:
 ```yaml
@@ -135,7 +135,7 @@ WG_MESH_PK6_FLEET_PRIVATE_KEY: <priv from step 2>
 WG_MESH_PK8_FLEET_PRIVATE_KEY: <priv from step 2>
 ```
 
-- [ ] **Step 5: Verify the file parses and is not staged**
+- [x] **Step 5: Verify the file parses and is not staged**
 
 Run: `yq '. | keys' environments/.secrets/fleet.yaml && git status --porcelain environments/.secrets/fleet.yaml`
 Expected: 4 keys listed; `git status` prints **nothing** (ignored).
@@ -147,7 +147,7 @@ Expected: 4 keys listed; `git status` prints **nothing** (ignored).
 **Files:**
 - Modify: `wireguard/wg-mesh-nodes.yaml`
 
-- [ ] **Step 1: Append the `fleet:` block**
+- [x] **Step 1: Append the `fleet:` block**
 
 Add at the end of `wireguard/wg-mesh-nodes.yaml`, substituting the **public** keys from Task 2 Step 2:
 ```yaml
@@ -173,7 +173,7 @@ fleet:
       public_key: "<pk8 public key>"
 ```
 
-- [ ] **Step 2: Verify the generator accepts the new env**
+- [x] **Step 2: Verify the generator accepts the new env**
 
 Run:
 ```bash
@@ -184,7 +184,7 @@ Expected: a valid `[Interface]` + two `[Peer]` blocks (pk-6, pk-8), Address `10.
 ListenPort `51820`. If the script errors on `--env fleet`, read it — it may key off the
 top-level YAML map name; the `fleet:` block added in Step 1 satisfies that.
 
-- [ ] **Step 3: Commit the registry change**
+- [x] **Step 3: Commit the registry change**
 
 ```bash
 git add wireguard/wg-mesh-nodes.yaml
@@ -198,7 +198,7 @@ git commit -m "feat(infra): add fleet wg-mesh block (3 CP nodes, 10.20.0.0/24)"
 **Files:**
 - Create: `environments/fleet.yaml`
 
-- [ ] **Step 1: Write the env config**
+- [x] **Step 1: Write the env config**
 
 ```yaml
 # environments/fleet.yaml — unified consolidation cluster (Phase 1: empty 3-CP).
@@ -211,7 +211,7 @@ env_vars: {}
 setup_vars: {}
 ```
 
-- [ ] **Step 2: Sanity-parse**
+- [x] **Step 2: Sanity-parse**
 
 Run: `yq '.environment, .context' environments/fleet.yaml`
 Expected: `fleet` then `fleet`.
@@ -219,7 +219,7 @@ Expected: `fleet` then `fleet`.
 > Do NOT run `task env:validate ENV=fleet` here — schema validation expects a full prod
 > env (domain/SMTP/etc.) that Phase 1 intentionally omits. Validation belongs to Phase 2.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add environments/fleet.yaml
@@ -235,7 +235,7 @@ $(cat /tmp/fleet-backup-evidence.txt)"
 
 **Files:** none (remote node mutation over SSH)
 
-- [ ] **Step 1: Render the wg-fleet config for pk-4 and the k3s install command**
+- [x] **Step 1: Render the wg-fleet config for pk-4 and the k3s install command**
 
 Run locally:
 ```bash
@@ -247,7 +247,7 @@ cat /tmp/wg-fleet-pk4.conf
 ```
 Expected: valid wg config printed.
 
-- [ ] **Step 2: Tear down old korczewski k3s on pk-4 + install prerequisites**
+- [x] **Step 2: Tear down old korczewski k3s on pk-4 + install prerequisites**
 
 Run:
 ```bash
@@ -256,7 +256,7 @@ ssh patrick@204.168.244.104 'sudo /usr/local/bin/k3s-uninstall.sh; \
 ```
 Expected: uninstall completes (or "not found" if already gone); packages install.
 
-- [ ] **Step 3: Install wg-fleet on pk-4**
+- [x] **Step 3: Install wg-fleet on pk-4**
 
 Run:
 ```bash
@@ -267,7 +267,7 @@ ssh patrick@204.168.244.104 'sudo install -m600 /tmp/wg-fleet.conf /etc/wireguar
 ```
 Expected: `interface: wg-fleet` with listening port 51820 and 2 peers.
 
-- [ ] **Step 4: UFW rules on pk-4**
+- [x] **Step 4: UFW rules on pk-4**
 
 Run:
 ```bash
@@ -279,7 +279,7 @@ ssh patrick@204.168.244.104 'sudo ufw allow 22/tcp && sudo ufw allow 51820/udp &
 ```
 Expected: rules present, ufw active.
 
-- [ ] **Step 5: Install k3s with cluster-init**
+- [x] **Step 5: Install k3s with cluster-init**
 
 Run:
 ```bash
@@ -290,7 +290,7 @@ ssh patrick@204.168.244.104 "curl -sfL https://get.k3s.io | \
 ```
 Expected: install completes, `k3s` service active.
 
-- [ ] **Step 6: Verify pk-4 is Ready**
+- [x] **Step 6: Verify pk-4 is Ready**
 
 Run: `ssh patrick@204.168.244.104 'sudo k3s kubectl get nodes -o wide'`
 Expected: `pk-hetzner-4  Ready  control-plane,etcd  v1.36.1+k3s1  10.20.0.1`.
@@ -301,7 +301,7 @@ Expected: `pk-hetzner-4  Ready  control-plane,etcd  v1.36.1+k3s1  10.20.0.1`.
 
 **Files:** none (remote node mutation over SSH)
 
-- [ ] **Step 1: pk-6 — render wg config, tear down, prereqs, wg, ufw**
+- [x] **Step 1: pk-6 — render wg config, tear down, prereqs, wg, ufw**
 
 Run (mirrors Task 5 Steps 1–4 with pk-6 values):
 ```bash
@@ -321,7 +321,7 @@ ssh patrick@37.27.251.38 'sudo install -m600 /tmp/wg-fleet.conf /etc/wireguard/w
 ```
 Expected: wg-fleet up on pk-6 with peers.
 
-- [ ] **Step 2: pk-6 — join as control-plane**
+- [x] **Step 2: pk-6 — join as control-plane**
 
 Run:
 ```bash
@@ -333,7 +333,7 @@ ssh patrick@37.27.251.38 "curl -sfL https://get.k3s.io | \
 ```
 Expected: install completes.
 
-- [ ] **Step 3: pk-8 — render wg config, tear down, prereqs, wg, ufw**
+- [x] **Step 3: pk-8 — render wg config, tear down, prereqs, wg, ufw**
 
 Run (same as Step 1 with pk-8 = 62.238.23.79, PK8, 10.20.0.3):
 ```bash
@@ -353,7 +353,7 @@ ssh patrick@62.238.23.79 'sudo install -m600 /tmp/wg-fleet.conf /etc/wireguard/w
 ```
 Expected: wg-fleet up on pk-8.
 
-- [ ] **Step 4: pk-8 — join as control-plane**
+- [x] **Step 4: pk-8 — join as control-plane**
 
 Run:
 ```bash
@@ -364,7 +364,7 @@ ssh patrick@62.238.23.79 "curl -sfL https://get.k3s.io | \
 ```
 Expected: install completes.
 
-- [ ] **Step 5: Verify 3-node etcd quorum from pk-4**
+- [x] **Step 5: Verify 3-node etcd quorum from pk-4**
 
 Run: `ssh patrick@204.168.244.104 'sudo k3s kubectl get nodes -o wide'`
 Expected: 3x `Ready control-plane,etcd v1.36.1+k3s1` with IPs `10.20.0.1/2/3`.
@@ -375,7 +375,7 @@ Expected: 3x `Ready control-plane,etcd v1.36.1+k3s1` with IPs `10.20.0.1/2/3`.
 
 **Files:** `~/.kube/config` (local, not committed)
 
-- [ ] **Step 1: Confirm workstation can reach 10.20.0.1:6443**
+- [x] **Step 1: Confirm workstation can reach 10.20.0.1:6443**
 
 The workstation (`pk-l-1`) is already a korczewski mesh participant but NOT yet on
 `wg-fleet`. Choose ONE:
@@ -386,7 +386,7 @@ The workstation (`pk-l-1`) is already a korczewski mesh participant but NOT yet 
 Run (option a): `ssh -fN -L 16443:10.20.0.1:6443 patrick@204.168.244.104 && echo tunnel-up`
 Expected: `tunnel-up`.
 
-- [ ] **Step 2: Fetch + rewrite kubeconfig as context `fleet`**
+- [x] **Step 2: Fetch + rewrite kubeconfig as context `fleet`**
 
 Run:
 ```bash
@@ -399,7 +399,7 @@ kubectl config get-contexts -o name | grep fleet
 ```
 Expected: `fleet` context present. (A backup of the previous kubeconfig is kept.)
 
-- [ ] **Step 3: FINAL verification — empty healthy 3-CP cluster**
+- [x] **Step 3: FINAL verification — empty healthy 3-CP cluster**
 
 Run:
 ```bash
@@ -410,7 +410,7 @@ Expected:
 - 3x `Ready control-plane,etcd v1.36.1+k3s1` (10.20.0.1/2/3).
 - Only system pods (coredns, local-path-provisioner, metrics-server, traefik, svclb) Running. No workspace/website workloads (correct — Phase 1 is empty).
 
-- [ ] **Step 4: Mark Phase 1 complete**
+- [x] **Step 4: Mark Phase 1 complete**
 
 Run:
 ```bash

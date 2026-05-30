@@ -12,7 +12,9 @@ Production runs as **two independent k3s clusters**. They share no storage, no d
 | Cluster | Context | Namespace | Domain |
 |---|---|---|---|
 | mentolder | `mentolder` | `workspace` | `web.mentolder.de` |
-| korczewski | `korczewski` | `workspace-korczewski` | `web.korczewski.de` |
+| korczewski (brand) | `fleet` | `workspace-korczewski` | `web.korczewski.de` |
+
+> **Transitional topology (Fleet Stage 2, in progress as of 2026-05-30).** The standalone `korczewski` cluster has been torn down. Its hosts (`pk-hetzner-4/6/8`) now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8). The korczewski **brand** lives on, but is now operated via the **`fleet`** kubeconfig context in namespace `workspace-korczewski` — **not** the old `korczewski` context. The old `korczewski` context (`204.168.244.104:6443`) is **DEAD**: that IP now serves the fleet k3s CA, so it throws an x509 error (T000340). `ENV=korczewski` / `BRAND=korczewski` remain valid brand identifiers. **The `--context korczewski` invocations below are stale for the korczewski brand — substitute `--context fleet` until this skill is fully reconciled.** Note: `task fleet:deploy` has not yet been run, so the `fleet` cluster currently carries only cert-manager + Traefik and the brand namespaces are still empty (korczewski.de returns 404 behind the Traefik default cert — expected until cutover). The DNS cutover mechanism is merged (PR #1189: `scripts/fleet-dns-cutover.sh`, `task fleet:dns:cutover|rollback`, runbook `docs/fleet-stage2-cutover-runbook.md`) but the live cutover is not done.
 
 ---
 

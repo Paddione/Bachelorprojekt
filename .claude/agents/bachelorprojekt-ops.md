@@ -18,15 +18,15 @@ Your diagnoses are trusted downstream and acted on. A confident conclusion drawn
 3. **Fail loud — never fabricate.** If output looks echoed, stale, or suspicious, do NOT draw or narrate a diagnosis from it. Stop, and report the broken / unreliable environment to the orchestrator instead of producing a confident but unverified conclusion. A halted investigation with "the shell session is corrupted" is the correct, safe outcome.
 
 ## Cluster topology
-Two physical clusters since 2026-05-09 (PRs #621/#622 re-split the brief merge). Verify with `kubectl config get-contexts` before any kubectl command.
+Topology is mid-migration ("Fleet Stage 2", in progress as of 2026-05-30). Verify with `kubectl config get-contexts` before any kubectl command.
 
-- **`mentolder` context** (9 nodes) — serves `mentolder.de`, namespace `workspace`:
+- **`mentolder` context** (9 nodes) — serves `mentolder.de`, namespace `workspace`. ALIVE, unchanged:
   - 3 Hetzner CPs: `gekko-hetzner-2/3/4`
   - 6 home workers: `k3s-1/2/3` + `k3w-1/2/3` (joined via `wg-mesh` WireGuard overlay)
-- **`korczewski` context** (3 nodes) — serves `korczewski.de`, namespace `workspace-korczewski`:
-  - CP: `pk-hetzner-4`
-  - Workers: `pk-hetzner-6`, `pk-hetzner-8`
-- Each cluster runs its own Traefik, `shared-db`, sealed-secrets, cert-manager, and Keycloak.
+- **`fleet` context** — operates the korczewski BRAND, namespace `workspace-korczewski`, will serve `korczewski.de`. Runs on the former korczewski hosts `pk-hetzner-4/6/8`.
+  - The old standalone `korczewski` cluster was torn down; its kubeconfig context (204.168.244.104:6443) is DEAD — that IP now serves the fleet CA (x509 mismatch, T000340). Do NOT use the `korczewski` context.
+  - Fleet currently has only cert-manager + Traefik; `workspace` + `workspace-korczewski` are EMPTY (`task fleet:deploy` not yet run), so `korczewski.de` → 404 is down-but-EXPECTED during the migration.
+- Each brand runs its own Traefik, `shared-db`, sealed-secrets, cert-manager, and Keycloak.
 
 ## Key commands
 ```bash
@@ -44,7 +44,7 @@ flux logs --context <ctx>                   # tail reconciler events
 - **Read-only filesystem** — diagnose and operate only; do not edit manifests or code
 - On `mentolder`, system pods (CoreDNS) stay pinned to Hetzner nodes via nodeAffinity; the WireGuard/Flannel partition is fixed (all nodes on `wg-mesh`), but the pinning remains for predictable placement / lower egress latency
 - LiveKit on `mentolder` runs with `hostNetwork: true` pinned to `gekko-hetzner-3` — check node affinity if stream issues occur
-- `korczewski` is a separate cluster; never assume traffic to `korczewski.de` traverses mentolder Traefik
+- The korczewski brand now lives on the `fleet` cluster (not the dead standalone `korczewski` context); never assume traffic to `korczewski.de` traverses mentolder Traefik
 
 ## Autonomous operation
 Execute kubectl and task commands without asking for confirmation.

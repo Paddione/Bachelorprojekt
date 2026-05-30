@@ -17,7 +17,9 @@ This runbook covers PostgreSQL database schema migrations, permissions managemen
 
 ## ⚠️ Independent Shared Databases
 
-The `mentolder` and `korczewski` clusters each host their own independent `shared-db` instance. Schema migrations, DB password rotations, and backup audits must be executed explicitly on **both** clusters.
+The `mentolder` cluster and the `fleet` cluster (which hosts the `korczewski` brand in namespace `workspace-korczewski`) each host their own independent `shared-db` instance. Schema migrations, DB password rotations, and backup audits must be executed explicitly on **both**.
+
+> **Fleet Stage 2 note (in progress as of 2026-05-30).** The standalone `korczewski` cluster was torn down; the `korczewski` brand now lives on the unified **`fleet`** cluster (hosts `pk-hetzner-4/6/8`). The `ENV=korczewski` task invocations below remain correct (env-resolve targets the right context), but any raw `kubectl`/script `--context korczewski` is **DEAD** — substitute `--context fleet`. Note `task fleet:deploy` has not yet run, so the korczewski-brand `shared-db` may not exist on `fleet` until cutover.
 
 ---
 
@@ -109,7 +111,7 @@ kubectl get secret workspace-secrets -n <ns> --context <ctx> -o jsonpath='{.data
 ### Step 2.2: Trigger Live Backup
 ```bash
 bash scripts/backup-restore.sh trigger --context mentolder
-bash scripts/backup-restore.sh trigger --context korczewski --namespace workspace-korczewski
+bash scripts/backup-restore.sh trigger --context fleet --namespace workspace-korczewski  # korczewski brand now on the fleet cluster (old --context korczewski is dead, T000340)
 ```
 Wait for completion and verify logs. Confirm the new timestamp:
 ```bash

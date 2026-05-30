@@ -39,3 +39,20 @@ setup() {
   [ "$brand_line" -lt "$shared_line" ]
   [ "$shared_line" -lt "$talk_line" ]
 }
+
+# Regression: workspace:deploy embeds coturn:sync-secret + talk-setup, which hard-fail
+# on a fresh fleet cluster because coturn/Janus only come up later in fleet:shared-services.
+# fleet:deploy:brand must be able to skip that embedded talk chain.
+
+@test "workspace:deploy gates its embedded talk-setup behind SKIP_TALK_SETUP" {
+  block="$(awk '/^  workspace:deploy:$/{f=1} f&&/^  [a-z].*:$/&&!/workspace:deploy:$/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  # the block still invokes talk-setup ...
+  echo "$block" | grep -q 'workspace:talk-setup'
+  # ... but only when SKIP_TALK_SETUP is not "true"
+  echo "$block" | grep -q 'SKIP_TALK_SETUP'
+}
+
+@test "fleet:deploy:brand passes SKIP_TALK_SETUP=true so brand core skips talk-setup" {
+  block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  echo "$block" | grep -q 'SKIP_TALK_SETUP'
+}

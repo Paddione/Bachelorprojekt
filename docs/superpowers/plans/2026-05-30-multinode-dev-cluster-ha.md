@@ -48,7 +48,7 @@ pr_number: null
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Confirm the VIP is unused**
+- [x] **Step 1: Confirm the VIP is unused**
 
 Run:
 ```bash
@@ -56,7 +56,7 @@ ssh -i /tmp/pve_key root@10.0.0.7 "ping -c2 -W1 10.0.0.20; arping -c2 10.0.0.20 
 ```
 Expected: 100% packet loss / no ARP reply (VIP is free). If anything answers, STOP and pick another VIP.
 
-- [ ] **Step 2: Confirm the LAN gateway**
+- [x] **Step 2: Confirm the LAN gateway**
 
 Run:
 ```bash
@@ -70,7 +70,7 @@ The provided key authenticates only on `pve`. Provisioning needs root SSH from t
 
 **Files:** none
 
-- [ ] **Step 1: Copy the public key to pve2 and pve3**
+- [x] **Step 1: Copy the public key to pve2 and pve3**
 
 Run (from `pve`, which can already reach the others via the cluster):
 ```bash
@@ -83,7 +83,7 @@ done'
 ```
 Expected: no error; keys appended.
 
-- [ ] **Step 2: Verify root SSH pve→pve2 and pve→pve3**
+- [x] **Step 2: Verify root SSH pve→pve2 and pve→pve3**
 
 Run:
 ```bash
@@ -101,7 +101,7 @@ Expected: prints `pve2` and `pve3`.
 
 **Files:** none (Proxmox host state)
 
-- [ ] **Step 1: Verify `sda` is the spare SSD (not the OS disk) on each node**
+- [x] **Step 1: Verify `sda` is the spare SSD (not the OS disk) on each node**
 
 Run:
 ```bash
@@ -109,7 +109,7 @@ ssh -i /tmp/pve_key root@10.0.0.7 'for n in pve pve2 pve3; do echo "== $n =="; s
 ```
 Expected: each prints the spare-SSD model and `unmounted`. If any prints `MOUNTED-ABORT`, STOP.
 
-- [ ] **Step 2: Wipe `sda` and create the thin pool on each node**
+- [x] **Step 2: Wipe `sda` and create the thin pool on each node**
 
 Run:
 ```bash
@@ -122,7 +122,7 @@ ssh -i /tmp/pve_key root@10.0.0.7 'for n in pve pve2 pve3; do echo "== $n =="; s
 ```
 Expected: `Logical volume "data-thin" created.` on each node.
 
-- [ ] **Step 3: Register the Proxmox storage `local-data` (cluster-wide config, one command)**
+- [x] **Step 3: Register the Proxmox storage `local-data` (cluster-wide config, one command)**
 
 Run:
 ```bash
@@ -130,7 +130,7 @@ ssh -i /tmp/pve_key root@10.0.0.7 "pvesm add lvmthin local-data --vgname vg-data
 ```
 Expected: no output (success).
 
-- [ ] **Step 4: Verify `local-data` is active on all three nodes**
+- [x] **Step 4: Verify `local-data` is active on all three nodes**
 
 Run:
 ```bash
@@ -146,7 +146,7 @@ Expected: each shows `local-data  lvmthin  active` with the node's SSD capacity.
 
 **Files:** none (Proxmox template VMID 9000)
 
-- [ ] **Step 1: Download the Debian 12 generic cloud image onto `pve`**
+- [x] **Step 1: Download the Debian 12 generic cloud image onto `pve`**
 
 Run:
 ```bash
@@ -157,7 +157,7 @@ curl -fLO https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generi
 ```
 Expected: file present (download completes or already exists).
 
-- [ ] **Step 2: Install `qemu-guest-agent` into the image offline (so VMs report IPs)**
+- [x] **Step 2: Install `qemu-guest-agent` into the image offline (so VMs report IPs)**
 
 Run:
 ```bash
@@ -171,7 +171,7 @@ Expected: `virt-customize` finishes with `Finishing off`.
 
 > `open-iscsi` is **required** by Longhorn; `qemu-guest-agent` lets Proxmox read VM IPs.
 
-- [ ] **Step 3: Create VM 9000, import the disk, attach cloud-init**
+- [x] **Step 3: Create VM 9000, import the disk, attach cloud-init**
 
 Run:
 ```bash
@@ -185,7 +185,7 @@ qm set 9000 --boot c --bootdisk scsi0 --serial0 socket --vga serial0'
 ```
 Expected: each `qm` command returns 0; `importdisk` prints `Successfully imported disk`.
 
-- [ ] **Step 4: Seed cloud-init user + SSH key, then convert to template**
+- [x] **Step 4: Seed cloud-init user + SSH key, then convert to template**
 
 Run (uses the operator's existing key so all devc VMs are reachable):
 ```bash
@@ -196,7 +196,7 @@ qm template 9000'
 ```
 Expected: `qm list` shows 9000 as a template.
 
-- [ ] **Step 5: Verify the template exists**
+- [x] **Step 5: Verify the template exists**
 
 Run:
 ```bash
@@ -212,7 +212,7 @@ Expected: a row for 9000 with status `stopped` (templates show stopped).
 
 **Files:** none (VMs 9012, 9013)
 
-- [ ] **Step 1: Clone both VMs to their target hosts**
+- [x] **Step 1: Clone both VMs to their target hosts**
 
 Run:
 ```bash
@@ -222,7 +222,7 @@ qm clone 9000 9013 --name devc-3 --full --target pve3'
 ```
 Expected: `create full clone of drive ...` then completes for both. (Clone to a remote target requires the template be on shared or migratable storage; if `qm clone --target` errors because 9000 is on node-local `local-lvm`, instead clone locally then `qm migrate 9012 pve2 --with-local-disks` — fallback in Step 1b.)
 
-- [ ] **Step 1b (fallback only): if `--target` failed, clone local + migrate**
+- [x] **Step 1b (fallback only): if `--target` failed, clone local + migrate**
 
 Run:
 ```bash
@@ -232,7 +232,7 @@ qm clone 9000 9013 --name devc-3 --full && qm migrate 9013 pve3 --with-local-dis
 ```
 Expected: migrations finish `successfully`.
 
-- [ ] **Step 2: Size CPU/RAM, grow root to 40 GB, set static IPs**
+- [x] **Step 2: Size CPU/RAM, grow root to 40 GB, set static IPs**
 
 Run:
 ```bash
@@ -244,7 +244,7 @@ qm resize 9013 scsi0 40G'
 ```
 Expected: `qm resize` prints new size; others return 0.
 
-- [ ] **Step 3: Attach the dedicated Longhorn data disk from each node's `local-data`**
+- [x] **Step 3: Attach the dedicated Longhorn data disk from each node's `local-data`**
 
 Run:
 ```bash
@@ -254,7 +254,7 @@ qm set 9013 --scsi1 local-data:230'
 ```
 Expected: `update VM 9012: -scsi1 local-data:470` etc.
 
-- [ ] **Step 4: Start both VMs and confirm they boot with the expected IPs**
+- [x] **Step 4: Start both VMs and confirm they boot with the expected IPs**
 
 Run:
 ```bash
@@ -263,7 +263,7 @@ for v in 9012 9013; do echo "== $v =="; qm guest cmd $v network-get-interfaces 2
 ```
 Expected: prints `10.0.0.22` and `10.0.0.23`.
 
-- [ ] **Step 5: Verify operator SSH into both and that the data disk is present**
+- [x] **Step 5: Verify operator SSH into both and that the data disk is present**
 
 Run:
 ```bash
@@ -275,7 +275,7 @@ Expected: each prints `sdb <470G|230G>` and `ok`. (Cloud images expose the 2nd v
 
 **Files:** none (VM filesystem state)
 
-- [ ] **Step 1: Make the ext4 filesystem and persistent mount on each VM**
+- [x] **Step 1: Make the ext4 filesystem and persistent mount on each VM**
 
 Run:
 ```bash
@@ -287,7 +287,7 @@ for ip in 10.0.0.22 10.0.0.23; do echo "== $ip =="; ssh devops@$ip '
 ```
 Expected: `mke2fs` output, then no error from `mount -a`.
 
-- [ ] **Step 2: Verify the mount**
+- [x] **Step 2: Verify the mount**
 
 Run:
 ```bash
@@ -303,7 +303,7 @@ Expected: each shows `/dev/sdb ... /var/lib/longhorn`.
 
 **Files:** none (k3s on devc-2)
 
-- [ ] **Step 1: Install k3s as the cluster-init server**
+- [x] **Step 1: Install k3s as the cluster-init server**
 
 Run:
 ```bash
@@ -317,7 +317,7 @@ curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=v1.31.5+k3s1 sh -s - ser
 ```
 Expected: installer ends `systemd: Starting k3s`.
 
-- [ ] **Step 2: Verify the node is Ready and etcd has 1 member**
+- [x] **Step 2: Verify the node is Ready and etcd has 1 member**
 
 Run:
 ```bash
@@ -333,7 +333,7 @@ Expected: `devc-2 Ready control-plane,etcd,master`; traefik + coredns pods prese
 
 > k3s auto-applies anything in `…/server/manifests/`. kube-vip runs as a DaemonSet on control-plane nodes and advertises `10.0.0.20:6443` in ARP (L2) mode.
 
-- [ ] **Step 1: Apply the kube-vip RBAC (upstream, pinned)**
+- [x] **Step 1: Apply the kube-vip RBAC (upstream, pinned)**
 
 Run:
 ```bash
@@ -341,7 +341,7 @@ ssh devops@10.0.0.22 'sudo curl -fL https://kube-vip.io/manifests/rbac.yaml -o /
 ```
 Expected: file written; no error.
 
-- [ ] **Step 2: Generate the kube-vip DaemonSet manifest**
+- [x] **Step 2: Generate the kube-vip DaemonSet manifest**
 
 Run (pins kube-vip v0.8.7, ARP mode, interface auto-detected as the VM's primary NIC `ens18`):
 ```bash
@@ -353,7 +353,7 @@ sudo k3s kubectl run --rm -i kvgen --image=ghcr.io/kube-vip/kube-vip:$KVVERSION 
 ```
 Expected: manifest written. (If the NIC is not `ens18`, get it via `ssh devops@10.0.0.22 'ip -br link | grep -v lo'` and substitute.)
 
-- [ ] **Step 3: Verify kube-vip is running and the VIP answers on :6443**
+- [x] **Step 3: Verify kube-vip is running and the VIP answers on :6443**
 
 Run:
 ```bash
@@ -366,7 +366,7 @@ Expected: kube-vip pod `Running`; curl prints `ok VIP-OK`.
 
 **Files:** none (k3s on devc-3)
 
-- [ ] **Step 1: Fetch the node token from devc-2**
+- [x] **Step 1: Fetch the node token from devc-2**
 
 Run:
 ```bash
@@ -374,7 +374,7 @@ TOKEN=$(ssh devops@10.0.0.22 'sudo cat /var/lib/rancher/k3s/server/node-token');
 ```
 Expected: prints a truncated token (non-empty).
 
-- [ ] **Step 2: Install k3s server on devc-3 joining via the VIP**
+- [x] **Step 2: Install k3s server on devc-3 joining via the VIP**
 
 Run:
 ```bash
@@ -388,7 +388,7 @@ curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=v1.31.5+k3s1 K3S_TOKEN='
 ```
 Expected: installer completes.
 
-- [ ] **Step 3: Verify 2 Ready nodes and 2 etcd members**
+- [x] **Step 3: Verify 2 Ready nodes and 2 etcd members**
 
 Run:
 ```bash
@@ -403,7 +403,7 @@ Expected: `devc-2` and `devc-3` both `Ready`, roles include `etcd`.
 **Files:**
 - Modify (operator): `~/.kube/config` (merge a `devc` context)
 
-- [ ] **Step 1: Pull the kubeconfig and rewrite the server to the VIP**
+- [x] **Step 1: Pull the kubeconfig and rewrite the server to the VIP**
 
 Run:
 ```bash
@@ -414,7 +414,7 @@ KUBECONFIG=~/.kube/config:/tmp/devc.yaml kubectl config view --flatten > /tmp/me
 ```
 Expected: no error.
 
-- [ ] **Step 2: Verify the context works from the operator machine**
+- [x] **Step 2: Verify the context works from the operator machine**
 
 Run:
 ```bash
@@ -429,7 +429,7 @@ Expected: `devc-2`, `devc-3` both `Ready`.
 
 > The dev stack's ingress is the k3s **Traefik** Service; we give it the VIP via a LoadBalancer IP pool of exactly `10.0.0.20`.
 
-- [ ] **Step 1: Create the repo manifest for the cloud-provider + IP pool**
+- [x] **Step 1: Create the repo manifest for the cloud-provider + IP pool**
 
 Create `k3d/dev-cluster/kube-vip-cloud-provider.yaml`:
 ```yaml
@@ -445,7 +445,7 @@ data:
   cidr-global: 10.0.0.20/32
 ```
 
-- [ ] **Step 2: Apply the upstream controller (pinned) and the pool**
+- [x] **Step 2: Apply the upstream controller (pinned) and the pool**
 
 Run:
 ```bash
@@ -454,7 +454,7 @@ kubectl --context devc apply -f k3d/dev-cluster/kube-vip-cloud-provider.yaml
 ```
 Expected: deployment `kube-vip-cloud-provider` created in `kube-system`; configmap `kubevip` created.
 
-- [ ] **Step 3: Point the k3s Traefik Service at the VIP**
+- [x] **Step 3: Point the k3s Traefik Service at the VIP**
 
 Create `k3d/dev-cluster/traefik-lb-vip.yaml` (HelmChartConfig patches k3s Traefik):
 ```yaml
@@ -477,7 +477,7 @@ kubectl --context devc apply -f k3d/dev-cluster/traefik-lb-vip.yaml
 ```
 Expected: `helmchartconfig.helm.cattle.io/traefik created`.
 
-- [ ] **Step 4: Verify Traefik gets the VIP as its external IP**
+- [x] **Step 4: Verify Traefik gets the VIP as its external IP**
 
 Run:
 ```bash
@@ -485,7 +485,7 @@ sleep 20; kubectl --context devc -n kube-system get svc traefik
 ```
 Expected: `traefik LoadBalancer ... EXTERNAL-IP 10.0.0.20`.
 
-- [ ] **Step 5: Commit the cluster infra manifests**
+- [x] **Step 5: Commit the cluster infra manifests**
 
 ```bash
 git add k3d/dev-cluster/kube-vip-cloud-provider.yaml k3d/dev-cluster/traefik-lb-vip.yaml
@@ -497,7 +497,7 @@ git commit -m "feat(dev-cluster): kube-vip LB + Traefik VIP for the HA dev clust
 **Files:**
 - Create: `k3d/dev-cluster/longhorn-values.yaml`
 
-- [ ] **Step 1: Pin the default replica count and data path in a values file**
+- [x] **Step 1: Pin the default replica count and data path in a values file**
 
 Create `k3d/dev-cluster/longhorn-values.yaml`:
 ```yaml
@@ -512,7 +512,7 @@ persistence:
   defaultClassReplicaCount: 3
 ```
 
-- [ ] **Step 2: Install Longhorn via the k3s-bundled Helm controller**
+- [x] **Step 2: Install Longhorn via the k3s-bundled Helm controller**
 
 Create `k3d/dev-cluster/longhorn-helmchart.yaml`:
 ```yaml
@@ -542,7 +542,7 @@ kubectl --context devc apply -f k3d/dev-cluster/longhorn-helmchart.yaml
 ```
 Expected: `helmchart.helm.cattle.io/longhorn created`.
 
-- [ ] **Step 3: Verify Longhorn comes up and is the default StorageClass**
+- [x] **Step 3: Verify Longhorn comes up and is the default StorageClass**
 
 Run:
 ```bash
@@ -551,7 +551,7 @@ kubectl --context devc get storageclass
 ```
 Expected: deployer rolled out; `longhorn (default)` present.
 
-- [ ] **Step 4: Smoke-test a Longhorn PVC**
+- [x] **Step 4: Smoke-test a Longhorn PVC**
 
 Run:
 ```bash
@@ -566,7 +566,7 @@ kubectl --context devc delete pvc lh-smoke
 ```
 Expected: `lh-smoke` reaches `Bound`, then deletes cleanly.
 
-- [ ] **Step 5: Commit the Longhorn manifests**
+- [x] **Step 5: Commit the Longhorn manifests**
 
 ```bash
 git add k3d/dev-cluster/longhorn-values.yaml k3d/dev-cluster/longhorn-helmchart.yaml
@@ -582,7 +582,7 @@ git commit -m "feat(dev-cluster): install Longhorn (3 replicas, default StorageC
 **Files:**
 - Modify: `k3d/dev-stack/shared-db-dev.yaml` (the `storageClassName`)
 
-- [ ] **Step 1: Find the current storageClassName**
+- [x] **Step 1: Find the current storageClassName**
 
 Run:
 ```bash
@@ -590,11 +590,11 @@ grep -n "storageClassName" k3d/dev-stack/shared-db-dev.yaml
 ```
 Expected: a line `storageClassName: local-path`.
 
-- [ ] **Step 2: Change it to `longhorn`**
+- [x] **Step 2: Change it to `longhorn`**
 
 Edit `k3d/dev-stack/shared-db-dev.yaml`: replace `storageClassName: local-path` with `storageClassName: longhorn`.
 
-- [ ] **Step 3: Verify no other `local-path` references remain in dev-stack**
+- [x] **Step 3: Verify no other `local-path` references remain in dev-stack**
 
 Run:
 ```bash
@@ -602,7 +602,7 @@ grep -rn "local-path" k3d/dev-stack/ || echo "none"
 ```
 Expected: `none`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/dev-stack/shared-db-dev.yaml
@@ -617,7 +617,7 @@ git commit -m "feat(dev-stack): use longhorn storageClass for shared-db-dev"
 
 > The existing `dev:apply` / `dev:_materialise-secrets` logic is reused, but targeting context `devc` and namespace `workspace-dev`. This task adds a thin wrapper rather than duplicating logic.
 
-- [ ] **Step 1: Confirm how Taskfiles are included**
+- [x] **Step 1: Confirm how Taskfiles are included**
 
 Run:
 ```bash
@@ -625,7 +625,7 @@ grep -n "includes:" -A12 Taskfile.yml | head -25
 ```
 Expected: an `includes:` block listing `dev-stack`, `brainstorm`, etc.
 
-- [ ] **Step 2: Create `Taskfile.devcluster.yml`**
+- [x] **Step 2: Create `Taskfile.devcluster.yml`**
 
 Create `Taskfile.devcluster.yml`:
 ```yaml
@@ -655,7 +655,7 @@ tasks:
       - 'curl -sSI --max-time 5 -H "Host: web.dev.mentolder.de" http://{{.VIP}}/ || true'
 ```
 
-- [ ] **Step 3: Add the include to `Taskfile.yml`**
+- [x] **Step 3: Add the include to `Taskfile.yml`**
 
 Edit `Taskfile.yml` `includes:` block, add:
 ```yaml
@@ -663,7 +663,7 @@ Edit `Taskfile.yml` `includes:` block, add:
     taskfile: ./Taskfile.devcluster.yml
 ```
 
-- [ ] **Step 4: Verify task discovery**
+- [x] **Step 4: Verify task discovery**
 
 Run:
 ```bash
@@ -671,7 +671,7 @@ task --list 2>/dev/null | grep devcluster
 ```
 Expected: `devcluster:deploy` and `devcluster:status` listed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Taskfile.devcluster.yml Taskfile.yml
@@ -682,7 +682,7 @@ git commit -m "feat(devcluster): task wrapper to deploy dev-stack to the HA clus
 
 **Files:** none (live cluster state)
 
-- [ ] **Step 1: Deploy**
+- [x] **Step 1: Deploy**
 
 Run:
 ```bash
@@ -690,7 +690,7 @@ ENV=mentolder task devcluster:deploy
 ```
 Expected: secrets created, manifests applied (namespace `workspace-dev`, deployments for website/brett/mcp/shared-db).
 
-- [ ] **Step 2: Verify all pods reach Ready**
+- [x] **Step 2: Verify all pods reach Ready**
 
 Run:
 ```bash
@@ -698,7 +698,7 @@ kubectl --context devc -n workspace-dev get pods
 ```
 Expected: `shared-db-dev-0`, website, brett, mcp-monolith, mcp-auth-proxy all `Running`/`Ready`. (shared-db PVC is `Bound` on Longhorn.)
 
-- [ ] **Step 3: Seed dev DB once from prod (manual refresh path)**
+- [x] **Step 3: Seed dev DB once from prod (manual refresh path)**
 
 Run:
 ```bash
@@ -706,7 +706,7 @@ ENV=mentolder task dev:db:refresh
 ```
 Expected: `pg_restore` completes for the `website` database (the only DB present on prod source).
 
-- [ ] **Step 4: Internal smoke via the VIP (bypassing the public chain)**
+- [x] **Step 4: Internal smoke via the VIP (bypassing the public chain)**
 
 Run:
 ```bash

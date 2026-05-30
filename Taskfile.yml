@@ -239,6 +239,8 @@ tasks:
       - task: test:unit:scripts
       - task: test:unit:agents
       - task: test:unit:figure-pack
+      - task: test:unit:discover-versions
+      - task: test:unit:render-cloud-init
 
   test:unit:assert:
     internal: true
@@ -259,6 +261,16 @@ tasks:
     internal: true
     cmds:
       - bash tests/figure-pack-assets.test.sh
+
+  test:unit:discover-versions:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/discover-versions.bats
+
+  test:unit:render-cloud-init:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/render-cloud-init.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"

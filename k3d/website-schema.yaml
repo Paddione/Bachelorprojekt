@@ -37,6 +37,16 @@ data:
       );
       INSERT INTO brands (id, name) VALUES ('mentolder', 'Mentolder'), ('korczewski', 'Korczewski') ON CONFLICT DO NOTHING;
 
+      -- arena-server runs its migrations as arena_app and adds an FK to
+      -- public.brands; without REFERENCES it fails "permission denied for
+      -- table brands" on a fresh korczewski deploy. Guarded so it is a no-op
+      -- when the role is absent (mentolder, dev).
+      DO $$ BEGIN
+        IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'arena_app') THEN
+          GRANT SELECT, REFERENCES ON public.brands TO arena_app;
+        END IF;
+      END $$;
+
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name TEXT NOT NULL,
@@ -698,6 +708,16 @@ data:
           name TEXT NOT NULL
       );
       INSERT INTO brands (id, name) VALUES ('mentolder', 'Mentolder'), ('korczewski', 'Korczewski') ON CONFLICT DO NOTHING;
+
+      -- arena-server runs its migrations as arena_app and adds an FK to
+      -- public.brands; without REFERENCES it fails "permission denied for
+      -- table brands" on a fresh korczewski deploy. Guarded so it is a no-op
+      -- when the role is absent (mentolder, dev).
+      DO $$ BEGIN
+        IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'arena_app') THEN
+          GRANT SELECT, REFERENCES ON public.brands TO arena_app;
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

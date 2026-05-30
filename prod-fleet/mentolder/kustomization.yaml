@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# mentolder brand on fleet — reuse the existing prod-mentolder overlay, then
+# apply fleet-common (delete the cluster singletons now owned by
+# prod-fleet/platform). Namespace stays workspace (set by the prod-mentolder/k3d
+# base). Node-affinity repoints for fleet pk nodes are added to fleet-common at
+# deploy time (Task 8); website affinity comes from WEBSITE_NODE_AFFINITY in
+# environments/fleet-mentolder.yaml.
+resources:
+  - ../../prod-mentolder
+components:
+  - ../components/fleet-common

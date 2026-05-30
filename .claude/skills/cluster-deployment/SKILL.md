@@ -133,6 +133,11 @@ hcloud server create \
 kubectl --context <ctx> get nodes -w
 ```
 
+> **Manual node re-bootstrap gotchas (no cloud-init).** When re-bootstrapping an existing host by hand (e.g. a re-key onto a new mesh), cloud-init does NOT run, so three steps that the templates handle implicitly must be done explicitly — in this order:
+> 1. **Stop the old mesh before starting the new one (T000333).** A live `wg-quick@wg-mesh` holds UDP/51820, so `wg-fleet` fails to start with `RTNETLINK: Address already in use`. Run `sudo systemctl stop wg-quick@wg-mesh && sudo systemctl disable wg-quick@wg-mesh` before `systemctl start wg-quick@wg-fleet`.
+> 2. **Load the kernel module after `apt install` (T000336).** On Ubuntu 24.04 (kernel 6.8.x) `apt install wireguard-tools` prints a version-mismatch warning and does NOT auto-load the module, so `wg-quick` fails with `No such device`. Run `sudo modprobe wireguard` before starting the WireGuard service.
+> 3. **Export the k3s install env vars in the install subshell, not just `curl` (T000334).** `INSTALL_K3S_VERSION=x K3S_URL=y curl … | sh -s - server` applies the vars to `curl`, not the `sh` reading stdin — the node reuses a cached binary and forms a standalone cluster instead of joining. Wrap it: `sudo bash -c "export INSTALL_K3S_VERSION=…; export K3S_URL=…; curl … | sh -s - server"`.
+
 ### Step 1.1: Scaffold Environment Config
 If the environment YAML does not exist:
 ```bash

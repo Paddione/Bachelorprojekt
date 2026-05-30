@@ -20,7 +20,7 @@ includes:
     vars:
       ENV: korczewski
       CTX_DEV: k3d-korczewski-dev
-      CTX_PROD: korczewski
+      CTX_PROD: fleet
       NS_DEV: workspace-korczewski-dev
       NS_PROD: workspace-korczewski
       CLUSTER_NAME: korczewski-dev
@@ -31,7 +31,7 @@ includes:
     dir: .
     vars:
       CTX_DEV: devc
-      CTX_PROD: mentolder
+      CTX_PROD: fleet
       NS_DEV: workspace-dev
       ENV: mentolder
   # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
@@ -1210,21 +1210,21 @@ tasks:
   # Multi-Cluster Overview
   # ─────────────────────────────────────────────
   clusters:status:
-    desc: Show status of all clusters (mentolder + korczewski)
+    desc: Show status of both brands on the unified fleet cluster (mentolder + korczewski)
     cmds:
       - |
-        echo "═══ MENTOLDER.DE (hetzner) ═══"
-        kubectl --context mentolder get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
-        echo ""
-        echo "  Workspace pods:"
-        kubectl --context mentolder get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        echo "═══ FLEET NODES ═══"
+        kubectl --context fleet get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
       - |
         echo ""
-        echo "═══ KORCZEWSKI.DE (k3s-production) ═══"
-        kubectl --context korczewski get nodes --no-headers 2>/dev/null | awk '{printf "  %-20s %-8s %s\n", $1, $2, $5}' || echo "  ✗ unreachable"
-        echo ""
+        echo "═══ MENTOLDER.DE (fleet / ns workspace) ═══"
         echo "  Workspace pods:"
-        kubectl --context korczewski get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+        kubectl --context fleet get pods -n workspace --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
+      - |
+        echo ""
+        echo "═══ KORCZEWSKI.DE (fleet / ns workspace-korczewski) ═══"
+        echo "  Workspace pods:"
+        kubectl --context fleet get pods -n workspace-korczewski --no-headers 2>/dev/null | awk '{printf "    %-45s %s\n", $1, $3}' || echo "    ✗ unreachable"
 
   # ─────────────────────────────────────────────
   # HA Cluster (3-node Hetzner)
@@ -1424,23 +1424,23 @@ tasks:
         echo "Created: environments/{{.ENV}}.yaml — fill in all FILL_ME values."
 
   flux:status:
-    desc: "Show Flux reconciliation status on both clusters"
+    desc: "Show Flux reconciliation status on the fleet cluster"
     cmds:
-      - flux get all --context mentolder
-      - flux get all --context korczewski
+      - flux get all --context fleet
 
   flux:sync:
-    desc: "Force-reconcile all Flux kustomizations immediately on both clusters"
+    desc: "Force-reconcile all Flux kustomizations immediately on the fleet cluster"
     cmds:
-      - flux reconcile kustomization workspace --with-source --context mentolder
-      - flux reconcile kustomization workspace --with-source --context korczewski
+      - flux reconcile kustomization workspace --with-source --context fleet
 
   flux:logs:
     desc: "Tail Flux controller logs (ENV=mentolder|korczewski)"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
-      - flux logs --context {{.ENV}} --follow
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        flux logs --context "${ENV_CONTEXT}" --follow
 
   flux:bootstrap:mentolder:
     desc: "Bootstrap Flux on the mentolder cluster (run once after sealed-secrets:install)"
@@ -3170,7 +3170,7 @@ tasks:
         KEY=$(awk -F': ' '/^IPV64_UPDATE_HASH:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
         [ -n "$KEY" ] || { echo "IPV64_UPDATE_HASH missing from $SECRETS (this is the domain_update_hash from ipv64.net, not the account API key)" >&2; exit 1; }
         LK_IP="{{.PIN_IP}}"
-        LK_IP="${LK_IP:-${LIVEKIT_PIN_IP:-46.225.125.59}}"
+        LK_IP="${LK_IP:-${LIVEKIT_PIN_IP:-204.168.244.104}}"
         TURN_IP="${TURN_PUBLIC_IP:-}"
         echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → ${LK_IP}"
         if [ -n "$TURN_IP" ]; then

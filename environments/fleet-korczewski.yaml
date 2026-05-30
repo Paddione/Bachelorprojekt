@@ -66,7 +66,10 @@ env_vars:
   # Dev stack intentionally omitted — dev migration is Phase 2c.
   DEV_SSH_ALLOWLIST: ""
 
-overlay: prod-korczewski
+# overlay points at the fleet wrapper (reuses prod-korczewski + deletes the
+# platform-owned cluster singletons via the fleet-common component). workspace:deploy
+# reads this as ENV_OVERLAY and builds it, so the full prod deploy path is reused.
+overlay: prod-fleet/korczewski
 workspace_namespace: workspace-korczewski
 website_namespace: website-korczewski
 secrets_ref: sealed-secrets/fleet-korczewski.yaml

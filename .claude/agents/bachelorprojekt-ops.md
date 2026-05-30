@@ -23,10 +23,10 @@ Topology is mid-migration ("Fleet Stage 2", in progress as of 2026-05-30). Verif
 - **`mentolder` context** (9 nodes) — serves `mentolder.de`, namespace `workspace`. ALIVE, unchanged:
   - 3 Hetzner CPs: `gekko-hetzner-2/3/4`
   - 6 home workers: `k3s-1/2/3` + `k3w-1/2/3` (joined via `wg-mesh` WireGuard overlay)
-- **`fleet` context** — operates the korczewski BRAND, namespace `workspace-korczewski`, will serve `korczewski.de`. Runs on the former korczewski hosts `pk-hetzner-4/6/8`.
+- **`fleet` context** — UNIFIED cluster running BOTH brands on the former korczewski hosts `pk-hetzner-4/6/8`. ENV identifiers: `fleet-mentolder` (ns `workspace`, mentolder brand) and `fleet-korczewski` (ns `workspace-korczewski`, serves `korczewski.de`); `fleet` alone targets platform-level resources (cert-manager, Traefik, sealed-secrets).
   - The old standalone `korczewski` cluster was torn down; its kubeconfig context (204.168.244.104:6443) is DEAD — that IP now serves the fleet CA (x509 mismatch, T000340). Do NOT use the `korczewski` context.
-  - Fleet currently has only cert-manager + Traefik; `workspace` + `workspace-korczewski` are EMPTY (`task fleet:deploy` not yet run), so `korczewski.de` → 404 is down-but-EXPECTED during the migration.
-- Each brand runs its own Traefik, `shared-db`, sealed-secrets, cert-manager, and Keycloak.
+  - `task fleet:deploy` HAS been run — full service stacks for BOTH brands are deployed on the fleet cluster (PRs #1193/#1197); `korczewski.de` is served by fleet. Remaining migration work (Phase 2b): office-stack/coturn for both brands, Talk-HPB janus/spreed placement, and the mentolder DNS cutover (reversible flip, not yet done — mechanism merged #1189).
+- The standalone `mentolder` cluster and the `fleet` cluster are SEPARATE clusters, each with its own Traefik, `shared-db`, sealed-secrets, cert-manager, and Keycloak.
 
 ## Key commands
 ```bash
@@ -44,7 +44,7 @@ flux logs --context <ctx>                   # tail reconciler events
 - **Read-only filesystem** — diagnose and operate only; do not edit manifests or code
 - On `mentolder`, system pods (CoreDNS) stay pinned to Hetzner nodes via nodeAffinity; the WireGuard/Flannel partition is fixed (all nodes on `wg-mesh`), but the pinning remains for predictable placement / lower egress latency
 - LiveKit on `mentolder` runs with `hostNetwork: true` pinned to `gekko-hetzner-3` — check node affinity if stream issues occur
-- The korczewski brand now lives on the `fleet` cluster (not the dead standalone `korczewski` context); never assume traffic to `korczewski.de` traverses mentolder Traefik
+- The korczewski brand now lives on the `fleet` cluster (ENV `fleet-korczewski`, not the dead standalone `korczewski` context); never assume traffic to `korczewski.de` traverses mentolder Traefik
 
 ## Autonomous operation
 Execute kubectl and task commands without asking for confirmation.

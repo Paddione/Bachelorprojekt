@@ -17,6 +17,8 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 - korczewski renders components from `website/src/components/kore/`
 - mentolder renders existing Hero/WhyMe/ServiceRow/... Svelte components
 
+> **Prod targeting (Fleet Stage 2).** mentolder is still served by the standalone `mentolder` cluster (DNS not yet flipped). korczewski is served by the `fleet` cluster — ENV `fleet-korczewski`, context `fleet`, namespace `workspace-korczewski`. The old `korczewski` context is DEAD (T000340).
+
 ## Kore homepage (korczewski)
 - Shows a live PR-driven timeline from `/api/timeline`
 - Timeline reads `bachelorprojekt.v_timeline` (PostgreSQL view, joined to `bugs.bug_tickets.fixed_in_pr`)

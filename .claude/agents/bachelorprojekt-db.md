@@ -10,10 +10,17 @@ description: >
 You are a database specialist for the Bachelorprojekt platform.
 
 ## Shared PostgreSQL instance
-- Service: `shared-db` in `workspace` namespace (PostgreSQL 16)
+- Service: `shared-db` (PostgreSQL 16)
 - Databases: `keycloak`, `nextcloud`, `vaultwarden`, `website`, `docuseal`
 - Access: `task workspace:psql ENV=<env> -- <db>`
 - Port-forward to localhost:5432: `task workspace:port-forward ENV=<env>`
+
+### Two independent `shared-db` instances (Fleet Stage 2)
+There are now TWO separate `shared-db` instances on two physical clusters:
+- **standalone `mentolder` cluster** — context `mentolder`, namespace `workspace`.
+- **`fleet` cluster** — context `fleet`; namespace `workspace` for `fleet-mentolder`, namespace `workspace-korczewski` for `fleet-korczewski`.
+
+They share no data and have independent role passwords. Schema changes and DB-password rotations must be applied to BOTH clusters explicitly (the `mentolder` context AND the `fleet` context).
 
 ## Tracking schema
 ```sql

@@ -28,6 +28,14 @@ task test:manifests                  # kustomize output structure (no cluster ne
 task test:all                        # all offline tests: unit + manifests + dry-run
 ```
 
+## Cluster targeting (Fleet Stage 2)
+Live prod ENV identifiers a test run might target:
+- `mentolder` — standalone cluster (context `mentolder`), serves `mentolder.de`.
+- `fleet-mentolder` and `fleet-korczewski` — both on the unified `fleet` cluster (context `fleet`); `fleet-korczewski` serves `korczewski.de`.
+- `dev` — k3d (`dev.mentolder.de`).
+
+The old standalone `korczewski` context (204.168.244.104:6443) is DEAD (T000340) — never point tests at it.
+
 ## Test file locations
 - `tests/` — all test scripts and fixtures
 - `tests/unit/` — BATS unit tests

@@ -181,22 +181,26 @@ the **prod** cluster — only its upstream URL changes.
   `15432`/`18080` NodePort/host-port targets → the VIP. No sealed-secrets
   controller in the dev cluster (secrets remain materialised as plain Secrets from
   `environments/.secrets/mentolder.yaml`, as today).
-- The sish `:2222` SSH-tunnel path + ufw allowlist (`DEV_SSH_ALLOWLIST`) is
-  preserved via a `LoadBalancer`/VIP bind at `:2222`. Low priority — sish is niche.
+- One **consolidated sish broker** lives in the new dev cluster (see 3f); the
+  `:2222` SSH bind + ufw allowlist (`DEV_SSH_ALLOWLIST`) moves to the kube-vip VIP.
 
 ### 3d. Cutover sequence (parallel build → flip → reclaim)
 
 Built to never disrupt the running k3d until the new cluster is proven, and to
 respect the `pve` RAM constraint (cannot run 12 GB `k3s-1` + 8 GB `devc-1` at once):
 
+0. **Build a cloud-init VM template** (Debian/Ubuntu) on the Proxmox cluster — none
+   exists today. All `devc` VMs are `qm clone`d from it. Prerequisite for step 1.
 1. **Build `devc-2` (pve2) + `devc-3` (pve3)** first — start as a 1→2 server etcd
    cluster. Idle nodes, zero disruption. Install Longhorn + kube-vip.
 2. **Deploy the dev-stack** to the new cluster (longhorn storageClass), materialise
    secrets, run one db-refresh, **smoke-test internally via the VIP** (bypassing the
    public chain).
 3. **Flip:** repoint `oauth2-proxy-dev --upstream` → VIP; repoint the db-refresh
-   CronJob → VIP NodePort. Verify `dev.mentolder.de` end-to-end through the public
-   chain.
+   CronJob → VIP NodePort; add the `brainstorm.mentolder.de` SAN + ingress and
+   repoint `Taskfile.brainstorm.yml` at the VIP, then retire the standalone prod
+   `brainstorm-sish` broker (3f). Verify `dev.mentolder.de` (and a brainstorm
+   tunnel) end-to-end through the public chain.
 4. **Decommission k3d** on `k3s-1`; **shrink `k3s-1`** to ~3 GB (mentolder-agent
    only). Frees `pve` RAM.
 5. **Add `devc-1` (pve)** as the 3rd etcd member → **full 3-node HA quorum**.
@@ -214,6 +218,29 @@ acceptable window.
 - Evaluate **dropping the `?token=` query-param fallback** entirely (header-only
   `Authorization: Bearer`) if claude.ai web auth still works without it.
 
+### 3f. brainstorm consolidation
+
+`brainstorm.mentolder.de` is **not** a deployable app — it is a reverse-SSH tunnel
+(`task brainstorm:publish -- <port>`) that publishes the operator's *local*
+visual-companion server at a public HTTPS URL. The tunnel (sish) is therefore
+intrinsic; it cannot be replaced by a CNAME + plain Ingress (an Ingress needs a
+backend, and the backend is the laptop). Today this broker runs **standalone on
+the prod cluster** (`gekko-hetzner-2`, NodePort `32223`, `Taskfile.brainstorm.yml`).
+
+As part of this move it is **consolidated onto the new dev cluster**:
+
+- The dev cluster runs **one** sish broker serving both ad-hoc `*.dev.mentolder.de`
+  tunnels *and* the brainstorm tunnel; SSH bind moves to the VIP.
+- Add `brainstorm.mentolder.de` as a **SAN** on the dev wildcard cert
+  (`workspace-dev-wildcard-tls`) and an **ingress rule** for that host, so the
+  operator's `brainstorm.mentolder.de → dev.mentolder.de` CNAME resolves and
+  validates over HTTPS.
+- **Retire** the standalone prod `brainstorm-sish` (`k3d/brainstorm-sish.yaml`) and
+  its `gekko-hetzner-2` pinning / ufw rule.
+- Repoint `Taskfile.brainstorm.yml` (`publish`, `firewall:open`, `status`) at the
+  **dev-cluster VIP** instead of `gekko-hetzner-2`. The operator workflow is
+  unchanged: still `task brainstorm:publish -- <port>`.
+
 ## Failure model (what we get)
 
 | Failure | Outcome |
@@ -230,9 +257,12 @@ acceptable window.
 - HA Postgres (streaming replication) — dev Postgres remains single-replica on a
   replicated Longhorn volume.
 
-## Open questions for review
+## Resolved decisions
 
-1. VIP `10.0.0.20` — confirm it is free on the LAN and not in the DHCP range.
-2. VM template — is there an existing cloud-init template to clone, or do we build
-   one as a prerequisite step?
-3. Keep sish (`:2222`) at all in the new cluster, or retire it as part of the move?
+1. **VIP `10.0.0.20`** — confirmed free on the LAN and outside the DHCP range.
+2. **VM template** — none exists today, so **building a cloud-init template is the
+   first step of the plan** (see cutover step 0).
+3. **sish / brainstorm** — not retired. brainstorm is deployed "in-cluster" in the
+   only way physically possible: a consolidated sish broker on the dev cluster, with
+   `brainstorm.mentolder.de` as a cert SAN + ingress, and the standalone prod broker
+   retired (see 3f).

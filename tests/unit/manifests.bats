@@ -240,6 +240,15 @@ all_images() {
   grep -q 'docuseal-data-pvc' "$RENDERED"
 }
 
+@test "pvc-backup filen-upload fails loudly on upload error (exit 1, not silent warning)" {
+  # Ensure the pvc-backup CronJob filen-upload script exits 1 on upload failure
+  # rather than swallowing errors with a WARNING echo (T000330).
+  run grep -c 'WARNING: Filen upload failed' k3d/pvc-backup-cronjob.yaml
+  assert_output "0"
+  # And that it uses exit 1 for failure visibility
+  grep -q 'exit 1' k3d/pvc-backup-cronjob.yaml
+}
+
 # ── PVCs ─────────────────────────────────────────────────────────
 
 @test "PersistentVolumeClaims exist for stateful services" {

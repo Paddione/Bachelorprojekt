@@ -61,9 +61,12 @@ env_vars:
   DEV_WEBSITE_HOST: "web.dev.mentolder.de"
   DEV_BRETT_HOST: "brett.dev.mentolder.de"
   # Comma-separated CIDRs allowed to reach :2222 on $DEV_NODE.
-  # Empty (current) means ufw drops all 2222/tcp until you set it via
-  # task dev:firewall:open after editing this value.
-  DEV_SSH_ALLOWLIST: ""
+  # Empty means ufw drops all 2222/tcp; apply with task dev:firewall:open
+  # after editing this value.
+  # 217.195.151.153/32 = the operator workstation's public egress (shares the
+  # dev node's public IP), so the brainstorm reverse-SSH tunnel can publish to
+  # the dev sish (brainstorm.dev.mentolder.de) [T000364].
+  DEV_SSH_ALLOWLIST: "217.195.151.153/32"
 
 overlay: prod-mentolder
 workspace_namespace: workspace

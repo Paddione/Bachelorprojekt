@@ -445,7 +445,7 @@ Ergebnis: Spec in `docs/superpowers/specs/<date>-<slug>-design.md`.
 
 Falls das Feature neue Playwright-Spec-Dateien umfasst, **muss** die Spec (und der daraus entstehende Plan) für jede neue Datei explizit angeben:
 
-1. **Dateiname** (z.B. `sa-15-cross-cluster-health.spec.ts`)
+1. **Dateiname** (z.B. `sa-15-cross-brand-health.spec.ts`)
 2. **Playwright-Projekt(e)**, zu dem die Datei gehört (Mehrfachnennung möglich!)
 3. **Endpunkte / Routen**: aus dem Quellcode ableiten, nie annehmen
 
@@ -453,11 +453,11 @@ Falls das Feature neue Playwright-Spec-Dateien umfasst, **muss** die Spec (und d
 
 | Spec-Typ | Playwright-Projekt | Begründung |
 |---|---|---|
-| Nicht-auth SA-*/NFA-*/cross-cluster/arena-DB | `services` | Kein Login nötig; kein `storageState` |
+| Nicht-auth SA-*/NFA-*/cross-brand/arena-DB | `services` | Kein Login nötig; kein `storageState` |
 | Authentifizierte FA-* (mentolder Login) | `mentolder` | Braucht `storageState: .auth/mentolder-website-admin.json` |
 | Authentifizierte FA-* (Website-Flows) | `website` | Braucht Login-Setup-Dependency |
 | Korczewski-spezifische Tests | `korczewski` | Eigene Auth-State + Korczewski-Domain |
-| Kombiniert (z.B. Cross-Cluster ohne Auth) | `services` **und** ggf. `korczewski` | Immer beide Projekte explizit nennen |
+| Kombiniert (z.B. Cross-Brand ohne Auth) | `services` **und** ggf. `korczewski` | Immer beide Projekte explizit nennen |
 
 **Endpunkte aus Source ableiten (Pflicht):**
 ```bash

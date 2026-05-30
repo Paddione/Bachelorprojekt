@@ -659,7 +659,8 @@ git pull --rebase origin main
 # Erzeugt fertiges kubeconfig für cicd-deploy SA; --minify macht clusters[0] korrekt
 bash scripts/cicd-kubeconfig-gen.sh mentolder workspace | base64 -w0 \
   | gh secret set MENTOLDER_KUBECONFIG --repo Paddione/Bachelorprojekt
-bash scripts/cicd-kubeconfig-gen.sh korczewski workspace-korczewski | base64 -w0 \
+# korczewski brand → fleet cluster, namespace workspace-korczewski
+bash scripts/cicd-kubeconfig-gen.sh fleet workspace-korczewski | base64 -w0 \
   | gh secret set KORCZEWSKI_KUBECONFIG --repo Paddione/Bachelorprojekt
 ```
 

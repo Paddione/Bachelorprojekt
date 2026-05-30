@@ -7,7 +7,7 @@ description: Use when building, deploying, or debugging the arena-server (korcze
 
 ## Overview
 
-**Arena** is a korczewski-only WebSocket multiplayer server. **Brett** is a 3D game (Systembrett) deployed to both clusters. Both have deploy constraints that aren't obvious from the generic Taskfile docs.
+**Arena** is a korczewski-only WebSocket multiplayer server. **Brett** is a 3D game (Systembrett) deployed to both environments. Both have deploy constraints that aren't obvious from the generic Taskfile docs.
 
 ---
 

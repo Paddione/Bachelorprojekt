@@ -60,7 +60,7 @@ task workspace:psql ENV=dev -- website -c "\d coaching.sessions"
 > kubectl exec -i "$PGPOD" -n workspace --context <env> -- psql -U postgres -d website < migration.sql
 > ```
 
-Execute the migration sequentially on both clusters:
+Execute the migration sequentially on both environments:
 ```bash
 # Apply to mentolder
 task workspace:psql ENV=mentolder -- website < scripts/datamodel/<migration>.sql

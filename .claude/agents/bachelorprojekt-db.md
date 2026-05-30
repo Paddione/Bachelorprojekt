@@ -16,11 +16,11 @@ You are a database specialist for the Bachelorprojekt platform.
 - Port-forward to localhost:5432: `task workspace:port-forward ENV=<env>`
 
 ### Two independent `shared-db` instances (Fleet Stage 2)
-There are now TWO separate `shared-db` instances on two physical clusters:
+There are now TWO separate `shared-db` instances across two environments:
 - **standalone `mentolder` cluster** — context `mentolder`, namespace `workspace`.
 - **`fleet` cluster** — context `fleet`; namespace `workspace` for `fleet-mentolder`, namespace `workspace-korczewski` for `fleet-korczewski`.
 
-They share no data and have independent role passwords. Schema changes and DB-password rotations must be applied to BOTH clusters explicitly (the `mentolder` context AND the `fleet` context).
+They share no data and have independent role passwords. Schema changes and DB-password rotations must be applied to both environments explicitly (the `mentolder` context AND the `fleet` context).
 
 ## Tracking schema
 ```sql

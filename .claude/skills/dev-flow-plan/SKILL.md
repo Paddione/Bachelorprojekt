@@ -613,12 +613,20 @@ fi
 ### Schritt 5: Commit & Push — dann STOPP
 
 ```bash
+# Sicherheitscheck: NIEMALS auf main committen [T000321]
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" == "main" || -z "$BRANCH" ]]; then
+  echo "ERROR: Auf main-Branch (oder kein Branch). Plan darf nicht auf main committed werden!"
+  echo "→ Schritt 1 (Worktree anlegen) wurde übersprungen oder fehlgeschlagen. Jetzt nachholen:"
+  echo "  git worktree add -b feature/<slug> /tmp/wt-<slug> origin/main && cd /tmp/wt-<slug>"
+  exit 1
+fi
+
 # Die Spec wurde bereits in Schritt 3.7.1.5 committed; git add ist idempotent falls nötig
 git add docs/superpowers/specs/<date>-<slug>-design.md docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 
 # Push mit automatischer Force-with-lease-Fallback bei divergiertem Remote (Prior-Session Stale Commits)
-BRANCH=$(git branch --show-current)
 if ! git push -u origin "$BRANCH" 2>/tmp/_push_err.txt; then
   if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
     echo "Remote divergiert — wende --force-with-lease an"
@@ -777,6 +785,15 @@ git push
 ### Schritt 5: Commit & Push — dann STOPP
 
 ```bash
+# Sicherheitscheck: NIEMALS auf main committen [T000321]
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" == "main" || -z "$BRANCH" ]]; then
+  echo "ERROR: Auf main-Branch (oder kein Branch). Plan darf nicht auf main committed werden!"
+  echo "→ Schritt 1 (Worktree anlegen) wurde übersprungen oder fehlgeschlagen. Jetzt nachholen:"
+  echo "  git worktree add -b fix/<slug> /tmp/wt-<slug> origin/main && cd /tmp/wt-<slug>"
+  exit 1
+fi
+
 # Immer dabei: der failing Test
 git add tests/<relevante-test-datei>
 
@@ -786,7 +803,6 @@ git add docs/superpowers/plans/<slug>.md
 git commit -m "chore(plans): stage <slug> fix for execution [$TICKET_EXT_ID]"
 
 # Push mit automatischer Force-with-lease-Fallback bei divergiertem Remote
-BRANCH=$(git branch --show-current)
 if ! git push -u origin "$BRANCH" 2>/tmp/_push_err.txt; then
   if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
     echo "Remote divergiert — wende --force-with-lease an"

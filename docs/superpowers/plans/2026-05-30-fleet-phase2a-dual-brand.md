@@ -19,6 +19,31 @@ pr_number: null
 **Spec:** `docs/superpowers/specs/2026-05-30-fleet-phase2a-dual-brand-design.md`
 **Ticket:** T000337 · **Branch:** `feature/fleet-phase2-cutover`
 
+> ## Execution status (dev-flow-execute)
+> **Offline tasks COMPLETE & committed (CI-validatable):** Task 1 (platform overlay),
+> Task 2 (fleet-common, + platform now owns claude-code-agent RBAC), Task 3 (brand
+> wrappers), Task 4 (env files, `overlay:` repointed to `prod-fleet/<brand>`),
+> Task 5 (backup-restore ns guard, TDD), Task 6 (`fleet:deploy` → reuses
+> `workspace:deploy`), Task 11 CODE (test renamed **SA-22**, SA-08 was taken;
+> deny-cross-brand netpol enforced on shared-db ingress). `task test:all` green.
+>
+> **Plan corrections found during execution** (vs. the drafted plan):
+> - Platform `reflector.yaml` carried a `${WORKSPACE_NAMESPACE}` placeholder + a
+>   single-subject CRB → replaced with trimmed `reflector-rbac.yaml` (dual-subject).
+> - fleet-common's website/website-monitoring patches targeted objects NOT in the
+>   overlay (website is a separate ns) → dropped; node-affinity repoints deferred
+>   to Task 8 runtime (as the plan's own NOTE intends).
+> - `claude-code-agent` CR/CRB collide cross-brand but had no owner → platform owns.
+> - `fleet:deploy:brand` reimplemented deploy crudely → delegates to `workspace:deploy`.
+> - **SA-08 id is taken** (Keycloak OIDC) → isolation test is **SA-22**.
+>
+> **RUNTIME tasks GATED (need operator assets):** Task 7 (seal — needs
+> `environments/.secrets/fleet-{mentolder,korczewski}.yaml`), Task 8 (platform
+> install + dry-run + deploy + Pending-pod/affinity resolution + capacity), Task 9
+> (Filen restore — needs confirmed snapshot timestamps), Task 10 (pvc-backup green),
+> Task 12 (DoD + SA-22 PASS). Assets: (1) Filen timestamps both brands, (2)
+> pk-hetzner-4 public IP for fleet-mentolder TURN_PUBLIC_IP, (3) capacity check.
+
 ---
 
 ## File Map

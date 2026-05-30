@@ -13,3 +13,4 @@ resources:
   - cluster-issuer.yaml
   - ingressclass.yaml
   - reflector-rbac.yaml
+  - claude-code-agent-rbac.yaml

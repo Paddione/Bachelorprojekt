@@ -1474,8 +1474,10 @@ tasks:
       # mcp:deploy + post-setup are the core post-deploy steps that are safe
       # WITHOUT coturn. The Talk wiring phase is deferred to its own brand task
       # because it requires the shared coturn/Janus (fleet:shared-services) to exist.
+      # SKIP_TALK_SETUP=true stops workspace:deploy from running its embedded
+      # coturn sync + Talk wiring (which hard-fails before coturn exists).
       - task: workspace:deploy
-        vars: { ENV: "{{.BRAND}}" }
+        vars: { ENV: "{{.BRAND}}", SKIP_TALK_SETUP: "true" }
       - task: mcp:deploy
         vars: { ENV: "{{.BRAND}}" }
       - task: workspace:post-setup
@@ -1734,8 +1736,19 @@ tasks:
       # right cluster.
       - |
         if [ "{{.ENV}}" != "dev" ]; then
-          task workspace:coturn:sync-secret ENV="{{.ENV}}" || true
-          task workspace:talk-setup ENV="{{.ENV}}"
+          # SKIP_TALK_SETUP lets a multi-brand orchestrator (fleet:deploy:brand)
+          # defer the embedded coturn:sync-secret + talk-setup chain. On a fresh
+          # SHARED-stack cluster, coturn/Janus do not exist yet during the brand
+          # core deploy — they come up once in fleet:shared-services AFTER both
+          # brands' SealedSecrets (collabora-secrets/workspace-secrets) are applied.
+          # talk-setup then runs per-brand via fleet:talk-setup:brand. Default
+          # "false" preserves the standalone single-cluster deploy behavior.
+          if [ "{{.SKIP_TALK_SETUP | default "false"}}" != "true" ]; then
+            task workspace:coturn:sync-secret ENV="{{.ENV}}" || true
+            task workspace:talk-setup ENV="{{.ENV}}"
+          else
+            echo "⏭  SKIP_TALK_SETUP=true — deferring coturn:sync-secret + talk-setup (fleet:shared-services + fleet:talk-setup:brand handle it)"
+          fi
           # Re-pin LiveKit DNS after every prod deploy so the livekit/stream
           # subdomains always resolve to the livekit node (nodeAffinity pin).
           # Without pinning, round-robin DNS routes ~66 % of signalling WS

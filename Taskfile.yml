@@ -1477,6 +1477,40 @@ tasks:
       - task: fleet:deploy:brand
         vars: { BRAND: fleet-korczewski }
 
+  fleet:shared-services:
+    desc: "Deploy the SHARED Collabora (office-stack) + CoTURN/Janus (coturn-stack) ONCE on the fleet cluster, serving both brands. Run AFTER both brand workspace:deploy passes (needs workspace-secrets to exist for coturn sync)."
+    cmds:
+      - |
+        set -euo pipefail
+        kubectl config use-context fleet
+        # --- Collabora (shared, dual-host) ---
+        # Primary host vars from fleet-mentolder; second host from fleet-korczewski.
+        source scripts/env-resolve.sh fleet-mentolder
+        export COLLABORA_HOST="collabora.${PROD_DOMAIN}"
+        export COLLABORA_SERVER_NAME="collabora.${PROD_DOMAIN}"
+        export COLLABORA_ALIASGROUP1="https://cloud\\.${PROD_DOMAIN}:443"
+        export COLLABORA_SSL_TERMINATION="true"
+        export COLLABORA_TLS_SECRET="collabora-tls"
+        export COLLABORA_INGRESS_MIDDLEWARES="workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+        # Capture mentolder TURN vars BEFORE re-sourcing korczewski.
+        MENTOLDER_TURN_NODE="$TURN_NODE"; MENTOLDER_TURN_PUBLIC_IP="${TURN_PUBLIC_IP:-$LIVEKIT_PIN_IP}"
+        MENTOLDER_TLS_SECRET_NAME="${TLS_SECRET_NAME:-workspace-tls}"; MENTOLDER_PROD_DOMAIN="$PROD_DOMAIN"
+        ( source scripts/env-resolve.sh fleet-korczewski; echo "collabora.${PROD_DOMAIN}|https://cloud\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
+        export COLLABORA_HOST_2="$(cut -d'|' -f1 /tmp/_kore_collabora.txt)"
+        export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 /tmp/_kore_collabora.txt)"
+        kustomize build k3d/office-stack \
+          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_HOST_2 $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/collabora -n workspace-office --timeout=300s
+        # --- CoTURN/Janus (shared) ---
+        export TURN_NODE="$MENTOLDER_TURN_NODE"; export TURN_PUBLIC_IP="$MENTOLDER_TURN_PUBLIC_IP"
+        export PROD_DOMAIN="$MENTOLDER_PROD_DOMAIN"; export TLS_SECRET_NAME="$MENTOLDER_TLS_SECRET_NAME"
+        kustomize build k3d/coturn-stack \
+          | envsubst '$TURN_NODE $TURN_PUBLIC_IP $PROD_DOMAIN $TLS_SECRET_NAME' \
+          | kubectl --context fleet apply -f -
+        kubectl --context fleet rollout status deploy/coturn -n coturn --timeout=180s
+        kubectl --context fleet rollout status deploy/janus  -n coturn --timeout=180s
+
   fleet:dns:cutover:
     desc: "Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]"
     requires:

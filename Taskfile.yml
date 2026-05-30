@@ -1592,8 +1592,12 @@ tasks:
             --overwrite
           # Apply website-schema ConfigMap first as shared-db expects it for schema init
           kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f k3d/website-schema.yaml
+          # -n "${_ws_ns}" places the namespace-less shared-db Deployment in the
+          # target ns. The base manifest intentionally omits namespace on the
+          # Deployment so the prod/ strategic-merge patch matches it as [noNs];
+          # PVC/ConfigMap/Services keep their explicit (sed-rewritten) namespace.
           sed "s/namespace: workspace$/namespace: ${_ws_ns}/g" k3d/shared-db.yaml \
-            | kubectl --context "$ENV_CONTEXT" apply -f -
+            | kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" apply -f -
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl --context "$ENV_CONTEXT" rollout status deployment/shared-db -n "${_ws_ns}" --timeout=120s
 

@@ -40,6 +40,7 @@ for var in \
     SMTP_USER \
     SMTP_PASSWORD \
     BRETT_OIDC_SECRET \
+    COMFY_OIDC_SECRET \
     DEV_DOMAIN \
     DEV_WORKSPACE_OIDC_SECRET; do
   eval val="\$${$${var}:-}"

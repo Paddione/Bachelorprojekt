@@ -36,7 +36,7 @@ AGENT_FILE="${PROJECT_DIR}/.claude/agents/bachelorprojekt-ops.md"
 }
 
 @test "ops agent prescribes the trivial verifiable probe" {
-  run grep -qF 'kubectl get nodes --context mentolder' "$AGENT_FILE"
+  run grep -qF 'kubectl get nodes --context fleet' "$AGENT_FILE"
   [ "$status" -eq 0 ]
 }
 

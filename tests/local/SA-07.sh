@@ -86,3 +86,34 @@ else:
   assert_eq "$SC" "longhorn" "SA-07" "T11-${pvc}" \
     "Datei-PVC ${pvc} nutzt Longhorn in prod-mentolder (aktuell: ${SC}) [T000317]"
 done
+
+# T12: pvc-backup must NOT mount the live Longhorn data PVCs directly [T000317]
+# Verified 2026-05-30: mounting a live Longhorn RWO PVC in the backup pod
+# deadlocks on FailedAttachVolume Multi-Attach when the owning app pod runs on a
+# different node (the backup pod is pinned to nextcloud's node via podAffinity,
+# but docuseal/vaultwarden may run elsewhere). The fix clones each Longhorn data
+# PVC (CSI dataSource) and mounts the placement-independent clone instead.
+# nextcloud-data is EXEMPT: it is on local-path (no clone/snapshot support) and
+# is correctly co-located with the nextcloud pod via podAffinity, so its direct
+# RO mount shares the volume on the same node without contention.
+# This is a static manifest test (no cluster access needed).
+PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
+BACKUP_VOL_CLAIMS=$(python3 -c "
+import yaml
+with open('${PROJECT_DIR}/k3d/pvc-backup-cronjob.yaml') as f:
+    cj = yaml.safe_load(f)
+vols = cj['spec']['jobTemplate']['spec']['template']['spec'].get('volumes', [])
+claims = [v.get('persistentVolumeClaim', {}).get('claimName', '') for v in vols]
+print(' '.join(c for c in claims if c))
+" 2>/dev/null || echo "PARSE_ERROR")
+
+# Only the Longhorn-backed PVCs must be clone-mounted; nextcloud (local-path) is exempt.
+for live_pvc in vaultwarden-data-pvc docuseal-data-pvc; do
+  if echo "$BACKUP_VOL_CLAIMS" | grep -qw "$live_pvc"; then
+    HAS_LIVE="yes"
+  else
+    HAS_LIVE="no"
+  fi
+  assert_eq "$HAS_LIVE" "no" "SA-07" "T12-${live_pvc}" \
+    "pvc-backup mountet die Live-Longhorn-PVC ${live_pvc} NICHT direkt (Clone-basiert, kein Multi-Attach) [T000317]"
+done

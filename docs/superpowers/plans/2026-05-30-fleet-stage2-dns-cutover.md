@@ -47,12 +47,12 @@ The fleet-mentolder env still carries mentolder-standalone (gekko) IPs for the L
 - Modify: `environments/fleet-mentolder.yaml`
 - Test: `tests/unit/fleet-dns-cutover.bats` (first test added here; expanded in Task 3)
 
-- [ ] **Step 1: Confirm the current stale values**
+- [x] **Step 1: Confirm the current stale values**
 
 Run: `grep -nE 'TURN_PUBLIC_IP|LIVEKIT_PIN_IP' environments/fleet-mentolder.yaml`
 Expected: both show a non-pk IP (e.g. `178.104.169.206` and/or `46.225.125.59`) — the values to replace.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `tests/unit/fleet-dns-cutover.bats` with this first test:
 
@@ -75,12 +75,12 @@ setup() {
 }
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: FAIL — output still contains a gekko IP / lacks `204.168.244.104`.
 
-- [ ] **Step 4: Apply the fix**
+- [x] **Step 4: Apply the fix**
 
 Edit `environments/fleet-mentolder.yaml`: set both vars to the pk-hetzner-4 public IP. Keep surrounding comments; only change the IP values.
 
@@ -89,12 +89,12 @@ Edit `environments/fleet-mentolder.yaml`: set both vars to the pk-hetzner-4 publ
   LIVEKIT_PIN_IP: "204.168.244.104"   # pk-hetzner-4 (fleet) — livekit/stream/turn pin
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: PASS (1 test).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add environments/fleet-mentolder.yaml tests/unit/fleet-dns-cutover.bats
@@ -111,7 +111,7 @@ Build the script's record model and dry-run first (no network). This is where ma
 - Create: `scripts/fleet-dns-cutover.sh`
 - Test: `tests/unit/fleet-dns-cutover.bats`
 
-- [ ] **Step 1: Write the failing tests** (append to `tests/unit/fleet-dns-cutover.bats`)
+- [x] **Step 1: Write the failing tests** (append to `tests/unit/fleet-dns-cutover.bats`)
 
 ```bash
 @test "plan: mentolder change set is A-records only, allowlisted prefixes, correct IPs" {
@@ -165,12 +165,12 @@ Build the script's record model and dry-run first (no network). This is where ma
 }
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: FAIL — `scripts/fleet-dns-cutover.sh` does not exist.
 
-- [ ] **Step 3: Create the script with `plan`/change-set logic**
+- [x] **Step 3: Create the script with `plan`/change-set logic**
 
 Create `scripts/fleet-dns-cutover.sh`:
 
@@ -243,12 +243,12 @@ cmd_rollback() { echo "not implemented yet" >&2; exit 3; }
 
 Place the two stubs **above** `main`. Make the script executable: `chmod +x scripts/fleet-dns-cutover.sh`.
 
-- [ ] **Step 4: Run to verify the plan tests pass**
+- [x] **Step 4: Run to verify the plan tests pass**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: PASS (Task 1 test + the 4 new plan tests = 5).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/fleet-dns-cutover.sh tests/unit/fleet-dns-cutover.bats
@@ -265,7 +265,7 @@ Add the ipv64 REST apply (DELETE then POST per record, mirroring `prod-korczewsk
 - Modify: `scripts/fleet-dns-cutover.sh`
 - Test: `tests/unit/fleet-dns-cutover.bats`
 
-- [ ] **Step 1: Write the failing tests** (append)
+- [x] **Step 1: Write the failing tests** (append)
 
 ```bash
 # Helper: a fake curl that logs every invocation to $CURL_LOG and prints a
@@ -334,12 +334,12 @@ STATE
 }
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: FAIL on the cutover/rollback tests (stubs `exit 3`).
 
-- [ ] **Step 3: Replace the stubs with real apply logic**
+- [x] **Step 3: Replace the stubs with real apply logic**
 
 In `scripts/fleet-dns-cutover.sh`, replace the `cmd_cutover`/`cmd_rollback` stubs with:
 
@@ -419,12 +419,12 @@ cmd_rollback() {
 }
 ```
 
-- [ ] **Step 4: Run to verify all tests pass**
+- [x] **Step 4: Run to verify all tests pass**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: PASS (9 tests total).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/fleet-dns-cutover.sh tests/unit/fleet-dns-cutover.bats
@@ -441,7 +441,7 @@ Wire the script into go-task, ENV-routed so the operator runs `task fleet:dns:cu
 - Modify: `Taskfile.yml`
 - Test: `tests/unit/fleet-dns-cutover.bats`
 
-- [ ] **Step 1: Write the failing test** (append)
+- [x] **Step 1: Write the failing test** (append)
 
 ```bash
 @test "Taskfile declares fleet:dns:cutover and fleet:dns:rollback" {
@@ -452,12 +452,12 @@ Wire the script into go-task, ENV-routed so the operator runs `task fleet:dns:cu
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats -f "Taskfile declares"`
 Expected: FAIL — tasks not present.
 
-- [ ] **Step 3: Add the tasks**
+- [x] **Step 3: Add the tasks**
 
 In `Taskfile.yml`, add under the fleet task group (near the other `fleet:*` tasks). Both source `env-resolve.sh` (never execute it) and require an explicit `ENV`:
 
@@ -481,14 +481,14 @@ In `Taskfile.yml`, add under the fleet task group (near the other `fleet:*` task
 
 Note for the operator: `fleet:dns:cutover` defaults to `ACTION=plan` (dry-run). Run `task fleet:dns:cutover ENV=fleet-mentolder ACTION=cutover` to apply. This makes the destructive action explicit — the bare task only prints the plan.
 
-- [ ] **Step 4: Run to verify the test passes + Taskfile still parses**
+- [x] **Step 4: Run to verify the test passes + Taskfile still parses**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats -f "Taskfile declares"`
 Expected: PASS.
 Run: `cd /tmp/wt-fleet-stage2 && task --list >/dev/null && echo TASKFILE_OK`
 Expected: `TASKFILE_OK` (no YAML parse error).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Taskfile.yml tests/unit/fleet-dns-cutover.bats
@@ -504,7 +504,7 @@ The live cutover is performed by an operator (gated on Stage 1 + assets). This d
 **Files:**
 - Create: `docs/fleet-stage2-cutover-runbook.md`
 
-- [ ] **Step 1: Write the runbook**
+- [x] **Step 1: Write the runbook**
 
 Create `docs/fleet-stage2-cutover-runbook.md` with these sections (fill with the concrete commands; this is the content, not a placeholder list):
 
@@ -568,7 +568,7 @@ Order: mentolder (reversible canary) → same-day soak → korczewski (irreversi
 Decommission standalone clusters, reclaim gekko, remove old envs/sealed-secrets.
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add docs/fleet-stage2-cutover-runbook.md
@@ -581,28 +581,28 @@ git commit -m "docs(fleet): stage 2 dns cutover operator runbook [stage2]"
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run the new unit suite**
+- [x] **Step 1: Run the new unit suite**
 
 Run: `cd /tmp/wt-fleet-stage2 && bats tests/unit/fleet-dns-cutover.bats`
 Expected: PASS (10 tests).
 
-- [ ] **Step 2: Run the offline CI gate**
+- [x] **Step 2: Run the offline CI gate**
 
 Run: `cd /tmp/wt-fleet-stage2 && task test:all`
 Expected: green (BATS unit, kustomize structure, Taskfile dry-run).
 
-- [ ] **Step 3: Test-inventory check (only if a new SA/FA/NFA test ID was added)**
+- [x] **Step 3: Test-inventory check (only if a new SA/FA/NFA test ID was added)**
 
 This plan adds a `tests/unit/*.bats` unit test (no SA/FA/NFA ID), so the inventory should be unchanged. Confirm:
 Run: `cd /tmp/wt-fleet-stage2 && task test:inventory && git diff --exit-code website/src/data/test-inventory.json`
 Expected: no diff. If a diff appears, commit the regenerated `test-inventory.json`.
 
-- [ ] **Step 4: Shellcheck the new script (local lint, advisory)**
+- [x] **Step 4: Shellcheck the new script (local lint, advisory)**
 
 Run: `cd /tmp/wt-fleet-stage2 && shellcheck scripts/fleet-dns-cutover.sh || true`
 Expected: no errors (warnings acceptable). Fix any error-level findings.
 
-- [ ] **Step 5: Final commit if anything changed**
+- [x] **Step 5: Final commit if anything changed**
 
 ```bash
 git add -A && git commit -m "chore(fleet): stage2 cutover verification fixups [stage2]" || echo "nothing to commit"

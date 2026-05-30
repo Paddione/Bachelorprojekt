@@ -218,7 +218,7 @@ Falls `$TICKET_ID` gesetzt:
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
 
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "UPDATE tickets.tickets SET status = 'in_progress'
    WHERE external_id = '$TICKET_ID';"
@@ -308,6 +308,8 @@ task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX oder NFA-XX>   # falls relevant
 task test:all
 ```
+
+> **Strukturelle/Offline-Tests ohne k3d:** `./tests/runner.sh unit <test-id>` überspringt `k3d_wait` und Port-Forwards — ideal für reine BATS-Unit-Tests die keinen Live-Cluster brauchen. Direktaufruf als letzter Ausweg: `tests/unit/lib/bats-core/bin/bats tests/unit/<file>.bats`.
 
 > **`task test:all` exit 128 im Worktree (erster Lauf):** Kann beim ersten Aufruf transient mit exit 128 auf `test:art-library` fehlschlagen — Ursache ist eine Race-Condition zwischen `npm install` und dem BATS-Submodul-Check. Einfach nochmal ausführen; zweiter Lauf läuft durch. [T000218]
 
@@ -501,7 +503,7 @@ PR_NUM=$(gh pr view --json number -q '.number')
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
 
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -c \
   "UPDATE tickets.tickets
      SET status = 'done', resolution = '$RESOLUTION'
@@ -575,7 +577,7 @@ fi
 PGPOD=$(kubectl get pod -n workspace --context mentolder \
   -l app=shared-db -o name | head -1)
 
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
 
@@ -599,7 +601,7 @@ if (( ARCHIVE_BYTES < 200 )); then
   exit 1
 fi
 
-kubectl exec -i "$PGPOD" -n workspace --context mentolder -- \
+kubectl exec -i "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -v ON_ERROR_STOP=1 < "$TMPFILE"
 
 rm "$TMPFILE"
@@ -607,7 +609,7 @@ rm "$TMPFILE"
 # Verify the row actually persisted BEFORE removing the plan file (T000344).
 # A parallel-tool-call cancellation can drop the INSERT silently; if we rm the
 # file anyway the plan is lost until recovered from git history.
-ARCHIVED_ROWS=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+ARCHIVED_ROWS=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
   psql -U website -d website -At -c \
   "SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id='$TICKET_UUID' AND slug='$SLUG';")
 if [[ "$ARCHIVED_ROWS" -lt 1 ]]; then
@@ -709,6 +711,17 @@ Schau dir die geänderten Dateien an (`gh pr view <pr> --json files`) und führe
 
 Wenn mehrere Kategorien matchen: workspace → website → brett → livekit → docs.
 
+> **`prod-mentolder/dev-*` geändert aber dev-auto-deploy bricht fehl (~/Bachelorprojekt fehlt):** Falls `dev-auto-deploy.yml` mit `cd: /home/.../Bachelorprojekt: No such file or directory` fehlschlägt, ist das Repo auf dem Deploy-Host nicht geclont. Manueller Fallback:
+> ```bash
+> # Kustomize lokal rendern und per SSH an k3s-1 übergeben
+> source scripts/env-resolve.sh dev
+> kubectl kustomize prod-mentolder | envsubst "..." | \
+>   ssh -i ~/.ssh/gekko_id_ed25519 gekko@k3s-1 \
+>   "kubectl --context k3d-mentolder-dev apply -f -"
+> # Secrets ggf. separat via SSH-Pipe materialisieren (kein Echo im Log)
+> ```
+> Alternativ direkt auf k3s-1 einloggen (`ssh gekko@k3s-1`) und `task dev:deploy` nach manuellem `git clone`.
+
 **Verify:**
 - Copy/Visual-Änderungen: Screenshot via Playwright.
 - Funktionale Änderungen: `./tests/runner.sh local <FA-XX>` gegen Live-URL.
@@ -722,14 +735,14 @@ Wenn mehrere Kategorien matchen: workspace → website → brett → livekit →
 - **Beweismaterial ans Ticket hängen (bei jedem Failure-Pfad):** Wenn du einen Failure-Screenshot, Log-Auszug oder Trace-Output hast, frage Patrick nach Pfaden (`.png`/`.log`/`.txt`/`.mp4`) und hänge sie ans Ticket — der Fix-Branch erbt dann sofort den Kontext:
   ```bash
   # TICKET_UUID aus dem aktuellen Ticket holen:
-  TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
     psql -U website -d website -At -c \
     "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_ID';")
   bash scripts/ticket-attach.sh "$TICKET_UUID" /pfad/zu/failure.png /pfad/zu/ci.log
   ```
 - **CI rot vor Merge:** Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Falls nach 2 Versuchen noch rot: Ticket-Kommentar hinterlassen:
   ```bash
-  kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
     psql -U website -d website -c \
     "INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
      SELECT id,

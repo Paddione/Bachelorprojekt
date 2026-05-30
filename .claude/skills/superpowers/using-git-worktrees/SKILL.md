@@ -110,3 +110,16 @@ in new worktree…" the hook fired (Claude Code only).
 (see Post-Create Checklist above). The `dev-flow-plan` SKILL.md (manual worktree
 path, lines ~128–130) already includes `git submodule update --init --recursive`
 in the worktree-add block — follow that pattern exactly (T000107).
+
+## Concurrent-Session Safety (T000350)
+
+**Never run `git checkout`, `git reset`, `git stash`, or `git rebase` in the
+shared primary worktree (`/home/patrick/Bachelorprojekt`) when another session
+may be active on a different branch.** These commands silently retarget HEAD and
+cause PR/branch operations that omit `--head` to resolve against the wrong branch.
+
+Rules:
+- Any subagent that mutates git state (checkout, rebase, stash) **must** operate
+  in an isolated `/tmp/wt-*` worktree, never the primary repo.
+- Always pass `--head <branch>` explicitly on `gh pr create` and `gh pr merge`
+  — never rely on the ambient current branch.

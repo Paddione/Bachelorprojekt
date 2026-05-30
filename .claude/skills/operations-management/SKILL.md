@@ -32,7 +32,7 @@ Never use `tickets.ticket_links` for PR references — it is ticket→ticket onl
 All SQL below assumes:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-psql() { kubectl exec "$PGPOD" -n workspace --context mentolder -- psql -U website -d website "$@"; }
+psql() { kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website "$@"; }
 ```
 
 ---
@@ -52,7 +52,7 @@ Determine:
 Create a ticket in the database:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -- psql -U website -d website -At -c \
+kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
    VALUES ('bug', 'mentolder', 'Incident: <desc>', 'Affected: <svc>\nCluster: <env>\nSymptoms: <symptoms>', 'in_progress', '<critical|major|minor>', 'hoch')
    RETURNING external_id;"
@@ -183,7 +183,7 @@ Convert local execution `MISHAP_LOG` entries into tickets.
 For each entry in the log:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -- psql -U website -d website -At -c \
+kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, severity, status, component)
    VALUES ('<type>', 'mentolder', '<title>', '<description>', '<severity>', 'triage', '<component>')
    RETURNING external_id;"

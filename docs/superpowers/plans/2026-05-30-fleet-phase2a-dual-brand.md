@@ -37,12 +37,24 @@ pr_number: null
 > - `fleet:deploy:brand` reimplemented deploy crudely → delegates to `workspace:deploy`.
 > - **SA-08 id is taken** (Keycloak OIDC) → isolation test is **SA-22**.
 >
-> **RUNTIME tasks GATED (need operator assets):** Task 7 (seal — needs
-> `environments/.secrets/fleet-{mentolder,korczewski}.yaml`), Task 8 (platform
-> install + dry-run + deploy + Pending-pod/affinity resolution + capacity), Task 9
-> (Filen restore — needs confirmed snapshot timestamps), Task 10 (pvc-backup green),
-> Task 12 (DoD + SA-22 PASS). Assets: (1) Filen timestamps both brands, (2)
-> pk-hetzner-4 public IP for fleet-mentolder TURN_PUBLIC_IP, (3) capacity check.
+> **Task 8 SAFE-VALIDATION DONE (live fleet cluster, no operator assets):**
+> cert-manager installed; `task fleet:platform` applied clean (no placeholder
+> errors); server-side dry-run of BOTH brands passes. Empirical fixes committed to
+> `prod-fleet/mentolder`: excluded the 8 dev.mentolder.de resources (dev Ingress/
+> Cert Invalid w/ blank DEV_*, dev-db-refresh CronJob dangerous) + repointed the 3
+> In-pinned workloads (brainstorm-sish, livekit-server→pk-4 single, whisper) to
+> fleet pk nodes; the blanket NotIn[home-workers] for the rest already schedules
+> on pk. korczewski needed nothing (already pk-pinned).
+>
+> **STILL GATED — real deploy + restore (need operator assets):** Task 7 (seal —
+> place `environments/.secrets/fleet-{mentolder,korczewski}.yaml`, then
+> sealed-secrets:install + env:fetch-cert + env:seal), Task 8 real deploy (cert:secret
+> ipv64 key + Longhorn install + `task fleet:deploy`), Task 9 (Filen restore — needs
+> confirmed snapshot timestamps + Filen creds in the sealed secrets), Task 10
+> (pvc-backup green), Task 12 (DoD + SA-22 PASS + DNS for fleet test hosts).
+> Assets: (1) Filen timestamps both brands, (2) pk-hetzner-4 public IP for
+> fleet-mentolder TURN_PUBLIC_IP, (3) capacity check, (4) DNS records for
+> web.fleet.korczewski.de / web.fleet-m.korczewski.de → a fleet pk node IP.
 
 ---
 

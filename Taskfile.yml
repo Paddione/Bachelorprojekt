@@ -1477,6 +1477,29 @@ tasks:
       - task: fleet:deploy:brand
         vars: { BRAND: fleet-korczewski }
 
+  fleet:dns:cutover:
+    desc: "Flip a brand's cluster A-records onto the fleet nodes via ipv64 REST. Plan-by-default; pass ACTION=cutover to apply. Usage: task fleet:dns:cutover ENV=fleet-mentolder [ACTION=cutover]"
+    requires:
+      vars: [ENV]
+    cmds:
+      - |
+        set -euo pipefail
+        # env-resolve exports PROD_DOMAIN + LIVEKIT_PIN_IP from environments/<env>.yaml.
+        # IPV64_API_KEY must be present in the ambient environment for ACTION=cutover
+        # (the fleet token controls both brands' domains — see the cutover runbook).
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/fleet-dns-cutover.sh '{{.ACTION | default "plan"}}'
+
+  fleet:dns:rollback:
+    desc: "Restore a brand's A-records from the rollback state file captured by the last cutover. Usage: task fleet:dns:rollback ENV=fleet-mentolder"
+    requires:
+      vars: [ENV]
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/fleet-dns-cutover.sh rollback
+
   workspace:deploy:
     desc: "Deploy workspace to any environment (ENV=dev|mentolder|korczewski|...)"
     vars:

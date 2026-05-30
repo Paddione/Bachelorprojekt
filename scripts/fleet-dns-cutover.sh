@@ -88,6 +88,9 @@ capture_rollback_state() {
 }
 
 cmd_plan() {
+  # Validate in the main shell: build_change_set's require runs inside the
+  # process-substitution subshell below, whose exit can't abort cmd_plan.
+  require PROD_DOMAIN; require LIVEKIT_PIN_IP
   echo "DNS cutover plan for ${PROD_DOMAIN:-<unset>} (DRY-RUN — no API calls):"
   local line
   while IFS= read -r line; do echo "CHANGE: ${line}"; done < <(build_change_set)

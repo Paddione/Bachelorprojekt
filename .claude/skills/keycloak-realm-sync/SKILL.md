@@ -11,7 +11,7 @@ description: Use when Keycloak realm configuration needs to be reconciled — OI
 
 # keycloak-realm-sync
 
-Reconcile Keycloak realm configuration from the checked-in realm JSON files. Covers the mentolder standalone cluster and the fleet cluster (hosting the korczewski brand).
+Reconcile Keycloak realm configuration from the checked-in realm JSON files. Covers both brands on the fleet cluster.
 
 ---
 

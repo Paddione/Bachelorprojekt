@@ -27,7 +27,7 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 - Prod korczewski (fleet cluster, ns `workspace-korczewski`): `prod-korczewski/realm-workspace-korczewski.json`
 - SSO consumers: Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code (all OIDC via Keycloak)
 
-> **Two clusters, two of everything (Fleet Stage 2).** The standalone `mentolder` cluster and the `fleet` cluster each have their OWN sealed-secrets controller, cert-manager, and Keycloak realm. Secret rotation and realm sync must be applied to BOTH the `mentolder` context AND the `fleet` context explicitly. The old `korczewski` context is DEAD (T000340) — use `fleet` for korczewski-brand secrets/realm work.
+> **Two brands, two of everything (Fleet Stage 3).** Both brands run on the unified `fleet` cluster (context `fleet`), each with its own SealedSecrets, Keycloak realm, and `shared-db` instance in its own namespace. Secret rotation and realm sync span both namespaces (`workspace` for mentolder, `workspace-korczewski` for korczewski) but always via `--context fleet`. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything.
 
 ## DSGVO compliance
 ```bash

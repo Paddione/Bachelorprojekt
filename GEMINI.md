@@ -4,10 +4,10 @@
 
 ## Project Overview
 
-Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod clusters (`mentolder` + `korczewski`) plus k3d for dev. All services in `workspace` (mentolder) / `workspace-korczewski` (korczewski) namespaces, fronted by Traefik.
+Kubernetes-based self-hosted collaboration platform (bachelor thesis). Beide Marken laufen auf dem unified `fleet` Cluster (3 CP pk-hetzner-4/6/8, 3 Worker gekko-hetzner-2/3/4) plus k3d for dev. All services in `workspace` (mentolder) / `workspace-korczewski` (korczewski) namespaces, fronted by Traefik.
 
 **Core Services:**
-*   **Keycloak:** Identity Provider (SSO/OIDC, eigene Realm pro Cluster)
+*   **Keycloak:** Identity Provider (SSO/OIDC, eigene Realm pro Brand)
 *   **Nextcloud + Talk:** Dateien, Kalender, Kontakte, Video
 *   **Collabora Online:** WOPI-Backend für Nextcloud (separater `task workspace:office:deploy` Overlay)
 *   **Talk HPB:** WebRTC Signaling (Janus + NATS + coturn)
@@ -19,11 +19,11 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Two prod 
 *   **Website:** Astro + Svelte (Brand-aware: mentolder + korczewski via `BRAND_ID`)
 *   **Claude Code MCP Monolith:** AI-Tooling
 *   **Traefik:** Ingress Controller
-*   **PostgreSQL `shared-db`:** Eigene Instanz pro Cluster, separate DBs pro Service
+*   **PostgreSQL `shared-db`:** Eigene Instanz pro Brand/Namespace (workspace / workspace-korczewski), separate DBs pro Service
 
 **Infrastructure:**
 *   k3d (Dev) + k3s (Prod). Kustomize-basierte Manifeste, reconciliiert via Flux GitOps (Pull-basiert).
-*   SealedSecrets (bitnami) pro Cluster; Secrets-Pipeline via `task env:seal ENV=<env>`.
+*   SealedSecrets (bitnami) pro Brand; Secrets-Pipeline via `task env:seal ENV=<env>`.
 
 ## Building and Running
 

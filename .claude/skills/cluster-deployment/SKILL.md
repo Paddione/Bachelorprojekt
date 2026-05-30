@@ -63,13 +63,18 @@ After sourcing, the following shell variables are available:
 
 ### Step 1.0: Provision Hetzner Nodes
 
-Node roles for each environment:
-- **korczewski** (fleet cluster): `pk-hetzner-4` = control-plane (server); `pk-hetzner-6`, `pk-hetzner-8` = workers (agent)
-- **mentolder**: `gekko-hetzner-2/3/4` = control-plane (server); Raspberry Pi `k3w-*` = workers (agent)
+Node layout for the single unified fleet cluster:
+- **3 control-plane nodes:** `pk-hetzner-4/6/8`
+- **3 worker nodes:** `gekko-hetzner-2/3/4`
 
-> **Fleet Stage 2 status (as of 2026-05-30).** The standalone `korczewski` cluster has been torn down; `pk-hetzner-4/6/8` now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8) with the same node/WireGuard layout shown below. The procedure here is exactly how that fleet cluster is (re)created on these hosts — keep it. Note that the old `korczewski` kubeconfig context (`204.168.244.104:6443`) is now **DEAD** (that IP serves the fleet k3s CA, x509 error = T000340); the fleet context is named `fleet` and the API is reached via the **pk-4 public IP**, not the `127.0.0.1:16443` tunnel — use `--context fleet` in the `kubectl ... get nodes -w` watches below.
->
-> **`task fleet:deploy` HAS been run (Phase 2a complete).** Both brands' core workloads are deployed and Running on the fleet cluster — namespaces `workspace` (mentolder brand) and `workspace-korczewski` are populated, each at **26/26** pods (PRs #1193, #1205, #1206, #1213; the old "zero brand workloads" claim is stale). **Still pending (Phase 2b / 2c):** Collabora office-stack + CoTURN live deploy on fleet (mechanism merged #1197, not yet run), the wildcard cert won't issue (T000351, coturn cert-gated), website apps are not on fleet, and the **DNS cutover is NOT done** — `mentolder` remains a live STANDALONE cluster (reversible DNS flip) and `korczewski.de` has not been flipped to fleet. See `docs/fleet-stage2-cutover-runbook.md` and plan T000338 for the brand-cutover steps.
+> **Fleet Stage 3 complete (as of 2026-05-31).** The mentolder-standalone cluster has been decommissioned (all k3s software uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers). Both brands now run on the single unified **`fleet`** cluster:
+> - 3 CP nodes: pk-hetzner-4/6/8
+> - 3 workers: gekko-hetzner-2/3/4
+> - Mentolder brand: namespace `workspace`, domain `mentolder.de`
+> - Korczewski brand: namespace `workspace-korczewski`, domain `korczewski.de`
+> - Both brands at **26/26** pods
+> - Old `mentolder` and `korczewski` kubeconfig contexts are **DEAD** — use `--context fleet` for everything.
+> - DNS for both domains routes to the fleet cluster.
 
 Fork based on role:
 
@@ -223,7 +228,7 @@ flux reconcile source git flux-system --context <ctx>
 flux reconcile kustomization workspace --context <ctx>
 ```
 
-> **Fleet brands:** to deploy *both* brands onto the fleet cluster in one shot, use `task fleet:deploy` (platform once → fleet-mentolder → fleet-korczewski). It routes each brand through this same `workspace:deploy` path and seeds the `coturn` + `workspace-office` SealedSecret namespaces. Follow with the per-brand office/coturn passes above (`ENV=fleet-mentolder` / `ENV=fleet-korczewski`).
+> **Fleet brands:** to deploy *both* brands onto the fleet cluster in one shot, use `task fleet:deploy` (platform once → fleet-mentolder → fleet-korczewski). It routes each brand through this same `workspace:deploy` path and seeds the `coturn` + `workspace-office` SealedSecret namespaces. Follow with the per-brand office/coturn passes above (`ENV=mentolder` / `ENV=korczewski`).
 
 ### Service Inventory (what "every service" means)
 

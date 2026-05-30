@@ -215,10 +215,10 @@ TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
 Falls `$TICKET_ID` gesetzt:
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "UPDATE tickets.tickets SET status = 'in_progress'
    WHERE external_id = '$TICKET_ID';"
@@ -500,10 +500,10 @@ RESOLUTION="shipped"   # oder "fixed" beim Fix-Pfad
 
 PR_NUM=$(gh pr view --json number -q '.number')
 
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -c \
   "UPDATE tickets.tickets
      SET status = 'done', resolution = '$RESOLUTION'
@@ -574,10 +574,10 @@ if [[ ! -s "$PLAN_FILE" ]]; then
   exit 1
 fi
 
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
 
@@ -601,7 +601,7 @@ if (( ARCHIVE_BYTES < 200 )); then
   exit 1
 fi
 
-kubectl exec -i "$PGPOD" -n workspace --context mentolder -c postgres -- \
+kubectl exec -i "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -v ON_ERROR_STOP=1 < "$TMPFILE"
 
 rm "$TMPFILE"
@@ -609,7 +609,7 @@ rm "$TMPFILE"
 # Verify the row actually persisted BEFORE removing the plan file (T000344).
 # A parallel-tool-call cancellation can drop the INSERT silently; if we rm the
 # file anyway the plan is lost until recovered from git history.
-ARCHIVED_ROWS=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+ARCHIVED_ROWS=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
   psql -U website -d website -At -c \
   "SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id='$TICKET_UUID' AND slug='$SLUG';")
 if [[ "$ARCHIVED_ROWS" -lt 1 ]]; then
@@ -736,14 +736,14 @@ Wenn mehrere Kategorien matchen: workspace → website → brett → livekit →
 - **Beweismaterial ans Ticket hängen (bei jedem Failure-Pfad):** Wenn du einen Failure-Screenshot, Log-Auszug oder Trace-Output hast, frage Patrick nach Pfaden (`.png`/`.log`/`.txt`/`.mp4`) und hänge sie ans Ticket — der Fix-Branch erbt dann sofort den Kontext:
   ```bash
   # TICKET_UUID aus dem aktuellen Ticket holen:
-  TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+  TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
     psql -U website -d website -At -c \
     "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_ID';")
   bash scripts/ticket-attach.sh "$TICKET_UUID" /pfad/zu/failure.png /pfad/zu/ci.log
   ```
 - **CI rot vor Merge:** Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Falls nach 2 Versuchen noch rot: Ticket-Kommentar hinterlassen:
   ```bash
-  kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- \
+  kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
     psql -U website -d website -c \
     "INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
      SELECT id,

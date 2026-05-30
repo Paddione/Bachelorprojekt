@@ -28,13 +28,12 @@ task test:manifests                  # kustomize output structure (no cluster ne
 task test:all                        # all offline tests: unit + manifests + dry-run
 ```
 
-## Cluster targeting (Fleet Stage 2)
+## Cluster targeting (Fleet Stage 3)
 Live prod ENV identifiers a test run might target:
-- `mentolder` — standalone cluster (context `mentolder`), serves `mentolder.de`.
-- `fleet-mentolder` and `fleet-korczewski` — both on the unified `fleet` cluster (context `fleet`); `fleet-korczewski` serves `korczewski.de`.
-- `dev` — k3d (`dev.mentolder.de`).
+- `mentolder` and `korczewski` — both brands on the unified `fleet` cluster (context `fleet`); `mentolder` serves `mentolder.de` (ns `workspace`), `korczewski` serves `korczewski.de` (ns `workspace-korczewski`).
+- `dev` — k3d (`dev.mentolder.de`), context `k3d-mentolder-dev`.
 
-The old standalone `korczewski` context is DEAD (its IP now serves the fleet CA, T000340) — never point tests at it. Use `fleet` context for the korczewski brand.
+The old standalone `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` context for all live tests.
 
 ## Test file locations
 - `tests/` — all test scripts and fixtures

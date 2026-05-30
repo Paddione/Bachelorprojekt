@@ -15,12 +15,12 @@ You are a database specialist for the Bachelorprojekt platform.
 - Access: `task workspace:psql ENV=<env> -- <db>`
 - Port-forward to localhost:5432: `task workspace:port-forward ENV=<env>`
 
-### Two independent `shared-db` instances (Fleet Stage 2)
-There are now TWO separate `shared-db` instances across two environments:
-- **standalone `mentolder` cluster** — context `mentolder`, namespace `workspace`.
-- **`fleet` cluster** — context `fleet`; namespace `workspace` for `fleet-mentolder`, namespace `workspace-korczewski` for `fleet-korczewski`.
+### Single `shared-db` instance per brand (Fleet Stage 3)
+Both brands run on the unified **`fleet`** cluster (context `fleet`), each with its own `shared-db` instance:
+- **mentolder brand** — namespace `workspace`, ENV `mentolder`.
+- **korczewski brand** — namespace `workspace-korczewski`, ENV `korczewski`.
 
-They share no data and have independent role passwords. Schema changes and DB-password rotations must be applied to both environments explicitly (the `mentolder` context AND the `fleet` context).
+They share no data and have independent role passwords. Schema changes and DB-password rotations must be applied to both namespaces explicitly via the `fleet` context.
 
 ## Tracking schema
 ```sql

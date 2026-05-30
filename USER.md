@@ -9,10 +9,10 @@
 
 ## Context
 
-Patrick is writing his bachelor thesis — this repo IS the thesis project: a self-hosted Kubernetes collaboration platform for small teams. He runs two live production clusters:
+Patrick is writing his bachelor thesis — this repo IS the thesis project: a self-hosted Kubernetes collaboration platform for small teams. He runs a single unified fleet cluster hosting both brands:
 
-- **mentolder** — Hetzner VPS, hosts mentolder.de (his dad's coaching platform, Astro+Svelte)
-- **korczewski** — separate k3s cluster, hosts korczewski.de
+- **mentolder** — fleet namespace `workspace`, hosts mentolder.de (his dad's coaching platform, Astro+Svelte)
+- **korczewski** — fleet namespace `workspace-korczewski`, hosts korczewski.de
 
 He prefers direct, concise communication. No filler, no step-by-step narration. Merge PRs immediately after creating (PRs are for history, not review). Always work against live environments (mentolder/korczewski), never k3d-dev for production changes.
 

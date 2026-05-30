@@ -1,6 +1,6 @@
 # environments/korczewski.yaml
 environment: korczewski
-context: korczewski
+context: fleet
 domain: korczewski.de
 
 env_vars:

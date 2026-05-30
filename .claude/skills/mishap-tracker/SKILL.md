@@ -41,8 +41,8 @@ For `process` mishaps, set `component = 'skills/<skill-name>'` and `attention_mo
 For each entry, attempt to insert into the Postgres tracker on mentolder:
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -c postgres -- psql -U website -d website -At -c \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
   "INSERT INTO tickets.tickets (type, brand, title, description, severity, status, component${ATTN:+, attention_mode})
    VALUES ('<ticket_type>', 'mentolder', '<title>', '<description>', '<severity>', 'triage', '<component>'${ATTN:+, '$ATTN'})
    RETURNING external_id;"

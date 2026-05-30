@@ -20,12 +20,12 @@ This runbook covers host-level networking, node provisioning, firewall rules, an
 The platform operates across stands of physical servers and local workstations connected via a WireGuard-mesh VPN overlay (`wg-mesh` on subnet `10.13.13.0/24` or `192.168.100.0/24` depending on cluster).
 
 ```
-          [ Hetzner Cloud CP Nodes ]
-             gekko-hetzner-1 (INIT)
-             gekko-hetzner-2 (JOIN)
-             gekko-hetzner-3 (JOIN / LiveKit)
+          [ Fleet Cluster (unified k3s — 6 nodes) ]
+     CP: pk-hetzner-4 (LiveKit) / pk-hetzner-6 / pk-hetzner-8
+     Workers: gekko-hetzner-2 / gekko-hetzner-3 / gekko-hetzner-4
+     (LiveKit pinned to pk-hetzner-4 via nodeAffinity; hostNetwork: true)
                       ▲
-                      │  (WireGuard mesh overlay)
+                      │  (WireGuard mesh overlay — wg-fleet)
                       ▼
         [ Local Workstation / WSL Host ] ◄──► [ GPU Worker (Ollama) ]
            (OpenClaw Gateway)                 (RTX 5070 Ti - 10.10.0.3)
@@ -184,15 +184,15 @@ LiveKit handles multi-user audio/video streams on `mentolder`.
 
 ### Step 3.1: Node Pinning & DNS Pinning
 
-Since LiveKit binds candidate IPs directly to its host via `hostNetwork: true`, it is pinned via `nodeAffinity` to `gekko-hetzner-3`.
+Since LiveKit binds candidate IPs directly to its host via `hostNetwork: true`, it is pinned via `nodeAffinity` to `pk-hetzner-4` (fleet cluster).
 If the pod is not scheduled, verify node labels:
 ```bash
-kubectl get nodes --context mentolder --show-labels | grep gekko-hetzner-3
+kubectl get nodes --context fleet --show-labels | grep pk-hetzner-4
 # Apply pin label if missing:
-kubectl label node gekko-hetzner-3 livekit-pin-node=true --context mentolder
+kubectl label node pk-hetzner-4 livekit-pin-node=true --context fleet
 ```
 
-DNS records for `livekit.mentolder.de` and `stream.mentolder.de` **must** point directly to `gekko-hetzner-3`'s public IP (`46.225.125.59`).
+DNS records for `livekit.mentolder.de` and `stream.mentolder.de` **must** point directly to `pk-hetzner-4`'s public IP (`204.168.244.104`).
 Verify with:
 ```bash
 dig livekit.mentolder.de +short

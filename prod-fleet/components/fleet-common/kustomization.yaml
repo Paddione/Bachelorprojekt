@@ -1,0 +1,67 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Shared fleet behavior applied to BOTH brand overlays.
+#
+# Job: $patch: delete the cluster-scoped singletons now owned ONCE by
+# prod-fleet/platform, so the two reused brand overlays don't both try to own
+# them (the cross-brand SharedResource conflict that reverted the 2026-05 merge).
+#
+# The delete list below is the EMPIRICALLY-VERIFIED set of cluster-scoped objects
+# that (a) both prod-mentolder and prod-korczewski actually emit AND (b) the
+# platform layer owns. Confirmed via `kustomize build prod-<brand>`:
+#   ClusterIssuer/letsencrypt-prod, IngressClass/traefik,
+#   ClusterRole+Binding/tls-sync, ClusterRole+Binding/claude-code-agent.
+# The per-namespace ServiceAccounts (tls-sync, claude-code-agent) and CronJob
+# (tls-sync) are NOT deleted — they are correct per-brand and don't collide.
+# website / website-monitoring objects live in the separate `website` namespace
+# (k3d/website.yaml, deployed independently) and are NOT in these overlays, so
+# they are intentionally absent here — patching them would error.
+#
+# NODE-AFFINITY repoints: workspace-ns workloads pinned to gekko / pk-2 / pk-3
+# (e.g. livekit-server) will go Pending on the fleet pk-4/6/8 nodes. Those pins
+# are driven by envsubst vars and only resolve at deploy time, so the precise
+# repoint patches are added HERE during Task 8 (server-side dry-run + Pending-pod
+# resolution), not guessed offline. website node-affinity is handled by the
+# WEBSITE_NODE_AFFINITY env var in environments/fleet-<brand>.yaml, not a patch.
+
+patches:
+  # ── delete cluster singletons owned by prod-fleet/platform ──────────
+  - target: { group: cert-manager.io, version: v1, kind: ClusterIssuer, name: letsencrypt-prod }
+    patch: |-
+      $patch: delete
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: letsencrypt-prod
+  - target: { group: networking.k8s.io, version: v1, kind: IngressClass, name: traefik }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: IngressClass
+      metadata:
+        name: traefik
+  - target: { group: rbac.authorization.k8s.io, kind: ClusterRole, name: tls-sync }
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata: { name: tls-sync }
+  - target: { group: rbac.authorization.k8s.io, kind: ClusterRoleBinding, name: tls-sync }
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata: { name: tls-sync }
+  - target: { group: rbac.authorization.k8s.io, kind: ClusterRole, name: claude-code-agent }
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata: { name: claude-code-agent }
+  - target: { group: rbac.authorization.k8s.io, kind: ClusterRoleBinding, name: claude-code-agent }
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata: { name: claude-code-agent }

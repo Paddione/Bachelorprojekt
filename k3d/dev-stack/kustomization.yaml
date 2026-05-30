@@ -9,4 +9,6 @@ resources:
   - sish.yaml
   - traefik-wildcard-ingress.yaml
   - mcp-monolith-dev.yaml
+  - mcp-auth-proxy-dev.yaml
+  - mcp-ingress-dev.yaml
 # images: populated by `task dev:deploy` with concrete tags at apply time.

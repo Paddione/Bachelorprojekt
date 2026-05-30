@@ -171,7 +171,7 @@ spec:
                     -c "SELECT value FROM site_settings WHERE brand='$${BRAND}' AND key='filen_upload_path'" \
                     2>/dev/null) || FILEN_PATH=""
                   FILEN_PATH=$(printf '%s' "$${FILEN_PATH}" | tr -d ' \n')
-                  FILEN_PATH="${FILEN_PATH:-$${FILEN_DEFAULT_UPLOAD_PATH}}"
+                  [ -n "$${FILEN_PATH}" ] || FILEN_PATH="$${FILEN_DEFAULT_UPLOAD_PATH}"
 
                   # Signal filen-upload container: path + stamp
                   printf '%s' "$${FILEN_PATH}" > /staging/.filen_path

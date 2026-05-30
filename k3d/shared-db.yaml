@@ -195,6 +195,25 @@ spec:
                   - -c
                   - |
                     until pg_isready -U postgres; do sleep 2; done
+                    # Self-heal: ensure every service role + database exists on each start.
+                    # The one-shot /docker-entrypoint-initdb.d/01-init-databases.sh runs only
+                    # on first PGDATA init and has left databases uncreated on fresh clusters
+                    # (roles created, DBs missing — e.g. korczewski on fleet, 2026-05-30).
+                    # Running it idempotently here lets a partial/failed initdb self-heal on
+                    # the next pod restart, so vaultwarden/docuseal/website/keycloak DBs are
+                    # always present regardless of initdb outcome.
+                    psql -U postgres -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='keycloak')    THEN CREATE USER keycloak;    END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='nextcloud')   THEN CREATE USER nextcloud;   END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='vaultwarden') THEN CREATE USER vaultwarden; END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website')     THEN CREATE USER website;     END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='docuseal')    THEN CREATE USER docuseal;    END IF;
+                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pentest')     THEN CREATE USER pentest;     END IF;
+                    END \$\$;"
+                    for db in keycloak nextcloud vaultwarden website docuseal pentest; do
+                      psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$db'" | grep -q 1 \
+                        || psql -U postgres -c "CREATE DATABASE \"$$db\" OWNER \"$$db\";"
+                    done
                     psql -U postgres \
                       -c "ALTER USER keycloak WITH PASSWORD '$${KEYCLOAK_DB_PASSWORD}';" \
                       -c "ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';" \

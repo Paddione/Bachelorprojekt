@@ -173,6 +173,7 @@ export default defineConfig({
         '**/nfa-10-*.spec.ts',   // Arena Health-Endpoint Performance
         '**/nfa-11-*.spec.ts',   // GPU-VRAM nach Modell-Rotation
         '**/nfa-12-*.spec.ts',   // Brainstorm-Tunnel ConfigMap-Persistenz
+        '**/nfa-13-*.spec.ts',   // Unified-fleet korczewski deploy GATE (red until Phase 2b)
         '**/nfa-infra-health-sweep.spec.ts', // Service health sweep (all 17 services)
         '**/sa-15-*.spec.ts',    // Cross-cluster health verification
         '**/ak-03-*.spec.ts',    // Technische Machbarkeit

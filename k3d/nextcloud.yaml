@@ -263,8 +263,11 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
+              # Container already runs as UID 33 (www-data) under runAsNonRoot
+              # + capabilities drop ALL, so `su` fails PAM auth ("su:
+              # Authentication failure"). Run cron.php directly. (T000325)
               while true; do
-                su -s /bin/bash www-data -c "php -f /var/www/html/cron.php" || true
+                php -f /var/www/html/cron.php || true
                 sleep 300
               done
           volumeMounts:

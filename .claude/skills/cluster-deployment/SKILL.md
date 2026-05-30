@@ -17,83 +17,150 @@ This runbook covers environment deployment, bootstrapping, diagnostic assistance
 
 ## ⚠️ Mandatory Ordering for Fresh Clusters
 
-When setting up a new environment from scratch, you must execute the steps in this specific order to prevent production credentials from being silently overwritten or resources failing to bind:
+When setting up a new environment from scratch, execute in this order:
 
-1. **Sealed Secrets controller** (`sealed-secrets:install`) must exist *before* any SealedSecret resource is applied.
-2. **Fetch cluster sealing certificate** (`env:fetch-cert`) must run *after* a cluster reset to update the sealing keys.
-3. **Seal secrets** (`env:seal`) must occur *after* fetching the certificate, using the correct keypair.
-4. **Install cert-manager** (`cert:install`) must be done to provision CRDs *before* `workspace:deploy` is called.
-5. **DNS API Secret** (`cert:secret -- <key>`) must be stored in both namespaces *before* deploying to avoid ACME challenge failures.
-6. **Install the Longhorn storage provisioner** (`task ha:setup`, or the helm install + `iscsid` enable inside `scripts/setup-ha-cluster.sh`) must exist *before* `workspace:deploy`. The `prod-mentolder/` overlay declares `storageClassName: longhorn` for `livekit-recordings-pvc`, `nextcloud-data-pvc`, `vaultwarden-data-pvc`, and `docuseal-data-pvc` (the last three added by #1165 / T000317). On a fresh cluster these PVCs stay **Pending forever** — and nextcloud, vaultwarden, docuseal, and livekit-egress never start — unless the `longhorn` StorageClass and the host-level `iscsid` service are present first. `local-path` (k3s built-in) does **not** satisfy these claims.
-7. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
+0. **Discover and pin component versions** (Phase 0) before any install step.
+1. **Provision Hetzner nodes** (Phase 1, Step 1.0) — cloud-init for fresh nodes, snapshot for scaling.
+2. **Sealed Secrets controller** (`sealed-secrets:install`) must exist *before* any SealedSecret resource is applied.
+3. **Fetch cluster sealing certificate** (`env:fetch-cert`) must run *after* a cluster reset to update the sealing keys.
+4. **Seal secrets** (`env:seal`) must occur *after* fetching the certificate, using the correct keypair.
+5. **Install cert-manager** (`cert:install`) must be done to provision CRDs *before* `workspace:deploy` is called.
+6. **DNS API Secret** (`cert:secret -- <key>`) must be stored in both namespaces *before* deploying to avoid ACME challenge failures.
+7. **Install Longhorn storage provisioner** — must exist *before* `workspace:deploy`. The `prod-mentolder/` overlay declares `storageClassName: longhorn` for `livekit-recordings-pvc`, `nextcloud-data-pvc`, `vaultwarden-data-pvc`, and `docuseal-data-pvc`. On a fresh cluster these PVCs stay **Pending forever** unless the `longhorn` StorageClass and host-level `iscsid` are present first.
+8. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
+
+---
+
+## Phase 0 — Version Discovery & Pinning (New Cluster or Upgrade)
+
+Run at the start of any fresh cluster operation or before any component upgrade.
+
+```bash
+# Check what's available upstream (dry run — no changes)
+bash scripts/discover-versions.sh
+
+# If versions.yaml is older than 7 days or you want to upgrade:
+bash scripts/discover-versions.sh --update --commit
+
+# Source pinned versions for all subsequent commands in this session
+source <(grep -v '^#' environments/versions.yaml | sed 's/: /=/')
+export K3S_VERSION="${k3s}"
+```
+
+After sourcing, the following shell variables are available:
+- `$k3s` / `$K3S_VERSION` — k3s version for node install
+- `$flux` — Flux version
+- `$sealed_secrets_chart` — Helm chart version
+- `$cert_manager` — Helm chart version
+- `$longhorn_chart` — Helm chart version
+
+> **Skip heuristic:** If `environments/versions.yaml` was modified within the last 7 days and you are not intentionally upgrading, you may skip the `--update` call and go straight to sourcing.
 
 ---
 
 ## Phase 1 — Environment Initialization & Deployment (New Cluster)
 
+### Step 1.0: Provision Hetzner Worker Nodes
+
+Fork based on context:
+
+**Fresh node (cloud-init):**
+```bash
+# Generate WireGuard config for this node (base64-encoded)
+# See wireguard/wg-mesh-nodes.yaml and wireguard/wg0-hetzner.conf.tpl
+WG_CONF_B64=$(NODE_NAME=<name> NODE_PRIVATE_KEY=<key> NODE_WG_IP=<wg-ip> \
+  NODE_IP=<public-ip> WS_PUBLIC_KEY=<ws-pubkey> \
+  envsubst < wireguard/wg0-hetzner.conf.tpl | base64 -w0)
+
+# Render cloud-init
+bash scripts/hetzner/render-cloud-init.sh \
+  --node-ip <PUBLIC_IP> \
+  --k3s-url <K3S_URL> \
+  --k3s-token <TOKEN> \
+  --ssh-key "$(cat ~/.ssh/id_ed25519.pub)" \
+  --wg-conf-b64 "$WG_CONF_B64" \
+  > /tmp/ci-<name>.yaml
+
+# Create server
+hcloud server create \
+  --name <name> --type cx22 \
+  --image ubuntu-24.04 \
+  --ssh-key <KEY_NAME> \
+  --user-data-from-file /tmp/ci-<name>.yaml
+
+# Wait for Ready
+kubectl --context <ctx> get nodes -w
+```
+
+**Scaling/replacement (snapshot):**
+```bash
+# Load snapshot ID recorded during last snapshot creation
+source <(bash scripts/env-resolve.sh <env> 2>/dev/null) || true
+hcloud server create \
+  --name <name> --type cx22 \
+  --image "${HETZNER_WORKER_SNAPSHOT_ID}" \
+  --ssh-key <KEY_NAME>
+# k3s agent starts automatically — no cloud-init needed
+kubectl --context <ctx> get nodes -w
+```
+
 ### Step 1.1: Scaffold Environment Config
 If the environment YAML does not exist:
 ```bash
-# Initialize from schema
 task env:init ENV=<env>
-
-# Edit configuration properties (domain, context name, overlay, SMTP, etc.)
 $EDITOR environments/<env>.yaml
-
-# Validate against the environment schema
 task env:validate ENV=<env>
 ```
 
 ### Step 1.2: Install Sealed Secrets & Certs
 ```bash
-# Install and verify controller
-task sealed-secrets:install ENV=<env>
+# Phase 0 must have been run first — $sealed_secrets_chart must be set
+helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets && helm repo update
+helm install sealed-secrets sealed-secrets/sealed-secrets \
+  -n kube-system \
+  --version "${sealed_secrets_chart}"
 task sealed-secrets:status ENV=<env>
-
-# Fetch sealing cert (writes to environments/certs/<env>.pem)
 task env:fetch-cert ENV=<env>
 ```
 
 ### Step 1.3: Generate & Seal Credentials
 ```bash
-# Generate plaintext config (gitignored)
 task env:generate ENV=<env>
 # Review environments/.secrets/<env>.yaml and replace MANAGED_EXTERNALLY placeholders.
-
-# Seal and commit secrets
 task env:seal ENV=<env>
 git add environments/sealed-secrets/<env>.yaml && git commit -m "chore: sealed secrets for <env>"
 ```
 
-### Step 1.4: Install Cert-Manager
+### Step 1.4: Install Cert-Manager (pinned version)
 ```bash
-task cert:install ENV=<env>
+# Phase 0 must have been run first — $cert_manager must be set
+helm repo add jetstack https://charts.jetstack.io && helm repo update
+helm install cert-manager jetstack/cert-manager \
+  -n cert-manager --create-namespace \
+  --version "${cert_manager}" \
+  --set crds.enabled=true
 
-# Install the ipv64 DNS API key (required for ACME challenge)
 task cert:secret -- <ipv64-api-key> ENV=<env>
 ```
 
-### Step 1.4b: Install Longhorn Storage Provisioner (mentolder)
-The `prod-mentolder/` overlay binds four PVCs to `storageClassName: longhorn`. Longhorn is **not** part of `workspace:deploy` — it is installed once by the HA bootstrap script. After a true teardown it must be re-installed before the workspace deploy.
+### Step 1.4b: Install Longhorn (pinned version)
 ```bash
-# Full HA bootstrap (provisions k3s nodes + Traefik + Longhorn + iscsid)
-task ha:setup
-# ...or, if the k3s cluster already exists and only storage is missing, install Longhorn directly:
-#   helm repo add longhorn https://charts.longhorn.io && helm repo update
-#   helm install longhorn longhorn/longhorn -n longhorn-system --create-namespace
-#   kubectl patch storageclass longhorn -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-# iscsid must be enabled on EVERY node or Longhorn volumes fail to attach (see setup-ha-cluster.sh).
+# Phase 0 must have been run first — $longhorn_chart must be set
+helm repo add longhorn https://charts.longhorn.io && helm repo update
+helm install longhorn longhorn/longhorn \
+  -n longhorn-system --create-namespace \
+  --version "${longhorn_chart}"
+kubectl patch storageclass longhorn \
+  -p '{"metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-# Verify the StorageClass exists before deploying — else longhorn PVCs hang Pending:
+# iscsid must be enabled on EVERY node (handled by cloud-init — verify):
+# kubectl --context <ctx> get nodes -o wide
 kubectl --context <ctx> get storageclass longhorn
 ```
 
 ### Step 1.5: Workspace Deploy & Flux Bootstrap
 ```bash
-# Apply SealedSecrets and base manifests
 task workspace:deploy ENV=<env>
-
-# Bootstrap Flux GitOps
 kubectl apply -f flux/clusters/<env>/ --context <ctx>
 flux reconcile source git flux-system --context <ctx>
 flux reconcile kustomization workspace --context <ctx>
@@ -106,47 +173,55 @@ flux reconcile kustomization workspace --context <ctx>
 For existing clusters that may be degraded, follow this phased assessment flow:
 
 ### Step 2.1: Prerequisite Checks
-Check that CLI utilities are available:
 ```bash
-for tool in docker kubectl task k3d git flux kubeseal; do
+for tool in docker kubectl task k3d git flux kubeseal helm; do
   command -v $tool >/dev/null 2>&1 && echo "✅ $tool" || echo "❌ $tool MISSING"
 done
 ```
 
-### Step 2.2: Config & Secret Validation
-Verify files are valid and present:
+### Step 2.2: Version Drift Check
+Compare deployed component versions against pinned versions:
+```bash
+source <(grep -v '^#' environments/versions.yaml | sed 's/: /=/')
+echo "Pinned versions:"
+echo "  sealed-secrets: $sealed_secrets_chart"
+echo "  cert-manager:   $cert_manager"
+echo "  longhorn:       $longhorn_chart"
+echo ""
+echo "Deployed versions:"
+helm list -A -o json | jq -r \
+  '.[] | select(.name | test("sealed-secrets|cert-manager|longhorn")) | "  \(.name): \(.chart)"'
+```
+Flag any component that is behind the pinned version and schedule an upgrade.
+
+### Step 2.3: Config & Secret Validation
 ```bash
 task env:validate ENV=<env>
-# Check presence ofenvironments/sealed-secrets/<env>.yaml and environments/certs/<env>.pem
+# Verify presence of environments/sealed-secrets/<env>.yaml and environments/certs/<env>.pem
 ```
 
-### Step 2.3: Namespace & Pod Status
-Retrieve the status of running resources:
+### Step 2.4: Namespace & Pod Status
 ```bash
 kubectl --context <ctx> -n <WORKSPACE_NAMESPACE> get pods
 flux get kustomizations --context <ctx>
-```
-Diagnose any failing pods or Flux reconciliations:
-```bash
 flux describe kustomization workspace --context <ctx>
 ```
 
-### Step 2.4: Execute Post-Deploy Setup Sequences
-Once the base cluster is healthy, execute the post-deploy configurations in sequence:
+### Step 2.5: Execute Post-Deploy Setup Sequences
 ```bash
-task workspace:office:deploy ENV=<env>     # Deploy Collabora Office
-task workspace:post-setup ENV=<env>        # Nextcloud app OIDC configs
-task workspace:talk-setup ENV=<env>        # Signaling and coturn configs
-task workspace:recording-setup ENV=<env>   # Recording backend configs
-task workspace:admin-users-setup ENV=<env> # Provision Keycloak admin users
-task workspace:vaultwarden:seed ENV=<env>  # Seed Vaultwarden credentials
+task workspace:office:deploy ENV=<env>
+task workspace:post-setup ENV=<env>
+task workspace:talk-setup ENV=<env>
+task workspace:recording-setup ENV=<env>
+task workspace:admin-users-setup ENV=<env>
+task workspace:vaultwarden:seed ENV=<env>
 ```
 
 ---
 
 ## Phase 3 — dev.mentolder.de Stack Operations
 
-The development stack runs inside a k3d cluster hosted on the LAN node `k3s-1`. 
+The development stack runs inside a k3d cluster hosted on the LAN node `k3s-1`.
 
 ### Step 3.1: Cluster Lifecycle
 ```bash
@@ -157,20 +232,45 @@ task dev:cluster:create
 task dev:deploy
 ```
 
+Note: the k3d image tag should match the pinned k3s version. If `dev:cluster:create`
+supports a `K3S_VERSION` env var, source `environments/versions.yaml` first:
+```bash
+source <(grep -v '^#' environments/versions.yaml | sed 's/: /=/')
+K3S_VERSION="${k3s}" task dev:cluster:create
+```
+
 ### Step 3.2: Development Tasks
-* **Firewall Access:** Expose dev sish tunnels by opening the firewall:
-  ```bash
-  task dev:firewall:open
-  ```
-  *(Requires your public key in `DEV_SISH_AUTHORIZED_KEYS` and CIDR in `DEV_SSH_ALLOWLIST`).*
-* **Database Refresh:** The dev DB drops and refreshes from prod snapshots nightly at 03:30 UTC. Force a manual refresh with:
-  ```bash
-  task dev:db:refresh
-  ```
-* **Secret Materialization:** In k3d, we do *not* run SealedSecrets. Instead, extract secrets into plaintext secrets inside the dev cluster:
-  ```bash
-  task dev:_materialise-secrets
-  ```
+```bash
+# Expose dev sish tunnels
+task dev:firewall:open
+
+# Force DB refresh from prod snapshot
+task dev:db:refresh
+
+# Materialise secrets into dev cluster (no SealedSecrets controller in k3d)
+task dev:_materialise-secrets
+```
+
+---
+
+## Phase 4 — Snapshot Maintenance
+
+After any `k3s` version bump in `environments/versions.yaml`, rebuild the Hetzner worker snapshot so scaling nodes stay in sync with fresh nodes.
+
+```bash
+# 1. Confirm the bump
+grep "^k3s:" environments/versions.yaml
+
+# 2. Follow scripts/hetzner/snapshot-guide.md to:
+#    - provision a fresh base node with cloud-init
+#    - wait for Ready, cordon/drain, power off
+#    - hcloud server create-image → note new snapshot ID
+#    - update environments/<env>.yaml HETZNER_WORKER_SNAPSHOT_ID
+#    - commit
+
+# 3. Verify the ID is recorded
+grep HETZNER_WORKER_SNAPSHOT_ID environments/<env>.yaml
+```
 
 ---
 
@@ -180,8 +280,11 @@ task dev:deploy
 |---|---|---|
 | **Flux** | Old revision reconciled | Reconcile GitRepository source first: `flux reconcile source git flux-system --context <ctx>` |
 | **Sealed Secrets** | Adoption refused by controller | Delete the plain secret first: `kubectl delete secret knowledge-secrets -n <ns>` |
-| **Dev Access** | 403 authorization loop | Ensure the user is added to the Keycloak `/dev-access` group in the admin panel. |
-| **Dev DB** | Data disappearing | Ensure you are not relying on dev DB data, as it is wiped and overwritten nightly. |
+| **Dev Access** | 403 authorization loop | Add user to Keycloak `/dev-access` group in the admin panel |
+| **Dev DB** | Data disappearing | Dev DB is wiped and overwritten nightly — do not rely on it for persistent data |
+| **Longhorn PVC** | PVC stuck Pending | Verify `kubectl get storageclass longhorn` exists; check `iscsid` is running on all nodes |
+| **Version drift** | Helm chart mismatch | Run Phase 0 version discovery + upgrade the drifted component via `helm upgrade` with pinned version |
+| **Snapshot stale** | New node joins with old k3s | Rebuild snapshot per Phase 4 after any k3s bump in versions.yaml |
 
 ---
 

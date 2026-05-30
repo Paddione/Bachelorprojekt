@@ -105,6 +105,7 @@ spec:
               exec supergateway \
                 --stdio "mcp-server-postgres \"$DATABASE_URL\"" \
                 --outputTransport streamableHttp \
+                --stateful \
                 --port 3001 \
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
@@ -141,6 +142,7 @@ spec:
               exec supergateway \
                 --stdio "playwright-mcp --browser chrome --executable-path $CHROME --headless" \
                 --outputTransport streamableHttp \
+                --stateful \
                 --port 3000 \
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health
@@ -166,6 +168,7 @@ spec:
               exec supergateway \
                 --stdio "/github-bin/github-mcp-server stdio" \
                 --outputTransport streamableHttp \
+                --stateful \
                 --port 3002 \
                 --streamableHttpPath /mcp \
                 --healthEndpoint /health

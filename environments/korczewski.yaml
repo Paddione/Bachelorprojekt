@@ -64,7 +64,7 @@ env_vars:
   DEV_BRETT_HOST: brett.dev.korczewski.de
   DEV_SSH_ALLOWLIST: ""
 
-overlay: prod-korczewski
+overlay: prod-fleet/korczewski
 workspace_namespace: workspace-korczewski
 website_namespace: website-korczewski
 secrets_ref: sealed-secrets/korczewski.yaml

@@ -2,9 +2,9 @@
 # Seed default admin shortcuts (bookmarks) into the website DB.
 # Idempotent — skips rows whose URL already exists.
 # Usage:
-#   ./scripts/seed-admin-shortcuts.sh                    # active kubectl context
-#   ./scripts/seed-admin-shortcuts.sh --context mentolder
-#   ./scripts/seed-admin-shortcuts.sh --context korczewski
+#   ./scripts/seed-admin-shortcuts.sh                                          # active kubectl context
+#   ./scripts/seed-admin-shortcuts.sh --context fleet                          # mentolder brand (WORKSPACE_NAMESPACE=workspace, the default)
+#   WORKSPACE_NAMESPACE=workspace-korczewski ./scripts/seed-admin-shortcuts.sh --context fleet  # korczewski brand
 set -euo pipefail
 
 CTX_FLAG=""

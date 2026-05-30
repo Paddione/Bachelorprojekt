@@ -3234,11 +3234,23 @@ tasks:
     cmds:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
+        # Pin the chart to the version recorded in environments/versions.yaml so
+        # every cluster gets the same controller (an unpinned install silently
+        # tracks Helm's latest, drifting clusters apart). Fail soft if unset.
+        chart_version=$(awk -F': *' '/^sealed_secrets_chart:/{print $2; exit}' environments/versions.yaml 2>/dev/null)
+        version_flag=""
+        if [ -n "$chart_version" ]; then
+          version_flag="--version $chart_version"
+          echo "Pinning sealed-secrets chart to $chart_version (environments/versions.yaml)"
+        else
+          echo "WARNING: sealed_secrets_chart not found in environments/versions.yaml — installing latest (unpinned)"
+        fi
         helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
         helm repo update
         helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
           --namespace sealed-secrets --create-namespace \
           --kube-context "$ENV_CONTEXT" \
+          $version_flag \
           --set resources.requests.cpu=50m \
           --set resources.requests.memory=64Mi \
           --set resources.limits.memory=128Mi

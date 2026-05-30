@@ -2,6 +2,11 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
+// Topology note (unified-fleet, Fleet Stage 2): each website instance probes
+// ONLY its own cluster's services — mentolder (standalone) reports cluster key
+// 'mentolder'; the korczewski brand (namespace workspace-korczewski on the
+// unified `fleet` cluster) reports 'korczewski'. The single-cluster assertion
+// in T3 holds for both — there is deliberately no cross-cluster fan-out.
 test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', () => {
   test('T1: /api/admin/platform/software requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/platform/software`);

@@ -67,7 +67,9 @@ Node roles for each environment:
 - **korczewski**: `pk-hetzner-4` = control-plane (server); `pk-hetzner-6`, `pk-hetzner-8` = workers (agent)
 - **mentolder**: `gekko-hetzner-2/3/4` = control-plane (server); Raspberry Pi `k3w-*` = workers (agent)
 
-> **Fleet Stage 2 note (in progress as of 2026-05-30).** The standalone `korczewski` cluster has been torn down; `pk-hetzner-4/6/8` now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8) with the same node/WireGuard layout shown below. The procedure here is exactly how that fleet cluster is (re)created on these hosts — keep it. Note that the old `korczewski` kubeconfig context (`204.168.244.104:6443`) is now **DEAD** (that IP serves the fleet k3s CA, x509 error = T000340); when standing up the cluster, name the new context `fleet` and use `--context fleet` in the `kubectl ... get nodes -w` watches below. See `docs/fleet-stage2-cutover-runbook.md` for the brand-cutover steps that follow cluster bring-up.
+> **Fleet Stage 2 status (as of 2026-05-30).** The standalone `korczewski` cluster has been torn down; `pk-hetzner-4/6/8` now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8) with the same node/WireGuard layout shown below. The procedure here is exactly how that fleet cluster is (re)created on these hosts — keep it. Note that the old `korczewski` kubeconfig context (`204.168.244.104:6443`) is now **DEAD** (that IP serves the fleet k3s CA, x509 error = T000340); the fleet context is named `fleet` and the API is reached via the **pk-4 public IP**, not the `127.0.0.1:16443` tunnel — use `--context fleet` in the `kubectl ... get nodes -w` watches below.
+>
+> **`task fleet:deploy` HAS been run (Phase 2a complete).** Both brands' core workloads are deployed and Running on the fleet cluster — namespaces `workspace` (mentolder brand) and `workspace-korczewski` are populated, each at **26/26** pods (PRs #1193, #1205, #1206, #1213; the old "zero brand workloads" claim is stale). **Still pending (Phase 2b / 2c):** Collabora office-stack + CoTURN live deploy on fleet (mechanism merged #1197, not yet run), the wildcard cert won't issue (T000351, coturn cert-gated), website apps are not on fleet, and the **DNS cutover is NOT done** — `mentolder` remains a live STANDALONE cluster (reversible DNS flip) and `korczewski.de` has not been flipped to fleet. See `docs/fleet-stage2-cutover-runbook.md` and plan T000338 for the brand-cutover steps.
 
 Fork based on role:
 
@@ -250,15 +252,18 @@ flux reconcile kustomization workspace --context <ctx>
 A deploy is **not complete until every host answers**. Verify per brand:
 
 ```bash
-# Canonical per-brand reachability sweep (curls auth/files/vault/sign/
-# tracking/web/docs/brett/office/board/signaling/mail/traefik).
+# Canonical per-brand reachability sweep. `scripts/check-connectivity.sh`
+# probes: auth, files, vault, sign, web, docs, tracking, brett, office,
+# board, signaling, mail, comfy, livekit, traefik — plus arena-ws when
+# ENV is korczewski/fleet-korczewski. Only CoTURN (UDP, no HTTP host) is
+# not curl-checkable.
 task workspace:check-connectivity ENV=<env>
 
 # LiveKit must DNS-pin to the pin-node or ICE silently fails ~66% of the time.
 task livekit:dns-pin ENV=<env> APPLY=true
 ```
 
-`check-connectivity` exits non-zero if any host is unreachable. Treat any `✗` as a blocker: a 404 behind the Traefik default cert means the ingress/service for that host never landed (re-run the matching deploy task above); a timeout means TLS/DNS isn't resolving. `comfy.<domain>` and `arena-ws.<domain>` are not in the sweep — curl them manually (`curl -skI https://comfy.<domain>` should be a 302 to Keycloak).
+`check-connectivity` exits non-zero if any host is unreachable. Treat any `✗` as a blocker: a 404 behind the Traefik default cert means the ingress/service for that host never landed (re-run the matching deploy task above); a timeout means TLS/DNS isn't resolving. The sweep now covers every HTTP ingress host in the Service Inventory, including `tracking.`, `comfy.`, `livekit.`, and (korczewski only) `arena-ws.`. Note that `livekit.` answering a plain curl confirms ingress only — it does **not** verify WebRTC reachability, which still requires `task livekit:dns-pin ENV=<env> APPLY=true` plus an ICE smoke test. **CoTURN** has no HTTP host (UDP TURN/STUN) and is therefore not in the sweep — verify it via a Talk video call.
 
 ---
 

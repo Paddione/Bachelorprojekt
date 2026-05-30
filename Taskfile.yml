@@ -1457,7 +1457,7 @@ tasks:
           | kubectl --context fleet apply --server-side --force-conflicts -f -
 
   fleet:deploy:brand:
-    desc: "Deploy ONE brand to fleet via the standard workspace:deploy path. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
+    desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + mcp:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
     requires:
       vars: [BRAND]
     cmds:
@@ -1465,16 +1465,40 @@ tasks:
       # context=fleet and overlay=prod-fleet/<brand>, so the full prod deploy
       # path (SealedSecret, ns labels, shared-db ordering, envsubst, separately
       # applied CronJobs) runs unchanged against the fleet cluster.
+      # mcp:deploy + post-setup are the core post-deploy steps that are safe
+      # WITHOUT coturn. The Talk wiring phase is deferred to its own brand task
+      # because it requires the shared coturn/Janus (fleet:shared-services) to exist.
       - task: workspace:deploy
+        vars: { ENV: "{{.BRAND}}" }
+      - task: mcp:deploy
+        vars: { ENV: "{{.BRAND}}" }
+      - task: workspace:post-setup
+        vars: { ENV: "{{.BRAND}}" }
+
+  fleet:talk-setup:brand:
+    desc: "Wire ONE brand to the shared coturn/Janus: sync coturn secret from this brand, run talk-setup + recording-setup + transcriber-setup. Run AFTER fleet:shared-services. Usage: task fleet:talk-setup:brand BRAND=fleet-mentolder"
+    requires:
+      vars: [BRAND]
+    cmds:
+      - task: workspace:talk-setup
+        vars: { ENV: "{{.BRAND}}" }
+      - task: workspace:recording-setup
+        vars: { ENV: "{{.BRAND}}" }
+      - task: workspace:transcriber-setup
         vars: { ENV: "{{.BRAND}}" }
 
   fleet:deploy:
-    desc: "Full Phase 2a deploy: platform once, then both brands (mentolder + korczewski) on the fleet cluster."
+    desc: "Full Phase 2b deploy: platform → both brands' core → shared office/coturn → both brands' talk-setup. Brings up the COMPLETE stack for both brands on the fleet cluster."
     cmds:
       - task: fleet:platform
       - task: fleet:deploy:brand
         vars: { BRAND: fleet-mentolder }
       - task: fleet:deploy:brand
+        vars: { BRAND: fleet-korczewski }
+      - task: fleet:shared-services
+      - task: fleet:talk-setup:brand
+        vars: { BRAND: fleet-mentolder }
+      - task: fleet:talk-setup:brand
         vars: { BRAND: fleet-korczewski }
 
   fleet:shared-services:

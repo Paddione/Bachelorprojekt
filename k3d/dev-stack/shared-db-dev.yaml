@@ -11,7 +11,7 @@ metadata:
   name: shared-db-dev-data
 spec:
   accessModes: [ReadWriteOnce]
-  storageClassName: local-path
+  storageClassName: longhorn
   resources:
     requests:
       storage: 5Gi

@@ -58,13 +58,13 @@ spec:
       serviceAccountName: claude-code-agent
       initContainers:
         - name: github-binary
-          image: alpine:3.21
+          image: curlimages/curl:8.6.0
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
             - |
-              wget -qO /tmp/github-mcp-server.tar.gz \
-                https://github.com/github/github-mcp-server/releases/download/v1.0.3/github-mcp-server_Linux_x86_64.tar.gz && \
+              curl -fsSLk -o /tmp/github-mcp-server.tar.gz \
+                https://github.com/github/github-mcp-server/releases/download/v1.1.2/github-mcp-server_Linux_x86_64.tar.gz && \
               tar -xzf /tmp/github-mcp-server.tar.gz -C /github-bin github-mcp-server && \
               chmod +x /github-bin/github-mcp-server && \
               echo "github-mcp-server ready"

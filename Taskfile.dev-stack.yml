@@ -150,6 +150,15 @@ tasks:
         else
           echo "DEV_MCP_TOKEN missing from $SECRETS_FILE — skipping mcp-tokens (mcp.dev route will fail closed)." >&2
         fi
+        # ghcr-pull-secret — required on real k3s clusters (not k3d local-import)
+        GHCR_PAT=$(yq -r '.GHCR_PAT // ""' "$SECRETS_FILE")
+        if [[ -n "$GHCR_PAT" ]]; then
+          kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret docker-registry ghcr-pull-secret \
+            --docker-server=ghcr.io \
+            --docker-username=paddione \
+            --docker-password="$GHCR_PAT" \
+            --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
+        fi
 
   build:website:
     desc: "[dev] Build the website image and import it into the dev k3d cluster"

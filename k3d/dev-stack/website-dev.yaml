@@ -41,6 +41,8 @@ spec:
       labels:
         app: website
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: website
           image: ghcr.io/paddione/workspace-website:dev

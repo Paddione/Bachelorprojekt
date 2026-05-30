@@ -1,7 +1,13 @@
 ---
 domains: [infra]
-status: active
+status: done
 ---
+
+> **DONE 2026-05-30.** VM 9001 `k3s-1` provisioned on pve (10.0.0.7), IP 10.0.3.1,
+> Docker+k3d+kubectl+gekko user, `ssh gekko@k3s-1` works. Beyond this plan's scope,
+> the dev k3d cluster + dev stack + MCP monolith were brought up and k3s-1 was also
+> joined to prod mentolder as a k3s agent (wg-mesh) so oauth2-proxy-dev/whisper
+> schedule. See memory [[project-k3s1-nvme-fault]] and PR #1206.
 
 # k3s-1 dev-stack VM Implementation Plan
 

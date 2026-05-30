@@ -3256,6 +3256,15 @@ tasks:
               }
             }}}}}
           }' 2>/dev/null || true
+
+        # Wire IPV64_API_KEY from sealed secret into webhook — idempotent;
+        # no-op when cert:secret hasn't run yet (key secret absent).
+        if kubectl --context "$ENV_CONTEXT" get secret ipv64-api-key -n cert-manager >/dev/null 2>&1; then
+          kubectl --context "$ENV_CONTEXT" set env deployment/cert-manager-lego-webhook -n cert-manager --from=secret/ipv64-api-key
+          echo "✓ IPV64_API_KEY wired into cert-manager-lego-webhook from ipv64-api-key secret"
+        else
+          echo "ℹ IPV64_API_KEY not yet available — run cert:secret after sealing"
+        fi
       - echo "✓ cert-manager + lego webhook installed on {{.ENV}}"
       - 'echo "Next: run ''task cert:secret -- <your-ipv64-api-key> ENV={{.ENV}}'' to store credentials"'
 

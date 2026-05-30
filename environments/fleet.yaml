@@ -1,0 +1,8 @@
+# environments/fleet.yaml — unified consolidation cluster (Phase 1: empty 3-CP).
+environment: fleet
+context: fleet
+domain: PLACEHOLDER-PHASE2   # both brands resolved in Phase 2 — not used by bootstrap
+overlay: prod-fleet          # created in Phase 2; no overlay applied in Phase 1
+workspace_namespace: workspace
+env_vars: {}
+setup_vars: {}

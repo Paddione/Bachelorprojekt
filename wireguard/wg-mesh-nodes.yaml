@@ -136,3 +136,26 @@ korczewski:
       schema_key: WG_MESH_PK_L1_WORKER
       public_key: "cLpIaLBkygvcX1D4Jm7syjoxqrRx3qhgTl7+aah1Nxw="
       keepalive: 25
+
+fleet:
+  # Unified consolidation cluster — fresh mesh (design 2026-05-30).
+  wg_subnet: "10.20.0.0/24"
+  listen_port: 51820
+  nodes:
+    - name: pk-hetzner-4
+      endpoint: "204.168.244.104:51820"
+      wg_ip: "10.20.0.1"
+      schema_key: WG_MESH_PK4_FLEET
+      public_key: "e10sA4GsXWQbbcPAx6J98sbKQbiO8VEm+5ywHgKT2Vg="
+
+    - name: pk-hetzner-6
+      endpoint: "37.27.251.38:51820"
+      wg_ip: "10.20.0.2"
+      schema_key: WG_MESH_PK6_FLEET
+      public_key: "Fmx/zbyADzKElBEnEL/drun0VM6mt7NNBn4m2FeUklo="
+
+    - name: pk-hetzner-8
+      endpoint: "62.238.23.79:51820"
+      wg_ip: "10.20.0.3"
+      schema_key: WG_MESH_PK8_FLEET
+      public_key: "buA4HrVLhaOQTRUf5azhubgWPqJeGLnMJXbf/nqlmB8="

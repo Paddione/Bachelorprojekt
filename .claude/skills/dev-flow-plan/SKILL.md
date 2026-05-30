@@ -386,7 +386,7 @@ task brainstorm:publish -- $PORT >/tmp/brainstorm-publish.log 2>&1
 # f) Verify — bis zu 15s auf den Tunnel warten. Erst wenn 200/302 kommt, ist die URL benutzbar.
 # Zusätzlich: lokalen Listener prüfen — wenn der Companion-Server stirbt, bekommt der User 502.
 for i in $(seq 1 15); do
-  CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 https://brainstorm.mentolder.de/ || echo 000)
+  CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 https://brainstorm.dev.mentolder.de/ || echo 000)
   if [[ "$CODE" == "200" || "$CODE" == "302" || "$CODE" == "301" ]]; then
     echo "✓ Tunnel live (HTTP $CODE) nach ${i}s"
     break
@@ -413,13 +413,13 @@ if ! ss -ltn 2>/dev/null | grep -q ":${PORT} "; then
 fi
 ```
 
-Erst wenn Schritt e) grün ist, Patrick mitteilen: **"Brainstorming-Companion läuft unter https://brainstorm.mentolder.de (HTTP $CODE) — jetzt im Browser öffnen."**
+Erst wenn Schritt e) grün ist, Patrick mitteilen: **"Brainstorming-Companion läuft unter https://brainstorm.dev.mentolder.de (HTTP $CODE) — jetzt im Browser öffnen."**
 
 ### Schritt 3: Brainstorming
 
 Rufe `superpowers:brainstorming` auf. Voranstellen vor dem ersten Brainstorming-Turn:
 
-> "Visual-Companion-Server läuft bereits (Port `$PORT`). `screen_dir=$SCREEN_DIR`, `state_dir=$STATE_DIR`. Rufe `start-server.sh` nicht nochmals auf. Nenne dem User immer `https://brainstorm.mentolder.de` — niemals `http://localhost:*`.
+> "Visual-Companion-Server läuft bereits (Port `$PORT`). `screen_dir=$SCREEN_DIR`, `state_dir=$STATE_DIR`. Rufe `start-server.sh` nicht nochmals auf. Nenne dem User immer `https://brainstorm.dev.mentolder.de` — niemals `http://localhost:*`.
 >
 > <codebase-context>
 > $EXPLORER_REPORT
@@ -962,7 +962,7 @@ bash scripts/superpowers-helper-patch.sh --check   # exit 1 if unpatched
 ### Diagnose
 
 ```bash
-task brainstorm:status   # Pod-Status + curl gegen brainstorm.mentolder.de
+task brainstorm:status   # Pod-Status + curl gegen brainstorm.dev.mentolder.de
 ```
 
 ---

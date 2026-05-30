@@ -55,7 +55,9 @@ setup() {
   run grep -F "32223" "$BRAINSTORM_TASKFILE"
   assert_failure
   # The dev sish SSH endpoint is the k3d loadbalancer host port 2222
-  # (0.0.0.0:2222 → dev.mentolder.de), same as `task dev:tunnel`.
-  run grep -E "(-p |port )2222" "$BRAINSTORM_TASKFILE"
+  # (0.0.0.0:2222 → dev.mentolder.de), same as `task dev:tunnel`. Set via
+  # `SSH_PORT: 2222`. ("32223" contains no 4-long run of 2s, so a bare
+  # "2222" match is unambiguous.)
+  run grep -F "2222" "$BRAINSTORM_TASKFILE"
   assert_success
 }

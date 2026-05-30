@@ -22,7 +22,7 @@ task workspace:post-setup      # Nextcloud-Apps + OIDC
 
 ## Produktion
 
-Zwei k3s-Cluster. Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
+Zwei Brands (`ENV=mentolder` / `ENV=korczewski`). **Fleet-Stage-2-Migration läuft (Stand 2026-05-30):** `mentolder` ist weiterhin ein eigenständiger k3s-Cluster; der standalone `korczewski`-Cluster wurde abgebaut, die korczewski-Brand läuft jetzt über den `fleet`-Cluster (`pk-hetzner-4/6/8`, ns `workspace-korczewski`). Details in CLAUDE.md. Jede ENV-aware Task akzeptiert `ENV=mentolder` oder `ENV=korczewski`:
 
 ```bash
 task workspace:deploy ENV=mentolder

@@ -66,6 +66,8 @@ Node roles for each environment:
 - **korczewski**: `pk-hetzner-4` = control-plane (server); `pk-hetzner-6`, `pk-hetzner-8` = workers (agent)
 - **mentolder**: `gekko-hetzner-2/3/4` = control-plane (server); Raspberry Pi `k3w-*` = workers (agent)
 
+> **Fleet Stage 2 note (in progress as of 2026-05-30).** The standalone `korczewski` cluster has been torn down; `pk-hetzner-4/6/8` now back the unified **`fleet`** k3s cluster (control-plane pk-4; workers pk-6, pk-8) with the same node/WireGuard layout shown below. The procedure here is exactly how that fleet cluster is (re)created on these hosts — keep it. Note that the old `korczewski` kubeconfig context (`204.168.244.104:6443`) is now **DEAD** (that IP serves the fleet k3s CA, x509 error = T000340); when standing up the cluster, name the new context `fleet` and use `--context fleet` in the `kubectl ... get nodes -w` watches below. See `docs/fleet-stage2-cutover-runbook.md` for the brand-cutover steps that follow cluster bring-up.
+
 Fork based on role:
 
 **Control-plane node (cluster-init — first CP only):**

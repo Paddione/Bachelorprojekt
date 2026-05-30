@@ -127,6 +127,7 @@ tasks:
         SHARED=$(yq -r '.DEV_SHARED_DB_PASSWORD // ""' "$SECRETS_FILE")
         SITE=$(yq -r '.DEV_WEBSITE_DB_PASSWORD // ""' "$SECRETS_FILE")
         AUTHKEYS=$(yq -r '.DEV_SISH_AUTHORIZED_KEYS // ""' "$SECRETS_FILE")
+        MCP_TOKEN=$(yq -r '.DEV_MCP_TOKEN // ""' "$SECRETS_FILE")
         if [[ -z "$SHARED" || -z "$SITE" ]]; then
           echo "DEV_SHARED_DB_PASSWORD or DEV_WEBSITE_DB_PASSWORD missing from $SECRETS_FILE." >&2
           echo "Run task env:generate ENV={{.ENV}} (or add the keys manually) and try again." >&2
@@ -140,6 +141,15 @@ tasks:
         kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create configmap sish-authorized-keys \
           --from-literal=authorized_keys="$AUTHKEYS" \
           --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
+        # mcp-tokens — single CLUSTER_TOKEN tier for the dev MCP public route
+        # (mcp-auth-proxy-dev ForwardAuth). Skipped if DEV_MCP_TOKEN is unset.
+        if [[ -n "$MCP_TOKEN" ]]; then
+          kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} create secret generic mcp-tokens \
+            --from-literal=CLUSTER_TOKEN="$MCP_TOKEN" \
+            --dry-run=client -o yaml | kubectl --context {{.CTX_DEV}} apply -f -
+        else
+          echo "DEV_MCP_TOKEN missing from $SECRETS_FILE — skipping mcp-tokens (mcp.dev route will fail closed)." >&2
+        fi
 
   build:website:
     desc: "[dev] Build the website image and import it into the dev k3d cluster"

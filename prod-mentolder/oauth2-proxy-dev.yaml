@@ -88,6 +88,13 @@ spec:
             - --insecure-oidc-allow-unverified-email=true
             - --scope=openid email profile
             - --keycloak-group=/dev-access
+            # Bypass the OIDC gate for the dev MCP path prefixes so token-auth
+            # MCP clients (which cannot do the browser OIDC dance) reach the k3d
+            # cluster. Skipped requests are still reverse-proxied to 18080; the
+            # real control is the dev-side ForwardAuth (mcp-auth-proxy-dev).
+            # Path-scoped, so it only matters on the mcp.dev host — web.dev /
+            # brett.dev define no such backends and 404 at the k3d layer.
+            - --skip-auth-route=^/(kubernetes|postgres|github|browser)(/|$)
           env:
             - name: DEV_WORKSPACE_OIDC_SECRET
               valueFrom:

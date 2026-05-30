@@ -45,7 +45,7 @@ runcmd:
   - ufw allow 443/tcp comment 'HTTPS'
   - ufw allow 6443/tcp comment 'k3s API'
   - ufw allow 10250/tcp comment 'kubelet'
-  - ufw allow 51821/udp comment 'WireGuard mesh'
+  - ufw allow ${WG_LISTEN_PORT}/udp comment 'WireGuard mesh'
   - ufw allow 8472/udp comment 'Flannel VXLAN'
   - ufw allow 50000:60000/udp comment 'LiveKit ICE'
   - ufw allow 30000:40000/udp comment 'LiveKit TURN'

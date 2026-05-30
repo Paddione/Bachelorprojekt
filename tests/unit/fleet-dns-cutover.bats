@@ -124,3 +124,10 @@ STATE
   assert_failure
   assert_output --partial 'no rollback state'
 }
+
+@test "Taskfile declares fleet:dns:cutover and fleet:dns:rollback" {
+  run grep -E '^[[:space:]]+fleet:dns:(cutover|rollback):' "$REPO_ROOT/Taskfile.yml"
+  assert_success
+  assert_output --partial 'fleet:dns:cutover:'
+  assert_output --partial 'fleet:dns:rollback:'
+}

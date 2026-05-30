@@ -215,6 +215,13 @@ Für `systemtest` läuft der vollständige Zyklus gegen beide Cluster (via `task
 > gestartet werden. `npx playwright` vom Repo-Root aus findet zwei Versionen von
 > `@playwright/test` (Repo-Root + `tests/e2e/node_modules`) und bricht ab.
 
+> **Wichtig — Dependencies & Binary:** Auf einem frischen Checkout fehlen die
+> `tests/e2e/`-Dependencies. Dann zieht `npx playwright` eine fremde Version nach
+> `~/.npm/_npx` und bricht mit `Cannot find module '@playwright/test'` ab. Vorher
+> **immer** `cd tests/e2e/ && npm ci` ausführen und danach das lokale Binary
+> `./node_modules/.bin/playwright` (statt `npx playwright`) verwenden — so wird
+> garantiert die projekt-lokale Version benutzt.
+
 > **Wichtig — korczewski-setup auth overwrite:** Das Ausführen von Tests im `korczewski`-Projekt (selbst mit `--grep`) triggert automatisch das dependency-Projekt `korczewski-setup`. Wenn `TEST_ADMIN_PASSWORD` nicht gesetzt ist, überschreibt dies bestehende gültige Auth-Cookies in `.auth/korczewski-*.json` mit leeren Werten! Wenn du bestehende gültige Cookies behalten willst, überspringe `korczewski-setup` (indem du den Test direkt ohne das Projekt oder mit einem Mock ausführst) oder setze `TEST_ADMIN_PASSWORD` vor dem Ausführen.
 
 ```bash
@@ -234,7 +241,9 @@ else
   # SKIP_DB_PURGE=1 überspringt global-db-cleanup.ts (nötig ohne CRON_SECRET lokal)
   # Spec path must come BEFORE --project; Playwright treats positional args after
   # --project as project names and throws "project not found".
-  cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" npx playwright test \
+  # npm ci einmalig auf frischem Checkout; danach lokales Binary statt npx.
+  cd tests/e2e/ && [[ -x ./node_modules/.bin/playwright ]] || npm ci
+  SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
     specs/<neu>.spec.ts \
     --project "$PLAYWRIGHT_PROJECT"
 fi
@@ -288,7 +297,7 @@ Falls die Änderung kritisch ist oder neue Service-Endpunkte betrifft:
 
 ```bash
 # Alle website-Tests gegen Mentolder-Live — aus tests/e2e/ ausführen!
-cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de npx playwright test \
+cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_modules/.bin/playwright test \
   --project website
 ```
 

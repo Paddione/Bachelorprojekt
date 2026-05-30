@@ -241,6 +241,7 @@ tasks:
       - task: test:unit:figure-pack
       - task: test:unit:discover-versions
       - task: test:unit:render-cloud-init
+      - task: test:unit:fleet-phase2b
 
   test:unit:assert:
     internal: true
@@ -271,6 +272,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/render-cloud-init.bats
+
+  test:unit:fleet-phase2b:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/fleet-phase2b.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"

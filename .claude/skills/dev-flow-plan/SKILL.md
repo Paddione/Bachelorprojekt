@@ -353,6 +353,8 @@ STATE_DIR=$(echo "$RESULT" | jq -r '.state_dir')
 
 Falls `$PORT` leer: Abbruch. Mitteilen: "brainstorm server konnte nicht gestartet werden."
 
+> **`$PORT` immer aus `RESULT` ableiten — niemals raten (T000343).** Der `task brainstorm:publish -- $PORT` unten **muss** genau den von `start-server.sh` zurückgegebenen Port verwenden. Ein gemerkter/geratener Port (aus einer früheren Session) liefert einen 502, bis neu publisht wird. Wenn der Companion neu gestartet wird (Schritt e-Fallback bei Zeile ~406), `$PORT` aus dem neuen `RESULT` neu setzen, bevor erneut publisht wird.
+
 ```bash
 # c) Vorflug-Check (idempotent, schnell — bricht früh ab wenn Setup kaputt)
 task brainstorm:status >/tmp/brainstorm-status.log 2>&1 || true
@@ -538,6 +540,8 @@ bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md
 ```
 
 Ergebnis: Plan in `docs/superpowers/plans/<date>-<slug>.md`.
+
+> **Plan-Schritte, die ein k8s-Objekt patchen, müssen das Objekt zuerst verifizieren (T000346).** Bevor ein Schritt behauptet „Deployment X hat Problem Y, fixe via Z", den tatsächlichen Objekt-Namen **und** die aktuelle Affinity/Spec per `kubectl kustomize <overlay>/ | grep -A30 <kind>` prüfen. Beispiel-Fehlschlag: ein Plan zielte auf ein „Deployment talk-hpb", doch das Objekt heißt `spreed-signaling` und hatte bereits `namespaces:[coturn]` in seiner podAffinity — der „Fix" wäre ein no-op (bestenfalls) oder hätte die cross-namespace-Affinity gebrochen. Annahmen über Namen/Affinity nie ungeprüft in einen Plan-Schritt schreiben.
 
 ### Schritt 4.5: Ticket anlegen
 

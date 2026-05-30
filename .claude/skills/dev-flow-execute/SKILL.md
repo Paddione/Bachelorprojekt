@@ -411,6 +411,7 @@ Rufe `commit-commands:commit-push-pr` auf.
 - Feature: `feat(<scope>): <kurze-beschreibung>`
 - Fix: `fix(<scope>): <kurze-beschreibung>` — Body **MUSS** `Closes $TICKET_ID` (z.B. `Closes T000301`) enthalten, sonst Push blockieren und nochmal nachfragen.
 - **Subject startet kleingeschrieben** (gilt für **jeden** Commit auf dem Branch, nicht nur den PR-Titel): commitlint (`subject-case`) lehnt Subjects ab, die mit einem Großbuchstaben/Akronym/Konstante beginnen — z.B. `feat(brett): BRETT_BRAND env …` ❌ oder `fix(sse): OIDC redirect …` ❌. Umformulieren, sodass ein kleingeschriebenes Wort führt: `feat(brett): add BRETT_BRAND env …` ✅, `fix(sse): repair OIDC redirect …` ✅.
+- **Body-Zeilen max. 100 Zeichen (T000335):** commitlint (`body-max-line-length`) lehnt jede Body-Zeile > 100 Zeichen ab. Verbatim eingebettete Evidence-Strings (Backup-Logs, lange Pfade, Hashes) sprengen das Limit und erzwingen einen forced rebase. Lange Evidence vor dem Einbetten umbrechen/kürzen.
 
 Beispiele:
 
@@ -468,7 +469,10 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 > (cd "$MAIN_REPO" && gh pr merge <n> --squash --delete-branch --auto --repo Paddione/Bachelorprojekt)
 >
 > # B) Fallback ohne --auto: CI grün pollen, dann direkt mergen:
-> until [[ "$(gh pr checks <n> --json state -q '[.[]|select(.state!="SUCCESS"and .state!="SKIPPED")]|length')" == "0" ]]; do sleep 20; done
+> #    NICHT `--json state` (Enum-Werte matchen nicht zuverlässig → Loop terminiert nie, T000342);
+> #    die Text-Ansicht (Spalte 2 = pass/fail/pending) ist autoritativ.
+> until ! gh pr checks <n> 2>/dev/null | awk '{print $2}' | grep -qiE 'pending|fail'; do sleep 20; done
+> gh pr checks <n> | awk '{print $2}' | grep -qiE 'fail' && { echo "✗ CI rot — nicht mergen"; exit 1; }
 > (cd "$MAIN_REPO" && gh pr merge <n> --squash --delete-branch)
 > ```
 > Danach immer per Zeitstempel verifizieren (siehe unten), nie per Exit-Code. [T000298]
@@ -599,6 +603,17 @@ kubectl exec -i "$PGPOD" -n workspace --context mentolder -- \
   psql -U website -d website -v ON_ERROR_STOP=1 < "$TMPFILE"
 
 rm "$TMPFILE"
+
+# Verify the row actually persisted BEFORE removing the plan file (T000344).
+# A parallel-tool-call cancellation can drop the INSERT silently; if we rm the
+# file anyway the plan is lost until recovered from git history.
+ARCHIVED_ROWS=$(kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+  psql -U website -d website -At -c \
+  "SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id='$TICKET_UUID' AND slug='$SLUG';")
+if [[ "$ARCHIVED_ROWS" -lt 1 ]]; then
+  echo "✗ Archiv-Row nicht in tickets.ticket_plans gefunden — Plan NICHT löschen. Abbruch."
+  exit 1
+fi
 
 # Datei löschen (nicht nach executed/ verschieben)
 rm "$PLAN_FILE"

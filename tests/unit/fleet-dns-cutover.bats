@@ -61,3 +61,66 @@ setup() {
   assert_failure
   assert_output --partial 'not set'
 }
+
+# Helper: a fake curl that logs every invocation to $CURL_LOG and prints a
+# canned ipv64 get_domains response when asked to read records.
+_make_fake_curl() {
+  FAKE_BIN="$(mktemp -d)"
+  CURL_LOG="$(mktemp)"
+  cat > "$FAKE_BIN/curl" <<EOF
+#!/usr/bin/env bash
+echo "\$@" >> "$CURL_LOG"
+if printf '%s\n' "\$@" | grep -q 'get_domains'; then
+  cat "$FIXTURE_GET_DOMAINS"
+fi
+exit 0
+EOF
+  chmod +x "$FAKE_BIN/curl"
+}
+
+@test "cutover: issues only type=A ipv64 writes for allowlisted prefixes" {
+  _make_fake_curl
+  FIXTURE_GET_DOMAINS="$(mktemp)"; echo '{"record_info":[]}' > "$FIXTURE_GET_DOMAINS"
+  run env PATH="$FAKE_BIN:$PATH" \
+      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
+      bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" cutover
+  assert_success
+  run grep -E 'type=MX|type=TXT|type=CNAME' "$CURL_LOG"
+  assert_failure
+}
+
+@test "cutover: writes a rollback state file" {
+  _make_fake_curl
+  FIXTURE_GET_DOMAINS="$(mktemp)"; echo '{"record_info":[]}' > "$FIXTURE_GET_DOMAINS"
+  env PATH="$FAKE_BIN:$PATH" \
+      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
+      bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" cutover
+  [ -f "$BATS_TEST_TMPDIR/fleet-dns-rollback-mentolder.de.state" ]
+}
+
+@test "rollback: restores exactly the recorded state lines" {
+  _make_fake_curl
+  cat > "$BATS_TEST_TMPDIR/fleet-dns-rollback-mentolder.de.state" <<'STATE'
+A|@|46.225.125.59
+A|livekit|46.225.125.59
+STATE
+  run env PATH="$FAKE_BIN:$PATH" \
+      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
+      bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" rollback
+  assert_success
+  run grep -F 'content=46.225.125.59' "$CURL_LOG"
+  assert_success
+}
+
+@test "rollback: fails loudly when no state file exists" {
+  _make_fake_curl
+  run env PATH="$FAKE_BIN:$PATH" \
+      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
+      bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" rollback
+  assert_failure
+  assert_output --partial 'no rollback state'
+}

@@ -24,9 +24,20 @@ spec:
   tls:
     - hosts:
         - "${COLLABORA_HOST}"
+        - "${COLLABORA_HOST_2}"
       secretName: "${COLLABORA_TLS_SECRET}"
   rules:
     - host: "${COLLABORA_HOST}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: collabora
+                port:
+                  number: 9980
+    - host: "${COLLABORA_HOST_2}"
       http:
         paths:
           - path: /

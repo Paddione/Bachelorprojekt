@@ -70,6 +70,8 @@ spec:
               value: /opt/cool
             - name: aliasgroup1
               value: "${COLLABORA_ALIASGROUP1}"
+            - name: aliasgroup2
+              value: "${COLLABORA_ALIASGROUP2}"
             - name: server_name
               value: "${COLLABORA_SERVER_NAME}"
             - name: extra_params

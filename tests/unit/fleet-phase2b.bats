@@ -56,3 +56,39 @@ setup() {
   block="$(awk '/^  fleet:deploy:brand:/{f=1} f&&/^  [a-z].*:$/&&!/fleet:deploy:brand:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
   echo "$block" | grep -q 'SKIP_TALK_SETUP'
 }
+
+# Regression (T000351): cert:install installs the lego DNS-01 webhook but historically
+# wired ONLY nodeAffinity — it never injected IPV64_API_KEY. That env var was set solely
+# by the imperative cert:secret step, so a fresh cluster bring-up (e.g. fleet) that relied
+# on a SEALED ipv64-api-key and skipped cert:secret landed a webhook that fails every
+# DNS-01 challenge with "credentials missing". cert:install must wire the key itself when
+# the cert-manager/ipv64-api-key secret already exists, so issuance works without cert:secret.
+# Regression (T000351 root cause #2): fleet-mentolder env used fleet-m.korczewski.de
+# (a sub-subdomain of korczewski.de) as PROD_DOMAIN. lego's ipv64 provider computes a
+# two-level _acme-challenge praefix for sub-subdomains, which the ipv64 API rejects with
+# 403 on del_record. Switching to mentolder.de (an ipv64 root domain) gives a single-level
+# praefix, matching the proven mentolder pattern.
+@test "fleet-mentolder env uses mentolder.de as PROD_DOMAIN (not staging fleet-m infix)" {
+  grep "PROD_DOMAIN" "$REPO_ROOT/environments/fleet-mentolder.yaml" | grep -q "mentolder.de"
+  ! grep "PROD_DOMAIN" "$REPO_ROOT/environments/fleet-mentolder.yaml" | grep -q "fleet-m.korczewski.de"
+}
+
+@test "fleet-korczewski env uses korczewski.de as PROD_DOMAIN (not staging fleet infix)" {
+  grep "PROD_DOMAIN" "$REPO_ROOT/environments/fleet-korczewski.yaml" | grep -q "korczewski.de"
+  ! grep "PROD_DOMAIN" "$REPO_ROOT/environments/fleet-korczewski.yaml" | grep -q "fleet\.korczewski\.de"
+}
+
+@test "fleet-mentolder env has no remaining fleet-m.korczewski.de references" {
+  ! grep -q "fleet-m\.korczewski\.de" "$REPO_ROOT/environments/fleet-mentolder.yaml"
+}
+
+@test "fleet-korczewski env has no remaining fleet.korczewski.de references" {
+  ! grep -q "fleet\.korczewski\.de" "$REPO_ROOT/environments/fleet-korczewski.yaml"
+}
+
+@test "cert:install wires IPV64_API_KEY into the lego webhook (not just cert:secret)" {
+  block="$(awk '/^  cert:install:/{f=1} f&&/^  [a-z].*:$/&&!/cert:install:/{if(seen)exit} f{print; seen=1}' "$TASKFILE")"
+  # injects the key from the existing secret into the webhook deployment
+  echo "$block" | grep -q 'cert-manager-lego-webhook'
+  echo "$block" | grep -qE 'set env .*(--from=secret/ipv64-api-key|IPV64_API_KEY)'
+}

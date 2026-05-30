@@ -1,14 +1,13 @@
 # environments/fleet-mentolder.yaml
-# mentolder brand on the fleet cluster (Phase 2a). Derived from mentolder.yaml:
-# routing hosts are re-rooted off mentolder.de onto fleet-m.korczewski.de so the
-# test hosts never touch live mentolder.de records. Namespaces stay
-# workspace/website; node-affinity repointed to the fleet pk nodes.
+# mentolder brand on the fleet cluster. Derived from mentolder.yaml:
+# PROD_DOMAIN = mentolder.de (real production domain; DNS cutover via fleet:dns:cutover).
+# Namespaces: workspace/website; node-affinity repointed to fleet pk nodes.
 environment: fleet-mentolder
 context: fleet
-domain: fleet-m.korczewski.de
+domain: mentolder.de
 
 env_vars:
-  PROD_DOMAIN: fleet-m.korczewski.de
+  PROD_DOMAIN: mentolder.de
   CLUSTER_ENV: fleet-mentolder
   BRAND_NAME: "Mentolder"
   BRAND_ID: mentolder
@@ -38,21 +37,21 @@ env_vars:
   # resolves to. Must stay in sync with the fleet-dns-cutover allowlist.
   TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
-  NEXTCLOUD_EXTERNAL_URL: "https://files.fleet-m.korczewski.de"
-  DOCS_URL: "https://docs.fleet-m.korczewski.de"
-  AUTH_EXTERNAL_URL: "https://auth.fleet-m.korczewski.de"
-  VAULT_EXTERNAL_URL: "https://vault.fleet-m.korczewski.de"
-  WHITEBOARD_EXTERNAL_URL: "https://files.fleet-m.korczewski.de/apps/files"
-  TRAEFIK_EXTERNAL_URL: "https://traefik.fleet-m.korczewski.de"
-  MAIL_EXTERNAL_URL: "https://mail.fleet-m.korczewski.de"
-  BRETT_DOMAIN: brett.fleet-m.korczewski.de
-  LIVEKIT_DOMAIN: livekit.fleet-m.korczewski.de
+  NEXTCLOUD_EXTERNAL_URL: "https://files.mentolder.de"
+  DOCS_URL: "https://docs.mentolder.de"
+  AUTH_EXTERNAL_URL: "https://auth.mentolder.de"
+  VAULT_EXTERNAL_URL: "https://vault.mentolder.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.mentolder.de/apps/files"
+  TRAEFIK_EXTERNAL_URL: "https://traefik.mentolder.de"
+  MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
+  BRETT_DOMAIN: brett.mentolder.de
+  LIVEKIT_DOMAIN: livekit.mentolder.de
   # Pinned to pk-hetzner-4 (fleet node) — livekit/stream/turn all resolve here.
   LIVEKIT_PIN_IP: "204.168.244.104"
-  STREAM_DOMAIN: stream.fleet-m.korczewski.de
-  WEBSITE_HOST: web.fleet-m.korczewski.de
-  WEBSITE_SITE_URL: "https://web.fleet-m.korczewski.de"
-  KEYCLOAK_FRONTEND_URL: "https://auth.fleet-m.korczewski.de"
+  STREAM_DOMAIN: stream.mentolder.de
+  WEBSITE_HOST: web.mentolder.de
+  WEBSITE_SITE_URL: "https://web.mentolder.de"
+  KEYCLOAK_FRONTEND_URL: "https://auth.mentolder.de"
   # System-test failure loop master kill-switch.
   SYSTEMTEST_LOOP_ENABLED: "true"
   LLM_HOST_IP: "100.102.71.114"
@@ -62,7 +61,7 @@ env_vars:
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
-  ARENA_WS_URL: https://arena-ws.fleet-m.korczewski.de
+  ARENA_WS_URL: https://arena-ws.mentolder.de
   # Dev stack intentionally omitted — dev migration is Phase 2c.
   DEV_SSH_ALLOWLIST: ""
 

@@ -1,15 +1,13 @@
 # environments/fleet-korczewski.yaml
-# korczewski brand on the fleet cluster (Phase 2a). Derived from korczewski.yaml:
-# only context, domain, and *.korczewski.de routing hosts change (host segment
-# gets a `fleet.` infix so test hosts live under fleet.korczewski.de and never
-# touch the live korczewski.de records). Namespaces, legal/contact/SMTP identity,
-# internal cluster-DNS service URLs, and node-affinity are unchanged.
+# korczewski brand on the fleet cluster. Derived from korczewski.yaml:
+# PROD_DOMAIN = korczewski.de (real production domain; DNS cutover via fleet:dns:cutover).
+# Namespaces, legal/contact/SMTP identity, and node-affinity are unchanged.
 environment: fleet-korczewski
 context: fleet
-domain: fleet.korczewski.de
+domain: korczewski.de
 
 env_vars:
-  PROD_DOMAIN: fleet.korczewski.de
+  PROD_DOMAIN: korczewski.de
   CLUSTER_ENV: fleet-korczewski
   BRAND_NAME: "KORE"
   BRAND_ID: korczewski
@@ -38,21 +36,21 @@ env_vars:
   # these are valid. TURN/LiveKit reachability is a Phase-2b/runtime concern.
   TURN_PUBLIC_IP: "37.27.251.38"
   TURN_NODE: "pk-hetzner-6"
-  NEXTCLOUD_EXTERNAL_URL: "https://files.fleet.korczewski.de"
-  DOCS_URL: "https://docs.fleet.korczewski.de"
-  AUTH_EXTERNAL_URL: "https://auth.fleet.korczewski.de"
-  VAULT_EXTERNAL_URL: "https://vault.fleet.korczewski.de"
-  WHITEBOARD_EXTERNAL_URL: "https://files.fleet.korczewski.de/apps/files"
-  TRAEFIK_EXTERNAL_URL: "https://traefik.fleet.korczewski.de"
-  MAIL_EXTERNAL_URL: "https://mail.fleet.korczewski.de"
-  BRETT_DOMAIN: brett.fleet.korczewski.de
-  LIVEKIT_DOMAIN: livekit.fleet.korczewski.de
+  NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
+  DOCS_URL: "https://docs.korczewski.de"
+  AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
+  VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
+  WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/apps/files"
+  TRAEFIK_EXTERNAL_URL: "https://traefik.korczewski.de"
+  MAIL_EXTERNAL_URL: "https://mail.korczewski.de"
+  BRETT_DOMAIN: brett.korczewski.de
+  LIVEKIT_DOMAIN: livekit.korczewski.de
   LIVEKIT_PIN_IP: "37.27.251.38"
-  STREAM_DOMAIN: stream.fleet.korczewski.de
+  STREAM_DOMAIN: stream.korczewski.de
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
-  WEBSITE_HOST: web.fleet.korczewski.de
-  WEBSITE_SITE_URL: "https://web.fleet.korczewski.de"
-  KEYCLOAK_FRONTEND_URL: "https://auth.fleet.korczewski.de"
+  WEBSITE_HOST: web.korczewski.de
+  WEBSITE_SITE_URL: "https://web.korczewski.de"
+  KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
   # System-test failure loop master kill-switch.
   SYSTEMTEST_LOOP_ENABLED: "true"
   LLM_HOST_IP: "100.102.71.114"
@@ -62,7 +60,7 @@ env_vars:
   LLM_RERANK_ENABLED: "false"
   LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace-korczewski.svc.cluster.local:8081"
-  ARENA_WS_URL: https://arena-ws.fleet.korczewski.de
+  ARENA_WS_URL: https://arena-ws.korczewski.de
   # Dev stack intentionally omitted — dev migration is Phase 2c.
   DEV_SSH_ALLOWLIST: ""
 

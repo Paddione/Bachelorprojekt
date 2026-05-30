@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.17.0...website-v1.18.0) (2026-05-30)
+
+
+### Features
+
+* **fleet:** Phase 2a dual-brand overlays + isolation (offline mechanism) [T000337] ([#1185](https://github.com/Paddione/Bachelorprojekt/issues/1185)) ([e8399bd](https://github.com/Paddione/Bachelorprojekt/commit/e8399bd43124bee0ea00d9a294b9a5983d130444))
+
 ## [1.17.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.16.2...website-v1.17.0) (2026-05-29)
 
 

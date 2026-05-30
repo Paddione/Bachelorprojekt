@@ -34,6 +34,63 @@ task clusters:status       # One-line status across both
 
 Use `task workspace:deploy ENV=mentolder` + `ENV=korczewski` sequentially when you need finer control than the fan-out tasks.
 
+> **`feature:deploy` does NOT deploy every service.** It runs `workspace:deploy` + post-setup + verify only — the base kustomization. Collabora, CoTURN/Janus, the website, and arena each deploy by their own task. For a full bring-up, use the "Deploy Every Service to Both Brands" sequence below.
+
+---
+
+## Deploy Every Service to Both Brands
+
+The base kustomization (`workspace:deploy`) leaves four services undeployed: **Collabora** (office-stack), **CoTURN/Janus** (coturn-stack), the **website** (own namespace), and **arena** (korczewski only). To bring up the *complete* platform on both brands, fan each pass across both `ENV=mentolder` and `ENV=korczewski`:
+
+```bash
+# 1. Full umbrella per brand: workspace:deploy → office:deploy → mcp:deploy →
+#    post-setup → talk-setup → recording-setup → transcriber-setup
+task workspace:setup ENV=mentolder
+task workspace:setup ENV=korczewski
+
+# 2. CoTURN/Janus (prod-only privileged stack — Talk video fails without it)
+task workspace:coturn:deploy ENV=mentolder
+task workspace:coturn:deploy ENV=korczewski
+
+# 3. Website (own namespace; brand-baked image per cluster)
+task feature:website            # builds + rolls both brands
+
+# 4. LiveKit DNS pin (both brands — ICE silently fails ~66% unpinned)
+task feature:livekit
+
+# 5. Arena game server + migrations — korczewski ONLY
+task feature:arena              # arena:deploy ENV=korczewski (mentolder is a no-op)
+```
+
+> **Fleet cluster (both brands, one cluster):** when both brands live on `fleet`, `task fleet:deploy` deploys platform once then both brands through the same `workspace:deploy` path and seeds the `coturn` + `workspace-office` SealedSecret namespaces. Still follow with the per-brand office/coturn/website/livekit passes above using `ENV=fleet-mentolder` / `ENV=fleet-korczewski`.
+
+### Per-Brand Ingress Accessibility Verification
+
+A two-cluster deploy is **not done until every host answers on both brands**. The base kustomization deploying clean does not prove the ingress is reachable — verify each brand explicitly:
+
+```bash
+task workspace:verify:all-prods                       # smoke probes, both clusters
+task workspace:check-connectivity ENV=mentolder       # curls every host on web.mentolder.de
+task workspace:check-connectivity ENV=korczewski      # curls every host on web.korczewski.de
+```
+
+`check-connectivity` sweeps `auth/files/vault/sign/tracking/web/docs/brett/office/board/signaling/mail/traefik` and exits non-zero on any unreachable host. A `✗` for `office.<domain>` means CoTURN/office was skipped on that brand; a 404 behind the Traefik default cert means that host's ingress/service never landed — re-run the matching deploy task for **that brand only** (the other brand is independent). `comfy.<domain>` and `arena-ws.korczewski.de` are not in the sweep — curl them manually.
+
+| Service | mentolder host | korczewski host |
+|---|---|---|
+| Website | `web.mentolder.de` | `web.korczewski.de` |
+| Keycloak | `auth.mentolder.de` | `auth.korczewski.de` |
+| Nextcloud | `files.mentolder.de` | `files.korczewski.de` |
+| Vaultwarden | `vault.mentolder.de` | `vault.korczewski.de` |
+| DocuSeal | `sign.mentolder.de` | `sign.korczewski.de` |
+| Docs | `docs.mentolder.de` | `docs.korczewski.de` |
+| Brett | `brett.mentolder.de` | `brett.korczewski.de` |
+| Collabora | `office.mentolder.de` | `office.korczewski.de` |
+| Whiteboard | `board.mentolder.de` | `board.korczewski.de` |
+| Talk signaling | `meet.`/`signaling.mentolder.de` | `meet.`/`signaling.korczewski.de` |
+| LiveKit | `livekit.`/`stream.mentolder.de` | `livekit.`/`stream.korczewski.de` |
+| Arena | — (korczewski only) | `arena-ws.korczewski.de` |
+
 ---
 
 ## Promotion with Smoke Gate (`feature:promote`)

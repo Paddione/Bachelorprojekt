@@ -27,7 +27,8 @@ When setting up a new environment from scratch, execute in this order:
 5. **Install cert-manager** (`cert:install`) must be done to provision CRDs *before* `workspace:deploy` is called.
 6. **DNS API Secret** (`cert:secret -- <key>`) must be stored in both namespaces *before* deploying to avoid ACME challenge failures.
 7. **Install Longhorn storage provisioner** — must exist *before* `workspace:deploy`. The `prod-mentolder/` overlay declares `storageClassName: longhorn` for `livekit-recordings-pvc`, `nextcloud-data-pvc`, `vaultwarden-data-pvc`, and `docuseal-data-pvc`. On a fresh cluster these PVCs stay **Pending forever** unless the `longhorn` StorageClass and host-level `iscsid` are present first.
-8. **Deploy workspace** (`workspace:deploy`) applies SealedSecrets and all other base manifests.
+8. **Deploy EVERY service** — `workspace:deploy` covers only the base kustomization. The full platform needs three more deploy passes: the **office-stack** (Collabora) and **coturn-stack** (TURN/Janus) live in their own privileged namespaces *outside* the base kustomization, the **website** ships from its own namespace, and **arena** (korczewski only) carries its own migrations. Use the `workspace:setup` umbrella + the prod-only coturn deploy — see "Full-Service Deploy" below. Skipping any of these leaves that service with **no reachable ingress**.
+9. **Verify ingress accessibility for the brand** — after deploying, run `task workspace:check-connectivity ENV=<env>` and confirm every host resolves and answers (see "Ingress Accessibility Verification"). A green `workspace:deploy` with red connectivity means a service is deployed but not reachable — the deploy is *not* done until ingress is verified.
 
 ---
 
@@ -186,13 +187,73 @@ kubectl patch storageclass longhorn \
 kubectl --context <ctx> get storageclass longhorn
 ```
 
-### Step 1.5: Workspace Deploy & Flux Bootstrap
+### Step 1.5: Full-Service Deploy & Flux Bootstrap
+
+**`workspace:deploy` alone does NOT deploy every service.** It applies the base kustomization only. Collabora (office-stack), CoTURN/Janus (coturn-stack), the website, and arena each deploy by their own task. To bring up the *entire* platform, run the `workspace:setup` umbrella, then the prod-only stacks:
+
 ```bash
-task workspace:deploy ENV=<env>
+# One umbrella: workspace:deploy → office:deploy → mcp:deploy →
+# post-setup → talk-setup → recording-setup → transcriber-setup
+task workspace:setup ENV=<env>
+
+# Prod-only privileged stack (TURN/STUN + Janus in the coturn ns).
+# Skipped for dev. Talk video calls fail to connect without it.
+task workspace:coturn:deploy ENV=<env>
+
+# Website ships from its own namespace — not part of workspace:setup.
+task website:deploy ENV=<env>
+
+# korczewski brand only: arena game server + its migrations.
+task arena:deploy ENV=korczewski
+
+# Optional one-time provisioning
+task workspace:admin-users-setup ENV=<env>   # SSO admin users in Keycloak
+task workspace:vaultwarden:seed ENV=<env>     # seed secret templates
+
+# Flux bootstrap (prod GitOps reconciliation)
 kubectl apply -f flux/clusters/<env>/ --context <ctx>
 flux reconcile source git flux-system --context <ctx>
 flux reconcile kustomization workspace --context <ctx>
 ```
+
+> **Fleet brands:** to deploy *both* brands onto the fleet cluster in one shot, use `task fleet:deploy` (platform once → fleet-mentolder → fleet-korczewski). It routes each brand through this same `workspace:deploy` path and seeds the `coturn` + `workspace-office` SealedSecret namespaces. Follow with the per-brand office/coturn passes above (`ENV=fleet-mentolder` / `ENV=fleet-korczewski`).
+
+### Service Inventory (what "every service" means)
+
+| Service | Ingress host | Deployed by |
+|---|---|---|
+| Keycloak (SSO) | `auth.<domain>` | `workspace:deploy` |
+| Nextcloud | `files.<domain>` | `workspace:deploy` |
+| Talk HPB / signaling | `meet.`, `signaling.<domain>` | `workspace:deploy` |
+| Whiteboard | `board.<domain>` | `workspace:deploy` |
+| Vaultwarden | `vault.<domain>` | `workspace:deploy` |
+| DocuSeal | `sign.<domain>` | `workspace:deploy` |
+| Docs (oauth2-proxy) | `docs.<domain>` | `workspace:deploy` |
+| Brett (oauth2-proxy) | `brett.<domain>` | `workspace:deploy` |
+| ComfyUI (oauth2-proxy) | `comfy.<domain>` | `workspace:deploy` |
+| Mailpit (oauth2-proxy) | `mail.<domain>` | `workspace:deploy` |
+| Traefik dashboard (oauth2-proxy) | `traefik.<domain>` | `workspace:deploy` |
+| Tracking | `tracking.<domain>` | `workspace:deploy` |
+| LiveKit | `livekit.`, `stream.<domain>` | `workspace:deploy` + `task livekit:dns-pin` |
+| Collabora | `office.<domain>` | `workspace:office:deploy` |
+| CoTURN + Janus | (UDP TURN/STUN — no HTTP host) | `workspace:coturn:deploy` *(prod only)* |
+| Website | `web.<domain>`, apex redirect | `website:deploy` |
+| Arena (korczewski only) | `arena-ws.korczewski.de` | `arena:deploy ENV=korczewski` |
+
+### Ingress Accessibility Verification
+
+A deploy is **not complete until every host answers**. Verify per brand:
+
+```bash
+# Canonical per-brand reachability sweep (curls auth/files/vault/sign/
+# tracking/web/docs/brett/office/board/signaling/mail/traefik).
+task workspace:check-connectivity ENV=<env>
+
+# LiveKit must DNS-pin to the pin-node or ICE silently fails ~66% of the time.
+task livekit:dns-pin ENV=<env> APPLY=true
+```
+
+`check-connectivity` exits non-zero if any host is unreachable. Treat any `✗` as a blocker: a 404 behind the Traefik default cert means the ingress/service for that host never landed (re-run the matching deploy task above); a timeout means TLS/DNS isn't resolving. `comfy.<domain>` and `arena-ws.<domain>` are not in the sweep — curl them manually (`curl -skI https://comfy.<domain>` should be a 302 to Keycloak).
 
 ---
 
@@ -236,14 +297,26 @@ flux describe kustomization workspace --context <ctx>
 ```
 
 ### Step 2.5: Execute Post-Deploy Setup Sequences
+
+On a healthy existing cluster the fastest path to "every service deployed" is the umbrella; the explicit list below is for re-running individual passes when only one drifted.
+
 ```bash
-task workspace:office:deploy ENV=<env>
+# Umbrella (deploy → office → mcp → post-setup → talk → recording → transcriber)
+task workspace:setup ENV=<env>
+
+# …or re-run individual passes:
+task workspace:office:deploy ENV=<env>      # Collabora (workspace-office ns)
+task workspace:coturn:deploy ENV=<env>      # TURN/Janus (coturn ns — prod only)
+task mcp:deploy ENV=<env>                    # MCP gateway
 task workspace:post-setup ENV=<env>
 task workspace:talk-setup ENV=<env>
 task workspace:recording-setup ENV=<env>
-task workspace:admin-users-setup ENV=<env>
-task workspace:vaultwarden:seed ENV=<env>
+task workspace:transcriber-setup ENV=<env>
+task workspace:admin-users-setup ENV=<env>  # optional: SSO admin users
+task workspace:vaultwarden:seed ENV=<env>    # optional: secret templates
 ```
+
+Then re-verify ingress accessibility (Step 1.5 → "Ingress Accessibility Verification"): `task workspace:check-connectivity ENV=<env>`.
 
 ---
 
@@ -313,6 +386,9 @@ grep HETZNER_WORKER_SNAPSHOT_ID environments/<env>.yaml
 | **Longhorn PVC** | PVC stuck Pending | Verify `kubectl get storageclass longhorn` exists; check `iscsid` is running on all nodes |
 | **Version drift** | Helm chart mismatch | Run Phase 0 version discovery + upgrade the drifted component via `helm upgrade` with pinned version |
 | **Snapshot stale** | New node joins with old k3s | Rebuild snapshot per Phase 4 after any k3s bump in versions.yaml |
+| **Missing ingress** | `check-connectivity` shows ✗ / 404 for one host | That service's deploy pass was skipped — `office.` → `workspace:office:deploy`; `web.` → `website:deploy`; `arena-ws.` → `arena:deploy ENV=korczewski`; base hosts → re-run `workspace:deploy` |
+| **Collabora / Talk video fails** | `office.` 404 or call won't connect | Office + coturn are NOT in the base kustomization — run `workspace:office:deploy` **and** `workspace:coturn:deploy ENV=<env>` (prod) |
+| **LiveKit ICE fails ~66%** | stream/livekit intermittently unreachable | DNS not pinned to the pin-node — `task livekit:dns-pin ENV=<env> APPLY=true` |
 
 ---
 

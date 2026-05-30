@@ -12,8 +12,6 @@ resources:
   - dev-ingress.yaml
   - dev-db-refresh-cron.yaml
   - dev-db-refresh-netpol.yaml  # T000286: allow dev-node hostNetwork → shared-db:5432
-  # ── brainstorm.mentolder.de reverse-SSH broker (sish) ─────────────
-  - brainstorm-sish.yaml
   # Whisper + Talk-Transcriber — now also on mentolder.
   # k3s home workers (k3s-1/2/3: amd64, 8–16 GB, <5% util) have headroom.
   # See whisper placement override in patches below.

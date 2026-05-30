@@ -1,34 +1,34 @@
 # Taskfile.brainstorm.yml
 # ─────────────────────────────────────────────────────────────────────────────
-# brainstorm.mentolder.de — reverse-SSH-tunnel broker for the brainstorming
-# visual-companion choice loop. Wraps `ssh -R` against the in-cluster sish
-# Deployment (k3d/brainstorm-sish.yaml) so the operator can publish a local
-# port at https://brainstorm.${PROD_DOMAIN} without poking holes in the
-# home-network NAT.
+# brainstorm.dev.mentolder.de — reverse-SSH-tunnel broker for the brainstorming
+# visual-companion choice loop. Wraps `ssh -R` against the dev-stack sish
+# Deployment (k3d/dev-stack/sish.yaml) so the operator can publish a local port
+# at https://brainstorm.${DEV_DOMAIN} without poking holes in the home-network
+# NAT.
 #
-# All tasks here pin to the mentolder prod cluster — there is no brainstorm
-# broker on korczewski. ENV= is forced to "mentolder" via the vars block.
+# The broker lives on the dev node (k3s-1), reached via the k3d loadbalancer
+# host port 0.0.0.0:2222 → dev.mentolder.de:2222. This is the SAME sish that
+# `task dev:tunnel` uses; brainstorm just pins the requested subdomain to
+# "brainstorm". There is no brainstorm broker on the prod clusters (T000364).
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3"
 
 vars:
   ENV: mentolder
-  CTX_PROD: mentolder
-  NS_PROD: workspace
-  # The sish Deployment is pinned (nodeSelector) to this host; the ufw rule
-  # and the public SSH NodePort target the same machine.
-  NODE: gekko-hetzner-2
-  SSH_PORT: 32223
+  CTX_DEV: k3d-mentolder-dev
+  NS_DEV: workspace-dev
+  # The dev sish SSH endpoint is the k3d loadbalancer host port on $DEV_NODE.
+  SSH_PORT: 2222
 
 tasks:
 
   setup:
-    desc: "[brainstorm] One-time setup: open firewall on the sish node (keys come from SealedSecret via workspace:deploy)"
+    desc: "[brainstorm] One-time setup: apply DEV_SSH_ALLOWLIST ufw rules on the dev node (keys come from DEV_SISH_AUTHORIZED_KEYS via dev:deploy)"
     cmds:
       - task: firewall:open
 
   publish:
-    desc: "[brainstorm] Publish a local port at https://brainstorm.${PROD_DOMAIN}. Usage: task brainstorm:publish -- <localport>"
+    desc: "[brainstorm] Publish a local port at https://brainstorm.${DEV_DOMAIN}. Usage: task brainstorm:publish -- <localport>"
     cmds:
       - |
         set -euo pipefail
@@ -37,46 +37,27 @@ tasks:
         if [[ -z "$PORT" ]]; then
           echo "Usage: task brainstorm:publish -- <localport>" >&2; exit 2
         fi
-        # Resolve a target host for the SSH connection:
-        #   1. BRAINSTORM_NODE_IP if set (escape hatch — not in schema today)
-        #   2. TURN_PUBLIC_IP    — gekko-hetzner-2 is also TURN_NODE so its
-        #                          public IP is already authoritative there.
-        #   3. {{.NODE}}         — DNS fallback for the same host.
-        TARGET="${BRAINSTORM_NODE_IP:-${TURN_PUBLIC_IP:-{{.NODE}}}}"
-        echo "Publishing localhost:$PORT as https://brainstorm.$PROD_DOMAIN — leave this terminal open."
-        echo "  ssh -p {{.SSH_PORT}} -R brainstorm:80:localhost:$PORT tunnel@$TARGET"
+        echo "Publishing localhost:$PORT as https://brainstorm.$DEV_DOMAIN — leave this terminal open."
+        echo "  ssh -p {{.SSH_PORT}} -R brainstorm:80:localhost:$PORT tunnel@$DEV_DOMAIN"
         exec ssh -p {{.SSH_PORT}} -N \
           -o StrictHostKeyChecking=accept-new \
           -o ServerAliveInterval=30 \
           -o ServerAliveCountMax=3 \
           -o ExitOnForwardFailure=yes \
           -R "brainstorm:80:localhost:$PORT" \
-          "tunnel@$TARGET"
+          "tunnel@$DEV_DOMAIN"
 
   firewall:open:
-    desc: "[brainstorm] Open ufw tcp/{{.SSH_PORT}} on {{.NODE}} so operators can reach the sish NodePort"
+    desc: "[brainstorm] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules for tcp/2222 on $DEV_NODE (delegates to dev:firewall:open)"
     cmds:
-      - |
-        set -euo pipefail
-        ssh "root@{{.NODE}}" "ufw allow {{.SSH_PORT}}/tcp comment 'brainstorm-sish'"
-        ssh "root@{{.NODE}}" "ufw reload && ufw status numbered | grep {{.SSH_PORT}} || true"
+      - task: dev:firewall:open
 
   status:
-    desc: "[brainstorm] Show sish pod status and probe the public Ingress"
+    desc: "[brainstorm] Show dev sish pod status and probe the public Ingress"
     cmds:
       - |
         set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get pod -l app=brainstorm-sish -o wide
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get svc brainstorm brainstorm-sish 2>/dev/null || true
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} get ingress brainstorm 2>/dev/null || true
+        kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} get pod -l app=sish -o wide
         echo "── HTTPS probe ────────────────────────────────────────────"
-        curl -sSI --max-time 5 "https://brainstorm.${PROD_DOMAIN}/" || true
-
-  cleanup-scratch:
-    desc: "[brainstorm] Delete the parallel-session's ad-hoc brainstorm-proxy Pod (Service+Ingress are reused by the new manifest)"
-    cmds:
-      - |
-        kubectl --context {{.CTX_PROD}} -n {{.NS_PROD}} delete pod brainstorm-proxy --ignore-not-found
-        # Do NOT delete svc/brainstorm or ingress/brainstorm — the new manifest
-        # owns those names and `kubectl apply` reconciles them in place.
+        curl -sSI --max-time 5 "https://brainstorm.${DEV_DOMAIN}/" || true

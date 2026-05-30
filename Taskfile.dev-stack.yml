@@ -309,8 +309,10 @@ tasks:
           echo "DEV_SSH_ALLOWLIST is empty — nothing to do." >&2
           exit 0
         fi
+        # DEV_SSH_USER is gekko (non-root) on $DEV_NODE, so ufw must run via sudo
+        # (gekko has passwordless sudo). Without it ufw errors "You need to be root".
         IFS=',' read -ra CIDRS <<<"$DEV_SSH_ALLOWLIST"
         for cidr in "${CIDRS[@]}"; do
-          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "ufw allow from $cidr to any port 2222 proto tcp comment 'sish-allow'"
+          ssh ${DEV_SSH_USER:-root}@$DEV_NODE "sudo ufw allow from $cidr to any port 2222 proto tcp comment 'sish-allow'"
         done
-        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "ufw reload && ufw status numbered | grep 2222"
+        ssh ${DEV_SSH_USER:-root}@$DEV_NODE "sudo ufw reload 2>/dev/null; sudo ufw status numbered | grep 2222 || true"

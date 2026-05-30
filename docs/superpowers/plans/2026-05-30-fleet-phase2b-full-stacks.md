@@ -59,7 +59,7 @@ These are verified against the codebase at `18b33192` — do not re-derive:
 **Files:**
 - Create: `tests/unit/fleet-phase2b.bats`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```bash
 #!/usr/bin/env bats
@@ -105,12 +105,12 @@ setup() {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./tests/runner.sh local fleet-phase2b` (or `bats tests/unit/fleet-phase2b.bats`)
 Expected: FAIL — the new tasks don't exist yet and `fleet:deploy:brand` lacks `mcp:deploy`/`post-setup`.
 
-- [ ] **Step 3: Commit the failing test**
+- [x] **Step 3: Commit the failing test**
 
 ```bash
 git add tests/unit/fleet-phase2b.bats
@@ -125,13 +125,13 @@ git commit -m "test(fleet): add Phase 2b full-stack wiring guards [T000345]"
 - Modify: `k3d/office-stack/ingress.yaml`
 - Modify: `k3d/office-stack/collabora.yaml`
 
-- [ ] **Step 1: Add the second host rule to the Collabora Ingress**
+- [x] **Step 1: Add the second host rule to the Collabora Ingress**
 
 In `k3d/office-stack/ingress.yaml`, duplicate the existing `${COLLABORA_HOST}` host rule block under `spec.rules` to add a `${COLLABORA_HOST_2}` rule pointing at the same `collabora` Service/port, and add `${COLLABORA_HOST_2}` to the `spec.tls[0].hosts` list (or a second `tls` entry referencing `${COLLABORA_TLS_SECRET_2}` if a separate cert is wanted — default: reuse a SAN cert covering both, single `tls` entry with both hosts).
 
 Concretely, the `rules:` list gains a second entry identical to the first except `host: ${COLLABORA_HOST_2}`, and `tls:` lists both hosts under one `secretName: ${COLLABORA_TLS_SECRET}`.
 
-- [ ] **Step 2: Add the second WOPI aliasgroup to Collabora**
+- [x] **Step 2: Add the second WOPI aliasgroup to Collabora**
 
 In `k3d/office-stack/collabora.yaml`, locate the `aliasgroup1=${COLLABORA_ALIASGROUP1}` env value (the WOPI host allowlist). Append a second alias group so both brands' Nextcloud hosts may embed Collabora. Collabora reads aliasgroups from the `aliasgroup1`, `aliasgroup2`, … env vars; add:
 
@@ -142,7 +142,7 @@ In `k3d/office-stack/collabora.yaml`, locate the `aliasgroup1=${COLLABORA_ALIASG
 
 placed immediately after the existing `aliasgroup1` env entry, matching its indentation.
 
-- [ ] **Step 3: Validate kustomize build with both vars substituted**
+- [x] **Step 3: Validate kustomize build with both vars substituted**
 
 Run:
 ```bash
@@ -156,7 +156,7 @@ bash -c 'kustomize build k3d/office-stack | envsubst | kubectl apply --dry-run=c
 ```
 Expected: `OK` (no literal `${...}` left, both hosts present in the rendered Ingress).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/office-stack/ingress.yaml k3d/office-stack/collabora.yaml
@@ -170,7 +170,7 @@ git commit -m "feat(office): dual-host shared Collabora ingress + WOPI aliasgrou
 **Files:**
 - Modify: `Taskfile.yml` (add task near the other `fleet:*` tasks, ~line 1450)
 
-- [ ] **Step 1: Add the task**
+- [x] **Step 1: Add the task**
 
 Add under the `fleet:` task group:
 
@@ -212,7 +212,7 @@ Add under the `fleet:` task group:
 
 > NOTE on TURN_PUBLIC_IP: the shared coturn binds one public IP. `fleet-mentolder.yaml` pins `TURN_NODE=pk-hetzner-4` with `LIVEKIT_PIN_IP=204.168.244.104`. Confirm at execution that `TURN_PUBLIC_IP` resolves to that node's public IP (the env file may expose it as `TURN_PUBLIC_IP` or only `LIVEKIT_PIN_IP` — the fallback `${TURN_PUBLIC_IP:-$LIVEKIT_PIN_IP}` above handles both; verify the rendered coturn manifest carries the pk-hetzner-4 IP).
 
-- [ ] **Step 2: Validate the task parses and renders (dry)**
+- [x] **Step 2: Validate the task parses and renders (dry)**
 
 Run:
 ```bash
@@ -220,7 +220,7 @@ task --dry fleet:shared-services 2>&1 | head -40
 ```
 Expected: the rendered command block prints with no Taskfile parse error. (It will `use-context fleet`; if the context isn't present locally this dry-run still prints the cmd without executing apply.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Taskfile.yml
@@ -268,12 +268,14 @@ Expected: `clean`.
 
 ## Task 5: Repoint `talk-hpb` (spreed signaling) to the fleet TURN node
 
+> **EXECUTION DECISION (2026-05-30, operator-confirmed): NO-OP.** Code-read at execution time refuted the premise. The Deployment is named `spreed-signaling` (there is no `talk-hpb` Deployment), and its base `podAffinity` already declares `namespaces: [coturn]` (k3d/talk-hpb.yaml:162-163) — it is *not* same-namespace and already cross-references Janus in the `coturn` ns. With the operator's shared-Janus decision, exactly ONE Janus runs (pinned to the shared TURN node pk-hetzner-4). The existing cross-ns podAffinity auto-colocates BOTH brands' spreed-signaling onto that node, preserving the loopback path to `:8188`. The planned per-brand `nodeAffinity ${TURN_NODE}` would pin korczewski to pk-hetzner-6 — AWAY from the shared Janus — breaking its loopback (cross-node 8188 → Hetzner firewall block). Operator chose "keep base podAffinity". No patch applied.
+
 **Files:**
-- Modify: `prod-fleet/components/fleet-common/kustomization.yaml`
+- Modify: `prod-fleet/components/fleet-common/kustomization.yaml` *(no change made — see decision above)*
 
 **Why:** `k3d/talk-hpb.yaml` colocates spreed-signaling with Janus via same-namespace `podAffinity`. On fleet, Janus lives in ns `coturn` while talk-hpb lives in `workspace`/`workspace-korczewski`, so same-ns podAffinity can't find Janus and the pod may go Pending or land off-node from the shared Janus. Replace the colocation with a direct nodeAffinity pin to the shared TURN node (same node Janus is pinned to via `TURN_NODE`).
 
-- [ ] **Step 1: Add a talk-hpb node-affinity patch to fleet-common**
+- [x] **Step 1: Add a talk-hpb node-affinity patch to fleet-common**
 
 In `prod-fleet/components/fleet-common/kustomization.yaml`, add a strategic-merge or JSON patch targeting the `talk-hpb` Deployment that sets `spec.template.spec.affinity.nodeAffinity` to require `kubernetes.io/hostname` ∈ the fleet TURN node, and removes the existing `podAffinity` block. Because the TURN node differs per brand (pk-hetzner-4 vs pk-hetzner-6), express it via the envsubst var already in scope — pin to `${TURN_NODE}` so each brand's render resolves to its own node:
 
@@ -298,7 +300,7 @@ patches:
 
 > If `talk-hpb`'s `affinity` has no `podAffinity` at apply time the `remove` op fails — confirm the base path with `kustomize build prod-fleet/mentolder | yq 'select(.metadata.name=="talk-hpb").spec.template.spec.affinity'` and adjust to `op: replace /spec/template/spec/affinity` with a full object if needed.
 
-- [ ] **Step 2: Validate both brand overlays still build with TURN_NODE substituted**
+- [x] **Step 2: Validate both brand overlays still build with TURN_NODE substituted**
 
 Run:
 ```bash
@@ -311,7 +313,7 @@ done
 ```
 Expected: `mentolder OK` and `korczewski OK`; rendered talk-hpb shows nodeAffinity to the brand's pk TURN node and no podAffinity.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prod-fleet/components/fleet-common/kustomization.yaml
@@ -325,7 +327,7 @@ git commit -m "fix(fleet): pin talk-hpb to shared TURN node instead of cross-ns 
 **Files:**
 - Modify: `Taskfile.yml`
 
-- [ ] **Step 1: Extend `fleet:deploy:brand` with mcp + post-setup (NOT talk-setup)**
+- [x] **Step 1: Extend `fleet:deploy:brand` with mcp + post-setup (NOT talk-setup)**
 
 Replace the `cmds:` of `fleet:deploy:brand` so it runs the core chain that is safe without coturn:
 
@@ -343,7 +345,7 @@ Replace the `cmds:` of `fleet:deploy:brand` so it runs the core chain that is sa
         vars: { ENV: "{{.BRAND}}" }
 ```
 
-- [ ] **Step 2: Add `fleet:talk-setup:brand`**
+- [x] **Step 2: Add `fleet:talk-setup:brand`**
 
 ```yaml
   fleet:talk-setup:brand:
@@ -361,7 +363,7 @@ Replace the `cmds:` of `fleet:deploy:brand` so it runs the core chain that is sa
 
 > `workspace:talk-setup` triggers `coturn:sync-secret` for the brand (Taskfile.yml ~1672). Since Task 4 made both brands' secrets identical, syncing from either yields a consistent shared `coturn-secrets`. The second brand's talk-setup re-syncs the same values (idempotent) and restarts its own talk-hpb to authenticate against the shared Janus.
 
-- [ ] **Step 3: Rewire `fleet:deploy` to the correct ordering**
+- [x] **Step 3: Rewire `fleet:deploy` to the correct ordering**
 
 ```yaml
   fleet:deploy:
@@ -379,17 +381,17 @@ Replace the `cmds:` of `fleet:deploy:brand` so it runs the core chain that is sa
         vars: { BRAND: fleet-korczewski }
 ```
 
-- [ ] **Step 4: Run the BATS guard from Task 1 — now green**
+- [x] **Step 4: Run the BATS guard from Task 1 — now green**
 
 Run: `bats tests/unit/fleet-phase2b.bats`
 Expected: all 5 tests PASS.
 
-- [ ] **Step 5: Prove fan-out order with a dry run**
+- [x] **Step 5: Prove fan-out order with a dry run**
 
 Run: `task --dry fleet:deploy 2>&1 | grep -nE 'fleet:(platform|deploy:brand|shared-services|talk-setup)'`
 Expected ordering: platform → deploy:brand (mentolder) → deploy:brand (korczewski) → shared-services → talk-setup (mentolder) → talk-setup (korczewski).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Taskfile.yml
@@ -402,17 +404,17 @@ git commit -m "feat(fleet): rewire fleet:deploy to full per-brand+shared orderin
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run the full offline suite**
+- [x] **Step 1: Run the full offline suite**
 
 Run: `task test:all`
 Expected: green, including the new `fleet-phase2b.bats`.
 
-- [ ] **Step 2: Validate manifests**
+- [x] **Step 2: Validate manifests**
 
 Run: `task workspace:validate`
 Expected: green (office-stack + coturn-stack + prod-fleet overlays build).
 
-- [ ] **Step 3: Regenerate test inventory if test count changed**
+- [x] **Step 3: Regenerate test inventory if test count changed**
 
 Run:
 ```bash

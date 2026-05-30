@@ -48,7 +48,7 @@ mentolder:
       endpoint: ""        # dynamic NAT port (observed 45.155.142.74:51883, changes on reconnect)
       wg_ip: "192.168.100.10"
       schema_key: WG_MESH_WSL2_GPU
-      public_key: "UIe+lddIq+YgFeE4wltrEPXYnwu3hAY1bsUUD2yNBkE="
+      public_key: "5FN+c5UwO4VDwkwaCkG7uoBGDriItwUKolQVVjhQ3U4="
       keepalive: 25
 
   # Proxmox home-LAN worker nodes — behind NAT (FritzBox), no fixed public endpoint.

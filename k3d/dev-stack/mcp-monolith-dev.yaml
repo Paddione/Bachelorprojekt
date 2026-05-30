@@ -1,0 +1,211 @@
+# ════════════════════════════════════════════════════════════════════════════
+# MCP Monolith — dev.mentolder.de variant (workspace-dev on k3s-1 k3d cluster)
+#
+# Derived from deploy/mcp/claude-code-mcp-monolith.yaml, adapted for the dev
+# stack:
+#   - no `node-location=hetzner` nodeAffinity (single k3d node)
+#   - postgres MCP points at shared-db-dev (not shared-db.workspace)
+#   - keycloak MCP container dropped (dev cluster runs no Keycloak)
+#   - kubernetes / postgres / playwright / github containers retained
+#
+# The claude-code-secrets Secret is created imperatively by the deploy step
+# (DEV_SHARED_DB_PASSWORD from shared-db-dev-secrets + GITHUB_PAT) — never
+# committed.
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-code-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-code-mcp-dev-view
+rules:
+  - apiGroups: ["", "apps", "batch", "networking.k8s.io"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-code-mcp-dev-view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: claude-code-mcp-dev-view
+subjects:
+  - kind: ServiceAccount
+    name: claude-code-agent
+    namespace: workspace-dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-code-mcp-monolith
+  labels:
+    app: claude-code-mcp-monolith
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: claude-code-mcp-monolith
+  template:
+    metadata:
+      labels:
+        app: claude-code-mcp-monolith
+    spec:
+      serviceAccountName: claude-code-agent
+      initContainers:
+        - name: github-binary
+          image: alpine:3.21
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              wget -qO /tmp/github-mcp-server.tar.gz \
+                https://github.com/github/github-mcp-server/releases/download/v1.0.3/github-mcp-server_Linux_x86_64.tar.gz && \
+              tar -xzf /tmp/github-mcp-server.tar.gz -C /github-bin github-mcp-server && \
+              chmod +x /github-bin/github-mcp-server && \
+              echo "github-mcp-server ready"
+          volumeMounts:
+            - name: github-bin
+              mountPath: /github-bin
+      volumes:
+        - name: github-bin
+          emptyDir: {}
+      containers:
+        # ── Kubernetes MCP (port 8080) ──────────────────────────────
+        - name: kubernetes
+          image: quay.io/containers/kubernetes_mcp_server@sha256:ef1ede0fd73ce975de1850b7f19090d0850c4ce3e7d21d795f21de3ee8d1452c
+          imagePullPolicy: IfNotPresent
+          args: ["--port", "8080", "--stateless", "--cluster-provider", "in-cluster"]
+          ports:
+            - containerPort: 8080
+              name: kubernetes
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: { memory: 64Mi, cpu: 50m }
+            limits:   { memory: 256Mi }
+
+        # ── PostgreSQL MCP (port 3001) → shared-db-dev ───────────────
+        - name: postgres
+          image: node:20-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Installing MCP postgres bridge..."
+              npm install -g supergateway @modelcontextprotocol/server-postgres 2>&1 | tail -3
+              echo "Starting supergateway on :3001/mcp..."
+              exec supergateway \
+                --stdio "mcp-server-postgres \"$DATABASE_URL\"" \
+                --outputTransport streamableHttp \
+                --port 3001 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          env:
+            - name: SHARED_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: SHARED_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://postgres:$(SHARED_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website"
+          ports:
+            - containerPort: 3001
+              name: postgres
+          readinessProbe:
+            httpGet: { path: /health, port: 3001 }
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests: { memory: 128Mi, cpu: 50m }
+            limits:   { memory: 768Mi }
+
+        # ── Browser MCP (port 3000) ──────────────────────────────────
+        - name: playwright
+          image: mcr.microsoft.com/playwright:v1.50.1-jammy
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Installing MCP playwright bridge..."
+              npm install -g supergateway @playwright/mcp 2>&1 | tail -3
+              CHROME=$(find /ms-playwright -name "chrome" -path "*/chrome-linux/chrome" ! -path "*/headless*" | head -1)
+              echo "Starting supergateway on :3000/mcp (chrome: $CHROME)..."
+              exec supergateway \
+                --stdio "playwright-mcp --browser chrome --executable-path $CHROME --headless" \
+                --outputTransport streamableHttp \
+                --port 3000 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          ports:
+            - containerPort: 3000
+              name: browser
+          readinessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          resources:
+            requests: { memory: 512Mi, cpu: 100m }
+            limits:   { memory: 4Gi, cpu: 500m }
+
+        # ── GitHub MCP (port 3002) ──────────────────────────────────
+        - name: github
+          image: node:20-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              npm install -g supergateway 2>&1 | tail -3
+              exec supergateway \
+                --stdio "/github-bin/github-mcp-server stdio" \
+                --outputTransport streamableHttp \
+                --port 3002 \
+                --streamableHttpPath /mcp \
+                --healthEndpoint /health
+          env:
+            - name: GITHUB_PERSONAL_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: claude-code-secrets
+                  key: GITHUB_PAT
+          ports:
+            - containerPort: 3002
+              name: github
+          readinessProbe:
+            httpGet: { path: /health, port: 3002 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests: { memory: 128Mi, cpu: 50m }
+            limits:   { memory: 512Mi }
+          volumeMounts:
+            - name: github-bin
+              mountPath: /github-bin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-code-mcp-monolith
+spec:
+  selector:
+    app: claude-code-mcp-monolith
+  ports:
+    - name: kubernetes
+      port: 8080
+      targetPort: 8080
+    - name: postgres
+      port: 3001
+      targetPort: 3001
+    - name: browser
+      port: 3000
+      targetPort: 3000
+    - name: github
+      port: 3002
+      targetPort: 3002

@@ -8,4 +8,5 @@ resources:
   - brett-dev.yaml
   - sish.yaml
   - traefik-wildcard-ingress.yaml
+  - mcp-monolith-dev.yaml
 # images: populated by `task dev:deploy` with concrete tags at apply time.

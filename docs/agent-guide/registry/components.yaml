@@ -9,6 +9,9 @@
   what_for_de: "Das mit Astro + Svelte gebaute Frontend (die Web-Oberfläche). Öffentliche Seite plus eingeloggtes Kundenportal."
   url: null
   links: []
+  area: dienste
+  theme: website
+  relates_to: [website-text-aendern]
 - slug: keycloak
   kind: software
   name: "Keycloak"
@@ -19,6 +22,9 @@
   what_for_de: "Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Nextcloud, Vaultwarden u. a. an. Herzstück der Sicherheit."
   url: null
   links: []
+  area: plattform
+  theme: sicherheit
+  relates_to: [secret-aendern]
 - slug: nextcloud
   kind: software
   name: "Nextcloud"
@@ -29,6 +35,8 @@
   what_for_de: "Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform)."
   url: null
   links: []
+  area: dienste
+  theme: betrieb
 - slug: collabora
   kind: software
   name: "Collabora"
@@ -39,6 +47,8 @@
   what_for_de: "Die Online-Office-Suite, die Nextcloud-Dateien bearbeitbar macht (vergleichbar mit Office im Web)."
   url: null
   links: []
+  area: dienste
+  theme: betrieb
 - slug: vaultwarden
   kind: software
   name: "Vaultwarden"
@@ -49,6 +59,8 @@
   what_for_de: "Verwaltet Zugangsdaten zentral und verschlüsselt; per Bitwarden-Apps nutzbar."
   url: null
   links: []
+  area: dienste
+  theme: sicherheit
 - slug: nextcloud-talk-hpb
   kind: software
   name: "Talk HPB"
@@ -89,6 +101,8 @@
   what_for_de: "Versendet Dokumente zur rechtssicheren elektronischen Unterschrift."
   url: null
   links: []
+  area: dienste
+  theme: betrieb
 - slug: whiteboard
   kind: software
   name: "Whiteboard"
@@ -129,6 +143,9 @@
   what_for_de: "Gemeinsamer Datenbank-Server für Website, Keycloak, Nextcloud u. v. m. Pro Marke eigene Instanz."
   url: null
   links: []
+  area: daten
+  theme: datenbank
+  relates_to: [datenbank-aendern]
 - slug: traefik
   kind: software
   name: "Traefik"
@@ -139,6 +156,8 @@
   what_for_de: "Ingress-Controller: verteilt eingehenden Verkehr (Routing) und terminiert TLS."
   url: null
   links: []
+  area: plattform
+  theme: ausrollen
 - slug: sealed-secrets
   kind: software
   name: "Sealed Secrets"
@@ -149,6 +168,9 @@
   what_for_de: "Wandelt Secrets in verschlüsselte 'SealedSecrets', die gefahrlos eingecheckt werden können."
   url: null
   links: []
+  area: daten
+  theme: sicherheit
+  relates_to: [secret-aendern]
 - slug: cert-manager
   kind: software
   name: "cert-manager"
@@ -159,6 +181,8 @@
   what_for_de: "Automatisiert TLS-Zertifikate, damit alle Domains gültiges HTTPS haben."
   url: null
   links: []
+  area: plattform
+  theme: sicherheit
 - slug: k3s
   kind: software
   name: "k3s / k3d"
@@ -169,6 +193,9 @@
   what_for_de: "Leichtgewichtige Kubernetes-Variante (k3s in Prod, k3d lokal). Trägt alle Workloads."
   url: null
   links: []
+  area: plattform
+  theme: ausrollen
+  relates_to: [cluster-neu-aufsetzen]
 - slug: wireguard
   kind: software
   name: "WireGuard (wg-mesh)"
@@ -209,6 +236,8 @@
   what_for_de: "Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden."
   url: null
   links: []
+  area: dienste
+  theme: betrieb
 - slug: livekit-ingress
   kind: software
   name: "LiveKit Ingress"

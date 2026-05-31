@@ -1,0 +1,10 @@
+# docs/agent-guide/registry/flow.yaml
+# Stations of the "Dein Weg: Idee → live" ribbon. `order` drives left→right.
+# `danger` must be a taxonomy id. Goals/tools opt onto a station via `stages: [<id>]`.
+- { id: idee,       label_de: "Idee",       emoji: "💡", danger: safe,     order: 1, blurb_de: "Was soll sich ändern? Noch nichts angefasst." }
+- { id: brainstorm, label_de: "Brainstorm", emoji: "🧠", danger: safe,     order: 2, blurb_de: "Die Idee zu einem klaren Design schärfen." }
+- { id: plan,       label_de: "Plan",       emoji: "📋", danger: caution,  order: 3, blurb_de: "Einen Schritt-für-Schritt-Plan schreiben." }
+- { id: code,       label_de: "Code+TDD",   emoji: "💻", danger: caution,  order: 4, blurb_de: "Erst den Test, dann die Umsetzung." }
+- { id: pr-ci,      label_de: "PR+CI",      emoji: "🔀", danger: assisted, order: 5, blurb_de: "Pull Request öffnen — CI muss grün sein." }
+- { id: deploy,     label_de: "Deploy",     emoji: "🚀", danger: assisted, order: 6, blurb_de: "Die Änderung live bringen (Flux / Task)." }
+- { id: live,       label_de: "Live",       emoji: "🌍", danger: safe,     order: 7, blurb_de: "Läuft es? Status und Logs prüfen." }

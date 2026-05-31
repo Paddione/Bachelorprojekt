@@ -7,6 +7,7 @@
   what_could_go_wrong_de: "Kaum etwas: er lädt nur Wissen, ändert nichts am Code."
   danger: safe
   theme: entwickeln
+  stages: [brainstorm]
   aliases_de: [superpowers, skills, fertigkeiten]
   guardrails: []
   related: [dev-flow-plan]
@@ -21,6 +22,7 @@
   what_could_go_wrong_de: "Wenig: er stoppt bewusst vor der Umsetzung. Du bestätigst das Design."
   danger: safe
   theme: entwickeln
+  stages: [idee, brainstorm]
   aliases_de: [brainstorm, brainstorming, idee, design, konzept]
   guardrails: []
   related: [dev-flow-plan, superpowers]
@@ -35,6 +37,7 @@
   what_could_go_wrong_de: "Wenig: er stoppt bewusst, bevor Code geschrieben wird. Du bestätigst Design und Plan."
   danger: caution
   theme: entwickeln
+  stages: [plan]
   aliases_de: [plan, planen, brainstorm, spec]
   guardrails: [G-PULL-FIRST]
   related: [dev-flow-execute]
@@ -49,6 +52,7 @@
   what_could_go_wrong_de: "Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren."
   danger: caution
   theme: entwickeln
+  stages: [code, pr-ci]
   aliases_de: [umsetzen, implementieren, ausfuehren, pr]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [dev-flow-plan, dev-flow-iterate]
@@ -63,6 +67,7 @@
   what_could_go_wrong_de: "Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen."
   danger: caution
   theme: entwickeln
+  stages: [code, deploy]
   aliases_de: [dev, iterieren, ausprobieren, "dev-cluster"]
   guardrails: [G-ENV-EXPLICIT, G-CONTEXT-CHECK]
   related: [dev-flow-execute, dev-flow-e2e]
@@ -77,6 +82,7 @@
   what_could_go_wrong_de: "Test schlägt fehl, wenn die Umgebung noch startet oder fehlerhaft deployt wurde."
   danger: caution
   theme: testen
+  stages: [live]
   aliases_de: [e2e, playwright, "end-to-end", walkthrough]
   guardrails: [G-ENV-EXPLICIT]
   related: [dev-flow-iterate]
@@ -121,6 +127,7 @@
   what_could_go_wrong_de: "Beim reinen Nachschauen kaum etwas. Vorsicht erst, wenn er etwas neu startet (das ist 🟡)."
   danger: safe
   theme: betrieb
+  stages: [live]
   common: true
   order: 4
   aliases_de: ["warum rot", crash, logs, "laeuft nicht", status, betrieb]
@@ -137,6 +144,7 @@
   what_could_go_wrong_de: "Falsches ENV= deployt in die falsche Umgebung (🟠). Manifestfehler können Dienste lahmlegen."
   danger: assisted
   theme: ausrollen
+  stages: [deploy]
   aliases_de: [infra, kubernetes, kustomize, manifest, deploy]
   guardrails: [G-ENV-EXPLICIT, G-VALIDATE-FIRST, G-ASK-EXPERT]
   related: [agent-ops, agent-security]

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { goals, tools, taxonomy, themes } from './agentGuide';
+import { goals, tools, taxonomy, themes, guideMap, glossary } from './agentGuide';
 import {
   MIN_QUERY, normalize, buildEntries, matches, filterEntries,
-  groupBy, sortCommonFirst, highlight,
+  groupBy, sortCommonFirst, highlight, mapFilterIds, splitGlossaryTerms,
 } from './agentGuideSearch';
 
 const ALL = buildEntries(goals, tools);
@@ -115,5 +115,51 @@ describe('highlight', () => {
   it('returns a single unmarked segment below MIN_QUERY or on no match', () => {
     expect(highlight('Hallo', 'ha')).toEqual([{ text: 'Hallo', mark: false }]);
     expect(highlight('Hallo', 'xyz')).toEqual([{ text: 'Hallo', mark: false }]);
+  });
+});
+
+describe('buildEntries: stages', () => {
+  it('carries the stages array onto each entry', () => {
+    const e = ALL.find(x => x.id === 'bug-beheben')!;
+    expect(Array.isArray(e.stages)).toBe(true);
+    expect(e.stages).toContain('plan');
+  });
+});
+
+describe('mapFilterIds', () => {
+  it('returns null for a null filter (no restriction)', () => {
+    expect(mapFilterIds(null, guideMap)).toBeNull();
+  });
+  it('flow filter → the station goalIds+toolIds set', () => {
+    const ids = mapFilterIds({ kind: 'flow', id: 'plan' }, guideMap)!;
+    const plan = guideMap.flow.find(s => s.id === 'plan')!;
+    expect(ids.has(plan.goalIds[0] ?? plan.toolIds[0])).toBe(true);
+    expect(ids.has('dienst-status-pruefen')).toBe(false); // live station, not plan
+  });
+  it('node filter → the territory node relatesTo set', () => {
+    const node = guideMap.territory.flatMap(a => a.nodes).find(n => n.relatesTo.length > 0)!;
+    const ids = mapFilterIds({ kind: 'node', id: node.slug }, guideMap)!;
+    expect(ids.has(node.relatesTo[0])).toBe(true);
+  });
+  it('unknown id → empty set (filters everything out, never throws)', () => {
+    expect(mapFilterIds({ kind: 'flow', id: 'nope' }, guideMap)!.size).toBe(0);
+  });
+});
+
+describe('splitGlossaryTerms', () => {
+  const terms = glossary.map(g => g.term); // includes 'PR', 'CI', 'Deploy', …
+  it('splits a known whole-word term into a marked segment', () => {
+    const segs = splitGlossaryTerms('Öffne einen PR und warte auf CI.', terms);
+    expect(segs.some(s => s.term === 'PR')).toBe(true);
+    expect(segs.some(s => s.term === 'CI')).toBe(true);
+    expect(segs.map(s => s.text).join('')).toBe('Öffne einen PR und warte auf CI.');
+  });
+  it('does not match inside a larger word', () => {
+    const segs = splitGlossaryTerms('Preisliste', ['PR']);
+    expect(segs.every(s => !s.term)).toBe(true);
+    expect(segs.map(s => s.text).join('')).toBe('Preisliste');
+  });
+  it('returns one plain segment when there are no terms', () => {
+    expect(splitGlossaryTerms('nichts hier', [])).toEqual([{ text: 'nichts hier' }]);
   });
 });

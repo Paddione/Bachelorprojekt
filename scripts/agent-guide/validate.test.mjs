@@ -50,3 +50,18 @@ test('a short init_prompt_de in the good fixture would validate', () => {
   assert.equal(res.ok, true, JSON.stringify(res.errors, null, 2));
 });
 
+test('dangling stages reference is rejected', () => {
+  const res = validateRegistry(join(here, 'fixtures', 'bad-stage-ref'));
+  assert.equal(res.ok, false);
+  assert.ok(
+    res.errors.some((e) => e.includes('stages') && e.includes('does-not-exist')),
+    `expected a stages-ref error, got: ${JSON.stringify(res.errors)}`,
+  );
+});
+
+test('good fixture still validates with a flow.yaml present', () => {
+  // good fixture has no flow.yaml → flow checks are skipped, not errors
+  const res = validateRegistry(join(here, 'fixtures', 'good'));
+  assert.equal(res.ok, true, JSON.stringify(res.errors, null, 2));
+});
+

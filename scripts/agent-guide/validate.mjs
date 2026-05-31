@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
+import { TERRITORY_AREA_IDS } from './map-areas.mjs';
 
 const TAXONOMY_REQUIRED = ['safe', 'caution', 'assisted', 'forbidden'];
 const TOOL_KINDS = ['skill', 'agent', 'task'];
@@ -24,6 +25,7 @@ function migrationSlugs(repoRoot) {
 
 export function validateRegistry(dir, repoRoot = null) {
   const errors = [];
+  const warnings = [];
   const req = (cond, msg) => { if (!cond) errors.push(msg); };
 
   const taxonomy = load(dir, 'taxonomy.yaml');
@@ -39,6 +41,19 @@ export function validateRegistry(dir, repoRoot = null) {
   const taxIds = new Set(taxonomy.map((t) => t.id));
   const grIds = new Set(guardrails.map((g) => g.id));
   const toolIds = new Set(tools.map((t) => t.id));
+
+  let flow = [];
+  try { flow = load(dir, 'flow.yaml'); } catch { flow = []; }
+  const flowIds = new Set((flow ?? []).map((f) => f && f.id));
+
+  const goalIdSet = new Set(goals.map((g) => g.id));
+  const cardIdSet = new Set([...goalIdSet, ...toolIds]); // valid relates_to / drill targets
+
+  for (const f of flow ?? []) {
+    for (const k of ['id', 'label_de', 'emoji', 'danger', 'order', 'blurb_de'])
+      req(f?.[k] !== undefined && f?.[k] !== null, `flow[${f?.id}]: missing '${k}'`);
+    if (f?.danger) req(taxIds.has(f.danger), `flow[${f?.id}]: danger '${f.danger}' not in taxonomy`);
+  }
 
   for (const id of TAXONOMY_REQUIRED) req(taxIds.has(id), `taxonomy: missing required tier '${id}'`);
   for (const t of taxonomy)
@@ -80,6 +95,8 @@ export function validateRegistry(dir, repoRoot = null) {
       if (l && typeof l === 'object')
         req(typeof l.url === 'string' && l.url.length > 0, `${label}: link has empty 'url'`);
     }
+    for (const s of card?.stages ?? [])
+      req(flowIds.size === 0 || flowIds.has(s), `${label}: stages ref '${s}' not in flow.yaml`);
   };
   for (const t of tools) checkCardExtras(t, `tools[${t?.id}]`);
   for (const g of goals) checkCardExtras(g, `goals[${g?.id}]`);
@@ -90,6 +107,12 @@ export function validateRegistry(dir, repoRoot = null) {
     req(['software', 'hardware'].includes(c?.kind), `components[${c?.slug}]: bad kind '${c?.kind}'`);
     req((c?.summary_de ?? '').length <= 140, `components[${c?.slug}]: summary_de > 140 chars`);
     req(taxIds.has(c?.sensitivity), `components[${c?.slug}]: sensitivity '${c?.sensitivity}' not in taxonomy`);
+    if (c?.area !== undefined && c?.area !== null)
+      req(TERRITORY_AREA_IDS.has(c.area), `components[${c?.slug}]: area '${c.area}' not a known territory area`);
+    if (c?.theme !== undefined && c?.theme !== null && themeIds.size > 0)
+      req(themeIds.has(c.theme), `components[${c?.slug}]: theme '${c.theme}' not in themes.yaml`);
+    for (const rid of c?.relates_to ?? [])
+      req(cardIdSet.has(rid), `components[${c?.slug}]: relates_to '${rid}' not a known goal/tool id`);
   }
 
   if (repoRoot) {
@@ -99,13 +122,21 @@ export function validateRegistry(dir, repoRoot = null) {
     for (const s of compSlugs) req(dbSlugs.has(s), `components: registry slug '${s}' not in any migration`);
   }
 
-  return { ok: errors.length === 0, errors };
+  if (flowIds.size > 0) {
+    const usedStages = new Set();
+    for (const card of [...goals, ...tools])
+      for (const s of card?.stages ?? []) usedStages.add(s);
+    for (const f of flow) if (!usedStages.has(f.id)) warnings.push(`flow station '${f.id}' has no goal/tool (stages)`);
+  }
+
+  return { ok: errors.length === 0, errors, warnings };
 }
 
 // CLI: validate the real registry (with DB slug cross-check) and exit non-zero on failure.
 if (import.meta.url === `file://${process.argv[1]}`) {
   const repoRoot = process.cwd();
   const res = validateRegistry(join(repoRoot, 'docs', 'agent-guide', 'registry'), repoRoot);
+  for (const w of res.warnings ?? []) console.warn('⚠', w);
   if (!res.ok) { for (const e of res.errors) console.error('✗', e); process.exit(1); }
   console.log('✓ agent-guide registry valid');
 }

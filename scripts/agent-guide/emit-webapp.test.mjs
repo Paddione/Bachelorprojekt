@@ -90,13 +90,15 @@ test('buildWebappData: emits all four taxonomy tiers each with a non-empty color
   assert.ok(!('enforcement_default' in data.taxonomy[0]));
 });
 
-test('buildWebappData: keys components by slug with only the §6.1 fields', () => {
+test('buildWebappData: keys components by slug with the base fields (+ optional map fields)', () => {
   const data = buildWebappData(fixtureRegistry());
   assert.ok(data.components.keycloak, 'components is an object keyed by slug');
   const kc = data.components.keycloak;
-  assert.deepEqual(Object.keys(kc).sort(),
-    ['emoji', 'kind', 'name', 'sensitivity', 'slug', 'summary_de', 'url']);
+  const BASE = ['emoji', 'kind', 'name', 'sensitivity', 'slug', 'summary_de', 'url'];
+  for (const k of BASE) assert.ok(k in kc, `component keeps base field '${k}'`);
   assert.equal(kc.sensitivity, 'assisted');
+  // The fixture component has no area/theme/relates_to → those keys must be ABSENT.
+  assert.ok(!('area' in kc) && !('theme' in kc) && !('relates_to' in kc));
   // what_for_de / placeholder_en / links are NOT needed by S2 → dropped
   assert.ok(!('what_for_de' in kc));
   assert.ok(!('placeholder_en' in kc));
@@ -262,4 +264,71 @@ test('buildWebappData includes init_prompt_de when present and omits it when abs
   assert.ok(!('init_prompt_de' in website), 'absent field must not be emitted as a key');
 });
 
+// ── Map block (flow ribbon + territory) ──────────────────────────────────────
+function fixtureRegistryMapped() {
+  const dir = fixtureRegistryThemed();
+  writeFileSync(join(dir, 'flow.yaml'), [
+    '- { id: idee, label_de: "Idee", emoji: "💡", danger: safe, order: 1, blurb_de: "PR Idee." }',
+    '- { id: plan, label_de: "Plan", emoji: "📋", danger: caution, order: 2, blurb_de: "Plan ENV." }',
+    '',
+  ].join('\n'));
+  // give the themed goal a stage + concept, the plan tool a stage
+  writeFileSync(join(dir, 'goals.yaml'), [
+    '- id: change-website-text',
+    '  title_de: "Ich will den Text auf der Website ändern"',
+    '  when_de: "Wenn etwas Falsches dasteht."', '  danger: safe',
+    '  theme: website', '  one_liner_de: "Text korrigieren."',
+    '  concept_de: "Konzept: ein PR ist ein Änderungsvorschlag."',
+    '  stages: [plan]',
+    '  flow:', '    - { tool: agent-website, note_de: "Sag ihm, welche Seite." }',
+    '  example_prompt_de: "Ändere die Überschrift."',
+    '  guardrails: [G-ENV-EXPLICIT]', '  related: []', '',
+  ].join('\n'));
+  // tag keycloak onto the map; mailpit stays off-map
+  writeFileSync(join(dir, 'components.yaml'), [
+    '- { slug: keycloak, kind: software, name: "Keycloak", emoji: "🔐", summary_de: "SSO.", what_for_de: "x", placeholder_en: "x", sensitivity: assisted, url: "https://auth", links: [], area: plattform, theme: website, relates_to: [change-website-text] }',
+    '- { slug: mailpit,  kind: software, name: "Mailpit",  emoji: "📭", summary_de: "Test.", what_for_de: "x", placeholder_en: "x", sensitivity: safe, url: "https://mail", links: [] }',
+    '',
+  ].join('\n'));
+  return dir;
+}
+
+test('buildWebappData: emits a map.flow ordered by station order with resolved goal/tool ids', () => {
+  const data = buildWebappData(fixtureRegistryMapped());
+  assert.ok(data.map && Array.isArray(data.map.flow));
+  assert.deepEqual(data.map.flow.map((s) => s.id), ['idee', 'plan']);
+  const plan = data.map.flow.find((s) => s.id === 'plan');
+  assert.equal(plan.label_de, 'Plan');
+  assert.equal(plan.danger, 'caution');
+  assert.deepEqual(plan.goalIds, ['change-website-text']);
+  assert.deepEqual(data.map.flow.find((s) => s.id === 'idee').goalIds, []);
+});
+
+test('buildWebappData: emits map.territory areas with only opted-in components, carrying accent', () => {
+  const data = buildWebappData(fixtureRegistryMapped());
+  const plattform = data.map.territory.find((a) => a.id === 'plattform');
+  assert.ok(plattform, 'plattform area present');
+  assert.deepEqual(plattform.nodes.map((n) => n.slug), ['keycloak']);
+  const kc = plattform.nodes[0];
+  assert.equal(kc.sensitivity, 'assisted');
+  assert.equal(kc.theme, 'website');
+  assert.equal(kc.accent, '#4a9eff');                 // resolved from themes.yaml
+  assert.deepEqual(kc.relatesTo, ['change-website-text']);
+  // mailpit has no area → must not appear anywhere in territory
+  const allSlugs = data.map.territory.flatMap((a) => a.nodes.map((n) => n.slug));
+  assert.ok(!allSlugs.includes('mailpit'));
+});
+
+test('buildWebappData: passes stages + concept_de onto goals', () => {
+  const data = buildWebappData(fixtureRegistryMapped());
+  const g = data.goals.find((x) => x.id === 'change-website-text');
+  assert.deepEqual(g.stages, ['plan']);
+  assert.equal(g.concept_de, 'Konzept: ein PR ist ein Änderungsvorschlag.');
+});
+
+test('buildWebappData: tolerates a registry with no flow.yaml (empty map.flow)', () => {
+  const data = buildWebappData(globalThis.__agFixtureRegistry());
+  assert.deepEqual(data.map.flow, []);
+  assert.ok(Array.isArray(data.map.territory));
+});
 

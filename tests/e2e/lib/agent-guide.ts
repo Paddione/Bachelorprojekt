@@ -57,6 +57,8 @@ export interface Goal {
   aliases_de: string[];
   common: boolean;
   order: number;
+  stages: string[];
+  concept_de?: string;
   escalate_to_de?: string;
 }
 
@@ -77,7 +79,41 @@ export interface Tool {
   aliases_de: string[];
   common: boolean;
   order: number;
+  stages: string[];
   escalate_to_de?: string;
+}
+
+export interface FlowStation {
+  id: string;
+  label_de: string;
+  emoji: string;
+  danger: string;
+  order: number;
+  blurb_de: string;
+  goalIds: string[];
+  toolIds: string[];
+}
+
+export interface TerritoryNode {
+  slug: string;
+  name: string;
+  emoji: string;
+  sensitivity: string;
+  theme: string | null;
+  accent: string;
+  relatesTo: string[];
+}
+
+export interface TerritoryArea {
+  id: string;
+  label_de: string;
+  order: number;
+  nodes: TerritoryNode[];
+}
+
+export interface MapData {
+  flow: FlowStation[];
+  territory: TerritoryArea[];
 }
 
 export interface GuideData {
@@ -86,6 +122,7 @@ export interface GuideData {
   taxonomy: TierEntry[];
   themes: Theme[];
   glossary: GlossaryEntry[];
+  map: MapData;
 }
 
 export function loadGuideData(): GuideData {
@@ -97,6 +134,7 @@ export function loadGuideData(): GuideData {
     taxonomy: raw.taxonomy as TierEntry[],
     themes: raw.themes as Theme[],
     glossary: raw.glossary as GlossaryEntry[],
+    map: (raw.map ?? { flow: [], territory: [] }) as MapData,
   };
 }
 
@@ -140,6 +178,18 @@ export async function openAgentGuide(page: Page) {
   const body = page.locator('.ag-body');
   await expect(body).toBeVisible({ timeout: 5_000 });
   return body;
+}
+
+/** Ensures the mental-model map is expanded; returns the .ag-map locator. */
+export async function ensureMapOpen(page: Page) {
+  const toggle = page.locator('.ag-map-toggle');
+  if (await toggle.count()) {
+    const open = await toggle.getAttribute('aria-expanded');
+    if (open !== 'true') await toggle.click();
+  }
+  const map = page.locator('.ag-map');
+  await expect(map).toBeVisible({ timeout: 5_000 });
+  return map;
 }
 
 /** Injects a fixed-position film banner into the page (removed after next step). */

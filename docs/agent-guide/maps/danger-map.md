@@ -11,7 +11,9 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 **enforcement_default:** `none`
 
 **Ziele:**
+- `deploy-pruefen` — Ich will prüfen, ob mein Deploy wirklich live ist
 - `dienst-status-pruefen` — Ich will prüfen, ob alle Dienste laufen
+- `idee-starten` — Ich habe eine Idee — wie fange ich an?
 - `website-text-aendern` — Ich will einen Text auf der Website ändern
 
 **Werkzeuge:**
@@ -22,6 +24,7 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 
 **Guardrails (transitiv):**
 - `G-CONTEXT-CHECK` — Kubectl-Kontext prüfen
+- `G-ENV-EXPLICIT` — ENV immer explizit setzen
 - `G-PR-NOT-MAIN` — Nie direkt auf main
 - `G-PULL-FIRST` — Erst ziehen, dann arbeiten
 
@@ -54,6 +57,7 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 **Ziele:**
 - `aenderung-ausrollen` — Ich will eine Änderung in der Produktion ausrollen
 - `datenbank-aendern` — Ich will das Datenbankschema ändern
+- `pr-oeffnen` — Ich will einen Pull Request öffnen und CI grün bekommen
 
 **Werkzeuge:**
 - `agent-db` — Datenbank-Agent (db)
@@ -63,6 +67,7 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 **Guardrails (transitiv):**
 - `G-ASK-EXPERT` — Bei Rot: stoppen und fragen
 - `G-ENV-EXPLICIT` — ENV immer explizit setzen
+- `G-PR-NOT-MAIN` — Nie direkt auf main
 - `G-SECRET-ORDER` — Geheimnis-Reihenfolge einhalten
 - `G-VALIDATE-FIRST` — Erst prüfen, dann anwenden
 

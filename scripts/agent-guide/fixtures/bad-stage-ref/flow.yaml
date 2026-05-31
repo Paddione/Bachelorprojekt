@@ -1,0 +1,1 @@
+- { id: plan, label_de: "Plan", emoji: "📋", danger: caution, order: 1, blurb_de: "x" }

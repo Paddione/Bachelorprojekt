@@ -10,6 +10,8 @@
   one_liner_de: "Inhalt oder Preis auf der Website korrigieren."
   common: true
   order: 1
+  stages: [code]
+  concept_de: "Konzept: Inhalte ändert man über einen Branch + PR, nicht direkt auf main."
   aliases_de: [text, inhalt, preis, startseite, webseite, aendern]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [feature-bauen]
@@ -25,6 +27,8 @@
   one_liner_de: "Nachsehen, ob alle Dienste laufen."
   common: true
   order: 2
+  stages: [live]
+  concept_de: "Konzept: Status/Logs lesen ist 🟢 — es verändert nichts."
   aliases_de: [status, laeuft, gesund, pods, health, uebersicht]
   guardrails: []
   related: [bug-beheben]
@@ -42,6 +46,8 @@
   one_liner_de: "Etwas funktioniert nicht — finden und reparieren."
   common: true
   order: 3
+  stages: [plan, code, pr-ci, deploy]
+  concept_de: "Konzept: erst ein Test, der den Fehler zeigt (TDD), dann der Fix."
   aliases_de: [fehler, bug, kaputt, "geht nicht", reparieren, fix]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [feature-bauen]
@@ -57,6 +63,8 @@
   danger: caution
   theme: entwickeln
   one_liner_de: "Eine neue Funktion oder Seite hinzufügen."
+  stages: [plan, code, pr-ci, deploy]
+  concept_de: "Konzept: jede neue Funktion durchläuft Plan → Code → PR → Deploy."
   aliases_de: [funktion, feature, neu, seite, bauen]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [bug-beheben, aenderung-ausrollen]
@@ -72,6 +80,8 @@
   danger: assisted
   theme: ausrollen
   one_liner_de: "Einen gemergten Stand live schalten."
+  stages: [deploy, live]
+  concept_de: "Konzept: Deploy heißt einen gemergten Stand in einer Umgebung (ENV) aktivieren."
   aliases_de: [deploy, ausrollen, live, produktion, release]
   guardrails: [G-ENV-EXPLICIT, G-VALIDATE-FIRST]
   related: [feature-bauen]
@@ -89,6 +99,8 @@
   danger: assisted
   theme: datenbank
   one_liner_de: "Tabelle, Spalte oder Index ergänzen."
+  stages: [plan, code, deploy]
+  concept_de: "Konzept: Schema-Änderungen treffen beide Marken — immer als Migration."
   aliases_de: [datenbank, schema, migration, tabelle, spalte, sql]
   guardrails: [G-ENV-EXPLICIT, G-ASK-EXPERT]
   related: [feature-bauen]
@@ -120,3 +132,56 @@
   aliases_de: [cluster, reset, neuaufbau, sealedsecrets, ausfall]
   guardrails: [G-SECRET-ORDER, G-ENV-EXPLICIT, G-ASK-EXPERT]
   related: [aenderung-ausrollen]
+- id: idee-starten
+  title_de: "Ich habe eine Idee — wie fange ich an?"
+  when_de: "Du willst etwas verändern, weißt aber noch nicht, wie der Weg aussieht."
+  flow:
+    - tool: brainstorming
+      note_de: "Beschreibe die Idee; der Brainstorming-Skill schärft sie zu einem Design."
+    - tool: dev-flow-plan
+      note_de: "Danach schreibt der Planungs-Skill einen Schritt-für-Schritt-Plan."
+  example_prompt_de: "Ich habe eine Idee für die Plattform und möchte sie erst gemeinsam durchdenken."
+  danger: safe
+  theme: entwickeln
+  one_liner_de: "Von der Idee zum Plan — der erste Schritt."
+  common: true
+  order: 6
+  stages: [idee, brainstorm]
+  concept_de: "Konzept: jede Änderung beginnt mit Brainstorm → Plan, bevor Code entsteht."
+  aliases_de: [idee, anfangen, start, neu, wie]
+  guardrails: [G-PULL-FIRST]
+  related: [feature-bauen, bug-beheben]
+- id: pr-oeffnen
+  title_de: "Ich will einen Pull Request öffnen und CI grün bekommen"
+  when_de: "Der Code ist fertig und soll als Pull Request geprüft und gemergt werden."
+  flow:
+    - tool: dev-flow-execute
+      note_de: "Pusht den Branch, öffnet den PR und wartet, bis die CI-Checks grün sind."
+  example_prompt_de: "Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün ist."
+  danger: assisted
+  theme: entwickeln
+  one_liner_de: "Branch als PR einreichen und CI abwarten."
+  stages: [pr-ci]
+  concept_de: "Konzept: nichts kommt nach main ohne PR + grüne CI (Squash-Merge)."
+  aliases_de: [pr, "pull request", ci, merge, review]
+  guardrails: [G-PR-NOT-MAIN]
+  related: [feature-bauen, aenderung-ausrollen]
+- id: deploy-pruefen
+  title_de: "Ich will prüfen, ob mein Deploy wirklich live ist"
+  when_de: "Nach einem Deploy willst du sehen, ob die Änderung in der echten Umgebung angekommen ist."
+  flow:
+    - tool: agent-ops
+      note_de: "Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft."
+    - tool: dev-flow-e2e
+      note_de: "Verifiziert per E2E-Test gegen die Live-URL, dass das Feature funktioniert."
+  example_prompt_de: "Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check."
+  danger: safe
+  theme: betrieb
+  one_liner_de: "Nach dem Deploy prüfen, ob alles läuft."
+  common: true
+  order: 7
+  stages: [live]
+  concept_de: "Konzept: Deploy ≠ live — erst Status, Logs und ein E2E-Check bestätigen es."
+  aliases_de: [deploy, live, pruefen, status, "ist es da"]
+  guardrails: [G-ENV-EXPLICIT]
+  related: [aenderung-ausrollen, dienst-status-pruefen]

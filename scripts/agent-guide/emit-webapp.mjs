@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import { validateRegistry } from './validate.mjs';
 import { parse as parseYaml } from 'yaml';
+import { TERRITORY_AREAS } from './map-areas.mjs';
 
 /** Fixed per-tier palette (emitter-owned, §6.4). AA-contrast against the #0f1623 drawer. */
 const TIER_COLORS = {
@@ -84,6 +85,7 @@ export function buildWebappData(registryDir) {
     aliases_de: t.aliases_de ?? [],
     common: t.common === true,
     order: t.order ?? 999,
+    stages: t.stages ?? [],
     ...(t.init_prompt_de ? { init_prompt_de: t.init_prompt_de } : {}),
     ...(t.danger === 'forbidden' ? { escalate_to_de: t.escalate_to_de ?? 'Patrick' } : {}),
   }));
@@ -107,9 +109,13 @@ export function buildWebappData(registryDir) {
     aliases_de: g.aliases_de ?? [],
     common: g.common === true,
     order: g.order ?? 999,
+    stages: g.stages ?? [],
+    // Only apply the tool-summary fallback for non-forbidden goals (forbidden goals have no teaching concept).
+    concept_de: g.concept_de ?? (g.danger !== 'forbidden' && g.flow?.[0] ? (toolById(g.flow[0].tool)?.summary_de ?? '') : ''),
     ...(g.danger === 'forbidden' ? { escalate_to_de: g.escalate_to_de ?? 'Patrick' } : {}),
   }));
 
+  const themeAccent = (id) => themes.find((t) => t.id === id)?.accent ?? '#888888';
   const components = {};
   for (const c of reg.components) {
     components[c.slug] = {
@@ -120,8 +126,35 @@ export function buildWebappData(registryDir) {
       summary_de: c.summary_de,
       sensitivity: c.sensitivity,
       url: c.url,
+      ...(c.area ? { area: c.area } : {}),
+      ...(c.theme ? { theme: c.theme } : {}),
+      ...(c.relates_to ? { relates_to: c.relates_to } : {}),
     };
   }
+
+  const flowRaw = loadOptionalList(registryDir, 'flow');
+  const flowStations = flowRaw
+    .map((s) => ({
+      id: s.id, label_de: s.label_de, emoji: s.emoji, danger: s.danger,
+      order: s.order ?? 999, blurb_de: s.blurb_de ?? '',
+      goalIds: reg.goals.filter((g) => (g.stages ?? []).includes(s.id)).map((g) => g.id),
+      toolIds: reg.tools.filter((t) => (t.stages ?? []).includes(s.id)).map((t) => t.id),
+    }))
+    .sort((a, b) => a.order - b.order);
+
+  const territory = TERRITORY_AREAS
+    .map((a) => ({
+      id: a.id, label_de: a.label_de, order: a.order,
+      nodes: reg.components
+        .filter((c) => c.area === a.id)
+        .map((c) => ({
+          slug: c.slug, name: c.name, emoji: c.emoji, sensitivity: c.sensitivity,
+          theme: c.theme ?? null, accent: c.theme ? themeAccent(c.theme) : '#888888',
+          relatesTo: c.relates_to ?? [],
+        })),
+    }));
+
+  const map = { flow: flowStations, territory };
 
   return {
     $schema: 'agent-guide.generated/v1',
@@ -132,6 +165,7 @@ export function buildWebappData(registryDir) {
     goals,
     tools,
     components,
+    map,
   };
 }
 

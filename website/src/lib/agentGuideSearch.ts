@@ -1,4 +1,4 @@
-import type { Goal, Tool, Theme, TierEntry } from './agentGuide';
+import type { Goal, Tool, Theme, TierEntry, MapData } from './agentGuide';
 
 export type Axis = 'thema' | 'gefahr' | 'art';
 export const MIN_QUERY = 3;
@@ -16,6 +16,7 @@ export interface GuideEntry {
   common: boolean;
   order: number;
   aliases_de: string[];
+  stages: string[];
   haystack: string;         // normalized
   goal?: Goal;
   tool?: Tool;
@@ -72,6 +73,7 @@ export function buildEntries(goals: Goal[], tools: Tool[]): GuideEntry[] {
     danger: g.danger, theme: g.theme,
     art: 'ziel', artLabel: ART_LABEL.ziel,
     common: g.common, order: g.order, aliases_de: g.aliases_de ?? [],
+    stages: g.stages ?? [],
     haystack: goalHaystack(g), goal: g,
   }));
   const toolEntries: GuideEntry[] = tools.map(t => {
@@ -82,6 +84,7 @@ export function buildEntries(goals: Goal[], tools: Tool[]): GuideEntry[] {
       danger: t.danger, theme: t.theme,
       art, artLabel: ART_LABEL[art] ?? t.kind_de,
       common: t.common, order: t.order, aliases_de: t.aliases_de ?? [],
+      stages: t.stages ?? [],
       haystack: toolHaystack(t), tool: t,
     };
   });
@@ -163,4 +166,44 @@ export function highlight(text: string, query: string): Segment[] {
     { text: text.slice(startOrig, endOrig), mark: true },
     { text: text.slice(endOrig), mark: false },
   ].filter(s => s.text.length > 0);
+}
+
+export type MapFilter = { kind: 'flow' | 'node'; id: string } | null;
+
+/** Resolve a map selection to the set of entry ids it permits, or null = no restriction. */
+export function mapFilterIds(filter: MapFilter, map: MapData): Set<string> | null {
+  if (!filter) return null;
+  if (filter.kind === 'flow') {
+    const s = map.flow.find(f => f.id === filter.id);
+    return new Set([...(s?.goalIds ?? []), ...(s?.toolIds ?? [])]);
+  }
+  const node = map.territory.flatMap(a => a.nodes).find(n => n.slug === filter.id);
+  return new Set(node?.relatesTo ?? []);
+}
+
+export interface GlossSegment { text: string; term?: string; }
+
+/** Split `text` into segments, marking the first whole-word occurrence of each glossary
+ *  term (longest term first). Whole-word = bounded by non-word chars; case-insensitive. */
+export function splitGlossaryTerms(text: string, terms: string[]): GlossSegment[] {
+  const wanted = [...terms].filter(Boolean).sort((a, b) => b.length - a.length);
+  const used = new Set<string>();
+  let segs: GlossSegment[] = [{ text }];
+  for (const term of wanted) {
+    const next: GlossSegment[] = [];
+    for (const seg of segs) {
+      if (seg.term || used.has(term)) { next.push(seg); continue; }
+      const re = new RegExp(`(^|[^\\p{L}\\p{N}])(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(?=[^\\p{L}\\p{N}]|$)`, 'iu');
+      const m = re.exec(seg.text);
+      if (!m) { next.push(seg); continue; }
+      const start = m.index + m[1].length;
+      const end = start + m[2].length;
+      if (seg.text.slice(0, start)) next.push({ text: seg.text.slice(0, start) });
+      next.push({ text: seg.text.slice(start, end), term });
+      if (seg.text.slice(end)) next.push({ text: seg.text.slice(end) });
+      used.add(term);
+    }
+    segs = next;
+  }
+  return segs.length ? segs : [{ text }];
 }

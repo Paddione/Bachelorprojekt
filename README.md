@@ -68,7 +68,6 @@ graph TB
         MP[Mailpit]
         DOCS[Docs]
         DS[DocuSeal]
-        TR[Tracking]
         LK[LiveKit Server]
         LKI[LiveKit Ingress RTMP]
         LKE[LiveKit Egress]
@@ -79,14 +78,14 @@ graph TB
         WEB[Website Astro + Chat]
     end
 
-    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & TR & WEB & LK & LKI
-    KC -. OIDC .-> NC & VW & WEB & DS & TR & BRETT
+    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & WEB & LK & LKI
+    KC -. OIDC .-> NC & VW & WEB & DS & BRETT
     NC --> CO
     NC --> HPB
     WEB --> LK
     LKI --> LK
     LK --> LKE
-    KC & NC & DS & TR & BRETT & WEB --> DB
+    KC & NC & DS & BRETT & WEB --> DB
 ```
 
 ## Repository-Layout (Kurzfassung)

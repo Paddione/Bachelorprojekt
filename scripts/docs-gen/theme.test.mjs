@@ -29,10 +29,11 @@ test('editorialCss: styles repo vs plugin provenance variants', () => {
   assert.ok(css.includes('.provenance-badge.plugin'), 'plugin variant');
 });
 
-test('editorialCss: is a light editorial theme with Inter + Merriweather', () => {
+test('editorialCss: is a dark brand theme with Geist + Instrument Serif', () => {
   const css = editorialCss();
-  assert.ok(css.includes('Inter'), 'uses Inter sans stack');
-  assert.ok(css.includes('Merriweather'), 'uses Merriweather serif stack');
+  assert.ok(css.includes('Geist'), 'uses Geist sans stack');
+  assert.ok(css.includes('Instrument Serif'), 'uses Instrument Serif heading stack');
+  assert.ok(css.includes('#0b111c'), 'dark page background token present');
   assert.ok(css.includes('.diagram-svg-wrapper'), 'styles diagram wrapper');
   assert.ok(css.includes('.diagram-fallback'), 'styles diagram fallback');
   assert.ok(css.includes('.toc-box'), 'styles toc box');
@@ -100,4 +101,11 @@ test('graphCss: exposes the dim/hl/region rules and is included in editorialCss'
   assert.ok(css.includes('overflow:hidden'), 'graph container clips pan/zoom overflow');
   // editorialCss must surface the graph CSS so the single stylesheet covers the landing.
   assert.ok(editorialCss().includes('.dim'), 'editorialCss includes graphCss rules');
+});
+
+test('graphCss + pills reference theme variables, not raw light-theme hex', () => {
+  const css = editorialCss();
+  // the old light accent must be gone everywhere
+  assert.ok(!css.includes('#2f6db5'), 'no leftover light-theme accent hex');
+  assert.ok(css.includes('var(--accent)'), 'graph highlight uses --accent');
 });

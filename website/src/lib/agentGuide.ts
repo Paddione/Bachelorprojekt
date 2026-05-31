@@ -76,6 +76,7 @@ export interface Tool {
   common: boolean;
   order: number;
   escalate_to_de?: string;
+  init_prompt_de?: string;
 }
 
 export interface Component {

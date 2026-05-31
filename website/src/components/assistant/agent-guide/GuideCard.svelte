@@ -106,6 +106,15 @@
         {#if !isForbidden}<p class="ag-summary">{tool!.what_for_de}</p>{/if}
         <p class="ag-label">So startest Du</p><p class="ag-bodytext">{tool!.how_to_start_de}</p>
         <p class="ag-label">Was kann schiefgehen</p><p class="ag-bodytext">{tool!.what_could_go_wrong_de}</p>
+        {#if tool!.init_prompt_de}
+          <p class="ag-label">In Claude Code einfügen</p>
+          <div class="ag-prompt ag-prompt-init">
+            <code class="ag-prompt-text">{tool!.init_prompt_de}</code>
+            <button class="ag-copy" onclick={() => onCopy(`${entry.id}::init`, tool!.init_prompt_de!)}>
+              {copiedId === `${entry.id}::init` ? 'Kopiert ✓' : 'In Claude Code einfügen'}
+            </button>
+          </div>
+        {/if}
         {#if tool!.guardrails.length}
           <div class="ag-chips">
             {#each tool!.guardrails as g (g.id)}

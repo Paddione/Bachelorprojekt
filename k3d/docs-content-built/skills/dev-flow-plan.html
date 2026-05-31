@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>dev-flow-plan — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
 <div id="search-overlay">
   <div id="search-box">
     <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
@@ -51,6 +60,7 @@ Falls durchgeführt, erstelle das Grilling-Ticket mit dem CLI-Helper:</p>
   --type task \
   --brand mentolder \
   --title "Grilling: &lt;kurzer-titel&gt;" \
+  --priority mittel \
   --description "FUNKTIONALE ANFORDERUNGEN:"$'\n'"$GRILLING_REQUIREMENTS"$'\n\n'"ASSETS ZU BESCHAFFEN:"$'\n'"$GRILLING_ASSETS_TODO")
 
 export GRILLING_TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
@@ -126,6 +136,7 @@ TICKET_RESULT=$(./scripts/ticket.sh create \
   --type task \
   --brand mentolder \
   --title "Plan: &lt;slug&gt;" \
+  --priority mittel \
   --description "Branch: feature/&lt;slug&gt;"$'\n'"Plan: docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"$'\n'"Spec: docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md"$GRILLING_REF)
 
 TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
@@ -190,6 +201,9 @@ cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
 
   </main>
 </div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
 <script src="./app.js"></script>
 </body>
 </html>

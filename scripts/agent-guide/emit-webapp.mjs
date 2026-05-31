@@ -84,6 +84,7 @@ export function buildWebappData(registryDir) {
     aliases_de: t.aliases_de ?? [],
     common: t.common === true,
     order: t.order ?? 999,
+    ...(t.init_prompt_de ? { init_prompt_de: t.init_prompt_de } : {}),
     ...(t.danger === 'forbidden' ? { escalate_to_de: t.escalate_to_de ?? 'Patrick' } : {}),
   }));
 

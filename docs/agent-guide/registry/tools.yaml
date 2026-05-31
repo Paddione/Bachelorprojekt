@@ -1,3 +1,31 @@
+- id: superpowers
+  name_de: "Superpowers (/superpowers)"
+  kind: skill
+  summary_de: "Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt."
+  what_for_de: "Der Einstieg in alle Skills. Erklärt Claude, welche Fertigkeiten es hat und wann es sie einsetzen muss."
+  how_to_start_de: "Tippe '/superpowers' in Claude Code – der Skill lädt sich selbst."
+  what_could_go_wrong_de: "Kaum etwas: er lädt nur Wissen, ändert nichts am Code."
+  danger: safe
+  theme: entwickeln
+  aliases_de: [superpowers, skills, fertigkeiten]
+  guardrails: []
+  related: [dev-flow-plan]
+  links: []
+  init_prompt_de: "/superpowers"
+- id: brainstorming
+  name_de: "Brainstorming (/brainstorming)"
+  kind: skill
+  summary_de: "Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design."
+  what_for_de: "Vor jeder kreativen Arbeit: klärt, was du wirklich willst, und hält Entscheidungen fest."
+  how_to_start_de: "Sage '/brainstorming' oder beschreibe das Vorhaben – der Skill startet von selbst."
+  what_could_go_wrong_de: "Wenig: er stoppt bewusst vor der Umsetzung. Du bestätigst das Design."
+  danger: safe
+  theme: entwickeln
+  aliases_de: [brainstorm, brainstorming, idee, design, konzept]
+  guardrails: []
+  related: [dev-flow-plan, superpowers]
+  links: []
+  init_prompt_de: "/brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken."
 - id: dev-flow-plan
   name_de: "Planungs-Skill (dev-flow-plan)"
   kind: skill
@@ -11,6 +39,7 @@
   guardrails: [G-PULL-FIRST]
   related: [dev-flow-execute]
   links: []
+  init_prompt_de: "Ich will etwas ändern – starte die Planung (dev-flow-plan)."
 - id: dev-flow-execute
   name_de: "Umsetzungs-Skill (dev-flow-execute)"
   kind: skill
@@ -24,6 +53,7 @@
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [dev-flow-plan, dev-flow-iterate]
   links: []
+  init_prompt_de: "/dev-flow-execute – setze den fertigen Plan um und öffne einen PR."
 - id: dev-flow-iterate
   name_de: "Dev-Iterations-Skill (dev-flow-iterate)"
   kind: skill
@@ -37,6 +67,7 @@
   guardrails: [G-ENV-EXPLICIT, G-CONTEXT-CHECK]
   related: [dev-flow-execute, dev-flow-e2e]
   links: []
+  init_prompt_de: "/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs."
 - id: dev-flow-e2e
   name_de: "E2E-Test-Skill (dev-flow-e2e)"
   kind: skill
@@ -50,6 +81,7 @@
   guardrails: [G-ENV-EXPLICIT]
   related: [dev-flow-iterate]
   links: []
+  init_prompt_de: "/dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus."
 - id: task-oracle
   name_de: "Task-Orakel (task-oracle)"
   kind: task
@@ -79,6 +111,7 @@
   related: [agent-infra]
   links:
     - { label_de: "Claude-Code-Doku", url: "https://docs.mentolder.de/claude-code.html" }
+  init_prompt_de: "Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>."
 - id: agent-ops
   name_de: "Betriebs-Agent (ops)"
   kind: agent
@@ -94,6 +127,7 @@
   guardrails: [G-CONTEXT-CHECK]
   related: [agent-infra]
   links: []
+  init_prompt_de: "Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün?"
 - id: agent-infra
   name_de: "Infrastruktur-Agent (infra)"
   kind: agent
@@ -107,6 +141,7 @@
   guardrails: [G-ENV-EXPLICIT, G-VALIDATE-FIRST, G-ASK-EXPERT]
   related: [agent-ops, agent-security]
   links: []
+  init_prompt_de: "Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>."
 - id: agent-test
   name_de: "Test-Agent"
   kind: agent
@@ -120,6 +155,7 @@
   guardrails: [G-ENV-EXPLICIT]
   related: [dev-flow-e2e]
   links: []
+  init_prompt_de: "Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>."
 - id: agent-db
   name_de: "Datenbank-Agent (db)"
   kind: agent
@@ -133,6 +169,7 @@
   guardrails: [G-ENV-EXPLICIT, G-ASK-EXPERT]
   related: [agent-infra]
   links: []
+  init_prompt_de: "Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>."
 - id: agent-security
   name_de: "Sicherheits-Agent (security)"
   kind: agent
@@ -147,3 +184,4 @@
   related: [agent-infra]
   links:
     - { label_de: "Begriffe & Glossar", url: "https://docs.mentolder.de/glossary.html" }
+  init_prompt_de: "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."

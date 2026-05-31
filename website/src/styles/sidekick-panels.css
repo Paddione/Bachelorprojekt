@@ -1633,6 +1633,7 @@
   cursor: pointer;
 }
 .drawer .ag-copy:hover { background: oklch(0.80 0.09 75 / 0.08); }
+.drawer .ag-prompt-init { margin-top: 8px; }
 
 /* Guardrail chips (tap to expand rule/why) */
 .drawer .ag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -1768,6 +1769,18 @@
 
 /* ── Groups ────────────────────────────────────────────────────────────────── */
 .drawer .ag-group { margin: 14px 22px 0; }
+.drawer .ag-quickstart { margin: 14px 22px 0; }
+.drawer .ag-quickstart-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.drawer .ag-quickstart-chip {
+  display: inline-flex; flex-direction: column; gap: 2px; text-align: left;
+  border: 1px solid color-mix(in srgb, var(--brass, #e8c870) 32%, transparent);
+  background: color-mix(in srgb, var(--brass, #e8c870) 10%, transparent);
+  border-radius: 10px; padding: 6px 12px; cursor: pointer; color: var(--fg);
+}
+.drawer .ag-quickstart-chip:hover { border-color: var(--brass, #e8c870); }
+.drawer .ag-quickstart-name { font-weight: 600; font-size: 13px; color: var(--fg); }
+.drawer .ag-quickstart-action { font-family: var(--mono); font-size: 10px; color: var(--brass, #e8c870); opacity: 0.8; }
+
 .drawer .ag-shelf { margin-top: 14px; }
 .drawer .ag-shelf-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
 .drawer .ag-shelf-chip {

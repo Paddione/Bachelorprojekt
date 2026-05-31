@@ -52,6 +52,36 @@ tasks:
     cmds:
       - task: dev:firewall:open
 
+  collab:
+    desc: "[brainstorm] Apply the collab patch, then publish a local port + print the SSO link for gekko. Usage: task brainstorm:collab -- <localport>"
+    cmds:
+      - bash scripts/superpowers-collab-patch.sh || true
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        echo "Teile diesen Link mit gekko (Keycloak-Login, Gruppe /brainstorm-access):"
+        echo "  https://brainstorm.${DEV_DOMAIN}"
+      - task: publish
+        vars: { CLI_ARGS: "{{.CLI_ARGS}}" }
+
+  push:
+    desc: "[brainstorm] Push a dev-flow status screen to the live board. Usage: task brainstorm:push TITLE='Schritt 1' STATUS='läuft…' (requires active session under $HOME/Bachelorprojekt/.superpowers/brainstorm/)"
+    vars:
+      TITLE: '{{.TITLE | default "Dev-Flow Update"}}'
+      STATUS: '{{.STATUS | default ""}}'
+    cmds:
+      - |
+        set -euo pipefail
+        SESS=$(ls -dt "$HOME"/Bachelorprojekt/.superpowers/brainstorm/*/ 2>/dev/null | head -1)
+        [[ -n "$SESS" ]] || { echo "no active brainstorm session dir found" >&2; exit 1; }
+        TS=$(date +%s)
+        cat > "${SESS}content/devflow-${TS}.html" <<HTML
+        <h2>&#x1F527; {{.TITLE}}</h2>
+        <p class="subtitle">Live aus dem Dev-Flow</p>
+        <div class="mockup"><div class="mockup-body" style="text-align:left;white-space:pre-wrap">{{.STATUS}}</div></div>
+        HTML
+        echo "pushed devflow-${TS}.html → board reloads"
+
   status:
     desc: "[brainstorm] Show dev sish pod status and probe the public Ingress"
     cmds:

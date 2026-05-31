@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.20.0...website-v1.21.0) (2026-05-31)
+
+
+### Features
+
+* **agent-guide:** S2 — in-app help surface (Agent-Anleitung + platform drawer) [T000377] ([#1253](https://github.com/Paddione/Bachelorprojekt/issues/1253)) ([b4a2326](https://github.com/Paddione/Bachelorprojekt/commit/b4a232673390ccea5dcf3ebe7466a05ce544113b))
+
 ## [1.20.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.19.0...website-v1.20.0) (2026-05-31)
 
 

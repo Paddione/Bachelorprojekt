@@ -29,7 +29,7 @@ _exec_sql() {
   local pod="$1"; shift
   # We read from stdin (which is passed down)
   kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "$USER" -d "$DB" -At -v ON_ERROR_STOP=1 "$@"
+    psql -U "$USER" -d "$DB" -qtA -v ON_ERROR_STOP=1 "$@"
 }
 
 cmd_create() {
@@ -46,6 +46,10 @@ cmd_create() {
       *)             echo "Unknown create option: $1" >&2; exit 2 ;;
     esac
   done
+
+  if [[ -z "$priority" ]]; then
+    priority="mittel"
+  fi
 
   if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
     echo "ERROR: --type, --title, and --description are required." >&2
@@ -64,7 +68,7 @@ cmd_create() {
     -v sev="$severity" \
     -v prio="$priority" <<'EOF'
 INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), NULLIF(:'prio', ''))
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio')
 RETURNING external_id || '|' || id;
 EOF
 }
@@ -263,7 +267,7 @@ EOF
     
     # Run redirection directly to a local temp file to avoid ARG_MAX
     kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-      psql -U "$USER" -d "$DB" -At -v t_uuid="$uuid" -v fname="$filename" <<'EOF' > "$local_tmp"
+      psql -U "$USER" -d "$DB" -qtA -v t_uuid="$uuid" -v fname="$filename" <<'EOF' > "$local_tmp"
 SELECT data_url FROM tickets.ticket_attachments WHERE ticket_id = :'t_uuid'::uuid AND filename = :'fname';
 EOF
 

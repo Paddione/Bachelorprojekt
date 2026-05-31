@@ -7,8 +7,9 @@
   import HelpView from './assistant/HelpView.svelte';
   import TicketSidekickView from './assistant/TicketSidekickView.svelte';
   import InboxSidekickView from './assistant/InboxSidekickView.svelte';
+  import AgentGuideView from './assistant/AgentGuideView.svelte';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide';
 
   let {
     helpSection = '',
@@ -45,6 +46,7 @@
     help: 'Hilfe',
     tickets: 'Anfragen',
     inbox: 'Postfach',
+    'agent-guide': 'Agent-Anleitung',
   };
 
   $effect(() => {
@@ -191,6 +193,8 @@
       <QuestionnaireView onCloseView={() => { view = 'home'; }} />
     {:else if view === 'help'}
       <HelpView section={helpSection} context={helpContext} />
+    {:else if view === 'agent-guide'}
+      <AgentGuideView />
     {:else if view === 'tickets'}
       <TicketSidekickView onClose={closeDrawer} />
     {:else if view === 'inbox'}

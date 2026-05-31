@@ -1,4 +1,6 @@
 import { pool } from './website-db';
+import { ensureSchemaOnce } from './website-db';
+import platformDescriptions from './platform-descriptions.generated.json';
 
 export interface SoftwareAsset {
   id: string;
@@ -30,7 +32,47 @@ export interface HardwareAsset {
   sort_order: number;
 }
 
+// Idempotent platform-schema bootstrap + guarded German description seed.
+// DDL mirrors website/src/db/migrations/20260521_create_platform_assets.sql so the
+// tables are reproducible on a fresh DB. Descriptions are set ONLY where still NULL
+// or the known English placeholder — never overwriting an admin edit. Wrapped in
+// ensureSchemaOnce so it runs at most once per process (see website-db.ts T000304).
+export async function runPlatformSchema(db: { query: typeof pool.query } = pool): Promise<void> {
+  await db.query(`CREATE SCHEMA IF NOT EXISTS platform`);
+  await db.query(`CREATE TABLE IF NOT EXISTS platform.software_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+    description TEXT, category TEXT NOT NULL DEFAULT 'other', emoji TEXT NOT NULL DEFAULT '📦',
+    clusters TEXT[] NOT NULL DEFAULT '{}', namespace TEXT, deployment_name TEXT, image_tag TEXT,
+    url TEXT, base_status TEXT NOT NULL DEFAULT 'live', sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
+  await db.query(`CREATE TABLE IF NOT EXISTS platform.hardware_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+    description TEXT, role TEXT NOT NULL DEFAULT 'unknown', cluster TEXT NOT NULL DEFAULT 'both',
+    location TEXT, ip TEXT, os TEXT, k8s_node_name TEXT NOT NULL DEFAULT '', sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
+
+  for (const [slug, { de, en }] of Object.entries(platformDescriptions.software)) {
+    await db.query(
+      `UPDATE platform.software_assets SET description = $1, updated_at = now()
+       WHERE slug = $2 AND (description IS NULL OR description = $3)`,
+      [de, slug, en],
+    );
+  }
+  for (const [slug, { de, en }] of Object.entries(platformDescriptions.hardware)) {
+    await db.query(
+      `UPDATE platform.hardware_assets SET description = $1
+       WHERE slug = $2 AND (description IS NULL OR description = $3)`,
+      [de, slug, en],
+    );
+  }
+}
+
+export function ensurePlatformSchema(): Promise<void> {
+  return ensureSchemaOnce('platform-schema', () => runPlatformSchema(pool));
+}
+
 export async function listSoftwareAssets(): Promise<SoftwareAsset[]> {
+  await ensurePlatformSchema();
   const result = await pool.query(
     'SELECT * FROM platform.software_assets ORDER BY sort_order ASC, name ASC'
   );
@@ -38,6 +80,7 @@ export async function listSoftwareAssets(): Promise<SoftwareAsset[]> {
 }
 
 export async function listHardwareAssets(): Promise<HardwareAsset[]> {
+  await ensurePlatformSchema();
   const result = await pool.query(
     'SELECT * FROM platform.hardware_assets ORDER BY sort_order ASC, name ASC'
   );

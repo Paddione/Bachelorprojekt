@@ -347,6 +347,16 @@ tasks:
     cmds:
       - node --test scripts/docs-gen/*.test.mjs
 
+  test:agent-guide:
+    desc: "Validate the AI-agent guide registry (unit tests + real registry + generated JSON freshness)"
+    cmds:
+      - node --test scripts/agent-guide/*.test.mjs
+      - node scripts/agent-guide/validate.mjs
+      - node scripts/gen-platform-descriptions.mjs
+      - |
+        git diff --exit-code website/src/lib/platform-descriptions.generated.json \
+          || (echo "ERROR: platform-descriptions.generated.json is stale — run node scripts/gen-platform-descriptions.mjs and commit"; exit 1)
+
   test:all:
     desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run + docs-gen"
     deps:
@@ -356,6 +366,7 @@ tasks:
       - test:menu-gate
       - test:dry-run
       - test:docs-gen
+      - test:agent-guide
 
   test:inventory:
     desc: Regenerate website/src/data/test-inventory.json (requirement → test mapping)

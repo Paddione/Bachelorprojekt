@@ -1,0 +1,376 @@
+# ── Software ──────────────────────────────────────────────────────────────────
+- slug: website
+  kind: software
+  name: "Website"
+  emoji: "🌐"
+  sensitivity: caution
+  placeholder_en: "Astro + Svelte frontend"
+  summary_de: "Die öffentliche Webseite und das Kundenportal. Hier ändert man Texte, Preise und sieht eigene Daten."
+  what_for_de: "Das mit Astro + Svelte gebaute Frontend (die Web-Oberfläche). Öffentliche Seite plus eingeloggtes Kundenportal."
+  url: null
+  links: []
+- slug: keycloak
+  kind: software
+  name: "Keycloak"
+  emoji: "🔑"
+  sensitivity: forbidden
+  placeholder_en: "SSO / OIDC identity provider"
+  summary_de: "Die zentrale Anmeldung (Single Sign-On): ein Login für alle Dienste."
+  what_for_de: "Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Nextcloud, Vaultwarden u. a. an. Herzstück der Sicherheit."
+  url: null
+  links: []
+- slug: nextcloud
+  kind: software
+  name: "Nextcloud"
+  emoji: "☁️"
+  sensitivity: assisted
+  placeholder_en: "File storage + groupware"
+  summary_de: "Deine private Cloud: Dateien, Kalender, Kontakte und Video-Telefonie (Talk)."
+  what_for_de: "Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform)."
+  url: null
+  links: []
+- slug: collabora
+  kind: software
+  name: "Collabora"
+  emoji: "📄"
+  sensitivity: caution
+  placeholder_en: "Online office suite"
+  summary_de: "Office im Browser: Dokumente, Tabellen und Präsentationen direkt in Nextcloud bearbeiten."
+  what_for_de: "Die Online-Office-Suite, die Nextcloud-Dateien bearbeitbar macht (vergleichbar mit Office im Web)."
+  url: null
+  links: []
+- slug: vaultwarden
+  kind: software
+  name: "Vaultwarden"
+  emoji: "🔒"
+  sensitivity: forbidden
+  placeholder_en: "Password manager (Bitwarden-compat)"
+  summary_de: "Der Passwort-Tresor (kompatibel mit Bitwarden). Speichert Passwörter sicher und verschlüsselt."
+  what_for_de: "Verwaltet Zugangsdaten zentral und verschlüsselt; per Bitwarden-Apps nutzbar."
+  url: null
+  links: []
+- slug: nextcloud-talk-hpb
+  kind: software
+  name: "Talk HPB"
+  emoji: "📡"
+  sensitivity: caution
+  placeholder_en: "Nextcloud Talk signaling server"
+  summary_de: "Der Vermittlungs-Server (Signaling) für Nextcloud Talk – sorgt dafür, dass Video-Anrufe zueinander finden."
+  what_for_de: "High-Performance-Backend für Talk; ohne ihn brechen Gruppen-Videoanrufe zusammen."
+  url: null
+  links: []
+- slug: brett
+  kind: software
+  name: "Brett"
+  emoji: "🧩"
+  sensitivity: caution
+  placeholder_en: "3D systemic-constellation board"
+  summary_de: "Das 3D-Systembrett: ein digitales Aufstellungs-Board für systemische Arbeit im Browser."
+  what_for_de: "Interaktives 3D-Board (Systembrett) für Aufstellungen, im Browser bedienbar."
+  url: null
+  links: []
+- slug: mailpit
+  kind: software
+  name: "Mailpit"
+  emoji: "📬"
+  sensitivity: safe
+  placeholder_en: "SMTP dev mailbox"
+  summary_de: "Ein Test-Postfach für Entwickler: fängt E-Mails ab, statt sie echt zu verschicken."
+  what_for_de: "Nur zum Ausprobieren: zeigt verschickte Mails an, ohne sie an echte Empfänger zu senden."
+  url: null
+  links: []
+- slug: docuseal
+  kind: software
+  name: "DocuSeal"
+  emoji: "📝"
+  sensitivity: caution
+  placeholder_en: "Document signing"
+  summary_de: "Dokumente digital unterschreiben lassen (elektronische Signatur)."
+  what_for_de: "Versendet Dokumente zur rechtssicheren elektronischen Unterschrift."
+  url: null
+  links: []
+- slug: whiteboard
+  kind: software
+  name: "Whiteboard"
+  emoji: "🎨"
+  sensitivity: safe
+  placeholder_en: "Collaborative drawing"
+  summary_de: "Eine gemeinsame Zeichen-Tafel zum Brainstormen, in Nextcloud eingebunden."
+  what_for_de: "Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud."
+  url: null
+  links: []
+- slug: arena
+  kind: software
+  name: "Arena"
+  emoji: "🎮"
+  sensitivity: caution
+  placeholder_en: "Multiplayer game server"
+  summary_de: "Der Mehrspieler-Spielserver (nur Marke korczewski)."
+  what_for_de: "WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski."
+  url: null
+  links: []
+- slug: docs
+  kind: software
+  name: "Documentation"
+  emoji: "📚"
+  sensitivity: safe
+  placeholder_en: "Platform documentation (Docsify)"
+  summary_de: "Die Anleitungen und Handbücher der Plattform (die Doku-Seite)."
+  what_for_de: "Statische Doku-Webseite mit Benutzer- und Admin-Handbuch."
+  url: null
+  links: []
+- slug: postgresql
+  kind: software
+  name: "PostgreSQL 16"
+  emoji: "🐘"
+  sensitivity: forbidden
+  placeholder_en: "Shared database server"
+  summary_de: "Die zentrale Datenbank (PostgreSQL 16). Hier liegen fast alle Daten der Plattform."
+  what_for_de: "Gemeinsamer Datenbank-Server für Website, Keycloak, Nextcloud u. v. m. Pro Marke eigene Instanz."
+  url: null
+  links: []
+- slug: traefik
+  kind: software
+  name: "Traefik"
+  emoji: "🔀"
+  sensitivity: assisted
+  placeholder_en: "Kubernetes ingress controller (k3s DaemonSet, kube-system)"
+  summary_de: "Der Türsteher des Clusters: leitet jede Web-Anfrage an den richtigen Dienst und macht HTTPS."
+  what_for_de: "Ingress-Controller: verteilt eingehenden Verkehr (Routing) und terminiert TLS."
+  url: null
+  links: []
+- slug: sealed-secrets
+  kind: software
+  name: "Sealed Secrets"
+  emoji: "🔐"
+  sensitivity: forbidden
+  placeholder_en: "Bitnami Sealed Secrets controller — encrypts k8s Secrets at rest"
+  summary_de: "Verschlüsselt geheime Zugangsdaten, damit sie sicher in Git liegen können."
+  what_for_de: "Wandelt Secrets in verschlüsselte 'SealedSecrets', die gefahrlos eingecheckt werden können."
+  url: null
+  links: []
+- slug: cert-manager
+  kind: software
+  name: "cert-manager"
+  emoji: "📜"
+  sensitivity: assisted
+  placeholder_en: "cert-manager — ACME / DNS-01 TLS certificate automation"
+  summary_de: "Holt und erneuert automatisch die HTTPS-Zertifikate (über Let's Encrypt / DNS-01)."
+  what_for_de: "Automatisiert TLS-Zertifikate, damit alle Domains gültiges HTTPS haben."
+  url: null
+  links: []
+- slug: k3s
+  kind: software
+  name: "k3s / k3d"
+  emoji: "☸️"
+  sensitivity: forbidden
+  placeholder_en: "Lightweight Kubernetes distribution"
+  summary_de: "Das schlanke Kubernetes, auf dem alle Dienste laufen. Das Fundament der Plattform."
+  what_for_de: "Leichtgewichtige Kubernetes-Variante (k3s in Prod, k3d lokal). Trägt alle Workloads."
+  url: null
+  links: []
+- slug: wireguard
+  kind: software
+  name: "WireGuard (wg-mesh)"
+  emoji: "🔗"
+  sensitivity: assisted
+  placeholder_en: "VPN mesh overlay connecting all mentolder cluster nodes"
+  summary_de: "Das verschlüsselte Netz (VPN-Mesh), das alle Server-Knoten privat verbindet."
+  what_for_de: "WireGuard-Overlay: sichere Pod-zu-Pod- und Knoten-zu-Knoten-Verbindung über das Internet."
+  url: null
+  links: []
+- slug: tei
+  kind: software
+  name: "TEI (Text Embeddings)"
+  emoji: "🦾"
+  sensitivity: caution
+  placeholder_en: "Text Embeddings Inference — bge-m3 via GPU host on wg-mesh (llm-gateway-embed Service)"
+  summary_de: "Wandelt Texte in Vektoren um (Embeddings, Modell bge-m3) für die KI-Suche – läuft auf dem GPU-Rechner."
+  what_for_de: "Erzeugt Embeddings für die semantische Suche; nur verfügbar, solange der GPU-Host läuft."
+  url: null
+  links: []
+- slug: openclaw
+  kind: software
+  name: "OpenClaw"
+  emoji: "🦅"
+  sensitivity: caution
+  placeholder_en: "OpenClaw AI assistant daemon on WSL GPU host (talks to Ollama 10.10.0.3:11434/v1)"
+  summary_de: "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit Ollama)."
+  what_for_de: "Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über Ollama, ohne Cloud."
+  url: null
+  links: []
+- slug: livekit
+  kind: software
+  name: "LiveKit Server"
+  emoji: "📡"
+  sensitivity: assisted
+  placeholder_en: "WebRTC server (hostNetwork, pinned to gekko-hetzner-3)"
+  summary_de: "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen)."
+  what_for_de: "Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden."
+  url: null
+  links: []
+- slug: livekit-ingress
+  kind: software
+  name: "LiveKit Ingress"
+  emoji: "📺"
+  sensitivity: caution
+  placeholder_en: "RTMP ingest endpoint"
+  summary_de: "Nimmt eingehende Video-Streams an (RTMP) und gibt sie an LiveKit weiter."
+  what_for_de: "Eingangstor für externe Streams (z. B. aus OBS) in eine LiveKit-Übertragung."
+  url: null
+  links: []
+- slug: livekit-egress
+  kind: software
+  name: "LiveKit Egress"
+  emoji: "🔴"
+  sensitivity: caution
+  placeholder_en: "Stream recording"
+  summary_de: "Nimmt Live-Streams auf und speichert sie als Aufzeichnung."
+  what_for_de: "Zeichnet LiveKit-Räume auf, damit sie später angesehen werden können."
+  url: null
+  links: []
+- slug: whisper
+  kind: software
+  name: "Whisper"
+  emoji: "🎙️"
+  sensitivity: caution
+  placeholder_en: "OpenAI Whisper speech-to-text transcription"
+  summary_de: "Wandelt gesprochene Sprache in Text um (Spracherkennung, OpenAI Whisper)."
+  what_for_de: "Speech-to-Text-Modell; Grundlage für automatische Gesprächs-Mitschriften."
+  url: null
+  links: []
+- slug: talk-transcriber
+  kind: software
+  name: "Talk Transcriber"
+  emoji: "📝"
+  sensitivity: caution
+  placeholder_en: "Nextcloud Talk auto-transcription bot"
+  summary_de: "Schreibt Nextcloud-Talk-Gespräche automatisch mit (Transkription)."
+  what_for_de: "Bot, der Talk-Anrufe live mitschreibt und als Text ablegt."
+  url: null
+  links: []
+- slug: mcp
+  kind: software
+  name: "MCP Monolith"
+  emoji: "🤖"
+  sensitivity: assisted
+  placeholder_en: "Claude Code MCP proxy (auth + ops pods, mentolder only)"
+  summary_de: "Die Brücke, über die Claude Code mit der Plattform arbeitet (MCP-Proxy, nur mentolder)."
+  what_for_de: "Model-Context-Protocol-Proxy: gibt KI-Agenten kontrollierten Zugriff auf Cluster-Werkzeuge."
+  url: null
+  links: []
+- slug: brainstorm
+  kind: software
+  name: "Brainstorm Sish"
+  emoji: "🌀"
+  sensitivity: caution
+  placeholder_en: "Reverse-SSH tunnel endpoint for brainstorm.mentolder.de"
+  summary_de: "Ein sicherer Tunnel, der das lokale Brainstorming-Board unter brainstorm.mentolder.de erreichbar macht."
+  what_for_de: "Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar."
+  url: null
+  links: []
+- slug: arena-server
+  kind: software
+  name: "Arena Server"
+  emoji: "🎮"
+  sensitivity: caution
+  placeholder_en: "Multiplayer 3D game server (korczewski only) — JWT validated from both Keycloak realms"
+  summary_de: "Der 3D-Mehrspieler-Spielserver (nur korczewski); prüft Logins aus beiden Keycloak-Welten."
+  what_for_de: "WebSocket-Spielserver der Marke korczewski; validiert JWTs aus beiden Keycloak-Realms."
+  url: null
+  links: []
+# ── Hardware ──────────────────────────────────────────────────────────────────
+# NOTE: roles below reflect the CURRENT fleet topology (pk-* = control-plane,
+# gekko-* = workers). The DB rows' role/cluster columns are pre-consolidation and
+# stale — see plan "Risks & data note". summary_de describes reality; column
+# correction is a flagged follow-up.
+- slug: gekko-hetzner-2
+  kind: hardware
+  name: "Gekko CP 1"
+  emoji: "🖥️"
+  sensitivity: assisted
+  placeholder_en: "Control-plane Helsinki"
+  summary_de: "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken."
+  what_for_de: "Einer der drei Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki."
+  url: null
+  links: []
+- slug: gekko-hetzner-3
+  kind: hardware
+  name: "Gekko CP 2"
+  emoji: "🖥️"
+  sensitivity: assisted
+  placeholder_en: "Control-plane Helsinki"
+  summary_de: "Fleet-Arbeitsknoten in Helsinki. Beherbergt unter anderem den LiveKit-Server."
+  what_for_de: "Worker-Knoten des Fleet-Clusters; LiveKit ist hier per Node-Affinität verankert."
+  url: null
+  links: []
+- slug: gekko-hetzner-4
+  kind: hardware
+  name: "Gekko CP 3"
+  emoji: "🖥️"
+  sensitivity: assisted
+  placeholder_en: "Control-plane Helsinki"
+  summary_de: "Fleet-Arbeitsknoten in Helsinki (Hetzner)."
+  what_for_de: "Dritter Worker-Knoten des Fleet-Clusters (gekko-Reihe)."
+  url: null
+  links: []
+- slug: k3s-1
+  kind: hardware
+  name: "k3s-1"
+  emoji: "🏠"
+  sensitivity: assisted
+  placeholder_en: "Home Worker 1"
+  summary_de: "Heim-Server (Proxmox-VM). Beherbergt die Dev-Umgebung dev.mentolder.de."
+  what_for_de: "Lokaler Knoten zuhause; trägt den Dev-k3d-Stack der Entwicklung."
+  url: null
+  links: []
+- slug: k3s-2
+  kind: hardware
+  name: "k3s-2"
+  emoji: "🏠"
+  sensitivity: assisted
+  placeholder_en: "Home Worker 2"
+  summary_de: "Heim-Server (zuhause)."
+  what_for_de: "Lokaler Knoten zuhause."
+  url: null
+  links: []
+- slug: k3s-3
+  kind: hardware
+  name: "k3s-3"
+  emoji: "🏠"
+  sensitivity: assisted
+  placeholder_en: "Home Worker 3"
+  summary_de: "Heim-Server (zuhause)."
+  what_for_de: "Lokaler Knoten zuhause."
+  url: null
+  links: []
+- slug: pk-hetzner-4
+  kind: hardware
+  name: "PK CP 1"
+  emoji: "🖥️"
+  sensitivity: assisted
+  placeholder_en: "Control-plane Helsinki"
+  summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki. LiveKit-DNS zeigt hierhin."
+  what_for_de: "Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki."
+  url: null
+  links: []
+- slug: pk-hetzner-6
+  kind: hardware
+  name: "PK Worker 1"
+  emoji: "🖥️"
+  sensitivity: assisted
+  placeholder_en: "Worker Helsinki"
+  summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner)."
+  what_for_de: "Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki."
+  url: null
+  links: []
+- slug: pk-hetzner-8
+  kind: hardware
+  name: "PK Worker 2"
+  emoji: "🖥️"
+  sensitivity: assisted
+  placeholder_en: "Worker Helsinki"
+  summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner)."
+  what_for_de: "Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki."
+  url: null
+  links: []

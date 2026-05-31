@@ -1,0 +1,35 @@
+- id: G-ENV-EXPLICIT
+  name_de: "ENV immer explizit setzen"
+  rule_de: "Bei jedem Deploy/Cluster-Befehl ENV= ausdrücklich angeben (z. B. ENV=mentolder)."
+  why_de: "Ohne ENV= wird 'dev' angenommen und der Befehl trifft heimlich die falsche Umgebung."
+  enforced_by: hook-env-explicit
+- id: G-CONTEXT-CHECK
+  name_de: "Kubectl-Kontext prüfen"
+  rule_de: "Vor jeder Cluster-Aktion prüfen, auf welchen Cluster (Kontext) du gerade zeigst."
+  why_de: "Der aktive Kontext könnte ein anderer Cluster sein als gedacht."
+  enforced_by: docs-only
+- id: G-PULL-FIRST
+  name_de: "Erst ziehen, dann arbeiten"
+  rule_de: "Immer 'git pull --rebase origin main' bevor du etwas änderst."
+  why_de: "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+  enforced_by: docs-only
+- id: G-PR-NOT-MAIN
+  name_de: "Nie direkt auf main"
+  rule_de: "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen."
+  why_de: "main ist geschützt; direktes Pushen umgeht Review und CI."
+  enforced_by: hook-no-push-main
+- id: G-SECRET-ORDER
+  name_de: "Geheimnis-Reihenfolge einhalten"
+  rule_de: "Sealed-Secrets-Schritte in der vorgegebenen Reihenfolge ausführen (install → fetch-cert → seal → deploy)."
+  why_de: "Falsche Reihenfolge überschreibt Produktiv-Zugangsdaten mit Platzhaltern."
+  enforced_by: docs-only
+- id: G-VALIDATE-FIRST
+  name_de: "Erst prüfen, dann anwenden"
+  rule_de: "Manifeste vor dem Anwenden validieren (task workspace:validate) / dry-run nutzen."
+  why_de: "Fängt kaputte Konfiguration ab, bevor sie den Cluster erreicht."
+  enforced_by: docs-only
+- id: G-ASK-EXPERT
+  name_de: "Bei Rot: stoppen und fragen"
+  rule_de: "Bei 🔴-Aktionen nicht selbst handeln — Patrick fragen."
+  why_de: "Diese Aktionen können die Plattform für alle lahmlegen."
+  enforced_by: hook-forbidden-stop

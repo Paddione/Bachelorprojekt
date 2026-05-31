@@ -1,0 +1,5 @@
+- id: G-ENV-EXPLICIT
+  name_de: "ENV immer setzen"
+  rule_de: "Setze bei jedem Deploy ENV= explizit."
+  why_de: "Sonst trifft der Befehl die falsche Umgebung."
+  enforced_by: docs-only

@@ -171,3 +171,65 @@ Bitte NICHT allein ausführen – zuerst Patrick fragen.
 **Schutzregeln (Guardrails):** Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), ENV immer explizit setzen (G-ENV-EXPLICIT), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
 
 **Verwandte Ziele:** Ich will eine Änderung in der Produktion ausrollen
+
+## Ich habe eine Idee — wie fange ich an?
+
+🟢 **Sicher**
+
+**Wann?** Du willst etwas verändern, weißt aber noch nicht, wie der Weg aussieht.
+
+**So gehst du vor:**
+
+1. Brainstorming (/brainstorming) — Beschreibe die Idee; der Brainstorming-Skill schärft sie zu einem Design.
+2. [[dev-flow-plan]] — Danach schreibt der Planungs-Skill einen Schritt-für-Schritt-Plan.
+
+**Diesen Prompt kannst du der KI geben:**
+
+```text
+Ich habe eine Idee für die Plattform und möchte sie erst gemeinsam durchdenken.
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST)
+
+**Verwandte Ziele:** Ich will eine neue Funktion bauen, Ich will einen Fehler beheben
+
+## Ich will einen Pull Request öffnen und CI grün bekommen
+
+🟠 **Nur mit Hilfe**
+
+**Wann?** Der Code ist fertig und soll als Pull Request geprüft und gemergt werden.
+
+**So gehst du vor:**
+
+1. [[dev-flow-execute]] — Pusht den Branch, öffnet den PR und wartet, bis die CI-Checks grün sind.
+
+**Diesen Prompt kannst du der KI geben:**
+
+```text
+Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün ist.
+```
+
+**Schutzregeln (Guardrails):** Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandte Ziele:** Ich will eine neue Funktion bauen, Ich will eine Änderung in der Produktion ausrollen
+
+## Ich will prüfen, ob mein Deploy wirklich live ist
+
+🟢 **Sicher**
+
+**Wann?** Nach einem Deploy willst du sehen, ob die Änderung in der echten Umgebung angekommen ist.
+
+**So gehst du vor:**
+
+1. [[bachelorprojekt-ops]] — Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft.
+2. [[dev-flow-e2e]] — Verifiziert per E2E-Test gegen die Live-URL, dass das Feature funktioniert.
+
+**Diesen Prompt kannst du der KI geben:**
+
+```text
+Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check.
+```
+
+**Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)
+
+**Verwandte Ziele:** Ich will eine Änderung in der Produktion ausrollen, Ich will prüfen, ob alle Dienste laufen

@@ -182,7 +182,11 @@
         "aendern"
       ],
       "common": true,
-      "order": 1
+      "order": 1,
+      "stages": [
+        "code"
+      ],
+      "concept_de": "Konzept: Inhalte ändert man über einen Branch + PR, nicht direkt auf main."
     },
     {
       "id": "dienst-status-pruefen",
@@ -213,7 +217,11 @@
         "uebersicht"
       ],
       "common": true,
-      "order": 2
+      "order": 2,
+      "stages": [
+        "live"
+      ],
+      "concept_de": "Konzept: Status/Logs lesen ist 🟢 — es verändert nichts."
     },
     {
       "id": "bug-beheben",
@@ -262,7 +270,14 @@
         "fix"
       ],
       "common": true,
-      "order": 3
+      "order": 3,
+      "stages": [
+        "plan",
+        "code",
+        "pr-ci",
+        "deploy"
+      ],
+      "concept_de": "Konzept: erst ein Test, der den Fehler zeigt (TDD), dann der Fix."
     },
     {
       "id": "feature-bauen",
@@ -311,7 +326,14 @@
         "bauen"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "stages": [
+        "plan",
+        "code",
+        "pr-ci",
+        "deploy"
+      ],
+      "concept_de": "Konzept: jede neue Funktion durchläuft Plan → Code → PR → Deploy."
     },
     {
       "id": "aenderung-ausrollen",
@@ -359,7 +381,12 @@
         "release"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "stages": [
+        "deploy",
+        "live"
+      ],
+      "concept_de": "Konzept: Deploy heißt einen gemergten Stand in einer Umgebung (ENV) aktivieren."
     },
     {
       "id": "datenbank-aendern",
@@ -413,7 +440,13 @@
         "sql"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "stages": [
+        "plan",
+        "code",
+        "deploy"
+      ],
+      "concept_de": "Konzept: Schema-Änderungen treffen beide Marken — immer als Migration."
     },
     {
       "id": "secret-aendern",
@@ -457,6 +490,8 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [],
+      "concept_de": "",
       "escalate_to_de": "Patrick"
     },
     {
@@ -512,7 +547,146 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [],
+      "concept_de": "",
       "escalate_to_de": "Patrick"
+    },
+    {
+      "id": "idee-starten",
+      "title_de": "Ich habe eine Idee — wie fange ich an?",
+      "when_de": "Du willst etwas verändern, weißt aber noch nicht, wie der Weg aussieht.",
+      "danger": "safe",
+      "flow": [
+        {
+          "tool": "brainstorming",
+          "tool_name_de": "Brainstorming (/brainstorming)",
+          "note_de": "Beschreibe die Idee; der Brainstorming-Skill schärft sie zu einem Design."
+        },
+        {
+          "tool": "dev-flow-plan",
+          "tool_name_de": "Planungs-Skill (dev-flow-plan)",
+          "note_de": "Danach schreibt der Planungs-Skill einen Schritt-für-Schritt-Plan."
+        }
+      ],
+      "example_prompt_de": "Ich habe eine Idee für die Plattform und möchte sie erst gemeinsam durchdenken.",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        }
+      ],
+      "related": [
+        "feature-bauen",
+        "bug-beheben"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "one_liner_de": "Von der Idee zum Plan — der erste Schritt.",
+      "aliases_de": [
+        "idee",
+        "anfangen",
+        "start",
+        "neu",
+        "wie"
+      ],
+      "common": true,
+      "order": 6,
+      "stages": [
+        "idee",
+        "brainstorm"
+      ],
+      "concept_de": "Konzept: jede Änderung beginnt mit Brainstorm → Plan, bevor Code entsteht."
+    },
+    {
+      "id": "pr-oeffnen",
+      "title_de": "Ich will einen Pull Request öffnen und CI grün bekommen",
+      "when_de": "Der Code ist fertig und soll als Pull Request geprüft und gemergt werden.",
+      "danger": "assisted",
+      "flow": [
+        {
+          "tool": "dev-flow-execute",
+          "tool_name_de": "Umsetzungs-Skill (dev-flow-execute)",
+          "note_de": "Pusht den Branch, öffnet den PR und wartet, bis die CI-Checks grün sind."
+        }
+      ],
+      "example_prompt_de": "Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün ist.",
+      "guardrails": [
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "feature-bauen",
+        "aenderung-ausrollen"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "one_liner_de": "Branch als PR einreichen und CI abwarten.",
+      "aliases_de": [
+        "pr",
+        "pull request",
+        "ci",
+        "merge",
+        "review"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "pr-ci"
+      ],
+      "concept_de": "Konzept: nichts kommt nach main ohne PR + grüne CI (Squash-Merge)."
+    },
+    {
+      "id": "deploy-pruefen",
+      "title_de": "Ich will prüfen, ob mein Deploy wirklich live ist",
+      "when_de": "Nach einem Deploy willst du sehen, ob die Änderung in der echten Umgebung angekommen ist.",
+      "danger": "safe",
+      "flow": [
+        {
+          "tool": "agent-ops",
+          "tool_name_de": "Betriebs-Agent (ops)",
+          "note_de": "Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft."
+        },
+        {
+          "tool": "dev-flow-e2e",
+          "tool_name_de": "E2E-Test-Skill (dev-flow-e2e)",
+          "note_de": "Verifiziert per E2E-Test gegen die Live-URL, dass das Feature funktioniert."
+        }
+      ],
+      "example_prompt_de": "Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check.",
+      "guardrails": [
+        {
+          "id": "G-ENV-EXPLICIT",
+          "name_de": "ENV immer explizit setzen",
+          "rule_de": "Bei jedem Deploy/Cluster-Befehl ENV= ausdrücklich angeben (z. B. ENV=mentolder).",
+          "why_de": "Ohne ENV= wird 'dev' angenommen und der Befehl trifft heimlich die falsche Umgebung."
+        }
+      ],
+      "related": [
+        "aenderung-ausrollen",
+        "dienst-status-pruefen"
+      ],
+      "links": [],
+      "theme": "betrieb",
+      "one_liner_de": "Nach dem Deploy prüfen, ob alles läuft.",
+      "aliases_de": [
+        "deploy",
+        "live",
+        "pruefen",
+        "status",
+        "ist es da"
+      ],
+      "common": true,
+      "order": 7,
+      "stages": [
+        "live"
+      ],
+      "concept_de": "Konzept: Deploy ≠ live — erst Status, Logs und ein E2E-Check bestätigen es."
     }
   ],
   "tools": [
@@ -539,6 +713,9 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "brainstorm"
+      ],
       "init_prompt_de": "/superpowers"
     },
     {
@@ -567,6 +744,10 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "idee",
+        "brainstorm"
+      ],
       "init_prompt_de": "/brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken."
     },
     {
@@ -600,6 +781,9 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "plan"
+      ],
       "init_prompt_de": "Ich will etwas ändern – starte die Planung (dev-flow-plan)."
     },
     {
@@ -640,6 +824,10 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "code",
+        "pr-ci"
+      ],
       "init_prompt_de": "/dev-flow-execute – setze den fertigen Plan um und öffne einen PR."
     },
     {
@@ -680,6 +868,10 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "code",
+        "deploy"
+      ],
       "init_prompt_de": "/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs."
     },
     {
@@ -713,6 +905,9 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "live"
+      ],
       "init_prompt_de": "/dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus."
     },
     {
@@ -737,7 +932,8 @@
         "kommando"
       ],
       "common": true,
-      "order": 5
+      "order": 5,
+      "stages": []
     },
     {
       "id": "agent-website",
@@ -782,6 +978,7 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [],
       "init_prompt_de": "Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>."
     },
     {
@@ -817,6 +1014,9 @@
       ],
       "common": true,
       "order": 4,
+      "stages": [
+        "live"
+      ],
       "init_prompt_de": "Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün?"
     },
     {
@@ -864,6 +1064,9 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [
+        "deploy"
+      ],
       "init_prompt_de": "Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>."
     },
     {
@@ -897,6 +1100,7 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [],
       "init_prompt_de": "Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>."
     },
     {
@@ -937,6 +1141,7 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [],
       "init_prompt_de": "Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>."
     },
     {
@@ -989,6 +1194,7 @@
       ],
       "common": false,
       "order": 999,
+      "stages": [],
       "init_prompt_de": "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
     }
   ],
@@ -1000,7 +1206,12 @@
       "emoji": "🌐",
       "summary_de": "Die öffentliche Webseite und das Kundenportal. Hier ändert man Texte, Preise und sieht eigene Daten.",
       "sensitivity": "caution",
-      "url": null
+      "url": null,
+      "area": "dienste",
+      "theme": "website",
+      "relates_to": [
+        "website-text-aendern"
+      ]
     },
     "keycloak": {
       "slug": "keycloak",
@@ -1009,7 +1220,12 @@
       "emoji": "🔑",
       "summary_de": "Die zentrale Anmeldung (Single Sign-On): ein Login für alle Dienste.",
       "sensitivity": "forbidden",
-      "url": null
+      "url": null,
+      "area": "plattform",
+      "theme": "sicherheit",
+      "relates_to": [
+        "secret-aendern"
+      ]
     },
     "nextcloud": {
       "slug": "nextcloud",
@@ -1018,7 +1234,9 @@
       "emoji": "☁️",
       "summary_de": "Deine private Cloud: Dateien, Kalender, Kontakte und Video-Telefonie (Talk).",
       "sensitivity": "assisted",
-      "url": null
+      "url": null,
+      "area": "dienste",
+      "theme": "betrieb"
     },
     "collabora": {
       "slug": "collabora",
@@ -1027,7 +1245,9 @@
       "emoji": "📄",
       "summary_de": "Office im Browser: Dokumente, Tabellen und Präsentationen direkt in Nextcloud bearbeiten.",
       "sensitivity": "caution",
-      "url": null
+      "url": null,
+      "area": "dienste",
+      "theme": "betrieb"
     },
     "vaultwarden": {
       "slug": "vaultwarden",
@@ -1036,7 +1256,9 @@
       "emoji": "🔒",
       "summary_de": "Der Passwort-Tresor (kompatibel mit Bitwarden). Speichert Passwörter sicher und verschlüsselt.",
       "sensitivity": "forbidden",
-      "url": null
+      "url": null,
+      "area": "dienste",
+      "theme": "sicherheit"
     },
     "nextcloud-talk-hpb": {
       "slug": "nextcloud-talk-hpb",
@@ -1072,7 +1294,9 @@
       "emoji": "📝",
       "summary_de": "Dokumente digital unterschreiben lassen (elektronische Signatur).",
       "sensitivity": "caution",
-      "url": null
+      "url": null,
+      "area": "dienste",
+      "theme": "betrieb"
     },
     "whiteboard": {
       "slug": "whiteboard",
@@ -1108,7 +1332,12 @@
       "emoji": "🐘",
       "summary_de": "Die zentrale Datenbank (PostgreSQL 16). Hier liegen fast alle Daten der Plattform.",
       "sensitivity": "forbidden",
-      "url": null
+      "url": null,
+      "area": "daten",
+      "theme": "datenbank",
+      "relates_to": [
+        "datenbank-aendern"
+      ]
     },
     "traefik": {
       "slug": "traefik",
@@ -1117,7 +1346,9 @@
       "emoji": "🔀",
       "summary_de": "Der Türsteher des Clusters: leitet jede Web-Anfrage an den richtigen Dienst und macht HTTPS.",
       "sensitivity": "assisted",
-      "url": null
+      "url": null,
+      "area": "plattform",
+      "theme": "ausrollen"
     },
     "sealed-secrets": {
       "slug": "sealed-secrets",
@@ -1126,7 +1357,12 @@
       "emoji": "🔐",
       "summary_de": "Verschlüsselt geheime Zugangsdaten, damit sie sicher in Git liegen können.",
       "sensitivity": "forbidden",
-      "url": null
+      "url": null,
+      "area": "daten",
+      "theme": "sicherheit",
+      "relates_to": [
+        "secret-aendern"
+      ]
     },
     "cert-manager": {
       "slug": "cert-manager",
@@ -1135,7 +1371,9 @@
       "emoji": "📜",
       "summary_de": "Holt und erneuert automatisch die HTTPS-Zertifikate (über Let's Encrypt / DNS-01).",
       "sensitivity": "assisted",
-      "url": null
+      "url": null,
+      "area": "plattform",
+      "theme": "sicherheit"
     },
     "k3s": {
       "slug": "k3s",
@@ -1144,7 +1382,12 @@
       "emoji": "☸️",
       "summary_de": "Das schlanke Kubernetes, auf dem alle Dienste laufen. Das Fundament der Plattform.",
       "sensitivity": "forbidden",
-      "url": null
+      "url": null,
+      "area": "plattform",
+      "theme": "ausrollen",
+      "relates_to": [
+        "cluster-neu-aufsetzen"
+      ]
     },
     "wireguard": {
       "slug": "wireguard",
@@ -1180,7 +1423,9 @@
       "emoji": "📡",
       "summary_de": "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen).",
       "sensitivity": "assisted",
-      "url": null
+      "url": null,
+      "area": "dienste",
+      "theme": "betrieb"
     },
     "livekit-ingress": {
       "slug": "livekit-ingress",
@@ -1326,5 +1571,264 @@
       "sensitivity": "assisted",
       "url": null
     }
+  },
+  "map": {
+    "flow": [
+      {
+        "id": "idee",
+        "label_de": "Idee",
+        "emoji": "💡",
+        "danger": "safe",
+        "order": 1,
+        "blurb_de": "Was soll sich ändern? Noch nichts angefasst.",
+        "goalIds": [
+          "idee-starten"
+        ],
+        "toolIds": [
+          "brainstorming"
+        ]
+      },
+      {
+        "id": "brainstorm",
+        "label_de": "Brainstorm",
+        "emoji": "🧠",
+        "danger": "safe",
+        "order": 2,
+        "blurb_de": "Die Idee zu einem klaren Design schärfen.",
+        "goalIds": [
+          "idee-starten"
+        ],
+        "toolIds": [
+          "superpowers",
+          "brainstorming"
+        ]
+      },
+      {
+        "id": "plan",
+        "label_de": "Plan",
+        "emoji": "📋",
+        "danger": "caution",
+        "order": 3,
+        "blurb_de": "Einen Schritt-für-Schritt-Plan schreiben.",
+        "goalIds": [
+          "bug-beheben",
+          "feature-bauen",
+          "datenbank-aendern"
+        ],
+        "toolIds": [
+          "dev-flow-plan"
+        ]
+      },
+      {
+        "id": "code",
+        "label_de": "Code+TDD",
+        "emoji": "💻",
+        "danger": "caution",
+        "order": 4,
+        "blurb_de": "Erst den Test, dann die Umsetzung.",
+        "goalIds": [
+          "website-text-aendern",
+          "bug-beheben",
+          "feature-bauen",
+          "datenbank-aendern"
+        ],
+        "toolIds": [
+          "dev-flow-execute",
+          "dev-flow-iterate"
+        ]
+      },
+      {
+        "id": "pr-ci",
+        "label_de": "PR+CI",
+        "emoji": "🔀",
+        "danger": "assisted",
+        "order": 5,
+        "blurb_de": "Pull Request öffnen — CI muss grün sein.",
+        "goalIds": [
+          "bug-beheben",
+          "feature-bauen",
+          "pr-oeffnen"
+        ],
+        "toolIds": [
+          "dev-flow-execute"
+        ]
+      },
+      {
+        "id": "deploy",
+        "label_de": "Deploy",
+        "emoji": "🚀",
+        "danger": "assisted",
+        "order": 6,
+        "blurb_de": "Die Änderung live bringen (Flux / Task).",
+        "goalIds": [
+          "bug-beheben",
+          "feature-bauen",
+          "aenderung-ausrollen",
+          "datenbank-aendern"
+        ],
+        "toolIds": [
+          "dev-flow-iterate",
+          "agent-infra"
+        ]
+      },
+      {
+        "id": "live",
+        "label_de": "Live",
+        "emoji": "🌍",
+        "danger": "safe",
+        "order": 7,
+        "blurb_de": "Läuft es? Status und Logs prüfen.",
+        "goalIds": [
+          "dienst-status-pruefen",
+          "aenderung-ausrollen",
+          "deploy-pruefen"
+        ],
+        "toolIds": [
+          "dev-flow-e2e",
+          "agent-ops"
+        ]
+      }
+    ],
+    "territory": [
+      {
+        "id": "dienste",
+        "label_de": "Dienste",
+        "order": 1,
+        "nodes": [
+          {
+            "slug": "website",
+            "name": "Website",
+            "emoji": "🌐",
+            "sensitivity": "caution",
+            "theme": "website",
+            "accent": "#4a9eff",
+            "relatesTo": [
+              "website-text-aendern"
+            ]
+          },
+          {
+            "slug": "nextcloud",
+            "name": "Nextcloud",
+            "emoji": "☁️",
+            "sensitivity": "assisted",
+            "theme": "betrieb",
+            "accent": "#7e9aa6",
+            "relatesTo": []
+          },
+          {
+            "slug": "collabora",
+            "name": "Collabora",
+            "emoji": "📄",
+            "sensitivity": "caution",
+            "theme": "betrieb",
+            "accent": "#7e9aa6",
+            "relatesTo": []
+          },
+          {
+            "slug": "vaultwarden",
+            "name": "Vaultwarden",
+            "emoji": "🔒",
+            "sensitivity": "forbidden",
+            "theme": "sicherheit",
+            "accent": "#c77dff",
+            "relatesTo": []
+          },
+          {
+            "slug": "docuseal",
+            "name": "DocuSeal",
+            "emoji": "📝",
+            "sensitivity": "caution",
+            "theme": "betrieb",
+            "accent": "#7e9aa6",
+            "relatesTo": []
+          },
+          {
+            "slug": "livekit",
+            "name": "LiveKit Server",
+            "emoji": "📡",
+            "sensitivity": "assisted",
+            "theme": "betrieb",
+            "accent": "#7e9aa6",
+            "relatesTo": []
+          }
+        ]
+      },
+      {
+        "id": "plattform",
+        "label_de": "Plattform & Cluster",
+        "order": 2,
+        "nodes": [
+          {
+            "slug": "keycloak",
+            "name": "Keycloak",
+            "emoji": "🔑",
+            "sensitivity": "forbidden",
+            "theme": "sicherheit",
+            "accent": "#c77dff",
+            "relatesTo": [
+              "secret-aendern"
+            ]
+          },
+          {
+            "slug": "traefik",
+            "name": "Traefik",
+            "emoji": "🔀",
+            "sensitivity": "assisted",
+            "theme": "ausrollen",
+            "accent": "#5ad1c4",
+            "relatesTo": []
+          },
+          {
+            "slug": "cert-manager",
+            "name": "cert-manager",
+            "emoji": "📜",
+            "sensitivity": "assisted",
+            "theme": "sicherheit",
+            "accent": "#c77dff",
+            "relatesTo": []
+          },
+          {
+            "slug": "k3s",
+            "name": "k3s / k3d",
+            "emoji": "☸️",
+            "sensitivity": "forbidden",
+            "theme": "ausrollen",
+            "accent": "#5ad1c4",
+            "relatesTo": [
+              "cluster-neu-aufsetzen"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "daten",
+        "label_de": "Daten & Geheimnisse",
+        "order": 3,
+        "nodes": [
+          {
+            "slug": "postgresql",
+            "name": "PostgreSQL 16",
+            "emoji": "🐘",
+            "sensitivity": "forbidden",
+            "theme": "datenbank",
+            "accent": "#6c8cff",
+            "relatesTo": [
+              "datenbank-aendern"
+            ]
+          },
+          {
+            "slug": "sealed-secrets",
+            "name": "Sealed Secrets",
+            "emoji": "🔐",
+            "sensitivity": "forbidden",
+            "theme": "sicherheit",
+            "accent": "#c77dff",
+            "relatesTo": [
+              "secret-aendern"
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

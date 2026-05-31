@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { tierColor, tierEmoji, tierLabel, tierFor } from '../../../lib/agentGuide';
-  import { highlight, type GuideEntry } from '../../../lib/agentGuideSearch';
+  import { tierColor, tierEmoji, tierLabel, tierFor, glossary } from '../../../lib/agentGuide';
+  import { highlight, splitGlossaryTerms, type GuideEntry } from '../../../lib/agentGuideSearch';
+  import GlossaryTerm from './GlossaryTerm.svelte';
 
   let {
     entry,
@@ -27,6 +28,13 @@
     entry.kind === 'goal'
       ? `${goal!.flow.length} Schritt${goal!.flow.length === 1 ? '' : 'e'}`
       : entry.artLabel,
+  );
+  const glossTerms = glossary.map(g => g.term);
+  const glossDef = (t: string) => glossary.find(g => g.term === t)?.def_de ?? '';
+  const conceptSegs = $derived(
+    entry.kind === 'goal' && goal?.concept_de
+      ? splitGlossaryTerms(goal.concept_de, glossTerms)
+      : [],
   );
 </script>
 
@@ -68,6 +76,11 @@
 
       {#if entry.kind === 'goal'}
         {#if !isForbidden}<p class="ag-when">{goal!.when_de}</p>{/if}
+        {#if conceptSegs.length}
+          <p class="ag-concept">
+            {#each conceptSegs as seg}{#if seg.term}<GlossaryTerm term={seg.term} def={glossDef(seg.term)} />{:else}{seg.text}{/if}{/each}
+          </p>
+        {/if}
         {#if goal!.flow.length}
           <ol class="ag-flow">
             {#each goal!.flow as step, i (i)}

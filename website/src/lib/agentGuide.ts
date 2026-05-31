@@ -55,6 +55,8 @@ export interface Goal {
   aliases_de: string[];
   common: boolean;
   order: number;
+  stages: string[];
+  concept_de?: string;
   escalate_to_de?: string;
 }
 
@@ -75,6 +77,7 @@ export interface Tool {
   aliases_de: string[];
   common: boolean;
   order: number;
+  stages: string[];
   escalate_to_de?: string;
   init_prompt_de?: string;
 }
@@ -89,12 +92,46 @@ export interface Component {
   url: string;
 }
 
+export interface FlowStation {
+  id: string;
+  label_de: string;
+  emoji: string;
+  danger: string;
+  order: number;
+  blurb_de: string;
+  goalIds: string[];
+  toolIds: string[];
+}
+
+export interface TerritoryNode {
+  slug: string;
+  name: string;
+  emoji: string;
+  sensitivity: string;
+  theme: string | null;
+  accent: string;
+  relatesTo: string[];
+}
+
+export interface TerritoryArea {
+  id: string;
+  label_de: string;
+  order: number;
+  nodes: TerritoryNode[];
+}
+
+export interface MapData {
+  flow: FlowStation[];
+  territory: TerritoryArea[];
+}
+
 export const taxonomy: TierEntry[] = data.taxonomy as TierEntry[];
 export const themes: Theme[] = (data.themes ?? []) as Theme[];
 export const glossary: GlossaryEntry[] = (data.glossary ?? []) as GlossaryEntry[];
 export const goals: Goal[] = data.goals as Goal[];
 export const tools: Tool[] = data.tools as Tool[];
 export const components: Record<string, Component> = data.components as Record<string, Component>;
+export const guideMap: MapData = (data.map ?? { flow: [], territory: [] }) as MapData;
 
 /** Single resolver over taxonomy[]; the conveniences below are derived from it. */
 export function tierFor(id: string): { emoji: string; label: string; color: string; meaning: string } | undefined {

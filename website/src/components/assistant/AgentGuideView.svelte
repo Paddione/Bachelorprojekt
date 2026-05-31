@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
-  import { goals, tools, taxonomy, themes, glossary, tierColor, tierEmoji } from '../../lib/agentGuide';
+  import { goals, tools, taxonomy, themes, glossary, guideMap, tierColor, tierEmoji } from '../../lib/agentGuide';
   import {
-    buildEntries, filterEntries, groupBy, sortCommonFirst, normalize, MIN_QUERY,
-    type Axis, type GuideEntry,
+    buildEntries, filterEntries, groupBy, sortCommonFirst, normalize, mapFilterIds, MIN_QUERY,
+    type Axis, type GuideEntry, type MapFilter,
   } from '../../lib/agentGuideSearch';
   import GuideFindBar from './agent-guide/GuideFindBar.svelte';
   import GuideGroup from './agent-guide/GuideGroup.svelte';
   import GuideCard from './agent-guide/GuideCard.svelte';
+  import GuideMap from './agent-guide/GuideMap.svelte';
 
   // ── Cross-link lookup: id → human label/kind/danger/domId ──────────────────
   const lookup: Record<string, { label: string; kind: string; danger: string; domId: string }> = {};
@@ -37,6 +38,10 @@
   let domainFilter = $state<string | null>(null);       // null = all (theme-based)
   let copiedId = $state<string | null>(null);
   let glossaryOpen = $state(false);
+  let mapFilter = $state<MapFilter>(null);
+  let mapOpen = $state(true);
+  const MAP_KEY = 'ag-map-v1';
+  const glossTerms = glossary.map(g => g.term);
 
   const OPEN_KEY = 'ag-open-v1';
   const AXIS_KEY = 'ag-axis-v1';
@@ -50,6 +55,9 @@
       if (rawOpen) expanded = new Set(JSON.parse(rawOpen) as string[]);
       const rawAxis = localStorage.getItem(AXIS_KEY);
       if (rawAxis === 'thema' || rawAxis === 'gefahr' || rawAxis === 'art') axis = rawAxis as Axis;
+      const rawMap = localStorage.getItem(MAP_KEY);
+      if (rawMap === 'open' || rawMap === 'closed') mapOpen = rawMap === 'open';
+      else mapOpen = true; // first run: map open to onboard newcomers
     } catch { /* ignore */ }
     hydrated = true;   // gate the persist effects so they never clobber saved state
   });
@@ -65,13 +73,16 @@
     }, 250);
   });
   $effect(() => { if (hydrated) { try { localStorage.setItem(AXIS_KEY, axis); } catch { /* ignore */ } } });
+  $effect(() => { if (hydrated) { try { localStorage.setItem(MAP_KEY, mapOpen ? 'open' : 'closed'); } catch { /* ignore */ } } });
 
   // ── Derivations ──────────────────────────────────────────────────────────────
   const searching = $derived(query.trim().length >= MIN_QUERY);
 
-  // domain + tier pre-filter (applied before text search for tier counts)
+  // domain + tier + map pre-filter (applied before text search for tier counts)
+  const allowedByMap = $derived(mapFilterIds(mapFilter, guideMap)); // Set<string> | null
   const preFiltered = $derived(
     ALL.filter(e =>
+      (allowedByMap === null || allowedByMap.has(e.id)) &&
       (domainFilter === null || e.theme === domainFilter) &&
       (tierFilter.size === 0 || tierFilter.has(e.danger)),
     ),
@@ -154,6 +165,16 @@
       setTimeout(() => el.classList.remove('ag-flash'), 900);
     });
   }
+
+  function selectMap(sel: MapFilter) {
+    mapFilter = sel;
+    if (!sel) return;
+    requestAnimationFrame(() => {
+      document.querySelector('.ag-findbar')?.scrollIntoView({
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start',
+      });
+    });
+  }
 </script>
 
 <div class="ag-body">
@@ -162,6 +183,25 @@
     <h3 class="ag-title">Ich will … — welches Werkzeug nehme ich?</h3>
     <p class="ag-desc">Gruppiert nach Thema. Tippe ≥ 3 Zeichen zum Suchen. Die Farbe zeigt, wie vorsichtig Du sein musst.</p>
   </div>
+
+  {#if guideMap.flow.length}
+    <section class="ag-map-section">
+      <button type="button" class="ag-map-toggle" aria-expanded={mapOpen} onclick={() => (mapOpen = !mapOpen)}>
+        <span class="ag-map-toggle-icon" aria-hidden="true">🧭</span>
+        <span class="ag-map-toggle-label">So funktioniert die Plattform</span>
+        <span class="ag-chevron" aria-hidden="true">{mapOpen ? '▾' : '▸'}</span>
+      </button>
+      {#if mapOpen}
+        <p class="ag-map-hint">Neu hier? Folge dem Band von links — klick eine Station oder einen Baustein, um die passenden Karten zu sehen.</p>
+        <GuideMap map={guideMap} active={mapFilter} glossaryTerms={glossTerms} onSelect={selectMap} />
+      {/if}
+      {#if mapFilter}
+        <button type="button" class="ag-mapfilter-chip" onclick={() => (mapFilter = null)}>
+          Gefiltert: {mapFilter.kind === 'flow' ? 'Station' : 'Baustein'} ✕
+        </button>
+      {/if}
+    </section>
+  {/if}
 
   <GuideFindBar
     {taxonomy} {themes} {tierCounts} {query} {axis} {tierFilter} {domainFilter}

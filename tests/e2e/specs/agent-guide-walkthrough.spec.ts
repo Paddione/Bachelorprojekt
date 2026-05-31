@@ -4,11 +4,11 @@
  * No login required — PortalSidekick is on the public Layout.astro.
  */
 import { test, expect } from '@playwright/test';
-import { openAgentGuide, expandCardByTitle, loadGuideData, showFilmBanner, removeFilmBanner } from '../lib/agent-guide';
+import { openAgentGuide, expandCardByTitle, loadGuideData, ensureMapOpen, showFilmBanner, removeFilmBanner } from '../lib/agent-guide';
 
 const FILM = !!process.env.AG_FILM;
 const FILM_PAUSE = 1500;
-const { goals, tools, taxonomy, themes, glossary } = loadGuideData();
+const { goals, tools, taxonomy, themes, glossary, map } = loadGuideData();
 
 test('öffnet die Agent-Anleitung und zeigt den Titel', async ({ page }) => {
   await openAgentGuide(page);
@@ -140,3 +140,54 @@ if (FILM) {
     await removeFilmBanner(page);
   });
 }
+
+test('Mental-Model-Karte zeigt Fluss-Band und Gebietskarte', async ({ page }) => {
+  await openAgentGuide(page);
+  await ensureMapOpen(page);
+  await expect(page.locator('.ag-flow-station')).toHaveCount(map.flow.length);
+  await expect(page.locator('.ag-terr-node').first()).toBeVisible();
+});
+
+test('Klick auf eine Fluss-Station filtert den Katalog', async ({ page }) => {
+  await openAgentGuide(page);
+  await ensureMapOpen(page);
+  const plan = map.flow.find(s => s.id === 'plan')!;
+  await page.locator('.ag-flow-station', { hasText: plan.label_de }).click();
+  await expect(page.locator('.ag-mapfilter-chip')).toBeVisible();
+  // a known plan goal card is present, an unrelated live goal is not
+  await expect(page.locator('.ag-name', { hasText: 'Fehler beheben' })).toBeVisible();
+  await expect(page.locator('.ag-name', { hasText: 'Dienste laufen' })).toHaveCount(0);
+});
+
+test('Klick auf einen Baustein filtert auf seine verknüpften Karten', async ({ page }) => {
+  await openAgentGuide(page);
+  await ensureMapOpen(page);
+  const node = map.territory.flatMap(a => a.nodes).find(n => n.relatesTo.length > 0)!;
+  await page.locator('.ag-terr-node', { hasText: node.name }).first().click();
+  await expect(page.locator('.ag-mapfilter-chip')).toBeVisible();
+  await expect(page.locator('.ag-card-head')).toHaveCount(node.relatesTo.length);
+});
+
+test('Konzept-Zeile + Glossar-Tooltip auf einer Ziel-Karte', async ({ page }) => {
+  await openAgentGuide(page);
+  const conceptGoal = goals.find(g => g.concept_de)!;
+  const card = await expandCardByTitle(page, conceptGoal.title_de);
+  await expect(card.locator('.ag-concept')).toBeVisible();
+  const gloss = card.locator('.ag-gloss').first();
+  if (await gloss.count()) {
+    await gloss.click();
+    await expect(card.locator('.ag-gloss-pop').first()).toBeVisible();
+  }
+});
+
+test('Karte einklappen bleibt nach Reload erhalten', async ({ page }) => {
+  await openAgentGuide(page);
+  await ensureMapOpen(page);
+  await page.locator('.ag-map-toggle').click();                    // collapse
+  await expect(page.locator('.ag-map')).toHaveCount(0);
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  // re-open drawer + guide after reload, then assert the map stayed collapsed
+  await openAgentGuide(page);
+  await expect(page.locator('.ag-map-toggle')).toHaveAttribute('aria-expanded', 'false');
+});

@@ -1831,3 +1831,64 @@
   .drawer .ag-empty,
   .drawer .ag-section-label { margin-inline: 18px; }
 }
+
+/* ── Mental-model map ──────────────────────────────────────────────────────── */
+.drawer .ag-map-section { margin: 12px 22px 0; }
+.drawer .ag-map-toggle {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 10px; border: 0; border-left: 4px solid var(--brass, #e8c870);
+  background: color-mix(in srgb, var(--brass, #e8c870) 12%, transparent);
+  border-radius: 8px; color: var(--fg); cursor: pointer; text-align: left;
+}
+.drawer .ag-map-toggle:focus-visible { outline: 2px solid var(--brass); outline-offset: -2px; }
+.drawer .ag-map-toggle-label { flex: 1 1 auto; font-family: var(--serif); font-size: 15px; }
+.drawer .ag-map-hint { margin: 8px 2px; font-size: 12px; color: var(--mute); }
+.drawer .ag-map { display: flex; flex-direction: column; gap: 6px; }
+.drawer .ag-flowband { list-style: none; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 4px; padding: 0; margin: 2px 0 10px; }
+.drawer .ag-flow-arrow { color: var(--mute); font-size: 12px; }
+.drawer .ag-flow-station {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px;
+  font-size: 12px; color: var(--fg); cursor: pointer;
+  background: transparent; border: 1px solid color-mix(in srgb, var(--tier) 45%, transparent);
+  border-left: 3px solid var(--tier); border-radius: 7px;
+}
+.drawer .ag-flow-station.on { background: color-mix(in srgb, var(--tier) 18%, transparent); }
+.drawer .ag-flow-station:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+.drawer .ag-flow-name { font-weight: 600; }
+.drawer .ag-territory { display: flex; flex-direction: column; gap: 8px; }
+.drawer .ag-terr-area { border: 1px dashed color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 8px; padding: 7px 9px; }
+.drawer .ag-terr-label { display: block; font-family: var(--mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--mute); margin-bottom: 6px; }
+.drawer .ag-terr-nodes { display: flex; flex-wrap: wrap; gap: 6px; }
+.drawer .ag-terr-node {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px;
+  font-size: 11.5px; color: var(--fg); cursor: pointer; background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--line)) 40%, transparent);
+  border-left: 3px solid var(--accent, var(--line)); border-radius: 7px;
+}
+.drawer .ag-terr-node.on { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.drawer .ag-terr-node:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+.drawer .ag-terr-dot { font-size: 10px; }
+.drawer .ag-mapfilter-chip {
+  margin-top: 8px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+  color: var(--ink-900, #0f1623); background: var(--brass, #e8c870);
+  border: 0; border-radius: 999px; font-weight: 600;
+}
+
+/* ── Concept line + glossary tooltip ───────────────────────────────────────── */
+.drawer .ag-concept { margin: 2px 0 8px; font-size: 12.5px; color: var(--mute); font-style: italic; }
+.drawer .ag-gloss-wrap { position: relative; display: inline-block; }
+.drawer .ag-gloss {
+  border: 0; background: transparent; padding: 0; cursor: help; color: inherit;
+  font: inherit; border-bottom: 1px dotted var(--brass, #e8c870);
+}
+.drawer .ag-gloss:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.drawer .ag-gloss-pop {
+  position: absolute; left: 0; top: 130%; z-index: 5; width: max-content; max-width: 240px;
+  padding: 6px 9px; font-size: 11.5px; font-style: normal; color: var(--fg);
+  background: var(--ink-900, #0f1623); border: 1px solid var(--line);
+  border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.4);
+}
+@media (prefers-reduced-motion: reduce) { .drawer .ag-flow-station, .drawer .ag-terr-node { transition: none; } }

@@ -1,9 +1,11 @@
 ---
 title: Multi-node HA dev cluster on the Proxmox cluster (k3d → real k3s)
 date: 2026-05-30
-status: draft
+status: shelved
 domains: [infra]
 ---
+
+> **STATUS: SHELVED (2026-05-31, T000363).** Superseded by the self-contained-k3d dev edge (`2026-05-31-dev-mcp-public-route-design.md`); the `10.0.0.20` kube-vip / devc-1/2/3 VMs were never built.
 
 # Multi-node HA dev cluster on the Proxmox cluster
 

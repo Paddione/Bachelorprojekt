@@ -20,18 +20,11 @@ components:
 # mentolder wrapper (NOT fleet-common — korczewski has no equivalents, so a shared
 # delete would error). The harmless *.localhost dev IngressRoutes are left intact.
 patches:
-  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-dev }
-    patch: |-
-      $patch: delete
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata: { name: workspace-ingress-dev }
-  - target: { group: cert-manager.io, version: v1, kind: Certificate, name: workspace-dev-wildcard-tls }
-    patch: |-
-      $patch: delete
-      apiVersion: cert-manager.io/v1
-      kind: Certificate
-      metadata: { name: workspace-dev-wildcard-tls }
+  # NOTE: the dev SSO/TLS edge (workspace-ingress-dev, workspace-dev-wildcard-tls
+  # Certificate, oauth2-proxy-dev Service/Deployment/Middleware) is no longer
+  # rendered by prod-mentolder — it moved into the self-contained k3d dev stack
+  # (k3d/dev-stack/). Their $patch:delete blocks were removed here [T000363];
+  # only the dev-db-refresh deletes remain (those resources still render).
   - target: { group: batch, version: v1, kind: CronJob, name: dev-db-refresh }
     patch: |-
       $patch: delete
@@ -50,24 +43,6 @@ patches:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata: { name: allow-devnode-hostnet-to-shared-db-ingress }
-  - target: { version: v1, kind: Service, name: oauth2-proxy-dev }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: Service
-      metadata: { name: oauth2-proxy-dev }
-  - target: { group: apps, version: v1, kind: Deployment, name: oauth2-proxy-dev }
-    patch: |-
-      $patch: delete
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata: { name: oauth2-proxy-dev }
-  - target: { group: traefik.io, version: v1alpha1, kind: Middleware, name: oauth2-proxy-dev }
-    patch: |-
-      $patch: delete
-      apiVersion: traefik.io/v1alpha1
-      kind: Middleware
-      metadata: { name: oauth2-proxy-dev }
 
   # ── node-affinity repoints to fleet pk nodes (Task 8 empirical findings) ──
   # The blanket prod-mentolder NotIn [home workers] is already satisfied on the

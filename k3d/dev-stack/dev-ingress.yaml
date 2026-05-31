@@ -1,0 +1,50 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Dev TLS ingress — routes every *.dev.${PROD_DOMAIN} host to the in-cluster
+# oauth2-proxy-dev SSO gate. [T000363]
+# TLS is served on websecure by Traefik's default TLSStore (traefik-tls.yaml,
+# wildcard secret in kube-system) — no per-Ingress secretName needed; the `tls`
+# block just marks these hosts for the websecure entrypoint.
+# Prod middleware annotations (redirect-https/hsts/security-headers) are omitted
+# — those Middlewares are not part of the k3d dev stack.
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-dev
+  namespace: workspace-dev
+  annotations:
+    # Pin the SSO gate to the TLS (external) entrypoint ONLY. Without this a
+    # wildcard Ingress binds to both `web` and `websecure`; since oauth2-proxy
+    # loops its upstream back to the in-cluster Traefik `web` entrypoint, the
+    # *.dev wildcard would outrank the per-host website-dev/brett-dev Ingresses
+    # (Traefik rule-length priority) on that loopback hop and bounce authed
+    # traffic back to oauth2-proxy forever. Restricting to websecure means the
+    # loopback `web` table is resolved purely by the per-host Ingresses + the
+    # mcp-dev IngressRoute (priority 100). [T000363]
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+spec:
+  tls:
+    - hosts:
+        - "${DEV_DOMAIN}"
+        - "*.${DEV_DOMAIN}"
+  rules:
+    - host: "*.${DEV_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-dev
+                port:
+                  number: 4181
+    - host: "${DEV_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-dev
+                port:
+                  number: 4181

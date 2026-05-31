@@ -1,0 +1,18 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Default Traefik TLSStore for the k3d dev edge [T000363].
+# Makes the `websecure` (443) entrypoint serve the cert-manager-issued
+# *.dev.mentolder.de wildcard for every host, so Ingresses/IngressRoutes are
+# reachable over TLS without each declaring its own secret.
+#
+# The referenced secret `workspace-dev-wildcard-tls` is issued into kube-system
+# by k3d/dev-stack/cert-manager.yaml (Traefik's default TLSStore must reference a
+# secret in its own namespace, kube-system).
+# ════════════════════════════════════════════════════════════════════════════
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  defaultCertificate:
+    secretName: workspace-dev-wildcard-tls

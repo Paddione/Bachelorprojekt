@@ -19,6 +19,8 @@ setup() {
   run kubectl --context devc -n longhorn-system get volumes.longhorn.io \
     -o jsonpath='{.items[*].status.robustness}'
   [ "$status" -eq 0 ]
+  # Fail if any volume is degraded, faulted, or unknown (not just absent-of-healthy)
+  [[ ! "$output" =~ degraded|faulted|unknown ]]
   [[ "$output" == *"healthy"* ]]
 }
 

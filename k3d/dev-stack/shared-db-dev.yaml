@@ -1,9 +1,9 @@
 # ════════════════════════════════════════════════════════════════════
-# shared-db-dev — Postgres 16 inside the dev k3d cluster.
+# shared-db-dev — Postgres 16 inside the devc HA dev cluster.
 # Credential set is DISTINCT from prod's shared-db so a leak here cannot
-# unlock prod. NodePort 30000 → host 127.0.0.1:15432 (via k3d --port).
-# The dev-db-refresh CronJob in prod uses host loopback to pg_restore
-# the latest prod backup into here every night at 03:30 UTC.
+# unlock prod. Exposed via shared-db-dev-lb (LoadBalancer at 10.0.0.20:15432).
+# The dev-db-refresh CronJob in prod connects to 10.0.0.20:15432 to
+# pg_restore the latest prod backup into here every night at 03:30 UTC.
 # ════════════════════════════════════════════════════════════════════
 apiVersion: v1
 kind: PersistentVolumeClaim

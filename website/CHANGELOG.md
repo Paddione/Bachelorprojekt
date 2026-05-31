@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.19.0...website-v1.20.0) (2026-05-31)
+
+
+### Features
+
+* **agent-guide:** ai-agent guide foundation and hub-enrichment [T000374] ([#1247](https://github.com/Paddione/Bachelorprojekt/issues/1247)) ([edce57e](https://github.com/Paddione/Bachelorprojekt/commit/edce57e36b06bbfdb346b41d8adcd9c1ef7e1224))
+
 ## [1.19.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.18.0...website-v1.19.0) (2026-05-31)
 
 

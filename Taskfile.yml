@@ -1137,6 +1137,78 @@ tasks:
         echo ""
         bash scripts/backup-restore.sh pvc-restore {{.CLI_ARGS}} $ctx_arg
 
+  recovery:prepare:
+    desc: "Apply recovery-pvc (run once per cluster before staging). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        kubectl apply --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" -f k3d/recovery-pvc.yaml
+
+  recovery:stage:
+    desc: "Stage one backup entry browsable. ENV=<env> -- <timestamp> <db|service>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh stage {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:verify:
+    desc: "Prove a DB dump restores + show table counts. ENV=<env> -- <timestamp> <db>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh verify {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:browse:
+    desc: "Bring up the on-demand recovery filebrowser (SSO). ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh browse --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:unbrowse:
+    desc: "Tear the recovery filebrowser down. ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh unbrowse --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:restore-file:
+    desc: "Restore ONE staged file/dir into the live PVC. ENV=<env> -- <timestamp> <service> <path>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh restore-file {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:restore-table:
+    desc: "Restore ONE table into the live DB. ENV=<env> -- <timestamp> <db> <table>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh restore-table {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
+  recovery:unstage:
+    desc: "Drop *_recovery DBs + clear staging. ENV=<env> -- <timestamp>"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        bash scripts/backup-restore.sh unstage {{.CLI_ARGS}} --context "$ENV_CONTEXT" --namespace "${WORKSPACE_NAMESPACE:-workspace}"
+
   workspace:db:start:
     desc: "Ensure shared-db is running; scale up if at 0 replicas, otherwise restart (ENV=dev|mentolder|korczewski)"
     vars:

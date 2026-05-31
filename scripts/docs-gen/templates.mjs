@@ -6,6 +6,10 @@
 // and ./app.js (theme.mjs#clientJs), and is self-contained for static serving
 // (joseluisq/static-web-server, read-only rootfs). Never SSR, never write fs.
 
+import { buildGraph } from './graph-data.mjs';
+import { layoutGraph } from './graph-layout.mjs';
+import { renderGraphSvg } from './graph-svg.mjs';
+
 /**
  * @typedef {Object} Page
  * @property {string} slug
@@ -203,34 +207,51 @@ ${documentTail()}`;
 }
 
 /**
- * Plan-1 landing: an editorial card-grid hub grouped by type, with counts.
- * Plan 2 OVERRIDES this export to embed the relationship graph.
- * @param {{ pages: Page[], registry: object }} args
- * @returns {string}
+ * Render the landing page: an editorial hero with the interactive domain-clustered
+ * relationship graph as the centrepiece, plus a <noscript>-friendly fallback that
+ * lists the sections (skills/agents/docs) with counts so the page is usable without JS.
+ *
+ * Signature change (Plan 2, IC-4): supersedes the Plan-1 `renderLanding({ pages, registry })`
+ * card-grid landing. `edges` and `routingRows` are required to build the graph.
+ *
+ * @param {object} args
+ * @param {Page[]} args.pages
+ * @param {object} args.registry
+ * @param {Array<{from:string,to:string,kind?:string}>} args.edges
+ * @param {Array<{signals:string[],agent:string}>} args.routingRows
+ * @returns {string} full HTML5 document
  */
-export function renderLanding({ pages, registry: _registry }) {
-  const counts = new Map(SECTION_META.map((s) => [s.type, 0]));
-  for (const p of pages) {
-    if (counts.has(p.type)) counts.set(p.type, counts.get(p.type) + 1);
-  }
+export function renderLanding({ pages, registry: _registry, edges = [], routingRows = [] }) {
+  const graph = buildGraph(pages, edges, routingRows);
+  const layout = layoutGraph(graph, { width: 1200, height: 760 });
+  const svg = renderGraphSvg(layout);
 
-  const groups = SECTION_META.map((s) => {
-    const n = counts.get(s.type) ?? 0;
-    return `<a class="section-card" href="./${s.indexSlug}.html">
-  <span class="section-card-head">
-    <span class="section-card-title">${esc(s.label)} <span class="count-badge">${n}</span></span>
-  </span>
-  <span class="section-card-desc">${n} ${esc(s.label)} dokumentiert</span>
-  <span class="arrow">Öffnen →</span>
-</a>`;
+  const sections = [
+    { type: 'skill', title: 'Skills', indexPath: './skills.html' },
+    { type: 'agent', title: 'Agents', indexPath: './agents.html' },
+    { type: 'doc', title: 'Docs', indexPath: './docs.html' },
+  ];
+
+  const fallback = sections.map((section) => {
+    const items = pages.filter((p) => p.type === section.type);
+    const links = items
+      .slice()
+      .sort((a, b) => a.title.localeCompare(b.title))
+      .map((p) => `        <li><a href="./${esc(p.outRelPath)}">${esc(p.title)}</a></li>`)
+      .join('\n');
+    return `    <section class="fallback-section">
+      <h2><a href="${section.indexPath}">${section.title} (${items.length})</a></h2>
+      <ul>
+${links}
+      </ul>
+    </section>`;
   }).join('\n');
 
-  const total = pages.length;
   const header = `<header class="page-header landing-hero">
   <div class="page-header-body">
     <p class="kicker">Workspace MVP</p>
     <h1>Dokumentation</h1>
-    <p class="page-desc">${total} Seiten über Skills, Agents und Docs — durchsuchbar mit Strg/Cmd + K.</p>
+    <p class="page-desc">Eine interaktive, nach Domänen geclusterte Karte aller Skills, Agents und Docs. Knoten überfahren hebt die Nachbarn hervor, Klick öffnet die Seite, Scrollen zoomt, Ziehen verschiebt. Klick auf den Hintergrund setzt zurück.</p>
   </div>
 </header>`;
 
@@ -238,9 +259,15 @@ export function renderLanding({ pages, registry: _registry }) {
 <div id="app">
   <main id="main">
 ${header}
-<section class="section-grid landing-tracks">
-${groups}
+<section class="graph-hero" aria-label="Relationship graph">
+  <div class="graph-container" id="docs-graph">
+${svg}
+  </div>
 </section>
+<noscript>
+  <p class="noscript-note">Der interaktive Graph benötigt JavaScript. Stattdessen nach Bereich browsen:</p>
+${fallback}
+</noscript>
   </main>
 </div>
 ${documentTail()}`;

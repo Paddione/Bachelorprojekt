@@ -21,6 +21,8 @@ import { renderMarkdown } from './docs-gen/render-markdown.mjs';
 import { editorialCss, clientJs } from './docs-gen/theme.mjs';
 import { renderPage, renderSectionIndex, renderLanding } from './docs-gen/templates.mjs';
 import { rewrapLegacyPage } from './docs-gen/legacy.mjs';
+import { buildGraph } from './docs-gen/graph-data.mjs';
+import { layoutGraph } from './docs-gen/graph-layout.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
@@ -125,7 +127,7 @@ export async function runBuild(opts = {}) {
 
   // (4) Collect cross-link edges (used by the landing graph in Plan 2; the
   // unresolved list feeds the build report here).
-  const { unresolved } = collectEdges(pages, registry);
+  const { edges, unresolved } = collectEdges(pages, registry);
   report.unresolved.push(...unresolved);
 
   /** @type {SearchEntry[]} */
@@ -240,7 +242,19 @@ export async function runBuild(opts = {}) {
   }
 
   // (8) Landing page (graph-forward in Plan 2; editorial card grid in Plan 1).
-  writeOut(outDir, 'index.html', renderLanding({ pages, registry }));
+  writeOut(outDir, 'index.html', renderLanding({ pages, registry, edges, routingRows }));
+
+  // Graph metrics for the build report (same deterministic inputs the landing uses).
+  const reportGraph = buildGraph(pages, edges, routingRows);
+  const reportLayout = layoutGraph(reportGraph, { width: 1600, height: 1000 });
+  const placedIds = new Set(reportLayout.nodes.map((n) => n.id));
+  const unplacedNodes = reportGraph.nodes
+    .filter((n) => !placedIds.has(n.id))
+    .map((n) => n.id)
+    .sort();
+  report.graphNodes = reportGraph.nodes.length;
+  report.graphEdges = reportGraph.edges.length;
+  report.unplacedNodes = unplacedNodes;
 
   // (9) Assets.
   writeOut(outDir, 'style.css', editorialCss());
@@ -329,6 +343,12 @@ function printReport(report) {
   console.log(`  search entries:     ${c.searchEntries ?? 0}`);
   console.log(`  diagram fallbacks:  ${report.diagramFallbacks}`);
   console.log(`  unresolved refs:    ${report.unresolved.length}`);
+  console.log(`  graph nodes:        ${report.graphNodes ?? 0}`);
+  console.log(`  graph edges:        ${report.graphEdges ?? 0}`);
+  {
+    const unplaced = report.unplacedNodes ?? [];
+    console.log(`  unplaced nodes:     ${unplaced.length}${unplaced.length ? ' (' + unplaced.join(', ') + ')' : ''}`);
+  }
   if (report.unresolved.length) {
     for (const u of report.unresolved.slice(0, 20)) {
       console.log(`      ✗ ${u.from} → [[${u.ref}]]`);

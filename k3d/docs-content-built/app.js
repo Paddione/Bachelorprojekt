@@ -96,3 +96,56 @@
     });
   }
 })();
+
+(function(){
+  var container=document.getElementById('docs-graph');
+  if(!container)return;
+  var svg=container.querySelector('svg');
+  if(!svg)return;
+
+  // ── hover-highlight neighbors ──
+  var nodes=Array.prototype.slice.call(container.querySelectorAll('[data-node]'));
+  function clearHl(){
+    nodes.forEach(function(n){n.classList.remove('dim');n.classList.remove('hl');});
+  }
+  function highlight(active){
+    var raw=active.getAttribute('data-neighbors')||'';
+    var keep={};
+    keep[active.getAttribute('data-node')]=true;
+    raw.split(/[ ,]+/).forEach(function(id){if(id)keep[id]=true;});
+    nodes.forEach(function(n){
+      var id=n.getAttribute('data-node');
+      if(keep[id]){n.classList.add('hl');n.classList.remove('dim');}
+      else{n.classList.add('dim');n.classList.remove('hl');}
+    });
+  }
+  nodes.forEach(function(n){
+    n.addEventListener('pointerover',function(){highlight(n);});
+    n.addEventListener('pointerout',clearHl);
+    n.addEventListener('focus',function(){highlight(n);});
+    n.addEventListener('blur',clearHl);
+  });
+  // background click / pointer leave clears the highlight (the <a> handles nav)
+  container.addEventListener('pointerleave',clearHl);
+  svg.addEventListener('click',function(e){
+    if(!e.target.closest('[data-node]'))clearHl();
+  });
+
+  // ── zoom / pan (same model as diagram wrappers) ──
+  var dx=0,dy=0,scale=1,dragging=false,ox=0,oy=0;
+  svg.style.transformOrigin='0 0';
+  function upd(){svg.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';}
+  container.addEventListener('wheel',function(e){
+    e.preventDefault();
+    scale=Math.min(10,Math.max(0.3,scale*(e.deltaY>0?0.9:1.1)));upd();
+  },{passive:false});
+  container.addEventListener('pointerdown',function(e){
+    if(e.target.closest('[data-node]'))return; // let node clicks navigate
+    dragging=true;ox=e.clientX-dx;oy=e.clientY-dy;
+    container.style.cursor='grabbing';container.setPointerCapture(e.pointerId);
+  });
+  container.addEventListener('pointermove',function(e){
+    if(!dragging)return;dx=e.clientX-ox;dy=e.clientY-oy;upd();
+  });
+  container.addEventListener('pointerup',function(){dragging=false;container.style.cursor='grab';});
+})();

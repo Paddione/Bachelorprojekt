@@ -165,3 +165,40 @@ test('renderLanding: contains per-type section counts', () => {
   assert.ok(html.includes('href="./agents.html"'), 'links agents section');
   assert.ok(html.includes('href="./docs.html"'), 'links docs section');
 });
+
+// ─── renderLanding (Plan 2 override: graph hero + noscript fallback) ───────────
+test('renderLanding: embeds graph SVG, fallback section list, and legend marker', () => {
+  const pages = [
+    { slug: 'bachelorprojekt-ops', type: 'agent', provenance: 'repo',
+      name: 'bachelorprojekt-ops', title: 'Ops Agent', description: 'ops things',
+      domain: 'ops', bodyMarkdown: '', sourcePath: '/x/ops.md',
+      outRelPath: 'agents/bachelorprojekt-ops.html' },
+    { slug: 'database-ops', type: 'skill', provenance: 'repo',
+      name: 'database-ops', title: 'Database Ops', description: 'db runbook',
+      domain: 'db', bodyMarkdown: '', sourcePath: '/x/database-ops/SKILL.md',
+      outRelPath: 'skills/database-ops.html' },
+    { slug: 'wsl-bootstrap', type: 'doc', provenance: 'repo',
+      name: 'wsl-bootstrap', title: 'WSL Bootstrap', description: 'setup doc',
+      domain: 'general', bodyMarkdown: '', sourcePath: '/x/WSL-BOOTSTRAP.md',
+      outRelPath: 'wsl-bootstrap.html' },
+  ];
+  const bySlug = new Map(pages.map((p) => [p.slug, p]));
+  const registry = { pages, bySlug, resolve: (n) => bySlug.get(n) ?? null };
+  const edges = [{ from: 'database-ops', to: 'bachelorprojekt-ops', kind: 'wikilink' }];
+  const routingRows = [
+    { signals: ['pod', 'logs', 'status'], agent: 'bachelorprojekt-ops' },
+    { signals: ['database', 'psql'], agent: 'bachelorprojekt-db' },
+  ];
+
+  const html = renderLanding({ pages, registry, edges, routingRows });
+
+  assert.ok(html.startsWith('<!DOCTYPE html>'), 'is a full HTML document');
+  assert.ok(html.includes('<svg'), 'embeds the graph SVG');
+  assert.ok(html.includes('<noscript>'), 'has a noscript fallback');
+  assert.ok(/Skills\s*\(1\)/.test(html), 'fallback lists Skills with a count');
+  assert.ok(/Agents\s*\(1\)/.test(html), 'fallback lists Agents with a count');
+  assert.ok(/Docs\s*\(1\)/.test(html), 'fallback lists Docs with a count');
+  assert.ok(html.includes('graph-legend'), 'contains the legend marker');
+  assert.ok(html.includes('href="./skills/database-ops.html"'),
+    'fallback links a skill page by outRelPath');
+});

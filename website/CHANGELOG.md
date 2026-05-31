@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.21.0...website-v1.21.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* **website:** ship Agent-Anleitung drawer CSS in prod build ([#1263](https://github.com/Paddione/Bachelorprojekt/issues/1263)) ([57e4f66](https://github.com/Paddione/Bachelorprojekt/commit/57e4f66cbce8bd8363040931445e7e583580555c))
+
 ## [1.21.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.20.0...website-v1.21.0) (2026-05-31)
 
 

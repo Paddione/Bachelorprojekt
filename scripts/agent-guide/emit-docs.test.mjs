@@ -351,3 +351,28 @@ test('writeDocs: aborts (throws) on an invalid registry — never emits', () => 
 });
 
 export { makeFixtureRegistry };
+
+test('renderWerkzeuge emits a copyable init_prompt_de code block when present', () => {
+  const reg = { tools: [{
+    id: 'dev-flow-plan', name_de: 'Planungs-Skill', kind: 'skill', danger: 'caution',
+    summary_de: 'S', what_for_de: 'W', how_to_start_de: 'H', what_could_go_wrong_de: 'X',
+    guardrails: [], related: [], links: [],
+    init_prompt_de: '/dev-flow-plan: plane meine Änderung',
+  }] };
+  const md = renderWerkzeuge(reg);
+  assert.ok(md.includes('Du kannst diesen Prompt kopieren und in Claude Code einfügen:'),
+    'must render the copy-prompt label');
+  assert.ok(md.includes('/dev-flow-plan: plane meine Änderung'), 'must render the prompt text');
+  assert.ok(/```text\n\/dev-flow-plan/.test(md), 'prompt must be in a text fence');
+});
+
+test('renderWerkzeuge omits the init block when init_prompt_de is absent', () => {
+  const reg = { tools: [{
+    id: 'task-oracle', name_de: 'Task-Orakel', kind: 'task', danger: 'safe',
+    summary_de: 'S', what_for_de: 'W', how_to_start_de: 'H', what_could_go_wrong_de: 'X',
+    guardrails: [], related: [], links: [],
+  }] };
+  const md = renderWerkzeuge(reg);
+  assert.ok(!md.includes('Du kannst diesen Prompt kopieren'), 'no label without the field');
+});
+

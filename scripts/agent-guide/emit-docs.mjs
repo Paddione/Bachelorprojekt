@@ -190,6 +190,14 @@ export function renderWerkzeuge(reg) {
     parts.push('');
     parts.push(`**Was schiefgehen kann:** ${tool.what_could_go_wrong_de}`);
     parts.push('');
+    if (typeof tool.init_prompt_de === 'string' && tool.init_prompt_de.trim()) {
+      parts.push('**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**');
+      parts.push('');
+      parts.push('```text');
+      parts.push(tool.init_prompt_de);
+      parts.push('```');
+      parts.push('');
+    }
     const gr = guardrailNames(tool.guardrails);
     if (gr) {
       parts.push(`**Schutzregeln (Guardrails):** ${gr}`);

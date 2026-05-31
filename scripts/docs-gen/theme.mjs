@@ -26,10 +26,13 @@ const GRAPH_CSS = `
 .graph-edge{stroke:var(--line);stroke-width:1.2;opacity:.7}
 [data-node]{cursor:pointer;transition:opacity .12s}
 [data-node] circle{transition:stroke .12s,stroke-width .12s}
-[data-node] text{fill:var(--ink-soft);font-size:12px;pointer-events:none}
+/* Labels are hidden by default (121 nodes would otherwise overlap into an
+   illegible smear) and revealed for the hovered node + its neighbours. */
+[data-node] text{fill:var(--ink-soft);font-size:12px;pointer-events:none;
+  opacity:0;transition:opacity .12s}
 [data-node].dim{opacity:.18}
 [data-node].hl circle{stroke:var(--accent);stroke-width:2.5}
-[data-node].hl text{fill:var(--accent);font-weight:700}
+[data-node].hl text{fill:var(--accent);font-weight:700;opacity:1}
 .graph-legend text{fill:var(--ink-mute);font-size:12px}
 .graph-legend-title{fill:var(--ink-soft);font-weight:700}
 .graph-legend circle{stroke:var(--line);stroke-width:1}

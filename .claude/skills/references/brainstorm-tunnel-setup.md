@@ -2,11 +2,16 @@
 
 This guide details how to start and publish the Visual Companion brainstorming tunnel.
 
-## Step 1: Ensure wss:// patch is applied
+## Step 1: Ensure wss:// and collab patches are applied
 
 ```bash
 bash scripts/superpowers-helper-patch.sh
+bash scripts/superpowers-collab-patch.sh
 ```
+
+Both patches are idempotent and wired as SessionStart hooks. Re-run after any
+superpowers plugin update (`bash scripts/superpowers-collab-patch.sh --check`
+exits non-zero if a re-apply is needed).
 
 If exit ≠ 0, retry or run manually.
 
@@ -77,3 +82,58 @@ if ! ss -ltn 2>/dev/null | grep -q ":${PORT} "; then
 fi
 ```
 Tell the user: **"Visual-Companion running at https://brainstorm.dev.mentolder.de"**
+
+---
+
+## Collaborative Session
+
+Use `task brainstorm:collab` to start a session that gekko can join:
+
+```bash
+# Apply collab patch + publish + print the SSO link
+task brainstorm:collab -- $PORT
+```
+
+This runs the collab patch, prints the SSO link, then delegates to `task brainstorm:publish`.
+
+### Prerequisites for gekko
+
+1. gekko must have a Keycloak account in the workspace realm.
+2. Add gekko to the `/brainstorm-access` group (Keycloak admin UI → Groups → brainstorm-access → Members).
+3. Share the printed link: `https://brainstorm.dev.mentolder.de`
+4. gekko logs in via Keycloak; without `/brainstorm-access` membership they get a 403.
+
+### Dev-flow status pushes
+
+During a dev-flow, push milestone updates to the board so gekko can follow along:
+
+```bash
+task brainstorm:push TITLE='Task 3 — Patch driver' STATUS='bats grün, driver fertig'
+```
+
+The companion's `fs.watch` broadcasts a reload automatically; both screens update.
+
+### First-time setup: BRAINSTORM_OIDC_SECRET
+
+Before applying `oauth2-proxy-brainstorm.yaml` to the dev cluster:
+
+```bash
+# 1. Add BRAINSTORM_OIDC_SECRET to environments/.secrets/mentolder.yaml
+# 2. Re-seal:
+task env:seal ENV=mentolder
+# 3. Apply the dev-stack with the new manifest:
+task dev:deploy
+```
+
+The Keycloak `brainstorm` client and `/brainstorm-access` group are pre-configured
+in `k3d/realm-workspace-dev.json` and will be imported on the next realm import.
+
+### WebSocket passthrough note
+
+The SSO gate uses Traefik ForwardAuth (not a full upstream proxy). Traefik
+authenticates the initial HTTP upgrade, then passes the `wss://` connection
+directly to sish. Both the click-loop and the collab WebSocket survive this hop.
+If the WS upgrade breaks in practice (check browser DevTools → Network → WS
+frames), fall back to running oauth2-proxy with `--upstream=http://sish:80`
+(full-proxy mode) and remove the IngressRoute routing to sish — the proxy
+handles all traffic end-to-end in that case.

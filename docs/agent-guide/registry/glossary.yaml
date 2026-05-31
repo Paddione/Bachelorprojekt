@@ -1,0 +1,14 @@
+# docs/agent-guide/registry/glossary.yaml
+# Short German definitions for the "Begriffe kurz erklärt" group. Searchable.
+- { term: "Skill",     def_de: "Eine vordefinierte Anleitung, die der Agent Schritt für Schritt abarbeitet." }
+- { term: "Agent",     def_de: "Ein spezialisierter KI-Helfer für ein Themengebiet (z. B. Website, Datenbank)." }
+- { term: "Task",      def_de: "Ein benannter Befehl aus der Taskfile, z. B. zum Deployen oder Testen." }
+- { term: "PR",        def_de: "Pull Request — ein Änderungsvorschlag, der vor dem Zusammenführen geprüft wird." }
+- { term: "Branch",    def_de: "Eine abgetrennte Arbeitskopie des Codes, auf der gefahrlos entwickelt wird." }
+- { term: "Merge",     def_de: "Das Zusammenführen eines geprüften Branches in den Hauptstand (main)." }
+- { term: "Deploy",    def_de: "Das Ausrollen einer Änderung in eine laufende Umgebung." }
+- { term: "Cluster",   def_de: "Der Verbund von Servern, auf dem alle Dienste laufen (Kubernetes)." }
+- { term: "Secret",    def_de: "Ein Geheimnis wie Passwort oder Schlüssel; verschlüsselt gespeichert." }
+- { term: "ENV",       def_de: "Die Ziel-Umgebung eines Befehls, z. B. ENV=mentolder oder ENV=dev." }
+- { term: "Guardrail", def_de: "Eine Schutzregel, die gefährliche Aktionen bremst oder blockiert." }
+- { term: "CI",        def_de: "Continuous Integration — automatische Tests bei jedem Pull Request." }

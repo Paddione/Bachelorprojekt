@@ -253,6 +253,7 @@ tasks:
       - task: test:unit:render-cloud-init
       - task: test:unit:fleet-phase2b
       - task: test:unit:shared-db-initdb-selfheal
+      - task: test:unit:wg-mesh-fullmesh
 
   test:unit:assert:
     internal: true
@@ -293,6 +294,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/shared-db-initdb-selfheal.bats
+
+  test:unit:wg-mesh-fullmesh:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-fullmesh.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"

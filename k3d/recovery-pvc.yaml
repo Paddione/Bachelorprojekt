@@ -1,0 +1,17 @@
+# recovery-pvc — scratch space for browsable backup staging (recovery workflow).
+# Holds decrypted+extracted PVC file trees under /recovery/<ts>/<service>/.
+# Per-service staging keeps real usage well under the quota. NOT mounted by any
+# always-on workload; written by `backup-restore.sh stage`, read-only by the
+# on-demand recovery filebrowser (Plan 2).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: recovery-pvc
+  labels:
+    app: recovery
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

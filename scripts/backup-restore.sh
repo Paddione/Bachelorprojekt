@@ -5,6 +5,7 @@ set -euo pipefail
 
 NS=workspace
 SCRIPT=$(basename "$0")
+REPO_ROOT="${REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 usage() {
   cat <<EOF
@@ -36,6 +37,17 @@ Commands (disaster recovery — fresh cluster):
                              FILEN_DEFAULT_UPLOAD_PATH. Timestamps are discovered
                              out-of-band (Filen web/desktop app or 'filen ls').
 
+Commands (browsable recovery — stage, browse, selectively restore):
+  stage <timestamp> <db|service>      Decrypt one entry into a browsable staging area
+                                        db → <db>_recovery inspection DB; service →
+                                        recovery-pvc:/recovery/<ts>/<service>/
+  verify <timestamp> <db>             Prove a DB dump restores; print table counts; drop temp
+  browse                              Bring up the on-demand recovery filebrowser (SSO)
+  unbrowse                            Tear the filebrowser down
+  restore-file <timestamp> <service> <path>   Copy ONE staged path back into the live PVC
+  restore-table <timestamp> <db> <table>      Restore ONE table back into the live DB
+  unstage <timestamp>                 Drop *_recovery DBs + clear the staging dir
+
 Options:
   --context <ctx>   kubectl context (default: active context)
   --namespace <ns>  Kubernetes namespace (default: workspace)
@@ -44,10 +56,10 @@ Options:
 
 Examples:
   $SCRIPT list
-  $SCRIPT pvc-list --context fleet -n workspace
+  $SCRIPT pvc-list --context fleet --namespace workspace
   $SCRIPT pvc-trigger
-  $SCRIPT pvc-restore nextcloud-files pvc-20260427-030001 --context fleet -n workspace -y
-  $SCRIPT restore all 20260427-020001 --context fleet -n workspace-korczewski -y
+  $SCRIPT pvc-restore nextcloud-files pvc-20260427-030001 --context fleet --namespace workspace -y
+  $SCRIPT restore all 20260427-020001 --context fleet --namespace workspace-korczewski -y
 EOF
 }
 
@@ -90,6 +102,14 @@ _pvc_service_mount() {
     vaultwarden-data)  echo "vaultwarden-data.tar.gz.enc" ;;
     docuseal-data)     echo "docuseal-data.tar.gz.enc" ;;
     *) _die "unknown PVC service '$1' (valid: nextcloud-files vaultwarden-data docuseal-data all)" ;;
+  esac
+}
+
+_target_kind() {
+  case "$1" in
+    keycloak|nextcloud|vaultwarden|website|docuseal) echo db ;;
+    nextcloud-files|vaultwarden-data|docuseal-data)  echo service ;;
+    *) _die "unknown stage target '$1' (db: keycloak nextcloud vaultwarden website docuseal | service: nextcloud-files vaultwarden-data docuseal-data)" ;;
   esac
 }
 
@@ -564,6 +584,434 @@ YAML
     echo "    $SCRIPT pvc-list ${CTX_FLAG}    # PVC backups now in backup-pvc"
     echo "    $SCRIPT restore <db> ${TS} ${CTX_FLAG}"
     echo "    $SCRIPT pvc-restore <svc> ${TS} ${CTX_FLAG}"
+    ;;
+
+  stage)
+    TS="${1:-}"; TARGET="${2:-}"
+    [[ -n "$TS" && -n "$TARGET" ]] || _die "Usage: $SCRIPT stage <timestamp> <db|service>"
+    KIND=$(_target_kind "$TARGET")
+
+    if [[ "$KIND" == "db" ]]; then
+      echo "--> Staging DB '${TARGET}' from ${TS} into ${TARGET}_recovery (live DB untouched)..."
+      JOB="recovery-stage-db-${TARGET}-$$"
+      $KC apply -n "$NS" -f - <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB}
+  namespace: ${NS}
+  labels: { app: recovery-stage }
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector: { matchLabels: { app: shared-db } }
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: stage
+          image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              sleep 10
+              ENC="/backups/${TS}/${TARGET}.dump.enc"
+              [ -f "\$ENC" ] || { echo "ERROR: \$ENC not found"; exit 1; }
+              openssl enc -d -aes-256-cbc -pbkdf2 -in "\$ENC" -out /tmp/${TARGET}.dump -pass env:BACKUP_PASSPHRASE
+              PGPASSWORD="\$SHARED_DB_PASSWORD" dropdb -h shared-db -U postgres --if-exists ${TARGET}_recovery
+              PGPASSWORD="\$SHARED_DB_PASSWORD" createdb -h shared-db -U postgres -O ${TARGET} ${TARGET}_recovery
+              PGPASSWORD="\$SHARED_DB_PASSWORD" pg_restore -h shared-db -U postgres -d ${TARGET}_recovery --no-owner --exit-on-error /tmp/${TARGET}.dump
+              rm /tmp/${TARGET}.dump
+              echo "✓ staged ${TARGET}_recovery — inspect with: psql -h shared-db -U postgres -d ${TARGET}_recovery"
+          env:
+            - { name: BACKUP_PASSPHRASE,  valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } } }
+            - { name: SHARED_DB_PASSWORD, valueFrom: { secretKeyRef: { name: workspace-secrets, key: SHARED_DB_PASSWORD } } }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: backup-storage, mountPath: /backups, readOnly: true }
+          resources:
+            requests: { memory: 256Mi, cpu: "200m" }
+            limits:   { memory: 512Mi, cpu: "1" }
+      volumes:
+        - name: backup-storage
+          persistentVolumeClaim: { claimName: backup-pvc }
+YAML
+    else
+      ARCHIVE_FILE=$(_pvc_service_mount "$TARGET")
+      echo "--> Staging service '${TARGET}' from ${TS} into recovery-pvc:/recovery/${TS}/${TARGET}/ ..."
+      JOB="recovery-stage-svc-${TARGET}-$$"
+      $KC apply -n "$NS" -f - <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB}
+  namespace: ${NS}
+  labels: { app: recovery-stage }
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: stage
+          image: alpine:3
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              ENC="/backups/${TS}/${ARCHIVE_FILE}"
+              [ -f "\$ENC" ] || { echo "ERROR: \$ENC not found"; exit 1; }
+              DEST="/recovery/${TS}/${TARGET}"
+              mkdir -p "\$DEST"
+              find "\$DEST" -mindepth 1 -delete
+              openssl enc -d -aes-256-cbc -pbkdf2 -in "\$ENC" -out /tmp/stage.tar.gz -pass env:BACKUP_PASSPHRASE
+              tar xzf /tmp/stage.tar.gz -C "\$DEST"
+              rm /tmp/stage.tar.gz
+              echo "✓ staged \$DEST — browse it via: $SCRIPT browse"
+          env:
+            - { name: BACKUP_PASSPHRASE, valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } } }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: backup-storage, mountPath: /backups, readOnly: true }
+            - { name: recovery,       mountPath: /recovery }
+          resources:
+            requests: { memory: 256Mi, cpu: "200m" }
+            limits:   { memory: 1Gi,   cpu: "1" }
+      volumes:
+        - { name: backup-storage, persistentVolumeClaim: { claimName: backup-pvc } }
+        - { name: recovery,       persistentVolumeClaim: { claimName: recovery-pvc } }
+YAML
+    fi
+    echo "    Waiting for stage job to complete (up to 10 min)..."
+    if ! $KC wait -n "$NS" job/"$JOB" --for=condition=Complete --timeout=600s 2>/dev/null; then
+      echo "    ERROR: stage job did not complete"; $KC logs -n "$NS" -l "job-name=${JOB}" --tail=50 2>/dev/null || true; exit 1
+    fi
+    $KC logs -n "$NS" -l "job-name=${JOB}" --tail=10 2>/dev/null || true
+    ;;
+
+  verify)
+    TS="${1:-}"; DB="${2:-}"
+    [[ -n "$TS" && -n "$DB" ]] || _die "Usage: $SCRIPT verify <timestamp> <db>"
+    [[ "$(_target_kind "$DB")" == "db" ]] || _die "verify expects a database name"
+    echo "--> Verifying ${DB} dump from ${TS} (restore into temp DB, count, drop)..."
+    JOB="recovery-verify-${DB}-$$"
+    $KC apply -n "$NS" -f - <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB}
+  namespace: ${NS}
+  labels: { app: recovery-verify }
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector: { matchLabels: { app: shared-db } }
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: verify
+          image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              sleep 10
+              ENC="/backups/${TS}/${DB}.dump.enc"
+              [ -f "\$ENC" ] || { echo "ERROR: \$ENC not found"; exit 1; }
+              TMP=${DB}_verify_$$
+              openssl enc -d -aes-256-cbc -pbkdf2 -in "\$ENC" -out /tmp/${DB}.dump -pass env:BACKUP_PASSPHRASE
+              PGPASSWORD="\$SHARED_DB_PASSWORD" createdb -h shared-db -U postgres "\$TMP"
+              PGPASSWORD="\$SHARED_DB_PASSWORD" pg_restore -h shared-db -U postgres -d "\$TMP" --no-owner --exit-on-error /tmp/${DB}.dump
+              echo "── Tabellen-Zähler für ${DB} (${TS}) ──"
+              PGPASSWORD="\$SHARED_DB_PASSWORD" psql -h shared-db -U postgres -d "\$TMP" -c \
+                "SELECT table_name, (xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I', table_schema, table_name), false, true, '')))[1]::text::int AS rows FROM information_schema.tables WHERE table_schema='public' ORDER BY rows DESC;"
+              PGPASSWORD="\$SHARED_DB_PASSWORD" dropdb -h shared-db -U postgres --if-exists "\$TMP"
+              rm /tmp/${DB}.dump
+              echo "✓ ${DB} dump from ${TS} is restorable."
+          env:
+            - { name: BACKUP_PASSPHRASE,  valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } } }
+            - { name: SHARED_DB_PASSWORD, valueFrom: { secretKeyRef: { name: workspace-secrets, key: SHARED_DB_PASSWORD } } }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: backup-storage, mountPath: /backups, readOnly: true }
+          resources:
+            requests: { memory: 256Mi, cpu: "200m" }
+            limits:   { memory: 512Mi, cpu: "1" }
+      volumes:
+        - { name: backup-storage, persistentVolumeClaim: { claimName: backup-pvc } }
+YAML
+    echo "    Waiting for verify job (up to 10 min)..."
+    if ! $KC wait -n "$NS" job/"$JOB" --for=condition=Complete --timeout=600s 2>/dev/null; then
+      echo "    ✗ ${DB} dump FAILED to restore — backup is NOT trustworthy"; $KC logs -n "$NS" -l "job-name=${JOB}" --tail=50 2>/dev/null || true; exit 1
+    fi
+    $KC logs -n "$NS" -l "job-name=${JOB}" 2>/dev/null || true
+    ;;
+
+  restore-file)
+    TS="${1:-}"; SVC="${2:-}"; SUBPATH="${3:-}"
+    [[ -n "$TS" && -n "$SVC" && -n "$SUBPATH" ]] || _die "Usage: $SCRIPT restore-file <timestamp> <service> <path>"
+    _pvc_service_mount "$SVC" >/dev/null   # validate service name
+    case "$SVC" in
+      nextcloud-files)  PVC_NAME="nextcloud-data-pvc";  MOUNT_PATH="/data" ;;
+      vaultwarden-data) PVC_NAME="vaultwarden-data-pvc"; MOUNT_PATH="/data" ;;
+      docuseal-data)    PVC_NAME="docuseal-data-pvc";    MOUNT_PATH="/data" ;;
+    esac
+    echo ""
+    echo " SELECTIVE FILE RESTORE"
+    printf "  From staging : recovery-pvc:/recovery/%s/%s/%s\n" "$TS" "$SVC" "$SUBPATH"
+    printf "  Into live    : %s:%s/%s  (ns=%s)\n" "$PVC_NAME" "$MOUNT_PATH" "$SUBPATH" "$NS"
+    echo "  This overwrites that path in the LIVE volume."
+    if [[ "$YES" != true ]]; then
+      read -rp "Type 'yes' to continue: " CONFIRM
+      [[ "$CONFIRM" == "yes" ]] || { echo "Aborted."; exit 1; }
+    fi
+    JOB="recovery-restore-file-${SVC}-$$"
+    $KC apply -n "$NS" -f - <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB}
+  namespace: ${NS}
+  labels: { app: recovery-restore-file }
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: restore-file
+          image: alpine:3
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              SRC="/recovery/${TS}/${SVC}/${SUBPATH}"
+              DST="${MOUNT_PATH}/${SUBPATH}"
+              [ -e "\$SRC" ] || { echo "ERROR: \$SRC not staged — run: $SCRIPT stage ${TS} ${SVC}"; exit 1; }
+              mkdir -p "\$(dirname "\$DST")"
+              cp -a "\$SRC" "\$DST"
+              echo "✓ restored \$DST from staging"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: recovery, mountPath: /recovery, readOnly: true }
+            - { name: target,   mountPath: ${MOUNT_PATH} }
+          resources:
+            requests: { memory: 128Mi, cpu: "100m" }
+            limits:   { memory: 512Mi, cpu: "1" }
+      volumes:
+        - { name: recovery, persistentVolumeClaim: { claimName: recovery-pvc } }
+        - { name: target,   persistentVolumeClaim: { claimName: ${PVC_NAME} } }
+YAML
+    echo "    Waiting for restore-file job (up to 5 min)..."
+    if ! $KC wait -n "$NS" job/"$JOB" --for=condition=Complete --timeout=300s 2>/dev/null; then
+      echo "    ERROR: restore-file did not complete"; $KC logs -n "$NS" -l "job-name=${JOB}" --tail=50 2>/dev/null || true; exit 1
+    fi
+    $KC logs -n "$NS" -l "job-name=${JOB}" --tail=10 2>/dev/null || true
+    ;;
+
+  restore-table)
+    TS="${1:-}"; DB="${2:-}"; TABLE="${3:-}"
+    [[ -n "$TS" && -n "$DB" && -n "$TABLE" ]] || _die "Usage: $SCRIPT restore-table <timestamp> <db> <table>"
+    [[ "$(_target_kind "$DB")" == "db" ]] || _die "restore-table expects a database name"
+    echo ""
+    echo " SELECTIVE TABLE RESTORE"
+    printf "  Dump  : %s/%s.dump.enc\n" "$TS" "$DB"
+    printf "  Into  : LIVE %s.%s (ns=%s) — table is DROPPED + recreated from the dump\n" "$DB" "$TABLE" "$NS"
+    if [[ "$YES" != true ]]; then
+      read -rp "Type 'yes' to continue: " CONFIRM
+      [[ "$CONFIRM" == "yes" ]] || { echo "Aborted."; exit 1; }
+    fi
+    JOB="recovery-restore-table-${DB}-$$"
+    $KC apply -n "$NS" -f - <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB}
+  namespace: ${NS}
+  labels: { app: recovery-restore-table }
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector: { matchLabels: { app: shared-db } }
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: restore-table
+          image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              sleep 10
+              ENC="/backups/${TS}/${DB}.dump.enc"
+              [ -f "\$ENC" ] || { echo "ERROR: \$ENC not found"; exit 1; }
+              openssl enc -d -aes-256-cbc -pbkdf2 -in "\$ENC" -out /tmp/${DB}.dump -pass env:BACKUP_PASSPHRASE
+              PGPASSWORD="\$SHARED_DB_PASSWORD" pg_restore -h shared-db -U postgres -d ${DB} --no-owner --clean --if-exists -t ${TABLE} /tmp/${DB}.dump
+              rm /tmp/${DB}.dump
+              echo "✓ restored table ${DB}.${TABLE} from ${TS}"
+          env:
+            - { name: BACKUP_PASSPHRASE,  valueFrom: { secretKeyRef: { name: workspace-secrets, key: BACKUP_PASSPHRASE } } }
+            - { name: SHARED_DB_PASSWORD, valueFrom: { secretKeyRef: { name: workspace-secrets, key: SHARED_DB_PASSWORD } } }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: backup-storage, mountPath: /backups, readOnly: true }
+          resources:
+            requests: { memory: 256Mi, cpu: "200m" }
+            limits:   { memory: 512Mi, cpu: "1" }
+      volumes:
+        - { name: backup-storage, persistentVolumeClaim: { claimName: backup-pvc } }
+YAML
+    echo "    Waiting for restore-table job (up to 5 min)..."
+    if ! $KC wait -n "$NS" job/"$JOB" --for=condition=Complete --timeout=300s 2>/dev/null; then
+      echo "    ERROR: restore-table did not complete"; $KC logs -n "$NS" -l "job-name=${JOB}" --tail=50 2>/dev/null || true; exit 1
+    fi
+    $KC logs -n "$NS" -l "job-name=${JOB}" --tail=10 2>/dev/null || true
+    ;;
+
+  browse)
+    MANIFEST="${REPO_ROOT}/k3d/recovery-browser.yaml"
+    [[ -f "$MANIFEST" ]] || _die "recovery-browser.yaml missing — Plan 2 (feature/recovery-browse) provides it"
+    echo "Bringing up the recovery filebrowser (read-only over recovery-pvc:/recovery)..."
+    $KC apply -n "$NS" -f "$MANIFEST"
+    DOM=$($KC get configmap domain-config -n "$NS" -o jsonpath='{.data.RECOVER_DOMAIN}' 2>/dev/null || echo "recover.localhost")
+    echo "✓ Browse at: https://${DOM}  (Keycloak login, group /recovery-access). Tear down with: $SCRIPT unbrowse"
+    ;;
+
+  unbrowse)
+    MANIFEST="${REPO_ROOT}/k3d/recovery-browser.yaml"
+    echo "Removing the recovery filebrowser..."
+    $KC delete -n "$NS" -f "$MANIFEST" --ignore-not-found 2>/dev/null || true
+    echo "✓ recovery filebrowser removed"
+    ;;
+
+  unstage)
+    TS="${1:-}"
+    [[ -n "$TS" ]] || _die "Usage: $SCRIPT unstage <timestamp>"
+    if [[ "$YES" != true ]]; then
+      read -rp "Drop all *_recovery DBs and clear recovery-pvc:/recovery/${TS}? Type 'yes': " CONFIRM
+      [[ "$CONFIRM" == "yes" ]] || { echo "Aborted."; exit 1; }
+    fi
+    JOB="recovery-unstage-$$"
+    $KC apply -n "$NS" -f - <<YAML
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB}
+  namespace: ${NS}
+  labels: { app: recovery-unstage }
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector: { matchLabels: { app: shared-db } }
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: unstage
+          image: pgvector/pgvector:0.8.0-pg16
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              for db in keycloak nextcloud vaultwarden website docuseal; do
+                PGPASSWORD="\$SHARED_DB_PASSWORD" dropdb -h shared-db -U postgres --if-exists \${db}_recovery
+              done
+              rm -rf "/recovery/${TS}" 2>/dev/null || true
+              echo "✓ unstaged ${TS}"
+          env:
+            - { name: SHARED_DB_PASSWORD, valueFrom: { secretKeyRef: { name: workspace-secrets, key: SHARED_DB_PASSWORD } } }
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: recovery, mountPath: /recovery }
+          resources:
+            requests: { memory: 128Mi, cpu: "100m" }
+            limits:   { memory: 256Mi, cpu: "500m" }
+      volumes:
+        - { name: recovery, persistentVolumeClaim: { claimName: recovery-pvc } }
+YAML
+    $KC wait -n "$NS" job/"$JOB" --for=condition=Complete --timeout=180s 2>/dev/null || true
+    $KC logs -n "$NS" -l "job-name=${JOB}" --tail=10 2>/dev/null || true
     ;;
 
   *)

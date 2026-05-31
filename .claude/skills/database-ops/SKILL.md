@@ -147,6 +147,66 @@ kubectl get jobs -n <ns> --context <ctx> -l app=db-backup   # any Failed → ins
 
 ---
 
+## Phase 3 — Browsable Recovery Workflow (stage → browse → selective restore)
+
+The new `stage`/`verify`/`restore-file`/`restore-table`/`browse`/`unstage` subcommands in `scripts/backup-restore.sh` let you inspect and selectively recover from backups **without touching live data** until you explicitly confirm.
+
+### Runbook
+
+**Step 3.1: Apply the recovery PVC (once per cluster)**
+```bash
+task recovery:prepare ENV=mentolder    # creates recovery-pvc in workspace namespace
+task recovery:prepare ENV=korczewski   # creates recovery-pvc in workspace-korczewski
+```
+
+**Step 3.2: Prove a dump is restorable (non-destructive)**
+```bash
+task recovery:verify ENV=mentolder -- 20260530-020001 website
+# Restores the dump into website_verify_<pid>, prints table counts, then drops it.
+```
+
+**Step 3.3: Stage a DB or service for inspection**
+```bash
+# DB: decrypts and pg_restore into <db>_recovery (live DB untouched)
+task recovery:stage ENV=mentolder -- 20260530-020001 website
+
+# Service PVC: decrypts + extracts to recovery-pvc:/recovery/<ts>/<service>/
+task recovery:stage ENV=mentolder -- pvc-20260530-030001 nextcloud-files
+```
+
+**Step 3.4: Browse staged data**
+```bash
+# Files (filebrowser over SSO):
+task recovery:browse ENV=mentolder   # prints https://recover.<domain>
+
+# DB tables (psql into *_recovery):
+kubectl exec -n workspace --context fleet deploy/shared-db -- \
+  psql -U postgres -d website_recovery
+```
+
+**Step 3.5: Selective restore (requires explicit confirmation)**
+```bash
+# Restore one file from staging into the live PVC:
+task recovery:restore-file ENV=mentolder -- pvc-20260530-030001 nextcloud-files admin/files/Doc.pdf -y
+
+# Restore one table from dump into the live DB:
+task recovery:restore-table ENV=mentolder -- 20260530-020001 website site_settings -y
+```
+
+**Step 3.6: Clean up staging**
+```bash
+task recovery:unbrowse ENV=mentolder          # tear down the filebrowser
+task recovery:unstage ENV=mentolder -- pvc-20260530-030001 -y  # drop *_recovery DBs + clear staging dir
+```
+
+### Invariants
+- `stage` and `verify` never touch live data; only `restore-file` / `restore-table` write to live volumes (and only after explicit `-y` confirmation).
+- Per-service staging: always stage the service you need, not "all" — keeps `recovery-pvc` small.
+- `recovery-browser.yaml` is applied on demand (not in kustomization.yaml). It requires Plan 2 (`feature/recovery-browse`) to be merged before `browse` works.
+- The `browse` command fails cleanly with a clear message if `recovery-browser.yaml` is missing.
+
+---
+
 ## Troubleshooting & Common Blockers
 
 | Symptom | Cause | Fix |

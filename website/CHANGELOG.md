@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.21.1...website-v1.22.0) (2026-05-31)
+
+
+### Features
+
+* **docs/sidekick:** Sidekick initial prompts registry + dark reskin ([#1266](https://github.com/Paddione/Bachelorprojekt/issues/1266)) ([36c3a1b](https://github.com/Paddione/Bachelorprojekt/commit/36c3a1b58b369a53d5b15f691cc0cf820c6d8584))
+
 ## [1.21.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.21.0...website-v1.21.1) (2026-05-31)
 
 

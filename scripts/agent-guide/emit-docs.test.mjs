@@ -11,6 +11,9 @@ import {
   dangerBadge,
   toolLink,
   urlLink,
+  renderZiele,
+  renderWerkzeuge,
+  renderBausteine,
 } from './emit-docs.mjs';
 
 // makeFixtureRegistry will be used by Tasks 3-5; defined here so later tasks can append test() blocks
@@ -200,6 +203,91 @@ test('toolLink: wikilink for discoverable ids, plain link for task-oracle', () =
 test('urlLink: renders a markdown link, empty string for blank url', () => {
   assert.equal(urlLink('Keycloak', 'https://www.keycloak.org'), '[Keycloak](https://www.keycloak.org)');
   assert.equal(urlLink('Nichts', ''), '');
+});
+
+/** The set of slugs the docs generator WILL discover (for membership checks). */
+const DISCOVERABLE = new Set([
+  'dev-flow-plan', 'dev-flow-execute', 'dev-flow-iterate', 'dev-flow-e2e',
+  'bachelorprojekt-website', 'bachelorprojekt-ops', 'bachelorprojekt-infra',
+  'bachelorprojekt-test', 'bachelorprojekt-db', 'bachelorprojekt-security',
+  '00-anleitung', '10-ziele', '20-werkzeuge', '30-bausteine',
+]);
+
+/** Pull every [[target]] (ignoring |alias and #anchor) out of a markdown string. */
+function wikilinkTargets(md) {
+  const re = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
+  const out = [];
+  let m;
+  while ((m = re.exec(md)) !== null) out.push(m[1].trim());
+  return out;
+}
+
+test('renderZiele: fence-first, resolves ids, every wikilink target is discoverable', () => {
+  const dir = makeFixtureRegistry();
+  try {
+    const reg = loadRegistry(dir);
+    const md = renderZiele(reg);
+    assert.equal(md.split('\n')[0], '---', 'line 1 is the fence');
+    assert.ok(md.includes('## Ich will den Text der Website ändern'), 'goal H2 present');
+    assert.ok(md.includes('🟢 **Sicher**'), 'danger badge resolved');
+    assert.ok(md.includes('Umgebung immer explizit angeben'), 'guardrail name resolved');
+    // flow tools: dev-flow-plan → wikilink, agent-website → mapped wikilink, task-oracle → plain link
+    assert.ok(md.includes('[[dev-flow-plan]]'), 'spine skill wikilinked');
+    assert.ok(md.includes('[[bachelorprojekt-website]]'), 'agent id mapped + wikilinked');
+    assert.ok(md.includes('[Task-Orakel](https://example.test/oracle)'), 'task-oracle is a plain link');
+    assert.ok(!md.includes('[[task-oracle]]'), 'task-oracle is NEVER a wikilink');
+    assert.ok(!md.includes('[[agent-website]]'), 'raw agent id is NEVER emitted as a wikilink');
+    // the verbatim prompt lives in a fenced text block (Copy button hook, spec §6)
+    assert.ok(md.includes('```text\nÄndere den Preis von 90 auf 120.\n```'), 'prompt fenced');
+    for (const t of wikilinkTargets(md)) {
+      assert.ok(DISCOVERABLE.has(t), `wikilink [[${t}]] is discoverable`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('renderWerkzeuge: cards for every tool; task-oracle stays a plain link', () => {
+  const dir = makeFixtureRegistry();
+  try {
+    const reg = loadRegistry(dir);
+    const md = renderWerkzeuge(reg);
+    assert.equal(md.split('\n')[0], '---', 'line 1 is the fence');
+    assert.ok(md.includes('## Plan erstellen'), 'tool card present');
+    assert.ok(md.includes('## Task-Orakel'), 'task-oracle card present');
+    assert.ok(md.includes('Skill'), 'kind pill rendered');
+    assert.ok(md.includes('Nichts Schlimmes.'), 'what_could_go_wrong rendered');
+    // related on dev-flow-plan points to agent-website → mapped wikilink
+    assert.ok(md.includes('[[bachelorprojekt-website]]'), 'related agent mapped');
+    for (const t of wikilinkTargets(md)) {
+      assert.ok(DISCOVERABLE.has(t), `wikilink [[${t}]] is discoverable`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('renderBausteine: software-first then hardware; sensitivity badge resolved', () => {
+  const dir = makeFixtureRegistry();
+  try {
+    const reg = loadRegistry(dir);
+    const md = renderBausteine(reg);
+    assert.equal(md.split('\n')[0], '---', 'line 1 is the fence');
+    assert.ok(md.includes('## 🔐 Keycloak'), 'software component header');
+    assert.ok(md.includes('## 🖥️ GPU-Host'), 'hardware component header');
+    assert.ok(md.includes('🟡 **Vorsicht**'), 'sensitivity badge resolved');
+    // software before hardware regardless of file order
+    assert.ok(md.indexOf('Keycloak') < md.indexOf('GPU-Host'), 'software listed first');
+    // url rendered as a plain link; blank url omitted (GPU-Host has url: "")
+    assert.ok(md.includes('[Keycloak](https://www.keycloak.org)'), 'component url link');
+    // only wikilink is the back-reference to 00-anleitung in the header
+    assert.deepEqual(wikilinkTargets(md), ['00-anleitung'], 'only back-link to anleitung');
+    for (const t of wikilinkTargets(md)) {
+      assert.ok(DISCOVERABLE.has(t), `wikilink [[${t}]] is discoverable`);
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 export { makeFixtureRegistry };

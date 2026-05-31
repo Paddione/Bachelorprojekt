@@ -90,3 +90,153 @@ export function urlLink(label, url) {
   const u = (url || '').trim();
   return u ? `[${label}](${u})` : '';
 }
+
+/** Kind id → German pill label. */
+const KIND_LABEL = { skill: 'Skill', agent: 'Agent', task: 'Task' };
+
+/**
+ * Render a comma-separated list of guardrail names from ids; '' when none.
+ * Unknown ids fall back to the raw id so a dangling ref is visible.
+ * @param {string[]} ids
+ * @returns {string}
+ */
+function guardrailNames(ids) {
+  const list = Array.isArray(ids) ? ids : [];
+  if (list.length === 0) return '';
+  return list.map((id) => {
+    const g = guardrailById(id);
+    return g ? `${g.name_de} (${id})` : id;
+  }).join(', ');
+}
+
+/**
+ * Lens 1 — the goal catalog (10-ziele.md). One H2 per goal in file order.
+ * @param {{goals: object[]}} reg
+ * @returns {string}
+ */
+export function renderZiele(reg) {
+  const parts = [renderHeader('Ziele — Was will ich tun?', 'Ziele — „Ich will …"')];
+  parts.push([
+    '> Diese Seite wird automatisch aus der Registry erzeugt',
+    '> (`docs/agent-guide/registry/goals.yaml`). Nicht von Hand bearbeiten.',
+    '> Zur Erklärung der Linsen: [[00-anleitung]].',
+    '',
+  ].join('\n'));
+  for (const goal of reg.goals) {
+    parts.push(`## ${goal.title_de}`);
+    parts.push('');
+    parts.push(`${dangerBadge(goal.danger)}`);
+    parts.push('');
+    parts.push(`**Wann?** ${goal.when_de}`);
+    parts.push('');
+    parts.push('**So gehst du vor:**');
+    parts.push('');
+    const flow = Array.isArray(goal.flow) ? goal.flow : [];
+    flow.forEach((step, i) => {
+      parts.push(`${i + 1}. ${toolLink(step.tool)} — ${step.note_de}`);
+    });
+    parts.push('');
+    parts.push('**Diesen Prompt kannst du der KI geben:**');
+    parts.push('');
+    parts.push('```text');
+    parts.push(goal.example_prompt_de);
+    parts.push('```');
+    parts.push('');
+    const gr = guardrailNames(goal.guardrails);
+    if (gr) {
+      parts.push(`**Schutzregeln (Guardrails):** ${gr}`);
+      parts.push('');
+    }
+  }
+  return parts.join('\n');
+}
+
+/**
+ * Lens 2 — tool + agent reference cards (20-werkzeuge.md). One H2 per tool.
+ * @param {{tools: object[]}} reg
+ * @returns {string}
+ */
+export function renderWerkzeuge(reg) {
+  const parts = [renderHeader('Werkzeuge — Tools und Agents', 'Werkzeuge — Tools und Agents')];
+  parts.push([
+    '> Diese Seite wird automatisch aus der Registry erzeugt',
+    '> (`docs/agent-guide/registry/tools.yaml`). Nicht von Hand bearbeiten.',
+    '> Zurück zur Übersicht: [[00-anleitung]].',
+    '',
+  ].join('\n'));
+  for (const tool of reg.tools) {
+    parts.push(`## ${tool.name_de}`);
+    parts.push('');
+    parts.push(`**${KIND_LABEL[tool.kind] || tool.kind}** · ${dangerBadge(tool.danger)}`);
+    parts.push('');
+    parts.push(tool.summary_de);
+    parts.push('');
+    parts.push(`**Wofür?** ${tool.what_for_de}`);
+    parts.push('');
+    parts.push(`**So startest du:** ${tool.how_to_start_de}`);
+    parts.push('');
+    parts.push(`**Was schiefgehen kann:** ${tool.what_could_go_wrong_de}`);
+    parts.push('');
+    const gr = guardrailNames(tool.guardrails);
+    if (gr) {
+      parts.push(`**Schutzregeln (Guardrails):** ${gr}`);
+      parts.push('');
+    }
+    const related = Array.isArray(tool.related) ? tool.related : [];
+    if (related.length) {
+      parts.push(`**Verwandt:** ${related.map((id) => toolLink(id)).join(', ')}`);
+      parts.push('');
+    }
+    const links = Array.isArray(tool.links) ? tool.links : [];
+    const linkMd = links
+      .filter((l) => l && l.url)
+      .map((l) => urlLink(l.label || l.url, l.url))
+      .filter(Boolean);
+    if (linkMd.length) {
+      parts.push(`**Mehr dazu:** ${linkMd.join(' · ')}`);
+      parts.push('');
+    }
+  }
+  return parts.join('\n');
+}
+
+/**
+ * Lens 3 — platform components (30-bausteine.md). Software-first then hardware,
+ * each group iterated in registry file order.
+ * @param {{components: object[]}} reg
+ * @returns {string}
+ */
+export function renderBausteine(reg) {
+  const parts = [renderHeader('Bausteine — Was läuft auf der Plattform?', 'Bausteine — Was läuft auf der Plattform?')];
+  parts.push([
+    '> Diese Seite wird automatisch aus der Registry erzeugt',
+    '> (`docs/agent-guide/registry/components.yaml`). Nicht von Hand bearbeiten.',
+    '> Zurück zur Übersicht: [[00-anleitung]].',
+    '',
+  ].join('\n'));
+  const software = reg.components.filter((c) => c.kind === 'software');
+  const hardware = reg.components.filter((c) => c.kind === 'hardware');
+  const renderGroup = (title, list) => {
+    parts.push(`# ${title}`);
+    parts.push('');
+    for (const c of list) {
+      parts.push(`## ${c.emoji} ${c.name}`);
+      parts.push('');
+      parts.push(`${dangerBadge(c.sensitivity)}`);
+      parts.push('');
+      parts.push(c.what_for_de);
+      parts.push('');
+      const extra = Array.isArray(c.links) ? c.links : [];
+      const linkMd = [urlLink(c.name, c.url || '')]
+        .concat(extra.filter((l) => l && l.url).map((l) => urlLink(l.label || l.url, l.url)))
+        .filter(Boolean);
+      if (linkMd.length) {
+        parts.push(`**Mehr dazu:** ${linkMd.join(' · ')}`);
+        parts.push('');
+      }
+    }
+  };
+  renderGroup('Software', software);
+  renderGroup('Hardware', hardware);
+  return parts.join('\n');
+}

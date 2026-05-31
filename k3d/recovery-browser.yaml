@@ -1,0 +1,244 @@
+# Recovery filebrowser — ON-DEMAND, SSO-gated, READ-ONLY view of recovery-pvc:/recovery.
+# Brought up by `task recovery:browse ENV=<env>`, removed by `task recovery:unbrowse`.
+# NOT in k3d/kustomization.yaml — applied on demand via envsubst at browse time.
+#
+# Usage (from backup-restore.sh browse / task recovery:browse):
+#   envsubst '$RECOVER_DOMAIN $TLS_SECRET_NAME $KC_DOMAIN $WORKSPACE_NAMESPACE' \
+#     < k3d/recovery-browser.yaml | kubectl apply -n $WORKSPACE_NAMESPACE -f -
+#
+# Security: filebrowser mounts recovery-pvc READ-ONLY. OAuth2-proxy gates access to
+# Keycloak group /recovery-access. Cookie is always secure. Not auto-deployed.
+# ─────────────────────────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recovery-browser
+  labels:
+    app: recovery-browser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recovery-browser
+  template:
+    metadata:
+      labels:
+        app: recovery-browser
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: filebrowser
+          image: filebrowser/filebrowser:v2
+          imagePullPolicy: IfNotPresent
+          args:
+            - --noauth           # auth is handled by oauth2-proxy in front
+            - --root=/srv
+            - --database=/tmp/filebrowser.db
+            - --address=0.0.0.0
+            - --port=8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: recovery
+              mountPath: /srv
+              readOnly: true
+            - name: scratch
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 256Mi
+              cpu: "500m"
+      volumes:
+        - name: recovery
+          persistentVolumeClaim:
+            claimName: recovery-pvc
+            readOnly: true
+        - name: scratch
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recovery-browser
+spec:
+  selector:
+    app: recovery-browser
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-recovery
+  labels:
+    app: oauth2-proxy-recovery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oauth2-proxy-recovery
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy-recovery
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: write-cookie-secret
+          image: busybox:1.37
+          imagePullPolicy: Always
+          # Write a TOML config with the cookie_secret truncated to 32 bytes.
+          # env-generate produces a 64-char hex string which is too long for AES.
+          # Use 'cut' (not ${:0:32}) since busybox ash doesn't support bash substring.
+          command: ["/bin/sh", "-c"]
+          args:
+            - printf 'cookie_secret = "%s"\n' "$(printf '%s' "$OAUTH2_PROXY_COOKIE_SECRET" | cut -c1-32)" > /run/config/oauth2-extra.cfg
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          env:
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: OAUTH2_PROXY_COOKIE_SECRET
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          imagePullPolicy: Always
+          args:
+            - --config=/run/config/oauth2-extra.cfg
+            - --provider=keycloak-oidc
+            - --client-id=recovery
+            - --client-secret=$(RECOVERY_OIDC_SECRET)
+            - --redirect-url=https://${RECOVER_DOMAIN}/oauth2/callback
+            - --oidc-issuer-url=https://${KC_DOMAIN}/realms/workspace
+            - --ssl-insecure-skip-verify=true
+            - --skip-oidc-discovery=true
+            - --login-url=https://${KC_DOMAIN}/realms/workspace/protocol/openid-connect/auth
+            - --redeem-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/token
+            - --oidc-jwks-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/certs
+            - --profile-url=http://keycloak:8080/realms/workspace/protocol/openid-connect/userinfo
+            - --upstream=http://recovery-browser:80
+            - --http-address=0.0.0.0:4180
+            - --cookie-name=_oauth2_proxy_recovery
+            - --cookie-secure=true
+            - --email-domain=*
+            - --allowed-groups=/recovery-access
+            - --pass-access-token=true
+            - --set-xauthrequest=true
+            - --skip-provider-button=true
+            - --code-challenge-method=S256
+            - --insecure-oidc-allow-unverified-email=true
+            - --oidc-extra-audience=recovery
+            - --scope=openid email profile
+          env:
+            - name: RECOVERY_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: RECOVERY_OIDC_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4180
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 64Mi
+              cpu: "50m"
+            limits:
+              memory: 128Mi
+              cpu: "200m"
+          volumeMounts:
+            - name: oauth2-config
+              mountPath: /run/config
+              readOnly: true
+      volumes:
+        - name: oauth2-config
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-recovery
+spec:
+  selector:
+    app: oauth2-proxy-recovery
+  ports:
+    - port: 4180
+      targetPort: 4180
+---
+# Ingress — mirrors prod/ingress.yaml docs pattern (plain Ingress with Traefik annotations).
+# ${RECOVER_DOMAIN}, ${TLS_SECRET_NAME}, ${WORKSPACE_NAMESPACE} are substituted by envsubst at browse time.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-recovery
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - ${RECOVER_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: ${RECOVER_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-recovery
+                port:
+                  number: 4180

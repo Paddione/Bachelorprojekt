@@ -202,3 +202,16 @@ test('renderLanding: embeds graph SVG, fallback section list, and legend marker'
   assert.ok(html.includes('href="./skills/database-ops.html"'),
     'fallback links a skill page by outRelPath');
 });
+
+test('documentHead loads the brand web fonts', () => {
+  const html = renderPage({ page: docPage, contentHtml: '<p>x</p>', toc: '', related: [] });
+  assert.ok(/fonts\.googleapis\.com|Geist|Instrument\+Serif/.test(html),
+    'must include a font source link for Geist + Instrument Serif');
+});
+
+test('renderPage emits a branded site header and footer', () => {
+  const html = renderPage({ page: docPage, contentHtml: '<p>x</p>', toc: '', related: [] });
+  assert.ok(html.includes('site-header'), 'branded site header present');
+  assert.ok(html.includes('Dokumentation'), 'wordmark text present');
+  assert.ok(html.includes('site-footer'), 'branded site footer present');
+});

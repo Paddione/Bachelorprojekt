@@ -235,6 +235,19 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
 .related-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-mute);margin:0 0 .9em}
 .related-list{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;padding:0;margin:0}
+
+/* ── site header & footer ── */
+.site-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;
+  gap:.6rem;padding:.7rem 1.2rem;background:var(--paper);
+  border-bottom:1px solid var(--line)}
+.site-header-brand{display:inline-flex;align-items:center;gap:.5rem;
+  text-decoration:none;color:var(--ink);font-family:var(--font-sans);font-weight:700}
+.site-mark{color:var(--accent);font-size:1.1rem}
+.site-wordmark{letter-spacing:.02em}
+.site-footer{max-width:var(--maxw);margin:0 auto;padding:2rem 1.5rem 3rem;
+  color:var(--ink-mute);font-size:.85rem;font-family:var(--font-sans);
+  border-top:1px solid var(--line)}
+
 ${GRAPH_CSS}`;
 }
 

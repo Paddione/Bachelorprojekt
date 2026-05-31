@@ -267,12 +267,13 @@ spec:
                   CW=$!
                   kubectl -n "$NS" wait --for=condition=failed --timeout=3000s job/"$MOUNTER" &
                   FW=$!
-                  wait -n "$CW" "$FW" || true
-                  STATUS=$(kubectl -n "$NS" get job "$MOUNTER" -o jsonpath='{.status.conditions[?(@.status=="True")].type}')
+                  wait -n || true
+                  kill "$CW" "$FW" 2>/dev/null || true
+                  STATUS=$(kubectl -n "$NS" get job "$MOUNTER" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}')
                   echo "Mounter logs:"
                   kubectl -n "$NS" logs job/"$MOUNTER" --all-containers --tail=80 || true
-                  echo "Mounter terminal status: $${STATUS:-Unknown}"
-                  [ "$STATUS" = "Complete" ] || { echo "Backup mounter did not complete"; exit 1; }
+                  echo "Mounter terminal status: Complete=${STATUS:-Unknown}"
+                  [ "$STATUS" = "True" ] || { echo "Backup mounter did not complete"; exit 1; }
                   echo "pvc-backup orchestration succeeded."
               resources:
                 requests: { memory: 64Mi, cpu: "50m" }

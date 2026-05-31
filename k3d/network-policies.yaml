@@ -74,6 +74,38 @@ spec:
         - 172.16.0.0/12
         - 192.168.0.0/16
 ---
+# Kubernetes-API-Server erreichen (T000368).
+# In-cluster CronJobs (pvc-backup, tests-results-retention) rufen die API via
+# kubectl auf. allow-internet-egress schließt 10.0.0.0/8 aus, deshalb braucht
+# es eine gezielte Freigabe. WICHTIG: kube-router wertet Egress gegen den
+# POST-DNAT-Endpoint aus — der apiserver läuft hostNetwork, seine Endpoints
+# sind die CP-Node-IPs (10.20.0.0/24:6443), NICHT die ClusterIP. Eine reine
+# ClusterIP-Freigabe (10.43.0.0/16:443) reicht daher NICHT; die Node-CIDR auf
+# 6443 ist die operative Regel (empirisch verifiziert: 12/12 + kubectl OK).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-apiserver-egress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # CP-Node-IPs = apiserver-Endpoints nach DNAT (fleet wg-fleet-Subnet)
+  - to:
+    - ipBlock:
+        cidr: 10.20.0.0/24
+    ports:
+    - protocol: TCP
+      port: 6443
+  # ClusterIP der kubernetes.default Service (defense-in-depth / pre-DNAT-Match)
+  - to:
+    - ipBlock:
+        cidr: 10.43.0.0/16
+    ports:
+    - protocol: TCP
+      port: 443
+---
 # LLM-Gateway-Hosts auf dem wg-mesh erreichen (192.168.100.x mentolder, 10.13.14.x korczewski)
 # allow-internet-egress blockiert RFC1918 — diese Policy öffnet gezielt die wg-mesh-Subnets.
 apiVersion: networking.k8s.io/v1

@@ -53,7 +53,12 @@ spec:
               args:
                 - |
                   set -eu
-                  NS=workspace
+                  # Derive the namespace at runtime from the pod's serviceaccount.
+                  # kustomize namespace-remapping does NOT rewrite string literals
+                  # in container args, so a hardcoded NS=workspace operated in the
+                  # wrong namespace on the korczewski brand (workspace-korczewski)
+                  # and hit RBAC Forbidden. [T000368]
+                  NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
                   STAMP=$(date +%Y%m%d-%H%M%S)
                   MOUNTER="pvc-backup-mounter-$${STAMP}"
                   CLONES="vaultwarden-data-backup-clone docuseal-data-backup-clone"
@@ -126,17 +131,16 @@ spec:
                       spec:
                         restartPolicy: Never
                         affinity:
+                          # Co-locate with the nextcloud pod so its local-path
+                          # volume is shareable (same node). This podAffinity is
+                          # sufficient for placement; the former nodeAffinity NotIn
+                          # list referenced decommissioned nodes (k3s-1/2/3,
+                          # k3w-1/2/3) that no longer exist on fleet — dead drift,
+                          # removed. [T000368]
                           podAffinity:
                             requiredDuringSchedulingIgnoredDuringExecution:
                               - labelSelector: { matchLabels: { app: nextcloud } }
                                 topologyKey: kubernetes.io/hostname
-                          nodeAffinity:
-                            requiredDuringSchedulingIgnoredDuringExecution:
-                              nodeSelectorTerms:
-                                - matchExpressions:
-                                    - key: kubernetes.io/hostname
-                                      operator: NotIn
-                                      values: [k3s-1, k3s-2, k3s-3, k3w-1, k3w-2, k3w-3]
                         securityContext:
                           runAsNonRoot: true
                           runAsUser: 65534

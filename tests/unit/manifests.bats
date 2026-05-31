@@ -463,3 +463,79 @@ PY
   assert_success
 }
 
+# ── workspace API-server egress (T000368) ───────────────────────────
+# The workspace namespace enforces default-deny-egress. CronJobs that call
+# the Kubernetes API in-cluster (pvc-backup orchestrator, tests-results-
+# retention) get "connection refused to 10.43.0.1:443" because no policy
+# permits egress to the apiserver. kube-router evaluates egress against the
+# POST-DNAT endpoint — the hostNetwork CP node IPs (10.20.0.0/24:6443), NOT
+# the ClusterIP — so the allow MUST include the node CIDR on 6443.
+@test "network-policies grant egress to the Kubernetes apiserver (T000368)" {
+  if ! command -v python3 &>/dev/null; then
+    skip "python3 not installed"
+  fi
+  run python3 - "$RENDERED" <<'PY'
+import sys, yaml
+rendered = sys.argv[1]
+with open(rendered) as f:
+    docs = list(yaml.safe_load_all(f))
+
+def egress_to(doc, cidr, port):
+    if not doc or doc.get("kind") != "NetworkPolicy":
+        return False
+    spec = doc.get("spec", {})
+    if "Egress" not in (spec.get("policyTypes") or []):
+        return False
+    for rule in spec.get("egress") or []:
+        cidrs = {(p.get("ipBlock") or {}).get("cidr") for p in (rule.get("to") or [])}
+        ports = {pr.get("port") for pr in (rule.get("ports") or [])}
+        # ports empty means all-ports; treat as match
+        if cidr in cidrs and (not ports or port in ports):
+            return True
+    return False
+
+# The operative allow: CP node IPs (post-DNAT apiserver endpoints) on 6443
+node_ok = any(egress_to(d, "10.20.0.0/24", 6443) for d in docs)
+# The ClusterIP allow on 443 (defense-in-depth / clusters that match pre-DNAT)
+clusterip_ok = any(egress_to(d, "10.43.0.0/16", 443) for d in docs)
+if node_ok and clusterip_ok:
+    print("OK")
+    sys.exit(0)
+print(f"MISSING apiserver egress: node_cidr_6443={node_ok} clusterip_443={clusterip_ok}")
+sys.exit(1)
+PY
+  assert_success
+}
+
+# ── pvc-backup namespace is runtime-derived, not hardcoded (T000368) ──
+# The orchestrator script hardcoded NS=workspace, so on the korczewski brand
+# (ns workspace-korczewski) it operated in the wrong namespace and got an
+# RBAC Forbidden error. kustomize namespace-remapping does NOT rewrite string
+# literals inside container args, so the namespace must be derived at runtime
+# from the pod's serviceaccount.
+@test "pvc-backup derives namespace at runtime, not hardcoded NS=workspace (T000368)" {
+  run grep -E '^\s*NS=workspace\s*$' k3d/pvc-backup-cronjob.yaml
+  assert_failure
+  grep -q '/var/run/secrets/kubernetes.io/serviceaccount/namespace' k3d/pvc-backup-cronjob.yaml
+}
+
+# ── pvc-backup mounter has no stale dead-node affinity (T000368) ─────
+# The mounter nodeAffinity excluded node names from decommissioned clusters
+# (k3s-1/2/3, k3w-1/2/3) which no longer exist on fleet — dead drift.
+@test "pvc-backup mounter nodeAffinity has no decommissioned node names (T000368)" {
+  # Ignore comment lines — a comment referencing the old names is not the bug.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'k3s-1|k3s-2|k3s-3|k3w-1|k3w-2|k3w-3'"
+  assert_failure
+}
+
+# ── tests-results-retention has no stale node-location affinity (T000369) ──
+# The CronJob required nodeAffinity node-location=hetzner, but no fleet node
+# carries that label after Phase 3 consolidation → unschedulable on all 6
+# nodes. The prune job is placement-independent (kubectl exec into the website
+# pod), so the affinity must be dropped.
+@test "tests-results-retention has no stale node-location affinity (T000369)" {
+  # Ignore comment lines — a comment explaining the removal is not the bug.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/tests-retention-cronjob.yaml | grep -E 'node-location'"
+  assert_failure
+}
+

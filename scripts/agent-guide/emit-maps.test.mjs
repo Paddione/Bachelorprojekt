@@ -327,3 +327,18 @@ test('real-shaped taxonomy: label_de already embeds the tier emoji — render mu
     'danger headings single emoji',
   );
 });
+
+test('renderToolsMap includes an Init column populated from init_prompt_de', () => {
+  const reg = makeRegistry({   // reuse the file's existing fixture builder
+    taxonomy: FIX_TAXONOMY,
+    guardrails: FIX_GUARDRAILS,
+    tools: [{ id: 'dev-flow-plan', name_de: 'Planungs-Skill', kind: 'skill',
+      danger: 'caution', summary_de: 'Plant.', guardrails: [],
+      init_prompt_de: '/dev-flow-plan: plane' }],
+  });
+  const md = renderToolsMap(reg);
+  assert.ok(md.includes('| Id | Name | Art | Tier | Wofür | Guardrails | Init |'),
+    'header must carry the Init column');
+  assert.ok(md.includes('/dev-flow-plan: plane'), 'init prompt must appear in the row');
+});
+

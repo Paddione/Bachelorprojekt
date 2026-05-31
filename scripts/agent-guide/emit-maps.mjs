@@ -129,8 +129,8 @@ export function renderToolsMap(reg) {
     out.push('');
     out.push(`## ${section.heading}`);
     out.push('');
-    out.push(row(['Id', 'Name', 'Art', 'Tier', 'Wofür', 'Guardrails']));
-    out.push(row(['---', '---', '---', '---', '---', '---']));
+    out.push(row(['Id', 'Name', 'Art', 'Tier', 'Wofür', 'Guardrails', 'Init']));
+    out.push(row(['---', '---', '---', '---', '---', '---', '---']));
     for (const t of rows) {
       out.push(
         row([
@@ -140,6 +140,7 @@ export function renderToolsMap(reg) {
           escapeCell(tierLabel(reg, t.danger)),
           escapeCell(t.summary_de),
           escapeCell(guardrailIds(reg, t.guardrails)),
+          escapeCell(t.init_prompt_de),
         ])
       );
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.18.0...website-v1.19.0) (2026-05-31)
+
+
+### Features
+
+* **dev:** 3-node HA k3s dev cluster (devc) replacing k3d on k3s-1 ([#1244](https://github.com/Paddione/Bachelorprojekt/issues/1244)) ([6a63338](https://github.com/Paddione/Bachelorprojekt/commit/6a63338de2720908bfcc5a45ca5bb280cd445d26))
+
 ## [1.18.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.17.0...website-v1.18.0) (2026-05-30)
 
 

@@ -289,3 +289,34 @@ test('determinism: two separately-constructed registries with different input or
   assert.equal(renderToolsMap(regA), renderToolsMap(regB));
   assert.equal(renderDangerMap(regA), renderDangerMap(regB));
 });
+
+test('real-shaped taxonomy: label_de already embeds the tier emoji — render must not double-print it', () => {
+  // The real registry stores label_de WITH the emoji ("🟡 Vorsicht"); the bare-label fixtures
+  // above could not catch a double-print. Pin the strip behaviour against the real shape.
+  const realShapedTaxonomy = [
+    { id: 'safe', label_de: '🟢 Sicher', emoji: '🟢', meaning_de: 'Ungefährlich.', enforcement_default: 'allow' },
+    { id: 'caution', label_de: '🟡 Vorsicht', emoji: '🟡', meaning_de: 'Mit Bedacht.', enforcement_default: 'warn' },
+    { id: 'assisted', label_de: '🟠 Nur mit Hilfe', emoji: '🟠', meaning_de: 'Nur begleitet.', enforcement_default: 'confirm' },
+    { id: 'forbidden', label_de: '🔴 Niemals allein', emoji: '🔴', meaning_de: 'Nie allein.', enforcement_default: 'block' },
+  ];
+  const reg = makeRegistry({
+    taxonomy: realShapedTaxonomy,
+    guardrails: FIX_GUARDRAILS,
+    tools: [
+      { id: 'agent-security', name_de: 'Security-Agent', kind: 'agent', summary_de: 'Secrets.', danger: 'forbidden', guardrails: [] },
+    ],
+    goals: [
+      { id: 'g', title_de: 'T', flow: [], danger: 'caution', guardrails: [], example_prompt_de: 'p' },
+    ],
+  });
+  const goals = renderGoalsMap(reg);
+  const tools = renderToolsMap(reg);
+  const danger = renderDangerMap(reg);
+  // single emoji + label, never doubled
+  assert.ok(goals.includes('🟡 Vorsicht') && !goals.includes('🟡 🟡'), 'goals tier single emoji');
+  assert.ok(tools.includes('🔴 Niemals allein') && !tools.includes('🔴 🔴'), 'tools tier single emoji');
+  assert.ok(
+    !danger.includes('🟢 🟢') && !danger.includes('🟡 🟡') && !danger.includes('🟠 🟠') && !danger.includes('🔴 🔴'),
+    'danger headings single emoji',
+  );
+});

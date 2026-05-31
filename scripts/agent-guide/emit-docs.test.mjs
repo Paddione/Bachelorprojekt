@@ -1,7 +1,7 @@
 // scripts/agent-guide/emit-docs.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { loadRegistry } from './load.mjs';
@@ -14,6 +14,8 @@ import {
   renderZiele,
   renderWerkzeuge,
   renderBausteine,
+  renderAll,
+  writeDocs,
 } from './emit-docs.mjs';
 
 // makeFixtureRegistry will be used by Tasks 3-5; defined here so later tasks can append test() blocks
@@ -287,6 +289,60 @@ test('renderBausteine: software-first then hardware; sensitivity badge resolved'
     }
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('renderAll: rendering the same fixture twice is byte-identical (determinism)', () => {
+  const dir = makeFixtureRegistry();
+  try {
+    const a = renderAll(loadRegistry(dir));
+    const b = renderAll(loadRegistry(dir));
+    assert.equal(a['10-ziele'], b['10-ziele']);
+    assert.equal(a['20-werkzeuge'], b['20-werkzeuge']);
+    assert.equal(a['30-bausteine'], b['30-bausteine']);
+    // no timestamps / locale / absolute paths leaked into output
+    for (const md of Object.values(a)) {
+      assert.ok(!/\/(home|tmp|Users|var)\//.test(md), 'no absolute paths in output');
+      assert.ok(!/\b20\d\d-\d\d-\d\dT/.test(md), 'no ISO timestamps in output');
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('writeDocs: validate-first, writes the generated trio (not 00-anleitung)', () => {
+  const registryDir = makeFixtureRegistry();
+  const outDir = mkdtempSync(join(tmpdir(), 'agent-guide-out-'));
+  let validatedWith = null;
+  const okValidate = (dir) => { validatedWith = dir; return { ok: true, errors: [] }; };
+  try {
+    writeDocs({ registryDir, outDir, repoRoot: '/repo', validate: okValidate });
+    assert.equal(validatedWith, registryDir, 'validate ran against the registry dir first');
+    assert.ok(existsSync(join(outDir, '10-ziele.md')), '10-ziele.md written');
+    assert.ok(existsSync(join(outDir, '20-werkzeuge.md')), '20-werkzeuge.md written');
+    assert.ok(existsSync(join(outDir, '30-bausteine.md')), '30-bausteine.md written');
+    assert.ok(!existsSync(join(outDir, '00-anleitung.md')), '00-anleitung.md NOT written');
+    // fence-first survives the round-trip to disk
+    assert.equal(readFileSync(join(outDir, '10-ziele.md'), 'utf8').split('\n')[0], '---');
+  } finally {
+    rmSync(registryDir, { recursive: true, force: true });
+    rmSync(outDir, { recursive: true, force: true });
+  }
+});
+
+test('writeDocs: aborts (throws) on an invalid registry — never emits', () => {
+  const registryDir = makeFixtureRegistry();
+  const outDir = mkdtempSync(join(tmpdir(), 'agent-guide-out-bad-'));
+  const badValidate = () => ({ ok: false, errors: ['boom'] });
+  try {
+    assert.throws(
+      () => writeDocs({ registryDir, outDir, repoRoot: '/repo', validate: badValidate }),
+      /invalid registry|boom/i,
+    );
+    assert.ok(!existsSync(join(outDir, '10-ziele.md')), 'nothing emitted on invalid registry');
+  } finally {
+    rmSync(registryDir, { recursive: true, force: true });
+    rmSync(outDir, { recursive: true, force: true });
   }
 });
 

@@ -240,3 +240,58 @@ export function renderBausteine(reg) {
   renderGroup('Hardware', hardware);
   return parts.join('\n');
 }
+
+/**
+ * Render all three generated pages into a { slug: markdown } map.
+ * @param {object} reg  the loaded registry
+ * @returns {{ '10-ziele': string, '20-werkzeuge': string, '30-bausteine': string }}
+ */
+export function renderAll(reg) {
+  return {
+    '10-ziele': renderZiele(reg),
+    '20-werkzeuge': renderWerkzeuge(reg),
+    '30-bausteine': renderBausteine(reg),
+  };
+}
+
+/**
+ * Validate-first, then write the generated trio to <outDir>/<slug>.md.
+ * Never writes 00-anleitung.md (hand-authored). Aborts (throws) on an invalid
+ * registry so we never emit from bad input.
+ * @param {{ registryDir: string, outDir: string, repoRoot: string,
+ *           validate: (dir:string, repoRoot:string)=>{ok:boolean, errors:string[]} }} opts
+ */
+export function writeDocs({ registryDir, outDir, repoRoot, validate }) {
+  const result = validate(registryDir, repoRoot);
+  if (!result || result.ok !== true) {
+    const errs = (result && result.errors) ? result.errors.join('; ') : 'unknown error';
+    throw new Error(`agent-guide: refusing to emit from an invalid registry: ${errs}`);
+  }
+  const reg = loadRegistry(registryDir);
+  const pages = renderAll(reg);
+  mkdirSync(outDir, { recursive: true });
+  for (const [slug, md] of Object.entries(pages)) {
+    writeFileSync(join(outDir, `${slug}.md`), md, 'utf8');
+  }
+}
+
+// ── CLI entry: validate-first against the real registry, write to docs/agent-guide/ ──
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
+  const repoRoot = join(dirname(__filename), '..', '..');
+  const registryDir = join(repoRoot, 'docs', 'agent-guide', 'registry');
+  const outDir = join(repoRoot, 'docs', 'agent-guide');
+  const { validateRegistry } = await import('./validate.mjs');
+  const validate = (dir, root) => {
+    const r = validateRegistry(dir, root);
+    const errs = Array.isArray(r) ? r : [];
+    return { ok: errs.length === 0, errors: errs };
+  };
+  try {
+    writeDocs({ registryDir, outDir, repoRoot, validate });
+    console.log('✓ wrote docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md');
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+  }
+}

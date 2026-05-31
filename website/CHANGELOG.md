@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.22.0...website-v1.23.0) (2026-05-31)
+
+
+### Features
+
+* **website:** agent-guide mental-model start [T000385] ([#1273](https://github.com/Paddione/Bachelorprojekt/issues/1273)) ([0c73a6b](https://github.com/Paddione/Bachelorprojekt/commit/0c73a6b2b5d9cf98032782f1c7bc3d06c51ccfd6))
+
 ## [1.22.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.21.1...website-v1.22.0) (2026-05-31)
 
 

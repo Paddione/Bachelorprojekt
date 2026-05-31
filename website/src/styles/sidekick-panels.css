@@ -1495,3 +1495,191 @@
   .drawer .hv-intro { padding-inline: 18px; margin: 0; }
   .drawer .hv-section-title { font-size: 22px; }
 }
+
+/* =========================================================================
+   AgentGuideView — .ag-* prefix
+   Ported here from the component's scoped <style>: Svelte 5 + Vite drop the
+   scoped CSS of after-navigation drawer sub-views (see file header). The
+   "home" view survives because it renders first; agent-guide does not, so its
+   styles must live in this always-loaded global sheet. Scoped under .drawer
+   like every other sub-view.
+   ========================================================================= */
+
+.drawer .ag-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 28px;
+}
+
+/* Intro (mirrors HelpView eyebrow/title/desc tokens) */
+.drawer .ag-intro {
+  padding: 24px 22px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.drawer .ag-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.drawer .ag-eyebrow-bar { width: 22px; height: 1px; background: currentColor; opacity: 0.8; }
+.drawer .ag-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--fg);
+  margin: 18px 0 6px;
+}
+.drawer .ag-desc { font-size: 14px; color: var(--fg-soft); margin: 0; line-height: 1.55; max-width: 46ch; }
+
+.drawer .ag-section-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--mute);
+  margin: 22px 22px 12px;
+}
+
+/* Legend */
+.drawer .ag-legend { list-style: none; margin: 16px 22px 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.drawer .ag-legend-item { display: flex; align-items: baseline; gap: 10px; font-size: 13px; color: var(--fg-soft); }
+.drawer .ag-legend-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--tier);
+  color: var(--tier);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Cards */
+.drawer .ag-cards { display: flex; flex-direction: column; gap: 10px; margin: 0 22px 18px; }
+.drawer .ag-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md, 12px);
+  background: var(--ink-800);
+  padding: 14px 16px;
+}
+.drawer .ag-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.drawer .ag-name { font-family: var(--serif); font-size: 16px; color: var(--fg); flex: 1 1 auto; }
+.drawer .ag-kind {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mute);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.drawer .ag-tier {
+  font-family: var(--mono);
+  font-size: 11px;
+  border-radius: 999px;
+  border: 1px solid var(--tier);
+  color: var(--tier);
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.drawer .ag-when, .drawer .ag-summary { font-size: 13px; color: var(--fg-soft); margin: 8px 0 0; line-height: 1.5; }
+
+.drawer .ag-flow { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.drawer .ag-flow li { font-size: 13px; color: var(--fg-soft); line-height: 1.5; }
+.drawer .ag-flow li::marker { color: var(--brass); font-family: var(--mono); font-size: 11px; }
+
+/* Copy-to-clipboard prompt */
+.drawer .ag-prompt {
+  margin-top: 10px;
+  background: var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.drawer .ag-prompt-text { font-family: var(--mono); font-size: 12px; color: var(--fg); white-space: pre-wrap; }
+.drawer .ag-copy {
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--brass);
+  background: transparent;
+  border: 1px solid var(--brass-d, var(--line));
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.drawer .ag-copy:hover { background: oklch(0.80 0.09 75 / 0.08); }
+
+/* Guardrail chips (tap to expand rule/why) */
+.drawer .ag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.drawer .ag-chip {
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 0;
+  max-width: 100%;
+}
+.drawer .ag-chip summary {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-soft);
+  padding: 3px 10px;
+  cursor: pointer;
+  list-style: none;
+}
+.drawer .ag-chip summary::-webkit-details-marker { display: none; }
+.drawer .ag-chip[open] { border-radius: 10px; padding: 0 10px 8px; border-color: var(--brass-d, var(--line)); }
+.drawer .ag-chip-rule { font-size: 12px; color: var(--fg); margin: 6px 0 2px; }
+.drawer .ag-chip-why { font-size: 12px; color: var(--mute); margin: 0; font-style: italic; }
+
+/* Tool detail accordion (mirrors HelpView guide-item) */
+.drawer .ag-detail { margin-top: 10px; }
+.drawer .ag-detail summary {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--fg);
+  cursor: pointer;
+  list-style: none;
+  padding: 6px 0;
+}
+.drawer .ag-detail summary::-webkit-details-marker { display: none; }
+.drawer .ag-detail p { font-size: 13px; color: var(--fg-soft); margin: 4px 0; line-height: 1.5; }
+.drawer .ag-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--brass);
+  margin-top: 10px;
+}
+
+/* Cross-links */
+.drawer .ag-related { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.drawer .ag-related-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--brass);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+.drawer .ag-related-chip:hover { border-color: var(--brass); }
+
+@media (max-width: 480px) {
+  .drawer .ag-intro { padding-inline: 18px; }
+  .drawer .ag-cards,
+  .drawer .ag-legend,
+  .drawer .ag-section-label { margin-inline: 18px; }
+}

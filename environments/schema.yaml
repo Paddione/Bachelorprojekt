@@ -527,8 +527,10 @@ secrets:
     generate: true
     length: 40
 
+  # BRAINSTORM_OIDC_SECRET is dev-only (brainstorm.dev.mentolder.de; no prod broker).
+  # required:false so prod env:validate doesn't demand it; generate:true keeps dev auto-gen.
   - name: BRAINSTORM_OIDC_SECRET
-    required: true
+    required: false
     generate: true
     length: 40
 

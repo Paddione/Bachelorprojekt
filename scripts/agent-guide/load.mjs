@@ -36,3 +36,8 @@ export function toolById(id) {
 export function guardrailById(id) {
   return _registry.guardrails.find((g) => g && g.id === id);
 }
+
+/** goals.yaml entry for an id, or undefined. */
+export function goalById(id) {
+  return _registry.goals.find((g) => g && g.id === id);
+}

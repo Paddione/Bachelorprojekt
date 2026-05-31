@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { loadRegistry, tierFor, toolById, guardrailById } from './load.mjs';
+import { loadRegistry, tierFor, toolById, guardrailById, goalById } from './load.mjs';
 
 /** Write a tiny but complete fixture registry into a fresh temp dir; return the dir. */
 function makeFixtureRegistry() {
@@ -119,6 +119,9 @@ test('tierFor / toolById / guardrailById: resolve known ids, undefined for unkno
 
     assert.equal(guardrailById('G-ENV-EXPLICIT').name_de, 'Umgebung immer explizit angeben');
     assert.equal(guardrailById('G-NOPE'), undefined);
+
+    assert.equal(goalById('change-website-text').title_de, 'Ich will den Text der Website ändern');
+    assert.equal(goalById('no-such-goal'), undefined);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

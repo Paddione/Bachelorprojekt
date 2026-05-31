@@ -1,5 +1,5 @@
 // scripts/agent-guide/emit-docs.mjs
-import { tierFor, toolById, guardrailById, loadRegistry } from './load.mjs';
+import { tierFor, toolById, guardrailById, goalById, loadRegistry } from './load.mjs';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,6 +55,9 @@ export function renderHeader(title, h1) {
 export function dangerBadge(dangerId) {
   const tier = tierFor(dangerId);
   if (!tier) return `⚪ **${dangerId}**`;
+  // taxonomy.yaml stores label_de as e.g. "🟢 Sicher" (emoji + space + text)
+  // matching the separate emoji field; strip the leading emoji so the badge
+  // renders as `emoji **text**` without double-printing the emoji.
   const label = tier.label_de.replace(/^\p{Emoji_Presentation}\s*/u, '');
   return `${tier.emoji} **${label}**`;
 }
@@ -148,6 +151,15 @@ export function renderZiele(reg) {
       parts.push(`**Schutzregeln (Guardrails):** ${gr}`);
       parts.push('');
     }
+    const relatedGoals = Array.isArray(goal.related) ? goal.related : [];
+    if (relatedGoals.length) {
+      const names = relatedGoals.map((id) => {
+        const g = goalById(id);
+        return g ? g.title_de : id;
+      });
+      parts.push(`**Verwandte Ziele:** ${names.join(', ')}`);
+      parts.push('');
+    }
   }
   return parts.join('\n');
 }
@@ -217,6 +229,9 @@ export function renderBausteine(reg) {
   ].join('\n'));
   const software = reg.components.filter((c) => c.kind === 'software');
   const hardware = reg.components.filter((c) => c.kind === 'hardware');
+  // H2 for group headers ("Software"/"Hardware") and H3 for individual items
+  // avoids a second H1 competing with the page H1, and keeps the on-page TOC
+  // showing only the two top-level groups rather than every component.
   const renderGroup = (title, list) => {
     parts.push(`## ${title}`);
     parts.push('');

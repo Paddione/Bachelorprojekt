@@ -28,6 +28,8 @@ Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen 
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
+**Verwandte Ziele:** Ich will eine neue Funktion bauen
+
 ## Ich will prüfen, ob alle Dienste laufen
 
 🟢 **Sicher**
@@ -43,6 +45,8 @@ Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen 
 ```text
 Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status.
 ```
+
+**Verwandte Ziele:** Ich will einen Fehler beheben
 
 ## Ich will einen Fehler beheben
 
@@ -63,6 +67,8 @@ Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und beh
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
+**Verwandte Ziele:** Ich will eine neue Funktion bauen
+
 ## Ich will eine neue Funktion bauen
 
 🟡 **Vorsicht**
@@ -81,6 +87,8 @@ Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt.
 ```
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandte Ziele:** Ich will einen Fehler beheben, Ich will eine Änderung in der Produktion ausrollen
 
 ## Ich will eine Änderung in der Produktion ausrollen
 
@@ -101,6 +109,8 @@ Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läu
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Erst prüfen, dann anwenden (G-VALIDATE-FIRST)
 
+**Verwandte Ziele:** Ich will eine neue Funktion bauen
+
 ## Ich will das Datenbankschema ändern
 
 🟠 **Nur mit Hilfe**
@@ -120,6 +130,8 @@ Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu.
 ```
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
+
+**Verwandte Ziele:** Ich will eine neue Funktion bauen
 
 ## Ich will ein Passwort oder Geheimnis ändern
 
@@ -157,3 +169,5 @@ Bitte NICHT allein ausführen – zuerst Patrick fragen.
 ```
 
 **Schutzregeln (Guardrails):** Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), ENV immer explizit setzen (G-ENV-EXPLICIT), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
+
+**Verwandte Ziele:** Ich will eine Änderung in der Produktion ausrollen

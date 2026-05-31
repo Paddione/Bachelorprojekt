@@ -241,6 +241,8 @@ test('renderZiele: fence-first, resolves ids, every wikilink target is discovera
     assert.ok(!md.includes('[[agent-website]]'), 'raw agent id is NEVER emitted as a wikilink');
     // the verbatim prompt lives in a fenced text block (Copy button hook, spec §6)
     assert.ok(md.includes('```text\nÄndere den Preis von 90 auf 120.\n```'), 'prompt fenced');
+    // related goals: fix-a-bug has related:[change-website-text] → title resolved
+    assert.ok(md.includes('**Verwandte Ziele:** Ich will den Text der Website ändern'), 'related goal title resolved');
     for (const t of wikilinkTargets(md)) {
       assert.ok(DISCOVERABLE.has(t), `wikilink [[${t}]] is discoverable`);
     }

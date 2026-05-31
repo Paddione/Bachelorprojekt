@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>cluster-deployment — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
 <div id="search-overlay">
   <div id="search-box">
     <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
@@ -59,6 +68,8 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <li><strong>Install cert-manager</strong> (<code>cert:install</code>) must be done to provision CRDs <em>before</em> <code>workspace:deploy</code> is called.</li>
 <li><strong>DNS API Secret</strong> (<code>cert:secret -- &lt;key&gt;</code>) must be stored in both namespaces <em>before</em> deploying to avoid ACME challenge failures.</li>
 <li><strong>Install Longhorn storage provisioner</strong> — must exist <em>before</em> <code>workspace:deploy</code>. The <code>prod-mentolder/</code> overlay declares <code>storageClassName: longhorn</code> for <code>livekit-recordings-pvc</code>, <code>nextcloud-data-pvc</code>, <code>vaultwarden-data-pvc</code>, and <code>docuseal-data-pvc</code>. On a fresh cluster these PVCs stay <strong>Pending forever</strong> unless the <code>longhorn</code> StorageClass and host-level <code>iscsid</code> are present first.</li>
+<li><strong>Scale CoreDNS</strong> (<code>coredns:scale</code>) — after Longhorn, before <code>workspace:deploy</code>. Applies <code>prod/coredns-scale.yaml</code>: 2 replicas + topology-spread + PDB so a single node reboot cannot take down cluster DNS (T000371).
+<strong>⚠️ k3s reconcile caveat:</strong> k3s ships CoreDNS as a <code>replicas: 1</code> auto-deploy addon at <code>/var/lib/rancher/k3s/server/manifests/coredns.yaml</code> and <strong>re-applies it on every k3s restart/upgrade</strong>, reverting any live edit. <strong>Re-run <code>task coredns:scale ENV=&lt;env&gt;</code> after every k3s version upgrade</strong> and confirm <code>kubectl -n kube-system get deploy coredns</code> shows <code>2/2 READY</code>.</li>
 <li><strong>Deploy EVERY service</strong> — <code>workspace:deploy</code> covers only the base kustomization. The full platform needs three more deploy passes: the <strong>office-stack</strong> (Collabora) and <strong>coturn-stack</strong> (TURN/Janus) live in their own privileged namespaces <em>outside</em> the base kustomization, the <strong>website</strong> ships from its own namespace, and <strong>arena</strong> (korczewski only) carries its own migrations. Use the <code>workspace:setup</code> umbrella + the prod-only coturn deploy — see "Full-Service Deploy" below. Skipping any of these leaves that service with <strong>no reachable ingress</strong>.</li>
 <li><strong>Verify ingress accessibility for the brand</strong> — after deploying, run <code>task workspace:check-connectivity ENV=&lt;env&gt;</code> and confirm every host resolves and answers (see "Ingress Accessibility Verification"). A green <code>workspace:deploy</code> with red connectivity means a service is deployed but not reachable — the deploy is <em>not</em> done until ingress is verified.</li>
 </ol>
@@ -509,6 +520,9 @@ grep HETZNER_WORKER_SNAPSHOT_ID environments/&lt;env&gt;.yaml
 
   </main>
 </div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
 <script src="./app.js"></script>
 </body>
 </html>

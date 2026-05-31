@@ -4,9 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Docs — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
 <div id="search-overlay">
   <div id="search-box">
     <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
@@ -19,10 +28,45 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Docs</span></nav>
     <h1>Docs</h1>
-    <p class="page-desc">9 doc pages</p>
+    <p class="page-desc">15 doc pages</p>
   </div>
 </header>
 <section class="section-grid">
+<a class="section-card" href="./00-anleitung.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Was will ich tun?</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">general</span>
+  </span>
+  <span class="section-card-desc"></span>
+</a>
+<a class="section-card" href="./10-ziele.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Ziele — Was will ich tun?</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">general</span>
+  </span>
+  <span class="section-card-desc"></span>
+</a>
+<a class="section-card" href="./20-werkzeuge.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Werkzeuge — Tools und Agents</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">general</span>
+  </span>
+  <span class="section-card-desc"></span>
+</a>
+<a class="section-card" href="./30-bausteine.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Bausteine — Was läuft auf der Plattform?</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">general</span>
+  </span>
+  <span class="section-card-desc"></span>
+</a>
+<a class="section-card" href="./readme.html">
+  <span class="section-card-head">
+    <span class="section-card-title">AI-Agent Operating Guide — Registry (SSOT)</span>
+    <span class="provenance-badge repo">repo</span>
+  </span>
+  <span class="section-card-desc"></span>
+</a>
 <a class="section-card" href="./decision-log.html">
   <span class="section-card-head">
     <span class="section-card-title">Phase 5 DROP Decision Log</span>
@@ -58,6 +102,13 @@
   </span>
   <span class="section-card-desc"></span>
 </a>
+<a class="section-card" href="./fleet-2026-05-31-what-changed.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</span>
+    <span class="provenance-badge repo">repo</span><span class="domain-tag">infra</span>
+  </span>
+  <span class="section-card-desc"></span>
+</a>
 <a class="section-card" href="./fleet-stage2-cutover-runbook.html">
   <span class="section-card-head">
     <span class="section-card-title">Fleet Stage 2 — Cutover Runbook</span>
@@ -89,6 +140,9 @@
 </section>
   </main>
 </div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
 <script src="./app.js"></script>
 </body>
 </html>

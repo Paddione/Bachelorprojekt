@@ -74,6 +74,8 @@ export function validateRegistry(dir, repoRoot = null) {
       req(themeIds.has(card.theme), `${label}: theme '${card.theme}' not in themes.yaml`);
     if (typeof card?.one_liner_de === 'string')
       req(card.one_liner_de.length <= 80, `${label}: one_liner_de > 80 chars`);
+    if (typeof card?.init_prompt_de === 'string')
+      req(card.init_prompt_de.length <= 200, `${label}: init_prompt_de > 200 chars`);
     for (const l of card?.links ?? []) {
       if (l && typeof l === 'object')
         req(typeof l.url === 'string' && l.url.length > 0, `${label}: link has empty 'url'`);

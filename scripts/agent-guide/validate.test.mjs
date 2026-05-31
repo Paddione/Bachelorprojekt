@@ -34,3 +34,19 @@ test('empty link url is rejected', () => {
     `expected a link-url error, got: ${JSON.stringify(res.errors)}`,
   );
 });
+
+test('init_prompt_de over 200 chars is rejected', () => {
+  const res = validateRegistry(join(here, 'fixtures', 'bad-init-prompt'));
+  assert.equal(res.ok, false);
+  assert.ok(
+    res.errors.some((e) => e.includes('init_prompt_de') && e.includes('200')),
+    `expected an init_prompt_de length error, got: ${JSON.stringify(res.errors)}`,
+  );
+});
+
+test('a short init_prompt_de in the good fixture would validate', () => {
+  // sanity: the optional field is accepted when present and within budget
+  const res = validateRegistry(join(here, 'fixtures', 'good'));
+  assert.equal(res.ok, true, JSON.stringify(res.errors, null, 2));
+});
+

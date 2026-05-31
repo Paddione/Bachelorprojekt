@@ -1,0 +1,12 @@
+- id: dev-flow-plan
+  name_de: "Planungs-Skill"
+  kind: skill
+  summary_de: "Wählt den Pfad und schreibt den Plan."
+  what_for_de: "Startpunkt für jede Änderung."
+  how_to_start_de: "Beschreibe einfach, was du ändern willst."
+  what_could_go_wrong_de: "Nichts — er stoppt vor der Umsetzung."
+  danger: caution
+  guardrails: [G-ENV-EXPLICIT]
+  related: []
+  links: []
+  init_prompt_de: "Dies ist ein absichtlich viel zu langer Initialisierungs-Prompt der die Zweihundert-Zeichen-Grenze deutlich ueberschreitet damit der Validator anschlaegt und einen Fehler meldet, denn so ein langer Prompt waere fuer eine Karte vollkommen unbrauchbar und unleserlich und nervig."

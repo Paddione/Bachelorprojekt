@@ -145,6 +145,9 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **`envsubst` variable lists are hardcoded per task in `Taskfile.yml` (not `Taskfile.yaml`).** If you add a new `${VAR}` reference to a manifest, also add it to the `envsubst "\$VAR1 \$VAR2 ..."` list in every task that builds that manifest, or the placeholder stays literal and kubectl apply fails with an invalid manifest. Key locations: dev deploy (line ~1117, vars: `PROD_DOMAIN BRAND_NAME CONTACT_EMAIL BRAND_ID`), prod deploy (line ~1145, dynamic `ENVSUBST_VARS` build — append there), `mcp:deploy` (line ~1350), `workspace:office:deploy` (line ~510).
 - **`env:generate ENV=<target>` must run before `env:seal` and before deploying prod.** `talk-hpb-setup.sh` aborts on placeholder `MANAGED_EXTERNALLY` values if signaling/turn secrets were never generated.
 
+### Database queries
+- **Never run `SELECT *` or query the `content` column on the entire `tickets.ticket_plans` table.** The `content` column stores large plan markdown files, and selecting it over a `kubectl exec` connection will transfer megabytes of data, causing connection timeouts. Always query metadata columns (such as `id`, `ticket_id`, `slug`, `branch`, `pr_number`, `archived_at`) or filter explicitly by a specific `ticket_id` or `slug`.
+
 ### Cluster reset / fresh cluster bring-up order
 After any cluster reset (including replacing a Sealed Secrets controller keypair), the mandatory order is:
 

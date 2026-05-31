@@ -35,6 +35,8 @@ PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | 
 psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
 ```
 
+> ⚠️ **Warning on tickets.ticket_plans**: When querying this table, never run `SELECT *` or retrieve the `content` column without filtering by a specific ticket/slug. The `content` column stores large plan markdown files, and querying the entire table will transfer megabytes over `kubectl exec`, causing connection timeouts. Always query metadata columns (e.g. `id`, `ticket_id`, `slug`, `branch`, `pr_number`, `archived_at`) or filter explicitly.
+
 ---
 
 ## Phase 1 — Production Incident Response

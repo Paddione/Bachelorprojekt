@@ -73,3 +73,10 @@ This document aggregates known operational issues, gotchas, and workarounds for 
 ### [T000344] Database row check before file deletion
 **Context**: Deleting plan markdown file before verifying database storage.
 **Rule**: Always verify that the plan exists in `tickets.ticket_plans` by checking that the row count is greater than 0 before running `rm` on the plan file.
+
+---
+
+### [T000388] tickets.ticket_plans Query Timeout
+**Context**: Querying the `tickets.ticket_plans` table over `kubectl exec`.
+**Rule**: Never run `SELECT *` or query the `content` column on the entire `tickets.ticket_plans` table. The `content` column contains large markdown plan files which will cause connection timeouts over the `kubectl exec` tunnel. Always query metadata columns (such as `id`, `ticket_id`, `slug`, `branch`, `pr_number`, `archived_at`) or filter explicitly by a specific `ticket_id` or `slug`.
+

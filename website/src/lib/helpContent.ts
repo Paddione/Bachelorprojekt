@@ -12,6 +12,36 @@ export interface HelpSection {
 
 export type HelpContext = 'portal' | 'admin';
 
+import { components } from './agentGuide';
+
+// ── S2: Plattform-Hub help, built programmatically from the agent-guide registry. ──
+// Only `title`, `description`, and the static guide are hand-authored German;
+// every component-specific string derives from the SSOT registry.
+const allComponents = Object.values(components);
+const sensitiveComponents = allComponents.filter(
+  (c) => c.sensitivity === 'assisted' || c.sensitivity === 'forbidden',
+);
+// Non-empty guarantee: sensitive first; if none, fall back to first 8 in registry order.
+const actionSource = (sensitiveComponents.length > 0 ? sensitiveComponents : allComponents).slice(0, 8);
+
+const platformHelp: HelpSection = {
+  title: 'Plattform Hub',
+  description:
+    'Hier siehst Du alle Bausteine der Plattform (Software-Dienste und Hardware-Knoten). ' +
+    'Öffne „Agent-Anleitung", um zu lernen, wie Du sie bedienst — ohne etwas kaputtzumachen.',
+  actions: actionSource.map((c) => `${c.emoji} ${c.name} — ${c.summary_de}`),
+  guides: [
+    {
+      title: 'Wie finde ich Hilfe zu einem Baustein?',
+      steps: [
+        'Öffne den Sidekick (Knopf unten rechts).',
+        'Tippe auf „Agent-Anleitung".',
+        'Suche unter „Werkzeuge & Agenten" oder „Ich will …" nach dem passenden Eintrag.',
+      ],
+    },
+  ],
+};
+
 export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
   portal: {
     overview: {
@@ -223,6 +253,7 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
   },
 
   admin: {
+    platform: platformHelp,
     dashboard: {
       title: 'Dashboard',
       description: 'KPI-Übersicht — offene Bugs, Projekte, Follow-ups und anstehende Termine auf einen Blick.',

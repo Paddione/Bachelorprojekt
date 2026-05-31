@@ -1,0 +1,86 @@
+import data from './agent-guide.generated.json';
+
+export interface TierEntry {
+  id: string;
+  label_de: string;
+  emoji: string;
+  meaning_de: string;
+  color: string;
+}
+
+export interface GuardrailChip {
+  id: string;
+  name_de: string;
+  rule_de: string;
+  why_de: string;
+}
+
+export interface GoalFlowStep {
+  tool: string;
+  tool_name_de: string;
+  note_de: string;
+}
+
+export interface Goal {
+  id: string;
+  title_de: string;
+  when_de: string;
+  danger: string;
+  flow: GoalFlowStep[];
+  example_prompt_de: string;
+  guardrails: GuardrailChip[];
+  related: string[];
+}
+
+export interface Tool {
+  id: string;
+  name_de: string;
+  kind: string;
+  kind_de: string;
+  summary_de: string;
+  what_for_de: string;
+  how_to_start_de: string;
+  what_could_go_wrong_de: string;
+  danger: string;
+  guardrails: GuardrailChip[];
+  related: string[];
+  links: string[];
+}
+
+export interface Component {
+  slug: string;
+  kind: string;
+  name: string;
+  emoji: string;
+  summary_de: string;
+  sensitivity: string;
+  url: string;
+}
+
+export const taxonomy: TierEntry[] = data.taxonomy as TierEntry[];
+export const goals: Goal[] = data.goals as Goal[];
+export const tools: Tool[] = data.tools as Tool[];
+export const components: Record<string, Component> = data.components as Record<string, Component>;
+
+/** Single resolver over taxonomy[]; the conveniences below are derived from it. */
+export function tierFor(id: string): { emoji: string; label: string; color: string; meaning: string } | undefined {
+  const t = taxonomy.find(x => x.id === id);
+  if (!t) return undefined;
+  return { emoji: t.emoji, label: t.label_de, color: t.color, meaning: t.meaning_de };
+}
+
+export function tierColor(id: string): string {
+  return tierFor(id)?.color ?? '#888888';
+}
+
+export function tierEmoji(id: string): string {
+  return tierFor(id)?.emoji ?? '⚪';
+}
+
+export function tierLabel(id: string): string {
+  return tierFor(id)?.label ?? id;
+}
+
+export function componentBySlug(slug: string): Component | undefined {
+  return components[slug];
+}

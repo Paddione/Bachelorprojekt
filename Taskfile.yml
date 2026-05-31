@@ -356,6 +356,11 @@ tasks:
       - |
         git diff --exit-code website/src/lib/platform-descriptions.generated.json \
           || (echo "ERROR: platform-descriptions.generated.json is stale — run node scripts/gen-platform-descriptions.mjs and commit"; exit 1)
+      - node scripts/agent-guide/emit-webapp.mjs
+      - |
+        git diff --exit-code website/src/lib/agent-guide.generated.json \
+          || (echo "ERROR: agent-guide.generated.json is stale — run 'task agent-guide:emit' and commit"; exit 1)
+
 
   test:all:
     desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run + docs-gen"

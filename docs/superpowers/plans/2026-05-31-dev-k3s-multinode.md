@@ -2,11 +2,14 @@
 title: dev.mentolder.de 3-node HA k3s Migration — Implementation Plan
 ticket_id: T000372
 domains: [website, infra, db, ops, test, security]
-status: active
-pr_number: null
+status: blocked
+pr_number: 1244
 ---
 
 # dev.mentolder.de 3-node HA k3s Migration — Implementation Plan
+
+> [!WARNING]
+> **Blocked:** dev1 and dev2 Proxmox hosts went offline mid-session (network loss, dev3 lost quorum). The cluster will recover when the network restores. Phase 7 (devc-1 + k3d decommission) and Phase 6.3 (live E2E verification) are pending cluster recovery.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

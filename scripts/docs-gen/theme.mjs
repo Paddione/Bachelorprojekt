@@ -8,6 +8,37 @@
  * Full editorial stylesheet for every generated page.
  * @returns {string} CSS source
  */
+// ─── graphCss ───────────────────────────────────────────────────────────────
+// Styling for the landing graph: domain regions, node hover states (.dim/.hl),
+// the pan/zoom container, and the legend. Surfaced through editorialCss().
+// Uses the editorial light-theme custom properties declared in editorialCss():root.
+// IC-3: the legend is emitted in-SVG as <g class="graph-legend"> with <text>/<circle>
+// rows, so it is styled via SVG-valid element selectors (no .lg-item/.lg-dot, no
+// position:absolute).
+const GRAPH_CSS = `
+#docs-graph{position:relative;overflow:hidden;border:1px solid var(--line);
+  border-radius:10px;background:var(--paper-2);margin:0 0 2em;touch-action:none;
+  cursor:grab;min-height:60vh}
+#docs-graph svg{display:block;width:100%;height:auto}
+.graph-region-bg{transition:fill-opacity .12s}
+.graph-region-label{font-size:13px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;pointer-events:none}
+.graph-edge{stroke:var(--line);stroke-width:1.2;opacity:.7}
+[data-node]{cursor:pointer;transition:opacity .12s}
+[data-node] circle{transition:stroke .12s,stroke-width .12s}
+[data-node] text{fill:var(--ink-soft);font-size:12px;pointer-events:none}
+[data-node].dim{opacity:.18}
+[data-node].hl circle{stroke:var(--accent);stroke-width:2.5}
+[data-node].hl text{fill:var(--accent);font-weight:700}
+.graph-legend text{fill:var(--ink-mute);font-size:12px}
+.graph-legend-title{fill:var(--ink-soft);font-weight:700}
+.graph-legend circle{stroke:var(--line);stroke-width:1}
+`;
+
+export function graphCss() {
+  return GRAPH_CSS;
+}
+
 export function editorialCss() {
   return `
 :root {
@@ -201,7 +232,7 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
 .related-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-mute);margin:0 0 .9em}
 .related-list{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;padding:0;margin:0}
-`;
+${GRAPH_CSS}`;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -320,6 +351,70 @@ export const SEARCH_JS = `
  * appending graphJs() to the join list.
  * @returns {string} client JS source
  */
+// ─── graphJs ────────────────────────────────────────────────────────────────
+// Client interactivity for the landing graph SVG. Reuses the diagram pan/zoom
+// approach (wheel clamp 0.3..10, pointer drag with setPointerCapture) and adds
+// neighbor hover-highlight via data-neighbors. Binds to the #docs-graph container
+// (IC-2) which wraps the <svg class="graph-svg"> (IC-1).
+const GRAPH_JS = `
+(function(){
+  var container=document.getElementById('docs-graph');
+  if(!container)return;
+  var svg=container.querySelector('svg');
+  if(!svg)return;
+
+  // ── hover-highlight neighbors ──
+  var nodes=Array.prototype.slice.call(container.querySelectorAll('[data-node]'));
+  function clearHl(){
+    nodes.forEach(function(n){n.classList.remove('dim');n.classList.remove('hl');});
+  }
+  function highlight(active){
+    var raw=active.getAttribute('data-neighbors')||'';
+    var keep={};
+    keep[active.getAttribute('data-node')]=true;
+    raw.split(/[ ,]+/).forEach(function(id){if(id)keep[id]=true;});
+    nodes.forEach(function(n){
+      var id=n.getAttribute('data-node');
+      if(keep[id]){n.classList.add('hl');n.classList.remove('dim');}
+      else{n.classList.add('dim');n.classList.remove('hl');}
+    });
+  }
+  nodes.forEach(function(n){
+    n.addEventListener('pointerover',function(){highlight(n);});
+    n.addEventListener('pointerout',clearHl);
+    n.addEventListener('focus',function(){highlight(n);});
+    n.addEventListener('blur',clearHl);
+  });
+  // background click / pointer leave clears the highlight (the <a> handles nav)
+  container.addEventListener('pointerleave',clearHl);
+  svg.addEventListener('click',function(e){
+    if(!e.target.closest('[data-node]'))clearHl();
+  });
+
+  // ── zoom / pan (same model as diagram wrappers) ──
+  var dx=0,dy=0,scale=1,dragging=false,ox=0,oy=0;
+  svg.style.transformOrigin='0 0';
+  function upd(){svg.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';}
+  container.addEventListener('wheel',function(e){
+    e.preventDefault();
+    scale=Math.min(10,Math.max(0.3,scale*(e.deltaY>0?0.9:1.1)));upd();
+  },{passive:false});
+  container.addEventListener('pointerdown',function(e){
+    if(e.target.closest('[data-node]'))return; // let node clicks navigate
+    dragging=true;ox=e.clientX-dx;oy=e.clientY-dy;
+    container.style.cursor='grabbing';container.setPointerCapture(e.pointerId);
+  });
+  container.addEventListener('pointermove',function(e){
+    if(!dragging)return;dx=e.clientX-ox;dy=e.clientY-oy;upd();
+  });
+  container.addEventListener('pointerup',function(){dragging=false;container.style.cursor='grab';});
+})();
+`;
+
+export function graphJs() {
+  return GRAPH_JS;
+}
+
 export function clientJs() {
-  return [SUBST_JS, COPY_JS, DIAGRAM_JS, SEARCH_JS].join('\n');
+  return [SUBST_JS, COPY_JS, DIAGRAM_JS, SEARCH_JS, GRAPH_JS].join('\n');
 }

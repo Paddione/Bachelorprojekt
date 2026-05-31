@@ -61,3 +61,43 @@ test('clientJs: composes the exported named pieces', () => {
     assert.ok(js.includes(piece), 'clientJs must include each named piece verbatim');
   }
 });
+
+// ── Task 4: graph interactivity (graphJs) + graph CSS ──────────────────────────
+import { graphJs, graphCss } from './theme.mjs';
+
+test('graphJs: returns a syntactically valid script that wires neighbor highlighting', () => {
+  const js = graphJs();
+  assert.equal(typeof js, 'string', 'graphJs returns a string');
+  assert.ok(js.length > 0, 'graphJs is non-empty');
+  // Parses as a function body (no syntax errors) — does not execute it.
+  assert.doesNotThrow(() => new Function(js), 'graphJs must parse as valid JS');
+  // Reads the per-node neighbor list emitted by graph-svg.
+  assert.ok(js.includes('data-neighbors'), 'graphJs references data-neighbors');
+  // Hover-highlight toggles the dim/hl classes defined in graphCss.
+  assert.ok(js.includes("'dim'") || js.includes('"dim"'), 'graphJs toggles the dim class');
+  assert.ok(js.includes("'hl'") || js.includes('"hl"'), 'graphJs toggles the hl class');
+  // Pointer + wheel interactivity (pan/zoom + hover) is present.
+  assert.ok(js.includes('pointerover'), 'graphJs listens for pointerover');
+  assert.ok(js.includes('wheel'), 'graphJs implements wheel-zoom');
+});
+
+test('clientJs: composes graphJs into the page client script', () => {
+  const js = clientJs();
+  assert.ok(js.includes('data-neighbors'), 'clientJs contains the graph code (data-neighbors)');
+  // Still parses as a whole after composition.
+  assert.doesNotThrow(() => new Function(js), 'composed clientJs must parse as valid JS');
+  // Existing pieces survive composition (search overlay + copy buttons).
+  assert.ok(js.includes('search-overlay'), 'clientJs keeps the search overlay code');
+  assert.ok(js.includes('copy-btn'), 'clientJs keeps the copy-button code');
+});
+
+test('graphCss: exposes the dim/hl/region rules and is included in editorialCss', () => {
+  const css = graphCss();
+  assert.equal(typeof css, 'string', 'graphCss returns a string');
+  assert.ok(css.includes('.dim'), 'graphCss defines a .dim rule');
+  assert.ok(css.includes('.hl'), 'graphCss defines a .hl rule');
+  assert.ok(css.includes('.graph-region'), 'graphCss defines region styling');
+  assert.ok(css.includes('overflow:hidden'), 'graph container clips pan/zoom overflow');
+  // editorialCss must surface the graph CSS so the single stylesheet covers the landing.
+  assert.ok(editorialCss().includes('.dim'), 'editorialCss includes graphCss rules');
+});

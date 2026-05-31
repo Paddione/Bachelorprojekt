@@ -12,6 +12,7 @@ data:
   VAULT_DOMAIN: "vault.localhost"
   MAIL_DOMAIN: "mail.localhost"
   DOCS_DOMAIN: "docs.localhost"
+  RECOVER_DOMAIN: "recover.localhost"
   WEB_DOMAIN: "web.localhost"
   SIGN_DOMAIN: "sign.localhost"
   TRAEFIK_DOMAIN: "traefik.localhost"

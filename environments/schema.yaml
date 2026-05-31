@@ -179,6 +179,10 @@ env_vars:
     required: true
     default_dev: "brett.localhost"
 
+  - name: RECOVER_DOMAIN
+    required: true
+    default_dev: "recover.localhost"
+
   - name: LIVEKIT_DOMAIN
     required: true
     default_dev: "livekit.localhost"
@@ -514,6 +518,11 @@ secrets:
     generate: false
 
   - name: DOCS_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+
+  - name: RECOVERY_OIDC_SECRET
     required: true
     generate: true
     length: 40

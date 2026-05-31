@@ -39,6 +39,7 @@ env_vars:
   TRAEFIK_EXTERNAL_URL: "https://traefik.mentolder.de"
   MAIL_EXTERNAL_URL: "https://mail.mentolder.de"
   BRETT_DOMAIN: brett.mentolder.de
+  RECOVER_DOMAIN: recover.mentolder.de
   LIVEKIT_DOMAIN: livekit.mentolder.de
   LIVEKIT_PIN_IP: "204.168.244.104"
   STREAM_DOMAIN: stream.mentolder.de

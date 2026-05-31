@@ -43,6 +43,14 @@ jobs:
             exit 1
           fi
 
+      - name: Verify agent-guide docs are up to date
+        run: |
+          task agent-guide:docs
+          if ! git diff --exit-code docs/agent-guide/10-ziele.md docs/agent-guide/20-werkzeuge.md docs/agent-guide/30-bausteine.md; then
+            echo "ERROR: generated agent-guide docs are stale — run 'task agent-guide:docs' locally and commit"
+            exit 1
+          fi
+
       - name: Validate Systembrett template
         run: ./scripts/tests/systembrett-template.test.sh
 

@@ -57,8 +57,12 @@ env_data = mesh[env]
 listen_port = env_data['listen_port']
 
 # Locate self node across all categories
+# IMPORTANT: keep this tuple in sync with the peer-emit loop below.
+# Any category key present in wg-mesh-nodes.yaml must appear in BOTH tuples
+# or those nodes are silently dropped from every peer list (T000371 regression).
+MESH_CATEGORIES = ('nodes', 'gpu_hosts', 'home_workers', 'workers', 'devc_servers')
 self_node = None
-for cat in ('nodes', 'gpu_hosts', 'home_workers'):
+for cat in MESH_CATEGORIES:
     for node in env_data.get(cat, []):
         if node['name'] == node_name:
             self_node = node
@@ -78,7 +82,7 @@ lines = [
 ]
 
 # Emit one [Peer] block per node in the mesh, skipping self
-for cat in ('nodes', 'gpu_hosts', 'home_workers'):
+for cat in MESH_CATEGORIES:
     for peer in env_data.get(cat, []):
         if peer['name'] == node_name:
             continue

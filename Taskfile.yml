@@ -253,6 +253,7 @@ tasks:
       - task: test:unit:render-cloud-init
       - task: test:unit:fleet-phase2b
       - task: test:unit:shared-db-initdb-selfheal
+      - task: test:unit:wg-mesh-fullmesh
 
   test:unit:assert:
     internal: true
@@ -293,6 +294,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/shared-db-initdb-selfheal.bats
+
+  test:unit:wg-mesh-fullmesh:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-fullmesh.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
@@ -3149,6 +3155,23 @@ tasks:
           ufw allow 30000:40000/udp comment "LiveKit TURN relay range" &&
           ufw status numbered | grep -E "7880|7881|50000|30000"
         '
+
+  # ─────────────────────────────────────────────
+  # CoreDNS resilience — replicas:2 + topology spread (T000371)
+  # ─────────────────────────────────────────────
+  coredns:scale:
+    desc: "Scale CoreDNS to 2 replicas + topology spread + PDB (ENV=dev|mentolder|korczewski). Re-run after k3s upgrades (k3s reverts its addon)."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        if ! kubectl --context "$ENV_CONTEXT" cluster-info >/dev/null 2>&1; then
+          echo "No cluster reachable for ENV={{.ENV}} context $ENV_CONTEXT" >&2; exit 1
+        fi
+        kubectl --context "$ENV_CONTEXT" apply -f prod/coredns-scale.yaml
+        kubectl --context "$ENV_CONTEXT" -n kube-system rollout status deploy/coredns --timeout=120s
+        echo "✓ CoreDNS scaled to 2 replicas with topology spread (ENV={{.ENV}})"
 
   # ─────────────────────────────────────────────
   # Cert-Manager — wildcard TLS via DNS-01/lego

@@ -2037,7 +2037,12 @@ tasks:
     cmds:
       - task: agent-guide:docs
       - task: agent-guide:webapp
-      # agent-guide:maps (S3) is appended by that sub-project.
+      - task: agent-guide:maps
+
+  agent-guide:maps:
+    desc: "Regenerate docs/agent-guide/maps/{goals,tools,danger}-map.md from the registry"
+    cmds:
+      - node scripts/agent-guide/emit-maps.mjs
 
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)

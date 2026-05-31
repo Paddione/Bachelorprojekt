@@ -57,12 +57,14 @@ function tierLabel(reg, dangerId) {
 }
 
 // Join guardrail ids (validating each resolves), em-dash for empty.
+// Sorted by id so a row renders byte-identically regardless of registry input
+// order — the determinism invariant (matches renderDangerMap's guardrail sort).
 function guardrailIds(reg, ids) {
   if (!ids || ids.length === 0) return EMPTY;
   for (const id of ids) {
     if (!reg.guardrailById(id)) throw new Error(`guardrail id "${id}" has no guardrails.yaml entry`);
   }
-  return ids.join(', ');
+  return [...ids].sort((a, b) => a.localeCompare(b)).join(', ');
 }
 
 /**

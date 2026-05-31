@@ -8,10 +8,10 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt, die Werkzeu
 | Ich will … | Weg (Flow) | Tier | Guardrails | Prompt |
 | --- | --- | --- | --- | --- |
 | Ich will eine Änderung in der Produktion ausrollen | agent-infra → dev-flow-e2e | 🟠 Nur mit Hilfe | G-ENV-EXPLICIT, G-VALIDATE-FIRST | Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läuft. |
-| Ich will einen Fehler beheben | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PULL-FIRST, G-PR-NOT-MAIN | Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie. |
-| Ich will den Cluster neu aufsetzen | agent-infra → agent-security | 🔴 Niemals allein | G-SECRET-ORDER, G-ENV-EXPLICIT, G-ASK-EXPERT | Bitte NICHT allein ausführen – zuerst Patrick fragen. |
-| Ich will das Datenbankschema ändern | dev-flow-plan → agent-db → dev-flow-execute | 🟠 Nur mit Hilfe | G-ENV-EXPLICIT, G-ASK-EXPERT | Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu. |
+| Ich will einen Fehler beheben | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PR-NOT-MAIN, G-PULL-FIRST | Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie. |
+| Ich will den Cluster neu aufsetzen | agent-infra → agent-security | 🔴 Niemals allein | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER | Bitte NICHT allein ausführen – zuerst Patrick fragen. |
+| Ich will das Datenbankschema ändern | dev-flow-plan → agent-db → dev-flow-execute | 🟠 Nur mit Hilfe | G-ASK-EXPERT, G-ENV-EXPLICIT | Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu. |
 | Ich will prüfen, ob alle Dienste laufen | agent-ops | 🟢 Sicher | — | Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status. |
-| Ich will eine neue Funktion bauen | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PULL-FIRST, G-PR-NOT-MAIN | Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt. |
-| Ich will ein Passwort oder Geheimnis ändern | agent-security | 🔴 Niemals allein | G-SECRET-ORDER, G-ASK-EXPERT | Bitte NICHT allein ausführen – zuerst Patrick fragen. (Rotation des shared-db-Passworts.) |
-| Ich will einen Text auf der Website ändern | agent-website | 🟢 Sicher | G-PULL-FIRST, G-PR-NOT-MAIN | Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen bei ...'. |
+| Ich will eine neue Funktion bauen | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PR-NOT-MAIN, G-PULL-FIRST | Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt. |
+| Ich will ein Passwort oder Geheimnis ändern | agent-security | 🔴 Niemals allein | G-ASK-EXPERT, G-SECRET-ORDER | Bitte NICHT allein ausführen – zuerst Patrick fragen. (Rotation des shared-db-Passworts.) |
+| Ich will einen Text auf der Website ändern | agent-website | 🟢 Sicher | G-PR-NOT-MAIN, G-PULL-FIRST | Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen bei ...'. |

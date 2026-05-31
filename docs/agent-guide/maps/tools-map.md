@@ -10,8 +10,8 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.
 | Id | Name | Art | Tier | Wofür | Guardrails |
 | --- | --- | --- | --- | --- | --- |
 | dev-flow-e2e | E2E-Test-Skill (dev-flow-e2e) | skill | 🟡 Vorsicht | Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus. | G-ENV-EXPLICIT |
-| dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PULL-FIRST, G-PR-NOT-MAIN |
-| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-ENV-EXPLICIT, G-CONTEXT-CHECK |
+| dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PR-NOT-MAIN, G-PULL-FIRST |
+| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-CONTEXT-CHECK, G-ENV-EXPLICIT |
 | dev-flow-plan | Planungs-Skill (dev-flow-plan) | skill | 🟡 Vorsicht | Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan. | G-PULL-FIRST |
 
 ## Tasks
@@ -24,9 +24,9 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.
 
 | Id | Name | Art | Tier | Wofür | Guardrails |
 | --- | --- | --- | --- | --- | --- |
-| agent-db | Datenbank-Agent (db) | agent | 🟠 Nur mit Hilfe | Verwaltet PostgreSQL-Schema, Migrationen und Backups. | G-ENV-EXPLICIT, G-ASK-EXPERT |
-| agent-infra | Infrastruktur-Agent (infra) | agent | 🟠 Nur mit Hilfe | Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration. | G-ENV-EXPLICIT, G-VALIDATE-FIRST, G-ASK-EXPERT |
+| agent-db | Datenbank-Agent (db) | agent | 🟠 Nur mit Hilfe | Verwaltet PostgreSQL-Schema, Migrationen und Backups. | G-ASK-EXPERT, G-ENV-EXPLICIT |
+| agent-infra | Infrastruktur-Agent (infra) | agent | 🟠 Nur mit Hilfe | Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-VALIDATE-FIRST |
 | agent-ops | Betriebs-Agent (ops) | agent | 🟢 Sicher | Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern. | G-CONTEXT-CHECK |
-| agent-security | Sicherheits-Agent (security) | agent | 🟠 Nur mit Hilfe | Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets. | G-SECRET-ORDER, G-ASK-EXPERT, G-ENV-EXPLICIT |
+| agent-security | Sicherheits-Agent (security) | agent | 🟠 Nur mit Hilfe | Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER |
 | agent-test | Test-Agent | agent | 🟡 Vorsicht | Schreibt und führt Tests aus (BATS, Playwright, vitest). | G-ENV-EXPLICIT |
-| agent-website | Website-Agent | agent | 🟡 Vorsicht | Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code. | G-PULL-FIRST, G-PR-NOT-MAIN |
+| agent-website | Website-Agent | agent | 🟡 Vorsicht | Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code. | G-PR-NOT-MAIN, G-PULL-FIRST |

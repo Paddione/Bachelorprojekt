@@ -93,8 +93,9 @@ test('renderGoalsMap: header on line 1, sorted rows, flow joined, empty guardrai
   // tier emoji + label
   assert.ok(out.includes('🟡 Vorsicht'), 'caution tier rendered');
   assert.ok(out.includes('🟢 Sicher'), 'safe tier rendered');
-  // empty guardrails -> dash; non-empty joined by comma-space
-  assert.ok(out.includes('G-PULL-FIRST, G-PR-ONLY'), 'guardrail ids joined');
+  // empty guardrails -> dash; non-empty joined by comma-space and sorted by id
+  // (input order ['G-PULL-FIRST','G-PR-ONLY'] renders sorted: G-PR-ONLY before G-PULL-FIRST)
+  assert.ok(out.includes('G-PR-ONLY, G-PULL-FIRST'), 'guardrail ids joined and sorted by id');
   assert.ok(/\|\s*🟢 Sicher\s*\|\s*—\s*\|/.test(out), 'empty guardrails render as em-dash');
   // single trailing newline, LF only
   assert.ok(out.endsWith('\n'), 'ends with newline');
@@ -269,20 +270,26 @@ test('fail-closed: a guardrail id with no guardrails.yaml entry throws', () => {
 });
 
 test('determinism: two separately-constructed registries with different input order render byte-identically', () => {
+  // g-b carries MULTIPLE guardrails in a DIFFERENT order between A and B — proves
+  // guardrailIds() sorts WITHIN a row, not just that rows are sorted by id.
   const goalsA = [
-    { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PULL-FIRST'], example_prompt_de: 'x' },
+    { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PULL-FIRST', 'G-ENV-EXPLICIT', 'G-PR-ONLY'], example_prompt_de: 'x' },
     { id: 'g-a', title_de: 'A', flow: [], danger: 'safe', guardrails: [], example_prompt_de: 'y' },
   ];
-  // same goals, DIFFERENT input order — proves sort-by-id normalizes order, not mere purity
+  // same goals, DIFFERENT row order AND different within-row guardrail order
   const goalsB = [
     { id: 'g-a', title_de: 'A', flow: [], danger: 'safe', guardrails: [], example_prompt_de: 'y' },
-    { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PULL-FIRST'], example_prompt_de: 'x' },
+    { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PR-ONLY', 'G-PULL-FIRST', 'G-ENV-EXPLICIT'], example_prompt_de: 'x' },
   ];
   const toolsA = [
-    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY'] },
+    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY', 'G-ENV-EXPLICIT'] },
     { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
   ];
-  const toolsB = [toolsA[1], toolsA[0]]; // reversed input order
+  // reversed row order AND reversed within-row guardrail order on dev-flow-execute
+  const toolsB = [
+    { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
+    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-ENV-EXPLICIT', 'G-PR-ONLY'] },
+  ];
   const regA = makeRegistry({ taxonomy: FIX_TAXONOMY, guardrails: FIX_GUARDRAILS, tools: toolsA, goals: goalsA });
   const regB = makeRegistry({ taxonomy: FIX_TAXONOMY, guardrails: FIX_GUARDRAILS, tools: toolsB, goals: goalsB });
   assert.equal(renderGoalsMap(regA), renderGoalsMap(regB));

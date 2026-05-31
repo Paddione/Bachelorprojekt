@@ -190,3 +190,21 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
 .related-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-mute);margin:0 0 .9em}
 .related-list{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;padding:0;margin:0}
+
+#docs-graph{position:relative;overflow:hidden;border:1px solid var(--line);
+  border-radius:10px;background:var(--paper-2);margin:0 0 2em;touch-action:none;
+  cursor:grab;min-height:60vh}
+#docs-graph svg{display:block;width:100%;height:auto}
+.graph-region-bg{transition:fill-opacity .12s}
+.graph-region-label{font-size:13px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;pointer-events:none}
+.graph-edge{stroke:var(--line);stroke-width:1.2;opacity:.7}
+[data-node]{cursor:pointer;transition:opacity .12s}
+[data-node] circle{transition:stroke .12s,stroke-width .12s}
+[data-node] text{fill:var(--ink-soft);font-size:12px;pointer-events:none}
+[data-node].dim{opacity:.18}
+[data-node].hl circle{stroke:var(--accent);stroke-width:2.5}
+[data-node].hl text{fill:var(--accent);font-weight:700}
+.graph-legend text{fill:var(--ink-mute);font-size:12px}
+.graph-legend-title{fill:var(--ink-soft);font-weight:700}
+.graph-legend circle{stroke:var(--line);stroke-width:1}

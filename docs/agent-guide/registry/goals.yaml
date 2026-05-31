@@ -1,0 +1,92 @@
+- id: website-text-aendern
+  title_de: "Ich will einen Text auf der Website ändern"
+  when_de: "Ein Inhalt, Preis oder Beschreibungstext auf der Website ist falsch oder veraltet."
+  flow:
+    - tool: agent-website
+      note_de: "Beschreibe, welchen Text du ändern willst und was der neue Inhalt sein soll."
+  example_prompt_de: "Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen bei ...'."
+  danger: safe
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [feature-bauen]
+- id: dienst-status-pruefen
+  title_de: "Ich will prüfen, ob alle Dienste laufen"
+  when_de: "Du möchtest wissen, ob die Plattform gesund ist oder ein Dienst rot leuchtet."
+  flow:
+    - tool: agent-ops
+      note_de: "Frag nach dem Status oder warum ein bestimmter Dienst nicht läuft."
+  example_prompt_de: "Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status."
+  danger: safe
+  guardrails: []
+  related: [bug-beheben]
+- id: bug-beheben
+  title_de: "Ich will einen Fehler beheben"
+  when_de: "Etwas funktioniert nicht so, wie es soll."
+  flow:
+    - tool: dev-flow-plan
+      note_de: "Beschreibe den Fehler; der Skill legt einen Fix-Branch an und schreibt zuerst einen Test, der den Fehler zeigt."
+    - tool: dev-flow-execute
+      note_de: "Setzt den Plan um, öffnet einen Pull Request und bringt die Korrektur live."
+  example_prompt_de: "Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und behebe sie."
+  danger: caution
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [feature-bauen]
+- id: feature-bauen
+  title_de: "Ich will eine neue Funktion bauen"
+  when_de: "Eine neue Funktion oder Seite soll zur Plattform hinzugefügt werden."
+  flow:
+    - tool: dev-flow-plan
+      note_de: "Beschreibe das gewünschte Feature; der Skill wählt den Pfad (Feature-Branch) und erstellt den Plan."
+    - tool: dev-flow-execute
+      note_de: "Implementiert das Feature, testet und öffnet einen Pull Request."
+  example_prompt_de: "Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt."
+  danger: caution
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [bug-beheben, aenderung-ausrollen]
+- id: aenderung-ausrollen
+  title_de: "Ich will eine Änderung in der Produktion ausrollen"
+  when_de: "Ein gemergter Pull Request soll in der echten Umgebung aktiviert werden."
+  flow:
+    - tool: agent-infra
+      note_de: "Sage, welche Umgebung (mentolder / korczewski) betroffen ist und welche Änderung ausgerollt werden soll."
+    - tool: dev-flow-e2e
+      note_de: "Verifiziere nach dem Deploy mit E2E-Tests, dass alles funktioniert."
+  example_prompt_de: "Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läuft."
+  danger: assisted
+  guardrails: [G-ENV-EXPLICIT, G-VALIDATE-FIRST]
+  related: [feature-bauen]
+- id: datenbank-aendern
+  title_de: "Ich will das Datenbankschema ändern"
+  when_de: "Eine neue Tabelle, Spalte oder ein Index soll zur Datenbank hinzugefügt werden."
+  flow:
+    - tool: dev-flow-plan
+      note_de: "Erkläre die gewünschte Schema-Änderung; der Skill erstellt eine Migration."
+    - tool: agent-db
+      note_de: "Der DB-Agent prüft, ob die Migration beide Marken betrifft und sicher ist."
+    - tool: dev-flow-execute
+      note_de: "Setzt die Migration um und testet sie."
+  example_prompt_de: "Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu."
+  danger: assisted
+  guardrails: [G-ENV-EXPLICIT, G-ASK-EXPERT]
+  related: [feature-bauen]
+- id: secret-aendern
+  title_de: "Ich will ein Passwort oder Geheimnis ändern"
+  when_de: "Ein Datenbank-Passwort, API-Schlüssel oder Zertifikat muss rotiert werden."
+  flow:
+    - tool: agent-security
+      note_de: "🔴 Diese Aufgabe hat eine strenge Reihenfolge. Falsch gemacht, werden Produktiv-Zugangsdaten überschrieben."
+  example_prompt_de: "Bitte NICHT allein ausführen – zuerst Patrick fragen. (Rotation des shared-db-Passworts.)"
+  danger: forbidden
+  guardrails: [G-SECRET-ORDER, G-ASK-EXPERT]
+  related: []
+- id: cluster-neu-aufsetzen
+  title_de: "Ich will den Cluster neu aufsetzen"
+  when_de: "Der Cluster muss nach einem Ausfall oder einem kompletten Reset neu eingerichtet werden."
+  flow:
+    - tool: agent-infra
+      note_de: "🔴 Nur mit Patrick zusammen ausführen. Die SealedSecrets-Reihenfolge ist zwingend."
+    - tool: agent-security
+      note_de: "Stellt sicher, dass Secrets korrekt versiegelt und angewendet werden."
+  example_prompt_de: "Bitte NICHT allein ausführen – zuerst Patrick fragen."
+  danger: forbidden
+  guardrails: [G-SECRET-ORDER, G-ENV-EXPLICIT, G-ASK-EXPERT]
+  related: [aenderung-ausrollen]

@@ -1,0 +1,121 @@
+- id: dev-flow-plan
+  name_de: "Planungs-Skill (dev-flow-plan)"
+  kind: skill
+  summary_de: "Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan."
+  what_for_de: "Hilft dir zu entscheiden, ob etwas ein Feature, ein Fix oder eine Wartung (Chore) ist, denkt das Vorhaben mit dir durch und schreibt einen Plan. Setzt nichts um."
+  how_to_start_de: "Beschreibe einfach in eigenen Worten, was du ändern willst – der Skill startet von selbst."
+  what_could_go_wrong_de: "Wenig: er stoppt bewusst, bevor Code geschrieben wird. Du bestätigst Design und Plan."
+  danger: caution
+  guardrails: [G-PULL-FIRST]
+  related: [dev-flow-execute]
+  links: []
+- id: dev-flow-execute
+  name_de: "Umsetzungs-Skill (dev-flow-execute)"
+  kind: skill
+  summary_de: "Setzt einen fertigen Plan um und öffnet einen Pull Request."
+  what_for_de: "Implementiert den Plan task-by-task, läuft Tests, pusht und erstellt den PR. Wird nach dev-flow-plan aufgerufen."
+  how_to_start_de: "Sage '/dev-flow-execute' oder 'Setze den Plan um' – ein staged Plan muss bereits existieren."
+  what_could_go_wrong_de: "Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren."
+  danger: caution
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [dev-flow-plan, dev-flow-iterate]
+  links: []
+- id: dev-flow-iterate
+  name_de: "Dev-Iterations-Skill (dev-flow-iterate)"
+  kind: skill
+  summary_de: "Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren."
+  what_for_de: "Shortcut für 'deploy + Logs ansehen + debuggen' im lokalen Dev-Cluster (dev.mentolder.de)."
+  how_to_start_de: "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Cluster live sehen willst."
+  what_could_go_wrong_de: "Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen."
+  danger: caution
+  guardrails: [G-ENV-EXPLICIT, G-CONTEXT-CHECK]
+  related: [dev-flow-execute, dev-flow-e2e]
+  links: []
+- id: dev-flow-e2e
+  name_de: "E2E-Test-Skill (dev-flow-e2e)"
+  kind: skill
+  summary_de: "Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus."
+  what_for_de: "Playwright-Tests gegen die echte, laufende Umgebung – prüft, ob das Feature wirklich funktioniert."
+  how_to_start_de: "Nur nach einem Merge und Deploy aufrufen; Umgebungs-URL muss erreichbar sein."
+  what_could_go_wrong_de: "Test schlägt fehl, wenn die Umgebung noch startet oder fehlerhaft deployt wurde."
+  danger: caution
+  guardrails: [G-ENV-EXPLICIT]
+  related: [dev-flow-iterate]
+  links: []
+- id: task-oracle
+  name_de: "Task-Orakel (task-oracle)"
+  kind: task
+  summary_de: "Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch."
+  what_for_de: "Übersetzt 'Ich will X tun' in den passenden task-Befehl, ohne dass du die Taskfile kennen musst."
+  how_to_start_de: "Rufe auf: bash scripts/task-oracle.sh 'Dein Ziel auf Deutsch'."
+  what_could_go_wrong_de: "Das Orakel könnte den falschen Task vorschlagen; prüfe immer die Ausgabe kurz."
+  danger: safe
+  guardrails: []
+  related: []
+  links: []
+- id: agent-website
+  name_de: "Website-Agent"
+  kind: agent
+  summary_de: "Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code."
+  what_for_de: "Für alles rund um website/src/ – Astro-Seiten, Svelte-Komponenten, CSS, Inhalte."
+  how_to_start_de: "Beschreibe einfach, was auf der Website geändert werden soll."
+  what_could_go_wrong_de: "Visuelle Änderungen wirken erst nach einem Deploy; er kann Typo-Fehler einbauen."
+  danger: caution
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [agent-infra]
+  links: []
+- id: agent-ops
+  name_de: "Betriebs-Agent (ops)"
+  kind: agent
+  summary_de: "Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern."
+  what_for_de: "Für Fragen wie 'Warum ist Dienst X rot?' oder 'Läuft alles?'. Liest Pod-Status und Protokolle (Logs)."
+  how_to_start_de: "Frag z. B.: 'Warum startet Nextcloud nicht?' oder 'Zeig mir den Status aller Dienste.'"
+  what_could_go_wrong_de: "Beim reinen Nachschauen kaum etwas. Vorsicht erst, wenn er etwas neu startet (das ist 🟡)."
+  danger: safe
+  guardrails: [G-CONTEXT-CHECK]
+  related: [agent-infra]
+  links: []
+- id: agent-infra
+  name_de: "Infrastruktur-Agent (infra)"
+  kind: agent
+  summary_de: "Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration."
+  what_for_de: "Für k8s-Manifeste, Kustomize-Overlays, Taskfile-Tasks und ENV-spezifische Deployments."
+  how_to_start_de: "Beschreibe, was deployt oder konfiguriert werden soll – immer mit dem Ziel-ENV."
+  what_could_go_wrong_de: "Falsches ENV= deployt in die falsche Umgebung (🟠). Manifestfehler können Dienste lahmlegen."
+  danger: assisted
+  guardrails: [G-ENV-EXPLICIT, G-VALIDATE-FIRST, G-ASK-EXPERT]
+  related: [agent-ops, agent-security]
+  links: []
+- id: agent-test
+  name_de: "Test-Agent"
+  kind: agent
+  summary_de: "Schreibt und führt Tests aus (BATS, Playwright, vitest)."
+  what_for_de: "Für FA-*, SA-*, NFA-*-Testfälle, BATS-Skripte und Playwright-E2E-Tests."
+  how_to_start_de: "Sage z. B. 'Schreib einen Test für Feature X' oder 'FA-05 schlägt fehl, bitte fixen'."
+  what_could_go_wrong_de: "Test kann die falsche Umgebung treffen; Playwright braucht laufende Dienste."
+  danger: caution
+  guardrails: [G-ENV-EXPLICIT]
+  related: [dev-flow-e2e]
+  links: []
+- id: agent-db
+  name_de: "Datenbank-Agent (db)"
+  kind: agent
+  summary_de: "Verwaltet PostgreSQL-Schema, Migrationen und Backups."
+  what_for_de: "Für Datenbankfragen: Schema-Änderungen, SQL-Abfragen, Backup/Restore."
+  how_to_start_de: "Beschreibe die Datenbankaufgabe – Schema-Migration, Query oder Datenfix."
+  what_could_go_wrong_de: "Schema-Änderungen betreffen beide Marken (workspace + workspace-korczewski). Falsche DB-Operation kann Daten unwiederbringlich löschen (🟠)."
+  danger: assisted
+  guardrails: [G-ENV-EXPLICIT, G-ASK-EXPERT]
+  related: [agent-infra]
+  links: []
+- id: agent-security
+  name_de: "Sicherheits-Agent (security)"
+  kind: agent
+  summary_de: "Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets."
+  what_for_de: "Für Geheimnis-Rotation, Keycloak-Konfiguration, OIDC-Clients und Zertifikate."
+  how_to_start_de: "Nur mit Vorsicht aufrufen; erkläre genau, welches Secret oder welche Konfiguration geändert werden soll."
+  what_could_go_wrong_de: "Falsche Reihenfolge bei Sealed-Secrets überschreibt Produktiv-Zugangsdaten (🔴). Nur mit Patrick abstimmen."
+  danger: assisted
+  guardrails: [G-SECRET-ORDER, G-ASK-EXPERT, G-ENV-EXPLICIT]
+  related: [agent-infra]
+  links: []

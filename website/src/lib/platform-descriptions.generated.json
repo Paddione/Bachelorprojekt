@@ -1,0 +1,154 @@
+{
+  "software": {
+    "website": {
+      "de": "Die öffentliche Webseite und das Kundenportal. Hier ändert man Texte, Preise und sieht eigene Daten.",
+      "en": "Astro + Svelte frontend"
+    },
+    "keycloak": {
+      "de": "Die zentrale Anmeldung (Single Sign-On): ein Login für alle Dienste.",
+      "en": "SSO / OIDC identity provider"
+    },
+    "nextcloud": {
+      "de": "Deine private Cloud: Dateien, Kalender, Kontakte und Video-Telefonie (Talk).",
+      "en": "File storage + groupware"
+    },
+    "collabora": {
+      "de": "Office im Browser: Dokumente, Tabellen und Präsentationen direkt in Nextcloud bearbeiten.",
+      "en": "Online office suite"
+    },
+    "vaultwarden": {
+      "de": "Der Passwort-Tresor (kompatibel mit Bitwarden). Speichert Passwörter sicher und verschlüsselt.",
+      "en": "Password manager (Bitwarden-compat)"
+    },
+    "nextcloud-talk-hpb": {
+      "de": "Der Vermittlungs-Server (Signaling) für Nextcloud Talk – sorgt dafür, dass Video-Anrufe zueinander finden.",
+      "en": "Nextcloud Talk signaling server"
+    },
+    "brett": {
+      "de": "Das 3D-Systembrett: ein digitales Aufstellungs-Board für systemische Arbeit im Browser.",
+      "en": "3D systemic-constellation board"
+    },
+    "mailpit": {
+      "de": "Ein Test-Postfach für Entwickler: fängt E-Mails ab, statt sie echt zu verschicken.",
+      "en": "SMTP dev mailbox"
+    },
+    "docuseal": {
+      "de": "Dokumente digital unterschreiben lassen (elektronische Signatur).",
+      "en": "Document signing"
+    },
+    "whiteboard": {
+      "de": "Eine gemeinsame Zeichen-Tafel zum Brainstormen, in Nextcloud eingebunden.",
+      "en": "Collaborative drawing"
+    },
+    "arena": {
+      "de": "Der Mehrspieler-Spielserver (nur Marke korczewski).",
+      "en": "Multiplayer game server"
+    },
+    "docs": {
+      "de": "Die Anleitungen und Handbücher der Plattform (die Doku-Seite).",
+      "en": "Platform documentation (Docsify)"
+    },
+    "postgresql": {
+      "de": "Die zentrale Datenbank (PostgreSQL 16). Hier liegen fast alle Daten der Plattform.",
+      "en": "Shared database server"
+    },
+    "traefik": {
+      "de": "Der Türsteher des Clusters: leitet jede Web-Anfrage an den richtigen Dienst und macht HTTPS.",
+      "en": "Kubernetes ingress controller (k3s DaemonSet, kube-system)"
+    },
+    "sealed-secrets": {
+      "de": "Verschlüsselt geheime Zugangsdaten, damit sie sicher in Git liegen können.",
+      "en": "Bitnami Sealed Secrets controller — encrypts k8s Secrets at rest"
+    },
+    "cert-manager": {
+      "de": "Holt und erneuert automatisch die HTTPS-Zertifikate (über Let's Encrypt / DNS-01).",
+      "en": "cert-manager — ACME / DNS-01 TLS certificate automation"
+    },
+    "k3s": {
+      "de": "Das schlanke Kubernetes, auf dem alle Dienste laufen. Das Fundament der Plattform.",
+      "en": "Lightweight Kubernetes distribution"
+    },
+    "wireguard": {
+      "de": "Das verschlüsselte Netz (VPN-Mesh), das alle Server-Knoten privat verbindet.",
+      "en": "VPN mesh overlay connecting all mentolder cluster nodes"
+    },
+    "tei": {
+      "de": "Wandelt Texte in Vektoren um (Embeddings, Modell bge-m3) für die KI-Suche – läuft auf dem GPU-Rechner.",
+      "en": "Text Embeddings Inference — bge-m3 via GPU host on wg-mesh (llm-gateway-embed Service)"
+    },
+    "openclaw": {
+      "de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit Ollama).",
+      "en": "OpenClaw AI assistant daemon on WSL GPU host (talks to Ollama 10.10.0.3:11434/v1)"
+    },
+    "livekit": {
+      "de": "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen).",
+      "en": "WebRTC server (hostNetwork, pinned to gekko-hetzner-3)"
+    },
+    "livekit-ingress": {
+      "de": "Nimmt eingehende Video-Streams an (RTMP) und gibt sie an LiveKit weiter.",
+      "en": "RTMP ingest endpoint"
+    },
+    "livekit-egress": {
+      "de": "Nimmt Live-Streams auf und speichert sie als Aufzeichnung.",
+      "en": "Stream recording"
+    },
+    "whisper": {
+      "de": "Wandelt gesprochene Sprache in Text um (Spracherkennung, OpenAI Whisper).",
+      "en": "OpenAI Whisper speech-to-text transcription"
+    },
+    "talk-transcriber": {
+      "de": "Schreibt Nextcloud-Talk-Gespräche automatisch mit (Transkription).",
+      "en": "Nextcloud Talk auto-transcription bot"
+    },
+    "mcp": {
+      "de": "Die Brücke, über die Claude Code mit der Plattform arbeitet (MCP-Proxy, nur mentolder).",
+      "en": "Claude Code MCP proxy (auth + ops pods, mentolder only)"
+    },
+    "brainstorm": {
+      "de": "Ein sicherer Tunnel, der das lokale Brainstorming-Board unter brainstorm.mentolder.de erreichbar macht.",
+      "en": "Reverse-SSH tunnel endpoint for brainstorm.mentolder.de"
+    },
+    "arena-server": {
+      "de": "Der 3D-Mehrspieler-Spielserver (nur korczewski); prüft Logins aus beiden Keycloak-Welten.",
+      "en": "Multiplayer 3D game server (korczewski only) — JWT validated from both Keycloak realms"
+    }
+  },
+  "hardware": {
+    "gekko-hetzner-2": {
+      "de": "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken.",
+      "en": "Control-plane Helsinki"
+    },
+    "gekko-hetzner-3": {
+      "de": "Fleet-Arbeitsknoten in Helsinki. Beherbergt unter anderem den LiveKit-Server.",
+      "en": "Control-plane Helsinki"
+    },
+    "gekko-hetzner-4": {
+      "de": "Fleet-Arbeitsknoten in Helsinki (Hetzner).",
+      "en": "Control-plane Helsinki"
+    },
+    "k3s-1": {
+      "de": "Heim-Server (Proxmox-VM). Beherbergt die Dev-Umgebung dev.mentolder.de.",
+      "en": "Home Worker 1"
+    },
+    "k3s-2": {
+      "de": "Heim-Server (zuhause).",
+      "en": "Home Worker 2"
+    },
+    "k3s-3": {
+      "de": "Heim-Server (zuhause).",
+      "en": "Home Worker 3"
+    },
+    "pk-hetzner-4": {
+      "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki. LiveKit-DNS zeigt hierhin.",
+      "en": "Control-plane Helsinki"
+    },
+    "pk-hetzner-6": {
+      "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner).",
+      "en": "Worker Helsinki"
+    },
+    "pk-hetzner-8": {
+      "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner).",
+      "en": "Worker Helsinki"
+    }
+  }
+}

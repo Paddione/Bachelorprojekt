@@ -5,7 +5,8 @@
   "scripts": {
     "test:track-pr": "node --test scripts/track-pr.test.mjs",
     "test:docs-gen": "node --test scripts/docs-gen/*.test.mjs",
-    "build:docs": "node scripts/build-docs.mjs"
+    "build:docs": "node scripts/build-docs.mjs",
+    "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -17,6 +18,7 @@
     "@mermaid-js/mermaid-cli": "^11.15.0",
     "cheerio": "^1.2.0",
     "gray-matter": "^4.0.3",
-    "marked": "^18.0.4"
+    "marked": "^18.0.4",
+    "yaml": "^2.9.0"
   }
 }

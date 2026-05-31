@@ -51,6 +51,14 @@ jobs:
             exit 1
           fi
 
+      - name: Verify agent-guide webapp JSON is up to date
+        run: |
+          task agent-guide:webapp
+          if ! git diff --exit-code website/src/lib/agent-guide.generated.json; then
+            echo "ERROR: website/src/lib/agent-guide.generated.json is stale — run 'task agent-guide:webapp' locally and commit"
+            exit 1
+          fi
+
       - name: Validate Systembrett template
         run: ./scripts/tests/systembrett-template.test.sh
 

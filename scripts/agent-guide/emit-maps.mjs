@@ -126,6 +126,71 @@ export function renderToolsMap(reg) {
   }
   return out.join('\n') + '\n';
 }
-export function renderDangerMap() {
-  throw new Error('renderDangerMap not implemented yet');
+// Canonical tier order, independent of taxonomy.yaml file order.
+export const TIER_ORDER = ['safe', 'caution', 'assisted', 'forbidden'];
+
+/**
+ * Render danger-map.md from an in-memory registry.
+ * Guardrail tiers are derived transitively from referencing goals/tools.
+ * @param {ReturnType<import('./load.mjs').loadRegistry>} reg
+ * @returns {string}
+ */
+export function renderDangerMap(reg) {
+  const out = [];
+  out.push(HEADER);
+  out.push('');
+  out.push('# Gefahren-Karte (Danger Map)');
+  out.push('');
+  out.push('Die vier Gefahren-Stufen und was unter jede fällt — die Vorschau auf den Enforcement-Kontrakt.');
+  out.push('Hinweis: Eine Guardrail hat **keine** eigene Stufe; sie erscheint unter **jeder** Stufe, deren');
+  out.push('Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufen.');
+
+  for (const tierId of TIER_ORDER) {
+    const tier = reg.tierFor(tierId);
+    if (!tier) throw new Error(`renderDangerMap: taxonomy has no entry for tier "${tierId}"`);
+
+    const goalsHere = reg.goals
+      .filter((g) => g.danger === tierId)
+      .sort((a, b) => a.id.localeCompare(b.id));
+    const toolsHere = reg.tools
+      .filter((t) => t.danger === tierId)
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    // transitive, de-duplicated guardrail ids referenced by goals/tools of this tier
+    const grSet = new Set();
+    for (const g of goalsHere) for (const id of g.guardrails || []) grSet.add(id);
+    for (const t of toolsHere) for (const id of t.guardrails || []) grSet.add(id);
+    const grIds = [...grSet].sort((a, b) => a.localeCompare(b));
+
+    out.push('');
+    out.push(`## ${tier.emoji} ${tier.label_de} — ${tier.meaning_de}`);
+    out.push('');
+    out.push(`**enforcement_default:** \`${tier.enforcement_default}\``);
+    out.push('');
+    out.push('**Ziele:**');
+    if (goalsHere.length === 0) {
+      out.push('- —');
+    } else {
+      for (const g of goalsHere) out.push(`- \`${g.id}\` — ${escapeCell(g.title_de)}`);
+    }
+    out.push('');
+    out.push('**Werkzeuge:**');
+    if (toolsHere.length === 0) {
+      out.push('- —');
+    } else {
+      for (const t of toolsHere) out.push(`- \`${t.id}\` — ${escapeCell(t.name_de)}`);
+    }
+    out.push('');
+    out.push('**Guardrails (transitiv):**');
+    if (grIds.length === 0) {
+      out.push('- —');
+    } else {
+      for (const id of grIds) {
+        const gr = reg.guardrailById(id);
+        if (!gr) throw new Error(`renderDangerMap: guardrail id "${id}" has no guardrails.yaml entry`);
+        out.push(`- \`${id}\` — ${escapeCell(gr.name_de)}`);
+      }
+    }
+  }
+  return out.join('\n') + '\n';
 }

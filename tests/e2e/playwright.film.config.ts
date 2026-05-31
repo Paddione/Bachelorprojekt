@@ -5,6 +5,12 @@ const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 export default defineConfig({
   ...baseConfig,
+  // The Agent-Anleitung walkthrough is public and touches no DB, so it must NOT
+  // inherit baseConfig's globalSetup/globalTeardown — those bracket every run
+  // with a prod-DB purge (POST /api/admin/systemtest/purge-all-test-data) that
+  // demands CRON_SECRET. Filming a read-only UI tour should never purge data.
+  globalSetup: undefined,
+  globalTeardown: undefined,
   testMatch: ['**/agent-guide-walkthrough.spec.ts'],
   retries: 0,
   workers: 1,

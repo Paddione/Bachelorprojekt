@@ -47,6 +47,7 @@ function fixtureRegistry() {
     '  guardrails: [G-ENV-EXPLICIT]',
     '  related: []',
     '  links: []',
+    '  init_prompt_de: "/dev-flow-plan: plane meine Aenderung"',
     '',
   ].join('\n'));
 
@@ -251,4 +252,14 @@ test('buildWebappData: tolerates a registry with no themes.yaml/glossary.yaml', 
   // missing theme falls back to 'allgemein'
   assert.equal(data.goals[0].theme, 'allgemein');
 });
+
+test('buildWebappData includes init_prompt_de when present and omits it when absent', () => {
+  const dir = globalThis.__agFixtureRegistry();
+  const data = buildWebappData(dir);
+  const plan = data.tools.find(t => t.id === 'dev-flow-plan');
+  const website = data.tools.find(t => t.id === 'agent-website');
+  assert.equal(plan.init_prompt_de, '/dev-flow-plan: plane meine Aenderung');
+  assert.ok(!('init_prompt_de' in website), 'absent field must not be emitted as a key');
+});
+
 

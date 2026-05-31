@@ -16,6 +16,8 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 
 **Werkzeuge:**
 - `agent-ops` — Betriebs-Agent (ops)
+- `brainstorming` — Brainstorming (/brainstorming)
+- `superpowers` — Superpowers (/superpowers)
 - `task-oracle` — Task-Orakel (task-oracle)
 
 **Guardrails (transitiv):**

@@ -7,26 +7,28 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.
 
 ## Skills
 
-| Id | Name | Art | Tier | Wofür | Guardrails |
-| --- | --- | --- | --- | --- | --- |
-| dev-flow-e2e | E2E-Test-Skill (dev-flow-e2e) | skill | 🟡 Vorsicht | Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus. | G-ENV-EXPLICIT |
-| dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PR-NOT-MAIN, G-PULL-FIRST |
-| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-CONTEXT-CHECK, G-ENV-EXPLICIT |
-| dev-flow-plan | Planungs-Skill (dev-flow-plan) | skill | 🟡 Vorsicht | Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan. | G-PULL-FIRST |
+| Id | Name | Art | Tier | Wofür | Guardrails | Init |
+| --- | --- | --- | --- | --- | --- | --- |
+| brainstorming | Brainstorming (/brainstorming) | skill | 🟢 Sicher | Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design. | — | /brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken. |
+| dev-flow-e2e | E2E-Test-Skill (dev-flow-e2e) | skill | 🟡 Vorsicht | Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus. | G-ENV-EXPLICIT | /dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus. |
+| dev-flow-execute | Umsetzungs-Skill (dev-flow-execute) | skill | 🟡 Vorsicht | Setzt einen fertigen Plan um und öffnet einen Pull Request. | G-PR-NOT-MAIN, G-PULL-FIRST | /dev-flow-execute – setze den fertigen Plan um und öffne einen PR. |
+| dev-flow-iterate | Dev-Iterations-Skill (dev-flow-iterate) | skill | 🟡 Vorsicht | Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren. | G-CONTEXT-CHECK, G-ENV-EXPLICIT | /dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs. |
+| dev-flow-plan | Planungs-Skill (dev-flow-plan) | skill | 🟡 Vorsicht | Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan. | G-PULL-FIRST | Ich will etwas ändern – starte die Planung (dev-flow-plan). |
+| superpowers | Superpowers (/superpowers) | skill | 🟢 Sicher | Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt. | — | /superpowers |
 
 ## Tasks
 
-| Id | Name | Art | Tier | Wofür | Guardrails |
-| --- | --- | --- | --- | --- | --- |
-| task-oracle | Task-Orakel (task-oracle) | task | 🟢 Sicher | Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch. | — |
+| Id | Name | Art | Tier | Wofür | Guardrails | Init |
+| --- | --- | --- | --- | --- | --- | --- |
+| task-oracle | Task-Orakel (task-oracle) | task | 🟢 Sicher | Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch. | — | — |
 
 ## Agenten
 
-| Id | Name | Art | Tier | Wofür | Guardrails |
-| --- | --- | --- | --- | --- | --- |
-| agent-db | Datenbank-Agent (db) | agent | 🟠 Nur mit Hilfe | Verwaltet PostgreSQL-Schema, Migrationen und Backups. | G-ASK-EXPERT, G-ENV-EXPLICIT |
-| agent-infra | Infrastruktur-Agent (infra) | agent | 🟠 Nur mit Hilfe | Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-VALIDATE-FIRST |
-| agent-ops | Betriebs-Agent (ops) | agent | 🟢 Sicher | Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern. | G-CONTEXT-CHECK |
-| agent-security | Sicherheits-Agent (security) | agent | 🟠 Nur mit Hilfe | Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER |
-| agent-test | Test-Agent | agent | 🟡 Vorsicht | Schreibt und führt Tests aus (BATS, Playwright, vitest). | G-ENV-EXPLICIT |
-| agent-website | Website-Agent | agent | 🟡 Vorsicht | Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code. | G-PR-NOT-MAIN, G-PULL-FIRST |
+| Id | Name | Art | Tier | Wofür | Guardrails | Init |
+| --- | --- | --- | --- | --- | --- | --- |
+| agent-db | Datenbank-Agent (db) | agent | 🟠 Nur mit Hilfe | Verwaltet PostgreSQL-Schema, Migrationen und Backups. | G-ASK-EXPERT, G-ENV-EXPLICIT | Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>. |
+| agent-infra | Infrastruktur-Agent (infra) | agent | 🟠 Nur mit Hilfe | Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-VALIDATE-FIRST | Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>. |
+| agent-ops | Betriebs-Agent (ops) | agent | 🟢 Sicher | Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern. | G-CONTEXT-CHECK | Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün? |
+| agent-security | Sicherheits-Agent (security) | agent | 🟠 Nur mit Hilfe | Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets. | G-ASK-EXPERT, G-ENV-EXPLICIT, G-SECRET-ORDER | Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>. |
+| agent-test | Test-Agent | agent | 🟡 Vorsicht | Schreibt und führt Tests aus (BATS, Playwright, vitest). | G-ENV-EXPLICIT | Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>. |
+| agent-website | Website-Agent | agent | 🟡 Vorsicht | Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code. | G-PR-NOT-MAIN, G-PULL-FIRST | Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>. |

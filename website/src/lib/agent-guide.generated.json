@@ -517,6 +517,59 @@
   ],
   "tools": [
     {
+      "id": "superpowers",
+      "name_de": "Superpowers (/superpowers)",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt.",
+      "what_for_de": "Der Einstieg in alle Skills. Erklärt Claude, welche Fertigkeiten es hat und wann es sie einsetzen muss.",
+      "how_to_start_de": "Tippe '/superpowers' in Claude Code – der Skill lädt sich selbst.",
+      "what_could_go_wrong_de": "Kaum etwas: er lädt nur Wissen, ändert nichts am Code.",
+      "danger": "safe",
+      "guardrails": [],
+      "related": [
+        "dev-flow-plan"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "superpowers",
+        "skills",
+        "fertigkeiten"
+      ],
+      "common": false,
+      "order": 999,
+      "init_prompt_de": "/superpowers"
+    },
+    {
+      "id": "brainstorming",
+      "name_de": "Brainstorming (/brainstorming)",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design.",
+      "what_for_de": "Vor jeder kreativen Arbeit: klärt, was du wirklich willst, und hält Entscheidungen fest.",
+      "how_to_start_de": "Sage '/brainstorming' oder beschreibe das Vorhaben – der Skill startet von selbst.",
+      "what_could_go_wrong_de": "Wenig: er stoppt bewusst vor der Umsetzung. Du bestätigst das Design.",
+      "danger": "safe",
+      "guardrails": [],
+      "related": [
+        "dev-flow-plan",
+        "superpowers"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "brainstorm",
+        "brainstorming",
+        "idee",
+        "design",
+        "konzept"
+      ],
+      "common": false,
+      "order": 999,
+      "init_prompt_de": "/brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken."
+    },
+    {
       "id": "dev-flow-plan",
       "name_de": "Planungs-Skill (dev-flow-plan)",
       "kind": "skill",
@@ -546,7 +599,8 @@
         "spec"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "Ich will etwas ändern – starte die Planung (dev-flow-plan)."
     },
     {
       "id": "dev-flow-execute",
@@ -585,7 +639,8 @@
         "pr"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "/dev-flow-execute – setze den fertigen Plan um und öffne einen PR."
     },
     {
       "id": "dev-flow-iterate",
@@ -624,7 +679,8 @@
         "dev-cluster"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs."
     },
     {
       "id": "dev-flow-e2e",
@@ -656,7 +712,8 @@
         "walkthrough"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "/dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus."
     },
     {
       "id": "task-oracle",
@@ -724,7 +781,8 @@
         "frontend"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>."
     },
     {
       "id": "agent-ops",
@@ -758,7 +816,8 @@
         "betrieb"
       ],
       "common": true,
-      "order": 4
+      "order": 4,
+      "init_prompt_de": "Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün?"
     },
     {
       "id": "agent-infra",
@@ -804,7 +863,8 @@
         "deploy"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>."
     },
     {
       "id": "agent-test",
@@ -836,7 +896,8 @@
         "vitest"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>."
     },
     {
       "id": "agent-db",
@@ -875,7 +936,8 @@
         "query"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>."
     },
     {
       "id": "agent-security",
@@ -926,7 +988,8 @@
         "rotieren"
       ],
       "common": false,
-      "order": 999
+      "order": 999,
+      "init_prompt_de": "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
     }
   ],
   "components": {

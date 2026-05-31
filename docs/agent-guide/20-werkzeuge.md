@@ -10,6 +10,46 @@ generated_by: scripts/agent-guide/emit-docs.mjs
 > (`docs/agent-guide/registry/tools.yaml`). Nicht von Hand bearbeiten.
 > Zurück zur Übersicht: [[00-anleitung]].
 
+## Superpowers (/superpowers)
+
+**Skill** · 🟢 **Sicher**
+
+Aktiviert die Skill-Bibliothek: zeigt, wie Claude Skills findet und nutzt.
+
+**Wofür?** Der Einstieg in alle Skills. Erklärt Claude, welche Fertigkeiten es hat und wann es sie einsetzen muss.
+
+**So startest du:** Tippe '/superpowers' in Claude Code – der Skill lädt sich selbst.
+
+**Was schiefgehen kann:** Kaum etwas: er lädt nur Wissen, ändert nichts am Code.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+/superpowers
+```
+
+**Verwandt:** [[dev-flow-plan]]
+
+## Brainstorming (/brainstorming)
+
+**Skill** · 🟢 **Sicher**
+
+Denkt ein Vorhaben mit dir durch, bevor Code entsteht – Intention, Anforderungen, Design.
+
+**Wofür?** Vor jeder kreativen Arbeit: klärt, was du wirklich willst, und hält Entscheidungen fest.
+
+**So startest du:** Sage '/brainstorming' oder beschreibe das Vorhaben – der Skill startet von selbst.
+
+**Was schiefgehen kann:** Wenig: er stoppt bewusst vor der Umsetzung. Du bestätigst das Design.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+/brainstorming – ich möchte etwas Neues bauen und will es erst durchdenken.
+```
+
+**Verwandt:** [[dev-flow-plan]], Superpowers (/superpowers)
+
 ## Planungs-Skill (dev-flow-plan)
 
 **Skill** · 🟡 **Vorsicht**
@@ -21,6 +61,12 @@ Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan.
 **So startest du:** Beschreibe einfach in eigenen Worten, was du ändern willst – der Skill startet von selbst.
 
 **Was schiefgehen kann:** Wenig: er stoppt bewusst, bevor Code geschrieben wird. Du bestätigst Design und Plan.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Ich will etwas ändern – starte die Planung (dev-flow-plan).
+```
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST)
 
@@ -38,6 +84,12 @@ Setzt einen fertigen Plan um und öffnet einen Pull Request.
 
 **Was schiefgehen kann:** Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren.
 
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+/dev-flow-execute – setze den fertigen Plan um und öffne einen PR.
+```
+
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
 **Verwandt:** [[dev-flow-plan]], [[dev-flow-iterate]]
@@ -54,6 +106,12 @@ Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobiere
 
 **Was schiefgehen kann:** Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen.
 
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+/dev-flow-iterate – deploye ins Dev-Cluster und zeig mir die Logs.
+```
+
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Kubectl-Kontext prüfen (G-CONTEXT-CHECK)
 
 **Verwandt:** [[dev-flow-execute]], [[dev-flow-e2e]]
@@ -69,6 +127,12 @@ Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge au
 **So startest du:** Nur nach einem Merge und Deploy aufrufen; Umgebungs-URL muss erreichbar sein.
 
 **Was schiefgehen kann:** Test schlägt fehl, wenn die Umgebung noch startet oder fehlerhaft deployt wurde.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+/dev-flow-e2e – schreibe und führe E2E-Tests gegen die Live-Umgebung aus.
+```
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)
 
@@ -98,6 +162,12 @@ Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.
 
 **Was schiefgehen kann:** Visuelle Änderungen wirken erst nach einem Deploy; er kann Typo-Fehler einbauen.
 
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Übergib das an den Website-Agenten: <was auf der Website geändert werden soll>.
+```
+
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
 
 **Verwandt:** [[bachelorprojekt-infra]]
@@ -116,6 +186,12 @@ Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu v
 
 **Was schiefgehen kann:** Beim reinen Nachschauen kaum etwas. Vorsicht erst, wenn er etwas neu startet (das ist 🟡).
 
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Frag den Betriebs-Agenten: warum läuft <Dienst> nicht / ist alles grün?
+```
+
 **Schutzregeln (Guardrails):** Kubectl-Kontext prüfen (G-CONTEXT-CHECK)
 
 **Verwandt:** [[bachelorprojekt-infra]]
@@ -131,6 +207,12 @@ Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration.
 **So startest du:** Beschreibe, was deployt oder konfiguriert werden soll – immer mit dem Ziel-ENV.
 
 **Was schiefgehen kann:** Falsches ENV= deployt in die falsche Umgebung (🟠). Manifestfehler können Dienste lahmlegen.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Übergib das an den Infrastruktur-Agenten: <Manifest-/Overlay-/Deploy-Aufgabe>.
+```
 
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Erst prüfen, dann anwenden (G-VALIDATE-FIRST), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
 
@@ -148,6 +230,12 @@ Schreibt und führt Tests aus (BATS, Playwright, vitest).
 
 **Was schiefgehen kann:** Test kann die falsche Umgebung treffen; Playwright braucht laufende Dienste.
 
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Übergib das an den Test-Agenten: <Test schreiben/reparieren/ausführen>.
+```
+
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)
 
 **Verwandt:** [[dev-flow-e2e]]
@@ -164,6 +252,12 @@ Verwaltet PostgreSQL-Schema, Migrationen und Backups.
 
 **Was schiefgehen kann:** Schema-Änderungen betreffen beide Marken (workspace + workspace-korczewski). Falsche DB-Operation kann Daten unwiederbringlich löschen (🟠).
 
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Frag den Datenbank-Agenten: <Schema, Query, Backup/Restore>.
+```
+
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT), Bei Rot: stoppen und fragen (G-ASK-EXPERT)
 
 **Verwandt:** [[bachelorprojekt-infra]]
@@ -179,6 +273,12 @@ Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets.
 **So startest du:** Nur mit Vorsicht aufrufen; erkläre genau, welches Secret oder welche Konfiguration geändert werden soll.
 
 **Was schiefgehen kann:** Falsche Reihenfolge bei Sealed-Secrets überschreibt Produktiv-Zugangsdaten (🔴). Nur mit Patrick abstimmen.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>.
+```
 
 **Schutzregeln (Guardrails):** Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), Bei Rot: stoppen und fragen (G-ASK-EXPERT), ENV immer explizit setzen (G-ENV-EXPLICIT)
 

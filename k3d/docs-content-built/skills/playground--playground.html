@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>playground — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">playground</span></nav>
+    <h1>playground</h1>
+    <p class="page-desc">Creates interactive HTML playgrounds — self-contained single-file explorers that let users configure something visually through controls, see a live preview, and copy out a prompt. Use when the user asks to make a playground, explorer, or interactive tool for a topic.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">playground</span> <span class="pv-ver">unknown</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Playground Builder</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to use this skill</a></li>
+<li class="toc-item"><a href="#how-to-use-this-skill"><span class="toc-num">2.</span> How to use this skill</a></li>
+<li class="toc-item"><a href="#core-requirements-every-playground"><span class="toc-num">3.</span> Core requirements (every playground)</a></li>
+<li class="toc-item"><a href="#state-management-pattern"><span class="toc-num">4.</span> State management pattern</a></li>
+<li class="toc-item"><a href="#prompt-output-pattern"><span class="toc-num">5.</span> Prompt output pattern</a></li>
+<li class="toc-item"><a href="#common-mistakes-to-avoid"><span class="toc-num">6.</span> Common mistakes to avoid</a></li></ul>
+</div>
+<p>A playground is a self-contained HTML file with interactive controls on one side, a live preview on the other, and a prompt output at the bottom with a copy button. The user adjusts controls, explores visually, then copies the generated prompt back into Claude.</p>
+<h2 id="when-to-use-this-skill">When to use this skill</h2>
+<p>When the user asks for an interactive playground, explorer, or visual tool for a topic — especially when the input space is large, visual, or structural and hard to express as plain text.</p>
+<h2 id="how-to-use-this-skill">How to use this skill</h2>
+<ol>
+<li><strong>Identify the playground type</strong> from the user's request</li>
+<li><strong>Load the matching template</strong> from <code>templates/</code>:<ul>
+<li><code>templates/design-playground.md</code> — Visual design decisions (components, layouts, spacing, color, typography)</li>
+<li><code>templates/data-explorer.md</code> — Data and query building (SQL, APIs, pipelines, regex)</li>
+<li><code>templates/concept-map.md</code> — Learning and exploration (concept maps, knowledge gaps, scope mapping)</li>
+<li><code>templates/document-critique.md</code> — Document review (suggestions with approve/reject/comment workflow)</li>
+<li><code>templates/diff-review.md</code> — Code review (git diffs, commits, PRs with line-by-line commenting)</li>
+<li><code>templates/code-map.md</code> — Codebase architecture (component relationships, data flow, layer diagrams)</li>
+</ul>
+</li>
+<li><strong>Follow the template</strong> to build the playground. If the topic doesn't fit any template cleanly, use the one closest and adapt.</li>
+<li><strong>Open in browser.</strong> After writing the HTML file, run <code>open &lt;filename&gt;.html</code> to launch it in the user's default browser.</li>
+</ol>
+<h2 id="core-requirements-every-playground">Core requirements (every playground)</h2>
+<ul>
+<li><strong>Single HTML file.</strong> Inline all CSS and JS. No external dependencies.</li>
+<li><strong>Live preview.</strong> Updates instantly on every control change. No "Apply" button.</li>
+<li><strong>Prompt output.</strong> Natural language, not a value dump. Only mentions non-default choices. Includes enough context to act on without seeing the playground. Updates live.</li>
+<li><strong>Copy button.</strong> Clipboard copy with brief "Copied!" feedback.</li>
+<li><strong>Sensible defaults + presets.</strong> Looks good on first load. Include 3-5 named presets that snap all controls to a cohesive combination.</li>
+<li><strong>Dark theme.</strong> System font for UI, monospace for code/values. Minimal chrome.</li>
+</ul>
+<h2 id="state-management-pattern">State management pattern</h2>
+<p>Keep a single state object. Every control writes to it, every render reads from it.</p>
+<div class="code-wrapper"><pre><code class="language-javascript">const state = { /* all configurable values */ };
+
+function updateAll() {
+  renderPreview(); // update the visual
+  updatePrompt();  // rebuild the prompt text
+}
+// Every control calls updateAll() on change
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="prompt-output-pattern">Prompt output pattern</h2>
+<div class="code-wrapper"><pre><code class="language-javascript">function updatePrompt() {
+  const parts = [];
+
+  // Only mention non-default values
+  if (state.borderRadius !== DEFAULTS.borderRadius) {
+    parts.push(`border-radius of ${state.borderRadius}px`);
+  }
+
+  // Use qualitative language alongside numbers
+  if (state.shadowBlur &gt; 16) parts.push('a pronounced shadow');
+  else if (state.shadowBlur &gt; 0) parts.push('a subtle shadow');
+
+  prompt.textContent = `Update the card to use ${parts.join(', ')}.`;
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-mistakes-to-avoid">Common mistakes to avoid</h2>
+<ul>
+<li>Prompt output is just a value dump → write it as a natural instruction</li>
+<li>Too many controls at once → group by concern, hide advanced in a collapsible section</li>
+<li>Preview doesn't update instantly → every control change must trigger immediate re-render</li>
+<li>No defaults or presets → starts empty or broken on load</li>
+<li>External dependencies → if CDN is down, playground is dead</li>
+<li>Prompt lacks context → include enough that it's actionable without the playground</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

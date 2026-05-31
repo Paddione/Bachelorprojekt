@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>agent-ready-apis — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">agent-ready-apis</span></nav>
+    <h1>agent-ready-apis</h1>
+    <p class="page-desc">Knowledge about AI agent API compatibility. Use when user asks about API readiness, agent compatibility, or wants to improve their API for AI consumption.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Agent-Ready APIs</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-suggest-the-analyzer"><span class="toc-num">1.</span> When to Suggest the Analyzer</a></li>
+<li class="toc-item"><a href="#what-gets-evaluated"><span class="toc-num">2.</span> What Gets Evaluated</a></li>
+<li class="toc-item"><a href="#scoring"><span class="toc-num">3.</span> Scoring</a></li>
+<li class="toc-item"><a href="#interpreting-results"><span class="toc-num">4.</span> Interpreting Results</a></li></ul>
+</div>
+<p>An "agent-ready" API is one that an AI agent can discover, understand, call correctly, and recover from errors without human intervention. Most APIs aren't there yet.</p>
+<h2 id="when-to-suggest-the-analyzer">When to Suggest the Analyzer</h2>
+<p>If the user mentions any of these, suggest running the readiness-analyzer agent:</p>
+<ul>
+<li>"Is my API agent-ready?"</li>
+<li>"Can AI agents use my API?"</li>
+<li>"Scan my API" / "Analyze my spec"</li>
+<li>"What's wrong with my API for AI?"</li>
+<li>"How agent-friendly is my API?"</li>
+<li>"Improve my API for AI agents"</li>
+</ul>
+<h2 id="what-gets-evaluated">What Gets Evaluated</h2>
+<p>The analyzer checks 48 items across 8 pillars:</p>
+<table>
+<thead>
+<tr>
+<th>Pillar</th>
+<th>What It Measures</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Metadata</td>
+<td>operationIds, summaries, descriptions, tags</td>
+</tr>
+<tr>
+<td>Errors</td>
+<td>Error schemas, codes, messages, retry guidance</td>
+</tr>
+<tr>
+<td>Introspection</td>
+<td>Parameter types, required fields, enums, examples</td>
+</tr>
+<tr>
+<td>Naming</td>
+<td>Consistent casing, RESTful paths, HTTP semantics</td>
+</tr>
+<tr>
+<td>Predictability</td>
+<td>Response schemas, pagination, date formats</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>Auth docs, rate limits, external links</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>Rate limit headers, cache, bulk endpoints, async patterns</td>
+</tr>
+<tr>
+<td>Discoverability</td>
+<td>OpenAPI version, server URLs, contact info</td>
+</tr>
+</tbody></table>
+<h2 id="scoring">Scoring</h2>
+<ul>
+<li><strong>Critical checks (4x weight):</strong> Blocks agent usage entirely</li>
+<li><strong>High checks (2x weight):</strong> Causes frequent agent failures</li>
+<li><strong>Medium checks (1x weight):</strong> Degrades agent performance</li>
+<li><strong>Low checks (0.5x weight):</strong> Nice-to-have improvements</li>
+</ul>
+<p><strong>Agent Ready = score of 70% or higher with zero critical failures.</strong></p>
+<h2 id="interpreting-results">Interpreting Results</h2>
+<ul>
+<li><strong>90-100%:</strong> Excellent. Agents can use this API reliably.</li>
+<li><strong>70-89%:</strong> Agent-ready. Minor improvements possible.</li>
+<li><strong>50-69%:</strong> Not agent-ready. Key issues need fixing.</li>
+<li><strong>Below 50%:</strong> Significant work needed. Focus on critical failures first.</li>
+</ul>
+<p>See <code>pillars.md</code> in this skill folder for the full check reference.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Projektmanagement-Admin — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">admin-projekte</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-gray">admin projekte</span>
+    <span class="badge-slug">admin-projekte</span>
+  </div>
+  <h1 class="hero-title">Projektmanagement-Admin</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#zugriff"><span class="toc-num">1.</span>&nbsp;Zugriff</a></li>
+<li class="toc-item"><a href="#datenmodell"><span class="toc-num">2.</span>&nbsp;Datenmodell</a></li>
+<li class="toc-item"><a href="#funktionen"><span class="toc-num">3.</span>&nbsp;Funktionen</a></li>
+<li class="toc-item"><a href="#api-routen"><span class="toc-num">4.</span>&nbsp;API-Routen</a></li>
+<li class="toc-item"><a href="#datenbankschema"><span class="toc-num">5.</span>&nbsp;Datenbankschema</a></li>
+<li class="toc-item"><a href="#fehlerbehebung"><span class="toc-num">6.</span>&nbsp;Fehlerbehebung</a></li></ul>
+</div>
+<p>Das Admin-Panel unter <code>/admin/projekte</code> verwaltet Projekte, Teilprojekte und Aufgaben je Brand und Kunde. Der Zugriff erfordert eine Admin-Rolle (Single Sign-On über Keycloak).</p>
+<hr>
+<h2 id="zugriff">Zugriff</h2>
+<table>
+<thead>
+<tr>
+<th>Brand</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>mentolder</td>
+<td><code>https://web.mentolder.de/admin/projekte</code></td>
+</tr>
+<tr>
+<td>korczewski</td>
+<td><code>https://web.korczewski.de/admin/projekte</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Entwicklungsumgebung: <code>http://web.localhost/admin/projekte</code> (lokales k3d).</p>
+</blockquote>
+<p>Berechtigung: Workspace-Konto in der Gruppe <code>workspace-admins</code>. Ohne Login wirst Du auf Keycloak SSO weitergeleitet.</p>
+<hr>
+<h2 id="datenmodell">Datenmodell</h2>
+<div class="code-wrapper"><pre><code>Kunde (customers)
+ └── Projekt (projects)            brandspezifisch
+      ├── Teilprojekt (sub_projects)
+      │    └── Aufgabe (project_tasks)
+      └── Aufgabe (project_tasks)  direkt im Projekt
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Aufgaben können einem Projekt direkt oder über ein Teilprojekt zugeordnet sein (<code>sub_project_id IS NULL</code> = direkt).</p>
+<h3>Status-Lifecycle</h3>
+<p><code>entwurf</code> → <code>wartend</code> → <code>geplant</code> → <code>aktiv</code> → <code>erledigt</code> → <code>archiviert</code></p>
+<h3>Prioritäten</h3>
+<p><code>hoch</code> | <code>mittel</code> | <code>niedrig</code></p>
+<hr>
+<h2 id="funktionen">Funktionen</h2>
+<table>
+<thead>
+<tr>
+<th>Funktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Projektliste</td>
+<td>Alle Projekte des aktuellen Brands, sortiert nach Status und Fälligkeitsdatum</td>
+</tr>
+<tr>
+<td>Filter</td>
+<td>Nach Status, Priorität, Freitext (Name/Beschreibung)</td>
+</tr>
+<tr>
+<td>Gantt-Diagramm</td>
+<td>Zeitleiste aller terminierten Projekte (Start- bis Fälligkeitsdatum)</td>
+</tr>
+<tr>
+<td>Statistik-Karten</td>
+<td>Gesamt / Aktiv / Überfällig / Erledigt</td>
+</tr>
+<tr>
+<td>Anlegen</td>
+<td>Projekt, Teilprojekt oder Aufgabe erstellen</td>
+</tr>
+<tr>
+<td>Bearbeiten</td>
+<td>Inline-Formular zum Ändern aller Felder</td>
+</tr>
+<tr>
+<td>Löschen</td>
+<td>Projekt/Teilprojekt (kaskadiert auf Unterelemente) oder einzelne Aufgabe</td>
+</tr>
+<tr>
+<td>Export</td>
+<td>CSV-Export aller Projekte (<code>/api/admin/projekte/export</code>)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="api-routen">API-Routen</h2>
+<p>Alle Routen sind serverseitig mit Session-Prüfung und Admin-Rollencheck gesichert.</p>
+<h3>Projekte</h3>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Methode</th>
+<th>Body / Parameter</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/admin/projekte/create</code></td>
+<td>POST</td>
+<td><code>{ name, brand, status, priority, customerId?, ... }</code></td>
+<td>Projekt anlegen</td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/update</code></td>
+<td>PUT</td>
+<td><code>{ id, ...felder }</code></td>
+<td>Projekt ändern</td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/delete</code></td>
+<td>DELETE</td>
+<td><code>?id=&lt;uuid&gt;</code></td>
+<td>Projekt löschen (kaskadiert)</td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/export</code></td>
+<td>GET</td>
+<td><code>?brand=&lt;brand&gt;</code></td>
+<td>CSV-Export</td>
+</tr>
+</tbody></table>
+<h3>Teilprojekte</h3>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Methode</th>
+<th>Body / Parameter</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/admin/subprojekte/create</code></td>
+<td>POST</td>
+<td><code>{ projectId, name, status, priority, ... }</code></td>
+<td>Teilprojekt anlegen</td>
+</tr>
+<tr>
+<td><code>/api/admin/subprojekte/update</code></td>
+<td>PUT</td>
+<td><code>{ id, ...felder }</code></td>
+<td>Teilprojekt ändern</td>
+</tr>
+<tr>
+<td><code>/api/admin/subprojekte/delete</code></td>
+<td>DELETE</td>
+<td><code>?id=&lt;uuid&gt;</code></td>
+<td>Teilprojekt löschen</td>
+</tr>
+</tbody></table>
+<h3>Aufgaben</h3>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Methode</th>
+<th>Body / Parameter</th>
+<th>Funktion</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/admin/projekttasks/create</code></td>
+<td>POST</td>
+<td><code>{ projectId, subProjectId?, name, status, priority, ... }</code></td>
+<td>Aufgabe anlegen</td>
+</tr>
+<tr>
+<td><code>/api/admin/projekttasks/update</code></td>
+<td>PUT</td>
+<td><code>{ id, ...felder }</code></td>
+<td>Aufgabe ändern</td>
+</tr>
+<tr>
+<td><code>/api/admin/projekttasks/delete</code></td>
+<td>DELETE</td>
+<td><code>?id=&lt;uuid&gt;</code></td>
+<td>Aufgabe löschen</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="datenbankschema">Datenbankschema</h2>
+<p>Tabellen: <code>projects</code>, <code>sub_projects</code>, <code>project_tasks</code> — alle in der <code>website</code>-Datenbank. Sie werden per <code>CREATE TABLE IF NOT EXISTS</code> beim ersten API-Aufruf angelegt.</p>
+<p>Vollständiges Schema: <a href="database.md#projektmanagement">Datenbankmodelle → Projektmanagement</a></p>
+<hr>
+<h2 id="fehlerbehebung">Fehlerbehebung</h2>
+<p><strong>Seite zeigt „Datenbankfehler":</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:psql -- website
+# Prüfen, ob die Tabellen existieren:
+\dt projects
+\dt sub_projects
+\dt project_tasks
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>403 / Weiterleitung auf /admin:</strong></p>
+<ul>
+<li>Gruppe <code>workspace-admins</code> fehlt → in der Keycloak Admin-Console zuweisen</li>
+<li>Session abgelaufen → erneut einloggen</li>
+</ul>
+<p><strong>Projekt wird nicht gespeichert (API-Fehler):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:logs -- website
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

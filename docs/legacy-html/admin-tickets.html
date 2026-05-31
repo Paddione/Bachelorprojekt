@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tickets (Unified Inbox) — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">admin-tickets</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-gray">admin tickets</span>
+    <span class="badge-slug">admin-tickets</span>
+  </div>
+  <h1 class="hero-title">Tickets (Unified Inbox)</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#filter"><span class="toc-num">1.</span>&nbsp;Filter</a></li>
+<li class="toc-item"><a href="#saved-views-chips"><span class="toc-num">2.</span>&nbsp;Saved Views (Chips)</a></li>
+<li class="toc-item"><a href="#detailseite-adminticketsid"><span class="toc-num">3.</span>&nbsp;Detailseite /admin/tickets/:id</a></li>
+<li class="toc-item"><a href="#status-uebergaenge"><span class="toc-num">4.</span>&nbsp;Status-Übergänge</a></li>
+<li class="toc-item"><a href="#brand-multi-tenancy"><span class="toc-num">5.</span>&nbsp;Brand-Multi-Tenancy</a></li>
+<li class="toc-item"><a href="#legacy-seiten"><span class="toc-num">6.</span>&nbsp;Legacy-Seiten</a></li></ul>
+</div>
+<p>Seit PR4 laufen Bug-Reports, Features, Aufgaben und Projekte in einem
+einzigen Modell unter <code>tickets.tickets</code>. Das Admin-UI ist
+<code>/admin/tickets</code> (Sidebar-Eintrag <em>Tickets</em> in der Gruppe <em>Betrieb</em>).</p>
+<h2 id="filter">Filter</h2>
+<ul>
+<li><strong>Typ:</strong> <code>bug</code>, <code>feature</code>, <code>task</code>, <code>project</code></li>
+<li><strong>Status:</strong> <code>triage</code> → <code>backlog</code> → <code>in_progress</code> → <code>in_review</code> → <code>blocked</code> → <code>done</code> → <code>archived</code></li>
+<li><strong>Komponente / Zuständig / Kunde / Tag / Thesis-Tag</strong></li>
+<li><strong>Suche</strong> über Titel, Ticket-ID und Reporter-E-Mail</li>
+</ul>
+<h2 id="saved-views-chips">Saved Views (Chips)</h2>
+<p><code>Alle offenen</code>, <code>Meine offenen</code>, <code>Triage</code>, <code>In Review</code>, <code>Blockiert</code>,
+<code>Bugs</code>, <code>Features</code>, <code>Projekte</code>, <code>Thesis FA</code>.</p>
+<h2 id="detailseite-adminticketsid">Detailseite <code>/admin/tickets/:id</code></h2>
+<p>Zeigt Header, Action-Bar (Status-Übergang, Kommentar, Verknüpfung),
+Beschreibung, Kind-Tickets, verknüpfte Tickets (inkl. PR-Merge-Events),
+einheitlicher <strong>Aktivitäts-Verlauf</strong> (kombiniert <code>ticket_activity</code>,
+<code>ticket_comments</code>, <code>ticket_links</code> und <code>pr_events</code>), Anhänge, Sidebar
+mit Metadaten und Watchern.</p>
+<h2 id="status-uebergaenge">Status-Übergänge</h2>
+<p>Alle Status-Änderungen laufen ausschließlich durch
+<code>transitionTicket()</code>. Beim Übergang nach <code>done</code> für Bug-Tickets mit
+<code>reporter_email</code> wird automatisch eine Close-Mail an den Reporter
+verschickt (BCC: <code>info@&lt;brand&gt;</code>, Reply-To: <code>info@&lt;brand&gt;</code>). Öffentliche
+Kommentare (<code>visibility='public'</code>) auf Bug-Tickets triggern eine
+zweite Mail an den Reporter.</p>
+<h2 id="brand-multi-tenancy">Brand-Multi-Tenancy</h2>
+<p>Jede Liste, jede Detail-Abfrage und jede Mutation filtert nach
+<code>tickets.tickets.brand = process.env.BRAND_ID</code>. korczewski-Tickets
+sind auf web.mentolder.de niemals sichtbar und umgekehrt.</p>
+<h2 id="legacy-seiten">Legacy-Seiten</h2>
+<p><code>/admin/bugs</code> und <code>/admin/projekte</code> bleiben als gewohnte
+Listen-Ansichten erhalten und lesen aus demselben Modell.</p>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>remember — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">remember</span></nav>
+    <h1>remember</h1>
+    <p class="page-desc">Save session state for clean continuation next session.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">remember</span> <span class="pv-ver">0.7.3</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><p>Write a handoff note so the next session can continue cleanly. Use your knowledge of the current session — you were here. Write in first person ("I").</p>
+<p><strong>Path:</strong> Use the path from the most recent <code>=== HANDOFF ===</code> block in this session's context (e.g., <code>Write next handoff to: /home/user/.remember/myproject-slug/remember.md</code>). If no <code>=== HANDOFF ===</code> block is present, fall back to <code>{project_root}/.remember/remember.md</code>. This is at the PROJECT ROOT, NOT relative to this skill file.</p>
+<p><strong>If the file already exists, Read it first before Writing.</strong> The Write tool enforces a read-before-write check on existing files; without a prior Read, the first Write call will fail with "File has not been read yet." A 1-line Read is enough to satisfy the check.</p>
+<p>Format:</p>
+<div class="code-wrapper"><pre><code># Handoff
+
+## State
+{What's done, what's not. Files, MRs, decisions. 2-4 lines max.}
+
+## Next
+{What to pick up. Priority order. 1-3 items.}
+
+## Context
+{Non-obvious gotchas, blockers, preferences from this session. Skip if nothing.}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Rules:</p>
+<ul>
+<li>Under 20 lines total</li>
+<li>Specific: file paths, MR numbers, branch names</li>
+<li>Forward-looking — the next session doesn't care about the journey</li>
+<li>If nothing meaningful to hand off, write: "No active work."</li>
+</ul>
+<p>Say "Saved." when done — nothing else.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

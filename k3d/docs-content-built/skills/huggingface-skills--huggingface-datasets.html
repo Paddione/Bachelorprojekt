@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-datasets — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-datasets</span></nav>
+    <h1>huggingface-datasets</h1>
+    <p class="page-desc">Use this skill for Hugging Face Dataset Viewer API workflows that fetch subset/split metadata, paginate rows, search text, apply filters, download parquet URLs, and read size or statistics.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Hugging Face Dataset Viewer</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#core-workflow"><span class="toc-num">1.</span> Core workflow</a></li>
+<li class="toc-item"><a href="#defaults"><span class="toc-num">2.</span> Defaults</a></li>
+<li class="toc-item"><a href="#dataset-viewer"><span class="toc-num">3.</span> Dataset Viewer</a></li>
+<li class="toc-item"><a href="#creating-and-uploading-datasets"><span class="toc-num">4.</span> Creating and Uploading Datasets</a></li>
+<li class="toc-item"><a href="#agent-traces"><span class="toc-num">5.</span> Agent Traces</a></li></ul>
+</div>
+<p>Use this skill to execute read-only Dataset Viewer API calls for dataset exploration and extraction.</p>
+<h2 id="core-workflow">Core workflow</h2>
+<ol>
+<li>Optionally validate dataset availability with <code>/is-valid</code>.</li>
+<li>Resolve <code>config</code> + <code>split</code> with <code>/splits</code>.</li>
+<li>Preview with <code>/first-rows</code>.</li>
+<li>Paginate content with <code>/rows</code> using <code>offset</code> and <code>length</code> (max 100).</li>
+<li>Use <code>/search</code> for text matching and <code>/filter</code> for row predicates.</li>
+<li>Retrieve parquet links via <code>/parquet</code> and totals/metadata via <code>/size</code> and <code>/statistics</code>.</li>
+</ol>
+<h2 id="defaults">Defaults</h2>
+<ul>
+<li>Base URL: <code>https://datasets-server.huggingface.co</code></li>
+<li>Default API method: <code>GET</code></li>
+<li>Query params should be URL-encoded.</li>
+<li><code>offset</code> is 0-based.</li>
+<li><code>length</code> max is usually <code>100</code> for row-like endpoints.</li>
+<li>Gated/private datasets require <code>Authorization: Bearer &lt;HF_TOKEN&gt;</code>.</li>
+</ul>
+<h2 id="dataset-viewer">Dataset Viewer</h2>
+<ul>
+<li><code>Validate dataset</code>: <code>/is-valid?dataset=&lt;namespace/repo&gt;</code></li>
+<li><code>List subsets and splits</code>: <code>/splits?dataset=&lt;namespace/repo&gt;</code></li>
+<li><code>Preview first rows</code>: <code>/first-rows?dataset=&lt;namespace/repo&gt;&amp;config=&lt;config&gt;&amp;split=&lt;split&gt;</code></li>
+<li><code>Paginate rows</code>: <code>/rows?dataset=&lt;namespace/repo&gt;&amp;config=&lt;config&gt;&amp;split=&lt;split&gt;&amp;offset=&lt;int&gt;&amp;length=&lt;int&gt;</code></li>
+<li><code>Search text</code>: <code>/search?dataset=&lt;namespace/repo&gt;&amp;config=&lt;config&gt;&amp;split=&lt;split&gt;&amp;query=&lt;text&gt;&amp;offset=&lt;int&gt;&amp;length=&lt;int&gt;</code></li>
+<li><code>Filter with predicates</code>: <code>/filter?dataset=&lt;namespace/repo&gt;&amp;config=&lt;config&gt;&amp;split=&lt;split&gt;&amp;where=&lt;predicate&gt;&amp;orderby=&lt;sort&gt;&amp;offset=&lt;int&gt;&amp;length=&lt;int&gt;</code></li>
+<li><code>List parquet shards</code>: <code>/parquet?dataset=&lt;namespace/repo&gt;</code></li>
+<li><code>Get size totals</code>: <code>/size?dataset=&lt;namespace/repo&gt;</code></li>
+<li><code>Get column statistics</code>: <code>/statistics?dataset=&lt;namespace/repo&gt;&amp;config=&lt;config&gt;&amp;split=&lt;split&gt;</code></li>
+<li><code>Get Croissant metadata (if available)</code>: <code>/croissant?dataset=&lt;namespace/repo&gt;</code></li>
+</ul>
+<p>Pagination pattern:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl "https://datasets-server.huggingface.co/rows?dataset=stanfordnlp/imdb&amp;config=plain_text&amp;split=train&amp;offset=0&amp;length=100"
+curl "https://datasets-server.huggingface.co/rows?dataset=stanfordnlp/imdb&amp;config=plain_text&amp;split=train&amp;offset=100&amp;length=100"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>When pagination is partial, use response fields such as <code>num_rows_total</code>, <code>num_rows_per_page</code>, and <code>partial</code> to drive continuation logic.</p>
+<p>Search/filter notes:</p>
+<ul>
+<li><code>/search</code> matches string columns (full-text style behavior is internal to the API).</li>
+<li><code>/filter</code> requires predicate syntax in <code>where</code> and optional sort in <code>orderby</code>.</li>
+<li>Keep filtering and searches read-only and side-effect free.</li>
+</ul>
+<p>For CLI-based parquet URL discovery or SQL, use the <code>hf-cli</code> skill with <code>hf datasets parquet</code> and <code>hf datasets sql</code>.</p>
+<h2 id="creating-and-uploading-datasets">Creating and Uploading Datasets</h2>
+<p>Use one of these flows depending on dependency constraints.</p>
+<p>Zero local dependencies (Hub UI):</p>
+<ul>
+<li>Create dataset repo in browser: <code>https://huggingface.co/new-dataset</code></li>
+<li>Upload parquet files in the repo "Files and versions" page.</li>
+<li>Verify shards appear in Dataset Viewer:</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s "https://datasets-server.huggingface.co/parquet?dataset=&lt;namespace&gt;/&lt;repo&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Low dependency CLI flow (<code>npx @huggingface/hub</code> / <code>hfjs</code>):</p>
+<ul>
+<li>Set auth token:</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">export HF_TOKEN=&lt;your_hf_token&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Upload parquet folder to a dataset repo (auto-creates repo if missing):</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">npx -y @huggingface/hub upload datasets/&lt;namespace&gt;/&lt;repo&gt; ./local/parquet-folder data
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Upload as private repo on creation:</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">npx -y @huggingface/hub upload datasets/&lt;namespace&gt;/&lt;repo&gt; ./local/parquet-folder data --private
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>After upload, call <code>/parquet</code> to discover <code>&lt;config&gt;/&lt;split&gt;/&lt;shard&gt;</code> values for querying with <code>@~parquet</code>.</p>
+<h2 id="agent-traces">Agent Traces</h2>
+<p>The Hub supports raw agent session traces from Claude Code, Codex, and Pi Agent. Upload them to Hugging Face Datasets as original JSONL files and the Hub can auto-detect the trace format, tag the dataset as <code>Traces</code>, and enable the trace viewer for browsing sessions, turns, tool calls, and model responses. Common local session directories:</p>
+<ul>
+<li>Claude Code: <code>~/.claude/projects</code></li>
+<li>Codex: <code>~/.codex/sessions</code></li>
+<li>Pi: <code>~/.pi/agent/sessions</code></li>
+</ul>
+<p>Default to private dataset repos because traces can contain prompts, file paths, tool outputs, secrets, or PII. Preserve the raw <code>.jsonl</code> files and nest them by project/cwd instead of uploading every session at the dataset root.</p>
+<div class="code-wrapper"><pre><code class="language-bash">hf repos create &lt;namespace&gt;/&lt;repo&gt; --type dataset --private --exist-ok
+hf upload &lt;namespace&gt;/&lt;repo&gt; ~/.codex/sessions codex/&lt;project-or-cwd&gt; --type dataset
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

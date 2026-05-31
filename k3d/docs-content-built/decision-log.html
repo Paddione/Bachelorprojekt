@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Phase 5 DROP Decision Log — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Phase 5 DROP Decision Log</span></nav>
+    <h1>Phase 5 DROP Decision Log</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Phase 5 DROP Decision Log</h1>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Decision</th>
+<th>Approver</th>
+<th>Backup ref</th>
+<th>Applied at</th>
+</tr>
+</thead>
+</table>
+<p><em>No DROP candidates qualified for this audit phase.</em></p>
+<p><strong>Why empty:</strong></p>
+<ul>
+<li>Module 1 (removed-feature orphans): 0 matches on either cluster.</li>
+<li>Module 2 (cold tables / cold indexes): all proposals downgraded to advisory because <code>pg_postmaster_start_time</code> on both clusters is 3.5 days ago — below the 30-day stats_reset threshold required by spec Section 4 safety rail 6.</li>
+</ul>
+<p>The decision log remains for any DROPs that get added during a follow-up phase or via amendment to this audit.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>hf-cli — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">hf-cli</span></nav>
+    <h1>hf-cli</h1>
+    <p class="page-desc">Hugging Face Hub CLI (`hf`) for downloading, uploading, and managing models, datasets, spaces, buckets, repos, papers, jobs, and more on the Hugging Face Hub. Use when: handling authentication; managing local cache; managing Hugging Face Buckets; running or scheduling jobs on Hugging Face infrastructure; managing Hugging Face repos; discussions and pull requests; browsing models, datasets and spaces; reading, searching, or browsing academic papers; managing collections; querying datasets; configuring spaces; setting up webhooks; or deploying and managing HF Inference Endpoints. Make sure to use this skill whenever the user mentions 'hf', 'huggingface', 'Hugging Face', 'huggingface-cli', or 'hugging face cli', or wants to do anything related to the Hugging Face ecosystem and to AI and ML in general. Also use for cloud storage needs like training checkpoints, data pipelines, or agent traces. Use even if the user doesn't explicitly ask for a CLI command. Replaces the deprecated `huggingface-cli`.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#commands"><span class="toc-num">1.</span> Commands</a></li>
+<li class="toc-item"><a href="#common-options"><span class="toc-num">2.</span> Common options</a></li>
+<li class="toc-item"><a href="#mounting-repos-as-local-filesystems"><span class="toc-num">3.</span> Mounting repos as local filesystems</a></li>
+<li class="toc-item"><a href="#tips"><span class="toc-num">4.</span> Tips</a></li></ul>
+</div><p>Install: <code>curl -LsSf https://hf.co/cli/install.sh | bash -s</code>.</p>
+<p>The Hugging Face Hub CLI tool <code>hf</code> is available. IMPORTANT: The <code>hf</code> command replaces the deprecated <code>huggingface-cli</code> command.</p>
+<p>Use <code>hf --help</code> to view available functions. Note that auth commands are now all under <code>hf auth</code> e.g. <code>hf auth whoami</code>.</p>
+<p>Generated with <code>huggingface_hub v1.16.4</code>. Run <code>hf skills add --force</code> to regenerate.</p>
+<h2 id="commands">Commands</h2>
+<ul>
+<li><code>hf download REPO_ID</code> — Download files from the Hub. <code>[--type CHOICE --revision TEXT --include TEXT --exclude TEXT --cache-dir TEXT --local-dir TEXT --force-download --dry-run --max-workers INTEGER --format CHOICE]</code></li>
+<li><code>hf env</code> — Print information about the environment. <code>[--format CHOICE]</code></li>
+<li><code>hf sync</code> — Sync files between local directory and a bucket. <code>[--delete --ignore-times --ignore-sizes --plan TEXT --apply TEXT --dry-run --include TEXT --exclude TEXT --filter-from TEXT --existing --ignore-existing --verbose --format CHOICE]</code></li>
+<li><code>hf update</code> — Update the <code>hf</code> CLI to the latest version. <code>[--format CHOICE]</code></li>
+<li><code>hf upload REPO_ID</code> — Upload a file or a folder to the Hub. Recommended for single-commit uploads. <code>[--type CHOICE --revision TEXT --private --include TEXT --exclude TEXT --delete TEXT --commit-message TEXT --commit-description TEXT --create-pr --every FLOAT --format CHOICE]</code></li>
+<li><code>hf upload-large-folder REPO_ID LOCAL_PATH</code> — Upload a large folder to the Hub. Recommended for resumable uploads. <code>[--type CHOICE --revision TEXT --private --include TEXT --exclude TEXT --num-workers INTEGER --no-report --no-bars --format CHOICE]</code></li>
+<li><code>hf version</code> — Print information about the hf version. <code>[--format CHOICE]</code></li>
+</ul>
+<h3><code>hf auth</code> — Manage authentication (login, logout, etc.).</h3>
+<ul>
+<li><code>hf auth list</code> — List all stored access tokens. <code>[--format CHOICE]</code></li>
+<li><code>hf auth login</code> — Login using a token from huggingface.co/settings/tokens. <code>[--add-to-git-credential --force --format CHOICE]</code></li>
+<li><code>hf auth logout</code> — Logout from a specific token. <code>[--token-name TEXT --format CHOICE]</code></li>
+<li><code>hf auth switch</code> — Switch between access tokens. <code>[--token-name TEXT --add-to-git-credential --format CHOICE]</code></li>
+<li><code>hf auth token</code> — Print the current access token to stdout. <code>[--format CHOICE]</code></li>
+<li><code>hf auth whoami</code> — Find out which huggingface.co account you are logged in as. <code>[--format CHOICE]</code></li>
+</ul>
+<h3><code>hf buckets</code> — Commands to interact with buckets.</h3>
+<ul>
+<li><code>hf buckets cp SRC</code> — Copy files to or from buckets. <code>[--format CHOICE]</code></li>
+<li><code>hf buckets create BUCKET_ID</code> — Create a new bucket. <code>[--private --region CHOICE --exist-ok --format CHOICE]</code></li>
+<li><code>hf buckets delete BUCKET_ID</code> — Delete a bucket. <code>[--yes --missing-ok --format CHOICE]</code></li>
+<li><code>hf buckets info BUCKET_ID</code> — Get info about a bucket. <code>[--format CHOICE]</code></li>
+<li><code>hf buckets list</code> — List buckets or files in a bucket. <code>[--human-readable --tree --recursive --search TEXT --format CHOICE]</code></li>
+<li><code>hf buckets move FROM_ID TO_ID</code> — Move (rename) a bucket to a new name or namespace. <code>[--format CHOICE]</code></li>
+<li><code>hf buckets remove ARGUMENT</code> — Remove files from a bucket. <code>[--recursive --yes --dry-run --include TEXT --exclude TEXT --format CHOICE]</code></li>
+<li><code>hf buckets sync</code> — Sync files between local directory and a bucket. <code>[--delete --ignore-times --ignore-sizes --plan TEXT --apply TEXT --dry-run --include TEXT --exclude TEXT --filter-from TEXT --existing --ignore-existing --verbose --format CHOICE]</code></li>
+</ul>
+<h3><code>hf cache</code> — Manage local cache directory.</h3>
+<ul>
+<li><code>hf cache list</code> — List cached repositories or revisions. <code>[--cache-dir TEXT --revisions --filter TEXT --sort CHOICE --limit INTEGER --format CHOICE]</code></li>
+<li><code>hf cache prune</code> — Remove detached revisions from the cache. <code>[--cache-dir TEXT --yes --dry-run --format CHOICE]</code></li>
+<li><code>hf cache rm TARGETS</code> — Remove cached repositories or revisions. <code>[--cache-dir TEXT --yes --dry-run --format CHOICE]</code></li>
+<li><code>hf cache verify REPO_ID</code> — Verify checksums for a single repo revision from cache or a local directory. <code>[--type CHOICE --revision TEXT --cache-dir TEXT --local-dir TEXT --fail-on-missing-files --fail-on-extra-files --format CHOICE]</code></li>
+</ul>
+<h3><code>hf collections</code> — Interact with collections on the Hub.</h3>
+<ul>
+<li><code>hf collections add-item COLLECTION_SLUG ITEM_ID ITEM_TYPE</code> — Add an item to a collection. <code>[--note TEXT --exists-ok --format CHOICE]</code></li>
+<li><code>hf collections create TITLE</code> — Create a new collection on the Hub. <code>[--namespace TEXT --description TEXT --private --exists-ok --format CHOICE]</code></li>
+<li><code>hf collections delete COLLECTION_SLUG</code> — Delete a collection from the Hub. <code>[--missing-ok --format CHOICE]</code></li>
+<li><code>hf collections delete-item COLLECTION_SLUG ITEM_OBJECT_ID</code> — Delete an item from a collection. <code>[--missing-ok --format CHOICE]</code></li>
+<li><code>hf collections info COLLECTION_SLUG</code> — Get info about a collection on the Hub. <code>[--format CHOICE]</code></li>
+<li><code>hf collections list</code> — List collections on the Hub. <code>[--owner TEXT --item TEXT --sort CHOICE --limit INTEGER --format CHOICE]</code></li>
+<li><code>hf collections update COLLECTION_SLUG</code> — Update a collection's metadata on the Hub. <code>[--title TEXT --description TEXT --position INTEGER --private --theme TEXT --format CHOICE]</code></li>
+<li><code>hf collections update-item COLLECTION_SLUG ITEM_OBJECT_ID</code> — Update an item in a collection. <code>[--note TEXT --position INTEGER --format CHOICE]</code></li>
+</ul>
+<h3><code>hf datasets</code> — Interact with datasets on the Hub.</h3>
+<ul>
+<li><code>hf datasets card DATASET_ID</code> — Get the dataset card (README) for a dataset on the Hub. <code>[--metadata --text --format CHOICE]</code></li>
+<li><code>hf datasets info DATASET_ID</code> — Get info about a dataset on the Hub. <code>[--revision TEXT --expand TEXT --format CHOICE]</code></li>
+<li><code>hf datasets leaderboard DATASET_ID</code> — List model scores from a dataset leaderboard. This command helps find the best models for a task or compare models by benchmark scores. Use 'hf datasets ls --filter benchmark:official' to list available leaderboards. <code>[--limit INTEGER --format CHOICE]</code></li>
+<li><code>hf datasets list</code> — List datasets on the Hub, or files in a dataset repo. <code>[--search TEXT --author TEXT --filter TEXT --sort CHOICE --limit INTEGER --expand TEXT --human-readable --tree --recursive --revision TEXT --format CHOICE]</code></li>
+<li><code>hf datasets parquet DATASET_ID</code> — List parquet file URLs available for a dataset. <code>[--subset TEXT --split TEXT --format CHOICE]</code></li>
+<li><code>hf datasets sql SQL</code> — Execute a raw SQL query with DuckDB against dataset parquet URLs. <code>[--format CHOICE]</code></li>
+</ul>
+<h3><code>hf discussions</code> — Manage discussions and pull requests on the Hub.</h3>
+<ul>
+<li><code>hf discussions close REPO_ID NUM</code> — Close a discussion or pull request. <code>[--comment TEXT --yes --type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions comment REPO_ID NUM</code> — Comment on a discussion or pull request. <code>[--body TEXT --body-file PATH --type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions create REPO_ID --title TEXT</code> — Create a new discussion or pull request on a repo. <code>[--body TEXT --body-file PATH --pull-request --type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions diff REPO_ID NUM</code> — Show the diff of a pull request. <code>[--type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions info REPO_ID NUM</code> — Get info about a discussion or pull request. <code>[--type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions list REPO_ID</code> — List discussions and pull requests on a repo. <code>[--status CHOICE --kind CHOICE --author TEXT --limit INTEGER --type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions merge REPO_ID NUM</code> — Merge a pull request. <code>[--comment TEXT --yes --type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions rename REPO_ID NUM NEW_TITLE</code> — Rename a discussion or pull request. <code>[--type CHOICE --format CHOICE]</code></li>
+<li><code>hf discussions reopen REPO_ID NUM</code> — Reopen a closed discussion or pull request. <code>[--comment TEXT --yes --type CHOICE --format CHOICE]</code></li>
+</ul>
+<h3><code>hf endpoints</code> — Manage Hugging Face Inference Endpoints.</h3>
+<ul>
+<li><code>hf endpoints catalog deploy --repo TEXT</code> — Deploy an Inference Endpoint from the Model Catalog. <code>[--name TEXT --accelerator TEXT --namespace TEXT --format CHOICE]</code></li>
+<li><code>hf endpoints catalog list</code> — List available Catalog models. <code>[--format CHOICE]</code></li>
+<li><code>hf endpoints delete NAME</code> — Delete an Inference Endpoint permanently. <code>[--namespace TEXT --yes --format CHOICE]</code></li>
+<li><code>hf endpoints deploy NAME --repo TEXT --framework TEXT --accelerator TEXT --instance-size TEXT --instance-type TEXT --region TEXT --vendor TEXT</code> — Deploy an Inference Endpoint from a Hub repository. <code>[--namespace TEXT --task TEXT --min-replica INTEGER --max-replica INTEGER --scale-to-zero-timeout INTEGER --scaling-metric CHOICE --scaling-threshold FLOAT --format CHOICE]</code></li>
+<li><code>hf endpoints describe NAME</code> — Get information about an existing endpoint. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf endpoints list</code> — Lists all Inference Endpoints for the given namespace. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf endpoints pause NAME</code> — Pause an Inference Endpoint. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf endpoints resume NAME</code> — Resume an Inference Endpoint. <code>[--namespace TEXT --fail-if-already-running --format CHOICE]</code></li>
+<li><code>hf endpoints scale-to-zero NAME</code> — Scale an Inference Endpoint to zero. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf endpoints update NAME</code> — Update an existing endpoint. <code>[--namespace TEXT --repo TEXT --accelerator TEXT --instance-size TEXT --instance-type TEXT --framework TEXT --revision TEXT --task TEXT --min-replica INTEGER --max-replica INTEGER --scale-to-zero-timeout INTEGER --scaling-metric CHOICE --scaling-threshold FLOAT --format CHOICE]</code></li>
+</ul>
+<h3><code>hf extensions</code> — Manage hf CLI extensions.</h3>
+<ul>
+<li><code>hf extensions exec NAME</code> — Execute an installed extension.</li>
+<li><code>hf extensions install REPO_ID</code> — Install an extension from a public GitHub repository. <code>[--force --format CHOICE]</code></li>
+<li><code>hf extensions list</code> — List installed extension commands. <code>[--format CHOICE]</code></li>
+<li><code>hf extensions remove NAME</code> — Remove an installed extension. <code>[--format CHOICE]</code></li>
+<li><code>hf extensions search</code> — Search extensions available on GitHub (tagged with 'hf-extension' topic). <code>[--format CHOICE]</code></li>
+</ul>
+<h3><code>hf jobs</code> — Run and manage Jobs on the Hub.</h3>
+<ul>
+<li><code>hf jobs cancel JOB_ID</code> — Cancel a Job <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs hardware</code> — List available hardware options for Jobs <code>[--format CHOICE]</code></li>
+<li><code>hf jobs inspect JOB_IDS</code> — Display detailed information on one or more Jobs <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs logs JOB_ID</code> — Fetch the logs of a Job. <code>[--follow --tail INTEGER --namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs ps</code> — List Jobs. <code>[--all --namespace TEXT --filter TEXT --format TEXT --quiet]</code></li>
+<li><code>hf jobs run IMAGE COMMAND</code> — Run a Job. <code>[--env TEXT --secrets TEXT --label TEXT --volume TEXT --env-file TEXT --secrets-file TEXT --flavor CHOICE --timeout TEXT --detach --namespace TEXT]</code></li>
+<li><code>hf jobs scheduled delete SCHEDULED_JOB_ID</code> — Delete a scheduled Job. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs scheduled inspect SCHEDULED_JOB_IDS</code> — Display detailed information on one or more scheduled Jobs <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs scheduled ps</code> — List scheduled Jobs <code>[--all --namespace TEXT --filter TEXT --format TEXT --quiet]</code></li>
+<li><code>hf jobs scheduled resume SCHEDULED_JOB_ID</code> — Resume (unpause) a scheduled Job. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs scheduled run SCHEDULE IMAGE COMMAND</code> — Schedule a Job. <code>[--suspend --concurrency --env TEXT --secrets TEXT --label TEXT --volume TEXT --env-file TEXT --secrets-file TEXT --flavor CHOICE --timeout TEXT --namespace TEXT]</code></li>
+<li><code>hf jobs scheduled suspend SCHEDULED_JOB_ID</code> — Suspend (pause) a scheduled Job. <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs scheduled uv run SCHEDULE SCRIPT</code> — Run a UV script (local file or URL) on HF infrastructure <code>[--suspend --concurrency --image TEXT --flavor CHOICE --env TEXT --secrets TEXT --label TEXT --volume TEXT --env-file TEXT --secrets-file TEXT --timeout TEXT --namespace TEXT --with TEXT --python TEXT]</code></li>
+<li><code>hf jobs stats</code> — Fetch the resource usage statistics and metrics of Jobs <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs uv run SCRIPT</code> — Run a UV script (local file or URL) on HF infrastructure <code>[--image TEXT --flavor CHOICE --env TEXT --secrets TEXT --label TEXT --volume TEXT --env-file TEXT --secrets-file TEXT --timeout TEXT --detach --namespace TEXT --with TEXT --python TEXT]</code></li>
+</ul>
+<h3><code>hf models</code> — Interact with models on the Hub.</h3>
+<ul>
+<li><code>hf models card MODEL_ID</code> — Get the model card (README) for a model on the Hub. <code>[--metadata --text --format CHOICE]</code></li>
+<li><code>hf models info MODEL_ID</code> — Get info about a model on the Hub. <code>[--revision TEXT --expand TEXT --format CHOICE]</code></li>
+<li><code>hf models list</code> — List models on the Hub, or files in a model repo. <code>[--search TEXT --author TEXT --filter TEXT --num-parameters TEXT --sort CHOICE --limit INTEGER --expand TEXT --human-readable --tree --recursive --revision TEXT --format CHOICE]</code></li>
+</ul>
+<h3><code>hf papers</code> — Interact with papers on the Hub.</h3>
+<ul>
+<li><code>hf papers info PAPER_ID</code> — Get info about a paper on the Hub. <code>[--format CHOICE]</code></li>
+<li><code>hf papers list</code> — List daily papers on the Hub. <code>[--date TEXT --week TEXT --month TEXT --submitter TEXT --sort CHOICE --limit INTEGER --format CHOICE]</code></li>
+<li><code>hf papers read PAPER_ID</code> — Read a paper as markdown. <code>[--format CHOICE]</code></li>
+<li><code>hf papers search QUERY</code> — Search papers on the Hub. <code>[--limit INTEGER --format CHOICE]</code></li>
+</ul>
+<h3><code>hf repos</code> — Manage repos on the Hub.</h3>
+<ul>
+<li><code>hf repos branch create REPO_ID BRANCH</code> — Create a new branch for a repo on the Hub. <code>[--revision TEXT --type CHOICE --exist-ok --format CHOICE]</code></li>
+<li><code>hf repos branch delete REPO_ID BRANCH</code> — Delete a branch from a repo on the Hub. <code>[--type CHOICE --format CHOICE]</code></li>
+<li><code>hf repos create REPO_ID</code> — Create a new repo on the Hub. <code>[--type CHOICE --space-sdk TEXT --private --public --protected --exist-ok --resource-group-id TEXT --region CHOICE --flavor CHOICE --storage CHOICE --sleep-time INTEGER --secrets TEXT --secrets-file TEXT --env TEXT --env-file TEXT --volume TEXT --format CHOICE]</code></li>
+<li><code>hf repos delete REPO_ID</code> — Delete a repo from the Hub. This is an irreversible operation. <code>[--type CHOICE --missing-ok --yes --format CHOICE]</code></li>
+<li><code>hf repos delete-files REPO_ID PATTERNS</code> — Delete files from a repo on the Hub. <code>[--type CHOICE --revision TEXT --commit-message TEXT --commit-description TEXT --create-pr --format CHOICE]</code></li>
+<li><code>hf repos duplicate FROM_ID</code> — Duplicate a repo on the Hub (model, dataset, or Space). <code>[--type CHOICE --private --public --protected --exist-ok --flavor CHOICE --storage CHOICE --sleep-time INTEGER --secrets TEXT --secrets-file TEXT --env TEXT --env-file TEXT --volume TEXT --format CHOICE]</code></li>
+<li><code>hf repos move FROM_ID TO_ID</code> — Move a repository from a namespace to another namespace. <code>[--type CHOICE --format CHOICE]</code></li>
+<li><code>hf repos settings REPO_ID</code> — Update the settings of a repository. <code>[--gated CHOICE --private --public --protected --type CHOICE --format CHOICE]</code></li>
+<li><code>hf repos tag create REPO_ID TAG</code> — Create a tag for a repo. <code>[--message TEXT --revision TEXT --type CHOICE --format CHOICE]</code></li>
+<li><code>hf repos tag delete REPO_ID TAG</code> — Delete a tag for a repo. <code>[--yes --type CHOICE --format CHOICE]</code></li>
+<li><code>hf repos tag list REPO_ID</code> — List tags for a repo. <code>[--type CHOICE --format CHOICE]</code></li>
+</ul>
+<h3><code>hf skills</code> — Manage skills for AI assistants.</h3>
+<ul>
+<li><code>hf skills add</code> — Download a Hugging Face skill and install it for an AI assistant. <code>[--claude --global --dest PATH --force --format CHOICE]</code></li>
+<li><code>hf skills list</code> — List available skills from the Hugging Face marketplace. <code>[--format CHOICE]</code></li>
+<li><code>hf skills preview</code> — Print the generated <code>hf-cli</code> SKILL.md to stdout. <code>[--format CHOICE]</code></li>
+<li><code>hf skills update</code> — Update installed Hugging Face marketplace skills. <code>[--claude --global --dest PATH --format CHOICE]</code></li>
+</ul>
+<h3><code>hf spaces</code> — Interact with spaces on the Hub.</h3>
+<ul>
+<li><code>hf spaces card SPACE_ID</code> — Get the Space card (README) for a Space on the Hub. <code>[--metadata --text --format CHOICE]</code></li>
+<li><code>hf spaces dev-mode SPACE_ID</code> — Enable or disable dev mode on a Space. <code>[--stop --format CHOICE]</code></li>
+<li><code>hf spaces hardware</code> — List available hardware options for Spaces. <code>[--format CHOICE]</code></li>
+<li><code>hf spaces hot-reload SPACE_ID</code> — Hot-reload any Python file of a Space without a full rebuild + restart. <code>[--local-file PATH --skip-checks --skip-summary --format CHOICE]</code></li>
+<li><code>hf spaces info SPACE_ID</code> — Get info about a space on the Hub. <code>[--revision TEXT --expand TEXT --format CHOICE]</code></li>
+<li><code>hf spaces list</code> — List spaces on the Hub, or files in a space repo. <code>[--search TEXT --author TEXT --filter TEXT --sort CHOICE --limit INTEGER --expand TEXT --human-readable --tree --recursive --revision TEXT --format CHOICE]</code></li>
+<li><code>hf spaces logs SPACE_ID</code> — Fetch the run or build logs of a Space. <code>[--build --follow --tail INTEGER --format CHOICE]</code></li>
+<li><code>hf spaces pause SPACE_ID</code> — Pause a Space. <code>[--format CHOICE]</code></li>
+<li><code>hf spaces restart SPACE_ID</code> — Restart a Space. <code>[--factory-reboot --format CHOICE]</code></li>
+<li><code>hf spaces search QUERY</code> — Search spaces on the Hub using semantic search. <code>[--filter TEXT --sdk TEXT --include-non-running --description --limit INTEGER --format CHOICE]</code></li>
+<li><code>hf spaces secrets add SPACE_ID</code> — Add or update secrets for a Space. <code>[--secrets TEXT --secrets-file TEXT --format CHOICE]</code></li>
+<li><code>hf spaces secrets delete SPACE_ID KEY</code> — Remove a secret from a Space. <code>[--yes --format CHOICE]</code></li>
+<li><code>hf spaces secrets list SPACE_ID</code> — List secrets for a Space. Secret values are write-only and not returned. <code>[--format CHOICE]</code></li>
+<li><code>hf spaces settings SPACE_ID</code> — Update the settings of a Space. <code>[--sleep-time INTEGER --hardware CHOICE --format CHOICE]</code></li>
+<li><code>hf spaces variables add SPACE_ID</code> — Add or update environment variables for a Space. <code>[--env TEXT --env-file TEXT --format CHOICE]</code></li>
+<li><code>hf spaces variables delete SPACE_ID KEY</code> — Remove an environment variable from a Space. <code>[--yes --format CHOICE]</code></li>
+<li><code>hf spaces variables list SPACE_ID</code> — List environment variables for a Space. <code>[--format CHOICE]</code></li>
+<li><code>hf spaces volumes delete SPACE_ID</code> — Remove all volumes from a Space. <code>[--yes --format CHOICE]</code></li>
+<li><code>hf spaces volumes list SPACE_ID</code> — List volumes mounted in a Space. <code>[--format CHOICE]</code></li>
+<li><code>hf spaces volumes set SPACE_ID</code> — Set (replace) volumes for a Space. <code>[--volume TEXT --format CHOICE]</code></li>
+</ul>
+<h3><code>hf webhooks</code> — Manage webhooks on the Hub.</h3>
+<ul>
+<li><code>hf webhooks create --watch TEXT</code> — Create a new webhook. <code>[--url TEXT --job-id TEXT --domain CHOICE --secret TEXT --format CHOICE]</code></li>
+<li><code>hf webhooks delete WEBHOOK_ID</code> — Delete a webhook permanently. <code>[--yes --format CHOICE]</code></li>
+<li><code>hf webhooks disable WEBHOOK_ID</code> — Disable an active webhook. <code>[--format CHOICE]</code></li>
+<li><code>hf webhooks enable WEBHOOK_ID</code> — Enable a disabled webhook. <code>[--format CHOICE]</code></li>
+<li><code>hf webhooks info WEBHOOK_ID</code> — Show full details for a single webhook. <code>[--format CHOICE]</code></li>
+<li><code>hf webhooks list</code> — List all webhooks for the current user. <code>[--format CHOICE]</code></li>
+<li><code>hf webhooks update WEBHOOK_ID</code> — Update an existing webhook. Only provided options are changed. <code>[--url TEXT --watch TEXT --domain CHOICE --secret TEXT --format CHOICE]</code></li>
+</ul>
+<h2 id="common-options">Common options</h2>
+<ul>
+<li><code>--format</code> — Output format: <code>--format json</code> (or <code>--json</code>) or <code>--format table</code> (default).</li>
+<li><code>-q / --quiet</code> — Print only IDs (one per line).</li>
+<li><code>--revision</code> — Git revision id which can be a branch name, a tag, or a commit hash.</li>
+<li><code>--token</code> — Use a User Access Token. Prefer setting <code>HF_TOKEN</code> env var instead of passing <code>--token</code>.</li>
+<li><code>--type</code> — The type of repository (model, dataset, or space).</li>
+</ul>
+<h2 id="mounting-repos-as-local-filesystems">Mounting repos as local filesystems</h2>
+<p>To mount Hub repositories or buckets as local filesystems — no download, no copy, no waiting — use <code>hf-mount</code>. Files are fetched on demand. GitHub: <a href="https://github.com/huggingface/hf-mount">https://github.com/huggingface/hf-mount</a></p>
+<p>Install: <code>curl -fsSL https://raw.githubusercontent.com/huggingface/hf-mount/main/install.sh | sh</code></p>
+<p>Some command examples:</p>
+<ul>
+<li><code>hf-mount start repo openai-community/gpt2 /tmp/gpt2</code> — mount a repo (read-only)</li>
+<li><code>hf-mount start --hf-token $HF_TOKEN bucket myuser/my-bucket /tmp/data</code> — mount a bucket (read-write)</li>
+<li><code>hf-mount status</code> / <code>hf-mount stop /tmp/data</code> — list or unmount</li>
+</ul>
+<h2 id="tips">Tips</h2>
+<ul>
+<li>Use <code>hf &lt;command&gt; --help</code> for full options, descriptions, usage, and real-world examples</li>
+<li>Authenticate with <code>HF_TOKEN</code> env var (recommended) or with <code>--token</code></li>
+<li>Update the CLI with <code>hf update</code> (uses the correct command for the detected install method)</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

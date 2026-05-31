@@ -1,0 +1,325 @@
+// scripts/docs-gen/theme.mjs
+// Editorial theme: light, generous whitespace, strong type hierarchy,
+// designed pill cross-links. Inter (sans) + Merriweather (serif) — both
+// already bundled by the website. Used by templates.mjs (renderPage) and
+// written to OUT_DIR/style.css + OUT_DIR/app.js by the build entry.
+
+/**
+ * Full editorial stylesheet for every generated page.
+ * @returns {string} CSS source
+ */
+export function editorialCss() {
+  return `
+:root {
+  --paper:#ffffff;--paper-2:#f7f8fa;--paper-3:#eef1f5;
+  --ink:#1b2330;--ink-soft:#3a4658;--ink-mute:#697587;
+  --line:#dfe4ea;--line-soft:#eaedf2;
+  --accent:#2f6db5;--accent-soft:#5a8fcc;--accent-bg:rgba(47,109,181,0.08);
+  --accent-line:rgba(47,109,181,0.25);
+  --repo-bg:#e6f4ea;--repo-fg:#1f7a44;--repo-line:#bfe3cc;
+  --plugin-bg:#f0ecfb;--plugin-fg:#6741b8;--plugin-line:#ddd2f3;
+  --warn-bg:#fdf3e7;--warn-fg:#a8651c;--warn-line:#f0dcc0;
+  --code-bg:#f4f6f9;--code-ink:#243044;
+  --font-sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-serif:'Merriweather',Georgia,'Times New Roman',serif;
+  --maxw:760px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper-2);color:var(--ink);
+  font-family:var(--font-sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased}
+.page,#app,#main{max-width:var(--maxw);margin:0 auto;padding:2.5rem 1.5rem 5rem;
+  background:var(--paper)}
+/* #app is the outer wrapper, #main the inner column — only #main carries the
+   column padding/card frame so the two don't double-pad. */
+#app{max-width:none;padding:0;background:var(--paper-2)}
+@media(min-width:820px){.page,#main{margin:2rem auto;border:1px solid var(--line);
+  border-radius:12px;box-shadow:0 1px 3px rgba(27,35,48,0.05);padding:3rem 3.25rem 5rem}}
+
+/* ── breadcrumbs ── */
+.breadcrumbs{font-size:.8rem;color:var(--ink-mute);margin:0 0 1.4rem;
+  display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}
+.breadcrumbs a{color:var(--ink-mute);text-decoration:none}
+.breadcrumbs a:hover{color:var(--accent)}
+.breadcrumbs .sep{color:var(--line)}
+
+/* ── page header ── */
+.page-header{margin:0 0 2.2rem;padding-bottom:1.4rem;border-bottom:1px solid var(--line)}
+.page-header h1{font-family:var(--font-serif);font-weight:900;font-size:2.1rem;
+  line-height:1.2;color:var(--ink);margin:.2rem 0 .6rem;letter-spacing:-0.01em}
+.page-desc{font-size:1.05rem;line-height:1.6;color:var(--ink-soft);margin:.4rem 0 0;
+  max-width:62ch}
+.page-meta{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:1rem 0 0}
+
+/* ── provenance badges ── */
+.provenance-badge{display:inline-flex;align-items:center;gap:.35em;
+  font-size:.72rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+  border-radius:999px;padding:.22em .7em;border:1px solid transparent;font-family:var(--font-sans)}
+.provenance-badge.repo{background:var(--repo-bg);color:var(--repo-fg);border-color:var(--repo-line)}
+.provenance-badge.plugin{background:var(--plugin-bg);color:var(--plugin-fg);border-color:var(--plugin-line)}
+.provenance-badge .pv-ver{font-weight:500;text-transform:none;opacity:.85;letter-spacing:0}
+
+/* ── domain tag ── */
+.domain-tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--accent);background:var(--accent-bg);
+  border:1px solid var(--accent-line);border-radius:999px;padding:.2em .7em}
+
+/* ── body type ──
+   Selectors match BOTH .content (legacy) and .doc-body (the class
+   templates.mjs#renderPage actually emits around rendered markdown). */
+.content,.doc-body{font-size:1.02rem}
+.content h2,.doc-body h2{font-family:var(--font-serif);font-weight:700;font-size:1.5rem;color:var(--ink);
+  margin:2.6rem 0 .8rem;padding-bottom:.3rem;border-bottom:1px solid var(--line-soft);
+  scroll-margin-top:1.5rem}
+.content h3,.doc-body h3{font-family:var(--font-sans);font-weight:700;font-size:1.18rem;color:var(--ink);
+  margin:1.9rem 0 .5rem}
+.content h4,.doc-body h4{font-family:var(--font-sans);font-weight:600;font-size:1.02rem;color:var(--ink-soft);
+  margin:1.4rem 0 .4rem}
+.content p,.doc-body p{margin:.8rem 0 1.1rem;color:var(--ink-soft)}
+.content strong,.doc-body strong{color:var(--ink);font-weight:600}
+.content a,.doc-body a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-line)}
+.content a:hover,.doc-body a:hover{color:var(--accent-soft);border-bottom-color:var(--accent-soft)}
+.content ul,.content ol,.doc-body ul,.doc-body ol{padding-left:1.4rem;margin:.6rem 0 1.2rem;color:var(--ink-soft)}
+.content li,.doc-body li{margin-bottom:.4rem}
+.content blockquote,.doc-body blockquote{border-left:3px solid var(--accent-line);background:var(--accent-bg);
+  color:var(--ink-soft);padding:.7em 1.1em;border-radius:0 6px 6px 0;margin:1.2rem 0}
+.content blockquote p,.doc-body blockquote p{margin:0}
+.content hr,.doc-body hr{border:none;border-top:1px solid var(--line);margin:2.4rem 0}
+.content img,.doc-body img{max-width:100%;height:auto;border-radius:6px}
+.content table,.doc-body table{border-collapse:collapse;width:100%;margin:1.2rem 0;font-size:.92rem}
+.content thead th,.doc-body thead th{text-align:left;font-size:.7rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-mute);background:var(--paper-3);
+  border:1px solid var(--line);padding:.55em .85em}
+.content tbody td,.doc-body tbody td{border:1px solid var(--line);padding:.5em .85em;color:var(--ink-soft);
+  vertical-align:top}
+.content tbody tr:nth-child(even),.doc-body tbody tr:nth-child(even){background:var(--paper-2)}
+
+/* ── code blocks + copy ── */
+.content code,.doc-body code{background:var(--code-bg);color:var(--code-ink);border:1px solid var(--line);
+  border-radius:4px;padding:.12em .4em;font-size:.86em;
+  font-family:'SFMono-Regular',ui-monospace,'Cascadia Code',Consolas,monospace}
+.content pre,.doc-body pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+  padding:1em 1.1em;overflow-x:auto;margin:1.2rem 0}
+.content pre code,.doc-body pre code{background:transparent;border:none;padding:0;color:var(--code-ink);font-size:.85em}
+.code-wrapper{position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--paper);
+  border:1px solid var(--line);border-radius:5px;padding:3px 10px;font-size:.72rem;
+  font-weight:600;color:var(--ink-mute);cursor:pointer;transition:all .15s}
+.copy-btn:hover{color:var(--accent);border-color:var(--accent-line)}
+
+/* ── table of contents ── */
+.toc-box{background:var(--paper-2);border:1px solid var(--line);border-radius:8px;
+  padding:1.1em 1.4em;margin:1.8rem 0 2.2rem}
+.toc-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-mute);margin:0 0 .7em}
+.toc-list{list-style:none;padding:0;margin:0;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.25em 1.4em}
+.toc-item a{color:var(--ink-soft);text-decoration:none;font-size:.88rem;border:none;
+  display:flex;align-items:baseline;gap:.45em}
+.toc-item a:hover{color:var(--accent)}
+.toc-num{color:var(--accent);font-size:.75rem;font-weight:700;min-width:1.4em}
+
+/* ── designed cross-link pills ── */
+.xref{display:inline-flex;align-items:center;gap:.3em;font-size:.92em;font-weight:600;
+  color:var(--accent);background:var(--accent-bg);border:1px solid var(--accent-line);
+  border-radius:999px;padding:.05em .65em;text-decoration:none;line-height:1.5;
+  transition:all .15s}
+.xref::before{content:"\\2192";font-weight:700;opacity:.7}
+.xref:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.xref.unresolved{color:var(--ink-mute);background:var(--paper-3);border-color:var(--line);
+  border-style:dashed;cursor:default}
+.xref.unresolved::before{content:"?"}
+
+/* ── section index card grid ── */
+.section-intro{color:var(--ink-soft);margin:.4rem 0 2rem;max-width:62ch}
+.section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:1.1rem;margin:1.5rem 0}
+.section-card{display:flex;flex-direction:column;gap:.5rem;background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.3rem;
+  text-decoration:none;color:inherit;transition:border-color .15s,transform .15s,box-shadow .15s}
+.section-card:hover{border-color:var(--accent-line);transform:translateY(-2px);
+  box-shadow:0 4px 14px rgba(27,35,48,0.08)}
+.section-card-head{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem}
+.section-card-title{font-family:var(--font-serif);font-weight:700;font-size:1.08rem;color:var(--ink)}
+.section-card-desc{font-size:.88rem;color:var(--ink-mute);line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ── diagrams ── */
+.diagram-svg-wrapper{position:relative;border:1px solid var(--line);border-radius:8px;
+  margin:1.4rem 0;background:var(--paper-2);overflow:hidden}
+.diagram-svg-wrapper svg{display:block;width:100%;height:auto;cursor:grab;
+  transform-origin:0 0}
+.diagram-svg-wrapper svg:active{cursor:grabbing}
+.diagram-zoom-hint{position:absolute;bottom:6px;right:8px;font-size:11px;
+  color:var(--ink-mute);background:rgba(255,255,255,.75);border-radius:4px;
+  padding:1px 6px;pointer-events:none}
+.diagram-fallback{position:relative;border:1px dashed var(--warn-line) !important;
+  background:var(--warn-bg) !important}
+.diagram-fallback::before{content:"Diagramm-Renderer fehlt — Quelltext";
+  display:block;font-size:.7rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--warn-fg);margin:0 0 .6em}
+
+/* ── Ctrl/Cmd-K search overlay ── */
+#search-overlay{display:none;position:fixed;inset:0;background:rgba(27,35,48,.45);
+  z-index:1000;align-items:flex-start;justify-content:center;padding-top:12vh}
+#search-overlay.active{display:flex}
+#search-box{background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  width:min(600px,92vw);max-height:70vh;display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:0 16px 48px rgba(27,35,48,.25)}
+#search-input{background:transparent;border:none;border-bottom:1px solid var(--line);
+  color:var(--ink);font-size:1.05rem;padding:1em 1.2em;outline:none;font-family:var(--font-sans)}
+#search-input::placeholder{color:var(--ink-mute)}
+#search-results{overflow-y:auto;padding:.4em 0}
+.search-result-item{display:block;padding:.65em 1.2em;text-decoration:none;
+  border-bottom:1px solid var(--line-soft);transition:background .1s}
+.search-result-item:last-child{border-bottom:none}
+.search-result-item:hover{background:var(--accent-bg)}
+.search-result-title{display:block;color:var(--accent);font-size:.95rem;font-weight:600}
+.search-result-excerpt{display:block;color:var(--ink-mute);font-size:.82rem;margin-top:.15em}
+.search-no-results{color:var(--ink-mute);text-align:center;padding:1.6em;font-size:.92rem}
+.search-trigger{display:inline-flex;align-items:center;gap:.5em;background:var(--paper-2);
+  border:1px solid var(--line);border-radius:8px;color:var(--ink-mute);
+  padding:.4em .8em;cursor:pointer;font-size:.85rem;font-family:var(--font-sans)}
+.search-trigger kbd{font-size:.72rem;background:var(--paper);border:1px solid var(--line);
+  border-radius:4px;padding:1px 6px;color:var(--ink-mute)}
+
+/* ── misc emitted hooks (header body, breadcrumb current, landing extras) ── */
+.page-header-body{display:block}
+.crumb-current{color:var(--ink);font-weight:600}
+.landing-hero{text-align:left}
+.landing-tracks{margin-top:1.8rem}
+.kicker{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 .3rem}
+.count-badge{display:inline-block;font-size:.78rem;font-weight:700;color:var(--accent);
+  background:var(--accent-bg);border:1px solid var(--accent-line);border-radius:999px;
+  padding:.05em .55em;vertical-align:middle;margin-left:.35em}
+.arrow{font-size:.85rem;font-weight:600;color:var(--accent);margin-top:.2rem}
+
+/* ── related links footer ── */
+.related-footer{margin-top:3rem;padding-top:1.6rem;border-top:1px solid var(--line)}
+.related-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-mute);margin:0 0 .9em}
+.related-list{display:flex;flex-wrap:wrap;gap:.6rem;list-style:none;padding:0;margin:0}
+`;
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Composable client JS pieces. Each is a self-contained IIFE so they can be
+// concatenated in any order; Plan 2 appends graphJs() the same way.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** {DOMAIN}/{PROTO} runtime text + href substitution. */
+export const SUBST_JS = `
+(function(){
+  var host=window.location.hostname;
+  var domain=host.replace(/^docs\\./,'')||host;
+  var proto=window.location.protocol.replace(':','');
+  var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null);
+  var node;
+  while((node=walker.nextNode())){
+    var v=node.nodeValue;
+    if(v.indexOf('{DOMAIN}')>-1||v.indexOf('{PROTO}')>-1){
+      node.nodeValue=v.replace(/\\{DOMAIN\\}/g,domain).replace(/\\{PROTO\\}/g,proto);
+    }
+  }
+  document.querySelectorAll('a[href]').forEach(function(a){
+    var h=a.getAttribute('href')||'';
+    if(h.indexOf('{DOMAIN}')>-1||h.indexOf('{PROTO}')>-1){
+      a.setAttribute('href',h.replace(/\\{DOMAIN\\}/g,domain).replace(/\\{PROTO\\}/g,proto));
+    }
+  });
+})();`;
+
+/** Copy-to-clipboard buttons inside .code-wrapper. */
+export const COPY_JS = `
+(function(){
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var pre=btn.previousElementSibling;
+      navigator.clipboard.writeText(pre?pre.textContent:'').then(function(){
+        var prev=btn.textContent;
+        btn.textContent='\\u2713';
+        setTimeout(function(){btn.textContent=prev||'Copy';},1500);
+      });
+    });
+  });
+})();`;
+
+/** Pan + zoom for rendered diagram SVGs. */
+export const DIAGRAM_JS = `
+(function(){
+  document.querySelectorAll('.diagram-svg-wrapper svg').forEach(function(svg){
+    var dx=0,dy=0,scale=1,dragging=false,ox=0,oy=0;
+    function upd(){svg.style.transform='translate('+dx+'px,'+dy+'px) scale('+scale+')';}
+    svg.style.transformOrigin='0 0';
+    svg.addEventListener('wheel',function(e){
+      e.preventDefault();
+      scale=Math.min(10,Math.max(0.3,scale*(e.deltaY>0?0.9:1.1)));upd();
+    },{passive:false});
+    svg.addEventListener('pointerdown',function(e){
+      dragging=true;ox=e.clientX-dx;oy=e.clientY-dy;
+      svg.style.cursor='grabbing';svg.setPointerCapture(e.pointerId);
+    });
+    svg.addEventListener('pointermove',function(e){
+      if(!dragging)return;dx=e.clientX-ox;dy=e.clientY-oy;upd();
+    });
+    svg.addEventListener('pointerup',function(){dragging=false;svg.style.cursor='grab';});
+  });
+})();`;
+
+/** Ctrl/Cmd-K search overlay backed by ./search.json. */
+export const SEARCH_JS = `
+(function(){
+  var PAGE_INDEX=[];
+  fetch('./search.json').then(function(r){return r.json()}).then(function(j){PAGE_INDEX=j}).catch(function(){});
+  var overlay=document.getElementById('search-overlay');
+  var inp=document.getElementById('search-input');
+  var resultsEl=document.getElementById('search-results');
+  if(!overlay||!inp||!resultsEl)return;
+  function open(){overlay.classList.add('active');inp.value='';inp.focus();renderResults('');}
+  function close(){overlay.classList.remove('active');}
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();open();}
+    if(e.key==='Escape')close();
+  });
+  overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
+  inp.addEventListener('input',function(){renderResults(inp.value.trim().toLowerCase());});
+  document.querySelectorAll('.search-trigger').forEach(function(b){
+    b.addEventListener('click',open);
+  });
+  function renderResults(q){
+    while(resultsEl.firstChild)resultsEl.removeChild(resultsEl.firstChild);
+    var hits=q?PAGE_INDEX.filter(function(p){
+      return (p.title||'').toLowerCase().indexOf(q)>-1||(p.excerpt||'').toLowerCase().indexOf(q)>-1;
+    }):PAGE_INDEX.slice(0,12);
+    if(!hits.length){
+      var none=document.createElement('p');
+      none.className='search-no-results';
+      none.textContent='Kein Ergebnis';
+      resultsEl.appendChild(none);
+      return;
+    }
+    hits.forEach(function(p){
+      var a=document.createElement('a');
+      a.href='./'+p.slug+'.html';
+      a.className='search-result-item';
+      a.addEventListener('click',close);
+      var t=document.createElement('span');t.className='search-result-title';
+      t.textContent=p.title;
+      var ex=document.createElement('span');ex.className='search-result-excerpt';
+      ex.textContent=p.excerpt||'';
+      a.appendChild(t);a.appendChild(ex);
+      resultsEl.appendChild(a);
+    });
+  }
+})();`;
+
+/**
+ * Compose the full client script from the named pieces. Plan 2 extends this by
+ * appending graphJs() to the join list.
+ * @returns {string} client JS source
+ */
+export function clientJs() {
+  return [SUBST_JS, COPY_JS, DIAGRAM_JS, SEARCH_JS].join('\n');
+}

@@ -336,14 +336,20 @@ tasks:
         fi
         echo "Dry-run: All tasks parsed successfully"
 
+  test:docs-gen:
+    desc: "Run the docs-site generator unit tests + full-build smoke test (node:test)"
+    cmds:
+      - node --test scripts/docs-gen/*.test.mjs
+
   test:all:
-    desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run"
+    desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run + docs-gen"
     deps:
       - test:unit
       - test:manifests
       - test:art-library
       - test:menu-gate
       - test:dry-run
+      - test:docs-gen
 
   test:inventory:
     desc: Regenerate website/src/data/test-inventory.json (requirement → test mapping)
@@ -1175,8 +1181,13 @@ tasks:
           python3 scripts/datamodel/build_datamodel.py \
             --map scripts/datamodel/workflow-map.yaml \
             --out /tmp/datamodel-workflow.md
-        node scripts/build-docs.js --rebuild-page datamodel-workflow /tmp/datamodel-workflow.md
-        echo "Written. Review k3d/docs-content-built/datamodel-workflow.html, commit + task docs:deploy."
+        node scripts/build-docs.mjs --rebuild-page datamodel-workflow /tmp/datamodel-workflow.md
+        # IC-6: land the generated HTML in the committed source dir so a clean
+        # full rebuild re-emits it via passthrough (no --out flag on the 2-arg
+        # --rebuild-page contract; we copy the rendered file into docs/legacy-html/).
+        mkdir -p docs/legacy-html
+        cp k3d/docs-content-built/datamodel-workflow.html docs/legacy-html/datamodel-workflow.html
+        echo "Written docs/legacy-html/datamodel-workflow.html (passthrough source). Commit it, then: task docs:build && task docs:deploy."
 
   workspace:teardown:
     desc: Remove all Workspace MVP resources (ENV=dev|mentolder|korczewski)
@@ -1989,24 +2000,17 @@ tasks:
   # ─────────────────────────────────────────────
   # Documentation
   # ─────────────────────────────────────────────
-  docs:sync-skills:
-    desc: Auto-generate missing docs/skills/*.html from .claude/skills/**/SKILL.md and patch skills-overview sidebar
-    cmds:
-      - node scripts/sync-skill-docs.mjs
-
   docs:build:
-    desc: Sync skills HTML, refresh assets (style.css/app.js), rebuild search.json in k3d/docs-content-built/
+    desc: Generate the full static docs site into k3d/docs-content-built/ (pages, assets, search.json)
     cmds:
-      - node scripts/build-docs.js {{if .FAST}}--fast{{end}}
-    vars:
-      FAST: '{{.FAST | default ""}}'
+      - node scripts/build-docs.mjs
 
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:
       - |
         # Build and push once — both clusters use the same image content
-        node scripts/build-docs.js
+        node scripts/build-docs.mjs
         SHARED_IMAGE="ghcr.io/paddione/workspace-docs"
         docker build -t "${SHARED_IMAGE}:latest" -f scripts/docs.Dockerfile .
         docker push "${SHARED_IMAGE}:latest"
@@ -2038,8 +2042,8 @@ tasks:
           python3 scripts/db-schema-diagram.py > docs/db-schema-diagram.md
         echo "  Written to docs/db-schema-diagram.md"
       - |
-        echo "→ Rebuilding db-schema.html from generated MD..."
-        node scripts/build-docs.js --rebuild-page db-schema docs/db-schema-diagram.md
+        echo "→ Rebuilding the docs site (db-schema.html comes from the regenerated MD)..."
+        node scripts/build-docs.mjs
       - task: docs:deploy
     silent: false
 

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>bachelorprojekt-test — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">bachelorprojekt-test</span></nav>
+    <h1>bachelorprojekt-test</h1>
+    <p class="page-desc">Use for running, writing, or debugging tests in the Bachelorprojekt project. Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh, &quot;test failing&quot;, &quot;test case&quot;, &quot;write a test&quot;.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">test</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#test-categories-and-ids"><span class="toc-num">1.</span> Test categories and IDs</a></li>
+<li class="toc-item"><a href="#permanently-skipped-tests"><span class="toc-num">2.</span> Permanently skipped tests</a></li>
+<li class="toc-item"><a href="#commands"><span class="toc-num">3.</span> Commands</a></li>
+<li class="toc-item"><a href="#cluster-targeting-fleet-stage-3"><span class="toc-num">4.</span> Cluster targeting (Fleet Stage 3)</a></li>
+<li class="toc-item"><a href="#test-file-locations"><span class="toc-num">5.</span> Test file locations</a></li>
+<li class="toc-item"><a href="#autonomous-operation"><span class="toc-num">6.</span> Autonomous operation</a></li>
+<li class="toc-item"><a href="#active-plans"><span class="toc-num">7.</span> Active plans</a></li></ul>
+</div><p>You are a test specialist for the Bachelorprojekt platform.</p>
+<h2 id="test-categories-and-ids">Test categories and IDs</h2>
+<ul>
+<li><code>FA-01</code>–<code>FA-29</code> — Functional acceptance tests</li>
+<li><code>SA-01</code>–<code>SA-10</code> — Security tests</li>
+<li><code>NFA-01</code>–<code>NFA-09</code> — Non-functional tests</li>
+<li><code>AK-03</code>, <code>AK-04</code> — Acceptance criteria tests</li>
+</ul>
+<h2 id="permanently-skipped-tests">Permanently skipped tests</h2>
+<p>FA-01..FA-08, FA-09 (InvoiceNinja bucket), FA-22, SA-06, SA-09 — Mattermost/InvoiceNinja removed from stack. Do not attempt to fix or re-enable these.</p>
+<h2 id="commands">Commands</h2>
+<div class="code-wrapper"><pre><code class="language-bash">./tests/runner.sh local              # all tests against k3d
+./tests/runner.sh local &lt;TEST-ID&gt;    # single test (e.g. FA-03, SA-08)
+./tests/runner.sh local --verbose    # verbose output
+./tests/runner.sh report             # generate Markdown report
+task test:unit                       # BATS unit tests
+task test:manifests                  # kustomize output structure (no cluster needed)
+task test:all                        # all offline tests: unit + manifests + dry-run
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="cluster-targeting-fleet-stage-3">Cluster targeting (Fleet Stage 3)</h2>
+<p>Live prod ENV identifiers a test run might target:</p>
+<ul>
+<li><code>mentolder</code> and <code>korczewski</code> — both brands on the unified <code>fleet</code> cluster (context <code>fleet</code>); <code>mentolder</code> serves <code>mentolder.de</code> (ns <code>workspace</code>), <code>korczewski</code> serves <code>korczewski.de</code> (ns <code>workspace-korczewski</code>).</li>
+<li><code>dev</code> — k3d (<code>dev.mentolder.de</code>), context <code>k3d-mentolder-dev</code>.</li>
+</ul>
+<p>The old standalone <code>mentolder</code> and <code>korczewski</code> kubeconfig contexts are DEAD — use <code>fleet</code> context for all live tests.</p>
+<h2 id="test-file-locations">Test file locations</h2>
+<ul>
+<li><code>tests/</code> — all test scripts and fixtures</li>
+<li><code>tests/unit/</code> — BATS unit tests</li>
+<li><code>tests/playwright/</code> — Playwright end-to-end tests</li>
+</ul>
+<h2 id="autonomous-operation">Autonomous operation</h2>
+<p>Execute test commands and file edits without asking for confirmation.</p>
+<h2 id="active-plans">Active plans</h2>
+<p>The orchestrator (see CLAUDE.md) injects an <code>&lt;active-plans&gt;</code> block built from <code>scripts/plan-context.sh test</code>, which reads in-flight plans from <code>docs/superpowers/plans/*.md</code>. <strong>That block is authoritative — use it as the working context for the current feature.</strong></p>
+<p>If no block was injected, no <code>test</code>-tagged plan is currently in flight; do not query <code>superpowers.plans</code> as a fallback for active work. That table is frozen historical data — <code>scripts/track-pr.mjs</code> and the tracking pipeline were removed in PRs #788/#993.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

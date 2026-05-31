@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>postman-cli — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">postman-cli</span></nav>
+    <h1>postman-cli</h1>
+    <p class="page-desc">Postman CLI reference and git sync file structure knowledge - provides context for CLI-based commands (send-request, generate-spec, run-collection, context)</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#postman-cli-overview"><span class="toc-num">1.</span> Postman CLI Overview</a></li>
+<li class="toc-item"><a href="#git-sync-file-structure"><span class="toc-num">2.</span> Git Sync File Structure</a></li>
+<li class="toc-item"><a href="#postman-cli-vs-newman"><span class="toc-num">3.</span> Postman CLI vs Newman</a></li></ul>
+</div><p>Reference knowledge for the Postman CLI and git sync file structure. This skill provides context used by the CLI commands.</p>
+<h2 id="postman-cli-overview">Postman CLI Overview</h2>
+<p>The Postman CLI (<code>postman-cli</code>) is the official command-line tool for Postman. It runs collections, validates API specs, sends requests, and integrates with CI/CD pipelines.</p>
+<h3>Installation and Auth</h3>
+<div class="code-wrapper"><pre><code class="language-bash">npm install -g postman-cli
+postman login
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Authentication requires a valid Postman API key. Run <code>postman login</code> and follow the prompts.</p>
+<h3>Core Commands</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>postman collection run &lt;id&gt;</code></td>
+<td>Run collection tests by cloud ID</td>
+</tr>
+<tr>
+<td><code>postman request &lt;METHOD&gt; &lt;URL&gt;</code></td>
+<td>Send an HTTP request</td>
+</tr>
+<tr>
+<td><code>postman spec lint &lt;file&gt;</code></td>
+<td>Validate an OpenAPI spec</td>
+</tr>
+<tr>
+<td><code>postman context instructions</code></td>
+<td>Get agent workflow instructions for API discovery and code generation</td>
+</tr>
+<tr>
+<td><code>postman context collection get -c &lt;id&gt;</code></td>
+<td>Get a collection's structure (folders, requests)</td>
+</tr>
+<tr>
+<td><code>postman context request context -c &lt;id&gt; -r &lt;id&gt;</code></td>
+<td>Get full request context for code generation</td>
+</tr>
+<tr>
+<td><code>postman login</code></td>
+<td>Authenticate with Postman</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="git-sync-file-structure">Git Sync File Structure</h2>
+<p>When a Postman workspace is connected to a git repo, it syncs using this structure:</p>
+<div class="code-wrapper"><pre><code>project-root/
+├── .postman/
+│   └── resources.yaml              # Maps local paths → cloud IDs
+├── postman/
+│   ├── collections/
+│   │   └── My API/                  # Collection (v3 folder format)
+│   │       ├── .resources/
+│   │       │   └── definition.yaml  # schemaVersion: "3.0", name
+│   │       ├── Get Users.request.yaml
+│   │       ├── Create User.request.yaml
+│   │       └── Auth/               # Subfolder
+│   │           └── Login.request.yaml
+│   ├── environments/
+│   │   └── dev.postman_environment.json
+│   └── specs/
+│       └── openapi.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>resources.yaml</h3>
+<p>Maps local collection/environment paths to their Postman cloud IDs:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">cloudResources:
+  collections:
+    ../postman/collections/My API: 45288920-e06bf878-2400-4d76-b187-d3a9c99d6899
+  environments:
+    ../postman/environments/dev.postman_environment.json: 45288920-abc12345-...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Collection v3 Folder Format</h3>
+<p>Each collection is a <strong>directory</strong> (not a single JSON file). It contains:</p>
+<ul>
+<li><code>.resources/definition.yaml</code> — collection metadata</li>
+<li><code>*.request.yaml</code> — individual request files</li>
+<li>Subdirectories for folders within the collection</li>
+</ul>
+<p>Request files contain:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">$kind: http-request
+url: https://api.example.com/users
+method: GET
+order: 1000
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="postman-cli-vs-newman">Postman CLI vs Newman</h2>
+<p>The Postman CLI is the <strong>official replacement</strong> for Newman:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Postman CLI</th>
+<th>Newman</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Maintenance</td>
+<td>Official Postman support</td>
+<td>Community-driven</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>Digitally signed binary</td>
+<td>Open-source</td>
+</tr>
+<tr>
+<td>Governance</td>
+<td>Enterprise API governance</td>
+<td>Not available</td>
+</tr>
+<tr>
+<td>Auth</td>
+<td>Postman API key</td>
+<td>No authentication</td>
+</tr>
+<tr>
+<td>Spec linting</td>
+<td>Built-in</td>
+<td>Not available</td>
+</tr>
+<tr>
+<td>HTTP requests</td>
+<td><code>postman request</code> command</td>
+<td>Not available</td>
+</tr>
+</tbody></table>
+<p>Always use <code>postman-cli</code>, never Newman.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

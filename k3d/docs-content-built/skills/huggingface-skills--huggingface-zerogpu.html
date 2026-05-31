@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-zerogpu — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-zerogpu</span></nav>
+    <h1>huggingface-zerogpu</h1>
+    <p class="page-desc">AI demos and GPU compute with Gradio Spaces and Hugging Face Spaces ZeroGPU. Use when writing or reviewing code that uses `@spaces.GPU`, configuring `python_version` or `requirements.txt` for a ZeroGPU Space, or handling ZeroGPU-specific code constraints — pickle-based process isolation, `gr.State` semantics across the worker boundary, no `torch.compile` (use AoTI instead), CUDA wheel-only builds (no `nvcc` at build or runtime), large vs xlarge sizing, and dynamic duration callables. Make sure to use this skill whenever the user mentions ZeroGPU, `@spaces.GPU`, or the `spaces` Python package, or hits ZeroGPU-specific code errors like `PicklingError` across the worker boundary, `illegal duration`, or `flash-attn` wheel-build failures — even when the user does not explicitly ask for ZeroGPU coding guidance. Trigger on `import spaces` or `@spaces.GPU` in code.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Hugging Face ZeroGPU</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#scope"><span class="toc-num">1.</span> Scope</a></li>
+<li class="toc-item"><a href="#reference-files"><span class="toc-num">2.</span> Reference Files</a></li>
+<li class="toc-item"><a href="#hardware"><span class="toc-num">3.</span> Hardware</a></li>
+<li class="toc-item"><a href="#basic-pattern"><span class="toc-num">4.</span> Basic Pattern</a></li>
+<li class="toc-item"><a href="#cuda-availability-model"><span class="toc-num">5.</span> CUDA Availability Model</a></li>
+<li class="toc-item"><a href="#local-development-just-install-spaces"><span class="toc-num">6.</span> Local Development: Just Install spaces</a></li>
+<li class="toc-item"><a href="#duration-and-quota"><span class="toc-num">7.</span> Duration and Quota</a></li>
+<li class="toc-item"><a href="#process-isolation-and-pickle"><span class="toc-num">8.</span> Process Isolation and Pickle</a></li>
+<li class="toc-item"><a href="#concurrency"><span class="toc-num">9.</span> Concurrency</a></li>
+<li class="toc-item"><a href="#call-granularity"><span class="toc-num">10.</span> Call Granularity</a></li>
+<li class="toc-item"><a href="#cuda-build-constraints"><span class="toc-num">11.</span> CUDA Build Constraints</a></li>
+<li class="toc-item"><a href="#example-caching"><span class="toc-num">12.</span> Example Caching</a></li>
+<li class="toc-item"><a href="#dependency-management"><span class="toc-num">13.</span> Dependency Management</a></li></ul>
+</div>
+<p>Rules and patterns for ML demos on Hugging Face Spaces with <strong>ZeroGPU</strong> hardware. Covers <code>@spaces.GPU</code>, duration and quota tuning, process isolation, the CUDA availability model, concurrency safety, and CUDA build constraints.</p>
+<h2 id="scope">Scope</h2>
+<p>This skill is for <strong>Gradio SDK Spaces using ZeroGPU hardware</strong>. Docker and Static Spaces cannot schedule onto ZeroGPU, and Streamlit apps now run as Docker Spaces — so this skill applies only to Gradio. For general Gradio coding (components, layouts, event listeners), see the <code>huggingface-gradio</code> skill in this repo. The authoritative ZeroGPU docs live at <a href="https://huggingface.co/docs/hub/spaces-zerogpu">https://huggingface.co/docs/hub/spaces-zerogpu</a> — refer to them for the current backing GPU, runtime version lists, and tier thresholds, all of which change over time.</p>
+<h2 id="reference-files">Reference Files</h2>
+<table>
+<thead>
+<tr>
+<th>Reference</th>
+<th>When to read</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>references/concurrency.md</code></td>
+<td>Always read alongside SKILL.md when writing ZeroGPU code — handlers run in parallel by default</td>
+</tr>
+<tr>
+<td><code>references/how-zerogpu-works.md</code></td>
+<td>When reasoning about cold-starts, worker reuse, why module-scope warmup does not carry to requests, or why returning CUDA tensors hangs</td>
+</tr>
+<tr>
+<td><code>references/how-quota-works.md</code></td>
+<td>When choosing <code>duration</code> values, debugging <code>illegal duration</code> vs <code>quota exceeded</code> errors, or explaining why default 60s blocks short tasks</td>
+</tr>
+<tr>
+<td><code>references/cuda-and-deps.md</code></td>
+<td>When installing CUDA-dependent packages (e.g. <code>flash-attn</code>), pinning torch side-cars, or reading wheel filename tags</td>
+</tr>
+</tbody></table>
+<h2 id="hardware">Hardware</h2>
+<p>ZeroGPU exposes two GPU sizes that map to a fraction of the backing card:</p>
+<table>
+<thead>
+<tr>
+<th><code>size</code></th>
+<th>Slice of backing GPU</th>
+<th>Quota cost</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>large</code> <em>(default)</em></td>
+<td>Half</td>
+<td>1x</td>
+</tr>
+<tr>
+<td><code>xlarge</code></td>
+<td>Full</td>
+<td>2x</td>
+</tr>
+</tbody></table>
+<p>Default <code>large</code> gives half a physical GPU, so memory bandwidth and compute are significantly lower than the full card's specs. Use <code>xlarge</code> only when the workload genuinely needs the extra memory or compute.</p>
+<blockquote>
+<p><strong>Backing GPU changes without notice.</strong> ZeroGPU has already migrated across GPU generations several times; older write-ups may name A100 or H200, but those are outdated. For the current backing GPU and exact per-size VRAM, always check the <a href="https://huggingface.co/docs/hub/spaces-zerogpu">ZeroGPU docs</a> before sizing workloads.</p>
+</blockquote>
+<h2 id="basic-pattern">Basic Pattern</h2>
+<div class="code-wrapper"><pre><code class="language-python">import spaces
+import torch
+from transformers import pipeline
+
+pipe = pipeline("text-generation", model="...", device="cuda")
+
+@spaces.GPU
+def generate(prompt: str) -&gt; str:
+    return pipe(prompt, max_new_tokens=100)[0]["generated_text"]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Key rules:</p>
+<ol>
+<li><strong>Instantiate models at module scope</strong> and call <code>.to("cuda")</code> eagerly. ZeroGPU handles the actual device mapping transparently (see CUDA availability model below).</li>
+<li><strong>Decorate GPU functions with <code>@spaces.GPU</code></strong>. The decorator is a no-op outside ZeroGPU, so it is safe to keep in all environments.</li>
+<li><strong>Set <code>duration</code> to match the realistic worst-case workload</strong> (default 60s). The platform pre-checks <code>requested duration</code> against the user's <code>remaining quota</code> — not against the actual run time — so a 10-second task left at the 60s default fails with <code>quota exceeded</code> as soon as the user's remaining quota drops below 60s. Smaller declared <code>duration</code> also ranks higher in the node-level queue. See "Duration and Quota" below.</li>
+<li><strong><code>torch.compile</code> is NOT supported.</strong> Use PyTorch <a href="https://huggingface.co/blog/zerogpu-aoti">ahead-of-time compilation (AoTI)</a> (torch 2.8+) instead.</li>
+<li><strong>Use <code>size="xlarge"</code> sparingly.</strong> It allocates the full backing GPU, but costs 2x quota and tends to queue longer.</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-python">@spaces.GPU(duration=120)
+def generate_image(prompt: str):
+    return pipe(prompt).images[0]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="cuda-availability-model">CUDA Availability Model</h2>
+<p>Real GPU access is <strong>only</strong> available inside <code>@spaces.GPU</code>-decorated functions. Outside those functions, the GPU is not attached to the process.</p>
+<p>However, <code>import spaces</code> <strong>monkey-patches <code>torch</code></strong> so that:</p>
+<ul>
+<li><code>torch.cuda.is_available()</code> returns <code>True</code> globally.</li>
+<li><code>.to("cuda")</code> / <code>device="cuda"</code> calls at module scope succeed without error.</li>
+</ul>
+<p>This is intentional. Module-scope <code>model.to("cuda")</code> calls register tensors with the ZeroGPU backend, which writes them to a disk offload directory at a startup "pack" step and frees the corresponding RAM. When a <code>@spaces.GPU</code> call lands, a forked GPU worker process streams those weights from disk into VRAM via a pinned-memory pipeline. Warm workers (reused across requests on the same GPU slot) keep weights resident on the GPU and skip the disk → VRAM step. The user-facing rule: write <code>device="cuda"</code> at module scope and it works — see <code>references/how-zerogpu-works.md</code> for the full lifecycle.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Where</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>model.to("cuda")</code> / <code>pipe(..., device="cuda")</code></td>
+<td><strong>Module scope</strong></td>
+<td>ZeroGPU registers the tensor and manages device migration</td>
+</tr>
+<tr>
+<td>Actual CUDA computation (inference, etc.)</td>
+<td><strong>Inside <code>@spaces.GPU</code></strong></td>
+<td>Real GPU is only attached during the decorated call</td>
+</tr>
+<tr>
+<td>Branching on <code>torch.cuda.is_available()</code></td>
+<td>Avoid relying on it</td>
+<td>Always returns <code>True</code> due to the monkey-patch</td>
+</tr>
+</tbody></table>
+<p>Do not run inference or CUDA kernels at module scope — the real GPU is not attached, so operations either silently run on CPU or fail.</p>
+<h3>Device selection idiom still works</h3>
+<p>The standard idiom remains correct under ZeroGPU:</p>
+<div class="code-wrapper"><pre><code class="language-python">device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = AutoModel.from_pretrained("...").to(device)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><strong>ZeroGPU</strong> — <code>is_available()</code> is <code>True</code> (monkey-patched), so the model is registered for automatic device migration.</li>
+<li><strong>Dedicated GPU Spaces / local GPU</strong> — <code>is_available()</code> is genuinely <code>True</code>.</li>
+<li><strong>CPU Spaces / local CPU</strong> — resolves to <code>"cpu"</code>.</li>
+</ul>
+<p>Do not hardcode <code>device="cuda"</code> — it breaks on CPU-only environments.</p>
+<h3>Eager loading is the right default</h3>
+<p>Load models at module scope, not lazily on first request. The Space process starts before any user arrives, so cold-start cost is paid once. Lazy loading (<code>global model; if model is None: ...</code>, <code>@lru_cache</code> wrappers, factory functions instantiating on first call) just pushes that cost onto the first user.</p>
+<h2 id="local-development-just-install-spaces">Local Development: Just Install <code>spaces</code></h2>
+<p>Do <strong>not</strong> wrap <code>import spaces</code> in <code>try/except</code> and redefine <code>spaces.GPU</code> as a no-op fallback for local runs. Off-ZeroGPU, the <code>spaces</code> package is already a true no-op:</p>
+<ul>
+<li>Heavyweight behavior (CUDA monkey-patching, client init, startup hooks) is gated on the <code>SPACES_ZERO_GPU</code> env var, set only on ZeroGPU.</li>
+<li><code>@spaces.GPU</code> returns the undecorated function unchanged off-ZeroGPU.</li>
+<li>Top-level <code>import spaces</code> performs only lightweight imports.</li>
+</ul>
+<p>The Gradio SDK base image installs <code>spaces</code> on every hardware tier. So even after duplicating a Space onto a dedicated GPU (T4, L4, A10G, etc.) or CPU basic, no code changes are needed — <code>import spaces</code> still succeeds and <code>@spaces.GPU</code> becomes a transparent passthrough.</p>
+<h3>Anti-pattern</h3>
+<div class="code-wrapper"><pre><code class="language-python">try:
+    import spaces
+except ImportError:
+    class spaces:  # type: ignore
+        @staticmethod
+        def GPU(func=None, **kwargs):
+            return func if func else (lambda f: f)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Problems:</p>
+<ol>
+<li>The fallback must mimic every <code>@spaces.GPU</code> call shape — bare decorator, <code>duration=...</code>, <code>size=...</code>, generators, <code>aoti_*</code> helpers — and drifts as the <code>spaces</code> API grows.</li>
+<li>It hides <code>spaces</code> from <code>requirements.txt</code>, even though the Space needs it at deploy time.</li>
+<li>It solves a non-problem: the real package is already a no-op locally.</li>
+</ol>
+<h3>Do this instead</h3>
+<p>Add <code>spaces</code> to dependencies and import it unconditionally:</p>
+<div class="code-wrapper"><pre><code class="language-python">import spaces
+
+@spaces.GPU
+def generate(prompt: str) -&gt; str:
+    ...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="duration-and-quota">Duration and Quota</h2>
+<p>Three things happen when you declare <code>@spaces.GPU(duration=N)</code>:</p>
+<ol>
+<li><strong>Tier-max check</strong> — each visitor tier has a per-call <code>duration</code> cap. Declaring <code>duration</code> larger than the cap fails immediately with <code>ZeroGPU illegal duration</code>, regardless of remaining quota. (Tier numbers change over time — see the <a href="https://huggingface.co/docs/hub/spaces-zerogpu">ZeroGPU docs</a>.)</li>
+<li><strong>Quota pre-check</strong> — the platform compares <code>requested duration</code> against the user's <code>remaining quota</code>. If <code>remaining &lt; requested</code>, the call fails with <code>ZeroGPU quota exceeded</code> — even if the actual work would have fit. The error message shows the explicit numbers, e.g. <code>"60s requested vs. 30s left"</code>. A 10-second task left at the default 60s therefore blocks the user once their remaining quota drops below 60s.</li>
+<li><strong>Queue priority</strong> — the queue is node-level (requests from all Spaces on the same node compete for GPU slots), and shorter declared <code>duration</code> ranks higher.</li>
+</ol>
+<p>All three favor declaring the smallest realistic <code>duration</code> — including for short tasks. Explicit <code>@spaces.GPU(duration=15)</code> on a 10-second task avoids premature <code>quota exceeded</code> rejections and ranks higher in the queue.</p>
+<blockquote>
+<p><strong><code>xlarge</code> doubles the request.</strong> <code>requested = N * 2</code> when <code>size="xlarge"</code>, both for the tier-max check and the quota pre-check. So <code>@spaces.GPU(duration=60, size="xlarge")</code> is internally a 120s request.</p>
+</blockquote>
+<h3>Dynamic duration for variable workloads</h3>
+<p>For workloads whose runtime depends on inputs, pass a callable that estimates per request. A static high <code>duration</code> locks out low-tier users (whose tier cap may be smaller than the static value) and unnecessarily reserves quota for light inputs.</p>
+<div class="code-wrapper"><pre><code class="language-python">def estimate_duration(prompt, steps):
+    return int(steps * 3.5)
+
+@spaces.GPU(duration=estimate_duration)
+def generate(prompt, steps):
+    return pipe(prompt, num_inference_steps=steps).images[0]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For the full distinction between <code>illegal duration</code> vs <code>quota exceeded</code>, runs-per-day limits, the 24h quota window, and pay-as-you-go billing, see <code>references/how-quota-works.md</code>.</p>
+<h2 id="process-isolation-and-pickle">Process Isolation and Pickle</h2>
+<p><code>@spaces.GPU</code>-decorated functions run in a <strong>separate process</strong> managed by the ZeroGPU scheduler. Arguments and return values cross the process boundary via <strong>pickle serialization</strong>.</p>
+<p>Consequences:</p>
+<ul>
+<li><strong>Only picklable objects</strong> can be passed in or returned. Open file handles, database connections, locks, lambdas, and closures over unpicklable state will raise <code>PicklingError</code>.</li>
+<li><strong>Do NOT return CUDA tensors directly.</strong> Unpickling a CUDA tensor in the main process triggers <code>torch.cuda._lazy_init()</code>, which ZeroGPU blocks. Convert to CPU first: return <code>tensor.cpu()</code> or <code>tensor.cpu().numpy()</code>.</li>
+<li>CPU tensors, numpy arrays, PIL Images, and plain Python objects work fine.</li>
+<li>Large objects incur serialization overhead. Prefer lightweight returns (tensors, arrays, file paths, base64 strings) over complex object graphs.</li>
+</ul>
+<h3><code>gr.State</code> semantics across the boundary</h3>
+<p>Because handlers run in a separate process, <code>gr.State</code> values are <strong>pickled on every yield</strong> — they are NOT shared by reference.</p>
+<ul>
+<li>The generator receives a <strong>copy</strong> of the state (<code>id()</code> differs from the caller's).</li>
+<li>In-place mutations inside the generator are <strong>invisible</strong> to other handlers until the mutated state is explicitly yielded back.</li>
+<li>Yielding <code>gr.update()</code> for a <code>gr.State</code> slot <strong>skips the update</strong> — other handlers continue to see the pre-yield value.</li>
+<li>Each yield that returns the state object creates a <strong>new copy</strong> via pickle.</li>
+</ul>
+<p>Practical guidance:</p>
+<ul>
+<li><strong>Do NOT assume reference semantics for <code>gr.State</code></strong> on ZeroGPU. Code that mutates state in a generator and expects another handler to see those mutations will silently use stale data.</li>
+<li><strong>Every yield including a <code>gr.State</code> value triggers a full pickle round-trip.</strong> For large state (model sessions, frame buffers), minimize how often you yield it — ideally once at the end. Use <code>gr.update()</code> for the state slot on intermediate yields.</li>
+<li><strong>CUDA tensors inside state must be moved to CPU before yielding</strong> — same <code>torch.cuda._lazy_init()</code> issue as above.</li>
+</ul>
+<h2 id="concurrency">Concurrency</h2>
+<p>Handlers run <strong>concurrently by default</strong> on ZeroGPU. This is not opt-in. Code that worked in single-user testing can silently corrupt or leak data in production.</p>
+<p>Three rules. Full treatment with examples in <code>references/concurrency.md</code>.</p>
+<ol>
+<li><strong>No mutable global state.</strong> Concurrent requests overwrite each other.</li>
+<li><strong>No fixed file paths for outputs.</strong> Concurrent requests clobber the same file. Use <code>tempfile</code> for unique paths.</li>
+<li><strong>Read-only globals are safe.</strong> Model objects, tokenizers, configs loaded once at startup and only read during requests are safe and encouraged.</li>
+</ol>
+<h2 id="call-granularity">Call Granularity</h2>
+<p>Each entry into a <code>@spaces.GPU</code> function carries non-trivial cost — pickle round-trip across the process boundary, worker warm-up, CUDA re-attach, and a fresh pass through the node-level queue. Calling a decorated function from inside a hot loop multiplies these costs and adds a new failure mode: a later iteration may fail to acquire a GPU slot, stalling the whole job mid-way.</p>
+<p>Decorate the outer function that owns the loop, not the per-iteration worker:</p>
+<div class="code-wrapper"><pre><code class="language-python"># Avoid — N GPU entries for N frames
+def process_video(frames):
+    return [process_frame(f) for f in frames]
+
+@spaces.GPU(duration=...)
+def process_frame(frame):
+    ...
+
+# Prefer — one GPU entry for the whole video
+@spaces.GPU(duration=...)
+def process_video(frames):
+    return [process_frame(f) for f in frames]
+
+def process_frame(frame):
+    ...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If the loop mixes heavy CPU work with GPU work, wrapping the whole loop charges that CPU time against the user's quota. When that cost is material, batching the GPU work so CPU pre/post-processing stays outside the decorator is a situational optimization — not the default.</p>
+<h2 id="cuda-build-constraints">CUDA Build Constraints</h2>
+<p>HF Spaces builds Docker images in a CPU-only environment. <strong>On ZeroGPU, the build phase has no <code>nvcc</code></strong> because the base image is <code>python:3.13</code> (dedicated-GPU Spaces use <code>nvidia/cuda:*-devel-*</code> and have <code>nvcc</code> at build time). A CUDA-dependent package whose only distribution is sdist — e.g. bare <code>flash-attn</code> — therefore cannot be installed via <code>requirements.txt</code> on ZeroGPU. Only pre-built wheels work.</p>
+<p>ZeroGPU <strong>runtime</strong> does have <code>nvcc</code> available, mounted from a CUDA devel image at <code>/cuda-image</code> since 2025-07 (originally added for AoTI support). This is what makes <code>torch.export</code> / AoTI workflows possible inside <code>@spaces.GPU</code> calls.</p>
+<p><strong>Bottom line</strong>: install every CUDA-dependent package from a pre-built wheel. If no wheel is available on PyPI, build one externally (e.g. host on HF Hub) and pin the URL. For <code>flash-attn</code>, the upstream releases page ships a fairly complete wheel matrix covering most Python × CUDA × torch combinations.</p>
+<p>For wheel-tag reading (cxx11 ABI, <code>cu12torch2.X</code>, <code>cp3XX</code>), torch-family side-car drift, and the kernels-community fallback, see <code>references/cuda-and-deps.md</code>.</p>
+<h2 id="example-caching">Example Caching</h2>
+<p><code>gr.Examples</code> behavior is environment-dependent. On ZeroGPU specifically:</p>
+<ul>
+<li><code>cache_examples</code> defaults to <code>True</code> (Spaces sets <code>GRADIO_CACHE_EXAMPLES=true</code>).</li>
+<li><code>cache_mode</code> defaults to <code>"lazy"</code> (Spaces sets <code>GRADIO_CACHE_MODE=lazy</code> only on ZeroGPU).</li>
+</ul>
+<p>ZeroGPU defaults to <code>lazy</code> because eager caching pre-runs every example at app startup, but ZeroGPU has <strong>no GPU attached at startup</strong> — only during request handling. Eager caching of GPU-bound examples would fail there.</p>
+<p>When <code>cache_examples=True</code>, the <code>run_on_click</code> / <code>run_examples_on_click</code> parameter is silently ignored. If your app relies on click-populates-only behavior, set <code>cache_examples=False</code> explicitly to preserve it.</p>
+<p>To reproduce ZeroGPU example-caching behavior locally:</p>
+<div class="code-wrapper"><pre><code class="language-bash">GRADIO_CACHE_EXAMPLES=true GRADIO_CACHE_MODE=lazy python app.py
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="dependency-management">Dependency Management</h2>
+<h3><code>python_version</code> pin in README frontmatter</h3>
+<p>Pinning <code>python_version</code> is <strong>effectively required</strong> for ZeroGPU. The runtime default is currently Python 3.10, so a local environment using 3.11+ will fail to install on the Space without an explicit pin. Pin to a ZeroGPU-supported version (3.12 is a reasonable default); the authoritative supported list lives in the <a href="https://huggingface.co/docs/hub/spaces-zerogpu">ZeroGPU docs</a> — do not hardcode the full list, refer to the docs.</p>
+<div class="code-wrapper"><pre><code class="language-yaml"># README.md frontmatter
+python_version: "3.12"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Both <code>"3.12"</code> and <code>"3.12.12"</code> forms are accepted.</p>
+<h3>Do not pin <code>spaces</code> in <code>requirements.txt</code></h3>
+<p>The Space platform pins its own <code>spaces</code> version. A conflicting pin in <code>requirements.txt</code> causes pip resolution to fail at build time.</p>
+<blockquote>
+<p><strong>Rule</strong>: Do not include <code>spaces</code> in <code>requirements.txt</code>.</p>
+</blockquote>
+<p>How to achieve this depends on your tooling:</p>
+<ul>
+<li><strong>Hand-written <code>requirements.txt</code></strong>: simply omit <code>spaces</code>.</li>
+<li><strong>uv</strong> (<code>pyproject.toml</code>-managed): declare <code>spaces</code> in <code>pyproject.toml</code> so uv co-resolves transitive constraints (notably <code>psutil</code>, which <code>spaces</code> pins), then exclude it from the export:<div class="code-wrapper"><pre><code class="language-bash">uv export --no-hashes --no-dev --no-emit-package spaces -o requirements.txt
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+Without <code>spaces</code> in <code>pyproject.toml</code>, uv cannot see its transitive constraints and may resolve incompatible versions at build time.</li>
+<li><strong>pip-tools</strong> (<code>pip-compile</code>) / <strong>Poetry</strong>: use the equivalent exclude mechanism.</li>
+</ul>
+<h3>Pin <code>torch</code> to match wheel tags</h3>
+<p>If you install a CUDA-dependent wheel via direct URL, the wheel filename encodes the <code>torch</code> major.minor it was built against (e.g. <code>cu12torch2.8</code>). Pin <code>torch==X.Y.Z</code> in <code>requirements.txt</code> to match — otherwise pip may resolve <code>torch</code> to a different version and the Space fails on first import. Details and the kernels-community alternative are in <code>references/cuda-and-deps.md</code>.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

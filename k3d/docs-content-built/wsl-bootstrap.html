@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WSL Bootstrapping Gotchas — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">WSL Bootstrapping Gotchas</span></nav>
+    <h1>WSL Bootstrapping Gotchas</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>WSL Bootstrapping Gotchas</h1>
+<p>When bootstrapping a new WSL workstation for the Workspace MVP development, keep these common issues and solutions in mind:</p>
+<h3>1. <code>task</code> CLI Command Collision (taskwarrior vs go-task)</h3>
+<ul>
+<li><strong>Problem</strong>: Running <code>apt install task</code> on Ubuntu 24.04 (and other newer distros) installs <strong>taskwarrior</strong>, not the Go-based task runner (<code>go-task</code>).</li>
+<li><strong>Fix</strong>: Do not use <code>apt install task</code>. Instead, install go-task via snap:<div class="code-wrapper"><pre><code class="language-bash">snap install task --classic
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+Or follow the official installation instructions for <code>go-task</code> (e.g. using their official Debian repository or shell script).</li>
+</ul>
+<h3>2. Docker Desktop WSL Integration</h3>
+<ul>
+<li><strong>Problem</strong>: When creating a new WSL distribution, Docker Desktop's WSL integration is not auto-enabled. This blocks all Docker, build, and <code>k3d</code> operations.</li>
+<li><strong>Fix</strong>: Open Docker Desktop, go to <strong>Settings</strong> &gt; <strong>Resources</strong> &gt; <strong>WSL Integration</strong>, and toggle the switch to enable it for your newly created distribution. Click <strong>Apply &amp; Restart</strong>.</li>
+</ul>
+<h3>3. SSH Private Key Permissions</h3>
+<ul>
+<li><strong>Problem</strong>: SSH private keys copied or mounted from Windows (e.g., from <code>/mnt/c/...</code>) often arrive in the WSL environment with permissive file permissions (mode <code>644</code>), causing SSH to refuse using the key.</li>
+<li><strong>Fix</strong>: Restrict the permissions of your private keys to <code>600</code>:<div class="code-wrapper"><pre><code class="language-bash">chmod 600 ~/.ssh/id_ed25519
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ul>
+<h3>4. PostgreSQL Client Missing for Dev DB Refresh</h3>
+<ul>
+<li><strong>Problem</strong>: <code>task dev-mentolder:db:refresh</code> / <code>task dev-korczewski:db:refresh</code> calls <code>scripts/dev-db-refresh.sh</code>, which shells out to <code>pg_restore</code>/<code>psql</code> on the host. On a fresh Ubuntu, only <code>postgresql-client-common</code> (the <code>pg_wrapper</code> shim) is present, so every invocation fails with <code>You must install at least one postgresql-client-&lt;version&gt; package</code>. <strong>Note:</strong> <code>dev-korczewski:db:refresh</code> targets the fleet cluster (the old standalone korczewski context is DEAD — T000340).</li>
+<li><strong>Fix</strong>: Install a versioned client that is ≥ the server version. Prod runs PostgreSQL 16, so:<div class="code-wrapper"><pre><code class="language-bash">sudo apt-get install -y postgresql-client-16
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+Verify with <code>psql --version</code> (expect <code>16.x</code>), then re-run the refresh task.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

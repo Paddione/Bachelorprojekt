@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>desktop-commander-overview — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">desktop-commander-overview</span></nav>
+    <h1>desktop-commander-overview</h1>
+    <p class="page-desc">Use for Desktop Commander MCP capabilities — persistent shells and REPLs, long-running processes, filesystem beyond the workspace, structured files (.xlsx, .docx, .pdf, images) and large local data files such as CSVs, ripgrep search at scale, SSH, or cross-turn state.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">desktop-commander</span> <span class="pv-ver">9c44119a480e-53b37853</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Desktop Commander MCP</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-this-mcp-gives-the-agent"><span class="toc-num">1.</span> What this MCP gives the agent</a></li>
+<li class="toc-item"><a href="#example-workflows"><span class="toc-num">2.</span> Example workflows</a></li>
+<li class="toc-item"><a href="#core-tool-inventory"><span class="toc-num">3.</span> Core tool inventory</a></li>
+<li class="toc-item"><a href="#conventions"><span class="toc-num">4.</span> Conventions</a></li></ul>
+</div>
+<p>Desktop Commander gives the agent reach across the user's actual computer — files, folders, terminals, processes, structured documents, and remote machines reachable over SSH. The tools' detailed schemas (parameters, return shapes, format-specific behavior) live in the MCP itself; this skill explains what they enable and how they compose into common workflows.</p>
+<h2 id="what-this-mcp-gives-the-agent">What this MCP gives the agent</h2>
+<p><strong>Persistent shell sessions.</strong> Desktop Commander keeps a started process or session alive across tool calls. Inside a single long-lived shell, REPL, or SSH session, state carries forward — environment variables, working directory, activated virtualenvs, open connections, REPL variables — so the agent can <code>cd</code>, activate a venv, then send commands or code into that same session many turns later without re-setup. (Note: separate <code>start_process</code> calls open separate sessions and do <strong>not</strong> share shell state with each other; persistence is inside one session, not across them.)</p>
+<p><strong>Long-running processes.</strong> Start a dev server, watcher, build, training run, or test suite in the background and keep working. The MCP returns a process handle the agent can tail, interact with, or terminate across many turns. Long-running commands don't need to block the workflow waiting for a foreground command to exit.</p>
+<p><strong>Filesystem reach beyond the IDE workspace.</strong> Read, write, move, list, and inspect files anywhere the user has granted scope — Downloads, Documents, project folders outside the IDE, or any other granted folders. Useful for organize-and-clean tasks, batch document work, and any "look at the file my coworker just sent me" request that doesn't fit inside the IDE sandbox.</p>
+<p><strong>Surgical edits to existing files.</strong> The <code>edit_block</code> tool does exact-string find-and-replace with built-in safety: ambiguous matches fail loudly instead of silently overwriting the wrong thing, and an <code>expected_replacements</code> count prevents partial-match disasters. Lower data-loss risk than rewriting whole files based on the slice you happened to read — though a wrong <code>old_string</code> or wrong <code>expected_replacements</code> can still corrupt content, so review the changed content before considering the edit done.</p>
+<p><strong>Binary and structured files handled directly by the MCP.</strong> Excel, DOCX, and PDF are first-class — read and modified through format-specific mechanisms rather than text-only approximations: Excel via cell-range JSON, DOCX via raw-XML edits, PDF via page-level operations on a new output file. The result is the real file in its original format, not a regenerated approximation. Images and PDFs return as viewable content for the agent.</p>
+<p><strong>Search at scale.</strong> Streaming, ripgrep-backed search across whole projects or folder trees. The agent picks between filename search and in-file content search, pages through results progressively without flooding context, and runs multiple concurrent searches when the query is ambiguous.</p>
+<p><strong>Remote machines via SSH.</strong> A long-lived SSH session inside a persistent shell turns the agent into a real ops tool: connect once, then tail logs, run diagnostics, deploy, or debug across many turns without reconnecting each step.</p>
+<p><strong>Process management.</strong> List, inspect, tail, and kill accessible processes (subject to OS permissions). Useful for cleaning up stale dev servers from previous sessions and for diagnosing CPU / memory issues.</p>
+<h2 id="example-workflows">Example workflows</h2>
+<p>Each example names the actual tool sequence. Calls below are written in pseudocode shorthand (<code>tool_name("arg", flag=value)</code>); the real tools take object-shaped arguments. Tool descriptions and full parameter sets live in the MCP itself.</p>
+<h3>"Debug this production issue"</h3>
+<p>Before running production-impacting SSH commands, explain the intended action and get user confirmation when the risk is non-trivial.</p>
+<p><code>start_process("ssh user@prod.example.com", timeout_ms=...)</code> opens a long-lived SSH session and returns a PID. <code>interact_with_process(pid, "tail -f /var/log/app.log\n")</code> starts streaming logs. Subsequent turns: <code>read_process_output(pid, offset=-50)</code> to see the last 50 lines as they arrive, <code>interact_with_process(pid, "...")</code> to run diagnostic commands in the same session. <code>force_terminate(pid)</code> to close the session when done — for sessions opened by <code>start_process</code>, <code>force_terminate</code> is the correct cleanup tool; <code>kill_process</code> is for arbitrary OS PIDs found via <code>list_processes</code>.</p>
+<h3>"Deploy this to staging"</h3>
+<p>Before deploys, restarts, migrations, or other environment-changing commands, summarize the action and confirm with the user unless they already explicitly asked for that exact operation.</p>
+<p><code>start_process</code> for the deploy command (could be a script, an SSH-piped command, or <code>kubectl</code>/<code>gh</code> etc.). <code>read_process_output</code> to track output and surface errors. If the deploy needs an interactive confirmation, <code>interact_with_process(pid, "yes\n")</code>. The session stays alive while the agent watches for completion or rollback.</p>
+<h3>"Run the dev server and iterate on the API"</h3>
+<p><code>start_process("npm run dev", timeout_ms=...)</code> keeps the server up. The agent then loops: <code>edit_block</code> on the route file, <code>read_process_output(pid, offset=-30)</code> to see the server's reload, <code>start_process("curl -s http://localhost:3000/api/...")</code> for a one-shot test, repeat. The dev server never has to restart between code changes.</p>
+<h3>"Refactor across this monorepo"</h3>
+<p><code>start_search(pattern="oldFunctionName", path=repo_root, searchType="content")</code> scopes every call site. <code>get_more_search_results(sessionId)</code> pages through. <code>read_multiple_files(paths=[...])</code> confirms ambiguous hits in context. <code>edit_block(file_path, old_string, new_string)</code> per site, with <code>expected_replacements</code> set when the same substring legitimately appears multiple times in one file. Verify by re-running <code>start_search</code> on the old name and paging the results with <code>get_more_search_results(sessionId)</code> until the run completes — only then can you confirm zero remaining hits.</p>
+<h3>"Update the Q3 numbers in this spreadsheet and tweak the summary in the report"</h3>
+<p><code>read_file(path="/.../q3.xlsx", sheet="Revenue", range="A1:F50")</code> returns the existing numbers as a JSON 2D array. <code>edit_block(file_path="/.../q3.xlsx", range="Revenue!C12:C24", content=[[12345], ...])</code> updates the cells in place. For the report, DOCX editing is a two-read flow: first <code>read_file(path="/.../report.docx")</code> (offset 0) returns the document's outline (headings + paragraph text) so you can locate the summary section. Then <code>read_file(path="/.../report.docx", offset=N, length=...)</code> with <strong><code>N &gt; 0</code></strong> returns the raw underlying XML around that section — a non-zero offset is what flips the read into XML mode. Copy an XML fragment from that output as <code>old_string</code> and call <code>edit_block(file_path, old_string, new_string)</code> with the rewritten XML. The user gets back real <code>.xlsx</code> and <code>.docx</code> files, not regenerated approximations.</p>
+<h3>"Generate the Q3 report as a PDF"</h3>
+<p>Compose markdown content (header, table, charts via embedded HTML), then call <code>write_pdf</code> to render it to a new PDF file. The MCP's <code>write_pdf</code> tool description specifies the exact parameters and filename rules — follow that.</p>
+<h3>"Insert a cover page into this PDF"</h3>
+<p><code>write_pdf</code> also supports modifying existing PDFs via an operations array (insert / delete pages). Use it for existing-PDF edits that produce a new PDF — adding a cover page, removing a section, merging in content from another file. See the <code>write_pdf</code> tool description for the operation shapes and parameter rules.</p>
+<h3>"Analyze this 200MB CSV"</h3>
+<p><code>start_process("python3 -i", timeout_ms=...)</code> opens a Python REPL and returns a PID. <code>interact_with_process(pid, "import pandas as pd; df = pd.read_csv('/abs/path.csv')")</code> loads it once. Every subsequent question — <code>df.describe()</code>, <code>df.groupby('col').size()</code>, plot a chart — runs in the same already-loaded REPL. Libraries don't re-import, the dataframe doesn't re-load. The MCP itself recommends this workflow for any local data-file analysis.</p>
+<h3>"Run a quick Node script"</h3>
+<p><code>start_process("node:local", timeout_ms=...)</code> opens a stateless Node execution mode on the MCP server itself — ES imports supported. <code>start_process</code> opens the runner; each piece of JS is sent via <code>interact_with_process(pid, "&lt;your JS here&gt;")</code> and runs independently (no shared state between calls). Good for one-shot transformations where keeping a long-lived REPL alive isn't worth it. Don't try to put code into the <code>start_process</code> command argument — only the runner type (<code>node:local</code>) goes there.</p>
+<h3>"Explain this codebase"</h3>
+<p><code>list_directory(path=repo_root, depth=3)</code> for shape. <code>start_search(pattern="export ", path=repo_root, searchType="content")</code> to find the public surface. <code>read_multiple_files(paths=[entrypoints])</code> for the actual code. The agent can keep narrowing without re-asking the user where to look.</p>
+<h3>"Organize my Downloads folder"</h3>
+<p>Resolve the path to absolute first (e.g., <code>/Users/&lt;user&gt;/Downloads</code>, not <code>~/Downloads</code>). Then <code>list_directory(path="/Users/&lt;user&gt;/Downloads", depth=1)</code> to see what's there. <code>start_search(pattern="*.pdf", path="/Users/&lt;user&gt;/Downloads", searchType="files")</code> and similar for other types. <code>create_directory</code> for new folders. <code>move_file</code> per item. Preview the move plan before executing destructive ops.</p>
+<h3>"Onboard me — what was happening last session?"</h3>
+<p><code>get_recent_tool_calls(maxResults=200)</code> returns recent activity with arguments and outputs. <code>list_sessions</code> shows still-running terminal sessions. <code>list_searches</code> shows in-flight searches. <code>list_processes</code> shows what's still alive. Together they reconstruct the work without asking the user to recap.</p>
+<h3>"Why isn't the REPL responding?"</h3>
+<p><code>list_sessions</code> — if <code>Blocked: true</code>, the REPL is waiting for input rather than hung. <code>read_process_output(pid, offset=-100)</code> to see what it last printed (often a prompt). <code>interact_with_process(pid, "&lt;the input it's waiting for&gt;\n")</code> unblocks it.</p>
+<h2 id="core-tool-inventory">Core tool inventory</h2>
+<p>Grouped index of the tools an agent reaches for most often. Not exhaustive — the MCP exposes additional config / diagnostics / feedback tools beyond this list. Detailed parameters and return shapes for every tool are in the MCP's own tool descriptions.</p>
+<ul>
+<li><strong>Process / shell:</strong> <code>start_process</code>, <code>interact_with_process</code>, <code>read_process_output</code>, <code>list_processes</code>, <code>list_sessions</code>, <code>kill_process</code>, <code>force_terminate</code></li>
+<li><strong>Files (read/write):</strong> <code>read_file</code>, <code>read_multiple_files</code>, <code>write_file</code>, <code>edit_block</code>, <code>write_pdf</code></li>
+<li><strong>Filesystem:</strong> <code>list_directory</code>, <code>get_file_info</code>, <code>move_file</code>, <code>create_directory</code></li>
+<li><strong>Search:</strong> <code>start_search</code>, <code>get_more_search_results</code>, <code>list_searches</code>, <code>stop_search</code></li>
+<li><strong>Diagnostics / config:</strong> <code>get_recent_tool_calls</code>, <code>get_config</code></li>
+</ul>
+<h2 id="conventions">Conventions</h2>
+<p><strong>Prefer absolute paths.</strong> Relative paths may fail depending on the working directory, and tilde paths (<code>~/...</code>) may not expand in all contexts. Absolute paths are the most reliable; pass them whenever you can.</p>
+<p><strong>Allowed-directory scope.</strong> File operations only work inside the user's configured <code>allowedDirectories</code>. Expect <code>[DENIED]</code> markers in <code>list_directory</code> output and rejections from <code>read_file</code> / <code>write_file</code> when the path is out of scope. Surface the rejected path to the user — don't retry.</p>
+<p><strong>When running on macOS:</strong> default shell is zsh. Use <code>python3</code> not <code>python</code>. Some GNU tools have prefixed names (<code>gsed</code> for GNU sed). <code>brew</code> is the typical package manager. <code>open</code> opens files / apps from the terminal, <code>mdfind</code> is the fastest path to exact-filename search via Spotlight. Detect the host platform via <code>get_config</code> (or by inspecting <code>process.platform</code> / <code>uname</code> from a shell) before assuming any of the above — Windows and Linux hosts behave differently.</p>
+<p><strong>Pagination.</strong> Long outputs (file reads, process output, search results) all support <code>offset</code> and <code>length</code>. Negative offsets read from the end (tail mode). Use these instead of dumping huge results into context.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

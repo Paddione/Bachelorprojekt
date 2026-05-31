@@ -3,31 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sicherheitsbericht — Workspace MVP — Workspace MVP</title>
-<link rel="stylesheet" href="./skills/style.css">
+<title>📋 Sicherheitsbericht — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="./index.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Übersicht
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">security-report</span>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-red">Sicherheit</span>
-    <span class="badge badge-red">SA-01–SA-10</span>
-    <span class="badge-slug">security-report</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-  <h1 class="hero-title">📋 Sicherheitsbericht</h1>
-  <p class="hero-subtitle">Sicherheitsbericht zum Workspace MVP: Penetrationstest-Grundlagen, CTF-Objectives, Angriffsvektoren und SA-Testergebnisse.</p>
-  <div class="trigger-chip"><span class="label">Sicherheit · Bericht</span></div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">📋 Sicherheitsbericht</span></nav>
+    <h1>📋 Sicherheitsbericht</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+
 <div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#1-systemuebersicht"><span class="toc-num">1.</span>&nbsp;1. Systemübersicht</a></li>
@@ -346,8 +347,11 @@ pod-security.kubernetes.io/warn: restricted
 <hr>
 <p><em>Erstellt: 2026-04-20 | Quelle: PENTEST_OVERVIEW.md, k3d/network-policies.yaml, k3d/namespace.yaml</em></p>
 
-</main>
 
+</article>
+
+  </main>
+</div>
 <script src="./app.js"></script>
 </body>
 </html>

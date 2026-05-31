@@ -3,30 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Fehlerbehebung — Workspace MVP</title>
-<link rel="stylesheet" href="./skills/style.css">
+<title>🔧 Fehlerbehebung — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="./index.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Übersicht
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">troubleshooting</span>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-blue">Für Administratoren</span>
-    <span class="badge-slug">troubleshooting</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-  <h1 class="hero-title">🔧 Fehlerbehebung</h1>
-  <p class="hero-subtitle">Bekannte Probleme, Diagnose-Befehle und Workarounds.</p>
-  <div class="trigger-chip"><span class="label">Support · Diagnose</span></div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">🔧 Fehlerbehebung</span></nav>
+    <h1>🔧 Fehlerbehebung</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+
 <div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#allgemeine-diagnose"><span class="toc-num">1.</span>&nbsp;Allgemeine Diagnose</a></li>
@@ -337,8 +339,11 @@ task cluster:delete
 task workspace:up
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 
-</main>
 
+</article>
+
+  </main>
+</div>
 <script src="./app.js"></script>
 </body>
 </html>

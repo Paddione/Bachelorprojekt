@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Arena — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">arena</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">arena</span>
+    <span class="badge-slug">arena</span>
+  </div>
+  <h1 class="hero-title">Arena</h1>
+</header>
+
+<main class="content">
+
+<p>A 4-player last-man-standing browser game embedded in the mentolder website.</p>
+<ul>
+<li><strong>Host:</strong> <code>arena-ws.mentolder.de</code> (mentolder cluster only)</li>
+<li><strong>DB:</strong> schema <code>arena</code> in mentolder shared-db</li>
+<li><strong>Admin role:</strong> <code>arena_admin</code> on the mentolder Keycloak realm</li>
+<li><strong>Open a lobby:</strong> <code>/admin/arena</code> → Open lobby button</li>
+<li><strong>Join:</strong> banner appears across both brands for 60 s</li>
+</ul>
+<p>Design spec: <code>docs/superpowers/specs/2026-05-11-arena-design.md</code></p>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

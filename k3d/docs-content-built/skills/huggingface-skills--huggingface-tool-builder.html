@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-tool-builder — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-tool-builder</span></nav>
+    <h1>huggingface-tool-builder</h1>
+    <p class="page-desc">Use this skill when the user wants to build tool/scripts or achieve a task where using data from the Hugging Face API would help. This is especially useful when chaining or combining API calls or the task will be repeated/automated. This Skill creates a reusable script to fetch, enrich or process data.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Hugging Face API Tool Builder</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#script-rules"><span class="toc-num">1.</span> Script Rules</a></li>
+<li class="toc-item"><a href="#sample-scripts"><span class="toc-num">2.</span> Sample Scripts</a></li>
+<li class="toc-item"><a href="#high-level-endpoints"><span class="toc-num">3.</span> High Level Endpoints</a></li>
+<li class="toc-item"><a href="#accessing-the-api"><span class="toc-num">4.</span> Accessing the API</a></li>
+<li class="toc-item"><a href="#using-the-hf-command-line-tool"><span class="toc-num">5.</span> Using the HF command line tool</a></li></ul>
+</div>
+<p>Your purpose is now is to create reusable command line scripts and utilities for using the Hugging Face API, allowing chaining, piping and intermediate processing where helpful. You can access the API directly, as well as use the <code>hf</code> command line tool. Model and Dataset cards can be accessed from repositories directly.</p>
+<h2 id="script-rules">Script Rules</h2>
+<p>Make sure to follow these rules:</p>
+<ul>
+<li>Scripts must take a <code>--help</code> command line argument to describe their inputs and outputs</li>
+<li>Non-destructive scripts should be tested before handing over to the User</li>
+<li>Shell scripts are preferred, but use Python or TSX if complexity or user need requires it.</li>
+<li>IMPORTANT: Use the <code>HF_TOKEN</code> environment variable as an Authorization header. For example: <code>curl -H "Authorization: Bearer ${HF_TOKEN}" https://huggingface.co/api/</code>. This provides higher rate limits and appropriate authorization for data access.</li>
+<li>Investigate the shape of the API results before commiting to a final design; make use of piping and chaining where composability would be an advantage - prefer simple solutions where possible.</li>
+<li>Share usage examples once complete.</li>
+</ul>
+<p>Be sure to confirm User preferences where there are questions or clarifications needed.</p>
+<h2 id="sample-scripts">Sample Scripts</h2>
+<p>Paths below are relative to this skill directory.</p>
+<p>Reference examples:</p>
+<ul>
+<li><code>references/hf_model_papers_auth.sh</code> — uses <code>HF_TOKEN</code> automatically and chains trending → model metadata → model card parsing with fallbacks; it demonstrates multi-step API usage plus auth hygiene for gated/private content.</li>
+<li><code>references/find_models_by_paper.sh</code> — optional <code>HF_TOKEN</code> usage via <code>--token</code>, consistent authenticated search, and a retry path when arXiv-prefixed searches are too narrow; it shows resilient query strategy and clear user-facing help.</li>
+<li><code>references/hf_model_card_frontmatter.sh</code> — uses the <code>hf</code> CLI to download model cards, extracts YAML frontmatter, and emits NDJSON summaries (license, pipeline tag, tags, gated prompt flag) for easy filtering.</li>
+</ul>
+<p>Baseline examples (ultra-simple, minimal logic, raw JSON output with <code>HF_TOKEN</code> header):</p>
+<ul>
+<li><code>references/baseline_hf_api.sh</code> — bash</li>
+<li><code>references/baseline_hf_api.py</code> — python</li>
+<li><code>references/baseline_hf_api.tsx</code> — typescript executable</li>
+</ul>
+<p>Composable utility (stdin → NDJSON):</p>
+<ul>
+<li><code>references/hf_enrich_models.sh</code> — reads model IDs from stdin, fetches metadata per ID, emits one JSON object per line for streaming pipelines.</li>
+</ul>
+<p>Composability through piping (shell-friendly JSON output):</p>
+<ul>
+<li><code>references/baseline_hf_api.sh 25 | jq -r '.[].id' | references/hf_enrich_models.sh | jq -s 'sort_by(.downloads) | reverse | .[:10]'</code></li>
+<li><code>references/baseline_hf_api.sh 50 | jq '[.[] | {id, downloads}] | sort_by(.downloads) | reverse | .[:10]'</code></li>
+<li><code>printf '%s\n' openai/gpt-oss-120b meta-llama/Meta-Llama-3.1-8B | references/hf_model_card_frontmatter.sh | jq -s 'map({id, license, has_extra_gated_prompt})'</code></li>
+</ul>
+<h2 id="high-level-endpoints">High Level Endpoints</h2>
+<p>The following are the main API endpoints available at <code>https://huggingface.co</code></p>
+<div class="code-wrapper"><pre><code>/api/datasets
+/api/models
+/api/spaces
+/api/collections
+/api/daily_papers
+/api/notifications
+/api/settings
+/api/whoami-v2
+/api/trending
+/oauth/userinfo
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="accessing-the-api">Accessing the API</h2>
+<p>The API is documented with the OpenAPI standard at <code>https://huggingface.co/.well-known/openapi.json</code>.</p>
+<p><strong>IMPORTANT:</strong> DO NOT ATTEMPT to read <code>https://huggingface.co/.well-known/openapi.json</code> directly as it is too large to process. </p>
+<p><strong>IMPORTANT</strong> Use <code>jq</code> to query and extract relevant parts. For example, </p>
+<p> Command to Get All 160 Endpoints</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s "https://huggingface.co/.well-known/openapi.json" | jq '.paths | keys | sort'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Model Search Endpoint Details</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s "https://huggingface.co/.well-known/openapi.json" | jq '.paths["/api/models"]'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>You can also query endpoints to see the shape of the data. When doing so constrain results to low numbers to make them easy to process, yet representative.</p>
+<h2 id="using-the-hf-command-line-tool">Using the HF command line tool</h2>
+<p>The <code>hf</code> command line tool gives you further access to Hugging Face repository content and infrastructure. </p>
+<div class="code-wrapper"><pre><code class="language-bash">❯ hf --help
+Usage: hf [OPTIONS] COMMAND [ARGS]...
+
+  Hugging Face Hub CLI
+
+Options:
+  --help                Show this message and exit.
+
+Commands:
+  auth                 Manage authentication (login, logout, etc.).
+  buckets              Commands to interact with buckets.
+  cache                Manage local cache directory.
+  collections          Interact with collections on the Hub.
+  datasets             Interact with datasets on the Hub.
+  discussions          Manage discussions and pull requests on the Hub.
+  download             Download files from the Hub.
+  endpoints            Manage Hugging Face Inference Endpoints.
+  env                  Print information about the environment.
+  extensions           Manage hf CLI extensions.
+  jobs                 Run and manage Jobs on the Hub.
+  models               Interact with models on the Hub.
+  papers               Interact with papers on the Hub.
+  repos                Manage repos on the Hub.
+  skills               Manage skills for AI assistants.
+  spaces               Interact with spaces on the Hub.
+  sync                 Sync files between local directory and a bucket.
+  upload               Upload a file or a folder to the Hub.
+  upload-large-folder  Upload a large folder to the Hub.
+  version              Print information about the hf version.
+  webhooks             Manage webhooks on the Hub.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The <code>hf</code> CLI command has replaced the now deprecated <code>huggingface-cli</code> command.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

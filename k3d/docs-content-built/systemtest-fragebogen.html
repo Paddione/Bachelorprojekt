@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Systemtest-Protokoll — Workspace Collaboration Platform — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Systemtest-Protokoll — Workspace Collaboration Platform</span></nav>
+    <h1>Systemtest-Protokoll — Workspace Collaboration Platform</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Systemtest-Protokoll — Workspace Collaboration Platform</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#testdurchfuehrung"><span class="toc-num">1.</span> Testdurchführung</a></li>
+<li class="toc-item"><a href="#kurzanleitung"><span class="toc-num">2.</span> Kurzanleitung</a></li>
+<li class="toc-item"><a href="#testzusammenfassung"><span class="toc-num">3.</span> Testzusammenfassung</a></li>
+<li class="toc-item"><a href="#entfallene-tests-mattermost-entfernung"><span class="toc-num">4.</span> Entfallene Tests (Mattermost-Entfernung)</a></li>
+<li class="toc-item"><a href="#ergebnisuebersicht"><span class="toc-num">5.</span> Ergebnisübersicht</a></li>
+<li class="toc-item"><a href="#abschlussbewertung"><span class="toc-num">6.</span> Abschlussbewertung</a></li>
+<li class="toc-item"><a href="#unterschriften"><span class="toc-num">7.</span> Unterschriften</a></li></ul>
+</div>
+<p><strong>Projekt:</strong> Workspace — Self-Hosted Collaboration Platform (Bachelorarbeit)<br><strong>Dokument-Version:</strong> 2.0<br><strong>Stand:</strong> Mai 2026<br><strong>Testrahmen:</strong> BATS, Bash, Playwright (E2E)</p>
+<hr>
+<h2 id="testdurchfuehrung">Testdurchführung</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Tester</strong></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Datum Testbeginn</strong></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Datum Testabschluss</strong></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Cluster / Umgebung</strong></td>
+<td>☐ dev (k3d)  ☐ mentolder  ☐ korczewski</td>
+</tr>
+<tr>
+<td><strong>Git-Revision (SHA)</strong></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Betriebssystem</strong></td>
+<td></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="kurzanleitung">Kurzanleitung</h2>
+<ol>
+<li>Stellen Sie sicher, dass der Ziel-Cluster läuft (<code>task cluster:status</code> oder <code>task workspace:status ENV=&lt;env&gt;</code>).</li>
+<li>Führen Sie jeden Test gemäß den angegebenen Schritten durch.</li>
+<li>Tragen Sie das tatsächliche Ergebnis in das Feld <strong>Tatsächliches Ergebnis</strong> ein.</li>
+<li>Kreuzen Sie den <strong>Status</strong> an: <code>Bestanden</code>, <code>Fehlgeschlagen</code> oder <code>Übersprungen</code>.</li>
+<li>Notieren Sie Abweichungen oder Hinweise im Feld <strong>Bemerkungen</strong>.</li>
+<li>Für automatisierte Tests kann der Befehl <code>./tests/runner.sh local &lt;TEST-ID&gt;</code> verwendet werden.</li>
+</ol>
+<h3>Statusdefinitionen</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Bestanden</strong></td>
+<td>Tatsächliches Ergebnis entspricht dem erwarteten Ergebnis vollständig.</td>
+</tr>
+<tr>
+<td><strong>Fehlgeschlagen</strong></td>
+<td>Das erwartete Ergebnis wurde nicht erzielt; Fehler dokumentiert.</td>
+</tr>
+<tr>
+<td><strong>Übersprungen</strong></td>
+<td>Test konnte aufgrund fehlender Vorbedingungen nicht ausgeführt werden.</td>
+</tr>
+<tr>
+<td><strong>Entfällt</strong></td>
+<td>Test ist für diese Konfiguration nicht anwendbar (z. B. Mattermost entfernt).</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="testzusammenfassung">Testzusammenfassung</h2>
+<table>
+<thead>
+<tr>
+<th>Test-ID</th>
+<th>Titel</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FA-01</td>
+<td>Messaging (Echtzeit) — Direktnachrichten</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-02</td>
+<td>Kanäle / Workspaces</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-03</td>
+<td>Videokonferenzen (Nextcloud Talk HPB)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-04</td>
+<td>Dateiablage</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-05</td>
+<td>Nutzerverwaltung</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-06</td>
+<td>Benachrichtigungen</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-07</td>
+<td>Suche</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-08</td>
+<td>Workspace-spezifisch</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-09</td>
+<td>Billing-Infrastruktur</td>
+<td>Entfällt</td>
+</tr>
+<tr>
+<td>FA-10</td>
+<td>Kundenanfragen-Kontaktformular</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-11</td>
+<td>Kunden-Portal</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-12</td>
+<td>Claude Code AI Assistant (MCP)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-13</td>
+<td>Dokumentations-Service</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-14</td>
+<td>User Registration Flow</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-15</td>
+<td>OIDC Website Login</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-16</td>
+<td>Calendar Booking</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-17</td>
+<td>Meeting Lifecycle</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-18</td>
+<td>Meeting Transcription (Whisper)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-20</td>
+<td>Meeting Finalization Pipeline</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-21</td>
+<td>Service Catalog</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-23</td>
+<td>Vaultwarden Passwort-Manager</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-24</td>
+<td>Kollaboratives Whiteboard</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-25</td>
+<td>Mailpit E-Mail-Server</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-26</td>
+<td>Bug Report Form</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-27</td>
+<td>Systemisches Brett</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-28</td>
+<td>Website-Messaging (Chat-System)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-30</td>
+<td>E-Rechnung / XRechnung (einvoice-sidecar)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-31</td>
+<td>Admin-Monitoring Auth-Gate (Prod)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-32</td>
+<td>LLM-Router bge-m3 Embeddings</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-33</td>
+<td>LLM-Router voyage-multilingual-2</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-34</td>
+<td>LLM-Router strict-fail (kein silent fallback)</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-35</td>
+<td>LLM MixedEmbeddingModelError</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-36</td>
+<td>Rerank-Endpunkt</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-37</td>
+<td>workspace-chat Roundtrip</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-39</td>
+<td>Arena DB-Schema und Service-Health</td>
+<td></td>
+</tr>
+<tr>
+<td>FA-40</td>
+<td>Arena Spectator-join Smoke</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-01</td>
+<td>Transportverschlüsselung</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-02</td>
+<td>Authentifizierung</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-03</td>
+<td>Passwörter (Hash, Policy)</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-04</td>
+<td>Session-Timeout</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-05</td>
+<td>Audit-Log</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-07</td>
+<td>Backup (pg_dump, PVCs)</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-08</td>
+<td>SSO-Integration (Keycloak OIDC)</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-10</td>
+<td>MCP-Endpunkt-Absicherung (ForwardAuth)</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-11</td>
+<td>Arena non-admin 403</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-12</td>
+<td>Korczewski-Realm JWT-Akzeptanz</td>
+<td></td>
+</tr>
+<tr>
+<td>SA-13</td>
+<td>Untrusted JWT abgelehnt</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-01</td>
+<td>Datenschutz / DSGVO</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-02</td>
+<td>Performance / Antwortzeiten</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-03</td>
+<td>Verfügbarkeit / Neustart-Resilienz</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-04</td>
+<td>Skalierbarkeit</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-05</td>
+<td>Usability / Deutsche Lokalisierung</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-06</td>
+<td>Website Neustart-Resilienz</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-07</td>
+<td>Open-Source-Lizenz</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-08</td>
+<td>Produktions-Deployment (Hetzner)</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-09</td>
+<td>Statisches DNS</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-10</td>
+<td>Arena Health-Endpoint Performance</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-11</td>
+<td>GPU-VRAM nach Modell-Rotation</td>
+<td></td>
+</tr>
+<tr>
+<td>NFA-12</td>
+<td>Brainstorm-Tunnel ConfigMap-Persistenz</td>
+<td></td>
+</tr>
+<tr>
+<td>AK-03</td>
+<td>Technische Machbarkeit</td>
+<td></td>
+</tr>
+<tr>
+<td>AK-04</td>
+<td>Prototyp-Betrieb</td>
+<td></td>
+</tr>
+</tbody></table>
+<hr>
+<h1>Abschnitt 1: Funktionale Tests (FA)</h1>
+<hr>
+<h2 id="entfallene-tests-mattermost-entfernung">Entfallene Tests (Mattermost-Entfernung)</h2>
+<p>Die folgenden Tests wurden ursprünglich für die Mattermost-Integration konzipiert. Da Mattermost aus dem Stack entfernt wurde, sind diese Tests nicht mehr anwendbar. Messaging-Funktionalität wird durch <strong>FA-28</strong> (Website-internes Chat-System) abgedeckt.</p>
+<table>
+<thead>
+<tr>
+<th>Test-ID</th>
+<th>Ursprünglicher Titel</th>
+<th>Begründung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FA-01</td>
+<td>Messaging (Echtzeit)</td>
+<td>Mattermost entfernt; ersetzt durch FA-28</td>
+</tr>
+<tr>
+<td>FA-02</td>
+<td>Kanäle / Workspaces</td>
+<td>Mattermost entfernt</td>
+</tr>
+<tr>
+<td>FA-04</td>
+<td>Dateiablage</td>
+<td>Mattermost entfernt; Dateiablage via Nextcloud</td>
+</tr>
+<tr>
+<td>FA-05</td>
+<td>Nutzerverwaltung</td>
+<td>Mattermost entfernt; Nutzerverwaltung via Keycloak</td>
+</tr>
+<tr>
+<td>FA-06</td>
+<td>Benachrichtigungen</td>
+<td>Mattermost entfernt</td>
+</tr>
+<tr>
+<td>FA-07</td>
+<td>Suche</td>
+<td>Mattermost entfernt</td>
+</tr>
+<tr>
+<td>FA-08</td>
+<td>Workspace-spezifisch</td>
+<td>Mattermost entfernt</td>
+</tr>
+<tr>
+<td>FA-09</td>
+<td>Billing-Infrastruktur</td>
+<td>Billing nicht mehr aktiv im Stack</td>
+</tr>
+</tbody></table>
+<hr>
+<h3>FA-03: Videokonferenzen (Nextcloud Talk HPB)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die Videokonferenz-Infrastruktur über Nextcloud Talk mit dem High-Performance-Backend (HPB), inklusive Janus WebRTC Gateway, Signaling-Server und coturn TURN-Server.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, Nextcloud-Pod läuft, coturn-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Talk-API-Endpunkt intern ansprechen: <code>GET /ocs/v2.php/apps/spreed/api/v4/room</code></td>
+<td>HTTP 200 oder 401 (Endpunkt existiert)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Janus WebRTC Gateway auf Port 8188 ansprechen</td>
+<td>HTTP-Antwort (kein Timeout)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Nextcloud Talk-App in Nextcloud-Admin prüfen: Apps → Talk → aktiviert</td>
+<td>Talk als aktiv gelistet</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Signaling-Server-Konfiguration prüfen: <code>occ talk:signaling:list</code></td>
+<td>Signaling-Server eingetragen</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>coturn-Service im Namespace prüfen: <code>kubectl get svc -n workspace | grep coturn</code></td>
+<td>coturn Service vorhanden</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>Vom Browser aus Nextcloud Talk öffnen und Sprach-/Videoraum anlegen</td>
+<td>Raum wird erstellt, Video-/Audiozugang möglich</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-10: Kundenanfragen-Kontaktformular</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft das Kontaktformular auf der Website sowie die Admin-Inbox für eingehende Kundenanfragen.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website-Pod im Namespace <code>website</code> läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Website-Deployment prüfen: <code>kubectl get deploy website -n website -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Website intern ansprechen: HTTP-Anfrage auf <code>http://localhost:4321/</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Kontaktformular-API prüfen: <code>GET /api/contact</code></td>
+<td>Endpunkt antwortet (kein 404)</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Admin-Inbox-API prüfen: <code>GET /api/admin/contact</code></td>
+<td>Endpunkt antwortet (401 ohne Auth oder 200)</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser <code>https://web.{DOMAIN}/kontakt</code> öffnen und Formular ausfüllen</td>
+<td>Formular wird angezeigt, Absenden erfolgreich</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-11: Kunden-Portal</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die Kunden-Portal-Infrastruktur: Bereitstellungsskript für Gast-Accounts, Keycloak-Realm und Domain-Konfiguration.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, Keycloak läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1a</td>
+<td>Vorhandensein von <code>scripts/create-customer-guest.sh</code> prüfen</td>
+<td>Datei existiert</td>
+</tr>
+<tr>
+<td>T1b</td>
+<td>Ausführbarkeit prüfen: <code>test -x scripts/create-customer-guest.sh</code></td>
+<td>Datei ist ausführbar</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Keycloak-Deployment prüfen: <code>kubectl get deploy keycloak -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>KEYCLOAK_ADMIN_PASSWORD im Secret prüfen: <code>kubectl get secret workspace-secrets -n workspace</code></td>
+<td>Secret enthält KEYCLOAK_ADMIN_PASSWORD</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>KC_DOMAIN in ConfigMap prüfen: <code>kubectl get configmap domain-config -n workspace -o jsonpath='{.data.KC_DOMAIN}'</code></td>
+<td>Wert enthält Domain</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser <code>https://web.{DOMAIN}/portal</code> öffnen (eingeloggt)</td>
+<td>Portal-Seite wird angezeigt</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-12: Claude Code AI Assistant (MCP-Infrastruktur)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die Model Context Protocol (MCP) Infrastruktur für den Claude Code AI Assistant, inklusive Core-, Apps- und Auth-Pods sowie ForwardAuth-Proxy.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> MCP-Stack deployed (<code>task mcp:deploy</code>), Keycloak läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>MCP-Core-Pod prüfen: <code>kubectl get deploy claude-code-mcp-core -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>MCP-Apps-Pod prüfen: <code>kubectl get deploy claude-code-mcp-apps -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>MCP-Auth-Pod prüfen: <code>kubectl get deploy claude-code-mcp-auth -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>ForwardAuth-Proxy prüfen: <code>kubectl get deploy mcp-auth-proxy -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Anfrage ohne Token an MCP-Auth-Proxy: <code>curl -i http://mcp-auth-proxy.workspace.svc/auth</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T6</td>
+<td><code>task mcp:status</code> ausführen</td>
+<td>Alle MCP-Container als <code>Running</code> gelistet</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-13: Dokumentations-Service</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den internen Dokumentations-Dienst (Docsify), der auf <code>docs.{DOMAIN}</code> erreichbar ist.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Docs-Deployment prüfen: <code>kubectl get deploy docs -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Docs-Service intern ansprechen: HTTP-Anfrage auf <code>http://docs.workspace.svc.cluster.local</code></td>
+<td>HTTP-Antwort (kein Timeout)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>DOCS_DOMAIN in ConfigMap prüfen: <code>kubectl get configmap domain-config -n workspace -o jsonpath='{.data.DOCS_DOMAIN}'</code></td>
+<td>Wert enthält Domain</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Im Browser <code>https://docs.{DOMAIN}</code> öffnen</td>
+<td>Docsify-Startseite wird geladen</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-14: User Registration Flow</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Benutzerregistrierungs-Flow auf der Website: Registrierungsseite erreichbar, Formularfelder vorhanden.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website-Pod läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Website-Deployment prüfen</td>
+<td>readyReplicas &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Registrierungsseite ansprechen: <code>GET /registrieren</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>HTML auf Formularfelder prüfen: Name, E-Mail, Passwort vorhanden</td>
+<td>Felder im HTML-Body gefunden</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Im Browser <code>https://web.{DOMAIN}/registrieren</code> öffnen</td>
+<td>Registrierungsformular wird angezeigt</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Registrierungsformular mit Testdaten ausfüllen und abschicken</td>
+<td>Bestätigungsmeldung oder Weiterleitung</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-15: OIDC Website Login</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Single-Sign-On-Login-Flow der Website via Keycloak OIDC.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website und Keycloak laufen, OIDC-Client konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Login-Endpunkt prüfen: <code>GET /api/auth/login</code> (ohne Redirect-Follow)</td>
+<td>HTTP 302 (Redirect zu Keycloak)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Me-Endpunkt prüfen: <code>GET /api/auth/me</code> (unauthentifiziert)</td>
+<td><code>authenticated: false</code> in JSON-Antwort</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Keycloak OIDC Discovery-Endpunkt prüfen: <code>GET /realms/workspace/.well-known/openid-configuration</code></td>
+<td>JSON mit OIDC-Metadaten, HTTP 200</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Im Browser <code>https://web.{DOMAIN}/portal</code> ohne Login öffnen</td>
+<td>Weiterleitung zu Keycloak-Loginseite</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Mit gültigen Credentials einloggen</td>
+<td>Weiterleitung zurück zum Portal, Login erfolgreich</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-16: Calendar Booking</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die Terminbuchungs-Funktionalität: Slots-API, Buchungs-API und CalDAV-Konfiguration.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website läuft, Nextcloud für CalDAV konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Slots-API ansprechen: <code>GET /api/calendar/slots</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Antwortformat prüfen</td>
+<td>JSON-Array (auch wenn leer)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Buchungs-API validiert Eingabe: <code>POST /api/calendar/book</code> mit leerem Body</td>
+<td>HTTP 400 (Validierungsfehler)</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>CalDAV-Konfiguration prüfen: CALDAV_URL in Website-ConfigMap vorhanden</td>
+<td>Konfiguration gesetzt</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser <code>/portal/termin-buchen</code> öffnen</td>
+<td>Terminbuchungs-Widget wird angezeigt</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-17: Meeting Lifecycle</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den vollständigen Meeting-Lebenszyklus: Erinnerungen, CronJob und Nextcloud Talk-Integration.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website und Nextcloud laufen, CronJobs deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Reminder-Endpunkt ansprechen: <code>POST /api/reminders/process</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>CronJob prüfen: <code>kubectl get cronjob meeting-reminders -n website</code></td>
+<td>CronJob definiert</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Nextcloud Talk-Endpunkt intern ansprechen</td>
+<td>HTTP 200 oder 401 (erreichbar)</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Im Browser ein Meeting anlegen und Erinnerung konfigurieren</td>
+<td>Meeting gespeichert, Erinnerung eingetragen</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-18: Meeting Transcription (Whisper)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Whisper-basierten Transkriptions-Dienst für Meeting-Aufzeichnungen.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, Whisper-Pod läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Whisper-Deployment prüfen: <code>kubectl get deploy whisper -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Whisper Health-Endpunkt: <code>GET http://localhost:8000/health</code> via Pod-Exec</td>
+<td>Antwort enthält "OK"</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Whisper-Version prüfen: <code>kubectl logs deploy/whisper -n workspace | grep faster-whisper</code></td>
+<td>faster-whisper in Logs sichtbar</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Transkriptions-Endpunkt mit Test-Audio-Datei aufrufen</td>
+<td>Transkript zurückgegeben</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-20: Meeting Finalization Pipeline</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Meeting-Abschluss-Workflow, der Transkripte zusammenführt und Ergebnisse verschickt.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Finalize-Endpunkt ohne Daten: <code>POST /api/meeting/finalize</code> mit leerem Body <code>{}</code></td>
+<td>HTTP 400 (Validierungsfehler)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Finalize-Endpunkt mit Mindestdaten: <code>POST /api/meeting/finalize</code> mit <code>{"customerName":"Test","customerEmail":"test@example.com"}</code></td>
+<td>HTTP 200, Antwort enthält <code>results</code>-Array</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Meeting in der Browser-UI abschließen</td>
+<td>Meeting als abgeschlossen markiert, Zusammenfassung sichtbar</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-21: Service Catalog</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die Leistungsübersicht (Service Catalog) auf der Website.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Leistungsseite ansprechen: <code>GET /leistungen</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Billing-API validiert Eingabe: <code>POST /api/billing/create-invoice</code> mit leerem Body</td>
+<td>HTTP 400 oder 401 (kein 500)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Im Browser <code>https://web.{DOMAIN}/leistungen</code> öffnen</td>
+<td>Leistungsübersicht wird angezeigt, keine Buchungs-Buttons (Stripe entfernt)</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-23: Vaultwarden Passwort-Manager</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Vaultwarden Passwort-Manager: Deployment, Health-Endpunkt, Datenbank und SSO-Konfiguration.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Vaultwarden-Pod prüfen: <code>kubectl get deploy vaultwarden -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Vaultwarden Health-Endpunkt: <code>GET http://vaultwarden:80/alive</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Datenbank prüfen: <code>psql -U postgres -c "SELECT 1 FROM pg_database WHERE datname='vaultwarden'"</code></td>
+<td>Gibt 1 zurück</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>SSO-Konfiguration prüfen: Env-Variable <code>SSO_ENABLED</code> im Deployment</td>
+<td>Wert <code>true</code></td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser <code>https://vault.{DOMAIN}</code> öffnen</td>
+<td>Vaultwarden-Login-Seite angezeigt; SSO-Login-Button vorhanden</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-24: Kollaboratives Whiteboard</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Nextcloud Whiteboard-Dienst: Deployment, Service-Port und Anbindung an Nextcloud.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Office-Stack deployed (<code>task workspace:office:deploy</code>)</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Whiteboard-Pod prüfen: <code>kubectl get deploy whiteboard -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Service-Port prüfen: <code>kubectl get svc whiteboard -n workspace -o jsonpath='{.spec.ports[0].port}'</code></td>
+<td>Port 3002</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Whiteboard-Startseite ansprechen: <code>GET http://whiteboard:3002/</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>NEXTCLOUD_URL-Konfiguration prüfen: Env-Variable im Deployment</td>
+<td>Enthält Nextcloud-URL</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>In Nextcloud eine <code>.whiteboard</code>-Datei anlegen und öffnen</td>
+<td>Whiteboard-Editor öffnet sich im Browser</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-25: Mailpit E-Mail-Server</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Mailpit SMTP-Relay-Dienst für ausgehende E-Mails und die Web-UI.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Mailpit-Pod prüfen: <code>kubectl get deploy mailpit -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Mailpit Web-UI ansprechen: <code>GET http://mailpit:8025/</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>SMTP-Port-Erreichbarkeit: <code>echo QUIT | nc -w 2 mailpit 1025 | head -1</code></td>
+<td>Antwort beginnt mit <code>220</code></td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Service-Ports prüfen: <code>kubectl get svc mailpit -n workspace -o jsonpath='{.spec.ports[*].port}'</code></td>
+<td>Ports 1025 und 8025 vorhanden</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser <code>https://mail.{DOMAIN}</code> öffnen</td>
+<td>Mailpit-Web-UI angezeigt</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>Über die Website eine Kontaktanfrage absenden</td>
+<td>E-Mail erscheint in Mailpit-Inbox</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-26: Bug Report Form</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft das Bug-Report-Formular auf der Website und den Admin-Inbox-Endpunkt.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website läuft, Bug-Kanal/Schema konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Website-Deployment prüfen</td>
+<td>readyReplicas &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Bug-Report-Endpunkt: <code>POST /api/bug-report</code> mit leerem Body</td>
+<td>HTTP 400 oder 422 (Validierungsfehler, kein 404)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Bugs-Kanal oder Anfragen-Kanal in DB prüfen: <code>SELECT COUNT(*) FROM messaging.rooms WHERE slug IN ('bugs','anfragen')</code></td>
+<td>Mindestens 1 Zeile</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>ConfigMap für Website auf Bug-Report-Env-Variable prüfen</td>
+<td>Variable gesetzt</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser Bug-Report-Formular öffnen und ausfüllen</td>
+<td>Formular abgesendet, Bestätigung angezeigt</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-27: Systemisches Brett (3D Multiplayer)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Systemisches-Brett-Dienst: Pod, REST API, Snapshot-CRUD und WebSocket-Synchronisation.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, Brett-Pod läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Brett-Pod prüfen: <code>kubectl get deploy brett -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Health-Endpunkt: <code>GET http://brett/healthz</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Statische Datei ausliefern: <code>GET http://brett/three.min.js</code></td>
+<td>HTTP 200, JavaScript-Datei</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Raumzustand abrufen: <code>GET http://brett/api/state?room=&lt;TESTROOM&gt;</code></td>
+<td>JSON <code>{figures: []}</code> (leerer Raum)</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Snapshot anlegen: <code>POST http://brett/api/snapshots</code> mit <code>{"name":"Test","room":"&lt;TESTROOM&gt;","figures":[]}</code></td>
+<td>HTTP 201, Snapshot-ID in Antwort</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>Snapshot abrufen: <code>GET http://brett/api/snapshots/&lt;ID&gt;</code></td>
+<td>JSON mit <code>name: "Test"</code></td>
+</tr>
+<tr>
+<td>T7</td>
+<td>Snapshot-Liste abrufen: <code>GET http://brett/api/snapshots?room=&lt;TESTROOM&gt;</code></td>
+<td>Angelegter Snapshot in Liste</td>
+</tr>
+<tr>
+<td>T8</td>
+<td>WebSocket-Verbindung: <code>ws://brett/sync</code> Upgrade</td>
+<td>Connection Upgrade erfolgreich (HTTP 101)</td>
+</tr>
+<tr>
+<td>T9</td>
+<td>Im Browser <code>https://brett.{DOMAIN}</code> öffnen und 3D-Brett laden</td>
+<td>3D-Ansicht wird gerendert</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-28: Website-Messaging (internes Chat-System)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft das in die Website integrierte Chat-System mit Direktnachrichten, Gruppenräumen und Portal-Nachrichten.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website läuft, PostgreSQL-Schema für Messaging vorhanden</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Website-Deployment prüfen</td>
+<td>readyReplicas &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Portal-Nachrichten-Endpunkt (unauthentifiziert): <code>GET /api/portal/messages</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Admin-Nachrichten-Endpunkt (unauthentifiziert): <code>GET /api/admin/messages</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Admin-Räume-Endpunkt (unauthentifiziert): <code>GET /api/admin/rooms</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Nachricht ohne Auth senden: <code>POST /api/portal/messages</code> mit leerem Body</td>
+<td>HTTP 400 oder 401</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>DB-Konfiguration prüfen: <code>SESSIONS_DATABASE_URL</code> in ConfigMap</td>
+<td>Variable konfiguriert</td>
+</tr>
+<tr>
+<td>T7</td>
+<td>Messaging-Tabellen in DB prüfen: <code>SELECT table_name FROM information_schema.tables WHERE table_schema = 'messaging'</code></td>
+<td>Tabellen <code>messages</code>, <code>rooms</code>, <code>room_members</code> vorhanden</td>
+</tr>
+<tr>
+<td>T8</td>
+<td>Im Browser als eingeloggter Nutzer Chat öffnen und Nachricht schicken</td>
+<td>Nachricht wird gesendet und empfangen</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-30: E-Rechnung / XRechnung (einvoice-sidecar)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den einvoice-sidecar-Service zum Einbetten von XRechnung-/ZUGFeRD-XML in PDF/A-3-Dokumente.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> einvoice-sidecar deployed, Test-Fixtures vorhanden (<code>website/test/fixtures/einvoice/</code>)</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Service erreichbar: <code>kubectl -n workspace get svc einvoice-sidecar</code></td>
+<td>Service mit ClusterIP vorhanden</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>/embed-Endpunkt: <code>POST http://einvoice-sidecar/embed</code> mit Base64-kodiertem PDF und XRechnung-XML</td>
+<td>Gibt PDF/A-3 zurück, enthält <code>factur-x.xml</code>-Anhang</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>/validate-Endpunkt: <code>POST http://einvoice-sidecar/validate</code> mit dem erzeugten PDF</td>
+<td>Gibt <code>{"ok": true}</code> zurück</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Erzeugtes PDF im Browser öffnen</td>
+<td>PDF öffnet sich, Anhang <code>factur-x.xml</code> vorhanden</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-31: Admin-Monitoring Auth-Gate (Produktionstest)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass das Admin-Monitoring-Dashboard unter <code>/admin/monitoring</code> durch Keycloak OIDC geschützt ist. Nur im Produktions-Tier (mentolder/korczewski) durchführbar.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Produktionscluster läuft, <code>PROD_DOMAIN</code> gesetzt</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>URL ansprechen: <code>curl -sk -o /dev/null -w '%{http_code}' https://web.{DOMAIN}/admin/monitoring</code></td>
+<td>HTTP 200, 301, 302 oder 307 (erreichbar)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Unauthentifizierte Anfrage: Redirect-URL prüfen</td>
+<td>Redirect zu <code>auth.{DOMAIN}/realms/workspace</code></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Im Browser <code>/admin/monitoring</code> ohne Login öffnen</td>
+<td>Weiterleitung zur Keycloak-Loginseite</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Als Admin einloggen und auf <code>/admin/monitoring</code> zugreifen</td>
+<td>Dashboard wird angezeigt</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein Produktionscluster)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-32: LLM-Router bge-m3 Embeddings</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass der LLM-Router 1024-dimensionale bge-m3-Vektoren liefert, wenn der TEI-Dienst aktiv ist.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> llm-router deployed (<code>prod/</code> Overlay), TEI-Dienst (llm-gateway-embed) erreichbar</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>llm-router-Pod prüfen: <code>kubectl get deploy llm-router -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert 1</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Embedding-Anfrage: <code>POST http://localhost:4000/v1/embeddings</code> mit <code>{"model":"bge-m3","input":"test"}</code></td>
+<td>Gibt 1024-dimensionalen Vektor zurück</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Vektor-Dimension prüfen: <code>jq '.data[0].embedding | length'</code> auf Antwort</td>
+<td>Wert 1024</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-33: LLM-Router voyage-multilingual-2</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass voyage-multilingual-2-Embeddings über den LLM-Router verfügbar sind, unabhängig vom TEI-Status.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> llm-router deployed, Voyage-API-Key konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Embedding-Anfrage: <code>POST http://localhost:4000/v1/embeddings</code> mit <code>{"model":"voyage-multilingual-2","input":"capital of germany"}</code></td>
+<td>Gibt 1024-dimensionalen Voyage-Vektor zurück</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Funktionalität auch bei deaktiviertem TEI prüfen</td>
+<td>Voyage-Vektor wird trotzdem geliefert</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-34: LLM-Router strict-fail (kein silent fallback)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass der LLM-Router bei deaktiviertem TEI und Modell <code>bge-m3</code> einen 5xx-Fehler zurückgibt — kein stiller Fallback auf Voyage.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> llm-router deployed, Simulierter TEI-Ausfall möglich</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>TEI-Service (llm-gateway-embed Endpoints) deaktivieren/leer setzen</td>
+<td>Endpoints leer</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>bge-m3-Embedding-Anfrage mit <code>purpose: index</code> senden</td>
+<td>HTTP 5xx (kein 200, kein Voyage-Fallback)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>TEI-Endpoints wiederherstellen</td>
+<td>Endpoints wieder vorhanden</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-35: LLM MixedEmbeddingModelError</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass gemischte Embedding-Modell-Collections (bge-m3 + voyage in einer Abfrage) explizit abgelehnt werden.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website läuft, <code>queryNearest</code>-Funktion im Website-Code</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td><code>MixedEmbeddingModelError</code>-Klasse im Website-Code prüfen</td>
+<td>Klasse exportiert und benannt</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Gemischte Multi-Collection-Abfrage (bge-m3 + voyage) ausführen</td>
+<td>Fehler <code>MixedEmbeddingModelError</code> wird geworfen</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-36: Rerank-Endpunkt</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Reranking-Endpunkt des LLM-Routers: sortierte Ergebnisse, korrektes Top-1-Dokument.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> llm-router deployed, Rerank-Modell konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Rerank-Anfrage: <code>POST http://localhost:4000/v1/rerank</code> mit Query <code>"capital of germany"</code> und Dokumenten <code>["paris","berlin","hamburg","munich"]</code></td>
+<td><code>berlin</code> auf Position 0 (Index 1)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Sortierung prüfen: <code>jq '.results[0].index'</code></td>
+<td>Wert 1 (<code>berlin</code>)</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-37: workspace-chat Roundtrip</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den vollständigen Chat-Roundtrip über den LLM-Router mit einem 200-Token-Deutschen Prompt.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> llm-router deployed, Ollama mit Chat-Modell aktiv</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Chat-Anfrage (max. 90s Timeout): <code>POST http://localhost:4000/v1/chat/completions</code> mit Prompt <code>"Beschreibe die Stadt Hamburg in zwei Sätzen."</code></td>
+<td>Nicht-leere Antwort &gt; 30 Zeichen</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Antwortinhalt prüfen: <code>jq '.choices[0].message.content'</code></td>
+<td>Sinnvoller deutscher Text</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein LLM-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-39: Arena DB-Schema und Service-Health</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Arena-Server: Pod-Status, Health-Endpunkt und Datenbank-Schema-Bootstrap.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Arena-Server deployed (korczewski), PostgreSQL mit Arena-Schema</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Arena-Server-Pod prüfen: <code>kubectl get deploy arena-server -n workspace -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Health-Endpunkt: <code>GET /healthz</code> via Pod-Exec</td>
+<td><code>{"ok": true}</code></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Arena-Datenbank-Schema prüfen: <code>psql arena -c '\dt arena.*'</code></td>
+<td>Tabellen <code>arena.lobbies</code>, <code>arena.players</code> vorhanden</td>
+</tr>
+<tr>
+<td>T4</td>
+<td><code>task arena:status ENV=korczewski</code> ausführen</td>
+<td>Status: Running</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>FA-40: Arena Spectator-join Smoke</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass ein Spectator dem Arena-Server beitreten kann und das Protokoll valide ist.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Arena-Server läuft, WebSocket-Client verfügbar</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Arena-Server-Pod prüfen</td>
+<td>readyReplicas &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>WebSocket-Verbindung aufbauen und <code>{"type":"spectator:join","lobbyId":"smoke-test"}</code> senden</td>
+<td>Server antwortet mit gültigem Protokoll-Paket</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Verbindung ohne Fehler schließen</td>
+<td>WebSocket trennt sauber</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h1>Abschnitt 2: Sicherheitstests (SA)</h1>
+<hr>
+<h3>SA-01: Transportverschlüsselung</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft Ingress-Routing, Security-Header und TLS-Readiness. Vollständige TLS-Tests laufen im Produktions-Tier.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, Ingress konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Ingress für alle Services prüfen: <code>kubectl get ingress -n workspace</code></td>
+<td>Ingress für <code>auth</code>, <code>files</code>, <code>vault</code>, <code>board</code>, <code>meet</code> vorhanden</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Services intern erreichbar (via Ingress oder Port-Forward)</td>
+<td>HTTP 200, 302 oder 303</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Security-Header prüfen (Produktion): <code>curl -I https://web.{DOMAIN}</code></td>
+<td><code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>, <code>Content-Security-Policy</code> gesetzt</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>TLS-Zertifikat im Produktionscluster prüfen: <code>kubectl get cert -n workspace</code></td>
+<td>Zertifikat im Status <code>Ready</code></td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser <code>https://web.{DOMAIN}</code> öffnen</td>
+<td>Grünes Schloss (gültiges TLS-Zertifikat)</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-02: Authentifizierung</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den Authentifizierungs-Mechanismus: falsches Passwort abgelehnt, OTP-Policy konfiguriert, Brute-Force-Schutz aktiv.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Keycloak läuft, Workspace-Realm konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Login mit falschem Passwort: <code>POST /realms/workspace/protocol/openid-connect/token</code> mit <code>password=wrongpassword</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>OTP-Policy prüfen: Keycloak Admin API → <code>GET /admin/realms/workspace</code></td>
+<td><code>otpPolicyType</code> ist konfiguriert</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Brute-Force-Schutz prüfen: <code>GET /admin/realms/workspace</code> → <code>bruteForceProtected</code></td>
+<td>Wert <code>true</code></td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Im Browser mit falschem Passwort anmelden (5× wiederholen)</td>
+<td>Konto wird temporär gesperrt</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-03: Passwörter (Hash, Policy, kein Klartext)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass Passwörter gehasht gespeichert werden, eine Policy konfiguriert ist und kein Klartext in Logs auftaucht.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Keycloak läuft, Testbenutzer vorhanden</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Passwort-Hash in Keycloak-DB prüfen: <code>psql keycloak -tAc "SELECT value FROM credential WHERE type='password' LIMIT 1"</code></td>
+<td>Hash-Wert vorhanden (Länge &gt; 0)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Passwort-Policy prüfen: Keycloak Admin API → <code>GET /admin/realms/workspace</code></td>
+<td><code>passwordPolicy</code> enthält <code>length</code> und <code>specialChars</code> oder äquivalente Richtlinien</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Keycloak-Logs auf Klartext-Passwörter prüfen: <code>kubectl logs deploy/keycloak -n workspace | grep -i "password="</code></td>
+<td>Keine Klartext-Passwörter in Logs</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-04: Session-Timeout</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass Session-Timeouts konfiguriert und DSGVO-konform eingestellt sind.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Keycloak läuft, Admin-Token verfügbar</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1a</td>
+<td>SSO Idle Timeout prüfen: <code>GET /admin/realms/workspace</code> → <code>ssoSessionIdleTimeout</code></td>
+<td>Wert ≤ 1800 Sekunden (30 Minuten)</td>
+</tr>
+<tr>
+<td>T1b</td>
+<td>SSO Idle Timeout positiv prüfen</td>
+<td>Wert &gt; 0 (konfiguriert)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Access Token Lifespan prüfen: <code>accessTokenLifespan</code></td>
+<td>Wert ≤ 3600 Sekunden (60 Minuten)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>In der Browser-Session 30 Minuten inaktiv bleiben</td>
+<td>Session läuft ab, Weiterleitung zum Login</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-05: Audit-Log</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass Login-Events und Admin-Aktionen in Keycloak protokolliert werden.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Keycloak läuft, Admin-Token verfügbar, mindestens ein Login-Versuch erfolgt</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Login-Event auslösen: Einmalig mit Test-Credentials einloggen</td>
+<td></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Login-Events abrufen: <code>GET /admin/realms/workspace/events?type=LOGIN</code></td>
+<td>Mindestens 1 Event vom Typ <code>LOGIN</code></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Admin-Aktionen protokolliert: <code>GET /admin/realms/workspace/admin-events</code></td>
+<td>Mindestens 1 Admin-Event vorhanden</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>In Keycloak Admin UI unter <code>Events → Login Events</code> nachschauen</td>
+<td>Login-Events sichtbar und filterbar</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-07: Backup (pg_dump, PVCs)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass Datenbankbackups und persistente Datenvolumina korrekt konfiguriert sind.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, PostgreSQL läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>pg_dump für Keycloak-DB: <code>kubectl exec deploy/shared-db -- pg_dump -U postgres --schema-only keycloak | head -5</code></td>
+<td>Ausgabe beginnt mit <code>-- PostgreSQL database dump</code></td>
+</tr>
+<tr>
+<td>T2a</td>
+<td>pg_dump für alle Datenbanken: keycloak dumpbar</td>
+<td>pg_dump erfolgreich</td>
+</tr>
+<tr>
+<td>T2b</td>
+<td>pg_dump für nextcloud dumpbar</td>
+<td>pg_dump erfolgreich</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>PVCs prüfen: <code>kubectl get pvc -n workspace</code></td>
+<td>Alle PVCs im Status <code>Bound</code></td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Backup triggern: <code>task workspace:backup</code></td>
+<td>Backup-Dateien werden erzeugt</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Backup-Liste anzeigen: <code>task workspace:backup:list</code></td>
+<td>Mindestens 1 Timestamp vorhanden</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-08: SSO-Integration (Keycloak OIDC)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die OIDC-Anbindung von Nextcloud und Nextcloud Talk an Keycloak.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Keycloak und Nextcloud laufen, OIDC-Plugin in Nextcloud aktiv</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Keycloak OIDC Discovery: <code>GET /realms/workspace/.well-known/openid-configuration</code></td>
+<td>JSON mit <code>authorization_endpoint</code>, <code>token_endpoint</code></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Nextcloud OIDC-App aktiv: <code>occ app:list | grep sso</code></td>
+<td><code>user_oidc</code> in der Liste</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Nextcloud OIDC-Provider konfiguriert: <code>occ user_oidc:provider:list</code></td>
+<td>Keycloak-Provider eingetragen</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Nextcloud Talk OIDC: Signaling-Secret konfiguriert</td>
+<td>Secret in Nextcloud Talk-Config</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Im Browser Nextcloud über SSO-Login öffnen</td>
+<td>Login via Keycloak funktioniert</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-10: MCP-Endpunkt-Absicherung (ForwardAuth)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass der MCP-ForwardAuth-Proxy Token-Validierung korrekt durchsetzt.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> MCP-Stack deployed, ForwardAuth-Proxy läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>ForwardAuth-Proxy-Pod prüfen</td>
+<td>readyReplicas &gt; 0</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Anfrage ohne Authorization-Header: <code>GET http://mcp-auth-proxy/auth</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Anfrage mit ungültigem Token: <code>GET http://mcp-auth-proxy/auth</code> mit <code>Authorization: Bearer invalid</code></td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Anfrage mit gültigem Token (via Keycloak erhalten): <code>GET http://mcp-auth-proxy/auth</code> mit gültigem Bearer-Token</td>
+<td>HTTP 200</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-11: Arena non-admin 403</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass ein nicht-Administrator-Benutzer keinen Zugriff auf administrative Arena-Endpunkte erhält.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Arena-Server läuft, Keycloak mit Testbenutzer ohne Admin-Rolle, <code>ARENA_WS_URL</code> gesetzt</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Token für Nicht-Admin-Benutzer bei Keycloak holen: <code>POST /realms/workspace/token</code> mit <code>client_id=arena</code></td>
+<td>JWT-Token erhalten</td>
+</tr>
+<tr>
+<td>T2</td>
+<td><code>POST {ARENA_WS_URL}/lobby/open</code> mit dem Nicht-Admin-Token</td>
+<td>HTTP 403</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-12: Korczewski-Realm JWT-Akzeptanz</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass ein JWT aus dem korczewski-Keycloak-Realm vom Arena-Server (korczewski-Cluster) akzeptiert wird.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Arena-Server auf korczewski deployed, Keycloak korczewski erreichbar, <code>ARENA_WS_URL</code> und <code>KEYCLOAK_KORCZEWSKI</code> gesetzt</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Token von korczewski Keycloak holen: <code>POST https://auth.korczewski.de/realms/workspace/protocol/openid-connect/token</code></td>
+<td>JWT-Token erhalten</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Anfrage mit korczewski-Token an Arena-Server</td>
+<td>HTTP 200 (Token akzeptiert)</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein korczewski-Cluster)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>SA-13: Untrusted JWT abgelehnt</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass ein JWT, das mit einem unbekannten/gefälschten Schlüssel signiert wurde, vom Arena-Server mit 401 abgelehnt wird.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Arena-Server läuft, Python mit <code>jwt</code>/<code>cryptography</code> verfügbar</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Selbst-signiertes JWT mit unbekanntem RSA-Key und <code>iss: https://untrusted.example.com</code> erzeugen</td>
+<td>JWT erzeugt</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Anfrage mit gefälschtem JWT an Arena-Server: <code>POST {ARENA_WS_URL}/lobby/open</code></td>
+<td>HTTP 401 (Token abgelehnt)</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h1>Abschnitt 3: Nicht-funktionale Tests (NFA)</h1>
+<hr>
+<h3>NFA-01: Datenschutz / DSGVO</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft DSGVO-Konformität: keine US-Cloud-Images, keine externen Storage-Backends in Nextcloud, Telemetrie deaktiviert.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Container-Images prüfen: <code>kubectl get pods -n workspace -o jsonpath='{.items[*].spec.containers[*].image}'</code></td>
+<td>Keine Images von <code>gcr.io</code>, <code>amazonaws.com</code>, <code>azurecr.io</code>, <code>mcr.microsoft.com</code></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Nextcloud externe Storage-Backends prüfen: <code>occ config:list | grep -E "amazons3|azure"</code></td>
+<td>Keine externen Storage-Backends</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Nextcloud Telemetrie prüfen: <code>occ config:system:get has_internet_connection</code></td>
+<td>Wert <code>false</code> oder nicht gesetzt</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>DSGVO-Check ausführen: <code>task workspace:dsgvo-check</code></td>
+<td>Alle Checks bestanden</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-02: Performance / Antwortzeiten</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft Antwortzeiten der wichtigsten Dienste. Schwellenwerte: API &lt; 3 s (k3d), &lt; 1 s (Produktion); Seitenaufbau &lt; 5 s.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed und stabil</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1a</td>
+<td>Keycloak Health-Antwortzeit messen: <code>time curl -s {KC_URL}/health/ready</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T1b</td>
+<td>Keycloak Antwortzeit</td>
+<td>&lt; 3000 ms (k3d) / &lt; 1000 ms (Prod)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Vaultwarden Antwortzeit: <code>time curl -s http://vaultwarden/alive</code></td>
+<td>&lt; 3000 ms</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Website Ladezeit: <code>time curl -s http://web.localhost/</code></td>
+<td>&lt; 5000 ms</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Core Web Vitals im Browser messen (Chrome DevTools → Lighthouse)</td>
+<td>LCP &lt; 2,5 s; FID &lt; 100 ms</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-03: Verfügbarkeit und Neustart-Resilienz</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft automatischen Neustart nach Pod-Terminierung und Datenpersistenz.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Vaultwarden-Pod hart beenden: <code>kubectl delete pod -n workspace -l app=vaultwarden --force --grace-period=0</code></td>
+<td>Pod wird gelöscht</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>10 Sekunden warten, dann Deployment prüfen: <code>kubectl get deploy vaultwarden -n workspace</code></td>
+<td><code>readyReplicas</code> = 1 (automatisch neugestartet)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Vaultwarden nach Neustart erreichbar: <code>GET http://vaultwarden/alive</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Daten prüfen: Zuvor angelegte Einträge in Vaultwarden noch vorhanden</td>
+<td>Daten persistent (PVC)</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Health-Endpunkte aller Services prüfen: <code>kubectl get pods -n workspace</code></td>
+<td>Alle Pods im Status <code>Running</code></td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-04: Skalierbarkeit</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft horizontale Skalierung von Deployments und Rolling-Update-Strategie.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Vaultwarden auf 2 Replicas skalieren: <code>kubectl scale deploy/vaultwarden -n workspace --replicas=2</code></td>
+<td>Skalierung startet</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Rollout-Status abwarten: <code>kubectl rollout status deploy/vaultwarden -n workspace</code></td>
+<td><code>readyReplicas</code> = 2</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Service nach Skalierung erreichbar: <code>GET http://vaultwarden/alive</code></td>
+<td>HTTP 200</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Replica auf 1 zurücksetzen: <code>kubectl scale deploy/vaultwarden -n workspace --replicas=1</code></td>
+<td>Zurückgesetzt</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Rolling-Update-Strategie prüfen: <code>kubectl get deploy -n workspace -o jsonpath='{.items[*].spec.strategy.type}'</code></td>
+<td>Alle Deployments mit <code>RollingUpdate</code></td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-05: Usability / Deutsche Lokalisierung</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft die Benutzerfreundlichkeit: deutsche Standardsprache, Barrierefreiheit, Ladezeiten.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed, Nextcloud konfiguriert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Nextcloud Standard-Sprache prüfen: <code>kubectl exec deploy/nextcloud -- occ config:system:get default_language</code></td>
+<td>Wert <code>de</code></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Website-Ladezeit unter 5 s: <code>time curl -s http://web.localhost/</code></td>
+<td>HTTP 200, &lt; 5000 ms</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Nextcloud-Oberfläche auf Deutsch: Im Browser <code>https://files.{DOMAIN}</code> öffnen</td>
+<td>Menüs und Schaltflächen auf Deutsch</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Mobile Darstellung prüfen: Browser-DevTools → Responsive Mode (375 px)</td>
+<td>Seite ist mobil nutzbar, keine horizontale Scroll-Bar</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Tastaturnavigation prüfen: Tab-Taste durch interaktive Elemente navigieren</td>
+<td>Fokus-Indikator sichtbar, logische Reihenfolge</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-06: Website Neustart-Resilienz</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass der Website-Service nach einem Rollout-Neustart wieder erreichbar ist.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Website-Pod läuft</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Website-Deployment neu starten: <code>kubectl rollout restart deploy/website -n website</code></td>
+<td>Antwort enthält "restarted"</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Rollout abwarten: <code>kubectl rollout status deploy/website -n website --timeout=60s</code></td>
+<td>Rollout abgeschlossen</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Website nach Neustart erreichbar: <code>kubectl get deploy website -n website -o jsonpath='{.status.readyReplicas}'</code></td>
+<td>readyReplicas &gt; 0</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Website-Logs verfügbar: <code>kubectl logs deploy/website -n website --tail=10</code></td>
+<td>Logs werden ausgegeben</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-07: Open-Source-Lizenz</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass alle verwendeten Komponenten unter anerkannten Open-Source-Lizenzen stehen.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Workspace-Stack deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1a</td>
+<td>Keycloak-Image vorhanden: <code>kubectl get pods -n workspace -o jsonpath='{.items[*].spec.containers[*].image}' | tr ' ' '\n' | grep keycloak</code></td>
+<td>keycloak-Image gelistet</td>
+</tr>
+<tr>
+<td>T1b</td>
+<td>Nextcloud-Image vorhanden</td>
+<td>nextcloud-Image gelistet</td>
+</tr>
+<tr>
+<td>T1c</td>
+<td>PostgreSQL-Image vorhanden</td>
+<td>postgres-Image gelistet</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Keine proprietären Images: <code>| grep -E "microsoft|google|amazon|zoom|slack"</code></td>
+<td>Keine Treffer</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Lizenzdatei im Repo prüfen: <code>cat LICENSE</code></td>
+<td>Anerkannte Open-Source-Lizenz (MIT / Apache 2.0 / GPL)</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-08: Produktions-Deployment (Hetzner/k3s)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass die Produktions-Infrastruktur (Overlays, Patches, cert-manager) vollständig vorhanden ist.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Repository geklont</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>prod/-Verzeichnis prüfen: <code>test -d prod &amp;&amp; echo exists</code></td>
+<td>Ausgabe: <code>exists</code></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>YAML-Dateien in prod/ prüfen: <code>find prod -name '*.yaml' | wc -l</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>cert-manager Tasks prüfen: <code>grep cert: Taskfile.yml</code></td>
+<td>cert-manager Targets vorhanden</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Manifest-Validierung: <code>task workspace:validate</code></td>
+<td>Keine Fehler</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Auf Produktionscluster deployen: <code>task workspace:deploy ENV=mentolder</code></td>
+<td>Deploy erfolgreich</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-09: Statisches DNS (kein DDNS)</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass statische IPs verwendet werden, kein DDNS-CronJob benötigt wird und das Wildcard-TLS-Zertifikat korrekt konfiguriert ist.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Produktionsinframerkmal</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Kein DDNS-Updater-Manifest: <code>test -f prod/ddns-updater.yaml &amp;&amp; echo exists || echo missing</code></td>
+<td>Ausgabe: <code>missing</code></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Wildcard-Zertifikat-Manifest: <code>test -f prod/wildcard-certificate.yaml &amp;&amp; echo exists</code></td>
+<td>Ausgabe: <code>exists</code></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>ClusterIssuer nutzt ipv64: <code>grep -c ipv64 prod/cluster-issuer.yaml</code></td>
+<td>Wert &gt; 0</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>TLS-Zertifikat im Produktionscluster: <code>kubectl get cert -n workspace</code></td>
+<td>Zertifikat im Status <code>Ready</code></td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-10: Arena Health-Endpoint Performance</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass der Arena-Server-Health-Endpunkt unter Last performant antwortet (p95 &lt; 200 ms über 50 Requests).</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Arena-Server läuft, <code>ARENA_WS_URL</code> gesetzt</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>50 sequenzielle Requests an <code>/healthz</code> senden und Zeiten messen</td>
+<td>Alle Requests erfolgreich (HTTP 200)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>p95 der Antwortzeiten berechnen</td>
+<td>p95 &lt; 200 ms</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-11: GPU-VRAM nach Modell-Rotation</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass nach sequenziellem Laden aller 4 Ollama-Modelle der GPU-VRAM unter 14 GB bleibt und TEI-Dienste weiterhin antworten.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> GPU-Host über WireGuard erreichbar (<code>LLM_HOST_IP</code>), Ollama aktiv, SSH-Key vorhanden</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Alle 4 Modelle sequenziell laden: <code>qwen2.5:14b</code>, <code>qwen2.5-coder:14b</code>, <code>qwen2.5vl:7b</code>, <code>llama3.2:3b</code></td>
+<td>Jedes Modell antwortet</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>VRAM-Nutzung prüfen: <code>nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits</code></td>
+<td>Wert &lt; 14336 MiB (14 GB)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>TEI-Dienste prüfen: <code>GET http://{LLM_HOST_IP}:8081/health</code></td>
+<td>HTTP 200</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein GPU-Host)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>NFA-12: Brainstorm-Tunnel ConfigMap-Persistenz</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass die <code>brainstorm-sish-authorized-keys</code> ConfigMap Flux-Reconciliation überlebt und der Tunnel nach Pod-Neustart authentifiziert.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Brainstorm-sish deployed (mentolder), SSH-Key in ConfigMap eingetragen</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>ConfigMap vor Flux-Reconciliation prüfen: <code>kubectl get cm brainstorm-sish-authorized-keys -n workspace</code></td>
+<td>ConfigMap vorhanden</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Flux-Reconciliation auslösen: <code>flux reconcile kustomization workspace</code></td>
+<td>Reconciliation abgeschlossen</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>ConfigMap nach Reconciliation prüfen</td>
+<td>ConfigMap noch vorhanden (nicht überschrieben)</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>sish-Pod neu starten</td>
+<td>Pod startet neu</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>SSH-Tunnel nach Neustart aufbauen: <code>task brainstorm:publish -- &lt;localport&gt;</code></td>
+<td>Tunnel funktioniert, Authentifizierung erfolgreich</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (Brainstorm nicht deployed)</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h1>Abschnitt 4: Abnahmetests (AK)</h1>
+<hr>
+<h3>AK-03: Technische Machbarkeit</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft, dass die Plattform grundsätzlich funktioniert: Pods laufen, stabile Image-Tags werden verwendet.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> k3d-Cluster läuft, Workspace deployed</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Laufende Pods zählen: <code>kubectl get pods -n workspace --no-headers | grep -c Running</code></td>
+<td>Mindestens 1 Pod im Status <code>Running</code></td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Image-Tags prüfen: <code>kubectl get pods -n workspace -o jsonpath='{.items[*].spec.containers[*].image}' | tr ' ' '\n'</code></td>
+<td>Keine <code>:latest</code>-Tags (außer curlimages/curl)</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Alle Core-Services erreichbar: Keycloak, Nextcloud, Vaultwarden</td>
+<td>Alle antworten mit HTTP 200/302</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Cluster-Status: <code>task workspace:status</code></td>
+<td>Alle Pods <code>Ready</code></td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h3>AK-04: Prototyp-Betrieb</h3>
+<blockquote>
+<p><strong>Beschreibung:</strong> Prüft den vollständigen Prototyp-Betrieb: Setup-Skript, keine proprietären Abhängigkeiten.</p>
+</blockquote>
+<p><strong>Vorbedingungen:</strong> Repository geklont, Docker und k3d installiert</p>
+<table>
+<thead>
+<tr>
+<th>Schritt</th>
+<th>Aktion</th>
+<th>Erwartetes Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>Voraussetzungen prüfen: <code>docker --version &amp;&amp; k3d version &amp;&amp; kubectl version --client</code></td>
+<td>Alle Tools vorhanden</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Setup-Skript testen: <code>scripts/setup.sh --check</code></td>
+<td>Prüfung besteht ohne Fehler</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Keine proprietären Images: <code>kubectl get pods -n workspace -o ... | grep -E "microsoft|google|amazon|zoom|slack"</code></td>
+<td>Keine Treffer</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Vollständiger Setup von null: <code>task workspace:up</code> auf frischem Cluster</td>
+<td>Alle Services starten erfolgreich</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>DSGVO-Compliance-Check: <code>task workspace:dsgvo-check</code></td>
+<td>Alle Checks bestanden</td>
+</tr>
+</tbody></table>
+<p><strong>Befund:</strong></p>
+<p>Tatsächliches Ergebnis: ______________________________________________________________________________________________</p>
+<p>Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen</p>
+<p>Bemerkungen: ______________________________________________________________________________________________</p>
+<hr>
+<h1>Abschnitt 5: Gesamtergebnis</h1>
+<h2 id="ergebnisuebersicht">Ergebnisübersicht</h2>
+<table>
+<thead>
+<tr>
+<th>Kategorie</th>
+<th>Gesamt</th>
+<th>Bestanden</th>
+<th>Fehlgeschlagen</th>
+<th>Übersprungen</th>
+<th>Entfällt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Funktionale Tests (FA)</td>
+<td>27</td>
+<td></td>
+<td></td>
+<td></td>
+<td>8</td>
+</tr>
+<tr>
+<td>Sicherheitstests (SA)</td>
+<td>11</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Nicht-funktionale Tests (NFA)</td>
+<td>12</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Abnahmetests (AK)</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Gesamt</strong></td>
+<td><strong>52</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>8</strong></td>
+</tr>
+</tbody></table>
+<h2 id="abschlussbewertung">Abschlussbewertung</h2>
+<p><strong>Gesamtstatus:</strong></p>
+<p>☐ Alle Tests bestanden — Plattform freigegeben<br>☐ Einzelne Tests fehlgeschlagen — Nachbesserung erforderlich (siehe Bemerkungen)<br>☐ Kritische Tests fehlgeschlagen — Abnahme verweigert</p>
+<p><strong>Kritische Abweichungen / offene Punkte:</strong></p>
+<hr>
+<hr>
+<hr>
+<h2 id="unterschriften">Unterschriften</h2>
+<table>
+<thead>
+<tr>
+<th>Rolle</th>
+<th>Name</th>
+<th>Datum</th>
+<th>Unterschrift</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tester</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Betreuer / Prüfer</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Entwickler</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>Dieses Dokument wurde automatisch aus den Test-Skripten in <code>tests/local/</code> und <code>tests/prod/</code> generiert.</em><br><em>Testrahmen-Version: Bachelorprojekt Workspace · Mai 2026</em></p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -3,31 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MCP-Aktionen Referenz — Workspace MVP</title>
-<link rel="stylesheet" href="./skills/style.css">
+<title>🤖 MCP Actions — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="./index.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Übersicht
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">mcp-actions</span>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-blue">Claude Code</span>
-    <span class="badge badge-blue">MCP Server</span>
-    <span class="badge-slug">mcp-actions</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-  <h1 class="hero-title">🤖 MCP Actions</h1>
-  <p class="hero-subtitle">Referenz aller Aktionen, die Claude Code über die verbundenen MCP-Server ausführen kann: Kubernetes, Postgres, Browser, GitHub.</p>
-  <div class="trigger-chip"><span class="label">Claude Code · MCP</span></div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">🤖 MCP Actions</span></nav>
+    <h1>🤖 MCP Actions</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+
 <div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#playwright-browser-mcp-browser"><span class="toc-num">1.</span>&nbsp;Playwright Browser (mcp-browser)</a></li>
@@ -516,8 +517,11 @@ Verwendet SSE-Transport (nicht streamable-HTTP). Erfordert ein gueltiges Keycloa
 </tr>
 </tbody></table>
 
-</main>
 
+</article>
+
+  </main>
+</div>
 <script src="./app.js"></script>
 </body>
 </html>

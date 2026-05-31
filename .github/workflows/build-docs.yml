@@ -29,7 +29,7 @@ jobs:
       - name: Install root deps and build docs
         run: |
           npm install
-          node scripts/build-docs.js
+          node scripts/build-docs.mjs
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3

@@ -1,41 +1,49 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dev-flow-iterate — dev-flow-iterate — Dev Cluster Full-Loop Iteration</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>dev-flow-iterate — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="../skills-overview.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Alle Skills
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">dev-flow-iterate</span>
-  <div class="topnav-right">
-    <span class="badge badge-purple">Ops</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-purple">Ops</span>
-    <span class="badge-slug">dev-flow-iterate</span>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-iterate</span></nav>
+    <h1>dev-flow-iterate</h1>
+    <p class="page-desc">Use when iterating on a dev k3d cluster (mentolder or korczewski) — deploys a surface, browses with Playwright MCP, tails pod logs, synthesizes issues, applies fixes, and loops until clean or user stops. Invoke standalone any time, or automatically from dev-flow-execute Step 4. Triggers on: &quot;iterate on dev&quot;, &quot;check dev cluster&quot;, &quot;test on dev&quot;, &quot;preview on dev&quot;, &quot;dev loop&quot;.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
   </div>
-  <h1 class="hero-title">dev-flow-iterate — Dev Cluster Full-Loop Iteration</h1>
-  <p class="hero-subtitle">Use when iterating on a dev k3d cluster (mentolder or korczewski) — deploys a surface, browses with Playwright MCP, tails pod logs, synthesizes issues, applies fixes, and loops until clean or user stops. Invoke standalone any time, or automatically from dev-flow-execute Step 4. Triggers on: "iterate on dev", "check dev cluster", "test on dev", "preview on dev", "dev loop".</p>
 </header>
 
-<main class="content">
-<h1>dev-flow-iterate — Dev Cluster Full-Loop Iteration</h1>
-<h2>Wann diese Skill greift</h2>
+<article class="doc-body">
+<html><head></head><body><h1>dev-flow-iterate — Dev Cluster Full-Loop Iteration</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
+<li class="toc-item"><a href="#eingabe-parameter"><span class="toc-num">2.</span> Eingabe-Parameter</a></li>
+<li class="toc-item"><a href="#schritt-0-cluster-erreichbarkeit-pruefen"><span class="toc-num">3.</span> Schritt 0: Cluster-Erreichbarkeit prüfen</a></li>
+<li class="toc-item"><a href="#schritt-1-surface-ermitteln"><span class="toc-num">4.</span> Schritt 1: Surface ermitteln</a></li>
+<li class="toc-item"><a href="#schritt-2-ziel-url-ableiten"><span class="toc-num">5.</span> Schritt 2: Ziel-URL ableiten</a></li>
+<li class="toc-item"><a href="#schritt-3-iterations-loop"><span class="toc-num">6.</span> Schritt 3: Iterations-Loop</a></li>
+<li class="toc-item"><a href="#schritt-4-rueckkehr"><span class="toc-num">7.</span> Schritt 4: Rückkehr</a></li></ul>
+</div>
+<h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Du willst Änderungen auf einem dev k3d Cluster begutachten, bevor du einen PR öffnest.
 Der Skill deployed, öffnet den Browser via Playwright MCP, liest Logs und repariert iterativ.</p>
-<p><strong>Sage zu Beginn:</strong> &quot;Ich nutze dev-flow-iterate für die Dev-Iteration.&quot;</p>
+<p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-iterate für die Dev-Iteration."</p>
 <hr>
-<h2>Eingabe-Parameter</h2>
+<h2 id="eingabe-parameter">Eingabe-Parameter</h2>
 <p>Werden vom Caller übergeben (dev-flow-execute) oder zu Beginn abgefragt:</p>
 <table>
 <thead>
@@ -47,7 +55,7 @@ Der Skill deployed, öffnet den Browser via Playwright MCP, liest Logs und repar
 </thead>
 <tbody><tr>
 <td><code>ENV</code></td>
-<td><code>mentolder</code> / <code>korczewski</code></td>
+<td><code>mentolder</code> / <code>korczewski</code> (fleet cluster)</td>
 <td>Frage User</td>
 </tr>
 <tr>
@@ -57,29 +65,29 @@ Der Skill deployed, öffnet den Browser via Playwright MCP, liest Logs und repar
 </tr>
 </tbody></table>
 <hr>
-<h2>Schritt 0: Cluster-Erreichbarkeit prüfen</h2>
-<pre><code class="language-bash">source scripts/env-resolve.sh &quot;$ENV&quot;
+<h2 id="schritt-0-cluster-erreichbarkeit-pruefen">Schritt 0: Cluster-Erreichbarkeit prüfen</h2>
+<div class="code-wrapper"><pre><code class="language-bash">source scripts/env-resolve.sh "$ENV"
 # Exportiert: CTX_DEV, NS_DEV, DEV_DOMAIN
 
 task dev:cluster:status ENV=$ENV
-</code></pre>
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Falls der Cluster nicht erreichbar ist: <strong>STOP</strong>. Melde:
-&quot;Dev-Cluster <code>$ENV</code> nicht erreichbar — Iteration wird übersprungen.&quot;</p>
+"Dev-Cluster <code>$ENV</code> nicht erreichbar — Iteration wird übersprungen."</p>
 <hr>
-<h2>Schritt 1: Surface ermitteln</h2>
+<h2 id="schritt-1-surface-ermitteln">Schritt 1: Surface ermitteln</h2>
 <p>Falls <code>SURFACE</code> nicht vom Caller übergeben:</p>
-<pre><code class="language-bash">CHANGED=$(git diff --name-only origin/main)
+<div class="code-wrapper"><pre><code class="language-bash">CHANGED=$(git diff --name-only origin/main)
 
-if echo &quot;$CHANGED&quot; | grep -q &#39;^brett/&#39;; then
+if echo "$CHANGED" | grep -q '^brett/'; then
   SURFACE=brett
-elif echo &quot;$CHANGED&quot; | grep -q &#39;^k3d/\|^prod&#39;; then
+elif echo "$CHANGED" | grep -q '^k3d/\|^prod'; then
   SURFACE=full
 else
   SURFACE=website
 fi
 
-echo &quot;Surface erkannt: $SURFACE&quot;
-</code></pre>
+echo "Surface erkannt: $SURFACE"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <table>
 <thead>
 <tr>
@@ -105,113 +113,96 @@ echo &quot;Surface erkannt: $SURFACE&quot;
 </tr>
 </tbody></table>
 <hr>
-<h2>Schritt 2: Ziel-URL ableiten</h2>
-<pre><code class="language-bash">source scripts/env-resolve.sh &quot;$ENV&quot;
+<h2 id="schritt-2-ziel-url-ableiten">Schritt 2: Ziel-URL ableiten</h2>
+<div class="code-wrapper"><pre><code class="language-bash">source scripts/env-resolve.sh "$ENV"
 # DEV_DOMAIN ist jetzt gesetzt, z.B. dev.mentolder.de
 
 CHANGED_ROUTE=$(git diff --name-only origin/main \
-  | grep &#39;^website/src/pages/&#39; \
+  | grep '^website/src/pages/' \
   | head -1 \
-  | sed &#39;s|website/src/pages||; s|\.astro$||; s|/index$|/|&#39;)
+  | sed 's|website/src/pages||; s|\.astro$||; s|/index$|/|')
 
-DEV_URL=&quot;https://${DEV_DOMAIN}${CHANGED_ROUTE:-/}&quot;
-echo &quot;Ziel-URL: $DEV_URL&quot;
-</code></pre>
-<p>Für brett-Surface: <code>DEV_URL=&quot;https://brett.${DEV_DOMAIN#dev.}&quot;</code> (z.B. <code>brett.mentolder.de</code>).</p>
-<p>Für korczewski ohne öffentlichen Hostname: prüfe <code>DEV_DOMAIN</code> aus env-resolve — bei reiner
+DEV_URL="https://${DEV_DOMAIN}${CHANGED_ROUTE:-/}"
+echo "Ziel-URL: $DEV_URL"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Für brett-Surface: <code>DEV_URL="https://brett.${DEV_DOMAIN#dev.}"</code> (z.B. <code>brett.mentolder.de</code>).</p>
+<p>Für korczewski (fleet cluster): prüfe <code>DEV_DOMAIN</code> aus env-resolve — bei reiner
 IP/internem Hostname <code>http://</code> statt <code>https://</code> verwenden.</p>
 <hr>
-<h2>Schritt 3: Iterations-Loop</h2>
+<h2 id="schritt-3-iterations-loop">Schritt 3: Iterations-Loop</h2>
 <p>Maximale Cycles: <strong>8</strong>. Starte mit <code>CYCLE=1</code>.</p>
 <p>Wiederhole die folgenden Unter-Schritte, bis der User stoppt oder <code>CYCLE &gt; 8</code>.</p>
 <h3>3a: Redeploy</h3>
-<pre><code class="language-bash"># Wähle den passenden Task je nach SURFACE:
+<div class="code-wrapper"><pre><code class="language-bash"># Wähle den passenden Task je nach SURFACE:
 # SURFACE=website:
 task dev:redeploy:website ENV=$ENV
 # SURFACE=brett:
 task dev:redeploy:brett ENV=$ENV
 # SURFACE=full:
 task dev:deploy ENV=$ENV
-</code></pre>
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>3b: Auf Readiness warten</h3>
-<pre><code class="language-bash"># website:
+<div class="code-wrapper"><pre><code class="language-bash"># website:
 kubectl rollout status deployment/website -n $NS_DEV --context $CTX_DEV --timeout=90s
 
 # brett (zusätzlich bei brett oder full):
 kubectl rollout status deployment/brett -n $NS_DEV --context $CTX_DEV --timeout=90s
-</code></pre>
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Falls Timeout (exit ≠ 0): Sofort zu 3c — Logs lesen ist jetzt Pflicht; 3d (Browser) überspringen.</p>
 <h3>3c: Logs lesen</h3>
-<pre><code class="language-bash">echo &quot;── website logs ──&quot;
+<div class="code-wrapper"><pre><code class="language-bash">echo "── website logs ──"
 kubectl logs -l app=website -n $NS_DEV --context $CTX_DEV --tail=50 2&gt;/dev/null
 
 # bei brett oder full zusätzlich:
-echo &quot;── brett logs ──&quot;
+echo "── brett logs ──"
 kubectl logs -l app=brett -n $NS_DEV --context $CTX_DEV --tail=50 2&gt;/dev/null
-</code></pre>
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>3d: Playwright MCP (nur wenn Pods Running)</h3>
-<pre><code>browser_navigate         → { url: &quot;$DEV_URL&quot; }
+<div class="code-wrapper"><pre><code>browser_navigate         → { url: "$DEV_URL" }
 browser_snapshot         → {}
-browser_take_screenshot  → { filename: &quot;/tmp/dev-iterate-&lt;CYCLE&gt;.png&quot; }
+browser_take_screenshot  → { filename: "/tmp/dev-iterate-&lt;CYCLE&gt;.png" }
 browser_console_messages → {}
-</code></pre>
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>3e: Synthese</h3>
 <p>Lies alle Outputs aus 3c und 3d (Logs, Snapshot, Console-Errors, Screenshot).
 Erstelle eine nummerierte Issue-Liste:</p>
-<pre><code>Issues Cycle &lt;CYCLE&gt;:
+<div class="code-wrapper"><pre><code>Issues Cycle &lt;CYCLE&gt;:
 1. &lt;beschreibung&gt; — Quelle: [logs|snapshot|console]
 2. ...
 
-(oder: &quot;Keine Issues sichtbar.&quot;)
-</code></pre>
+(oder: "Keine Issues sichtbar.")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>3f: Fixes anwenden</h3>
 <p>Für jedes Issue: zeige konkreten Fix, wende ihn via Edit-Tool an.
 Bei destruktiven oder unklaren Fixes: kurze Bestätigungsfrage an User bevor Anwendung.</p>
 <h3>3g: Loop-Entscheidung</h3>
 <ul>
 <li>Issues gefunden und gefixt → frage:
-<strong>&quot;Cycle &lt;CYCLE&gt; abgeschlossen — &lt;N&gt; Issue(s) gefixt. Weiter mit Cycle &lt;CYCLE+1&gt;? (ja / stop)&quot;</strong></li>
+<strong>"Cycle &lt;CYCLE&gt; abgeschlossen — &lt;N&gt; Issue(s) gefixt. Weiter mit Cycle &lt;CYCLE+1&gt;? (ja / stop)"</strong></li>
 <li>Keine Issues → frage:
-<strong>&quot;Cycle &lt;CYCLE&gt;: keine Issues sichtbar. Stoppen oder weiter? (stop / weiter)&quot;</strong></li>
+<strong>"Cycle &lt;CYCLE&gt;: keine Issues sichtbar. Stoppen oder weiter? (stop / weiter)"</strong></li>
 </ul>
 <p>Bei <code>stop</code>: Loop beenden, zu Schritt 4.
 Bei <code>ja</code> / <code>weiter</code>: <code>CYCLE=$((CYCLE+1))</code> und zurück zu 3a.</p>
 <h3>Cycle-Cap</h3>
 <p>Falls <code>CYCLE &gt; 8</code>:</p>
-<pre><code>Cycle-Cap (8) erreicht. Noch offene Issues:
+<div class="code-wrapper"><pre><code>Cycle-Cap (8) erreicht. Noch offene Issues:
 &lt;Liste aus letzter Synthese&gt;
 
 Fortfahren mit PR oder manuell weiter iterieren?
-</code></pre>
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Loop beenden, zu Schritt 4.</p>
 <hr>
-<h2>Schritt 4: Rückkehr</h2>
+<h2 id="schritt-4-rueckkehr">Schritt 4: Rückkehr</h2>
 <ul>
 <li>Aufgerufen von <code>dev-flow-execute</code> → Kontrolle zurück an <strong>Schritt 5 (PR)</strong>.</li>
 <li>Standalone → Ende. Berichte Zusammenfassung: Cycles gelaufen, Issues gefixt.</li>
 </ul>
+</body></html>
+</article>
 
-</main>
-
-<footer>
-  <span>Skills Übersicht / <code>.claude/skills/dev-flow-iterate/SKILL.md</code></span>
-  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
-</footer>
-
-<script>
-document.querySelectorAll('pre').forEach(pre => {
-  const btn = document.createElement('button');
-  btn.className = 'copy-btn';
-  btn.textContent = 'copy';
-  btn.onclick = () => {
-    navigator.clipboard.writeText(pre.innerText).then(() => {
-      btn.textContent = 'copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  };
-  pre.appendChild(btn);
-});
-</script>
+  </main>
+</div>
+<script src="./app.js"></script>
 </body>
 </html>

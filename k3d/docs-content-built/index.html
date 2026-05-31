@@ -1,378 +1,52 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Workspace MVP — Dokumentation</title>
-  <link rel="stylesheet" href="./skills/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dokumentation — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
-<body class="overview-page">
-
-<header>
-  <p>Workspace MVP · Self-Hosted · Kubernetes</p>
-  <h1>Dokumentation <span>&amp; Handbücher</span></h1>
-</header>
-
-<div class="ov-legend">
-  <div class="ov-legend-item ov-cat-devflow"><span class="ov-legend-dot"></span> Quickstarts</div>
-  <div class="ov-legend-item ov-cat-infra"><span class="ov-legend-dot"></span> Services</div>
-  <div class="ov-legend-item ov-cat-ops"><span class="ov-legend-dot"></span> Betrieb</div>
-  <div class="ov-legend-item ov-cat-security"><span class="ov-legend-dot"></span> Sicherheit</div>
-  <div class="ov-legend-item ov-cat-db"><span class="ov-legend-dot"></span> Entwicklung</div>
-  <div class="ov-legend-item ov-cat-support"><span class="ov-legend-dot"></span> Handbücher</div>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
 </div>
-
-<main class="content">
-
-  <!-- QUICKSTARTS -->
-  <section class="ov-section ov-cat-devflow">
-    <h2 class="ov-section-title"><span class="ov-section-icon">🚀</span> Quickstarts</h2>
-    <div class="ov-grid">
-      <a href="./quickstart-enduser.html" class="ov-card">
-        <div class="ov-card-label"><code>quickstart-enduser</code></div>
-        <h3 class="ov-card-title">Für Endnutzer (5 Min)</h3>
-        <p class="ov-card-desc">Login, Portal, erstes Talk-Call und erste Datei — in fünf Minuten arbeitsfähig.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Login</span><span class="ov-tag">Talk</span><span class="ov-tag">Nextcloud</span></div>
-        <div class="ov-card-link-hint">Zum Quickstart</div>
-      </a>
-      <a href="./quickstart-admin.html" class="ov-card">
-        <div class="ov-card-label"><code>quickstart-admin</code></div>
-        <h3 class="ov-card-title">Admin-Setup</h3>
-        <p class="ov-card-desc">Cluster anlegen, Workspace deployen, Post-Setup und Backup konfigurieren.</p>
-        <div class="ov-card-tags"><span class="ov-tag">K8s</span><span class="ov-tag">Setup</span><span class="ov-tag">Deploy</span></div>
-        <div class="ov-card-link-hint">Zum Quickstart</div>
-      </a>
-      <a href="./quickstart-dev.html" class="ov-card">
-        <div class="ov-card-label"><code>quickstart-dev</code></div>
-        <h3 class="ov-card-title">Entwickler-Tour</h3>
-        <p class="ov-card-desc">k3d, environments, Taskfile-Überblick, Tests und CI — Einstieg für Contributor.</p>
-        <div class="ov-card-tags"><span class="ov-tag">k3d</span><span class="ov-tag">Tasks</span><span class="ov-tag">CI</span></div>
-        <div class="ov-card-link-hint">Zur Tour</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- SERVICES -->
-  <section class="ov-section ov-cat-infra">
-    <h2 class="ov-section-title"><span class="ov-section-icon">⚙️</span> Services</h2>
-    <div class="ov-grid">
-      <a href="./keycloak.html" class="ov-card">
-        <div class="ov-card-label"><code>keycloak</code></div>
-        <h3 class="ov-card-title">Keycloak (SSO)</h3>
-        <p class="ov-card-desc">Zentrale Identitätsplattform — OIDC-Provider für alle Services, Realm-Konfiguration, Gruppen und Mapper.</p>
-        <div class="ov-card-tags"><span class="ov-tag">OIDC</span><span class="ov-tag">IAM</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./nextcloud.html" class="ov-card">
-        <div class="ov-card-label"><code>nextcloud</code></div>
-        <h3 class="ov-card-title">Nextcloud + Talk</h3>
-        <p class="ov-card-desc">Dateispeicher, Kalender, Kontakte und WebRTC-Video via Talk — das Herzstück der Collaboration-Plattform.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Files</span><span class="ov-tag">Video</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./collabora.html" class="ov-card">
-        <div class="ov-card-label"><code>collabora</code></div>
-        <h3 class="ov-card-title">Collabora Online</h3>
-        <p class="ov-card-desc">Office im Browser — Word, Calc und Impress direkt aus Nextcloud, vollständig on-premise.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Office</span><span class="ov-tag">CODE</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./vaultwarden.html" class="ov-card">
-        <div class="ov-card-label"><code>vaultwarden</code></div>
-        <h3 class="ov-card-title">Vaultwarden</h3>
-        <p class="ov-card-desc">Bitwarden-kompatibler Passwort-Manager — mit OIDC-Login, shared Vaults und Browser-Extensions.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Passwords</span><span class="ov-tag">OIDC</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./website.html" class="ov-card">
-        <div class="ov-card-label"><code>website</code></div>
-        <h3 class="ov-card-title">Website &amp; Portal</h3>
-        <p class="ov-card-desc">Astro + Svelte Portal mit Chat-Messaging, OIDC-Login und Adminpanel — für beide Cluster gebaut.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Astro</span><span class="ov-tag">Svelte</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./livestream.html" class="ov-card">
-        <div class="ov-card-label"><code>livestream</code></div>
-        <h3 class="ov-card-title">Livestream (LiveKit)</h3>
-        <p class="ov-card-desc">WebRTC-Webinare und OBS-RTMP-Streams — LiveKit Server, Ingress, Egress und Recording.</p>
-        <div class="ov-card-tags"><span class="ov-tag">WebRTC</span><span class="ov-tag">RTMP</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./claude-code.html" class="ov-card">
-        <div class="ov-card-label"><code>claude-code</code></div>
-        <h3 class="ov-card-title">MCP-Server (Claude Code)</h3>
-        <p class="ov-card-desc">KI-gestützte Entwicklung — MCP-Proxy, Postgres/Browser/GitHub-Server und Agent-Konfiguration.</p>
-        <div class="ov-card-tags"><span class="ov-tag">AI</span><span class="ov-tag">MCP</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./whiteboard.html" class="ov-card">
-        <div class="ov-card-label"><code>whiteboard</code></div>
-        <h3 class="ov-card-title">Whiteboard</h3>
-        <p class="ov-card-desc">Kollaboratives Zeichnen via Nextcloud Whiteboard-App — Setup, Bibliotheken und bekannte Grenzen.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Nextcloud</span><span class="ov-tag">Collab</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./systemisches-brett.html" class="ov-card">
-        <div class="ov-card-label"><code>systemisches-brett</code></div>
-        <h3 class="ov-card-title">Systemisches Brett (3D)</h3>
-        <p class="ov-card-desc">Multiplayer-Arena mit Figuren und FFA-Kampf — Node.js, Three.js und Echtzeit-Physik via WebSocket.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Three.js</span><span class="ov-tag">Multiplayer</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- BETRIEB / OPERATIONS -->
-  <section class="ov-section ov-cat-ops">
-    <h2 class="ov-section-title"><span class="ov-section-icon">🛠️</span> Betrieb &amp; Deployment</h2>
-    <div class="ov-grid">
-      <a href="./operations.html" class="ov-card">
-        <div class="ov-card-label"><code>operations</code></div>
-        <h3 class="ov-card-title">Deployment &amp; Taskfile</h3>
-        <p class="ov-card-desc">Alle Task-Befehle für Cluster, Workspace, Post-Setup, Website, Brett und Docs — mit ENV= Erklärung.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Taskfile</span><span class="ov-tag">k3s</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./environments.html" class="ov-card">
-        <div class="ov-card-label"><code>environments</code></div>
-        <h3 class="ov-card-title">Umgebungen &amp; Secrets</h3>
-        <p class="ov-card-desc">environments/*.yaml Struktur, SealedSecrets-Workflow, env:seal, env:generate und Fehlerquellen.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Secrets</span><span class="ov-tag">SealedSecrets</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./backup.html" class="ov-card">
-        <div class="ov-card-label"><code>backup</code></div>
-        <h3 class="ov-card-title">Backup &amp; Restore</h3>
-        <p class="ov-card-desc">CronJob-basiertes verschlüsseltes Backup aller Postgres-DBs — Trigger, Listing und Restore-Befehle.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Postgres</span><span class="ov-tag">Backup</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./monitoring.html" class="ov-card">
-        <div class="ov-card-label"><code>monitoring</code></div>
-        <h3 class="ov-card-title">Monitoring</h3>
-        <p class="ov-card-desc">Admin-Dashboard unter /admin/monitoring — Pod-Status, Cross-Cluster-Health und Connectivity-Checks.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Health</span><span class="ov-tag">Dashboard</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./shared-db.html" class="ov-card">
-        <div class="ov-card-label"><code>shared-db</code></div>
-        <h3 class="ov-card-title">Datenbank (shared-db)</h3>
-        <p class="ov-card-desc">PostgreSQL 16 — Schemas, Rollen, Passwort-Sync und psql-Zugang via Task auf beiden Clustern.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Postgres</span><span class="ov-tag">Roles</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./talk-hpb.html" class="ov-card">
-        <div class="ov-card-label"><code>talk-hpb</code></div>
-        <h3 class="ov-card-title">Talk HPB &amp; Signaling</h3>
-        <p class="ov-card-desc">High-Performance-Backend für Nextcloud Talk — Janus, NATS, coturn und Signaling-Setup.</p>
-        <div class="ov-card-tags"><span class="ov-tag">WebRTC</span><span class="ov-tag">coturn</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- SICHERHEIT / SECURITY -->
-  <section class="ov-section ov-cat-security">
-    <h2 class="ov-section-title"><span class="ov-section-icon">🛡️</span> Sicherheit &amp; Datenschutz</h2>
-    <div class="ov-grid">
-      <a href="./security.html" class="ov-card">
-        <div class="ov-card-label"><code>security</code></div>
-        <h3 class="ov-card-title">Sicherheitsarchitektur</h3>
-        <p class="ov-card-desc">Zero-Trust-Netzwerk, RBAC, Network-Policies, SealedSecrets und Härtungsmaßnahmen.</p>
-        <div class="ov-card-tags"><span class="ov-tag">RBAC</span><span class="ov-tag">Zero-Trust</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./dsgvo.html" class="ov-card">
-        <div class="ov-card-label"><code>dsgvo</code></div>
-        <h3 class="ov-card-title">DSGVO / Datenschutz</h3>
-        <p class="ov-card-desc">On-Premise-Datenschutz by Design — Compliance-Check, Verarbeitungsgrundlagen und Technisches Schutzprofil.</p>
-        <div class="ov-card-tags"><span class="ov-tag">GDPR</span><span class="ov-tag">Privacy</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./verarbeitungsverzeichnis.html" class="ov-card">
-        <div class="ov-card-label"><code>verarbeitungsverzeichnis</code></div>
-        <h3 class="ov-card-title">Verarbeitungsverzeichnis</h3>
-        <p class="ov-card-desc">Art. 30 DSGVO — vollständiges Verzeichnis aller personenbezogenen Verarbeitungstätigkeiten.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Art. 30</span><span class="ov-tag">DSGVO</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./security-report.html" class="ov-card">
-        <div class="ov-card-label"><code>security-report</code></div>
-        <h3 class="ov-card-title">Security-Report (SA-Tests)</h3>
-        <p class="ov-card-desc">Ergebnisse der automatisierten SA-01–SA-10 Sicherheitstests — Status, Befunde und Maßnahmen.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Pentest</span><span class="ov-tag">SA-Tests</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- ENTWICKLUNG / DEVELOPMENT -->
-  <section class="ov-section ov-cat-db">
-    <h2 class="ov-section-title"><span class="ov-section-icon">💻</span> Entwicklung</h2>
-    <div class="ov-grid">
-      <a href="./architecture.html" class="ov-card">
-        <div class="ov-card-label"><code>architecture</code></div>
-        <h3 class="ov-card-title">Architektur</h3>
-        <p class="ov-card-desc">Zwei-Cluster-Design, Kustomize-Overlays, Flux-GitOps, WireGuard-Mesh und Service-Kommunikation.</p>
-        <div class="ov-card-tags"><span class="ov-tag">K8s</span><span class="ov-tag">FluxCD</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./contributing.html" class="ov-card">
-        <div class="ov-card-label"><code>contributing</code></div>
-        <h3 class="ov-card-title">Beitragen &amp; CI/CD</h3>
-        <p class="ov-card-desc">PR-Workflow, Branch-Naming, squash-merge, CI-Jobs und Schutzregeln für den main-Branch.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Git</span><span class="ov-tag">GitHub Actions</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./tests.html" class="ov-card">
-        <div class="ov-card-label"><code>tests</code></div>
-        <h3 class="ov-card-title">Tests &amp; QA</h3>
-        <p class="ov-card-desc">FA-/SA-/NFA-/AK-Testsystem — BATS-Unit, Kustomize-Manifests, Playwright E2E und runner.sh.</p>
-        <div class="ov-card-tags"><span class="ov-tag">BATS</span><span class="ov-tag">Playwright</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./troubleshooting.html" class="ov-card">
-        <div class="ov-card-label"><code>troubleshooting</code></div>
-        <h3 class="ov-card-title">Fehlerbehebung</h3>
-        <p class="ov-card-desc">Häufige Fehler bei Deploy, OIDC, Sealed-Secrets, Nextcloud-Sync und WireGuard — mit Lösung.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Debug</span><span class="ov-tag">FAQ</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./decisions.html" class="ov-card">
-        <div class="ov-card-label"><code>decisions</code></div>
-        <h3 class="ov-card-title">Architektur-Entscheidungen (ADR)</h3>
-        <p class="ov-card-desc">Begründete Designentscheidungen — warum k3s, warum Keycloak, warum Flux statt ArgoCD.</p>
-        <div class="ov-card-tags"><span class="ov-tag">ADR</span><span class="ov-tag">Design</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-      <a href="./datamodel-workflow.html" class="ov-card">
-        <div class="ov-card-label"><code>datamodel-workflow</code></div>
-        <h3 class="ov-card-title">Datenmodell &amp; Workflow</h3>
-        <p class="ov-card-desc">Visuelle Übersicht des Domain-Datenmodells — Entitäten, Relationen und Verarbeitungsflüsse.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Schema</span><span class="ov-tag">Domain</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- HANDBÜCHER / MANUALS -->
-  <section class="ov-section ov-cat-support">
-    <h2 class="ov-section-title"><span class="ov-section-icon">📖</span> Handbücher</h2>
-    <div class="ov-grid">
-      <a href="./adminhandbuch.html" class="ov-card">
-        <div class="ov-card-label"><code>adminhandbuch</code></div>
-        <h3 class="ov-card-title">Adminhandbuch</h3>
-        <p class="ov-card-desc">Umfassendes Betriebshandbuch — Day-2-Ops, Nutzerverwaltung, Updates und Notfallprozeduren.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Admin</span><span class="ov-tag">Day-2</span></div>
-        <div class="ov-card-link-hint">Handbuch</div>
-      </a>
-      <a href="./admin-webinterface.html" class="ov-card">
-        <div class="ov-card-label"><code>admin-webinterface</code></div>
-        <h3 class="ov-card-title">Admin-Webinterface</h3>
-        <p class="ov-card-desc">Referenz für das /admin-Dashboard — Monitoring, Coaching, Wissensmanagement und Nutzerverwaltung.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Dashboard</span><span class="ov-tag">Portal</span></div>
-        <div class="ov-card-link-hint">Handbuch</div>
-      </a>
-      <a href="./admin-tickets.html" class="ov-card">
-        <div class="ov-card-label"><code>admin-tickets</code></div>
-        <h3 class="ov-card-title">Tickets &amp; Inbox</h3>
-        <p class="ov-card-desc">Unified Ticket-Inbox unter /admin/bugs — Bug-Reports, Tasks und Prioritätsverwaltung.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Tickets</span><span class="ov-tag">Triage</span></div>
-        <div class="ov-card-link-hint">Handbuch</div>
-      </a>
-      <a href="./benutzerhandbuch.html" class="ov-card">
-        <div class="ov-card-label"><code>benutzerhandbuch</code></div>
-        <h3 class="ov-card-title">Benutzerhandbuch</h3>
-        <p class="ov-card-desc">Für Endnutzer — alle Portal-Funktionen, Chat, Nextcloud-Apps, Talk-Calls und Passwort-Manager.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Endnutzer</span><span class="ov-tag">How-To</span></div>
-        <div class="ov-card-link-hint">Handbuch</div>
-      </a>
-      <a href="./systembrett.html" class="ov-card">
-        <div class="ov-card-label"><code>systembrett</code></div>
-        <h3 class="ov-card-title">Systembrett (Aufstellung)</h3>
-        <p class="ov-card-desc">Anleitung für systemische Aufstellungen im Whiteboard — Figuren platzieren, Sitzungen führen.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Coaching</span><span class="ov-tag">Whiteboard</span></div>
-        <div class="ov-card-link-hint">Handbuch</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- REFERENZ -->
-  <section class="ov-section ov-cat-devflow">
-    <h2 class="ov-section-title"><span class="ov-section-icon">📚</span> Referenz</h2>
-    <div class="ov-grid">
-      <a href="./glossary.html" class="ov-card">
-        <div class="ov-card-label"><code>glossary</code></div>
-        <h3 class="ov-card-title">Glossar</h3>
-        <p class="ov-card-desc">Begriffe und Abkürzungen — von k3s bis OIDC, von SealedSecret bis WireGuard-Mesh.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Begriffe</span><span class="ov-tag">Referenz</span></div>
-        <div class="ov-card-link-hint">Nachschlagen</div>
-      </a>
-      <a href="./db-schema.html" class="ov-card">
-        <div class="ov-card-label"><code>db-schema</code></div>
-        <h3 class="ov-card-title">DB-Schema (ER-Diagramm)</h3>
-        <p class="ov-card-desc">Aktuelles Entity-Relationship-Diagramm aller Postgres-Schemas — generiert aus dem laufenden Cluster.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Postgres</span><span class="ov-tag">ER</span></div>
-        <div class="ov-card-link-hint">Nachschlagen</div>
-      </a>
-      <a href="./services.html" class="ov-card">
-        <div class="ov-card-label"><code>services</code></div>
-        <h3 class="ov-card-title">Services-Übersicht</h3>
-        <p class="ov-card-desc">Alle Service-Endpunkte, Ports und Ingress-Regeln auf einen Blick — für beide Cluster.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Endpoints</span><span class="ov-tag">Ingress</span></div>
-        <div class="ov-card-link-hint">Nachschlagen</div>
-      </a>
-      <a href="./scripts.html" class="ov-card">
-        <div class="ov-card-label"><code>scripts</code></div>
-        <h3 class="ov-card-title">Scripts-Referenz</h3>
-        <p class="ov-card-desc">Alle Bash-Scripts in scripts/ — env-resolve, ticket-attach, plan-context und mehr mit Aufruf-Syntax.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Bash</span><span class="ov-tag">Automation</span></div>
-        <div class="ov-card-link-hint">Nachschlagen</div>
-      </a>
-      <a href="./requirements.html" class="ov-card">
-        <div class="ov-card-label"><code>requirements</code></div>
-        <h3 class="ov-card-title">Anforderungen</h3>
-        <p class="ov-card-desc">FA-/SA-/NFA-/AK-Anforderungskatalog — funktionale, Sicherheits- und nicht-funktionale Anforderungen.</p>
-        <div class="ov-card-tags"><span class="ov-tag">Spec</span><span class="ov-tag">Tests</span></div>
-        <div class="ov-card-link-hint">Nachschlagen</div>
-      </a>
-    </div>
-  </section>
-
-  <!-- AGENT SKILLS -->
-  <section class="ov-section ov-cat-ops">
-    <h2 class="ov-section-title"><span class="ov-section-icon">🤖</span> Agent Skills</h2>
-    <div class="ov-grid">
-      <a href="./skills-overview.html" class="ov-card">
-        <div class="ov-card-label"><code>skills-overview</code></div>
-        <h3 class="ov-card-title">Alle Agent-Skills</h3>
-        <p class="ov-card-desc">Vollständige Übersicht aller Claude-Code-Skills — Dev-Flow, Infra, Security, DB, Ops und Support-Skills.</p>
-        <div class="ov-card-tags"><span class="ov-tag">dev-flow-plan</span><span class="ov-tag">16 Skills</span></div>
-        <div class="ov-card-link-hint">Skills ansehen</div>
-      </a>
-      <a href="./mcp-actions.html" class="ov-card">
-        <div class="ov-card-label"><code>mcp-actions</code></div>
-        <h3 class="ov-card-title">MCP-Server &amp; Actions</h3>
-        <p class="ov-card-desc">Verfügbare MCP-Server-Aktionen — Postgres, Browser, GitHub, Keycloak und Kubernetes.</p>
-        <div class="ov-card-tags"><span class="ov-tag">MCP</span><span class="ov-tag">Claude Code</span></div>
-        <div class="ov-card-link-hint">Dokumentation</div>
-      </a>
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  <span>Workspace MVP — Self-Hosted Kubernetes Platform &middot; DSGVO by Design</span>
-  <span>
-    <a href="./CHANGELOG.html">CHANGELOG</a>
-    &nbsp;&middot;&nbsp;
-    <a href="./requirements.html">Anforderungen</a>
-    &nbsp;&middot;&nbsp;
-    <a href="./architecture.html">Architektur</a>
+<div id="app">
+  <main id="main">
+<header class="page-header landing-hero">
+  <div class="page-header-body">
+    <p class="kicker">Workspace MVP</p>
+    <h1>Dokumentation</h1>
+    <p class="page-desc">121 Seiten über Skills, Agents und Docs — durchsuchbar mit Strg/Cmd + K.</p>
+  </div>
+</header>
+<section class="section-grid landing-tracks">
+<a class="section-card" href="./skills.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Skills <span class="count-badge">87</span></span>
   </span>
-</footer>
-
+  <span class="section-card-desc">87 Skills dokumentiert</span>
+  <span class="arrow">Öffnen →</span>
+</a>
+<a class="section-card" href="./agents.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Agents <span class="count-badge">25</span></span>
+  </span>
+  <span class="section-card-desc">25 Agents dokumentiert</span>
+  <span class="arrow">Öffnen →</span>
+</a>
+<a class="section-card" href="./docs.html">
+  <span class="section-card-head">
+    <span class="section-card-title">Docs <span class="count-badge">9</span></span>
+  </span>
+  <span class="section-card-desc">9 Docs dokumentiert</span>
+  <span class="arrow">Öffnen →</span>
+</a>
+</section>
+  </main>
+</div>
 <script src="./app.js"></script>
 </body>
 </html>

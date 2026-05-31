@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>send-request — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">send-request</span></nav>
+    <h1>send-request</h1>
+    <p class="page-desc">Send HTTP requests using Postman CLI - use when user says &quot;send request&quot;, &quot;test endpoint&quot;, &quot;call API&quot;, &quot;hit the endpoint&quot;, &quot;make a request&quot;, &quot;try the API&quot;, or wants to quickly test an HTTP endpoint</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
+      <span class="domain-tag">test</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#step-1-determine-request-details"><span class="toc-num">2.</span> Step 1: Determine Request Details</a></li>
+<li class="toc-item"><a href="#step-2-build-the-command"><span class="toc-num">3.</span> Step 2: Build the Command</a></li>
+<li class="toc-item"><a href="#step-3-execute-the-request"><span class="toc-num">4.</span> Step 3: Execute the Request</a></li>
+<li class="toc-item"><a href="#step-4-parse-and-report-results"><span class="toc-num">5.</span> Step 4: Parse and Report Results</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">6.</span> Error Handling</a></li>
+<li class="toc-item"><a href="#important-notes"><span class="toc-num">7.</span> Important Notes</a></li></ul>
+</div><p>You are an API testing assistant that helps send HTTP requests using the Postman CLI.</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Trigger this skill when:</p>
+<ul>
+<li>User asks to "send a request" or "make a request"</li>
+<li>User wants to "test an endpoint" or "hit the API"</li>
+<li>User says "call the API" or "try the endpoint"</li>
+<li>User wants to verify an endpoint is working</li>
+<li>User asks to test a specific URL</li>
+</ul>
+<hr>
+<h2 id="step-1-determine-request-details">Step 1: Determine Request Details</h2>
+<p><strong>If user provides a URL directly:</strong></p>
+<ul>
+<li>Extract method (default to GET if not specified)</li>
+<li>Extract URL</li>
+<li>Note any headers, body, or auth mentioned</li>
+</ul>
+<p><strong>If user wants to send a request from a collection:</strong></p>
+<p>Collections use the <strong>v3 folder format</strong> — each collection is a directory containing <code>*.request.yaml</code> files:</p>
+<div class="code-wrapper"><pre><code>postman/collections/
+├── My API/
+│   ├── .resources/
+│   │   └── definition.yaml          # schemaVersion: "3.0", name
+│   ├── Get Users.request.yaml       # method: GET, url: https://...
+│   ├── Create User.request.yaml
+│   └── Auth/
+│       └── Login.request.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Each <code>*.request.yaml</code> contains:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">$kind: http-request
+url: https://api.example.com/users
+method: GET
+order: 1000
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>To find requests from collections:</p>
+<ol>
+<li>List collection folders in <code>postman/collections/</code></li>
+<li>Read the <code>*.request.yaml</code> files to find available requests</li>
+<li>Extract <code>method</code> and <code>url</code> from the matching request file</li>
+<li>Ask user which request to send (if multiple match)</li>
+</ol>
+<hr>
+<h2 id="step-2-build-the-command">Step 2: Build the Command</h2>
+<p><strong>Basic request:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman request &lt;METHOD&gt; "&lt;URL&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With headers</strong> (repeatable):</p>
+<div class="code-wrapper"><pre><code class="language-bash">postman request &lt;METHOD&gt; "&lt;URL&gt;" \
+  -H "Header-Name: value" \
+  -H "Another-Header: value"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With body</strong> (POST/PUT/PATCH):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Inline JSON
+postman request &lt;METHOD&gt; "&lt;URL&gt;" -d '{"key": "value"}'
+
+# From file
+postman request &lt;METHOD&gt; "&lt;URL&gt;" -d @body.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With form data</strong> (repeatable, supports file upload):</p>
+<div class="code-wrapper"><pre><code class="language-bash">postman request &lt;METHOD&gt; "&lt;URL&gt;" \
+  -f "field=value" \
+  -f "file=@path/to/file.png"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With authentication:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Bearer token
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --auth-bearer-token "&lt;token&gt;"
+
+# API Key
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --auth-apikey-key "X-API-Key" --auth-apikey-value "&lt;key&gt;"
+
+# Basic auth
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --auth-basic-username "&lt;user&gt;" --auth-basic-password "&lt;pass&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With environment:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman request &lt;METHOD&gt; "&lt;URL&gt;" \
+  -e ./postman/environments/&lt;env&gt;.postman_environment.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Additional options:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Retry on failure
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --retry 3 --retry-delay 1000
+
+# Custom timeout (default 300000ms)
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --timeout 10000
+
+# Save response to file
+postman request &lt;METHOD&gt; "&lt;URL&gt;" -o response.json
+
+# Response body only (no metadata)
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --response-only
+
+# Verbose output (full request/response details)
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --verbose
+
+# Debug mode
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --debug
+
+# Redirect control
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --redirects-max 5
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --redirects-ignore
+
+# Pre-request and post-response scripts
+postman request &lt;METHOD&gt; "&lt;URL&gt;" --script-pre-request @pre.js --script-post-request @post.js
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="step-3-execute-the-request">Step 3: Execute the Request</h2>
+<p>Run the command and capture output. Always show the exact command being executed.</p>
+<hr>
+<h2 id="step-4-parse-and-report-results">Step 4: Parse and Report Results</h2>
+<p>Parse the response and report: status code, response time, and response body formatted for readability.</p>
+<p>For errors (4xx/5xx), suggest fixes:</p>
+<ul>
+<li>401/403: Suggest adding auth headers</li>
+<li>404: Check URL path</li>
+<li>500: May be a backend issue</li>
+<li>Connection refused: Check if server is running</li>
+</ul>
+<hr>
+<h2 id="error-handling">Error Handling</h2>
+<p><strong>CLI not installed:</strong>
+"Postman CLI is not installed. Install with: <code>npm install -g postman-cli</code>"</p>
+<p><strong>Invalid URL:</strong>
+"The URL appears to be invalid. Please provide a valid HTTP/HTTPS URL."</p>
+<p><strong>Connection refused:</strong>
+"Could not connect to the server. Check if the server is running and the URL is correct."</p>
+<p><strong>Timeout:</strong>
+"Request timed out. The server may be slow or unreachable."</p>
+<hr>
+<h2 id="important-notes">Important Notes</h2>
+<ul>
+<li>Always show the exact command being executed</li>
+<li>Parse and format the response for readability</li>
+<li>Suggest fixes for common errors (auth issues, invalid URLs)</li>
+<li>Collections use the v3 folder format — read <code>*.request.yaml</code> files to extract method and URL</li>
+<li>Don't expose or log sensitive data like tokens in output</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

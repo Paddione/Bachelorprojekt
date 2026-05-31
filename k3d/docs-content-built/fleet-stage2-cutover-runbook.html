@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fleet Stage 2 — Cutover Runbook — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Fleet Stage 2 — Cutover Runbook</span></nav>
+    <h1>Fleet Stage 2 — Cutover Runbook</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Fleet Stage 2 — Cutover Runbook</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#verified-topology-2026-05-30--read-before-acting"><span class="toc-num">1.</span> Verified topology (2026-05-30) — read before acting</a></li>
+<li class="toc-item"><a href="#0-prerequisite-gate--fleet-platform-deploy-phase-2a-complete-2b2c-pending"><span class="toc-num">2.</span> 0. Prerequisite gate — fleet platform deploy (Phase 2a COMPLETE, 2b/2c pending)</a></li>
+<li class="toc-item"><a href="#1-mentolder-cutover-data-copy--reversible-dns-flip"><span class="toc-num">3.</span> 1. mentolder cutover (data copy + reversible DNS flip)</a></li>
+<li class="toc-item"><a href="#2-soak-gate-same-day-active-monitoring--all-must-pass-before-korczewski"><span class="toc-num">4.</span> 2. Soak gate (same-day, active monitoring) — ALL must pass before korczewski</a></li>
+<li class="toc-item"><a href="#3-korczewski--fresh-deploy--dns-cleanup-no-data-restore"><span class="toc-num">5.</span> 3. korczewski — fresh deploy + DNS cleanup (NO data restore)</a></li>
+<li class="toc-item"><a href="#4-rollback-reference"><span class="toc-num">6.</span> 4. Rollback reference</a></li>
+<li class="toc-item"><a href="#appendix-a--direct-backup-pvc-copy-filen-replacement"><span class="toc-num">7.</span> Appendix A — direct backup-pvc copy (Filen replacement)</a></li>
+<li class="toc-item"><a href="#out-of-scope-stage-3"><span class="toc-num">8.</span> Out of scope (Stage 3)</a></li></ul>
+</div>
+<blockquote>
+<p><strong>ARCHIVAL NOTICE:</strong> This runbook documents a completed migration (executed 2026-05-30/31).
+The mentolder-standalone cluster has been <strong>decommissioned</strong>. Both brands now run on the
+unified <code>fleet</code> cluster (3 CP pk-hetzner-4/6/8, 3 workers gekko-hetzner-2/3/4).
+This document is retained as a historical reference only.</p>
+</blockquote>
+<p>Spec: <code>docs/superpowers/specs/2026-05-30-fleet-stage2-dns-cutover-design.md</code>
+Order: <strong>fleet platform deploy</strong> → <strong>mentolder</strong> (data copy + reversible DNS flip) →
+same-day soak → <strong>korczewski</strong> (fresh deploy + DNS cleanup).</p>
+<blockquote>
+<h2 id="verified-topology-2026-05-30--read-before-acting">Verified topology (2026-05-30) — read before acting</h2>
+<ul>
+<li>The <code>fleet</code> cluster (3-CP k3s on pk-hetzner-4/6/8, wg-fleet 10.20.0.0/24) is reached
+via the <strong>pk-4 public IP</strong> (not the <code>127.0.0.1:16443</code> tunnel). <code>task fleet:deploy</code> HAS
+been run (Phase 2a complete) — namespaces <code>workspace</code> (mentolder brand) and
+<code>workspace-korczewski</code> are each at <strong>26/26</strong> pods (PRs #1193, #1205, #1206, #1213).</li>
+<li><strong>korczewski-standalone has already been torn down.</strong> Fleet's k3s now occupies the pk
+hosts. The old <code>korczewski</code> kubeconfig context (server <code>204.168.244.104:6443</code>) is DEAD —
+it returns x509 because that IP now presents fleet's k3s CA. <strong>Operate the korczewski
+brand via the <code>fleet</code> context, namespace <code>workspace-korczewski</code></strong> — do NOT try to "fix"
+the <code>korczewski</code> context (ticket T000340). The fleet deploy has run; korczewski.de
+availability now depends on DNS/cert readiness (Phase 2b/2c + cutover still pending).</li>
+<li><strong>mentolder-standalone has been decommissioned</strong> (was still live when this runbook was
+written; Phase 3 completed 2026-05-31). No fallback exists — both brands are fleet-only.</li>
+</ul>
+</blockquote>
+<h2 id="0-prerequisite-gate--fleet-platform-deploy-phase-2a-complete-2b2c-pending">0. Prerequisite gate — fleet platform deploy (Phase 2a COMPLETE, 2b/2c pending)</h2>
+<p>The fleet cluster has brand workloads deployed (Phase 2a done). Remaining prerequisites for DNS cutover:</p>
+<p><strong>Operator assets — PREPARED 2026-05-30 (was MISSING):</strong></p>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <code>environments/.secrets/fleet-mentolder.yaml</code> and <code>environments/.secrets/fleet-korczewski.yaml</code>
+assembled from the standalone secrets (gitignored). <strong>fleet-mentolder</strong> = mentolder's
+app/data secrets (so the restored data decrypts — same <code>BACKUP_PASSPHRASE</code>/DB passwords)
+with the WG node keys swapped to korczewski's <code>pk-4/6/8</code> keys (fleet runs on those hosts);
+<code>DEV_*</code> keys kept. <strong>fleet-korczewski</strong> = korczewski's secrets minus <code>DEV_*</code> (dev stack is
+Phase 2c). Both pass <code>env-seal</code>'s dev-value/duplicate/completeness checks.</li>
+<li><input checked="" disabled="" type="checkbox"> ipv64 ACME DNS-01 API key — <strong>already carried in both standalone <code>.secrets</code></strong>, so
+<code>env:seal</code> emitted a <code>cert-manager/ipv64-api-key</code> SealedSecret automatically. <code>task cert:secret</code>
+is now only an imperative fallback. Verified the key controls BOTH <code>mentolder.de</code> and
+<code>korczewski.de</code> (see DNS prereqs below).</li>
+<li><input checked="" disabled="" type="checkbox"> Confirm capacity on pk-4/6/8 for both brands' workloads — <strong>verified: 26/26 pods each brand, Running</strong>.</li>
+</ul>
+<p><strong>Bring-up order on the <code>fleet</code> context</strong> (mirrors CLAUDE.md fresh-cluster order):</p>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <code>task sealed-secrets:install ENV=fleet-mentolder</code> — controller installed, 1/1 ready
+(NB: the task does not pass <code>--version</code>; installed chart ≠ pinned <code>2.18.6</code> in versions.yaml).</li>
+<li><input checked="" disabled="" type="checkbox"> <code>task cert:install ENV=fleet-mentolder</code> — cert-manager already running (4 pods).</li>
+<li><input checked="" disabled="" type="checkbox"> Install Longhorn on fleet — Helm chart <code>1.11.2</code>, all 3 pk nodes schedulable, CSI 3/3.
+Installed with <code>persistence.defaultClass=false</code> so <strong><code>local-path</code> stays the sole default</strong>
+(data PVCs name <code>storageClassName: longhorn</code> explicitly). The chart's default would have
+created a SECOND default StorageClass — avoid that.</li>
+<li><input checked="" disabled="" type="checkbox"> <code>env:seal</code> auto-fetched the fleet sealing cert → <code>environments/certs/fleet-mentolder.pem</code>
+and <code>fleet-korczewski.pem</code> (per-ENV path; both are the same fleet controller cert — the
+<code>certs/fleet.pem</code> name in older notes is wrong).</li>
+<li><input checked="" disabled="" type="checkbox"> <code>task env:seal ENV=fleet-mentolder</code> and <code>task env:seal ENV=fleet-korczewski</code> →
+wrote <code>environments/sealed-secrets/fleet-*.yaml</code> (committed).</li>
+<li><input disabled="" type="checkbox"> <code>task cert:secret -- &lt;ipv64-key&gt; ENV=fleet-mentolder</code> — optional fallback only; the key
+is already sealed into <code>cert-manager/ipv64-api-key</code>.</li>
+<li><input checked="" disabled="" type="checkbox"> <code>task fleet:deploy</code> — ran <code>fleet:platform</code> once, then <code>fleet:deploy:brand</code> for
+<code>fleet-mentolder</code> (ns <code>workspace</code>) and <code>fleet-korczewski</code> (ns <code>workspace-korczewski</code>).
+<strong>Phase 2a complete.</strong> Next operator action: Phase 2b/2c (office-stack + CoTURN on fleet,
+website apps on fleet) and/or DNS cutover.</li>
+<li><input checked="" disabled="" type="checkbox"> Verify: <code>kubectl --context fleet get pods -n workspace</code> and <code>-n workspace-korczewski</code>
+all Ready — <strong>26/26 each, verified.</strong></li>
+</ul>
+<p><strong>DNS + cert prerequisites:</strong></p>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <code>environments/fleet-mentolder.yaml</code> TURN/LIVEKIT pin = <code>204.168.244.104</code> (pk-4) — DONE.</li>
+<li><input checked="" disabled="" type="checkbox"> <code>IPV64_API_KEY</code> on fleet controls BOTH domains — <strong>verified 2026-05-30</strong>: a
+<code>get_domains</code> call returned both <code>mentolder.de</code> and <code>korczewski.de</code> as object keys
+(under <code>.subdomains</code>/<code>.domains</code>/<code>.record_info</code>). <strong>Confirm the JSON path used by
+<code>capture_rollback_state()</code> in <code>scripts/fleet-dns-cutover.sh</code> matches this real
+response</strong>; adjust the jq filter if the live shape differs, then re-run
+<code>bats tests/unit/fleet-dns-cutover.bats</code>.</li>
+<li><input disabled="" type="checkbox"> Certs pre-warmed on fleet: <code>Certificate</code> for <code>*.mentolder.de</code> + <code>mentolder.de</code> and
+<code>*.korczewski.de</code>; wait <code>READY=True</code> (<code>kubectl --context fleet get certificate -A</code>).</li>
+<li><input disabled="" type="checkbox"> Record current live A-records for both domains by hand (authoritative rollback
+fallback): run <code>task fleet:dns:cutover ENV=fleet-mentolder</code> (dry-run) and save the values.</li>
+</ul>
+<h2 id="1-mentolder-cutover-data-copy--reversible-dns-flip">1. mentolder cutover (data copy + reversible DNS flip)</h2>
+<ol>
+<li>Post maintenance banner; quiesce writes on mentolder-standalone (scale app to 0 /
+set DB read-only).</li>
+<li><strong>Final delta data sync standalone → fleet via direct backup-pvc copy</strong> (Filen is NOT
+used — see Appendix A):<ul>
+<li>Trigger fresh backups on the standalone: <code>bash scripts/backup-restore.sh trigger --context mentolder</code> and <code>... pvc-trigger --context mentolder</code>.</li>
+<li>Copy the newest DB + PVC timestamp dirs from the standalone <code>backup-pvc</code> into the
+fleet <code>backup-pvc</code> (helper pod + <code>kubectl cp</code>, both ends ns <code>workspace</code>) — see
+Appendix A for the exact procedure.</li>
+<li>Restore into fleet: <code>bash scripts/backup-restore.sh restore all &lt;ts&gt; --context fleet -y</code>
+and <code>... pvc-restore all &lt;pvc-ts&gt; --context fleet -y</code>. (Fleet's <code>workspace-secrets</code>
+must carry the SAME <code>BACKUP_PASSPHRASE</code> as the standalone, or the openssl decrypt
+fails — it does, because both seal from the same plaintext inputs.)</li>
+<li>Verify row counts / file checksums against the standalone before flipping.</li>
+</ul>
+</li>
+<li>Dry-run and review: <code>task fleet:dns:cutover ENV=fleet-mentolder</code> (prints <code>CHANGE:</code> lines).</li>
+<li>Apply: <code>task fleet:dns:cutover ENV=fleet-mentolder ACTION=cutover</code>.</li>
+<li>Verify: <code>dig +short mentolder.de</code> returns the pk IPs; TLS serves; smoke checks.</li>
+</ol>
+<h2 id="2-soak-gate-same-day-active-monitoring--all-must-pass-before-korczewski">2. Soak gate (same-day, active monitoring) — ALL must pass before korczewski</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>task health</code> + <code>task workspace:verify ENV=fleet-mentolder</code> green</li>
+<li><input disabled="" type="checkbox"> <code>*.mentolder.de</code> cert <code>READY=True</code> on fleet</li>
+<li><input disabled="" type="checkbox"> e2e Playwright (mentolder project) green vs the flipped domain</li>
+<li><input disabled="" type="checkbox"> <code>FLEET_CONTEXT=fleet bash tests/local/SA-22.sh</code> passes</li>
+<li><input disabled="" type="checkbox"> Manual smoke: Keycloak SSO, Nextcloud file open, chat send, LiveKit join</li>
+<li><input disabled="" type="checkbox"> No 5xx spike in fleet Traefik logs</li>
+<li><input disabled="" type="checkbox"> Mail spot-check (tutanota MX untouched)</li>
+<li>FAIL → <code>task fleet:dns:rollback ENV=fleet-mentolder</code>, fix, retry.</li>
+</ul>
+<h2 id="3-korczewski--fresh-deploy--dns-cleanup-no-data-restore">3. korczewski — fresh deploy + DNS cleanup (NO data restore)</h2>
+<blockquote>
+<p>korczewski-standalone is already gone and its data is NOT being restored (operator
+decision 2026-05-30: fresh start). The ingress "handover" of §3 in the old plan has
+already happened de-facto — fleet owns :80/:443 on the pk hosts. What remains:</p>
+</blockquote>
+<ol>
+<li>Confirm <code>fleet-korczewski</code> deployed clean (§0) with empty/fresh databases; run any
+first-run seed/setup (Keycloak realm, website content, OIDC clients) as for a new env.</li>
+<li>DNS cleanup: <code>task fleet:dns:cutover ENV=fleet-korczewski ACTION=cutover</code>
+(drops stray <code>14.249.175.67</code>, ensures pk-4/6/8 on <code>@</code>/<code>*</code>, livekit/stream/turn pinned).
+mailbox.org / mail records frozen by construction. See ticket T000339 (DNS drift).</li>
+<li>Verify <code>web.korczewski.de</code> serves a real Let's Encrypt cert (not TRAEFIK DEFAULT CERT)
+and returns 200; smoke the brand.</li>
+</ol>
+<h2 id="4-rollback-reference">4. Rollback reference</h2>
+<ul>
+<li><strong>mentolder:</strong> <code>task fleet:dns:rollback ENV=fleet-mentolder</code> (restores recorded state;
+gekko standalone was never torn down — clean warm fallback).</li>
+<li><strong>korczewski:</strong> NO rollback to standalone is possible — it is gone. Recovery means
+re-deploying <code>fleet-korczewski</code> and re-running DNS cleanup. There is no warm fallback.</li>
+</ul>
+<h2 id="appendix-a--direct-backup-pvc-copy-filen-replacement">Appendix A — direct backup-pvc copy (Filen replacement)</h2>
+<p>Filen-based restore (<code>scripts/backup-restore.sh filen-pull</code>) is <strong>out of service</strong>: the
+02:00 db-backup <code>filen-upload</code> sidecar fails with <code>Invalid credentials!</code>
+(<code>k3d/backup-cronjob.yaml</code> warns 2FA breaks @filen/cli login permanently). Fix is tracked
+separately and is NOT on the migration critical path — mentolder data moves by direct copy,
+korczewski starts fresh.</p>
+<p>Direct copy (standalone <code>backup-pvc</code> → fleet <code>backup-pvc</code>, both ns <code>workspace</code>):</p>
+<ol>
+<li>Spawn a reader pod on the standalone mounting <code>backup-pvc</code> read-only; <code>kubectl cp</code> the
+chosen <code>&lt;ts&gt;/</code> (DB) and <code>pvc-&lt;ts&gt;/</code> (PVC) dirs to the workstation <code>/tmp</code>.</li>
+<li>Spawn a writer pod on fleet mounting <code>backup-pvc</code>; <code>kubectl cp</code> the dirs up into
+<code>/backups/</code> on the fleet PVC.</li>
+<li>Both PVCs are Longhorn RWO — schedule the helper pods off the home worker nodes
+(the <code>restore</code>/<code>list</code> commands already encode the <code>NotIn[k3s-*,k3w-*]</code> affinity).</li>
+<li>Then run the standard <code>restore</code> / <code>pvc-restore</code> against <code>--context fleet</code>.</li>
+</ol>
+<blockquote>
+<p>Ongoing cloud backups remain broken until Filen creds are rotated/re-sealed
+(FILEN_EMAIL/FILEN_PASSWORD in <code>workspace-secrets</code>, default path <code>/Backup</code>). Track separately.</p>
+</blockquote>
+<h2 id="out-of-scope-stage-3">Out of scope (Stage 3)</h2>
+<p>Decommission mentolder gekko standalone, reclaim hardware, remove old envs /
+sealed-secrets, restore Filen cloud backups, final DNS TTL hardening.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

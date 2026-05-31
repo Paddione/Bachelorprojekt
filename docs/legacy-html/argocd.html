@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ArgoCD -- GitOps Multi-Cluster Federation — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">argocd</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">argocd</span>
+    <span class="badge-slug">argocd</span>
+  </div>
+  <h1 class="hero-title">ArgoCD -- GitOps Multi-Cluster Federation</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#uberblick"><span class="toc-num">1.</span>&nbsp;Uberblick</a></li>
+<li class="toc-item"><a href="#architektur"><span class="toc-num">2.</span>&nbsp;Architektur</a></li>
+<li class="toc-item"><a href="#appproject"><span class="toc-num">3.</span>&nbsp;AppProject</a></li>
+<li class="toc-item"><a href="#applicationset"><span class="toc-num">4.</span>&nbsp;ApplicationSet</a></li>
+<li class="toc-item"><a href="#ersteinrichtung-einmalig"><span class="toc-num">5.</span>&nbsp;Ersteinrichtung (einmalig)</a></li>
+<li class="toc-item"><a href="#tagliche-nutzung"><span class="toc-num">6.</span>&nbsp;Tagliche Nutzung</a></li>
+<li class="toc-item"><a href="#cluster-registrieren"><span class="toc-num">7.</span>&nbsp;Cluster registrieren</a></li>
+<li class="toc-item"><a href="#cmp-plugin-kustomize--envsubst"><span class="toc-num">8.</span>&nbsp;CMP-Plugin (Kustomize + envsubst)</a></li>
+<li class="toc-item"><a href="#fehlerbehebung"><span class="toc-num">9.</span>&nbsp;Fehlerbehebung</a></li></ul>
+</div>
+<h2 id="uberblick">Uberblick</h2>
+<div class="mermaid-svg-wrapper"><svg id="my-svg" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="flowchart" style="max-width: 1337.64px; background-color: transparent;" viewBox="0 0 1337.640625 174" role="graphics-document document" aria-roledescription="flowchart-v2"><style>#my-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#my-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#my-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#my-svg .error-icon{fill:#552222;}#my-svg .error-text{fill:#552222;stroke:#552222;}#my-svg .edge-thickness-normal{stroke-width:1px;}#my-svg .edge-thickness-thick{stroke-width:3.5px;}#my-svg .edge-pattern-solid{stroke-dasharray:0;}#my-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#my-svg .edge-pattern-dashed{stroke-dasharray:3;}#my-svg .edge-pattern-dotted{stroke-dasharray:2;}#my-svg .marker{fill:#333333;stroke:#333333;}#my-svg .marker.cross{stroke:#333333;}#my-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#my-svg p{margin:0;}#my-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#my-svg .cluster-label text{fill:#333;}#my-svg .cluster-label span{color:#333;}#my-svg .cluster-label span p{background-color:transparent;}#my-svg .label text,#my-svg span{fill:#333;color:#333;}#my-svg .node rect,#my-svg .node circle,#my-svg .node ellipse,#my-svg .node polygon,#my-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#my-svg .rough-node .label text,#my-svg .node .label text,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-anchor:middle;}#my-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#my-svg .rough-node .label,#my-svg .node .label,#my-svg .image-shape .label,#my-svg .icon-shape .label{text-align:center;}#my-svg .node.clickable{cursor:pointer;}#my-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#my-svg .arrowheadPath{fill:#333333;}#my-svg .edgePath .path{stroke:#333333;stroke-width:1px;}#my-svg .flowchart-link{stroke:#333333;fill:none;}#my-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#my-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#my-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#my-svg .cluster text{fill:#333;}#my-svg .cluster span{color:#333;}#my-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#my-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#my-svg rect.text{fill:none;stroke-width:0;}#my-svg .icon-shape,#my-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#my-svg .icon-shape p,#my-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#my-svg .icon-shape .label rect,#my-svg .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#my-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#my-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#my-svg .node .neo-node{stroke:#9370DB;}#my-svg [data-look="neo"].node rect,#my-svg [data-look="neo"].cluster rect,#my-svg [data-look="neo"].node polygon{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node path{stroke:#9370DB;stroke-width:1px;}#my-svg [data-look="neo"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node .neo-line path{stroke:#9370DB;filter:none;}#my-svg [data-look="neo"].node circle{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].node circle .state-start{fill:#000000;}#my-svg [data-look="neo"].icon-shape .icon{fill:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg [data-look="neo"].icon-shape .icon-neo path{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#my-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="my-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></polygon></marker><marker id="my-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"></circle></marker><marker id="my-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"></path></marker><marker id="my-svg_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"></path></marker><marker id="my-svg_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"></path></marker><g class="root"><g class="clusters"></g><g class="edgePaths"><path d="M137.344,87L141.51,87C145.677,87,154.01,87,161.677,87C169.344,87,176.344,87,179.844,87L183.344,87" id="my-svg-L_Git_Hub_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Git_Hub_0" data-points="W3sieCI6MTM3LjM0Mzc1LCJ5Ijo4N30seyJ4IjoxNjIuMzQzNzUsInkiOjg3fSx7IngiOjE4Ny4zNDM3NSwieSI6ODd9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M423.422,87L427.589,87C431.755,87,440.089,87,447.755,87C455.422,87,462.422,87,465.922,87L469.422,87" id="my-svg-L_Hub_AS_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_Hub_AS_0" data-points="W3sieCI6NDIzLjQyMTg3NSwieSI6ODd9LHsieCI6NDQ4LjQyMTg3NSwieSI6ODd9LHsieCI6NDczLjQyMTg3NSwieSI6ODd9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M678.573,60L690.712,55.833C702.851,51.667,727.129,43.333,743.359,39.167C759.589,35,767.771,35,771.862,35L775.953,35" id="my-svg-L_AS_AppM_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_AS_AppM_0" data-points="W3sieCI6Njc4LjU3MzQ2NzU0ODA3NjksInkiOjYwfSx7IngiOjc1MS40MDYyNSwieSI6MzV9LHsieCI6Nzc5Ljk1MzEyNSwieSI6MzV9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M678.573,114L690.712,118.167C702.851,122.333,727.129,130.667,742.767,134.833C758.406,139,765.406,139,768.906,139L772.406,139" id="my-svg-L_AS_AppK_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_AS_AppK_0" data-points="W3sieCI6Njc4LjU3MzQ2NzU0ODA3NjksInkiOjExNH0seyJ4Ijo3NTEuNDA2MjUsInkiOjEzOX0seyJ4Ijo3NzYuNDA2MjUsInkiOjEzOX1d" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M1030.266,35L1035.023,35C1039.781,35,1049.297,35,1064.518,35C1079.74,35,1100.667,35,1111.13,35L1121.594,35" id="my-svg-L_AppM_NSm_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_AppM_NSm_0" data-points="W3sieCI6MTAzMC4yNjU2MjUsInkiOjM1fSx7IngiOjEwNTguODEyNSwieSI6MzV9LHsieCI6MTEyNS41OTM3NSwieSI6MzV9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path><path d="M1033.813,139L1037.979,139C1042.146,139,1050.479,139,1058.146,139C1065.813,139,1072.813,139,1076.313,139L1079.813,139" id="my-svg-L_AppK_NSk_0" class="edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_AppK_NSk_0" data-points="W3sieCI6MTAzMy44MTI1LCJ5IjoxMzl9LHsieCI6MTA1OC44MTI1LCJ5IjoxMzl9LHsieCI6MTA4My44MTI1LCJ5IjoxMzl9XQ==" data-look="classic" marker-end="url(#my-svg_flowchart-v2-pointEnd)"></path></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_Git_Hub_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_Hub_AS_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_AS_AppM_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_AS_AppK_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_AppM_NSm_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_AppK_NSk_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default" id="my-svg-flowchart-Git-0" data-look="classic" transform="translate(72.671875, 87)"><rect class="basic label-container" style="" x="-64.671875" y="-27" width="129.34375" height="54"></rect><g class="label" style="" transform="translate(-34.671875, -12)"><rect></rect><foreignObject width="69.34375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>Git · main</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-Hub-2" data-look="classic" transform="translate(305.3828125, 87)"><rect class="basic label-container" style="" x="-118.0390625" y="-27" width="236.078125" height="54"></rect><g class="label" style="" transform="translate(-88.0390625, -12)"><rect></rect><foreignObject width="176.078125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>ArgoCD · mentolder Hub</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-AS-4" data-look="classic" transform="translate(599.9140625, 87)"><rect class="basic label-container" style="" x="-126.4921875" y="-27" width="252.984375" height="54"></rect><g class="label" style="" transform="translate(-96.4921875, -12)"><rect></rect><foreignObject width="192.984375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>ApplicationSet · workspace</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-AppM-6" data-look="classic" transform="translate(905.109375, 35)"><rect class="basic label-container" style="" x="-125.15625" y="-27" width="250.3125" height="54"></rect><g class="label" style="" transform="translate(-95.15625, -12)"><rect></rect><foreignObject width="190.3125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>App: workspace-mentolder</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-AppK-8" data-look="classic" transform="translate(905.109375, 139)"><rect class="basic label-container" style="" x="-128.703125" y="-27" width="257.40625" height="54"></rect><g class="label" style="" transform="translate(-98.703125, -12)"><rect></rect><foreignObject width="197.40625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>App: workspace-korczewski</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-NSm-10" data-look="classic" transform="translate(1206.7265625, 35)"><rect class="basic label-container" style="" x="-81.1328125" y="-27" width="162.265625" height="54"></rect><g class="label" style="" transform="translate(-51.1328125, -12)"><rect></rect><foreignObject width="102.265625" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>ns: workspace</p></span></div></foreignObject></g></g><g class="node default" id="my-svg-flowchart-NSk-12" data-look="classic" transform="translate(1206.7265625, 139)"><rect class="basic label-container" style="" x="-122.9140625" y="-27" width="245.828125" height="54"></rect><g class="label" style="" transform="translate(-92.9140625, -12)"><rect></rect><foreignObject width="185.828125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel"><p>ns: workspace-korczewski</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="my-svg-drop-shadow" height="130%" width="130%"><fedropshadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs><defs><filter id="my-svg-drop-shadow-small" height="150%" width="150%"><fedropshadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"></fedropshadow></filter></defs></svg><span class="mermaid-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>
+<p>ArgoCD automatisiert das Deployment aus Git auf mehrere Kubernetes-Cluster nach dem GitOps-Prinzip:</p>
+<ul>
+<li><strong>Git ist die einzige Quelle der Wahrheit.</strong> Kein manuelles <code>kubectl apply</code> auf Produktionsclustern.</li>
+<li>ArgoCD erkennt Abweichungen (Drift) zwischen Git-Zustand und Live-Zustand automatisch und heilt sie.</li>
+<li>ArgoCD selbst lauft auf einem dedizierten <strong>Hub-Cluster</strong> (Hetzner).</li>
+<li>Ein <strong>ApplicationSet</strong> generiert automatisch eine ArgoCD-Application pro registriertem Ziel-Cluster.</li>
+</ul>
+<p><strong>Relevante Dateien:</strong></p>
+<ul>
+<li><code>argocd/applicationset.yaml</code> -- ApplicationSet + AppProject (zusammen in einer Datei)</li>
+<li><code>argocd/install/</code> -- ArgoCD-Installation: CMP-Plugin, Ingress, Namespace, Server-Patches</li>
+<li><code>prod-mentolder/</code> / <code>prod-korczewski/</code> -- Kustomize-Overlays pro Umgebung</li>
+</ul>
+<hr>
+<h2 id="architektur">Architektur</h2>
+<div class="code-wrapper"><pre><code>GitHub Repo (main)
+       |
+       | Git-Sync (automatisch)
+       v
+  ArgoCD (Hub-Cluster, Hetzner)
+       |
+       +---&gt; workspace-hetzner     ---&gt; unified mentolder k3s Cluster
+       |                                  namespace: workspace       (mentolder.de)
+       |                                  namespace: website
+       |
+       +---&gt; workspace-korczewski  ---&gt; unified mentolder k3s Cluster
+                                         namespace: workspace-korczewski  (korczewski.de)
+                                         namespace: website-korczewski
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Seit dem Cluster-Merge (2026-05-05) laufen beide Workloads auf <strong>einem einzigen physischen Cluster</strong> (mentolder). ArgoCD verwaltet sie weiterhin als zwei separate Applications mit unterschiedlichen Overlays (<code>prod-mentolder/</code>, <code>prod-korczewski/</code>) und Namespaces. Pro Ziel-Cluster-Secret wird eine eigene ArgoCD-Application erzeugt. Jede App zeigt auf das umgebungsspezifische Kustomize-Overlay und injiziert die Cluster-spezifischen Variablen (Domain, Branding, SMTP, TURN usw.) uber das CMP-Plugin.</p>
+<hr>
+<h2 id="appproject">AppProject</h2>
+<p>Definiert in <code>argocd/applicationset.yaml</code> (gemeinsam mit dem ApplicationSet).</p>
+<p>Das AppProject <code>workspace</code> legt fest:</p>
+<ul>
+<li><strong>Erlaubte Repos:</strong> Nur <code>https://github.com/Paddione/Bachelorprojekt</code></li>
+<li><strong>Erlaubte Cluster:</strong> Alle registrierten Cluster (<code>server: "*"</code>)</li>
+<li><strong>Erlaubte Namespaces:</strong> <code>workspace</code>, <code>workspace-office</code>, <code>coturn</code>, <code>website</code>, <code>kube-system</code>, <code>cert-manager</code></li>
+<li><strong>Cluster-scoped Ressourcen:</strong> Alle erlaubt (fur ClusterIssuer, CRDs usw.)</li>
+<li><strong>Orphaned Resources:</strong> Warnung im UI, wenn Ressourcen im Cluster, aber nicht in Git existieren</li>
+</ul>
+<p>Das AppProject ist die Sicherheitsgrenze: ArgoCD darf nur in explizit erlaubten Clustern und Namespaces deployen.</p>
+<hr>
+<h2 id="applicationset">ApplicationSet</h2>
+<p>Das ApplicationSet <code>workspace</code> (in <code>argocd/applicationset.yaml</code>) generiert automatisch eine Application fur jeden Cluster mit dem Label <code>workspace=true</code>.</p>
+<p><strong>Cluster-Discovery:</strong> Der <code>clusters</code>-Generator liest alle bei ArgoCD registrierten Cluster und filtert nach <code>matchLabels: workspace: "true"</code>.</p>
+<p><strong>Konfiguration uber Annotationen:</strong> Alle umgebungsspezifischen Werte werden als Annotationen auf den ArgoCD Cluster-Secrets gespeichert -- kein separates ConfigMap pro Umgebung:</p>
+<table>
+<thead>
+<tr>
+<th>Annotation</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>workspace-overlay</code></td>
+<td>Kustomize-Pfad im Repo (z.B. <code>prod-mentolder</code>)</td>
+</tr>
+<tr>
+<td><code>workspace-domain</code></td>
+<td>Produktionsdomain (z.B. <code>mentolder.de</code>)</td>
+</tr>
+<tr>
+<td><code>workspace-brand</code></td>
+<td>Brand-Name (z.B. <code>Mentolder</code>)</td>
+</tr>
+<tr>
+<td><code>workspace-email</code></td>
+<td>Kontakt-E-Mail-Adresse</td>
+</tr>
+<tr>
+<td><code>workspace-infra-namespace</code></td>
+<td>Traefik-Middleware-Namespace</td>
+</tr>
+<tr>
+<td><code>workspace-tls-secret</code></td>
+<td>Name des TLS-Wildcard-Secrets</td>
+</tr>
+<tr>
+<td><code>workspace-smtp-from</code></td>
+<td>SMTP-Absenderadresse</td>
+</tr>
+<tr>
+<td><code>workspace-turn-ip</code></td>
+<td>Offentliche TURN-Server-IP</td>
+</tr>
+<tr>
+<td><code>workspace-turn-node</code></td>
+<td>TURN-Node-Name</td>
+</tr>
+</tbody></table>
+<p><strong>Sync-Policy:</strong> Automatisches Pruning (geloschte Ressourcen werden entfernt) und Self-Healing (manuelle Anderungen werden zuruckgesetzt).</p>
+<hr>
+<h2 id="ersteinrichtung-einmalig">Ersteinrichtung (einmalig)</h2>
+<p><strong>Vollautomatisch (empfohlen):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task argocd:setup
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Fuhrt automatisch durch: install -&gt; Passwort ausgeben -&gt; CLI-Login -&gt; Cluster registrieren -&gt; Apps anwenden.</p>
+<p><strong>Oder manuell Schritt fur Schritt:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task argocd:install            # ArgoCD auf Hub-Cluster installieren (CMP-Sidecar inklusive)
+task argocd:password           # Initiales Admin-Passwort ausgeben
+task argocd:login              # Mit argocd CLI einloggen (setzt Port-Forward voraus)
+task argocd:cluster:register   # Produktions-Cluster mit workspace-Labels registrieren
+task argocd:apps:apply         # AppProject + ApplicationSet in ArgoCD anwenden
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nach dem Setup:</p>
+<ul>
+<li>ArgoCD UI ist unter <code>https://argocd.&lt;PROD_DOMAIN&gt;</code> erreichbar</li>
+<li>Die Apps <code>workspace-hetzner</code> und <code>workspace-korczewski</code> erscheinen automatisch (beide zeigen auf denselben physischen Cluster, unterschiedliche Namespaces)</li>
+</ul>
+<hr>
+<h2 id="tagliche-nutzung">Tagliche Nutzung</h2>
+<div class="code-wrapper"><pre><code class="language-bash">task argocd:status             # Sync- und Health-Status aller Apps uber alle Cluster
+task argocd:sync -- &lt;app&gt;      # Sync manuell auslosen (z.B. workspace-hetzner)
+task argocd:diff -- &lt;app&gt;      # Diff: Git-Zustand vs. Live-Zustand
+task argocd:ui                 # ArgoCD UI auf http://localhost:8090 weiterleiten
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Wann muss ich manuell syncen?</strong></p>
+<p>Normalerweise synchronisiert ArgoCD automatisch bei jedem Push auf <code>main</code>. Ein manueller Sync ist nur notig, wenn:</p>
+<ul>
+<li><code>syncPolicy.automated</code> deaktiviert ist</li>
+<li>Ein Sync fehlgeschlagen ist und nach Bugfix neu gestartet werden soll</li>
+<li>Ein sofortiger Sync ohne Warten auf den Poll-Intervall gewunscht wird</li>
+</ul>
+<hr>
+<h2 id="cluster-registrieren">Cluster registrieren</h2>
+<p>Cluster werden als Kubernetes Secrets im <code>argocd</code>-Namespace gespeichert, mit Labels und Annotationen fur die Workspace-Konfiguration.</p>
+<p><code>task argocd:cluster:register</code> fuhrt folgendes durch:</p>
+<ol>
+<li>Cluster per argocd CLI zum Hub hinzufugen</li>
+<li><code>workspace=true</code> Label setzen</li>
+<li>Alle workspace-Annotationen (Domain, Brand, SMTP, TURN usw.) aus <code>environments/&lt;name&gt;.yaml</code> ubertragen</li>
+</ol>
+<p>Um einen neuen Cluster hinzuzufugen:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># kubeconfig muss den neuen Cluster enthalten
+task argocd:cluster:register
+task argocd:apps:apply         # ApplicationSet neu anwenden
+task argocd:status             # Neue App sollte erscheinen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="cmp-plugin-kustomize--envsubst">CMP-Plugin (Kustomize + envsubst)</h2>
+<p>Das CMP-Plugin ermoglicht Umgebungsvariablen-Substitution in Kustomize-Manifesten -- unabdingbar, damit ArgoCD die Domain- und Brand-Variablen pro Cluster einsetzen kann.</p>
+<p><strong>Dateien in <code>argocd/install/</code>:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cmp-plugin.yaml</code></td>
+<td>ConfigMap mit dem Plugin-Skript (kustomize build + envsubst)</td>
+</tr>
+<tr>
+<td><code>patch-repo-server.yaml</code></td>
+<td>Fugt den CMP-Sidecar-Container zum argocd-repo-server hinzu</td>
+</tr>
+<tr>
+<td><code>patch-argocd-server.yaml</code></td>
+<td>Konfiguriert den ArgoCD-Server (insecure + root-path)</td>
+</tr>
+<tr>
+<td><code>ingress.yaml</code></td>
+<td>Traefik-Ingress fur das ArgoCD UI</td>
+</tr>
+<tr>
+<td><code>namespace.yaml</code></td>
+<td>argocd-Namespace</td>
+</tr>
+<tr>
+<td><code>kustomization.yaml</code></td>
+<td>Kustomize-Einstiegspunkt fur die Installation</td>
+</tr>
+</tbody></table>
+<p>Das Plugin-Skript fuhrt aus:</p>
+<ol>
+<li><code>kustomize build &lt;overlay&gt;</code> -- Kustomize-Manifeste generieren</li>
+<li><code>envsubst</code> -- <code>${VAR}</code>-Platzhalter mit Cluster-Annotationen ersetzen</li>
+</ol>
+<hr>
+<h2 id="fehlerbehebung">Fehlerbehebung</h2>
+<p><strong>App ist OutOfSync:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task argocd:diff -- workspace-hetzner   # Genauer Unterschied anzeigen
+task argocd:sync -- workspace-hetzner   # Manuell synchronisieren
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Sync schlagt fehl -- Manifest-Fehler:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:validate   # Kustomize Dry-Run lokal pruefen
+# Fehler beheben, committen, pushen -- ArgoCD synciert automatisch
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Cluster nicht erreichbar:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># kubeconfig korrekt?
+kubectl config get-contexts
+# ArgoCD Cluster-Secret vorhanden?
+kubectl get secret -n argocd -l argocd.argoproj.io/secret-type=cluster
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>CMP-Plugin-Fehler:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl logs -n argocd deploy/argocd-repo-server -c cmp-server
+# Haufige Ursache: envsubst-Variable nicht als Annotation gesetzt
+# Loesung: task argocd:cluster:register erneut ausfuehren
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Ressource wird nicht geloescht (Pruning-Problem):</strong></p>
+<p>Sicherstellen, dass <code>syncPolicy.automated.prune: true</code> gesetzt ist. Im ArgoCD UI kann Pruning auch manuell fur eine einzelne App ausgelost werden.</p>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

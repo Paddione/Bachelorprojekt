@@ -15,12 +15,19 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y jq curl python3-pip
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
+      - name: Install node dependencies (docs-gen generator + tests)
+        run: npm ci
 
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh

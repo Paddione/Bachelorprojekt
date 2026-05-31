@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DB Audit Phase 5 — Findings — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">DB Audit Phase 5 — Findings</span></nav>
+    <h1>DB Audit Phase 5 — Findings</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>DB Audit Phase 5 — Findings</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#summary"><span class="toc-num">1.</span> Summary</a></li>
+<li class="toc-item"><a href="#module-1--orphan-detection-phase-a"><span class="toc-num">2.</span> Module 1 — Orphan detection (Phase A)</a></li>
+<li class="toc-item"><a href="#module-2--runtime-statistics-phase-a--gated-out"><span class="toc-num">3.</span> Module 2 — Runtime statistics (Phase A) — gated out</a></li>
+<li class="toc-item"><a href="#module-3--structural-integrity-phase-a"><span class="toc-num">4.</span> Module 3 — Structural integrity (Phase A)</a></li>
+<li class="toc-item"><a href="#module-4--schema-hygiene-phase-a"><span class="toc-num">5.</span> Module 4 — Schema hygiene (Phase A)</a></li>
+<li class="toc-item"><a href="#module-5--cross-cluster-drift-phase-a"><span class="toc-num">6.</span> Module 5 — Cross-cluster drift (Phase A)</a></li>
+<li class="toc-item"><a href="#side-quest-mishaps-to-log"><span class="toc-num">7.</span> Side-quest mishaps to log</a></li>
+<li class="toc-item"><a href="#phase-c--autonomous-additive-actions-queued"><span class="toc-num">8.</span> Phase C — autonomous additive actions queued</a></li>
+<li class="toc-item"><a href="#phase-d--drop-queue-empty"><span class="toc-num">9.</span> Phase D — DROP queue (empty)</a></li>
+<li class="toc-item"><a href="#phase-e--wrap"><span class="toc-num">10.</span> Phase E — wrap</a></li></ul>
+</div>
+<p><strong>Audit date:</strong> 2026-05-23
+<strong>Scope:</strong> <code>shared-db</code> on <code>mentolder</code> + <code>korczewski</code>, <code>website</code> + <code>postgres</code> databases. <code>postgres</code> DBs are empty on both clusters; effective scope is <code>website</code> DB.
+<strong>Spec:</strong> <a href="../../superpowers/specs/2026-05-23-db-audit-phase5-design.md"><code>2026-05-23-db-audit-phase5-design.md</code></a>
+<strong>Ticket:</strong> <a href="https://web.mentolder.de/admin/bugs">T000150</a></p>
+<hr>
+<h2 id="summary">Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th align="right">Mentolder</th>
+<th align="right">Korczewski</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>User tables (website DB)</td>
+<td align="right">105</td>
+<td align="right">66</td>
+<td>korczewski runs a stripped-down workspace (no billing/questionnaire/newsletter)</td>
+</tr>
+<tr>
+<td>User indexes</td>
+<td align="right">219</td>
+<td align="right">156</td>
+<td>proportional to table count</td>
+</tr>
+<tr>
+<td>Tables in <code>public</code> schema</td>
+<td align="right">71</td>
+<td align="right">28</td>
+<td>candidate for schema hygiene cleanup (advisory)</td>
+</tr>
+<tr>
+<td>Tables without <code>COMMENT ON</code></td>
+<td align="right">105 / 105</td>
+<td align="right">66 / 66</td>
+<td><strong>100% miss</strong> on both clusters</td>
+</tr>
+<tr>
+<td>Missing FK indexes</td>
+<td align="right">64</td>
+<td align="right">32</td>
+<td>30 shared + 34 m-only + 2 k-only — Phase C autonomous fix</td>
+</tr>
+<tr>
+<td>TEXT-typed <code>_id</code>/<code>_uuid</code> columns</td>
+<td align="right">50</td>
+<td align="right">20</td>
+<td>approval-class (per-item judgment)</td>
+</tr>
+<tr>
+<td>Tables exclusive to mentolder</td>
+<td align="right">43</td>
+<td align="right">—</td>
+<td>mostly by-design (billing, questionnaire, newsletter)</td>
+</tr>
+<tr>
+<td>Tables exclusive to korczewski</td>
+<td align="right">—</td>
+<td align="right">4</td>
+<td><code>arena.*</code> — by-design</td>
+</tr>
+<tr>
+<td>Column drift in shared tables</td>
+<td align="right">8 m-only / 0 k-only</td>
+<td align="right">—</td>
+<td>one autonomous fix candidate; rest are migration drift</td>
+</tr>
+<tr>
+<td>Removed-feature orphan tables</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td>Phase 1–4 cleanup was thorough</td>
+</tr>
+</tbody></table>
+<p><strong>Findings by action class:</strong></p>
+<ul>
+<li><strong>Autonomous (Phase C — apply now):</strong> F-001…F-005 (96 indexes), F-006 (8 column drift fixes), F-008 (171 table comments)</li>
+<li><strong>Approval-required (Phase D):</strong> none for DROP. F-007 (TEXT→UUID conversions, 70 candidates) — recommend deferring to a dedicated future phase. F-009 (schema move from <code>public</code>, 99 candidates) — defer.</li>
+<li><strong>Advisory only (gated out):</strong> Module 2 cold-table/cold-index DROP proposals — postgres uptime is only 3.5 days on both clusters (restarted 2026-05-20), below the 30-day stats_reset threshold from spec safety rail 6. Next eligible audit window: <strong>2026-06-19</strong> (assuming no restarts).</li>
+<li><strong>Information only:</strong> Module 5 by-design drift (43 mentolder-only tables, 4 korczewski-only <code>arena.*</code> tables).</li>
+</ul>
+<p><strong>Phase D outcome (preview):</strong> <strong>No DROP candidates qualified.</strong> Phase D will be a no-op for this audit. Phase 5 reduces in practice to: additive structural fixes + comments + cluster-drift back-fill + report.</p>
+<hr>
+<h2 id="module-1--orphan-detection-phase-a">Module 1 — Orphan detection (Phase A)</h2>
+<p><strong>Method:</strong> queried <code>information_schema.tables</code> on both clusters for names matching removed-feature keywords (<code>stripe</code>, <code>mattermost</code>, <code>invoice_ninja|invoiceninja</code>, <code>argo_cd|argocd</code>, <code>track_pr|tracking_import</code>).</p>
+<p><strong>Result: ZERO matches on either cluster.</strong></p>
+<p>This confirms that the prior Phase 1–4 audits (commits <code>6488be6f</code>, <code>a5e46671</code>, <code>2e167489</code>) thoroughly removed orphaned structures tied to deprecated features. The current <code>billing_*</code> tables (12 of them) are mentolder-native billing infrastructure — they're empty in production but actively referenced by code (<code>billing_invoice_payments</code> has 1455 seq_scans in 3.5 days), so they're NOT orphans.</p>
+<p><strong>Evidence:</strong> <a href="evidence/orphan-candidates.json"><code>orphan-candidates.json</code></a> (empty — recorded for completeness).</p>
+<hr>
+<h2 id="module-2--runtime-statistics-phase-a--gated-out">Module 2 — Runtime statistics (Phase A) — gated out</h2>
+<p><strong>Stats availability:</strong></p>
+<ul>
+<li><code>pg_stat_statements</code> extension: <strong>not installed</strong> on either cluster, either DB</li>
+<li><code>pg_stat_database.stats_reset</code>: <strong>NULL</strong> on both clusters, both DBs</li>
+<li><code>pg_postmaster_start_time()</code>: mentolder = 2026-05-20T04:43Z (3.54d ago), korczewski = 2026-05-20T05:02Z (3.53d ago)</li>
+</ul>
+<p>Per spec Section 4 safety rail 6, Module 2 DROP proposals require <strong>stats_reset &gt;30 days on BOTH clusters</strong>. Both clusters are at 3.5 days. <strong>All Module 2 cold-table / cold-index DROP proposals are downgraded to advisory-only and will NOT be acted on this phase.</strong></p>
+<h3>F-A01 (advisory, info) — Install <code>pg_stat_statements</code></h3>
+<p><strong>Recommendation:</strong> Enable <code>pg_stat_statements</code> extension in shared-db <code>postgresql.conf</code> (or via SealedSecret-managed <code>shared_preload_libraries</code>) so future audits have query-level evidence.
+<strong>Action class:</strong> advisory (out of scope this phase; needs operator change).</p>
+<h3>F-A02 (advisory, info) — Re-run Module 2 after 2026-06-19</h3>
+<p><strong>Recommendation:</strong> Schedule a follow-up audit after both clusters have &gt;30 days of pg_stat_user_tables data (no restarts). On 2026-06-19 (or later), re-run <code>scripts/db-audit/phase5/collect-pg-stats.sh</code> and act on cold-table findings then.</p>
+<p><strong>Evidence:</strong></p>
+<ul>
+<li><a href="evidence/stats_reset.json"><code>stats_reset.json</code></a></li>
+<li><a href="evidence/pg_stat_tables.mentolder.csv"><code>pg_stat_tables.mentolder.csv</code></a> (105 tables)</li>
+<li><a href="evidence/pg_stat_tables.korczewski.csv"><code>pg_stat_tables.korczewski.csv</code></a> (66 tables)</li>
+<li><a href="evidence/pg_stat_indexes.mentolder.csv"><code>pg_stat_indexes.mentolder.csv</code></a> (219 indexes)</li>
+<li><a href="evidence/pg_stat_indexes.korczewski.csv"><code>pg_stat_indexes.korczewski.csv</code></a> (156 indexes)</li>
+</ul>
+<hr>
+<h2 id="module-3--structural-integrity-phase-a">Module 3 — Structural integrity (Phase A)</h2>
+<h3>F-001 (high, <strong>autonomous</strong>) — Missing FK indexes (96 across both clusters)</h3>
+<p><strong>Why this matters:</strong> Postgres does NOT auto-create indexes on FK columns. Without them, cascade deletes and FK joins fall back to sequential scans. Several large tables (<code>billing_invoices</code>, <code>coaching.snippets</code>, <code>tickets.tickets</code>) lack FK indexes — silent performance footgun.</p>
+<p><strong>Counts:</strong></p>
+<ul>
+<li>30 FK indexes missing on <strong>both</strong> clusters (shared tables)</li>
+<li>34 additional missing on mentolder (m-only tables: billing, questionnaire, etc.)</li>
+<li>2 additional missing on korczewski (k-only <code>arena.*</code> tables)</li>
+</ul>
+<p><strong>Action:</strong> Phase C will generate <code>scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes.sql</code> per cluster with <code>CREATE INDEX IF NOT EXISTS</code> statements. All wrapped in <code>BEGIN/COMMIT</code>. Idempotent and reversible.</p>
+<p><strong>Evidence:</strong></p>
+<ul>
+<li><a href="evidence/missing-fk-indexes.mentolder.csv"><code>missing-fk-indexes.mentolder.csv</code></a> (64 entries)</li>
+<li><a href="evidence/missing-fk-indexes.korczewski.csv"><code>missing-fk-indexes.korczewski.csv</code></a> (32 entries)</li>
+</ul>
+<p><strong>Sample (top 10 highest-priority — shared tables, billing/tickets):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Schema.Table</th>
+<th>Column</th>
+<th>References</th>
+<th>Both clusters?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>public.billing_invoice_line_items</td>
+<td>invoice_id</td>
+<td>billing_invoices</td>
+<td>mentolder only (table is m-only)</td>
+</tr>
+<tr>
+<td>public.billing_invoice_payments</td>
+<td>brand</td>
+<td>brands</td>
+<td>mentolder only</td>
+</tr>
+<tr>
+<td>public.billing_invoices</td>
+<td>brand, parent_invoice_id, customer_id, cancels_invoice_id</td>
+<td>(multiple)</td>
+<td>mentolder only</td>
+</tr>
+<tr>
+<td>public.assets</td>
+<td>brand</td>
+<td>brands</td>
+<td>mentolder only</td>
+</tr>
+<tr>
+<td>bachelorprojekt.features</td>
+<td>requirement_id, brand</td>
+<td>bachelorprojekt.requirements, brands</td>
+<td>both</td>
+</tr>
+<tr>
+<td>bachelorprojekt.pipeline</td>
+<td>req_id</td>
+<td>bachelorprojekt.requirements</td>
+<td>both</td>
+</tr>
+<tr>
+<td>bachelorprojekt.test_results</td>
+<td>req_id</td>
+<td>bachelorprojekt.requirements</td>
+<td>both</td>
+</tr>
+<tr>
+<td>bugs.bug_tickets</td>
+<td>brand</td>
+<td>brands</td>
+<td>both</td>
+</tr>
+<tr>
+<td>coaching.snippets</td>
+<td>knowledge_chunk_id</td>
+<td>knowledge.chunks</td>
+<td>both</td>
+</tr>
+<tr>
+<td>coaching.projects</td>
+<td>client_id</td>
+<td>customers</td>
+<td>both</td>
+</tr>
+</tbody></table>
+<h3>F-007 (med, <strong>approval</strong>) — TEXT-typed <code>_id</code>/<code>_uuid</code> columns (70 candidates)</h3>
+<p><strong>Why this matters:</strong> TEXT columns where the value is always a UUID waste storage (~36 bytes vs 16 for UUID), prevent type-safe joins, and can silently allow non-UUID values.</p>
+<p><strong>BUT:</strong> several candidates are correctly typed TEXT because they reference external systems with non-UUID identifiers. Examples:</p>
+<ul>
+<li><code>bugs.bug_tickets.ticket_id</code> — uses T###### format, <strong>NOT a UUID</strong> → keep TEXT</li>
+<li><code>coaching.ki_config.organization_id</code> — likely a Keycloak realm/org ID → keep TEXT</li>
+<li><code>billing_customers.default_leitweg_id</code> — German B2G addressing format → keep TEXT</li>
+<li><code>bachelorprojekt.features.requirement_id</code> — external requirement key → keep TEXT</li>
+<li><code>billing_audit_log.invoice_id</code> — references <code>billing_invoices.id</code>, IS uuid → <strong>convert</strong></li>
+</ul>
+<p><strong>Recommendation:</strong> Defer to a dedicated phase that does per-column verification (<code>SELECT COUNT(*) FILTER (WHERE col !~ '&lt;uuid-regex&gt;')</code>) + application-code sweep. Too risky for autonomous fix; too noisy for per-item approval in this phase.</p>
+<p><strong>Action class:</strong> approval — <strong>DEFERRED</strong> to future Phase 6.</p>
+<p><strong>Evidence:</strong></p>
+<ul>
+<li><a href="evidence/text-as-uuid.mentolder.csv"><code>text-as-uuid.mentolder.csv</code></a> (50 entries)</li>
+<li><a href="evidence/text-as-uuid.korczewski.csv"><code>text-as-uuid.korczewski.csv</code></a> (20 entries)</li>
+</ul>
+<hr>
+<h2 id="module-4--schema-hygiene-phase-a">Module 4 — Schema hygiene (Phase A)</h2>
+<h3>F-008 (low, <strong>autonomous</strong>) — Missing table comments (171 across both clusters)</h3>
+<p><strong>Why this matters:</strong> Every user table has zero <code>COMMENT ON TABLE</code>. Future maintainers (and the ER diagram generator) lack semantic context.</p>
+<p><strong>Counts:</strong> 105 mentolder + 66 korczewski = 171 tables.</p>
+<p><strong>Approach:</strong> Generate <code>COMMENT ON TABLE</code> statements derived from <code>(schema, table_name)</code> patterns + the 8 domain map in <code>docs/db-schema-diagram.md</code>. Comments are descriptive but minimal (one sentence each). Autonomous because purely cosmetic and reversible.</p>
+<p><strong>Action:</strong> Phase C will produce <code>scripts/datamodel/2026-05-23-audit-phase5-add-comments.sql</code>.</p>
+<p><strong>Evidence:</strong> <a href="evidence/missing-comments.mentolder.csv"><code>missing-comments.mentolder.csv</code></a>, <a href="evidence/missing-comments.korczewski.csv"><code>missing-comments.korczewski.csv</code></a>.</p>
+<h3>F-009 (info, <strong>approval</strong>) — Public-schema tables that should move to a domain schema (99 tables)</h3>
+<p><strong>Why this matters:</strong> The 8-domain map in <code>docs/db-schema-diagram.md</code> shows logical groupings, but mentolder has 71 tables sitting in <code>public</code> (korczewski has 28). Examples:</p>
+<ul>
+<li><code>billing_*</code> (12 tables) → suggest schema <code>billing</code></li>
+<li><code>questionnaire_*</code> (10 tables) → suggest schema <code>questionnaire</code></li>
+<li><code>assistant_*</code> (4 tables) → suggest schema <code>assistant</code></li>
+<li><code>newsletter_*</code> (3 tables) → suggest schema <code>newsletter</code></li>
+<li><code>meeting*</code>, <code>meetings</code>, <code>meeting_*</code> → suggest schema <code>meetings</code> or <code>crm</code></li>
+<li><code>chat_*</code>, <code>messages</code>, <code>message_threads</code>, <code>polls</code>, <code>poll_answers</code> → suggest <code>messaging</code></li>
+</ul>
+<p><strong>Action class:</strong> approval — <strong>DEFERRED</strong>. Schema renames require application-code changes (every <code>SELECT FROM billing_invoices</code> becomes <code>SELECT FROM billing.invoices</code>). Out of scope for this phase.</p>
+<p><strong>Evidence:</strong> <a href="evidence/public-tables.mentolder.csv"><code>public-tables.mentolder.csv</code></a>, <a href="evidence/public-tables.korczewski.csv"><code>public-tables.korczewski.csv</code></a>.</p>
+<h3>F-010 (info, <strong>clean</strong>) — Grant matrix is symmetric</h3>
+<p>Reviewed <code>information_schema.role_table_grants</code> per schema. The <code>website</code> role has consistent grant levels (full DML on most schemas; SELECT-only on <code>arena</code> schema on korczewski, correct for read-only cross-brand reads). No asymmetry findings.</p>
+<p><strong>Evidence:</strong> <a href="evidence/grant-matrix.mentolder.csv"><code>grant-matrix.mentolder.csv</code></a>, <a href="evidence/grant-matrix.korczewski.csv"><code>grant-matrix.korczewski.csv</code></a>.</p>
+<h3>F-011 (info, <strong>DEFERRED</strong>) — Migration directory inventory</h3>
+<p>Five separate migration directories in the repo:</p>
+<ul>
+<li><code>scripts/migrations/</code> — 2 files</li>
+<li><code>scripts/datamodel/</code> — 1 SQL file + scaffolding</li>
+<li><code>scripts/one-shot/archive/</code> — 12 archived one-shots</li>
+<li><code>website/src/db/migrations/</code> — 5 files (website-owned)</li>
+<li><code>arena-server/src/db/migrations/</code> — 2 files (arena-owned)</li>
+</ul>
+<p><strong>Recommendation:</strong> Service-owned (website, arena-server) should stay where they are. Operational + datamodel migrations should consolidate into <code>scripts/datamodel/</code>. Out of scope this phase — propose as separate refactor.</p>
+<hr>
+<h2 id="module-5--cross-cluster-drift-phase-a">Module 5 — Cross-cluster drift (Phase A)</h2>
+<h3>F-005 (low, <strong>autonomous</strong>) — <code>systemtest_failure_outbox</code> schema drift (7 columns mentolder-only)</h3>
+<p><strong>Why this matters:</strong> A migration that added <code>source_kind</code>, <code>run_id</code>, <code>test_result_id</code>, <code>test_id</code>, <code>test_name</code>, <code>error_message</code>, <code>file_path</code> to <code>public.systemtest_failure_outbox</code> was applied to mentolder but not korczewski. This is silent drift — the same DDL on both clusters is a hard invariant for this project.</p>
+<p>The most-recent ticket fix [T000019]/[T000021] (<code>e77fb637 fix(systemtest): move ensureSystemtestSchema before v_questionnaire_kpi view</code>) probably landed only on mentolder.</p>
+<p><strong><code>source_kind</code></strong> has <code>NOT NULL DEFAULT 'questionnaire'</code> — safe to add via <code>ALTER TABLE ... ADD COLUMN ... DEFAULT ...</code> (back-fills existing rows). The other 6 columns are nullable — also safe.</p>
+<p><strong>Action:</strong> Phase C will produce <code>scripts/datamodel/2026-05-23-audit-phase5-bring-cross-cluster.sql</code> (korczewski-only) that adds the 7 columns.</p>
+<h3>F-006 (low, <strong>autonomous</strong>) — <code>public.meetings.project_id</code> (uuid, nullable) on mentolder only</h3>
+<p>Same pattern — nullable UUID column added on mentolder, not korczewski. Safe autonomous fix on korczewski.</p>
+<p><strong>Evidence:</strong> <a href="evidence/drift-columns-mentolder-only.txt"><code>drift-columns-mentolder-only.txt</code></a>.</p>
+<h3>F-012 (info, <strong>by-design</strong>) — 43 tables exclusive to mentolder</h3>
+<p>These are billing/questionnaire/newsletter/assistant tables. Mentolder is the primary brand; korczewski is a simpler workspace per the brand split. NOT drift — by-design.</p>
+<h3>F-013 (info, <strong>by-design</strong>) — 4 tables exclusive to korczewski (<code>arena.*</code>)</h3>
+<p>Arena server runs on korczewski only per project memory. By-design. Spec out-of-band note already covered this.</p>
+<p><strong>Evidence:</strong> <a href="evidence/drift-tables-mentolder-only.txt"><code>drift-tables-mentolder-only.txt</code></a>, <a href="evidence/drift-tables-korczewski-only.txt"><code>drift-tables-korczewski-only.txt</code></a>.</p>
+<hr>
+<h2 id="side-quest-mishaps-to-log">Side-quest mishaps to log</h2>
+<ul>
+<li><strong>MISHAP-01 (drift)</strong> — <code>systemtest_failure_outbox</code> schema drift between clusters (covered by F-005). Indicates the recent T000019-21 ticket fix may not have been applied to korczewski.</li>
+<li><strong>MISHAP-02 (drift)</strong> — <code>public.meetings.project_id</code> exists on mentolder only (F-006).</li>
+<li><strong>MISHAP-03 (degraded)</strong> — <code>pg_stat_statements</code> extension missing on both clusters. Limits future audits' query-level insight (F-A01).</li>
+<li><strong>MISHAP-04 (degraded)</strong> — Zero <code>COMMENT ON</code> on all 171 user tables. Indicates absent documentation practice (F-008).</li>
+</ul>
+<hr>
+<h2 id="phase-c--autonomous-additive-actions-queued">Phase C — autonomous additive actions queued</h2>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Action</th>
+<th align="right">Mentolder</th>
+<th align="right">Korczewski</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F-001</td>
+<td>CREATE INDEX (missing FK indexes)</td>
+<td align="right">64 statements</td>
+<td align="right">32 statements</td>
+</tr>
+<tr>
+<td>F-005</td>
+<td>ALTER TABLE ADD COLUMN (systemtest_failure_outbox)</td>
+<td align="right">—</td>
+<td align="right">7 statements</td>
+</tr>
+<tr>
+<td>F-006</td>
+<td>ALTER TABLE ADD COLUMN (meetings.project_id)</td>
+<td align="right">—</td>
+<td align="right">1 statement</td>
+</tr>
+<tr>
+<td>F-008</td>
+<td>COMMENT ON TABLE</td>
+<td align="right">105 statements</td>
+<td align="right">66 statements</td>
+</tr>
+</tbody></table>
+<p><strong>Total per-cluster:</strong> mentolder ≈ 169 statements; korczewski ≈ 106 statements.</p>
+<h2 id="phase-d--drop-queue-empty">Phase D — DROP queue (empty)</h2>
+<p>No DROP candidates qualified for this phase. <strong>Phase D is a no-op.</strong></p>
+<h2 id="phase-e--wrap">Phase E — wrap</h2>
+<p>Regenerate ER diagram (<code>task db:diagram ENV=mentolder</code>), final cross-cluster verify, open PR.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

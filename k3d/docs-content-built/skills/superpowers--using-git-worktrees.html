@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>using-git-worktrees — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">using-git-worktrees</span></nav>
+    <h1>using-git-worktrees</h1>
+    <p class="page-desc">Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">5.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Using Git Worktrees</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#step-0-detect-existing-isolation"><span class="toc-num">2.</span> Step 0: Detect Existing Isolation</a></li>
+<li class="toc-item"><a href="#step-1-create-isolated-workspace"><span class="toc-num">3.</span> Step 1: Create Isolated Workspace</a></li>
+<li class="toc-item"><a href="#step-3-project-setup"><span class="toc-num">4.</span> Step 3: Project Setup</a></li>
+<li class="toc-item"><a href="#step-4-verify-clean-baseline"><span class="toc-num">5.</span> Step 4: Verify Clean Baseline</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">6.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#common-mistakes"><span class="toc-num">7.</span> Common Mistakes</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">8.</span> Red Flags</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Ensure work happens in an isolated workspace. Prefer your platform's native worktree tools. Fall back to manual git worktrees only when no native tool is available.</p>
+<p><strong>Core principle:</strong> Detect existing isolation first. Then use native tools. Then fall back to git. Never fight the harness.</p>
+<p><strong>Announce at start:</strong> "I'm using the using-git-worktrees skill to set up an isolated workspace."</p>
+<h2 id="step-0-detect-existing-isolation">Step 0: Detect Existing Isolation</h2>
+<p><strong>Before creating anything, check if you are already in an isolated workspace.</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2&gt;/dev/null &amp;&amp; pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2&gt;/dev/null &amp;&amp; pwd -P)
+BRANCH=$(git branch --show-current)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Submodule guard:</strong> <code>GIT_DIR != GIT_COMMON</code> is also true inside git submodules. Before concluding "already in a worktree," verify you are not in a submodule:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># If this returns a path, you're in a submodule, not a worktree — treat as normal repo
+git rev-parse --show-superproject-working-tree 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If <code>GIT_DIR != GIT_COMMON</code> (and not a submodule):</strong> You are already in a linked worktree. Skip to Step 3 (Project Setup). Do NOT create another worktree.</p>
+<p>Report with branch state:</p>
+<ul>
+<li>On a branch: "Already in isolated workspace at <code>&lt;path&gt;</code> on branch <code>&lt;name&gt;</code>."</li>
+<li>Detached HEAD: "Already in isolated workspace at <code>&lt;path&gt;</code> (detached HEAD, externally managed). Branch creation needed at finish time."</li>
+</ul>
+<p><strong>If <code>GIT_DIR == GIT_COMMON</code> (or in a submodule):</strong> You are in a normal repo checkout.</p>
+<p>Has the user already indicated their worktree preference in your instructions? If not, ask for consent before creating a worktree:</p>
+<blockquote>
+<p>"Would you like me to set up an isolated worktree? It protects your current branch from changes."</p>
+</blockquote>
+<p>Honor any existing declared preference without asking. If the user declines consent, work in place and skip to Step 3.</p>
+<h2 id="step-1-create-isolated-workspace">Step 1: Create Isolated Workspace</h2>
+<p><strong>You have two mechanisms. Try them in this order.</strong></p>
+<h3>1a. Native Worktree Tools (preferred)</h3>
+<p>The user has asked for an isolated workspace (Step 0 consent). Do you already have a way to create a worktree? It might be a tool with a name like <code>EnterWorktree</code>, <code>WorktreeCreate</code>, a <code>/worktree</code> command, or a <code>--worktree</code> flag. If you do, use it and skip to Step 3.</p>
+<p>Native tools handle directory placement, branch creation, and cleanup automatically. Using <code>git worktree add</code> when you have a native tool creates phantom state your harness can't see or manage.</p>
+<p>Only proceed to Step 1b if you have no native worktree tool available.</p>
+<h3>1b. Git Worktree Fallback</h3>
+<p><strong>Only use this if Step 1a does not apply</strong> — you have no native worktree tool available. Create a worktree manually using git.</p>
+<h4>Directory Selection</h4>
+<p>Follow this priority order. Explicit user preference always beats observed filesystem state.</p>
+<ol>
+<li><p><strong>Check your instructions for a declared worktree directory preference.</strong> If the user has already specified one, use it without asking.</p>
+</li>
+<li><p><strong>Check for an existing project-local worktree directory:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">ls -d .worktrees 2&gt;/dev/null     # Preferred (hidden)
+ls -d worktrees 2&gt;/dev/null      # Alternative
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If found, use it. If both exist, <code>.worktrees</code> wins.</p>
+</li>
+<li><p><strong>Check for an existing global directory:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">project=$(basename "$(git rev-parse --show-toplevel)")
+ls -d ~/.config/superpowers/worktrees/$project 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If found, use it (backward compatibility with legacy global path).</p>
+</li>
+<li><p><strong>If there is no other guidance available</strong>, default to <code>.worktrees/</code> at the project root.</p>
+</li>
+</ol>
+<h4>Safety Verification (project-local directories only)</h4>
+<p><strong>MUST verify directory is ignored before creating worktree:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">git check-ignore -q .worktrees 2&gt;/dev/null || git check-ignore -q worktrees 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If NOT ignored:</strong> Add to .gitignore, commit the change, then proceed.</p>
+<p><strong>Why critical:</strong> Prevents accidentally committing worktree contents to repository.</p>
+<p>Global directories (<code>~/.config/superpowers/worktrees/</code>) need no verification.</p>
+<h4>Create the Worktree</h4>
+<div class="code-wrapper"><pre><code class="language-bash">project=$(basename "$(git rev-parse --show-toplevel)")
+
+# Determine path based on chosen location
+# For project-local: path="$LOCATION/$BRANCH_NAME"
+# For global: path="~/.config/superpowers/worktrees/$project/$BRANCH_NAME"
+
+git worktree add "$path" -b "$BRANCH_NAME"
+cd "$path"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Sandbox fallback:</strong> If <code>git worktree add</code> fails with a permission error (sandbox denial), tell the user the sandbox blocked worktree creation and you're working in the current directory instead. Then run setup and baseline tests in place.</p>
+<h2 id="step-3-project-setup">Step 3: Project Setup</h2>
+<p>Auto-detect and run appropriate setup:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Node.js
+if [ -f package.json ]; then npm install; fi
+
+# Rust
+if [ -f Cargo.toml ]; then cargo build; fi
+
+# Python
+if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+if [ -f pyproject.toml ]; then poetry install; fi
+
+# Go
+if [ -f go.mod ]; then go mod download; fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="step-4-verify-clean-baseline">Step 4: Verify Clean Baseline</h2>
+<p>Run tests to ensure workspace starts clean:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Use project-appropriate command
+npm test / cargo test / pytest / go test ./...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If tests fail:</strong> Report failures, ask whether to proceed or investigate.</p>
+<p><strong>If tests pass:</strong> Report ready.</p>
+<h3>Report</h3>
+<div class="code-wrapper"><pre><code>Worktree ready at &lt;full-path&gt;
+Tests passing (&lt;N&gt; tests, 0 failures)
+Ready to implement &lt;feature-name&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Already in linked worktree</td>
+<td>Skip creation (Step 0)</td>
+</tr>
+<tr>
+<td>In a submodule</td>
+<td>Treat as normal repo (Step 0 guard)</td>
+</tr>
+<tr>
+<td>Native worktree tool available</td>
+<td>Use it (Step 1a)</td>
+</tr>
+<tr>
+<td>No native tool</td>
+<td>Git worktree fallback (Step 1b)</td>
+</tr>
+<tr>
+<td><code>.worktrees/</code> exists</td>
+<td>Use it (verify ignored)</td>
+</tr>
+<tr>
+<td><code>worktrees/</code> exists</td>
+<td>Use it (verify ignored)</td>
+</tr>
+<tr>
+<td>Both exist</td>
+<td>Use <code>.worktrees/</code></td>
+</tr>
+<tr>
+<td>Neither exists</td>
+<td>Check instruction file, then default <code>.worktrees/</code></td>
+</tr>
+<tr>
+<td>Global path exists</td>
+<td>Use it (backward compat)</td>
+</tr>
+<tr>
+<td>Directory not ignored</td>
+<td>Add to .gitignore + commit</td>
+</tr>
+<tr>
+<td>Permission error on create</td>
+<td>Sandbox fallback, work in place</td>
+</tr>
+<tr>
+<td>Tests fail during baseline</td>
+<td>Report failures + ask</td>
+</tr>
+<tr>
+<td>No package.json/Cargo.toml</td>
+<td>Skip dependency install</td>
+</tr>
+</tbody></table>
+<h2 id="common-mistakes">Common Mistakes</h2>
+<h3>Fighting the harness</h3>
+<ul>
+<li><strong>Problem:</strong> Using <code>git worktree add</code> when the platform already provides isolation</li>
+<li><strong>Fix:</strong> Step 0 detects existing isolation. Step 1a defers to native tools.</li>
+</ul>
+<h3>Skipping detection</h3>
+<ul>
+<li><strong>Problem:</strong> Creating a nested worktree inside an existing one</li>
+<li><strong>Fix:</strong> Always run Step 0 before creating anything</li>
+</ul>
+<h3>Skipping ignore verification</h3>
+<ul>
+<li><strong>Problem:</strong> Worktree contents get tracked, pollute git status</li>
+<li><strong>Fix:</strong> Always use <code>git check-ignore</code> before creating project-local worktree</li>
+</ul>
+<h3>Assuming directory location</h3>
+<ul>
+<li><strong>Problem:</strong> Creates inconsistency, violates project conventions</li>
+<li><strong>Fix:</strong> Follow priority: existing &gt; global legacy &gt; instruction file &gt; default</li>
+</ul>
+<h3>Proceeding with failing tests</h3>
+<ul>
+<li><strong>Problem:</strong> Can't distinguish new bugs from pre-existing issues</li>
+<li><strong>Fix:</strong> Report failures, get explicit permission to proceed</li>
+</ul>
+<h2 id="red-flags">Red Flags</h2>
+<p><strong>Never:</strong></p>
+<ul>
+<li>Create a worktree when Step 0 detects existing isolation</li>
+<li>Use <code>git worktree add</code> when you have a native worktree tool (e.g., <code>EnterWorktree</code>). This is the #1 mistake — if you have it, use it.</li>
+<li>Skip Step 1a by jumping straight to Step 1b's git commands</li>
+<li>Create worktree without verifying it's ignored (project-local)</li>
+<li>Skip baseline test verification</li>
+<li>Proceed with failing tests without asking</li>
+</ul>
+<p><strong>Always:</strong></p>
+<ul>
+<li>Run Step 0 detection first</li>
+<li>Prefer native tools over git fallback</li>
+<li>Follow directory priority: existing &gt; global legacy &gt; instruction file &gt; default</li>
+<li>Verify directory is ignored for project-local</li>
+<li>Auto-detect and run project setup</li>
+<li>Verify clean test baseline</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

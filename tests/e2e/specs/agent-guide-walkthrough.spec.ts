@@ -1,188 +1,132 @@
 /**
- * Agent-Anleitung E2E — dual-mode spec
- *
- * CI mode (default):   headless, data-driven, one test() per goal/section.
- * Film mode (AG_FILM=1): headed, slowMo, video recording, step banners.
- *
+ * Agent-Anleitung E2E — dual-mode spec (grouped/collapsible/searchable UI).
+ * CI mode (default): headless assertions.  Film mode (AG_FILM=1): headed walkthrough.
  * No login required — PortalSidekick is on the public Layout.astro.
  */
 import { test, expect } from '@playwright/test';
-import {
-  openAgentGuide,
-  loadGuideData,
-  showFilmBanner,
-  removeFilmBanner,
-} from '../lib/agent-guide';
+import { openAgentGuide, expandCardByTitle, loadGuideData, showFilmBanner, removeFilmBanner } from '../lib/agent-guide';
 
 const FILM = !!process.env.AG_FILM;
-const FILM_PAUSE = 1500; // ms between steps in film mode
-const { goals, tools, taxonomy } = loadGuideData();
-
-// ─── Shared: navigation opens the view ──────────────────────────────────────
+const FILM_PAUSE = 1500;
+const { goals, tools, taxonomy, themes, glossary } = loadGuideData();
 
 test('öffnet die Agent-Anleitung und zeigt den Titel', async ({ page }) => {
   await openAgentGuide(page);
   await expect(page.locator('.sk-title')).toContainText('Agent-Anleitung');
 });
 
-// ─── Tier legend ─────────────────────────────────────────────────────────────
-
-test('Tier-Legende zeigt alle 4 Gefahrenstufen', async ({ page }) => {
+test('zeigt alle 7 Themen-Gruppen, Karten standardmäßig eingeklappt', async ({ page }) => {
   await openAgentGuide(page);
-  const items = page.locator('.ag-legend .ag-legend-item');
-  await expect(items).toHaveCount(taxonomy.length);
-  for (const tier of taxonomy) {
-    await expect(page.locator('.ag-legend')).toContainText(tier.emoji);
-    await expect(page.locator('.ag-legend')).toContainText(tier.label_de);
+  await expect(page.locator('.ag-group')).toHaveCount(themes.length);
+  // Exactly one card head per goal + tool (the Häufig shelf renders chips, not cards).
+  const heads = page.locator('.ag-card-head');
+  await expect(heads).toHaveCount(goals.length + tools.length);
+  for (let i = 0; i < 5; i++) {
+    await expect(heads.nth(i)).toHaveAttribute('aria-expanded', 'false');
   }
 });
 
-// ─── Per-goal assertions ──────────────────────────────────────────────────────
-
-if (!FILM) {
-  // CI: one parametrized test per goal
-  for (const goal of goals) {
-    const tierEntry = taxonomy.find(t => t.id === goal.danger);
-
-    test(`Ziel: ${goal.title_de}`, async ({ page }) => {
-      await openAgentGuide(page);
-
-      // Find this goal's card by title
-      const card = page.locator('.ag-cards').first().locator('.ag-card').filter({
-        has: page.locator('.ag-name', { hasText: goal.title_de }),
-      });
-      await expect(card).toBeVisible();
-
-      // Title
-      await expect(card.locator('.ag-name')).toHaveText(goal.title_de);
-
-      // Tier badge
-      if (tierEntry) {
-        await expect(card.locator('.ag-tier')).toContainText(tierEntry.emoji);
-        await expect(card.locator('.ag-tier')).toContainText(tierEntry.label_de);
-      }
-
-      // Flow steps — each tool_name_de appears in the flow list
-      const flowList = card.locator('.ag-flow');
-      for (const step of goal.flow) {
-        await expect(flowList).toContainText(step.tool_name_de);
-      }
-
-      // Example prompt
-      await expect(card.locator('.ag-prompt-text')).toHaveText(goal.example_prompt_de);
-
-      // Guardrail chips
-      for (const guardrail of goal.guardrails) {
-        const chip = card.locator('.ag-chip').filter({
-          has: page.locator('summary', { hasText: guardrail.name_de }),
-        });
-        await expect(chip).toBeVisible();
-        // Click to expand and check rule text
-        await chip.locator('summary').click();
-        await expect(chip.locator('.ag-chip-rule')).toContainText(guardrail.rule_de.substring(0, 30));
-      }
-    });
-  }
-} else {
-  // Film mode: single continuous test with test.step() per goal
-  test('Filmable Walkthrough — alle Ziele', async ({ page }) => {
-    await openAgentGuide(page);
-    await showFilmBanner(page, 'Agent-Anleitung — Start');
-    await page.waitForTimeout(FILM_PAUSE);
-
-    for (let i = 0; i < goals.length; i++) {
-      const goal = goals[i];
-      const tierEntry = taxonomy.find(t => t.id === goal.danger);
-
-      await test.step(`Schritt ${i + 1}/${goals.length} — ${goal.title_de}`, async () => {
-        const card = page.locator('.ag-cards').first().locator('.ag-card').filter({
-          has: page.locator('.ag-name', { hasText: goal.title_de }),
-        });
-
-        await card.scrollIntoViewIfNeeded();
-        await showFilmBanner(page, `Schritt ${i + 1}/${goals.length} — ${goal.title_de}`);
-        await page.waitForTimeout(FILM_PAUSE);
-
-        await expect(card.locator('.ag-name')).toHaveText(goal.title_de);
-        if (tierEntry) {
-          await expect(card.locator('.ag-tier')).toContainText(tierEntry.emoji);
-        }
-        for (const step of goal.flow) {
-          await expect(card.locator('.ag-flow')).toContainText(step.tool_name_de);
-        }
-        await expect(card.locator('.ag-prompt-text')).toHaveText(goal.example_prompt_de);
-
-        await page.waitForTimeout(FILM_PAUSE / 2);
-      });
-    }
-
-    await showFilmBanner(page, 'Werkzeuge & Agenten — Überblick');
-    const firstTool = page.locator('.ag-cards').nth(1).locator('.ag-card').first();
-    await firstTool.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(FILM_PAUSE);
-    await removeFilmBanner(page);
-  });
-}
-
-// ─── Tools section ────────────────────────────────────────────────────────────
-
-test('Werkzeuge-Sektion: alle Tool-Karten sind vorhanden', async ({ page }) => {
+test('eine Karte lässt sich aus- und wieder einklappen', async ({ page }) => {
   await openAgentGuide(page);
-  const toolsSection = page.locator('.ag-cards').nth(1);
-  await expect(toolsSection.locator('.ag-card')).toHaveCount(tools.length);
-  for (const tool of tools) {
-    const card = page.locator(`#ag-tool-${tool.id}`);
-    await expect(card).toBeAttached();
-    await expect(card.locator('.ag-name')).toHaveText(tool.name_de);
-    await expect(card.locator('.ag-kind')).toHaveText(tool.kind_de);
-  }
+  const card = await expandCardByTitle(page, goals[0].title_de);
+  await expect(card.locator('.ag-prompt-text')).toBeVisible();
+  await card.locator('.ag-card-head').click();
+  await expect(card.locator('.ag-card-head')).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('Werkzeug-Detail-Akkordeon öffnet und zeigt what_for_de', async ({ page }) => {
+test('Suche ab 3 Zeichen filtert, öffnet Treffer und zeigt einen Zähler', async ({ page }) => {
   await openAgentGuide(page);
-  const tool = tools[0];
-  const card = page.locator(`#ag-tool-${tool.id}`);
-  await card.scrollIntoViewIfNeeded();
-  const detail = card.locator('.ag-detail');
-  await detail.locator('summary').click();
-  await expect(detail).toContainText(tool.what_for_de.substring(0, 40));
+  const input = page.locator('.ag-search-input');
+  await input.fill('daten');
+  // Datenbank cards visible, count shown
+  await expect(page.locator('.ag-search-count')).toContainText('Treffer');
+  await expect(page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: 'Datenbank' }) }).first()).toBeVisible();
+  await expect(page.locator('.ag-hl').first()).toBeVisible();   // highlight present
 });
 
-test('Tool-Cross-Link scrollt zur Ziel-Karte', async ({ page }) => {
+test('Umlaut-Suche: "aendern" findet die Website-Text-Karte', async ({ page }) => {
   await openAgentGuide(page);
-  // Find first tool with related links
-  const toolWithRelated = tools.find(t => t.related.length > 0);
-  if (!toolWithRelated) test.skip();
+  await page.locator('.ag-search-input').fill('aendern');
+  await expect(page.locator('.ag-name', { hasText: 'ändern' }).first()).toBeVisible();
+});
 
-  const card = page.locator(`#ag-tool-${toolWithRelated!.id}`);
-  await card.scrollIntoViewIfNeeded();
+test('Alias-Suche: "passwort" findet die Sicherheits-Karte', async ({ page }) => {
+  await openAgentGuide(page);
+  await page.locator('.ag-search-input').fill('passwort');
+  await expect(page.locator('.ag-name', { hasText: 'Passwort' }).first()).toBeVisible();
+});
 
-  const relId = toolWithRelated!.related[0];
-  const chip = card.locator('.ag-related-chip').first();
-  await expect(chip).toBeVisible();
-  await chip.click();
+test('Achsen-Umschalter auf "Gefahr" zeigt Tier-Gruppen', async ({ page }) => {
+  await openAgentGuide(page);
+  await page.locator('.ag-axis-btn', { hasText: 'Gefahr' }).click();
+  // group headers now carry tier labels
+  await expect(page.locator('.ag-group-label', { hasText: 'Niemals allein' })).toBeVisible();
+});
 
-  // Target should scroll into viewport
-  const target = page.locator(`#ag-tool-${relId}`);
+test('Tier-Filter auf 🔴 zeigt nur Forbidden-Karten', async ({ page }) => {
+  await openAgentGuide(page);
+  const forbiddenTier = taxonomy.find(t => t.id === 'forbidden')!;
+  await page.locator('.ag-tier-toggle', { hasText: forbiddenTier.label_de }).click();
+  // Expand the first forbidden goal and assert the red-stop panel
+  const forbiddenGoal = goals.find(g => g.danger === 'forbidden')!;
+  const card = await expandCardByTitle(page, forbiddenGoal.title_de);
+  await expect(card.locator('.ag-redstop')).toBeVisible();
+  await expect(card.locator('.ag-redstop-who')).toContainText('Patrick');
+  await expect(card.locator('.ag-copy')).toContainText('Rücksprache');
+});
+
+test('Cross-Link: Flow-Schritt springt zur Werkzeug-Karte und öffnet sie', async ({ page }) => {
+  await openAgentGuide(page);
+  // bug-beheben → first flow step is dev-flow-plan
+  const goal = goals.find(g => g.id === 'bug-beheben')!;
+  const card = await expandCardByTitle(page, goal.title_de);
+  await card.locator('.ag-flow-jump').first().click();
+  const target = page.locator('#ag-tool-' + goal.flow[0].tool);
   await expect(target).toBeInViewport({ timeout: 3_000 });
+  await expect(target.locator('.ag-card-head')).toHaveAttribute('aria-expanded', 'true');
 });
 
-// ─── Copy button (chromium only, needs clipboard permission) ─────────────────
+test('Begriffe-Glossar lässt sich öffnen und ist durchsuchbar', async ({ page }) => {
+  await openAgentGuide(page);
+  await page.locator('.ag-group-head', { hasText: 'Begriffe kurz erklärt' }).click();
+  await expect(page.locator('.ag-glossary-row').first()).toBeVisible();
+  await expect(page.locator('.ag-glossary-row')).toHaveCount(glossary.length);
+});
 
 test('Prompt-Kopieren-Button wechselt zu "Kopiert ✓"', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await openAgentGuide(page);
-
-  const firstGoal = goals[0];
-  const card = page.locator('.ag-cards').first().locator('.ag-card').first();
-  await card.scrollIntoViewIfNeeded();
-
+  const card = await expandCardByTitle(page, goals[0].title_de);
   const copyBtn = card.locator('.ag-copy');
-  await expect(copyBtn).toHaveText('Diesen Prompt kopieren');
   await copyBtn.click();
   await expect(copyBtn).toHaveText('Kopiert ✓', { timeout: 2_000 });
-
-  // Verify clipboard content
-  const clipText = await page.evaluate(() => navigator.clipboard.readText());
-  expect(clipText).toBe(firstGoal.example_prompt_de);
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(goals[0].example_prompt_de);
 });
+
+if (FILM) {
+  test('Filmable Walkthrough — gruppiert, suchen, Stopp-Karte', async ({ page }) => {
+    await openAgentGuide(page);
+    await showFilmBanner(page, 'Agent-Anleitung — 7 Themengruppen');
+    await page.waitForTimeout(FILM_PAUSE);
+
+    await showFilmBanner(page, 'Eine Karte ausklappen');
+    await expandCardByTitle(page, goals[0].title_de);
+    await page.waitForTimeout(FILM_PAUSE);
+
+    await showFilmBanner(page, 'Suchen: „daten"');
+    await page.locator('.ag-search-input').fill('daten');
+    await page.waitForTimeout(FILM_PAUSE);
+    await page.locator('.ag-search-input').fill('');
+
+    await showFilmBanner(page, 'Umschalten auf „Gefahr"');
+    await page.locator('.ag-axis-btn', { hasText: 'Gefahr' }).click();
+    await page.waitForTimeout(FILM_PAUSE);
+
+    await showFilmBanner(page, 'Rote Stopp-Karte');
+    const forbiddenGoal = goals.find(g => g.danger === 'forbidden')!;
+    const card = await expandCardByTitle(page, forbiddenGoal.title_de);
+    await card.locator('.ag-redstop').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(FILM_PAUSE);
+    await removeFilmBanner(page);
+  });
+}

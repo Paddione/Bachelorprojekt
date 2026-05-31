@@ -26,7 +26,17 @@ tasks:
           DEV_NODE / DEV_DOMAIN unset. Add them to environments/{{.ENV}}.yaml first.
 
   cluster:create:
-    desc: "[dev] Create the dev k3d cluster on $DEV_NODE with the right port bindings"
+    desc: "[dev] DEPRECATED — the dev stack now runs on the 3-node k3s HA cluster (devc). Use task devcluster:deploy instead."
+    cmds:
+      - |
+        echo "❌ dev:cluster:create is deprecated." >&2
+        echo "   The dev.mentolder.de stack now runs on the HA k3s cluster (devc, VIP 10.0.0.20)." >&2
+        echo "   Use: task devcluster:deploy" >&2
+        exit 1
+    silent: false
+
+  cluster:create_legacy:
+    desc: "[dev] (legacy) Create the dev k3d cluster on $DEV_NODE with the right port bindings"
     deps: [_node-guard]
     cmds:
       - |

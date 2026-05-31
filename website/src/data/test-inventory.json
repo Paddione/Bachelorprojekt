@@ -1134,6 +1134,12 @@
     "kind": "playwright"
   },
   {
+    "id": "NFA-14",
+    "file": "tests/local/NFA-14-devcluster-ha.bats",
+    "category": "NFA",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",

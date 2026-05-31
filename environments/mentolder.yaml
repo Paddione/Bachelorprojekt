@@ -103,3 +103,7 @@ setup_vars:
   PATRICK_SSH_PUBLIC_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de"
   GEKKO_SSH_PRIVATE_KEY: SEALED
   GEKKO_SSH_PUBLIC_KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513"
+  # HA dev cluster (devc) — 3-node k3s on Proxmox dev1/dev2/dev3
+  # context: devc, kubeconfig: ~/.kube/config or ~/.kube/devc.yaml
+  DEVC_VIP: "10.0.0.20"
+  DEVC_NODE_IPS: "10.0.0.21,10.0.0.22,10.0.0.23"

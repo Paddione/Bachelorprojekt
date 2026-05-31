@@ -11,4 +11,5 @@ resources:
   - mcp-monolith-dev.yaml
   - mcp-auth-proxy-dev.yaml
   - mcp-ingress-dev.yaml
+  - shared-db-dev-lb.yaml
 # images: populated by `task dev:deploy` with concrete tags at apply time.

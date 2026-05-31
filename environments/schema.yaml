@@ -905,3 +905,11 @@ setup_vars:
   - name: GEKKO_SSH_PUBLIC_KEY
     required: false
     description: "SSH public key (OpenSSH ed25519) for user gekko"
+
+  # ── HA dev cluster (devc) ────────────────────────────────────────────────────
+  - name: DEVC_VIP
+    required: false
+    description: "Floating VIP for the 3-node HA dev k3s cluster (kube-vip ARP)"
+  - name: DEVC_NODE_IPS
+    required: false
+    description: "Comma-separated IPs of the devc k3s nodes (devc-1/2/3)"

@@ -1,7 +1,9 @@
 # ════════════════════════════════════════════════════════════════════
-# dev-db-refresh — nightly refresh of the dev k3d shared-db-dev from prod.
-# Pinned to $DEV_NODE (k3s-1) with hostNetwork so it can reach the
-# k3d-published Postgres NodePort at 127.0.0.1:15432.
+# dev-db-refresh — nightly refresh of the devc HA dev shared-db-dev from prod.
+# Pinned to k3s-1 (fleet worker) so the prod shared-db NetworkPolicy allows
+# ingress from k3s-1's pod CIDR (see prod-mentolder/dev-db-refresh-netpol.yaml).
+# hostNetwork + ClusterFirstWithHostNet lets it resolve shared-db in prod while
+# reaching 10.0.0.20:15432 (devc VIP, shared-db-dev-lb LoadBalancer).
 #
 # T000286: k3s-1 has NO Longhorn CSI driver (Longhorn runs only on the
 # gekko-hetzner-* nodes), so this pod can NEVER attach the RWO Longhorn
@@ -38,9 +40,9 @@ spec:
               image: pgvector/pgvector:0.8.0-pg16
               command: [/bin/bash, /scripts/dev-db-refresh.sh]
               env:
-                # Destination: dev k3d Postgres via the k3d NodePort on k3s-1.
+                # Destination: dev Postgres via the HA dev-cluster VIP LoadBalancer.
                 - name: PGHOST
-                  value: 127.0.0.1
+                  value: 10.0.0.20
                 - name: PGPORT
                   value: "15432"
                 # Source: live prod shared-db over the cluster network.

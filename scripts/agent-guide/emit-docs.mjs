@@ -55,7 +55,8 @@ export function renderHeader(title, h1) {
 export function dangerBadge(dangerId) {
   const tier = tierFor(dangerId);
   if (!tier) return `⚪ **${dangerId}**`;
-  return `${tier.emoji} **${tier.label_de}**`;
+  const label = tier.label_de.replace(/^\p{Emoji_Presentation}\s*/u, '');
+  return `${tier.emoji} **${label}**`;
 }
 
 /** First links[].url for a tool, or '' when absent. */
@@ -217,10 +218,10 @@ export function renderBausteine(reg) {
   const software = reg.components.filter((c) => c.kind === 'software');
   const hardware = reg.components.filter((c) => c.kind === 'hardware');
   const renderGroup = (title, list) => {
-    parts.push(`# ${title}`);
+    parts.push(`## ${title}`);
     parts.push('');
     for (const c of list) {
-      parts.push(`## ${c.emoji} ${c.name}`);
+      parts.push(`### ${c.emoji} ${c.name}`);
       parts.push('');
       parts.push(`${dangerBadge(c.sensitivity)}`);
       parts.push('');
@@ -283,9 +284,8 @@ if (process.argv[1] === __filename) {
   const outDir = join(repoRoot, 'docs', 'agent-guide');
   const { validateRegistry } = await import('./validate.mjs');
   const validate = (dir, root) => {
-    const r = validateRegistry(dir, root);
-    const errs = Array.isArray(r) ? r : [];
-    return { ok: errs.length === 0, errors: errs };
+    const { ok, errors } = validateRegistry(dir, root);
+    return { ok, errors };
   };
   try {
     writeDocs({ registryDir, outDir, repoRoot, validate });

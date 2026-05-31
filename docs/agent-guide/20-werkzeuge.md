@@ -12,7 +12,7 @@ generated_by: scripts/agent-guide/emit-docs.mjs
 
 ## Planungs-Skill (dev-flow-plan)
 
-**Skill** · 🟡 **🟡 Vorsicht**
+**Skill** · 🟡 **Vorsicht**
 
 Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan.
 
@@ -28,7 +28,7 @@ Der Startpunkt für jede Änderung: wählt den Pfad und schreibt einen Plan.
 
 ## Umsetzungs-Skill (dev-flow-execute)
 
-**Skill** · 🟡 **🟡 Vorsicht**
+**Skill** · 🟡 **Vorsicht**
 
 Setzt einen fertigen Plan um und öffnet einen Pull Request.
 
@@ -44,7 +44,7 @@ Setzt einen fertigen Plan um und öffnet einen Pull Request.
 
 ## Dev-Iterations-Skill (dev-flow-iterate)
 
-**Skill** · 🟡 **🟡 Vorsicht**
+**Skill** · 🟡 **Vorsicht**
 
 Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobieren.
 
@@ -60,7 +60,7 @@ Deployt Änderungen ins Dev-Cluster und zeigt Logs – zum schnellen Ausprobiere
 
 ## E2E-Test-Skill (dev-flow-e2e)
 
-**Skill** · 🟡 **🟡 Vorsicht**
+**Skill** · 🟡 **Vorsicht**
 
 Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge aus.
 
@@ -76,7 +76,7 @@ Schreibt und führt End-to-End-Tests gegen die Live-Umgebung nach einem Merge au
 
 ## Task-Orakel (task-oracle)
 
-**Task** · 🟢 **🟢 Sicher**
+**Task** · 🟢 **Sicher**
 
 Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch.
 
@@ -88,7 +88,7 @@ Findet den richtigen Task-Befehl für ein Ziel in einfachem Deutsch.
 
 ## Website-Agent
 
-**Agent** · 🟡 **🟡 Vorsicht**
+**Agent** · 🟡 **Vorsicht**
 
 Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.
 
@@ -104,7 +104,7 @@ Bearbeitet die Webseite: Texte, Design, Komponenten und Svelte-Code.
 
 ## Betriebs-Agent (ops)
 
-**Agent** · 🟢 **🟢 Sicher**
+**Agent** · 🟢 **Sicher**
 
 Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu verändern.
 
@@ -120,7 +120,7 @@ Schaut nach, warum etwas nicht läuft – liest Logs und Status, ohne etwas zu v
 
 ## Infrastruktur-Agent (infra)
 
-**Agent** · 🟠 **🟠 Nur mit Hilfe**
+**Agent** · 🟠 **Nur mit Hilfe**
 
 Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration.
 
@@ -136,7 +136,7 @@ Deployt Kubernetes-Manifeste und verwaltet Cluster-Konfiguration.
 
 ## Test-Agent
 
-**Agent** · 🟡 **🟡 Vorsicht**
+**Agent** · 🟡 **Vorsicht**
 
 Schreibt und führt Tests aus (BATS, Playwright, vitest).
 
@@ -152,7 +152,7 @@ Schreibt und führt Tests aus (BATS, Playwright, vitest).
 
 ## Datenbank-Agent (db)
 
-**Agent** · 🟠 **🟠 Nur mit Hilfe**
+**Agent** · 🟠 **Nur mit Hilfe**
 
 Verwaltet PostgreSQL-Schema, Migrationen und Backups.
 
@@ -168,7 +168,7 @@ Verwaltet PostgreSQL-Schema, Migrationen und Backups.
 
 ## Sicherheits-Agent (security)
 
-**Agent** · 🟠 **🟠 Nur mit Hilfe**
+**Agent** · 🟠 **Nur mit Hilfe**
 
 Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets.
 

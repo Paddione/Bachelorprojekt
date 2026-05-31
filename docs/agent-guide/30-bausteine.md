@@ -10,228 +10,228 @@ generated_by: scripts/agent-guide/emit-docs.mjs
 > (`docs/agent-guide/registry/components.yaml`). Nicht von Hand bearbeiten.
 > Zurück zur Übersicht: [[00-anleitung]].
 
-# Software
+## Software
 
-## 🌐 Website
+### 🌐 Website
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Das mit Astro + Svelte gebaute Frontend (die Web-Oberfläche). Öffentliche Seite plus eingeloggtes Kundenportal.
 
-## 🔑 Keycloak
+### 🔑 Keycloak
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 Keycloak prüft, wer du bist (über OIDC) und meldet dich bei Nextcloud, Vaultwarden u. a. an. Herzstück der Sicherheit.
 
-## ☁️ Nextcloud
+### ☁️ Nextcloud
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Wie eine eigene Dropbox + Office + Kalender, komplett auf eigenen Servern (DSGVO-konform).
 
-## 📄 Collabora
+### 📄 Collabora
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Die Online-Office-Suite, die Nextcloud-Dateien bearbeitbar macht (vergleichbar mit Office im Web).
 
-## 🔒 Vaultwarden
+### 🔒 Vaultwarden
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 Verwaltet Zugangsdaten zentral und verschlüsselt; per Bitwarden-Apps nutzbar.
 
-## 📡 Talk HPB
+### 📡 Talk HPB
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 High-Performance-Backend für Talk; ohne ihn brechen Gruppen-Videoanrufe zusammen.
 
-## 🧩 Brett
+### 🧩 Brett
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Interaktives 3D-Board (Systembrett) für Aufstellungen, im Browser bedienbar.
 
-## 📬 Mailpit
+### 📬 Mailpit
 
-🟢 **🟢 Sicher**
+🟢 **Sicher**
 
 Nur zum Ausprobieren: zeigt verschickte Mails an, ohne sie an echte Empfänger zu senden.
 
-## 📝 DocuSeal
+### 📝 DocuSeal
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Versendet Dokumente zur rechtssicheren elektronischen Unterschrift.
 
-## 🎨 Whiteboard
+### 🎨 Whiteboard
 
-🟢 **🟢 Sicher**
+🟢 **Sicher**
 
 Kollaboratives Whiteboard für Skizzen und Ideen, direkt in Nextcloud.
 
-## 🎮 Arena
+### 🎮 Arena
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 WebSocket-Spielserver für das 3D-Mehrspieler-Spiel der Marke korczewski.
 
-## 📚 Documentation
+### 📚 Documentation
 
-🟢 **🟢 Sicher**
+🟢 **Sicher**
 
 Statische Doku-Webseite mit Benutzer- und Admin-Handbuch.
 
-## 🐘 PostgreSQL 16
+### 🐘 PostgreSQL 16
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 Gemeinsamer Datenbank-Server für Website, Keycloak, Nextcloud u. v. m. Pro Marke eigene Instanz.
 
-## 🔀 Traefik
+### 🔀 Traefik
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Ingress-Controller: verteilt eingehenden Verkehr (Routing) und terminiert TLS.
 
-## 🔐 Sealed Secrets
+### 🔐 Sealed Secrets
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 Wandelt Secrets in verschlüsselte 'SealedSecrets', die gefahrlos eingecheckt werden können.
 
-## 📜 cert-manager
+### 📜 cert-manager
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Automatisiert TLS-Zertifikate, damit alle Domains gültiges HTTPS haben.
 
-## ☸️ k3s / k3d
+### ☸️ k3s / k3d
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 Leichtgewichtige Kubernetes-Variante (k3s in Prod, k3d lokal). Trägt alle Workloads.
 
-## 🔗 WireGuard (wg-mesh)
+### 🔗 WireGuard (wg-mesh)
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 WireGuard-Overlay: sichere Pod-zu-Pod- und Knoten-zu-Knoten-Verbindung über das Internet.
 
-## 🦾 TEI (Text Embeddings)
+### 🦾 TEI (Text Embeddings)
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Erzeugt Embeddings für die semantische Suche; nur verfügbar, solange der GPU-Host läuft.
 
-## 🦅 OpenClaw
+### 🦅 OpenClaw
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über Ollama, ohne Cloud.
 
-## 📡 LiveKit Server
+### 📡 LiveKit Server
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden.
 
-## 📺 LiveKit Ingress
+### 📺 LiveKit Ingress
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Eingangstor für externe Streams (z. B. aus OBS) in eine LiveKit-Übertragung.
 
-## 🔴 LiveKit Egress
+### 🔴 LiveKit Egress
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Zeichnet LiveKit-Räume auf, damit sie später angesehen werden können.
 
-## 🎙️ Whisper
+### 🎙️ Whisper
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Speech-to-Text-Modell; Grundlage für automatische Gesprächs-Mitschriften.
 
-## 📝 Talk Transcriber
+### 📝 Talk Transcriber
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Bot, der Talk-Anrufe live mitschreibt und als Text ablegt.
 
-## 🤖 MCP Monolith
+### 🤖 MCP Monolith
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Model-Context-Protocol-Proxy: gibt KI-Agenten kontrollierten Zugriff auf Cluster-Werkzeuge.
 
-## 🌀 Brainstorm Sish
+### 🌀 Brainstorm Sish
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 Reverse-SSH-Tunnel (sish); macht das lokale Companion-Board von außen erreichbar.
 
-## 🎮 Arena Server
+### 🎮 Arena Server
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 WebSocket-Spielserver der Marke korczewski; validiert JWTs aus beiden Keycloak-Realms.
 
-# Hardware
+## Hardware
 
-## 🖥️ Gekko CP 1
+### 🖥️ Gekko CP 1
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Einer der drei Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki.
 
-## 🖥️ Gekko CP 2
+### 🖥️ Gekko CP 2
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Worker-Knoten des Fleet-Clusters; LiveKit ist hier per Node-Affinität verankert.
 
-## 🖥️ Gekko CP 3
+### 🖥️ Gekko CP 3
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Dritter Worker-Knoten des Fleet-Clusters (gekko-Reihe).
 
-## 🏠 k3s-1
+### 🏠 k3s-1
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Lokaler Knoten zuhause; trägt den Dev-k3d-Stack der Entwicklung.
 
-## 🏠 k3s-2
+### 🏠 k3s-2
 
-🟠 **🟠 Nur mit Hilfe**
-
-Lokaler Knoten zuhause.
-
-## 🏠 k3s-3
-
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Lokaler Knoten zuhause.
 
-## 🖥️ PK CP 1
+### 🏠 k3s-3
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
+
+Lokaler Knoten zuhause.
+
+### 🖥️ PK CP 1
+
+🟠 **Nur mit Hilfe**
 
 Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki.
 
-## 🖥️ PK Worker 1
+### 🖥️ PK Worker 1
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki.
 
-## 🖥️ PK Worker 2
+### 🖥️ PK Worker 2
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki.

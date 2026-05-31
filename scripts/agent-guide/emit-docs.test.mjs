@@ -24,13 +24,13 @@ function makeFixtureRegistry() {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'taxonomy.yaml'), [
     '- id: safe',
-    '  label_de: Sicher',
+    '  label_de: "🟢 Sicher"',
     '  emoji: "🟢"',
     '  meaning_de: Du kannst nichts kaputt machen.',
     '  doc_treatment: inline',
     '  enforcement_default: none',
     '- id: caution',
-    '  label_de: Vorsicht',
+    '  label_de: "🟡 Vorsicht"',
     '  emoji: "🟡"',
     '  meaning_de: Schau genau hin.',
     '  doc_treatment: inline',
@@ -275,8 +275,8 @@ test('renderBausteine: software-first then hardware; sensitivity badge resolved'
     const reg = loadRegistry(dir);
     const md = renderBausteine(reg);
     assert.equal(md.split('\n')[0], '---', 'line 1 is the fence');
-    assert.ok(md.includes('## 🔐 Keycloak'), 'software component header');
-    assert.ok(md.includes('## 🖥️ GPU-Host'), 'hardware component header');
+    assert.ok(md.includes('### 🔐 Keycloak'), 'software component header');
+    assert.ok(md.includes('### 🖥️ GPU-Host'), 'hardware component header');
     assert.ok(md.includes('🟡 **Vorsicht**'), 'sensitivity badge resolved');
     // software before hardware regardless of file order
     assert.ok(md.indexOf('Keycloak') < md.indexOf('GPU-Host'), 'software listed first');
@@ -314,10 +314,12 @@ test('writeDocs: validate-first, writes the generated trio (not 00-anleitung)', 
   const registryDir = makeFixtureRegistry();
   const outDir = mkdtempSync(join(tmpdir(), 'agent-guide-out-'));
   let validatedWith = null;
-  const okValidate = (dir) => { validatedWith = dir; return { ok: true, errors: [] }; };
+  const okValidate = (dir, root) => { validatedWith = [dir, root]; return { ok: true, errors: [] }; };
   try {
     writeDocs({ registryDir, outDir, repoRoot: '/repo', validate: okValidate });
-    assert.equal(validatedWith, registryDir, 'validate ran against the registry dir first');
+    assert.ok(Array.isArray(validatedWith), 'validate was called');
+    assert.equal(validatedWith[0], registryDir, 'validate called with registryDir first');
+    assert.equal(validatedWith[1], '/repo', 'validate called with repoRoot second');
     assert.ok(existsSync(join(outDir, '10-ziele.md')), '10-ziele.md written');
     assert.ok(existsSync(join(outDir, '20-werkzeuge.md')), '20-werkzeuge.md written');
     assert.ok(existsSync(join(outDir, '30-bausteine.md')), '30-bausteine.md written');

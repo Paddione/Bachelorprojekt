@@ -12,7 +12,7 @@ generated_by: scripts/agent-guide/emit-docs.mjs
 
 ## Ich will einen Text auf der Website ändern
 
-🟢 **🟢 Sicher**
+🟢 **Sicher**
 
 **Wann?** Ein Inhalt, Preis oder Beschreibungstext auf der Website ist falsch oder veraltet.
 
@@ -30,7 +30,7 @@ Bitte ändere den Begrüßungstext auf der Startseite auf: 'Herzlich willkommen 
 
 ## Ich will prüfen, ob alle Dienste laufen
 
-🟢 **🟢 Sicher**
+🟢 **Sicher**
 
 **Wann?** Du möchtest wissen, ob die Plattform gesund ist oder ein Dienst rot leuchtet.
 
@@ -46,7 +46,7 @@ Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status.
 
 ## Ich will einen Fehler beheben
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 **Wann?** Etwas funktioniert nicht so, wie es soll.
 
@@ -65,7 +65,7 @@ Auf web.mentolder.de tut der Login-Knopf nichts. Bitte finde die Ursache und beh
 
 ## Ich will eine neue Funktion bauen
 
-🟡 **🟡 Vorsicht**
+🟡 **Vorsicht**
 
 **Wann?** Eine neue Funktion oder Seite soll zur Plattform hinzugefügt werden.
 
@@ -84,7 +84,7 @@ Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt.
 
 ## Ich will eine Änderung in der Produktion ausrollen
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 **Wann?** Ein gemergter Pull Request soll in der echten Umgebung aktiviert werden.
 
@@ -103,7 +103,7 @@ Bitte rolle den letzten Merge für mentolder aus und prüfe, ob die Website läu
 
 ## Ich will das Datenbankschema ändern
 
-🟠 **🟠 Nur mit Hilfe**
+🟠 **Nur mit Hilfe**
 
 **Wann?** Eine neue Tabelle, Spalte oder ein Index soll zur Datenbank hinzugefügt werden.
 
@@ -123,7 +123,7 @@ Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu.
 
 ## Ich will ein Passwort oder Geheimnis ändern
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 **Wann?** Ein Datenbank-Passwort, API-Schlüssel oder Zertifikat muss rotiert werden.
 
@@ -141,7 +141,7 @@ Bitte NICHT allein ausführen – zuerst Patrick fragen. (Rotation des shared-db
 
 ## Ich will den Cluster neu aufsetzen
 
-🔴 **🔴 Niemals allein**
+🔴 **Niemals allein**
 
 **Wann?** Der Cluster muss nach einem Ausfall oder einem kompletten Reset neu eingerichtet werden.
 

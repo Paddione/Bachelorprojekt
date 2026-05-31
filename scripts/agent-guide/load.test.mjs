@@ -12,13 +12,13 @@ function makeFixtureRegistry() {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'taxonomy.yaml'), [
     '- id: safe',
-    '  label_de: Sicher',
+    '  label_de: "🟢 Sicher"',
     '  emoji: "🟢"',
     '  meaning_de: Du kannst nichts kaputt machen.',
     '  doc_treatment: inline',
     '  enforcement_default: none',
     '- id: caution',
-    '  label_de: Vorsicht',
+    '  label_de: "🟡 Vorsicht"',
     '  emoji: "🟡"',
     '  meaning_de: Schau genau hin.',
     '  doc_treatment: inline',
@@ -110,7 +110,7 @@ test('tierFor / toolById / guardrailById: resolve known ids, undefined for unkno
   const dir = makeFixtureRegistry();
   try {
     loadRegistry(dir); // last-load-wins: helpers read this registry
-    assert.equal(tierFor('safe').label_de, 'Sicher');
+    assert.equal(tierFor('safe').label_de, '🟢 Sicher');
     assert.equal(tierFor('caution').emoji, '🟡');
     assert.equal(tierFor('nope'), undefined);
 

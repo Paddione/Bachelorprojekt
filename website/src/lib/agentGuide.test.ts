@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  goals, tools, taxonomy, components,
+  goals, tools, taxonomy, components, themes, glossary,
   tierFor, tierColor, tierEmoji, tierLabel, componentBySlug,
 } from './agentGuide';
 
@@ -44,4 +44,34 @@ describe('agentGuide typed re-export', () => {
     expect(componentBySlug(someSlug)?.slug).toBe(someSlug);
     expect(componentBySlug('definitely-not-a-real-slug')).toBeUndefined();
   });
+
+  it('exposes themes[] (ordered) and glossary[] from the generated JSON', () => {
+    expect(Array.isArray(themes)).toBe(true);
+    expect(themes.length).toBe(7);
+    expect(themes.map(t => t.id)).toEqual(
+      [...themes].sort((a, b) => a.order - b.order).map(t => t.id),
+    );
+    expect(Array.isArray(glossary)).toBe(true);
+    expect(glossary.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('every goal/tool carries a theme that exists in themes[]', () => {
+    const ids = new Set(themes.map(t => t.id));
+    for (const g of goals) expect(ids.has(g.theme), `goal ${g.id} theme`).toBe(true);
+    for (const t of tools) expect(ids.has(t.theme), `tool ${t.id} theme`).toBe(true);
+  });
+
+  it('every goal has a one_liner_de ≤ 80 chars', () => {
+    for (const g of goals) {
+      expect(typeof g.one_liner_de).toBe('string');
+      expect(g.one_liner_de.length).toBeLessThanOrEqual(80);
+    }
+  });
+
+  it('forbidden cards carry escalate_to_de', () => {
+    for (const g of goals.filter(x => x.danger === 'forbidden')) {
+      expect(g.escalate_to_de).toBeTruthy();
+    }
+  });
 });
+

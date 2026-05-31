@@ -102,3 +102,10 @@ test('graphCss: exposes the dim/hl/region rules and is included in editorialCss'
   // editorialCss must surface the graph CSS so the single stylesheet covers the landing.
   assert.ok(editorialCss().includes('.dim'), 'editorialCss includes graphCss rules');
 });
+
+test('graphCss + pills reference theme variables, not raw light-theme hex', () => {
+  const css = editorialCss();
+  // the old light accent must be gone everywhere
+  assert.ok(!css.includes('#2f6db5'), 'no leftover light-theme accent hex');
+  assert.ok(css.includes('var(--accent)'), 'graph highlight uses --accent');
+});

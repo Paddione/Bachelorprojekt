@@ -160,7 +160,7 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
   border-radius:999px;padding:.05em .65em;text-decoration:none;line-height:1.5;
   transition:all .15s}
 .xref::before{content:"\\2192";font-weight:700;opacity:.7}
-.xref:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.xref:hover{background:var(--accent);color:var(--paper);border-color:var(--accent)}
 .xref.unresolved{color:var(--ink-mute);background:var(--paper-3);border-color:var(--line);
   border-style:dashed;cursor:default}
 .xref.unresolved::before{content:"?"}

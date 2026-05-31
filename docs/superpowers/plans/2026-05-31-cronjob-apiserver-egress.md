@@ -29,50 +29,50 @@ Two compounding bugs in the same blast radius:
 
 ## Failing tests (already written & RED — `tests/unit/manifests.bats`)
 
-- [ ] `network-policies grant egress to the Kubernetes apiserver (T000368)` — asserts a NetworkPolicy egresses to `10.20.0.0/24:6443` **and** `10.43.0.0/16:443`.
-- [ ] `pvc-backup derives namespace at runtime, not hardcoded NS=workspace (T000368)`
-- [ ] `pvc-backup mounter nodeAffinity has no decommissioned node names (T000368)`
-- [ ] `tests-results-retention has no stale node-location affinity (T000369)`
+- [x] `network-policies grant egress to the Kubernetes apiserver (T000368)` — asserts a NetworkPolicy egresses to `10.20.0.0/24:6443` **and** `10.43.0.0/16:443`.
+- [x] `pvc-backup derives namespace at runtime, not hardcoded NS=workspace (T000368)`
+- [x] `pvc-backup mounter nodeAffinity has no decommissioned node names (T000368)`
+- [x] `tests-results-retention has no stale node-location affinity (T000369)`
 
 These 4 tests are committed alongside this plan and currently fail (proven red). Each task below turns one or more green.
 
 ## Task 1 — Add `allow-apiserver-egress` NetworkPolicy (T000368)
 
-- [ ] In `k3d/network-policies.yaml`, append a new `NetworkPolicy` named `allow-apiserver-egress`:
+- [x] In `k3d/network-policies.yaml`, append a new `NetworkPolicy` named `allow-apiserver-egress`:
   - `podSelector: {}`, `policyTypes: [Egress]`
   - egress rule 1: `to: [{ipBlock: {cidr: 10.20.0.0/24}}]`, `ports: [{port: 6443, protocol: TCP}]` — fleet CP node IPs (post-DNAT apiserver endpoints). Comment why the node CIDR (not ClusterIP) is the operative allow.
   - egress rule 2: `to: [{ipBlock: {cidr: 10.43.0.0/16}}]`, `ports: [{port: 443, protocol: TCP}]` — ClusterIP (defense-in-depth / clusters matching pre-DNAT).
-- [ ] Verify: `kubectl kustomize k3d/ | grep -A12 allow-apiserver-egress` shows both CIDRs/ports.
-- [ ] Test `network-policies grant egress to the Kubernetes apiserver` goes green.
+- [x] Verify: `kubectl kustomize k3d/ | grep -A12 allow-apiserver-egress` shows both CIDRs/ports.
+- [x] Test `network-policies grant egress to the Kubernetes apiserver` goes green.
 
 ## Task 2 — Derive pvc-backup namespace at runtime (T000368)
 
-- [ ] In `k3d/pvc-backup-cronjob.yaml` orchestrator script, replace `NS=workspace` with:
+- [x] In `k3d/pvc-backup-cronjob.yaml` orchestrator script, replace `NS=workspace` with:
   `NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)`
-- [ ] Confirm no other hardcoded `workspace` namespace literal remains in the orchestrator/mounter args (the mounter `apply` uses `-n "$NS"` via the orchestrator; clones/jobs are created with `-n "$NS"`). The metadata `namespace: workspace` on the CronJob object itself stays (kustomize remaps it per overlay).
-- [ ] Test `pvc-backup derives namespace at runtime` goes green.
+- [x] Confirm no other hardcoded `workspace` namespace literal remains in the orchestrator/mounter args (the mounter `apply` uses `-n "$NS"` via the orchestrator; clones/jobs are created with `-n "$NS"`). The metadata `namespace: workspace` on the CronJob object itself stays (kustomize remaps it per overlay).
+- [x] Test `pvc-backup derives namespace at runtime` goes green.
 
 ## Task 3 — Remove stale mounter nodeAffinity (T000368)
 
-- [ ] In `k3d/pvc-backup-cronjob.yaml`, the mounter Job's `nodeAffinity` `NotIn [k3s-1,k3s-2,k3s-3,k3w-1,k3w-2,k3w-3]` references dead nodes. The mounter is already co-located with the nextcloud pod via `podAffinity` (required, topology hostname), which is what makes nextcloud's local-path volume shareable. Remove the dead `nodeAffinity` block (keep `podAffinity`) — the podAffinity is sufficient and the NotIn list was a no-op on fleet.
-- [ ] Verify the mounter still renders with the nextcloud `podAffinity` intact: `kubectl kustomize k3d/ | grep -B2 -A6 'app: nextcloud'`.
-- [ ] Test `pvc-backup mounter nodeAffinity has no decommissioned node names` goes green.
+- [x] In `k3d/pvc-backup-cronjob.yaml`, the mounter Job's `nodeAffinity` `NotIn [k3s-1,k3s-2,k3s-3,k3w-1,k3w-2,k3w-3]` references dead nodes. The mounter is already co-located with the nextcloud pod via `podAffinity` (required, topology hostname), which is what makes nextcloud's local-path volume shareable. Remove the dead `nodeAffinity` block (keep `podAffinity`) — the podAffinity is sufficient and the NotIn list was a no-op on fleet.
+- [x] Verify the mounter still renders with the nextcloud `podAffinity` intact: `kubectl kustomize k3d/ | grep -B2 -A6 'app: nextcloud'`.
+- [x] Test `pvc-backup mounter nodeAffinity has no decommissioned node names` goes green.
 
 ## Task 4 — Remove stale tests-results-retention nodeAffinity (T000369)
 
-- [ ] In `k3d/tests-retention-cronjob.yaml`, remove the `affinity.nodeAffinity` block requiring `node-location In [hetzner]`. The prune job only `kubectl exec`s into the website pod and is placement-independent. It will rely on the new `allow-apiserver-egress` policy (Task 1) to reach the API for the exec.
-- [ ] Test `tests-results-retention has no stale node-location affinity` goes green.
+- [x] In `k3d/tests-retention-cronjob.yaml`, remove the `affinity.nodeAffinity` block requiring `node-location In [hetzner]`. The prune job only `kubectl exec`s into the website pod and is placement-independent. It will rely on the new `allow-apiserver-egress` policy (Task 1) to reach the API for the exec.
+- [x] Test `tests-results-retention has no stale node-location affinity` goes green.
 
 ## Task 5 — Verify & validate
 
-- [ ] `./tests/runner.sh local manifests` — all green (incl. the 4 new tests).
-- [ ] `task test:all` — green (offline CI parity).
-- [ ] `task workspace:validate` — manifests valid.
-- [ ] `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — regenerate + commit if changed (4 new test IDs).
+- [x] `./tests/runner.sh local manifests` — all green (incl. the 4 new tests).
+- [x] `task test:all` — green (offline CI parity).
+- [x] `task workspace:validate` — manifests valid.
+- [x] `task test:inventory && git diff --exit-code website/src/data/test-inventory.json` — regenerate + commit if changed (4 new test IDs).
 
 ## Deploy (post-merge, via dev-flow-execute)
 
-- [ ] `task feature:deploy` (fans out `k3d/`+overlay changes to both fleet brands) — files touched are `k3d/**`.
+- [x] `task feature:deploy` (fans out `k3d/`+overlay changes to both fleet brands) — files touched are `k3d/**`.
 - [ ] Post-deploy verification (live):
   - Confirm `allow-apiserver-egress` exists in both namespaces: `kubectl --context fleet -n workspace get netpol allow-apiserver-egress` (and `-n workspace-korczewski`).
   - Manually trigger a backup run and confirm the orchestrator reaches the API on a gekko-hosted pod:

@@ -13,14 +13,10 @@ spec:
         spec:
           restartPolicy: Never
           serviceAccountName: tests-retention-sa
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: node-location
-                        operator: In
-                        values: [hetzner]
+          # No nodeAffinity: this prune job only kubectl-execs into the website
+          # pod (placement-independent). The former node-location=hetzner affinity
+          # matched no fleet node after Phase 3 consolidation → unschedulable on
+          # all 6 nodes. Reaches the API via the allow-apiserver-egress policy. [T000369]
           containers:
             - name: prune
               # alpine/k8s ships kubectl + /bin/sh on Alpine; matches the k3s

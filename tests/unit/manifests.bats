@@ -523,7 +523,8 @@ PY
 # The mounter nodeAffinity excluded node names from decommissioned clusters
 # (k3s-1/2/3, k3w-1/2/3) which no longer exist on fleet — dead drift.
 @test "pvc-backup mounter nodeAffinity has no decommissioned node names (T000368)" {
-  run grep -E 'k3s-1|k3s-2|k3s-3|k3w-1|k3w-2|k3w-3' k3d/pvc-backup-cronjob.yaml
+  # Ignore comment lines — a comment referencing the old names is not the bug.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'k3s-1|k3s-2|k3s-3|k3w-1|k3w-2|k3w-3'"
   assert_failure
 }
 
@@ -533,7 +534,8 @@ PY
 # nodes. The prune job is placement-independent (kubectl exec into the website
 # pod), so the affinity must be dropped.
 @test "tests-results-retention has no stale node-location affinity (T000369)" {
-  run grep -E 'node-location' k3d/tests-retention-cronjob.yaml
+  # Ignore comment lines — a comment explaining the removal is not the bug.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/tests-retention-cronjob.yaml | grep -E 'node-location'"
   assert_failure
 }
 

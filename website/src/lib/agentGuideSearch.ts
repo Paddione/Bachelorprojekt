@@ -19,6 +19,7 @@ export interface GuideEntry {
   haystack: string;         // normalized
   goal?: Goal;
   tool?: Tool;
+  related?: Record<string, { label: string; kind: string; danger: string; domId: string }>;
 }
 
 export interface Group {

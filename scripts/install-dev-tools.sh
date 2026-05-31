@@ -50,12 +50,19 @@ apt-get install -y -qq build-essential ca-certificates curl gnupg lsb-release
 log "step 2/6 — docker"
 if ! command -v docker >/dev/null; then
   install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  # Use the matching Docker repo for the actual distro (debian vs ubuntu).
+  # The gekko nodes are Ubuntu; the dev VM is Debian — both must resolve.
+  DISTRO_ID=$(. /etc/os-release && echo "$ID")
+  case "$DISTRO_ID" in
+    debian) DOCKER_REPO="debian" ;;
+    *)      DOCKER_REPO="ubuntu" ;;
+  esac
+  curl -fsSL "https://download.docker.com/linux/${DOCKER_REPO}/gpg" \
     | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   chmod a+r /etc/apt/keyrings/docker.gpg
   ARCH=$(dpkg --print-architecture)
-  CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
-  echo "deb [arch=${ARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu ${CODENAME} stable" \
+  CODENAME=$(. /etc/os-release && echo "${VERSION_CODENAME:-}")
+  echo "deb [arch=${ARCH} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${DOCKER_REPO} ${CODENAME} stable" \
     > /etc/apt/sources.list.d/docker.list
   apt-get update -qq
   apt-get install -y -qq docker-ce docker-ce-cli containerd.io \

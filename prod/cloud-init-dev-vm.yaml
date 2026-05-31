@@ -1,0 +1,132 @@
+#cloud-config
+# =============================================================================
+# cloud-init-dev-vm.yaml — the NEW dev VM (dev.mentolder.de k3d stack host).
+# =============================================================================
+# Successor to the dead k3s-1 VM. This is NOT a k3s cluster node: it runs a
+# Docker daemon and a lightweight k3d cluster (see Taskfile.dev-stack.yml).
+#
+# Consumed by scripts/provision-dev-vm.sh, which:
+#   * substitutes the WireGuard private-key + peer-block placeholders below,
+#   * uploads the rendered file to the `dev` Proxmox host as a cicustom snippet,
+#   * creates + boots the VM via `qm`.
+#
+# Toolchain (Docker CE, k3d, kubectl, go-task, Node 22, pnpm, gh) is installed
+# by scripts/install-dev-tools.sh, which is hostname-guarded and matches the
+# `mentolder-dev` hostname set below.
+# =============================================================================
+
+hostname: mentolder-dev
+fqdn: dev.mentolder.de
+manage_etc_hosts: true
+
+users:
+  - default
+  - name: patrick
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de
+  - name: gekko
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513
+
+ssh_pwauth: false
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - wget
+  - git
+  - htop
+  - jq
+  - ca-certificates
+  - gnupg
+  - unattended-upgrades
+  - fail2ban
+  - ufw
+  - wireguard-tools
+  - open-iscsi
+  - nfs-common
+
+write_files:
+  # WireGuard mesh — node `dev-vm`, mentolder mesh (192.168.100.0/24, port 51821).
+  # wg_ip 192.168.100.23 (see wireguard/wg-mesh-nodes.yaml). provision-dev-vm.sh
+  # injects the private key and the peer list before this file is uploaded.
+  - path: /etc/wireguard/wg-mesh.conf
+    permissions: '0600'
+    owner: root:root
+    content: |
+      [Interface]
+      PrivateKey = REPLACEME_WG_PRIVATE_KEY
+      Address = 192.168.100.23/24
+      ListenPort = 51821
+
+      REPLACEME_WG_PEERS_BLOCK
+
+  # k3d needs generous inotify limits; the dev cluster otherwise fails to start
+  # watchers under load. Mirrors prod/cloud-init.yaml's 99-k3s.conf.
+  - path: /etc/sysctl.d/99-dev-k3d.conf
+    content: |
+      net.ipv4.ip_forward=1
+      net.bridge.bridge-nf-call-iptables=1
+      fs.inotify.max_user_watches=524288
+      fs.inotify.max_user_instances=512
+      vm.max_map_count=262144
+
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port = 22
+      maxretry = 5
+      bantime = 3600
+      findtime = 600
+
+  - path: /etc/ssh/sshd_config.d/hardened.conf
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+      AllowUsers patrick gekko
+
+runcmd:
+  - sysctl --system
+
+  # ── Firewall (dev k3d stack port map: see Taskfile.dev-stack.yml) ──────────
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 51821/udp                 # WireGuard mesh (mentolder subnet)
+  - ufw allow 18080/tcp comment "k3d Traefik web"
+  - ufw allow 18443/tcp comment "k3d Traefik websecure"
+  - ufw allow from 10.0.0.0/24 to any port 15432 proto tcp comment "dev Postgres (LAN only)"
+  - ufw deny 2222/tcp comment "sish - default deny (open per-CIDR via dev:firewall:open)"
+  - ufw --force enable
+
+  # ── Services ──────────────────────────────────────────────────────────────
+  - systemctl enable fail2ban && systemctl start fail2ban
+  - systemctl restart ssh
+  - systemctl enable unattended-upgrades && systemctl start unattended-upgrades
+  - systemctl enable --now iscsid
+
+  # ── WireGuard mesh up (before the dev toolchain so k3d sees the iface) ──────
+  - systemctl enable wg-quick@wg-mesh
+  - systemctl start wg-quick@wg-mesh || true
+
+  # ── Dev toolchain: Docker CE, k3d, kubectl, go-task, Node 22, pnpm ──────────
+  # Same installer prod/cloud-init.yaml uses. It is hostname-guarded to
+  # gekko-hetzner-2, so we override the guard (FORCE=1) and tell it which user
+  # gets the docker group + pnpm (DEV_USER=gekko, the primary dev login).
+  - curl -fsSL https://raw.githubusercontent.com/Paddione/Bachelorprojekt/main/scripts/install-dev-tools.sh -o /usr/local/sbin/install-dev-tools.sh
+  - chmod +x /usr/local/sbin/install-dev-tools.sh
+  - FORCE=1 DEV_USER=gekko /usr/local/sbin/install-dev-tools.sh
+
+final_message: "dev VM (mentolder-dev) ready - $(hostname) - $(date). Next: task dev:cluster:create SSH_TARGET=gekko@dev-vm"

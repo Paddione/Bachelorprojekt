@@ -82,8 +82,49 @@ export function renderGoalsMap(reg) {
   }
   return out.join('\n') + '\n';
 }
-export function renderToolsMap() {
-  throw new Error('renderToolsMap not implemented yet');
+// Fixed section order with German headings; key is tool.kind.
+const TOOL_SECTIONS = [
+  { kind: 'skill', heading: 'Skills' },
+  { kind: 'task', heading: 'Tasks' },
+  { kind: 'agent', heading: 'Agenten' },
+];
+
+/**
+ * Render tools-map.md from an in-memory registry.
+ * @param {ReturnType<import('./load.mjs').loadRegistry>} reg
+ * @returns {string}
+ */
+export function renderToolsMap(reg) {
+  const out = [];
+  out.push(HEADER);
+  out.push('');
+  out.push('# Werkzeug-Karte (Tools Map)');
+  out.push('');
+  out.push('Kompakte Referenz der Skills, Tasks und Routing-Agenten: Id, Art, Gefahren-Tier, Wofür.');
+  out.push('Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt.');
+  for (const section of TOOL_SECTIONS) {
+    const rows = reg.tools
+      .filter((t) => t.kind === section.kind)
+      .sort((a, b) => a.id.localeCompare(b.id));
+    out.push('');
+    out.push(`## ${section.heading}`);
+    out.push('');
+    out.push(row(['Id', 'Name', 'Art', 'Tier', 'Wofür', 'Guardrails']));
+    out.push(row(['---', '---', '---', '---', '---', '---']));
+    for (const t of rows) {
+      out.push(
+        row([
+          escapeCell(t.id),
+          escapeCell(t.name_de),
+          escapeCell(t.kind),
+          escapeCell(tierLabel(reg, t.danger)),
+          escapeCell(t.summary_de),
+          escapeCell(guardrailIds(reg, t.guardrails)),
+        ])
+      );
+    }
+  }
+  return out.join('\n') + '\n';
 }
 export function renderDangerMap() {
   throw new Error('renderDangerMap not implemented yet');

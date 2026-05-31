@@ -50,7 +50,7 @@ from the tuple, so they vanish from generated configs.
 **Files:**
 - Test: `tests/unit/wg-mesh-fullmesh.bats` (already present)
 
-- [ ] **Step 1: Run the test and confirm it fails for the right reason**
+- [x] **Step 1: Run the test and confirm it fails for the right reason**
 
 Run: `cd /tmp/wt-wg-fleet-mesh && ./tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-fullmesh.bats`
 
@@ -66,7 +66,7 @@ Expected: FAIL. Specifically:
 **Files:**
 - Modify: `scripts/hetzner/generate-wg-conf.sh:61` and `scripts/hetzner/generate-wg-conf.sh:81`
 
-- [ ] **Step 1: Fix the self-node lookup tuple (line ~61)**
+- [x] **Step 1: Fix the self-node lookup tuple (line ~61)**
 
 Replace:
 
@@ -88,7 +88,7 @@ self_node = None
 for cat in MESH_CATEGORIES:
 ```
 
-- [ ] **Step 2: Fix the peer-emission tuple (line ~81)**
+- [x] **Step 2: Fix the peer-emission tuple (line ~81)**
 
 Replace:
 
@@ -104,12 +104,12 @@ with:
 for cat in MESH_CATEGORIES:
 ```
 
-- [ ] **Step 3: Run the targeted test — expect GREEN**
+- [x] **Step 3: Run the targeted test — expect GREEN**
 
 Run: `cd /tmp/wt-wg-fleet-mesh && ./tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-fullmesh.bats`
 Expected: PASS — all 3 tests ok.
 
-- [ ] **Step 4: Spot-check a generated worker config by hand**
+- [x] **Step 4: Spot-check a generated worker config by hand**
 
 Run:
 ```bash
@@ -119,12 +119,12 @@ bash scripts/hetzner/generate-wg-conf.sh --env fleet --node-name gekko-hetzner-4
 ```
 Expected: 5 `[Peer]` blocks — `# pk-hetzner-4/6/8`, `# gekko-hetzner-2`, `# gekko-hetzner-3` (NOT `# gekko-hetzner-4`).
 
-- [ ] **Step 5: Run the full unit suite for regressions**
+- [x] **Step 5: Run the full unit suite for regressions**
 
 Run: `cd /tmp/wt-wg-fleet-mesh && task test:unit`
 Expected: PASS (all bats tasks, including `test:unit:render-cloud-init` which exercises the sibling provisioning script, and the new `test:unit:wg-mesh-fullmesh`).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-wg-fleet-mesh
@@ -148,7 +148,7 @@ state and (re)apply it via a task during bring-up and after k3s upgrades.
 **Files:**
 - Create: `prod/coredns-scale.yaml`
 
-- [ ] **Step 1: Create the manifest**
+- [x] **Step 1: Create the manifest**
 
 ```yaml
 # prod/coredns-scale.yaml
@@ -187,7 +187,7 @@ spec:
       k8s-app: kube-dns
 ```
 
-- [ ] **Step 2: Validate the manifest parses**
+- [x] **Step 2: Validate the manifest parses**
 
 Run:
 ```bash
@@ -196,7 +196,7 @@ kubectl apply --dry-run=client -f prod/coredns-scale.yaml
 ```
 Expected: `deployment.apps/coredns configured (dry run)` and `poddisruptionbudget.policy/coredns created (dry run)` — no schema errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-wg-fleet-mesh
@@ -209,7 +209,7 @@ git commit -m "feat(infra): CoreDNS replicas:2 + topology spread + PDB manifest 
 **Files:**
 - Modify: `Taskfile.yml` (add `coredns:scale` task; mirror `cert:install` at line ~3162)
 
-- [ ] **Step 1: Add the task**
+- [x] **Step 1: Add the task**
 
 Insert this task adjacent to the other cluster bring-up tasks (e.g. just before `cert:install:` at line ~3162). Use 2-space indentation to match `Taskfile.yml`:
 
@@ -229,7 +229,7 @@ Insert this task adjacent to the other cluster bring-up tasks (e.g. just before 
         echo "✓ CoreDNS scaled to 2 replicas with topology spread (ENV={{.ENV}})"
 ```
 
-- [ ] **Step 2: Verify the task is recognised and dry-runs cleanly**
+- [x] **Step 2: Verify the task is recognised and dry-runs cleanly**
 
 Run:
 ```bash
@@ -239,7 +239,7 @@ task --dry coredns:scale ENV=dev 2>&1 | tail -5
 ```
 Expected: the task is listed; the dry-run prints the commands without executing (no cluster contact required for `--dry`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-wg-fleet-mesh
@@ -252,7 +252,7 @@ git commit -m "feat(infra): add coredns:scale task to apply DNS resilience manif
 **Files:**
 - Modify: `.claude/skills/cluster-deployment/SKILL.md`
 
-- [ ] **Step 1: Find the mandatory bring-up ordering block**
+- [x] **Step 1: Find the mandatory bring-up ordering block**
 
 Run:
 ```bash
@@ -261,7 +261,7 @@ grep -n -iE 'cert:install|workspace:deploy|sealed-secrets:install|mandatory|orde
 ```
 Identify the numbered cluster bring-up sequence that lists `task cert:install` before `task workspace:deploy`.
 
-- [ ] **Step 2: Insert the CoreDNS step**
+- [x] **Step 2: Insert the CoreDNS step**
 
 After the `task cert:install ENV=<env>` step and before `task workspace:deploy ENV=<env>`, add a step (renumber the trailing items if the list is numbered):
 
@@ -274,7 +274,7 @@ After the `task cert:install ENV=<env>` step and before `task workspace:deploy E
   coredns` shows `2/2`).
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-wg-fleet-mesh
@@ -309,11 +309,11 @@ Expected: 2 Running pods on two distinct nodes.
 
 ## Verification (whole-plan)
 
-- [ ] `cd /tmp/wt-wg-fleet-mesh && task test:unit` → all green (includes `test:unit:wg-mesh-fullmesh`).
-- [ ] `bash scripts/hetzner/generate-wg-conf.sh --env fleet --node-name gekko-hetzner-3 --private-key 0000000000000000000000000000000000000000000= | grep -c '^\[Peer\]'` → `5`.
-- [ ] `bash scripts/hetzner/generate-wg-conf.sh --env mentolder --node-name gekko-hetzner-2 --private-key 0000000000000000000000000000000000000000000= >/dev/null` → exit 0 (no "node not found"; confirms `devc_servers` no longer breaks the mentolder env).
-- [ ] `kubectl apply --dry-run=client -f prod/coredns-scale.yaml` → no errors.
-- [ ] `task --dry coredns:scale ENV=mentolder` → prints commands, no error.
+- [x] `cd /tmp/wt-wg-fleet-mesh && task test:unit` → all green (includes `test:unit:wg-mesh-fullmesh`).
+- [x] `bash scripts/hetzner/generate-wg-conf.sh --env fleet --node-name gekko-hetzner-3 --private-key 0000000000000000000000000000000000000000000= | grep -c '^\[Peer\]'` → `5`.
+- [x] `bash scripts/hetzner/generate-wg-conf.sh --env mentolder --node-name gekko-hetzner-2 --private-key 0000000000000000000000000000000000000000000= >/dev/null` → exit 0 (no "node not found"; confirms `devc_servers` no longer breaks the mentolder env).
+- [x] `kubectl apply --dry-run=client -f prod/coredns-scale.yaml` → no errors.
+- [x] `task --dry coredns:scale ENV=mentolder` → prints commands, no error.
 - [ ] CI offline suite passes: open PR, confirm `task test:all` job green.
 
 ## PR & merge

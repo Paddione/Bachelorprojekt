@@ -73,7 +73,7 @@
 <h2 id="n">N</h2>
 <p><strong>Nextcloud</strong> — Selbstgehostete Cloud (Dateien, Kalender, Kontakte, Talk). Subdomain <code>files.{DOMAIN}</code>. Siehe <a href="nextcloud">Nextcloud + Talk</a>.</p>
 <h2 id="o">O</h2>
-<p><strong>OIDC</strong> — OpenID Connect. Authentifizierungs-Layer auf OAuth 2.0. Keycloak ist der Provider; Clients sind Nextcloud, Vaultwarden, Website, DocuSeal, Tracking, MCP-Server.</p>
+<p><strong>OIDC</strong> — OpenID Connect. Authentifizierungs-Layer auf OAuth 2.0. Keycloak ist der Provider; Clients sind Nextcloud, Vaultwarden, Website, DocuSeal, MCP-Server.</p>
 <p><strong>Overlay</strong> — Kustomize-Verzeichnis, das die Base patcht. <code>prod-mentolder/</code> und <code>prod-korczewski/</code> sind die zwei produktiven Overlays.</p>
 <h2 id="p">P</h2>
 <p><strong>Portal</strong> — Frontend-Sektion der Website unter <code>/portal</code>. Authentifizierter Bereich für Endnutzer mit Dashboard, Chat, Buchung.</p>
@@ -81,7 +81,7 @@
 <h2 id="s">S</h2>
 <p><strong>SealedSecret</strong> — Verschlüsseltes Secret, das im Repo committed werden darf. Der Sealed-Secrets-Controller im Cluster entschlüsselt zur Laufzeit zu einem normalen <code>Secret</code>.</p>
 <p><strong>SSO (Single Sign-On)</strong> — Einmaliger Login deckt alle Workspace-Services ab. Implementiert via Keycloak + OIDC.</p>
-<p><strong>shared-db</strong> — Zentrale PostgreSQL-16-Instanz im Cluster. Pro Service eine eigene Datenbank (<code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code>, <code>tracking</code>). Siehe <a href="shared-db">PostgreSQL (shared-db)</a>.</p>
+<p><strong>shared-db</strong> — Zentrale PostgreSQL-16-Instanz im Cluster. Pro Service eine eigene Datenbank (<code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code>). Die <code>tracking</code>-DB wurde mit der Tracking-Pipeline entfernt (PR #788). Siehe <a href="shared-db">PostgreSQL (shared-db)</a>.</p>
 <h2 id="t">T</h2>
 <p><strong>Talk</strong> — Nextcloud Talk: Chat, Audio-/Videocalls, integriert in Nextcloud. Mehrteilnehmer-Calls via HPB.</p>
 <p><strong>Taskfile</strong> — Task-Runner-Konfiguration (<code>taskfile.dev</code>). Single-Source-of-Truth für alle Build-/Deploy-/Ops-Befehle.</p>

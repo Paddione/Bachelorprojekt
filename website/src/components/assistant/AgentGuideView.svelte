@@ -17,6 +17,12 @@
   // Entries (pure, computed once) — inject the related lookup so goal chips show names.
   const ALL: GuideEntry[] = buildEntries(goals, tools).map(e => ({ ...e, related: lookup }));
 
+  // Schnellstart shelf: starter prompts pulled from the registry (no hardcoded strings).
+  const QUICKSTART_IDS = ['superpowers', 'brainstorming', 'dev-flow-plan'];
+  const quickstart = QUICKSTART_IDS
+    .map(id => tools.find(t => t.id === id))
+    .filter((t): t is NonNullable<typeof t> => !!t && !!t.init_prompt_de);
+
   // ── State ──────────────────────────────────────────────────────────────────
   let expanded = $state(new Set<string>());
   // Every group key across all three axes — so groups are OPEN by default on any axis
@@ -170,6 +176,26 @@
     <button type="button" class="ag-control-btn" onclick={expandAll}>Alles ausklappen</button>
     <button type="button" class="ag-control-btn" onclick={collapseAll}>Alles einklappen</button>
   </div>
+
+  {#if !searching && quickstart.length}
+    <section class="ag-quickstart" aria-label="Schnellstart für Claude Code">
+      <p class="ag-section-label">⚡ Schnellstart / Für Claude</p>
+      <div class="ag-quickstart-chips">
+        {#each quickstart as t (t.id)}
+          <button
+            type="button"
+            class="ag-quickstart-chip"
+            onclick={() => copyPrompt(`${t.id}::quick`, t.init_prompt_de!)}
+          >
+            <span class="ag-quickstart-name">{t.name_de}</span>
+            <span class="ag-quickstart-action">
+              {copiedId === `${t.id}::quick` ? 'Kopiert ✓' : 'Prompt kopieren'}
+            </span>
+          </button>
+        {/each}
+      </div>
+    </section>
+  {/if}
 
   {#if !searching && shelfEntries.length}
     <!-- Quick-access band: shortcut chips that jump+open the real in-group card.

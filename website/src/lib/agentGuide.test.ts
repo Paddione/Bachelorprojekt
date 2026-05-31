@@ -73,5 +73,12 @@ describe('agentGuide typed re-export', () => {
       expect(g.escalate_to_de).toBeTruthy();
     }
   });
+
+  it('superpowers skill exposes an init_prompt_de from the generated registry', () => {
+    const sp = tools.find(t => t.id === 'superpowers');
+    expect(sp).toBeDefined();
+    expect(typeof sp!.init_prompt_de).toBe('string');
+    expect(sp!.init_prompt_de!.length).toBeLessThanOrEqual(200);
+  });
 });
 

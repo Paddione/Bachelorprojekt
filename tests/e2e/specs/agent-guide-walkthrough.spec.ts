@@ -103,6 +103,16 @@ test('Prompt-Kopieren-Button wechselt zu "Kopiert ✓"', async ({ page, context 
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(goals[0].example_prompt_de);
 });
 
+test('Schnellstart-Shelf kopiert den Init-Prompt eines Skills', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await openAgentGuide(page);
+  const sp = tools.find(t => t.id === 'superpowers')!;
+  const chip = page.locator('.ag-quickstart-chip').filter({ hasText: sp.name_de });
+  await chip.click();
+  await expect(chip.locator('.ag-quickstart-action')).toHaveText('Kopiert ✓', { timeout: 2_000 });
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(sp.init_prompt_de);
+});
+
 if (FILM) {
   test('Filmable Walkthrough — gruppiert, suchen, Stopp-Karte', async ({ page }) => {
     await openAgentGuide(page);

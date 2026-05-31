@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>transformers-js — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">transformers-js</span></nav>
+    <h1>transformers-js</h1>
+    <p class="page-desc">Use Transformers.js to run state-of-the-art machine learning models directly in JavaScript/TypeScript. Supports NLP (text classification, translation, summarization), computer vision (image classification, object detection), audio (speech recognition, audio classification), and multimodal tasks. Works in browsers and server-side runtimes (Node.js, Bun, Deno) with WebGPU/WASM using pre-trained models from Hugging Face Hub.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Transformers.js - Machine Learning for JavaScript</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#installation"><span class="toc-num">2.</span> Installation</a></li>
+<li class="toc-item"><a href="#core-concepts"><span class="toc-num">3.</span> Core Concepts</a></li>
+<li class="toc-item"><a href="#supported-tasks"><span class="toc-num">4.</span> Supported Tasks</a></li>
+<li class="toc-item"><a href="#finding-and-choosing-models"><span class="toc-num">5.</span> Finding and Choosing Models</a></li>
+<li class="toc-item"><a href="#advanced-configuration"><span class="toc-num">6.</span> Advanced Configuration</a></li>
+<li class="toc-item"><a href="#runtime-specific-considerations"><span class="toc-num">7.</span> Runtime-Specific Considerations</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">8.</span> Error Handling</a></li>
+<li class="toc-item"><a href="#performance-tips"><span class="toc-num">9.</span> Performance Tips</a></li>
+<li class="toc-item"><a href="#memory-management"><span class="toc-num">10.</span> Memory Management</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">11.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#reference-documentation"><span class="toc-num">12.</span> Reference Documentation</a></li>
+<li class="toc-item"><a href="#best-practices"><span class="toc-num">13.</span> Best Practices</a></li>
+<li class="toc-item"><a href="#quick-reference-task-ids"><span class="toc-num">14.</span> Quick Reference: Task IDs</a></li></ul>
+</div>
+<p>Transformers.js enables running state-of-the-art machine learning models directly in JavaScript across browsers and server-side runtimes (Node.js, Bun, Deno), with no Python server required.</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Use this skill when you need to:</p>
+<ul>
+<li>Run ML models for text analysis, generation, or translation in JavaScript</li>
+<li>Perform image classification, object detection, or segmentation</li>
+<li>Implement speech recognition or audio processing</li>
+<li>Build multimodal AI applications (text-to-image, image-to-text, etc.)</li>
+<li>Run models client-side in the browser without a backend</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<h3>NPM Installation</h3>
+<div class="code-wrapper"><pre><code class="language-bash">npm install @huggingface/transformers
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Browser Usage (CDN)</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">&lt;script type="module"&gt;
+  import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers';
+&lt;/script&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="core-concepts">Core Concepts</h2>
+<h3>1. Pipeline API</h3>
+<p>The pipeline API is the easiest way to use models. It groups together preprocessing, model inference, and postprocessing:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">import { pipeline } from '@huggingface/transformers';
+
+// Create a pipeline for a specific task
+const pipe = await pipeline('sentiment-analysis');
+
+// Use the pipeline
+const result = await pipe('I love transformers!');
+// Output: [{ label: 'POSITIVE', score: 0.999817686 }]
+
+// IMPORTANT: Always dispose when done to free memory
+await pipe.dispose();
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>⚠️ Memory Management:</strong> All pipelines must be disposed with <code>pipe.dispose()</code> when finished to prevent memory leaks. See examples in <a href="./references/EXAMPLES.md">Code Examples</a> for cleanup patterns across different environments.</p>
+<h3>2. Model Selection</h3>
+<p>You can specify a custom model as the second argument:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">const pipe = await pipeline(
+  'sentiment-analysis',
+  'Xenova/bert-base-multilingual-uncased-sentiment'
+);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Finding Models:</strong></p>
+<p>Browse available Transformers.js models on Hugging Face Hub:</p>
+<ul>
+<li><strong>All models</strong>: <a href="https://huggingface.co/models?library=transformers.js&amp;sort=trending">https://huggingface.co/models?library=transformers.js&amp;sort=trending</a></li>
+<li><strong>By task</strong>: Add <code>pipeline_tag</code> parameter<ul>
+<li>Text generation: <a href="https://huggingface.co/models?pipeline_tag=text-generation&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=text-generation&amp;library=transformers.js&amp;sort=trending</a></li>
+<li>Image classification: <a href="https://huggingface.co/models?pipeline_tag=image-classification&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=image-classification&amp;library=transformers.js&amp;sort=trending</a></li>
+<li>Speech recognition: <a href="https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&amp;library=transformers.js&amp;sort=trending</a></li>
+</ul>
+</li>
+</ul>
+<p><strong>Tip:</strong> Filter by task type, sort by trending/downloads, and check model cards for performance metrics and usage examples.</p>
+<h3>3. Device Selection</h3>
+<p>Choose where to run the model:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">// Run on CPU (default for WASM)
+const pipe = await pipeline('sentiment-analysis', 'model-id');
+
+// Run on GPU (WebGPU)
+const pipe = await pipeline('sentiment-analysis', 'model-id', {
+  device: 'webgpu',
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>4. Quantization Options</h3>
+<p>Control model precision vs. performance:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">// Use quantized model (faster, smaller)
+const pipe = await pipeline('sentiment-analysis', 'model-id', {
+  dtype: 'q4',  // Options: 'fp32', 'fp16', 'q8', 'q4'
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="supported-tasks">Supported Tasks</h2>
+<p><strong>Note:</strong> All examples below show basic usage.</p>
+<h3>Natural Language Processing</h3>
+<h4>Text Classification</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const classifier = await pipeline('text-classification');
+const result = await classifier('This movie was amazing!');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Named Entity Recognition (NER)</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const ner = await pipeline('token-classification');
+const entities = await ner('My name is John and I live in New York.');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Question Answering</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const qa = await pipeline('question-answering');
+const answer = await qa({
+  question: 'What is the capital of France?',
+  context: 'Paris is the capital and largest city of France.'
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Text Generation</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const generator = await pipeline('text-generation', 'onnx-community/gemma-3-270m-it-ONNX');
+const text = await generator('Once upon a time', {
+  max_new_tokens: 100,
+  temperature: 0.7
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>For streaming and chat:</strong> See <strong><a href="./references/TEXT_GENERATION.md">Text Generation Guide</a></strong> for:</p>
+<ul>
+<li>Streaming token-by-token output with <code>TextStreamer</code></li>
+<li>Chat/conversation format with system/user/assistant roles</li>
+<li>Generation parameters (temperature, top_k, top_p)</li>
+<li>Browser and Node.js examples</li>
+<li>React components and API endpoints</li>
+</ul>
+<h4>Translation</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const translator = await pipeline('translation', 'Xenova/nllb-200-distilled-600M');
+const output = await translator('Hello, how are you?', {
+  src_lang: 'eng_Latn',
+  tgt_lang: 'fra_Latn'
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Summarization</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const summarizer = await pipeline('summarization');
+const summary = await summarizer(longText, {
+  max_length: 100,
+  min_length: 30
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Zero-Shot Classification</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const classifier = await pipeline('zero-shot-classification');
+const result = await classifier('This is a story about sports.', ['politics', 'sports', 'technology']);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Computer Vision</h3>
+<h4>Image Classification</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const classifier = await pipeline('image-classification');
+const result = await classifier('https://example.com/image.jpg');
+// Or with local file
+const result = await classifier(imageUrl);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Object Detection</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const detector = await pipeline('object-detection');
+const objects = await detector('https://example.com/image.jpg');
+// Returns: [{ label: 'person', score: 0.95, box: { xmin, ymin, xmax, ymax } }, ...]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Image Segmentation</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const segmenter = await pipeline('image-segmentation');
+const segments = await segmenter('https://example.com/image.jpg');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Depth Estimation</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const depthEstimator = await pipeline('depth-estimation');
+const depth = await depthEstimator('https://example.com/image.jpg');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Zero-Shot Image Classification</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const classifier = await pipeline('zero-shot-image-classification');
+const result = await classifier('image.jpg', ['cat', 'dog', 'bird']);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Audio Processing</h3>
+<h4>Automatic Speech Recognition</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const transcriber = await pipeline('automatic-speech-recognition');
+const result = await transcriber('audio.wav');
+// Returns: { text: 'transcribed text here' }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Audio Classification</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const classifier = await pipeline('audio-classification');
+const result = await classifier('audio.wav');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Text-to-Speech</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const synthesizer = await pipeline('text-to-speech', 'Xenova/speecht5_tts');
+const audio = await synthesizer('Hello, this is a test.', {
+  speaker_embeddings: speakerEmbeddings
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Multimodal</h3>
+<h4>Image-to-Text (Image Captioning)</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const captioner = await pipeline('image-to-text');
+const caption = await captioner('image.jpg');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Document Question Answering</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const docQA = await pipeline('document-question-answering');
+const answer = await docQA('document-image.jpg', 'What is the total amount?');
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Zero-Shot Object Detection</h4>
+<div class="code-wrapper"><pre><code class="language-javascript">const detector = await pipeline('zero-shot-object-detection');
+const objects = await detector('image.jpg', ['person', 'car', 'tree']);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Feature Extraction (Embeddings)</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const extractor = await pipeline('feature-extraction');
+const embeddings = await extractor('This is a sentence to embed.');
+// Returns: tensor of shape [1, sequence_length, hidden_size]
+
+// For sentence embeddings (mean pooling)
+const extractor = await pipeline('feature-extraction', 'onnx-community/all-MiniLM-L6-v2-ONNX');
+const embeddings = await extractor('Text to embed', { pooling: 'mean', normalize: true });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="finding-and-choosing-models">Finding and Choosing Models</h2>
+<h3>Browsing the Hugging Face Hub</h3>
+<p>Discover compatible Transformers.js models on Hugging Face Hub:</p>
+<p><strong>Base URL (all models):</strong></p>
+<div class="code-wrapper"><pre><code>https://huggingface.co/models?library=transformers.js&amp;sort=trending
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Filter by task</strong> using the <code>pipeline_tag</code> parameter:</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Text Generation</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=text-generation&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=text-generation&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Text Classification</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=text-classification&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=text-classification&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Translation</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=translation&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=translation&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Summarization</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=summarization&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=summarization&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Question Answering</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=question-answering&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=question-answering&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Image Classification</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=image-classification&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=image-classification&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Object Detection</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=object-detection&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=object-detection&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Image Segmentation</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=image-segmentation&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=image-segmentation&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Speech Recognition</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Audio Classification</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=audio-classification&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=audio-classification&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Image-to-Text</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=image-to-text&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=image-to-text&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Feature Extraction</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=feature-extraction&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=feature-extraction&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+<tr>
+<td><strong>Zero-Shot Classification</strong></td>
+<td><a href="https://huggingface.co/models?pipeline_tag=zero-shot-classification&amp;library=transformers.js&amp;sort=trending">https://huggingface.co/models?pipeline_tag=zero-shot-classification&amp;library=transformers.js&amp;sort=trending</a></td>
+</tr>
+</tbody></table>
+<p><strong>Sort options:</strong></p>
+<ul>
+<li><code>&amp;sort=trending</code> - Most popular recently</li>
+<li><code>&amp;sort=downloads</code> - Most downloaded overall</li>
+<li><code>&amp;sort=likes</code> - Most liked by community</li>
+<li><code>&amp;sort=modified</code> - Recently updated</li>
+</ul>
+<h3>Choosing the Right Model</h3>
+<p>Consider these factors when selecting a model:</p>
+<p><strong>1. Model Size</strong></p>
+<ul>
+<li><strong>Small (&lt; 100MB)</strong>: Fast, suitable for browsers, limited accuracy</li>
+<li><strong>Medium (100MB - 500MB)</strong>: Balanced performance, good for most use cases</li>
+<li><strong>Large (&gt; 500MB)</strong>: High accuracy, slower, better for Node.js or powerful devices</li>
+</ul>
+<p><strong>2. Quantization</strong>
+Models are often available in different quantization levels:</p>
+<ul>
+<li><code>fp32</code> - Full precision (largest, most accurate)</li>
+<li><code>fp16</code> - Half precision (smaller, still accurate)</li>
+<li><code>q8</code> - 8-bit quantized (much smaller, slight accuracy loss)</li>
+<li><code>q4</code> - 4-bit quantized (smallest, noticeable accuracy loss)</li>
+</ul>
+<p><strong>3. Task Compatibility</strong>
+Check the model card for:</p>
+<ul>
+<li>Supported tasks (some models support multiple tasks)</li>
+<li>Input/output formats</li>
+<li>Language support (multilingual vs. English-only)</li>
+<li>License restrictions</li>
+</ul>
+<p><strong>4. Performance Metrics</strong>
+Model cards typically show:</p>
+<ul>
+<li>Accuracy scores</li>
+<li>Benchmark results</li>
+<li>Inference speed</li>
+<li>Memory requirements</li>
+</ul>
+<h3>Example: Finding a Text Generation Model</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">// 1. Visit: https://huggingface.co/models?pipeline_tag=text-generation&amp;library=transformers.js&amp;sort=trending
+
+// 2. Browse and select a model (e.g., onnx-community/gemma-3-270m-it-ONNX)
+
+// 3. Check model card for:
+//    - Model size: ~270M parameters
+//    - Quantization: q4 available
+//    - Language: English
+//    - Use case: Instruction-following chat
+
+// 4. Use the model:
+import { pipeline } from '@huggingface/transformers';
+
+const generator = await pipeline(
+  'text-generation',
+  'onnx-community/gemma-3-270m-it-ONNX',
+  { dtype: 'q4' } // Use quantized version for faster inference
+);
+
+const output = await generator('Explain quantum computing in simple terms.', {
+  max_new_tokens: 100
+});
+
+await generator.dispose();
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Tips for Model Selection</h3>
+<ol>
+<li><strong>Start Small</strong>: Test with a smaller model first, then upgrade if needed</li>
+<li><strong>Check ONNX Support</strong>: Ensure the model has ONNX files (look for <code>onnx</code> folder in model repo)</li>
+<li><strong>Read Model Cards</strong>: Model cards contain usage examples, limitations, and benchmarks</li>
+<li><strong>Test Locally</strong>: Benchmark inference speed and memory usage in your environment</li>
+<li><strong>Filter by Library</strong>: Use <code>library=transformers.js</code> to find compatible models: <a href="https://huggingface.co/models?library=transformers.js">https://huggingface.co/models?library=transformers.js</a></li>
+<li><strong>Version Pin</strong>: Use specific git commits in production for stability:<div class="code-wrapper"><pre><code class="language-javascript">const pipe = await pipeline('task', 'model-id', { revision: 'abc123' });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<h2 id="advanced-configuration">Advanced Configuration</h2>
+<h3>Environment Configuration (<code>env</code>)</h3>
+<p>The <code>env</code> object provides comprehensive control over Transformers.js execution, caching, and model loading.</p>
+<p><strong>Quick Overview:</strong></p>
+<div class="code-wrapper"><pre><code class="language-javascript">import { env, LogLevel } from '@huggingface/transformers';
+
+// View version
+console.log(env.version); // e.g., '4.x'
+
+// Common settings
+env.allowRemoteModels = true;  // Load from Hugging Face Hub
+env.allowLocalModels = false;  // Load from file system
+env.localModelPath = '/models/'; // Local model directory
+env.useFSCache = true;         // Cache models on disk (Node.js)
+env.useBrowserCache = true;    // Cache models in browser
+env.cacheDir = './.cache';     // Cache directory location
+// Optional: override logging level (default is LogLevel.WARNING)
+env.logLevel = LogLevel.INFO;
+
+// Optional: custom fetch for auth headers, retries, abort signals, etc.
+env.fetch = (url, options) =&gt;
+  fetch(url, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      Authorization: `Bearer ${HF_TOKEN}`,
+    },
+  });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Configuration Patterns:</strong></p>
+<div class="code-wrapper"><pre><code class="language-javascript">// Development: Fast iteration with remote models
+env.allowRemoteModels = true;
+env.useFSCache = true;
+
+// Production: Local models only
+env.allowRemoteModels = false;
+env.allowLocalModels = true;
+env.localModelPath = '/app/models/';
+
+// Custom CDN
+env.remoteHost = 'https://cdn.example.com/models';
+
+// Disable caching (testing)
+env.useFSCache = false;
+env.useBrowserCache = false;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For complete documentation on all configuration options, caching strategies, cache management, pre-downloading models, and more, see:</p>
+<p><strong>→ <a href="./references/CONFIGURATION.md">Configuration Reference</a></strong></p>
+<h3>ModelRegistry (v4)</h3>
+<p><code>ModelRegistry</code> gives you visibility and control over model assets before loading a pipeline. Use it to estimate download size, check cache status, inspect available dtypes, and clear cached artifacts for a specific task/model/options tuple.</p>
+<div class="code-wrapper"><pre><code class="language-javascript">import { ModelRegistry } from '@huggingface/transformers';
+
+const task = 'feature-extraction';
+const modelId = 'onnx-community/all-MiniLM-L6-v2-ONNX';
+const modelOptions = { dtype: 'fp32' };
+
+// List required files for this pipeline
+const files = await ModelRegistry.get_pipeline_files(task, modelId, modelOptions);
+
+// Check if assets are already cached
+const cached = await ModelRegistry.is_pipeline_cached(task, modelId, modelOptions);
+
+// Inspect precision formats available for this model
+const dtypes = await ModelRegistry.get_available_dtypes(modelId);
+
+console.log({ files: files.length, cached, dtypes });
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For production patterns and full API coverage, see <strong><a href="./references/MODEL_REGISTRY.md">ModelRegistry Reference</a></strong>.</p>
+<h3>Standalone Tokenization (<code>@huggingface/tokenizers</code>)</h3>
+<p>For tokenization-only workflows, use <code>@huggingface/tokenizers</code>. It is a separate lightweight package useful when you need fast tokenization/encoding without loading full model inference pipelines.</p>
+<div class="code-wrapper"><pre><code class="language-bash">npm install @huggingface/tokenizers
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-javascript">import { Tokenizer } from '@huggingface/tokenizers';
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Working with Tensors</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">import { AutoTokenizer, AutoModel } from '@huggingface/transformers';
+
+// Load tokenizer and model separately for more control
+const tokenizer = await AutoTokenizer.from_pretrained('bert-base-uncased');
+const model = await AutoModel.from_pretrained('bert-base-uncased');
+
+// Tokenize input
+const inputs = await tokenizer('Hello world!');
+
+// Run model
+const outputs = await model(inputs);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Batch Processing</h3>
+<div class="code-wrapper"><pre><code class="language-javascript">const classifier = await pipeline('sentiment-analysis');
+
+// Process multiple texts
+const results = await classifier([
+  'I love this!',
+  'This is terrible.',
+  'It was okay.'
+]);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="runtime-specific-considerations">Runtime-Specific Considerations</h2>
+<h3>WebGPU Usage</h3>
+<p>WebGPU provides GPU acceleration in browsers and server-side runtimes (when supported):</p>
+<div class="code-wrapper"><pre><code class="language-javascript">const pipe = await pipeline('text-generation', 'onnx-community/gemma-3-270m-it-ONNX', {
+  device: 'webgpu',
+  dtype: 'fp32'
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Note</strong>: Use <code>webgpu</code> when available and fall back to WASM/CPU when not supported in the current runtime.</p>
+<h3>WASM Performance</h3>
+<p>WASM is the most compatible execution backend across runtimes:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">// Optimized for browsers with quantization
+const pipe = await pipeline('sentiment-analysis', 'model-id', {
+  dtype: 'q8'  // or 'q4' for even smaller size
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Progress Tracking &amp; Loading Indicators</h3>
+<p>Models can be large (ranging from a few MB to several GB) and consist of multiple files. Track download progress by passing a callback to the <code>pipeline()</code> function:</p>
+<div class="code-wrapper"><pre><code class="language-javascript">import { pipeline } from '@huggingface/transformers';
+
+// Track progress for each file
+const fileProgress = {};
+
+function onProgress(info) {
+  if (info.status === 'progress_total') {
+    console.log(`Total: ${info.progress.toFixed(1)}%`);
+    return;
+  }
+
+  console.log(`${info.status}: ${info.file ?? ''}`);
+  
+  if (info.status === 'progress') {
+    fileProgress[info.file] = info.progress;
+    console.log(`${info.file}: ${info.progress.toFixed(1)}%`);
+  }
+  
+  if (info.status === 'done') {
+    console.log(`✓ ${info.file} complete`);
+  }
+}
+
+// Pass callback to pipeline
+const classifier = await pipeline('sentiment-analysis', null, {
+  progress_callback: onProgress
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Progress Info Properties:</strong></p>
+<div class="code-wrapper"><pre><code class="language-typescript">interface ProgressInfo {
+  status: 'initiate' | 'download' | 'progress' | 'progress_total' | 'done' | 'ready';
+  name: string;      // Model id or path
+  file?: string;     // File being processed (per-file events)
+  progress?: number; // Percentage (0-100, for 'progress' and 'progress_total')
+  loaded?: number;   // Bytes downloaded (only for 'progress' status)
+  total?: number;    // Total bytes (only for 'progress' status)
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For complete examples including browser UIs, React components, CLI progress bars, and retry logic, see:</p>
+<p><strong>→ <a href="./references/PIPELINE_OPTIONS.md#progress-callback">Pipeline Options - Progress Callback</a></strong></p>
+<h2 id="error-handling">Error Handling</h2>
+<div class="code-wrapper"><pre><code class="language-javascript">try {
+  const pipe = await pipeline('sentiment-analysis', 'model-id');
+  const result = await pipe('text to analyze');
+} catch (error) {
+  if (error.message.includes('fetch')) {
+    console.error('Model download failed. Check internet connection.');
+  } else if (error.message.includes('ONNX')) {
+    console.error('Model execution failed. Check model compatibility.');
+  } else {
+    console.error('Unknown error:', error);
+  }
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="performance-tips">Performance Tips</h2>
+<ol>
+<li><strong>Reuse Pipelines</strong>: Create pipeline once, reuse for multiple inferences</li>
+<li><strong>Use Quantization</strong>: Start with <code>q8</code> or <code>q4</code> for faster inference</li>
+<li><strong>Batch Processing</strong>: Process multiple inputs together when possible</li>
+<li><strong>Cache Models</strong>: Models are cached automatically (see <strong><a href="./references/CACHE.md">Caching Reference</a></strong> for details on browser Cache API, Node.js filesystem cache, and custom implementations)</li>
+<li><strong>WebGPU for Large Models</strong>: Use WebGPU for models that benefit from GPU acceleration</li>
+<li><strong>Prune Context</strong>: For text generation, limit <code>max_new_tokens</code> to avoid memory issues</li>
+<li><strong>Clean Up Resources</strong>: Call <code>pipe.dispose()</code> when done to free memory</li>
+</ol>
+<h2 id="memory-management">Memory Management</h2>
+<p><strong>IMPORTANT:</strong> Always call <code>pipe.dispose()</code> when finished to prevent memory leaks.</p>
+<div class="code-wrapper"><pre><code class="language-javascript">const pipe = await pipeline('sentiment-analysis');
+const result = await pipe('Great product!');
+await pipe.dispose();  // ✓ Free memory (100MB - several GB per model)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>When to dispose:</strong></p>
+<ul>
+<li>Application shutdown or component unmount</li>
+<li>Before loading a different model</li>
+<li>After batch processing in long-running apps</li>
+</ul>
+<p>Models consume significant memory and hold GPU/CPU resources. Disposal is critical for browser memory limits and server stability.</p>
+<p>For detailed patterns (React cleanup, servers, browser), see <strong><a href="./references/EXAMPLES.md">Code Examples</a></strong></p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3>Model Not Found</h3>
+<ul>
+<li>Verify model exists on Hugging Face Hub</li>
+<li>Check model name spelling</li>
+<li>Ensure model has ONNX files (look for <code>onnx</code> folder in model repo)</li>
+</ul>
+<h3>Memory Issues</h3>
+<ul>
+<li>Use smaller models or quantized versions (<code>dtype: 'q4'</code>)</li>
+<li>Reduce batch size</li>
+<li>Limit sequence length with <code>max_length</code></li>
+</ul>
+<h3>WebGPU Errors</h3>
+<ul>
+<li>Check browser compatibility (Chrome 113+, Edge 113+)</li>
+<li>Try <code>dtype: 'fp16'</code> if <code>fp32</code> fails</li>
+<li>Fall back to WASM if WebGPU unavailable</li>
+</ul>
+<h2 id="reference-documentation">Reference Documentation</h2>
+<h3>This Skill</h3>
+<ul>
+<li><strong><a href="./references/PIPELINE_OPTIONS.md">Pipeline Options</a></strong> - Configure <code>pipeline()</code> with <code>progress_callback</code>, <code>device</code>, <code>dtype</code>, etc.</li>
+<li><strong><a href="./references/CONFIGURATION.md">Configuration Reference</a></strong> - Global <code>env</code> configuration for caching and model loading</li>
+<li><strong><a href="./references/MODEL_REGISTRY.md">ModelRegistry Reference</a></strong> - Inspect files, cache status, dtypes, and clear cache before loading pipelines</li>
+<li><strong><a href="./references/CACHE.md">Caching Reference</a></strong> - Browser Cache API, Node.js filesystem cache, and custom cache implementations</li>
+<li><strong><a href="./references/TEXT_GENERATION.md">Text Generation Guide</a></strong> - Streaming, chat format, and generation parameters</li>
+<li><strong><a href="./references/MODEL_ARCHITECTURES.md">Model Architectures</a></strong> - Supported models and selection tips</li>
+<li><strong><a href="./references/EXAMPLES.md">Code Examples</a></strong> - Real-world implementations for different runtimes</li>
+</ul>
+<h3>Official Transformers.js</h3>
+<ul>
+<li>Official docs: <a href="https://huggingface.co/docs/transformers.js">https://huggingface.co/docs/transformers.js</a></li>
+<li>API reference: <a href="https://huggingface.co/docs/transformers.js/api/pipelines">https://huggingface.co/docs/transformers.js/api/pipelines</a></li>
+<li>Model hub: <a href="https://huggingface.co/models?library=transformers.js">https://huggingface.co/models?library=transformers.js</a></li>
+<li>GitHub: <a href="https://github.com/huggingface/transformers.js">https://github.com/huggingface/transformers.js</a></li>
+<li>Examples: <a href="https://github.com/huggingface/transformers.js-examples">https://github.com/huggingface/transformers.js-examples</a></li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Always Dispose Pipelines</strong>: Call <code>pipe.dispose()</code> when done - critical for preventing memory leaks</li>
+<li><strong>Start with Pipelines</strong>: Use the pipeline API unless you need fine-grained control</li>
+<li><strong>Test Locally First</strong>: Test models with small inputs before deploying</li>
+<li><strong>Monitor Model Sizes</strong>: Be aware of model download sizes for web applications</li>
+<li><strong>Handle Loading States</strong>: Show progress indicators for better UX</li>
+<li><strong>Version Pin</strong>: Pin specific model versions for production stability</li>
+<li><strong>Error Boundaries</strong>: Always wrap pipeline calls in try-catch blocks</li>
+<li><strong>Progressive Enhancement</strong>: Provide fallbacks for unsupported browsers</li>
+<li><strong>Reuse Models</strong>: Load once, use many times - don't recreate pipelines unnecessarily</li>
+<li><strong>Graceful Shutdown</strong>: Dispose models on SIGTERM/SIGINT in servers</li>
+</ol>
+<h2 id="quick-reference-task-ids">Quick Reference: Task IDs</h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Task ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Text classification</td>
+<td><code>text-classification</code> or <code>sentiment-analysis</code></td>
+</tr>
+<tr>
+<td>Token classification</td>
+<td><code>token-classification</code> or <code>ner</code></td>
+</tr>
+<tr>
+<td>Question answering</td>
+<td><code>question-answering</code></td>
+</tr>
+<tr>
+<td>Fill mask</td>
+<td><code>fill-mask</code></td>
+</tr>
+<tr>
+<td>Summarization</td>
+<td><code>summarization</code></td>
+</tr>
+<tr>
+<td>Translation</td>
+<td><code>translation</code></td>
+</tr>
+<tr>
+<td>Text generation</td>
+<td><code>text-generation</code></td>
+</tr>
+<tr>
+<td>Text-to-text generation</td>
+<td><code>text2text-generation</code></td>
+</tr>
+<tr>
+<td>Zero-shot classification</td>
+<td><code>zero-shot-classification</code></td>
+</tr>
+<tr>
+<td>Image classification</td>
+<td><code>image-classification</code></td>
+</tr>
+<tr>
+<td>Image segmentation</td>
+<td><code>image-segmentation</code></td>
+</tr>
+<tr>
+<td>Object detection</td>
+<td><code>object-detection</code></td>
+</tr>
+<tr>
+<td>Depth estimation</td>
+<td><code>depth-estimation</code></td>
+</tr>
+<tr>
+<td>Image-to-image</td>
+<td><code>image-to-image</code></td>
+</tr>
+<tr>
+<td>Zero-shot image classification</td>
+<td><code>zero-shot-image-classification</code></td>
+</tr>
+<tr>
+<td>Zero-shot object detection</td>
+<td><code>zero-shot-object-detection</code></td>
+</tr>
+<tr>
+<td>Automatic speech recognition</td>
+<td><code>automatic-speech-recognition</code></td>
+</tr>
+<tr>
+<td>Audio classification</td>
+<td><code>audio-classification</code></td>
+</tr>
+<tr>
+<td>Text-to-speech</td>
+<td><code>text-to-speech</code> or <code>text-to-audio</code></td>
+</tr>
+<tr>
+<td>Image-to-text</td>
+<td><code>image-to-text</code></td>
+</tr>
+<tr>
+<td>Document question answering</td>
+<td><code>document-question-answering</code></td>
+</tr>
+<tr>
+<td>Feature extraction</td>
+<td><code>feature-extraction</code></td>
+</tr>
+<tr>
+<td>Sentence similarity</td>
+<td><code>sentence-similarity</code></td>
+</tr>
+</tbody></table>
+<hr>
+<p>This skill enables you to integrate state-of-the-art machine learning capabilities directly into JavaScript applications without requiring separate ML servers or Python environments.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

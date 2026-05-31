@@ -3,29 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Decision-Log — Workspace MVP</title>
-<link rel="stylesheet" href="./skills/style.css">
+<title>🧭 Decision-Log — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="./index.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Übersicht
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">decisions</span>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge-slug">decisions</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-  <h1 class="hero-title">🧭 Decision-Log</h1>
-  <p class="hero-subtitle">Architekturentscheidungen mit Kontext, Konsequenz und Datum.</p>
-  <div class="trigger-chip"><span class="label">Referenz · Entscheidungen</span></div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">🧭 Decision-Log</span></nav>
+    <h1>🧭 Decision-Log</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+
 <div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#2026-05-15--argocd-entfernen--fluxcd"><span class="toc-num">1.</span>&nbsp;2026-05-15 — ArgoCD entfernen → FluxCD</a></li>
@@ -94,8 +97,11 @@
 <p><strong>Entscheidung:</strong> docker-compose entfernt. Nur k3d (lokal) und k3s (prod), beide identisch via Kustomize gefüttert.</p>
 <p><strong>Konsequenz:</strong> Lokal = Prod (modulo Overlay). Onboarding braucht Docker + k3d, etwas mehr als compose. Wert: keine Drift-Klassen mehr.</p>
 
-</main>
 
+</article>
+
+  </main>
+</div>
 <script src="./app.js"></script>
 </body>
 </html>

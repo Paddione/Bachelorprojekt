@@ -1,142 +1,139 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>using-git-worktrees — Isolierte Workspaces & Git Flow</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>using-git-worktrees — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="../skills-overview.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Alle Skills
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">using-git-worktrees</span>
-  <div class="topnav-right">
-    <span class="badge badge-brass">Development</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-brass">Development</span>
-    <span class="badge-slug">using-git-worktrees</span>
-  </div>
-  <h1 class="hero-title">Using Git Worktrees</h1>
-  <p class="hero-subtitle">
-    Verwaltung isolierter Arbeitsumgebungen: Korrektes Setup von Submodulen, 
-    Symlinking von Secrets und Branch-Renaming für den Bachelorprojekt Git-Flow.
-  </p>
-  <div class="trigger-chip">
-    <span class="label">Auslöser:</span> Start einer neuen Feature- oder Fix-Implementierung
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">using-git-worktrees</span></nav>
+    <h1>using-git-worktrees</h1>
+    <p class="page-desc">Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
   </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+<html><head></head><body><h1>Using Git Worktrees (Bachelorprojekt overrides)</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#pre-create-main-branch-aktualisieren-pull-first"><span class="toc-num">1.</span> Pre-Create: Main-Branch aktualisieren (Pull-First)</a></li>
+<li class="toc-item"><a href="#post-create-checklist-mandatory-for-this-repo"><span class="toc-num">2.</span> Post-Create Checklist (MANDATORY for this repo)</a></li>
+<li class="toc-item"><a href="#automation-note"><span class="toc-num">3.</span> Automation note</a></li>
+<li class="toc-item"><a href="#concurrent-session-safety-t000350"><span class="toc-num">4.</span> Concurrent-Session Safety (T000350)</a></li></ul>
+</div>
+<blockquote>
+<p>This file extends the upstream <code>superpowers/using-git-worktrees</code> skill with
+project-specific post-create requirements. Follow ALL upstream steps, then
+apply the checklist below.</p>
+</blockquote>
+<h2 id="pre-create-main-branch-aktualisieren-pull-first">Pre-Create: Main-Branch aktualisieren (Pull-First)</h2>
+<p><strong>Vor</strong> dem Anlegen eines neuen Worktrees: sicherstellen, dass <code>origin/main</code> aktuell ist —
+der Worktree startet sonst auf einem veralteten Stand.</p>
+<div class="code-wrapper"><pre><code class="language-bash">git fetch origin main
+if git diff --quiet HEAD; then
+  git pull --rebase origin main
+else
+  echo "Lokale Änderungen erkannt — stashe..."
+  git stash
+  git pull --rebase origin main
+  git stash pop
+  echo "Stash zurückgespielt. Konflikte bitte prüfen."
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Falls <code>git stash pop</code> Konflikte meldet: dem User anzeigen und Klärung einholen.</p>
+<hr>
+<h2 id="post-create-checklist-mandatory-for-this-repo">Post-Create Checklist (MANDATORY for this repo)</h2>
+<blockquote>
+<p><strong>⚠️ Agent-specific behaviour:</strong></p>
+<ul>
+<li><strong>Claude Code</strong>: A <code>PostToolUse</code> hook (matcher: <code>Bash</code> / <code>run_shell_command</code>) fires
+automatically after <code>EnterWorktree</code> or <code>git worktree add</code> and handles both steps.</li>
+<li><strong>Gemini CLI</strong>: The hook does <strong>NOT</strong> fire — Gemini CLI's shell tool is named
+<code>run_command</code>, which does not match the hook matcher. <strong>Always run the two
+commands below manually</strong> immediately after creating a worktree.</li>
+</ul>
+</blockquote>
+<p>Run these two commands from the new worktree root before doing any other work:</p>
+<h3>1. Initialize BATS submodules (T000387 / T000107)</h3>
+<p><code>task test:unit</code> / <code>task test:all</code> fails with <code>bats-core/bin/bats not found</code> in
+any fresh worktree because <code>git worktree add</code> does NOT initialize submodules.</p>
+<div class="code-wrapper"><pre><code class="language-bash">git submodule update --init --recursive
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This populates <code>tests/unit/lib/bats-core</code>, <code>bats-assert</code>, <code>bats-file</code>, and
+<code>bats-support</code>.</p>
+<h3>2. Symlink <code>environments/.secrets</code> (T000383)</h3>
+<p>Worktrees start with the stub <code>.gitkeep</code> file, not the real secrets. Any task
+that reads <code>environments/.secrets/&lt;env&gt;.yaml</code> will fail.</p>
+<div class="code-wrapper"><pre><code class="language-bash">ln -sfn /home/patrick/Bachelorprojekt/environments/.secrets \
+        environments/.secrets
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The symlink points at the main repo's copy. The target path is absolute so it
+works regardless of where the worktree is placed.</p>
+<h3>Verification</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Submodules OK
+./tests/unit/lib/bats-core/bin/bats --version
 
-  <div class="callout callout-important">
-    <span class="callout-icon">❗</span>
-    <div class="callout-body">
-      <strong>Pull First:</strong> Aktualisiere immer <code>origin/main</code>, 
-      bevor du einen neuen Worktree anlegst, um Merge-Konflikte zu minimieren.
-    </div>
-  </div>
+# Secrets symlink OK
+ls -la environments/.secrets/mentolder.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>3. Fix branch name if slug-encoded (T000381)</h3>
+<p><code>EnterWorktree</code> encodes <code>/</code> as <code>+</code> when the name contains a slash. A name like
+<code>feature/my-task</code> creates branch <code>worktree-feature+my-task</code> instead of
+<code>feature/my-task</code>. Check immediately after the hook fires:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git branch --show-current
+# if it shows e.g. "worktree-feature+my-task", rename it:
+git branch -m feature/my-task
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The hook does NOT auto-rename (the correct target name isn't reliably
+extractable from the harness response). Always verify the branch name before
+your first commit.</p>
+<h2 id="automation-note">Automation note</h2>
+<p>The <code>PostToolUse</code> hook in <code>.claude/settings.json</code> (matcher: <code>run_shell_command</code>)
+runs both steps automatically for <strong>Claude Code</strong> whenever <code>EnterWorktree</code> or a
+shell command that creates a worktree is used. The hook:</p>
+<ol>
+<li>Resolves the new worktree path from the tool response (falls back to
+<code>git worktree list --porcelain | tail -1</code>).</li>
+<li>Runs <code>git submodule update --init --recursive --quiet</code>.</li>
+<li>Replaces <code>environments/.secrets</code> with a symlink to the main repo's copy.</li>
+</ol>
+<p>If you see the status message "Initializing submodules and symlinking secrets
+in new worktree…" the hook fired (Claude Code only).</p>
+<p><strong>Gemini CLI</strong> does not trigger this hook. Always run the two commands manually
+(see Post-Create Checklist above). The <code>dev-flow-plan</code> SKILL.md (manual worktree
+path, lines ~128–130) already includes <code>git submodule update --init --recursive</code>
+in the worktree-add block — follow that pattern exactly (T000107).</p>
+<h2 id="concurrent-session-safety-t000350">Concurrent-Session Safety (T000350)</h2>
+<p><strong>Never run <code>git checkout</code>, <code>git reset</code>, <code>git stash</code>, or <code>git rebase</code> in the
+shared primary worktree (<code>/home/patrick/Bachelorprojekt</code>) when another session
+may be active on a different branch.</strong> These commands silently retarget HEAD and
+cause PR/branch operations that omit <code>--head</code> to resolve against the wrong branch.</p>
+<p>Rules:</p>
+<ul>
+<li>Any subagent that mutates git state (checkout, rebase, stash) <strong>must</strong> operate
+in an isolated <code>/tmp/wt-*</code> worktree, never the primary repo.</li>
+<li>Always pass <code>--head &lt;branch&gt;</code> explicitly on <code>gh pr create</code> and <code>gh pr merge</code>
+— never rely on the ambient current branch.</li>
+</ul>
+</body></html>
+</article>
 
-  <div class="phases">
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">1</span>
-        <span class="phase-title">Worktree anlegen</span>
-        <span class="phase-desc">Isolation schaffen</span>
-      </div>
-      <div class="phase-body">
-        <p>Erstelle einen neuen Worktree für den Branch:</p>
-        <pre><code><span class="fn">git</span> worktree add .claude/worktrees/&lt;name&gt; feature/&lt;slug&gt;</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">2</span>
-        <span class="phase-title">Submodule Init</span>
-        <span class="phase-desc">T000387</span>
-      </div>
-      <div class="phase-body">
-        <p>Da <code>git worktree add</code> keine Submodule initialisiert, muss dies manuell nachgeholt werden (für BATS Tests):</p>
-        <pre><code><span class="fn">git</span> submodule update --init --recursive</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">3</span>
-        <span class="phase-title">Secret Symlinking</span>
-        <span class="phase-desc">T000383</span>
-      </div>
-      <div class="phase-body">
-        <p>Verknüpfe die Secrets des Haupt-Repos, damit Tasks im Worktree funktionieren:</p>
-        <pre><code><span class="fn">ln</span> -sfn /home/patrick/Bachelorprojekt/environments/.secrets \
-       environments/.secrets</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">4</span>
-        <span class="phase-title">Branch Renaming</span>
-        <span class="phase-desc">T000381</span>
-      </div>
-      <div class="phase-body">
-        <p>Falls Tools wie <code>EnterWorktree</code> Slashes im Branch-Namen kodiert haben (<code>+</code>), benenne den Branch um:</p>
-        <pre><code><span class="fn">git</span> branch -m feature/my-task</code></pre>
-      </div>
-    </div>
-
-  </div>
-
-  <h2 class="section-label">Automatisierung</h2>
-  <p>In diesem Repository feuert ein <code>PostToolUse</code> Hook (Matcher: <code>EnterWorktree</code>), der die Schritte 2 und 3 automatisch übernimmt. Überprüfe die Statusmeldung: <em>"Initializing submodules and symlinking secrets..."</em></p>
-
-  <h2 class="section-label">Verbundene Skills</h2>
-  <div class="xref-grid">
-    <a href="dev-flow-plan.html" class="xref-card">
-      <span class="xref-name">dev-flow-plan</span>
-      <span class="xref-rel">Worktree-Anlage als Teil der Planung</span>
-    </a>
-    <a href="dev-flow-execute.html" class="xref-card">
-      <span class="xref-name">dev-flow-execute</span>
-      <span class="xref-rel">Arbeiten innerhalb des Worktrees</span>
-    </a>
-    <a href="ticket-management.html" class="xref-card">
-      <span class="xref-name">ticket-management</span>
-      <span class="xref-rel">Stale Worktrees bereinigen</span>
-    </a>
-  </div>
-
-</main>
-
-<footer>
-  <span>Skills Übersicht / <code>.claude/skills/superpowers/using-git-worktrees/SKILL.md</code></span>
-  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
-</footer>
-
-<script>
-document.querySelectorAll('pre').forEach(pre => {
-  const btn = document.createElement('button');
-  btn.className = 'copy-btn';
-  btn.textContent = 'copy';
-  btn.onclick = () => {
-    navigator.clipboard.writeText(pre.innerText).then(() => {
-      btn.textContent = 'copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  };
-  pre.appendChild(btn);
-});
-</script>
+  </main>
+</div>
+<script src="./app.js"></script>
 </body>
 </html>

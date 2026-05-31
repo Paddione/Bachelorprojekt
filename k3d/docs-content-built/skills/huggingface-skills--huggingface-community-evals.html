@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-community-evals — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-community-evals</span></nav>
+    <h1>huggingface-community-evals</h1>
+    <p class="page-desc">Run evaluations for Hugging Face Hub models using inspect-ai and lighteval on local hardware. Use for backend selection, local GPU evals, and choosing between vLLM / Transformers / accelerate. Not for HF Jobs orchestration, model-card PRs, .eval_results publication, or community-evals automation.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Overview</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#option-a-inspect-ai-with-local-inference-providers-path"><span class="toc-num">1.</span> Option A: inspect-ai with local inference providers path</a></li>
+<li class="toc-item"><a href="#option-b-inspect-ai-on-local-gpu"><span class="toc-num">2.</span> Option B: inspect-ai on Local GPU</a></li>
+<li class="toc-item"><a href="#option-c-lighteval-on-local-gpu"><span class="toc-num">3.</span> Option C: lighteval on Local GPU</a></li></ul>
+</div>
+<p>This skill is for <strong>running evaluations against models on the Hugging Face Hub on local hardware</strong>.</p>
+<p>It covers:</p>
+<ul>
+<li><code>inspect-ai</code> with local inference</li>
+<li><code>lighteval</code> with local inference</li>
+<li>choosing between <code>vllm</code>, Hugging Face Transformers, and <code>accelerate</code></li>
+<li>smoke tests, task selection, and backend fallback strategy</li>
+</ul>
+<p>It does <strong>not</strong> cover:</p>
+<ul>
+<li>Hugging Face Jobs orchestration</li>
+<li>model-card or <code>model-index</code> edits</li>
+<li>README table extraction</li>
+<li>Artificial Analysis imports</li>
+<li><code>.eval_results</code> generation or publishing</li>
+<li>PR creation or community-evals automation</li>
+</ul>
+<p>If the user wants to <strong>run the same eval remotely on Hugging Face Jobs</strong>, hand off to the <code>hugging-face-jobs</code> skill and pass it one of the local scripts in this skill.</p>
+<p>If the user wants to <strong>publish results into the community evals workflow</strong>, stop after generating the evaluation run and hand off that publishing step to <code>~/code/community-evals</code>.</p>
+<blockquote>
+<p>All paths below are relative to the directory containing this <code>SKILL.md</code>.</p>
+</blockquote>
+<h1>When To Use Which Script</h1>
+<table>
+<thead>
+<tr>
+<th>Use case</th>
+<th>Script</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local <code>inspect-ai</code> eval on a Hub model via inference providers</td>
+<td><code>scripts/inspect_eval_uv.py</code></td>
+</tr>
+<tr>
+<td>Local GPU eval with <code>inspect-ai</code> using <code>vllm</code> or Transformers</td>
+<td><code>scripts/inspect_vllm_uv.py</code></td>
+</tr>
+<tr>
+<td>Local GPU eval with <code>lighteval</code> using <code>vllm</code> or <code>accelerate</code></td>
+<td><code>scripts/lighteval_vllm_uv.py</code></td>
+</tr>
+<tr>
+<td>Extra command patterns</td>
+<td><code>examples/USAGE_EXAMPLES.md</code></td>
+</tr>
+</tbody></table>
+<h1>Prerequisites</h1>
+<ul>
+<li>Prefer <code>uv run</code> for local execution.</li>
+<li>Set <code>HF_TOKEN</code> for gated/private models.</li>
+<li>For local GPU runs, verify GPU access before starting:</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">uv --version
+printenv HF_TOKEN &gt;/dev/null
+nvidia-smi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If <code>nvidia-smi</code> is unavailable, either:</p>
+<ul>
+<li>use <code>scripts/inspect_eval_uv.py</code> for lighter provider-backed evaluation, or</li>
+<li>hand off to the <code>hugging-face-jobs</code> skill if the user wants remote compute.</li>
+</ul>
+<h1>Core Workflow</h1>
+<ol>
+<li>Choose the evaluation framework.<ul>
+<li>Use <code>inspect-ai</code> when you want explicit task control and inspect-native flows.</li>
+<li>Use <code>lighteval</code> when the benchmark is naturally expressed as a lighteval task string, especially leaderboard-style tasks.</li>
+</ul>
+</li>
+<li>Choose the inference backend.<ul>
+<li>Prefer <code>vllm</code> for throughput on supported architectures.</li>
+<li>Use Hugging Face Transformers (<code>--backend hf</code>) or <code>accelerate</code> as compatibility fallbacks.</li>
+</ul>
+</li>
+<li>Start with a smoke test.<ul>
+<li><code>inspect-ai</code>: add <code>--limit 10</code> or similar.</li>
+<li><code>lighteval</code>: add <code>--max-samples 10</code>.</li>
+</ul>
+</li>
+<li>Scale up only after the smoke test passes.</li>
+<li>If the user wants remote execution, hand off to <code>hugging-face-jobs</code> with the same script + args.</li>
+</ol>
+<h1>Quick Start</h1>
+<h2 id="option-a-inspect-ai-with-local-inference-providers-path">Option A: inspect-ai with local inference providers path</h2>
+<p>Best when the model is already supported by Hugging Face Inference Providers and you want the lowest local setup overhead.</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/inspect_eval_uv.py \
+  --model meta-llama/Llama-3.2-1B \
+  --task mmlu \
+  --limit 20
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Use this path when:</p>
+<ul>
+<li>you want a quick local smoke test</li>
+<li>you do not need direct GPU control</li>
+<li>the task already exists in <code>inspect-evals</code></li>
+</ul>
+<h2 id="option-b-inspect-ai-on-local-gpu">Option B: inspect-ai on Local GPU</h2>
+<p>Best when you need to load the Hub model directly, use <code>vllm</code>, or fall back to Transformers for unsupported architectures.</p>
+<p>Local GPU:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/inspect_vllm_uv.py \
+  --model meta-llama/Llama-3.2-1B \
+  --task gsm8k \
+  --limit 20
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Transformers fallback:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/inspect_vllm_uv.py \
+  --model microsoft/phi-2 \
+  --task mmlu \
+  --backend hf \
+  --trust-remote-code \
+  --limit 20
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="option-c-lighteval-on-local-gpu">Option C: lighteval on Local GPU</h2>
+<p>Best when the task is naturally expressed as a <code>lighteval</code> task string, especially Open LLM Leaderboard style benchmarks.</p>
+<p>Local GPU:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/lighteval_vllm_uv.py \
+  --model meta-llama/Llama-3.2-3B-Instruct \
+  --tasks "leaderboard|mmlu|5,leaderboard|gsm8k|5" \
+  --max-samples 20 \
+  --use-chat-template
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><code>accelerate</code> fallback:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/lighteval_vllm_uv.py \
+  --model microsoft/phi-2 \
+  --tasks "leaderboard|mmlu|5" \
+  --backend accelerate \
+  --trust-remote-code \
+  --max-samples 20
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h1>Remote Execution Boundary</h1>
+<p>This skill intentionally stops at <strong>local execution and backend selection</strong>.</p>
+<p>If the user wants to:</p>
+<ul>
+<li>run these scripts on Hugging Face Jobs</li>
+<li>pick remote hardware</li>
+<li>pass secrets to remote jobs</li>
+<li>schedule recurring runs</li>
+<li>inspect / cancel / monitor jobs</li>
+</ul>
+<p>then switch to the <strong><code>hugging-face-jobs</code></strong> skill and pass it one of these scripts plus the chosen arguments.</p>
+<h1>Task Selection</h1>
+<p><code>inspect-ai</code> examples:</p>
+<ul>
+<li><code>mmlu</code></li>
+<li><code>gsm8k</code></li>
+<li><code>hellaswag</code></li>
+<li><code>arc_challenge</code></li>
+<li><code>truthfulqa</code></li>
+<li><code>winogrande</code></li>
+<li><code>humaneval</code></li>
+</ul>
+<p><code>lighteval</code> task strings use <code>suite|task|num_fewshot</code>:</p>
+<ul>
+<li><code>leaderboard|mmlu|5</code></li>
+<li><code>leaderboard|gsm8k|5</code></li>
+<li><code>leaderboard|arc_challenge|25</code></li>
+<li><code>lighteval|hellaswag|0</code></li>
+</ul>
+<p>Multiple <code>lighteval</code> tasks can be comma-separated in <code>--tasks</code>.</p>
+<h1>Backend Selection</h1>
+<ul>
+<li>Prefer <code>inspect_vllm_uv.py --backend vllm</code> for fast GPU inference on supported architectures.</li>
+<li>Use <code>inspect_vllm_uv.py --backend hf</code> when <code>vllm</code> does not support the model.</li>
+<li>Prefer <code>lighteval_vllm_uv.py --backend vllm</code> for throughput on supported models.</li>
+<li>Use <code>lighteval_vllm_uv.py --backend accelerate</code> as the compatibility fallback.</li>
+<li>Use <code>inspect_eval_uv.py</code> when Inference Providers already cover the model and you do not need direct GPU control.</li>
+</ul>
+<h1>Hardware Guidance</h1>
+<table>
+<thead>
+<tr>
+<th>Model size</th>
+<th>Suggested local hardware</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt; 3B</code></td>
+<td>consumer GPU / Apple Silicon / small dev GPU</td>
+</tr>
+<tr>
+<td><code>3B - 13B</code></td>
+<td>stronger local GPU</td>
+</tr>
+<tr>
+<td><code>13B+</code></td>
+<td>high-memory local GPU or hand off to <code>hugging-face-jobs</code></td>
+</tr>
+</tbody></table>
+<p>For smoke tests, prefer cheaper local runs plus <code>--limit</code> or <code>--max-samples</code>.</p>
+<h1>Troubleshooting</h1>
+<ul>
+<li>CUDA or vLLM OOM:<ul>
+<li>reduce <code>--batch-size</code></li>
+<li>reduce <code>--gpu-memory-utilization</code></li>
+<li>switch to a smaller model for the smoke test</li>
+<li>if necessary, hand off to <code>hugging-face-jobs</code></li>
+</ul>
+</li>
+<li>Model unsupported by <code>vllm</code>:<ul>
+<li>switch to <code>--backend hf</code> for <code>inspect-ai</code></li>
+<li>switch to <code>--backend accelerate</code> for <code>lighteval</code></li>
+</ul>
+</li>
+<li>Gated/private repo access fails:<ul>
+<li>verify <code>HF_TOKEN</code></li>
+</ul>
+</li>
+<li>Custom model code required:<ul>
+<li>add <code>--trust-remote-code</code></li>
+</ul>
+</li>
+</ul>
+<h1>Examples</h1>
+<p>See:</p>
+<ul>
+<li><code>examples/USAGE_EXAMPLES.md</code> for local command patterns</li>
+<li><code>scripts/inspect_eval_uv.py</code></li>
+<li><code>scripts/inspect_vllm_uv.py</code></li>
+<li><code>scripts/lighteval_vllm_uv.py</code></li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

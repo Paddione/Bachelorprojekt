@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-llm-trainer — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-llm-trainer</span></nav>
+    <h1>huggingface-llm-trainer</h1>
+    <p class="page-desc">Train or fine-tune language and vision models using TRL (Transformer Reinforcement Learning) or Unsloth with Hugging Face Jobs infrastructure. Covers SFT, DPO, GRPO and reward modeling training methods, plus GGUF conversion for local deployment. Includes guidance on the TRL Jobs package, UV scripts with PEP 723 format, dataset preparation and validation, hardware selection, cost estimation, Trackio monitoring, Hub authentication, model selection/leaderboards and model persistence. Use for tasks involving cloud GPU training, GGUF conversion, or when users mention training on Hugging Face Jobs without local GPU setup.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>TRL Training on Hugging Face Jobs</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">2.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#key-directives"><span class="toc-num">3.</span> Key Directives</a></li>
+<li class="toc-item"><a href="#local-script-execution"><span class="toc-num">4.</span> Local Script Execution</a></li>
+<li class="toc-item"><a href="#prerequisites-checklist"><span class="toc-num">5.</span> Prerequisites Checklist</a></li>
+<li class="toc-item"><a href="#asynchronous-job-guidelines"><span class="toc-num">6.</span> Asynchronous Job Guidelines</a></li>
+<li class="toc-item"><a href="#quick-start-three-approaches"><span class="toc-num">7.</span> Quick Start: Three Approaches</a></li>
+<li class="toc-item"><a href="#hardware-selection"><span class="toc-num">8.</span> Hardware Selection</a></li>
+<li class="toc-item"><a href="#critical-saving-results-to-hub"><span class="toc-num">9.</span> Critical: Saving Results to Hub</a></li>
+<li class="toc-item"><a href="#timeout-management"><span class="toc-num">10.</span> Timeout Management</a></li>
+<li class="toc-item"><a href="#choose-a-base-model-model-selection"><span class="toc-num">11.</span> Choose a Base Model (Model Selection)</a></li>
+<li class="toc-item"><a href="#cost-estimation"><span class="toc-num">12.</span> Cost Estimation</a></li>
+<li class="toc-item"><a href="#example-training-scripts"><span class="toc-num">13.</span> Example Training Scripts</a></li>
+<li class="toc-item"><a href="#monitoring-and-tracking"><span class="toc-num">14.</span> Monitoring and Tracking</a></li>
+<li class="toc-item"><a href="#dataset-validation"><span class="toc-num">15.</span> Dataset Validation</a></li>
+<li class="toc-item"><a href="#converting-models-to-gguf"><span class="toc-num">16.</span> Converting Models to GGUF</a></li>
+<li class="toc-item"><a href="#common-training-patterns"><span class="toc-num">17.</span> Common Training Patterns</a></li>
+<li class="toc-item"><a href="#common-failure-modes"><span class="toc-num">18.</span> Common Failure Modes</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">19.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#resources"><span class="toc-num">20.</span> Resources</a></li>
+<li class="toc-item"><a href="#key-takeaways"><span class="toc-num">21.</span> Key Takeaways</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Train language models using TRL (Transformer Reinforcement Learning) on fully managed Hugging Face infrastructure. No local GPU setup required—models train on cloud GPUs and results are automatically saved to the Hugging Face Hub.</p>
+<p><strong>TRL provides multiple training methods:</strong></p>
+<ul>
+<li><strong>SFT</strong> (Supervised Fine-Tuning) - Standard instruction tuning</li>
+<li><strong>DPO</strong> (Direct Preference Optimization) - Alignment from preference data</li>
+<li><strong>GRPO</strong> (Group Relative Policy Optimization) - Online RL training</li>
+<li><strong>Reward Modeling</strong> - Train reward models for RLHF</li>
+</ul>
+<p><strong>For detailed TRL method documentation:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">hf_doc_search("your query", product="trl")
+hf_doc_fetch("https://huggingface.co/docs/trl/sft_trainer")  # SFT
+hf_doc_fetch("https://huggingface.co/docs/trl/dpo_trainer")  # DPO
+# etc.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>See also:</strong> <code>references/training_methods.md</code> for method overviews and selection guidance</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Use this skill when users want to:</p>
+<ul>
+<li>Fine-tune language models on cloud GPUs without local infrastructure</li>
+<li>Train with TRL methods (SFT, DPO, GRPO, etc.)</li>
+<li>Run training jobs on Hugging Face Jobs infrastructure</li>
+<li>Convert trained models to GGUF for local deployment (Ollama, LM Studio, llama.cpp)</li>
+<li>Ensure trained models are permanently saved to the Hub</li>
+<li>Use modern workflows with optimized defaults</li>
+</ul>
+<h3>When to Use Unsloth</h3>
+<p>Use <strong>Unsloth</strong> (<code>references/unsloth.md</code>) instead of standard TRL when:</p>
+<ul>
+<li><strong>Limited GPU memory</strong> - Unsloth uses ~60% less VRAM</li>
+<li><strong>Speed matters</strong> - Unsloth is ~2x faster</li>
+<li>Training <strong>large models (&gt;13B)</strong> - memory efficiency is critical</li>
+<li>Training <strong>Vision-Language Models (VLMs)</strong> - Unsloth has <code>FastVisionModel</code> support</li>
+</ul>
+<p>See <code>references/unsloth.md</code> for complete Unsloth documentation and <code>scripts/unsloth_sft_example.py</code> for a production-ready training script.</p>
+<h2 id="key-directives">Key Directives</h2>
+<p>When assisting with training jobs:</p>
+<ol>
+<li><p><strong>ALWAYS use <code>hf_jobs()</code> MCP tool</strong> - Submit jobs using <code>hf_jobs("uv", {...})</code>, NOT bash <code>trl-jobs</code> commands. The <code>script</code> parameter accepts Python code directly. Do NOT save to local files unless the user explicitly requests it. Pass the script content as a string to <code>hf_jobs()</code>. If user asks to "train a model", "fine-tune", or similar requests, you MUST create the training script AND submit the job immediately using <code>hf_jobs()</code>.</p>
+</li>
+<li><p><strong>Always include Trackio</strong> - Every training script should include Trackio for real-time monitoring. Use example scripts in <code>scripts/</code> as templates.</p>
+</li>
+<li><p><strong>Provide job details after submission</strong> - After submitting, provide job ID, monitoring URL, estimated time, and note that the user can request status checks later.</p>
+</li>
+<li><p><strong>Use example scripts as templates</strong> - Reference <code>scripts/train_sft_example.py</code>, <code>scripts/train_dpo_example.py</code>, etc. as starting points.</p>
+</li>
+</ol>
+<h2 id="local-script-execution">Local Script Execution</h2>
+<p>Repository scripts use PEP 723 inline dependencies. Run them with <code>uv run</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/estimate_cost.py --help
+uv run scripts/dataset_inspector.py --help
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="prerequisites-checklist">Prerequisites Checklist</h2>
+<p>Before starting any training job, verify:</p>
+<h3>✅ <strong>Account &amp; Authentication</strong></h3>
+<ul>
+<li>Hugging Face Account with <a href="https://hf.co/pro">Pro</a>, <a href="https://hf.co/enterprise">Team</a>, or <a href="https://hf.co/enterprise">Enterprise</a> plan (Jobs require paid plan)</li>
+<li>Authenticated login: Check with <code>hf_whoami()</code></li>
+<li><strong>HF_TOKEN for Hub Push</strong> ⚠️ CRITICAL - Training environment is ephemeral, must push to Hub or ALL training results are lost</li>
+<li>Token must have write permissions  </li>
+<li><strong>MUST pass <code>secrets={"HF_TOKEN": "$HF_TOKEN"}</code> in job config</strong> to make token available (the <code>$HF_TOKEN</code> syntax
+references your actual token value)</li>
+</ul>
+<h3>✅ <strong>Dataset Requirements</strong></h3>
+<ul>
+<li>Dataset must exist on Hub or be loadable via <code>datasets.load_dataset()</code></li>
+<li>Format must match training method (SFT: "messages"/text/prompt-completion; DPO: chosen/rejected; GRPO: prompt-only)</li>
+<li><strong>ALWAYS validate unknown datasets</strong> before GPU training to prevent format failures (see Dataset Validation section below)</li>
+<li>Size appropriate for hardware (Demo: 50-100 examples on t4-small; Production: 1K-10K+ on a10g-large/a100-large)</li>
+</ul>
+<h3>⚠️ <strong>Critical Settings</strong></h3>
+<ul>
+<li><strong>Timeout must exceed expected training time</strong> - Default 30min is TOO SHORT for most training. Minimum recommended: 1-2 hours. Job fails and loses all progress if timeout is exceeded.</li>
+<li><strong>Hub push must be enabled</strong> - Config: <code>push_to_hub=True</code>, <code>hub_model_id="username/model-name"</code>; Job: <code>secrets={"HF_TOKEN": "$HF_TOKEN"}</code></li>
+</ul>
+<h2 id="asynchronous-job-guidelines">Asynchronous Job Guidelines</h2>
+<p><strong>⚠️ IMPORTANT: Training jobs run asynchronously and can take hours</strong></p>
+<h3>Action Required</h3>
+<p><strong>When user requests training:</strong></p>
+<ol>
+<li><strong>Create the training script</strong> with Trackio included (use <code>scripts/train_sft_example.py</code> as template)</li>
+<li><strong>Submit immediately</strong> using <code>hf_jobs()</code> MCP tool with script content inline - don't save to file unless user requests</li>
+<li><strong>Report submission</strong> with job ID, monitoring URL, and estimated time</li>
+<li><strong>Wait for user</strong> to request status checks - don't poll automatically</li>
+</ol>
+<h3>Ground Rules</h3>
+<ul>
+<li><strong>Jobs run in background</strong> - Submission returns immediately; training continues independently</li>
+<li><strong>Initial logs delayed</strong> - Can take 30-60 seconds for logs to appear</li>
+<li><strong>User checks status</strong> - Wait for user to request status updates</li>
+<li><strong>Avoid polling</strong> - Check logs only on user request; provide monitoring links instead</li>
+</ul>
+<h3>After Submission</h3>
+<p><strong>Provide to user:</strong></p>
+<ul>
+<li>✅ Job ID and monitoring URL</li>
+<li>✅ Expected completion time</li>
+<li>✅ Trackio dashboard URL</li>
+<li>✅ Note that user can request status checks later</li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<div class="code-wrapper"><pre><code>✅ Job submitted successfully!
+
+Job ID: abc123xyz
+Monitor: https://huggingface.co/jobs/username/abc123xyz
+
+Expected time: ~2 hours
+Estimated cost: ~$10
+
+The job is running in the background. Ask me to check status/logs when ready!
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="quick-start-three-approaches">Quick Start: Three Approaches</h2>
+<p><strong>💡 Tip for Demos:</strong> For quick demos on smaller GPUs (t4-small), omit <code>eval_dataset</code> and <code>eval_strategy</code> to save ~40% memory. You'll still see training loss and learning progress.</p>
+<h3>Sequence Length Configuration</h3>
+<p><strong>TRL config classes use <code>max_length</code> (not <code>max_seq_length</code>)</strong> to control tokenized sequence length:</p>
+<div class="code-wrapper"><pre><code class="language-python"># ✅ CORRECT - If you need to set sequence length
+SFTConfig(max_length=512)   # Truncate sequences to 512 tokens
+DPOConfig(max_length=2048)  # Longer context (2048 tokens)
+
+# ❌ WRONG - This parameter doesn't exist
+SFTConfig(max_seq_length=512)  # TypeError!
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Default behavior:</strong> <code>max_length=1024</code> (truncates from right). This works well for most training.</p>
+<p><strong>When to override:</strong></p>
+<ul>
+<li><strong>Longer context</strong>: Set higher (e.g., <code>max_length=2048</code>)</li>
+<li><strong>Memory constraints</strong>: Set lower (e.g., <code>max_length=512</code>)</li>
+<li><strong>Vision models</strong>: Set <code>max_length=None</code> (prevents cutting image tokens)</li>
+</ul>
+<p><strong>Usually you don't need to set this parameter at all</strong> - the examples below use the sensible default.</p>
+<h3>Approach 1: UV Scripts (Recommended—Default Choice)</h3>
+<p>UV scripts use PEP 723 inline dependencies for clean, self-contained training. <strong>This is the primary approach for Claude Code.</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
+    "script": """
+# /// script
+# dependencies = ["trl&gt;=0.12.0", "peft&gt;=0.7.0", "trackio"]
+# ///
+
+from datasets import load_dataset
+from peft import LoraConfig
+from trl import SFTTrainer, SFTConfig
+import trackio
+
+dataset = load_dataset("trl-lib/Capybara", split="train")
+
+# Create train/eval split for monitoring
+dataset_split = dataset.train_test_split(test_size=0.1, seed=42)
+
+trainer = SFTTrainer(
+    model="Qwen/Qwen2.5-0.5B",
+    train_dataset=dataset_split["train"],
+    eval_dataset=dataset_split["test"],
+    peft_config=LoraConfig(r=16, lora_alpha=32),
+    args=SFTConfig(
+        output_dir="my-model",
+        push_to_hub=True,
+        hub_model_id="username/my-model",
+        num_train_epochs=3,
+        eval_strategy="steps",
+        eval_steps=50,
+        report_to="trackio",
+        project="meaningful_prject_name", # project name for the training name (trackio)
+        run_name="meaningful_run_name",   # descriptive name for the specific training run (trackio)
+    )
+)
+
+trainer.train()
+trainer.push_to_hub()
+""",
+    "flavor": "a10g-large",
+    "timeout": "2h",
+    "secrets": {"HF_TOKEN": "$HF_TOKEN"}
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Benefits:</strong> Direct MCP tool usage, clean code, dependencies declared inline (PEP 723), no file saving required, full control
+<strong>When to use:</strong> Default choice for all training tasks in Claude Code, custom training logic, any scenario requiring <code>hf_jobs()</code></p>
+<h4>Working with Scripts</h4>
+<p>⚠️ <strong>Important:</strong> The <code>script</code> parameter accepts either inline code (as shown above) OR a URL. <strong>Local file paths do NOT work.</strong></p>
+<p><strong>Why local paths don't work:</strong>
+Jobs run in isolated Docker containers without access to your local filesystem. Scripts must be:</p>
+<ul>
+<li>Inline code (recommended for custom training)</li>
+<li>Publicly accessible URLs</li>
+<li>Private repo URLs (with HF_TOKEN)</li>
+</ul>
+<p><strong>Common mistakes:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python"># ❌ These will all fail
+hf_jobs("uv", {"script": "train.py"})
+hf_jobs("uv", {"script": "./scripts/train.py"})
+hf_jobs("uv", {"script": "/path/to/train.py"})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Correct approaches:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python"># ✅ Inline code (recommended)
+hf_jobs("uv", {"script": "# /// script\n# dependencies = [...]\n# ///\n\n&lt;your code&gt;"})
+
+# ✅ From Hugging Face Hub
+hf_jobs("uv", {"script": "https://huggingface.co/user/repo/resolve/main/train.py"})
+
+# ✅ From GitHub
+hf_jobs("uv", {"script": "https://raw.githubusercontent.com/user/repo/main/train.py"})
+
+# ✅ From Gist
+hf_jobs("uv", {"script": "https://gist.githubusercontent.com/user/id/raw/train.py"})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>To use local scripts:</strong> Upload to HF Hub first:</p>
+<div class="code-wrapper"><pre><code class="language-bash">hf repos create my-training-scripts --type model
+hf upload my-training-scripts ./train.py train.py
+# Use: https://huggingface.co/USERNAME/my-training-scripts/resolve/main/train.py
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Approach 2: TRL Maintained Scripts (Official Examples)</h3>
+<p>TRL provides battle-tested scripts for all methods. Can be run from URLs:</p>
+<div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
+    "script": "https://github.com/huggingface/trl/blob/main/trl/scripts/sft.py",
+    "script_args": [
+        "--model_name_or_path", "Qwen/Qwen2.5-0.5B",
+        "--dataset_name", "trl-lib/Capybara",
+        "--output_dir", "my-model",
+        "--push_to_hub",
+        "--hub_model_id", "username/my-model"
+    ],
+    "flavor": "a10g-large",
+    "timeout": "2h",
+    "secrets": {"HF_TOKEN": "$HF_TOKEN"}
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Benefits:</strong> No code to write, maintained by TRL team, production-tested
+<strong>When to use:</strong> Standard TRL training, quick experiments, don't need custom code
+<strong>Available:</strong> Scripts are available from <a href="https://github.com/huggingface/trl/tree/main/examples/scripts">https://github.com/huggingface/trl/tree/main/examples/scripts</a></p>
+<h3>Finding More UV Scripts on Hub</h3>
+<p>The <code>uv-scripts</code> organization provides ready-to-use UV scripts stored as datasets on Hugging Face Hub:</p>
+<div class="code-wrapper"><pre><code class="language-python"># Discover available UV script collections
+dataset_search({"author": "uv-scripts", "sort": "downloads", "limit": 20})
+
+# Explore a specific collection
+hub_repo_details(["uv-scripts/classification"], repo_type="dataset", include_readme=True)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Popular collections:</strong> ocr, classification, synthetic-data, vllm, dataset-creation</p>
+<h3>Approach 3: HF Jobs CLI (Direct Terminal Commands)</h3>
+<p>When the <code>hf_jobs()</code> MCP tool is unavailable, use the <code>hf jobs</code> CLI directly.</p>
+<p><strong>⚠️ CRITICAL: CLI Syntax Rules</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># ✅ CORRECT syntax - flags BEFORE script URL
+hf jobs uv run --flavor a10g-large --timeout 2h --secrets HF_TOKEN "https://example.com/train.py"
+
+# ❌ WRONG - "run uv" instead of "uv run"
+hf jobs run uv "https://example.com/train.py" --flavor a10g-large
+
+# ❌ WRONG - flags AFTER script URL (will be ignored!)
+hf jobs uv run "https://example.com/train.py" --flavor a10g-large
+
+# ❌ WRONG - "--secret" instead of "--secrets" (plural)
+hf jobs uv run --secret HF_TOKEN "https://example.com/train.py"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Key syntax rules:</strong></p>
+<ol>
+<li>Command order is <code>hf jobs uv run</code> (NOT <code>hf jobs run uv</code>)</li>
+<li>All flags (<code>--flavor</code>, <code>--timeout</code>, <code>--secrets</code>) must come BEFORE the script URL</li>
+<li>Use <code>--secrets</code> (plural), not <code>--secret</code></li>
+<li>Script URL must be the last positional argument</li>
+</ol>
+<p><strong>Complete CLI example:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">hf jobs uv run \
+  --flavor a10g-large \
+  --timeout 2h \
+  --secrets HF_TOKEN \
+  "https://huggingface.co/user/repo/resolve/main/train.py"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Check job status via CLI:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">hf jobs ps                        # List all jobs
+hf jobs logs &lt;job-id&gt;             # View logs
+hf jobs inspect &lt;job-id&gt;          # Job details
+hf jobs cancel &lt;job-id&gt;           # Cancel a job
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Approach 4: TRL Jobs Package (Simplified Training)</h3>
+<p>The <code>trl-jobs</code> package provides optimized defaults and one-liner training.</p>
+<div class="code-wrapper"><pre><code class="language-bash">uvx trl-jobs sft \
+  --model_name Qwen/Qwen2.5-0.5B \
+  --dataset_name trl-lib/Capybara
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Benefits:</strong> Pre-configured settings, automatic Trackio integration, automatic Hub push, one-line commands
+<strong>When to use:</strong> User working in terminal directly (not Claude Code context), quick local experimentation
+<strong>Repository:</strong> <a href="https://github.com/huggingface/trl-jobs">https://github.com/huggingface/trl-jobs</a></p>
+<p>⚠️ <strong>In Claude Code context, prefer using <code>hf_jobs()</code> MCP tool (Approach 1) when available.</strong></p>
+<h2 id="hardware-selection">Hardware Selection</h2>
+<table>
+<thead>
+<tr>
+<th>Model Size</th>
+<th>Recommended Hardware</th>
+<th>Cost (approx/hr)</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&lt;1B params</td>
+<td><code>t4-small</code></td>
+<td>~$0.75</td>
+<td>Demos, quick tests only without eval steps</td>
+</tr>
+<tr>
+<td>1-3B params</td>
+<td><code>t4-medium</code>, <code>l4x1</code></td>
+<td>~$1.50-2.50</td>
+<td>Development</td>
+</tr>
+<tr>
+<td>3-7B params</td>
+<td><code>a10g-small</code>, <code>a10g-large</code></td>
+<td>~$3.50-5.00</td>
+<td>Production training</td>
+</tr>
+<tr>
+<td>7-13B params</td>
+<td><code>a10g-large</code>, <code>a100-large</code></td>
+<td>~$5-10</td>
+<td>Large models (use LoRA)</td>
+</tr>
+<tr>
+<td>13B+ params</td>
+<td><code>a100-large</code>, <code>a10g-largex2</code></td>
+<td>~$10-20</td>
+<td>Very large (use LoRA)</td>
+</tr>
+</tbody></table>
+<p><strong>GPU Flavors:</strong> cpu-basic/upgrade/performance/xl, t4-small/medium, l4x1/x4, a10g-small/large/largex2/largex4, a100-large, h100/h100x8</p>
+<p><strong>Guidelines:</strong></p>
+<ul>
+<li>Use <strong>LoRA/PEFT</strong> for models &gt;7B to reduce memory</li>
+<li>Multi-GPU automatically handled by TRL/Accelerate</li>
+<li>Start with smaller hardware for testing</li>
+</ul>
+<p><strong>See:</strong> <code>references/hardware_guide.md</code> for detailed specifications</p>
+<h2 id="critical-saving-results-to-hub">Critical: Saving Results to Hub</h2>
+<p><strong>⚠️ EPHEMERAL ENVIRONMENT—MUST PUSH TO HUB</strong></p>
+<p>The Jobs environment is temporary. All files are deleted when the job ends. If the model isn't pushed to Hub, <strong>ALL TRAINING IS LOST</strong>.</p>
+<h3>Required Configuration</h3>
+<p><strong>In training script/config:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">SFTConfig(
+    push_to_hub=True,
+    hub_model_id="username/model-name",  # MUST specify
+    hub_strategy="every_save",  # Optional: push checkpoints
+)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>In job submission:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">{
+    "secrets": {"HF_TOKEN": "$HF_TOKEN"}  # Enables authentication
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Verification Checklist</h3>
+<p>Before submitting:</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>push_to_hub=True</code> set in config</li>
+<li><input disabled="" type="checkbox"> <code>hub_model_id</code> includes username/repo-name</li>
+<li><input disabled="" type="checkbox"> <code>secrets</code> parameter includes HF_TOKEN</li>
+<li><input disabled="" type="checkbox"> User has write access to target repo</li>
+</ul>
+<p><strong>See:</strong> <code>references/hub_saving.md</code> for detailed troubleshooting</p>
+<h2 id="timeout-management">Timeout Management</h2>
+<p><strong>⚠️ DEFAULT: 30 MINUTES—TOO SHORT FOR TRAINING</strong></p>
+<h3>Setting Timeouts</h3>
+<div class="code-wrapper"><pre><code class="language-python">{
+    "timeout": "2h"   # 2 hours (formats: "90m", "2h", "1.5h", or seconds as integer)
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Timeout Guidelines</h3>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Recommended</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Quick demo (50-100 examples)</td>
+<td>10-30 min</td>
+<td>Verify setup</td>
+</tr>
+<tr>
+<td>Development training</td>
+<td>1-2 hours</td>
+<td>Small datasets</td>
+</tr>
+<tr>
+<td>Production (3-7B model)</td>
+<td>4-6 hours</td>
+<td>Full datasets</td>
+</tr>
+<tr>
+<td>Large model with LoRA</td>
+<td>3-6 hours</td>
+<td>Depends on dataset</td>
+</tr>
+</tbody></table>
+<p><strong>Always add 20-30% buffer</strong> for model/dataset loading, checkpoint saving, Hub push operations, and network delays.</p>
+<p><strong>On timeout:</strong> Job killed immediately, all unsaved progress lost, must restart from beginning</p>
+<h2 id="choose-a-base-model-model-selection">Choose a Base Model (Model Selection)</h2>
+<p><strong>Identify models to train based on task type or benchmark results.</strong></p>
+<p>Use <code>scripts/hf_benchmarks.py</code> to identify top-performing models for specific tasks. This helps the user select a model as the base for training, whilst keeping size and hardware constraints in mind.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Get help on the benchmarks command:
+uv run scripts/hf_benchmarks.py --help
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Example -- choosing an OCR base model</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Search for benchmarks containing whose name contains the text `ocr`
+uv run scripts/hf_benchmarks.py search --query ocr
+
+# Get the ranked leaderboard for the allenai/olmOCR-bench benchmark 
+uv run scripts/hf_benchmarks.py leaderboard allenai/olmOCR-bench
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="cost-estimation">Cost Estimation</h2>
+<p><strong>Offer to estimate cost when planning jobs with known parameters.</strong> Use <code>scripts/estimate_cost.py</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/estimate_cost.py \
+  --model meta-llama/Llama-2-7b-hf \
+  --dataset trl-lib/Capybara \
+  --hardware a10g-large \
+  --dataset-size 16000 \
+  --epochs 3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Output includes estimated time, cost, recommended timeout (with buffer), and optimization suggestions.</p>
+<p><strong>When to offer:</strong> User planning a job, asks about cost/time, choosing hardware, job will run &gt;1 hour or cost &gt;$5</p>
+<h2 id="example-training-scripts">Example Training Scripts</h2>
+<p><strong>Production-ready templates with all best practices:</strong></p>
+<p>Load these scripts for correctly:</p>
+<ul>
+<li><strong><code>scripts/train_sft_example.py</code></strong> - Complete SFT training with Trackio, LoRA, checkpoints</li>
+<li><strong><code>scripts/train_dpo_example.py</code></strong> - DPO training for preference learning</li>
+<li><strong><code>scripts/train_grpo_example.py</code></strong> - GRPO training for online RL</li>
+</ul>
+<p>These scripts demonstrate proper Hub saving, Trackio integration, checkpoint management, and optimized parameters. Pass their content inline to <code>hf_jobs()</code> or use as templates for custom scripts.</p>
+<h2 id="monitoring-and-tracking">Monitoring and Tracking</h2>
+<p><strong>Trackio</strong> provides real-time metrics visualization. See <code>references/trackio_guide.md</code> for complete setup guide.</p>
+<p><strong>Key points:</strong></p>
+<ul>
+<li>Add <code>trackio</code> to dependencies</li>
+<li>Configure trainer with <code>report_to="trackio" and run_name="meaningful_name"</code></li>
+</ul>
+<h3>Trackio Configuration Defaults</h3>
+<p><strong>Use sensible defaults unless user specifies otherwise.</strong> When generating training scripts with Trackio:</p>
+<p><strong>Default Configuration:</strong></p>
+<ul>
+<li><strong>Space ID</strong>: <code>{username}/trackio</code> (use "trackio" as default space name)</li>
+<li><strong>Run naming</strong>: Unless otherwise specified, name the run in a way the user will recognize (e.g., descriptive of the task, model, or purpose)</li>
+<li><strong>Config</strong>: Keep minimal - only include hyperparameters and model/dataset info</li>
+<li><strong>Project Name</strong>: Use a Project Name to associate runs with a particular Project</li>
+</ul>
+<p><strong>User overrides:</strong> If user requests specific trackio configuration (custom space, run naming, grouping, or additional config), apply their preferences instead of defaults.</p>
+<p>This is useful for managing multiple jobs with the same configuration or keeping training scripts portable.</p>
+<p>See <code>references/trackio_guide.md</code> for complete documentation including grouping runs for experiments.</p>
+<h3>Check Job Status</h3>
+<div class="code-wrapper"><pre><code class="language-python"># List all jobs
+hf_jobs("ps")
+
+# Inspect specific job
+hf_jobs("inspect", {"job_id": "your-job-id"})
+
+# View logs
+hf_jobs("logs", {"job_id": "your-job-id"})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Remember:</strong> Wait for user to request status checks. Avoid polling repeatedly.</p>
+<h2 id="dataset-validation">Dataset Validation</h2>
+<p><strong>Validate dataset format BEFORE launching GPU training to prevent the #1 cause of training failures: format mismatches.</strong></p>
+<h3>Why Validate</h3>
+<ul>
+<li>50%+ of training failures are due to dataset format issues</li>
+<li>DPO especially strict: requires exact column names (<code>prompt</code>, <code>chosen</code>, <code>rejected</code>)</li>
+<li>Failed GPU jobs waste $1-10 and 30-60 minutes</li>
+<li>Validation on CPU costs ~$0.01 and takes &lt;1 minute</li>
+</ul>
+<h3>When to Validate</h3>
+<p><strong>ALWAYS validate for:</strong></p>
+<ul>
+<li>Unknown or custom datasets</li>
+<li>DPO training (CRITICAL - 90% of datasets need mapping)</li>
+<li>Any dataset not explicitly TRL-compatible</li>
+</ul>
+<p><strong>Skip validation for known TRL datasets:</strong></p>
+<ul>
+<li><code>trl-lib/ultrachat_200k</code>, <code>trl-lib/Capybara</code>, <code>HuggingFaceH4/ultrachat_200k</code>, etc.</li>
+</ul>
+<h3>Usage</h3>
+<div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
+    "script": "https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py",
+    "script_args": ["--dataset", "username/dataset-name", "--split", "train"]
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The script is fast, and will usually complete synchronously.</p>
+<h3>Reading Results</h3>
+<p>The output shows compatibility for each training method:</p>
+<ul>
+<li><strong><code>✓ READY</code></strong> - Dataset is compatible, use directly</li>
+<li><strong><code>✗ NEEDS MAPPING</code></strong> - Compatible but needs preprocessing (mapping code provided)</li>
+<li><strong><code>✗ INCOMPATIBLE</code></strong> - Cannot be used for this method</li>
+</ul>
+<p>When mapping is needed, the output includes a <strong>"MAPPING CODE"</strong> section with copy-paste ready Python code.</p>
+<h3>Example Workflow</h3>
+<div class="code-wrapper"><pre><code class="language-python"># 1. Inspect dataset (costs ~$0.01, &lt;1 min on CPU)
+hf_jobs("uv", {
+    "script": "https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py",
+    "script_args": ["--dataset", "argilla/distilabel-math-preference-dpo", "--split", "train"]
+})
+
+# 2. Check output markers:
+#    ✓ READY → proceed with training
+#    ✗ NEEDS MAPPING → apply mapping code below
+#    ✗ INCOMPATIBLE → choose different method/dataset
+
+# 3. If mapping needed, apply before training:
+def format_for_dpo(example):
+    return {
+        'prompt': example['instruction'],
+        'chosen': example['chosen_response'],
+        'rejected': example['rejected_response'],
+    }
+dataset = dataset.map(format_for_dpo, remove_columns=dataset.column_names)
+
+# 4. Launch training job with confidence
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Common Scenario: DPO Format Mismatch</h3>
+<p>Most DPO datasets use non-standard column names. Example:</p>
+<div class="code-wrapper"><pre><code>Dataset has: instruction, chosen_response, rejected_response
+DPO expects: prompt, chosen, rejected
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The validator detects this and provides exact mapping code to fix it.</p>
+<h2 id="converting-models-to-gguf">Converting Models to GGUF</h2>
+<p>After training, convert models to <strong>GGUF format</strong> for use with llama.cpp, Ollama, LM Studio, and other local inference tools.</p>
+<p><strong>What is GGUF:</strong></p>
+<ul>
+<li>Optimized for CPU/GPU inference with llama.cpp</li>
+<li>Supports quantization (4-bit, 5-bit, 8-bit) to reduce model size</li>
+<li>Compatible with Ollama, LM Studio, Jan, GPT4All, llama.cpp</li>
+<li>Typically 2-8GB for 7B models (vs 14GB unquantized)</li>
+</ul>
+<p><strong>When to convert:</strong></p>
+<ul>
+<li>Running models locally with Ollama or LM Studio</li>
+<li>Reducing model size with quantization</li>
+<li>Deploying to edge devices</li>
+<li>Sharing models for local-first use</li>
+</ul>
+<p><strong>See:</strong> <code>references/gguf_conversion.md</code> for complete conversion guide, including production-ready conversion script, quantization options, hardware requirements, usage examples, and troubleshooting.</p>
+<p><strong>Quick conversion:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
+    "script": "&lt;see references/gguf_conversion.md for complete script&gt;",
+    "flavor": "a10g-large",
+    "timeout": "45m",
+    "secrets": {"HF_TOKEN": "$HF_TOKEN"},
+    "env": {
+        "ADAPTER_MODEL": "username/my-finetuned-model",
+        "BASE_MODEL": "Qwen/Qwen2.5-0.5B",
+        "OUTPUT_REPO": "username/my-model-gguf"
+    }
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-training-patterns">Common Training Patterns</h2>
+<p>See <code>references/training_patterns.md</code> for detailed examples including:</p>
+<ul>
+<li>Quick demo (5-10 minutes)</li>
+<li>Production with checkpoints</li>
+<li>Multi-GPU training</li>
+<li>DPO training (preference learning)</li>
+<li>GRPO training (online RL)</li>
+</ul>
+<h2 id="common-failure-modes">Common Failure Modes</h2>
+<h3>Out of Memory (OOM)</h3>
+<p><strong>Fix (try in order):</strong></p>
+<ol>
+<li>Reduce batch size: <code>per_device_train_batch_size=1</code>, increase <code>gradient_accumulation_steps=8</code>. Effective batch size is <code>per_device_train_batch_size</code> x <code>gradient_accumulation_steps</code>. For best performance keep effective batch size close to 128. </li>
+<li>Enable: <code>gradient_checkpointing=True</code></li>
+<li>Upgrade hardware: t4-small → l4x1, a10g-small → a10g-large etc.</li>
+</ol>
+<h3>Dataset Misformatted</h3>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Validate first with dataset inspector:<div class="code-wrapper"><pre><code class="language-bash">uv run https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py \
+  --dataset name --split train
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>Check output for compatibility markers (✓ READY, ✗ NEEDS MAPPING, ✗ INCOMPATIBLE)</li>
+<li>Apply mapping code from inspector output if needed</li>
+</ol>
+<h3>Job Timeout</h3>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Check logs for actual runtime: <code>hf_jobs("logs", {"job_id": "..."})</code></li>
+<li>Increase timeout with buffer: <code>"timeout": "3h"</code> (add 30% to estimated time)</li>
+<li>Or reduce training: lower <code>num_train_epochs</code>, use smaller dataset, enable <code>max_steps</code></li>
+<li>Save checkpoints: <code>save_strategy="steps"</code>, <code>save_steps=500</code>, <code>hub_strategy="every_save"</code></li>
+</ol>
+<p><strong>Note:</strong> Default 30min is insufficient for real training. Minimum 1-2 hours.</p>
+<h3>Hub Push Failures</h3>
+<p><strong>Fix:</strong></p>
+<ol>
+<li>Add to job: <code>secrets={"HF_TOKEN": "$HF_TOKEN"}</code></li>
+<li>Add to config: <code>push_to_hub=True</code>, <code>hub_model_id="username/model-name"</code></li>
+<li>Verify auth: <code>mcp__huggingface__hf_whoami()</code></li>
+<li>Check token has write permissions and repo exists (or set <code>hub_private_repo=True</code>)</li>
+</ol>
+<h3>Missing Dependencies</h3>
+<p><strong>Fix:</strong>
+Add to PEP 723 header:</p>
+<div class="code-wrapper"><pre><code class="language-python"># /// script
+# dependencies = ["trl&gt;=0.12.0", "peft&gt;=0.7.0", "trackio", "missing-package"]
+# ///
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>Job times out → Increase timeout, reduce epochs/dataset, use smaller model/LoRA</li>
+<li>Model not saved to Hub → Check push_to_hub=True, hub_model_id, secrets=HF_TOKEN</li>
+<li>Out of Memory (OOM) → Reduce batch size, increase gradient accumulation, enable LoRA, use larger GPU</li>
+<li>Dataset format error → Validate with dataset inspector (see Dataset Validation section)</li>
+<li>Import/module errors → Add PEP 723 header with dependencies, verify format</li>
+<li>Authentication errors → Check <code>mcp__huggingface__hf_whoami()</code>, token permissions, secrets parameter</li>
+</ul>
+<p><strong>See:</strong> <code>references/troubleshooting.md</code> for complete troubleshooting guide</p>
+<h2 id="resources">Resources</h2>
+<h3>References (In This Skill)</h3>
+<ul>
+<li><code>references/training_methods.md</code> - Overview of SFT, DPO, GRPO, KTO, PPO, Reward Modeling</li>
+<li><code>references/training_patterns.md</code> - Common training patterns and examples</li>
+<li><code>references/unsloth.md</code> - Unsloth for fast VLM training (~2x speed, 60% less VRAM)</li>
+<li><code>references/gguf_conversion.md</code> - Complete GGUF conversion guide</li>
+<li><code>references/trackio_guide.md</code> - Trackio monitoring setup</li>
+<li><code>references/hardware_guide.md</code> - Hardware specs and selection</li>
+<li><code>references/hub_saving.md</code> - Hub authentication troubleshooting</li>
+<li><code>references/troubleshooting.md</code> - Common issues and solutions</li>
+<li><code>references/local_training_macos.md</code> - Local training on macOS</li>
+</ul>
+<h3>Scripts (In This Skill)</h3>
+<ul>
+<li><code>scripts/train_sft_example.py</code> - Production SFT template</li>
+<li><code>scripts/train_dpo_example.py</code> - Production DPO template</li>
+<li><code>scripts/train_grpo_example.py</code> - Production GRPO template</li>
+<li><code>scripts/unsloth_sft_example.py</code> - Unsloth text LLM training template (faster, less VRAM)</li>
+<li><code>scripts/estimate_cost.py</code> - Estimate time and cost (offer when appropriate)</li>
+<li><code>scripts/convert_to_gguf.py</code> - Complete GGUF conversion script</li>
+<li><code>scripts/hf_benchmarks.py</code> - Search for benchmark results and leaderboards by task, alias or free text.</li>
+</ul>
+<h3>External Scripts</h3>
+<ul>
+<li><a href="https://huggingface.co/datasets/mcp-tools/skills/raw/main/dataset_inspector.py">Dataset Inspector</a> - Validate dataset format before training (use via <code>uv run</code> or <code>hf_jobs</code>)</li>
+</ul>
+<h3>External Links</h3>
+<ul>
+<li><a href="https://huggingface.co/docs/trl">TRL Documentation</a></li>
+<li><a href="https://huggingface.co/docs/trl/en/jobs_training">TRL Jobs Training Guide</a></li>
+<li><a href="https://github.com/huggingface/trl-jobs">TRL Jobs Package</a></li>
+<li><a href="https://huggingface.co/docs/huggingface_hub/guides/jobs">HF Jobs Documentation</a></li>
+<li><a href="https://github.com/huggingface/trl/tree/main/examples/scripts">TRL Example Scripts</a></li>
+<li><a href="https://docs.astral.sh/uv/guides/scripts/">UV Scripts Guide</a></li>
+<li><a href="https://huggingface.co/uv-scripts">UV Scripts Organization</a></li>
+</ul>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li><strong>Submit scripts inline</strong> - The <code>script</code> parameter accepts Python code directly; no file saving required unless user requests</li>
+<li><strong>Jobs are asynchronous</strong> - Don't wait/poll; let user check when ready</li>
+<li><strong>Always set timeout</strong> - Default 30 min is insufficient; minimum 1-2 hours recommended</li>
+<li><strong>Always enable Hub push</strong> - Environment is ephemeral; without push, all results lost</li>
+<li><strong>Include Trackio</strong> - Use example scripts as templates for real-time monitoring</li>
+<li><strong>Offer cost estimation</strong> - When parameters are known, use <code>scripts/estimate_cost.py</code></li>
+<li><strong>Use UV scripts (Approach 1)</strong> - Default to <code>hf_jobs("uv", {...})</code> with inline scripts; TRL maintained scripts for standard training; avoid bash <code>trl-jobs</code> commands in Claude Code</li>
+<li><strong>Use hf_doc_fetch/hf_doc_search</strong> for latest TRL documentation</li>
+<li><strong>Validate dataset format</strong> before training with dataset inspector (see Dataset Validation section)</li>
+<li><strong>Choose appropriate hardware</strong> for model size; use LoRA for models &gt;7B</li>
+</ol>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

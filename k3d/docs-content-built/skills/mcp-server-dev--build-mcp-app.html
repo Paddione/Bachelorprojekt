@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>build-mcp-app — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">build-mcp-app</span></nav>
+    <h1>build-mcp-app</h1>
+    <p class="page-desc">This skill should be used when the user wants to build an &quot;MCP app&quot;, add &quot;interactive UI&quot; or &quot;widgets&quot; to an MCP server, &quot;render components in chat&quot;, build &quot;MCP UI resources&quot;, make a tool that shows a &quot;form&quot;, &quot;picker&quot;, &quot;dashboard&quot; or &quot;confirmation dialog&quot; inline in the conversation, or mentions &quot;apps SDK&quot; in the context of MCP. Use AFTER the build-mcp-server skill has settled the deployment model, or when the user already knows they want UI widgets.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">mcp-server-dev</span> <span class="pv-ver">unknown</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Build an MCP App (Interactive UI Widgets)</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#claude-host-specifics"><span class="toc-num">1.</span> Claude host specifics</a></li>
+<li class="toc-item"><a href="#when-a-widget-beats-plain-text"><span class="toc-num">2.</span> When a widget beats plain text</a></li>
+<li class="toc-item"><a href="#widgets-vs-elicitation--route-correctly"><span class="toc-num">3.</span> Widgets vs Elicitation — route correctly</a></li>
+<li class="toc-item"><a href="#architecture-two-deployment-shapes"><span class="toc-num">4.</span> Architecture: two deployment shapes</a></li>
+<li class="toc-item"><a href="#how-widgets-attach-to-tools"><span class="toc-num">5.</span> How widgets attach to tools</a></li>
+<li class="toc-item"><a href="#widget-runtime--the-app-class"><span class="toc-num">6.</span> Widget runtime — the App class</a></li>
+<li class="toc-item"><a href="#scaffold-minimal-picker-widget"><span class="toc-num">7.</span> Scaffold: minimal picker widget</a></li>
+<li class="toc-item"><a href="#design-notes-that-save-you-a-rewrite"><span class="toc-num">8.</span> Design notes that save you a rewrite</a></li>
+<li class="toc-item"><a href="#testing"><span class="toc-num">9.</span> Testing</a></li>
+<li class="toc-item"><a href="#reference-files"><span class="toc-num">10.</span> Reference files</a></li></ul>
+</div>
+<p>An MCP app is a standard MCP server that <strong>also serves UI resources</strong> — interactive components rendered inline in the chat surface. Build once, runs in Claude <em>and</em> ChatGPT and any other host that implements the apps surface.</p>
+<p>The UI layer is <strong>additive</strong>. Under the hood it's still tools, resources, and the same wire protocol. If you haven't built a plain MCP server before, the <code>build-mcp-server</code> skill covers the base layer. This skill adds widgets on top.</p>
+<blockquote>
+<p><strong>Testing in Claude:</strong> Add the server as a custom connector in claude.ai (via a Cloudflare tunnel for local dev) — this exercises the real iframe sandbox and <code>hostContext</code>. See <a href="https://claude.com/docs/connectors/building/testing">https://claude.com/docs/connectors/building/testing</a>.</p>
+</blockquote>
+<h2 id="claude-host-specifics">Claude host specifics</h2>
+<table>
+<thead>
+<tr>
+<th><code>_meta.ui.*</code> key</th>
+<th>Where</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>resourceUri</code></td>
+<td>tool</td>
+<td>Which <code>ui://</code> resource the host renders for this tool's results.</td>
+</tr>
+<tr>
+<td><code>visibility: ["app"]</code></td>
+<td>tool</td>
+<td>Hide a widget-only helper tool (e.g. geometry/image fetcher called via <code>callServerTool</code>) from Claude's tool list.</td>
+</tr>
+<tr>
+<td><code>prefersBorder: false</code></td>
+<td>resource</td>
+<td>Drop the host's outer card border (mobile).</td>
+</tr>
+<tr>
+<td><code>csp.{connectDomains, resourceDomains, baseUriDomains}</code></td>
+<td>resource</td>
+<td>Declare external origins; default is block-all. <code>frameDomains</code> is currently restricted in Claude.</td>
+</tr>
+</tbody></table>
+<ul>
+<li><code>hostContext.safeAreaInsets: {top, right, bottom, left}</code> (px) — honor these for notches and the composer overlay.</li>
+<li>Directory submission requires OAuth or <strong>authless</strong> (<code>none</code>) — static bearer is private-deploy only and blocks listing — plus tool <code>annotations</code> and 3–5 PNG screenshots; see <code>references/directory-checklist.md</code>.</li>
+</ul>
+<hr>
+<h2 id="when-a-widget-beats-plain-text">When a widget beats plain text</h2>
+<p>Don't add UI for its own sake — most tools are fine returning text or JSON. Add a widget when one of these is true:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Widget type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Tool needs structured input Claude can't reliably infer</td>
+<td>Form</td>
+</tr>
+<tr>
+<td>User must pick from a list Claude can't rank (files, contacts, records)</td>
+<td>Picker / table</td>
+</tr>
+<tr>
+<td>Destructive or billable action needs explicit confirmation</td>
+<td>Confirm dialog</td>
+</tr>
+<tr>
+<td>Output is spatial or visual (charts, maps, diffs, previews)</td>
+<td>Display widget</td>
+</tr>
+<tr>
+<td>Long-running job the user wants to watch</td>
+<td>Progress / live status</td>
+</tr>
+</tbody></table>
+<p>If none apply, skip the widget. Text is faster to build and faster for the user.</p>
+<hr>
+<h2 id="widgets-vs-elicitation--route-correctly">Widgets vs Elicitation — route correctly</h2>
+<p>Before building a widget, check if <strong>elicitation</strong> covers it. Elicitation is spec-native, zero UI code, works in any compliant host.</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Elicitation</th>
+<th>Widget</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Confirm yes/no</td>
+<td>✅</td>
+<td>overkill</td>
+</tr>
+<tr>
+<td>Pick from short enum</td>
+<td>✅</td>
+<td>overkill</td>
+</tr>
+<tr>
+<td>Fill a flat form (name, email, date)</td>
+<td>✅</td>
+<td>overkill</td>
+</tr>
+<tr>
+<td>Pick from a large/searchable list</td>
+<td>❌ (no scroll/search)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Visual preview before choosing</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Chart / map / diff view</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Live-updating progress</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p>If elicitation covers it, use it. See <code>../build-mcp-server/references/elicitation.md</code>.</p>
+<hr>
+<h2 id="architecture-two-deployment-shapes">Architecture: two deployment shapes</h2>
+<h3>Remote MCP app (most common)</h3>
+<p>Hosted streamable-HTTP server. Widget templates are served as <strong>resources</strong>; tool results reference them. The host fetches the resource, renders it in an iframe sandbox, and brokers messages between the widget and Claude.</p>
+<div class="code-wrapper"><pre><code>┌──────────┐  tools/call   ┌────────────┐
+│  Claude  │─────────────&gt; │ MCP server │
+│   host   │&lt;── result ────│  (remote)  │
+│          │  + widget ref │            │
+│          │               │            │
+│          │ resources/read│            │
+│          │─────────────&gt; │  widget    │
+│ ┌──────┐ │&lt;── template ──│  HTML/JS   │
+│ │iframe│ │               └────────────┘
+│ │widget│ │
+│ └──────┘ │
+└──────────┘
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>MCPB-packaged MCP app (local + UI)</h3>
+<p>Same widget mechanism, but the server runs locally inside an MCPB bundle. Use this when the widget needs to drive a <strong>local</strong> application — e.g., a file picker that browses the actual local disk, a dialog that controls a desktop app.</p>
+<p>For MCPB packaging mechanics, defer to the <strong><code>build-mcpb</code></strong> skill. Everything below applies to both shapes.</p>
+<hr>
+<h2 id="how-widgets-attach-to-tools">How widgets attach to tools</h2>
+<p>A widget-enabled tool has <strong>two separate registrations</strong>:</p>
+<ol>
+<li><strong>The tool</strong> declares a UI resource via <code>_meta.ui.resourceUri</code>. Its handler returns plain text/JSON — NOT the HTML.</li>
+<li><strong>The resource</strong> is registered separately and serves the HTML.</li>
+</ol>
+<p>When Claude calls the tool, the host sees <code>_meta.ui.resourceUri</code>, fetches that resource, renders it in an iframe, and pipes the tool's return value into the iframe via the <code>ontoolresult</code> event.</p>
+<div class="code-wrapper"><pre><code class="language-typescript">import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE }
+  from "@modelcontextprotocol/ext-apps/server";
+import { z } from "zod";
+
+const server = new McpServer({ name: "contacts", version: "1.0.0" });
+
+// 1. The tool — returns DATA, declares which UI to show
+registerAppTool(server, "pick_contact", {
+  description: "Open an interactive contact picker",
+  annotations: { title: "Pick Contact", readOnlyHint: true },
+  inputSchema: { filter: z.string().optional() },
+  _meta: { ui: { resourceUri: "ui://widgets/contact-picker.html" } },
+}, async ({ filter }) =&gt; {
+  const contacts = await db.contacts.search(filter);
+  // Plain JSON — the widget receives this via ontoolresult
+  return { content: [{ type: "text", text: JSON.stringify(contacts) }] };
+});
+
+// 2. The resource — serves the HTML
+registerAppResource(
+  server,
+  "Contact Picker",
+  "ui://widgets/contact-picker.html",
+  {},
+  async () =&gt; ({
+    contents: [{
+      uri: "ui://widgets/contact-picker.html",
+      mimeType: RESOURCE_MIME_TYPE,
+      text: pickerHtml,  // your HTML string
+    }],
+  }),
+);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The URI scheme <code>ui://</code> is convention. The mime type MUST be <code>RESOURCE_MIME_TYPE</code> (<code>"text/html;profile=mcp-app"</code>) — this is how the host knows to render it as an interactive iframe, not just display the source.</p>
+<hr>
+<h2 id="widget-runtime--the-app-class">Widget runtime — the <code>App</code> class</h2>
+<p>Inside the iframe, your script talks to the host via the <code>App</code> class from <code>@modelcontextprotocol/ext-apps</code>. This is a <strong>persistent bidirectional connection</strong> — the widget stays alive as long as the conversation is active, receiving new tool results and sending user actions.</p>
+<div class="code-wrapper"><pre><code class="language-html">&lt;script type="module"&gt;
+  /* ext-apps bundle inlined at build time → globalThis.ExtApps */
+  /*__EXT_APPS_BUNDLE__*/
+  const { App } = globalThis.ExtApps;
+
+  const app = new App({ name: "ContactPicker", version: "1.0.0" }, {});
+
+  // Set handlers BEFORE connecting
+  app.ontoolresult = ({ content }) =&gt; {
+    const contacts = JSON.parse(content[0].text);
+    render(contacts);
+  };
+
+  await app.connect();
+
+  // Later, when the user clicks something:
+  function onPick(contact) {
+    app.sendMessage({
+      role: "user",
+      content: [{ type: "text", text: `Selected contact: ${contact.id}` }],
+    });
+  }
+&lt;/script&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The <code>/*__EXT_APPS_BUNDLE__*/</code> placeholder gets replaced by the server at startup with the contents of <code>@modelcontextprotocol/ext-apps/app-with-deps</code> — see <code>references/iframe-sandbox.md</code> for why this is necessary and the rewrite snippet. <strong>Do not</strong> <code>import { App } from "https://esm.sh/..."</code>; the iframe's CSP blocks the transitive dependency fetches and the widget renders blank.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Direction</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>app.ontoolresult = fn</code></td>
+<td>Host → widget</td>
+<td>Receive the tool's return value</td>
+</tr>
+<tr>
+<td><code>app.ontoolinput = fn</code></td>
+<td>Host → widget</td>
+<td>Receive the tool's input args (what Claude passed)</td>
+</tr>
+<tr>
+<td><code>app.sendMessage({...})</code></td>
+<td>Widget → host</td>
+<td>Inject a message into the conversation</td>
+</tr>
+<tr>
+<td><code>app.updateModelContext({...})</code></td>
+<td>Widget → host</td>
+<td>Update context silently (no visible message)</td>
+</tr>
+<tr>
+<td><code>app.callServerTool({name, arguments})</code></td>
+<td>Widget → server</td>
+<td>Call another tool on your server</td>
+</tr>
+<tr>
+<td><code>app.openLink({url})</code></td>
+<td>Widget → host</td>
+<td>Open a URL in a new tab (sandbox blocks <code>window.open</code>)</td>
+</tr>
+<tr>
+<td><code>app.getHostContext()</code> / <code>app.onhostcontextchanged</code></td>
+<td>Host → widget</td>
+<td>Theme, host CSS vars, <code>containerDimensions</code>, <code>displayMode</code>, <code>deviceCapabilities</code></td>
+</tr>
+<tr>
+<td><code>app.requestDisplayMode({mode})</code></td>
+<td>Widget → host</td>
+<td>Ask for <code>inline</code> / <code>pip</code> / <code>fullscreen</code></td>
+</tr>
+<tr>
+<td><code>app.downloadFile({name, mimeType, content})</code></td>
+<td>Widget → host</td>
+<td>Host-mediated download (base64 content)</td>
+</tr>
+<tr>
+<td><code>new App(info, caps, {autoResize: true})</code></td>
+<td>—</td>
+<td>Iframe height tracks rendered content</td>
+</tr>
+</tbody></table>
+<p><code>sendMessage</code> is the typical "user picked something, tell Claude" path. <code>updateModelContext</code> is for state that Claude should know about but shouldn't clutter the chat. <code>openLink</code> is <strong>required</strong> for any outbound navigation — <code>window.open</code> and <code>&lt;a target="_blank"&gt;</code> are blocked by the sandbox attribute.</p>
+<p><strong>What widgets cannot do:</strong></p>
+<ul>
+<li>Access the host page's DOM, cookies, or storage</li>
+<li>Make network calls to arbitrary origins (CSP-restricted — route through <code>callServerTool</code>)</li>
+<li>Open popups or navigate directly — use <code>app.openLink({url})</code></li>
+<li>Load remote images reliably — inline as <code>data:</code> URLs server-side</li>
+</ul>
+<p>Keep widgets <strong>small and single-purpose</strong>. A picker picks. A chart displays. Don't build a whole sub-app inside the iframe — split it into multiple tools with focused widgets.</p>
+<hr>
+<h2 id="scaffold-minimal-picker-widget">Scaffold: minimal picker widget</h2>
+<p><strong>Install:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">npm install @modelcontextprotocol/sdk @modelcontextprotocol/ext-apps zod express
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Server (<code>src/server.ts</code>):</strong></p>
+<div class="code-wrapper"><pre><code class="language-typescript">import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE }
+  from "@modelcontextprotocol/ext-apps/server";
+import express from "express";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { z } from "zod";
+
+const require = createRequire(import.meta.url);
+const server = new McpServer({ name: "contact-picker", version: "1.0.0" });
+
+// Inline the ext-apps browser bundle into the widget HTML.
+// The iframe CSP blocks CDN script fetches — bundling is mandatory.
+const bundle = readFileSync(
+  require.resolve("@modelcontextprotocol/ext-apps/app-with-deps"), "utf8",
+).replace(/export\{([^}]+)\};?\s*$/, (_, body) =&gt;
+  "globalThis.ExtApps={" +
+  body.split(",").map((p) =&gt; {
+    const [local, exported] = p.split(" as ").map((s) =&gt; s.trim());
+    return `${exported ?? local}:${local}`;
+  }).join(",") + "};",
+);
+const pickerHtml = readFileSync("./widgets/picker.html", "utf8")
+  .replace("/*__EXT_APPS_BUNDLE__*/", () =&gt; bundle);
+
+registerAppTool(server, "pick_contact", {
+  description: "Open an interactive contact picker. User selects one contact.",
+  annotations: { title: "Pick Contact", readOnlyHint: true },
+  inputSchema: { filter: z.string().optional().describe("Name/email prefix filter") },
+  _meta: { ui: { resourceUri: "ui://widgets/picker.html" } },
+}, async ({ filter }) =&gt; {
+  const contacts = await db.contacts.search(filter ?? "");
+  return { content: [{ type: "text", text: JSON.stringify(contacts) }] };
+});
+
+registerAppResource(server, "Contact Picker", "ui://widgets/picker.html", {},
+  async () =&gt; ({
+    contents: [{ uri: "ui://widgets/picker.html", mimeType: RESOURCE_MIME_TYPE, text: pickerHtml }],
+  }),
+);
+
+const app = express();
+app.use(express.json());
+app.post("/mcp", async (req, res) =&gt; {
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+  res.on("close", () =&gt; transport.close());
+  await server.connect(transport);
+  await transport.handleRequest(req, res, req.body);
+});
+app.listen(process.env.PORT ?? 3000);
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For local-only widget apps (driving a desktop app, reading local files), swap the transport to <code>StdioServerTransport</code> and package via the <code>build-mcpb</code> skill.</p>
+<p><strong>Widget (<code>widgets/picker.html</code>):</strong></p>
+<div class="code-wrapper"><pre><code class="language-html">&lt;!doctype html&gt;
+&lt;meta charset="utf-8" /&gt;
+&lt;style&gt;
+  body { font: 14px system-ui; margin: 0; }
+  ul { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
+  li { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #eee; }
+  li:hover { background: #f5f5f5; }
+  .sub { color: #666; font-size: 12px; }
+&lt;/style&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;script type="module"&gt;
+/*__EXT_APPS_BUNDLE__*/
+const { App } = globalThis.ExtApps;
+(async () =&gt; {
+  const app = new App({ name: "ContactPicker", version: "1.0.0" }, {});
+  const ul = document.getElementById("list");
+
+  app.ontoolresult = ({ content }) =&gt; {
+    const contacts = JSON.parse(content[0].text);
+    ul.innerHTML = "";
+    for (const c of contacts) {
+      const li = document.createElement("li");
+      li.innerHTML = `&lt;div&gt;${c.name}&lt;/div&gt;&lt;div class="sub"&gt;${c.email}&lt;/div&gt;`;
+      li.addEventListener("click", () =&gt; {
+        app.sendMessage({
+          role: "user",
+          content: [{ type: "text", text: `Selected contact: ${c.id} (${c.name})` }],
+        });
+      });
+      ul.append(li);
+    }
+  };
+
+  await app.connect();
+})();
+&lt;/script&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>See <code>references/widget-templates.md</code> for more widget shapes.</p>
+<hr>
+<h2 id="design-notes-that-save-you-a-rewrite">Design notes that save you a rewrite</h2>
+<p><strong>One widget per tool.</strong> Resist the urge to build one mega-widget that does everything. One tool → one focused widget → one clear result shape. Claude reasons about these far better.</p>
+<p><strong>Tool description must mention the widget.</strong> Claude only sees the tool description when deciding what to call. "Opens an interactive picker" in the description is what makes Claude reach for it instead of guessing an ID.</p>
+<p><strong>Widgets are optional at runtime.</strong> Hosts that don't support the apps surface simply ignore <code>_meta.ui</code> and render the tool's text content normally. Since your tool handler already returns meaningful text/JSON (the widget's data), degradation is automatic — Claude sees the data directly instead of via the widget.</p>
+<p><strong>Don't block on widget results for read-only tools.</strong> A widget that just <em>displays</em> data (chart, preview) shouldn't require a user action to complete. Return the display widget <em>and</em> a text summary in the same result so Claude can continue reasoning without waiting.</p>
+<p><strong>Layout-fork by item count, not by tool count.</strong> If one use case is "show one result in detail" and another is "show many results side-by-side", don't make two tools — make one tool that accepts <code>items[]</code>, and let the widget pick a layout: <code>items.length === 1</code> → detail view, <code>&gt; 1</code> → carousel. Keeps the server schema simple and lets Claude decide count naturally.</p>
+<p><strong>Put Claude's reasoning in the payload.</strong> A short <code>note</code> field on each item (why Claude picked it) rendered as a callout on the card gives users the reasoning inline with the choice. Mention this field in the tool description so Claude populates it.</p>
+<p><strong>Normalize image shapes server-side.</strong> If your data source returns images with wildly varying aspect ratios, rewrite to a predictable variant (e.g. square-bounded) <em>before</em> fetching for the data-URL inline. Then give the widget's image container a fixed <code>aspect-ratio</code> + <code>object-fit: contain</code> so everything sits centered.</p>
+<p><strong>Follow host theme.</strong> <code>app.getHostContext()?.theme</code> (after <code>connect()</code>) plus <code>app.onhostcontextchanged</code> for live updates. Toggle a <code>.dark</code> class on <code>&lt;html&gt;</code>, keep colors in CSS custom props with a <code>:root.dark {}</code> override block, set <code>color-scheme</code>. Disable <code>mix-blend-mode: multiply</code> in dark — it makes images vanish.</p>
+<hr>
+<h2 id="testing">Testing</h2>
+<p><strong>Claude Desktop</strong> — current builds still require the <code>command</code>/<code>args</code> config shape (no native <code>"type": "http"</code>). Wrap with <code>mcp-remote</code> and force <code>http-only</code> transport so the SSE probe doesn't swallow widget-capability negotiation:</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:3000/mcp",
+               "--allow-http", "--transport", "http-only"]
+    }
+  }
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Desktop caches UI resources aggressively. After editing widget HTML, <strong>fully quit</strong> (⌘Q / Alt+F4, not window-close) and relaunch to force a cold resource re-fetch.</p>
+<p><strong>Headless JSON-RPC loop</strong> — fast iteration without clicking through Desktop:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># test.jsonl — one JSON-RPC message per line
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"0"}}}
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+{"jsonrpc":"2.0","id":2,"method":"tools/list"}
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"your_tool","arguments":{...}}}
+
+(cat test.jsonl; sleep 10) | npx mcp-remote http://localhost:3000/mcp --allow-http
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The <code>sleep</code> keeps stdin open long enough to collect all responses. Parse the jsonl output with <code>jq</code> or a Python one-liner.</p>
+<p><strong>Widget dev loop</strong> — avoid the ⌘Q-relaunch cycle entirely by serving the inlined widget HTML at a plain GET route with a fake <code>ExtApps</code> shim that fires <code>ontoolresult</code> from a query param:</p>
+<div class="code-wrapper"><pre><code class="language-ts">app.get("/widget-preview", (_req, res) =&gt; {
+  const shim = `globalThis.ExtApps={applyHostStyleVariables:()=&gt;{},App:class{
+    constructor(){this.h={}} ontoolresult;onhostcontextchanged;
+    async connect(){const p=new URLSearchParams(location.search).get("payload");
+      if(p)this.ontoolresult?.({content:[{type:"text",text:p}]});}
+    getHostContext(){return{theme:"light"}}
+    sendMessage(m){console.log("sendMessage",m)} updateModelContext(){}
+    callServerTool(){return Promise.resolve({content:[]})} openLink(){} downloadFile(){}
+  }};`;
+  res.type("html").send(widgetHtml.replace("/*__EXT_APPS_BUNDLE__*/", shim));
+});
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Open <code>http://localhost:3000/widget-preview?payload={"rows":[...]}</code> in a normal browser tab and iterate with ordinary devtools.</p>
+<p><strong>Host fallback</strong> — use a host without the apps surface (or MCP Inspector) and confirm the tool's text content degrades gracefully.</p>
+<p><strong>CSP debugging</strong> — open the iframe's own devtools console. CSP violations are the #1 reason widgets silently fail (blank rectangle, no error in the main console). See <code>references/iframe-sandbox.md</code>.</p>
+<hr>
+<h2 id="reference-files">Reference files</h2>
+<ul>
+<li><code>references/iframe-sandbox.md</code> — CSP/sandbox constraints, the bundle-inlining pattern, image handling, host theming</li>
+<li><code>references/widget-templates.md</code> — reusable HTML scaffolds for picker / confirm / progress / display</li>
+<li><code>references/apps-sdk-messages.md</code> — the <code>App</code> class API: widget ↔ host ↔ server messaging, lifecycle &amp; supersession</li>
+<li><code>references/payload-budgeting.md</code> — host tool-result size caps, prune-then-truncate, heavy assets via <code>callServerTool</code></li>
+<li><code>references/abuse-protection.md</code> — Anthropic egress CIDRs, tiered rate limiting, <code>trust proxy</code>, response caching</li>
+<li><code>references/directory-checklist.md</code> — pre-flight for connector-directory submission</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

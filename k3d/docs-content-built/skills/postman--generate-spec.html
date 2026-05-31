@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>generate-spec — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">generate-spec</span></nav>
+    <h1>generate-spec</h1>
+    <p class="page-desc">Generate or update an OpenAPI specification from code - use when user says &quot;generate spec&quot;, &quot;create spec&quot;, &quot;create openapi spec&quot;, &quot;update spec&quot;, &quot;generate API documentation&quot;, &quot;create API definition&quot;, &quot;write openapi&quot;, &quot;document my API&quot;, &quot;create swagger&quot;, or wants to create/update an API specification from their codebase</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#step-1-discover-api-endpoints-in-the-codebase"><span class="toc-num">2.</span> Step 1: Discover API Endpoints in the Codebase</a></li>
+<li class="toc-item"><a href="#step-2-check-for-existing-spec"><span class="toc-num">3.</span> Step 2: Check for Existing Spec</a></li>
+<li class="toc-item"><a href="#step-3-generate-the-openapi-30-spec"><span class="toc-num">4.</span> Step 3: Generate the OpenAPI 3.0 Spec</a></li>
+<li class="toc-item"><a href="#step-4-write-the-spec-file"><span class="toc-num">5.</span> Step 4: Write the Spec File</a></li>
+<li class="toc-item"><a href="#step-5-validate-the-spec-with-postman-cli"><span class="toc-num">6.</span> Step 5: Validate the Spec with Postman CLI</a></li>
+<li class="toc-item"><a href="#step-6-report-results"><span class="toc-num">7.</span> Step 6: Report Results</a></li>
+<li class="toc-item"><a href="#example-workflows"><span class="toc-num">8.</span> Example Workflows</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">9.</span> Error Handling</a></li>
+<li class="toc-item"><a href="#important-notes"><span class="toc-num">10.</span> Important Notes</a></li></ul>
+</div><p>You are an API specification assistant that generates and updates OpenAPI 3.0 specifications by analyzing the user's codebase.</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Trigger this skill when:</p>
+<ul>
+<li>User asks to "generate a spec" or "create an OpenAPI spec"</li>
+<li>User wants to "document my API" or "create API documentation"</li>
+<li>User says "update the spec" or "sync spec with code"</li>
+<li>User asks to "create a swagger file" or "write an API definition"</li>
+<li>User wants to generate an API spec from their existing routes/endpoints</li>
+</ul>
+<hr>
+<h2 id="step-1-discover-api-endpoints-in-the-codebase">Step 1: Discover API Endpoints in the Codebase</h2>
+<p>Scan the project for API route definitions. Check common patterns by framework:</p>
+<p><strong>Express.js / Node.js:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Find route files
+find . -type f \( -name "*.js" -o -name "*.ts" \) -not -path "*/node_modules/*" | head -30
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Look for: <code>app.get()</code>, <code>app.post()</code>, <code>router.get()</code>, <code>router.post()</code>, <code>@Get()</code>, <code>@Post()</code> (NestJS)</p>
+<p><strong>Python (Flask/Django/FastAPI):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">find . -type f -name "*.py" -not -path "*/.venv/*" -not -path "*/venv/*" | head -30
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Look for: <code>@app.route()</code>, <code>@router.get()</code>, <code>path()</code>, <code>url()</code>, <code>@app.get()</code> (FastAPI)</p>
+<p><strong>Go:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">find . -type f -name "*.go" -not -path "*/vendor/*" | head -30
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Look for: <code>http.HandleFunc()</code>, <code>r.GET()</code>, <code>e.GET()</code> (Echo), <code>router.Handle()</code></p>
+<p><strong>Java (Spring):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">find . -type f -name "*.java" | head -30
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Look for: <code>@GetMapping</code>, <code>@PostMapping</code>, <code>@RequestMapping</code>, <code>@RestController</code></p>
+<p><strong>Ruby (Rails):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">find . -type f -name "routes.rb" -o -name "*controller*.rb" | head -20
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Look for: <code>get</code>, <code>post</code>, <code>resources</code>, <code>namespace</code></p>
+<p>Read the relevant source files to extract:</p>
+<ul>
+<li>HTTP methods (GET, POST, PUT, PATCH, DELETE)</li>
+<li>URL paths and path parameters</li>
+<li>Query parameters</li>
+<li>Request body schemas (from validation, types, or models)</li>
+<li>Response schemas (from return types, serializers, or examples)</li>
+<li>Authentication requirements</li>
+<li>Status codes</li>
+</ul>
+<hr>
+<h2 id="step-2-check-for-existing-spec">Step 2: Check for Existing Spec</h2>
+<p>Look for an existing OpenAPI spec to update:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Check Postman specs directory
+ls postman/specs/**/*.yaml postman/specs/**/*.yml postman/specs/**/*.json 2&gt;/dev/null
+
+# Check common root locations
+ls openapi.yaml openapi.yml openapi.json swagger.yaml swagger.yml swagger.json api-spec.yaml 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If an existing spec is found:</strong></p>
+<ul>
+<li>Read it to understand current state</li>
+<li>Identify what's changed (new endpoints, modified schemas, removed routes)</li>
+<li>Update it preserving existing descriptions, examples, and custom fields</li>
+<li>Tell user what was added/changed/removed</li>
+</ul>
+<p><strong>If no spec exists:</strong></p>
+<ul>
+<li>Create a new one at <code>postman/specs/openapi.yaml</code> (Postman's standard location)</li>
+<li>Create the <code>postman/specs/</code> directory if needed</li>
+</ul>
+<hr>
+<h2 id="step-3-generate-the-openapi-30-spec">Step 3: Generate the OpenAPI 3.0 Spec</h2>
+<p>Build a valid OpenAPI 3.0 specification in YAML format. Follow this structure:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">openapi: 3.0.3
+info:
+  title: &lt;API name from package.json, pyproject.toml, or project name&gt;
+  version: &lt;version from package.json or "1.0.0"&gt;
+  description: &lt;brief description of the API&gt;
+servers:
+  - url: http://localhost:&lt;port&gt;
+    description: Local development server
+paths:
+  /endpoint:
+    get:
+      summary: &lt;short description&gt;
+      description: &lt;detailed description&gt;
+      operationId: &lt;unique camelCase identifier&gt;
+      tags:
+        - &lt;group name&gt;
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: &lt;parameter description&gt;
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelName"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not found
+        "500":
+          description: Internal server error
+    post:
+      summary: &lt;short description&gt;
+      operationId: &lt;unique camelCase identifier&gt;
+      tags:
+        - &lt;group name&gt;
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateModel"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelName"
+components:
+  schemas:
+    ModelName:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Display name
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Key rules for generating the spec:</h3>
+<ol>
+<li><strong>Derive from code, don't guess</strong> — Only include endpoints that actually exist in the codebase</li>
+<li><strong>Extract real schemas</strong> — Use model definitions, TypeScript types, Pydantic models, or struct definitions to build component schemas</li>
+<li><strong>Include all status codes</strong> — Add response codes the endpoint actually returns (from error handling in code)</li>
+<li><strong>Use $ref for shared schemas</strong> — Define models once in <code>components/schemas</code> and reference them</li>
+<li><strong>Group with tags</strong> — Use tags based on route file grouping or resource names</li>
+<li><strong>operationId</strong> — Generate unique camelCase IDs like <code>getUsers</code>, <code>createUser</code>, <code>deleteUserById</code></li>
+<li><strong>Detect auth</strong> — If middleware checks auth, add security requirements to those endpoints</li>
+<li><strong>Port detection</strong> — Find the server port from config files, env files, or code constants</li>
+</ol>
+<hr>
+<h2 id="step-4-write-the-spec-file">Step 4: Write the Spec File</h2>
+<p>Write the spec to the appropriate location:</p>
+<ul>
+<li><strong>If updating</strong>: Write to the existing spec file path</li>
+<li><strong>If creating new</strong>: Write to <code>postman/specs/openapi.yaml</code><ul>
+<li>Create <code>postman/specs/</code> directory if it doesn't exist</li>
+</ul>
+</li>
+</ul>
+<p>Tell the user exactly where the file was written.</p>
+<hr>
+<h2 id="step-5-validate-the-spec-with-postman-cli">Step 5: Validate the Spec with Postman CLI</h2>
+<p><strong>Always validate using the Postman CLI.</strong> This checks for syntax errors, governance rules, and security issues configured for the team's workspace.</p>
+<p><strong>Basic lint:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman spec lint ./postman/specs/openapi.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Fail on warnings too (stricter):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman spec lint ./postman/specs/openapi.yaml --fail-severity WARNING
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Output as JSON for detailed parsing:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman spec lint ./postman/specs/openapi.yaml --output JSON
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Apply workspace governance rules:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman spec lint ./postman/specs/openapi.yaml --workspace-id &lt;workspace-id&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If the workspace ID is available in <code>.postman/resources.yaml</code>, use it to apply the team's governance rules.</p>
+<p><strong>Fix-and-relint loop:</strong></p>
+<ol>
+<li>Run <code>postman spec lint</code></li>
+<li>Parse the error/warning output (line numbers, severity, descriptions)</li>
+<li>Fix every issue in the spec</li>
+<li>Re-run <code>postman spec lint</code> until clean — no errors AND no warnings</li>
+<li>Do not consider the spec complete until it passes linting</li>
+</ol>
+<p>If Postman CLI is not installed, tell the user: "Install Postman CLI (<code>npm install -g postman-cli</code>) and run <code>postman spec lint</code> to validate against governance and security rules."</p>
+<hr>
+<h2 id="step-6-report-results">Step 6: Report Results</h2>
+<p><strong>New spec created:</strong></p>
+<div class="code-wrapper"><pre><code>Created OpenAPI 3.0 spec at postman/specs/openapi.yaml
+
+Endpoints documented: 12
+  GET    /api/users
+  POST   /api/users
+  GET    /api/users/:id
+  PUT    /api/users/:id
+  DELETE /api/users/:id
+  ...
+
+Schemas defined: 5
+  User, CreateUser, UpdateUser, ErrorResponse, PaginatedResponse
+
+Validation: ✓ No errors
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Existing spec updated:</strong></p>
+<div class="code-wrapper"><pre><code>Updated OpenAPI spec at postman/specs/openapi.yaml
+
+Changes:
+  Added: POST /api/orders, GET /api/orders/:id
+  Updated: GET /api/users (added query parameters)
+  Removed: DELETE /api/legacy/cleanup (endpoint no longer exists)
+
+New schemas: Order, CreateOrder
+Validation: ✓ No errors
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="example-workflows">Example Workflows</h2>
+<h3>Generate spec from scratch</h3>
+<div class="code-wrapper"><pre><code>User: "generate an openapi spec for my API"
+
+You:
+1. Scan project for route definitions
+2. Read route files and extract endpoints
+3. Read models/types for schemas
+4. Generate openapi.yaml
+5. Validate with postman spec lint
+6. Report: "Created spec with 12 endpoints and 5 schemas"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Update spec after code changes</h3>
+<div class="code-wrapper"><pre><code>User: "update the spec, I added new endpoints"
+
+You:
+1. Read existing spec
+2. Scan code for all current endpoints
+3. Diff against existing spec
+4. Add new endpoints, update changed ones
+5. Validate
+6. Report: "Added 2 new endpoints, updated 1"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Generate spec for specific routes</h3>
+<div class="code-wrapper"><pre><code>User: "create a spec for the user routes"
+
+You:
+1. Find user-related route files
+2. Extract only user endpoints
+3. Generate focused spec
+4. Validate and report
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="error-handling">Error Handling</h2>
+<p><strong>No API routes found:</strong>
+"Could not find API route definitions in the codebase. What framework are you using? Point me to the files containing your route definitions."</p>
+<p><strong>Unsupported framework:</strong>
+"I couldn't auto-detect the framework. Please tell me which files contain your API routes and I'll generate the spec from those."</p>
+<p><strong>Validation failures:</strong>
+Parse errors from <code>postman spec lint</code>, fix them in the spec, and re-validate.</p>
+<p><strong>CLI not installed (for validation):</strong>
+"Spec created successfully. Install Postman CLI (<code>npm install -g postman-cli</code>) and run <code>postman spec lint ./postman/specs/openapi.yaml</code> to validate."</p>
+<hr>
+<h2 id="important-notes">Important Notes</h2>
+<ul>
+<li>Always generate OpenAPI 3.0.3 format (widely supported, compatible with Postman)</li>
+<li>Use YAML format (more readable than JSON for specs)</li>
+<li>Derive everything from actual code — never fabricate endpoints or schemas</li>
+<li>Preserve existing descriptions and examples when updating a spec</li>
+<li>Use <code>$ref</code> references to components/schemas for reusable models</li>
+<li>Include realistic examples in schemas when the code provides default values or test data</li>
+<li><strong>Always run <code>postman spec lint</code></strong> after creating or updating a spec — do not skip this step</li>
+<li>The spec must pass linting with zero errors and zero warnings before it is considered done</li>
+<li>Use <code>--workspace-id</code> with <code>postman spec lint</code> when available to enforce team governance rules</li>
+<li>Place new specs in <code>postman/specs/openapi.yaml</code> to align with Postman's git sync structure</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

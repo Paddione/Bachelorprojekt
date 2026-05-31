@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>agent-development — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">agent-development</span></nav>
+    <h1>agent-development</h1>
+    <p class="page-desc">This skill should be used when the user asks to &quot;create an agent&quot;, &quot;add an agent&quot;, &quot;write a subagent&quot;, &quot;agent frontmatter&quot;, &quot;when to use description&quot;, &quot;agent examples&quot;, &quot;agent tools&quot;, &quot;agent colors&quot;, &quot;autonomous agent&quot;, or needs guidance on agent structure, system prompts, triggering conditions, or agent development best practices for Claude Code plugins.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">unknown</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Agent Development for Claude Code Plugins</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#agent-file-structure"><span class="toc-num">2.</span> Agent File Structure</a></li>
+<li class="toc-item"><a href="#frontmatter-fields"><span class="toc-num">3.</span> Frontmatter Fields</a></li>
+<li class="toc-item"><a href="#system-prompt-design"><span class="toc-num">4.</span> System Prompt Design</a></li>
+<li class="toc-item"><a href="#creating-agents"><span class="toc-num">5.</span> Creating Agents</a></li>
+<li class="toc-item"><a href="#validation-rules"><span class="toc-num">6.</span> Validation Rules</a></li>
+<li class="toc-item"><a href="#agent-organization"><span class="toc-num">7.</span> Agent Organization</a></li>
+<li class="toc-item"><a href="#testing-agents"><span class="toc-num">8.</span> Testing Agents</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">9.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#additional-resources"><span class="toc-num">10.</span> Additional Resources</a></li>
+<li class="toc-item"><a href="#implementation-workflow"><span class="toc-num">11.</span> Implementation Workflow</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Agents are autonomous subprocesses that handle complex, multi-step tasks independently. Understanding agent structure, triggering conditions, and system prompt design enables creating powerful autonomous capabilities.</p>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li>Agents are FOR autonomous work, commands are FOR user-initiated actions</li>
+<li>Markdown file format with YAML frontmatter</li>
+<li>Triggering via description field with examples</li>
+<li>System prompt defines agent behavior</li>
+<li>Model and color customization</li>
+</ul>
+<h2 id="agent-file-structure">Agent File Structure</h2>
+<h3>Complete Format</h3>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+name: agent-identifier
+description: Use this agent when [triggering conditions]. Typical triggers include [scenario 1 in prose], [scenario 2 in prose], and [scenario 3 in prose]. See "When to invoke" in the agent body for worked scenarios.
+model: inherit
+color: blue
+tools: ["Read", "Write", "Grep"]
+---
+
+You are [agent role description]...
+
+## When to invoke
+
+[Two to four representative scenarios written as prose, e.g.:]
+- **[Scenario name].** [What the situation looks like and what the agent should do.]
+- **[Scenario name].** [Same.]
+
+**Your Core Responsibilities:**
+1. [Responsibility 1]
+2. [Responsibility 2]
+
+**Analysis Process:**
+[Step-by-step workflow]
+
+**Output Format:**
+[What to return]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="frontmatter-fields">Frontmatter Fields</h2>
+<h3>name (required)</h3>
+<p>Agent identifier used for namespacing and invocation.</p>
+<p><strong>Format:</strong> lowercase, numbers, hyphens only
+<strong>Length:</strong> 3-50 characters
+<strong>Pattern:</strong> Must start and end with alphanumeric</p>
+<p><strong>Good examples:</strong></p>
+<ul>
+<li><code>code-reviewer</code></li>
+<li><code>test-generator</code></li>
+<li><code>api-docs-writer</code></li>
+<li><code>security-analyzer</code></li>
+</ul>
+<p><strong>Bad examples:</strong></p>
+<ul>
+<li><code>helper</code> (too generic)</li>
+<li><code>-agent-</code> (starts/ends with hyphen)</li>
+<li><code>my_agent</code> (underscores not allowed)</li>
+<li><code>ag</code> (too short, &lt; 3 chars)</li>
+</ul>
+<h3>description (required)</h3>
+<p>Defines when Claude should trigger this agent. <strong>This is the most critical field</strong> — it is loaded into context whenever the agent is registered, so the harness can decide when to dispatch.</p>
+<p><strong>Must include:</strong></p>
+<ol>
+<li>Triggering conditions ("Use this agent when...")</li>
+<li>A short prose summary of the typical trigger scenarios</li>
+<li>A pointer to a "When to invoke" section in the agent body for the detailed worked scenarios</li>
+</ol>
+<p><strong>Format:</strong></p>
+<div class="code-wrapper"><pre><code>Use this agent when [conditions]. Typical triggers include [scenario 1 in prose], [scenario 2 in prose], and [scenario 3 in prose]. See "When to invoke" in the agent body for worked scenarios.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Best practices:</strong></p>
+<ul>
+<li>Name 2-4 trigger scenarios in the prose summary</li>
+<li>Cover both proactive (assistant invokes itself) and reactive (user requests) triggering</li>
+<li>Cover different phrasings of the same intent</li>
+<li>Be specific about when NOT to use the agent</li>
+<li>Put detailed scenarios in the body under "When to invoke" as a bullet list of prose descriptions</li>
+</ul>
+<h3>model (required)</h3>
+<p>Which model the agent should use.</p>
+<p><strong>Options:</strong></p>
+<ul>
+<li><code>inherit</code> - Use same model as parent (recommended)</li>
+<li><code>sonnet</code> - Claude Sonnet (balanced)</li>
+<li><code>opus</code> - Claude Opus (most capable, expensive)</li>
+<li><code>haiku</code> - Claude Haiku (fast, cheap)</li>
+</ul>
+<p><strong>Recommendation:</strong> Use <code>inherit</code> unless agent needs specific model capabilities.</p>
+<h3>color (required)</h3>
+<p>Visual identifier for agent in UI.</p>
+<p><strong>Options:</strong> <code>blue</code>, <code>cyan</code>, <code>green</code>, <code>yellow</code>, <code>magenta</code>, <code>red</code></p>
+<p><strong>Guidelines:</strong></p>
+<ul>
+<li>Choose distinct colors for different agents in same plugin</li>
+<li>Use consistent colors for similar agent types</li>
+<li>Blue/cyan: Analysis, review</li>
+<li>Green: Success-oriented tasks</li>
+<li>Yellow: Caution, validation</li>
+<li>Red: Critical, security</li>
+<li>Magenta: Creative, generation</li>
+</ul>
+<h3>tools (optional)</h3>
+<p>Restrict agent to specific tools.</p>
+<p><strong>Format:</strong> Array of tool names</p>
+<div class="code-wrapper"><pre><code class="language-yaml">tools: ["Read", "Write", "Grep", "Bash"]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Default:</strong> If omitted, agent has access to all tools</p>
+<p><strong>Best practice:</strong> Limit tools to minimum needed (principle of least privilege)</p>
+<p><strong>Common tool sets:</strong></p>
+<ul>
+<li>Read-only analysis: <code>["Read", "Grep", "Glob"]</code></li>
+<li>Code generation: <code>["Read", "Write", "Grep"]</code></li>
+<li>Testing: <code>["Read", "Bash", "Grep"]</code></li>
+<li>Full access: Omit field or use <code>["*"]</code></li>
+</ul>
+<h2 id="system-prompt-design">System Prompt Design</h2>
+<p>The markdown body becomes the agent's system prompt. Write in second person, addressing the agent directly.</p>
+<h3>Structure</h3>
+<p><strong>Standard template:</strong></p>
+<div class="code-wrapper"><pre><code class="language-markdown">You are [role] specializing in [domain].
+
+**Your Core Responsibilities:**
+1. [Primary responsibility]
+2. [Secondary responsibility]
+3. [Additional responsibilities...]
+
+**Analysis Process:**
+1. [Step one]
+2. [Step two]
+3. [Step three]
+[...]
+
+**Quality Standards:**
+- [Standard 1]
+- [Standard 2]
+
+**Output Format:**
+Provide results in this format:
+- [What to include]
+- [How to structure]
+
+**Edge Cases:**
+Handle these situations:
+- [Edge case 1]: [How to handle]
+- [Edge case 2]: [How to handle]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Best Practices</h3>
+<p>✅ <strong>DO:</strong></p>
+<ul>
+<li>Write in second person ("You are...", "You will...")</li>
+<li>Be specific about responsibilities</li>
+<li>Provide step-by-step process</li>
+<li>Define output format</li>
+<li>Include quality standards</li>
+<li>Address edge cases</li>
+<li>Keep under 10,000 characters</li>
+</ul>
+<p>❌ <strong>DON'T:</strong></p>
+<ul>
+<li>Write in first person ("I am...", "I will...")</li>
+<li>Be vague or generic</li>
+<li>Omit process steps</li>
+<li>Leave output format undefined</li>
+<li>Skip quality guidance</li>
+<li>Ignore error cases</li>
+</ul>
+<h2 id="creating-agents">Creating Agents</h2>
+<h3>Method 1: AI-Assisted Generation</h3>
+<p>Use this prompt pattern (extracted from Claude Code):</p>
+<div class="code-wrapper"><pre><code>Create an agent configuration based on this request: "[YOUR DESCRIPTION]"
+
+Requirements:
+1. Extract core intent and responsibilities
+2. Design expert persona for the domain
+3. Create comprehensive system prompt with:
+   - Clear behavioral boundaries
+   - Specific methodologies
+   - Edge case handling
+   - Output format
+   - A "When to invoke" section listing 2-4 trigger scenarios as prose bullets
+4. Create identifier (lowercase, hyphens, 3-50 chars)
+5. Write description with triggering conditions and a short prose summary of trigger scenarios
+
+Return JSON with:
+{
+  "identifier": "agent-name",
+  "whenToUse": "Use this agent when... Typical triggers include [...]. See \"When to invoke\" in the agent body.",
+  "systemPrompt": "You are..."
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Then convert to agent file format with frontmatter.</p>
+<p>See <code>examples/agent-creation-prompt.md</code> for complete template.</p>
+<h3>Method 2: Manual Creation</h3>
+<ol>
+<li>Choose agent identifier (3-50 chars, lowercase, hyphens)</li>
+<li>Write description with examples</li>
+<li>Select model (usually <code>inherit</code>)</li>
+<li>Choose color for visual identification</li>
+<li>Define tools (if restricting access)</li>
+<li>Write system prompt with structure above</li>
+<li>Save as <code>agents/agent-name.md</code></li>
+</ol>
+<h2 id="validation-rules">Validation Rules</h2>
+<h3>Identifier Validation</h3>
+<div class="code-wrapper"><pre><code>✅ Valid: code-reviewer, test-gen, api-analyzer-v2
+❌ Invalid: ag (too short), -start (starts with hyphen), my_agent (underscore)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>3-50 characters</li>
+<li>Lowercase letters, numbers, hyphens only</li>
+<li>Must start and end with alphanumeric</li>
+<li>No underscores, spaces, or special characters</li>
+</ul>
+<h3>Description Validation</h3>
+<p><strong>Length:</strong> 10-5,000 characters
+<strong>Must include:</strong> Triggering conditions and examples
+<strong>Best:</strong> 200-1,000 characters with 2-4 examples</p>
+<h3>System Prompt Validation</h3>
+<p><strong>Length:</strong> 20-10,000 characters
+<strong>Best:</strong> 500-3,000 characters
+<strong>Structure:</strong> Clear responsibilities, process, output format</p>
+<h2 id="agent-organization">Agent Organization</h2>
+<h3>Plugin Agents Directory</h3>
+<div class="code-wrapper"><pre><code>plugin-name/
+└── agents/
+    ├── analyzer.md
+    ├── reviewer.md
+    └── generator.md
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>All <code>.md</code> files in <code>agents/</code> are auto-discovered.</p>
+<h3>Namespacing</h3>
+<p>Agents are namespaced automatically:</p>
+<ul>
+<li>Single plugin: <code>agent-name</code></li>
+<li>With subdirectories: <code>plugin:subdir:agent-name</code></li>
+</ul>
+<h2 id="testing-agents">Testing Agents</h2>
+<h3>Test Triggering</h3>
+<p>Create test scenarios to verify agent triggers correctly:</p>
+<ol>
+<li>Write agent with specific triggering examples</li>
+<li>Use similar phrasing to examples in test</li>
+<li>Check Claude loads the agent</li>
+<li>Verify agent provides expected functionality</li>
+</ol>
+<h3>Test System Prompt</h3>
+<p>Ensure system prompt is complete:</p>
+<ol>
+<li>Give agent typical task</li>
+<li>Check it follows process steps</li>
+<li>Verify output format is correct</li>
+<li>Test edge cases mentioned in prompt</li>
+<li>Confirm quality standards are met</li>
+</ol>
+<h2 id="quick-reference">Quick Reference</h2>
+<h3>Minimal Agent</h3>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+name: simple-agent
+description: Use this agent when [condition]. Typical triggers include [trigger 1] and [trigger 2]. See "When to invoke" in the agent body.
+model: inherit
+color: blue
+---
+
+You are an agent that [does X].
+
+## When to invoke
+
+- **[Scenario A].** [Description.]
+- **[Scenario B].** [Description.]
+
+Process:
+1. [Step 1]
+2. [Step 2]
+
+Output: [What to provide]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Frontmatter Fields Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>name</td>
+<td>Yes</td>
+<td>lowercase-hyphens</td>
+<td>code-reviewer</td>
+</tr>
+<tr>
+<td>description</td>
+<td>Yes</td>
+<td>Prose triggers</td>
+<td>Use when... Typical triggers include...</td>
+</tr>
+<tr>
+<td>model</td>
+<td>Yes</td>
+<td>inherit/sonnet/opus/haiku</td>
+<td>inherit</td>
+</tr>
+<tr>
+<td>color</td>
+<td>Yes</td>
+<td>Color name</td>
+<td>blue</td>
+</tr>
+<tr>
+<td>tools</td>
+<td>No</td>
+<td>Array of tool names</td>
+<td>["Read", "Grep"]</td>
+</tr>
+</tbody></table>
+<h3>Best Practices</h3>
+<p><strong>DO:</strong></p>
+<ul>
+<li>✅ Name 2-4 trigger scenarios in the description (as prose)</li>
+<li>✅ Put detailed worked scenarios in a "When to invoke" body section, as prose bullets</li>
+<li>✅ Write specific triggering conditions</li>
+<li>✅ Use <code>inherit</code> for model unless specific need</li>
+<li>✅ Choose appropriate tools (least privilege)</li>
+<li>✅ Write clear, structured system prompts</li>
+<li>✅ Test agent triggering thoroughly</li>
+</ul>
+<p><strong>DON'T:</strong></p>
+<ul>
+<li>❌ Use generic descriptions without trigger scenarios</li>
+<li>❌ Omit triggering conditions</li>
+<li>❌ Give all agents same color</li>
+<li>❌ Grant unnecessary tool access</li>
+<li>❌ Write vague system prompts</li>
+<li>❌ Skip testing</li>
+</ul>
+<h2 id="additional-resources">Additional Resources</h2>
+<h3>Reference Files</h3>
+<p>For detailed guidance, consult:</p>
+<ul>
+<li><strong><code>references/system-prompt-design.md</code></strong> - Complete system prompt patterns</li>
+<li><strong><code>references/triggering-examples.md</code></strong> - Example formats and best practices</li>
+<li><strong><code>references/agent-creation-system-prompt.md</code></strong> - The exact prompt from Claude Code</li>
+</ul>
+<h3>Example Files</h3>
+<p>Working examples in <code>examples/</code>:</p>
+<ul>
+<li><strong><code>agent-creation-prompt.md</code></strong> - AI-assisted agent generation template</li>
+<li><strong><code>complete-agent-examples.md</code></strong> - Full agent examples for different use cases</li>
+</ul>
+<h3>Utility Scripts</h3>
+<p>Development tools in <code>scripts/</code>:</p>
+<ul>
+<li><strong><code>validate-agent.sh</code></strong> - Validate agent file structure</li>
+<li><strong><code>test-agent-trigger.sh</code></strong> - Test if agent triggers correctly</li>
+</ul>
+<h2 id="implementation-workflow">Implementation Workflow</h2>
+<p>To create an agent for a plugin:</p>
+<ol>
+<li>Define agent purpose and triggering conditions</li>
+<li>Choose creation method (AI-assisted or manual)</li>
+<li>Create <code>agents/agent-name.md</code> file</li>
+<li>Write frontmatter with all required fields</li>
+<li>Write system prompt following best practices</li>
+<li>Name 2-4 trigger scenarios in description (prose) and detail them in a "When to invoke" body section</li>
+<li>Validate with <code>scripts/validate-agent.sh</code></li>
+<li>Test triggering with real scenarios</li>
+<li>Document agent in plugin README</li>
+</ol>
+<p>Focus on clear triggering conditions and comprehensive system prompts for autonomous operation.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

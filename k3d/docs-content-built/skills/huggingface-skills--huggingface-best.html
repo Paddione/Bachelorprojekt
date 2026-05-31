@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-best — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-best</span></nav>
+    <h1>huggingface-best</h1>
+    <p class="page-desc">Use when the user asks about finding the best, top, or recommended model for a task, wants to know what AI model to use, or wants to compare models by benchmark scores. Triggers on: &quot;best model for X&quot;, &quot;what model should I use for&quot;, &quot;top models for [task]&quot;, &quot;which model runs on my laptop/machine/device&quot;, &quot;recommend a model for&quot;, &quot;what LLM should I use for&quot;, &quot;compare models for&quot;, &quot;what's state of the art for&quot;, or any question about choosing an AI model for a specific use case. Always use this skill when the user wants model recommendations or comparisons, even if they don't explicitly mention HuggingFace or benchmarks.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>HuggingFace Best Model Finder</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#step-1-parse-the-request"><span class="toc-num">1.</span> Step 1: Parse the request</a></li>
+<li class="toc-item"><a href="#step-2-find-relevant-benchmark-datasets"><span class="toc-num">2.</span> Step 2: Find relevant benchmark datasets</a></li>
+<li class="toc-item"><a href="#step-3-fetch-top-models-from-leaderboards"><span class="toc-num">3.</span> Step 3: Fetch top models from leaderboards</a></li>
+<li class="toc-item"><a href="#step-4-enrich-with-model-metadata"><span class="toc-num">4.</span> Step 4: Enrich with model metadata</a></li>
+<li class="toc-item"><a href="#step-5-filter-and-rank"><span class="toc-num">5.</span> Step 5: Filter and rank</a></li>
+<li class="toc-item"><a href="#step-6-output"><span class="toc-num">6.</span> Step 6: Output</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">7.</span> Error handling</a></li></ul>
+</div>
+<p>Finds the best models for a task by querying official HF benchmark leaderboards, enriching
+results with model size data, filtering for what fits on the user's device, and returning a
+comparison table with benchmark scores.</p>
+<hr>
+<h2 id="step-1-parse-the-request">Step 1: Parse the request</h2>
+<p>Extract from the user's message:</p>
+<ul>
+<li><strong>Task</strong>: what they want the model to do (coding, math/reasoning, chat, OCR, RAG/retrieval, speech recognition, image classification, multimodal, agents, etc.)</li>
+<li><strong>Device</strong>: hardware constraints (MacBook M-series 8/16/32/64GB unified memory, RTX GPU with VRAM amount, CPU-only, cloud/no constraint, etc.)</li>
+</ul>
+<p>If device is not mentioned, skip filtering entirely and return the highest-performing models regardless of size. If the task is genuinely ambiguous, ask one clarifying question.</p>
+<h3>Device → max parameter budget</h3>
+<p>When a device is specified, extract its available memory (unified RAM for Apple Silicon, VRAM for discrete GPUs) and apply:</p>
+<ul>
+<li><strong>fp16 max params (B)</strong> ≈ memory (GB) ÷ 2</li>
+<li><strong>Q4 max params (B)</strong> ≈ memory (GB) × 2</li>
+</ul>
+<p>Examples: 16GB → 8B fp16 / 32B Q4 — 24GB VRAM → 12B fp16 / 48B Q4 — 8GB → 4B fp16 / 16B Q4</p>
+<hr>
+<h2 id="step-2-find-relevant-benchmark-datasets">Step 2: Find relevant benchmark datasets</h2>
+<p>Fetch the full list of official HF benchmarks:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -H "Authorization: Bearer $(cat ~/.cache/huggingface/token)" \
+  "https://huggingface.co/api/datasets?filter=benchmark:official&amp;limit=500" | jq '[.[] | {id, tags, description}]'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Read the returned list and select the datasets most relevant to the user's task — match on dataset id, tags, and description. Use your judgment; don't limit yourself to 2-3. Aim for comprehensive coverage: if 5 benchmarks clearly cover the task, use all 5.</p>
+<hr>
+<h2 id="step-3-fetch-top-models-from-leaderboards">Step 3: Fetch top models from leaderboards</h2>
+<p>For each selected benchmark dataset:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -H "Authorization: Bearer $(cat ~/.cache/huggingface/token)" \
+  "https://huggingface.co/api/datasets/&lt;namespace&gt;/&lt;repo&gt;/leaderboard" | jq '[.[:15] | .[] | {rank, modelId, value, verified}]'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Collect model IDs and scores across all benchmarks. If a leaderboard returns an error (404, 401, etc.), skip it and note it in the output.</p>
+<hr>
+<h2 id="step-4-enrich-with-model-metadata">Step 4: Enrich with model metadata</h2>
+<p>For the top 10-15 candidate model IDs, get model infos.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># REST API
+curl -s -H "Authorization: Bearer $(cat ~/.cache/huggingface/token)" \
+  "https://huggingface.co/api/models/org/model1" | jq '{safetensors, tags, cardData}'
+
+# CLI (hf-cli)
+hf models info org/model1 --json | jq '{safetensors, tags, cardData}'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Extract from each response:</p>
+<ul>
+<li><strong>Parameters</strong>: <code>safetensors.total</code> → convert to B (e.g., 7_241_748_480 → "7.2B")</li>
+<li><strong>License</strong>: from model card tags (look for <code>license:apache-2.0</code>, <code>license:mit</code>, etc.)</li>
+<li>If <code>safetensors</code> is absent, parse size from the model name (look for "7b", "8b", "13b", "70b", "72b", etc.)</li>
+</ul>
+<hr>
+<h2 id="step-5-filter-and-rank">Step 5: Filter and rank</h2>
+<p><strong>If a device was specified:</strong></p>
+<ol>
+<li>Remove models exceeding the fp16 parameter budget for the device</li>
+<li>Flag models that fit only with Q4 quantization (multiply budget by ~4 for Q4 capacity)</li>
+<li>If a highly-ranked model is slightly over budget, keep it with a "needs Q4" note — don't silently drop it</li>
+</ol>
+<p><strong>If no device was mentioned:</strong> skip all size filtering — just rank by benchmark score.</p>
+<p>Then: rank by benchmark score (descending), keep top 5-8 models.</p>
+<p>Include proprietary models (GPT-4, Claude, Gemini) if they appear on leaderboards, but flag them as "API only / not self-hostable". If the user explicitly asked for local/open models only, exclude them.</p>
+<hr>
+<h2 id="step-6-output">Step 6: Output</h2>
+<h3>Comparison table</h3>
+<div class="code-wrapper"><pre><code class="language-markdown">| # | Model | Params | [Benchmark 1] | [Benchmark 2] | License | On device |
+|---|-------|--------|--------------|--------------|---------|-----------|
+| ⭐1 | [org/name](https://huggingface.co/org/name) | 7B | 85.2% | — | Apache 2.0 | Yes (fp16) |
+| 2 | [org/name](https://huggingface.co/org/name) | 13B | 83.1% | 71.5% | MIT | Q4 only |
+| 3 | [org/name](https://huggingface.co/org/name) | 70B | 90.0% | 81.0% | Llama | Too large |
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Link model names to <code>https://huggingface.co/&lt;model_id&gt;</code></li>
+<li>Use <code>—</code> for benchmarks where the model wasn't evaluated</li>
+<li>Star the top recommended pick with ⭐</li>
+<li>"On device" values: <code>Yes (fp16)</code>, <code>Q4 only</code>, <code>Too large</code>, <code>API only</code></li>
+</ul>
+<h3>Follow-up</h3>
+<p>After presenting the table, ask the user: "Would you like to run <strong>[top recommended model]</strong>?"</p>
+<p>If they say yes, ask whether they'd prefer to:</p>
+<ul>
+<li><strong>Run locally</strong> — ask about their device if not already known, then give appropriate setup instructions</li>
+<li><strong>Run on HF Jobs</strong> — point them to the HF Jobs guide: <a href="https://huggingface.co/docs/huggingface_hub/en/guides/jobs">https://huggingface.co/docs/huggingface_hub/en/guides/jobs</a></li>
+</ul>
+<hr>
+<h2 id="error-handling">Error handling</h2>
+<ul>
+<li><strong>Leaderboard not found</strong>: skip, note "leaderboard unavailable" in output</li>
+<li><strong>Model missing from hub_repo_details</strong>: fall back to parsing size from model name</li>
+<li><strong>No benchmarks found for task</strong>: use the curated fallback table above, or try <code>hub_repo_search</code> with <code>filters=["&lt;task&gt;"]</code> sorted by <code>trendingScore</code></li>
+<li><strong>All leaderboards fail</strong>: fall back to <code>hub_repo_search</code> for popular models tagged with the task, note that results are by popularity rather than benchmark score</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

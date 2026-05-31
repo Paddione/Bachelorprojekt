@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Anforderungen — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">requirements</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">requirements</span>
+    <span class="badge-slug">requirements</span>
+  </div>
+  <h1 class="hero-title">Anforderungen</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#funktionale-anforderungen-fa"><span class="toc-num">1.</span>&nbsp;Funktionale Anforderungen (FA)</a></li>
+<li class="toc-item"><a href="#sicherheitsanforderungen-sa"><span class="toc-num">2.</span>&nbsp;Sicherheitsanforderungen (SA)</a></li>
+<li class="toc-item"><a href="#nicht-funktionale-anforderungen-nfa"><span class="toc-num">3.</span>&nbsp;Nicht-funktionale Anforderungen (NFA)</a></li>
+<li class="toc-item"><a href="#abnahmekriterien-ak"><span class="toc-num">4.</span>&nbsp;Abnahmekriterien (AK)</a></li></ul>
+</div>
+<p>Vollständige Anforderungsdefinitionen des Workspace MVP — funktionale (FA-01–FA-26), Sicherheits- (SA-01–SA-10), nicht-funktionale (NFA-01–NFA-09) und Abnahmekriterien (AK-03, AK-04).</p>
+<hr>
+<h2 id="funktionale-anforderungen-fa">Funktionale Anforderungen (FA)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Beschreibung</th>
+<th>Erfüllungskriterien</th>
+<th>Testfall</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FA-01</td>
+<td>Messaging (Echtzeit)</td>
+<td>Echtzeit-Kommunikation über WebSocket-Protokoll. Unterstützt 1:1-Direktnachrichten, Gruppen-Direktnachrichten sowie kanalbasierte Kommunikation. Nachrichten können mit Markdown, Emoji-Reaktionen und Thread-Antworten versehen werden. Persistente Speicherung in PostgreSQL.</td>
+<td>1) Nachricht erscheint beim Empfänger in unter 500 ms; 2) 1:1-DM, Gruppen-DM und Channel-Nachrichten möglich; 3) Threads/Antworten unterstützt; 4) Nachrichten bleiben nach Container-Neustart erhalten</td>
+<td>T1: Sende DM → Nachricht erscheint; T2: Gruppen-DM → alle sehen Nachricht; T3: Channel-Nachricht → alle Mitglieder benachrichtigt</td>
+</tr>
+<tr>
+<td>FA-02</td>
+<td>Kanäle / Workspaces</td>
+<td>Öffentliche und private Kanäle. Öffentliche Kanäle für alle Mitglieder sichtbar und beitretbar; private Kanäle nur für eingeladene Mitglieder.</td>
+<td>1) Öffentliche Kanäle für alle sichtbar; 2) Private Kanäle nur für eingeladene; 3) Kanal-Namen konfigurierbar</td>
+<td>T1: Öffentlicher Kanal → User tritt ohne Einladung bei; T2: Privater Kanal → User sieht ihn nicht</td>
+</tr>
+<tr>
+<td>FA-03</td>
+<td>Videokonferenzen</td>
+<td>Vollständig self-hosted Video- und Audiokonferenzen via Nextcloud Talk mit High Performance Backend (HPB). Mindestens 10 gleichzeitige Teilnehmer. Gäste können per Link beitreten.</td>
+<td>1) Mindestens 10 gleichzeitige Teilnehmer; 2) Kamera- und Mikrofon-Übertragung; 3) Bildschirmfreigabe möglich; 4) Kein externer WebRTC-Dienst; 5) Gast-Beitritt per Link</td>
+<td>T1: Talk-Konversation → Video und Audio übertragen; T2: HPB Signaling-Server erreichbar; T3: Gast-Beitritt ohne Login möglich</td>
+</tr>
+<tr>
+<td>FA-04</td>
+<td>Dateiablage</td>
+<td>Datei-Upload in Nextcloud. Alle gängigen Dateitypen. Persistente Speicherung auf Kubernetes-Volumes. Dateien per Share-Link teilbar.</td>
+<td>1) Upload aller gängigen Dateitypen; 2) Mindestens 10 GB Speicher; 3) Dateien per Link teilbar; 4) Persistent nach Neustart</td>
+<td>T1: 100 MB ZIP hochladen; T2: Nextcloud-Quota &gt; 10 GB; T3: Link-Download funktioniert</td>
+</tr>
+<tr>
+<td>FA-05</td>
+<td>Nutzerverwaltung</td>
+<td>Vollständiger Lebenszyklus von Nutzerkonten. Rollenmodell: Admin, Nutzer. Benutzerverwaltung über Keycloak. CSV/LDIF-Import via import-users.sh. SSO-Login via Keycloak OIDC.</td>
+<td>1) Admin kann User anlegen, bearbeiten, deaktivieren; 2) Rollen Admin, User verfügbar; 3) Benutzerverwaltung in Keycloak; 4) CSV-Import möglich; 5) SSO-Login via Keycloak</td>
+<td>T1: Admin legt User an → User kann sich einloggen; T2: User in Keycloak angelegt → SSO funktioniert</td>
+</tr>
+<tr>
+<td>FA-06</td>
+<td>Benachrichtigungen</td>
+<td>Browser-Push-Benachrichtigungen. Granulare Konfiguration. Do-Not-Disturb-Modus.</td>
+<td>1) Web-Push bei neuer Nachricht; 2) Benachrichtigungen pro Kanal stummschaltbar; 3) DND-Zeitfenster konfigurierbar</td>
+<td>T1: DND aktivieren → keine Push in gesetztem Zeitraum</td>
+</tr>
+<tr>
+<td>FA-07</td>
+<td>Suche</td>
+<td>Integrierte Volltextsuche über Nachrichten und Dateinamen (PostgreSQL FTS). Filteroptionen. Suche respektiert Zugriffsrechte.</td>
+<td>1) Volltextsuche über eigene Nachrichten; 2) Dateisuche nach Dateiname; 3) Suche in unter 2 s</td>
+<td>T1: Nachricht mit 'Testbegriff' → Suche findet Ergebnis; T2: Dateiname suchen → Datei erscheint</td>
+</tr>
+<tr>
+<td>FA-08</td>
+<td>Workspace-spezifisch</td>
+<td>Anpassbare Status-Texte (Homeoffice, Beschäftigt, Abwesend) mit automatischer Ablaufzeit.</td>
+<td>1) Status für andere User sichtbar; 2) Benutzerdefinierter Status-Text möglich</td>
+<td>T1: Status setzen → anderer User sieht Status</td>
+</tr>
+<tr>
+<td>FA-10</td>
+<td>Kundenanfragen-Kontaktformular</td>
+<td>Website + Admin-Inbox: Kontaktformular auf <code>/kontakt</code> sendet Anfragen direkt in die Admin-Inbox.</td>
+<td>1) Website-Deployment läuft; 2) Kontaktformular auf <code>/kontakt</code> funktionsfähig; 3) Nachricht erscheint in Admin-Inbox</td>
+<td>T1: Website-Pod läuft; T2: Kontaktformular ausfüllen → Nachricht in Inbox</td>
+</tr>
+<tr>
+<td>FA-11</td>
+<td>Kunden-Portal</td>
+<td>Infrastruktur und Keycloak-Integration für den Kunden-Portalbereich der Website.</td>
+<td>1) Keycloak workspace-Realm erreichbar; 2) KC_DOMAIN in domain-config gesetzt</td>
+<td>T1: Keycloak läuft; T2: KEYCLOAK_ADMIN_PASSWORD gesetzt</td>
+</tr>
+<tr>
+<td>FA-12</td>
+<td>Claude Code AI Assistant</td>
+<td>KI-Assistent für Cluster- und Service-Management. MCP-Server stellen Kubernetes-, Datenbank-, Nextcloud- und Keycloak-Zugriff bereit. ForwardAuth-Proxy sichert MCP-Endpunkte.</td>
+<td>1) MCP-Server-Pods (core, apps, auth) running; 2) ForwardAuth validiert Bearer-Tokens; 3) ForwardAuth lehnt Anfragen ohne Token ab</td>
+<td>T1: MCP-Pods running; T2: Anfrage ohne Token → 401; T3: Gültiges Token → 200</td>
+</tr>
+<tr>
+<td>FA-13</td>
+<td>Dokumentation</td>
+<td>Docs-Service-Infrastruktur mit Docsify und oauth2-proxy-Absicherung.</td>
+<td>1) Docs-Service erreichbar; 2) oauth2-proxy schützt Docs via Keycloak</td>
+<td>T1: Docs-Pod running; T2: Docs erreichbar</td>
+</tr>
+<tr>
+<td>FA-14</td>
+<td>User Registration Flow</td>
+<td>Registrierungsseite <code>/registrieren</code> auf der Website. Formular erfasst Daten und löst Benachrichtigung aus.</td>
+<td>1) <code>/registrieren</code> Seite erreichbar; 2) Formular validiert Pflichtfelder; 3) Bestätigungs-E-Mail in Mailpit sichtbar</td>
+<td>T1: /registrieren → 200; T2: POST /api/register ohne Daten → 400; T3: POST mit Daten → 200</td>
+</tr>
+<tr>
+<td>FA-15</td>
+<td>OIDC Website Login</td>
+<td>Website-Login über Keycloak OIDC (Authorization Code Flow). Session in HTTP-only Cookie.</td>
+<td>1) /api/auth/login gibt 302 zu Keycloak zurück; 2) /api/auth/me gibt User-Info zurück; 3) /api/auth/logout löscht Session; 4) Keycloak-Realm hat "website"-Client</td>
+<td>T1: GET /api/auth/login → 302; T2: GET /api/auth/me ohne Session → {authenticated:false}</td>
+</tr>
+<tr>
+<td>FA-16</td>
+<td>Calendar Booking</td>
+<td>Website liest Admin-Kalender via Nextcloud CalDAV, zeigt freie Termine. Konfigurierbare Arbeitszeiten (Mo–Fr 9–17 Uhr), Slot-Dauer 60 min.</td>
+<td>1) GET /api/calendar/slots liefert JSON-Array; 2) Slots nur an Arbeitstagen Mo–Fr; 3) Keine Wochenend-Slots; 4) POST /api/booking möglich</td>
+<td>T1: GET /api/calendar/slots → JSON; T2: Keine Wochenend-Slots; T3: POST /api/booking → 200</td>
+</tr>
+<tr>
+<td>FA-17</td>
+<td>Meeting Lifecycle</td>
+<td>Bei Terminbestätigung: Talk-Raum erstellt, Gast per E-Mail eingeladen, Kalender eintrag mit Meeting-Link, Erinnerung 10 min vorher. CronJob meeting-reminders triggert /api/reminders/process.</td>
+<td>1) Talk-Raum via OCS-API erstellt; 2) Erinnerungs-E-Mail 10 min vorher; 3) POST /api/reminders/process verarbeitet Erinnerungen</td>
+<td>T1: POST /api/reminders/process → {sent,pending}; T2: CronJob meeting-reminders in K8s definiert</td>
+</tr>
+<tr>
+<td>FA-18</td>
+<td>Meeting Transcription</td>
+<td>Audio-Upload via POST /api/meeting/transcribe → faster-whisper (Medium-Modell, CPU). Rückgabe: Text + Zeitstempel.</td>
+<td>1) faster-whisper Deployment läuft; 2) POST /api/meeting/transcribe akzeptiert Audio; 3) Transkript enthält Zeitstempel</td>
+<td>T1: Whisper-Pod running; T2: Whisper /health erreichbar</td>
+</tr>
+<tr>
+<td>FA-20</td>
+<td>Meeting Finalization Pipeline</td>
+<td>POST /api/meeting/finalize erstellt Profil-Dokument und Session-Dokument, postet Zusammenfassung.</td>
+<td>1) POST /api/meeting/finalize verarbeitet Meeting-Daten; 2) Zusammenfassung gepostet</td>
+<td>T1: POST /api/meeting/finalize ohne Daten → 400; T2: Mit Daten → 200</td>
+</tr>
+<tr>
+<td>FA-21</td>
+<td>Service Catalog</td>
+<td>/leistungen-Seite zeigt Dienstleistungen mit Preisen. Jeder Service verlinkt zu /termin.</td>
+<td>1) /leistungen zeigt Services; 2) Jeder Service hat "Termin buchen"-Link</td>
+<td>T1: /leistungen → 200</td>
+</tr>
+<tr>
+<td>FA-23</td>
+<td>Vaultwarden Passwort-Manager</td>
+<td>Self-hosted Passwort-Manager mit Keycloak SSO-Integration und shared PostgreSQL. Seed-Job befüllt Tresor mit Produktions-Secret-Templates.</td>
+<td>1) Vaultwarden-Deployment läuft; 2) Erreichbar unter vault.{domain}; 3) SSO-Login via Keycloak; 4) Seed-Job erfolgreich</td>
+<td>T1: Vaultwarden-Pod running; T2: vault.{domain} erreichbar; T3: Seed-Job abgeschlossen</td>
+</tr>
+<tr>
+<td>FA-24</td>
+<td>Kollaboratives Whiteboard</td>
+<td>Nextcloud Whiteboard für visuelle Zusammenarbeit. Eigenständiges Deployment. Mehrere Nutzer können gleichzeitig zeichnen.</td>
+<td>1) Whiteboard-Deployment läuft; 2) Erreichbar unter board.{domain}; 3) Nextcloud-Integration aktiv</td>
+<td>T1: Whiteboard-Pod running; T2: board.{domain} erreichbar</td>
+</tr>
+<tr>
+<td>FA-25</td>
+<td>Mailpit E-Mail-Server</td>
+<td>Mailpit als self-hosted E-Mail-Server. Fängt alle ausgehenden E-Mails ab (SMTP). Web-UI zur E-Mail-Inspektion.</td>
+<td>1) Mailpit läuft; 2) Web-UI unter mail.{domain}; 3) SMTP-Port 1025 intern erreichbar</td>
+<td>T1: Mailpit-Pod running; T2: mail.{domain} erreichbar; T3: SMTP-Verbindung möglich</td>
+</tr>
+<tr>
+<td>FA-26</td>
+<td>Bug Report Form</td>
+<td>Website bug report endpoint. Formular sendet Tickets an Admin-Panel.</td>
+<td>1) /api/bug-report Endpunkt erreichbar; 2) Ticket in Admin-Panel sichtbar</td>
+<td>T1: POST /api/bug-report → 200</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="sicherheitsanforderungen-sa">Sicherheitsanforderungen (SA)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Beschreibung</th>
+<th>Erfüllungskriterien</th>
+<th>Testfall</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SA-01</td>
+<td>Transportverschlüsselung</td>
+<td>Alle externen Verbindungen über TLS 1.3 (Fallback TLS 1.2). TLS-Terminierung am Ingress-Controller. Automatische Zertifikatsverwaltung via Let's Encrypt. HSTS aktiviert.</td>
+<td>1) Alle HTTP-Verbindungen auf HTTPS umgeleitet; 2) TLS 1.3 oder TLS 1.2 mit starken Cipher-Suites; 3) HSTS-Header vorhanden; 4) Zertifikat gültig</td>
+<td>T1: HTTP → HTTPS Redirect; T2: HSTS-Header in Response; T3: Zertifikat gültig</td>
+</tr>
+<tr>
+<td>SA-02</td>
+<td>Authentifizierung</td>
+<td>Primäre Authentifizierung über Benutzername/Passwort mit Rate-Limiting. Optionale 2FA via TOTP. Passwort-Reset über verifizierte E-Mail.</td>
+<td>1) Login nur mit korrektem Passwort; 2) Rate-Limiting: Sperrung nach Fehlversuchen; 3) 2FA via TOTP konfigurierbar</td>
+<td>T1: Login mit gültigen Credentials → Erfolg; T2: Ungültiges Passwort → Fehler; T3: 10 Fehlversuche → Konto gesperrt</td>
+</tr>
+<tr>
+<td>SA-03</td>
+<td>Passwörter</td>
+<td>Passwörter mit bcrypt (Kostenfaktor &gt;= 12) gehasht. Policy: Mindestlänge 12 Zeichen, Groß-/Kleinbuchstaben, Zahlen und Sonderzeichen.</td>
+<td>1) Passwörter als bcrypt-Hash gespeichert; 2) Mindestlänge 12 Zeichen; 3) Kein Klartext in Logs</td>
+<td>T1: Passwort-Policy in Keycloak konfiguriert; T2: Schwaches Passwort → abgelehnt</td>
+</tr>
+<tr>
+<td>SA-04</td>
+<td>Session-Timeout</td>
+<td>Sessions nach 30 Minuten Inaktivität automatisch invalidiert. JWT-Tokens mit kurzer Gültigkeitsdauer.</td>
+<td>1) Session-Timeout nach 30 Minuten; 2) Access Token Gültigkeitsdauer konfiguriert; 3) Logout invalidiert alle Sessions</td>
+<td>T1: Session-Timeout in Keycloak konfiguriert; T2: Logout → alle Sessions ungültig</td>
+</tr>
+<tr>
+<td>SA-05</td>
+<td>Audit-Log</td>
+<td>Unveränderliches Audit-Log für sicherheitsrelevante Ereignisse. Aufbewahrung mindestens 90 Tage.</td>
+<td>1) Login-Ereignisse protokolliert; 2) Audit-Log enthält Zeitstempel, User-ID, Aktion; 3) Aufbewahrung mindestens 90 Tage</td>
+<td>T1: Login-Event in Keycloak Audit-Log; T2: Fehlgeschlagener Login protokolliert</td>
+</tr>
+<tr>
+<td>SA-06</td>
+<td>RBAC</td>
+<td>Rollenbasierte Zugriffskontrolle. Rollen: Admin, Member. Prinzip der minimalen Rechtevergabe.</td>
+<td>1) Rollen Admin und User mit unterschiedlichen Rechten; 2) Neue User erhalten standardmäßig Member-Rechte</td>
+<td>T1: Admin-Rolle → volles Zugriffsrecht; T2: Member → kein Admin-Panel-Zugriff</td>
+</tr>
+<tr>
+<td>SA-07</td>
+<td>Backup</td>
+<td>Automatisierte tägliche Backups aller kritischen Daten. Backup-Rotation: 30 Tage.</td>
+<td>1) Tägliches Backup per CronJob; 2) Backup-Rotation: 30 Tage; 3) Restore erfolgreich verifiziert</td>
+<td>T1: CronJob db-backup aktiv; T2: Backup-Datei vorhanden</td>
+</tr>
+<tr>
+<td>SA-08</td>
+<td>Single Sign-On (SSO)</td>
+<td>Zentrales Identity-Management über Keycloak OIDC. Alle Dienste (Nextcloud, Vaultwarden, Website, Docs) authentifizieren über denselben Keycloak-Realm.</td>
+<td>1) Keycloak OIDC-Clients für Nextcloud, Vaultwarden und Website konfiguriert; 2) Redirect-URIs korrekt; 3) Nextcloud SSO-Login leitet zu Keycloak weiter; 4) Talk erbt Nextcloud-OIDC-Session</td>
+<td>T1: Nextcloud OIDC-Client in Keycloak konfiguriert; T2: SSO-Login Redirect zu Keycloak; T3: Cross-Service-SSO funktioniert</td>
+</tr>
+<tr>
+<td>SA-10</td>
+<td>MCP-Endpunkt-Absicherung</td>
+<td>ForwardAuth-Proxy schützt alle MCP-Server-Endpunkte. Zugriff nur mit gültigem Bearer-Token (aus mcp-tokens Secret). Unauthentifizierte Anfragen erhalten HTTP 401.</td>
+<td>1) ForwardAuth-Proxy deployed und running; 2) Anfragen ohne Token → 401; 3) Anfragen mit gültigem Token → 200; 4) mcp-tokens Secret vorhanden</td>
+<td>T1: ForwardAuth-Proxy-Pod running; T2: Anfrage ohne Token → 401; T3: Gültiges Token → 200</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="nicht-funktionale-anforderungen-nfa">Nicht-funktionale Anforderungen (NFA)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Beschreibung</th>
+<th>Erfüllungskriterien</th>
+<th>Testfall</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NFA-01</td>
+<td>Datenschutz</td>
+<td>Alle personenbezogenen Daten ausschließlich auf Servern in Deutschland. Keine Übermittlung an Drittanbieter außerhalb der EU. DSGVO-Löschkonzept implementiert.</td>
+<td>1) Alle Daten nur auf eigenem Server; 2) Kein Telemetrie-Datenabfluss; 3) DSGVO-Auskunftspflicht: User-Daten-Export möglich; 4) Recht auf Löschung: Account vollständig löschbar</td>
+<td>T1: Keine Verbindungen zu externen Cloud-Diensten; T2: Container-Images aus DE/EU Registries</td>
+</tr>
+<tr>
+<td>NFA-02</td>
+<td>Performance</td>
+<td>UI-Ladezeit unter 2 s. API-Response unter 1 s für 95 % der Requests.</td>
+<td>1) Seitenaufruf unter 2 s; 2) API-Response unter 1 s für 95 %</td>
+<td>T1: Seitenaufruf messen; T2: API-Antwortzeit prüfen</td>
+</tr>
+<tr>
+<td>NFA-03</td>
+<td>Verfügbarkeit</td>
+<td>Systemverfügbarkeit &gt;= 99,5 % im Jahresdurchschnitt. Kubernetes-basiertes Auto-Restart via Liveness/Readiness-Probes.</td>
+<td>1) Liveness- und Readiness-Probes konfiguriert; 2) Rolling Updates ohne Downtime; 3) Pod-Neustart nach Crash automatisch</td>
+<td>T1: Liveness-Probes für alle Deployments konfiguriert; T2: Pod-Neustart automatisch</td>
+</tr>
+<tr>
+<td>NFA-04</td>
+<td>Skalierbarkeit</td>
+<td>Horizontale Skalierung durch Kubernetes. Getesteter Bereich: 10–500 gleichzeitige Nutzer.</td>
+<td>1) Stabil mit 10 gleichzeitigen Usern; 2) RollingUpdate-Strategie aktiv; 3) Resource Requests/Limits gesetzt</td>
+<td>T1: 10 gleichzeitige User → alle Requests erfolgreich; T2: RollingUpdate-Strategie aktiv</td>
+</tr>
+<tr>
+<td>NFA-05</td>
+<td>Usability</td>
+<td>UI vollständig auf Deutsch lokalisiert. Einarbeitungszeit für Grundfunktionen maximal 30 Minuten.</td>
+<td>1) Nextcloud-UI auf Deutsch; 2) Login-Seite lädt in unter 5 s</td>
+<td>T1: Nextcloud Default-Sprache Deutsch; T2: Login-Seite erreichbar und unter 5 s</td>
+</tr>
+<tr>
+<td>NFA-06</td>
+<td>Wartbarkeit</td>
+<td>Gesamtes System als Kubernetes-Container. Updates via Rolling-Deployment. Konfiguration versioniert (GitOps).</td>
+<td>1) Alle Services via kubectl/Kustomize steuerbar; 2) Konfiguration vollständig in Git; 3) Log-Zugriff via kubectl logs</td>
+<td>T1: kubectl rollout restart → Rolling Update ohne Fehler; T2: Liveness-Probes konfiguriert</td>
+</tr>
+<tr>
+<td>NFA-07</td>
+<td>Lizenz</td>
+<td>Alle Softwarekomponenten unter anerkannten Open-Source-Lizenzen (MIT, AGPL-3.0, MPL-2.0, Apache 2.0, PostgreSQL License).</td>
+<td>1) Nextcloud (AGPL-3.0); 2) Keycloak (Apache 2.0); 3) PostgreSQL (PostgreSQL License); 4) Keine kommerziellen Lizenzen</td>
+<td>T1: Keine proprietären Container-Images; T2: Alle Images haben stabile Release-Tags</td>
+</tr>
+<tr>
+<td>NFA-08</td>
+<td>Produktions-Deployment</td>
+<td>Deployment auf Hetzner-Server mit k3s. Eigene Domain. Wildcard-TLS via Let's Encrypt (cert-manager + DNS-01).</td>
+<td>1) k3s-Cluster auf Hetzner erreichbar; 2) Alle Services unter *.{domain} erreichbar; 3) Wildcard-TLS-Zertifikat gültig</td>
+<td>T1: kubectl get nodes → Ready; T2: TLS-Zertifikat gültig; T3: cert-manager Pod running</td>
+</tr>
+<tr>
+<td>NFA-09</td>
+<td>Statisches DNS</td>
+<td>Beide Produktionscluster (korczewski, mentolder) nutzen statische IPs — DNS-Einträge werden einmalig in ipv64.net gesetzt, kein DDNS-CronJob notwendig.</td>
+<td>DNS-Eintrag zeigt auf korrekte statische IP</td>
+<td>T1: A-Record in ipv64.net stimmt mit Server-IP überein</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="abnahmekriterien-ak">Abnahmekriterien (AK)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Beschreibung</th>
+<th>Erfüllungskriterien</th>
+<th>Testfall</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AK-03</td>
+<td>Technische Machbarkeit</td>
+<td>Alle eingesetzten Technologien produktionsreif. Prototyp demonstriert technische Umsetzbarkeit. Keine experimentellen Abhängigkeiten.</td>
+<td>1) Alle Technologien produktionsreif und verfügbar; 2) Architektur-Dokumentation vorhanden; 3) Keine Alpha-Abhängigkeiten</td>
+<td>T1: k3d-Pods running; T2: Alle Images haben stabile Release-Tags</td>
+</tr>
+<tr>
+<td>AK-04</td>
+<td>Prototyp-Betrieb</td>
+<td>Prototyp startet auf Linux-Server via kubectl apply. Keine proprietären Cloud-Abhängigkeiten. setup.sh --check bestanden.</td>
+<td>1) Prototyp startet via kubectl apply; 2) Keine proprietären Cloud-Abhängigkeiten; 3) setup.sh --check Exit 0; 4) Kern-Features demonstrierbar</td>
+<td>T1: setup.sh --check → Exit 0; T2: Keine externen Dienste benötigt</td>
+</tr>
+</tbody></table>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

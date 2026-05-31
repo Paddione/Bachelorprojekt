@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Systemisches Brett — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">systemisches-brett</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-sage">systemisches brett</span>
+    <span class="badge-slug">systemisches-brett</span>
+  </div>
+  <h1 class="hero-title">Systemisches Brett</h1>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#brett-oeffnen"><span class="toc-num">1.</span>&nbsp;Brett öffnen</a></li>
+<li class="toc-item"><a href="#speichern-und-laden"><span class="toc-num">2.</span>&nbsp;Speichern und Laden</a></li>
+<li class="toc-item"><a href="#status"><span class="toc-num">3.</span>&nbsp;Status</a></li>
+<li class="toc-item"><a href="#hinweise"><span class="toc-num">4.</span>&nbsp;Hinweise</a></li></ul>
+</div>
+<p>Das <strong>Systemische Brett</strong> ist ein 3D-Aufstellungsbrett, das direkt aus einer
+Nextcloud-Talk-Sitzung heraus geöffnet werden kann. Beide Teilnehmer:innen
+sehen jede Bewegung in Echtzeit.</p>
+<h2 id="brett-oeffnen">Brett öffnen</h2>
+<p>Es gibt zwei Wege:</p>
+<p><strong>1. In jeder Talk-Konversation:</strong> den Befehl <code>/brett</code> in den Chat schreiben.
+Der Bot antwortet mit einem Link zum Brett. Beide Teilnehmer:innen klicken
+diesen Link und landen im selben Raum.</p>
+<p><strong>2. Bei geplanten Coaching-Sitzungen:</strong> der Brett-Link wird automatisch
+beim Erstellen des Termins in den Chat gepostet.</p>
+<h2 id="speichern-und-laden">Speichern und Laden</h2>
+<p>Das Brett kann jederzeit als <strong>Snapshot</strong> gespeichert werden — zum Beispiel
+"vor Intervention" oder "Familienaufstellung 1".</p>
+<ul>
+<li><strong>Speichern</strong>: Button „↓ Speichern". Klient:in (optional) und Name eingeben.</li>
+<li><strong>Laden</strong>: Button „↑ Laden". Filter wählen (Klient oder aktueller Raum)
+und Snapshot anklicken.</li>
+</ul>
+<p>Snapshots, die mit einem Klienten verknüpft sind, können in jedem späteren
+Raum geladen werden. Snapshots ohne Klient sind nur im selben Raum
+auffindbar.</p>
+<h2 id="status">Status</h2>
+<p>Oben rechts in der Werkzeugleiste zeigt eine kleine Anzeige den
+Verbindungsstatus an:</p>
+<ul>
+<li><strong>Verbunden ✓ — N Teilnehmer</strong> — alles in Ordnung.</li>
+<li><strong>Verbindung getrennt — versuche neu …</strong> — der Server stellt selbst neu
+zu (3 Sekunden). Wenn das nach mehreren Versuchen nicht klappt: Seite neu
+laden.</li>
+</ul>
+<h2 id="hinweise">Hinweise</h2>
+<ul>
+<li>Das Brett wird laufend automatisch gespeichert. Wenn alle Teilnehmer:innen
+die Seite schließen und später wiederkommen, ist das letzte Bild noch da.</li>
+<li>Snapshots sind unveränderlich. Um eine Änderung dauerhaft festzuhalten,
+einfach einen neuen Snapshot mit angepasstem Namen speichern.</li>
+<li>Das <strong>Systemische Brett</strong> (3D) ist nicht zu verwechseln mit dem
+<em>Systembrett im Whiteboard</em> — letzteres ist eine 2D-Vorlage in Nextcloud
+Whiteboard für allgemeine Workshops.</li>
+</ul>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MCP-Aktionen Referenz — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">mcp-actions</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-blue">Claude Code</span>
+    <span class="badge badge-blue">MCP Server</span>
+    <span class="badge-slug">mcp-actions</span>
+  </div>
+  <h1 class="hero-title">🤖 MCP Actions</h1>
+  <p class="hero-subtitle">Referenz aller Aktionen, die Claude Code über die verbundenen MCP-Server ausführen kann: Kubernetes, Postgres, Browser, GitHub.</p>
+  <div class="trigger-chip"><span class="label">Claude Code · MCP</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#playwright-browser-mcp-browser"><span class="toc-num">1.</span>&nbsp;Playwright Browser (mcp-browser)</a></li>
+<li class="toc-item"><a href="#kubernetes-read-only-mcp-kubernetes-via-mcp-k8s-go"><span class="toc-num">2.</span>&nbsp;Kubernetes Read-Only (mcp-kubernetes via mcp-k8s-go)</a></li>
+<li class="toc-item"><a href="#postgresql-mcp-postgres"><span class="toc-num">3.</span>&nbsp;PostgreSQL (mcp-postgres)</a></li>
+<li class="toc-item"><a href="#keycloak-mcp-keycloak"><span class="toc-num">4.</span>&nbsp;Keycloak (mcp-keycloak)</a></li>
+<li class="toc-item"><a href="#github-mcp-github"><span class="toc-num">5.</span>&nbsp;GitHub (mcp-github)</a></li>
+<li class="toc-item"><a href="#zusammenfassung"><span class="toc-num">6.</span>&nbsp;Zusammenfassung</a></li></ul>
+</div><h1>MCP-Aktionen Referenz</h1>
+<p>Alle Aktionen, die Claude Code ueber die verbundenen MCP-Server ausfuehren kann.</p>
+<h3>Konfiguration</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>configuration_contexts_list</code></td>
+<td>Alle verfuegbaren kubeconfig-Kontexte und deren Server-URLs auflisten</td>
+</tr>
+<tr>
+<td><code>configuration_view</code></td>
+<td>Aktuelle kubeconfig-YAML anzeigen (vollstaendig oder minimiert fuer aktuellen Kontext)</td>
+</tr>
+</tbody></table>
+<h3>Namespaces &amp; Events</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>namespaces_list</code></td>
+<td>Alle Namespaces im Cluster auflisten</td>
+</tr>
+<tr>
+<td><code>events_list</code></td>
+<td>Cluster-Events (Warnungen, Fehler, Zustandsaenderungen) zur Fehlersuche auflisten</td>
+</tr>
+</tbody></table>
+<h3>Nodes</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nodes_top</code></td>
+<td>CPU-/Speicherverbrauch der Nodes anzeigen (via Metrics Server)</td>
+</tr>
+<tr>
+<td><code>nodes_stats_summary</code></td>
+<td>Detaillierte Node-Statistiken: CPU, Speicher, Dateisystem, Netzwerk, PSI-Metriken</td>
+</tr>
+<tr>
+<td><code>nodes_log</code></td>
+<td>Logs eines Nodes abrufen (kubelet, kube-proxy oder beliebiger Log-Dateipfad)</td>
+</tr>
+</tbody></table>
+<h3>Pods</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pods_list</code></td>
+<td>Alle Pods ueber alle Namespaces auflisten</td>
+</tr>
+<tr>
+<td><code>pods_list_in_namespace</code></td>
+<td>Pods in einem bestimmten Namespace auflisten (unterstuetzt Label-/Field-Selektoren)</td>
+</tr>
+<tr>
+<td><code>pods_get</code></td>
+<td>Vollstaendiges Manifest eines bestimmten Pods abrufen</td>
+</tr>
+<tr>
+<td><code>pods_log</code></td>
+<td>Logs eines Pods oder bestimmten Containers ansehen (unterstuetzt vorherigen Container)</td>
+</tr>
+<tr>
+<td><code>pods_exec</code></td>
+<td>Befehl in einem Pod-Container ausfuehren (Shell-Zugriff)</td>
+</tr>
+<tr>
+<td><code>pods_run</code></td>
+<td>Neuen Pod aus einem Image starten (ephemere/Debug-Pods)</td>
+</tr>
+<tr>
+<td><code>pods_delete</code></td>
+<td>Pod nach Name loeschen</td>
+</tr>
+<tr>
+<td><code>pods_top</code></td>
+<td>CPU-/Speicherverbrauch der Pods anzeigen (via Metrics Server)</td>
+</tr>
+</tbody></table>
+<h3>Generische Ressourcen</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>resources_list</code></td>
+<td>Beliebige Kubernetes-Ressource nach apiVersion + kind auflisten (Deployments, Services, Ingresses usw.)</td>
+</tr>
+<tr>
+<td><code>resources_get</code></td>
+<td>Bestimmte Ressource nach apiVersion, kind und Name abrufen</td>
+</tr>
+<tr>
+<td><code>resources_create_or_update</code></td>
+<td>YAML/JSON-Ressourcen-Manifest anwenden (erstellen oder aktualisieren)</td>
+</tr>
+<tr>
+<td><code>resources_delete</code></td>
+<td>Ressource nach apiVersion, kind und Name loeschen</td>
+</tr>
+<tr>
+<td><code>resources_scale</code></td>
+<td>Replica-Anzahl eines Deployments oder StatefulSets abfragen oder setzen</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="playwright-browser-mcp-browser">Playwright Browser (<code>mcp-browser</code>)</h2>
+<p>Vollstaendige Browser-Automatisierung via <code>@playwright/mcp</code> (Microsoft). Fuehrt headloses Chromium im Cluster aus.</p>
+<p>Aktionen verwenden ein <strong>Accessibility-Snapshot-Modell</strong> -- <code>browser_snapshot</code> liefert eine strukturierte DOM-Referenz, andere Aktionen adressieren Elemente ueber deren <code>ref</code> aus dem Snapshot.</p>
+<h3>Navigation</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>browser_navigate</code></td>
+<td>Zu einer URL navigieren</td>
+</tr>
+<tr>
+<td><code>browser_navigate_back</code></td>
+<td>Zurueck zur vorherigen Seite im Verlauf</td>
+</tr>
+<tr>
+<td><code>browser_wait_for</code></td>
+<td>Auf das Erscheinen/Verschwinden von Text warten oder N Sekunden pausieren</td>
+</tr>
+</tbody></table>
+<h3>Seiten-Inspektion</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>browser_snapshot</code></td>
+<td>Accessibility-Tree der aktuellen Seite erfassen (bevorzugt gegenueber Screenshot fuer Interaktionen)</td>
+</tr>
+<tr>
+<td><code>browser_take_screenshot</code></td>
+<td>PNG/JPEG-Screenshot des Viewports, der gesamten Seite oder eines bestimmten Elements</td>
+</tr>
+<tr>
+<td><code>browser_console_messages</code></td>
+<td>Alle Browser-Konsolennachrichten zurueckgeben (Fehler/Warnung/Info/Debug)</td>
+</tr>
+<tr>
+<td><code>browser_network_requests</code></td>
+<td>Alle Netzwerk-Requests seit Seitenladung auflisten (filterbar nach URL-Muster, inkl. Header/Body)</td>
+</tr>
+</tbody></table>
+<h3>Interaktion</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>browser_click</code></td>
+<td>Element anklicken (Einzel-, Doppel- oder Rechtsklick; mit Modifier-Tasten)</td>
+</tr>
+<tr>
+<td><code>browser_hover</code></td>
+<td>Maus ueber ein Element bewegen</td>
+</tr>
+<tr>
+<td><code>browser_type</code></td>
+<td>Text in ein editierbares Element eingeben (optional mit Enter absenden)</td>
+</tr>
+<tr>
+<td><code>browser_press_key</code></td>
+<td>Bestimmte Taste druecken (z.B. <code>ArrowLeft</code>, <code>Enter</code>, <code>Escape</code>)</td>
+</tr>
+<tr>
+<td><code>browser_fill_form</code></td>
+<td>Mehrere Formularfelder gleichzeitig ausfuellen (Textbox, Checkbox, Radio, Combobox, Slider)</td>
+</tr>
+<tr>
+<td><code>browser_select_option</code></td>
+<td>Eine oder mehrere Optionen in einem Dropdown auswaehlen</td>
+</tr>
+<tr>
+<td><code>browser_drag</code></td>
+<td>Drag-and-Drop zwischen zwei Elementen</td>
+</tr>
+<tr>
+<td><code>browser_file_upload</code></td>
+<td>Eine oder mehrere Dateien ueber einen File-Chooser hochladen</td>
+</tr>
+<tr>
+<td><code>browser_handle_dialog</code></td>
+<td>Browser-Dialog bestaetigen oder abbrechen (Alert, Confirm, Prompt)</td>
+</tr>
+</tbody></table>
+<h3>Tabs</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>browser_tabs</code></td>
+<td>Browser-Tabs auflisten, erstellen, schliessen oder wechseln</td>
+</tr>
+</tbody></table>
+<h3>Scripting</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>browser_evaluate</code></td>
+<td>JavaScript-Ausdruck auf der Seite oder gegen ein bestimmtes Element auswerten</td>
+</tr>
+<tr>
+<td><code>browser_run_code</code></td>
+<td>Beliebiges Playwright <code>async (page) =&gt; { ... }</code> Code-Snippet ausfuehren</td>
+</tr>
+</tbody></table>
+<h3>Lebenszyklus</h3>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>browser_close</code></td>
+<td>Aktuelle Seite/Browser schliessen</td>
+</tr>
+<tr>
+<td><code>browser_resize</code></td>
+<td>Browserfenster auf bestimmte Breite/Hoehe aendern</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Tipp:</strong> Der typische Ablauf ist <code>browser_navigate</code> → <code>browser_snapshot</code> (Element-Refs erhalten) → Interaktions-Aktionen → <code>browser_take_screenshot</code> zur Verifikation.</p>
+</blockquote>
+<hr>
+<h2 id="kubernetes-read-only-mcp-kubernetes-via-mcp-k8s-go">Kubernetes Read-Only (<code>mcp-kubernetes</code> via <code>mcp-k8s-go</code>)</h2>
+<p>Ein Read-Only-Kubernetes-MCP-Server, der im Cluster als Teil von <code>claude-code-mcp-ops</code> laeuft. Wird von Claude Code zur Cluster-Inspektion ohne Schreibzugriff verwendet.</p>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>list-k8s-contexts</code></td>
+<td>Alle Kubernetes-Kontexte aus kubeconfig auflisten</td>
+</tr>
+<tr>
+<td><code>list-k8s-namespaces</code></td>
+<td>Namespaces in einem bestimmten Kontext auflisten</td>
+</tr>
+<tr>
+<td><code>list-k8s-nodes</code></td>
+<td>Nodes in einem bestimmten Kontext auflisten</td>
+</tr>
+<tr>
+<td><code>list-k8s-resources</code></td>
+<td>Beliebige Ressource nach kind (und optionalem group/version/namespace) auflisten</td>
+</tr>
+<tr>
+<td><code>get-k8s-resource</code></td>
+<td>Vollstaendige Details einer bestimmten Ressource als JSON oder via Go-Template</td>
+</tr>
+<tr>
+<td><code>list-k8s-events</code></td>
+<td>Events in einem Namespace fuer einen bestimmten Kontext auflisten</td>
+</tr>
+<tr>
+<td><code>get-k8s-pod-logs</code></td>
+<td>Pod-Logs abrufen (unterstuetzt Container-Auswahl, Zeitfilter, Byte-Limit)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Nur lesend</strong> -- keine Erstell-, Aktualisierungs-, Loesch-, Exec- oder Skalierungs-Operationen.</p>
+</blockquote>
+<hr>
+<h2 id="postgresql-mcp-postgres">PostgreSQL (<code>mcp-postgres</code>)</h2>
+<p>Direkter SQL-Zugriff auf die gemeinsame PostgreSQL-Instanz (<code>shared-db</code>) im Cluster.</p>
+<table>
+<thead>
+<tr>
+<th>Aktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>query</code></td>
+<td>SQL-Abfrage (nur lesend) gegen die gemeinsame Datenbank ausfuehren</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Nur lesend</strong> -- ausschliesslich <code>SELECT</code>-Abfragen. Alle Workspace-Datenbanken (Keycloak, Nextcloud, Website usw.) liegen auf dieser gemeinsamen Instanz und sind abfragbar.</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><strong>Hinweis:</strong> Alle folgenden MCP-Server sind sowohl im k3d-Cluster (via <code>k3d/claude-code-mcp-*.yaml</code>) als auch im Produktions-Overlay (<code>deploy/mcp/</code>) verfuegbar. Deploy: <code>task mcp:deploy</code> oder <code>task workspace:up</code>.</p>
+</blockquote>
+<hr>
+<h2 id="keycloak-mcp-keycloak">Keycloak (<code>mcp-keycloak</code>)</h2>
+<p>Image: <code>quay.io/sshaaf/keycloak-mcp-server</code>
+Verwendet SSE-Transport (nicht streamable-HTTP). Erfordert ein gueltiges Keycloak-Bearer-Token bei jedem Request.</p>
+<table>
+<thead>
+<tr>
+<th>Bereich</th>
+<th>Abdeckung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Benutzer</td>
+<td>Benutzer erstellen, lesen, aktualisieren, loeschen; Passwoerter zuruecksetzen</td>
+</tr>
+<tr>
+<td>Gruppen</td>
+<td>Gruppen und Mitgliedschaften verwalten</td>
+</tr>
+<tr>
+<td>Rollen</td>
+<td>Realm-/Client-Rollen zuweisen und verwalten</td>
+</tr>
+<tr>
+<td>Clients</td>
+<td>OIDC-Clients auflisten und inspizieren</td>
+</tr>
+<tr>
+<td>Sessions</td>
+<td>Aktive Sessions auflisten und widerrufen</td>
+</tr>
+<tr>
+<td>Realms</td>
+<td>Realm-Konfiguration inspizieren</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="github-mcp-github">GitHub (<code>mcp-github</code>)</h2>
+<p>Image: <code>ghcr.io/github/github-mcp-server</code> (offizieller GitHub MCP-Server)
+<strong>Standardmaessig deaktiviert</strong> (<code>replicas: 0</code>) -- erfordert einen GitHub PAT via <code>task mcp:set-github-pat</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Bereich</th>
+<th>Abdeckung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Repositories</td>
+<td>Auflisten, suchen, Repo-Details abrufen</td>
+</tr>
+<tr>
+<td>Issues</td>
+<td>Issues erstellen, lesen, aktualisieren, kommentieren</td>
+</tr>
+<tr>
+<td>Pull Requests</td>
+<td>PRs erstellen, auflisten, reviewen, mergen</td>
+</tr>
+<tr>
+<td>Code</td>
+<td>Code durchsuchen, Dateiinhalte lesen, Commits abrufen</td>
+</tr>
+<tr>
+<td>Actions</td>
+<td>Workflow-Laeufe und Jobs auflisten</td>
+</tr>
+<tr>
+<td>Releases</td>
+<td>Releases auflisten und abrufen</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="zusammenfassung">Zusammenfassung</h2>
+<table>
+<thead>
+<tr>
+<th>MCP-Server</th>
+<th>Aktionen</th>
+<th>Kategorie</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Gmail</td>
+<td>7</td>
+<td>Persoenliche Produktivitaet</td>
+</tr>
+<tr>
+<td>Google Calendar</td>
+<td>9</td>
+<td>Persoenliche Produktivitaet</td>
+</tr>
+<tr>
+<td>FRITZ!Box</td>
+<td>4</td>
+<td>Heimnetzwerk / Infrastruktur</td>
+</tr>
+<tr>
+<td>IDE</td>
+<td>2</td>
+<td>Entwicklungs-Tooling</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>20</td>
+<td>Cluster-Operationen</td>
+</tr>
+<tr>
+<td>Playwright Browser</td>
+<td>21</td>
+<td>Browser-Automatisierung</td>
+</tr>
+<tr>
+<td>Kubernetes Read-Only</td>
+<td>7</td>
+<td>Cluster-Inspektion (Claude Code-seitig)</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>1</td>
+<td>Gemeinsame DB, nur lesender SQL-Zugriff</td>
+</tr>
+<tr>
+<td>— <em>nur deploy/mcp Overlay (laeuft nicht in k3d)</em> —</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Keycloak</td>
+<td>~6 Bereiche</td>
+<td>SSO Benutzer-/Gruppen-/Rollenverwaltung</td>
+</tr>
+<tr>
+<td>GitHub</td>
+<td>~6 Bereiche</td>
+<td>Repos, Issues, PRs, Actions (PAT erforderlich)</td>
+</tr>
+<tr>
+<td><strong>Gesamt (k3d laufend)</strong></td>
+<td><strong>71</strong></td>
+<td></td>
+</tr>
+</tbody></table>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

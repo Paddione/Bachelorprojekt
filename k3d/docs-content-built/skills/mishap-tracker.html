@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>mishap-tracker — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">mishap-tracker</span></nav>
+    <h1>mishap-tracker</h1>
+    <p class="page-desc">Shared utility — converts an accumulated MISHAP_LOG from another skill's execution into tickets.tickets rows. Invoked automatically at the end of operations-management, secret-rotation, and other runbook skills. If no mishaps were found, exits cleanly.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">security</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>mishap-tracker</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#input"><span class="toc-num">1.</span> Input</a></li>
+<li class="toc-item"><a href="#step-1-severity-mapping"><span class="toc-num">2.</span> Step 1: Severity Mapping</a></li>
+<li class="toc-item"><a href="#step-2-insert-tickets"><span class="toc-num">3.</span> Step 2: Insert Tickets</a></li>
+<li class="toc-item"><a href="#step-3-fallback--manual-creation"><span class="toc-num">4.</span> Step 3: Fallback — Manual Creation</a></li>
+<li class="toc-item"><a href="#step-4-summary"><span class="toc-num">5.</span> Step 4: Summary</a></li></ul>
+</div>
+<p>Converts execution mishaps into internal tickets. Called as the final step of runbook skills that maintain a <code>MISHAP_LOG</code>.</p>
+<hr>
+<h2 id="input">Input</h2>
+<p>The calling skill accumulates a <code>MISHAP_LOG</code> — a list of entries, each with:</p>
+<ul>
+<li><code>type</code>: <code>broken</code> | <code>degraded</code> | <code>suspicious</code> | <code>security</code> | <code>drift</code> | <code>process</code></li>
+<li><code>title</code>: Short, actionable summary</li>
+<li><code>description</code>: What was observed and why it matters</li>
+<li><code>component</code>: Affected subsystem (e.g., <code>kubeconfig</code>, <code>repo/chore/…</code>, <code>skills/&lt;name&gt;</code>)</li>
+</ul>
+<p>If the log is empty or no mishaps were found, report that and stop — nothing to track.</p>
+<hr>
+<h2 id="step-1-severity-mapping">Step 1: Severity Mapping</h2>
+<table>
+<thead>
+<tr>
+<th>Mishap type</th>
+<th>Ticket type</th>
+<th>Ticket severity</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>broken</code></td>
+<td><code>bug</code></td>
+<td><code>major</code></td>
+</tr>
+<tr>
+<td><code>security</code></td>
+<td><code>bug</code></td>
+<td><code>critical</code></td>
+</tr>
+<tr>
+<td><code>degraded</code></td>
+<td><code>bug</code></td>
+<td><code>minor</code></td>
+</tr>
+<tr>
+<td><code>suspicious</code></td>
+<td><code>task</code></td>
+<td><code>minor</code></td>
+</tr>
+<tr>
+<td><code>drift</code></td>
+<td><code>task</code></td>
+<td><code>trivial</code></td>
+</tr>
+<tr>
+<td><code>process</code></td>
+<td><code>task</code></td>
+<td><code>trivial</code></td>
+</tr>
+</tbody></table>
+<p>For <code>process</code> mishaps, set <code>component = 'skills/&lt;skill-name&gt;'</code> and <code>attention_mode = 'ai_ready'</code>.</p>
+<hr>
+<h2 id="step-2-insert-tickets">Step 2: Insert Tickets</h2>
+<p>For each entry, attempt to insert into the Postgres tracker on mentolder:</p>
+<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
+  "INSERT INTO tickets.tickets (type, brand, title, description, severity, status, component${ATTN:+, attention_mode})
+   VALUES ('&lt;ticket_type&gt;', 'mentolder', '&lt;title&gt;', '&lt;description&gt;', '&lt;severity&gt;', 'triage', '&lt;component&gt;'${ATTN:+, '$ATTN'})
+   RETURNING external_id;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Escape single quotes in title/description with <code>''</code>.</li>
+<li>If the DB is unreachable (no pod, wrong context, connection refused), fall through to Step 3.</li>
+</ul>
+<hr>
+<h2 id="step-3-fallback--manual-creation">Step 3: Fallback — Manual Creation</h2>
+<p>If the database is unreachable, output each ticket as a formatted block for manual entry at <code>https://web.mentolder.de/admin/bugs</code>:</p>
+<div class="code-wrapper"><pre><code>  [&lt;type&gt;] &lt;title&gt;
+  Severity: &lt;severity&gt; | Component: &lt;component&gt;
+  &lt;description&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="step-4-summary">Step 4: Summary</h2>
+<p>Report the count of tickets created (or output for manual creation). If the log was empty, note that no mishaps were found.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

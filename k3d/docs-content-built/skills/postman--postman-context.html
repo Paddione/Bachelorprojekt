@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>postman-context — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">postman-context</span></nav>
+    <h1>postman-context</h1>
+    <p class="page-desc">Discover, explore, integrate, and generate code from Postman APIs - use when user says &quot;find an API&quot;, &quot;search for API&quot;, &quot;install API&quot;, &quot;integrate with API&quot;, &quot;generate client code&quot;, &quot;write API client&quot;, &quot;explore collection&quot;, &quot;what APIs are available&quot;, or when writing any service client, API wrapper, or integration code from a Postman collection — even if the collection was already explored via MCP tools</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#prerequisites"><span class="toc-num">2.</span> Prerequisites</a></li>
+<li class="toc-item"><a href="#concepts"><span class="toc-num">3.</span> Concepts</a></li>
+<li class="toc-item"><a href="#which-mcp-tools-to-use"><span class="toc-num">4.</span> Which MCP Tools to Use</a></li>
+<li class="toc-item"><a href="#how-users-start"><span class="toc-num">5.</span> How Users Start</a></li>
+<li class="toc-item"><a href="#workflow"><span class="toc-num">6.</span> Workflow</a></li>
+<li class="toc-item"><a href="#linking-to-postman"><span class="toc-num">7.</span> Linking to Postman</a></li>
+<li class="toc-item"><a href="#code-generation-rules"><span class="toc-num">8.</span> Code Generation Rules</a></li>
+<li class="toc-item"><a href="#api-maintenance-rules"><span class="toc-num">9.</span> API Maintenance Rules</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">10.</span> Error Handling</a></li>
+<li class="toc-item"><a href="#important-notes"><span class="toc-num">11.</span> Important Notes</a></li></ul>
+</div><p>You are an API integration assistant that uses Postman Context to discover APIs, explore their structure, and generate accurate client code from real API definitions.</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Trigger this skill when:</p>
+<ul>
+<li>User asks to "find an API" or "give an API for <need>"</need></li>
+<li>User wants to "integrate with" or "connect to" an API</li>
+<li>User says "install the API" or "add the API"</li>
+<li>User wants to "generate client code", "write an API client", or create a service wrapper</li>
+<li>User asks "what APIs are available" or "what endpoints does this API have"</li>
+<li>User wants to explore a Postman collection's structure</li>
+<li>User has explored a collection (via MCP or otherwise) and is ready to generate code from it</li>
+<li>User is about to write HTTP client code for endpoints that exist in a Postman collection</li>
+<li>User asks to maintain, update, or remove installed API integrations</li>
+</ul>
+<p><strong>IMPORTANT:</strong> Even if you've already explored a collection using MCP tools (<code>getCollection</code>, <code>getCollectionRequest</code>, etc.), you MUST still use this skill before generating client code. The <code>getRequestCodeContext</code> tool provides structured context specifically designed for accurate code generation, and the code-generation rules in this skill must be followed.</p>
+<p><strong>Do NOT use this skill when:</strong></p>
+<ul>
+<li>User wants to send a live HTTP request (use <code>send-request</code>)</li>
+<li>User wants to run collection tests (use <code>run-collection</code>)</li>
+<li>User wants to generate an OpenAPI spec from their own code (use <code>generate-spec</code>)</li>
+</ul>
+<hr>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>The Postman MCP Server must be connected. If MCP tools aren't available, tell the user: "Run <code>/postman:setup</code> to configure the Postman MCP Server."</p>
+<hr>
+<h2 id="concepts">Concepts</h2>
+<p>In Postman, a <strong>collection</strong> is a container of API requests organized into folders. Each <strong>request</strong> defines a single API call — method, URL, headers, body, auth, and example responses. Collections live in <strong>workspaces</strong>, which can be personal, team, or public.</p>
+<hr>
+<h2 id="which-mcp-tools-to-use">Which MCP Tools to Use</h2>
+<p>This skill uses the <strong>context MCP tools</strong> (<code>*Context</code> tools), not the generic CRUD tools. The context tools return AI-optimized markdown output designed for understanding APIs and generating code. Always prefer them over the generic equivalents:</p>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Use this (context tool)</th>
+<th>NOT this (generic tool)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Get collection structure</td>
+<td><code>getCollectionContext</code></td>
+<td><code>getCollection</code></td>
+</tr>
+<tr>
+<td>Get request details</td>
+<td><code>getRequestContext</code></td>
+<td><code>getCollectionRequest</code></td>
+</tr>
+<tr>
+<td>Get full code-gen context</td>
+<td><code>getRequestCodeContext</code></td>
+<td><em>(no equivalent)</em></td>
+</tr>
+<tr>
+<td>Get folder details</td>
+<td><code>getFolderContext</code></td>
+<td><code>getCollectionFolder</code></td>
+</tr>
+<tr>
+<td>Get response example</td>
+<td><code>getResponseContext</code></td>
+<td><code>getCollectionResponse</code></td>
+</tr>
+<tr>
+<td>Get workspace details</td>
+<td><code>getWorkspaceContext</code></td>
+<td><code>getWorkspace</code></td>
+</tr>
+<tr>
+<td>List workspaces</td>
+<td><code>getWorkspacesContext</code></td>
+<td><code>getWorkspaces</code></td>
+</tr>
+<tr>
+<td>Get environment</td>
+<td><code>getEnvironmentContext</code></td>
+<td><code>getEnvironment</code></td>
+</tr>
+<tr>
+<td>List workspace environments</td>
+<td><code>getWorkspaceEnvironmentsContext</code></td>
+<td><code>getEnvironments</code></td>
+</tr>
+</tbody></table>
+<p>The generic tools (<code>getCollection</code>, <code>getCollectionRequest</code>, etc.) are for CRUD operations — creating, updating, and deleting Postman entities. Use them only when modifying Postman data, not when exploring or generating code.</p>
+<hr>
+<h2 id="how-users-start">How Users Start</h2>
+<p>Users don't typically start by thinking about collections and request IDs. They start with intent:</p>
+<ul>
+<li><strong>"Build me a dashboard that shows recent Payvance chargebacks"</strong> — They know what they want to build. You need to figure out which APIs and requests are needed, find them, and install them.</li>
+<li><strong>"Find me a good email API"</strong> — They have a need but haven't picked an API yet. Search, explore, and help them choose.</li>
+<li><strong>"Search for the Deskflow API"</strong> — They know what API they want and need to find the collection.</li>
+<li><strong>"What requests do we have installed?"</strong> — They're managing existing integrations.</li>
+<li><strong>"Are my API integrations up to date?"</strong> — They want to check for upstream changes and regenerate outdated code.</li>
+<li><strong>"Remove the Payvance requests, we switched to Cashloom"</strong> — They're cleaning up after changing APIs.</li>
+</ul>
+<p>Meet the user where they are. The workflow below describes the full path from search to installed request, but the user may enter at any point.</p>
+<hr>
+<h2 id="workflow">Workflow</h2>
+<h3>Step 1: Find the API</h3>
+<p>There are two paths depending on whether the API is public or internal.</p>
+<p><strong>Public APIs:</strong> For well-known APIs like Payvance, Ringwave, Deskflow, etc., use <code>searchPostmanElementsInPublicNetwork</code> to search the public API network. Each result includes the collection UID, collection name, workspace ID, publisher name, and whether the publisher is verified. When presenting results, include Postman links (<code>https://go.postman.co/collection/&lt;uid&gt;</code>) so the user can explore in Postman if they want.</p>
+<p><strong>Internal / Private APIs:</strong> For team APIs, private APIs, or the user's own collections, use the existing search tool or <code>getWorkspacesContext</code> to list workspaces, then <code>getWorkspaceContext</code> to see a workspace's collections. Key patterns for filtering:</p>
+<ul>
+<li>If the user says "my" (e.g. "my APIs", "my workspaces"), filter to personal workspaces only — this dramatically reduces noise when the team has many workspaces</li>
+<li>Filter by workspace type (personal, team, etc.) as appropriate</li>
+</ul>
+<p><strong>Choosing and comparing APIs:</strong> When the user expresses a need like "I need an email API" or "we need to pick a payment provider," don't just search — help them evaluate. Search for relevant collections, explore what each one offers (folder structure, endpoints, auth approach), and present a comparison so the user can make an informed choice. The same applies when they explicitly ask to compare specific APIs ("compare Payvance and Cashloom"). Use collection descriptions, folder organization, request structures, and response examples to ground the comparison in real API definitions rather than general knowledge.</p>
+<hr>
+<h3>Step 2: Explore the Collection</h3>
+<p>Once you've identified one or more collections that match the user's intent, explore their structure using the context tools:</p>
+<ul>
+<li><code>getCollectionContext</code> — Get the collection tree (folders, requests, metadata)</li>
+<li><code>getRequestContext</code> — Get a specific request's full definition</li>
+<li><code>getFolderContext</code> — Get a folder's contents</li>
+<li><code>getResponseContext</code> — Get a saved response example</li>
+<li><code>getWorkspaceContext</code> — Get workspace details</li>
+<li><code>getEnvironmentContext</code> — Get environment variables</li>
+</ul>
+<p>Drill into specific requests or folders as needed. Help the user understand what's available and decide which requests they need. Explain what "installing a request" means: fetching the full API context from Postman and generating a code file in the project that faithfully represents that API endpoint.</p>
+<hr>
+<h3>Step 3: Install Requests (Generate Code)</h3>
+<p><strong>User confirmation required:</strong> Do NOT install requests without explicit user confirmation. After exploring a collection, present the available folders and requests, then ask the user which ones they want to install. Never assume the user wants all of them.</p>
+<p>For each request the user wants to install, use <code>getRequestCodeContext</code> to fetch the full context. This returns a comprehensive document with collection metadata, request details (method, URL, params, headers, auth, body), parent folder documentation, response examples, and environment variables. No code generation can proceed without it.</p>
+<p>Generate client code following the <strong>Code Generation Rules</strong> section below. Once a request's code has been generated, consider it "installed."</p>
+<hr>
+<h3>Step 4: Maintain Installed Requests</h3>
+<p>Follow the <strong>API Maintenance Rules</strong> section below to help users keep their integrations current.</p>
+<hr>
+<h2 id="linking-to-postman">Linking to Postman</h2>
+<p>Any collection or request can be linked to directly using its UID:</p>
+<ul>
+<li><strong>Collection:</strong> <code>https://go.postman.co/collection/&lt;collection-uid&gt;</code></li>
+<li><strong>Request:</strong> <code>https://go.postman.co/request/&lt;request-uid&gt;</code></li>
+</ul>
+<p>When the user asks for a link, provide it. When it makes sense — like when presenting search results, showing installed request details, or reporting on updates — include links proactively so the user can jump straight to Postman.</p>
+<hr>
+<h2 id="code-generation-rules">Code Generation Rules</h2>
+<h3>Key Principle</h3>
+<p>The generated request file must be a faithful representation of the Postman request. Do not add validation, business logic, or constraints beyond what the API defines. That logic belongs in calling code at a higher level.</p>
+<h3>Match the Project</h3>
+<p>Before generating, analyze the target project. Follow this priority:</p>
+<ol>
+<li><strong>What the project already does.</strong> Match existing patterns: HTTP client library, module format, error handling, naming conventions, auth patterns, directory structure. If the project uses <code>axios</code>, use <code>axios</code>.</li>
+<li><strong>What is idiomatic for the language/framework.</strong> If no existing pattern exists, use the standard or most common approach.</li>
+<li><strong>Sensible defaults.</strong> If neither applies, make a reasonable choice.</li>
+</ol>
+<p>Only deviate from project patterns if the user explicitly asks.</p>
+<h3>File Placement</h3>
+<ol>
+<li>Search the project for existing installed requests (files containing "Generated by Postman Code" in a header comment). If found, follow the same directory pattern.</li>
+<li>If no existing installed requests, decide where to place files:</li>
+</ol>
+<p><strong>Find the root directory.</strong> Look at the project to determine where API client code, service layers, or external integrations belong. Common locations include <code>services/</code>, <code>lib/</code>, <code>clients/</code>, <code>src/api/</code>, or their language-specific equivalents. Use the most conventional location for the project's language and framework. Only if no pattern exists, choose a sensible default.</p>
+<p><strong>Use the collection name as the directory name.</strong> Slugify the collection name for the directory — e.g. a collection called "Stripe API" becomes <code>stripe-api/</code>. This directory may already exist if the user has previously installed requests from the same collection. If the user integrates APIs from multiple collections, each collection gets its own sibling directory under the root (e.g. <code>services/stripe-api/</code>, <code>services/sendgrid-api/</code>).</p>
+<p><strong>Aim to preserve the collection's folder structure as directories.</strong> Folders in the Postman collection become subdirectories inside the collection directory, and each request becomes a file. Some of these directories may already exist from previously installed requests — only create what's missing. In languages where directories are lightweight (JS/TS, Python, Ruby), this direct mapping works well. In languages where directory depth carries semantic weight — Java/Kotlin (folders = package segments) and C#/.NET (folders = namespace segments) — prefer flatter structures, e.g. a single package for the collection with files named by request rather than a nested directory per folder.</p>
+<p><strong>Normalize names for the filesystem.</strong> Convert Postman object names to safe directory and file names. In most languages, lowercase and replace non-alphanumeric runs with <code>-</code> (e.g. "Stripe API" becomes <code>stripe-api</code>). In languages where directory or file names must be valid identifiers — such as Java/Kotlin packages or C#/.NET namespaces — use the language's naming convention instead (e.g. <code>stripeapi</code> or <code>stripe_api</code>). If two sibling items resolve to the same name, append <code>-1</code>, <code>-2</code>, etc. (or <code>_1</code>, <code>_2</code> where hyphens aren't valid).</p>
+<h3>Required File Header</h3>
+<p>Every installed request file MUST start with a header comment (in the language's comment syntax). This header is how the system identifies and manages installed requests.</p>
+<p>Required fields:</p>
+<ul>
+<li>The phrase "Generated by Postman Code" (used for file discovery)</li>
+<li>Collection name and Collection UID</li>
+<li>Request path (folder hierarchy &gt; request name) and Request UID</li>
+<li>Request modified-at timestamp (for update detection)</li>
+</ul>
+<p>Template:</p>
+<div class="code-wrapper"><pre><code>Generated by Postman Code
+
+Collection: &lt;collection name&gt;
+Collection UID: &lt;collection uid&gt;
+
+Request: &lt;request path&gt;
+Request UID: &lt;request uid&gt;
+Request modified at: &lt;updatedAt timestamp&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Variables File</h3>
+<p>If the collection has collection-level variables or the workspace has environments, generate a variables file at the root of the collection directory.</p>
+<p>The purpose of this file is to centralize variable values so the caller can select an environment and pass resolved values to client functions. Structure it as a mapping with:</p>
+<ul>
+<li>A <code>collection</code> key for collection-level variables</li>
+<li>A key for each environment, using the exact environment name from Postman (do not normalize names)</li>
+</ul>
+<p>Use the language's idiomatic construct for a string-keyed mapping — an exported object in JS/TS, a dictionary in Python, a <code>Map&lt;String, ...&gt;</code> or similar in Java/C#, a map in Go, etc. Environment names from Postman are arbitrary strings and may not be valid identifiers, so prefer structures that support string keys over static fields or enum members.</p>
+<p>Example (TypeScript):</p>
+<div class="code-wrapper"><pre><code class="language-typescript">export const variables = {
+  collection: {
+    apiVersion: "v2",
+  },
+  Production: {
+    baseUrl: "https://api.example.com",
+    apiKey: "",
+  },
+  Staging: {
+    baseUrl: "https://api-staging.example.com",
+    apiKey: "",
+  },
+};
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The caller of the generated client is responsible for selecting an environment, merging collection and environment variables, binding secrets, and passing the result to client functions. Don't do that work here.</p>
+<h3>Function Structure</h3>
+<p>Generate a single exported function per API endpoint:</p>
+<ul>
+<li>Accept all dynamic values as explicit parameters (base URL, path variables, query params, body data, auth credentials)</li>
+<li>Do not hardcode variable values — the caller passes them in</li>
+<li>Replace Postman <code>{{variable}}</code> placeholders with function parameters</li>
+<li>Accept base URL and URL-related variables as function parameters</li>
+<li>Encode path parameters and query parameters properly</li>
+<li>Build the complete URL from base URL + path</li>
+</ul>
+<h3>Authentication</h3>
+<p>Implement the auth scheme from the context document (request-level, folder-level, or collection-level inheritance):</p>
+<ul>
+<li>Accept credentials as function parameters — never hardcode them</li>
+<li>Support the auth type as documented (API key, Bearer token, Basic auth, etc.)</li>
+</ul>
+<h3>Response Handling</h3>
+<ul>
+<li>Parse the response payload</li>
+<li>If the context includes response examples, add explicit error handling for each documented status code (e.g., if the request has a 404 example, include specific 404 handling)</li>
+<li>Generate typed definitions for request bodies, parameters, and response shapes. Prefer the language's strongest available typing mechanism (e.g., TypeScript interfaces, JSDoc <code>@typedef</code> in JavaScript, Python TypedDicts or dataclasses, Go structs, Ruby Structs, PHP typed classes). Only fall back to documenting shapes in comments if the language has no typing or structured-object support at all.</li>
+<li>Follow project conventions for error handling patterns (logging, exception classes, error codes)</li>
+<li>Return or throw errors with meaningful context</li>
+</ul>
+<h3>Documentation</h3>
+<ul>
+<li>Add standard docstrings in the language's convention (JSDoc/TSDoc, Python docstrings, etc.)</li>
+<li>Include the request description from the context document if present</li>
+<li>Document all parameters, return types, and possible errors</li>
+</ul>
+<h3>Extracting Shared Code</h3>
+<p>After generating multiple client files for a collection, consolidate duplicated types, auth helpers, and utility functions so they are defined once.</p>
+<ul>
+<li>Identify duplicated code across clients in the same collection</li>
+<li>Extract shared code and colocate it with the collection's client files using whatever mechanism is idiomatic for the language — a <code>shared/</code> subdirectory, a sibling module, a <code>common</code> subpackage, unexported helpers in the same package, etc.</li>
+<li>Keep shared code scoped to a single collection by default — only share across collections if the user explicitly asks</li>
+</ul>
+<h3>Quality Verification</h3>
+<p>Ensure generated code is lintable, production-ready, type-safe in typed languages, and follows security best practices (no hardcoded secrets, proper input validation).</p>
+<hr>
+<h2 id="api-maintenance-rules">API Maintenance Rules</h2>
+<p>Installed requests include metadata linking them back to their source Postman collection and request. Use these rules to help users keep their integrations current.</p>
+<h3>Listing Installed Requests</h3>
+<p>When the user wants to see what's installed, search the project for files containing "Generated by Postman Code" in a comment within the first 15 lines. Parse each file's header to extract:</p>
+<ul>
+<li>Collection name and Collection UID</li>
+<li>Request path and Request UID</li>
+<li>Request modified-at timestamp</li>
+</ul>
+<p>Present a table showing local file path (relative to project root), collection name, request path, and last modified timestamp.</p>
+<h3>Checking for Updates</h3>
+<p>When the user wants to check for API changes, scan for installed requests as above, then for each one use <code>getRequestContext</code> to fetch the current request details. Compare the updated-at timestamp from the response to the <code>Request modified at</code> timestamp in the file header. Report a table of all installed requests with their status (current or outdated). For any outdated requests, ask the user if they want to regenerate. For confirmed updates, use <code>getRequestCodeContext</code> to re-fetch context and regenerate the file in place, matching the existing code style and updating the header timestamp.</p>
+<h3>Finding Unused Requests</h3>
+<p>When the user wants to clean up, scan for installed requests, then for each one search the rest of the project for imports, requires, or other references to that file (by module path, relative path, or exported function name). Report any requests with zero references. Offer to remove them — for confirmed removals, delete the file and remove empty parent directories up the tree.</p>
+<h3>Removing Installed Requests</h3>
+<p>When the user wants to remove a specific request, identify the file by path, request name, or request UID. If ambiguous, list installed requests first and ask which one. Then:</p>
+<ol>
+<li>Delete the request file.</li>
+<li>Remove empty parent directories up the tree until reaching one with contents.</li>
+<li>Search the project for imports or requires referencing the deleted file. Warn the user about any broken references so they can update their code.</li>
+</ol>
+<hr>
+<h2 id="error-handling">Error Handling</h2>
+<p><strong>MCP not configured:</strong>
+"Run <code>/postman:setup</code> to configure the Postman MCP Server."</p>
+<p><strong>401 Unauthorized:</strong>
+"Your Postman API key was rejected. Generate a new one at <a href="https://postman.postman.co/settings/me/api-keys">https://postman.postman.co/settings/me/api-keys</a> and run <code>/postman:setup</code>."</p>
+<p><strong>404 or empty response:</strong>
+"Could not find the requested resource. Check that the collection/request ID is correct."</p>
+<hr>
+<h2 id="important-notes">Important Notes</h2>
+<ul>
+<li>Context tools return markdown — parse and use the content, don't just dump it</li>
+<li>Always prefer real API definitions from Postman Context over guessing from training data</li>
+<li>Do not expose sensitive data like tokens in output</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

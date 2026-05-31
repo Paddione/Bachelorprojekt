@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>finishing-a-development-branch — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">finishing-a-development-branch</span></nav>
+    <h1>finishing-a-development-branch</h1>
+    <p class="page-desc">Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">5.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Finishing a Development Branch</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#the-process"><span class="toc-num">2.</span> The Process</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">3.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#common-mistakes"><span class="toc-num">4.</span> Common Mistakes</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">5.</span> Red Flags</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Guide completion of development work by presenting clear options and handling chosen workflow.</p>
+<p><strong>Core principle:</strong> Verify tests → Detect environment → Present options → Execute choice → Clean up.</p>
+<p><strong>Announce at start:</strong> "I'm using the finishing-a-development-branch skill to complete this work."</p>
+<h2 id="the-process">The Process</h2>
+<h3>Step 1: Verify Tests</h3>
+<p><strong>Before presenting options, verify tests pass:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Run project's test suite
+npm test / cargo test / pytest / go test ./...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If tests fail:</strong></p>
+<div class="code-wrapper"><pre><code>Tests failing (&lt;N&gt; failures). Must fix before completing:
+
+[Show failures]
+
+Cannot proceed with merge/PR until tests pass.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Stop. Don't proceed to Step 2.</p>
+<p><strong>If tests pass:</strong> Continue to Step 2.</p>
+<h3>Step 2: Detect Environment</h3>
+<p><strong>Determine workspace state before presenting options:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2&gt;/dev/null &amp;&amp; pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2&gt;/dev/null &amp;&amp; pwd -P)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This determines which menu to show and how cleanup works:</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Menu</th>
+<th>Cleanup</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GIT_DIR == GIT_COMMON</code> (normal repo)</td>
+<td>Standard 4 options</td>
+<td>No worktree to clean up</td>
+</tr>
+<tr>
+<td><code>GIT_DIR != GIT_COMMON</code>, named branch</td>
+<td>Standard 4 options</td>
+<td>Provenance-based (see Step 6)</td>
+</tr>
+<tr>
+<td><code>GIT_DIR != GIT_COMMON</code>, detached HEAD</td>
+<td>Reduced 3 options (no merge)</td>
+<td>No cleanup (externally managed)</td>
+</tr>
+</tbody></table>
+<h3>Step 3: Determine Base Branch</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Try common base branches
+git merge-base HEAD main 2&gt;/dev/null || git merge-base HEAD master 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Or ask: "This branch split from main - is that correct?"</p>
+<h3>Step 4: Present Options</h3>
+<p><strong>Normal repo and named-branch worktree — present exactly these 4 options:</strong></p>
+<div class="code-wrapper"><pre><code>Implementation complete. What would you like to do?
+
+1. Merge back to &lt;base-branch&gt; locally
+2. Push and create a Pull Request
+3. Keep the branch as-is (I'll handle it later)
+4. Discard this work
+
+Which option?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Detached HEAD — present exactly these 3 options:</strong></p>
+<div class="code-wrapper"><pre><code>Implementation complete. You're on a detached HEAD (externally managed workspace).
+
+1. Push as new branch and create a Pull Request
+2. Keep as-is (I'll handle it later)
+3. Discard this work
+
+Which option?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Don't add explanation</strong> - keep options concise.</p>
+<h3>Step 5: Execute Choice</h3>
+<h4>Option 1: Merge Locally</h4>
+<div class="code-wrapper"><pre><code class="language-bash"># Get main repo root for CWD safety
+MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
+
+# Merge first — verify success before removing anything
+git checkout &lt;base-branch&gt;
+git pull
+git merge &lt;feature-branch&gt;
+
+# Verify tests on merged result
+&lt;test command&gt;
+
+# Only after merge succeeds: cleanup worktree (Step 6), then delete branch
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Then: Cleanup worktree (Step 6), then delete branch:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git branch -d &lt;feature-branch&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Option 2: Push and Create PR</h4>
+<div class="code-wrapper"><pre><code class="language-bash"># Push branch
+git push -u origin &lt;feature-branch&gt;
+
+# Create PR
+gh pr create --title "&lt;title&gt;" --body "$(cat &lt;&lt;'EOF'
+## Summary
+&lt;2-3 bullets of what changed&gt;
+
+## Test Plan
+- [ ] &lt;verification steps&gt;
+EOF
+)"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Do NOT clean up worktree</strong> — user needs it alive to iterate on PR feedback.</p>
+<h4>Option 3: Keep As-Is</h4>
+<p>Report: "Keeping branch <name>. Worktree preserved at <path>."</path></name></p>
+<p><strong>Don't cleanup worktree.</strong></p>
+<h4>Option 4: Discard</h4>
+<p><strong>Confirm first:</strong></p>
+<div class="code-wrapper"><pre><code>This will permanently delete:
+- Branch &lt;name&gt;
+- All commits: &lt;commit-list&gt;
+- Worktree at &lt;path&gt;
+
+Type 'discard' to confirm.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Wait for exact confirmation.</p>
+<p>If confirmed:</p>
+<div class="code-wrapper"><pre><code class="language-bash">MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Then: Cleanup worktree (Step 6), then force-delete branch:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git branch -D &lt;feature-branch&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Step 6: Cleanup Workspace</h3>
+<p><strong>Only runs for Options 1 and 4.</strong> Options 2 and 3 always preserve the worktree.</p>
+<div class="code-wrapper"><pre><code class="language-bash">GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2&gt;/dev/null &amp;&amp; pwd -P)
+GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2&gt;/dev/null &amp;&amp; pwd -P)
+WORKTREE_PATH=$(git rev-parse --show-toplevel)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If <code>GIT_DIR == GIT_COMMON</code>:</strong> Normal repo, no worktree to clean up. Done.</p>
+<p><strong>If worktree path is under <code>.worktrees/</code>, <code>worktrees/</code>, or <code>~/.config/superpowers/worktrees/</code>:</strong> Superpowers created this worktree — we own cleanup.</p>
+<div class="code-wrapper"><pre><code class="language-bash">MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
+cd "$MAIN_ROOT"
+git worktree remove "$WORKTREE_PATH"
+git worktree prune  # Self-healing: clean up any stale registrations
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Otherwise:</strong> The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.</p>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Merge</th>
+<th>Push</th>
+<th>Keep Worktree</th>
+<th>Cleanup Branch</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. Merge locally</td>
+<td>yes</td>
+<td>-</td>
+<td>-</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>2. Create PR</td>
+<td>-</td>
+<td>yes</td>
+<td>yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>3. Keep as-is</td>
+<td>-</td>
+<td>-</td>
+<td>yes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>4. Discard</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>yes (force)</td>
+</tr>
+</tbody></table>
+<h2 id="common-mistakes">Common Mistakes</h2>
+<p><strong>Skipping test verification</strong></p>
+<ul>
+<li><strong>Problem:</strong> Merge broken code, create failing PR</li>
+<li><strong>Fix:</strong> Always verify tests before offering options</li>
+</ul>
+<p><strong>Open-ended questions</strong></p>
+<ul>
+<li><strong>Problem:</strong> "What should I do next?" is ambiguous</li>
+<li><strong>Fix:</strong> Present exactly 4 structured options (or 3 for detached HEAD)</li>
+</ul>
+<p><strong>Cleaning up worktree for Option 2</strong></p>
+<ul>
+<li><strong>Problem:</strong> Remove worktree user needs for PR iteration</li>
+<li><strong>Fix:</strong> Only cleanup for Options 1 and 4</li>
+</ul>
+<p><strong>Deleting branch before removing worktree</strong></p>
+<ul>
+<li><strong>Problem:</strong> <code>git branch -d</code> fails because worktree still references the branch</li>
+<li><strong>Fix:</strong> Merge first, remove worktree, then delete branch</li>
+</ul>
+<p><strong>Running git worktree remove from inside the worktree</strong></p>
+<ul>
+<li><strong>Problem:</strong> Command fails silently when CWD is inside the worktree being removed</li>
+<li><strong>Fix:</strong> Always <code>cd</code> to main repo root before <code>git worktree remove</code></li>
+</ul>
+<p><strong>Cleaning up harness-owned worktrees</strong></p>
+<ul>
+<li><strong>Problem:</strong> Removing a worktree the harness created causes phantom state</li>
+<li><strong>Fix:</strong> Only clean up worktrees under <code>.worktrees/</code>, <code>worktrees/</code>, or <code>~/.config/superpowers/worktrees/</code></li>
+</ul>
+<p><strong>No confirmation for discard</strong></p>
+<ul>
+<li><strong>Problem:</strong> Accidentally delete work</li>
+<li><strong>Fix:</strong> Require typed "discard" confirmation</li>
+</ul>
+<h2 id="red-flags">Red Flags</h2>
+<p><strong>Never:</strong></p>
+<ul>
+<li>Proceed with failing tests</li>
+<li>Merge without verifying tests on result</li>
+<li>Delete work without confirmation</li>
+<li>Force-push without explicit request</li>
+<li>Remove a worktree before confirming merge success</li>
+<li>Clean up worktrees you didn't create (provenance check)</li>
+<li>Run <code>git worktree remove</code> from inside the worktree</li>
+</ul>
+<p><strong>Always:</strong></p>
+<ul>
+<li>Verify tests before offering options</li>
+<li>Detect environment before presenting menu</li>
+<li>Present exactly 4 options (or 3 for detached HEAD)</li>
+<li>Get typed confirmation for Option 4</li>
+<li>Clean up worktree for Options 1 &amp; 4 only</li>
+<li><code>cd</code> to main repo root before worktree removal</li>
+<li>Run <code>git worktree prune</code> after removal</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

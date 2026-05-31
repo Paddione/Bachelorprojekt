@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>executing-plans — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">executing-plans</span></nav>
+    <h1>executing-plans</h1>
+    <p class="page-desc">Use when you have a written implementation plan to execute in a separate session with review checkpoints</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">5.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Executing Plans</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#the-process"><span class="toc-num">2.</span> The Process</a></li>
+<li class="toc-item"><a href="#when-to-stop-and-ask-for-help"><span class="toc-num">3.</span> When to Stop and Ask for Help</a></li>
+<li class="toc-item"><a href="#when-to-revisit-earlier-steps"><span class="toc-num">4.</span> When to Revisit Earlier Steps</a></li>
+<li class="toc-item"><a href="#remember"><span class="toc-num">5.</span> Remember</a></li>
+<li class="toc-item"><a href="#integration"><span class="toc-num">6.</span> Integration</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Load plan, review critically, execute all tasks, report when complete.</p>
+<p><strong>Announce at start:</strong> "I'm using the executing-plans skill to implement this plan."</p>
+<p><strong>Note:</strong> Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.</p>
+<h2 id="the-process">The Process</h2>
+<h3>Step 1: Load and Review Plan</h3>
+<ol>
+<li>Read plan file</li>
+<li>Review critically - identify any questions or concerns about the plan</li>
+<li>If concerns: Raise them with your human partner before starting</li>
+<li>If no concerns: Create TodoWrite and proceed</li>
+</ol>
+<h3>Step 2: Execute Tasks</h3>
+<p>For each task:</p>
+<ol>
+<li>Mark as in_progress</li>
+<li>Follow each step exactly (plan has bite-sized steps)</li>
+<li>Run verifications as specified</li>
+<li>Mark as completed</li>
+</ol>
+<h3>Step 3: Complete Development</h3>
+<p>After all tasks complete and verified:</p>
+<ul>
+<li>Announce: "I'm using the finishing-a-development-branch skill to complete this work."</li>
+<li><strong>REQUIRED SUB-SKILL:</strong> Use superpowers:finishing-a-development-branch</li>
+<li>Follow that skill to verify tests, present options, execute choice</li>
+</ul>
+<h2 id="when-to-stop-and-ask-for-help">When to Stop and Ask for Help</h2>
+<p><strong>STOP executing immediately when:</strong></p>
+<ul>
+<li>Hit a blocker (missing dependency, test fails, instruction unclear)</li>
+<li>Plan has critical gaps preventing starting</li>
+<li>You don't understand an instruction</li>
+<li>Verification fails repeatedly</li>
+</ul>
+<p><strong>Ask for clarification rather than guessing.</strong></p>
+<h2 id="when-to-revisit-earlier-steps">When to Revisit Earlier Steps</h2>
+<p><strong>Return to Review (Step 1) when:</strong></p>
+<ul>
+<li>Partner updates the plan based on your feedback</li>
+<li>Fundamental approach needs rethinking</li>
+</ul>
+<p><strong>Don't force through blockers</strong> - stop and ask.</p>
+<h2 id="remember">Remember</h2>
+<ul>
+<li>Review plan critically first</li>
+<li>Follow plan steps exactly</li>
+<li>Don't skip verifications</li>
+<li>Reference skills when plan says to</li>
+<li>Stop when blocked, don't guess</li>
+<li>Never start implementation on main/master branch without explicit user consent</li>
+</ul>
+<h2 id="integration">Integration</h2>
+<p><strong>Required workflow skills:</strong></p>
+<ul>
+<li><strong>superpowers:using-git-worktrees</strong> - Ensures isolated workspace (creates one or verifies existing)</li>
+<li><strong>superpowers:writing-plans</strong> - Creates the plan this skill executes</li>
+<li><strong>superpowers:finishing-a-development-branch</strong> - Complete development after all tasks</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+// scripts/build-docs.mjs
+// Orchestrator / entry point for the docs-site generator.
+// Replaces scripts/build-docs.js (removed in a later task). Discovers all
+// sources, builds an editorial cross-linked site under k3d/docs-content-built/,
+// and prints a build report. The OUT_DIR is fully generated, so a clean rebuild
+// safely removes its generated contents — every input lives under docs/ and
+// docs/legacy-html/, so nothing is lost.
+
+import {
+  readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync,
+  rmSync, copyFileSync, statSync,
+} from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
+import * as cheerio from 'cheerio';
+
+import { discoverSources } from './docs-gen/discover.mjs';
+import { buildPages, buildRegistry, parseRoutingTable, collectEdges } from './docs-gen/registry.mjs';
+import { renderMarkdown } from './docs-gen/render-markdown.mjs';
+import { editorialCss, clientJs } from './docs-gen/theme.mjs';
+import { renderPage, renderSectionIndex, renderLanding } from './docs-gen/templates.mjs';
+import { rewrapLegacyPage } from './docs-gen/legacy.mjs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = join(__dirname, '..');
+
+export const OUT_DIR = join(REPO_ROOT, 'k3d/docs-content-built');
+
+// Default plugin cache root; absent on machines without plugins installed.
+const DEFAULT_PLUGINS_ROOT = join(homedir(), '.claude/plugins/cache');
+
+// Pages copied verbatim (machine-generated, too large to rewrap reliably).
+const PASSTHROUGH_LEGACY = new Set(['datamodel-workflow.html']);
+
+// db-schema is rendered from markdown but pinned to this output slug.
+const DB_SCHEMA_SOURCE_REL = 'docs/db-schema-diagram.md';
+const DB_SCHEMA_SLUG = 'db-schema';
+
+/** @typedef {{ slug: string, title: string, excerpt: string }} SearchEntry */
+
+/**
+ * Compute a short, whitespace-collapsed excerpt from rendered HTML.
+ * @param {string} html
+ * @returns {string}
+ */
+function excerptFromHtml(html) {
+  const $ = cheerio.load(html);
+  return $('p').first().text().trim().slice(0, 160).replace(/\s+/g, ' ');
+}
+
+/**
+ * Derive a display title from rendered HTML, falling back to a slug.
+ * @param {string} html
+ * @param {string} fallback
+ * @returns {string}
+ */
+function titleFromHtml(html, fallback) {
+  const $ = cheerio.load(html);
+  const h1 = $('h1').first().text().trim();
+  if (h1) return h1;
+  const t = $('title').first().text().replace(/ — Workspace MVP$/, '').trim();
+  return t || fallback;
+}
+
+/**
+ * Ensure OUT_DIR exists and is empty of previously generated content.
+ * Only the generated output dir is touched; all inputs live under docs/.
+ * @param {string} outDir
+ */
+function cleanOutDir(outDir) {
+  if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
+  mkdirSync(outDir, { recursive: true });
+}
+
+/**
+ * Write a file, creating parent directories as needed.
+ * @param {string} outDir
+ * @param {string} relPath
+ * @param {string} content
+ */
+function writeOut(outDir, relPath, content) {
+  const dest = join(outDir, relPath);
+  mkdirSync(dirname(dest), { recursive: true });
+  writeFileSync(dest, content, 'utf8');
+}
+
+/**
+ * Full build. Accepts an options object so tests can point it at a fixture repo.
+ * @param {{ repoRoot?: string, pluginsRoot?: string, outDir?: string, homeDir?: string }} [opts]
+ * @returns {Promise<object>} build report
+ */
+export async function runBuild(opts = {}) {
+  const repoRoot = opts.repoRoot ?? REPO_ROOT;
+  const outDir = opts.outDir ?? OUT_DIR;
+  const homeDir = opts.homeDir ?? homedir();
+  const pluginsRoot = opts.pluginsRoot ?? DEFAULT_PLUGINS_ROOT;
+
+  const report = {
+    counts: { doc: 0, skill: 0, agent: 0, legacyRewrapped: 0, legacyCopied: 0, passthrough: 0 },
+    unresolved: [],
+    diagramFallbacks: 0,
+    skippedPluginSources: [],
+    pluginsRootPresent: existsSync(pluginsRoot),
+  };
+
+  cleanOutDir(outDir);
+
+  // (1) Discover all sources (repo + plugin skills/agents + docs).
+  const sources = await discoverSources({ repoRoot, pluginsRoot, homeDir });
+  if (!report.pluginsRootPresent) {
+    report.skippedPluginSources.push(`plugins root absent: ${pluginsRoot}`);
+  }
+
+  // (2) Parse the routing table from CLAUDE.md (drives domains + routing edges).
+  //     IC-3: must run BEFORE buildPages and be passed in as the second arg.
+  const claudeMdPath = join(repoRoot, 'CLAUDE.md');
+  const claudeMdText = existsSync(claudeMdPath) ? readFileSync(claudeMdPath, 'utf8') : '';
+  const routingRows = parseRoutingTable(claudeMdText);
+
+  // (3) Build pages + registry. routingRows feeds assignDomain for non-agent pages.
+  const pages = buildPages(sources, routingRows);
+
+  const registry = buildRegistry(pages);
+
+  // (4) Collect cross-link edges (used by the landing graph in Plan 2; the
+  // unresolved list feeds the build report here).
+  const { unresolved } = collectEdges(pages, registry);
+  report.unresolved.push(...unresolved);
+
+  /** @type {SearchEntry[]} */
+  const searchIndex = [];
+
+  // (5) Render every markdown-backed Page and write it to OUT_DIR/outRelPath.
+  for (const page of pages) {
+    const rendered = await renderMarkdown(page.bodyMarkdown, { registry, page });
+    report.diagramFallbacks += rendered.diagramFallbacks;
+    report.unresolved.push(...rendered.unresolved.map((u) => ({ from: page.slug, ref: u.ref })));
+    // IC-4: renderMarkdown already injected the TOC into rendered.html; pass toc: ''.
+    const html = renderPage({ page, contentHtml: rendered.html, toc: '', related: [] });
+    writeOut(outDir, page.outRelPath, html);
+    if (report.counts[page.type] !== undefined) report.counts[page.type] += 1;
+    searchIndex.push({
+      slug: page.slug,
+      title: page.title,
+      excerpt: excerptFromHtml(rendered.html),
+    });
+  }
+
+  // (6a) Legacy HTML: rewrap each (except passthrough) and write at bare slug.
+  const legacyDir = join(repoRoot, 'docs/legacy-html');
+  if (existsSync(legacyDir)) {
+    const legacyFiles = readdirSync(legacyDir)
+      .filter((f) => f.endsWith('.html'))
+      .sort();
+    for (const file of legacyFiles) {
+      const slug = file.replace(/\.html$/, '');
+      const srcPath = join(legacyDir, file);
+      if (PASSTHROUGH_LEGACY.has(file)) {
+        // Copy verbatim — too large / machine-generated to rewrap reliably.
+        copyFileSync(srcPath, join(outDir, file));
+        report.counts.passthrough += 1;
+        const raw = readFileSync(srcPath, 'utf8');
+        searchIndex.push({
+          slug,
+          title: titleFromHtml(raw, slug),
+          excerpt: excerptFromHtml(raw),
+        });
+        continue;
+      }
+      const raw = readFileSync(srcPath, 'utf8');
+      const { title, innerHtml, mode } = rewrapLegacyPage(raw, slug);
+      if (mode === 'copied') {
+        copyFileSync(srcPath, join(outDir, file));
+        report.counts.legacyCopied += 1;
+        searchIndex.push({ slug, title, excerpt: excerptFromHtml(raw) });
+        continue;
+      }
+      const legacyPage = {
+        slug,
+        type: 'doc',
+        provenance: 'repo',
+        name: slug,
+        title,
+        description: '',
+        domain: null,
+        bodyMarkdown: '',
+        sourcePath: srcPath,
+        outRelPath: `${slug}.html`,
+      };
+      // IC-4: toc is a pre-rendered HTML string; pass '' for legacy pages.
+      const html = renderPage({ page: legacyPage, contentHtml: innerHtml, toc: '', related: [] });
+      writeOut(outDir, `${slug}.html`, html);
+      report.counts.legacyRewrapped += 1;
+      searchIndex.push({ slug, title, excerpt: excerptFromHtml(innerHtml) });
+    }
+  }
+
+  // (6b) db-schema: render from markdown but force the bare slug db-schema.html.
+  const dbSchemaSrc = join(repoRoot, DB_SCHEMA_SOURCE_REL);
+  if (existsSync(dbSchemaSrc)) {
+    const md = readFileSync(dbSchemaSrc, 'utf8');
+    const dbPage = {
+      slug: DB_SCHEMA_SLUG,
+      type: 'doc',
+      provenance: 'repo',
+      name: DB_SCHEMA_SLUG,
+      title: 'Shared DB — Schema Reference',
+      description: '',
+      domain: 'db',
+      bodyMarkdown: md,
+      sourcePath: dbSchemaSrc,
+      outRelPath: `${DB_SCHEMA_SLUG}.html`,
+    };
+    // IC-2: pass the full registry object so rewriteCrossLinks can call outPathFor.
+    const rendered = await renderMarkdown(md, { registry, page: dbPage });
+    report.diagramFallbacks += rendered.diagramFallbacks;
+    const title = titleFromHtml(rendered.html, dbPage.title);
+    // IC-4: renderMarkdown already injected the TOC; pass toc: ''.
+    const html = renderPage({
+      page: { ...dbPage, title },
+      contentHtml: rendered.html,
+      toc: '',
+      related: [],
+    });
+    writeOut(outDir, `${DB_SCHEMA_SLUG}.html`, html);
+    searchIndex.push({ slug: DB_SCHEMA_SLUG, title, excerpt: excerptFromHtml(rendered.html) });
+  }
+
+  // (7) Section index pages.
+  const sectionDefs = [
+    { type: 'skill', title: 'Skills', file: 'skills.html' },
+    { type: 'agent', title: 'Agents', file: 'agents.html' },
+    { type: 'doc', title: 'Docs', file: 'docs.html' },
+  ];
+  for (const def of sectionDefs) {
+    const sectionPages = pages.filter((p) => p.type === def.type);
+    const html = renderSectionIndex({ type: def.type, title: def.title, pages: sectionPages });
+    writeOut(outDir, def.file, html);
+  }
+
+  // (8) Landing page (graph-forward in Plan 2; editorial card grid in Plan 1).
+  writeOut(outDir, 'index.html', renderLanding({ pages, registry }));
+
+  // (9) Assets.
+  writeOut(outDir, 'style.css', editorialCss());
+  writeOut(outDir, 'app.js', clientJs());
+
+  // (10) search.json — array of { slug, title, excerpt }.
+  searchIndex.sort((a, b) => a.slug.localeCompare(b.slug));
+  writeOut(outDir, 'search.json', JSON.stringify(searchIndex));
+  report.counts.searchEntries = searchIndex.length;
+
+  // (11) Build report.
+  printReport(report);
+  return report;
+}
+
+/**
+ * Render a single markdown file to OUT_DIR/<slug>.html and refresh search.json,
+ * for parity with the old builder's --rebuild-page fast path.
+ * @param {string} slug
+ * @param {string} mdPath
+ * @param {string} outDir
+ * @returns {Promise<void>}
+ */
+export async function rebuildPage(slug, mdPath, outDir = OUT_DIR) {
+  mkdirSync(outDir, { recursive: true });
+  const md = readFileSync(mdPath, 'utf8');
+  const page = {
+    slug,
+    type: 'doc',
+    provenance: 'repo',
+    name: slug,
+    title: slug,
+    description: '',
+    domain: null,
+    bodyMarkdown: md,
+    sourcePath: mdPath,
+    outRelPath: `${slug}.html`,
+  };
+  // No global registry on the fast path; cross-links degrade to plain text.
+  // IC-2: buildRegistry([]) still carries outPathFor on its returned object.
+  const registry = buildRegistry([]);
+  const rendered = await renderMarkdown(md, { registry, page });
+  const title = titleFromHtml(rendered.html, slug);
+  // IC-4: renderMarkdown already injected the TOC; pass toc: ''.
+  const html = renderPage({
+    page: { ...page, title },
+    contentHtml: rendered.html,
+    toc: '',
+    related: [],
+  });
+  writeOut(outDir, `${slug}.html`, html);
+  refreshSearchIndexFromOutDir(outDir);
+  console.log(`  → ${slug}.html ✓ (search.json refreshed)`);
+}
+
+/**
+ * Rebuild search.json by scanning the already-written HTML in OUT_DIR.
+ * Used only by the --rebuild-page fast path (the full build writes it directly).
+ * @param {string} outDir
+ */
+function refreshSearchIndexFromOutDir(outDir) {
+  const files = readdirSync(outDir)
+    .filter((f) => f.endsWith('.html') && statSync(join(outDir, f)).isFile())
+    .sort();
+  const index = files.map((file) => {
+    const slug = file.replace(/\.html$/, '');
+    const raw = readFileSync(join(outDir, file), 'utf8');
+    return { slug, title: titleFromHtml(raw, slug), excerpt: excerptFromHtml(raw) };
+  });
+  writeOut(outDir, 'search.json', JSON.stringify(index));
+}
+
+/**
+ * Print the human-readable build report.
+ * @param {object} report
+ */
+function printReport(report) {
+  const c = report.counts;
+  console.log('\n── Docs build report ────────────────────────────');
+  console.log(`  docs:               ${c.doc}`);
+  console.log(`  skills:             ${c.skill}`);
+  console.log(`  agents:             ${c.agent}`);
+  console.log(`  legacy rewrapped:   ${c.legacyRewrapped}`);
+  console.log(`  legacy copied:      ${c.legacyCopied}`);
+  console.log(`  passthrough:        ${c.passthrough}`);
+  console.log(`  search entries:     ${c.searchEntries ?? 0}`);
+  console.log(`  diagram fallbacks:  ${report.diagramFallbacks}`);
+  console.log(`  unresolved refs:    ${report.unresolved.length}`);
+  if (report.unresolved.length) {
+    for (const u of report.unresolved.slice(0, 20)) {
+      console.log(`      ✗ ${u.from} → [[${u.ref}]]`);
+    }
+    if (report.unresolved.length > 20) {
+      console.log(`      … and ${report.unresolved.length - 20} more`);
+    }
+  }
+  if (!report.pluginsRootPresent || report.skippedPluginSources.length) {
+    console.log(`  skipped plugin sources:`);
+    for (const s of report.skippedPluginSources) console.log(`      ⚠ ${s}`);
+  }
+  console.log('─────────────────────────────────────────────────');
+}
+
+/**
+ * CLI entry. Supports a default full build and --rebuild-page <slug> <mdfile>.
+ */
+async function main() {
+  const argv = process.argv.slice(2);
+  const rebuildIdx = argv.indexOf('--rebuild-page');
+  if (rebuildIdx !== -1) {
+    const slug = argv[rebuildIdx + 1];
+    const mdPath = argv[rebuildIdx + 2];
+    if (!slug || !mdPath) {
+      console.error('Usage: build-docs.mjs --rebuild-page <slug> <mdfile>');
+      process.exit(1);
+    }
+    await rebuildPage(slug, mdPath, OUT_DIR);
+    console.log(`\n✓ Rebuilt ${slug}.html and refreshed search.json`);
+    return;
+  }
+  await runBuild({ repoRoot: REPO_ROOT, outDir: OUT_DIR });
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

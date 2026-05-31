@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>subagent-driven-development — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">subagent-driven-development</span></nav>
+    <h1>subagent-driven-development</h1>
+    <p class="page-desc">Use when executing implementation plans with independent tasks in the current session</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">5.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Subagent-Driven Development</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use"><span class="toc-num">1.</span> When to Use</a></li>
+<li class="toc-item"><a href="#the-process"><span class="toc-num">2.</span> The Process</a></li>
+<li class="toc-item"><a href="#model-selection"><span class="toc-num">3.</span> Model Selection</a></li>
+<li class="toc-item"><a href="#handling-implementer-status"><span class="toc-num">4.</span> Handling Implementer Status</a></li>
+<li class="toc-item"><a href="#prompt-templates"><span class="toc-num">5.</span> Prompt Templates</a></li>
+<li class="toc-item"><a href="#example-workflow"><span class="toc-num">6.</span> Example Workflow</a></li>
+<li class="toc-item"><a href="#advantages"><span class="toc-num">7.</span> Advantages</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">8.</span> Red Flags</a></li>
+<li class="toc-item"><a href="#integration"><span class="toc-num">9.</span> Integration</a></li></ul>
+</div>
+<p>Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.</p>
+<p><strong>Why subagents:</strong> You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.</p>
+<p><strong>Core principle:</strong> Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration</p>
+<p><strong>Continuous execution:</strong> Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.</p>
+<h2 id="when-to-use">When to Use</h2>
+<pre class="diagram-fallback"><code>digraph when_to_use {
+    "Have implementation plan?" [shape=diamond];
+    "Tasks mostly independent?" [shape=diamond];
+    "Stay in this session?" [shape=diamond];
+    "subagent-driven-development" [shape=box];
+    "executing-plans" [shape=box];
+    "Manual execution or brainstorm first" [shape=box];
+
+    "Have implementation plan?" -&gt; "Tasks mostly independent?" [label="yes"];
+    "Have implementation plan?" -&gt; "Manual execution or brainstorm first" [label="no"];
+    "Tasks mostly independent?" -&gt; "Stay in this session?" [label="yes"];
+    "Tasks mostly independent?" -&gt; "Manual execution or brainstorm first" [label="no - tightly coupled"];
+    "Stay in this session?" -&gt; "subagent-driven-development" [label="yes"];
+    "Stay in this session?" -&gt; "executing-plans" [label="no - parallel session"];
+}
+</code></pre>
+<p><strong>vs. Executing Plans (parallel session):</strong></p>
+<ul>
+<li>Same session (no context switch)</li>
+<li>Fresh subagent per task (no context pollution)</li>
+<li>Two-stage review after each task: spec compliance first, then code quality</li>
+<li>Faster iteration (no human-in-loop between tasks)</li>
+</ul>
+<h2 id="the-process">The Process</h2>
+<pre class="diagram-fallback"><code>digraph process {
+    rankdir=TB;
+
+    subgraph cluster_per_task {
+        label="Per Task";
+        "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
+        "Implementer subagent asks questions?" [shape=diamond];
+        "Answer questions, provide context" [shape=box];
+        "Implementer subagent implements, tests, commits, self-reviews" [shape=box];
+        "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [shape=box];
+        "Spec reviewer subagent confirms code matches spec?" [shape=diamond];
+        "Implementer subagent fixes spec gaps" [shape=box];
+        "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [shape=box];
+        "Code quality reviewer subagent approves?" [shape=diamond];
+        "Implementer subagent fixes quality issues" [shape=box];
+        "Mark task complete in TodoWrite" [shape=box];
+    }
+
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" [shape=box];
+    "More tasks remain?" [shape=diamond];
+    "Dispatch final code reviewer subagent for entire implementation" [shape=box];
+    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+
+    "Read plan, extract all tasks with full text, note context, create TodoWrite" -&gt; "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Dispatch implementer subagent (./implementer-prompt.md)" -&gt; "Implementer subagent asks questions?";
+    "Implementer subagent asks questions?" -&gt; "Answer questions, provide context" [label="yes"];
+    "Answer questions, provide context" -&gt; "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Implementer subagent asks questions?" -&gt; "Implementer subagent implements, tests, commits, self-reviews" [label="no"];
+    "Implementer subagent implements, tests, commits, self-reviews" -&gt; "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)";
+    "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" -&gt; "Spec reviewer subagent confirms code matches spec?";
+    "Spec reviewer subagent confirms code matches spec?" -&gt; "Implementer subagent fixes spec gaps" [label="no"];
+    "Implementer subagent fixes spec gaps" -&gt; "Dispatch spec reviewer subagent (./spec-reviewer-prompt.md)" [label="re-review"];
+    "Spec reviewer subagent confirms code matches spec?" -&gt; "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="yes"];
+    "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" -&gt; "Code quality reviewer subagent approves?";
+    "Code quality reviewer subagent approves?" -&gt; "Implementer subagent fixes quality issues" [label="no"];
+    "Implementer subagent fixes quality issues" -&gt; "Dispatch code quality reviewer subagent (./code-quality-reviewer-prompt.md)" [label="re-review"];
+    "Code quality reviewer subagent approves?" -&gt; "Mark task complete in TodoWrite" [label="yes"];
+    "Mark task complete in TodoWrite" -&gt; "More tasks remain?";
+    "More tasks remain?" -&gt; "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
+    "More tasks remain?" -&gt; "Dispatch final code reviewer subagent for entire implementation" [label="no"];
+    "Dispatch final code reviewer subagent for entire implementation" -&gt; "Use superpowers:finishing-a-development-branch";
+}
+</code></pre>
+<h2 id="model-selection">Model Selection</h2>
+<p>Use the least powerful model that can handle each role to conserve cost and increase speed.</p>
+<p><strong>Mechanical implementation tasks</strong> (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.</p>
+<p><strong>Integration and judgment tasks</strong> (multi-file coordination, pattern matching, debugging): use a standard model.</p>
+<p><strong>Architecture, design, and review tasks</strong>: use the most capable available model.</p>
+<p><strong>Task complexity signals:</strong></p>
+<ul>
+<li>Touches 1-2 files with a complete spec → cheap model</li>
+<li>Touches multiple files with integration concerns → standard model</li>
+<li>Requires design judgment or broad codebase understanding → most capable model</li>
+</ul>
+<h2 id="handling-implementer-status">Handling Implementer Status</h2>
+<p>Implementer subagents report one of four statuses. Handle each appropriately:</p>
+<p><strong>DONE:</strong> Proceed to spec compliance review.</p>
+<p><strong>DONE_WITH_CONCERNS:</strong> The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.</p>
+<p><strong>NEEDS_CONTEXT:</strong> The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.</p>
+<p><strong>BLOCKED:</strong> The implementer cannot complete the task. Assess the blocker:</p>
+<ol>
+<li>If it's a context problem, provide more context and re-dispatch with the same model</li>
+<li>If the task requires more reasoning, re-dispatch with a more capable model</li>
+<li>If the task is too large, break it into smaller pieces</li>
+<li>If the plan itself is wrong, escalate to the human</li>
+</ol>
+<p><strong>Never</strong> ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.</p>
+<h2 id="prompt-templates">Prompt Templates</h2>
+<ul>
+<li><code>./implementer-prompt.md</code> - Dispatch implementer subagent</li>
+<li><code>./spec-reviewer-prompt.md</code> - Dispatch spec compliance reviewer subagent</li>
+<li><code>./code-quality-reviewer-prompt.md</code> - Dispatch code quality reviewer subagent</li>
+</ul>
+<h2 id="example-workflow">Example Workflow</h2>
+<div class="code-wrapper"><pre><code>You: I'm using Subagent-Driven Development to execute this plan.
+
+[Read plan file once: docs/superpowers/plans/feature-plan.md]
+[Extract all 5 tasks with full text and context]
+[Create TodoWrite with all tasks]
+
+Task 1: Hook installation script
+
+[Get Task 1 text and context (already extracted)]
+[Dispatch implementation subagent with full task text + context]
+
+Implementer: "Before I begin - should the hook be installed at user or system level?"
+
+You: "User level (~/.config/superpowers/hooks/)"
+
+Implementer: "Got it. Implementing now..."
+[Later] Implementer:
+  - Implemented install-hook command
+  - Added tests, 5/5 passing
+  - Self-review: Found I missed --force flag, added it
+  - Committed
+
+[Dispatch spec compliance reviewer]
+Spec reviewer: ✅ Spec compliant - all requirements met, nothing extra
+
+[Get git SHAs, dispatch code quality reviewer]
+Code reviewer: Strengths: Good test coverage, clean. Issues: None. Approved.
+
+[Mark Task 1 complete]
+
+Task 2: Recovery modes
+
+[Get Task 2 text and context (already extracted)]
+[Dispatch implementation subagent with full task text + context]
+
+Implementer: [No questions, proceeds]
+Implementer:
+  - Added verify/repair modes
+  - 8/8 tests passing
+  - Self-review: All good
+  - Committed
+
+[Dispatch spec compliance reviewer]
+Spec reviewer: ❌ Issues:
+  - Missing: Progress reporting (spec says "report every 100 items")
+  - Extra: Added --json flag (not requested)
+
+[Implementer fixes issues]
+Implementer: Removed --json flag, added progress reporting
+
+[Spec reviewer reviews again]
+Spec reviewer: ✅ Spec compliant now
+
+[Dispatch code quality reviewer]
+Code reviewer: Strengths: Solid. Issues (Important): Magic number (100)
+
+[Implementer fixes]
+Implementer: Extracted PROGRESS_INTERVAL constant
+
+[Code reviewer reviews again]
+Code reviewer: ✅ Approved
+
+[Mark Task 2 complete]
+
+...
+
+[After all tasks]
+[Dispatch final code-reviewer]
+Final reviewer: All requirements met, ready to merge
+
+Done!
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="advantages">Advantages</h2>
+<p><strong>vs. Manual execution:</strong></p>
+<ul>
+<li>Subagents follow TDD naturally</li>
+<li>Fresh context per task (no confusion)</li>
+<li>Parallel-safe (subagents don't interfere)</li>
+<li>Subagent can ask questions (before AND during work)</li>
+</ul>
+<p><strong>vs. Executing Plans:</strong></p>
+<ul>
+<li>Same session (no handoff)</li>
+<li>Continuous progress (no waiting)</li>
+<li>Review checkpoints automatic</li>
+</ul>
+<p><strong>Efficiency gains:</strong></p>
+<ul>
+<li>No file reading overhead (controller provides full text)</li>
+<li>Controller curates exactly what context is needed</li>
+<li>Subagent gets complete information upfront</li>
+<li>Questions surfaced before work begins (not after)</li>
+</ul>
+<p><strong>Quality gates:</strong></p>
+<ul>
+<li>Self-review catches issues before handoff</li>
+<li>Two-stage review: spec compliance, then code quality</li>
+<li>Review loops ensure fixes actually work</li>
+<li>Spec compliance prevents over/under-building</li>
+<li>Code quality ensures implementation is well-built</li>
+</ul>
+<p><strong>Cost:</strong></p>
+<ul>
+<li>More subagent invocations (implementer + 2 reviewers per task)</li>
+<li>Controller does more prep work (extracting all tasks upfront)</li>
+<li>Review loops add iterations</li>
+<li>But catches issues early (cheaper than debugging later)</li>
+</ul>
+<h2 id="red-flags">Red Flags</h2>
+<p><strong>Never:</strong></p>
+<ul>
+<li>Start implementation on main/master branch without explicit user consent</li>
+<li>Skip reviews (spec compliance OR code quality)</li>
+<li>Proceed with unfixed issues</li>
+<li>Dispatch multiple implementation subagents in parallel (conflicts)</li>
+<li>Make subagent read plan file (provide full text instead)</li>
+<li>Skip scene-setting context (subagent needs to understand where task fits)</li>
+<li>Ignore subagent questions (answer before letting them proceed)</li>
+<li>Accept "close enough" on spec compliance (spec reviewer found issues = not done)</li>
+<li>Skip review loops (reviewer found issues = implementer fixes = review again)</li>
+<li>Let implementer self-review replace actual review (both are needed)</li>
+<li><strong>Start code quality review before spec compliance is ✅</strong> (wrong order)</li>
+<li>Move to next task while either review has open issues</li>
+</ul>
+<p><strong>If subagent asks questions:</strong></p>
+<ul>
+<li>Answer clearly and completely</li>
+<li>Provide additional context if needed</li>
+<li>Don't rush them into implementation</li>
+</ul>
+<p><strong>If reviewer finds issues:</strong></p>
+<ul>
+<li>Implementer (same subagent) fixes them</li>
+<li>Reviewer reviews again</li>
+<li>Repeat until approved</li>
+<li>Don't skip the re-review</li>
+</ul>
+<p><strong>If subagent fails task:</strong></p>
+<ul>
+<li>Dispatch fix subagent with specific instructions</li>
+<li>Don't try to fix manually (context pollution)</li>
+</ul>
+<h2 id="integration">Integration</h2>
+<p><strong>Required workflow skills:</strong></p>
+<ul>
+<li><strong>superpowers:using-git-worktrees</strong> - Ensures isolated workspace (creates one or verifies existing)</li>
+<li><strong>superpowers:writing-plans</strong> - Creates the plan this skill executes</li>
+<li><strong>superpowers:requesting-code-review</strong> - Code review template for reviewer subagents</li>
+<li><strong>superpowers:finishing-a-development-branch</strong> - Complete development after all tasks</li>
+</ul>
+<p><strong>Subagents should use:</strong></p>
+<ul>
+<li><strong>superpowers:test-driven-development</strong> - Subagents follow TDD for each task</li>
+</ul>
+<p><strong>Alternative workflow:</strong></p>
+<ul>
+<li><strong>superpowers:executing-plans</strong> - Use for parallel session instead of same-session execution</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

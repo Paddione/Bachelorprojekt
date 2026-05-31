@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Korczewski Visual Design Brief — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Korczewski Visual Design Brief</span></nav>
+    <h1>Korczewski Visual Design Brief</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Korczewski Visual Design Brief</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#how-to-read-the-mockup"><span class="toc-num">1.</span> How to read the mockup</a></li>
+<li class="toc-item"><a href="#palette-and-typography-use-these-exactly"><span class="toc-num">2.</span> Palette and typography (use these exactly)</a></li>
+<li class="toc-item"><a href="#asset-shopping-list"><span class="toc-num">3.</span> Asset shopping list</a></li>
+<li class="toc-item"><a href="#what-you-can-hand-to-a-designer-in-one-go"><span class="toc-num">4.</span> What you can hand to a designer in one go</a></li>
+<li class="toc-item"><a href="#reference"><span class="toc-num">5.</span> Reference</a></li></ul>
+</div>
+<p><strong>Companion to:</strong> <code>docs/superpowers/specs/2026-05-09-korczewski-as-mentolder-template-design.md</code>
+<strong>Live mockup:</strong> open <code>mockup.html</code> in any browser
+<strong>Live site (current):</strong> <a href="https://web.korczewski.de/">https://web.korczewski.de/</a></p>
+<h2 id="how-to-read-the-mockup">How to read the mockup</h2>
+<p>Each dashed lime box in <code>mockup.html</code> is an <strong>asset slot</strong> with an ID like <code>A2</code>, <code>A4a</code>, <code>A6c</code>. Match the ID to the table below to get the spec for that slot. Real text/copy in the mockup is final; only the dashed boxes need new art.</p>
+<h2 id="palette-and-typography-use-these-exactly">Palette and typography (use these exactly)</h2>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Hex</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--ink-900</code></td>
+<td><code>#120D1C</code></td>
+<td>Page background</td>
+</tr>
+<tr>
+<td><code>--ink-850</code></td>
+<td><code>#1A1326</code></td>
+<td>Section background (alt rows)</td>
+</tr>
+<tr>
+<td><code>--ink-700</code></td>
+<td><code>#3A2E52</code></td>
+<td>Borders, dividers</td>
+</tr>
+<tr>
+<td><code>--lime</code> (<code>--copper</code>)</td>
+<td><code>#C8F76A</code></td>
+<td>Primary accent — strokes, CTAs, headlines</td>
+</tr>
+<tr>
+<td><code>--teal</code> (<code>--cyan</code>)</td>
+<td><code>#5BD4D0</code></td>
+<td>Secondary accent — meta labels, eyebrow text</td>
+</tr>
+<tr>
+<td><code>--fg</code></td>
+<td><code>#EFE9F4</code></td>
+<td>Body text</td>
+</tr>
+<tr>
+<td><code>--fg-mute</code></td>
+<td><code>#948AA0</code></td>
+<td>Secondary text</td>
+</tr>
+<tr>
+<td>Serif (display)</td>
+<td>Instrument Serif</td>
+<td>Headlines, pull quotes, italics</td>
+</tr>
+<tr>
+<td>Sans (body/UI)</td>
+<td>Geist (300–700)</td>
+<td>Body copy, navigation, buttons</td>
+</tr>
+<tr>
+<td>Mono (labels)</td>
+<td>JetBrains Mono</td>
+<td>Section labels, eyebrow text, code</td>
+</tr>
+</tbody></table>
+<p><strong>Mood brief for every asset:</strong> <em>Senior engineer's lab notebook. Calm. Confident. Geometric. Restrained. No gradients. No glow. No glassmorphism. No neon. No silicon-valley cliché. Line weight thin and decisive (~1.5px).</em></p>
+<hr>
+<h2 id="asset-shopping-list">Asset shopping list</h2>
+<p>Priority key: <strong>P0</strong> = site looks broken without it · <strong>P1</strong> = site feels generic without it · <strong>P2</strong> = polish.</p>
+<h3>P0 — Must have (site has visible holes today)</h3>
+<h4>A2 — Identity image</h4>
+<ul>
+<li><strong>Slot:</strong> Hero portrait (right column)</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/identity.webp</code> (currently <code>identity.svg</code> placeholder = K monogram in circle)</li>
+<li><strong>Format:</strong> WebP, ~600×800, sRGB, ≤120 KB</li>
+<li><strong>Style:</strong> ¾ profile photo OR stylized geometric portrait. Dark backdrop matching <code>--ink-900</code>. Warm key light from upper-left. Brass/lime rim light optional. Square crop must also work for OG fallbacks.</li>
+<li><strong>Acceptance:</strong> Recognizable at 160px wide on mobile. No corporate-headshot blandness — should look like the person actually engineers things.</li>
+</ul>
+<h4>A4a–A4c — Service line icons (3 used today, 7 in sprite for future)</h4>
+<ul>
+<li><strong>Slot:</strong> Service cards (3 cards on korczewski; sprite holds 7 for cross-brand reuse)</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/icons.svg</code> (sprite exists; icons need designer pass)</li>
+<li><strong>Format:</strong> Single SVG sprite, each <code>&lt;symbol&gt;</code> <code>viewBox="0 0 24 24"</code>, <code>stroke="currentColor"</code>, <code>stroke-width="1.5"</code>, round caps + joins, no fills</li>
+<li><strong>Symbol IDs (must match exactly — hard-coded in BrandConfig):</strong><ul>
+<li><code>icon-ki-beratung</code> — currently weak: chip-with-dots reads as "smart chip" but doesn't differentiate from <code>icon-ki-transition</code>. Suggest: brain hemisphere with circuit traces.</li>
+<li><code>icon-software-dev</code> — current <code>&lt;/&gt;</code> is fine; could be elevated.</li>
+<li><code>icon-deployment</code> — currently weak: isometric cube crowds at 16px. Suggest: stacked tiles + chevron, OR cargo-container silhouette.</li>
+<li><code>icon-50plus-digital</code> — phone with signal ripples (already acceptable, included for future use)</li>
+<li><code>icon-coaching</code> — two figures + dialog dots (acceptable)</li>
+<li><code>icon-beratung</code> — org-chart node tree (acceptable)</li>
+<li><code>icon-ki-transition</code> — sprout breaking from circuit (acceptable)</li>
+</ul>
+</li>
+<li><strong>Acceptance:</strong> All seven legible at 16px. Visual cohesion as a set (consistent stroke weight, geometric language). Each must clearly differentiate from the others.</li>
+</ul>
+<h4>A1 — Favicon / wordmark mark</h4>
+<ul>
+<li><strong>Slot:</strong> Browser tab, footer logo, header logo</li>
+<li><strong>Files:</strong><ul>
+<li><code>website/public/brand/korczewski/favicon.svg</code> (exists — brass K on dark, acceptable)</li>
+<li><code>website/public/brand/korczewski/favicon-32.png</code>, <code>apple-touch-icon.png</code> (180×180), <code>favicon-512.png</code> (PWA)</li>
+</ul>
+</li>
+<li><strong>Format:</strong> SVG master, viewBox 64×64. PNG exports for legacy browsers and PWA.</li>
+<li><strong>Style:</strong> Brass K monogram on <code>--ink-900</code> rounded square (8% radius). Or: a 1-glyph security-themed mark. Must read at 16×16.</li>
+<li><strong>Acceptance:</strong> Recognizable in a stack of 30 favicon tabs. Distinct from mentolder's mark.</li>
+</ul>
+<h4>OG / social share card</h4>
+<ul>
+<li><strong>Slot:</strong> Link previews (Slack, WhatsApp, Twitter, LinkedIn)</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/og-card.png</code> (exists — copied from existing <code>og-image.png</code>, 1200×630)</li>
+<li><strong>Format:</strong> PNG, 1200×630, ≤200 KB</li>
+<li><strong>Style:</strong> Wordmark "korczewski.de" in Instrument Serif (large, brass). Tagline "Software Engineering &amp; IT-Security-Beratung" in Geist below. Decorative kore-dark backdrop with subtle topology lines or fine grain. Brass hairline accent.</li>
+<li><strong>Acceptance:</strong> Tagline readable in WhatsApp preview at thumbnail size. No text smaller than 32px in the source.</li>
+</ul>
+<hr>
+<h3>P1 — Strong to have (raises perceived production quality)</h3>
+<h4>A3a–A3d — Stat watermarks (4)</h4>
+<ul>
+<li><strong>Slot:</strong> Behind each stat number in the credentials band</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/stats/{security,experience,ai,k8s}.svg</code></li>
+<li><strong>Format:</strong> SVG, viewBox 200×120, monochrome at very low opacity (~25%)</li>
+<li><strong>Style:</strong> Subtle decorative motif behind each stat. Examples: shield grid behind "B.Sc. IT-Sicherheit"; clock-and-arrow behind "10+ Jahre"; circuit-mesh behind "KI"; node-graph behind "K8s".</li>
+<li><strong>Acceptance:</strong> Visible but never competes with the foreground number. Could be omitted entirely without breaking the layout.</li>
+</ul>
+<h4>A5a–A5c — WhyMe point badges (3)</h4>
+<ul>
+<li><strong>Slot:</strong> Circular badge next to each WhyMe point</li>
+<li><strong>File:</strong> Reuse <code>icons.svg</code> symbols, OR add <code>whyme-{security,ai,delivery}</code> to the same sprite</li>
+<li><strong>Format:</strong> SVG symbols, same conventions as A4</li>
+<li><strong>Style:</strong> Pictograms — shield (security first), wand-and-spark (KI als Werkzeug), arrow-loop (Konzept→Cluster). 56×56 circle backdrop in lime stroke.</li>
+<li><strong>Acceptance:</strong> Distinct from service icons. Recognizable on first glance.</li>
+</ul>
+<h4>A7 — Quote backdrop texture</h4>
+<ul>
+<li><strong>Slot:</strong> Behind the pull quote ("Gute Systeme entstehen nicht durch Tools allein…")</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/quote-texture.svg</code> (or .webp)</li>
+<li><strong>Format:</strong> SVG (preferred — scales) or 2400×1200 WebP, ≤80 KB</li>
+<li><strong>Style:</strong> Sage-tinted noise OR fine topographic line pattern (think USGS contour map at 5% opacity). Full-bleed, repeats horizontally.</li>
+<li><strong>Acceptance:</strong> Adds tactile depth without distracting from the quote. Test: cover the quote text with your hand — the texture should still feel calm, not busy.</li>
+</ul>
+<hr>
+<h3>P2 — Polish (nice to have, ship without)</h3>
+<h4>A6a–A6d — Process step illustrations (4)</h4>
+<ul>
+<li><strong>Slot:</strong> Above each of the four process steps</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/process/{01-erstgespraech,02-klarheit,03-begleitung,04-uebergabe}.svg</code></li>
+<li><strong>Format:</strong> SVG, viewBox 320×240, line-art only</li>
+<li><strong>Style:</strong> Small isometric or line vignettes. Erstgespräch = two chairs at a table; Klarheit = a path branching with one fork chosen; Begleitung = a node moving along a track; Übergabe = a key being handed across.</li>
+<li><strong>Acceptance:</strong> All four feel like one set. Optional — pure typography also works for kore aesthetic.</li>
+</ul>
+<h4>Email signature banner</h4>
+<ul>
+<li><strong>Slot:</strong> Email signature below sign-off</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/email-signature.png</code></li>
+<li><strong>Format:</strong> PNG, 600×120, ≤50 KB</li>
+<li><strong>Style:</strong> Same source as OG card, different crop. Wordmark + role + URL.</li>
+</ul>
+<h4>404 / status illustration</h4>
+<ul>
+<li><strong>Slot:</strong> <code>/404</code> page</li>
+<li><strong>File:</strong> <code>website/public/brand/korczewski/404.svg</code></li>
+<li><strong>Style:</strong> Playful tech humor that fits the audience — broken cluster node, severed wireguard tunnel, terminated pod with grave marker. Keep palette tight.</li>
+</ul>
+<hr>
+<h2 id="what-you-can-hand-to-a-designer-in-one-go">What you can hand to a designer in one go</h2>
+<p>If commissioning external work, the <strong>fastest punch above weight</strong> is this bundle:</p>
+<ol>
+<li><strong>Identity image (A2)</strong> — one good portrait shifts the entire site's perceived quality.</li>
+<li><strong>Service icon sprite (A4)</strong> — replace the seven inline SVGs with a coherent set; deliver as <code>icons.svg</code> with the exact symbol IDs above.</li>
+<li><strong>OG card (A6 / OG section)</strong> — link previews are how the site introduces itself to people who haven't visited yet.</li>
+</ol>
+<p>Three deliverables, ~1–2 designer days, pays for itself the first time someone shares the URL.</p>
+<h2 id="reference">Reference</h2>
+<ul>
+<li>Live site: <a href="https://web.korczewski.de/">https://web.korczewski.de/</a></li>
+<li>Mentolder for visual comparison: <a href="https://web.mentolder.de/">https://web.mentolder.de/</a></li>
+<li>Existing assets to inspect: <code>website/public/brand/korczewski/</code></li>
+<li>BrandConfig (where slots are wired): <code>website/src/config/brands/korczewski.ts</code></li>
+<li>CSS tokens: <code>website/public/brand/korczewski/colors_and_type.css</code></li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

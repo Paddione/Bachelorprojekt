@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>train-sentence-transformers — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">train-sentence-transformers</span></nav>
+    <h1>train-sentence-transformers</h1>
+    <p class="page-desc">Train or fine-tune sentence-transformers models across `SentenceTransformer` (bi-encoder; dense or static embedding model; for retrieval, similarity, clustering, classification, paraphrase mining, dedup, multimodal), `CrossEncoder` (reranker; pair scoring for two-stage retrieval / pair classification), and `SparseEncoder` (SPLADE, sparse embedding model; for learned-sparse retrieval). Covers loss selection, hard-negative mining, evaluators, distillation, LoRA, Matryoshka, and Hugging Face Hub publishing. Use for any sentence-transformers training task.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Train a sentence-transformers Model</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#1-identify-the-model-type"><span class="toc-num">1.</span> 1. Identify the model type</a></li>
+<li class="toc-item"><a href="#2-required-reading"><span class="toc-num">2.</span> 2. Required reading</a></li>
+<li class="toc-item"><a href="#3-defaults"><span class="toc-num">3.</span> 3. Defaults</a></li>
+<li class="toc-item"><a href="#4-constraints-the-produced-script-must-satisfy"><span class="toc-num">4.</span> 4. Constraints the produced script must satisfy</a></li>
+<li class="toc-item"><a href="#5-workflow"><span class="toc-num">5.</span> 5. Workflow</a></li>
+<li class="toc-item"><a href="#prerequisites"><span class="toc-num">6.</span> Prerequisites</a></li></ul>
+</div>
+<p><strong>This SKILL.md is a router, not a manual.</strong> It tells you which references and example scripts to load for your task. The actual content — recommended losses, evaluators, training-script structure, model selection, training-arg knobs, troubleshooting — lives in <code>references/</code> and <code>scripts/</code>.</p>
+<p><strong>Do not synthesize a training script from this file alone.</strong> Open the per-type production template (<code>scripts/train_&lt;type&gt;_example.py</code>) and copy it as your starting point. The templates contain load-bearing scaffolding (autocast helper, model-card class, logger silencing list, <code>force=True</code>, <code>seed</code>, TF32, version-compatible imports, named-evaluator metric handling) that prior agent runs have repeatedly missed when rolling their own from a synthesized snippet.</p>
+<h2 id="1-identify-the-model-type">1. Identify the model type</h2>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Class</th>
+<th>What it does</th>
+<th>When to pick</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>[SentenceTransformer]</strong></td>
+<td><code>SentenceTransformer</code> (bi-encoder)</td>
+<td>Maps each input to a fixed-dim dense vector</td>
+<td>Retrieval, similarity, clustering, classification, paraphrase mining, dedup</td>
+</tr>
+<tr>
+<td><strong>[CrossEncoder]</strong></td>
+<td><code>CrossEncoder</code> (reranker)</td>
+<td>Scores <code>(query, passage)</code> pairs jointly</td>
+<td>Two-stage retrieval (rerank top-100 from bi-encoder), pair classification</td>
+</tr>
+<tr>
+<td><strong>[SparseEncoder]</strong></td>
+<td><code>SparseEncoder</code> (SPLADE)</td>
+<td>Sparse vectors over the vocabulary</td>
+<td>Learned-sparse retrieval, inverted-index backends (Elasticsearch / OpenSearch / Lucene)</td>
+</tr>
+</tbody></table>
+<p>Tiebreakers when the request is ambiguous: "embedding model" / "vector search" / "similarity" → <strong>[SentenceTransformer]</strong>. "rerank" / "ranker" / "two-stage" → <strong>[CrossEncoder]</strong>. "SPLADE" / "sparse" / "inverted index" → <strong>[SparseEncoder]</strong>. If still unclear, ask.</p>
+<h2 id="2-required-reading">2. Required reading</h2>
+<p><strong>Read these in full before writing any code. Do not triage by perceived relevance.</strong></p>
+<h3>Per-type — always required</h3>
+<p><strong>[SentenceTransformer]</strong></p>
+<ul>
+<li><code>references/losses_sentence_transformer.md</code> — loss-to-data-shape mapping; <code>BatchSamplers.NO_DUPLICATES</code> requirement for MNRL-family; <code>Cached*</code> ↔ <code>gradient_checkpointing</code> incompatibility.</li>
+<li><code>references/evaluators_sentence_transformer.md</code> — evaluator-to-task mapping; <code>metric_for_best_model</code> key construction (named vs unnamed); per-evaluator <code>primary_metric</code> values.</li>
+<li><code>references/model_architectures.md</code> — encoder vs decoder vs static vs Router pipelines; pooling rules (mean / cls / lasttoken); auto-mean-pooling behavior for fresh-start MLM bases.</li>
+<li><code>scripts/train_sentence_transformer_example.py</code> — production template; copy this as your starting point.</li>
+</ul>
+<p><strong>[CrossEncoder]</strong></p>
+<ul>
+<li><code>references/losses_cross_encoder.md</code> — pointwise / pairwise / listwise / distillation; <code>pos_weight</code> derivation; <code>activation_fn=Identity()</code> mandatory for non-BCE losses (silent eval-rank collapse otherwise).</li>
+<li><code>references/evaluators_cross_encoder.md</code> — <code>CrossEncoderRerankingEvaluator</code> recipe; named-evaluator key format <code>eval_{name}_{primary_metric}</code>.</li>
+<li><code>scripts/train_cross_encoder_example.py</code> — production template; copy this as your starting point.</li>
+</ul>
+<p><strong>[SparseEncoder]</strong></p>
+<ul>
+<li><code>references/losses_sparse_encoder.md</code> — <code>SpladeLoss</code> wrapper requirement; FLOPS regularizer weights; smoke-test active-dim ramp behavior.</li>
+<li><code>references/evaluators_sparse_encoder.md</code> — <code>SparseNanoBEIREvaluator</code> (English-only) and the in-domain alternative; <code>eval_{name}_{primary_metric}</code> key format.</li>
+<li><code>scripts/train_sparse_encoder_example.py</code> — production template; copy this as your starting point.</li>
+</ul>
+<h3>Cross-cutting — always required (regardless of task)</h3>
+<ul>
+<li><code>references/training_args.md</code> — <code>TrainingArguments</code> knobs, precision rules (load fp32 + autocast bf16/fp16; never <code>torch_dtype=bfloat16</code>), <code>warmup_steps</code> (float) vs deprecated <code>warmup_ratio</code>, <code>save_steps</code> must be a multiple of <code>eval_steps</code> for <code>load_best_model_at_end</code>, schedulers, HPO, tracker, resume, hub-push variants.</li>
+<li><code>references/dataset_formats.md</code> — column-matching rules (label name auto-detection; column-order-not-name); reshaping recipes; hard-negative mining options.</li>
+<li><code>references/base_model_selection.md</code> — discovery commands; per-type model namespaces; ModernBERT-family <code>max_seq_length=8192</code> trap; <code>datasets &gt;= 4</code> script-loader rejection; non-English starting-point shortcuts.</li>
+<li><code>references/troubleshooting.md</code> — symptom-indexed failure recipes. Skim the section headings on every run, even a healthy one; the "Metrics don't improve" and "Hub push fails" entries cover bugs that bite frequently and are cheaper to recognize before they fire than to debug after.</li>
+</ul>
+<h3>Cross-cutting — load when applicable</h3>
+<ul>
+<li><code>references/hardware_guide.md</code> — VRAM sizing, multi-GPU, FSDP / DeepSpeed, HF Jobs flavors. Required for &gt;24GB models, multi-GPU, or HF Jobs runs.</li>
+<li><code>references/hf_jobs_execution.md</code> — required when running on HF Jobs.</li>
+<li><code>references/prompts_and_instructions.md</code> — required when using prompt-tuned bases (E5, BGE, GTE, Qwen3-Embedding, Instructor, Nomic, etc.) or adding <code>query: </code> / <code>passage: </code> style prefixes.</li>
+</ul>
+<h3>Variant scripts (open when the task matches)</h3>
+<ul>
+<li><strong>[SentenceTransformer]</strong> <code>scripts/train_sentence_transformer_&lt;matryoshka|multi_dataset|with_lora|distillation|make_multilingual|static_embedding&gt;_example.py</code>.</li>
+<li><strong>[CrossEncoder]</strong> <code>scripts/train_cross_encoder_&lt;distillation|listwise&gt;_example.py</code>.</li>
+<li><strong>[SparseEncoder]</strong> <code>scripts/train_sparse_encoder_distillation_example.py</code>.</li>
+<li>Hard-negative mining CLI — <code>scripts/mine_hard_negatives.py</code>.</li>
+</ul>
+<h2 id="3-defaults">3. Defaults</h2>
+<p>Override only if the user specifies otherwise:</p>
+<ul>
+<li><strong>Local execution.</strong> Pitch HF Jobs only if local hardware can't fit the job.</li>
+<li><strong>Single run.</strong> After it completes, propose experimentation if the user would benefit (weak/marginal verdict, "see how high you can push it" framing, etc.). Iteration rules in <code>references/training_args.md</code> (Experimentation section).</li>
+<li><strong>Public Hub push at end-of-run, wrapped in try-except.</strong> On HF Jobs (ephemeral env) ALSO enable in-trainer push (<code>push_to_hub=True</code> + <code>hub_strategy="every_save"</code>); details in <code>references/hf_jobs_execution.md</code>.</li>
+</ul>
+<h2 id="4-constraints-the-produced-script-must-satisfy">4. Constraints the produced script must satisfy</h2>
+<p>These are non-negotiable contracts. Implementation lives in the production templates and references — do not reinvent.</p>
+<ul>
+<li>Capture the pre-training evaluator score as <code>baseline_eval</code> <strong>before</strong> <code>trainer.train()</code>.</li>
+<li>Emit a single end-of-run line: <code>VERDICT: WIN|MARGINAL|REGRESSION | score=... | baseline=... | delta=...</code>. A monitor scrapes for this.</li>
+<li>Silence <code>httpx</code>, <code>httpcore</code>, <code>huggingface_hub</code>, <code>urllib3</code>, <code>filelock</code>, <code>fsspec</code> to WARNING (otherwise HF download URLs flood the agent's context).</li>
+<li>Tee logs to <code>logs/{RUN_NAME}.log</code>.</li>
+<li>End with <code>model.push_to_hub(...)</code> wrapped in <code>try/except</code>.</li>
+<li>Smoke-test before any long run (<code>max_steps=1</code> + tiny dataset slice). The production templates show one common pattern (<code>SMOKE_TEST</code> env var).</li>
+<li><strong>[CrossEncoder]</strong> Include <code>EarlyStoppingCallback(patience&gt;=3)</code> — CE rerankers often peak mid-training and regress.</li>
+<li><strong>[SparseEncoder]</strong> Log <code>query_active_dims</code> / <code>corpus_active_dims</code> on the verdict line; high nDCG with collapsed sparsity is not a win. The keys come back name-prefixed (e.g. <code>..._query_active_dims</code>); use suffix matching to pluck them — see the SPARSE production template for the exact pattern.</li>
+</ul>
+<h2 id="5-workflow">5. Workflow</h2>
+<ol>
+<li>Identify the model type (§1). Ask if ambiguous.</li>
+<li>Load the §2 required-reading files for that type.</li>
+<li>Open <code>scripts/train_&lt;type&gt;_example.py</code> and copy it as your starting point.</li>
+<li>Replace <code>MODEL_NAME</code>, <code>DATASET_NAME</code>, <code>RUN_NAME</code>, the loss, and the evaluator with the user's task. Cross-check loss/data-shape match against <code>references/losses_&lt;type&gt;.md</code>; cross-check the <code>metric_for_best_model</code> key against <code>references/evaluators_&lt;type&gt;.md</code> (named evaluators format the key as <code>eval_{name}_{primary_metric}</code>).</li>
+<li>Smoke-test (<code>max_steps=1</code>).</li>
+<li>Run.</li>
+<li>After the run, append to <code>logs/experiments.md</code> and propose iteration if the verdict is weak/marginal.</li>
+</ol>
+<h2 id="prerequisites">Prerequisites</h2>
+<div class="code-wrapper"><pre><code class="language-bash">pip install "sentence-transformers[train]&gt;=5.0"        # add [train,image] / [audio] / [video] for [SentenceTransformer] multimodal
+pip install trackio                                    # optional tracker; or wandb / tensorboard / mlflow
+hf auth login                                          # or set HF_TOKEN with write scope (for Hub push)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>GPU strongly recommended. CPU works only for demos and <code>[SentenceTransformer]</code> <code>StaticEmbedding</code>.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

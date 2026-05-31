@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Verarbeitungsverzeichnis (Art. 30 DSGVO) — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">verarbeitungsverzeichnis</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-red">DSGVO Art. 30</span>
+    <span class="badge badge-red">Für Administratoren</span>
+    <span class="badge-slug">verarbeitungsverzeichnis</span>
+  </div>
+  <h1 class="hero-title">📎 Verarbeitungsverzeichnis (Art. 30 DSGVO)</h1>
+  <p class="hero-subtitle">Dokumentation aller Verarbeitungstätigkeiten personenbezogener Daten: Verantwortlicher, Zweck, Datenkategorien, Empfänger und Löschfristen.</p>
+  <div class="trigger-chip"><span class="label">DSGVO · Art. 30 DSGVO</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#vt-01-nutzer-authentifizierung"><span class="toc-num">1.</span>&nbsp;VT-01: Nutzer-Authentifizierung</a></li>
+<li class="toc-item"><a href="#vt-02-teamkommunikation-chat"><span class="toc-num">2.</span>&nbsp;VT-02: Teamkommunikation (Chat)</a></li>
+<li class="toc-item"><a href="#vt-03-dateiablage-und-dokumentenverwaltung"><span class="toc-num">3.</span>&nbsp;VT-03: Dateiablage und Dokumentenverwaltung</a></li>
+<li class="toc-item"><a href="#vt-04-terminbuchung"><span class="toc-num">4.</span>&nbsp;VT-04: Terminbuchung</a></li>
+<li class="toc-item"><a href="#vt-05-kontaktformular"><span class="toc-num">5.</span>&nbsp;VT-05: Kontaktformular</a></li>
+<li class="toc-item"><a href="#vt-06-passwort-verwaltung-vaultwarden"><span class="toc-num">6.</span>&nbsp;VT-06: Passwort-Verwaltung (Vaultwarden)</a></li>
+<li class="toc-item"><a href="#vt-07-ki-assistent-claude-code"><span class="toc-num">7.</span>&nbsp;VT-07: KI-Assistent (Claude Code)</a></li>
+<li class="toc-item"><a href="#vt-08-whiteboard"><span class="toc-num">8.</span>&nbsp;VT-08: Whiteboard</a></li>
+<li class="toc-item"><a href="#keine-drittlanduebermittlung-standardbetrieb"><span class="toc-num">9.</span>&nbsp;Keine Drittlandübermittlung (Standardbetrieb)</a></li>
+<li class="toc-item"><a href="#auftragsverarbeiter"><span class="toc-num">10.</span>&nbsp;Auftragsverarbeiter</a></li></ul>
+</div>
+<p><strong>Verantwortlicher:</strong> Gemäß Impressum (<code>/impressum</code>)<br><strong>Letzte Aktualisierung:</strong> 2026-04-20<br><strong>Plattform:</strong> Workspace MVP — selbst-gehostete Kollaborationsplattform (On-Premises)</p>
+<blockquote>
+<p>Dieses Verzeichnis wird geführt gemäß Art. 30 Abs. 1 DSGVO. Es dokumentiert alle Verarbeitungstätigkeiten, bei denen personenbezogene Daten verarbeitet werden.</p>
+</blockquote>
+<hr>
+<h2 id="vt-01-nutzer-authentifizierung">VT-01: Nutzer-Authentifizierung</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Identifikation und Zugriffskontrolle für die Plattform</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung / vorvertragliche Maßnahmen)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Registrierte Nutzer der Plattform</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Name, E-Mail-Adresse, Passwort-Hash (PBKDF2-SHA512), Rollen/Berechtigungen, letzte Anmeldezeit, optionaler TOTP-Secret</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — On-Premises-Verarbeitung (Keycloak im <code>workspace</code>-Namespace)</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>Bis zur Löschung des Nutzerkontos (Art. 17-Anfrage oder Admin-Aktion)</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, PBKDF2-SHA512 Passwort-Hashing, OIDC-Token (kurzlebig), Brute-Force-Detection, Rate-Limiting</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="vt-02-teamkommunikation-chat">VT-02: Teamkommunikation (Chat)</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Interne Kommunikation zwischen Teammitgliedern sowie zwischen Kunden und Administratoren</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Registrierte Nutzer des Website-Portals (Mitarbeiter und Kunden)</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Nachrichteninhalte, Zeitstempel, Absender-User-ID, Raum-Zugehörigkeit, Gelesen-Status</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — On-Premises (Messaging-System im <code>website</code>-Namespace, PostgreSQL <code>shared-db</code>)</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>Auf Anfrage (Art. 17) löschbar; ansonsten bis zur Löschung des Nutzerkontos gespeichert</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, Keycloak OIDC SSO, NetworkPolicy-Isolation, Zugriff nur nach Authentifizierung</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="vt-03-dateiablage-und-dokumentenverwaltung">VT-03: Dateiablage und Dokumentenverwaltung</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Speicherung und gemeinsame Bearbeitung von Dateien und Dokumenten</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Nutzer der Nextcloud-Instanz</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Dateien (beliebige Inhalte), Dateinamen, Metadaten (Erstellungs-/Änderungsdatum, Eigentümer-ID), Freigabe-Links, Kalendereinträge, Kontaktdaten</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — On-Premises (Nextcloud im <code>workspace</code>-Namespace)</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>Bis zur Löschung durch den Nutzer oder Administrator</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, Keycloak OIDC SSO, Nextcloud-Berechtigungssystem (Owner/Share), PVC-lokaler Storage, verschlüsselte Backups (AES-256)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="vt-04-terminbuchung">VT-04: Terminbuchung</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Entgegennahme und Verwaltung von Buchungsanfragen für Dienstleistungen</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Durchführung vorvertraglicher Maßnahmen)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Interessenten und Auftraggeber (Website-Besucher)</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Name, E-Mail-Adresse, gewählter Termin/Zeitslot, optionale Nachricht</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — Weiterleitung intern in die Admin-Inbox (<code>/admin/termine</code>); optionaler CalDAV-Eintrag in Nextcloud</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>3 Jahre (handelsrechtliche Aufbewahrungsfrist für vorvertragliche Korrespondenz)</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff, NetworkPolicy-Isolation, keine externe Weitergabe</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="vt-05-kontaktformular">VT-05: Kontaktformular</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Bearbeitung von Anfragen über das Website-Kontaktformular</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen), hilfsweise Art. 6 Abs. 1 lit. f (berechtigtes Interesse an Anfragenbearbeitung)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Website-Besucher, die das Kontaktformular nutzen</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Name, E-Mail-Adresse, Nachrichteninhalt</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — Weiterleitung intern in die Admin-Inbox (<code>/admin/inbox</code>, PostgreSQL <code>website</code>-Datenbank)</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>3 Jahre (Verjährungsfrist für Ansprüche aus vorvertraglichen Verhältnissen, § 195 BGB)</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, Keycloak OIDC SSO für Admin-Zugriff auf Inbox, keine Speicherung in externer Datenbank, NetworkPolicy-Isolation</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="vt-06-passwort-verwaltung-vaultwarden">VT-06: Passwort-Verwaltung (Vaultwarden)</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Sicheres Speichern und Verwalten von Zugangsdaten und Geheimnissen für das Team</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung — Bereitstellung von Team-Infrastruktur)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Registrierte Nutzer der Vaultwarden-Instanz (Teammitglieder)</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Verschlüsselte Passwort-Einträge (Ende-zu-Ende-verschlüsselt durch Bitwarden-Client), Organisations-Metadaten, E-Mail-Adresse des Kontos</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — On-Premises (Vaultwarden im <code>workspace</code>-Namespace, PostgreSQL <code>vaultwarden</code>-DB)</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>Bis zur Löschung des Nutzerkontos oder der Einträge durch den Nutzer bzw. Administrator</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, Ende-zu-Ende-Verschlüsselung (Bitwarden-Protokoll, AES-256), Keycloak OIDC SSO möglich, Admin-Token für Verwaltungszugriff</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="vt-07-ki-assistent-claude-code">VT-07: KI-Assistent (Claude Code)</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>KI-gestützte Entwicklungsunterstützung für Administratoren und Entwickler</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung — Bereitstellung von Entwicklungswerkzeugen)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Administratoren und Entwickler, die Claude Code nutzen</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Prompts und Antworten (innerhalb der Session); kein persistentes Logging von Nutzerinteraktionen im Cluster</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td><strong>Anthropic Inc.</strong> (USA) — Prompts werden zur Verarbeitung an die Anthropic API übertragen</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Anthropic Inc. (USA): Datenübertragung auf Basis von EU-Standardvertragsklauseln (SCC) gemäß Art. 46 Abs. 2 lit. c DSGVO</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>Session-gebunden — keine persistente Speicherung im Cluster nach Session-Ende</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit (Anthropic API), OIDC-Authentifizierung für Claude Code Web UI, Basic Auth für AI-Status-Seite, RBAC (kein Zugriff auf Kubernetes Secrets)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Hinweis:</strong> Claude Code ist ein <strong>internes Werkzeug für Administratoren</strong> — keine Nutzerdaten der Plattform werden automatisch an Anthropic übertragen. Nur explizit eingefügte Inhalte in Prompts werden verarbeitet.</p>
+</blockquote>
+<hr>
+<h2 id="vt-08-whiteboard">VT-08: Whiteboard</h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Zweck</strong></td>
+<td>Kollaborative visuelle Zusammenarbeit (Skizzen, Diagramme, Brainstorming)</td>
+</tr>
+<tr>
+<td><strong>Rechtsgrundlage</strong></td>
+<td>Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)</td>
+</tr>
+<tr>
+<td><strong>Betroffene Personen</strong></td>
+<td>Registrierte Nutzer, die das Whiteboard nutzen</td>
+</tr>
+<tr>
+<td><strong>Datenkategorien</strong></td>
+<td>Whiteboard-Zeichendaten (Striche, Formen, Texte), Session-ID, Nutzer-ID (aus Keycloak JWT)</td>
+</tr>
+<tr>
+<td><strong>Empfänger</strong></td>
+<td>Keine Dritten — On-Premises (Whiteboard im <code>workspace</code>-Namespace)</td>
+</tr>
+<tr>
+<td><strong>Drittlandübermittlung</strong></td>
+<td>Keine</td>
+</tr>
+<tr>
+<td><strong>Speicherdauer</strong></td>
+<td>Session-gebunden oder bis zur manuellen Löschung durch den Nutzer</td>
+</tr>
+<tr>
+<td><strong>Technische Schutzmaßnahmen</strong></td>
+<td>TLS in Transit, Keycloak OIDC SSO, JWT-Signaturprüfung (HS256), NetworkPolicy-Isolation</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="keine-drittlanduebermittlung-standardbetrieb">Keine Drittlandübermittlung (Standardbetrieb)</h2>
+<p>Im Standardbetrieb findet <strong>keine Übermittlung personenbezogener Daten in Drittländer</strong> (außerhalb der EU/EWR) statt. Die gesamte Plattform wird vollständig on-premises betrieben.</p>
+<p><strong>Ausnahme: VT-07 (Claude Code / Anthropic)</strong> — Prompts werden an Anthropic Inc. (USA) übertragen. Dies betrifft ausschließlich Administratoren und Entwickler als interne Werkzeugnutzer (kein öffentlicher Dienst).</p>
+<h2 id="auftragsverarbeiter">Auftragsverarbeiter</h2>
+<table>
+<thead>
+<tr>
+<th>Auftragsverarbeiter</th>
+<th>Sitz</th>
+<th>Zweck</th>
+<th>Rechtsgrundlage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Anthropic Inc.</strong></td>
+<td>USA</td>
+<td>KI-Sprachmodell (Claude Code — internes Entwicklungswerkzeug)</td>
+<td>EU-Standardvertragsklauseln (SCC) gem. Art. 46 Abs. 2 lit. c DSGVO</td>
+</tr>
+</tbody></table>
+<p>Alle übrigen Verarbeitungen erfolgen vollständig durch den Verantwortlichen selbst auf eigener On-Premises-Infrastruktur (kein weiterer Auftragsverarbeiter).</p>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

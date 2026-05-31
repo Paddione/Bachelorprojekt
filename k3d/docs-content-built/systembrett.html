@@ -4,27 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Systembrett im Whiteboard — Workspace MVP</title>
-<link rel="stylesheet" href="./skills/style.css">
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="./index.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Übersicht
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">systembrett</span>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-sage">systembrett</span>
-    <span class="badge-slug">systembrett</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-  <h1 class="hero-title">Systembrett im Whiteboard</h1>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Systembrett im Whiteboard</span></nav>
+    <h1>Systembrett im Whiteboard</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+
 <div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#eine-sitzung-starten"><span class="toc-num">1.</span>&nbsp;Eine Sitzung starten</a></li>
@@ -60,8 +64,11 @@
 <h2 id="keine-namen-auf-den-figuren">Keine Namen auf den Figuren</h2>
 <p>Die Primitive bleiben absichtlich <strong>unbeschriftet</strong>. Ob eine Figur „Mutter", „Innerer Kritiker" oder „der Chef" ist, entscheidet die Sitzung — nicht die Vorlage. Namen kommen als Text-Labels daneben.</p>
 
-</main>
 
+</article>
+
+  </main>
+</div>
 <script src="./app.js"></script>
 </body>
 </html>

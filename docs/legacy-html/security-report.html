@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sicherheitsbericht — Workspace MVP — Workspace MVP</title>
+<link rel="stylesheet" href="./skills/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="./index.html" class="topnav-back">
+    <span class="arrow">&#8592;</span> Übersicht
+  </a>
+  <span class="topnav-divider">/</span>
+  <span class="topnav-title">security-report</span>
+</nav>
+
+<header class="skill-hero">
+  <div class="hero-meta">
+    <span class="badge badge-red">Sicherheit</span>
+    <span class="badge badge-red">SA-01–SA-10</span>
+    <span class="badge-slug">security-report</span>
+  </div>
+  <h1 class="hero-title">📋 Sicherheitsbericht</h1>
+  <p class="hero-subtitle">Sicherheitsbericht zum Workspace MVP: Penetrationstest-Grundlagen, CTF-Objectives, Angriffsvektoren und SA-Testergebnisse.</p>
+  <div class="trigger-chip"><span class="label">Sicherheit · Bericht</span></div>
+</header>
+
+<main class="content">
+<div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#1-systemuebersicht"><span class="toc-num">1.</span>&nbsp;1. Systemübersicht</a></li>
+<li class="toc-item"><a href="#2-externe-endpunkte-scope"><span class="toc-num">2.</span>&nbsp;2. Externe Endpunkte (Scope)</a></li>
+<li class="toc-item"><a href="#3-sicherheitsrelevante-konfigurationen"><span class="toc-num">3.</span>&nbsp;3. Sicherheitsrelevante Konfigurationen</a></li>
+<li class="toc-item"><a href="#4-ctf-objectives-capture-the-flag"><span class="toc-num">4.</span>&nbsp;4. CTF-Objectives (Capture The Flag)</a></li>
+<li class="toc-item"><a href="#5-priorisierte-test-szenarien-angriffsvektoren"><span class="toc-num">5.</span>&nbsp;5. Priorisierte Test-Szenarien (Angriffsvektoren)</a></li>
+<li class="toc-item"><a href="#6-sa-test-ergebnisse"><span class="toc-num">6.</span>&nbsp;6. SA-Test-Ergebnisse</a></li>
+<li class="toc-item"><a href="#7-risikomatrix"><span class="toc-num">7.</span>&nbsp;7. Risikomatrix</a></li></ul>
+</div><h1>Sicherheitsbericht — Workspace MVP</h1>
+<p><strong>Version:</strong> 2.0
+<strong>Datum:</strong> 2026-04-20
+<strong>Scope:</strong> Kubernetes-basierter Collaboration-Stack (k3s/k3d), On-Premises</p>
+<hr>
+<h2 id="1-systemuebersicht">1. Systemübersicht</h2>
+<p>Das Workspace MVP ist eine Kubernetes-basierte Kollaborationsumgebung (K3s/K3d), die verschiedene Dienste (Chat/Messaging, Dateiverwaltung, IAM, Office, Passwort-Manager) integriert.</p>
+<p><strong>Kernkomponenten:</strong></p>
+<ul>
+<li><strong>Orchestrierung:</strong> Kubernetes (K3s/K3d)</li>
+<li><strong>Ingress-Controller:</strong> Traefik v3 (Port 80/443)</li>
+<li><strong>Zentrales IAM:</strong> Keycloak (OIDC/SSO) — <code>auth.korczewski.de</code></li>
+<li><strong>Datenbank:</strong> PostgreSQL 16 (<code>shared-db</code>) — separate Datenbanken und Zugangsdaten pro Dienst</li>
+<li><strong>Isolierung:</strong> Kubernetes NetworkPolicies (Default-Deny für Ingress und Egress)</li>
+</ul>
+<p><strong>Deploymentstruktur:</strong></p>
+<ul>
+<li>Alle Services laufen als Kubernetes Deployments im Namespace <code>workspace</code></li>
+<li>Website/Messaging läuft im Namespace <code>website</code></li>
+<li>Collabora im isolierten Namespace <code>workspace-office</code></li>
+</ul>
+<hr>
+<h2 id="2-externe-endpunkte-scope">2. Externe Endpunkte (Scope)</h2>
+<p>Alle Dienste sind über Subdomains erreichbar. Ein Fokus des Tests sollte auf der Umgehung von Authentifizierungs-Layern liegen.</p>
+<table>
+<thead>
+<tr>
+<th>Dienst</th>
+<th>URL</th>
+<th>Primärer Schutzmechanismus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Keycloak (IAM)</strong></td>
+<td><code>auth.korczewski.de</code></td>
+<td>Zentraler OIDC-Provider</td>
+</tr>
+<tr>
+<td><strong>Nextcloud</strong></td>
+<td><code>files.korczewski.de</code></td>
+<td>Native Auth + OIDC (Keycloak)</td>
+</tr>
+<tr>
+<td><strong>Vaultwarden</strong></td>
+<td><code>vault.korczewski.de</code></td>
+<td>Native Bitwarden-API</td>
+</tr>
+<tr>
+<td><strong>Collabora</strong></td>
+<td><code>office.korczewski.de</code></td>
+<td>OIDC (Keycloak) + WOPI-Protokoll</td>
+</tr>
+<tr>
+<td><strong>Mailpit</strong></td>
+<td><code>mail.korczewski.de</code></td>
+<td><strong>oauth2-proxy</strong> (Keycloak OIDC Gateway)</td>
+</tr>
+<tr>
+<td><strong>Dokumentation</strong></td>
+<td><code>docs.korczewski.de</code></td>
+<td><strong>oauth2-proxy</strong> (Keycloak OIDC Gateway)</td>
+</tr>
+<tr>
+<td><strong>Website/Chat</strong></td>
+<td><code>web.korczewski.de</code></td>
+<td>Keycloak OIDC SSO</td>
+</tr>
+<tr>
+<td><strong>Whiteboard</strong></td>
+<td><code>board.korczewski.de</code></td>
+<td>Keycloak OIDC SSO</td>
+</tr>
+<tr>
+<td><strong>Nextcloud Talk HPB</strong></td>
+<td><code>signaling.korczewski.de</code></td>
+<td>Shared-Secret-Authentifizierung</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="3-sicherheitsrelevante-konfigurationen">3. Sicherheitsrelevante Konfigurationen</h2>
+<h3>3.1 Authentifizierungs-Flows</h3>
+<p><strong>Keycloak OIDC (Force-SSO):</strong>
+Alle Services ohne native OIDC-Unterstützung sind hinter einem <code>oauth2-proxy</code> gekapselt. Der Proxy validiert JWT-Tokens von Keycloak und setzt <code>X-Auth-Request</code>-Header. Zugriff ohne gültiges Keycloak-Token wird direkt zum Login-Flow weitergeleitet.</p>
+<p><strong>Vaultwarden:</strong>
+Nutzt die native Bitwarden-API-Authentifizierung. Zusätzlich kann OIDC für den Admin-Bereich konfiguriert werden.</p>
+<p><strong>Admin-Tools (OIDC-Gating):</strong>
+Mailpit ist über OIDC (Keycloak + oauth2-proxy-mailpit) geschützt. Nur admin-gelistete E-Mail-Adressen erhalten Zugang. Das frühere HTTP Basic Auth (<code>basic-auth-internal</code>) wurde vollständig entfernt.</p>
+<p><strong>Keycloak Brute-Force-Schutz:</strong>
+Aktiviert im Realm <code>workspace</code>. Passwort-Policy: mind. 12 Zeichen, Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen. Hash-Algorithmus: PBKDF2-SHA512.</p>
+<h3>3.2 Netzwerk-Segmentierung (NetworkPolicies)</h3>
+<p>Alle Kubernetes NetworkPolicies sind in <code>k3d/network-policies.yaml</code> definiert:</p>
+<ul>
+<li><strong>Default-Deny:</strong> Alle Pods blockieren standardmäßig Ingress und Egress</li>
+<li><strong>Intra-Namespace:</strong> Kommunikation zwischen Pods im Namespace <code>workspace</code> ist erlaubt</li>
+<li><strong>Traefik-Ingress:</strong> Traefik (kube-system) darf alle Services im workspace-Namespace erreichen</li>
+<li><strong>Egress-Kontrolle:</strong> Nur spezifische Pods (mcp-github) dürfen Verbindungen ins öffentliche Internet (Port 443) aufbauen</li>
+<li><strong>Collabora:</strong> Nextcloud → Collabora (Port 9980, WOPI-Protokoll) explizit erlaubt</li>
+<li><strong>Signaling:</strong> spreed-signaling → Janus MCU (coturn-Namespace, Port 8188) explizit erlaubt</li>
+</ul>
+<h3>3.3 Datenbank-Sicherheit</h3>
+<ul>
+<li>Alle Dienste teilen sich eine PostgreSQL-Instanz (<code>shared-db</code>), nutzen aber <strong>getrennte Datenbank-User und Passwörter</strong></li>
+<li>Verbindungen erfolgen ausschließlich cluster-intern (NetworkPolicy)</li>
+<li>Opportunistisches TLS mit selbst-signierten Zertifikaten (bei jedem Pod-Restart neu generiert)</li>
+<li>Port-Forwarding (<code>task workspace:port-forward</code>) erfordert kubectl-Zugriff (Kubernetes-API-Authentifizierung)</li>
+</ul>
+<h3>3.4 Container-Härtung</h3>
+<p>Pod Security Standards im <code>workspace</code>-Namespace (<code>k3d/namespace.yaml</code>):</p>
+<div class="code-wrapper"><pre><code class="language-yaml">pod-security.kubernetes.io/enforce: baseline
+pod-security.kubernetes.io/warn: restricted
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Alle Container haben mindestens:</p>
+<ul>
+<li><code>allowPrivilegeEscalation: false</code></li>
+<li><code>capabilities: drop: [ALL]</code></li>
+<li><code>seccompProfile: type: RuntimeDefault</code></li>
+</ul>
+<hr>
+<h2 id="4-ctf-objectives-capture-the-flag">4. CTF-Objectives (Capture The Flag)</h2>
+<p>Zur objektiven Messung eines Angriffserfolgs wurden strategische Flags in der Infrastruktur platziert:</p>
+<table>
+<thead>
+<tr>
+<th>Kategorie</th>
+<th>Zielobjekt</th>
+<th>Erwarteter Flag-Inhalt</th>
+<th>Nachweis von...</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Datenbank</strong></td>
+<td>DB <code>pentest</code>, Tabelle <code>confidential_projects</code>, Spalte <code>secret_key</code></td>
+<td><code>FLAG{SHARED_DB_DATA_EXFILTRATION_SUCCESS}</code></td>
+<td>SQL-Injection oder DB-Kompromittierung</td>
+</tr>
+<tr>
+<td><strong>Dateisystem</strong></td>
+<td>Pfad <code>/var/www/html/pentest_flag.txt</code> (im Nextcloud-Pod)</td>
+<td><code>FLAG{NEXTCLOUD_FILESYSTEM_BREACH_2026}</code></td>
+<td>RCE oder File-Read-Schwachstelle</td>
+</tr>
+<tr>
+<td><strong>Kubernetes</strong></td>
+<td>K8s Secret <code>pentest-internal-vault</code>, Key <code>secret-token</code></td>
+<td><code>FLAG{K8S_API_ACCESS_GRANTED}</code></td>
+<td>Privilege Escalation in der K8s-API</td>
+</tr>
+</tbody></table>
+<p>Die CTF-Ressourcen sind in <code>k3d/pentest-flags.yaml</code> definiert und werden nur in der Entwicklungsumgebung deployed.</p>
+<hr>
+<h2 id="5-priorisierte-test-szenarien-angriffsvektoren">5. Priorisierte Test-Szenarien (Angriffsvektoren)</h2>
+<ol>
+<li><p><strong>SSO Bypass:</strong> Versuch, die Traefik-Middlewares zu umgehen, um unauthentifizierten Zugriff auf Backend-Dienste zu erlangen. Ziel: direkter Aufruf eines Backend-Services ohne gültiges Keycloak-Token.</p>
+</li>
+<li><p><strong>Identity Provider Exploitation:</strong> Angriffe auf Keycloak — Realm-Konfiguration, Brute-Force auf <code>/auth/realms/workspace/protocol/openid-connect/token</code>, Token-Forging.</p>
+</li>
+<li><p><strong>Lateral Movement:</strong> Kompromittierung eines Web-Dienstes (z.B. Nextcloud via App-Exploit) und anschließender Scan des internen Netzwerks (shared-db, andere Service-Pods). NetworkPolicies begrenzen mögliche Bewegungsfreiheit.</p>
+</li>
+<li><p><strong>Header Injection:</strong> Prüfung, ob der <code>oauth2-proxy</code> durch manipulierte Header (<code>X-Forwarded-Groups</code>, <code>X-Auth-Request-User</code>) getäuscht werden kann, um unauthorized access zu erlangen.</p>
+</li>
+<li><p><strong>Sensitive Data Exposure:</strong> Prüfung auf unzureichende Absicherung von <code>mail.korczewski.de</code> (Mailpit) oder <code>docs.korczewski.de</code>. Ziel: Zugriff auf E-Mail-Inhalte oder interne Dokumentation ohne Authentifizierung.</p>
+</li>
+</ol>
+<h3>Administrative Zugänge (Break-Glass — Testziele)</h3>
+<p>Im Falle eines Fehlers existieren folgende administrativen Möglichkeiten, die im Test auf Missbrauch geprüft werden sollten:</p>
+<ul>
+<li>Zugriff auf die <code>shared-db</code> via Port-Forwarding (erfordert K8s-API-Zugriff und <code>kubectl</code>)</li>
+<li>Nutzung von CLI-Tools innerhalb der Pods (<code>occ</code> für Nextcloud, Admin-Panel Vaultwarden)</li>
+<li>Kubernetes Dashboard / API-Server (kein Dashboard deployed — nur kubectl via kubeconfig)</li>
+</ul>
+<hr>
+<h2 id="6-sa-test-ergebnisse">6. SA-Test-Ergebnisse</h2>
+<p>Die Tests SA-01 bis SA-10 der Testsuite decken alle Sicherheitsebenen ab. Testergebnisse werden bei jedem Deployment automatisch validiert.</p>
+<table>
+<thead>
+<tr>
+<th>Test-ID</th>
+<th>Bereich</th>
+<th>Prüfziel</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SA-01</td>
+<td>Transport</td>
+<td>TLS-Verschlüsselung aller externen Verbindungen (HTTPS)</td>
+</tr>
+<tr>
+<td>SA-02</td>
+<td>Authentifizierung</td>
+<td>Login-Flow, Brute-Force-Lockout, Session-Invalidierung</td>
+</tr>
+<tr>
+<td>SA-03</td>
+<td>Passwort-Sicherheit</td>
+<td>PBKDF2-SHA512 Hashing in Keycloak</td>
+</tr>
+<tr>
+<td>SA-04</td>
+<td>Injection</td>
+<td>SQL-Injection-Schutz (Website-API, Nextcloud)</td>
+</tr>
+<tr>
+<td>SA-05</td>
+<td>Netzwerk</td>
+<td>NetworkPolicy Default-Deny aktiv</td>
+</tr>
+<tr>
+<td>SA-06</td>
+<td>Container</td>
+<td>Keine privilegierten Container (<code>privileged: true</code>)</td>
+</tr>
+<tr>
+<td>SA-07</td>
+<td>Secrets</td>
+<td>Keine Klartext-Credentials in ConfigMaps oder Logs</td>
+</tr>
+<tr>
+<td>SA-08</td>
+<td>Header</td>
+<td>OWASP Security-Header auf allen Services</td>
+</tr>
+<tr>
+<td>SA-09</td>
+<td>Zugangskontrolle</td>
+<td>Unauthentifizierter Zugriff auf geschützte Dienste blockiert</td>
+</tr>
+<tr>
+<td>SA-10</td>
+<td>Backups</td>
+<td>Verschlüsselte Backups vorhanden (AES-256)</td>
+</tr>
+</tbody></table>
+<p><strong>Tests ausführen:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Einzelnen Test ausführen
+./tests/runner.sh local SA-01
+
+# Alle Sicherheitstests
+./tests/runner.sh local SA-01
+./tests/runner.sh local SA-05
+
+# Mit detaillierter Ausgabe
+./tests/runner.sh local --verbose SA-08
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Vollständige Testspezifikationen und Acceptance-Kriterien: <a href="tests.md">tests.md</a></p>
+<hr>
+<h2 id="7-risikomatrix">7. Risikomatrix</h2>
+<table>
+<thead>
+<tr>
+<th>Risiko</th>
+<th>Wahrscheinlichkeit</th>
+<th>Auswirkung</th>
+<th>Priorität</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SSO-Bypass via Header-Manipulation</td>
+<td>MITTEL</td>
+<td>HOCH</td>
+<td>KRITISCH</td>
+<td>oauth2-proxy validiert JWT-Signatur; <code>removeHeader: true</code> in BasicAuth</td>
+</tr>
+<tr>
+<td>Unkontrollierter East-West-Traffic</td>
+<td>(vor Härtung: MITTEL)</td>
+<td>HOCH</td>
+<td>KRITISCH</td>
+<td>NetworkPolicies Default-Deny implementiert</td>
+</tr>
+<tr>
+<td>Brute-Force auf Keycloak</td>
+<td>MITTEL</td>
+<td>HOCH</td>
+<td>HOCH</td>
+<td>Rate-Limiting (20 req/s) + Brute-Force-Detection</td>
+</tr>
+<tr>
+<td>Privilege Escalation im Container</td>
+<td>NIEDRIG</td>
+<td>HOCH</td>
+<td>HOCH</td>
+<td>SecurityContexts, Pod Security Standards</td>
+</tr>
+<tr>
+<td>PostgreSQL ohne TLS (intern)</td>
+<td>NIEDRIG</td>
+<td>MITTEL</td>
+<td>MITTEL</td>
+<td>Mitigiert durch NetworkPolicy-Isolation</td>
+</tr>
+<tr>
+<td>Unauthentifizierter Zugriff auf interne Tools</td>
+<td>MITTEL</td>
+<td>MITTEL</td>
+<td>MITTEL</td>
+<td>oauth2-proxy/Keycloak-OIDC auf Mailpit, Docs, Traefik-Dashboard</td>
+</tr>
+<tr>
+<td>K8s-API-Zugriff ohne kubectl-Auth</td>
+<td>SEHR NIEDRIG</td>
+<td>SEHR HOCH</td>
+<td>MITTEL</td>
+<td>kubeconfig erforderlich, kein Dashboard deployed</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>Erstellt: 2026-04-20 | Quelle: PENTEST_OVERVIEW.md, k3d/network-policies.yaml, k3d/namespace.yaml</em></p>
+
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>

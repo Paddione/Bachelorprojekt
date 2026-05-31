@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>using-superpowers — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">using-superpowers</span></nav>
+    <h1>using-superpowers</h1>
+    <p class="page-desc">Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers</span> <span class="pv-ver">5.1.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><subagent-stop>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</subagent-stop><extremely-important>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.<p>IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.</p>
+<p>This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</p>
+<h2 id="instruction-priority">Instruction Priority</h2>
+<p>Superpowers skills override default system prompt behavior, but <strong>user instructions always take precedence</strong>:</p>
+<ol>
+<li><strong>User's explicit instructions</strong> (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) — highest priority</li>
+<li><strong>Superpowers skills</strong> — override default system behavior where they conflict</li>
+<li><strong>Default system prompt</strong> — lowest priority</li>
+</ol>
+<p>If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.</p>
+<h2 id="how-to-access-skills">How to Access Skills</h2>
+<p><strong>In Claude Code:</strong> Use the <code>Skill</code> tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.</p>
+<p><strong>In Copilot CLI:</strong> Use the <code>skill</code> tool. Skills are auto-discovered from installed plugins. The <code>skill</code> tool works the same as Claude Code's <code>Skill</code> tool.</p>
+<p><strong>In Gemini CLI:</strong> Skills activate via the <code>activate_skill</code> tool. Gemini loads skill metadata at session start and activates the full content on demand.</p>
+<p><strong>In other environments:</strong> Check your platform's documentation for how skills are loaded.</p>
+<h2 id="platform-adaptation">Platform Adaptation</h2>
+<p>Skills use Claude Code tool names. Non-CC platforms: see <code>references/copilot-tools.md</code> (Copilot CLI), <code>references/codex-tools.md</code> (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.</p>
+<h1>Using Skills</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#instruction-priority"><span class="toc-num">1.</span> Instruction Priority</a></li>
+<li class="toc-item"><a href="#how-to-access-skills"><span class="toc-num">2.</span> How to Access Skills</a></li>
+<li class="toc-item"><a href="#platform-adaptation"><span class="toc-num">3.</span> Platform Adaptation</a></li>
+<li class="toc-item"><a href="#the-rule"><span class="toc-num">4.</span> The Rule</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">5.</span> Red Flags</a></li>
+<li class="toc-item"><a href="#skill-priority"><span class="toc-num">6.</span> Skill Priority</a></li>
+<li class="toc-item"><a href="#skill-types"><span class="toc-num">7.</span> Skill Types</a></li>
+<li class="toc-item"><a href="#user-instructions"><span class="toc-num">8.</span> User Instructions</a></li></ul>
+</div>
+<h2 id="the-rule">The Rule</h2>
+<p><strong>Invoke relevant or requested skills BEFORE any response or action.</strong> Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.</p>
+<pre class="diagram-fallback"><code>digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -&gt; "Already brainstormed?";
+    "Already brainstormed?" -&gt; "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -&gt; "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -&gt; "Might any skill apply?";
+
+    "User message received" -&gt; "Might any skill apply?";
+    "Might any skill apply?" -&gt; "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -&gt; "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -&gt; "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -&gt; "Has checklist?";
+    "Has checklist?" -&gt; "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -&gt; "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -&gt; "Follow skill exactly";
+}
+</code></pre>
+<h2 id="red-flags">Red Flags</h2>
+<p>These thoughts mean STOP—you're rationalizing:</p>
+<table>
+<thead>
+<tr>
+<th>Thought</th>
+<th>Reality</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>"This is just a simple question"</td>
+<td>Questions are tasks. Check for skills.</td>
+</tr>
+<tr>
+<td>"I need more context first"</td>
+<td>Skill check comes BEFORE clarifying questions.</td>
+</tr>
+<tr>
+<td>"Let me explore the codebase first"</td>
+<td>Skills tell you HOW to explore. Check first.</td>
+</tr>
+<tr>
+<td>"I can check git/files quickly"</td>
+<td>Files lack conversation context. Check for skills.</td>
+</tr>
+<tr>
+<td>"Let me gather information first"</td>
+<td>Skills tell you HOW to gather information.</td>
+</tr>
+<tr>
+<td>"This doesn't need a formal skill"</td>
+<td>If a skill exists, use it.</td>
+</tr>
+<tr>
+<td>"I remember this skill"</td>
+<td>Skills evolve. Read current version.</td>
+</tr>
+<tr>
+<td>"This doesn't count as a task"</td>
+<td>Action = task. Check for skills.</td>
+</tr>
+<tr>
+<td>"The skill is overkill"</td>
+<td>Simple things become complex. Use it.</td>
+</tr>
+<tr>
+<td>"I'll just do this one thing first"</td>
+<td>Check BEFORE doing anything.</td>
+</tr>
+<tr>
+<td>"This feels productive"</td>
+<td>Undisciplined action wastes time. Skills prevent this.</td>
+</tr>
+<tr>
+<td>"I know what that means"</td>
+<td>Knowing the concept ≠ using the skill. Invoke it.</td>
+</tr>
+</tbody></table>
+<h2 id="skill-priority">Skill Priority</h2>
+<p>When multiple skills could apply, use this order:</p>
+<ol>
+<li><strong>Process skills first</strong> (brainstorming, debugging) - these determine HOW to approach the task</li>
+<li><strong>Implementation skills second</strong> (frontend-design, mcp-builder) - these guide execution</li>
+</ol>
+<p>"Let's build X" → brainstorming first, then implementation skills.
+"Fix this bug" → debugging first, then domain-specific skills.</p>
+<h2 id="skill-types">Skill Types</h2>
+<p><strong>Rigid</strong> (TDD, debugging): Follow exactly. Don't adapt away discipline.</p>
+<p><strong>Flexible</strong> (patterns): Adapt principles to context.</p>
+<p>The skill itself tells you which.</p>
+<h2 id="user-instructions">User Instructions</h2>
+<p>Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.</p>
+</extremely-important></body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

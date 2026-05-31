@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>build-mcp-server — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">build-mcp-server</span></nav>
+    <h1>build-mcp-server</h1>
+    <p class="page-desc">This skill should be used when the user asks to &quot;build an MCP server&quot;, &quot;create an MCP&quot;, &quot;make an MCP integration&quot;, &quot;wrap an API for Claude&quot;, &quot;expose tools to Claude&quot;, &quot;make an MCP app&quot;, or discusses building something with the Model Context Protocol. It is the entry point for MCP server development — it interrogates the user about their use case, determines the right deployment model (remote HTTP, MCPB, local stdio), picks a tool-design pattern, and hands off to specialized skills.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">mcp-server-dev</span> <span class="pv-ver">unknown</span></span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Build an MCP Server</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#phase-1--interrogate-the-use-case"><span class="toc-num">1.</span> Phase 1 — Interrogate the use case</a></li>
+<li class="toc-item"><a href="#phase-2--recommend-a-deployment-model"><span class="toc-num">2.</span> Phase 2 — Recommend a deployment model</a></li>
+<li class="toc-item"><a href="#phase-3--pick-a-tool-design-pattern"><span class="toc-num">3.</span> Phase 3 — Pick a tool-design pattern</a></li>
+<li class="toc-item"><a href="#phase-4--pick-a-framework"><span class="toc-num">4.</span> Phase 4 — Pick a framework</a></li>
+<li class="toc-item"><a href="#phase-5--scaffold-and-hand-off"><span class="toc-num">5.</span> Phase 5 — Scaffold and hand off</a></li>
+<li class="toc-item"><a href="#beyond-tools--the-other-primitives"><span class="toc-num">6.</span> Beyond tools — the other primitives</a></li>
+<li class="toc-item"><a href="#phase-6--test-in-claude-and-publish"><span class="toc-num">7.</span> Phase 6 — Test in Claude and publish</a></li>
+<li class="toc-item"><a href="#quick-reference-decision-matrix"><span class="toc-num">8.</span> Quick reference: decision matrix</a></li>
+<li class="toc-item"><a href="#reference-files"><span class="toc-num">9.</span> Reference files</a></li></ul>
+</div>
+<p>You are guiding a developer through designing and building an MCP server that works seamlessly with Claude. MCP servers come in many forms — picking the wrong shape early causes painful rewrites later. Your first job is <strong>discovery, not code</strong>.</p>
+<p><strong>Load Claude-specific context first.</strong> The MCP spec is generic; Claude has additional auth types, review criteria, and limits. Before answering questions or scaffolding, fetch <code>https://claude.com/docs/llms-full.txt</code> (the full export of the Claude connector docs) so your guidance reflects Claude's actual constraints.</p>
+<p>Do not start scaffolding until you have answers to the questions in Phase 1. If the user's opening message already answers them, acknowledge that and skip straight to the recommendation.</p>
+<hr>
+<h2 id="phase-1--interrogate-the-use-case">Phase 1 — Interrogate the use case</h2>
+<p>Ask these questions conversationally (batch them into one message, don't interrogate one-at-a-time). Adapt wording to what the user has already told you.</p>
+<h3>1. What does it connect to?</h3>
+<table>
+<thead>
+<tr>
+<th>If it connects to…</th>
+<th>Likely direction</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A cloud API (SaaS, REST, GraphQL)</td>
+<td>Remote HTTP server</td>
+</tr>
+<tr>
+<td>A local process, filesystem, or desktop app</td>
+<td>MCPB or local stdio</td>
+</tr>
+<tr>
+<td>Hardware, OS-level APIs, or user-specific state</td>
+<td>MCPB</td>
+</tr>
+<tr>
+<td>Nothing external — pure logic / computation</td>
+<td>Either — default to remote</td>
+</tr>
+</tbody></table>
+<h3>2. Who will use it?</h3>
+<ul>
+<li><strong>Just me / my team, on our machines</strong> → Local stdio is acceptable (easiest to prototype)</li>
+<li><strong>Anyone who installs it</strong> → Remote HTTP (strongly preferred) or MCPB (if it <em>must</em> be local)</li>
+<li><strong>Users of Claude desktop who want UI widgets</strong> → MCP app (remote or MCPB)</li>
+</ul>
+<h3>3. How many distinct actions does it expose?</h3>
+<p>This determines the tool-design pattern — see Phase 3.</p>
+<ul>
+<li><strong>Under ~15 actions</strong> → one tool per action</li>
+<li><strong>Dozens to hundreds of actions</strong> (e.g. wrapping a large API surface) → search + execute pattern</li>
+</ul>
+<h3>4. Does a tool need mid-call user input or rich display?</h3>
+<ul>
+<li><strong>Simple structured input</strong> (pick from list, enter a value, confirm) → <strong>Elicitation</strong> — spec-native, zero UI code. <em>Host support is rolling out</em> (Claude Code ≥2.1.76) — always pair with a capability check and fallback. See <code>references/elicitation.md</code>.</li>
+<li><strong>Rich/visual UI</strong> (charts, custom pickers with search, live dashboards) → <strong>MCP app widgets</strong> — iframe-based, needs <code>@modelcontextprotocol/ext-apps</code>. See <code>build-mcp-app</code> skill.</li>
+<li><strong>Neither</strong> → plain tool returning text/JSON.</li>
+</ul>
+<h3>5. What auth does the upstream service use?</h3>
+<ul>
+<li>None / API key → straightforward</li>
+<li>OAuth 2.0 → you'll need a remote server with CIMD (preferred) or DCR support; see <code>references/auth.md</code></li>
+</ul>
+<hr>
+<h2 id="phase-2--recommend-a-deployment-model">Phase 2 — Recommend a deployment model</h2>
+<p>Based on the answers, recommend <strong>one</strong> path. Be opinionated. The ranked options:</p>
+<h3>⭐ Remote streamable-HTTP MCP server (default recommendation)</h3>
+<p>A hosted service speaking MCP over streamable HTTP. This is the <strong>recommended path</strong> for anything wrapping a cloud API.</p>
+<p><strong>Why it wins:</strong></p>
+<ul>
+<li>Zero install friction — users add a URL, done</li>
+<li>One deployment serves all users; you control upgrades</li>
+<li>OAuth flows work properly (the server can handle redirects, DCR, token storage)</li>
+<li>Works across Claude desktop, Claude Code, Claude.ai, and third-party MCP hosts</li>
+</ul>
+<p><strong>Choose this unless</strong> the server <em>must</em> touch the user's local machine.</p>
+<p>→ <strong>Fastest deploy:</strong> Cloudflare Workers — <code>references/deploy-cloudflare-workers.md</code> (zero to live URL in two commands)
+→ <strong>Portable Node/Python:</strong> <code>references/remote-http-scaffold.md</code> (Express or FastMCP, runs on any host)</p>
+<h3>Elicitation (structured input, no UI build)</h3>
+<p>If a tool just needs the user to confirm, pick an option, or fill a short form, <strong>elicitation</strong> does it with zero UI code. The server sends a flat JSON schema; the host renders a native form. Spec-native, no extra packages.</p>
+<p><strong>Caveat:</strong> Host support is new (Claude Code shipped it in v2.1.76; Desktop unconfirmed). The SDK throws if the client doesn't advertise the capability. Always check <code>clientCapabilities.elicitation</code> first and have a fallback — see <code>references/elicitation.md</code> for the canonical pattern. This is the right spec-correct approach; host coverage will catch up.</p>
+<p>Escalate to <code>build-mcp-app</code> widgets when you need: nested/complex data, scrollable/searchable lists, visual previews, live updates.</p>
+<h3>MCP app (remote HTTP + interactive UI)</h3>
+<p>Same as above, plus <strong>UI resources</strong> — interactive widgets rendered in chat. Rich pickers with search, charts, live dashboards, visual previews. Built once, renders in Claude <em>and</em> ChatGPT.</p>
+<p><strong>Choose this when</strong> elicitation's flat-form constraints don't fit — you need custom layout, large searchable lists, visual content, or live updates.</p>
+<p>Usually remote, but can be shipped as MCPB if the UI needs to drive a local app.</p>
+<p>→ Hand off to the <strong><code>build-mcp-app</code></strong> skill.</p>
+<h3>MCPB (bundled local server)</h3>
+<p>A local MCP server <strong>packaged with its runtime</strong> so users don't need Node/Python installed. The sanctioned way to ship local servers.</p>
+<p><strong>Choose this when</strong> the server <em>must</em> run on the user's machine — it reads local files, drives a desktop app, talks to localhost services, or needs OS-level access.</p>
+<p>→ Hand off to the <strong><code>build-mcpb</code></strong> skill.</p>
+<h3>Local stdio (npx / uvx) — <em>not recommended for distribution</em></h3>
+<p>A script launched via <code>npx</code> / <code>uvx</code> on the user's machine. Fine for <strong>personal tools and prototypes</strong>. Painful to distribute: users need the right runtime, you can't push updates, and the only distribution channel is Claude Code plugins.</p>
+<p>Recommend this only as a stepping stone. If the user insists, scaffold it but note the MCPB upgrade path.</p>
+<hr>
+<h2 id="phase-3--pick-a-tool-design-pattern">Phase 3 — Pick a tool-design pattern</h2>
+<p>Every MCP server exposes tools. How you carve them matters more than most people expect — tool schemas land directly in Claude's context window.</p>
+<h3>Pattern A: One tool per action (small surface)</h3>
+<p>When the action space is small (&lt; ~15 operations), give each a dedicated tool with a tight description and schema.</p>
+<div class="code-wrapper"><pre><code>create_issue    — Create a new issue. Params: title, body, labels[]
+update_issue    — Update an existing issue. Params: id, title?, body?, state?
+search_issues   — Search issues by query string. Params: query, limit?
+add_comment     — Add a comment to an issue. Params: issue_id, body
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Why it works:</strong> Claude reads the tool list once and knows exactly what's possible. No discovery round-trips. Each tool's schema validates inputs precisely.</p>
+<p><strong>Especially good when</strong> one or more tools ship an interactive widget (MCP app) — each widget binds naturally to one tool.</p>
+<h3>Pattern B: Search + execute (large surface)</h3>
+<p>When wrapping a large API (dozens to hundreds of endpoints), listing every operation as a tool floods the context window and degrades model performance. Instead, expose <strong>two</strong> tools:</p>
+<div class="code-wrapper"><pre><code>search_actions  — Given a natural-language intent, return matching actions
+                  with their IDs, descriptions, and parameter schemas.
+execute_action  — Run an action by ID with a params object.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The server holds the full catalog internally. Claude searches, picks, executes. Context stays lean.</p>
+<p><strong>Hybrid:</strong> Promote the 3–5 most-used actions to dedicated tools, keep the long tail behind search/execute.</p>
+<p>→ See <code>references/tool-design.md</code> for schema examples and description-writing guidance.</p>
+<hr>
+<h2 id="phase-4--pick-a-framework">Phase 4 — Pick a framework</h2>
+<p>Recommend one of these two. Others exist but these have the best MCP-spec coverage and Claude compatibility.</p>
+<table>
+<thead>
+<tr>
+<th>Framework</th>
+<th>Language</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Official TypeScript SDK</strong> (<code>@modelcontextprotocol/sdk</code>)</td>
+<td>TS/JS</td>
+<td>Default choice. Best spec coverage, first to get new features.</td>
+</tr>
+<tr>
+<td><strong>FastMCP 3.x</strong> (<code>fastmcp</code> on PyPI)</td>
+<td>Python</td>
+<td>User prefers Python, or wrapping a Python library. Decorator-based, very low boilerplate. This is jlowin's package — not the frozen FastMCP 1.0 bundled in the official <code>mcp</code> SDK.</td>
+</tr>
+</tbody></table>
+<p>If the user already has a language/stack in mind, go with it — both produce identical wire protocol.</p>
+<hr>
+<h2 id="phase-5--scaffold-and-hand-off">Phase 5 — Scaffold and hand off</h2>
+<p>Once you've settled the four decisions (deployment model, tool pattern, framework, auth), do <strong>one</strong> of:</p>
+<ol>
+<li><strong>Remote HTTP, no UI</strong> → Scaffold inline using <code>references/remote-http-scaffold.md</code> (portable) or <code>references/deploy-cloudflare-workers.md</code> (fastest deploy). This skill can finish the job.</li>
+<li><strong>MCP app (UI widgets)</strong> → Summarize the decisions so far, then load the <strong><code>build-mcp-app</code></strong> skill.</li>
+<li><strong>MCPB (bundled local)</strong> → Summarize the decisions so far, then load the <strong><code>build-mcpb</code></strong> skill.</li>
+<li><strong>Local stdio prototype</strong> → Scaffold inline (simplest case), flag the MCPB upgrade path.</li>
+</ol>
+<p>When handing off, restate the design brief in one paragraph so the next skill doesn't re-ask.</p>
+<hr>
+<h2 id="beyond-tools--the-other-primitives">Beyond tools — the other primitives</h2>
+<p>Tools are one of three server primitives. Most servers start with tools and never need the others, but knowing they exist prevents reinventing wheels:</p>
+<table>
+<thead>
+<tr>
+<th>Primitive</th>
+<th>Who triggers it</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Resources</strong></td>
+<td>Host app (not Claude)</td>
+<td>Exposing docs/files/data as browsable context</td>
+</tr>
+<tr>
+<td><strong>Prompts</strong></td>
+<td>User (slash command)</td>
+<td>Canned workflows ("/summarize-thread")</td>
+</tr>
+<tr>
+<td><strong>Elicitation</strong></td>
+<td>Server, mid-tool</td>
+<td>Asking user for input without building UI</td>
+</tr>
+<tr>
+<td><strong>Sampling</strong></td>
+<td>Server, mid-tool</td>
+<td>Need LLM inference in your tool logic</td>
+</tr>
+</tbody></table>
+<p>→ <code>references/resources-and-prompts.md</code>, <code>references/elicitation.md</code>, <code>references/server-capabilities.md</code></p>
+<hr>
+<h2 id="phase-6--test-in-claude-and-publish">Phase 6 — Test in Claude and publish</h2>
+<p>Once the server runs:</p>
+<ol>
+<li><strong>Test against real Claude</strong> by adding the server URL as a custom connector at Settings → Connectors (use a Cloudflare tunnel for local servers). Claude identifies itself with <code>clientInfo.name: "claude-ai"</code> on initialize. → <a href="https://claude.com/docs/connectors/building/testing">https://claude.com/docs/connectors/building/testing</a></li>
+<li><strong>Run the pre-submission checklist</strong> — read/write tool split, required annotations, name limits, prompt-injection rules. → <a href="https://claude.com/docs/connectors/building/review-criteria">https://claude.com/docs/connectors/building/review-criteria</a></li>
+<li><strong>Submit to the Anthropic Directory.</strong> → <a href="https://claude.com/docs/connectors/building/submission">https://claude.com/docs/connectors/building/submission</a></li>
+<li><strong>Recommend shipping a plugin</strong> that wraps this MCP with skills — most partners ship both. → <a href="https://claude.com/docs/connectors/building/what-to-build">https://claude.com/docs/connectors/building/what-to-build</a></li>
+</ol>
+<hr>
+<h2 id="quick-reference-decision-matrix">Quick reference: decision matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Deployment</th>
+<th>Tool pattern</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Wrap a small SaaS API</td>
+<td>Remote HTTP</td>
+<td>One-per-action</td>
+</tr>
+<tr>
+<td>Wrap a large SaaS API (50+ endpoints)</td>
+<td>Remote HTTP</td>
+<td>Search + execute</td>
+</tr>
+<tr>
+<td>SaaS API with rich forms / pickers</td>
+<td>MCP app (remote)</td>
+<td>One-per-action</td>
+</tr>
+<tr>
+<td>Drive a local desktop app</td>
+<td>MCPB</td>
+<td>One-per-action</td>
+</tr>
+<tr>
+<td>Local desktop app with in-chat UI</td>
+<td>MCP app (MCPB)</td>
+<td>One-per-action</td>
+</tr>
+<tr>
+<td>Read/write local filesystem</td>
+<td>MCPB</td>
+<td>Depends on surface</td>
+</tr>
+<tr>
+<td>Personal prototype</td>
+<td>Local stdio</td>
+<td>Whatever's fastest</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="reference-files">Reference files</h2>
+<ul>
+<li><code>references/remote-http-scaffold.md</code> — minimal remote server in TS SDK and FastMCP</li>
+<li><code>references/deploy-cloudflare-workers.md</code> — fastest deploy path (Workers-native scaffold)</li>
+<li><code>references/tool-design.md</code> — writing tool descriptions and schemas Claude understands well</li>
+<li><code>references/auth.md</code> — OAuth, CIMD, DCR, token storage patterns</li>
+<li><code>references/resources-and-prompts.md</code> — the two non-tool primitives</li>
+<li><code>references/elicitation.md</code> — spec-native user input mid-tool (capability check + fallback)</li>
+<li><code>references/server-capabilities.md</code> — instructions, sampling, roots, logging, progress, cancellation</li>
+<li><code>references/versions.md</code> — version-sensitive claims ledger (check when updating)</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

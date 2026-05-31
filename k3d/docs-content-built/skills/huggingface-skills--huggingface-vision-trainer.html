@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-vision-trainer — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-vision-trainer</span></nav>
+    <h1>huggingface-vision-trainer</h1>
+    <p class="page-desc">Trains and fine-tunes vision models for object detection (D-FINE, RT-DETR v2, DETR, YOLOS), image classification (timm models — MobileNetV3, MobileViT, ResNet, ViT/DINOv3 — plus any Transformers classifier), and SAM/SAM2 segmentation using Hugging Face Transformers on Hugging Face Jobs cloud GPUs. Covers COCO-format dataset preparation, Albumentations augmentation, mAP/mAR evaluation, accuracy metrics, SAM segmentation with bbox/point prompts, DiceCE loss, hardware selection, cost estimation, Trackio monitoring, and Hub persistence. Use when users mention training object detection, image classification, SAM, SAM2, segmentation, image matting, DETR, D-FINE, RT-DETR, ViT, timm, MobileNet, ResNet, bounding box models, or fine-tuning vision models on Hugging Face Jobs.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Vision Model Training on Hugging Face Jobs</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#related-skills"><span class="toc-num">2.</span> Related Skills</a></li>
+<li class="toc-item"><a href="#local-script-execution"><span class="toc-num">3.</span> Local Script Execution</a></li>
+<li class="toc-item"><a href="#prerequisites-checklist"><span class="toc-num">4.</span> Prerequisites Checklist</a></li>
+<li class="toc-item"><a href="#dataset-validation"><span class="toc-num">5.</span> Dataset Validation</a></li>
+<li class="toc-item"><a href="#automatic-bbox-preprocessing"><span class="toc-num">6.</span> Automatic Bbox Preprocessing</a></li>
+<li class="toc-item"><a href="#training-workflow"><span class="toc-num">7.</span> Training workflow</a></li>
+<li class="toc-item"><a href="#critical-directives"><span class="toc-num">8.</span> Critical directives</a></li>
+<li class="toc-item"><a href="#model--hardware-selection"><span class="toc-num">9.</span> Model &amp; hardware selection</a></li>
+<li class="toc-item"><a href="#quick-start--object-detection"><span class="toc-num">10.</span> Quick start — Object Detection</a></li>
+<li class="toc-item"><a href="#quick-start--image-classification"><span class="toc-num">11.</span> Quick start — Image Classification</a></li>
+<li class="toc-item"><a href="#quick-start--samsam2-segmentation"><span class="toc-num">12.</span> Quick start — SAM/SAM2 Segmentation</a></li>
+<li class="toc-item"><a href="#checking-job-status"><span class="toc-num">13.</span> Checking job status</a></li>
+<li class="toc-item"><a href="#common-failure-modes"><span class="toc-num">14.</span> Common failure modes</a></li>
+<li class="toc-item"><a href="#reference-files"><span class="toc-num">15.</span> Reference files</a></li>
+<li class="toc-item"><a href="#external-links"><span class="toc-num">16.</span> External links</a></li></ul>
+</div>
+<p>Train object detection, image classification, and SAM/SAM2 segmentation models on managed cloud GPUs. No local GPU setup required—results are automatically saved to the Hugging Face Hub.</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Use this skill when users want to:</p>
+<ul>
+<li>Fine-tune object detection models (D-FINE, RT-DETR v2, DETR, YOLOS) on cloud GPUs or local</li>
+<li>Fine-tune image classification models (timm: MobileNetV3, MobileViT, ResNet, ViT/DINOv3, or any Transformers classifier) on cloud GPUs or local</li>
+<li>Fine-tune SAM or SAM2 models for segmentation / image matting using bbox or point prompts</li>
+<li>Train bounding-box detectors on custom datasets</li>
+<li>Train image classifiers on custom datasets</li>
+<li>Train segmentation models on custom mask datasets with prompts</li>
+<li>Run vision training jobs on Hugging Face Jobs infrastructure</li>
+<li>Ensure trained vision models are permanently saved to the Hub</li>
+</ul>
+<h2 id="related-skills">Related Skills</h2>
+<ul>
+<li><strong><code>hugging-face-jobs</code></strong> — General HF Jobs infrastructure: token authentication, hardware flavors, timeout management, cost estimation, secrets, environment variables, scheduled jobs, and result persistence. <strong>Refer to the Jobs skill for any non-training-specific Jobs questions</strong> (e.g., "how do secrets work?", "what hardware is available?", "how do I pass tokens?").</li>
+<li><strong><code>hugging-face-model-trainer</code></strong> — TRL-based language model training (SFT, DPO, GRPO). Use that skill for text/language model fine-tuning.</li>
+</ul>
+<h2 id="local-script-execution">Local Script Execution</h2>
+<p>Helper scripts use PEP 723 inline dependencies. Run them with <code>uv run</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/dataset_inspector.py --dataset username/dataset-name --split train
+uv run scripts/estimate_cost.py --help
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="prerequisites-checklist">Prerequisites Checklist</h2>
+<p>Before starting any training job, verify:</p>
+<h3>Account &amp; Authentication</h3>
+<ul>
+<li>Hugging Face Account with <a href="https://hf.co/pro">Pro</a>, <a href="https://hf.co/enterprise">Team</a>, or <a href="https://hf.co/enterprise">Enterprise</a> plan (Jobs require paid plan)</li>
+<li>Authenticated login: Check with <code>hf_whoami()</code> (tool) or <code>hf auth whoami</code> (terminal)</li>
+<li>Token has <strong>write</strong> permissions</li>
+<li><strong>MUST pass token in job secrets</strong> — see directive #3 below for syntax (MCP tool vs Python API)</li>
+</ul>
+<h3>Dataset Requirements — Object Detection</h3>
+<ul>
+<li>Dataset must exist on Hub</li>
+<li>Annotations must use the <code>objects</code> column with <code>bbox</code>, <code>category</code> (and optionally <code>area</code>) sub-fields</li>
+<li>Bboxes can be in <strong>xywh (COCO)</strong> or <strong>xyxy (Pascal VOC)</strong> format — auto-detected and converted</li>
+<li>Categories can be <strong>integers or strings</strong> — strings are auto-remapped to integer IDs</li>
+<li><code>image_id</code> column is <strong>optional</strong> — generated automatically if missing</li>
+<li><strong>ALWAYS validate unknown datasets</strong> before GPU training (see Dataset Validation section)</li>
+</ul>
+<h3>Dataset Requirements — Image Classification</h3>
+<ul>
+<li>Dataset must exist on Hub</li>
+<li>Must have an <strong><code>image</code> column</strong> (PIL images) and a <strong><code>label</code> column</strong> (integer class IDs or strings)</li>
+<li>The label column can be <code>ClassLabel</code> type (with names) or plain integers/strings — strings are auto-remapped</li>
+<li>Common column names auto-detected: <code>label</code>, <code>labels</code>, <code>class</code>, <code>fine_label</code></li>
+<li><strong>ALWAYS validate unknown datasets</strong> before GPU training (see Dataset Validation section)</li>
+</ul>
+<h3>Dataset Requirements — SAM/SAM2 Segmentation</h3>
+<ul>
+<li>Dataset must exist on Hub</li>
+<li>Must have an <strong><code>image</code> column</strong> (PIL images) and a <strong><code>mask</code> column</strong> (binary ground-truth segmentation mask)</li>
+<li>Must have a <strong>prompt</strong> — either:<ul>
+<li>A <strong><code>prompt</code> column</strong> with JSON containing <code>{"bbox": [x0,y0,x1,y1]}</code> or <code>{"point": [x,y]}</code></li>
+<li>OR a dedicated <strong><code>bbox</code></strong> column with <code>[x0,y0,x1,y1]</code> values</li>
+<li>OR a dedicated <strong><code>point</code></strong> column with <code>[x,y]</code> or <code>[[x,y],...]</code> values</li>
+</ul>
+</li>
+<li>Bboxes should be in <strong>xyxy</strong> format (absolute pixel coordinates)</li>
+<li>Example dataset: <code>merve/MicroMat-mini</code> (image matting with bbox prompts)</li>
+<li><strong>ALWAYS validate unknown datasets</strong> before GPU training (see Dataset Validation section)</li>
+</ul>
+<h3>Critical Settings</h3>
+<ul>
+<li><strong>Timeout must exceed expected training time</strong> — Default 30min is TOO SHORT. See directive #6 for recommended values.</li>
+<li><strong>Hub push must be enabled</strong> — <code>push_to_hub=True</code>, <code>hub_model_id="username/model-name"</code>, token in <code>secrets</code></li>
+</ul>
+<h2 id="dataset-validation">Dataset Validation</h2>
+<p><strong>Validate dataset format BEFORE launching GPU training to prevent the #1 cause of training failures: format mismatches.</strong></p>
+<p><strong>ALWAYS validate for</strong> unknown/custom datasets or any dataset you haven't trained with before. <strong>Skip for</strong> <code>cppe-5</code> (the default in the training script).</p>
+<h3>Running the Inspector</h3>
+<p><strong>Option 1: Via HF Jobs (recommended — avoids local SSL/dependency issues):</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">hf_jobs("uv", {
+    "script": "path/to/dataset_inspector.py",
+    "script_args": ["--dataset", "username/dataset-name", "--split", "train"]
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Option 2: Locally:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">uv run scripts/dataset_inspector.py --dataset username/dataset-name --split train
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Option 3: Via <code>HfApi().run_uv_job()</code> (if hf_jobs MCP unavailable):</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi
+api = HfApi()
+api.run_uv_job(
+    script="scripts/dataset_inspector.py",
+    script_args=["--dataset", "username/dataset-name", "--split", "train"],
+    flavor="cpu-basic",
+    timeout=300,
+)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Reading Results</h3>
+<ul>
+<li><strong><code>✓ READY</code></strong> — Dataset is compatible, use directly</li>
+<li><strong><code>✗ NEEDS FORMATTING</code></strong> — Needs preprocessing (mapping code provided in output)</li>
+</ul>
+<h2 id="automatic-bbox-preprocessing">Automatic Bbox Preprocessing</h2>
+<p>The object detection training script (<code>scripts/object_detection_training.py</code>) automatically handles bbox format detection (xyxy→xywh conversion), bbox sanitization, <code>image_id</code> generation, string category→integer remapping, and dataset truncation. <strong>No manual preprocessing needed</strong> — just ensure the dataset has <code>objects.bbox</code> and <code>objects.category</code> columns.</p>
+<h2 id="training-workflow">Training workflow</h2>
+<p>Copy this checklist and track progress:</p>
+<div class="code-wrapper"><pre><code>Training Progress:
+- [ ] Step 1: Verify prerequisites (account, token, dataset)
+- [ ] Step 2: Validate dataset format (run dataset_inspector.py)
+- [ ] Step 3: Ask user about dataset size and validation split
+- [ ] Step 4: Prepare training script (OD: scripts/object_detection_training.py, IC: scripts/image_classification_training.py, SAM: scripts/sam_segmentation_training.py)
+- [ ] Step 5: Save script locally, submit job, and report details
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 1: Verify prerequisites</strong></p>
+<p>Follow the Prerequisites Checklist above.</p>
+<p><strong>Step 2: Validate dataset</strong></p>
+<p>Run the dataset inspector BEFORE spending GPU time. See "Dataset Validation" section above.</p>
+<p><strong>Step 3: Ask user preferences</strong></p>
+<p>ALWAYS use the AskUserQuestion tool with option-style format:</p>
+<div class="code-wrapper"><pre><code class="language-python">AskUserQuestion({
+    "questions": [
+        {
+            "question": "Do you want to run a quick test with a subset of the data first?",
+            "header": "Dataset Size",
+            "options": [
+                {"label": "Quick test run (10% of data)", "description": "Faster, cheaper (~30-60 min, ~$2-5) to validate setup"},
+                {"label": "Full dataset (Recommended)", "description": "Complete training for best model quality"}
+            ],
+            "multiSelect": false
+        },
+        {
+            "question": "Do you want to create a validation split from the training data?",
+            "header": "Split data",
+            "options": [
+                {"label": "Yes (Recommended)", "description": "Automatically split 15% of training data for validation"},
+                {"label": "No", "description": "Use existing validation split from dataset"}
+            ],
+            "multiSelect": false
+        },
+        {
+            "question": "Which GPU hardware do you want to use?",
+            "header": "Hardware Flavor",
+            "options": [
+                {"label": "t4-small ($0.40/hr)", "description": "1x T4, 16 GB VRAM — sufficient for all OD models under 100M params"},
+                {"label": "l4x1 ($0.80/hr)", "description": "1x L4, 24 GB VRAM — more headroom for large images or batch sizes"},
+                {"label": "a10g-large ($1.50/hr)", "description": "1x A10G, 24 GB VRAM — faster training, more CPU/RAM"},
+                {"label": "a100-large ($2.50/hr)", "description": "1x A100, 80 GB VRAM — fastest, for very large datasets or image sizes"}
+            ],
+            "multiSelect": false
+        }
+    ]
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 4: Prepare training script</strong></p>
+<p>For object detection, use <a href="scripts/object_detection_training.py">scripts/object_detection_training.py</a> as the production-ready template. For image classification, use <a href="scripts/image_classification_training.py">scripts/image_classification_training.py</a>. For SAM/SAM2 segmentation, use <a href="scripts/sam_segmentation_training.py">scripts/sam_segmentation_training.py</a>. All scripts use <code>HfArgumentParser</code> — all configuration is passed via CLI arguments in <code>script_args</code>, NOT by editing Python variables. For timm model details, see <a href="references/timm_trainer.md">references/timm_trainer.md</a>. For SAM2 training details, see <a href="references/finetune_sam2_trainer.md">references/finetune_sam2_trainer.md</a>.</p>
+<p><strong>Step 5: Save script, submit job, and report</strong></p>
+<ol>
+<li><strong>Save the script locally</strong> to <code>submitted_jobs/</code> in the workspace root (create if needed) with a descriptive name like <code>training_&lt;dataset&gt;_&lt;YYYYMMDD_HHMMSS&gt;.py</code>. Tell the user the path.</li>
+<li><strong>Submit</strong> using <code>hf_jobs</code> MCP tool (preferred) or <code>HfApi().run_uv_job()</code> — see directive #1 for both methods. Pass all config via <code>script_args</code>.</li>
+<li><strong>Report</strong> the job ID (from <code>.id</code> attribute), monitoring URL, Trackio dashboard (<code>https://huggingface.co/spaces/{username}/trackio</code>), expected time, and estimated cost.</li>
+<li><strong>Wait for user</strong> to request status checks — don't poll automatically. Training jobs run asynchronously and can take hours.</li>
+</ol>
+<h2 id="critical-directives">Critical directives</h2>
+<p>These rules prevent common failures. Follow them exactly.</p>
+<h3>1. Job submission: <code>hf_jobs</code> MCP tool vs Python API</h3>
+<p><strong><code>hf_jobs()</code> is an MCP tool, NOT a Python function.</strong> Do NOT try to import it from <code>huggingface_hub</code>. Call it as a tool:</p>
+<div class="code-wrapper"><pre><code>hf_jobs("uv", {"script": training_script_content, "flavor": "a10g-large", "timeout": "4h", "secrets": {"HF_TOKEN": "$HF_TOKEN"}})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>If <code>hf_jobs</code> MCP tool is unavailable</strong>, use the Python API directly:</p>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi, get_token
+api = HfApi()
+job_info = api.run_uv_job(
+    script="path/to/training_script.py",  # file PATH, NOT content
+    script_args=["--dataset_name", "cppe-5", ...],
+    flavor="a10g-large",
+    timeout=14400,  # seconds (4 hours)
+    env={"PYTHONUNBUFFERED": "1"},
+    secrets={"HF_TOKEN": get_token()},  # MUST use get_token(), NOT "$HF_TOKEN"
+)
+print(f"Job ID: {job_info.id}")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Critical differences between the two methods:</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><code>hf_jobs</code> MCP tool</th>
+<th><code>HfApi().run_uv_job()</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>script</code> param</td>
+<td>Python code string or URL (NOT local paths)</td>
+<td>File path to <code>.py</code> file (NOT content)</td>
+</tr>
+<tr>
+<td>Token in secrets</td>
+<td><code>"$HF_TOKEN"</code> (auto-replaced)</td>
+<td><code>get_token()</code> (actual token value)</td>
+</tr>
+<tr>
+<td>Timeout format</td>
+<td>String (<code>"4h"</code>)</td>
+<td>Seconds (<code>14400</code>)</td>
+</tr>
+</tbody></table>
+<p><strong>Rules for both methods:</strong></p>
+<ul>
+<li>The training script MUST include PEP 723 inline metadata with dependencies</li>
+<li>Do NOT use <code>image</code> or <code>command</code> parameters (those belong to <code>run_job()</code>, not <code>run_uv_job()</code>)</li>
+</ul>
+<h3>2. Authentication via job secrets + explicit hub_token injection</h3>
+<p><strong>Job config</strong> MUST include the token in secrets — syntax depends on submission method (see table above).</p>
+<p><strong>Training script requirement:</strong> The Transformers <code>Trainer</code> calls <code>create_repo(token=self.args.hub_token)</code> during <code>__init__()</code> when <code>push_to_hub=True</code>. The training script MUST inject <code>HF_TOKEN</code> into <code>training_args.hub_token</code> AFTER parsing args but BEFORE creating the <code>Trainer</code>. The template <code>scripts/object_detection_training.py</code> already includes this:</p>
+<div class="code-wrapper"><pre><code class="language-python">hf_token = os.environ.get("HF_TOKEN")
+if training_args.push_to_hub and not training_args.hub_token:
+    if hf_token:
+        training_args.hub_token = hf_token
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If you write a custom script, you MUST include this token injection before the <code>Trainer(...)</code> call.</p>
+<ul>
+<li>Do NOT call <code>login()</code> in custom scripts unless replicating the full pattern from <code>scripts/object_detection_training.py</code></li>
+<li>Do NOT rely on implicit token resolution (<code>hub_token=None</code>) — unreliable in Jobs</li>
+<li>See the <code>hugging-face-jobs</code> skill → <em>Token Usage Guide</em> for full details</li>
+</ul>
+<h3>3. JobInfo attribute</h3>
+<p>Access the job identifier using <code>.id</code> (NOT <code>.job_id</code> or <code>.name</code> — these don't exist):</p>
+<div class="code-wrapper"><pre><code class="language-python">job_info = api.run_uv_job(...)  # or hf_jobs("uv", {...})
+job_id = job_info.id  # Correct -- returns string like "687fb701029421ae5549d998"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>4. Required training flags and HfArgumentParser boolean syntax</h3>
+<p><code>scripts/object_detection_training.py</code> uses <code>HfArgumentParser</code> — all config is passed via <code>script_args</code>. Boolean arguments have two syntaxes:</p>
+<ul>
+<li><strong><code>bool</code> fields</strong> (e.g., <code>push_to_hub</code>, <code>do_train</code>): Use as bare flags (<code>--push_to_hub</code>) or negate with <code>--no_</code> prefix (<code>--no_remove_unused_columns</code>)</li>
+<li><strong><code>Optional[bool]</code> fields</strong> (e.g., <code>greater_is_better</code>): MUST pass explicit value (<code>--greater_is_better True</code>). Bare <code>--greater_is_better</code> causes <code>error: expected one argument</code></li>
+</ul>
+<p>Required flags for object detection:</p>
+<div class="code-wrapper"><pre><code>--no_remove_unused_columns          # MUST: preserves image column for pixel_values
+--no_eval_do_concat_batches         # MUST: images have different numbers of target boxes
+--push_to_hub                       # MUST: environment is ephemeral
+--hub_model_id username/model-name
+--metric_for_best_model eval_map
+--greater_is_better True            # MUST pass "True" explicitly (Optional[bool])
+--do_train
+--do_eval
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Required flags for image classification:</p>
+<div class="code-wrapper"><pre><code>--no_remove_unused_columns          # MUST: preserves image column for pixel_values
+--push_to_hub                       # MUST: environment is ephemeral
+--hub_model_id username/model-name
+--metric_for_best_model eval_accuracy
+--greater_is_better True            # MUST pass "True" explicitly (Optional[bool])
+--do_train
+--do_eval
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Required flags for SAM/SAM2 segmentation:</p>
+<div class="code-wrapper"><pre><code>--remove_unused_columns False       # MUST: preserves input_boxes/input_points
+--push_to_hub                       # MUST: environment is ephemeral
+--hub_model_id username/model-name
+--do_train
+--prompt_type bbox                  # or "point"
+--dataloader_pin_memory False       # MUST: avoids pin_memory issues with custom collator
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>5. Timeout management</h3>
+<p>Default 30 min is TOO SHORT for object detection. Set minimum 2-4 hours. Add 30% buffer for model loading, preprocessing, and Hub push.</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Timeout</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Quick test (100-200 images, 5-10 epochs)</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>Development (500-1K images, 15-20 epochs)</td>
+<td>2-3h</td>
+</tr>
+<tr>
+<td>Production (1K-5K images, 30 epochs)</td>
+<td>4-6h</td>
+</tr>
+<tr>
+<td>Large dataset (5K+ images)</td>
+<td>6-12h</td>
+</tr>
+</tbody></table>
+<h3>6. Trackio monitoring</h3>
+<p>Trackio is <strong>always enabled</strong> in the object detection training script — it calls <code>trackio.init()</code> and <code>trackio.finish()</code> automatically. No need to pass <code>--report_to trackio</code>. The project name is taken from <code>--output_dir</code> and the run name from <code>--run_name</code>. For image classification, pass <code>--report_to trackio</code> in <code>TrainingArguments</code>.</p>
+<p>Dashboard at: <code>https://huggingface.co/spaces/{username}/trackio</code></p>
+<h2 id="model--hardware-selection">Model &amp; hardware selection</h2>
+<h3>Recommended object detection models</h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Params</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ustc-community/dfine-small-coco</code></td>
+<td>10.4M</td>
+<td>Best starting point — fast, cheap, SOTA quality</td>
+</tr>
+<tr>
+<td><code>PekingU/rtdetr_v2_r18vd</code></td>
+<td>20.2M</td>
+<td>Lightweight real-time detector</td>
+</tr>
+<tr>
+<td><code>ustc-community/dfine-large-coco</code></td>
+<td>31.4M</td>
+<td>Higher accuracy, still efficient</td>
+</tr>
+<tr>
+<td><code>PekingU/rtdetr_v2_r50vd</code></td>
+<td>43M</td>
+<td>Strong real-time baseline</td>
+</tr>
+<tr>
+<td><code>ustc-community/dfine-xlarge-obj365</code></td>
+<td>63.5M</td>
+<td>Best accuracy (pretrained on Objects365)</td>
+</tr>
+<tr>
+<td><code>PekingU/rtdetr_v2_r101vd</code></td>
+<td>76M</td>
+<td>Largest RT-DETR v2 variant</td>
+</tr>
+</tbody></table>
+<p>Start with <code>ustc-community/dfine-small-coco</code> for fast iteration. Move to D-FINE Large or RT-DETR v2 R50 for better accuracy.</p>
+<h3>Recommended image classification models</h3>
+<p>All <code>timm/</code> models work out of the box via <code>AutoModelForImageClassification</code> (loaded as <code>TimmWrapperForImageClassification</code>). See <a href="references/timm_trainer.md">references/timm_trainer.md</a> for details.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Params</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>timm/mobilenetv3_small_100.lamb_in1k</code></td>
+<td>2.5M</td>
+<td>Ultra-lightweight — mobile/edge, fastest training</td>
+</tr>
+<tr>
+<td><code>timm/mobilevit_s.cvnets_in1k</code></td>
+<td>5.6M</td>
+<td>Mobile transformer — good accuracy/speed trade-off</td>
+</tr>
+<tr>
+<td><code>timm/resnet50.a1_in1k</code></td>
+<td>25.6M</td>
+<td>Strong CNN baseline — reliable, well-studied</td>
+</tr>
+<tr>
+<td><code>timm/vit_base_patch16_dinov3.lvd1689m</code></td>
+<td>86.6M</td>
+<td>Best accuracy — DINOv3 self-supervised ViT</td>
+</tr>
+</tbody></table>
+<p>Start with <code>timm/mobilenetv3_small_100.lamb_in1k</code> for fast iteration. Move to <code>timm/resnet50.a1_in1k</code> or <code>timm/vit_base_patch16_dinov3.lvd1689m</code> for better accuracy.</p>
+<h3>Recommended SAM/SAM2 segmentation models</h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Params</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>facebook/sam2.1-hiera-tiny</code></td>
+<td>38.9M</td>
+<td>Fastest SAM2 — good for quick experiments</td>
+</tr>
+<tr>
+<td><code>facebook/sam2.1-hiera-small</code></td>
+<td>46.0M</td>
+<td>Best starting point — good quality/speed balance</td>
+</tr>
+<tr>
+<td><code>facebook/sam2.1-hiera-base-plus</code></td>
+<td>80.8M</td>
+<td>Higher capacity for complex segmentation</td>
+</tr>
+<tr>
+<td><code>facebook/sam2.1-hiera-large</code></td>
+<td>224.4M</td>
+<td>Best SAM2 accuracy — requires more VRAM</td>
+</tr>
+<tr>
+<td><code>facebook/sam-vit-base</code></td>
+<td>93.7M</td>
+<td>Original SAM — ViT-B backbone</td>
+</tr>
+<tr>
+<td><code>facebook/sam-vit-large</code></td>
+<td>312.3M</td>
+<td>Original SAM — ViT-L backbone</td>
+</tr>
+<tr>
+<td><code>facebook/sam-vit-huge</code></td>
+<td>641.1M</td>
+<td>Original SAM — ViT-H, best SAM v1 accuracy</td>
+</tr>
+</tbody></table>
+<p>Start with <code>facebook/sam2.1-hiera-small</code> for fast iteration. SAM2 models are generally more efficient than SAM v1 at similar quality. Only the mask decoder is trained by default (vision and prompt encoders are frozen).</p>
+<h3>Hardware recommendation</h3>
+<p>All recommended OD and IC models are under 100M params — <strong><code>t4-small</code> (16 GB VRAM, $0.40/hr) is sufficient for all of them.</strong> Image classification models are generally smaller and faster than object detection models — <code>t4-small</code> handles even ViT-Base comfortably. For SAM2 models up to <code>hiera-base-plus</code>, <code>t4-small</code> is sufficient since only the mask decoder is trained. For <code>sam2.1-hiera-large</code> or SAM v1 models, use <code>l4x1</code> or <code>a10g-large</code>. Only upgrade if you hit OOM from large batch sizes — reduce batch size first before switching hardware. Common upgrade path: <code>t4-small</code> → <code>l4x1</code> ($0.80/hr, 24 GB) → <code>a10g-large</code> ($1.50/hr, 24 GB).</p>
+<p>For full hardware flavor list: refer to the <code>hugging-face-jobs</code> skill. For cost estimation: run <code>scripts/estimate_cost.py</code>.</p>
+<h2 id="quick-start--object-detection">Quick start — Object Detection</h2>
+<p>The <code>script_args</code> below are the same for both submission methods. See directive #1 for the critical differences between them.</p>
+<div class="code-wrapper"><pre><code class="language-python">OD_SCRIPT_ARGS = [
+    "--model_name_or_path", "ustc-community/dfine-small-coco",
+    "--dataset_name", "cppe-5",
+    "--image_square_size", "640",
+    "--output_dir", "dfine_finetuned",
+    "--num_train_epochs", "30",
+    "--per_device_train_batch_size", "8",
+    "--learning_rate", "5e-5",
+    "--eval_strategy", "epoch",
+    "--save_strategy", "epoch",
+    "--save_total_limit", "2",
+    "--load_best_model_at_end",
+    "--metric_for_best_model", "eval_map",
+    "--greater_is_better", "True",
+    "--no_remove_unused_columns",
+    "--no_eval_do_concat_batches",
+    "--push_to_hub",
+    "--hub_model_id", "username/model-name",
+    "--do_train",
+    "--do_eval",
+]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi, get_token
+api = HfApi()
+job_info = api.run_uv_job(
+    script="scripts/object_detection_training.py",
+    script_args=OD_SCRIPT_ARGS,
+    flavor="t4-small",
+    timeout=14400,
+    env={"PYTHONUNBUFFERED": "1"},
+    secrets={"HF_TOKEN": get_token()},
+)
+print(f"Job ID: {job_info.id}")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Key OD <code>script_args</code></h3>
+<ul>
+<li><code>--model_name_or_path</code> — recommended: <code>"ustc-community/dfine-small-coco"</code> (see model table above)</li>
+<li><code>--dataset_name</code> — the Hub dataset ID</li>
+<li><code>--image_square_size</code> — 480 (fast iteration) or 800 (better accuracy)</li>
+<li><code>--hub_model_id</code> — <code>"username/model-name"</code> for Hub persistence</li>
+<li><code>--num_train_epochs</code> — 30 typical for convergence</li>
+<li><code>--train_val_split</code> — fraction to split for validation (default 0.15), set if dataset lacks a validation split</li>
+<li><code>--max_train_samples</code> — truncate training set (useful for quick test runs, e.g. <code>"785"</code> for ~10% of a 7.8K dataset)</li>
+<li><code>--max_eval_samples</code> — truncate evaluation set</li>
+</ul>
+<h2 id="quick-start--image-classification">Quick start — Image Classification</h2>
+<div class="code-wrapper"><pre><code class="language-python">IC_SCRIPT_ARGS = [
+    "--model_name_or_path", "timm/mobilenetv3_small_100.lamb_in1k",
+    "--dataset_name", "ethz/food101",
+    "--output_dir", "food101_classifier",
+    "--num_train_epochs", "5",
+    "--per_device_train_batch_size", "32",
+    "--per_device_eval_batch_size", "32",
+    "--learning_rate", "5e-5",
+    "--eval_strategy", "epoch",
+    "--save_strategy", "epoch",
+    "--save_total_limit", "2",
+    "--load_best_model_at_end",
+    "--metric_for_best_model", "eval_accuracy",
+    "--greater_is_better", "True",
+    "--no_remove_unused_columns",
+    "--push_to_hub",
+    "--hub_model_id", "username/food101-classifier",
+    "--do_train",
+    "--do_eval",
+]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi, get_token
+api = HfApi()
+job_info = api.run_uv_job(
+    script="scripts/image_classification_training.py",
+    script_args=IC_SCRIPT_ARGS,
+    flavor="t4-small",
+    timeout=7200,
+    env={"PYTHONUNBUFFERED": "1"},
+    secrets={"HF_TOKEN": get_token()},
+)
+print(f"Job ID: {job_info.id}")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Key IC <code>script_args</code></h3>
+<ul>
+<li><code>--model_name_or_path</code> — any <code>timm/</code> model or Transformers classification model (see model table above)</li>
+<li><code>--dataset_name</code> — the Hub dataset ID</li>
+<li><code>--image_column_name</code> — column containing PIL images (default: <code>"image"</code>)</li>
+<li><code>--label_column_name</code> — column containing class labels (default: <code>"label"</code>)</li>
+<li><code>--hub_model_id</code> — <code>"username/model-name"</code> for Hub persistence</li>
+<li><code>--num_train_epochs</code> — 3-5 typical for classification (fewer than OD)</li>
+<li><code>--per_device_train_batch_size</code> — 16-64 (classification models use less memory than OD)</li>
+<li><code>--train_val_split</code> — fraction to split for validation (default 0.15), set if dataset lacks a validation split</li>
+<li><code>--max_train_samples</code> / <code>--max_eval_samples</code> — truncate for quick tests</li>
+</ul>
+<h2 id="quick-start--samsam2-segmentation">Quick start — SAM/SAM2 Segmentation</h2>
+<div class="code-wrapper"><pre><code class="language-python">SAM_SCRIPT_ARGS = [
+    "--model_name_or_path", "facebook/sam2.1-hiera-small",
+    "--dataset_name", "merve/MicroMat-mini",
+    "--prompt_type", "bbox",
+    "--prompt_column_name", "prompt",
+    "--output_dir", "sam2-finetuned",
+    "--num_train_epochs", "30",
+    "--per_device_train_batch_size", "4",
+    "--learning_rate", "1e-5",
+    "--logging_steps", "1",
+    "--save_strategy", "epoch",
+    "--save_total_limit", "2",
+    "--remove_unused_columns", "False",
+    "--dataloader_pin_memory", "False",
+    "--push_to_hub",
+    "--hub_model_id", "username/sam2-finetuned",
+    "--do_train",
+    "--report_to", "trackio",
+]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi, get_token
+api = HfApi()
+job_info = api.run_uv_job(
+    script="scripts/sam_segmentation_training.py",
+    script_args=SAM_SCRIPT_ARGS,
+    flavor="t4-small",
+    timeout=7200,
+    env={"PYTHONUNBUFFERED": "1"},
+    secrets={"HF_TOKEN": get_token()},
+)
+print(f"Job ID: {job_info.id}")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Key SAM <code>script_args</code></h3>
+<ul>
+<li><code>--model_name_or_path</code> — SAM or SAM2 model (see model table above); auto-detects SAM vs SAM2</li>
+<li><code>--dataset_name</code> — the Hub dataset ID (e.g., <code>"merve/MicroMat-mini"</code>)</li>
+<li><code>--prompt_type</code> — <code>"bbox"</code> or <code>"point"</code> — type of prompt in the dataset</li>
+<li><code>--prompt_column_name</code> — column with JSON-encoded prompts (default: <code>"prompt"</code>)</li>
+<li><code>--bbox_column_name</code> — dedicated bbox column (alternative to JSON prompt column)</li>
+<li><code>--point_column_name</code> — dedicated point column (alternative to JSON prompt column)</li>
+<li><code>--mask_column_name</code> — column with ground-truth masks (default: <code>"mask"</code>)</li>
+<li><code>--hub_model_id</code> — <code>"username/model-name"</code> for Hub persistence</li>
+<li><code>--num_train_epochs</code> — 20-30 typical for SAM fine-tuning</li>
+<li><code>--per_device_train_batch_size</code> — 2-4 (SAM models use significant memory)</li>
+<li><code>--freeze_vision_encoder</code> / <code>--freeze_prompt_encoder</code> — freeze encoder weights (default: both frozen, only mask decoder trains)</li>
+<li><code>--train_val_split</code> — fraction to split for validation (default 0.1)</li>
+</ul>
+<h2 id="checking-job-status">Checking job status</h2>
+<p><strong>MCP tool (if available):</strong></p>
+<div class="code-wrapper"><pre><code>hf_jobs("ps")                                   # List all jobs
+hf_jobs("logs", {"job_id": "your-job-id"})      # View logs
+hf_jobs("inspect", {"job_id": "your-job-id"})   # Job details
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Python API fallback:</strong></p>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi
+api = HfApi()
+api.list_jobs()                                  # List all jobs
+api.get_job_logs(job_id="your-job-id")           # View logs
+api.get_job(job_id="your-job-id")                # Job details
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-failure-modes">Common failure modes</h2>
+<h3>OOM (CUDA out of memory)</h3>
+<p>Reduce <code>per_device_train_batch_size</code> (try 4, then 2), reduce <code>IMAGE_SIZE</code>, or upgrade hardware.</p>
+<h3>Dataset format errors</h3>
+<p>Run <code>scripts/dataset_inspector.py</code> first. The training script auto-detects xyxy vs xywh, converts string categories to integer IDs, and adds <code>image_id</code> if missing. Ensure <code>objects.bbox</code> contains 4-value coordinate lists in absolute pixels and <code>objects.category</code> contains either integer IDs or string labels.</p>
+<h3>Hub push failures (401)</h3>
+<p>Verify: (1) job secrets include token (see directive #2), (2) script sets <code>training_args.hub_token</code> BEFORE creating the <code>Trainer</code>, (3) <code>push_to_hub=True</code> is set, (4) correct <code>hub_model_id</code>, (5) token has write permissions.</p>
+<h3>Job timeout</h3>
+<p>Increase timeout (see directive #5 table), reduce epochs/dataset, or use checkpoint strategy with <code>hub_strategy="every_save"</code>.</p>
+<h3>KeyError: 'test' (missing test split)</h3>
+<p>The object detection training script handles this gracefully — it falls back to the <code>validation</code> split. Ensure you're using the latest <code>scripts/object_detection_training.py</code>.</p>
+<h3>Single-class dataset: "iteration over a 0-d tensor"</h3>
+<p><code>torchmetrics.MeanAveragePrecision</code> returns scalar (0-d) tensors for per-class metrics when there's only one class. The template <code>scripts/object_detection_training.py</code> handles this by calling <code>.unsqueeze(0)</code> on these tensors. Ensure you're using the latest template.</p>
+<h3>Poor detection performance (mAP &lt; 0.15)</h3>
+<p>Increase epochs (30-50), ensure 500+ images, check per-class mAP for imbalanced classes, try different learning rates (1e-5 to 1e-4), increase image size.</p>
+<p>For comprehensive troubleshooting: see <a href="references/reliability_principles.md">references/reliability_principles.md</a></p>
+<h2 id="reference-files">Reference files</h2>
+<ul>
+<li><a href="scripts/object_detection_training.py">scripts/object_detection_training.py</a> — Production-ready object detection training script</li>
+<li><a href="scripts/image_classification_training.py">scripts/image_classification_training.py</a> — Production-ready image classification training script (supports timm models)</li>
+<li><a href="scripts/sam_segmentation_training.py">scripts/sam_segmentation_training.py</a> — Production-ready SAM/SAM2 segmentation training script (bbox &amp; point prompts)</li>
+<li><a href="scripts/dataset_inspector.py">scripts/dataset_inspector.py</a> — Validate dataset format for OD, classification, and SAM segmentation</li>
+<li><a href="scripts/estimate_cost.py">scripts/estimate_cost.py</a> — Estimate training costs for any vision model (includes SAM/SAM2)</li>
+<li><a href="references/object_detection_training_notebook.md">references/object_detection_training_notebook.md</a> — Object detection training workflow, augmentation strategies, and training patterns</li>
+<li><a href="references/image_classification_training_notebook.md">references/image_classification_training_notebook.md</a> — Image classification training workflow with ViT, preprocessing, and evaluation</li>
+<li><a href="references/finetune_sam2_trainer.md">references/finetune_sam2_trainer.md</a> — SAM2 fine-tuning walkthrough with MicroMat dataset, DiceCE loss, and Trainer integration</li>
+<li><a href="references/timm_trainer.md">references/timm_trainer.md</a> — Using timm models with HF Trainer (TimmWrapper, transforms, full example)</li>
+<li><a href="references/hub_saving.md">references/hub_saving.md</a> — Detailed Hub persistence guide and verification checklist</li>
+<li><a href="references/reliability_principles.md">references/reliability_principles.md</a> — Failure prevention principles from production experience</li>
+</ul>
+<h2 id="external-links">External links</h2>
+<ul>
+<li><a href="https://huggingface.co/docs/transformers/tasks/object_detection">Transformers Object Detection Guide</a></li>
+<li><a href="https://huggingface.co/docs/transformers/tasks/image_classification">Transformers Image Classification Guide</a></li>
+<li><a href="https://huggingface.co/docs/transformers/model_doc/detr">DETR Model Documentation</a></li>
+<li><a href="https://huggingface.co/docs/transformers/model_doc/vit">ViT Model Documentation</a></li>
+<li><a href="https://huggingface.co/docs/huggingface_hub/guides/jobs">HF Jobs Guide</a> — Main Jobs documentation</li>
+<li><a href="https://huggingface.co/docs/hub/en/jobs-configuration">HF Jobs Configuration</a> — Hardware, secrets, timeouts, namespaces</li>
+<li><a href="https://huggingface.co/docs/huggingface_hub/guides/cli#hf-jobs">HF Jobs CLI Reference</a> — Command line interface</li>
+<li><a href="https://huggingface.co/models?pipeline_tag=object-detection">Object Detection Models</a></li>
+<li><a href="https://huggingface.co/models?pipeline_tag=image-classification">Image Classification Models</a></li>
+<li><a href="https://huggingface.co/docs/transformers/model_doc/sam2">SAM2 Model Documentation</a></li>
+<li><a href="https://huggingface.co/docs/transformers/model_doc/sam">SAM Model Documentation</a></li>
+<li><a href="https://huggingface.co/datasets?task_categories=task_categories:object-detection">Object Detection Datasets</a></li>
+<li><a href="https://huggingface.co/datasets?task_categories=task_categories:image-classification">Image Classification Datasets</a></li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

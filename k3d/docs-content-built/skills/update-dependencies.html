@@ -1,167 +1,148 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>update-dependencies — Paket-Wartung & Deprecation Fixes</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>update-dependencies — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
-<nav class="topnav">
-  <a href="../skills-overview.html" class="topnav-back">
-    <span class="arrow">&#8592;</span> Alle Skills
-  </a>
-  <span class="topnav-divider">/</span>
-  <span class="topnav-title">update-dependencies</span>
-  <div class="topnav-right">
-    <span class="badge badge-brass">Development</span>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-</nav>
-
-<header class="skill-hero">
-  <div class="hero-meta">
-    <span class="badge badge-brass">Development</span>
-    <span class="badge-slug">update-dependencies</span>
-  </div>
-  <h1 class="hero-title">Update Dependencies</h1>
-  <p class="hero-subtitle">
-    Systematische Aktualisierung von Paketen und Frameworks: Deprecation-Audit, 
-    Major-Bumps und EOL-Check über alle Workspaces hinweg.
-  </p>
-  <div class="trigger-chip">
-    <span class="label">Auslöser:</span> Veraltete Pakete, Sicherheits-Warnungen (Audit) oder Deprecation-Warnings
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">update-dependencies</span></nav>
+    <h1>update-dependencies</h1>
+    <p class="page-desc">Systematische Aktualisierung von Paketen und Frameworks: Deprecation-Audit, Major-Bumps und EOL-Check über alle Workspaces hinweg.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
   </div>
 </header>
 
-<main class="content">
+<article class="doc-body">
+<html><head></head><body><h1>update-dependencies — Dependency Maintenance</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
+<li class="toc-item"><a href="#workspaces--tooling"><span class="toc-num">2.</span> Workspaces &amp; Tooling</a></li>
+<li class="toc-item"><a href="#phase-1--audit-outdated--deprecated"><span class="toc-num">3.</span> Phase 1 — Audit (Outdated &amp; Deprecated)</a></li>
+<li class="toc-item"><a href="#phase-2--safe-updates-patch--minor"><span class="toc-num">4.</span> Phase 2 — Safe Updates (Patch &amp; Minor)</a></li>
+<li class="toc-item"><a href="#phase-3--major-bumps-breaking-changes"><span class="toc-num">5.</span> Phase 3 — Major Bumps (Breaking Changes)</a></li>
+<li class="toc-item"><a href="#phase-4--verifizierung-clean-output"><span class="toc-num">6.</span> Phase 4 — Verifizierung (Clean Output)</a></li>
+<li class="toc-item"><a href="#haeufige-fehler--blockers"><span class="toc-num">7.</span> Häufige Fehler &amp; Blockers</a></li></ul>
+</div>
+<h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
+<p>Veraltete Pakete, Sicherheitswarnungen (npm audit/pnpm audit) oder Deprecation-Warnings treten auf und müssen strukturiert bereinigt werden.</p>
+<hr>
+<h2 id="workspaces--tooling">Workspaces &amp; Tooling</h2>
+<table>
+<thead>
+<tr>
+<th>Pfad</th>
+<th>Manager</th>
+<th>Besonderheiten</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/</code> (root)</td>
+<td>npm</td>
+<td>Taskfile tooling</td>
+</tr>
+<tr>
+<td><code>website/</code></td>
+<td>pnpm</td>
+<td>Astro + Svelte</td>
+</tr>
+<tr>
+<td><code>arena-server/</code></td>
+<td>pnpm</td>
+<td>Drizzle + Socket.IO</td>
+</tr>
+<tr>
+<td><code>brett/</code></td>
+<td>npm</td>
+<td>3D-Board Backend</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="phase-1--audit-outdated--deprecated">Phase 1 — Audit (Outdated &amp; Deprecated)</h2>
+<ol>
+<li><p>Ermittle veraltete Pakete pro Workspace:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Root / brett
+npm outdated --long
 
-  <h2 class="section-label">Workspaces & Tooling</h2>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Pfad</th><th>Manager</th><th>Besonderheiten</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>/</code> (root)</td><td>npm</td><td>Taskfile tooling</td></tr>
-        <tr><td><code>website/</code></td><td>pnpm</td><td>Astro + Svelte</td></tr>
-        <tr><td><code>arena-server/</code></td><td>pnpm</td><td>Drizzle + Socket.IO</td></tr>
-        <tr><td><code>brett/</code></td><td>npm</td><td>3D-Board Backend</td></tr>
-      </tbody>
-    </table>
-  </div>
+# website / arena-server
+pnpm outdated
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Identifiziere Deprecations in der Tiefe:</p>
+<div class="code-wrapper"><pre><code class="language-bash">npm audit 2&gt;&amp;1 | grep -i deprecat
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<hr>
+<h2 id="phase-2--safe-updates-patch--minor">Phase 2 — Safe Updates (Patch &amp; Minor)</h2>
+<ol>
+<li><p>Nutze <code>npm-check-updates</code> für kontrollierte Updates:</p>
+<div class="code-wrapper"><pre><code class="language-bash">npx npm-check-updates --target minor -u &amp;&amp; npm install
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Führe nach jedem Workspace-Update die entsprechenden Tests aus.</p>
+</li>
+</ol>
+<hr>
+<h2 id="phase-3--major-bumps-breaking-changes">Phase 3 — Major Bumps (Breaking Changes)</h2>
+<p>Besondere Aufmerksamkeit bei:</p>
+<ul>
+<li><strong>Astro</strong>: Integrations (<code>@astrojs/*</code>) müssen mitziehen.</li>
+<li><strong>Tailwind</strong>: v4 Config-Migration.</li>
+<li><strong>Playwright</strong>: Engine-Update erforderlich:<div class="code-wrapper"><pre><code class="language-bash">npx playwright install
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ul>
+<hr>
+<h2 id="phase-4--verifizierung-clean-output">Phase 4 — Verifizierung (Clean Output)</h2>
+<p>Stelle sicher, dass keine Deprecation-Warnings mehr auftreten:</p>
+<div class="code-wrapper"><pre><code class="language-bash">npm install 2&gt;&amp;1 | grep -ic deprecat
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="haeufige-fehler--blockers">Häufige Fehler &amp; Blockers</h2>
+<table>
+<thead>
+<tr>
+<th>Fehler</th>
+<th>Ursache</th>
+<th>Lösung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm install</code> in pnpm workspace</td>
+<td>Nutzung des falschen Paketmanagers</td>
+<td><code>package-lock.json</code> löschen, <code>pnpm install</code> nutzen</td>
+</tr>
+<tr>
+<td>Type-Errors nach Update</td>
+<td>Veraltete Typdefinitionen</td>
+<td><code>@types/&lt;pkg&gt;</code> Version prüfen und ebenfalls upgraden</td>
+</tr>
+<tr>
+<td>Transitive Deprecations</td>
+<td>Deprecated dependency in einem Third-Party-Paket</td>
+<td>Parent-Paket auf Updates prüfen oder via overrides/resolutions erzwingen</td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
 
-  <div class="phases">
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">1</span>
-        <span class="phase-title">Audit</span>
-        <span class="phase-desc">Outdated & Deprecated</span>
-      </div>
-      <div class="phase-body">
-        <p>Ermittle veraltete Pakete pro Workspace:</p>
-        <pre><code><span class="fn">npm</span> outdated --long
-<span class="fn">pnpm</span> outdated</code></pre>
-        <p>Identifiziere Deprecations in der Tiefe:</p>
-        <pre><code><span class="fn">npm</span> audit 2>&1 | <span class="fn">grep</span> -i deprecat</code></pre>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">2</span>
-        <span class="phase-title">Safe Updates</span>
-        <span class="phase-desc">Patch & Minor</span>
-      </div>
-      <div class="phase-body">
-        <p>Nutze <code>npm-check-updates</code> für kontrollierte Updates:</p>
-        <pre><code><span class="fn">npx</span> npm-check-updates --target minor -u && <span class="fn">npm</span> install</code></pre>
-        <p>Führe nach jedem Workspace-Update die Tests aus.</p>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">3</span>
-        <span class="phase-title">Major Bumps</span>
-        <span class="phase-desc">Breaking Changes</span>
-      </div>
-      <div class="phase-body">
-        <p>Besondere Aufmerksamkeit bei:</p>
-        <ul class="step-list">
-          <li><strong>Astro:</strong> Integrations (@astrojs/*) müssen mitziehen.</li>
-          <li><strong>Tailwind:</strong> v4 Config-Migration.</li>
-          <li><strong>Playwright:</strong> Engine-Update erforderlich (<code>npx playwright install</code>).</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="phase-card">
-      <div class="phase-header">
-        <span class="phase-num phase-num-brass">4</span>
-        <span class="phase-title">Verifizierung</span>
-        <span class="phase-desc">Clean Output</span>
-      </div>
-      <div class="phase-body">
-        <p>Stelle sicher, dass keine Deprecation-Warnings mehr auftreten:</p>
-        <pre><code><span class="fn">npm</span> install 2>&1 | <span class="fn">grep</span> -ic deprecat</code></pre>
-      </div>
-    </div>
-
-  </div>
-
-  <h2 class="section-label">Häufige Fehler</h2>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Fehler</th><th>Lösung</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>npm install in pnpm workspace</td><td><code>package-lock.json</code> löschen, pnpm nutzen</td></tr>
-        <tr><td>Type-Errors nach Update</td><td>Check <code>@types/&lt;pkg&gt;</code> Version</td></tr>
-        <tr><td>Transitive Deprecations</td><td>Parent-Paket auf Updates prüfen</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h2 class="section-label">Verbundene Skills</h2>
-  <div class="xref-grid">
-    <a href="dev-flow-execute.html" class="xref-card">
-      <span class="xref-name">dev-flow-execute</span>
-      <span class="xref-rel">Updates sicher implementieren</span>
-    </a>
-    <a href="mishap-tracker.html" class="xref-card">
-      <span class="xref-name">mishap-tracker</span>
-      <span class="xref-rel">Veraltete Pakete als Drift loggen</span>
-    </a>
-    <a href="ticket-management.html" class="xref-card">
-      <span class="xref-name">ticket-management</span>
-      <span class="xref-rel">Update-Chore PRs mergen</span>
-    </a>
-  </div>
-
-</main>
-
-<footer>
-  <span>Skills Übersicht / <code>.agents/skills/update-dependencies/SKILL.md</code></span>
-  <a href="../skills-overview.html">← Zurück zur Übersicht</a>
-</footer>
-
-<script>
-document.querySelectorAll('pre').forEach(pre => {
-  const btn = document.createElement('button');
-  btn.className = 'copy-btn';
-  btn.textContent = 'copy';
-  btn.onclick = () => {
-    navigator.clipboard.writeText(pre.innerText).then(() => {
-      btn.textContent = 'copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  };
-  pre.appendChild(btn);
-});
-</script>
+  </main>
+</div>
+<script src="./app.js"></script>
 </body>
 </html>

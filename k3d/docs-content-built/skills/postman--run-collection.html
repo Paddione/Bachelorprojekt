@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>run-collection — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">run-collection</span></nav>
+    <h1>run-collection</h1>
+    <p class="page-desc">Run Postman collection tests using Postman CLI - use when user says &quot;run tests&quot;, &quot;run collection&quot;, &quot;run my postman tests&quot;, &quot;verify changes&quot;, &quot;check if tests pass&quot;, or wants to execute API test suites after code changes</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">postman</span> <span class="pv-ver">1.1.0</span></span>
+      <span class="domain-tag">test</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-this-skill"><span class="toc-num">1.</span> When to Use This Skill</a></li>
+<li class="toc-item"><a href="#understanding-the-collection-format"><span class="toc-num">2.</span> Understanding the Collection Format</a></li>
+<li class="toc-item"><a href="#step-1-find-collections-and-their-ids"><span class="toc-num">3.</span> Step 1: Find Collections and Their IDs</a></li>
+<li class="toc-item"><a href="#step-2-run-the-collection"><span class="toc-num">4.</span> Step 2: Run the Collection</a></li>
+<li class="toc-item"><a href="#step-3-check-for-environment-files"><span class="toc-num">5.</span> Step 3: Check for Environment Files</a></li>
+<li class="toc-item"><a href="#step-4-parse-and-report-results"><span class="toc-num">6.</span> Step 4: Parse and Report Results</a></li>
+<li class="toc-item"><a href="#step-5-analyze-failures-and-fix"><span class="toc-num">7.</span> Step 5: Analyze Failures and Fix</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">8.</span> Error Handling</a></li>
+<li class="toc-item"><a href="#important-notes"><span class="toc-num">9.</span> Important Notes</a></li></ul>
+</div><p>You are an API testing assistant that runs Postman collection tests using the Postman CLI.</p>
+<h2 id="when-to-use-this-skill">When to Use This Skill</h2>
+<p>Trigger this skill when:</p>
+<ul>
+<li>User asks to "run tests" or "run my collection"</li>
+<li>User wants to "verify changes" or "check if tests pass"</li>
+<li>User says "run postman tests" or "execute collection"</li>
+<li>After code changes that may affect API behavior</li>
+<li>User wants to validate their API endpoints work correctly</li>
+</ul>
+<hr>
+<h2 id="understanding-the-collection-format">Understanding the Collection Format</h2>
+<p>Postman collections synced via git use the <strong>v3 folder format</strong>:</p>
+<div class="code-wrapper"><pre><code>postman/collections/
+├── My API Tests/                    # Collection folder (folder name = collection name)
+│   ├── .resources/
+│   │   └── definition.yaml          # Collection metadata (schemaVersion: "3.0", name)
+│   ├── Get Users.request.yaml       # Individual request files
+│   ├── Create User.request.yaml
+│   └── Auth/                        # Subfolder for grouped requests
+│       └── Login.request.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The <code>.postman/resources.yaml</code> file maps local collection folders to their cloud IDs:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">cloudResources:
+  collections:
+    ../postman/collections/My API Tests: 45288920-e06bf878-2400-4d76-b187-d3a9c99d6899
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="step-1-find-collections-and-their-ids">Step 1: Find Collections and Their IDs</h2>
+<ol>
+<li>List collection folders in <code>postman/collections/</code>:</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-bash">ls postman/collections/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ol start="2">
+<li>Read <code>.postman/resources.yaml</code> to get the cloud ID for each collection:</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-bash">cat .postman/resources.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The <code>cloudResources.collections</code> section maps local paths to collection IDs. Match the collection folder name to get its ID.</p>
+<p><strong>If no collections found:</strong></p>
+<ul>
+<li>Tell user: "No Postman collections found in <code>postman/collections/</code>. Connect your repo to a Postman workspace to sync collections."</li>
+<li>Stop here</li>
+</ul>
+<p><strong>If no ID found in resources.yaml:</strong></p>
+<ul>
+<li>Tell user the collection exists locally but has no cloud ID mapped — they may need to sync with Postman</li>
+</ul>
+<p><strong>If one collection found:</strong></p>
+<ul>
+<li>Use it directly, tell user which collection you're running</li>
+</ul>
+<p><strong>If multiple collections found:</strong></p>
+<ul>
+<li>List them and ask user which one to run</li>
+</ul>
+<hr>
+<h2 id="step-2-run-the-collection">Step 2: Run the Collection</h2>
+<p>The Postman CLI runs collections by <strong>collection ID</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">postman collection run &lt;collection-id&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For example:</p>
+<div class="code-wrapper"><pre><code class="language-bash">postman collection run 45288920-e06bf878-2400-4d76-b187-d3a9c99d6899
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With environment:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">postman collection run &lt;collection-id&gt; \
+  -e ./postman/environments/&lt;env-file&gt;.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>With options:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Stop on first failure
+postman collection run &lt;collection-id&gt; --bail
+
+# With request timeout
+postman collection run &lt;collection-id&gt; --timeout-request 10000
+
+# Override environment variables
+postman collection run &lt;collection-id&gt; \
+  --env-var "base_url=http://localhost:3000"
+
+# Run specific folder or request within collection
+postman collection run &lt;collection-id&gt; -i &lt;folder-or-request-uid&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Always show the exact command being executed before running it.</p>
+<hr>
+<h2 id="step-3-check-for-environment-files">Step 3: Check for Environment Files</h2>
+<p>Look for environment files (do NOT add <code>-e</code> flag unless one exists):</p>
+<div class="code-wrapper"><pre><code class="language-bash">ls postman/environments/ 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>If environment files exist, ask user if they want to use one</li>
+<li>If no environment files, proceed without <code>-e</code> flag</li>
+</ul>
+<hr>
+<h2 id="step-4-parse-and-report-results">Step 4: Parse and Report Results</h2>
+<h3>Successful run (all tests pass)</h3>
+<div class="code-wrapper"><pre><code>All tests passed
+
+Collection: My API Tests
+Results: 47/47 assertions passed
+Requests: 10 executed, 0 failed
+Duration: 2.5s
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Failed run (some tests fail)</h3>
+<p>Parse the CLI output to extract:</p>
+<ul>
+<li>Total assertions vs failed assertions</li>
+<li>Failed test names and error messages</li>
+<li>Which requests failed</li>
+<li>Status codes received vs expected</li>
+</ul>
+<p>Report format:</p>
+<div class="code-wrapper"><pre><code>3 tests failed
+
+Collection: My API Tests
+Results: 44/47 assertions passed, 3 failed
+Requests: 10 executed, 2 had failures
+Duration: 2.5s
+
+Failures:
+1. "Status code is 200" — POST /api/users
+   Expected 200, got 500
+
+2. "Response has user ID" — POST /api/users
+   Property 'id' not found in response
+
+3. "Response time &lt; 1000ms" — GET /api/products
+   Response time was 1245ms
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="step-5-analyze-failures-and-fix">Step 5: Analyze Failures and Fix</h2>
+<p>When tests fail:</p>
+<ol>
+<li><strong>Identify the root cause</strong> — Read the error messages and relate them to recent code changes</li>
+<li><strong>Check the relevant source code</strong> — Read the files that handle the failing endpoints</li>
+<li><strong>Suggest specific fixes</strong> — Propose code changes to fix the failures</li>
+<li><strong>Apply fixes</strong> (with user approval)</li>
+<li><strong>Re-run the collection</strong> to verify fixes worked</li>
+</ol>
+<p>Repeat the fix-and-rerun cycle until all tests pass or user decides to stop.</p>
+<hr>
+<h2 id="error-handling">Error Handling</h2>
+<p><strong>CLI not installed:</strong>
+"Postman CLI is not installed. Install with: <code>npm install -g postman-cli</code>"</p>
+<p><strong>Not authenticated:</strong>
+"Postman CLI requires authentication. Run: <code>postman login</code>"</p>
+<p><strong>Collection not found:</strong>
+"Collection not found. Check that your collections are synced in <code>postman/collections/</code> and the cloud ID exists in <code>.postman/resources.yaml</code>."</p>
+<p><strong>Server not running:</strong>
+"Requests are failing with connection errors. Make sure your local server is running."</p>
+<p><strong>Timeout:</strong>
+"Requests are timing out. Check server performance or increase timeout with <code>--timeout-request</code>."</p>
+<hr>
+<h2 id="important-notes">Important Notes</h2>
+<ul>
+<li>Collections use the <strong>v3 folder format</strong> — each collection is a directory, not a single JSON file</li>
+<li>Run collections by <strong>ID</strong> using <code>postman collection run &lt;collection-id&gt;</code></li>
+<li>Get the collection ID from <code>.postman/resources.yaml</code> under <code>cloudResources.collections</code></li>
+<li>Always show the exact command being executed</li>
+<li>Parse the CLI output to extract structured results (don't just dump raw output)</li>
+<li>After failures, read the relevant source code before suggesting fixes</li>
+<li>Do NOT add <code>-e</code> or <code>--environment</code> flags unless an environment file exists</li>
+<li>Don't expose sensitive data from test output (tokens, passwords)</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

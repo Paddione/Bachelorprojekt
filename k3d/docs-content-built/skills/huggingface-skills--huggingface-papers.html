@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-papers — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-papers</span></nav>
+    <h1>huggingface-papers</h1>
+    <p class="page-desc">Look up and read Hugging Face paper pages in markdown, and use the papers API for structured metadata such as authors, linked models/datasets/spaces, Github repo and project page. Use when the user shares a Hugging Face paper page URL, an arXiv URL or ID, or asks to summarize, explain, or analyze an AI research paper.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Hugging Face Paper Pages</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use"><span class="toc-num">1.</span> When to Use</a></li>
+<li class="toc-item"><a href="#parsing-the-paper-id"><span class="toc-num">2.</span> Parsing the paper ID</a></li>
+<li class="toc-item"><a href="#error-handling"><span class="toc-num">3.</span> Error Handling</a></li>
+<li class="toc-item"><a href="#notes"><span class="toc-num">4.</span> Notes</a></li></ul>
+</div>
+<p>Hugging Face Paper pages (hf.co/papers) is a platform built on top of arXiv (arxiv.org), specifically for research papers in the field of artificial intelligence (AI) and computer science. Hugging Face users can submit their paper at hf.co/papers/submit, which features it on the Daily Papers feed (hf.co/papers). Each day, users can upvote papers and comment on papers. Each paper page allows authors to:</p>
+<ul>
+<li>claim their paper (by clicking their name on the <code>authors</code> field). This makes the paper page appear on their Hugging Face profile.</li>
+<li>link the associated model checkpoints, datasets and Spaces by including the HF paper or arXiv URL in the model card, dataset card or README of the Space</li>
+<li>link the Github repository and/or project page URLs</li>
+<li>link the HF organization. This also makes the paper page appear on the Hugging Face organization page.</li>
+</ul>
+<p>Whenever someone mentions a HF paper or arXiv abstract/PDF URL in a model card, dataset card or README of a Space repository, the paper will be automatically indexed. Note that not all papers indexed on Hugging Face are also submitted to daily papers. The latter is more a manner of promoting a research paper. Papers can only be submitted to daily papers up until 14 days after their publication date on arXiv.</p>
+<p>The Hugging Face team has built an easy-to-use API to interact with paper pages. Content of the papers can be fetched as markdown, or structured metadata can be returned such as author names, linked models/datasets/spaces, linked Github repo and project page.</p>
+<h2 id="when-to-use">When to Use</h2>
+<ul>
+<li>User shares a Hugging Face paper page URL (e.g. <code>https://huggingface.co/papers/2602.08025</code>)</li>
+<li>User shares a Hugging Face markdown paper page URL (e.g. <code>https://huggingface.co/papers/2602.08025.md</code>)</li>
+<li>User shares an arXiv URL (e.g. <code>https://arxiv.org/abs/2602.08025</code> or  <code>https://arxiv.org/pdf/2602.08025</code>)</li>
+<li>User mentions a arXiv ID (e.g. <code>2602.08025</code>)</li>
+<li>User asks you to summarize, explain, or analyze an AI research paper</li>
+</ul>
+<h2 id="parsing-the-paper-id">Parsing the paper ID</h2>
+<p>It's recommended to parse the paper ID (arXiv ID) from whatever the user provides:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Paper ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>https://huggingface.co/papers/2602.08025</code></td>
+<td><code>2602.08025</code></td>
+</tr>
+<tr>
+<td><code>https://huggingface.co/papers/2602.08025.md</code></td>
+<td><code>2602.08025</code></td>
+</tr>
+<tr>
+<td><code>https://arxiv.org/abs/2602.08025</code></td>
+<td><code>2602.08025</code></td>
+</tr>
+<tr>
+<td><code>https://arxiv.org/pdf/2602.08025</code></td>
+<td><code>2602.08025</code></td>
+</tr>
+<tr>
+<td><code>2602.08025v1</code></td>
+<td><code>2602.08025v1</code></td>
+</tr>
+<tr>
+<td><code>2602.08025</code></td>
+<td><code>2602.08025</code></td>
+</tr>
+</tbody></table>
+<p>This allows you to provide the paper ID into any of the hub API endpoints mentioned below.</p>
+<h3>Fetch the paper page as markdown</h3>
+<p>The content of a paper can be fetched as markdown like so:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s "https://huggingface.co/papers/{PAPER_ID}.md"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This should return the Hugging Face paper page as markdown. This relies on the HTML version of the paper at <a href="https://arxiv.org/html/%7BPAPER_ID%7D">https://arxiv.org/html/{PAPER_ID}</a>.</p>
+<p>There are 2 exceptions:</p>
+<ul>
+<li>Not all arXiv papers have an HTML version. If the HTML version of the paper does not exist, then the content falls back to the HTML of the Hugging Face paper page.</li>
+<li>If it results in a 404, it means the paper is not yet indexed on hf.co/papers. See <a href="#error-handling">Error handling</a> for info.</li>
+</ul>
+<p>Alternatively, you can request markdown from the normal paper page URL, like so:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -H "Accept: text/markdown" "https://huggingface.co/papers/{PAPER_ID}"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Paper Pages API Endpoints</h3>
+<p>All endpoints use the base URL <code>https://huggingface.co</code>.</p>
+<h4>Get structured metadata</h4>
+<p>Fetch the paper metadata as JSON using the Hugging Face REST API:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s "https://huggingface.co/api/papers/{PAPER_ID}"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This returns structured metadata that can include:</p>
+<ul>
+<li>authors (names and Hugging Face usernames, in case they have claimed the paper)</li>
+<li>media URLs (uploaded when submitting the paper to Daily Papers)</li>
+<li>summary (abstract) and AI-generated summary</li>
+<li>project page and GitHub repository</li>
+<li>organization and engagement metadata (number of upvotes)</li>
+</ul>
+<p>To find models linked to the paper, use:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl https://huggingface.co/api/models?filter=arxiv:{PAPER_ID}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>To find datasets linked to the paper, use:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl https://huggingface.co/api/datasets?filter=arxiv:{PAPER_ID}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>To find spaces linked to the paper, use:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl https://huggingface.co/api/spaces?filter=arxiv:{PAPER_ID}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Claim paper authorship</h4>
+<p>Claim authorship of a paper for a Hugging Face user:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl "https://huggingface.co/api/settings/papers/claim" \
+  --request POST \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $HF_TOKEN" \
+  --data '{
+    "paperId": "{PAPER_ID}",
+    "claimAuthorId": "{AUTHOR_ENTRY_ID}",
+    "targetUserId": "{USER_ID}"
+  }'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Endpoint: <code>POST /api/settings/papers/claim</code></li>
+<li>Body:<ul>
+<li><code>paperId</code> (string, required): arXiv paper identifier being claimed</li>
+<li><code>claimAuthorId</code> (string): author entry on the paper being claimed, 24-char hex ID</li>
+<li><code>targetUserId</code> (string): HF user who should receive the claim, 24-char hex ID</li>
+</ul>
+</li>
+<li>Response: paper authorship claim result, including the claimed paper ID</li>
+</ul>
+<h4>Get daily papers</h4>
+<p>Fetch the Daily Papers feed:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -H "Authorization: Bearer $HF_TOKEN" \
+  "https://huggingface.co/api/daily_papers?p=0&amp;limit=20&amp;date=2017-07-21&amp;sort=publishedAt"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Endpoint: <code>GET /api/daily_papers</code></li>
+<li>Query parameters:<ul>
+<li><code>p</code> (integer): page number</li>
+<li><code>limit</code> (integer): number of results, between 1 and 100</li>
+<li><code>date</code> (string): RFC 3339 full-date, for example <code>2017-07-21</code></li>
+<li><code>week</code> (string): ISO week, for example <code>2024-W03</code></li>
+<li><code>month</code> (string): month value, for example <code>2024-01</code></li>
+<li><code>submitter</code> (string): filter by submitter</li>
+<li><code>sort</code> (enum): <code>publishedAt</code> or <code>trending</code></li>
+</ul>
+</li>
+<li>Response: list of daily papers</li>
+</ul>
+<h4>List papers</h4>
+<p>List arXiv papers sorted by published date:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -H "Authorization: Bearer $HF_TOKEN" \
+  "https://huggingface.co/api/papers?cursor={CURSOR}&amp;limit=20"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Endpoint: <code>GET /api/papers</code></li>
+<li>Query parameters:<ul>
+<li><code>cursor</code> (string): pagination cursor</li>
+<li><code>limit</code> (integer): number of results, between 1 and 100</li>
+</ul>
+</li>
+<li>Response: list of papers</li>
+</ul>
+<h4>Search papers</h4>
+<p>Perform hybrid semantic and full-text search on papers:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -H "Authorization: Bearer $HF_TOKEN" \
+  "https://huggingface.co/api/papers/search?q=vision+language&amp;limit=20"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>This searches over the paper title, authors, and content.</p>
+<ul>
+<li>Endpoint: <code>GET /api/papers/search</code></li>
+<li>Query parameters:<ul>
+<li><code>q</code> (string): search query, max length 250</li>
+<li><code>limit</code> (integer): number of results, between 1 and 120</li>
+</ul>
+</li>
+<li>Response: matching papers</li>
+</ul>
+<h4>Index a paper</h4>
+<p>Insert a paper from arXiv by ID. If the paper is already indexed, only its authors can re-index it:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl "https://huggingface.co/api/papers/index" \
+  --request POST \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $HF_TOKEN" \
+  --data '{
+    "arxivId": "{ARXIV_ID}"
+  }'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Endpoint: <code>POST /api/papers/index</code></li>
+<li>Body:<ul>
+<li><code>arxivId</code> (string, required): arXiv ID to index, for example <code>2301.00001</code></li>
+</ul>
+</li>
+<li>Pattern: <code>^\d{4}\.\d{4,5}$</code></li>
+<li>Response: empty JSON object on success</li>
+</ul>
+<h4>Update paper links</h4>
+<p>Update the project page, GitHub repository, or submitting organization for a paper. The requester must be the paper author, the Daily Papers submitter, or a papers admin:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl "https://huggingface.co/api/papers/{PAPER_OBJECT_ID}/links" \
+  --request POST \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $HF_TOKEN" \
+  --data '{
+    "projectPage": "https://example.com",
+    "githubRepo": "https://github.com/org/repo",
+    "organizationId": "{ORGANIZATION_ID}"
+  }'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Endpoint: <code>POST /api/papers/{paperId}/links</code></li>
+<li>Path parameters:<ul>
+<li><code>paperId</code> (string, required): Hugging Face paper object ID</li>
+</ul>
+</li>
+<li>Body:<ul>
+<li><code>githubRepo</code> (string, nullable): GitHub repository URL</li>
+<li><code>organizationId</code> (string, nullable): organization ID, 24-char hex ID</li>
+<li><code>projectPage</code> (string, nullable): project page URL</li>
+</ul>
+</li>
+<li>Response: empty JSON object on success</li>
+</ul>
+<h2 id="error-handling">Error Handling</h2>
+<ul>
+<li><strong>404 on <code>https://huggingface.co/papers/{PAPER_ID}</code> or <code>md</code> endpoint</strong>: the paper is not indexed on Hugging Face paper pages yet.</li>
+<li><strong>404 on <code>/api/papers/{PAPER_ID}</code></strong>: the paper may not be indexed on Hugging Face paper pages yet.</li>
+<li><strong>Paper ID not found</strong>: verify the extracted arXiv ID, including any version suffix</li>
+</ul>
+<h3>Fallbacks</h3>
+<p>If the Hugging Face paper page does not contain enough detail for the user's question:</p>
+<ul>
+<li>Check the regular paper page at <code>https://huggingface.co/papers/{PAPER_ID}</code></li>
+<li>Fall back to the arXiv page or PDF for the original source:<ul>
+<li><code>https://arxiv.org/abs/{PAPER_ID}</code></li>
+<li><code>https://arxiv.org/pdf/{PAPER_ID}</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>No authentication is required for public paper pages.</li>
+<li>Write endpoints such as claim authorship, index paper, and update paper links require <code>Authorization: Bearer $HF_TOKEN</code>.</li>
+<li>Prefer the <code>.md</code> endpoint for reliable machine-readable output.</li>
+<li>Prefer <code>/api/papers/{PAPER_ID}</code> when you need structured JSON fields instead of page markdown.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

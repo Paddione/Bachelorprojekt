@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>plugin-settings — Workspace MVP</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">plugin-settings</span></nav>
+    <h1>plugin-settings</h1>
+    <p class="page-desc">This skill should be used when the user asks about &quot;plugin settings&quot;, &quot;store plugin configuration&quot;, &quot;user-configurable plugin&quot;, &quot;.local.md files&quot;, &quot;plugin state files&quot;, &quot;read YAML frontmatter&quot;, &quot;per-project plugin settings&quot;, or wants to make plugin behavior configurable. Documents the .claude/plugin-name.local.md pattern for storing plugin-specific configuration with YAML frontmatter and markdown content.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">plugin-dev</span> <span class="pv-ver">unknown</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Plugin Settings Pattern for Claude Code Plugins</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#file-structure"><span class="toc-num">2.</span> File Structure</a></li>
+<li class="toc-item"><a href="#reading-settings-files"><span class="toc-num">3.</span> Reading Settings Files</a></li>
+<li class="toc-item"><a href="#parsing-techniques"><span class="toc-num">4.</span> Parsing Techniques</a></li>
+<li class="toc-item"><a href="#common-patterns"><span class="toc-num">5.</span> Common Patterns</a></li>
+<li class="toc-item"><a href="#creating-settings-files"><span class="toc-num">6.</span> Creating Settings Files</a></li>
+<li class="toc-item"><a href="#best-practices"><span class="toc-num">7.</span> Best Practices</a></li>
+<li class="toc-item"><a href="#security-considerations"><span class="toc-num">8.</span> Security Considerations</a></li>
+<li class="toc-item"><a href="#real-world-examples"><span class="toc-num">9.</span> Real-World Examples</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">10.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#additional-resources"><span class="toc-num">11.</span> Additional Resources</a></li>
+<li class="toc-item"><a href="#implementation-workflow"><span class="toc-num">12.</span> Implementation Workflow</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Plugins can store user-configurable settings and state in <code>.claude/plugin-name.local.md</code> files within the project directory. This pattern uses YAML frontmatter for structured configuration and markdown content for prompts or additional context.</p>
+<p><strong>Key characteristics:</strong></p>
+<ul>
+<li>File location: <code>.claude/plugin-name.local.md</code> in project root</li>
+<li>Structure: YAML frontmatter + markdown body</li>
+<li>Purpose: Per-project plugin configuration and state</li>
+<li>Usage: Read from hooks, commands, and agents</li>
+<li>Lifecycle: User-managed (not in git, should be in <code>.gitignore</code>)</li>
+</ul>
+<h2 id="file-structure">File Structure</h2>
+<h3>Basic Template</h3>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+enabled: true
+setting1: value1
+setting2: value2
+numeric_setting: 42
+list_setting: ["item1", "item2"]
+---
+
+# Additional Context
+
+This markdown body can contain:
+- Task descriptions
+- Additional instructions
+- Prompts to feed back to Claude
+- Documentation or notes
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Example: Plugin State File</h3>
+<p><strong>.claude/my-plugin.local.md:</strong></p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+enabled: true
+strict_mode: false
+max_retries: 3
+notification_level: info
+coordinator_session: team-leader
+---
+
+# Plugin Configuration
+
+This plugin is configured for standard validation mode.
+Contact @team-lead with questions.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="reading-settings-files">Reading Settings Files</h2>
+<h3>From Hooks (Bash Scripts)</h3>
+<p><strong>Pattern: Check existence and parse frontmatter</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">#!/bin/bash
+set -euo pipefail
+
+# Define state file path
+STATE_FILE=".claude/my-plugin.local.md"
+
+# Quick exit if file doesn't exist
+if ! -f &amp;quot;$STATE_FILE&amp;quot;; then
+  exit 0  # Plugin not configured, skip
+fi
+
+# Parse YAML frontmatter (between --- markers)
+FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
+
+# Extract individual fields
+ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//' | sed 's/^"\(.*\)"$/\1/')
+STRICT_MODE=$(echo "$FRONTMATTER" | grep '^strict_mode:' | sed 's/strict_mode: *//' | sed 's/^"\(.*\)"$/\1/')
+
+# Check if enabled
+if &amp;quot;$ENABLED&amp;quot; != &amp;quot;true&amp;quot;; then
+  exit 0  # Disabled
+fi
+
+# Use configuration in hook logic
+if &amp;quot;$STRICT_MODE&amp;quot; == &amp;quot;true&amp;quot;; then
+  # Apply strict validation
+  # ...
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>See <code>examples/read-settings-hook.sh</code> for complete working example.</p>
+<h3>From Commands</h3>
+<p>Commands can read settings files to customize behavior:</p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+description: Process data with plugin
+allowed-tools: ["Read", "Bash"]
+---
+
+# Process Command
+
+Steps:
+1. Check if settings exist at `.claude/my-plugin.local.md`
+2. Read configuration using Read tool
+3. Parse YAML frontmatter to extract settings
+4. Apply settings to processing logic
+5. Execute with configured behavior
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>From Agents</h3>
+<p>Agents can reference settings in their instructions:</p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+name: configured-agent
+description: Agent that adapts to project settings
+---
+
+Check for plugin settings at `.claude/my-plugin.local.md`.
+If present, parse YAML frontmatter and adapt behavior according to:
+- enabled: Whether plugin is active
+- mode: Processing mode (strict, standard, lenient)
+- Additional configuration fields
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="parsing-techniques">Parsing Techniques</h2>
+<h3>Extract Frontmatter</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Extract everything between --- markers
+FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$FILE")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Read Individual Fields</h3>
+<p><strong>String fields:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">VALUE=$(echo "$FRONTMATTER" | grep '^field_name:' | sed 's/field_name: *//' | sed 's/^"\(.*\)"$/\1/')
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Boolean fields:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
+# Compare: if &amp;quot;$ENABLED&amp;quot; == &amp;quot;true&amp;quot;; then
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Numeric fields:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">MAX=$(echo "$FRONTMATTER" | grep '^max_value:' | sed 's/max_value: *//')
+# Use: if $MAX -gt 100; then
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Read Markdown Body</h3>
+<p>Extract content after second <code>---</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Get everything after closing ---
+BODY=$(awk '/^---$/{i++; next} i&gt;=2' "$FILE")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3>Pattern 1: Temporarily Active Hooks</h3>
+<p>Use settings file to control hook activation:</p>
+<div class="code-wrapper"><pre><code class="language-bash">#!/bin/bash
+STATE_FILE=".claude/security-scan.local.md"
+
+# Quick exit if not configured
+if ! -f &amp;quot;$STATE_FILE&amp;quot;; then
+  exit 0
+fi
+
+# Read enabled flag
+FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
+ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
+
+if &amp;quot;$ENABLED&amp;quot; != &amp;quot;true&amp;quot;; then
+  exit 0  # Disabled
+fi
+
+# Run hook logic
+# ...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Use case:</strong> Enable/disable hooks without editing hooks.json (requires restart).</p>
+<h3>Pattern 2: Agent State Management</h3>
+<p>Store agent-specific state and configuration:</p>
+<p><strong>.claude/multi-agent-swarm.local.md:</strong></p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+agent_name: auth-agent
+task_number: 3.5
+pr_number: 1234
+coordinator_session: team-leader
+enabled: true
+dependencies: ["Task 3.4"]
+---
+
+# Task Assignment
+
+Implement JWT authentication for the API.
+
+**Success Criteria:**
+- Authentication endpoints created
+- Tests passing
+- PR created and CI green
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Read from hooks to coordinate agents:</p>
+<div class="code-wrapper"><pre><code class="language-bash">AGENT_NAME=$(echo "$FRONTMATTER" | grep '^agent_name:' | sed 's/agent_name: *//')
+COORDINATOR=$(echo "$FRONTMATTER" | grep '^coordinator_session:' | sed 's/coordinator_session: *//')
+
+# Send notification to coordinator
+tmux send-keys -t "$COORDINATOR" "Agent $AGENT_NAME completed task" Enter
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Pattern 3: Configuration-Driven Behavior</h3>
+<p><strong>.claude/my-plugin.local.md:</strong></p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+validation_level: strict
+max_file_size: 1000000
+allowed_extensions: [".js", ".ts", ".tsx"]
+enable_logging: true
+---
+
+# Validation Configuration
+
+Strict mode enabled for this project.
+All writes validated against security policies.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Use in hooks or commands:</p>
+<div class="code-wrapper"><pre><code class="language-bash">LEVEL=$(echo "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//')
+
+case "$LEVEL" in
+  strict)
+    # Apply strict validation
+    ;;
+  standard)
+    # Apply standard validation
+    ;;
+  lenient)
+    # Apply lenient validation
+    ;;
+esac
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="creating-settings-files">Creating Settings Files</h2>
+<h3>From Commands</h3>
+<p>Commands can create settings files:</p>
+<div class="code-wrapper"><pre><code class="language-markdown"># Setup Command
+
+Steps:
+1. Ask user for configuration preferences
+2. Create `.claude/my-plugin.local.md` with YAML frontmatter
+3. Set appropriate values based on user input
+4. Inform user that settings are saved
+5. Remind user to restart Claude Code for hooks to recognize changes
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Template Generation</h3>
+<p>Provide template in plugin README:</p>
+<div class="code-wrapper"><pre><code class="language-markdown">## Configuration
+
+Create `.claude/my-plugin.local.md` in your project:
+
+\`\`\`markdown
+---
+enabled: true
+mode: standard
+max_retries: 3
+---
+
+# Plugin Configuration
+
+Your settings are active.
+\`\`\`
+
+After creating or editing, restart Claude Code for changes to take effect.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="best-practices">Best Practices</h2>
+<h3>File Naming</h3>
+<p>✅ <strong>DO:</strong></p>
+<ul>
+<li>Use <code>.claude/plugin-name.local.md</code> format</li>
+<li>Match plugin name exactly</li>
+<li>Use <code>.local.md</code> suffix for user-local files</li>
+</ul>
+<p>❌ <strong>DON'T:</strong></p>
+<ul>
+<li>Use different directory (not <code>.claude/</code>)</li>
+<li>Use inconsistent naming</li>
+<li>Use <code>.md</code> without <code>.local</code> (might be committed)</li>
+</ul>
+<h3>Gitignore</h3>
+<p>Always add to <code>.gitignore</code>:</p>
+<div class="code-wrapper"><pre><code class="language-gitignore">.claude/*.local.md
+.claude/*.local.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Document this in plugin README.</p>
+<h3>Defaults</h3>
+<p>Provide sensible defaults when settings file doesn't exist:</p>
+<div class="code-wrapper"><pre><code class="language-bash">if ! -f &amp;quot;$STATE_FILE&amp;quot;; then
+  # Use defaults
+  ENABLED=true
+  MODE=standard
+else
+  # Read from file
+  # ...
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Validation</h3>
+<p>Validate settings values:</p>
+<div class="code-wrapper"><pre><code class="language-bash">MAX=$(echo "$FRONTMATTER" | grep '^max_value:' | sed 's/max_value: *//')
+
+# Validate numeric range
+if ! [[ "$MAX" =~ ^[0-9]+$ ]] || $MAX -lt 1 || $MAX -gt 100; then
+  echo "⚠️  Invalid max_value in settings (must be 1-100)" &gt;&amp;2
+  MAX=10  # Use default
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Restart Requirement</h3>
+<p><strong>Important:</strong> Settings changes require Claude Code restart.</p>
+<p>Document in your README:</p>
+<div class="code-wrapper"><pre><code class="language-markdown">## Changing Settings
+
+After editing `.claude/my-plugin.local.md`:
+1. Save the file
+2. Exit Claude Code
+3. Restart: `claude` or `cc`
+4. New settings will be loaded
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Hooks cannot be hot-swapped within a session.</p>
+<h2 id="security-considerations">Security Considerations</h2>
+<h3>Sanitize User Input</h3>
+<p>When writing settings files from user input:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Escape quotes in user input
+SAFE_VALUE=$(echo "$USER_INPUT" | sed 's/"/\\"/g')
+
+# Write to file
+cat &gt; "$STATE_FILE" &lt;&lt;EOF
+---
+user_setting: "$SAFE_VALUE"
+---
+EOF
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Validate File Paths</h3>
+<p>If settings contain file paths:</p>
+<div class="code-wrapper"><pre><code class="language-bash">FILE_PATH=$(echo "$FRONTMATTER" | grep '^data_file:' | sed 's/data_file: *//')
+
+# Check for path traversal
+if &amp;quot;$FILE_PATH&amp;quot; == *&amp;quot;..&amp;quot;*; then
+  echo "⚠️  Invalid path in settings (path traversal)" &gt;&amp;2
+  exit 2
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Permissions</h3>
+<p>Settings files should be:</p>
+<ul>
+<li>Readable by user only (<code>chmod 600</code>)</li>
+<li>Not committed to git</li>
+<li>Not shared between users</li>
+</ul>
+<h2 id="real-world-examples">Real-World Examples</h2>
+<h3>multi-agent-swarm Plugin</h3>
+<p><strong>.claude/multi-agent-swarm.local.md:</strong></p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+agent_name: auth-implementation
+task_number: 3.5
+pr_number: 1234
+coordinator_session: team-leader
+enabled: true
+dependencies: ["Task 3.4"]
+additional_instructions: Use JWT tokens, not sessions
+---
+
+# Task: Implement Authentication
+
+Build JWT-based authentication for the REST API.
+Coordinate with auth-agent on shared types.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Hook usage (agent-stop-notification.sh):</strong></p>
+<ul>
+<li>Checks if file exists (line 15-18: quick exit if not)</li>
+<li>Parses frontmatter to get coordinator_session, agent_name, enabled</li>
+<li>Sends notifications to coordinator if enabled</li>
+<li>Allows quick activation/deactivation via <code>enabled: true/false</code></li>
+</ul>
+<h3>ralph-loop Plugin</h3>
+<p><strong>.claude/ralph-loop.local.md:</strong></p>
+<div class="code-wrapper"><pre><code class="language-markdown">---
+iteration: 1
+max_iterations: 10
+completion_promise: "All tests passing and build successful"
+---
+
+Fix all the linting errors in the project.
+Make sure tests pass after each fix.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Hook usage (stop-hook.sh):</strong></p>
+<ul>
+<li>Checks if file exists (line 15-18: quick exit if not active)</li>
+<li>Reads iteration count and max_iterations</li>
+<li>Extracts completion_promise for loop termination</li>
+<li>Reads body as the prompt to feed back</li>
+<li>Updates iteration count on each loop</li>
+</ul>
+<h2 id="quick-reference">Quick Reference</h2>
+<h3>File Location</h3>
+<div class="code-wrapper"><pre><code>project-root/
+└── .claude/
+    └── plugin-name.local.md
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Frontmatter Parsing</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Extract frontmatter
+FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$FILE")
+
+# Read field
+VALUE=$(echo "$FRONTMATTER" | grep '^field:' | sed 's/field: *//' | sed 's/^"\(.*\)"$/\1/')
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Body Parsing</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Extract body (after second ---)
+BODY=$(awk '/^---$/{i++; next} i&gt;=2' "$FILE")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Quick Exit Pattern</h3>
+<div class="code-wrapper"><pre><code class="language-bash">if ! -f &amp;quot;.claude/my-plugin.local.md&amp;quot;; then
+  exit 0  # Not configured
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="additional-resources">Additional Resources</h2>
+<h3>Reference Files</h3>
+<p>For detailed implementation patterns:</p>
+<ul>
+<li><strong><code>references/parsing-techniques.md</code></strong> - Complete guide to parsing YAML frontmatter and markdown bodies</li>
+<li><strong><code>references/real-world-examples.md</code></strong> - Deep dive into multi-agent-swarm and ralph-loop implementations</li>
+</ul>
+<h3>Example Files</h3>
+<p>Working examples in <code>examples/</code>:</p>
+<ul>
+<li><strong><code>read-settings-hook.sh</code></strong> - Hook that reads and uses settings</li>
+<li><strong><code>create-settings-command.md</code></strong> - Command that creates settings file</li>
+<li><strong><code>example-settings.md</code></strong> - Template settings file</li>
+</ul>
+<h3>Utility Scripts</h3>
+<p>Development tools in <code>scripts/</code>:</p>
+<ul>
+<li><strong><code>validate-settings.sh</code></strong> - Validate settings file structure</li>
+<li><strong><code>parse-frontmatter.sh</code></strong> - Extract frontmatter fields</li>
+</ul>
+<h2 id="implementation-workflow">Implementation Workflow</h2>
+<p>To add settings to a plugin:</p>
+<ol>
+<li>Design settings schema (which fields, types, defaults)</li>
+<li>Create template file in plugin documentation</li>
+<li>Add gitignore entry for <code>.claude/*.local.md</code></li>
+<li>Implement settings parsing in hooks/commands</li>
+<li>Use quick-exit pattern (check file exists, check enabled field)</li>
+<li>Document settings in plugin README with template</li>
+<li>Remind users that changes require Claude Code restart</li>
+</ol>
+<p>Focus on keeping settings simple and providing good defaults when settings file doesn't exist.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

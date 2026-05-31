@@ -4,7 +4,7 @@ export default defineConfig({
   timeout: 30_000,
   workers: 1,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.WEBSITE_URL || 'http://localhost:3000',
     ignoreHTTPSErrors: true,
   },
   projects: [

@@ -26,9 +26,61 @@ export function escapeCell(value) {
   return s === '' ? EMPTY : s;
 }
 
-// Stubs — implemented in later tasks. Present so the test module's imports resolve.
-export function renderGoalsMap() {
-  throw new Error('renderGoalsMap not implemented yet');
+// Render one GFM table row from already-escaped cell strings.
+function row(cells) {
+  return `| ${cells.join(' | ')} |`;
+}
+
+// Resolve a danger id to "emoji label_de" via tierFor; throw (fail-closed) if unknown.
+function tierLabel(reg, dangerId) {
+  const t = reg.tierFor(dangerId);
+  if (!t) throw new Error(`render: danger id "${dangerId}" has no taxonomy entry`);
+  return `${t.emoji} ${t.label_de}`;
+}
+
+// Join guardrail ids (validating each resolves), em-dash for empty.
+function guardrailIds(reg, ids) {
+  if (!ids || ids.length === 0) return EMPTY;
+  for (const id of ids) {
+    if (!reg.guardrailById(id)) throw new Error(`guardrail id "${id}" has no guardrails.yaml entry`);
+  }
+  return ids.join(', ');
+}
+
+/**
+ * Render goals-map.md from an in-memory registry (shape of loadRegistry()).
+ * @param {ReturnType<import('./load.mjs').loadRegistry>} reg
+ * @returns {string}
+ */
+export function renderGoalsMap(reg) {
+  const goals = [...reg.goals].sort((a, b) => a.id.localeCompare(b.id));
+  const out = [];
+  out.push(HEADER);
+  out.push('');
+  out.push('# Ziel-Karte (Goals Map)');
+  out.push('');
+  out.push('Diese Datei ist die Routing-Karte für Agenten und Operator: Intention → Weg → Gefahr → Regeln.');
+  out.push('Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt, die Werkzeug-Ids in `tools-map.md`.');
+  out.push('');
+  out.push(row(['Ich will …', 'Weg (Flow)', 'Tier', 'Guardrails', 'Prompt']));
+  out.push(row(['---', '---', '---', '---', '---']));
+  for (const g of goals) {
+    const flowIds = (g.flow || []).map((f) => {
+      if (!reg.toolById(f.tool)) throw new Error(`renderGoalsMap: flow tool id "${f.tool}" has no tools.yaml entry`);
+      return f.tool;
+    });
+    const flowCell = flowIds.length ? flowIds.join(' → ') : EMPTY;
+    out.push(
+      row([
+        escapeCell(g.title_de),
+        escapeCell(flowCell),
+        escapeCell(tierLabel(reg, g.danger)),
+        escapeCell(guardrailIds(reg, g.guardrails)),
+        escapeCell(g.example_prompt_de),
+      ])
+    );
+  }
+  return out.join('\n') + '\n';
 }
 export function renderToolsMap() {
   throw new Error('renderToolsMap not implemented yet');

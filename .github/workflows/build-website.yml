@@ -66,7 +66,7 @@ jobs:
 
       - name: Deploy to mentolder
         env:
-          KUBECONFIG_DATA: ${{ secrets.MENTOLDER_KUBECONFIG }}
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
         run: |
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl

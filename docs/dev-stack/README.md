@@ -1,5 +1,11 @@
 # dev.mentolder.de — Operator Runbook
 
+> **⚠️ Teilweise veraltet (Stand 2026-05-31).** Der hier beschriebene
+> standalone k3d-in-k3s-Stack auf `k3s-1` ist Legacy: `k3s-1` ist heute ein
+> **Fleet-Worker-Node**, und die aktuelle Dev-Umgebung ist das 3-Knoten-`devc`-
+> k3s-Cluster (siehe `fleet-stage2-cutover-runbook.md`). Die k3d-Schritte unten
+> bleiben als historische Referenz erhalten.
+
 Persistent staging stack hosted as a k3d-in-k3s sibling on
 `k3s-1` (10.0.3.1, wg-mesh 192.168.100.20). Mirrors the website + Brett
 against last night's prod data; ad-hoc reverse-SSH tunnels publish

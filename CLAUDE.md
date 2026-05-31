@@ -13,6 +13,8 @@ Before responding to any request, check these signals and delegate to the named 
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` |
 | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
 
+> **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
+
 **Before dispatching any agent, inject active plan context:**
 Run `bash scripts/plan-context.sh <role>` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output (no active plans for that role), omit the block entirely.
 

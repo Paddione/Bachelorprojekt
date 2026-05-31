@@ -59,6 +59,14 @@ jobs:
             exit 1
           fi
 
+      - name: Verify agent-guide maps are up to date
+        run: |
+          task agent-guide:maps
+          if ! git diff --exit-code docs/agent-guide/maps/; then
+            echo "ERROR: generated agent-guide maps are stale — run 'task agent-guide:maps' locally and commit"
+            exit 1
+          fi
+
       - name: Validate Systembrett template
         run: ./scripts/tests/systembrett-template.test.sh
 

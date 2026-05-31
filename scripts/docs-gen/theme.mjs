@@ -45,17 +45,17 @@ export function graphCss() {
 export function editorialCss() {
   return `
 :root {
-  --paper:#ffffff;--paper-2:#f7f8fa;--paper-3:#eef1f5;
-  --ink:#1b2330;--ink-soft:#3a4658;--ink-mute:#697587;
-  --line:#dfe4ea;--line-soft:#eaedf2;
-  --accent:#2f6db5;--accent-soft:#5a8fcc;--accent-bg:rgba(47,109,181,0.08);
-  --accent-line:rgba(47,109,181,0.25);
-  --repo-bg:#e6f4ea;--repo-fg:#1f7a44;--repo-line:#bfe3cc;
-  --plugin-bg:#f0ecfb;--plugin-fg:#6741b8;--plugin-line:#ddd2f3;
-  --warn-bg:#fdf3e7;--warn-fg:#a8651c;--warn-line:#f0dcc0;
-  --code-bg:#f4f6f9;--code-ink:#243044;
-  --font-sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --font-serif:'Merriweather',Georgia,'Times New Roman',serif;
+  --paper:#0b111c;--paper-2:#101826;--paper-3:#161f30;
+  --ink:#eef1f3;--ink-soft:#c2ccd9;--ink-mute:#8b97a8;
+  --line:#243044;--line-soft:#1b2433;
+  --accent:#e8c870;--accent-soft:#f0d98f;--accent-bg:rgba(232,200,112,0.10);
+  --accent-line:rgba(232,200,112,0.32);
+  --repo-bg:#11241a;--repo-fg:#5fd29a;--repo-line:#1f4030;
+  --plugin-bg:#1c1733;--plugin-fg:#b39cf0;--plugin-line:#332a52;
+  --warn-bg:#2a1f10;--warn-fg:#e8b366;--warn-line:#4a371c;
+  --code-bg:#0e1622;--code-ink:#e6ebf2;
+  --font-sans:'Geist',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-serif:'Instrument Serif',Georgia,'Times New Roman',serif;
   --maxw:760px;
 }
 *,*::before,*::after{box-sizing:border-box}

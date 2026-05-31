@@ -231,3 +231,61 @@ test('renderDangerMap: 4 tiers in canonical order, transitive guardrail bucketin
   assert.ok(out.endsWith('\n') && !out.endsWith('\n\n'), 'single trailing newline');
   assert.ok(!out.includes('\r'), 'LF only');
 });
+
+test('fail-closed: a flow.tool with no tools.yaml entry throws', () => {
+  const reg = makeRegistry({
+    taxonomy: FIX_TAXONOMY,
+    guardrails: FIX_GUARDRAILS,
+    tools: [],
+    goals: [
+      { id: 'g-x', title_de: 'X', flow: [{ tool: 'does-not-exist' }], danger: 'safe', guardrails: [], example_prompt_de: 'x' },
+    ],
+  });
+  assert.throws(() => renderGoalsMap(reg), /flow tool id "does-not-exist" has no tools\.yaml entry/);
+});
+
+test('fail-closed: a goal.danger with no taxonomy entry throws', () => {
+  const reg = makeRegistry({
+    taxonomy: [],
+    guardrails: FIX_GUARDRAILS,
+    tools: [],
+    goals: [
+      { id: 'g-x', title_de: 'X', flow: [], danger: 'nonexistent-tier', guardrails: [], example_prompt_de: 'x' },
+    ],
+  });
+  assert.throws(() => renderGoalsMap(reg), /danger id "nonexistent-tier" has no taxonomy entry/);
+});
+
+test('fail-closed: a guardrail id with no guardrails.yaml entry throws', () => {
+  const reg = makeRegistry({
+    taxonomy: FIX_TAXONOMY,
+    guardrails: [],
+    tools: [],
+    goals: [
+      { id: 'g-x', title_de: 'X', flow: [], danger: 'safe', guardrails: ['G-MISSING'], example_prompt_de: 'x' },
+    ],
+  });
+  assert.throws(() => renderGoalsMap(reg), /guardrail id "G-MISSING" has no guardrails\.yaml entry/);
+});
+
+test('determinism: two separately-constructed registries with different input order render byte-identically', () => {
+  const goalsA = [
+    { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PULL-FIRST'], example_prompt_de: 'x' },
+    { id: 'g-a', title_de: 'A', flow: [], danger: 'safe', guardrails: [], example_prompt_de: 'y' },
+  ];
+  // same goals, DIFFERENT input order — proves sort-by-id normalizes order, not mere purity
+  const goalsB = [
+    { id: 'g-a', title_de: 'A', flow: [], danger: 'safe', guardrails: [], example_prompt_de: 'y' },
+    { id: 'g-b', title_de: 'B', flow: [{ tool: 'dev-flow-plan' }], danger: 'caution', guardrails: ['G-PULL-FIRST'], example_prompt_de: 'x' },
+  ];
+  const toolsA = [
+    { id: 'dev-flow-execute', name_de: 'Plan ausführen', kind: 'skill', summary_de: 'Setzt einen Plan um.', danger: 'caution', guardrails: ['G-PR-ONLY'] },
+    { id: 'dev-flow-plan', name_de: 'Plan erstellen', kind: 'skill', summary_de: 'Erstellt einen Plan.', danger: 'caution', guardrails: ['G-PULL-FIRST'] },
+  ];
+  const toolsB = [toolsA[1], toolsA[0]]; // reversed input order
+  const regA = makeRegistry({ taxonomy: FIX_TAXONOMY, guardrails: FIX_GUARDRAILS, tools: toolsA, goals: goalsA });
+  const regB = makeRegistry({ taxonomy: FIX_TAXONOMY, guardrails: FIX_GUARDRAILS, tools: toolsB, goals: goalsB });
+  assert.equal(renderGoalsMap(regA), renderGoalsMap(regB));
+  assert.equal(renderToolsMap(regA), renderToolsMap(regB));
+  assert.equal(renderDangerMap(regA), renderDangerMap(regB));
+});

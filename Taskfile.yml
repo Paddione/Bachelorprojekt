@@ -368,6 +368,21 @@ tasks:
       - test:docs-gen
       - test:agent-guide
 
+  test:e2e:agent-guide:film:
+    desc: "Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)"
+    dir: tests/e2e
+    vars:
+      WEBSITE_URL: '{{.WEBSITE_URL | default "http://localhost:4321"}}'
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        AG_FILM=1 WEBSITE_URL={{.WEBSITE_URL}} \
+          ./node_modules/.bin/playwright test --config playwright.film.config.ts {{.CLI_ARGS}}
+        echo ""
+        echo "Video recorded in: tests/e2e/test-results/**/video.webm"
+        echo "HTML report:        tests/e2e/playwright-report/index.html"
+
   test:inventory:
     desc: Regenerate website/src/data/test-inventory.json (requirement → test mapping)
     cmds:

@@ -13,7 +13,7 @@
 //
 // Extract from the in-cluster Secret:
 //   kubectl get secret playwright-test-credentials \
-//     -n workspace-korczewski --context mentolder \
+//     -n workspace-korczewski --context fleet \
 //     -o go-template='{{range $k,$v := .data}}{{$k}}={{$v|base64decode}}{{"\n"}}{{end}}'
 
 import { test as setup, expect } from '@playwright/test';

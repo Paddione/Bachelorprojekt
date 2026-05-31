@@ -5,7 +5,7 @@ source "${SCRIPT_DIR}/lib/assert.sh"
 
 DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN must be set}"
 KC_URL="https://auth.${DOMAIN}"
-KC_CONTEXT="${KUBE_CONTEXT:-mentolder}"
+KC_CONTEXT="${KUBE_CONTEXT:-fleet}"
 WEBSITE_NS="website"
 WORKSPACE_NS="workspace"
 

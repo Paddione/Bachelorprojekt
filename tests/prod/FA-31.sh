@@ -9,7 +9,7 @@ source "${SCRIPT_DIR}/lib/k3d.sh"
 DOMAIN="${PROD_DOMAIN:?PROD_DOMAIN must be set}"
 MONITORING_URL="https://web.${DOMAIN}/admin/monitoring"
 WEBSITE_NS="${WEBSITE_NAMESPACE:-website}"
-PROD_CONTEXT="${PROD_CONTEXT:-mentolder}"
+PROD_CONTEXT="${PROD_CONTEXT:-fleet}"
 
 # T1: Monitoring URL is reachable (any 2xx/3xx counts)
 STATUS=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 "${MONITORING_URL}" 2>/dev/null || echo "000")

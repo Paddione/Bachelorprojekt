@@ -4,7 +4,7 @@
 #
 # Moved from a stale ConfigMap to workspace-secrets SealedSecret (T000045).
 
-CTX="${BRAINSTORM_CTX:-mentolder}"
+CTX="${BRAINSTORM_CTX:-fleet}"
 NS="${BRAINSTORM_NS:-workspace}"
 
 setup() {

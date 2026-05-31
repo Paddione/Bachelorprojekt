@@ -108,6 +108,9 @@ export async function runBuild(opts = {}) {
 
   cleanOutDir(outDir);
 
+  const usedSnapshots = new Set();
+  const recordSnapshot = (p) => usedSnapshots.add(p);
+
   // (1) Discover all sources (repo + plugin skills/agents + docs).
   const sources = await discoverSources({ repoRoot, pluginsRoot, homeDir });
   if (!report.pluginsRootPresent) {
@@ -135,7 +138,7 @@ export async function runBuild(opts = {}) {
 
   // (5) Render every markdown-backed Page and write it to OUT_DIR/outRelPath.
   for (const page of pages) {
-    const rendered = await renderMarkdown(page.bodyMarkdown, { registry, page });
+    const rendered = await renderMarkdown(page.bodyMarkdown, { registry, page, recordSnapshot });
     report.diagramFallbacks += rendered.diagramFallbacks;
     report.unresolved.push(...rendered.unresolved.map((u) => ({ from: page.slug, ref: u.ref })));
     // IC-4: renderMarkdown already injected the TOC into rendered.html; pass toc: ''.
@@ -198,37 +201,6 @@ export async function runBuild(opts = {}) {
     }
   }
 
-  // (6b) db-schema: render from markdown but force the bare slug db-schema.html.
-  const dbSchemaSrc = join(repoRoot, DB_SCHEMA_SOURCE_REL);
-  if (existsSync(dbSchemaSrc)) {
-    const md = readFileSync(dbSchemaSrc, 'utf8');
-    const dbPage = {
-      slug: DB_SCHEMA_SLUG,
-      type: 'doc',
-      provenance: 'repo',
-      name: DB_SCHEMA_SLUG,
-      title: 'Shared DB — Schema Reference',
-      description: '',
-      domain: 'db',
-      bodyMarkdown: md,
-      sourcePath: dbSchemaSrc,
-      outRelPath: `${DB_SCHEMA_SLUG}.html`,
-    };
-    // IC-2: pass the full registry object so rewriteCrossLinks can call outPathFor.
-    const rendered = await renderMarkdown(md, { registry, page: dbPage });
-    report.diagramFallbacks += rendered.diagramFallbacks;
-    const title = titleFromHtml(rendered.html, dbPage.title);
-    // IC-4: renderMarkdown already injected the TOC; pass toc: ''.
-    const html = renderPage({
-      page: { ...dbPage, title },
-      contentHtml: rendered.html,
-      toc: '',
-      related: [],
-    });
-    writeOut(outDir, `${DB_SCHEMA_SLUG}.html`, html);
-    searchIndex.push({ slug: DB_SCHEMA_SLUG, title, excerpt: excerptFromHtml(rendered.html) });
-  }
-
   // (7) Section index pages.
   const sectionDefs = [
     { type: 'skill', title: 'Skills', file: 'skills.html' },
@@ -264,6 +236,21 @@ export async function runBuild(opts = {}) {
   searchIndex.sort((a, b) => a.slug.localeCompare(b.slug));
   writeOut(outDir, 'search.json', JSON.stringify(searchIndex));
   report.counts.searchEntries = searchIndex.length;
+
+  // (10.5) Prune unused snapshots in full build
+  const snapshotsDir = join(repoRoot, 'docs/mermaid-snapshots');
+  if (existsSync(snapshotsDir)) {
+    const files = readdirSync(snapshotsDir);
+    for (const file of files) {
+      if (file.endsWith('.svg')) {
+        const fullPath = join(snapshotsDir, file);
+        if (!usedSnapshots.has(fullPath)) {
+          console.log(`Pruning unused snapshot: ${file}`);
+          rmSync(fullPath);
+        }
+      }
+    }
+  }
 
   // (11) Build report.
   printReport(report);

@@ -23,11 +23,13 @@ import {
   existsSync,
   mkdtempSync,
   rmSync,
+  mkdirSync,
 } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { marked } from 'marked';
 import * as cheerio from 'cheerio';
 
@@ -61,33 +63,66 @@ function slugifyHeading(text) {
 // (pre.diagram-fallback — shared by mermaid AND dot) and increments the counter.
 //
 // @param {string} html  HTML emitted by marked (contains <pre><code class="language-*">)
-// @param {{mmdc?:string, dot?:string}} [opts]
+// @param {{mmdc?:string, dot?:string, recordSnapshot?:(p:string)=>void, snapshotDir?:string}} [opts]
 // @returns {{ html: string, fallbacks: number }}
 export function renderDiagrams(html, opts = {}) {
   const mmdc = opts.mmdc ?? DEFAULT_MMDC;
   const dot = opts.dot ?? DEFAULT_DOT;
+  const recordSnapshot = opts.recordSnapshot;
+  const snapshotDir = opts.snapshotDir ?? join(__dirname, '../../docs/mermaid-snapshots');
   const $ = cheerio.load(html, { xmlMode: false });
   let fallbacks = 0;
 
-  // Mermaid — lifted execFileSync temp-file approach from build-docs.js.
+  // Mermaid — cached snapshot approach to prevent layout coordinate drift.
   $('pre code.language-mermaid').each((_, el) => {
     const src = $(el).text();
+    const hash = createHash('sha256').update(src).digest('hex');
+    const snapshotFile = join(snapshotDir, `${hash}.svg`);
     let svg = null;
-    if (existsSync(mmdc)) {
+
+    if (existsSync(snapshotFile)) {
+      try {
+        svg = readFileSync(snapshotFile, 'utf8');
+        if (recordSnapshot) recordSnapshot(snapshotFile);
+      } catch (_err) { /* fallback to rendering below */ }
+    }
+
+    if (!svg && existsSync(mmdc)) {
+      mkdirSync(snapshotDir, { recursive: true });
       const tmpDir = mkdtempSync(join(tmpdir(), 'mmdc-'));
       const inFile = join(tmpDir, 'diagram.mmd');
       const outFile = join(tmpDir, 'diagram.svg');
+      const configJson = join(tmpDir, 'config.json');
+      const configData = {
+        deterministicIds: true,
+        deterministicIDSeed: 'd' + hash.slice(0, 8),
+      };
+
       try {
         writeFileSync(inFile, src);
-        execFileSync(mmdc, ['-i', inFile, '-o', outFile, '-b', 'transparent', '--quiet'], {
+        writeFileSync(configJson, JSON.stringify(configData));
+        execFileSync(mmdc, [
+          '-i', inFile,
+          '-o', outFile,
+          '-c', configJson,
+          '-b', 'transparent',
+          '--quiet',
+        ], {
           stdio: ['ignore', 'ignore', 'pipe'],
           timeout: 30000,
         });
-        if (existsSync(outFile)) svg = readFileSync(outFile, 'utf8');
-      } catch (_err) { /* renderer failed — fall back below */ } finally {
+        if (existsSync(outFile)) {
+          svg = readFileSync(outFile, 'utf8');
+          writeFileSync(snapshotFile, svg, 'utf8');
+          if (recordSnapshot) recordSnapshot(snapshotFile);
+        }
+      } catch (_err) {
+        console.error('Mermaid render failed:', _err);
+      } finally {
         rmSync(tmpDir, { recursive: true, force: true });
       }
     }
+
     if (svg) {
       $(el).parent().replaceWith(
         `<div class="diagram-svg-wrapper">${svg}<span class="diagram-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>`
@@ -230,15 +265,15 @@ export function rewriteCrossLinks(html, { registry, page }) {
 // ─── renderMarkdown ─────────────────────────────────────────────────────────────
 // Full per-page render. See module header for the pipeline order.
 // @param {string} markdown
-// @param {{registry: object, page: {slug:string}, mmdc?:string, dot?:string}} ctx
+// @param {{registry: object, page: {slug:string}, mmdc?:string, dot?:string, recordSnapshot?:Function, snapshotDir?:string}} ctx
 // @returns {RenderResult}
-export function renderMarkdown(markdown, { registry, page, mmdc, dot } = {}) {
+export function renderMarkdown(markdown, { registry, page, mmdc, dot, recordSnapshot, snapshotDir } = {}) {
   let html = marked.parse(markdown);
 
   const xref = rewriteCrossLinks(html, { registry, page });
   html = xref.html;
 
-  const diagrams = renderDiagrams(html, { mmdc, dot });
+  const diagrams = renderDiagrams(html, { mmdc, dot, recordSnapshot, snapshotDir });
   html = diagrams.html;
 
   html = addHeadingIds(html);

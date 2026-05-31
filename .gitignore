@@ -147,3 +147,4 @@ dev-iterate-*.png
 environments/.secrets
 deeps.sh
 deepseek.sh
+environments/.secrets/.ssh/*

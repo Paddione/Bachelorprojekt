@@ -1,6 +1,10 @@
 // scripts/docs-gen/render-markdown.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import {
   renderMarkdown,
   renderDiagrams,
@@ -9,6 +13,8 @@ import {
   injectCopyButtons,
   rewriteCrossLinks,
 } from './render-markdown.mjs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // A minimal registry stub matching the contract:
 //   resolve(name) -> Page | undefined
@@ -32,6 +38,33 @@ test('renderDiagrams: mermaid block falls back to a styled code block when mmdc 
   assert.ok(out.includes('after'), 'keeps surrounding content');
   assert.ok(out.includes('class="diagram-fallback"'), 'emits diagram fallback class');
   assert.equal(fallbacks, 1, 'counts one diagram fallback');
+});
+
+test('renderDiagrams: uses cached SVG from snapshots if present', () => {
+  const html =
+    '<pre><code class="language-mermaid">graph TD\n  X --&gt; Y</code></pre>';
+  const src = 'graph TD\n  X --> Y';
+  const hash = createHash('sha256').update(src).digest('hex');
+  const snapshotDir = join(__dirname, '../../docs/mermaid-snapshots');
+  const snapshotFile = join(snapshotDir, `${hash}.svg`);
+  
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(snapshotFile, '<svg id="my-fake-cached-svg"></svg>', 'utf8');
+  
+  try {
+    let recordedPath = null;
+    const recordSnapshot = (p) => { recordedPath = p; };
+    const { html: out, fallbacks } = renderDiagrams(html, {
+      mmdc: '/nonexistent/mmdc',
+      recordSnapshot,
+    });
+    
+    assert.ok(out.includes('id="my-fake-cached-svg"'), 'uses the cached SVG contents');
+    assert.equal(fallbacks, 0, 'no fallbacks counted');
+    assert.equal(recordedPath, snapshotFile, 'recorded the used snapshot path');
+  } finally {
+    try { unlinkSync(snapshotFile); } catch {}
+  }
 });
 
 test('renderDiagrams: dot block falls back to a styled code block when dot is absent', () => {
@@ -127,6 +160,7 @@ test('renderMarkdown: end to end returns html, headings, unresolved, diagramFall
     page,
     mmdc: '/nonexistent/mmdc',
     dot: '/nonexistent/dot',
+    snapshotDir: '/nonexistent/snapshots',
   });
   assert.ok(Array.isArray(result.headings), 'headings is an array');
   assert.ok(result.headings.includes('Erste Schritte'), 'collects the h2 text');

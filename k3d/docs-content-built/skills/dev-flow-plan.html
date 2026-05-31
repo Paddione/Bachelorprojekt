@@ -19,875 +19,172 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-plan</span></nav>
     <h1>dev-flow-plan</h1>
-    <p class="page-desc">Use when beginning any repo change — feature, bug fix, or chore. Entry point for all development work in this repo. Routes to the correct path (feature/fix/chore) and produces a committed, pushed plan on the branch ready for dev-flow-execute. Chores complete inline without a separate execution step.</p>
+    <p class="page-desc">Use to choose the development path (feature/fix/chore), run brainstorming, and generate a design spec and implementation plan.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
-      
+      <span class="domain-tag">website</span>
     </div>
   </div>
 </header>
 
 <article class="doc-body">
-<html><head></head><body><blockquote>
-<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
-For every anomaly, unexpected state, broken component, security concern,
-configuration drift, or <strong>process friction</strong> you notice — even if unrelated
-to the current task — add an entry with:
-  <code>type</code> (broken/degraded/suspicious/security/drift/<strong>process</strong>),
-  <code>title</code>, <code>description</code>, and <code>component</code>.</p>
-<p><code>process</code> = a step that required a manual workaround, had wrong/missing instructions,
-or caused unexpected friction. <code>component</code> MUST use format <code>skills/&lt;skill-name&gt;</code>. Example:
-  <code>{type: process, title: "wss patch required manual retry",     description: "scripts/superpowers-helper-patch.sh failed silently — step 2b needs exit-code check",     component: "skills/dev-flow-plan"}</code></p>
-<p>Invoke <code>mishap-tracker</code> at the very end.</p>
-</blockquote>
-<h1>dev-flow-plan — Pfad-Wahl, Brainstorming &amp; Plan</h1><div class="toc-box auto-toc">
+<html><head></head><body><h1>dev-flow-plan — Pfad-Wahl, Brainstorming &amp; Plan</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-3-deep-grilling-optional--fuer-groessere-feature-projekte"><span class="toc-num">2.</span> Schritt −3: Deep Grilling (optional — für größere Feature-Projekte)</a></li>
+<li class="toc-item"><a href="#schritt-3-deep-grilling-optional"><span class="toc-num">2.</span> Schritt −3: Deep Grilling (optional)</a></li>
 <li class="toc-item"><a href="#schritt-2-main-branch-sync-pull-first"><span class="toc-num">3.</span> Schritt −2: Main-Branch sync (Pull-First)</a></li>
 <li class="toc-item"><a href="#schritt-1-stale-worktree-audit"><span class="toc-num">4.</span> Schritt −1: Stale-Worktree-Audit</a></li>
 <li class="toc-item"><a href="#schritt-0-pfad-bestimmen"><span class="toc-num">5.</span> Schritt 0: Pfad bestimmen</a></li>
 <li class="toc-item"><a href="#feature-pfad"><span class="toc-num">6.</span> Feature-Pfad</a></li>
 <li class="toc-item"><a href="#fix-pfad"><span class="toc-num">7.</span> Fix-Pfad</a></li>
 <li class="toc-item"><a href="#chore-pfad"><span class="toc-num">8.</span> Chore-Pfad</a></li>
-<li class="toc-item"><a href="#visual-companion--diagnose--manuelle-bedienung"><span class="toc-num">9.</span> Visual Companion — Diagnose &amp; manuelle Bedienung</a></li>
-<li class="toc-item"><a href="#bekannte-kustomize-gotchas"><span class="toc-num">10.</span> Bekannte Kustomize-Gotchas</a></li>
-<li class="toc-item"><a href="#agent-routing"><span class="toc-num">11.</span> Agent-Routing</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">12.</span> Post-Execution: Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">9.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
-<p>Bei jeder Anfrage in diesem Repo, die etwas verändern will: neue Funktion, Bug fixen, Doku updaten, Dependencies bumpen, was auch immer.</p>
-<p><strong>Sage zu Beginn:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash"># Unified Skill Framework: PRE-Execution
-bash scripts/skill-orchestrator.sh .claude/skills/dev-flow-plan/SKILL.md pre "infra"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>"Ich nutze dev-flow-plan für Pfad-Wahl und Planung."</p>
+<p>Bei jeder Anfrage in diesem Repo, die etwas verändern will.</p>
+<p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."</p>
 <hr>
-<h2 id="schritt-3-deep-grilling-optional--fuer-groessere-feature-projekte">Schritt −3: Deep Grilling (optional — für größere Feature-Projekte)</h2>
-<p>Wenn die Anfrage komplex, unklar oder groß klingt (mehrere Subsysteme, unklarer Scope, cross-cutting concerns, mehr als ~3 Tage Arbeit), frage <strong>direkt</strong>:</p>
-<blockquote>
-<p>"Klingt nach einem größeren Vorhaben. Möchtest du eine strukturierte Grilling-Session (5–10 min) bevor wir zum Brainstorming kommen? Du bekommst danach eine Anforderungsliste, eine Asset-Wunschliste und ein Ticket als Planungsgrundlage."</p>
-</blockquote>
-<p><strong>Falls der User 'Nein'</strong> oder das Feature offensichtlich klein/klar ist: direkt zu Schritt −2 springen. Kein Blocker.</p>
-<p><strong>Falls der User 'Ja'</strong> oder selbst um eine Grilling-Session bittet:</p>
-<h3>1. Grilling-Runden (3–4 Runden à 2–3 Fragen)</h3>
-<p>Führe die Runden <strong>sequenziell</strong> durch — stelle eine Runde, warte auf Antworten, dann die nächste. Nicht alle Fragen auf einmal.</p>
-<p><strong>Runde 1 — Kern &amp; Ziel</strong></p>
-<ul>
-<li>Was ist das eigentliche Problem, das gelöst werden soll? (Nicht die Lösung — das Problem dahinter. Warum jetzt?)</li>
-<li>Wer sind die Hauptnutzer / Stakeholder, die das betrifft?</li>
-<li>Was ist der Auslöser für dieses Feature genau jetzt?</li>
-</ul>
-<p><strong>Runde 2 — Scope &amp; Grenzen</strong></p>
-<ul>
-<li>Was gehört definitiv NICHT in dieses Feature? (Explizit Out-of-scope benennen)</li>
-<li>Welche bestehenden Komponenten / Services werden tangiert oder müssen angepasst werden?</li>
-<li>Gibt es technische, regulatorische oder zeitliche Constraints?</li>
-</ul>
-<p><strong>Runde 3 — Erfolg &amp; Abnahme</strong></p>
-<ul>
-<li>Woran erkennst du, dass das Feature fertig und erfolgreich ist? (Konkrete, messbare Akzeptanzkriterien)</li>
-<li>Gibt es bekannte Edge-Cases oder Failure-Szenarien, die abgedeckt sein müssen?</li>
-<li>Welche nicht-funktionalen Anforderungen gelten? (Performance, Sicherheit, DSGVO, Mobile-Responsive)</li>
-</ul>
-<p><strong>Runde 4 — Assets &amp; Referenzen</strong> (nur wenn nach Runde 3 noch Unklarheiten bestehen)</p>
-<ul>
-<li>Gibt es Mockups, bestehende Implementierungen, Konkurrenz-Screenshots, Paper oder sonstige Referenzen?</li>
-<li>Welche internen Dateien / Tickets / Gespräche haben den Kontext, den ich noch nicht kenne?</li>
-<li>Wer ist der richtige Ansprechpartner bei Unklarheiten während der Implementierung?</li>
-</ul>
-<blockquote>
-<p><strong>Grilling-Stil:</strong> Frage präzise, nicht vage. Hake nach wenn Antworten ausweichen — nutze "Warum genau?" und "Was meinst du konkret mit X?" als Drill-down. Ziel: Keine wichtige Anforderung bleibt implizit.</p>
-</blockquote>
-<h3>2. Synthese — zwei Listen ableiten</h3>
-<p>Nach den Runden: synthetisiere in diesen beiden strukturierten Listen.</p>
-<p><strong>Anforderungsliste:</strong></p>
-<div class="code-wrapper"><pre><code>FUNKTIONALE ANFORDERUNGEN:
-- [ ] &lt;Anforderung 1&gt;
-- [ ] &lt;Anforderung 2&gt;
-...
-
-NICHT-FUNKTIONALE ANFORDERUNGEN:
-- [ ] &lt;NFR 1 — z.B. Mobile-Responsive ≥768px&gt;
-- [ ] &lt;NFR 2 — z.B. DSGVO-konform, keine externen Calls&gt;
-...
-
-EXPLIZIT OUT-OF-SCOPE:
-- &lt;Was nicht gebaut wird&gt;
-...
-
-AKZEPTANZKRITERIEN:
-- [ ] &lt;Kriterium 1 — messbar/testbar&gt;
-- [ ] &lt;Kriterium 2&gt;
-...
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Asset-Wunschliste:</strong></p>
-<div class="code-wrapper"><pre><code>SOFORT VERFÜGBAR:
-- &lt;Datei/Link/Kontext der bereits vorliegt&gt;
-
-ZU BESCHAFFEN:
-- [ ] &lt;Asset 1 — z.B. Figma-Export von Designer X&gt;
-- [ ] &lt;Asset 2 — z.B. API-Doku von Service Y&gt;
-- [ ] &lt;Asset 3 — z.B. Screenshot bestehender Lösung&gt;
-
-OPTIONAL / NICE-TO-HAVE:
-- &lt;Asset das helfen würde, aber nicht blockiert&gt;
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Zeige beide Listen dem User und frage: <strong>"Stimmt das so? Fehlt etwas Wichtiges?"</strong>
-Passe nach Feedback an (max. 1 Korrektur-Runde).</p>
-<p>Speichere die Synthese für den weiteren Verlauf:</p>
-<div class="code-wrapper"><pre><code class="language-bash">export GRILLING_REQUIREMENTS="&lt;Anforderungsliste als kompakter Multi-line-String&gt;"
-export GRILLING_ASSETS_TODO="&lt;ZU-BESCHAFFEN-Liste&gt;"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>3. Ticket anlegen</h3>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet \
-  -l app=shared-db -o name | head -1)
-
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, status)
-   VALUES (
-     'task', 'mentolder',
-     'Grilling: &lt;kurzer-titel&gt;',
-     \$\$GRILLING-ERGEBNIS
-
-FUNKTIONALE ANFORDERUNGEN:
-${GRILLING_REQUIREMENTS}
-
-ASSETS ZU BESCHAFFEN:
-${GRILLING_ASSETS_TODO}\$\$,
-     'triage'
-   )
-   RETURNING external_id, id;")
+<h2 id="schritt-3-deep-grilling-optional">Schritt −3: Deep Grilling (optional)</h2>
+<p>Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für den Fragenkatalog).
+Falls durchgeführt, erstelle das Grilling-Ticket mit dem CLI-Helper:</p>
+<div class="code-wrapper"><pre><code class="language-bash">TICKET_RESULT=$(./scripts/ticket.sh create \
+  --type task \
+  --brand mentolder \
+  --title "Grilling: &lt;kurzer-titel&gt;" \
+  --description "FUNKTIONALE ANFORDERUNGEN:"$'\n'"$GRILLING_REQUIREMENTS"$'\n\n'"ASSETS ZU BESCHAFFEN:"$'\n'"$GRILLING_ASSETS_TODO")
 
 export GRILLING_TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 export GRILLING_TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Melde: <strong>"Grilling-Ticket <code>$GRILLING_TICKET_EXT_ID</code> angelegt → <a href="https://web.mentolder.de/admin/bugs">https://web.mentolder.de/admin/bugs</a>"</strong></p>
-<h3>4. Bereits vorliegende Assets hochladen</h3>
-<p>Falls der User in Runde 4 bereits konkrete Dateipfade genannt hat:</p>
-<div class="code-wrapper"><pre><code class="language-bash">GRILLING_ATTACHMENT_PATHS=(/* genannte Pfade */)
-if [[ ${#GRILLING_ATTACHMENT_PATHS[@]} -gt 0 ]]; then
-  bash scripts/ticket-attach.sh "$GRILLING_TICKET_UUID" "${GRILLING_ATTACHMENT_PATHS[@]}"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Erlaubte Endungen: <code>.md .html .jpg .jpeg .png .gif .webp .mp3 .wav .mp4 .mov .webm .pdf .txt .log</code></p>
-<h3>5. Kontext-Übergabe an den weiteren Flow</h3>
-<p>Die exportierten Variablen (<code>GRILLING_TICKET_EXT_ID</code>, <code>GRILLING_REQUIREMENTS</code>, <code>GRILLING_ASSETS_TODO</code>) fließen automatisch in:</p>
-<ul>
-<li><strong>Schritt 1.5</strong> (Asset-Sammlung): <code>GRILLING_ASSETS_TODO</code> zeigt was noch fehlt — dort gezielt nachfragen</li>
-<li><strong>Schritt 1.6</strong> (Codebase-Explorer): Scope und Anforderungen geben dem Explorer einen schärferen Fokus</li>
-<li><strong>Schritt 3</strong> (Brainstorming): wird als <code>&lt;grilling-context&gt;</code> Block injiziert</li>
-<li><strong>Schritt 4.5</strong> (Ticket): Plan-Ticket referenziert das Grilling-Ticket</li>
-</ul>
-<p>Fahre jetzt mit <strong>Schritt −2</strong> fort.</p>
+<p>Hänge Dateien mit <code>bash scripts/ticket-attach.sh "$GRILLING_TICKET_UUID" &lt;pfade&gt;</code> an.</p>
 <hr>
 <h2 id="schritt-2-main-branch-sync-pull-first">Schritt −2: Main-Branch sync (Pull-First)</h2>
-<p>Führe <strong>als allererstes</strong> aus — bevor irgendetwas anderes passiert:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Prüfen ob sauberer Zustand oder lokale Änderungen vorhanden
-git fetch origin main
+<p>Führe immer als erstes aus:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git fetch origin main
 if git diff --quiet HEAD; then
-  # Sauber → direkt pullen
   git pull --rebase origin main
 else
-  # Lokale Änderungen vorhanden → stashen, pullen, zurückholen
-  echo "Lokale Änderungen erkannt — stashe vor dem Pull..."
-  git stash
-  git pull --rebase origin main
-  git stash pop
-  echo "Stash zurückgespielt. Bitte Konflikte prüfen falls vorhanden."
+  git stash &amp;&amp; git pull --rebase origin main &amp;&amp; git stash pop
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls <code>git stash pop</code> Konflikte meldet: dem User anzeigen und Klärung einholen, bevor weitergemacht wird.</p>
 <hr>
 <h2 id="schritt-1-stale-worktree-audit">Schritt −1: Stale-Worktree-Audit</h2>
-<p>Führe <strong>immer als erstes</strong> aus — bevor Pfad oder Branch bestimmt werden:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Alle aktiven Worktrees zeigen
-git worktree list
-
-# Bereits in main gemergte Branches mit noch aktiven Worktrees finden
-# (squash-merge-safe: prüft GitHub PR-Status statt git branch --merged)
-git worktree list --porcelain \
-  | awk '/^branch /{print $2}' \
-  | grep -v 'refs/heads/main' \
-  | sed 's|refs/heads/||' \
-  | while read -r branch; do
-    MERGED=$(gh pr list --head "$branch" --state merged --json number --jq 'length' 2&gt;/dev/null || echo 0)
-    if &amp;quot;$MERGED&amp;quot; -gt 0; then
-      WT=$(git worktree list --porcelain \
-        | awk -v b="refs/heads/$branch" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-      echo "⚠️  STALER WORKTREE: $branch → $WT (PR wurde gemergt)"
-    fi
-  done
+<p>Bereinige staler Worktrees von bereits gemergten Branches:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git worktree list
+# Überprüfe staler Worktrees und lösche sie ggf. mit:
+# git worktree remove &lt;path&gt; --force &amp;&amp; git branch -D &lt;branch&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls stale Worktrees ausgegeben werden: Dem User mitteilen und anbieten, sie zuerst zu bereinigen. Bereinigung auf Anfrage:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Für jeden stalen Worktree/Branch:
-git worktree remove &lt;path&gt; --force
-git branch -D &lt;branch&gt;
-git push origin --delete &lt;branch&gt; 2&gt;/dev/null || true
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Kein Blocker — wenn der User weitermachen will, einfach fortfahren.</p>
 <hr>
 <h2 id="schritt-0-pfad-bestimmen">Schritt 0: Pfad bestimmen</h2>
-<p>Lies die Anfrage und schlage einen der drei Pfade vor. Bestätigung beim User einholen, BEVOR du weitermachst.</p>
-<table>
-<thead>
-<tr>
-<th>Pfad</th>
-<th>Wann</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>feature</strong></td>
-<td>Neues Verhalten, neuer Endpunkt, neue UI-Sektion, neuer Task — alles was Nutzer bemerken</td>
-</tr>
-<tr>
-<td><strong>fix</strong></td>
-<td>Etwas ist kaputt; Output/Verhalten passt nicht zur Erwartung. <strong>Erfordert ein T-###### Ticket.</strong></td>
-</tr>
-<tr>
-<td><strong>chore</strong></td>
-<td>Keine Verhaltensänderung für Nutzer — Dependency-Bumps, Refactors, Doku/Kommentar-Updates, Config/CI-Tweaks</td>
-</tr>
-</tbody></table>
-<p>Sage z.B.: "Das klingt nach einem <strong>fix</strong> — wir reparieren ein bestehendes Verhalten. Passt das? Hast du eine T-###### Ticket-ID?"</p>
+<p>Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre dies mit dem User ab.</p>
+<ul>
+<li><strong>feature</strong>: Neue Funktionen oder UI-Elemente.</li>
+<li><strong>fix</strong>: Fehlerbehebung (erfordert Ticket-ID).</li>
+<li><strong>chore</strong>: Wartung, Doku, Dependency-Bumps (keine Verhaltensänderung).</li>
+</ul>
 <hr>
 <h2 id="feature-pfad">Feature-Pfad</h2>
 <h3>Schritt 1: Worktree anlegen</h3>
-<p><strong>Vor dem Anlegen — Konflikt-Check:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">BRANCH_NAME="feature/&lt;kurzer-slug&gt;"
-EXISTING_WT=$(git worktree list --porcelain \
-  | awk -v b="refs/heads/$BRANCH_NAME" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-if -n &amp;quot;$EXISTING_WT&amp;quot;; then
-  echo "Worktree für $BRANCH_NAME existiert bereits: $EXISTING_WT"
-  echo "→ Nicht neu anlegen. Stattdessen: cd $EXISTING_WT"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls Worktree bereits existiert: <strong>nicht</strong> <code>using-git-worktrees</code> aufrufen — direkt in den vorhandenen Worktree wechseln.</p>
-<p>Falls kein Worktree existiert: Rufe <code>superpowers:using-git-worktrees</code> auf. Branch-Name: <code>feature/&lt;kurzer-slug&gt;</code>.</p>
-<blockquote>
-<p><strong>Branch-Naming-Warnung:</strong> Das native <code>EnterWorktree</code> Tool mangelt den Branch-Namen — aus <code>feature/admin-menu-rules</code> wird <code>worktree-feature+admin-menu-rules</code> (Slash → Plus, Prefix <code>worktree-</code>). Das verletzt die Repo-Konvention <code>feature/*</code>. Verifiziere nach dem Anlegen mit <code>git branch --show-current</code> und benenne ggf. um: <code>git branch -m feature/&lt;slug&gt;</code> (oder pushe direkt ohne Umbennung, dann <code>git push -u origin feature/&lt;slug&gt;:feature/&lt;slug&gt;</code>). Der vorhersagbarere Pfad ist die manuelle Form:</p>
+<p>Erstelle einen neuen Worktree für den Feature-Branch (niemals <code>.claude/worktrees/</code> verwenden!):</p>
 <div class="code-wrapper"><pre><code class="language-bash">git worktree add -b feature/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main
 cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>⚠️ KEIN <code>.claude/worktrees/</code> verwenden</strong> — dieses Verzeichnis ist in <code>.gitignore</code> eingetragen. Git-Worktrees in gitignorierten Pfaden können die Branch-Erkennung (<code>git branch --show-current</code>) brechen und staged Files können ungewollt in den Haupt-Index bluten. Immer <code>/tmp/wt-&lt;slug&gt;</code> (außerhalb des Repos) verwenden.</p>
-</blockquote>
 <h3>Schritt 1.5: Optionale Asset-Sammlung</h3>
-<p><strong>Bevor du das Brainstorming startest, frage den User aktiv:</strong></p>
-<blockquote>
-<p>"Hast du Dateien, die beim Planen helfen würden — Spec-/Notiz-Markdown, HTML-Mockups, Screenshots/Bilder (<code>.jpg</code>/<code>.png</code>), Tonaufnahmen (<code>.mp3</code>), Video-Walkthroughs (<code>.mp4</code>)? Wenn ja: nenn mir die Pfade (absolut, leerzeichengetrennt oder einer pro Zeile). Sonst: 'keine'."</p>
-</blockquote>
-<p>Erlaubte Endungen: <code>.md .html .jpg .jpeg .png .gif .webp .mp3 .wav .mp4 .mov .webm .pdf .txt .log</code>.</p>
-<p>Stash die Pfade in einer Bash-Variable für später:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Beispiel — vom User-Input befüllen:
-ATTACHMENT_PATHS=(
-  "/home/patrick/notes/idea.md"
-  "/home/patrick/Pictures/mockup.png"
-)
+<p>Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und Image-Dateien mit dem <code>Read</code> Tool ein, um sie in den Kontext zu laden.</p>
+<h3>Schritt 1.6: Codebase-Exploration</h3>
+<p>Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor dem Brainstorming zu analysieren.</p>
+<h3>Schritt 2: Brainstorming Visual Companion Tunnel</h3>
+<p>Starte den Companion-Server und Tunnel. Detaillierte Befehle und Fehlerbehebungen findest du in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/brainstorm-tunnel-setup.md">brainstorm-tunnel-setup.md</a>.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Lese die Anleitung und führe sie aus:
+# View: .claude/skills/references/brainstorm-tunnel-setup.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls die Datei eine <code>.md</code>/<code>.html</code>/<code>.txt</code> ist: zusätzlich den Inhalt vor dem Brainstorming lesen (<code>Read</code> Tool) — der Inhalt fließt direkt ins Brainstorming-Kontext ein.
-Falls <code>.jpg</code>/<code>.png</code>: ebenfalls über <code>Read</code> Tool laden — Claude verarbeitet die Bilder multimodal.
-Audio/Video (<code>.mp3</code>/<code>.mp4</code>) wird nur archiviert (ans Ticket angehängt), nicht inline transkribiert — falls der User Transkription will, gesondert über <code>task workspace:transcriber-*</code> oder Whisper anstoßen.</p>
-<p>Falls der User "keine" sagt: Array leer lassen und weiter.</p>
-<h3>Schritt 1.6: Codebase-Exploration (code-explorer)</h3>
-<p>Dispatch <code>feature-dev:code-explorer</code> um die relevanten Codebase-Bereiche zu kartieren, bevor das Brainstorming beginnt. Das Ergebnis fließt als Kontext in Schritt 3 ein.</p>
-<p><strong>Auftrag an den Agent — leite diesen Prompt weiter:</strong></p>
-<blockquote>
-<p>"Trace the execution paths and map the architecture relevant to: <code>&lt;task-description&gt;</code> (branch: <code>feature/&lt;slug&gt;</code>).
-Focus on:</p>
-<ol>
-<li>Which files/modules are the entry points for this feature area?</li>
-<li>What existing patterns, abstractions, and data flows would this change touch or extend?</li>
-<li>Are there any extension points (interfaces, hooks, event emitters, DB tables) that the new feature should wire into?</li>
-<li>List any gotchas, coupling points, or non-obvious dependencies.</li>
-</ol>
-<p>Return a concise report (max 400 words) suitable for use as brainstorming context."</p>
-</blockquote>
-<p>Speichere den Report in einer Bash-Variable:</p>
-<div class="code-wrapper"><pre><code class="language-bash">EXPLORER_REPORT="&lt;output des code-explorer agents&gt;"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Dieser Report wird in Schritt 3 als <code>&lt;codebase-context&gt;</code> Block dem Brainstorming vorangestellt.</p>
-<p>Falls der Agent fehlschlägt oder kein Output kommt: einfach fortfahren (kein Blocker).</p>
-<hr>
-<h3>Schritt 2: Pre-launch Brainstorming-Tunnel</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># a) wss:// sicherstellen (idempotent)
-bash scripts/superpowers-helper-patch.sh
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls exit ≠ 0: Abbruch. Mitteilen: "wss:// patch failed — run <code>bash scripts/superpowers-helper-patch.sh</code> manually and retry."</p>
-<div class="code-wrapper"><pre><code class="language-bash"># b) Server starten
-START_SCRIPT=$(find ~/.claude/plugins/cache/claude-plugins-official/superpowers \
-  -name start-server.sh | sort -V | tail -1)
-RESULT=$(bash "$START_SCRIPT" --project-dir /home/patrick/Bachelorprojekt)
-PORT=$(echo "$RESULT" | jq -r '.port')
-SCREEN_DIR=$(echo "$RESULT" | jq -r '.screen_dir')
-STATE_DIR=$(echo "$RESULT" | jq -r '.state_dir')
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls <code>$PORT</code> leer: Abbruch. Mitteilen: "brainstorm server konnte nicht gestartet werden."</p>
-<blockquote>
-<p><strong><code>$PORT</code> immer aus <code>RESULT</code> ableiten — niemals raten (T000343).</strong> Der <code>task brainstorm:publish -- $PORT</code> unten <strong>muss</strong> genau den von <code>start-server.sh</code> zurückgegebenen Port verwenden. Ein gemerkter/geratener Port (aus einer früheren Session) liefert einen 502, bis neu publisht wird. Wenn der Companion neu gestartet wird (Schritt e-Fallback bei Zeile ~406), <code>$PORT</code> aus dem neuen <code>RESULT</code> neu setzen, bevor erneut publisht wird.</p>
-</blockquote>
-<div class="code-wrapper"><pre><code class="language-bash"># c) Vorflug-Check (idempotent, schnell — bricht früh ab wenn Setup kaputt)
-task brainstorm:status &gt;/tmp/brainstorm-status.log 2&gt;&amp;1 || true
-grep -q 'Running' /tmp/brainstorm-status.log || { echo "sish pod not Running — aborting"; cat /tmp/brainstorm-status.log; exit 1; }
-
-# Stelle sicher dass mindestens ein Authorized-Key im Secret liegt — sonst hängt ssh -R lautlos
-KEY_COUNT=$(kubectl --context fleet -n workspace get secret workspace-secrets \
-  -o jsonpath='{.data.DEV_SISH_AUTHORIZED_KEYS}' 2&gt;/dev/null | base64 -d 2&gt;/dev/null | grep -c '^ssh-' || echo 0)
-if &amp;quot;$KEY_COUNT&amp;quot; -lt 1; then
-  echo "⚠️  Keine authorized_keys im Secret workspace-secrets. Patricks Public-Key in environments/.secrets/mentolder.yaml" \
-       "unter DEV_SISH_AUTHORIZED_KEYS ergänzen, dann: task env:seal ENV=mentolder"
-  exit 1
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<div class="code-wrapper"><pre><code class="language-bash"># d) Stale SSH-Tunnel töten — verhindert "remote port forwarding failed" bei Wiederverwendung
-# Bracket-Trick [3]2223 verhindert Self-Match des pkill-Kommandos selbst
-pkill -f "ssh.*[3]2223" 2&gt;/dev/null &amp;&amp; echo "Stale ssh tunnel(s) killed" || echo "Kein staler Tunnel gefunden"
-sleep 1  # kurze Pause damit der Remote-Forward auf sish freigegeben wird
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<div class="code-wrapper"><pre><code class="language-bash"># e) Tunnel publishen (run_in_background: true) — STDOUT/STDERR in Log-File schreiben
-task brainstorm:publish -- $PORT &gt;/tmp/brainstorm-publish.log 2&gt;&amp;1
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<div class="code-wrapper"><pre><code class="language-bash"># f) Verify — bis zu 15s auf den Tunnel warten. Erst wenn 200/302 kommt, ist die URL benutzbar.
-# Zusätzlich: lokalen Listener prüfen — wenn der Companion-Server stirbt, bekommt der User 502.
-for i in $(seq 1 15); do
-  CODE=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 https://brainstorm.dev.mentolder.de/ || echo 000)
-  if &amp;quot;$CODE&amp;quot; == &amp;quot;200&amp;quot; || &amp;quot;$CODE&amp;quot; == &amp;quot;302&amp;quot; || &amp;quot;$CODE&amp;quot; == &amp;quot;301&amp;quot;; then
-    echo "✓ Tunnel live (HTTP $CODE) nach ${i}s"
-    break
-  fi
-  sleep 1
-done
-if &amp;quot;$CODE&amp;quot; != &amp;quot;200&amp;quot; &amp;amp;&amp;amp; &amp;quot;$CODE&amp;quot; != &amp;quot;302&amp;quot; &amp;amp;&amp;amp; &amp;quot;$CODE&amp;quot; != &amp;quot;301&amp;quot;; then
-  echo "✗ Tunnel hat nach 15s nicht geantwortet (letzter HTTP-Code: $CODE)"
-  echo "── publish log ──"
-  cat /tmp/brainstorm-publish.log
-  echo "── häufige Ursachen ──"
-  echo "  • SSH key nicht in DEV_SISH_AUTHORIZED_KEYS (siehe Schritt c)"
-  echo "  • ufw blockiert Port 32223 auf gekko-hetzner-2 → 'task brainstorm:firewall:open'"
-  echo "  • sish pod restartet/crashed → 'task brainstorm:status'"
-  echo "  • PORT $PORT lauscht nicht lokal → 'ss -ltn | grep $PORT'"
-  exit 1
-fi
-# Lokalen Listener noch oben? Wenn nicht, Server neu starten (Companion stirbt manchmal nach verify)
-if ! ss -ltn 2&gt;/dev/null | grep -q ":${PORT} "; then
-  echo "⚠️  Lokaler Listener auf Port $PORT nicht mehr aktiv — Companion-Server neu starten"
-  RESULT=$(bash "$START_SCRIPT" --project-dir /home/patrick/Bachelorprojekt)
-  PORT=$(echo "$RESULT" | jq -r '.port')
-  echo "Companion neu gestartet auf Port $PORT"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Erst wenn Schritt e) grün ist, Patrick mitteilen: <strong>"Brainstorming-Companion läuft unter <a href="https://brainstorm.dev.mentolder.de">https://brainstorm.dev.mentolder.de</a> (HTTP $CODE) — jetzt im Browser öffnen."</strong></p>
 <h3>Schritt 3: Brainstorming</h3>
-<p>Rufe <code>superpowers:brainstorming</code> auf. Voranstellen vor dem ersten Brainstorming-Turn:</p>
-<blockquote>
-<p>"Visual-Companion-Server läuft bereits (Port <code>$PORT</code>). <code>screen_dir=$SCREEN_DIR</code>, <code>state_dir=$STATE_DIR</code>. Rufe <code>start-server.sh</code> nicht nochmals auf. Nenne dem User immer <code>https://brainstorm.dev.mentolder.de</code> — niemals <code>http://localhost:*</code>.</p>
-<codebase-context>
-$EXPLORER_REPORT
-</codebase-context><p>Nutze den Codebase-Context aus <code>&lt;codebase-context&gt;</code> als Grundlage für Step 1 (Explore project context) — du musst die dort beschriebenen Dateien nicht erneut lesen, außer du brauchst spezifische Details.</p>
-<p>$(if -n &amp;quot;${GRILLING_TICKET_EXT_ID:-}&amp;quot;; then echo "<grilling-context>
-Grilling-Ticket: $GRILLING_TICKET_EXT_ID</grilling-context></p>
-<p>ANFORDERUNGEN (bereits erarbeitet — nicht erneut erfragen):
-$GRILLING_REQUIREMENTS</p>
-<p>NOCH ZU BESCHAFFENDE ASSETS:
-$GRILLING_ASSETS_TODO
-</p>
-<p>Die Anforderungen aus <grilling-context> sind bereits mit dem User abgestimmt. Nutze sie als gesetzten Rahmen — kein erneutes Erfragen der Grundlagen. Fokussiere Brainstorming auf Implementierungsansätze, UX-Details und technische Entscheidungen innerhalb dieses Rahmens."; fi)"</grilling-context></p>
-</blockquote>
-<p>Ergebnis: Spec in <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>.</p>
-<h3>Schritt 3.5: Playwright-Projekt-Gate (falls neue E2E-Specs geplant)</h3>
-<p>Falls das Feature neue Playwright-Spec-Dateien umfasst, <strong>muss</strong> die Spec (und der daraus entstehende Plan) für jede neue Datei explizit angeben:</p>
+<p>Rufe <code>superpowers:brainstorming</code> auf. Nutze das visual Board auf <code>https://brainstorm.dev.mentolder.de</code>.
+Ergebnis: Spec-Datei in <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>.</p>
+<h3>Schritt 3.5: Playwright-Projekt-Gate</h3>
+<p>Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für Zuordnungstabelle).</p>
+<h3>Schritt 3.7: Kontext-Reset + Opus (xhigh)</h3>
+<p>Bevor der Plan geschrieben wird, verringere den Kontext-Ballast:</p>
 <ol>
-<li><strong>Dateiname</strong> (z.B. <code>sa-15-cross-brand-health.spec.ts</code>)</li>
-<li><strong>Playwright-Projekt(e)</strong>, zu dem die Datei gehört (Mehrfachnennung möglich!)</li>
-<li><strong>Endpunkte / Routen</strong>: aus dem Quellcode ableiten, nie annehmen</li>
+<li>Committe und pushe die Spec-Datei auf den Feature-Branch.</li>
+<li>Bitte den User, die Slash-Befehle <code>/model claude-opus-4-8</code> und danach <code>/compact</code> auszuführen (weise darauf hin, dass dies User-Befehle sind und du sie nicht selbst ausführen kannst).</li>
+<li>Lese nach dem Reset die Spec-Datei neu ein.</li>
 </ol>
-<p><strong>Projekt-Zuweisung (aus <code>tests/e2e/playwright.config.ts</code>):</strong></p>
-<table>
-<thead>
-<tr>
-<th>Spec-Typ</th>
-<th>Playwright-Projekt</th>
-<th>Begründung</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Nicht-auth SA-<em>/NFA-</em>/cross-brand/arena-DB</td>
-<td><code>services</code></td>
-<td>Kein Login nötig; kein <code>storageState</code></td>
-</tr>
-<tr>
-<td>Authentifizierte FA-* (mentolder Login)</td>
-<td><code>mentolder</code></td>
-<td>Braucht <code>storageState: .auth/mentolder-website-admin.json</code></td>
-</tr>
-<tr>
-<td>Authentifizierte FA-* (Website-Flows)</td>
-<td><code>website</code></td>
-<td>Braucht Login-Setup-Dependency</td>
-</tr>
-<tr>
-<td>Korczewski-spezifische Tests</td>
-<td><code>korczewski</code></td>
-<td>Eigene Auth-State + Korczewski-Domain</td>
-</tr>
-<tr>
-<td>Kombiniert (z.B. Cross-Brand ohne Auth)</td>
-<td><code>services</code> <strong>und</strong> ggf. <code>korczewski</code></td>
-<td>Immer beide Projekte explizit nennen</td>
-</tr>
-</tbody></table>
-<p><strong>Endpunkte aus Source ableiten (Pflicht):</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash"># Beispiel: Arena health route verifizieren bevor in Spec schreiben
-grep -n "r\.\(get\|post\|put\)(" arena-server/src/http/routes.ts | head -20
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Niemals Endpfad annehmen (z.B. <code>/health</code>) ohne im Quellcode verifiziert zu haben (z.B. tatsächlich <code>/healthz</code>). Test schlägt sonst mit 404 fehl und erzeugt unnötige Fix-Tickets.</p>
-<h3>Schritt 3.7: Kontext-Reset + Opus 4.8 (xhigh) — Pflicht vor Plan-Schreibung</h3>
-<p>Der Kontext ist jetzt mit Brainstorming-Verlauf, Explorer-Reports und Tool-Outputs gefüllt. Bevor <code>superpowers:writing-plans</code> gerufen wird: Kontext bereinigen, stärkeres Modell laden, Spec + Ticket neu injizieren — so bekommt der Plan-Schreiber einen sauberen, fokussierten Startpunkt.</p>
-<p><strong>1. Reinjektion-Anker sichern (vor dem Reset!):</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">SPEC_FILE="docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md"
-
-# Tickets für Reinjektion sammeln
-REINJECT_TICKETS=()
--n &amp;quot;${TICKET_EXT_ID:-}&amp;quot;          &amp;&amp; REINJECT_TICKETS+=("$TICKET_EXT_ID")
--n &amp;quot;${GRILLING_TICKET_EXT_ID:-}&amp;quot; &amp;&amp; REINJECT_TICKETS+=("$GRILLING_TICKET_EXT_ID")
-
-echo "══ REINJEKTION-ANKER ══════════════════════"
-echo "Spec:    $SPEC_FILE"
-echo "Branch:  $(git branch --show-current)"
-echo "Tickets: ${REINJECT_TICKETS[*]:-keine}"
-echo "═══════════════════════════════════════════"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>1.5. Spec auf Branch committen (vor dem Reset!):</strong></p>
-<p>Damit die Spec nach dem <code>/compact</code> — auch in einer neuen Session oder nach Worktree-Verlust — via <code>git</code> auffindbar ist:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git add docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md
-git commit -m "chore(specs): add &lt;slug&gt; design spec"
-git push
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Dieser Commit ist idempotent gegenüber Schritt 5 — <code>git add</code> einer bereits committeten Datei ist ein No-op.</p>
-<p><strong>2. ⚡ STOP — führe diese Befehle jetzt aus (in dieser Reihenfolge):</strong></p>
-<div class="code-wrapper"><pre><code>/model claude-opus-4-8
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<div class="code-wrapper"><pre><code>/compact Behalte für Plan-Schreibung: Spec-Pfad=&lt;SPEC_FILE&gt;, Branch=&lt;aktiver-branch&gt;, Ticket-IDs=&lt;REINJECT_TICKETS&gt;. Alles andere (Brainstorming, Explorer-Report, Worktree-Setup) verwerfen.
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>3. Kontext-Injektion nach Reset:</strong></p>
-<p>Als allererstes nach dem Compact — vor <code>superpowers:writing-plans</code> — ausführen:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Spec vollständig einlesen (Read Tool)
-# → docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md
-
-# Ticket-Content aus DB holen (für jede ID in REINJECT_TICKETS)
-PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-for TID in "${REINJECT_TICKETS[@]}"; do
-  kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-    psql -U website -d website -At -c \
-    "SELECT '=== ' || external_id || ' ===' || E'\nTitle: ' || title
-            || E'\n\n' || COALESCE(description,'(kein Inhalt)')
-     FROM tickets.tickets WHERE external_id='$TID';"
-done
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Erst nach dieser Injektion mit <strong>Schritt 4</strong> fortfahren.</p>
-<hr>
 <h3>Schritt 4: Plan schreiben</h3>
-<p>Rufe <code>superpowers:writing-plans</code> auf. Führe danach sofort aus:</p>
+<p>Rufe <code>superpowers:writing-plans</code> auf. <strong>Wichtig:</strong> Weise die Skill ausdrücklich an, die Ausführung/Implementierung noch nicht zu starten (nur Plan schreiben und STOPPEN).
+Wende danach das Frontmatter-Skript an:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Ergebnis: Plan in <code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code>.</p>
-<blockquote>
-<p><strong>Plan-Schritte, die ein k8s-Objekt patchen, müssen das Objekt zuerst verifizieren (T000346).</strong> Bevor ein Schritt behauptet „Deployment X hat Problem Y, fixe via Z", den tatsächlichen Objekt-Namen <strong>und</strong> die aktuelle Affinity/Spec per <code>kubectl kustomize &lt;overlay&gt;/ | grep -A30 &lt;kind&gt;</code> prüfen. Beispiel-Fehlschlag: ein Plan zielte auf ein „Deployment talk-hpb", doch das Objekt heißt <code>spreed-signaling</code> und hatte bereits <code>namespaces:[coturn]</code> in seiner podAffinity — der „Fix" wäre ein no-op (bestenfalls) oder hätte die cross-namespace-Affinity gebrochen. Annahmen über Namen/Affinity nie ungeprüft in einen Plan-Schritt schreiben.</p>
-</blockquote>
 <h3>Schritt 4.5: Ticket anlegen</h3>
-<p>Lege ein Ticket vom Typ <code>task</code> in der Produktionsdatenbank an und speichere die ID im Plan-Frontmatter.</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Postgres-Pod ermitteln (mentolder-Cluster)
-PGPOD=$(kubectl get pod -n workspace --context fleet \
-  -l app=shared-db -o name | head -1)
-
-# Ticket anlegen — Titel und Beschreibung aus Slug und Branch ableiten
-# Falls eine Grilling-Session vorausging, wird das Grilling-Ticket referenziert
-GRILLING_REF=""
+<p>Erstelle ein Plan-Ticket in der Datenbank:</p>
+<div class="code-wrapper"><pre><code class="language-bash">GRILLING_REF=""
 if -n &amp;quot;${GRILLING_TICKET_EXT_ID:-}&amp;quot;; then
   GRILLING_REF=$'\n'"Grilling-Ticket: ${GRILLING_TICKET_EXT_ID}"
 fi
 
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, status)
-   VALUES (
-     'task', 'mentolder',
-     'Plan: &lt;slug&gt;',
-     'Branch: feature/&lt;slug&gt;' || E'\n' || 'Plan: docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md' || E'\n' || 'Spec: docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md' || E'${GRILLING_REF}',
-     'triage'
-   )
-   RETURNING external_id, id;")
-
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)   # z.B. T000301
-TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Ersetze den <code>ticket_id: null</code> Platzhalter im Frontmatter (den <code>plan-frontmatter-hook.sh</code> immer einfügt):</p>
-<div class="code-wrapper"><pre><code class="language-bash">sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" \
-  docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Verifiziere anschließend:</p>
-<div class="code-wrapper"><pre><code class="language-bash">grep '^ticket_id:' docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-# Erwartete Ausgabe: ticket_id: T000XXX (kein "null")
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Injiziere dann brainstorm_choice + brainstorm_session (best-effort — kein Fehler wenn kein STATE_DIR oder keine Wahl):</p>
-<div class="code-wrapper"><pre><code class="language-bash">if -n &amp;quot;${STATE_DIR:-}&amp;quot; &amp;&amp; BRAINSTORM_CHOICE=$(bash scripts/brainstorm-extract-choice.sh "$STATE_DIR" 2&gt;/dev/null); then
-  SESSION_ID=$(basename "$(dirname "$STATE_DIR")")
-  awk -v c="$BRAINSTORM_CHOICE" -v s="$SESSION_ID" \
-    'NR==1{print; print "brainstorm_choice: " c; print "brainstorm_session: " s; next} 1' \
-    docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md &gt; /tmp/_plan_tmp.md &amp;&amp; \
-    mv /tmp/_plan_tmp.md docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-  echo "Brainstorm choice '$BRAINSTORM_CHOICE' (session $SESSION_ID) recorded"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Melde: <strong>"Ticket <code>$TICKET_EXT_ID</code> angelegt → <a href="https://web.mentolder.de/admin/bugs">https://web.mentolder.de/admin/bugs</a>"</strong></p>
-<h3>Schritt 4.6: Gesammelte Assets ans Ticket hängen</h3>
-<p>Falls <code>ATTACHMENT_PATHS</code> (aus Schritt 1.5) Einträge hat, hochladen:</p>
-<div class="code-wrapper"><pre><code class="language-bash">if [[ ${#ATTACHMENT_PATHS[@]} -gt 0 ]]; then
-  bash scripts/ticket-attach.sh "$TICKET_UUID" "${ATTACHMENT_PATHS[@]}"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><code>ticket-attach.sh</code> lehnt unbekannte Endungen ab und kappt inline-Uploads bei 10 MB (<code>MAX_INLINE_MB=20</code> o.ä. zum Erhöhen). Dateien &gt; Cap müssen vorher in Nextcloud landen — dann manuell INSERT mit <code>nc_path</code> statt <code>data_url</code>.</p>
-<h3>Schritt 5: Commit &amp; Push — dann STOPP</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Sicherheitscheck: NIEMALS auf main committen [T000321]
-BRANCH=$(git branch --show-current)
-if &amp;quot;$BRANCH&amp;quot; == &amp;quot;main&amp;quot; || -z &amp;quot;$BRANCH&amp;quot;; then
-  echo "ERROR: Auf main-Branch (oder kein Branch). Plan darf nicht auf main committed werden!"
-  echo "→ Schritt 1 (Worktree anlegen) wurde übersprungen oder fehlgeschlagen. Jetzt nachholen:"
-  echo "  git worktree add -b feature/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main &amp;&amp; cd /tmp/wt-&lt;slug&gt;"
-  exit 1
-fi
-
-# Die Spec wurde bereits in Schritt 3.7.1.5 committed; git add ist idempotent falls nötig
-git add docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-git commit -m "chore(plans): stage &lt;slug&gt; for execution [$TICKET_EXT_ID]"
-
-# Push mit automatischer Force-with-lease-Fallback bei divergiertem Remote (Prior-Session Stale Commits)
-if ! git push -u origin "$BRANCH" 2&gt;/tmp/_push_err.txt; then
-  if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
-    echo "Remote divergiert — wende --force-with-lease an"
-    git push --force-with-lease origin "$BRANCH"
-  else
-    cat /tmp/_push_err.txt; exit 1
-  fi
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Sage: "Plan auf Branch <code>feature/&lt;slug&gt;</code> gepusht → <code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code> (Ticket: <code>$TICKET_EXT_ID</code>). Ruf <code>dev-flow-execute</code> auf, wenn du bereit bist zur Implementierung."</p>
-<p>Keine Implementation, keine Verifikation, kein PR — das übernimmt <code>dev-flow-execute</code>.</p>
-<hr>
-<h2 id="fix-pfad">Fix-Pfad</h2>
-<h3>Schritt 1: T-###### Ticket</h3>
-<p>Frage den User nach der Ticket-ID (Format: <code>T######</code>, z.B. <code>T000288</code>).</p>
-<p><strong>Wenn eine Ticket-ID vorhanden ist:</strong> direkt übernehmen → <code>TICKET_EXT_ID=T######</code>. Hole zusätzlich die UUID für etwaige Attachments:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_EXT_ID';")
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Optionale Asset-Sammlung (vor Ticket-Anlage oder vor Attachment-Upload):</strong></p>
-<p>Frage den User aktiv:</p>
-<blockquote>
-<p>"Hast du Belegmaterial — Screenshot vom Bug (<code>.jpg</code>/<code>.png</code>), Log-Auszug (<code>.txt</code>/<code>.log</code>/<code>.md</code>), Bildschirmaufnahme (<code>.mp4</code>/<code>.webm</code>), Audio-Wiedergabe (<code>.mp3</code>)? Pfade absolut, leerzeichengetrennt. Sonst: 'keine'."</p>
-</blockquote>
-<p>Erlaubte Endungen: <code>.md .html .jpg .jpeg .png .gif .webp .mp3 .wav .mp4 .mov .webm .pdf .txt .log</code>.</p>
-<div class="code-wrapper"><pre><code class="language-bash">ATTACHMENT_PATHS=(
-  # vom User-Input befüllen
-)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls <code>.txt</code>/<code>.log</code>/<code>.md</code>/<code>.png</code>/<code>.jpg</code>: zusätzlich vor der Ticket-Anlage <code>Read</code>en — Inhalt fließt in die Bug-Beschreibung ein (bessere Reproduktion).</p>
-<p><strong>Wenn keine Ticket-ID existiert:</strong> frage nach Titel, Schweregrad und kurzer Beschreibung, lege dann das Ticket via SQL an:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet \
-  -l app=shared-db -o name | head -1)
-
-TICKET_RESULT=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
-   VALUES (
-     'bug', 'mentolder',
-     '&lt;titel&gt;',
-     '&lt;beschreibung&gt;',
-     'triage',
-     '&lt;critical|major|minor|trivial&gt;',
-     'hoch'
-   )
-   RETURNING external_id, id;")
+TICKET_RESULT=$(./scripts/ticket.sh create \
+  --type task \
+  --brand mentolder \
+  --title "Plan: &lt;slug&gt;" \
+  --description "Branch: feature/&lt;slug&gt;"$'\n'"Plan: docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"$'\n'"Spec: docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md"$GRILLING_REF)
 
 TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
+
+sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Melde: <strong>"Ticket <code>$TICKET_EXT_ID</code> angelegt → <a href="https://web.mentolder.de/admin/bugs">https://web.mentolder.de/admin/bugs</a>"</strong></p>
-<p><strong>Asset-Upload (falls Schritt oben Pfade gesammelt hat):</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">if [[ ${#ATTACHMENT_PATHS[@]} -gt 0 ]]; then
-  bash scripts/ticket-attach.sh "$TICKET_UUID" "${ATTACHMENT_PATHS[@]}"
-fi
+<p>Hänge gesammelte Assets mit <code>bash scripts/ticket-attach.sh "$TICKET_UUID" &lt;pfade&gt;</code> an.</p>
+<h3>Schritt 5: Commit &amp; Push — dann STOPP</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Sicherheitscheck: Branch-Guard [T000321]
+git add docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
+git commit -m "chore(plans): stage &lt;slug&gt; for execution [$TICKET_EXT_ID]"
+git push -u origin $(git branch --show-current)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Ohne Ticket-ID geht der Fix-Pfad nicht weiter.</strong></p>
+<p><strong>STOPP.</strong> Informiere den User, dass der Plan bereit zur Implementierung ist, und bitte ihn, <code>dev-flow-execute</code> aufzulufen.</p>
+<hr>
+<h2 id="fix-pfad">Fix-Pfad</h2>
+<h3>Schritt 1: T-###### Ticket</h3>
+<p>Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an:</p>
+<div class="code-wrapper"><pre><code class="language-bash">TICKET_RESULT=$(./scripts/ticket.sh create \
+  --type bug \
+  --brand mentolder \
+  --title "&lt;titel&gt;" \
+  --description "&lt;beschreibung&gt;" \
+  --status triage \
+  --severity "&lt;critical|major|minor|trivial&gt;" \
+  --priority hoch)
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Schritt 2: Worktree anlegen</h3>
-<p><strong>Vor dem Anlegen — Konflikt-Check:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">BRANCH_NAME="fix/&lt;kurzer-slug&gt;"
-EXISTING_WT=$(git worktree list --porcelain \
-  | awk -v b="refs/heads/$BRANCH_NAME" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-if -n &amp;quot;$EXISTING_WT&amp;quot;; then
-  echo "Worktree für $BRANCH_NAME existiert bereits: $EXISTING_WT"
-  echo "→ Nicht neu anlegen. Stattdessen: cd $EXISTING_WT"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls Worktree bereits existiert: <strong>nicht</strong> <code>using-git-worktrees</code> aufrufen — direkt in den vorhandenen Worktree wechseln.</p>
-<p>Falls kein Worktree existiert: Rufe <code>superpowers:using-git-worktrees</code> auf. Branch-Name: <code>fix/&lt;kurzer-slug&gt;</code>.</p>
-<blockquote>
-<p><strong>Branch-Naming-Warnung:</strong> Das native <code>EnterWorktree</code> Tool mangelt den Branch-Namen (Slash → Plus, Prefix <code>worktree-</code>). Verifiziere mit <code>git branch --show-current</code> und benenne ggf. um: <code>git branch -m fix/&lt;slug&gt;</code>. Vorhersagbar:</p>
 <div class="code-wrapper"><pre><code class="language-bash">git worktree add -b fix/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main
 cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>⚠️ KEIN <code>.claude/worktrees/</code> verwenden</strong> — gitignorierter Pfad, bricht Branch-Erkennung. Immer <code>/tmp/wt-&lt;slug&gt;</code> verwenden.</p>
-</blockquote>
 <h3>Schritt 3: Failing Test schreiben</h3>
-<p>Schreibe einen Test, der den Bug beweist (red-green-refactor — Pflicht). Dieser Test ist <strong>harte Voraussetzung</strong> für den Fix-Pfad: ohne gestageten failing Test darf <code>dev-flow-execute</code> weder implementieren noch mergen (es prüft den Test-Diff und HALTet sonst). Der Test wird in Schritt 5 zusammen mit dem Plan committed — nie nachträglich als Follow-up (genau das passierte bei PR #1134/#1135 und ist der Grund für dieses Gate).</p>
-<div class="code-wrapper"><pre><code class="language-bash">./tests/runner.sh local &lt;neue-test-id&gt;
-# Erwartet: FAIL
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong>BATS 1.13 stderr-Falle:</strong> <code>$output</code> enthält nur stdout. Wenn dein Test Inhalt aus stderr prüfen muss (z.B. Fehlermeldungen, <code>&gt;&amp;2</code>-Ausgaben), verwende <code>run --separate-stderr</code> — dann steht der Stderr-Inhalt in <code>$stderr</code>:</p>
-<div class="code-wrapper"><pre><code class="language-bash">run --separate-stderr my_function
-assert_output --partial "expected stdout content"
-assert [ "$stderr" = "expected stderr content" ]
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Ohne <code>--separate-stderr</code> fehlen alle <code>&gt;&amp;2</code>-Ausgaben in <code>$output</code>, und Assertions darauf schlagen still fehl.</p>
-<p><strong>HERMES/curl-Unterdrückung:</strong> Wenn du OpenClaw via <code>HERMES=/dev/null</code> deaktivierst, unterdrückt das nur den Hermes-Aufruf — <code>curl</code> läuft trotzdem. Für deterministisches Test-Verhalten muss auch <code>curl</code> durch eine Fake-Binary ersetzt werden:</p>
-<div class="code-wrapper"><pre><code class="language-bash">FAKE_BIN=$(mktemp -d)
-echo '#!/bin/bash' &gt; "$FAKE_BIN/curl"; chmod +x "$FAKE_BIN/curl"
-PATH="$FAKE_BIN:$PATH" HERMES=/dev/null run my_script
-rm -rf "$FAKE_BIN"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</blockquote>
-<h3>Schritt 4: Plan schreiben (nicht-triviale Fixes)</h3>
-<p>Bei Einzeilern: kurze Inline-Begründung im Commit reicht — Schritt 4 überspringen (Ticket-ID trotzdem im Commit erwähnen).</p>
-<p>Bei nicht-trivialem Fix: Rufe <code>superpowers:writing-plans</code> auf. Führe danach sofort aus:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;slug&gt;.md
-
-# ticket_id Platzhalter ersetzen
-sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" \
-  docs/superpowers/plans/&lt;slug&gt;.md
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Plan sofort committen — damit er nach einem Cache-Reset oder Session-Verlust via <code>git</code> auffindbar ist:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git add docs/superpowers/plans/&lt;slug&gt;.md
-git commit -m "chore(plans): add &lt;slug&gt; fix plan [$TICKET_EXT_ID]"
-git push
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine <strong>harte Voraussetzung</strong> für den Fix-Pfad.</p>
+<h3>Schritt 4: Plan schreiben</h3>
+<p>Rufe <code>superpowers:writing-plans</code> auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.</p>
 <h3>Schritt 5: Commit &amp; Push — dann STOPP</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Sicherheitscheck: NIEMALS auf main committen [T000321]
-BRANCH=$(git branch --show-current)
-if &amp;quot;$BRANCH&amp;quot; == &amp;quot;main&amp;quot; || -z &amp;quot;$BRANCH&amp;quot;; then
-  echo "ERROR: Auf main-Branch (oder kein Branch). Plan darf nicht auf main committed werden!"
-  echo "→ Schritt 1 (Worktree anlegen) wurde übersprungen oder fehlgeschlagen. Jetzt nachholen:"
-  echo "  git worktree add -b fix/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main &amp;&amp; cd /tmp/wt-&lt;slug&gt;"
-  exit 1
-fi
-
-# Immer dabei: der failing Test
-git add tests/&lt;relevante-test-datei&gt;
-
-# Plan wurde bereits in Schritt 4 committed; git add ist idempotent falls nötig
-git add docs/superpowers/plans/&lt;slug&gt;.md
-
-git commit -m "chore(plans): stage &lt;slug&gt; fix for execution [$TICKET_EXT_ID]"
-
-# Push mit automatischer Force-with-lease-Fallback bei divergiertem Remote
-if ! git push -u origin "$BRANCH" 2&gt;/tmp/_push_err.txt; then
-  if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
-    echo "Remote divergiert — wende --force-with-lease an"
-    git push --force-with-lease origin "$BRANCH"
-  else
-    cat /tmp/_push_err.txt; exit 1
-  fi
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Sage: "Failing Test + Plan auf Branch <code>fix/&lt;slug&gt;</code> gepusht (Ticket: <code>$TICKET_EXT_ID</code>). Ruf <code>dev-flow-execute</code> auf, wenn du bereit bist zur Implementierung."</p>
+<p>Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch.
+<strong>STOPP.</strong> Weise den User darauf hin, <code>dev-flow-execute</code> aufzurufen.</p>
 <hr>
 <h2 id="chore-pfad">Chore-Pfad</h2>
-<p>Chores brauchen keinen Plan — sie werden direkt hier vollständig ausgeführt.</p>
+<p>Chores brauchen keinen Plan, sie werden direkt ausgeführt und gemergt.</p>
 <h3>Schritt 0.5: Wiederkehrend oder einmalig?</h3>
-<p>Frage vor allem anderen: <strong>"Soll diese Chore regelmäßig wiederholt werden — z.B. wöchentlich, monatlich, täglich?"</strong></p>
-<p>Erkennungsmerkmale für wiederkehrende Chores:</p>
-<ul>
-<li>Dependency-Bumps (wöchentlich/monatlich)</li>
-<li>Zertifikat- oder Token-Rotation (monatlich/quartalsmäßig)</li>
-<li>Log-Bereinigung, Backup-Checks (täglich/wöchentlich)</li>
-<li>Jeglicher Satz mit "regelmäßig", "jede Woche", "jeden Monat", "automatisch"</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>Antwort</th>
-<th>Aktion</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>Wiederkehrend</strong></td>
-<td>Rufe <code>schedule</code> auf. Die Routine richtet einen Cron-Job für die Aufgabe ein. Kein Branch, kein Worktree, <strong>STOPP hier</strong>.</td>
-</tr>
-<tr>
-<td><strong>Einmalig</strong></td>
-<td>Weiter mit "Vor dem Worktree — offene Chore-Branches prüfen".</td>
-</tr>
-</tbody></table>
-<h3>Vor dem Worktree — offene Chore-Branches prüfen</h3>
-<div class="code-wrapper"><pre><code class="language-bash">git branch -r | grep 'origin/chore/'
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Gibt es einen thematisch passenden offenen Branch? → Änderung dort einbauen, bestehenden PR updaten. Kein neuer Worktree.</p>
-<h3>Schritt 1: In einem Satz beschreiben</h3>
-<p>Beispiele: "Astro auf 5.x bumpen", "Variable <code>foo</code> zu <code>bar</code> umbenennen", "Tippfehler in Doku korrigieren".</p>
-<h3>Schritt 2: Worktree anlegen</h3>
-<p><strong>Vor dem Anlegen — Konflikt-Check:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">BRANCH_NAME="chore/&lt;kurzer-slug&gt;"
-EXISTING_WT=$(git worktree list --porcelain \
-  | awk -v b="refs/heads/$BRANCH_NAME" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-if -n &amp;quot;$EXISTING_WT&amp;quot;; then
-  echo "Worktree für $BRANCH_NAME existiert bereits: $EXISTING_WT"
-  echo "→ Nicht neu anlegen. Stattdessen: cd $EXISTING_WT"
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls Worktree bereits existiert: <strong>nicht</strong> <code>using-git-worktrees</code> aufrufen — direkt in den vorhandenen Worktree wechseln.</p>
-<p>Falls kein Worktree existiert: Rufe <code>superpowers:using-git-worktrees</code> auf. Branch-Name: <code>chore/&lt;kurzer-slug&gt;</code>.</p>
-<blockquote>
-<p><strong>Branch-Naming-Warnung:</strong> Das native <code>EnterWorktree</code> Tool mangelt den Branch-Namen (Slash → Plus, Prefix <code>worktree-</code>). Verifiziere mit <code>git branch --show-current</code> und benenne ggf. um: <code>git branch -m chore/&lt;slug&gt;</code>. Vorhersagbar:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git worktree add -b chore/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main
-cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>⚠️ KEIN <code>.claude/worktrees/</code> verwenden</strong> — gitignorierter Pfad, bricht Branch-Erkennung. Immer <code>/tmp/wt-&lt;slug&gt;</code> verwenden.</p>
-</blockquote>
-<h3>Schritt 3: Änderung machen</h3>
-<p>Kein Plan, kein Spec, kein TDD nötig.</p>
-<h3>Schritt 4: Verifikation</h3>
-<div class="code-wrapper"><pre><code class="language-bash">task test:all                # MUSS grün sein
-task workspace:validate      # falls Manifests betroffen
-task website:dev             # falls website/src/ betroffen — Smoke-Test
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>CI-kritische Zusatzchecks</strong> — <code>task test:all</code> deckt nur den <code>offline-tests</code>-CI-Job ab; die folgenden haben eigene Jobs:</p>
-<table>
-<thead>
-<tr>
-<th>Geänderte Dateien</th>
-<th>Zusätzlicher Check</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>tests/**</code> oder neue Test-IDs</td>
-<td><code>task test:inventory &amp;&amp; git diff --exit-code website/src/data/test-inventory.json</code> — bei Abweichung committen</td>
-</tr>
-<tr>
-<td><code>brett/**</code></td>
-<td><code>npm ci --prefix brett &amp;&amp; node --test brett/test/ws-reconnect.test.mjs brett/test/physics.test.js brett/test/damage.test.mjs brett/test/pickups.test.mjs brett/test/mode-state.test.mjs brett/test/skin-validator.test.js brett/test/skin-catalog.test.js brett/test/skin-upload.test.js</code> + <code>./scripts/tests/systembrett-template.test.sh</code></td>
-</tr>
-<tr>
-<td><code>arena-server/**</code></td>
-<td><code>cd arena-server &amp;&amp; pnpm install --frozen-lockfile &amp;&amp; pnpm test &amp;&amp; pnpm build</code></td>
-</tr>
-<tr>
-<td><code>arena-server/src/proto/messages.ts</code> ODER <code>website/src/components/arena/shared/lobbyTypes.ts</code></td>
-<td><code>diff arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts</code> — bei Abweichung sync-copy</td>
-</tr>
-</tbody></table>
-<h3>Schritt 5: PR</h3>
-<p>Rufe <code>commit-commands:commit-push-pr</code> auf.</p>
-<ul>
-<li>Titel: <code>chore(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code></li>
-<li>Body: kurzes <code>## Summary</code> (1-2 Bullets) + <code>## Test plan</code> (was du gelaufen bist)</li>
-</ul>
-<blockquote>
-<p><strong>Fallback</strong> (falls <code>commit-commands</code> nicht verfügbar — z.B. Plugin deinstalliert):</p>
-<div class="code-wrapper"><pre><code class="language-bash">git add -p  # nur relevante Dateien
-git commit -m "chore(&lt;scope&gt;): &lt;kurze-beschreibung&gt;"
-git push -u origin chore/&lt;slug&gt;
-gh pr create --title "chore(&lt;scope&gt;): &lt;kurze-beschreibung&gt;" --body "## Summary\n- ...\n\n## Test plan\n- ..."
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</blockquote>
-<h3>Schritt 6: Auto-Merge</h3>
-<div class="code-wrapper"><pre><code class="language-bash">gh pr merge --squash --delete-branch
-git checkout main
-git pull --rebase origin main
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong>Falls branch protection CI-Checks verlangt:</strong> <code>gh pr merge --squash --delete-branch --auto</code> nutzen — <code>gh</code> wartet dann auf grüne Checks, bevor es mergt. <strong>Aus einem <code>/tmp/wt-*</code>-Worktree no-oppt <code>--auto</code> silent</strong> (oder scheitert an <code>'main' is already used by worktree</code>). Dann <code>--auto</code> mit <code>--repo Paddione/Bachelorprojekt</code> aus dem Haupt-Repo (außerhalb jedes Worktrees) aufrufen, oder CI grün pollen und ohne <code>--auto</code> mergen. [T000298]</p>
-</blockquote>
-<h3>Schritt 7: Post-Merge Deploy</h3>
-<p>Schau dir die geänderten Dateien an und führe den passenden Task aus:</p>
-<table>
-<thead>
-<tr>
-<th>Geänderte Dateien</th>
-<th>Task</th>
-<th>Verify</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>website/src/**</code>, <code>website/public/**</code>, <code>website/package*.json</code></td>
-<td><code>task feature:website</code></td>
-<td><code>https://web.mentolder.de</code> + <code>https://web.korczewski.de</code></td>
-</tr>
-<tr>
-<td><code>brett/**</code></td>
-<td><code>task feature:brett</code></td>
-<td><code>https://brett.mentolder.de</code> + <code>https://brett.korczewski.de</code></td>
-</tr>
-<tr>
-<td><code>k3d/docs-content/**</code></td>
-<td><code>task docs:deploy</code></td>
-<td><code>https://docs.mentolder.de</code> + <code>https://docs.korczewski.de</code></td>
-</tr>
-<tr>
-<td><code>k3d/livekit*.yaml</code></td>
-<td><code>task feature:livekit</code></td>
-<td><code>task livekit:status ENV=mentolder</code> + <code>ENV=korczewski</code></td>
-</tr>
-<tr>
-<td><code>k3d/**</code>, <code>prod/**</code>, <code>prod-mentolder/**</code>, <code>prod-korczewski/**</code>, <code>environments/sealed-secrets/**</code></td>
-<td><code>task feature:deploy</code></td>
-<td><code>task workspace:verify:all-prods</code> + <code>task health</code></td>
-</tr>
-<tr>
-<td>Nur <code>docs/</code>, <code>*.md</code>, <code>CLAUDE.md</code>, <code>tests/</code>, <code>.github/</code>, <code>Taskfile*.yml</code>, <code>scripts/</code>, <code>.claude/</code></td>
-<td>KEIN Deploy</td>
-<td>—</td>
-</tr>
-</tbody></table>
+<p>Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe <code>/schedule</code> auf und richte einen Cron-Job ein. <strong>STOPP hier.</strong></p>
+<h3>Schritt 1-7: Direkt bearbeiten und mergen</h3>
+<ol>
+<li>Kurze Beschreibung formulieren.</li>
+<li>Worktree anlegen: <code>/tmp/wt-&lt;slug&gt;</code>.</li>
+<li>Änderungen vornehmen.</li>
+<li>Verifizieren (<code>task test:all</code>, <code>task workspace:validate</code> etc.).</li>
+<li>Committen, pushen und PR erstellen (<code>commit-commands:commit-push-pr</code>).</li>
+<li>PR mergen (<code>gh pr merge --squash --delete-branch</code>).</li>
+<li>Passenden Deploy-Task aufrufen (siehe Deploy-Tabelle in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a>).</li>
+</ol>
 <hr>
-<h2 id="visual-companion--diagnose--manuelle-bedienung">Visual Companion — Diagnose &amp; manuelle Bedienung</h2>
-<p>Diese Sektion ist für Diagnose und manuelle Eingriffe. Der Feature-Pfad (Schritt 2) richtet den Tunnel automatisch ein.</p>
-<h3>Setup einmalig</h3>
-<div class="code-wrapper"><pre><code class="language-bash">task brainstorm:firewall:open
-# Public-Key in environments/.secrets/mentolder.yaml unter DEV_SISH_AUTHORIZED_KEYS ergänzen
-task env:seal ENV=mentolder
-# task workspace:deploy ENV=mentolder rolls the updated SealedSecret
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3><code>ws://</code>→<code>wss://</code> Auto-Patch</h3>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/superpowers-helper-patch.sh           # apply
-bash scripts/superpowers-helper-patch.sh --check   # exit 1 if unpatched
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Diagnose</h3>
-<div class="code-wrapper"><pre><code class="language-bash">task brainstorm:status   # Pod-Status + curl gegen brainstorm.dev.mentolder.de
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<hr>
-<h2 id="bekannte-kustomize-gotchas">Bekannte Kustomize-Gotchas</h2>
-<blockquote>
-<p><strong>JSON Patch für bestehende env-Vars:</strong> Verwende <code>op: replace /env/{index}/value</code>, <strong>nicht</strong> <code>op: add /env/-</code>, wenn eine env-Variable im Basis-Manifest bereits existiert. <code>add /env/-</code> erzeugt einen zweiten Eintrag mit demselben <code>name</code>, was <code>kustomize build</code> toleriert (last-wins), aber der Kubernetes API-Server lehnt per Dry-Run wegen Duplikat-Keys ab. Den richtigen Index mit <code>kubectl ... -o jsonpath='{.spec.template.spec.containers[0].env[*].name}'</code> bestimmen und ersetzen. [T000244]</p>
-</blockquote>
-<h2 id="agent-routing">Agent-Routing</h2>
-<p>Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md Agent-Routing-Tabelle):</p>
-<ul>
-<li>DB/Schema/Queries → <code>bachelorprojekt-db</code></li>
-<li>Manifests/Kustomize/Taskfile → <code>bachelorprojekt-infra</code></li>
-<li>Live-Cluster-Operations → <code>bachelorprojekt-ops</code></li>
-<li>Tests schreiben/debuggen → <code>bachelorprojekt-test</code></li>
-<li>Astro/Svelte/UI → <code>bachelorprojekt-website</code></li>
-<li>SealedSecrets/Keycloak/OIDC → <code>bachelorprojekt-security</code></li>
-</ul>
-<p><strong>Pflicht vor jedem Sub-Agent-Dispatch:</strong> <code>bash scripts/plan-context.sh &lt;role&gt;</code> ausführen und die Ausgabe in <code>&lt;active-plans&gt;</code> Tags an den Prompt voranstellen (Details in CLAUDE.md).</p>
-<h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
-<p>After completing all steps in this skill, run:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Unified Skill Framework: POST-Execution
-bash scripts/skill-orchestrator.sh .claude/skills/dev-flow-plan/SKILL.md post
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>If no mishaps were found, <code>mishap-tracker</code> exits cleanly with "No mishaps found."</p>
+<h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
+<p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über <code>mishap-tracker</code> (aufrufbar via <code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
 </body></html>
 </article>
 

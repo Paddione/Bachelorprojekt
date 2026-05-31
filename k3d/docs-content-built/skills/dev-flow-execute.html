@@ -28,760 +28,180 @@
 </header>
 
 <article class="doc-body">
-<html><head></head><body><blockquote>
-<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
-For every anomaly, unexpected state, broken component, security concern,
-configuration drift, or <strong>process friction</strong> you notice — even if unrelated
-to the current task — add an entry with:
-  <code>type</code> (broken/degraded/suspicious/security/drift/<strong>process</strong>),
-  <code>title</code>, <code>description</code>, and <code>component</code>.</p>
-<p><code>process</code> = a step that required a manual workaround, had wrong/missing instructions,
-or caused unexpected friction. <code>component</code> MUST use format <code>skills/&lt;skill-name&gt;</code>. Example:
-  <code>{type: process, title: "wss patch required manual retry",     description: "scripts/superpowers-helper-patch.sh failed silently — step 2b needs exit-code check",     component: "skills/dev-flow-plan"}</code></p>
-<p>Invoke <code>mishap-tracker</code> at the very end.</p>
-</blockquote>
-<h1>dev-flow-execute — Plan-Ausführung &amp; PR</h1><div class="toc-box auto-toc">
+<html><head></head><body><h1>dev-flow-execute — Plan-Ausführung &amp; PR</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-2-kontext-reset--sonnet-46-medium--execute-gate"><span class="toc-num">2.</span> Schritt −2: Kontext-Reset + Sonnet 4.6 (medium) — Execute-Gate</a></li>
+<li class="toc-item"><a href="#schritt-2-kontext-reset--sonnet-medium--execute-gate"><span class="toc-num">2.</span> Schritt −2: Kontext-Reset + Sonnet (medium) — Execute-Gate</a></li>
 <li class="toc-item"><a href="#schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first"><span class="toc-num">3.</span> Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</a></li>
 <li class="toc-item"><a href="#schritt-0-worktree-konsistenz-pruefen"><span class="toc-num">4.</span> Schritt 0: Worktree-Konsistenz prüfen</a></li>
-<li class="toc-item"><a href="#schritt-05-sync-mit-main"><span class="toc-num">5.</span> Schritt 0.5: Sync mit main</a></li>
-<li class="toc-item"><a href="#schritt-1-plan-finden"><span class="toc-num">6.</span> Schritt 1: Plan finden</a></li>
+<li class="toc-item"><a href="#schritt-05-sync-mit-main--rebase"><span class="toc-num">5.</span> Schritt 0.5: Sync mit main &amp; Rebase</a></li>
+<li class="toc-item"><a href="#schritt-1-plan-finden--ticket-id-extrahieren"><span class="toc-num">6.</span> Schritt 1: Plan finden &amp; Ticket ID extrahieren</a></li>
 <li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen"><span class="toc-num">7.</span> Schritt 1.5: Ticket auf in_progress setzen</a></li>
-<li class="toc-item"><a href="#schritt-2-implementierung"><span class="toc-num">8.</span> Schritt 2: Implementierung</a></li>
-<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">9.</span> Schritt 3: Lokale Verifikation</a></li>
-<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">10.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
-<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">11.</span> Schritt 4: Dev-Iteration (optional)</a></li>
-<li class="toc-item"><a href="#schritt-5-pr"><span class="toc-num">12.</span> Schritt 5: PR</a></li>
-<li class="toc-item"><a href="#schritt-55-pr-nummer-fuer-ticket-abschluss-merken"><span class="toc-num">13.</span> Schritt 5.5: PR-Nummer für Ticket-Abschluss merken</a></li>
-<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">14.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
-<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">15.</span> Schritt 6.5: Ticket abschließen</a></li>
-<li class="toc-item"><a href="#schritt-7-plan-in-postgres-archivieren--datei-loeschen"><span class="toc-num">16.</span> Schritt 7: Plan in Postgres archivieren + Datei löschen</a></li>
-<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">17.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
-<li class="toc-item"><a href="#schritt-8-post-merge-deploy"><span class="toc-num">18.</span> Schritt 8: Post-Merge Deploy</a></li>
-<li class="toc-item"><a href="#failure-handling"><span class="toc-num">19.</span> Failure-Handling</a></li>
-<li class="toc-item"><a href="#agent-routing"><span class="toc-num">20.</span> Agent-Routing</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">21.</span> Post-Execution: Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">8.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
+<li class="toc-item"><a href="#schritt-2-implementierung"><span class="toc-num">9.</span> Schritt 2: Implementierung</a></li>
+<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">10.</span> Schritt 3: Lokale Verifikation</a></li>
+<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">11.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
+<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">12.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
+<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">13.</span> Schritt 4: Dev-Iteration (optional)</a></li>
+<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">14.</span> Schritt 5: PR erstellen</a></li>
+<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">15.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
+<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">16.</span> Schritt 6.5: Ticket abschließen</a></li>
+<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">17.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
+<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">18.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">19.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">20.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Du bist auf einem <code>feature/*</code> oder <code>fix/*</code> Branch. <code>dev-flow-plan</code> hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-execute zur Plan-Ausführung."</p>
 <hr>
-<h2 id="schritt-2-kontext-reset--sonnet-46-medium--execute-gate">Schritt −2: Kontext-Reset + Sonnet 4.6 (medium) — Execute-Gate</h2>
-<p>dev-flow-execute braucht keinen Brainstorming- oder Plan-Geschichte-Ballast — der Plan liegt auf Disk. Frischer Kontext + schnelleres Modell = sauberere, zügigere Ausführung.</p>
-<p><strong>⚡ STOP — führe diese Befehle jetzt aus (falls nicht bereits geschehen), dann lies Schritt −1:</strong></p>
-<div class="code-wrapper"><pre><code>/model claude-sonnet-4-6
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<div class="code-wrapper"><pre><code>/clear
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Nach dem Clear: Der Plan-Pfad und Branch-Name sind die einzigen Inputs — beide stehen auf Disk (Schritt 1 liest sie). Kein weiterer Kontext nötig.</p>
+<h2 id="schritt-2-kontext-reset--sonnet-medium--execute-gate">Schritt −2: Kontext-Reset + Sonnet (medium) — Execute-Gate</h2>
+<p>Bitte den User, die Slash-Befehle <code>/model claude-sonnet-4-6</code> und danach <code>/clear</code> auszuführen. Dies sind User-Befehle, die du nicht selbst ausführen kannst.</p>
 <hr>
 <h2 id="schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first">Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</h2>
-<p>Bevor irgendetwas passiert: sicherstellen, dass <code>main</code> im Haupt-Repo aktuell ist.
-Dieser Schritt läuft <strong>im Haupt-Repo</strong> (nicht im Worktree).</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Haupt-Repo-Pfad ermitteln (erstes Ergebnis von worktree list = Haupt-Repo)
-MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
-
-(cd "$MAIN_REPO" &amp;&amp; \
-  git fetch origin main &amp;&amp; \
-  if git diff --quiet HEAD; then
-    git pull --rebase origin main
-  else
-    echo "Lokale Änderungen im Haupt-Repo erkannt — stashe..."
-    git stash
-    git pull --rebase origin main
-    git stash pop
-    echo "Stash zurückgespielt. Konflikte bitte prüfen."
-  fi
-)
+<p>Synchronisiere <code>main</code> im Haupt-Repo:</p>
+<div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+(cd "$MAIN_REPO" &amp;&amp; git fetch origin main &amp;&amp; git pull --rebase origin main)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls <code>git stash pop</code> Konflikte meldet: dem User anzeigen und warten.</p>
 <hr>
 <h2 id="schritt-0-worktree-konsistenz-pruefen">Schritt 0: Worktree-Konsistenz prüfen</h2>
-<div class="code-wrapper"><pre><code class="language-bash">CURRENT_BRANCH=$(git branch --show-current)
-CURRENT_DIR=$(pwd)
-echo "Branch: $CURRENT_BRANCH | CWD: $CURRENT_DIR"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Zuerst: Erkennung von main + ungetrackter Plan-Datei (härtester Fall):</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">if &amp;quot;$(git branch --show-current)&amp;quot; == &amp;quot;main&amp;quot;; then
-  UNTRACKED_PLANS=$(git ls-files --others --exclude-standard docs/superpowers/plans/ 2&gt;/dev/null | grep '\.md$' | grep -v '/executed/')
-  if -n &amp;quot;$UNTRACKED_PLANS&amp;quot;; then
-    echo "🛑 HALT: Auf main-Branch mit ungetrackter Plan-Datei erkannt:"
-    echo "$UNTRACKED_PLANS"
-    # Slug + Branch-Prefix automatisch ableiten
-    PLAN_FILE=$(echo "$UNTRACKED_PLANS" | head -1)
-    PLAN_BASENAME=$(basename "$PLAN_FILE" .md)
-    PLAN_TYPE=$(grep -m1 '^type:' "$PLAN_FILE" 2&gt;/dev/null | awk '{print $2}')
-    BRANCH_PREFIX="${PLAN_TYPE:-feature}"
-    TARGET_BRANCH="${BRANCH_PREFIX}/${PLAN_BASENAME}"
-    echo ""
-    echo "Automatische Korrektur (führe diese Befehle aus und starte dev-flow-execute erneut):"
-    echo "  git checkout -b $TARGET_BRANCH"
-    echo "  git add $PLAN_FILE"
-    echo "  git commit -m 'plan: add $PLAN_BASENAME'"
-    echo "  git push -u origin $TARGET_BRANCH"
-  fi
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls der Block einen HALT ausgegeben hat: <strong>STOP</strong>. Branch erstellen + Plan committen, dann dev-flow-execute erneut starten. Oder die obigen Befehle automatisch ausführen und direkt fortfahren — nur wenn der User explizit bestätigt.</p>
-<hr>
-<p>Prüfe danach:</p>
-<table>
-<thead>
-<tr>
-<th>Situation</th>
-<th>Aktion</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>$CURRENT_BRANCH</code> ist <code>main</code> <strong>und</strong> ungetrackte Plan-Datei existiert</td>
-<td>🛑 HALT (siehe oben).</td>
-</tr>
-<tr>
-<td><code>$CURRENT_BRANCH</code> ist <code>main</code> und <code>$CURRENT_DIR</code> ist das Haupt-Repo</td>
-<td>⚠️ Falscher Ausgangspunkt. Wechsle in den Feature-Worktree: <code>git worktree list</code> zeigt den Pfad.</td>
-</tr>
-<tr>
-<td>Branch passt zum Pfad (z.B. <code>feature/foo</code> in <code>.../Bachelorprojekt-feature-foo</code>)</td>
-<td>✓ Fortfahren.</td>
-</tr>
-<tr>
-<td>Branch existiert, aber Worktree-Pfad ist ein anderer Claude-Prozess aktiv</td>
-<td>⚠️ Nicht in denselben Worktree schreiben. Warte auf den anderen Prozess oder nutze <code>git worktree list</code> zur Koordination.</td>
-</tr>
-</tbody></table>
-<div class="code-wrapper"><pre><code class="language-bash"># Parallel laufende Claude-Prozesse sichtbar machen
-git worktree list --porcelain | grep -E '^(worktree|branch)'
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Kein Blocker — nur Warnung und Bestätigung vom User, wenn Überschneidung erkannt wird.</p>
-<hr>
-<h2 id="schritt-05-sync-mit-main">Schritt 0.5: Sync mit main</h2>
-<p>Bevor irgendein Agent Code schreibt, Branch auf <code>origin/main</code> rebsen — verhindert Merge-Konflikte im PR.</p>
-<p><strong>Branch-Guard VOR jeder destruktiven Git-Op (parallel-session safety):</strong> Eine parallele Claude-Session kann zwischen Schritt 0 und hier den ausgecheckten Branch im selben Repo gewechselt haben (Merge + <code>--delete-branch</code> einer anderen Session lässt den primären Worktree silent auf <code>main</code> zurück). Der <code>git stash</code>/<code>git rebase</code> unten würde dann auf dem falschen Branch laufen und Arbeit zerstören. Verifiziere den Branch <strong>bevor</strong> irgendetwas gestasht oder rebased wird:</p>
-<div class="code-wrapper"><pre><code class="language-bash">EXPECTED_BRANCH="&lt;feature-or-fix-branch&gt;"   # der Branch aus Schritt 0
-ACTUAL_BRANCH=$(git branch --show-current)
-if &amp;quot;$ACTUAL_BRANCH&amp;quot; != &amp;quot;$EXPECTED_BRANCH&amp;quot;; then
-  echo "🛑 HALT: Branch-Mismatch VOR rebase/stash!"
-  echo "  Erwartet: $EXPECTED_BRANCH"
-  echo "  Aktuell:  $ACTUAL_BRANCH"
-  echo "  Eine parallele Session hat den Branch gewechselt. KEIN stash/rebase. Abbrechen und prüfen."
+<div class="code-wrapper"><pre><code class="language-bash"># Branch-Guard [T000321]
+CURRENT_BRANCH=$(git branch --show-current)
+EXPECTED_BRANCH="&lt;feature-or-fix-branch&gt;"
+if &amp;quot;$CURRENT_BRANCH&amp;quot; != &amp;quot;$EXPECTED_BRANCH&amp;quot;; then
+  echo "🛑 HALT: Branch Mismatch! Eine parallele Session hat den Branch gewechselt."
   exit 1
 fi
-echo "✓ Branch bestätigt: $ACTUAL_BRANCH — sicher zu rebasen."
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="schritt-05-sync-mit-main--rebase">Schritt 0.5: Sync mit main &amp; Rebase</h2>
 <div class="code-wrapper"><pre><code class="language-bash">git fetch origin main
 git rebase origin/main
 git submodule update --init --recursive
+# Falls push fehlschlägt, wende --force-with-lease an
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong>Nach Rebase — erster Push:</strong> Falls der Branch schon gepusht war (z.B. Prior-Session ließ Stale Commits), schlägt <code>git push</code> mit "rejected ... non-fast-forward" fehl. Erkenne und handle automatisch:</p>
-<div class="code-wrapper"><pre><code class="language-bash">BRANCH=$(git branch --show-current)
-if ! git push -u origin "$BRANCH" 2&gt;/tmp/_push_err.txt; then
-  if grep -qE "rejected.*non-fast-forward|rejected.*fetch first" /tmp/_push_err.txt; then
-    echo "Remote divergiert (Stale Commits aus Prior-Session) — wende --force-with-lease an"
-    git push --force-with-lease origin "$BRANCH"
-    echo "✓ Force-with-lease push erfolgreich"
-  else
-    cat /tmp/_push_err.txt; exit 1
-  fi
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><code>--force-with-lease</code> ist sicherer als <code>--force</code> — schlägt fehl wenn jemand anderes seit dem letzten Fetch gepusht hat (schützt Fremdarbeit).</p>
-</blockquote>
-<p>Falls <code>git rebase</code> Konflikte meldet:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Konfliktdateien anzeigen
-git diff --name-only --diff-filter=U
-
-# Rebase abbrechen — Agent darf NICHT mit Konflikten weitermachen
-git rebase --abort
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Melde die Konflikt-Dateien an den User. Erst nach manueller Auflösung (<code>git rebase origin/main</code> erneut, dann <code>git rebase --continue</code>) weitermachen.</p>
 <hr>
-<h2 id="schritt-1-plan-finden">Schritt 1: Plan finden</h2>
-<p><strong>Default — neuester Plan:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">ls -t docs/superpowers/plans/*.md 2&gt;/dev/null | grep -v '/executed/' | head -1
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Falls User "show all" oder "wähle" sagt:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">ls -t docs/superpowers/plans/*.md 2&gt;/dev/null | grep -v '/executed/'
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>→ Liste anzeigen, User wählt den Plan (z.B. wenn mehrere Features parallel gepusht wurden und die Reihenfolge wichtig ist).</p>
-<p>Lese den gewählten Plan vollständig. Ermittle den Pfad aus dem Branch-Name-Prefix (<code>feature/</code> → Feature, <code>fix/</code> → Fix) oder dem <code>domains</code>-Frontmatter-Feld.</p>
-<p>Extrahiere die Ticket-ID aus dem Frontmatter (falls vorhanden):</p>
+<h2 id="schritt-1-plan-finden--ticket-id-extrahieren">Schritt 1: Plan finden &amp; Ticket ID extrahieren</h2>
+<p>Finde den neuesten Plan in <code>docs/superpowers/plans/*.md</code> und extrahiere die Ticket-ID:</p>
 <div class="code-wrapper"><pre><code class="language-bash">PLAN_FILE="docs/superpowers/plans/&lt;slug&gt;.md"
 TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
-# z.B. TICKET_ID=T000301 — leer wenn kein Ticket im Plan
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-15-ticket-auf-inprogress-setzen">Schritt 1.5: Ticket auf <code>in_progress</code> setzen</h2>
-<p>Falls <code>$TICKET_ID</code> gesetzt:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet \
-  -l app=shared-db -o name | head -1)
-
-kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "UPDATE tickets.tickets SET status = 'in_progress'
-   WHERE external_id = '$TICKET_ID';"
-
-echo "Ticket $TICKET_ID → in_progress"
+<p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="schritt-17-visual--textual-assets-laden-visual-handoff">Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</h2>
+<p>Falls eine Ticket-ID vorhanden ist, lade alle Anhänge (wie Screenshots, Logdateien, Mockups) herunter:</p>
+<div class="code-wrapper"><pre><code class="language-bash">ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
+./scripts/ticket.sh get-attachments --id "$TICKET_ID" --out-dir "$ATTACHMENT_DIR"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>⚠️ Pflicht für UI-Arbeiten:</strong> Lies (mit dem <code>Read</code> Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.</p>
 <hr>
 <h2 id="schritt-2-implementierung">Schritt 2: Implementierung</h2>
 <h3>Feature</h3>
-<p>Bevorzugt: <code>superpowers:subagent-driven-development</code> (parallele Agents, schnell).</p>
-<p>Alternative: <code>superpowers:executing-plans</code> (sequenziell, wenn Tasks voneinander abhängen).</p>
+<p>Verwende bevorzugt <code>superpowers:subagent-driven-development</code> oder <code>superpowers:executing-plans</code>.</p>
 <ul>
-<li>Backend / Skripte / k8s-Logik: TDD via <code>superpowers:test-driven-development</code></li>
-<li>UI-Arbeit: <code>frontend-design</code> Skill + Playwright Smoke Tests</li>
+<li><strong>Milestone-Updates</strong>: Aktualisiere nach jedem abgeschlossenen Meilenstein die Checkbox im Plan (<code>- [ ] M1</code> → <code>- [x] M1</code>), committe und pushe.</li>
+<li><strong>Kollisionen vermeiden</strong>: Falls Delegations-Tools das Skill <code>finishing-a-development-branch</code> aufrufen, unterdrücke das interaktive Menü mit dem Argument <code>--no-menu</code> oder der Variable <code>MENU=skip</code>.</li>
+<li><strong>Workspace-Pfad</strong>: Übergib Sub-Agenten immer den absoluten Worktree-Pfad und weise sie an, nur relativ dazu zu arbeiten.</li>
 </ul>
-<p><strong>⚠️ Subagent-CWD-Pflicht:</strong> Jeder Sub-Agent-Prompt <strong>muss</strong> als ersten Satz den absoluten Worktree-Pfad nennen und den Agent anweisen, alle Dateioperationen relativ zu diesem Pfad auszuführen:</p>
-<div class="code-wrapper"><pre><code>Work inside the worktree at: &lt;WORKTREE_PATH&gt;
-All file reads and writes must target paths under &lt;WORKTREE_PATH&gt;.
-Do NOT write to /home/patrick/Bachelorprojekt/ directly.
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Worktree-Pfad ermitteln:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git worktree list --porcelain | awk -v b="refs/heads/$BRANCH" '/^worktree/{wt=$2} $0==("branch " b){print wt}'
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Ohne diese Anweisung schreiben Sub-Agents in das Haupt-Repo statt in den Worktree — Dateien landen auf <code>main</code> ohne PR-Review.</p>
 <h3>Fix</h3>
-<p><strong>Test-Gate (Pflicht — vor jeder Implementierung):</strong> Der Fix-Pfad setzt voraus, dass <code>dev-flow-plan</code> Schritt 3 einen <em>failing</em> Regressionstest gestaged hat. Verifiziere das, <strong>bevor</strong> du Implementierungscode schreibst — fehlt der Test, ist die red→green-Disziplin verletzt (genau die Lücke, durch die PR #1134 testlos shipte). Dann: NICHT implementieren, sondern zuerst den failing Test schreiben (zurück zu <code>dev-flow-plan</code> Fix-Pfad Schritt 3).</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Test-Diff gegenüber main prüfen — der Fix-Branch MUSS mindestens eine Test-Datei berühren
-TEST_TOUCHED=$(git diff --name-only origin/main...HEAD | grep -E '^tests/|\.test\.(ts|js|mjs)$|\.spec\.ts$|\.bats$' | head -5)
-if -z &amp;quot;$TEST_TOUCHED&amp;quot;; then
-  echo "🛑 HALT: Fix-Branch hat keinen Test angefasst. Kein Regressionstest = kein Merge."
-  echo "  Schreibe zuerst einen failing Test (dev-flow-plan Fix-Pfad Schritt 3), dann implementiere."
-  exit 1
-fi
-echo "✓ Regressionstest vorhanden:"; echo "$TEST_TOUCHED"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Implementiere dann bis der failing Test (aus <code>dev-flow-plan</code> Schritt 3) grün ist. Pflicht: red → green → refactor.</p>
-<div class="code-wrapper"><pre><code class="language-bash">./tests/runner.sh local &lt;test-id&gt;
-# Ziel: PASS
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Milestone-Checkboxen aktualisieren (Pflicht nach jeder abgeschlossenen Aufgabe)</h3>
-<p><strong>Nach jeder abgeschlossenen Milestone / Task-Gruppe den Plan in-place aktualisieren:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">PLAN_FILE="docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
-
-# Checkbox für abgeschlossene Milestone setzen — z.B. M1
-# Vorher:  - [ ] M1: &lt;titel&gt;
-# Nachher: - [x] M1: &lt;titel&gt;
-sed -i 's/^- \[ \] M1:/- [x] M1:/' "$PLAN_FILE"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Warum:</strong> Die Plan-Datei ist der einzige persistente State der Implementierung. Bleiben Checkboxen unchecked, kann keine spätere Session (nach <code>/compact</code> oder Session-Verlust) den tatsächlichen Fortschritt erkennen — sie liest nur den Plan. Ohne Checkbox-Update muss der Zustand durch Filesystem-Analyse rekonstruiert werden, was fehleranfällig ist und Zeit kostet.</p>
-<p><strong>Wann:</strong> Direkt nach dem Commit jedes Milestones — nicht am Ende gebündelt. Nach <code>git commit -m "feat(…): complete M1 …"</code> sofort:</p>
-<div class="code-wrapper"><pre><code class="language-bash">sed -i 's/^- \[ \] M1:/- [x] M1:/' "$PLAN_FILE"
-git add "$PLAN_FILE"
-git commit -m "chore(plans): check off M1 in plan"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Verifiziere, dass ein failing Test existiert, bevor du Code änderst. Implementiere nach dem Rot-Grün-Prinzip, bis der Test grün wird.</p>
+<h3>Fehlerbehandlung &amp; Debugging</h3>
+<p>Falls Kompilierungsfehler oder Test-Fehlschläge auftreten, starte sofort das Skill <strong><code>systematic-debugging</code></strong>, um die Ursache systematisch zu isolieren.</p>
 <hr>
 <h2 id="schritt-3-lokale-verifikation">Schritt 3: Lokale Verifikation</h2>
+<p>Rufe das Skill <strong><code>verification-before-completion</code></strong> auf, um die Verifikation strukturiert zu steuern.</p>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
-./tests/runner.sh local &lt;FA-XX oder SA-XX oder NFA-XX&gt;   # falls relevant
+./tests/runner.sh local &lt;FA-XX oder SA-XX&gt;
 task test:all
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong>Strukturelle/Offline-Tests ohne k3d:</strong> <code>./tests/runner.sh unit &lt;test-id&gt;</code> überspringt <code>k3d_wait</code> und Port-Forwards — ideal für reine BATS-Unit-Tests die keinen Live-Cluster brauchen. Direktaufruf als letzter Ausweg: <code>tests/unit/lib/bats-core/bin/bats tests/unit/&lt;file&gt;.bats</code>.</p>
-</blockquote>
-<blockquote>
-<p><strong><code>task test:all</code> exit 128 im Worktree (erster Lauf):</strong> Kann beim ersten Aufruf transient mit exit 128 auf <code>test:art-library</code> fehlschlagen — Ursache ist eine Race-Condition zwischen <code>npm install</code> und dem BATS-Submodul-Check. Einfach nochmal ausführen; zweiter Lauf läuft durch. [T000218]</p>
-</blockquote>
-<blockquote>
-<p><strong>TypeScript-Check in Worktrees:</strong> <code>tests/e2e/</code> hat im Worktree kein <code>node_modules</code>. Niemals <code>tsc</code> blank aufrufen — das schlägt mit "Cannot find module" fehl. Immer absoluten Pfad nutzen:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Im Worktree: tsc mit absolutem tsconfig-Pfad
-tsc --project /home/patrick/Bachelorprojekt/tests/e2e/tsconfig.json --noEmit
-# Alternativ: system-tsc mit explizitem Projekt-Pfad
-npx --prefix /home/patrick/Bachelorprojekt/tests/e2e tsc --noEmit
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><code>node_modules</code> nicht in den Worktree symlinken — das funktioniert nur im nächsten Prozess, nicht wiederholbar. Der <code>--project &lt;abs-path&gt;</code> Ansatz ist worktree-agnostisch.</p>
-</blockquote>
-<blockquote>
-<p><strong><code>npm ci</code> in frischen Worktrees:</strong> <code>brett/</code> und <code>arena-server/</code> haben ihre eigene <code>package.json</code>, aber kein <code>node_modules/</code> im Worktree. Vor dem ersten <code>npm test</code>/<code>node --test</code> explizit ausführen: <code>npm ci --prefix brett</code> bzw. <code>cd arena-server &amp;&amp; pnpm install --frozen-lockfile</code>. [T000245]</p>
-</blockquote>
-<blockquote>
-<p><strong>Lockfile-Update nach neuer Dependency:</strong> Wenn <code>arena-server/package.json</code> geändert wurde (neue Dep hinzugefügt), schlägt <code>pnpm install --frozen-lockfile</code> mit "lockfile-specifier mismatch" fehl. Erst <code>pnpm install</code> (ohne Flag) ausführen, dann das aktualisierte Lockfile committen — danach <code>pnpm install --frozen-lockfile</code> zur Verifikation. [T000254]</p>
-</blockquote>
-<h3>CI-kritische Zusatzchecks</h3>
-<p><code>task test:all</code> deckt nur den <code>offline-tests</code>-Job ab. Die folgenden Checks haben <strong>eigene CI-Jobs</strong> — CI kann rot werden, auch wenn <code>task test:all</code> grün ist. Führe sie aus, wenn die entsprechenden Dateien geändert wurden:</p>
-<table>
-<thead>
-<tr>
-<th>Geänderte Dateien</th>
-<th>Lokaler Check</th>
-<th>CI-Job</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>tests/**</code> oder neue/geänderte Test-IDs</td>
-<td><code>task test:inventory &amp;&amp; git diff --exit-code website/src/data/test-inventory.json</code> — bei Abweichung committen</td>
-<td><code>offline-tests</code></td>
-</tr>
-<tr>
-<td><code>brett/**</code></td>
-<td><code>npm ci --prefix brett &amp;&amp; node --test brett/test/ws-reconnect.test.mjs brett/test/physics.test.js brett/test/damage.test.mjs brett/test/pickups.test.mjs brett/test/mode-state.test.mjs</code></td>
-<td><code>brett-server-test</code></td>
-</tr>
-<tr>
-<td><code>brett/**</code> (Whiteboard-Template)</td>
-<td><code>./scripts/tests/systembrett-template.test.sh</code></td>
-<td><code>offline-tests</code></td>
-</tr>
-<tr>
-<td><code>arena-server/**</code></td>
-<td>Wenn <code>package.json</code> geändert: <code>cd arena-server &amp;&amp; pnpm install &amp;&amp; git add pnpm-lock.yaml &amp;&amp; git commit -m "chore: update pnpm lockfile"</code>. Dann: <code>cd arena-server &amp;&amp; pnpm install --frozen-lockfile &amp;&amp; pnpm test &amp;&amp; pnpm build</code></td>
-<td><code>arena-server</code></td>
-</tr>
-<tr>
-<td><code>arena-server/src/proto/messages.ts</code> ODER <code>website/src/components/arena/shared/lobbyTypes.ts</code></td>
-<td><code>diff arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts</code> — bei Abweichung: <code>cp arena-server/src/proto/messages.ts website/src/components/arena/shared/lobbyTypes.ts</code></td>
-<td><code>arena-proto-drift</code></td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>Alle fünf CI-Jobs müssen grün sein vor dem Merge.</p>
-</blockquote>
+<p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm Gotchas in Worktrees.</p>
 <hr>
 <h2 id="schritt-35-admin-menu-placement-gate">Schritt 3.5: Admin-Menu Placement Gate</h2>
-<p>Falls die Implementierung neue Seiten unter <code>website/src/pages/admin/</code> hinzugefügt hat, muss jede statische Route aus dem Sidemenu erreichbar sein (siehe Regel R1–R10 in <code>docs/superpowers/specs/2026-05-18-admin-menu-rules-design.md</code>).</p>
+<p>Falls neue Admin-Seiten hinzugefügt wurden:</p>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/admin-menu-gate.sh
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<table>
-<thead>
-<tr>
-<th>Exit</th>
-<th>Bedeutung</th>
-<th>Aktion</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>0</code> (Gate PASSED)</td>
-<td>Alles ok — weiter zu Schritt 4.</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>1</code> (Gate FAILED)</td>
-<td>Mindestens eine Regel verletzt.</td>
-<td>Output lesen, im AdminLayout.astro nachpflegen, erneut laufen.</td>
-</tr>
-<tr>
-<td><code>2</code></td>
-<td>Wrong working directory.</td>
-<td>In den Worktree wechseln und erneut versuchen.</td>
-</tr>
-</tbody></table>
-<h3>Bypass (nur in Ausnahmefällen)</h3>
-<div class="code-wrapper"><pre><code class="language-bash">ADMIN_MENU_GATE=skip bash scripts/admin-menu-gate.sh
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Wenn der Gate übersprungen wird: <strong>PR-Titel mit <code>[menu-gate-skip]</code> prefixen</strong> und im PR-Body begründen (z.B. "absichtlich orphan — dynamic redirect target only, kein Bedarf für Menüplatz"). Reviewer haben damit ein klares Signal.</p>
-<h3>Häufige Failure-Modi</h3>
-<table>
-<thead>
-<tr>
-<th>Failure</th>
-<th>Typische Ursache</th>
-<th>Fix</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>R1 orphan</code></td>
-<td>Neue <code>/admin/foo.astro</code> ohne Eintrag in <code>navGroups</code>.</td>
-<td>Item in passender Gruppe ergänzen, oder Parent-Route in <code>matches[]</code> listen.</td>
-</tr>
-<tr>
-<td><code>R2 label</code></td>
-<td><code>'Neue Session'</code> o.ä. als <code>label</code>.</td>
-<td>Item entfernen, Create-Aktion als Button auf der Zielseite.</td>
-</tr>
-<tr>
-<td><code>R4 group &gt;6</code></td>
-<td>Zu viele Items in einer Gruppe.</td>
-<td>Item in andere Gruppe verschieben, oder Gruppe aufteilen.</td>
-</tr>
-<tr>
-<td><code>R5 groups &gt;6</code></td>
-<td>Zu viele Gruppen.</td>
-<td>Verwandte Gruppen zusammenführen.</td>
-</tr>
-<tr>
-<td><code>R7 dashboard orphan</code></td>
-<td>KPI-Card linkt auf Route die nicht im Sidemenu liegt.</td>
-<td>Entweder Route ins Sidemenu, oder Dashboard-Link entfernen.</td>
-</tr>
-</tbody></table>
+<hr>
+<h2 id="schritt-38-code-review-gate-mandatory">Schritt 3.8: Code Review Gate (Mandatory)</h2>
+<p>Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden.</p>
+<ol>
+<li>Rufe das Skill <strong><code>requesting-code-review</code></strong> (oder <code>pr-review-toolkit:review-pr</code> bzw. einen Review-Subagenten) auf, um die Änderungen zu auditieren.</li>
+<li>Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.</li>
+</ol>
 <hr>
 <h2 id="schritt-4-dev-iteration-optional">Schritt 4: Dev-Iteration (optional)</h2>
-<p>Rufe <code>dev-flow-iterate</code> auf. Übergib:</p>
-<ul>
-<li><code>ENV</code>: Branch-Kontext (<code>mentolder</code> für alle mentolder-Branches, <code>korczewski</code> für korczewski-spezifische)</li>
-<li><code>SURFACE</code>: nicht setzen — der Skill erkennt es automatisch aus <code>git diff --name-only origin/main</code></li>
-</ul>
-<p>Der Skill prüft Cluster-Erreichbarkeit selbst. Falls nicht erreichbar, beendet er sich sofort.
-Nach dem letzten Cycle übergibt er die Kontrolle zurück an Schritt 5 (PR).</p>
+<p>Rufe <code>dev-flow-iterate</code> auf, um Änderungen im dev-Cluster zu testen.</p>
 <hr>
-<h2 id="schritt-5-pr">Schritt 5: PR</h2>
-<p><strong>Pre-commit branch guard (parallel-session safety):</strong> Verify the branch immediately before any <code>git add</code> / <code>git commit</code> — not just at Schritt 0. In environments with concurrent Claude sessions, the checked-out branch can silently change between startup and commit time.</p>
-<div class="code-wrapper"><pre><code class="language-bash">EXPECTED_BRANCH="&lt;feature-or-fix-branch&gt;"   # the branch from Schritt 0
-ACTUAL_BRANCH=$(git branch --show-current)
-if &amp;quot;$ACTUAL_BRANCH&amp;quot; != &amp;quot;$EXPECTED_BRANCH&amp;quot;; then
-  echo "🛑 HALT: Branch mismatch before commit!"
-  echo "  Expected: $EXPECTED_BRANCH"
-  echo "  Actual:   $ACTUAL_BRANCH"
-  echo "  Another session may have switched branches. Do NOT commit. Abort and investigate."
-  exit 1
-fi
-echo "✓ Branch confirmed: $ACTUAL_BRANCH — safe to commit."
+<h2 id="schritt-5-pr-erstellen">Schritt 5: PR erstellen</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Branch-Guard prüfen
+git add -A
+git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;" # commitlint regeln beachten (&lt;100 Zeichen body)
+# Closes T000XXX im Body bei Fixes
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Rufe <code>commit-commands:commit-push-pr</code> auf.</p>
-<h3>Titel-Format</h3>
-<p><code>&lt;type&gt;(&lt;scope&gt;): &lt;imperative summary&gt;</code></p>
-<ul>
-<li>Feature: <code>feat(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code></li>
-<li>Fix: <code>fix(&lt;scope&gt;): &lt;kurze-beschreibung&gt;</code> — Body <strong>MUSS</strong> <code>Closes $TICKET_ID</code> (z.B. <code>Closes T000301</code>) enthalten, sonst Push blockieren und nochmal nachfragen.</li>
-<li><strong>Subject startet kleingeschrieben</strong> (gilt für <strong>jeden</strong> Commit auf dem Branch, nicht nur den PR-Titel): commitlint (<code>subject-case</code>) lehnt Subjects ab, die mit einem Großbuchstaben/Akronym/Konstante beginnen — z.B. <code>feat(brett): BRETT_BRAND env …</code> ❌ oder <code>fix(sse): OIDC redirect …</code> ❌. Umformulieren, sodass ein kleingeschriebenes Wort führt: <code>feat(brett): add BRETT_BRAND env …</code> ✅, <code>fix(sse): repair OIDC redirect …</code> ✅.</li>
-<li><strong>Body-Zeilen max. 100 Zeichen (T000335):</strong> commitlint (<code>body-max-line-length</code>) lehnt jede Body-Zeile &gt; 100 Zeichen ab. Verbatim eingebettete Evidence-Strings (Backup-Logs, lange Pfade, Hashes) sprengen das Limit und erzwingen einen forced rebase. Lange Evidence vor dem Einbetten umbrechen/kürzen.</li>
-</ul>
-<p>Beispiele:</p>
-<ul>
-<li><code>feat(arena): add solo replay button</code></li>
-<li><code>fix(sse): drop forbidden Connection header from SSE responses</code></li>
-</ul>
-<h3>Body-Template</h3>
-<div class="code-wrapper"><pre><code class="language-markdown">## Summary
-- &lt;warum diese Änderung existiert, 1-3 Bullets&gt;
-
-## Test plan
-- [x] task test:all
-- [x] task workspace:validate          # wenn Manifests geändert
-- [x] ./tests/runner.sh local FA-XX    # falls relevant
-- [x] manueller Check auf web.mentolder.de  # falls user-sichtbar
-
-Closes $TICKET_ID   &lt;!-- nur Fix-Pfad, z.B. Closes T000301 --&gt;
-
-Co-Authored-By: &lt;model-name&gt;
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<hr>
-<h2 id="schritt-55-pr-nummer-fuer-ticket-abschluss-merken">Schritt 5.5: PR-Nummer für Ticket-Abschluss merken</h2>
-<p>Falls <code>$TICKET_ID</code> gesetzt, direkt nach dem PR-Erstellen:</p>
-<div class="code-wrapper"><pre><code class="language-bash">PR_NUM=$(gh pr view --json number -q '.number')
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Das ist alles — die PR-Nummer landet in Schritt 6.5 als Comment-Body und in Schritt 7 als <code>ticket_plans.pr_number</code>.</p>
-<p><code>tickets.ticket_links</code> ist <strong>nicht</strong> für PR-Referenzen geeignet:</p>
-<ul>
-<li><code>to_id</code> ist <code>NOT NULL</code> (FK auf <code>tickets.tickets</code>), also kein Ticket→PR möglich.</li>
-<li><code>kind</code>-Check-Constraint erlaubt nur <code>blocks | blocked_by | duplicate_of | relates_to | fixes | fixed_by</code>.</li>
-</ul>
-<p><code>tickets.pr_events</code> führt PRs unabhängig (kein <code>ticket_id</code>-FK) — die Verknüpfung lebt allein über <code>ticket_plans.pr_number</code> und den Schluss-Kommentar.</p>
+<p>Rufe <code>commit-commands:commit-push-pr</code> auf (oder führe <code>gh pr create</code> manuell aus).</p>
 <hr>
 <h2 id="schritt-6-auto-merge-wenn-ci-gruen">Schritt 6: Auto-Merge wenn CI grün</h2>
-<div class="code-wrapper"><pre><code class="language-bash"># Im Haupt-Repo ausführen — vermeidet den harmlosen "main already used by worktree" Git-Fehler
-MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+<div class="code-wrapper"><pre><code class="language-bash"># Prüfe CI-Status (siehe gotchas [T000342])
+# Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
 (cd "$MAIN_REPO" &amp;&amp; gh pr merge --squash --delete-branch)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<blockquote>
-<p><strong><code>--auto</code> aus einem Worktree no-oppt silent (CI noch nicht grün):</strong> Wenn CI noch läuft und du <code>gh pr merge &lt;n&gt; --squash --delete-branch --auto</code> brauchst, darf das <strong>nicht</strong> aus dem <code>/tmp/wt-*</code>-Worktree laufen — dort scheitert es entweder mit <code>fatal: 'main' is already used by worktree at &lt;primary&gt;</code>, oder ein Re-Run aus einem neutralen Verzeichnis exit-0t, ohne den Auto-Merge tatsächlich zu setzen (silent no-op). Zwei sichere Varianten:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># A) --auto immer mit --repo aus dem Haupt-Repo (außerhalb jedes Worktrees):
-(cd "$MAIN_REPO" &amp;&amp; gh pr merge &lt;n&gt; --squash --delete-branch --auto --repo Paddione/Bachelorprojekt)
-
-# B) Fallback ohne --auto: CI grün pollen, dann direkt mergen:
-#    NICHT `--json state` (Enum-Werte matchen nicht zuverlässig → Loop terminiert nie, T000342);
-#    die Text-Ansicht (Spalte 2 = pass/fail/pending) ist autoritativ.
-until ! gh pr checks &lt;n&gt; 2&gt;/dev/null | awk '{print $2}' | grep -qiE 'pending|fail'; do sleep 20; done
-gh pr checks &lt;n&gt; | awk '{print $2}' | grep -qiE 'fail' &amp;&amp; { echo "✗ CI rot — nicht mergen"; exit 1; }
-(cd "$MAIN_REPO" &amp;&amp; gh pr merge &lt;n&gt; --squash --delete-branch)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Danach immer per Zeitstempel verifizieren (siehe unten), nie per Exit-Code. [T000298]</p>
-</blockquote>
-<blockquote>
-<p><strong>Erwarteter Exit-1 nach Squash-Merge — kein echter Fehler:</strong> Nach einem Squash-Merge weicht der lokale Branch vom Remote-main ab (neuer Squash-Commit ≠ lokale Commit-Historie). <code>gh pr merge</code> schlägt dann mit <code>not possible to fast-forward</code> fehl (exit 1), obwohl der PR erfolgreich gemergt wurde. Das ist <strong>normales Verhalten</strong>, kein Bug.</p>
-<p><strong>Immer nach dem Merge-Befehl verifizieren:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash">gh pr view --json mergedAt -q '.mergedAt'   # leer = noch offen, Zeitstempel = gemergt
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Zeigt einen Zeitstempel → Merge war erfolgreich, weiter mit Schritt 6.5.
-Leer → Merge ist tatsächlich fehlgeschlagen → PR manuell prüfen.</p>
-</blockquote>
 <hr>
 <h2 id="schritt-65-ticket-abschliessen">Schritt 6.5: Ticket abschließen</h2>
-<p>Falls <code>$TICKET_ID</code> gesetzt, nach erfolgreichem Merge:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Feature-Pfad: resolution = 'shipped' | Fix-Pfad: resolution = 'fixed'
-RESOLUTION="shipped"   # oder "fixed" beim Fix-Pfad
-
+<p>Falls eine Ticket-ID vorhanden ist, schließe das Ticket:</p>
+<div class="code-wrapper"><pre><code class="language-bash">RESOLUTION="shipped" # oder "fixed" bei Fixes
 PR_NUM=$(gh pr view --json number -q '.number')
 
-PGPOD=$(kubectl get pod -n workspace --context fleet \
-  -l app=shared-db -o name | head -1)
-
-kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -c \
-  "UPDATE tickets.tickets
-     SET status = 'done', resolution = '$RESOLUTION'
-   WHERE external_id = '$TICKET_ID';
-
-   INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-   SELECT id,
-     'claude-code',
-     'PR #$PR_NUM merged. Plan archived to tickets.ticket_plans in Postgres.',
-     'internal'
-   FROM tickets.tickets WHERE external_id = '$TICKET_ID';"
-
-echo "Ticket $TICKET_ID → done ($RESOLUTION)"
+./scripts/ticket.sh update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="schritt-7-plan-in-postgres-archivieren--datei-loeschen">Schritt 7: Plan in Postgres archivieren + Datei löschen</h2>
-<p>Falls <code>$TICKET_ID</code> gesetzt und <code>$PLAN_FILE</code> vorhanden:</p>
-<blockquote>
-<p><strong>Wichtig — Worktree-Zustand nach Schritt 6:</strong> <code>gh pr merge --squash --delete-branch</code> löscht nicht nur Remote+Local-Branch, sondern führt im Worktree <strong>silent</strong> <code>git checkout main</code> aus. Du landest auf <code>main</code> am pre-PR HEAD, und die Plan-Datei ist von Disk verschwunden, bis <code>git pull</code> läuft. Deshalb <strong>muss</strong> dieser Schritt mit einem Sync starten:</p>
-</blockquote>
-<div class="code-wrapper"><pre><code class="language-bash"># Parallele-Session-Schutz: Haupt-Repo könnte auf einem anderen Branch liegen (z.B. fix/X).
-# Immer explizit in einen Worktree wechseln, der auf main ist.
-MAIN_REPO="/home/patrick/Bachelorprojekt"
-ARCHIVE_CWD=$(git worktree list --porcelain \
-  | awk '/^worktree/{wt=$2} /^branch refs\/heads\/main$/{print wt; exit}')
-if -z &amp;quot;$ARCHIVE_CWD&amp;quot;; then
-  # Kein Worktree auf main — Haupt-Repo auf main wechseln
-  ARCHIVE_CWD="$MAIN_REPO"
-  (cd "$ARCHIVE_CWD" &amp;&amp; git checkout main)
-fi
-cd "$ARCHIVE_CWD"
-git fetch origin main
-# Parallel-Session-Schutz: Unstaged-Änderungen aus anderen Sessions sichern vor reset
-STASHED_PLAN=0
-if ! git diff --quiet; then
-  echo "Unstaged Änderungen erkannt — stashe vor reset..."
-  git stash
-  STASHED_PLAN=1
-fi
-git reset --hard origin/main   # Plan-Datei ist jetzt auf Disk (gemergter Revision)
-if &amp;quot;$STASHED_PLAN&amp;quot; == &amp;quot;1&amp;quot;; then
-  git stash pop || echo "⚠️  Stash-Pop-Konflikte — bitte manuell auflösen."
-fi
-
-# Sicherheitsprüfung: CWD muss auf main sein
-CURRENT_BRANCH=$(git branch --show-current)
-if &amp;quot;$CURRENT_BRANCH&amp;quot; != &amp;quot;main&amp;quot;; then
-  echo "✗ CWD ist auf '$CURRENT_BRANCH' — Abbruch. Bitte Branch prüfen."
-  exit 1
-fi
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<div class="code-wrapper"><pre><code class="language-bash">PLAN_FILE="docs/superpowers/plans/&lt;slug&gt;.md"
-SLUG="&lt;slug&gt;"
-BRANCH="feature/&lt;slug&gt;"   # oder fix/&lt;slug&gt; — Branch wurde durch --delete-branch bereits gelöscht, also nicht aus `git branch --show-current` lesen
+<h2 id="schritt-7-plan-archivieren--datei-loeschen">Schritt 7: Plan archivieren &amp; Datei löschen</h2>
+<p>Übertrage den Plan in die Datenbank und lösche die lokale Datei:</p>
+<div class="code-wrapper"><pre><code class="language-bash">SLUG="&lt;slug&gt;"
+BRANCH="feature/&lt;slug&gt;" # oder fix/&lt;slug&gt;
 PR_NUM=$(gh pr view --json number -q '.number' 2&gt;/dev/null || echo "")
 
-# Precheck: Plan-Datei muss existieren UND nicht leer sein, sonst archivieren wir leere Bytes
-if ! -s &amp;quot;$PLAN_FILE&amp;quot;; then
-  echo "✗ Plan-Datei fehlt oder ist leer: $PLAN_FILE"
-  echo "  Möglicherweise wurde 'git pull/reset' oben übersprungen, oder der Plan wurde manuell gelöscht."
-  echo "  Abbruch — kein Archiv, kein Commit."
-  exit 1
-fi
+./scripts/ticket.sh archive-plan \
+  --id "$TICKET_ID" \
+  --slug "$SLUG" \
+  --branch "$BRANCH" \
+  --plan-file "$PLAN_FILE" \
+  --pr "$PR_NUM"
 
-PGPOD=$(kubectl get pod -n workspace --context fleet \
-  -l app=shared-db -o name | head -1)
-
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "SELECT id FROM tickets.tickets WHERE external_id = '$TICKET_ID';")
-
-PR_NUM_SQL=$([ -z "$PR_NUM" ] &amp;&amp; echo "NULL" || echo "$PR_NUM")
-
-# SQL in temp-Datei schreiben — verhindert Shell-Expansion des Plan-Inhalts
-TMPFILE=$(mktemp /tmp/plan-archive-XXXXXX.sql)
-{
-  printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
-    "$TICKET_UUID" "$SLUG" "$BRANCH"
-  cat "$PLAN_FILE"
-  printf "\$plan\$,\n  %s\n);\n" "$PR_NUM_SQL"
-} &gt; "$TMPFILE"
-
-# Sanity-Check: Datei sollte mehr als das nackte SQL-Gerüst enthalten
-ARCHIVE_BYTES=$(wc -c &lt; "$TMPFILE")
-if (( ARCHIVE_BYTES &lt; 200 )); then
-  echo "✗ Archiv-SQL ist verdächtig klein ($ARCHIVE_BYTES bytes) — vermutlich Plan-Inhalt verloren."
-  cat "$TMPFILE"
-  rm "$TMPFILE"
-  exit 1
-fi
-
-kubectl exec -i "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -v ON_ERROR_STOP=1 &lt; "$TMPFILE"
-
-rm "$TMPFILE"
-
-# Verify the row actually persisted BEFORE removing the plan file (T000344).
-# A parallel-tool-call cancellation can drop the INSERT silently; if we rm the
-# file anyway the plan is lost until recovered from git history.
-ARCHIVED_ROWS=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "SELECT count(*) FROM tickets.ticket_plans WHERE ticket_id='$TICKET_UUID' AND slug='$SLUG';")
-if &amp;quot;$ARCHIVED_ROWS&amp;quot; -lt 1; then
-  echo "✗ Archiv-Row nicht in tickets.ticket_plans gefunden — Plan NICHT löschen. Abbruch."
-  exit 1
-fi
-
-# Datei löschen (nicht nach executed/ verschieben)
+# Plan lokal löschen und Änderungen via PR committen
 rm "$PLAN_FILE"
 git add "$PLAN_FILE"
 git commit -m "chore(plans): archive $SLUG → postgres [$TICKET_ID]"
 
-# Branch protection verhindert direkten Push auf main — ephemeren Arch-Branch nutzen
+# Archiver-Branch anlegen und mergen (wegen Branch-Protection)
 ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
 git checkout -b "$ARCHIVE_BRANCH"
 git push -u origin "$ARCHIVE_BRANCH"
-gh pr create \
-  --title "chore(plans): archive $SLUG → postgres [$TICKET_ID]" \
-  --body "Removes \`docs/superpowers/plans/$SLUG.md\` after archiving to \`tickets.ticket_plans\`." \
-  --base main
+gh pr create --title "chore(plans): archive $SLUG → postgres [$TICKET_ID]" --base main
 gh pr merge --squash --delete-branch
-git checkout main
-git pull --rebase origin main
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls <code>$TICKET_ID</code> leer (Chore ohne Ticket): SQL-Archivierung überspringen — nur <code>rm "$PLAN_FILE"</code> + commit + PR:</p>
-<div class="code-wrapper"><pre><code class="language-bash">rm "$PLAN_FILE"
-git add "$PLAN_FILE"
-git commit -m "chore(plans): archive $SLUG"
-ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
-git checkout -b "$ARCHIVE_BRANCH"
-git push -u origin "$ARCHIVE_BRANCH"
-gh pr create --title "chore(plans): archive $SLUG" \
-  --body "Removes plan file after chore completed (no ticket)." --base main
-gh pr merge --squash --delete-branch
-git checkout main
-git pull --rebase origin main
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Hinweis Dollar-Quoting:</strong> <code>$plan$...$plan$</code> ist psql-Dollar-Quoting; sicher für beliebigen Markdown-Inhalt, solange der Plan selbst nicht den String <code>$plan$</code> enthält (praktisch ausgeschlossen).</p>
-<p><strong>kubeconfig für cicd-deploy generieren:</strong> Statt <code>kubectl config view --raw -o jsonpath '{.clusters[?(@.name=="&lt;hardcoded&gt;")]...}'</code> (schlägt fehl wenn Context-Name ≠ Cluster-Name) immer das Hilfsskript nutzen:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Erzeugt fertiges kubeconfig für cicd-deploy SA; --minify macht clusters[0] korrekt
-bash scripts/cicd-kubeconfig-gen.sh mentolder workspace | base64 -w0 \
-  | gh secret set MENTOLDER_KUBECONFIG --repo Paddione/Bachelorprojekt
-# korczewski brand → fleet cluster, namespace workspace-korczewski
-bash scripts/cicd-kubeconfig-gen.sh fleet workspace-korczewski | base64 -w0 \
-  | gh secret set KORCZEWSKI_KUBECONFIG --repo Paddione/Bachelorprojekt
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-75-worktree--branch-bereinigen">Schritt 7.5: Worktree &amp; Branch bereinigen</h2>
-<p>Nach erfolgreichem Merge und Plan-Archivierung immer ausführen:</p>
-<div class="code-wrapper"><pre><code class="language-bash">BRANCH="feature/&lt;slug&gt;"   # oder fix/&lt;slug&gt; bzw. chore/&lt;slug&gt;
-
-# Worktree-Pfad ermitteln
-WORKTREE_PATH=$(git worktree list --porcelain \
-  | awk -v b="refs/heads/$BRANCH" '/^worktree/{wt=$2} $0==("branch " b){print wt}')
-
-# In Haupt-Repo wechseln (falls noch im Worktree)
-cd /home/patrick/Bachelorprojekt
-
-# Worktree entfernen
-if -n &amp;quot;$WORKTREE_PATH&amp;quot; &amp;amp;&amp;amp; &amp;quot;$WORKTREE_PATH&amp;quot; != &amp;quot;/home/patrick/Bachelorprojekt&amp;quot;; then
-  git worktree remove "$WORKTREE_PATH" --force
-  echo "✓ Worktree $WORKTREE_PATH entfernt"
-fi
-
-# Lokalen Branch löschen
-git branch -D "$BRANCH" 2&gt;/dev/null &amp;&amp; echo "✓ Lokaler Branch $BRANCH gelöscht" || echo "(Branch lokal nicht vorhanden)"
-
-# Remote Branch löschen (GitHub löscht bei auto-merge automatisch, trotzdem absichern)
-git push origin --delete "$BRANCH" 2&gt;/dev/null &amp;&amp; echo "✓ Remote origin/$BRANCH gelöscht" || echo "(Remote bereits gelöscht)"
+<p>Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):</p>
+<div class="code-wrapper"><pre><code class="language-bash">cd /home/patrick/Bachelorprojekt
+git worktree remove "/tmp/wt-&lt;slug&gt;" --force
+git branch -D "&lt;branch&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Ergebnis: kein staler Worktree, keine Altlasten im lokalen oder Remote-Repo.</p>
 <hr>
-<h2 id="schritt-8-post-merge-deploy">Schritt 8: Post-Merge Deploy</h2>
-<p>Schau dir die geänderten Dateien an (<code>gh pr view &lt;pr&gt; --json files</code>) und führe den passenden Task aus:</p>
-<table>
-<thead>
-<tr>
-<th>Geänderte Dateien</th>
-<th>Task</th>
-<th>Verify</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>website/src/**</code>, <code>website/public/**</code>, <code>website/package*.json</code></td>
-<td><code>task feature:website</code></td>
-<td><code>https://web.mentolder.de</code> + <code>https://web.korczewski.de</code></td>
-</tr>
-<tr>
-<td><code>brett/**</code></td>
-<td><code>task feature:brett</code></td>
-<td><code>https://brett.mentolder.de</code> + <code>https://brett.korczewski.de</code></td>
-</tr>
-<tr>
-<td><code>k3d/docs-content-built/**</code></td>
-<td><code>task docs:deploy</code></td>
-<td><code>https://docs.mentolder.de</code> + <code>https://docs.korczewski.de</code></td>
-</tr>
-<tr>
-<td><code>k3d/livekit*.yaml</code></td>
-<td><code>task feature:livekit</code></td>
-<td><code>task livekit:status ENV=mentolder</code> + <code>ENV=korczewski</code></td>
-</tr>
-<tr>
-<td><code>k3d/**</code>, <code>prod/**</code>, <code>prod-mentolder/**</code>, <code>prod-korczewski/**</code>, <code>environments/sealed-secrets/**</code></td>
-<td><code>task feature:deploy</code></td>
-<td><code>task workspace:verify:all-prods</code> + <code>task health</code></td>
-</tr>
-<tr>
-<td>Nur <code>docs/</code>, <code>*.md</code>, <code>CLAUDE.md</code>, <code>tests/</code>, <code>.github/</code>, <code>Taskfile*.yml</code>, <code>scripts/</code>, <code>.claude/</code></td>
-<td>KEIN Deploy</td>
-<td>—</td>
-</tr>
-</tbody></table>
-<p>Wenn mehrere Kategorien matchen: workspace → website → brett → livekit → docs.</p>
-<blockquote>
-<p><strong><code>prod-mentolder/dev-*</code> geändert aber dev-auto-deploy bricht fehl (~/Bachelorprojekt fehlt):</strong> Falls <code>dev-auto-deploy.yml</code> mit <code>cd: /home/.../Bachelorprojekt: No such file or directory</code> fehlschlägt, ist das Repo auf dem Deploy-Host nicht geclont. Manueller Fallback:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Kustomize lokal rendern und per SSH an k3s-1 übergeben
-source scripts/env-resolve.sh dev
-kubectl kustomize prod-mentolder | envsubst "..." | \
-  ssh -i ~/.ssh/gekko_id_ed25519 gekko@k3s-1 \
-  "kubectl --context k3d-mentolder-dev apply -f -"
-# Secrets ggf. separat via SSH-Pipe materialisieren (kein Echo im Log)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Alternativ direkt auf k3s-1 einloggen (<code>ssh gekko@k3s-1</code>) und <code>task dev:deploy</code> nach manuellem <code>git clone</code>.</p>
-</blockquote>
-<p><strong>Verify:</strong></p>
+<h2 id="schritt-8-post-merge-deploy--verify">Schritt 8: Post-Merge Deploy &amp; Verify</h2>
+<p>Deployment ausführen basierend auf den geänderten Dateien:</p>
 <ul>
-<li>Copy/Visual-Änderungen: Screenshot via Playwright.</li>
-<li>Funktionale Änderungen: <code>./tests/runner.sh local &lt;FA-XX&gt;</code> gegen Live-URL.</li>
-<li><strong>Wenn Verify scheitert: KEINEN Fix auf <code>main</code> versuchen.</strong> Neuen <code>fix/&lt;slug&gt;</code> Branch via <code>dev-flow-plan</code> Fix-Pfad öffnen und Patrick benachrichtigen.</li>
-<li><strong>E2E Tests:</strong> Nach erfolgreichem Verify <code>dev-flow-e2e</code> aufrufen, um Playwright-Specs für die neue Funktion zu schreiben und gegen Live zu laufen.</li>
+<li>Astro/Website: <code>task feature:website</code></li>
+<li>Brett: <code>task feature:brett</code></li>
+<li>K8s/Manifeste: <code>task feature:deploy</code></li>
 </ul>
+<p>Führe danach <code>dev-flow-e2e</code> aus, um E2E Tests gegen die Live-Umgebung zu schreiben.</p>
 <hr>
-<h2 id="failure-handling">Failure-Handling</h2>
-<ul>
-<li><strong>Beweismaterial ans Ticket hängen (bei jedem Failure-Pfad):</strong> Wenn du einen Failure-Screenshot, Log-Auszug oder Trace-Output hast, frage Patrick nach Pfaden (<code>.png</code>/<code>.log</code>/<code>.txt</code>/<code>.mp4</code>) und hänge sie ans Ticket — der Fix-Branch erbt dann sofort den Kontext:<div class="code-wrapper"><pre><code class="language-bash"># TICKET_UUID aus dem aktuellen Ticket holen:
-TICKET_UUID=$(kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -At -c \
-  "SELECT id FROM tickets.tickets WHERE external_id='$TICKET_ID';")
-bash scripts/ticket-attach.sh "$TICKET_UUID" /pfad/zu/failure.png /pfad/zu/ci.log
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-<li><strong>CI rot vor Merge:</strong> Diagnose, Fix auf demselben Branch, neu pushen. Keinen zweiten PR aufmachen. Falls nach 2 Versuchen noch rot: Ticket-Kommentar hinterlassen:<div class="code-wrapper"><pre><code class="language-bash">kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -c \
-  "INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-   SELECT id,
-     'claude-code',
-     'CI blockiert nach Diagnose — manuelle Intervention nötig. Branch: fix/&lt;slug&gt;',
-     'internal'
-   FROM tickets.tickets WHERE external_id = '$TICKET_ID';"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-<li><strong><code>openclaw approvals get</code> gibt keine JSON-Ausgabe zurück:</strong> Der Befehl gibt dekorierten Tabellenoutput aus, keinen JSON. Falls ein Plan-Schritt <code>openclaw approvals get 2&gt;/dev/null | python3 -c 'import sys,json; ...'</code> verwendet, schlägt das fehl. Lösung: <code>~/.openclaw/exec-approvals.json</code> direkt lesen. [T000214]</li>
-<li><strong>Deploy scheitert post-merge:</strong> Loggen, Patrick benachrichtigen, Cluster wie ist lassen. Kein Auto-Rollback. Ticket bleibt auf <code>in_progress</code> — Patrick muss manuell auf <code>done</code> oder <code>blocked</code> setzen.</li>
-<li><strong>Verify scheitert post-merge:</strong> Neuen <code>fix/&lt;slug&gt;</code> Branch via <code>dev-flow-plan</code> Fix-Pfad. Behandle die Regression als Bug. Hinterlasse am aktuellen Ticket einen internen Kommentar mit dem neuen Ticket-Link.</li>
-</ul>
-<hr>
-<h2 id="agent-routing">Agent-Routing</h2>
-<p>Jeder Pfad delegiert Spezialarbeit an die passenden Sub-Agents (siehe CLAUDE.md Agent-Routing-Tabelle):</p>
-<ul>
-<li>DB/Schema/Queries → <code>bachelorprojekt-db</code></li>
-<li>Manifests/Kustomize/Taskfile → <code>bachelorprojekt-infra</code></li>
-<li>Live-Cluster-Operations → <code>bachelorprojekt-ops</code></li>
-<li>Tests schreiben/debuggen → <code>bachelorprojekt-test</code></li>
-<li>Astro/Svelte/UI → <code>bachelorprojekt-website</code></li>
-<li>SealedSecrets/Keycloak/OIDC → <code>bachelorprojekt-security</code></li>
-</ul>
-<p><strong>Pflicht vor jedem Sub-Agent-Dispatch:</strong> <code>bash scripts/plan-context.sh &lt;role&gt;</code> ausführen und die Ausgabe in <code>&lt;active-plans&gt;</code> Tags an den Prompt voranstellen (Details in CLAUDE.md).</p>
-<h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
-<p>After completing all steps in this skill, invoke <code>mishap-tracker</code> with your
-accumulated <code>MISHAP_LOG</code>. If no mishaps were found, <code>mishap-tracker</code> exits
-cleanly with "No mishaps found."</p>
+<h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
+<p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über <code>mishap-tracker</code> (aufrufbar via <code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
 </body></html>
 </article>
 

@@ -19,7 +19,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-e2e</span></nav>
     <h1>dev-flow-e2e</h1>
-    <p class="page-desc">Use after dev-flow-execute has merged and deployed a feature or fix — writes and runs Playwright E2E tests for the implementation using the Playwright MCP browser tools against the live environment.</p>
+    <p class="page-desc">Use to write and run Playwright E2E tests against the live environment for a newly merged and deployed change.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">test</span>
@@ -28,19 +28,7 @@
 </header>
 
 <article class="doc-body">
-<html><head></head><body><blockquote>
-<p><strong>Mishap Tracking:</strong> As you execute this skill, maintain a running <code>MISHAP_LOG</code>.
-For every anomaly, unexpected state, broken component, security concern,
-configuration drift, or <strong>process friction</strong> you notice — even if unrelated
-to the current task — add an entry with:
-  <code>type</code> (broken/degraded/suspicious/security/drift/<strong>process</strong>),
-  <code>title</code>, <code>description</code>, and <code>component</code>.</p>
-<p><code>process</code> = a step that required a manual workaround, had wrong/missing instructions,
-or caused unexpected friction. <code>component</code> MUST use format <code>skills/&lt;skill-name&gt;</code>. Example:
-  <code>{type: process, title: "playwright config missing project entry",     description: "new spec was not picked up — playwright.config.ts testMatch needs manual update per spec",     component: "skills/dev-flow-e2e"}</code></p>
-<p>Invoke <code>mishap-tracker</code> at the very end.</p>
-</blockquote>
-<h1>dev-flow-e2e — Playwright E2E Tests schreiben &amp; ausführen</h1><div class="toc-box auto-toc">
+<html><head></head><body><h1>dev-flow-e2e — Playwright E2E Tests schreiben &amp; ausführen</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
 <li class="toc-item"><a href="#schritt-0-kontext-ermitteln"><span class="toc-num">2.</span> Schritt 0: Kontext ermitteln</a></li>
@@ -52,9 +40,7 @@ or caused unexpected friction. <code>component</code> MUST use format <code>skil
 <li class="toc-item"><a href="#schritt-6-test-inventory-aktualisieren"><span class="toc-num">8.</span> Schritt 6: Test-Inventory aktualisieren</a></li>
 <li class="toc-item"><a href="#schritt-7-commit--push"><span class="toc-num">9.</span> Schritt 7: Commit &amp; Push</a></li>
 <li class="toc-item"><a href="#schritt-8-e2e-smoke-auf-live-optional-anstossen"><span class="toc-num">10.</span> Schritt 8: E2E Smoke auf Live optional anstoßen</a></li>
-<li class="toc-item"><a href="#agent-routing"><span class="toc-num">11.</span> Agent-Routing</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">12.</span> Post-Execution: Mishap Report</a></li>
-<li class="toc-item"><a href="#schritt-9-loop-restart--skill-verbesserung"><span class="toc-num">13.</span> Schritt 9: Loop-Restart &amp; Skill-Verbesserung</a></li></ul>
+<li class="toc-item"><a href="#schritt-9-beendigung-und-nachbereitung"><span class="toc-num">11.</span> Schritt 9: Beendigung und Nachbereitung</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p><code>dev-flow-execute</code> hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (<code>mcp__plugin_playwright_playwright__browser_*</code>).</p>
@@ -116,54 +102,15 @@ BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Credentials: korczewski-Projekt</h3>
 <p>Das <code>korczewski</code>-Projekt verwendet einen dedizierten <code>test-admin</code>-User auf dem
-Korczewski-Keycloak (fleet cluster, namespace <code>workspace-korczewski</code>). Das Passwort ist in <code>environments/.secrets/korczewski.yaml</code>
-unter dem Key <code>E2E_TEST_ADMIN_PASSWORD</code> gespeichert (nach dem ersten KC Admin-API-Reset
-dort eingetragen und via <code>task env:seal ENV=korczewski</code> versiegelt).</p>
-<p>Falls das Passwort fehlt oder unbekannt ist (Ersteinrichtung / Secret-Rotation):</p>
-<ul>
-<li>Passwortrichtlinie: <strong>mindestens 12 Zeichen, Groß+Klein+Zahl+Sonderzeichen</strong><br>(z.B. <code>TestAdmin1!</code> mit 11 Zeichen schlägt mit HTTP 400 fehl — auf 12+ erhöhen)</li>
-<li>Reset per KC Admin-API:<div class="code-wrapper"><pre><code class="language-bash"># Token holen (Admin-Credentials aus environments/.secrets/korczewski.yaml)
-TOKEN=$(curl -s -X POST https://auth.korczewski.de/realms/master/protocol/openid-connect/token \
-  -d "client_id=admin-cli&amp;username=&lt;admin&gt;&amp;password=&lt;pw&gt;&amp;grant_type=password" \
-  | jq -r '.access_token')
-
-# User-ID ermitteln
-USER_ID=$(curl -s -H "Authorization: Bearer $TOKEN" \
-  https://auth.korczewski.de/admin/realms/workspace/users?username=test-admin \
-  | jq -r '.[0].id')
-
-# Passwort setzen (12+ Zeichen, upper+lower+digit+special)
-NEW_PASS="&lt;NewPass123!&gt;"
-curl -s -X PUT -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  https://auth.korczewski.de/admin/realms/workspace/users/$USER_ID/reset-password \
-  -d "{\"type\":\"password\",\"value\":\"${NEW_PASS}\",\"temporary\":false}"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-<li>Nach dem Reset: Passwort in <code>environments/.secrets/korczewski.yaml</code> als
-<code>E2E_TEST_ADMIN_PASSWORD: &lt;NewPass123!&gt;</code> eintragen, dann <code>task env:seal ENV=korczewski</code>
-und ins Repo committen — so muss kein destruktiver Reset vor jedem E2E-Lauf gemacht werden.</li>
-<li>Das neue Passwort als <code>E2E_ADMIN_PASS</code> exportieren: <code>export E2E_ADMIN_PASS="$NEW_PASS"</code> [T000241]</li>
-</ul>
+Korczewski-Keycloak. Das Passwort ist in <code>environments/.secrets/korczewski.yaml</code>
+unter dem Key <code>E2E_TEST_ADMIN_PASSWORD</code> gespeichert. Siehe details in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a>.</p>
 <hr>
 <h2 id="schritt-2-live-erkundung-mit-playwright-mcp">Schritt 2: Live-Erkundung mit Playwright MCP</h2>
-<p>Navigiere mit den MCP-Browser-Tools zur implementierten Funktion und versch</p>
-<p>affe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.</p>
-<p><strong>Navigation &amp; Snapshots:</strong></p>
+<p>Navigiere mit den MCP-Browser-Tools zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.</p>
 <div class="code-wrapper"><pre><code>mcp__plugin_playwright_playwright__browser_navigate → { url: "$BASE_URL/&lt;pfad&gt;" }
-mcp__plugin_playwright_playwright__browser_snapshot  → {}    # Accessibility-Baum lesen
+mcp__plugin_playwright_playwright__browser_snapshot  → {}
 mcp__plugin_playwright_playwright__browser_take_screenshot → { filename: "/tmp/e2e-explore-01.png" }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Typische Erkundungsschritte:</strong></p>
-<ol>
-<li>Unauthentifiziert die Seite aufrufen → prüfen ob Redirect oder 401/403</li>
-<li>Öffentliche Endpunkte direkt ansteuern (<code>/api/…</code>)</li>
-<li>Falls UI-Feature: Seite snapshotten, Interaktionsmöglichkeiten identifizieren</li>
-<li>API-Endpunkte aus dem Code-Diff ableiten und im Browser-DevTools-Netzwerk-Tab beobachten:<div class="code-wrapper"><pre><code>mcp__plugin_playwright_playwright__browser_network_requests → {}
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-</ol>
-<p>Notiere alle gefundenen Pfade und Verhaltensweisen für Schritt 3.</p>
 <hr>
 <h2 id="schritt-3-test-spec-schreiben">Schritt 3: Test-Spec schreiben</h2>
 <h3>Dateiname</h3>
@@ -189,7 +136,6 @@ mcp__plugin_playwright_playwright__browser_take_screenshot → { filename: "/tmp
 </tbody></table>
 <p>Nächste freie FA-Nummer ermitteln:</p>
 <div class="code-wrapper"><pre><code class="language-bash">ls tests/e2e/specs/fa-[0-9]*.spec.ts | grep -oP 'fa-\K[0-9]+' | sort -n | tail -1
-# → nächste = letzte + 1
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Test-Vorlage</h3>
 <div class="code-wrapper"><pre><code class="language-typescript">import { test, expect } from '@playwright/test';
@@ -197,197 +143,57 @@ mcp__plugin_playwright_playwright__browser_take_screenshot → { filename: "/tmp
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
 test.describe('FA-&lt;NN&gt;: &lt;Feature-Name&gt;', () =&gt; {
-  // ── Auth-Gating (immer, falls Route geschützt) ─────────────────
   test('T1: /&lt;pfad&gt; requires authentication', async ({ page }) =&gt; {
     await page.goto(`${BASE}/&lt;pfad&gt;`);
     await expect(page).not.toHaveURL(`${BASE}/&lt;pfad&gt;`);
   });
-
-  // ── API Auth-Gating ────────────────────────────────────────────
-  test('T2: POST /api/&lt;endpunkt&gt; returns 401/403 without auth', async ({ request }) =&gt; {
-    const res = await request.post(`${BASE}/api/&lt;endpunkt&gt;`, { data: {} });
-    expect([401, 403]).toContain(res.status());
-  });
-
-  // ── Funktionale Kernprüfung ────────────────────────────────────
-  test('T3: &lt;was-geprüft-wird&gt;', async ({ request }) =&gt; {
-    const res = await request.get(`${BASE}/api/&lt;endpunkt&gt;`);
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    expect(body).toHaveProperty('&lt;key&gt;');
-  });
 });
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Leitfragen beim Schreiben:</strong></p>
-<ul>
-<li>Welche Routes/Endpunkte sind NEU? → Je einen Auth-Gating-Test.</li>
-<li>Welches Kernverhalten soll dauerhaft gesichert sein? → 1–3 funktionale Tests.</li>
-<li>Was wäre ein offensichtlicher Regressionsfall? → Expliziter Negativ-Test.</li>
-<li>Bug-Fix: Reproduziert der Test exakt den ursprünglichen Fehler?</li>
-</ul>
 <hr>
 <h2 id="schritt-4-spec-registrieren">Schritt 4: Spec registrieren</h2>
-<p>Falls eine <strong>neue</strong> <code>*.spec.ts</code>-Datei angelegt wurde, trage sie in <code>tests/e2e/playwright.config.ts</code> ein:</p>
+<p>Trage die neue Datei in <code>tests/e2e/playwright.config.ts</code> ein falls nötig:</p>
 <div class="code-wrapper"><pre><code class="language-typescript">// Im passenden project-Block (z.B. 'website')
 testMatch: [
-  // ... bestehende Einträge ...
-  '**/fa-&lt;NN&gt;-&lt;slug&gt;.spec.ts',  // &lt;Feature-Beschreibung&gt;
+  '**/fa-&lt;NN&gt;-&lt;slug&gt;.spec.ts',
 ],
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls Bug-Spec: in den <code>website</code>-Block einfügen (oder <code>services</code>, je nach Service):</p>
-<div class="code-wrapper"><pre><code class="language-typescript">'**/fa-bug-*.spec.ts',   // ist bereits als Wildcard vorhanden — nichts tun!
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-5-tests-ausfuehren-und-verifizieren">Schritt 5: Tests ausführen und verifizieren</h2>
-<p><code>PLAYWRIGHT_PROJECT</code> ergibt sich aus Schritt 1 (URL-Mapping-Tabelle).
-Für <code>systemtest</code> läuft der vollständige Zyklus gegen beide Cluster (via <code>task systemtest:all:headed:both-prods</code>).</p>
 <blockquote>
-<p><strong>Wichtig — globalSetup/globalTeardown:</strong> <code>global-db-cleanup.ts</code> läuft als
-globalSetup/globalTeardown für <strong>alle</strong> Playwright-Projekte (nicht nur systemtest).
-Lokal schlägt der Start sofort fehl, wenn <code>CRON_SECRET</code> nicht gesetzt ist.
-Lösung: <code>SKIP_DB_PURGE=1</code> setzen (überspringt den DB-Purge, Tests laufen normal).</p>
+<p><strong>Wichtig:</strong> Details zu setup, working directory und global Setup/Purge Bypässen (<code>SKIP_DB_PURGE=1</code>) findest du in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md#t000218">dev-flow-gotchas.md</a>.</p>
 </blockquote>
-<blockquote>
-<p><strong>Wichtig — working directory:</strong> Playwright <strong>muss</strong> aus <code>tests/e2e/</code> heraus
-gestartet werden. <code>npx playwright</code> vom Repo-Root aus findet zwei Versionen von
-<code>@playwright/test</code> (Repo-Root + <code>tests/e2e/node_modules</code>) und bricht ab.</p>
-</blockquote>
-<blockquote>
-<p><strong>Wichtig — Dependencies &amp; Binary:</strong> Auf einem frischen Checkout fehlen die
-<code>tests/e2e/</code>-Dependencies. Dann zieht <code>npx playwright</code> eine fremde Version nach
-<code>~/.npm/_npx</code> und bricht mit <code>Cannot find module '@playwright/test'</code> ab. Vorher
-<strong>immer</strong> <code>cd tests/e2e/ &amp;&amp; npm ci</code> ausführen und danach das lokale Binary
-<code>./node_modules/.bin/playwright</code> (statt <code>npx playwright</code>) verwenden — so wird
-garantiert die projekt-lokale Version benutzt.</p>
-</blockquote>
-<blockquote>
-<p><strong>Wichtig — korczewski-setup auth overwrite:</strong> Das Ausführen von Tests im <code>korczewski</code>-Projekt (selbst mit <code>--grep</code>) triggert automatisch das dependency-Projekt <code>korczewski-setup</code>. Wenn <code>TEST_ADMIN_PASSWORD</code> nicht gesetzt ist, überschreibt dies bestehende gültige Auth-Cookies in <code>.auth/korczewski-*.json</code> mit leeren Werten! Wenn du bestehende gültige Cookies behalten willst, überspringe <code>korczewski-setup</code> (indem du den Test direkt ohne das Projekt oder mit einem Mock ausführst) oder setze <code>TEST_ADMIN_PASSWORD</code> vor dem Ausführen.</p>
-</blockquote>
-<div class="code-wrapper"><pre><code class="language-bash"># Wähle Ausführungsmodus basierend auf dem Playwright-Projekt
-
-if &amp;quot;$PLAYWRIGHT_PROJECT&amp;quot; == &amp;quot;systemtest&amp;quot;; then
-  # systemtest: 4 headed workers, beide Cluster parallel
-  # Voraussetzung: E2E_ADMIN_PASS muss gesetzt sein
-  if -z &amp;quot;${E2E_ADMIN_PASS:-}&amp;quot;; then
-    echo "ERROR: E2E_ADMIN_PASS required for systemtest runs" &gt;&amp;2
-    exit 1
-  fi
-  task systemtest:all:headed:both-prods
-
-else
-  # Alle anderen Projekte: 1 Worker headless (Standardpfad)
-  # SKIP_DB_PURGE=1 überspringt global-db-cleanup.ts (nötig ohne CRON_SECRET lokal)
-  # Spec path must come BEFORE --project; Playwright treats positional args after
-  # --project as project names and throws "project not found".
-  # npm ci einmalig auf frischem Checkout; danach lokales Binary statt npx.
-  cd tests/e2e/ &amp;&amp; -x ./node_modules/.bin/playwright || npm ci
-  SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
-    specs/&lt;neu&gt;.spec.ts \
-    --project "$PLAYWRIGHT_PROJECT"
-fi
-
-# Bei Fehlern: Trace und Screenshot ansehen
-ls tests/results/playwright-traces/
+<div class="code-wrapper"><pre><code class="language-bash"># E2E Tests ausführen
+cd tests/e2e/ &amp;&amp; -x ./node_modules/.bin/playwright || npm ci
+SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
+  specs/&lt;neu&gt;.spec.ts \
+  --project "$PLAYWRIGHT_PROJECT"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Ergebnis-Kategorien:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Ergebnis</th>
-<th>Aktion</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Alle Tests grün</td>
-<td>→ Schritt 6</td>
-</tr>
-<tr>
-<td>Test schlägt wegen fehlendem Env (E2E_ADMIN_PASS) fehl</td>
-<td><code>test.skip(!VAR, '…')</code> ergänzen — das ist korrekt</td>
-</tr>
-<tr>
-<td>Test schlägt wegen echtem Fehler fehl</td>
-<td>Bug untersuchen; Screenshot in <code>/tmp/</code> ablegen; MISHAP_LOG Entry</td>
-</tr>
-<tr>
-<td>Playwright-MCP-Erkundung hat anderes Verhalten gezeigt als erwartet</td>
-<td>Test-Erwartung anpassen + Kommentar warum</td>
-</tr>
-</tbody></table>
 <hr>
 <h2 id="schritt-6-test-inventory-aktualisieren">Schritt 6: Test-Inventory aktualisieren</h2>
 <p>Falls neue FA-Tests angelegt wurden:</p>
 <div class="code-wrapper"><pre><code class="language-bash">task test:inventory
 git diff website/src/data/test-inventory.json
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls diff nicht leer: <code>test-inventory.json</code> in den Commit aufnehmen.</p>
 <hr>
 <h2 id="schritt-7-commit--push">Schritt 7: Commit &amp; Push</h2>
 <div class="code-wrapper"><pre><code class="language-bash">git add tests/e2e/specs/&lt;neu&gt;.spec.ts
-git add tests/e2e/playwright.config.ts    # nur falls geändert
-git add website/src/data/test-inventory.json  # nur falls geändert
+git add tests/e2e/playwright.config.ts
+git add website/src/data/test-inventory.json
 
 git commit -m "test(&lt;scope&gt;): add E2E tests for &lt;feature&gt; [$TICKET_ID]"
 git push
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Kein neuer PR nötig — dieser Commit geht direkt auf <code>main</code> (sofern kein offener Branch mehr existiert). Falls noch auf einem Feature-Branch: normaler PR-Flow.</p>
 <hr>
 <h2 id="schritt-8-e2e-smoke-auf-live-optional-anstossen">Schritt 8: E2E Smoke auf Live optional anstoßen</h2>
-<p>Falls die Änderung kritisch ist oder neue Service-Endpunkte betrifft:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Alle website-Tests gegen Mentolder-Live — aus tests/e2e/ ausführen!
-cd tests/e2e/ &amp;&amp; SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_modules/.bin/playwright test \
+<div class="code-wrapper"><pre><code class="language-bash">cd tests/e2e/ &amp;&amp; SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_modules/.bin/playwright test \
   --project website
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="agent-routing">Agent-Routing</h2>
-<ul>
-<li>Tests schreiben/debuggen → <code>bachelorprojekt-test</code></li>
-<li>Bei Fehlern in Live-Cluster → <code>bachelorprojekt-ops</code></li>
-<li>Astro/Svelte/UI-Änderungen verstehen → <code>bachelorprojekt-website</code></li>
-</ul>
-<p><strong>Pflicht vor jedem Sub-Agent-Dispatch:</strong> <code>bash scripts/plan-context.sh &lt;role&gt;</code> ausführen und die Ausgabe in <code>&lt;active-plans&gt;</code> Tags voranstellen.</p>
-<hr>
-<h2 id="post-execution-mishap-report">Post-Execution: Mishap Report</h2>
-<p>After completing all steps in this skill, invoke <code>mishap-tracker</code> with your
-accumulated <code>MISHAP_LOG</code>. If no mishaps were found, <code>mishap-tracker</code> exits
-cleanly with "No mishaps found."</p>
-<hr>
-<h2 id="schritt-9-loop-restart--skill-verbesserung">Schritt 9: Loop-Restart &amp; Skill-Verbesserung</h2>
-<p>Nach dem Mishap Report: offene Skill-Improvement-Tickets prüfen, triviale Fixes auto-anwenden, dann nächsten Zyklus starten.</p>
-<h3>9a — Triviale Tickets ermitteln</h3>
-<div class="code-wrapper"><pre><code class="language-bash">TRIVIAL_TICKETS=$(bash scripts/e2e-skill-selfpatch.sh --list-trivial)
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>Falls <code>$TRIVIAL_TICKETS</code> leer: direkt zu <strong>9c</strong>.</p>
-<h3>9b — Triviale Fixes anwenden</h3>
-<p>Für jedes Ticket aus <code>$TRIVIAL_TICKETS</code> (Format: <code>EXT_ID|DESCRIPTION</code>):</p>
-<div class="code-wrapper"><pre><code class="language-bash">while IFS='|' read -r EXT_ID DESCRIPTION; do
-  -z &amp;quot;$EXT_ID&amp;quot; &amp;&amp; continue
-
-  echo "Applying fix for $EXT_ID: $DESCRIPTION"
-
-  # 1. Patch anwenden: DESCRIPTION lesen und SKILL.md editieren (Edit-Tool verwenden)
-  #    Triviale Fixes: falschen Command korrigieren, fehlenden Schritt ergänzen, Beispiel präzisieren
-  #    NIEMALS strukturelle Änderungen hier — nur Zeilen-Level-Korrekturen
-
-  # 2. Nach dem Edit: Branch anlegen und via Script committen + mergen
-  BRANCH="chore/e2e-skill-selfpatch-${EXT_ID,,}"
-  git checkout -b "$BRANCH"
-  bash scripts/e2e-skill-selfpatch.sh --commit "$EXT_ID" "$BRANCH"
-
-done &lt;&lt;&lt; "$TRIVIAL_TICKETS"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Trivial vs. strukturell:</strong></p>
-<ul>
-<li><strong>Trivial:</strong> Command korrigieren, Exit-Code-Check ergänzen, fehlendes <code>bash</code>-Schritt hinzufügen, Beispiel präzisieren</li>
-<li><strong>Strukturell:</strong> Nummerierte Schritte umordnen/entfernen, Skill-Aufruf-Zeitpunkt ändern, Routing-Tabelle in CLAUDE.md anpassen</li>
-</ul>
-<h3>9c — Strukturelle Tickets zurückstellen</h3>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/e2e-skill-selfpatch.sh --defer-structural
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>9d — Loop neu starten</h3>
-<div class="code-wrapper"><pre><code>Schritt 9 abgeschlossen. Alle skill-improvement Tickets bearbeitet (oder keine vorhanden).
-→ Nächsten Zyklus starten: rufe `ticket-management` auf.
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="schritt-9-beendigung-und-nachbereitung">Schritt 9: Beendigung und Nachbereitung</h2>
+<ol>
+<li><strong>Mishap Report</strong>: Melde am Ende dieses Skills alle aufgetretenen Fehler über <code>mishap-tracker</code>.</li>
+<li><strong>Operations</strong>: Fahre danach mit <code>operations-management</code> fort, um den Status des zugehörigen PRs oder Tickets zu überwachen.</li>
+</ol>
 </body></html>
 </article>
 

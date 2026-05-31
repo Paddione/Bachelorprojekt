@@ -223,7 +223,10 @@ export function buildPages(sources, routingRows = []) {
     : (routingRows && Array.isArray(routingRows.routingRows) ? routingRows.routingRows : []);
   return sources.map((src) => {
     const { data, body } = parseFrontmatter(src.raw);
-    const slug = slugify(src.name);
+    let slug = slugify(src.name);
+    if (src.type === 'doc' && src.name === 'db-schema-diagram') {
+      slug = 'db-schema';
+    }
     const title = deriveTitle(data, body, slug);
     const description = firstString(data, ['description', 'summary']);
     const fmDomain = firstString(data, ['domain']);
@@ -240,7 +243,9 @@ export function buildPages(sources, routingRows = []) {
       bodyMarkdown: body,
       sourcePath: src.sourcePath,
     };
-    const domain = assignDomain(draft, rows);
+    const domain = (src.type === 'doc' && src.name === 'db-schema-diagram')
+      ? 'db'
+      : assignDomain(draft, rows);
     const page = {
       slug,
       type: src.type,

@@ -53,6 +53,9 @@ test('discoverSources: finds repo skill, repo agent, doc; excludes specs; missin
     // an EXCLUDED doc under plans
     await mkdir(join(root, 'docs/superpowers/plans'), { recursive: true });
     await writeFile(join(root, 'docs/superpowers/plans/internal.md'), '# Internal plan\n');
+    // an EXCLUDED generated repo map under agent-guide/maps (S3)
+    await mkdir(join(root, 'docs/agent-guide/maps'), { recursive: true });
+    await writeFile(join(root, 'docs/agent-guide/maps/goals-map.md'), '# Goals map\n');
 
     const sources = await discoverSources({
       repoRoot: root,
@@ -69,6 +72,7 @@ test('discoverSources: finds repo skill, repo agent, doc; excludes specs; missin
     // excluded
     assert.ok(!paths.includes(join(root, 'docs/superpowers/specs/internal.md')), 'specs excluded');
     assert.ok(!paths.includes(join(root, 'docs/superpowers/plans/internal.md')), 'plans excluded');
+    assert.ok(!paths.includes(join(root, 'docs/agent-guide/maps/goals-map.md')), 'agent-guide maps excluded');
 
     // shapes & types
     const skill = sources.find(s => s.sourcePath.endsWith('fleet-ops/SKILL.md'));

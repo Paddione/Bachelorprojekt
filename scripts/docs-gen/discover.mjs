@@ -16,6 +16,7 @@ import { join, sep, basename } from 'node:path';
 const DOC_EXCLUDE_PREFIXES = [
   join('docs', 'superpowers', 'specs'),
   join('docs', 'superpowers', 'plans'),
+  join('docs', 'agent-guide', 'maps'), // grep-only repo maps (S3), not a published doc page
 ];
 
 /**

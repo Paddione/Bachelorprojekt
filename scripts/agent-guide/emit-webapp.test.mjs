@@ -159,3 +159,96 @@ test('serialize: byte-identical across two runs (determinism guard)', () => {
   // Stable, indented, deterministic key order at top level:
   assert.match(a, /^\{\n {2}"\$schema": "agent-guide\.generated\/v1",/);
 });
+
+// ── Task 2 (new): themes, glossary, per-card field passthrough ───────────────
+import { readFileSync as testReadFileSync, existsSync as testExistsSync } from 'node:fs';
+
+/** Extend the shared fixture with themes.yaml + glossary.yaml + new card fields. */
+function fixtureRegistryThemed() {
+  const dir = globalThis.__agFixtureRegistry();
+  writeFileSync(join(dir, 'themes.yaml'), [
+    '- { id: website,    label_de: "Website",       emoji: "🌐", order: 1, accent: "#4a9eff", blurb_de: "Webseite." }',
+    '- { id: entwickeln, label_de: "Entwickeln",    emoji: "⚙",  order: 2, accent: "#b89bff", blurb_de: "Dev-Flow." }',
+    '',
+  ].join('\n'));
+  writeFileSync(join(dir, 'glossary.yaml'), [
+    '- { term: "PR",  def_de: "Ein Änderungsvorschlag." }',
+    '- { term: "ENV", def_de: "Die Ziel-Umgebung." }',
+    '',
+  ].join('\n'));
+  // Re-author goals/tools with the new fields the fixture didn't carry:
+  writeFileSync(join(dir, 'tools.yaml'), [
+    '- id: agent-website',
+    '  name_de: "Website-Agent"', '  kind: agent', '  summary_de: "Ändert Website-Texte."',
+    '  what_for_de: "Pflegt Inhalte."', '  how_to_start_de: "Sag, welche Seite."',
+    '  what_could_go_wrong_de: "Falsche Seite."', '  danger: safe',
+    '  theme: website', '  common: true', '  order: 1', '  aliases_de: [text, inhalt]',
+    '  guardrails: []', '  related: [dev-flow-plan]',
+    '  links: [{ label_de: "Doku", url: "https://example/doc.html" }]',
+    '- id: dev-flow-plan',
+    '  name_de: "Entwicklungs-Plan starten"', '  kind: skill', '  summary_de: "Plant eine Änderung."',
+    '  what_for_de: "Wählt den Pfad."', '  how_to_start_de: "Beschreibe es."',
+    '  what_could_go_wrong_de: "Nichts Gefährliches."', '  danger: safe',
+    '  theme: entwickeln', '  aliases_de: [plan]', '  guardrails: [G-ENV-EXPLICIT]',
+    '  related: []', '  links: []', '',
+  ].join('\n'));
+  writeFileSync(join(dir, 'goals.yaml'), [
+    '- id: change-website-text',
+    '  title_de: "Ich will den Text auf der Website ändern"',
+    '  when_de: "Wenn etwas Falsches dasteht."', '  danger: forbidden',
+    '  theme: website', '  one_liner_de: "Text korrigieren."',
+    '  common: true', '  order: 2', '  aliases_de: [text, ueberschrift]',
+    '  flow:', '    - { tool: agent-website, note_de: "Sag ihm, welche Seite." }',
+    '  example_prompt_de: "Ändere die Überschrift."',
+    '  guardrails: [G-ENV-EXPLICIT]', '  related: []', '',
+  ].join('\n'));
+  return dir;
+}
+
+test('buildWebappData: emits ordered themes[] from themes.yaml', () => {
+  const data = buildWebappData(fixtureRegistryThemed());
+  assert.ok(Array.isArray(data.themes));
+  assert.deepEqual(data.themes.map(t => t.id), ['website', 'entwickeln']);
+  assert.equal(data.themes[0].label_de, 'Website');
+  assert.equal(data.themes[0].emoji, '🌐');
+  assert.equal(data.themes[0].accent, '#4a9eff');
+});
+
+test('buildWebappData: emits glossary[] from glossary.yaml', () => {
+  const data = buildWebappData(fixtureRegistryThemed());
+  assert.deepEqual(data.glossary.map(g => g.term), ['PR', 'ENV']);
+  assert.equal(data.glossary[0].def_de, 'Ein Änderungsvorschlag.');
+});
+
+test('buildWebappData: passes through theme/one_liner_de/aliases_de/common/order/links', () => {
+  const data = buildWebappData(fixtureRegistryThemed());
+  const goal = data.goals.find(g => g.id === 'change-website-text');
+  assert.equal(goal.theme, 'website');
+  assert.equal(goal.one_liner_de, 'Text korrigieren.');
+  assert.equal(goal.common, true);
+  assert.equal(goal.order, 2);
+  assert.deepEqual(goal.aliases_de, ['text', 'ueberschrift']);
+
+  const tool = data.tools.find(t => t.id === 'agent-website');
+  assert.equal(tool.theme, 'website');
+  assert.deepEqual(tool.aliases_de, ['text', 'inhalt']);
+  assert.equal(tool.common, true);
+  assert.deepEqual(tool.links, [{ label_de: 'Doku', url: 'https://example/doc.html' }]);
+});
+
+test('buildWebappData: defaults escalate_to_de to "Patrick" on forbidden cards only', () => {
+  const data = buildWebappData(fixtureRegistryThemed());
+  const forbidden = data.goals.find(g => g.id === 'change-website-text'); // danger: forbidden in fixture
+  assert.equal(forbidden.escalate_to_de, 'Patrick');
+  const tool = data.tools.find(t => t.id === 'agent-website'); // danger: safe
+  assert.equal(tool.escalate_to_de, undefined, 'non-forbidden cards carry no escalate_to_de');
+});
+
+test('buildWebappData: tolerates a registry with no themes.yaml/glossary.yaml', () => {
+  const data = buildWebappData(globalThis.__agFixtureRegistry()); // original fixture, no themes file
+  assert.deepEqual(data.themes, []);
+  assert.deepEqual(data.glossary, []);
+  // missing theme falls back to 'allgemein'
+  assert.equal(data.goals[0].theme, 'allgemein');
+});
+

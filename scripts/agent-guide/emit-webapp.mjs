@@ -1,10 +1,11 @@
 // scripts/agent-guide/emit-webapp.mjs
 // S2 emitter: projects the agent-guide registry into the in-app render contract.
 import { loadRegistry, toolById, guardrailById } from './load.mjs';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, join } from 'node:path';
 import { validateRegistry } from './validate.mjs';
+import { parse as parseYaml } from 'yaml';
 
 /** Fixed per-tier palette (emitter-owned, §6.4). AA-contrast against the #0f1623 drawer. */
 const TIER_COLORS = {
@@ -31,12 +32,32 @@ function kindDe(kind) {
   }
 }
 
+/** Load an optional registry list file; return [] if it does not exist. */
+function loadOptionalList(registryDir, name) {
+  const file = join(registryDir, `${name}.yaml`);
+  if (!existsSync(file)) return [];
+  const parsed = parseYaml(readFileSync(file, 'utf8'));
+  return Array.isArray(parsed) ? parsed : [];
+}
+
 /**
  * Pure projection of the registry into the §6.2 contract object.
  * @param {string} registryDir path to docs/agent-guide/registry
  */
 export function buildWebappData(registryDir) {
   const reg = loadRegistry(registryDir);
+
+  const themesRaw = loadOptionalList(registryDir, 'themes');
+  const themes = themesRaw
+    .map(t => ({
+      id: t.id, label_de: t.label_de, emoji: t.emoji,
+      order: t.order ?? 999, accent: t.accent ?? '#888888', blurb_de: t.blurb_de ?? '',
+    }))
+    .sort((a, b) => a.order - b.order);
+  const themeIds = new Set(themes.map(t => t.id));
+
+  const glossary = loadOptionalList(registryDir, 'glossary')
+    .map(g => ({ term: g.term, def_de: g.def_de }));
 
   const taxonomy = reg.taxonomy.map(t => ({
     id: t.id,
@@ -59,6 +80,11 @@ export function buildWebappData(registryDir) {
     guardrails: (t.guardrails ?? []).map(resolveGuardrail),
     related: t.related ?? [],
     links: t.links ?? [],
+    theme: themeIds.has(t.theme) ? t.theme : (t.theme ?? 'allgemein'),
+    aliases_de: t.aliases_de ?? [],
+    common: t.common === true,
+    order: t.order ?? 999,
+    ...(t.danger === 'forbidden' ? { escalate_to_de: t.escalate_to_de ?? 'Patrick' } : {}),
   }));
 
   const goals = reg.goals.map(g => ({
@@ -74,6 +100,13 @@ export function buildWebappData(registryDir) {
     example_prompt_de: g.example_prompt_de,
     guardrails: (g.guardrails ?? []).map(resolveGuardrail),
     related: g.related ?? [],
+    links: g.links ?? [],
+    theme: themeIds.has(g.theme) ? g.theme : (g.theme ?? 'allgemein'),
+    one_liner_de: g.one_liner_de ?? g.when_de,
+    aliases_de: g.aliases_de ?? [],
+    common: g.common === true,
+    order: g.order ?? 999,
+    ...(g.danger === 'forbidden' ? { escalate_to_de: g.escalate_to_de ?? 'Patrick' } : {}),
   }));
 
   const components = {};
@@ -93,6 +126,8 @@ export function buildWebappData(registryDir) {
     $schema: 'agent-guide.generated/v1',
     generatedFrom: 'docs/agent-guide/registry',
     taxonomy,
+    themes,
+    glossary,
     goals,
     tools,
     components,

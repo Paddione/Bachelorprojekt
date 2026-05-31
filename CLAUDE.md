@@ -183,10 +183,14 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 
 ### dev.mentolder.de stack
 
-- **The dev k3d cluster runs on `k3s-1` as a Docker sibling of the k3s control-plane.** `task dev:cluster:create` SSHes to that node — running it elsewhere fails. Recreating the cluster without `task dev:cluster:create` loses the load-bearing port mappings (`127.0.0.1:18080`, `0.0.0.0:2222`, `127.0.0.1:15432`).
-- **Dev sees prod data.** The 03:30 UTC `dev-db-refresh` CronJob drops + recreates the prod databases in `shared-db-dev` (the CronJob targets `website`, `bugs`, `bachelorprojekt` but **skips any DB not present on the prod source** — in practice only `website` exists on prod `shared-db`, so only it is refreshed). Since #1130 (T000286) the refresh **streams a live `pg_dump` from the prod `shared-db` Service over the cluster network**, not the encrypted snapshot files — the old Longhorn `backup-pvc` mount was dropped because the `$DEV_NODE` (k3s-1) pin has no Longhorn CSI driver. The local `task dev:db:refresh` path still restores from snapshot files. Don't write production rituals against the dev DB — they will be erased nightly.
+**Architecture (as of 2026-05):** 3-node k3s HA cluster (`devc`) on Proxmox dev1/dev2/dev3, replacing the old single-VM k3d setup on k3s-1.
+
+- **`devc` cluster:** 3 k3s server nodes (`devc-1/2/3`, IPs `10.0.0.21/22/23`) with embedded etcd + kube-vip ARP VIP `10.0.0.20`. context: `devc`. Deployed via `task devcluster:deploy`. **`task dev:cluster:create` is deprecated** (prints a deprecation notice and exits non-zero).
+- **Ingress:** Traefik LoadBalancer at VIP `10.0.0.20:80/443`. `oauth2-proxy-dev` in the fleet cluster forwards to `http://10.0.0.20:80`.
+- **Storage:** Longhorn (3 replicas, default StorageClass) on `/var/lib/longhorn` (200 GB LV per node). Install via `k3d/dev-cluster/longhorn-install.sh`. The k3s HelmChart CRD cannot reach `charts.longhorn.io` from within the cluster (TLS intercepted by Traefik); use the direct manifest script.
+- **Dev sees prod data.** The 03:30 UTC `dev-db-refresh` CronJob drops + recreates the prod databases in `shared-db-dev`. `PGHOST=10.0.0.20`, `PGPORT=15432` (LoadBalancer service `shared-db-dev-lb`). The local `task dev:db:refresh` path restores from snapshot files. Don't write production rituals against the dev DB — they will be erased nightly.
 - **SSH 2222 is publicly exposed** but ufw-deny-default'd. Per-CIDR allow rules apply via `task dev:firewall:open` (reads `DEV_SSH_ALLOWLIST` from `environments/mentolder.yaml`). Even allowlisted clients still need a key in `DEV_SISH_AUTHORIZED_KEYS` to publish tunnels.
-- **Dev secrets are sealed against the mentolder cert** (the dev-db-refresh CronJob runs in prod), but materialised inside dev k3d as plain Secrets by `task dev:_materialise-secrets`. Don't `kubectl apply environments/sealed-secrets/mentolder.yaml` to the `k3d-mentolder-dev` context — there's no sealed-secrets controller there.
+- **Dev secrets** are materialised as plain Secrets by `task dev:_materialise-secrets`. Don't `kubectl apply environments/sealed-secrets/mentolder.yaml` to the `devc` context — there's no sealed-secrets controller there.
 - **`workspace-dev` Keycloak client enforces `/dev-access` group membership at the oauth2-proxy layer** (`--allowed-groups=/dev-access`). Add yourself in the KC admin UI before the first visit, else you'll loop on 403.
 
 ### WSL Bootstrapping & Workstation Setup

@@ -38,9 +38,9 @@ spec:
               image: pgvector/pgvector:0.8.0-pg16
               command: [/bin/bash, /scripts/dev-db-refresh.sh]
               env:
-                # Destination: dev k3d Postgres via the k3d NodePort on k3s-1.
+                # Destination: dev Postgres via the HA dev-cluster VIP LoadBalancer.
                 - name: PGHOST
-                  value: 127.0.0.1
+                  value: 10.0.0.20
                 - name: PGPORT
                   value: "15432"
                 # Source: live prod shared-db over the cluster network.

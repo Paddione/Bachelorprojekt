@@ -33,7 +33,7 @@ _exec_sql() {
 }
 
 cmd_create() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="" status="triage"
+  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --type)        type="$2"; shift 2 ;;

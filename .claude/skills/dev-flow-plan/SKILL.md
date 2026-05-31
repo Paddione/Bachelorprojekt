@@ -23,6 +23,7 @@ TICKET_RESULT=$(./scripts/ticket.sh create \
   --type task \
   --brand mentolder \
   --title "Grilling: <kurzer-titel>" \
+  --priority mittel \
   --description "FUNKTIONALE ANFORDERUNGEN:"$'\n'"$GRILLING_REQUIREMENTS"$'\n\n'"ASSETS ZU BESCHAFFEN:"$'\n'"$GRILLING_ASSETS_TODO")
 
 export GRILLING_TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
@@ -123,6 +124,7 @@ TICKET_RESULT=$(./scripts/ticket.sh create \
   --type task \
   --brand mentolder \
   --title "Plan: <slug>" \
+  --priority mittel \
   --description "Branch: feature/<slug>"$'\n'"Plan: docs/superpowers/plans/<date>-<slug>.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
 
 TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)

@@ -6,6 +6,8 @@
   how_to_start_de: "Beschreibe einfach in eigenen Worten, was du ändern willst – der Skill startet von selbst."
   what_could_go_wrong_de: "Wenig: er stoppt bewusst, bevor Code geschrieben wird. Du bestätigst Design und Plan."
   danger: caution
+  theme: entwickeln
+  aliases_de: [plan, planen, brainstorm, spec]
   guardrails: [G-PULL-FIRST]
   related: [dev-flow-execute]
   links: []
@@ -17,6 +19,8 @@
   how_to_start_de: "Sage '/dev-flow-execute' oder 'Setze den Plan um' – ein staged Plan muss bereits existieren."
   what_could_go_wrong_de: "Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren."
   danger: caution
+  theme: entwickeln
+  aliases_de: [umsetzen, implementieren, ausfuehren, pr]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [dev-flow-plan, dev-flow-iterate]
   links: []
@@ -28,6 +32,8 @@
   how_to_start_de: "Nutze ihn nach dev-flow-execute, wenn du etwas im Dev-Cluster live sehen willst."
   what_could_go_wrong_de: "Deployment schlägt fehl; Logs zeigen den Fehler. ENV= muss auf dev zeigen."
   danger: caution
+  theme: entwickeln
+  aliases_de: [dev, iterieren, ausprobieren, "dev-cluster"]
   guardrails: [G-ENV-EXPLICIT, G-CONTEXT-CHECK]
   related: [dev-flow-execute, dev-flow-e2e]
   links: []
@@ -39,6 +45,8 @@
   how_to_start_de: "Nur nach einem Merge und Deploy aufrufen; Umgebungs-URL muss erreichbar sein."
   what_could_go_wrong_de: "Test schlägt fehl, wenn die Umgebung noch startet oder fehlerhaft deployt wurde."
   danger: caution
+  theme: testen
+  aliases_de: [e2e, playwright, "end-to-end", walkthrough]
   guardrails: [G-ENV-EXPLICIT]
   related: [dev-flow-iterate]
   links: []
@@ -50,6 +58,10 @@
   how_to_start_de: "Rufe auf: bash scripts/task-oracle.sh 'Dein Ziel auf Deutsch'."
   what_could_go_wrong_de: "Das Orakel könnte den falschen Task vorschlagen; prüfe immer die Ausgabe kurz."
   danger: safe
+  theme: entwickeln
+  common: true
+  order: 5
+  aliases_de: [task, orakel, befehl, taskfile, kommando]
   guardrails: []
   related: []
   links: []
@@ -61,9 +73,12 @@
   how_to_start_de: "Beschreibe einfach, was auf der Website geändert werden soll."
   what_could_go_wrong_de: "Visuelle Änderungen wirken erst nach einem Deploy; er kann Typo-Fehler einbauen."
   danger: caution
+  theme: website
+  aliases_de: [website, astro, svelte, css, frontend]
   guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
   related: [agent-infra]
-  links: []
+  links:
+    - { label_de: "Claude-Code-Doku", url: "https://docs.mentolder.de/claude-code.html" }
 - id: agent-ops
   name_de: "Betriebs-Agent (ops)"
   kind: agent
@@ -72,6 +87,10 @@
   how_to_start_de: "Frag z. B.: 'Warum startet Nextcloud nicht?' oder 'Zeig mir den Status aller Dienste.'"
   what_could_go_wrong_de: "Beim reinen Nachschauen kaum etwas. Vorsicht erst, wenn er etwas neu startet (das ist 🟡)."
   danger: safe
+  theme: betrieb
+  common: true
+  order: 4
+  aliases_de: ["warum rot", crash, logs, "laeuft nicht", status, betrieb]
   guardrails: [G-CONTEXT-CHECK]
   related: [agent-infra]
   links: []
@@ -83,6 +102,8 @@
   how_to_start_de: "Beschreibe, was deployt oder konfiguriert werden soll – immer mit dem Ziel-ENV."
   what_could_go_wrong_de: "Falsches ENV= deployt in die falsche Umgebung (🟠). Manifestfehler können Dienste lahmlegen."
   danger: assisted
+  theme: ausrollen
+  aliases_de: [infra, kubernetes, kustomize, manifest, deploy]
   guardrails: [G-ENV-EXPLICIT, G-VALIDATE-FIRST, G-ASK-EXPERT]
   related: [agent-ops, agent-security]
   links: []
@@ -94,6 +115,8 @@
   how_to_start_de: "Sage z. B. 'Schreib einen Test für Feature X' oder 'FA-05 schlägt fehl, bitte fixen'."
   what_could_go_wrong_de: "Test kann die falsche Umgebung treffen; Playwright braucht laufende Dienste."
   danger: caution
+  theme: testen
+  aliases_de: [test, bats, playwright, vitest]
   guardrails: [G-ENV-EXPLICIT]
   related: [dev-flow-e2e]
   links: []
@@ -105,6 +128,8 @@
   how_to_start_de: "Beschreibe die Datenbankaufgabe – Schema-Migration, Query oder Datenfix."
   what_could_go_wrong_de: "Schema-Änderungen betreffen beide Marken (workspace + workspace-korczewski). Falsche DB-Operation kann Daten unwiederbringlich löschen (🟠)."
   danger: assisted
+  theme: datenbank
+  aliases_de: [datenbank, postgres, schema, backup, query]
   guardrails: [G-ENV-EXPLICIT, G-ASK-EXPERT]
   related: [agent-infra]
   links: []
@@ -116,6 +141,9 @@
   how_to_start_de: "Nur mit Vorsicht aufrufen; erkläre genau, welches Secret oder welche Konfiguration geändert werden soll."
   what_could_go_wrong_de: "Falsche Reihenfolge bei Sealed-Secrets überschreibt Produktiv-Zugangsdaten (🔴). Nur mit Patrick abstimmen."
   danger: assisted
+  theme: sicherheit
+  aliases_de: [secret, keycloak, oidc, sealedsecret, zertifikat, rotieren]
   guardrails: [G-SECRET-ORDER, G-ASK-EXPERT, G-ENV-EXPLICIT]
   related: [agent-infra]
-  links: []
+  links:
+    - { label_de: "Begriffe & Glossar", url: "https://docs.mentolder.de/glossary.html" }

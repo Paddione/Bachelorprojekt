@@ -21,6 +21,25 @@ export interface GoalFlowStep {
   note_de: string;
 }
 
+export interface LinkRef {
+  label_de: string;
+  url: string;
+}
+
+export interface Theme {
+  id: string;
+  label_de: string;
+  emoji: string;
+  order: number;
+  accent: string;
+  blurb_de: string;
+}
+
+export interface GlossaryEntry {
+  term: string;
+  def_de: string;
+}
+
 export interface Goal {
   id: string;
   title_de: string;
@@ -30,6 +49,13 @@ export interface Goal {
   example_prompt_de: string;
   guardrails: GuardrailChip[];
   related: string[];
+  links: LinkRef[];
+  theme: string;
+  one_liner_de: string;
+  aliases_de: string[];
+  common: boolean;
+  order: number;
+  escalate_to_de?: string;
 }
 
 export interface Tool {
@@ -44,7 +70,12 @@ export interface Tool {
   danger: string;
   guardrails: GuardrailChip[];
   related: string[];
-  links: string[];
+  links: LinkRef[];
+  theme: string;
+  aliases_de: string[];
+  common: boolean;
+  order: number;
+  escalate_to_de?: string;
 }
 
 export interface Component {
@@ -58,6 +89,8 @@ export interface Component {
 }
 
 export const taxonomy: TierEntry[] = data.taxonomy as TierEntry[];
+export const themes: Theme[] = (data.themes ?? []) as Theme[];
+export const glossary: GlossaryEntry[] = (data.glossary ?? []) as GlossaryEntry[];
 export const goals: Goal[] = data.goals as Goal[];
 export const tools: Tool[] = data.tools as Tool[];
 export const components: Record<string, Component> = data.components as Record<string, Component>;
@@ -84,3 +117,4 @@ export function tierLabel(id: string): string {
 export function componentBySlug(slug: string): Component | undefined {
   return components[slug];
 }
+

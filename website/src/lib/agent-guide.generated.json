@@ -31,6 +31,114 @@
       "color": "#d65a5a"
     }
   ],
+  "themes": [
+    {
+      "id": "website",
+      "label_de": "Website",
+      "emoji": "🌐",
+      "order": 1,
+      "accent": "#4a9eff",
+      "blurb_de": "Inhalte und Aussehen der Webseite."
+    },
+    {
+      "id": "betrieb",
+      "label_de": "Betrieb & Status",
+      "emoji": "🛠",
+      "order": 2,
+      "accent": "#7e9aa6",
+      "blurb_de": "Läuft alles? Logs und Status ansehen."
+    },
+    {
+      "id": "entwickeln",
+      "label_de": "Entwickeln (Dev-Flow)",
+      "emoji": "⚙",
+      "order": 3,
+      "accent": "#b89bff",
+      "blurb_de": "Planen, bauen, umsetzen — der Dev-Flow."
+    },
+    {
+      "id": "testen",
+      "label_de": "Testen",
+      "emoji": "🧪",
+      "order": 4,
+      "accent": "#00bcd4",
+      "blurb_de": "Automatische Tests schreiben und ausführen."
+    },
+    {
+      "id": "ausrollen",
+      "label_de": "Ausrollen & Infrastruktur",
+      "emoji": "🚀",
+      "order": 5,
+      "accent": "#5ad1c4",
+      "blurb_de": "Änderungen live bringen, Cluster verwalten."
+    },
+    {
+      "id": "datenbank",
+      "label_de": "Datenbank",
+      "emoji": "🗄",
+      "order": 6,
+      "accent": "#6c8cff",
+      "blurb_de": "Schema, Migrationen und Daten."
+    },
+    {
+      "id": "sicherheit",
+      "label_de": "Sicherheit & Geheimnisse",
+      "emoji": "🔒",
+      "order": 7,
+      "accent": "#c77dff",
+      "blurb_de": "Secrets, Keycloak, Zertifikate."
+    }
+  ],
+  "glossary": [
+    {
+      "term": "Skill",
+      "def_de": "Eine vordefinierte Anleitung, die der Agent Schritt für Schritt abarbeitet."
+    },
+    {
+      "term": "Agent",
+      "def_de": "Ein spezialisierter KI-Helfer für ein Themengebiet (z. B. Website, Datenbank)."
+    },
+    {
+      "term": "Task",
+      "def_de": "Ein benannter Befehl aus der Taskfile, z. B. zum Deployen oder Testen."
+    },
+    {
+      "term": "PR",
+      "def_de": "Pull Request — ein Änderungsvorschlag, der vor dem Zusammenführen geprüft wird."
+    },
+    {
+      "term": "Branch",
+      "def_de": "Eine abgetrennte Arbeitskopie des Codes, auf der gefahrlos entwickelt wird."
+    },
+    {
+      "term": "Merge",
+      "def_de": "Das Zusammenführen eines geprüften Branches in den Hauptstand (main)."
+    },
+    {
+      "term": "Deploy",
+      "def_de": "Das Ausrollen einer Änderung in eine laufende Umgebung."
+    },
+    {
+      "term": "Cluster",
+      "def_de": "Der Verbund von Servern, auf dem alle Dienste laufen (Kubernetes)."
+    },
+    {
+      "term": "Secret",
+      "def_de": "Ein Geheimnis wie Passwort oder Schlüssel; verschlüsselt gespeichert."
+    },
+    {
+      "term": "ENV",
+      "def_de": "Die Ziel-Umgebung eines Befehls, z. B. ENV=mentolder oder ENV=dev."
+    },
+    {
+      "term": "Guardrail",
+      "def_de": "Eine Schutzregel, die gefährliche Aktionen bremst oder blockiert."
+    },
+    {
+      "term": "CI",
+      "def_de": "Continuous Integration — automatische Tests bei jedem Pull Request."
+    }
+  ],
   "goals": [
     {
       "id": "website-text-aendern",
@@ -61,7 +169,20 @@
       ],
       "related": [
         "feature-bauen"
-      ]
+      ],
+      "links": [],
+      "theme": "website",
+      "one_liner_de": "Inhalt oder Preis auf der Website korrigieren.",
+      "aliases_de": [
+        "text",
+        "inhalt",
+        "preis",
+        "startseite",
+        "webseite",
+        "aendern"
+      ],
+      "common": true,
+      "order": 1
     },
     {
       "id": "dienst-status-pruefen",
@@ -79,7 +200,20 @@
       "guardrails": [],
       "related": [
         "bug-beheben"
-      ]
+      ],
+      "links": [],
+      "theme": "betrieb",
+      "one_liner_de": "Nachsehen, ob alle Dienste laufen.",
+      "aliases_de": [
+        "status",
+        "laeuft",
+        "gesund",
+        "pods",
+        "health",
+        "uebersicht"
+      ],
+      "common": true,
+      "order": 2
     },
     {
       "id": "bug-beheben",
@@ -115,7 +249,20 @@
       ],
       "related": [
         "feature-bauen"
-      ]
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "one_liner_de": "Etwas funktioniert nicht — finden und reparieren.",
+      "aliases_de": [
+        "fehler",
+        "bug",
+        "kaputt",
+        "geht nicht",
+        "reparieren",
+        "fix"
+      ],
+      "common": true,
+      "order": 3
     },
     {
       "id": "feature-bauen",
@@ -152,7 +299,19 @@
       "related": [
         "bug-beheben",
         "aenderung-ausrollen"
-      ]
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "one_liner_de": "Eine neue Funktion oder Seite hinzufügen.",
+      "aliases_de": [
+        "funktion",
+        "feature",
+        "neu",
+        "seite",
+        "bauen"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "aenderung-ausrollen",
@@ -188,7 +347,19 @@
       ],
       "related": [
         "feature-bauen"
-      ]
+      ],
+      "links": [],
+      "theme": "ausrollen",
+      "one_liner_de": "Einen gemergten Stand live schalten.",
+      "aliases_de": [
+        "deploy",
+        "ausrollen",
+        "live",
+        "produktion",
+        "release"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "datenbank-aendern",
@@ -229,7 +400,20 @@
       ],
       "related": [
         "feature-bauen"
-      ]
+      ],
+      "links": [],
+      "theme": "datenbank",
+      "one_liner_de": "Tabelle, Spalte oder Index ergänzen.",
+      "aliases_de": [
+        "datenbank",
+        "schema",
+        "migration",
+        "tabelle",
+        "spalte",
+        "sql"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "secret-aendern",
@@ -258,7 +442,22 @@
           "why_de": "Diese Aktionen können die Plattform für alle lahmlegen."
         }
       ],
-      "related": []
+      "related": [],
+      "links": [],
+      "theme": "sicherheit",
+      "one_liner_de": "Passwort, Schlüssel oder Zertifikat rotieren.",
+      "aliases_de": [
+        "passwort",
+        "geheimnis",
+        "api-schluessel",
+        "zertifikat",
+        "rotieren",
+        "credentials",
+        "secret"
+      ],
+      "common": false,
+      "order": 999,
+      "escalate_to_de": "Patrick"
     },
     {
       "id": "cluster-neu-aufsetzen",
@@ -300,7 +499,20 @@
       ],
       "related": [
         "aenderung-ausrollen"
-      ]
+      ],
+      "links": [],
+      "theme": "ausrollen",
+      "one_liner_de": "Cluster nach einem Ausfall neu aufbauen.",
+      "aliases_de": [
+        "cluster",
+        "reset",
+        "neuaufbau",
+        "sealedsecrets",
+        "ausfall"
+      ],
+      "common": false,
+      "order": 999,
+      "escalate_to_de": "Patrick"
     }
   ],
   "tools": [
@@ -325,7 +537,16 @@
       "related": [
         "dev-flow-execute"
       ],
-      "links": []
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "plan",
+        "planen",
+        "brainstorm",
+        "spec"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "dev-flow-execute",
@@ -355,7 +576,16 @@
         "dev-flow-plan",
         "dev-flow-iterate"
       ],
-      "links": []
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "umsetzen",
+        "implementieren",
+        "ausfuehren",
+        "pr"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "dev-flow-iterate",
@@ -385,7 +615,16 @@
         "dev-flow-execute",
         "dev-flow-e2e"
       ],
-      "links": []
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "dev",
+        "iterieren",
+        "ausprobieren",
+        "dev-cluster"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "dev-flow-e2e",
@@ -408,7 +647,16 @@
       "related": [
         "dev-flow-iterate"
       ],
-      "links": []
+      "links": [],
+      "theme": "testen",
+      "aliases_de": [
+        "e2e",
+        "playwright",
+        "end-to-end",
+        "walkthrough"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "task-oracle",
@@ -422,7 +670,17 @@
       "danger": "safe",
       "guardrails": [],
       "related": [],
-      "links": []
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "task",
+        "orakel",
+        "befehl",
+        "taskfile",
+        "kommando"
+      ],
+      "common": true,
+      "order": 5
     },
     {
       "id": "agent-website",
@@ -451,7 +709,22 @@
       "related": [
         "agent-infra"
       ],
-      "links": []
+      "links": [
+        {
+          "label_de": "Claude-Code-Doku",
+          "url": "https://docs.mentolder.de/claude-code.html"
+        }
+      ],
+      "theme": "website",
+      "aliases_de": [
+        "website",
+        "astro",
+        "svelte",
+        "css",
+        "frontend"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "agent-ops",
@@ -474,7 +747,18 @@
       "related": [
         "agent-infra"
       ],
-      "links": []
+      "links": [],
+      "theme": "betrieb",
+      "aliases_de": [
+        "warum rot",
+        "crash",
+        "logs",
+        "laeuft nicht",
+        "status",
+        "betrieb"
+      ],
+      "common": true,
+      "order": 4
     },
     {
       "id": "agent-infra",
@@ -510,7 +794,17 @@
         "agent-ops",
         "agent-security"
       ],
-      "links": []
+      "links": [],
+      "theme": "ausrollen",
+      "aliases_de": [
+        "infra",
+        "kubernetes",
+        "kustomize",
+        "manifest",
+        "deploy"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "agent-test",
@@ -533,7 +827,16 @@
       "related": [
         "dev-flow-e2e"
       ],
-      "links": []
+      "links": [],
+      "theme": "testen",
+      "aliases_de": [
+        "test",
+        "bats",
+        "playwright",
+        "vitest"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "agent-db",
@@ -562,7 +865,17 @@
       "related": [
         "agent-infra"
       ],
-      "links": []
+      "links": [],
+      "theme": "datenbank",
+      "aliases_de": [
+        "datenbank",
+        "postgres",
+        "schema",
+        "backup",
+        "query"
+      ],
+      "common": false,
+      "order": 999
     },
     {
       "id": "agent-security",
@@ -597,7 +910,23 @@
       "related": [
         "agent-infra"
       ],
-      "links": []
+      "links": [
+        {
+          "label_de": "Begriffe & Glossar",
+          "url": "https://docs.mentolder.de/glossary.html"
+        }
+      ],
+      "theme": "sicherheit",
+      "aliases_de": [
+        "secret",
+        "keycloak",
+        "oidc",
+        "sealedsecret",
+        "zertifikat",
+        "rotieren"
+      ],
+      "common": false,
+      "order": 999
     }
   ],
   "components": {

@@ -32,6 +32,10 @@ export function validateRegistry(dir, repoRoot = null) {
   const goals = load(dir, 'goals.yaml');
   const components = load(dir, 'components.yaml');
 
+  let themes = [];
+  try { themes = load(dir, 'themes.yaml'); } catch { themes = []; }
+  const themeIds = new Set((themes ?? []).map((t) => t && t.id));
+
   const taxIds = new Set(taxonomy.map((t) => t.id));
   const grIds = new Set(guardrails.map((g) => g.id));
   const toolIds = new Set(tools.map((t) => t.id));
@@ -63,6 +67,20 @@ export function validateRegistry(dir, repoRoot = null) {
       req(toolIds.has(step?.tool), `goals[${g?.id}]: flow tool '${step?.tool}' unknown`);
     for (const gid of g?.guardrails ?? []) req(grIds.has(gid), `goals[${g?.id}]: guardrail '${gid}' unknown`);
   }
+
+  // Opt-in checks on the new additive fields (skip silently when absent).
+  const checkCardExtras = (card, label) => {
+    if (card?.theme && themeIds.size > 0)
+      req(themeIds.has(card.theme), `${label}: theme '${card.theme}' not in themes.yaml`);
+    if (typeof card?.one_liner_de === 'string')
+      req(card.one_liner_de.length <= 80, `${label}: one_liner_de > 80 chars`);
+    for (const l of card?.links ?? []) {
+      if (l && typeof l === 'object')
+        req(typeof l.url === 'string' && l.url.length > 0, `${label}: link has empty 'url'`);
+    }
+  };
+  for (const t of tools) checkCardExtras(t, `tools[${t?.id}]`);
+  for (const g of goals) checkCardExtras(g, `goals[${g?.id}]`);
 
   for (const c of components) {
     for (const k of ['slug', 'kind', 'name', 'emoji', 'summary_de', 'what_for_de', 'placeholder_en', 'sensitivity'])

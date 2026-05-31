@@ -23,6 +23,25 @@ export interface GoalFlowStep {
   note_de: string;
 }
 
+export interface LinkRef {
+  label_de: string;
+  url: string;
+}
+
+export interface Theme {
+  id: string;
+  label_de: string;
+  emoji: string;
+  order: number;
+  accent: string;
+  blurb_de: string;
+}
+
+export interface GlossaryEntry {
+  term: string;
+  def_de: string;
+}
+
 export interface Goal {
   id: string;
   title_de: string;
@@ -32,6 +51,13 @@ export interface Goal {
   example_prompt_de: string;
   guardrails: GuardrailChip[];
   related: string[];
+  links: LinkRef[];
+  theme: string;
+  one_liner_de: string;
+  aliases_de: string[];
+  common: boolean;
+  order: number;
+  escalate_to_de?: string;
 }
 
 export interface Tool {
@@ -46,13 +72,20 @@ export interface Tool {
   danger: string;
   guardrails: GuardrailChip[];
   related: string[];
-  links: string[];
+  links: LinkRef[];
+  theme: string;
+  aliases_de: string[];
+  common: boolean;
+  order: number;
+  escalate_to_de?: string;
 }
 
 export interface GuideData {
   goals: Goal[];
   tools: Tool[];
   taxonomy: TierEntry[];
+  themes: Theme[];
+  glossary: GlossaryEntry[];
 }
 
 export function loadGuideData(): GuideData {
@@ -62,8 +95,19 @@ export function loadGuideData(): GuideData {
     goals: raw.goals as Goal[],
     tools: raw.tools as Tool[],
     taxonomy: raw.taxonomy as TierEntry[],
+    themes: raw.themes as Theme[],
+    glossary: raw.glossary as GlossaryEntry[],
   };
 }
+
+/** Clicks a collapsed card's header (by visible title) to expand it; returns the card locator. */
+export async function expandCardByTitle(page: Page, title: string) {
+  const card = page.locator('.ag-card').filter({ has: page.locator('.ag-name', { hasText: title }) }).first();
+  await card.locator('.ag-card-head').click();
+  await expect(card.locator('.ag-card-head')).toHaveAttribute('aria-expanded', 'true');
+  return card;
+}
+
 
 /** Navigates to the homepage, dismisses cookie consent, opens the PortalSidekick,
  *  and navigates to the Agent-Anleitung view. Returns the `.ag-body` locator. */

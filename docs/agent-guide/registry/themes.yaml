@@ -1,0 +1,11 @@
+# docs/agent-guide/registry/themes.yaml
+# Thematic groups for the Agent-Anleitung. `order` drives display order.
+# `accent` is a COOL hue only (blue/indigo/violet/purple/cyan/teal/slate) so it
+# never collides with the warm danger-tier ramp (green→amber→orange→red).
+- { id: website,    label_de: "Website",                   emoji: "🌐", order: 1, accent: "#4a9eff", blurb_de: "Inhalte und Aussehen der Webseite." }
+- { id: betrieb,    label_de: "Betrieb & Status",          emoji: "🛠", order: 2, accent: "#7e9aa6", blurb_de: "Läuft alles? Logs und Status ansehen." }
+- { id: entwickeln, label_de: "Entwickeln (Dev-Flow)",     emoji: "⚙", order: 3, accent: "#b89bff", blurb_de: "Planen, bauen, umsetzen — der Dev-Flow." }
+- { id: testen,     label_de: "Testen",                    emoji: "🧪", order: 4, accent: "#00bcd4", blurb_de: "Automatische Tests schreiben und ausführen." }
+- { id: ausrollen,  label_de: "Ausrollen & Infrastruktur", emoji: "🚀", order: 5, accent: "#5ad1c4", blurb_de: "Änderungen live bringen, Cluster verwalten." }
+- { id: datenbank,  label_de: "Datenbank",                 emoji: "🗄", order: 6, accent: "#6c8cff", blurb_de: "Schema, Migrationen und Daten." }
+- { id: sicherheit, label_de: "Sicherheit & Geheimnisse",  emoji: "🔒", order: 7, accent: "#c77dff", blurb_de: "Secrets, Keycloak, Zertifikate." }

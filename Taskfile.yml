@@ -2022,6 +2022,17 @@ tasks:
     cmds:
       - node scripts/build-docs.mjs
 
+  agent-guide:docs:
+    desc: "Regenerate docs/agent-guide/{10-ziele,20-werkzeuge,30-bausteine}.md from the registry"
+    cmds:
+      - node scripts/agent-guide/emit-docs.mjs
+
+  agent-guide:emit:
+    desc: "Umbrella: regenerate all agent-guide surfaces (docs + webapp + maps)"
+    cmds:
+      - task: agent-guide:docs
+      # agent-guide:webapp (S2) and agent-guide:maps (S3) are appended by those sub-projects.
+
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)
     cmds:

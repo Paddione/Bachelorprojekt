@@ -47,6 +47,28 @@ data:
         END IF;
       END $$;
 
+      -- db-backup runs `pg_dump -U website -d website`. Schemas whose tables
+      -- are owned by another role (arena_app, postgres) fail "permission
+      -- denied for table ..." mid-dump, marking the whole CronJob Failed.
+      -- Grant website read access on every backup-relevant schema so the dump
+      -- covers the full DB. Mirrors the arena_app grant above (guarded per
+      -- schema so it is a no-op when a schema is absent — e.g. arena on
+      -- mentolder/dev). Idempotent; re-applies on every cluster reset. [T000403]
+      DO $$
+      DECLARE
+        s TEXT;
+      BEGIN
+        FOREACH s IN ARRAY ARRAY['public','arena','bugs','bachelorprojekt','platform','meetings'] LOOP
+          IF EXISTS (SELECT FROM pg_namespace WHERE nspname = s) THEN
+            EXECUTE format('GRANT USAGE ON SCHEMA %I TO website', s);
+            EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO website', s);
+            EXECUTE format('GRANT SELECT ON ALL SEQUENCES IN SCHEMA %I TO website', s);
+            EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT ON TABLES TO website', s);
+            EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT ON SEQUENCES TO website', s);
+          END IF;
+        END LOOP;
+      END $$;
+
       CREATE TABLE IF NOT EXISTS customers (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           name TEXT NOT NULL,
@@ -717,6 +739,28 @@ data:
         IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'arena_app') THEN
           GRANT SELECT, REFERENCES ON public.brands TO arena_app;
         END IF;
+      END $$;
+
+      -- db-backup runs `pg_dump -U website -d website`. Schemas whose tables
+      -- are owned by another role (arena_app, postgres) fail "permission
+      -- denied for table ..." mid-dump, marking the whole CronJob Failed.
+      -- Grant website read access on every backup-relevant schema so the dump
+      -- covers the full DB. Mirrors the arena_app grant above (guarded per
+      -- schema so it is a no-op when a schema is absent — e.g. arena on
+      -- mentolder/dev). Idempotent; re-applies on every cluster reset. [T000403]
+      DO $$
+      DECLARE
+        s TEXT;
+      BEGIN
+        FOREACH s IN ARRAY ARRAY['public','arena','bugs','bachelorprojekt','platform','meetings'] LOOP
+          IF EXISTS (SELECT FROM pg_namespace WHERE nspname = s) THEN
+            EXECUTE format('GRANT USAGE ON SCHEMA %I TO website', s);
+            EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO website', s);
+            EXECUTE format('GRANT SELECT ON ALL SEQUENCES IN SCHEMA %I TO website', s);
+            EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT ON TABLES TO website', s);
+            EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT ON SEQUENCES TO website', s);
+          END IF;
+        END LOOP;
       END $$;
 
       CREATE TABLE IF NOT EXISTS customers (

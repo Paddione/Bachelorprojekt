@@ -1,6 +1,10 @@
 # Software Factory — Usage Guide
 
-## Phase 1: Manual Pipeline Invocation
+> **⚠️ Status:** Dieser Guide beschreibt eine Mischung aus existierenden (✅),
+> in Entwicklung befindlichen (🔜) und geplanten (📋) Features.
+> **Prüfe den Status-Indikator** bevor du einem Abschnitt folgst.
+
+## ✅ Phase 1: Manual Pipeline Invocation (verfügbar)
 
 ### Quick Start
 
@@ -14,69 +18,70 @@ TICKET_RESULT=$(./scripts/ticket.sh create \
   --priority mittel)
 TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 TICKET_UUID=$(echo "$TICKET_RESULT" | cut -d'|' -f2)
-
-# 2. Run the Scout phase
-# (opens a Claude Code session with the Scout prompt)
-# Use: "Scout feature T000xxx using the scout-template.md format"
-
-# 3. If complex, run Design phase
-# Use: "Design feature T000xxx using brainstorming and design-template.md"
-
-# 4. Implement via Workflow
-# Use the pipeline-pattern.md as reference for the Workflow script
-
-# 5. Deploy
-# After green CI + tests: auto-merge and deploy
 ```
 
-### Manual Conflict Check
+### Manual Conflict Check ✅
 
 ```bash
 bash scripts/factory/conflict-check.sh T000413 "k3d/website.yaml" "website/src/pages/index.astro"
 # Returns: [] (no conflicts) or ["T000412"] (conflicts with ticket T000412)
 ```
 
-### Querying Similar Past Tickets
+### Querying Similar Past Tickets ✅
 
 ```sql
--- Requires an embedding. In practice, the Dispatcher generates this via bge-m3.
+-- Erfordert bge-m3 Embedding. In der Praxis vom Dispatcher generiert.
 SELECT * FROM tickets.fn_find_similar(
   (SELECT embedding FROM tickets.ticket_embeddings WHERE ticket_id = '<uuid>' LIMIT 1),
   5
 );
 ```
 
-### Checking Factory Metrics
+### Checking Factory Metrics ✅
 
 ```sql
 SELECT * FROM tickets.v_factory_metrics;
--- day | features_shipped | avg_cycle_time_h | escalations | total_features
 ```
 
-### Viewing Active Features
+### Viewing Active Features ✅
 
 ```sql
 SELECT * FROM tickets.v_active_features;
--- Shows all features currently in pipeline slots
 ```
 
-## Templates
+## 🔜 Phase 2: Dispatcher (in Entwicklung)
 
-All templates are at `scripts/factory/templates/`:
-- `scout-template.md` — Scout phase output format
-- `design-template.md` — Design phase output format
-- `lessons-learned-template.md` — Post-deploy retrospective
+Der Cron-basierte Dispatcher automatisiert Queue-Polling, Konflikt-Analyse,
+und Pipeline-Launch. Siehe `scripts/factory/README.md` für die Architektur.
 
-## Review Agents
+**Noch nicht verfügbar:**
+- Automatisches Queue-Polling
+- Automatische Konflikt-Analyse vor Pipeline-Start
+- Watchdog (30min Timeout-Erkennung)
+- Automatische Metriken-Kommentare
 
-Prompts at `scripts/factory/review-*.prompt.md`:
-- `review-bug-hunter.prompt.md` — Finds logical bugs
-- `review-security-auditor.prompt.md` — Finds vulnerabilities
-- `review-pattern-enforcer.prompt.md` — Enforces codebase conventions
+## 📋 Phase 3: Full Auto-Pilot (geplant)
 
-Use them with the Workflow tool's `agent()` function or as standalone review passes.
+Feature-Request → Deploytes Feature ohne menschliche Intervention.
+Siehe Spec `docs/superpowers/specs/2026-06-01-software-factory-design.md` Abschnitt 7.
 
-## Architecture Decision Record
+## Templates ✅
 
-All significant Factory design decisions are recorded in the Vorhaben ticket T000413.
-Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`
+Alle Templates sind unter `scripts/factory/templates/` verfügbar:
+- `scout-template.md` — Scout-Phase Output-Format
+- `design-template.md` — Design-Phase Output-Format
+- `lessons-learned-template.md` — Post-Deploy-Retrospektive
+
+## Review Agents ✅
+
+Prompts unter `scripts/factory/review-*.prompt.md`:
+- `review-bug-hunter.prompt.md` — Findet logische Fehler
+- `review-security-auditor.prompt.md` — Findet Sicherheitslücken
+- `review-pattern-enforcer.prompt.md` — Prüft Projekt-Konventionen
+
+Einsatz über das Workflow-Tool mit `agent()` oder als Standalone-Review-Pass.
+
+## Architektur-Referenz
+
+Siehe `scripts/factory/README.md` für die vollständige Architektur-Übersicht
+und den Quickstart-Guide.

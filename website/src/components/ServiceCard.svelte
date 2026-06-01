@@ -57,6 +57,7 @@
 
   <a
     {href}
+    aria-label={`Mehr erfahren über ${title}`}
     class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3.5 rounded-full font-bold text-lg transition-colors uppercase tracking-wide"
   >
     Mehr erfahren

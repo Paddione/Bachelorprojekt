@@ -25,22 +25,27 @@ function isSvg(icon: string) {
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {links.map(link => {
         const external = link.href.startsWith('http');
+        const ariaLabel = external
+          ? `${link.label} öffnen (öffnet in neuem Tab)`
+          : `${link.label} öffnen`;
         return (
         <a
           href={link.href}
           target={external ? '_blank' : undefined}
           rel={external ? 'noopener noreferrer' : undefined}
+          aria-label={ariaLabel}
           data-testid={`service-link-${link.label}`}
           class="flex flex-col items-center gap-2 p-4 bg-dark-light rounded-xl border border-dark-lighter hover:border-gold/40 transition-colors text-center"
         >
           {isSvg(link.icon) ? (
             <span
               class="text-muted"
+              aria-hidden="true"
               style="width:20px; height:20px; display:flex; align-items:center; justify-content:center;"
               set:html={link.icon}
             />
           ) : (
-            <span class="text-xl leading-none">{link.icon}</span>
+            <span class="text-xl leading-none" aria-hidden="true">{link.icon}</span>
           )}
           <span class="text-xs font-medium text-muted">{link.label}</span>
         </a>

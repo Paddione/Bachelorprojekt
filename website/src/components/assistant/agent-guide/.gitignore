@@ -1,0 +1,3 @@
+# Transient SSR-compiled component written by GuideMap.test.ts (cleaned up in afterEach;
+# ignored here so a crashed test run can never accidentally stage the artifact).
+.GuideMap.compiled.svelte.mjs

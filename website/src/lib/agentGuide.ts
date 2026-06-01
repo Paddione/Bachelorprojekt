@@ -156,3 +156,29 @@ export function componentBySlug(slug: string): Component | undefined {
   return components[slug];
 }
 
+export interface LegendRow {
+  id: string;
+  emoji: string;
+  label: string;
+  meaning: string;
+  color: string;
+}
+
+/**
+ * The danger-tier legend, derived from the taxonomy, that makes the map's
+ * colour/emoji coding comprehensible (🟢 sicher / 🟡 Vorsicht / 🟠 heikel /
+ * 🔴 kritisch). Used by GuideMap's visible, collapsible legend and its
+ * screen-reader text. Returns one row per tier, in taxonomy order.
+ */
+export function tierLegend(): LegendRow[] {
+  return taxonomy.map((t) => ({
+    id: t.id,
+    emoji: t.emoji,
+    // The label_de already embeds the emoji (e.g. "🟢 Sicher"); strip a leading
+    // emoji + space so the row reads "<dot emoji> <plain label>" without a dupe.
+    label: t.label_de.replace(/^\s*\p{Extended_Pictographic}️?\s*/u, '').trim() || t.label_de,
+    meaning: t.meaning_de,
+    color: t.color,
+  }));
+}
+

@@ -180,6 +180,12 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 
 /* ── diagrams ── */
+.diagram-figure{margin:1.4rem 0}
+.diagram-figure .diagram-svg-wrapper,.diagram-figure .diagram-fallback{margin:0}
+.diagram-caption{margin:.55rem 0 0;font-size:.82rem;line-height:1.5;color:var(--ink-mute);
+  font-style:italic;text-align:center}
+.diagram-caption::before{content:"Abbildung: ";font-style:normal;font-weight:700;
+  color:var(--ink-soft)}
 .diagram-svg-wrapper{position:relative;border:1px solid var(--line);border-radius:8px;
   margin:1.4rem 0;background:var(--paper-2);overflow:hidden}
 .diagram-svg-wrapper svg{display:block;width:100%;height:auto;cursor:grab;

@@ -79,10 +79,10 @@ Dieser Plan wurde aus fünf parallel geerdeten Milestone-Drafts zusammengeführt
 
 ## Pre-flight (P0 — vor allen Milestones)
 
-- [ ] **P0.1: Branch + main sync.** `git -C /tmp/wt-learning-path-tracking pull --rebase origin main` (neue main-Commits absorbieren; bei Konflikten in `AgentGuideView.svelte`/Sidekick auf die aktiven Pläne `content-hub-help-de`/`agent-guide-e2e-filmable` achten).
-- [ ] **P0.2: E2E-Auth-Konvention.** Alle E2E-Specs (M2.8/M3.8/M4.8) authentifizieren über den **vorhandenen** Helper `loginViaKeycloak` aus `tests/e2e/lib/auth.ts` (Signatur dort prüfen) bzw. das `loginAsAdmin(page, returnTo)`-Pattern aus `tests/e2e/specs/fa-fragebogen.spec.ts`. gekko: `process.env.E2E_GEKKO_USER ?? 'gekko'`, Brand `mentolder`/`korczewski`.
-- [ ] **P0.3: Test-Reset-Fixture.** Sicherstellen, dass das E2E-Setup pro Test `assistant_first_seen` UND `onboarding_state` des Testusers leert (sonst feuert der M3-Onboarding-Trigger nicht erneut). Falls das globale Setup das nicht abdeckt, im `beforeEach` der M3-Spec per System-Test-Seed-Endpoint zurücksetzen.
-- [ ] **P0.4: Guide-IDs als Fixture.** Die 11 `goals` + 13 `tools`-IDs aus `website/src/lib/agent-guide.generated.json` sind die kanonischen `item_id`-Werte; Tests gegen **reale** IDs (z.B. `website-text-aendern`, `superpowers`) schreiben, nicht erfinden.
+- [x] **P0.1: Branch + main sync.** `git -C /tmp/wt-learning-path-tracking pull --rebase origin main` (neue main-Commits absorbieren; bei Konflikten in `AgentGuideView.svelte`/Sidekick auf die aktiven Pläne `content-hub-help-de`/`agent-guide-e2e-filmable` achten).
+- [x] **P0.2: E2E-Auth-Konvention.** Alle E2E-Specs (M2.8/M3.8/M4.8) authentifizieren über den **vorhandenen** Helper `loginViaKeycloak` aus `tests/e2e/lib/auth.ts` (Signatur dort prüfen) bzw. das `loginAsAdmin(page, returnTo)`-Pattern aus `tests/e2e/specs/fa-fragebogen.spec.ts`. gekko: `process.env.E2E_GEKKO_USER ?? 'gekko'`, Brand `mentolder`/`korczewski`.
+- [x] **P0.3: Test-Reset-Fixture.** Sicherstellen, dass das E2E-Setup pro Test `assistant_first_seen` UND `onboarding_state` des Testusers leert (sonst feuert der M3-Onboarding-Trigger nicht erneut). Falls das globale Setup das nicht abdeckt, im `beforeEach` der M3-Spec per System-Test-Seed-Endpoint zurücksetzen.
+- [x] **P0.4: Guide-IDs als Fixture.** Die 11 `goals` + 13 `tools`-IDs aus `website/src/lib/agent-guide.generated.json` sind die kanonischen `item_id`-Werte; Tests gegen **reale** IDs (z.B. `website-text-aendern`, `superpowers`) schreiben, nicht erfinden.
 
 ---
 
@@ -99,9 +99,9 @@ Dieser Plan wurde aus fünf parallel geerdeten Milestone-Drafts zusammengeführt
 
 **Steps:**
 
-- [ ] **Step 1: Read current schema structure.** Read k3d/website-schema.yaml lines 12–399 (init-meetings-schema.sh section, up to the end of coaching schema).
+- [x] **Step 1: Read current schema structure.** Read k3d/website-schema.yaml lines 12–399 (init-meetings-schema.sh section, up to the end of coaching schema).
 
-- [ ] **Step 2: Add learning_progress table.** After the coaching.step_templates table (before the final `RESET ROLE` on line 392) and before the coaching GRANTs, insert:
+- [x] **Step 2: Add learning_progress table.** After the coaching.step_templates table (before the final `RESET ROLE` on line 392) and before the coaching GRANTs, insert:
 
 ```sql
       -- ── Learning Progress Tracking ──────────────────────────────────
@@ -136,7 +136,7 @@ Dieser Plan wurde aus fünf parallel geerdeten Milestone-Drafts zusammengeführt
       );
 ```
 
-- [ ] **Step 3: Run schema init test.** Execute:
+- [x] **Step 3: Run schema init test.** Execute:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   task cluster:create && \
@@ -151,7 +151,7 @@ learning_progress
 onboarding_state
 ```
 
-- [ ] **Step 4: Commit schema init.** Run:
+- [x] **Step 4: Commit schema init.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git add k3d/website-schema.yaml && \
@@ -176,9 +176,9 @@ EOF
 
 **Steps:**
 
-- [ ] **Step 1: Locate ensure-meetings-schema.sh section.** The ensure section starts at line 725; find the coaching.step_templates table creation (around line 1030 in that section, after the corresponding init section mirrors).
+- [x] **Step 1: Locate ensure-meetings-schema.sh section.** The ensure section starts at line 725; find the coaching.step_templates table creation (around line 1030 in that section, after the corresponding init section mirrors).
 
-- [ ] **Step 2: Add identical learning_progress + onboarding_state schema.** After coaching.step_templates and before the final `RESET ROLE` in the ensure section, insert the **exact same SQL** as Task M1.1 Step 2:
+- [x] **Step 2: Add identical learning_progress + onboarding_state schema.** After coaching.step_templates and before the final `RESET ROLE` in the ensure section, insert the **exact same SQL** as Task M1.1 Step 2:
 
 ```sql
       -- ── Learning Progress Tracking ──────────────────────────────────
@@ -213,7 +213,7 @@ EOF
       );
 ```
 
-- [ ] **Step 3: Verify idempotency.** Run the ensure script on an existing cluster:
+- [x] **Step 3: Verify idempotency.** Run the ensure script on an existing cluster:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   kubectl exec -n website-dev pod/shared-db-0 -- bash -c "$(cat k3d/website-schema.yaml | sed -n '/ensure-meetings-schema.sh:/,/^[^ ]/p' | tail -n +2 | sed '$d')" 2>&1 | grep -i "error" && echo "FAILED" || echo "SUCCESS"
@@ -221,7 +221,7 @@ cd /tmp/wt-learning-path-tracking && \
 
 Expected: "SUCCESS" (no errors).
 
-- [ ] **Step 4: Commit ensure section.** Run:
+- [x] **Step 4: Commit ensure section.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git add k3d/website-schema.yaml && \
@@ -246,13 +246,13 @@ EOF
 
 **Steps:**
 
-- [ ] **Step 1: Read guide structure.** Read website/src/lib/agent-guide.generated.json lines 142–300 to understand goal/tool id format. Confirm that ids are stable strings (e.g., "website-text-aendern", "dienst-status-pruefen").
+- [x] **Step 1: Read guide structure.** Read website/src/lib/agent-guide.generated.json lines 142–300 to understand goal/tool id format. Confirm that ids are stable strings (e.g., "website-text-aendern", "dienst-status-pruefen").
 
-- [ ] **Step 2: Read website-db.ts patterns.** Read website/src/lib/website-db.ts lines 1–100 (pool setup, ensureSchemaOnce pattern) and lines 2240–2293 (client_notes example for interface + query patterns).
+- [x] **Step 2: Read website-db.ts patterns.** Read website/src/lib/website-db.ts lines 1–100 (pool setup, ensureSchemaOnce pattern) and lines 2240–2293 (client_notes example for interface + query patterns).
 
-- [ ] **Step 3: Read auth.ts UserSession.** Read website/src/lib/auth.ts lines 21–33 (UserSession interface). Confirm fields: `sub`, `brand`, `preferred_username`.
+- [x] **Step 3: Read auth.ts UserSession.** Read website/src/lib/auth.ts lines 21–33 (UserSession interface). Confirm fields: `sub`, `brand`, `preferred_username`.
 
-- [ ] **Step 4: Write learning-db.ts.** Create the file with complete DML functions:
+- [x] **Step 4: Write learning-db.ts.** Create the file with complete DML functions:
 
 ```typescript
 // Learning progress tracking — PostgreSQL DML layer.
@@ -557,14 +557,14 @@ export async function resetOnboarding(
 }
 ```
 
-- [ ] **Step 5: Run basic syntax check.** Run:
+- [x] **Step 5: Run basic syntax check.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && npx tsc --noEmit website/src/lib/learning-db.ts 2>&1 | head -20
 ```
 
 Expected: No TypeScript errors (may show warnings about agent-guide import).
 
-- [ ] **Step 6: Commit learning-db.ts.** Run:
+- [x] **Step 6: Commit learning-db.ts.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git add website/src/lib/learning-db.ts && \
@@ -592,11 +592,11 @@ EOF
 
 **Steps:**
 
-- [ ] **Step 1: Read test helper.** Read tests/local/test_helper.bash to understand helper functions and psql_tickets pattern.
+- [x] **Step 1: Read test helper.** Read tests/local/test_helper.bash to understand helper functions and psql_tickets pattern.
 
-- [ ] **Step 2: Read existing BATS test.** Read tests/local/factory-db-schema.bats lines 1–50 to understand structure (setup, psql helpers, test format).
+- [x] **Step 2: Read existing BATS test.** Read tests/local/factory-db-schema.bats lines 1–50 to understand structure (setup, psql helpers, test format).
 
-- [ ] **Step 3: Write learning-db-schema.bats.** Create the file:
+- [x] **Step 3: Write learning-db-schema.bats.** Create the file:
 
 ```bash
 #!/usr/bin/env bats
@@ -738,7 +738,7 @@ psql_website() {
 }
 ```
 
-- [ ] **Step 4: Run BATS test.** Execute:
+- [x] **Step 4: Run BATS test.** Execute:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   ./tests/runner.sh local learning-db-schema 2>&1 | tail -30
@@ -746,7 +746,7 @@ cd /tmp/wt-learning-path-tracking && \
 
 Expected: All 15 tests pass (or "SKIP" if cluster not running, which is acceptable for this validation).
 
-- [ ] **Step 5: Commit test file.** Run:
+- [x] **Step 5: Commit test file.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git add tests/local/learning-db-schema.bats && \
@@ -772,11 +772,11 @@ EOF
 
 **Steps:**
 
-- [ ] **Step 1: Read existing unit test pattern.** Read website/src/lib/agentGuideSearch.test.ts (lines 1–50) to understand structure (imports, mock setup, test organization).
+- [x] **Step 1: Read existing unit test pattern.** Read website/src/lib/agentGuideSearch.test.ts (lines 1–50) to understand structure (imports, mock setup, test organization).
 
-- [ ] **Step 2: Understand pool mocking.** Confirm website-db.ts exports `pool`; we'll mock pool.query() in tests.
+- [x] **Step 2: Understand pool mocking.** Confirm website-db.ts exports `pool`; we'll mock pool.query() in tests.
 
-- [ ] **Step 3: Write learning-db.test.ts.** Create the file:
+- [x] **Step 3: Write learning-db.test.ts.** Create the file:
 
 ```typescript
 // website/src/lib/learning-db.test.ts
@@ -990,16 +990,16 @@ describe('learning-db', () => {
 });
 ```
 
-- [ ] **Step 4: Document test patterns.** In the test file, add a comment block at the top explaining that full unit tests require a test database or mocking framework (jest/vitest), which are out of scope for M1. These tests serve as a documentation contract for the API.
+- [x] **Step 4: Document test patterns.** In the test file, add a comment block at the top explaining that full unit tests require a test database or mocking framework (jest/vitest), which are out of scope for M1. These tests serve as a documentation contract for the API.
 
-- [ ] **Step 5: Verify TypeScript.** Run:
+- [x] **Step 5: Verify TypeScript.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && npx tsc --noEmit website/src/lib/learning-db.test.ts 2>&1 | head -10
 ```
 
 Expected: No errors (or only warnings about missing mocks).
 
-- [ ] **Step 6: Commit test file.** Run:
+- [x] **Step 6: Commit test file.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git add website/src/lib/learning-db.test.ts && \
@@ -1024,7 +1024,7 @@ EOF
 
 **Steps:**
 
-- [ ] **Step 1: Verify schema in both init and ensure sections.** Run:
+- [x] **Step 1: Verify schema in both init and ensure sections.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   grep -c "CREATE TABLE IF NOT EXISTS learning_progress" k3d/website-schema.yaml && \
@@ -1037,7 +1037,7 @@ Expected output:
 2
 ```
 
-- [ ] **Step 2: Verify learning-db.ts exports.** Run:
+- [x] **Step 2: Verify learning-db.ts exports.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   grep -E "^export (async )?function" website/src/lib/learning-db.ts | wc -l
@@ -1045,7 +1045,7 @@ cd /tmp/wt-learning-path-tracking && \
 
 Expected output: `7` (getLearningProgress, upsertLearningItem, getLearningSummary, listMembersLearningSummary, markOnboardingStep, getOnboardingState, resetOnboarding).
 
-- [ ] **Step 3: Verify test files exist.** Run:
+- [x] **Step 3: Verify test files exist.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   ls -lah tests/local/learning-db-schema.bats website/src/lib/learning-db.test.ts
@@ -1053,7 +1053,7 @@ cd /tmp/wt-learning-path-tracking && \
 
 Expected: Both files present and non-zero size.
 
-- [ ] **Step 4: Verify git history.** Run:
+- [x] **Step 4: Verify git history.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git log --oneline | head -10 | grep -E "(learning-db|learning_progress|onboarding_state)"
@@ -1061,7 +1061,7 @@ cd /tmp/wt-learning-path-tracking && \
 
 Expected: At least 5 commits mentioning M1 tasks.
 
-- [ ] **Step 5: Final commit summary.** Run:
+- [x] **Step 5: Final commit summary.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking && \
   git log --oneline --grep="M1" | head -10

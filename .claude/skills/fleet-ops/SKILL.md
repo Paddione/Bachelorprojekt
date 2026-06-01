@@ -271,3 +271,12 @@ kubectl --context fleet -n workspace-korczewski get deploy  # korczewski
 | `health check`/rollout timeout | Pod not Ready within timeout | `kubectl describe pod` — usually image pull or CrashLoop |
 | `$$` becomes empty string | Forgot double-dollar for a literal `$` | Write `$${VAR}` in the manifest; add `${VAR}` to the task's envsubst list |
 | `secrets/xxx not found` | SealedSecret not yet decrypted | `kubectl get sealedsecret -n <ns>` — controller may be behind |
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `cluster-deployment` | Voraussetzung — initiales Deployment |
+| `secret-rotation` | Querschnitt — Cross-Brand Secret-Rotation |
+| `database-ops` | Querschnitt — Cross-Brand DB-Operationen |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

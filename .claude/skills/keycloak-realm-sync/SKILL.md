@@ -202,3 +202,11 @@ Key groups:
 After completing all steps in this skill, invoke `mishap-tracker` with your
 accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
 cleanly with "No mishaps found."
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `secret-rotation` | Querschnitt — OIDC-Client-Secrets |
+| `fleet-ops` | Querschnitt — Cross-Brand Realm-Sync |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

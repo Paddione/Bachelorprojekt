@@ -205,3 +205,13 @@ task workspace:logs ENV=<env> -- website
 After completing all steps in this skill, invoke `mishap-tracker` with your
 accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits
 cleanly with "No mishaps found."
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `cluster-deployment` | Voraussetzung — Cluster muss laufen |
+| `fleet-ops` | Folge — nach Rotation beide Brands deployen |
+| `database-ops` | Querschnitt — DB-Passwort-Rotation |
+| `keycloak-realm-sync` | Querschnitt — OIDC-Client-Secrets |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

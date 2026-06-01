@@ -214,3 +214,12 @@ If the database is unreachable, output the formatting log messages to the consol
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `mishap-tracker` | Werkzeug — konvertiert Mishaps zu Tickets |
+| `cluster-deployment` | Querschnitt — PRs und Issues |
+| `fleet-ops` | Querschnitt — Cross-Brand-Issues |
+| `database-ops` | Querschnitt — DB-bezogene Tickets |

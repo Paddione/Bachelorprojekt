@@ -164,3 +164,11 @@ cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_mod
 
 1. **Mishap Report**: Melde am Ende dieses Skills alle aufgetretenen Fehler über `mishap-tracker`.
 2. **Operations**: Fahre danach mit `operations-management` fort, um den Status des zugehörigen PRs oder Tickets zu überwachen.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `dev-flow-execute` | Voraussetzung — Feature muss deployt sein |
+| `fleet-ops` | Querschnitt — Cross-Brand-Tests |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

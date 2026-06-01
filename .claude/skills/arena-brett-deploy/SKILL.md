@@ -127,3 +127,11 @@ task brett:logs ENV=mentolder
 task brett:logs ENV=korczewski
 # Spot-check game loads at brett.mentolder.de and brett.korczewski.de
 ```
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `cluster-deployment` | Voraussetzung — Cluster muss laufen |
+| `fleet-ops` | Querschnitt — Cross-Brand-Deploy (nur korczewski) |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

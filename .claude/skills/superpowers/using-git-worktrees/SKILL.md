@@ -123,3 +123,10 @@ Rules:
   in an isolated `/tmp/wt-*` worktree, never the primary repo.
 - Always pass `--head <branch>` explicitly on `gh pr create` and `gh pr merge`
   — never rely on the ambient current branch.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `dev-flow-plan` | Nutzer — erstellt Worktree für Feature-Branch |
+| `dev-flow-execute` | Nutzer — arbeitet im Worktree |

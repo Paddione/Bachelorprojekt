@@ -410,7 +410,13 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_brand_idx     ON tickets.pr_events (brand) WHERE brand IS NOT NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS pr_events_category_idx  ON tickets.pr_events (category)`);
 
-  // Per-brand monotonic counter — feeds the BEFORE-INSERT trigger that mints T-numbers.
+  // DEPRECATED (T000402): tickets.ticket_counters was a PER-BRAND monotonic
+  // counter that fed the external_id trigger. external_id is GLOBALLY unique
+  // (see the UNIQUE constraint on tickets.tickets.external_id), so per-brand
+  // counters drifted and re-minted the same T-number across brands, violating
+  // the constraint and blocking ticket creation. The single source of truth is
+  // now the global sequence tickets.external_id_seq (below). The table is kept
+  // as inert legacy history; nothing reads or writes it anymore.
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_counters (
       brand       TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT PRIMARY KEY,
@@ -424,16 +430,20 @@ export async function initTicketsSchema(): Promise<void> {
       END $$;
   `);
 
+  // GLOBAL external_id sequence — the single source of truth for T-numbers.
+  // `IF NOT EXISTS` adopts the vestigial live sequence if one was created
+  // out-of-band, and creates it otherwise. Owned by `website` so later
+  // schema-init queries (run as website) can setval it.
+  await pool.query(`CREATE SEQUENCE IF NOT EXISTS tickets.external_id_seq AS BIGINT START 1`);
+  await pool.query(`ALTER SEQUENCE tickets.external_id_seq OWNER TO website`);
+
   await pool.query(`
     CREATE OR REPLACE FUNCTION tickets.fn_assign_external_id() RETURNS trigger AS $$
     DECLARE
       next_v BIGINT;
     BEGIN
       IF NEW.external_id IS NULL THEN
-        INSERT INTO tickets.ticket_counters (brand, last_value)
-        VALUES (NEW.brand, 1)
-        ON CONFLICT (brand) DO UPDATE SET last_value = tickets.ticket_counters.last_value + 1
-        RETURNING last_value INTO next_v;
+        next_v := nextval('tickets.external_id_seq');
         NEW.external_id := 'T' || LPAD(next_v::text, 6, '0');
       END IF;
       RETURN NEW;
@@ -447,22 +457,17 @@ export async function initTicketsSchema(): Promise<void> {
   `);
 
   // Idempotent backfill: any ticket whose external_id is NULL or not in T-format
-  // gets a T-number, ordered by created_at within its brand.
-  await pool.query(`
-    INSERT INTO tickets.ticket_counters (brand, last_value)
-    SELECT t.brand,
-           COALESCE(MAX(CASE WHEN t.external_id ~ '^T[0-9]+$'
-                             THEN CAST(SUBSTRING(t.external_id FROM 2) AS BIGINT)
-                             ELSE 0 END), 0)
-      FROM tickets.tickets t
-     GROUP BY t.brand
-    ON CONFLICT (brand) DO NOTHING
-  `);
+  // gets a fresh T-number, allocated GLOBALLY above the current global max so it
+  // can never collide with an existing id. Ordered by created_at for stable
+  // numbering. This only touches NULL / non-T-format rows — it never renumbers a
+  // row that already holds a valid T-number.
   await pool.query(`
     WITH to_fill AS (
-      SELECT t.id, t.brand,
-             (SELECT last_value FROM tickets.ticket_counters tc WHERE tc.brand = t.brand) +
-             ROW_NUMBER() OVER (PARTITION BY t.brand ORDER BY t.created_at ASC, t.id ASC) AS new_seq
+      SELECT t.id,
+             (SELECT COALESCE(MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT)), 0)
+                FROM tickets.tickets
+               WHERE external_id ~ '^T[0-9]+$')
+             + ROW_NUMBER() OVER (ORDER BY t.created_at ASC, t.id ASC) AS new_seq
         FROM tickets.tickets t
        WHERE t.external_id IS NULL OR t.external_id !~ '^T[0-9]+$'
     )
@@ -471,16 +476,20 @@ export async function initTicketsSchema(): Promise<void> {
       FROM to_fill f
      WHERE t.id = f.id
   `);
+
+  // Seal the sequence above the current global max so future inserts never
+  // re-collide with a backfilled or pre-existing id. Idempotent: setval to the
+  // observed max on every boot is a no-op once the sequence is already ahead.
+  // NOTE (T000402): historical cross-brand DUPLICATE external_ids that already
+  // hold valid T-numbers (e.g. T000342/T000399/T000402) are NOT reconciled here
+  // — that renumber touches live, externally-referenced ids and is a separate
+  // one-shot manual migration. See the PR's HELD-FOR-REVIEW section.
   await pool.query(`
-    UPDATE tickets.ticket_counters tc
-       SET last_value = sub.max_v
-      FROM (
-        SELECT brand, MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT)) AS max_v
-          FROM tickets.tickets
-         WHERE external_id ~ '^T[0-9]+$'
-         GROUP BY brand
-      ) sub
-     WHERE tc.brand = sub.brand AND tc.last_value < sub.max_v
+    SELECT setval('tickets.external_id_seq',
+                  (SELECT COALESCE(MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT)), 0)
+                     FROM tickets.tickets
+                    WHERE external_id ~ '^T[0-9]+$'),
+                  true)
   `);
       } finally {
         await client.query(`SELECT pg_advisory_unlock(hashtext('init:tickets'))`);

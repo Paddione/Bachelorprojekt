@@ -59,15 +59,21 @@ function safeRoute(route) {
 }
 
 function screenshotRel(row, brand, vp) {
-  let abs;
+  // Robust to any screenshot-path convention in the results file: try the stored
+  // path both repo-root-relative and sweep-dir-relative, then ALWAYS fall back to
+  // recomputing the canonical layout from the route. This prevents a path-prefix
+  // mismatch from silently producing an empty (image-less) gallery.
+  const candidates = [];
   if (row.screenshot) {
-    abs = join(REPO_ROOT, row.screenshot);
-  } else {
-    abs = join(SWEEP_DIR, brand, vp, `${safeRoute(row.route)}.png`);
+    candidates.push(join(REPO_ROOT, row.screenshot)); // canonical: repo-root-relative
+    candidates.push(join(SWEEP_DIR, row.screenshot));  // lenient: sweep-dir-relative
   }
-  if (!existsSync(abs)) return null;
-  // index.html lives in SWEEP_DIR; make the <img src> relative to that.
-  return relative(SWEEP_DIR, abs).split('\\').join('/');
+  candidates.push(join(SWEEP_DIR, brand, vp, `${safeRoute(row.route)}.png`)); // recompute
+  for (const abs of candidates) {
+    // index.html lives in SWEEP_DIR; make the <img src> relative to that.
+    if (existsSync(abs)) return relative(SWEEP_DIR, abs).split('\\').join('/');
+  }
+  return null;
 }
 
 function esc(s) {

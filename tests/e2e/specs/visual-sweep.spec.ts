@@ -357,8 +357,10 @@ test.describe('visual sweep', () => {
 
           await applyStability(page);
 
-          // Screenshot path per contract.
-          const shotRel = path.join('visual-sweep', brand, viewport, `${safeRoute(entry.route)}.png`);
+          // Screenshot paths. shotRel is REPO-ROOT-relative so the gallery builder
+          // (join(REPO_ROOT, row.screenshot)) resolves it directly; shotAbs is where
+          // the file is actually written (RESULTS_ROOT = <repo>/tests/results/visual-sweep).
+          const shotRel = path.join('tests', 'results', 'visual-sweep', brand, viewport, `${safeRoute(entry.route)}.png`);
           const shotAbs = path.join(RESULTS_ROOT, brand, viewport, `${safeRoute(entry.route)}.png`);
           fs.mkdirSync(path.dirname(shotAbs), { recursive: true });
 

@@ -399,6 +399,11 @@ tasks:
     cmds:
       - bash scripts/build-test-inventory.sh
 
+  routes:manifest:
+    desc: Regenerate website/src/data/route-manifest.json (page files + brand service slugs → sweep route manifest)
+    cmds:
+      - node scripts/build-route-manifest.mjs
+
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:
@@ -456,6 +461,53 @@ tasks:
         vars: { ENV: "mentolder" }
       - task: test:e2e
         vars: { ENV: "korczewski" }
+
+  test:e2e:visual-sweep:
+    desc: "Read-only full-route visual sweep (screenshots + nav/link-health) against ENV=mentolder|korczewski, VIEWPORT=desktop|mobile. NO prod-DB purge. VIDEO=1 records a per-tier webm; PUBLIC_ONLY=1 limits to anonymous public routes."
+    dir: tests/e2e
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+      VIEWPORT: '{{.VIEWPORT | default "desktop"}}'
+      VIDEO: '{{.VIDEO | default ""}}'
+      PUBLIC_ONLY: '{{.PUBLIC_ONLY | default ""}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "test:e2e:visual-sweep requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+      - sh: '[ "{{.VIEWPORT}}" = "desktop" ] || [ "{{.VIEWPORT}}" = "mobile" ]'
+        msg: "test:e2e:visual-sweep requires VIEWPORT=desktop or VIEWPORT=mobile, got VIEWPORT={{.VIEWPORT}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  WEBSITE_URL=https://web.mentolder.de  PROD_DOMAIN=mentolder.de ;;
+          korczewski) WEBSITE_URL=https://web.korczewski.de PROD_DOMAIN=korczewski.de ;;
+        esac
+        export WEBSITE_URL PROD_DOMAIN
+        [ -n "{{.VIDEO}}" ] && export VISUAL_SWEEP_VIDEO=1
+        [ -n "{{.PUBLIC_ONLY}}" ] && export VISUAL_SWEEP_PUBLIC_ONLY=1
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        # Read-only sweep: the visual-sweep config sets globalSetup/globalTeardown
+        # to undefined and installReadOnlyGuard aborts all non-GET/HEAD requests,
+        # so there is NO test-data purge and CRON_SECRET is NOT required here.
+        ./node_modules/.bin/playwright test \
+          --config playwright.visual-sweep.config.ts \
+          --project=visual-sweep-{{.ENV}}-{{.VIEWPORT}} {{.CLI_ARGS}}
+        echo ""
+        node lib/build-gallery.mjs
+
+  test:e2e:visual-sweep:all-prods:
+    desc: "Visual sweep across mentolder + korczewski × desktop + mobile, then one combined contact-sheet."
+    cmds:
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "mentolder", VIEWPORT: "desktop" }
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "mentolder", VIEWPORT: "mobile" }
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "korczewski", VIEWPORT: "desktop" }
+      - task: test:e2e:visual-sweep
+        vars: { ENV: "korczewski", VIEWPORT: "mobile" }
+      - dir: tests/e2e
+        cmd: node lib/build-gallery.mjs
 
   systemtest:cycle:
     desc: "Fan out 3 parallel Playwright sessions, one per System-Test (CYCLE=1..4, ENV=mentolder|korczewski|dev)"

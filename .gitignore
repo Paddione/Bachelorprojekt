@@ -2,8 +2,8 @@
 .env
 .env.*
 !.env.example
-# ── Environment secrets (plaintext, never commit) ──
-environments/.secrets/
+# ── Environment secrets — now TRACKED but git-crypt-encrypted (see .gitattributes) ──
+# (Was fully ignored; encryption makes it safe to commit into this public repo.)
 # prod/secrets.yaml and prod-korczewski/secrets.yaml committed as ArgoCD placeholders (Skip=true)
 # Real credentials are applied via: task workspace:prod:deploy / task korczewski:deploy
 # k3d/secrets.yaml committed intentionally — dev-only placeholder values, not real credentials
@@ -11,7 +11,7 @@ deploy/mcp/openclaw-secrets.yaml
 # OpenClaw — runtime config has secrets; only template is committed
 openclaw/.env
 .openclaw/workspace/
-deploy/mcp/claude-code-secrets.yaml
+# deploy/mcp/claude-code-secrets.yaml — now TRACKED, git-crypt-encrypted (see .gitattributes)
 .mcp.json
 vaultwarden-import-*.json
 *-bitwarden-export.json
@@ -144,7 +144,5 @@ environments/certs/dev.pem
 /*.zip
 /*.7z
 dev-iterate-*.png
-environments/.secrets
 deeps.sh
 deepseek.sh
-environments/.secrets/.ssh/*

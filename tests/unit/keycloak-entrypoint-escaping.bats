@@ -1,49 +1,61 @@
 #!/usr/bin/env bats
 # ═══════════════════════════════════════════════════════════════════
 # keycloak-entrypoint-escaping.bats — Guard the prod realm-import
-# entrypoint's Flux drone-envsubst escaping. [T000320]
+# entrypoint's PUSH-DEPLOY $$-escaping. [T000320]
 # ═══════════════════════════════════════════════════════════════════
-# prod/import-entrypoint.sh is generated into the keycloak-import-script
-# ConfigMap and the prod overlays are reconciled by Flux, whose
-# postBuild.substituteFrom runs drone-style envsubst over the rendered
-# manifest. drone-envsubst treats `$${VAR}` as an ESCAPE that emits a
-# literal `${VAR}`. The script's own shell expansions therefore MUST be
-# doubled (`$$`) so that:
-#   1. drone-envsubst parses the manifest (no "unable to parse variable
-#      name"), and
-#   2. after substitution the embedded script contains correct single-$
+# prod/import-entrypoint.sh is rendered into the keycloak-import-script
+# ConfigMap. The PUSH deploy pipeline (Taskfile.yml lines 1724 dev-path and
+# 1831 prod-path) runs:
+#     kustomize build … | envsubst "$VARS" | sed -E 's/\$\$([a-zA-Z0-9_]|{)/$\1/g' | kubectl apply
+# The trailing sed collapses `$${` → `${`. The script's own shell expansions
+# are therefore DOUBLED (`$$`) so that:
+#   1. envsubst (explicit var list) does not eat the script's own ${VAR}
+#      expansions (the script's lowercase vars are not in that list), and
+#   2. after the sed collapse the embedded script contains correct single-$
 #      shell expansions (e.g. `eval val="\${${var}:-}"`).
 #
-# Regression context: PR #1168 de-doubled these to single-$ to silence a
-# runtime "bad substitution" seen only on the manual GNU-envsubst deploy
-# path. That broke Flux reconciliation on BOTH prod clusters ("unable to
-# parse variable name"). This test pins the Flux contract so the revert
-# cannot be undone by mistake. The dev/k3d entrypoints (no Flux) keep
-# single-$ and are intentionally NOT covered here.
+# Historically this sed-collapse mirrored Flux's drone-envsubst, which had the
+# same $${VAR}→${VAR} escape semantics. Flux is gone; the push-path sed is now
+# the ONLY mechanism, and it needs the identical $$ doubling. The dev/k3d
+# entrypoint (k3d/realm-import-entrypoint.sh) is the proven single-$ form the
+# prod $$ must collapse to.
+#
+# Regression context: PR #1168 de-doubled these to single-$ and broke the
+# rendered realm import. This test pins the $$ contract so the revert cannot
+# be undone by mistake.
 # ═══════════════════════════════════════════════════════════════════
 
 load test_helper
 
 PROD_ENTRYPOINT="${PROJECT_DIR}/prod/import-entrypoint.sh"
+DEV_ENTRYPOINT="${PROJECT_DIR}/k3d/realm-import-entrypoint.sh"
 
-@test "prod/import-entrypoint.sh survives Flux drone-envsubst (flux CLI)" {
-  command -v flux >/dev/null 2>&1 || skip "flux CLI not available"
-  run flux envsubst < "$PROD_ENTRYPOINT"
+@test "prod entrypoint: push-sed \$\$ collapse yields valid single-\$ shell expansion" {
+  run sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' "$PROD_ENTRYPOINT"
   [ "$status" -eq 0 ]
-  # After Flux substitution the indirect-expansion line must be valid
-  # single-$ shell — proves the $$ escaping resolved correctly.
   echo "$output" | grep -qF 'eval val="\${${var}:-}"'
 }
 
-@test "prod/import-entrypoint.sh keeps the \$\$ escaping the Flux contract needs" {
-  # CI-safe guard (no flux dependency): the escaped indirect-expansion
-  # line must be present in its doubled form. Single-$ here means the
-  # Flux-breaking regression has returned.
+@test "prod entrypoint keeps the \$\$ escaping the push-sed contract needs" {
+  # Single-$ here means the breaking regression (PR #1168) has returned.
   grep -qF 'eval val="\$${$${var}:-}"' "$PROD_ENTRYPOINT"
 }
 
-@test "prod/import-entrypoint.sh is valid POSIX sh after de-escaping" {
-  # Simulate Flux's $$ -> $ collapse, then syntax-check the result so a
-  # de-escaped script can never ship a shell syntax error.
-  sed 's/\$\$/\$/g' "$PROD_ENTRYPOINT" | sh -n
+@test "prod entrypoint is valid POSIX sh after the push-sed \$\$ collapse" {
+  # Simulate the push pipeline's $$ -> $ collapse, then syntax-check the result.
+  sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' "$PROD_ENTRYPOINT" | sh -n
+}
+
+@test "prod entrypoint collapses to the proven dev single-\$ semantics (tested realm import)" {
+  # Parity: after the push-sed collapse, prod's $$ doubling must reduce to
+  # exactly the dev entrypoint's working single-$ substitution lines. This is
+  # the offline 'tested realm import' — it proves the rendered ConfigMap script
+  # the cluster runs is identical in substitution semantics to the dev script.
+  collapsed="$(sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' "$PROD_ENTRYPOINT")"
+  # (a) indirect-expansion line matches dev
+  echo "$collapsed" | grep -qF 'eval val="\${${var}:-}"'
+  grep -qF 'eval val="\${${var}:-}"' "$DEV_ENTRYPOINT"
+  # (b) in-place realm-JSON substitution line matches dev
+  echo "$collapsed" | grep -qF 'sed -i "s|\${${var}}|${val}|g"'
+  grep -qF 'sed -i "s|\${${var}}|${val}|g"' "$DEV_ENTRYPOINT"
 }

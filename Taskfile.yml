@@ -410,6 +410,11 @@ tasks:
     cmds:
       - node scripts/build-route-manifest.mjs
 
+  assets:learning:
+    desc: Regenerate website/src/lib/learning-assets.generated.json from the SSOT manifest
+    cmds:
+      - node scripts/build-learning-assets.mjs
+
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:

@@ -99,6 +99,15 @@ jobs:
             exit 1
           fi
 
+      - name: Verify learning-assets generated artifact is up to date
+        run: |
+          node --test scripts/build-learning-assets.test.mjs
+          task assets:learning
+          if ! git diff --exit-code website/src/lib/learning-assets.generated.json website/public/learning-assets/THIRD-PARTY-ASSETS.md; then
+            echo "ERROR: learning-assets artifact is stale — run 'task assets:learning' locally and commit"
+            exit 1
+          fi
+
       - name: Verify agent-guide maps are up to date
         run: |
           task agent-guide:maps

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 96" role="img">
+  <defs><filter id="la-glow-goal" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <g filter="url(#la-glow-goal)" stroke="currentColor" stroke-width="2" fill="none"><circle cx="120" cy="50" r="14"/></g>
+  <g filter="url(#la-glow-goal)" fill="currentColor"><circle cx="120" cy="50" r="4"/><circle cx="150" cy="28" r="3"/><circle cx="160" cy="42" r="2"/><circle cx="146" cy="20" r="2"/></g>
+</svg>

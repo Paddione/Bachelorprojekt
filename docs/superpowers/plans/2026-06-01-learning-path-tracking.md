@@ -1086,7 +1086,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Write failing Playwright spec for GuideCard status toggle.**
+- [x] **Step 1: Write failing Playwright spec for GuideCard status toggle.**
   Create `tests/e2e/specs/learning-surface.spec.ts` with a test that:
   1. Navigates to the Agent-Anleitung
   2. Clicks a goal card to open it
@@ -1118,7 +1118,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts --project=chromium` — expect **FAIL (element not found)**.
 
-- [ ] **Step 2: Add status toggle HTML and styling to GuideCard.**
+- [x] **Step 2: Add status toggle HTML and styling to GuideCard.**
   Modify the `<article>` section in GuideCard.svelte (after the `.ag-card-head` button, before `.ag-card-body`) to include a discrete status selector:
   
   **Code to insert (after line 62 in original file):**
@@ -1176,7 +1176,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run test:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts --project=chromium` — expect **FAIL (prop `status` not passed, logic incomplete)**.
 
-- [ ] **Step 3: Add note field to GuideCard.**
+- [x] **Step 3: Add note field to GuideCard.**
   After the status toggle (still inside `{#if open}`), add an expandable note editor:
   
   **Code to insert:**
@@ -1216,7 +1216,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run test:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts --project=chromium` — expect **FAIL (API not implemented)**.
 
-- [ ] **Step 4: Receive status/note from AgentGuideView (prop).**
+- [x] **Step 4: Receive status/note from AgentGuideView (prop).**
   Since GuideCard doesn't yet fetch its own state, AgentGuideView will pass it down. Modify GuideCard signature to accept:
   
   ```svelte
@@ -1268,7 +1268,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Write failing test for progress bar display.**
+- [x] **Step 1: Write failing test for progress bar display.**
   Add test to learning-surface.spec.ts that verifies a progress bar appears in the Agent-Anleitung header after logging in:
   
   **Test code:**
@@ -1291,7 +1291,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (element not found)**.
 
-- [ ] **Step 2: Add progress bar to AgentGuideView intro section.**
+- [x] **Step 2: Add progress bar to AgentGuideView intro section.**
   Modify the `.ag-intro` section (lines 180–185) to include a progress bar after the description:
   
   **Code to insert (after line 185 in original):**
@@ -1302,7 +1302,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   </div>
   ```
 
-- [ ] **Step 3: Fetch learning summary on mount.**
+- [x] **Step 3: Fetch learning summary on mount.**
   Add to AgentGuideView `<script>` block (in the state section, around line 27):
   
   ```svelte
@@ -1323,7 +1323,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run test:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (API not implemented)**.
 
-- [ ] **Step 4: Create a learned-items map to pass down to GuideCard.**
+- [x] **Step 4: Create a learned-items map to pass down to GuideCard.**
   Before the `ALL.filter(...)` derivation (around line 83), add:
   
   ```svelte
@@ -1348,7 +1348,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   });
   ```
 
-- [ ] **Step 5: Pass status/note to GuideCard in GuideGroup.**
+- [x] **Step 5: Pass status/note to GuideCard in GuideGroup.**
   Modify the GuideCard component invocation in GuideGroup.svelte (find where GuideCard is rendered and add props):
   
   **Locate GuideGroup.svelte in website/src/components/assistant/agent-guide/, find the GuideCard render block, and update:**
@@ -1366,7 +1366,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   />
   ```
 
-- [ ] **Step 6: Refresh summary after track API succeeds.**
+- [x] **Step 6: Refresh summary after track API succeeds.**
   Modify the fetch in GuideCard.setStatus() to call back to parent or directly refresh summary:
   
   ```svelte
@@ -1421,7 +1421,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Write failing API test.**
+- [x] **Step 1: Write failing API test.**
   Add a test to learning-surface.spec.ts that calls the track API directly:
   
   **Test code:**
@@ -1445,7 +1445,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (404)**.
 
-- [ ] **Step 2: Create the track.ts file with basic structure.**
+- [x] **Step 2: Create the track.ts file with basic structure.**
   Create `/tmp/wt-learning-path-tracking/website/src/pages/api/portal/learning/track.ts`:
   
   **Code:**
@@ -1510,7 +1510,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run test:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (session.brand might be null, DB not yet created in M1)**.
 
-- [ ] **Step 3: Add integration test for full track → persistence flow.**
+- [x] **Step 3: Add integration test for full track → persistence flow.**
   Expand learning-surface.spec.ts with a test that:
   1. Logs in gekko (mentolder brand)
   2. Opens Agent-Anleitung
@@ -1563,7 +1563,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Write failing API test.**
+- [x] **Step 1: Write failing API test.**
   Add test to learning-surface.spec.ts:
   
   **Test code:**
@@ -1583,7 +1583,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (404)**.
 
-- [ ] **Step 2: Create summary.ts.**
+- [x] **Step 2: Create summary.ts.**
   Create `/tmp/wt-learning-path-tracking/website/src/pages/api/portal/learning/summary.ts`:
   
   **Code:**
@@ -1648,7 +1648,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Write failing test for loslernen page.**
+- [x] **Step 1: Write failing test for loslernen page.**
   Add test to learning-surface.spec.ts:
   
   **Test code:**
@@ -1673,7 +1673,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (404)**.
 
-- [ ] **Step 2: Create loslernen.astro with layout.**
+- [x] **Step 2: Create loslernen.astro with layout.**
   Create `/tmp/wt-learning-path-tracking/website/src/pages/portal/loslernen.astro`. Base it on arena.astro (which uses PortalLayout):
   
   **Code:**
@@ -1785,7 +1785,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run test:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts::loslernen` — expect **FAIL (components not fully styled, but page loads)**.
 
-- [ ] **Step 3: Add "weiter lernen" CTA handler.**
+- [x] **Step 3: Add "weiter lernen" CTA handler.**
   Extend the Astro component to make the CTA buttons redirect to AgentGuideView and jump to the next todo item:
   
   **Modify the item-cta button:**
@@ -1818,7 +1818,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Set up Playwright spec with login.**
+- [x] **Step 1: Set up Playwright spec with login.**
   Create complete `/tmp/wt-learning-path-tracking/tests/e2e/specs/learning-surface.spec.ts`:
   
   **Code:**
@@ -1957,7 +1957,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   
   **Run:** `npx playwright test tests/e2e/specs/learning-surface.spec.ts` — expect **FAIL (missing login harness, but test structure correct)**.
 
-- [ ] **Step 2: Wire up test login (if keycloak test realm available).**
+- [x] **Step 2: Wire up test login (if keycloak test realm available).**
   If the test environment has a keycloak test realm with a gekko user:
   
   **Add to test.beforeEach:**
@@ -1969,7 +1969,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   });
   ```
 
-- [ ] **Step 3: Run full spec against local/dev cluster.**
+- [x] **Step 3: Run full spec against local/dev cluster.**
   Ensure all 5 test cases pass:
   - AK-01: Status toggle persists
   - AK-02: Note field persists
@@ -1990,7 +1990,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
 
 **Steps:**
 
-- [ ] **Step 1: Find SidekickHome and add CTA section.**
+- [x] **Step 1: Find SidekickHome and add CTA section.**
   Locate `/tmp/wt-learning-path-tracking/website/src/components/assistant/SidekickHome.svelte` and add a new section (or enhance existing CTAs) with a link to loslernen:
   
   **Code to add (in the template section):**
@@ -2004,7 +2004,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   </section>
   ```
 
-- [ ] **Step 2: Add styling for the new section.**
+- [x] **Step 2: Add styling for the new section.**
   Add styles (in `<style>` block or via the existing stylesheet):
   
   ```css
@@ -2041,7 +2041,7 @@ All M1 tasks are now ready for M2–M5. The schema is canonical (in ConfigMap), 
   }
   ```
 
-- [ ] **Step 3: Test navigation.**
+- [x] **Step 3: Test navigation.**
   Write a quick test to verify the link works:
   
   **Test code (add to learning-surface.spec.ts):**
@@ -2289,7 +2289,7 @@ All tasks follow TDD (test-first, implementation, verify) with complete code. Da
 
 > M3.4's `PortalSidekick.completeOnboardingStep()` POSTet auf `/api/portal/onboarding/mark-step`. Dieser Task legt den Endpoint an — **self-only** (User markiert nur eigene Schritte) und wrappt M1's `markOnboardingStep`. (Ersetzt den im Merge entfernten Dup-Task M3.5; die Nummer wird wiederverwendet.)
 
-- [ ] **Step 1: Implement the endpoint.** Create `website/src/pages/api/portal/onboarding/mark-step.ts`:
+- [x] **Step 1: Implement the endpoint.** Create `website/src/pages/api/portal/onboarding/mark-step.ts`:
 
 ```typescript
 import type { APIRoute } from 'astro';
@@ -2320,13 +2320,13 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck.** Run:
+- [x] **Step 2: Typecheck.** Run:
 ```bash
 cd /tmp/wt-learning-path-tracking/website && npx astro check 2>&1 | tail -5
 ```
 Expected: keine Fehler, die `mark-step.ts` referenzieren.
 
-- [ ] **Step 3: Runtime-Verify (nach Dev-Deploy).** Mit gültiger Session-Cookie `$SESS`:
+- [x] **Step 3: Runtime-Verify (nach Dev-Deploy).** Mit gültiger Session-Cookie `$SESS`:
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://dev.mentolder.de/api/portal/onboarding/mark-step \
   -H 'Content-Type: application/json' -H "Cookie: workspace_session=$SESS" \
@@ -2334,7 +2334,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://dev.mentolder.de/api/po
 ```
 Expected: `200` mit Cookie, `401` ohne. Persistenz prüfbar via `getOnboardingState`.
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 ```bash
 cd /tmp/wt-learning-path-tracking && git add website/src/pages/api/portal/onboarding/mark-step.ts && \
   git commit -m "feat(onboarding): self-only mark-step API wrapping markOnboardingStep (M3.5)"
@@ -2572,9 +2572,9 @@ cd /tmp/wt-learning-path-tracking && git add website/src/pages/api/portal/onboar
 
 **Steps:**
 
-- [ ] **Step 1: Read keycloak.ts listUsers() signature.** Check line 130 to confirm it accepts no pagination params (hardcoded max=200) and returns KcUser[].
+- [x] **Step 1: Read keycloak.ts listUsers() signature.** Check line 130 to confirm it accepts no pagination params (hardcoded max=200) and returns KcUser[].
 
-- [ ] **Step 2: Create the API route.** Write:
+- [x] **Step 2: Create the API route.** Write:
 
 ```typescript
 import type { APIRoute } from 'astro';
@@ -2629,7 +2629,7 @@ export const GET: APIRoute = async (context) => {
 };
 ```
 
-- [ ] **Step 3: Verify the route path.** Astro will serve this as `GET /api/admin/members/list` (Astro's file-based routing).
+- [x] **Step 3: Verify the route path.** Astro will serve this as `GET /api/admin/members/list` (Astro's file-based routing).
 
 ---
 
@@ -2640,7 +2640,7 @@ export const GET: APIRoute = async (context) => {
 
 **Steps:**
 
-- [ ] **Step 1: Create the dynamic route.** Write:
+- [x] **Step 1: Create the dynamic route.** Write:
 
 ```typescript
 import type { APIRoute } from 'astro';
@@ -2700,9 +2700,9 @@ export const GET: APIRoute = async (context) => {
 
 **Steps:**
 
-- [ ] **Step 1: Read clients.astro structure (existing file).** Note the AdminLayout wrapper, isAdmin check, tab navigation pattern at lines 1-42.
+- [x] **Step 1: Read clients.astro structure (existing file).** Note the AdminLayout wrapper, isAdmin check, tab navigation pattern at lines 1-42.
 
-- [ ] **Step 2: Create members.astro page.** Write:
+- [x] **Step 2: Create members.astro page.** Write:
 
 ```astro
 ---
@@ -2819,7 +2819,7 @@ try {
 
 **Steps:**
 
-- [ ] **Step 1: Create the detail page.** Write:
+- [x] **Step 1: Create the detail page.** Write:
 
 ```astro
 ---
@@ -2966,9 +2966,9 @@ const pct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0
 
 **Steps:**
 
-- [ ] **Step 1: Read playwright.config.ts and existing FA test pattern.** Note the test structure, helper lib imports, baseURL usage.
+- [x] **Step 1: Read playwright.config.ts and existing FA test pattern.** Note the test structure, helper lib imports, baseURL usage.
 
-- [ ] **Step 2: Create the test file.** Write:
+- [x] **Step 2: Create the test file.** Write:
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -3080,9 +3080,9 @@ test.describe('FA-M4: Admin Members View', () => {
 
 **Steps:**
 
-- [ ] **Step 1: Locate the CRM navigation group.** Find lines 111–115 (CRM section with Klienten and Mandate).
+- [x] **Step 1: Locate the CRM navigation group.** Find lines 111–115 (CRM section with Klienten and Mandate).
 
-- [ ] **Step 2: Add Members link.** Update the navGroups array to include:
+- [x] **Step 2: Add Members link.** Update the navGroups array to include:
 
 ```typescript
 {

@@ -38,6 +38,10 @@ export default defineConfig({
   ...baseConfig,
   globalSetup: GLOBAL_SETUP,
   globalTeardown: GLOBAL_TEARDOWN,
+  // A read-only screenshot sweep is a single long serial test; retrying the whole
+  // ~4-min pass on a soft failure (e.g. one route flagged) just doubles wall-clock
+  // and re-captures everything. Mirror playwright.film.config.ts (retries: 0).
+  retries: 0,
   testMatch: ['**/visual-sweep.spec.ts'],
   use: {
     ...baseConfig.use,

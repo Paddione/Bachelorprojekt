@@ -219,6 +219,7 @@ function cssEscapeAttr(value: string): string {
 export async function harvestLinkHealth(
   page: Page,
   routes: RouteEntry[],
+  healthCache?: Map<string, { ok: boolean; reason?: string }>,
 ): Promise<LinkHealth[]> {
   const baseURL = pathBaseOf(page);
   const anchors = page.locator('a[href]');
@@ -237,52 +238,52 @@ export async function harvestLinkHealth(
 
   const results: LinkHealth[] = [];
   for (const { href, path: p } of targets) {
-    const known = matchManifestRoute(p, routes);
-    if (!known) {
-      results.push({ href, ok: false, reason: `not in manifest: ${p}` });
+    // Cross-page cache (optional): a target path's health is independent of which
+    // page links to it, so within one sweep tier we GET each unique path at most
+    // once. This avoids re-hammering site-wide nav links (e.g. /ueber-mich) on
+    // every page — the dominant cost, and a load risk on an intermittently-flaky
+    // route. Callers that don't pass a cache get the original per-page behaviour.
+    const cached = healthCache?.get(p);
+    if (cached) {
+      results.push({ href, ...cached });
       continue;
     }
-    if (known.excludeFromSweep) {
-      results.push({ href, ok: true, reason: 'excluded-from-sweep (manifest match, GET skipped)' });
-      continue;
-    }
-    // GET reachability. A small number of live routes (observed: /ueber-mich on
-    // BOTH brands) return 200 with a body but reset the HTTP/2 stream uncleanly,
-    // which surfaces here as an APIRequestContext "aborted" THROW even though the
-    // route is healthy and in-manifest. We retry once; a persistent TRANSPORT
-    // throw (not an HTTP status) on an in-manifest route is reported ok:true with
-    // a transport-anomaly note rather than a false "dead link" on every page that
-    // links to it. A real 4xx/5xx returns a status (no throw) and is still dead;
-    // orphan links (not-in-manifest) are already flagged above. The per-route
-    // navigation in the sweep is the authoritative health signal for each route.
-    let lastErr: unknown;
-    let classified = false;
-    for (let attempt = 0; attempt < 2 && !classified; attempt++) {
-      try {
-        const res = await page.request.get(`${baseURL}${p}`, {
-          maxRedirects: 3,
-          timeout: 15_000,
-          failOnStatusCode: false,
-        });
-        const status = res.status();
-        if (status < 400) {
-          results.push({ href, ok: true });
-        } else {
-          results.push({ href, ok: false, reason: `GET ${status}` });
-        }
-        classified = true;
-      } catch (err) {
-        lastErr = err;
+
+    const verdict = await (async (): Promise<{ ok: boolean; reason?: string }> => {
+      const known = matchManifestRoute(p, routes);
+      if (!known) return { ok: false, reason: `not in manifest: ${p}` };
+      if (known.excludeFromSweep) {
+        return { ok: true, reason: 'excluded-from-sweep (manifest match, GET skipped)' };
       }
-    }
-    if (!classified) {
+      // GET reachability. A few live routes (observed: /ueber-mich on BOTH brands)
+      // return 200 with a body but reset the HTTP/2 stream uncleanly, which
+      // surfaces here as an APIRequestContext "aborted" THROW even though the route
+      // is healthy and in-manifest. We retry once; a persistent TRANSPORT throw
+      // (not an HTTP status) on an in-manifest route is reported ok:true with a
+      // transport-anomaly note rather than a false "dead link" on every page that
+      // links to it. A real 4xx/5xx returns a status (no throw) and is still dead;
+      // orphan links (not-in-manifest) are flagged above. The per-route navigation
+      // in the sweep is the authoritative health signal for each route.
+      let lastErr: unknown;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await page.request.get(`${baseURL}${p}`, {
+            maxRedirects: 3,
+            timeout: 15_000,
+            failOnStatusCode: false,
+          });
+          const status = res.status();
+          return status < 400 ? { ok: true } : { ok: false, reason: `GET ${status}` };
+        } catch (err) {
+          lastErr = err;
+        }
+      }
       const msg = lastErr instanceof Error ? lastErr.message.split('\n')[0] : String(lastErr);
-      results.push({
-        href,
-        ok: true,
-        reason: `manifest-match; GET unverified (transport anomaly: ${msg})`,
-      });
-    }
+      return { ok: true, reason: `manifest-match; GET unverified (transport anomaly: ${msg})` };
+    })();
+
+    healthCache?.set(p, verdict);
+    results.push({ href, ...verdict });
   }
 
   return results;

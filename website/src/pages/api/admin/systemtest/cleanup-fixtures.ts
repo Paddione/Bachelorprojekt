@@ -11,6 +11,7 @@ import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { purgeFixturesFor, purgeExpiredMagicTokens } from '../../../../lib/systemtest/cleanup';
+import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
@@ -21,6 +22,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
+    // Defensive, idempotent schema-ensure: this CronJob endpoint imports only
+    // website-db (never questionnaire-db), so on a fresh pod that never served a
+    // questionnaire/admin page the questionnaire_* / systemtest_* tables may not
+    // exist yet and the sweeps below would 500 (T000406). Memoised — runs the
+    // DDL at most once per process.
+    await ensureQuestionnaireSchemaOnce(pool);
     const fixtures = await purgeFixturesFor(pool, { graceHours: 24 });
     const tokens = await purgeExpiredMagicTokens(pool);
     return new Response(

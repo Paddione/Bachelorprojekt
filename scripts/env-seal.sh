@@ -44,6 +44,7 @@ usage() {
 
 scan_for_dev_values() {
   local secrets_file="$1"
+  local schema_file="${2:-}"
   local bad_keys=()
 
   while IFS= read -r line; do
@@ -71,8 +72,18 @@ scan_for_dev_values() {
       [[ "$value" == "not-configured" ]] && is_bad=true
       [[ "$value" == "MANAGED_EXTERNALLY" ]] && is_bad=true
 
-      # Empty values are never valid secrets
-      [[ -z "$value" ]] && is_bad=true
+      # Empty values are rejected — UNLESS the schema explicitly marks this key
+      # required: false (e.g. BRAINSTORM_OIDC_SECRET is dev-only, intentionally
+      # blank in prod). Without a schema we can't tell, so fail closed.
+      if [[ -z "$value" ]]; then
+        local required="true"
+        if [[ -n "$schema_file" && -f "$schema_file" ]]; then
+          local schema_required
+          schema_required=$(schema_field "$schema_file" "secrets" "$key" "required")
+          [[ "$schema_required" == "false" ]] && required="false"
+        fi
+        [[ "$required" == "true" ]] && is_bad=true
+      fi
 
       $is_bad && bad_keys+=("$key")
     fi
@@ -249,7 +260,7 @@ done
 # ── Test-mode: only run the dev-value scan ───────────────────────
 
 if [[ -n "$_TEST_SCAN_FILE" ]]; then
-  if scan_for_dev_values "$_TEST_SCAN_FILE"; then
+  if scan_for_dev_values "$_TEST_SCAN_FILE" "$_TEST_SCHEMA_FILE"; then
     echo "OK: no dev placeholder values found"
     exit 0
   else
@@ -325,7 +336,7 @@ fi
 # ── Scan for dev placeholder values ─────────────────────────────
 
 info "Scanning secrets for dev placeholder values..."
-if ! scan_for_dev_values "$SECRETS_FILE"; then
+if ! scan_for_dev_values "$SECRETS_FILE" "$SCHEMA"; then
   exit 1
 fi
 info "No dev placeholder values detected."

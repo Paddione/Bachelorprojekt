@@ -567,6 +567,32 @@ PY
   assert_failure
 }
 
+# ── pvc-backup gates Longhorn cloning on storageClassName (T000403) ──
+# The orchestrator UNCONDITIONALLY cloned the vaultwarden+docuseal data PVCs
+# via Longhorn CSI, then waited for the clones to bind. korczewski has no
+# Longhorn install → those PVCs stay on local-path (no CSI clone support) →
+# the clones never bind → the bind loop times out → the whole CronJob Failed.
+# The fix detects each data PVC's storageClassName and only clones the
+# longhorn-backed sources; local-path sources are tarred LIVE by the mounter
+# co-located on the owning pod's node. Pin the storageclass gate so a
+# regression to unconditional cloning fails CI.
+@test "pvc-backup gates clone creation on storageClassName == longhorn (T000403)" {
+  # Orchestrator must read each data PVC's storageClassName.
+  grep -q 'get pvc vaultwarden-data-pvc -o jsonpath=.*storageClassName' k3d/pvc-backup-cronjob.yaml
+  grep -q 'get pvc docuseal-data-pvc'   k3d/pvc-backup-cronjob.yaml
+  # And the clone list must be built conditionally on the longhorn class —
+  # not the old static "both clones always" assignment.
+  grep -qE '\[ "\$VW_SC" = "longhorn" \]' k3d/pvc-backup-cronjob.yaml
+  grep -qE '\[ "\$DS_SC" = "longhorn" \]' k3d/pvc-backup-cronjob.yaml
+}
+
+@test "pvc-backup no longer unconditionally clones both data PVCs (T000403)" {
+  # The regression shape: a static CLONES assignment naming both clones
+  # (ignoring comment lines). Must be absent — cloning is now gated.
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'CLONES=\"vaultwarden-data-backup-clone docuseal-data-backup-clone\"'"
+  assert_failure
+}
+
 # ── tests-results-retention has no stale node-location affinity (T000369) ──
 # The CronJob required nodeAffinity node-location=hetzner, but no fleet node
 # carries that label after Phase 3 consolidation → unschedulable on all 6

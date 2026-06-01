@@ -61,7 +61,44 @@ spec:
                   NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
                   STAMP=$(date +%Y%m%d-%H%M%S)
                   MOUNTER="pvc-backup-mounter-$${STAMP}"
-                  CLONES="vaultwarden-data-backup-clone docuseal-data-backup-clone"
+
+                  # Longhorn supports CSI clone (placement-independent copy);
+                  # local-path does NOT. Detect each data PVC's storageclass so
+                  # we ONLY clone the longhorn-backed sources. local-path sources
+                  # are mounted LIVE (readOnly) by the mounter, which is then
+                  # co-located on the owning pod's node via podAffinity so the
+                  # RWO local-path volume is shareable — the same model already
+                  # used for nextcloud-data. mentolder keeps both data PVCs on
+                  # longhorn (cloned); korczewski has no Longhorn install, so its
+                  # vaultwarden/docuseal PVCs stay on local-path and are tarred
+                  # live. [T000403]
+                  VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}')
+                  DS_SC=$(kubectl -n "$NS" get pvc docuseal-data-pvc   -o jsonpath='{.spec.storageClassName}')
+                  echo "Storage classes: vaultwarden=$VW_SC docuseal=$DS_SC"
+
+                  CLONES=""
+                  [ "$VW_SC" = "longhorn" ] && CLONES="$CLONES vaultwarden-data-backup-clone"
+                  [ "$DS_SC" = "longhorn" ] && CLONES="$CLONES docuseal-data-backup-clone"
+
+                  # Each data volume points at its clone (longhorn) or its live
+                  # PVC (local-path). The mounter co-locates with every live
+                  # local-path source's owning pod via these podAffinity terms.
+                  if [ "$VW_SC" = "longhorn" ]; then
+                    VW_CLAIM="vaultwarden-data-backup-clone"; VW_AFFINITY=""
+                  else
+                    VW_CLAIM="vaultwarden-data-pvc"
+                    VW_AFFINITY="
+                              - labelSelector: { matchLabels: { app: vaultwarden } }
+                                topologyKey: kubernetes.io/hostname"
+                  fi
+                  if [ "$DS_SC" = "longhorn" ]; then
+                    DS_CLAIM="docuseal-data-backup-clone"; DS_AFFINITY=""
+                  else
+                    DS_CLAIM="docuseal-data-pvc"
+                    DS_AFFINITY="
+                              - labelSelector: { matchLabels: { app: docuseal } }
+                                topologyKey: kubernetes.io/hostname"
+                  fi
 
                   cleanup() {
                     echo "Cleanup: deleting mounter Job and clone PVCs..."
@@ -77,43 +114,42 @@ spec:
                     kubectl -n "$NS" delete pvc "$c" --ignore-not-found || true
                   done
 
-                  echo "Creating clone PVCs from live Longhorn volumes..."
-                  VW_SIZE=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.resources.requests.storage}')
-                  DS_SIZE=$(kubectl -n "$NS" get pvc docuseal-data-pvc   -o jsonpath='{.spec.resources.requests.storage}')
-                  kubectl -n "$NS" apply -f - <<CLONE
+                  if [ -n "$CLONES" ]; then
+                    echo "Creating clone PVCs from live Longhorn volumes..."
+                    VW_SIZE=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.resources.requests.storage}')
+                    DS_SIZE=$(kubectl -n "$NS" get pvc docuseal-data-pvc   -o jsonpath='{.spec.resources.requests.storage}')
+                    for c in $CLONES; do
+                      case "$c" in
+                        vaultwarden-data-backup-clone) SRC=vaultwarden-data-pvc; SIZE=$VW_SIZE ;;
+                        docuseal-data-backup-clone)    SRC=docuseal-data-pvc;    SIZE=$DS_SIZE ;;
+                      esac
+                      kubectl -n "$NS" apply -f - <<CLONE
                   apiVersion: v1
                   kind: PersistentVolumeClaim
                   metadata:
-                    name: vaultwarden-data-backup-clone
+                    name: $${c}
                     labels: { app: pvc-backup }
                   spec:
                     storageClassName: longhorn
                     accessModes: ["ReadWriteOnce"]
-                    resources: { requests: { storage: $${VW_SIZE} } }
-                    dataSource: { kind: PersistentVolumeClaim, name: vaultwarden-data-pvc }
-                  ---
-                  apiVersion: v1
-                  kind: PersistentVolumeClaim
-                  metadata:
-                    name: docuseal-data-backup-clone
-                    labels: { app: pvc-backup }
-                  spec:
-                    storageClassName: longhorn
-                    accessModes: ["ReadWriteOnce"]
-                    resources: { requests: { storage: $${DS_SIZE} } }
-                    dataSource: { kind: PersistentVolumeClaim, name: docuseal-data-pvc }
+                    resources: { requests: { storage: $${SIZE} } }
+                    dataSource: { kind: PersistentVolumeClaim, name: $${SRC} }
                   CLONE
-
-                  echo "Waiting for clone PVCs to bind..."
-                  for c in $CLONES; do
-                    for i in $(seq 1 60); do
-                      PHASE=$(kubectl -n "$NS" get pvc "$c" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
-                      [ "$PHASE" = "Bound" ] && break
-                      sleep 5
                     done
-                    [ "$PHASE" = "Bound" ] || { echo "Clone $c did not bind (phase=$PHASE)"; exit 1; }
-                    echo "  ✓ $c Bound"
-                  done
+
+                    echo "Waiting for clone PVCs to bind..."
+                    for c in $CLONES; do
+                      for i in $(seq 1 60); do
+                        PHASE=$(kubectl -n "$NS" get pvc "$c" -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+                        [ "$PHASE" = "Bound" ] && break
+                        sleep 5
+                      done
+                      [ "$PHASE" = "Bound" ] || { echo "Clone $c did not bind (phase=$PHASE)"; exit 1; }
+                      echo "  ✓ $c Bound"
+                    done
+                  else
+                    echo "No longhorn-backed data PVCs — all sources mounted live (local-path)."
+                  fi
 
                   echo "Launching mounter Job $MOUNTER..."
                   kubectl -n "$NS" apply -f - <<MJOB
@@ -137,10 +173,15 @@ spec:
                           # list referenced decommissioned nodes (k3s-1/2/3,
                           # k3w-1/2/3) that no longer exist on fleet — dead drift,
                           # removed. [T000368]
+                          # When a data PVC is local-path (korczewski), the per-source
+                          # affinity snippets below add a podAffinity term for that
+                          # source's owning pod so the LIVE RWO volume is shareable on
+                          # the same node; they are empty for longhorn-cloned sources
+                          # (mentolder), leaving only the nextcloud term. [T000403]
                           podAffinity:
                             requiredDuringSchedulingIgnoredDuringExecution:
                               - labelSelector: { matchLabels: { app: nextcloud } }
-                                topologyKey: kubernetes.io/hostname
+                                topologyKey: kubernetes.io/hostname$${VW_AFFINITY}$${DS_AFFINITY}
                         securityContext:
                           runAsNonRoot: true
                           runAsUser: 65534
@@ -255,9 +296,9 @@ spec:
                           - name: nextcloud-data
                             persistentVolumeClaim: { claimName: nextcloud-data-pvc }
                           - name: vaultwarden-data
-                            persistentVolumeClaim: { claimName: vaultwarden-data-backup-clone }
+                            persistentVolumeClaim: { claimName: $${VW_CLAIM} }
                           - name: docuseal-data
-                            persistentVolumeClaim: { claimName: docuseal-data-backup-clone }
+                            persistentVolumeClaim: { claimName: $${DS_CLAIM} }
                           - name: staging
                             emptyDir: {}
                   MJOB

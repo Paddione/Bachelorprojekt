@@ -1,5 +1,92 @@
 # Software Factory — 6-Phase Pipeline Pattern
 
+> **Status:** Phase 1 Reference — manuelle Workflow-Script-Erstellung.
+> Das folgende Dokument beschreibt das Pipeline-Muster und die Claude Code
+> Workflow API, die zur Implementierung genutzt wird.
+
+## Workflow API — Schnellreferenz
+
+Die Software Factory nutzt die **Claude Code Workflow API** zur
+Multi-Agent-Orchestrierung. Ein Workflow-Script ist eine JavaScript-Datei,
+die mit `export const meta = {...}` beginnt.
+
+### Kernfunktionen
+
+| Funktion | Signatur | Verhalten |
+|----------|----------|-----------|
+| `agent(prompt, opts?)` | `(string, {label?, phase?, schema?, isolation?}) => Promise<T>` | Startet einen Subagenten. Ohne `schema`: gibt String zurück. Mit `schema` (JSON Schema): validiertes Objekt. `isolation: 'worktree'` für isolierte Datei-Operationen. |
+| `parallel(thunks)` | `(() => Promise<T>)[] => Promise<T[]>` | BARRIER — alle Thunks parallel, wartet auf alle. Fehlerhafte Thunks werden zu `null`. |
+| `pipeline(items, ...stages)` | `(T[], ...((prev, item, i) => Promise<U>)[]) => Promise<U[]>` | Items durchlaufen alle Stages unabhängig — kein Barrier zwischen Stages. Item A kann Stage 3 erreichen während B noch in Stage 1 ist. |
+| `phase(title)` | `(string) => void` | Startet eine neue Phase im Progress-Display. |
+| `log(message)` | `(string) => void` | Emittiert eine Fortschrittsmeldung. |
+| `args` | `any` | Der beim Workflow-Aufruf übergebene `args`-Parameter. |
+
+### Meta-Block
+
+```js
+export const meta = {
+  name: 'mein-workflow',        // eindeutiger Name
+  description: 'Kurzbeschreibung', // einzeilig
+  phases: [                      // muss mit phase()-Aufrufen übereinstimmen
+    { title: 'Phase 1' },
+    { title: 'Phase 2' },
+  ],
+}
+```
+
+### Schema-Validierung
+
+```js
+const MEIN_SCHEMA = {
+  type: 'object',
+  properties: {
+    ergebnis: { type: 'string' },
+    score: { type: 'number', minimum: 0, maximum: 100 },
+  },
+  required: ['ergebnis'],
+}
+
+const result = await agent('Analysiere...', { schema: MEIN_SCHEMA })
+// result ist jetzt typed: { ergebnis: string, score?: number }
+```
+
+### Pipeline vs Parallel
+
+**`pipeline()` — kein Barrier, gut für unabhängige Stages:**
+```js
+const results = await pipeline(
+  tasks,
+  task => agent(`Implementiere ${task.id}`, { isolation: 'worktree' }),
+  result => agent(`Verifiziere ${result.diff}`, { schema: VERIFY_SCHEMA })
+)
+// Task 2 beginnt Verifikation sobald Implementierung fertig,
+// auch wenn Task 1 noch implementiert wird.
+```
+
+**`parallel()` — Barrier, wenn alle Ergebnisse einer Stage gebraucht werden:**
+```js
+const allFindings = await parallel([
+  () => agent('Bug-Hunt', { schema: BUG_SCHEMA }),
+  () => agent('Security-Audit', { schema: SEC_SCHEMA }),
+  () => agent('Pattern-Check', { schema: PATTERN_SCHEMA }),
+])
+// Erst wenn ALLE drei Agenten fertig sind, geht es weiter.
+```
+
+### Typische Fehler
+
+- **`Date.now()` / `Math.random()`** sind in Workflow-Scripts NICHT verfügbar (verhindern Resume). Nutze `args.timestamp` für Zeitstempel.
+- **Schema-Validierung** erzwingt Retry bei Mismatch — stelle sicher, dass der Agent-Prompt das Schema kennt.
+- **`isolation: 'worktree'`** ist teuer (~200-500ms Setup) — nur nutzen wenn nötig.
+
+---
+
+## Vollständiges Pipeline-Beispiel
+
+(Das folgende Script zeigt eine vollständige 6-Phasen-Pipeline.)
+
+# Software Factory — 6-Phase Pipeline Pattern
+
 Reference for building a Claude Code Workflow script that implements the full
 Scout→Design→Plan→Implement→Verify→Deploy pipeline.
 

@@ -205,9 +205,45 @@ else
   warn "TEMPLATE_AVAILABLE=0 — skipping template-driven upsert (no ConfigMap)."
 fi
 
+# ── Upsert realm groups from the template ─────────────────────────────
+# Top-level groups only (none of the realms use subGroups). oauth2-proxy
+# gates /recovery-access (and dev /brainstorm-access); the group must exist
+# in Keycloak or members can't be assigned → 403-loop.
+GROUPS_CREATED=0
+GROUPS_SKIPPED=0
+if [ "$TEMPLATE_AVAILABLE" -eq 1 ]; then
+  while IFS= read -r RAW_GROUP; do
+    [ -z "$RAW_GROUP" ] && continue
+    GROUP_NAME=$(printf '%s' "$RAW_GROUP" | jq -r '.name')
+    [ -z "$GROUP_NAME" ] || [ "$GROUP_NAME" = "null" ] && continue
+    # Already present? (top-level lookup by exact name)
+    EXISTING_GID=$(curl -sk \
+      "${KC_URL}/admin/realms/${KC_REALM}/groups?search=${GROUP_NAME}&exact=true" \
+      -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+      | jq -r --arg n "$GROUP_NAME" '.[] | select(.name==$n) | .id' | head -1 || true)
+    if [ -n "$EXISTING_GID" ]; then
+      log "  ✓ group ${GROUP_NAME} (exists)"
+      GROUPS_SKIPPED=$((GROUPS_SKIPPED + 1))
+      continue
+    fi
+    HTTP_STATUS=$(curl -sk -o /dev/null -w "%{http_code}" \
+      -X POST "${KC_URL}/admin/realms/${KC_REALM}/groups" \
+      -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+      -H "Content-Type: application/json" \
+      -d "{\"name\":\"${GROUP_NAME}\"}" || echo "000")
+    if [[ "$HTTP_STATUS" =~ ^2 ]]; then
+      log "  + group ${GROUP_NAME} (created)"
+      GROUPS_CREATED=$((GROUPS_CREATED + 1))
+    else
+      err "  ✗ group ${GROUP_NAME}: POST failed HTTP ${HTTP_STATUS}"
+      FAILED=$((FAILED + 1))
+    fi
+  done < <(kc_extract_groups_from_template "$REALM_TMP")
+fi
+
 # ── Zusammenfassung ───────────────────────────────────────────────────
 echo ""
-log "Sync abgeschlossen: ${CREATED} erstellt, ${SECRET_UPDATED} secret-aktualisiert, ${SKIPPED} übersprungen, ${FAILED} fehlgeschlagen."
+log "Sync abgeschlossen: ${CREATED} erstellt, ${SECRET_UPDATED} secret-aktualisiert, ${SKIPPED} übersprungen, ${GROUPS_CREATED} Gruppen erstellt, ${GROUPS_SKIPPED} Gruppen vorhanden, ${FAILED} fehlgeschlagen."
 
 if [[ $FAILED -gt 0 ]]; then
   warn "Einige Clients konnten nicht synchronisiert werden."

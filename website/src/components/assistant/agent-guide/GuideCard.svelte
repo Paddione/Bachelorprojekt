@@ -2,6 +2,7 @@
   import { tierColor, tierEmoji, tierLabel, tierFor, glossary } from '../../../lib/agentGuide';
   import { highlight, splitGlossaryTerms, type GuideEntry } from '../../../lib/agentGuideSearch';
   import GlossaryTerm from './GlossaryTerm.svelte';
+  import LearningAsset from '../../learning/LearningAsset.svelte';
 
   let {
     entry,
@@ -105,6 +106,12 @@
     onclick={() => onToggle(entry.id)}
   >
     <span class="ag-dot" aria-hidden="true">{tierEmoji(entry.danger)}</span>
+    <LearningAsset
+      concept={entry.kind === 'goal' ? 'goal' : 'tool'}
+      register="technical"
+      tone="active"
+      class="ag-card-art"
+    />
     <span class="ag-name">
       {#each highlight(entry.title_de, query) as seg}{#if seg.mark}<mark class="ag-hl">{seg.text}</mark>{:else}{seg.text}{/if}{/each}
     </span>
@@ -332,4 +339,6 @@
     outline: 2px solid var(--brass, #b8860b);
     outline-offset: -1px;
   }
+
+  .ag-card-art { width: 1.5rem; flex: 0 0 auto; }
 </style>

@@ -44,6 +44,7 @@ env_vars:
   TRAEFIK_EXTERNAL_URL: "https://traefik.korczewski.de"
   MAIL_EXTERNAL_URL: "https://mail.korczewski.de"
   BRETT_DOMAIN: brett.korczewski.de
+  RECOVER_DOMAIN: recover.korczewski.de
   LIVEKIT_DOMAIN: livekit.korczewski.de
   LIVEKIT_PIN_IP: "37.27.251.38"
   STREAM_DOMAIN: stream.korczewski.de

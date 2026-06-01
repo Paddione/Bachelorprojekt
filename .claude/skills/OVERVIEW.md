@@ -62,25 +62,65 @@
 
 ---
 
-## Skill Relationships at a Glance
+## Skill-Beziehungen & Abfolge
 
+```mermaid
+graph TD
+    subgraph "Dev-Flow Pipeline (sequentiell)"
+        DP[dev-flow-plan] --> DE[dev-flow-execute]
+        DE --> DI[dev-flow-iterate]
+        DE --> DEE[dev-flow-e2e]
+    end
+
+    subgraph "Runbooks (eigenständig)"
+        CD[cluster-deployment]
+        FO[fleet-ops]
+        DO[database-ops]
+        HN[host-node-networking]
+        SR[secret-rotation]
+        KR[keycloak-realm-sync]
+        KM[knowledge-management]
+        AD[arena-brett-deploy]
+        UD[update-dependencies]
+    end
+
+    subgraph "Support"
+        MT[mishap-tracker]
+        OM[operations-management]
+    end
+
+    DP --> CD
+    DP --> FO
+    DE --> DO
+    DE --> SR
+    DE --> KR
+    DE --> AD
+    DI --> DO
+    DI --> HN
+    DEE --> FO
+    DEE --> CD
+
+    OM --> MT
+    CD -.-> OM
+    FO -.-> OM
+    DO -.-> OM
+    SR -.-> OM
+    KR -.-> OM
+
+    UD -.-> CD
+    UD -.-> FO
 ```
-host-node-networking (WireGuard mesh/Netplan)
-    └→ cluster-deployment (SealedSecrets → cert-manager → deploy)
-           └→ secret-rotation (keypair refresh / rotation)
-           └→ fleet-ops (cross-brand push deploys + fan-out)
 
-dev-flow-plan
-    └→ dev-flow-execute
-           ├→ dev-flow-iterate (dev iteration loops)
-           └→ dev-flow-e2e (post-merge Playwright tests)
+**Legende:**
+- Durchgezogene Pfeile: explizite Aufrufe / Delegation
+- Gestrichelte Pfeile: typische Folge-Operation (z.B. Mishap-Report nach Runbook)
 
-knowledge-management
-         └→ database-ops (backup restore on reindex failures)
+**Typische Workflows:**
 
-operations-management
-         ├→ fleet-ops (reconcile drift)
-         ├→ secret-rotation (auth / key fixes)
-         ├→ keycloak-realm-sync (SSO fixes)
-         └→ update-dependencies (maintenance audits)
-```
+| Start | Verlauf | Ergebnis |
+|-------|---------|----------|
+| Feature entwickeln | `dev-flow-plan` → `dev-flow-execute` → `dev-flow-e2e` | Gemergetes + getestetes Feature |
+| Cluster aufsetzen | `cluster-deployment` → `fleet-ops` → `secret-rotation` | Produktions-Cluster |
+| DB-Migration | `database-ops` → `dev-flow-execute` (Schema-Change) | Gemergte Migration |
+| Secret rotieren | `secret-rotation` → `fleet-ops` (Deploy) | Rotierte Secrets |
+| Abhängigkeiten updaten | `update-dependencies` → `cluster-deployment` (Test-Deploy) | Aktualisierte Packages |

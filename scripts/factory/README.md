@@ -89,6 +89,6 @@ Tasks parallelisieren mit `pipeline()` oder `parallel()`.
 ## Verwandte Dokumente
 
 - Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`
-- Plan: `docs/superpowers/plans/2026-06-01-software-factory.md`
+- Plan: `docs/superpowers/plans/2026-06-01-software-factory-polish.md`
 - Usage Guide: `docs/superpowers/references/factory-usage.md`
 - Vorhaben: T000413

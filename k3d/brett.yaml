@@ -41,7 +41,7 @@ spec:
                       - gekko-hetzner-4
       containers:
         - name: brett
-          image: ghcr.io/paddione/workspace-brett:latest # {"$imagepolicy": "flux-system:brett"}
+          image: ghcr.io/paddione/workspace-brett:latest
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

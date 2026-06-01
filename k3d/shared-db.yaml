@@ -7,8 +7,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: shared-db-pvc
   namespace: workspace
-  annotations:
-    kustomize.toolkit.fluxcd.io/reconcile: disabled
 spec:
   storageClassName: local-path
   accessModes: [ReadWriteOnce]

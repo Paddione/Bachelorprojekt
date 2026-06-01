@@ -15,6 +15,7 @@ import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { purgeAllTestData } from '../../../../lib/systemtest/purge-all';
+import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
@@ -25,6 +26,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
+    // Defensive, idempotent schema-ensure: this CronJob endpoint imports only
+    // website-db (never questionnaire-db), so on a fresh pod that never served a
+    // questionnaire/admin page the questionnaire_* / systemtest_* tables may not
+    // exist yet. tickets.fn_purge_test_data() DELETEs from them unconditionally,
+    // so it would 500 without the tables (T000406). Memoised — runs at most once.
+    await ensureQuestionnaireSchemaOnce(pool);
     const counts = await purgeAllTestData(pool);
     return new Response(
       JSON.stringify({ ok: true, counts }),

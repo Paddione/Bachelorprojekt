@@ -12,6 +12,7 @@ import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { drainOutbox } from '../../../../lib/systemtest/cleanup';
 import { runReconciler } from '../../../../lib/systemtest/reconciler';
+import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
@@ -22,6 +23,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
+    // Defensive, idempotent schema-ensure: these CronJob endpoints import only
+    // website-db (never questionnaire-db), so on a fresh pod that never served a
+    // questionnaire/admin page the questionnaire_* / systemtest_* tables may not
+    // exist yet and the queries below would 500 (T000406). Memoised — runs the
+    // DDL at most once per process.
+    await ensureQuestionnaireSchemaOnce(pool);
     const outbox = await drainOutbox(pool);
     const reconciler = await runReconciler(pool);
     return new Response(

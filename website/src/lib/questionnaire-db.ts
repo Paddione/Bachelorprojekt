@@ -3,6 +3,7 @@ import { resolve4 } from 'dns';
 import { SYSTEM_TEST_TEMPLATES, type SystemTestTemplate } from './system-test-seed-data';
 import { ensureSystemtestSchema } from './systemtest/db';
 import { openFailureTicket, enqueueOutboxRetry } from './systemtest/failure-bridge';
+import { ensureSchemaOnce } from './website-db';
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
@@ -234,8 +235,24 @@ async function updateSystemTestTemplate(
   }
 }
 
-async function initDb() {
-  await pool.query(`
+/**
+ * Idempotent DDL for the questionnaire + system-test schema.
+ *
+ * Creates every questionnaire_* table, the back-ref columns, the
+ * v_questionnaire_kpi view, and (via ensureSystemtestSchema) the systemtest_*
+ * tables + failure-board view + retest trigger. ALL statements use
+ * IF NOT EXISTS / OR REPLACE / DO-block guards, so repeated calls are safe.
+ *
+ * Split out of initDb() so callers can ensure the tables exist WITHOUT running
+ * the system-test template seeding (syncSystemTestTemplates). See T000406: the
+ * background CronJob endpoints (drain-outbox / cleanup-fixtures / purge-all)
+ * import only website-db, never questionnaire-db, so on a fresh korczewski pod
+ * that never served a questionnaire/admin page initDb() never ran and the cron
+ * endpoints 500'd with "relation systemtest_failure_outbox does not exist".
+ * Those endpoints now call ensureQuestionnaireSchemaOnce() before querying.
+ */
+export async function ensureQuestionnaireSchema(targetPool: pg.Pool = pool): Promise<void> {
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_templates (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       title TEXT NOT NULL,
@@ -246,7 +263,7 @@ async function initDb() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
-  await pool.query(`
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_dimensions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       template_id UUID NOT NULL REFERENCES questionnaire_templates(id) ON DELETE CASCADE,
@@ -258,7 +275,7 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
-  await pool.query(`
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_questions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       template_id UUID NOT NULL REFERENCES questionnaire_templates(id) ON DELETE CASCADE,
@@ -268,7 +285,7 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
-  await pool.query(`
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_answer_options (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       question_id UUID NOT NULL REFERENCES questionnaire_questions(id) ON DELETE CASCADE,
@@ -278,7 +295,7 @@ async function initDb() {
       weight INTEGER NOT NULL DEFAULT 1
     )
   `);
-  await pool.query(`
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_assignments (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       customer_id UUID NOT NULL,
@@ -290,7 +307,7 @@ async function initDb() {
       reviewed_at TIMESTAMPTZ
     )
   `);
-  await pool.query(`
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_answers (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       assignment_id UUID NOT NULL REFERENCES questionnaire_assignments(id) ON DELETE CASCADE,
@@ -301,20 +318,20 @@ async function initDb() {
     )
   `);
   // Migrations for test_step question type
-  await pool.query(`ALTER TABLE questionnaire_questions
+  await targetPool.query(`ALTER TABLE questionnaire_questions
     ADD COLUMN IF NOT EXISTS test_expected_result TEXT,
     ADD COLUMN IF NOT EXISTS test_function_url TEXT,
     ADD COLUMN IF NOT EXISTS test_menu_path TEXT,
     ADD COLUMN IF NOT EXISTS test_role TEXT`);
-  await pool.query(`ALTER TABLE questionnaire_answers
+  await targetPool.query(`ALTER TABLE questionnaire_answers
     ADD COLUMN IF NOT EXISTS details_text TEXT`);
-  await pool.query(`ALTER TABLE questionnaire_templates
+  await targetPool.query(`ALTER TABLE questionnaire_templates
     ADD COLUMN IF NOT EXISTS is_system_test BOOLEAN NOT NULL DEFAULT false`);
-  await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismissed_at TIMESTAMPTZ`);
-  await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismiss_reason TEXT`);
-  await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL`);
-  await pool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ`);
-  await pool.query(`
+  await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismissed_at TIMESTAMPTZ`);
+  await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismiss_reason TEXT`);
+  await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL`);
+  await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ`);
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_test_status (
       question_id UUID PRIMARY KEY REFERENCES questionnaire_questions(id) ON DELETE CASCADE,
       last_result TEXT NOT NULL CHECK (last_result IN ('erfüllt', 'teilweise', 'nicht_erfüllt')),
@@ -323,7 +340,7 @@ async function initDb() {
       last_assignment_id UUID
     )
   `);
-  await pool.query(`
+  await targetPool.query(`
     DO $$
     BEGIN
       IF NOT EXISTS (
@@ -337,7 +354,7 @@ async function initDb() {
       END IF;
     END$$
   `);
-  await pool.query(`
+  await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_assignment_scores (
       id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       assignment_id  UUID NOT NULL REFERENCES questionnaire_assignments(id) ON DELETE CASCADE,
@@ -350,17 +367,17 @@ async function initDb() {
       CONSTRAINT uq_qas_assignment_dimension UNIQUE (assignment_id, dimension_id)
     )
   `);
-  await pool.query(
+  await targetPool.query(
     `ALTER TABLE IF EXISTS questionnaire_assignment_scores DROP COLUMN IF EXISTS dimension_name;`
   );
-  await pool.query(
+  await targetPool.query(
     `CREATE INDEX IF NOT EXISTS idx_qas_assignment ON questionnaire_assignment_scores(assignment_id)`,
   );
-  await pool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
+  await targetPool.query(`CREATE SCHEMA IF NOT EXISTS bachelorprojekt`);
   // ensureSystemtestSchema must run before the v_questionnaire_kpi view
   // because the view references questionnaire_test_evidence (created there).
-  await ensureSystemtestSchema(pool);
-  await pool.query(`
+  await ensureSystemtestSchema(targetPool);
+  await targetPool.query(`
     CREATE OR REPLACE VIEW bachelorprojekt.v_questionnaire_kpi AS
     SELECT
       a.id              AS assignment_id,
@@ -392,6 +409,27 @@ async function initDb() {
     ) ev ON true
     WHERE a.status = 'archived'
   `);
+}
+
+/**
+ * Run-once wrapper around ensureQuestionnaireSchema(), memoised per process via
+ * the shared ensureSchemaOnce gate (see website-db.ts / T000304). Safe to call
+ * on the hot path of any number of concurrent requests — the idempotent DDL is
+ * executed at most once and a rejected init is evicted so a later call retries.
+ *
+ * This is the entry point the background system-test CronJob endpoints
+ * (drain-outbox / cleanup-fixtures / purge-all-test-data) call before touching
+ * the questionnaire_* / systemtest_* tables, so the schema reliably exists even
+ * on a pod that has never imported questionnaire-db (T000406). It takes the
+ * caller's pool so the endpoints can ensure against the very pool they query
+ * (website-db's pool), not just this module's private pool.
+ */
+export function ensureQuestionnaireSchemaOnce(targetPool: pg.Pool = pool): Promise<void> {
+  return ensureSchemaOnce('questionnaire-schema', () => ensureQuestionnaireSchema(targetPool));
+}
+
+async function initDb() {
+  await ensureQuestionnaireSchemaOnce(pool);
   await syncSystemTestTemplates();
 }
 

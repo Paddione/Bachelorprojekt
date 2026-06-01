@@ -183,3 +183,11 @@ Loop beenden, zu Schritt 4.
 
 - Aufgerufen von `dev-flow-execute` → Kontrolle zurück an **Schritt 5 (PR)**.
 - Standalone → Ende. Berichte Zusammenfassung: Cycles gelaufen, Issues gefixt.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `dev-flow-execute` | Alternative — batch-weise Implementierung |
+| `cluster-deployment` | Querschnitt — bei Cluster-Problemen |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

@@ -221,3 +221,12 @@ task recovery:unstage ENV=mentolder -- pvc-20260530-030001 -y  # drop *_recovery
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `secret-rotation` | Querschnitt — DB-Passwort-Rotation |
+| `fleet-ops` | Querschnitt — Cross-Brand DB-Operationen |
+| `cluster-deployment` | Voraussetzung — DB läuft im Cluster |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

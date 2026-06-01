@@ -408,3 +408,13 @@ grep HETZNER_WORKER_SNAPSHOT_ID environments/<env>.yaml
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `fleet-ops` | Querschnitt — nach Deployment beide Brands prüfen |
+| `secret-rotation` | Folge — Secrets nach Cluster-Reset rotieren |
+| `host-node-networking` | Querschnitt — Netzwerk bei Node-Problemen |
+| `operations-management` | Querschnitt — PRs/CI/Issues |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

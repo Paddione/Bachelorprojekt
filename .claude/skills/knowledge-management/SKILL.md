@@ -131,3 +131,10 @@ Go to `/admin/wissensquellen` → "Web-Quellen" → click **"Crawl starten"**.
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `database-ops` | Querschnitt — pgvector-Operationen |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |

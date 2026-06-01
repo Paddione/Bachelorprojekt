@@ -68,3 +68,10 @@ If the database is unreachable, output each ticket as a formatted block for manu
 ## Step 4: Summary
 
 Report the count of tickets created (or output for manual creation). If the log was empty, note that no mishaps were found.
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `operations-management` | Auftraggeber — erstellt Tickets aus Mishaps |
+| Alle Runbooks | Nutzer — jedes Skill schließt mit Mishap-Report ab |

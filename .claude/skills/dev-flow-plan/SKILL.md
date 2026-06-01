@@ -199,6 +199,15 @@ Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe `/schedule
 
 ---
 
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `using-git-worktrees` | Voraussetzung — Worktree-Isolation |
+| `dev-flow-execute` | Folge — implementiert den erstellten Plan |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |
+
 ## Nachbereitung & Mishap Report
 
 Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über `mishap-tracker` (aufrufbar via `bash scripts/hooks/mishap-tracker.sh`).

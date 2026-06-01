@@ -233,6 +233,16 @@ Führe danach `dev-flow-e2e` aus, um E2E Tests gegen die Live-Umgebung zu schrei
 
 ---
 
+
+## Verwandte Skills
+
+| Skill | Beziehung |
+|-------|-----------|
+| `dev-flow-plan` | Voraussetzung — liefert den Implementierungsplan |
+| `dev-flow-iterate` | Alternative — inkrementelle Dev-Iteration |
+| `dev-flow-e2e` | Folge — schreibt E2E-Tests nach Deploy |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |
+
 ## Nachbereitung & Mishap Report
 
 Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über `mishap-tracker` (aufrufbar via `bash scripts/hooks/mishap-tracker.sh`).

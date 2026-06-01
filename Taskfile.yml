@@ -255,6 +255,7 @@ tasks:
       - task: test:unit:shared-db-initdb-selfheal
       - task: test:unit:wg-mesh-fullmesh
       - task: test:unit:recovery-domain-durability
+      - task: test:unit:ticket-external-id
 
   test:unit:assert:
     internal: true
@@ -305,6 +306,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/recovery-domain-durability.bats
+
+  test:unit:ticket-external-id:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-external-id-sequence.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"

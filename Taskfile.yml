@@ -1554,8 +1554,8 @@ tasks:
   # fleet and no GitOps reconciler runs there. The former flux:status/sync/logs tasks
   # and the flux/clusters + flux/images GitOps machinery were removed with the
   # standalone-cluster decommission (both standalone clusters are gone). Only the
-  # website kustomize overlays under flux/apps/ remain (consumed by tests; pending
-  # relocation). Git stays the source of truth; `task workspace:deploy` applies it.
+  # website kustomize overlays under flux/apps/ were relocated to prod-fleet/website-{mentolder,korczewski}
+  # (applied directly by website:deploy); the flux/ folder is completely removed. Git stays the source of truth.
 
   fleet:platform:
     desc: "Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand."

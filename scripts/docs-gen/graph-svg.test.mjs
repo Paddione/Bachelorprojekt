@@ -99,6 +99,28 @@ test('renderGraphSvg: root carries the canonical graph-svg class', () => {
   assert.ok(svg.includes('class="graph-svg"'), 'svg root uses the canonical graph-svg class (IC-1)');
 });
 
+test('renderGraphSvg: emits <title> and <desc> as the first children of <svg>', () => {
+  const svg = renderGraphSvg(fixtureLayout());
+  assert.ok(svg.includes('<title'), 'has a <title> element');
+  assert.ok(svg.includes('<desc'), 'has a <desc> element');
+  assert.ok(svg.includes('Dokumentations-Beziehungsgraph'), 'title names the graph');
+  // <title> must be the very first child of <svg> (before the regions group).
+  const svgOpenEnd = svg.indexOf('>') + 1;
+  const afterOpen = svg.slice(svgOpenEnd);
+  assert.ok(afterOpen.trimStart().startsWith('<title'), 'title is the first child of <svg>');
+  const titleIdx = svg.indexOf('<title');
+  const descIdx = svg.indexOf('<desc');
+  const regionsIdx = svg.indexOf('class="graph-regions"');
+  assert.ok(titleIdx < descIdx, 'title precedes desc');
+  assert.ok(descIdx < regionsIdx, 'desc precedes the regions group');
+});
+
+test('renderGraphSvg: keeps the aria-label and references the title/desc for AT', () => {
+  const svg = renderGraphSvg(fixtureLayout());
+  assert.ok(svg.includes('aria-label="Documentation relationship graph"'), 'aria-label retained');
+  assert.ok(/aria-labelledby="[^"]+"/.test(svg), 'svg references its <title>/<desc> via aria-labelledby');
+});
+
 test('renderGraphSvg: byte-stable across runs and input order', () => {
   const a = renderGraphSvg(fixtureLayout());
   const b = renderGraphSvg(fixtureLayout());

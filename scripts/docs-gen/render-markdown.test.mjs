@@ -67,6 +67,113 @@ test('renderDiagrams: uses cached SVG from snapshots if present', () => {
   }
 });
 
+test('renderDiagrams: a rendered SVG is wrapped in <figure class="diagram-figure">', () => {
+  const html =
+    '<pre><code class="language-mermaid">graph TD\n  Fig --&gt; Cap</code></pre>';
+  const src = 'graph TD\n  Fig --> Cap';
+  const hash = createHash('sha256').update(src).digest('hex');
+  const snapshotDir = join(__dirname, '../../docs/mermaid-snapshots');
+  const snapshotFile = join(snapshotDir, `${hash}.svg`);
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(snapshotFile, '<svg id="figwrap-svg"></svg>', 'utf8');
+  try {
+    const { html: out } = renderDiagrams(html, { mmdc: '/nonexistent/mmdc' });
+    assert.ok(out.includes('class="diagram-figure"'), 'wraps rendered SVG in a figure');
+    assert.ok(out.includes('id="figwrap-svg"'), 'keeps the rendered SVG inside the figure');
+    // No caption present → no figcaption element (no empty caption).
+    assert.ok(!out.includes('<figcaption'), 'no figcaption when there is no caption');
+  } finally {
+    try { unlinkSync(snapshotFile); } catch {}
+  }
+});
+
+test('renderDiagrams: a preceding blockquote "Abbildung:" becomes the figcaption and is consumed', () => {
+  const src = 'graph TD\n  Cap --> Tion';
+  const hash = createHash('sha256').update(src).digest('hex');
+  const snapshotDir = join(__dirname, '../../docs/mermaid-snapshots');
+  const snapshotFile = join(snapshotDir, `${hash}.svg`);
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(snapshotFile, '<svg id="cap-svg"></svg>', 'utf8');
+  const html =
+    '<blockquote>\n<p><strong>Abbildung:</strong> Der Deploy-Ablauf</p>\n</blockquote>' +
+    '<pre><code class="language-mermaid">graph TD\n  Cap --&gt; Tion</code></pre>';
+  try {
+    const { html: out } = renderDiagrams(html, { mmdc: '/nonexistent/mmdc' });
+    assert.ok(out.includes('<figcaption'), 'emits a figcaption');
+    assert.ok(out.includes('Der Deploy-Ablauf'), 'figcaption carries the caption text');
+    // The caption blockquote must be consumed (not double-rendered above the figure).
+    assert.ok(!/<blockquote>[\s\S]*Abbildung/.test(out), 'caption blockquote is consumed');
+  } finally {
+    try { unlinkSync(snapshotFile); } catch {}
+  }
+});
+
+test('renderDiagrams: a captions map (from the fenced title) supplies the figcaption', () => {
+  const src = 'graph TD\n  T --> S';
+  const hash = createHash('sha256').update(src).digest('hex');
+  const snapshotDir = join(__dirname, '../../docs/mermaid-snapshots');
+  const snapshotFile = join(snapshotDir, `${hash}.svg`);
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(snapshotFile, '<svg id="titlecap-svg"></svg>', 'utf8');
+  const html =
+    '<pre><code class="language-mermaid">graph TD\n  T --&gt; S</code></pre>';
+  try {
+    const { html: out } = renderDiagrams(html, {
+      mmdc: '/nonexistent/mmdc',
+      captions: { [src]: 'Titel aus Info-String' },
+    });
+    assert.ok(out.includes('<figcaption'), 'emits a figcaption from the captions map');
+    assert.ok(out.includes('Titel aus Info-String'), 'figcaption carries the info-string title');
+  } finally {
+    try { unlinkSync(snapshotFile); } catch {}
+  }
+});
+
+test('renderDiagrams: keeps an aria-friendly zoom hint text on the rendered SVG', () => {
+  const src = 'graph TD\n  Z --> H';
+  const hash = createHash('sha256').update(src).digest('hex');
+  const snapshotDir = join(__dirname, '../../docs/mermaid-snapshots');
+  const snapshotFile = join(snapshotDir, `${hash}.svg`);
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(snapshotFile, '<svg id="zoomhint-svg"></svg>', 'utf8');
+  const html =
+    '<pre><code class="language-mermaid">graph TD\n  Z --&gt; H</code></pre>';
+  try {
+    const { html: out } = renderDiagrams(html, { mmdc: '/nonexistent/mmdc' });
+    assert.ok(out.includes('diagram-zoom-hint'), 'retains the visual zoom hint');
+    assert.ok(out.includes('Scroll = Zoom'), 'zoom hint keeps its readable text');
+  } finally {
+    try { unlinkSync(snapshotFile); } catch {}
+  }
+});
+
+test('renderMarkdown: a fenced mermaid title="…" flows through to a figcaption', async () => {
+  const src = 'flowchart LR\n  A --> B';
+  const hash = createHash('sha256').update(src).digest('hex');
+  const snapshotDir = join(__dirname, '../../docs/mermaid-snapshots');
+  const snapshotFile = join(snapshotDir, `${hash}.svg`);
+  mkdirSync(snapshotDir, { recursive: true });
+  writeFileSync(snapshotFile, '<svg id="e2e-title-svg"></svg>', 'utf8');
+  const registry = makeRegistry({});
+  const page = { slug: 'figs' };
+  const md = [
+    '# Figs',
+    '',
+    '```mermaid title="End-to-End Titel"',
+    'flowchart LR',
+    '  A --> B',
+    '```',
+  ].join('\n');
+  try {
+    const result = await renderMarkdown(md, { registry, page, mmdc: '/nonexistent/mmdc', snapshotDir });
+    assert.ok(result.html.includes('class="diagram-figure"'), 'figure wrapper present');
+    assert.ok(result.html.includes('<figcaption'), 'figcaption emitted from the title');
+    assert.ok(result.html.includes('End-to-End Titel'), 'title text carried into the figcaption');
+  } finally {
+    try { unlinkSync(snapshotFile); } catch {}
+  }
+});
+
 test('renderDiagrams: dot block falls back to a styled code block when dot is absent', () => {
   const html =
     '<pre><code class="language-dot">digraph G { a -&gt; b }</code></pre>';

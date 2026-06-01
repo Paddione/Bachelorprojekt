@@ -57,25 +57,64 @@ function slugifyHeading(text) {
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 }
 
+// ─── diagram caption helpers ──────────────────────────────────────────────────
+// Captions make a rendered diagram comprehensible beside the text (a11y).
+// Two sources, in priority order:
+//   1. a blockquote line directly before the diagram, "> **Abbildung:** <text>"
+//      (marked turns it into <blockquote><p><strong>Abbildung:</strong> <text></p>);
+//   2. the fenced info-string title ( ```mermaid title="…" ), captured pre-marked
+//      and threaded in via opts.captions (keyed by the trimmed diagram source).
+// When neither yields text we emit NO <figcaption> (never an empty element).
+const ABBILDUNG_RE = /^\s*Abbildung\s*:\s*([\s\S]+?)\s*$/i;
+
+// Pull the caption text from the immediately-preceding blockquote, if it matches
+// the "Abbildung:" convention. Returns the text and removes the blockquote so it
+// is not double-rendered above the figure. Returns null when there is no match.
+function consumePrecedingCaption($, $diagramEl) {
+  const $prev = $diagramEl.prev();
+  if (!$prev.length || !$prev.is('blockquote')) return null;
+  const text = $prev.text().trim();
+  const m = ABBILDUNG_RE.exec(text);
+  if (!m) return null;
+  $prev.remove();
+  return m[1].trim();
+}
+
+// Wrap a freshly-built diagram fragment in <figure class="diagram-figure">,
+// appending a <figcaption> only when caption text is present.
+function figureFor(inner, caption) {
+  const cap = caption
+    ? `<figcaption class="diagram-caption">${escapeHtml(caption)}</figcaption>`
+    : '';
+  return `<figure class="diagram-figure">${inner}${cap}</figure>`;
+}
+
 // ─── renderDiagrams ─────────────────────────────────────────────────────────────
-// Replaces fenced mermaid and dot/graphviz code blocks with inline SVG.
+// Replaces fenced mermaid and dot/graphviz code blocks with inline SVG, wrapping
+// each successfully-rendered SVG in a <figure class="diagram-figure"> (+ optional
+// <figcaption>; see the caption helpers above).
 // On a missing/failing renderer binary, falls back to a styled code block
 // (pre.diagram-fallback — shared by mermaid AND dot) and increments the counter.
 //
 // @param {string} html  HTML emitted by marked (contains <pre><code class="language-*">)
-// @param {{mmdc?:string, dot?:string, recordSnapshot?:(p:string)=>void, snapshotDir?:string}} [opts]
+// @param {{mmdc?:string, dot?:string, recordSnapshot?:(p:string)=>void, snapshotDir?:string, captions?:Record<string,string>}} [opts]
 // @returns {{ html: string, fallbacks: number }}
 export function renderDiagrams(html, opts = {}) {
   const mmdc = opts.mmdc ?? DEFAULT_MMDC;
   const dot = opts.dot ?? DEFAULT_DOT;
   const recordSnapshot = opts.recordSnapshot;
   const snapshotDir = opts.snapshotDir ?? join(__dirname, '../../docs/mermaid-snapshots');
+  const captions = opts.captions ?? {};
+  const captionFor = (src) => captions[src] ?? captions[src.trim()] ?? null;
   const $ = cheerio.load(html, { xmlMode: false });
   let fallbacks = 0;
 
   // Mermaid — cached snapshot approach to prevent layout coordinate drift.
   $('pre code.language-mermaid').each((_, el) => {
     const src = $(el).text();
+    // Caption (blockquote takes priority over the info-string title). Read it off
+    // the <pre> wrapper — its previous sibling is the candidate blockquote.
+    const caption = consumePrecedingCaption($, $(el).parent()) ?? captionFor(src);
     const hash = createHash('sha256').update(src).digest('hex');
     const snapshotFile = join(snapshotDir, `${hash}.svg`);
     let svg = null;
@@ -124,12 +163,14 @@ export function renderDiagrams(html, opts = {}) {
     }
 
     if (svg) {
-      $(el).parent().replaceWith(
-        `<div class="diagram-svg-wrapper">${svg}<span class="diagram-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>`
-      );
+      const wrapper =
+        `<div class="diagram-svg-wrapper">${svg}<span class="diagram-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>`;
+      $(el).parent().replaceWith(figureFor(wrapper, caption));
     } else {
       fallbacks += 1;
-      $(el).parent().replaceWith(`<pre class="diagram-fallback"><code>${escapeHtml(src)}</code></pre>`);
+      const fallback = `<pre class="diagram-fallback"><code>${escapeHtml(src)}</code></pre>`;
+      // Keep the caption attached to the fallback too, so it is never lost.
+      $(el).parent().replaceWith(caption ? figureFor(fallback, caption) : fallback);
     }
   });
 
@@ -138,6 +179,7 @@ export function renderDiagrams(html, opts = {}) {
   // which routes us into the styled-fallback branch (same as a missing mmdc).
   $('pre code.language-dot, pre code.language-graphviz').each((_, el) => {
     const src = $(el).text();
+    const caption = consumePrecedingCaption($, $(el).parent()) ?? captionFor(src);
     let svg = null;
     const tmpDir = mkdtempSync(join(tmpdir(), 'dot-'));
     const inFile = join(tmpDir, 'diagram.dot');
@@ -155,12 +197,13 @@ export function renderDiagrams(html, opts = {}) {
     if (svg) {
       // Strip the XML/doctype prologue dot emits so the SVG nests cleanly.
       const inlineSvg = svg.replace(/^[\s\S]*?(?=<svg)/, '');
-      $(el).parent().replaceWith(
-        `<div class="diagram-svg-wrapper">${inlineSvg}<span class="diagram-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>`
-      );
+      const wrapper =
+        `<div class="diagram-svg-wrapper">${inlineSvg}<span class="diagram-zoom-hint">Scroll = Zoom · Ziehen = Pan</span></div>`;
+      $(el).parent().replaceWith(figureFor(wrapper, caption));
     } else {
       fallbacks += 1;
-      $(el).parent().replaceWith(`<pre class="diagram-fallback"><code>${escapeHtml(src)}</code></pre>`);
+      const fallback = `<pre class="diagram-fallback"><code>${escapeHtml(src)}</code></pre>`;
+      $(el).parent().replaceWith(caption ? figureFor(fallback, caption) : fallback);
     }
   });
 
@@ -268,12 +311,17 @@ export function rewriteCrossLinks(html, { registry, page }) {
 // @param {{registry: object, page: {slug:string}, mmdc?:string, dot?:string, recordSnapshot?:Function, snapshotDir?:string}} ctx
 // @returns {RenderResult}
 export function renderMarkdown(markdown, { registry, page, mmdc, dot, recordSnapshot, snapshotDir } = {}) {
+  // Capture fenced diagram titles (```mermaid|dot|graphviz title="…") BEFORE marked
+  // parses, because marked drops everything after the first info-string word. The
+  // map is keyed by the trimmed diagram source so renderDiagrams can match it back.
+  const captions = extractDiagramCaptions(markdown);
+
   let html = marked.parse(markdown);
 
   const xref = rewriteCrossLinks(html, { registry, page });
   html = xref.html;
 
-  const diagrams = renderDiagrams(html, { mmdc, dot, recordSnapshot, snapshotDir });
+  const diagrams = renderDiagrams(html, { mmdc, dot, recordSnapshot, snapshotDir, captions });
   html = diagrams.html;
 
   html = addHeadingIds(html);
@@ -310,4 +358,30 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+// ─── extractDiagramCaptions ─────────────────────────────────────────────────────
+// Scan raw markdown for fenced diagram blocks (mermaid/dot/graphviz) whose
+// info-string carries a title="…", and return a map of trimmed-source → title.
+// marked discards the info-string past the language word, so this runs pre-parse.
+// The map is keyed by the BODY of the fence (matching code.textContent post-marked,
+// which trims the trailing newline — so we trim here too).
+// @param {string} markdown
+// @returns {Record<string,string>}
+export function extractDiagramCaptions(markdown) {
+  const captions = {};
+  if (!markdown) return captions;
+  // ```<lang> …title="<text>"  …body…  ```  — lang restricted to diagram kinds.
+  const re = /^([ \t]*)(`{3,}|~{3,})[ \t]*(mermaid|dot|graphviz)\b([^\n]*)\n([\s\S]*?)\n?\1\2[ \t]*$/gim;
+  let m;
+  while ((m = re.exec(markdown)) !== null) {
+    const info = m[4] || '';
+    const body = m[5] ?? '';
+    const titleMatch = /\btitle\s*=\s*"([^"]*)"|\btitle\s*=\s*'([^']*)'/.exec(info);
+    if (!titleMatch) continue;
+    const title = (titleMatch[1] ?? titleMatch[2] ?? '').trim();
+    if (!title) continue;
+    captions[body.trim()] = title;
+  }
+  return captions;
 }

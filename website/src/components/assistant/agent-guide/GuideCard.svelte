@@ -85,7 +85,12 @@
           <ol class="ag-flow">
             {#each goal!.flow as step, i (i)}
               <li>
-                <button type="button" class="ag-flow-jump" onclick={() => onJump(`ag-tool-${step.tool}`)}>
+                <button
+                  type="button"
+                  class="ag-flow-jump"
+                  aria-label={`Zum Werkzeug springen: ${step.tool_name_de}`}
+                  onclick={() => onJump(`ag-tool-${step.tool}`)}
+                >
                   {step.tool_name_de}
                 </button> — {step.note_de}
               </li>
@@ -109,7 +114,11 @@
           <div class="ag-related">
             {#each goal!.related as relId (relId)}
               {@const rel = entry.related?.[relId]}
-              <button class="ag-related-chip" onclick={() => onJump(rel?.domId ?? `ag-goal-${relId}`)}>
+              <button
+                class="ag-related-chip"
+                aria-label={`Zu verwandtem Eintrag springen: ${rel?.label ?? relId}`}
+                onclick={() => onJump(rel?.domId ?? `ag-goal-${relId}`)}
+              >
                 ↳ {#if rel}{tierEmoji(rel.danger)} {rel.label}{:else}{relId}{/if}
               </button>
             {/each}
@@ -139,7 +148,11 @@
           <div class="ag-related">
             {#each tool!.related as relId (relId)}
               {@const rel = entry.related?.[relId]}
-              <button class="ag-related-chip" onclick={() => onJump(rel?.domId ?? `ag-tool-${relId}`)}>
+              <button
+                class="ag-related-chip"
+                aria-label={`Zu verwandtem Eintrag springen: ${rel?.label ?? relId}`}
+                onclick={() => onJump(rel?.domId ?? `ag-tool-${relId}`)}
+              >
                 ↳ {#if rel}{tierEmoji(rel.danger)} {rel.label}{:else}{relId}{/if}
               </button>
             {/each}

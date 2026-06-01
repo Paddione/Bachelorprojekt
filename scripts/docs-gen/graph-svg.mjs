@@ -172,9 +172,23 @@ export function renderGraphSvg(layout) {
   const nodes = renderNodes(layout.nodes || []);
   const legend = renderLegend(layout.width, layout.height);
 
+  // Accessible name + description. <title>/<desc> are the first children of the
+  // <svg> (the SVG-AAM contract) and are wired up via aria-labelledby, in addition
+  // to the pre-existing aria-label, so screen readers announce a meaningful name
+  // and a short explanation of what the regions/edges/nodes mean.
+  const titleText = 'Dokumentations-Beziehungsgraph';
+  const descText =
+    'Eine nach Domänen geclusterte Karte der Dokumentation. Die getönten Regionen ' +
+    'gruppieren zusammengehörige Bereiche, die Knoten stehen für Skills, Agents und ' +
+    'Docs, und die Kanten zeigen, welche Seiten aufeinander verweisen.';
+
   return (
     `<svg class="graph-svg" xmlns="http://www.w3.org/2000/svg" ` +
-    `viewBox="0 0 ${width} ${height}" role="img" aria-label="Documentation relationship graph">` +
+    `viewBox="0 0 ${width} ${height}" role="img" ` +
+    `aria-label="Documentation relationship graph" ` +
+    `aria-labelledby="graph-svg-title graph-svg-desc">` +
+    `<title id="graph-svg-title">${esc(titleText)}</title>` +
+    `<desc id="graph-svg-desc">${esc(descText)}</desc>` +
     `<g class="graph-regions">${regions}</g>` +
     `<g class="graph-edges">${edges}</g>` +
     `<g class="graph-nodes">${nodes}</g>` +

@@ -323,6 +323,51 @@ YAML
   rm -rf "$tmpdir"
 }
 
+@test "env-seal.sh allows empty value for a schema required:false secret" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/schema.yaml" <<'YAML'
+version: 1
+secrets:
+  - name: BRAINSTORM_OIDC_SECRET
+    required: false
+    generate: true
+setup_vars: []
+YAML
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+BRAINSTORM_OIDC_SECRET: ""
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" \
+    --_test-dev-scan "${tmpdir}/mysecrets.yaml" \
+    --_test-schema "${tmpdir}/schema.yaml"
+  assert_success
+  assert_output --partial "OK"
+  rm -rf "$tmpdir"
+}
+
+@test "env-seal.sh still rejects empty value for a schema required:true secret" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/schema.yaml" <<'YAML'
+version: 1
+secrets:
+  - name: SMTP_PASSWORD
+    required: true
+setup_vars: []
+YAML
+  cat > "${tmpdir}/mysecrets.yaml" <<'YAML'
+SMTP_PASSWORD: ""
+YAML
+
+  run bash "${PROJECT_DIR}/scripts/env-seal.sh" \
+    --_test-dev-scan "${tmpdir}/mysecrets.yaml" \
+    --_test-schema "${tmpdir}/schema.yaml"
+  assert_failure
+  assert_output --partial "SMTP_PASSWORD"
+  rm -rf "$tmpdir"
+}
+
 @test "env-seal.sh rejects secrets file with duplicate keys" {
   local tmpdir
   tmpdir="$(mktemp -d)"

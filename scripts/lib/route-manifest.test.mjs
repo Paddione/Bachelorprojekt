@@ -96,7 +96,7 @@ const PAGES = join(REPO, 'website/src/pages');
 test('buildManifest: shape + authoritative counts', () => {
   const manifest = buildManifest(PAGES, FIXTURE_BRANDS);
   assert.equal(manifest.generatedFrom, 'website/src/pages');
-  assert.equal(manifest.count, 98); // page-file count (enumerated, pre-service-expansion)
+  assert.equal(manifest.count, 99); // page-file count (enumerated, pre-service-expansion)
   assert.ok(Array.isArray(manifest.routes));
   // /[service] literal is NOT emitted
   assert.ok(!manifest.routes.some((r) => r.route === '/[service]'),
@@ -106,7 +106,7 @@ test('buildManifest: shape + authoritative counts', () => {
   assert.ok(manifest.routes.some((r) => r.route === '/ki-beratung' && r.brand === 'korczewski'));
 });
 
-test('buildManifest: tier split admin=67 portal=9 public=22 over page files', () => {
+test('buildManifest: tier split admin=68 portal=9 public=22 over page files', () => {
   const manifest = buildManifest(PAGES, FIXTURE_BRANDS);
   // Tier split is asserted over the ENUMERATED page files (count basis), so collapse
   // expanded service routes back to the single /[service] page file for the tally.
@@ -120,7 +120,7 @@ test('buildManifest: tier split admin=67 portal=9 public=22 over page files', ()
   const admin = nonService.filter((r) => r.authTier === 'admin').length;
   const portal = nonService.filter((r) => r.authTier === 'portal').length;
   const publicLiterals = nonService.filter((r) => r.authTier === 'public').length;
-  assert.equal(admin, 67, 'admin tier page files');
+  assert.equal(admin, 68, 'admin tier page files');
   assert.equal(portal, 9, 'portal tier page files');
   assert.equal(publicLiterals + serviceContributes, 22, 'public tier page files incl /[service]');
 });

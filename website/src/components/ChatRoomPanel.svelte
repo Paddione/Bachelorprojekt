@@ -1,5 +1,8 @@
 <script lang="ts">
   import type { ChatRoom, ChatMessage } from '../lib/messaging-db';
+  import {
+    loadActivePrompts, insertPromptBody, recordPromptUse, type PromptOption,
+  } from '../lib/prompt-insert';
 
   type Member = { customer_id: string; name: string; email: string };
   type Customer = { id: string; name: string; email: string };
@@ -30,6 +33,25 @@
   let allCustomers = $state<Customer[]>([]);
   let memberSearch = $state('');
   let memberLoading = $state(false);
+
+  // ── Prompt-library "Vorlage einfügen" dropdown (admin only) ──────────────
+  let prompts = $state<PromptOption[]>([]);
+  let promptsLoaded = $state(false);
+  let showPromptMenu = $state(false);
+
+  async function togglePromptMenu() {
+    showPromptMenu = !showPromptMenu;
+    if (showPromptMenu && !promptsLoaded) {
+      prompts = await loadActivePrompts();
+      promptsLoaded = true;
+    }
+  }
+
+  function insertPrompt(p: PromptOption) {
+    newBody = insertPromptBody(newBody, p.body);
+    showPromptMenu = false;
+    void recordPromptUse(p.id);
+  }
 
   // Admin uses /api/admin/rooms/[id] (no /messages suffix)
   // Portal uses /api/portal/rooms/[id]/messages
@@ -231,6 +253,29 @@
       <div class="reply-bar">
         <textarea bind:value={newBody} placeholder="Nachricht…" rows="2"
           onkeydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}></textarea>
+        {#if role === 'admin'}
+          <div class="prompt-insert">
+            <button type="button" class="btn-prompt" onclick={togglePromptMenu}
+              aria-haspopup="listbox" aria-expanded={showPromptMenu} title="Vorlage einfügen">
+              ✎ Vorlage
+            </button>
+            {#if showPromptMenu}
+              <ul class="prompt-menu" role="listbox" aria-label="Vorlage einfügen">
+                {#if prompts.length === 0}
+                  <li class="prompt-empty">Keine aktiven Vorlagen.</li>
+                {:else}
+                  {#each prompts as p (p.id)}
+                    <li role="option" aria-selected="false">
+                      <button type="button" class="prompt-item" onclick={() => insertPrompt(p)}>
+                        {p.title}
+                      </button>
+                    </li>
+                  {/each}
+                {/if}
+              </ul>
+            {/if}
+          </div>
+        {/if}
         <button class="btn-send" disabled={!newBody.trim() || sending} onclick={sendMessage}>
           {sending ? '…' : '↑'}
         </button>
@@ -276,4 +321,11 @@
   .new-form input { background: #1e1e2e; color: #e8e8f0; border: 1px solid #374151; border-radius: 4px; padding: 6px; font-size: 12px; }
   .form-actions { display: flex; justify-content: flex-end; gap: 6px; }
   .form-actions button { background: #374151; color: #ccc; border: none; border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  .prompt-insert { position: relative; align-self: flex-end; }
+  .btn-prompt { background: #2a2a3e; color: #ccc; border: 1px solid #374151; border-radius: 6px; padding: 8px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .btn-prompt:hover { background: #374151; }
+  .prompt-menu { position: absolute; bottom: calc(100% + 6px); right: 0; min-width: 200px; max-width: 280px; max-height: 240px; overflow-y: auto; list-style: none; margin: 0; padding: 4px; background: #1e1e2e; border: 1px solid #374151; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.4); z-index: 20; }
+  .prompt-item { width: 100%; text-align: left; background: transparent; border: none; color: #e8e8f0; padding: 8px 10px; font-size: 13px; cursor: pointer; border-radius: 4px; }
+  .prompt-item:hover { background: #2a2a3e; }
+  .prompt-empty { color: #666; font-size: 12px; padding: 8px 10px; }
 </style>

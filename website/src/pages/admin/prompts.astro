@@ -1,0 +1,24 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PromptLibraryManager from '../../components/admin/PromptLibraryManager.svelte';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+import { pool } from '../../lib/website-db';
+import { listPrompts } from '../../lib/prompt-library-db';
+
+const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+let prompts: Awaited<ReturnType<typeof listPrompts>> = [];
+try {
+  prompts = await listPrompts(pool, BRAND, { activeOnly: false });
+} catch (err) {
+  console.error('[admin/prompts] DB error:', err);
+}
+---
+
+<AdminLayout title="Prompt-Bibliothek">
+  <PromptLibraryManager prompts={prompts} client:load />
+</AdminLayout>

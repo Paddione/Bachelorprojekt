@@ -2,7 +2,6 @@
   import SoftwareTab from './platform/SoftwareTab.svelte';
   import HardwareTab from './platform/HardwareTab.svelte';
   import HealthTab from './platform/HealthTab.svelte';
-  import FluxCDTab from './platform/FluxCDTab.svelte';
   import AktionenTab from './aktionen/AktionenTab.svelte';
   import DienstTab from './ops/DienstTab.svelte';
   import LogsTab from './ops/LogsTab.svelte';
@@ -10,10 +9,9 @@
   import DnsZertTab from './ops/DnsZertTab.svelte';
   export let cluster: string;
 
-  let activeTab = 'flux';
+  let activeTab = 'software';
 
   const tabs = [
-    { id: 'flux', label: 'GitOps', premium: true },
     { id: 'software', label: 'Software', premium: true },
     { id: 'hardware', label: 'Hardware' },
     { id: 'health', label: 'Integrität', premium: true },
@@ -31,7 +29,7 @@
       <span class="px-2 py-0.5 rounded-full bg-admin-primary/10 border border-admin-primary/20 text-[10px] font-bold text-admin-primary uppercase tracking-wider">{cluster} node</span>
       <h1 class="text-4xl font-extrabold text-white tracking-tight">Platform Control Center</h1>
     </div>
-    <p class="text-admin-text-mute">Zentralisierte Steuerung der Multicluster-Infrastruktur und GitOps-Pipelines.</p>
+    <p class="text-admin-text-mute">Zentralisierte Steuerung der Multicluster-Infrastruktur.</p>
   </header>
 
   <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px;">
@@ -52,9 +50,7 @@
   </div>
 
   <main class="transition-all duration-300">
-    {#if activeTab === 'flux'}
-      <FluxCDTab {cluster} />
-    {:else if activeTab === 'software'}
+    {#if activeTab === 'software'}
       <SoftwareTab {cluster} />
     {:else if activeTab === 'hardware'}
       <HardwareTab {cluster} />

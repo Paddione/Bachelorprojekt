@@ -18,6 +18,12 @@ data:
   BRETT_DOMAIN: "brett.${PROD_DOMAIN}"
   LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
+  # Recovery filebrowser host — registry-sourced (recover.<domain>). MUST be set
+  # here: this file is a strategic-merge patch over base k3d/configmap-domains.yaml,
+  # so without it the live domain-config keeps the dev value `recover.localhost`,
+  # silently breaking the recovery oauth2-proxy redirect + realm client + browse
+  # ingress on every deploy. domain-config is the runtime SSOT for those. [T000398]
+  RECOVER_DOMAIN: "${RECOVER_DOMAIN}"
   # Env-registry values (substituted from environments/<env>.yaml at deploy time)
   PROD_DOMAIN: "${PROD_DOMAIN}"
   WEBSITE_IMAGE: "${WEBSITE_IMAGE}"

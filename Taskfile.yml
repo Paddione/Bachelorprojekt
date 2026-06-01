@@ -254,6 +254,7 @@ tasks:
       - task: test:unit:fleet-phase2b
       - task: test:unit:shared-db-initdb-selfheal
       - task: test:unit:wg-mesh-fullmesh
+      - task: test:unit:recovery-domain-durability
 
   test:unit:assert:
     internal: true
@@ -299,6 +300,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/wg-mesh-fullmesh.bats
+
+  test:unit:recovery-domain-durability:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/recovery-domain-durability.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
@@ -1757,7 +1763,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$BRAND_ID"
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$RECOVER_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
           ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"

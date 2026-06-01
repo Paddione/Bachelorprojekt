@@ -85,6 +85,22 @@ KC="kubectl ${CTX_FLAG}"
 # ── Helpers ───────────────────────────────────────────────────────────────────
 _die() { echo "ERROR: $*" >&2; exit 1; }
 
+# Render k3d/recovery-browser.yaml ($MANIFEST) with its envsubst placeholders
+# resolved from the live domain-config ConfigMap (the deploy-time SSOT). The
+# manifest header documents these as substituted-at-browse-time; a raw apply
+# would push the literal ${...} (broken Ingress host + oauth2 redirect-url).
+# Reads globals: MANIFEST, KC, NS. Restricted envsubst list leaves the k8s
+# $(RECOVERY_OIDC_SECRET) env-expansion untouched.
+_render_recovery_browser() {
+  local cm; cm=$($KC get configmap domain-config -n "$NS" -o json 2>/dev/null || echo '{}')
+  export RECOVER_DOMAIN TLS_SECRET_NAME KC_DOMAIN WORKSPACE_NAMESPACE
+  RECOVER_DOMAIN=$(printf '%s' "$cm"  | jq -r '.data.RECOVER_DOMAIN // "recover.localhost"')
+  TLS_SECRET_NAME=$(printf '%s' "$cm" | jq -r '.data.TLS_SECRET_NAME // "workspace-wildcard-tls"')
+  KC_DOMAIN=$(printf '%s' "$cm"       | jq -r '.data.KC_DOMAIN // "auth.localhost"')
+  WORKSPACE_NAMESPACE="$NS"
+  envsubst '$RECOVER_DOMAIN $TLS_SECRET_NAME $KC_DOMAIN $WORKSPACE_NAMESPACE' < "$MANIFEST"
+}
+
 _db_pass_key() {
   case "$1" in
     keycloak)    echo KEYCLOAK_DB_PASSWORD ;;
@@ -939,7 +955,7 @@ YAML
     MANIFEST="${REPO_ROOT}/k3d/recovery-browser.yaml"
     [[ -f "$MANIFEST" ]] || _die "recovery-browser.yaml missing — Plan 2 (feature/recovery-browse) provides it"
     echo "Bringing up the recovery filebrowser (read-only over recovery-pvc:/recovery)..."
-    $KC apply -n "$NS" -f "$MANIFEST"
+    _render_recovery_browser | $KC apply -n "$NS" -f -
     DOM=$($KC get configmap domain-config -n "$NS" -o jsonpath='{.data.RECOVER_DOMAIN}' 2>/dev/null || echo "recover.localhost")
     echo "✓ Browse at: https://${DOM}  (Keycloak login, group /recovery-access). Tear down with: $SCRIPT unbrowse"
     ;;
@@ -947,7 +963,7 @@ YAML
   unbrowse)
     MANIFEST="${REPO_ROOT}/k3d/recovery-browser.yaml"
     echo "Removing the recovery filebrowser..."
-    $KC delete -n "$NS" -f "$MANIFEST" --ignore-not-found 2>/dev/null || true
+    _render_recovery_browser | $KC delete -n "$NS" -f - --ignore-not-found 2>/dev/null || true
     echo "✓ recovery filebrowser removed"
     ;;
 

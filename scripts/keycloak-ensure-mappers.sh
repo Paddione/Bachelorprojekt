@@ -10,12 +10,13 @@
 #
 # Usage:
 #   ENV=mentolder bash scripts/keycloak-ensure-mappers.sh
+#   bash scripts/keycloak-ensure-mappers.sh korczewski
 # ═══════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-ENV="${ENV:-dev}"
+ENV="${ENV:-${1:-dev}}"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
 

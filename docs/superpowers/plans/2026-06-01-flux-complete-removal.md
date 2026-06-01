@@ -28,7 +28,7 @@ pr_number: null
 - Modify/Rewrite: `tests/unit/keycloak-entrypoint-escaping.bats`
 - Reference (unverändert): `prod/import-entrypoint.sh`, `k3d/realm-import-entrypoint.sh`
 
-- [ ] **Step 1: Den kompletten neuen Test schreiben**
+- [x] **Step 1: Den kompletten neuen Test schreiben**
 
 Ersetze den **gesamten** Inhalt von `tests/unit/keycloak-entrypoint-escaping.bats` durch:
 
@@ -96,12 +96,12 @@ DEV_ENTRYPOINT="${PROJECT_DIR}/k3d/realm-import-entrypoint.sh"
 }
 ```
 
-- [ ] **Step 2: Test laufen lassen — muss GRÜN sein (Regressions-Guard gegen unveränderten, korrekten Stand)**
+- [x] **Step 2: Test laufen lassen — muss GRÜN sein (Regressions-Guard gegen unveränderten, korrekten Stand)**
 
 Run: `cd /tmp/wt-flux-complete-removal && ./tests/runner.sh local 2>/dev/null | grep -i keycloak-entrypoint || bats tests/unit/keycloak-entrypoint-escaping.bats`
 Expected: alle 4 Tests PASS (das `$$` ist bereits korrekt; der Test nagelt es fest).
 
-- [ ] **Step 3: RED-Beweis — Guard beißt bei De-Doubling**
+- [x] **Step 3: RED-Beweis — Guard beißt bei De-Doubling**
 
 Run:
 ```bash
@@ -114,7 +114,7 @@ git diff --quiet prod/import-entrypoint.sh && echo "REVERTED-CLEAN"
 ```
 Expected: bei de-doubled Script schlägt mindestens der „keeps the \$\$ escaping"-Test FEHL (exit != 0); nach Revert `REVERTED-CLEAN`. `prod/import-entrypoint.sh` bleibt unverändert gegenüber HEAD.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -132,7 +132,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Create: `prod-fleet/website-mentolder/kustomization.yaml`
 - Move: `flux/apps/website-mentolder/website-ingress-web.yaml` → `prod-fleet/website-mentolder/website-ingress-web.yaml`
 
-- [ ] **Step 1: Ingress-Datei verschieben (Inhalt unverändert)**
+- [x] **Step 1: Ingress-Datei verschieben (Inhalt unverändert)**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -140,7 +140,7 @@ mkdir -p prod-fleet/website-mentolder
 git mv flux/apps/website-mentolder/website-ingress-web.yaml prod-fleet/website-mentolder/website-ingress-web.yaml
 ```
 
-- [ ] **Step 2: Slim kustomization.yaml anlegen**
+- [x] **Step 2: Slim kustomization.yaml anlegen**
 
 Create `prod-fleet/website-mentolder/kustomization.yaml`:
 ```yaml
@@ -155,7 +155,7 @@ resources:
 ```
 (Bewusst KEINE `patches:` — image-tag und website-config-patch sind redundant zu `environments/mentolder.yaml` + envsubst auf `k3d/website.yaml`.)
 
-- [ ] **Step 3: Build verifizieren**
+- [x] **Step 3: Build verifizieren**
 
 Run:
 ```bash
@@ -167,7 +167,7 @@ grep -c 'flux-system:' /tmp/m.yaml || echo "no flux markers (0)"
 ```
 Expected: `BUILD-OK`; mind. 1× `kind: Ingress`; 1× `website-ingress-web`; `flux-system:` Count = 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -185,7 +185,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Create: `prod-fleet/website-korczewski/kustomization.yaml`
 - Move: `flux/apps/website-korczewski/website-security-headers.yaml` → `prod-fleet/website-korczewski/website-security-headers.yaml`
 
-- [ ] **Step 1: Middleware-Datei verschieben (Inhalt unverändert)**
+- [x] **Step 1: Middleware-Datei verschieben (Inhalt unverändert)**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -193,7 +193,7 @@ mkdir -p prod-fleet/website-korczewski
 git mv flux/apps/website-korczewski/website-security-headers.yaml prod-fleet/website-korczewski/website-security-headers.yaml
 ```
 
-- [ ] **Step 2: Slim kustomization.yaml anlegen (nur der IngressRoute-TLS-Patch als echtes Delta)**
+- [x] **Step 2: Slim kustomization.yaml anlegen (nur der IngressRoute-TLS-Patch als echtes Delta)**
 
 Create `prod-fleet/website-korczewski/kustomization.yaml`:
 ```yaml
@@ -231,7 +231,7 @@ patches:
 ```
 (Bewusst gedroppt ggü. dem alten flux-Overlay: image-tag-Patch, website-config-patch, **und** der node-affinity-replace-Patch — alle redundant zu `environments/korczewski.yaml` + imperativem `WEBSITE_NODE_AFFINITY`-Patch in `website:deploy`.)
 
-- [ ] **Step 3: Build verifizieren**
+- [x] **Step 3: Build verifizieren**
 
 Run:
 ```bash
@@ -245,7 +245,7 @@ grep -c 'flux-system:' /tmp/k.yaml || echo "no flux markers (0)"
 ```
 Expected: `BUILD-OK`; 1× IngressRoute; `websecure`, `korczewski-tls`, `website-security-headers` jeweils ≥1; `flux-system:` Count = 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -263,7 +263,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Delete: `flux/` (verbleibende Dateien: 2× kustomization.yaml, 2× image-tag.yaml, 2× website-config-patch.yaml — alle redundant/relocatet)
 - Modify: `k3d/brett.yaml:44`, `k3d/docs.yaml:21`, `k3d/shared-db.yaml:10-11`
 
-- [ ] **Step 1: flux/ entfernen**
+- [x] **Step 1: flux/ entfernen**
 
 Run:
 ```bash
@@ -273,7 +273,7 @@ ls flux/ 2>/dev/null && echo "STILL EXISTS (FAIL)" || echo "flux/ gone"
 ```
 Expected: `flux/ gone`.
 
-- [ ] **Step 2: $imagepolicy-Kommentare strippen**
+- [x] **Step 2: $imagepolicy-Kommentare strippen**
 
 Edit `k3d/brett.yaml` Zeile 44 — von:
 ```
@@ -293,7 +293,7 @@ zu:
           image: ghcr.io/paddione/workspace-docs:latest
 ```
 
-- [ ] **Step 3: Flux-reconcile-Annotation aus shared-db.yaml entfernen**
+- [x] **Step 3: Flux-reconcile-Annotation aus shared-db.yaml entfernen**
 
 `k3d/shared-db.yaml` Zeilen 10-11 — entferne BEIDE Zeilen (der `annotations:`-Block enthält nur diesen einen Key, also den ganzen Block löschen):
 ```
@@ -302,7 +302,7 @@ zu:
 ```
 Ergebnis: die `metadata:` des `shared-db-pvc` geht direkt von `namespace: workspace` zu `spec:` über.
 
-- [ ] **Step 4: Verifizieren — keine Flux-Reste in den Manifests**
+- [x] **Step 4: Verifizieren — keine Flux-Reste in den Manifests**
 
 Run:
 ```bash
@@ -312,7 +312,7 @@ kustomize build k3d/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "
 ```
 Expected: `clean`; `k3d build OK` (shared-db.yaml bleibt valides YAML).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -329,7 +329,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: `Taskfile.yml` (`website:deploy`, ~2799-2843)
 
-- [ ] **Step 1: Apply-Block dev/prod aufsplitten**
+- [x] **Step 1: Apply-Block dev/prod aufsplitten**
 
 Im `website:deploy`-Task: der bisher UNCONDITIONAL ausgeführte Apply-Block (die `LLM_ENABLED=… envsubst "<big list>" < k3d/website.yaml | kubectl ${CTX_ARG} apply -f -` Zeile ~2804-2809 PLUS `envsubst "\$WEBSITE_NAMESPACE" < k3d/website-seller-config.yaml | kubectl ${CTX_ARG} apply -f -` Zeile ~2810) wird ersetzt durch:
 
@@ -374,7 +374,7 @@ Hinweise:
 - Node-Affinity-Patch (~2812-2818), Dev-Secrets (~2820-2823) und Digest-Pin/rollout (~2825-2838) bleiben **unverändert** und laufen nach diesem Block — sie überschreiben Image/Affinity korrekt NACH dem Overlay-Apply.
 - Der `sed`-Collapse ist hier harmlos (Website-Manifests enthalten kein `$$`) und hält die Pipeline konsistent mit `workspace:deploy`.
 
-- [ ] **Step 2: Kommentar 2840-2842 umschreiben**
+- [x] **Step 2: Kommentar 2840-2842 umschreiben**
 
 Ersetze den Kommentarblock (aktuell „TLS is handled by the website overlays under flux/apps/…") durch:
 ```bash
@@ -385,7 +385,7 @@ Ersetze den Kommentarblock (aktuell „TLS is handled by the website overlays un
         # Removed blanket certResolver:letsencrypt patch that broke korczewski (T000147).
 ```
 
-- [ ] **Step 3: Render-Verifikation (keine unaufgelösten Platzhalter) — offline mit Dummy-Env**
+- [x] **Step 3: Render-Verifikation (keine unaufgelösten Platzhalter) — offline mit Dummy-Env**
 
 Run:
 ```bash
@@ -400,7 +400,7 @@ done
 ```
 Expected: für beide Brands `no unresolved placeholders`. (Falls eine Variable fehlt: in die `envsubst`-Liste im Task UND hier aufnehmen.)
 
-- [ ] **Step 4: Taskfile-Syntax / dry-run**
+- [x] **Step 4: Taskfile-Syntax / dry-run**
 
 Run:
 ```bash
@@ -409,7 +409,7 @@ task --dry website:deploy ENV=mentolder >/dev/null 2>&1 && echo "dry-run OK" || 
 ```
 Expected: `dry-run OK` (oder zumindest kein YAML/Template-Parsefehler im Taskfile).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -431,21 +431,21 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: `tests/unit/manifests.bats:475` (flux/apps/website-mentolder → prod-fleet/website-mentolder)
 
-- [ ] **Step 1: Aktuelle Zeile inspizieren**
+- [x] **Step 1: Aktuelle Zeile inspizieren**
 
 Run: `cd /tmp/wt-flux-complete-removal && grep -n 'flux/apps/website-mentolder' tests/unit/manifests.bats`
 Expected: 1 Treffer (~Zeile 475) im Test „website overlay allows egress to workspace-office".
 
-- [ ] **Step 2: Pfad ersetzen**
+- [x] **Step 2: Pfad ersetzen**
 
 Ersetze in `tests/unit/manifests.bats` `${PROJECT_DIR}/flux/apps/website-mentolder` durch `${PROJECT_DIR}/prod-fleet/website-mentolder` (nur dieses eine Vorkommen).
 
-- [ ] **Step 3: Test laufen lassen**
+- [x] **Step 3: Test laufen lassen**
 
 Run: `cd /tmp/wt-flux-complete-removal && bats tests/unit/manifests.bats`
 Expected: alle Tests PASS (die `allow-egress-to-workspace-office` NetworkPolicy steckt transitiv in `k3d/website.yaml`, der Pfad existiert jetzt unter prod-fleet).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -462,7 +462,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Files:**
 - Modify: `CLAUDE.md:11`, `.claude/agents/bachelorprojekt-infra.md:7,28`, `scripts/plan-frontmatter-hook.sh:25`, `scripts/docs-gen/registry.test.mjs:53`
 
-- [ ] **Step 1: CLAUDE.md infra-Routing-Zeile**
+- [x] **Step 1: CLAUDE.md infra-Routing-Zeile**
 
 `CLAUDE.md` Zeile 11 — von:
 ```
@@ -473,7 +473,7 @@ zu (Token `` `flux/`, `` entfernt):
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy | `bachelorprojekt-infra` |
 ```
 
-- [ ] **Step 2: bachelorprojekt-infra.md Trigger + Bullet**
+- [x] **Step 2: bachelorprojekt-infra.md Trigger + Bullet**
 
 `.claude/agents/bachelorprojekt-infra.md` Zeile 7 — von:
 ```
@@ -490,7 +490,7 @@ Zeile 28 — die ganze Bullet-Zeile LÖSCHEN:
 ```
 Optional ersetzen durch einen prod-fleet-Hinweis (falls eine passende prod-fleet-Bullet existiert, dort ergänzen): `website-mentolder/` und `website-korczewski/` liegen nun unter `prod-fleet/` und werden von `website:deploy` appliziert. Wenn unklar: Zeile ersatzlos streichen.
 
-- [ ] **Step 3: plan-frontmatter-hook.sh Regex**
+- [x] **Step 3: plan-frontmatter-hook.sh Regex**
 
 `scripts/plan-frontmatter-hook.sh` Zeile 25 — von:
 ```
@@ -501,19 +501,19 @@ zu (`flux/|` entfernt):
     echo "$content" | grep -qiE 'k3d/|prod[-/]|manifest|kustomize|overlay|Taskfile|environments/|deploy.*k8s' \
 ```
 
-- [ ] **Step 4: registry.test.mjs Fixture-Zelle**
+- [x] **Step 4: registry.test.mjs Fixture-Zelle**
 
 `scripts/docs-gen/registry.test.mjs` Zeile 53 — entferne das `` `flux/`, ``-Token aus der infra-Tabellenzelle (analog CLAUDE.md). Resultat:
 ```
   | \`k3d/\`, \`prod*/\`, manifest, kustomize, overlay, Taskfile, \`ENV=\`, \`environments/\`, deploy | \`bachelorprojekt-infra\` |
 ```
 
-- [ ] **Step 5: registry-Test laufen lassen (Row-Count bleibt 6)**
+- [x] **Step 5: registry-Test laufen lassen (Row-Count bleibt 6)**
 
 Run: `cd /tmp/wt-flux-complete-removal && node --test scripts/docs-gen/registry.test.mjs 2>&1 | tail -15`
 Expected: alle Tests PASS — `parseRoutingTable` liefert weiter exakt 6 Zeilen + dieselben 6 Agent-Namen (Token-Entfernung ändert keine Zeile/Spalte).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -531,7 +531,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 - Regenerate (NICHT von Hand editieren): `k3d/docs-content-built/agents.html`
 - Regenerate: `website/src/data/test-inventory.json`
 
-- [ ] **Step 1: Docs-HTML regenerieren**
+- [x] **Step 1: Docs-HTML regenerieren**
 
 Run:
 ```bash
@@ -541,12 +541,12 @@ git status --short k3d/docs-content-built/
 ```
 Expected: Build läuft durch; `agents.html` (und ggf. abhängige Seiten) als modified gelistet.
 
-- [ ] **Step 2: Diff-Scope prüfen**
+- [x] **Step 2: Diff-Scope prüfen**
 
 Run: `cd /tmp/wt-flux-complete-removal && git diff k3d/docs-content-built/agents.html | grep -iE '^[-+].*flux' | head`
 Expected: das Diff zeigt im Wesentlichen die Entfernung des `flux/`-Tokens in der infra-Card. Falls unerwartete, unzusammenhängende Regenerierung auftaucht (andere Seiten/Knoten): NUR die intendierten Datei-Deltas stagen, oder vorher auf frischem `origin/main` rebasen.
 
-- [ ] **Step 3: Test-Inventory regenerieren (CI failt sonst bei Drift)**
+- [x] **Step 3: Test-Inventory regenerieren (CI failt sonst bei Drift)**
 
 Run:
 ```bash
@@ -556,7 +556,7 @@ git status --short website/src/data/test-inventory.json
 ```
 Expected: `test-inventory.json` aktualisiert (neue Test-Namen aus dem umgebauten keycloak-Test). Falls keine Änderung: ok.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-flux-complete-removal
@@ -572,17 +572,17 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 **Files:** keine (Verifikation)
 
-- [ ] **Step 1: Volle Offline-Suite**
+- [x] **Step 1: Volle Offline-Suite**
 
 Run: `cd /tmp/wt-flux-complete-removal && task test:all 2>&1 | tail -30`
 Expected: GRÜN (BATS unit inkl. umgebauter keycloak/manifests-Tests, kustomize manifest structure, Taskfile dry-run).
 
-- [ ] **Step 2: Manifest-Validierung**
+- [x] **Step 2: Manifest-Validierung**
 
 Run: `cd /tmp/wt-flux-complete-removal && task workspace:validate 2>&1 | tail -20`
 Expected: GRÜN.
 
-- [ ] **Step 3: Letzter Flux-Reste-Scan (Sanity)**
+- [x] **Step 3: Letzter Flux-Reste-Scan (Sanity)**
 
 Run:
 ```bash
@@ -593,7 +593,7 @@ echo "routing token:"; grep -rIn '\`flux/\`\|flux/|' CLAUDE.md .claude/agents/ba
 ```
 Expected: `flux/ gone`, `none`, `none`. (Korrekte Push-based-Doku in CLAUDE.md:167 / CONTRIBUTING.md / Guards in discover-versions/mandatory-sequences bleiben — sind KEIN Treffer hier.)
 
-- [ ] **Step 4: Push + PR (CI-Gate)**
+- [x] **Step 4: Push + PR (CI-Gate)**
 
 ```bash
 cd /tmp/wt-flux-complete-removal

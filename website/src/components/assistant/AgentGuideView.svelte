@@ -24,6 +24,44 @@
     .map(id => tools.find(t => t.id === id))
     .filter((t): t is NonNullable<typeof t> => !!t && !!t.init_prompt_de);
 
+  // ── Learning summary state ────────────────────────────────────────────────
+  interface SummaryItem {
+    item_id: string;
+    item_type: string;
+    status: 'todo' | 'in_progress' | 'done';
+    note: string | null;
+    started_at: string | null;
+    completed_at: string | null;
+  }
+  interface LearningSummary {
+    done: number;
+    inProgress: number;
+    total: number;
+    pct: number;
+    lastActivity: string | null;
+    items: SummaryItem[];
+  }
+
+  let learningSummary = $state<LearningSummary | null>(null);
+  const learnedItems = $derived<Map<string, { status: 'todo' | 'in_progress' | 'done'; note: string }>>(
+    (() => {
+      const m = new Map<string, { status: 'todo' | 'in_progress' | 'done'; note: string }>();
+      if (learningSummary) {
+        for (const item of learningSummary.items) {
+          m.set(item.item_id, { status: item.status, note: item.note ?? '' });
+        }
+      }
+      return m;
+    })()
+  );
+
+  async function refreshSummary() {
+    try {
+      const res = await fetch('/api/portal/learning/summary');
+      if (res.ok) learningSummary = await res.json() as LearningSummary;
+    } catch { /* ignore */ }
+  }
+
   // ── State ──────────────────────────────────────────────────────────────────
   let expanded = $state(new Set<string>());
   // Every group key across all three axes — so groups are OPEN by default on any axis
@@ -60,6 +98,11 @@
       else mapOpen = true; // first run: map open to onboard newcomers
     } catch { /* ignore */ }
     hydrated = true;   // gate the persist effects so they never clobber saved state
+
+    // Fetch learning summary
+    refreshSummary();
+    window.addEventListener('learning:updated', refreshSummary);
+    return () => { window.removeEventListener('learning:updated', refreshSummary); };
   });
 
   // ── Persist (debounced) — only after hydration ───────────────────────────────
@@ -182,6 +225,15 @@
     <span class="ag-eyebrow"><span class="ag-eyebrow-bar" aria-hidden="true"></span>Agent-Anleitung</span>
     <h3 class="ag-title">Ich will … — welches Werkzeug nehme ich?</h3>
     <p class="ag-desc">Gruppiert nach Thema. Tippe ≥ 3 Zeichen zum Suchen. Die Farbe zeigt, wie vorsichtig Du sein musst.</p>
+
+    {#if learningSummary}
+      <div class="ag-progress-wrap">
+        <div class="ag-progress-bar" role="progressbar" aria-valuenow={learningSummary.pct} aria-valuemin={0} aria-valuemax={100}>
+          <div class="ag-progress-fill" style="width: {learningSummary.pct}%"></div>
+        </div>
+        <span class="ag-progress-value">{learningSummary.pct}% — {learningSummary.done}/{learningSummary.total} erledigt</span>
+      </div>
+    {/if}
   </div>
 
   {#if guideMap.flow.length}
@@ -261,6 +313,7 @@
         {group}
         groupOpen={groupsOpen.has(group.key)}
         {expanded} {query} {copiedId}
+        {learnedItems}
         onToggleGroup={toggleGroup}
         onToggleCard={toggleCard}
         onJump={jumpTo}

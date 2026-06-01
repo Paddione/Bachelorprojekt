@@ -677,6 +677,30 @@ data:
         END IF;
       END$$;
 
+      -- ── Prompt Library (F2 — reusable canned replies) ─────────────────
+      -- Brand-scoped reusable prompts inserted into the messaging compose box.
+      -- Additive, idempotent. NO FK to public.brands on purpose: avoids the
+      -- known korczewski bootstrap gap where a fresh deploy has not yet seeded
+      -- the brands table. The DB layer (prompt-library-db.ts) also self-heals
+      -- this schema on the query path (T000406 lesson).
+      CREATE TABLE IF NOT EXISTS prompt_library (
+          id           SERIAL PRIMARY KEY,
+          brand        TEXT NOT NULL,
+          category     TEXT NOT NULL DEFAULT 'canned_reply',
+          title        TEXT NOT NULL,
+          body         TEXT NOT NULL,
+          description  TEXT,
+          is_active    BOOLEAN DEFAULT true,
+          usage_count  INTEGER DEFAULT 0,
+          created_by   TEXT,
+          created_at   TIMESTAMPTZ DEFAULT now(),
+          updated_at   TIMESTAMPTZ DEFAULT now(),
+          is_test_data BOOLEAN DEFAULT false,
+          UNIQUE (brand, title)
+      );
+      CREATE INDEX IF NOT EXISTS idx_prompt_library_brand_active
+          ON prompt_library (brand) WHERE is_active;
+
       -- Grant full access to the website user
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;
@@ -1427,6 +1451,28 @@ data:
             WHERE source_test_run_id IS NOT NULL;
         END IF;
       END$$;
+
+      -- ── Prompt Library (F2 — reusable canned replies) ─────────────────
+      -- Mirrors the additive table from the init script so existing DBs gain it
+      -- on every boot. Idempotent, no FK to public.brands (korczewski bootstrap
+      -- gap). See prompt-library-db.ts (also self-heals on the query path).
+      CREATE TABLE IF NOT EXISTS prompt_library (
+          id           SERIAL PRIMARY KEY,
+          brand        TEXT NOT NULL,
+          category     TEXT NOT NULL DEFAULT 'canned_reply',
+          title        TEXT NOT NULL,
+          body         TEXT NOT NULL,
+          description  TEXT,
+          is_active    BOOLEAN DEFAULT true,
+          usage_count  INTEGER DEFAULT 0,
+          created_by   TEXT,
+          created_at   TIMESTAMPTZ DEFAULT now(),
+          updated_at   TIMESTAMPTZ DEFAULT now(),
+          is_test_data BOOLEAN DEFAULT false,
+          UNIQUE (brand, title)
+      );
+      CREATE INDEX IF NOT EXISTS idx_prompt_library_brand_active
+          ON prompt_library (brand) WHERE is_active;
 
       GRANT ALL ON ALL TABLES IN SCHEMA public TO website;
       GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO website;

@@ -119,6 +119,7 @@ const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
     iconClass: 'nav-icon-coaching',
     items: [
       { href: '/admin/coaching/sessions',  label: 'Sitzungen',   icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen'] },
+      { href: '/admin/prompts',            label: 'Prompt-Bibliothek', icon: 'book' },
       { href: BRETT_URL,                    label: 'Systembrett', icon: 'brett', external: true },
       ...(isKore ? [{ href: '/admin/arena', label: 'Arena',       icon: 'arena' }] : []),
     ],

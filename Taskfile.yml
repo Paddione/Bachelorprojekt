@@ -1488,9 +1488,15 @@ tasks:
     cmds:
       - |
         errors=0
+        # Non-env files that live in environments/ but are NOT full env configs:
+        #   schema.yaml   — the validation schema itself
+        #   versions.yaml — version-pin file (scripts/discover-versions.sh)
+        #   fleet.yaml    — partial bootstrap/shared config, not a deployable ENV
         for f in environments/*.yaml; do
           name="$(basename "$f" .yaml)"
-          [ "$name" = "schema" ] && continue
+          case "$name" in
+            schema|versions|fleet) continue ;;
+          esac
           echo "--- Validating: $name ---"
           bash scripts/env-validate.sh --env "$name" --env-dir environments --schema-only || errors=$((errors + 1))
         done

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.25.0...website-v1.26.0) (2026-06-01)
+
+
+### Features
+
+* **learning:** Lernpfad-Tracking, Onboarding & Admin-Sicht M1–M4 [T000418] ([#1314](https://github.com/Paddione/Bachelorprojekt/issues/1314)) ([d559bee](https://github.com/Paddione/Bachelorprojekt/commit/d559bee827c98b31116d6497ad2ffb4fe2d20398))
+
 ## [1.25.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.24.0...website-v1.25.0) (2026-06-01)
 
 

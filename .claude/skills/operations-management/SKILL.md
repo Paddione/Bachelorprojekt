@@ -126,6 +126,23 @@ git branch --merged main | grep -v 'main' | xargs git branch -d
 git fetch --prune
 ```
 
+> **`--merged` misses squash-merged branches.** This repo merges via **squash-and-merge** (Dev Rule 3, same caveat as Step 3.3), which rewrites a branch's commits into one new commit on `main`. The original branch tip is therefore NOT an ancestor of `main`, so `git branch --merged` never lists it and `git branch -d` refuses to delete it. Reclaim these branches by detecting that their remote is **[gone]** (deleted by `gh pr merge --delete-branch`) and confirming the PR actually merged, then force-deleting:
+> ```bash
+> # After `git fetch --prune`, list local branches whose upstream is gone
+> git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
+>   | awk '$2 == "[gone]" {print $1}' \
+>   | while read -r b; do
+>       # Verify the PR for this branch is merged before destroying local work
+>       merged=$(gh pr list --head "$b" --state merged --json number -q '.[0].number')
+>       if [ -n "$merged" ]; then
+>         git branch -D "$b"   # safe: PR #$merged merged, remote gone
+>       else
+>         echo "SKIP $b — upstream gone but no merged PR found; inspect manually"
+>       fi
+>     done
+> ```
+> Only `-D` (force) works here — `-d` will refuse because git does not see the squash-merged history.
+
 ### Step 3.3: GitHub PR Triage → close the linked ticket
 List open PRs:
 ```bash

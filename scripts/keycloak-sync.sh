@@ -10,6 +10,7 @@
 # Usage:
 #   bash scripts/keycloak-sync.sh
 #   ENV=mentolder bash scripts/keycloak-sync.sh
+#   bash scripts/keycloak-sync.sh korczewski   # positional brand arg
 #   task keycloak:sync ENV=mentolder
 # ═══════════════════════════════════════════════════════════════════════
 set -euo pipefail
@@ -17,7 +18,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── Environment ───────────────────────────────────────────────────────
-ENV="${ENV:-dev}"
+# ENV= env-var wins (Taskfile call site); fall back to a positional brand arg
+# so `bash scripts/keycloak-sync.sh korczewski` resolves correctly (matches
+# keycloak-ensure-mappers.sh / check-connectivity.sh). [T000405]
+ENV="${ENV:-${1:-dev}}"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env-resolve.sh" "$ENV" "$SCRIPT_DIR/../environments"
 # shellcheck disable=SC1091

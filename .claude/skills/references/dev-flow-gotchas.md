@@ -80,3 +80,20 @@ This document aggregates known operational issues, gotchas, and workarounds for 
 **Context**: Querying the `tickets.ticket_plans` table over `kubectl exec`.
 **Rule**: Never run `SELECT *` or query the `content` column on the entire `tickets.ticket_plans` table. The `content` column contains large markdown plan files which will cause connection timeouts over the `kubectl exec` tunnel. Always query metadata columns (such as `id`, `ticket_id`, `slug`, `branch`, `pr_number`, `archived_at`) or filter explicitly by a specific `ticket_id` or `slug`.
 
+---
+
+### [T000418] Playwright Project Assignment
+**Context**: Assigning the correct Playwright project when writing E2E tests.
+**Zuordnungstabelle**:
+Use the correct project name in `playwright.config.ts` depending on the targeted service/brand:
+
+| Projektname | Zweck / Ziel |
+|-------------|--------------|
+| `mentolder` | E2E-Tests für die Marke Mentolder |
+| `korczewski` | E2E-Tests für die Marke Korczewski |
+| `website` | Allgemeine Website E2E-Tests |
+| `services` | Testen von Hintergrund-Diensten |
+| `brett-mentolder` | Systembrett E2E-Tests auf Mentolder |
+| `smoke` | Smoke-Tests für den Live-Cluster |
+| `systemtest` | System-Integrationstests |
+

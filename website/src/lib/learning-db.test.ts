@@ -1,7 +1,7 @@
 // website/src/lib/learning-db.test.ts
 // Unit tests for learning-db.ts DML functions.
 
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it } from 'vitest';
 import { strict as assert } from 'node:assert';
 import * as learningDb from './learning-db';
 

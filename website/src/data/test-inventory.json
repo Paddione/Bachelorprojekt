@@ -438,6 +438,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:visual-sweep",
+    "file": "tests/e2e/specs/visual-sweep.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:wissensquellen",
     "file": "tests/e2e/specs/wissensquellen.spec.ts",
     "category": "E2E",

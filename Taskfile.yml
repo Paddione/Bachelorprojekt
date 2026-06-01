@@ -1062,10 +1062,13 @@ tasks:
             export COLLABORA_INGRESS_MIDDLEWARES="${WORKSPACE_NAMESPACE:-workspace}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE:-workspace}-hsts-headers@kubernetescrd"
             ;;
         esac
+        # Single-brand deploy: second-brand vars are empty (only fleet-deploy populates them).
+        export COLLABORA_HOST_2=""
+        export COLLABORA_ALIASGROUP2=""
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kustomize build k3d/office-stack \
-          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
+          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_HOST_2 $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
           | kubectl $context_flag apply -f -
       - |
         source scripts/env-resolve.sh "{{.ENV}}"

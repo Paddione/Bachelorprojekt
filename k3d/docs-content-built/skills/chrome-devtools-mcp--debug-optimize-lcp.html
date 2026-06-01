@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>debug-optimize-lcp — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">debug-optimize-lcp</span></nav>
+    <h1>debug-optimize-lcp</h1>
+    <p class="page-desc">Guides debugging and optimizing Largest Contentful Paint (LCP) using Chrome DevTools MCP tools. Use this skill whenever the user asks about LCP performance, slow page loads, Core Web Vitals optimization, or wants to understand why their page's main content takes too long to appear. Also use when the user mentions &quot;largest contentful paint&quot;, &quot;page load speed&quot;, &quot;CWV&quot;, or wants to improve how fast their hero image or main content renders.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.1.1</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-is-lcp-and-why-it-matters"><span class="toc-num">1.</span> What is LCP and why it matters</a></li>
+<li class="toc-item"><a href="#lcp-subparts-breakdown"><span class="toc-num">2.</span> LCP Subparts Breakdown</a></li>
+<li class="toc-item"><a href="#debugging-workflow"><span class="toc-num">3.</span> Debugging Workflow</a></li>
+<li class="toc-item"><a href="#optimization-strategies"><span class="toc-num">4.</span> Optimization Strategies</a></li>
+<li class="toc-item"><a href="#verifying-fixes--emulation"><span class="toc-num">5.</span> Verifying Fixes &amp; Emulation</a></li></ul>
+</div><h2 id="what-is-lcp-and-why-it-matters">What is LCP and why it matters</h2>
+<p>Largest Contentful Paint (LCP) measures how quickly a page's main content becomes visible. It's the time from navigation start until the largest image or text block renders in the viewport.</p>
+<ul>
+<li><strong>Good</strong>: 2.5 seconds or less</li>
+<li><strong>Needs improvement</strong>: 2.5–4.0 seconds</li>
+<li><strong>Poor</strong>: greater than 4.0 seconds</li>
+</ul>
+<p>LCP is a Core Web Vital that directly affects user experience and search ranking. On 73% of mobile pages, the LCP element is an image.</p>
+<h2 id="lcp-subparts-breakdown">LCP Subparts Breakdown</h2>
+<p>Every page's LCP breaks down into four sequential subparts with no gaps or overlaps. Understanding which subpart is the bottleneck is the key to effective optimization.</p>
+<table>
+<thead>
+<tr>
+<th>Subpart</th>
+<th>Ideal % of LCP</th>
+<th>What it measures</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Time to First Byte (TTFB)</strong></td>
+<td>~40%</td>
+<td>Navigation start → first byte of HTML received</td>
+</tr>
+<tr>
+<td><strong>Resource load delay</strong></td>
+<td>&lt;10%</td>
+<td>TTFB → browser starts loading the LCP resource</td>
+</tr>
+<tr>
+<td><strong>Resource load duration</strong></td>
+<td>~40%</td>
+<td>Time to download the LCP resource</td>
+</tr>
+<tr>
+<td><strong>Element render delay</strong></td>
+<td>&lt;10%</td>
+<td>LCP resource downloaded → LCP element rendered</td>
+</tr>
+</tbody></table>
+<p>The "delay" subparts should be as close to zero as possible. If either delay subpart is large relative to the total LCP, that's the first place to optimize.</p>
+<p><strong>Common Pitfall</strong>: Optimizing one subpart (like compressing an image to reduce load duration) without checking others. If render delay is the real bottleneck, a smaller image won't help — the saved time just shifts to render delay.</p>
+<h2 id="debugging-workflow">Debugging Workflow</h2>
+<p>Follow these steps in order. Each step builds on the previous one.</p>
+<h3>Step 1: Record a Performance Trace</h3>
+<p>Navigate to the page, then record a trace with reload to capture the full page load including LCP:</p>
+<ol>
+<li><code>navigate_page</code> to the target URL.</li>
+<li><code>performance_start_trace</code> with <code>reload: true</code> and <code>autoStop: true</code>.</li>
+</ol>
+<p>The trace results will include LCP timing and available insight sets. Note the insight set IDs from the output — you'll need them in the next step.</p>
+<h3>Step 2: Analyze LCP Insights</h3>
+<p>Use <code>performance_analyze_insight</code> to drill into LCP-specific insights. Look for these insight names in the trace results:</p>
+<ul>
+<li><strong>LCPBreakdown</strong> — Shows the four LCP subparts with timing for each.</li>
+<li><strong>DocumentLatency</strong> — Server response time issues affecting TTFB.</li>
+<li><strong>RenderBlocking</strong> — Resources blocking the LCP element from rendering.</li>
+<li><strong>LCPDiscovery</strong> — Whether the LCP resource was discoverable early.</li>
+</ul>
+<p>Call <code>performance_analyze_insight</code> with the insight set ID and the insight name from the trace results.</p>
+<h3>Step 3: Identify the LCP Element</h3>
+<p>Use <code>evaluate_script</code> with the <strong>"Identify LCP Element" snippet</strong> found in <a href="references/lcp-snippets.md">references/lcp-snippets.md</a> to reveal the LCP element's tag, resource URL, and raw timing data.</p>
+<p>The <code>url</code> field tells you what resource to look for in the network waterfall. If <code>url</code> is empty, the LCP element is text-based (no resource to load).</p>
+<h3>Step 4: Check the Network Waterfall</h3>
+<p>Use <code>list_network_requests</code> to see when the LCP resource loaded relative to other resources:</p>
+<ul>
+<li>Call <code>list_network_requests</code> filtered by <code>resourceTypes: ["Image", "Font"]</code> (adjust based on Step 3).</li>
+<li>Then use <code>get_network_request</code> with the LCP resource's request ID for full details.</li>
+</ul>
+<p><strong>Key Checks:</strong></p>
+<ul>
+<li><strong>Start Time</strong>: Compare against the HTML document and the first resource. If the LCP resource starts much later than the first resource, there's resource load delay to eliminate.</li>
+<li><strong>Duration</strong>: A large resource load duration suggests the file is too big or the server is slow.</li>
+</ul>
+<h3>Step 5: Inspect HTML for Common Issues</h3>
+<p>Use <code>evaluate_script</code> with the <strong>"Audit Common Issues" snippet</strong> found in <a href="references/lcp-snippets.md">references/lcp-snippets.md</a> to check for lazy-loaded images in the viewport, missing fetchpriority, and render-blocking scripts.</p>
+<h2 id="optimization-strategies">Optimization Strategies</h2>
+<p>After identifying the bottleneck subpart, apply these prioritized fixes.</p>
+<h3>1. Eliminate Resource Load Delay (target: &lt;10%)</h3>
+<p>The most common bottleneck. The LCP resource should start loading immediately.</p>
+<ul>
+<li><strong>Root Cause</strong>: LCP image loaded via JS/CSS, <code>data-src</code> usage, or <code>loading="lazy"</code>.</li>
+<li><strong>Fix</strong>: Use standard <code>&lt;img&gt;</code> with <code>src</code>. <strong>Never</strong> lazy-load the LCP image.</li>
+<li><strong>Fix</strong>: Add <code>&lt;link rel="preload" fetchpriority="high"&gt;</code> if the image isn't discoverable in HTML.</li>
+<li><strong>Fix</strong>: Add <code>fetchpriority="high"</code> to the LCP <code>&lt;img&gt;</code> tag.</li>
+</ul>
+<h3>2. Eliminate Element Render Delay (target: &lt;10%)</h3>
+<p>The element should render immediately after loading.</p>
+<ul>
+<li><strong>Root Cause</strong>: Large stylesheets, synchronous scripts in <code>&lt;head&gt;</code>, or main thread blocking.</li>
+<li><strong>Fix</strong>: Inline critical CSS, defer non-critical CSS/JS.</li>
+<li><strong>Fix</strong>: Break up long tasks blocking the main thread.</li>
+<li><strong>Fix</strong>: Use Server-Side Rendering (SSR) so the element exists in initial HTML.</li>
+</ul>
+<h3>3. Reduce Resource Load Duration (target: ~40%)</h3>
+<p>Make the resource smaller or faster to deliver.</p>
+<ul>
+<li><strong>Fix</strong>: Use modern formats (WebP, AVIF) and responsive images (<code>srcset</code>).</li>
+<li><strong>Fix</strong>: Serve from a CDN.</li>
+<li><strong>Fix</strong>: Set <code>Cache-Control</code> headers.</li>
+<li><strong>Fix</strong>: Use <code>font-display: swap</code> if LCP is text blocked by a web font.</li>
+</ul>
+<h3>4. Reduce TTFB (target: ~40%)</h3>
+<p>The HTML document itself takes too long to arrive.</p>
+<ul>
+<li><strong>Fix</strong>: Minimize redirects and optimize server response time.</li>
+<li><strong>Fix</strong>: Cache HTML at the edge (CDN).</li>
+<li><strong>Fix</strong>: Ensure pages are eligible for back/forward cache (bfcache).</li>
+</ul>
+<h2 id="verifying-fixes--emulation">Verifying Fixes &amp; Emulation</h2>
+<ul>
+<li><strong>Verification</strong>: Re-run the trace (<code>performance_start_trace</code> with <code>reload: true</code>) and compare the new subpart breakdown. The bottleneck should shrink.</li>
+<li><strong>Emulation</strong>: Lab measurements differ from real-world experience. Use <code>emulate</code> to test under constraints:<ul>
+<li><code>emulate</code> with <code>networkConditions: "Fast 3G"</code> and <code>cpuThrottlingRate: 4</code>.</li>
+<li>This surfaces issues visible only on slower connections/devices.</li>
+</ul>
+</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

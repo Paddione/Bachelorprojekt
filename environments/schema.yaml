@@ -209,6 +209,11 @@ env_vars:
     required: true
     default_dev: "http://auth.localhost"
 
+  - name: KC_DOMAIN
+    required: false
+    default_dev: "auth.localhost"
+    description: "Keycloak public hostname used by recovery-browser oauth2-proxy. Auto-derived as auth.${PROD_DOMAIN} at deploy time."
+
   - name: LLM_HOST_IP
     required: false
     default_dev: ""
@@ -276,6 +281,16 @@ env_vars:
     required: false
     default_dev: "collabora-tls-dev"
     description: "Name of the TLS Secret the Collabora Ingress references. Auto-set to ${TLS_SECRET_NAME} in prod, dev-only literal otherwise."
+
+  - name: COLLABORA_HOST_2
+    required: false
+    default_dev: ""
+    description: "Second brand Collabora hostname (multi-brand office-stack only). Auto-derived in fleet-deploy; empty in single-brand deploys."
+
+  - name: COLLABORA_ALIASGROUP2
+    required: false
+    default_dev: ""
+    description: "Second brand WOPI upstream alias (multi-brand office-stack only). Auto-derived in fleet-deploy; empty in single-brand deploys."
 
   # ─────────────────────────────────────────────────────────────────
   # Dev stack (dev.mentolder.de) — only meaningful when ENV=mentolder.
@@ -411,6 +426,14 @@ secrets:
   # 6. Comment text matched by the audit regex (not real envsubst targets):
   #      VAR                 (k3d/coturn-stack/coturn.yaml line ~43 — used
   #                           in a YAML comment explaining $(VAR) vs ${VAR})
+  #
+  # 7. Runtime shell vars in pvc-backup-cronjob.yaml's embedded Job-generation
+  #    heredoc (MJOB). The $${VAR} notation double-escapes the $ so envsubst
+  #    never touches them; the container shell evaluates them at runtime:
+  #      DS_AFFINITY, DS_CLAIM, VW_AFFINITY, VW_CLAIM
+  #                          (affinity and volume claim names in generated Job spec)
+  #      LABEL, MOUNTER, OUT, SRC
+  #                          (script-local loop vars in the backup Job shell script)
   # ─────────────────────────────────────────────────────────────────
   - name: SIGNALING_SECRET
     required: true

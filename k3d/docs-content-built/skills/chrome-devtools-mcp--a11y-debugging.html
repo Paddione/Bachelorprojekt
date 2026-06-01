@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>a11y-debugging — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">a11y-debugging</span></nav>
+    <h1>a11y-debugging</h1>
+    <p class="page-desc">Uses Chrome DevTools MCP for accessibility (a11y) debugging and auditing based on web.dev guidelines. Use when testing semantic HTML, ARIA labels, focus states, keyboard navigation, tap targets, and color contrast.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.1.1</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#core-concepts"><span class="toc-num">1.</span> Core Concepts</a></li>
+<li class="toc-item"><a href="#workflow-patterns"><span class="toc-num">2.</span> Workflow Patterns</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">3.</span> Troubleshooting</a></li></ul>
+</div><h2 id="core-concepts">Core Concepts</h2>
+<p><strong>Accessibility Tree vs DOM</strong>: Visually hiding an element (e.g., <code>CSS opacity: 0</code>) behaves differently for screen readers than <code>display: none</code> or <code>aria-hidden="true"</code>. The <code>take_snapshot</code> tool returns the accessibility tree of the page, which represents what assistive technologies "see", making it the most reliable source of truth for semantic structure.</p>
+<p><strong>Reading web.dev documentation</strong>: If you need to research specific accessibility guidelines (like <code>https://web.dev/articles/accessible-tap-targets</code>), you can append <code>.md.txt</code> to the URL (e.g., <code>https://web.dev/articles/accessible-tap-targets.md.txt</code>) to fetch the clean, raw markdown version. This is much easier to read!</p>
+<h2 id="workflow-patterns">Workflow Patterns</h2>
+<h3>1. Automated Audit (Lighthouse)</h3>
+<p>Start by running a Lighthouse accessibility audit to get a comprehensive baseline. This tool provides a high-level score and lists specific failing elements with remediation advice.</p>
+<ol>
+<li>Run the audit:<ul>
+<li>Set <code>mode</code> to <code>"navigation"</code> to refresh the page and capture load issues.</li>
+<li>Set <code>outputDirPath</code> (e.g., <code>/tmp/lh-report</code>) to save the full JSON report.</li>
+</ul>
+</li>
+<li><strong>Analyze the Summary</strong>:<ul>
+<li>Check <code>scores</code> (0-1 scale). A score &lt; 1 indicates violations.</li>
+<li>Review <code>audits.failed</code> count.</li>
+</ul>
+</li>
+<li><strong>Review the Report (CRITICAL)</strong>:<ul>
+<li><strong>Parsing</strong>: Do not read the entire file line-by-line. Use a CLI tool like <code>jq</code> or a Node.js one-liner to filter for failures:<div class="code-wrapper"><pre><code class="language-bash"># Extract failing audits with their details
+node -e "const r=require('./report.json'); Object.values(r.audits).filter(a=&gt;a.score!==null &amp;&amp; a.score&lt;1).forEach(a=&gt;console.log(JSON.stringify({id:a.id, title:a.title, items:a.details?.items})))"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>This efficiently extracts the <code>selector</code> and <code>snippet</code> of failing elements without loading the full report into context.</li>
+</ul>
+</li>
+</ol>
+<h3>2. Browser Issues &amp; Audits</h3>
+<p>Chrome automatically checks for common accessibility problems. Use <code>list_console_messages</code> to check for these native audits:</p>
+<ul>
+<li><code>types</code>: <code>["issue"]</code></li>
+<li><code>includePreservedMessages</code>: <code>true</code> (to catch issues that occurred during page load)</li>
+</ul>
+<p>This often reveals missing labels, invalid ARIA attributes, and other critical errors without manual investigation.</p>
+<h3>3. Semantics &amp; Structure</h3>
+<p>The accessibility tree exposes the heading hierarchy and semantic landmarks.</p>
+<ol>
+<li>Navigate to the page.</li>
+<li>Use <code>take_snapshot</code> to capture the accessibility tree.</li>
+<li><strong>Check Heading Levels</strong>: Ensure heading levels (<code>h1</code>, <code>h2</code>, <code>h3</code>, etc.) are logical and do not skip levels. The snapshot will include heading roles.</li>
+<li><strong>Content Reordering</strong>: Verify that the DOM order (which drives the accessibility tree) matches the visual reading order. Use <code>take_screenshot</code> to inspect the visual layout and compare it against the snapshot structure to catch CSS floats or absolute positioning that jumbles the logical flow.</li>
+</ol>
+<h3>4. Labels, Forms &amp; Text Alternatives</h3>
+<ol>
+<li>Locate buttons, inputs, and images in the <code>take_snapshot</code> output.</li>
+<li>Ensure interactive elements have an accessible name (e.g., a button should not just say <code>""</code> if it only contains an icon).</li>
+<li><strong>Orphaned Inputs</strong>: Verify that all form inputs have associated labels. Use <code>evaluate_script</code> with the <strong>"Find Orphaned Form Inputs" snippet</strong> found in <a href="references/a11y-snippets.md">references/a11y-snippets.md</a>.</li>
+<li>Check images for <code>alt</code> text.</li>
+</ol>
+<h3>5. Focus &amp; Keyboard Navigation</h3>
+<p>Testing "keyboard traps" and proper focus management without visual feedback relies on tracking the focused element.</p>
+<ol>
+<li>Use the <code>press_key</code> tool with <code>"Tab"</code> or <code>"Shift+Tab"</code> to move focus.</li>
+<li>Use <code>take_snapshot</code> to capture the updated accessibility tree.</li>
+<li>Locate the element marked as focused in the snapshot to verify focus moved to the expected interactive element.</li>
+<li>If a modal opens, focus must move into the modal and "trap" within it until closed.</li>
+</ol>
+<h3>6. Tap Targets and Visuals</h3>
+<p>According to web.dev, tap targets should be at least 48x48 pixels with sufficient spacing. Since the accessibility tree doesn't show sizes, use <code>evaluate_script</code> with the <strong>"Measure Tap Target Size" snippet</strong> found in <a href="references/a11y-snippets.md">references/a11y-snippets.md</a>.</p>
+<p><em>Pass the element's <code>uid</code> from the snapshot as an argument to <code>evaluate_script</code>.</em></p>
+<h3>7. Color Contrast</h3>
+<p>To verify color contrast ratios, start by checking for native accessibility issues:</p>
+<ol>
+<li>Call <code>list_console_messages</code> with <code>types: ["issue"]</code>.</li>
+<li>Look for "Low Contrast" issues in the output.</li>
+</ol>
+<p>If native audits do not report issues (which may happen in some headless environments) or if you need to check a specific element manually, use <code>evaluate_script</code> with the <strong>"Check Color Contrast" snippet</strong> found in <a href="references/a11y-snippets.md">references/a11y-snippets.md</a>.</p>
+<h3>8. Global Page Checks</h3>
+<p>Verify document-level accessibility settings often missed in component testing using the <strong>"Global Page Checks" snippet</strong> found in <a href="references/a11y-snippets.md">references/a11y-snippets.md</a>.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If standard a11y queries fail or the <code>evaluate_script</code> snippets return unexpected results:</p>
+<ul>
+<li><strong>Visual Inspection</strong>: If automated scripts cannot determine contrast (e.g., text over gradient images or complex backgrounds), use <code>take_screenshot</code> to capture the element. While models cannot measure exact contrast ratios from images, they can visually assess legibility and identify obvious issues.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

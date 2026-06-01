@@ -1,5 +1,5 @@
 <script lang="ts">
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide' | 'loslernen';
 
   let {
     onNavigate,
@@ -19,7 +19,7 @@
 
   const isAdmin = $derived(helpContext === 'admin');
 
-  type Item = { id: View; no: string; title: string; sub: string; badge?: number; show?: boolean };
+  type Item = { id: View; no: string; title: string; sub: string; badge?: number; show?: boolean; href?: string };
 
   const items = $derived<Item[]>([
     { id: 'tickets',       no: '01', title: 'Anfragen',           sub: 'Tickets erstellen & bearbeiten', badge: pendingTickets > 0 ? pendingTickets : undefined,       show: isAdmin },
@@ -27,7 +27,8 @@
     { id: 'questionnaire', no: isAdmin ? '03' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
     { id: 'support',       no: isAdmin ? '04' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
     { id: 'agent-guide',   no: isAdmin ? '05' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
-    { id: 'help',          no: isAdmin ? '06' : '04', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+    { id: 'loslernen',     no: isAdmin ? '06' : '04', title: 'Lernpfad',     sub: 'Fortschritt verfolgen',            show: true, href: '/portal/loslernen' },
+    { id: 'help',          no: isAdmin ? '07' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ].filter(i => i.show));
 
   let hover = $state<string | null>(null);
@@ -49,34 +50,58 @@
   <!-- Numbered item list -->
   <div class="sk-list" role="list">
     {#each items as item (item.id)}
-      <button
-        class="sk-row"
-        class:sk-row--hover={hover === item.id}
-        onmouseenter={() => hover = item.id}
-        onmouseleave={() => hover = null}
-        onclick={() => onNavigate(item.id)}
-        role="listitem"
-        aria-label="{item.title} — {item.sub}"
-      >
-        <span class="sk-no" class:sk-no--active={hover === item.id}>{item.no}</span>
+      {#if item.href}
+        <a
+          href={item.href}
+          class="sk-row sk-row--link"
+          class:sk-row--hover={hover === item.id}
+          onmouseenter={() => hover = item.id}
+          onmouseleave={() => hover = null}
+          role="listitem"
+          aria-label="{item.title} — {item.sub}"
+        >
+          <span class="sk-no" class:sk-no--active={hover === item.id}>{item.no}</span>
+          <span class="sk-body">
+            <span class="sk-item-title">{item.title}</span>
+            <span class="sk-item-sub">{item.sub}</span>
+          </span>
+          <span class="sk-badge-slot"></span>
+          <span class="sk-arrow" class:sk-arrow--active={hover === item.id} aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </a>
+      {:else}
+        <button
+          class="sk-row"
+          class:sk-row--hover={hover === item.id}
+          onmouseenter={() => hover = item.id}
+          onmouseleave={() => hover = null}
+          onclick={() => onNavigate(item.id)}
+          role="listitem"
+          aria-label="{item.title} — {item.sub}"
+        >
+          <span class="sk-no" class:sk-no--active={hover === item.id}>{item.no}</span>
 
-        <span class="sk-body">
-          <span class="sk-item-title">{item.title}</span>
-          <span class="sk-item-sub">{item.sub}</span>
-        </span>
+          <span class="sk-body">
+            <span class="sk-item-title">{item.title}</span>
+            <span class="sk-item-sub">{item.sub}</span>
+          </span>
 
-        <span class="sk-badge-slot">
-          {#if item.badge}
-            <span class="sk-brass-badge">{Math.min(99, item.badge)}</span>
-          {/if}
-        </span>
+          <span class="sk-badge-slot">
+            {#if item.badge}
+              <span class="sk-brass-badge">{Math.min(99, item.badge)}</span>
+            {/if}
+          </span>
 
-        <span class="sk-arrow" class:sk-arrow--active={hover === item.id} aria-hidden="true">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M13 5l7 7-7 7"/>
-          </svg>
-        </span>
-      </button>
+          <span class="sk-arrow" class:sk-arrow--active={hover === item.id} aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </button>
+      {/if}
     {/each}
   </div>
 </div>
@@ -167,6 +192,11 @@
   .sk-row:focus-visible {
     outline: 2px solid var(--brass);
     outline-offset: -2px;
+  }
+
+  .sk-row--link {
+    text-decoration: none;
+    color: inherit;
   }
 
   .sk-row--hover {

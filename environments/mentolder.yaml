@@ -73,7 +73,7 @@ env_vars:
 overlay: prod-fleet/mentolder
 workspace_namespace: workspace
 website_namespace: website
-secrets_ref: sealed-secrets/fleet-mentolder.yaml
+secrets_ref: sealed-secrets/mentolder.yaml
 
 setup_vars:
   KC_USER1_USERNAME: paddione

@@ -67,7 +67,7 @@
 <li>Timeline shows <strong>historical data only</strong> — tracking pipeline removed (PR #788 removed <code>tracking-import</code> CronJob, PR #993 removed <code>track-pr.yml</code>); last entry is PR #787</li>
 </ul>
 <h2 id="deploy-rule-critical">Deploy rule (CRITICAL)</h2>
-<p>Every change to <code>website/src/</code> or <code>website/public/</code> requires a push to <code>main</code> (via PR). In prod, Flux picks up the new image tag automatically. For manual rollout/rebuild:</p>
+<p>Every change to <code>website/src/</code> or <code>website/public/</code> requires a push to <code>main</code> (via PR). In prod, the <code>build-website.yml</code> / <code>build-website-korczewski.yml</code> Actions rebuild the brand image and roll it out automatically (push-based via <code>FLEET_KUBECONFIG</code>; no Flux). For manual rollout/rebuild:</p>
 <div class="code-wrapper"><pre><code class="language-bash">task website:redeploy ENV=mentolder
 task website:redeploy ENV=korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>

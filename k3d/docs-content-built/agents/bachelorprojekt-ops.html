@@ -73,8 +73,7 @@ task workspace:restart  ENV=&lt;env&gt; -- &lt;svc&gt;  # restart a specific ser
 task livekit:status     ENV=&lt;env&gt;           # LiveKit pods + recording count
 task livekit:logs       ENV=&lt;env&gt;           # livekit-server logs
 task clusters:status                        # one-line status across both environments
-flux get kustomizations --context fleet     # check Flux reconciliation status
-flux logs --context fleet                   # tail reconciler events
+# (Deploy is push-based — there is no Flux/Argo reconciler on fleet to query.)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="important-constraints">Important constraints</h2>
 <ul>

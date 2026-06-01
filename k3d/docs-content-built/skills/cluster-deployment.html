@@ -89,7 +89,6 @@ export K3S_VERSION="${k3s}"
 <p>After sourcing, the following shell variables are available:</p>
 <ul>
 <li><code>$k3s</code> / <code>$K3S_VERSION</code> — k3s version for node install</li>
-<li><code>$flux</code> — Flux version</li>
 <li><code>$sealed_secrets_chart</code> — Helm chart version</li>
 <li><code>$cert_manager</code> — Helm chart version</li>
 <li><code>$longhorn_chart</code> — Helm chart version</li>
@@ -227,7 +226,7 @@ kubectl patch storageclass longhorn \
 # kubectl --context &lt;ctx&gt; get nodes -o wide
 kubectl --context &lt;ctx&gt; get storageclass longhorn
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Step 1.5: Full-Service Deploy &amp; Flux Bootstrap</h3>
+<h3>Step 1.5: Full-Service Deploy</h3>
 <p><strong><code>workspace:deploy</code> alone does NOT deploy every service.</strong> It applies the base kustomization only. Collabora (office-stack), CoTURN/Janus (coturn-stack), the website, and arena each deploy by their own task. To bring up the <em>entire</em> platform, run the <code>workspace:setup</code> umbrella, then the prod-only stacks:</p>
 <div class="code-wrapper"><pre><code class="language-bash"># One umbrella: workspace:deploy → office:deploy → mcp:deploy →
 # post-setup → talk-setup → recording-setup → transcriber-setup
@@ -247,10 +246,8 @@ task arena:deploy ENV=korczewski
 task workspace:admin-users-setup ENV=&lt;env&gt;   # SSO admin users in Keycloak
 task workspace:vaultwarden:seed ENV=&lt;env&gt;     # seed secret templates
 
-# Flux bootstrap (prod GitOps reconciliation)
-kubectl apply -f flux/clusters/&lt;env&gt;/ --context &lt;ctx&gt;
-flux reconcile source git flux-system --context &lt;ctx&gt;
-flux reconcile kustomization workspace --context &lt;ctx&gt;
+# No GitOps bootstrap — fleet is push-based (no Flux/Argo controller). The task
+# commands above ARE the deploy; re-run them after each merge to apply git state.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <blockquote>
 <p><strong>Fleet brands:</strong> to deploy <em>both</em> brands onto the fleet cluster in one shot, use <code>task fleet:deploy</code> (platform once → fleet-mentolder → fleet-korczewski). It routes each brand through this same <code>workspace:deploy</code> path and seeds the <code>coturn</code> + <code>workspace-office</code> SealedSecret namespaces. Follow with the per-brand office/coturn passes above (<code>ENV=mentolder</code> / <code>ENV=korczewski</code>).</p>
@@ -367,7 +364,7 @@ task livekit:dns-pin ENV=&lt;env&gt; APPLY=true
 <h2 id="phase-2--deployment-assistance--cluster-diagnosis">Phase 2 — Deployment Assistance &amp; Cluster Diagnosis</h2>
 <p>For existing clusters that may be degraded, follow this phased assessment flow:</p>
 <h3>Step 2.1: Prerequisite Checks</h3>
-<div class="code-wrapper"><pre><code class="language-bash">for tool in docker kubectl task k3d git flux kubeseal helm; do
+<div class="code-wrapper"><pre><code class="language-bash">for tool in docker kubectl task k3d git kubeseal helm; do
   command -v $tool &gt;/dev/null 2&gt;&amp;1 &amp;&amp; echo "✅ $tool" || echo "❌ $tool MISSING"
 done
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
@@ -390,8 +387,7 @@ helm list -A -o json | jq -r \
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Step 2.4: Namespace &amp; Pod Status</h3>
 <div class="code-wrapper"><pre><code class="language-bash">kubectl --context &lt;ctx&gt; -n &lt;WORKSPACE_NAMESPACE&gt; get pods
-flux get kustomizations --context &lt;ctx&gt;
-flux describe kustomization workspace --context &lt;ctx&gt;
+kubectl --context &lt;ctx&gt; -n &lt;WORKSPACE_NAMESPACE&gt; get deploy   # all Deployments Ready?
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Step 2.5: Execute Post-Deploy Setup Sequences</h3>
 <p>On a healthy existing cluster the fastest path to "every service deployed" is the umbrella; the explicit list below is for re-running individual passes when only one drifted.</p>
@@ -462,9 +458,9 @@ grep HETZNER_WORKER_SNAPSHOT_ID environments/&lt;env&gt;.yaml
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>Flux</strong></td>
-<td>Old revision reconciled</td>
-<td>Reconcile GitRepository source first: <code>flux reconcile source git flux-system --context &lt;ctx&gt;</code></td>
+<td><strong>Deploy</strong></td>
+<td>Merged PR not live</td>
+<td>No GitOps reconciler on fleet — re-run <code>task workspace:deploy ENV=&lt;env&gt;</code> (push-based)</td>
 </tr>
 <tr>
 <td><strong>Sealed Secrets</strong></td>

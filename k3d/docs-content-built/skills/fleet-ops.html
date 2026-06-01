@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">fleet-ops</span></nav>
     <h1>fleet-ops</h1>
-    <p class="page-desc">Use when deploying, verifying, or operating across both brands simultaneously — mentolder and korczewski, both on the unified fleet cluster. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-brand schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each brand has its own independent shared-db and sealed-secrets.</p>
+    <p class="page-desc">Use when deploying, verifying, or operating across both brands simultaneously — mentolder and korczewski, both on the unified fleet cluster. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-brand schema changes, cluster status checks, the push-based deploy model (no GitOps reconciler on fleet), and the constraint that each brand has its own independent shared-db and sealed-secrets.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">website</span>
@@ -48,7 +48,7 @@
 <li class="toc-item"><a href="#keycloak-realm-per-brand-independence"><span class="toc-num">7.</span> Keycloak Realm Per-Brand Independence</a></li>
 <li class="toc-item"><a href="#korczewski-specific-constraints"><span class="toc-num">8.</span> Korczewski-Specific Constraints</a></li>
 <li class="toc-item"><a href="#common-failure-modes"><span class="toc-num">9.</span> Common Failure Modes</a></li>
-<li class="toc-item"><a href="#flux-gitops-operations"><span class="toc-num">10.</span> Flux GitOps Operations</a></li></ul>
+<li class="toc-item"><a href="#deploy-model-push-based--no-gitops"><span class="toc-num">10.</span> Deploy Model (Push-Based — No GitOps)</a></li></ul>
 </div>
 <h2 id="overview">Overview</h2>
 <p>Both brands run on the <strong>single unified <code>fleet</code> k3s cluster</strong> (Fleet Stage 3, consolidated 2026-05-31). They share the same cluster infrastructure (Traefik, cert-manager, sealed-secrets controller) but have independent <code>shared-db</code> instances per namespace. Any operation that changes shared state (DB schema, role passwords, sealed secrets, OIDC config) must be applied to <strong>both namespaces explicitly</strong>.</p>
@@ -382,62 +382,35 @@ task keycloak:sync ENV=korczewski
 <td>Always apply schema to both shared-db instances</td>
 </tr>
 <tr>
-<td><code>flux reconcile</code> applies old revision</td>
-<td>Didn't reconcile source first</td>
-<td>See Flux GitOps section below</td>
+<td>Merged PR not live on a brand</td>
+<td>No GitOps reconciler — merge doesn't auto-deploy</td>
+<td><code>task workspace:deploy ENV=&lt;brand&gt;</code> for each brand explicitly (see Deploy Model below)</td>
 </tr>
 </tbody></table>
 <hr>
-<h2 id="flux-gitops-operations">Flux GitOps Operations</h2>
-<p>Flux watches the <code>main</code> branch and reconciles both prod environments automatically — but it polls on its own schedule. Force reconciliation, debug drift, and handle the subtleties below.</p>
-<p>Flux runs on the fleet cluster and reconciles both brands independently via separate Kustomization resources.</p>
-<h3>Forced Reconcile After PR Merge</h3>
-<p>Always prime the GitRepository before reconciling the kustomization. Skipping step 1 silently applies the previous revision.</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Step 1: prime the git source (fetches latest main)
-flux reconcile source git flux-system --context fleet
-
-# Step 2: reconcile both brand kustomizations
-flux reconcile kustomization workspace --context fleet -n flux-system
-flux reconcile kustomization workspace-korczewski --context fleet -n flux-system
+<h2 id="deploy-model-push-based--no-gitops">Deploy Model (Push-Based — No GitOps)</h2>
+<p>The fleet cluster has <strong>no Flux/Argo reconciler</strong> (<code>flux-system</code> does not exist on it). Merging to <code>main</code> does <strong>not</strong> auto-apply — you deploy explicitly with <code>task</code>. Git stays the source of truth; the push is manual (or driven by GitHub Actions for the website).</p>
+<h3>Deploy After a PR Merge</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Pull-first, then deploy each brand explicitly (no source-reconcile step).
+git pull --rebase origin main
+task workspace:deploy ENV=mentolder      # builds prod-fleet/mentolder  → ns workspace
+task workspace:deploy ENV=korczewski     # builds prod-fleet/korczewski → ns workspace-korczewski
+# …or a feature:* umbrella that fans out across both brands.
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <blockquote>
-<p><strong>Why source first?</strong> <code>flux reconcile kustomization</code> re-applies whatever revision the GitRepository last fetched. If that's 5 minutes old, the kustomization gets the wrong commit.</p>
+<p><strong>No reconcile loop = no drift correction.</strong> A manual <code>kubectl edit</code>/<code>patch</code> on the cluster persists until the next <code>task workspace:deploy</code> overwrites it. There is nothing to suspend/resume — just deploy when you want git applied.</p>
 </blockquote>
-<blockquote>
-<p><strong>Kustomization name ≠ git path.</strong> The fleet cluster runs two workspace Kustomizations: <code>workspace</code> (mentolder brand, path <code>./prod-fleet/mentolder</code>) and <code>workspace-korczewski</code> (korczewski brand, path <code>./prod-fleet/korczewski</code>). <code>flux reconcile kustomization &lt;name&gt;</code> takes the <strong>name</strong>, not the path — reconcile each brand separately by its Kustomization name.</p>
-</blockquote>
-<h3>Check Flux Status</h3>
-<div class="code-wrapper"><pre><code class="language-bash">flux get all --context fleet
-
-# Just kustomizations (most common drift point)
-flux get kustomizations --context fleet
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Suspend / Resume Reconciliation</h3>
-<p>Suspend before manual emergency changes to prevent Flux from immediately reverting them:</p>
-<div class="code-wrapper"><pre><code class="language-bash">flux suspend kustomization workspace --context fleet
-# Do your manual kubectl apply / patch here...
-flux resume kustomization workspace --context fleet
+<h3>Website Auto-Rollout</h3>
+<p>The website is the one exception: pushing to <code>main</code> under <code>website/**</code> triggers <code>build-website.yml</code> / <code>build-website-korczewski.yml</code>, which rebuild the brand image and <code>kubectl rollout restart deployment/website</code> using the <code>FLEET_KUBECONFIG</code> secret. Everything else needs an explicit <code>task</code> deploy.</p>
+<h3>Verify a Deploy Landed</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task clusters:status                                        # one-line status across both brands
+kubectl --context fleet -n workspace get deploy             # mentolder
+kubectl --context fleet -n workspace-korczewski get deploy  # korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <blockquote>
-<p><strong>Don't forget to resume.</strong> A suspended kustomization silently stops tracking main.</p>
+<p><strong><code>$</code>-escaping in manifests.</strong> The push path renders manifests with <code>envsubst</code> (var lists are hardcoded per task in <code>Taskfile.yml</code>). A literal <code>$</code> that must survive <code>envsubst</code> is written <code>$$</code> and de-escaped by a <code>sed</code> step. Add any new <code>${VAR}</code> to the building task's envsubst list, or the placeholder stays literal and <code>kubectl apply</code> fails.</p>
 </blockquote>
-<h3><code>$$</code>-Escaping in substituteFrom</h3>
-<p>Flux's <code>substituteFrom</code> treats <code>${VAR}</code> in YAML values as variable references. To emit a literal <code>$</code>, use <code>$$</code>:</p>
-<div class="code-wrapper"><pre><code class="language-yaml"># ❌ variable substitution fires
-value: "https://${PROD_DOMAIN}/path"
-
-# ✅ literal dollar sign in the rendered manifest
-value: "https://$${PROD_DOMAIN}/path"
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p>This bites most often in Ingress annotations, env vars, and shell-script ConfigMaps.</p>
-<h3>ImageUpdateAutomation</h3>
-<p>Image auto-update is <strong>not</strong> used for <code>website</code>, <code>brett</code>, or <code>docs</code> (they use <code>task feature:*</code> with <code>:latest</code>). For other images:</p>
-<div class="code-wrapper"><pre><code class="language-bash">flux get image update --context fleet
-flux reconcile image repository &lt;name&gt; --context fleet
-flux reconcile image update &lt;name&gt; --context fleet
-flux logs --kind=ImageUpdateAutomation --context fleet
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>Flux Failure Modes</h3>
+<h3>Failure Modes</h3>
 <table>
 <thead>
 <tr>
@@ -447,29 +420,29 @@ flux logs --kind=ImageUpdateAutomation --context fleet
 </tr>
 </thead>
 <tbody><tr>
-<td>Kustomization applies old commit</td>
-<td>Didn't reconcile source first</td>
-<td><code>flux reconcile source git flux-system</code> then kustomization</td>
+<td>Merged PR not live</td>
+<td>No reconciler — merge doesn't auto-deploy</td>
+<td><code>task workspace:deploy ENV=&lt;brand&gt;</code> for each brand</td>
 </tr>
 <tr>
-<td><code>health check failed</code></td>
+<td>Manual fix reverted "by itself"</td>
+<td>It wasn't — a later <code>task workspace:deploy</code> re-applied git</td>
+<td>Land the fix in git, then deploy</td>
+</tr>
+<tr>
+<td><code>health check</code>/rollout timeout</td>
 <td>Pod not Ready within timeout</td>
 <td><code>kubectl describe pod</code> — usually image pull or CrashLoop</td>
 </tr>
 <tr>
 <td><code>$$</code> becomes empty string</td>
-<td>Forgot double-dollar in substituteFrom manifest</td>
-<td>Replace <code>${VAR}</code> with <code>$${VAR}</code> in the YAML</td>
-</tr>
-<tr>
-<td>Kustomization stuck Suspended</td>
-<td>Manual suspend never resumed</td>
-<td><code>flux resume kustomization workspace</code></td>
+<td>Forgot double-dollar for a literal <code>$</code></td>
+<td>Write <code>$${VAR}</code> in the manifest; add <code>${VAR}</code> to the task's envsubst list</td>
 </tr>
 <tr>
 <td><code>secrets/xxx not found</code></td>
 <td>SealedSecret not yet decrypted</td>
-<td><code>kubectl get sealedsecret -n workspace</code> — controller may be behind</td>
+<td><code>kubectl get sealedsecret -n &lt;ns&gt;</code> — controller may be behind</td>
 </tr>
 </tbody></table>
 </body></html>

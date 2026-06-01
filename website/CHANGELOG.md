@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.24.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.23.0...website-v1.24.0) (2026-06-01)
+
+
+### Features
+
+* **a11y:** comprehensible media — diagram captions, graph title/desc, map legend, link labels [F1] ([#1307](https://github.com/Paddione/Bachelorprojekt/issues/1307)) ([5fe1c9e](https://github.com/Paddione/Bachelorprojekt/commit/5fe1c9e360ee3aed81369f13d7f71cb1e6efdd03))
+* **prompt-library:** reusable prompt DB + insert dropdown [F2] ([#1306](https://github.com/Paddione/Bachelorprojekt/issues/1306)) ([91f4b59](https://github.com/Paddione/Bachelorprojekt/commit/91f4b5976923d11750545a4d7e41a2bf61f4b94e))
+* **website:** workflow-status minimap for portal orientation ([#1305](https://github.com/Paddione/Bachelorprojekt/issues/1305)) ([a0cacc1](https://github.com/Paddione/Bachelorprojekt/commit/a0cacc182e885375ed9ed6c8fed8b6b7641701f5))
+
+
+### Bug Fixes
+
+* **tickets:** allocate external_id from a global sequence + reconcile duplicates [T000402] ([#1295](https://github.com/Paddione/Bachelorprojekt/issues/1295)) ([e3a21de](https://github.com/Paddione/Bachelorprojekt/commit/e3a21defe6a717d2001b0639dff6d5cd133f1112))
+* **website:** ensure questionnaire+systemtest schema in cron endpoints [T000406] ([#1299](https://github.com/Paddione/Bachelorprojekt/issues/1299)) ([a7b2dd3](https://github.com/Paddione/Bachelorprojekt/commit/a7b2dd3189a1e5261183a12950fa0ca177569d53))
+* **website:** guard systemtest test_runs/test_results FK on table presence [T000406] ([#1301](https://github.com/Paddione/Bachelorprojekt/issues/1301)) ([b0d8729](https://github.com/Paddione/Bachelorprojekt/commit/b0d8729f2d16cd9af44f97ca0f40c9991ba1e121))
+
 ## [1.23.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.22.0...website-v1.23.0) (2026-05-31)
 
 

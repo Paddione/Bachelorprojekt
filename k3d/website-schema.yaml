@@ -389,6 +389,37 @@ data:
       );
       CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
 
+      -- ── Learning Progress Tracking ──────────────────────────────────
+      CREATE TABLE IF NOT EXISTS learning_progress (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        keycloak_user_id TEXT NOT NULL,
+        brand            TEXT NOT NULL DEFAULT 'mentolder'
+                           REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        item_type        TEXT NOT NULL CHECK (item_type IN ('goal','tool')),
+        item_id          TEXT NOT NULL,
+        status           TEXT NOT NULL DEFAULT 'todo'
+                           CHECK (status IN ('todo','in_progress','done')),
+        note             TEXT,
+        started_at       TIMESTAMPTZ,
+        completed_at     TIMESTAMPTZ,
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (keycloak_user_id, brand, item_type, item_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_learning_progress_admin_agg
+        ON learning_progress (brand, keycloak_user_id);
+      CREATE INDEX IF NOT EXISTS idx_learning_progress_updated
+        ON learning_progress (updated_at DESC);
+
+      CREATE TABLE IF NOT EXISTS onboarding_state (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        keycloak_user_id TEXT NOT NULL,
+        brand            TEXT NOT NULL DEFAULT 'mentolder'
+                           REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        step_id          TEXT NOT NULL,
+        completed_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (keycloak_user_id, brand, step_id)
+      );
+
       -- Revert to superuser to run GRANTs (website role cannot GRANT to itself).
       RESET ROLE;
       GRANT USAGE ON SCHEMA coaching TO website;
@@ -1136,6 +1167,37 @@ data:
         UNIQUE (brand, step_number)
       );
       CREATE INDEX IF NOT EXISTS idx_step_templates_brand ON coaching.step_templates(brand);
+
+      -- ── Learning Progress Tracking ──────────────────────────────────
+      CREATE TABLE IF NOT EXISTS learning_progress (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        keycloak_user_id TEXT NOT NULL,
+        brand            TEXT NOT NULL DEFAULT 'mentolder'
+                           REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        item_type        TEXT NOT NULL CHECK (item_type IN ('goal','tool')),
+        item_id          TEXT NOT NULL,
+        status           TEXT NOT NULL DEFAULT 'todo'
+                           CHECK (status IN ('todo','in_progress','done')),
+        note             TEXT,
+        started_at       TIMESTAMPTZ,
+        completed_at     TIMESTAMPTZ,
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (keycloak_user_id, brand, item_type, item_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_learning_progress_admin_agg
+        ON learning_progress (brand, keycloak_user_id);
+      CREATE INDEX IF NOT EXISTS idx_learning_progress_updated
+        ON learning_progress (updated_at DESC);
+
+      CREATE TABLE IF NOT EXISTS onboarding_state (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        keycloak_user_id TEXT NOT NULL,
+        brand            TEXT NOT NULL DEFAULT 'mentolder'
+                           REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+        step_id          TEXT NOT NULL,
+        completed_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+        UNIQUE (keycloak_user_id, brand, step_id)
+      );
 
       -- Revert to superuser to run GRANTs (website role cannot GRANT to itself).
       RESET ROLE;

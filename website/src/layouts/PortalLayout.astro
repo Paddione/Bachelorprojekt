@@ -1,10 +1,13 @@
 ---
 import '../styles/global.css';
 import '../styles/sidekick-panels.css';
+import '../styles/workflow-minimap.css';
 import { config } from '../config/index';
 import { isAdmin } from '../lib/auth';
 import type { UserSession } from '../lib/auth';
 import PortalSidekick from '../components/PortalSidekick.svelte';
+import WorkflowStatusMinimap from '../components/portal/WorkflowStatusMinimap.svelte';
+import { getWorkflowStatus, type WorkflowTrack } from '../lib/workflow-status';
 import TicketWidgetBar from '../components/TicketWidgetBar.astro';
 import AssistantWidget from '../components/assistant/AssistantWidget.svelte';
 const ASSISTANT_ENABLED = (process.env.ENABLE_ASSISTANT_PORTAL ?? 'false') === 'true';
@@ -66,6 +69,16 @@ const brandWord     = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
 const userIsAdmin   = isAdmin(session);
 const brandId       = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
 const isKore        = brandId === 'korczewski';
+
+// Workflow-Status-Minimap (F3): aggregate the user's standing across the real
+// portal sources (questionnaires / signatures / bookings). Best-effort — never
+// block the portal render if a source is unavailable.
+let workflowTracks: WorkflowTrack[] = [];
+try {
+  workflowTracks = await getWorkflowStatus(session);
+} catch {
+  workflowTracks = [];
+}
 ---
 
 <!doctype html>
@@ -282,6 +295,9 @@ const isKore        = brandId === 'korczewski';
     ) : null}
     <TicketWidgetBar context="portal" showEdit={!ASSISTANT_ENABLED} />
     <PortalSidekick client:load helpSection={section} helpContext="portal" />
+    {workflowTracks.length > 0 && (
+      <WorkflowStatusMinimap client:load tracks={workflowTracks} />
+    )}
     <SessionExpiryWarning client:load />
 
     <script is:inline>

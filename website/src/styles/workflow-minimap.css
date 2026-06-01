@@ -1,0 +1,173 @@
+/* =========================================================================
+   Workflow-Status-Minimap (F3)
+   Sticky bottom-LEFT orientation widget for the portal. Bottom-RIGHT is owned
+   by PortalSidekick's FAB, so this stays on the left and below the same
+   z-index band to avoid overlap. Tokens (--brass, --ink-*, --line, --mono,
+   --sage, --fg-soft, --mute) come from global.css :root and are overridden by
+   body.kore for the korczewski brand — no hard-coded brand colours here.
+   ========================================================================= */
+
+.wf-minimap {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9030; /* below PortalSidekick FAB (9040) and drawer (9050) */
+  width: 268px;
+  max-width: calc(100vw - 48px);
+  background: var(--ink-850);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
+  font-family: var(--font-sans, var(--sans));
+  overflow: hidden;
+}
+
+/* Header / toggle */
+.wf-minimap-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--fg);
+  text-align: left;
+  transition: background 180ms ease;
+}
+.wf-minimap-header:hover { background: rgba(255, 255, 255, 0.03); }
+.wf-minimap-header:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+.wf-minimap-eyebrow {
+  flex: 1;
+  font-family: var(--font-mono, var(--mono));
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.wf-minimap-count {
+  font-family: var(--font-mono, var(--mono));
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--brass-d);
+  color: var(--brass);
+}
+.wf-minimap-chevron {
+  font-size: 14px;
+  line-height: 1;
+  color: var(--brass);
+  transition: transform 220ms ease;
+  width: 14px;
+  text-align: center;
+}
+.wf-minimap-chevron.collapsed { transform: rotate(-90deg); }
+
+/* Body */
+.wf-minimap-body {
+  border-top: 1px solid var(--line);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Track row (link) */
+.wf-track {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 8px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: var(--fg-soft);
+  transition: background 160ms ease, color 160ms ease;
+}
+.wf-track:hover { background: var(--ink-800); color: var(--fg); }
+.wf-track:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+.wf-track-emoji {
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+}
+.wf-track-main { min-width: 0; }
+.wf-track-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Progress bar with segmented "du bist hier" steps */
+.wf-progress {
+  display: flex;
+  gap: 3px;
+  margin-top: 5px;
+}
+.wf-step {
+  flex: 1;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--line-2);
+}
+.wf-step.done { background: var(--brass); }
+.wf-step.here {
+  background: var(--brass);
+  box-shadow: 0 0 0 1px var(--brass), 0 0 6px var(--brass-d);
+}
+
+/* Status badge */
+.wf-badge {
+  font-family: var(--font-mono, var(--mono));
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.wf-badge.offen,
+.wf-badge.geplant {
+  background: var(--brass-d);
+  color: var(--brass);
+  border-color: oklch(0.80 0.09 75 / 0.35);
+}
+.wf-badge.erledigt {
+  background: oklch(0.80 0.06 160 / 0.12);
+  color: var(--sage);
+  border-color: oklch(0.80 0.06 160 / 0.4);
+}
+.wf-badge.leer {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--mute);
+  border-color: var(--line-2);
+}
+
+.wf-minimap-empty {
+  padding: 14px 12px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--mute);
+}
+
+/* Mobile: shrink + dodge the mobile topbar; still bottom-left. */
+@media (max-width: 767px) {
+  .wf-minimap {
+    width: calc(100vw - 32px);
+    left: 16px;
+    bottom: 16px;
+  }
+}

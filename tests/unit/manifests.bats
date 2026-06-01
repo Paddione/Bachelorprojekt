@@ -472,7 +472,7 @@ PY
   if ! command -v python3 &>/dev/null; then
     skip "python3 not installed"
   fi
-  run python3 - "${PROJECT_DIR}/flux/apps/website-mentolder" <<'PY'
+  run python3 - "${PROJECT_DIR}/prod-fleet/website-mentolder" <<'PY'
 import subprocess, sys, yaml
 overlay = sys.argv[1]
 out = subprocess.run(

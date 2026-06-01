@@ -11,6 +11,7 @@
 // (<a href="/admin/tickets/${t.id}">).
 
 import type { BrowserContext, Page } from '@playwright/test';
+import { installReadOnlyGuard } from './sweep-guard';
 
 /** Auth tier required to open a resolver's index page. */
 export type ResolverAuth = 'public' | 'customer' | 'admin';
@@ -141,6 +142,12 @@ export async function resolveRoute(
       storageState: picked.state,
       ignoreHTTPSErrors: true,
     });
+    // This dedicated context carries a real admin/customer session, so it must
+    // honor the same read-only network guarantee as the sweep's per-tier contexts:
+    // install the non-GET/HEAD abort guard BEFORE the first navigation. (Defense in
+    // depth — the resolver only GETs + scrapes, but an authenticated index page
+    // could fire an on-mount beacon/POST.)
+    await installReadOnlyGuard(scrapeContext);
     ownContext = true;
   }
 

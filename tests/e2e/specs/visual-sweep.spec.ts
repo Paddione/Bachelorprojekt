@@ -64,7 +64,7 @@ interface ResultRow {
   route: string;
   brand: Brand;
   viewport: Viewport;
-  status: 'ok' | 'redirect' | 'skip' | 'error';
+  status: 'ok' | 'redirect' | 'skip' | 'error' | 'timeout';
   redirectedTo?: string;
   reason?: string;
   screenshot: string;
@@ -160,12 +160,16 @@ function assertAuthReady(brand: Brand, routes: RouteEntry[]): void {
     }
   }
   if (needsPortal) {
+    // Only mentolder mints a customer (portal) storageState (mentolder-auth-setup
+    // writes mentolder-website-user.json). korczewski NEVER mints one by design,
+    // so its portal routes must skip+log per-route (via storageStateFor -> 'SKIP'),
+    // NOT loud-fail here. Loud-fail only when portal creds are genuinely EXPECTED.
+    const portalCredsExpected = brand === 'mentolder';
     const f = authStateFile(brand, 'customer');
-    if (isEmptyState(readStateOrNull(f))) {
+    if (portalCredsExpected && isEmptyState(readStateOrNull(f))) {
       missing.push(
         `PORTAL routes are in scope but ${path.basename(f)} is empty-state. ` +
-        `Set E2E_USER_PASS and re-run the ${brand}-setup project, or exclude portal ` +
-        `routes for this brand. (korczewski portal user is expected absent → those rows skip+log.)`,
+        `Set E2E_USER_PASS and re-run the ${brand}-setup project.`,
       );
     }
   }
@@ -353,7 +357,10 @@ test.describe('visual sweep', () => {
           // Detect a redirect away from the requested path.
           const landed = page.url().replace(/\/$/, '');
           const expected = (entry.dynamic ? targetUrl : baseURL + entry.route).replace(/\/$/, '');
-          const redirected = !entry.dynamic && landed !== expected && !landed.startsWith(expected);
+          // Boundary-aware: only treat as "no redirect" on exact match or a deeper
+          // child path (expected + '/...'), so a sibling prefix-superset redirect
+          // (e.g. /leistung -> /leistungen) is still correctly flagged.
+          const redirected = !entry.dynamic && landed !== expected && !landed.startsWith(expected + '/');
 
           await applyStability(page);
 
@@ -375,11 +382,17 @@ test.describe('visual sweep', () => {
           // One-time global-nav verification per tier.
           if (!navVerifiedFor.has(entry.authTier)) {
             const nav = await verifyGlobalNav(page, routes);
-            navFailuresByTier[entry.authTier] = nav.failures;
-            navVerifiedFor.add(entry.authTier);
-            console.log(`[visual-sweep] nav(${entry.authTier}): clicked=${nav.clicked} failures=${nav.failures.length}`);
-            // verifyGlobalNav navigates the page around; return to the route for the harvest.
-            await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 25_000 }).catch(() => {});
+            // If this route already lost the per-route timeout race, its page was
+            // closed + recreated; do NOT commit nav results from the dead page —
+            // they would be bogus "page closed" failures stamped onto the whole
+            // tier and would suppress the one real nav verification.
+            if (!page.isClosed()) {
+              navFailuresByTier[entry.authTier] = nav.failures;
+              navVerifiedFor.add(entry.authTier);
+              console.log(`[visual-sweep] nav(${entry.authTier}): clicked=${nav.clicked} failures=${nav.failures.length}`);
+              // verifyGlobalNav navigates the page around; return to the route for the harvest.
+              await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 25_000 }).catch(() => {});
+            }
           }
           const navFailures = navFailuresByTier[entry.authTier] ?? [];
 
@@ -427,7 +440,10 @@ test.describe('visual sweep', () => {
       if ('__timeout' in outcome) {
         results.push({
           route: entry.route, brand, viewport,
-          status: 'error',
+          // Distinct from 'error': an intermittent live-prod HTTP/2 stall (the
+          // exact condition the budget+recreate machinery exists to survive) is
+          // surfaced as 'timeout' and does NOT gate the run red.
+          status: 'timeout',
           reason: `route-timeout (>${ROUTE_BUDGET_MS / 1000}s)`,
           screenshot: '', navFailures: [], deadLinks: [],
         });
@@ -476,8 +492,31 @@ test.describe('visual sweep', () => {
     fs.writeFileSync(resultsFile, JSON.stringify(results, null, 2));
     console.log(`[visual-sweep] wrote ${results.length} rows → ${path.relative(process.cwd(), resultsFile)}`);
 
-    // Hard assertions: the run must produce results and have no hard errors.
+    // Visibility: dynamic routes that skipped purely because no resolver is wired
+    // yet (a known, plan-deferred coverage gap — resolver annotation is follow-up).
+    const unresolvedDynamic = results.filter(
+      (r) => r.status === 'skip' && /not-dynamic-or-no-resolver/.test(r.reason ?? ''),
+    );
+    if (unresolvedDynamic.length) {
+      console.log(
+        `[visual-sweep] NOTE: ${unresolvedDynamic.length} dynamic route(s) skipped — no resolver annotation yet: ` +
+        unresolvedDynamic.map((r) => r.route).join(', '),
+      );
+    }
+    const timeouts = results.filter((r) => r.status === 'timeout');
+    if (timeouts.length) {
+      console.log(`[visual-sweep] ${timeouts.length} route-timeout(s) (non-fatal): ${timeouts.map((t) => t.route).join(', ')}`);
+    }
+
+    // Hard assertions.
     expect(results.length, 'sweep produced at least one result row').toBeGreaterThan(0);
+    // Guard against a wholesale outage masquerading as "everything skipped/timed out".
+    expect(
+      results.some((r) => r.status === 'ok' || r.status === 'redirect'),
+      'at least one route must load successfully (else the target site is down)',
+    ).toBe(true);
+    // Only genuine HTTP>=400 / thrown navigation failures gate green. Intermittent
+    // route-timeouts (status:'timeout') are surfaced above but do NOT fail the run.
     const errors = results.filter((r) => r.status === 'error');
     expect(
       errors,

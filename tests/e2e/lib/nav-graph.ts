@@ -279,6 +279,16 @@ export async function harvestLinkHealth(
         }
       }
       const msg = lastErr instanceof Error ? lastErr.message.split('\n')[0] : String(lastErr);
+      // Distinguish a benign HTTP/2 stream-reset (route returns 200 + body but the
+      // stream never closes cleanly, surfacing as "aborted") from a genuine
+      // transport death (DNS / connection-refused / TLS). The former is healthy,
+      // just flaky -> ok:true; the latter is a real dead link -> ok:false. This
+      // matters for resolver-less dynamic routes that have no per-route-navigation
+      // backstop, so a transport-dead concrete dynamic link is not masked green.
+      const transportDead = /ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ERR_NAME_NOT_RESOLVED|ERR_CONNECTION_REFUSED|ERR_TLS|ERR_SSL|certificate|handshake/i.test(msg);
+      if (transportDead) {
+        return { ok: false, reason: `GET transport-dead: ${msg}` };
+      }
       return { ok: true, reason: `manifest-match; GET unverified (transport anomaly: ${msg})` };
     })();
 

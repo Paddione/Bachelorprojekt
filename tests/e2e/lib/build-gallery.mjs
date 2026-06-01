@@ -178,6 +178,7 @@ figure.vp-mobile{flex:0 0 160px;min-width:140px}
 .badge-ok{background:#16361f;color:#5fd07a}
 .badge-redirect{background:#3a2f12;color:#e0b94a}
 .badge-skip{background:#23262e;color:#9aa3b2}
+.badge-timeout{background:#3a2412;color:#e08a4a}
 .badge-error{background:#3a1517;color:#ef6b73}
 .badge-missing,.badge-unknown{background:#23262e;color:#6b7280}
 .health-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}

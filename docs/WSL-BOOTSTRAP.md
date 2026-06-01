@@ -28,3 +28,27 @@ When bootstrapping a new WSL workstation for the Workspace MVP development, keep
   sudo apt-get install -y postgresql-client-16
   ```
   Verify with `psql --version` (expect `16.x`), then re-run the refresh task.
+
+## Syncing secrets (git-crypt)
+
+Operator secrets under `environments/.secrets/` (per-env secret YAMLs, the SSH
+bundle, WireGuard keys, the SealedSecrets controller DR key) and
+`deploy/mcp/claude-code-secrets.yaml` are stored **git-crypt-encrypted** in this
+(public) repo. The public sealing certs `environments/certs/*.pem` stay
+plaintext — they are not secrets.
+
+On a fresh clone, decrypt them:
+
+1. Install git-crypt: `sudo apt-get install -y git-crypt` (macOS: `brew install git-crypt`).
+2. Fetch the key item **`git-crypt: Bachelorprojekt secrets key`** from Vaultwarden → save the attachment locally (e.g. `~/bp-secrets.key`).
+3. `task secrets:unlock KEY=~/bp-secrets.key`
+4. Install the guard hook: `task secrets:install-hooks`
+5. Shred the key file: `shred -u ~/bp-secrets.key`
+
+Files are now plaintext locally; tooling (`env:seal`, `scripts/env-resolve.sh`,
+the SSH `Include`) reads them as before. `task secrets:status` lists encryption
+state; `task secrets:lock` re-encrypts the working tree.
+
+**Never commit without the key unlocked** — the `.githooks/pre-commit` hook and
+the CI `security-scan` step both reject any managed secret committed in
+plaintext (verified via the git-crypt magic header by `scripts/git-crypt-guard.sh`).

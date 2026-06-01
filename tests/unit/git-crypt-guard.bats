@@ -37,3 +37,23 @@ teardown() { rm -rf "$TMP"; }
   run bash "$GUARD" bogus
   [ "$status" -eq 2 ]
 }
+
+@test "is-managed: secrets dir files are managed" {
+  run bash "$GUARD" is-managed "environments/.secrets/mentolder.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "is-managed: claude-code MCP secrets are managed" {
+  run bash "$GUARD" is-managed "deploy/mcp/claude-code-secrets.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "is-managed: PUBLIC sealing certs are NOT managed" {
+  run bash "$GUARD" is-managed "environments/certs/mentolder.pem"
+  [ "$status" -ne 0 ]
+}
+
+@test "is-managed: .gitkeep placeholder is NOT managed" {
+  run bash "$GUARD" is-managed "environments/.secrets/.gitkeep"
+  [ "$status" -ne 0 ]
+}

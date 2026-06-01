@@ -32,8 +32,8 @@ pr_number: null
 **Glob set (the single source of truth for "what is a managed secret"):**
 ```
 environments/.secrets/**
-environments/certs/*.pem
 deploy/mcp/claude-code-secrets.yaml
+# NOTE: environments/certs/*.pem are PUBLIC sealing certs — committed plaintext on purpose, NOT managed.
 ```
 
 ---
@@ -304,7 +304,6 @@ Append:
 ```gitattributes
 # git-crypt-managed secrets (encrypted at rest in this PUBLIC repo).
 environments/.secrets/**            filter=git-crypt diff=git-crypt
-environments/certs/*.pem            filter=git-crypt diff=git-crypt
 deploy/mcp/claude-code-secrets.yaml filter=git-crypt diff=git-crypt
 ```
 
@@ -347,22 +346,20 @@ Expected: `local key removed`.
 
 - [ ] **Step 1: Un-ignore the managed paths**
 
-Edit `.gitignore`. Replace the broad ignore of `environments/.secrets/` and the explicit `environments/certs/dev.pem` ignore with negations so the managed paths are trackable (now safe — they encrypt via `.gitattributes`):
+Edit `.gitignore`. Replace the broad ignore of `environments/.secrets/` with negations so the managed paths are trackable (now safe — they encrypt via `.gitattributes`):
 ```gitignore
 # git-crypt-encrypted secrets are now TRACKED (see .gitattributes).
 !environments/.secrets/
 !environments/.secrets/.ssh/
 !environments/.secrets/wireguard/
-# certs/*.pem encrypted via .gitattributes (was: environments/certs/dev.pem ignored)
-!environments/certs/dev.pem
 ```
-Leave `deploy/mcp/claude-code-secrets.yaml` un-ignored too (remove its `.gitignore` entry).
+Leave `deploy/mcp/claude-code-secrets.yaml` un-ignored too (remove its `.gitignore` entry). Do NOT touch `environments/certs/` — those `*.pem` are public sealing certs, out of scope.
 
 - [ ] **Step 2: Verify git now sees the files as ENCRYPTED before committing**
 
 Run:
 ```bash
-git add environments/.secrets environments/certs/*.pem deploy/mcp/claude-code-secrets.yaml
+git add environments/.secrets deploy/mcp/claude-code-secrets.yaml
 git-crypt status -e
 ```
 Expected: every managed file is listed as `encrypted`. If any shows `not encrypted`, STOP — `.gitattributes` glob is wrong; fix before committing.
@@ -468,8 +465,9 @@ Add a "Syncing secrets (git-crypt)" section:
 ```markdown
 ## Syncing secrets (git-crypt)
 
-Operator secrets under `environments/.secrets/`, `environments/certs/*.pem`, and
+Operator secrets under `environments/.secrets/` and
 `deploy/mcp/claude-code-secrets.yaml` are stored git-crypt-encrypted in this repo.
+(`environments/certs/*.pem` are PUBLIC sealing certs and stay plaintext.)
 
 On a fresh clone:
 1. Install git-crypt: `sudo apt-get install -y git-crypt` (or `brew install git-crypt`).

@@ -16,10 +16,15 @@ set -euo pipefail
 MAGIC_HEX='00474954435259505400'
 
 # Is the path one we require to be encrypted? Keep in sync with .gitattributes.
+# NOTE: environments/certs/*.pem are PUBLIC sealing certs (committed plaintext on
+# purpose) — they are intentionally NOT managed here.
 is_managed() {
+  # Structural placeholders are never secrets.
+  case "${1##*/}" in
+    .gitkeep|.gitignore|.gitattributes) return 1 ;;
+  esac
   case "$1" in
     environments/.secrets/*)             return 0 ;;
-    environments/certs/*.pem)            return 0 ;;
     deploy/mcp/claude-code-secrets.yaml) return 0 ;;
     *)                                   return 1 ;;
   esac
@@ -56,6 +61,10 @@ case "${1:-}" in
   is-encrypted)
     [ $# -eq 2 ] || { echo "is-encrypted needs a file path" >&2; exit 2; }
     file_is_encrypted "$2"
+    ;;
+  is-managed)
+    [ $# -eq 2 ] || { echo "is-managed needs a path" >&2; exit 2; }
+    is_managed "$2"
     ;;
   check-staged)
     scan ":" "git diff --cached --name-only --diff-filter=ACM"

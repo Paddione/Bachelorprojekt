@@ -833,6 +833,33 @@ tasks:
           echo "✓ $ENV sealed secrets applied"
         done
 
+  secrets:install-hooks:
+    desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard"
+    cmds:
+      - git config core.hooksPath .githooks
+      - chmod +x .githooks/pre-commit
+      - echo "hooksPath set to .githooks"
+
+  secrets:unlock:
+    desc: "Decrypt git-crypt secrets on a new machine (KEY=/path/to/bp-secrets.key)"
+    requires:
+      vars: [KEY]
+    cmds:
+      - git-crypt unlock {{.KEY}}
+      - git-crypt status -e
+      - echo "secrets unlocked"
+
+  secrets:status:
+    desc: "List git-crypt-encrypted files and their state"
+    cmds:
+      - git-crypt status -e
+
+  secrets:lock:
+    desc: "Re-encrypt the working tree (removes plaintext locally)"
+    cmds:
+      - git-crypt lock
+      - echo "working tree re-locked"
+
   workspace:post-setup:all-prods:
     desc: "Run workspace:post-setup + talk-setup + recording-setup on mentolder + korczewski"
     cmds:

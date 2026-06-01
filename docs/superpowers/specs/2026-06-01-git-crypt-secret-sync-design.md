@@ -67,9 +67,16 @@ managed paths so nothing unexpected becomes trackable.
 
 ```gitattributes
 environments/.secrets/**             filter=git-crypt diff=git-crypt
-environments/certs/*.pem             filter=git-crypt diff=git-crypt
 deploy/mcp/claude-code-secrets.yaml  filter=git-crypt diff=git-crypt
 ```
+
+> **Scope correction (found during implementation):** `environments/certs/*.pem`
+> are **public** sealing certificates, committed in plaintext on purpose (anyone
+> may *seal* with them; only the controller private key *unseals*). They are
+> therefore **excluded** from git-crypt — encrypting a public cert is pointless
+> and the committed certs already sync via git. The real "keypair" gap is only
+> the controller **private** key, handled below. Placeholder files (`.gitkeep`,
+> `.gitignore`, `.gitattributes`) are likewise excluded by the guard.
 
 Inventory covered (26 files today, plus anything later added under the globs):
 
@@ -78,7 +85,6 @@ Inventory covered (26 files today, plus anything later added under the globs):
 | `environments/.secrets/<env>.yaml` (5) | plaintext env secrets (inputs to `env:seal`) |
 | `environments/.secrets/.ssh/` | SSH config + node private keys |
 | `environments/.secrets/wireguard/` | wg-mesh / wg-fleet private keys + configs |
-| `environments/certs/*.pem` | sealing certs |
 | `deploy/mcp/claude-code-secrets.yaml` | Claude Code MCP secrets |
 | `environments/.secrets/sealed-secrets-key.<cluster>.yaml` | SealedSecrets controller private key (DR) — see below |
 

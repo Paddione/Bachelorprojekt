@@ -210,12 +210,21 @@ export async function ensureSystemtestSchema(pool: Pool): Promise<void> {
       -- test_runs / test_results FKs: nullable, NO CASCADE — keep the ticket
       -- around if the run/result row gets pruned by a future retention sweep.
       -- ON DELETE SET NULL keeps the ticket discoverable but breaks the link.
-      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_run_fk') THEN
+      -- Guarded on the referenced table existing: test_runs/test_results are
+      -- created by the DB-boot schema hook (ensure-meetings-schema.sh), which on
+      -- a freshly-cut brand (e.g. korczewski) may not have run them yet. Without
+      -- the guard the FK ALTER throws "relation test_runs does not exist" and
+      -- aborts the whole ensure (T000406) even though the systemtest tables were
+      -- already created; the constraint is re-attempted on the next call once the
+      -- table exists. Mirrors the auth.users/bookings guards above.
+      IF to_regclass('public.test_runs') IS NOT NULL
+         AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_run_fk') THEN
         ALTER TABLE tickets.tickets
           ADD CONSTRAINT tickets_source_test_run_fk
           FOREIGN KEY (source_test_run_id) REFERENCES test_runs(id) ON DELETE SET NULL;
       END IF;
-      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_result_fk') THEN
+      IF to_regclass('public.test_results') IS NOT NULL
+         AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tickets_source_test_result_fk') THEN
         ALTER TABLE tickets.tickets
           ADD CONSTRAINT tickets_source_test_result_fk
           FOREIGN KEY (source_test_result_id) REFERENCES test_results(id) ON DELETE SET NULL;

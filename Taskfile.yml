@@ -399,6 +399,11 @@ tasks:
     cmds:
       - bash scripts/build-test-inventory.sh
 
+  routes:manifest:
+    desc: Regenerate website/src/data/route-manifest.json (page files + brand service slugs → sweep route manifest)
+    cmds:
+      - node scripts/build-route-manifest.mjs
+
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:

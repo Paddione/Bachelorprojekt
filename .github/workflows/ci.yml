@@ -43,6 +43,46 @@ jobs:
             exit 1
           fi
 
+      - name: Verify route manifest is up to date
+        run: |
+          task routes:manifest
+          if ! git diff --exit-code website/src/data/route-manifest.json; then
+            echo "ERROR: website/src/data/route-manifest.json is stale — run 'task routes:manifest' locally and commit"
+            exit 1
+          fi
+
+      - name: Assert route manifest invariants (count + auth tiers)
+        run: |
+          node -e '
+            const fs = require("fs");
+            const m = JSON.parse(fs.readFileSync("website/src/data/route-manifest.json", "utf8"));
+            const errs = [];
+            if (m.generatedFrom !== "website/src/pages") {
+              errs.push(`generatedFrom must be "website/src/pages", got ${JSON.stringify(m.generatedFrom)}`);
+            }
+            if (!Array.isArray(m.routes)) {
+              errs.push("routes must be an array");
+            }
+            if (m.count !== 98) {
+              errs.push(`expected count===98, got ${m.count}`);
+            }
+            for (const r of (m.routes || [])) {
+              const isAdmin = r.route.startsWith("/admin");
+              const isPortal = r.route.startsWith("/portal");
+              if ((isAdmin || isPortal) && r.authTier === "public") {
+                errs.push(`${r.route} is under /admin or /portal but tagged authTier=public`);
+              }
+              if (!isAdmin && !isPortal && r.authTier !== "public") {
+                errs.push(`${r.route} is public-namespace but tagged authTier=${r.authTier}`);
+              }
+            }
+            if (errs.length) {
+              console.error("ERROR: route-manifest invariants violated:\n  - " + errs.join("\n  - "));
+              process.exit(1);
+            }
+            console.log(`route-manifest OK: ${m.count} page files, ${m.routes.length} sweep routes, auth tiers consistent`);
+          '
+
       - name: Verify agent-guide docs are up to date
         run: |
           task agent-guide:docs

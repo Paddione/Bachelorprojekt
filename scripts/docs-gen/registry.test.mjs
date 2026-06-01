@@ -50,7 +50,7 @@ const ROUTING_FIXTURE = `# CLAUDE.md
   |---------|-------|
   | \`website/\`, Astro, Svelte, component, homepage, kore, brand, CSS, UI, frontend, design | \`bachelorprojekt-website\` |
   | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running" | \`bachelorprojekt-ops\` |
-  | \`k3d/\`, \`prod*/\`, manifest, kustomize, overlay, Taskfile, \`ENV=\`, \`environments/\`, \`flux/\`, deploy | \`bachelorprojekt-infra\` |
+  | \`k3d/\`, \`prod*/\`, manifest, kustomize, overlay, Taskfile, \`ENV=\`, \`environments/\`, deploy | \`bachelorprojekt-infra\` |
   | test, \`FA-*\`, \`SA-*\`, \`NFA-*\`, \`AK-*\`, BATS, Playwright, \`runner.sh\`, test case, "test failing", "write a test" | \`bachelorprojekt-test\` |
   | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, \`bachelorprojekt.features\`, \`v_timeline\` | \`bachelorprojekt-db\` |
   | SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | \`bachelorprojekt-security\` |

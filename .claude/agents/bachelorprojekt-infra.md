@@ -4,7 +4,7 @@ description: >
   Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations,
   environment management, and sealed secrets in the Bachelorprojekt
   workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile,
-  ENV=, environments/, flux/, deploy (when referring to k8s resources).
+  ENV=, environments/, deploy (when referring to k8s resources).
 ---
 
 You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform — a self-hosted collaboration suite. Topology is fully consolidated ("Fleet Stage 3", complete as of 2026-05-31): a single unified **`fleet`** cluster serves both brands via separate namespaces. The mentolder-standalone cluster has been DECOMMISSIONED — all k3s software uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers.
@@ -25,7 +25,7 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
 - `prod/` — shared production patches (TLS, resources, `$patch: delete` on dev secrets) — NEVER apply directly
 - `prod-mentolder/` / `prod-korczewski/` — legacy per-brand overlays, consumed by `prod-fleet/` wrappers. Never applied directly in prod.
 - `prod-fleet/` — active fleet overlay tree: `platform/`, `mentolder/`, `korczewski/`, and `components/fleet-common/` (shared `secrets-replacement.yaml`). This is what `workspace:deploy` applies for all prod ENVs.
-- `flux/apps/` — website kustomize overlays (ingress, security headers, config patches). Legacy dir name: the Flux GitOps machinery (`flux/clusters/`, `flux/images/`) was removed — **fleet is push-based, no reconciler**. Pending relocation out of `flux/`.
+- `prod-fleet/website-mentolder/` / `prod-fleet/website-korczewski/` — website kustomize overlays (ingress, security headers, config patches) now located under `prod-fleet/` and applied directly in `website:deploy`.
 
 ## Critical gotchas
 - Never remove the `$patch: delete` block in `prod/kustomization.yaml` — it strips dev secrets so SealedSecrets survive

@@ -22,7 +22,7 @@ _derive_domains() {
 
     echo "$content" | grep -qiE 'website/|astro|svelte|component|homepage|kore|brand|css|ui|frontend' \
         && domains+=(website)
-    echo "$content" | grep -qiE 'k3d/|prod[-/]|manifest|kustomize|overlay|Taskfile|environments/|flux/|deploy.*k8s' \
+    echo "$content" | grep -qiE 'k3d/|prod[-/]|manifest|kustomize|overlay|Taskfile|environments/|deploy.*k8s' \
         && domains+=(infra)
     echo "$content" | grep -qiE 'database|postgresql|psql|schema|query|backup.*db|restore.*db|tickets\.|v_timeline' \
         && domains+=(db)

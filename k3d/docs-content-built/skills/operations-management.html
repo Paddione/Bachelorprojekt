@@ -70,6 +70,9 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p>⚠️ <strong>Warning on tickets.ticket_plans</strong>: When querying this table, never run <code>SELECT *</code> or retrieve the <code>content</code> column without filtering by a specific ticket/slug. The <code>content</code> column stores large plan markdown files, and querying the entire table will transfer megabytes over <code>kubectl exec</code>, causing connection timeouts. Always query metadata columns (e.g. <code>id</code>, <code>ticket_id</code>, <code>slug</code>, <code>branch</code>, <code>pr_number</code>, <code>archived_at</code>) or filter explicitly.</p>
+</blockquote>
 <hr>
 <h2 id="phase-1--production-incident-response">Phase 1 — Production Incident Response</h2>
 <p>Use this process when a core platform service is down or degraded.</p>

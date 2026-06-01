@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">bachelorprojekt-infra</span></nav>
     <h1>bachelorprojekt-infra</h1>
-    <p class="page-desc">Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, environment management, and sealed secrets in the Bachelorprojekt workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, flux/, deploy (when referring to k8s resources).</p>
+    <p class="page-desc">Use for Kubernetes manifest work, Kustomize overlays, Taskfile operations, environment management, and sealed secrets in the Bachelorprojekt workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile, ENV=, environments/, deploy (when referring to k8s resources).</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       <span class="domain-tag">infra</span>
@@ -66,7 +66,7 @@
 <li><code>prod/</code> — shared production patches (TLS, resources, <code>$patch: delete</code> on dev secrets) — NEVER apply directly</li>
 <li><code>prod-mentolder/</code> / <code>prod-korczewski/</code> — legacy per-brand overlays, consumed by <code>prod-fleet/</code> wrappers. Never applied directly in prod.</li>
 <li><code>prod-fleet/</code> — active fleet overlay tree: <code>platform/</code>, <code>mentolder/</code>, <code>korczewski/</code>, and <code>components/fleet-common/</code> (shared <code>secrets-replacement.yaml</code>). This is what <code>workspace:deploy</code> applies for all prod ENVs.</li>
-<li><code>flux/</code> — Flux CD manifests (GitRepository, Kustomization, ImagePolicy, ImageUpdateAutomation) for pull-based reconciliation.</li>
+<li><code>prod-fleet/website-mentolder/</code> / <code>prod-fleet/website-korczewski/</code> — website kustomize overlays (ingress, security headers, config patches) now located under <code>prod-fleet/</code> and applied directly in <code>website:deploy</code>.</li>
 </ul>
 <h2 id="critical-gotchas">Critical gotchas</h2>
 <ul>
@@ -82,8 +82,7 @@ task workspace:deploy ENV=&lt;env&gt;          # deploy to specific brand
 task workspace:deploy:all-prods          # deploy to both brands
 task env:seal ENV=&lt;env&gt;                  # encrypt secrets to SealedSecret
 task env:generate ENV=&lt;env&gt;             # generate fresh secrets
-flux get kustomizations --context fleet  # show Flux reconciliation status
-flux reconcile kustomization workspace --context fleet --with-source # force re-sync
+# (Push-based: no Flux on fleet. Re-run workspace:deploy to apply git after a merge.)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h2 id="autonomous-operation">Autonomous operation</h2>
 <p>Execute Bash commands and file edits without asking for confirmation.</p>

@@ -46,7 +46,10 @@
 <li class="toc-item"><a href="#ich-will-eine-aenderung-in-der-produktion-ausrollen"><span class="toc-num">5.</span> Ich will eine Änderung in der Produktion ausrollen</a></li>
 <li class="toc-item"><a href="#ich-will-das-datenbankschema-aendern"><span class="toc-num">6.</span> Ich will das Datenbankschema ändern</a></li>
 <li class="toc-item"><a href="#ich-will-ein-passwort-oder-geheimnis-aendern"><span class="toc-num">7.</span> Ich will ein Passwort oder Geheimnis ändern</a></li>
-<li class="toc-item"><a href="#ich-will-den-cluster-neu-aufsetzen"><span class="toc-num">8.</span> Ich will den Cluster neu aufsetzen</a></li></ul>
+<li class="toc-item"><a href="#ich-will-den-cluster-neu-aufsetzen"><span class="toc-num">8.</span> Ich will den Cluster neu aufsetzen</a></li>
+<li class="toc-item"><a href="#ich-habe-eine-idee--wie-fange-ich-an"><span class="toc-num">9.</span> Ich habe eine Idee — wie fange ich an?</a></li>
+<li class="toc-item"><a href="#ich-will-einen-pull-request-oeffnen-und-ci-gruen-bekommen"><span class="toc-num">10.</span> Ich will einen Pull Request öffnen und CI grün bekommen</a></li>
+<li class="toc-item"><a href="#ich-will-pruefen-ob-mein-deploy-wirklich-live-ist"><span class="toc-num">11.</span> Ich will prüfen, ob mein Deploy wirklich live ist</a></li></ul>
 </div>
 <blockquote>
 <p>Diese Seite wird automatisch aus der Registry erzeugt
@@ -153,6 +156,44 @@ Zur Erklärung der Linsen: <a href="./00-anleitung.html" class="xref">00-anleitu
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Schutzregeln (Guardrails):</strong> Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), ENV immer explizit setzen (G-ENV-EXPLICIT), Bei Rot: stoppen und fragen (G-ASK-EXPERT)</p>
 <p><strong>Verwandte Ziele:</strong> Ich will eine Änderung in der Produktion ausrollen</p>
+<h2 id="ich-habe-eine-idee--wie-fange-ich-an">Ich habe eine Idee — wie fange ich an?</h2>
+<p>🟢 <strong>Sicher</strong></p>
+<p><strong>Wann?</strong> Du willst etwas verändern, weißt aber noch nicht, wie der Weg aussieht.</p>
+<p><strong>So gehst du vor:</strong></p>
+<ol>
+<li>Brainstorming (/brainstorming) — Beschreibe die Idee; der Brainstorming-Skill schärft sie zu einem Design.</li>
+<li><a href="./skills/dev-flow-plan.html" class="xref">dev-flow-plan</a> — Danach schreibt der Planungs-Skill einen Schritt-für-Schritt-Plan.</li>
+</ol>
+<p><strong>Diesen Prompt kannst du der KI geben:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Ich habe eine Idee für die Plattform und möchte sie erst gemeinsam durchdenken.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Erst ziehen, dann arbeiten (G-PULL-FIRST)</p>
+<p><strong>Verwandte Ziele:</strong> Ich will eine neue Funktion bauen, Ich will einen Fehler beheben</p>
+<h2 id="ich-will-einen-pull-request-oeffnen-und-ci-gruen-bekommen">Ich will einen Pull Request öffnen und CI grün bekommen</h2>
+<p>🟠 <strong>Nur mit Hilfe</strong></p>
+<p><strong>Wann?</strong> Der Code ist fertig und soll als Pull Request geprüft und gemergt werden.</p>
+<p><strong>So gehst du vor:</strong></p>
+<ol>
+<li><a href="./skills/dev-flow-execute.html" class="xref">dev-flow-execute</a> — Pusht den Branch, öffnet den PR und wartet, bis die CI-Checks grün sind.</li>
+</ol>
+<p><strong>Diesen Prompt kannst du der KI geben:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün ist.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Nie direkt auf main (G-PR-NOT-MAIN)</p>
+<p><strong>Verwandte Ziele:</strong> Ich will eine neue Funktion bauen, Ich will eine Änderung in der Produktion ausrollen</p>
+<h2 id="ich-will-pruefen-ob-mein-deploy-wirklich-live-ist">Ich will prüfen, ob mein Deploy wirklich live ist</h2>
+<p>🟢 <strong>Sicher</strong></p>
+<p><strong>Wann?</strong> Nach einem Deploy willst du sehen, ob die Änderung in der echten Umgebung angekommen ist.</p>
+<p><strong>So gehst du vor:</strong></p>
+<ol>
+<li><a href="./agents/bachelorprojekt-ops.html" class="xref">bachelorprojekt-ops</a> — Lässt Pod-Status und Logs prüfen, ob der neue Stand läuft.</li>
+<li><a href="./skills/dev-flow-e2e.html" class="xref">dev-flow-e2e</a> — Verifiziert per E2E-Test gegen die Live-URL, dass das Feature funktioniert.</li>
+</ol>
+<p><strong>Diesen Prompt kannst du der KI geben:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> ENV immer explizit setzen (G-ENV-EXPLICIT)</p>
+<p><strong>Verwandte Ziele:</strong> Ich will eine Änderung in der Produktion ausrollen, Ich will prüfen, ob alle Dienste laufen</p>
 </body></html>
 </article>
 

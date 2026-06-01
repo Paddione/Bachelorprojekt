@@ -49,8 +49,9 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
   <ul class="toc-list"><li class="toc-item"><a href="#-independent-shared-databases"><span class="toc-num">1.</span> ⚠️ Independent Shared Databases</a></li>
 <li class="toc-item"><a href="#phase-1--database-schema-migrations"><span class="toc-num">2.</span> Phase 1 — Database Schema Migrations</a></li>
 <li class="toc-item"><a href="#phase-2--backup-and-restore-audits"><span class="toc-num">3.</span> Phase 2 — Backup and Restore Audits</a></li>
-<li class="toc-item"><a href="#troubleshooting--common-blockers"><span class="toc-num">4.</span> Troubleshooting &amp; Common Blockers</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">5.</span> Post-Execution: Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#phase-3--browsable-recovery-workflow-stage--browse--selective-restore"><span class="toc-num">4.</span> Phase 3 — Browsable Recovery Workflow (stage → browse → selective restore)</a></li>
+<li class="toc-item"><a href="#troubleshooting--common-blockers"><span class="toc-num">5.</span> Troubleshooting &amp; Common Blockers</a></li>
+<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">6.</span> Post-Execution: Mishap Report</a></li></ul>
 </div>
 <p>This runbook covers PostgreSQL database schema migrations, permissions management, and backup/restore verification across both brands on the fleet cluster.</p>
 <hr>
@@ -155,6 +156,51 @@ bash scripts/backup-restore.sh trigger --context fleet --namespace workspace-kor
 <p><strong>Failure surfacing:</strong> the upload no longer swallows errors. On failure it exits non-zero → <code>restartPolicy: OnFailure</code> retries transients in-pod → a permanent break (bad creds / 2FA enabled) escalates to a Failed Job, kept visible by <code>failedJobsHistoryLimit</code>. The local encrypted backup on <code>backup-pvc</code> is always written first and stays intact regardless of remote-upload outcome. To check the remote leg:</p>
 <div class="code-wrapper"><pre><code class="language-bash">kubectl get jobs -n &lt;ns&gt; --context &lt;ctx&gt; -l app=db-backup   # any Failed → inspect filen-upload logs
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="phase-3--browsable-recovery-workflow-stage--browse--selective-restore">Phase 3 — Browsable Recovery Workflow (stage → browse → selective restore)</h2>
+<p>The new <code>stage</code>/<code>verify</code>/<code>restore-file</code>/<code>restore-table</code>/<code>browse</code>/<code>unstage</code> subcommands in <code>scripts/backup-restore.sh</code> let you inspect and selectively recover from backups <strong>without touching live data</strong> until you explicitly confirm.</p>
+<h3>Runbook</h3>
+<p><strong>Step 3.1: Apply the recovery PVC (once per cluster)</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task recovery:prepare ENV=mentolder    # creates recovery-pvc in workspace namespace
+task recovery:prepare ENV=korczewski   # creates recovery-pvc in workspace-korczewski
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 3.2: Prove a dump is restorable (non-destructive)</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task recovery:verify ENV=mentolder -- 20260530-020001 website
+# Restores the dump into website_verify_&lt;pid&gt;, prints table counts, then drops it.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 3.3: Stage a DB or service for inspection</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># DB: decrypts and pg_restore into &lt;db&gt;_recovery (live DB untouched)
+task recovery:stage ENV=mentolder -- 20260530-020001 website
+
+# Service PVC: decrypts + extracts to recovery-pvc:/recovery/&lt;ts&gt;/&lt;service&gt;/
+task recovery:stage ENV=mentolder -- pvc-20260530-030001 nextcloud-files
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 3.4: Browse staged data</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Files (filebrowser over SSO):
+task recovery:browse ENV=mentolder   # prints https://recover.&lt;domain&gt;
+
+# DB tables (psql into *_recovery):
+kubectl exec -n workspace --context fleet deploy/shared-db -- \
+  psql -U postgres -d website_recovery
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 3.5: Selective restore (requires explicit confirmation)</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Restore one file from staging into the live PVC:
+task recovery:restore-file ENV=mentolder -- pvc-20260530-030001 nextcloud-files admin/files/Doc.pdf -y
+
+# Restore one table from dump into the live DB:
+task recovery:restore-table ENV=mentolder -- 20260530-020001 website site_settings -y
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Step 3.6: Clean up staging</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">task recovery:unbrowse ENV=mentolder          # tear down the filebrowser
+task recovery:unstage ENV=mentolder -- pvc-20260530-030001 -y  # drop *_recovery DBs + clear staging dir
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Invariants</h3>
+<ul>
+<li><code>stage</code> and <code>verify</code> never touch live data; only <code>restore-file</code> / <code>restore-table</code> write to live volumes (and only after explicit <code>-y</code> confirmation).</li>
+<li>Per-service staging: always stage the service you need, not "all" — keeps <code>recovery-pvc</code> small.</li>
+<li><code>recovery-browser.yaml</code> is applied on demand (not in kustomization.yaml). It requires Plan 2 (<code>feature/recovery-browse</code>) to be merged before <code>browse</code> works.</li>
+<li>The <code>browse</code> command fails cleanly with a clear message if <code>recovery-browser.yaml</code> is missing.</li>
+</ul>
 <hr>
 <h2 id="troubleshooting--common-blockers">Troubleshooting &amp; Common Blockers</h2>
 <table>

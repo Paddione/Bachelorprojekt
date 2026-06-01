@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bereitstellungsdetails und Server-Topologie — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Bereitstellungsdetails und Server-Topologie</span></nav>
+    <h1>Bereitstellungsdetails und Server-Topologie</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">infra</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Bereitstellungsdetails und Server-Topologie</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#1-netzwerk--und-server-topologie-fleet-cluster"><span class="toc-num">1.</span> 1. Netzwerk- und Server-Topologie (Fleet Cluster)</a></li>
+<li class="toc-item"><a href="#2-benutzerkonten-und-zugangsdaten-usernames"><span class="toc-num">2.</span> 2. Benutzerkonten und Zugangsdaten (Usernames)</a></li>
+<li class="toc-item"><a href="#3-ssh-schluessel-public-keys"><span class="toc-num">3.</span> 3. SSH-Schlüssel (Public Keys)</a></li>
+<li class="toc-item"><a href="#4-detaillierte-erklaerung-aller-software-dienste-im-platform-hub"><span class="toc-num">4.</span> 4. Detaillierte Erklärung aller Software-Dienste im Platform-Hub</a></li>
+<li class="toc-item"><a href="#5-dokumentations-abdeckung-des-repositories"><span class="toc-num">5.</span> 5. Dokumentations-Abdeckung des Repositories</a></li></ul>
+</div>
+<p>Diese Dokumentation beschreibt die vollständigen Bereitstellungsdetails (Deployment-Details), IP-Adressen, Benutzernamen, SSH-Schlüssel (Public Keys) und die Architektur aller Services (Dienste) im Platform-Hub der Workspace-Plattform.</p>
+<hr>
+<h2 id="1-netzwerk--und-server-topologie-fleet-cluster">1. Netzwerk- und Server-Topologie (Fleet Cluster)</h2>
+<p>Die gesamte Produktion der Plattform wurde am 31.05.2026 konsolidiert. Alle Dienste der beiden Marken <strong>Mentolder</strong> (Domain: <code>mentolder.de</code>) und <strong>Korczewski</strong> (Domain: <code>korczewski.de</code>) laufen auf einem einzigen, gemeinsamen Kubernetes-Cluster namens <strong><code>fleet</code></strong>.</p>
+<h3>1.1 Produktions-Server (Hetzner Helsinki)</h3>
+<p>Der Cluster besteht aus drei Control-Plane-Knoten (Steuerungsknoten) und drei Worker-Knoten (Arbeitsknoten).</p>
+<table>
+<thead>
+<tr>
+<th>Hostname</th>
+<th>Rolle</th>
+<th>Öffentliche IP-Adresse</th>
+<th>WireGuard IP (<code>wg-fleet</code>)</th>
+<th>WireGuard Public Key</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>pk-hetzner-4</strong></td>
+<td>Control-Plane</td>
+<td><code>204.168.244.104</code></td>
+<td><code>10.20.0.1</code></td>
+<td><code>e10sA4GsXWQbbcPAx6J98sbKQbiO8VEm+5ywHgKT2Vg=</code></td>
+</tr>
+<tr>
+<td><strong>pk-hetzner-6</strong></td>
+<td>Control-Plane</td>
+<td><code>37.27.251.38</code></td>
+<td><code>10.20.0.2</code></td>
+<td><code>Fmx/zbyADzKElBEnEL/drun0VM6mt7NNBn4m2FeUklo=</code></td>
+</tr>
+<tr>
+<td><strong>pk-hetzner-8</strong></td>
+<td>Control-Plane</td>
+<td><code>62.238.23.79</code></td>
+<td><code>10.20.0.3</code></td>
+<td><code>buA4HrVLhaOQTRUf5azhubgWPqJeGLnMJXbf/nqlmB8=</code></td>
+</tr>
+<tr>
+<td><strong>gekko-hetzner-2</strong></td>
+<td>Worker</td>
+<td><code>178.104.169.206</code></td>
+<td><code>10.20.0.4</code></td>
+<td><code>VBzLQBlMZZvygs9/90hNfOEmscCjbbKN+/Zv7Q0gsD8=</code></td>
+</tr>
+<tr>
+<td><strong>gekko-hetzner-3</strong></td>
+<td>Worker</td>
+<td><code>46.225.125.59</code></td>
+<td><code>10.20.0.5</code></td>
+<td><code>shjarf/+wXfxl4JlhTRtVvyDt8mzGodr8kj392WHa1I=</code></td>
+</tr>
+<tr>
+<td><strong>gekko-hetzner-4</strong></td>
+<td>Worker</td>
+<td><code>178.104.159.79</code></td>
+<td><code>10.20.0.6</code></td>
+<td><code>H8R7yyZ6W8lS2rlKUNF0bP0oYNtxnn1bjoy3SwmRvCY=</code></td>
+</tr>
+</tbody></table>
+<p><em>Hinweis:</em> Der API-Server des Clusters ist direkt über die IP des Knotens <code>pk-hetzner-4</code> unter Port <code>6443</code> erreichbar (<code>204.168.244.104:6443</code>). Die alten, separaten Standalone-Cluster-Kontexte sind stillgelegt.</p>
+<hr>
+<h3>1.2 Entwicklungs- und Testumgebung (Local Dev / <code>devc</code>)</h3>
+<p>Die lokale Entwicklung findet entweder auf einem k3d-Cluster (lokales Test-Kubernetes in Docker) oder auf dem 3-Knoten-HA-Dev-Cluster (<code>devc</code>) statt, welcher auf einem Proxmox-Server (Virtualisierungs-Plattform) betrieben wird.</p>
+<table>
+<thead>
+<tr>
+<th>Servername</th>
+<th>Rolle</th>
+<th>LAN-IP-Adresse</th>
+<th>WireGuard IP (<code>wg-mesh</code>)</th>
+<th>WireGuard Public Key</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>dev-vm</strong></td>
+<td>Dev Cluster Host</td>
+<td><code>10.0.0.26</code></td>
+<td><code>192.168.100.23</code></td>
+<td><code>TQu+0XGGDRuuQyMUQUQWZMp7tyIQ0c4RTe9+FcMaWg4=</code></td>
+</tr>
+<tr>
+<td><strong>devc-2</strong></td>
+<td>devc-Knoten 2</td>
+<td><code>10.0.0.22</code></td>
+<td><code>192.168.100.21</code></td>
+<td><code>0jmnyI0rYR05HDzqfrvtNBCSZdQpv1XkTPhciJ9ZCxU=</code></td>
+</tr>
+<tr>
+<td><strong>devc-3</strong></td>
+<td>devc-Knoten 3</td>
+<td><code>10.0.0.23</code></td>
+<td><code>192.168.100.22</code></td>
+<td><code>TZhEWsDku+wccV0wAIHa9V8bK5Ru+tAUkc0uPk4C+00=</code></td>
+</tr>
+<tr>
+<td><strong>pk-l-1-worker</strong></td>
+<td>Entwickler-Laptop</td>
+<td><em>Dynamisch</em></td>
+<td><code>10.13.14.11</code></td>
+<td><code>cLpIaLBkygvcX1D4Jm7syjoxqrRx3qhgTl7+aah1Nxw=</code></td>
+</tr>
+</tbody></table>
+<p><em>Hinweis:</em> <code>dev-vm</code> ist der Nachfolger des alten <code>k3s-1</code> Heimservers. Sie läuft als Proxmox-Gast-VM (VMID <code>9002</code>) auf dem Server-Knoten <code>10.0.0.25</code>.</p>
+<hr>
+<h3>1.3 GPU-Host (KI-Bereitstellung für Transkription &amp; Embeddings)</h3>
+<p>Für rechenintensive KI-Aufgaben wie Spracherkennung (Whisper) und Vektorisierung von Texten (Embeddings) ist eine lokale Workstation mit einer NVIDIA RTX 5070 Ti Grafikkarte (16 GB VRAM) über das WireGuard-VPN angebunden.</p>
+<ul>
+<li><strong>Lokale IP im Windows-Subsystem (WSL2):</strong> <code>10.10.0.3</code> (befindet sich hinter einer FritzBox-NAT)</li>
+<li><strong>WireGuard IPs:</strong> <code>192.168.100.10</code> (Mentolder-Netz) / <code>10.13.14.10</code> (Korczewski-Netz)</li>
+<li><strong>Öffentliche WireGuard-Schlüssel (Public Keys):</strong><ul>
+<li>Mentolder: <code>5FN+c5UwO4VDwkwaCkG7uoBGDriItwUKolQVVjhQ3U4=</code></li>
+<li>Korczewski: <code>BHYLRcy85XSxC2V7pXXmzY4KtfttPHLgWitAM6PdYnY=</code></li>
+</ul>
+</li>
+<li><strong>Netzwerkintegration:</strong> Der GPU-Host leitet Anfragen über <code>iptables</code> (Linux-Firewall) an den lokalen Ollama-Dienst weiter. Die Kubernetes-Services (z. B. <code>llm-gateway-embed:8081</code> und <code>llm-gateway-chat:11434</code>) greifen über die WireGuard-IP auf diesen Rechner zu.</li>
+</ul>
+<hr>
+<h3>1.4 VPN-Netzwerke (WireGuard Mesh &amp; Fleet)</h3>
+<p>Drei verschlüsselte VPN-Netze (Virtual Private Network) verbinden die Server sicher untereinander:</p>
+<ol>
+<li><strong><code>wg-fleet</code> (Bereich <code>10.20.0.0/24</code>):</strong> Verbindet die sechs Hetzner-Server des Produktions-Clusters über den Port <code>51820</code>. Alle Anwendungs-Daten fließen verschlüsselt durch dieses Netz.</li>
+<li><strong><code>wg-mesh</code> (Bereich <code>192.168.100.0/24</code>):</strong> Legacy-Mesh der Marke Mentolder (Port <code>51821</code>), über das der GPU-Host angebunden ist.</li>
+<li><strong><code>wg-mesh</code> (Bereich <code>10.13.14.0/24</code>):</strong> Legacy-Mesh der Marke Korczewski (Port <code>51820</code>), über das das Laptop des Entwicklers angebunden ist.</li>
+</ol>
+<hr>
+<h2 id="2-benutzerkonten-und-zugangsdaten-usernames">2. Benutzerkonten und Zugangsdaten (Usernames)</h2>
+<p>Beim Betrieb des Repositories und der Server werden folgende administrative Konten verwendet:</p>
+<h3>2.1 SSH-Systembenutzer</h3>
+<ul>
+<li><strong><code>root</code></strong>: Administrativer Hauptnutzer auf allen Hetzner-Servern (<code>pk-*</code> und <code>gekko-*</code>) sowie den Proxmox-Hosts (<code>pve</code>, <code>pve2</code>, <code>pve3</code>).</li>
+<li><strong><code>devops</code></strong>: Standard-SSH-Benutzer auf den virtuellen Entwicklungsmaschinen (<code>devc-2</code>, <code>devc-3</code>).</li>
+<li><strong><code>gekko</code></strong>: Standard-Benutzer auf dem alten <code>k3s-1</code> Heimserver sowie auf der neuen <code>dev-vm</code> (<code>DEV_SSH_USER</code>).</li>
+</ul>
+<h3>2.2 Keycloak SSO / OIDC-Benutzer (Vordefinierte Konten)</h3>
+<ul>
+<li><strong><code>paddione</code></strong> (<code>patrick@korczewski.de</code>): Haupt-Administrator-Konto, berechtigt für alle Bereiche.</li>
+<li><strong><code>gekko</code></strong> (<code>quamain@web.de</code>): Test- und Entwicklerkonto.</li>
+</ul>
+<hr>
+<h2 id="3-ssh-schluessel-public-keys">3. SSH-Schlüssel (Public Keys)</h2>
+<p>Die folgenden öffentlichen SSH-Schlüssel sind in den Konfigurationsdateien des Repositories hinterlegt und erlauben den Zugriff auf die Server-Ressourcen:</p>
+<h3>PVE Host-Schlüssel (Proxmox-Virtualisierung)</h3>
+<ul>
+<li><strong><code>PVE_SSH_PUBLIC_KEY</code> (root@pve):</strong>
+<code>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCcVmcn2U3Ds/yWSC46oxiZjNMjQfqUDFTzFau8Glv0FSEgy9WipbHuKoms+/NU3ELdTMtvWdhHq02cdoS1nlDvBNHWkCz4XS2/L+D7XmDIbhWgdjTu77BA5itQf1s7rhQhy5aN9Bo/itDJOX3U8YN+4EHiUQS6p40y9ATcSf/FzhaZ8/5UrsNAdpvqEMlHT1E6+8UHmlq76IojhWCIPTqSbmOcKfWtrSreqUwpz6nrC1G2MF4KZ+bLqOh4vv8a4knUCrsE9xrKpl//jEmCNgWDBBpx1+4q/kKbBUCNTH73iJBKXV26HiG4kDS66idbJ5ePfHetl/c6h0k60yGnN7gvt53qLdo1fIKdLO7azmGbKQG+TQcTH6mwvl1irhQb0GbbtgwALGblR3r8M2wLsjFXhKoYPM45DTqQ37D0E/yNWklwStMbzkpwocn2V5Z5w6dtzLJ5wmm/FnnP0ugyvFfrSGdMGKZm/x6NdbVugY4yrRJ+5uU0kAg18O4NaG/calJX6g8yODqhb0kyoFuYBnkiUCx5E1q2KeOrKcXBIC4T2dB3vQXB4sYzD0cYItMJk7g53OXEDtMVmiSmPHkqJNT8ZLxv3EtL2HElqEkOKcnWlclU154GEqIElhVXiIhIVs9YSeGs6pVR8ltbEAQfQIakZ+79hNwy0TakGCzTgl4fMQ== root@pve</code></li>
+<li><strong><code>PVE2_SSH_PUBLIC_KEY</code> (root@pve2):</strong>
+<code>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIRsuXjU49374Ztn0YyQI8yxHH0czAFGS5cGL3EEGtEMVKSzTvWefWEh4EFKCsLfOEJAKcW4zDrOGljub45/eCW8GIY1VIUKzkOhj1JlYPSKpNGPIDWZ643k2NRfCRRAXGRx1oV9u+Ulb1xjC+TggIlgdSzV/3+V8liwVNU4tmUSX0aNKE8rNzKPxVLuxLCe3twm8RsPWfR4rUBiDf51s9ITu6jbwziai6Fxp0uv/ScnXieJ7Iqut99VqQBJxpEQYSfQ5Zqf1jtXuAc3q5kSdVDg8q+5DXBIFSCk8Gofdgxs26M4AsSDxr01gGQ7QdgVpP2unJvKTASI/aQg+xAd8kXze1puzcvJqfNUexcfpvJ5uiGrgpp042nNHXuUS2+xH9Gfd1QCw2vZM84h0qL9itumnU1rcU3zodAWPf4hRYaz3/oIGF5p2zFhXwu/6V6vOgNSzVkJM3PLs7N2DMOUqgkFClLR9hA4H4Fm/xxCNV50kjwLuEuAq3cN7/Y6PdePbNEnlDfbBWtHC+ow9ygXR52AIGXnDUhI6wM10pgxylR4A+aTOeuGgwgVjoC0DmYokEIidAYzIyUapajO2Brxci10V3Ykp/FgKY2m47S+9kMqmp+XGELCIgs4VjWkM7sVbiJSJLr0wIlKZ2mlNIbV5PPSTYP4Yd9o3Vy3rKV4SZ2Q== root@pve2</code></li>
+<li><strong><code>PVE3_SSH_PUBLIC_KEY</code> (root@pve3):</strong>
+<code>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDAJAf6e0K/SdlaKCxPVyP8rCZqOVz3M8NZUL4W8jSMzL3JqlcjNeSeUfoO9nfbHyI3QfDQPmvkpHY9JBa+e2A5Plj1MIC4DDvvgcY1eJL4j5gJ+2fQXyG6c1l2r5yEPs5wWn8vGuR8540d1Y93VDq90Zg+lJ6ON0vosuQ9jUyuGo7DIwwBN8vhBYiSN6XdeDlIJG2HVSJftbCREXC5u9fDH4J1Y0sNEkeua9vNZsC3BAAviylwBMFUYaB2TVKLyFOI5xGiZxKHio1H49S5b2gHHaOWor+I4byIBNibCS8LCeB/q8a99MnCHqMQT/jilwuq1RWorIrjVF0PX011s0Ddw+dA5iq0R2UH+htDkjJXdcXUYQEuBUMX/mBDkyiqSshCDDZfGvjm47YZTzt4bGYEKhBI/pPygi4MhSRN+TvWpngFWjxcSy4LEowTNePJx6CB17DwnVhBnQdHygCIZ8iHgvsgbVZgV0gO1He8zteZFPV7OjPANm4xSOim5vTSzpWwVvLhk9wv2sOURz4JY7mbtIPryFqNSbWI0B/4zMFH87YFQ7IfD7r5JhoqZRIaplJDRJWFrnLXXWjWS07vNWAcDS9AMNM9spPce65f8HlvaTjAcznVmzxW75ig5znFFAfi+SyVwWRhQ7fhuRZMnbOzqVwl1VINz7FGyJKOUoIvMw== root@pve3</code></li>
+</ul>
+<h3>Personenbezogene SSH-Schlüssel</h3>
+<ul>
+<li><strong><code>PATRICK_SSH_PUBLIC_KEY</code> (<a href="mailto:patrick@korczewski.de">patrick@korczewski.de</a>):</strong>
+<code>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFN75CnuOz7YXaJipTFxWMVDgm35heu64JKN1QL+Z84+ patrick@korczewski.de</code></li>
+<li><strong><code>GEKKO_SSH_PUBLIC_KEY</code> (gekko@mentolder-20260513):</strong>
+<code>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH43aUqN4w9u7DIt3gUREOJY4pmVIWvIbqFsG/fPSlV0 gekko@mentolder-20260513</code></li>
+</ul>
+<p><em>Sicherheitshinweis:</em> Die zugehörigen privaten Schlüssel (Private Keys) liegen verschlüsselt im Git-Repository in den jeweiligen <code>.secrets/&lt;env&gt;.yaml</code>-Dateien und sind mittels SealedSecrets geschützt.</p>
+<hr>
+<h2 id="4-detaillierte-erklaerung-aller-software-dienste-im-platform-hub">4. Detaillierte Erklärung aller Software-Dienste im Platform-Hub</h2>
+<p>Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) im Namespace <code>workspace</code> (für die Marke Mentolder) oder <code>workspace-korczewski</code> (für die Marke Korczewski), sofern nicht anders angegeben.</p>
+<h3>4.1 Website (<code>website</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Die Benutzeroberfläche (Astro + Svelte), die die öffentliche Homepage sowie das geschützte Kundenportal darstellt. Sie liest direkt aus der Shared-Database und kommuniziert mit Keycloak für die Benutzeranmeldung.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>website</code></li>
+<li><strong>K8s-Namespace:</strong> <code>website</code></li>
+<li><strong>Image:</strong> <code>website:latest</code> (wird bei jedem CI-Durchlauf neu gebaut)</li>
+<li><strong>Produktions-URLs:</strong> <code>web.mentolder.de</code>, <code>web.korczewski.de</code></li>
+</ul>
+<h3>4.2 Keycloak (<code>keycloak</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der zentrale SSO-Dienst (Single Sign-On). Er regelt die Authentifizierung über OIDC (OpenID Connect). Alle anderen Dienste (Nextcloud, Vaultwarden, DocuSeal, Systembrett) leiten Benutzer zur Anmeldung an Keycloak weiter.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>keycloak</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Datenbank:</strong> PostgreSQL (Schema <code>keycloak</code>)</li>
+<li><strong>Image-Tag:</strong> <code>:22.0</code> (ausgeliefert via Bitnami Keycloak-Chart)</li>
+<li><strong>Produktions-URLs:</strong> <code>auth.mentolder.de</code>, <code>auth.korczewski.de</code></li>
+</ul>
+<h3>4.3 Nextcloud (<code>nextcloud</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Das Kernstück für Kollaboration. Stellt Datei-Speicher, Kalender, Kontakte und Office-Integration bereit. Beinhaltet auch die Erweiterung "Nextcloud Talk" für Audio/Video-Konferenzen.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>nextcloud</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Datenbank:</strong> PostgreSQL (Schema <code>nextcloud</code>)</li>
+<li><strong>Image-Tag:</strong> <code>:29</code> (Nextcloud-Basis)</li>
+<li><strong>Produktions-URLs:</strong> <code>files.mentolder.de</code>, <code>files.korczewski.de</code></li>
+</ul>
+<h3>4.4 Collabora (<code>collabora</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein Online-Office-Server. Er wird über das WOPI-Protokoll in Nextcloud eingebunden und erlaubt das kollaborative Editieren von Word-, Excel- und PowerPoint-Dateien direkt im Browser.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>collabora</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace-office</code> / <code>workspace-office-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code> (Collabora Online Development Edition)</li>
+<li><strong>Produktions-URLs:</strong> <code>office.mentolder.de</code>, <code>office.korczewski.de</code></li>
+</ul>
+<h3>4.5 Vaultwarden (<code>vaultwarden</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein leichtgewichtiger, Bitwarden-kompatibler Passwort-Tresor. Ermöglicht Teams das sichere Verwalten und Teilen von Anmeldedaten und Passwörtern.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>vaultwarden</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Datenbank:</strong> PostgreSQL (Schema <code>vaultwarden</code>)</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> <code>vault.mentolder.de</code>, <code>vault.korczewski.de</code></li>
+</ul>
+<h3>4.6 Talk HPB (<code>nextcloud-talk-hpb</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Das High-Performance-Backend für Nextcloud Talk. Es beinhaltet den Janus WebRTC Gateway (Video-Streaming-Server), NATS (Messaging-System) und den Signaling-Server. Ermöglicht stabile Gruppen-Anrufe.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>talk-hpb</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> Internal routing via Traefik.</li>
+</ul>
+<h3>4.7 Brett (<code>brett</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein interaktives, kollaboratives 3D-Systembrett (Systemic Constellation Board) zur Simulation von Aufstellungen im Browser.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>brett</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Datenbank:</strong> PostgreSQL (Schema <code>brett</code>)</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> <code>brett.mentolder.de</code>, <code>brett.korczewski.de</code></li>
+</ul>
+<h3>4.8 Mailpit (<code>mailpit</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein SMTP-Test-Mailserver. Er fängt alle ausgehenden E-Mails der Plattform in der Entwicklungsumgebung ab und stellt eine Weboberfläche bereit, um diese zu inspizieren. Echte E-Mails werden nicht versendet.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>mailpit</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> <code>mail.mentolder.de</code>, <code>mail.korczewski.de</code> (SSO-geschützt)</li>
+</ul>
+<h3>4.9 DocuSeal (<code>docuseal</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein eigenständiger Dienst zum digitalen Signieren und Verwalten von Dokumenten (PDF-Verträge) mit fortgeschrittener elektronischer Signatur.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>docuseal</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Datenbank:</strong> PostgreSQL (Schema <code>docuseal</code>)</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> <code>sign.mentolder.de</code>, <code>sign.korczewski.de</code></li>
+</ul>
+<h3>4.10 Whiteboard (<code>whiteboard</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Eine kollaborative Zeichen-Tafel (basierend auf Spacedeck), die direkt als Nextcloud-App in die Cloud-Umgebung integriert ist.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>whiteboard</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> Erreichbar innerhalb der Nextcloud-Oberfläche.</li>
+</ul>
+<h3>4.11 Arena (<code>arena</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der Multiplayer-Spielserver (WebSocket-Backend), der exklusiv für das 3D-Spiel der Marke Korczewski genutzt wird.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>arena-server</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace-korczewski</code> (nur für die Marke Korczewski aktiv)</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+<li><strong>Produktions-URLs:</strong> <code>arena-ws.korczewski.de</code></li>
+</ul>
+<h3>4.12 Documentation (<code>docs</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Eine statische Dokumentations-Webseite (Docsify), die das Admin- und Benutzerhandbuch bereitstellt.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>docs</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code> (wird via <code>task docs:deploy</code> neu gebaut)</li>
+<li><strong>Produktions-URLs:</strong> <code>docs.mentolder.de</code>, <code>docs.korczewski.de</code></li>
+</ul>
+<h3>4.13 PostgreSQL 16 (<code>postgresql</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der zentrale relationale Datenbank-Server der Plattform. Pro Marke läuft eine eigene PostgreSQL-Instanz im jeweiligen Namespace. Der Zugriff erfolgt über interne Kubernetes-DNS-Namen (<code>shared-db</code>).</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>shared-db</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> / <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:16</code> (PostgreSQL 16)</li>
+<li><strong>Speicherklasse:</strong> Longhorn (verteilter, redundanter Speicher)</li>
+</ul>
+<h3>4.14 Traefik (<code>traefik</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der Kubernetes-Ingress-Controller. Er empfängt alle externen HTTP/HTTPS-Anfragen der Plattform, leitet sie an die zuständigen Services weiter und übernimmt die Verschlüsselung (TLS-Terminierung).</li>
+<li><strong>K8s-DaemonSet:</strong> Läuft im Namespace <code>kube-system</code> als Systemkomponente.</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+</ul>
+<h3>4.15 Sealed Secrets (<code>sealed-secrets</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der Bitnami Sealed Secrets Controller. Er ermöglicht das sichere Speichern von Passwörtern und API-Schlüsseln im öffentlichen Git-Repository, indem er sie asymmetrisch verschlüsselt. Nur der Controller im Cluster kann sie wieder entschlüsseln.</li>
+<li><strong>K8s-Deployment:</strong> Läuft im Namespace <code>sealed-secrets</code>.</li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+</ul>
+<h3>4.16 cert-manager (<code>cert-manager</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Automatisiert das Ausstellen und Erneuern von SSL/TLS-Zertifikaten über Let's Encrypt mittels der DNS-01-Challenge (über den DNS-Anbieter ipv64.de).</li>
+<li><strong>K8s-Deployment:</strong> Läuft im Namespace <code>cert-manager</code> (3 separate Pods).</li>
+</ul>
+<h3>4.17 k3s / k3d (<code>k3s</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Die zugrundeliegende leichtgewichtige Kubernetes-Distribution. <code>k3s</code> läuft in der Produktion auf den Hetzner-Servern; <code>k3d</code> simuliert ein k3s-Cluster lokal in Docker für Entwicklungszwecke.</li>
+</ul>
+<h3>4.18 WireGuard (<code>wireguard</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Das verschlüsselte Peer-to-Peer-VPN-Netzwerk (Virtual Private Network). Ermöglicht die sichere Kommunikation zwischen den Cloud-Knoten und externen Hosts (wie dem GPU-Rechner).</li>
+</ul>
+<h3>4.19 TEI (<code>tei</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Text Embeddings Inference (Text-Vektorisierung). Dienst zur Generierung von Text-Embeddings (Modell: <code>bge-m3</code>) für die semantische Suche. Läuft auf dem GPU-Host und wird als ClusterIP-Service <code>llm-gateway-embed</code> in Kubernetes bereitgestellt (nur Mentolder).</li>
+</ul>
+<h3>4.20 OpenClaw (<code>openclaw</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein lokaler KI-Assistent-Dienst (Daemon), der direkt auf dem Windows/WSL2-GPU-Host läuft und mit Ollama kommuniziert. Er wird über das <code>openclaw</code>-CLI verwaltet.</li>
+</ul>
+<h3>4.21 LiveKit Server (<code>livekit</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Echtzeit-Audio- und Video-Server (WebRTC) für interaktive Video-Streams. Läuft im Host-Netzwerk (<code>hostNetwork: true</code>) und ist aus Performance-Gründen fest an den Knoten <code>pk-hetzner-4</code> (bzw. im Dev-Fall <code>gekko-hetzner-3</code>) gebunden.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>livekit-server</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
+<li><strong>Produktions-URLs:</strong> <code>livekit.mentolder.de</code>, <code>livekit.korczewski.de</code></li>
+</ul>
+<h3>4.22 LiveKit Ingress (<code>livekit-ingress</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Video-Eingangsschnittstelle. Empfängt externe Video-Feeds (z. B. RTMP-Stream aus OBS) und leitet sie in einen LiveKit-Raum weiter.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>livekit-ingress</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
+</ul>
+<h3>4.23 LiveKit Egress (<code>livekit-egress</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Video-Ausgangsschnittstelle. Zeichnet LiveKit-Sitzungen auf und speichert sie als Videodatei im Backup-Speicher ab.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>livekit-egress</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
+</ul>
+<h3>4.24 Whisper (<code>whisper</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein Spracherkennungsmodell (OpenAI Whisper), welches auf dem GPU-Host ausgeführt wird. Es wandelt gesprochene Sprache aus Audioaufnahmen in Text um.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>whisper</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
+</ul>
+<h3>4.25 Talk Transcriber (<code>talk-transcriber</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein Nextcloud Talk Bot, der an laufenden Video-Gesprächen teilnimmt, die Audiospur an den Whisper-Dienst sendet und ein Live-Transkript (Gesprächs-Mitschrift) im Chat ablegt.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>talk-transcriber</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
+</ul>
+<h3>4.26 MCP Monolith (<code>mcp</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Model Context Protocol Proxy (Claude Code MCP-Server). Ermöglicht dem KI-Coding-Assistenten Claude Code den sicheren, kontrollierten Zugriff auf Cluster-Ressourcen und -Werkzeuge.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>claude-code-mcp-auth</code> / <code>claude-code-mcp-ops</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code> (nur Mentolder)</li>
+</ul>
+<h3>4.27 Brainstorm Sish (<code>brainstorm</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Ein SSH-Tunnel-Server (sish), der es Entwicklern erlaubt, lokale Entwicklungs-Webseiten oder Whiteboards über einen sicheren SSH-Reverse-Tunnel im Internet erreichbar zu machen.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>brainstorm-sish</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace</code></li>
+<li><strong>Produktions-URLs:</strong> <code>brainstorm.mentolder.de</code></li>
+</ul>
+<h3>4.28 Arena Server (<code>arena-server</code>)</h3>
+<ul>
+<li><strong>Beschreibung:</strong> Der exklusive 3D-Mehrspieler-WebSocket-Spielserver für die Marke Korczewski, der Logins über Keycloak-JSON-Web-Tokens (JWT) beider Marken validiert.</li>
+<li><strong>K8s-Deployment-Name:</strong> <code>arena-server</code></li>
+<li><strong>K8s-Namespace:</strong> <code>workspace-korczewski</code></li>
+<li><strong>Image-Tag:</strong> <code>:latest</code></li>
+</ul>
+<hr>
+<h2 id="5-dokumentations-abdeckung-des-repositories">5. Dokumentations-Abdeckung des Repositories</h2>
+<p>Damit kein Teil des Projekts und des Repositories unbeleuchtet bleibt, ordnet die folgende Tabelle jedem Ordner und jeder Datei im Repository das zuständige Hilfe-Dokument zu:</p>
+<table>
+<thead>
+<tr>
+<th>Ordner / Datei im Repo</th>
+<th>Funktion / Zweck</th>
+<th>Zuständiges Dokument in der Hilfe</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><code>website/</code></strong></td>
+<td>Astro- &amp; Svelte-Frontend (Kundenportal, Homepage, Chat-Komponente)</td>
+<td><a href="website.html">Website-Doku</a>, <a href="benutzerhandbuch.html">Benutzerhandbuch</a></td>
+</tr>
+<tr>
+<td><strong><code>k3d/</code></strong></td>
+<td>Kubernetes-Manifeste und Kustomize-Dateien für die Dev-Umgebung</td>
+<td><a href="operations.html">Operations-Handbuch</a>, <a href="./readme.html" class="xref">Dev-Stack Runbook</a></td>
+</tr>
+<tr>
+<td><strong><code>environments/</code></strong></td>
+<td>Variablen, Zertifikate und SealedSecrets pro Umgebung</td>
+<td><a href="environments.html">Umgebungs-Doku (Environments)</a>, <a href="./skills/secret-rotation.html" class="xref">secret-rotation</a></td>
+</tr>
+<tr>
+<td><strong><code>docs/</code></strong></td>
+<td>System-Dokumentation, Admin-Handbücher, Architekturberichte</td>
+<td>Diese Doku-Seiten selbst</td>
+</tr>
+<tr>
+<td><strong><code>docs/agent-guide/</code></strong></td>
+<td>Zielgerichtete Hilfen für KI-Coding-Agenten (Taxonomie, Goals, Tools)</td>
+<td><a href="./00-anleitung.html" class="xref">00-anleitung</a></td>
+</tr>
+<tr>
+<td><strong><code>scripts/</code></strong></td>
+<td>Hilfs- und Setup-Skripte für Datenbank-Migrationen, Keycloak und Backups</td>
+<td><a href="scripts.html">Skripte-Übersicht</a>, <a href="operations.html">Operations-Handbuch</a></td>
+</tr>
+<tr>
+<td><strong><code>tests/</code></strong></td>
+<td>Playwright E2E-Tests und BATS-Unit-Tests für die Verifikation</td>
+<td><a href="tests.html">Test-Dokumentation</a></td>
+</tr>
+<tr>
+<td><strong><code>wireguard/</code></strong></td>
+<td>WireGuard-Konfigurationsvorlagen und Mesh-Knoten-Definitionen</td>
+<td><a href="./bereitstellungsdetails.html" class="xref">Netzwerk-Handbuch (WireGuard)</a> (dieses Dokument)</td>
+</tr>
+<tr>
+<td><strong><code>pentest-dashboard/</code></strong></td>
+<td>Lokales Flask-Dashboard zur Durchführung autorisierter Sicherheits-Scans</td>
+<td><a href="security.html">Sicherheits-Handbuch</a></td>
+</tr>
+<tr>
+<td><strong><code>art-library/</code></strong></td>
+<td>Brand-spezifische Bild-Assets für das 3D-Systembrett</td>
+<td><a href="systembrett.html">Systembrett-Doku</a></td>
+</tr>
+<tr>
+<td><strong><code>brett/</code></strong></td>
+<td>Node.js Service für das kollaborative 3D-Aufstellungsboard</td>
+<td><a href="systembrett.html">Systembrett-Doku</a></td>
+</tr>
+<tr>
+<td><strong><code>arena-server/</code></strong></td>
+<td>Multiplayer-WebSocket-Spielserver für die Marke Korczewski</td>
+<td><a href="arena.html">Arena-Dokumentation</a></td>
+</tr>
+<tr>
+<td><strong><code>claude-code/</code></strong></td>
+<td>MCP Monolith Konfigurationen für den Claude Code Agenten</td>
+<td><a href="claude-code.html">Claude-Code Integration</a></td>
+</tr>
+<tr>
+<td><strong><code>prod-fleet/</code></strong></td>
+<td>Kustomize-Overlays für das konsolidierte Fleet-Cluster</td>
+<td><a href="./fleet-stage2-cutover-runbook.html" class="xref">fleet-stage2-cutover-runbook</a></td>
+</tr>
+<tr>
+<td><strong><code>prod-mentolder/</code></strong></td>
+<td>Legacy standalone-Overlay für die Marke Mentolder</td>
+<td><a href="./fleet-2026-05-31-what-changed.html" class="xref">fleet-2026-05-31-what-changed</a></td>
+</tr>
+<tr>
+<td><strong><code>prod-korczewski/</code></strong></td>
+<td>Legacy standalone-Overlay für die Marke Korczewski</td>
+<td><a href="./fleet-2026-05-31-what-changed.html" class="xref">fleet-2026-05-31-what-changed</a></td>
+</tr>
+<tr>
+<td><strong><code>Taskfile.yml</code></strong></td>
+<td>Zentrales Build- &amp; Task-Automatisierungstool</td>
+<td><a href="operations.html">Operations-Handbuch</a>, <a href="./00-anleitung.html" class="xref">00-anleitung</a></td>
+</tr>
+<tr>
+<td><strong><code>CLAUDE.md</code></strong></td>
+<td>Generelle Regeln und Schnellstart-Referenz für Claude Code</td>
+<td><a href="file:///home/patrick/Bachelorprojekt/CLAUDE.md">CLAUDE.md</a></td>
+</tr>
+<tr>
+<td><strong><code>GEMINI.md</code></strong></td>
+<td>Spezifischer Leitfaden für die Gemini CLI Integration</td>
+<td><a href="file:///home/patrick/Bachelorprojekt/GEMINI.md">GEMINI.md</a></td>
+</tr>
+<tr>
+<td><strong><code>CONTRIBUTING.md</code></strong></td>
+<td>Entwicklungs-Richtlinien und PR-Workflow</td>
+<td><a href="contributing.html">Contributing-Handbuch</a></td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

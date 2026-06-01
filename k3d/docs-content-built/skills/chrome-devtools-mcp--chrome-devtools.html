@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>chrome-devtools — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">chrome-devtools</span></nav>
+    <h1>chrome-devtools</h1>
+    <p class="page-desc">Uses Chrome DevTools via MCP for efficient debugging, troubleshooting and browser automation. Use when debugging web pages, automating browser interactions, analyzing performance, or inspecting network requests. This skill does not apply to `--slim` mode (MCP configuration).</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.1.1</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#core-concepts"><span class="toc-num">1.</span> Core Concepts</a></li>
+<li class="toc-item"><a href="#workflow-patterns"><span class="toc-num">2.</span> Workflow Patterns</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">3.</span> Troubleshooting</a></li></ul>
+</div><h2 id="core-concepts">Core Concepts</h2>
+<p><strong>Browser lifecycle</strong>: Browser starts automatically on first tool call using a persistent Chrome profile. Configure via CLI args in the MCP server configuration: <code>npx chrome-devtools-mcp@latest --help</code>. To enable extensions, use <code>--categoryExtensions</code>.
+<strong>Page selection</strong>: Tools operate on the currently selected page. Use <code>list_pages</code> to see available pages, then <code>select_page</code> to switch context.</p>
+<p><strong>Element interaction</strong>: Use <code>take_snapshot</code> to get page structure with element <code>uid</code>s. Each element has a unique <code>uid</code> for interaction. If an element isn't found, take a fresh snapshot - the element may have been removed or the page changed.</p>
+<h2 id="workflow-patterns">Workflow Patterns</h2>
+<h3>Before interacting with a page</h3>
+<ol>
+<li>Navigate: <code>navigate_page</code> or <code>new_page</code></li>
+<li>Wait: <code>wait_for</code> to ensure content is loaded if you know what you look for.</li>
+<li>Snapshot: <code>take_snapshot</code> to understand page structure</li>
+<li>Interact: Use element <code>uid</code>s from snapshot for <code>click</code>, <code>fill</code>, etc.</li>
+</ol>
+<h3>Efficient data retrieval</h3>
+<ul>
+<li>Use <code>filePath</code> parameter for large outputs (screenshots, snapshots, traces)</li>
+<li>Use pagination (<code>pageIdx</code>, <code>pageSize</code>) and filtering (<code>types</code>) to minimize data</li>
+<li>Set <code>includeSnapshot: false</code> on input actions unless you need updated page state</li>
+</ul>
+<h3>Tool selection</h3>
+<ul>
+<li><strong>Automation/interaction</strong>: <code>take_snapshot</code> (text-based, faster, better for automation)</li>
+<li><strong>Visual inspection</strong>: <code>take_screenshot</code> (when user needs to see visual state)</li>
+<li><strong>Additional details</strong>: <code>evaluate_script</code> for data not in accessibility tree</li>
+</ul>
+<h3>Parallel execution</h3>
+<p>You can send multiple tool calls in parallel, but maintain correct order: navigate → wait → snapshot → interact.</p>
+<h3>Testing an extension</h3>
+<ol>
+<li><strong>Install</strong>: Use <code>install_extension</code> with the path to the unpacked extension.</li>
+<li><strong>Identify</strong>: Get the extension ID from the response or by calling <code>list_extensions</code>.</li>
+<li><strong>Trigger Action</strong>: Use <code>trigger_extension_action</code> to open the popup or side panel if applicable.</li>
+<li><strong>Verify Service Worker</strong>: Use <code>evaluate_script</code> with <code>serviceWorkerId</code> to check extension state or trigger background actions.</li>
+<li><strong>Verify Page Behavior</strong>: Navigate to a page where the extension operates and use <code>take_snapshot</code> to check if content scripts injected elements or modified the page correctly.</li>
+</ol>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If <code>chrome-devtools-mcp</code> is insufficient, guide users to use Chrome DevTools UI:</p>
+<ul>
+<li><a href="https://developer.chrome.com/docs/devtools">https://developer.chrome.com/docs/devtools</a></li>
+<li><a href="https://developer.chrome.com/docs/devtools/ai-assistance">https://developer.chrome.com/docs/devtools/ai-assistance</a></li>
+</ul>
+<p>If there are errors launching <code>chrome-devtools-mcp</code> or Chrome, refer to <a href="https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/docs/troubleshooting.md">https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/docs/troubleshooting.md</a>.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

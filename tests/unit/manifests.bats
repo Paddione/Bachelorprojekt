@@ -286,13 +286,26 @@ import subprocess, sys, yaml, glob, os
 from concurrent.futures import ThreadPoolExecutor
 
 def _is_overlay(d):
-    return os.path.isdir(d) and any(
-        os.path.exists(os.path.join(d, k))
-        for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization'))
+    if not os.path.isdir(d):
+        return False
+    for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization'):
+        p = os.path.join(d, k)
+        if os.path.exists(p):
+            # kustomize Components (kind: Component) can't be built standalone — skip.
+            with open(p) as fh:
+                if 'kind: Component' in fh.read():
+                    return False
+            return True
+    return False
 
-# Skip container dirs (e.g. prod-fleet/) that hold nested overlays but have no
-# top-level kustomization of their own.
-overlays = sorted(o for o in glob.glob('${PROJECT_DIR}/prod*') if _is_overlay(o))
+# Validate every prod overlay — INCLUDING the nested prod-fleet/<brand> wrappers,
+# which are what ENV_OVERLAY actually applies in prod. glob('prod*') alone only
+# matches top-level dirs (prod-fleet/ has no kustomization of its own), so also
+# descend one level into the container dirs (prod-fleet/mentolder, .../korczewski,
+# .../platform). prod-fleet/components/* (kind: Component) is excluded by _is_overlay.
+overlays = sorted(o for o in (
+    glob.glob('${PROJECT_DIR}/prod*') + glob.glob('${PROJECT_DIR}/prod*/*'))
+    if _is_overlay(o))
 
 def check_overlay(overlay):
     try:
@@ -338,11 +351,24 @@ print('OK: no workspace-secrets Secret in prod overlays')
   run python3 - "${PROJECT_DIR}" <<'PY'
 import subprocess, sys, yaml, glob, os
 project = sys.argv[1]
-overlays = sorted(
+def _is_overlay(d):
+    if not os.path.isdir(d):
+        return False
+    for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization'):
+        p = os.path.join(d, k)
+        if os.path.exists(p):
+            with open(p) as fh:
+                if 'kind: Component' in fh.read():
+                    return False
+            return True
+    return False
+
+# Brand overlays PLUS the nested prod-fleet/<brand> wrappers actually applied in
+# prod (descend one level into container dirs like prod-fleet/).
+overlays = sorted(set(
     d for d in glob.glob(os.path.join(project, 'prod-*'))
-    if os.path.isdir(d) and any(
-        os.path.exists(os.path.join(d, k))
-        for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization')))
+           + glob.glob(os.path.join(project, 'prod-*', '*'))
+    if _is_overlay(d)))
 SPLIT = {'claude-code-mcp-ops', 'claude-code-mcp-auth', 'mcp-browser', 'mcp-github'}
 bad = []
 for ov in overlays:
@@ -383,11 +409,24 @@ PY
   run python3 - "${PROJECT_DIR}" <<'PY'
 import subprocess, sys, yaml, glob, os
 project = sys.argv[1]
-overlays = sorted(
+def _is_overlay(d):
+    if not os.path.isdir(d):
+        return False
+    for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization'):
+        p = os.path.join(d, k)
+        if os.path.exists(p):
+            with open(p) as fh:
+                if 'kind: Component' in fh.read():
+                    return False
+            return True
+    return False
+
+# Brand overlays PLUS the nested prod-fleet/<brand> wrappers actually applied in
+# prod (descend one level into container dirs like prod-fleet/).
+overlays = sorted(set(
     d for d in glob.glob(os.path.join(project, 'prod-*'))
-    if os.path.isdir(d) and any(
-        os.path.exists(os.path.join(d, k))
-        for k in ('kustomization.yaml', 'kustomization.yml', 'Kustomization')))
+           + glob.glob(os.path.join(project, 'prod-*', '*'))
+    if _is_overlay(d)))
 bad = []
 for ov in overlays:
     r = subprocess.run(

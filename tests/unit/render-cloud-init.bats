@@ -11,7 +11,6 @@ setup() {
   # Minimal versions.yaml fixture
   cat > "${TMPDIR}/versions.yaml" << 'EOF'
 k3s: v9.99.0+k3s1
-flux: v9.0.0
 sealed_secrets_chart: 9.1.0
 cert_manager: v9.2.0
 longhorn_chart: 9.3.0

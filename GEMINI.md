@@ -22,7 +22,7 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Beide Mar
 *   **PostgreSQL `shared-db`:** Eigene Instanz pro Brand/Namespace (workspace / workspace-korczewski), separate DBs pro Service
 
 **Infrastructure:**
-*   k3d (Dev) + k3s (Prod). Kustomize-basierte Manifeste, reconciliiert via Flux GitOps (Pull-basiert).
+*   k3d (Dev) + k3s (Prod, unified `fleet`-Cluster). Kustomize-basierte Manifeste, **push-basiert** deployt via `task workspace:deploy` — kein Flux/Argo-Reconciler auf dem Cluster.
 *   SealedSecrets (bitnami) pro Brand; Secrets-Pipeline via `task env:seal ENV=<env>`.
 
 ## Building and Running
@@ -72,7 +72,7 @@ task workspace:up
 ## Development Conventions
 
 1.  **Kubernetes Native:** The only deployment path is k3d/k3s. `docker-compose` is not used for deployment.
-2.  **Manifest Location:** All base Kubernetes manifests reside in `k3d/`. Overlays for production are in `prod/`, `prod-korczewski/`, and `k3s/`.
+2.  **Manifest Location:** All base Kubernetes manifests reside in `k3d/`. Production is applied via the `prod-fleet/mentolder/` and `prod-fleet/korczewski/` overlays — each wraps the legacy `prod-mentolder/` / `prod-korczewski/` brand overlay plus the shared `prod/` patches.
 3.  **Kustomize:** Kustomize is the primary tool for orchestrating Kubernetes manifests.
 4.  **Git Workflow:** Changes must be made via Pull Requests. No direct pushes to `main`.
 5.  **CI Enforcement:** `task test:all` (BATS unit tests, kustomize manifest dry-run, Taskfile lint), test-inventory drift guard, image-pin/secret scan, and the arena protocol-drift guard must pass before merging. `yamllint`/`shellcheck`/`kubeconform` are NOT in CI — run locally if you want them.

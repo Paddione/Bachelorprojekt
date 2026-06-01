@@ -32,13 +32,12 @@ helm repo update >/dev/null 2>&1 || true
 
 # Discover versions from upstream
 K3S=$(curl -sf "https://api.github.com/repos/k3s-io/k3s/releases/latest" | jq -r '.tag_name')
-FLUX=$(curl -sf "https://api.github.com/repos/fluxcd/flux2/releases/latest" | jq -r '.tag_name')
 SEALED_SECRETS=$(helm search repo sealed-secrets/sealed-secrets -o json | jq -r '.[0].version')
 CERT_MANAGER=$(helm search repo jetstack/cert-manager -o json | jq -r '.[0].version')
 LONGHORN=$(helm search repo longhorn/longhorn -o json | jq -r '.[0].version')
 
 # Validate — fail fast if any lookup returned empty or "null"
-for varname in K3S FLUX SEALED_SECRETS CERT_MANAGER LONGHORN; do
+for varname in K3S SEALED_SECRETS CERT_MANAGER LONGHORN; do
   val="${!varname}"
   if [[ -z "$val" || "$val" == "null" ]]; then
     echo "ERROR: Failed to discover version for $varname" >&2
@@ -48,7 +47,6 @@ done
 
 echo "Discovered versions:"
 echo "k3s: $K3S"
-echo "flux: $FLUX"
 echo "sealed_secrets_chart: $SEALED_SECRETS"
 echo "cert_manager: $CERT_MANAGER"
 echo "longhorn_chart: $LONGHORN"
@@ -62,7 +60,6 @@ fi
 cat > "$VERSIONS_FILE" << EOF
 # Managed by scripts/discover-versions.sh — do not edit manually
 k3s: $K3S
-flux: $FLUX
 sealed_secrets_chart: $SEALED_SECRETS
 cert_manager: $CERT_MANAGER
 longhorn_chart: $LONGHORN

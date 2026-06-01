@@ -58,7 +58,7 @@ spec:
       serviceAccountName: claude-code-agent
       initContainers:
         - name: github-binary
-          image: curlimages/curl:8.6.0
+          image: curlimages/curl:8.7.1
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -94,7 +94,7 @@ spec:
 
         # ── PostgreSQL MCP (port 3001) → shared-db-dev ───────────────
         - name: postgres
-          image: node:20-alpine
+          image: node:22-alpine
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -159,7 +159,7 @@ spec:
 
         # ── GitHub MCP (port 3002) ──────────────────────────────────
         - name: github
-          image: node:20-alpine
+          image: node:22-alpine
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:

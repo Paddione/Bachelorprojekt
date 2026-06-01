@@ -25,7 +25,7 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
 - `prod/` — shared production patches (TLS, resources, `$patch: delete` on dev secrets) — NEVER apply directly
 - `prod-mentolder/` / `prod-korczewski/` — legacy per-brand overlays, consumed by `prod-fleet/` wrappers. Never applied directly in prod.
 - `prod-fleet/` — active fleet overlay tree: `platform/`, `mentolder/`, `korczewski/`, and `components/fleet-common/` (shared `secrets-replacement.yaml`). This is what `workspace:deploy` applies for all prod ENVs.
-- `flux/` — Flux CD manifests (GitRepository, Kustomization, ImagePolicy, ImageUpdateAutomation) for pull-based reconciliation.
+- `flux/apps/` — website kustomize overlays (ingress, security headers, config patches). Legacy dir name: the Flux GitOps machinery (`flux/clusters/`, `flux/images/`) was removed — **fleet is push-based, no reconciler**. Pending relocation out of `flux/`.
 
 ## Critical gotchas
 - Never remove the `$patch: delete` block in `prod/kustomization.yaml` — it strips dev secrets so SealedSecrets survive
@@ -41,8 +41,7 @@ task workspace:deploy ENV=<env>          # deploy to specific brand
 task workspace:deploy:all-prods          # deploy to both brands
 task env:seal ENV=<env>                  # encrypt secrets to SealedSecret
 task env:generate ENV=<env>             # generate fresh secrets
-flux get kustomizations --context fleet  # show Flux reconciliation status
-flux reconcile kustomization workspace --context fleet --with-source # force re-sync
+# (Push-based: no Flux on fleet. Re-run workspace:deploy to apply git after a merge.)
 ```
 
 ## Autonomous operation

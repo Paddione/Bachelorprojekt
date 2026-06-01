@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/local/mandatory-sequences.bats
 # Regression test: verify critical task sequences still exist
-# These sequences are documented in CLAUDE.md for cluster-reset, feature deployments, and flux reconciliation
+# These sequences are documented in CLAUDE.md for cluster-reset and feature deployments
 
 @test "cluster-reset sequence task exists: sealed-secrets:install" {
   run task --list-all
@@ -51,17 +51,8 @@
   echo "$output" | grep -q "feature:deploy"
 }
 
-@test "FluxCD reconcile task exists: flux:sync" {
-  run task --list-all
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -q "flux:sync"
-}
-
-@test "FluxCD status task exists: flux:status" {
-  run task --list-all
-  [ "$status" -eq 0 ]
-  echo "$output" | grep -q "flux:status"
-}
+# NOTE: the flux:sync / flux:status tasks were removed with the Flux GitOps
+# teardown — fleet is push-based (no reconciler), so there is no flux task to assert.
 
 @test "workspace:validate runs without error" {
   run task workspace:validate

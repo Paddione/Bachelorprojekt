@@ -139,6 +139,14 @@ jobs:
           fi
           echo "No hardcoded secrets detected"
 
+      - name: Verify secrets are git-crypt-encrypted
+        run: |
+          if ! bash scripts/git-crypt-guard.sh check-tracked; then
+            echo "ERROR: a tracked secret is stored in plaintext (must be git-crypt-encrypted)"
+            exit 1
+          fi
+          echo "All managed secret files are git-crypt-encrypted"
+
   brett-server-test:
     name: Brett Server Tests
     runs-on: ubuntu-latest

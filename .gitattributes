@@ -7,3 +7,8 @@ brett/public/assets/figure-pack/accessories/*.png binary
 brett/public/assets/figure_pack_extension/accessories/*.png binary
 brett/public/assets/game_assets_mentolder/hud/*.png binary
 brett/public/assets/game_assets_mentolder/sprites/*.png binary
+
+# ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
+# NOTE: environments/certs/*.pem are PUBLIC sealing certs — intentionally NOT listed here.
+environments/.secrets/**            filter=git-crypt diff=git-crypt
+deploy/mcp/claude-code-secrets.yaml filter=git-crypt diff=git-crypt

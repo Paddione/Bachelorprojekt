@@ -49,3 +49,12 @@ kc_extract_clients_from_template() {
   local file="$1"
   jq -c '.clients[]' "$file"
 }
+
+# kc_extract_groups_from_template FILE
+#   Reads the realm template JSON at FILE and prints each element of the
+#   .groups[] array on its own line as compact JSON (NDJSON). Emits nothing
+#   when .groups is absent or empty. Requires jq.
+kc_extract_groups_from_template() {
+  local file="$1"
+  jq -c '.groups // [] | .[]' "$file"
+}

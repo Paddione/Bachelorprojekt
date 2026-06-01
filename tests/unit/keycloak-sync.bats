@@ -98,3 +98,25 @@ JSON
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }
+
+# ── kc_extract_groups_from_template ─────────────────────────────
+
+@test "kc_extract_groups_from_template emits one group JSON per line (NDJSON)" {
+  local fixture="${BATS_TEST_TMPDIR}/realm.json"
+  cat > "$fixture" <<'JSON'
+{"realm":"workspace","groups":[{"name":"recovery-access","path":"/recovery-access","subGroups":[]}]}
+JSON
+  run kc_extract_groups_from_template "$fixture"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"name":"recovery-access"'* ]]
+}
+
+@test "kc_extract_groups_from_template emits nothing when .groups absent" {
+  local fixture="${BATS_TEST_TMPDIR}/nogroups.json"
+  cat > "$fixture" <<'JSON'
+{"realm":"workspace","clients":[]}
+JSON
+  run kc_extract_groups_from_template "$fixture"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}

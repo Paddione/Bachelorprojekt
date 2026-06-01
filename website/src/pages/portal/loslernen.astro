@@ -1,0 +1,257 @@
+---
+import PortalLayout from '../../layouts/PortalLayout.astro';
+import { getSession, getLoginUrl } from '../../lib/auth';
+import { themes, goals, tools } from '../../lib/agentGuide';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) {
+  return Astro.redirect(getLoginUrl(Astro.url.pathname));
+}
+
+// Fetch learning summary server-side
+interface SummaryItem {
+  item_id: string;
+  item_type: string;
+  status: 'todo' | 'in_progress' | 'done';
+  note: string | null;
+}
+interface LearningSummary {
+  done: number;
+  inProgress: number;
+  total: number;
+  pct: number;
+  lastActivity: string | null;
+  items: SummaryItem[];
+}
+
+let summary: LearningSummary = { done: 0, inProgress: 0, total: 0, pct: 0, lastActivity: null, items: [] };
+try {
+  const res = await fetch(`${Astro.url.origin}/api/portal/learning/summary`, {
+    headers: { cookie: Astro.request.headers.get('cookie') ?? '' },
+  });
+  if (res.ok) {
+    summary = await res.json() as LearningSummary;
+  }
+} catch (e) {
+  console.error('Failed to fetch learning summary:', e);
+}
+
+// Build a map of item_id → status for quick lookups
+const learnedMap = new Map<string, 'todo' | 'in_progress' | 'done'>();
+for (const item of summary.items) {
+  learnedMap.set(item.item_id, item.status);
+}
+
+const statusEmoji: Record<string, string> = {
+  todo: '○',
+  in_progress: '◐',
+  done: '●',
+};
+
+// Group goals and tools by theme
+const sortedThemes = [...themes].sort((a, b) => a.order - b.order);
+---
+
+<PortalLayout title="Dein Lernpfad" section="overview" session={session} pendingSignatures={0}>
+  <div class="lp-wrap">
+    <header class="lp-header">
+      <h1 class="lp-title">Dein Lernpfad</h1>
+      <p class="lp-subtitle">Verfolge deinen Fortschritt durch die Agent-Anleitung.</p>
+
+      <div class="lp-stats">
+        <span class="lp-stat">Erledigt <strong>{summary.done}/{summary.total}</strong></span>
+        <span class="lp-stat-sep">·</span>
+        <span class="lp-stat">Fortschritt <strong>{summary.pct}%</strong></span>
+        {summary.inProgress > 0 && (
+          <>
+            <span class="lp-stat-sep">·</span>
+            <span class="lp-stat">In Arbeit <strong>{summary.inProgress}</strong></span>
+          </>
+        )}
+      </div>
+
+      <div class="lp-progress-bar" role="progressbar" aria-valuenow={summary.pct} aria-valuemin={0} aria-valuemax={100}>
+        <div class="lp-progress-fill" style={`width: ${summary.pct}%`}></div>
+      </div>
+    </header>
+
+    <div class="lp-groups">
+      {sortedThemes.map((theme) => {
+        const themeGoals = goals.filter(g => g.theme === theme.id);
+        const themeTools = tools.filter(t => t.theme === theme.id);
+        const allItems = [
+          ...themeGoals.map(g => ({ id: g.id, type: 'goal' as const, label: g.title_de })),
+          ...themeTools.map(t => ({ id: t.id, type: 'tool' as const, label: t.name_de })),
+        ];
+        if (allItems.length === 0) return null;
+
+        return (
+          <section class="lp-group" data-testid="theme-group" data-theme={theme.id}>
+            <h2 class="lp-group-title">
+              <span class="lp-group-emoji">{theme.emoji}</span>
+              {theme.label_de}
+            </h2>
+            <p class="lp-group-blurb">{theme.blurb_de}</p>
+            <ul class="lp-items">
+              {allItems.map((item) => {
+                const st = learnedMap.get(item.id) ?? 'todo';
+                return (
+                  <li class={`lp-item lp-item--${st}`}>
+                    <span class="lp-item-status" title={st}>{statusEmoji[st]}</span>
+                    <span class="lp-item-label">{item.label}</span>
+                    <a
+                      href={`/portal/arena?jumpTo=${item.id}`}
+                      class="lp-cta"
+                      data-testid="weiter-lernen"
+                    >
+                      weiter lernen →
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+</PortalLayout>
+
+<style>
+  .lp-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+
+  .lp-header {
+    margin-bottom: 40px;
+  }
+
+  .lp-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  .lp-subtitle {
+    color: var(--fg-soft, #64748b);
+    margin: 0 0 16px;
+    font-size: 15px;
+  }
+
+  .lp-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .lp-stat-sep {
+    color: var(--mute, #94a3b8);
+  }
+
+  .lp-progress-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--line, #e2e8f0);
+    overflow: hidden;
+  }
+
+  .lp-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--brass, #b8860b);
+    transition: width 600ms ease;
+  }
+
+  .lp-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .lp-group {
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+
+  .lp-group-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lp-group-emoji {
+    font-size: 20px;
+  }
+
+  .lp-group-blurb {
+    font-size: 13px;
+    color: var(--fg-soft, #64748b);
+    margin: 0 0 16px;
+  }
+
+  .lp-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .lp-item {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--surface-2, #f8fafc);
+    font-size: 14px;
+  }
+
+  .lp-item--done {
+    background: oklch(0.96 0.02 130 / 0.5);
+  }
+
+  .lp-item--in_progress {
+    background: oklch(0.96 0.03 75 / 0.4);
+  }
+
+  .lp-item-status {
+    font-size: 14px;
+    text-align: center;
+    color: var(--brass, #b8860b);
+  }
+
+  .lp-item-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lp-cta {
+    font-size: 12px;
+    color: var(--brass, #b8860b);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 2px 8px;
+    border: 1px solid var(--brass, #b8860b);
+    border-radius: 999px;
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  .lp-cta:hover {
+    background: var(--brass, #b8860b);
+    color: var(--ink-900, #1a1a1a);
+  }
+</style>

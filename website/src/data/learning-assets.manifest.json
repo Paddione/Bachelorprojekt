@@ -1,0 +1,38 @@
+{
+  "$schema": "./learning-assets.schema.json",
+  "version": 1,
+  "assets": [
+    {
+      "id": "feedback-loop.active", "type": "diagram", "register": "technical", "tone": "active",
+      "concept": ["feedback-loop", "iteration", "node-graph"],
+      "formats": { "svg": "/learning-assets/diagram/feedback-loop.active.svg" },
+      "brandable": { "tokens": ["--la-accent"] },
+      "a11y": { "alt": "Zwei Knoten, verbunden in einer leuchtenden Rückkopplungsschleife" },
+      "provenance": { "source": "generated:in-house", "license": "CC0-1.0", "attribution": null }
+    },
+    {
+      "id": "goal-milestone.active", "type": "diagram", "register": "technical", "tone": "active",
+      "concept": ["goal", "milestone"],
+      "formats": { "svg": "/learning-assets/diagram/goal-milestone.active.svg" },
+      "brandable": { "tokens": ["--la-accent"] },
+      "a11y": { "alt": "Ein leuchtender Zielknoten mit aufsteigenden Funken" },
+      "provenance": { "source": "generated:in-house", "license": "CC0-1.0", "attribution": null }
+    },
+    {
+      "id": "tool-action.active", "type": "icon", "register": "technical", "tone": "active",
+      "concept": ["tool", "action"],
+      "formats": { "svg": "/learning-assets/icon/tool-action.active.svg" },
+      "brandable": { "tokens": ["--la-accent"] },
+      "a11y": { "alt": "Werkzeug-Symbol" },
+      "provenance": { "source": "generated:in-house", "license": "CC0-1.0", "attribution": null }
+    },
+    {
+      "id": "reflection.calm", "type": "illustration", "register": "coaching", "tone": "calm",
+      "concept": ["reflection", "grounding", "pause"],
+      "formats": { "svg": "/learning-assets/illustration/reflection.calm.svg" },
+      "brandable": { "tokens": ["--la-accent"] },
+      "a11y": { "alt": "Eine ruhige Konstellation aus sanft leuchtenden Punkten" },
+      "provenance": { "source": "generated:in-house", "license": "CC0-1.0", "attribution": null }
+    }
+  ]
+}

@@ -306,6 +306,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-m3-onboarding-flow",
+    "file": "tests/e2e/specs/fa-m3-onboarding-flow.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-meeting-history",
     "file": "tests/e2e/specs/fa-meeting-history.spec.ts",
     "category": "E2E",

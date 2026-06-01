@@ -2,12 +2,15 @@
   import { tierColor, tierEmoji, tierLabel, tierFor, glossary } from '../../../lib/agentGuide';
   import { highlight, splitGlossaryTerms, type GuideEntry } from '../../../lib/agentGuideSearch';
   import GlossaryTerm from './GlossaryTerm.svelte';
+  import LearningAsset from '../../learning/LearningAsset.svelte';
 
   let {
     entry,
     open = false,
     query = '',
     copiedId = null,
+    status = 'todo',
+    note = '',
     onToggle,
     onJump,
     onCopy,
@@ -16,10 +19,60 @@
     open?: boolean;
     query?: string;
     copiedId?: string | null;
+    status?: 'todo' | 'in_progress' | 'done';
+    note?: string;
     onToggle: (id: string) => void;
     onJump: (id: string) => void;
     onCopy: (id: string, text: string) => void;
   } = $props();
+
+  const statusLabels: Record<string, string> = {
+    todo: '○ zu tun',
+    in_progress: '◐ läuft',
+    done: '● erledigt',
+  };
+
+  let localStatus = $state(status);
+  let localNote = $state(note);
+  let noteExpanded = $state(false);
+  let saving = $state(false);
+
+  async function setStatus(newStatus: 'todo' | 'in_progress' | 'done') {
+    if (saving) return;
+    saving = true;
+    try {
+      await fetch('/api/portal/learning/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item_type: entry.kind,
+          item_id: entry.id,
+          status: newStatus,
+        }),
+      });
+      localStatus = newStatus;
+      window.dispatchEvent(new CustomEvent('learning:updated'));
+    } catch { /* ignore network errors silently */ }
+    saving = false;
+  }
+
+  async function saveNote() {
+    if (saving) return;
+    saving = true;
+    try {
+      await fetch('/api/portal/learning/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item_type: entry.kind,
+          item_id: entry.id,
+          note: localNote,
+        }),
+      });
+      window.dispatchEvent(new CustomEvent('learning:updated'));
+    } catch { /* ignore */ }
+    saving = false;
+  }
 
   const isForbidden = $derived(entry.danger === 'forbidden');
   const goal = $derived(entry.goal);
@@ -53,6 +106,12 @@
     onclick={() => onToggle(entry.id)}
   >
     <span class="ag-dot" aria-hidden="true">{tierEmoji(entry.danger)}</span>
+    <LearningAsset
+      concept={entry.kind === 'goal' ? 'goal' : 'tool'}
+      register="technical"
+      tone="active"
+      class="ag-card-art"
+    />
     <span class="ag-name">
       {#each highlight(entry.title_de, query) as seg}{#if seg.mark}<mark class="ag-hl">{seg.text}</mark>{:else}{seg.text}{/if}{/each}
     </span>
@@ -63,6 +122,42 @@
 
   <div class="ag-card-body" id={`${entry.domId}-body`} data-open={open}>
     <div class="ag-card-body-inner">
+      <!-- Status toggle -->
+      <div class="ag-status-row" data-testid="status-toggle">
+        {#each (['todo', 'in_progress', 'done'] as const) as s (s)}
+          <button
+            type="button"
+            class="ag-status-btn"
+            class:ag-status-btn--active={localStatus === s}
+            data-status={s}
+            disabled={saving}
+            onclick={() => setStatus(s)}
+          >
+            {statusLabels[s]}
+          </button>
+        {/each}
+      </div>
+
+      <!-- Note field -->
+      <div class="ag-note-row">
+        <button
+          type="button"
+          class="ag-note-toggle"
+          onclick={() => (noteExpanded = !noteExpanded)}
+        >
+          {noteExpanded ? '▾' : '▸'} Das habe ich gelernt
+        </button>
+        {#if noteExpanded}
+          <textarea
+            class="ag-card-note-textarea"
+            rows="3"
+            placeholder="Notiz…"
+            bind:value={localNote}
+            onblur={saveNote}
+          ></textarea>
+        {/if}
+      </div>
+
       {#if isForbidden}
         <!-- Rote Stopp-Karte -->
         <div class="ag-redstop" role="note">
@@ -171,3 +266,79 @@
     </div>
   </div>
 </article>
+
+<style>
+  .ag-status-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .ag-status-btn {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e2e8f0);
+    background: transparent;
+    color: var(--fg-soft, #64748b);
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .ag-status-btn:hover:not(:disabled) {
+    border-color: var(--brass, #b8860b);
+    color: var(--brass, #b8860b);
+  }
+
+  .ag-status-btn--active {
+    background: var(--brass, #b8860b);
+    border-color: var(--brass, #b8860b);
+    color: var(--ink-900, #1a1a1a);
+  }
+
+  .ag-status-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .ag-note-row {
+    margin-bottom: 10px;
+  }
+
+  .ag-note-toggle {
+    font-size: 12px;
+    background: none;
+    border: none;
+    color: var(--fg-soft, #64748b);
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+  }
+
+  .ag-note-toggle:hover {
+    color: var(--fg, #1a1a1a);
+  }
+
+  .ag-card-note-textarea {
+    margin-top: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--fg, #1a1a1a);
+    background: var(--surface, #fff);
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .ag-card-note-textarea:focus {
+    outline: 2px solid var(--brass, #b8860b);
+    outline-offset: -1px;
+  }
+
+  .ag-card-art { width: 1.5rem; flex: 0 0 auto; }
+</style>

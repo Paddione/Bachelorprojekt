@@ -1,0 +1,116 @@
+{
+  "$schema": "learning-assets.generated/v1",
+  "generatedFrom": "website/src/data/learning-assets.manifest.json",
+  "assets": [
+    {
+      "id": "feedback-loop.active",
+      "type": "diagram",
+      "register": "technical",
+      "tone": "active",
+      "concept": [
+        "feedback-loop",
+        "iteration",
+        "node-graph"
+      ],
+      "formats": {
+        "svg": "/learning-assets/diagram/feedback-loop.active.svg",
+        "svgInline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 96\" role=\"img\">\n  <defs><filter id=\"la-glow-fb\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur stdDeviation=\"3\" result=\"b\"/><feMerge><feMergeNode in=\"b\"/><feMergeNode in=\"SourceGraphic\"/></feMerge></filter></defs>\n  <g filter=\"url(#la-glow-fb)\" stroke=\"currentColor\" stroke-width=\"2\" fill=\"none\"><path d=\"M55 50 H120\"/><path d=\"M120 50 Q165 30 175 50 Q165 70 120 50\"/></g>\n  <g filter=\"url(#la-glow-fb)\" fill=\"currentColor\"><circle cx=\"55\" cy=\"50\" r=\"6\"/><circle cx=\"120\" cy=\"50\" r=\"7\"/></g>\n</svg>"
+      },
+      "brandable": {
+        "tokens": [
+          "--la-accent"
+        ]
+      },
+      "a11y": {
+        "alt": "Zwei Knoten, verbunden in einer leuchtenden Rückkopplungsschleife"
+      },
+      "provenance": {
+        "source": "generated:in-house",
+        "license": "CC0-1.0",
+        "attribution": null
+      }
+    },
+    {
+      "id": "goal-milestone.active",
+      "type": "diagram",
+      "register": "technical",
+      "tone": "active",
+      "concept": [
+        "goal",
+        "milestone"
+      ],
+      "formats": {
+        "svg": "/learning-assets/diagram/goal-milestone.active.svg",
+        "svgInline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 96\" role=\"img\">\n  <defs><filter id=\"la-glow-goal\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur stdDeviation=\"3\" result=\"b\"/><feMerge><feMergeNode in=\"b\"/><feMergeNode in=\"SourceGraphic\"/></feMerge></filter></defs>\n  <g filter=\"url(#la-glow-goal)\" stroke=\"currentColor\" stroke-width=\"2\" fill=\"none\"><circle cx=\"120\" cy=\"50\" r=\"14\"/></g>\n  <g filter=\"url(#la-glow-goal)\" fill=\"currentColor\"><circle cx=\"120\" cy=\"50\" r=\"4\"/><circle cx=\"150\" cy=\"28\" r=\"3\"/><circle cx=\"160\" cy=\"42\" r=\"2\"/><circle cx=\"146\" cy=\"20\" r=\"2\"/></g>\n</svg>"
+      },
+      "brandable": {
+        "tokens": [
+          "--la-accent"
+        ]
+      },
+      "a11y": {
+        "alt": "Ein leuchtender Zielknoten mit aufsteigenden Funken"
+      },
+      "provenance": {
+        "source": "generated:in-house",
+        "license": "CC0-1.0",
+        "attribution": null
+      }
+    },
+    {
+      "id": "tool-action.active",
+      "type": "icon",
+      "register": "technical",
+      "tone": "active",
+      "concept": [
+        "tool",
+        "action"
+      ],
+      "formats": {
+        "svg": "/learning-assets/icon/tool-action.active.svg",
+        "svgInline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\">\n  <path d=\"M14.5 5.5a3.5 3.5 0 0 0-4.6 4.6l-6 6 2 2 6-6a3.5 3.5 0 0 0 4.6-4.6l-2.2 2.2-2-2z\"/>\n</svg>"
+      },
+      "brandable": {
+        "tokens": [
+          "--la-accent"
+        ]
+      },
+      "a11y": {
+        "alt": "Werkzeug-Symbol"
+      },
+      "provenance": {
+        "source": "generated:in-house",
+        "license": "CC0-1.0",
+        "attribution": null
+      }
+    },
+    {
+      "id": "reflection.calm",
+      "type": "illustration",
+      "register": "coaching",
+      "tone": "calm",
+      "concept": [
+        "reflection",
+        "grounding",
+        "pause"
+      ],
+      "formats": {
+        "svg": "/learning-assets/illustration/reflection.calm.svg",
+        "svgInline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 96\" role=\"img\">\n  <defs><filter id=\"la-glow-refl\" x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\"><feGaussianBlur stdDeviation=\"1.6\" result=\"b\"/><feMerge><feMergeNode in=\"b\"/><feMergeNode in=\"SourceGraphic\"/></feMerge></filter></defs>\n  <g stroke=\"currentColor\" stroke-width=\"0.8\" opacity=\"0.35\"><line x1=\"120\" y1=\"50\" x2=\"70\" y2=\"32\"/><line x1=\"120\" y1=\"50\" x2=\"180\" y2=\"36\"/><line x1=\"120\" y1=\"50\" x2=\"150\" y2=\"76\"/></g>\n  <g filter=\"url(#la-glow-refl)\" fill=\"currentColor\"><circle cx=\"120\" cy=\"50\" r=\"5\" opacity=\"0.9\"/><circle cx=\"70\" cy=\"32\" r=\"3.5\" opacity=\"0.7\"/><circle cx=\"180\" cy=\"36\" r=\"3.5\" opacity=\"0.7\"/><circle cx=\"150\" cy=\"76\" r=\"3\" opacity=\"0.7\"/></g>\n</svg>"
+      },
+      "brandable": {
+        "tokens": [
+          "--la-accent"
+        ]
+      },
+      "a11y": {
+        "alt": "Eine ruhige Konstellation aus sanft leuchtenden Punkten"
+      },
+      "provenance": {
+        "source": "generated:in-house",
+        "license": "CC0-1.0",
+        "attribution": null
+      }
+    }
+  ]
+}

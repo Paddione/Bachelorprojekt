@@ -8,6 +8,7 @@
     expanded,
     query = '',
     copiedId = null,
+    learnedItems = new Map(),
     onToggleGroup,
     onToggleCard,
     onJump,
@@ -18,6 +19,7 @@
     expanded: Set<string>;
     query?: string;
     copiedId?: string | null;
+    learnedItems?: Map<string, { status: 'todo' | 'in_progress' | 'done'; note: string }>;
     onToggleGroup: (key: string) => void;
     onToggleCard: (id: string) => void;
     onJump: (id: string) => void;
@@ -46,6 +48,8 @@
           open={expanded.has(entry.id)}
           {query}
           {copiedId}
+          status={learnedItems.get(entry.id)?.status ?? 'todo'}
+          note={learnedItems.get(entry.id)?.note ?? ''}
           onToggle={onToggleCard}
           {onJump}
           {onCopy}

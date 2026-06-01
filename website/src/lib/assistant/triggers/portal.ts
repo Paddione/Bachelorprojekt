@@ -8,6 +8,7 @@
 import { registerTrigger } from '../triggers';
 import { pool } from '../../website-db';
 import { listFirstSeenAt, recordFirstSeen } from '../dismissals';
+import { isOnboardingStepComplete } from '../../learning-db';
 import type { Nudge } from '../types';
 
 const warned = new Set<string>();
@@ -204,5 +205,81 @@ registerTrigger({
       primaryAction: { label: 'Jetzt starten', kickoff: `Starte den Fragebogen "${title}"` },
       createdAt: new Date().toISOString(),
     };
+  },
+});
+
+// 7. Multi-step onboarding sequence.
+//    Delivers the three onboarding nudges sequentially once the first-login nudge
+//    has been seen (portal.listFirstSeenAt guard already passed → we skip users who
+//    have never visited).  brand is not in TriggerEvalContext; falls back to
+//    'mentolder' until the context interface is widened.
+const ONBOARDING_STEPS: Array<{
+  stepId: string;
+  headline: string;
+  body: string;
+  primaryLabel: string;
+  kickoff: string;
+}> = [
+  {
+    stepId: 'sidekick-intro',
+    headline: 'Willkommen bei deinem Sidekick',
+    body: 'Ich zeige dir, wie alles funktioniert.',
+    primaryLabel: 'Los geht\'s',
+    kickoff: 'Zeig mir, wie der Sidekick funktioniert',
+  },
+  {
+    stepId: 'agent-guide-intro',
+    headline: 'Dein Lernpfad',
+    body: 'Die Agent-Anleitung zeigt dir alles Wichtige.',
+    primaryLabel: 'Anleitung anschauen',
+    kickoff: 'Öffne die Agent-Anleitung',
+  },
+  {
+    stepId: 'loslernen-intro',
+    headline: 'Verfolge deinen Fortschritt',
+    body: 'Unter /portal/loslernen siehst du deinen Lernfortschritt.',
+    primaryLabel: 'Zum Dashboard',
+    kickoff: 'Bring mich zu /portal/loslernen',
+  },
+];
+
+registerTrigger({
+  id: 'portal-onboarding-sequence',
+  profile: 'portal',
+  async evaluate({ userSub, currentRoute }) {
+    if (!currentRoute.startsWith('/portal')) return null;
+
+    // Only show to users who have already been welcomed (portal-first-login fired).
+    const seen = await listFirstSeenAt(userSub, 'portal');
+    if (!seen) return null;
+
+    // brand is not yet in TriggerEvalContext — fall back to 'mentolder'.
+    const brand = 'mentolder';
+
+    // Find the first incomplete step and emit its nudge.
+    for (const step of ONBOARDING_STEPS) {
+      let complete: boolean;
+      try {
+        complete = await isOnboardingStepComplete(userSub, brand, step.stepId);
+      } catch {
+        // onboarding_state table not yet present — disable trigger gracefully.
+        return null;
+      }
+      if (!complete) {
+        const nudge: Nudge = {
+          id: `portal-onboarding:${step.stepId}`,
+          triggerId: 'portal-onboarding-sequence',
+          profile: 'portal',
+          headline: step.headline,
+          body: step.body,
+          primaryAction: { label: step.primaryLabel, kickoff: step.kickoff },
+          createdAt: new Date().toISOString(),
+        };
+        return nudge;
+      }
+    }
+
+    // All steps complete — no nudge.
+    return null;
   },
 });

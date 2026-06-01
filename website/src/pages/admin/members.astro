@@ -1,0 +1,127 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import type { EnrichedMember } from '../api/admin/members/list';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const offsetParam = parseInt(Astro.url.searchParams.get('offset') ?? '0', 10) || 0;
+const limit = 50;
+
+let members: EnrichedMember[] = [];
+let totalCount = 0;
+let fetchError = false;
+
+try {
+  const res = await fetch(
+    `${Astro.url.origin}/api/admin/members/list?offset=${offsetParam}&limit=${limit}`,
+    { headers: { cookie: Astro.request.headers.get('cookie') ?? '' } },
+  );
+  if (res.ok) {
+    const data = await res.json();
+    members = data.members ?? [];
+    totalCount = data.totalCount ?? 0;
+  } else {
+    fetchError = true;
+  }
+} catch {
+  fetchError = true;
+}
+
+const hasPrev = offsetParam > 0;
+const hasNext = offsetParam + limit < totalCount;
+const prevOffset = Math.max(0, offsetParam - limit);
+const nextOffset = offsetParam + limit;
+---
+
+<AdminLayout title="Admin — Mitglieder">
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-light font-serif">Mitglieder</h1>
+        <p class="text-muted mt-1">{totalCount} Mitglieder mit Lernfortschritt</p>
+      </div>
+
+      {fetchError && (
+        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+          Fehler beim Laden der Mitgliederdaten.
+        </div>
+      )}
+
+      {members.length === 0 && !fetchError && (
+        <p class="text-muted">Keine Mitglieder mit Lernfortschritt gefunden.</p>
+      )}
+
+      {members.length > 0 && (
+        <div class="rounded-xl border border-dark-lighter overflow-hidden">
+          <div class="grid grid-cols-[1fr_160px_180px] gap-3 px-4 py-2.5 bg-dark-light border-b border-dark-lighter text-xs font-medium text-muted uppercase tracking-wide">
+            <span>Name / Username</span>
+            <span>Erledigt %</span>
+            <span>Aktiv seit</span>
+          </div>
+          {members.map(member => {
+            const fullName = [member.firstName, member.lastName].filter(Boolean).join(' ') || member.preferred_username || member.keycloakUserId;
+            const initial = (fullName[0] ?? '?').toUpperCase();
+            const lastActivity = member.lastActivity ? new Date(member.lastActivity) : null;
+            const activeSince = lastActivity
+              ? lastActivity.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+              : '—';
+            const pctColor = member.pct >= 80 ? 'text-green-400' : member.pct >= 40 ? 'text-gold' : 'text-muted';
+            return (
+              <a
+                href={`/admin/members/${member.keycloakUserId}`}
+                class="grid grid-cols-[1fr_160px_180px] gap-3 px-4 py-3 border-b border-dark-lighter/50 last:border-0 items-center hover:bg-dark-light transition-colors"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--brass-2),var(--brass) 55%,#8a6a2a 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-family:var(--font-serif);font-size:13px;font-weight:600;color:var(--ink-900);line-height:1;">{initial}</span>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-light truncate">{fullName}</p>
+                    {member.email && <p class="text-xs text-muted truncate">{member.email}</p>}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 h-1.5 bg-dark-lighter rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-gold rounded-full transition-all"
+                      style={`width:${member.pct}%`}
+                    ></div>
+                  </div>
+                  <span class={`text-xs font-mono tabular-nums ${pctColor}`}>{member.pct}%</span>
+                </div>
+                <span class="text-xs text-muted">{activeSince}</span>
+              </a>
+            );
+          })}
+        </div>
+      )}
+
+      {(hasPrev || hasNext) && (
+        <div class="mt-6 flex items-center justify-between">
+          <span class="text-xs text-muted">{offsetParam + 1}–{Math.min(offsetParam + limit, totalCount)} von {totalCount}</span>
+          <div class="flex gap-2">
+            {hasPrev && (
+              <a
+                href={`/admin/members?offset=${prevOffset}`}
+                class="px-4 py-2 text-sm bg-dark-light border border-dark-lighter rounded-lg text-muted hover:text-light hover:border-gold/40 transition-colors"
+              >
+                ← Zurück
+              </a>
+            )}
+            {hasNext && (
+              <a
+                href={`/admin/members?offset=${nextOffset}`}
+                class="px-4 py-2 text-sm bg-dark-light border border-dark-lighter rounded-lg text-muted hover:text-light hover:border-gold/40 transition-colors"
+              >
+                Weiter →
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+</AdminLayout>

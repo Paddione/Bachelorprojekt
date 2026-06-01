@@ -50,12 +50,15 @@ patches:
   # uses "workspace-korczewski", causing Traefik 500 on unauthenticated requests).
   - path: patch-mailpit-auth-middleware.yaml
 
-  # livekit-recordings-pvc uses the base manifest's storage class.
-  # Longhorn is NOT installed on korczewski; recordings live on local-path,
-  # tied to the livekit pin-node (pk-hetzner-6). This is acceptable because
-  # livekit-* are pinned to that node anyway via patch-livekit.yaml.
+  # livekit-recordings-pvc uses the base manifest's storage class (local-path),
+  # tied to the livekit pin-node (pk-hetzner-6). Acceptable because livekit-* are
+  # pinned to that node anyway via patch-livekit.yaml. (Longhorn IS available on
+  # fleet — see patch-data-pvc-storage.yaml — but livekit recordings stay local.)
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
+  # Pin vaultwarden+docuseal data PVCs to longhorn so pvc-backup can clone them
+  # placement-independently (mirrors prod-mentolder). [T000403]
+  - path: patch-data-pvc-storage.yaml
   - path: patch-cronjob-urls.yaml
   - path: patch-mcp-config.yaml
 

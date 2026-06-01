@@ -593,6 +593,41 @@ PY
   assert_failure
 }
 
+# ── korczewski pins data PVCs to longhorn so pvc-backup can clone (T000403) ──
+# #1296's local-path-aware code does NOT actually fix korczewski: its three
+# local-path data volumes (nextcloud+docuseal on pk-8, vaultwarden on pk-6) span
+# two nodes, and the mounter's requiredDuringScheduling podAffinity demands all
+# three on ONE node — local-path PVs are node-pinned, so the mounter is stuck
+# Pending ("didn't match PersistentVolume's node affinity"). The real fix mirrors
+# mentolder: pin vaultwarden+docuseal to longhorn (placement-independent CSI
+# clone), leaving only single-node nextcloud-data on local-path. This asserts the
+# korczewski overlay carries that pin so a regression to local-path fails CI.
+@test "korczewski overlay pins vaultwarden+docuseal data PVCs to longhorn (T000403)" {
+  local rendered="${BATS_TEST_TMPDIR}/korcz.yaml"
+  run kubectl kustomize "${PROJECT_DIR}/prod-fleet/korczewski" --load-restrictor=LoadRestrictionsNone
+  assert_success
+  echo "$output" > "$rendered"
+  run python3 - "$rendered" <<'PY'
+import sys, yaml
+docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
+want = {"vaultwarden-data-pvc", "docuseal-data-pvc"}
+seen = {}
+for d in docs:
+    if d.get("kind") == "PersistentVolumeClaim" and d.get("metadata", {}).get("name") in want:
+        seen[d["metadata"]["name"]] = d.get("spec", {}).get("storageClassName")
+missing = want - set(seen)
+if missing:
+    print(f"PVC(s) not found in korczewski overlay: {sorted(missing)}")
+    sys.exit(1)
+bad = {n: sc for n, sc in seen.items() if sc != "longhorn"}
+if bad:
+    print(f"PVC(s) not pinned to longhorn: {bad}")
+    sys.exit(1)
+print("OK: vaultwarden+docuseal pinned to longhorn")
+PY
+  assert_success
+}
+
 # ── tests-results-retention has no stale node-location affinity (T000369) ──
 # The CronJob required nodeAffinity node-location=hetzner, but no fleet node
 # carries that label after Phase 3 consolidation → unschedulable on all 6

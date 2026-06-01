@@ -1,6 +1,5 @@
 # Managed by scripts/discover-versions.sh — do not edit manually
 k3s: v1.36.1+k3s1
-flux: v2.8.8
 sealed_secrets_chart: 2.18.6
 cert_manager: v1.20.2
 longhorn_chart: 1.11.2

@@ -52,7 +52,6 @@ export K3S_VERSION="${k3s}"
 
 After sourcing, the following shell variables are available:
 - `$k3s` / `$K3S_VERSION` — k3s version for node install
-- `$flux` — Flux version
 - `$sealed_secrets_chart` — Helm chart version
 - `$cert_manager` — Helm chart version
 - `$longhorn_chart` — Helm chart version
@@ -201,7 +200,7 @@ kubectl patch storageclass longhorn \
 kubectl --context <ctx> get storageclass longhorn
 ```
 
-### Step 1.5: Full-Service Deploy & Flux Bootstrap
+### Step 1.5: Full-Service Deploy
 
 **`workspace:deploy` alone does NOT deploy every service.** It applies the base kustomization only. Collabora (office-stack), CoTURN/Janus (coturn-stack), the website, and arena each deploy by their own task. To bring up the *entire* platform, run the `workspace:setup` umbrella, then the prod-only stacks:
 
@@ -224,10 +223,8 @@ task arena:deploy ENV=korczewski
 task workspace:admin-users-setup ENV=<env>   # SSO admin users in Keycloak
 task workspace:vaultwarden:seed ENV=<env>     # seed secret templates
 
-# Flux bootstrap (prod GitOps reconciliation)
-kubectl apply -f flux/clusters/<env>/ --context <ctx>
-flux reconcile source git flux-system --context <ctx>
-flux reconcile kustomization workspace --context <ctx>
+# No GitOps bootstrap — fleet is push-based (no Flux/Argo controller). The task
+# commands above ARE the deploy; re-run them after each merge to apply git state.
 ```
 
 > **Fleet brands:** to deploy *both* brands onto the fleet cluster in one shot, use `task fleet:deploy` (platform once → fleet-mentolder → fleet-korczewski). It routes each brand through this same `workspace:deploy` path and seeds the `coturn` + `workspace-office` SealedSecret namespaces. Follow with the per-brand office/coturn passes above (`ENV=mentolder` / `ENV=korczewski`).
@@ -280,7 +277,7 @@ For existing clusters that may be degraded, follow this phased assessment flow:
 
 ### Step 2.1: Prerequisite Checks
 ```bash
-for tool in docker kubectl task k3d git flux kubeseal helm; do
+for tool in docker kubectl task k3d git kubeseal helm; do
   command -v $tool >/dev/null 2>&1 && echo "✅ $tool" || echo "❌ $tool MISSING"
 done
 ```
@@ -309,8 +306,7 @@ task env:validate ENV=<env>
 ### Step 2.4: Namespace & Pod Status
 ```bash
 kubectl --context <ctx> -n <WORKSPACE_NAMESPACE> get pods
-flux get kustomizations --context <ctx>
-flux describe kustomization workspace --context <ctx>
+kubectl --context <ctx> -n <WORKSPACE_NAMESPACE> get deploy   # all Deployments Ready?
 ```
 
 ### Step 2.5: Execute Post-Deploy Setup Sequences
@@ -396,7 +392,7 @@ grep HETZNER_WORKER_SNAPSHOT_ID environments/<env>.yaml
 
 | Component | Symptom | Fix |
 |---|---|---|
-| **Flux** | Old revision reconciled | Reconcile GitRepository source first: `flux reconcile source git flux-system --context <ctx>` |
+| **Deploy** | Merged PR not live | No GitOps reconciler on fleet — re-run `task workspace:deploy ENV=<env>` (push-based) |
 | **Sealed Secrets** | Adoption refused by controller | Delete the plain secret first: `kubectl delete secret knowledge-secrets -n <ns>` |
 | **Dev Access** | 403 authorization loop | Add user to Keycloak `/dev-access` group in the admin panel |
 | **Dev DB** | Data disappearing | Dev DB is wiped and overwritten nightly — do not rely on it for persistent data |

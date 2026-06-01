@@ -1497,30 +1497,13 @@ tasks:
         awk '/^setup_vars:/{in_sect=1;next} in_sect&&/^[a-z_]/{exit} in_sect&&/- name:/{gsub(/.*name: */,"");gsub(/"/,"");print "  "$0": FILL_ME"}' environments/schema.yaml >> "environments/{{.ENV}}.yaml"
         echo "Created: environments/{{.ENV}}.yaml — fill in all FILL_ME values."
 
-  flux:status:
-    desc: "Show Flux reconciliation status on the fleet cluster"
-    cmds:
-      - flux get all --context fleet
-
-  flux:sync:
-    desc: "Force-reconcile all Flux kustomizations immediately on the fleet cluster"
-    cmds:
-      - flux reconcile kustomization workspace --with-source --context fleet
-
-  flux:logs:
-    desc: "Tail Flux controller logs (ENV=mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        flux logs --context "${ENV_CONTEXT}" --follow
-
-  # NOTE: The per-brand standalone Flux bootstrap tasks (flux:bootstrap:mentolder /
-  # flux:bootstrap:korczewski) were removed with the Fleet Stage 3 consolidation —
-  # both standalone clusters are decommissioned. The unified fleet cluster is
-  # GitOps-bootstrapped once (manually) via `flux bootstrap github --context=fleet
-  # --path=flux/clusters/fleet`, per docs/superpowers/specs/2026-05-30-fleet-unified-cluster-design.md.
+  # NOTE: The fleet cluster is deployed PUSH-based (task workspace:deploy ENV=<brand>
+  # / task feature:*), NOT via a Flux/Argo controller — there is no flux-system on
+  # fleet and no GitOps reconciler runs there. The former flux:status/sync/logs tasks
+  # and the flux/clusters + flux/images GitOps machinery were removed with the
+  # standalone-cluster decommission (both standalone clusters are gone). Only the
+  # website kustomize overlays under flux/apps/ remain (consumed by tests; pending
+  # relocation). Git stays the source of truth; `task workspace:deploy` applies it.
 
   fleet:platform:
     desc: "Apply the fleet cluster-singleton platform layer (ClusterIssuer, IngressClass, tls-sync + claude-code-agent RBAC). Apply ONCE before either brand."
@@ -2802,7 +2785,7 @@ tasks:
           kubectl ${CTX_ARG} -n "${WEBSITE_NAMESPACE}" rollout restart deployment/website
         fi
 
-        # TLS is handled by env-specific Flux overlays, not imperative patches:
+        # TLS is handled by the website overlays under flux/apps/, not imperative patches:
         # - mentolder: website-ingress-web Ingress (workspace-wildcard-tls + middlewares)
         # - korczewski: IngressRoute patch in flux/apps/website-korczewski (korczewski-tls)
         # Removed blanket certResolver:letsencrypt patch that broke korczewski (T000147).

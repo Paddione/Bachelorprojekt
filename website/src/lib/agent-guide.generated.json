@@ -1659,7 +1659,7 @@
         "emoji": "🚀",
         "danger": "assisted",
         "order": 6,
-        "blurb_de": "Die Änderung live bringen (Flux / Task).",
+        "blurb_de": "Die Änderung live bringen (task workspace:deploy).",
         "goalIds": [
           "bug-beheben",
           "feature-bauen",

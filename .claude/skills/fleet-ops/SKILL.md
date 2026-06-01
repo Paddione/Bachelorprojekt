@@ -1,6 +1,6 @@
 ---
 name: fleet-ops
-description: Use when deploying, verifying, or operating across both brands simultaneously — mentolder and korczewski, both on the unified fleet cluster. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-brand schema changes, cluster status checks, Flux GitOps reconciliation, and the constraint that each brand has its own independent shared-db and sealed-secrets.
+description: Use when deploying, verifying, or operating across both brands simultaneously — mentolder and korczewski, both on the unified fleet cluster. Covers task feature:* fan-out, the feature:promote dev→prod flow with smoke gate and auto-rollback, cross-brand schema changes, cluster status checks, the push-based deploy model (no GitOps reconciler on fleet), and the constraint that each brand has its own independent shared-db and sealed-secrets.
 ---
 
 # fleet-ops — Cross-Brand Operations (mentolder + korczewski on fleet)
@@ -228,85 +228,46 @@ task keycloak:sync ENV=korczewski
 | SealedSecret not decrypting (workspace-korczewski) | Sealed with mentolder cert | `task env:fetch-cert ENV=korczewski` → `task env:seal ENV=korczewski` |
 | Post-setup writes to wrong namespace | Script hardcodes `-n workspace` | Use `task workspace:post-setup ENV=korczewski` — it exports `WORKSPACE_NAMESPACE` (resolves to `workspace-korczewski`) |
 | Schema change only on one brand | Forgot the second namespace | Always apply schema to both shared-db instances |
-| `flux reconcile` applies old revision | Didn't reconcile source first | See Flux GitOps section below |
+| Merged PR not live on a brand | No GitOps reconciler — merge doesn't auto-deploy | `task workspace:deploy ENV=<brand>` for each brand explicitly (see Deploy Model below) |
 
 ---
 
-## Flux GitOps Operations
+## Deploy Model (Push-Based — No GitOps)
 
-Flux watches the `main` branch and reconciles both prod environments automatically — but it polls on its own schedule. Force reconciliation, debug drift, and handle the subtleties below.
+The fleet cluster has **no Flux/Argo reconciler** (`flux-system` does not exist on it). Merging to `main` does **not** auto-apply — you deploy explicitly with `task`. Git stays the source of truth; the push is manual (or driven by GitHub Actions for the website).
 
-Flux runs on the fleet cluster and reconciles both brands independently via separate Kustomization resources.
-
-### Forced Reconcile After PR Merge
-
-Always prime the GitRepository before reconciling the kustomization. Skipping step 1 silently applies the previous revision.
+### Deploy After a PR Merge
 
 ```bash
-# Step 1: prime the git source (fetches latest main)
-flux reconcile source git flux-system --context fleet
-
-# Step 2: reconcile both brand kustomizations
-flux reconcile kustomization workspace --context fleet -n flux-system
-flux reconcile kustomization workspace-korczewski --context fleet -n flux-system
+# Pull-first, then deploy each brand explicitly (no source-reconcile step).
+git pull --rebase origin main
+task workspace:deploy ENV=mentolder      # builds prod-fleet/mentolder  → ns workspace
+task workspace:deploy ENV=korczewski     # builds prod-fleet/korczewski → ns workspace-korczewski
+# …or a feature:* umbrella that fans out across both brands.
 ```
 
-> **Why source first?** `flux reconcile kustomization` re-applies whatever revision the GitRepository last fetched. If that's 5 minutes old, the kustomization gets the wrong commit.
+> **No reconcile loop = no drift correction.** A manual `kubectl edit`/`patch` on the cluster persists until the next `task workspace:deploy` overwrites it. There is nothing to suspend/resume — just deploy when you want git applied.
 
-> **Kustomization name ≠ git path.** The fleet cluster runs two workspace Kustomizations: `workspace` (mentolder brand, path `./prod-fleet/mentolder`) and `workspace-korczewski` (korczewski brand, path `./prod-fleet/korczewski`). `flux reconcile kustomization <name>` takes the **name**, not the path — reconcile each brand separately by its Kustomization name.
+### Website Auto-Rollout
 
-### Check Flux Status
+The website is the one exception: pushing to `main` under `website/**` triggers `build-website.yml` / `build-website-korczewski.yml`, which rebuild the brand image and `kubectl rollout restart deployment/website` using the `FLEET_KUBECONFIG` secret. Everything else needs an explicit `task` deploy.
+
+### Verify a Deploy Landed
 
 ```bash
-flux get all --context fleet
-
-# Just kustomizations (most common drift point)
-flux get kustomizations --context fleet
+task clusters:status                                        # one-line status across both brands
+kubectl --context fleet -n workspace get deploy             # mentolder
+kubectl --context fleet -n workspace-korczewski get deploy  # korczewski
 ```
 
-### Suspend / Resume Reconciliation
+> **`$`-escaping in manifests.** The push path renders manifests with `envsubst` (var lists are hardcoded per task in `Taskfile.yml`). A literal `$` that must survive `envsubst` is written `$$` and de-escaped by a `sed` step. Add any new `${VAR}` to the building task's envsubst list, or the placeholder stays literal and `kubectl apply` fails.
 
-Suspend before manual emergency changes to prevent Flux from immediately reverting them:
-
-```bash
-flux suspend kustomization workspace --context fleet
-# Do your manual kubectl apply / patch here...
-flux resume kustomization workspace --context fleet
-```
-
-> **Don't forget to resume.** A suspended kustomization silently stops tracking main.
-
-### `$$`-Escaping in substituteFrom
-
-Flux's `substituteFrom` treats `${VAR}` in YAML values as variable references. To emit a literal `$`, use `$$`:
-
-```yaml
-# ❌ variable substitution fires
-value: "https://${PROD_DOMAIN}/path"
-
-# ✅ literal dollar sign in the rendered manifest
-value: "https://$${PROD_DOMAIN}/path"
-```
-
-This bites most often in Ingress annotations, env vars, and shell-script ConfigMaps.
-
-### ImageUpdateAutomation
-
-Image auto-update is **not** used for `website`, `brett`, or `docs` (they use `task feature:*` with `:latest`). For other images:
-
-```bash
-flux get image update --context fleet
-flux reconcile image repository <name> --context fleet
-flux reconcile image update <name> --context fleet
-flux logs --kind=ImageUpdateAutomation --context fleet
-```
-
-### Flux Failure Modes
+### Failure Modes
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Kustomization applies old commit | Didn't reconcile source first | `flux reconcile source git flux-system` then kustomization |
-| `health check failed` | Pod not Ready within timeout | `kubectl describe pod` — usually image pull or CrashLoop |
-| `$$` becomes empty string | Forgot double-dollar in substituteFrom manifest | Replace `${VAR}` with `$${VAR}` in the YAML |
-| Kustomization stuck Suspended | Manual suspend never resumed | `flux resume kustomization workspace` |
-| `secrets/xxx not found` | SealedSecret not yet decrypted | `kubectl get sealedsecret -n workspace` — controller may be behind |
+| Merged PR not live | No reconciler — merge doesn't auto-deploy | `task workspace:deploy ENV=<brand>` for each brand |
+| Manual fix reverted "by itself" | It wasn't — a later `task workspace:deploy` re-applied git | Land the fix in git, then deploy |
+| `health check`/rollout timeout | Pod not Ready within timeout | `kubectl describe pod` — usually image pull or CrashLoop |
+| `$$` becomes empty string | Forgot double-dollar for a literal `$` | Write `$${VAR}` in the manifest; add `${VAR}` to the task's envsubst list |
+| `secrets/xxx not found` | SealedSecret not yet decrypted | `kubectl get sealedsecret -n <ns>` — controller may be behind |

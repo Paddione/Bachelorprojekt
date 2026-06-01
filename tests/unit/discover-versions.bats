@@ -20,8 +20,6 @@ _mock_curl() {
     local args="$*"
     if [[ "$args" == *"k3s-io/k3s"* ]]; then
       echo '{"tag_name":"v1.99.0+k3s1"}'
-    elif [[ "$args" == *"fluxcd/flux2"* ]]; then
-      echo '{"tag_name":"v9.0.0"}'
     else
       echo '{}'
     fi
@@ -53,10 +51,11 @@ _mock_helm() {
   run bash "$SCRIPT"
   assert_success
   assert_output --partial "k3s: v1.99.0+k3s1"
-  assert_output --partial "flux: v9.0.0"
   assert_output --partial "sealed_secrets_chart: 9.1.0"
   assert_output --partial "cert_manager: v9.2.0"
   assert_output --partial "longhorn_chart: 9.3.0"
+  # Flux is no longer installed/tracked (fleet is push-based, no GitOps controller).
+  refute_output --partial "flux:"
 }
 
 @test "dry run does not write a file" {
@@ -74,10 +73,10 @@ _mock_helm() {
   assert_success
   assert [ -f "$VERSIONS_FILE" ]
   run grep "^k3s:" "$VERSIONS_FILE";               assert_success
-  run grep "^flux:" "$VERSIONS_FILE";              assert_success
   run grep "^sealed_secrets_chart:" "$VERSIONS_FILE"; assert_success
   run grep "^cert_manager:" "$VERSIONS_FILE";      assert_success
   run grep "^longhorn_chart:" "$VERSIONS_FILE";    assert_success
+  run grep "^flux:" "$VERSIONS_FILE";              assert_failure  # flux no longer tracked
 }
 
 @test "--update writes correct discovered values" {
@@ -86,8 +85,6 @@ _mock_helm() {
   bash "$SCRIPT" --update --versions-file "$VERSIONS_FILE"
   run grep "^k3s:" "$VERSIONS_FILE"
   assert_output "k3s: v1.99.0+k3s1"
-  run grep "^flux:" "$VERSIONS_FILE"
-  assert_output "flux: v9.0.0"
   run grep "^longhorn_chart:" "$VERSIONS_FILE"
   assert_output "longhorn_chart: 9.3.0"
 }

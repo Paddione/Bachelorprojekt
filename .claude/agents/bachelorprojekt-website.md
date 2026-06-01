@@ -25,7 +25,7 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 - Timeline shows **historical data only** — tracking pipeline removed (PR #788 removed `tracking-import` CronJob, PR #993 removed `track-pr.yml`); last entry is PR #787
 
 ## Deploy rule (CRITICAL)
-Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, Flux picks up the new image tag automatically. For manual rollout/rebuild:
+Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, the `build-website.yml` / `build-website-korczewski.yml` Actions rebuild the brand image and roll it out automatically (push-based via `FLEET_KUBECONFIG`; no Flux). For manual rollout/rebuild:
 ```bash
 task website:redeploy ENV=mentolder
 task website:redeploy ENV=korczewski

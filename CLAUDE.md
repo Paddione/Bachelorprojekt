@@ -75,9 +75,10 @@ Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotur
 - **`fleet`**: The unified cluster — **3 CP nodes** (pk-hetzner-4/6/8) + **3 worker nodes** (gekko-hetzner-2/3/4). Both brands at **26/26** pods in `workspace` and `workspace-korczewski`. All kubeconfig contexts other than `fleet` and `devc` are dead. Single source of truth for all production workloads.
 
 ### Key components
-- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the base for both manual `task workspace:deploy` (push) and Flux GitOps (pull).
+- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the base that `task workspace:deploy` (push) applies in prod. Deployment is **push-based** — there is no in-cluster GitOps reconciler (no Flux/Argo) on the fleet cluster.
 - **`prod/`** -- Shared production patches (TLS, resource limits, replicas, DDNS) consumed by the env-specific overlays. Never apply directly.
-- **`prod-mentolder/`, `prod-korczewski/`** -- Per-env overlays referenced by `ENV_OVERLAY` in `environments/<env>.yaml`. This is what `workspace:deploy` actually applies in prod.
+- **`prod-fleet/mentolder/`, `prod-fleet/korczewski/`** -- The per-brand overlays **actually applied in prod**, referenced by `ENV_OVERLAY` (the `overlay:` key) in `environments/mentolder.yaml` / `environments/korczewski.yaml`. Each *wraps* the legacy brand overlay (`resources: ../../prod-mentolder` / `../../prod-korczewski`) and layers the `fleet-common` component + fleet node-affinity repoints on top. `task workspace:deploy ENV=<brand>` builds `prod-fleet/<brand>`.
+- **`prod-mentolder/`, `prod-korczewski/`** -- Legacy standalone-cluster brand overlays. **No longer applied directly** — they survive only as the inner base the `prod-fleet/*` wrappers reuse (plus a few Taskfile call sites, e.g. arena). Don't apply these standalone.
 - **`environments/`** -- Config & secrets registry:
   - `environments/<env>.yaml` -- per-env config (domain, context, env_vars, setup_vars), read by `scripts/env-resolve.sh`.
   - `environments/.secrets/<env>.yaml` -- plaintext secrets (gitignored; only used as input to `env:seal`).
@@ -113,7 +114,7 @@ Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.y
 
 ## Development Rules
 
-1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). In prod, use Flux GitOps for automated reconciliation.
+1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). Prod is deployed **push-based** via `task workspace:deploy ENV=<brand>` / `task feature:*` — there is no GitOps reconciler on fleet.
 2. All changes via Pull Requests -- no direct pushes to `main`.
 3. Use **squash-and-merge** to keep `main` history clean.
 4. CI must be green before merge.
@@ -135,7 +136,7 @@ Non-obvious repo behaviors. Violating these silently breaks things or hits the w
 - **LiveKit is pinned to `pk-hetzner-4` via `nodeAffinity`.** It runs with `hostNetwork: true` and needs a stable IP for DNS pinning. The fleet overlay (`prod-fleet/mentolder/kustomization.yaml`) sets this pin. `livekit.<domain>` and `stream.<domain>` should DNS-pin to `204.168.244.104` (pk-hetzner-4) via `task livekit:dns-pin`.
 
 ### Kustomize overlays
-- **Apply `prod-mentolder/` or `prod-korczewski/`, never base `prod/` alone.** The base `prod/` exists to be consumed by the env-specific overlays. It also contains a `$patch: delete` on the `workspace-secrets` Secret — applying `prod/` directly relies on the sealed secret existing and can leave the cluster without credentials.
+- **Apply `prod-fleet/mentolder/` or `prod-fleet/korczewski/`, never base `prod/` (or the bare `prod-mentolder/`/`prod-korczewski/`) alone.** `ENV_OVERLAY` resolves to the `prod-fleet/<brand>` wrapper, which reuses the brand overlay + `fleet-common`. The base `prod/` exists to be consumed by the env-specific overlays and contains a `$patch: delete` on the `workspace-secrets` Secret — applying it directly relies on the sealed secret existing and can leave the cluster without credentials.
 - **Never remove the `$patch: delete` block in `prod/kustomization.yaml`.** Its job is to strip the dev placeholder from `k3d/secrets.yaml` so SealedSecrets-managed secrets survive each deploy. Removing it overwrites production secrets with dev values.
 - **Collabora and CoTURN are NOT in the base kustomization.** `k3d/office-stack` and `k3d/coturn-stack` are deployed separately via `task workspace:office:deploy`. A full bring-up order is `workspace:deploy` → `workspace:office:deploy` → CoTURN apply.
 - **Website, Brett, and Docs images use `:latest` intentionally** (`k3d/website.yaml`, `k3d/brett.yaml`, `k3d/docs.yaml`). CI warns about `:latest` for all three; do not "fix" these tags to a digest — each image is rebuilt and re-imported/pushed on every release (`task feature:brett`, `task docs:deploy`, `task feature:website`).
@@ -163,7 +164,7 @@ After any cluster reset (including replacing a Sealed Secrets controller keypair
 **`knowledge-secrets` conflict:** if the overlay contains a `secretGenerator`-managed Secret with the same name as a SealedSecret, the controller refuses to adopt it. Delete the plain Secret first (`kubectl delete secret knowledge-secrets -n $WORKSPACE_NS`) then re-apply.
 
 ### Operational
-- **Flux: reconcile source before kustomization.** After a PR merges, `flux reconcile kustomization workspace --context <env>` may apply the OLD revision if the GitRepository hasn't polled yet. Always prime with `flux reconcile source git flux-system --context <env>` first, then reconcile the kustomization. Applies to both clusters.
+- **No GitOps reconciler — prod is push-based.** Merging to `main` does **not** auto-apply to fleet (there is no Flux/Argo controller; `flux-system` does not exist on the cluster). After a merge, deploy explicitly: `task workspace:deploy ENV=mentolder` **and** `ENV=korczewski` (or a `task feature:*` umbrella that fans out across both brands). Website changes auto-roll-out via the `build-website*.yml` Actions (which push with `FLEET_KUBECONFIG`); everything else needs an explicit deploy.
 - **Pull-first.** Always `git pull --rebase origin main` before any work. With dirty tree: `git stash && git pull --rebase && git stash pop`. The `dev-flow-plan`/`dev-flow-execute`/`using-git-worktrees` skills enforce this automatically.
 - **Docs source is `k3d/docs-content-built/` (pre-built HTML), not a Markdown source tree.** The `docs/` directory holds the Markdown source; `node scripts/build-docs.js` compiles it to HTML in `k3d/docs-content-built/`. Deploy via `task docs:deploy` (build + Docker image push + rollout on fleet for both brands). **`docs:sync` does NOT work** — `kubectl cp` fails with "Read-only file system" because the static-web-server container runs with a read-only rootfs. `docs:configmap:apply` is kept only for kustomize validation — it has no visible effect on running pods.
 - **No yamllint/shellcheck/kubeconform in CI.** Earlier docs claimed these ran on PRs; the current `ci.yml` only runs `task test:all`. Run `yamllint`/`shellcheck` locally if you want lint feedback before pushing.

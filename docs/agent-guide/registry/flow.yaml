@@ -6,5 +6,5 @@
 - { id: plan,       label_de: "Plan",       emoji: "📋", danger: caution,  order: 3, blurb_de: "Einen Schritt-für-Schritt-Plan schreiben." }
 - { id: code,       label_de: "Code+TDD",   emoji: "💻", danger: caution,  order: 4, blurb_de: "Erst den Test, dann die Umsetzung." }
 - { id: pr-ci,      label_de: "PR+CI",      emoji: "🔀", danger: assisted, order: 5, blurb_de: "Pull Request öffnen — CI muss grün sein." }
-- { id: deploy,     label_de: "Deploy",     emoji: "🚀", danger: assisted, order: 6, blurb_de: "Die Änderung live bringen (Flux / Task)." }
+- { id: deploy,     label_de: "Deploy",     emoji: "🚀", danger: assisted, order: 6, blurb_de: "Die Änderung live bringen (task workspace:deploy)." }
 - { id: live,       label_de: "Live",       emoji: "🌍", danger: safe,     order: 7, blurb_de: "Läuft es? Status und Logs prüfen." }

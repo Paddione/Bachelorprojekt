@@ -22,8 +22,8 @@
 | Skill | When to use |
 |---|---|
 | `host-node-networking` | Host server provisioning (Hetzner, cloud-init, Rescue Mode resets), WireGuard mesh network topology ("netplan"), host UFW firewall ports, LiveKit WebRTC networking, and WSL OpenClaw local gateway setup. |
-| `cluster-deployment` | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), manage Flux GitOps, or operate the dev.mentolder.de stack. |
-| `fleet-ops` | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and **Flux GitOps** reconciliation across both brands on the fleet cluster. |
+| `cluster-deployment` | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), or operate the dev.mentolder.de stack. |
+| `fleet-ops` | Cross-cluster fan-out operations: `task feature:*`, schema changes, Keycloak sync, and the **push-based deploy model** (no GitOps reconciler) across both brands on the fleet cluster. |
 
 ---
 
@@ -68,7 +68,7 @@
 host-node-networking (WireGuard mesh/Netplan)
     └→ cluster-deployment (SealedSecrets → cert-manager → deploy)
            └→ secret-rotation (keypair refresh / rotation)
-           └→ fleet-ops (Flux cross-environment reconciliation)
+           └→ fleet-ops (cross-brand push deploys + fan-out)
 
 dev-flow-plan
     └→ dev-flow-execute

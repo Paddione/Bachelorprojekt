@@ -63,8 +63,8 @@ jobs:
             if (!Array.isArray(m.routes)) {
               errs.push("routes must be an array");
             }
-            if (m.count !== 99) {
-              errs.push(`expected count===99, got ${m.count}`);
+            if (m.count !== 102) {
+              errs.push(`expected count===102, got ${m.count}`);
             }
             for (const r of (m.routes || [])) {
               const isAdmin = r.route.startsWith("/admin");

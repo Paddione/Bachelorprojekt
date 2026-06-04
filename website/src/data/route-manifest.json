@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 99,
+  "count": 102,
   "routes": [
     {
       "route": "/",
@@ -373,6 +373,22 @@
     },
     {
       "route": "/admin/meetings/[id]",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/members",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/members/[userId]",
       "authTier": "admin",
       "brand": "both",
       "dynamic": true,
@@ -774,6 +790,14 @@
       "authTier": "portal",
       "brand": "both",
       "dynamic": true,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/portal/loslernen",
+      "authTier": "portal",
+      "brand": "both",
+      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },

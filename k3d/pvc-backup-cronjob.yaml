@@ -41,7 +41,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: orchestrator
-              image: alpine/k8s:1.30.4
+              image: alpine/k8s:1.34.0
               imagePullPolicy: IfNotPresent
               securityContext:
                 allowPrivilegeEscalation: false

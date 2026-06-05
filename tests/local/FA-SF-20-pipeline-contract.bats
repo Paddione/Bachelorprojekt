@@ -36,3 +36,9 @@ SCRIPT="scripts/factory/pipeline.js"
   run grep -q "feature:" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -Eq "ENV=mentolder|ENV=korczewski|ENV=fleet-" "$SCRIPT"; [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-20: pipeline writes a per-phase liveness touch (>=6 references)" {
+  run grep -c "ticket.sh touch" "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 6 ]
+}

@@ -31,18 +31,12 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
-// Construct a platform database pool.
-// On korczewski brand, this redirects to the mentolder (workspace) database.
-const PLATFORM_DB_URL = (() => {
-  const url = process.env.SESSIONS_DATABASE_URL;
-  if (url && url.includes('shared-db.workspace-korczewski')) {
-    return url.replace('shared-db.workspace-korczewski', 'shared-db.workspace');
-  }
-  return url || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
-})();
-
-const platformPoolConfig = { connectionString: PLATFORM_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
-export const platformPool = new Pool(platformPoolConfig);
+// Platform/ops-audit pool. This deliberately stays PER-BRAND (== pool).
+// An earlier attempt redirected korczewski -> the mentolder (workspace) DB to
+// centralize, but a korczewski website pod cannot reach shared-db.workspace
+// across namespaces in the fleet cluster (ClusterIP egress -> ECONNREFUSED),
+// which broke korczewski admin-ops. Each brand uses its own shared-db.
+export const platformPool = pool;
 
 // Schema initialisation must run ONCE per process, not on every request.
 // Running idempotent DDL (CREATE TABLE IF NOT EXISTS / ALTER ... ADD CONSTRAINT)

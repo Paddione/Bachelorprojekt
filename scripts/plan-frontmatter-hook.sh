@@ -71,7 +71,7 @@ title="$(grep -m1 '^# ' "$FILE" | sed 's/^# //' || true)"
 if ! _has_frontmatter; then
     derived="$(_body | _derive_domains | tr '\n' ' ' | sed 's/ *$//')"
     domains_input="$derived"
-    if [[ -t 0 ]]; then
+    if [[ -t 0 && -z "${BATS_TEST_FILENAME:-}" && -z "${CI:-}" ]]; then
         echo "Derived domains for $(basename "$FILE"): [${derived:-none}]"
         echo "Press Enter to accept, or type override (space-separated from: $CANON_ROLES):"
         read -r override_input

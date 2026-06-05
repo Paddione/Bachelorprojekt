@@ -966,6 +966,32 @@ export async function initTicketsSchema(): Promise<void> {
 
   await pool.query(`COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v4 (2026-05-24)'`);
   await pool.query(`GRANT EXECUTE ON FUNCTION tickets.fn_purge_test_data() TO website`);
+
+  // ── INERT future plumbing: pg_notify on new feature tickets ─────────────────
+  // Spec §6 Phase 2 (correction A2): NOT CONSUMED in Phase 3. The data plane is
+  // one-shot `kubectl exec … psql` (lib.sh:31-35); a LISTEN needs a held
+  // connection (cf. dispatcher.js:15). The Cron-poll (schedule.sh, every timer
+  // tick) IS the trigger. This NOTIFY exists only so a future long-lived consumer
+  // can be wired without a schema change. Idempotent: safe per-pod-boot, both brands.
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.notify_feature_inserted()
+    RETURNS trigger AS $$
+    BEGIN
+      PERFORM pg_notify('factory_feature_inserted', NEW.external_id);
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS trg_notify_feature_inserted ON tickets.tickets;
+  `);
+  await pool.query(`
+    CREATE TRIGGER trg_notify_feature_inserted
+    AFTER INSERT ON tickets.tickets
+    FOR EACH ROW
+    WHEN (NEW.type = 'feature')
+    EXECUTE FUNCTION tickets.notify_feature_inserted();
+  `);
       } finally {
         await client.query(`SELECT pg_advisory_unlock(hashtext('init:tickets'))`);
       }

@@ -1104,6 +1104,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-42",
+    "file": "tests/local/FA-SF-42-dashboard-route.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('pg', () => {
   const { newDb } = require('pg-mem') as typeof import('pg-mem');
   const mem = newDb();
-  
+
   // Register to_char function for pg-mem
   mem.public.registerFunction({
     name: 'to_char',
@@ -59,5 +59,21 @@ describe('listFactoryMetrics', () => {
     expect(Number(rows[0].avg_cycle_time_h)).toBe(5.5);
     expect(rows[0].escalations).toBe(1);
     expect(rows[0].total_features).toBe(7);
+  });
+
+  it('listActiveFeatures returns the active working set with pipeline_slot', async () => {
+    const { listActiveFeatures } = await import('./factory-metrics');
+    const rows = await listActiveFeatures();
+    expect(rows.length).toBe(1);
+    expect(rows[0].external_id).toBe('T000500');
+    expect(rows[0].priority).toBe('hoch');
+    expect(rows[0].pipeline_slot).toBe(1);
+  });
+
+  it('listActiveFlags returns only enabled=false (dark) flags for the brand', async () => {
+    const { listActiveFlags } = await import('./factory-metrics');
+    const rows = await listActiveFlags('mentolder');
+    expect(rows.map((r) => r.key)).toEqual(['dark-a']);
+    expect(rows[0].enabled).toBe(false);
   });
 });

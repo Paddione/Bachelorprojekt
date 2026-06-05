@@ -36,3 +36,24 @@ export async function listFactoryMetrics(): Promise<FactoryMetricRow[]> {
   );
   return r.rows as FactoryMetricRow[];
 }
+
+/** The dispatcher's working set — non-terminal features with touch data. */
+export async function listActiveFeatures(): Promise<ActiveFeatureRow[]> {
+  const r = await pool.query(
+    `SELECT external_id, title, priority, status, pipeline_slot
+       FROM tickets.v_active_features`,
+  );
+  return r.rows as ActiveFeatureRow[];
+}
+
+/** Dark-launched (enabled=false) feature flags for this brand. */
+export async function listActiveFlags(brand: string): Promise<FeatureFlagRow[]> {
+  const r = await pool.query(
+    `SELECT brand, key, enabled, set_by
+       FROM tickets.feature_flags
+      WHERE brand = $1 AND enabled = false
+      ORDER BY created_at DESC`,
+    [brand],
+  );
+  return r.rows as FeatureFlagRow[];
+}

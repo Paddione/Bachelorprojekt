@@ -185,3 +185,35 @@
   aliases_de: [deploy, live, pruefen, status, "ist es da"]
   guardrails: [G-ENV-EXPLICIT]
   related: [aenderung-ausrollen, dienst-status-pruefen]
+- id: factory-feature-bauen
+  title_de: "Ich will ein Feature von der Software Factory bauen lassen"
+  when_de: "Ein Feature ist klar genug, dass es ein Multi-Agent-Lauf weitgehend selbst bauen kann — erst geplant, dann übergeben."
+  flow:
+    - tool: dev-flow-plan
+      note_de: "Plane das Feature wie gewohnt; am Stopp-Punkt bietet der Skill 'an Factory übergeben' an (legt das Ticket per ticket.sh enqueue auf die Warteschlange)."
+    - tool: factory
+      note_de: "Die Factory übernimmt den fertigen Plan (Plan-Reuse, kein Neu-Planen) und baut Implement → Verify → Deploy. Erst Dry-Run, dann scharf schalten."
+  example_prompt_de: "Plane die neue Tickets-Übersichtsseite und übergib den Plan dann an die Software Factory (zuerst als Dry-Run)."
+  danger: assisted
+  theme: fabrik
+  one_liner_de: "Planen, übergeben — die Factory baut es."
+  stages: [plan, code, pr-ci, deploy]
+  concept_de: "Konzept: Mensch plant, Factory baut. Der vorhandene Plan wird wiederverwendet, nicht neu erfunden."
+  aliases_de: [factory, übergeben, autonom, "bauen lassen", pipeline, "auto-bau"]
+  guardrails: [G-PULL-FIRST, G-FACTORY-DRYRUN, G-PR-NOT-MAIN]
+  related: [feature-bauen, factory-autopilot]
+- id: factory-autopilot
+  title_de: "Ich will, dass die Factory wartende Aufgaben selbst abarbeitet"
+  when_de: "Mehrere übergebene Tickets liegen in der Warteschlange und sollen automatisch der Reihe nach gebaut werden."
+  flow:
+    - tool: factory-dispatch
+      note_de: "Der Dispatcher pollt die Warteschlange, prüft Datei-Konflikte, vergibt Slots pro Marke und startet die Pipeline — wiederkehrend via /loop."
+  example_prompt_de: "Starte den Factory-Dispatcher und arbeite die wartenden Tickets ab — als Dry-Run."
+  danger: assisted
+  theme: fabrik
+  one_liner_de: "Wartende Tickets automatisch abarbeiten lassen."
+  stages: [code, pr-ci, deploy]
+  concept_de: "Konzept: Warteschlange + Konflikt-Gate + Slots verhindern, dass zwei Läufe dieselben Dateien anfassen."
+  aliases_de: [dispatcher, warteschlange, autopilot, queue, automatisch]
+  guardrails: [G-FACTORY-DRYRUN, G-PR-NOT-MAIN]
+  related: [factory-feature-bauen, dienst-status-pruefen]

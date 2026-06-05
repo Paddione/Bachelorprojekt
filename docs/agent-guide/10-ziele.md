@@ -233,3 +233,44 @@ Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2
 **Schutzregeln (Guardrails):** ENV immer explizit setzen (G-ENV-EXPLICIT)
 
 **Verwandte Ziele:** Ich will eine Änderung in der Produktion ausrollen, Ich will prüfen, ob alle Dienste laufen
+
+## Ich will ein Feature von der Software Factory bauen lassen
+
+🟠 **Nur mit Hilfe**
+
+**Wann?** Ein Feature ist klar genug, dass es ein Multi-Agent-Lauf weitgehend selbst bauen kann — erst geplant, dann übergeben.
+
+**So gehst du vor:**
+
+1. [[dev-flow-plan]] — Plane das Feature wie gewohnt; am Stopp-Punkt bietet der Skill 'an Factory übergeben' an (legt das Ticket per ticket.sh enqueue auf die Warteschlange).
+2. Software Factory (Auto-Bau) — Die Factory übernimmt den fertigen Plan (Plan-Reuse, kein Neu-Planen) und baut Implement → Verify → Deploy. Erst Dry-Run, dann scharf schalten.
+
+**Diesen Prompt kannst du der KI geben:**
+
+```text
+Plane die neue Tickets-Übersichtsseite und übergib den Plan dann an die Software Factory (zuerst als Dry-Run).
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandte Ziele:** Ich will eine neue Funktion bauen, Ich will, dass die Factory wartende Aufgaben selbst abarbeitet
+
+## Ich will, dass die Factory wartende Aufgaben selbst abarbeitet
+
+🟠 **Nur mit Hilfe**
+
+**Wann?** Mehrere übergebene Tickets liegen in der Warteschlange und sollen automatisch der Reihe nach gebaut werden.
+
+**So gehst du vor:**
+
+1. Factory-Dispatcher (Warteschlange) — Der Dispatcher pollt die Warteschlange, prüft Datei-Konflikte, vergibt Slots pro Marke und startet die Pipeline — wiederkehrend via /loop.
+
+**Diesen Prompt kannst du der KI geben:**
+
+```text
+Starte den Factory-Dispatcher und arbeite die wartenden Tickets ab — als Dry-Run.
+```
+
+**Schutzregeln (Guardrails):** Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandte Ziele:** Ich will ein Feature von der Software Factory bauen lassen, Ich will prüfen, ob alle Dienste laufen

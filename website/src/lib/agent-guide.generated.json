@@ -87,6 +87,14 @@
       "order": 7,
       "accent": "#c77dff",
       "blurb_de": "Secrets, Keycloak, Zertifikate."
+    },
+    {
+      "id": "fabrik",
+      "label_de": "Software Factory",
+      "emoji": "🏭",
+      "order": 8,
+      "accent": "#7d6cf0",
+      "blurb_de": "Features (halb-)autonom bauen lassen — von der Übergabe bis zum Deploy."
     }
   ],
   "glossary": [
@@ -137,6 +145,26 @@
     {
       "term": "CI",
       "def_de": "Continuous Integration — automatische Tests bei jedem Pull Request."
+    },
+    {
+      "term": "Software Factory",
+      "def_de": "Eine (halb-)autonome Pipeline, die ein Feature mit mehreren Agenten von der Planung bis zum Deploy selbst baut."
+    },
+    {
+      "term": "Pipeline",
+      "def_de": "Die feste Phasenfolge der Factory: Scout → Design → Plan → Implement → Verify → Deploy."
+    },
+    {
+      "term": "Dispatcher",
+      "def_de": "Der Verteiler, der wartende Tickets aus der Warteschlange holt, auf Konflikte prüft und die Pipeline startet."
+    },
+    {
+      "term": "Dry-Run",
+      "def_de": "Ein Probelauf der Factory bis kurz vor Deploy (args dry_run: true) — ohne Merge und ohne Live-Schaltung, um Fehler vorab zu finden."
+    },
+    {
+      "term": "Scout",
+      "def_de": "Die erste Factory-Phase: erkundet die Codebase, schätzt die Komplexität und findet die betroffenen Dateien."
     }
   ],
   "goals": [
@@ -687,6 +715,119 @@
         "live"
       ],
       "concept_de": "Konzept: Deploy ≠ live — erst Status, Logs und ein E2E-Check bestätigen es."
+    },
+    {
+      "id": "factory-feature-bauen",
+      "title_de": "Ich will ein Feature von der Software Factory bauen lassen",
+      "when_de": "Ein Feature ist klar genug, dass es ein Multi-Agent-Lauf weitgehend selbst bauen kann — erst geplant, dann übergeben.",
+      "danger": "assisted",
+      "flow": [
+        {
+          "tool": "dev-flow-plan",
+          "tool_name_de": "Planungs-Skill (dev-flow-plan)",
+          "note_de": "Plane das Feature wie gewohnt; am Stopp-Punkt bietet der Skill 'an Factory übergeben' an (legt das Ticket per ticket.sh enqueue auf die Warteschlange)."
+        },
+        {
+          "tool": "factory",
+          "tool_name_de": "Software Factory (Auto-Bau)",
+          "note_de": "Die Factory übernimmt den fertigen Plan (Plan-Reuse, kein Neu-Planen) und baut Implement → Verify → Deploy. Erst Dry-Run, dann scharf schalten."
+        }
+      ],
+      "example_prompt_de": "Plane die neue Tickets-Übersichtsseite und übergib den Plan dann an die Software Factory (zuerst als Dry-Run).",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        },
+        {
+          "id": "G-FACTORY-DRYRUN",
+          "name_de": "Factory erst im Dry-Run beweisen",
+          "rule_de": "Die Software Factory zuerst im Dry-Run (Workflow-args dry_run: true) laufen lassen; den echten Deploy erst nach grünem Probelauf bewusst freischalten.",
+          "why_de": "Die Factory implementiert und deployt selbstständig — ein Probelauf ohne Merge und Deploy fängt Fehler ab, bevor sie live gehen."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "feature-bauen",
+        "factory-autopilot"
+      ],
+      "links": [],
+      "theme": "fabrik",
+      "one_liner_de": "Planen, übergeben — die Factory baut es.",
+      "aliases_de": [
+        "factory",
+        "übergeben",
+        "autonom",
+        "bauen lassen",
+        "pipeline",
+        "auto-bau"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "plan",
+        "code",
+        "pr-ci",
+        "deploy"
+      ],
+      "concept_de": "Konzept: Mensch plant, Factory baut. Der vorhandene Plan wird wiederverwendet, nicht neu erfunden."
+    },
+    {
+      "id": "factory-autopilot",
+      "title_de": "Ich will, dass die Factory wartende Aufgaben selbst abarbeitet",
+      "when_de": "Mehrere übergebene Tickets liegen in der Warteschlange und sollen automatisch der Reihe nach gebaut werden.",
+      "danger": "assisted",
+      "flow": [
+        {
+          "tool": "factory-dispatch",
+          "tool_name_de": "Factory-Dispatcher (Warteschlange)",
+          "note_de": "Der Dispatcher pollt die Warteschlange, prüft Datei-Konflikte, vergibt Slots pro Marke und startet die Pipeline — wiederkehrend via /loop."
+        }
+      ],
+      "example_prompt_de": "Starte den Factory-Dispatcher und arbeite die wartenden Tickets ab — als Dry-Run.",
+      "guardrails": [
+        {
+          "id": "G-FACTORY-DRYRUN",
+          "name_de": "Factory erst im Dry-Run beweisen",
+          "rule_de": "Die Software Factory zuerst im Dry-Run (Workflow-args dry_run: true) laufen lassen; den echten Deploy erst nach grünem Probelauf bewusst freischalten.",
+          "why_de": "Die Factory implementiert und deployt selbstständig — ein Probelauf ohne Merge und Deploy fängt Fehler ab, bevor sie live gehen."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "factory-feature-bauen",
+        "dienst-status-pruefen"
+      ],
+      "links": [],
+      "theme": "fabrik",
+      "one_liner_de": "Wartende Tickets automatisch abarbeiten lassen.",
+      "aliases_de": [
+        "dispatcher",
+        "warteschlange",
+        "autopilot",
+        "queue",
+        "automatisch"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci",
+        "deploy"
+      ],
+      "concept_de": "Konzept: Warteschlange + Konflikt-Gate + Slots verhindern, dass zwei Läufe dieselben Dateien anfassen."
     }
   ],
   "tools": [
@@ -1196,6 +1337,105 @@
       "order": 999,
       "stages": [],
       "init_prompt_de": "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
+    },
+    {
+      "id": "factory",
+      "name_de": "Software Factory (Auto-Bau)",
+      "kind": "task",
+      "kind_de": "Aufgabe",
+      "summary_de": "Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy.",
+      "what_for_de": "Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse).",
+      "how_to_start_de": "Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy.",
+      "what_could_go_wrong_de": "Sie implementiert und deployt selbstständig (🟠). Ohne Dry-Run kann ein fehlerhafter Stand live gehen — darum erst den Probelauf, dann bewusst scharf schalten.",
+      "danger": "assisted",
+      "guardrails": [
+        {
+          "id": "G-FACTORY-DRYRUN",
+          "name_de": "Factory erst im Dry-Run beweisen",
+          "rule_de": "Die Software Factory zuerst im Dry-Run (Workflow-args dry_run: true) laufen lassen; den echten Deploy erst nach grünem Probelauf bewusst freischalten.",
+          "why_de": "Die Factory implementiert und deployt selbstständig — ein Probelauf ohne Merge und Deploy fängt Fehler ab, bevor sie live gehen."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        },
+        {
+          "id": "G-VALIDATE-FIRST",
+          "name_de": "Erst prüfen, dann anwenden",
+          "rule_de": "Manifeste vor dem Anwenden validieren (task workspace:validate) / dry-run nutzen.",
+          "why_de": "Fängt kaputte Konfiguration ab, bevor sie den Cluster erreicht."
+        }
+      ],
+      "related": [
+        "dev-flow-plan",
+        "factory-dispatch"
+      ],
+      "links": [],
+      "theme": "fabrik",
+      "aliases_de": [
+        "factory",
+        "software factory",
+        "pipeline",
+        "auto-bau",
+        "autonom",
+        "scout"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci",
+        "deploy"
+      ],
+      "init_prompt_de": "Übergib das an die Software Factory: <gut umrissenes Feature> — und mach zuerst einen Dry-Run."
+    },
+    {
+      "id": "factory-dispatch",
+      "name_de": "Factory-Dispatcher (Warteschlange)",
+      "kind": "task",
+      "kind_de": "Aufgabe",
+      "summary_de": "Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline.",
+      "what_for_de": "Damit übergebene Tickets (type=feature/status=backlog) automatisch abgearbeitet werden — mit Slots pro Marke, Konflikt-Gate und Watchdog.",
+      "how_to_start_de": "Über das Workflow-Tool mit scripts/factory/dispatcher.js starten ('task factory:dispatch' zeigt die Invocation), wiederkehrend selbst-getaktet via /loop. Probelauf mit args { dry_run: true }.",
+      "what_could_go_wrong_de": "Er startet Bauläufe selbstständig (🟠). Bei überlappenden Dateien greift das Konflikt-Gate; ein hängender Lauf wird nach 30 min vom Watchdog eskaliert.",
+      "danger": "assisted",
+      "guardrails": [
+        {
+          "id": "G-FACTORY-DRYRUN",
+          "name_de": "Factory erst im Dry-Run beweisen",
+          "rule_de": "Die Software Factory zuerst im Dry-Run (Workflow-args dry_run: true) laufen lassen; den echten Deploy erst nach grünem Probelauf bewusst freischalten.",
+          "why_de": "Die Factory implementiert und deployt selbstständig — ein Probelauf ohne Merge und Deploy fängt Fehler ab, bevor sie live gehen."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "factory"
+      ],
+      "links": [],
+      "theme": "fabrik",
+      "aliases_de": [
+        "dispatcher",
+        "warteschlange",
+        "queue",
+        "slots",
+        "watchdog",
+        "scheduler"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci",
+        "deploy"
+      ],
+      "init_prompt_de": "Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run)."
     }
   ],
   "components": {
@@ -1613,7 +1853,8 @@
         "goalIds": [
           "bug-beheben",
           "feature-bauen",
-          "datenbank-aendern"
+          "datenbank-aendern",
+          "factory-feature-bauen"
         ],
         "toolIds": [
           "dev-flow-plan"
@@ -1630,11 +1871,15 @@
           "website-text-aendern",
           "bug-beheben",
           "feature-bauen",
-          "datenbank-aendern"
+          "datenbank-aendern",
+          "factory-feature-bauen",
+          "factory-autopilot"
         ],
         "toolIds": [
           "dev-flow-execute",
-          "dev-flow-iterate"
+          "dev-flow-iterate",
+          "factory",
+          "factory-dispatch"
         ]
       },
       {
@@ -1647,10 +1892,14 @@
         "goalIds": [
           "bug-beheben",
           "feature-bauen",
-          "pr-oeffnen"
+          "pr-oeffnen",
+          "factory-feature-bauen",
+          "factory-autopilot"
         ],
         "toolIds": [
-          "dev-flow-execute"
+          "dev-flow-execute",
+          "factory",
+          "factory-dispatch"
         ]
       },
       {
@@ -1664,11 +1913,15 @@
           "bug-beheben",
           "feature-bauen",
           "aenderung-ausrollen",
-          "datenbank-aendern"
+          "datenbank-aendern",
+          "factory-feature-bauen",
+          "factory-autopilot"
         ],
         "toolIds": [
           "dev-flow-iterate",
-          "agent-infra"
+          "agent-infra",
+          "factory",
+          "factory-dispatch"
         ]
       },
       {

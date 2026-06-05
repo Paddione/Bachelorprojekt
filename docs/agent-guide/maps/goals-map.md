@@ -13,6 +13,8 @@ Die Tier-Emojis (🟢🟡🟠🔴) sind in `danger-map.md` erklärt, die Werkzeu
 | Ich will das Datenbankschema ändern | dev-flow-plan → agent-db → dev-flow-execute | 🟠 Nur mit Hilfe | G-ASK-EXPERT, G-ENV-EXPLICIT | Bitte füge eine Spalte 'invoice_number' zur Tabelle 'orders' hinzu. |
 | Ich will prüfen, ob mein Deploy wirklich live ist | agent-ops → dev-flow-e2e | 🟢 Sicher | G-ENV-EXPLICIT | Ist der letzte Deploy für mentolder live? Prüfe Status, Logs und mach einen E2E-Check. |
 | Ich will prüfen, ob alle Dienste laufen | agent-ops | 🟢 Sicher | — | Bitte prüfe, ob alle Pods laufen und zeig mir den Plattform-Status. |
+| Ich will, dass die Factory wartende Aufgaben selbst abarbeitet | factory-dispatch | 🟠 Nur mit Hilfe | G-FACTORY-DRYRUN, G-PR-NOT-MAIN | Starte den Factory-Dispatcher und arbeite die wartenden Tickets ab — als Dry-Run. |
+| Ich will ein Feature von der Software Factory bauen lassen | dev-flow-plan → factory | 🟠 Nur mit Hilfe | G-FACTORY-DRYRUN, G-PR-NOT-MAIN, G-PULL-FIRST | Plane die neue Tickets-Übersichtsseite und übergib den Plan dann an die Software Factory (zuerst als Dry-Run). |
 | Ich will eine neue Funktion bauen | dev-flow-plan → dev-flow-execute | 🟡 Vorsicht | G-PR-NOT-MAIN, G-PULL-FIRST | Ich hätte gerne eine Seite, die alle aktiven Tickets anzeigt. |
 | Ich habe eine Idee — wie fange ich an? | brainstorming → dev-flow-plan | 🟢 Sicher | G-PULL-FIRST | Ich habe eine Idee für die Plattform und möchte sie erst gemeinsam durchdenken. |
 | Ich will einen Pull Request öffnen und CI grün bekommen | dev-flow-execute | 🟠 Nur mit Hilfe | G-PR-NOT-MAIN | Bitte öffne einen Pull Request für diesen Branch und sag mir, ob die CI grün ist. |

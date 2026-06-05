@@ -285,3 +285,47 @@ Rotiert Secrets, verwaltet Keycloak-Realms und SealedSecrets.
 **Verwandt:** [[bachelorprojekt-infra]]
 
 **Mehr dazu:** [https://docs.mentolder.de/glossary.html](https://docs.mentolder.de/glossary.html)
+
+## Software Factory (Auto-Bau)
+
+**Task** · 🟠 **Nur mit Hilfe**
+
+Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy.
+
+**Wofür?** Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse).
+
+**So startest du:** Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy.
+
+**Was schiefgehen kann:** Sie implementiert und deployt selbstständig (🟠). Ohne Dry-Run kann ein fehlerhafter Stand live gehen — darum erst den Probelauf, dann bewusst scharf schalten.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Übergib das an die Software Factory: <gut umrissenes Feature> — und mach zuerst einen Dry-Run.
+```
+
+**Schutzregeln (Guardrails):** Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN), Erst prüfen, dann anwenden (G-VALIDATE-FIRST)
+
+**Verwandt:** [[dev-flow-plan]], Factory-Dispatcher (Warteschlange)
+
+## Factory-Dispatcher (Warteschlange)
+
+**Task** · 🟠 **Nur mit Hilfe**
+
+Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline.
+
+**Wofür?** Damit übergebene Tickets (type=feature/status=backlog) automatisch abgearbeitet werden — mit Slots pro Marke, Konflikt-Gate und Watchdog.
+
+**So startest du:** Über das Workflow-Tool mit scripts/factory/dispatcher.js starten ('task factory:dispatch' zeigt die Invocation), wiederkehrend selbst-getaktet via /loop. Probelauf mit args { dry_run: true }.
+
+**Was schiefgehen kann:** Er startet Bauläufe selbstständig (🟠). Bei überlappenden Dateien greift das Konflikt-Gate; ein hängender Lauf wird nach 30 min vom Watchdog eskaliert.
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run).
+```
+
+**Schutzregeln (Guardrails):** Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandt:** Software Factory (Auto-Bau)

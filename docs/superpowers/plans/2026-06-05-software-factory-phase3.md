@@ -265,7 +265,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.3: Create `tickets.feature_flags` table (+ brand FK via the tags DO-block idiom)
 **Files:** Modify `website/src/lib/tickets-db.ts` (place near `tickets.tags`, ~:350-363, mirroring its `id` + brand-FK DO-block idiom). Test: extend `tests/local/FA-SF-04-db-schema.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
   ```bash
   @test "FA-SF-04: tickets.feature_flags table exists" {
     run psql_tickets "SELECT tablename FROM pg_tables WHERE schemaname='tickets' AND tablename='feature_flags'"
@@ -284,13 +284,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-04
   ```
   Expected: `not ok ... feature_flags table exists` (table absent; `output` empty).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `tickets.tags` block (the one ending at the `END $$;` near line 363), add the table using the SAME DO-block ADD CONSTRAINT idiom as `tags_brand_fkey`:
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `tickets.tags` block (the one ending at the `END $$;` near line 363), add the table using the SAME DO-block ADD CONSTRAINT idiom as `tags_brand_fkey`:
   ```ts
   // Phase 3 Software Factory: feature_flags powers dark-launch / canary. Each
   // implement-agent gates new behaviour behind isFeatureEnabled(brand,'<slug>');
@@ -315,13 +315,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   `);
   ```
 
-- [ ] **Step 4: Run it, expect PASS** — verify source + types:
+- [x] **Step 4: Run it, expect PASS** — verify source + types:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -n "feature_flags_brand_fkey" website/src/lib/tickets-db.ts && cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -c "tickets-db.ts"
   ```
   Expected: grep prints two lines (the IF-NOT-EXISTS check + the ADD CONSTRAINT); `grep -c` prints `0`. After per-pod re-init the three new FA-SF-04 tests pass in both namespaces.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts tests/local/FA-SF-04-db-schema.bats && git commit -m "feat(factory): add tickets.feature_flags table with brand FK [T000413]"
   ```

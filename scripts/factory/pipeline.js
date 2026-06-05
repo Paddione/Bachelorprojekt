@@ -43,7 +43,7 @@ export const meta = {
 //   • `await` is valid at the call sites
 //   • harness-injected globals (agent, parallel, pipeline, phase, log, args)
 //     are in scope without any destructuring from a harness param
-;(async () => {
+async function main() {
 
 // ─── Config ──────────────────────────────────────────────────────────────
 
@@ -288,4 +288,5 @@ const deploy = await agent(
 )
 
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
-})()
+}
+await main();

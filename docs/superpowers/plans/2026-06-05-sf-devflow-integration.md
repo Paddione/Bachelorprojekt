@@ -118,7 +118,7 @@ git commit -m "test(factory): add FA-SF-31 guard against fire-and-forget IIFE [T
 - Modify: `scripts/factory/pipeline.js` (remove wrapper open line 46 + final `})()`)
 - Modify: `scripts/factory/dispatcher.js` (remove wrapper open line 28 + final `})()`)
 
-- [ ] **Step 1: Unwrap pipeline.js**
+- [x] **Step 1: Unwrap pipeline.js**
 
 Delete the wrapper-open line (currently line 46):
 
@@ -134,11 +134,11 @@ Delete the wrapper-open line (currently line 46):
 
 The body (`const A = args ?? {}` … `return { status: 'done', … }`) is already at column 0, so removing exactly those two lines yields a canonical top-level workflow body. Do not change anything between them.
 
-- [ ] **Step 2: Unwrap dispatcher.js**
+- [x] **Step 2: Unwrap dispatcher.js**
 
 Delete the wrapper-open line (currently line 28) `;(async () => {` and the final `})()` (currently line 110). The body stays 2-space indented — that is cosmetically fine and `node --check` still passes; do not reformat further.
 
-- [ ] **Step 3: Verify the guard is green + syntax valid**
+- [x] **Step 3: Verify the guard is green + syntax valid**
 
 Run: `node --check scripts/factory/pipeline.js && node --check scripts/factory/dispatcher.js`
 Expected: exit 0 for both.
@@ -147,7 +147,7 @@ Expected: PASS (all three tests).
 Run: `./tests/runner.sh local FA-SF-20 && ./tests/runner.sh local FA-SF-30`
 Expected: PASS (the existing contract tests are unaffected).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js scripts/factory/dispatcher.js

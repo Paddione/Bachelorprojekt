@@ -25,7 +25,7 @@ export const meta = {
   phases: [{ title: 'Prep' }, { title: 'Launch' }, { title: 'Metrics' }],
 }
 
-;(async () => {
+async function main() {
   const A = args ?? {}
   const REPO = '/home/patrick/Bachelorprojekt'
 
@@ -107,4 +107,5 @@ export const meta = {
      (metrics.sh is best-effort: a missing Vorhaben ticket on a brand is a silent no-op.)`,
     { label: 'metrics', phase: 'Metrics' },
   )
-})()
+}
+await main();

@@ -58,7 +58,7 @@ if (process.argv[1] === __filename) {
   if (!v.ok) { for (const e of v.errors) console.error('✗', e); process.exit(1); }
   let baseline = {};
   try { baseline = JSON.parse(readFileSync(join(cfgDir, 'baseline.json'), 'utf8')); }
-  catch { baseline = {}; }
+  catch (e) { console.warn('⚠ baseline.json missing or unparseable — starting from empty baseline:', e.message); baseline = {}; }
   const current = aggregate(repoRoot, loadGates(cfgDir));
   const { updated, removed, updated_count, unchanged } = applyRefresh(baseline, current);
   writeFileSync(join(cfgDir, 'baseline.json'), JSON.stringify(updated, null, 2) + '\n', 'utf8');

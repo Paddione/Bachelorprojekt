@@ -265,6 +265,7 @@ tasks:
       - task: test:unit:plan-frontmatter-hook
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
+      - task: test:unit:quality-loop
 
   test:unit:website-ci-deploy:
     internal: true

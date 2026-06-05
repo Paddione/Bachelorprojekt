@@ -99,4 +99,16 @@ psql_tickets() {
   [[ "$output" =~ "0" ]]
 }
 
+@test "FA-SF-04: tickets.factory_control table exists with UNIQUE(key,brand)" {
+  run psql_tickets "SELECT tablename FROM pg_tables WHERE schemaname='tickets' AND tablename='factory_control'"
+  [ "$status" -eq 0 ]
+  [ "$output" = "factory_control" ]
+}
+@test "FA-SF-04: factory_control has a UNIQUE(key,brand) constraint" {
+  run psql_tickets "SELECT conname FROM pg_constraint WHERE conrelid='tickets.factory_control'::regclass AND contype='u'"
+  [ "$status" -eq 0 ]
+  [ -n "$output" ]
+}
+
+
 

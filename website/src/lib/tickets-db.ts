@@ -109,6 +109,22 @@ export async function initTicketsSchema(): Promise<void> {
   // PushNotification (see pipeline.js CI-red handling). [T000413]
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0`);
 
+  // Phase 3 Software Factory: factory_control is the runtime control plane —
+  // global kill-switch, per-brand daily-deploy cap counter, dry-run markers.
+  // brand NULL = global. Read fresh per dispatcher tick, fail-closed on error.
+  // [T000413]
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.factory_control (
+      key        TEXT NOT NULL,
+      brand      TEXT,
+      value      TEXT NOT NULL,
+      set_by     TEXT,
+      updated_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE (key, brand)
+    )
+  `);
+
+
 
   await pool.query(`
     ALTER TABLE tickets.tickets

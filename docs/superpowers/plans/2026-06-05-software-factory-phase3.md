@@ -86,7 +86,7 @@ This segment runs FIRST. Task A.0 is a Go/No-Go gate (headless Workflow nesting)
 
 This task gates the rest. It is a manual/interactive verification (a headless `claude -p` invocation cannot be unit-tested), so Steps 1–2 are a build/lint VERIFICATION and Step 4 is the live spike run + decision record.
 
-- [ ] **Step 1: Write the probe target + spike runner.**
+- [x] **Step 1: Write the probe target + spike runner.**
 
   `scripts/factory/pipeline.spike.js`:
   ```js
@@ -125,13 +125,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   ```
   Make it executable: `chmod +x scripts/factory/headless-workflow-spike.sh`.
 
-- [ ] **Step 2 (VERIFY syntax, offline): lint both JS/Bash before any live run.**
+- [x] **Step 2 (VERIFY syntax, offline): lint both JS/Bash before any live run.**
   ```bash
   cd /tmp/wt-sf-phase3 && node --check scripts/factory/pipeline.spike.js && bash -n scripts/factory/headless-workflow-spike.sh && echo SPIKE_LINT_OK
   ```
   Expected output (last line): `SPIKE_LINT_OK`
 
-- [ ] **Step 3 (record the decision template):** create `docs/superpowers/specs/2026-06-05-phase0-spike-result.md`:
+- [x] **Step 3 (record the decision template):** create `docs/superpowers/specs/2026-06-05-phase0-spike-result.md`:
   ```markdown
   # Phase 0 Spike — Headless Workflow Nesting (Go/No-Go) [T000413]
 
@@ -156,13 +156,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   Delete `scripts/factory/pipeline.spike.js` + `headless-workflow-spike.sh` once recorded.
   ```
 
-- [ ] **Step 4 (LIVE spike + decision):** run the spike and fill the result file with the observed JSON.
+- [x] **Step 4 (LIVE spike + decision):** run the spike and fill the result file with the observed JSON.
   ```bash
   cd /tmp/wt-sf-phase3 && bash scripts/factory/headless-workflow-spike.sh
   ```
   Expected (GO): the session prints the workflow's return JSON containing `"spike":"pipeline","nested":true,"agents":0,"dry_run":true` and NO permission prompt blocks it. If a prompt blocks or the Workflow tool is unavailable, record **NO-GO** and proceed with the `/loop` fallback noted in the result file. Either way the schema/contract work (A.1+) proceeds unchanged.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/factory/headless-workflow-spike.sh scripts/factory/pipeline.spike.js docs/superpowers/specs/2026-06-05-phase0-spike-result.md && git commit -m "chore(factory): phase 0 headless-workflow nesting spike + Go/No-Go record [T000413]"
   ```

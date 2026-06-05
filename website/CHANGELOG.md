@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.27.0...website-v1.28.0) (2026-06-05)
+
+
+### Features
+
+* **factory:** Software Factory Phase 2 — Dispatcher (Tier 1) [T000424] ([#1330](https://github.com/Paddione/Bachelorprojekt/issues/1330)) ([e6037a2](https://github.com/Paddione/Bachelorprojekt/commit/e6037a23dd37007976d0552101df886e406c45e3))
+
 ## [1.27.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.26.1...website-v1.27.0) (2026-06-05)
 
 

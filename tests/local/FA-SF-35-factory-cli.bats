@@ -43,3 +43,29 @@ setup() { load 'test_helper.bash'; }
   [[ "$output" =~ "dryrun-mark" ]]
 }
 
+@test "FA-SF-35: feature-flag set requires --brand --key --enabled" {
+  run bash scripts/ticket.sh feature-flag set --brand mentolder --key new-hero
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--enabled" ]]
+}
+@test "FA-SF-35: feature-flag set rejects a non-boolean --enabled" {
+  run bash scripts/ticket.sh feature-flag set --brand mentolder --key x --enabled maybe
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "true|false" ]]
+}
+@test "FA-SF-35: feature-flag get requires --brand and --key" {
+  run bash scripts/ticket.sh feature-flag get --brand mentolder
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--key" ]]
+}
+@test "FA-SF-35: feature-flag list requires --brand" {
+  run bash scripts/ticket.sh feature-flag list
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--brand" ]]
+}
+@test "FA-SF-35: dispatch usage lists feature-flag" {
+  run bash scripts/ticket.sh
+  [[ "$output" =~ "feature-flag" ]]
+}
+
+

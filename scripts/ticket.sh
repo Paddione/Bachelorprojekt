@@ -524,9 +524,54 @@ EOF
   if [[ "$found" == "1" ]]; then exit 0; else exit 1; fi
 }
 
+cmd_feature_flag() {
+  local action="" brand="" key="" enabled="" set_by=""
+  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --brand)   brand="$2"; shift 2 ;;
+      --key)     key="$2"; shift 2 ;;
+      --enabled) enabled="$2"; shift 2 ;;
+      --set-by)  set_by="$2"; shift 2 ;;
+      *)         echo "Unknown feature-flag option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$action" != "set" && "$action" != "get" && "$action" != "list" ]]; then
+    echo "ERROR: feature-flag requires an action (set|get|list)." >&2; exit 2
+  fi
+  if [[ -z "$brand" ]]; then echo "ERROR: --brand is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  case "$action" in
+    set)
+      if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+      if [[ "$enabled" != "true" && "$enabled" != "false" ]]; then
+        echo "ERROR: --enabled must be true|false." >&2; exit 2
+      fi
+      _exec_sql "$pod" -v brand="$brand" -v key="$key" -v enabled="$enabled" -v set_by="$set_by" <<'EOF' >/dev/null
+INSERT INTO tickets.feature_flags (brand, key, enabled, set_by)
+VALUES (:'brand', :'key', :'enabled'::boolean, NULLIF(:'set_by',''))
+ON CONFLICT (brand, key) DO UPDATE
+  SET enabled = EXCLUDED.enabled, set_by = EXCLUDED.set_by;
+EOF
+      echo "feature-flag set: $brand/$key=$enabled"
+      ;;
+    get)
+      if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+      _exec_sql "$pod" -v brand="$brand" -v key="$key" <<'EOF'
+SELECT enabled FROM tickets.feature_flags WHERE brand = :'brand' AND key = :'key';
+EOF
+      ;;
+    list)
+      _exec_sql "$pod" -v brand="$brand" <<'EOF'
+SELECT key || '=' || enabled FROM tickets.feature_flags WHERE brand = :'brand' ORDER BY key;
+EOF
+      ;;
+  esac
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag" >&2
   exit 1
 fi
 
@@ -547,7 +592,9 @@ case "$cmd" in
   factory-control)   cmd_factory_control "$@" ;;
   dryrun-mark)       cmd_dryrun_mark "$@" ;;
   dryrun-check)      cmd_dryrun_check "$@" ;;
+  feature-flag)      cmd_feature_flag "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
+
 
 

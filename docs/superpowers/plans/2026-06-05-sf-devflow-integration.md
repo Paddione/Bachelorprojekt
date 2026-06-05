@@ -739,7 +739,7 @@ git commit -m "feat(devflow): offer factory handoff + record touched_files [T000
 **Files:**
 - Modify: `scripts/factory/pipeline.js` (Deploy phase real-deploy path)
 
-- [ ] **Step 1: Write the PR number at creation time**
+- [x] **Step 1: Write the PR number at creation time**
 
 In the (non-dry-run) Deploy agent prompt, after `gh pr create`, add an instruction to record the PR number immediately (not only at archive):
 
@@ -749,7 +749,7 @@ After the PR is created, record its number on the ticket right away:
   bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
 ```
 
-- [ ] **Step 2: Add a phase breadcrumb at Verify**
+- [x] **Step 2: Add a phase breadcrumb at Verify**
 
 In the Verify phase, after the review panel, add a non-blocking status comment so a human inheriting a half-finished ticket has a trail:
 
@@ -761,7 +761,7 @@ await agent(
 )
 ```
 
-- [ ] **Step 3: Verify + commit**
+- [x] **Step 3: Verify + commit**
 
 Run: `node --check scripts/factory/pipeline.js && ./tests/runner.sh local FA-SF-20 && ./tests/runner.sh local FA-SF-31`
 Expected: exit 0; PASS.

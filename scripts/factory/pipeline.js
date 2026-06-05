@@ -268,6 +268,12 @@ const reviews = (await parallel(
   )),
 )).filter(Boolean)
 
+await agent(
+  `Record a one-line factory status breadcrumb (non-blocking):
+   bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory: phase=Verify, ' + reviews.flatMap(r=>r.findings).length + ' finding(s).')}`,
+  { label: 'verify:breadcrumb', phase: 'Verify' },
+)
+
 const blocking = reviews.flatMap((r) => r.findings).filter((f) => f.severity === 'high' || f.severity === 'critical')
 if (blocking.length) {
   await agent(
@@ -306,8 +312,10 @@ const deploy = await agent(
    Steps:
    1. Push branch ${WORK_BRANCH} to origin:
       cd ${REPO} && git push -u origin ${WORK_BRANCH}
-   2. Open a PR (if not open):
+   2. Open a PR (if not open) and record its number immediately:
       gh pr create --title "feat(${slug}): ${A.title}" --base main
+      PR=$(gh pr view --json number -q .number)
+      bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
    3. Wait for CI to go green. If CI is red after 2 fix attempts, set the ticket
       to blocked and STOP.
    4. Squash-merge (from ${REPO}, NOT the worktree):

@@ -75,8 +75,9 @@ Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre 
 ### Schritt 1: Worktree anlegen
 Erstelle einen neuen Worktree für den Feature-Branch (niemals `.claude/worktrees/` verwenden!):
 ```bash
-git worktree add -b feature/<slug> /tmp/wt-<slug> origin/main
-cd /tmp/wt-<slug> && git submodule update --init --recursive
+# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
+cd /tmp/wt-<slug>
 ```
 
 ### Schritt 1.5: Optionale Asset-Sammlung
@@ -172,8 +173,9 @@ TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 
 ### Schritt 2: Worktree anlegen
 ```bash
-git worktree add -b fix/<slug> /tmp/wt-<slug> origin/main
-cd /tmp/wt-<slug> && git submodule update --init --recursive
+# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+bash scripts/worktree-create.sh fix/<slug> /tmp/wt-<slug>
+cd /tmp/wt-<slug>
 ```
 
 ### Schritt 3: Failing Test schreiben

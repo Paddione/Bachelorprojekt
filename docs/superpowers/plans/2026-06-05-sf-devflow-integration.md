@@ -642,7 +642,7 @@ git commit -m "feat(factory): dispatcher forwards plan-ref/branch to nested pipe
 - Modify: `scripts/factory/conflict-check.sh:107`
 - Modify: `tests/local/FA-SF-01-conflict-check.bats` (add a task-type overlap case)
 
-- [ ] **Step 1: Broaden the filter**
+- [x] **Step 1: Broaden the filter**
 
 Line 107, replace:
 
@@ -658,11 +658,11 @@ with:
 
 so an in-flight human dev-flow ticket (`type='task'`, `status='in_progress'`) with overlapping `touched_files` is detected as a conflict. (The `status IN ('backlog','in_progress','in_review')` clause on line 108 already covers in-flight.)
 
-- [ ] **Step 2: Add a live-seed test**
+- [x] **Step 2: Add a live-seed test**
 
 In `FA-SF-01-conflict-check.bats`, add a test (using the existing fixture helpers in `tests/lib/factory-test-fixtures.sh`) that seeds a `type='task'` ticket with `touched_files = {k3d/configmap-domains.yaml}` in `in_progress`, then asserts `conflict-check.sh <new_id> k3d/configmap-domains.yaml` exits 1 and names that ticket. Gate it behind `FACTORY_CTX` like the other live-seed tests, and purge after.
 
-- [ ] **Step 3: Verify + commit**
+- [x] **Step 3: Verify + commit**
 
 Run: `bash -n scripts/factory/conflict-check.sh && ./tests/runner.sh local FA-SF-01`
 Expected: exit 0; PASS (offline cases; live-seed skips without `FACTORY_CTX`).

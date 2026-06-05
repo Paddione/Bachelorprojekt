@@ -37,3 +37,34 @@ setup() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"workspace-korczewski"* ]]
 }
+
+@test "FA-SF-04: conflict-check detects in-flight task tickets" {
+  if [[ -z "${FACTORY_CTX:-}" ]]; then
+    skip "FACTORY_CTX not set (live-seed test skipped)"
+  fi
+  source tests/lib/factory-test-fixtures.sh
+
+  # Seed a feature ticket first
+  local brand="korczewski"
+  local file="k3d/configmap-domains.yaml"
+  local ext_id
+  ext_id=$(seed_test_feature "$brand" "$file")
+
+  # Update it to be type='task' and status='in_progress' to simulate in-flight human work
+  local ns="${FACTORY_NS:-workspace-korczewski-dev}"
+  local pod
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET type='task', status='in_progress' WHERE external_id = '$ext_id';"
+
+  # Verify conflict-check detects it for a different ticket ID
+  run env BRAND="$brand" FACTORY_CTX="$FACTORY_CTX" FACTORY_NS="$ns" \
+    bash scripts/factory/conflict-check.sh "T999999" "$file"
+  
+  # Clean up before assert
+  purge_factory_test_data "$brand"
+
+  # Assert
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "$ext_id" ]]
+}

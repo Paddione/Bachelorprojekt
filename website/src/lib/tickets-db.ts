@@ -1,5 +1,15 @@
 // website/src/lib/tickets-db.ts
 import { pool, ensureSchemaOnce } from './website-db';
+import { MixedEmbeddingModelError } from './knowledge-db';
+import type { EmbeddingModel } from './embeddings';
+
+export { MixedEmbeddingModelError };
+
+/** The embedding model this environment writes/queries with. bge-m3 in prod
+ *  (LLM_ENABLED=true), voyage-multilingual-2 in dev. Mirrors knowledge-db.ts. */
+export function ticketEmbeddingModel(): EmbeddingModel {
+  return process.env.LLM_ENABLED === 'true' ? 'bge-m3' : 'voyage-multilingual-2';
+}
 
 let schemaReady = false;
 
@@ -282,6 +292,12 @@ export async function initTicketsSchema(): Promise<void> {
   `);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_ticket_idx ON tickets.ticket_embeddings (ticket_id)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_embeddings_chunk_type_idx ON tickets.ticket_embeddings (chunk_type)`);
+
+  // Phase 1 Software Factory: tag each embedding row with the model that
+  // produced it. bge-m3 (prod) and voyage-multilingual-2 (dev) are both
+  // 1024-dim but their vector spaces are NOT interchangeable — search MUST
+  // never compare across models (see findSimilarTickets / MixedEmbeddingModelError).
+  await pool.query(`ALTER TABLE tickets.ticket_embeddings ADD COLUMN IF NOT EXISTS embedding_model TEXT`);
 
   // HNSW index for cosine similarity search. bge-m3 embeddings should be
   // normalized before storage so cosine distance is meaningful.

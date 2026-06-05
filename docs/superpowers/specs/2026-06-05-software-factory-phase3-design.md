@@ -28,6 +28,7 @@ internen Dashboard sichtbar. **Ein reproduzierbarer, autonomer End-to-End-Lauf =
 4. Selbst-heilende Retry-Loops
 5. Feature-Flags / Dark-Launch
 6. Live-Metrik-Dashboard
+7. **Adaptive Agent-Provisioning** — ideales Modell · Effort-Profil (ultracode) · passender Kontext pro Subagent
    - Directory-Level-Konflikt-Heuristik
    - Harte Sicherheits-Guards (Querschnitt)
 
@@ -162,6 +163,24 @@ Neue `ticket.sh`-Subcommands (Dispatch-Case `scripts/ticket.sh:431-442`, kubectl
   explizites `ENV=mentolder|korczewski` (nie bare context). NEU `guards.sh check_diff_size`.
 - **Escalation-Routing** — `dispatcher.js:88`: `parallel()`-Return in `const results` einfangen; neuer Post-Launch-
   Step: bei `error`/`status:'blocked'` ⇒ `ToolSearch select:PushNotification` → notify + Eintrag am Vorhaben-Ticket.
+- **Adaptive Agent-Provisioning (Modell · Effort · Kontext)** — NEU `scripts/factory/provision.js`
+  (Workflow-Runtime-Helper, von `pipeline.js` importiert/inlined): reine Funktion `provision(task) → {model, effort, context}`,
+  gespeist von Scouts `complexity`/`risk` + Task-Rolle + Workflow-`budget`. Plug-in: `pipeline.js` Scout setzt
+  `complexity`; Plan/Implement/Verify rufen `provision()` **pro gespawntem Agent** und reichen `{model, effort}`
+  an `agent(prompt, {model})` bzw. an die Fan-out-Struktur weiter. Formalisiert die „Komplexitäts-Skalierung"
+  der Vorgänger-Spec (§3) in echte Logik. Drei Achsen:
+  - **Modell (ideal):** `(complexity × Rolle) → Tier`. simple→`haiku` (mechanisch), medium→`sonnet`, complex→`opus`;
+    Review/Security/Adversarial-Rollen **immer `opus`** (korrektheits-kritisch); im Zweifel **omit/inherit**
+    (Main-Loop-Default, gemäß ultracode-Guidance: Modell nur setzen, wenn man sicher ist).
+  - **Effort (ultracode-Profile):** `complexity → Orchestrierungs-Tiefe`. `quick` (1 Implementer + 1-Vote-Verify) /
+    `standard` (2–3 parallele Implementer + 1 Review-Pass) / `ultra` (Fan-out-Implementer + **3-Vote-adversariale**
+    Verify-Panel + Completeness-Critic + loop-until-dry). Profil wählt sich aus `complexity`/`risk`; die Tiefe
+    **skaliert am Workflow-`budget`** (Token-Cap pro Feature) und respektiert den Daily-Deploy-/Kosten-Cap.
+  - **Kontext (passend & KOMPAKT):** `buildContext(ticket, task)` montiert: Vorhaben-T000413-Pack
+    (Vision/Konventionen/Footguns) + Ticket-Spec/Attachments (`ticket.sh get-attachments`) + `touched_files` +
+    relevante Ziel-Code-Auszüge + (**nur bei verfügbarem GPU-Embedding**) pgvector-ähnliche Tickets — **degradiert
+    sauber ohne GPU**. **Harte Regel:** Kontext wird **verdichtet** in den Agent-Prompt injiziert, **nie als Roh-JSON-
+    Dump** (Lehre aus dem P3-Design-Panel: ein 162k-Zeichen-Prompt ließ den Synth-Agenten scheitern).
 
 ### Phase 2 — Trigger / Service
 - **Persistenter Dispatcher-Wakeup** — NEU `scripts/factory/wakeup.sh` (`cd` Repo; bei Bedarf
@@ -193,6 +212,8 @@ Neue `ticket.sh`-Subcommands (Dispatch-Case `scripts/ticket.sh:431-442`, kubectl
 - NEU `FA-SF-3x`: Retry-Loop-Klassifikation, Directory-Heuristik (insb. **Regression: zwei
   `website/src/pages/`-Features bleiben PARALLEL**), Canary/Rollback-Kontrakt, `factory_control`/`feature_flags`-
   Schema (beide Namespaces), Dashboard-Route-Kontrakt (401 ohne Session).
+- NEU `provision.js`-Routing-Test (reine Funktion): `(complexity × Rolle) → {model, effort}`-Mapping deterministisch
+  (z. B. simple→haiku/quick, complex→opus/ultra, Review-Rolle→opus immer), Budget-Skalierung, GPU-Degradation.
 - Jede Test-Ergänzung ⇒ Eintrag in `website/src/data/test-inventory.json` (CI `task test:inventory` diff-gated).
 - Spike (Task 0) liefert ein dokumentiertes Beweis-Artefakt (headless Workflow-Nesting Go/No-Go).
 

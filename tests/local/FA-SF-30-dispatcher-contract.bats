@@ -36,3 +36,22 @@ setup() { load 'test_helper.bash'; }
   run grep -q "mentolder" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -q "korczewski" "$SCRIPT"; [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-30: PREP gate reads hard guards fresh per tick via guards.sh" {
+  run grep -q "scripts/factory/guards.sh" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "guard_killswitch_on" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "guard_daily_cap_reached" "$SCRIPT"; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-30: PREP gate is fail-closed (drops the brand from launch on guard trip / read error)" {
+  run grep -Eq "fail-closed|fail closed" "$SCRIPT"; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-30: captures the parallel() launch result (not discarded)" {
+  run grep -Eq "const +results +=.*parallel\(|= await parallel\(" "$SCRIPT"; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-30: post-launch escalation loads PushNotification via ToolSearch and notifies on error/blocked" {
+  run grep -q "ToolSearch select:PushNotification" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -Eq "\.error|status === 'blocked'|status: *'blocked'|blocked" "$SCRIPT"; [ "$status" -eq 0 ]
+}

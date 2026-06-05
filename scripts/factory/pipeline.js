@@ -247,6 +247,9 @@ if (tasks.length) {
        Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.
        Target files: ${t.target_files.join(', ')}.
        Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
+       DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
+       (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
+       do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
        After implementing, run locally:
          cd ${WORK_WT} && task workspace:validate && task test:all
        Return a summary of the diff and the local test result (pass/fail).`,
@@ -390,6 +393,10 @@ const deploy = await agent(
       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \
         --branch ${WORK_BRANCH} --plan-file ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
+   5b. Seed the dark-launch flag default-OFF for BOTH brands (mirrors the
+       isFeatureEnabled('${slug}') gate added during Implement):
+      bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
+      bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
    6. Deploy BOTH brands explicitly (fleet cluster, push-based — no GitOps reconciler):
       Website changes: task feature:website (auto-rolls out via CI for both brands)
       K8s/manifest changes: task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski

@@ -1,0 +1,76 @@
+# docs/code-quality/subsystems.yaml
+# Curated subsystem registry (C4 ownership SSOT). ORDERED: the first subsystem
+# whose paths[] glob matches a file owns that file. Owner_agent MUST be one of the
+# six routing agents. Do not edit repo-index.json by hand — run `task quality:index`.
+- id: tests
+  name: Test suites (BATS + Playwright + vitest)
+  paths: ["tests/**", "website/test/**", "website/tests/**"]
+  owner_agent: bachelorprojekt-test
+  test_location: tests/
+  purpose: Offline + E2E + unit test harness and fixtures.
+- id: scripts-db
+  name: Database scripts (migrations + datamodel)
+  paths: ["scripts/migrations/**", "scripts/datamodel/**"]
+  owner_agent: bachelorprojekt-db
+  test_location: scripts/datamodel/tests/
+  purpose: SQL migrations and the datamodel/ERD generator.
+- id: website
+  name: Astro + Svelte website
+  paths: ["website/**"]
+  owner_agent: bachelorprojekt-website
+  test_location: website/test/
+  purpose: Public site, admin portal, chat, billing, content hub.
+- id: infra-manifests
+  name: Kubernetes manifests, overlays, env registry
+  paths:
+    - "k3d/**"
+    - "prod/**"
+    - "prod-fleet/**"
+    - "prod-mentolder/**"
+    - "prod-korczewski/**"
+    - "environments/**"
+    - "k3s/**"
+    - "deploy/**"
+    - "wireguard/**"
+    - "docker/**"
+    - "mcp-browser/**"
+    - "claude-code/**"
+  owner_agent: bachelorprojekt-infra
+  test_location: tests/manifests/
+  purpose: Kustomize bases/overlays, sealed secrets, sidecar images, MCP config.
+- id: scripts-infra
+  name: Operational + build scripts
+  paths: ["scripts/**"]
+  owner_agent: bachelorprojekt-infra
+  test_location: scripts/tests/
+  purpose: Deploy/migration/build helpers (everything in scripts/ that is not DB).
+- id: brett
+  name: Brett 3D board (CommonJS)
+  paths: ["brett/**"]
+  owner_agent: bachelorprojekt-website
+  test_location: brett/
+  purpose: Node.js 3D systemic-constellation board + mayhem game.
+- id: arena-server
+  name: Arena WebSocket game server (TS)
+  paths: ["arena-server/**"]
+  owner_agent: bachelorprojekt-infra
+  test_location: arena-server/src/
+  purpose: Korczewski-only authoritative game server.
+- id: openclaw
+  name: OpenClaw WSL gateway config
+  paths: ["openclaw/**"]
+  owner_agent: bachelorprojekt-infra
+  test_location: openclaw/
+  purpose: Local LLM gateway bootstrap config.
+- id: assets
+  name: Design + art-library assets
+  paths: ["assets/**", "art-library/**"]
+  owner_agent: bachelorprojekt-website
+  test_location: art-library/_tooling/
+  purpose: Design overviews, game art, art-library tooling.
+- id: pentest
+  name: Pentest dashboard
+  paths: ["pentest-dashboard/**"]
+  owner_agent: bachelorprojekt-security
+  test_location: pentest-dashboard/
+  purpose: Security tooling dashboard.

@@ -1,0 +1,3 @@
+# this comment mentions auth.mentolder.de but it is a comment, not a literal
+host: "{{ .PROD_DOMAIN }}"
+note: see auth.localhost for dev

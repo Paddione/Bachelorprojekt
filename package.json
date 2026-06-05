@@ -6,7 +6,8 @@
     "test:track-pr": "node --test scripts/track-pr.test.mjs",
     "test:docs-gen": "node --test scripts/docs-gen/*.test.mjs",
     "build:docs": "node scripts/build-docs.mjs",
-    "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs"
+    "test:agent-guide": "node --test scripts/agent-guide/*.test.mjs",
+    "test:code-quality": "node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -18,6 +19,7 @@
     "@mermaid-js/mermaid-cli": "^11.15.0",
     "cheerio": "^1.2.0",
     "gray-matter": "^4.0.3",
+    "madge": "^8.0.0",
     "marked": "^18.0.4",
     "yaml": "^2.9.0"
   }

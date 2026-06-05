@@ -1,0 +1,12 @@
+- id: a
+  name: A
+  paths: ["website/**"]
+  owner_agent: bachelorprojekt-website
+  test_location: website/
+  purpose: dup test a.
+- id: b
+  name: B
+  paths: ["website/**"]
+  owner_agent: bachelorprojekt-infra
+  test_location: website/
+  purpose: dup test b.

@@ -43,6 +43,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify code-quality repo index is up to date
+        run: |
+          task quality:index
+          if ! git diff --exit-code docs/code-quality/repo-index.json; then
+            echo "ERROR: docs/code-quality/repo-index.json is stale — run 'task quality:index' locally and commit"
+            exit 1
+          fi
+
+      - name: Run code-quality gates (baseline ratchet)
+        run: task quality:check
+
       - name: Verify route manifest is up to date
         run: |
           task routes:manifest

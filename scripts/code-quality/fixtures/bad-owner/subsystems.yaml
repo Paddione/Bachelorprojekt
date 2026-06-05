@@ -1,0 +1,6 @@
+- id: bogus
+  name: Bogus
+  paths: ["website/**"]
+  owner_agent: bachelorprojekt-bogus
+  test_location: website/
+  purpose: invalid owner test.

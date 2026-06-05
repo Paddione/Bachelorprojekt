@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('pg', () => {
-  const { newDb } = require('pg-mem') as typeof import('pg-mem');
+  const { newDb, DataType } = require('pg-mem') as typeof import('pg-mem');
   const mem = newDb();
 
   // Register to_char function for pg-mem
   mem.public.registerFunction({
     name: 'to_char',
-    args: ['date', 'text'],
-    returns: 'text',
+    args: [DataType.date, DataType.text],
+    returns: DataType.text,
     implementation: (date: any, format: string) => {
       if (!date) return null;
       const d = new Date(date);

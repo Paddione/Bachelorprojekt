@@ -56,6 +56,11 @@ export function __resetSchemaInitCacheForTests(): void {
   _schemaInitOnce.clear();
 }
 
+// Eager boot-time init so tracker schema migrations apply on rollout rather
+// than on the first lazy code path that happens to call initTicketsSchema (T000410).
+// Non-blocking fire-and-forget: ensureSchemaOnce caches the promise and retries
+// on the next access if the DB is not yet ready at startup.
+initTicketsSchema().catch(() => { /* retried on first access via ensureSchemaOnce */ });
 
 // ── Timeline (PR5: reads from tickets.pr_events on the same DB) ─────────────
 // Historical note: an earlier implementation used a separate tracking pool

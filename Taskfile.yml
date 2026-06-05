@@ -261,6 +261,12 @@ tasks:
       - task: test:unit:wg-mesh-fullmesh
       - task: test:unit:recovery-domain-durability
       - task: test:unit:ticket-external-id
+      - task: test:unit:website-ci-deploy
+
+  test:unit:website-ci-deploy:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/website-ci-deploy.bats
 
   test:unit:assert:
     internal: true

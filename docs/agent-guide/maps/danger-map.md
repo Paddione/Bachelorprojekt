@@ -57,17 +57,23 @@ Ziele/Werkzeuge sie referenzieren (transitiv) — also ggf. unter mehreren Stufe
 **Ziele:**
 - `aenderung-ausrollen` — Ich will eine Änderung in der Produktion ausrollen
 - `datenbank-aendern` — Ich will das Datenbankschema ändern
+- `factory-autopilot` — Ich will, dass die Factory wartende Aufgaben selbst abarbeitet
+- `factory-feature-bauen` — Ich will ein Feature von der Software Factory bauen lassen
 - `pr-oeffnen` — Ich will einen Pull Request öffnen und CI grün bekommen
 
 **Werkzeuge:**
 - `agent-db` — Datenbank-Agent (db)
 - `agent-infra` — Infrastruktur-Agent (infra)
 - `agent-security` — Sicherheits-Agent (security)
+- `factory` — Software Factory (Auto-Bau)
+- `factory-dispatch` — Factory-Dispatcher (Warteschlange)
 
 **Guardrails (transitiv):**
 - `G-ASK-EXPERT` — Bei Rot: stoppen und fragen
 - `G-ENV-EXPLICIT` — ENV immer explizit setzen
+- `G-FACTORY-DRYRUN` — Factory erst im Dry-Run beweisen
 - `G-PR-NOT-MAIN` — Nie direkt auf main
+- `G-PULL-FIRST` — Erst ziehen, dann arbeiten
 - `G-SECRET-ORDER` — Geheimnis-Reihenfolge einhalten
 - `G-VALIDATE-FIRST` — Erst prüfen, dann anwenden
 

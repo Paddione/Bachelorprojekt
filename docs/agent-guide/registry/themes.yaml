@@ -9,3 +9,4 @@
 - { id: ausrollen,  label_de: "Ausrollen & Infrastruktur", emoji: "🚀", order: 5, accent: "#5ad1c4", blurb_de: "Änderungen live bringen, Cluster verwalten." }
 - { id: datenbank,  label_de: "Datenbank",                 emoji: "🗄", order: 6, accent: "#6c8cff", blurb_de: "Schema, Migrationen und Daten." }
 - { id: sicherheit, label_de: "Sicherheit & Geheimnisse",  emoji: "🔒", order: 7, accent: "#c77dff", blurb_de: "Secrets, Keycloak, Zertifikate." }
+- { id: fabrik,     label_de: "Software Factory",           emoji: "🏭", order: 8, accent: "#7d6cf0", blurb_de: "Features (halb-)autonom bauen lassen — von der Übergabe bis zum Deploy." }

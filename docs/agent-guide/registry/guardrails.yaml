@@ -33,3 +33,8 @@
   rule_de: "Bei 🔴-Aktionen nicht selbst handeln — Patrick fragen."
   why_de: "Diese Aktionen können die Plattform für alle lahmlegen."
   enforced_by: hook-forbidden-stop
+- id: G-FACTORY-DRYRUN
+  name_de: "Factory erst im Dry-Run beweisen"
+  rule_de: "Die Software Factory zuerst im Dry-Run (Workflow-args dry_run: true) laufen lassen; den echten Deploy erst nach grünem Probelauf bewusst freischalten."
+  why_de: "Die Factory implementiert und deployt selbstständig — ein Probelauf ohne Merge und Deploy fängt Fehler ab, bevor sie live gehen."
+  enforced_by: docs-only

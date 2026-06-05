@@ -193,3 +193,33 @@
   links:
     - { label_de: "Begriffe & Glossar", url: "https://docs.mentolder.de/glossary.html" }
   init_prompt_de: "Übergib das an den Security-Agenten: <Secret rotieren, Keycloak/OIDC, DSGVO>."
+- id: factory
+  name_de: "Software Factory (Auto-Bau)"
+  kind: task
+  summary_de: "Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy."
+  what_for_de: "Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse)."
+  how_to_start_de: "Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy."
+  what_could_go_wrong_de: "Sie implementiert und deployt selbstständig (🟠). Ohne Dry-Run kann ein fehlerhafter Stand live gehen — darum erst den Probelauf, dann bewusst scharf schalten."
+  danger: assisted
+  theme: fabrik
+  stages: [code, pr-ci, deploy]
+  aliases_de: [factory, "software factory", pipeline, "auto-bau", autonom, scout]
+  guardrails: [G-FACTORY-DRYRUN, G-PR-NOT-MAIN, G-VALIDATE-FIRST]
+  related: [dev-flow-plan, factory-dispatch]
+  links: []
+  init_prompt_de: "Übergib das an die Software Factory: <gut umrissenes Feature> — und mach zuerst einen Dry-Run."
+- id: factory-dispatch
+  name_de: "Factory-Dispatcher (Warteschlange)"
+  kind: task
+  summary_de: "Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline."
+  what_for_de: "Damit übergebene Tickets (type=feature/status=backlog) automatisch abgearbeitet werden — mit Slots pro Marke, Konflikt-Gate und Watchdog."
+  how_to_start_de: "Über das Workflow-Tool mit scripts/factory/dispatcher.js starten ('task factory:dispatch' zeigt die Invocation), wiederkehrend selbst-getaktet via /loop. Probelauf mit args { dry_run: true }."
+  what_could_go_wrong_de: "Er startet Bauläufe selbstständig (🟠). Bei überlappenden Dateien greift das Konflikt-Gate; ein hängender Lauf wird nach 30 min vom Watchdog eskaliert."
+  danger: assisted
+  theme: fabrik
+  stages: [code, pr-ci, deploy]
+  aliases_de: [dispatcher, warteschlange, queue, slots, watchdog, scheduler]
+  guardrails: [G-FACTORY-DRYRUN, G-PR-NOT-MAIN]
+  related: [factory]
+  links: []
+  init_prompt_de: "Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run)."

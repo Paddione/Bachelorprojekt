@@ -105,6 +105,9 @@ jobs:
           # Auth
           MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
           MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
+          # Skip prod DB purge until CRON_SECRET is provisioned as a repo secret (T000408).
+          # Without this the global setup throws before any spec runs.
+          SKIP_DB_PURGE: "1"
         run: npx playwright test
 
       # Ingest Playwright JSON into the website's test_runs/test_results +

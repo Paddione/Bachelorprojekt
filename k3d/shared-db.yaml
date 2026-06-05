@@ -218,9 +218,9 @@ spec:
                       -c "ALTER USER vaultwarden WITH PASSWORD '$${VAULTWARDEN_DB_PASSWORD}';" \
                       -c "ALTER USER website WITH PASSWORD '$${WEBSITE_DB_PASSWORD}';"
                     psql -U postgres -c "DO \$\$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'docuseal') THEN EXECUTE 'ALTER USER docuseal WITH PASSWORD ''$${DOCUSEAL_DB_PASSWORD}'''; END IF; END \$\$;"
+                    bash /scripts/ensure-knowledge-schema.sh || true
                     bash /scripts/ensure-meetings-schema.sh || true
                     bash /scripts/ensure-bachelorprojekt-schema.sh || true
-                    bash /scripts/ensure-knowledge-schema.sh || true
           ports:
             - containerPort: 5432
           volumeMounts:

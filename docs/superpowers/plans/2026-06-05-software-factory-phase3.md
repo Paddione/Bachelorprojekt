@@ -795,7 +795,7 @@ Defined here and consumed by the retry-loop / escalation segments:
 - Create: `scripts/factory/shared-state-allowlist.txt`
 - Test: `tests/local/FA-SF-32-classify-paths.bats` (allowlist-presence assertion only in this task; classifier logic in B.2)
 
-- [ ] **Step 1: Write the failing test** — create `tests/local/FA-SF-32-classify-paths.bats` with the allowlist-existence check:
+- [x] **Step 1: Write the failing test** — create `tests/local/FA-SF-32-classify-paths.bats` with the allowlist-existence check:
 ```bash
 #!/usr/bin/env bats
 # FA-SF-32: shared-state allowlist + classify-paths.sh escalate-class detection.
@@ -811,13 +811,13 @@ setup() { load 'test_helper.bash'; }
 }
 ```
 
-- [ ] **Step 2: Run it, expect FAIL** — file does not exist yet:
+- [x] **Step 2: Run it, expect FAIL** — file does not exist yet:
 ```
 ./tests/runner.sh local FA-SF-32
 ```
 Expected: `FA-SF-32 ... not ok` / `[ -f "$f" ]` fails (file missing).
 
-- [ ] **Step 3: Implement** — create `scripts/factory/shared-state-allowlist.txt` (one prefix per line, no comments, trailing newline):
+- [x] **Step 3: Implement** — create `scripts/factory/shared-state-allowlist.txt` (one prefix per line, no comments, trailing newline):
 ```
 k3d/
 prod
@@ -825,13 +825,13 @@ environments/
 Taskfile
 ```
 
-- [ ] **Step 4: Run it, expect PASS**:
+- [x] **Step 4: Run it, expect PASS**:
 ```
 ./tests/runner.sh local FA-SF-32
 ```
 Expected: `ok 1 FA-SF-32: shared-state-allowlist.txt exists with the four required prefixes`.
 
-- [ ] **Step 5: Commit**:
+- [x] **Step 5: Commit**:
 ```
 git add scripts/factory/shared-state-allowlist.txt tests/local/FA-SF-32-classify-paths.bats && git commit -m "feat(factory): add shared-state allowlist for escalate-class path classification [T000413]"
 ```

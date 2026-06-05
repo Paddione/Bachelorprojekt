@@ -1,0 +1,5 @@
+version: '3'
+tasks:
+  run:
+    cmds:
+      - bash scripts/code-quality/fixtures/s4/referenced.sh

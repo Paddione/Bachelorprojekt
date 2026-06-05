@@ -1,0 +1,93 @@
+# docs/code-quality/gates.yaml
+# Gate configuration. scan.* defines the universe for emit + every gate.
+scan:
+  code_roots:
+    - website
+    - tests
+    - scripts
+    - brett
+    - arena-server
+    - assets
+    - art-library
+    - k3d
+    - prod
+    - prod-fleet
+    - prod-mentolder
+    - prod-korczewski
+    - environments
+    - k3s
+    - deploy
+    - wireguard
+    - docker
+    - mcp-browser
+    - claude-code
+    - openclaw
+    - pentest-dashboard
+  ignore_globs:
+    - "k3d/docs-content-built/**"
+    - "website/src/lib/system-test-seed-data.ts"
+    # Synthetic gate-test fixtures live under scripts/** (scripts-infra) but must
+    # never enter the scan-universe — otherwise they perturb repo-index.json and
+    # could be mistaken for orphans/over-limit files. Ignoring them keeps the
+    # index and every gate baseline stable as fixtures are added (Finding-3 fix).
+    - "scripts/code-quality/fixtures/**"
+
+s1:
+  limits:
+    .astro: 400
+    .ts: 600
+    .svelte: 500
+    .sh: 500
+    .mjs: 500
+    .mts: 500
+    .py: 600
+    .js: 600
+    .jsx: 600
+    .tsx: 400
+    .cjs: 200
+    .bash: 300
+    .java: 400
+    .php: 400
+  ignore:
+    - "website/src/lib/system-test-seed-data.ts"
+
+s2:
+  graphs:
+    - id: website
+      tsconfig: website/tsconfig.json
+    - id: arena-server
+      tsconfig: arena-server/tsconfig.json
+    - id: e2e
+      tsconfig: tests/e2e/tsconfig.json
+
+s3:
+  scope_dirs:
+    - k3d/
+    - prod/
+    - prod-fleet/
+    - prod-mentolder/
+    - prod-korczewski/
+    - website/src/
+  # configmap-domains.yaml is the *.localhost dev SSOT — never a violation.
+  allowlist_files:
+    - k3d/configmap-domains.yaml
+
+s4:
+  manifest_globs:
+    - "k3d/*.yaml"
+  script_globs:
+    - "scripts/*.sh"
+    - "scripts/*.mjs"
+  reference_sources:
+    - "Taskfile*.yml"
+    - "**/kustomization.yaml"
+    - "**/kustomization.yml"
+    - "docs/**/*.md"
+    - ".github/workflows/*.yml"
+    - "scripts/**/*.sh"
+    - "scripts/**/*.mjs"
+  allowlist_globs:
+    - "k3d/office-stack/**"
+    - "k3d/coturn-stack/**"
+    - "k3d/sealed-secrets-controller.yaml"
+    - "k3d/backup-secrets.yaml"

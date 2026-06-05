@@ -1,0 +1,6 @@
+- id: website
+  name: Astro + Svelte website
+  paths: ["website/**"]
+  owner_agent: bachelorprojekt-website
+  test_location: website/test/
+  purpose: valid registry for the bad-gates shape test.

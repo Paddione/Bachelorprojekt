@@ -408,6 +408,16 @@ tasks:
         git diff --exit-code website/src/lib/agent-guide.generated.json \
           || (echo "ERROR: agent-guide.generated.json is stale — run 'task agent-guide:emit' and commit"; exit 1)
 
+  test:code-quality:
+    desc: "Run the code-quality gate + registry unit tests (node:test)"
+    cmds:
+      # These tests import the bare `yaml` specifier (via load.mjs) and invoke
+      # node_modules/.bin/madge. A fresh worktree (scripts/worktree-create.sh)
+      # ships no root node_modules, and go-task runs test:all deps concurrently,
+      # so install lazily first. No-op in CI / installed trees. [T000427]
+      - '[ -d node_modules ] || npm ci'
+      - node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
+
 
   test:all:
     desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run + docs-gen"
@@ -419,6 +429,7 @@ tasks:
       - test:dry-run
       - test:docs-gen
       - test:agent-guide
+      - test:code-quality
 
   test:e2e:agent-guide:film:
     desc: "Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)"
@@ -2258,6 +2269,22 @@ tasks:
     desc: "Regenerate docs/agent-guide/maps/{goals,tools,danger}-map.md from the registry"
     cmds:
       - node scripts/agent-guide/emit-maps.mjs
+
+  quality:index:
+    desc: "Validate the code-quality registry and regenerate docs/code-quality/repo-index.json"
+    cmds:
+      - node scripts/code-quality/validate.mjs
+      - node scripts/code-quality/emit-index.mjs
+
+  quality:check:
+    desc: "Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)"
+    cmds:
+      - node scripts/code-quality/check.mjs
+
+  quality:baseline:freeze:
+    desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
+    cmds:
+      - node scripts/code-quality/freeze.mjs
 
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)

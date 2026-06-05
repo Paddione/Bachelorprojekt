@@ -1,0 +1,7 @@
+scan:
+  code_roots: [website]
+  ignore_globs: []
+s1: { limits: { .ts: 600 }, ignore: [] }
+s2: { graphs: [{ id: website }] }
+s3: { scope_dirs: [website/src/], allowlist_files: [] }
+s4: { manifest_globs: ["k3d/*.yaml"], script_globs: ["scripts/*.sh"], reference_sources: ["Taskfile*.yml"], allowlist_globs: [] }

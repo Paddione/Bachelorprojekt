@@ -54,6 +54,19 @@ jobs:
       - name: Run code-quality gates (baseline ratchet)
         run: task quality:check
 
+      - name: Assert baseline did not grow (no new violations allowed)
+        run: |
+          pr_count=$(jq 'keys | length' docs/code-quality/baseline.json)
+          main_count=$(git show origin/main:docs/code-quality/baseline.json 2>/dev/null | jq 'keys | length' || echo "$pr_count")
+          echo "PR baseline keys: ${pr_count}, main baseline keys: ${main_count}"
+          if (( pr_count > main_count )); then
+            echo "ERROR: baseline.json grew on this PR (${main_count} → ${pr_count} keys)."
+            echo "  New violations were added. Fix them or run 'task quality:baseline:freeze' only"
+            echo "  if you intentionally introduced a known-acceptable violation and it was reviewed."
+            exit 1
+          fi
+          echo "✓ baseline key-count is stable or shrinking (${main_count} → ${pr_count})"
+
       - name: Verify route manifest is up to date
         run: |
           task routes:manifest

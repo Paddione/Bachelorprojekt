@@ -107,7 +107,22 @@ WHERE t.external_id != :'ext_id'
   AND t.type IN ('feature','task')
   AND t.status IN ('backlog','in_progress','in_review')
   AND t.touched_files IS NOT NULL
-  AND t.touched_files @> ARRAY[nf.f];
+  AND (
+    -- base: exact element containment (unchanged)
+    t.touched_files @> ARRAY[nf.f]
+    -- augment: directory-prefix match, ONLY for the closed shared-state
+    -- allowlist (k3d/, prod, environments/, Taskfile) and NOT for
+    -- website/src/pages/ (page-only features must stay parallel).
+    OR (
+      nf.f NOT LIKE 'website/src/pages/%'
+      AND (nf.f LIKE 'k3d/%' OR nf.f LIKE 'prod%'
+           OR nf.f LIKE 'environments/%' OR nf.f LIKE 'Taskfile%')
+      AND EXISTS (
+        SELECT 1 FROM unnest(t.touched_files) AS tf
+        WHERE tf LIKE nf.f || '%'
+      )
+    )
+  );
 EOF
 )
 

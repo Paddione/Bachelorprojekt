@@ -1,0 +1,4 @@
+k3d/
+prod
+environments/
+Taskfile

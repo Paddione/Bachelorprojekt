@@ -342,6 +342,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/test-tasks-node-deps.bats
 
+  test:unit:quality-loop:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/quality-loop.bats
+
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
     cmds:

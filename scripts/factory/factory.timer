@@ -1,0 +1,21 @@
+# scripts/factory/factory.timer
+# Software Factory — systemd USER timer. Drives one dispatcher tick every
+# ~10 min, re-arming ONLY after the previous tick exits (single-flight).
+# Enable via `task factory:autopilot:install`.
+[Unit]
+Description=Software Factory dispatcher tick (every ~10 min, re-armed after exit)
+Documentation=file:///home/patrick/Bachelorprojekt/scripts/factory/README.md
+
+[Timer]
+Unit=factory.service
+# First tick 2 min after the user manager comes up.
+OnBootSec=2min
+# Next tick fires 10 min AFTER the previous tick went inactive (no overlap).
+OnUnitInactiveSec=10min
+# Run a tick that was missed while the host was off, on next boot.
+Persistent=true
+# Smear ±60s so multiple machines don't all hit the DB on the same second.
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

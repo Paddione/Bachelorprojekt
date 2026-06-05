@@ -48,6 +48,8 @@ async function main() {
 // ─── Config ──────────────────────────────────────────────────────────────
 
 const A = args ?? {}
+// PushNotification is a deferred Workflow tool — load its schema before any call.
+await ToolSearch({ query: 'select:PushNotification', max_results: 1 })
 const slug = A.slug
 const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
@@ -348,8 +350,40 @@ const deploy = await agent(
       gh pr create --title "feat(${slug}): ${A.title}" --base main
       PR=$(gh pr view --json number -q .number)
       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
-   3. Wait for CI to go green. If CI is red after 2 fix attempts, set the ticket
-      to blocked and STOP.
+    3. STRUCTURED SELF-HEALING RETRY LOOP (≤2 fix attempts; NO raw SQL — use ticket.sh).
+       Run CI to green using this exact loop. Per attempt:
+
+       a) Read the current retry count (fail-closed → treat unreadable as 2):
+            RC=$(bash ${REPO}/scripts/ticket.sh retry-count get --id ${A.ticket_id})
+          If CI is GREEN → go to step 4 (merge).
+          If RC -ge 2 → STOP: this is the 3rd failure. Set blocked, notify, return.
+
+       b) Capture the failing CI log to a file:
+            gh run view --log-failed > /tmp/factory-ci-${A.ticket_id}.log 2>&1 || \
+              gh run view --log > /tmp/factory-ci-${A.ticket_id}.log 2>&1
+
+       c) TWO-GATED auto-fix decision. Auto-fix ONLY when BOTH gates pass:
+          Gate 1 (failure class): source ${REPO}/scripts/factory/classify-failure.sh;
+            CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
+            — must be one of: ci, test, lint.  (sql|manifest|secret|realm|other ⇒ NO auto-fix.)
+          Gate 2 (path class): source ${REPO}/scripts/factory/classify-paths.sh;
+            if paths_are_escalate_class "${scout.touched_files.join(',')}"  (exit 0 = escalate)
+            ⇒ NO auto-fix (shared-state / secret / realm*.json / *.sql touched).
+          If EITHER gate fails ⇒ do NOT auto-fix: set blocked, notify, return (escalate to human).
+
+       d) If both gates pass: make the smallest fix that addresses CLASS=${CLASS} on
+          branch ${WORK_BRANCH}, commit + push, then record the attempt:
+            bash ${REPO}/scripts/ticket.sh retry-count incr --id ${A.ticket_id}
+            bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
+              --body "$(printf 'Factory retry %s/2 (class=%s)\n--- diff ---\n%s\n--- ci log tail ---\n%s' \
+                "$RC" "$CLASS" "$(git diff HEAD~1 --shortstat)" "$(tail -30 /tmp/factory-ci-${A.ticket_id}.log)")"
+          Then re-run CI and repeat from (a).
+
+       If the loop exits because RC -ge 2 OR a gate failed, perform the BLOCK:
+            bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+            bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
+              --body "Factory blocked: CI red after ${A.ticket_id} retries (class gate or cap)."
+          and report that the ticket is blocked. Take NO merge action.
    4. Squash-merge (from ${REPO}, NOT the worktree):
       cd ${REPO} && gh pr merge --squash --delete-branch
    5. Close the ticket and archive the plan:
@@ -367,6 +401,18 @@ const deploy = await agent(
    Report the merged PR number and the deploy command outputs.`,
   { label: 'deploy', phase: 'Deploy' },
 )
+
+// Self-healing retry loop may have ended in 'blocked' (CI red after ≤2 gated attempts).
+if (typeof deploy === 'string' && /blocked/i.test(deploy)) {
+  if (deploy.includes('deploy-guard') || deploy.includes('BLOCK: WORK_BRANCH') || deploy.includes('diff exceeds FACTORY_MAX_DIFF')) {
+    return { status: 'blocked', reason: 'deploy-guard' }
+  }
+  await PushNotification({
+    title: `Factory: ${A.ticket_id} CI-blocked`,
+    body: `Self-healing retry exhausted/escalated for "${A.title}" (${brand}). Human attention needed.`,
+  })
+  return { status: 'blocked', reason: 'ci-red-after-retries', ticket: A.ticket_id }
+}
 
 if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
   return { status: 'blocked', reason: 'deploy-guard' }

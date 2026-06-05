@@ -265,6 +265,7 @@ tasks:
       - task: test:unit:plan-frontmatter-hook
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
+      - task: test:unit:quality-loop
 
   test:unit:website-ci-deploy:
     internal: true
@@ -2285,6 +2286,16 @@ tasks:
     desc: "One-time: freeze the current code-quality violations into docs/code-quality/baseline.json"
     cmds:
       - node scripts/code-quality/freeze.mjs
+
+  quality:baseline:refresh:
+    desc: "Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json"
+    cmds:
+      - node scripts/code-quality/baseline-refresh.mjs
+
+  quality:loop:
+    desc: "Enqueue ≤MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."
+    cmds:
+      - bash scripts/code-quality/loop.sh
 
   docs:deploy:
     desc: Build, push and deploy docs image to both production environments (korczewski + mentolder)

@@ -99,3 +99,6 @@ Tasks parallelisieren mit `pipeline()` oder `parallel()`.
 - Plan: `docs/superpowers/plans/2026-06-05-software-factory-phase1.md`
 - Usage Guide: `docs/superpowers/references/factory-usage.md`
 - Vorhaben: T000413, Ticket: T000420
+
+## D5 Proof: Observed Runtime Fixes
+Verified that the fire-and-forget async IIFE wrappers in `pipeline.js` and `dispatcher.js` acted as no-ops for the harness, which has now been structurally fixed by wrapping the bodies in `async function main() { ... } await main();` to satisfy both static `node --check` syntax checks and execution return propagation. Tested dry-run flag routing and dual-brand schema liveness.

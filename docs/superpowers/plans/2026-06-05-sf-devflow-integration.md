@@ -381,7 +381,7 @@ git commit -m "feat(factory): thread dry_run from dispatcher into nested pipelin
 
 This is the first real end-to-end execution of the pipeline. **Runtime bugs are expected** (spec R3); fix them as they surface, committing each fix separately with `[T000425]`.
 
-- [ ] **Step 1: Verify dual-brand factory schema parity (spec R4)**
+- [x] **Step 1: Verify dual-brand factory schema parity (spec R4)**
 
 Run:
 ```bash
@@ -393,7 +393,7 @@ done
 ```
 Expected: `t` for both namespaces. If `f`, the factory objects are not live on that brand — stop and run the idempotent website-boot init before continuing.
 
-- [ ] **Step 2: Seed an SF-TEST fixture ticket**
+- [x] **Step 2: Seed an SF-TEST fixture ticket**
 
 ```bash
 export TICKET_CTX=fleet
@@ -404,17 +404,17 @@ RES=$(bash scripts/ticket.sh create --type feature --brand mentolder --is-test-d
 echo "$RES"   # external_id|uuid
 ```
 
-- [ ] **Step 3: Run pipeline.js standalone in dry-run**
+- [x] **Step 3: Run pipeline.js standalone in dry-run**
 
 Via the Workflow tool: run `scripts/factory/pipeline.js` with args `{ title, description, slug: 'sf-dryrun-smoke', ticket_id: <external_id>, brand: 'mentolder', timestamp: '2026-06-05T00:00:00Z', dry_run: true }`. Watch `/workflows`.
 Expected: phases Scout→…→Deploy run with real agents; Deploy returns `{status:'dry-run', …}`; **no PR merged, no deploy**. Fix any runtime error and re-run.
 
-- [ ] **Step 4: Run the dispatcher path in dry-run**
+- [x] **Step 4: Run the dispatcher path in dry-run**
 
 Via the Workflow tool: run `scripts/factory/dispatcher.js` with args `{ timestamp: '2026-06-05T00:00:00Z', dry_run: true }`.
 Expected: PREP claims the fixture’s slot, LAUNCH nests the pipeline (real agents, not a 20ms no-op), METRICS posts a summary; the fixture’s slot is released and it returns to `backlog`.
 
-- [ ] **Step 5: Purge the fixture + record observations**
+- [x] **Step 5: Purge the fixture + record observations**
 
 ```bash
 kubectl --context fleet -n workspace exec deploy/shared-db -c postgres -- \

@@ -30,3 +30,16 @@ setup() { load 'test_helper.bash'; }
   [ "$status" -eq 1 ]
   [[ "$output" =~ "set-touched-files" ]]
 }
+
+@test "FA-SF-21: enqueue requires --id" {
+  run bash scripts/ticket.sh enqueue --branch feature/x --plan docs/p.md
+  [ "$status" -eq 2 ]
+}
+@test "FA-SF-21: enqueue rejects unknown option" {
+  run bash scripts/ticket.sh enqueue --id T000001 --bogus z
+  [ "$status" -eq 2 ]
+}
+@test "FA-SF-21: unknown command still errors" {
+  run bash scripts/ticket.sh frobnicate
+  [ "$status" -ne 0 ]
+}

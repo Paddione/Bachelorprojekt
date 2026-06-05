@@ -438,7 +438,7 @@ git add -- scripts/factory/ docs/ 2>/dev/null; git commit -m "fix(factory): runt
 
 Plan-reference storage (spec R1, decided here, DDL-free): `enqueue` writes a structured comment `FACTORY-PLAN-REF branch=<branch> plan=<plan_path>` (author `factory`) into `tickets.ticket_comments`, and `get` surfaces the latest such comment as a `plan_ref` field. The dispatcher already calls `ticket.sh get`, so no new read path is needed.
 
-- [ ] **Step 1: Add failing arg-validation tests**
+- [x] **Step 1: Add failing arg-validation tests**
 
 Append to `tests/local/FA-SF-21-ticket-cli.bats` (mirror its existing offline style):
 
@@ -459,7 +459,7 @@ Append to `tests/local/FA-SF-21-ticket-cli.bats` (mirror its existing offline st
 
 Run: `./tests/runner.sh local FA-SF-21` → the enqueue tests FAIL (subcommand missing).
 
-- [ ] **Step 2: Implement `cmd_enqueue`**
+- [x] **Step 2: Implement `cmd_enqueue`**
 
 Add to `scripts/ticket.sh` (after `cmd_touch`, before the dispatch block):
 
@@ -491,7 +491,7 @@ EOF
 }
 ```
 
-- [ ] **Step 3: Surface `plan_ref` in `cmd_get`**
+- [x] **Step 3: Surface `plan_ref` in `cmd_get`**
 
 In `cmd_get`’s `json_build_object(...)`, add a `plan_ref` key sourced from the latest matching comment. Replace the SELECT with:
 
@@ -509,11 +509,11 @@ SELECT json_build_object(
 ) FROM tickets.tickets t WHERE t.external_id = :'ext_id';
 ```
 
-- [ ] **Step 4: Register the subcommand**
+- [x] **Step 4: Register the subcommand**
 
 In the dispatch `case "$cmd" in` block add `enqueue) cmd_enqueue "$@" ;;` and append `enqueue` to the usage line (line ~395).
 
-- [ ] **Step 5: Verify + commit**
+- [x] **Step 5: Verify + commit**
 
 Run: `bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-21`
 Expected: exit 0; PASS.

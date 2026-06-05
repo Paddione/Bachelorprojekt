@@ -1,0 +1,19 @@
+version: '3'
+
+tasks:
+  run:
+    desc: |
+      Print how to invoke the Phase-1 Software Factory pipeline.
+      The pipeline is a Claude Code Workflow script run by the harness Workflow
+      tool — NOT `node scripts/factory/pipeline.js` (agent/parallel/pipeline are
+      harness globals). This target only documents the invocation.
+    silent: true
+    cmds:
+      - |
+        echo "Software Factory — Phase 1 pipeline"
+        echo "Invoke via the Claude Code Workflow tool with scripts/factory/pipeline.js and args:"
+        echo '  { title, description, slug, ticket_id, brand: mentolder|korczewski, timestamp }'
+        echo ""
+        echo "Offline lint:     node --check scripts/factory/pipeline.js"
+        echo "Contract tests:   ./tests/runner.sh local FA-SF-20"
+        echo "Full offline gate: task test:all"

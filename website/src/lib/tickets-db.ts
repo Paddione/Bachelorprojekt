@@ -104,6 +104,12 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS touched_files TEXT[]`);
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS pipeline_slot INTEGER`);
 
+  // Phase 3 Software Factory: retry_count tracks how many times the pipeline
+  // has retried a failed feature. Reset to 0 on slot-claim; >=2 => block +
+  // PushNotification (see pipeline.js CI-red handling). [T000413]
+  await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0`);
+
+
   await pool.query(`
     ALTER TABLE tickets.tickets
       ADD COLUMN IF NOT EXISTS attention_mode TEXT NOT NULL DEFAULT 'auto'

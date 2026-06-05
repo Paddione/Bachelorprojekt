@@ -93,3 +93,10 @@ psql_tickets() {
   [ "$output" = "t" ]
 }
 
+@test "FA-SF-04: tickets.tickets has retry_count column (NOT NULL DEFAULT 0)" {
+  run psql_tickets "SELECT column_default FROM information_schema.columns WHERE table_schema='tickets' AND table_name='tickets' AND column_name='retry_count'"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "0" ]]
+}
+
+

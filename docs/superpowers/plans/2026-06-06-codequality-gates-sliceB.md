@@ -52,7 +52,7 @@ pr_number: null
 **Files:**
 - Create: `scripts/code-quality/baseline-refresh.test.mjs`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```javascript
 // scripts/code-quality/baseline-refresh.test.mjs
@@ -132,7 +132,7 @@ test('exits 0 and returns empty updated map when baseline is empty', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — verify all fail**
+- [x] **Step 2: Run tests — verify all fail**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -148,7 +148,7 @@ Expected: `Cannot find module` or `not a function` errors — the module doesn't
 **Files:**
 - Create: `scripts/code-quality/baseline-refresh.mjs`
 
-- [ ] **Step 1: Implement `applyRefresh` and the CLI**
+- [x] **Step 1: Implement `applyRefresh` and the CLI**
 
 ```javascript
 // scripts/code-quality/baseline-refresh.mjs
@@ -221,7 +221,7 @@ if (process.argv[1] === __filename) {
 }
 ```
 
-- [ ] **Step 2: Run tests — verify all pass**
+- [x] **Step 2: Run tests — verify all pass**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -239,7 +239,7 @@ Expected:
 ℹ pass 5
 ```
 
-- [ ] **Step 3: Smoke-test the CLI over real HEAD (must not crash)**
+- [x] **Step 3: Smoke-test the CLI over real HEAD (must not crash)**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -248,7 +248,7 @@ node scripts/code-quality/baseline-refresh.mjs 2>&1
 
 Expected: `✓ baseline:refresh — 0 removed, 0 updated, 86 unchanged` (baseline was frozen from HEAD; running refresh again is a no-op).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -265,7 +265,7 @@ git commit -m "feat(cqg): baseline-refresh — remove FIXED entries, lower impro
 
 Depends on: T-B02 (uses `matchGlob` pattern, no code dep — but logically part of the same pipeline).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```javascript
 // scripts/code-quality/group-violations.test.mjs
@@ -351,7 +351,7 @@ test('group over real repo HEAD does not throw (smoke test)', async () => {
 });
 ```
 
-- [ ] **Step 2: Run tests — verify all fail**
+- [x] **Step 2: Run tests — verify all fail**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -367,7 +367,7 @@ Expected: `Cannot find module './group-violations.mjs'`
 **Files:**
 - Create: `scripts/code-quality/group-violations.mjs`
 
-- [ ] **Step 1: Implement `groupViolations` and the CLI**
+- [x] **Step 1: Implement `groupViolations` and the CLI**
 
 ```javascript
 // scripts/code-quality/group-violations.mjs
@@ -450,7 +450,7 @@ if (process.argv[1] === __filename) {
 }
 ```
 
-- [ ] **Step 2: Run tests — verify all pass**
+- [x] **Step 2: Run tests — verify all pass**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -468,7 +468,7 @@ Expected:
 ℹ pass 6
 ```
 
-- [ ] **Step 3: Smoke-test CLI over real HEAD**
+- [x] **Step 3: Smoke-test CLI over real HEAD**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -477,7 +477,7 @@ node scripts/code-quality/group-violations.mjs | jq 'length, .[0]'
 
 Expected: a number > 0 and a JSON object with `gate`, `subsystem`, `count`, `title`, `violation_keys`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -494,7 +494,7 @@ git commit -m "feat(cqg): group-violations — map baseline keys to subsystems f
 
 Depends on: T-B04 (tests reference `group-violations.mjs` fixture output shape).
 
-- [ ] **Step 1: Write the failing BATS tests**
+- [x] **Step 1: Write the failing BATS tests**
 
 ```bash
 #!/usr/bin/env bats
@@ -629,7 +629,7 @@ EOF
 }
 ```
 
-- [ ] **Step 2: Run tests — verify they fail (script not found)**
+- [x] **Step 2: Run tests — verify they fail (script not found)**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -647,7 +647,7 @@ Expected: all tests fail with "No such file or directory" for the script.
 
 Depends on: T-B04.
 
-- [ ] **Step 1: Implement `loop.sh`**
+- [x] **Step 1: Implement `loop.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -775,14 +775,14 @@ done
 echo "quality:loop — done. ${created} ticket(s) created this run."
 ```
 
-- [ ] **Step 2: Make the script executable**
+- [x] **Step 2: Make the script executable**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
 chmod +x scripts/code-quality/loop.sh
 ```
 
-- [ ] **Step 3: Run BATS tests — verify all pass**
+- [x] **Step 3: Run BATS tests — verify all pass**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -798,7 +798,7 @@ Expected:
 4 tests, 0 failures
 ```
 
-- [ ] **Step 4: Smoke-test DRY_RUN=1 over real HEAD**
+- [x] **Step 4: Smoke-test DRY_RUN=1 over real HEAD**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -807,7 +807,7 @@ DRY_RUN=1 bash scripts/code-quality/loop.sh 2>&1
 
 Expected: prints `[DRY_RUN] would create ticket: CQ-GATE:...` lines for each group, then `quality:loop — done.` — no kubectl, no ticket.sh calls.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -824,7 +824,7 @@ git commit -m "feat(cqg): loop.sh — throttled dedup enqueue of CQ-GATE Factory
 
 Depends on: T-B02, T-B06.
 
-- [ ] **Step 1: Add `quality:baseline:refresh` and `quality:loop` tasks**
+- [x] **Step 1: Add `quality:baseline:refresh` and `quality:loop` tasks**
 
 In `Taskfile.yml`, locate the block ending at line 2287 (the `quality:baseline:freeze:` task) and insert after it:
 
@@ -842,7 +842,7 @@ In `Taskfile.yml`, locate the block ending at line 2287 (the `quality:baseline:f
 
 The insertion point is between the closing line of `quality:baseline:freeze:` and the start of `docs:deploy:`.
 
-- [ ] **Step 2: Verify tasks are recognised by go-task**
+- [x] **Step 2: Verify tasks are recognised by go-task**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -858,7 +858,7 @@ quality:index             Validate ...
 quality:loop              Enqueue ≤MAX_NEW new CQ-GATE Factory tickets ...
 ```
 
-- [ ] **Step 3: Run `task quality:baseline:refresh` — must exit 0**
+- [x] **Step 3: Run `task quality:baseline:refresh` — must exit 0**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -867,7 +867,7 @@ task quality:baseline:refresh 2>&1
 
 Expected: `✓ baseline:refresh — 0 removed, 0 updated, 86 unchanged`
 
-- [ ] **Step 4: Run `task quality:loop DRY_RUN=1` — must exit 0**
+- [x] **Step 4: Run `task quality:loop DRY_RUN=1` — must exit 0**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -876,7 +876,7 @@ DRY_RUN=1 task quality:loop 2>&1
 
 Expected: `[DRY_RUN] would create ticket: ...` lines, then `quality:loop — done.`
 
-- [ ] **Step 5: Run full test suite**
+- [x] **Step 5: Run full test suite**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -886,7 +886,7 @@ task test:all 2>&1 | tail -20
 
 Expected: all tasks in `test:all` pass, `0` failures.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-cqg-sliceB

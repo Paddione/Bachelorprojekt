@@ -222,7 +222,7 @@ git commit -m "fix(tickets): ticket-attach default context mentolder(dead)->flee
 **Files:**
 - Modify: `scripts/factory/pipeline.js` (the Scout-persist agent prompt, around the current line 111-116)
 
-- [ ] **Step 1: Delete the dead fallback**
+- [x] **Step 1: Delete the dead fallback**
 
 `ticket.sh` has no `update` subcommand (only `set-touched-files`). In the `scout:persist` agent prompt, remove the fallback lines so the prompt reads only:
 
@@ -237,14 +237,14 @@ await agent(
 
 (Delete the two lines that said “If the set-touched-files subcommand does not exist, fall back to: … ticket.sh update …”.)
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `node --check scripts/factory/pipeline.js && ! grep -q 'ticket.sh update ' scripts/factory/pipeline.js`
 Expected: exit 0 (valid JS, dead fallback gone).
 Run: `./tests/runner.sh local FA-SF-20`
 Expected: PASS (still references `scripts/ticket.sh`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js

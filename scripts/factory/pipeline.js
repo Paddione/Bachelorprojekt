@@ -110,8 +110,6 @@ log(`Scout: complexity=${scout.complexity}, ${scout.touched_files.length} touche
 await agent(
   `Run the following command to record which files this feature touches on the ticket:
    bash ${REPO}/scripts/ticket.sh set-touched-files --id ${A.ticket_id} --files ${JSON.stringify(scout.touched_files.join(','))}
-   If the set-touched-files subcommand does not exist, fall back to:
-   bash ${REPO}/scripts/ticket.sh update --id ${A.ticket_id} --touched-files ${JSON.stringify(scout.touched_files.join(','))}
    Report the command output.`,
   { label: 'scout:persist', phase: 'Scout' },
 )

@@ -91,11 +91,12 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
-Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion, günstiges/schnelles Modell für die mechanische Arbeit. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
+Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion, **Modell + Effort passend zum Charakter der Plan-Tasks**. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 
-Spawne über das `Agent`/`Task`-Tool einen Subagenten mit:
-- `subagent_type: general-purpose`, `model: sonnet`
-- **Effort per Prompt-Direktive:** „Arbeite zügig und fokussiert (medium effort)." (das `Agent`-Tool kennt nur `model`, keinen Effort-Regler).
+Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
+- **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) → `haiku`; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → `sonnet`; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → `opus`. Im Zweifel eine Stufe höher.
+- **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
+- `subagent_type: general-purpose`.
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
   - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
   - Plan-Datei `docs/superpowers/plans/<slug>.md` + Ticket-ID.

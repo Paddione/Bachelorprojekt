@@ -31,16 +31,20 @@ Falls `git stash pop` Konflikte meldet: dem User anzeigen und Klärung einholen.
 
 ---
 
-## Post-Create Checklist (MANDATORY for this repo)
+## Worktree creation (MANDATORY for this repo)
 
-> **⚠️ Agent-specific behaviour:**
-> - **Claude Code**: A `PostToolUse` hook (matcher: `Bash` / `run_shell_command`) fires
->   automatically after `EnterWorktree` or `git worktree add` and handles both steps.
-> - **Gemini CLI**: The hook does **NOT** fire — Gemini CLI's shell tool is named
->   `run_command`, which does not match the hook matcher. **Always run the two
->   commands below manually** immediately after creating a worktree.
+Always create worktrees with the project helper — it is git-crypt-safe and runs
+the post-create steps (git-crypt key/secret handling + submodule init) for you:
 
-Run these two commands from the new worktree root before doing any other work:
+```bash
+bash scripts/worktree-create.sh <branch> <path> [<base>]   # base defaults to origin/main
+cd <path>
+```
+
+A bare `git worktree add` aborts with `smudge filter git-crypt failed` (exit 128)
+since git-crypt landed (PR #1303): it runs the git-crypt smudge filter against a
+key-less worktree gitdir. [T000426] The manual equivalents below are kept as
+reference for any tool that bypasses the helper.
 
 ### 1. Initialize BATS submodules (T000387 / T000107)
 
@@ -54,18 +58,15 @@ git submodule update --init --recursive
 This populates `tests/unit/lib/bats-core`, `bats-assert`, `bats-file`, and
 `bats-support`.
 
-### 2. Symlink `environments/.secrets` (T000383)
+### 2. Secrets are materialized by the helper — do NOT symlink (T000426)
 
-Worktrees start with the stub `.gitkeep` file, not the real secrets. Any task
-that reads `environments/.secrets/<env>.yaml` will fail.
+`scripts/worktree-create.sh` makes git-crypt work in the new worktree (it copies
+the git-crypt key into the worktree gitdir when the repo is unlocked), so
+`environments/.secrets/**` are present and decrypted automatically.
 
-```bash
-ln -sfn /home/patrick/Bachelorprojekt/environments/.secrets \
-        environments/.secrets
-```
-
-The symlink points at the main repo's copy. The target path is absolute so it
-works regardless of where the worktree is placed.
+**Do NOT** run the old `ln -sfn .../environments/.secrets` step. Since git-crypt
+landed (PR #1303) those paths are tracked encrypted blobs; symlinking over them
+masks the tracked files and makes git report them deleted.
 
 ### Verification
 
@@ -73,7 +74,7 @@ works regardless of where the worktree is placed.
 # Submodules OK
 ./tests/unit/lib/bats-core/bin/bats --version
 
-# Secrets symlink OK
+# Secrets present (decrypted when the repo is unlocked)
 ls -la environments/.secrets/mentolder.yaml
 ```
 
@@ -95,21 +96,11 @@ your first commit.
 
 ## Automation note
 
-The `PostToolUse` hook in `.claude/settings.json` (matcher: `run_shell_command`)
-runs both steps automatically for **Claude Code** whenever `EnterWorktree` or a
-shell command that creates a worktree is used. The hook:
-1. Resolves the new worktree path from the tool response (falls back to
-   `git worktree list --porcelain | tail -1`).
-2. Runs `git submodule update --init --recursive --quiet`.
-3. Replaces `environments/.secrets` with a symlink to the main repo's copy.
-
-If you see the status message "Initializing submodules and symlinking secrets
-in new worktree…" the hook fired (Claude Code only).
-
-**Gemini CLI** does not trigger this hook. Always run the two commands manually
-(see Post-Create Checklist above). The `dev-flow-plan` SKILL.md (manual worktree
-path, lines ~128–130) already includes `git submodule update --init --recursive`
-in the worktree-add block — follow that pattern exactly (T000107).
+`scripts/worktree-create.sh` is the single source of truth for worktree creation:
+submodule init AND git-crypt handling happen inside it, for every agent (Claude
+Code, Gemini CLI, the Software Factory). There is no PostToolUse dependency — call
+the helper explicitly. `dev-flow-plan` (feature + fix paths) and the Software
+Factory pipeline all invoke it.
 
 ## Concurrent-Session Safety (T000350)
 

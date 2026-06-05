@@ -53,6 +53,10 @@ const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
 const WT = `/tmp/wt-${slug}`
 
+// Dry-run: skip the destructive Deploy actions (push/merge/prod-deploy). Passed
+// in args by the dispatcher / task; default off. Lets us run Scout→Verify safely.
+const DRY_RUN = A.dry_run === true || A.dry_run === 'true'
+
 // JSON schemas for structured agent outputs
 const SCOUT_SCHEMA = {
   type: 'object',
@@ -255,6 +259,20 @@ if (blocking.length) {
 
 // ── ⑥ Deploy (auto-merge on green CI + both-brand explicit deploy) ──────────
 phase('Deploy')
+if (DRY_RUN) {
+  const report = await agent(
+    `DRY RUN — do NOT push, merge, or deploy anything. From ${REPO}:
+     1. Show the planned diff: git diff origin/main...HEAD (branch feature/${slug}).
+     2. Summarise the review findings already gathered (${reviews.length} review lens result(s)).
+     3. Release the pipeline slot and return the ticket to the queue (nothing shipped):
+        bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
+        bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
+     Report the diff stat + a one-line verdict. Take NO other action.`,
+    { label: 'deploy:dry-run', phase: 'Deploy' },
+  )
+  return { status: 'dry-run', report, reviews: reviews.length, tasks: tasks.length }
+}
+
 const deploy = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
    Deploy the feature to both brands. Operate from the MAIN repo at ${REPO}

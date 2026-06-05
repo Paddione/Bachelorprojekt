@@ -25,3 +25,11 @@
   run grep -Eq 'await (agent|workflow|parallel|pipeline)\(' scripts/factory/pipeline.js;   [ "$status" -eq 0 ]
   run grep -Eq 'await (agent|workflow|parallel|pipeline)\(' scripts/factory/dispatcher.js; [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-31: pipeline.js has a dry-run branch that does NOT merge/deploy" {
+  run grep -Eq 'dry_run|FACTORY_DRY_RUN|DRY_RUN' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  # In the dry-run branch the deploy agent must be guarded: assert a DRY_RUN const exists
+  run grep -Eq 'const DRY_RUN' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}

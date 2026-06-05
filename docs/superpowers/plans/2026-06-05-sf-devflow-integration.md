@@ -279,7 +279,7 @@ git commit -m "docs(factory): mark Phase 2 shipped; drop raw-SQL quickstart [T00
 - Modify: `scripts/factory/pipeline.js` (Config block + Deploy phase)
 - Modify: `tests/local/FA-SF-31-workflow-entrypoint.bats` (add a dry-run assertion)
 
-- [ ] **Step 1: Add the failing assertion**
+- [x] **Step 1: Add the failing assertion**
 
 Append to `FA-SF-31`:
 
@@ -295,7 +295,7 @@ Append to `FA-SF-31`:
 
 Run: `./tests/runner.sh local FA-SF-31` → the new test FAILS.
 
-- [ ] **Step 2: Read the flag in the Config block**
+- [x] **Step 2: Read the flag in the Config block**
 
 After `const WT = …` add:
 
@@ -305,7 +305,7 @@ After `const WT = …` add:
 const DRY_RUN = A.dry_run === true || A.dry_run === 'true'
 ```
 
-- [ ] **Step 3: Branch the Deploy phase**
+- [x] **Step 3: Branch the Deploy phase**
 
 Replace the `phase('Deploy')` block so that when `DRY_RUN` is set it does NOT push/merge/deploy. Concretely, at the start of the Deploy phase:
 
@@ -327,12 +327,12 @@ if (DRY_RUN) {
 // … existing real-deploy agent unchanged below …
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `node --check scripts/factory/pipeline.js && ./tests/runner.sh local FA-SF-31`
 Expected: exit 0; FA-SF-31 PASS (including the new dry-run assertion).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js tests/local/FA-SF-31-workflow-entrypoint.bats

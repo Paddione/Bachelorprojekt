@@ -104,7 +104,7 @@ WITH new_files AS (
 SELECT json_agg(DISTINCT t.external_id)
 FROM tickets.tickets t, new_files nf
 WHERE t.external_id != :'ext_id'
-  AND t.type = 'feature'
+  AND t.type IN ('feature','task')
   AND t.status IN ('backlog','in_progress','in_review')
   AND t.touched_files IS NOT NULL
   AND t.touched_files @> ARRAY[nf.f];

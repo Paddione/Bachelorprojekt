@@ -142,7 +142,14 @@ git add docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
-**STOPP.** Informiere den User, dass der Plan bereit zur Implementierung ist, und bitte ihn, `dev-flow-execute` aufzulufen.
+**STOPP.** Informiere den User, dass der Plan bereit zur Implementierung ist. Er hat nun folgende Optionen:
+1. Den Plan manuell ausführen lassen: Bitte den User, `dev-flow-execute` aufzurufen.
+2. Alternativ — an die Software Factory übergeben: Statt `dev-flow-execute` selbst aufzurufen, kann der geplante Branch autonom abgearbeitet werden. Frage den User; bei Zustimmung:
+```bash
+bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
+  --branch "feature/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
+```
+Das Ticket wird `type=feature/status=backlog` und vom Factory-Dispatcher mit **Plan-Reuse** (kein Neu-Planen) abgearbeitet. STOPP danach.
 
 ---
 

@@ -315,12 +315,43 @@ cmd_get() {
   # Metadata only — NEVER select ticket_plans.content.
   _exec_sql "$pod" -v ext_id="$id" <<'EOF'
 SELECT json_build_object(
-  'external_id', external_id, 'id', id, 'type', type, 'brand', brand,
-  'title', title, 'status', status, 'priority', priority,
-  'touched_files', touched_files, 'pipeline_slot', pipeline_slot,
-  'created_at', created_at, 'updated_at', updated_at
-) FROM tickets.tickets WHERE external_id = :'ext_id';
+  'external_id', t.external_id, 'id', t.id, 'type', t.type, 'brand', t.brand,
+  'title', t.title, 'status', t.status, 'priority', t.priority,
+  'touched_files', t.touched_files, 'pipeline_slot', t.pipeline_slot,
+  'created_at', t.created_at, 'updated_at', t.updated_at,
+  'plan_ref', (
+    SELECT c.body FROM tickets.ticket_comments c
+    WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
+    ORDER BY c.created_at DESC LIMIT 1
+  )
+) FROM tickets.tickets t WHERE t.external_id = :'ext_id';
 EOF
+}
+
+cmd_enqueue() {
+  local id="" branch="" plan=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id)     id="$2"; shift 2 ;;
+      --branch) branch="$2"; shift 2 ;;
+      --plan)   plan="$2"; shift 2 ;;
+      *)        echo "Unknown enqueue option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  # Flip into the factory queue: type=feature, status=backlog (claimable by slots.sh).
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET type='feature', status='backlog' WHERE external_id = :'ext_id';
+EOF
+  # Record a DDL-free plan reference for the pipeline's plan-reuse entrypoint.
+  if [[ -n "$branch" || -n "$plan" ]]; then
+    _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
+INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+SELECT id, 'factory', :'ref', 'internal' FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+  fi
+  echo "Ticket $id enqueued for the Software Factory (type=feature, status=backlog)"
 }
 
 cmd_set_touched_files() {
@@ -392,7 +423,7 @@ EOF
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue" >&2
   exit 1
 fi
 
@@ -408,5 +439,6 @@ case "$cmd" in
   set-pipeline-slot) cmd_set_pipeline_slot "$@" ;;
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;
+  enqueue)           cmd_enqueue "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac

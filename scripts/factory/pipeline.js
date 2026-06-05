@@ -43,7 +43,7 @@ export const meta = {
 //   • `await` is valid at the call sites
 //   • harness-injected globals (agent, parallel, pipeline, phase, log, args)
 //     are in scope without any destructuring from a harness param
-;(async () => {
+async function main() {
 
 // ─── Config ──────────────────────────────────────────────────────────────
 
@@ -52,6 +52,21 @@ const slug = A.slug
 const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
 const WT = `/tmp/wt-${slug}`
+
+// Dry-run: skip the destructive Deploy actions (push/merge/prod-deploy). Passed
+// in args by the dispatcher / task; default off. Lets us run Scout→Verify safely.
+const DRY_RUN = A.dry_run === true || A.dry_run === 'true'
+
+// Plan-reuse: when a human dev-flow plan is handed off, work on that branch and
+// reuse its plan instead of self-planning (Scout/Design/Plan). Falsy → self-plan.
+const REUSE_BRANCH = A.branch || null          // e.g. feature/<slug>
+const REUSE_PLAN   = A.plan_path || null        // e.g. docs/superpowers/plans/<file>.md
+const REUSE = !!(REUSE_BRANCH && REUSE_PLAN)
+const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${slug}`
+const WORK_WT = REUSE ? `/tmp/wt-${slug}-reuse` : WT
+
+let specPath = null
+let tasks = []
 
 // JSON schemas for structured agent outputs
 const SCOUT_SCHEMA = {
@@ -86,7 +101,7 @@ const REVIEW_SCHEMA = {
     summary: { type: 'string' },
   },
 }
-
+if (!REUSE) {
 // ── ① Scout ────────────────────────────────────────────────────────────────
 phase('Scout')
 const scout = await agent(
@@ -110,8 +125,6 @@ log(`Scout: complexity=${scout.complexity}, ${scout.touched_files.length} touche
 await agent(
   `Run the following command to record which files this feature touches on the ticket:
    bash ${REPO}/scripts/ticket.sh set-touched-files --id ${A.ticket_id} --files ${JSON.stringify(scout.touched_files.join(','))}
-   If the set-touched-files subcommand does not exist, fall back to:
-   bash ${REPO}/scripts/ticket.sh update --id ${A.ticket_id} --touched-files ${JSON.stringify(scout.touched_files.join(','))}
    Report the command output.`,
   { label: 'scout:persist', phase: 'Scout' },
 )
@@ -120,7 +133,7 @@ await agent(
 const isSimple = scout.complexity === 'simple'
 
 // ── ② Design ───────────────────────────────────────────────────────────────
-let specPath = null
+specPath = null
 if (!isSimple) {
   phase('Design')
   const design = await agent(
@@ -142,7 +155,7 @@ if (!isSimple) {
 }
 
 // ── ③ Plan (with conflict gate) ────────────────────────────────────────────
-let tasks = []
+tasks = []
 if (!isSimple) {
   phase('Plan')
   // Brand-aware disjoint-files gate BEFORE fanning tasks.
@@ -198,20 +211,34 @@ if (!isSimple) {
   )
   tasks = plan.tasks
 }
+}
+
+if (REUSE) {
+  phase('Plan')
+  const reuse = await agent(
+    `A human already planned this feature via dev-flow. Check out the existing branch
+     ${WORK_BRANCH} into an isolated worktree at ${WORK_WT} (from ${REPO}), then read the
+     plan file ${REUSE_PLAN} on that branch. Decompose it into independent tasks where no
+     two tasks touch the same file: each { id, target_files:[...], acceptance_criteria:[...] }.
+     Do NOT write a new plan or spec — reuse the human one. Return { tasks: [...] }.`,
+    { label: 'plan:reuse', phase: 'Plan', schema: { type:'object', required:['tasks'], properties:{ tasks:{ type:'array', items:{ type:'object', required:['id','target_files','acceptance_criteria'], properties:{ id:{type:'string'}, target_files:{type:'array',items:{type:'string'}}, acceptance_criteria:{type:'array',items:{type:'string'}} } } } } } },
+  )
+  tasks = reuse.tasks
+}
 
 // ── ④ Implement (N parallel tasks, isolated worktrees) ─────────────────────
 let implemented = []
-if (!isSimple && tasks.length) {
+if (tasks.length) {
   phase('Implement')
   implemented = (await pipeline(
     tasks,
     (t) => agent(
       `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-       Implement task ${t.id} on branch feature/${slug} in an isolated worktree at ${WT}.
+       Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.
        Target files: ${t.target_files.join(', ')}.
        Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
        After implementing, run locally:
-         cd ${WT} && task workspace:validate && task test:all
+         cd ${WORK_WT} && task workspace:validate && task test:all
        Return a summary of the diff and the local test result (pass/fail).`,
       { label: `impl:${t.id}`, phase: 'Implement', isolation: 'worktree' },
     ),
@@ -235,11 +262,17 @@ const reviews = (await parallel(
   lenses.map((l) => () => agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
      Read the review prompt at ${REPO}/${l.file} and apply it to the diff of
-     branch feature/${slug} (run: git diff origin/main...HEAD in ${REPO}).
+     branch ${WORK_BRANCH} (run: git diff origin/main...HEAD in ${REPO}).
      Return your findings as JSON matching the review schema.`,
     { label: `review:${l.key}`, phase: 'Verify', schema: REVIEW_SCHEMA },
   )),
 )).filter(Boolean)
+
+await agent(
+  `Record a one-line factory status breadcrumb (non-blocking):
+   bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory: phase=Verify, ' + reviews.flatMap(r=>r.findings).length + ' finding(s).')}`,
+  { label: 'verify:breadcrumb', phase: 'Verify' },
+)
 
 const blocking = reviews.flatMap((r) => r.findings).filter((f) => f.severity === 'high' || f.severity === 'critical')
 if (blocking.length) {
@@ -257,16 +290,32 @@ if (blocking.length) {
 
 // ── ⑥ Deploy (auto-merge on green CI + both-brand explicit deploy) ──────────
 phase('Deploy')
+if (DRY_RUN) {
+  const report = await agent(
+    `DRY RUN — do NOT push, merge, or deploy anything. From ${REPO}:
+     1. Show the planned diff: git diff origin/main...HEAD (branch ${WORK_BRANCH}).
+     2. Summarise the review findings already gathered (${reviews.length} review lens result(s)).
+     3. Release the pipeline slot and return the ticket to the queue (nothing shipped):
+        bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
+        bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
+     Report the diff stat + a one-line verdict. Take NO other action.`,
+    { label: 'deploy:dry-run', phase: 'Deploy' },
+  )
+  return { status: 'dry-run', report, reviews: reviews.length, tasks: tasks.length }
+}
+
 const deploy = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
    Deploy the feature to both brands. Operate from the MAIN repo at ${REPO}
-   (NOT the worktree ${WT}) to avoid gotcha T000342 (merge conflicts from wrong CWD).
+   (NOT the worktree ${WORK_WT}) to avoid gotcha T000342 (merge conflicts from wrong CWD).
 
    Steps:
-   1. Push branch feature/${slug} to origin:
-      cd ${REPO} && git push -u origin feature/${slug}
-   2. Open a PR (if not open):
+   1. Push branch ${WORK_BRANCH} to origin:
+      cd ${REPO} && git push -u origin ${WORK_BRANCH}
+   2. Open a PR (if not open) and record its number immediately:
       gh pr create --title "feat(${slug}): ${A.title}" --base main
+      PR=$(gh pr view --json number -q .number)
+      bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
    3. Wait for CI to go green. If CI is red after 2 fix attempts, set the ticket
       to blocked and STOP.
    4. Squash-merge (from ${REPO}, NOT the worktree):
@@ -274,7 +323,7 @@ const deploy = await agent(
    5. Close the ticket and archive the plan:
       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \
-        --branch feature/${slug} --plan-file ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
+        --branch ${WORK_BRANCH} --plan-file ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
    6. Deploy BOTH brands explicitly (fleet cluster, push-based — no GitOps reconciler):
       Website changes: task feature:website (auto-rolls out via CI for both brands)
       K8s/manifest changes: task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
@@ -288,4 +337,5 @@ const deploy = await agent(
 )
 
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
-})()
+}
+await main();

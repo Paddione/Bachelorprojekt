@@ -171,6 +171,14 @@ if (!isSimple) {
   )
   if (/\"T0/.test(conflict)) {
     log(`Conflict detected: ${conflict}`)
+    await agent(
+      `A file-overlap conflict blocks this feature. Notify the operator: PushNotification is DEFERRED —
+       run \`ToolSearch select:PushNotification\` first, then call it once:
+         title:   "Factory conflict: ${A.ticket_id} (${brand})"
+         message: "Pipeline blocked on file overlap. Detail: ${String(conflict).slice(0, 280)}"
+       Report what was notified.`,
+      { label: 'conflict:escalate', phase: 'Plan' },
+    )
     return { status: 'blocked', reason: 'file-overlap', conflict }
   }
 
@@ -282,6 +290,10 @@ if (blocking.length) {
      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
      bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
        --body ${JSON.stringify('Factory Verify blocked: ' + JSON.stringify(blocking))}
+     Then notify the operator: PushNotification is a DEFERRED tool — run
+     \`ToolSearch select:PushNotification\` to load it, then call it once with
+       title:   "Factory Verify blocked: ${A.ticket_id} (${brand})"
+       message: "${blocking.length} HIGH/CRITICAL review finding(s) block merge."
      Report the command outputs.`,
     { label: 'verify:escalate', phase: 'Verify' },
   )
@@ -309,6 +321,26 @@ const deploy = await agent(
    Deploy the feature to both brands. Operate from the MAIN repo at ${REPO}
    (NOT the worktree ${WORK_WT}) to avoid gotcha T000342 (merge conflicts from wrong CWD).
 
+   HARD GUARDS — run these from ${REPO} and STOP (set the ticket blocked, notify, return) on any failure:
+   a. Branch policy: WORK_BRANCH must match ^(feature|fix)/ .
+      printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*"; exit 1; }
+   b. Diff-size cap (HARD): from ${REPO},
+      source ${REPO}/scripts/factory/guards.sh
+      GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'}
+      If guard_check_diff_size returns non-zero, the diff exceeds FACTORY_MAX_DIFF — DO NOT push/merge/deploy.
+   c. CWD assertion: every git/gh/task command below MUST run with cwd = ${REPO} (the MAIN repo),
+      never the worktree ${WORK_WT} (gotcha T000342).
+   d. Explicit ENV: prod deploys use ENV=mentolder and ENV=korczewski explicitly — NEVER a bare
+      kubectl context. Context is resolved internally via \`source ${REPO}/scripts/env-resolve.sh <env>\`
+      (→ ENV_CONTEXT=fleet); do not pass a bare cluster name.
+
+   If guard (a) or (b) fails: run
+     bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+   then load PushNotification (\`ToolSearch select:PushNotification\`) and notify
+     title: "Factory Deploy blocked: ${A.ticket_id}"
+     message: which guard failed (branch-policy or diff>FACTORY_MAX_DIFF) for brand ${brand}.
+   Return JSON: { "status": "blocked", "reason": "deploy-guard" }.
+
    Steps:
    1. Push branch ${WORK_BRANCH} to origin:
       cd ${REPO} && git push -u origin ${WORK_BRANCH}
@@ -335,6 +367,10 @@ const deploy = await agent(
    Report the merged PR number and the deploy command outputs.`,
   { label: 'deploy', phase: 'Deploy' },
 )
+
+if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
+  return { status: 'blocked', reason: 'deploy-guard' }
+}
 
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 }

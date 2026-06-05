@@ -331,7 +331,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.4: `isFeatureEnabled(brand, key)` TS helper (+ vitest)
 **Files:** Modify `website/src/lib/tickets-db.ts` (export the helper; place it right after `initTicketsSchema`, ~ after the closing brace near where other exports live). Create `website/src/lib/tickets-db.featureflag.test.ts`.
 
-- [ ] **Step 1: Write the failing test** — `website/src/lib/tickets-db.featureflag.test.ts`:
+- [x] **Step 1: Write the failing test** — `website/src/lib/tickets-db.featureflag.test.ts`:
   ```ts
   // website/src/lib/tickets-db.featureflag.test.ts [T000413]
   import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -369,13 +369,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   });
   ```
 
-- [ ] **Step 2: Run it, expect FAIL** (no export yet):
+- [x] **Step 2: Run it, expect FAIL** (no export yet):
   ```bash
   cd /tmp/wt-sf-phase3/website && npx vitest run src/lib/tickets-db.featureflag.test.ts
   ```
   Expected: import/type failure — `"isFeatureEnabled" is not exported by "src/lib/tickets-db.ts"` (suite errors / fails).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, add this exported function immediately after the `initTicketsSchema` function's closing `}` (top-level, alongside the other exports):
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, add this exported function immediately after the `initTicketsSchema` function's closing `}` (top-level, alongside the other exports):
   ```ts
   /** Dark-launch gate. Returns true only when an ENABLED flag row exists for
    *  (brand,key). Fails CLOSED (false) on any DB error so a flag-table outage
@@ -393,13 +393,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3/website && npx vitest run src/lib/tickets-db.featureflag.test.ts
   ```
   Expected: `3 passed` — all three `isFeatureEnabled` cases green.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts website/src/lib/tickets-db.featureflag.test.ts && git commit -m "feat(factory): isFeatureEnabled() dark-launch helper (fail-closed) [T000413]"
   ```

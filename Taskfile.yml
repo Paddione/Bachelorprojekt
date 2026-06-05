@@ -264,6 +264,7 @@ tasks:
       - task: test:unit:website-ci-deploy
       - task: test:unit:plan-frontmatter-hook
       - task: test:unit:worktree-create
+      - task: test:unit:test-tasks-node-deps
 
   test:unit:website-ci-deploy:
     internal: true
@@ -335,6 +336,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/worktree-create.bats
 
+  test:unit:test-tasks-node-deps:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/test-tasks-node-deps.bats
+
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
     cmds:
@@ -380,11 +386,17 @@ tasks:
   test:docs-gen:
     desc: "Run the docs-site generator unit tests + full-build smoke test (node:test)"
     cmds:
+      # Fresh worktrees (scripts/worktree-create.sh) ship no root node_modules;
+      # install lazily before any node script. No-op in CI / installed trees. [T000427]
+      - '[ -d node_modules ] || npm ci'
       - node --test scripts/docs-gen/*.test.mjs
 
   test:agent-guide:
     desc: "Validate the AI-agent guide registry (unit tests + real registry + generated JSON freshness)"
     cmds:
+      # The scripts below `import ... from 'yaml'` (root node_modules). A fresh
+      # worktree has none, so install lazily first. No-op in CI / installed. [T000427]
+      - '[ -d node_modules ] || npm ci'
       - node --test scripts/agent-guide/*.test.mjs
       - node scripts/agent-guide/validate.mjs
       - node scripts/gen-platform-descriptions.mjs

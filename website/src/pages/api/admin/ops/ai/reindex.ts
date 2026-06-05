@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createK8sClient } from '../../../../../lib/k8s';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { pool } from '../../../../../lib/website-db';
+import { platformPool } from '../../../../../lib/website-db';
 import { startAction, finishAction, ConcurrentActionError } from '../../../../../lib/admin-actions';
 import { sanitizeForLog } from '../../../../../lib/sanitize';
 
@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let actionId: number | null = null;
   try {
-    actionId = await startAction(pool, {
+    actionId = await startAction(platformPool, {
       actor: session.preferred_username, action: 'ai_reindex', target: collection, payload: { collection },
     });
 
@@ -50,14 +50,14 @@ export const POST: APIRoute = async ({ request }) => {
     };
     await k8s.post(`/apis/batch/v1/namespaces/${WORKSPACE_NS}/jobs`, job);
 
-    await finishAction(pool, actionId, { status: 'success', payload: { job_name: jobName } });
+    await finishAction(platformPool, actionId, { status: 'success', payload: { job_name: jobName } });
     return new Response(JSON.stringify({ action_id: actionId, job_name: jobName }), { status: 200 });
   } catch (err) {
     if (err instanceof ConcurrentActionError) {
       return new Response(JSON.stringify({ error: 'Reindex läuft bereits, bitte warten' }), { status: 409 });
     }
     const msg = sanitizeForLog((err as Error).message);
-    if (actionId !== null) await finishAction(pool, actionId, { status: 'failed', error: msg }).catch(() => {});
+    if (actionId !== null) await finishAction(platformPool, actionId, { status: 'failed', error: msg }).catch(() => {});
     console.error('[ops/ai/reindex]', err);
     return new Response(JSON.stringify({ error: 'Reindex fehlgeschlagen: ' + msg.slice(0, 200) }), { status: 500 });
   }

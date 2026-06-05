@@ -4,11 +4,15 @@ vi.mock('../../../src/lib/auth', () => ({
   getSession: vi.fn(async () => ({ preferred_username: 'paddione', realmRoles: ['admin'] })),
   isAdmin: vi.fn(() => true),
 }));
-vi.mock('../../../src/lib/website-db', () => ({
-  pool: { query: vi.fn(async () => ({ rows: [
+vi.mock('../../../src/lib/website-db', () => {
+  const q = vi.fn(async () => ({ rows: [
     { id: 5, actor: 'gekko', action: 'redeploy_website', target: 'mentolder', status: 'success', created_at: new Date() },
-  ] })) },
-}));
+  ] }));
+  return {
+    pool: { query: q },
+    platformPool: { query: q },
+  };
+});
 
 import { GET } from '../../../src/pages/api/admin/ops/audit/log';
 

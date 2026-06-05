@@ -13,11 +13,14 @@ vi.mock('pg', () => {
 });
 
 // ─── embeddings mock ────────────────────────────────────────────────────────
-const embedBatch = vi.fn();
-const embedQuery = vi.fn();
+let embedBatch: ReturnType<typeof vi.fn>;
+let embedQuery: ReturnType<typeof vi.fn>;
 vi.mock('./embeddings', async (orig) => {
   const actual = await orig<typeof import('./embeddings')>();
-  return { ...actual, embedBatch, embedQuery };
+  const _embedBatch = vi.fn();
+  const _embedQuery = vi.fn();
+  (globalThis as any).__embeddingsMock = { embedBatch: _embedBatch, embedQuery: _embedQuery };
+  return { ...actual, embedBatch: _embedBatch, embedQuery: _embedQuery };
 });
 
 // ─── imports that depend on the mocks ──────────────────────────────────────
@@ -27,6 +30,8 @@ import { MixedEmbeddingModelError } from './tickets-db';
 
 beforeEach(() => {
   poolQuery = (globalThis as any).__pgMock.poolQuery;
+  embedBatch = (globalThis as any).__embeddingsMock.embedBatch;
+  embedQuery = (globalThis as any).__embeddingsMock.embedQuery;
   poolQuery.mockReset();
   embedBatch.mockReset();
   embedQuery.mockReset();

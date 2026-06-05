@@ -47,7 +47,7 @@ describe('agentGuide typed re-export', () => {
 
   it('exposes themes[] (ordered) and glossary[] from the generated JSON', () => {
     expect(Array.isArray(themes)).toBe(true);
-    expect(themes.length).toBe(7);
+    expect(themes.length).toBe(8);
     expect(themes.map(t => t.id)).toEqual(
       [...themes].sort((a, b) => a.order - b.order).map(t => t.id),
     );

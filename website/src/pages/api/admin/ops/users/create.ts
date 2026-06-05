@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { createUser as kcCreateUser, assignUserToGroups, sendPasswordResetEmail } from '../../../../../lib/keycloak';
-import { pool } from '../../../../../lib/website-db';
+import { platformPool } from '../../../../../lib/website-db';
 import { startAction, finishAction, ConcurrentActionError } from '../../../../../lib/admin-actions';
 import { sanitizeForLog } from '../../../../../lib/sanitize';
 
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
   const username = email.split('@')[0];
   let actionId: number | null = null;
   try {
-    actionId = await startAction(pool, {
+    actionId = await startAction(platformPool, {
       actor: session.preferred_username,
       action: 'user_create',
       target: username,
@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    await finishAction(pool, actionId, {
+    await finishAction(platformPool, actionId, {
       status: partial ? 'partial_success' : 'success',
       payload: { user_id: create.userId, partial, inviteError },
       error: partial ? `User angelegt, Einladung fehlgeschlagen: ${inviteError}` : undefined,
@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Anlage läuft bereits, bitte warten' }), { status: 409 });
     }
     const msg = sanitizeForLog((err as Error).message);
-    if (actionId !== null) await finishAction(pool, actionId, { status: 'failed', error: msg }).catch(() => {});
+    if (actionId !== null) await finishAction(platformPool, actionId, { status: 'failed', error: msg }).catch(() => {});
     console.error('[ops/users/create]', err);
     return new Response(JSON.stringify({ error: 'Anlage fehlgeschlagen: ' + msg.slice(0, 200) }), { status: 500 });
   }

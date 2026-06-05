@@ -31,6 +31,19 @@ function nodeLookup(
 const poolConfig = { connectionString: MEETINGS_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
 export const pool = new Pool(poolConfig);
 
+// Construct a platform database pool.
+// On korczewski brand, this redirects to the mentolder (workspace) database.
+const PLATFORM_DB_URL = (() => {
+  const url = process.env.SESSIONS_DATABASE_URL;
+  if (url && url.includes('shared-db.workspace-korczewski')) {
+    return url.replace('shared-db.workspace-korczewski', 'shared-db.workspace');
+  }
+  return url || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
+})();
+
+const platformPoolConfig = { connectionString: PLATFORM_DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig;
+export const platformPool = new Pool(platformPoolConfig);
+
 // Schema initialisation must run ONCE per process, not on every request.
 // Running idempotent DDL (CREATE TABLE IF NOT EXISTS / ALTER ... ADD CONSTRAINT)
 // on the hot path races concurrent requests on the Postgres system catalog,

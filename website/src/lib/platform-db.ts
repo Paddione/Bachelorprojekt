@@ -1,4 +1,4 @@
-import { pool } from './website-db';
+import { platformPool } from './website-db';
 import { ensureSchemaOnce } from './website-db';
 import platformDescriptions from './platform-descriptions.generated.json';
 
@@ -37,7 +37,7 @@ export interface HardwareAsset {
 // tables are reproducible on a fresh DB. Descriptions are set ONLY where still NULL
 // or the known English placeholder — never overwriting an admin edit. Wrapped in
 // ensureSchemaOnce so it runs at most once per process (see website-db.ts T000304).
-export async function runPlatformSchema(db: { query: typeof pool.query } = pool): Promise<void> {
+export async function runPlatformSchema(db: { query: typeof platformPool.query } = platformPool): Promise<void> {
   await db.query(`CREATE SCHEMA IF NOT EXISTS platform`);
   await db.query(`CREATE TABLE IF NOT EXISTS platform.software_assets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
@@ -68,12 +68,12 @@ export async function runPlatformSchema(db: { query: typeof pool.query } = pool)
 }
 
 export function ensurePlatformSchema(): Promise<void> {
-  return ensureSchemaOnce('platform-schema', () => runPlatformSchema(pool));
+  return ensureSchemaOnce('platform-schema', () => runPlatformSchema(platformPool));
 }
 
 export async function listSoftwareAssets(): Promise<SoftwareAsset[]> {
   await ensurePlatformSchema();
-  const result = await pool.query(
+  const result = await platformPool.query(
     'SELECT * FROM platform.software_assets ORDER BY sort_order ASC, name ASC'
   );
   return result.rows;
@@ -81,14 +81,14 @@ export async function listSoftwareAssets(): Promise<SoftwareAsset[]> {
 
 export async function listHardwareAssets(): Promise<HardwareAsset[]> {
   await ensurePlatformSchema();
-  const result = await pool.query(
+  const result = await platformPool.query(
     'SELECT * FROM platform.hardware_assets ORDER BY sort_order ASC, name ASC'
   );
   return result.rows;
 }
 
 export async function upsertSoftwareAsset(asset: Partial<SoftwareAsset>): Promise<SoftwareAsset> {
-  const result = await pool.query(
+  const result = await platformPool.query(
     `INSERT INTO platform.software_assets
       (slug, name, description, category, emoji, clusters, namespace, deployment_name, image_tag, url, base_status, sort_order)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -116,11 +116,11 @@ export async function upsertSoftwareAsset(asset: Partial<SoftwareAsset>): Promis
 }
 
 export async function deleteSoftwareAsset(id: string): Promise<void> {
-  await pool.query('DELETE FROM platform.software_assets WHERE id = $1', [id]);
+  await platformPool.query('DELETE FROM platform.software_assets WHERE id = $1', [id]);
 }
 
 export async function getTicketsByAsset(slug: string) {
-  const result = await pool.query(`
+  const result = await platformPool.query(`
     SELECT t.id, t.external_id, t.title, t.status, t.created_at
     FROM tickets.tickets t
     JOIN tickets.ticket_tags tt ON tt.ticket_id = t.id

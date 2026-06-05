@@ -9,13 +9,15 @@ vi.mock('../../../src/lib/auth', () => ({
   getSession: vi.fn(async () => ({ preferred_username: 'gekko', realmRoles: ['admin'] })),
   isAdmin: vi.fn(() => true),
 }));
-vi.mock('../../../src/lib/website-db', () => ({
-  pool: {
-    query: vi.fn()
-      .mockResolvedValueOnce({ rows: [] })        // checkConcurrent → no existing action
-      .mockResolvedValue({ rows: [{ id: 1 }] }),  // INSERT + finishAction fallback
-  },
-}));
+vi.mock('../../../src/lib/website-db', () => {
+  const mockQuery = vi.fn()
+    .mockResolvedValueOnce({ rows: [] })        // checkConcurrent → no existing action
+    .mockResolvedValue({ rows: [{ id: 1 }] });  // INSERT + finishAction fallback
+  return {
+    pool: { query: mockQuery },
+    platformPool: { query: mockQuery },
+  };
+});
 
 import { POST as redeployWebsite } from '../../../src/pages/api/admin/ops/redeploy/website';
 

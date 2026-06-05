@@ -39,6 +39,7 @@ spec:
                 - sh
                 - -c
                 - |
+                  until pg_isready -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -q; do sleep 1; done
                   psql -v ON_ERROR_STOP=1 -c "
                     UPDATE public.admin_actions
                     SET status = 'failed',
@@ -89,6 +90,7 @@ spec:
                 - sh
                 - -c
                 - |
+                  until pg_isready -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -q; do sleep 1; done
                   psql -v ON_ERROR_STOP=1 -c "
                     DELETE FROM public.admin_actions
                     WHERE created_at < now() - interval '90 days';

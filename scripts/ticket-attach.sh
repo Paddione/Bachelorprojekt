@@ -8,15 +8,15 @@
 #   - Validates extension is one of: md html jpg jpeg png gif webp mp3 wav mp4 mov webm pdf txt log
 #   - Files <= MAX_INLINE_MB (default 10) are base64-encoded into data_url
 #   - Larger files are skipped with a warning (upload to Nextcloud first, then INSERT manually with nc_path)
-#   - Inserts one row per file into tickets.ticket_attachments on the mentolder cluster
+#   - Inserts one row per file into tickets.ticket_attachments on the fleet cluster
 #
-# Requires kubectl context `mentolder` reachable.
+# Requires kubectl context `fleet` reachable.
 
 set -euo pipefail
 
 MAX_INLINE_MB="${MAX_INLINE_MB:-10}"
 MAX_BYTES=$(( MAX_INLINE_MB * 1024 * 1024 ))
-CTX="${TICKET_CTX:-mentolder}"
+CTX="${TICKET_CTX:-fleet}"
 NS="${TICKET_NS:-workspace}"
 
 if [[ $# -lt 2 ]]; then

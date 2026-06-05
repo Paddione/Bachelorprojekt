@@ -187,7 +187,7 @@ Expected: `childReturnType === 'object'` and a non-null `child` (the pipeline re
 **Files:**
 - Modify: `scripts/ticket-attach.sh:19` (+ the two `mentolder` mentions in the header comment, lines 11 & 13)
 
-- [ ] **Step 1: Change the default context to fleet**
+- [x] **Step 1: Change the default context to fleet**
 
 Line 19, replace:
 
@@ -203,12 +203,12 @@ CTX="${TICKET_CTX:-fleet}"
 
 Also update the header comments (line 11 “on the mentolder cluster” → “on the fleet cluster”; line 13 “Requires kubectl context `mentolder` reachable.” → “Requires kubectl context `fleet` reachable.”) so they stop teaching the dead context.
 
-- [ ] **Step 2: Verify syntax + default**
+- [x] **Step 2: Verify syntax + default**
 
 Run: `bash -n scripts/ticket-attach.sh && grep -n 'TICKET_CTX:-fleet' scripts/ticket-attach.sh`
 Expected: exit 0 and the line prints. `mentolder` no longer appears as a default.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/ticket-attach.sh

@@ -681,34 +681,34 @@ git commit -m "feat(factory): conflict-check sees in-flight task tickets too [T0
 - Modify: `.claude/skills/dev-flow-execute/SKILL.md` (Schritt 1.5)
 - Modify: `Taskfile.factory.yml` (new `enqueue` task)
 
-- [ ] **Step 1: Add the handoff option to dev-flow-plan Schritt 5**
+- [x] **Step 1: Add the handoff option to dev-flow-plan Schritt 5**
 
 After the “STOPP. Informiere den User…” block, add a third option:
 
 ```markdown
 **Alternativ — an die Software Factory übergeben:** Statt `dev-flow-execute` selbst aufzurufen,
 kann der geplante Branch autonom abgearbeitet werden. Frage den User; bei Zustimmung:
-\`\`\`bash
+```bash
 bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
-\`\`\`
+```
 Das Ticket wird `type=feature/status=backlog` und vom Factory-Dispatcher mit **Plan-Reuse**
 (kein Neu-Planen) abgearbeitet. STOPP danach.
 ```
 
-- [ ] **Step 2: Record touched_files in dev-flow-execute Schritt 1.5**
+- [x] **Step 2: Record touched_files in dev-flow-execute Schritt 1.5**
 
 After the `update-status … in_progress` line, add:
 
 ```markdown
 Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate
 (damit ein paralleler Factory-Lauf die Kollision sieht):
-\`\`\`bash
+```bash
 ./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
-\`\`\`
+```
 ```
 
-- [ ] **Step 3: Add the Taskfile wrapper**
+- [x] **Step 3: Add the Taskfile wrapper**
 
 In `Taskfile.factory.yml` add:
 
@@ -723,7 +723,7 @@ In `Taskfile.factory.yml` add:
 ```
 (If the project’s task version doesn’t support `MATCH` parsing, fall back to a plain `bash scripts/ticket.sh enqueue {{.CLI_ARGS}}` passthrough — verify with `task factory:enqueue -- --id T000001` printing the right command.)
 
-- [ ] **Step 4: Verify + commit**
+- [x] **Step 4: Verify + commit**
 
 Run: `task workspace:validate` (manifests unaffected, sanity) and confirm the two SKILL.md files render (grep the new `enqueue` lines).
 

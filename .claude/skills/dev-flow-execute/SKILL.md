@@ -66,12 +66,18 @@ TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
 
 ---
 
-## Schritt 1.5: Ticket auf `in_progress` setzen
+## Schritt 1.5: Ticket auf `in_progress` setzen und touched_files registrieren
 
 Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:
 
 ```bash
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
+```
+
+Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):
+
+```bash
+./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
 ```
 
 ---

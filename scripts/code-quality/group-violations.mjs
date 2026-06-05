@@ -71,7 +71,7 @@ if (process.argv[1] === __filename) {
   const { loadSubsystems } = await import('./load.mjs');
   let baseline = {};
   try { baseline = JSON.parse(readFileSync(join(cfgDir, 'baseline.json'), 'utf8')); }
-  catch { /* empty baseline is fine */ }
+  catch (e) { console.warn('⚠ baseline.json missing or unparseable — proceeding with empty baseline:', e.message); }
   const subsystems = loadSubsystems(cfgDir);
   const groups = groupViolations(baseline, subsystems);
   process.stdout.write(JSON.stringify(groups, null, 2) + '\n');

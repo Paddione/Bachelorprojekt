@@ -1,0 +1,8 @@
+# tests/e2e/smoke/website.txt
+# Canary smoke patterns for the LIVE prod site (web.<brand>.de).
+# UNAUTH ONLY — the live canary runs behind no session; never list *-auth-setup
+# or any spec that requires Keycloak login here. (Spec §247: live-prod-smoke hinter SSO.)
+# One Playwright --grep token per line; '#'/blank ignored; joined with | into one regex.
+fa-07-public-homepage
+fa-fragebogen-public
+nfa-website-health

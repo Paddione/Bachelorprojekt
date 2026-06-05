@@ -160,7 +160,7 @@ git commit -m "fix(factory): unwrap fire-and-forget IIFE so workflows actually r
 
 This is the real proof that D2 fixed the no-op. It runs via the **Workflow tool** (the harness), which is unavailable in BATS/CI, so it is a manual execution checkpoint, not an automated test.
 
-- [ ] **Step 1: Run the nested-workflow probe**
+- [x] **Step 1: Run the nested-workflow probe**
 
 Using the Workflow tool, run this throwaway parent (it writes nothing to the repo):
 
@@ -174,7 +174,7 @@ const child = await workflow({ scriptPath: 'scripts/factory/pipeline.js' }, {
 return { childReturnType: typeof child, child: child ?? null }
 ```
 
-- [ ] **Step 2: Confirm the child actually executed**
+- [x] **Step 2: Confirm the child actually executed**
 
 Expected: `childReturnType === 'object'` and a non-null `child` (the pipeline returns `{status: 'dry-run', …}` once Task D7 lands — until then it returns `{status:'done'|'blocked', …}`). The decisive signal vs. the old no-op: the child run shows **>0 agents and seconds of duration** in `/workflows`, not 0 agents / ~20ms. If the child returns `undefined` / runs in ~20ms, D2 did not take — STOP and re-check the unwrap.
 

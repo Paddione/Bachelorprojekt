@@ -172,7 +172,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.1: Add `retry_count` column to `tickets.tickets`
 **Files:** Modify `website/src/lib/tickets-db.ts` (right after the `pipeline_slot` ALTER, ~:105). Test: extend `tests/local/FA-SF-04-db-schema.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
   ```bash
   @test "FA-SF-04: tickets.tickets has retry_count column (NOT NULL DEFAULT 0)" {
     run psql_tickets "SELECT column_default FROM information_schema.columns WHERE table_schema='tickets' AND table_name='tickets' AND column_name='retry_count'"
@@ -181,13 +181,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL** (column not yet created on the live DB / fresh schema):
+- [x] **Step 2: Run it, expect FAIL** (column not yet created on the live DB / fresh schema):
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-04
   ```
   Expected: the new `retry_count` test fails — `output` is empty, `[[ "" =~ "0" ]]` is false (`not ok ... retry_count column`).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `pipeline_slot` ALTER at line 105, insert:
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `pipeline_slot` ALTER at line 105, insert:
   ```ts
   // Phase 3 Software Factory: retry_count tracks how many times the pipeline
   // has retried a failed feature. Reset to 0 on slot-claim; >=2 => block +
@@ -195,13 +195,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0`);
   ```
 
-- [ ] **Step 4: Run it, expect PASS** (after the schema re-inits per-pod; for a fresh local DB the next init applies it). Verify the source landed and lint:
+- [x] **Step 4: Run it, expect PASS** (after the schema re-inits per-pod; for a fresh local DB the next init applies it). Verify the source landed and lint:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -n "retry_count INTEGER NOT NULL DEFAULT 0" website/src/lib/tickets-db.ts && cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -c "tickets-db.ts" 
   ```
   Expected: the grep prints the matching line; the `grep -c` prints `0` (no type errors in `tickets-db.ts`). After the website pod re-inits the schema in both namespaces, `./tests/runner.sh local FA-SF-04` passes the `retry_count` test.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts tests/local/FA-SF-04-db-schema.bats && git commit -m "feat(factory): add tickets.retry_count column + FA-SF-04 assertion [T000413]"
   ```

@@ -409,7 +409,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.5: `ticket.sh retry-count` + `factory-control` subcommands
 **Files:** Modify `scripts/ticket.sh` (add `cmd_retry_count` + `cmd_factory_control`; register in dispatch case :431-442 and the usage line :426). Test: create `tests/local/FA-SF-35-factory-cli.bats`.
 
-- [ ] **Step 1: Write the failing test** — `tests/local/FA-SF-35-factory-cli.bats`:
+- [x] **Step 1: Write the failing test** — `tests/local/FA-SF-35-factory-cli.bats`:
   ```bash
   #!/usr/bin/env bats
   # FA-SF-35: offline arg-validation for Phase 3 factory ticket.sh subcommands. [T000413]
@@ -442,13 +442,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL** (subcommands unknown → exit 1, not the expected exit 2):
+- [x] **Step 2: Run it, expect FAIL** (subcommands unknown → exit 1, not the expected exit 2):
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-35
   ```
   Expected: failures — `retry-count`/`factory-control` hit the `*) Unknown command` branch (status 1) and the usage line lacks `factory-control`.
 
-- [ ] **Step 3: Implement** — in `scripts/ticket.sh`, add two functions just before the dispatch `if [[ $# -lt 1 ]]` block (after `cmd_touch`, ~:422):
+- [x] **Step 3: Implement** — in `scripts/ticket.sh`, add two functions just before the dispatch `if [[ $# -lt 1 ]]` block (after `cmd_touch`, ~:422):
   ```bash
   cmd_retry_count() {
     local action="" id=""
@@ -524,13 +524,13 @@ EOF
   ```
   And append `retry-count, factory-control` to the usage `Commands:` echo line at :426.
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3 && bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `bash -n` is silent; FA-SF-35 reports the `retry-count`/`factory-control` cases all `ok` (the `feature-flag` cases land in A.6).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/ticket.sh tests/local/FA-SF-35-factory-cli.bats && git commit -m "feat(factory): ticket.sh retry-count + factory-control subcommands [T000413]"
   ```

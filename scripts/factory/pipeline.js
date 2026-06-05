@@ -394,11 +394,19 @@ const deploy = await agent(
       Website changes: task feature:website (auto-rolls out via CI for both brands)
       K8s/manifest changes: task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
       (Or use the umbrella if available: task feature:deploy)
-   7. Verify rollout on both brands:
-      kubectl --context fleet rollout status deployment/website -n website --timeout=300s
-      kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s
+    7. Verify rollout on both brands:
+       kubectl --context fleet rollout status deployment/website -n website --timeout=300s
+       kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s
+    8. LAYER-4 LIVE-PROD CANARY (per brand). For EACH brand in mentolder korczewski:
+       observe the LIVE site for ~5 min using the canary helper:
+         SERVICE=website TARGET=<brand> source ${REPO}/scripts/feature-promote.sh  # exposes observe_prod
+         observe_prod <brand> "$(svc_image_repo website <brand>):${A.timestamp}"
+       observe_prod re-probes web.<brand>.de /api/health + the unauth grep from
+       tests/e2e/smoke/website.txt, and on RED captures the pre-deploy revision and
+       rolls that brand back to it (exit 1). Record the per-brand verdict (GREEN/RED).
+       If ANY brand returns RED, output a line containing exactly: CANARY_RED <brand>
 
-   Report the merged PR number and the deploy command outputs.`,
+    Report the merged PR number and the deploy command outputs.`,
   { label: 'deploy', phase: 'Deploy' },
 )
 
@@ -412,6 +420,29 @@ if (typeof deploy === 'string' && /blocked/i.test(deploy)) {
     body: `Self-healing retry exhausted/escalated for "${A.title}" (${brand}). Human attention needed.`,
   })
   return { status: 'blocked', reason: 'ci-red-after-retries', ticket: A.ticket_id }
+}
+
+// Layer-4 canary: observe_prod (in feature-promote.sh) already captured the pre-deploy
+// revision and rolled the failing brand back. Here we turn the feature flag OFF for that
+// brand, mark blocked, and notify. PushNotification only from Workflow runtime.
+const canaryRed = typeof deploy === 'string' ? [...deploy.matchAll(/CANARY_RED\s+(mentolder|korczewski)/g)].map(m => m[1]) : []
+if (canaryRed.length) {
+  for (const b of canaryRed) {
+    await agent(
+      `Canary went RED on ${b} (observe_prod already rolled the deployment back to the
+       pre-deploy revision). Dark-launch the feature OFF for this brand and record it:
+       bash ${REPO}/scripts/ticket.sh feature-flag set --brand ${b} --key ${slug} --enabled false --set-by factory-canary
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify(`Factory canary RED on ${b}: rolled back + feature flag '${slug}' disabled.`)}
+       Report the command outputs.`,
+      { label: `canary:rollback:${b}`, phase: 'Deploy' },
+    )
+  }
+  await PushNotification({
+    title: `Factory: ${A.ticket_id} canary RED`,
+    body: `Live-prod canary failed on ${canaryRed.join(', ')} for "${A.title}". Rolled back + flag OFF.`,
+  })
+  return { status: 'blocked', reason: 'canary-red', brands: canaryRed, ticket: A.ticket_id }
 }
 
 if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {

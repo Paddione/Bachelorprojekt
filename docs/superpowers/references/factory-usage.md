@@ -1,7 +1,7 @@
 # Software Factory — Usage Guide
 
-> **Status (2026-06-05):** Phase 1 Foundation is live.
-> ✅ = available now · 🔜 = Phase 2 (cron Dispatcher) · 📋 = Phase 3 (Full Auto-Pilot)
+> **Status (2026-06-05):** Phase 2 Dispatcher is live.
+> ✅ = available now · 📋 = Phase 3 (Full Auto-Pilot)
 > Plane neue Features mit dem runnable `scripts/factory/pipeline.js` Workflow Script.
 
 ## ✅ Phase 1: Pipeline — runnable via Claude Code Workflow Tool
@@ -56,9 +56,6 @@ SELECT * FROM tickets.v_factory_metrics;
 SELECT * FROM tickets.v_active_features;
 ```
 
-## 🔜 Phase 2: Dispatcher (in Entwicklung)
-
-Der Cron-basierte Dispatcher automatisiert Queue-Polling, Konflikt-Analyse,
 ### Pipeline Workflow Script ✅
 
 Invokiere `scripts/factory/pipeline.js` via das Claude Code Workflow Tool:
@@ -75,16 +72,30 @@ BRAND=mentolder bash scripts/factory/conflict-check.sh T000413 "k3d/website.yaml
 # Returns: [] (no conflicts) or ["T000412"] (conflicts with ticket T000412)
 ```
 
-## 🔜 Phase 2: Dispatcher (geplant)
+## ✅ Phase 2: Dispatcher (live)
 
-Der Cron-basierte Dispatcher automatisiert Queue-Polling, Konflikt-Analyse,
-und Pipeline-Launch. Siehe `scripts/factory/README.md` für die Architektur.
+Der Dispatcher automatisiert Queue-Polling, Konflikt-Analyse, Slot-Scheduling
+und Pipeline-Launch. Alle Primitives sind unter `scripts/factory/` verfügbar.
 
-**Noch nicht verfügbar:**
-- Automatisches Queue-Polling
-- Automatische Konflikt-Analyse vor Pipeline-Start (brand-aware conflict-check ist in Phase 1 manuell/per-pipeline)
-- Watchdog (30min Timeout-Erkennung)
-- Automatische Metriken-Kommentare
+**Invokierung via Claude Code Workflow Tool:**
+```
+scriptPath: 'scripts/factory/dispatcher.js'
+args: { timestamp }
+```
+
+**Recurring (selbst-getaktet) via /loop:**
+```
+/loop "run the software-factory-dispatcher workflow"
+```
+
+**Offline-Dokumentation:** `task factory:dispatch`
+
+**Shipped Capabilities:**
+- **Queue-Polling** via `queue.sh` — raw Backlog, Priority+FIFO-Sortierung
+- **Konflikt-gegatetes Slot-Scheduling** via `schedule.sh` — pro-Brand Pool + globales Cap
+- **Watchdog** via `watchdog.sh` — 30-min Stale-Eskalation, Triage-Kommentar + Slot-Release
+- **Metriken** via `metrics.sh` — Durchsatz-Zusammenfassung auf T000413
+- **dispatcher.js** — Workflow Script das alle Primitives orchestriert
 
 ## 📋 Phase 3: Full Auto-Pilot (geplant)
 

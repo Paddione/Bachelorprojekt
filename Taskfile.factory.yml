@@ -17,3 +17,18 @@ tasks:
         echo "Offline lint:     node --check scripts/factory/pipeline.js"
         echo "Contract tests:   ./tests/runner.sh local FA-SF-20"
         echo "Full offline gate: task test:all"
+
+  dispatch:
+    desc: |
+      Print how to run the Phase-2 Software Factory dispatcher.
+      Invoke scripts/factory/dispatcher.js via the Claude Code Workflow tool,
+      driven on an interval by the /loop skill (self-paced ScheduleWakeup).
+    silent: true
+    cmds:
+      - |
+        echo "Software Factory — Phase 2 dispatcher"
+        echo "Invoke via the Workflow tool: { scriptPath: 'scripts/factory/dispatcher.js' }, args: { timestamp }"
+        echo "Recurring: /loop \"run the software-factory-dispatcher workflow\""
+        echo "Offline lint:   node --check scripts/factory/dispatcher.js"
+        echo "Contract tests: ./tests/runner.sh local FA-SF-30"
+        echo "Primitives:     slots.sh queue.sh schedule.sh watchdog.sh metrics.sh (BRAND=<brand>)"

@@ -1,4 +1,4 @@
-import { platformPool } from './website-db';
+import { pool, platformPool } from './website-db';
 import { ensureSchemaOnce } from './website-db';
 import platformDescriptions from './platform-descriptions.generated.json';
 
@@ -120,7 +120,9 @@ export async function deleteSoftwareAsset(id: string): Promise<void> {
 }
 
 export async function getTicketsByAsset(slug: string) {
-  const result = await platformPool.query(`
+  // Tickets are per-brand (pool), unlike the centralized platform assets
+  // (platformPool). Querying the viewing brand's tickets tagged for this asset.
+  const result = await pool.query(`
     SELECT t.id, t.external_id, t.title, t.status, t.created_at
     FROM tickets.tickets t
     JOIN tickets.ticket_tags tt ON tt.ticket_id = t.id

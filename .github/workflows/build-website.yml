@@ -6,6 +6,7 @@ on:
     paths:
       - 'website/**'
       - '.github/workflows/build-website.yml'
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -73,5 +74,5 @@ jobs:
           mkdir -p ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
-          kubectl rollout restart deployment/website -n website
+          kubectl set image deployment/website website="${IMAGE}:${SHA_TAG}" -n website
           kubectl rollout status deployment/website -n website --timeout=120s

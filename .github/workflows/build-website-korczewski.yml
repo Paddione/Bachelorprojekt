@@ -74,5 +74,5 @@ jobs:
           mkdir -p ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
-          kubectl rollout restart deployment/website -n website-korczewski
+          kubectl set image deployment/website website="${IMAGE}:${SHA_TAG}" -n website-korczewski
           kubectl rollout status deployment/website -n website-korczewski --timeout=120s

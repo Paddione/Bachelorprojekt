@@ -996,6 +996,54 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-21",
+    "file": "tests/local/FA-SF-21-ticket-cli.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-22",
+    "file": "tests/local/FA-SF-22-fixtures.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-23",
+    "file": "tests/local/FA-SF-23-slots.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-24",
+    "file": "tests/local/FA-SF-24-queue.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-25",
+    "file": "tests/local/FA-SF-25-schedule.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-26",
+    "file": "tests/local/FA-SF-26-watchdog.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-27",
+    "file": "tests/local/FA-SF-27-metrics.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-30",
+    "file": "tests/local/FA-SF-30-dispatcher-contract.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

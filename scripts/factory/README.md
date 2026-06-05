@@ -1,14 +1,14 @@
 # Software Factory — Komponenten & Architektur
 
-> **Status:** Phase 1 (Foundation) — manuelle Pipeline-Invocation.
-> Phase 2 (Dispatcher) und Phase 3 (Full Auto-Pilot) sind geplant.
+> **Status:** Phase 2 (Dispatcher) — live.
+> Phase 3 (Full Auto-Pilot) ist geplant.
 > Vorhaben-Ticket: T000413
 
 ## Architektur-Übersicht
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ TIER 1: DISPATCHER (Phase 2 — geplant)                  │
+│ TIER 1: DISPATCHER (Phase 2 — live)                     │
 │ Queue-Manager · Konflikt-Detektor · Scheduler           │
 └──────────────────────┬──────────────────────────────────┘
                        │
@@ -39,8 +39,14 @@
 | `review-security-auditor.prompt.md` | Adversarial Review: Security-Audit | ✅ |
 | `review-pattern-enforcer.prompt.md` | Adversarial Review: Konventions-Prüfung | ✅ |
 | `conflict-check.sh` | Konflikt-Detektor (Datei-Overlap), brand-aware | ✅ |
-| Dispatcher-Script | Queue-Manager + Scheduler | 🔜 Phase 2 |
-| Workflow-Runner-cron | Automatisierte periodische Pipeline-Ausführung | 🔜 Phase 2 |
+| `dispatcher.js` | Workflow-Dispatcher: Queue-Poll → Konflikt → Schedule → Launch | ✅ Phase 2 |
+| `slots.sh` | Slot-Manager: pro-Brand Pool + globales Cap | ✅ Phase 2 |
+| `queue.sh` | Queue-Manager: Backlog lesen, Priority+FIFO | ✅ Phase 2 |
+| `schedule.sh` | Scheduler: Konflikt-gegatetes Slot-Scheduling | ✅ Phase 2 |
+| `watchdog.sh` | Watchdog: 30-min Stale-Eskalation + Slot-Release | ✅ Phase 2 |
+| `metrics.sh` | Durchsatz-Zusammenfassung für T000413 | ✅ Phase 2 |
+| Canary-Deployment | Layer-4: automatisches Canary-Rollout | 📋 Phase 3 |
+| Directory-Heuristic | Layer-4: verzeichnisbasierte Konflikt-Erkennung | 📋 Phase 3 |
 
 ## Quickstart (Phase 1 — Manuell)
 

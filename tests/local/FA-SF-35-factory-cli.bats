@@ -27,3 +27,19 @@ setup() { load 'test_helper.bash'; }
   [ "$status" -eq 1 ]
   [[ "$output" =~ "factory-control" ]]
 }
+
+@test "FA-SF-35: dryrun-mark requires --id" {
+  run bash scripts/ticket.sh dryrun-mark
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--id" ]]
+}
+@test "FA-SF-35: dryrun-check requires --id" {
+  run bash scripts/ticket.sh dryrun-check
+  [ "$status" -eq 2 ]
+  [[ "$output" =~ "--id" ]]
+}
+@test "FA-SF-35: dispatch usage lists dryrun-mark" {
+  run bash scripts/ticket.sh
+  [[ "$output" =~ "dryrun-mark" ]]
+}
+

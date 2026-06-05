@@ -488,9 +488,45 @@ EOF
   fi
 }
 
+cmd_dryrun_mark() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown dryrun-mark option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v key="dryrun:$id" <<'EOF' >/dev/null
+INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+VALUES (:'key', NULL, 'done', 'ticket.sh', now())
+ON CONFLICT (key, brand) DO UPDATE SET value = 'done', updated_at = now();
+EOF
+  echo "dryrun marked for ticket $id"
+}
+
+cmd_dryrun_check() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown dryrun-check option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod found
+  pod=$(_pgpod)
+  found=$(_exec_sql "$pod" -v key="dryrun:$id" <<'EOF'
+SELECT 1 FROM tickets.factory_control WHERE key = :'key' AND brand IS NULL LIMIT 1;
+EOF
+)
+  if [[ "$found" == "1" ]]; then exit 0; else exit 1; fi
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check" >&2
   exit 1
 fi
 
@@ -509,6 +545,9 @@ case "$cmd" in
   enqueue)           cmd_enqueue "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
   factory-control)   cmd_factory_control "$@" ;;
+  dryrun-mark)       cmd_dryrun_mark "$@" ;;
+  dryrun-check)      cmd_dryrun_check "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
+
 

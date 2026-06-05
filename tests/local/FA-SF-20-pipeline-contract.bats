@@ -26,7 +26,10 @@ SCRIPT="scripts/factory/pipeline.js"
 
 @test "FA-SF-20: uses args.timestamp and not Date.now()/Math.random() (resume-safe)" {
   run grep -q "args.timestamp" "$SCRIPT"; [ "$status" -eq 0 ]
-  run grep -Eq "Date\.now\(\)|Math\.random\(\)" "$SCRIPT"; [ "$status" -ne 0 ]
+  # Exclude comment lines (// ... and JSDoc * lines) — the pattern appears in
+  # JSDoc to document what NOT to use; only actual code-line usage is disallowed.
+  run bash -c "grep -Ev '^\s*(/[/*]|\*)' \"$SCRIPT\" | grep -Eq 'Date\.now\(\)|Math\.random\(\)'"
+  [ "$status" -ne 0 ]
 }
 
 @test "FA-SF-20: Deploy phase merges from MAIN repo and deploys BOTH brands with explicit ENV" {

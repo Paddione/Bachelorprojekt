@@ -1,11 +1,17 @@
 # Changelog
 
-## [1.26.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.25.0...website-v1.26.0) (2026-06-01)
+## [1.26.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.25.0...website-v1.26.0) (2026-06-05)
 
 
 ### Features
 
 * **learning:** Lernpfad-Tracking, Onboarding & Admin-Sicht M1–M4 [T000418] ([#1314](https://github.com/Paddione/Bachelorprojekt/issues/1314)) ([d559bee](https://github.com/Paddione/Bachelorprojekt/commit/d559bee827c98b31116d6497ad2ffb4fe2d20398))
+
+
+### Bug Fixes
+
+* **auto:** bump alpine/k8s in pvc-backup-cronjob 1.30.4 → 1.34.0 ([#1320](https://github.com/Paddione/Bachelorprojekt/issues/1320)) ([c0bb915](https://github.com/Paddione/Bachelorprojekt/commit/c0bb915e3f0fdd774ea01eb9cae47f9992a93a96))
+* **auto:** regenerate route-manifest.json — unblock CI ([#1318](https://github.com/Paddione/Bachelorprojekt/issues/1318)) ([d1ffc49](https://github.com/Paddione/Bachelorprojekt/commit/d1ffc49d3cfcc7438c62ada183acb83c8d5ccc12))
 
 ## [1.25.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.24.0...website-v1.25.0) (2026-06-01)
 

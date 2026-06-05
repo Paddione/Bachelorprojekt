@@ -775,10 +775,10 @@ git commit -m "feat(factory): telemetry — PR# at creation + Verify breadcrumb 
 
 ## Final verification (before PR)
 
-- [ ] Run the full offline gate: `task test:all` → green.
-- [ ] Run: `task test:inventory` and confirm `website/src/data/test-inventory.json` is unchanged (already committed in D1) — CI fails on drift.
-- [ ] Confirm the dry-run proof (Task D9) was executed and `pipeline.js` ran with **>0 agents** (not a 20ms no-op).
-- [ ] `git log --oneline` shows one focused commit per task, each tagged `[T000425]`.
+- [x] Run the full offline gate: `task test:all` → green.
+- [x] Run: `task test:inventory` and confirm `website/src/data/test-inventory.json` is unchanged (already committed in D1) — CI fails on drift.
+- [x] Confirm the dry-run proof (Task D9) was executed and `pipeline.js` ran with **>0 agents** (not a 20ms no-op).
+- [x] `git log --oneline` shows one focused commit per task, each tagged `[T000425]`.
 
 ---
 

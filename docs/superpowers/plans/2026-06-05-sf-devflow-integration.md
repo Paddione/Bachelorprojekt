@@ -532,7 +532,7 @@ git commit -m "feat(tickets): ticket.sh enqueue + get plan_ref for factory hando
 
 When the pipeline is launched with a plan reference (`A.plan_path` + `A.branch`), it must skip self-planning (Scout/Design/Plan), work on the human’s existing branch, parse the human plan into the task schema, and go straight to Implement → Verify → Deploy. The self-planning path (no plan-ref) is unchanged.
 
-- [ ] **Step 1: Read the reuse inputs in Config**
+- [x] **Step 1: Read the reuse inputs in Config**
 
 After the `DRY_RUN` const add:
 
@@ -546,7 +546,7 @@ const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${slug}`
 const WORK_WT = REUSE ? `/tmp/wt-${slug}-reuse` : WT
 ```
 
-- [ ] **Step 2: Branch before Scout (avoid duplicate `let` + `scout` coupling)**
+- [x] **Step 2: Branch before Scout (avoid duplicate `let` + `scout` coupling)**
 
 The existing `pipeline.js` already declares `let specPath = null` and `let tasks = []` for the self-plan path, and the Implement guard is `if (!isSimple && tasks.length)` (which references `scout`, absent on reuse). Make these exact changes:
 
@@ -575,7 +575,7 @@ if (REUSE) {
 
 5. In the Implement, Verify, and Deploy phases, replace the hardcoded `feature/${slug}` with `${WORK_BRANCH}` and `${WT}` with `${WORK_WT}` so a reused human branch is the working branch.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `node --check scripts/factory/pipeline.js && ./tests/runner.sh local FA-SF-31 && ./tests/runner.sh local FA-SF-20`
 Expected: exit 0; PASS. (FA-SF-20 greps for `phase('Scout'..'Deploy')` which still exist.)
@@ -587,7 +587,7 @@ Add a grep assertion to FA-SF-31:
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js tests/local/FA-SF-31-workflow-entrypoint.bats

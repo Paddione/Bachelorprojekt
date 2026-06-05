@@ -33,3 +33,7 @@
   run grep -Eq 'const DRY_RUN' scripts/factory/pipeline.js
   [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-31: pipeline.js has a plan-reuse entrypoint" {
+  run grep -Eq 'REUSE|plan_path|WORK_BRANCH' scripts/factory/pipeline.js; [ "$status" -eq 0 ]
+}

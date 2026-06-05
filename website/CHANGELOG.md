@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.26.1...website-v1.27.0) (2026-06-05)
+
+
+### Features
+
+* **factory:** Software Factory Phase 1 Foundation [T000420] ([#1326](https://github.com/Paddione/Bachelorprojekt/issues/1326)) ([18cadef](https://github.com/Paddione/Bachelorprojekt/commit/18cadefe4b5f7001afd12198fb60f4d4df4bee11))
+
 ## [1.26.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.26.0...website-v1.26.1) (2026-06-05)
 
 

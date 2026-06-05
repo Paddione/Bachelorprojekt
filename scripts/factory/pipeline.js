@@ -50,7 +50,6 @@ export const meta = {
 const A = args ?? {}
 const slug = A.slug
 const brand = A.brand ?? 'mentolder'
-const ENV = brand === 'korczewski' ? 'korczewski' : 'mentolder'  // used in Deploy phase
 const REPO = '/home/patrick/Bachelorprojekt'
 const WT = `/tmp/wt-${slug}`
 
@@ -216,7 +215,7 @@ if (!isSimple && tasks.length) {
        Return a summary of the diff and the local test result (pass/fail).`,
       { label: `impl:${t.id}`, phase: 'Implement', isolation: 'worktree' },
     ),
-    (res, t) => agent(
+    (_res, t) => agent(
       `Self-verify task ${t.id}: re-read the implementation diff and confirm that each
        acceptance criterion is met: ${t.acceptance_criteria.join('; ')}.
        Report pass/fail for each criterion.`,

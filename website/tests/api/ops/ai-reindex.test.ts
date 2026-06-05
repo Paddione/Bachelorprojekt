@@ -8,12 +8,15 @@ vi.mock('../../../src/lib/auth', () => ({
   getSession: vi.fn(async () => ({ preferred_username: 'gekko', realmRoles: ['admin'] })),
   isAdmin: vi.fn(() => true),
 }));
-vi.mock('../../../src/lib/website-db', () => ({
-  pool: { query: vi.fn()
+vi.mock('../../../src/lib/website-db', () => {
+  const mockQuery = vi.fn()
     .mockResolvedValueOnce({ rows: [] })    // checkConcurrent
-    .mockResolvedValue({ rows: [{ id: 1 }] })  // INSERT + UPDATE
-  },
-}));
+    .mockResolvedValue({ rows: [{ id: 1 }] });  // INSERT + UPDATE
+  return {
+    pool: { query: mockQuery },
+    platformPool: { query: mockQuery },
+  };
+});
 
 import { POST } from '../../../src/pages/api/admin/ops/ai/reindex';
 

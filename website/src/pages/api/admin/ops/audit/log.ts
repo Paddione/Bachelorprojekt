@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { pool } from '../../../../../lib/website-db';
+import { platformPool } from '../../../../../lib/website-db';
 import { listActions } from '../../../../../lib/admin-actions';
 
 export const GET: APIRoute = async ({ url, request }) => {
@@ -10,6 +10,6 @@ export const GET: APIRoute = async ({ url, request }) => {
 
   const actionFilter = url.searchParams.get('action_filter') || undefined;
   const limit = Number(url.searchParams.get('limit') ?? 50);
-  const actions = await listActions(pool, { actionFilter, limit });
+  const actions = await listActions(platformPool, { actionFilter, limit });
   return new Response(JSON.stringify({ actions }), { status: 200 });
 };

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createK8sClient } from '../../../../../lib/k8s';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { pool } from '../../../../../lib/website-db';
+import { platformPool } from '../../../../../lib/website-db';
 import { startAction, finishAction, ConcurrentActionError } from '../../../../../lib/admin-actions';
 import { sanitizeForLog } from '../../../../../lib/sanitize';
 
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   let actionId: number | null = null;
   try {
-    actionId = await startAction(pool, {
+    actionId = await startAction(platformPool, {
       actor: session.preferred_username,
       action: 'redeploy_brett',
       target: cluster,
@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
       { spec: { template: { metadata: { annotations: { 'kubectl.kubernetes.io/restartedAt': restartedAt } } } } }
     );
 
-    await finishAction(pool, actionId, { status: 'success', payload: { restartedAt } });
+    await finishAction(platformPool, actionId, { status: 'success', payload: { restartedAt } });
     return new Response(JSON.stringify({ action_id: actionId, message: 'Deployment gestartet', restartedAt }), { status: 200 });
   } catch (err) {
     if (err instanceof ConcurrentActionError) {
@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     const msg = sanitizeForLog((err as Error).message);
     if (actionId !== null) {
-      await finishAction(pool, actionId, { status: 'failed', error: msg }).catch(() => {});
+      await finishAction(platformPool, actionId, { status: 'failed', error: msg }).catch(() => {});
     }
     console.error('[ops/redeploy/brett]', err);
     return new Response(JSON.stringify({ error: `Aktion fehlgeschlagen: ${msg.slice(0, 200)}` }), { status: 500 });

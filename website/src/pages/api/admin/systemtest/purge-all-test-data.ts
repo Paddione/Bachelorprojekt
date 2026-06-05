@@ -16,6 +16,7 @@ import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { purgeAllTestData } from '../../../../lib/systemtest/purge-all';
 import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
+import { initTicketsSchema } from '../../../../lib/tickets-db';
 
 export const POST: APIRoute = async ({ request }) => {
   const cronSecret = request.headers.get('X-Cron-Secret');
@@ -31,6 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
     // questionnaire/admin page the questionnaire_* / systemtest_* tables may not
     // exist yet. tickets.fn_purge_test_data() DELETEs from them unconditionally,
     // so it would 500 without the tables (T000406). Memoised — runs at most once.
+    await initTicketsSchema();
     await ensureQuestionnaireSchemaOnce(pool);
     const counts = await purgeAllTestData(pool);
     return new Response(

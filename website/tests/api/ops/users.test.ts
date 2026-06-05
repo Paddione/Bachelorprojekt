@@ -11,15 +11,18 @@ vi.mock('../../../src/lib/keycloak', () => ({
   assignUserToGroups: vi.fn(async () => true),
   sendPasswordResetEmail: vi.fn(async () => true),
 }));
-vi.mock('../../../src/lib/website-db', () => ({
-  pool: { query: vi.fn()
+vi.mock('../../../src/lib/website-db', () => {
+  const mockQuery = vi.fn()
     .mockResolvedValueOnce({ rows: [] })       // T2: checkConcurrent SELECT → no conflict
     .mockResolvedValueOnce({ rows: [{ id: 1 }] })  // T2: startAction INSERT → id=1
     .mockResolvedValueOnce({ rows: [{ id: 1 }] })  // T2: finishAction UPDATE
     .mockResolvedValueOnce({ rows: [] })       // T5: checkConcurrent SELECT → no conflict
-    .mockResolvedValue({ rows: [{ id: 1 }] })  // T5: INSERT + finishAction + any subsequent
-  },
-}));
+    .mockResolvedValue({ rows: [{ id: 1 }] }); // T5: INSERT + finishAction + any subsequent
+  return {
+    pool: { query: mockQuery },
+    platformPool: { query: mockQuery },
+  };
+});
 
 import { GET as listUsersHandler } from '../../../src/pages/api/admin/ops/users/list';
 import { POST as createUserHandler } from '../../../src/pages/api/admin/ops/users/create';

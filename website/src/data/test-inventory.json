@@ -978,6 +978,24 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-SF-01",
+    "file": "tests/local/FA-SF-01-conflict-check.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-04",
+    "file": "tests/local/FA-SF-04-db-schema.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-20",
+    "file": "tests/local/FA-SF-20-pipeline-contract.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

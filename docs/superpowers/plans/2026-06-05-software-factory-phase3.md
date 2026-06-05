@@ -730,19 +730,19 @@ EOF
 ### Task A.8: Register FA-SF-35 in the test inventory (CI gate)
 **Files:** Modify `website/src/data/test-inventory.json`. (The CI `test:inventory` check fails the build if this is stale — see CLAUDE.md "Test inventory check".)
 
-- [ ] **Step 1 (VERIFY the gap):** confirm FA-SF-35 is NOT yet registered and the regenerator would add it:
+- [x] **Step 1 (VERIFY the gap):** confirm FA-SF-35 is NOT yet registered and the regenerator would add it:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -c "FA-SF-35" website/src/data/test-inventory.json
   ```
   Expected: `0` (not registered yet).
 
-- [ ] **Step 2 (regenerate the inventory):**
+- [x] **Step 2 (regenerate the inventory):**
   ```bash
   cd /tmp/wt-sf-phase3 && task test:inventory
   ```
   Expected: the task rewrites `website/src/data/test-inventory.json` adding an FA-SF-35 entry.
 
-- [ ] **Step 3 (VERIFY the entry shape):**
+- [x] **Step 3 (VERIFY the entry shape):**
   ```bash
   cd /tmp/wt-sf-phase3 && grep -A3 '"id": "FA-SF-35"' website/src/data/test-inventory.json
   ```
@@ -755,13 +755,13 @@ EOF
   ```
   If `task test:inventory` does not auto-discover it, insert that object manually after the FA-SF-31 entry, preserving the trailing comma.
 
-- [ ] **Step 4 (VERIFY no drift):** re-run the regenerator and confirm a clean tree (this is exactly what CI asserts):
+- [x] **Step 4 (VERIFY no drift):** re-run the regenerator and confirm a clean tree (this is exactly what CI asserts):
   ```bash
   cd /tmp/wt-sf-phase3 && task test:inventory && git diff --quiet website/src/data/test-inventory.json && echo INVENTORY_CLEAN
   ```
   Expected: `INVENTORY_CLEAN` (no diff on a second run).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/data/test-inventory.json && git commit -m "test(factory): register FA-SF-35 factory-cli in test inventory [T000413]"
   ```

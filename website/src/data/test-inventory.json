@@ -1050,6 +1050,24 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-32",
+    "file": "tests/local/FA-SF-32-classify-paths.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-33",
+    "file": "tests/local/FA-SF-33-classify-failure.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-34",
+    "file": "tests/local/FA-SF-34-prefix-conflict.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "FA-SF-35",
     "file": "tests/local/FA-SF-35-factory-cli.bats",
     "category": "FA",

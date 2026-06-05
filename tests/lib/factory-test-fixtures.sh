@@ -46,9 +46,18 @@ purge_factory_test_data() {
     korczewski) ns="workspace-korczewski" ;;
     *) echo "purge_factory_test_data: unknown brand $brand" >&2; return 2 ;;
   esac
+
+  # If context is a dev cluster, append -dev to namespace
+  if [[ "$ctx" == k3d-* || "$ctx" == *-dev ]]; then
+    if [[ "$ns" == "workspace" ]]; then
+      ns="workspace-dev"
+    elif [[ "$ns" == "workspace-korczewski" ]]; then
+      ns="workspace-korczewski-dev"
+    fi
+  fi
   local pod
   pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
   [[ -z "$pod" ]] && { echo "no shared-db pod in $ns" >&2; return 1; }
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
-    psql -U website -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
+    psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
 }

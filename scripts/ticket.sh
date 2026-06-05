@@ -20,14 +20,21 @@ NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
 
-# Brand → namespace map (mirrors conflict-check.sh). BRAND wins over TICKET_NS so
-# a caller cannot silently hit the wrong brand's prod DB.
 case "${BRAND:-}" in
   mentolder)   NS="workspace" ;;
   korczewski)  NS="workspace-korczewski" ;;
   "")          : ;;  # no BRAND given — keep TICKET_NS default
   *)           echo "ERROR: unknown BRAND (use mentolder|korczewski)" >&2; exit 2 ;;
 esac
+
+# If context is a dev cluster, append -dev to namespace
+if [[ "$CTX" == k3d-* || "$CTX" == *-dev ]]; then
+  if [[ "$NS" == "workspace" ]]; then
+    NS="workspace-dev"
+  elif [[ "$NS" == "workspace-korczewski" ]]; then
+    NS="workspace-korczewski-dev"
+  fi
+fi
 
 _pgpod() {
   local pod

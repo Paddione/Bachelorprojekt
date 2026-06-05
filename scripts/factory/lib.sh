@@ -16,6 +16,15 @@ factory_resolve() {
   esac
   FACTORY_NS="${FACTORY_NS:-workspace}"
   FACTORY_CTX="${FACTORY_CTX:-fleet}"
+
+  # If context is a dev cluster, append -dev to namespace
+  if [[ "$FACTORY_CTX" == k3d-* || "$FACTORY_CTX" == *-dev ]]; then
+    if [[ "$FACTORY_NS" == "workspace" ]]; then
+      FACTORY_NS="workspace-dev"
+    elif [[ "$FACTORY_NS" == "workspace-korczewski" ]]; then
+      FACTORY_NS="workspace-korczewski-dev"
+    fi
+  fi
 }
 
 factory_pgpod() {

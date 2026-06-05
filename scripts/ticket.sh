@@ -2,11 +2,16 @@
 # scripts/ticket.sh — unified CLI helper for ticket database operations.
 #
 # Commands:
-#   create --type <type> --title <title> --description <description> [--brand <brand>] [--severity <severity>] [--priority <priority>]
+#   create --type <type> --title <title> --description <description> [--brand <brand>] [--severity <severity>] [--priority <priority>] [--is-test-data]
 #   update-status --id <external_id> --status <status> [--resolution <resolution>] [--notes <notes>]
 #   add-comment --id <external_id> --body <body> [--author <author_label>] [--visibility <visibility>]
 #   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>]
 #   get-attachments --id <external_id> --out-dir <out_dir>
+#   get --id <external_id>
+#   set-touched-files --id <external_id> --files <comma-separated-paths>
+#   set-pipeline-slot --id <external_id> --slot <integer|null>
+#   release-slot --id <external_id>
+#   touch --id <external_id>
 
 set -euo pipefail
 
@@ -15,9 +20,18 @@ NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
 
+# Brand → namespace map (mirrors conflict-check.sh). BRAND wins over TICKET_NS so
+# a caller cannot silently hit the wrong brand's prod DB.
+case "${BRAND:-}" in
+  mentolder)   NS="workspace" ;;
+  korczewski)  NS="workspace-korczewski" ;;
+  "")          : ;;  # no BRAND given — keep TICKET_NS default
+  *)           echo "ERROR: unknown BRAND (use mentolder|korczewski)" >&2; exit 2 ;;
+esac
+
 _pgpod() {
   local pod
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l app=shared-db -o name 2>/dev/null | head -1)
+  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
     echo "ERROR: no shared-db pod found in namespace $NS (context $CTX)" >&2
     exit 1
@@ -33,7 +47,7 @@ _exec_sql() {
 }
 
 cmd_create() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage"
+  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" is_test="false"
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --type)        type="$2"; shift 2 ;;
@@ -43,6 +57,7 @@ cmd_create() {
       --severity)    severity="$2"; shift 2 ;;
       --priority)    priority="$2"; shift 2 ;;
       --status)      status="$2"; shift 2 ;;
+      --is-test-data) is_test="true"; shift ;;
       *)             echo "Unknown create option: $1" >&2; exit 2 ;;
     esac
   done
@@ -66,9 +81,10 @@ cmd_create() {
     -v desc="$desc" \
     -v status="$status" \
     -v sev="$severity" \
-    -v prio="$priority" <<'EOF'
-INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio')
+    -v prio="$priority" \
+    -v is_test="$is_test" <<'EOF'
+INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, is_test_data)
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', :'is_test'::boolean)
 RETURNING external_id || '|' || id;
 EOF
 }
@@ -286,18 +302,111 @@ EOF
   echo "Successfully downloaded $count attachments for ticket $id."
 }
 
+cmd_get() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown get option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  # Metadata only — NEVER select ticket_plans.content.
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT json_build_object(
+  'external_id', external_id, 'id', id, 'type', type, 'brand', brand,
+  'title', title, 'status', status, 'priority', priority,
+  'touched_files', touched_files, 'pipeline_slot', pipeline_slot,
+  'created_at', created_at, 'updated_at', updated_at
+) FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+}
+
+cmd_set_touched_files() {
+  local id="" files=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id)    id="$2"; shift 2 ;;
+      --files) files="$2"; shift 2 ;;
+      *)       echo "Unknown set-touched-files option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" || -z "$files" ]]; then echo "ERROR: --id and --files are required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" -v files="$files" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET touched_files = string_to_array(:'files', ',') WHERE external_id = :'ext_id';
+EOF
+  echo "touched_files set for ticket $id"
+}
+
+cmd_set_pipeline_slot() {
+  local id="" slot=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id)   id="$2"; shift 2 ;;
+      --slot) slot="$2"; shift 2 ;;
+      *)      echo "Unknown set-pipeline-slot option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" || -z "$slot" ]]; then echo "ERROR: --id and --slot are required (use --slot null to clear)." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" -v slot="$slot" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET pipeline_slot = NULLIF(:'slot','null')::integer WHERE external_id = :'ext_id';
+EOF
+  echo "pipeline_slot set to $slot for ticket $id"
+}
+
+cmd_release_slot() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown release-slot option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET pipeline_slot = NULL WHERE external_id = :'ext_id';
+EOF
+  echo "pipeline_slot released for ticket $id"
+}
+
+cmd_touch() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown touch option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  # Bump updated_at (the fn_lifecycle_ts BEFORE-UPDATE trigger sets it on any UPDATE).
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET updated_at = now() WHERE external_id = :'ext_id';
+EOF
+  echo "touched ticket $id"
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch" >&2
   exit 1
 fi
 
 cmd="$1"; shift
 case "$cmd" in
-  create)          cmd_create "$@" ;;
-  update-status)   cmd_update_status "$@" ;;
-  add-comment)     cmd_add_comment "$@" ;;
-  archive-plan)    cmd_archive_plan "$@" ;;
-  get-attachments) cmd_get_attachments "$@" ;;
-  *)               echo "Unknown command: $cmd" >&2; exit 1 ;;
+  create)            cmd_create "$@" ;;
+  update-status)     cmd_update_status "$@" ;;
+  add-comment)       cmd_add_comment "$@" ;;
+  archive-plan)      cmd_archive_plan "$@" ;;
+  get-attachments)   cmd_get_attachments "$@" ;;
+  get)               cmd_get "$@" ;;
+  set-touched-files) cmd_set_touched_files "$@" ;;
+  set-pipeline-slot) cmd_set_pipeline_slot "$@" ;;
+  release-slot)      cmd_release_slot "$@" ;;
+  touch)             cmd_touch "$@" ;;
+  *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac

@@ -1080,8 +1080,20 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-37",
+    "file": "tests/local/FA-SF-37-retry.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "FA-SF-38",
     "file": "tests/local/FA-SF-38-canary.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-39",
+    "file": "tests/local/FA-SF-39-canary-wire.bats",
     "category": "FA",
     "kind": "shell"
   },

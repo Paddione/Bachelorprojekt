@@ -31,3 +31,9 @@ setup() {
   # Verify the output is valid JSON (empty or array of conflicts)
   echo "$output" | jq . > /dev/null
 }
+
+@test "FA-SF-03b: BRAND=korczewski resolves namespace to workspace-korczewski" {
+  run env BRAND=korczewski FACTORY_DRY_RESOLVE=1 bash scripts/factory/conflict-check.sh T000001
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"workspace-korczewski"* ]]
+}

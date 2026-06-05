@@ -3,17 +3,44 @@
 # between active features for the Software Factory Dispatcher.
 #
 # Usage:
-#   bash scripts/factory/conflict-check.sh <new_ticket_external_id> [touched_file...]
+#   BRAND=mentolder bash scripts/factory/conflict-check.sh <new_ticket_external_id> [touched_file...]
+#   BRAND=korczewski bash scripts/factory/conflict-check.sh <new_ticket_external_id> [touched_file...]
+#
+# Environment variables:
+#   BRAND           mentolder | korczewski — sets FACTORY_NS automatically
+#   FACTORY_NS      override namespace (ignored when BRAND is set)
+#   FACTORY_CTX     kubectl context (default: fleet)
+#   FACTORY_DRY_RESOLVE  if non-empty, prints resolved ctx+ns and exits 0 (used by tests)
 #
 # Output: JSON array of conflicting ticket external_ids, or empty array [].
 # Exit 0 = no conflicts, Exit 1 = conflicts found, Exit 2 = error.
 
 set -euo pipefail
 
-CTX="${FACTORY_CTX:-fleet}"
-NS="${FACTORY_NS:-workspace}"
+# Brand → namespace map. BRAND wins over a bare FACTORY_NS default so a
+# pipeline/human cannot silently hit prod-mentolder when targeting korczewski.
+case "${BRAND:-}" in
+  mentolder)   FACTORY_NS="workspace" ;;
+  korczewski)  FACTORY_NS="workspace-korczewski" ;;
+  "")          : ;;  # no BRAND given — fall through to explicit FACTORY_NS
+  *)           echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
+esac
+
+if [[ -z "${BRAND:-}" && -z "${FACTORY_NS_EXPLICIT:-}" ]]; then
+  echo "WARN: no BRAND set; defaulting FACTORY_NS=${FACTORY_NS:-workspace} (mentolder/prod). Set BRAND=mentolder|korczewski to be explicit." >&2
+fi
+FACTORY_NS="${FACTORY_NS:-workspace}"
+FACTORY_CTX="${FACTORY_CTX:-fleet}"
+
+# Dry-resolve: print the resolved namespace and exit (used by tests).
+if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then
+  echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"
+  exit 0
+fi
+
+CTX="${FACTORY_CTX}"
+NS="${FACTORY_NS}"
 DB="website"
-USER="website"
 
 _pgpod() {
   local pod

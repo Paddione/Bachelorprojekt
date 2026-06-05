@@ -12,7 +12,9 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod"; do
   tier="$(basename "$dir")"
   while IFS= read -r -d '' f; do
     base="$(basename "$f")"
-    id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)-([0-9]+).*/\1-\2/')"
+    # was: id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)-([0-9]+).*/\1-\2/')"
+    # Extended to accept an optional uppercase sub-tag (e.g. FA-SF-04 → FA-SF-04).
+    id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)(-[A-Z]+)?-([0-9]+).*/\1\2-\3/')"
     [[ "$id" == "$base" ]] && continue
     rel="${f#${REPO_ROOT}/}"
     entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")

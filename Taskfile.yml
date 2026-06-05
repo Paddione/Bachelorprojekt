@@ -44,6 +44,11 @@ includes:
   openclaw:
     taskfile: ./Taskfile.openclaw.yml
     dir: .
+  # Software Factory — Phase 1 pipeline documentation wrapper.
+  # See scripts/factory/pipeline.js + docs/superpowers/references/factory-usage.md.
+  factory:
+    taskfile: ./Taskfile.factory.yml
+    dir: .
 
 vars:
   CLUSTER_NAME: korczewski

@@ -1,6 +1,11 @@
 #!/usr/bin/env bats
-# tests/local/factory-db-schema.bats
+# tests/local/FA-SF-04-db-schema.bats  (renamed from factory-db-schema.bats)
 # Verifies the Software Factory pgvector tables, views, and columns.
+#
+# Both-namespaces coverage: re-run with FACTORY_NS=workspace-korczewski to
+# test the korczewski brand. The default targets workspace (mentolder).
+#   FACTORY_CTX=fleet FACTORY_NS=workspace ./tests/runner.sh local FA-SF-04
+#   FACTORY_CTX=fleet FACTORY_NS=workspace-korczewski ./tests/runner.sh local FA-SF-04
 
 setup() {
   # Load the local test helper
@@ -9,8 +14,8 @@ setup() {
 
 psql_tickets() {
   local query="$1"
-  local ctx="${FACTORY_CTX:-k3d-korczewski-dev}"
-  local ns="${FACTORY_NS:-workspace-korczewski-dev}"
+  local ctx="${FACTORY_CTX:-fleet}"
+  local ns="${FACTORY_NS:-workspace}"
   local pod
   pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
@@ -72,3 +77,19 @@ psql_tickets() {
   "
   [ "$status" -ne 0 ]
 }
+
+@test "FA-SF-12: embedding_model column exists on tickets.ticket_embeddings" {
+  run kubectl --context "${FACTORY_CTX:-fleet}" exec -n "${FACTORY_NS:-workspace}" deployment/shared-db -- \
+    psql -U postgres -d website -tAc \
+    "SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='tickets' AND table_name='ticket_embeddings' AND column_name='embedding_model')"
+  [ "$status" -eq 0 ]
+  [ "$output" = "t" ]
+}
+
+@test "FA-SF-13: vector extension is enabled (ticket_embeddings hard dependency)" {
+  run kubectl --context "${FACTORY_CTX:-fleet}" exec -n "${FACTORY_NS:-workspace}" deployment/shared-db -- \
+    psql -U postgres -d website -tAc "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname='vector')"
+  [ "$status" -eq 0 ]
+  [ "$output" = "t" ]
+}
+

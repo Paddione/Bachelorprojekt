@@ -542,7 +542,7 @@ EOF
 
 dry-run markers are stored as `factory_control` rows with key `dryrun:<ext_id>` (brand NULL=global), so `dryrun-check` exits 0 iff the marker row exists — matching the contract `guard_dryrun_ok` consumes.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
   ```bash
   @test "FA-SF-35: dryrun-mark requires --id" {
     run bash scripts/ticket.sh dryrun-mark
@@ -560,13 +560,13 @@ dry-run markers are stored as `factory_control` rows with key `dryrun:<ext_id>` 
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `dryrun-mark`/`dryrun-check` hit `*) Unknown command` (status 1) → the new `--id`-required assertions fail.
 
-- [ ] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_factory_control`:
+- [x] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_factory_control`:
   ```bash
   cmd_dryrun_mark() {
     local id=""
@@ -611,13 +611,13 @@ EOF
   ```
   Append `dryrun-mark, dryrun-check` to the usage `Commands:` line.
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3 && bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `bash -n` silent; the three new `dryrun-*` assertions report `ok`.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/ticket.sh tests/local/FA-SF-35-factory-cli.bats && git commit -m "feat(factory): ticket.sh dryrun-mark/dryrun-check subcommands [T000413]"
   ```

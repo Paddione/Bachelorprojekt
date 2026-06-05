@@ -30,16 +30,17 @@
 | Datei | Zweck | Status |
 |-------|-------|--------|
 | `README.md` | Diese Datei — Architektur & Quickstart | ✅ |
-| `pipeline-pattern.md` | Referenz: 6-Phasen-Workflow-Script mit API-Doku | ✅ |
+| `pipeline.js` | **Runnable** 6-Phasen Workflow Script (Scout→Deploy) | ✅ Phase 1 |
+| `pipeline-pattern.md` | Referenz: 6-Phasen API-Doku (Vorläufer von pipeline.js) | ✅ |
 | `templates/scout-template.md` | Scout-Phase Output-Format | ✅ |
 | `templates/design-template.md` | Design-Phase Output-Format | ✅ |
 | `templates/lessons-learned-template.md` | Post-Deploy-Retrospektive | ✅ |
 | `review-bug-hunter.prompt.md` | Adversarial Review: Bug-Suche | ✅ |
 | `review-security-auditor.prompt.md` | Adversarial Review: Security-Audit | ✅ |
 | `review-pattern-enforcer.prompt.md` | Adversarial Review: Konventions-Prüfung | ✅ |
-| `conflict-check.sh` | Konflikt-Detektor (Datei-Overlap) | ✅ |
+| `conflict-check.sh` | Konflikt-Detektor (Datei-Overlap), brand-aware | ✅ |
 | Dispatcher-Script | Queue-Manager + Scheduler | 🔜 Phase 2 |
-| Workflow-Runner | Automatisierte Pipeline-Ausführung | 🔜 Phase 2 |
+| Workflow-Runner-cron | Automatisierte periodische Pipeline-Ausführung | 🔜 Phase 2 |
 
 ## Quickstart (Phase 1 — Manuell)
 
@@ -89,6 +90,6 @@ Tasks parallelisieren mit `pipeline()` oder `parallel()`.
 ## Verwandte Dokumente
 
 - Spec: `docs/superpowers/specs/2026-06-01-software-factory-design.md`
-- Plan: `docs/superpowers/plans/2026-06-01-software-factory-polish.md`
+- Plan: `docs/superpowers/plans/2026-06-05-software-factory-phase1.md`
 - Usage Guide: `docs/superpowers/references/factory-usage.md`
-- Vorhaben: T000413
+- Vorhaben: T000413, Ticket: T000420

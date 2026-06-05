@@ -110,5 +110,22 @@ psql_tickets() {
   [ -n "$output" ]
 }
 
+@test "FA-SF-04: tickets.feature_flags table exists" {
+  run psql_tickets "SELECT tablename FROM pg_tables WHERE schemaname='tickets' AND tablename='feature_flags'"
+  [ "$status" -eq 0 ]
+  [ "$output" = "feature_flags" ]
+}
+@test "FA-SF-04: feature_flags has brand FK to public.brands" {
+  run psql_tickets "SELECT conname FROM pg_constraint WHERE conname='feature_flags_brand_fkey'"
+  [ "$status" -eq 0 ]
+  [ "$output" = "feature_flags_brand_fkey" ]
+}
+@test "FA-SF-04: feature_flags has UNIQUE(brand,key)" {
+  run psql_tickets "SELECT count(*) FROM pg_constraint WHERE conrelid='tickets.feature_flags'::regclass AND contype='u'"
+  [ "$status" -eq 0 ]
+  [ "$output" = "1" ]
+}
+
+
 
 

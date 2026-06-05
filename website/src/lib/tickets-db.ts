@@ -384,6 +384,29 @@ export async function initTicketsSchema(): Promise<void> {
       END $$;
   `);
 
+  // Phase 3 Software Factory: feature_flags powers dark-launch / canary. Each
+  // implement-agent gates new behaviour behind isFeatureEnabled(brand,'<slug>');
+  // a flag flipped on enables it. Mirrors the tickets.tags id + brand-FK idiom.
+  // [T000413]
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.feature_flags (
+      id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      brand      TEXT NOT NULL,
+      key        TEXT NOT NULL,
+      enabled    BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      set_by     TEXT,
+      UNIQUE (brand, key)
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'feature_flags_brand_fkey') THEN
+          ALTER TABLE tickets.feature_flags ADD CONSTRAINT feature_flags_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
+  `);
+
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_tags (
       ticket_id UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,

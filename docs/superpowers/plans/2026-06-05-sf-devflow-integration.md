@@ -59,7 +59,7 @@ Stage **only** the files each task names (`git add <explicit paths>`) — never 
 - Create: `tests/local/FA-SF-31-workflow-entrypoint.bats`
 - Modify: `website/src/data/test-inventory.json` (regenerated)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/local/FA-SF-31-workflow-entrypoint.bats`:
 
@@ -93,17 +93,17 @@ Create `tests/local/FA-SF-31-workflow-entrypoint.bats`:
 }
 ```
 
-- [ ] **Step 2: Run it — expect FAIL (current code is IIFE-wrapped)**
+- [x] **Step 2: Run it — expect FAIL (current code is IIFE-wrapped)**
 
 Run: `./tests/runner.sh local FA-SF-31`
 Expected: the first two tests FAIL (both scripts currently contain `;(async () => {` and `})()`).
 
-- [ ] **Step 3: Regenerate the test inventory**
+- [x] **Step 3: Regenerate the test inventory**
 
 Run: `task test:inventory`
 Expected: `website/src/data/test-inventory.json` now contains an `FA-SF-31` entry.
 
-- [ ] **Step 4: Commit the (red) test + inventory**
+- [x] **Step 4: Commit the (red) test + inventory**
 
 ```bash
 git add tests/local/FA-SF-31-workflow-entrypoint.bats website/src/data/test-inventory.json

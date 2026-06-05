@@ -347,7 +347,7 @@ git commit -m "feat(factory): FACTORY_DRY_RUN — Deploy reports diff, never shi
 - Modify: `scripts/factory/dispatcher.js` (child args)
 - Modify: `Taskfile.factory.yml` (document the flag)
 
-- [ ] **Step 1: Pass dry_run to the nested pipeline**
+- [x] **Step 1: Pass dry_run to the nested pipeline**
 
 In `dispatcher.js`, the Config reads `const A = args ?? {}`. In the Launch `workflow(...)` child-args object, add:
 
@@ -357,7 +357,7 @@ In `dispatcher.js`, the Config reads `const A = args ?? {}`. In the Launch `work
 
 so a dispatcher run started with `{ timestamp, dry_run: true }` fans dry-run into every nested pipeline.
 
-- [ ] **Step 2: Document in Taskfile.factory.yml**
+- [x] **Step 2: Document in Taskfile.factory.yml**
 
 In the `dispatch` task’s echo block, add a line:
 
@@ -365,7 +365,7 @@ In the `dispatch` task’s echo block, add a line:
 echo "Safe trial: pass args { timestamp, dry_run: true } — pipelines report diffs, never merge/deploy."
 ```
 
-- [ ] **Step 3: Verify + commit**
+- [x] **Step 3: Verify + commit**
 
 Run: `node --check scripts/factory/dispatcher.js && ./tests/runner.sh local FA-SF-31`
 Expected: exit 0; PASS.

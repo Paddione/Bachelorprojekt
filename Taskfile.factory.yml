@@ -28,6 +28,7 @@ tasks:
       - |
         echo "Software Factory — Phase 2 dispatcher"
         echo "Invoke via the Workflow tool: { scriptPath: 'scripts/factory/dispatcher.js' }, args: { timestamp }"
+        echo "Safe trial: pass args { timestamp, dry_run: true } — pipelines report diffs, never merge/deploy."
         echo "Recurring: /loop \"run the software-factory-dispatcher workflow\""
         echo "Offline lint:   node --check scripts/factory/dispatcher.js"
         echo "Contract tests: ./tests/runner.sh local FA-SF-30"

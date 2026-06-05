@@ -91,6 +91,7 @@ async function main() {
             ticket_id: f.external_id,
             brand: f.brand,
             timestamp: A.timestamp,
+            dry_run: A.dry_run === true || A.dry_run === 'true',
           },
         )
           .then((r) => ({ external_id: f.external_id, brand: f.brand, result: r }))

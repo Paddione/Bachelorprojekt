@@ -421,9 +421,76 @@ EOF
   echo "touched ticket $id"
 }
 
+cmd_retry_count() {
+  local action="" id=""
+  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown retry-count option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$action" != "get" && "$action" != "incr" && "$action" != "reset" ]]; then
+    echo "ERROR: retry-count requires an action (get|incr|reset)." >&2; exit 2
+  fi
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  case "$action" in
+    get)
+      _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT retry_count FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+      ;;
+    incr)
+      _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+UPDATE tickets.tickets SET retry_count = retry_count + 1 WHERE external_id = :'ext_id' RETURNING retry_count;
+EOF
+      ;;
+    reset)
+      _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+UPDATE tickets.tickets SET retry_count = 0 WHERE external_id = :'ext_id' RETURNING retry_count;
+EOF
+      ;;
+  esac
+}
+
+cmd_factory_control() {
+  local action="" key="" brand="" value="" set_by=""
+  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --key)    key="$2"; shift 2 ;;
+      --brand)  brand="$2"; shift 2 ;;
+      --value)  value="$2"; shift 2 ;;
+      --set-by) set_by="$2"; shift 2 ;;
+      *)        echo "Unknown factory-control option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$action" != "get" && "$action" != "set" ]]; then
+    echo "ERROR: factory-control requires an action (get|set)." >&2; exit 2
+  fi
+  if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  if [[ "$action" == "get" ]]; then
+    _exec_sql "$pod" -v key="$key" -v brand="$brand" <<'EOF'
+SELECT value FROM tickets.factory_control
+WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
+EOF
+  else
+    if [[ -z "$value" ]]; then echo "ERROR: --value is required for set." >&2; exit 2; fi
+    _exec_sql "$pod" -v key="$key" -v brand="$brand" -v value="$value" -v set_by="$set_by" <<'EOF' >/dev/null
+INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+VALUES (:'key', NULLIF(:'brand',''), :'value', NULLIF(:'set_by',''), now())
+ON CONFLICT (key, brand) DO UPDATE
+  SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
+EOF
+    echo "factory-control set: $key=${value}${brand:+ (brand=$brand)}"
+  fi
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control" >&2
   exit 1
 fi
 
@@ -440,5 +507,8 @@ case "$cmd" in
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
+  retry-count)       cmd_retry_count "$@" ;;
+  factory-control)   cmd_factory_control "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
+

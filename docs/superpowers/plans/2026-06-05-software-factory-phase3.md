@@ -3680,7 +3680,7 @@ cross-namespace connection — korczewski cannot reach `shared-db.workspace` (EC
 - Create `website/src/lib/factory-metrics.ts`
 - Create (Test) `website/src/lib/factory-metrics.test.ts`
 
-- [ ] **Step 1: Write the failing test** — full test code (mirrors the pg-mem mock idiom from `platform-db.ensure.test.ts`; the view is replaced by a seeded plain table because pg-mem has no `date_trunc`-grouped view support):
+- [x] **Step 1: Write the failing test** — full test code (mirrors the pg-mem mock idiom from `platform-db.ensure.test.ts`; the view is replaced by a seeded plain table because pg-mem has no `date_trunc`-grouped view support):
 ```ts
 import { describe, it, expect, vi } from 'vitest';
 
@@ -3730,13 +3730,13 @@ describe('listFactoryMetrics', () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL** — exact command + expected failure:
+- [x] **Step 2: Run it, expect FAIL** — exact command + expected failure:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: `Failed to resolve import "./factory-metrics"` (the module does not exist yet).
 
-- [ ] **Step 3: Implement** — full real code of `website/src/lib/factory-metrics.ts`:
+- [x] **Step 3: Implement** — full real code of `website/src/lib/factory-metrics.ts`:
 ```ts
 // Software Factory Phase 3 — dashboard read helpers.
 // Reads the existing tickets.v_factory_metrics + tickets.v_active_features views
@@ -3778,13 +3778,13 @@ export async function listFactoryMetrics(): Promise<FactoryMetricRow[]> {
 }
 ```
 
-- [ ] **Step 4: Run it, expect PASS** — exact command + expected output:
+- [x] **Step 4: Run it, expect PASS** — exact command + expected output:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: `Test Files  1 passed (1)` and `Tests  1 passed (1)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.ts && git commit -m "feat(factory): listFactoryMetrics reads v_factory_metrics [T000413]"
 ```
@@ -3796,7 +3796,7 @@ git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.
 - Modify `website/src/lib/factory-metrics.ts`
 - Modify (Test) `website/src/lib/factory-metrics.test.ts`
 
-- [ ] **Step 1: Write the failing test** — append these two cases inside the existing `describe('listFactoryMetrics', ...)` block (add the import to the existing top-of-file import line):
+- [x] **Step 1: Write the failing test** — append these two cases inside the existing `describe('listFactoryMetrics', ...)` block (add the import to the existing top-of-file import line):
 ```ts
   it('listActiveFeatures returns the active working set with pipeline_slot', async () => {
     const { listActiveFeatures } = await import('./factory-metrics');
@@ -3815,13 +3815,13 @@ git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.
   });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL** — exact command + expected failure:
+- [x] **Step 2: Run it, expect FAIL** — exact command + expected failure:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: 2 failing tests with `listActiveFeatures is not a function` / `listActiveFlags is not a function`.
 
-- [ ] **Step 3: Implement** — append to `website/src/lib/factory-metrics.ts`:
+- [x] **Step 3: Implement** — append to `website/src/lib/factory-metrics.ts`:
 ```ts
 /** The dispatcher's working set — non-terminal features with touch data. */
 export async function listActiveFeatures(): Promise<ActiveFeatureRow[]> {
@@ -3845,13 +3845,13 @@ export async function listActiveFlags(brand: string): Promise<FeatureFlagRow[]> 
 }
 ```
 
-- [ ] **Step 4: Run it, expect PASS** — exact command + expected output:
+- [x] **Step 4: Run it, expect PASS** — exact command + expected output:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: `Tests  3 passed (3)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.ts && git commit -m "feat(factory): listActiveFeatures + listActiveFlags dashboard helpers [T000413]"
 ```
@@ -3866,7 +3866,7 @@ This route is a session-gated clone of `api/admin/monitoring.ts`'s gate fused wi
 `api/timeline.ts` JSON shape. `prerender = false`. Unit-of-record gate behavior is covered
 by the bats in Task G.6; here we verify the module compiles and the gate symbols are wired.
 
-- [ ] **Step 1: VERIFICATION — write the route, then typecheck.** Full real code of `website/src/pages/api/factory-metrics.ts`:
+- [x] **Step 1: VERIFICATION — write the route, then typecheck.** Full real code of `website/src/pages/api/factory-metrics.ts`:
 ```ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../lib/auth';
@@ -3905,13 +3905,13 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Run it, expect PASS** — typecheck the new route + its imports:
+- [x] **Step 2: Run it, expect PASS** — typecheck the new route + its imports:
 ```bash
 cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E 'factory-metrics' || echo "NO_FACTORY_METRICS_TYPE_ERRORS"
 ```
 Expected: `NO_FACTORY_METRICS_TYPE_ERRORS`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 ```bash
 git add website/src/pages/api/factory-metrics.ts && git commit -m "feat(factory): /api/factory-metrics route (getSession+isAdmin gate) [T000413]"
 ```

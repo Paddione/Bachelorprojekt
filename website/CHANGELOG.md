@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.29.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.28.0...website-v1.29.0) (2026-06-05)
+
+
+### Features
+
+* **factory:** integrate dev-flow with software factory [T000425] ([#1335](https://github.com/Paddione/Bachelorprojekt/issues/1335)) ([5f2c27e](https://github.com/Paddione/Bachelorprojekt/commit/5f2c27e987e37a321e017f8ef015122b3b645c8c))
+* **platform:** route ops-audit + platform schema to a dedicated platformPool ([#1339](https://github.com/Paddione/Bachelorprojekt/issues/1339)) ([7b6c909](https://github.com/Paddione/Bachelorprojekt/commit/7b6c9090f5109355f71069e0ce817a37627ec148))
+
 ## [1.28.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.27.0...website-v1.28.0) (2026-06-05)
 
 

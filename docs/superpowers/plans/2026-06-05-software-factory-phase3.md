@@ -211,7 +211,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.2: Create `tickets.factory_control` table (kill-switch / daily-cap / dry-run marker)
 **Files:** Modify `website/src/lib/tickets-db.ts` (after the `retry_count` ALTER from A.1). Test: extend `tests/local/FA-SF-04-db-schema.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
   ```bash
   @test "FA-SF-04: tickets.factory_control table exists with UNIQUE(key,brand)" {
     run psql_tickets "SELECT tablename FROM pg_tables WHERE schemaname='tickets' AND tablename='factory_control'"
@@ -225,13 +225,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-04
   ```
   Expected: `not ok ... factory_control table exists` — `output` is empty (table absent).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, directly after the `retry_count` ALTER added in A.1:
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, directly after the `retry_count` ALTER added in A.1:
   ```ts
   // Phase 3 Software Factory: factory_control is the runtime control plane —
   // global kill-switch, per-brand daily-deploy cap counter, dry-run markers.
@@ -249,13 +249,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   `);
   ```
 
-- [ ] **Step 4: Run it, expect PASS** — verify source + types:
+- [x] **Step 4: Run it, expect PASS** — verify source + types:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -n "CREATE TABLE IF NOT EXISTS tickets.factory_control" website/src/lib/tickets-db.ts && cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -c "tickets-db.ts"
   ```
   Expected: grep prints the matching line; `grep -c` prints `0`. After per-pod schema re-init the two new FA-SF-04 tests pass in both namespaces.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts tests/local/FA-SF-04-db-schema.bats && git commit -m "feat(factory): add tickets.factory_control control-plane table [T000413]"
   ```

@@ -142,6 +142,15 @@ teardown() { rm -rf "$TMP"; }
   [ "$before" = "$after" ]
 }
 
+@test "CRLF complete frontmatter is not duplicated (idempotent, \\r-tolerant)" {
+  printf -- '---\r\ntitle: X\r\ndomains: [infra]\r\nstatus: active\r\npr_number: null\r\n---\r\n\r\n# Plan\r\n\r\nTouches k3d/.\r\n' > "$TMP/crlf.md"
+  run bash "$HOOK" "$TMP/crlf.md"
+  [ "$status" -eq 0 ]
+  # must NOT prepend a second block — exactly one delimiter pair (\r-tolerant count)
+  count="$(awk '{sub(/\r$/,"")} /^---$/{c++} END{print c+0}' "$TMP/crlf.md")"
+  [ "$count" -eq 2 ]
+}
+
 @test "no duplicate frontmatter block is ever created" {
   bash "$HOOK" "$TMP/b-empty-domains.md" >/dev/null
   # exactly one frontmatter delimiter pair at the top: line 1 is --- and the

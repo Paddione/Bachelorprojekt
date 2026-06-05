@@ -39,15 +39,16 @@ _domains_to_yaml() {
 }
 
 # true iff line 1 is exactly --- AND a closing --- exists on a later line
+# (\r-tolerant: CRLF plans must not be misread as having no frontmatter)
 _has_frontmatter() {
-    [[ "$(head -1 "$FILE")" == "---" ]] || return 1
-    awk 'NR==1{next} /^---$/{found=1; exit} END{exit !found}' "$FILE"
+    [[ "$(head -1 "$FILE" | tr -d '\r')" == "---" ]] || return 1
+    awk '{sub(/\r$/,"")} NR==1{next} /^---$/{found=1; exit} END{exit !found}' "$FILE"
 }
 
 # content after the closing frontmatter --- (for derivation); whole file if none
 _body() {
     if _has_frontmatter; then
-        awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$FILE"
+        awk 'BEGIN{n=0} {sub(/\r$/,"")} /^---$/{n++; next} n>=2{print}' "$FILE"
     else
         cat "$FILE"
     fi
@@ -117,6 +118,7 @@ derived_yaml="$(_domains_to_yaml "$derived")"
 tmpfile="$(mktemp)"
 awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" -v needs_st="$needs_status" '
     BEGIN { infm=0; dom_seen=0; st_seen=0 }
+    { sub(/\r$/,"") }
     NR==1 && $0=="---" { print; infm=1; next }
     infm==1 && $0=="---" {
         if (needs_dom==1 && dom_seen==0) print "domains: " derived

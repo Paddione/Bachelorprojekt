@@ -29,6 +29,18 @@ KEY_SRC="$COMMON_DIR/git-crypt/keys/default"
 #    on git-crypt paths.
 git worktree add --no-checkout -b "$BRANCH" "$WT_PATH" "$BASE"
 
+# Roll back the half-created worktree + branch if any later step fails (cp,
+# checkout, submodule). Otherwise a retry hits a misleading "branch already
+# exists" / "<path> already exists" that hides the original error.
+_ok=0
+_rollback() {
+    [ "$_ok" -eq 1 ] && return
+    echo "worktree-create: setup failed — rolling back $WT_PATH and branch $BRANCH" >&2
+    git worktree remove --force "$WT_PATH" 2>/dev/null || true
+    git branch -D "$BRANCH" 2>/dev/null || true
+}
+trap _rollback EXIT
+
 WT_GITDIR="$(git -C "$WT_PATH" rev-parse --absolute-git-dir)"
 
 if [ -f "$KEY_SRC" ]; then
@@ -51,4 +63,5 @@ fi
 # 2) Init submodules (git worktree add does NOT; the BATS runner lives in one).
 git -C "$WT_PATH" submodule update --init --recursive --quiet
 
+_ok=1   # reached a clean finish — disarm the rollback trap
 echo "worktree-create: $WT_PATH ready on branch $BRANCH (base $BASE)"

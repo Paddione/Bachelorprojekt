@@ -101,3 +101,17 @@ teardown() { rm -rf "$TMP"; }
   run git -C "$TMP/wt-z" status --porcelain
   [ "$status" -eq 0 ]
 }
+
+# ── Rollback: a failure AFTER the --no-checkout skeleton must not leave junk ──
+
+@test "a post-skeleton failure rolls back the worktree and branch (no leftover)" {
+  # Force the smudge filter to fail even with the key present, so the unlocked
+  # `git checkout` fails AFTER the worktree + branch were registered.
+  git -C "$MAIN" config filter.git-crypt.smudge false
+  run bash -c "cd '$MAIN' && bash '$HELPER' fix/rollback '$TMP/wt-rb' HEAD"
+  [ "$status" -ne 0 ]
+  # nothing left behind: no registered worktree, no branch, no directory
+  ! git -C "$MAIN" worktree list --porcelain | grep -q "$TMP/wt-rb"
+  ! git -C "$MAIN" rev-parse --verify --quiet refs/heads/fix/rollback
+  [ ! -d "$TMP/wt-rb" ]
+}

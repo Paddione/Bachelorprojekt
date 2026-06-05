@@ -13,12 +13,6 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 
 ---
 
-## Schritt −2: Kontext-Reset + Sonnet (medium) — Execute-Gate
-
-Bitte den User, die Slash-Befehle `/model claude-sonnet-4-6` und danach `/clear` auszuführen. Dies sind User-Befehle, die du nicht selbst ausführen kannst.
-
----
-
 ## Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
 
 Synchronisiere `main` im Haupt-Repo:
@@ -95,19 +89,25 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 
 ---
 
-## Schritt 2: Implementierung
+## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
-### Feature
-Verwende bevorzugt `superpowers:subagent-driven-development` oder `superpowers:executing-plans`.
-- **Milestone-Updates**: Aktualisiere nach jedem abgeschlossenen Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
-- **Kollisionen vermeiden**: Falls Delegations-Tools das Skill `finishing-a-development-branch` aufrufen, unterdrücke das interaktive Menü mit dem Argument `--no-menu` oder der Variable `MENU=skip`.
-- **Workspace-Pfad**: Übergib Sub-Agenten immer den absoluten Worktree-Pfad und weise sie an, nur relativ dazu zu arbeiten.
+Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion, günstiges/schnelles Modell für die mechanische Arbeit. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 
-### Fix
-Verifiziere, dass ein failing Test existiert, bevor du Code änderst. Implementiere nach dem Rot-Grün-Prinzip, bis der Test grün wird.
+Spawne über das `Agent`/`Task`-Tool einen Subagenten mit:
+- `subagent_type: general-purpose`, `model: sonnet`
+- **Effort per Prompt-Direktive:** „Arbeite zügig und fokussiert (medium effort)." (das `Agent`-Tool kennt nur `model`, keinen Effort-Regler).
+- **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
+  - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
+  - Plan-Datei `docs/superpowers/plans/<slug>.md` + Ticket-ID.
+  - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
+- **Auftrag:**
+  - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
+  - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
+  - Bei Kompilier-/Testfehlern: starte sofort `systematic-debugging`.
+  - Falls Delegations-Tools `finishing-a-development-branch` aufrufen: Menü mit `--no-menu` / `MENU=skip` unterdrücken.
+  - Erstelle KEINEN PR und merge nicht — stoppe nach grünen Tests und gib eine Zusammenfassung zurück (geänderte Dateien, Test-Status, offene Punkte).
 
-### Fehlerbehandlung & Debugging
-Falls Kompilierungsfehler oder Test-Fehlschläge auftreten, starte sofort das Skill **`systematic-debugging`**, um die Ursache systematisch zu isolieren.
+Nimm das Ergebnis entgegen und mach bei Schritt 3 (unabhängige Verifikation) weiter.
 
 ---
 

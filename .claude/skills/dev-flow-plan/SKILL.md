@@ -100,18 +100,21 @@ Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 ### Schritt 3.5: Playwright-Projekt-Gate
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
 
-### Schritt 3.7: Kontext-Reset + Opus (xhigh)
-Bevor der Plan geschrieben wird, verringere den Kontext-Ballast:
-1. Committe und pushe die Spec-Datei auf den Feature-Branch.
-2. Bitte den User, die Slash-Befehle `/model claude-opus-4-8` und danach `/compact` auszuführen (weise darauf hin, dass dies User-Befehle sind und du sie nicht selbst ausführen kannst).
-3. Lese nach dem Reset die Spec-Datei neu ein.
+### Schritt 3.7: Plan-Erstellung an frischen Opus-Subagenten delegieren
+Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt das stärkste Modell + hohen Effort. Du selbst behältst den vollen Brainstorming-Kontext.
 
-### Schritt 4: Plan schreiben
-Rufe `superpowers:writing-plans` auf. **Wichtig:** Weise die Skill ausdrücklich an, die Ausführung/Implementierung noch nicht zu starten (nur Plan schreiben und STOPPEN).
-Wende danach das Frontmatter-Skript an:
-```bash
-bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md
-```
+1. Committe und pushe die Spec-Datei auf den Feature-Branch.
+2. Spawne über das `Agent`/`Task`-Tool einen Subagenten mit:
+   - `subagent_type: general-purpose`, `model: opus`
+   - **Effort per Prompt-Direktive:** beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das `Agent`-Tool kennt nur `model`, keinen Effort-Regler — Effort wird also im Prompt vermittelt).
+   - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
+     - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
+     - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
+     - Ticket-/Grilling-Kontext (`$GRILLING_TICKET_EXT_ID` etc.), falls vorhanden.
+   - **Auftrag:** „Lies die Spec. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
+
+### Schritt 4: Plan prüfen & übernehmen
+Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.
 
 ### Schritt 4.5: Ticket anlegen
 Erstelle ein Plan-Ticket in der Datenbank:

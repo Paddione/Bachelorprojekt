@@ -100,13 +100,14 @@ Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
 ### Schritt 3.5: Playwright-Projekt-Gate
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
 
-### Schritt 3.7: Plan-Erstellung an frischen Opus-Subagenten delegieren
-Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt das stärkste Modell + hohen Effort. Du selbst behältst den vollen Brainstorming-Kontext.
+### Schritt 3.7: Plan-Erstellung an einen passend provisionierten Subagenten delegieren
+Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt ein **zur Plan-Komplexität passendes Modell + Effort**. Du selbst behältst den vollen Brainstorming-Kontext.
 
 1. Committe und pushe die Spec-Datei auf den Feature-Branch.
-2. Spawne über das `Agent`/`Task`-Tool einen Subagenten mit:
-   - `subagent_type: general-purpose`, `model: opus`
-   - **Effort per Prompt-Direktive:** beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das `Agent`-Tool kennt nur `model`, keinen Effort-Regler — Effort wird also im Prompt vermittelt).
+2. Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
+   - **Modell:** Plan-Schreiben ist reasoning-lastige Meta-Arbeit → Default `model: opus`. Bei trivialem (chore-artigem) Plan genügt `sonnet`.
+   - **Effort:** Default high — beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das `Agent`-Tool kennt nur `model`, keinen Effort-Regler — Effort wird im Prompt vermittelt). **Bei großen multi-subsystem-Specs → ultra:** statt eines Einzel-Agenten das `Workflow`-Tool nutzen (parallele Plan-Segment-Autoren gegen einen geteilten Interface-Contract + abschließende Self-Review), siehe Rubrik.
+   - `subagent_type: general-purpose`.
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
      - Absoluter Worktree-Pfad (`pwd`) + Branch-Name; er arbeitet NUR relativ dazu.
      - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`

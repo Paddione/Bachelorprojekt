@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.26.0...website-v1.26.1) (2026-06-05)
+
+
+### Bug Fixes
+
+* **ops:** unblock nightly E2E, fix shared-db postStart bootstrap order, add eager tickets schema init [T000408 T000409 T000410] ([#1322](https://github.com/Paddione/Bachelorprojekt/issues/1322)) ([bb554a3](https://github.com/Paddione/Bachelorprojekt/commit/bb554a35316120e766f35c4b9fb8122f1970fac6))
+
 ## [1.26.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.25.0...website-v1.26.0) (2026-06-05)
 
 

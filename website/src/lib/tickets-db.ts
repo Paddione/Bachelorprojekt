@@ -976,3 +976,19 @@ export async function initTicketsSchema(): Promise<void> {
     schemaReady = true;
   });
 }
+
+/** Dark-launch gate. Returns true only when an ENABLED flag row exists for
+ *  (brand,key). Fails CLOSED (false) on any DB error so a flag-table outage
+ *  can never accidentally turn a gated feature on. [T000413] */
+export async function isFeatureEnabled(brand: string, key: string): Promise<boolean> {
+  try {
+    const { rows } = await pool.query(
+      `SELECT enabled FROM tickets.feature_flags WHERE brand = $1 AND key = $2 LIMIT 1`,
+      [brand, key],
+    );
+    return rows.length > 0 && rows[0].enabled === true;
+  } catch {
+    return false;
+  }
+}
+

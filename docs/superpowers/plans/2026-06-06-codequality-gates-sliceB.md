@@ -903,7 +903,7 @@ git commit -m "feat(cqg): add quality:baseline:refresh + quality:loop Taskfile t
 
 Depends on: T-B07.
 
-- [ ] **Step 1: Create the workflow**
+- [x] **Step 1: Create the workflow**
 
 ```yaml
 # .github/workflows/quality-loop.yml
@@ -967,7 +967,7 @@ jobs:
         run: task quality:loop
 ```
 
-- [ ] **Step 2: Validate YAML syntax**
+- [x] **Step 2: Validate YAML syntax**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -976,7 +976,7 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/quality-loop.yml
 
 Expected: `YAML OK`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -993,7 +993,7 @@ git commit -m "feat(cqg): nightly quality-loop GH Actions workflow (02:00 UTC, f
 
 Depends on: T-B07.
 
-- [ ] **Step 1: Read the exact insertion context**
+- [x] **Step 1: Read the exact insertion context**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1002,7 +1002,7 @@ grep -n "baseline ratchet\|Verify route manifest" .github/workflows/ci.yml
 
 Note the line numbers. The new step goes between them.
 
-- [ ] **Step 2: Insert the baseline-shrink guard step**
+- [x] **Step 2: Insert the baseline-shrink guard step**
 
 Find the line containing `run: task quality:check` (currently line ~55) and add the new step after it, before `- name: Verify route manifest is up to date`:
 
@@ -1021,7 +1021,7 @@ Find the line containing `run: task quality:check` (currently line ~55) and add 
           echo "✓ baseline key-count is stable or shrinking (${main_count} → ${pr_count})"
 ```
 
-- [ ] **Step 3: Validate YAML syntax**
+- [x] **Step 3: Validate YAML syntax**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1030,7 +1030,7 @@ python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml').read())
 
 Expected: `YAML OK`
 
-- [ ] **Step 4: Verify the guard logic locally (simulate a growing baseline)**
+- [x] **Step 4: Verify the guard logic locally (simulate a growing baseline)**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1045,7 +1045,7 @@ pr_count=85; main_count=86
 # Expected: OK
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1064,7 +1064,7 @@ Depends on: T-B05 (BATS file must exist before regenerating).
 
 Note on inventory: `tests/unit/quality-loop.bats` does not match the `FA|SA|NFA|AK` naming pattern, so `scripts/build-test-inventory.sh` will silently skip it (no new entry added). Running `task test:inventory` is still required to ensure the file's `jq` dedup check passes cleanly and the committed JSON matches the freshly-generated output (CI checks `git diff`).
 
-- [ ] **Step 1: Regenerate test inventory**
+- [x] **Step 1: Regenerate test inventory**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1073,7 +1073,7 @@ task test:inventory 2>&1
 
 Expected: `Wrote N inventory entries to website/src/data/test-inventory.json`
 
-- [ ] **Step 2: Verify git diff is clean (or shows only expected changes)**
+- [x] **Step 2: Verify git diff is clean (or shows only expected changes)**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1082,7 +1082,7 @@ git diff website/src/data/test-inventory.json
 
 Expected: no diff (quality-loop.bats doesn't match the FA/SA/NFA/AK pattern, so no entry was added — the file is unchanged and already committed).
 
-- [ ] **Step 3: Run the full test suite one final time**
+- [x] **Step 3: Run the full test suite one final time**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1094,7 +1094,7 @@ Expected: all pass, zero failures. Key checks:
 - `test:code-quality` runs `baseline-refresh.test.mjs` + `group-violations.test.mjs` via `node --test scripts/code-quality/*.test.mjs`
 - `test:unit` (via `tests/unit/lib/bats-core/bin/bats`) runs `quality-loop.bats`
 
-- [ ] **Step 4: Run `task quality:check` — must still pass**
+- [x] **Step 4: Run `task quality:check` — must still pass**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1103,7 +1103,7 @@ task quality:check 2>&1
 
 Expected: `✓ no new or worsened violations`
 
-- [ ] **Step 5: Final commit (inventory + any unstaged)**
+- [x] **Step 5: Final commit (inventory + any unstaged)**
 
 ```bash
 cd /tmp/wt-cqg-sliceB
@@ -1113,7 +1113,7 @@ git add website/src/data/test-inventory.json
 git commit -m "chore(cqg): regenerate test-inventory after quality-loop.bats addition" || echo "nothing to commit (expected if inventory unchanged)"
 ```
 
-- [ ] **Step 6: Verify all commits on the branch**
+- [x] **Step 6: Verify all commits on the branch**
 
 ```bash
 cd /tmp/wt-cqg-sliceB

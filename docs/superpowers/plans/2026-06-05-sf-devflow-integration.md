@@ -258,13 +258,13 @@ git commit -m "fix(factory): drop dead ticket.sh update fallback in Scout persis
 **Files:**
 - Modify: `scripts/factory/README.md`
 
-- [ ] **Step 1: Update the doc**
+- [x] **Step 1: Update the doc**
 
 - Change any “Phase 2 (Dispatcher) — geplant/planned” wording to reflect that it is **shipped** (merged PR #1330, `dispatcher.js` + `queue/slots/schedule/watchdog/metrics.sh` present).
 - Replace the raw-SQL quickstart (e.g. `psql … UPDATE … touched_files`) with the supported CLI: `bash scripts/ticket.sh set-touched-files --id T###### --files a,b,c` (CLAUDE.md forbids ad-hoc SQL against `tickets`).
 - Add one line documenting the new dry-run: “Safe trial run: pass `dry_run: true` in the pipeline args (or `FACTORY_DRY_RUN=1`) — Deploy reports the diff but does not merge/deploy.”
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add scripts/factory/README.md

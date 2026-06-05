@@ -65,10 +65,10 @@ Exploriere die Codebase mit dem Explore-Agent. Fülle `templates/scout-template.
 Setze `touched_files` am Ticket:
 
 ```bash
-psql -U website -d website -c "
-UPDATE tickets.tickets SET touched_files = ARRAY['file1','file2']
-WHERE external_id = '$TICKET_EXT_ID'"
+bash scripts/ticket.sh set-touched-files --id "$TICKET_EXT_ID" --files "file1,file2"
 ```
+
+Safe trial run: pass `dry_run: true` in the pipeline args (or thread it from dispatcher/Taskfile) — Deploy reports the diff but does not merge/deploy.
 
 ### 3. Konflikt-Check
 

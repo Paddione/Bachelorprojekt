@@ -43,6 +43,8 @@ async function main() {
             external_id: { type: 'string' },
             slot: { type: 'integer' },
             title: { type: 'string' },
+            branch: { type: 'string' },
+            plan_path: { type: 'string' },
           },
         },
       },
@@ -63,10 +65,14 @@ async function main() {
           (schedule.sh enforces the global cap across BOTH brands by summing occupied slots.)
 
      Collect every {brand, external_id, slot} object that schedule.sh claimed across both brands.
-     For each claimed external_id, fetch its title:
-       BRAND=<brand> bash ${REPO}/scripts/ticket.sh get --id <external_id>   (read .title from the JSON)
+     For each claimed external_id, fetch its details:
+       BRAND=<brand> bash ${REPO}/scripts/ticket.sh get --id <external_id>
+       Read .title and .plan_ref from the returned JSON.
+       If .plan_ref contains a FACTORY-PLAN-REF comment, parse "branch=<value>" and "plan=<value>" from it.
 
-     Return JSON: { "launch": [ {brand, external_id, slot, title} ... ] }. If nothing was claimed, return { "launch": [] }.`,
+     Return JSON: { "launch": [ {brand, external_id, slot, title, branch, plan_path} ... ] }.
+     If a ticket has no plan reference, set branch and plan_path to null.
+     If nothing was claimed, return { "launch": [] }.`,
     { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
   )
 
@@ -87,11 +93,13 @@ async function main() {
           {
             title: f.title ?? f.external_id,
             description: `Dispatched by the Software Factory dispatcher (slot ${f.slot}).`,
-            slug: `sf-${String(f.external_id).toLowerCase()}`,
+            slug: f.branch ? String(f.branch).replace(/^feature\//, '') : `sf-${String(f.external_id).toLowerCase()}`,
             ticket_id: f.external_id,
             brand: f.brand,
             timestamp: A.timestamp,
             dry_run: A.dry_run === true || A.dry_run === 'true',
+            branch: f.branch || null,
+            plan_path: f.plan_path || null,
           },
         )
           .then((r) => ({ external_id: f.external_id, brand: f.brand, result: r }))

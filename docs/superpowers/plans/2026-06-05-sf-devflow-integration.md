@@ -601,7 +601,7 @@ git commit -m "feat(factory): plan-reuse entrypoint — execute a handed-off hum
 **Files:**
 - Modify: `scripts/factory/dispatcher.js` (PREP prompt + schema + Launch child args)
 
-- [ ] **Step 1: Have PREP read plan_ref**
+- [x] **Step 1: Have PREP read plan_ref**
 
 In the PREP agent prompt, after fetching each title via `ticket.sh get`, also read its `plan_ref` field and parse `branch=` / `plan=`. Extend the prompt’s return instruction to: `{ "launch": [ {brand, external_id, slot, title, branch, plan_path} ... ] }` where `branch`/`plan_path` are null if the ticket has no `FACTORY-PLAN-REF` (self-plan).
 
@@ -612,7 +612,7 @@ Extend `PLAN_SCHEMA.properties.launch.items.properties` with:
             plan_path: { type: 'string' },
 ```
 
-- [ ] **Step 2: Forward to the child**
+- [x] **Step 2: Forward to the child**
 
 In the Launch `workflow(...)` child-args, add:
 
@@ -624,7 +624,7 @@ In the Launch `workflow(...)` child-args, add:
 
 (Replace the existing hardcoded `slug:` line — when reusing, the slug must match the human branch so the plan file resolves.)
 
-- [ ] **Step 3: Verify + commit**
+- [x] **Step 3: Verify + commit**
 
 Run: `node --check scripts/factory/dispatcher.js && ./tests/runner.sh local FA-SF-30 && ./tests/runner.sh local FA-SF-31`
 Expected: exit 0; PASS.

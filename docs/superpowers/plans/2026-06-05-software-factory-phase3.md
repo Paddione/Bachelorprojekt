@@ -627,7 +627,7 @@ EOF
 ### Task A.7: `ticket.sh feature-flag set|get|list` subcommands
 **Files:** Modify `scripts/ticket.sh` (add `cmd_feature_flag`; register in dispatch + usage). Test: extend `tests/local/FA-SF-35-factory-cli.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
   ```bash
   @test "FA-SF-35: feature-flag set requires --brand --key --enabled" {
     run bash scripts/ticket.sh feature-flag set --brand mentolder --key new-hero
@@ -655,13 +655,13 @@ EOF
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `feature-flag` hits `*) Unknown command` (status 1) → the five new assertions fail.
 
-- [ ] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_dryrun_check`:
+- [x] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_dryrun_check`:
   ```bash
   cmd_feature_flag() {
     local action="" brand="" key="" enabled="" set_by=""
@@ -714,13 +714,13 @@ EOF
   ```
   Append `feature-flag` to the usage `Commands:` line.
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3 && bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `bash -n` silent; all FA-SF-35 assertions report `ok` (retry-count + factory-control + dryrun + feature-flag).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/ticket.sh tests/local/FA-SF-35-factory-cli.bats && git commit -m "feat(factory): ticket.sh feature-flag set/get/list subcommands [T000413]"
   ```

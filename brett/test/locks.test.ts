@@ -1,5 +1,7 @@
+// brett/test/locks.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+// @ts-expect-error — .mjs public asset, no TS types available
 import { createLocks } from '../public/assets/coaching/locks.mjs';
 
 test('acquire grants only when unheld', () => {

@@ -1,5 +1,7 @@
+// brett/test/phases.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+// @ts-expect-error — .mjs public asset, no TS types available
 import { createPhaseState, DEFAULT_STEPS } from '../public/assets/coaching/phases.mjs';
 
 test('defaults to the constellation template at index 0', () => {

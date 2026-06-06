@@ -2,19 +2,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const html = readFileSync(join(__dir, '../public/index.html'), 'utf8');
-const serverJs = readFileSync(join(__dir, '../server.js'), 'utf8');
-// Also scan src/server/ for comprehensive coverage (the real logic lives there now)
-let serverSrcAll = serverJs;
-try {
-  serverSrcAll += '\n' + readAll(join(__dir, '../src/server'));
-} catch (e) {}
 
-function readAll(dir) {
+function readAll(dir: string): string {
   let out = '';
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, entry.name);
@@ -23,11 +16,10 @@ function readAll(dir) {
   }
   return out;
 }
-let clientSrc = html;
-try {
-  const clientDir = join(__dir, '../src/client');
-  clientSrc += '\n' + readAll(clientDir);
-} catch (e) {}
+
+const serverSrcAll = readAll(join(__dir, '../src/server'));
+const clientSrc = readFileSync(join(__dir, '../public/index.html'), 'utf8')
+  + '\n' + readAll(join(__dir, '../src/client'));
 
 test('index.html does not contain the word "mayhem"', () => {
   assert.ok(
@@ -79,6 +71,7 @@ test('server source does not contain custom skins upload/validation/GLB/OIDC ski
 });
 
 test('index.html loads the coaching HUD bootstrap module', () => {
+  const html = readFileSync(join(__dir, '../public/index.html'), 'utf8');
   assert.ok(
     html.includes("import { mountCoachingHud }") || html.includes("coaching/hud.mjs"),
     'coaching HUD module must be imported in index.html'
@@ -92,4 +85,3 @@ test('named persons are brand-tagged so mentolder can hide them', () => {
 test('add message carries the figure label', () => {
   assert.ok(/type:\s*['"]add['"][\s\S]{0,400}label/.test(clientSrc), 'add payload should include label');
 });
-

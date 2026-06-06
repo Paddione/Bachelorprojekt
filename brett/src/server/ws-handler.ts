@@ -42,7 +42,7 @@ export const RELAY_TYPES = new Set<string>([
 // Admin message types
 export const ADMIN_TYPES = new Set<string>([
   'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set',
-  'admin_round_start'
+  'admin_round_start', 'admin_assign_role'
 ]);
 
 /**
@@ -55,6 +55,30 @@ export const ADMIN_TYPES = new Set<string>([
  */
 export function resolvePlayerId(ws: any): string {
   return ws?._session?.userId ?? ws?._playerId ?? 'anon';
+}
+
+/**
+ * Assign a role to a current participant. Validates membership (rejects
+ * non-members and `'anon'`, which is never a real participant key). Merges into
+ * the existing `__roles__` map so other users' roles are never clobbered, then
+ * broadcasts `role_changed` and persists.
+ */
+export function handleAssignRole(
+  room: string,
+  targetPlayerId: string,
+  role: string,
+  deps: Pick<WsDeps, 'listParticipants' | 'applyMutation' | 'buildStateFromMutations' | 'broadcast' | 'schedulePersist'>
+): { ok: boolean; reason?: string } {
+  if (targetPlayerId === 'anon' ||
+      !deps.listParticipants(room).some((p: any) => p.userId === targetPlayerId)) {
+    return { ok: false, reason: 'not-in-room' };
+  }
+  const roles = { ...(deps.buildStateFromMutations(room)?.roles ?? {}) };
+  roles[targetPlayerId] = role;
+  deps.applyMutation(room, { type: 'roles_set', roles });
+  deps.broadcast(room, { type: 'role_changed', userId: targetPlayerId, role });
+  deps.schedulePersist(room);
+  return { ok: true };
 }
 
 export function handleDisconnect(ws: any, deps: WsDeps): void {
@@ -275,6 +299,14 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             case 'admin_round_start': {
               const res = deps.handleAdminRoundStart(adminRoom, (m: any) => deps.broadcast(adminRoom, m));
               if (res && res.ok && !res.noop) deps.schedulePersist(adminRoom);
+              break;
+            }
+            case 'admin_assign_role': {
+              if (typeof msg.targetPlayerId !== 'string' || typeof msg.role !== 'string') return;
+              const res = handleAssignRole(adminRoom, msg.targetPlayerId, msg.role, deps);
+              if (!res.ok) {
+                try { ws.send(JSON.stringify({ type: 'error', reason: res.reason })); } catch {}
+              }
               break;
             }
           }

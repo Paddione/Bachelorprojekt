@@ -606,7 +606,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Roster emits `presence_join`/`presence_leave` in `lobby`, keyed on canonical identity (anon also leaves).
 - **verify:** `cd brett && npm test`
 
-### B11 — `admin_assign_role` (role assignment + display) with member validation
+### B11 — `admin_assign_role` (role assignment + display) with member validation — [x] DONE
 - **target_files:** `brett/src/server/ws-handler.ts`, `brett/src/server/index.ts`, `brett/test/assign-role.test.ts` (new)
 - **failing test first (red):** `test/assign-role.test.ts` exercises the role-assignment path through an exported helper `handleAssignRole(room, targetPlayerId, role, deps)` (new, thin, re-exported): with `targetPlayerId` a current participant → returns `{ok:true}`, writes `roles_set` so `buildStateFromMutations(room).roles[targetPlayerId] === role`, and the broadcastFn receives `{type:'role_changed', userId, role}`. With a non-member `targetPlayerId` → `{ok:false, reason:'not-in-room'}` and **no** `roles_set`, **no** broadcast.
 - **implementation:**

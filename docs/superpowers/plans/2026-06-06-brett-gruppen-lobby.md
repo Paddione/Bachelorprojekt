@@ -1025,7 +1025,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D6 — Template figure-seed (pure seeder)
+### D6 — Template figure-seed (pure seeder) — [x] DONE
 
 - **target_files**: `brett/src/server/figures.ts` (new `seedFiguresFromTemplate`), `brett/src/server/index.ts` (re-export)
 - **failing test (red)**: `brett/test/template-seed.test.ts`:

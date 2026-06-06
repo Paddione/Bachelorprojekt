@@ -21,7 +21,7 @@ import * as wsHandler from './ws-handler';
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
 db.initDb({ buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 sessions.initSessions({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation, transitionPhase: phases.transitionPhase });
-figures.initFigures({ validateAppearance: presets.validateAppearance });
+figures.initFigures({ validateAppearance: presets.validateAppearance, buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 
 const app = express();
 app.set('trust proxy', 1);
@@ -416,6 +416,8 @@ export const releaseFigureLock = figures.releaseFigureLock;
 export const releaseLocksForUser = figures.releaseLocksForUser;
 export const orphanFiguresForUser = figures.orphanFiguresForUser;
 export const listFigureLocks = figures.listFigureLocks;
+export const seedFiguresFromTemplate = figures.seedFiguresFromTemplate;
+export const applyTemplateToRoom = figures.applyTemplateToRoom;
 export const addParticipant = rooms.addParticipant;
 export const removeParticipant = rooms.removeParticipant;
 export const listParticipants = rooms.listParticipants;

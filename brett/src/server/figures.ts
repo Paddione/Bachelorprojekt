@@ -4,8 +4,14 @@ export const figureLocks = new Map<string, Map<string, { userId: string; name: s
 type ValidateAppearance = (a: any) => string | null;
 let validateAppearance: ValidateAppearance = () => null;
 
-export function initFigures(deps: { validateAppearance: ValidateAppearance }): void {
+// Injected (D7) to read the room's server-authoritative figure set after seeding,
+// without a static import cycle with phases.ts. index.ts wires both.
+type StateBuilder = (room: string) => any;
+let buildStateFromMutations: StateBuilder = () => null;
+
+export function initFigures(deps: { validateAppearance: ValidateAppearance; buildStateFromMutations?: StateBuilder }): void {
   validateAppearance = deps.validateAppearance;
+  if (deps.buildStateFromMutations) buildStateFromMutations = deps.buildStateFromMutations;
 }
 
 export function ensureFigureMap(room: string): Map<string, any> {
@@ -176,6 +182,37 @@ export function seedFigureMapFromState(map: Map<string, any>, state: any): void 
   if (state.lobbySettings && typeof state.lobbySettings === 'object') {
     map.set('__lobby_settings__', { id: '__lobby_settings__', settings: state.lobbySettings });
   }
+}
+
+/**
+ * D6 — Pure template figure-seeder. Clears only the NON-sentinel figures (ids
+ * not starting with `__`) and re-adds each template figure via applyMutation('add')
+ * so appearance-defaulting and the 200-cap apply. Sentinels (__optik__,
+ * __session_phase__, __lobby_settings__, …) are untouched. No DB.
+ */
+export function seedFiguresFromTemplate(room: string, templateState: any): void {
+  const figs = ensureFigureMap(room);
+  for (const [id] of figs) {
+    if (!id.startsWith('__')) figs.delete(id);
+  }
+  for (const f of (templateState?.figures ?? [])) {
+    if (f && typeof f.id === 'string') {
+      applyMutation(room, { type: 'add', figure: f });
+    }
+  }
+}
+
+/**
+ * D7 — Template apply orchestrator. Server-authoritative: seeds the room from the
+ * loaded snapshot state (NOT a client-supplied figure payload), then broadcasts a
+ * `snapshot` of the seeded board so every client renders it. The snapshot is
+ * already persisted in server state via the seed, closing the latent
+ * "snapshot has no applyMutation case" persistence gap for templates.
+ */
+export function applyTemplateToRoom(room: string, templateState: any, broadcastFn: (m: any) => void): void {
+  seedFiguresFromTemplate(room, templateState);
+  const builtFigures = buildStateFromMutations(room)?.figures ?? [];
+  broadcastFn({ type: 'snapshot', figures: builtFigures });
 }
 
 export function ensureFigureLocks(room: string): Map<string, { userId: string; name: string; color: string }> {

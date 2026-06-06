@@ -26,7 +26,7 @@ Not in audience: end users, external reviewers, anyone needing a narrative tour.
 |---|---|
 | Dev-Flow Skills | `brainstorming`, `writing-plans`, `dev-flow-plan`, `dev-flow-execute`, `plan-context.sh`, `plan-frontmatter-hook.sh`, `using-git-worktrees` |
 | Agent Dispatch | `bachelorprojekt-{db,infra,ops,website,test,security}` from CLAUDE.md routing |
-| CI/CD Pipeline | `track-pr.yml`, `track-plans.yml`, `build-website.yml`, `dev-auto-deploy.yml`, `tracking-import` CronJob |
+| CI/CD Pipeline | `build-website.yml`, `build-website-korczewski.yml`, `e2e.yml` | Note: `track-pr.yml`, `track-plans.yml`, `tracking-import` CronJob, `dev-auto-deploy.yml`, `dev-smoke.yml` all removed (PRs #788/#993/#1372). |
 | App Data Flows | Keycloak SSO, Nextcloud Talk pipeline, Tickets/Bugs APIs, Coaching ingest, Arena gameplay, Brett snapshots |
 
 | DB domain | Anchor schemas |
@@ -128,34 +128,15 @@ steps:
     reads:   {}
     gaps:    []
 
-  - id: track-pr
-    family: ci
-    label: ".github/workflows/track-pr.yml"
-    writes:
-      files: ["tracking/pending/<pr>.json"]
-    reads:  {}
-    gaps:   []
-
-  - id: tracking-import
-    family: ci
-    label: "tracking-import CronJob"
-    writes:
-      tables: ["bachelorprojekt.features"]
-    reads:
-      files: ["tracking/pending/*.json"]
-    gaps: []
+  # REMOVED: track-pr (.github/workflows/track-pr.yml) — removed PR #993 (2026-05-23)
+  # REMOVED: tracking-import CronJob — removed PR #788 (2026-05-15)
+  # bachelorprojekt.features shows only historical data (last tracked PR: #787)
 
   # … one entry per documented workflow step. Initial inventory: ~25 steps.
 
 # Edges that don't fit cleanly under a single step's gap list.
-cross_skill_gaps:
-  - from: dev-flow-plan
-    to:   tracking-import
-    via:  "tickets.tickets.external_id → bachelorprojekt.features (no ticket_id column today)"
-    explanation: |
-      Plans set tickets.tickets.external_id (T######) but
-      bachelorprojekt.features stores PR# only. There's no join between
-      a tracked feature and the ticket that triggered it.
+cross_skill_gaps: []
+# Note: dev-flow-plan → tracking-import edge is obsolete (tracking-import removed PR #788)
 
 # Optional auto-discovery rules. Off by default; turned on per heuristic.
 heuristics:
@@ -273,7 +254,7 @@ Manual cadence: regenerate before any `docs:deploy` that follows a schema change
 
 3. **Mermaid pre-render cost.** The Domain Deep-dive section embeds 8 `erDiagram` blocks. `mmdc` runs serially today — building this page alone could add ~10–15 s to `task docs:build`. **Mitigation:** the existing `--fast` flag in `docs:build` already skips Mermaid pre-rendering (verified in `Taskfile.yml`); the developer iterates with `task docs:build FAST=true` and runs the full render only before deploy.
 
-4. **Schema introspection requires shared-db access.** The generator depends on the mentolder cluster being reachable. **Mitigation:** the task fails loudly if `kubectl --context mentolder` can't list the `shared-db` pod; documentation says "run after `kubectl cluster-info --context mentolder` to verify cluster is reachable."
+4. **Schema introspection requires shared-db access.** The generator depends on the fleet cluster being reachable. **Mitigation:** the task fails loudly if `kubectl --context fleet` can't list the `shared-db` pod; documentation says "run after `kubectl cluster-info --context fleet` to verify cluster is reachable."
 
 5. **Sidebar conflict.** `_sidebar.md` is appended to by multiple PRs; merge conflicts likely if multiple in-flight branches add entries. **Mitigation:** none beyond normal rebase. The entry is one line.
 

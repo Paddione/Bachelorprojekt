@@ -74,7 +74,7 @@ Beim Betrieb des Repositories und der Server werden folgende administrative Kont
 
 ### 2.1 SSH-Systembenutzer
 * **`root`**: Administrativer Hauptnutzer auf allen Hetzner-Servern (`pk-*` und `gekko-*`) sowie den Proxmox-Hosts (`pve`, `pve2`, `pve3`).
-* **`devops`**: Standard-SSH-Benutzer auf den virtuellen Entwicklungsmaschinen (`devc-2`, `devc-3`).
+* **`devops`**: War Standard-SSH-Benutzer auf den VM-Knoten (`devc-2`, `devc-3`) — diese wurden nie gebaut (shelved 2026-05-30).
 * **`gekko`**: Standard-Benutzer auf dem alten `k3s-1` Heimserver sowie auf der neuen `dev-vm` (`DEV_SSH_USER`).
 
 ### 2.2 Keycloak SSO / OIDC-Benutzer (Vordefinierte Konten)

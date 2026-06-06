@@ -639,7 +639,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - `gateSessionReady` is pure/exported and unit-tested.
 - **verify:** `cd brett && npm test`
 
-### B14 — Leiter-disconnect grace wiring
+### B14 — Leiter-disconnect grace wiring — [x] DONE
 - **target_files:** `brett/src/server/ws-handler.ts`, `brett/src/server/index.ts`, `brett/test/leader-grace.test.ts` (new)
 - **failing test first (red):** `test/leader-grace.test.ts` imports an exported `onLeaderDisconnect(room, leavingPlayerId, phase, deps)` (new) plus `getAdminTokenHolder`, `tokenGraceTimers`, `applyMutation`. Seed room with `session_admin_token_set{playerId:'leader1'}` and phase `active`; `onLeaderDisconnect(room, 'leader1', 'active', deps)` → `tokenGraceTimers.has(room) === true` (grace started). For a non-holder (`onLeaderDisconnect(room, 'guest', 'active', deps)`) and for a terminal phase (`'ended'`) → no timer set. (Full timeout-reassignment behavior is already covered by the existing `admin-token` grace tests.)
 - **implementation:**

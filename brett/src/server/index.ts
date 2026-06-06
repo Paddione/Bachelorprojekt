@@ -308,6 +308,11 @@ const wsDeps = {
   trackPlayerInRoom: sessions.trackPlayerInRoom,
   transitionPhase: phases.transitionPhase,
   isAdminFromClaims: auth.isAdminFromClaims,
+  getAdminTokenHolder: sessions.getAdminTokenHolder,
+  beginTokenGrace: sessions.beginTokenGrace,
+  setRoomAdminPresence: sessions.setRoomAdminPresence,
+  reclaimAdminToken: sessions.reclaimAdminToken,
+  roomAdminPresence: sessions.roomAdminPresence,
   sessionMiddleware,
 };
 
@@ -357,6 +362,7 @@ export const resolvePlayerId = wsHandler.resolvePlayerId;
 export const handleAssignRole = wsHandler.handleAssignRole;
 export const handleLobbySetReady = wsHandler.handleLobbySetReady;
 export const gateSessionReady = wsHandler.gateSessionReady;
+export const onLeaderDisconnect = wsHandler.onLeaderDisconnect;
 export const TRANSIENT_TYPES = new Set([]);
 
 export const assignAdminToken = sessions.assignAdminToken;

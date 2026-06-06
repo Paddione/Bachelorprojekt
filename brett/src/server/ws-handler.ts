@@ -31,6 +31,11 @@ export interface WsDeps {
   trackPlayerInRoom: Function;
   transitionPhase: Function;
   isAdminFromClaims: Function;
+  getAdminTokenHolder: Function;
+  beginTokenGrace: Function;
+  setRoomAdminPresence: Function;
+  reclaimAdminToken: Function;
+  roomAdminPresence: Map<string, Set<string>>;
   sessionMiddleware?: any;
 }
 
@@ -109,6 +114,24 @@ export function gateSessionReady(ws: any, send: (m: any) => void): boolean {
   return true;
 }
 
+/**
+ * When the current admin-token holder leaves while the session is non-terminal,
+ * start the grace timer so the token can be reassigned to another present admin
+ * (or released) on expiry — instead of being stranded. No-op for non-holders and
+ * for terminal (`ended`) phases.
+ */
+export function onLeaderDisconnect(
+  room: string,
+  leavingPlayerId: string,
+  phase: string | null | undefined,
+  deps: Pick<WsDeps, 'getAdminTokenHolder' | 'beginTokenGrace'>
+): void {
+  if (phase === 'ended') return;
+  if (leavingPlayerId && leavingPlayerId === deps.getAdminTokenHolder(room)) {
+    deps.beginTokenGrace(room, leavingPlayerId);
+  }
+}
+
 export function handleDisconnect(ws: any, deps: WsDeps): void {
   const room = deps.leaveRoom(ws);
   if (room) deps.broadcastInfo(room);
@@ -179,6 +202,19 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             participant = deps.addParticipant(room, { userId: playerId, name: playerName });
             if (participant) {
               deps.broadcast(room, { type: 'presence_join', participant });
+            }
+          }
+
+          // Maintain admin presence for grace reassignment (B14). Accumulate any
+          // OIDC-admin into roomAdminPresence; if the (re)joining admin is the
+          // current token holder, cancel a pending grace timer.
+          if (ws._session?.isAdmin) {
+            const pid = resolvePlayerId(ws);
+            const existing = [...(deps.roomAdminPresence.get(room) ?? [])];
+            if (!existing.includes(pid)) existing.push(pid);
+            deps.setRoomAdminPresence(room, existing);
+            if (deps.getAdminTokenHolder(room) === pid) {
+              deps.reclaimAdminToken(room, pid);
             }
           }
 
@@ -374,6 +410,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         // tracked only via ws._playerId), not just OIDC-session users.
         deps.removeParticipant(room, pid);
         deps.broadcast(room, { type: 'presence_leave', userId: pid });
+        // If the departing player holds the admin token in a non-terminal phase,
+        // start the grace timer for reassignment (B14).
+        const phase = deps.buildStateFromMutations(room)?.sessionPhase;
+        onLeaderDisconnect(room, pid, phase, deps);
       }
       if (deps.rooms.has(room)) {
         deps.broadcastInfo(room);

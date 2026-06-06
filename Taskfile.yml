@@ -3309,12 +3309,12 @@ tasks:
         POD=$(kubectl $CTX get pod -n "$NS" -l app=brett -o name | head -n 1 | cut -d'/' -f2)
         if [[ -z "$POD" ]]; then echo "ERROR: No brett pod found in $NS" >&2; exit 1; fi
         
-        echo "1/2 Syncing brett/server.js and brett/public to $POD..."
-        kubectl $CTX cp brett/server.js "$NS/$POD:/app/server.js"
-        kubectl $CTX cp brett/public "$NS/$POD:/app/public"
-        
+        echo "1/2 Syncing brett/src/ and brett/public/ to $POD..."
+        kubectl $CTX cp brett/src/ "$NS/$POD:/app/src/"
+        kubectl $CTX cp brett/public/ "$NS/$POD:/app/public/"
+
         echo "2/2 Restarting node process..."
-        kubectl $CTX exec -n "$NS" "$POD" -- pkill -f "node server.js" || true
+        kubectl $CTX exec -n "$NS" "$POD" -- pkill node || true
         echo "✓ Brett synced and restarted. Changes should be live in a few seconds."
 
   brett:deploy:all-prods:

@@ -24,7 +24,7 @@ check_cmd node
 check_cmd npx
 check_cmd ssh
 
-[[ -f brett/server.js ]] || { echo "ERROR: run this script from the repo root (brett/server.js not found)" >&2; exit 1; }
+[[ -f brett/src/server/index.ts ]] || { echo "ERROR: run this script from the repo root (brett/src/server/index.ts not found)" >&2; exit 1; }
 [[ -d brett/node_modules ]] || { echo "ERROR: run 'npm install' inside brett/ first" >&2; exit 1; }
 
 echo "[brett-dev] checking korczewski cluster reachability..."
@@ -94,12 +94,13 @@ ssh -R "brett-dev:80:localhost:3000" \
   -N &
 SISH_PID=$!
 
-echo "[brett-dev] starting nodemon..."
+echo "[brett-dev] starting tsx watch (TypeScript server + Vite client)..."
 echo "[brett-dev] local:  http://localhost:3000"
 echo "[brett-dev] tunnel: https://brett-dev.korczewski.de"
 echo ""
 
 # ── start Brett ───────────────────────────────────────────────────────────────
+cd brett
 NODE_ENV=development \
 BRETT_PUBLIC_URL=https://brett-dev.korczewski.de \
 KEYCLOAK_URL=http://localhost:8080 \
@@ -108,4 +109,4 @@ BRETT_KC_CLIENT_ID=brett-app \
 BRETT_OIDC_SECRET="${BRETT_OIDC_SECRET}" \
 BRETT_SESSION_SECRET="${BRETT_OIDC_SECRET}" \
 DATABASE_URL="postgresql://website:${WEBSITE_DB_PASSWORD}@localhost:5432/website?sslmode=disable" \
-npx nodemon brett/server.js
+npx tsx watch src/server/index.ts

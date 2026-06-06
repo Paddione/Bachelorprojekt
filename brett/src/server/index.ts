@@ -356,6 +356,7 @@ export const handleDisconnect = (ws: any) => wsHandler.handleDisconnect(ws, wsDe
 export const resolvePlayerId = wsHandler.resolvePlayerId;
 export const handleAssignRole = wsHandler.handleAssignRole;
 export const handleLobbySetReady = wsHandler.handleLobbySetReady;
+export const gateSessionReady = wsHandler.gateSessionReady;
 export const TRANSIENT_TYPES = new Set([]);
 
 export const assignAdminToken = sessions.assignAdminToken;

@@ -96,6 +96,19 @@ export function handleLobbySetReady(
   deps.broadcast(room, { type: 'lobby_ready_changed', userId: resolvePlayerId(ws), ready: !!msg.ready });
 }
 
+/**
+ * Gate that guarantees the session has been wired (`ws._session` resolved) before
+ * any isAdmin/role resolution runs. Returns false + sends `error:not-ready` while
+ * the session is still pending. Pure: only reads `ws._sessionReady` and calls `send`.
+ */
+export function gateSessionReady(ws: any, send: (m: any) => void): boolean {
+  if (!ws._sessionReady) {
+    send({ type: 'error', reason: 'not-ready' });
+    return false;
+  }
+  return true;
+}
+
 export function handleDisconnect(ws: any, deps: WsDeps): void {
   const room = deps.leaveRoom(ws);
   if (room) deps.broadcastInfo(room);
@@ -106,7 +119,12 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
     if (deps.sessionMiddleware && req) {
       deps.sessionMiddleware(req, {}, () => {
         ws._session = req.session;
+        ws._sessionReady = true;
       });
+    } else {
+      // No middleware (tests / unauthenticated transport) → session resolution
+      // is trivially complete.
+      ws._sessionReady = true;
     }
     ws.isAlive = true;
 
@@ -126,6 +144,12 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
 
         if (msg.type === 'pong') {
           ws.isAlive = true;
+          return;
+        }
+
+        // Block any non-pong message until the session is wired, so isAdmin/role
+        // resolution never runs against an undefined session.
+        if (!gateSessionReady(ws, (m: any) => ws.send(JSON.stringify(m)))) {
           return;
         }
 

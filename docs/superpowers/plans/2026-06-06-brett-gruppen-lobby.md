@@ -628,7 +628,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - No admin gate, no persistence, not in either Set.
 - **verify:** `cd brett && npm test`
 
-### B13 — WS session-sync hardening (`_sessionReady` gate)
+### B13 — WS session-sync hardening (`_sessionReady` gate) — [x] DONE
 - **target_files:** `brett/src/server/ws-handler.ts`, `brett/test/session-ready-gate.test.ts` (new)
 - **failing test first (red):** `test/session-ready-gate.test.ts` imports exported `gateSessionReady(ws, send)` (new): for `ws` without `_sessionReady`, returns `false` and `send` received `{type:'error', reason:'not-ready'}`; for `ws` with `_sessionReady === true`, returns `true` and `send` not called.
 - **implementation:**

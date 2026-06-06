@@ -442,7 +442,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A7 — Phase A green-gate + menu→board smoke
+### A7 — Phase A green-gate + menu→board smoke — [x] DONE
 
 - **target_files:** none (verification only)
 - **failing test first (red):** N/A — aggregates A1-A6. (Before A1-A6 land, the suite/typecheck/build fail; this task is the explicit Definition-of-Done gate.)

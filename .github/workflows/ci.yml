@@ -6,10 +6,17 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);
+  # never cancel push-to-main runs, which gate the deployable history.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   offline-tests:
     name: Offline Tests (Manifests, Configs, Unit)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
@@ -19,6 +26,7 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
@@ -48,6 +56,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
@@ -85,20 +94,51 @@ jobs:
   brett-typescript:
     name: Brett TypeScript
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
-        with: { node-version: '22' }
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: brett/package-lock.json
       - run: npm ci --prefix brett
-      - run: npm run typecheck --prefix brett
-      - run: npm test --prefix brett
+      - name: Typecheck
+        run: npm run typecheck --prefix brett
+      - name: Unit tests
+        run: npm test --prefix brett
         env:
           MOCK_DB: 'true'
       - run: npm run build --prefix brett
 
+  vitest:
+    name: Vitest (website + arena-server)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            website/package-lock.json
+            arena-server/package-lock.json
+      # Both suites self-skip env-dependent specs (describe.skipIf(!dbAvailable) /
+      # !mustangAvailable), so they are green on a runner with no DB and no Java jar.
+      - name: Website unit tests (vitest)
+        run: |
+          npm ci --prefix website
+          npm --prefix website run test:unit
+      - name: Arena-server unit tests (vitest)
+        run: |
+          npm ci --prefix arena-server
+          npm --prefix arena-server test
+
   commit-lint:
     name: Conventional Commits
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event_name == 'pull_request'
     steps:
       - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5.5.3

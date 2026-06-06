@@ -261,6 +261,8 @@ tasks:
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
+      - task: test:unit:offline-batch
+      - task: test:unit:coverage-guard
 
   test:unit:website-ci-deploy:
     internal: true
@@ -341,6 +343,29 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/quality-loop.bats
+
+  test:unit:offline-batch:
+    internal: true
+    # Offline-safe unit bats wired in by the 2026-06-06 coverage audit (single bats call).
+    cmds:
+      - >-
+        ./tests/unit/lib/bats-core/bin/bats
+        tests/unit/admin-nav.bats
+        tests/unit/brainstorm-extract-choice.bats
+        tests/unit/git-crypt-guard.bats
+        tests/unit/openclaw-taskfile.bats
+        tests/unit/purge-fn-gaps.bats
+        tests/unit/skill-orchestrator.bats
+        tests/unit/superpowers-collab-patch.bats
+        tests/unit/env-resolve.bats
+        tests/unit/env-validate.bats
+        tests/unit/keycloak-sync.bats
+
+  test:unit:coverage-guard:
+    internal: true
+    # Fail if any tests/unit/*.bats is neither run by a task nor allowlisted.
+    cmds:
+      - bash scripts/tests/unit-coverage-guard.sh
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"

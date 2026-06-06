@@ -30,7 +30,7 @@ export function buildStateFromMutations(room: string): any {
     '__optik__', '__stiffness__',
     '__session_phase__', '__session_code__', '__admin_token_holder__',
     '__session_created_at__', '__session_last_activity__',
-    '__coaching_steps__',
+    '__coaching_steps__', '__roles__', '__lobby_settings__',
   ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
@@ -50,5 +50,9 @@ export function buildStateFromMutations(room: string): any {
   if (lastActivityEntry) result.sessionLastActivity = lastActivityEntry.ts;
   const coachingStepsEntry = figs.get('__coaching_steps__');
   if (coachingStepsEntry) result.coachingSteps = { steps: coachingStepsEntry.steps, index: coachingStepsEntry.index };
+  const rolesEntry         = figs.get('__roles__');
+  const lobbySettingsEntry = figs.get('__lobby_settings__');
+  if (rolesEntry)         result.roles         = rolesEntry.roles;
+  if (lobbySettingsEntry) result.lobbySettings = lobbySettingsEntry.settings;
   return result;
 }

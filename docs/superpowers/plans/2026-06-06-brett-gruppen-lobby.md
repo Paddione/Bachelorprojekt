@@ -511,7 +511,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - No `admin_assign_figure`/`admin_set_template`/`admin_set_optik` member added; `optik` still present.
 - **verify:** `cd brett && npm run typecheck && npm test`
 
-### B3 — Persistence sentinels `__roles__` / `__lobby_settings__`
+### B3 — Persistence sentinels `__roles__` / `__lobby_settings__` — [x] DONE
 - **target_files:** `brett/src/server/figures.ts`, `brett/src/server/phases.ts`, `brett/test/lobby-persistence.test.ts` (new)
 - **failing test first (red):** `test/lobby-persistence.test.ts` imports `applyMutation`, `buildStateFromMutations` from `../src/server/index`; asserts: after `applyMutation(room, { type:'roles_set', roles:{ u1:'leiter', u2:'beobachter' } })` and `applyMutation(room, { type:'lobby_settings_set', settings:{ templateId:'fam5', allowRepresentativeAdd:false } })`, `buildStateFromMutations(room)` returns `state.roles.u1 === 'leiter'` and `state.lobbySettings.templateId === 'fam5'`, and `state.figures` is empty (sentinels excluded).
 - **implementation:**

@@ -97,6 +97,18 @@ export function applyMutation(room: string, msg: any): void {
       }
       break;
     }
+    case 'roles_set': {
+      if (msg.roles && typeof msg.roles === 'object' && !Array.isArray(msg.roles)) {
+        figs.set('__roles__', { id: '__roles__', roles: msg.roles });
+      }
+      break;
+    }
+    case 'lobby_settings_set': {
+      if (msg.settings && typeof msg.settings === 'object' && !Array.isArray(msg.settings)) {
+        figs.set('__lobby_settings__', { id: '__lobby_settings__', settings: msg.settings });
+      }
+      break;
+    }
   }
 }
 

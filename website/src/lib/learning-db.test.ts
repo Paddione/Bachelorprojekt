@@ -16,7 +16,7 @@
 // and references no outer variable, so it never hits the TDZ; it is not a template
 // for the module-binding case here.)
 
-import { describe, it, beforeAll, afterAll, beforeEach, expect, vi } from 'vitest';
+import { describe, it, afterAll, beforeEach, expect, vi } from 'vitest';
 import type { Pool } from 'pg';
 
 // ── Build the pg-mem pool inside vi.hoisted (runs before the ESM imports) ──────
@@ -114,5 +114,53 @@ describe('upsertLearningItem — note-only save', () => {
     expect(afterNote.completedAt).not.toBeNull();
     expect(afterNote.completedAt?.getTime()).toBe(firstCompletedAt?.getTime());
     expect(afterNote.note).toBe('Habe das gelernt');
+  });
+});
+
+describe('upsertLearningItem — status transitions', () => {
+  it('todo→in_progress→done→done preserves started_at and the first completed_at', async () => {
+    const a = await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'todo' });
+    expect(a.status).toBe('todo');
+    expect(a.startedAt).toBeNull();
+    expect(a.completedAt).toBeNull();
+
+    const b = await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'in_progress' });
+    expect(b.status).toBe('in_progress');
+    expect(b.startedAt).not.toBeNull();      // started_at now set
+    expect(b.completedAt).toBeNull();
+    const startedAt = b.startedAt;
+
+    const c = await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'done' });
+    expect(c.status).toBe('done');
+    expect(c.startedAt?.getTime()).toBe(startedAt?.getTime());  // sticky
+    expect(c.completedAt).not.toBeNull();
+    const completedAt = c.completedAt;
+
+    const d = await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'done' });
+    expect(d.completedAt?.getTime()).toBe(completedAt?.getTime()); // first completion sticky
+    expect(d.startedAt?.getTime()).toBe(startedAt?.getTime());
+  });
+
+  it('done→todo clears completed_at but keeps started_at', async () => {
+    await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'done' });
+    const reverted = await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'todo' });
+    expect(reverted.status).toBe('todo');
+    expect(reverted.completedAt).toBeNull();
+    expect(reverted.startedAt).not.toBeNull();   // started_at stays sticky
+  });
+
+  it('preserves an existing note across a status-only toggle (note = COALESCE($6, …))', async () => {
+    // Set a note first (note-only save).
+    await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { note: 'meine Notiz' });
+    // Toggle status WITHOUT passing a note → $6 is NULL → COALESCE keeps the old note.
+    const afterToggle = await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'done' });
+    expect(afterToggle.status).toBe('done');
+    expect(afterToggle.note).toBe('meine Notiz');   // note survived the status-only update
+  });
+
+  it('rejects an item_id that is not in the canonical guide', async () => {
+    await expect(
+      learningDb.upsertLearningItem(USER, BRAND, 'goal', 'not-a-real-goal', { status: 'done' })
+    ).rejects.toThrow(/not in agent-guide/);
   });
 });

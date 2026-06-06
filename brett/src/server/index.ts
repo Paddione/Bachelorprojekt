@@ -327,6 +327,8 @@ const wsDeps = {
   handleAdminRoundStop: sessions.handleAdminRoundStop,
   handleAdminRoundPause: sessions.handleAdminRoundPause,
   handleAdminRoundStart: sessions.handleAdminRoundStart,
+  handleAdminSetOptik: sessions.handleAdminSetOptik,
+  handleAdminSetTemplate: sessions.handleAdminSetTemplate,
   trackPlayerInRoom: sessions.trackPlayerInRoom,
   transitionPhase: phases.transitionPhase,
   isAdminFromClaims: auth.isAdminFromClaims,
@@ -424,6 +426,8 @@ export const handleAdminSessionCreate = sessions.handleAdminSessionCreate;
 export const handleAdminRoundStop = sessions.handleAdminRoundStop;
 export const handleAdminRoundPause = sessions.handleAdminRoundPause;
 export const handleAdminRoundStart = sessions.handleAdminRoundStart;
+export const handleAdminSetOptik = sessions.handleAdminSetOptik;
+export const handleAdminSetTemplate = sessions.handleAdminSetTemplate;
 export const tokenGraceTimers = sessions.tokenGraceTimers;
 export const roomAdminPresence = sessions.roomAdminPresence;
 

@@ -164,6 +164,30 @@ export function handleAdminRoundPause(room: string, broadcastFn: (m: any) => voi
   return result;
 }
 
+/**
+ * D4 — Board-Optik. Persist the optik in server state (via optik_set, so
+ * late-joiners receive it in their snapshot) and propagate it to OTHER clients
+ * via lobby_settings_change{optik}. Privileged: invoked only from the
+ * isAdmin-gated admin_set_optik switch case (§5b).
+ */
+export function handleAdminSetOptik(room: string, settings: any, broadcastFn: (m: any) => void): { ok: boolean } {
+  applyMutation(room, { type: 'optik_set', settings });
+  broadcastFn({ type: 'lobby_settings_change', optik: settings });
+  return { ok: true };
+}
+
+/**
+ * D5 — Szenario-Vorlage choice. Persist the chosen templateId into lobbySettings
+ * (survives reload / late-join roster) and propagate it via
+ * lobby_settings_change{templateId}. The figure apply is a separate orchestrator
+ * (D7) wired in the switch case after this choice-persist. Privileged (§5b).
+ */
+export function handleAdminSetTemplate(room: string, templateId: string, broadcastFn: (m: any) => void): { ok: boolean } {
+  applyMutation(room, { type: 'lobby_settings_set', settings: { templateId } });
+  broadcastFn({ type: 'lobby_settings_change', templateId });
+  return { ok: true };
+}
+
 export function trackPlayerInRoom(room: string, playerId: string): void {
   if (!playerId) return;
   let set = roomPreviousPlayers.get(room);

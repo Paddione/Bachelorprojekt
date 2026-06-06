@@ -988,7 +988,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D4 — Board-Optik handler: `admin_set_optik` substance + propagation
+### D4 — Board-Optik handler: `admin_set_optik` substance + propagation — [x] DONE
 
 - **target_files**: `brett/src/server/sessions.ts` (new `handleAdminSetOptik`), `brett/src/server/ws-handler.ts` (ADMIN switch case + membership), `brett/src/server/index.ts` (re-export + wsDeps)
 - **failing test (red)**: `brett/test/admin-set-optik.test.ts` imports `handleAdminSetOptik` from `../src/server/index`; calls `handleAdminSetOptik(room, { floor:'felt-green', sky:'dusk', lightMood:'warm' }, collect)` and asserts:
@@ -1007,7 +1007,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D5 — Szenario-Vorlage handler: `admin_set_template` choice persist + propagation
+### D5 — Szenario-Vorlage handler: `admin_set_template` choice persist + propagation — [x] DONE
 
 - **target_files**: `brett/src/server/sessions.ts` (new `handleAdminSetTemplate`), `brett/src/server/ws-handler.ts` (case + membership), `brett/src/server/index.ts` (re-export + wsDeps)
 - **failing test (red)**: `brett/test/admin-set-template.test.ts`: `handleAdminSetTemplate(room, 'tpl-1', collect)` asserts:

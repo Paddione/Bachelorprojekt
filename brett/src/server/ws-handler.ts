@@ -31,6 +31,10 @@ export interface WsDeps {
   handleAdminRoundStop: Function;
   handleAdminRoundPause: Function;
   handleAdminRoundStart: Function;
+  handleAdminSetOptik: Function;
+  handleAdminSetTemplate: Function;
+  loadSnapshotState?: Function;
+  applyTemplateToRoom?: Function;
   trackPlayerInRoom: Function;
   transitionPhase: Function;
   isAdminFromClaims: Function;
@@ -51,7 +55,8 @@ export const RELAY_TYPES = new Set<string>([
 // Admin message types
 export const ADMIN_TYPES = new Set<string>([
   'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set',
-  'admin_round_start', 'admin_assign_role', 'admin_assign_figure'
+  'admin_round_start', 'admin_assign_role', 'admin_assign_figure',
+  'admin_set_template', 'admin_set_optik',
 ]);
 
 /**
@@ -482,6 +487,29 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               }
               deps.applyMutation(adminRoom, { type: 'figure_owner_set', figureId: msg.figureId, ownerId: msg.toPlayerId });
               deps.broadcast(adminRoom, { type: 'figure_owner_changed', figureId: msg.figureId, ownerId: msg.toPlayerId });
+              deps.schedulePersist(adminRoom);
+              break;
+            }
+            case 'admin_set_optik': {
+              // Board-Optik (D4). Persist + propagate to OTHER clients (sender
+              // excluded, §13). Late-joiners get it via their snapshot.
+              if (!msg.settings || typeof msg.settings !== 'object') return;
+              deps.handleAdminSetOptik(adminRoom, msg.settings, (m: any) => deps.broadcast(adminRoom, m, ws));
+              deps.schedulePersist(adminRoom);
+              break;
+            }
+            case 'admin_set_template': {
+              // Szenario-Vorlage (D5 choice-persist + D7 figure apply). Persist the
+              // chosen templateId into lobbySettings and propagate to OTHER clients
+              // (sender excluded). Then load the snapshot and seed it into server
+              // state (server-authoritative), broadcasting to ALL so the leiter's
+              // board reflects the seed too.
+              if (typeof msg.templateId !== 'string') return;
+              deps.handleAdminSetTemplate(adminRoom, msg.templateId, (m: any) => deps.broadcast(adminRoom, m, ws));
+              if (deps.loadSnapshotState && deps.applyTemplateToRoom) {
+                const snap = await deps.loadSnapshotState(msg.templateId);
+                if (snap) deps.applyTemplateToRoom(adminRoom, snap, (m: any) => deps.broadcast(adminRoom, m));
+              }
               deps.schedulePersist(adminRoom);
               break;
             }

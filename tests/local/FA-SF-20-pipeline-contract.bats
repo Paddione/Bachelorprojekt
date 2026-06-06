@@ -58,3 +58,14 @@ SCRIPT="scripts/factory/pipeline.js"
   [ "$status" -eq 0 ]
   [ "$output" -ge 2 ]
 }
+
+@test "FA-SF-20: no scout.* reference escapes the if(!REUSE) Scout block (Deploy ReferenceError guard)" {
+  # `const scout` is block-local to `if (!REUSE) { ... }`; any scout.* appearing after
+  # the alternative `if (REUSE) {` runs outside that scope → ReferenceError at runtime
+  # (the template literal is fully evaluated when the agent() call is built). Out-of-block
+  # signals must be hoisted to a top-level var (featureComplexity / featureTouchedFiles).
+  blockend=$(grep -n '^if (REUSE) {' "$SCRIPT" | head -1 | cut -d: -f1)
+  [ -n "$blockend" ]
+  run awk -v end="$blockend" 'NR > end && /scout[.?]/ { print NR": "$0; f=1 } END { exit (f?1:0) }' "$SCRIPT"
+  [ "$status" -eq 0 ]
+}

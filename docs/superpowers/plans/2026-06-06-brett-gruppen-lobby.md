@@ -429,7 +429,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A6 — Re-skin status pill + fig-panel onto the brett tokens
+### A6 — Re-skin status pill + fig-panel onto the brett tokens — [x] DONE
 
 - **target_files:** `brett/public/index.html` (the `<style>` rules for `#status-pill`, `#fig-panel`, `#fig-panel-title`, `#fig-panel-add`, `.fig-color-swatch.active`, `#fig-label-input`)
 - **failing test first (red):** `brett/test/no-hardcoded-brand-css.test.ts` (new) reads `public/index.html` and asserts that the `#status-pill { … }` and `#fig-panel { … }` / `#fig-panel-add { … }` rule blocks reference `var(--brett-` and contain **none** of the legacy brand literals `#0e1014`, `#161a22`, `#c8a96e` (scoped to those rule blocks — the appearance-drawer keeps its hex until Phase E). Red now because those blocks are full of raw hex (`index.html:24-101`).

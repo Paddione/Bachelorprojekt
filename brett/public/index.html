@@ -23,8 +23,8 @@
     #stiffness { width:160px; accent-color:#c8a96e; }
     #status-pill {
       position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
-      padding:8px 14px; background:rgba(14,16,20,0.85); border:1px solid rgba(231,234,208,0.14);
-      border-radius:20px; font-size:13px; pointer-events:none; z-index:10;
+      padding:8px 14px; background:var(--brett-surface, #101826); border:1px solid var(--brett-line-2, rgba(255,255,255,0.12));
+      border-radius:20px; font-size:13px; color:var(--brett-fg, #eef1f3); pointer-events:none; z-index:10;
     }
     canvas { display:block; }
 
@@ -42,7 +42,7 @@
     #fig-panel {
       position: absolute; top: calc(100% + 8px); right: 0;
       z-index: 200;
-      background: #161a22; border: 1px solid rgba(200,169,110,0.35);
+      background: var(--brett-surface, #101826); border: 1px solid var(--brett-line-2, rgba(255,255,255,0.12));
       border-radius: 10px; padding: 12px 14px;
       width: 240px; display: flex; flex-direction: column; gap: 10px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.6);
@@ -52,7 +52,7 @@
       display: flex; justify-content: space-between; align-items: center;
     }
     #fig-panel-title {
-      font-size: 10px; font-weight: 600; color: #c8a96e;
+      font-size: 10px; font-weight: 600; color: var(--brett-brass, oklch(0.80 0.09 75));
       text-transform: uppercase; letter-spacing: 0.1em;
     }
     #fig-panel-close {
@@ -73,18 +73,18 @@
       border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s;
     }
     .fig-color-swatch:hover { transform: scale(1.15); }
-    .fig-color-swatch.active { border-color: #c8a96e; }
+    .fig-color-swatch.active { border-color: var(--brett-brass, oklch(0.80 0.09 75)); }
 
     #fig-label-input {
-      background: rgba(231,234,208,0.06); border: 1px solid rgba(231,234,208,0.18);
-      border-radius: 5px; color: #e7ead0; font: inherit; font-size: 12px;
+      background: var(--brett-ink-850, #101826); border: 1px solid var(--brett-line-2, rgba(255,255,255,0.12));
+      border-radius: 5px; color: var(--brett-fg, #eef1f3); font: inherit; font-size: 12px;
       padding: 5px 8px; width: 100%;
     }
-    #fig-label-input:focus { outline: none; border-color: rgba(200,169,110,0.5); }
+    #fig-label-input:focus { outline: none; border-color: var(--brett-brass, oklch(0.80 0.09 75)); }
     #fig-label-input::placeholder { color: rgba(231,234,208,0.3); }
 
     #fig-panel-add {
-      background: #c8a96e; color: #0a0a14;
+      background: var(--brett-brass, oklch(0.80 0.09 75)); color: var(--brett-ink-900, #0b111c);
       border: none; border-radius: 6px;
       padding: 7px 10px; font-size: 12px; font-weight: 600;
       cursor: pointer; width: 100%;

@@ -1,60 +1,118 @@
 // website/src/lib/learning-db.test.ts
-// Unit tests for learning-db.ts DML functions.
+// Real DML tests for learning-db.ts, backed by an in-memory Postgres (pg-mem).
+// learning-db.ts imports `pool` from ./website-db as a MODULE BINDING, so we
+// vi.mock('./website-db') and swap in a pg-mem pool.
+//
+// HOISTING TRAP (verified empirically — see Deviation #4): `vi.mock` is hoisted to
+// the top of the file, ABOVE every ESM import and module-level `const`. If the mock
+// factory closes over a module-level `const memPool = …`, the factory runs during
+// the very first import of './website-db' (which happens transitively when
+// `import * as learningDb from './learning-db'` is collected) — BEFORE the
+// `const memPool` line has executed → `ReferenceError: Cannot access 'memPool'
+// before initialization`, which fails the ENTIRE suite at collect time. The fix is
+// to build the pool inside `vi.hoisted(() => …)`, which Vitest runs even earlier
+// than the imports, and to read `memPool` back out of the hoisted result.
+// (NOTE: do NOT model this on content-effective.test.ts — its factory uses `orig`
+// and references no outer variable, so it never hits the TDZ; it is not a template
+// for the module-binding case here.)
 
-import { describe, it } from 'vitest';
-import { strict as assert } from 'node:assert';
+import { describe, it, beforeAll, afterAll, beforeEach, expect, vi } from 'vitest';
+import type { Pool } from 'pg';
+
+// ── Build the pg-mem pool inside vi.hoisted (runs before the ESM imports) ──────
+// Everything the vi.mock factory needs must live here: pg-mem setup, the
+// gen_random_uuid registration, the CREATE TABLEs, and the pool itself. Use
+// require() inside the hoisted block — top-level ESM imports are NOT yet evaluated
+// when this runs.
+const { memPool } = vi.hoisted(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { newDb, DataType } = require('pg-mem');
+  const pgmem = newDb();
+  pgmem.public.registerFunction({
+    name: 'gen_random_uuid',
+    returns: DataType.uuid,
+    impure: true,
+    implementation: () =>
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c: string) => {
+        const r = (Math.random() * 16) | 0;
+        return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+      }),
+  });
+  pgmem.public.none(`
+    CREATE TABLE learning_progress (
+      id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      keycloak_user_id TEXT NOT NULL,
+      brand            TEXT NOT NULL DEFAULT 'mentolder',
+      item_type        TEXT NOT NULL CHECK (item_type IN ('goal','tool')),
+      item_id          TEXT NOT NULL,
+      status           TEXT NOT NULL DEFAULT 'todo'
+                         CHECK (status IN ('todo','in_progress','done')),
+      note             TEXT,
+      started_at       TIMESTAMPTZ,
+      completed_at     TIMESTAMPTZ,
+      updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (keycloak_user_id, brand, item_type, item_id)
+    );
+    CREATE TABLE onboarding_state (
+      id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      keycloak_user_id TEXT NOT NULL,
+      brand            TEXT NOT NULL DEFAULT 'mentolder',
+      step_id          TEXT NOT NULL,
+      completed_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (keycloak_user_id, brand, step_id)
+    );
+  `);
+  const { Pool: MemPool } = pgmem.adapters.createPg();
+  return { memPool: new MemPool() as unknown as Pool };
+});
+
+// The factory reads `memPool` from the hoisted result — both are hoisted, so this
+// is safe (no TDZ). Do NOT introduce a separate module-level `const` for memPool.
+vi.mock('./website-db', () => ({ pool: memPool, platformPool: memPool }));
+
 import * as learningDb from './learning-db';
+import { goals, tools } from './agentGuide';
 
-// This test serves as a documentation contract for the API.
-// In a full implementation, we would mock the database pool or connect to a test database.
+const USER = 'kc-user-1';
+const BRAND = 'mentolder';
+const GOAL_ID = goals[0].id;   // a real canonical goal id
+const TOOL_ID = tools[0].id;   // a real canonical tool id
 
-describe('learning-db', () => {
-  describe('getLearningProgress', () => {
-    it('should return rows for a user and brand', async () => {
-      // Contract test placeholder
-      assert.ok(learningDb.getLearningProgress);
-    });
+beforeEach(async () => {
+  await memPool.query('TRUNCATE learning_progress');
+  await memPool.query('TRUNCATE onboarding_state');
+});
+
+afterAll(async () => {
+  await (memPool as unknown as { end(): Promise<void> }).end();
+});
+
+describe('upsertLearningItem — note-only save', () => {
+  it('INSERT path: a note-only save on an empty table defaults to status=todo with null timestamps', async () => {
+    // Spec-mandated INSERT default ($5-vs-$7 separation): a brand-new note-only row
+    // must NOT inherit a status from $5 (which is NULL here) — it uses the INSERT-path
+    // default 'todo' via $7, and leaves both timestamps null.
+    const created = await learningDb.upsertLearningItem(USER, BRAND, 'goal', GOAL_ID, { note: 'x' });
+    expect(created.status).toBe('todo');
+    expect(created.startedAt).toBeNull();
+    expect(created.completedAt).toBeNull();
+    expect(created.note).toBe('x');
   });
 
-  describe('upsertLearningItem', () => {
-    it('should insert a new learning item', async () => {
-      assert.ok(learningDb.upsertLearningItem);
-    });
-  });
+  it('does NOT reset status or completed_at when saving a note on a done item', async () => {
+    // Arrange: mark the goal done.
+    const done = await learningDb.upsertLearningItem(USER, BRAND, 'goal', GOAL_ID, { status: 'done' });
+    expect(done.status).toBe('done');
+    expect(done.completedAt).not.toBeNull();
+    const firstCompletedAt = done.completedAt;
 
-  describe('getLearningSummary', () => {
-    it('should aggregate done, in_progress, total, pct', async () => {
-      assert.ok(learningDb.getLearningSummary);
-    });
-  });
+    // Act: save a note WITHOUT a status (note-only).
+    const afterNote = await learningDb.upsertLearningItem(USER, BRAND, 'goal', GOAL_ID, { note: 'Habe das gelernt' });
 
-  describe('listMembersLearningSummary', () => {
-    it('should paginate members (offset/limit)', async () => {
-      assert.ok(learningDb.listMembersLearningSummary);
-    });
-  });
-
-  describe('markOnboardingStep', () => {
-    it('should insert a new onboarding step record', async () => {
-      assert.ok(learningDb.markOnboardingStep);
-    });
-  });
-
-  describe('getOnboardingState', () => {
-    it('should return ordered onboarding steps', async () => {
-      assert.ok(learningDb.getOnboardingState);
-    });
-  });
-
-  describe('resetOnboarding', () => {
-    it('should delete all onboarding steps for a user+brand', async () => {
-      assert.ok(learningDb.resetOnboarding);
-    });
-  });
-
-  describe('isOnboardingStepComplete', () => {
-    it('should check if a step is complete', async () => {
-      assert.ok(learningDb.isOnboardingStepComplete);
-    });
+    // Assert: status + completed_at preserved; note written.
+    expect(afterNote.status).toBe('done');
+    expect(afterNote.completedAt).not.toBeNull();
+    expect(afterNote.completedAt?.getTime()).toBe(firstCompletedAt?.getTime());
+    expect(afterNote.note).toBe('Habe das gelernt');
   });
 });

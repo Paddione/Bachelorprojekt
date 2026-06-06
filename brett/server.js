@@ -448,17 +448,12 @@ app.get('/api/admin/rooms', requireAdmin, asyncHandler(async (req, res) => {
     for (const r of rows.rows) nameMap[r.room_token] = r.name;
   }
   const result = liveTokens.map(token => {
-    const figs        = figureMaps.get(token);
-    const mayhemEntry = figs?.get('__mayhem__');
-    const modeEntry   = figs?.get('__game_mode__');
-    const playerCount = Array.from(rooms.get(token) || []).filter(ws => ws._playerId).length;
+    const playerCount = Array.from(rooms.get(token) || []).length;
     return {
       token,
       name:        nameMap[token] || token,
       playerCount,
       maxPlayers:  4,
-      mayhem:      !!mayhemEntry?.enabled,
-      gameMode:    modeEntry?.mode || 'warmup',
       lastActive:  new Date().toISOString(),
     };
   });
@@ -1114,12 +1109,9 @@ async function flushImmediate(room) {
   await persistState(room);
 }
 
-const handleDisconnect = function(ws, broadcastFn = broadcast) {
+const handleDisconnect = function(ws) {
   const room = ws._room;
   if (!room) return;
-  if (ws._playerId) {
-    broadcastFn(room, { type: "player_leave", playerId: ws._playerId }, ws);
-  }
   leaveRoom(ws);
   broadcastInfo(room);
 }

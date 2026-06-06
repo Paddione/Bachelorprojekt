@@ -608,8 +608,6 @@
       headMesh,
       appearanceMeshes: {},
       appearance: { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } },
-      walkTarget: null,
-      walking: false,
       boneOverrides: {},
       label: 'Figur',
       color: '#b8c0a8',
@@ -1207,16 +1205,7 @@
   renderer.domElement.addEventListener('click', (e) => {
     if (dragging) return;
     if (e.shiftKey) return;
-    if (pickMannequinBody(e)) return; // selection click already happened
-    const floorPt = pickFloor(e);
-    if (!floorPt || !STATE.selectedId) return;
-    if (STATE.stiffness < 0.3) return; // body too limp
-    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (fig) {
-      fig.walkTarget = { x: floorPt.x, z: floorPt.z };
-      fig.walking = true;
-      sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true });
-    }
+    pickMannequinBody(e);
   });
 
   function easeFigure(fig, tx, tz, durationMs) {
@@ -1233,7 +1222,6 @@
         if (wsReady) ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
       }
     }
-    fig.walkTarget = null; fig.walking = false;
     requestAnimationFrame(step);
   }
   window.easeFigure = easeFigure;
@@ -1291,121 +1279,14 @@
   });
 
 
-  // ----- Walking -----
-  const WALK_SPEED = 2.0;          // units/s
-  const SPRINT_MULT = 3.0;         // Shift-sprint multiplier
-  const TURN_RATE  = 8.0;          // rad/s
-  const ARRIVE_EPS = 0.3;          // distance threshold
-  const wasdKeys = { w:false, a:false, s:false, d:false, shift:false };
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Shift') { wasdKeys.shift = true; return; }
-    const k = e.key.toLowerCase();
-    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = true;
-    if (e.key === 'ArrowUp')    { wasdKeys.w = true; e.preventDefault(); }
-    if (e.key === 'ArrowDown')  { wasdKeys.s = true; e.preventDefault(); }
-    if (e.key === 'ArrowLeft')  { wasdKeys.a = true; e.preventDefault(); }
-    if (e.key === 'ArrowRight') { wasdKeys.d = true; e.preventDefault(); }
-  });
-  window.addEventListener('keyup', (e) => {
-    if (e.key === 'Shift') { wasdKeys.shift = false; return; }
-    const k = e.key.toLowerCase();
-    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = false;
-    if (e.key === 'ArrowUp')    wasdKeys.w = false;
-    if (e.key === 'ArrowDown')  wasdKeys.s = false;
-    if (e.key === 'ArrowLeft')  wasdKeys.a = false;
-    if (e.key === 'ArrowRight') wasdKeys.d = false;
-  });
-
-  function tickWalkAnimation(fig, t) {
-    if (!fig.walking) return;
-    const phase = t * 4.0;
-    // Override-respecting: spring already left these bones alone if not in boneOverrides
-    if (!fig.boneOverrides.lHip)      fig.bone.lHip.targetRot.x      = Math.sin(phase) * 0.6;
-    if (!fig.boneOverrides.rHip)      fig.bone.rHip.targetRot.x      = Math.sin(phase + Math.PI) * 0.6;
-    if (!fig.boneOverrides.lKnee)     fig.bone.lKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*0.5)) * 0.8;
-    if (!fig.boneOverrides.rKnee)     fig.bone.rKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*1.5)) * 0.8;
-    if (!fig.boneOverrides.lShoulder) fig.bone.lShoulder.targetRot.x = Math.sin(phase + Math.PI) * 0.4;
-    if (!fig.boneOverrides.rShoulder) fig.bone.rShoulder.targetRot.x = Math.sin(phase) * 0.4;
-  }
-
-  function tickWalk(dt, t) {
-    const stiff = STATE.stiffness;
-    for (const fig of STATE.figures) {
-      // WASD only for selected figure
-      let dx = 0, dz = 0;
-      if (fig.id === STATE.selectedId && stiff >= 0.3) {
-        if (wasdKeys.w) { dx += -Math.sin(cameraOrbit.theta); dz += -Math.cos(cameraOrbit.theta); }
-        if (wasdKeys.s) { dx +=  Math.sin(cameraOrbit.theta); dz +=  Math.cos(cameraOrbit.theta); }
-        if (wasdKeys.a) { dx += -Math.cos(cameraOrbit.theta); dz +=  Math.sin(cameraOrbit.theta); }
-        if (wasdKeys.d) { dx +=  Math.cos(cameraOrbit.theta); dz += -Math.sin(cameraOrbit.theta); }
-        const mag = Math.hypot(dx, dz);
-        if (mag > 1e-3) {
-          dx /= mag; dz /= mag;
-          fig.walkTarget = null;
-          fig.walking = true;
-          const speed = WALK_SPEED * (wasdKeys.shift ? SPRINT_MULT : 1);
-          fig.root.position.x += dx * speed * dt;
-          fig.root.position.z += dz * speed * dt;
-          const want = Math.atan2(dx, dz);
-          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
-          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
-          fig.root.rotation.y = fig.facingY;
-          resolveCollisions(fig, BOUNCE_K_DRAG);
-        }
-      }
-      // Click-to-walk target
-      if (fig.walkTarget) {
-        const tx = fig.walkTarget.x - fig.root.position.x;
-        const tz = fig.walkTarget.z - fig.root.position.z;
-        const dist = Math.hypot(tx, tz);
-        if (dist < ARRIVE_EPS) {
-          fig.walkTarget = null; fig.walking = false;
-        } else if (stiff >= 0.3) {
-          const ndx = tx / dist, ndz = tz / dist;
-          fig.root.position.x += ndx * WALK_SPEED * dt;
-          fig.root.position.z += ndz * WALK_SPEED * dt;
-          const want = Math.atan2(ndx, ndz);
-          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
-          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
-          fig.root.rotation.y = fig.facingY;
-          fig.walking = true;
-          resolveCollisions(fig, BOUNCE_K_DRAG);
-        } else {
-          fig.walking = false;
-        }
-      } else if (Math.hypot(dx, dz) < 1e-3) {
-        fig.walking = false;
-      }
-      tickWalkAnimation(fig, t);
-    }
-  }
-
   // ----- Status pill -----
   const pillEl = document.getElementById('status-pill');
   function updateStatusPill() {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
-    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
-    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
-    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
-    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Space = Sprung · Klick Boden = Ziel · Tab = nächste';
+    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = beenden'; return; }
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur'; return; }
+    pillEl.textContent = 'Doppelklick Boden = Verschieben · Ziehen an Gliedern = Pose anpassen';
   }
-
-  // ----- Admin bootstrap (coaching-only: no Mayhem/RoomBrowser) -----
-  (async function adminBootstrap() {
-    try {
-      const res = await fetch('/auth/me');
-      if (!res.ok) return;
-      const me = await res.json();
-      if (!me.authenticated) {
-        if (new URLSearchParams(window.location.search).get('admin') === '1') {
-          window.location.href = '/auth/login?returnTo=' + encodeURIComponent(window.location.href);
-        }
-        return;
-      }
-    } catch {}
-  })();
 
   // ----- WebSocket sync -----
   const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
@@ -1491,8 +1372,6 @@
         }
         if (c.boneOverrides !== undefined) fig.boneOverrides = { ...c.boneOverrides };
         if (c.appearance !== undefined) applyAppearanceToFig(fig, c.appearance);
-        if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
-        if (c.walking !== undefined) fig.walking = !!c.walking;
         break;
       }
       case "figure_locked": {
@@ -1561,19 +1440,12 @@
     return fig;
   };
 
-  // Periodically broadcast position for the selected figure so peers see walking
-  setInterval(() => {
-    if (!wsReady) return;
-    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (!fig) return;
-    ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
-  }, 100);
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
     lastTickMs = now;
-    tickWalk(dt, now / 1000);
     tickSpring(dt);
     updateStatusPill();
     // P4.1: Use PostFx render (includes ACESFilmic + bloom overlay)

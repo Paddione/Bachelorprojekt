@@ -34,8 +34,6 @@ spec:
                   key: DEV_WEBSITE_DB_PASSWORD
             - name: DATABASE_URL
               value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-dev.workspace-dev.svc.cluster.local:5432/website?sslmode=disable"
-            - name: BRETT_DEFAULT_MODE
-              value: "mayhem"
           readinessProbe:
             httpGet:
               path: /

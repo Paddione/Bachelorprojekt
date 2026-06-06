@@ -61,3 +61,45 @@ test('chooseEffort: unknown complexity defaults to standard, still budget-clampe
   assert.equal(chooseEffort('bogus', 'low', 1.0), 'standard')
   assert.equal(chooseEffort('bogus', 'low', 0.1), 'quick')
 })
+
+// ── provision (aggregate) ──────────────────────────────────────────────────
+import { provision } from './provision.js'
+
+test('provision: aggregates model + effort + compact contextHints', () => {
+  const out = provision({
+    complexity: 'medium', role: 'implement', risk: 'low',
+    budgetRemaining: 1.0, ticketId: 'T000420', touchedFiles: ['website/src/lib/x.ts'],
+    gpuEmbeddings: false,
+  })
+  assert.equal(out.model, 'sonnet')
+  assert.equal(out.effort, 'standard')
+  assert.ok(Array.isArray(out.contextHints), 'contextHints is an array')
+  // Compact LABELS, not raw dumps — every hint is a short string, none is JSON-ish.
+  for (const h of out.contextHints) {
+    assert.equal(typeof h, 'string')
+    assert.ok(h.length < 120, `hint too long (raw dump risk): ${h}`)
+    assert.ok(!h.trim().startsWith('{') && !h.trim().startsWith('['), `hint looks like a raw dump: ${h}`)
+  }
+  // Always carries the Vorhaben pack + the touched files + ticket spec.
+  assert.ok(out.contextHints.some((h) => h.includes('T000413')), 'includes Vorhaben pack')
+  assert.ok(out.contextHints.some((h) => h.includes('touched_files')), 'includes touched files')
+})
+
+test('provision: pgvector similar-tickets hint ONLY when GPU embeddings available', () => {
+  const withGpu = provision({ complexity: 'complex', role: 'plan', risk: 'high', budgetRemaining: 1, ticketId: 'T1', touchedFiles: [], gpuEmbeddings: true })
+  const noGpu   = provision({ complexity: 'complex', role: 'plan', risk: 'high', budgetRemaining: 1, ticketId: 'T1', touchedFiles: [], gpuEmbeddings: false })
+  assert.ok(withGpu.contextHints.some((h) => h.includes('similar-tickets')), 'GPU on → similar-tickets hint')
+  assert.ok(!noGpu.contextHints.some((h) => h.includes('similar-tickets')), 'GPU off → degrades, no similar-tickets hint')
+})
+
+test('provision: review role forces opus even on a simple task', () => {
+  const out = provision({ complexity: 'simple', role: 'review', risk: 'low', budgetRemaining: 1, ticketId: 'T1', touchedFiles: [], gpuEmbeddings: false })
+  assert.equal(out.model, 'opus')
+})
+
+test('provision: tolerates a sparse task object (defaults, no throw)', () => {
+  const out = provision({ role: 'implement' })
+  assert.equal(out.model, null)        // unknown complexity → omit/inherit
+  assert.equal(out.effort, 'standard') // unknown complexity → standard, budget defaults to 1
+  assert.ok(Array.isArray(out.contextHints))
+})

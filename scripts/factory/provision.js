@@ -74,3 +74,49 @@ export function chooseEffort(complexity, risk, budgetRemaining) {
   if (remaining < 0.25) idx -= 1
   return EFFORT_LADDER[clampEffortIdx(idx)]
 }
+
+// ── Context axis (compact hints, never raw dumps) ──────────────────────────
+
+/**
+ * Assemble a COMPACT list of context labels for the agent prompt. These are short
+ * pointers ("assemble X"), NOT inlined payloads — the Workflow caller resolves each
+ * hint to a verbatim, trimmed excerpt. Hard rule (P3 design-panel lesson): a 162k-char
+ * raw-JSON prompt broke the synth agent — keep hints terse.
+ * @param {object} task
+ * @returns {string[]}
+ */
+function buildContextHints(task) {
+  const t = task ?? {}
+  const hints = [
+    'Vorhaben pack T000413: vision + repo conventions + footguns (compact)',
+    'ticket spec + attachments via `ticket.sh get-attachments`',
+    `touched_files: ${(t.touchedFiles ?? []).length} path(s)`,
+    'relevant target-code excerpts only (no whole files)',
+  ]
+  // pgvector similar-tickets retrieval requires the GPU embedding host — degrade cleanly.
+  if (t.gpuEmbeddings === true) {
+    hints.push('similar-tickets (pgvector top-k, GPU embeddings)')
+  }
+  return hints
+}
+
+/**
+ * Provision one subagent: ideal model + effort profile + compact context hints.
+ * @param {object} task
+ * @param {'simple'|'medium'|'complex'} [task.complexity]
+ * @param {'scout'|'plan'|'implement'|'review'|'security'} task.role
+ * @param {'low'|'medium'|'high'} [task.risk]
+ * @param {number} [task.budgetRemaining]  Fraction (0..1) of the per-feature token budget left.
+ * @param {string} [task.ticketId]
+ * @param {string[]} [task.touchedFiles]
+ * @param {boolean} [task.gpuEmbeddings]  Whether the GPU embedding host is reachable this tick.
+ * @returns {{model: ('haiku'|'sonnet'|'opus'|null), effort: ('quick'|'standard'|'ultra'), contextHints: string[]}}
+ */
+export function provision(task) {
+  const t = task ?? {}
+  return {
+    model: chooseModel(t.complexity, t.role),
+    effort: chooseEffort(t.complexity, t.risk, t.budgetRemaining),
+    contextHints: buildContextHints(t),
+  }
+}

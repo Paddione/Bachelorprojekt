@@ -40,7 +40,7 @@ pr_number: null
 - Create: `vite.config.ts`
 - Create: `.gitignore` (append `dist/` if not present)
 
-- [ ] **Step 1: Install dev dependencies (exact versions)**
+- [x] **Step 1: Install dev dependencies (exact versions)**
 ```bash
 cd brett
 npm install --save-dev \
@@ -56,7 +56,7 @@ npm install --save-dev \
 ```
 Expected output: `added N packages` with no error. `npm ls typescript vite tsx` shows all three resolved.
 
-- [ ] **Step 2: Replace the `scripts` block in `package.json`**
+- [x] **Step 2: Replace the `scripts` block in `package.json`**
 
 Open `package.json`. Replace the existing `"scripts"` object with exactly:
 ```json
@@ -72,7 +72,7 @@ Open `package.json`. Replace the existing `"scripts"` object with exactly:
 ```
 Note: `start` stays `node server.js` until Task 12 deletes `server.js`. `test` runs both legacy `.js`/`.mjs` and new `.ts` tests through `tsx` so the suite never goes red mid-migration.
 
-- [ ] **Step 3: Create `tsconfig.json` (root, project references)**
+- [x] **Step 3: Create `tsconfig.json` (root, project references)**
 
 Create `tsconfig.json`:
 ```json
@@ -85,7 +85,7 @@ Create `tsconfig.json`:
 }
 ```
 
-- [ ] **Step 4: Create `tsconfig.server.json`**
+- [x] **Step 4: Create `tsconfig.server.json`**
 
 Create `tsconfig.server.json`:
 ```json
@@ -110,7 +110,7 @@ Create `tsconfig.server.json`:
 ```
 `rootDir` is `src` (not `src/server`) so that `src/types/` files shared between server and client compile under the server project without "file is not under rootDir" errors.
 
-- [ ] **Step 5: Create `tsconfig.client.json`**
+- [x] **Step 5: Create `tsconfig.client.json`**
 
 Create `tsconfig.client.json`:
 ```json
@@ -134,7 +134,7 @@ Create `tsconfig.client.json`:
 }
 ```
 
-- [ ] **Step 6: Create `vite.config.ts`**
+- [x] **Step 6: Create `vite.config.ts`**
 
 Create `vite.config.ts`:
 ```typescript
@@ -160,7 +160,7 @@ export default defineConfig({
 ```
 The proxy mirrors every server route prefix from the analysis (`/api`, `/auth`, `/presets`, `/healthz`) plus the `/sync` WebSocket path.
 
-- [ ] **Step 7: Ensure `dist/` is gitignored**
+- [x] **Step 7: Ensure `dist/` is gitignored**
 ```bash
 cd brett
 grep -qxF 'dist/' .gitignore 2>/dev/null || printf 'dist/\n' >> .gitignore
@@ -168,7 +168,7 @@ grep -qxF 'tsconfig.tsbuildinfo' .gitignore 2>/dev/null || printf 'tsconfig.tsbu
 grep -qxF '*.tsbuildinfo' .gitignore 2>/dev/null || printf '*.tsbuildinfo\n' >> .gitignore
 ```
 
-- [ ] **Step 8: Gate — typecheck passes on empty project**
+- [x] **Step 8: Gate — typecheck passes on empty project**
 ```bash
 cd brett && npx tsc --build tsconfig.json
 ```
@@ -180,13 +180,13 @@ npm run typecheck
 ```
 Expected: `tsc --noEmit` exits 0 with no diagnostics.
 
-- [ ] **Step 9: Gate — existing tests still pass through tsx**
+- [x] **Step 9: Gate — existing tests still pass through tsx**
 ```bash
 cd brett && npm test
 ```
 Expected: all existing `.test.js`/`.test.mjs` pass under `tsx --test`. Output ends with `# pass <N>` `# fail 0`.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 ```bash
 git add brett/package.json brett/package-lock.json brett/tsconfig.json brett/tsconfig.client.json brett/tsconfig.server.json brett/vite.config.ts brett/.gitignore brett/src/types/_placeholder.ts
 git commit -m "refactor(brett): add TypeScript + Vite scaffolding (deps, tsconfigs, vite.config)

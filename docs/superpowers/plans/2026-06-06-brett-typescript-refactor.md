@@ -201,7 +201,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 **Files:**
 - Create: `src/types/state.ts`
 
-- [ ] **Step 1: Create `src/types/state.ts`**
+- [x] **Step 1: Create `src/types/state.ts`**
 
 Create `src/types/state.ts` with the complete content:
 ```typescript
@@ -259,13 +259,13 @@ export interface RoomState {
 ```
 The optional fields (`scale`, `preset`, `boneOverrides`, `stiffness`, `sessionCode`, `createdAt`, `lastActivity`, `coachingSteps`) are present because `buildStateFromMutations` in server.js emits them and the client reads them; modeling them now prevents Phase 2/3 `tsc` errors.
 
-- [ ] **Step 2: Gate**
+- [x] **Step 2: Gate**
 ```bash
 cd brett && npm run typecheck
 ```
 Expected: exits 0, no diagnostics.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 ```bash
 git add brett/src/types/state.ts
 git commit -m "refactor(brett): add shared RoomState/Figure/Participant types

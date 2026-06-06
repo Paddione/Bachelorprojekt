@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.33.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.32.1...website-v1.33.0) (2026-06-06)
+
+
+### Features
+
+* **lernpfad:** knowledge-system completable + sidekick-native nudging ([#1380](https://github.com/Paddione/Bachelorprojekt/issues/1380)) ([04cc5d9](https://github.com/Paddione/Bachelorprojekt/commit/04cc5d93db284c82bcc9a8ae18006a17c02524d3))
+
 ## [1.32.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.32.0...website-v1.32.1) (2026-06-06)
 
 

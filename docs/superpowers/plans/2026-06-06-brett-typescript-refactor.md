@@ -1723,7 +1723,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/client/ws-client.ts`
 - Modify: `index.html`, `src/client/main.ts`
 
-- [ ] **Step 1: Create `src/client/ws-client.ts`**
+- [x] **Step 1: Create `src/client/ws-client.ts`**
 
 Move index.html lines 940–950, 1292–1440: `sendMove` (940), `sendJump` (946), `roomFromUrl`/`wsProto` (1292–1293), `connectWS` (1297–1312), `onWsMessage` (1316–1418), `sendUpdate`/`sendStiffness`/`sendDelete` (1421–1432), and the `addFigure` monkey-patch (1435–1440). Type the outgoing/incoming messages with the Phase-1 contracts.
 
@@ -1784,7 +1784,7 @@ export function setLockBadgeFns(fns: { setFigureLockBadge: typeof setFigureLockB
 ```
 > `onWsMessage` references `setFigureLockBadge`/`clearFigureLockBadge`/`clearLockBadgesForUser` (hud, Task 19), `applyAppearanceToFig` (appearance, Task 20), `cancelDragFor` (fig-panel, Task 18), `PRESETS` (presets, Task 17). The first four are injected here; `PRESETS` is imported in Task 17. For this task, wire the injection points and import what already exists (`mannequin`). The lock/appearance/cancel functions are still on `window` from the inline code, so inside `onWsMessage` call the injected refs which `main.ts` points at `window.*` until those modules land.
 
-- [ ] **Step 2: Remove inline blocks from `index.html`**
+- [x] **Step 2: Remove inline blocks from `index.html`**
 
 Delete lines 940–950, 1292–1314 (incl. the `connectWS()` call — re-issued from main.ts), 1316–1440 from the inline script. The `addFigure` monkey-patch (1435–1440) is folded into a single `addFigure` in `mannequin.ts`/`fig-panel.ts` later; for now move its WS-send into `ws-client` and keep `addFigure` inline calling `window.sendAdd`. Add an exported `sendAdd`:
 ```typescript
@@ -1792,7 +1792,7 @@ export function sendAddFigure(fig: any): void { send({ type: 'add', figure: { id
 ```
 Copy the exact field set the monkey-patch sent (index.html 1435–1440).
 
-- [ ] **Step 3: Bridge + inject from `main.ts`**
+- [x] **Step 3: Bridge + inject from `main.ts`**
 
 Append to `main.ts`:
 ```typescript
@@ -1815,7 +1815,7 @@ wsClient.setApplyAppearance((fig, a) => (window as any).applyAppearanceToFig(fig
 wsClient.connectWS();
 ```
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 ```bash
 cd brett && npm run typecheck
 env MOCK_DB=true PORT=3000 timeout 8 npm run dev > /tmp/brett-dev.log 2>&1 &
@@ -1824,7 +1824,7 @@ grep -qi 'error' /tmp/brett-dev.log && echo "DEV-ERRORS" || echo "dev-clean"
 ```
 Expected: typecheck 0 diagnostics; `dev-clean`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add brett/src/client/ws-client.ts brett/src/client/main.ts brett/index.html
 git commit -m "refactor(brett): extract client ws-client.ts (connect, sends, onMessage)

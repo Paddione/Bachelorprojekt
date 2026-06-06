@@ -1,6 +1,7 @@
 import { initScene } from './scene';
 import { STATE } from './state';
 import * as mannequin from './mannequin';
+import * as wsClient from './ws-client';
 
 (window as any).STATE = STATE;               // inline code still reads window.STATE
 const sceneApi = initScene();
@@ -22,5 +23,25 @@ const sceneApi = initScene();
 (window as any).ccdIK = mannequin.ccdIK;
 (window as any).BONE_NAMES = mannequin.BONE_NAMES;
 (window as any).IK_CHAINS = mannequin.IK_CHAINS;
+
+mannequin.setSendMove(wsClient.sendMove);
+
+wsClient.setLockBadgeFns({
+  setFigureLockBadge: (...a) => (window as any).setFigureLockBadge(...a),
+  clearFigureLockBadge: (...a) => (window as any).clearFigureLockBadge(...a),
+  clearLockBadgesForUser: (...a) => (window as any).clearLockBadgesForUser(...a),
+  cancelDragFor: (...a) => (window as any).cancelDragFor(...a),
+});
+
+wsClient.setApplyAppearance((fig, a) => (window as any).applyAppearanceToFig(fig, a));
+
+(window as any).sendMove = wsClient.sendMove;
+(window as any).sendJump = wsClient.sendJump;
+(window as any).sendUpdate = wsClient.sendUpdate;
+(window as any).sendStiffness = wsClient.sendStiffness;
+(window as any).sendDelete = wsClient.sendDelete;
+(window as any).sendAddFigure = wsClient.sendAddFigure;
+
+wsClient.connectWS();
 
 export {};

@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.30.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.29.0...website-v1.30.0) (2026-06-06)
+
+
+### Features
+
+* **factory:** /api/factory-metrics route (getSession+isAdmin gate) [T000413] ([f9d49a9](https://github.com/Paddione/Bachelorprojekt/commit/f9d49a94f8e2535f7e49af0ce3075cc6eb80786b))
+* **factory:** add prefix conflict detection, dev namespace mapping, and BATS tests [T000413] ([7724855](https://github.com/Paddione/Bachelorprojekt/commit/7724855877a63a9acdaad76832de4b60a8058d61))
+* **factory:** add tickets.factory_control control-plane table [T000413] ([714bbb0](https://github.com/Paddione/Bachelorprojekt/commit/714bbb0d0575266257cb7bd4c209ca8c89f5394c))
+* **factory:** add tickets.feature_flags table with brand FK [T000413] ([bbc224c](https://github.com/Paddione/Bachelorprojekt/commit/bbc224cd33942eb466b2e75f1d268342a1e6a04b))
+* **factory:** add tickets.retry_count column + FA-SF-04 assertion [T000413] ([65faf89](https://github.com/Paddione/Bachelorprojekt/commit/65faf89a05c1ef0a0bb3fdf48ccb3dd09a3ebba0))
+* **factory:** dev-status.astro SSR dashboard page + FA-SF-42 route 401 gate test + inventory [T000413] ([a6fde0c](https://github.com/Paddione/Bachelorprojekt/commit/a6fde0c86f827d44ed4a0c187ec420bcba9e6169))
+* **factory:** FactoryDashboard KPI island (15s poll, Svelte 5) [T000413] ([7664a9a](https://github.com/Paddione/Bachelorprojekt/commit/7664a9ac6defaf2a12dfc3d3bbecde8969c51ae4))
+* **factory:** Implement dark-launch gate + Deploy flag seed + admin nav link to dev-status [T000413] ([e359cec](https://github.com/Paddione/Bachelorprojekt/commit/e359cecacf326706607502b036af53aab083c173))
+* **factory:** inert pg_notify trigger on feature inserts (NOT consumed, future plumbing) [T000413] ([bda6e37](https://github.com/Paddione/Bachelorprojekt/commit/bda6e37a7042606adfa2ece2a6b4a6a85263d531))
+* **factory:** isFeatureEnabled() dark-launch helper (fail-closed) [T000413] ([250824e](https://github.com/Paddione/Bachelorprojekt/commit/250824ee60dc9ffc65f346d8a6184bf7ce50b0c4))
+* **factory:** listActiveFeatures + listActiveFlags dashboard helpers [T000413] ([0f330bc](https://github.com/Paddione/Bachelorprojekt/commit/0f330bca56b45fda8ed4e1dfff620d4a03e79fd7))
+* **factory:** listFactoryMetrics reads v_factory_metrics [T000413] ([2ea73e1](https://github.com/Paddione/Bachelorprojekt/commit/2ea73e1a6bdf41c6115eb25473589f9a3f81df04))
+* **factory:** persistent dispatcher wakeup/systemd units & autopilot README documentation [T000413] ([a8671d8](https://github.com/Paddione/Bachelorprojekt/commit/a8671d8c5fd108273b92fbead65864cddcb613f3))
+* **factory:** pipeline Deploy guards, PushNotification escalations, and register FA-SF-36 in inventory [T000413] ([5d392fd](https://github.com/Paddione/Bachelorprojekt/commit/5d392fdfa41eb195d593eed695f452c826882654))
+
 ## [1.29.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.28.0...website-v1.29.0) (2026-06-05)
 
 

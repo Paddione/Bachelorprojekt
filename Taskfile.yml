@@ -357,7 +357,6 @@ tasks:
         tests/unit/purge-fn-gaps.bats
         tests/unit/skill-orchestrator.bats
         tests/unit/superpowers-collab-patch.bats
-        tests/unit/task-oracle-fastpath.bats
         tests/unit/env-resolve.bats
         tests/unit/env-validate.bats
         tests/unit/keycloak-sync.bats

@@ -38,3 +38,8 @@ secrets-sync
 # --- Currently FAILS offline: stale assertion (test 29 expects a files.* aliasgroup,
 # --- the config now references cloud.*). A real test-drift to triage separately.
 fleet-dns-cutover
+#
+# --- Passes locally but FAILS on a clean CI runner: the fast-path executes the real
+# --- `task` binary (only curl is stubbed), so the structured-input cases exit non-zero
+# --- without a configured env. Needs a `task` stub before it can join the offline gate.
+task-oracle-fastpath

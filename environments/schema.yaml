@@ -952,3 +952,6 @@ setup_vars:
   - name: DEVC_NODE_IPS
     required: false
     description: "Comma-separated IPs of the devc k3s nodes (devc-1/2/3)"
+  - name: PVE_HOSTS
+    required: false
+    description: "Comma-separated IPs of the Proxmox cluster hosts"

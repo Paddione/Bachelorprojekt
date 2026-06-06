@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.31.0...website-v1.32.0) (2026-06-06)
+
+
+### Features
+
+* **factory:** Phase 1E adaptive agent-provisioning (model · effort · context) [T000429] ([#1366](https://github.com/Paddione/Bachelorprojekt/issues/1366)) ([d05dbdc](https://github.com/Paddione/Bachelorprojekt/commit/d05dbdc1586524b81866a75712d255a8d5984600))
+
 ## [1.31.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.30.0...website-v1.31.0) (2026-06-06)
 
 

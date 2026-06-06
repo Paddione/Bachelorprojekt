@@ -1525,7 +1525,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/client/scene.ts`
 - Modify: `index.html` (remove inline scene block), `src/client/main.ts`
 
-- [ ] **Step 1: Create `src/client/scene.ts`**
+- [x] **Step 1: Create `src/client/scene.ts`**
 
 Move index.html lines 308–443: renderer creation (312), sky IIFE (326–341), camera (343–347), lights (349–356), grid (359–361), floor IIFE (364–402), `cameraOrbit` + `updateCameraFromOrbit` (405–414), orbit mouse listeners (417–443). Import `THREE` as an ES module (Vite resolves it), register singletons into `state.ts`.
 
@@ -1572,11 +1572,11 @@ export function initScene(): SceneApi {
 ```
 > Copy the exact constants (FOV 50, near/far, light colors/intensities, grid 40×40, floor PlaneGeometry(40,40) + concrete canvas texture RepeatWrapping×10, tone-mapping exposure 1.05, topbar offset 36px). These are load-bearing for the visual smoke test.
 
-- [ ] **Step 2: Remove the inline scene block from `index.html`**
+- [x] **Step 2: Remove the inline scene block from `index.html`**
 
 Delete lines 308 (`const renderer = ...`) through 443 (end of resize listener) from the inline `<script>`. Leave `window.STATE` (line 310) **in place** for now — other inline functions still read it; it is migrated wholesale to `state.ts` in Task 22.
 
-- [ ] **Step 3: Bootstrap scene from `main.ts` and bridge to inline code**
+- [x] **Step 3: Bootstrap scene from `main.ts` and bridge to inline code**
 
 Replace `src/client/main.ts` with:
 ```typescript
@@ -1595,7 +1595,7 @@ export {};
 ```
 > The `window.*` bridges let the remaining inline functions (mannequin, ws-client, etc.) keep referencing `scene`/`camera`/`renderer`/`floor` until those blocks are migrated. Each subsequent task removes its bridge when the consumer moves into a module.
 
-- [ ] **Step 4: Gate — typecheck + Vite dev smoke**
+- [x] **Step 4: Gate — typecheck + Vite dev smoke**
 ```bash
 cd brett && npm run typecheck
 ```
@@ -1608,7 +1608,7 @@ grep -qi 'error' /tmp/brett-dev.log && echo "DEV-ERRORS-PRESENT (inspect /tmp/br
 ```
 Expected: `vite-serves-shell` and `dev-clean`. (A full visual check via Playwright is added in Task 22.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add brett/src/client/scene.ts brett/src/client/main.ts brett/index.html
 git commit -m "refactor(brett): extract client scene.ts (renderer, camera, floor, orbit)

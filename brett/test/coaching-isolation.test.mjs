@@ -8,15 +8,25 @@ import { dirname, join } from 'node:path';
 const __dir = dirname(fileURLToPath(import.meta.url));
 const html = readFileSync(join(__dir, '../public/index.html'), 'utf8');
 const serverJs = readFileSync(join(__dir, '../server.js'), 'utf8');
+// Also scan src/server/ for comprehensive coverage (the real logic lives there now)
+let serverSrcAll = serverJs;
+try {
+  serverSrcAll += '\n' + readAll(join(__dir, '../src/server'));
+} catch (e) {}
 
+function readAll(dir) {
+  let out = '';
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name);
+    if (entry.isDirectory()) out += readAll(p);
+    else if (/\.(ts|js|mjs)$/.test(entry.name)) out += readFileSync(p, 'utf8') + '\n';
+  }
+  return out;
+}
 let clientSrc = html;
 try {
   const clientDir = join(__dir, '../src/client');
-  for (const file of readdirSync(clientDir)) {
-    if (/\.(ts|js|mjs)$/.test(file)) {
-      clientSrc += '\n' + readFileSync(join(clientDir, file), 'utf8');
-    }
-  }
+  clientSrc += '\n' + readAll(clientDir);
 } catch (e) {}
 
 test('index.html does not contain the word "mayhem"', () => {
@@ -26,10 +36,10 @@ test('index.html does not contain the word "mayhem"', () => {
   );
 });
 
-test('server.js does not contain the word "mayhem"', () => {
+test('server source does not contain the word "mayhem"', () => {
   assert.ok(
-    !/mayhem/i.test(serverJs),
-    'server.js must not contain the word "mayhem" in any form'
+    !/mayhem/i.test(serverSrcAll),
+    'server source must not contain the word "mayhem" in any form'
   );
 });
 
@@ -51,7 +61,7 @@ test('index.html does not contain gait, walking, or WASD movement tokens', () =>
   }
 });
 
-test('server.js does not contain custom skins upload/validation/GLB/OIDC skins tokens', () => {
+test('server source does not contain custom skins upload/validation/GLB/OIDC skins tokens', () => {
   const skinsTokens = [
     'validateGlb',
     'SKINS_DIR',
@@ -62,8 +72,8 @@ test('server.js does not contain custom skins upload/validation/GLB/OIDC skins t
   ];
   for (const token of skinsTokens) {
     assert.ok(
-      !serverJs.includes(token),
-      `server.js must not contain the custom skins token "${token}"`
+      !serverSrcAll.includes(token),
+      `server source must not contain the custom skins token "${token}"`
     );
   }
 });

@@ -1895,7 +1895,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/client/ui/fig-panel.ts`
 - Modify: `index.html`, `src/client/main.ts`
 
-- [ ] **Step 1: Create `src/client/ui/fig-panel.ts`**
+- [x] **Step 1: Create `src/client/ui/fig-panel.ts`**
 
 Move index.html lines 631–756 + 1109–1113: panel state already lives in `state.ui` (panelColor/panelScale/placingMode), `syncPanelToSelection` (646), `selectFigure` (663), DOM refs (682–684), `openFigPanel` (686), `closeFigPanel` (692), all panel listeners (698–756), `cancelDragFor` (1109). Plus the canonical `addFigure` (622–628) folded here since it calls `selectFigure`.
 
@@ -1931,11 +1931,11 @@ export function initFigPanel(): void {
 ```
 > The `addFigure` here supersedes both the inline 622 version and the 1435 monkey-patch. Copy the monkey-patch's WS-send field list into `sendAddFigure` (done in Task 16) and the `wsReady` guard here.
 
-- [ ] **Step 2: Remove inline blocks**
+- [x] **Step 2: Remove inline blocks**
 
 Delete index.html lines 622–628, 631–634 (panel state — now in `state.ui`), 646–756, 1109–1113.
 
-- [ ] **Step 3: Bridge from `main.ts`**
+- [x] **Step 3: Bridge from `main.ts`**
 
 Append:
 ```typescript

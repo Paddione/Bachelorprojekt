@@ -1,0 +1,58 @@
+import type * as THREE from 'three';
+
+// ── App state (mirrors window.STATE from index.html line 310) ─────
+export interface AppState {
+  figures: any[];          // runtime figure objects (THREE groups + metadata)
+  selectedId: string | null;
+  hoveredId: string | null;
+  stiffness: number;
+  online: number;
+}
+export const STATE: AppState = {
+  figures: [],
+  selectedId: null,
+  hoveredId: null,
+  stiffness: 0.65,
+  online: 1,
+};
+
+// ── Three.js singletons, registered by scene.ts ───────────────────
+interface SceneRefs {
+  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  floor: THREE.Mesh;
+}
+let sceneRefs: SceneRefs | null = null;
+export function setScene(refs: SceneRefs): void { sceneRefs = refs; }
+export function getScene(): SceneRefs {
+  if (!sceneRefs) throw new Error('scene not initialized');
+  return sceneRefs;
+}
+
+// ── WebSocket handle (registered by ws-client.ts) ─────────────────
+let ws: WebSocket | null = null;
+let wsReady = false;
+export function setWs(w: WebSocket | null): void { ws = w; }
+export function getWs(): WebSocket | null { return ws; }
+export function setWsReady(v: boolean): void { wsReady = v; }
+export function isWsReady(): boolean { return wsReady; }
+
+// ── Current user (from /auth/me) ──────────────────────────────────
+export const currentUser = { userId: 'anon', name: 'Teilnehmer', color: '#4ea1ff' };
+
+// ── Appearance spec + texture cache (registered by appearance.ts) ─
+export const PLACEMENT_SPEC: { faces: Record<string, any>; bodies: Record<string, any>; accessories: Record<string, any> } =
+  { faces: {}, bodies: {}, accessories: {} };
+
+// ── Lock maps (shared between ws-client and hud) ──────────────────
+export const lockSprites = new Map<string, THREE.Sprite>();
+export const activeLocks = new Map<string, { userId: string; name: string; color: string }>();
+
+// ── Drag/placement cross-cutting flags ────────────────────────────
+export const ui = {
+  dragging: null as null | { figId: string; boneName: string; plane: any },
+  placingMode: false,
+  panelColor: '#b8c0a8',
+  panelScale: 1.0,
+};

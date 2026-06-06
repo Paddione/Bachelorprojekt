@@ -1427,7 +1427,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/client/state.ts`
 - Modify: `index.html` (add module script tag + expose hook)
 
-- [ ] **Step 1: Create `src/client/state.ts`**
+- [x] **Step 1: Create `src/client/state.ts`**
 
 ```typescript
 import type * as THREE from 'three';
@@ -1492,7 +1492,7 @@ export const ui = {
 ```
 > `STATE.figures` holds runtime figure objects (Three.js groups + spring state), not the serializable `Figure` from `types/state`. They are intentionally `any[]` here — the serializable contract is only enforced at the WS boundary in `ws-client.ts`.
 
-- [ ] **Step 2: Add the module entry to `index.html` (non-destructive)**
+- [x] **Step 2: Add the module entry to `index.html` (non-destructive)**
 
 In `index.html`, just before the closing `</body>` (after the existing inline `<script>` and the existing `<script type="module">` block at lines 1751–1776), add:
 ```html
@@ -1503,13 +1503,13 @@ In `index.html`, just before the closing `</body>` (after the existing inline `<
 cd brett && printf "import * as state from './state';\n(window as any).__brettState = state;\nexport {};\n" > src/client/main.ts
 ```
 
-- [ ] **Step 3: Gate (typecheck only — no behavior change yet)**
+- [x] **Step 3: Gate (typecheck only — no behavior change yet)**
 ```bash
 cd brett && npm run typecheck
 ```
 Expected: exits 0. (`three` types must resolve; if `tsc` errors `Cannot find module 'three'`, install types: `npm i -D @types/three@^0.169.0` and re-run. Three.js ships its own types in recent versions; only add `@types/three` if the bare import fails.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/src/client/state.ts brett/src/client/main.ts brett/index.html
 git commit -m "refactor(brett): add shared client state module + main.ts entry stub

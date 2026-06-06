@@ -6,7 +6,12 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "test": "MOCK_DB=true node --test test/*.test.js test/*.test.mjs"
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:client": "vite",
+    "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
+    "build": "vite build && tsc -p tsconfig.server.json",
+    "typecheck": "tsc --noEmit -p tsconfig.client.json && tsc --noEmit -p tsconfig.server.json",
+    "test": "MOCK_DB=true tsx --test test/*.test.ts test/*.test.js test/*.test.mjs"
   },
   "dependencies": {
     "express": "^5.2.1",
@@ -15,5 +20,18 @@
     "openid-client": "^4.9.1",
     "pg": "^8.21.0",
     "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
+    "@types/node": "^22.19.20",
+    "@types/pg": "^8.20.0",
+    "@types/three": "^0.184.1",
+    "@types/ws": "^8.18.1",
+    "concurrently": "^9.2.1",
+    "three": "^0.184.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
   }
 }

@@ -164,3 +164,42 @@ describe('upsertLearningItem — status transitions', () => {
     ).rejects.toThrow(/not in agent-guide/);
   });
 });
+
+describe('getLearningSummary — canonical cap', () => {
+  it('never counts orphan (non-canonical) rows and never exceeds total/100%', async () => {
+    // Insert a legitimately-done canonical item.
+    await learningDb.upsertLearningItem(USER, BRAND, 'goal', GOAL_ID, { status: 'done' });
+
+    // Inject an orphan 'done' row whose item_id is NOT in the canonical guide,
+    // bypassing the upsert validation (simulates a removed item left behind).
+    await memPool.query(
+      `INSERT INTO learning_progress
+         (keycloak_user_id, brand, item_type, item_id, status, started_at, completed_at)
+       VALUES ($1, $2, 'goal', 'removed-legacy-goal', 'done', now(), now())`,
+      [USER, BRAND]
+    );
+
+    const summary = await learningDb.getLearningSummary(USER, BRAND);
+    expect(summary.total).toBeGreaterThan(0);
+    expect(summary.done).toBe(1);                 // only the canonical one counts
+    expect(summary.done).toBeLessThanOrEqual(summary.total);
+    expect(summary.pct).toBeLessThanOrEqual(100);
+    expect(summary.pct).toBe(Math.round((1 / summary.total) * 100));
+  });
+
+  it('counts a CANONICAL in_progress row but excludes an in_progress orphan', async () => {
+    // Canonical in_progress item — MUST be counted.
+    await learningDb.upsertLearningItem(USER, BRAND, 'tool', TOOL_ID, { status: 'in_progress' });
+    // Orphan in_progress item (not in the guide) — MUST be excluded. Without the
+    // canonical cap this orphan would push inProgress to 2 (real red→green: the old
+    // uncapped code would fail the `=== 1` assertion).
+    await memPool.query(
+      `INSERT INTO learning_progress
+         (keycloak_user_id, brand, item_type, item_id, status, started_at)
+       VALUES ($1, $2, 'tool', 'removed-legacy-tool', 'in_progress', now())`,
+      [USER, BRAND]
+    );
+    const summary = await learningDb.getLearningSummary(USER, BRAND);
+    expect(summary.inProgress).toBe(1);   // only the canonical row, orphan excluded
+  });
+});

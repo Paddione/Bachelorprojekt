@@ -180,21 +180,27 @@ export async function getLearningSummary(
   keycloakUserId: string,
   brand: string
 ): Promise<LearningSummary> {
+  // Canonical allow-list of "<type>::<id>" composite keys from the guide cache, so
+  // orphan rows of removed items never inflate the counts. Passed as one text[] param
+  // ($3) and matched against the row's composite key — fully parameterized, no inlining.
+  const canonicalKeys = guideItemsCache.map(i => `${i.type}::${i.id}`);
+
   const result = await pool.query(
-    `SELECT 
+    `SELECT
        COUNT(CASE WHEN status = 'done' THEN 1 END)::int AS done,
        COUNT(CASE WHEN status = 'in_progress' THEN 1 END)::int AS in_progress,
        MAX(updated_at) AS last_activity
      FROM learning_progress
-     WHERE keycloak_user_id = $1 AND brand = $2`,
-    [keycloakUserId, brand]
+     WHERE keycloak_user_id = $1 AND brand = $2
+       AND (item_type || '::' || item_id) = ANY($3::text[])`,
+    [keycloakUserId, brand, canonicalKeys]
   );
 
   const row = result.rows[0];
-  const done = row.done || 0;
-  const inProgress = row.in_progress || 0;
   const total = getTotalGuideItems();
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const done = Math.min(row.done || 0, total);
+  const inProgress = row.in_progress || 0;
+  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
 
   return {
     done,

@@ -105,6 +105,17 @@ if (!process.env.DATABASE_URL && require.main === module && process.env.MOCK_DB 
   process.exit(1);
 }
 
+const figuresMod = require('./src/server/figures.ts');
+const figureMaps = figuresMod.figureMaps;
+const figureLocks = figuresMod.figureLocks;
+const ensureFigureMap = figuresMod.ensureFigureMap;
+const applyMutation = figuresMod.applyMutation;
+const ensureFigureLocks = figuresMod.ensureFigureLocks;
+const acquireFigureLock = figuresMod.acquireFigureLock;
+const releaseFigureLock = figuresMod.releaseFigureLock;
+const releaseLocksForUser = figuresMod.releaseLocksForUser;
+const listFigureLocks = figuresMod.listFigureLocks;
+
 const dbMod = require('./src/server/db.ts');
 const phasesMod = require('./src/server/phases.ts');
 
@@ -117,6 +128,8 @@ const readState = dbMod.readState;
 const persistState = dbMod.persistState;
 const schedulePersist = dbMod.schedulePersist;
 const flushImmediate = dbMod.flushImmediate;
+phasesMod.initPhases({ figureMaps, applyMutation });
+figuresMod.initFigures({ validateAppearance: (a) => validateAppearance(a) });
 
 
 
@@ -625,36 +638,7 @@ const DEBOUNCE_MS = 1000;
 
 // Server-side authoritative figure list per room (mirrors connected clients' state).
 // Each room holds a Map<id, figure>.
-const figureMaps = new Map();   // roomToken -> Map<id, figure>
 
-const figureLocks = new Map(); // roomToken -> Map<figureId, { userId, name, color }>
-function ensureFigureLocks(room) {
-  if (!figureLocks.has(room)) figureLocks.set(room, new Map());
-  return figureLocks.get(room);
-}
-function acquireFigureLock(room, figureId, owner) {
-  const m = ensureFigureLocks(room);
-  if (m.has(figureId)) return false;
-  m.set(figureId, { userId: owner.userId, name: owner.name, color: owner.color });
-  return true;
-}
-function releaseFigureLock(room, figureId, userId) {
-  const m = figureLocks.get(room);
-  const cur = m && m.get(figureId);
-  if (!cur || cur.userId !== userId) return false;
-  m.delete(figureId);
-  return true;
-}
-function releaseLocksForUser(room, userId) {
-  const m = figureLocks.get(room);
-  if (!m) return;
-  for (const [fig, o] of m) if (o.userId === userId) m.delete(fig);
-}
-function listFigureLocks(room) {
-  const m = figureLocks.get(room);
-  if (!m) return [];
-  return [...m.entries()].map(([figureId, o]) => ({ figureId, ...o }));
-}
 
 const PARTICIPANT_PALETTE = ['#4ea1ff', '#3fb950', '#f0a35e', '#c06be0', '#e06b8b', '#6be0d0'];
 const roomParticipants = new Map(); // roomToken -> Map<userId, { userId, name, color }>
@@ -679,94 +663,7 @@ function listParticipants(room) {
 
 
 
-function ensureFigureMap(room) {
-  if (!figureMaps.has(room)) figureMaps.set(room, new Map());
-  return figureMaps.get(room);
-}
 
-function applyMutation(room, msg) {
-  const figs = ensureFigureMap(room);
-  switch (msg.type) {
-    case 'add': {
-      const figData = msg.figure ?? msg.fig;
-      if (figData && typeof figData.id === 'string' && figs.size < 200) {
-        const newFig = { ...figData };
-        if (!newFig.appearance) {
-          newFig.appearance = { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } };
-        }
-        figs.set(newFig.id, newFig);
-      }
-      break;
-    }
-    case 'move':
-      if (figs.has(msg.id)) {
-        const f = figs.get(msg.id);
-        figs.set(msg.id, { ...f, x: msg.x, z: msg.z });
-      }
-      break;
-    case 'update':
-      if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object' && !Array.isArray(msg.changes)) {
-        const existing = figs.get(msg.id);
-        const { id: _ignoredId, ...safeChanges } = msg.changes;
-        if (safeChanges.appearance && existing.appearance && typeof existing.appearance === 'object') {
-          safeChanges.appearance = {
-            ...existing.appearance,
-            ...safeChanges.appearance,
-            accessories: {
-              ...(existing.appearance.accessories || {}),
-              ...(safeChanges.appearance.accessories || {}),
-            },
-          };
-        }
-        figs.set(msg.id, { ...existing, ...safeChanges });
-      }
-      break;
-    case 'delete':
-      figs.delete(msg.id);
-      break;
-    case 'clear':
-      figs.clear();
-      break;
-    case 'optik':
-      if (msg.settings && typeof msg.settings === 'object') {
-        figs.set('__optik__', { id: '__optik__', settings: msg.settings });
-      }
-      break;
-    case 'stiffness':
-      if (typeof msg.value === 'number') {
-        figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
-      }
-      break;
-    case 'session_phase_set': {
-      figs.set('__session_phase__', { id: '__session_phase__', phase: msg.phase });
-      break;
-    }
-    case 'session_code_set': {
-      figs.set('__session_code__', { id: '__session_code__', code: msg.code });
-      break;
-    }
-    case 'session_admin_token_set': {
-      figs.set('__admin_token_holder__', { id: '__admin_token_holder__', playerId: msg.playerId });
-      break;
-    }
-    case 'session_created_at_set': {
-      figs.set('__session_created_at__', { id: '__session_created_at__', ts: msg.ts });
-      break;
-    }
-    case 'session_last_activity_set': {
-      figs.set('__session_last_activity__', { id: '__session_last_activity__', ts: msg.ts });
-      break;
-    }
-    case 'coaching_steps_set': {
-      if (Array.isArray(msg.steps) && msg.steps.length &&
-          msg.steps.every((s) => typeof s === 'string' && s.length)) {
-        const idx = Math.max(0, Math.min((msg.index | 0), msg.steps.length - 1));
-        figs.set('__coaching_steps__', { id: '__coaching_steps__', steps: msg.steps.slice(), index: idx });
-      }
-      break;
-    }
-  }
-}
 
 phasesMod.initPhases({ figureMaps, applyMutation });
 const VALID_PHASES = phasesMod.VALID_PHASES;

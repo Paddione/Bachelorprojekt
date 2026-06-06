@@ -937,7 +937,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D1 — Additive `brett_snapshots.is_template` migration
+### D1 — Additive `brett_snapshots.is_template` migration — [x] DONE
 
 - **target_files**: `k3d/website-schema.yaml`
 - **failing test (red)**: `brett/test/snapshots-template-migration.test.ts` — reads `path.join(__dirname, '..', '..', 'k3d', 'website-schema.yaml')` and asserts the text contains an idempotent `ALTER TABLE brett_snapshots ADD COLUMN IF NOT EXISTS is_template boolean NOT NULL DEFAULT false` and a partial index `CREATE INDEX IF NOT EXISTS idx_brett_snapshots_template ON brett_snapshots(is_template) WHERE is_template`. Red because neither exists today (`website-schema.yaml:603-615`).

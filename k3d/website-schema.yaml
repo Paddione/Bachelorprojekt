@@ -614,6 +614,13 @@ data:
       CREATE INDEX IF NOT EXISTS idx_brett_snapshots_room
           ON brett_snapshots(room_token, created_at DESC);
 
+      -- Szenario-Vorlagen (Phase D): curated snapshots flagged as templates.
+      -- Additive + idempotent — existing snapshots default to non-templates,
+      -- no row rewrite. No `brand` column (per-namespace DBs are physically
+      -- separate; YAGNI).
+      ALTER TABLE brett_snapshots ADD COLUMN IF NOT EXISTS is_template boolean NOT NULL DEFAULT false;
+      CREATE INDEX IF NOT EXISTS idx_brett_snapshots_template ON brett_snapshots(is_template) WHERE is_template;
+
       -- Idempotency for auto-post on Talk-roomed meeting creation.
       ALTER TABLE meetings
           ADD COLUMN IF NOT EXISTS brett_link_posted_at TIMESTAMPTZ;
@@ -1422,6 +1429,13 @@ data:
           ON brett_snapshots(customer_id, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_brett_snapshots_room
           ON brett_snapshots(room_token, created_at DESC);
+
+      -- Szenario-Vorlagen (Phase D): curated snapshots flagged as templates.
+      -- Additive + idempotent — existing snapshots default to non-templates,
+      -- no row rewrite. No `brand` column (per-namespace DBs are physically
+      -- separate; YAGNI).
+      ALTER TABLE brett_snapshots ADD COLUMN IF NOT EXISTS is_template boolean NOT NULL DEFAULT false;
+      CREATE INDEX IF NOT EXISTS idx_brett_snapshots_template ON brett_snapshots(is_template) WHERE is_template;
 
       -- Idempotency for auto-post on Talk-roomed meeting creation.
       ALTER TABLE meetings

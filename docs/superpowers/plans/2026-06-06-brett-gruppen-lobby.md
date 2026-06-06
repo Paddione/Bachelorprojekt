@@ -950,7 +950,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D2 — Repair the dead optik seam (`optik_set`) + real-`applyMutation` test
+### D2 — Repair the dead optik seam (`optik_set`) + real-`applyMutation` test — [x] DONE
 
 - **target_files**: `brett/src/server/figures.ts`; **new** `brett/test/optik.test.ts`; **delete** `tests/unit/brett-optik-server.js`
 - **failing test (red)**: `brett/test/optik.test.ts` imports `applyMutation`, `buildStateFromMutations` from `../src/server/index` and asserts:

@@ -45,7 +45,7 @@ export interface WsDeps {
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
 // but has NO applyMutation case (ephemeral animation, never persisted).
 export const RELAY_TYPES = new Set<string>([
-  'add', 'move', 'update', 'jump', 'delete', 'clear', 'optik', 'stiffness', 'snapshot', 'request_state_snapshot'
+  'add', 'move', 'update', 'jump', 'delete', 'clear', 'stiffness', 'snapshot', 'request_state_snapshot'
 ]);
 
 // Admin message types

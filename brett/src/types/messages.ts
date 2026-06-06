@@ -10,7 +10,6 @@ export type ClientMessage =
   | { type: 'update'; id: string; changes: Partial<Figure> & { appearance?: FigureAppearance } }
   | { type: 'delete'; id: string }
   | { type: 'clear' }
-  | { type: 'optik'; id: string; value: unknown }
   | { type: 'stiffness'; value: number }
   | { type: 'snapshot'; figures: Figure[]; stiffness?: number }
   | { type: 'figure_lock'; id: string }

@@ -56,7 +56,6 @@ function routeClient(msg: ClientMessage): string {
     case 'update': return 'update';
     case 'delete': return 'delete';
     case 'clear': return 'clear';
-    case 'optik': return 'optik';
     case 'stiffness': return 'stiffness';
     case 'snapshot': return 'snapshot';
     case 'figure_lock': return 'figure_lock';

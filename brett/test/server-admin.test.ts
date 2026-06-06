@@ -23,9 +23,12 @@ test('RELAY_TYPES: contains only coaching/figure types, no Mayhem types', () => 
   for (const t of ['mayhem_mode','game_mode_change','hit','player_death','vehicle_spawn','hero_select','duel_start','bot_spawn']) {
     assert.ok(!RELAY_TYPES.includes(t), `RELAY_TYPES must not include ${t}`);
   }
-  for (const t of ['add','move','update','delete','clear','optik','stiffness']) {
+  for (const t of ['add','move','update','delete','clear','stiffness']) {
     assert.ok(RELAY_TYPES.includes(t), `RELAY_TYPES must include ${t}`);
   }
+  // §4.1: the dead `optik` relay seam is removed — optik is now a privileged
+  // admin_set_optik mutation, never a relay type.
+  assert.ok(!RELAY_TYPES.includes('optik'), 'RELAY_TYPES must NOT include optik (§4.1)');
 });
 
 test('applyMutation: coaching steps round-trip through state', () => {

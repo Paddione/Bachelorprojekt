@@ -1,5 +1,3 @@
-import type { Figure } from '../types/state';
-
 export const figureMaps = new Map<string, Map<string, any>>();
 export const figureLocks = new Map<string, Map<string, { userId: string; name: string; color: string }>>();
 
@@ -71,8 +69,10 @@ export function applyMutation(room: string, msg: any): void {
     case 'clear':
       figs.clear();
       break;
-    case 'optik':
-      if (msg.settings && typeof msg.settings === 'object') {
+    case 'optik_set':
+      // Board-optik (§4.1). Written by the privileged admin_set_optik handler —
+      // never via the relay path (`optik` is NOT in RELAY_TYPES / MutationType).
+      if (msg.settings && typeof msg.settings === 'object' && !Array.isArray(msg.settings)) {
         figs.set('__optik__', { id: '__optik__', settings: msg.settings });
       }
       break;

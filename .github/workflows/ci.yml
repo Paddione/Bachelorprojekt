@@ -82,17 +82,19 @@ jobs:
           fi
           echo "All managed secret files are git-crypt-encrypted"
 
-  brett-server-test:
-    name: Brett Server Tests
+  brett-typescript:
+    name: Brett TypeScript
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with: { node-version: '22' }
       - run: npm ci --prefix brett
-      - run: node --test brett/test/*.test.js brett/test/*.test.mjs
+      - run: npm run typecheck --prefix brett
+      - run: npm test --prefix brett
         env:
           MOCK_DB: 'true'
+      - run: npm run build --prefix brett
 
   commit-lint:
     name: Conventional Commits

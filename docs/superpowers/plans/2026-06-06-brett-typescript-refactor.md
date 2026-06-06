@@ -1275,7 +1275,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 > What remains in `server.js` after Tasks 4–11 is: `asyncHandler`, `resolveJoinTarget`, all Express routes (Section 4), HTTP server creation, WSS setup, `shutdown`, the module-wiring block, and `module.exports`. This task moves all of it into `src/server/index.ts`, which `import`s the extracted modules normally (no tsx-bridge needed — `index.ts` is run by `tsx`).
 
-- [ ] **Step 1: Create `src/server/index.ts`**
+- [x] **Step 1: Create `src/server/index.ts`**
 
 Assemble `index.ts` by importing every Phase-2 module and re-creating the route table + bootstrap. Structure:
 ```typescript
@@ -1365,7 +1365,7 @@ export const RELAY_TYPES = wsHandler.RELAY_TYPES;
 ```
 > Copy each route handler body verbatim from server.js. The `require.main === module` guard replaces server.js's unconditional `server.listen`; the legacy tests never listened because they only imported exports — preserve that by guarding `listen`.
 
-- [ ] **Step 2: Keep `server.js` as a thin re-export shim for one commit**
+- [x] **Step 2: Keep `server.js` as a thin re-export shim for one commit**
 
 So the existing `.js`/`.mjs` tests (which `require('../server.js')`) keep passing in this commit, replace the entire `server.js` body with:
 ```js
@@ -1381,20 +1381,20 @@ cd brett && node -e "process.env.MOCK_DB='true'; const m=require('./server.js');
 ```
 Expected: `all-exports-present`.
 
-- [ ] **Step 3: Update `package.json` `start` script**
+- [x] **Step 3: Update `package.json` `start` script**
 
 Change `"start": "node server.js"` to:
 ```json
     "start": "tsx src/server/index.ts",
 ```
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; entire legacy suite passes; `# fail 0`.
 
-- [ ] **Step 5: Boot smoke through the new entry point**
+- [x] **Step 5: Boot smoke through the new entry point**
 ```bash
 cd brett && timeout 4 env MOCK_DB=true PORT=3010 npm start &
 sleep 1.5
@@ -1402,7 +1402,7 @@ curl -fsS http://localhost:3010/healthz && echo " healthz-ok"
 ```
 Expected: prints `ok healthz-ok`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 ```bash
 git add brett/server.js brett/src/server/index.ts brett/package.json
 git commit -m "refactor(brett): extract index.ts entry; server.js becomes re-export shim

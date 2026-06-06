@@ -6,7 +6,7 @@ let pool: Pool | MockPoolLike;
 let buildStateFromMutations: StateBuilder;
 const pending = new Map<string, NodeJS.Timeout>();
 
-interface MockPoolLike {
+export interface MockPoolLike {
   query(text: string, params?: unknown[]): Promise<{ rows: any[] }>;
   end(): Promise<void>;
   connect(): Promise<{ query: any; release: () => void }>;

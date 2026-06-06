@@ -1060,7 +1060,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D8 — `/api/snapshots` `is_template` wiring (list + create)
+### D8 — `/api/snapshots` `is_template` wiring (list + create) — [x] DONE
 
 - **target_files**: `brett/src/server/index.ts` (extract `buildSnapshotListQuery` + `parseSnapshotInsert`, use in GET/POST `/api/snapshots`)
 - **failing test (red)**: `brett/test/snapshots-route.test.ts` imports the two pure helpers from `../src/server/index` and asserts:

@@ -25,7 +25,7 @@ task workspace:deploy ENV=<env> # applies SealedSecret before manifests
 - Dev: `k3d/realm-workspace-dev.json`
 - Prod mentolder: `prod-mentolder/realm-workspace-mentolder.json`
 - Prod korczewski (fleet cluster, ns `workspace-korczewski`): `prod-korczewski/realm-workspace-korczewski.json`
-- SSO consumers: Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code (all OIDC via Keycloak)
+- SSO consumers: Nextcloud, Vaultwarden, DocuSeal, Website, Claude Code (all OIDC via Keycloak). Note: Tracking pipeline was fully removed (PRs #788/#993) — Tracking is no longer an active SSO consumer.
 
 > **Two brands, two of everything (Fleet Stage 3).** Both brands run on the unified `fleet` cluster (context `fleet`), each with its own SealedSecrets, Keycloak realm, and `shared-db` instance in its own namespace. Secret rotation and realm sync span both namespaces (`workspace` for mentolder, `workspace-korczewski` for korczewski) but always via `--context fleet`. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything.
 

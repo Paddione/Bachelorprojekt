@@ -74,22 +74,22 @@ The script is run from the **repo root** by the developer on their local machine
 ```
 Step 1: Pull secrets from cluster
   kubectl get secret workspace-secrets \
-    -n workspace-korczewski --context korczewski \
+    -n workspace-korczewski --context fleet \
     -o json | jq -r '.data.BRETT_OIDC_SECRET | @base64d'
   → BRETT_OIDC_SECRET
 
   kubectl get secret workspace-secrets \
-    -n workspace-korczewski --context korczewski \
+    -n workspace-korczewski --context fleet \
     -o json | jq -r '.data.WEBSITE_DB_PASSWORD | @base64d'
   → WEBSITE_DB_PASSWORD
 
 Step 2: Start port-forwards (background)
   kubectl port-forward svc/shared-db 5432:5432 \
-    -n workspace-korczewski --context korczewski &
+    -n workspace-korczewski --context fleet &
   PF_DB_PID=$!
 
   kubectl port-forward svc/keycloak 8080:8080 \
-    -n workspace-korczewski --context korczewski &
+    -n workspace-korczewski --context fleet &
   PF_KC_PID=$!
 
 Step 3: Register cleanup trap

@@ -13,7 +13,9 @@ The repository has four CI/CD gaps that prevent a fully automated release lifecy
 3. **Website not tracked by release-please** — `brett`, `arena-server`, and `docs` get GitHub Releases and CHANGELOGs; `website` (v1.0.0 in package.json) does not.
 4. **No commit-format enforcement** — release-please generates CHANGELOGs from Conventional Commits (`feat:`, `fix:`, `chore:`). Without a CI gate, malformed commits (e.g. `j`) produce silent changelog gaps.
 
-Flux GitOps already handles manifest drift for both clusters automatically. The only missing pieces are image rollouts and the release tooling gaps above.
+**[HISTORICAL NOTE — 2026-06-01]** Flux has been fully removed (PRs #1282/#1286/#1287). Prod is now **push-based** via `task workspace:deploy ENV=<brand>` — there is no GitOps reconciler on fleet. The analysis below was written when Flux was still active.
+
+~~Flux GitOps already handles manifest drift for both clusters automatically.~~ The only missing pieces are image rollouts and the release tooling gaps above.
 
 ## Target Flow
 
@@ -56,7 +58,7 @@ release-please PR merge → main
 
 ### Infra / Manifests
 
-No changes needed. Flux reconciles `k3d/` and `prod-*/` manifest changes automatically on every push to `main`.
+**[HISTORICAL — Flux removed PRs #1282/#1286/#1287]** ~~No changes needed. Flux reconciles `k3d/` and `prod-*/` manifest changes automatically on every push to `main`.~~ Prod is push-based: run `task workspace:deploy ENV=<brand>` after merging to main.
 
 ### Docs
 

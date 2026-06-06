@@ -1,21 +1,25 @@
 version: "3"
 
+# DECOMMISSIONED — This Taskfile targeted the 3-node devc k3s HA cluster on Proxmox
+# (VIP 10.0.0.20, context: devc) which was shelved 2026-05-30 and never built.
+# Dev now runs via local k3d (context: k3d-mentolder-dev). See Taskfile.dev-stack.yml.
+# Kept as historical reference; all tasks below will fail if run.
+
 vars:
-  CTX: devc
+  CTX: k3d-mentolder-dev  # was: devc (dead; devc cluster never built)
   NS: workspace-dev
-  VIP: 10.0.0.20
 
 tasks:
   deploy:
-    desc: "[devcluster] Materialise secrets + apply dev-stack to the HA k3s cluster"
+    desc: "[devcluster] DECOMMISSIONED — use 'task dev:cluster:create_legacy' for local k3d instead"
     cmds:
-      - task: dev:_materialise-secrets
-        vars: {CTX_DEV: "{{.CTX}}", NS_DEV: "{{.NS}}"}
-      - task: dev:apply
-        vars: {CTX_DEV: "{{.CTX}}", NS_DEV: "{{.NS}}"}
+      - echo "ERROR: devcluster tasks target the decommissioned devc k3s HA cluster." >&2
+      - echo "       Use 'task dev:cluster:create_legacy' for local k3d." >&2
+      - exit 1
 
   status:
-    desc: "[devcluster] Pod + ingress status on the HA cluster"
+    desc: "[devcluster] DECOMMISSIONED — use 'task dev:status' for local k3d instead"
     cmds:
-      - kubectl --context {{.CTX}} -n {{.NS}} get pods,svc,ingress -o wide
-      - 'curl -sSI --max-time 5 -H "Host: web.dev.mentolder.de" http://{{.VIP}}/ || true'
+      - echo "ERROR: devcluster tasks target the decommissioned devc k3s HA cluster." >&2
+      - echo "       Use 'task dev:status' for local k3d." >&2
+      - exit 1

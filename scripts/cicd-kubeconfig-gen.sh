@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Generate a minimal kubeconfig for the cicd-deploy ServiceAccount.
 # Usage: bash scripts/cicd-kubeconfig-gen.sh <context> <namespace>
-# Example (mentolder):  bash scripts/cicd-kubeconfig-gen.sh mentolder workspace
-# Example (korczewski): bash scripts/cicd-kubeconfig-gen.sh korczewski workspace-korczewski
+# Example (mentolder):  bash scripts/cicd-kubeconfig-gen.sh fleet workspace
+# Example (korczewski): bash scripts/cicd-kubeconfig-gen.sh fleet workspace-korczewski
 #
 # Uses --minify so clusters[0] always refers to the right cluster,
 # regardless of the internal cluster name in the kubeconfig file.

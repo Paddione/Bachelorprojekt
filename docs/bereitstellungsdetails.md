@@ -30,15 +30,15 @@ Der Cluster besteht aus drei Control-Plane-Knoten (Steuerungsknoten) und drei Wo
 
 ---
 
-### 1.2 Entwicklungs- und Testumgebung (Local Dev / `devc`)
+### 1.2 Entwicklungs- und Testumgebung (Local Dev / k3d auf WSL-Host)
 
-Die lokale Entwicklung findet entweder auf einem k3d-Cluster (lokales Test-Kubernetes in Docker) oder auf dem 3-Knoten-HA-Dev-Cluster (`devc`) statt, welcher auf einem Proxmox-Server (Virtualisierungs-Plattform) betrieben wird.
+> **Hinweis:** Das geplante `devc`-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30). Die lokale Entwicklung findet auf einem k3d-Cluster (lokales Test-Kubernetes in Docker) auf dem WSL-Host / Proxmox-VM `dev-vm` statt. Kontext: `k3d-mentolder-dev`.
 
 | Servername | Rolle | LAN-IP-Adresse | WireGuard IP (`wg-mesh`) | WireGuard Public Key |
 |---|---|---|---|---|
-| **dev-vm** | Dev Cluster Host | `10.0.0.26` | `192.168.100.23` | `TQu+0XGGDRuuQyMUQUQWZMp7tyIQ0c4RTe9+FcMaWg4=` |
-| **devc-2** | devc-Knoten 2 | `10.0.0.22` | `192.168.100.21` | `0jmnyI0rYR05HDzqfrvtNBCSZdQpv1XkTPhciJ9ZCxU=` |
-| **devc-3** | devc-Knoten 3 | `10.0.0.23` | `192.168.100.22` | `TZhEWsDku+wccV0wAIHa9V8bK5Ru+tAUkc0uPk4C+00=` |
+| **dev-vm** | Dev Cluster Host (k3d/WSL) | `10.0.0.26` | `192.168.100.23` | `TQu+0XGGDRuuQyMUQUQWZMp7tyIQ0c4RTe9+FcMaWg4=` |
+| **devc-2** | devc-Knoten 2 *(nie gebaut — shelved)* | `10.0.0.22` | `192.168.100.21` | `0jmnyI0rYR05HDzqfrvtNBCSZdQpv1XkTPhciJ9ZCxU=` |
+| **devc-3** | devc-Knoten 3 *(nie gebaut — shelved)* | `10.0.0.23` | `192.168.100.22` | `TZhEWsDku+wccV0wAIHa9V8bK5Ru+tAUkc0uPk4C+00=` |
 | **pk-l-1-worker** | Entwickler-Laptop | *Dynamisch* | `10.13.14.11` | `cLpIaLBkygvcX1D4Jm7syjoxqrRx3qhgTl7+aah1Nxw=` |
 
 *Hinweis:* `dev-vm` ist der Nachfolger des alten `k3s-1` Heimservers. Sie läuft als Proxmox-Gast-VM (VMID `9002`) auf dem Server-Knoten `10.0.0.25`.
@@ -90,9 +90,9 @@ Die folgenden öffentlichen SSH-Schlüssel sind in den Konfigurationsdateien des
 ### PVE Host-Schlüssel (Proxmox-Virtualisierung)
 * **`PVE_SSH_PUBLIC_KEY` (root@pve):**
   `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCcVmcn2U3Ds/yWSC46oxiZjNMjQfqUDFTzFau8Glv0FSEgy9WipbHuKoms+/NU3ELdTMtvWdhHq02cdoS1nlDvBNHWkCz4XS2/L+D7XmDIbhWgdjTu77BA5itQf1s7rhQhy5aN9Bo/itDJOX3U8YN+4EHiUQS6p40y9ATcSf/FzhaZ8/5UrsNAdpvqEMlHT1E6+8UHmlq76IojhWCIPTqSbmOcKfWtrSreqUwpz6nrC1G2MF4KZ+bLqOh4vv8a4knUCrsE9xrKpl//jEmCNgWDBBpx1+4q/kKbBUCNTH73iJBKXV26HiG4kDS66idbJ5ePfHetl/c6h0k60yGnN7gvt53qLdo1fIKdLO7azmGbKQG+TQcTH6mwvl1irhQb0GbbtgwALGblR3r8M2wLsjFXhKoYPM45DTqQ37D0E/yNWklwStMbzkpwocn2V5Z5w6dtzLJ5wmm/FnnP0ugyvFfrSGdMGKZm/x6NdbVugY4yrRJ+5uU0kAg18O4NaG/calJX6g8yODqhb0kyoFuYBnkiUCx5E1q2KeOrKcXBIC4T2dB3vQXB4sYzD0cYItMJk7g53OXEDtMVmiSmPHkqJNT8ZLxv3EtL2HElqEkOKcnWlclU154GEqIElhVXiIhIVs9YSeGs6pVR8ltbEAQfQIakZ+79hNwy0TakGCzTgl4fMQ== root@pve`
-* **`PVE2_SSH_PUBLIC_KEY` (root@pve2):**
+* **`PVE2_SSH_PUBLIC_KEY` (root@dev1 ehem. pve2):**
   `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDIRsuXjU49374Ztn0YyQI8yxHH0czAFGS5cGL3EEGtEMVKSzTvWefWEh4EFKCsLfOEJAKcW4zDrOGljub45/eCW8GIY1VIUKzkOhj1JlYPSKpNGPIDWZ643k2NRfCRRAXGRx1oV9u+Ulb1xjC+TggIlgdSzV/3+V8liwVNU4tmUSX0aNKE8rNzKPxVLuxLCe3twm8RsPWfR4rUBiDf51s9ITu6jbwziai6Fxp0uv/ScnXieJ7Iqut99VqQBJxpEQYSfQ5Zqf1jtXuAc3q5kSdVDg8q+5DXBIFSCk8Gofdgxs26M4AsSDxr01gGQ7QdgVpP2unJvKTASI/aQg+xAd8kXze1puzcvJqfNUexcfpvJ5uiGrgpp042nNHXuUS2+xH9Gfd1QCw2vZM84h0qL9itumnU1rcU3zodAWPf4hRYaz3/oIGF5p2zFhXwu/6V6vOgNSzVkJM3PLs7N2DMOUqgkFClLR9hA4H4Fm/xxCNV50kjwLuEuAq3cN7/Y6PdePbNEnlDfbBWtHC+ow9ygXR52AIGXnDUhI6wM10pgxylR4A+aTOeuGgwgVjoC0DmYokEIidAYzIyUapajO2Brxci10V3Ykp/FgKY2m47S+9kMqmp+XGELCIgs4VjWkM7sVbiJSJLr0wIlKZ2mlNIbV5PPSTYP4Yd9o3Vy3rKV4SZ2Q== root@pve2`
-* **`PVE3_SSH_PUBLIC_KEY` (root@pve3):**
+* **`PVE3_SSH_PUBLIC_KEY` (root@dev2 ehem. pve3):**
   `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDAJAf6e0K/SdlaKCxPVyP8rCZqOVz3M8NZUL4W8jSMzL3JqlcjNeSeUfoO9nfbHyI3QfDQPmvkpHY9JBa+e2A5Plj1MIC4DDvvgcY1eJL4j5gJ+2fQXyG6c1l2r5yEPs5wWn8vGuR8540d1Y93VDq90Zg+lJ6ON0vosuQ9jUyuGo7DIwwBN8vhBYiSN6XdeDlIJG2HVSJftbCREXC5u9fDH4J1Y0sNEkeua9vNZsC3BAAviylwBMFUYaB2TVKLyFOI5xGiZxKHio1H49S5b2gHHaOWor+I4byIBNibCS8LCeB/q8a99MnCHqMQT/jilwuq1RWorIrjVF0PX011s0Ddw+dA5iq0R2UH+htDkjJXdcXUYQEuBUMX/mBDkyiqSshCDDZfGvjm47YZTzt4bGYEKhBI/pPygi4MhSRN+TvWpngFWjxcSy4LEowTNePJx6CB17DwnVhBnQdHygCIZ8iHgvsgbVZgV0gO1He8zteZFPV7OjPANm4xSOim5vTSzpWwVvLhk9wv2sOURz4JY7mbtIPryFqNSbWI0B/4zMFH87YFQ7IfD7r5JhoqZRIaplJDRJWFrnLXXWjWS07vNWAcDS9AMNM9spPce65f8HlvaTjAcznVmzxW75ig5znFFAfi+SyVwWRhQ7fhuRZMnbOzqVwl1VINz7FGyJKOUoIvMw== root@pve3`
 
 ### Personenbezogene SSH-Schlüssel

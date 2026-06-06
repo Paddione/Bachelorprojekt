@@ -414,10 +414,16 @@ const wss = new WebSocket.Server({
   },
 });
 
-// roomToken -> Set<WebSocket>
-const rooms = new Map();
-
-
+const roomsMod = require('./src/server/rooms.ts');
+const rooms = roomsMod.rooms;
+const roomParticipants = roomsMod.roomParticipants;
+const joinRoom = roomsMod.joinRoom;
+const leaveRoom = roomsMod.leaveRoom;
+const broadcast = roomsMod.broadcast;
+const broadcastInfo = roomsMod.broadcastInfo;
+const addParticipant = roomsMod.addParticipant;
+const removeParticipant = roomsMod.removeParticipant;
+const listParticipants = roomsMod.listParticipants;
 
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = dbMod.getPending();
@@ -429,64 +435,7 @@ const RELAY_TYPES = [
 
 const TRANSIENT_TYPES = new Set([]);
 
-
-
-function joinRoom(ws, room) {
-  ws._room = room;
-  if (!rooms.has(room)) rooms.set(room, new Set());
-  rooms.get(room).add(ws);
-}
-
-function leaveRoom(ws) {
-  const room = ws._room;
-  if (!room || !rooms.has(room)) return;
-  rooms.get(room).delete(ws);
-  if (rooms.get(room).size === 0) rooms.delete(room);
-  return room;
-}
-
-function broadcast(room, msg, exclude) {
-  const json = JSON.stringify(msg);
-  const peers = rooms.get(room);
-  if (!peers) return;
-  for (const peer of peers) {
-    if (peer !== exclude && peer.readyState === WebSocket.OPEN) peer.send(json);
-  }
-}
-
-function broadcastInfo(room) {
-  const count = rooms.get(room)?.size ?? 0;
-  broadcast(room, { type: 'info', count });
-}
-
-
-
 const DEBOUNCE_MS = 1000;
-
-// Server-side authoritative figure list per room (mirrors connected clients' state).
-// Each room holds a Map<id, figure>.
-
-
-const PARTICIPANT_PALETTE = ['#4ea1ff', '#3fb950', '#f0a35e', '#c06be0', '#e06b8b', '#6be0d0'];
-const roomParticipants = new Map(); // roomToken -> Map<userId, { userId, name, color }>
-function addParticipant(room, { userId, name }) {
-  if (!userId) return null;
-  if (!roomParticipants.has(room)) roomParticipants.set(room, new Map());
-  const m = roomParticipants.get(room);
-  if (m.has(userId)) { m.get(userId).name = name || m.get(userId).name; return m.get(userId); }
-  const color = PARTICIPANT_PALETTE[m.size % PARTICIPANT_PALETTE.length];
-  const p = { userId, name: name || userId, color };
-  m.set(userId, p);
-  return p;
-}
-function removeParticipant(room, userId) {
-  const m = roomParticipants.get(room);
-  if (m) m.delete(userId);
-}
-function listParticipants(room) {
-  const m = roomParticipants.get(room);
-  return m ? [...m.values()] : [];
-}
 
 
 

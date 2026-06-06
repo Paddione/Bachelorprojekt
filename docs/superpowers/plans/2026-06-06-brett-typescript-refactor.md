@@ -857,7 +857,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 > Owns `sessionCodeIndex`, `tokenGraceTimers`, `roomAdminPresence`, `roomPreviousPlayers`. Exports the **same `sessionCodeIndex` Map reference** — `session-code.test.js` does `sessionCodeIndex.clear()`. Depends on `figureMaps`/`applyMutation`/`transitionPhase`/`releaseAdminToken` and `IDLE_TIMEOUT_MS`; inject `figureMaps`, `applyMutation`, `transitionPhase` via init.
 
-- [ ] **Step 1: Create `src/server/sessions.ts`**
+- [x] **Step 1: Create `src/server/sessions.ts`**
 
 Move every function in the sessions group (analysis §6 sessions.ts) verbatim: `generateSessionCode` (416–428), `registerSessionCode` (430–432), `resolveSessionCode` (434–436), `rebuildSessionCodeIndexFromStates` (438–443), `getAdminTokenHolder` (445–447), `assignAdminToken` (449–453), `handoffAdminToken` (455–460), `releaseAdminToken` (462–465), `setRoomAdminPresence` (471–473), `beginTokenGrace` (475–492), `reclaimAdminToken` (494–501), `handleAdminSessionCreate` (503–512), `handleAdminHandoffMessage` (514–519), `handleAdminRoundStop` (521–527), `handleAdminRoundPause` (529–543), `trackPlayerInRoom` (547–555), `wasPreviouslyInRoom` (557–559), `shouldRejectReconnect` (561–580), `touchSessionActivity` (584–586), `checkSessionIdle` (588–603), `checkAllSessions` (605–613). Plus the four maps and `IDLE_TIMEOUT_MS`.
 
@@ -914,7 +914,7 @@ export function checkAllSessions(): Array<{ ended: boolean; reason?: string; roo
 ```
 > `beginTokenGrace` accepts `opts.timeoutMs` — `admin-token.test.js` passes a shortened timeout. Preserve that parameter exactly. `IDLE_TIMEOUT_MS` must equal the literal in server.js (2 min) — copy it, don't guess.
 
-- [ ] **Step 2: Wire `server.js`**
+- [x] **Step 2: Wire `server.js`**
 
 Delete the four maps and 21 functions and `IDLE_TIMEOUT_MS` from `server.js`. Add after the phases wiring:
 ```js
@@ -948,13 +948,13 @@ const checkSessionIdle = sessionsMod.checkSessionIdle;
 const checkAllSessions = sessionsMod.checkAllSessions;
 ```
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `session-code` (incl. `sessionCodeIndex.clear()`), `admin-token`, `idle-timeout`, `reconnect-guard`, `session-state` pass; `# fail 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/server.js brett/src/server/sessions.ts
 git commit -m "refactor(brett): extract sessions.ts (codes, admin token, idle/grace)
@@ -971,7 +971,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Modify: `server.js`
 - Test: existing `test/participants.test.js`.
 
-- [ ] **Step 1: Create `src/server/rooms.ts`**
+- [x] **Step 1: Create `src/server/rooms.ts`**
 
 Move `rooms` (409), `roomParticipants` (699), `PARTICIPANT_PALETTE` (the palette array near 699), `joinRoom` (627–631), `leaveRoom` (633–639), `broadcast` (641–648), `broadcastInfo` (650–653), `addParticipant` (700–709), `removeParticipant` (710–713), `listParticipants` (714–717). Copy bodies verbatim.
 
@@ -1034,7 +1034,7 @@ export function listParticipants(room: string): Array<{ userId: string; name: st
 ```
 > Copy `PARTICIPANT_PALETTE` colors and the exact `addParticipant` color-assignment logic verbatim from server.js — `participants.test.js` asserts color assignment by map-size index.
 
-- [ ] **Step 2: Wire `server.js`**
+- [x] **Step 2: Wire `server.js`**
 
 Delete the two maps, the palette, and the seven functions from `server.js`. Add:
 ```js
@@ -1050,13 +1050,13 @@ const removeParticipant = roomsMod.removeParticipant;
 const listParticipants = roomsMod.listParticipants;
 ```
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `participants` passes; `# fail 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/server.js brett/src/server/rooms.ts
 git commit -m "refactor(brett): extract rooms.ts (ws sets, broadcast, participants)

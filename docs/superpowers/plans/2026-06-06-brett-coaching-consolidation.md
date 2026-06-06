@@ -78,17 +78,17 @@ Client-only deletions first (Task 1) keep the suite green immediately because th
 
 **Files:** none (environment only)
 
-- [ ] **Step 1: Confirm worktree + branch**
+- [x] **Step 1: Confirm worktree + branch**
 
 Run: `git -C /home/patrick/Projects/wt-brett-coaching-consolidation branch --show-current`
 Expected: `feature/brett-coaching-consolidation`
 
-- [ ] **Step 2: Install brett dependencies (required for any `npm test`)**
+- [x] **Step 2: Install brett dependencies (required for any `npm test`)**
 
 Run: `cd /home/patrick/Projects/wt-brett-coaching-consolidation/brett && npm install`
 Expected: completes without error; `brett/node_modules/express` exists.
 
-- [ ] **Step 3: Capture green baseline**
+- [x] **Step 3: Capture green baseline**
 
 Run: `cd /home/patrick/Projects/wt-brett-coaching-consolidation/brett && npm test 2>&1 | tail -8`
 Expected: `# pass 174` / `# fail 0`.
@@ -104,7 +104,7 @@ Expected: `# pass 174` / `# fail 0`.
 - Delete: `brett/public/assets/main.js`
 - Modify: `brett/public/index.html:1996` (remove `<script type="module" src="assets/main.js">`)
 
-- [ ] **Step 1: Verify `scene.js` and `main.js` have no live importer**
+- [x] **Step 1: Verify `scene.js` and `main.js` have no live importer**
 
 Run:
 ```bash
@@ -113,26 +113,26 @@ grep -rn "assets/scene.js\|setLightIntensity\|assets/main.js\|from './main\|requ
 ```
 Expected: only the `<script src="assets/main.js">` tag at `index.html:1996` (no JS importer; `scene.js` has zero hits).
 
-- [ ] **Step 2: Delete the files**
+- [x] **Step 2: Delete the files**
 
 ```bash
 cd /home/patrick/Projects/wt-brett-coaching-consolidation/brett
 git rm public/assets/scene.js public/assets/main.js
 ```
 
-- [ ] **Step 3: Remove the `main.js` script tag from `index.html`**
+- [x] **Step 3: Remove the `main.js` script tag from `index.html`**
 
 Delete this exact line (was `index.html:1996`):
 ```html
 <script type="module" src="assets/main.js"></script>
 ```
 
-- [ ] **Step 4: Run tests — still green**
+- [x] **Step 4: Run tests — still green**
 
 Run: `cd /home/patrick/Projects/wt-brett-coaching-consolidation/brett && npm test 2>&1 | tail -4`
 Expected: `# pass 174` (no change — neither file was tested).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/patrick/Projects/wt-brett-coaching-consolidation

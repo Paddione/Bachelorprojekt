@@ -26,6 +26,8 @@
  * Layer-4 canary smoke + auto-rollback, directory-level conflict heuristic.
  */
 
+import { provision } from './provision.js'
+
 export const meta = {
   name: 'software-factory-pipeline',
   description: 'Phase-1 single-feature pipeline: Scout → Design → Plan → Implement → Verify → Deploy',
@@ -197,6 +199,9 @@ if (!isSimple) {
 
      Return a JSON object { tasks: [...] } matching the task schema.`,
     {
+      ...provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false }).model
+        ? { model: provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false }).model }
+        : {},
       label: 'plan:decompose',
       phase: 'Plan',
       schema: {
@@ -242,21 +247,25 @@ if (tasks.length) {
   phase('Implement')
   implemented = (await pipeline(
     tasks,
-    (t) => agent(
-      `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-       Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.
-       Target files: ${t.target_files.join(', ')}.
-       Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
-       DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
-       (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
-       do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
-       After implementing, run locally:
-         cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
-       (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
-       up to date so CI passes. Commit the regenerated files alongside your implementation.)
-       Return a summary of the diff and the local test result (pass/fail).`,
-      { label: `impl:${t.id}`, phase: 'Implement', isolation: 'worktree' },
-    ),
+    (t) => {
+      const prov = provision({ complexity: scout?.complexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
+      return agent(
+        `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
+         Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.
+         Target files: ${t.target_files.join(', ')}.
+         Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
+         DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
+         (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
+         do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
+         Provisioned context hints (assemble compactly, never raw-dump): ${prov.contextHints.join(' | ')}.
+         After implementing, run locally:
+           cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
+         (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
+         up to date so CI passes. Commit the regenerated files alongside your implementation.)
+         Return a summary of the diff and the local test result (pass/fail).`,
+        { label: `impl:${t.id}`, phase: 'Implement', isolation: 'worktree', ...(prov.model ? { model: prov.model } : {}) },
+      )
+    },
     (_res, t) => agent(
       `Self-verify task ${t.id}: re-read the implementation diff and confirm that each
        acceptance criterion is met: ${t.acceptance_criteria.join('; ')}.
@@ -279,7 +288,7 @@ const reviews = (await parallel(
      Read the review prompt at ${REPO}/${l.file} and apply it to the diff of
      branch ${WORK_BRANCH} (run: git diff origin/main...HEAD in ${REPO}).
      Return your findings as JSON matching the review schema.`,
-    { label: `review:${l.key}`, phase: 'Verify', schema: REVIEW_SCHEMA },
+    { label: `review:${l.key}`, phase: 'Verify', schema: REVIEW_SCHEMA, model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
   )),
 )).filter(Boolean)
 

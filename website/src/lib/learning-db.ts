@@ -121,25 +121,36 @@ export async function upsertLearningItem(
     throw new Error(`Invalid ${itemType} id: ${itemId} not in agent-guide`);
   }
 
-  const newStatus = opts.status || 'todo';
+  // status may be undefined (note-only save) → preserve existing status/timestamps.
+  const hasStatus = opts.status !== undefined;
+  const statusParam = hasStatus ? opts.status! : null;     // $5 — NULL signals note-only
   const newNote = opts.note !== undefined ? opts.note : null;
 
-  // Compute started_at and completed_at server-side.
+  // INSERT-path defaults: a brand-new row with no explicit status is 'todo'.
   const now = new Date();
-  const startedAtVal = newStatus === 'todo' ? null : now;
-  const completedAtVal = newStatus === 'done' ? now : null;
+  const insertStatus = hasStatus ? opts.status! : 'todo';
+  const insertStartedAt = insertStatus === 'todo' ? null : now;
+  const insertCompletedAt = insertStatus === 'done' ? now : null;
 
   const result = await pool.query(
-    `INSERT INTO learning_progress 
+    `INSERT INTO learning_progress
        (keycloak_user_id, brand, item_type, item_id, status, note, started_at, completed_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
+     VALUES ($1, $2, $3, $4, $7, $6, $8, $9, now())
      ON CONFLICT (keycloak_user_id, brand, item_type, item_id) DO UPDATE SET
-       status = $5,
+       status = CASE WHEN $5::text IS NULL THEN learning_progress.status ELSE $5 END,
        note = COALESCE($6, learning_progress.note),
-       started_at = COALESCE(learning_progress.started_at, $7),
-       completed_at = $8,
+       started_at = CASE
+                      WHEN $5::text IS NULL THEN learning_progress.started_at
+                      WHEN $5 = 'todo' THEN learning_progress.started_at
+                      ELSE COALESCE(learning_progress.started_at, now())
+                    END,
+       completed_at = CASE
+                        WHEN $5::text IS NULL THEN learning_progress.completed_at
+                        WHEN $5 = 'done' THEN COALESCE(learning_progress.completed_at, now())
+                        ELSE NULL
+                      END,
        updated_at = now()
-     RETURNING 
+     RETURNING
        id,
        keycloak_user_id AS "keycloakUserId",
        brand,
@@ -151,14 +162,15 @@ export async function upsertLearningItem(
        completed_at AS "completedAt",
        updated_at AS "updatedAt"`,
     [
-      keycloakUserId,
-      brand,
-      itemType,
-      itemId,
-      newStatus,
-      newNote,
-      startedAtVal,
-      completedAtVal,
+      keycloakUserId,   // $1
+      brand,            // $2
+      itemType,         // $3
+      itemId,           // $4
+      statusParam,      // $5 — NULL on note-only; drives the UPDATE CASEs
+      newNote,          // $6
+      insertStatus,     // $7 — INSERT-path status (never NULL)
+      insertStartedAt,  // $8 — INSERT-path started_at
+      insertCompletedAt,// $9 — INSERT-path completed_at
     ]
   );
   return result.rows[0];
@@ -168,21 +180,27 @@ export async function getLearningSummary(
   keycloakUserId: string,
   brand: string
 ): Promise<LearningSummary> {
+  // Canonical allow-list of "<type>::<id>" composite keys from the guide cache, so
+  // orphan rows of removed items never inflate the counts. Passed as one text[] param
+  // ($3) and matched against the row's composite key — fully parameterized, no inlining.
+  const canonicalKeys = guideItemsCache.map(i => `${i.type}::${i.id}`);
+
   const result = await pool.query(
-    `SELECT 
+    `SELECT
        COUNT(CASE WHEN status = 'done' THEN 1 END)::int AS done,
        COUNT(CASE WHEN status = 'in_progress' THEN 1 END)::int AS in_progress,
        MAX(updated_at) AS last_activity
      FROM learning_progress
-     WHERE keycloak_user_id = $1 AND brand = $2`,
-    [keycloakUserId, brand]
+     WHERE keycloak_user_id = $1 AND brand = $2
+       AND (item_type || '::' || item_id) = ANY($3::text[])`,
+    [keycloakUserId, brand, canonicalKeys]
   );
 
   const row = result.rows[0];
-  const done = row.done || 0;
-  const inProgress = row.in_progress || 0;
   const total = getTotalGuideItems();
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const done = Math.min(row.done || 0, total);
+  const inProgress = row.in_progress || 0;
+  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
 
   return {
     done,

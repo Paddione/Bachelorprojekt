@@ -109,6 +109,7 @@ export default defineConfig({
       name: 'mentolder',
       dependencies: ['mentolder-setup'],
       testMatch: [
+        '**/fa-46-*.spec.ts',
         '**/fa-45-*.spec.ts',
         '**/nfa-infra-health-sweep.spec.ts',
         '**/sa-15-*.spec.ts',

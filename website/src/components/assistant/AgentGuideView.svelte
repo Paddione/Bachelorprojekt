@@ -10,6 +10,8 @@
   import GuideCard from './agent-guide/GuideCard.svelte';
   import GuideMap from './agent-guide/GuideMap.svelte';
 
+  let { jumpTo: jumpToProp = null }: { jumpTo?: string | null } = $props();
+
   // ── Cross-link lookup: id → human label/kind/danger/domId ──────────────────
   const lookup: Record<string, { label: string; kind: string; danger: string; domId: string }> = {};
   for (const g of goals) lookup[g.id] = { label: g.title_de, kind: 'goal', danger: g.danger, domId: `ag-goal-${g.id}` };
@@ -43,6 +45,7 @@
   }
 
   let learningSummary = $state<LearningSummary | null>(null);
+  let consumedJump = $state<string | null>(null);
   const learnedItems = $derived<Map<string, { status: 'todo' | 'in_progress' | 'done'; note: string }>>(
     (() => {
       const m = new Map<string, { status: 'todo' | 'in_progress' | 'done'; note: string }>();
@@ -171,6 +174,20 @@
     });
   });
 
+  // Cross-component deep-link: when PortalSidekick forwards a `jumpTo` prop, open +
+  // scroll the matching card ONCE — only after hydration AND after the summary load
+  // (so the card's learned-state is rendered before we scroll). The consumedJump guard
+  // + untrack writes mirror the search-force-open effect so this can never re-trigger.
+  $effect(() => {
+    if (!hydrated) return;
+    if (!jumpToProp) return;
+    if (learningSummary === null) return;           // wait for summary so the card is fully rendered
+    if (jumpToProp === untrack(() => consumedJump)) return;
+    const target = jumpToProp;
+    untrack(() => { consumedJump = target; });
+    jumpTo(target);
+  });
+
   // ── Handlers ─────────────────────────────────────────────────────────────────
   function toggleCard(id: string) {
     const next = new Set(expanded);
@@ -231,7 +248,11 @@
         <div class="ag-progress-bar" role="progressbar" aria-valuenow={learningSummary.pct} aria-valuemin={0} aria-valuemax={100}>
           <div class="ag-progress-fill" style="width: {learningSummary.pct}%"></div>
         </div>
-        <span class="ag-progress-value">{learningSummary.pct}% — {learningSummary.done}/{learningSummary.total} erledigt</span>
+        {#if learningSummary.total > 0 && learningSummary.done >= learningSummary.total}
+          <span class="ag-progress-value ag-progress-done">🎉 Alle {learningSummary.total} gelernt</span>
+        {:else}
+          <span class="ag-progress-value">{learningSummary.pct}% — {learningSummary.done}/{learningSummary.total} erledigt</span>
+        {/if}
       </div>
     {/if}
   </div>
@@ -341,3 +362,7 @@
     </section>
   {/if}
 </div>
+
+<style>
+  .ag-progress-done { color: var(--brass, #b8860b); font-weight: 600; }
+</style>

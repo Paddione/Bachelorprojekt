@@ -75,6 +75,16 @@ const sortedThemes = [...themes].sort((a, b) => a.order - b.order);
       </div>
     </header>
 
+    {summary.total > 0 && summary.done >= summary.total && (
+      <section class="lp-done-card" data-testid="lernpfad-done">
+        <span class="lp-done-emoji" aria-hidden="true">🎉</span>
+        <div>
+          <h2 class="lp-done-title">Geschafft</h2>
+          <p class="lp-done-text">Du hast alle {summary.total} Bausteine gelernt.</p>
+        </div>
+      </section>
+    )}
+
     <div class="lp-groups">
       {sortedThemes.map((theme) => {
         const themeGoals = goals.filter(g => g.theme === theme.id);
@@ -99,13 +109,14 @@ const sortedThemes = [...themes].sort((a, b) => a.order - b.order);
                   <li class={`lp-item lp-item--${st}`}>
                     <span class="lp-item-status" title={st}>{statusEmoji[st]}</span>
                     <span class="lp-item-label">{item.label}</span>
-                    <a
-                      href={`/portal/arena?jumpTo=${item.id}`}
+                    <button
+                      type="button"
                       class="lp-cta"
                       data-testid="weiter-lernen"
+                      data-jump-domid={`ag-${item.type}-${item.id}`}
                     >
                       weiter lernen →
-                    </a>
+                    </button>
                   </li>
                 );
               })}
@@ -115,6 +126,27 @@ const sortedThemes = [...themes].sort((a, b) => a.order - b.order);
       })}
     </div>
   </div>
+
+  <script define:vars={{ done: summary.done, total: summary.total }}>
+    // (a) In-page CTA → open the Sidekick on the Agent-Anleitung + scroll the card.
+    document.querySelectorAll('[data-jump-domid]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const jumpTo = btn.getAttribute('data-jump-domid');
+        window.dispatchEvent(new CustomEvent('sidekick:navigate', {
+          detail: { view: 'agent-guide', jumpTo },
+        }));
+      });
+    });
+
+    // (b) Idempotent 100% milestone (fail-soft; never blocks the page).
+    if (total > 0 && done >= total) {
+      fetch('/api/portal/onboarding/mark-step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stepId: 'learning-complete' }),
+      }).catch(() => { /* fail-soft */ });
+    }
+  </script>
 </PortalLayout>
 
 <style>
@@ -254,4 +286,25 @@ const sortedThemes = [...themes].sort((a, b) => a.order - b.order);
     background: var(--brass, #b8860b);
     color: var(--ink-900, #1a1a1a);
   }
+
+  .lp-cta {
+    border: 1px solid var(--brass, #b8860b);
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .lp-done-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding: 20px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--brass, #b8860b);
+    background: oklch(0.80 0.09 75 / 0.10);
+  }
+  .lp-done-emoji { font-size: 32px; }
+  .lp-done-title { margin: 0 0 2px; font-size: 18px; font-weight: 600; }
+  .lp-done-text { margin: 0; font-size: 14px; color: var(--fg-soft, #64748b); }
 </style>

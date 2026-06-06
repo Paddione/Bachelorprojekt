@@ -8,6 +8,7 @@
   import TicketSidekickView from './assistant/TicketSidekickView.svelte';
   import InboxSidekickView from './assistant/InboxSidekickView.svelte';
   import AgentGuideView from './assistant/AgentGuideView.svelte';
+  import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
 
   type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide';
 
@@ -26,6 +27,20 @@
   let pendingTickets = $state(0);
   let inboxPending = $state(0);
   let isMobile = $state(false);
+
+  // Summary-driven nudge (fail-soft: stays null if the fetch fails → no badge/dot).
+  let learningSummary = $state<{ done: number; total: number; pct: number } | null>(null);
+  let pendingJump = $state<string | null>(null);
+  // FAB attention dot: derive from the pure helper + the local drawer-open state.
+  // hasNumericBadge mirrors the FAB badge condition so the dot never doubles up with a count.
+  const showLearnDot = $derived(
+    !open &&
+    shouldShowLearnDot(
+      learningSummary,
+      helpContext,
+      pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0,
+    )
+  );
 
   // User identity for header / avatar
   let userGivenName = $state('');
@@ -73,6 +88,14 @@
         userGivenName = data.user?.givenName ?? '';
         userFamilyName = data.user?.familyName ?? '';
 
+        try {
+          const sRes = await fetch('/api/portal/learning/summary');
+          if (sRes.ok) {
+            const s = await sRes.json() as { done?: number; total?: number; pct?: number };
+            learningSummary = { done: s.done ?? 0, total: s.total ?? 0, pct: s.pct ?? 0 };
+          }
+        } catch { /* fail-soft: no badge/banner */ }
+
         const qRes = await fetch('/api/portal/questionnaires');
         if (qRes.ok) {
           const qs = await qRes.json() as Array<{ status: string }>;
@@ -102,10 +125,36 @@
     })();
   });
 
+  $effect(() => {
+    const refresh = async () => {
+      try {
+        const r = await fetch('/api/portal/learning/summary');
+        if (r.ok) {
+          const s = await r.json() as { done?: number; total?: number; pct?: number };
+          learningSummary = { done: s.done ?? 0, total: s.total ?? 0, pct: s.pct ?? 0 };
+        }
+      } catch { /* fail-soft */ }
+    };
+    window.addEventListener('learning:updated', refresh);
+    return () => window.removeEventListener('learning:updated', refresh);
+  });
+
+  $effect(() => {
+    const onNavigate = (e: Event) => {
+      const intent = parseNavigateEvent((e as CustomEvent).detail);
+      if (!intent) return;                       // defensive: ignore unknown/invalid
+      open = true;
+      view = intent.view;
+      pendingJump = intent.jumpTo;
+    };
+    window.addEventListener('sidekick:navigate', onNavigate);
+    return () => window.removeEventListener('sidekick:navigate', onNavigate);
+  });
+
   function openDrawer() { open = true; view = 'home'; }
   function closeDrawer() { open = false; }
   function onKeydown(e: KeyboardEvent) { if (e.key === 'Escape' && open) closeDrawer(); }
-  function navigate(v: View) { view = v; }
+  function navigate(v: View) { pendingJump = null; view = v; }
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -132,6 +181,9 @@
 >
   {#if (pendingQuestionnaires > 0 || pendingTickets > 0 || inboxPending > 0) && !open}
     <span class="fab-badge">{Math.min(99, pendingQuestionnaires + pendingTickets + inboxPending)}</span>
+  {/if}
+  {#if showLearnDot}
+    <span class="fab-dot" aria-hidden="true"></span>
   {/if}
   {#if open}
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
@@ -186,6 +238,7 @@
         {helpContext}
         {pendingTickets}
         pendingInbox={inboxPending}
+        summary={learningSummary}
       />
     {:else if view === 'support'}
       <SupportView onCloseView={() => { view = 'home'; }} />
@@ -194,7 +247,7 @@
     {:else if view === 'help'}
       <HelpView section={helpSection} context={helpContext} />
     {:else if view === 'agent-guide'}
-      <AgentGuideView />
+      <AgentGuideView jumpTo={pendingJump} />
     {:else if view === 'tickets'}
       <TicketSidekickView onClose={closeDrawer} />
     {:else if view === 'inbox'}
@@ -256,6 +309,18 @@
     line-height: 1.4;
     pointer-events: none;
     box-shadow: 0 0 0 2px #0f1623;
+  }
+
+  .fab-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: oklch(0.83 0.09 75);
+    box-shadow: 0 0 0 2px #0f1623;
+    pointer-events: none;
   }
 
   .drawer {

@@ -523,7 +523,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - `__optik__` handling untouched (Phase D).
 - **verify:** `cd brett && npm test`
 
-### B4 — `seedFigureMapFromState` extraction + §4.6 `sessionPhase` seed/send fix
+### B4 — `seedFigureMapFromState` extraction + §4.6 `sessionPhase` seed/send fix — [x] DONE
 - **target_files:** `brett/src/server/figures.ts`, `brett/src/server/ws-handler.ts`, `brett/test/seed-figuremap.test.ts` (new)
 - **failing test first (red):** `test/seed-figuremap.test.ts` imports `seedFigureMapFromState` (new) via `figures` re-export from `../src/server/index`, plus `applyMutation`/`buildStateFromMutations`. Build a state in room A (phase `lobby` via `session_phase_set`, a figure, `roles_set`, `lobby_settings_set`), call `const persisted = buildStateFromMutations('A')`, then `seedFigureMapFromState(freshMap, persisted)` into an empty `Map`, register that map for room B, and assert `buildStateFromMutations('B')` re-emits `sessionPhase === 'lobby'`, the figure, `roles`, and `lobbySettings`. Fails (function missing + seed reads wrong field names).
 - **implementation:**

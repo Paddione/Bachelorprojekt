@@ -12,6 +12,7 @@ export interface WsDeps {
   figureMaps: Map<string, Map<string, any>>;
   rooms: Map<string, Set<any>>;
   ensureFigureMap: Function;
+  seedFigureMapFromState: Function;
   applyMutation: Function;
   buildStateFromMutations: Function;
   acquireFigureLock: Function;
@@ -82,40 +83,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           const state = await deps.readState(room);
           const map = deps.ensureFigureMap(room);
 
-          // Seed state into in-memory figureMaps
-          if (map.size === 0 && state.figures) {
-            if (Array.isArray(state.figures)) {
-              for (const fig of state.figures) {
-                if (fig && fig.id) map.set(fig.id, fig);
-              }
-            } else if (typeof state.figures === 'object') {
-              for (const [fid, fig] of Object.entries(state.figures)) {
-                if (fig) map.set(fid, fig);
-              }
-            }
-            // Sync coaching steps from DB state
-            if (state.coachingSteps) {
-              map.set('__coaching_steps__', state.coachingSteps);
-            }
-            if (state.phase) {
-              map.set('__session_phase__', { phase: state.phase });
-            }
-            if (state.sessionCode) {
-              map.set('__session_code__', { code: state.sessionCode });
-            }
-            if (state.adminTokenHolder) {
-              map.set('__admin_token_holder__', { playerId: state.adminTokenHolder });
-            }
-            if (state.createdAt) {
-              map.set('__session_created_at__', { ts: state.createdAt });
-            }
-            if (state.lastActivity) {
-              map.set('__session_last_activity__', { ts: state.lastActivity });
-            }
-            if (state.stiffness !== undefined) {
-              map.set('__stiffness__', { value: state.stiffness });
-            }
-          }
+          // Seed state into in-memory figureMaps via the pure, unit-tested seeder.
+          // (§4.6: reads state.sessionPhase / sessionCreatedAt / sessionLastActivity —
+          // the field names buildStateFromMutations emits — not the dead state.phase.)
+          if (map.size === 0) deps.seedFigureMapFromState(map, state);
 
           // Handle player presence if session is active
           const activeState = deps.buildStateFromMutations(room);
@@ -142,7 +113,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
                 figures: snaps,
                 stiffness: freshState.stiffness,
                 locks: locks,
-                phase: freshState.phase,
+                phase: freshState.sessionPhase,
                 sessionCode: freshState.sessionCode
               }));
             } catch {}

@@ -112,6 +112,57 @@ export function applyMutation(room: string, msg: any): void {
   }
 }
 
+/**
+ * Re-seed a figureMap from a persisted (buildStateFromMutations-shaped) state.
+ * Pure: writes only into `map`. Reads the field names that
+ * `buildStateFromMutations` EMITS (§4.6): `state.sessionPhase` /
+ * `state.sessionCreatedAt` / `state.sessionLastActivity` — NOT
+ * `state.phase` / `state.createdAt` / `state.lastActivity` (which are always
+ * `undefined` after a DB round-trip). Also re-seeds the `__roles__` and
+ * `__lobby_settings__` sentinels (B3).
+ */
+export function seedFigureMapFromState(map: Map<string, any>, state: any): void {
+  if (!state) return;
+  if (state.figures) {
+    if (Array.isArray(state.figures)) {
+      for (const fig of state.figures) {
+        if (fig && fig.id) map.set(fig.id, fig);
+      }
+    } else if (typeof state.figures === 'object') {
+      for (const [fid, fig] of Object.entries(state.figures)) {
+        if (fig) map.set(fid, fig);
+      }
+    }
+  }
+  if (state.coachingSteps) {
+    map.set('__coaching_steps__', { id: '__coaching_steps__', ...state.coachingSteps });
+  }
+  if (state.sessionPhase) {
+    map.set('__session_phase__', { id: '__session_phase__', phase: state.sessionPhase });
+  }
+  if (state.sessionCode) {
+    map.set('__session_code__', { id: '__session_code__', code: state.sessionCode });
+  }
+  if (state.adminTokenHolder) {
+    map.set('__admin_token_holder__', { id: '__admin_token_holder__', playerId: state.adminTokenHolder });
+  }
+  if (state.sessionCreatedAt) {
+    map.set('__session_created_at__', { id: '__session_created_at__', ts: state.sessionCreatedAt });
+  }
+  if (state.sessionLastActivity) {
+    map.set('__session_last_activity__', { id: '__session_last_activity__', ts: state.sessionLastActivity });
+  }
+  if (state.stiffness !== undefined) {
+    map.set('__stiffness__', { id: '__stiffness__', value: state.stiffness });
+  }
+  if (state.roles && typeof state.roles === 'object') {
+    map.set('__roles__', { id: '__roles__', roles: state.roles });
+  }
+  if (state.lobbySettings && typeof state.lobbySettings === 'object') {
+    map.set('__lobby_settings__', { id: '__lobby_settings__', settings: state.lobbySettings });
+  }
+}
+
 export function ensureFigureLocks(room: string): Map<string, { userId: string; name: string; color: string }> {
   let m = figureLocks.get(room);
   if (!m) { m = new Map(); figureLocks.set(room, m); }

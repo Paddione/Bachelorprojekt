@@ -289,6 +289,7 @@ const wsDeps = {
   figureMaps: figures.figureMaps,
   rooms: rooms.rooms,
   ensureFigureMap: figures.ensureFigureMap,
+  seedFigureMapFromState: figures.seedFigureMapFromState,
   applyMutation: figures.applyMutation,
   buildStateFromMutations: phases.buildStateFromMutations,
   acquireFigureLock: figures.acquireFigureLock,

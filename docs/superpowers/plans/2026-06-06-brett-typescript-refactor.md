@@ -628,7 +628,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 > `transitionPhase` and `buildStateFromMutations` both read/write `figureMaps` (extracted in Task 7) and `transitionPhase` calls `applyMutation` (Task 7). To avoid a forward-reference, this task injects `figureMaps` + `applyMutation` via an init function, mirroring Task 4's pattern.
 
-- [ ] **Step 1: Create `src/server/phases.ts`**
+- [x] **Step 1: Create `src/server/phases.ts`**
 
 Move `VALID_PHASES` (line 811), `TERMINAL_PHASES` (810), `transitionPhase` (813–824), `buildStateFromMutations` (826–854). Copy bodies verbatim:
 
@@ -693,7 +693,7 @@ export function buildStateFromMutations(room: string): RoomState | null {
 ```
 > **Critical fidelity step:** the special-key names (`__session_phase__`, `__admin_token_holder__`, `__optik__`, `__stiffness__`, `__coaching_steps__`, etc.) and the exact shape of each sentinel value **must** match `applyMutation` and `buildStateFromMutations` in server.js lines 726–854 exactly. Before writing, read those lines and copy the literal key strings and field names. The tests `session-state`, `coaching-steps`, `idle-timeout`, `admin-token` all assert on these.
 
-- [ ] **Step 2: Wire `server.js`**
+- [x] **Step 2: Wire `server.js`**
 
 Delete `VALID_PHASES`, `TERMINAL_PHASES`, `transitionPhase`, `buildStateFromMutations` from `server.js`. Add (after the figures module is wired in Task 7 — but since Task 7 comes next, for *this* task `figureMaps`/`applyMutation` are still local consts in server.js, so init with the locals):
 ```js
@@ -706,13 +706,13 @@ const buildStateFromMutations = phasesMod.buildStateFromMutations;
 ```
 Place these lines **after** the existing `figureMaps`/`applyMutation` definitions in server.js (they are still local until Task 7). The db wiring in Task 4 referenced `buildStateFromMutations` via a closure `(room) => buildStateFromMutations(room)`, so reassigning the local `const` would break — instead, in Task 4 the closure captures the variable by reference at call time only if it's `let`. **Change the Task-4 closure to call through `phasesMod`:** update the db init line to `dbMod.initDb({ buildStateFromMutations: (room) => phasesMod.buildStateFromMutations(room) });` and move it to *after* this block. (This is the one cross-task ordering dependency; honor it.)
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `session-state`, `coaching-steps` pass; `# fail 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/server.js brett/src/server/phases.ts
 git commit -m "refactor(brett): extract phases.ts (transitionPhase, buildStateFromMutations)

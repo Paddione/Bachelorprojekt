@@ -618,7 +618,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Role persisted in `__roles__`; `role_changed` broadcast carries `{userId, role}`.
 - **verify:** `cd brett && npm test`
 
-### B12 — `lobby_set_ready` (non-privileged) → `lobby_ready_changed`
+### B12 — `lobby_set_ready` (non-privileged) → `lobby_ready_changed` — [x] DONE
 - **target_files:** `brett/src/server/ws-handler.ts`, `brett/test/lobby-ready.test.ts` (new)
 - **failing test first (red):** `test/lobby-ready.test.ts` drives an exported helper `handleLobbySetReady(ws, msg, deps)` (new, thin): for a ws with a resolvable identity, `lobby_set_ready{ready:true}` broadcasts `{type:'lobby_ready_changed', userId: resolvePlayerId(ws), ready:true}`; `ready:false` broadcasts `ready:false`. Assert it is **not** added to `ADMIN_TYPES` (no isAdmin gate) and **not** in `RELAY_TYPES` (no `applyMutation`/persist — `ready` is ephemeral).
 - **implementation:**

@@ -355,6 +355,7 @@ export const pool = db.getPool();
 export const handleDisconnect = (ws: any) => wsHandler.handleDisconnect(ws, wsDeps);
 export const resolvePlayerId = wsHandler.resolvePlayerId;
 export const handleAssignRole = wsHandler.handleAssignRole;
+export const handleLobbySetReady = wsHandler.handleLobbySetReady;
 export const TRANSIENT_TYPES = new Set([]);
 
 export const assignAdminToken = sessions.assignAdminToken;

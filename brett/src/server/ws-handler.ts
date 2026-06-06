@@ -81,6 +81,21 @@ export function handleAssignRole(
   return { ok: true };
 }
 
+/**
+ * Non-privileged participant self-report of lobby readiness. Ephemeral: NO
+ * applyMutation, NO persist, NOT in ADMIN_TYPES or RELAY_TYPES. Keyed on the
+ * canonical identity (never client-supplied msg.playerId).
+ */
+export function handleLobbySetReady(
+  ws: any,
+  msg: any,
+  deps: Pick<WsDeps, 'broadcast'>
+): void {
+  const room = ws._room;
+  if (!room) return;
+  deps.broadcast(room, { type: 'lobby_ready_changed', userId: resolvePlayerId(ws), ready: !!msg.ready });
+}
+
 export function handleDisconnect(ws: any, deps: WsDeps): void {
   const room = deps.leaveRoom(ws);
   if (room) deps.broadcastInfo(room);
@@ -207,6 +222,12 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (deps.releaseFigureLock(room, msg.id, uid)) {
             deps.broadcast(room, { type: 'figure_unlocked', id: msg.id });
           }
+          return;
+        }
+
+        // Non-privileged, ephemeral live-lobby readiness self-report.
+        if (msg.type === 'lobby_set_ready') {
+          handleLobbySetReady(ws, msg, deps);
           return;
         }
 

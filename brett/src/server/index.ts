@@ -353,6 +353,7 @@ export const sessionCodeIndex = sessions.sessionCodeIndex;
 export const RELAY_TYPES = Array.from(wsHandler.RELAY_TYPES);
 export const pool = db.getPool();
 export const handleDisconnect = (ws: any) => wsHandler.handleDisconnect(ws, wsDeps);
+export const resolvePlayerId = wsHandler.resolvePlayerId;
 export const TRANSIENT_TYPES = new Set([]);
 
 export const assignAdminToken = sessions.assignAdminToken;

@@ -45,6 +45,18 @@ export const ADMIN_TYPES = new Set<string>([
   'admin_round_start'
 ]);
 
+/**
+ * Canonical identity. OIDC session id wins over any client-supplied `_playerId`;
+ * anon fallback only without a session. Used everywhere a stable per-user key is
+ * needed: participant-map key, ws._playerId, lock owner, removeParticipant,
+ * presence keying. Role-bearing identity is STRICTER (session-keyed only) — see
+ * resolveRole (Phase C); this helper alone must never confer a role above
+ * beobachter to an anon/_playerId-only client.
+ */
+export function resolvePlayerId(ws: any): string {
+  return ws?._session?.userId ?? ws?._playerId ?? 'anon';
+}
+
 export function handleDisconnect(ws: any, deps: WsDeps): void {
   const room = deps.leaveRoom(ws);
   if (room) deps.broadcastInfo(room);
@@ -91,15 +103,18 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (map.size === 0) deps.seedFigureMapFromState(map, state);
 
           // Handle player presence if session is active
+          // Presence is emitted whenever a session exists (sessionCode is already
+          // set in `lobby`), keyed on the CANONICAL identity (session-first), so
+          // roster liveness works in the lobby — not only once the round is active.
           const activeState = deps.buildStateFromMutations(room);
           let participant: any = null;
           if (activeState && activeState.sessionCode) {
-            const playerId = msg.playerId || ws._session?.userId || 'anon';
+            // Session-first identity; client msg.playerId is honored only without a session.
+            const playerId = ws._session?.userId ?? msg.playerId ?? 'anon';
             const playerName = msg.name || ws._session?.name || 'Teilnehmer';
+            ws._playerId = playerId;
             participant = deps.addParticipant(room, { userId: playerId, name: playerName });
             if (participant) {
-              // Ensure ws has reference to participant properties for admin token checks
-              ws._playerId = participant.userId;
               deps.broadcast(room, { type: 'presence_join', participant });
             }
           }
@@ -150,7 +165,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
 
         if (msg.type === 'figure_lock' && typeof msg.id === 'string') {
           const owner = {
-            userId: ws._session?.userId || ws._playerId || 'anon',
+            userId: resolvePlayerId(ws),
             name: ws._session?.name || 'Teilnehmer',
             color: msg.color || '#4ea1ff',
           };
@@ -164,7 +179,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
         if (msg.type === 'figure_unlock' && typeof msg.id === 'string') {
-          const uid = ws._session?.userId || ws._playerId || 'anon';
+          const uid = resolvePlayerId(ws);
           if (deps.releaseFigureLock(room, msg.id, uid)) {
             deps.broadcast(room, { type: 'figure_unlocked', id: msg.id });
           }
@@ -274,14 +289,14 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
       handleDisconnect(ws, deps);
       const room = ws._room;
       if (!room) return;
-      const uid = ws._session?.userId || ws._playerId;
-      if (uid) {
-        deps.releaseLocksForUser(room, uid);
-        deps.broadcast(room, { type: 'locks_released_for', userId: uid });
-      }
-      if (uid && ws._session?.userId) {
-        deps.removeParticipant(room, ws._session.userId);
-        deps.broadcast(room, { type: 'presence_leave', userId: ws._session.userId });
+      const pid = resolvePlayerId(ws);
+      if (pid !== 'anon') {
+        deps.releaseLocksForUser(room, pid);
+        deps.broadcast(room, { type: 'locks_released_for', userId: pid });
+        // Remove from roster for ANY canonical identity (incl. late-joiners
+        // tracked only via ws._playerId), not just OIDC-session users.
+        deps.removeParticipant(room, pid);
+        deps.broadcast(room, { type: 'presence_leave', userId: pid });
       }
       if (deps.rooms.has(room)) {
         deps.broadcastInfo(room);

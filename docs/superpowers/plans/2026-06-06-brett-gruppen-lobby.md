@@ -594,7 +594,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Inverted `reconnect-guard.test.ts` fully green.
 - **verify:** `cd brett && npm test`
 
-### B10 — `resolvePlayerId` + presence-in-lobby (canonical identity for roster liveness)
+### B10 — `resolvePlayerId` + presence-in-lobby (canonical identity for roster liveness) — [x] DONE
 - **target_files:** `brett/src/server/ws-handler.ts`, `brett/src/server/index.ts`, `brett/test/presence-lobby.test.ts` (new)
 - **failing test first (red):** `test/presence-lobby.test.ts` imports `resolvePlayerId` (new, re-exported via `index`); asserts: `resolvePlayerId({ _session:{ userId:'oidc-u1' }, _playerId:'spoof' }) === 'oidc-u1'` (session-first); `resolvePlayerId({ _playerId:'p2' }) === 'p2'`; `resolvePlayerId({}) === 'anon'`. (Server-message presence wiring is covered structurally; the pure helper is the unit-tested surface.)
 - **implementation:**

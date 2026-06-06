@@ -1,8 +1,10 @@
 # Flux CD GitOps — Design Spec
 
+> **⚠️ SUPERSEDED / FULLY REVERSED.** Flux was implemented and then fully removed (PRs #1282/#1286/#1287). The fleet cluster is push-based (`task workspace:deploy`); there is no in-cluster GitOps reconciler. All `--context mentolder`/`korczewski` references in this spec are dead contexts (use `fleet`). Kept as historical reference only.
+
 **Date:** 2026-05-19
-**Status:** Approved for implementation
-**Branch:** feature/flux-gitops
+**Status:** ~~Approved for implementation~~ REVERSED — Flux fully removed
+**Branch:** feature/flux-gitops (merged and subsequently reverted)
 
 ---
 

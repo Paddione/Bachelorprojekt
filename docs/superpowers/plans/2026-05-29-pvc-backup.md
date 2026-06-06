@@ -375,8 +375,8 @@ Examples:
   $SCRIPT list
   $SCRIPT pvc-list --context mentolder
   $SCRIPT pvc-trigger
-  $SCRIPT pvc-restore nextcloud-files pvc-20260427-030001 --context mentolder -y
-  $SCRIPT restore all 20260427-020001 --context mentolder -y
+  $SCRIPT pvc-restore nextcloud-files pvc-20260427-030001 --context fleet -y
+  $SCRIPT restore all 20260427-020001 --context fleet -y
 EOF
 }
 ```
@@ -714,8 +714,8 @@ Expected: exits 0.
 - [ ] **Step 5.1: Update ticket to in_progress**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -- \
   psql -U website -d website -c \
   "UPDATE tickets.tickets SET status='in_progress' WHERE external_id='T000310';"
 ```
@@ -748,8 +748,8 @@ gh pr merge --squash --delete-branch
 
 Then close the ticket:
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -- \
   psql -U website -d website -c \
   "UPDATE tickets.tickets SET status='done', resolution='fixed', done_at=now()
    WHERE external_id='T000310';

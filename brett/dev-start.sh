@@ -28,13 +28,13 @@ check_cmd ssh
 [[ -d brett/node_modules ]] || { echo "ERROR: run 'npm install' inside brett/ first" >&2; exit 1; }
 
 echo "[brett-dev] checking korczewski cluster reachability..."
-kubectl --context korczewski cluster-info --request-timeout=5s >/dev/null \
+kubectl --context fleet cluster-info --request-timeout=5s >/dev/null \
   || { echo "ERROR: cannot reach korczewski context — check kubectl config" >&2; exit 1; }
 
 # ── pull secrets from cluster ─────────────────────────────────────────────────
 echo "[brett-dev] pulling secrets from workspace-secrets (workspace-korczewski)..."
 SECRET_JSON=$(kubectl get secret workspace-secrets \
-  -n workspace-korczewski --context korczewski -o json)
+  -n workspace-korczewski --context fleet -o json)
 
 BRETT_OIDC_SECRET=$(echo "$SECRET_JSON" | jq -r '.data.BRETT_OIDC_SECRET | @base64d')
 WEBSITE_DB_PASSWORD=$(echo "$SECRET_JSON" | jq -r '.data.WEBSITE_DB_PASSWORD | @base64d')
@@ -49,12 +49,12 @@ echo "[brett-dev] secrets pulled OK"
 # ── port-forwards ─────────────────────────────────────────────────────────────
 echo "[brett-dev] starting port-forwards..."
 kubectl port-forward svc/shared-db 5432:5432 \
-  -n workspace-korczewski --context korczewski \
+  -n workspace-korczewski --context fleet \
   >/tmp/brett-dev-pf-db.log 2>&1 &
 PF_DB_PID=$!
 
 kubectl port-forward svc/keycloak 8080:8080 \
-  -n workspace-korczewski --context korczewski \
+  -n workspace-korczewski --context fleet \
   >/tmp/brett-dev-pf-kc.log 2>&1 &
 PF_KC_PID=$!
 

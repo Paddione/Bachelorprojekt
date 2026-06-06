@@ -106,7 +106,12 @@ if (!process.env.DATABASE_URL && require.main === module && process.env.MOCK_DB 
 }
 
 const dbMod = require('./src/server/db.ts');
-dbMod.initDb({ buildStateFromMutations: (room) => buildStateFromMutations(room) });
+const phasesMod = require('./src/server/phases.ts');
+
+const buildStateFromMutations = (room) => phasesMod.buildStateFromMutations(room);
+const transitionPhase = (room, newPhase) => phasesMod.transitionPhase(room, newPhase);
+
+dbMod.initDb({ buildStateFromMutations });
 const pool = dbMod.getPool();
 const readState = dbMod.readState;
 const persistState = dbMod.persistState;
@@ -763,51 +768,9 @@ function applyMutation(room, msg) {
   }
 }
 
-const TERMINAL_PHASES = new Set(['ended']);
-const VALID_PHASES = new Set(['warmup', 'active', 'paused', 'ended']);
-
-function transitionPhase(room, newPhase) {
-  if (!VALID_PHASES.has(newPhase)) {
-    return { ok: false, reason: 'invalid-phase' };
-  }
-  const figs = figureMaps.get(room);
-  const current = figs?.get('__session_phase__')?.phase || null;
-  if (current && TERMINAL_PHASES.has(current)) {
-    return { ok: false, reason: 'terminal-phase' };
-  }
-  applyMutation(room, { type: 'session_phase_set', phase: newPhase });
-  return { ok: true, from: current, to: newPhase };
-}
-
-function buildStateFromMutations(room) {
-  const figs = figureMaps.get(room);
-  if (!figs) return null;
-  const SPECIAL = [
-    '__optik__', '__stiffness__',
-    '__session_phase__', '__session_code__', '__admin_token_holder__',
-    '__session_created_at__', '__session_last_activity__',
-    '__coaching_steps__',
-  ];
-  const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
-  const optikEntry        = figs.get('__optik__');
-  const stiffEntry        = figs.get('__stiffness__');
-  const phaseEntry         = figs.get('__session_phase__');
-  const codeEntry          = figs.get('__session_code__');
-  const adminTokenEntry    = figs.get('__admin_token_holder__');
-  const createdAtEntry     = figs.get('__session_created_at__');
-  const lastActivityEntry  = figs.get('__session_last_activity__');
-  const result = { figures };
-  if (optikEntry)    result.optik     = optikEntry.settings;
-  if (stiffEntry)    result.stiffness = stiffEntry.value;
-  if (phaseEntry)        result.sessionPhase       = phaseEntry.phase;
-  if (codeEntry)         result.sessionCode        = codeEntry.code;
-  if (adminTokenEntry)   result.adminTokenHolder   = adminTokenEntry.playerId;
-  if (createdAtEntry)    result.sessionCreatedAt   = createdAtEntry.ts;
-  if (lastActivityEntry) result.sessionLastActivity = lastActivityEntry.ts;
-  const coachingStepsEntry = figs.get('__coaching_steps__');
-  if (coachingStepsEntry) result.coachingSteps = { steps: coachingStepsEntry.steps, index: coachingStepsEntry.index };
-  return result;
-}
+phasesMod.initPhases({ figureMaps, applyMutation });
+const VALID_PHASES = phasesMod.VALID_PHASES;
+const TERMINAL_PHASES = phasesMod.TERMINAL_PHASES;
 
 
 

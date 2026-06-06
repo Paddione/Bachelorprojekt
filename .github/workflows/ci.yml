@@ -198,17 +198,24 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v5
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-      - name: Install commitlint
-        run: npm install -g @commitlint/cli @commitlint/config-conventional
-      - name: Lint commit messages
-        run: |
-          npx commitlint \
-            --from ${{ github.event.pull_request.base.sha }} \
-            --to ${{ github.event.pull_request.head.sha }} \
-            --verbose
+          # Mirror repo conventions — these are the types used in practice
+          types: |
+            feat
+            fix
+            chore
+            docs
+            refactor
+            test
+            build
+            ci
+            perf
+            revert
+          # Ticket references like [T000436] can extend subject length
+          subjectPattern: ^.{1,200}$
+          subjectPatternError: |
+            The subject must be between 1 and 200 characters.
+            If your PR title includes ticket references like [T000436], that counts toward the limit.

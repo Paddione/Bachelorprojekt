@@ -554,7 +554,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 - **acceptance_criteria:** An open lobby is never swept to `ended`; `active`/`paused` idle behavior unchanged.
 - **verify:** `cd brett && npm test`
 
-### B7 — Session create seeds `lobby` (not `warmup`)
+### B7 — Session create seeds `lobby` (not `warmup`) — [x] DONE
 - **target_files:** `brett/src/server/sessions.ts`, `brett/src/server/ws-handler.ts`, `brett/test/session-state.test.ts`
 - **failing test first (red):** Update `session-state.test.ts:51-60` (`admin_session_create`) title + assertion to expect `state.sessionPhase === 'lobby'`. Fails until `handleAdminSessionCreate` changes.
 - **implementation:**

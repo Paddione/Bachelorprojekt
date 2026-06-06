@@ -112,7 +112,7 @@ export function handleAdminSessionCreate(room: string, adminPlayerId: string): {
   const code = generateSessionCode();
   registerSessionCode(code, room);
   applyMutation(room, { type: 'session_code_set', code });
-  applyMutation(room, { type: 'session_phase_set', phase: 'warmup' });
+  applyMutation(room, { type: 'session_phase_set', phase: 'lobby' });
   applyMutation(room, { type: 'session_admin_token_set', playerId: adminPlayerId });
   applyMutation(room, { type: 'session_created_at_set', ts: new Date().toISOString() });
   applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });

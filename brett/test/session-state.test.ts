@@ -65,13 +65,13 @@ test('transitionPhase: active ↔ paused round-trip preserves session', () => {
   assert.strictEqual(state.sessionPhase, 'active');
 });
 
-test('admin_session_create: creates session with code + warmup phase + sets holder', () => {
+test('admin_session_create: creates session with code + lobby phase + sets holder', () => {
   const room = 'session-create-test-1';
   const result = handleAdminSessionCreate(room, 'paddione');
   assert.strictEqual(result.ok, true);
   assert.match(result.code!, /^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{3}$/);
   const state = buildStateFromMutations(room);
-  assert.strictEqual(state.sessionPhase, 'warmup');
+  assert.strictEqual(state.sessionPhase, 'lobby');
   assert.strictEqual(state.sessionCode, result.code);
   assert.strictEqual(state.adminTokenHolder, 'paddione');
 });

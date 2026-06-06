@@ -215,7 +215,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               const result = deps.handleAdminSessionCreate(adminRoom, playerId);
               deps.broadcast(adminRoom, {
                 type: 'session_phase_change',
-                phase: 'warmup',
+                phase: 'lobby',
                 transitionedAt: new Date().toISOString(),
                 reason: 'admin-create',
               });

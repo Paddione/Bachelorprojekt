@@ -1077,7 +1077,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D9 — Rollen/Teilnehmer: palette extension (>6) + `maxParticipants`
+### D9 — Rollen/Teilnehmer: palette extension (>6) + `maxParticipants` — [x] DONE
 
 - **target_files**: `brett/src/server/rooms.ts` (new `colorForIndex`, use in `addParticipant`)
 - **failing test (red)**: `brett/test/palette.test.ts`:

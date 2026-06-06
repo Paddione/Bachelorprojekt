@@ -461,6 +461,7 @@ export const applyTemplateToRoom = figures.applyTemplateToRoom;
 export const addParticipant = rooms.addParticipant;
 export const removeParticipant = rooms.removeParticipant;
 export const listParticipants = rooms.listParticipants;
+export const colorForIndex = rooms.colorForIndex;
 export const trackPlayerInRoom = sessions.trackPlayerInRoom;
 export const wasPreviouslyInRoom = sessions.wasPreviouslyInRoom;
 export const shouldRejectReconnect = sessions.shouldRejectReconnect;

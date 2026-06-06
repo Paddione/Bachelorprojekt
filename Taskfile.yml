@@ -425,10 +425,17 @@ tasks:
       - node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
 
+  test:factory:
+    desc: "Run the offline-safe Software Factory FA-SF bats (tests/local/FA-SF-*). Live-DB cases (FA-SF-04 + live-seed) skip without a reachable cluster, so this is CI-safe."
+    cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats
+
   test:all:
-    desc: "Run all offline tests: unit + manifests + art-library + menu-gate + dry-run + docs-gen"
+    desc: "Run all offline tests: unit + factory + manifests + art-library + menu-gate + dry-run + docs-gen"
     deps:
       - test:unit
+      - test:factory
       - test:manifests
       - test:art-library
       - test:menu-gate

@@ -266,7 +266,7 @@ export const wss = new WebSocketServer({
       const url = new URL(info.req.url, 'http://x');
       const room = url.searchParams.get('room');
       if (!room) return cb(true);
-      const decision = sessions.shouldRejectReconnect(room, null);
+      const decision = sessions.shouldRejectReconnect(room, url.searchParams.get('playerId'));
       if (decision.reject) {
         return cb(false, decision.code, decision.message);
       }

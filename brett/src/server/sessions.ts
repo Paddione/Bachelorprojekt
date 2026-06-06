@@ -180,19 +180,24 @@ export function wasPreviouslyInRoom(room: string, playerId: string): boolean {
 
 export function shouldRejectReconnect(room: string, playerId: string | null): { reject: boolean; code?: number; message?: string } {
   const phase = figureMaps.get(room)?.get('__session_phase__')?.phase;
-  if (!phase || phase === 'warmup') return { reject: false };
-  if (phase === 'active' || phase === 'paused') {
-    return {
-      reject: true,
-      code: 409,
-      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
-    };
-  }
+  // lobby / warmup / no-session → admit (hybrid late-join).
+  if (!phase || phase === 'lobby' || phase === 'warmup') return { reject: false };
   if (phase === 'ended') {
     return {
       reject: true,
       code: 410,
       message: 'Session ist beendet.',
+    };
+  }
+  if (phase === 'active' || phase === 'paused') {
+    // Real late-joiner (never tracked in this room) → admit. A null/unknown
+    // playerId is never previously-in-room, so it admits too (matrix-safe).
+    if (!playerId || !wasPreviouslyInRoom(room, playerId)) return { reject: false };
+    // True reconnect of a player who was already active → reject.
+    return {
+      reject: true,
+      code: 409,
+      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
     };
   }
   return { reject: false };

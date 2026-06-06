@@ -32,12 +32,42 @@ test('shouldRejectReconnect: phase=warmup → allow even with prior join', () =>
   assert.strictEqual(decision.reject, false);
 });
 
-test('shouldRejectReconnect: phase=active + first-time join → reject', () => {
+test('shouldRejectReconnect: phase=active + first-time join → admit (late-joiner)', () => {
   const room = 'rc-room-4';
   applyMutation(room, { type: 'session_phase_set', phase: 'active' });
-  // No trackPlayerInRoom — first attempt
+  // No trackPlayerInRoom — genuine first attempt = real late-joiner → admit.
   const decision = shouldRejectReconnect(room, 'newcomer');
-  assert.strictEqual(decision.reject, true, 'first join during active also forbidden');
+  assert.strictEqual(decision.reject, false, 'real late-joiner during active is admitted');
+});
+
+test('shouldRejectReconnect: phase=paused + first-time join → admit (late-joiner)', () => {
+  const room = 'rc-room-4b';
+  applyMutation(room, { type: 'session_phase_set', phase: 'paused' });
+  const decision = shouldRejectReconnect(room, 'newcomer');
+  assert.strictEqual(decision.reject, false);
+});
+
+test('shouldRejectReconnect: phase=lobby → admit', () => {
+  const room = 'rc-room-lobby';
+  applyMutation(room, { type: 'session_phase_set', phase: 'lobby' });
+  trackPlayerInRoom(room, 'paddione');
+  const decision = shouldRejectReconnect(room, 'paddione');
+  assert.strictEqual(decision.reject, false);
+});
+
+test('shouldRejectReconnect: phase=ended → reject (410)', () => {
+  const room = 'rc-room-ended';
+  applyMutation(room, { type: 'session_phase_set', phase: 'ended' });
+  const decision = shouldRejectReconnect(room, 'paddione');
+  assert.strictEqual(decision.reject, true);
+  assert.strictEqual(decision.code, 410);
+});
+
+test('shouldRejectReconnect: null playerId during active → admit (server null, matrix-safe)', () => {
+  const room = 'rc-room-null';
+  applyMutation(room, { type: 'session_phase_set', phase: 'active' });
+  const decision = shouldRejectReconnect(room, null);
+  assert.strictEqual(decision.reject, false, 'unknown player = not previously in room → admit');
 });
 
 test('shouldRejectReconnect: no session → allow (legacy room)', () => {

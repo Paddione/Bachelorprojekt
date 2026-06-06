@@ -576,7 +576,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Double-start is idempotent (single broadcast, phase stays `active`).
 - **verify:** `cd brett && npm test`
 
-### B9 — Late-Join-Guard rebuild (`shouldRejectReconnect` + `verifyClient` threading + client URL)
+### B9 — Late-Join-Guard rebuild (`shouldRejectReconnect` + `verifyClient` threading + client URL) — [x] DONE
 - **target_files:** `brett/src/server/sessions.ts`, `brett/src/server/index.ts`, `brett/src/client/ws-client.ts`, `brett/test/reconnect-guard.test.ts`
 - **failing test first (red):** **Invert** `reconnect-guard.test.ts`:
   - `:35-41` first-time join during `active` (`!wasPreviouslyInRoom`) → `decision.reject === false` (admit late-joiner).

@@ -1,4 +1,4 @@
-import { STATE, getWs, setWs, isWsReady, setWsReady, activeLocks, lockSprites, getScene } from './state';
+import { STATE, getWs, setWs, isWsReady, setWsReady, activeLocks, lockSprites, getScene, currentUser } from './state';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
@@ -51,7 +51,15 @@ export function sendAddFigure(fig: any): void {
 }
 
 export function connectWS(): void {
-  const ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+  // Thread room + (when known) the canonical identity into the /sync handshake so
+  // the late-join guard (shouldRejectReconnect) can distinguish a true reconnect
+  // of an already-active player from a genuine late-joiner. Omit playerId when
+  // unknown/anon (server treats null as "not previously in room" → admit).
+  const params = new URLSearchParams({ room: roomFromUrl });
+  if (currentUser.userId && currentUser.userId !== 'anon') {
+    params.set('playerId', currentUser.userId);
+  }
+  const ws = new WebSocket(`${wsProto}//${location.host}/sync?${params.toString()}`);
   setWs(ws);
   (window as any).__brettWS = ws;
   ws.addEventListener('open', () => {

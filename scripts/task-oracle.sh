@@ -5,7 +5,8 @@ set -euo pipefail
 
 # ── Interactive mode ──────────────────────────────────────────────────────────
 interactive_mode() {
-  local REPO="/home/patrick/Bachelorprojekt"
+  local REPO
+  REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
   set +o pipefail
   local ALL_TASKS
@@ -146,7 +147,7 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
   FP_TASK="${BASH_REMATCH[1]}"
   FP_ENV="${BASH_REMATCH[3]}"   # "dev"|"mentolder"|"korczewski"|"both"|""
 
-  REPO_FP="/home/patrick/Bachelorprojekt"
+  REPO_FP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
   # Validate task exists in the Taskfile
   set +o pipefail

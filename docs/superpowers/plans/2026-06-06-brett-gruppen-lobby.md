@@ -1041,7 +1041,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D7 — Template apply orchestrator + DB load wiring
+### D7 — Template apply orchestrator + DB load wiring — [x] DONE
 
 - **target_files**: `brett/src/server/figures.ts` (new `applyTemplateToRoom`), `brett/src/server/db.ts` (new `loadSnapshotState`), `brett/src/server/ws-handler.ts` (wire into `admin_set_template`), `brett/src/server/index.ts` (re-export + wsDeps)
 - **failing test (red)**: `brett/test/template-apply.test.ts`: `applyTemplateToRoom(room, { figures:[{ id:'x', x:1, z:2, facingY:0, appearance:{…} }] }, collect)` asserts:

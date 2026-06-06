@@ -13,13 +13,15 @@ tasks:
   deploy:
     desc: "[devcluster] DECOMMISSIONED — use 'task dev:cluster:create_legacy' for local k3d instead"
     cmds:
-      - echo "ERROR: devcluster tasks target the decommissioned devc k3s HA cluster." >&2
-      - echo "       Use 'task dev:cluster:create_legacy' for local k3d." >&2
-      - exit 1
+      - |
+        echo "ERROR: devcluster tasks target the decommissioned devc k3s HA cluster." >&2
+        echo "       Use 'task dev:cluster:create_legacy' for local k3d." >&2
+        exit 1
 
   status:
     desc: "[devcluster] DECOMMISSIONED — use 'task dev:status' for local k3d instead"
     cmds:
-      - echo "ERROR: devcluster tasks target the decommissioned devc k3s HA cluster." >&2
-      - echo "       Use 'task dev:status' for local k3d." >&2
-      - exit 1
+      - |
+        echo "ERROR: devcluster tasks target the decommissioned devc k3s HA cluster." >&2
+        echo "       Use 'task dev:status' for local k3d." >&2
+        exit 1

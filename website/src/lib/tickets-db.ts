@@ -652,10 +652,10 @@ export async function initTicketsSchema(): Promise<void> {
   // one-shot manual migration. See the PR's HELD-FOR-REVIEW section.
   await pool.query(`
     SELECT setval('tickets.external_id_seq',
-                  (SELECT COALESCE(MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT)), 0)
-                     FROM tickets.tickets
-                    WHERE external_id ~ '^T[0-9]+$'),
-                  true)
+                  COALESCE((SELECT MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT))
+                              FROM tickets.tickets
+                             WHERE external_id ~ '^T[0-9]+$'), 1),
+                  EXISTS (SELECT 1 FROM tickets.tickets WHERE external_id ~ '^T[0-9]+$'))
   `);
 
   await pool.query(`

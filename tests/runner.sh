@@ -180,7 +180,8 @@ if [[ "$TIER" == "unit" ]]; then
   echo "  $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
   echo "═══════════════════════════════════════════════════════════════"
   run_test_files "${SCRIPT_DIR}/unit"
-  generate_summary "$RESULTS_FILE"
+  assert_summary
+  rm -f "$RESULTS_FILE"
   exit 0
 fi
 

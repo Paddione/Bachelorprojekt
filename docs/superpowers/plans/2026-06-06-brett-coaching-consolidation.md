@@ -149,7 +149,7 @@ git commit -m "chore(brett): delete dead scene.js + Mayhem main.js bootstrap"
 **Files:**
 - Modify: `brett/public/index.html` (head lines 8-12; body lines ~1966-1995)
 
-- [ ] **Step 1: Remove the React/Babel CDN scripts and admin CSS from `<head>`**
+- [x] **Step 1: Remove the React/Babel CDN scripts and admin CSS from `<head>`**
 
 Delete these exact lines (were `index.html:8-12`):
 ```html
@@ -160,7 +160,7 @@ Delete these exact lines (were `index.html:8-12`):
   <link rel="stylesheet" href="/admin/mayhem.css">
 ```
 
-- [ ] **Step 2: Remove the Mayhem/room-browser/admin block at the bottom of `<body>`**
+- [x] **Step 2: Remove the Mayhem/room-browser/admin block at the bottom of `<body>`**
 
 Delete this exact contiguous block (was `index.html:1966-1995`):
 ```html
@@ -197,7 +197,7 @@ Delete this exact contiguous block (was `index.html:1966-1995`):
 ```
 The `</body></html>` (and the coaching module above) must remain.
 
-- [ ] **Step 3: Verify no Mayhem/admin/CDN tags remain**
+- [x] **Step 3: Verify no Mayhem/admin/CDN tags remain**
 
 Run:
 ```bash
@@ -206,12 +206,12 @@ grep -nE "assets/mayhem|room-browser|/admin/|unpkg.com|text/babel|admin-root" pu
 ```
 Expected: no output.
 
-- [ ] **Step 4: Run tests — still green**
+- [x] **Step 4: Run tests — still green**
 
 Run: `cd /home/patrick/Projects/wt-brett-coaching-consolidation/brett && npm test 2>&1 | tail -4`
 Expected: `# pass 174` (coaching-isolation already asserts these tags are absent or dynamic).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/patrick/Projects/wt-brett-coaching-consolidation

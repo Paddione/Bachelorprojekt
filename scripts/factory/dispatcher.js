@@ -75,7 +75,7 @@ async function main() {
             # kill-switch ON  → exit 0; record "killswitch" and SKIP this brand
             GUARDS_REPO=${REPO} guard_killswitch_on <brand>   ; KS=$?
             # daily-cap reached → exit 0; record "daily_cap" and SKIP this brand
-            FACTORY_DAILY_DEPLOY_CAP=${process.env.FACTORY_DAILY_DEPLOY_CAP ?? '5'} GUARDS_REPO=${REPO} guard_daily_cap_reached <brand> ; CAP=$?
+            FACTORY_DAILY_DEPLOY_CAP=${A.FACTORY_DAILY_DEPLOY_CAP ?? '5'} GUARDS_REPO=${REPO} guard_daily_cap_reached <brand> ; CAP=$?
           If KS==0 (kill-switch ON) OR CAP==0 (daily cap reached): emit NO launch objects for this
           brand and append { brand, reason } to a "skipped" list. Otherwise continue to steps 1-2.
        1. Watchdog sweep (escalate stale runs, free their slots):

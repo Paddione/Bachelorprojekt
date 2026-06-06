@@ -1,5 +1,4 @@
 // Verifies that coaching mode is fully isolated from combat/Mayhem code.
-// Tests are RED before the fix and GREEN after.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,43 +7,55 @@ import { dirname, join } from 'node:path';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const html = readFileSync(join(__dir, '../public/index.html'), 'utf8');
+const serverJs = readFileSync(join(__dir, '../server.js'), 'utf8');
 
-test('index.html does not contain static #mayhem-btn (should be added dynamically)', () => {
-  // The button should not be in static HTML — it flashes before module JS removes it.
-  // After fix: button is added dynamically by main.js only when availableModes includes mayhem.
+test('index.html does not contain the word "mayhem"', () => {
   assert.ok(
-    !html.includes('id="mayhem-btn"'),
-    '#mayhem-btn must not appear in static HTML; add it dynamically from main.js'
+    !/mayhem/i.test(html),
+    'index.html must not contain the word "mayhem" in any form'
   );
 });
 
-test('index.html does not contain static #brett-controls-btn (mayhem-only control)', () => {
-  // This button opens MayhemControlsPanel — meaningless in coaching mode.
-  // After fix: added dynamically alongside #mayhem-btn.
+test('server.js does not contain the word "mayhem"', () => {
   assert.ok(
-    !html.includes('id="brett-controls-btn"'),
-    '#brett-controls-btn must not appear in static HTML; add it dynamically from main.js'
+    !/mayhem/i.test(serverJs),
+    'server.js must not contain the word "mayhem" in any form'
   );
 });
 
-test('inline script does not call window.Mayhem.init() unconditionally in WS open handler', () => {
-  // The WS open handler must NOT init Mayhem directly — that must go through main.js mode gate.
-  // After fix: Mayhem init is delegated to window.__brettInitMayhem(), called only in mayhem mode.
-  const wsOpenBlock = html.match(/ws\.addEventListener\("open"[\s\S]*?ws\.addEventListener\("close"/)?.[0] ?? '';
-  assert.ok(
-    !wsOpenBlock.includes('window.Mayhem.init('),
-    'window.Mayhem.init() must not be called directly in the WS open handler'
-  );
+test('index.html does not contain gait, walking, or WASD movement tokens', () => {
+  const walkingTokens = [
+    'gait',
+    'tickWalkAnimation',
+    'tickWalk',
+    'wasdKeys',
+    'WALK_SPEED',
+    'SPRINT_MULT',
+    'walkTarget'
+  ];
+  for (const token of walkingTokens) {
+    assert.ok(
+      !html.includes(token),
+      `index.html must not contain the walking/gait token "${token}"`
+    );
+  }
 });
 
-test('inline script does not call MayhemControlsPanel.showDiscoveryBanner() unconditionally', () => {
-  // Discovery banner announces combat controls — should not appear in coaching mode.
-  // After fix: called inside window.__brettInitMayhem(), gated behind mode selection.
-  const wsOpenBlock = html.match(/ws\.addEventListener\("open"[\s\S]*?ws\.addEventListener\("close"/)?.[0] ?? '';
-  assert.ok(
-    !wsOpenBlock.includes('showDiscoveryBanner'),
-    'showDiscoveryBanner() must not be called directly in the WS open handler'
-  );
+test('server.js does not contain custom skins upload/validation/GLB/OIDC skins tokens', () => {
+  const skinsTokens = [
+    'validateGlb',
+    'SKINS_DIR',
+    'listSkins',
+    'slugifyForSkin',
+    '/api/skins/upload',
+    '/api/skins'
+  ];
+  for (const token of skinsTokens) {
+    assert.ok(
+      !serverJs.includes(token),
+      `server.js must not contain the custom skins token "${token}"`
+    );
+  }
 });
 
 test('index.html loads the coaching HUD bootstrap module', () => {
@@ -59,6 +70,6 @@ test('named persons are brand-tagged so mentolder can hide them', () => {
 });
 
 test('add message carries the figure label', () => {
-  // The add payload must include label so it syncs/persists.
   assert.ok(/type:\s*['"]add['"][\s\S]{0,400}label/.test(html), 'add payload should include label');
 });
+

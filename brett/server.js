@@ -5,95 +5,9 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
-const multer = require('multer');
 
-const skinUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB per file
-}).fields([
-  { name: 'glb',   maxCount: 1 },
-  { name: 'thumb', maxCount: 1 },
-]);
 
-// GLB validator — checks magic/version, parses JSON chunk, requires mixamorigHips.
-// Returns { ok: true, animations: string[] } | { ok: false, error: string }.
-function validateGlb(buffer) {
-  if (!Buffer.isBuffer(buffer) || buffer.length < 20) {
-    return { ok: false, error: 'buffer too small to be a GLB' };
-  }
-  const magic = buffer.readUInt32LE(0);
-  if (magic !== 0x46546C67) {
-    return { ok: false, error: 'bad magic — not a GLB file' };
-  }
-  const version = buffer.readUInt32LE(4);
-  if (version !== 2) {
-    return { ok: false, error: `unsupported GLB version ${version} (need 2)` };
-  }
-  const jsonLen  = buffer.readUInt32LE(12);
-  const jsonType = buffer.readUInt32LE(16);
-  if (jsonType !== 0x4E4F534A) {
-    return { ok: false, error: 'first chunk is not JSON' };
-  }
-  if (20 + jsonLen > buffer.length) {
-    return { ok: false, error: 'JSON chunk overflows file' };
-  }
-  let gltf;
-  try {
-    gltf = JSON.parse(buffer.slice(20, 20 + jsonLen).toString('utf8'));
-  } catch (err) {
-    return { ok: false, error: 'invalid JSON in GLB: ' + err.message };
-  }
-  const nodes = Array.isArray(gltf.nodes) ? gltf.nodes : [];
-  if (!nodes.some(n => n && n.name === 'mixamorigHips')) {
-    return { ok: false, error: 'mixamorigHips bone not found — GLB must be Mixamo-rigged' };
-  }
-  const animations = (Array.isArray(gltf.animations) ? gltf.animations : [])
-    .map(a => (a && typeof a.name === 'string') ? a.name : null)
-    .filter(Boolean);
-  return { ok: true, animations };
-}
 
-const SKINS_DIR_NAME = 'skins';
-const SKINS_DIR = path.join(__dirname, 'public', 'assets', SKINS_DIR_NAME);
-
-function listSkins(dir = SKINS_DIR) {
-  const out = [{ id: 'default', name: 'Mannequin', thumb: null, animations: [] }];
-  let entries;
-  try {
-    entries = fs.readdirSync(dir, { withFileTypes: true });
-  } catch {
-    return out;
-  }
-  for (const ent of entries) {
-    if (!ent.isDirectory()) continue;
-    if (ent.name === 'default') continue;
-    const skinDir = path.join(dir, ent.name);
-    let meta;
-    try {
-      meta = JSON.parse(fs.readFileSync(path.join(skinDir, 'meta.json'), 'utf8'));
-    } catch { continue; }
-    if (!meta || typeof meta.id !== 'string' || typeof meta.name !== 'string') continue;
-    const hasThumb = fs.existsSync(path.join(skinDir, 'thumb.png'));
-    out.push({
-      id: meta.id,
-      name: meta.name,
-      thumb: hasThumb ? `/assets/${SKINS_DIR_NAME}/${ent.name}/thumb.png` : null,
-      animations: Array.isArray(meta.animations) ? meta.animations : [],
-    });
-  }
-  return out;
-}
-
-function slugifyForSkin(name) {
-  const cleaned = String(name || '')
-    .toLowerCase()
-    .replace(/[^\x00-\x7F]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 32);
-  if (cleaned) return cleaned;
-  return 'skin-' + randomUUID().replace(/-/g, '').slice(0, 6);
-}
 
 const PRESETS_FILE = process.env.BRETT_PRESETS_PATH || path.join(__dirname, 'presets.json');
 
@@ -379,61 +293,7 @@ app.get('/api/snapshots/:id', asyncHandler(async (req, res) => {
   res.json(rows[0]);
 }));
 
-// ─── Skins catalog (Mayhem character skins) ──────────────────────────────────
-app.get('/api/skins', (_req, res) => {
-  res.json(listSkins());
-});
 
-app.post('/api/skins/upload', requireAdmin, (req, res) => {
-  skinUpload(req, res, (err) => {
-    if (err) {
-      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'file too large (max 20 MB)' });
-      return res.status(400).json({ error: 'upload error: ' + err.message });
-    }
-    const name = String((req.body && req.body.name) || '').trim();
-    if (!name || name.length > 100) return res.status(400).json({ error: 'name required (≤100 chars)' });
-    const glbFile = req.files?.glb?.[0];
-    if (!glbFile) return res.status(400).json({ error: 'glb file required' });
-    const thumbFile = req.files?.thumb?.[0] || null;
-    if (thumbFile && thumbFile.size > 512 * 1024) {
-      return res.status(413).json({ error: 'thumb too large (max 512 KB)' });
-    }
-    const val = validateGlb(glbFile.buffer);
-    if (!val.ok) return res.status(400).json({ error: val.error });
-
-    // Generate a unique id (re-roll if it collides with an existing skin or 'default').
-    let id = slugifyForSkin(name);
-    let attempt = 0;
-    while (id === 'default' || fs.existsSync(path.join(SKINS_DIR, id))) {
-      attempt++;
-      if (attempt > 16) return res.status(500).json({ error: 'could not allocate skin id' });
-      id = slugifyForSkin(name + '-' + attempt);
-    }
-    const skinDir = path.join(SKINS_DIR, id);
-    fs.mkdirSync(skinDir, { recursive: true });
-    fs.writeFileSync(path.join(skinDir, 'skin.glb'), glbFile.buffer);
-    if (thumbFile) fs.writeFileSync(path.join(skinDir, 'thumb.png'), thumbFile.buffer);
-    const meta = { id, name, animations: val.animations, uploadedAt: new Date().toISOString() };
-    fs.writeFileSync(path.join(skinDir, 'meta.json'), JSON.stringify(meta, null, 2));
-
-    res.status(201).json({
-      id,
-      name,
-      thumb: thumbFile ? `/assets/skins/${id}/thumb.png` : null,
-      animations: val.animations,
-    });
-  });
-});
-
-app.delete('/api/skins/:id', requireAdmin, (req, res) => {
-  const id = String(req.params.id || '');
-  if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(id)) return res.status(400).json({ error: 'invalid id' });
-  if (id === 'default') return res.status(400).json({ error: 'cannot delete default skin' });
-  const skinDir = path.join(SKINS_DIR, id);
-  if (!fs.existsSync(skinDir)) return res.status(404).json({ error: 'skin not found' });
-  fs.rmSync(skinDir, { recursive: true, force: true });
-  res.status(204).end();
-});
 
 // Admin room list.
 app.get('/api/admin/rooms', requireAdmin, asyncHandler(async (req, res) => {
@@ -762,50 +622,7 @@ const RELAY_TYPES = [
 
 const TRANSIENT_TYPES = new Set([]);
 
-const lmsAlive  = new Map(); // roomToken -> Set<playerId>
-const duelRooms = new Map(); // roomToken -> { playerA, playerB, winsA, winsB, bestOf, startedAt }
-const rematchRequests = new Map(); // roomToken -> { playerA?: { sameHeroes }, playerB?: { sameHeroes } }
-const duelInactivityTimers = new Map(); // roomToken -> NodeJS.Timeout
-const roomMeta  = new Map(); // roomToken -> { coopWave: number }
 
-function handleLmsDeath(room, victimId) {
-  const alive = lmsAlive.get(room);
-  if (!alive) return { winner: null, draw: false };
-  alive.delete(victimId);
-  if (alive.size === 0) return { winner: null, draw: true };
-  if (alive.size === 1) return { winner: [...alive][0], draw: false };
-  return { winner: null, draw: false };
-}
-
-function handleDuelDeath(room, deadPlayerId) {
-  const ds = duelRooms.get(room);
-  if (!ds) return { roundWinner: null, matchOver: false, matchWinner: null };
-  const isA = deadPlayerId === ds.playerA;
-  const roundWinner = isA ? ds.playerB : ds.playerA;
-  if (isA) ds.winsB++; else ds.winsA++;
-  const winsNeeded = Math.ceil(ds.bestOf / 2);
-  const matchOver  = ds.winsA >= winsNeeded || ds.winsB >= winsNeeded;
-  const matchWinner = matchOver ? (ds.winsA >= winsNeeded ? ds.playerA : ds.playerB) : null;
-  // Cleanup now happens via rematch/abandon/inactivity — not auto-delete here
-  return { roundWinner, matchOver, matchWinner };
-}
-
-function _armDuelInactivityTimer(room) {
-  if (duelInactivityTimers.has(room)) clearTimeout(duelInactivityTimers.get(room));
-  duelInactivityTimers.set(room, setTimeout(() => {
-    duelInactivityTimers.delete(room);
-    duelRooms.delete(room);
-    rematchRequests.delete(room);
-    broadcast(room, { type: 'duel_abandoned', reason: 'timeout' });
-  }, 60_000));
-}
-
-function _clearDuelInactivityTimer(room) {
-  if (duelInactivityTimers.has(room)) {
-    clearTimeout(duelInactivityTimers.get(room));
-    duelInactivityTimers.delete(room);
-  }
-}
 
 function joinRoom(ws, room) {
   ws._room = room;
@@ -899,18 +716,7 @@ function listParticipants(room) {
   return m ? [...m.values()] : [];
 }
 
-const pickupState = new Map(); // room -> Map<pickupId, {id, kind, pos, takenBy, respawnAt}>
 
-function ensurePickups(room) {
-  if (!pickupState.has(room)) pickupState.set(room, new Map());
-  return pickupState.get(room);
-}
-
-function spawnPickup(room, id, kind, pos, wss) { // eslint-disable-line no-unused-vars
-  const m = ensurePickups(room);
-  m.set(id, { id, kind, pos, takenBy: null, respawnAt: null });
-  broadcast(room, { type: 'pickup_spawned', id, kind, pos }, null);
-}
 
 function ensureFigureMap(room) {
   if (!figureMaps.has(room)) figureMaps.set(room, new Map());
@@ -1094,28 +900,7 @@ wss.on('connection', (ws, req) => {
 
       if (msg.type === 'pong') { ws.isAlive = true; return; }
 
-      if (msg.type === 'damage_event') {
-        broadcast(ws._room, msg, ws);
-        return;
-      }
-      if (msg.type === 'death_event') {
-        broadcast(ws._room, msg, ws);
-        return;
-      }
-      if (msg.type === 'pickup_request') {
-        const pickups = ensurePickups(ws._room);
-        const p = pickups.get(msg.id);
-        if (!p || p.takenBy) return;
-        p.takenBy = ws._playerId ?? 'unknown';
-        p.respawnAt = Date.now() + (msg.respawnMs || 30_000);
-        broadcast(ws._room, { type: 'pickup_taken', id: msg.id, by: p.takenBy });
-        setTimeout(() => {
-          p.takenBy = null;
-          p.respawnAt = null;
-          broadcast(ws._room, { type: 'pickup_spawned', id: p.id, kind: p.kind, pos: p.pos });
-        }, msg.respawnMs || 30_000);
-        return;
-      }
+
 
       if (msg.type === 'request_state_snapshot') {
         const room = ws._room;
@@ -1224,54 +1009,7 @@ wss.on('connection', (ws, req) => {
         }
       }
 
-      if (msg.type === 'duel_start' && msg.playerA && msg.playerB) {
-        duelRooms.set(room, {
-          playerA: msg.playerA, playerB: msg.playerB,
-          heroA: msg.heroA, heroB: msg.heroB,
-          nameA: msg.nameA || msg.playerA,
-          nameB: msg.nameB || msg.playerB,
-          winsA: 0, winsB: 0, bestOf: 3,
-          startedAt: Date.now(),
-        });
-        _clearDuelInactivityTimer(room);
-        rematchRequests.delete(room);
-      }
 
-      if (msg.type === 'rematch_request') {
-        const ds = duelRooms.get(room);
-        if (!room || !ds || typeof msg.sameHeroes !== 'boolean') return;
-        const slot = ws._playerId === ds.playerA ? 'playerA'
-                   : ws._playerId === ds.playerB ? 'playerB' : null;
-        if (!slot) return;
-        if (!rematchRequests.has(room)) rematchRequests.set(room, {});
-        const reqs = rematchRequests.get(room);
-        reqs[slot] = { sameHeroes: msg.sameHeroes };
-        if (reqs.playerA && reqs.playerB) {
-          const bothSame = reqs.playerA.sameHeroes && reqs.playerB.sameHeroes;
-          const mode = bothSame ? 'same' : 'select';
-          _clearDuelInactivityTimer(room);
-          ds.winsA = 0;
-          ds.winsB = 0;
-          rematchRequests.delete(room);
-          broadcast(room, { type: 'duel_reset', mode });
-          if (mode === 'select') _armDuelInactivityTimer(room);
-        } else {
-          broadcast(room, { type: 'rematch_state', requested: Object.keys(reqs) });
-        }
-        return;
-      }
-
-      if (msg.type === 'duel_abandoned_request') {
-        const ds = duelRooms.get(room);
-        if (!room || !ds) return;
-        const isFighter = ws._playerId === ds.playerA || ws._playerId === ds.playerB;
-        if (!isFighter) return;
-        _clearDuelInactivityTimer(room);
-        duelRooms.delete(room);
-        rematchRequests.delete(room);
-        broadcast(room, { type: 'duel_abandoned', reason: 'fighter_request' });
-        return;
-      }
 
       if (msg.type === 'figure_lock' && typeof msg.id === 'string') {
         const owner = {
@@ -1365,8 +1103,7 @@ wss.on('connection', (ws, req) => {
       }
 
       const ADMIN_TYPES = [
-        'admin_mayhem_toggle','admin_mode_set','admin_kick',
-        'admin_bot_spawn','admin_bot_despawn','admin_round_reset','admin_broadcast',
+        'admin_kick','admin_broadcast',
         'admin_session_create','admin_handoff_token','admin_round_stop','admin_round_pause',
         'admin_coaching_steps_set',
       ];
@@ -1377,59 +1114,14 @@ wss.on('connection', (ws, req) => {
         if (!adminRoom) return;
 
         switch (msg.type) {
-          case 'admin_mayhem_toggle': {
-            const inner = { type: 'mayhem_mode', enabled: !!msg.enabled };
-            applyMutation(adminRoom, inner);
-            broadcast(adminRoom, inner);
-            schedulePersist(adminRoom);
-            break;
-          }
-          case 'admin_mode_set': {
-            if (!['warmup','deathmatch','lms','coop','duel'].includes(msg.mode)) return;
-            const inner = { type: 'game_mode_change', mode: msg.mode };
-            applyMutation(adminRoom, inner);
-            broadcast(adminRoom, inner);
-            if (msg.mode === 'lms') {
-              const alive = new Set();
-              for (const sock of rooms.get(adminRoom) || []) { if (sock._playerId) alive.add(sock._playerId); }
-              lmsAlive.set(adminRoom, alive);
-            } else {
-              lmsAlive.delete(adminRoom);
-            }
-            schedulePersist(adminRoom);
-            break;
-          }
           case 'admin_kick': {
             if (typeof msg.playerId !== 'string') return;
             for (const sock of rooms.get(adminRoom) || []) {
               if (sock._playerId === msg.playerId) {
-                broadcast(adminRoom, { type: 'player_leave', playerId: msg.playerId }, sock);
                 try { sock.close(); } catch {}
                 break;
               }
             }
-            break;
-          }
-          case 'admin_bot_spawn': {
-            const currentCount = rooms.get(adminRoom)?.size ?? 0;
-            if (currentCount >= 4) {
-              try { ws.send(JSON.stringify({ type: 'admin_error', reason: 'room_full' })); } catch {}
-              break;
-            }
-            broadcast(adminRoom, { type: 'bot_spawn' });
-            break;
-          }
-          case 'admin_bot_despawn': {
-            if (typeof msg.botId !== 'string') return;
-            const figs = figureMaps.get(adminRoom);
-            if (figs) figs.delete(msg.botId);
-            broadcast(adminRoom, { type: 'bot_despawn', botId: msg.botId });
-            schedulePersist(adminRoom);
-            break;
-          }
-          case 'admin_round_reset': {
-            lmsAlive.delete(adminRoom);
-            broadcast(adminRoom, { type: 'round_reset' });
             break;
           }
           case 'admin_broadcast': {
@@ -1574,15 +1266,9 @@ module.exports = {
   app, server, pool, wss,
   applyMutation, buildStateFromMutations, figureMaps,
   handleDisconnect,
-  RELAY_TYPES, TRANSIENT_TYPES, lmsAlive, handleLmsDeath,
-  duelRooms, handleDuelDeath,
-  pickupState, ensurePickups, spawnPickup,
+  RELAY_TYPES, TRANSIENT_TYPES,
   isAdminFromClaims,
   validateAppearance,
-  validateGlb,
-  SKINS_DIR,
-  listSkins,
-  slugifyForSkin,
   buildConfig,
   resolveBrand,
   boardAuthRedirect,

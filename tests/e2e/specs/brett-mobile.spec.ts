@@ -127,34 +127,6 @@ test.describe('Brett Mobile (Android) @mobile', () => {
     }
   });
 
-  test('T6: REGRESSION — Mayhem button before WS init does not throw TypeError', async ({ browser }) => {
-    if (!hasAuthState()) { test.skip(); return; }
-
-    const ctx = await browser.newContext({
-      ignoreHTTPSErrors: true,
-      storageState: BRETT_AUTH_STATE,
-      hasTouch: true,
-    });
-    const page = await ctx.newPage();
-    const errors: string[] = [];
-    page.on('pageerror', e => errors.push(e.message));
-    try {
-      await page.goto(`${BRETT_URL}?room=e2e-mobile-mayhem-race-${Date.now()}`);
-      // Wait only for the scene to start rendering — NOT for WS init
-      await page.waitForFunction(() => !!document.getElementById('mayhem-btn'), { timeout: 10_000 });
-
-      // Immediately click Mayhem — may race with WS open. With the fix, send is
-      // initialised to a no-op so no TypeError is thrown even if WS isn't ready.
-      await page.click('#mayhem-btn');
-      await page.waitForTimeout(200);
-
-      const typeErrors = errors.filter(e => e.toLowerCase().includes('send is not a function'));
-      expect(typeErrors).toHaveLength(0);
-    } finally {
-      await ctx.close();
-    }
-  });
-
   test('T7: status pill visible on mobile', async ({ browser }) => {
     if (!hasAuthState()) { test.skip(); return; }
 

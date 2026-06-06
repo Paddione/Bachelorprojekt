@@ -58,10 +58,10 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         if: steps.gate.outputs.skip != 'true'
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         if: steps.gate.outputs.skip != 'true'
         with:
           node-version: "22"
@@ -155,7 +155,7 @@ jobs:
 
       - name: Upload results (traces + JSON report)
         if: always() && steps.gate.outputs.skip != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: playwright-results-${{ matrix.cluster }}
           path: tests/results

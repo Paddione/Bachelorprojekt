@@ -6,10 +6,17 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);
+  # never cancel push-to-main runs, which gate the deployable history.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   offline-tests:
     name: Offline Tests (Manifests, Configs, Unit)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
@@ -19,6 +26,7 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
@@ -48,6 +56,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
@@ -83,20 +92,33 @@ jobs:
           echo "All managed secret files are git-crypt-encrypted"
 
   brett-server-test:
-    name: Brett Server Tests
+    name: Brett Typecheck & Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
-        with: { node-version: '22' }
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: brett/package-lock.json
       - run: npm ci --prefix brett
-      - run: node --test brett/test/*.test.js brett/test/*.test.mjs
+      # No-op until brett's TS refactor lands on the checked-out ref
+      # (`npm run --if-present` exits 0 when the script is absent), then auto-activates
+      # the moment brett/package.json defines a "typecheck" script — no further CI edits.
+      - name: Typecheck
+        run: npm --prefix brett run typecheck --if-present
+      # Call the package's own test script (single source of truth): it is `node --test`
+      # on main today and upgrades to `tsx --test` incl. *.test.ts once the refactor merges.
+      - name: Unit tests
+        run: npm --prefix brett test
         env:
           MOCK_DB: 'true'
 
   commit-lint:
     name: Conventional Commits
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event_name == 'pull_request'
     steps:
       - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5.5.3

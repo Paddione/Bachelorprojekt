@@ -1129,7 +1129,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D12 — Phase-D green gate
+### D12 — Phase-D green gate — [x] DONE
 
 - **target_files**: none (verification only)
 - **failing test (red)**: n/a — this task asserts the whole phase is green together.

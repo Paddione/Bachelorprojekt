@@ -31,6 +31,23 @@ test('transitionPhase: warmup → active is allowed', () => {
   assert.strictEqual(state.sessionPhase, 'active');
 });
 
+test('transitionPhase: lobby → active is allowed', () => {
+  const room = 'session-state-test-lobby-active';
+  applyMutation(room, { type: 'session_phase_set', phase: 'lobby' });
+  const result = transitionPhase(room, 'active');
+  assert.strictEqual(result.ok, true);
+  assert.strictEqual(buildStateFromMutations(room).sessionPhase, 'active');
+});
+
+test('transitionPhase: active → lobby is rejected (invalid-edge)', () => {
+  const room = 'session-state-test-active-lobby';
+  applyMutation(room, { type: 'session_phase_set', phase: 'active' });
+  const result = transitionPhase(room, 'lobby');
+  assert.strictEqual(result.ok, false);
+  assert.strictEqual(result.reason, 'invalid-edge');
+  assert.strictEqual(buildStateFromMutations(room).sessionPhase, 'active', 'phase unchanged on rejected edge');
+});
+
 test('transitionPhase: ended → anything is a no-op', () => {
   const room = 'session-state-test-3';
   applyMutation(room, { type: 'session_phase_set', phase: 'ended' });

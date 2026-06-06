@@ -1,7 +1,16 @@
 import type { Phase } from '../types/state';
 
 export const TERMINAL_PHASES = new Set<Phase>(['ended']);
-export const VALID_PHASES = new Set<Phase>(['warmup', 'active', 'paused', 'ended']);
+export const VALID_PHASES = new Set<Phase>(['lobby', 'warmup', 'active', 'paused', 'ended']);
+
+// Per-edge allowlist (excl. *→ended, handled separately as always-allowed).
+// A null/undefined `current` (initial seed) bypasses this check entirely.
+const ALLOWED_EDGES = new Set<string>([
+  'lobby→active',
+  'warmup→active',   // keep legacy / Phase-A flow + existing tests green
+  'active→paused',
+  'paused→active',
+]);
 
 type FigureMaps = Map<string, Map<string, any>>;
 type ApplyMutation = (room: string, msg: any) => void;
@@ -19,6 +28,10 @@ export function transitionPhase(room: string, newPhase: Phase): { ok: boolean; f
   const map = figureMaps.get(room);
   const current = map?.get('__session_phase__')?.phase as Phase | undefined | null;
   if (current && TERMINAL_PHASES.has(current)) return { ok: false, reason: 'terminal-phase', from: current, to: newPhase };
+  // *→ended is always allowed; a null/undefined current (initial seed) is permissive.
+  if (current && newPhase !== 'ended' && !ALLOWED_EDGES.has(`${current}→${newPhase}`)) {
+    return { ok: false, reason: 'invalid-edge', from: current, to: newPhase };
+  }
   applyMutation(room, { type: 'session_phase_set', phase: newPhase });
   return { ok: true, from: current, to: newPhase };
 }

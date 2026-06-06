@@ -536,7 +536,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Snapshot `phase` field is now populated (no longer always `undefined`).
 - **verify:** `cd brett && npm test`
 
-### B5 — `lobby` phase + per-edge transition allowlist
+### B5 — `lobby` phase + per-edge transition allowlist — [x] DONE
 - **target_files:** `brett/src/server/phases.ts`, `brett/test/session-state.test.ts`
 - **failing test first (red):** In `session-state.test.ts` add: `transitionPhase(room, ...)` with seed `lobby` → `active` returns `{ok:true}`; seed `active` → `lobby` returns `{ok:false, reason:'invalid-edge'}`; keep existing `warmup → active` (:25-32) green and `ended → *` (:34-40) → `terminal-phase`. Fails until allowlist + `VALID_PHASES` updated.
 - **implementation:**

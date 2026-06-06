@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.32.0...website-v1.32.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* pending main cleanups — ssh config, keycloak patch, test fixes, setval query ([#1370](https://github.com/Paddione/Bachelorprojekt/issues/1370)) ([3f412ab](https://github.com/Paddione/Bachelorprojekt/commit/3f412ab38246299d9996784f64ec8fb226883c2a))
+
 ## [1.32.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.31.0...website-v1.32.0) (2026-06-06)
 
 

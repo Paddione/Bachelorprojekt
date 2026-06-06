@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.30.0...website-v1.31.0) (2026-06-06)
+
+
+### Features
+
+* **brett:** coaching-only Systembrett consolidation ([#1362](https://github.com/Paddione/Bachelorprojekt/issues/1362)) ([b08d9e8](https://github.com/Paddione/Bachelorprojekt/commit/b08d9e855ee264d67cc1e8ae686d0c70bda3ab37))
+
 ## [1.30.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.29.0...website-v1.30.0) (2026-06-06)
 
 

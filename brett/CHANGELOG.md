@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.16.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.15.0...brett-v0.16.0) (2026-06-06)
+
+
+### Features
+
+* **brett:** coaching-only Systembrett consolidation ([#1362](https://github.com/Paddione/Bachelorprojekt/issues/1362)) ([b08d9e8](https://github.com/Paddione/Bachelorprojekt/commit/b08d9e855ee264d67cc1e8ae686d0c70bda3ab37))
+
 ## [0.15.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.14.0...brett-v0.15.0) (2026-05-29)
 
 

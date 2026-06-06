@@ -727,7 +727,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C2 — Message-union variants `admin_assign_figure` / `figure_owner_changed` + exhaustiveness (3 sites)
+### C2 — Message-union variants `admin_assign_figure` / `figure_owner_changed` + exhaustiveness (3 sites) — [x] DONE
 
 - **target_files:**
   - `brett/src/types/messages.ts`

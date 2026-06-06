@@ -72,6 +72,7 @@ function routeClient(msg: ClientMessage): string {
     case 'admin_coaching_steps_set': return 'admin_coaching_steps_set';
     case 'admin_round_start': return 'admin_round_start';
     case 'admin_assign_role': return 'admin_assign_role';
+    case 'admin_assign_figure': return 'admin_assign_figure';
     case 'lobby_set_ready': return 'lobby_set_ready';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }

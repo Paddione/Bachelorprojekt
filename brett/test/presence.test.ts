@@ -1,3 +1,4 @@
+// brett/test/presence.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createPresence, PRESENCE_PALETTE } from '../public/assets/coaching/presence.mjs';

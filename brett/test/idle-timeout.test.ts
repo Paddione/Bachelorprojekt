@@ -1,16 +1,13 @@
-// brett/test/idle-timeout.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test   = require('node:test');
-const assert = require('node:assert');
-const {
+// brett/test/idle-timeout.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import {
   applyMutation,
   buildStateFromMutations,
   touchSessionActivity,
   checkSessionIdle,
   checkAllSessions,
-  figureMaps,
-} = require('../server.js');
+} from '../src/server/index';
 
 test('touchSessionActivity: updates __session_last_activity__', () => {
   const room = 'idle-test-1';
@@ -49,8 +46,8 @@ test('checkAllSessions: iterates and ends idle rooms only', () => {
   applyMutation(liveRoom, { type: 'session_phase_set', phase: 'active' });
   applyMutation(liveRoom, { type: 'session_last_activity_set', ts: new Date().toISOString() });
   const results = checkAllSessions();
-  const idleResult = results.find(r => r.room === idleRoom);
-  const liveResult = results.find(r => r.room === liveRoom);
-  assert.strictEqual(idleResult.ended, true);
+  const idleResult = results.find((r: any) => r.room === idleRoom);
+  const liveResult = results.find((r: any) => r.room === liveRoom);
+  assert.strictEqual(idleResult!.ended, true);
   assert.strictEqual(liveResult?.ended ?? false, false);
 });

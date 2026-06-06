@@ -1,9 +1,7 @@
-// brett/test/coaching-steps.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test = require('node:test');
-const assert = require('node:assert');
-const { applyMutation, buildStateFromMutations } = require('../server.js');
+// brett/test/coaching-steps.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import { applyMutation, buildStateFromMutations } from '../src/server/index';
 
 test('coaching_steps_set persists steps+index and stays out of figures', () => {
   const room = 'steps-test-1';
@@ -12,7 +10,7 @@ test('coaching_steps_set persists steps+index and stays out of figures', () => {
   const state = buildStateFromMutations(room);
   assert.deepStrictEqual(state.coachingSteps, { steps: ['A', 'B'], index: 1 });
   assert.strictEqual(state.figures.length, 1);
-  assert.ok(!state.figures.find((f) => f.id === '__coaching_steps__'));
+  assert.ok(!state.figures.find((f: any) => f.id === '__coaching_steps__'));
 });
 
 test('coaching_steps_set ignores invalid payloads', () => {

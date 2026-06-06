@@ -91,8 +91,8 @@ jobs:
           fi
           echo "All managed secret files are git-crypt-encrypted"
 
-  brett-server-test:
-    name: Brett Typecheck & Tests
+  brett-typescript:
+    name: Brett TypeScript
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -103,17 +103,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: brett/package-lock.json
       - run: npm ci --prefix brett
-      # No-op until brett's TS refactor lands on the checked-out ref
-      # (`npm run --if-present` exits 0 when the script is absent), then auto-activates
-      # the moment brett/package.json defines a "typecheck" script — no further CI edits.
       - name: Typecheck
-        run: npm --prefix brett run typecheck --if-present
-      # Call the package's own test script (single source of truth): it is `node --test`
-      # on main today and upgrades to `tsx --test` incl. *.test.ts once the refactor merges.
+        run: npm run typecheck --prefix brett
       - name: Unit tests
-        run: npm --prefix brett test
+        run: npm test --prefix brett
         env:
           MOCK_DB: 'true'
+      - run: npm run build --prefix brett
 
   vitest:
     name: Vitest (website + arena-server)

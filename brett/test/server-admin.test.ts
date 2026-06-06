@@ -1,8 +1,7 @@
-'use strict';
-process.env.MOCK_DB = 'true';
-const test   = require('node:test');
-const assert = require('node:assert');
-const { isAdminFromClaims, RELAY_TYPES, applyMutation, buildStateFromMutations } = require('../server.js');
+// brett/test/server-admin.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import { isAdminFromClaims, RELAY_TYPES, applyMutation, buildStateFromMutations } from '../src/server/index';
 
 test('isAdminFromClaims: true when admin role present', () => {
   const claims = { realm_access: { roles: ['offline_access', 'admin', 'uma_authorization'] } };

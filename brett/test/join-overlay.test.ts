@@ -1,4 +1,4 @@
-// brett/test/join-overlay.test.mjs
+// brett/test/join-overlay.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeCode, joinUrl } from '../public/assets/coaching/join.mjs';

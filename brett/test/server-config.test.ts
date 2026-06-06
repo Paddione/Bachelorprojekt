@@ -1,8 +1,7 @@
-'use strict';
-process.env.MOCK_DB = 'true';
-const test = require('node:test');
-const assert = require('node:assert');
-const { buildConfig } = require('../server.js');
+// brett/test/server-config.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import { buildConfig } from '../src/server/index';
 
 test('buildConfig: returns only non-mode config (brand resolved separately)', () => {
   assert.deepStrictEqual(buildConfig({}), {});

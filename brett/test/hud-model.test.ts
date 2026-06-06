@@ -1,6 +1,7 @@
-// brett/test/hud-model.test.mjs
+// brett/test/hud-model.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+// @ts-expect-error — .mjs public asset, no TS types available
 import { buildHudModel } from '../public/assets/coaching/hud-model.mjs';
 
 test('builds phase line + participant rows; coach sees controls', () => {

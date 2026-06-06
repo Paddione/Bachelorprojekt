@@ -1,9 +1,7 @@
-// brett/test/board-auth.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test = require('node:test');
-const assert = require('node:assert');
-const { boardAuthRedirect } = require('../server.js');
+// brett/test/board-auth.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import { boardAuthRedirect } from '../src/server/index';
 
 test('no session → redirect to login with returnTo', () => {
   const r = boardAuthRedirect({ session: {}, path: '/' }, {});

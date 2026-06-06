@@ -1,72 +1,37 @@
-// Direct-import unit tests for the extracted phases module (TS refactor coverage, A3).
+// brett/test/phases.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  initPhases,
-  transitionPhase,
-  buildStateFromMutations,
-  VALID_PHASES,
-  TERMINAL_PHASES,
-} from '../src/server/phases';
+// @ts-expect-error — .mjs public asset, no TS types available
+import { createPhaseState, DEFAULT_STEPS } from '../public/assets/coaching/phases.mjs';
 
-function setup() {
-  const figureMaps = new Map<string, Map<string, any>>();
-  const mutations: any[] = [];
-  initPhases({ figureMaps, applyMutation: (room, msg) => mutations.push({ room, msg }) });
-  return { figureMaps, mutations };
-}
-
-test('VALID_PHASES / TERMINAL_PHASES membership', () => {
-  for (const p of ['warmup', 'active', 'paused', 'ended']) {
-    assert.ok(VALID_PHASES.has(p as any));
-  }
-  assert.ok(TERMINAL_PHASES.has('ended' as any));
-  assert.equal(TERMINAL_PHASES.has('active' as any), false);
+test('defaults to the constellation template at index 0', () => {
+  const p = createPhaseState();
+  assert.deepEqual(p.steps(), DEFAULT_STEPS);
+  assert.equal(p.index(), 0);
+  assert.equal(p.label(), 'Aufstellen');
 });
 
-test('transitionPhase: rejects an invalid phase', () => {
-  setup();
-  assert.deepEqual(transitionPhase('r', 'bogus' as any), { ok: false, reason: 'invalid-phase' });
+test('advance/back clamp at the ends', () => {
+  const p = createPhaseState();
+  assert.equal(p.advance(), 1);
+  assert.equal(p.label(), 'Wahrnehmen');
+  p.setIndex(p.steps().length - 1);
+  assert.equal(p.advance(), p.steps().length - 1); // clamped
+  p.setIndex(0);
+  assert.equal(p.back(), 0); // clamped
 });
 
-test('transitionPhase: blocks transitions out of a terminal phase', () => {
-  const { figureMaps, mutations } = setup();
-  const room = new Map<string, any>();
-  room.set('__session_phase__', { phase: 'ended' });
-  figureMaps.set('r', room);
-
-  const res = transitionPhase('r', 'active');
-  assert.equal(res.ok, false);
-  assert.equal(res.reason, 'terminal-phase');
-  assert.equal(mutations.length, 0); // no mutation emitted
+test('setSteps replaces the list and clamps index into range', () => {
+  const p = createPhaseState({ steps: ['A', 'B', 'C'], index: 2 });
+  p.setSteps(['X']);
+  assert.deepEqual(p.steps(), ['X']);
+  assert.equal(p.index(), 0);
+  assert.equal(p.label(), 'X');
 });
 
-test('transitionPhase: applies a valid transition and emits the mutation', () => {
-  const { figureMaps, mutations } = setup();
-  figureMaps.set('r', new Map());
-
-  const res = transitionPhase('r', 'active');
-  assert.equal(res.ok, true);
-  assert.equal(res.to, 'active');
-  assert.equal(mutations.length, 1);
-  assert.deepEqual(mutations[0].msg, { type: 'session_phase_set', phase: 'active' });
-});
-
-test('buildStateFromMutations: null for an unknown room', () => {
-  setup();
-  assert.equal(buildStateFromMutations('nope'), null);
-});
-
-test('buildStateFromMutations: separates figures from special session keys', () => {
-  const { figureMaps } = setup();
-  const room = new Map<string, any>();
-  room.set('fig1', { id: 'fig1', x: 1 });
-  room.set('__session_phase__', { id: '__session_phase__', phase: 'active' });
-  room.set('__session_code__', { id: '__session_code__', code: 'ABC123' });
-  figureMaps.set('r', room);
-
-  const state = buildStateFromMutations('r');
-  assert.deepEqual(state.figures, [{ id: 'fig1', x: 1 }]);
-  assert.equal(state.sessionPhase, 'active');
-  assert.equal(state.sessionCode, 'ABC123');
+test('setSteps ignores empty / non-string lists', () => {
+  const p = createPhaseState();
+  assert.equal(p.setSteps([]), false);
+  assert.equal(p.setSteps(['ok', 5]), false);
+  assert.deepEqual(p.steps(), DEFAULT_STEPS);
 });

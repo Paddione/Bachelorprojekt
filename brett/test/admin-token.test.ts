@@ -1,10 +1,7 @@
-// brett/test/admin-token.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test   = require('node:test');
-const assert = require('node:assert');
-const {
-  applyMutation,
+// brett/test/admin-token.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import {
   buildStateFromMutations,
   assignAdminToken,
   handoffAdminToken,
@@ -14,7 +11,7 @@ const {
   reclaimAdminToken,
   setRoomAdminPresence,
   handleAdminHandoffMessage,
-} = require('../server.js');
+} from '../src/server/index';
 
 test('assignAdminToken: sets holder when none exists', () => {
   const room = 'token-test-1';
@@ -87,8 +84,8 @@ test('beginTokenGrace expiry: auto-claim to other admin present in room', async 
 test('handleAdminHandoffMessage: paddione hands off → gekko, broadcast fired', () => {
   const room = 'handoff-test-1';
   assignAdminToken(room, 'paddione');
-  const broadcasts = [];
-  const result = handleAdminHandoffMessage(room, 'paddione', 'gekko', (msg) => broadcasts.push(msg));
+  const broadcasts: any[] = [];
+  const result = handleAdminHandoffMessage(room, 'paddione', 'gekko', (msg: any) => broadcasts.push(msg));
   assert.strictEqual(result.ok, true);
   assert.strictEqual(getAdminTokenHolder(room), 'gekko');
   assert.deepStrictEqual(broadcasts, [{

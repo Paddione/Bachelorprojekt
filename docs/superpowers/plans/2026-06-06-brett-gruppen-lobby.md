@@ -394,7 +394,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A4 — Hauptmenü screen → `menu.ts` (mentolder look)
+### A4 — Hauptmenü screen → `menu.ts` (mentolder look) — [x] DONE
 
 - **target_files:** `brett/src/client/ui/menu.ts` (new), `brett/test/menu-model.test.ts` (new)
 - **failing test first (red):** `brett/test/menu-model.test.ts` imports the **pure** `{ menuModel, isValidJoinCode }` from `../src/client/ui/menu` and asserts:

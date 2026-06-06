@@ -35,8 +35,10 @@ setup() {
 @test "FA-SF-03c: an explicit FACTORY_NS suppresses the no-BRAND WARN (keeps JSON stdout clean)" {
   # The suppression guard must key off FACTORY_NS (what callers actually set), not the
   # never-set FACTORY_NS_EXPLICIT. With FACTORY_NS provided, no WARN may reach stderr.
+  # `|| true`: offline (CI) conflict-check exits 2 (no cluster) — we only assert on the
+  # stderr CONTENT (the WARN), not the exit code, so the non-zero must not fail the test.
   err="$(env -u BRAND FACTORY_CTX=k3d-korczewski-dev FACTORY_NS=workspace-korczewski-dev \
-        bash scripts/factory/conflict-check.sh T000413 website/src/lib/tickets-db.ts 2>&1 1>/dev/null)"
+        bash scripts/factory/conflict-check.sh T000413 website/src/lib/tickets-db.ts 2>&1 1>/dev/null || true)"
   [[ "$err" != *"WARN: no BRAND"* ]]
 }
 

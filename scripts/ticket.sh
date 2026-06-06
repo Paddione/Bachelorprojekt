@@ -477,6 +477,10 @@ cmd_factory_control() {
     echo "ERROR: factory-control requires an action (get|set)." >&2; exit 2
   fi
   if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+  # Validate ALL args BEFORE the _pgpod cluster lookup so bad-arg errors are deterministic
+  # offline (FA-SF-35 ran arg-validation assertions in CI, where _pgpod has no cluster and
+  # would otherwise abort before the --value check fired).
+  if [[ "$action" == "set" && -z "$value" ]]; then echo "ERROR: --value is required for set." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   if [[ "$action" == "get" ]]; then
     _exec_sql "$pod" -v key="$key" -v brand="$brand" <<'EOF'
@@ -484,7 +488,6 @@ SELECT value FROM tickets.factory_control
 WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
 EOF
   else
-    if [[ -z "$value" ]]; then echo "ERROR: --value is required for set." >&2; exit 2; fi
     _exec_sql "$pod" -v key="$key" -v brand="$brand" -v value="$value" -v set_by="$set_by" <<'EOF' >/dev/null
 INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
 VALUES (:'key', NULLIF(:'brand',''), :'value', NULLIF(:'set_by',''), now())
@@ -547,13 +550,23 @@ cmd_feature_flag() {
     echo "ERROR: feature-flag requires an action (set|get|list)." >&2; exit 2
   fi
   if [[ -z "$brand" ]]; then echo "ERROR: --brand is required." >&2; exit 2; fi
-  local pod; pod=$(_pgpod)
+  # Validate per-action args BEFORE the _pgpod cluster lookup so bad-arg errors are
+  # deterministic offline (FA-SF-35's arg-validation assertions run in CI with no cluster;
+  # _pgpod must not pre-empt them).
   case "$action" in
     set)
       if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
       if [[ "$enabled" != "true" && "$enabled" != "false" ]]; then
         echo "ERROR: --enabled must be true|false." >&2; exit 2
       fi
+      ;;
+    get)
+      if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+      ;;
+  esac
+  local pod; pod=$(_pgpod)
+  case "$action" in
+    set)
       _exec_sql "$pod" -v brand="$brand" -v key="$key" -v enabled="$enabled" -v set_by="$set_by" <<'EOF' >/dev/null
 INSERT INTO tickets.feature_flags (brand, key, enabled, set_by)
 VALUES (:'brand', :'key', :'enabled'::boolean, NULLIF(:'set_by',''))
@@ -563,7 +576,6 @@ EOF
       echo "feature-flag set: $brand/$key=$enabled"
       ;;
     get)
-      if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
       _exec_sql "$pod" -v brand="$brand" -v key="$key" <<'EOF'
 SELECT enabled FROM tickets.feature_flags WHERE brand = :'brand' AND key = :'key';
 EOF

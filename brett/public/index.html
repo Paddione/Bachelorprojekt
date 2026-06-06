@@ -1392,7 +1392,7 @@
     pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Space = Sprung · Klick Boden = Ziel · Tab = nächste';
   }
 
-  // ----- Admin bootstrap -----
+  // ----- Admin bootstrap (coaching-only: no Mayhem/RoomBrowser) -----
   (async function adminBootstrap() {
     try {
       const res = await fetch('/auth/me');
@@ -1404,12 +1404,6 @@
         }
         return;
       }
-      if (!me.isAdmin) return;
-      window._bretAdmin = me;
-      const roomParam = new URLSearchParams(window.location.search).get('room');
-      if (!roomParam && window.RoomBrowser) {
-        window.RoomBrowser.show(me.name);
-      }
     } catch {}
   })();
 
@@ -1418,10 +1412,6 @@
   const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
   let ws, wsReady = false;
 
-  const mayhemSend = (msg) => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    try { ws.send(JSON.stringify(msg)); } catch (e) { /* ignore */ }
-  };
 
   function connectWS() {
     ws = new WebSocket(`${wsProto}//${location.host}/sync`);
@@ -1430,17 +1420,6 @@
     ws.addEventListener("open", () => {
       wsReady = true;
       ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
-      // Mount admin panel if admin
-      if (window._bretAdmin && window.AdminPanel) {
-        const joinMode = sessionStorage.getItem('brett_admin_join_mode') || 'spectator';
-        window.AdminPanel.mount({
-          sendFn: (msg) => { try { ws.send(JSON.stringify(msg)); } catch {} },
-          room: roomFromUrl,
-          roomName: roomFromUrl,
-          joinMode,
-        });
-        if (joinMode === 'spectator') window._mayhemSpectator = true;
-      }
     });
 
     ws.addEventListener("close", () => {
@@ -1451,24 +1430,7 @@
     ws.addEventListener("message", onWsMessage);
   }
 
-  // Deferred init bridge: main.js calls this after mode selection resolves to 'mayhem'.
-  window.__brettInitMayhem = function () {
-    if (!window.Mayhem || window.Mayhem._initialized) return;
-    window.Mayhem.init({
-      scene, camera, canvas: renderer.domElement,
-      makeMannequin: (id, pos, opts) => makeMannequin(id, pos, opts),
-      sendMessage: mayhemSend,
-      roomToken: roomFromUrl,
-    });
-    window.Mayhem._initialized = true;
-  };
-
   connectWS();
-
-  // Toast fires via custom event dispatched from mayhem.js setEnabled
-  window.addEventListener('brett:mayhem-enabled', () => {
-    window.MayhemControlsPanel?.showEntryToast();
-  });
 
   function onWsMessage(evt) {
     let msg; try { msg = JSON.parse(evt.data); } catch { return; }
@@ -1506,14 +1468,6 @@
           activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
           setFigureLockBadge(l.figureId, l.name, l.color);
         }
-        // Solo AI Mayhem: auto-enable if triggered from mode-select
-        if (sessionStorage.getItem('brett_solo_mayhem') === '1') {
-          sessionStorage.removeItem('brett_solo_mayhem');
-          if (window.Mayhem && !window.Mayhem._internal.localAvatar) {
-            window.Mayhem.setEnabled(true);
-          }
-        }
-        if (window.Mayhem) window.Mayhem.onSnapshot(msg);
         break;
       case "stiffness":
         STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);
@@ -1579,14 +1533,8 @@
       case "info":
         STATE.online = msg.count || 1;
         document.getElementById("online-count").textContent = String(STATE.online);
-        if (window.AdminPanel) window.AdminPanel.onMessage(msg);
         break;
       default:
-        if (window.Mayhem) {
-          if (msg.type === "snapshot") window.Mayhem.onSnapshot(msg);
-          else window.Mayhem.onMessage(msg);
-        }
-        if (window.AdminPanel) window.AdminPanel.onMessage(msg);
         break;
     }
   }
@@ -1624,7 +1572,6 @@
     requestAnimationFrame(tick);
     const now = performance.now();
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
-    if (window.Mayhem) window.Mayhem.tick(dt);
     lastTickMs = now;
     tickWalk(dt, now / 1000);
     tickSpring(dt);
@@ -1933,30 +1880,28 @@
 <script type="module">
   import { createWire } from '/assets/coaching/wire.mjs';
   import { mountCoachingHud } from '/assets/coaching/hud.mjs';
-  const cfg = await fetch('/api/config').then((r) => r.json());
-  if (cfg.defaultMode === 'coaching') {
-    const me = await fetch('/auth/me').then((r) => r.json()).catch(() => ({}));
-    const wire = createWire(() => window.__brettWS);
-    const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
-    tryAttach();
-    
-    const hasRoom = new URLSearchParams(location.search).has('room');
-    if (!hasRoom) {
-      const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
-      mountJoinOverlay({});
-    } else {
-      mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
-    }
+  // Coaching runs unconditionally — mode concept removed.
+  const me = await fetch('/auth/me').then((r) => r.json()).catch(() => ({}));
+  const wire = createWire(() => window.__brettWS);
+  const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
+  tryAttach();
 
-    wire.on('session_created', (m) => {
-      const toast = document.createElement('div');
-      toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
-      toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
-        `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
-        `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
-      document.body.appendChild(toast);
-    });
+  const hasRoom = new URLSearchParams(location.search).has('room');
+  if (!hasRoom) {
+    const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
+    mountJoinOverlay({});
+  } else {
+    mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
   }
+
+  wire.on('session_created', (m) => {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+    toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
+      `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
+      `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
+    document.body.appendChild(toast);
+  });
 </script>
 </body>
 </html>

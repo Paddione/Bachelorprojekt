@@ -292,7 +292,7 @@ git commit -m "chore(db): add korczewski Mustervertrag + Musterrechnung seed SQL
 - [ ] **Step 1: Get the korczewski shared-db pod name**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace-korczewski --context korczewski \
+PGPOD=$(kubectl get pod -n workspace-korczewski --context fleet \
   -l app=shared-db -o name | head -1)
 echo "Pod: $PGPOD"
 ```
@@ -302,7 +302,7 @@ Expected output: `Pod: pod/shared-db-XXXXXXXX-XXXXX`
 - [ ] **Step 2: Verify pre-condition (both tables empty)**
 
 ```bash
-kubectl exec "$PGPOD" -n workspace-korczewski --context korczewski -- \
+kubectl exec "$PGPOD" -n workspace-korczewski --context fleet -- \
   psql -U website -d website -c \
   "SELECT COUNT(*) AS mustervertrag_count FROM document_templates WHERE title = 'Mustervertrag';
    SELECT COUNT(*) AS musterrechnung_count FROM site_settings WHERE brand = 'korczewski' AND key LIKE 'invoice_%';"
@@ -313,7 +313,7 @@ Expected output: both counts are `0` (pre-seed state).
 - [ ] **Step 3: Apply the seed SQL**
 
 ```bash
-kubectl exec -i "$PGPOD" -n workspace-korczewski --context korczewski -- \
+kubectl exec -i "$PGPOD" -n workspace-korczewski --context fleet -- \
   psql -U website -d website \
   < scripts/one-shot/20260524-korczewski-muster-seed.sql
 ```
@@ -331,7 +331,7 @@ If `INSERT 0 0` appears instead of `INSERT 0 1` for the Mustervertrag, a row wit
 - [ ] **Step 4: Verify post-condition**
 
 ```bash
-kubectl exec "$PGPOD" -n workspace-korczewski --context korczewski -- \
+kubectl exec "$PGPOD" -n workspace-korczewski --context fleet -- \
   psql -U website -d website -c \
   "SELECT id, title, char_length(html_body) AS body_chars, created_at FROM document_templates WHERE title = 'Mustervertrag';
    SELECT brand, key, substring(value,1,60) AS value_preview FROM site_settings WHERE brand = 'korczewski' AND key LIKE 'invoice_%' ORDER BY key;"

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# HISTORICAL — korczewski standalone cluster TORN DOWN (Stage 2, PR #1189, 2026-05-06).
+# This script is no longer runnable. Kept for historical reference only.
+# The korczewski brand is now deployed to the fleet cluster (context: fleet, ns: workspace-korczewski).
 # ═══════════════════════════════════════════════════════════════════════
 # Enroll pk-hetzner-2 and pk-hetzner-3 into the korczewski k3s cluster
 # as additional control-plane nodes, converting it from single-node

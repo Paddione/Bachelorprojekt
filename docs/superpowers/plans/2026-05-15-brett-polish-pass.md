@@ -148,8 +148,8 @@ test "$(grep -c "case 'stiffness'" brett/server.js)" = "1" && echo OK || echo FA
 - [ ] **Step 2: Close ticket via SQL**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "$PGPOD" -n workspace --context mentolder -- psql -U website -d website -c \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "$PGPOD" -n workspace --context fleet -- psql -U website -d website -c \
   "UPDATE tickets.tickets SET status='done', resolution='Already fixed in PR #779 via T000388' WHERE external_id='T000393';"
 ```
 

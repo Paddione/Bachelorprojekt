@@ -81,10 +81,10 @@ Placed **after** the existing Mishap Report section (which calls `mishap-tracker
 **Step 9a — Query open skill-improvement tickets:**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+kubectl exec "$PGPOD" -n workspace --context fleet -- \
   psql -U website -d website -At -c \
   "SELECT external_id, title, description, component
    FROM tickets.tickets
@@ -117,7 +117,7 @@ For each returned ticket:
    ```
 6. Close the ticket:
    ```bash
-   kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+   kubectl exec "$PGPOD" -n workspace --context fleet -- \
      psql -U website -d website -c \
      "UPDATE tickets.tickets SET
         status = 'done', resolution = 'fixed', done_at = now(),
@@ -159,10 +159,10 @@ Add a new step **before** the existing "Phase 0 — Repo hygiene":
 **Phase 0: Skill-improvement tickets (loop feedback)**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder \
+PGPOD=$(kubectl get pod -n workspace --context fleet \
   -l app=shared-db -o name | head -1)
 
-kubectl exec "$PGPOD" -n workspace --context mentolder -- \
+kubectl exec "$PGPOD" -n workspace --context fleet -- \
   psql -U website -d website -At -c \
   "SELECT external_id, title, description, component
    FROM tickets.tickets

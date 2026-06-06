@@ -2,9 +2,11 @@
 title: Multi-node HA Dev Cluster Implementation Plan
 ticket_id: null
 domains: [website, infra, db, ops, test, security]
-status: active
+status: shelved
 pr_number: null
 ---
+
+> **⚠️ SHELVED 2026-05-30 — NEVER EXECUTED.** The `devc` 3-node k3s HA cluster described here was never built. The `k3s-1` host has been permanently decommissioned (memory corruption 2026-05-31). Dev now runs via local k3d on the WSL host (context: `k3d-mentolder-dev`). All `--context devc` commands in this document are historical artifacts and will NOT work.
 
 # Multi-node HA Dev Cluster Implementation Plan
 

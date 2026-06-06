@@ -24,7 +24,7 @@ Topology is fully consolidated ("Fleet Stage 3", complete as of 2026-05-31). The
   - **mentolder brand** — ENV `mentolder`, ns `workspace`, domain `mentolder.de`.
   - **korczewski brand** — ENV `korczewski`, ns `workspace-korczewski`, domain `korczewski.de`.
 - Both brands at 26/26 pods. The standalone `mentolder` cluster was decommissioned (k3s uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers). The standalone `korczewski` cluster was torn down earlier.
-- The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for all kubectl commands. The one remaining non-fleet context is `k3d-mentolder-dev` (dev stack on k3s-1).
+- The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for all kubectl commands. The one remaining non-fleet context is `k3d-mentolder-dev` (dev stack on the WSL host / Proxmox VM 10.0.0.26; `k3s-1` was decommissioned 2026-05-31 due to memory corruption).
 - DNS for both `mentolder.de` and `korczewski.de` routes to the `fleet` cluster.
 - Always use `WORKSPACE_NAMESPACE` env var; never hardcode `-n workspace`.
 

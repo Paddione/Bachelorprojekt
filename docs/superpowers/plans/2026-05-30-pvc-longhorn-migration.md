@@ -114,17 +114,17 @@ git commit -m "fix(infra): add Longhorn storageClass patch for data PVCs in prod
 ### Task 2: Migrate nextcloud-data-pvc (gekko-hetzner-4)
 
 > **IMPORTANT:** Run these steps exactly in order. Deleting a PVC destroys the live data. The tar archive on backup-pvc is the only safety net.
-> Run: `kubectl --context mentolder -n workspace` for all commands below (abbreviated as `KB` in step comments).
+> Run: `kubectl --context fleet -n workspace` for all commands below (abbreviated as `KB` in step comments).
 
 **Prerequisite:** Task 1 committed and `kustomize build prod-mentolder/` shows `storageClassName: longhorn` for `nextcloud-data-pvc`.
 
 - [ ] **Step 1: Scale down nextcloud**
 
 ```bash
-kubectl --context mentolder -n workspace scale deploy/nextcloud --replicas=0
-kubectl --context mentolder -n workspace wait deployment/nextcloud --for=condition=Available=False --timeout=60s || true
+kubectl --context fleet -n workspace scale deploy/nextcloud --replicas=0
+kubectl --context fleet -n workspace wait deployment/nextcloud --for=condition=Available=False --timeout=60s || true
 # Verify: 0 pods
-kubectl --context mentolder -n workspace get pods -l app=nextcloud
+kubectl --context fleet -n workspace get pods -l app=nextcloud
 # Expected: No resources found
 ```
 
@@ -133,7 +133,7 @@ kubectl --context mentolder -n workspace get pods -l app=nextcloud
 The pod must run on `gekko-hetzner-4` (where `nextcloud-data-pvc` lives — local-path is node-locked).
 
 ```bash
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -161,19 +161,19 @@ spec:
     persistentVolumeClaim:
       claimName: backup-pvc
 EOF
-kubectl --context mentolder -n workspace wait pod/migrate-nextcloud --for=condition=Ready --timeout=90s
+kubectl --context fleet -n workspace wait pod/migrate-nextcloud --for=condition=Ready --timeout=90s
 ```
 
 - [ ] **Step 3: Tar nextcloud data to backup-pvc**
 
 ```bash
 STAMP=$(date +%Y%m%d-%H%M%S)
-kubectl --context mentolder -n workspace exec migrate-nextcloud -- \
+kubectl --context fleet -n workspace exec migrate-nextcloud -- \
   sh -c "tar czf /staging/migration-nextcloud-${STAMP}.tar.gz -C /source . && echo 'tar OK'"
 # Expected output: tar OK
 
 # Verify archive is substantial (nextcloud data is typically several MB)
-kubectl --context mentolder -n workspace exec migrate-nextcloud -- \
+kubectl --context fleet -n workspace exec migrate-nextcloud -- \
   ls -lh /staging/migration-nextcloud-${STAMP}.tar.gz
 # Expected: file size > 0, not empty
 ```
@@ -181,28 +181,28 @@ kubectl --context mentolder -n workspace exec migrate-nextcloud -- \
 - [ ] **Step 4: Delete migration pod and old PVC**
 
 ```bash
-kubectl --context mentolder -n workspace delete pod migrate-nextcloud
+kubectl --context fleet -n workspace delete pod migrate-nextcloud
 
 # ⚠️  IRREVERSIBLE — only proceed after verifying Step 3 succeeded
-kubectl --context mentolder -n workspace delete pvc nextcloud-data-pvc
+kubectl --context fleet -n workspace delete pvc nextcloud-data-pvc
 # Expected: persistentvolumeclaim "nextcloud-data-pvc" deleted
 ```
 
 - [ ] **Step 5: Re-apply kustomize to create new Longhorn PVC**
 
 ```bash
-kubectl apply -k prod-mentolder/ --context mentolder 2>&1 | grep -E "configured|created|unchanged|error"
+kubectl apply -k prod-mentolder/ --context fleet 2>&1 | grep -E "configured|created|unchanged|error"
 # Expected: "nextcloud-data-pvc ... created" among the output
 
-kubectl --context mentolder -n workspace wait pvc/nextcloud-data-pvc --for=jsonpath='{.status.phase}'=Bound --timeout=60s
-kubectl --context mentolder -n workspace get pvc nextcloud-data-pvc -o jsonpath='{.spec.storageClassName}'
+kubectl --context fleet -n workspace wait pvc/nextcloud-data-pvc --for=jsonpath='{.status.phase}'=Bound --timeout=60s
+kubectl --context fleet -n workspace get pvc nextcloud-data-pvc -o jsonpath='{.spec.storageClassName}'
 # Expected: longhorn
 ```
 
 - [ ] **Step 6: Restore data from backup-pvc to new Longhorn PVC**
 
 ```bash
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -230,7 +230,7 @@ spec:
       claimName: backup-pvc
       readOnly: true
 EOF
-kubectl --context mentolder -n workspace wait pod/restore-nextcloud --for=condition=Ready --timeout=90s
+kubectl --context fleet -n workspace wait pod/restore-nextcloud --for=condition=Ready --timeout=90s
 ```
 
 - [ ] **Step 7: Extract archive into new PVC**
@@ -238,27 +238,27 @@ kubectl --context mentolder -n workspace wait pod/restore-nextcloud --for=condit
 ```bash
 # Use the same STAMP from Step 3 — if session was reset, find it:
 # kubectl exec restore-nextcloud -- ls /staging/migration-nextcloud-*.tar.gz
-kubectl --context mentolder -n workspace exec restore-nextcloud -- \
+kubectl --context fleet -n workspace exec restore-nextcloud -- \
   sh -c "tar xzf /staging/migration-nextcloud-${STAMP}.tar.gz -C /dest && echo 'restore OK'"
 # Expected: restore OK
 
 # Verify data is present
-kubectl --context mentolder -n workspace exec restore-nextcloud -- \
+kubectl --context fleet -n workspace exec restore-nextcloud -- \
   sh -c "ls /dest | head -5 && echo 'data present'"
 ```
 
 - [ ] **Step 8: Clean up restore pod and scale nextcloud back up**
 
 ```bash
-kubectl --context mentolder -n workspace delete pod restore-nextcloud
-kubectl --context mentolder -n workspace scale deploy/nextcloud --replicas=1
-kubectl --context mentolder -n workspace wait deployment/nextcloud --for=condition=Available --timeout=120s
+kubectl --context fleet -n workspace delete pod restore-nextcloud
+kubectl --context fleet -n workspace scale deploy/nextcloud --replicas=1
+kubectl --context fleet -n workspace wait deployment/nextcloud --for=condition=Available --timeout=120s
 ```
 
 - [ ] **Step 9: Verify nextcloud is healthy**
 
 ```bash
-kubectl --context mentolder -n workspace get pods -l app=nextcloud
+kubectl --context fleet -n workspace get pods -l app=nextcloud
 # Expected: 3/3 Running
 
 curl -sf https://files.mentolder.de/status.php | jq .
@@ -280,9 +280,9 @@ Same pattern as Task 2 but for `vaultwarden-data-pvc` on `gekko-hetzner-3`.
 - [ ] **Step 1: Scale down vaultwarden**
 
 ```bash
-kubectl --context mentolder -n workspace scale deploy/vaultwarden --replicas=0
-kubectl --context mentolder -n workspace wait deployment/vaultwarden --for=condition=Available=False --timeout=60s || true
-kubectl --context mentolder -n workspace get pods -l app=vaultwarden
+kubectl --context fleet -n workspace scale deploy/vaultwarden --replicas=0
+kubectl --context fleet -n workspace wait deployment/vaultwarden --for=condition=Available=False --timeout=60s || true
+kubectl --context fleet -n workspace get pods -l app=vaultwarden
 # Expected: No resources found
 ```
 
@@ -290,7 +290,7 @@ kubectl --context mentolder -n workspace get pods -l app=vaultwarden
 
 ```bash
 STAMP=$(date +%Y%m%d-%H%M%S)
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -318,40 +318,40 @@ spec:
     persistentVolumeClaim:
       claimName: backup-pvc
 EOF
-kubectl --context mentolder -n workspace wait pod/migrate-vaultwarden --for=condition=Ready --timeout=90s
+kubectl --context fleet -n workspace wait pod/migrate-vaultwarden --for=condition=Ready --timeout=90s
 ```
 
 - [ ] **Step 3: Tar vaultwarden data to backup-pvc**
 
 ```bash
-kubectl --context mentolder -n workspace exec migrate-vaultwarden -- \
+kubectl --context fleet -n workspace exec migrate-vaultwarden -- \
   sh -c "tar czf /staging/migration-vaultwarden-${STAMP}.tar.gz -C /source . && echo 'tar OK'"
 # Expected: tar OK
-kubectl --context mentolder -n workspace exec migrate-vaultwarden -- \
+kubectl --context fleet -n workspace exec migrate-vaultwarden -- \
   ls -lh /staging/migration-vaultwarden-${STAMP}.tar.gz
 ```
 
 - [ ] **Step 4: Delete migration pod and old PVC**
 
 ```bash
-kubectl --context mentolder -n workspace delete pod migrate-vaultwarden
+kubectl --context fleet -n workspace delete pod migrate-vaultwarden
 # ⚠️  IRREVERSIBLE — only after Step 3 succeeded
-kubectl --context mentolder -n workspace delete pvc vaultwarden-data-pvc
+kubectl --context fleet -n workspace delete pvc vaultwarden-data-pvc
 ```
 
 - [ ] **Step 5: Re-apply kustomize to create new Longhorn PVC**
 
 ```bash
-kubectl apply -k prod-mentolder/ --context mentolder 2>&1 | grep -E "vaultwarden-data-pvc|error"
-kubectl --context mentolder -n workspace wait pvc/vaultwarden-data-pvc --for=jsonpath='{.status.phase}'=Bound --timeout=60s
-kubectl --context mentolder -n workspace get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}'
+kubectl apply -k prod-mentolder/ --context fleet 2>&1 | grep -E "vaultwarden-data-pvc|error"
+kubectl --context fleet -n workspace wait pvc/vaultwarden-data-pvc --for=jsonpath='{.status.phase}'=Bound --timeout=60s
+kubectl --context fleet -n workspace get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}'
 # Expected: longhorn
 ```
 
 - [ ] **Step 6: Restore and verify**
 
 ```bash
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -379,21 +379,21 @@ spec:
       claimName: backup-pvc
       readOnly: true
 EOF
-kubectl --context mentolder -n workspace wait pod/restore-vaultwarden --for=condition=Ready --timeout=90s
+kubectl --context fleet -n workspace wait pod/restore-vaultwarden --for=condition=Ready --timeout=90s
 
-kubectl --context mentolder -n workspace exec restore-vaultwarden -- \
+kubectl --context fleet -n workspace exec restore-vaultwarden -- \
   sh -c "tar xzf /staging/migration-vaultwarden-${STAMP}.tar.gz -C /dest && echo 'restore OK'"
 # Expected: restore OK
 
-kubectl --context mentolder -n workspace delete pod restore-vaultwarden
+kubectl --context fleet -n workspace delete pod restore-vaultwarden
 ```
 
 - [ ] **Step 7: Scale vaultwarden back up and verify**
 
 ```bash
-kubectl --context mentolder -n workspace scale deploy/vaultwarden --replicas=1
-kubectl --context mentolder -n workspace wait deployment/vaultwarden --for=condition=Available --timeout=120s
-kubectl --context mentolder -n workspace get pods -l app=vaultwarden
+kubectl --context fleet -n workspace scale deploy/vaultwarden --replicas=1
+kubectl --context fleet -n workspace wait deployment/vaultwarden --for=condition=Available --timeout=120s
+kubectl --context fleet -n workspace get pods -l app=vaultwarden
 # Expected: 1/1 Running
 
 curl -sf https://vault.mentolder.de/alive | head -c 50
@@ -409,9 +409,9 @@ Same pattern as Task 3 but for `docuseal-data-pvc`.
 - [ ] **Step 1: Scale down docuseal**
 
 ```bash
-kubectl --context mentolder -n workspace scale deploy/docuseal --replicas=0
-kubectl --context mentolder -n workspace wait deployment/docuseal --for=condition=Available=False --timeout=60s || true
-kubectl --context mentolder -n workspace get pods -l app=docuseal
+kubectl --context fleet -n workspace scale deploy/docuseal --replicas=0
+kubectl --context fleet -n workspace wait deployment/docuseal --for=condition=Available=False --timeout=60s || true
+kubectl --context fleet -n workspace get pods -l app=docuseal
 # Expected: No resources found
 ```
 
@@ -420,7 +420,7 @@ kubectl --context mentolder -n workspace get pods -l app=docuseal
 ```bash
 STAMP=$(date +%Y%m%d-%H%M%S)
 # Migration pod
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -448,29 +448,29 @@ spec:
     persistentVolumeClaim:
       claimName: backup-pvc
 EOF
-kubectl --context mentolder -n workspace wait pod/migrate-docuseal --for=condition=Ready --timeout=90s
+kubectl --context fleet -n workspace wait pod/migrate-docuseal --for=condition=Ready --timeout=90s
 
-kubectl --context mentolder -n workspace exec migrate-docuseal -- \
+kubectl --context fleet -n workspace exec migrate-docuseal -- \
   sh -c "tar czf /staging/migration-docuseal-${STAMP}.tar.gz -C /source . && echo 'tar OK'"
 # Expected: tar OK
 
-kubectl --context mentolder -n workspace exec migrate-docuseal -- \
+kubectl --context fleet -n workspace exec migrate-docuseal -- \
   ls -lh /staging/migration-docuseal-${STAMP}.tar.gz
 
-kubectl --context mentolder -n workspace delete pod migrate-docuseal
+kubectl --context fleet -n workspace delete pod migrate-docuseal
 # ⚠️  IRREVERSIBLE
-kubectl --context mentolder -n workspace delete pvc docuseal-data-pvc
+kubectl --context fleet -n workspace delete pvc docuseal-data-pvc
 ```
 
 - [ ] **Step 3: Re-apply kustomize + restore**
 
 ```bash
-kubectl apply -k prod-mentolder/ --context mentolder 2>&1 | grep -E "docuseal-data-pvc|error"
-kubectl --context mentolder -n workspace wait pvc/docuseal-data-pvc --for=jsonpath='{.status.phase}'=Bound --timeout=60s
-kubectl --context mentolder -n workspace get pvc docuseal-data-pvc -o jsonpath='{.spec.storageClassName}'
+kubectl apply -k prod-mentolder/ --context fleet 2>&1 | grep -E "docuseal-data-pvc|error"
+kubectl --context fleet -n workspace wait pvc/docuseal-data-pvc --for=jsonpath='{.status.phase}'=Bound --timeout=60s
+kubectl --context fleet -n workspace get pvc docuseal-data-pvc -o jsonpath='{.spec.storageClassName}'
 # Expected: longhorn
 
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -498,21 +498,21 @@ spec:
       claimName: backup-pvc
       readOnly: true
 EOF
-kubectl --context mentolder -n workspace wait pod/restore-docuseal --for=condition=Ready --timeout=90s
+kubectl --context fleet -n workspace wait pod/restore-docuseal --for=condition=Ready --timeout=90s
 
-kubectl --context mentolder -n workspace exec restore-docuseal -- \
+kubectl --context fleet -n workspace exec restore-docuseal -- \
   sh -c "tar xzf /staging/migration-docuseal-${STAMP}.tar.gz -C /dest && echo 'restore OK'"
 # Expected: restore OK
 
-kubectl --context mentolder -n workspace delete pod restore-docuseal
+kubectl --context fleet -n workspace delete pod restore-docuseal
 ```
 
 - [ ] **Step 4: Scale docuseal back up and verify**
 
 ```bash
-kubectl --context mentolder -n workspace scale deploy/docuseal --replicas=1
-kubectl --context mentolder -n workspace wait deployment/docuseal --for=condition=Available --timeout=120s
-kubectl --context mentolder -n workspace get pods -l app=docuseal
+kubectl --context fleet -n workspace scale deploy/docuseal --replicas=1
+kubectl --context fleet -n workspace wait deployment/docuseal --for=condition=Available --timeout=120s
+kubectl --context fleet -n workspace get pods -l app=docuseal
 # Expected: 1/1 Running
 ```
 
@@ -525,7 +525,7 @@ All three data PVCs are now on Longhorn. Trigger a manual Job from the CronJob t
 - [ ] **Step 1: Confirm all three PVCs show longhorn**
 
 ```bash
-kubectl --context mentolder -n workspace get pvc nextcloud-data-pvc vaultwarden-data-pvc docuseal-data-pvc \
+kubectl --context fleet -n workspace get pvc nextcloud-data-pvc vaultwarden-data-pvc docuseal-data-pvc \
   -o custom-columns='NAME:.metadata.name,SC:.spec.storageClassName,STATUS:.status.phase'
 # Expected: all three show SC=longhorn, STATUS=Bound
 ```
@@ -534,18 +534,18 @@ kubectl --context mentolder -n workspace get pvc nextcloud-data-pvc vaultwarden-
 
 ```bash
 STAMP=$(date +%Y%m%d-%H%M%S)
-kubectl --context mentolder -n workspace create job "pvc-backup-verify-${STAMP}" \
+kubectl --context fleet -n workspace create job "pvc-backup-verify-${STAMP}" \
   --from=cronjob/pvc-backup
-kubectl --context mentolder -n workspace get pods -l "job-name=pvc-backup-verify-${STAMP}" -w
+kubectl --context fleet -n workspace get pods -l "job-name=pvc-backup-verify-${STAMP}" -w
 # Expected: pod transitions to Running within 30s (no more Pending)
 ```
 
 - [ ] **Step 3: Wait for job completion and check logs**
 
 ```bash
-kubectl --context mentolder -n workspace wait job/"pvc-backup-verify-${STAMP}" \
+kubectl --context fleet -n workspace wait job/"pvc-backup-verify-${STAMP}" \
   --for=condition=Complete --timeout=300s
-kubectl --context mentolder -n workspace logs job/"pvc-backup-verify-${STAMP}" -c backup
+kubectl --context fleet -n workspace logs job/"pvc-backup-verify-${STAMP}" -c backup
 # Expected output includes:
 #   ✓ nextcloud-files OK (...)
 #   ✓ vaultwarden-data OK (...)
@@ -556,7 +556,7 @@ kubectl --context mentolder -n workspace logs job/"pvc-backup-verify-${STAMP}" -
 - [ ] **Step 4: Clean up migration archives from backup-pvc**
 
 ```bash
-kubectl --context mentolder -n workspace apply -f - << 'EOF'
+kubectl --context fleet -n workspace apply -f - << 'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -576,9 +576,9 @@ spec:
     persistentVolumeClaim:
       claimName: backup-pvc
 EOF
-kubectl --context mentolder -n workspace wait pod/cleanup-migration --for=condition=Ready --timeout=60s
-kubectl --context mentolder -n workspace logs cleanup-migration
-kubectl --context mentolder -n workspace delete pod cleanup-migration
+kubectl --context fleet -n workspace wait pod/cleanup-migration --for=condition=Ready --timeout=60s
+kubectl --context fleet -n workspace logs cleanup-migration
+kubectl --context fleet -n workspace delete pod cleanup-migration
 ```
 
 ---

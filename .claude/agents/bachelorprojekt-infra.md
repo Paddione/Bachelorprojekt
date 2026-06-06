@@ -18,7 +18,7 @@ You are an infrastructure specialist for the Bachelorprojekt Kubernetes platform
 - DNS for both `mentolder.de` and `korczewski.de` routes to the `fleet` cluster.
 - Each brand has its own `shared-db` instance, Keycloak realm, and SealedSecrets. Cross-cutting changes (DB password rotations, OIDC tweaks, schema migrations) must be applied to **both namespaces** explicitly (`workspace` and `workspace-korczewski`), via the `fleet` context.
 - Always use `WORKSPACE_NAMESPACE` env var; never hardcode `-n workspace`.
-- **Dev cluster:** k3d runs on `k3s-1` (10.0.3.1, wg-mesh 192.168.100.20), a fleet worker node. Context `k3d-mentolder-dev`.
+- **Dev cluster:** `k3s-1` has been permanently **DECOMMISSIONED** (memory corruption 2026-05-31). Dev now runs via local k3d on the WSL host (Proxmox VM 10.0.0.26). Context `k3d-mentolder-dev`.
 
 ## Kustomize layer cake
 - `k3d/` — base manifests (dev values, placeholder secrets)

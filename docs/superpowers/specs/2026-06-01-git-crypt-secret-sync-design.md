@@ -97,7 +97,7 @@ be restored without re-sealing everything:
 kubectl --context fleet get secret -n kube-system \
   -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml \
   > environments/.secrets/sealed-secrets-key.fleet.yaml
-# repeat for the dev (devc) controller if/when present
+# repeat for the dev (k3d-mentolder-dev) controller if/when present
 ```
 
 Matched by the `environments/.secrets/**` glob → encrypted on commit. Restore on

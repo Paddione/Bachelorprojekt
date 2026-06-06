@@ -2,8 +2,8 @@
 title: Content-Hub Price SSOT & Full Homepage Editability — Implementation Plan
 ticket_id: T000305
 domains: [website, db]
-status: active
-pr_number: null
+status: done
+pr_number: 1152
 ---
 
 # Content-Hub Price SSOT & Full Homepage Editability — Implementation Plan
@@ -52,8 +52,8 @@ Expected: existing vitest suite runs (green or known-state). This confirms the h
 - [ ] **P2: Capture the current homepage state (for later before/after diff)**
 
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl exec "${PGPOD#pod/}" -n workspace --context mentolder -- \
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl exec "${PGPOD#pod/}" -n workspace --context fleet -- \
   psql -U website -d website -At -c \
   "SELECT brand, key FROM site_settings ORDER BY 1,2;
    SELECT brand, jsonb_pretty(categories_json) FROM leistungen_config;
@@ -817,8 +817,8 @@ task test:inventory && git diff --exit-code website/src/data/test-inventory.json
 - [ ] **Step 3:** After PR merge + deploy, `--apply` on **prod mentolder** then **prod korczewski** (each backup-first). Per the cross-cluster rule, run the migration against **both** `shared-db` instances explicitly.
 - [ ] **Step 4: Verify backup coverage**
 ```bash
-PGPOD=$(kubectl get pod -n workspace --context mentolder -l app=shared-db -o name | head -1)
-kubectl -n workspace --context mentolder create job content-hub-verify --from=cronjob/db-backup
+PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+kubectl -n workspace --context fleet create job content-hub-verify --from=cronjob/db-backup
 # then inspect the dump per reference_website_content_db_backed: it must contain the edited nav + price values
 ```
 Expected: a changed nav entry and a changed price value are present in the fresh dump.

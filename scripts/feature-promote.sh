@@ -134,11 +134,13 @@ svc_deployment() {
 }
 
 # Dev context/namespace per cluster.
-dev_ctx() { case "$1" in mentolder) echo "k3d-mentolder-dev" ;; korczewski) echo "k3d-korczewski-dev" ;; esac; }
+dev_ctx() { case "$1" in mentolder) echo "k3d-mentolder-dev" ;; korczewski) echo "k3d-mentolder-dev" ;; esac; }
 dev_ns()  { case "$1" in mentolder) echo "workspace-dev"    ;; korczewski) echo "workspace-korczewski-dev" ;; esac; }
 
-# Prod context is the bare cluster name; ns depends on service.
-prod_ctx() { echo "$1"; }
+# Prod context resolved via env-resolve.sh → always "fleet" (both brands share the fleet cluster).
+# shellcheck disable=SC2120
+prod_ctx() { # shellcheck disable=SC1091
+  source "$REPO/scripts/env-resolve.sh" "$1" >/dev/null 2>&1; echo "${ENV_CONTEXT:-fleet}"; }
 prod_ns() {
   local svc="$1" cluster="$2"
   if [[ "$svc" == "website" ]]; then
@@ -226,13 +228,13 @@ roll() {
 # Captures the pre-deploy revision FIRST, re-probes the LIVE web.<brand>.de site
 # (unauth grep from tests/e2e/smoke/website.txt) for ~5 min, and on red rolls the
 # deployment back to the captured revision. Context is resolved STRICTLY via
-# env-resolve.sh (ENV_CONTEXT=fleet); the dead prod_ctx() bare names are never used.
+# env-resolve.sh (ENV_CONTEXT=fleet); prod_ctx() also resolves via env-resolve.sh now.
 observe_prod() {
   local cluster="$1" full="$2"
   local deploy ns ctx prev_rev live grep_pat
   deploy=$(svc_deployment "$SERVICE")
 
-  # Context strictly via env-resolve.sh → ENV_CONTEXT=fleet (NEVER prod_ctx()).
+  # Context strictly via env-resolve.sh → ENV_CONTEXT=fleet (same as prod_ctx() does).
   # shellcheck disable=SC1091
   source "$REPO/scripts/env-resolve.sh" "$cluster" >/dev/null
   ctx="$ENV_CONTEXT"

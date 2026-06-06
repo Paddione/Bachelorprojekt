@@ -375,7 +375,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A3 — UI primitives (Panel/Button/Field/Drawer/RosterItem/Badge) → `primitives.ts`
+### A3 — UI primitives (Panel/Button/Field/Drawer/RosterItem/Badge) → `primitives.ts` — [x] DONE
 
 - **target_files:** `brett/src/client/ui/primitives.ts` (new), `brett/test/primitives.test.ts` (new)
 - **failing test first (red):** `brett/test/primitives.test.ts` imports the **pure class-helpers** and `primitivesCss` from `../src/client/ui/primitives` and asserts:

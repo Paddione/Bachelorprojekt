@@ -15,4 +15,4 @@ metadata:
   namespace: kube-system
 spec:
   defaultCertificate:
-    secretName: workspace-dev-wildcard-tls
+    secretName: mentolder-wildcard-tls

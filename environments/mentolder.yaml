@@ -58,7 +58,7 @@ env_vars:
   ARENA_WS_URL: https://arena-ws.mentolder.de
   # ── Dev stack (dev.mentolder.de) ─────────────────────────────────────
   DEV_DOMAIN: "dev.mentolder.de"
-  DEV_NODE: "k3s-1"
+  DEV_NODE: "dev-vm"
   DEV_SSH_USER: "gekko"
   DEV_WEBSITE_HOST: "web.dev.mentolder.de"
   DEV_BRETT_HOST: "brett.dev.mentolder.de"

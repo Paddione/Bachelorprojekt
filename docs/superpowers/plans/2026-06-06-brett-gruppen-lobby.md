@@ -358,7 +358,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A2 — View-state-machine + lazy-scene-mount scaffold → `app-shell.ts`
+### A2 — View-state-machine + lazy-scene-mount scaffold → `app-shell.ts` — [x] DONE
 
 - **target_files:** `brett/src/client/app-shell.ts` (new), `brett/test/app-shell.test.ts` (new)
 - **failing test first (red):** `brett/test/app-shell.test.ts` imports `{ viewForPhase, createAppShell }` from `../src/client/app-shell` and asserts:

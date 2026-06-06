@@ -131,6 +131,35 @@ const flushImmediate = dbMod.flushImmediate;
 phasesMod.initPhases({ figureMaps, applyMutation });
 figuresMod.initFigures({ validateAppearance: (a) => validateAppearance(a) });
 
+const sessionsMod = require('./src/server/sessions.ts');
+sessionsMod.initSessions({ figureMaps, applyMutation, transitionPhase });
+const sessionCodeIndex = sessionsMod.sessionCodeIndex;
+const tokenGraceTimers = sessionsMod.tokenGraceTimers;
+const roomAdminPresence = sessionsMod.roomAdminPresence;
+const roomPreviousPlayers = sessionsMod.roomPreviousPlayers;
+const IDLE_TIMEOUT_MS = sessionsMod.IDLE_TIMEOUT_MS;
+const generateSessionCode = sessionsMod.generateSessionCode;
+const registerSessionCode = sessionsMod.registerSessionCode;
+const resolveSessionCode = sessionsMod.resolveSessionCode;
+const rebuildSessionCodeIndexFromStates = sessionsMod.rebuildSessionCodeIndexFromStates;
+const getAdminTokenHolder = sessionsMod.getAdminTokenHolder;
+const assignAdminToken = sessionsMod.assignAdminToken;
+const handoffAdminToken = sessionsMod.handoffAdminToken;
+const releaseAdminToken = sessionsMod.releaseAdminToken;
+const setRoomAdminPresence = sessionsMod.setRoomAdminPresence;
+const beginTokenGrace = sessionsMod.beginTokenGrace;
+const reclaimAdminToken = sessionsMod.reclaimAdminToken;
+const handleAdminSessionCreate = sessionsMod.handleAdminSessionCreate;
+const handleAdminHandoffMessage = sessionsMod.handleAdminHandoffMessage;
+const handleAdminRoundStop = sessionsMod.handleAdminRoundStop;
+const handleAdminRoundPause = sessionsMod.handleAdminRoundPause;
+const trackPlayerInRoom = sessionsMod.trackPlayerInRoom;
+const wasPreviouslyInRoom = sessionsMod.wasPreviouslyInRoom;
+const shouldRejectReconnect = sessionsMod.shouldRejectReconnect;
+const touchSessionActivity = sessionsMod.touchSessionActivity;
+const checkSessionIdle = sessionsMod.checkSessionIdle;
+const checkAllSessions = sessionsMod.checkAllSessions;
+
 
 
 const app = express();
@@ -388,209 +417,7 @@ const wss = new WebSocket.Server({
 // roomToken -> Set<WebSocket>
 const rooms = new Map();
 
-// roomToken -> sessionCode (reverse map for lookups)
-const sessionCodeIndex = new Map();  // sessionCode -> roomToken
 
-const CROCKFORD = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 31 chars, excludes I,L,O,0,1
-
-function generateSessionCode() {
-  let attempt = 0;
-  while (attempt < 16) {
-    let chars = '';
-    for (let i = 0; i < 6; i++) {
-      chars += CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)];
-    }
-    const code = chars.slice(0, 3) + '-' + chars.slice(3);
-    if (!sessionCodeIndex.has(code)) return code;
-    attempt++;
-  }
-  throw new Error('session-code: 16 collisions in a row — population too dense');
-}
-
-function registerSessionCode(code, roomToken) {
-  sessionCodeIndex.set(code, roomToken);
-}
-
-function resolveSessionCode(code) {
-  return sessionCodeIndex.get(code) || null;
-}
-
-function rebuildSessionCodeIndexFromStates(rows) {
-  for (const row of rows) {
-    const code = row.state?.sessionCode;
-    if (code) sessionCodeIndex.set(code, row.room_token);
-  }
-}
-
-function getAdminTokenHolder(room) {
-  return figureMaps.get(room)?.get('__admin_token_holder__')?.playerId || null;
-}
-
-function assignAdminToken(room, playerId) {
-  if (getAdminTokenHolder(room)) return { ok: false, reason: 'already-held' };
-  applyMutation(room, { type: 'session_admin_token_set', playerId });
-  return { ok: true, holder: playerId };
-}
-
-function handoffAdminToken(room, fromPlayerId, toPlayerId) {
-  const current = getAdminTokenHolder(room);
-  if (current !== fromPlayerId) return { ok: false, reason: 'not-current-holder' };
-  applyMutation(room, { type: 'session_admin_token_set', playerId: toPlayerId });
-  return { ok: true, from: fromPlayerId, to: toPlayerId };
-}
-
-function releaseAdminToken(room) {
-  const figs = figureMaps.get(room);
-  if (figs) figs.delete('__admin_token_holder__');
-}
-
-const GRACE_TIMEOUT_DEFAULT_MS = 30_000;
-const tokenGraceTimers = new Map();       // room -> Timeout
-const roomAdminPresence = new Map();      // room -> Set<playerId> of admins currently in the room
-
-function setRoomAdminPresence(room, adminIds) {
-  roomAdminPresence.set(room, new Set(adminIds));
-}
-
-function beginTokenGrace(room, departingPlayerId, opts = {}) {
-  const ms = opts.timeoutMs ?? GRACE_TIMEOUT_DEFAULT_MS;
-  if (tokenGraceTimers.has(room)) clearTimeout(tokenGraceTimers.get(room));
-  const timer = setTimeout(() => {
-    tokenGraceTimers.delete(room);
-    if (getAdminTokenHolder(room) === departingPlayerId) {
-      // Auto-claim if another admin present
-      const presentAdmins = [...(roomAdminPresence.get(room) || [])]
-        .filter(id => id !== departingPlayerId);
-      if (presentAdmins.length > 0) {
-        applyMutation(room, { type: 'session_admin_token_set', playerId: presentAdmins[0] });
-      } else {
-        releaseAdminToken(room);
-      }
-    }
-  }, ms);
-  tokenGraceTimers.set(room, timer);
-}
-
-function reclaimAdminToken(room, playerId) {
-  if (getAdminTokenHolder(room) !== playerId) return { ok: false, reason: 'not-holder' };
-  if (tokenGraceTimers.has(room)) {
-    clearTimeout(tokenGraceTimers.get(room));
-    tokenGraceTimers.delete(room);
-  }
-  return { ok: true };
-}
-
-function handleAdminSessionCreate(room, adminPlayerId) {
-  const code = generateSessionCode();
-  registerSessionCode(code, room);
-  applyMutation(room, { type: 'session_code_set', code });
-  applyMutation(room, { type: 'session_phase_set', phase: 'warmup' });
-  applyMutation(room, { type: 'session_admin_token_set', playerId: adminPlayerId });
-  applyMutation(room, { type: 'session_created_at_set', ts: new Date().toISOString() });
-  applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
-  return { ok: true, code };
-}
-
-function handleAdminHandoffMessage(room, fromPlayerId, toPlayerId, broadcastFn) {
-  const result = handoffAdminToken(room, fromPlayerId, toPlayerId);
-  if (!result.ok) return result;
-  broadcastFn({ type: 'admin_token_changed', holderPlayerId: toPlayerId, reason: 'handoff' });
-  return result;
-}
-
-function handleAdminRoundStop(room, broadcastFn) {
-  const result = transitionPhase(room, 'ended');
-  if (!result.ok) return result;
-  broadcastFn({ type: 'session_phase_change', phase: 'ended', transitionedAt: new Date().toISOString(), reason: 'admin-stop' });
-  broadcastFn({ type: 'session_ended', reason: 'admin-stop' });
-  return result;
-}
-
-function handleAdminRoundPause(room, broadcastFn) {
-  const figs = figureMaps.get(room);
-  const current = figs?.get('__session_phase__')?.phase;
-  const next = current === 'active' ? 'paused' : current === 'paused' ? 'active' : null;
-  if (!next) return { ok: false, reason: 'invalid-source-phase' };
-  const result = transitionPhase(room, next);
-  if (!result.ok) return result;
-  broadcastFn({
-    type: 'session_phase_change',
-    phase: next,
-    transitionedAt: new Date().toISOString(),
-    reason: next === 'paused' ? 'admin-pause' : 'admin-resume'
-  });
-  return result;
-}
-
-const roomPreviousPlayers = new Map();   // roomToken -> Set<playerId>
-
-function trackPlayerInRoom(room, playerId) {
-  if (!playerId) return;
-  let set = roomPreviousPlayers.get(room);
-  if (!set) {
-    set = new Set();
-    roomPreviousPlayers.set(room, set);
-  }
-  set.add(playerId);
-}
-
-function wasPreviouslyInRoom(room, playerId) {
-  return !!roomPreviousPlayers.get(room)?.has(playerId);
-}
-
-function shouldRejectReconnect(room, playerId) {
-  const phase = figureMaps.get(room)?.get('__session_phase__')?.phase;
-  if (!phase || phase === 'warmup') return { reject: false };
-  // active or paused: forbid all incoming connects from non-current sockets
-  if (phase === 'active' || phase === 'paused') {
-    return {
-      reject: true,
-      code: 409,
-      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
-    };
-  }
-  if (phase === 'ended') {
-    return {
-      reject: true,
-      code: 410,
-      message: 'Session ist beendet.',
-    };
-  }
-  return { reject: false };
-}
-
-const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
-
-function touchSessionActivity(room) {
-  applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
-}
-
-function checkSessionIdle(room) {
-  const figs = figureMaps.get(room);
-  if (!figs) return { ended: false, reason: 'no-room' };
-  const phase = figs.get('__session_phase__')?.phase;
-  if (!phase || phase === 'ended' || phase === 'warmup') {
-    return { ended: false, reason: 'not-applicable' };
-  }
-  const lastActivityIso = figs.get('__session_last_activity__')?.ts;
-  if (!lastActivityIso) return { ended: false, reason: 'no-activity-marker' };
-  const lastActivity = Date.parse(lastActivityIso);
-  if (Date.now() - lastActivity > IDLE_TIMEOUT_MS) {
-    transitionPhase(room, 'ended');
-    return { ended: true, reason: 'idle-timeout', room };
-  }
-  return { ended: false, reason: 'within-timeout', room };
-}
-
-function checkAllSessions() {
-  const results = [];
-  for (const room of figureMaps.keys()) {
-    const r = checkSessionIdle(room);
-    r.room = r.room || room;
-    results.push(r);
-  }
-  return results;
-}
 
 // roomToken -> NodeJS.Timeout (debounced persistence)
 const pending = dbMod.getPending();

@@ -35,13 +35,34 @@ setup() { load 'test_helper.bash'; }
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-41: wakeup.sh exec's headless claude -p with the Workflow tool allowlisted" {
-  run grep -E 'exec[[:space:]]+.*claude[[:space:]]+-p' "$WAKEUP"
+@test "FA-SF-41: wakeup.sh exec's headless claude with the Workflow tool allowlisted" {
+  run grep -E 'exec[[:space:]]+"\$\{CLAUDE_BIN' "$WAKEUP"
   [ "$status" -eq 0 ]
   run grep -E -- '--allowedTools' "$WAKEUP"
   [ "$status" -eq 0 ]
   run grep -F 'Workflow' "$WAKEUP"
   [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-41: wakeup.sh actually forwards -p + --allowedTools + --permission-mode to the exec'd claude (not dropped by a gamed comment)" {
+  # Behavioral guard for the line-continuation bug: a stub 'claude' records its
+  # argv; the wrapper must pass the FULL flag set, not just -p PROMPT.
+  tmp="$(mktemp -d)"
+  argfile="${tmp}/argv"
+  cat > "${tmp}/claude-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${argfile}"
+STUB
+  chmod +x "${tmp}/claude-stub"
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" FACTORY_DRY_RUN=true \
+    run bash "$WAKEUP"
+  [ "$status" -eq 0 ]
+  run grep -q -- '-p' "${argfile}";              [ "$status" -eq 0 ]
+  run grep -q -- '--allowedTools' "${argfile}";  [ "$status" -eq 0 ]
+  run grep -qF 'Workflow' "${argfile}";          [ "$status" -eq 0 ]
+  run grep -q -- '--permission-mode' "${argfile}"; [ "$status" -eq 0 ]
+  run grep -qF 'acceptEdits' "${argfile}";       [ "$status" -eq 0 ]
+  rm -rf "${tmp}"
 }
 
 @test "FA-SF-41: wakeup.sh threads the dry_run policy into the dispatcher prompt" {

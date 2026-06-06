@@ -969,7 +969,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D3 — `__lobby_settings__` sentinel persistence (`lobby_settings_set`, merge)
+### D3 — `__lobby_settings__` sentinel persistence (`lobby_settings_set`, merge) — [x] DONE
 
 - **target_files**: `brett/src/server/figures.ts` (new `lobby_settings_set` case), `brett/src/server/phases.ts` (`SPECIAL` + emit `lobbySettings`)
 - **failing test (red)**: `brett/test/lobby-settings.test.ts`:

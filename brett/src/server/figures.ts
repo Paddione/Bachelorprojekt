@@ -116,8 +116,11 @@ export function applyMutation(room: string, msg: any): void {
       break;
     }
     case 'lobby_settings_set': {
+      // D3: shallow-MERGE into the existing settings so setting one field never
+      // clobbers the others. Non-object payloads are ignored (no clobber).
       if (msg.settings && typeof msg.settings === 'object' && !Array.isArray(msg.settings)) {
-        figs.set('__lobby_settings__', { id: '__lobby_settings__', settings: msg.settings });
+        const prev = figs.get('__lobby_settings__')?.settings ?? {};
+        figs.set('__lobby_settings__', { id: '__lobby_settings__', settings: { ...prev, ...msg.settings } });
       }
       break;
     }

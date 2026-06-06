@@ -7,6 +7,19 @@
 # No-Go fallback: local `/loop` (weaker persistence) — the rest of the spec
 # stays valid; only the dispatcher's trigger mechanism changes.
 set -euo pipefail
+
+# ⛔ SAFETY GUARD — this is a throwaway Phase 0 spike, NOT production code.
+# It uses bypassPermissions + broad Bash allowlisting solely to prove the
+# headless Workflow-nesting hypothesis.  It MUST NOT be scheduled or run
+# unattended.  The production dispatcher uses wakeup.sh (acceptEdits +
+# tight allowlist).
+if [[ -z "${FACTORY_SPIKE_I_KNOW_THIS_IS_NOT_PRODUCTION:-}" ]]; then
+  echo "headless-workflow-spike.sh: ABORTING — this is a throwaway spike." >&2
+  echo "  Re-run with FACTORY_SPIKE_I_KNOW_THIS_IS_NOT_PRODUCTION=true if you" >&2
+  echo "  really mean it, then clean up after yourself." >&2
+  exit 1
+fi
+
 REPO="${REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 cd "$REPO"
 

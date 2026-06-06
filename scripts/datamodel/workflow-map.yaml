@@ -209,15 +209,6 @@ steps:
       files: ["website/src/**", "website/public/**"]
     gaps: []
 
-  - id: dev-auto-deploy
-    family: ci
-    label: "dev-auto-deploy.yml"
-    description: "GitHub Action: auto-deploys to dev.mentolder.de on relevant push."
-    writes: {}
-    reads:
-      files: ["k3d/**", "website/**", "brett/**"]
-    gaps: []
-
   - id: manual-deploy
     family: ci
     label: "Manual deploy"

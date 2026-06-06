@@ -75,7 +75,7 @@ Vollständige Task-Referenz siehe [CLAUDE.md](CLAUDE.md#common-commands).
 
 Nicht in CI (lokal bei Bedarf): `yamllint`, `shellcheck`, `kubeconform`. Frühere Doku behauptete das fälschlich.
 
-Weitere Workflows: `e2e.yml` (nightly Playwright gegen beide Brands), `build-website.yml` / `build-website-korczewski.yml`, `dev-auto-deploy.yml`, `dev-smoke.yml`.
+Weitere Workflows: `e2e.yml` (nightly Playwright gegen beide Brands), `build-website.yml` / `build-website-korczewski.yml`.
 
 ### Tests ausführen
 

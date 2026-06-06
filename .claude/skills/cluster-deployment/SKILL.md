@@ -20,7 +20,7 @@ This runbook covers environment deployment, bootstrapping, diagnostic assistance
 When setting up a new environment from scratch, execute in this order:
 
 0. **Discover and pin component versions** (Phase 0) before any install step.
-1. **Provision Hetzner nodes** (Phase 1, Step 1.0) — cloud-init for fresh nodes, snapshot for scaling.
+1. **Provision Hetzner nodes** (Phase 1, Step 1.0) or **Proxmox nodes** (Phase 1, Step 1.0b) — cloud-init/auto-install for fresh nodes, snapshot for scaling.
 2. **Sealed Secrets controller** (`sealed-secrets:install`) must exist *before* any SealedSecret resource is applied.
 3. **Fetch cluster sealing certificate** (`env:fetch-cert`) must run *after* a cluster reset to update the sealing keys.
 4. **Seal secrets** (`env:seal`) must occur *after* fetching the certificate, using the correct keypair.
@@ -145,6 +145,95 @@ kubectl --context <ctx> get nodes -w
 > 1. **Stop the old mesh before starting the new one (T000333).** A live `wg-quick@wg-mesh` holds UDP/51820, so `wg-fleet` fails to start with `RTNETLINK: Address already in use`. Run `sudo systemctl stop wg-quick@wg-mesh && sudo systemctl disable wg-quick@wg-mesh` before `systemctl start wg-quick@wg-fleet`.
 > 2. **Load the kernel module after `apt install` (T000336).** On Ubuntu 24.04 (kernel 6.8.x) `apt install wireguard-tools` prints a version-mismatch warning and does NOT auto-load the module, so `wg-quick` fails with `No such device`. Run `sudo modprobe wireguard` before starting the WireGuard service.
 > 3. **Export the k3s install env vars in the install subshell, not just `curl` (T000334).** `INSTALL_K3S_VERSION=x K3S_URL=y curl … | sh -s - server` applies the vars to `curl`, not the `sh` reading stdin — the node reuses a cached binary and forms a standalone cluster instead of joining. Wrap it: `sudo bash -c "export INSTALL_K3S_VERSION=…; export K3S_URL=…; curl … | sh -s - server"`.
+
+### Step 1.0b: Enroll / Provision Proxmox Nodes (Bare-metal / LAN)
+
+For bare-metal or LAN environments (like dev1, dev2, dev3), we use Proxmox Automated Installation via an embedded `answer.toml` to provision nodes cleanly. 
+
+The configuration templates and preparation scripts live in the `.proxmox/` directory in the project root.
+
+#### Provisioning Workflow
+
+1. **Scaffold config**: Copy [.proxmox/template.toml](file:///home/patrick/Bachelorprojekt/.proxmox/template.toml) to `answer.toml` inside the same directory:
+   ```bash
+   cp .proxmox/template.toml .proxmox/answer.toml
+   ```
+2. **Customize config**: Edit `answer.toml` and configure the following:
+   * **Root password**: Replace the default `root-password = "CHANGEME"` placeholder with your desired password.
+   * **SSH public key**: Whitelist your authorized SSH keys in the `root-ssh-keys` TOML array. Ensure they are valid quoted strings (TOML syntax).
+   * **Target disk**: Choose your installation disk (e.g. `disk-list = ["nvme0n1"]`). 
+     * *Warning*: For `ext4` or `xfs` filesystems, you can only install on **one disk**. Listed extra disks will not be auto-configured as storage; add them post-install. For multi-disk OS installations (e.g., mirrors/RAID), configure `ZFS` in `[disk-setup]`.
+   * **Network configuration**: Set `source = "from-answer"` and configure `cidr`, `gateway`, and `dns`.
+     * *Warning*: You must provide a matcher under `[network.filter]` or the installer will fail with `No filter defined`. Use `interface-name = "en*"` to match any modern ethernet interface.
+3. **Build the Custom ISO**: Execute the preparation script in your WSL environment:
+   ```bash
+   ./.proxmox/prepare-iso.sh
+   ```
+   This script will:
+   * Install any missing tools (`proxmox-auto-install-assistant`, `xorriso`, `curl`) if not present.
+   * Download the latest Proxmox VE 9.2-1 ISO (`proxmox-ve_9.2-1.iso`) and verify its SHA256.
+   * Validate the `answer.toml` format.
+   * Embed `answer.toml` into a new `proxmox-ve_9.2-1-auto.iso`.
+4. **Flash the USB Drive**:
+   * Open File Explorer in Windows and browse to the WSL network share: `\\wsl.localhost\Ubuntu\home\patrick\Bachelorprojekt\.proxmox\`
+   * Insert your USB drive and launch **Rufus**.
+   * Select the USB drive, select the generated `proxmox-ve_9.2-1-auto.iso`, and click **Start**.
+   * **CRITICAL**: When prompted by Rufus, choose **DD Image mode** (not ISO mode) to write the image.
+   * Boot the target hardware from the USB drive to perform a fully unattended installation.
+
+#### Clean Node Removal & Cluster Dissolution
+
+If you are reinstalling/replacing a node (e.g., `dev3`) that was part of an existing corosync cluster, the cluster must be dissolved on the remaining nodes before the new node can join:
+
+1. **Dissolve cluster on surviving nodes** (e.g. `dev1` and `dev2`):
+   ```bash
+   # Stop cluster services
+   systemctl stop pve-cluster corosync
+   
+   # Start cluster filesystem in local/standalone mode to edit
+   pmxcfs -l
+   
+   # Remove corosync configuration
+   rm -f /etc/pve/corosync.conf
+   rm -rf /etc/corosync/*
+   
+   # Kill local pmxcfs process to release locks before restarting service
+   pkill -9 pmxcfs || true
+   rm -f /var/lib/pve-cluster/.pmxcfs.lockfile || true
+   
+   # Restart cluster filesystem in normal mode
+   systemctl start pve-cluster
+   ```
+2. **Re-cluster**: Create a fresh cluster from the fresh node, and join the standalone nodes back via the web UI (Datacenter → Cluster → Join) or via CLI (`pvecm add`).
+
+#### Outgoing Mail Rewrite (Postfix canonical maps)
+
+Proxmox nodes send automated notifications as `root@<hostname>` (e.g., `root@dev3.local` or `root@dev2.mentolder.de`). External email providers (like `mailbox.org`) will bounce these due to invalid domains or sender mismatch.
+
+Apply the following postfix rewrite rule on **all Proxmox nodes** to map root's outgoing mail to `root@korczewski.de`:
+
+```bash
+# 1. Create sender canonical mapping file
+cat > /etc/postfix/sender_canonical <<'EOF'
+root    root@korczewski.de
+EOF
+
+# 2. Generate mapping database
+postmap /etc/postfix/sender_canonical
+
+# 3. Configure postfix to use mapping for envelopes and headers
+postconf -e 'sender_canonical_maps = hash:/etc/postfix/sender_canonical'
+postconf -e 'sender_canonical_classes = envelope_sender, header_sender'
+
+# 4. Reload postfix service to apply changes
+postfix reload
+```
+Verify the fix by sending a test mail:
+```bash
+echo "Test mail from $(hostname)" | mail -s "PVE Mail Test" korczewski@mailbox.org
+tail -n 20 /var/log/mail.log
+```
+
 
 ### Step 1.1: Scaffold Environment Config
 If the environment YAML does not exist:

@@ -147,3 +147,4 @@ dev-iterate-*.png
 deeps.sh
 deepseek.sh
 environments/.secrets/.ssh/known_hosts
+.proxmox

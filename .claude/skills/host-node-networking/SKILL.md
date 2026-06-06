@@ -33,9 +33,13 @@ The platform operates across stands of physical servers and local workstations c
 
 ---
 
-## Phase 1 — Host Node Provisioning (Hetzner Cloud)
+## Phase 1 — Host Node Provisioning (Hetzner Cloud & Proxmox LAN)
 
 Interactive flow for provisioning a new server or resetting an existing server in Rescue Mode.
+
+> [!NOTE]
+> For provisioning/enrolling local bare-metal or LAN nodes using Proxmox Automated Installation (e.g., dev1, dev2, dev3), refer to **Step 1.0b** of the [cluster-deployment skill](file:///home/patrick/Bachelorprojekt/.agents/skills/cluster-deployment/SKILL.md#step-10b-enroll--provision-proxmox-nodes-bare-metal--lan). Config files and prepare scripts are stored in the [.proxmox/](file:///home/patrick/Bachelorprojekt/.proxmox/) directory in the project root.
+
 
 ### Step 1.0: Authenticate hcloud CLI
 

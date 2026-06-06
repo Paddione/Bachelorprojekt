@@ -1,0 +1,67 @@
+import type { Figure, FigureAppearance, Participant, Phase, RoomState } from './state';
+
+// ── Client → Server ──────────────────────────────────────────────
+export type ClientMessage =
+  | { type: 'join'; room: string; playerId?: string; name?: string }
+  | { type: 'request_state_snapshot' }
+  | { type: 'add'; figure: Figure }
+  | { type: 'move'; id: string; x: number; z: number; facingY: number }
+  | { type: 'jump'; id: string }
+  | { type: 'update'; id: string; changes: Partial<Figure> & { appearance?: FigureAppearance } }
+  | { type: 'delete'; id: string }
+  | { type: 'clear' }
+  | { type: 'optik'; id: string; value: unknown }
+  | { type: 'stiffness'; value: number }
+  | { type: 'snapshot'; figures: Figure[]; stiffness?: number }
+  | { type: 'figure_lock'; id: string }
+  | { type: 'figure_unlock'; id: string }
+  | { type: 'player_join'; playerId: string }
+  | { type: 'pong' }
+  | { type: 'admin_kick'; playerId: string }
+  | { type: 'admin_broadcast'; message: string }
+  | { type: 'admin_session_create' }
+  | { type: 'admin_handoff_token'; toPlayerId: string }
+  | { type: 'admin_round_stop' }
+  | { type: 'admin_round_pause' }
+  | { type: 'admin_coaching_steps_set'; steps: string[]; index: number };
+
+// ── Server → Client ──────────────────────────────────────────────
+export type ServerMessage =
+  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null }
+  | { type: 'init'; state: RoomState }
+  | { type: 'add'; figure: Figure }
+  | { type: 'move'; id: string; x: number; z: number; facingY: number }
+  | { type: 'jump'; id: string }
+  | { type: 'update'; id: string; changes: Partial<Figure> & { appearance?: FigureAppearance } }
+  | { type: 'delete'; id: string }
+  | { type: 'stiffness'; value: number }
+  | { type: 'figure_locked'; id: string; userId: string; name: string; color: string }
+  | { type: 'figure_unlocked'; id: string }
+  | { type: 'figure_lock_denied'; id: string }
+  | { type: 'locks_released_for'; userId: string }
+  | { type: 'info'; count: number }
+  | { type: 'presence_join'; participant: Participant }
+  | { type: 'presence_leave'; userId: string }
+  | { type: 'session_created'; code: string }
+  | { type: 'session_phase_change'; phase: Phase }
+  | { type: 'session_ended' }
+  | { type: 'admin_token_changed'; holder: string | null }
+  | { type: 'coaching_steps_change'; steps: string[]; index: number }
+  | { type: 'error'; reason: string };
+
+export interface ServerLock {
+  figureId: string;
+  userId: string;
+  name: string;
+  color: string;
+}
+
+// Discriminant unions of every message tag — used by exhaustiveness tests.
+export type ClientMessageType = ClientMessage['type'];
+export type ServerMessageType = ServerMessage['type'];
+
+// Compile-time exhaustiveness helper. Pass the never-narrowed value here in a
+// switch default branch to force a build error when a tag goes unhandled.
+export function assertNever(x: never): never {
+  throw new Error('Unhandled message variant: ' + JSON.stringify(x));
+}

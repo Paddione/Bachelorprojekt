@@ -45,3 +45,5 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: DEV_WORKSPACE_OIDC_SECRET
+            - name: BRAINSTORM_OIDC_SECRET
+              $patch: delete

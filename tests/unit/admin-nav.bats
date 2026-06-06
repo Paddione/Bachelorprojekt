@@ -51,9 +51,9 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
   assert_output "0"
 }
 
-@test "AdminLayout: /admin/arena not in navGroups" {
+@test "AdminLayout: /admin/arena in navGroups conditionally" {
   run grep -c "'/admin/arena'" "$ADMIN_LAYOUT"
-  assert_output "0"
+  assert_output "1"
 }
 
 @test "AdminLayout: Einstellungen uses settings icon not bell" {
@@ -105,12 +105,12 @@ EINSTELLUNGEN_TABS="$PROJECT_DIR/website/src/components/AdminEinstellungenTabs.a
   refute_output "0"
 }
 
-@test "monitoring.astro: Software-History link present" {
-  run grep -c "software-history" "$PROJECT_DIR/website/src/pages/admin/monitoring.astro"
+@test "PlatformHub.svelte: Software-History link present" {
+  run grep -c "software-history" "$PROJECT_DIR/website/src/components/admin/PlatformHub.svelte"
   refute_output "0"
 }
 
-@test "monitoring.astro: Systemtest link present" {
-  run grep -c "systemtest" "$PROJECT_DIR/website/src/pages/admin/monitoring.astro"
+@test "PlatformHub.svelte: Systemtest link present" {
+  run grep -c "systemtest" "$PROJECT_DIR/website/src/components/admin/PlatformHub.svelte"
   refute_output "0"
 }

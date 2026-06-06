@@ -652,7 +652,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Re-joining holder cancels grace; `onLeaderDisconnect` is exported + unit-tested.
 - **verify:** `cd brett && npm test`
 
-### B15 — Client router: pure lobby reducer + new `onWsMessage` cases (§6c gaps)
+### B15 — Client router: pure lobby reducer + new `onWsMessage` cases (§6c gaps) — [x] DONE
 - **target_files:** `brett/src/client/lobby-store.ts` (new), `brett/src/client/ws-client.ts`, `brett/test/lobby-store.test.ts` (new)
 - **failing test first (red):** `test/lobby-store.test.ts` (`node --test`, no DOM) imports `createLobbyState`, `applyLobbyServerMessage` from `../src/client/lobby-store`. Asserts a pure reducer: `presence_join` adds a roster entry; `presence_leave` removes it; `role_changed` sets `roster[userId].role`; `lobby_ready_changed` sets `roster[userId].ready`; `session_phase_change{phase:'active'}` sets `state.phase='active'` (drives view-machine → board); `lobby_settings_change{templateId}` stores `state.settings.templateId`; `session_created{code}` stores `state.sessionCode`; unknown type → unchanged.
 - **implementation:**

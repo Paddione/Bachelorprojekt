@@ -1,7 +1,25 @@
 import { STATE, getWs, setWs, isWsReady, setWsReady, activeLocks, lockSprites, getScene, currentUser } from './state';
 import type { ClientMessage, ServerMessage } from '../types/messages';
+import type { Phase } from '../types/state';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
+import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
+
+// ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
+let lobbyState: LobbyState = createLobbyState();
+export function getLobbyState(): LobbyState { return lobbyState; }
+
+// View-machine notifier — injected by board-boot / app-shell wiring. Fires on
+// every server-driven phase change so menu→lobby→board routing stays in sync.
+let onPhaseChange: (phase: Phase | null) => void = () => {};
+export function setPhaseChangeHandler(fn: (phase: Phase | null) => void): void {
+  onPhaseChange = fn;
+}
+// Lobby roster/settings change notifier — injected by the lobby screen (B16).
+let onLobbyChange: (state: LobbyState) => void = () => {};
+export function setLobbyChangeHandler(fn: (state: LobbyState) => void): void {
+  onLobbyChange = fn;
+}
 
 const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
 const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -249,6 +267,47 @@ export function onWsMessage(evt: MessageEvent): void {
       if (onlineCountEl) {
         onlineCountEl.textContent = String(STATE.online);
       }
+      break;
+
+    // ── Lobby / presence / session routing (§6c) ────────────────────────────
+    // Each delegates to the pure reducer, notifies the lobby UI, and (on a phase
+    // change) drives the view-machine. figure_owner_changed + the optik part of
+    // lobby_settings_change are routed/stored only in B (badge/optik apply = C/D);
+    // the case existing prevents silent drops.
+    case 'init':
+    case 'presence_join':
+    case 'presence_leave':
+    case 'role_changed':
+    case 'lobby_ready_changed':
+    case 'lobby_settings_change':
+    case 'session_created': {
+      const prevPhase = lobbyState.phase;
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      break;
+    }
+
+    case 'session_phase_change':
+    case 'session_ended': {
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      onPhaseChange(lobbyState.phase);
+      break;
+    }
+
+    case 'admin_token_changed':
+    case 'coaching_steps_change':
+      // Routed (no silent drop); board-side handlers consume these elsewhere.
+      break;
+
+    case 'figure_owner_changed':
+      // Routed/stored only in B — ownership badge apply lands in Phase C.
+      break;
+
+    case 'error':
+      // Non-fatal protocol error from the server (e.g. forbidden / not-ready).
+      console.warn('[brett] server error:', msg.reason);
       break;
 
     default:

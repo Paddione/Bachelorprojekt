@@ -1153,7 +1153,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 This module needs nearly everything; it takes a big dependency bag via an `attach` function rather than per-symbol init.
 
-- [ ] **Step 1: Create `src/server/ws-handler.ts`**
+- [x] **Step 1: Create `src/server/ws-handler.ts`**
 
 ```typescript
 import { WebSocketServer } from 'ws';
@@ -1218,7 +1218,7 @@ export function startIdleSweep(deps: { checkAllSessions: Function }): NodeJS.Tim
 ```
 > **This is the largest copy.** Read server.js 885–1243 and paste the dispatch verbatim, swapping each free symbol for `deps.X`. Delete only the proven-dead game-mode branches. Keep: `pong`, `request_state_snapshot`, `join`, relay block (add/move/update/delete/clear/optik/stiffness/snapshot with appearance validation), `figure_lock`/`figure_unlock`, all admin types, and the close handler. The exact `ping`/`pong` heartbeat string and interval must match server.js.
 
-- [ ] **Step 2: Wire `server.js`**
+- [x] **Step 2: Wire `server.js`**
 
 Delete the `wss.on('connection', ...)` block, `handleDisconnect`, `RELAY_TYPES`, `ADMIN_TYPES`, and the two `setInterval`s from `server.js`. After the `wss` is created (line ~387), add:
 ```js
@@ -1241,13 +1241,13 @@ wsHandlerMod.startHeartbeat(wss);
 wsHandlerMod.startIdleSweep({ checkAllSessions });
 ```
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `server-admin` (RELAY_TYPES has no Mayhem types, coaching-steps round-trip) passes; `# fail 0`.
 
-- [ ] **Step 4: Smoke — server boots and accepts a WS join**
+- [x] **Step 4: Smoke — server boots and accepts a WS join**
 ```bash
 cd brett && timeout 4 env MOCK_DB=true PORT=3009 node server.js &
 sleep 1
@@ -1255,7 +1255,7 @@ node -e "const W=require('ws');const ws=new W('ws://localhost:3009/sync');ws.on(
 ```
 Expected: prints `got {"type":"snapshot"...` (or `info`) then exits 0. A `no-msg` means the dispatcher regressed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add brett/server.js brett/src/server/ws-handler.ts
 git commit -m "refactor(brett): extract ws-handler.ts; drop dead lms/duel/coop branches

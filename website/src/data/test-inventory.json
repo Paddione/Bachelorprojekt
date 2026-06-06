@@ -912,6 +912,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-46",
+    "file": "tests/e2e/specs/fa-46-lernpfad-cta.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-SF-01",
     "file": "tests/local/FA-SF-01-conflict-check.bats",
     "category": "FA",

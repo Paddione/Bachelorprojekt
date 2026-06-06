@@ -251,7 +251,9 @@ if (tasks.length) {
        (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
        do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
        After implementing, run locally:
-         cd ${WORK_WT} && task workspace:validate && task test:all
+         cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
+       (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
+       up to date so CI passes. Commit the regenerated files alongside your implementation.)
        Return a summary of the diff and the local test result (pass/fail).`,
       { label: `impl:${t.id}`, phase: 'Implement', isolation: 'worktree' },
     ),

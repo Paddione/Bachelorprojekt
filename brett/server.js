@@ -90,22 +90,13 @@ const sessionMiddleware = session({
   },
 });
 
-let oidcClient = null;
-async function getOidcClient() {
-  if (oidcClient) return oidcClient;
-  const kcUrl      = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
-  const kcRealm    = process.env.KEYCLOAK_REALM || 'workspace';
-  const clientId   = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
-  const clientSecret = process.env.BRETT_OIDC_SECRET || '';
-  const issuerUrl  = `${kcUrl}/realms/${kcRealm}`;
-  const issuer     = await Issuer.discover(issuerUrl);
-  oidcClient = new issuer.Client({ client_id: clientId, client_secret: clientSecret, response_types: ['code'] });
-  return oidcClient;
-}
-
-function isAdminFromClaims(claims) {
-  return Array.isArray(claims?.realm_access?.roles) && claims.realm_access.roles.includes('admin');
-}
+const authMod = require('./src/server/auth.ts');
+const getOidcClient = authMod.getOidcClient;
+const isAdminFromClaims = authMod.isAdminFromClaims;
+const buildConfig = authMod.buildConfig;
+const resolveBrand = authMod.resolveBrand;
+const boardAuthRedirect = authMod.boardAuthRedirect;
+const requireAdmin = authMod.requireAdmin;
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
@@ -148,23 +139,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
 
-// Non-mode config returned to the client. Mode concept removed — coaching is the only board.
-function buildConfig(_env) {
-  return {};
-}
 
-function resolveBrand(env) {
-  return env.BRETT_BRAND || 'mentolder';
-}
-
-// The board is always SSO-gated. Returns a redirect URL when unauthenticated, else null.
-function boardAuthRedirect(req, env) {
-  if (req.session && req.session.userId) return null;
-  const e2eSecret = env.BRETT_OIDC_SECRET;
-  if (e2eSecret && typeof req.header === 'function' && req.header('x-e2e-secret') === e2eSecret) return null;
-  const returnTo = encodeURIComponent(req.path || '/');
-  return `/auth/login?returnTo=${returnTo}`;
-}
 
 
 app.get('/api/config', (_req, res) =>
@@ -212,12 +187,7 @@ app.get('/auth/me', (req, res) => {
   res.json({ authenticated: true, userId: req.session.userId, name: req.session.name, isAdmin: !!req.session.isAdmin });
 });
 
-function requireAdmin(req, res, next) {
-  if (req.session?.isAdmin) return next();
-  const e2eSecret = process.env.BRETT_OIDC_SECRET;
-  if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
-  return res.status(403).json({ error: 'forbidden' });
-}
+
 
 app.post('/auth/e2e-login', (req, res) => {
   const secret = process.env.BRETT_OIDC_SECRET;

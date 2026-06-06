@@ -391,7 +391,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Modify: `server.js`
 - Test: existing `test/session-state.test.js` exercises persistence indirectly; no new test.
 
-- [ ] **Step 1: Register the tsx CJS bridge at the top of `server.js`**
+- [x] **Step 1: Register the tsx CJS bridge at the top of `server.js`**
 
 At the very top of `server.js`, immediately after `'use strict';`, add:
 ```js
@@ -400,7 +400,7 @@ At the very top of `server.js`, immediately after `'use strict';`, add:
 require('tsx/cjs');
 ```
 
-- [ ] **Step 2: Create `src/server/db.ts` with the pool + persistence functions**
+- [x] **Step 2: Create `src/server/db.ts` with the pool + persistence functions**
 
 Create `src/server/db.ts`. Copy the `pool` construction (server.js lines ~115–131, the MockPool/real-Pool branch), `readState`, `persistState`, `schedulePersist`, `flushImmediate`. These depend on `buildStateFromMutations` (Task 9) and `figureMaps`/`pending` (Tasks 7/index). To keep dependencies injectable without circular imports, accept them via a small init function:
 
@@ -487,7 +487,7 @@ export function getPending(): Map<string, NodeJS.Timeout> {
 ```
 > **Adapt to actual columns:** before writing, run `grep -n "brett_rooms" server.js` and copy the *exact* SQL strings and the exact MockPool shape from server.js lines 115–131 / 655–883. The bodies above mirror the analysis; the SQL column names and the pool config must match the original verbatim. Do not invent column names — use what server.js already uses.
 
-- [ ] **Step 3: Wire `server.js` to use the extracted module**
+- [x] **Step 3: Wire `server.js` to use the extracted module**
 
 In `server.js`, delete the original `const { Pool } = require('pg');` pool block (lines ~115–131) and the four functions `readState`/`persistState`/`schedulePersist`/`flushImmediate` (lines ~655–883). Replace with:
 ```js
@@ -503,19 +503,19 @@ const pending = dbMod.getPending();
 ```
 Keep `pending` referencing the module's map so `shutdown()` (which iterates `pending`) still works.
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck 0 diagnostics; tests `# fail 0`. The `MOCK_DB=true` env makes `initDb` pick the mock pool so DB calls no-op.
 
-- [ ] **Step 5: Verify server.js shrank and still boots**
+- [x] **Step 5: Verify server.js shrank and still boots**
 ```bash
 cd brett && wc -l server.js && node -e "process.env.MOCK_DB='true'; require('./server.js'); console.log('boot-ok')"
 ```
 Expected: line count lower than 1308; prints `boot-ok` (and any server log lines), exits without throwing. If it hangs on a listening server, that's fine — `Ctrl-C` is not needed if the export-only path is used; otherwise run with a 3s timeout: `timeout 3 node -e "..."` and treat a clean timeout as success.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 ```bash
 git add brett/server.js brett/src/server/db.ts
 git commit -m "refactor(brett): extract db.ts (pg pool + state persistence)

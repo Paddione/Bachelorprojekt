@@ -104,6 +104,28 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS touched_files TEXT[]`);
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS pipeline_slot INTEGER`);
 
+  // Phase 3 Software Factory: retry_count tracks how many times the pipeline
+  // has retried a failed feature. Reset to 0 on slot-claim; >=2 => block +
+  // PushNotification (see pipeline.js CI-red handling). [T000413]
+  await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0`);
+
+  // Phase 3 Software Factory: factory_control is the runtime control plane —
+  // global kill-switch, per-brand daily-deploy cap counter, dry-run markers.
+  // brand NULL = global. Read fresh per dispatcher tick, fail-closed on error.
+  // [T000413]
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.factory_control (
+      key        TEXT NOT NULL,
+      brand      TEXT,
+      value      TEXT NOT NULL,
+      set_by     TEXT,
+      updated_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE (key, brand)
+    )
+  `);
+
+
+
   await pool.query(`
     ALTER TABLE tickets.tickets
       ADD COLUMN IF NOT EXISTS attention_mode TEXT NOT NULL DEFAULT 'auto'
@@ -361,6 +383,29 @@ export async function initTicketsSchema(): Promise<void> {
         END IF;
       END $$;
   `);
+
+  // Phase 3 Software Factory: feature_flags powers dark-launch / canary. Each
+  // implement-agent gates new behaviour behind isFeatureEnabled(brand,'<slug>');
+  // a flag flipped on enables it. Mirrors the tickets.tags id + brand-FK idiom.
+  // [T000413]
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.feature_flags (
+      id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      brand      TEXT NOT NULL,
+      key        TEXT NOT NULL,
+      enabled    BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      set_by     TEXT,
+      UNIQUE (brand, key)
+    );
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'feature_flags_brand_fkey') THEN
+          ALTER TABLE tickets.feature_flags ADD CONSTRAINT feature_flags_brand_fkey FOREIGN KEY (brand) REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+        END IF;
+      END $$;
+  `);
+
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_tags (
@@ -921,6 +966,32 @@ export async function initTicketsSchema(): Promise<void> {
 
   await pool.query(`COMMENT ON FUNCTION tickets.fn_purge_test_data() IS 'Idempotent test-data purge. v4 (2026-05-24)'`);
   await pool.query(`GRANT EXECUTE ON FUNCTION tickets.fn_purge_test_data() TO website`);
+
+  // ── INERT future plumbing: pg_notify on new feature tickets ─────────────────
+  // Spec §6 Phase 2 (correction A2): NOT CONSUMED in Phase 3. The data plane is
+  // one-shot `kubectl exec … psql` (lib.sh:31-35); a LISTEN needs a held
+  // connection (cf. dispatcher.js:15). The Cron-poll (schedule.sh, every timer
+  // tick) IS the trigger. This NOTIFY exists only so a future long-lived consumer
+  // can be wired without a schema change. Idempotent: safe per-pod-boot, both brands.
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION tickets.notify_feature_inserted()
+    RETURNS trigger AS $$
+    BEGIN
+      PERFORM pg_notify('factory_feature_inserted', NEW.external_id);
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS trg_notify_feature_inserted ON tickets.tickets;
+  `);
+  await pool.query(`
+    CREATE TRIGGER trg_notify_feature_inserted
+    AFTER INSERT ON tickets.tickets
+    FOR EACH ROW
+    WHEN (NEW.type = 'feature')
+    EXECUTE FUNCTION tickets.notify_feature_inserted();
+  `);
       } finally {
         await client.query(`SELECT pg_advisory_unlock(hashtext('init:tickets'))`);
       }
@@ -931,3 +1002,19 @@ export async function initTicketsSchema(): Promise<void> {
     schemaReady = true;
   });
 }
+
+/** Dark-launch gate. Returns true only when an ENABLED flag row exists for
+ *  (brand,key). Fails CLOSED (false) on any DB error so a flag-table outage
+ *  can never accidentally turn a gated feature on. [T000413] */
+export async function isFeatureEnabled(brand: string, key: string): Promise<boolean> {
+  try {
+    const { rows } = await pool.query(
+      `SELECT enabled FROM tickets.feature_flags WHERE brand = $1 AND key = $2 LIMIT 1`,
+      [brand, key],
+    );
+    return rows.length > 0 && rows[0].enabled === true;
+  } catch {
+    return false;
+  }
+}
+

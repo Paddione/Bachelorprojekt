@@ -1,0 +1,20 @@
+# scripts/factory/factory.service
+# Software Factory — systemd USER service. One dispatcher tick per activation.
+# Installed/managed via `task factory:autopilot:install` (symlinked into
+# ~/.config/systemd/user/). Paired with factory.timer.
+[Unit]
+Description=Software Factory dispatcher tick (headless wakeup)
+Documentation=file:///home/patrick/Bachelorprojekt/scripts/factory/README.md
+# Don't fire if the WSL networking / repo mount isn't up yet.
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/home/patrick/Bachelorprojekt/scripts/factory/wakeup.sh
+# Hard-kill a hung `claude -p` tick so OnUnitInactiveSec can re-arm cleanly.
+RuntimeMaxSec=900
+# wakeup.sh needs the user's git-crypt key + claude creds; pass via env file if present.
+EnvironmentFile=-%h/.config/factory/autopilot.env
+# Keep failures visible in the journal but never wedge the timer.
+TimeoutStartSec=960

@@ -1,7 +1,6 @@
 # Software Factory — Komponenten & Architektur
 
-> **Status:** Phase 2 (Dispatcher) — live.
-> Phase 3 (Full Auto-Pilot) ist geplant.
+> **Status:** Phase 3 (Full Auto-Pilot) — live.
 > Vorhaben-Ticket: T000413
 
 ## Architektur-Übersicht
@@ -45,8 +44,10 @@
 | `schedule.sh` | Scheduler: Konflikt-gegatetes Slot-Scheduling | ✅ Phase 2 |
 | `watchdog.sh` | Watchdog: 30-min Stale-Eskalation + Slot-Release | ✅ Phase 2 |
 | `metrics.sh` | Durchsatz-Zusammenfassung für T000413 | ✅ Phase 2 |
-| Canary-Deployment | Layer-4: automatisches Canary-Rollout | 📋 Phase 3 |
-| Directory-Heuristic | Layer-4: verzeichnisbasierte Konflikt-Erkennung | 📋 Phase 3 |
+| Canary-Deployment | Layer-4: automatisches Canary-Rollout | ✅ Phase 3 |
+| Directory-Heuristic | Layer-4: verzeichnisbasierte Konflikt-Erkennung | ✅ Phase 3 |
+| `wakeup.sh` | Headless Dispatcher-Wrapper (flock + git-crypt-unlock → `claude -p`) | ✅ Phase 3 |
+| `factory.timer` / `factory.service` | systemd USER-Timer (re-arm-after-exit, Persistent) | ✅ Phase 3 |
 
 ## Quickstart (Phase 1 — Manuell)
 
@@ -92,6 +93,35 @@ Tasks parallelisieren mit `pipeline()` oder `parallel()`.
 - `task test:all` muss grün sein
 - PR → Squash-and-Merge
 - Deploy-Task via `scripts/task-oracle.sh` ermitteln
+
+## Phase 3 — Persistenter Auto-Pilot (Trigger / Service)
+
+Der Dispatcher läuft **ohne offene Claude-Code-Session** als WSL-Host **systemd-USER-Timer**:
+
+```bash
+# Voraussetzung: ~/.config/factory/autopilot.env mit FACTORY_GITCRYPT_KEY + Claude-Creds.
+task factory:autopilot:install     # symlinkt factory.timer/.service, enable --now
+task factory:autopilot:status      # nächster Tick + letzter Journal-Tail
+task factory:autopilot:uninstall   # stop + disable + entfernt die Units
+```
+
+Ablauf pro Tick: `factory.timer` (`OnUnitInactiveSec=10min`, re-armt **erst nach
+Tick-Ende** → Single-Flight; `Persistent=true` → überlebt Reboot) → `factory.service`
+(`RuntimeMaxSec=900` killt hängende Runs) → `wakeup.sh` (`cd` Repo · `flock
+/tmp/factory-tick.lock` · git-crypt entsperren falls nötig · `exec claude -p` mit dem
+**Workflow-Tool** + Permission-Allowlist + `dry_run`-Policy) → nestet `dispatcher.js`.
+
+**Der Cron-Poll IST der Trigger.** `dispatcher.js` → `schedule.sh` pollt den Backlog
+jeden Tick; es gibt **keinen** separaten Event-Consumer. Eine inerte
+`AFTER INSERT … WHERE type='feature'` **`pg_notify`**-Funktion in `tickets-db.ts`
+(`factory_feature_inserted`) ist nur Zukunfts-Plumbing und wird in Phase 3 **nicht
+konsumiert** (die Datenebene ist one-shot `kubectl exec psql`; LISTEN bräuchte eine
+gehaltene Verbindung — s. `lib.sh:31-35`, `dispatcher.js:15`).
+
+**Bewusst verworfen** (Spec §2 Korrektur A1): **CronCreate** / **RemoteTrigger** /
+**`/schedule`** als Dispatcher — diese laufen lokal/session-gebunden bzw. remote auf
+claude.ai und haben **kein Repo-Checkout, keinen git-crypt-Key, kein fleet-Kubeconfig
+und kein Workflow-Tool**. Der WSL-Host-Timer ist der einzige Locus mit allen vier.
 
 ## Verwandte Dokumente
 

@@ -48,6 +48,8 @@ async function main() {
 // ─── Config ──────────────────────────────────────────────────────────────
 
 const A = args ?? {}
+// PushNotification is a deferred Workflow tool — load its schema before any call.
+await ToolSearch({ query: 'select:PushNotification', max_results: 1 })
 const slug = A.slug
 const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
@@ -171,6 +173,14 @@ if (!isSimple) {
   )
   if (/\"T0/.test(conflict)) {
     log(`Conflict detected: ${conflict}`)
+    await agent(
+      `A file-overlap conflict blocks this feature. Notify the operator: PushNotification is DEFERRED —
+       run \`ToolSearch select:PushNotification\` first, then call it once:
+         title:   "Factory conflict: ${A.ticket_id} (${brand})"
+         message: "Pipeline blocked on file overlap. Detail: ${String(conflict).slice(0, 280)}"
+       Report what was notified.`,
+      { label: 'conflict:escalate', phase: 'Plan' },
+    )
     return { status: 'blocked', reason: 'file-overlap', conflict }
   }
 
@@ -237,6 +247,9 @@ if (tasks.length) {
        Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.
        Target files: ${t.target_files.join(', ')}.
        Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
+       DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
+       (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
+       do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
        After implementing, run locally:
          cd ${WORK_WT} && task workspace:validate && task test:all
        Return a summary of the diff and the local test result (pass/fail).`,
@@ -282,6 +295,10 @@ if (blocking.length) {
      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
      bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
        --body ${JSON.stringify('Factory Verify blocked: ' + JSON.stringify(blocking))}
+     Then notify the operator: PushNotification is a DEFERRED tool — run
+     \`ToolSearch select:PushNotification\` to load it, then call it once with
+       title:   "Factory Verify blocked: ${A.ticket_id} (${brand})"
+       message: "${blocking.length} HIGH/CRITICAL review finding(s) block merge."
      Report the command outputs.`,
     { label: 'verify:escalate', phase: 'Verify' },
   )
@@ -309,6 +326,26 @@ const deploy = await agent(
    Deploy the feature to both brands. Operate from the MAIN repo at ${REPO}
    (NOT the worktree ${WORK_WT}) to avoid gotcha T000342 (merge conflicts from wrong CWD).
 
+   HARD GUARDS — run these from ${REPO} and STOP (set the ticket blocked, notify, return) on any failure:
+   a. Branch policy: WORK_BRANCH must match ^(feature|fix)/ .
+      printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*"; exit 1; }
+   b. Diff-size cap (HARD): from ${REPO},
+      source ${REPO}/scripts/factory/guards.sh
+      GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'}
+      If guard_check_diff_size returns non-zero, the diff exceeds FACTORY_MAX_DIFF — DO NOT push/merge/deploy.
+   c. CWD assertion: every git/gh/task command below MUST run with cwd = ${REPO} (the MAIN repo),
+      never the worktree ${WORK_WT} (gotcha T000342).
+   d. Explicit ENV: prod deploys use ENV=mentolder and ENV=korczewski explicitly — NEVER a bare
+      kubectl context. Context is resolved internally via \`source ${REPO}/scripts/env-resolve.sh <env>\`
+      (→ ENV_CONTEXT=fleet); do not pass a bare cluster name.
+
+   If guard (a) or (b) fails: run
+     bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+   then load PushNotification (\`ToolSearch select:PushNotification\`) and notify
+     title: "Factory Deploy blocked: ${A.ticket_id}"
+     message: which guard failed (branch-policy or diff>FACTORY_MAX_DIFF) for brand ${brand}.
+   Return JSON: { "status": "blocked", "reason": "deploy-guard" }.
+
    Steps:
    1. Push branch ${WORK_BRANCH} to origin:
       cd ${REPO} && git push -u origin ${WORK_BRANCH}
@@ -316,25 +353,108 @@ const deploy = await agent(
       gh pr create --title "feat(${slug}): ${A.title}" --base main
       PR=$(gh pr view --json number -q .number)
       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
-   3. Wait for CI to go green. If CI is red after 2 fix attempts, set the ticket
-      to blocked and STOP.
+    3. STRUCTURED SELF-HEALING RETRY LOOP (≤2 fix attempts; NO raw SQL — use ticket.sh).
+       Run CI to green using this exact loop. Per attempt:
+
+       a) Read the current retry count (fail-closed → treat unreadable as 2):
+            RC=$(bash ${REPO}/scripts/ticket.sh retry-count get --id ${A.ticket_id})
+          If CI is GREEN → go to step 4 (merge).
+          If RC -ge 2 → STOP: this is the 3rd failure. Set blocked, notify, return.
+
+       b) Capture the failing CI log to a file:
+            gh run view --log-failed > /tmp/factory-ci-${A.ticket_id}.log 2>&1 || \
+              gh run view --log > /tmp/factory-ci-${A.ticket_id}.log 2>&1
+
+       c) TWO-GATED auto-fix decision. Auto-fix ONLY when BOTH gates pass:
+          Gate 1 (failure class): source ${REPO}/scripts/factory/classify-failure.sh;
+            CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
+            — must be one of: ci, test, lint.  (sql|manifest|secret|realm|other ⇒ NO auto-fix.)
+          Gate 2 (path class): source ${REPO}/scripts/factory/classify-paths.sh;
+            if paths_are_escalate_class "${scout.touched_files.join(',')}"  (exit 0 = escalate)
+            ⇒ NO auto-fix (shared-state / secret / realm*.json / *.sql touched).
+          If EITHER gate fails ⇒ do NOT auto-fix: set blocked, notify, return (escalate to human).
+
+       d) If both gates pass: make the smallest fix that addresses CLASS=${CLASS} on
+          branch ${WORK_BRANCH}, commit + push, then record the attempt:
+            bash ${REPO}/scripts/ticket.sh retry-count incr --id ${A.ticket_id}
+            bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
+              --body "$(printf 'Factory retry %s/2 (class=%s)\n--- diff ---\n%s\n--- ci log tail ---\n%s' \
+                "$RC" "$CLASS" "$(git diff HEAD~1 --shortstat)" "$(tail -30 /tmp/factory-ci-${A.ticket_id}.log)")"
+          Then re-run CI and repeat from (a).
+
+       If the loop exits because RC -ge 2 OR a gate failed, perform the BLOCK:
+            bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+            bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
+              --body "Factory blocked: CI red after ${A.ticket_id} retries (class gate or cap)."
+          and report that the ticket is blocked. Take NO merge action.
    4. Squash-merge (from ${REPO}, NOT the worktree):
       cd ${REPO} && gh pr merge --squash --delete-branch
    5. Close the ticket and archive the plan:
       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \
         --branch ${WORK_BRANCH} --plan-file ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
+   5b. Seed the dark-launch flag default-OFF for BOTH brands (mirrors the
+       isFeatureEnabled('${slug}') gate added during Implement):
+      bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
+      bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
    6. Deploy BOTH brands explicitly (fleet cluster, push-based — no GitOps reconciler):
       Website changes: task feature:website (auto-rolls out via CI for both brands)
       K8s/manifest changes: task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
       (Or use the umbrella if available: task feature:deploy)
-   7. Verify rollout on both brands:
-      kubectl --context fleet rollout status deployment/website -n website --timeout=300s
-      kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s
+    7. Verify rollout on both brands:
+       kubectl --context fleet rollout status deployment/website -n website --timeout=300s
+       kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s
+    8. LAYER-4 LIVE-PROD CANARY (per brand). For EACH brand in mentolder korczewski:
+       observe the LIVE site for ~5 min using the canary helper:
+         SERVICE=website TARGET=<brand> source ${REPO}/scripts/feature-promote.sh  # exposes observe_prod
+         observe_prod <brand> "$(svc_image_repo website <brand>):${A.timestamp}"
+       observe_prod re-probes web.<brand>.de /api/health + the unauth grep from
+       tests/e2e/smoke/website.txt, and on RED captures the pre-deploy revision and
+       rolls that brand back to it (exit 1). Record the per-brand verdict (GREEN/RED).
+       If ANY brand returns RED, output a line containing exactly: CANARY_RED <brand>
 
-   Report the merged PR number and the deploy command outputs.`,
+    Report the merged PR number and the deploy command outputs.`,
   { label: 'deploy', phase: 'Deploy' },
 )
+
+// Self-healing retry loop may have ended in 'blocked' (CI red after ≤2 gated attempts).
+if (typeof deploy === 'string' && /blocked/i.test(deploy)) {
+  if (deploy.includes('deploy-guard') || deploy.includes('BLOCK: WORK_BRANCH') || deploy.includes('diff exceeds FACTORY_MAX_DIFF')) {
+    return { status: 'blocked', reason: 'deploy-guard' }
+  }
+  await PushNotification({
+    title: `Factory: ${A.ticket_id} CI-blocked`,
+    body: `Self-healing retry exhausted/escalated for "${A.title}" (${brand}). Human attention needed.`,
+  })
+  return { status: 'blocked', reason: 'ci-red-after-retries', ticket: A.ticket_id }
+}
+
+// Layer-4 canary: observe_prod (in feature-promote.sh) already captured the pre-deploy
+// revision and rolled the failing brand back. Here we turn the feature flag OFF for that
+// brand, mark blocked, and notify. PushNotification only from Workflow runtime.
+const canaryRed = typeof deploy === 'string' ? [...deploy.matchAll(/CANARY_RED\s+(mentolder|korczewski)/g)].map(m => m[1]) : []
+if (canaryRed.length) {
+  for (const b of canaryRed) {
+    await agent(
+      `Canary went RED on ${b} (observe_prod already rolled the deployment back to the
+       pre-deploy revision). Dark-launch the feature OFF for this brand and record it:
+       bash ${REPO}/scripts/ticket.sh feature-flag set --brand ${b} --key ${slug} --enabled false --set-by factory-canary
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify(`Factory canary RED on ${b}: rolled back + feature flag '${slug}' disabled.`)}
+       Report the command outputs.`,
+      { label: `canary:rollback:${b}`, phase: 'Deploy' },
+    )
+  }
+  await PushNotification({
+    title: `Factory: ${A.ticket_id} canary RED`,
+    body: `Live-prod canary failed on ${canaryRed.join(', ')} for "${A.title}". Rolled back + flag OFF.`,
+  })
+  return { status: 'blocked', reason: 'canary-red', brands: canaryRed, ticket: A.ticket_id }
+}
+
+if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
+  return { status: 'blocked', reason: 'deploy-guard' }
+}
 
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 }

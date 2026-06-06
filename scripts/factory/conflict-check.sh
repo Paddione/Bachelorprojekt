@@ -32,6 +32,15 @@ fi
 FACTORY_NS="${FACTORY_NS:-workspace}"
 FACTORY_CTX="${FACTORY_CTX:-fleet}"
 
+# If context is a dev cluster, append -dev to namespace
+if [[ "$FACTORY_CTX" == k3d-* || "$FACTORY_CTX" == *-dev ]]; then
+  if [[ "$FACTORY_NS" == "workspace" ]]; then
+    FACTORY_NS="workspace-dev"
+  elif [[ "$FACTORY_NS" == "workspace-korczewski" ]]; then
+    FACTORY_NS="workspace-korczewski-dev"
+  fi
+fi
+
 # Dry-resolve: print the resolved namespace and exit (used by tests).
 if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then
   echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"
@@ -41,6 +50,7 @@ fi
 CTX="${FACTORY_CTX}"
 NS="${FACTORY_NS}"
 DB="website"
+USER="website"
 
 _pgpod() {
   local pod
@@ -107,7 +117,25 @@ WHERE t.external_id != :'ext_id'
   AND t.type IN ('feature','task')
   AND t.status IN ('backlog','in_progress','in_review')
   AND t.touched_files IS NOT NULL
-  AND t.touched_files @> ARRAY[nf.f];
+  AND (
+    -- base: exact element containment (unchanged)
+    t.touched_files @> ARRAY[nf.f]
+    -- augment: directory-prefix match, ONLY for the closed shared-state
+    -- allowlist (k3d/, prod, environments/, Taskfile) and NOT for
+    -- website/src/pages/ (page-only features must stay parallel).
+    OR (
+      nf.f NOT LIKE 'website/src/pages/%'
+      AND EXISTS (
+        SELECT 1
+        FROM (VALUES ('k3d/%'), ('prod%'), ('environments/%'), ('Taskfile%')) AS p(prefix)
+        WHERE nf.f LIKE p.prefix
+          AND EXISTS (
+            SELECT 1 FROM unnest(t.touched_files) AS tf
+            WHERE tf LIKE p.prefix
+          )
+      )
+    )
+  );
 EOF
 )
 

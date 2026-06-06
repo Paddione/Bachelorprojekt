@@ -20,14 +20,21 @@ NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
 
-# Brand → namespace map (mirrors conflict-check.sh). BRAND wins over TICKET_NS so
-# a caller cannot silently hit the wrong brand's prod DB.
 case "${BRAND:-}" in
   mentolder)   NS="workspace" ;;
   korczewski)  NS="workspace-korczewski" ;;
   "")          : ;;  # no BRAND given — keep TICKET_NS default
   *)           echo "ERROR: unknown BRAND (use mentolder|korczewski)" >&2; exit 2 ;;
 esac
+
+# If context is a dev cluster, append -dev to namespace
+if [[ "$CTX" == k3d-* || "$CTX" == *-dev ]]; then
+  if [[ "$NS" == "workspace" ]]; then
+    NS="workspace-dev"
+  elif [[ "$NS" == "workspace-korczewski" ]]; then
+    NS="workspace-korczewski-dev"
+  fi
+fi
 
 _pgpod() {
   local pod
@@ -421,9 +428,157 @@ EOF
   echo "touched ticket $id"
 }
 
+cmd_retry_count() {
+  local action="" id=""
+  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown retry-count option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$action" != "get" && "$action" != "incr" && "$action" != "reset" ]]; then
+    echo "ERROR: retry-count requires an action (get|incr|reset)." >&2; exit 2
+  fi
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  case "$action" in
+    get)
+      _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT retry_count FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+      ;;
+    incr)
+      _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+UPDATE tickets.tickets SET retry_count = retry_count + 1 WHERE external_id = :'ext_id' RETURNING retry_count;
+EOF
+      ;;
+    reset)
+      _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+UPDATE tickets.tickets SET retry_count = 0 WHERE external_id = :'ext_id' RETURNING retry_count;
+EOF
+      ;;
+  esac
+}
+
+cmd_factory_control() {
+  local action="" key="" brand="" value="" set_by=""
+  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --key)    key="$2"; shift 2 ;;
+      --brand)  brand="$2"; shift 2 ;;
+      --value)  value="$2"; shift 2 ;;
+      --set-by) set_by="$2"; shift 2 ;;
+      *)        echo "Unknown factory-control option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$action" != "get" && "$action" != "set" ]]; then
+    echo "ERROR: factory-control requires an action (get|set)." >&2; exit 2
+  fi
+  if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  if [[ "$action" == "get" ]]; then
+    _exec_sql "$pod" -v key="$key" -v brand="$brand" <<'EOF'
+SELECT value FROM tickets.factory_control
+WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
+EOF
+  else
+    if [[ -z "$value" ]]; then echo "ERROR: --value is required for set." >&2; exit 2; fi
+    _exec_sql "$pod" -v key="$key" -v brand="$brand" -v value="$value" -v set_by="$set_by" <<'EOF' >/dev/null
+INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+VALUES (:'key', NULLIF(:'brand',''), :'value', NULLIF(:'set_by',''), now())
+ON CONFLICT (key, brand) DO UPDATE
+  SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
+EOF
+    echo "factory-control set: $key=${value}${brand:+ (brand=$brand)}"
+  fi
+}
+
+cmd_dryrun_mark() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown dryrun-mark option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v key="dryrun:$id" <<'EOF' >/dev/null
+INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+VALUES (:'key', NULL, 'done', 'ticket.sh', now())
+ON CONFLICT (key, brand) DO UPDATE SET value = 'done', updated_at = now();
+EOF
+  echo "dryrun marked for ticket $id"
+}
+
+cmd_dryrun_check() {
+  local id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown dryrun-check option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  local pod found
+  pod=$(_pgpod)
+  found=$(_exec_sql "$pod" -v key="dryrun:$id" <<'EOF'
+SELECT 1 FROM tickets.factory_control WHERE key = :'key' AND brand IS NULL LIMIT 1;
+EOF
+)
+  if [[ "$found" == "1" ]]; then exit 0; else exit 1; fi
+}
+
+cmd_feature_flag() {
+  local action="" brand="" key="" enabled="" set_by=""
+  if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --brand)   brand="$2"; shift 2 ;;
+      --key)     key="$2"; shift 2 ;;
+      --enabled) enabled="$2"; shift 2 ;;
+      --set-by)  set_by="$2"; shift 2 ;;
+      *)         echo "Unknown feature-flag option: $1" >&2; exit 2 ;;
+    esac
+  done
+  if [[ "$action" != "set" && "$action" != "get" && "$action" != "list" ]]; then
+    echo "ERROR: feature-flag requires an action (set|get|list)." >&2; exit 2
+  fi
+  if [[ -z "$brand" ]]; then echo "ERROR: --brand is required." >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  case "$action" in
+    set)
+      if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+      if [[ "$enabled" != "true" && "$enabled" != "false" ]]; then
+        echo "ERROR: --enabled must be true|false." >&2; exit 2
+      fi
+      _exec_sql "$pod" -v brand="$brand" -v key="$key" -v enabled="$enabled" -v set_by="$set_by" <<'EOF' >/dev/null
+INSERT INTO tickets.feature_flags (brand, key, enabled, set_by)
+VALUES (:'brand', :'key', :'enabled'::boolean, NULLIF(:'set_by',''))
+ON CONFLICT (brand, key) DO UPDATE
+  SET enabled = EXCLUDED.enabled, set_by = EXCLUDED.set_by;
+EOF
+      echo "feature-flag set: $brand/$key=$enabled"
+      ;;
+    get)
+      if [[ -z "$key" ]]; then echo "ERROR: --key is required." >&2; exit 2; fi
+      _exec_sql "$pod" -v brand="$brand" -v key="$key" <<'EOF'
+SELECT enabled FROM tickets.feature_flags WHERE brand = :'brand' AND key = :'key';
+EOF
+      ;;
+    list)
+      _exec_sql "$pod" -v brand="$brand" <<'EOF'
+SELECT key || '=' || enabled FROM tickets.feature_flags WHERE brand = :'brand' ORDER BY key;
+EOF
+      ;;
+  esac
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag" >&2
   exit 1
 fi
 
@@ -440,5 +595,13 @@ case "$cmd" in
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
+  retry-count)       cmd_retry_count "$@" ;;
+  factory-control)   cmd_factory_control "$@" ;;
+  dryrun-mark)       cmd_dryrun_mark "$@" ;;
+  dryrun-check)      cmd_dryrun_check "$@" ;;
+  feature-flag)      cmd_feature_flag "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
+
+
+

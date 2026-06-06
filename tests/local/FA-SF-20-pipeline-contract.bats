@@ -42,3 +42,19 @@ SCRIPT="scripts/factory/pipeline.js"
   [ "$status" -eq 0 ]
   [ "$output" -ge 6 ]
 }
+
+@test "FA-SF-20: Deploy phase enforces WORK_BRANCH regex feature/*|fix/* + diff-size guard" {
+  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "FACTORY_MAX_DIFF" "$SCRIPT"; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-20: Deploy asserts MAIN_REPO cwd + explicit ENV= (no bare context)" {
+  run grep -q "ENV=mentolder" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "ENV=korczewski" "$SCRIPT"; [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-20: both escalation sites route PushNotification via ToolSearch" {
+  run grep -c "ToolSearch select:PushNotification" "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 2 ]
+}

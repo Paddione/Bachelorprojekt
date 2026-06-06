@@ -1,0 +1,35 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import { getSession, isAdmin } from '../lib/auth';
+import FactoryDashboard from '../components/FactoryDashboard.svelte';
+import { listFactoryMetrics, listActiveFeatures, listActiveFlags } from '../lib/factory-metrics';
+
+export const prerender = false;
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(`/api/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+// Dashboard gating reuses the isAdmin() username allowlist (PORTAL_ADMIN_USERNAME),
+// a documented deviation from the /dev-access group model (no groups claim on the
+// website session). See spec D-DASH.
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brand = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+const globalCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+
+let initial = null;
+try {
+  const [metrics, activeFeatures, flags] = await Promise.all([
+    listFactoryMetrics(), listActiveFeatures(), listActiveFlags(brand),
+  ]);
+  initial = { brand, metrics, activeFeatures, flags, fetchedAt: new Date().toISOString() };
+} catch { initial = null; }
+---
+
+<AdminLayout title="Factory Status">
+  <section class="pt-6 pb-12 bg-dark min-h-screen">
+    <div class="max-w-7xl mx-auto px-6">
+      <h1 class="text-2xl font-bold mb-6">Software Factory — Live Status</h1>
+      <FactoryDashboard client:load {initial} {globalCap} />
+    </div>
+  </section>
+</AdminLayout>

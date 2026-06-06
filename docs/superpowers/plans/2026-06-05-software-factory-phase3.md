@@ -86,7 +86,7 @@ This segment runs FIRST. Task A.0 is a Go/No-Go gate (headless Workflow nesting)
 
 This task gates the rest. It is a manual/interactive verification (a headless `claude -p` invocation cannot be unit-tested), so Steps 1–2 are a build/lint VERIFICATION and Step 4 is the live spike run + decision record.
 
-- [ ] **Step 1: Write the probe target + spike runner.**
+- [x] **Step 1: Write the probe target + spike runner.**
 
   `scripts/factory/pipeline.spike.js`:
   ```js
@@ -125,13 +125,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   ```
   Make it executable: `chmod +x scripts/factory/headless-workflow-spike.sh`.
 
-- [ ] **Step 2 (VERIFY syntax, offline): lint both JS/Bash before any live run.**
+- [x] **Step 2 (VERIFY syntax, offline): lint both JS/Bash before any live run.**
   ```bash
   cd /tmp/wt-sf-phase3 && node --check scripts/factory/pipeline.spike.js && bash -n scripts/factory/headless-workflow-spike.sh && echo SPIKE_LINT_OK
   ```
   Expected output (last line): `SPIKE_LINT_OK`
 
-- [ ] **Step 3 (record the decision template):** create `docs/superpowers/specs/2026-06-05-phase0-spike-result.md`:
+- [x] **Step 3 (record the decision template):** create `docs/superpowers/specs/2026-06-05-phase0-spike-result.md`:
   ```markdown
   # Phase 0 Spike — Headless Workflow Nesting (Go/No-Go) [T000413]
 
@@ -156,13 +156,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   Delete `scripts/factory/pipeline.spike.js` + `headless-workflow-spike.sh` once recorded.
   ```
 
-- [ ] **Step 4 (LIVE spike + decision):** run the spike and fill the result file with the observed JSON.
+- [x] **Step 4 (LIVE spike + decision):** run the spike and fill the result file with the observed JSON.
   ```bash
   cd /tmp/wt-sf-phase3 && bash scripts/factory/headless-workflow-spike.sh
   ```
   Expected (GO): the session prints the workflow's return JSON containing `"spike":"pipeline","nested":true,"agents":0,"dry_run":true` and NO permission prompt blocks it. If a prompt blocks or the Workflow tool is unavailable, record **NO-GO** and proceed with the `/loop` fallback noted in the result file. Either way the schema/contract work (A.1+) proceeds unchanged.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/factory/headless-workflow-spike.sh scripts/factory/pipeline.spike.js docs/superpowers/specs/2026-06-05-phase0-spike-result.md && git commit -m "chore(factory): phase 0 headless-workflow nesting spike + Go/No-Go record [T000413]"
   ```
@@ -172,7 +172,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.1: Add `retry_count` column to `tickets.tickets`
 **Files:** Modify `website/src/lib/tickets-db.ts` (right after the `pipeline_slot` ALTER, ~:105). Test: extend `tests/local/FA-SF-04-db-schema.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
   ```bash
   @test "FA-SF-04: tickets.tickets has retry_count column (NOT NULL DEFAULT 0)" {
     run psql_tickets "SELECT column_default FROM information_schema.columns WHERE table_schema='tickets' AND table_name='tickets' AND column_name='retry_count'"
@@ -181,13 +181,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL** (column not yet created on the live DB / fresh schema):
+- [x] **Step 2: Run it, expect FAIL** (column not yet created on the live DB / fresh schema):
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-04
   ```
   Expected: the new `retry_count` test fails — `output` is empty, `[[ "" =~ "0" ]]` is false (`not ok ... retry_count column`).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `pipeline_slot` ALTER at line 105, insert:
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `pipeline_slot` ALTER at line 105, insert:
   ```ts
   // Phase 3 Software Factory: retry_count tracks how many times the pipeline
   // has retried a failed feature. Reset to 0 on slot-claim; >=2 => block +
@@ -195,13 +195,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0`);
   ```
 
-- [ ] **Step 4: Run it, expect PASS** (after the schema re-inits per-pod; for a fresh local DB the next init applies it). Verify the source landed and lint:
+- [x] **Step 4: Run it, expect PASS** (after the schema re-inits per-pod; for a fresh local DB the next init applies it). Verify the source landed and lint:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -n "retry_count INTEGER NOT NULL DEFAULT 0" website/src/lib/tickets-db.ts && cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -c "tickets-db.ts" 
   ```
   Expected: the grep prints the matching line; the `grep -c` prints `0` (no type errors in `tickets-db.ts`). After the website pod re-inits the schema in both namespaces, `./tests/runner.sh local FA-SF-04` passes the `retry_count` test.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts tests/local/FA-SF-04-db-schema.bats && git commit -m "feat(factory): add tickets.retry_count column + FA-SF-04 assertion [T000413]"
   ```
@@ -211,7 +211,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.2: Create `tickets.factory_control` table (kill-switch / daily-cap / dry-run marker)
 **Files:** Modify `website/src/lib/tickets-db.ts` (after the `retry_count` ALTER from A.1). Test: extend `tests/local/FA-SF-04-db-schema.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
   ```bash
   @test "FA-SF-04: tickets.factory_control table exists with UNIQUE(key,brand)" {
     run psql_tickets "SELECT tablename FROM pg_tables WHERE schemaname='tickets' AND tablename='factory_control'"
@@ -225,13 +225,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-04
   ```
   Expected: `not ok ... factory_control table exists` — `output` is empty (table absent).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, directly after the `retry_count` ALTER added in A.1:
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, directly after the `retry_count` ALTER added in A.1:
   ```ts
   // Phase 3 Software Factory: factory_control is the runtime control plane —
   // global kill-switch, per-brand daily-deploy cap counter, dry-run markers.
@@ -249,13 +249,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   `);
   ```
 
-- [ ] **Step 4: Run it, expect PASS** — verify source + types:
+- [x] **Step 4: Run it, expect PASS** — verify source + types:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -n "CREATE TABLE IF NOT EXISTS tickets.factory_control" website/src/lib/tickets-db.ts && cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -c "tickets-db.ts"
   ```
   Expected: grep prints the matching line; `grep -c` prints `0`. After per-pod schema re-init the two new FA-SF-04 tests pass in both namespaces.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts tests/local/FA-SF-04-db-schema.bats && git commit -m "feat(factory): add tickets.factory_control control-plane table [T000413]"
   ```
@@ -265,7 +265,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.3: Create `tickets.feature_flags` table (+ brand FK via the tags DO-block idiom)
 **Files:** Modify `website/src/lib/tickets-db.ts` (place near `tickets.tags`, ~:350-363, mirroring its `id` + brand-FK DO-block idiom). Test: extend `tests/local/FA-SF-04-db-schema.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-04-db-schema.bats`:
   ```bash
   @test "FA-SF-04: tickets.feature_flags table exists" {
     run psql_tickets "SELECT tablename FROM pg_tables WHERE schemaname='tickets' AND tablename='feature_flags'"
@@ -284,13 +284,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-04
   ```
   Expected: `not ok ... feature_flags table exists` (table absent; `output` empty).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `tickets.tags` block (the one ending at the `END $$;` near line 363), add the table using the SAME DO-block ADD CONSTRAINT idiom as `tags_brand_fkey`:
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, immediately after the `tickets.tags` block (the one ending at the `END $$;` near line 363), add the table using the SAME DO-block ADD CONSTRAINT idiom as `tags_brand_fkey`:
   ```ts
   // Phase 3 Software Factory: feature_flags powers dark-launch / canary. Each
   // implement-agent gates new behaviour behind isFeatureEnabled(brand,'<slug>');
@@ -315,13 +315,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   `);
   ```
 
-- [ ] **Step 4: Run it, expect PASS** — verify source + types:
+- [x] **Step 4: Run it, expect PASS** — verify source + types:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -n "feature_flags_brand_fkey" website/src/lib/tickets-db.ts && cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -c "tickets-db.ts"
   ```
   Expected: grep prints two lines (the IF-NOT-EXISTS check + the ADD CONSTRAINT); `grep -c` prints `0`. After per-pod re-init the three new FA-SF-04 tests pass in both namespaces.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts tests/local/FA-SF-04-db-schema.bats && git commit -m "feat(factory): add tickets.feature_flags table with brand FK [T000413]"
   ```
@@ -331,7 +331,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.4: `isFeatureEnabled(brand, key)` TS helper (+ vitest)
 **Files:** Modify `website/src/lib/tickets-db.ts` (export the helper; place it right after `initTicketsSchema`, ~ after the closing brace near where other exports live). Create `website/src/lib/tickets-db.featureflag.test.ts`.
 
-- [ ] **Step 1: Write the failing test** — `website/src/lib/tickets-db.featureflag.test.ts`:
+- [x] **Step 1: Write the failing test** — `website/src/lib/tickets-db.featureflag.test.ts`:
   ```ts
   // website/src/lib/tickets-db.featureflag.test.ts [T000413]
   import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -369,13 +369,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   });
   ```
 
-- [ ] **Step 2: Run it, expect FAIL** (no export yet):
+- [x] **Step 2: Run it, expect FAIL** (no export yet):
   ```bash
   cd /tmp/wt-sf-phase3/website && npx vitest run src/lib/tickets-db.featureflag.test.ts
   ```
   Expected: import/type failure — `"isFeatureEnabled" is not exported by "src/lib/tickets-db.ts"` (suite errors / fails).
 
-- [ ] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, add this exported function immediately after the `initTicketsSchema` function's closing `}` (top-level, alongside the other exports):
+- [x] **Step 3: Implement** — in `website/src/lib/tickets-db.ts`, add this exported function immediately after the `initTicketsSchema` function's closing `}` (top-level, alongside the other exports):
   ```ts
   /** Dark-launch gate. Returns true only when an ENABLED flag row exists for
    *  (brand,key). Fails CLOSED (false) on any DB error so a flag-table outage
@@ -393,13 +393,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3/website && npx vitest run src/lib/tickets-db.featureflag.test.ts
   ```
   Expected: `3 passed` — all three `isFeatureEnabled` cases green.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/lib/tickets-db.ts website/src/lib/tickets-db.featureflag.test.ts && git commit -m "feat(factory): isFeatureEnabled() dark-launch helper (fail-closed) [T000413]"
   ```
@@ -409,7 +409,7 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
 ### Task A.5: `ticket.sh retry-count` + `factory-control` subcommands
 **Files:** Modify `scripts/ticket.sh` (add `cmd_retry_count` + `cmd_factory_control`; register in dispatch case :431-442 and the usage line :426). Test: create `tests/local/FA-SF-35-factory-cli.bats`.
 
-- [ ] **Step 1: Write the failing test** — `tests/local/FA-SF-35-factory-cli.bats`:
+- [x] **Step 1: Write the failing test** — `tests/local/FA-SF-35-factory-cli.bats`:
   ```bash
   #!/usr/bin/env bats
   # FA-SF-35: offline arg-validation for Phase 3 factory ticket.sh subcommands. [T000413]
@@ -442,13 +442,13 @@ This task gates the rest. It is a manual/interactive verification (a headless `c
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL** (subcommands unknown → exit 1, not the expected exit 2):
+- [x] **Step 2: Run it, expect FAIL** (subcommands unknown → exit 1, not the expected exit 2):
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-35
   ```
   Expected: failures — `retry-count`/`factory-control` hit the `*) Unknown command` branch (status 1) and the usage line lacks `factory-control`.
 
-- [ ] **Step 3: Implement** — in `scripts/ticket.sh`, add two functions just before the dispatch `if [[ $# -lt 1 ]]` block (after `cmd_touch`, ~:422):
+- [x] **Step 3: Implement** — in `scripts/ticket.sh`, add two functions just before the dispatch `if [[ $# -lt 1 ]]` block (after `cmd_touch`, ~:422):
   ```bash
   cmd_retry_count() {
     local action="" id=""
@@ -524,13 +524,13 @@ EOF
   ```
   And append `retry-count, factory-control` to the usage `Commands:` echo line at :426.
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3 && bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `bash -n` is silent; FA-SF-35 reports the `retry-count`/`factory-control` cases all `ok` (the `feature-flag` cases land in A.6).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/ticket.sh tests/local/FA-SF-35-factory-cli.bats && git commit -m "feat(factory): ticket.sh retry-count + factory-control subcommands [T000413]"
   ```
@@ -542,7 +542,7 @@ EOF
 
 dry-run markers are stored as `factory_control` rows with key `dryrun:<ext_id>` (brand NULL=global), so `dryrun-check` exits 0 iff the marker row exists — matching the contract `guard_dryrun_ok` consumes.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
   ```bash
   @test "FA-SF-35: dryrun-mark requires --id" {
     run bash scripts/ticket.sh dryrun-mark
@@ -560,13 +560,13 @@ dry-run markers are stored as `factory_control` rows with key `dryrun:<ext_id>` 
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `dryrun-mark`/`dryrun-check` hit `*) Unknown command` (status 1) → the new `--id`-required assertions fail.
 
-- [ ] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_factory_control`:
+- [x] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_factory_control`:
   ```bash
   cmd_dryrun_mark() {
     local id=""
@@ -611,13 +611,13 @@ EOF
   ```
   Append `dryrun-mark, dryrun-check` to the usage `Commands:` line.
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3 && bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `bash -n` silent; the three new `dryrun-*` assertions report `ok`.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/ticket.sh tests/local/FA-SF-35-factory-cli.bats && git commit -m "feat(factory): ticket.sh dryrun-mark/dryrun-check subcommands [T000413]"
   ```
@@ -627,7 +627,7 @@ EOF
 ### Task A.7: `ticket.sh feature-flag set|get|list` subcommands
 **Files:** Modify `scripts/ticket.sh` (add `cmd_feature_flag`; register in dispatch + usage). Test: extend `tests/local/FA-SF-35-factory-cli.bats`.
 
-- [ ] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
+- [x] **Step 1: Write the failing test** — append to `tests/local/FA-SF-35-factory-cli.bats`:
   ```bash
   @test "FA-SF-35: feature-flag set requires --brand --key --enabled" {
     run bash scripts/ticket.sh feature-flag set --brand mentolder --key new-hero
@@ -655,13 +655,13 @@ EOF
   }
   ```
 
-- [ ] **Step 2: Run it, expect FAIL:**
+- [x] **Step 2: Run it, expect FAIL:**
   ```bash
   cd /tmp/wt-sf-phase3 && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `feature-flag` hits `*) Unknown command` (status 1) → the five new assertions fail.
 
-- [ ] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_dryrun_check`:
+- [x] **Step 3: Implement** — in `scripts/ticket.sh`, after `cmd_dryrun_check`:
   ```bash
   cmd_feature_flag() {
     local action="" brand="" key="" enabled="" set_by=""
@@ -714,13 +714,13 @@ EOF
   ```
   Append `feature-flag` to the usage `Commands:` line.
 
-- [ ] **Step 4: Run it, expect PASS:**
+- [x] **Step 4: Run it, expect PASS:**
   ```bash
   cd /tmp/wt-sf-phase3 && bash -n scripts/ticket.sh && ./tests/runner.sh local FA-SF-35
   ```
   Expected: `bash -n` silent; all FA-SF-35 assertions report `ok` (retry-count + factory-control + dryrun + feature-flag).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add scripts/ticket.sh tests/local/FA-SF-35-factory-cli.bats && git commit -m "feat(factory): ticket.sh feature-flag set/get/list subcommands [T000413]"
   ```
@@ -730,19 +730,19 @@ EOF
 ### Task A.8: Register FA-SF-35 in the test inventory (CI gate)
 **Files:** Modify `website/src/data/test-inventory.json`. (The CI `test:inventory` check fails the build if this is stale — see CLAUDE.md "Test inventory check".)
 
-- [ ] **Step 1 (VERIFY the gap):** confirm FA-SF-35 is NOT yet registered and the regenerator would add it:
+- [x] **Step 1 (VERIFY the gap):** confirm FA-SF-35 is NOT yet registered and the regenerator would add it:
   ```bash
   cd /tmp/wt-sf-phase3 && grep -c "FA-SF-35" website/src/data/test-inventory.json
   ```
   Expected: `0` (not registered yet).
 
-- [ ] **Step 2 (regenerate the inventory):**
+- [x] **Step 2 (regenerate the inventory):**
   ```bash
   cd /tmp/wt-sf-phase3 && task test:inventory
   ```
   Expected: the task rewrites `website/src/data/test-inventory.json` adding an FA-SF-35 entry.
 
-- [ ] **Step 3 (VERIFY the entry shape):**
+- [x] **Step 3 (VERIFY the entry shape):**
   ```bash
   cd /tmp/wt-sf-phase3 && grep -A3 '"id": "FA-SF-35"' website/src/data/test-inventory.json
   ```
@@ -755,13 +755,13 @@ EOF
   ```
   If `task test:inventory` does not auto-discover it, insert that object manually after the FA-SF-31 entry, preserving the trailing comma.
 
-- [ ] **Step 4 (VERIFY no drift):** re-run the regenerator and confirm a clean tree (this is exactly what CI asserts):
+- [x] **Step 4 (VERIFY no drift):** re-run the regenerator and confirm a clean tree (this is exactly what CI asserts):
   ```bash
   cd /tmp/wt-sf-phase3 && task test:inventory && git diff --quiet website/src/data/test-inventory.json && echo INVENTORY_CLEAN
   ```
   Expected: `INVENTORY_CLEAN` (no diff on a second run).
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
   ```bash
   git add website/src/data/test-inventory.json && git commit -m "test(factory): register FA-SF-35 factory-cli in test inventory [T000413]"
   ```
@@ -795,7 +795,7 @@ Defined here and consumed by the retry-loop / escalation segments:
 - Create: `scripts/factory/shared-state-allowlist.txt`
 - Test: `tests/local/FA-SF-32-classify-paths.bats` (allowlist-presence assertion only in this task; classifier logic in B.2)
 
-- [ ] **Step 1: Write the failing test** — create `tests/local/FA-SF-32-classify-paths.bats` with the allowlist-existence check:
+- [x] **Step 1: Write the failing test** — create `tests/local/FA-SF-32-classify-paths.bats` with the allowlist-existence check:
 ```bash
 #!/usr/bin/env bats
 # FA-SF-32: shared-state allowlist + classify-paths.sh escalate-class detection.
@@ -811,13 +811,13 @@ setup() { load 'test_helper.bash'; }
 }
 ```
 
-- [ ] **Step 2: Run it, expect FAIL** — file does not exist yet:
+- [x] **Step 2: Run it, expect FAIL** — file does not exist yet:
 ```
 ./tests/runner.sh local FA-SF-32
 ```
 Expected: `FA-SF-32 ... not ok` / `[ -f "$f" ]` fails (file missing).
 
-- [ ] **Step 3: Implement** — create `scripts/factory/shared-state-allowlist.txt` (one prefix per line, no comments, trailing newline):
+- [x] **Step 3: Implement** — create `scripts/factory/shared-state-allowlist.txt` (one prefix per line, no comments, trailing newline):
 ```
 k3d/
 prod
@@ -825,13 +825,13 @@ environments/
 Taskfile
 ```
 
-- [ ] **Step 4: Run it, expect PASS**:
+- [x] **Step 4: Run it, expect PASS**:
 ```
 ./tests/runner.sh local FA-SF-32
 ```
 Expected: `ok 1 FA-SF-32: shared-state-allowlist.txt exists with the four required prefixes`.
 
-- [ ] **Step 5: Commit**:
+- [x] **Step 5: Commit**:
 ```
 git add scripts/factory/shared-state-allowlist.txt tests/local/FA-SF-32-classify-paths.bats && git commit -m "feat(factory): add shared-state allowlist for escalate-class path classification [T000413]"
 ```
@@ -3680,7 +3680,7 @@ cross-namespace connection — korczewski cannot reach `shared-db.workspace` (EC
 - Create `website/src/lib/factory-metrics.ts`
 - Create (Test) `website/src/lib/factory-metrics.test.ts`
 
-- [ ] **Step 1: Write the failing test** — full test code (mirrors the pg-mem mock idiom from `platform-db.ensure.test.ts`; the view is replaced by a seeded plain table because pg-mem has no `date_trunc`-grouped view support):
+- [x] **Step 1: Write the failing test** — full test code (mirrors the pg-mem mock idiom from `platform-db.ensure.test.ts`; the view is replaced by a seeded plain table because pg-mem has no `date_trunc`-grouped view support):
 ```ts
 import { describe, it, expect, vi } from 'vitest';
 
@@ -3730,13 +3730,13 @@ describe('listFactoryMetrics', () => {
 });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL** — exact command + expected failure:
+- [x] **Step 2: Run it, expect FAIL** — exact command + expected failure:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: `Failed to resolve import "./factory-metrics"` (the module does not exist yet).
 
-- [ ] **Step 3: Implement** — full real code of `website/src/lib/factory-metrics.ts`:
+- [x] **Step 3: Implement** — full real code of `website/src/lib/factory-metrics.ts`:
 ```ts
 // Software Factory Phase 3 — dashboard read helpers.
 // Reads the existing tickets.v_factory_metrics + tickets.v_active_features views
@@ -3778,13 +3778,13 @@ export async function listFactoryMetrics(): Promise<FactoryMetricRow[]> {
 }
 ```
 
-- [ ] **Step 4: Run it, expect PASS** — exact command + expected output:
+- [x] **Step 4: Run it, expect PASS** — exact command + expected output:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: `Test Files  1 passed (1)` and `Tests  1 passed (1)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.ts && git commit -m "feat(factory): listFactoryMetrics reads v_factory_metrics [T000413]"
 ```
@@ -3796,7 +3796,7 @@ git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.
 - Modify `website/src/lib/factory-metrics.ts`
 - Modify (Test) `website/src/lib/factory-metrics.test.ts`
 
-- [ ] **Step 1: Write the failing test** — append these two cases inside the existing `describe('listFactoryMetrics', ...)` block (add the import to the existing top-of-file import line):
+- [x] **Step 1: Write the failing test** — append these two cases inside the existing `describe('listFactoryMetrics', ...)` block (add the import to the existing top-of-file import line):
 ```ts
   it('listActiveFeatures returns the active working set with pipeline_slot', async () => {
     const { listActiveFeatures } = await import('./factory-metrics');
@@ -3815,13 +3815,13 @@ git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.
   });
 ```
 
-- [ ] **Step 2: Run it, expect FAIL** — exact command + expected failure:
+- [x] **Step 2: Run it, expect FAIL** — exact command + expected failure:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: 2 failing tests with `listActiveFeatures is not a function` / `listActiveFlags is not a function`.
 
-- [ ] **Step 3: Implement** — append to `website/src/lib/factory-metrics.ts`:
+- [x] **Step 3: Implement** — append to `website/src/lib/factory-metrics.ts`:
 ```ts
 /** The dispatcher's working set — non-terminal features with touch data. */
 export async function listActiveFeatures(): Promise<ActiveFeatureRow[]> {
@@ -3845,13 +3845,13 @@ export async function listActiveFlags(brand: string): Promise<FeatureFlagRow[]> 
 }
 ```
 
-- [ ] **Step 4: Run it, expect PASS** — exact command + expected output:
+- [x] **Step 4: Run it, expect PASS** — exact command + expected output:
 ```bash
 cd website && npx vitest run src/lib/factory-metrics.test.ts
 ```
 Expected: `Tests  3 passed (3)`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add website/src/lib/factory-metrics.ts website/src/lib/factory-metrics.test.ts && git commit -m "feat(factory): listActiveFeatures + listActiveFlags dashboard helpers [T000413]"
 ```
@@ -3866,7 +3866,7 @@ This route is a session-gated clone of `api/admin/monitoring.ts`'s gate fused wi
 `api/timeline.ts` JSON shape. `prerender = false`. Unit-of-record gate behavior is covered
 by the bats in Task G.6; here we verify the module compiles and the gate symbols are wired.
 
-- [ ] **Step 1: VERIFICATION — write the route, then typecheck.** Full real code of `website/src/pages/api/factory-metrics.ts`:
+- [x] **Step 1: VERIFICATION — write the route, then typecheck.** Full real code of `website/src/pages/api/factory-metrics.ts`:
 ```ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../lib/auth';
@@ -3905,13 +3905,13 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Run it, expect PASS** — typecheck the new route + its imports:
+- [x] **Step 2: Run it, expect PASS** — typecheck the new route + its imports:
 ```bash
 cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E 'factory-metrics' || echo "NO_FACTORY_METRICS_TYPE_ERRORS"
 ```
 Expected: `NO_FACTORY_METRICS_TYPE_ERRORS`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 ```bash
 git add website/src/pages/api/factory-metrics.ts && git commit -m "feat(factory): /api/factory-metrics route (getSession+isAdmin gate) [T000413]"
 ```

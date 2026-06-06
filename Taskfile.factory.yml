@@ -41,3 +41,55 @@ tasks:
     vars:
       MATCH:
         sh: echo "{{.CLI_ARGS}}"
+
+  autopilot:install:
+    desc: |
+      Install the persistent Software Factory dispatcher: symlink the systemd
+      USER units (factory.timer + factory.service) into ~/.config/systemd/user/,
+      reload the user manager, and enable+start the timer. Requires the headless
+      Phase-0 spike to be Go. Set FACTORY_GITCRYPT_KEY + claude creds in
+      ~/.config/factory/autopilot.env first (EnvironmentFile of factory.service).
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: use /loop."
+          exit 1
+        fi
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        SRC="$(pwd)/scripts/factory"
+        mkdir -p "${UNIT_DIR}"
+        ln -sf "${SRC}/factory.service" "${UNIT_DIR}/factory.service"
+        ln -sf "${SRC}/factory.timer"   "${UNIT_DIR}/factory.timer"
+        systemctl --user daemon-reload
+        systemctl --user enable --now factory.timer
+        echo "Software Factory autopilot installed. Next tick:"
+        systemctl --user list-timers factory.timer --no-pager
+
+  autopilot:uninstall:
+    desc: "Stop + disable the autopilot timer and remove the symlinked user units."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        systemctl --user disable --now factory.timer 2>/dev/null || true
+        rm -f "${UNIT_DIR}/factory.timer" "${UNIT_DIR}/factory.service"
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "Software Factory autopilot uninstalled."
+
+  autopilot:status:
+    desc: "Show the autopilot timer state, next elapse, and the last tick's journal tail."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          exit 0
+        fi
+        systemctl --user list-timers factory.timer --no-pager || true
+        echo "--- last factory.service tick ---"
+        systemctl --user status factory.service --no-pager -n 20 || true

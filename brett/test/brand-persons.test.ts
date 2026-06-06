@@ -1,7 +1,6 @@
 // brett/test/brand-persons.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-// @ts-expect-error — .mjs public asset, no TS types available
 import { filterPersonsForBrand } from '../public/assets/coaching/brand.mjs';
 
 const PERSONS = [

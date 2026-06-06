@@ -7,7 +7,6 @@ import {
   touchSessionActivity,
   checkSessionIdle,
   checkAllSessions,
-  figureMaps,
 } from '../src/server/index';
 
 test('touchSessionActivity: updates __session_last_activity__', () => {
@@ -49,6 +48,6 @@ test('checkAllSessions: iterates and ends idle rooms only', () => {
   const results = checkAllSessions();
   const idleResult = results.find((r: any) => r.room === idleRoom);
   const liveResult = results.find((r: any) => r.room === liveRoom);
-  assert.strictEqual(idleResult.ended, true);
+  assert.strictEqual(idleResult!.ended, true);
   assert.strictEqual(liveResult?.ended ?? false, false);
 });

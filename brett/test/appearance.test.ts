@@ -1,7 +1,7 @@
 // brett/test/appearance.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateAppearance, applyMutation, buildStateFromMutations, figureMaps } from '../src/server/index';
+import { validateAppearance, applyMutation, buildStateFromMutations } from '../src/server/index';
 
 // ─── validateAppearance ───────────────────────────────────────────
 

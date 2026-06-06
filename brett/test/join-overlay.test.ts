@@ -1,7 +1,6 @@
 // brett/test/join-overlay.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-// @ts-expect-error — .mjs public asset, no TS types available
 import { normalizeCode, joinUrl } from '../public/assets/coaching/join.mjs';
 
 test('normalizeCode uppercases, strips spaces, inserts the dash', () => {

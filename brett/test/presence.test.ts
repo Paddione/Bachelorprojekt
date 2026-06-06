@@ -1,7 +1,6 @@
 // brett/test/presence.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-// @ts-expect-error — .mjs public asset, no TS types available
 import { createPresence, PRESENCE_PALETTE } from '../public/assets/coaching/presence.mjs';
 
 test('join assigns a stable colour and lists participants', () => {

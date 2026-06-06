@@ -21,7 +21,7 @@ test('shouldRejectReconnect: phase=active + previously joined → reject', () =>
   const decision = shouldRejectReconnect(room, 'paddione');
   assert.strictEqual(decision.reject, true);
   assert.strictEqual(decision.code, 409);
-  assert.match(decision.message, /aktiver Runde/i);
+  assert.match(decision.message!, /aktiver Runde/i);
 });
 
 test('shouldRejectReconnect: phase=warmup → allow even with prior join', () => {

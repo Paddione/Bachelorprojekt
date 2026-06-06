@@ -38,6 +38,12 @@ export interface Figure {
   preset?: string;
   boneOverrides?: Record<string, { x: number; z: number }>;
   appearance: FigureAppearance;
+  /**
+   * SERVER-AUTHORITATIVE. Stripped from all client add/update payloads (like `id`).
+   * Changed ONLY via the server-side `figure_owner_set` mutation (driven by
+   * admin_assign_figure or a permitted stellvertreter `add`). Phase C.
+   */
+  ownerId?: string;
 }
 
 export interface Participant {

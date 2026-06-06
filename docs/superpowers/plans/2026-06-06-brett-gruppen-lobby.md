@@ -700,7 +700,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C1 — `Figure.ownerId` type + server-authoritative ownership in `applyMutation`
+### C1 — `Figure.ownerId` type + server-authoritative ownership in `applyMutation` — [x] DONE
 
 - **target_files:**
   - `brett/src/types/state.ts`

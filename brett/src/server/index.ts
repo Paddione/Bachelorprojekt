@@ -387,6 +387,7 @@ export const rebuildSessionCodeIndexFromStates = sessions.rebuildSessionCodeInde
 export const acquireFigureLock = figures.acquireFigureLock;
 export const releaseFigureLock = figures.releaseFigureLock;
 export const releaseLocksForUser = figures.releaseLocksForUser;
+export const orphanFiguresForUser = figures.orphanFiguresForUser;
 export const listFigureLocks = figures.listFigureLocks;
 export const addParticipant = rooms.addParticipant;
 export const removeParticipant = rooms.removeParticipant;

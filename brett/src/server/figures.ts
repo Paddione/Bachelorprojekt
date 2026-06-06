@@ -22,7 +22,10 @@ export function applyMutation(room: string, msg: any): void {
     case 'add': {
       const figData = msg.figure ?? msg.fig;
       if (figData && typeof figData.id === 'string' && figs.size < 200) {
-        const newFig = { ...figData };
+        // ownerId is SERVER-AUTHORITATIVE — strip any client-supplied value, exactly
+        // like `id`. Ownership is set only via the `figure_owner_set` mutation.
+        const { ownerId: _stripOwner, ...safeFigData } = figData;
+        const newFig = { ...safeFigData };
         if (!newFig.appearance) {
           newFig.appearance = { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } };
         }
@@ -39,7 +42,8 @@ export function applyMutation(room: string, msg: any): void {
     case 'update':
       if (figs.has(msg.id) && msg.changes && typeof msg.changes === 'object' && !Array.isArray(msg.changes)) {
         const existing = figs.get(msg.id);
-        const { id: _ignoredId, ...safeChanges } = msg.changes;
+        // Strip both `id` and `ownerId` — ownerId is server-authoritative (§5c).
+        const { id: _ignoredId, ownerId: _ignoredOwner, ...safeChanges } = msg.changes;
         if (safeChanges.appearance && existing.appearance && typeof existing.appearance === 'object') {
           safeChanges.appearance = {
             ...existing.appearance,
@@ -56,6 +60,14 @@ export function applyMutation(room: string, msg: any): void {
     case 'delete':
       figs.delete(msg.id);
       break;
+    case 'figure_owner_set': {
+      // The ONLY mutation that writes Figure.ownerId (server-authoritative).
+      // Tolerates null (unassign) and a missing target (no-op, no phantom figure).
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
+        figs.set(msg.figureId, { ...figs.get(msg.figureId), ownerId: msg.ownerId ?? null });
+      }
+      break;
+    }
     case 'clear':
       figs.clear();
       break;
@@ -189,6 +201,26 @@ export function releaseLocksForUser(room: string, userId: string): void {
   for (const [fid, owner] of locks.entries()) {
     if (owner.userId === userId) locks.delete(fid);
   }
+}
+
+/**
+ * Owner-orphan handling (C6). When a figure owner leaves the room or is demoted
+ * to beobachter, every figure they own must be released (ownerId → null) so a
+ * permitted role can take over. Scans + mutates only the room's figureMap and
+ * returns the changed figure ids (order-insensitive). Tolerates unknown user /
+ * missing room. Broadcast of `figure_owner_changed` is the caller's job.
+ */
+export function orphanFiguresForUser(room: string, userId: string): string[] {
+  const figs = figureMaps.get(room);
+  if (!figs || !userId) return [];
+  const changed: string[] = [];
+  for (const [fid, fig] of figs.entries()) {
+    if (fig && fig.ownerId === userId) {
+      figs.set(fid, { ...fig, ownerId: null });
+      changed.push(fid);
+    }
+  }
+  return changed;
 }
 
 export function listFigureLocks(room: string): Array<{ figureId: string; userId: string; name: string; color: string }> {

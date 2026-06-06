@@ -242,27 +242,24 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
 
-function buildConfig(env) {
-  const mode = env.BRETT_DEFAULT_MODE === 'mayhem' ? 'mayhem' : 'coaching';
-  return {
-    defaultMode: mode,
-    availableModes: mode === 'mayhem' ? ['coaching', 'mayhem'] : ['coaching'],
-  };
+// Non-mode config returned to the client. Mode concept removed — coaching is the only board.
+function buildConfig(_env) {
+  return {};
 }
 
 function resolveBrand(env) {
   return env.BRETT_BRAND || 'mentolder';
 }
 
-// Returns a redirect URL when the coaching board must be gated, else null.
+// The board is always SSO-gated. Returns a redirect URL when unauthenticated, else null.
 function boardAuthRedirect(req, env) {
-  if (buildConfig(env).defaultMode !== 'coaching') return null; // mayhem stays public
   if (req.session && req.session.userId) return null;
   const e2eSecret = env.BRETT_OIDC_SECRET;
   if (e2eSecret && typeof req.header === 'function' && req.header('x-e2e-secret') === e2eSecret) return null;
   const returnTo = encodeURIComponent(req.path || '/');
   return `/auth/login?returnTo=${returnTo}`;
 }
+
 
 app.get('/api/config', (_req, res) =>
   res.json({ ...buildConfig(process.env), brand: resolveBrand(process.env) }));

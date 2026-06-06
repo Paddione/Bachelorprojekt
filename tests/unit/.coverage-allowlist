@@ -1,0 +1,40 @@
+# tests/unit/*.bats files intentionally NOT run by `task test:unit` (the offline
+# per-PR gate). The unit-coverage guard (scripts/tests/unit-coverage-guard.sh)
+# fails if a bats file is neither referenced by a test task nor listed here, so
+# this file is the documented record of every deliberate exclusion.
+# One bare basename (no `.bats`) per line; `#` lines are comments.
+#
+# --- Need a live DB / cluster / kubectl / ssh — run via tests/runner.sh, not offline:
+backup-restore-filen-pull
+backup-restore-namespace
+backup-restore-recovery
+brainstorm-dev-host
+dev-build-safety
+dev-cluster-autostart
+dev-mcp-route
+keycloak-entrypoint-escaping
+knowledge-ingest-bugs-schema
+knowledge-ingest-manifest
+knowledge-ingest-schema
+mcp-supergateway-stateful
+recovery-browser-manifest
+test-docs-content
+tickets-migration
+tickets-pr-events
+tickets-projects-migration
+tickets-reporter-link
+tickets-sunset
+tickets-tracking-migration
+tickets-transition
+#
+# --- Runs a real `npx tsx` ingest against a (deliberately unreachable) DB — needs website deps:
+coaching-json-ingest
+#
+# --- Currently FAILS offline: asserts every schema secret exists in k3d/secrets.yaml,
+# --- but arena_db_password / TRACKING_DB_URL / ANTHROPIC_API_KEY / DEV_* are absent there.
+# --- Excluded pending triage of whether that is intentional dev-vs-prod secret drift.
+secrets-sync
+#
+# --- Currently FAILS offline: stale assertion (test 29 expects a files.* aliasgroup,
+# --- the config now references cloud.*). A real test-drift to triage separately.
+fleet-dns-cutover

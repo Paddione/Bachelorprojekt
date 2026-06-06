@@ -791,7 +791,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C4 — `resolvePlayerId` helper + identity hardening + spoof test
+### C4 — `resolvePlayerId` helper + identity hardening + spoof test — [x] DONE
 
 - **target_files:**
   - `brett/src/server/ws-handler.ts` (export `resolvePlayerId`; harden join-seed `:124` and `player_join` write `:205`; harden `figure_lock`/`close` identity reads)

@@ -295,8 +295,12 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
           if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
-            ws._playerId = msg.playerId;
-            deps.trackPlayerInRoom(room, msg.playerId);
+            // Session-authoritative: a logged-in user can never overwrite their
+            // canonical id with a spoofed msg.playerId. Anon clients still honor
+            // msg.playerId for late-join tracking.
+            const pid = ws._session?.userId ?? msg.playerId ?? ws._playerId ?? 'anon';
+            ws._playerId = pid;
+            deps.trackPlayerInRoom(room, pid);
           } else if (msg.type === 'clear') {
             deps.flushImmediate(room).catch((err: any) => console.error('[brett] flush:', err));
           }

@@ -71,6 +71,13 @@ const WORK_WT = REUSE ? `/tmp/wt-${slug}-reuse` : WT
 
 let specPath = null
 let tasks = []
+// Hoisted out of the `if (!REUSE)` Scout block so the Implement fan-out (which lives
+// OUTSIDE that block) can read the feature complexity for adaptive provisioning.
+// Stays null in the REUSE path → chooseModel returns null → the `model` key is omitted
+// and the implementer inherits the main-loop default. Referencing block-local `scout`
+// here would throw `ReferenceError: scout is not defined` (optional chaining does NOT
+// guard an undeclared binding, only null/undefined values).
+let featureComplexity = null
 
 // JSON schemas for structured agent outputs
 const SCOUT_SCHEMA = {
@@ -126,6 +133,7 @@ const scout = await agent(
 
 // Persist touched_files back onto the ticket via ticket.sh (NO raw SQL).
 log(`Scout: complexity=${scout.complexity}, ${scout.touched_files.length} touched files`)
+featureComplexity = scout.complexity // hoist for the out-of-block Implement fan-out provisioning
 await agent(
   `Run the following command to record which files this feature touches on the ticket:
    bash ${REPO}/scripts/ticket.sh set-touched-files --id ${A.ticket_id} --files ${JSON.stringify(scout.touched_files.join(','))}
@@ -186,6 +194,7 @@ if (!isSimple) {
     return { status: 'blocked', reason: 'file-overlap', conflict }
   }
 
+  const planProv = provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false })
   const plan = await agent(
     `Decompose the spec at ${specPath} into independent tasks where no two tasks
      touch the same file. For each task provide: id, target_files (array),
@@ -199,9 +208,7 @@ if (!isSimple) {
 
      Return a JSON object { tasks: [...] } matching the task schema.`,
     {
-      ...provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false }).model
-        ? { model: provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false }).model }
-        : {},
+      ...(planProv.model ? { model: planProv.model } : {}),
       label: 'plan:decompose',
       phase: 'Plan',
       schema: {
@@ -248,7 +255,7 @@ if (tasks.length) {
   implemented = (await pipeline(
     tasks,
     (t) => {
-      const prov = provision({ complexity: scout?.complexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
+      const prov = provision({ complexity: featureComplexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
       return agent(
         `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
          Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.

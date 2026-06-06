@@ -8,7 +8,7 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
-  # dev.mentolder.de — persistent staging stack on k3s-1.
+  # dev.mentolder.de — persistent staging stack via k3d on WSL host (context: k3d-mentolder-dev).
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:
     taskfile: ./Taskfile.dev-stack.yml

@@ -1,2 +1,5 @@
 node_modules/
 presets.json
+dist/
+tsconfig.tsbuildinfo
+*.tsbuildinfo

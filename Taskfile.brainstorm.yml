@@ -6,7 +6,7 @@
 # at https://brainstorm.${DEV_DOMAIN} without poking holes in the home-network
 # NAT.
 #
-# The broker lives on the dev node (k3s-1), reached via the k3d loadbalancer
+# The broker lives in the k3d dev stack (context: k3d-mentolder-dev), reached via the k3d loadbalancer
 # host port 0.0.0.0:2222 → dev.mentolder.de:2222. This is the SAME sish that
 # `task dev:tunnel` uses; brainstorm just pins the requested subdomain to
 # "brainstorm". There is no brainstorm broker on the prod clusters (T000364).

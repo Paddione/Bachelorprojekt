@@ -848,15 +848,15 @@ setup_vars:
   - name: WG_MESH_GEKKO4_PUBLIC_KEY
     required: false
     description: "wg-mesh public key for gekko-hetzner-4"
-  # mentolder cluster — Proxmox home-LAN workers (wg-mesh 192.168.100.20-22, port 51821)
-  # Behind NAT — no fixed public endpoint. PersistentKeepalive keeps NAT mapping alive.
+  # DECOMMISSIONED: mentolder-standalone Proxmox home-LAN workers (wg-mesh 192.168.100.20-22, port 51821)
+  # k3s-1/2/3 VMs decommissioned 2026-05-31 — keys retained for potential reuse of Proxmox hosts.
   - name: WG_MESH_K3S1_PRIVATE_KEY
     required: false
     sealed: true
-    description: "wg-mesh private key for k3s-1 (Proxmox vmid=100, wg_ip 192.168.100.20)"
+    description: "DECOMMISSIONED — wg-mesh private key for k3s-1 (Proxmox vmid=100, wg_ip 192.168.100.20)"
   - name: WG_MESH_K3S1_PUBLIC_KEY
     required: false
-    description: "wg-mesh public key for k3s-1"
+    description: "DECOMMISSIONED — wg-mesh public key for k3s-1"
   - name: WG_MESH_K3S2_PRIVATE_KEY
     required: false
     sealed: true
@@ -907,14 +907,14 @@ setup_vars:
   - name: PVE_SSH_PRIVATE_KEY
     required: false
     sealed: true
-    description: "SSH private key for root@pvemain (10.0.0.7) — Proxmox node 1 (hosts k3s-1)"
+    description: "SSH private key for root@pvemain (10.0.0.7) — Proxmox node 1 (previously hosted k3s-1, DECOMMISSIONED 2026-05-31)"
   - name: PVE_SSH_PUBLIC_KEY
     required: false
     description: "SSH public key for root@pvemain"
   - name: PVE2_SSH_PRIVATE_KEY
     required: false
     sealed: true
-    description: "SSH private key for root@pve2 — Proxmox node 2 (hosts devc-2 at 10.0.0.22)"
+    description: "SSH private key for root@pve2 — Proxmox node 2 (dev2, 10.0.0.9, dev Proxmox cluster)"
   - name: PVE2_SSH_PUBLIC_KEY
     required: false
     description: "SSH public key for root@pve2"

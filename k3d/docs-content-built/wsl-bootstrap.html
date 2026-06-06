@@ -65,6 +65,26 @@ Or follow the official installation instructions for <code>go-task</code> (e.g. 
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 Verify with <code>psql --version</code> (expect <code>16.x</code>), then re-run the refresh task.</li>
 </ul>
+<h2 id="syncing-secrets-git-crypt">Syncing secrets (git-crypt)</h2>
+<p>Operator secrets under <code>environments/.secrets/</code> (per-env secret YAMLs, the SSH
+bundle, WireGuard keys, the SealedSecrets controller DR key) and
+<code>deploy/mcp/claude-code-secrets.yaml</code> are stored <strong>git-crypt-encrypted</strong> in this
+(public) repo. The public sealing certs <code>environments/certs/*.pem</code> stay
+plaintext — they are not secrets.</p>
+<p>On a fresh clone, decrypt them:</p>
+<ol>
+<li>Install git-crypt: <code>sudo apt-get install -y git-crypt</code> (macOS: <code>brew install git-crypt</code>).</li>
+<li>Fetch the key item <strong><code>git-crypt: Bachelorprojekt secrets key</code></strong> from Vaultwarden → save the attachment locally (e.g. <code>~/bp-secrets.key</code>).</li>
+<li><code>task secrets:unlock KEY=~/bp-secrets.key</code></li>
+<li>Install the guard hook: <code>task secrets:install-hooks</code></li>
+<li>Shred the key file: <code>shred -u ~/bp-secrets.key</code></li>
+</ol>
+<p>Files are now plaintext locally; tooling (<code>env:seal</code>, <code>scripts/env-resolve.sh</code>,
+the SSH <code>Include</code>) reads them as before. <code>task secrets:status</code> lists encryption
+state; <code>task secrets:lock</code> re-encrypts the working tree.</p>
+<p><strong>Never commit without the key unlocked</strong> — the <code>.githooks/pre-commit</code> hook and
+the CI <code>security-scan</code> step both reject any managed secret committed in
+plaintext (verified via the git-crypt magic header by <code>scripts/git-crypt-guard.sh</code>).</p>
 </body></html>
 </article>
 

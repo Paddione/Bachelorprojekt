@@ -43,7 +43,7 @@ Knoten (pk-hetzner-4/6/8) + 3 Worker (gekko-hetzner-2/3/4).</p>
 <ul>
 <li><strong>Namespaces:</strong> <code>workspace</code> (mentolder) und <code>workspace-korczewski</code> (korczewski)
 — getrennte Deployments, eigene <code>shared-db</code> und sealed-secrets pro Marke.</li>
-<li><strong>Tote Kontexte:</strong> alle kubeconfig-Kontexte außer <code>fleet</code> und <code>devc</code> sind tot.
+<li><strong>Tote Kontexte:</strong> alle kubeconfig-Kontexte außer <code>fleet</code> und <code>k3d-mentolder-dev</code> sind tot.
 Die alten <code>mentolder</code>- und <code>korczewski</code>-Standalone-Cluster sind abgebaut.</li>
 <li><strong>Fleet-API:</strong> über die öffentliche IP von pk-hetzner-4 (<code>204.168.244.104:6443</code>),
 nicht über den alten <code>127.0.0.1:16443</code>-Tunnel.</li>

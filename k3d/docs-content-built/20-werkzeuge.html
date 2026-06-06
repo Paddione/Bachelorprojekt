@@ -51,7 +51,9 @@
 <li class="toc-item"><a href="#infrastruktur-agent-infra"><span class="toc-num">10.</span> Infrastruktur-Agent (infra)</a></li>
 <li class="toc-item"><a href="#test-agent"><span class="toc-num">11.</span> Test-Agent</a></li>
 <li class="toc-item"><a href="#datenbank-agent-db"><span class="toc-num">12.</span> Datenbank-Agent (db)</a></li>
-<li class="toc-item"><a href="#sicherheits-agent-security"><span class="toc-num">13.</span> Sicherheits-Agent (security)</a></li></ul>
+<li class="toc-item"><a href="#sicherheits-agent-security"><span class="toc-num">13.</span> Sicherheits-Agent (security)</a></li>
+<li class="toc-item"><a href="#software-factory-auto-bau"><span class="toc-num">14.</span> Software Factory (Auto-Bau)</a></li>
+<li class="toc-item"><a href="#factory-dispatcher-warteschlange"><span class="toc-num">15.</span> Factory-Dispatcher (Warteschlange)</a></li></ul>
 </div>
 <blockquote>
 <p>Diese Seite wird automatisch aus der Registry erzeugt
@@ -196,6 +198,28 @@ Zurück zur Übersicht: <a href="./00-anleitung.html" class="xref">00-anleitung<
 <p><strong>Schutzregeln (Guardrails):</strong> Geheimnis-Reihenfolge einhalten (G-SECRET-ORDER), Bei Rot: stoppen und fragen (G-ASK-EXPERT), ENV immer explizit setzen (G-ENV-EXPLICIT)</p>
 <p><strong>Verwandt:</strong> <a href="./agents/bachelorprojekt-infra.html" class="xref">bachelorprojekt-infra</a></p>
 <p><strong>Mehr dazu:</strong> <a href="https://docs.mentolder.de/glossary.html">https://docs.mentolder.de/glossary.html</a></p>
+<h2 id="software-factory-auto-bau">Software Factory (Auto-Bau)</h2>
+<p><strong>Task</strong> · 🟠 <strong>Nur mit Hilfe</strong></p>
+<p>Baut ein Feature (halb-)autonom: Scout → Design → Plan → Implement → Verify → Deploy.</p>
+<p><strong>Wofür?</strong> Wenn ein gut umrissenes Feature von einem Multi-Agent-Lauf gebaut werden soll — entweder selbst geplant oder aus einem übergebenen Menschen-Plan (Plan-Reuse).</p>
+<p><strong>So startest du:</strong> Über das Claude-Code-Workflow-Tool mit scripts/factory/pipeline.js starten ('task factory:run' zeigt die genaue Invocation). Für einen gefahrlosen Probelauf args { dry_run: true } übergeben — kein Merge, kein Deploy.</p>
+<p><strong>Was schiefgehen kann:</strong> Sie implementiert und deployt selbstständig (🟠). Ohne Dry-Run kann ein fehlerhafter Stand live gehen — darum erst den Probelauf, dann bewusst scharf schalten.</p>
+<p><strong>Du kannst diesen Prompt kopieren und in Claude Code einfügen:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Übergib das an die Software Factory: &lt;gut umrissenes Feature&gt; — und mach zuerst einen Dry-Run.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN), Erst prüfen, dann anwenden (G-VALIDATE-FIRST)</p>
+<p><strong>Verwandt:</strong> <a href="./skills/dev-flow-plan.html" class="xref">dev-flow-plan</a>, Factory-Dispatcher (Warteschlange)</p>
+<h2 id="factory-dispatcher-warteschlange">Factory-Dispatcher (Warteschlange)</h2>
+<p><strong>Task</strong> · 🟠 <strong>Nur mit Hilfe</strong></p>
+<p>Holt wartende Tickets aus der Warteschlange, prüft Konflikte und startet die Factory-Pipeline.</p>
+<p><strong>Wofür?</strong> Damit übergebene Tickets (type=feature/status=backlog) automatisch abgearbeitet werden — mit Slots pro Marke, Konflikt-Gate und Watchdog.</p>
+<p><strong>So startest du:</strong> Über das Workflow-Tool mit scripts/factory/dispatcher.js starten ('task factory:dispatch' zeigt die Invocation), wiederkehrend selbst-getaktet via /loop. Probelauf mit args { dry_run: true }.</p>
+<p><strong>Was schiefgehen kann:</strong> Er startet Bauläufe selbstständig (🟠). Bei überlappenden Dateien greift das Konflikt-Gate; ein hängender Lauf wird nach 30 min vom Watchdog eskaliert.</p>
+<p><strong>Du kannst diesen Prompt kopieren und in Claude Code einfügen:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Starte den Factory-Dispatcher: arbeite wartende Tickets aus der Warteschlange ab (zuerst Dry-Run).
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)</p>
+<p><strong>Verwandt:</strong> Software Factory (Auto-Bau)</p>
 </body></html>
 </article>
 

@@ -62,7 +62,7 @@
 </ul>
 </li>
 <li>Both brands at 26/26 pods. The standalone <code>mentolder</code> cluster was decommissioned (k3s uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers). The standalone <code>korczewski</code> cluster was torn down earlier.</li>
-<li>The old <code>mentolder</code> and <code>korczewski</code> kubeconfig contexts are DEAD — use <code>fleet</code> for all kubectl commands. The one remaining non-fleet context is <code>k3d-mentolder-dev</code> (dev stack on k3s-1).</li>
+<li>The old <code>mentolder</code> and <code>korczewski</code> kubeconfig contexts are DEAD — use <code>fleet</code> for all kubectl commands. The one remaining non-fleet context is <code>k3d-mentolder-dev</code> (dev stack on the WSL host / Proxmox VM 10.0.0.26; <code>k3s-1</code> was decommissioned 2026-05-31 due to memory corruption).</li>
 <li>DNS for both <code>mentolder.de</code> and <code>korczewski.de</code> routes to the <code>fleet</code> cluster.</li>
 <li>Always use <code>WORKSPACE_NAMESPACE</code> env var; never hardcode <code>-n workspace</code>.</li>
 </ul>

@@ -56,7 +56,8 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 <li class="toc-item"><a href="#phase-6-test-sso-flow"><span class="toc-num">8.</span> Phase 6: Test SSO flow</a></li>
 <li class="toc-item"><a href="#phase-7-check-group-memberships"><span class="toc-num">9.</span> Phase 7: Check group memberships</a></li>
 <li class="toc-item"><a href="#common-post-sync-issues"><span class="toc-num">10.</span> Common post-sync issues</a></li>
-<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">11.</span> Post-Execution: Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#post-execution-mishap-report"><span class="toc-num">11.</span> Post-Execution: Mishap Report</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">12.</span> Verwandte Skills</a></li></ul>
 </div>
 <p>Reconcile Keycloak realm configuration from the checked-in realm JSON files. Covers both brands on the fleet cluster.</p>
 <hr>
@@ -278,6 +279,27 @@ kubectl exec -n &lt;WORKSPACE_NS&gt; --context &lt;ctx&gt; \
 <p>After completing all steps in this skill, invoke <code>mishap-tracker</code> with your
 accumulated <code>MISHAP_LOG</code>. If no mishaps were found, <code>mishap-tracker</code> exits
 cleanly with "No mishaps found."</p>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>secret-rotation</code></td>
+<td>Querschnitt — OIDC-Client-Secrets</td>
+</tr>
+<tr>
+<td><code>fleet-ops</code></td>
+<td>Querschnitt — Cross-Brand Realm-Sync</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
+</tr>
+</tbody></table>
 </body></html>
 </article>
 

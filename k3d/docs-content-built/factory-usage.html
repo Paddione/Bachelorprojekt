@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Software Factory — Usage Guide — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Software Factory — Usage Guide</span></nav>
+    <h1>Software Factory — Usage Guide</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Software Factory — Usage Guide</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#-phase-1-pipeline--runnable-via-claude-code-workflow-tool"><span class="toc-num">1.</span> ✅ Phase 1: Pipeline — runnable via Claude Code Workflow Tool</a></li>
+<li class="toc-item"><a href="#-phase-2-dispatcher-live"><span class="toc-num">2.</span> ✅ Phase 2: Dispatcher (live)</a></li>
+<li class="toc-item"><a href="#-phase-3-full-auto-pilot-geplant"><span class="toc-num">3.</span> 📋 Phase 3: Full Auto-Pilot (geplant)</a></li>
+<li class="toc-item"><a href="#templates-"><span class="toc-num">4.</span> Templates ✅</a></li>
+<li class="toc-item"><a href="#review-agents-"><span class="toc-num">5.</span> Review Agents ✅</a></li>
+<li class="toc-item"><a href="#architektur-referenz"><span class="toc-num">6.</span> Architektur-Referenz</a></li></ul>
+</div>
+<blockquote>
+<p><strong>Status (2026-06-05):</strong> Phase 2 Dispatcher is live.
+✅ = available now · 📋 = Phase 3 (Full Auto-Pilot)
+Plane neue Features mit dem runnable <code>scripts/factory/pipeline.js</code> Workflow Script.</p>
+</blockquote>
+<h2 id="-phase-1-pipeline--runnable-via-claude-code-workflow-tool">✅ Phase 1: Pipeline — runnable via Claude Code Workflow Tool</h2>
+<h3>Quick Start</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Create a feature ticket
+TICKET_RESULT=$(./scripts/ticket.sh create \
+  --type feature \
+  --brand mentolder \
+  --title "Add X feature" \
+  --description "Detailed description..." \
+  --priority mittel)
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+TICKET_UUID=$(echo "$TICKET_RESULT" | cut -d'|' -f2)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Manual Conflict Check ✅</h3>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/factory/conflict-check.sh T000413 "k3d/website.yaml" "website/src/pages/index.astro"
+# Returns: [] (no conflicts) or ["T000412"] (conflicts with ticket T000412)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Scout: Semantic Similar-Ticket Search ✅</h3>
+<p>Ab Phase 1 werden Tickets semantisch embedded (bge-m3 in prod, voyage in dev).
+Die Scout-Phase nutzt den TypeScript-CLI:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Ähnliche Tickets finden (braucht SESSIONS_DATABASE_URL + GPU-Host)
+cd website &amp;&amp; npx tsx scripts/find-similar-tickets.mjs "Add real-time notifications" 5
+# Gibt JSON-Array aus: [{ticket_id, external_id, chunk, similarity}]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Für Backfill bestehender Tickets (einmalig pro Brand):</p>
+<div class="code-wrapper"><pre><code class="language-bash">SESSIONS_DATABASE_URL=postgresql://website:...@&lt;host&gt;:5432/website \
+LLM_ENABLED=true npx tsx website/scripts/backfill-ticket-embeddings.mjs
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Checking Factory Metrics ✅</h3>
+<div class="code-wrapper"><pre><code class="language-sql">SELECT * FROM tickets.v_factory_metrics;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Viewing Active Features ✅</h3>
+<div class="code-wrapper"><pre><code class="language-sql">SELECT * FROM tickets.v_active_features;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Pipeline Workflow Script ✅</h3>
+<p>Invokiere <code>scripts/factory/pipeline.js</code> via das Claude Code Workflow Tool:</p>
+<div class="code-wrapper"><pre><code>args = { title, description, slug, ticket_id, brand: 'mentolder'|'korczewski', timestamp }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Oder dokumentierte Invocation via: <code>task factory:run</code></p>
+<h3>Manueller Conflict Check ✅</h3>
+<div class="code-wrapper"><pre><code class="language-bash">BRAND=mentolder bash scripts/factory/conflict-check.sh T000413 "k3d/website.yaml"
+# Returns: [] (no conflicts) or ["T000412"] (conflicts with ticket T000412)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="-phase-2-dispatcher-live">✅ Phase 2: Dispatcher (live)</h2>
+<p>Der Dispatcher automatisiert Queue-Polling, Konflikt-Analyse, Slot-Scheduling
+und Pipeline-Launch. Alle Primitives sind unter <code>scripts/factory/</code> verfügbar.</p>
+<p><strong>Invokierung via Claude Code Workflow Tool:</strong></p>
+<div class="code-wrapper"><pre><code>scriptPath: 'scripts/factory/dispatcher.js'
+args: { timestamp }
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Recurring (selbst-getaktet) via /loop:</strong></p>
+<div class="code-wrapper"><pre><code>/loop "run the software-factory-dispatcher workflow"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Offline-Dokumentation:</strong> <code>task factory:dispatch</code></p>
+<p><strong>Shipped Capabilities:</strong></p>
+<ul>
+<li><strong>Queue-Polling</strong> via <code>queue.sh</code> — raw Backlog, Priority+FIFO-Sortierung</li>
+<li><strong>Konflikt-gegatetes Slot-Scheduling</strong> via <code>schedule.sh</code> — pro-Brand Pool + globales Cap</li>
+<li><strong>Watchdog</strong> via <code>watchdog.sh</code> — 30-min Stale-Eskalation, Triage-Kommentar + Slot-Release</li>
+<li><strong>Metriken</strong> via <code>metrics.sh</code> — Durchsatz-Zusammenfassung auf T000413</li>
+<li><strong>dispatcher.js</strong> — Workflow Script das alle Primitives orchestriert</li>
+</ul>
+<h2 id="-phase-3-full-auto-pilot-geplant">📋 Phase 3: Full Auto-Pilot (geplant)</h2>
+<p>Feature-Request → Deploytes Feature ohne menschliche Intervention.
+Siehe Spec <code>docs/superpowers/specs/2026-06-01-software-factory-design.md</code> Abschnitt 7.</p>
+<h2 id="templates-">Templates ✅</h2>
+<p>Alle Templates sind unter <code>scripts/factory/templates/</code> verfügbar:</p>
+<ul>
+<li><code>scout-template.md</code> — Scout-Phase Output-Format</li>
+<li><code>design-template.md</code> — Design-Phase Output-Format</li>
+<li><code>lessons-learned-template.md</code> — Post-Deploy-Retrospektive</li>
+</ul>
+<h2 id="review-agents-">Review Agents ✅</h2>
+<p>Prompts unter <code>scripts/factory/review-*.prompt.md</code>:</p>
+<ul>
+<li><code>review-bug-hunter.prompt.md</code> — Findet logische Fehler</li>
+<li><code>review-security-auditor.prompt.md</code> — Findet Sicherheitslücken</li>
+<li><code>review-pattern-enforcer.prompt.md</code> — Prüft Projekt-Konventionen</li>
+</ul>
+<p>Einsatz über das Workflow-Tool mit <code>agent()</code> oder als Standalone-Review-Pass.</p>
+<h2 id="architektur-referenz">Architektur-Referenz</h2>
+<p>Siehe <code>scripts/factory/README.md</code> für die vollständige Architektur-Übersicht
+und den Quickstart-Guide.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

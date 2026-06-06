@@ -28,7 +28,7 @@
   <div class="page-header-body">
     <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">update-dependencies</span></nav>
     <h1>update-dependencies</h1>
-    <p class="page-desc">Systematische Aktualisierung von Paketen und Frameworks: Deprecation-Audit, Major-Bumps und EOL-Check über alle Workspaces hinweg.</p>
+    <p class="page-desc">Systematische Aktualisierung von Paketen und Frameworks — Deprecation-Audit, Major-Bumps, Lockfile-Audit, Rollback-Strategie und EOL-Check über alle Workspaces hinweg.</p>
     <div class="page-meta">
       <span class="provenance-badge repo">repo</span>
       
@@ -37,116 +37,157 @@
 </header>
 
 <article class="doc-body">
-<html><head></head><body><h1>update-dependencies — Dependency Maintenance</h1><div class="toc-box auto-toc">
+<html><head></head><body><h1>update-dependencies — Paketaktualisierung</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#workspaces--tooling"><span class="toc-num">2.</span> Workspaces &amp; Tooling</a></li>
-<li class="toc-item"><a href="#phase-1--audit-outdated--deprecated"><span class="toc-num">3.</span> Phase 1 — Audit (Outdated &amp; Deprecated)</a></li>
-<li class="toc-item"><a href="#phase-2--safe-updates-patch--minor"><span class="toc-num">4.</span> Phase 2 — Safe Updates (Patch &amp; Minor)</a></li>
-<li class="toc-item"><a href="#phase-3--major-bumps-breaking-changes"><span class="toc-num">5.</span> Phase 3 — Major Bumps (Breaking Changes)</a></li>
-<li class="toc-item"><a href="#phase-4--verifizierung-clean-output"><span class="toc-num">6.</span> Phase 4 — Verifizierung (Clean Output)</a></li>
-<li class="toc-item"><a href="#haeufige-fehler--blockers"><span class="toc-num">7.</span> Häufige Fehler &amp; Blockers</a></li></ul>
+<li class="toc-item"><a href="#ablauf"><span class="toc-num">2.</span> Ablauf</a></li>
+<li class="toc-item"><a href="#betroffene-pods-pro-workspace"><span class="toc-num">3.</span> Betroffene Pods pro Workspace</a></li>
+<li class="toc-item"><a href="#eol-check"><span class="toc-num">4.</span> EOL-Check</a></li>
+<li class="toc-item"><a href="#haeufige-blocker"><span class="toc-num">5.</span> Häufige Blocker</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">6.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#mishap-tracking"><span class="toc-num">7.</span> Mishap Tracking</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
-<p>Veraltete Pakete, Sicherheitswarnungen (npm audit/pnpm audit) oder Deprecation-Warnings treten auf und müssen strukturiert bereinigt werden.</p>
-<hr>
-<h2 id="workspaces--tooling">Workspaces &amp; Tooling</h2>
+<p>Bei Anfragen zu Paket-Updates, Deprecation-Warnungen, Major-Versionssprüngen,
+Sicherheits-Advisories oder Lockfile-Audits.</p>
+<h2 id="ablauf">Ablauf</h2>
+<h3>Phase 1: Audit — Was ist veraltet?</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Lockfile-Audit (pnpm)
+cd website &amp;&amp; pnpm audit --json &gt; /tmp/audit.json
+
+# Veraltete Pakete anzeigen
+cd website &amp;&amp; pnpm outdated --format json &gt; /tmp/outdated.json
+
+# Deprecation-Warnungen extrahieren
+cd website &amp;&amp; pnpm install 2&gt;&amp;1 | grep -i "deprecat" &gt; /tmp/deprecations.txt
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Phase 2: Klassifizierung</h3>
 <table>
 <thead>
 <tr>
-<th>Pfad</th>
-<th>Manager</th>
-<th>Besonderheiten</th>
+<th>Typ</th>
+<th>Aktion</th>
+<th>Risiko</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>/</code> (root)</td>
-<td>npm</td>
-<td>Taskfile tooling</td>
+<td>Patch (x.y.Z)</td>
+<td>Auto-Update + Tests</td>
+<td>Niedrig</td>
 </tr>
 <tr>
-<td><code>website/</code></td>
-<td>pnpm</td>
-<td>Astro + Svelte</td>
+<td>Minor (x.Y.z)</td>
+<td>Auto-Update + Tests + manueller Smoke-Test</td>
+<td>Mittel</td>
 </tr>
 <tr>
-<td><code>arena-server/</code></td>
-<td>pnpm</td>
-<td>Drizzle + Socket.IO</td>
+<td>Major (X.y.z)</td>
+<td>Manuelles Update mit Migration-Runbook</td>
+<td>Hoch</td>
 </tr>
 <tr>
-<td><code>brett/</code></td>
-<td>npm</td>
-<td>3D-Board Backend</td>
+<td>Security Advisory</td>
+<td>Sofort patchen, unabhängig von anderem</td>
+<td>Kritisch</td>
 </tr>
 </tbody></table>
-<hr>
-<h2 id="phase-1--audit-outdated--deprecated">Phase 1 — Audit (Outdated &amp; Deprecated)</h2>
-<ol>
-<li><p>Ermittle veraltete Pakete pro Workspace:</p>
-<div class="code-wrapper"><pre><code class="language-bash"># Root / brett
-npm outdated --long
+<h3>Phase 3: Update durchführen</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Patch/Minor: batch-update
+cd website &amp;&amp; pnpm update --latest --interactive
 
-# website / arena-server
-pnpm outdated
+# Major: einzeln prüfen
+pnpm outdated --format json | jq -r '.[] | select(.latest | test("^[0-9]+\\."))'
+# → Jedes Major-Update einzeln: pnpm add &lt;pkg&gt;@latest
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-<li><p>Identifiziere Deprecations in der Tiefe:</p>
-<div class="code-wrapper"><pre><code class="language-bash">npm audit 2&gt;&amp;1 | grep -i deprecat
+<h3>Phase 4: Verifikation</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Build
+cd website &amp;&amp; pnpm build
+
+# Tests
+task test:all
+
+# Kustomize
+task workspace:validate
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-</ol>
-<hr>
-<h2 id="phase-2--safe-updates-patch--minor">Phase 2 — Safe Updates (Patch &amp; Minor)</h2>
-<ol>
-<li><p>Nutze <code>npm-check-updates</code> für kontrollierte Updates:</p>
-<div class="code-wrapper"><pre><code class="language-bash">npx npm-check-updates --target minor -u &amp;&amp; npm install
+<h3>Phase 5: Rollback (falls nötig)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">git checkout pnpm-lock.yaml
+pnpm install --frozen-lockfile
+git commit -m "revert: rollback dependency update"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-<li><p>Führe nach jedem Workspace-Update die entsprechenden Tests aus.</p>
-</li>
-</ol>
-<hr>
-<h2 id="phase-3--major-bumps-breaking-changes">Phase 3 — Major Bumps (Breaking Changes)</h2>
-<p>Besondere Aufmerksamkeit bei:</p>
-<ul>
-<li><strong>Astro</strong>: Integrations (<code>@astrojs/*</code>) müssen mitziehen.</li>
-<li><strong>Tailwind</strong>: v4 Config-Migration.</li>
-<li><strong>Playwright</strong>: Engine-Update erforderlich:<div class="code-wrapper"><pre><code class="language-bash">npx playwright install
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-</li>
-</ul>
-<hr>
-<h2 id="phase-4--verifizierung-clean-output">Phase 4 — Verifizierung (Clean Output)</h2>
-<p>Stelle sicher, dass keine Deprecation-Warnings mehr auftreten:</p>
-<div class="code-wrapper"><pre><code class="language-bash">npm install 2&gt;&amp;1 | grep -ic deprecat
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<hr>
-<h2 id="haeufige-fehler--blockers">Häufige Fehler &amp; Blockers</h2>
+<h2 id="betroffene-pods-pro-workspace">Betroffene Pods pro Workspace</h2>
 <table>
 <thead>
 <tr>
-<th>Fehler</th>
-<th>Ursache</th>
+<th>Workspace</th>
+<th>Betroffene Deployments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>website/</code></td>
+<td><code>website</code> (website-ns)</td>
+</tr>
+<tr>
+<td><code>brett/</code></td>
+<td><code>brett</code> (workspace-ns)</td>
+</tr>
+<tr>
+<td>Root <code>package.json</code></td>
+<td>Keine (Root-Scripts)</td>
+</tr>
+</tbody></table>
+<h2 id="eol-check">EOL-Check</h2>
+<p>Prüfe vor jedem Update:</p>
+<ul>
+<li><strong>Node.js</strong>: <code>node --version</code> → Mindestens aktive LTS (≥22.x)</li>
+<li><strong>pnpm</strong>: <code>pnpm --version</code> → Mindestens 9.x</li>
+<li><strong>PostgreSQL</strong>: <code>SELECT version()</code> → Mindestens 16.x (pgvector-Kompatibilität)</li>
+<li><strong>k3s</strong>: <code>kubectl version --short</code> → Innerhalb der Support-Window</li>
+</ul>
+<h2 id="haeufige-blocker">Häufige Blocker</h2>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
 <th>Lösung</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>npm install</code> in pnpm workspace</td>
-<td>Nutzung des falschen Paketmanagers</td>
-<td><code>package-lock.json</code> löschen, <code>pnpm install</code> nutzen</td>
+<td><code>pnpm audit</code> zeigt hohe Vulnerabilities</td>
+<td>Advisory-IDs sammeln, einzeln recherchieren (manche sind nur dev, manche irrelevant für unser Deployment)</td>
 </tr>
 <tr>
-<td>Type-Errors nach Update</td>
-<td>Veraltete Typdefinitionen</td>
-<td><code>@types/&lt;pkg&gt;</code> Version prüfen und ebenfalls upgraden</td>
+<td>Major-Bump bricht Build</td>
+<td>Migration-Docs des Pakets lesen, Breaking-Changes-Liste durchgehen</td>
 </tr>
 <tr>
-<td>Transitive Deprecations</td>
-<td>Deprecated dependency in einem Third-Party-Paket</td>
-<td>Parent-Paket auf Updates prüfen oder via overrides/resolutions erzwingen</td>
+<td>Lockfile-Konflikt nach Rebase</td>
+<td><code>pnpm install --frozen-lockfile</code> → <code>pnpm update</code></td>
 </tr>
 </tbody></table>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cluster-deployment</code></td>
+<td>Folge — Test-Deploy nach Major-Bump</td>
+</tr>
+<tr>
+<td><code>fleet-ops</code></td>
+<td>Folge — Cross-Brand-Verifikation</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
+</tr>
+</tbody></table>
+<h2 id="mishap-tracking">Mishap Tracking</h2>
+<p>Alle aufgetretenen Fehler, Blockaden oder Prozess-Friction über <code>mishap-tracker</code>
+protokollieren.</p>
 </body></html>
 </article>
 

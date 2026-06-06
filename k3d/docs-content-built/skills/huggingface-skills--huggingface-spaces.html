@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-spaces — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-spaces</span></nav>
+    <h1>huggingface-spaces</h1>
+    <p class="page-desc">Build, deploy, and maintain applications on Hugging Face Spaces — Gradio / Docker / Static SDKs, ZeroGPU and dedicated hardware, model loading, debugging, buckets, inference providers, community grants. Use whenever the user asks to create or host an app on Hugging Face, port code onto ZeroGPU, fix a Space that won't build or run, or otherwise work with `hf spaces …`, `@spaces.GPU`, Space README frontmatter, or the `spaces` Python package.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.5</span></span>
+      <span class="domain-tag">infra</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Hugging Face Spaces</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#0-getting-ready"><span class="toc-num">1.</span> 0. Getting ready</a></li>
+<li class="toc-item"><a href="#1-what-a-space-is"><span class="toc-num">2.</span> 1. What a Space is</a></li>
+<li class="toc-item"><a href="#2-look-for-an-existing-demo-first"><span class="toc-num">3.</span> 2. Look for an existing demo first</a></li>
+<li class="toc-item"><a href="#3-decide-sdk-and-hardware"><span class="toc-num">4.</span> 3. Decide SDK and hardware</a></li>
+<li class="toc-item"><a href="#4-create-the-space"><span class="toc-num">5.</span> 4. Create the Space</a></li>
+<li class="toc-item"><a href="#5-build-the-app"><span class="toc-num">6.</span> 5. Build the app</a></li>
+<li class="toc-item"><a href="#6-iterate-on-the-space-not-locally"><span class="toc-num">7.</span> 6. Iterate on the Space, not locally</a></li>
+<li class="toc-item"><a href="#7-verify"><span class="toc-num">8.</span> 7. Verify</a></li>
+<li class="toc-item"><a href="#8-permanent-storage-buckets"><span class="toc-num">9.</span> 8. Permanent storage (buckets)</a></li>
+<li class="toc-item"><a href="#9-when-things-break"><span class="toc-num">10.</span> 9. When things break</a></li>
+<li class="toc-item"><a href="#reference-index"><span class="toc-num">11.</span> Reference index</a></li></ul>
+</div>
+<p>Hugging Face Spaces host machine-learning applications. There are 1M+ today; each Space is a git repo. This skill covers creating, building, debugging, and maintaining them.</p>
+<h2 id="0-getting-ready">0. Getting ready</h2>
+<p>Before anything else:</p>
+<ol>
+<li>Check the <code>hf</code> CLI is installed: <code>which hf</code>. If not, <code>pip install -U huggingface_hub</code>.</li>
+<li>Check the user is logged in: <code>hf auth whoami</code>. If not, ask them to run <code>! hf auth login</code> in this session — they'll need a write-scoped token from <a href="https://huggingface.co/settings/tokens">https://huggingface.co/settings/tokens</a>.</li>
+<li>Note <code>whoami</code>'s <code>canPay</code> and <code>isPro</code> flags — they gate hardware choices below.</li>
+</ol>
+<p>The <code>hf-cli</code> skill teaches an agent every <code>hf</code> command and is the recommended companion to this one. Install it with <code>hf skills add hf-cli</code> (add <code>--claude --global</code> to install for Claude Code as well, user-level).</p>
+<h2 id="1-what-a-space-is">1. What a Space is</h2>
+<p>A Space is a git repo with three possible SDKs:</p>
+<ul>
+<li><strong>Gradio</strong> — most Spaces. Python, fast iteration, supports ZeroGPU.</li>
+<li><strong>Docker</strong> — arbitrary container. Use when you need a non-Python stack or a pre-built template (Streamlit, Argilla, Shiny, etc. — full list at <a href="https://huggingface.co/docs/hub/spaces-sdks-docker">https://huggingface.co/docs/hub/spaces-sdks-docker</a>). Does <strong>not</strong> support ZeroGPU.</li>
+<li><strong>Static</strong> — plain HTML, or a React/Svelte/Vue project built at deploy time. Use for in-browser ML (transformers.js / WebGPU / WebAssembly / onnxruntime-web), project pages, interactive reports, or Spaces that orchestrate other Spaces. No hardware needed.</li>
+</ul>
+<h3>Hardware tiers</h3>
+<p>Free, no creator cost: <strong><code>cpu-basic</code></strong> and <strong><code>zero-a10g</code></strong> (ZeroGPU). Static Spaces are also free and don't need hardware.</p>
+<p><strong><code>cpu-basic</code></strong> — 2 vCPU / 16 GB. For data viz, API-proxy Spaces, small CPU-bound models.</p>
+<p><strong>ZeroGPU (<code>zero-a10g</code>)</strong> — dynamic, per-request GPU allocation on NVIDIA RTX PRO 6000 Blackwell (sm_120). Two sizes: <code>large</code> (half MIG, 48 GB, 1× quota) and <code>xlarge</code> (full, 96 GB, 2× quota). Free for the Space creator; Space visitors consume their own daily quota (~5 min free / 40 min Pro / 60 min Enterprise). <strong>Gradio-only</strong>, <strong>PyTorch-first</strong>. Requires the creator to be on a PRO / Team / Enterprise plan.</p>
+<p><strong>Dedicated GPU</strong> (T4, L4, A10G, L40S, A100, H200) — billed to the Space creator by the hour. List + pricing: <code>hf spaces hardware</code>. Only the creator can attach these, and only if <code>canPay=True</code>. Use when ZeroGPU genuinely doesn't fit — non-PyTorch main model with heavy init, very-large-model long-context inference, etc.</p>
+<p>If a non-PRO user has a use case that wants ZeroGPU, you can still build it: create a <code>cpu-basic</code> Space, code the app for ZeroGPU, push, then request a community grant. See <a href="references/grants.md"><code>references/grants.md</code></a>.</p>
+<p>For the authoritative reference: <a href="https://huggingface.co/docs/hub/spaces-overview">https://huggingface.co/docs/hub/spaces-overview</a></p>
+<h2 id="2-look-for-an-existing-demo-first">2. Look for an existing demo first</h2>
+<p>Before deciding how to build anything, search for prior art:</p>
+<div class="code-wrapper"><pre><code class="language-bash">hf spaces search "&lt;model name or task&gt;" --sdk gradio --limit 10
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If someone has built a similar Space, read its <code>app.py</code> and <code>requirements.txt</code> — that gives you the working pattern. Saves a lot of blind iteration. Mention to the user what you found before committing to an approach.</p>
+<h2 id="3-decide-sdk-and-hardware">3. Decide SDK and hardware</h2>
+<p>Follow the user's explicit request first. If they were vague:</p>
+<ul>
+<li><strong>Default for a public ML demo</strong>: Gradio + ZeroGPU. Use this unless something below applies.</li>
+<li><strong>The model's only inference path is non-PyTorch</strong> (ONNX / TF / JAX / vLLM as the MAIN model, with heavy init): dedicated GPU.<ul>
+<li>But: marginal non-torch tools (a small ONNX preprocessor, a TF utility) inside a torch-main pipeline are fine on ZeroGPU. The hijack only patches torch; init the non-torch lib inside <code>@spaces.GPU</code> and pay the short per-call init cost.</li>
+</ul>
+</li>
+<li><strong>Tiny / CPU-bound model, or API-proxy Space</strong>: <code>cpu-basic</code> (<code>hardware</code>-free isn't applicable to Gradio).</li>
+<li><strong>Browser-side ML or project page</strong>: Static.</li>
+<li><strong>Container with non-Python stack</strong>: Docker.</li>
+</ul>
+<h3>Sourcing the model</h3>
+<ul>
+<li><strong>GitHub repo</strong> — clone locally to read structure. If it already has a Gradio demo, the minimal viable path is to adapt it onto ZeroGPU (see <a href="references/zerogpu.md"><code>references/zerogpu.md</code></a>). Otherwise: read the README + inference code, prefer the PyTorch path, estimate VRAM (bf16 ≈ <code>params_B × 2</code> GB; 48 GB fits ≤24B params at bf16, or much larger with quantization — see <a href="references/zerogpu.md"><code>references/zerogpu.md</code></a> for quantization on ZeroGPU).</li>
+<li><strong>HF model repo</strong> — read its README, follow any linked GitHub.</li>
+<li><strong>Paper / blog post</strong> — look for an official or unofficial implementation. Don't reimplement unless trivial or the user explicitly asks.</li>
+<li><strong>Vague request</strong> — search Spaces first; surface results.</li>
+</ul>
+<p>If the model genuinely won't fit, check <strong>Inference Providers</strong> as an alternative: see <a href="references/inference-providers.md"><code>references/inference-providers.md</code></a>. This avoids hosting the model at all.</p>
+<h2 id="4-create-the-space">4. Create the Space</h2>
+<div class="code-wrapper"><pre><code class="language-bash">hf repos create &lt;namespace&gt;/&lt;name&gt; --type space --space-sdk &lt;gradio|docker|static&gt; \
+    [--flavor zero-a10g|cpu-basic|&lt;paid-flavor&gt;] \
+    [--secrets KEY=val] [--env KEY=val] \
+    --public|--private|--protected \
+    --exist-ok
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li><code>--space-sdk</code> is required.</li>
+<li><code>--flavor</code> selects hardware. <code>zero-a10g</code> is the (legacy) identifier for ZeroGPU. Omit for <code>cpu-basic</code>. Run <code>hf spaces hardware</code> for the full paid list and pricing.</li>
+<li>Visibility: <code>--public</code> (anyone can view), <code>--private</code> (only you), <code>--protected</code> (app is reachable but git repo / Files tab is private).</li>
+<li><code>--secrets KEY=val</code> becomes an environment variable inside the Space and is <strong>not</strong> visible to visitors. Use for API keys, gated-repo tokens (<code>HF_TOKEN=hf_…</code>), etc. Can also be set later via <code>hf spaces secrets set &lt;id&gt; KEY=val</code>.</li>
+<li><code>--env KEY=val</code> is <strong>visible to visitors</strong> — use only for non-sensitive config (<code>GRADIO_SSR_MODE=false</code>, <code>PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True</code>, etc.).</li>
+</ul>
+<blockquote>
+<p>Note: <code>hardware:</code> in the README YAML is silently ignored — hardware is only set via <code>--flavor</code> at creation, or later via <code>hf spaces settings &lt;id&gt; --hardware &lt;name&gt;</code>.</p>
+</blockquote>
+<h2 id="5-build-the-app">5. Build the app</h2>
+<p>The Space now exists at <code>https://huggingface.co/spaces/&lt;namespace&gt;/&lt;name&gt;</code> but is empty.</p>
+<h3>README.md frontmatter</h3>
+<p>Always required:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">---
+title: ...
+emoji: 🚀                # pick something representative
+colorFrom: blue          # red|yellow|green|blue|indigo|purple|pink|gray (only these)
+colorTo: indigo
+sdk: gradio              # gradio | docker | static
+sdk_version: 6.15.1      # latest stable unless you have a reason*
+app_file: app.py         # gradio only (docker / static use Dockerfile / index.html)
+short_description: ...   # ≤ 60 chars (server rejects longer)
+python_version: "3.12"   # ZeroGPU officially supports 3.10.13 and 3.12.12
+startup_duration_timeout: 30m   # default; bump to 1h for big LLMs / heavy downloads
+---
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>* Reasons to use an older Gradio: a custom component pins it, or you're adapting an existing demo and don't want to rewrite for 5.x→6.x breaking changes. If you need a 5.x, pick <code>5.50.0</code> (latest of the series; still supports custom components).</p>
+<p>All frontmatter options: <a href="https://huggingface.co/docs/hub/spaces-config-reference">https://huggingface.co/docs/hub/spaces-config-reference</a></p>
+<h3>Minimal ZeroGPU Gradio app</h3>
+<div class="code-wrapper"><pre><code class="language-python">import spaces           # MUST come before torch / diffusers / transformers
+import torch
+import gradio as gr
+from diffusers import DiffusionPipeline
+
+pipe = DiffusionPipeline.from_pretrained("&lt;repo&gt;", torch_dtype=torch.bfloat16).to("cuda")
+
+@spaces.GPU(duration=60)
+def generate(prompt):
+    return pipe(prompt).images[0]
+
+gr.Interface(fn=generate, inputs=gr.Text(), outputs=gr.Image()).launch()
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Three rules — full treatment in <a href="references/zerogpu.md"><code>references/zerogpu.md</code></a>:</p>
+<ol>
+<li><strong><code>import spaces</code> before torch / any CUDA-touching import.</strong> It monkey-patches <code>torch.cuda.*</code>; once CUDA is initialized in the main process, it's too late.</li>
+<li><strong>Load the model at module scope, <code>.to("cuda")</code> eagerly.</strong> ZeroGPU intercepts the call, packs weights to disk, and streams them into VRAM on the first <code>@spaces.GPU</code> entry. Lazy loading inside the decorator costs every user.</li>
+<li><strong>Decorate the function Gradio binds.</strong> Estimate <code>duration</code> to the realistic worst case (smaller = higher queue priority and tighter quota check). For input-dependent runtime, pass a callable.</li>
+</ol>
+<h3>requirements.txt</h3>
+<p>Short version:</p>
+<ul>
+<li><strong>Do NOT list</strong>: <code>gradio</code>, <code>spaces</code>, <code>huggingface_hub</code> (preinstalled and platform-managed; pinning them causes resolution failures or silently breaks the ZeroGPU runtime).</li>
+<li><strong>Do list if you use them</strong>: <code>torchvision</code>, <code>torchaudio</code> (not preinstalled), plus everything else (<code>diffusers</code>, <code>transformers</code>, <code>accelerate</code>, <code>sentencepiece</code>, …).</li>
+<li>ZeroGPU only accepts torch <code>2.8.0</code>, <code>2.9.1</code>, <code>2.10.0</code>, <code>2.11.0</code>. Default to leaving torch unpinned (the runtime preinstalls the latest). Only pin when a dep forces it.</li>
+<li>For prebuilt CUDA-extension wheels (<code>flash_attn</code>, <code>xformers</code>, <code>pytorch3d</code>, <code>nvdiffrast</code>, <code>diff_gaussian_rasterization</code>, <code>torchmcubes</code>): use the prebuilt Blackwell wheels at <code>https://huggingface.co/datasets/multimodalart/zerogpu-blackwell-wheels/tree/main/wheels</code>. Full mapping + caveats in <a href="references/requirements.md"><code>references/requirements.md</code></a>.</li>
+</ul>
+<h3>Per-SDK depth</h3>
+<ul>
+<li><strong>Gradio patterns</strong> (themes, <code>gr.Examples</code>, streaming, custom HTML components, <code>gr.Server</code>): <a href="references/gradio.md"><code>references/gradio.md</code></a>.</li>
+<li><strong>Docker</strong>: <a href="https://huggingface.co/docs/hub/spaces-sdks-docker">https://huggingface.co/docs/hub/spaces-sdks-docker</a>. Examples: <code>hf spaces list --filter docker</code>.</li>
+<li><strong>Static</strong>: <a href="https://huggingface.co/docs/hub/spaces-sdks-static">https://huggingface.co/docs/hub/spaces-sdks-static</a>. For built SPAs, set <code>app_build_command: npm run build</code> and <code>app_file: dist/index.html</code> in frontmatter.</li>
+<li><strong>ZeroGPU specifics</strong> (decorator semantics, sizing, AoTI, generators, concurrency, pickle / <code>gr.State</code> across the worker boundary): <a href="references/zerogpu.md"><code>references/zerogpu.md</code></a> — read this whenever the Space targets ZeroGPU.</li>
+</ul>
+<h2 id="6-iterate-on-the-space-not-locally">6. Iterate on the Space, not locally</h2>
+<p>Try to build a release candidate from the user quest locally and push it — then use the live URL as your test loop. The Space environment is the only one that matters; do not try to test locally. <code>python3 -m py_compile app.py</code> is the maximum local check worth doing before pushing.</p>
+<p>Once pushed, pick the cheapest update mechanism for each change — hot-reload for pure Python edits, <code>hf upload</code> for code-only files hot-reload can't touch, full rebuild only when <code>requirements.txt</code> / <code>Dockerfile</code> / README frontmatter actually changed. Full ladder + footguns (hot-reload poisoning factory reboot, runtime.sha lag, etc.) in <a href="references/debugging.md"><code>references/debugging.md</code></a>.</p>
+<h2 id="7-verify">7. Verify</h2>
+<p>Don't trust <code>RUNNING</code> alone — the app can be running but broken. Four steps, in order:</p>
+<p><strong>A. Alive?</strong> Stage + hardware:</p>
+<div class="code-wrapper"><pre><code class="language-bash">hf spaces info &lt;ns&gt;/&lt;name&gt; --expand runtime
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>B. Logs clean post-boot?</strong> Read the run log to confirm startup finished without warnings or silent fallbacks:</p>
+<div class="code-wrapper"><pre><code class="language-bash">hf spaces logs &lt;ns&gt;/&lt;name&gt; --tail 200
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Look for model-load completion, no import warnings, no "falling back to CPU" / dtype downgrade messages, no <code>RUNNING</code> masking a half-broken app.</p>
+<p><strong>C. API actually responds.</strong> With logs still tailing in another terminal (<code>hf spaces logs &lt;ns&gt;/&lt;name&gt; --follow</code>), call the endpoint:</p>
+<div class="code-wrapper"><pre><code class="language-python">from gradio_client import Client, handle_file
+import os
+c = Client("&lt;ns&gt;/&lt;name&gt;", token=os.environ["HF_TOKEN"], httpx_kwargs={"timeout": 600})
+print(c.view_api())                    # discover endpoints — don't guess
+result = c.predict(..., api_name="/generate")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>D. Sniff output AND logs.</strong> HTTP 200 ≠ correct output. Check both:</p>
+<div class="code-wrapper"><pre><code class="language-python">head = open(result, "rb").read(16)
+# glTF / \x89PNG / RIFF…WEBP / RIFF…WAVE / [4:8]==b"ftyp" → png/jpg/webp/wav/mp4
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>And look at the run log emitted during the call — silent fallbacks (model snapping to a different size, missing optional dep, dtype downgrade) only show up there.</p>
+<p>Full smoke-test patterns (streaming endpoints, OAuth-gated Spaces, <code>gr.Server</code> custom routes): <a href="references/debugging.md"><code>references/debugging.md</code></a>.</p>
+<h2 id="8-permanent-storage-buckets">8. Permanent storage (buckets)</h2>
+<p>Spaces are stateless — <code>/data</code> is wiped on restart. If the Space needs to persist user uploads, generations, logs, or interact with a long-lived store, mount a <strong>bucket</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">hf buckets create &lt;ns&gt;/&lt;bucket-name&gt;                                          # --private optional
+hf spaces volumes set &lt;ns&gt;/&lt;space&gt; -v hf://buckets/&lt;ns&gt;/&lt;bucket-name&gt;:/data   # read-write at /data
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Buckets are paid storage; check <code>canPay</code> and confirm with the user. Full patterns (read-fast / write-durable, public bucket URLs, model-cache anti-pattern): <a href="references/buckets.md"><code>references/buckets.md</code></a>.</p>
+<h2 id="9-when-things-break">9. When things break</h2>
+<p>Order of operations:</p>
+<ol>
+<li>Read the logs: <code>hf spaces logs &lt;id&gt; --build --follow</code> (build error) or <code>hf spaces logs &lt;id&gt; --follow</code> (runtime error). Find the <strong>first</strong> error, not the last.</li>
+<li>Grep <a href="references/known-errors.md"><code>references/known-errors.md</code></a> for the error string. Check if this is a known issue before trying your own fix — most common ZeroGPU / Gradio / dependency errors have a 1–2 line fix there.</li>
+<li>Iterate using the cheapest rung from <a href="references/debugging.md"><code>references/debugging.md</code></a>. The vast majority of issues resolve with log-reading + smoke-test loops; interactive dev mode + SSH is a heavy-hammer last resort.</li>
+</ol>
+<p>If you solve an error that wasn't in the known-errors list, suggest the user PR it back to this skill so future runs benefit.</p>
+<hr>
+<h2 id="reference-index">Reference index</h2>
+<table>
+<thead>
+<tr>
+<th>When to read</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>How ZeroGPU works</strong> + correct patterns (decorator, sizing, pickle, generators, real-time, AoTI)</td>
+<td><a href="references/zerogpu.md"><code>references/zerogpu.md</code></a></td>
+</tr>
+<tr>
+<td><strong>Iterate + debug</strong>: logs, rung ladder, smoke testing (and dev mode + SSH as a last resort)</td>
+<td><a href="references/debugging.md"><code>references/debugging.md</code></a></td>
+</tr>
+<tr>
+<td><strong>Error-string lookup</strong> — the single place for all error symptoms (Spaces, ZeroGPU, Gradio, deps)</td>
+<td><a href="references/known-errors.md"><code>references/known-errors.md</code></a></td>
+</tr>
+<tr>
+<td>Pinning deps, picking wheels, torch-family alignment</td>
+<td><a href="references/requirements.md"><code>references/requirements.md</code></a></td>
+</tr>
+<tr>
+<td><code>gr.Examples</code> caching, themes, custom HTML components, <code>gr.Server</code></td>
+<td><a href="references/gradio.md"><code>references/gradio.md</code></a></td>
+</tr>
+<tr>
+<td>Persistent storage, public bucket URLs</td>
+<td><a href="references/buckets.md"><code>references/buckets.md</code></a></td>
+</tr>
+<tr>
+<td>Community grant requests (non-PRO needing ZeroGPU)</td>
+<td><a href="references/grants.md"><code>references/grants.md</code></a></td>
+</tr>
+<tr>
+<td>Provider proxy (zero-VRAM big LLM via Cerebras / Fireworks / Together / etc.)</td>
+<td><a href="references/inference-providers.md"><code>references/inference-providers.md</code></a></td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

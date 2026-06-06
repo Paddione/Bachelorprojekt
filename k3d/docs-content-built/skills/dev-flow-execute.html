@@ -40,32 +40,29 @@
 <html><head></head><body><h1>dev-flow-execute — Plan-Ausführung &amp; PR</h1><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
-<li class="toc-item"><a href="#schritt-2-kontext-reset--sonnet-medium--execute-gate"><span class="toc-num">2.</span> Schritt −2: Kontext-Reset + Sonnet (medium) — Execute-Gate</a></li>
-<li class="toc-item"><a href="#schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first"><span class="toc-num">3.</span> Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</a></li>
-<li class="toc-item"><a href="#schritt-0-worktree-konsistenz-pruefen"><span class="toc-num">4.</span> Schritt 0: Worktree-Konsistenz prüfen</a></li>
-<li class="toc-item"><a href="#schritt-05-sync-mit-main--rebase"><span class="toc-num">5.</span> Schritt 0.5: Sync mit main &amp; Rebase</a></li>
-<li class="toc-item"><a href="#schritt-1-plan-finden--ticket-id-extrahieren"><span class="toc-num">6.</span> Schritt 1: Plan finden &amp; Ticket ID extrahieren</a></li>
-<li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen"><span class="toc-num">7.</span> Schritt 1.5: Ticket auf in_progress setzen</a></li>
-<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">8.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
-<li class="toc-item"><a href="#schritt-2-implementierung"><span class="toc-num">9.</span> Schritt 2: Implementierung</a></li>
-<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">10.</span> Schritt 3: Lokale Verifikation</a></li>
-<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">11.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
-<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">12.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
-<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">13.</span> Schritt 4: Dev-Iteration (optional)</a></li>
-<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">14.</span> Schritt 5: PR erstellen</a></li>
-<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">15.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
-<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">16.</span> Schritt 6.5: Ticket abschließen</a></li>
-<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">17.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
-<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">18.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
-<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">19.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
+<li class="toc-item"><a href="#schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first"><span class="toc-num">2.</span> Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</a></li>
+<li class="toc-item"><a href="#schritt-0-worktree-konsistenz-pruefen"><span class="toc-num">3.</span> Schritt 0: Worktree-Konsistenz prüfen</a></li>
+<li class="toc-item"><a href="#schritt-05-sync-mit-main--rebase"><span class="toc-num">4.</span> Schritt 0.5: Sync mit main &amp; Rebase</a></li>
+<li class="toc-item"><a href="#schritt-1-plan-finden--ticket-id-extrahieren"><span class="toc-num">5.</span> Schritt 1: Plan finden &amp; Ticket ID extrahieren</a></li>
+<li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren"><span class="toc-num">6.</span> Schritt 1.5: Ticket auf in_progress setzen und touched_files registrieren</a></li>
+<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">7.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
+<li class="toc-item"><a href="#schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren"><span class="toc-num">8.</span> Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</a></li>
+<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">9.</span> Schritt 3: Lokale Verifikation</a></li>
+<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">10.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
+<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">11.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
+<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">12.</span> Schritt 4: Dev-Iteration (optional)</a></li>
+<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">13.</span> Schritt 5: PR erstellen</a></li>
+<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">14.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
+<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">15.</span> Schritt 6.5: Ticket abschließen</a></li>
+<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">16.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
+<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">17.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">18.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">19.</span> Verwandte Skills</a></li>
 <li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">20.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Du bist auf einem <code>feature/*</code> oder <code>fix/*</code> Branch. <code>dev-flow-plan</code> hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.</p>
 <p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-execute zur Plan-Ausführung."</p>
-<hr>
-<h2 id="schritt-2-kontext-reset--sonnet-medium--execute-gate">Schritt −2: Kontext-Reset + Sonnet (medium) — Execute-Gate</h2>
-<p>Bitte den User, die Slash-Befehle <code>/model claude-sonnet-4-6</code> und danach <code>/clear</code> auszuführen. Dies sind User-Befehle, die du nicht selbst ausführen kannst.</p>
 <hr>
 <h2 id="schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first">Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</h2>
 <p>Synchronisiere <code>main</code> im Haupt-Repo:</p>
@@ -96,9 +93,12 @@ git submodule update --init --recursive
 TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="schritt-15-ticket-auf-inprogress-setzen">Schritt 1.5: Ticket auf <code>in_progress</code> setzen</h2>
+<h2 id="schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren">Schritt 1.5: Ticket auf <code>in_progress</code> setzen und touched_files registrieren</h2>
 <p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):</p>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "&lt;comma-separated-paths&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-17-visual--textual-assets-laden-visual-handoff">Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</h2>
@@ -108,25 +108,38 @@ TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>⚠️ Pflicht für UI-Arbeiten:</strong> Lies (mit dem <code>Read</code> Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.</p>
 <hr>
-<h2 id="schritt-2-implementierung">Schritt 2: Implementierung</h2>
-<h3>Feature</h3>
-<p>Verwende bevorzugt <code>superpowers:subagent-driven-development</code> oder <code>superpowers:executing-plans</code>.</p>
+<h2 id="schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren">Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</h2>
+<p>Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die <strong>gesamte Implementierung an EINEN frischen Subagenten</strong> — sauberer Kontext per Konstruktion, <strong>Modell + Effort passend zum Charakter der Plan-Tasks</strong>. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.</p>
+<p>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):</p>
 <ul>
-<li><strong>Milestone-Updates</strong>: Aktualisiere nach jedem abgeschlossenen Meilenstein die Checkbox im Plan (<code>- [ ] M1</code> → <code>- [x] M1</code>), committe und pushe.</li>
-<li><strong>Kollisionen vermeiden</strong>: Falls Delegations-Tools das Skill <code>finishing-a-development-branch</code> aufrufen, unterdrücke das interaktive Menü mit dem Argument <code>--no-menu</code> oder der Variable <code>MENU=skip</code>.</li>
-<li><strong>Workspace-Pfad</strong>: Übergib Sub-Agenten immer den absoluten Worktree-Pfad und weise sie an, nur relativ dazu zu arbeiten.</li>
+<li><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) → <code>haiku</code>; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → <code>opus</code>. Im Zweifel eine Stufe höher.</li>
+<li><strong>Effort per Prompt-Direktive</strong> (das <code>Agent</code>-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."</li>
+<li><code>subagent_type: general-purpose</code>.</li>
+<li><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):<ul>
+<li>Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.</li>
+<li>Plan-Datei <code>docs/superpowers/plans/&lt;slug&gt;.md</code> + Ticket-ID.</li>
+<li>Attachment-Verzeichnis <code>$ATTACHMENT_DIR</code> — bei UI-Arbeit ALLE Bilder/Texte mit dem <code>Read</code>-Tool einlesen.</li>
 </ul>
-<h3>Fix</h3>
-<p>Verifiziere, dass ein failing Test existiert, bevor du Code änderst. Implementiere nach dem Rot-Grün-Prinzip, bis der Test grün wird.</p>
-<h3>Fehlerbehandlung &amp; Debugging</h3>
-<p>Falls Kompilierungsfehler oder Test-Fehlschläge auftreten, starte sofort das Skill <strong><code>systematic-debugging</code></strong>, um die Ursache systematisch zu isolieren.</p>
+</li>
+<li><strong>Auftrag:</strong><ul>
+<li><em>Feature:</em> Rufe <code>superpowers:executing-plans</code> (in-context, KEIN weiterer Agenten-Fan-out) + <code>test-driven-development</code> auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (<code>- [ ] M1</code> → <code>- [x] M1</code>), committe und pushe.</li>
+<li><em>Fix:</em> Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.</li>
+<li>Bei Kompilier-/Testfehlern: starte sofort <code>systematic-debugging</code>.</li>
+<li>Falls Delegations-Tools <code>finishing-a-development-branch</code> aufrufen: Menü mit <code>--no-menu</code> / <code>MENU=skip</code> unterdrücken.</li>
+<li>Erstelle KEINEN PR und merge nicht — stoppe nach grünen Tests und gib eine Zusammenfassung zurück (geänderte Dateien, Test-Status, offene Punkte).</li>
+</ul>
+</li>
+</ul>
+<p>Nimm das Ergebnis entgegen und mach bei Schritt 3 (unabhängige Verifikation) weiter.</p>
 <hr>
 <h2 id="schritt-3-lokale-verifikation">Schritt 3: Lokale Verifikation</h2>
 <p>Rufe das Skill <strong><code>verification-before-completion</code></strong> auf, um die Verifikation strukturiert zu steuern.</p>
 <div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
 ./tests/runner.sh local &lt;FA-XX oder SA-XX&gt;
 task test:all
+task freshness:regenerate
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Wichtig: <code>task freshness:regenerate</code> stellt sicher, dass alle generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json) aktuell sind, bevor committet wird. Andernfalls schlägt CI fehl.</strong></p>
 <p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm Gotchas in Worktrees.</p>
 <hr>
 <h2 id="schritt-35-admin-menu-placement-gate">Schritt 3.5: Admin-Menu Placement Gate</h2>
@@ -209,6 +222,31 @@ git branch -D "&lt;branch&gt;"
 </ul>
 <p>Führe danach <code>dev-flow-e2e</code> aus, um E2E Tests gegen die Live-Umgebung zu schreiben.</p>
 <hr>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dev-flow-plan</code></td>
+<td>Voraussetzung — liefert den Implementierungsplan</td>
+</tr>
+<tr>
+<td><code>dev-flow-iterate</code></td>
+<td>Alternative — inkrementelle Dev-Iteration</td>
+</tr>
+<tr>
+<td><code>dev-flow-e2e</code></td>
+<td>Folge — schreibt E2E-Tests nach Deploy</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
+</tr>
+</tbody></table>
 <h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
 <p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über <code>mishap-tracker</code> (aufrufbar via <code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
 </body></html>

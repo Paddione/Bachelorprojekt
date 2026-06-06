@@ -49,7 +49,8 @@
 <li class="toc-item"><a href="#schritt-6-test-inventory-aktualisieren"><span class="toc-num">8.</span> Schritt 6: Test-Inventory aktualisieren</a></li>
 <li class="toc-item"><a href="#schritt-7-commit--push"><span class="toc-num">9.</span> Schritt 7: Commit &amp; Push</a></li>
 <li class="toc-item"><a href="#schritt-8-e2e-smoke-auf-live-optional-anstossen"><span class="toc-num">10.</span> Schritt 8: E2E Smoke auf Live optional anstoßen</a></li>
-<li class="toc-item"><a href="#schritt-9-beendigung-und-nachbereitung"><span class="toc-num">11.</span> Schritt 9: Beendigung und Nachbereitung</a></li></ul>
+<li class="toc-item"><a href="#schritt-9-beendigung-und-nachbereitung"><span class="toc-num">11.</span> Schritt 9: Beendigung und Nachbereitung</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">12.</span> Verwandte Skills</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p><code>dev-flow-execute</code> hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (<code>mcp__plugin_playwright_playwright__browser_*</code>).</p>
@@ -203,6 +204,27 @@ git push
 <li><strong>Mishap Report</strong>: Melde am Ende dieses Skills alle aufgetretenen Fehler über <code>mishap-tracker</code>.</li>
 <li><strong>Operations</strong>: Fahre danach mit <code>operations-management</code> fort, um den Status des zugehörigen PRs oder Tickets zu überwachen.</li>
 </ol>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dev-flow-execute</code></td>
+<td>Voraussetzung — Feature muss deployt sein</td>
+</tr>
+<tr>
+<td><code>fleet-ops</code></td>
+<td>Querschnitt — Cross-Brand-Tests</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
+</tr>
+</tbody></table>
 </body></html>
 </article>
 

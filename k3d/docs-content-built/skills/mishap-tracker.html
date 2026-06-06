@@ -43,7 +43,8 @@
 <li class="toc-item"><a href="#step-1-severity-mapping"><span class="toc-num">2.</span> Step 1: Severity Mapping</a></li>
 <li class="toc-item"><a href="#step-2-insert-tickets"><span class="toc-num">3.</span> Step 2: Insert Tickets</a></li>
 <li class="toc-item"><a href="#step-3-fallback--manual-creation"><span class="toc-num">4.</span> Step 3: Fallback — Manual Creation</a></li>
-<li class="toc-item"><a href="#step-4-summary"><span class="toc-num">5.</span> Step 4: Summary</a></li></ul>
+<li class="toc-item"><a href="#step-4-summary"><span class="toc-num">5.</span> Step 4: Summary</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">6.</span> Verwandte Skills</a></li></ul>
 </div>
 <p>Converts execution mishaps into internal tickets. Called as the final step of runbook skills that maintain a <code>MISHAP_LOG</code>.</p>
 <hr>
@@ -121,6 +122,23 @@ kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U websit
 <hr>
 <h2 id="step-4-summary">Step 4: Summary</h2>
 <p>Report the count of tickets created (or output for manual creation). If the log was empty, note that no mishaps were found.</p>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>operations-management</code></td>
+<td>Auftraggeber — erstellt Tickets aus Mishaps</td>
+</tr>
+<tr>
+<td>Alle Runbooks</td>
+<td>Nutzer — jedes Skill schließt mit Mishap-Report ab</td>
+</tr>
+</tbody></table>
 </body></html>
 </article>
 

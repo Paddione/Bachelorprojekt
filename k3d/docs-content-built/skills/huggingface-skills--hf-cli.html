@@ -30,7 +30,7 @@
     <h1>hf-cli</h1>
     <p class="page-desc">Hugging Face Hub CLI (`hf`) for downloading, uploading, and managing models, datasets, spaces, buckets, repos, papers, jobs, and more on the Hugging Face Hub. Use when: handling authentication; managing local cache; managing Hugging Face Buckets; running or scheduling jobs on Hugging Face infrastructure; managing Hugging Face repos; discussions and pull requests; browsing models, datasets and spaces; reading, searching, or browsing academic papers; managing collections; querying datasets; configuring spaces; setting up webhooks; or deploying and managing HF Inference Endpoints. Make sure to use this skill whenever the user mentions 'hf', 'huggingface', 'Hugging Face', 'huggingface-cli', or 'hugging face cli', or wants to do anything related to the Hugging Face ecosystem and to AI and ML in general. Also use for cloud storage needs like training checkpoints, data pipelines, or agent traces. Use even if the user doesn't explicitly ask for a CLI command. Replaces the deprecated `huggingface-cli`.</p>
     <div class="page-meta">
-      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.4</span></span>
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.5</span></span>
       
     </div>
   </div>
@@ -46,7 +46,7 @@
 </div><p>Install: <code>curl -LsSf https://hf.co/cli/install.sh | bash -s</code>.</p>
 <p>The Hugging Face Hub CLI tool <code>hf</code> is available. IMPORTANT: The <code>hf</code> command replaces the deprecated <code>huggingface-cli</code> command.</p>
 <p>Use <code>hf --help</code> to view available functions. Note that auth commands are now all under <code>hf auth</code> e.g. <code>hf auth whoami</code>.</p>
-<p>Generated with <code>huggingface_hub v1.16.4</code>. Run <code>hf skills add --force</code> to regenerate.</p>
+<p>Generated with <code>huggingface_hub v1.17.0</code>. Run <code>hf skills add --force</code> to regenerate.</p>
 <h2 id="commands">Commands</h2>
 <ul>
 <li><code>hf download REPO_ID</code> — Download files from the Hub. <code>[--type CHOICE --revision TEXT --include TEXT --exclude TEXT --cache-dir TEXT --local-dir TEXT --force-download --dry-run --max-workers INTEGER --format CHOICE]</code></li>
@@ -142,12 +142,14 @@
 <li><code>hf jobs cancel JOB_ID</code> — Cancel a Job <code>[--namespace TEXT --format CHOICE]</code></li>
 <li><code>hf jobs hardware</code> — List available hardware options for Jobs <code>[--format CHOICE]</code></li>
 <li><code>hf jobs inspect JOB_IDS</code> — Display detailed information on one or more Jobs <code>[--namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs labels JOB_ID</code> — Update labels on a Job. Replaces all existing labels. <code>[--label TEXT --clear --namespace TEXT --format CHOICE]</code></li>
 <li><code>hf jobs logs JOB_ID</code> — Fetch the logs of a Job. <code>[--follow --tail INTEGER --namespace TEXT --format CHOICE]</code></li>
-<li><code>hf jobs ps</code> — List Jobs. <code>[--all --namespace TEXT --filter TEXT --format TEXT --quiet]</code></li>
+<li><code>hf jobs ps</code> — List Jobs. <code>[--all --namespace TEXT --filter TEXT --format CHOICE]</code></li>
 <li><code>hf jobs run IMAGE COMMAND</code> — Run a Job. <code>[--env TEXT --secrets TEXT --label TEXT --volume TEXT --env-file TEXT --secrets-file TEXT --flavor CHOICE --timeout TEXT --detach --namespace TEXT]</code></li>
 <li><code>hf jobs scheduled delete SCHEDULED_JOB_ID</code> — Delete a scheduled Job. <code>[--namespace TEXT --format CHOICE]</code></li>
 <li><code>hf jobs scheduled inspect SCHEDULED_JOB_IDS</code> — Display detailed information on one or more scheduled Jobs <code>[--namespace TEXT --format CHOICE]</code></li>
-<li><code>hf jobs scheduled ps</code> — List scheduled Jobs <code>[--all --namespace TEXT --filter TEXT --format TEXT --quiet]</code></li>
+<li><code>hf jobs scheduled labels SCHEDULED_JOB_ID</code> — Update labels on a scheduled Job. Replaces all existing labels. <code>[--label TEXT --clear --namespace TEXT --format CHOICE]</code></li>
+<li><code>hf jobs scheduled ps</code> — List scheduled Jobs <code>[--all --namespace TEXT --filter TEXT --format CHOICE]</code></li>
 <li><code>hf jobs scheduled resume SCHEDULED_JOB_ID</code> — Resume (unpause) a scheduled Job. <code>[--namespace TEXT --format CHOICE]</code></li>
 <li><code>hf jobs scheduled run SCHEDULE IMAGE COMMAND</code> — Schedule a Job. <code>[--suspend --concurrency --env TEXT --secrets TEXT --label TEXT --volume TEXT --env-file TEXT --secrets-file TEXT --flavor CHOICE --timeout TEXT --namespace TEXT]</code></li>
 <li><code>hf jobs scheduled suspend SCHEDULED_JOB_ID</code> — Suspend (pause) a scheduled Job. <code>[--namespace TEXT --format CHOICE]</code></li>
@@ -176,6 +178,7 @@
 <li><code>hf repos delete REPO_ID</code> — Delete a repo from the Hub. This is an irreversible operation. <code>[--type CHOICE --missing-ok --yes --format CHOICE]</code></li>
 <li><code>hf repos delete-files REPO_ID PATTERNS</code> — Delete files from a repo on the Hub. <code>[--type CHOICE --revision TEXT --commit-message TEXT --commit-description TEXT --create-pr --format CHOICE]</code></li>
 <li><code>hf repos duplicate FROM_ID</code> — Duplicate a repo on the Hub (model, dataset, or Space). <code>[--type CHOICE --private --public --protected --exist-ok --flavor CHOICE --storage CHOICE --sleep-time INTEGER --secrets TEXT --secrets-file TEXT --env TEXT --env-file TEXT --volume TEXT --format CHOICE]</code></li>
+<li><code>hf repos list</code> — List all repos (models, datasets, spaces, buckets) with storage info. <code>[--namespace TEXT --type CHOICE --search TEXT --limit INTEGER --format CHOICE]</code></li>
 <li><code>hf repos move FROM_ID TO_ID</code> — Move a repository from a namespace to another namespace. <code>[--type CHOICE --format CHOICE]</code></li>
 <li><code>hf repos settings REPO_ID</code> — Update the settings of a repository. <code>[--gated CHOICE --private --public --protected --type CHOICE --format CHOICE]</code></li>
 <li><code>hf repos tag create REPO_ID TAG</code> — Create a tag for a repo. <code>[--message TEXT --revision TEXT --type CHOICE --format CHOICE]</code></li>
@@ -205,6 +208,7 @@
 <li><code>hf spaces secrets delete SPACE_ID KEY</code> — Remove a secret from a Space. <code>[--yes --format CHOICE]</code></li>
 <li><code>hf spaces secrets list SPACE_ID</code> — List secrets for a Space. Secret values are write-only and not returned. <code>[--format CHOICE]</code></li>
 <li><code>hf spaces settings SPACE_ID</code> — Update the settings of a Space. <code>[--sleep-time INTEGER --hardware CHOICE --format CHOICE]</code></li>
+<li><code>hf spaces ssh SPACE_ID</code> — SSH into a Space's Dev Mode container. <code>[--identity-file PATH --dry-run --auto --format CHOICE]</code></li>
 <li><code>hf spaces variables add SPACE_ID</code> — Add or update environment variables for a Space. <code>[--env TEXT --env-file TEXT --format CHOICE]</code></li>
 <li><code>hf spaces variables delete SPACE_ID KEY</code> — Remove an environment variable from a Space. <code>[--yes --format CHOICE]</code></li>
 <li><code>hf spaces variables list SPACE_ID</code> — List environment variables for a Space. <code>[--format CHOICE]</code></li>
@@ -225,7 +229,7 @@
 <h2 id="common-options">Common options</h2>
 <ul>
 <li><code>--format</code> — Output format: <code>--format json</code> (or <code>--json</code>) or <code>--format table</code> (default).</li>
-<li><code>-q / --quiet</code> — Print only IDs (one per line).</li>
+<li><code>-q / --quiet</code> — Quiet output (one ID per line).</li>
 <li><code>--revision</code> — Git revision id which can be a branch name, a tag, or a commit hash.</li>
 <li><code>--token</code> — Use a User Access Token. Prefer setting <code>HF_TOKEN</code> env var instead of passing <code>--token</code>.</li>
 <li><code>--type</code> — The type of repository (model, dataset, or space).</li>

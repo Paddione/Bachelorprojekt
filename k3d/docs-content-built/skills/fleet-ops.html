@@ -48,7 +48,8 @@
 <li class="toc-item"><a href="#keycloak-realm-per-brand-independence"><span class="toc-num">7.</span> Keycloak Realm Per-Brand Independence</a></li>
 <li class="toc-item"><a href="#korczewski-specific-constraints"><span class="toc-num">8.</span> Korczewski-Specific Constraints</a></li>
 <li class="toc-item"><a href="#common-failure-modes"><span class="toc-num">9.</span> Common Failure Modes</a></li>
-<li class="toc-item"><a href="#deploy-model-push-based--no-gitops"><span class="toc-num">10.</span> Deploy Model (Push-Based — No GitOps)</a></li></ul>
+<li class="toc-item"><a href="#deploy-model-push-based--no-gitops"><span class="toc-num">10.</span> Deploy Model (Push-Based — No GitOps)</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">11.</span> Verwandte Skills</a></li></ul>
 </div>
 <h2 id="overview">Overview</h2>
 <p>Both brands run on the <strong>single unified <code>fleet</code> k3s cluster</strong> (Fleet Stage 3, consolidated 2026-05-31). They share the same cluster infrastructure (Traefik, cert-manager, sealed-secrets controller) but have independent <code>shared-db</code> instances per namespace. Any operation that changes shared state (DB schema, role passwords, sealed secrets, OIDC config) must be applied to <strong>both namespaces explicitly</strong>.</p>
@@ -443,6 +444,31 @@ kubectl --context fleet -n workspace-korczewski get deploy  # korczewski
 <td><code>secrets/xxx not found</code></td>
 <td>SealedSecret not yet decrypted</td>
 <td><code>kubectl get sealedsecret -n &lt;ns&gt;</code> — controller may be behind</td>
+</tr>
+</tbody></table>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>cluster-deployment</code></td>
+<td>Voraussetzung — initiales Deployment</td>
+</tr>
+<tr>
+<td><code>secret-rotation</code></td>
+<td>Querschnitt — Cross-Brand Secret-Rotation</td>
+</tr>
+<tr>
+<td><code>database-ops</code></td>
+<td>Querschnitt — Cross-Brand DB-Operationen</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
 </tr>
 </tbody></table>
 </body></html>

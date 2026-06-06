@@ -112,7 +112,7 @@
 task workspace:backup:list
 
 # Oder mit Prod-Context
-task workspace:backup:list -- --context mentolder
+task workspace:backup:list -- --context fleet
 
 # CronJob- und Job-Status
 kubectl get cronjobs -n workspace
@@ -124,9 +124,10 @@ kubectl logs -n workspace -l app=db-backup --tail=50
 <div class="code-wrapper"><pre><code class="language-bash"># Sofort-Backup starten (außerhalb des Zeitplans)
 task workspace:backup
 
-# Prod-Cluster
-task workspace:backup -- --context mentolder
-task workspace:backup -- --context korczewski
+# Prod-Cluster (beide Brands laufen auf dem fleet-Cluster)
+task workspace:backup -- --context fleet
+# Korczewski Brand: selbe context (fleet), anderer Namespace
+task workspace:backup -- --context fleet -n workspace-korczewski
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Das Skript erstellt einen Job aus dem CronJob-Template und folgt den Logs.</p>
 <hr>
@@ -170,7 +171,7 @@ task workspace:restore -- nextcloud 20260427-020001
 task workspace:restore -- all 20260427-020001
 
 # Prod-Cluster (mit Context + ohne Bestätigungsprompt)
-task workspace:restore -- nextcloud 20260427-020001 --context mentolder -y
+task workspace:restore -- nextcloud 20260427-020001 --context fleet -y
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Das Restore-Skript (<code>scripts/backup-restore.sh restore</code>) führt folgende Schritte durch:</p>
 <ol>

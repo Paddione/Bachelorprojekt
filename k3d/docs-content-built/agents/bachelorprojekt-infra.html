@@ -58,7 +58,7 @@
 <li>DNS for both <code>mentolder.de</code> and <code>korczewski.de</code> routes to the <code>fleet</code> cluster.</li>
 <li>Each brand has its own <code>shared-db</code> instance, Keycloak realm, and SealedSecrets. Cross-cutting changes (DB password rotations, OIDC tweaks, schema migrations) must be applied to <strong>both namespaces</strong> explicitly (<code>workspace</code> and <code>workspace-korczewski</code>), via the <code>fleet</code> context.</li>
 <li>Always use <code>WORKSPACE_NAMESPACE</code> env var; never hardcode <code>-n workspace</code>.</li>
-<li><strong>Dev cluster:</strong> k3d runs on <code>k3s-1</code> (10.0.3.1, wg-mesh 192.168.100.20), a fleet worker node. Context <code>k3d-mentolder-dev</code>.</li>
+<li><strong>Dev cluster:</strong> <code>k3s-1</code> has been permanently <strong>DECOMMISSIONED</strong> (memory corruption 2026-05-31). Dev now runs via local k3d on the WSL host (Proxmox VM 10.0.0.26). Context <code>k3d-mentolder-dev</code>.</li>
 </ul>
 <h2 id="kustomize-layer-cake">Kustomize layer cake</h2>
 <ul>

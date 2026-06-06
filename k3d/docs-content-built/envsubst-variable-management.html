@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>envsubst Variable Management — Referenz — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">envsubst Variable Management — Referenz</span></nav>
+    <h1>envsubst Variable Management — Referenz</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>envsubst Variable Management — Referenz</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#problem"><span class="toc-num">1.</span> Problem</a></li>
+<li class="toc-item"><a href="#registrierungs-checkliste"><span class="toc-num">2.</span> Registrierungs-Checkliste</a></li>
+<li class="toc-item"><a href="#haeufige-fehler"><span class="toc-num">3.</span> Häufige Fehler</a></li></ul>
+</div>
+<h2 id="problem">Problem</h2>
+<p>Wenn du eine neue <code>${VARIABLE}</code>-Referenz zu einem Kubernetes-Manifest hinzufügst,
+muss diese Variable in zwei Stellen registriert werden, sonst bleibt der
+Platzhalter literal stehen und <code>kubectl apply</code> schlägt fehl.</p>
+<h2 id="registrierungs-checkliste">Registrierungs-Checkliste</h2>
+<h3>1. Schema deklarieren</h3>
+<p><code>environments/schema.yaml</code> — füge die Variable unter dem passenden Abschnitt hinzu:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">env_vars:
+  - name: MEINE_NEUE_VAR
+    description: "Was diese Variable tut"
+    required: true
+    example: "https://example.com"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>2. envsubst in Taskfile.yml registrieren</h3>
+<p>Jeder Task, der das Manifest <code>envsubst</code>-ed, braucht die Variable in seiner
+<code>envsubst</code>-Liste. Die relevanten Stellen in <code>Taskfile.yml</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Ungefähre Zeile</th>
+<th>Variablen-Set</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>workspace:deploy</code> (dev)</td>
+<td>~1117</td>
+<td><code>PROD_DOMAIN BRAND_NAME CONTACT_EMAIL BRAND_ID</code></td>
+</tr>
+<tr>
+<td><code>workspace:deploy</code> (prod)</td>
+<td>~1145</td>
+<td>Dynamisch via <code>ENVSUBST_VARS</code> (hier anhängen)</td>
+</tr>
+<tr>
+<td><code>mcp:deploy</code></td>
+<td>~1350</td>
+<td>MCP-spezifisch</td>
+</tr>
+<tr>
+<td><code>workspace:office:deploy</code></td>
+<td>~510</td>
+<td>Office-Stack</td>
+</tr>
+</tbody></table>
+<p><strong>Wichtig:</strong> Die Zeilennummern sind Richtwerte — prüfe mit <code>grep -n "envsubst" Taskfile.yml</code>
+die aktuellen Positionen.</p>
+<h3>3. Per-Env-Wert setzen</h3>
+<p><code>environments/&lt;env&gt;.yaml</code> — trage den tatsächlichen Wert für jede Umgebung ein:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">env_vars:
+  MEINE_NEUE_VAR: "der-echte-wert"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>4. Validieren</h3>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
+task env:validate
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="haeufige-fehler">Häufige Fehler</h2>
+<ul>
+<li><strong>Variable in Manifest hinzugefügt aber nicht in Taskfile registriert</strong> → <code>${MEINE_VAR}</code> bleibt literal im YAML stehen</li>
+<li><strong>Variable in Taskfile aber nicht in schema.yaml</strong> → <code>env:validate</code> schlägt fehl</li>
+<li><strong>$$ Escaping</strong>: Keycloak-Variablen mit <code>$$</code> müssen so bleiben (push-deploy sed bei Taskfile 1724/1831 braucht Escaping)</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

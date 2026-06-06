@@ -47,7 +47,8 @@
 <li class="toc-item"><a href="#feature-pfad"><span class="toc-num">6.</span> Feature-Pfad</a></li>
 <li class="toc-item"><a href="#fix-pfad"><span class="toc-num">7.</span> Fix-Pfad</a></li>
 <li class="toc-item"><a href="#chore-pfad"><span class="toc-num">8.</span> Chore-Pfad</a></li>
-<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">9.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">9.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">10.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Bei jeder Anfrage in diesem Repo, die etwas verändern will.</p>
@@ -96,8 +97,9 @@ fi
 <h2 id="feature-pfad">Feature-Pfad</h2>
 <h3>Schritt 1: Worktree anlegen</h3>
 <p>Erstelle einen neuen Worktree für den Feature-Branch (niemals <code>.claude/worktrees/</code> verwenden!):</p>
-<div class="code-wrapper"><pre><code class="language-bash">git worktree add -b feature/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main
-cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
+<div class="code-wrapper"><pre><code class="language-bash"># git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+bash scripts/worktree-create.sh feature/&lt;slug&gt; /tmp/wt-&lt;slug&gt;
+cd /tmp/wt-&lt;slug&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Schritt 1.5: Optionale Asset-Sammlung</h3>
 <p>Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und Image-Dateien mit dem <code>Read</code> Tool ein, um sie in den Kontext zu laden.</p>
@@ -113,18 +115,26 @@ cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
 Ergebnis: Spec-Datei in <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code>.</p>
 <h3>Schritt 3.5: Playwright-Projekt-Gate</h3>
 <p>Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für Zuordnungstabelle).</p>
-<h3>Schritt 3.7: Kontext-Reset + Opus (xhigh)</h3>
-<p>Bevor der Plan geschrieben wird, verringere den Kontext-Ballast:</p>
+<h3>Schritt 3.7: Plan-Erstellung an einen passend provisionierten Subagenten delegieren</h3>
+<p>Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen <strong>frischen Subagenten</strong> — der hat per Konstruktion einen sauberen Kontext und bekommt ein <strong>zur Plan-Komplexität passendes Modell + Effort</strong>. Du selbst behältst den vollen Brainstorming-Kontext.</p>
 <ol>
 <li>Committe und pushe die Spec-Datei auf den Feature-Branch.</li>
-<li>Bitte den User, die Slash-Befehle <code>/model claude-opus-4-8</code> und danach <code>/compact</code> auszuführen (weise darauf hin, dass dies User-Befehle sind und du sie nicht selbst ausführen kannst).</li>
-<li>Lese nach dem Reset die Spec-Datei neu ein.</li>
+<li>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):<ul>
+<li><strong>Modell:</strong> Plan-Schreiben ist reasoning-lastige Meta-Arbeit → Default <code>model: opus</code>. Bei trivialem (chore-artigem) Plan genügt <code>sonnet</code>.</li>
+<li><strong>Effort:</strong> Default high — beginne den Prompt mit „Ultrathink. Denke sehr gründlich nach." (das <code>Agent</code>-Tool kennt nur <code>model</code>, keinen Effort-Regler — Effort wird im Prompt vermittelt). <strong>Bei großen multi-subsystem-Specs → ultra:</strong> statt eines Einzel-Agenten das <code>Workflow</code>-Tool nutzen (parallele Plan-Segment-Autoren gegen einen geteilten Interface-Contract + abschließende Self-Review), siehe Rubrik.</li>
+<li><code>subagent_type: general-purpose</code>.</li>
+<li><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):<ul>
+<li>Absoluter Worktree-Pfad (<code>pwd</code>) + Branch-Name; er arbeitet NUR relativ dazu.</li>
+<li>Spec-Pfad: <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code></li>
+<li>Ticket-/Grilling-Kontext (<code>$GRILLING_TICKET_EXT_ID</code> etc.), falls vorhanden.</li>
+</ul>
+</li>
+<li><strong>Auftrag:</strong> „Lies die Spec. Rufe <code>superpowers:writing-plans</code> auf und schreibe den Implementierungsplan nach <code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code>. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach <code>bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code> aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."</li>
+</ul>
+</li>
 </ol>
-<h3>Schritt 4: Plan schreiben</h3>
-<p>Rufe <code>superpowers:writing-plans</code> auf. <strong>Wichtig:</strong> Weise die Skill ausdrücklich an, die Ausführung/Implementierung noch nicht zu starten (nur Plan schreiben und STOPPEN).
-Wende danach das Frontmatter-Skript an:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 4: Plan prüfen &amp; übernehmen</h3>
+<p>Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.</p>
 <h3>Schritt 4.5: Ticket anlegen</h3>
 <p>Erstelle ein Plan-Ticket in der Datenbank:</p>
 <div class="code-wrapper"><pre><code class="language-bash">GRILLING_REF=""
@@ -151,7 +161,15 @@ git add docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
 git commit -m "chore(plans): stage &lt;slug&gt; for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Informiere den User, dass der Plan bereit zur Implementierung ist, und bitte ihn, <code>dev-flow-execute</code> aufzulufen.</p>
+<p><strong>STOPP.</strong> Informiere den User, dass der Plan bereit zur Implementierung ist. Er hat nun folgende Optionen:</p>
+<ol>
+<li>Den Plan manuell ausführen lassen: Bitte den User, <code>dev-flow-execute</code> aufzurufen.</li>
+<li>Alternativ — an die Software Factory übergeben: Statt <code>dev-flow-execute</code> selbst aufzurufen, kann der geplante Branch autonom abgearbeitet werden. Frage den User; bei Zustimmung:</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
+  --branch "feature/&lt;slug&gt;" --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Das Ticket wird <code>type=feature/status=backlog</code> und vom Factory-Dispatcher mit <strong>Plan-Reuse</strong> (kein Neu-Planen) abgearbeitet. STOPP danach.</p>
 <hr>
 <h2 id="fix-pfad">Fix-Pfad</h2>
 <h3>Schritt 1: T-###### Ticket</h3>
@@ -168,8 +186,9 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Schritt 2: Worktree anlegen</h3>
-<div class="code-wrapper"><pre><code class="language-bash">git worktree add -b fix/&lt;slug&gt; /tmp/wt-&lt;slug&gt; origin/main
-cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
+<div class="code-wrapper"><pre><code class="language-bash"># git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+bash scripts/worktree-create.sh fix/&lt;slug&gt; /tmp/wt-&lt;slug&gt;
+cd /tmp/wt-&lt;slug&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Schritt 3: Failing Test schreiben</h3>
 <p>Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine <strong>harte Voraussetzung</strong> für den Fix-Pfad.</p>
@@ -194,6 +213,27 @@ cd /tmp/wt-&lt;slug&gt; &amp;&amp; git submodule update --init --recursive
 <li>Passenden Deploy-Task aufrufen (siehe Deploy-Tabelle in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a>).</li>
 </ol>
 <hr>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>using-git-worktrees</code></td>
+<td>Voraussetzung — Worktree-Isolation</td>
+</tr>
+<tr>
+<td><code>dev-flow-execute</code></td>
+<td>Folge — implementiert den erstellten Plan</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
+</tr>
+</tbody></table>
 <h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
 <p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über <code>mishap-tracker</code> (aufrufbar via <code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
 </body></html>

@@ -49,7 +49,9 @@
 <li class="toc-item"><a href="#ich-will-den-cluster-neu-aufsetzen"><span class="toc-num">8.</span> Ich will den Cluster neu aufsetzen</a></li>
 <li class="toc-item"><a href="#ich-habe-eine-idee--wie-fange-ich-an"><span class="toc-num">9.</span> Ich habe eine Idee — wie fange ich an?</a></li>
 <li class="toc-item"><a href="#ich-will-einen-pull-request-oeffnen-und-ci-gruen-bekommen"><span class="toc-num">10.</span> Ich will einen Pull Request öffnen und CI grün bekommen</a></li>
-<li class="toc-item"><a href="#ich-will-pruefen-ob-mein-deploy-wirklich-live-ist"><span class="toc-num">11.</span> Ich will prüfen, ob mein Deploy wirklich live ist</a></li></ul>
+<li class="toc-item"><a href="#ich-will-pruefen-ob-mein-deploy-wirklich-live-ist"><span class="toc-num">11.</span> Ich will prüfen, ob mein Deploy wirklich live ist</a></li>
+<li class="toc-item"><a href="#ich-will-ein-feature-von-der-software-factory-bauen-lassen"><span class="toc-num">12.</span> Ich will ein Feature von der Software Factory bauen lassen</a></li>
+<li class="toc-item"><a href="#ich-will-dass-die-factory-wartende-aufgaben-selbst-abarbeitet"><span class="toc-num">13.</span> Ich will, dass die Factory wartende Aufgaben selbst abarbeitet</a></li></ul>
 </div>
 <blockquote>
 <p>Diese Seite wird automatisch aus der Registry erzeugt
@@ -194,6 +196,31 @@ Zur Erklärung der Linsen: <a href="./00-anleitung.html" class="xref">00-anleitu
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Schutzregeln (Guardrails):</strong> ENV immer explizit setzen (G-ENV-EXPLICIT)</p>
 <p><strong>Verwandte Ziele:</strong> Ich will eine Änderung in der Produktion ausrollen, Ich will prüfen, ob alle Dienste laufen</p>
+<h2 id="ich-will-ein-feature-von-der-software-factory-bauen-lassen">Ich will ein Feature von der Software Factory bauen lassen</h2>
+<p>🟠 <strong>Nur mit Hilfe</strong></p>
+<p><strong>Wann?</strong> Ein Feature ist klar genug, dass es ein Multi-Agent-Lauf weitgehend selbst bauen kann — erst geplant, dann übergeben.</p>
+<p><strong>So gehst du vor:</strong></p>
+<ol>
+<li><a href="./skills/dev-flow-plan.html" class="xref">dev-flow-plan</a> — Plane das Feature wie gewohnt; am Stopp-Punkt bietet der Skill 'an Factory übergeben' an (legt das Ticket per ticket.sh enqueue auf die Warteschlange).</li>
+<li>Software Factory (Auto-Bau) — Die Factory übernimmt den fertigen Plan (Plan-Reuse, kein Neu-Planen) und baut Implement → Verify → Deploy. Erst Dry-Run, dann scharf schalten.</li>
+</ol>
+<p><strong>Diesen Prompt kannst du der KI geben:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Plane die neue Tickets-Übersichtsseite und übergib den Plan dann an die Software Factory (zuerst als Dry-Run).
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Erst ziehen, dann arbeiten (G-PULL-FIRST), Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)</p>
+<p><strong>Verwandte Ziele:</strong> Ich will eine neue Funktion bauen, Ich will, dass die Factory wartende Aufgaben selbst abarbeitet</p>
+<h2 id="ich-will-dass-die-factory-wartende-aufgaben-selbst-abarbeitet">Ich will, dass die Factory wartende Aufgaben selbst abarbeitet</h2>
+<p>🟠 <strong>Nur mit Hilfe</strong></p>
+<p><strong>Wann?</strong> Mehrere übergebene Tickets liegen in der Warteschlange und sollen automatisch der Reihe nach gebaut werden.</p>
+<p><strong>So gehst du vor:</strong></p>
+<ol>
+<li>Factory-Dispatcher (Warteschlange) — Der Dispatcher pollt die Warteschlange, prüft Datei-Konflikte, vergibt Slots pro Marke und startet die Pipeline — wiederkehrend via /loop.</li>
+</ol>
+<p><strong>Diesen Prompt kannst du der KI geben:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">Starte den Factory-Dispatcher und arbeite die wartenden Tickets ab — als Dry-Run.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Factory erst im Dry-Run beweisen (G-FACTORY-DRYRUN), Nie direkt auf main (G-PR-NOT-MAIN)</p>
+<p><strong>Verwandte Ziele:</strong> Ich will ein Feature von der Software Factory bauen lassen, Ich will prüfen, ob alle Dienste laufen</p>
 </body></html>
 </article>
 

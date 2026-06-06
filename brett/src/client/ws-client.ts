@@ -31,6 +31,11 @@ function send(msg: ClientMessage): void {
   }
 }
 
+/** Public send for lobby/admin protocol messages (e.g. admin_round_start, lobby_set_ready). */
+export function sendClient(msg: ClientMessage): void {
+  send(msg);
+}
+
 export function sendMove(id: string, x: number, z: number, facingY: number): void {
   send({ type: 'move', id, x, z, facingY });
 }

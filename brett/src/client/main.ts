@@ -9,10 +9,15 @@
 import { injectTheme } from './ui/theme';
 import { injectPrimitivesStyles } from './ui/primitives';
 import { injectMenuStyles, mountMenu, type MenuUser } from './ui/menu';
-import { createAppShell, type ViewState } from './app-shell';
+import { injectLobbyStyles, mountLobby, buildLobbyViewModel } from './ui/lobby';
+import { createAppShell, type ViewState, type AppShell } from './app-shell';
 
 function getMenuRoot(): HTMLElement | null {
   return document.getElementById('brett-menu');
+}
+
+function getLobbyRoot(): HTMLElement | null {
+  return document.getElementById('brett-lobby');
 }
 
 async function fetchUser(): Promise<MenuUser> {
@@ -30,21 +35,57 @@ async function fetchUser(): Promise<MenuUser> {
 
 function renderView(v: ViewState): void {
   const menuRoot = getMenuRoot();
+  const lobbyRoot = getLobbyRoot();
   const showMenu = v === 'menu';
+  const showLobby = v === 'lobby';
   if (menuRoot) menuRoot.hidden = !showMenu;
+  if (lobbyRoot) lobbyRoot.hidden = !showLobby;
   // Board DOM (topbar, status-pill, drawers) lives in index.html; hide it while
-  // the menu overlay is up so the empty board chrome doesn't show behind it.
-  document.body.classList.toggle('brett-menu-active', showMenu);
+  // a non-board overlay (menu/lobby) is up so the empty board chrome doesn't show.
+  document.body.classList.toggle('brett-menu-active', showMenu || showLobby);
+}
+
+// Re-render the lobby screen from the live lobby store (driven by ws-client).
+function renderLobby(appShell: AppShell, user: MenuUser): void {
+  const lobbyRoot = getLobbyRoot();
+  if (!lobbyRoot) return;
+  // Lazily import the ws-client lobby store to avoid pulling the board bundle.
+  import('./ws-client').then((ws) => {
+    const state = ws.getLobbyState();
+    const isLeader = state.roster[user.userId]?.role === 'leiter';
+    const vm = buildLobbyViewModel(state, { isLeader });
+    mountLobby(lobbyRoot, vm, {
+      onStart: () => ws.sendClient({ type: 'admin_round_start' }),
+      onToggleReady: (ready) => ws.sendClient({ type: 'lobby_set_ready', ready }),
+      onCopyCode: (code) => { try { navigator.clipboard?.writeText(code); } catch { /* noop */ } },
+    });
+  });
 }
 
 async function main(): Promise<void> {
   injectTheme();
   injectPrimitivesStyles();
   injectMenuStyles();
+  injectLobbyStyles();
+
+  const user = await fetchUser();
 
   const appShell = createAppShell({
     mountBoard: () => import('./board-boot').then((m) => m.bootBoard()),
-    renderView,
+    renderView: (v: ViewState) => {
+      renderView(v);
+      if (v === 'lobby') renderLobby(appShell, user);
+    },
+  });
+
+  // Server-driven phase changes (from the live socket) route the view-machine:
+  // menu → lobby → board (active/paused) → summary (ended). Late-join into an
+  // already-active room jumps straight to the board.
+  void import('./ws-client').then((ws) => {
+    ws.setPhaseChangeHandler((phase) => appShell.setPhase(phase));
+    ws.setLobbyChangeHandler(() => {
+      if (appShell.getView() === 'lobby') renderLobby(appShell, user);
+    });
   });
 
   const hasRoom = new URLSearchParams(location.search).has('room');
@@ -54,7 +95,6 @@ async function main(): Promise<void> {
     return;
   }
 
-  const user = await fetchUser();
   const menuRoot = getMenuRoot();
   if (menuRoot) {
     mountMenu(menuRoot, {

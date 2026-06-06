@@ -664,7 +664,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - `npm run typecheck` green (cases match the B2 `ServerMessage` union).
 - **verify:** `cd brett && npm test && npm run typecheck`
 
-### B16 — Lobby screen (DOM) + view-machine `lobby` view
+### B16 — Lobby screen (DOM) + view-machine `lobby` view — [x] DONE
 - **target_files:** `brett/src/client/ui/lobby.ts` (new), `brett/src/client/app-shell.ts` (Phase A — extend), `brett/test/lobby-render.test.ts` (new, jsdom-free pure render-model)
 - **failing test first (red):** `test/lobby-render.test.ts` imports a pure `buildLobbyViewModel(state)` from `ui/lobby.ts`; given a `LobbyState` (4 participants, mixed roles, 2 ready, `sessionCode:'KRB-9A2'`, `isLeader:true`) asserts the view-model: roster rows with `{name, role, ready}`, `readyCount === 2`, `canStart === true` (leader), `startLabel === 'Runde starten'`; for `isLeader:false`, `canStart === false` and a "Bereit"-toggle is present. (DOM mounting is integration; E2E lands in Phase C.)
 - **implementation:**

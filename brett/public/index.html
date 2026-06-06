@@ -199,7 +199,16 @@
       overflow-y: auto;
     }
     #brett-menu[hidden] { display: none; }
-    /* While the menu is the active view, hide the board chrome behind it. */
+
+    /* ── Lobby overlay (Phase B) ───────────────────────────────── */
+    #brett-lobby {
+      position: fixed; inset: 0; z-index: 300;
+      background: var(--brett-ink-900, #0b111c);
+      overflow-y: auto;
+    }
+    #brett-lobby[hidden] { display: none; }
+
+    /* While a non-board overlay (menu/lobby) is the active view, hide the board chrome. */
     body.brett-menu-active #topbar,
     body.brett-menu-active #status-pill,
     body.brett-menu-active #appearance-drawer,
@@ -209,6 +218,8 @@
 <body class="brett-menu-active">
   <!-- Hauptmenü overlay root (Phase A): mounted by src/client/main.ts -->
   <div id="brett-menu" hidden></div>
+  <!-- Lobby overlay root (Phase B): mounted by src/client/main.ts -->
+  <div id="brett-lobby" hidden></div>
   <div id="topbar">
     <div class="group" id="presets">
       <button class="preset-btn" data-preset="stand">Stand</button>

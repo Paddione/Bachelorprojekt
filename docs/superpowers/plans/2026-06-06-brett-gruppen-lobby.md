@@ -860,7 +860,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C6 — Owner-orphan handling on leave + demote (`orphanFiguresForUser`)
+### C6 — Owner-orphan handling on leave + demote (`orphanFiguresForUser`) — [x] DONE
 
 - **target_files:**
   - `brett/src/server/figures.ts` (NEW exported `orphanFiguresForUser`)

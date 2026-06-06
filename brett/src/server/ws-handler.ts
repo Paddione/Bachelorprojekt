@@ -501,6 +501,13 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
       if (pid !== 'anon') {
         deps.releaseLocksForUser(room, pid);
         deps.broadcast(room, { type: 'locks_released_for', userId: pid });
+        // Owner-orphan (C6): figures owned by the leaver are released (ownerId →
+        // null) so a permitted role can take over; broadcast per changed figure.
+        const orphaned = deps.orphanFiguresForUser(room, pid);
+        for (const fid of orphaned) {
+          deps.broadcast(room, { type: 'figure_owner_changed', figureId: fid, ownerId: null });
+        }
+        if (orphaned.length) deps.schedulePersist(room);
         // Remove from roster for ANY canonical identity (incl. late-joiners
         // tracked only via ws._playerId), not just OIDC-session users.
         deps.removeParticipant(room, pid);

@@ -1624,7 +1624,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/client/mannequin.ts`
 - Modify: `index.html`, `src/client/main.ts`
 
-- [ ] **Step 1: Create `src/client/mannequin.ts`**
+- [x] **Step 1: Create `src/client/mannequin.ts`**
 
 Move index.html lines 445–938 + 960–1047: constants (`BONE_NAMES`, `BODY_RADIUS`, `JUMP_V0`, `GRAVITY`, `BOUNCE_K_DRAG`, `BOUNCE_K_LAND`, `COLLISION_MAX_ITER`, `CONTACT_POINTS`, `K_SPRING`, `DAMPING`, `GRAVITY_OFFSET`, `IK_CHAINS`), `makeBone` (465), `makeMannequin` (477–620), `recolorFigure` (636), `tickSpring` (857), `startJump` (909), `resolveCollisions` (915), `raycaster`/`ndc` (960), `setNdc` (976), `pickContact` (982), `pickMannequinBody` (993), `pickFloor` (1004), `ccdIK` (1012). Import `THREE`, `getScene`, `STATE`, and the WS `sendMove` (Task 16 — for now import lazily / accept as a callback).
 
@@ -1676,11 +1676,11 @@ export function getTickRefs() { return { raycaster, ndc, get lastTickMs() { retu
 ```
 > `makeMannequin` is the 143-line factory — copy it whole (the skeleton hierarchy, contact spheres with `userData.isContact/boneName/figureId`, selection ring, per-bone spring state). Do not abbreviate. `resolveCollisions` calls `sendMove`, which lives in ws-client; the injection avoids an import cycle.
 
-- [ ] **Step 2: Remove inline blocks from `index.html`**
+- [x] **Step 2: Remove inline blocks from `index.html`**
 
 Delete lines 445–938 and 960–1047 from the inline script. Keep the `addFigure` definition at 622–628 for now (it's tightly coupled to `selectFigure` in fig-panel; it migrates with ws-client's monkey-patch in Task 16). **Temporarily**, since `makeMannequin`/`recolorFigure`/`tickSpring`/etc. are now in the module, the still-inline `addFigure` (622) must reach them via `window.*` bridges.
 
-- [ ] **Step 3: Bridge from `main.ts`**
+- [x] **Step 3: Bridge from `main.ts`**
 
 Append to `src/client/main.ts`:
 ```typescript
@@ -1698,7 +1698,7 @@ import * as mannequin from './mannequin';
 (window as any).IK_CHAINS = mannequin.IK_CHAINS;
 ```
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 ```bash
 cd brett && npm run typecheck
 env MOCK_DB=true PORT=3000 timeout 8 npm run dev > /tmp/brett-dev.log 2>&1 &
@@ -1707,7 +1707,7 @@ grep -qi 'error' /tmp/brett-dev.log && echo "DEV-ERRORS" || echo "dev-clean"
 ```
 Expected: typecheck 0 diagnostics; `dev-clean`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add brett/src/client/mannequin.ts brett/src/client/main.ts brett/index.html
 git commit -m "refactor(brett): extract client mannequin.ts (factory, physics, IK)

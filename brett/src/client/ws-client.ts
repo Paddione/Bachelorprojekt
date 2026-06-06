@@ -1,6 +1,7 @@
 import { STATE, getWs, setWs, isWsReady, setWsReady, activeLocks, lockSprites, getScene } from './state';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import * as mannequin from './mannequin';
+import { PRESETS } from './presets';
 
 const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
 const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -96,7 +97,7 @@ export function onWsMessage(evt: MessageEvent): void {
   }
 
   const { scene } = getScene();
-  const presets = (window as any).PRESETS || {};
+  const presets = PRESETS;
   const stiffSlider = document.getElementById('stiffness') as HTMLInputElement | null;
 
   switch (msg.type) {

@@ -1840,7 +1840,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/client/presets.ts`
 - Modify: `index.html`, `src/client/main.ts`, `src/client/ws-client.ts` (import PRESETS)
 
-- [ ] **Step 1: Create `src/client/presets.ts`**
+- [x] **Step 1: Create `src/client/presets.ts`**
 
 Move index.html lines 759–826: `PRESETS` (759–814: stand/kneel/prone/crawl/slump/tpose), `applyPreset` (816–826).
 
@@ -1857,11 +1857,11 @@ export function applyPreset(figId: string, presetKey: string): void {
 }
 ```
 
-- [ ] **Step 2: Wire `ws-client.ts` to import PRESETS**
+- [x] **Step 2: Wire `ws-client.ts` to import PRESETS**
 
 In `ws-client.ts`, add `import { PRESETS } from './presets';` and replace the `(window as any).PRESETS` reference inside `onWsMessage` (snapshot/update cases) with the imported `PRESETS`.
 
-- [ ] **Step 3: Remove inline block + bridge**
+- [x] **Step 3: Remove inline block + bridge**
 
 Delete index.html lines 759–834 (incl. the preset button listener at 830–834 — re-added in fig-panel Task 18, or keep the listener inline pointing at `window.applyPreset` for now; delete only 759–826 and keep 830–834 inline). Append to `main.ts`:
 ```typescript
@@ -1870,7 +1870,7 @@ import * as presets from './presets';
 (window as any).applyPreset = presets.applyPreset;
 ```
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 ```bash
 cd brett && npm run typecheck
 env MOCK_DB=true PORT=3000 timeout 8 npm run dev > /tmp/brett-dev.log 2>&1 &
@@ -1879,7 +1879,7 @@ grep -qi 'error' /tmp/brett-dev.log && echo "DEV-ERRORS" || echo "dev-clean"
 ```
 Expected: typecheck 0 diagnostics; `dev-clean`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add brett/src/client/presets.ts brett/src/client/ws-client.ts brett/src/client/main.ts brett/index.html
 git commit -m "refactor(brett): extract client presets.ts (PRESETS, applyPreset)

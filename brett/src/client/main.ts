@@ -3,6 +3,8 @@ import { STATE } from './state';
 import * as mannequin from './mannequin';
 import * as wsClient from './ws-client';
 
+import * as presets from './presets';
+
 (window as any).STATE = STATE;               // inline code still reads window.STATE
 const sceneApi = initScene();
 (window as any).scene = sceneApi.scene;       // inline code reads bare `scene`
@@ -23,6 +25,9 @@ const sceneApi = initScene();
 (window as any).ccdIK = mannequin.ccdIK;
 (window as any).BONE_NAMES = mannequin.BONE_NAMES;
 (window as any).IK_CHAINS = mannequin.IK_CHAINS;
+
+(window as any).PRESETS = presets.PRESETS;
+(window as any).applyPreset = presets.applyPreset;
 
 mannequin.setSendMove(wsClient.sendMove);
 

@@ -37,6 +37,16 @@ test('checkSessionIdle: returns {ended:false} when within 2 min', () => {
   assert.strictEqual(result.ended, false);
 });
 
+test('checkSessionIdle: lobby phase is exempt (open lobby never swept to ended)', () => {
+  const room = 'idle-test-lobby';
+  applyMutation(room, { type: 'session_phase_set', phase: 'lobby' });
+  applyMutation(room, { type: 'session_last_activity_set',
+    ts: new Date(Date.now() - 300_000).toISOString() }); // > 2 min idle
+  const result = checkSessionIdle(room);
+  assert.strictEqual(result.ended, false);
+  assert.strictEqual(buildStateFromMutations(room).sessionPhase, 'lobby', 'phase stays lobby');
+});
+
 test('checkAllSessions: iterates and ends idle rooms only', () => {
   const idleRoom = 'idle-test-4-idle';
   const liveRoom = 'idle-test-4-live';

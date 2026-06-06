@@ -192,7 +192,7 @@ export function checkSessionIdle(room: string): { ended: boolean; reason?: strin
   const figs = figureMaps.get(room);
   if (!figs) return { ended: false, reason: 'no-room' };
   const phase = figs.get('__session_phase__')?.phase;
-  if (!phase || phase === 'ended' || phase === 'warmup') {
+  if (!phase || phase === 'ended' || phase === 'warmup' || phase === 'lobby') {
     return { ended: false, reason: 'not-applicable' };
   }
   const lastActivityIso = figs.get('__session_last_activity__')?.ts;

@@ -547,7 +547,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - Existing `warmup→active`, `active↔paused`, terminal-guard tests unchanged and green.
 - **verify:** `cd brett && npm test`
 
-### B6 — Idle-sweep exempts `lobby`
+### B6 — Idle-sweep exempts `lobby` — [x] DONE
 - **target_files:** `brett/src/server/sessions.ts`, `brett/test/idle-timeout.test.ts`
 - **failing test first (red):** Add to `idle-timeout.test.ts`: seed phase `lobby`, set `__session_last_activity__` to `Date.now() - 300_000`, assert `checkSessionIdle(room).ended === false` and phase stays `lobby`. Fails (current exempt only `warmup`/`ended`).
 - **implementation:** `checkSessionIdle` (sessions.ts:195): exempt condition `if (!phase || phase === 'ended' || phase === 'warmup')` → add `|| phase === 'lobby'`.

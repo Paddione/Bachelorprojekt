@@ -1073,7 +1073,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Modify: `server.js`
 - Test: existing `test/appearance.test.mjs` (validateAppearance).
 
-- [ ] **Step 1: Create `src/server/presets.ts`**
+- [x] **Step 1: Create `src/server/presets.ts`**
 
 Move `PRESETS_FILE` (12), the `SPEC` load block (14–28) incl. `FACE_NAMES`/`BODY_NAMES`/`ACC_NAMES` closures (26–28), `validateAppearance` (30–54), `loadPresets` (56–67), `savePresets` (69–71). Copy bodies verbatim.
 
@@ -1112,7 +1112,7 @@ export { PRESETS_FILE, SPEC };
 ```
 > Note the `__dirname` path arithmetic: the module is at `src/server/`, so `presets.json` and `public/` are two levels up. Verify these paths resolve by checking `ls brett/presets.json brett/public/assets/figure-pack/placement_spec.json`. Copy the `validateAppearance` body (faces/bodies/accessories slot checks for head/upper/feet) and `loadPresets` migration logic verbatim — `appearance.test.mjs` asserts on `validateAppearance` return values.
 
-- [ ] **Step 2: Wire `server.js` and complete the figures injection**
+- [x] **Step 2: Wire `server.js` and complete the figures injection**
 
 Delete `PRESETS_FILE`, the SPEC block, `validateAppearance`, `loadPresets`, `savePresets` from `server.js`. Add:
 ```js
@@ -1126,13 +1126,13 @@ Now replace the temporary figures injection from Task 7 with the real one (move 
 figuresMod.initFigures({ validateAppearance });
 ```
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `appearance` passes; `# fail 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/server.js brett/src/server/presets.ts
 git commit -m "refactor(brett): extract presets.ts (SPEC, validateAppearance, preset CRUD)

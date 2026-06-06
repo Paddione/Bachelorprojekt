@@ -10,6 +10,7 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
   'figure_locked', 'figure_unlocked', 'figure_lock_denied', 'locks_released_for',
   'info', 'presence_join', 'presence_leave', 'session_created', 'session_phase_change',
   'session_ended', 'admin_token_changed', 'coaching_steps_change', 'error',
+  'role_changed', 'figure_owner_changed', 'lobby_ready_changed', 'lobby_settings_change',
 ]);
 
 // Compile-time exhaustiveness: this function must handle every ServerMessage
@@ -37,6 +38,10 @@ function routeServer(msg: ServerMessage): string {
     case 'admin_token_changed': return 'admin_token_changed';
     case 'coaching_steps_change': return 'coaching_steps_change';
     case 'error': return 'error';
+    case 'role_changed': return 'role_changed';
+    case 'figure_owner_changed': return 'figure_owner_changed';
+    case 'lobby_ready_changed': return 'lobby_ready_changed';
+    case 'lobby_settings_change': return 'lobby_settings_change';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }
@@ -65,6 +70,9 @@ function routeClient(msg: ClientMessage): string {
     case 'admin_round_stop': return 'admin_round_stop';
     case 'admin_round_pause': return 'admin_round_pause';
     case 'admin_coaching_steps_set': return 'admin_coaching_steps_set';
+    case 'admin_round_start': return 'admin_round_start';
+    case 'admin_assign_role': return 'admin_assign_role';
+    case 'lobby_set_ready': return 'lobby_set_ready';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }

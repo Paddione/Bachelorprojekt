@@ -496,7 +496,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - `lobby-types.test.ts` passes.
 - **verify:** `cd brett && npm run typecheck && npm test`
 
-### B2 — Message unions: drift-fixes (§4.2/§4.3) + new variants + 3-site exhaustiveness
+### B2 — Message unions: drift-fixes (§4.2/§4.3) + new variants + 3-site exhaustiveness — [x] DONE
 - **target_files:** `brett/src/types/messages.ts`, `brett/test/messages.test.ts`
 - **failing test first (red):** Update the **three** hand-kept sites in `messages.test.ts` *first*: add `role_changed`, `figure_owner_changed`, `lobby_ready_changed`, `lobby_settings_change` to `HANDLED_SERVER_TYPES` (:8-13) and to `routeServer` (:19-44); add `admin_round_start`, `admin_assign_role`, `lobby_set_ready` cases to `routeClient` (:46-70). This makes `tsc` fail on the `assertNever` default branches (and `HANDLED_SERVER_TYPES` literal) until the unions below exist.
 - **implementation (`messages.ts`):**

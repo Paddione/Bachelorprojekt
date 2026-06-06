@@ -29,7 +29,7 @@ cd "${REPO}"
 
 # ── single-flight: acquire the tick lock non-blocking; bail if a tick is live ──
 exec 9>"${LOCKFILE}"
-if ! flock -n 9; then : /tmp/factory-tick.lock
+if ! flock -n 9; then
   echo "wakeup.sh: a factory tick is already running (flock /tmp/factory-tick.lock held) — skipping" >&2
   exit 0
 fi
@@ -55,6 +55,6 @@ scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '$(date -u +%FT
 The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step. \
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
-exec "${CLAUDE_BIN:-claude}" -p "${PROMPT}" # exec claude -p \
+exec "${CLAUDE_BIN:-claude}" -p "${PROMPT}" \
   --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
   --permission-mode acceptEdits

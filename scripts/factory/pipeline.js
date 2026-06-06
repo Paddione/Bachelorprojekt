@@ -78,6 +78,9 @@ let tasks = []
 // here would throw `ReferenceError: scout is not defined` (optional chaining does NOT
 // guard an undeclared binding, only null/undefined values).
 let featureComplexity = null
+// Same hoist rationale: the Deploy phase's two-gated retry loop (outside the !REUSE block)
+// feeds the touched-file list to paths_are_escalate_class. Stays [] in the REUSE path.
+let featureTouchedFiles = []
 
 // JSON schemas for structured agent outputs
 const SCOUT_SCHEMA = {
@@ -134,6 +137,7 @@ const scout = await agent(
 // Persist touched_files back onto the ticket via ticket.sh (NO raw SQL).
 log(`Scout: complexity=${scout.complexity}, ${scout.touched_files.length} touched files`)
 featureComplexity = scout.complexity // hoist for the out-of-block Implement fan-out provisioning
+featureTouchedFiles = scout.touched_files // hoist for the out-of-block Deploy retry-loop escalate-class gate
 await agent(
   `Run the following command to record which files this feature touches on the ticket:
    bash ${REPO}/scripts/ticket.sh set-touched-files --id ${A.ticket_id} --files ${JSON.stringify(scout.touched_files.join(','))}
@@ -388,7 +392,7 @@ const deploy = await agent(
             CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
             — must be one of: ci, test, lint.  (sql|manifest|secret|realm|other ⇒ NO auto-fix.)
           Gate 2 (path class): source ${REPO}/scripts/factory/classify-paths.sh;
-            if paths_are_escalate_class "${scout.touched_files.join(',')}"  (exit 0 = escalate)
+            if paths_are_escalate_class "${featureTouchedFiles.join(',')}"  (exit 0 = escalate)
             ⇒ NO auto-fix (shared-state / secret / realm*.json / *.sql touched).
           If EITHER gate fails ⇒ do NOT auto-fix: set blocked, notify, return (escalate to human).
 

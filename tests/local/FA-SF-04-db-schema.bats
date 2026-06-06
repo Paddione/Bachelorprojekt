@@ -10,6 +10,16 @@
 setup() {
   # Load the local test helper
   load 'test_helper.bash'
+  # This is a LIVE-DB suite (every assertion shells out to kubectl exec → psql). When no
+  # shared-db pod is reachable — offline, in CI, or no cluster context — skip wholesale
+  # rather than hard-fail, so the offline factory test job can include this file safely.
+  local _pod
+  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  # NOTE: use an if-block, NOT `[[ … ]] && skip` — when the pod IS found the `[[ -z ]]`
+  # test exits 1 and, as the last command in setup(), would fail EVERY test.
+  if [[ -z "$_pod" ]]; then
+    skip "no shared-db pod reachable (offline / no cluster)"
+  fi
 }
 
 psql_tickets() {
@@ -79,16 +89,16 @@ psql_tickets() {
 }
 
 @test "FA-SF-12: embedding_model column exists on tickets.ticket_embeddings" {
-  run kubectl --context "${FACTORY_CTX:-fleet}" exec -n "${FACTORY_NS:-workspace}" deployment/shared-db -- \
-    psql -U postgres -d website -tAc \
-    "SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='tickets' AND table_name='ticket_embeddings' AND column_name='embedding_model')"
+  # Reuse psql_tickets (has -c postgres + the pod guard); a raw `kubectl exec deployment/...`
+  # without -c postgres prints a "Defaulted container" line to stderr that bats folds into
+  # $output, breaking the exact-match assertion even when the column is present.
+  run psql_tickets "SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='tickets' AND table_name='ticket_embeddings' AND column_name='embedding_model')"
   [ "$status" -eq 0 ]
   [ "$output" = "t" ]
 }
 
 @test "FA-SF-13: vector extension is enabled (ticket_embeddings hard dependency)" {
-  run kubectl --context "${FACTORY_CTX:-fleet}" exec -n "${FACTORY_NS:-workspace}" deployment/shared-db -- \
-    psql -U postgres -d website -tAc "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname='vector')"
+  run psql_tickets "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname='vector')"
   [ "$status" -eq 0 ]
   [ "$output" = "t" ]
 }

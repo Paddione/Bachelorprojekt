@@ -26,8 +26,12 @@ case "${BRAND:-}" in
   *)           echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
 esac
 
-if [[ -z "${BRAND:-}" && -z "${FACTORY_NS_EXPLICIT:-}" ]]; then
-  echo "WARN: no BRAND set; defaulting FACTORY_NS=${FACTORY_NS:-workspace} (mentolder/prod). Set BRAND=mentolder|korczewski to be explicit." >&2
+# Warn only when the caller gave NEITHER a BRAND nor an explicit FACTORY_NS. The guard
+# must read FACTORY_NS (what pipeline.js / schedule.sh actually export) — the old
+# FACTORY_NS_EXPLICIT was never set by anyone, so the WARN always fired and leaked onto
+# stderr (polluting callers that merge stdout+stderr, e.g. bats `run`).
+if [[ -z "${BRAND:-}" && -z "${FACTORY_NS:-}" ]]; then
+  echo "WARN: no BRAND set; defaulting FACTORY_NS=workspace (mentolder/prod). Set BRAND=mentolder|korczewski to be explicit." >&2
 fi
 FACTORY_NS="${FACTORY_NS:-workspace}"
 FACTORY_CTX="${FACTORY_CTX:-fleet}"

@@ -5,17 +5,17 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { boardAuthRedirect } = require('../server.js');
 
-test('coaching deployment + no session → redirect to login with returnTo', () => {
-  const r = boardAuthRedirect({ session: {}, path: '/' }, { /* coaching default */ });
+test('no session → redirect to login with returnTo', () => {
+  const r = boardAuthRedirect({ session: {}, path: '/' }, {});
   assert.strictEqual(r, '/auth/login?returnTo=%2F');
 });
-test('coaching deployment + authenticated session → no redirect', () => {
+test('authenticated session → no redirect', () => {
   const r = boardAuthRedirect({ session: { userId: 'u1' }, path: '/' }, {});
   assert.strictEqual(r, null);
 });
-test('mayhem deployment → never gates', () => {
+test('board is always gated regardless of env (no mayhem-public bypass)', () => {
   const r = boardAuthRedirect({ session: {}, path: '/' }, { BRETT_DEFAULT_MODE: 'mayhem' });
-  assert.strictEqual(r, null);
+  assert.strictEqual(r, '/auth/login?returnTo=%2F');
 });
 test('e2e secret header bypasses the gate', () => {
   const r = boardAuthRedirect(

@@ -2,7 +2,7 @@
 process.env.MOCK_DB = 'true';
 const test   = require('node:test');
 const assert = require('node:assert');
-const { isAdminFromClaims, RELAY_TYPES, applyMutation, buildStateFromMutations, figureMaps } = require('../server.js');
+const { isAdminFromClaims, RELAY_TYPES, applyMutation, buildStateFromMutations } = require('../server.js');
 
 test('isAdminFromClaims: true when admin role present', () => {
   const claims = { realm_access: { roles: ['offline_access', 'admin', 'uma_authorization'] } };
@@ -20,22 +20,18 @@ test('isAdminFromClaims: false for null/undefined/empty claims', () => {
   assert.strictEqual(isAdminFromClaims({}), false);
 });
 
-test('RELAY_TYPES: includes bot_spawn, bot_despawn, round_reset', () => {
-  assert.ok(RELAY_TYPES.includes('bot_spawn'),   'bot_spawn missing');
-  assert.ok(RELAY_TYPES.includes('bot_despawn'), 'bot_despawn missing');
-  assert.ok(RELAY_TYPES.includes('round_reset'), 'round_reset missing');
+test('RELAY_TYPES: contains only coaching/figure types, no Mayhem types', () => {
+  for (const t of ['mayhem_mode','game_mode_change','hit','player_death','vehicle_spawn','hero_select','duel_start','bot_spawn']) {
+    assert.ok(!RELAY_TYPES.includes(t), `RELAY_TYPES must not include ${t}`);
+  }
+  for (const t of ['add','move','update','delete','clear','optik','stiffness']) {
+    assert.ok(RELAY_TYPES.includes(t), `RELAY_TYPES must include ${t}`);
+  }
 });
 
-test('admin_mayhem_toggle: applyMutation sets mayhem enabled', () => {
-  const room = 'admin-ws-test-1';
-  applyMutation(room, { type: 'mayhem_mode', enabled: true });
+test('applyMutation: coaching steps round-trip through state', () => {
+  const room = 'admin-ws-test-coaching';
+  applyMutation(room, { type: 'coaching_steps_set', steps: ['a', 'b'], index: 1 });
   const state = buildStateFromMutations(room);
-  assert.strictEqual(state.mayhem, true);
-});
-
-test('admin_mode_set: applyMutation sets gameMode to deathmatch', () => {
-  const room = 'admin-ws-test-2';
-  applyMutation(room, { type: 'game_mode_change', mode: 'deathmatch' });
-  const state = buildStateFromMutations(room);
-  assert.strictEqual(state.gameMode, 'deathmatch');
+  assert.deepStrictEqual(state.coachingSteps, { steps: ['a', 'b'], index: 1 });
 });

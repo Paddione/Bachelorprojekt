@@ -145,9 +145,17 @@ patches:
       kind: Deployment
       name: brett
     patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env/7/value
-        value: "https://brett.mentolder.de"
-      - op: replace
-        path: /spec/template/spec/containers/0/env/8/value
-        value: "http://website.website.svc.cluster.local"
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: brett
+      spec:
+        template:
+          spec:
+            containers:
+              - name: brett
+                env:
+                  - name: BRETT_PUBLIC_URL
+                    value: "https://brett.mentolder.de"
+                  - name: WEBSITE_INTERNAL_URL
+                    value: "http://website.website.svc.cluster.local"

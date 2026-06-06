@@ -115,28 +115,30 @@ patches:
             - pk-hetzner-6
             - pk-hetzner-8
 
-  # brett Deployment — flip default mode to mayhem on korczewski.
-  # Base sets BRETT_DEFAULT_MODE=coaching at env index 11; replace the value here.
-  # mentolder keeps the base default (coaching only).
+  # brett Deployment — configure environment variables on korczewski.
+  # mentolder keeps the base default.
   - target:
       kind: Deployment
       name: brett
     patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env/11/value
-        value: mayhem
-      - op: replace
-        path: /spec/template/spec/containers/0/env/3/value
-        value: "http://keycloak.workspace-korczewski.svc.cluster.local:8080"
-      - op: replace
-        path: /spec/template/spec/containers/0/env/7/value
-        value: "https://brett.korczewski.de"
-      - op: replace
-        path: /spec/template/spec/containers/0/env/8/value
-        value: "http://website.website-korczewski.svc.cluster.local"
-      - op: replace
-        path: /spec/template/spec/containers/0/env/13/value
-        value: korczewski
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: brett
+      spec:
+        template:
+          spec:
+            containers:
+              - name: brett
+                env:
+                  - name: KEYCLOAK_URL
+                    value: "http://keycloak.workspace-korczewski.svc.cluster.local:8080"
+                  - name: BRETT_PUBLIC_URL
+                    value: "https://brett.korczewski.de"
+                  - name: WEBSITE_INTERNAL_URL
+                    value: "http://website.website-korczewski.svc.cluster.local"
+                  - name: BRETT_BRAND
+                    value: korczewski
 
   # CronJobs that pin to mentolder Hetzner CPs:
   #   - tests-retention      (k3d/tests-retention-cronjob.yaml — applied separately, not via kustomize)

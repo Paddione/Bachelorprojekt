@@ -203,10 +203,7 @@ export default defineConfig({
       name: 'brett-mentolder',
       dependencies: ['brett-mentolder-setup'],
       testMatch: [
-        '**/brett-mayhem.spec.ts',
-        '**/brett-controls.spec.ts',   // WASD movement
         '**/brett-mannequin.spec.ts',  // mannequin focus
-        '**/fa-46-*.spec.ts',          // Brett character skins
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -245,7 +242,6 @@ export default defineConfig({
       testMatch: [
         '**/korczewski-home.spec.ts',  // Kore brand homepage
         '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
-        '**/brett-duel-mode.spec.ts',  // Duel-Mode hero select & game mode constants
         '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
         '**/fa-content-hub-legal-ssot.spec.ts',
       ],

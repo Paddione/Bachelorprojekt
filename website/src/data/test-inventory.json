@@ -48,38 +48,8 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:brett-controls",
-    "file": "tests/e2e/specs/brett-controls.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-duel-mode",
-    "file": "tests/e2e/specs/brett-duel-mode.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-duel-rematch",
-    "file": "tests/e2e/specs/brett-duel-rematch.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-duel-spec-hud",
-    "file": "tests/e2e/specs/brett-duel-spec-hud.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:brett-mannequin",
     "file": "tests/e2e/specs/brett-mannequin.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:brett-mayhem",
-    "file": "tests/e2e/specs/brett-mayhem.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },
@@ -745,36 +715,6 @@
   },
   {
     "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett-r1-p1-crosshair.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett-r1-p1-pointerlock.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett-r1-p2-muzzle-tracer.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett-r1-p3-submode-picker.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-27",
-    "file": "tests/e2e/specs/fa-27-brett-r1-p4-touch-mount.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-27",
     "file": "tests/e2e/specs/fa-27-brett.spec.ts",
     "category": "FA",
     "kind": "playwright"
@@ -968,12 +908,6 @@
   {
     "id": "FA-45",
     "file": "tests/e2e/specs/fa-45-authenticated-flows.spec.ts",
-    "category": "FA",
-    "kind": "playwright"
-  },
-  {
-    "id": "FA-46",
-    "file": "tests/e2e/specs/fa-46-brett-skins.spec.ts",
     "category": "FA",
     "kind": "playwright"
   },

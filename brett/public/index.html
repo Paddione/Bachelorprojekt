@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Brett · Mannequin</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e1014'/%3E%3Ccircle cx='16' cy='11' r='4' fill='%23c8a96e'/%3E%3Cpath d='M9 27c0-3.9 3.1-7 7-7s7 3.1 7 7' stroke='%23c8a96e' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
-  <link rel="stylesheet" href="/admin/admin.css">
-  <link rel="stylesheet" href="/admin/mayhem.css">
   <style>
     *,*::before,*::after { box-sizing: border-box; }
     html, body { margin:0; height:100%; background:#0e1014; color:#e7ead0; font-family: ui-sans-serif, system-ui, sans-serif; overflow:hidden; }
@@ -613,8 +608,6 @@
       headMesh,
       appearanceMeshes: {},
       appearance: { face: null, body: 'adult-average', accessories: { head: null, upper: null, feet: null } },
-      walkTarget: null,
-      walking: false,
       boneOverrides: {},
       label: 'Figur',
       color: '#b8c0a8',
@@ -1212,16 +1205,7 @@
   renderer.domElement.addEventListener('click', (e) => {
     if (dragging) return;
     if (e.shiftKey) return;
-    if (pickMannequinBody(e)) return; // selection click already happened
-    const floorPt = pickFloor(e);
-    if (!floorPt || !STATE.selectedId) return;
-    if (STATE.stiffness < 0.3) return; // body too limp
-    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (fig) {
-      fig.walkTarget = { x: floorPt.x, z: floorPt.z };
-      fig.walking = true;
-      sendUpdate(fig, { walkTarget: fig.walkTarget, walking: true });
-    }
+    pickMannequinBody(e);
   });
 
   function easeFigure(fig, tx, tz, durationMs) {
@@ -1238,7 +1222,6 @@
         if (wsReady) ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
       }
     }
-    fig.walkTarget = null; fig.walking = false;
     requestAnimationFrame(step);
   }
   window.easeFigure = easeFigure;
@@ -1296,137 +1279,20 @@
   });
 
 
-  // ----- Walking -----
-  const WALK_SPEED = 2.0;          // units/s
-  const SPRINT_MULT = 3.0;         // Shift-sprint multiplier
-  const TURN_RATE  = 8.0;          // rad/s
-  const ARRIVE_EPS = 0.3;          // distance threshold
-  const wasdKeys = { w:false, a:false, s:false, d:false, shift:false };
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Shift') { wasdKeys.shift = true; return; }
-    const k = e.key.toLowerCase();
-    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = true;
-    if (e.key === 'ArrowUp')    { wasdKeys.w = true; e.preventDefault(); }
-    if (e.key === 'ArrowDown')  { wasdKeys.s = true; e.preventDefault(); }
-    if (e.key === 'ArrowLeft')  { wasdKeys.a = true; e.preventDefault(); }
-    if (e.key === 'ArrowRight') { wasdKeys.d = true; e.preventDefault(); }
-  });
-  window.addEventListener('keyup', (e) => {
-    if (e.key === 'Shift') { wasdKeys.shift = false; return; }
-    const k = e.key.toLowerCase();
-    if (wasdKeys.hasOwnProperty(k)) wasdKeys[k] = false;
-    if (e.key === 'ArrowUp')    wasdKeys.w = false;
-    if (e.key === 'ArrowDown')  wasdKeys.s = false;
-    if (e.key === 'ArrowLeft')  wasdKeys.a = false;
-    if (e.key === 'ArrowRight') wasdKeys.d = false;
-  });
-
-  function tickWalkAnimation(fig, t) {
-    if (!fig.walking) return;
-    const phase = t * 4.0;
-    // Override-respecting: spring already left these bones alone if not in boneOverrides
-    if (!fig.boneOverrides.lHip)      fig.bone.lHip.targetRot.x      = Math.sin(phase) * 0.6;
-    if (!fig.boneOverrides.rHip)      fig.bone.rHip.targetRot.x      = Math.sin(phase + Math.PI) * 0.6;
-    if (!fig.boneOverrides.lKnee)     fig.bone.lKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*0.5)) * 0.8;
-    if (!fig.boneOverrides.rKnee)     fig.bone.rKnee.targetRot.x     = Math.max(0, Math.sin(phase + Math.PI*1.5)) * 0.8;
-    if (!fig.boneOverrides.lShoulder) fig.bone.lShoulder.targetRot.x = Math.sin(phase + Math.PI) * 0.4;
-    if (!fig.boneOverrides.rShoulder) fig.bone.rShoulder.targetRot.x = Math.sin(phase) * 0.4;
-  }
-
-  function tickWalk(dt, t) {
-    const stiff = STATE.stiffness;
-    for (const fig of STATE.figures) {
-      // WASD only for selected figure
-      let dx = 0, dz = 0;
-      if (fig.id === STATE.selectedId && stiff >= 0.3) {
-        if (wasdKeys.w) { dx += -Math.sin(cameraOrbit.theta); dz += -Math.cos(cameraOrbit.theta); }
-        if (wasdKeys.s) { dx +=  Math.sin(cameraOrbit.theta); dz +=  Math.cos(cameraOrbit.theta); }
-        if (wasdKeys.a) { dx += -Math.cos(cameraOrbit.theta); dz +=  Math.sin(cameraOrbit.theta); }
-        if (wasdKeys.d) { dx +=  Math.cos(cameraOrbit.theta); dz += -Math.sin(cameraOrbit.theta); }
-        const mag = Math.hypot(dx, dz);
-        if (mag > 1e-3) {
-          dx /= mag; dz /= mag;
-          fig.walkTarget = null;
-          fig.walking = true;
-          const speed = WALK_SPEED * (wasdKeys.shift ? SPRINT_MULT : 1);
-          fig.root.position.x += dx * speed * dt;
-          fig.root.position.z += dz * speed * dt;
-          const want = Math.atan2(dx, dz);
-          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
-          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
-          fig.root.rotation.y = fig.facingY;
-          resolveCollisions(fig, BOUNCE_K_DRAG);
-        }
-      }
-      // Click-to-walk target
-      if (fig.walkTarget) {
-        const tx = fig.walkTarget.x - fig.root.position.x;
-        const tz = fig.walkTarget.z - fig.root.position.z;
-        const dist = Math.hypot(tx, tz);
-        if (dist < ARRIVE_EPS) {
-          fig.walkTarget = null; fig.walking = false;
-        } else if (stiff >= 0.3) {
-          const ndx = tx / dist, ndz = tz / dist;
-          fig.root.position.x += ndx * WALK_SPEED * dt;
-          fig.root.position.z += ndz * WALK_SPEED * dt;
-          const want = Math.atan2(ndx, ndz);
-          const diff = ((want - fig.facingY + Math.PI*3) % (Math.PI*2)) - Math.PI;
-          fig.facingY += Math.max(-TURN_RATE*dt, Math.min(TURN_RATE*dt, diff));
-          fig.root.rotation.y = fig.facingY;
-          fig.walking = true;
-          resolveCollisions(fig, BOUNCE_K_DRAG);
-        } else {
-          fig.walking = false;
-        }
-      } else if (Math.hypot(dx, dz) < 1e-3) {
-        fig.walking = false;
-      }
-      tickWalkAnimation(fig, t);
-    }
-  }
-
   // ----- Status pill -----
   const pillEl = document.getElementById('status-pill');
   function updateStatusPill() {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (STATE.stiffness < 0.3) { pillEl.textContent = 'zu schlaff zum Laufen — Slider nach rechts'; return; }
-    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = resume'; return; }
-    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur hinzufügen'; return; }
-    if (fig.walking) { pillEl.textContent = '→ Ziel … · Klick = neues Ziel · Doppelklick = Teleport · ESC = stop'; return; }
-    pillEl.textContent = '🚶 WASD/↑↓←→ = laufen · Shift = Sprint · Space = Sprung · Klick Boden = Ziel · Tab = nächste';
+    if (dragging) { pillEl.textContent = '● Drag … · Loslassen = beenden'; return; }
+    if (!fig) { pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur'; return; }
+    pillEl.textContent = 'Doppelklick Boden = Verschieben · Ziehen an Gliedern = Pose anpassen';
   }
-
-  // ----- Admin bootstrap -----
-  (async function adminBootstrap() {
-    try {
-      const res = await fetch('/auth/me');
-      if (!res.ok) return;
-      const me = await res.json();
-      if (!me.authenticated) {
-        if (new URLSearchParams(window.location.search).get('admin') === '1') {
-          window.location.href = '/auth/login?returnTo=' + encodeURIComponent(window.location.href);
-        }
-        return;
-      }
-      if (!me.isAdmin) return;
-      window._bretAdmin = me;
-      const roomParam = new URLSearchParams(window.location.search).get('room');
-      if (!roomParam && window.RoomBrowser) {
-        window.RoomBrowser.show(me.name);
-      }
-    } catch {}
-  })();
 
   // ----- WebSocket sync -----
   const roomFromUrl = new URLSearchParams(location.search).get("room") || "default";
   const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
   let ws, wsReady = false;
 
-  const mayhemSend = (msg) => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    try { ws.send(JSON.stringify(msg)); } catch (e) { /* ignore */ }
-  };
 
   function connectWS() {
     ws = new WebSocket(`${wsProto}//${location.host}/sync`);
@@ -1435,17 +1301,6 @@
     ws.addEventListener("open", () => {
       wsReady = true;
       ws.send(JSON.stringify({ type: "join", room: roomFromUrl }));
-      // Mount admin panel if admin
-      if (window._bretAdmin && window.AdminPanel) {
-        const joinMode = sessionStorage.getItem('brett_admin_join_mode') || 'spectator';
-        window.AdminPanel.mount({
-          sendFn: (msg) => { try { ws.send(JSON.stringify(msg)); } catch {} },
-          room: roomFromUrl,
-          roomName: roomFromUrl,
-          joinMode,
-        });
-        if (joinMode === 'spectator') window._mayhemSpectator = true;
-      }
     });
 
     ws.addEventListener("close", () => {
@@ -1456,24 +1311,7 @@
     ws.addEventListener("message", onWsMessage);
   }
 
-  // Deferred init bridge: main.js calls this after mode selection resolves to 'mayhem'.
-  window.__brettInitMayhem = function () {
-    if (!window.Mayhem || window.Mayhem._initialized) return;
-    window.Mayhem.init({
-      scene, camera, canvas: renderer.domElement,
-      makeMannequin: (id, pos, opts) => makeMannequin(id, pos, opts),
-      sendMessage: mayhemSend,
-      roomToken: roomFromUrl,
-    });
-    window.Mayhem._initialized = true;
-  };
-
   connectWS();
-
-  // Toast fires via custom event dispatched from mayhem.js setEnabled
-  window.addEventListener('brett:mayhem-enabled', () => {
-    window.MayhemControlsPanel?.showEntryToast();
-  });
 
   function onWsMessage(evt) {
     let msg; try { msg = JSON.parse(evt.data); } catch { return; }
@@ -1492,7 +1330,6 @@
             }
           }
           if (f.boneOverrides) fig.boneOverrides = { ...f.boneOverrides };
-          if (f.walkTarget) fig.walkTarget = f.walkTarget;
           STATE.figures.push(fig);
           if (f.appearance) applyAppearanceToFig(fig, f.appearance);
         }
@@ -1511,14 +1348,6 @@
           activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
           setFigureLockBadge(l.figureId, l.name, l.color);
         }
-        // Solo AI Mayhem: auto-enable if triggered from mode-select
-        if (sessionStorage.getItem('brett_solo_mayhem') === '1') {
-          sessionStorage.removeItem('brett_solo_mayhem');
-          if (window.Mayhem && !window.Mayhem._internal.localAvatar) {
-            window.Mayhem.setEnabled(true);
-          }
-        }
-        if (window.Mayhem) window.Mayhem.onSnapshot(msg);
         break;
       case "stiffness":
         STATE.stiffness = msg.value; stiffSlider.value = String(msg.value);
@@ -1542,8 +1371,6 @@
         }
         if (c.boneOverrides !== undefined) fig.boneOverrides = { ...c.boneOverrides };
         if (c.appearance !== undefined) applyAppearanceToFig(fig, c.appearance);
-        if (c.walkTarget !== undefined) fig.walkTarget = c.walkTarget;
-        if (c.walking !== undefined) fig.walking = !!c.walking;
         break;
       }
       case "figure_locked": {
@@ -1584,14 +1411,8 @@
       case "info":
         STATE.online = msg.count || 1;
         document.getElementById("online-count").textContent = String(STATE.online);
-        if (window.AdminPanel) window.AdminPanel.onMessage(msg);
         break;
       default:
-        if (window.Mayhem) {
-          if (msg.type === "snapshot") window.Mayhem.onSnapshot(msg);
-          else window.Mayhem.onMessage(msg);
-        }
-        if (window.AdminPanel) window.AdminPanel.onMessage(msg);
         break;
     }
   }
@@ -1618,20 +1439,12 @@
     return fig;
   };
 
-  // Periodically broadcast position for the selected figure so peers see walking
-  setInterval(() => {
-    if (!wsReady) return;
-    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    if (!fig) return;
-    ws.send(JSON.stringify({ type: "move", id: fig.id, x: fig.root.position.x, z: fig.root.position.z, facingY: fig.facingY }));
-  }, 100);
+
   function tick() {
     requestAnimationFrame(tick);
     const now = performance.now();
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
-    if (window.Mayhem) window.Mayhem.tick(dt);
     lastTickMs = now;
-    tickWalk(dt, now / 1000);
     tickSpring(dt);
     updateStatusPill();
     // P4.1: Use PostFx render (includes ACESFilmic + bloom overlay)
@@ -1938,61 +1751,28 @@
 <script type="module">
   import { createWire } from '/assets/coaching/wire.mjs';
   import { mountCoachingHud } from '/assets/coaching/hud.mjs';
-  const cfg = await fetch('/api/config').then((r) => r.json());
-  if (cfg.defaultMode === 'coaching') {
-    const me = await fetch('/auth/me').then((r) => r.json()).catch(() => ({}));
-    const wire = createWire(() => window.__brettWS);
-    const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
-    tryAttach();
-    
-    const hasRoom = new URLSearchParams(location.search).has('room');
-    if (!hasRoom) {
-      const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
-      mountJoinOverlay({});
-    } else {
-      mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
-    }
+  // Coaching runs unconditionally — mode concept removed.
+  const me = await fetch('/auth/me').then((r) => r.json()).catch(() => ({}));
+  const wire = createWire(() => window.__brettWS);
+  const tryAttach = () => { if (!wire.attach()) setTimeout(tryAttach, 150); };
+  tryAttach();
 
-    wire.on('session_created', (m) => {
-      const toast = document.createElement('div');
-      toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
-      toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
-        `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
-        `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
-      document.body.appendChild(toast);
-    });
+  const hasRoom = new URLSearchParams(location.search).has('room');
+  if (!hasRoom) {
+    const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
+    mountJoinOverlay({});
+  } else {
+    mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
   }
+
+  wire.on('session_created', (m) => {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+    toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
+      `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
+      `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
+    document.body.appendChild(toast);
+  });
 </script>
-<script src="assets/mayhem/physics.js"></script>
-<script src="assets/mayhem/chase-camera.js"></script>
-<script src="assets/mayhem/skin-controller.js"></script>
-<script src="assets/mayhem/player-avatar.js"></script>
-<script src="assets/mayhem/vehicle.js"></script>
-<script src="assets/mayhem/obstacles.js"></script>
-<script src="assets/mayhem/weapons.js"></script>
-<script src="assets/mayhem/heroes.js"></script>
-<script src="assets/mayhem/hero-select.js"></script>
-<script src="assets/mayhem/projectiles.js"></script>
-<script src="assets/mayhem/effects.js"></script>
-<script src="assets/mayhem/game-mode.js"></script>
-<script src="assets/mayhem/ai-bot.js"></script>
-<script src="assets/mayhem/keybindings.js"></script>
-<script src="assets/mayhem/controls-panel.js"></script>
-<script src="assets/mayhem/muzzle-flash.js"></script>
-<script src="assets/mayhem/tracer.js"></script>
-<script src="assets/mayhem/katana-trail.js"></script>
-<script src="assets/mayhem/tina-vfx.js"></script>
-<script src="assets/mayhem/post-fx.js"></script>
-<script src="assets/mayhem/mayhem.js"></script>
-<script src="assets/room-browser.js"></script>
-<div id="admin-root"></div>
-<script type="text/babel" data-presets="env,react" src="/admin/MayhemScene.jsx"></script>
-<script type="text/babel" data-presets="env,react" src="/admin/tweaks-panel.jsx"></script>
-<script type="text/babel" data-presets="env,react" src="/admin/screens-pregame.jsx"></script>
-<script type="text/babel" data-presets="env,react" src="/admin/screens-setup.jsx"></script>
-<script type="text/babel" data-presets="env,react" src="/admin/screens-live.jsx"></script>
-<script type="text/babel" data-presets="env,react" src="/admin/screens-cmdk.jsx"></script>
-<script type="text/babel" data-presets="env,react" src="/admin/App.jsx"></script>
-<script type="module" src="assets/main.js"></script>
 </body>
 </html>

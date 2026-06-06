@@ -84,8 +84,6 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: BRETT_OIDC_SECRET
-            - name: BRETT_DEFAULT_MODE
-              value: "coaching"
             - name: BRETT_PRESETS_PATH
               value: /app/presets/presets.json
             - name: BRETT_BRAND

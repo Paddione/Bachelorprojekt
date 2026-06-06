@@ -894,7 +894,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C7 — E2E: observer cannot move (two browser contexts)
+### C7 — E2E: observer cannot move (two browser contexts) — [x] DONE
 
 - **target_files:**
   - `brett/src/server/index.ts` (parameterize `/auth/e2e-login` to accept distinct identities)

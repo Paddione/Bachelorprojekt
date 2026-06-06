@@ -109,17 +109,35 @@ app.get('/auth/me', (req: any, res: any) => {
   res.json({ authenticated: true, userId: req.session.userId, name: req.session.name, isAdmin: !!req.session.isAdmin });
 });
 
+/**
+ * Resolve the identity an /auth/e2e-login request asks for. The endpoint accepts
+ * optional `userId`/`name`/`isAdmin` so two browser contexts can hold DISTINCT,
+ * role-distinct identities (required by the C7 observer-gate E2E). Defaults match
+ * the historical single-admin behavior. `isAdmin` defaults to true and is only
+ * forced false when explicitly `false` (so a non-admin context can be created;
+ * the C7 test keeps both admins to prove enforcement keys on ROLE, not isAdmin).
+ */
+export function resolveE2eIdentity(body: any): { userId: string; name: string; isAdmin: boolean } {
+  const b = body || {};
+  return {
+    userId: typeof b.userId === 'string' && b.userId ? b.userId : 'e2e-admin',
+    name: typeof b.name === 'string' && b.name ? b.name : 'E2E Admin',
+    isAdmin: b.isAdmin === false ? false : true,
+  };
+}
+
 app.post('/auth/e2e-login', (req: any, res: any) => {
   const secret = process.env.BRETT_OIDC_SECRET;
   if (!secret || req.header('x-e2e-secret') !== secret) {
     return res.status(403).json({ error: 'forbidden' });
   }
-  req.session.userId = 'e2e-admin';
-  req.session.name = 'E2E Admin';
-  req.session.isAdmin = true;
+  const ident = resolveE2eIdentity(req.body);
+  req.session.userId = ident.userId;
+  req.session.name = ident.name;
+  req.session.isAdmin = ident.isAdmin;
   req.session.save((err: any) => {
     if (err) return res.status(500).json({ error: 'session save failed' });
-    return res.json({ success: true });
+    return res.json({ success: true, userId: ident.userId, isAdmin: ident.isAdmin });
   });
 });
 
@@ -380,6 +398,7 @@ export const reclaimAdminToken = sessions.reclaimAdminToken;
 export const setRoomAdminPresence = sessions.setRoomAdminPresence;
 export const handleAdminHandoffMessage = sessions.handleAdminHandoffMessage;
 export const boardAuthRedirect = auth.boardAuthRedirect;
+// resolveE2eIdentity is declared above with `export function`; no re-export needed.
 export const resolveBrand = auth.resolveBrand;
 export const buildConfig = auth.buildConfig;
 export const isAdminFromClaims = auth.isAdminFromClaims;

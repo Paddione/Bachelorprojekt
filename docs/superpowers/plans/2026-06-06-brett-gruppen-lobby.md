@@ -480,7 +480,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### B1 — Domain types: `lobby` phase, `Role`, settings, Participant flags
+### B1 — Domain types: `lobby` phase, `Role`, settings, Participant flags — [x] DONE
 - **target_files:** `brett/src/types/state.ts`, `brett/test/lobby-types.test.ts` (new)
 - **failing test first (red):** `test/lobby-types.test.ts` (`node --test`) imports `Phase`, `Role`, `OptikSettings`, `LobbySettings`, `Participant` from `../src/types/state` and asserts at value+type level: `const p: Phase = 'lobby'` compiles; `const r: Role = 'beobachter'`; a `Participant` literal with `role: 'leiter'` and `ready: true` is assignable; an `OptikSettings` with `sky: 'dusk'` and a `LobbySettings` with `allowRepresentativeAdd: false`. Fails to compile (`npm run typecheck`) until the types exist.
 - **implementation:**

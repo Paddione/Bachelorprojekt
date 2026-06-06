@@ -2,7 +2,23 @@
 // Derived from server.js applyMutation / buildStateFromMutations
 // and the client STATE/figure shapes.
 
-export type Phase = 'warmup' | 'active' | 'paused' | 'ended';
+export type Phase = 'lobby' | 'warmup' | 'active' | 'paused' | 'ended';
+
+export type Role = 'leiter' | 'stellvertreter' | 'beobachter';
+
+export interface OptikSettings {
+  floor?: string;
+  sky?: 'day' | 'dusk' | 'calm';
+  lightMood?: 'neutral' | 'warm' | 'cool';
+}
+
+export interface LobbySettings {
+  templateId?: string;
+  optik?: OptikSettings;
+  maxParticipants?: number;
+  /** Default: false — Stellvertreter darf NICHT add/delete. */
+  allowRepresentativeAdd?: boolean;
+}
 
 export interface FigureAppearance {
   color?: string;
@@ -29,6 +45,10 @@ export interface Participant {
   name: string;
   color: string;
   isAdmin?: boolean;
+  /** Persisted via the __roles__ sentinel. */
+  role?: Role;
+  /** Ephemeral live-lobby status — NOT persisted. */
+  ready?: boolean;
 }
 
 export interface FigureLock {

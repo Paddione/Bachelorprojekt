@@ -1896,10 +1896,10 @@ tasks:
         if [ "{{.ENV}}" = "dev" ]; then
           # Deploy shared-db prerequisites + shared-db first so dependent services don't crash-loop
           kubectl apply -f k3d/namespace.yaml
-          kubectl apply -f k3d/secrets.yaml
-          kubectl apply -f k3d/configmap-domains.yaml
-          kubectl apply -f k3d/website-schema.yaml
-          kubectl apply -f k3d/shared-db.yaml
+          kubectl apply -f k3d/secrets.yaml -n workspace
+          kubectl apply -f k3d/configmap-domains.yaml -n workspace
+          kubectl apply -f k3d/website-schema.yaml -n workspace
+          kubectl apply -f k3d/shared-db.yaml -n workspace
           echo "Waiting for shared-db to be ready before deploying dependent services..."
           kubectl rollout status deployment/shared-db -n workspace --timeout=120s
           # Full apply (idempotent — updates configs, adds remaining services)

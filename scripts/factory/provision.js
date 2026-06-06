@@ -37,3 +37,40 @@ export function chooseModel(complexity, role) {
   const tier = COMPLEXITY_TIER[complexity]
   return tier ?? null
 }
+
+// ── Effort axis ────────────────────────────────────────────────────────────
+
+/** Ordered effort profiles, weakest → strongest. Indices are the scaling ladder. */
+const EFFORT_LADDER = ['quick', 'standard', 'ultra']
+
+/** complexity → base effort index into EFFORT_LADDER. */
+const COMPLEXITY_EFFORT_INDEX = {
+  simple: 0,  // quick:    1 implementer + 1-vote verify
+  medium: 1,  // standard: 2–3 parallel implementers + 1 review pass
+  complex: 2, // ultra:    fan-out implementers + 3-vote adversarial verify panel + completeness critic
+}
+
+/** Clamp an index into the EFFORT_LADDER bounds. */
+function clampEffortIdx(i) {
+  return Math.max(0, Math.min(EFFORT_LADDER.length - 1, i))
+}
+
+/**
+ * Pick the orchestration-depth profile for the run, scaled by remaining budget.
+ * @param {'simple'|'medium'|'complex'} complexity  Scout-assigned complexity.
+ * @param {'low'|'medium'|'high'|string} risk  Risk signal (high bumps depth up one step).
+ * @param {number} budgetRemaining  Fraction (0..1) of the per-feature token budget left.
+ *                                  < 0.25 down-scales depth one step (respects the cost/daily-deploy cap).
+ * @returns {'quick'|'standard'|'ultra'}
+ */
+export function chooseEffort(complexity, risk, budgetRemaining) {
+  let idx = COMPLEXITY_EFFORT_INDEX[complexity]
+  if (idx === undefined) idx = 1 // unknown complexity → standard baseline
+  // High risk bumps depth up one step, CAPPED at ultra here so the budget
+  // down-scale below still bites (an uncapped +1 would otherwise absorb the −1,
+  // silently defeating the cost cap on a complex+high task with a near-empty budget).
+  if (risk === 'high') idx = clampEffortIdx(idx + 1)
+  const remaining = typeof budgetRemaining === 'number' ? budgetRemaining : 1
+  if (remaining < 0.25) idx -= 1
+  return EFFORT_LADDER[clampEffortIdx(idx)]
+}

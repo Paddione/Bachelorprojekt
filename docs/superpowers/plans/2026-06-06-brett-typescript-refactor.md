@@ -532,7 +532,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Modify: `server.js`
 - Test: existing `test/board-auth.test.js`, `test/brand-config.test.js`, `test/server-config.test.js`, `test/server-admin.test.js`.
 
-- [ ] **Step 1: Create `src/server/auth.ts`**
+- [x] **Step 1: Create `src/server/auth.ts`**
 
 Move `getOidcClient` (lines 92–102), `isAdminFromClaims` (104–106), `buildConfig` (160–162), `resolveBrand` (164–166), `boardAuthRedirect` (169–175), `requireAdmin` (223–228). Copy bodies verbatim:
 
@@ -589,7 +589,7 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
 ```
 > **Verify exact semantics:** before committing, `grep -n` each function in server.js (92, 104, 160, 164, 169, 223) and reconcile the redirect/header logic with the originals — the analysis notes `boardAuthRedirect` checks `req.session.userId` and the e2e bypass header; `requireAdmin` checks `req.session.isAdmin` or `x-e2e-secret`. Match the originals exactly; do not tighten or loosen the checks.
 
-- [ ] **Step 2: Wire `server.js`**
+- [x] **Step 2: Wire `server.js`**
 
 Delete the six functions from `server.js` and the `oidcClient` global. Add near the top (after the db wiring):
 ```js
@@ -603,13 +603,13 @@ const requireAdmin = authMod.requireAdmin;
 ```
 Leave the `/auth/login`, `/auth/callback`, `/auth/me`, `/auth/e2e-login` route handlers in `server.js` for now (they move in Task 12 with `index.ts`); they call the imported functions, which still works.
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `board-auth`, `brand-config`, `server-config`, `server-admin` tests pass; `# fail 0`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/server.js brett/src/server/auth.ts
 git commit -m "refactor(brett): extract auth.ts (OIDC, requireAdmin, boardAuthRedirect)

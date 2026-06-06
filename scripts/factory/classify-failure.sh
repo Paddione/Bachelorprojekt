@@ -3,15 +3,23 @@
 # SOURCE, do not execute. Defines classify_failure.
 #
 # classify_failure <ci-log-file> echoes exactly ONE of:
-#   ci | test | lint | sql | manifest | secret | realm | other
-# Specific classes (sql/manifest/secret/realm) are checked first so they win over
-# the generic ci/test/lint signal a failed step also emits.
+#   freshness | ci | test | lint | sql | manifest | secret | realm | other
+# Specific classes (freshness/sql/manifest/secret/realm) are checked first so they
+# win over the generic ci/test/lint signal a failed step also emits. freshness is
+# checked before manifest because the stale-file list includes route-manifest.json.
 
 classify_failure() {
   local log="${1:-}"
   if [[ -z "$log" || ! -f "$log" ]]; then
     echo "other"
     return 0
+  fi
+
+  # Stale generated artifacts (freshness:check). Checked FIRST: the stale-file list
+  # includes route-manifest.json, so the word 'manifest' would otherwise mis-route it
+  # to the `manifest` class. A deterministic `task freshness:regenerate` fixes it.
+  if grep -qiE "is stale — run 'task freshness:regenerate'|generated artifact\(s\) are stale|freshness:regenerate locally and commit" "$log"; then
+    echo "freshness"; return 0
   fi
 
   # Specific, high-signal classes first.

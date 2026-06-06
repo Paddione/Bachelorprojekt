@@ -61,3 +61,12 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
   run bash -c 'source scripts/factory/classify-failure.sh; classify_failure /nonexistent/path.log'
   [ "$output" = "other" ]
 }
+
+@test "FA-SF-33: stale-artifact freshness failure classifies as freshness" {
+  # The fixture names route-manifest.json on purpose: freshness must win over the
+  # `manifest` class (the word 'manifest' appears in the stale file path).
+  printf "  ✗ website/src/data/route-manifest.json is stale — run 'task freshness:regenerate' locally and commit\nERROR: 1 generated artifact(s) are stale (see above).\n" > "$TMPLOG"
+  run _cf
+  [ "$status" -eq 0 ]
+  [ "$output" = "freshness" ]
+}

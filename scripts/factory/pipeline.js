@@ -378,14 +378,30 @@ const deploy = await agent(
     3. STRUCTURED SELF-HEALING RETRY LOOP (≤2 fix attempts; NO raw SQL — use ticket.sh).
        Run CI to green using this exact loop. Per attempt:
 
-       a) Read the current retry count (fail-closed → treat unreadable as 2):
+       a) Wait for CI to finish and read its verdict DETERMINISTICALLY — never eyeball
+          the PR page or guess. From ${REPO}:
+            gh pr checks "$PR" --watch --interval 20 --fail-fast > /tmp/factory-ci-${A.ticket_id}.status 2>&1; CI_RC=$?
+          CI_RC == 0  ⇒ every required check is GREEN → go to step 4 (merge).
+          CI_RC != 0  ⇒ a required check failed or was cancelled → self-heal below.
+          Read the current retry count (fail-closed → treat unreadable as 2):
             RC=$(bash ${REPO}/scripts/ticket.sh retry-count get --id ${A.ticket_id})
-          If CI is GREEN → go to step 4 (merge).
           If RC -ge 2 → STOP: this is the 3rd failure. Set blocked, notify, return.
 
        b) Capture the failing CI log to a file:
             gh run view --log-failed > /tmp/factory-ci-${A.ticket_id}.log 2>&1 || \
               gh run view --log > /tmp/factory-ci-${A.ticket_id}.log 2>&1
+
+       b2) DETERMINISTIC freshness fast-path (no LLM guess, spends NO retry). Classify first:
+            source ${REPO}/scripts/factory/classify-failure.sh
+            CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
+          If CLASS == freshness AND you have not already regenerated once this run:
+            the only failure is stale generated artifacts — regenerate deterministically in
+            the worktree (${WORK_WT}, where ${WORK_BRANCH} is checked out):
+              cd ${WORK_WT} && task freshness:regenerate \
+                && git commit -am 'chore: refresh generated artifacts (factory)' && git push
+            then re-run CI from (a) WITHOUT incrementing the retry count (deterministic
+            regeneration, not a code fix). Do this AT MOST ONCE per run; if CLASS == freshness
+            again afterwards, regeneration did not converge → treat as class "other" and BLOCK.
 
        c) TWO-GATED auto-fix decision. Auto-fix ONLY when BOTH gates pass:
           Gate 1 (failure class): source ${REPO}/scripts/factory/classify-failure.sh;
@@ -409,8 +425,9 @@ const deploy = await agent(
             bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
               --body "Factory blocked: CI red after ${A.ticket_id} retries (class gate or cap)."
           and report that the ticket is blocked. Take NO merge action.
-   4. Squash-merge (from ${REPO}, NOT the worktree):
-      cd ${REPO} && gh pr merge --squash --delete-branch
+   4. Squash-merge (from ${REPO}, NOT the worktree). With required status checks on
+      main, --auto merges the instant the gate is green and refuses a red merge:
+      cd ${REPO} && gh pr merge "$PR" --squash --delete-branch --auto
    5. Close the ticket and archive the plan:
       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \

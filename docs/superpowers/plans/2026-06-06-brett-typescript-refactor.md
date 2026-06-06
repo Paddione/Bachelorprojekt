@@ -731,7 +731,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 > This is the keystone module. It owns `figureMaps` and `figureLocks` and `applyMutation`. **The exported `figureMaps` Map must be the same reference** that `appearance.test.mjs`, `idle-timeout.test.js`, `session-state.test.js` import (they do `figureMaps` named imports and mutate it). `validateAppearance` is referenced by `applyMutation`'s add/update path but lives in `presets.ts` (Task 11) — inject it via init to avoid a cycle.
 
-- [ ] **Step 1: Create `src/server/figures.ts`**
+- [x] **Step 1: Create `src/server/figures.ts`**
 
 Move `figureMaps` (667), `figureLocks` (669), `ensureFigureMap` (721–724), `applyMutation` (726–808), `ensureFigureLocks` (670–673), `acquireFigureLock` (674–678), `releaseFigureLock` (680–685), `releaseLocksForUser` (687–691), `listFigureLocks` (692–696). Copy `applyMutation`'s full switch verbatim (all 83 lines: `add`, `move`, `update`, `delete`, `clear`, `optik`, `stiffness`, `session_phase_set`, `session_code_set`, `session_admin_token_set`, `session_created_at_set`, `session_last_activity_set`, `coaching_steps_set`).
 
@@ -803,7 +803,7 @@ export function listFigureLocks(room: string): Array<{ figureId: string; userId:
 ```
 > **Do not summarize `applyMutation`.** Open server.js lines 726–808 and paste the entire switch. It is the reducer the whole test suite depends on; any drift breaks `figure-label`, `appearance`, `coaching-steps`, `session-state`, `idle-timeout`, `admin-token`.
 
-- [ ] **Step 2: Wire `server.js`**
+- [x] **Step 2: Wire `server.js`**
 
 Delete `figureMaps`, `figureLocks`, and all nine functions from `server.js`. Add this **before** the phases wiring from Task 6 (so `figureMaps`/`applyMutation` exist when `initPhases` is called):
 ```js
@@ -832,13 +832,13 @@ dbMod.initDb({ buildStateFromMutations: (room) => phasesMod.buildStateFromMutati
 figuresMod.initFigures({ validateAppearance: (a) => validateAppearance(a) });
 ```
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck && npm test
 ```
 Expected: typecheck clean; `figure-locks`, `figure-label`, `appearance`, `coaching-steps` pass; `# fail 0`. Note `appearance.test.mjs` imports `figureMaps` by name — confirm it resolves the new module's exported reference (server.js must re-export it; see Task 12 export-shim note, but for now the test imports from `../server.js` which still re-exports `figureMaps`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/server.js brett/src/server/figures.ts
 git commit -m "refactor(brett): extract figures.ts (figureMaps, applyMutation, locks)

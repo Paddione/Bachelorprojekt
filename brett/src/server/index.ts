@@ -14,6 +14,7 @@ import * as phases from './phases';
 import * as sessions from './sessions';
 import * as rooms from './rooms';
 import * as presets from './presets';
+import * as permissions from './permissions';
 import * as wsHandler from './ws-handler';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
@@ -347,8 +348,10 @@ if (process.env.NODE_ENV !== 'test' && isMain) {
 
 // Re-export every symbol the test suite imports.
 export {
-  figures, phases, sessions, rooms, presets, auth, db, wsHandler
+  figures, phases, sessions, rooms, presets, permissions, auth, db, wsHandler
 };
+export const canMutate = permissions.canMutate;
+export const resolveRole = permissions.resolveRole;
 export const figureMaps = figures.figureMaps;
 export const applyMutation = figures.applyMutation;
 export const buildStateFromMutations = phases.buildStateFromMutations;

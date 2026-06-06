@@ -748,7 +748,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C3 — `canMutate` + strict `resolveRole` (pure chokepoint, `src/server/permissions.ts`)
+### C3 — `canMutate` + strict `resolveRole` (pure chokepoint, `src/server/permissions.ts`) — [x] DONE
 
 - **target_files:**
   - `brett/src/server/permissions.ts` (NEW)

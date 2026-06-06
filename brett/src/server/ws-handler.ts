@@ -27,6 +27,7 @@ export interface WsDeps {
   handleAdminHandoffMessage: Function;
   handleAdminRoundStop: Function;
   handleAdminRoundPause: Function;
+  handleAdminRoundStart: Function;
   trackPlayerInRoom: Function;
   transitionPhase: Function;
   isAdminFromClaims: Function;
@@ -40,7 +41,8 @@ export const RELAY_TYPES = new Set<string>([
 
 // Admin message types
 export const ADMIN_TYPES = new Set<string>([
-  'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set'
+  'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set',
+  'admin_round_start'
 ]);
 
 export function handleDisconnect(ws: any, deps: WsDeps): void {
@@ -253,6 +255,11 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               deps.applyMutation(adminRoom, { type: 'coaching_steps_set', steps: msg.steps, index: msg.index });
               deps.broadcast(adminRoom, { type: 'coaching_steps_change', steps: msg.steps, index: msg.index });
               deps.schedulePersist(adminRoom);
+              break;
+            }
+            case 'admin_round_start': {
+              const res = deps.handleAdminRoundStart(adminRoom, (m: any) => deps.broadcast(adminRoom, m));
+              if (res && res.ok && !res.noop) deps.schedulePersist(adminRoom);
               break;
             }
           }

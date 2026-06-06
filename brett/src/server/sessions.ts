@@ -126,6 +126,20 @@ export function handleAdminHandoffMessage(room: string, fromPlayerId: string, to
   return result;
 }
 
+export function handleAdminRoundStart(room: string, broadcastFn: (m: any) => void): { ok: boolean; reason?: string; noop?: boolean } {
+  const current = figureMaps.get(room)?.get('__session_phase__')?.phase;
+  if (current === 'active') return { ok: true, noop: true };
+  const result = transitionPhase(room, 'active');
+  if (!result.ok) return result;
+  broadcastFn({
+    type: 'session_phase_change',
+    phase: 'active',
+    transitionedAt: new Date().toISOString(),
+    reason: 'round-start',
+  });
+  return result;
+}
+
 export function handleAdminRoundStop(room: string, broadcastFn: (m: any) => void): { ok: boolean; reason?: string } {
   const result = transitionPhase(room, 'ended');
   if (!result.ok) return result;

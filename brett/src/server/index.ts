@@ -304,6 +304,7 @@ const wsDeps = {
   handleAdminHandoffMessage: sessions.handleAdminHandoffMessage,
   handleAdminRoundStop: sessions.handleAdminRoundStop,
   handleAdminRoundPause: sessions.handleAdminRoundPause,
+  handleAdminRoundStart: sessions.handleAdminRoundStart,
   trackPlayerInRoom: sessions.trackPlayerInRoom,
   transitionPhase: phases.transitionPhase,
   isAdminFromClaims: auth.isAdminFromClaims,
@@ -386,6 +387,7 @@ export const shouldRejectReconnect = sessions.shouldRejectReconnect;
 export const handleAdminSessionCreate = sessions.handleAdminSessionCreate;
 export const handleAdminRoundStop = sessions.handleAdminRoundStop;
 export const handleAdminRoundPause = sessions.handleAdminRoundPause;
+export const handleAdminRoundStart = sessions.handleAdminRoundStart;
 export const tokenGraceTimers = sessions.tokenGraceTimers;
 export const roomAdminPresence = sessions.roomAdminPresence;
 

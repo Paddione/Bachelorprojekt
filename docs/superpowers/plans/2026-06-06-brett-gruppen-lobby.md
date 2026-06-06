@@ -565,7 +565,7 @@ All six blockers are covered by existing tasks; no extra task is required.
   - `session-state.test.ts` create-test green at `lobby`.
 - **verify:** `cd brett && npm test`
 
-### B8 — `admin_round_start` (lobby→active, idempotent)
+### B8 — `admin_round_start` (lobby→active, idempotent) — [x] DONE
 - **target_files:** `brett/src/server/sessions.ts`, `brett/src/server/ws-handler.ts`, `brett/test/round-start.test.ts` (new)
 - **failing test first (red):** `test/round-start.test.ts` imports `handleAdminRoundStart` (new, re-exported via `index`), `applyMutation`, `buildStateFromMutations`. Seed `lobby`; `handleAdminRoundStart(room, broadcastFn)` → `{ok:true}`, phase `active`, broadcasts a `session_phase_change{phase:'active'}`. Call again (already `active`) → idempotent no-op: `{ok:true}` (or `noop:true`), **no** second broadcast, phase still `active`.
 - **implementation:**

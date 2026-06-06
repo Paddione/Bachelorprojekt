@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.16.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.16.0...brett-v0.16.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* **brett:** add untracked combat + sfx game assets ([#1383](https://github.com/Paddione/Bachelorprojekt/issues/1383)) ([bae3566](https://github.com/Paddione/Bachelorprojekt/commit/bae3566ddf827216821cbf87a34183b6dbe44b18))
+
 ## [0.16.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.15.0...brett-v0.16.0) (2026-06-06)
 
 

@@ -4,6 +4,7 @@ import type { Phase } from '../types/state';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
+import { applyOptikToScene } from './ui/optik';
 
 // ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
 let lobbyState: LobbyState = createLobbyState();
@@ -177,6 +178,9 @@ export function onWsMessage(evt: MessageEvent): void {
         activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
         setFigureLockBadge(l.figureId, l.name, l.color);
       }
+      // Apply persisted board-optik on mount so late-joiners/reloads render the
+      // saved look (§4.1 dead seam closed end-to-end, D11).
+      if (msg.optik) applyOptikToScene(msg.optik);
       break;
 
     case 'stiffness':
@@ -279,12 +283,24 @@ export function onWsMessage(evt: MessageEvent): void {
     // change) drives the view-machine. figure_owner_changed + the optik part of
     // lobby_settings_change are routed/stored only in B (badge/optik apply = C/D);
     // the case existing prevents silent drops.
+    case 'lobby_settings_change': {
+      // Reducer keeps the lobby store (templateId/optik) in sync → lobby UI
+      // re-renders via onLobbyChange (this is the templateId UI update, §13).
+      // ALSO apply optik to the live scene so it works IN-BOARD, not just the
+      // lobby (no-ops if the scene isn't mounted yet).
+      const prevPhase = lobbyState.phase;
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      if (msg.optik) applyOptikToScene(msg.optik);
+      break;
+    }
+
     case 'init':
     case 'presence_join':
     case 'presence_leave':
     case 'role_changed':
     case 'lobby_ready_changed':
-    case 'lobby_settings_change':
     case 'session_created': {
       const prevPhase = lobbyState.phase;
       lobbyState = applyLobbyServerMessage(lobbyState, msg);

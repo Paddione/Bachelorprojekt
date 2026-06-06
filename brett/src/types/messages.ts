@@ -32,7 +32,7 @@ export type ClientMessage =
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
-  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null }
+  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings }
   | { type: 'init'; state: RoomState }
   | { type: 'add'; figure: Figure }
   | { type: 'move'; id: string; x: number; z: number; facingY: number }

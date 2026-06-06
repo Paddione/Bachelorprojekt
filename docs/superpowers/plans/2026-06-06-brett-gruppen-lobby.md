@@ -1110,7 +1110,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D11 — Client apply: optik on scene-mount + live `lobby_settings_change`
+### D11 — Client apply: optik on scene-mount + live `lobby_settings_change` — [x] DONE
 
 - **target_files**: **new** `brett/src/client/ui/optik-map.ts` (pure `optikToSceneParams`); `brett/src/client/scene.ts` or new `brett/src/client/ui/optik.ts` (`applyOptikToScene`); `brett/src/client/ws-client.ts` (new `lobby_settings_change` case + apply `state.optik` on snapshot/init)
 - **failing test (red)**: `brett/test/optik-apply.test.ts` (pure client logic, no WebGL): imports `optikToSceneParams` and asserts:

@@ -268,7 +268,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
                 stiffness: freshState.stiffness,
                 locks: locks,
                 phase: freshState.sessionPhase,
-                sessionCode: freshState.sessionCode
+                sessionCode: freshState.sessionCode,
+                // Late-joiners/reloads receive the persisted board-optik (§4.1
+                // end-to-end) so the scene renders it on mount (D11).
+                optik: freshState.optik,
               }));
             } catch {}
           }

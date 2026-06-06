@@ -1094,7 +1094,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### D10 — Coaching-Ablauf: lobby step builder + survives round-start
+### D10 — Coaching-Ablauf: lobby step builder + survives round-start — [x] DONE
 
 - **target_files**: **new** `brett/src/client/lobby-coaching.ts` (pure `buildCoachingStepsPayload`); `brett/src/client/ui/lobby.ts` (wire the editor to emit `admin_coaching_steps_set`)
 - **failing test (red)**: `brett/test/coaching-lobby.test.ts`:

@@ -80,6 +80,8 @@ export interface LobbyHandlers {
   onStart: () => void;
   onToggleReady: (ready: boolean) => void;
   onCopyCode: (code: string) => void;
+  /** Leader-only: emit the built coaching steps (D10). Absent ⇒ editor hidden. */
+  onCoachingSteps?: (raw: string) => void;
 }
 
 /**
@@ -130,6 +132,25 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
   settingsPanel.appendChild(settingRow('Vorlage', vm.settings.templateId ?? '–'));
   settingsPanel.appendChild(settingRow('Optik', vm.settings.optikLabel ?? '–'));
   settingsPanel.appendChild(settingRow('Max. Teiln.', vm.settings.maxParticipants != null ? String(vm.settings.maxParticipants) : '–'));
+
+  // Leader-only Coaching-Ablauf editor (D10). Steps built here become active at
+  // round-start (admin_coaching_steps_set, survives lobby→active).
+  if (vm.canStart && handlers.onCoachingSteps) {
+    const label = document.createElement('label');
+    label.className = 'brett-lobby__coaching-label';
+    label.textContent = 'Coaching-Ablauf (ein Schritt pro Zeile)';
+    const editor = document.createElement('textarea');
+    editor.className = 'brett-lobby__coaching';
+    editor.rows = 4;
+    editor.dataset.role = 'coaching-editor';
+    const save = Button({
+      label: 'Ablauf übernehmen',
+      variant: 'ghost',
+      onClick: () => handlers.onCoachingSteps!(editor.value),
+    });
+    save.dataset.role = 'coaching-save';
+    settingsPanel.append(label, editor, save);
+  }
 
   // Footer actions.
   const footer = document.createElement('div');
@@ -194,6 +215,10 @@ export function lobbyCss(): string {
     '.brett-lobby__setting-label{color:var(--brett-mute);}',
     '.brett-lobby__setting-value{color:var(--brett-fg-soft);}',
     '.brett-lobby__footer{display:flex;justify-content:space-between;gap:12px;margin-top:20px;}',
+    '.brett-lobby__coaching-label{display:block;margin:12px 0 6px;color:var(--brett-mute);font-size:.78rem;}',
+    '.brett-lobby__coaching{width:100%;box-sizing:border-box;background:var(--brett-ink-850);',
+    'color:var(--brett-fg);border:1px solid var(--brett-line-2);border-radius:8px;padding:8px;',
+    'font-family:var(--brett-font-sans);resize:vertical;margin-bottom:8px;}',
   ].join('');
 }
 

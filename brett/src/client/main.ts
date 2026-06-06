@@ -10,6 +10,7 @@ import { injectTheme } from './ui/theme';
 import { injectPrimitivesStyles } from './ui/primitives';
 import { injectMenuStyles, mountMenu, type MenuUser } from './ui/menu';
 import { injectLobbyStyles, mountLobby, buildLobbyViewModel } from './ui/lobby';
+import { buildCoachingStepsPayload } from './lobby-coaching';
 import { createAppShell, type ViewState, type AppShell } from './app-shell';
 
 function getMenuRoot(): HTMLElement | null {
@@ -58,6 +59,12 @@ function renderLobby(appShell: AppShell, user: MenuUser): void {
       onStart: () => ws.sendClient({ type: 'admin_round_start' }),
       onToggleReady: (ready) => ws.sendClient({ type: 'lobby_set_ready', ready }),
       onCopyCode: (code) => { try { navigator.clipboard?.writeText(code); } catch { /* noop */ } },
+      onCoachingSteps: isLeader
+        ? (raw) => {
+            const payload = buildCoachingStepsPayload(raw);
+            if (payload) ws.sendClient({ type: 'admin_coaching_steps_set', steps: payload.steps, index: payload.index });
+          }
+        : undefined,
     });
   });
 }

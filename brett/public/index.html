@@ -191,9 +191,24 @@
     @media (max-width: 480px) {
       #appearance-drawer { width: 100%; }
     }
+
+    /* ── Hauptmenü overlay (Phase A) ───────────────────────────── */
+    #brett-menu {
+      position: fixed; inset: 0; z-index: 300;
+      background: var(--brett-ink-900, #0b111c);
+      overflow-y: auto;
+    }
+    #brett-menu[hidden] { display: none; }
+    /* While the menu is the active view, hide the board chrome behind it. */
+    body.brett-menu-active #topbar,
+    body.brett-menu-active #status-pill,
+    body.brett-menu-active #appearance-drawer,
+    body.brett-menu-active #coop-hud { display: none !important; }
   </style>
 </head>
-<body>
+<body class="brett-menu-active">
+  <!-- Hauptmenü overlay root (Phase A): mounted by src/client/main.ts -->
+  <div id="brett-menu" hidden></div>
   <div id="topbar">
     <div class="group" id="presets">
       <button class="preset-btn" data-preset="stand">Stand</button>
@@ -313,12 +328,12 @@
   tryAttach();
 
   const hasRoom = new URLSearchParams(location.search).has('room');
-  if (!hasRoom) {
-    const { mountJoinOverlay } = await import('/assets/coaching/join.mjs');
-    mountJoinOverlay({});
-  } else {
+  if (hasRoom) {
+    // Deep-link path: keep the existing coaching HUD.
     mountCoachingHud({ wire, isAdmin: !!me.isAdmin });
   }
+  // No-?room entry is now owned by the Phase-A Hauptmenü (src/client/main.ts);
+  // the legacy mountJoinOverlay({}) is intentionally NOT auto-mounted here.
 
   wire.on('session_created', (m) => {
     const toast = document.createElement('div');

@@ -412,7 +412,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A5 — Lazy board-boot refactor + wire menu as the entry screen
+### A5 — Lazy board-boot refactor + wire menu as the entry screen — [x] DONE
 
 - **target_files:** `brett/src/client/board-boot.ts` (new — receives the moved boot logic), `brett/src/client/main.ts` (rewritten thin), `brett/public/index.html` (add menu root, neutralize the legacy no-`?room` join-overlay auto-mount, call the design-system injectors)
 - **failing test first (red):** `brett/test/no-eager-three.test.ts` (new) reads the **source text** of `src/client/main.ts` and asserts it contains **no static** import of Three.js or the scene/board (`from 'three'`, `from './scene'`, `from './board-boot'`), and that it **does** contain a dynamic `import('./board-boot')`. This enforces the lazy-mount architecture node-side (browser smoke is impossible under tsx). Red now because today's `main.ts:1,3` statically `import * as THREE from 'three'` / `import { initScene } from './scene'`.

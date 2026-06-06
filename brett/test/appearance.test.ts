@@ -1,11 +1,7 @@
+// brett/test/appearance.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
-
-// Set MOCK_DB before requiring the server so it skips real DB connections
-process.env.MOCK_DB = 'true';
-const require = createRequire(import.meta.url);
-const { validateAppearance, applyMutation, buildStateFromMutations, figureMaps } = require('../server.js');
+import { validateAppearance, applyMutation, buildStateFromMutations, figureMaps } from '../src/server/index';
 
 // ─── validateAppearance ───────────────────────────────────────────
 
@@ -60,7 +56,7 @@ test('applyMutation add: figure gets default appearance when none supplied', () 
   const room = 'appear-test-add-default';
   applyMutation(room, { type: 'add', fig: { id: 'f1', label: 'Alice' } });
   const state = buildStateFromMutations(room);
-  const fig = state.figures.find(f => f.id === 'f1');
+  const fig = state.figures.find((f: any) => f.id === 'f1');
   assert.ok(fig, 'figure should be in state');
   assert.deepEqual(fig.appearance, {
     face: null,
@@ -74,7 +70,7 @@ test('applyMutation add: figure keeps supplied appearance when present', () => {
   const supplied = { face: 'neutral', body: 'child', accessories: { head: 'cap', upper: null, feet: null } };
   applyMutation(room, { type: 'add', fig: { id: 'f2', label: 'Bob', appearance: supplied } });
   const state = buildStateFromMutations(room);
-  const fig = state.figures.find(f => f.id === 'f2');
+  const fig = state.figures.find((f: any) => f.id === 'f2');
   assert.ok(fig, 'figure should be in state');
   assert.deepEqual(fig.appearance, supplied);
 });
@@ -85,7 +81,7 @@ test('applyMutation update: partial appearance change merges — changing face l
   applyMutation(room, { type: 'add', fig: { id: 'f3', appearance: initial } });
   applyMutation(room, { type: 'update', id: 'f3', changes: { appearance: { face: 'calm' } } });
   const state = buildStateFromMutations(room);
-  const fig = state.figures.find(f => f.id === 'f3');
+  const fig = state.figures.find((f: any) => f.id === 'f3');
   assert.ok(fig, 'figure should be in state');
   assert.equal(fig.appearance.face, 'calm');
   assert.equal(fig.appearance.body, 'adult-average');
@@ -98,7 +94,7 @@ test('applyMutation update: partial accessories change merges — changing head 
   applyMutation(room, { type: 'add', fig: { id: 'f4', appearance: initial } });
   applyMutation(room, { type: 'update', id: 'f4', changes: { appearance: { accessories: { head: 'cap' } } } });
   const state = buildStateFromMutations(room);
-  const fig = state.figures.find(f => f.id === 'f4');
+  const fig = state.figures.find((f: any) => f.id === 'f4');
   assert.ok(fig, 'figure should be in state');
   assert.equal(fig.appearance.accessories.head, 'cap');
   assert.equal(fig.appearance.accessories.upper, 'coat');

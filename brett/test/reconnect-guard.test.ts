@@ -1,14 +1,12 @@
-// brett/test/reconnect-guard.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test   = require('node:test');
-const assert = require('node:assert');
-const {
+// brett/test/reconnect-guard.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import {
   trackPlayerInRoom,
   wasPreviouslyInRoom,
   applyMutation,
   shouldRejectReconnect,
-} = require('../server.js');
+} from '../src/server/index';
 
 test('trackPlayerInRoom + wasPreviouslyInRoom: roundtrip', () => {
   trackPlayerInRoom('rc-room-1', 'paddione');

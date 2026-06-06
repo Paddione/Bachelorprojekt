@@ -1,15 +1,13 @@
-// brett/test/session-code.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test   = require('node:test');
-const assert = require('node:assert');
-const {
+// brett/test/session-code.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import {
   generateSessionCode,
   registerSessionCode,
   resolveSessionCode,
   sessionCodeIndex,
   rebuildSessionCodeIndexFromStates,
-} = require('../server.js');
+} from '../src/server/index';
 
 test('generateSessionCode: matches Crockford-base32 pattern XXX-XXX', () => {
   for (let i = 0; i < 1000; i++) {
@@ -20,7 +18,7 @@ test('generateSessionCode: matches Crockford-base32 pattern XXX-XXX', () => {
 });
 
 test('generateSessionCode: 10k iterations have <1% collision rate', () => {
-  const seen = new Set();
+  const seen = new Set<string>();
   let collisions = 0;
   for (let i = 0; i < 10_000; i++) {
     const code = generateSessionCode();

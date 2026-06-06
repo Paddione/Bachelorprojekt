@@ -1,9 +1,7 @@
-// brett/test/join-code.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test = require('node:test');
-const assert = require('node:assert');
-const { registerSessionCode, resolveJoinTarget } = require('../server.js');
+// brett/test/join-code.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import { registerSessionCode, resolveJoinTarget } from '../src/server/index';
 
 test('resolveJoinTarget redirects a known code to its room', () => {
   registerSessionCode('ABC-DEF', 'room-xyz');

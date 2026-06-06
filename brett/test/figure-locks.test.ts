@@ -1,9 +1,7 @@
-// brett/test/figure-locks.test.js
-'use strict';
-process.env.MOCK_DB = 'true';
-const test = require('node:test');
-const assert = require('node:assert');
-const { acquireFigureLock, releaseFigureLock, releaseLocksForUser, listFigureLocks } = require('../server.js');
+// brett/test/figure-locks.test.ts
+import { test } from 'node:test';
+import assert from 'node:assert';
+import { acquireFigureLock, releaseFigureLock, releaseLocksForUser, listFigureLocks } from '../src/server/index';
 
 test('lock is granted once then denied until released', () => {
   const room = 'lock-test-1';

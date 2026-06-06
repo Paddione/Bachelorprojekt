@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 102,
+  "count": 103,
   "routes": [
     {
       "route": "/",
@@ -645,6 +645,14 @@
       "excludeFromSweep": false,
       "media": false,
       "_fromService": true
+    },
+    {
+      "route": "/dev-status",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
     },
     {
       "route": "/fuehrung-persoenlichkeit",

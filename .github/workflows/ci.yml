@@ -11,12 +11,12 @@ jobs:
     name: Offline Tests (Manifests, Configs, Unit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
           fetch-depth: 0
           submodules: recursive
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: '22'
 
@@ -88,8 +88,8 @@ jobs:
             if (!Array.isArray(m.routes)) {
               errs.push("routes must be an array");
             }
-            if (m.count !== 102) {
-              errs.push(`expected count===102, got ${m.count}`);
+            if (m.count !== 103) {
+              errs.push(`expected count===103, got ${m.count}`);
             }
             for (const r of (m.routes || [])) {
               const isAdmin = r.route.startsWith("/admin");
@@ -148,7 +148,7 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
       - name: Check image pinning in k3d manifests
         run: |
@@ -185,8 +185,8 @@ jobs:
     name: Brett Server Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with: { node-version: '22' }
       - run: npm ci --prefix brett
       - run: node --test brett/test/*.test.js brett/test/*.test.mjs

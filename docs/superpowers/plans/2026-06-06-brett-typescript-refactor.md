@@ -281,7 +281,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Create: `src/types/messages.ts`
 - Delete: `src/types/_placeholder.ts`
 
-- [ ] **Step 1: Create `src/types/messages.ts`**
+- [x] **Step 1: Create `src/types/messages.ts`**
 
 Create `src/types/messages.ts`. The unions below are the *canonical superset* of every message string observed in server.js (Section 5 of the server analysis) and index.html `onWsMessage` (Section 3 of the client analysis). Dead-game-mode types (lms/duel/coop) are intentionally excluded — they reference undefined globals and are removed during migration.
 
@@ -355,18 +355,18 @@ export function assertNever(x: never): never {
 }
 ```
 
-- [ ] **Step 2: Remove the placeholder**
+- [x] **Step 2: Remove the placeholder**
 ```bash
 cd brett && rm src/types/_placeholder.ts
 ```
 
-- [ ] **Step 3: Gate**
+- [x] **Step 3: Gate**
 ```bash
 cd brett && npm run typecheck
 ```
 Expected: exits 0, no diagnostics.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 ```bash
 git add brett/src/types/messages.ts brett/src/types/_placeholder.ts
 git commit -m "refactor(brett): add discriminated-union WS message contracts

@@ -756,27 +756,11 @@ function checkAllSessions() {
 const pending = new Map();
 
 const RELAY_TYPES = [
-  'add','move','update','delete','clear','optik','stiffness','jump',
-  'mayhem_mode','player_join','player_state','player_leave',
-  'hit','vehicle_spawn',
-  'hp_update','player_death','player_respawn',
-  'obstacle_layout','game_mode_change',
-  'damage_event','death_event','pickup_request','pickup_taken','pickup_spawned',
+  'add','move','update','delete','clear','optik','stiffness',
   'snapshot','request_state_snapshot',
-  'bot_spawn','bot_despawn','round_reset',
-  'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
-  'hero_select', 'duel_start',
-  'hero_stealth', 'hero_teleport', 'minion_spawn', 'minion_update', 'minion_die', 'hero_slow',
-  'vehicle_switch', 'vehicle_repair', 'motorcycle_sprint',
 ];
 
-const TRANSIENT_TYPES = new Set([
-  'jump','player_join','player_state','player_leave','hit','vehicle_spawn',
-  'hp_update','player_death','player_respawn',
-  'wave_start','wave_complete','coop_win','coop_lose','coop_wave_sync',
-  'hero_select', 'duel_start', 'hero_stealth', 'hero_teleport', 'minion_update', 'hero_slow',
-  'vehicle_switch', 'vehicle_repair', 'motorcycle_sprint',
-]);
+const TRANSIENT_TYPES = new Set([]);
 
 const lmsAlive  = new Map(); // roomToken -> Set<playerId>
 const duelRooms = new Map(); // roomToken -> { playerA, playerB, winsA, winsB, bestOf, startedAt }
@@ -986,19 +970,6 @@ function applyMutation(room, msg) {
         figs.set('__stiffness__', { id: '__stiffness__', value: msg.value });
       }
       break;
-    case 'jump':
-      // transient — no persisted state
-      break;
-    case 'mayhem_mode':
-      if (typeof msg.enabled === 'boolean') {
-        figs.set('__mayhem__', { id: '__mayhem__', enabled: msg.enabled });
-      }
-      break;
-    case 'game_mode_change':
-      if (typeof msg.mode === 'string') {
-        figs.set('__game_mode__', { id: '__game_mode__', mode: msg.mode });
-      }
-      break;
     case 'session_phase_set': {
       figs.set('__session_phase__', { id: '__session_phase__', phase: msg.phase });
       break;
@@ -1050,7 +1021,7 @@ function buildStateFromMutations(room) {
   const figs = figureMaps.get(room);
   if (!figs) return null;
   const SPECIAL = [
-    '__optik__', '__stiffness__', '__mayhem__', '__game_mode__',
+    '__optik__', '__stiffness__',
     '__session_phase__', '__session_code__', '__admin_token_holder__',
     '__session_created_at__', '__session_last_activity__',
     '__coaching_steps__',
@@ -1058,8 +1029,6 @@ function buildStateFromMutations(room) {
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
   const stiffEntry        = figs.get('__stiffness__');
-  const mayhemEntry   = figs.get('__mayhem__');
-  const gameModeEntry = figs.get('__game_mode__');
   const phaseEntry         = figs.get('__session_phase__');
   const codeEntry          = figs.get('__session_code__');
   const adminTokenEntry    = figs.get('__admin_token_holder__');
@@ -1068,8 +1037,6 @@ function buildStateFromMutations(room) {
   const result = { figures };
   if (optikEntry)    result.optik     = optikEntry.settings;
   if (stiffEntry)    result.stiffness = stiffEntry.value;
-  if (mayhemEntry)   result.mayhem    = !!mayhemEntry.enabled;
-  if (gameModeEntry) result.gameMode  = gameModeEntry.mode;
   if (phaseEntry)        result.sessionPhase       = phaseEntry.phase;
   if (codeEntry)         result.sessionCode        = codeEntry.code;
   if (adminTokenEntry)   result.adminTokenHolder   = adminTokenEntry.playerId;
@@ -1160,8 +1127,6 @@ wss.on('connection', (ws, req) => {
             figures: state.figures,
             optik: state.optik,
             stiffness: state.stiffness ?? 0.65,
-            mayhem: state.mayhem ?? true,
-            gameMode: state.gameMode,
             coachingSteps: state.coachingSteps,
             locks: listFigureLocks(room),
             participants: listParticipants(room),
@@ -1191,22 +1156,7 @@ wss.on('connection', (ws, req) => {
           if (state.optik && typeof state.optik === 'object') {
             figs.set('__optik__', { id: '__optik__', settings: state.optik });
           }
-          if (typeof state.mayhem === 'boolean') {
-            figs.set('__mayhem__', { id: '__mayhem__', enabled: state.mayhem });
-          }
-          let initialGameMode = state.gameMode;
-          if (!initialGameMode && typeof msg.room === 'string') {
-            if (msg.room.startsWith('solo-')) {
-              initialGameMode = 'duel';
-            } else if (msg.room.startsWith('duel-')) {
-              initialGameMode = 'duel';
-            } else if (msg.room.startsWith('ffa-')) {
-              initialGameMode = 'deathmatch';
-            }
-          }
-          if (typeof initialGameMode === 'string') {
-            figs.set('__game_mode__', { id: '__game_mode__', mode: initialGameMode });
-          }
+
           if (typeof state.sessionPhase === 'string') {
             figs.set('__session_phase__', { id: '__session_phase__', phase: state.sessionPhase });
           }
@@ -1238,8 +1188,6 @@ wss.on('connection', (ws, req) => {
           figures: state.figures,
           optik: state.optik,
           stiffness: state.stiffness ?? 0.65,
-          mayhem: state.mayhem ?? true,
-          gameMode: state.gameMode,
           sessionPhase: state.sessionPhase,
           sessionCode: state.sessionCode,
           adminTokenHolder: state.adminTokenHolder,
@@ -1252,11 +1200,6 @@ wss.on('connection', (ws, req) => {
         if (ws._session?.userId) {
           const p = addParticipant(msg.room, { userId: ws._session.userId, name: ws._session.name });
           if (p) broadcast(msg.room, { type: 'presence_join', ...p });
-        }
-        // Sync co-op wave state to the newly joined client
-        const meta = roomMeta.get(msg.room);
-        if (meta && meta.coopWave > 0) {
-          try { ws.send(JSON.stringify({ type: 'coop_wave_sync', wave: meta.coopWave })); } catch {}
         }
         broadcastInfo(msg.room);
         return;

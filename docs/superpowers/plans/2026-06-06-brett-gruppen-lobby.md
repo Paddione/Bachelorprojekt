@@ -817,7 +817,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### C5 — Wire the chokepoint: `jump`→`RELAY_TYPES`, `canMutate` gate (RELAY + `figure_lock`), `admin_assign_figure`
+### C5 — Wire the chokepoint: `jump`→`RELAY_TYPES`, `canMutate` gate (RELAY + `figure_lock`), `admin_assign_figure` — [x] DONE
 
 - **target_files:**
   - `brett/src/server/ws-handler.ts` (`RELAY_TYPES` += `jump`; `ADMIN_TYPES` += `admin_assign_figure`; gate the relay block `:201` and `figure_lock` branch `:178`; new `admin_assign_figure` switch case; stellvertreter-add owner stamping; thread `permissions`/`resolveRole` via `deps`)

@@ -18,7 +18,10 @@ export interface WsDeps {
   acquireFigureLock: Function;
   releaseFigureLock: Function;
   releaseLocksForUser: Function;
+  orphanFiguresForUser: Function;
   listFigureLocks: Function;
+  canMutate: Function;
+  resolveRole: Function;
   validateAppearance: Function;
   readState: Function;
   schedulePersist: Function;
@@ -39,15 +42,16 @@ export interface WsDeps {
   sessionMiddleware?: any;
 }
 
-// Coaching-only relay set
+// Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
+// but has NO applyMutation case (ephemeral animation, never persisted).
 export const RELAY_TYPES = new Set<string>([
-  'add', 'move', 'update', 'delete', 'clear', 'optik', 'stiffness', 'snapshot', 'request_state_snapshot'
+  'add', 'move', 'update', 'jump', 'delete', 'clear', 'optik', 'stiffness', 'snapshot', 'request_state_snapshot'
 ]);
 
 // Admin message types
 export const ADMIN_TYPES = new Set<string>([
   'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set',
-  'admin_round_start', 'admin_assign_role'
+  'admin_round_start', 'admin_assign_role', 'admin_assign_figure'
 ]);
 
 /**
@@ -60,6 +64,35 @@ export const ADMIN_TYPES = new Set<string>([
  */
 export function resolvePlayerId(ws: any): string {
   return ws?._session?.userId ?? ws?._playerId ?? 'anon';
+}
+
+/**
+ * The SINGLE rights chokepoint (§5d). Computes the canonical MutateContext from
+ * authenticated identity + persisted roles + figure ownership + lobby settings,
+ * then delegates the decision to the pure `canMutate`. Returns true iff the
+ * mutation is permitted; the caller is responsible for the forbidden response
+ * and for NOT applying/broadcasting on a false result.
+ *
+ * - role: resolved STRICTLY from ws._session.userId via __roles__ (resolveRole);
+ *   anon/session-less → beobachter (never above).
+ * - playerId: canonical identity (resolvePlayerId).
+ * - figureOwnerId: the target figure's server-authoritative ownerId (or null).
+ * - allowRepresentativeAdd: from lobbySettings (Phase D); absent ⇒ false.
+ */
+export function gateMutation(
+  ws: any,
+  room: string,
+  msgType: string,
+  figureId: string | undefined,
+  deps: Pick<WsDeps, 'buildStateFromMutations' | 'figureMaps' | 'canMutate' | 'resolveRole'>,
+): boolean {
+  const state = deps.buildStateFromMutations(room) || {};
+  const roles = state.roles || {};
+  const role = deps.resolveRole(ws, roles);
+  const playerId = resolvePlayerId(ws);
+  const figureOwnerId = (figureId != null ? deps.figureMaps.get(room)?.get(figureId)?.ownerId : null) ?? null;
+  const allowRepresentativeAdd = !!state.lobbySettings?.allowRepresentativeAdd;
+  return deps.canMutate({ msgType, role, playerId, figureOwnerId, allowRepresentativeAdd });
 }
 
 /**
@@ -263,6 +296,13 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         }
 
         if (msg.type === 'figure_lock' && typeof msg.id === 'string') {
+          // Rights gate BEFORE acquiring the lock. Denial → forbidden to sender,
+          // no broadcast (NOT figure_lock_denied — that is reserved for lock
+          // contention, i.e. a lock already held by someone else).
+          if (!gateMutation(ws, room, 'figure_lock', msg.id, deps)) {
+            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+            return;
+          }
           const owner = {
             userId: resolvePlayerId(ws),
             name: ws._session?.name || 'Teilnehmer',
@@ -292,8 +332,30 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         }
 
         if (RELAY_TYPES.has(msg.type)) {
+          // ── The chokepoint: gate EVERY relay type (fail-closed Default-Deny)
+          // BEFORE any apply/broadcast. Denial → forbidden to sender, no state
+          // change, no broadcast.
+          if (!gateMutation(ws, room, msg.type, msg.id, deps)) {
+            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+            return;
+          }
+          // request_state_snapshot is a read: never applied, never broadcast.
+          if (msg.type === 'request_state_snapshot') {
+            return;
+          }
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
+          // A permitted stellvertreter `add` stamps ownership server-side so the
+          // new figure is mutable by its creator (owner-scoped enforcement).
+          if (msg.type === 'add') {
+            const newId = (msg.figure ?? msg.fig)?.id;
+            const playerId = resolvePlayerId(ws);
+            const role = deps.resolveRole(ws, deps.buildStateFromMutations(room)?.roles || {});
+            if (role === 'stellvertreter' && typeof newId === 'string') {
+              deps.applyMutation(room, { type: 'figure_owner_set', figureId: newId, ownerId: playerId });
+              deps.broadcast(room, { type: 'figure_owner_changed', figureId: newId, ownerId: playerId });
+            }
+          }
           if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
             // Session-authoritative: a logged-in user can never overwrite their
             // canonical id with a spoofed msg.playerId. Anon clients still honor
@@ -392,6 +454,35 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               if (!res.ok) {
                 try { ws.send(JSON.stringify({ type: 'error', reason: res.reason })); } catch {}
               }
+              // Demotion to beobachter releases that user's figures (owner-orphan, C6):
+              // a demoted owner can no longer mutate their figures, so they are freed.
+              if (res.ok && msg.role === 'beobachter') {
+                const orphaned = deps.orphanFiguresForUser(adminRoom, msg.targetPlayerId);
+                for (const fid of orphaned) {
+                  deps.broadcast(adminRoom, { type: 'figure_owner_changed', figureId: fid, ownerId: null });
+                }
+                if (orphaned.length) deps.schedulePersist(adminRoom);
+              }
+              break;
+            }
+            case 'admin_assign_figure': {
+              // Server-authoritative ownership change — the ONLY way (besides a
+              // stellvertreter's own add) ownerId changes. isAdmin-gated.
+              if (typeof msg.figureId !== 'string') return;
+              if (!deps.figureMaps.get(adminRoom)?.has(msg.figureId)) {
+                try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
+                return;
+              }
+              if (msg.toPlayerId !== null) {
+                if (typeof msg.toPlayerId !== 'string' ||
+                    !deps.listParticipants(adminRoom).some((p: any) => p.userId === msg.toPlayerId)) {
+                  try { ws.send(JSON.stringify({ type: 'error', reason: 'not-in-room' })); } catch {}
+                  return;
+                }
+              }
+              deps.applyMutation(adminRoom, { type: 'figure_owner_set', figureId: msg.figureId, ownerId: msg.toPlayerId });
+              deps.broadcast(adminRoom, { type: 'figure_owner_changed', figureId: msg.figureId, ownerId: msg.toPlayerId });
+              deps.schedulePersist(adminRoom);
               break;
             }
           }

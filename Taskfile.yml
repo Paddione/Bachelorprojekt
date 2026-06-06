@@ -467,6 +467,96 @@ tasks:
     cmds:
       - node scripts/build-learning-assets.mjs
 
+  freshness:regenerate:
+    desc: "Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)"
+    cmds:
+      # node_modules may be absent in a fresh worktree (scripts/worktree-create.sh
+      # ships no root node_modules). No-op in CI / installed trees. [T000427]
+      - '[ -d node_modules ] || npm ci'
+      - task: test:inventory
+      - task: routes:manifest
+      - task: assets:learning
+      - task: quality:index
+      - task: agent-guide:emit
+
+  freshness:check:
+    desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
+    cmds:
+      # --- Phase 1: regenerate everything, then diff-check each file ---
+      - task: freshness:regenerate
+      - |
+        ERRORS=0
+        FILES="
+          website/src/data/test-inventory.json
+          website/src/data/route-manifest.json
+          website/src/lib/learning-assets.generated.json
+          website/public/learning-assets/THIRD-PARTY-ASSETS.md
+          docs/code-quality/repo-index.json
+          docs/agent-guide/10-ziele.md
+          docs/agent-guide/20-werkzeuge.md
+          docs/agent-guide/30-bausteine.md
+          docs/agent-guide/maps/goals-map.md
+          docs/agent-guide/maps/tools-map.md
+          docs/agent-guide/maps/danger-map.md
+          website/src/lib/agent-guide.generated.json
+        "
+        for f in $FILES; do
+          if ! git diff --exit-code "$f"; then
+            echo "  ✗ $f is stale — run 'task freshness:regenerate' locally and commit"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
+        if [ $ERRORS -gt 0 ]; then
+          echo "ERROR: ${ERRORS} generated artifact(s) are stale (see above)."
+          exit 1
+        fi
+        echo "✓ All generated artifacts are fresh"
+      # --- Phase 2: code-quality gate (baseline ratchet) ---
+      - task: quality:check
+      # --- Phase 3: baseline count assertion ---
+      - |
+        pr_count=$(jq 'keys | length' docs/code-quality/baseline.json)
+        main_count=$(git show origin/main:docs/code-quality/baseline.json 2>/dev/null | jq 'keys | length' || echo "$pr_count")
+        echo "PR baseline keys: ${pr_count}, main baseline keys: ${main_count}"
+        if (( pr_count > main_count )); then
+          echo "ERROR: baseline.json grew on this branch (${main_count} → ${pr_count} keys)."
+          echo "  New violations were added. Fix them or run 'task quality:baseline:freeze' only"
+          echo "  if you intentionally introduced a known-acceptable violation and it was reviewed."
+          exit 1
+        fi
+        echo "✓ baseline key-count is stable or shrinking (${main_count} → ${pr_count})"
+      # --- Phase 4: route-manifest invariants ---
+      - |
+        node -e '
+          const fs = require("fs");
+          const m = JSON.parse(fs.readFileSync("website/src/data/route-manifest.json", "utf8"));
+          const errs = [];
+          if (m.generatedFrom !== "website/src/pages") {
+            errs.push(`generatedFrom must be "website/src/pages", got ${JSON.stringify(m.generatedFrom)}`);
+          }
+          if (!Array.isArray(m.routes)) {
+            errs.push("routes must be an array");
+          }
+          if (m.count !== 103) {
+            errs.push(`expected count===103, got ${m.count}`);
+          }
+          for (const r of (m.routes || [])) {
+            const isAdmin = r.route.startsWith("/admin");
+            const isPortal = r.route.startsWith("/portal");
+            if ((isAdmin || isPortal) && r.authTier === "public") {
+              errs.push(`${r.route} is under /admin or /portal but tagged authTier=public`);
+            }
+            if (!isAdmin && !isPortal && r.authTier !== "public") {
+              errs.push(`${r.route} is public-namespace but tagged authTier=${r.authTier}`);
+            }
+          }
+          if (errs.length) {
+            console.error("ERROR: route-manifest invariants violated:\n  - " + errs.join("\n  - "));
+            process.exit(1);
+          }
+          console.log(`route-manifest OK: ${m.count} page files, ${m.routes.length} sweep routes, auth tiers consistent`);
+        '
+
   test:ci:
     desc: "CI-friendly test suite (non-zero exit on failure)"
     cmds:

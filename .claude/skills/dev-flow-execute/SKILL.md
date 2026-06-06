@@ -120,7 +120,10 @@ Rufe das Skill **`verification-before-completion`** auf, um die Verifikation str
 task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX>
 task test:all
+task freshness:regenerate
 ```
+
+**Wichtig: `task freshness:regenerate` stellt sicher, dass alle generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json) aktuell sind, bevor committet wird. Andernfalls schlägt CI fehl.**
 
 Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
 

@@ -1,4 +1,6 @@
 'use strict';
+// tsx bridge: allow require() of .ts modules during the TS migration (Phase 2).
+require('tsx/cjs');
 
 const express = require('express');
 const { Pool } = require('pg');
@@ -112,23 +114,13 @@ if (!process.env.DATABASE_URL && require.main === module && process.env.MOCK_DB 
   process.exit(1);
 }
 
-let pool;
-if (process.env.MOCK_DB === 'true') {
-  class MockPool {
-    async query() { return { rows: [] }; }
-    async connect() { return { query: this.query, release: () => {} }; }
-    async end() {}
-    on() {} 
-  }
-  pool = new MockPool();
-} else {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 10,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000,
-  });
-}
+const dbMod = require('./src/server/db.ts');
+dbMod.initDb({ buildStateFromMutations: (room) => buildStateFromMutations(room) });
+const pool = dbMod.getPool();
+const readState = dbMod.readState;
+const persistState = dbMod.persistState;
+const schedulePersist = dbMod.schedulePersist;
+const flushImmediate = dbMod.flushImmediate;
 
 
 
@@ -613,7 +605,7 @@ function checkAllSessions() {
 }
 
 // roomToken -> NodeJS.Timeout (debounced persistence)
-const pending = new Map();
+const pending = dbMod.getPending();
 
 const RELAY_TYPES = [
   'add','move','update','delete','clear','optik','stiffness',
@@ -652,13 +644,7 @@ function broadcastInfo(room) {
   broadcast(room, { type: 'info', count });
 }
 
-async function readState(room) {
-  const { rows } = await pool.query(
-    'SELECT state FROM brett_rooms WHERE room_token = $1',
-    [room]
-  );
-  return rows[0]?.state ?? { figures: [] };
-}
+
 
 const DEBOUNCE_MS = 1000;
 
@@ -854,33 +840,7 @@ function buildStateFromMutations(room) {
 }
 
 
-async function persistState(room) {
-  const state = buildStateFromMutations(room);
-  if (!state) return;
-  await pool.query(
-    `INSERT INTO brett_rooms (room_token, state, last_modified_at)
-         VALUES ($1, $2, now())
-     ON CONFLICT (room_token)
-     DO UPDATE SET state = EXCLUDED.state, last_modified_at = EXCLUDED.last_modified_at`,
-    [room, state]
-  );
-}
 
-function schedulePersist(room) {
-  if (pending.has(room)) clearTimeout(pending.get(room));
-  pending.set(room, setTimeout(() => {
-    pending.delete(room);
-    persistState(room).catch(err => console.error('[brett] persist:', err));
-  }, DEBOUNCE_MS));
-}
-
-async function flushImmediate(room) {
-  if (pending.has(room)) {
-    clearTimeout(pending.get(room));
-    pending.delete(room);
-  }
-  await persistState(room);
-}
 
 const handleDisconnect = function(ws) {
   const room = ws._room;

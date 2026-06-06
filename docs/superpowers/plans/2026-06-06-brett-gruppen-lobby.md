@@ -340,7 +340,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### A1 — Design tokens extracted from the mentolder website → `theme.ts`
+### A1 — Design tokens extracted from the mentolder website → `theme.ts` — [x] DONE
 
 - **target_files:** `brett/src/client/ui/theme.ts` (new), `brett/test/theme.test.ts` (new)
 - **failing test first (red):** `brett/test/theme.test.ts` (`node --test` via tsx) imports `{ tokens, themeCss }` from `../src/client/ui/theme` and asserts:

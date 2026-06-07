@@ -61,6 +61,7 @@ export const ADMIN_TYPES = new Set<string>([
   'admin_round_start', 'admin_assign_role', 'admin_assign_figure',
   'admin_set_template', 'admin_set_optik',
   'figure_type_set',
+  'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
 ]);
 
 /**
@@ -107,6 +108,13 @@ export function gateMutation(
   // trips one of these guards and stays fully gated.
   if (!state.sessionCode && (!roles || Object.keys(roles).length === 0)) {
     return true;
+  }
+  // Freeze-Gate: block move/update/jump for non-leaders when room is frozen.
+  // Leiter bypass: the leiter may still demonstrate figure movement when frozen.
+  const FREEZE_BLOCKED: MutationType[] = ['move', 'update', 'jump'];
+  if (state.moderation?.freeze && FREEZE_BLOCKED.includes(msgType)) {
+    const freezeRole = deps.resolveRole(ws, roles);
+    if (freezeRole !== 'leiter') return false;
   }
   const role = deps.resolveRole(ws, roles);
   const playerId = resolvePlayerId(ws);

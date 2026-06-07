@@ -44,6 +44,7 @@ export function buildStateFromMutations(room: string): any {
     '__session_phase__', '__session_code__', '__admin_token_holder__',
     '__session_created_at__', '__session_last_activity__',
     '__coaching_steps__', '__roles__', '__lobby_settings__',
+    '__moderation__',   // ← T000471
   ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
@@ -67,5 +68,13 @@ export function buildStateFromMutations(room: string): any {
   const lobbySettingsEntry = figs.get('__lobby_settings__');
   if (rolesEntry)         result.roles         = rolesEntry.roles;
   if (lobbySettingsEntry) result.lobbySettings = lobbySettingsEntry.settings;
+  const moderationEntry = figs.get('__moderation__');
+  if (moderationEntry) {
+    result.moderation = {
+      spotlight: moderationEntry.spotlight ?? null,
+      dim: moderationEntry.dim ?? null,
+      freeze: moderationEntry.freeze ?? false,
+    };
+  }
   return result;
 }

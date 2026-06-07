@@ -1,4 +1,4 @@
-import type { Phase } from '../types/state';
+import type { Phase, BrettLine } from '../types/state';
 
 export const TERMINAL_PHASES = new Set<Phase>(['ended']);
 export const VALID_PHASES = new Set<Phase>(['lobby', 'warmup', 'active', 'paused', 'ended']);
@@ -46,6 +46,7 @@ export function buildStateFromMutations(room: string): any {
     '__coaching_steps__', '__roles__', '__lobby_settings__',
     '__moderation__',   // ← T000471
     '__anchors__', '__zones__',   // NEU T000468
+    '__lines__',  // ← NEU T000467
   ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
@@ -81,5 +82,7 @@ export function buildStateFromMutations(room: string): any {
   const zonesEntry   = figs.get('__zones__');
   result.anchors = anchorsEntry?.anchors ?? [];
   result.zones   = zonesEntry?.zones   ?? [];
+  const linesEntry = figs.get('__lines__');
+  if (linesEntry?.lines) result.lines = Object.values(linesEntry.lines) as BrettLine[];
   return result;
 }

@@ -59,7 +59,6 @@ const COMPLEXITY_EFFORT_INDEX = {
 function clampEffortIdx(i) {
   return Math.max(0, Math.min(EFFORT_LADDER.length - 1, i))
 }
-
 function chooseEffort(complexity, risk, budgetRemaining) {
   let idx = COMPLEXITY_EFFORT_INDEX[complexity]
   if (idx === undefined) idx = 1
@@ -95,11 +94,9 @@ function provision(task) {
 // Top-level globals injected by the harness: agent, parallel, pipeline, phase, log, args.
 // args.timestamp (never Date.now()), args.slug, args.title, args.description, args.ticket_id, args.brand.
 
-// Pipeline body runs as a top-level async IIFE so that:
-//   • `return` is syntactically valid (node --check passes)
-//   • `await` is valid at the call sites
-//   • harness-injected globals (agent, parallel, pipeline, phase, log, args)
-//     are in scope without any destructuring from a harness param
+// Pipeline body runs as a top-level async function so that:
+//   • `return` is valid (node --check passes)
+//   • harness-injected globals are in scope without a harness-param destructure
 async function main() {
 
 // ─── Config ──────────────────────────────────────────────────────────────
@@ -245,15 +242,18 @@ if (!isSimple) {
   )
   if (/\"T0/.test(conflict)) {
     log(`Conflict detected: ${conflict}`)
+    // Release slot + reset to backlog so the next tick can retry; without `backlog`
+    // in conflict-check's active set, ≤1 overlapping ticket per tick serializes.
     await agent(
-      `A file-overlap conflict blocks this feature. Notify the operator: PushNotification is DEFERRED —
-       run \`ToolSearch select:PushNotification\` first, then call it once:
-         title:   "Factory conflict: ${A.ticket_id} (${brand})"
-         message: "Pipeline blocked on file overlap. Detail: ${String(conflict).slice(0, 280)}"
-       Report what was notified.`,
+      `Release slot + return to queue (the next tick can retry — without backlog in the conflict-check active set, ≤1 overlapping ticket/tick):
+       bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
+       Notify: PushNotification is DEFERRED — \`ToolSearch select:PushNotification\`,
+       then call it once: title "Factory conflict: ${A.ticket_id} (${brand})",
+       message "Pipeline blocked on overlap. ${String(conflict).slice(0, 200)}"`,
       { label: 'conflict:escalate', phase: 'Plan' },
     )
-    return { status: 'blocked', reason: 'file-overlap', conflict }
+    return { status: 'blocked', reason: 'file-overlap', conflict, released: true }
   }
 
   const planProv = provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false })

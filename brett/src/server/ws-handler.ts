@@ -1,4 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
+export { handleAssignRole } from './ws-admin-commands';
+import { handleAdminMessage } from './ws-admin-commands';
+import type { MutationType, MutateContext } from './permissions';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
@@ -20,7 +23,7 @@ export interface WsDeps {
   releaseLocksForUser: Function;
   orphanFiguresForUser: Function;
   listFigureLocks: Function;
-  canMutate: Function;
+  canMutate: (ctx: MutateContext) => boolean;
   resolveRole: Function;
   validateAppearance: Function;
   readState: Function;
@@ -87,41 +90,28 @@ export function resolvePlayerId(ws: any): string {
 export function gateMutation(
   ws: any,
   room: string,
-  msgType: string,
+  msgType: MutationType,
   figureId: string | undefined,
   deps: Pick<WsDeps, 'buildStateFromMutations' | 'figureMaps' | 'canMutate' | 'resolveRole'>,
 ): boolean {
   const state = deps.buildStateFromMutations(room) || {};
   const roles = state.roles || {};
+  // Legacy free-board bypass (REG-1): a room that has NEITHER a session code NOR
+  // any assigned roles is the standalone `?room=` deep-link / legacy coaching
+  // board. origin/main relayed every mutation there unconditionally, so the
+  // role-gate must NOT apply — otherwise such boards turn globally read-only
+  // (resolveRole → beobachter for everyone → every write denied). Enforcement
+  // kicks in the moment a session exists: `admin_session_create` sets the code
+  // AND seeds the creator as `leiter` in __roles__, so a sessioned room always
+  // trips one of these guards and stays fully gated.
+  if (!state.sessionCode && (!roles || Object.keys(roles).length === 0)) {
+    return true;
+  }
   const role = deps.resolveRole(ws, roles);
   const playerId = resolvePlayerId(ws);
   const figureOwnerId = (figureId != null ? deps.figureMaps.get(room)?.get(figureId)?.ownerId : null) ?? null;
   const allowRepresentativeAdd = !!state.lobbySettings?.allowRepresentativeAdd;
   return deps.canMutate({ msgType, role, playerId, figureOwnerId, allowRepresentativeAdd });
-}
-
-/**
- * Assign a role to a current participant. Validates membership (rejects
- * non-members and `'anon'`, which is never a real participant key). Merges into
- * the existing `__roles__` map so other users' roles are never clobbered, then
- * broadcasts `role_changed` and persists.
- */
-export function handleAssignRole(
-  room: string,
-  targetPlayerId: string,
-  role: string,
-  deps: Pick<WsDeps, 'listParticipants' | 'applyMutation' | 'buildStateFromMutations' | 'broadcast' | 'schedulePersist'>
-): { ok: boolean; reason?: string } {
-  if (targetPlayerId === 'anon' ||
-      !deps.listParticipants(room).some((p: any) => p.userId === targetPlayerId)) {
-    return { ok: false, reason: 'not-in-room' };
-  }
-  const roles = { ...(deps.buildStateFromMutations(room)?.roles ?? {}) };
-  roles[targetPlayerId] = role;
-  deps.applyMutation(room, { type: 'roles_set', roles });
-  deps.broadcast(room, { type: 'role_changed', userId: targetPlayerId, role });
-  deps.schedulePersist(room);
-  return { ok: true };
 }
 
 /**
@@ -233,6 +223,15 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             if (participant) {
               deps.broadcast(room, { type: 'presence_join', participant });
             }
+            // Late-join reconnect guard (SEC-1/REG-3): record this player as having
+            // been present in the room. On a SUBSEQUENT connect with the same
+            // ?playerId= during an active/paused round, verifyClient →
+            // shouldRejectReconnect now sees `wasPreviouslyInRoom` and rejects the
+            // true reconnect (409). The canonical, session-first id MUST match the
+            // ?playerId the client threads into the /sync handshake (ws-client.ts).
+            if (playerId && playerId !== 'anon') {
+              deps.trackPlayerInRoom(room, playerId);
+            }
           }
 
           // Maintain admin presence for grace reassignment (B14). Accumulate any
@@ -250,7 +249,15 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
 
           const freshState = deps.buildStateFromMutations(room);
           if (freshState) {
-            freshState.participants = deps.listParticipants(room);
+            // REG-6: merge the persisted __roles__ into each participant so the
+            // late-joiner's roster (seeded from this snapshot) shows assigned roles
+            // — not just {userId,name,color}. `ready` is ephemeral (never persisted)
+            // and defaults to false until the peer re-emits lobby_ready_changed.
+            const persistedRoles = freshState.roles || {};
+            freshState.participants = deps.listParticipants(room).map((p: any) => ({
+              ...p,
+              role: persistedRoles[p.userId],
+            }));
             const locks = deps.listFigureLocks(room);
             const snaps = Object.values(freshState.figures);
             try {
@@ -261,6 +268,11 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
                 locks: locks,
                 phase: freshState.sessionPhase,
                 sessionCode: freshState.sessionCode,
+                // FE-2/FE-3/REG-6: the join snapshot is the FIRST (often only) state
+                // a client receives — carry the roster (with roles) so the lobby
+                // store seeds it immediately instead of waiting for peers to
+                // re-emit presence_join.
+                participants: freshState.participants,
                 // Late-joiners/reloads receive the persisted board-optik (§4.1
                 // end-to-end) so the scene renders it on mount (D11).
                 optik: freshState.optik,
@@ -356,14 +368,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               deps.broadcast(room, { type: 'figure_owner_changed', figureId: newId, ownerId: playerId });
             }
           }
-          if (msg.type === 'player_join' && typeof msg.playerId === 'string') {
-            // Session-authoritative: a logged-in user can never overwrite their
-            // canonical id with a spoofed msg.playerId. Anon clients still honor
-            // msg.playerId for late-join tracking.
-            const pid = ws._session?.userId ?? msg.playerId ?? ws._playerId ?? 'anon';
-            ws._playerId = pid;
-            deps.trackPlayerInRoom(room, pid);
-          } else if (msg.type === 'clear') {
+          // Late-join tracking is done in the `join` handler (SEC-1/REG-3), not via
+          // a relay `player_join` (which was never in RELAY_TYPES nor sent by any
+          // client — dead code, removed).
+          if (msg.type === 'clear') {
             deps.flushImmediate(room).catch((err: any) => console.error('[brett] flush:', err));
           }
           if (msg.type !== 'clear') {
@@ -375,140 +383,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (!ws._session?.isAdmin) return;
           const adminRoom = ws._room;
           if (!adminRoom) return;
-
-          switch (msg.type) {
-            case 'admin_kick': {
-              if (typeof msg.playerId !== 'string') return;
-              for (const sock of deps.rooms.get(adminRoom) || []) {
-                if (sock._playerId === msg.playerId) {
-                  try {
-                    sock.close();
-                  } catch {}
-                  break;
-                }
-              }
-              break;
-            }
-            case 'admin_broadcast': {
-              const websiteUrl = process.env.WEBSITE_INTERNAL_URL || 'http://website.website.svc.cluster.local:4321';
-              fetch(`${websiteUrl}/api/admin/brett/broadcast`, {
-                method: 'POST',
-                headers: { 'x-internal-admin': process.env.BRETT_INTERNAL_ADMIN_SECRET || '' },
-              }).catch((err: any) => console.error('[brett] admin_broadcast failed:', err.message));
-              break;
-            }
-            case 'admin_session_create': {
-              const playerId = ws._playerId || ws._session?.name;
-              if (!playerId) return;
-              const result = deps.handleAdminSessionCreate(adminRoom, playerId);
-              deps.broadcast(adminRoom, {
-                type: 'session_phase_change',
-                phase: 'lobby',
-                transitionedAt: new Date().toISOString(),
-                reason: 'admin-create',
-              });
-              deps.broadcast(adminRoom, {
-                type: 'admin_token_changed',
-                holderPlayerId: playerId,
-                reason: 'handoff',
-              });
-              deps.schedulePersist(adminRoom);
-              // Echo session code to creator
-              try {
-                ws.send(JSON.stringify({ type: 'session_created', code: result.code }));
-              } catch {}
-              break;
-            }
-            case 'admin_handoff_token': {
-              if (typeof msg.targetPlayerId !== 'string') return;
-              const fromPlayerId = ws._playerId || ws._session?.name;
-              if (!fromPlayerId) return;
-              deps.handleAdminHandoffMessage(adminRoom, fromPlayerId, msg.targetPlayerId, (out: any) => deps.broadcast(adminRoom, out));
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_round_stop': {
-              deps.handleAdminRoundStop(adminRoom, (m: any) => deps.broadcast(adminRoom, m));
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_round_pause': {
-              deps.handleAdminRoundPause(adminRoom, (m: any) => deps.broadcast(adminRoom, m));
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_coaching_steps_set': {
-              deps.applyMutation(adminRoom, { type: 'coaching_steps_set', steps: msg.steps, index: msg.index });
-              deps.broadcast(adminRoom, { type: 'coaching_steps_change', steps: msg.steps, index: msg.index });
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_round_start': {
-              const res = deps.handleAdminRoundStart(adminRoom, (m: any) => deps.broadcast(adminRoom, m));
-              if (res && res.ok && !res.noop) deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_assign_role': {
-              if (typeof msg.targetPlayerId !== 'string' || typeof msg.role !== 'string') return;
-              const res = handleAssignRole(adminRoom, msg.targetPlayerId, msg.role, deps);
-              if (!res.ok) {
-                try { ws.send(JSON.stringify({ type: 'error', reason: res.reason })); } catch {}
-              }
-              // Demotion to beobachter releases that user's figures (owner-orphan, C6):
-              // a demoted owner can no longer mutate their figures, so they are freed.
-              if (res.ok && msg.role === 'beobachter') {
-                const orphaned = deps.orphanFiguresForUser(adminRoom, msg.targetPlayerId);
-                for (const fid of orphaned) {
-                  deps.broadcast(adminRoom, { type: 'figure_owner_changed', figureId: fid, ownerId: null });
-                }
-                if (orphaned.length) deps.schedulePersist(adminRoom);
-              }
-              break;
-            }
-            case 'admin_assign_figure': {
-              // Server-authoritative ownership change — the ONLY way (besides a
-              // stellvertreter's own add) ownerId changes. isAdmin-gated.
-              if (typeof msg.figureId !== 'string') return;
-              if (!deps.figureMaps.get(adminRoom)?.has(msg.figureId)) {
-                try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
-                return;
-              }
-              if (msg.toPlayerId !== null) {
-                if (typeof msg.toPlayerId !== 'string' ||
-                    !deps.listParticipants(adminRoom).some((p: any) => p.userId === msg.toPlayerId)) {
-                  try { ws.send(JSON.stringify({ type: 'error', reason: 'not-in-room' })); } catch {}
-                  return;
-                }
-              }
-              deps.applyMutation(adminRoom, { type: 'figure_owner_set', figureId: msg.figureId, ownerId: msg.toPlayerId });
-              deps.broadcast(adminRoom, { type: 'figure_owner_changed', figureId: msg.figureId, ownerId: msg.toPlayerId });
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_set_optik': {
-              // Board-Optik (D4). Persist + propagate to OTHER clients (sender
-              // excluded, §13). Late-joiners get it via their snapshot.
-              if (!msg.settings || typeof msg.settings !== 'object') return;
-              deps.handleAdminSetOptik(adminRoom, msg.settings, (m: any) => deps.broadcast(adminRoom, m, ws));
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-            case 'admin_set_template': {
-              // Szenario-Vorlage (D5 choice-persist + D7 figure apply). Persist the
-              // chosen templateId into lobbySettings and propagate to OTHER clients
-              // (sender excluded). Then load the snapshot and seed it into server
-              // state (server-authoritative), broadcasting to ALL so the leiter's
-              // board reflects the seed too.
-              if (typeof msg.templateId !== 'string') return;
-              deps.handleAdminSetTemplate(adminRoom, msg.templateId, (m: any) => deps.broadcast(adminRoom, m, ws));
-              if (deps.loadSnapshotState && deps.applyTemplateToRoom) {
-                const snap = await deps.loadSnapshotState(msg.templateId);
-                if (snap) deps.applyTemplateToRoom(adminRoom, snap, (m: any) => deps.broadcast(adminRoom, m));
-              }
-              deps.schedulePersist(adminRoom);
-              break;
-            }
-          }
+          await handleAdminMessage(ws, msg, adminRoom, deps);
           return;
         }
       } catch (err: any) {

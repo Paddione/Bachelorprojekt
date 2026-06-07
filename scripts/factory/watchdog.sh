@@ -9,6 +9,7 @@
 set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
+BRAND="${BRAND:-}"
 factory_resolve
 [[ -n "${FACTORY_DRY_RESOLVE:-}" ]] && { echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"; exit 0; }
 STALE_MIN="${FACTORY_STALE_MIN:-30}"

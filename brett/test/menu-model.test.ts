@@ -30,6 +30,15 @@ test('isValidJoinCode accepts the 6-char session-code shape only', () => {
   assert.equal(isValidJoinCode('ABCDEF'), false); // missing dash
 });
 
+test('FE-4: saved + settings are disabled placeholders; join + new-session are active', () => {
+  const m = menuModel({ userId: 'u1', name: 'Anna', isAdmin: true });
+  const byId = Object.fromEntries(m.items.map((i) => [i.id, i]));
+  assert.equal(byId['saved'].disabled, true, 'Gespeicherte Aufstellungen is disabled');
+  assert.equal(byId['settings'].disabled, true, 'Einstellungen is disabled');
+  assert.ok(!byId['join'].disabled, 'join stays active');
+  assert.ok(!byId['new-session'].disabled, 'new-session stays active');
+});
+
 test('module imports under node without touching the DOM', () => {
   assert.equal(typeof menuModel, 'function');
   assert.equal(typeof isValidJoinCode, 'function');

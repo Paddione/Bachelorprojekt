@@ -53,6 +53,16 @@ if [[ -f "${CRYPT_PROBE}" ]] && head -c 16 "${CRYPT_PROBE}" 2>/dev/null | grep -
   fi
 fi
 
+# ── ensure Extended Thinking is OFF so Workflow harness can spawn subagents ───
+# [1m] suffix or CLAUDE_CODE_EFFORT_LEVEL=max activates reasoning_effort; the
+# harness then sets thinking.type:disabled for agent() spawns → 400 API error.
+CLAUDE_CODE_EFFORT_LEVEL=low
+# Strip [1m] from model env vars if present (belt-and-suspenders).
+# Use :- default to avoid nounset errors in CI where autopilot.env is absent.
+ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-}"; ANTHROPIC_MODEL="${ANTHROPIC_MODEL/\[1m\]/}"
+ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL:-}"; ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL/\[1m\]/}"
+ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL:-}"; ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL/\[1m\]/}"
+
 # ── headless dispatcher tick: nest dispatcher.js via the Workflow tool ────────
 # The permission allowlist is tight: only the Workflow tool + the deterministic
 # factory primitives the dispatcher shells out to. dry_run is the ONLY policy.

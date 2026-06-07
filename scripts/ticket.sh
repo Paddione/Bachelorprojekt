@@ -486,11 +486,11 @@ SELECT value FROM tickets.factory_control
 WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
 EOF
   else
+    # Delete-then-insert, NOT ON CONFLICT: the unique index treats NULL brands as DISTINCT, so ON CONFLICT never fires for the global row → duplicates → kill-switch fail-open (T000474).
     _exec_sql "$pod" -v key="$key" -v brand="$brand" -v value="$value" -v set_by="$set_by" <<'EOF' >/dev/null
+DELETE FROM tickets.factory_control WHERE key = :'key' AND brand IS NOT DISTINCT FROM NULLIF(:'brand','');
 INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
-VALUES (:'key', NULLIF(:'brand',''), :'value', NULLIF(:'set_by',''), now())
-ON CONFLICT (key, brand) DO UPDATE
-  SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
+VALUES (:'key', NULLIF(:'brand',''), :'value', NULLIF(:'set_by',''), now());
 EOF
     echo "factory-control set: $key=${value}${brand:+ (brand=$brand)}"
   fi

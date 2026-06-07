@@ -1,4 +1,5 @@
 import type { WsDeps } from './ws-handler';
+import * as undoStack from './undo-stack';
 
 function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {
   const entry = deps.figureMaps.get(room)?.get('__moderation__');
@@ -174,6 +175,69 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.schedulePersist(adminRoom);
       break;
     }
+    case 'session_undo': {
+      if (!deps.performUndo) break;
+      const result = deps.performUndo(adminRoom);
+      if (result.applied) {
+        // Re-Snapshot an alle: buildStateFromMutations gibt aktuellen Zustand
+        const freshState = deps.buildStateFromMutations(adminRoom);
+        if (freshState) {
+          const figures = Object.values(freshState.figures ?? {});
+          deps.broadcast(adminRoom, {
+            type: 'snapshot',
+            figures,
+            stiffness: freshState.stiffness,
+            phase: freshState.sessionPhase,
+            sessionCode: freshState.sessionCode,
+            optik: freshState.optik,
+          });
+        }
+        if (deps.getUndoStatus) {
+          deps.broadcast(adminRoom, {
+            type: 'undo_stack_changed',
+            ...deps.getUndoStatus(adminRoom),
+          });
+        }
+        deps.schedulePersist(adminRoom);
+      } else {
+        try {
+          ws.send(JSON.stringify({ type: 'error', reason: 'undo-stack-empty' }));
+        } catch {}
+      }
+      break;
+    }
+
+    case 'session_redo': {
+      if (!deps.performRedo) break;
+      const result = deps.performRedo(adminRoom);
+      if (result.applied) {
+        const freshState = deps.buildStateFromMutations(adminRoom);
+        if (freshState) {
+          const figures = Object.values(freshState.figures ?? {});
+          deps.broadcast(adminRoom, {
+            type: 'snapshot',
+            figures,
+            stiffness: freshState.stiffness,
+            phase: freshState.sessionPhase,
+            sessionCode: freshState.sessionCode,
+            optik: freshState.optik,
+          });
+        }
+        if (deps.getUndoStatus) {
+          deps.broadcast(adminRoom, {
+            type: 'undo_stack_changed',
+            ...deps.getUndoStatus(adminRoom),
+          });
+        }
+        deps.schedulePersist(adminRoom);
+      } else {
+        try {
+          ws.send(JSON.stringify({ type: 'error', reason: 'redo-stack-empty' }));
+        } catch {}
+      }
+      break;
+    }
+
     case 'admin_set_template': {
       // Szenario-Vorlage (D5 choice-persist + D7 figure apply). Persist the
       // chosen templateId into lobbySettings and propagate to OTHER clients
@@ -275,4 +339,25 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       return;
     }
   }
+}
+
+export function startIdleSweep(deps: { checkAllSessions: Function; broadcast: Function; schedulePersist: Function }): NodeJS.Timeout {
+  const timer = setInterval(() => {
+    if (process.env.MOCK_DB === 'true') return;
+    const results = deps.checkAllSessions();
+    for (const r of results) {
+      if (r.ended) {
+        deps.broadcast(r.room, {
+          type: 'session_phase_change',
+          phase: 'ended',
+          transitionedAt: new Date().toISOString(),
+          reason: 'idle-timeout',
+        });
+        deps.broadcast(r.room, { type: 'session_ended', reason: 'idle-timeout' });
+        deps.schedulePersist(r.room);
+      }
+    }
+  }, 60_000);
+  if (timer.unref) timer.unref();
+  return timer;
 }

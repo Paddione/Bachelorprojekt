@@ -226,3 +226,16 @@ test('Freeze-Gate: leiter update allowed when freeze active', () => {
   const allowed = gateMutation(ws, room, 'update', undefined, freezeDeps());
   assert.strictEqual(allowed, true, 'leiter update must still pass when frozen');
 });
+
+// ── T000470: session_undo/redo sind in ADMIN_TYPES (ADMIN_TYPES-Gate) ────
+
+import { wsHandler as _wsHandler } from '../src/server/index';
+const { ADMIN_TYPES } = _wsHandler as any;
+
+test('T000470: session_undo ist in ADMIN_TYPES', () => {
+  assert.ok(ADMIN_TYPES.has('session_undo'), 'session_undo muss in ADMIN_TYPES sein');
+});
+
+test('T000470: session_redo ist in ADMIN_TYPES', () => {
+  assert.ok(ADMIN_TYPES.has('session_redo'), 'session_redo muss in ADMIN_TYPES sein');
+});

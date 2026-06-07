@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import type { Anchor, Zone } from '../types/state';
-import { getScene } from './state';
+import { getScene, getWs, isWsReady } from './state';
 
 // Mesh-Maps: anchorId / zoneId → THREE.Group (enthält Mesh + optionalen Sprite)
 export const anchorMeshes = new Map<string, THREE.Group>();
@@ -215,4 +215,119 @@ export function initGroundObjectsFromSnapshot(anchors: Anchor[], zones: Zone[]):
   // Neu rendern
   for (const anchor of anchors) applyAnchorAdded(anchor);
   for (const zone   of zones)   applyZoneAdded(zone);
+}
+
+// ── Admin-Toolbar ─────────────────────────────────────────────────────────────
+
+/**
+ * Erstellt die Admin-Toolbar für Anker & Zonen (T000468).
+ * Nur für Admins sichtbar (prüft __brettCurrentUserIsAdmin).
+ */
+export function initGroundObjectsToolbar(
+  renderer: { domElement: HTMLElement },
+  sceneApi: any,
+  camera: any,
+  raycaster: any,
+  mannequin: { setNdc: (e: MouseEvent) => void; getTickRefs: () => { ndc: any } },
+): void {
+  if (!(window as any).__brettCurrentUserIsAdmin) return;
+
+  const toolbar = document.createElement('div');
+  toolbar.id = 'ground-objects-toolbar';
+  Object.assign(toolbar.style, {
+    position: 'absolute',
+    bottom: '96px',
+    right: '12px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    zIndex: '20',
+  });
+
+  // Anker-Button
+  const anchorBtn = document.createElement('button');
+  anchorBtn.textContent = '⚓ Anker';
+  anchorBtn.title = 'Boden-Anker setzen (Klick auf Boden)';
+  Object.assign(anchorBtn.style, {
+    fontFamily: 'var(--brett-font-mono, monospace)',
+    fontSize: '10px',
+    padding: '6px 10px',
+    background: 'rgba(200,169,110,0.15)',
+    border: '1px solid rgba(200,169,110,0.4)',
+    color: 'var(--brett-brass, #c8a96e)',
+    borderRadius: 'var(--brett-radius-sm, 8px)',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+  });
+
+  let anchorPlacingMode = false;
+  anchorBtn.addEventListener('click', () => {
+    anchorPlacingMode = !anchorPlacingMode;
+    anchorBtn.style.background = anchorPlacingMode
+      ? 'rgba(200,169,110,0.35)' : 'rgba(200,169,110,0.15)';
+    anchorBtn.title = anchorPlacingMode
+      ? 'Klicke auf den Boden, um einen Anker zu setzen (Esc abbrechen)'
+      : 'Boden-Anker setzen';
+    (window as any).__brettAnchorPlacing = anchorPlacingMode;
+  });
+
+  document.addEventListener('brett:anchor-placed', () => {
+    anchorPlacingMode = false;
+    anchorBtn.style.background = 'rgba(200,169,110,0.15)';
+    anchorBtn.title = 'Boden-Anker setzen';
+  });
+
+  // Zonen-Button
+  const zoneBtn = document.createElement('button');
+  zoneBtn.textContent = '▭ Zone';
+  zoneBtn.title = 'Bodenzone zeichnen';
+  Object.assign(zoneBtn.style, {
+    fontFamily: 'var(--brett-font-mono, monospace)',
+    fontSize: '10px',
+    padding: '6px 10px',
+    background: 'rgba(78,161,255,0.15)',
+    border: '1px solid rgba(78,161,255,0.4)',
+    color: 'var(--brett-blue, #4ea1ff)',
+    borderRadius: 'var(--brett-radius-sm, 8px)',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+  });
+
+  let zonePlacingMode = false;
+  zoneBtn.addEventListener('click', () => {
+    zonePlacingMode = !zonePlacingMode;
+    zoneBtn.style.background = zonePlacingMode
+      ? 'rgba(78,161,255,0.35)' : 'rgba(78,161,255,0.15)';
+    (window as any).__brettZonePlacing = zonePlacingMode;
+  });
+
+  toolbar.appendChild(anchorBtn);
+  toolbar.appendChild(zoneBtn);
+  document.body.appendChild(toolbar);
+
+  // Floor-click for anchor placement (wired into existing click handler)
+  renderer.domElement.addEventListener('click', (e) => {
+    if (!(window as any).__brettAnchorPlacing) return;
+    const { floor } = sceneApi as any;
+    if (!floor) return;
+    mannequin.setNdc(e);
+    const { ndc } = mannequin.getTickRefs();
+    if (!ndc) return;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObject(floor);
+    if (hits.length > 0) {
+      const pt = hits[0].point;
+      const ws = getWs();
+      if (isWsReady() && ws) {
+        ws.send(JSON.stringify({
+          type: 'anchor_create',
+          anchor: { x: Math.round(pt.x * 10) / 10, z: Math.round(pt.z * 10) / 10 },
+        }));
+      }
+      (window as any).__brettAnchorPlacing = false;
+      document.dispatchEvent(new CustomEvent('brett:anchor-placed'));
+    }
+  }, { capture: true });
 }

@@ -1,7 +1,8 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 export { handleAssignRole } from './ws-admin-commands';
 import { handleAdminMessage } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
+import * as undoStack from './undo-stack';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
@@ -47,6 +48,13 @@ export interface WsDeps {
   reclaimAdminToken: Function;
   roomAdminPresence: Map<string, Set<string>>;
   sessionMiddleware?: any;
+  captureBeforeSnapshot?: (room: string, msg: any) => Map<string, any | null>;
+  captureAfterSnapshot?: (before: Map<string, any | null>, room: string, msg: any) => Map<string, any | null>;
+  pushUndo?: (room: string, entry: import('./undo-stack').UndoEntry) => void;
+  performUndo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
+  performRedo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
+  getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
+  clearUndoStacks?: (room: string) => void;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -63,6 +71,7 @@ export const ADMIN_TYPES = new Set<string>([
   'figure_type_set',
   'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
   'anchor_create', 'anchor_delete', 'zone_create', 'zone_delete',  // NEU T000468
+  'session_undo', 'session_redo',   // ← T000470
 ]);
 
 /**
@@ -352,7 +361,6 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
 
-        // ── Possession ─────────────────────────────────────────────
         if (msg.type === 'figure_possess' && typeof msg.figureId === 'string') {
           if (!gateMutation(ws, room, 'figure_possess', msg.figureId, deps)) {
             try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
@@ -410,7 +418,6 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
 
-        // ── Notiz-Mutation (Slice 5, T000469) ──────────────────────────────────
         if (msg.type === 'figure_note_set') {
           if (typeof msg.figureId !== 'string' || typeof msg.note !== 'string') return;
           if (!gateMutation(ws, room, 'figure_note_set', msg.figureId, deps)) {
@@ -449,8 +456,15 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (msg.type === 'request_state_snapshot') {
             return;
           }
+
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
+
+          if (deps.captureBeforeSnapshot && deps.captureAfterSnapshot && deps.pushUndo && deps.getUndoStatus) {
+            undoStack.tryRecordMutation(room, msg, deps.captureBeforeSnapshot, deps.captureAfterSnapshot,
+              deps.pushUndo, deps.getUndoStatus, (r, m) => deps.broadcast(r, m));
+          }
+
           // A permitted stellvertreter `add` stamps ownership server-side so the
           // new figure is mutable by its creator (owner-scoped enforcement).
           if (msg.type === 'add') {
@@ -531,7 +545,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         try {
           await deps.flushImmediate(room);
         } finally {
-          if (!deps.rooms.has(room)) deps.figureMaps.delete(room);
+          if (!deps.rooms.has(room)) {
+            deps.figureMaps.delete(room);
+            deps.clearUndoStacks?.(room);  // T000470: Stacks beim Last-Leave bereinigen
+          }
         }
       }
     });
@@ -558,25 +575,4 @@ export function startHeartbeat(wss: WebSocketServer): NodeJS.Timeout {
   }, HEARTBEAT_INTERVAL_MS);
   if (heartbeatTimer.unref) heartbeatTimer.unref();
   return heartbeatTimer;
-}
-
-export function startIdleSweep(deps: { checkAllSessions: Function; broadcast: Function; schedulePersist: Function }): NodeJS.Timeout {
-  const timer = setInterval(() => {
-    if (process.env.MOCK_DB === 'true') return;
-    const results = deps.checkAllSessions();
-    for (const r of results) {
-      if (r.ended) {
-        deps.broadcast(r.room, {
-          type: 'session_phase_change',
-          phase: 'ended',
-          transitionedAt: new Date().toISOString(),
-          reason: 'idle-timeout',
-        });
-        deps.broadcast(r.room, { type: 'session_ended', reason: 'idle-timeout' });
-        deps.schedulePersist(r.room);
-      }
-    }
-  }, 60_000);
-  if (timer.unref) timer.unref();
-  return timer;
 }

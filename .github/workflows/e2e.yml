@@ -105,6 +105,9 @@ jobs:
           # Auth
           MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
           MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
+          # Admin auth for E2E suite (T000480 — was missing, caused 35+ specs to silently skip)
+          E2E_ADMIN_USER: paddione
+          E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
           # Skip prod DB purge until CRON_SECRET is provisioned as a repo secret (T000408).
           # Without this the global setup throws before any spec runs.
           SKIP_DB_PURGE: "1"

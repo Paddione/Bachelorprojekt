@@ -262,7 +262,13 @@ tasks:
       - task: test:unit:test-tasks-node-deps
       - task: test:unit:quality-loop
       - task: test:unit:offline-batch
+      - task: test:unit:collabora-wopi-discovery
       - task: test:unit:coverage-guard
+
+  test:unit:collabora-wopi-discovery:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/collabora-wopi-discovery.bats
 
   test:unit:website-ci-deploy:
     internal: true
@@ -1222,7 +1228,12 @@ tasks:
         # and attaches the wildcard secret + HSTS/redirect middlewares.
         export COLLABORA_HOST="office.${PROD_DOMAIN}"
         export COLLABORA_ALIASGROUP1="https://files.${PROD_DOMAIN}"
-        export COLLABORA_SERVER_NAME="office.${PROD_DOMAIN}"
+        # Empty server_name lets coolwsd derive the WOPI discovery urlsrc host
+        # dynamically from the request Host header. On the shared fleet
+        # office-stack both brands hit the same Collabora Deployment, so a
+        # hardcoded office.${PROD_DOMAIN} would make office.korczewski.de's
+        # discovery advertise office.mentolder.de (T000478).
+        export COLLABORA_SERVER_NAME=""
         case "${PROD_DOMAIN}" in
           localhost)
             export COLLABORA_SSL_TERMINATION="false"
@@ -1850,7 +1861,12 @@ tasks:
         # Primary host vars from fleet-mentolder; second host from fleet-korczewski.
         source scripts/env-resolve.sh fleet-mentolder
         export COLLABORA_HOST="office.${PROD_DOMAIN}"
-        export COLLABORA_SERVER_NAME="office.${PROD_DOMAIN}"
+        # Empty server_name → coolwsd derives the WOPI discovery urlsrc host
+        # from the request Host header. The shared dual-host office-stack
+        # serves both brands; a hardcoded office.${PROD_DOMAIN} would make
+        # office.korczewski.de/hosting/discovery advertise the mentolder
+        # host (T000478).
+        export COLLABORA_SERVER_NAME=""
         export COLLABORA_ALIASGROUP1="https://files\\.${PROD_DOMAIN}:443"
         export COLLABORA_SSL_TERMINATION="true"
         export COLLABORA_TLS_SECRET="workspace-wildcard-tls"

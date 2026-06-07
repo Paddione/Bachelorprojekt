@@ -1,10 +1,15 @@
-// brett/src/client/board-boot.ts — Phase A / A5
+// brett/src/client/board-boot.ts — Phase A / A5 + T3 (sf-t000465)
 //
 // The full 3D-board boot logic, moved VERBATIM (behaviour-unchanged) out of the
 // former main.ts boot(). This is the lazy chunk: it statically imports Three.js
 // + scene + all board UI, so importing it pulls the whole 3D bundle. main.ts only
 // ever reaches it via `import('./board-boot')` on first board-view entry, which
 // keeps the Hauptmenü Three-free.
+//
+// T3 additions (DARK-LAUNCH: gated behind window.__brettFeatures['sf-t000465']):
+//   • Free-Fly camera mode wired into tick loop with priority POV > Free-Fly > Orbit
+//   • F-key toggle: only when local player owns no figure
+//   • Esc exits Free-Fly first (capture phase, stopImmediatePropagation)
 
 import * as THREE from 'three';
 import { STATE, ui, getWs, isWsReady, currentUser, activeLocks } from './state';
@@ -17,6 +22,7 @@ import * as hud from './ui/hud';
 import * as appearance from './ui/appearance';
 import * as persons from './ui/persons';
 import * as povCamera from './pov-camera';
+import * as freeFly from './free-fly-camera';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -263,6 +269,40 @@ export async function bootBoard(): Promise<void> {
     wsClient.sendJump(fig.id);
   });
 
+  // T3 (DARK-LAUNCH: sf-t000465): Esc exits Free-Fly before any other Esc handler.
+  // Registered with capture:true so it fires before the bubble-phase handler below.
+  window.addEventListener('keydown', (e) => {
+    const feats: Record<string, boolean> =
+      (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+    if (!feats['sf-t000465']) return;
+    if (e.key === 'Escape' && freeFly.isFreeFly()) {
+      freeFly.exitFreeFly();
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+  }, { capture: true });
+
+  // T3 (DARK-LAUNCH: sf-t000465): F-key toggles Free-Fly mode.
+  // Guard: only allowed when the local player does NOT possess a figure.
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'KeyF') return;
+    const tag = (e.target as HTMLElement)?.tagName || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+    const feats: Record<string, boolean> =
+      (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+    if (!feats['sf-t000465']) return;
+    // Guard: F-key only works when local player owns no figure
+    const possessedFig = STATE.figures.find(f => (f as any)._serverPossessor === currentUser.userId);
+    if (possessedFig) return; // local player is in POV — disallow free-fly toggle
+    if (freeFly.isFreeFly()) {
+      freeFly.exitFreeFly();
+    } else {
+      const { camera, renderer } = sceneApi;
+      freeFly.enterFreeFly(camera, renderer.domElement);
+    }
+    e.preventDefault();
+  });
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (ui.placingMode) {
@@ -296,6 +336,9 @@ export async function bootBoard(): Promise<void> {
   figPanel.addFigure({ x: 0, z: 0 });
 
   // ── Tick loop ──────────────────────────────────────────────────────
+  // T3: Single-Writer priority for camera: POV > Free-Fly > Orbit.
+  // Only one camera-writer runs per frame. isInPov() is checked first
+  // (highest priority), then isFreeFly(), finally the default orbit path.
   let lastTickMs = performance.now();
   function tick() {
     requestAnimationFrame(tick);
@@ -304,7 +347,19 @@ export async function bootBoard(): Promise<void> {
     lastTickMs = now;
     mannequin.tickSpring(dt);
     mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);
-    povCamera.tickPov();
+
+    // T3 Single-Writer: POV has highest priority
+    if (povCamera.isInPov()) {
+      // POV active — pov-camera owns the camera write
+      povCamera.tickPov();
+    } else if (freeFly.isFreeFly()) {
+      // Free-Fly active — drive the camera with free-fly tick
+      // (DARK-LAUNCH: sf-t000465 — guard already enforced at entry; tick here is safe)
+      freeFly.tickFreeFly(dt, camera);
+    } else {
+      // Default: orbit camera — tickPov still called for lerp-out animation
+      povCamera.tickPov();
+    }
 
     // D-spec: Update observer hint + release button visibility
     const possessedFig = STATE.figures.find(f => (f as any)._serverPossessor === currentUser.userId);

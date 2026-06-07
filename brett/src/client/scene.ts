@@ -1,12 +1,31 @@
 import * as THREE from 'three';
 import { setScene } from './state';
 
+// ── Orbit state type ─────────────────────────────────────────────────────────
+/** The three spherical coordinates that define the current orbit camera pose. */
+export interface OrbitState {
+  /** Azimuth angle in radians (horizontal rotation around Y axis). */
+  theta: number;
+  /** Elevation angle in radians (vertical tilt above horizon). */
+  phi: number;
+  /** Radial distance from the origin. */
+  dist: number;
+}
+
 export interface SceneApi {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   floor: THREE.Mesh;
   updateCameraFromOrbit: () => void;
+  /** Return a snapshot of the current orbit camera state (theta, phi, dist). */
+  getOrbitState: () => OrbitState;
+  /**
+   * Teleport the orbit camera to the given position.
+   * DARK-LAUNCH: gated behind window.__brettFeatures['sf-t000465']; no-op when
+   * the flag is absent or false so the merge ships dark.
+   */
+  setCameraToOrbit: (position: OrbitState) => void;
 }
 
 export function initScene(): SceneApi {
@@ -155,6 +174,27 @@ export function initScene(): SceneApi {
     (window as any).__brettPostFx?.resize(w, h);
   });
 
+  // ── Orbit API ─────────────────────────────────────────────────────────────
+
+  function getOrbitState(): OrbitState {
+    return { theta: cameraOrbit.theta, phi: cameraOrbit.phi, dist: cameraOrbit.dist };
+  }
+
+  /**
+   * Teleport the orbit camera to `position`.
+   * DARK-LAUNCH: gated behind window.__brettFeatures['sf-t000465'].
+   * The flag defaults OFF so this is a no-op until the Deploy phase seeds the row.
+   */
+  function setCameraToOrbit(position: OrbitState): void {
+    const feats: Record<string, boolean> =
+      (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+    if (!feats['sf-t000465']) return;
+    cameraOrbit.theta = position.theta;
+    cameraOrbit.phi   = Math.max(-1.2, Math.min(1.2, position.phi));
+    cameraOrbit.dist  = Math.max(2, Math.min(40, position.dist));
+    updateCameraFromOrbit();
+  }
+
   setScene({ renderer, scene, camera, floor: floorMesh });
-  return { renderer, scene, camera, floor: floorMesh, updateCameraFromOrbit };
+  return { renderer, scene, camera, floor: floorMesh, updateCameraFromOrbit, getOrbitState, setCameraToOrbit };
 }

@@ -134,6 +134,10 @@ let featureComplexity = null
 // Same hoist rationale: the Deploy phase's two-gated retry loop (outside the !REUSE block)
 // feeds the touched-file list to paths_are_escalate_class. Stays [] in the REUSE path.
 let featureTouchedFiles = []
+// The plan file path is captured from the Plan agent's return (the agent stamps the date
+// itself via `date +%F` — the harness does not reliably pass A.timestamp). Used by the
+// Deploy phase's archive-plan step. REUSE path sets it to the handed-off plan.
+let planFilePath = REUSE ? REUSE_PLAN : null
 
 // JSON schemas for structured agent outputs
 const SCOUT_SCHEMA = {
@@ -212,12 +216,14 @@ if (!isSimple) {
      ARCH/GOALS/RISKS/DECISIONS structure. For medium/complex, include an adversarial
      "try to refute this design" section.
 
-     Save the spec to: ${REPO}/docs/superpowers/specs/${A.timestamp}-${slug}-design.md
+     Save the spec to: ${REPO}/docs/superpowers/specs/$(date +%F)-${slug}-design.md
+     (compute the YYYY-MM-DD prefix yourself with \`date +%F\` — do NOT use a literal
+     "undefined"; the harness does not always pass a timestamp arg.)
 
      Then attach it to the ticket:
      bash ${REPO}/scripts/ticket-attach.sh <uuid> <specfile>
 
-     Return the spec file path (just the path, nothing else).`,
+     Return the spec file path (just the absolute path you wrote, nothing else).`,
     { label: 'design', phase: 'Design' },
   )
   specPath = design.trim()
@@ -257,21 +263,24 @@ if (!isSimple) {
      touch the same file. For each task provide: id, target_files (array),
      acceptance_criteria (array of strings).
 
-     Write the full plan to:
-     ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
+     Write the full plan to ${REPO}/docs/superpowers/plans/$(date +%F)-${slug}.md
+     (compute the YYYY-MM-DD prefix yourself with \`date +%F\` — do NOT use a literal
+     "undefined"; the harness does not always pass a timestamp arg.)
 
-     Then run the frontmatter hook:
-     bash ${REPO}/scripts/plan-frontmatter-hook.sh ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
+     Then run the frontmatter hook on the SAME file you just wrote:
+     bash ${REPO}/scripts/plan-frontmatter-hook.sh <the-plan-file-you-wrote>
 
-     Return a JSON object { tasks: [...] } matching the task schema.`,
+     Return a JSON object { tasks: [...], plan_path: "<absolute path of the plan file you wrote>" }
+     matching the schema.`,
     {
       ...(planProv.model ? { model: planProv.model } : {}),
       label: 'plan:decompose',
       phase: 'Plan',
       schema: {
         type: 'object',
-        required: ['tasks'],
+        required: ['tasks', 'plan_path'],
         properties: {
+          plan_path: { type: 'string' },
           tasks: {
             type: 'array',
             items: {
@@ -289,54 +298,94 @@ if (!isSimple) {
     },
   )
   tasks = plan.tasks
+  planFilePath = plan.plan_path
 }
 }
 
 if (REUSE) {
   phase('Plan')
   const reuse = await agent(
-    `A human already planned this feature via dev-flow. Check out the existing branch
-     ${WORK_BRANCH} into an isolated worktree at ${WORK_WT} (from ${REPO}), then read the
-     plan file ${REUSE_PLAN} on that branch. Decompose it into independent tasks where no
-     two tasks touch the same file: each { id, target_files:[...], acceptance_criteria:[...] }.
+    `A human already planned this feature via dev-flow on the existing branch ${WORK_BRANCH}.
+     Read the plan file WITHOUT creating a worktree (the Implement phase creates the shared
+     worktree later) — from ${REPO} run: git show "origin/${WORK_BRANCH}:${REUSE_PLAN}"
+     (fall back to \`git show "${WORK_BRANCH}:${REUSE_PLAN}"\` if the remote ref is absent).
+     Decompose it into independent tasks where no two tasks touch the same file:
+     each { id, target_files:[...], acceptance_criteria:[...] }.
      Do NOT write a new plan or spec — reuse the human one. Return { tasks: [...] }.`,
     { label: 'plan:reuse', phase: 'Plan', schema: { type:'object', required:['tasks'], properties:{ tasks:{ type:'array', items:{ type:'object', required:['id','target_files','acceptance_criteria'], properties:{ id:{type:'string'}, target_files:{type:'array',items:{type:'string'}}, acceptance_criteria:{type:'array',items:{type:'string'}} } } } } } },
   )
   tasks = reuse.tasks
 }
 
-// ── ④ Implement (N parallel tasks, isolated worktrees) ─────────────────────
+// ── ④ Implement (ONE shared git-crypt-safe worktree, tasks run sequentially) ──
+// NOTE: we do NOT use the harness `isolation: 'worktree'` option here — it runs a
+// raw `git worktree add` whose checkout invokes the git-crypt smudge filter, which
+// fails fatally because the new per-worktree gitdir has no git-crypt key (T000473 /
+// T000426). Instead one shared worktree is created up front via the git-crypt-safe
+// scripts/worktree-create.sh, and the per-task prompts (and the Deploy phase) already
+// assume that single ${WORK_WT}. Tasks run SEQUENTIALLY: they share one worktree, so
+// concurrent `task test:all` / git-commit would race on the working tree + index.lock.
+// (Plan guarantees disjoint files, so sequential is purely a safety choice — parallel
+// per-task worktrees + a merge step is a possible future optimization.)
 let implemented = []
 if (tasks.length) {
   phase('Implement')
-  implemented = (await pipeline(
-    tasks,
-    (t) => {
-      const prov = provision({ complexity: featureComplexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
-      return agent(
-        `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-         Implement task ${t.id} on branch ${WORK_BRANCH} in an isolated worktree at ${WORK_WT}.
-         Target files: ${t.target_files.join(', ')}.
-         Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
-         DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
-         (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
-         do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
-         Provisioned context hints (assemble compactly, never raw-dump): ${prov.contextHints.join(' | ')}.
-         After implementing, run locally:
-           cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
-         (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
-         up to date so CI passes. Commit the regenerated files alongside your implementation.)
-         Return a summary of the diff and the local test result (pass/fail).`,
-        { label: `impl:${t.id}`, phase: 'Implement', isolation: 'worktree', ...(prov.model ? { model: prov.model } : {}) },
-      )
-    },
-    (_res, t) => agent(
-      `Self-verify task ${t.id}: re-read the implementation diff and confirm that each
-       acceptance criterion is met: ${t.acceptance_criteria.join('; ')}.
-       Report pass/fail for each criterion.`,
+
+  // Create the ONE shared worktree (git-crypt-safe). worktree-create.sh handles both
+  // a NEW branch (self-plan path, from origin/main) and an EXISTING branch (reuse path).
+  const wtSetup = await agent(
+    `Record pipeline liveness: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
+     From ${REPO}, create the isolated worktree for this feature using the git-crypt-safe wrapper
+     (do NOT run a raw \`git worktree add\` — it fails on git-crypt'd paths):
+       bash ${REPO}/scripts/worktree-create.sh ${WORK_BRANCH} ${WORK_WT} origin/main
+     Report the FULL stdout and the exit code. A success line contains "ready on".`,
+    { label: 'impl:worktree-setup', phase: 'Implement' },
+  )
+  if (!/ready on/.test(String(wtSetup ?? ''))) {
+    // Fail loudly so the dispatcher's escalation routing surfaces it (a swallowed
+    // worktree failure is exactly how the 2026-06-07 first real run looked "green").
+    await agent(
+      `The git-crypt-safe worktree could not be created for ${A.ticket_id}; the pipeline cannot implement.
+       Record it and notify: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+       Then PushNotification is DEFERRED — run \`ToolSearch select:PushNotification\`, then call it once:
+         title:   "Factory worktree setup failed: ${A.ticket_id} (${brand})"
+         message: "scripts/worktree-create.sh did not report success. Detail: ${String(wtSetup ?? '').slice(0, 240)}"
+       Report what was notified.`,
+      { label: 'impl:worktree-escalate', phase: 'Implement' },
+    )
+    return { status: 'blocked', reason: 'worktree-setup', detail: String(wtSetup ?? '').slice(0, 400) }
+  }
+
+  for (const t of tasks) {
+    const prov = provision({ complexity: featureComplexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
+    const impl = await agent(
+      `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
+       Implement task ${t.id} on branch ${WORK_BRANCH} in the SHARED worktree at ${WORK_WT}
+       (it already exists and ${WORK_BRANCH} is checked out there — do NOT run \`git worktree add\`).
+       Target files: ${t.target_files.join(', ')}.
+       Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
+       DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
+       (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
+       do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
+       Provisioned context hints (assemble compactly, never raw-dump): ${prov.contextHints.join(' | ')}.
+       After implementing, run locally:
+         cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
+       (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
+       up to date so CI passes.)
+       Finally COMMIT your work on ${WORK_BRANCH} (so the Verify/Deploy phases can diff it):
+         cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
+       Return a summary of the diff and the local test result (pass/fail).`,
+      { label: `impl:${t.id}`, phase: 'Implement', ...(prov.model ? { model: prov.model } : {}) },
+    )
+    if (impl == null) continue   // agent died (terminal API error) — skip its self-verify
+    const verify = await agent(
+      `Self-verify task ${t.id}: re-read the implementation diff in ${WORK_WT}
+       (git -C ${WORK_WT} diff origin/main...HEAD) and confirm each acceptance criterion is met:
+       ${t.acceptance_criteria.join('; ')}. Report pass/fail for each criterion.`,
       { label: `impl-verify:${t.id}`, phase: 'Implement' },
-    ),
-  )).filter(Boolean)
+    )
+    if (verify != null) implemented.push(verify)
+  }
 }
 
 // ── ⑤ Verify (adversarial review panel — three parallel lenses) ────────────
@@ -484,7 +533,7 @@ const deploy = await agent(
    5. Close the ticket and archive the plan:
       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \
-        --branch ${WORK_BRANCH} --plan-file ${REPO}/docs/superpowers/plans/${A.timestamp}-${slug}.md
+        --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`}
    5b. Seed the dark-launch flag default-OFF for BOTH brands (mirrors the
        isFeatureEnabled('${slug}') gate added during Implement):
       bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory

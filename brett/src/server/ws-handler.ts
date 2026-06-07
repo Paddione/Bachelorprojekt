@@ -407,6 +407,27 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
 
+        // ── Notiz-Mutation (Slice 5, T000469) ──────────────────────────────────
+        if (msg.type === 'figure_note_set') {
+          if (typeof msg.figureId !== 'string' || typeof msg.note !== 'string') return;
+          if (!gateMutation(ws, room, 'figure_note_set', msg.figureId, deps)) {
+            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+            return;
+          }
+          deps.applyMutation(room, {
+            type: 'figure_note_set',
+            figureId: msg.figureId,
+            note: msg.note,
+          });
+          deps.broadcast(room, {
+            type: 'figure_note_changed',
+            figureId: msg.figureId,
+            note: msg.note.slice(0, 1000),
+          });
+          deps.schedulePersist(room);
+          return;
+        }
+
         // Non-privileged, ephemeral live-lobby readiness self-report.
         if (msg.type === 'lobby_set_ready') {
           handleLobbySetReady(ws, msg, deps);

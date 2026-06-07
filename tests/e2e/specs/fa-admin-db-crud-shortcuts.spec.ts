@@ -12,6 +12,7 @@
 // Skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -28,8 +29,13 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 
 test.describe('FA-admin-db-crud-shortcuts', () => {
 
-  test('shortcut CRUD: create → verify in UI → update label → verify → delete → verify gone', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
+  test('shortcut CRUD: create → verify in UI → update label → verify → delete → verify gone', async ({ page, request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin dashboard' },
+      testInfo
+    );
 
     await loginAsAdmin(page);
 

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
@@ -18,8 +19,13 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', ()
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T3: health API returns only current cluster (no cross-cluster probe)', async ({ request }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skip authenticated test');
+  test('T3: health API returns only current cluster (no cross-cluster probe)', async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/api/admin/ops/health`,
+      { acceptableStatuses: [200, 302, 401, 403], label: 'ops health API' },
+      testInfo
+    );
 
     const loginRes = await request.post(`${BASE}/api/auth/login`, {
       data: { username: 'paddione', password: process.env.E2E_ADMIN_PASS }
@@ -49,8 +55,13 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', ()
     }
   });
 
-  test('T4: software assets API returns collabora with workspace-office namespace', async ({ request }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skip authenticated test');
+  test('T4: software assets API returns collabora with workspace-office namespace', async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/api/admin/platform/software`,
+      { acceptableStatuses: [200, 302, 401, 403], label: 'platform software API' },
+      testInfo
+    );
 
     const res = await request.get(`${BASE}/api/admin/platform/software`);
     if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
@@ -64,8 +75,13 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', ()
     expect(collabora.live_status).not.toBe('missing');
   });
 
-  test('T5: health API reports Collabora reachable (not error)', async ({ request }) => {
-    test.skip(!process.env.E2E_ADMIN_PASS, 'E2E_ADMIN_PASS not set — skip authenticated test');
+  test('T5: health API reports Collabora reachable (not error)', async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/api/admin/ops/health`,
+      { acceptableStatuses: [200, 302, 401, 403], label: 'ops health API' },
+      testInfo
+    );
 
     const res = await request.get(`${BASE}/api/admin/ops/health`);
     if (res.status() === 401) test.skip(true, 'Not authenticated — skip');

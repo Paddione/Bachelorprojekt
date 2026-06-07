@@ -10,14 +10,19 @@
 // All tests are skipped when E2E_ADMIN_PASS is not set.
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
-const HAS_CREDS = !!process.env.E2E_ADMIN_PASS;
 
 test.describe('FA-45: Authenticated API flows', () => {
 
-  test.beforeEach(async () => {
-    test.skip(!HAS_CREDS, 'requires E2E_ADMIN_PASS');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/api/auth/me`,
+      { acceptableStatuses: [200, 302, 401], label: 'auth me API' },
+      testInfo
+    );
   });
 
   // T1: /api/auth/me returns authenticated user

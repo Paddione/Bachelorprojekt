@@ -12,6 +12,7 @@
 // The test skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const MAILPIT    = process.env.MAILPIT_URL ?? 'http://localhost:8025';
@@ -42,8 +43,13 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('FA-admin-tickets', () => {
-  test('full flow: filter + comment + transition + timeline', async ({ page, request }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
+  test('full flow: filter + comment + transition + timeline', async ({ page, request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/tickets`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin tickets' },
+      testInfo
+    );
 
     // ── 1. Mint a public bug as the seed ticket ──
     const reporter = `e2e-tickets-${Date.now()}@example.com`;

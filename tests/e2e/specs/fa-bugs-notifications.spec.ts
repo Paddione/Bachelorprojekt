@@ -18,6 +18,7 @@
 // The test skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const MAILPIT    = process.env.MAILPIT_URL  ?? 'http://localhost:8025';
@@ -25,8 +26,13 @@ const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 test.describe('FA-bug-notify', () => {
-  test('reporter receives close-mail when admin resolves ticket', async ({ page, request }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping (set to enable live run)');
+  test('reporter receives close-mail when admin resolves ticket', async ({ page, request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/bugs`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin bugs page' },
+      testInfo
+    );
 
     // ── Step 1: Submit public bug report via API (no auth required) ──
     const reporter = `e2e-${Date.now()}@example.com`;

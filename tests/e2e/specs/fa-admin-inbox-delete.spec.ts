@@ -24,6 +24,7 @@
 // the next run's globalSetup wipes the seeded row.
 
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE        = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -69,10 +70,13 @@ async function seedTestContactRow(api: APIRequestContext): Promise<string> {
 }
 
 test.describe('FA-admin-inbox-delete: Löschen escape hatch', () => {
-  test.beforeEach(({ }, testInfo) => {
-    if (!ADMIN_PASS) {
-      testInfo.skip(true, 'E2E_ADMIN_PASS not set — skipping admin inbox delete spec');
-    }
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/inbox`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin inbox' },
+      testInfo
+    );
     if (!CRON_SECRET) {
       testInfo.skip(true, 'CRON_SECRET not set — cannot seed test rows');
     }

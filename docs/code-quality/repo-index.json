@@ -1506,7 +1506,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 365,
+      "file_count": 366,
       "files": [
         "claude-code/gekko-android-mcp-guide.md",
         "claude-code/settings.json",
@@ -1748,6 +1748,7 @@
         "k3d/oauth2-proxy-mailpit.yaml",
         "k3d/oauth2-proxy-traefik.yaml",
         "k3d/office-stack/collabora.yaml",
+        "k3d/office-stack/ingress-korczewski.yaml",
         "k3d/office-stack/ingress.yaml",
         "k3d/office-stack/kustomization.yaml",
         "k3d/office-stack/namespace.yaml",

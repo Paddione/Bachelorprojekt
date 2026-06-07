@@ -156,6 +156,45 @@ function _updateFreeFlyBtn(featureEnabled: boolean): void {
   btn.textContent = isFreeFly() ? '🌐 Beenden' : '🌐 Freier Flug';
 }
 
+// ── T000470: Undo/Redo-Buttons (lazy — headless-safe) ────────────────────────
+let _undoBtnEl: HTMLButtonElement | null | undefined = undefined;
+let _redoBtnEl: HTMLButtonElement | null | undefined = undefined;
+
+function getUndoBtn(): HTMLButtonElement | null {
+  if (_undoBtnEl === undefined) {
+    _undoBtnEl = document.getElementById('btn-undo') as HTMLButtonElement | null;
+  }
+  return _undoBtnEl;
+}
+
+function getRedoBtn(): HTMLButtonElement | null {
+  if (_redoBtnEl === undefined) {
+    _redoBtnEl = document.getElementById('btn-redo') as HTMLButtonElement | null;
+  }
+  return _redoBtnEl;
+}
+
+/**
+ * Synchronisiert den enabled/disabled-Zustand der Undo/Redo-Buttons mit dem
+ * aktuellen Stack-Status aus dem Server.
+ * Wird von ws-client.ts via onUndoStateChange aufgerufen.
+ * T000470: isAdmin-Gate schützt auf Server-Seite.
+ */
+export function updateUndoRedoButtons(canUndo: boolean, canRedo: boolean): void {
+  const undoBtn = getUndoBtn();
+  const redoBtn = getRedoBtn();
+  if (undoBtn) {
+    undoBtn.disabled = !canUndo;
+    undoBtn.style.opacity = canUndo ? '1' : '0.4';
+    undoBtn.style.cursor = canUndo ? 'pointer' : 'default';
+  }
+  if (redoBtn) {
+    redoBtn.disabled = !canRedo;
+    redoBtn.style.opacity = canRedo ? '1' : '0.4';
+    redoBtn.style.cursor = canRedo ? 'pointer' : 'default';
+  }
+}
+
 /** Release all possessions — called from the release button. */
 export function releaseAllPossessions(): void {
   const ws = getWs();

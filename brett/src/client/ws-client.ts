@@ -22,6 +22,29 @@ function _toExportFig(fig: any): ExportFigure {
   };
 }
 
+// ── T000470: Undo/Redo-Stack-Status ──────────────────────────────────────────
+export const undoState = {
+  canUndo: false,
+  canRedo: false,
+  undoCount: 0,
+  redoCount: 0,
+};
+
+let onUndoStateChange: ((state: typeof undoState) => void) | null = null;
+export function setUndoStateChangeHandler(fn: typeof onUndoStateChange): void {
+  onUndoStateChange = fn;
+}
+
+function applyUndoStateChange(
+  canUndo: boolean, canRedo: boolean, undoCount: number, redoCount: number,
+): void {
+  undoState.canUndo = canUndo;
+  undoState.canRedo = canRedo;
+  undoState.undoCount = undoCount;
+  undoState.redoCount = redoCount;
+  if (onUndoStateChange) onUndoStateChange({ ...undoState });
+}
+
 // ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
 let lobbyState: LobbyState = createLobbyState();
 export function getLobbyState(): LobbyState { return lobbyState; }
@@ -94,6 +117,14 @@ export function sendDelete(): void {
   if (STATE.selectedId) {
     send({ type: 'delete', id: STATE.selectedId });
   }
+}
+
+export function sendUndo(): void {
+  send({ type: 'session_undo' });
+}
+
+export function sendRedo(): void {
+  send({ type: 'session_redo' });
 }
 
 export function sendAddFigure(fig: any): void {
@@ -512,6 +543,10 @@ export function onWsMessage(evt: MessageEvent): void {
       }
       break;
     }
+
+    case 'undo_stack_changed':
+      applyUndoStateChange(msg.canUndo, msg.canRedo, msg.undoCount, msg.redoCount);
+      break;
 
     case 'error':
       // Non-fatal protocol error from the server (e.g. forbidden / not-ready).

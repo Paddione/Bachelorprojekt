@@ -72,6 +72,8 @@ export const ADMIN_TYPES = new Set<string>([
   'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
   'anchor_create', 'anchor_delete', 'zone_create', 'zone_delete',  // NEU T000468
   'session_undo', 'session_redo',   // ← T000470
+  // ── Line mutations (T000467) — leiter-exklusiv ────────────────────────────
+  'line_create', 'line_delete', 'line_type_set',
 ]);
 
 /**
@@ -300,6 +302,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
                 moderation: freshState.moderation ?? null,
                 anchors: freshState.anchors ?? [],   // NEU T000468
                 zones: freshState.zones ?? [],       // NEU T000468
+                lines: freshState.lines ?? [],       // NEU T000467
               }));
             } catch {}
           }

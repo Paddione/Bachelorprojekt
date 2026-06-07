@@ -1,4 +1,5 @@
 import type { WsDeps } from './ws-handler';
+import { resolvePlayerId } from './ws-handler';
 import * as undoStack from './undo-stack';
 
 function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {
@@ -337,6 +338,79 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.broadcast(adminRoom, { type: 'zone_removed', zoneId: msg.zoneId });
       deps.schedulePersist(adminRoom);
       return;
+    }
+    case 'line_create': {
+      // Leiter-only check (zusätzlich zur isAdmin-Gate in ws-handler.ts)
+      const state = deps.buildStateFromMutations(adminRoom) || {};
+      const role = deps.resolveRole(ws, state.roles || {});
+      if (role !== 'leiter') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+        return;
+      }
+      // Validierungen
+      const figMap = deps.figureMaps.get(adminRoom);
+      if (typeof msg.fromId !== 'string' || typeof msg.toId !== 'string' ||
+          !figMap?.has(msg.fromId) || !figMap?.has(msg.toId)) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid-figure' })); } catch {}
+        return;
+      }
+      if (msg.fromId === msg.toId) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'self-line' })); } catch {}
+        return;
+      }
+      const validLineTypes = new Set(['relationship', 'tension', 'resource']);
+      if (!validLineTypes.has(msg.lineType)) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid-line-type' })); } catch {}
+        return;
+      }
+      // ID generieren (crypto.randomUUID slice statt nanoid — keine neue Dep)
+      const lineId = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+      const createdBy = resolvePlayerId(ws);
+      deps.applyMutation(adminRoom, {
+        type: 'line_create',
+        id: lineId,
+        fromId: msg.fromId,
+        toId: msg.toId,
+        lineType: msg.lineType,
+        createdBy,
+      });
+      const newLine = { id: lineId, fromId: msg.fromId, toId: msg.toId, lineType: msg.lineType, createdBy };
+      deps.broadcast(adminRoom, { type: 'line_created', line: newLine });
+      deps.schedulePersist(adminRoom);
+      break;
+    }
+    case 'line_delete': {
+      const state2 = deps.buildStateFromMutations(adminRoom) || {};
+      const role2 = deps.resolveRole(ws, state2.roles || {});
+      if (role2 !== 'leiter') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+        return;
+      }
+      if (typeof msg.lineId !== 'string') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid-line-id' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'line_delete', lineId: msg.lineId });
+      deps.broadcast(adminRoom, { type: 'line_deleted', lineId: msg.lineId });
+      deps.schedulePersist(adminRoom);
+      break;
+    }
+    case 'line_type_set': {
+      const state3 = deps.buildStateFromMutations(adminRoom) || {};
+      const role3 = deps.resolveRole(ws, state3.roles || {});
+      if (role3 !== 'leiter') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+        return;
+      }
+      const validTypes = new Set(['relationship', 'tension', 'resource']);
+      if (typeof msg.lineId !== 'string' || !validTypes.has(msg.lineType)) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid-params' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'line_type_set', lineId: msg.lineId, lineType: msg.lineType });
+      deps.broadcast(adminRoom, { type: 'line_type_changed', lineId: msg.lineId, lineType: msg.lineType });
+      deps.schedulePersist(adminRoom);
+      break;
     }
   }
 }

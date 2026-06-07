@@ -29,6 +29,17 @@ const seqCounters = new Map<string, number>();
 /** Rooms for which seq has been seeded from DB (prevents re-seeding). */
 const seqSeeded = new Set<string>();
 
+/**
+ * Events buffered while the DB seq seed is in flight.
+ * Held without a seq number until the seed resolves; then re-numbered
+ * starting from dbMax+1 and moved to eventBuffers. Prevents ON CONFLICT
+ * DO NOTHING silent data loss when the server restarts mid-session.
+ */
+const seedPendingBuffers = new Map<string, Array<Omit<RecordedEvent, 'id' | 'seq'>>>();
+
+/** Pending seed Promises per room — awaited by flushEventBuffer. */
+const seedPromises = new Map<string, Promise<void>>();
+
 /** Per-room flush timer handles. */
 const flushTimers = new Map<string, NodeJS.Timeout>();
 
@@ -50,19 +61,46 @@ export function appendEvent(
 ): void {
   if (!pool) return;
 
-  // Seed seq counter from DB on first use after restart (async, fire-and-forget).
-  // Events during seeding use an optimistic counter; seeding completes before
-  // the first flush (FLUSH_INTERVAL_MS = 2s >> typical seeding latency < 20ms).
+  // Seed seq counter from DB on first use after restart.
+  // Events arriving during seeding are held in seedPendingBuffers without a seq
+  // and re-numbered once the DB max is known — prevents ON CONFLICT DO NOTHING
+  // silent data loss when the server restarts mid-session.
   if (!seqSeeded.has(room)) {
-    seqSeeded.add(room);
-    pool.query('SELECT COALESCE(MAX(seq), 0) AS max_seq FROM session_events WHERE room_token = $1', [room])
-      .then(({ rows }) => {
-        const dbMax = Number(rows[0]?.max_seq ?? 0);
-        const current = seqCounters.get(room) ?? 0;
-        // Advance the counter if DB is ahead of our in-memory start position.
-        if (dbMax >= current) seqCounters.set(room, dbMax);
-      })
-      .catch(err => console.error('[brett/event-log] seq seed error:', err));
+    if (!seedPendingBuffers.has(room)) {
+      seedPendingBuffers.set(room, []);
+      const seedPromise = pool
+        .query('SELECT COALESCE(MAX(seq), 0) AS max_seq FROM session_events WHERE room_token = $1', [room])
+        .then(({ rows }) => {
+          const dbMax = Number(rows[0]?.max_seq ?? 0);
+          seqCounters.set(room, dbMax);
+          seqSeeded.add(room);
+          seedPromises.delete(room);
+          const pending = seedPendingBuffers.get(room) ?? [];
+          seedPendingBuffers.delete(room);
+          if (pending.length === 0) return;
+          let seq = dbMax;
+          let buf = eventBuffers.get(room);
+          if (!buf) { buf = []; eventBuffers.set(room, buf); }
+          for (const ev of pending) {
+            seq += 1;
+            buf.push({ ...ev, seq });
+          }
+          seqCounters.set(room, seq);
+          scheduleFlush(room);
+        })
+        .catch(err => {
+          seqSeeded.add(room);
+          seedPendingBuffers.delete(room);
+          seedPromises.delete(room);
+          console.error('[brett/event-log] seq seed error:', err);
+        });
+      seedPromises.set(room, seedPromise);
+    }
+    const pending = seedPendingBuffers.get(room);
+    if (pending) {
+      pending.push({ roomToken: room, sessionCode, eventType, payload, recordedAt: new Date().toISOString() });
+      return;
+    }
   }
 
   const seq = (seqCounters.get(room) ?? 0) + 1;
@@ -80,13 +118,15 @@ export function appendEvent(
     recordedAt: new Date().toISOString(),
   });
 
-  // Auto-flush when buffer exceeds max batch size
   if (buf.length >= MAX_BATCH_SIZE) {
     flushEventBuffer(room).catch(err => console.error('[brett/event-log] flush error:', err));
     return;
   }
 
-  // Schedule debounced flush
+  scheduleFlush(room);
+}
+
+function scheduleFlush(room: string): void {
   if (!flushTimers.has(room)) {
     flushTimers.set(room, setTimeout(() => {
       flushTimers.delete(room);
@@ -101,6 +141,11 @@ export function appendEvent(
  */
 export async function flushEventBuffer(room: string): Promise<void> {
   if (!pool) return;
+
+  // If the DB seq seed is still in flight, wait for it so pending events are
+  // moved to eventBuffers and re-numbered before we attempt the INSERT.
+  const seed = seedPromises.get(room);
+  if (seed) await seed;
 
   const timer = flushTimers.get(room);
   if (timer) { clearTimeout(timer); flushTimers.delete(room); }
@@ -185,9 +230,10 @@ export async function loadSessionMetas(room: string): Promise<Array<{
 
 /** Returns current buffer stats (used in tests). */
 export function getBufferStats(room: string): { buffered: number; nextSeq: number } {
+  const pendingCount = seedPendingBuffers.get(room)?.length ?? 0;
   return {
-    buffered: eventBuffers.get(room)?.length ?? 0,
-    nextSeq: (seqCounters.get(room) ?? 0) + 1,
+    buffered: (eventBuffers.get(room)?.length ?? 0) + pendingCount,
+    nextSeq: (seqCounters.get(room) ?? 0) + pendingCount + 1,
   };
 }
 
@@ -198,6 +244,8 @@ export function resetEventLog(): void {
   seqCounters.clear();
   seqSeeded.clear();
   flushTimers.clear();
+  seedPendingBuffers.clear();
+  seedPromises.clear();
 }
 
 /** Flush all rooms with buffered events (call during graceful shutdown). */

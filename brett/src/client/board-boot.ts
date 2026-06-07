@@ -16,6 +16,7 @@ import { STATE, ui, getWs, isWsReady, currentUser, activeLocks } from './state';
 import { initScene } from './scene';
 import * as mannequin from './mannequin';
 import * as wsClient from './ws-client';
+import type { ClientModerationState } from './ws-client';
 import * as presets from './presets';
 import * as figPanel from './ui/fig-panel';
 import * as hud from './ui/hud';
@@ -100,6 +101,30 @@ export async function bootBoard(): Promise<void> {
   });
   document.body.appendChild(releaseBtn);
 
+  // T000471: Freeze-Indikator-Banner
+  const freezeBanner = document.createElement('div');
+  freezeBanner.id = 'freeze-indicator';
+  freezeBanner.textContent = '❄ EINGEFROREN — Figuren koennen nicht bewegt werden';
+  Object.assign(freezeBanner.style, {
+    display: 'none',
+    position: 'absolute',
+    top: '44px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: 'var(--brett-font-mono), monospace',
+    fontSize: '10px',
+    color: '#7dc8f7',
+    border: '1px solid rgba(125,200,247,0.3)',
+    background: 'rgba(0,16,32,0.85)',
+    padding: '4px 18px',
+    borderRadius: '6px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    zIndex: '25',
+    pointerEvents: 'none',
+  });
+  document.body.appendChild(freezeBanner);
+
   // ── Stiffness slider ───────────────────────────────────────────────
   const stiffSlider = document.getElementById('stiffness') as HTMLInputElement;
   stiffSlider.addEventListener('input', () => {
@@ -150,6 +175,16 @@ export async function bootBoard(): Promise<void> {
       if (lock && lock.userId !== currentUser.userId) {
         e.preventDefault();
         return; // block!
+      }
+
+      // T000471: Freeze-Gate on client — show visual feedback, don't start drag
+      if (currentModerationState.freeze) {
+        // Leiter-check: fetch role from lobby state
+        const myRole = wsClient.getLobbyState()?.participants?.find((p: any) => p.userId === currentUser.userId)?.role;
+        if (myRole !== 'leiter') {
+          e.preventDefault();
+          return; // Server will also reject; client skips drag start
+        }
       }
 
       // D-spec: click on a free figure → possess it instead of locking
@@ -333,6 +368,14 @@ export async function bootBoard(): Promise<void> {
 
   // ── WS connect + seed figure ───────────────────────────────────────
   wsClient.connectWS();
+
+  // T000471: Wire moderation change handler — update visuals on server push
+  let currentModerationState: ClientModerationState = { spotlight: null, dim: null, freeze: false };
+  wsClient.setModerationChangeHandler((state) => {
+    currentModerationState = state;
+    freezeBanner.style.display = state.freeze ? 'block' : 'none';
+  });
+
   figPanel.addFigure({ x: 0, z: 0 });
 
   // ── Tick loop ──────────────────────────────────────────────────────
@@ -347,6 +390,8 @@ export async function bootBoard(): Promise<void> {
     lastTickMs = now;
     mannequin.tickSpring(dt);
     mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);
+    // T000471: Moderation visuals (Spotlight/Dim/Freeze)
+    mannequin.updateModerationVisuals(STATE.figures, currentModerationState);
 
     // T3 Single-Writer: POV has highest priority
     if (povCamera.isInPov()) {

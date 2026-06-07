@@ -101,6 +101,11 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
     case 'admin_round_stop': {
       deps.handleAdminRoundStop(adminRoom, (m: any) => deps.broadcast(adminRoom, m));
       deps.schedulePersist(adminRoom);
+      // Flush event log on session end (Slice 5, T000472) — ensures no events lost.
+      if (deps.flushEventLog) {
+        deps.flushEventLog(adminRoom).catch((err: any) =>
+          console.error('[brett/event-log] flush on end error:', err));
+      }
       break;
     }
     case 'admin_round_pause': {

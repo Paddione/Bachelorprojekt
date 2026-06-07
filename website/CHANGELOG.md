@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.34.0...website-v1.34.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* **e2e:** smoke tests for admin backup ops endpoints [T000479] ([#1408](https://github.com/Paddione/Bachelorprojekt/issues/1408)) ([83bc180](https://github.com/Paddione/Bachelorprojekt/commit/83bc1807a397cbf44dd5ced56b7ce4a18e19ad88))
+
 ## [1.34.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.33.0...website-v1.34.0) (2026-06-07)
 
 

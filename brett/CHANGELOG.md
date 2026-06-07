@@ -1,6 +1,17 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.19.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.18.0...brett-v0.19.0) (2026-06-07)
+
+
+### Features
+
+* **brett:** Boden-Anker & Zonen (Slice 6) [T000468] ([#1411](https://github.com/Paddione/Bachelorprojekt/issues/1411)) ([537f6dc](https://github.com/Paddione/Bachelorprojekt/commit/537f6dc31531804aba45706e70e89745538ac966))
+* **brett:** Export-UI — PNG/JSON/PDF Download [T000466] ([#1409](https://github.com/Paddione/Bachelorprojekt/issues/1409)) ([546948b](https://github.com/Paddione/Bachelorprojekt/commit/546948b0a792cbeb9be3bed9799983022a6aa938))
+* **brett:** Figur-Notizen & Statement-Billboards [T000469] ([#1410](https://github.com/Paddione/Bachelorprojekt/issues/1410)) ([d6166d2](https://github.com/Paddione/Bachelorprojekt/commit/d6166d29f8fcfb699578730a90b2ba0ec697a25a))
+* **brett:** Spotlight/Dim/Freeze admin-Moderation (Slice 2) [T000471] ([#1407](https://github.com/Paddione/Bachelorprojekt/issues/1407)) ([699818b](https://github.com/Paddione/Bachelorprojekt/commit/699818b493c95b71417676f57063dc87ef356912))
+* **brett:** Undo/Redo Mutations-Stack (Slice 3) [T000470] ([#1413](https://github.com/Paddione/Bachelorprojekt/issues/1413)) ([f95eabd](https://github.com/Paddione/Bachelorprojekt/commit/f95eabdb54d64792f921fb0655512e9c3671972c))
+
 ## [0.18.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.17.0...brett-v0.18.0) (2026-06-07)
 
 

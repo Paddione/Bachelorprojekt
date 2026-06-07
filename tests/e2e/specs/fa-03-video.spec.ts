@@ -24,15 +24,16 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     ).toBeVisible({ timeout: 20_000 });
   });
 
-  test('T4: HPB Signaling-Server erreichbar', async ({ request }) => {
+  test('T4: HPB Signaling-Server erreichbar', async ({ request }, testInfo) => {
     test.skip(!SIGNALING_URL, 'TEST_SIGNALING_URL nicht gesetzt');
     const response = await request.get(`${SIGNALING_URL}/api/v1/welcome`);
-    // 200 = fully operational; 503 = ingress alive but NATS backend unavailable
-    expect([200, 503]).toContain(response.status());
-    if (response.status() === 200) {
-      const body = await response.json();
-      expect(body).toHaveProperty('version');
+    if (response.status() === 503) {
+      test.fixme(true, 'Signaling NATS backend unavailable (503) — T000480');
+      return;
     }
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body).toHaveProperty('version');
   });
 
   test('T5: Talk-Link ohne Login aufrufbar (Gast)', async ({ browser }) => {

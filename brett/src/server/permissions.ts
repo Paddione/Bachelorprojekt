@@ -10,7 +10,8 @@ import type { Role } from '../types/state';
 export type MutationType =
   | 'add' | 'move' | 'update' | 'jump' | 'delete'
   | 'clear' | 'stiffness' | 'snapshot' | 'request_state_snapshot'
-  | 'figure_lock';
+  | 'figure_lock'
+  | 'figure_possess' | 'figure_release';
 
 export interface MutateContext {
   msgType: MutationType;
@@ -54,6 +55,8 @@ export function canMutate(ctx: MutateContext): boolean {
     case 'stiffness':
     case 'snapshot':
     case 'figure_lock':
+    case 'figure_possess':
+    case 'figure_release':
       break;
     default:
       return false; // Default-Deny for any non-matrix msgType.
@@ -75,6 +78,16 @@ export function canMutate(ctx: MutateContext): boolean {
       default:
         return false;
     }
+  }
+
+  // beobachter may possess a free figure (Observer → possessor transition).
+  // figure_release is also permitted (own possessions only — ws-handler enforces
+  // the playerId match at apply time).
+  if (ctx.role === 'beobachter') {
+    if (ctx.msgType === 'figure_possess' || ctx.msgType === 'figure_release') {
+      return true;
+    }
+    return false; // read-only for everything else
   }
 
   // beobachter (and any unrecognized role) → read-only; request_state_snapshot

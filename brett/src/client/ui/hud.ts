@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STATE, ui, lockSprites, activeLocks } from '../state';
+import { STATE, ui, lockSprites, activeLocks, currentUser, getWs, isWsReady } from '../state';
 import { lockBadgeStyle, type VarGetter } from './skin';
 
 const pillEl = document.getElementById('status-pill')!;
@@ -73,9 +73,32 @@ export function updateStatusPill(): void {
     pillEl.textContent = '● Drag … · Loslassen = beenden';
     return;
   }
+
+  // D-spec: Possession-aware status
+  const possessedFig = STATE.figures.find(f => (f as any)._serverPossessor === currentUser.userId);
+  if (possessedFig) {
+    pillEl.textContent = '👁 POV aktiv · Shift+Drag = Orbit · 🚶 [Loslassen] klicken';
+    return;
+  }
+
+  // No possessed figure, no selection — check if observer
+  const anyFree = STATE.figures.some(f => !(f as any)._serverPossessor && !activeLocks.get(f.id));
+  if (!fig && anyFree) {
+    pillEl.textContent = 'Klick auf freie Figur = Verkörpern · Doppelklick Boden = neue Figur';
+    return;
+  }
+
   if (!fig) {
     pillEl.textContent = 'Klick = Figur wählen · Doppelklick Boden = neue Figur';
     return;
   }
   pillEl.textContent = 'Doppelklick Boden = Verschieben · Ziehen an Gliedern = Pose anpassen';
+}
+
+/** Release all possessions — called from the release button. */
+export function releaseAllPossessions(): void {
+  const ws = getWs();
+  if (isWsReady() && ws) {
+    ws.send(JSON.stringify({ type: 'figure_release' })); // no figureId → release all
+  }
 }

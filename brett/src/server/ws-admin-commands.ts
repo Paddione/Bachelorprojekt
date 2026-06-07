@@ -153,6 +153,18 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.schedulePersist(adminRoom);
       break;
     }
+    case 'figure_type_set': {
+      // Leader-only figure type assignment (D-spec). Validates figure exists.
+      if (typeof msg.figureId !== 'string' || !msg.figureType) return;
+      if (!deps.figureMaps.get(adminRoom)?.has(msg.figureId)) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'figure_type_set', figureId: msg.figureId, figureType: msg.figureType });
+      deps.broadcast(adminRoom, { type: 'figure_type_changed', figureId: msg.figureId, figureType: msg.figureType });
+      deps.schedulePersist(adminRoom);
+      break;
+    }
     case 'admin_set_template': {
       // Szenario-Vorlage (D5 choice-persist + D7 figure apply). Persist the
       // chosen templateId into lobbySettings and propagate to OTHER clients

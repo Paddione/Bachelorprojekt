@@ -179,6 +179,7 @@ export function onWsMessage(evt: MessageEvent): void {
         if (f.boneOverrides) {
           fig.boneOverrides = { ...f.boneOverrides };
         }
+        (fig as any)._serverPossessor = (f as any).possessor ?? null;
         STATE.figures.push(fig);
         if (f.appearance) {
           applyAppearanceToFig(fig, f.appearance);
@@ -232,6 +233,7 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'add': {
       if (STATE.figures.find(f => f.id === msg.figure.id)) break;
       const fig = mannequin.makeMannequin(msg.figure.id, { x: msg.figure.x, z: msg.figure.z });
+      (fig as any)._serverPossessor = (msg.figure as any).possessor ?? null;
       if (msg.figure.appearance) {
         applyAppearanceToFig(fig, msg.figure.appearance);
       }
@@ -366,6 +368,28 @@ export function onWsMessage(evt: MessageEvent): void {
 
     case 'figure_owner_changed':
       // Routed/stored only in B — ownership badge apply lands in Phase C.
+      break;
+
+    case 'figure_possessed': {
+      const fig = STATE.figures.find(f => f.id === msg.figureId);
+      if (fig) (fig as any)._serverPossessor = msg.playerId;
+      // Start POV if it's our own possession
+      if (msg.playerId === currentUser.userId) {
+        import('./pov-camera').then(m => m.startPov(msg.figureId));
+      }
+      break;
+    }
+    case 'figure_released': {
+      const fig = STATE.figures.find(f => f.id === msg.figureId);
+      if (fig) (fig as any)._serverPossessor = null;
+      // Stop POV if it was our possession
+      if (msg.playerId === currentUser.userId) {
+        import('./pov-camera').then(m => m.stopPov());
+      }
+      break;
+    }
+    case 'figure_type_changed':
+      // Figure type change — no local action needed (lobby roster re-renders from store)
       break;
 
     case 'error':

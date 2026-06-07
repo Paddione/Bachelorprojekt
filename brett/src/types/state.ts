@@ -6,6 +6,8 @@ export type Phase = 'lobby' | 'warmup' | 'active' | 'paused' | 'ended';
 
 export type Role = 'leiter' | 'stellvertreter' | 'beobachter';
 
+export type FigureType = 'coachee' | 'team_active' | 'team_passive' | 'saboteur' | 'resource';
+
 export interface OptikSettings {
   floor?: string;
   sky?: 'day' | 'dusk' | 'calm';
@@ -44,6 +46,10 @@ export interface Figure {
    * admin_assign_figure or a permitted stellvertreter `add`). Phase C.
    */
   ownerId?: string;
+  /** Who currently embodies this figure (playerId). Set by figure_possess. */
+  possessor?: string | null;
+  /** Semantic figure type from the design system. Leader-only via figure_type_set. */
+  figureType?: FigureType;
 }
 
 export interface Participant {

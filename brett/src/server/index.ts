@@ -16,6 +16,7 @@ import * as rooms from './rooms';
 import * as presets from './presets';
 import * as permissions from './permissions';
 import * as wsHandler from './ws-handler';
+import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
@@ -418,7 +419,7 @@ const wsDeps = {
 
 wsHandler.attachWsServer(wss, wsDeps);
 wsHandler.startHeartbeat(wss);
-wsHandler.startIdleSweep({ checkAllSessions: sessions.checkAllSessions, broadcast: rooms.broadcast, schedulePersist: db.schedulePersist });
+wsAdminCommands.startIdleSweep({ checkAllSessions: sessions.checkAllSessions, broadcast: rooms.broadcast, schedulePersist: db.schedulePersist });
 
 let shuttingDown = false;
 export async function shutdown(signal: string): Promise<void> {

@@ -576,24 +576,3 @@ export function startHeartbeat(wss: WebSocketServer): NodeJS.Timeout {
   if (heartbeatTimer.unref) heartbeatTimer.unref();
   return heartbeatTimer;
 }
-
-export function startIdleSweep(deps: { checkAllSessions: Function; broadcast: Function; schedulePersist: Function }): NodeJS.Timeout {
-  const timer = setInterval(() => {
-    if (process.env.MOCK_DB === 'true') return;
-    const results = deps.checkAllSessions();
-    for (const r of results) {
-      if (r.ended) {
-        deps.broadcast(r.room, {
-          type: 'session_phase_change',
-          phase: 'ended',
-          transitionedAt: new Date().toISOString(),
-          reason: 'idle-timeout',
-        });
-        deps.broadcast(r.room, { type: 'session_ended', reason: 'idle-timeout' });
-        deps.schedulePersist(r.room);
-      }
-    }
-  }, 60_000);
-  if (timer.unref) timer.unref();
-  return timer;
-}

@@ -385,6 +385,11 @@ export async function bootBoard(): Promise<void> {
     }
   });
 
+  // T000471: Wire moderation change handler — update visuals on server push
+  // Declared before the async gap (maybeStartReplayMode) to prevent TDZ errors
+  // if a mousedown fires during the async fetch in replay mode.
+  let currentModerationState: ClientModerationState = { spotlight: null, dim: null, freeze: false };
+
   // ── WS connect + seed figure ───────────────────────────────────────
   // Replay mode (Slice 5, T000472) takes precedence over a live WS connection:
   // it reconstructs board state locally from recorded events and never connects.
@@ -392,9 +397,6 @@ export async function bootBoard(): Promise<void> {
   if (!isReplayMode) {
     wsClient.connectWS();
   }
-
-  // T000471: Wire moderation change handler — update visuals on server push
-  let currentModerationState: ClientModerationState = { spotlight: null, dim: null, freeze: false };
   wsClient.setModerationChangeHandler((state) => {
     currentModerationState = state;
     freezeBanner.style.display = state.freeze ? 'block' : 'none';
@@ -413,7 +415,7 @@ export async function bootBoard(): Promise<void> {
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
     lastTickMs = now;
     mannequin.tickSpring(dt);
-    updateLinePositions();
+    if (!isReplayMode) updateLinePositions();
     mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);
     // T000471: Moderation visuals (Spotlight/Dim/Freeze)
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);

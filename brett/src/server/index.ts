@@ -244,8 +244,10 @@ app.get('/api/snapshots/:id', asyncHandler(async (req: any, res: any) => {
 /** GET /api/sessions/:room/events — liefert alle Events einer Session (admin only). */
 app.get('/api/sessions/:room/events', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
   const { room } = req.params;
-  const sinceSeq = req.query.sinceSeq ? parseInt(req.query.sinceSeq as string, 10) : undefined;
-  const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 10_000) : undefined;
+  const sinceSeqRaw = parseInt(req.query.sinceSeq as string, 10);
+  const sinceSeq = req.query.sinceSeq && !isNaN(sinceSeqRaw) ? sinceSeqRaw : undefined;
+  const limitRaw = parseInt(req.query.limit as string, 10);
+  const limit = req.query.limit && !isNaN(limitRaw) ? Math.min(limitRaw, 10_000) : undefined;
   const events = await eventLog.loadEvents(room, { sinceSeq, limit });
   res.json({ events });
 }));

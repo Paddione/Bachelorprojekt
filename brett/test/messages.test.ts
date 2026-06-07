@@ -12,7 +12,7 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
   'session_ended', 'admin_token_changed', 'coaching_steps_change', 'error',
   'role_changed', 'figure_owner_changed', 'lobby_ready_changed', 'lobby_settings_change',
   'figure_possessed', 'figure_released', 'figure_type_changed',
-  'moderation_state',
+  'moderation_state', 'figure_note_changed',
 ]);
 
 // Compile-time exhaustiveness: this function must handle every ServerMessage
@@ -47,6 +47,7 @@ function routeServer(msg: ServerMessage): string {
     case 'figure_released': return 'figure_released';
     case 'figure_type_changed': return 'figure_type_changed';
     case 'moderation_state': return 'moderation_state';
+    case 'figure_note_changed': return 'figure_note_changed';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }
@@ -85,6 +86,7 @@ function routeClient(msg: ClientMessage): string {
     case 'admin_spotlight_set': return 'admin_spotlight_set';
     case 'admin_dim_set': return 'admin_dim_set';
     case 'admin_freeze_set': return 'admin_freeze_set';
+    case 'figure_note_set': return 'figure_note_set';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }

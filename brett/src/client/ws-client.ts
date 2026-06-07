@@ -1,5 +1,5 @@
 import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
-import { renderLine, removeLineFromScene, clearAllLines, rerenderLine } from './scene-lines';
+import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase } from '../types/state';
 import { updateExportCache, type ExportFigure } from './ui/export';
@@ -280,13 +280,7 @@ export function onWsMessage(evt: MessageEvent): void {
         groundObjects.initGroundObjectsFromSnapshot(msg.anchors ?? [], msg.zones ?? []);
       }
 
-      // Linien zurücksetzen und neu aufbauen (T000467)
-      clearAllLines();
-      STATE.lines.length = 0;
-      for (const line of (msg.lines || [])) {
-        STATE.lines.push(line);
-        renderLine(line);
-      }
+      initLinesFromSnapshot(msg.lines ?? []);  // T000467
 
       // T000471: rehydrate moderation state from join snapshot
       if ((msg as any).moderation) {
@@ -588,26 +582,12 @@ export function onWsMessage(evt: MessageEvent): void {
       break;
     }
 
-    // ── T000467: Beziehungs-/Spannungslinien ────────────────────────────────
-    case 'line_created': {
-      STATE.lines.push(msg.line);
-      renderLine(msg.line);
+    // ── T000467: Beziehungs-/Spannungslinien (delegiert an scene-lines.ts) ──
+    case 'line_created':
+    case 'line_deleted':
+    case 'line_type_changed':
+      applyLineMessage(msg);
       break;
-    }
-    case 'line_deleted': {
-      const idx = STATE.lines.findIndex(l => l.id === msg.lineId);
-      if (idx !== -1) STATE.lines.splice(idx, 1);
-      removeLineFromScene(msg.lineId);
-      break;
-    }
-    case 'line_type_changed': {
-      const l = STATE.lines.find(l => l.id === msg.lineId);
-      if (l) {
-        l.lineType = msg.lineType;
-        rerenderLine(msg.lineId);
-      }
-      break;
-    }
 
     default:
       break;

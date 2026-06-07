@@ -128,3 +128,28 @@ export function updateLinePositions(): void {
     }
   }
 }
+
+/** Snapshot-Reset: Linien aus Join-Snapshot initialisieren. */
+export function initLinesFromSnapshot(lines: BrettLine[]): void {
+  clearAllLines();
+  STATE.lines.length = 0;
+  for (const line of lines) {
+    STATE.lines.push(line);
+    renderLine(line);
+  }
+}
+
+/** Verarbeitet eingehende line_*-Nachrichten vom Server (T000467). */
+export function applyLineMessage(msg: { type: string; line?: BrettLine; lineId?: string; lineType?: LineType }): void {
+  if (msg.type === 'line_created' && msg.line) {
+    STATE.lines.push(msg.line);
+    renderLine(msg.line);
+  } else if (msg.type === 'line_deleted' && msg.lineId) {
+    const idx = STATE.lines.findIndex(l => l.id === msg.lineId);
+    if (idx !== -1) STATE.lines.splice(idx, 1);
+    removeLineFromScene(msg.lineId);
+  } else if (msg.type === 'line_type_changed' && msg.lineId && msg.lineType) {
+    const l = STATE.lines.find(l => l.id === msg.lineId);
+    if (l) { l.lineType = msg.lineType; rerenderLine(msg.lineId); }
+  }
+}

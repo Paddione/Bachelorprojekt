@@ -193,7 +193,7 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       // figureId: string|null — null deaktiviert den Spotlight
       const figureId = (typeof msg.figureId === 'string') ? msg.figureId : null;
       // Validate: wenn figureId gesetzt, muss die Figur existieren
-      if (figureId !== null && !deps.figureMaps.get(adminRoom)?.has(figureId)) {
+      if (figureId !== null && (figureId.startsWith('__') || !deps.figureMaps.get(adminRoom)?.has(figureId))) {
         try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
         return;
       }
@@ -205,7 +205,7 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
     }
     case 'admin_dim_set': {
       const figureId = (typeof msg.figureId === 'string') ? msg.figureId : null;
-      if (figureId !== null && !deps.figureMaps.get(adminRoom)?.has(figureId)) {
+      if (figureId !== null && (figureId.startsWith('__') || !deps.figureMaps.get(adminRoom)?.has(figureId))) {
         try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
         return;
       }

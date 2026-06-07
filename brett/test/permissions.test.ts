@@ -206,3 +206,23 @@ test('Freeze-Gate: beobachter jump blocked when freeze active', () => {
   const allowed = gateMutation(ws, room, 'jump', undefined, freezeDeps());
   assert.strictEqual(allowed, false, 'beobachter jump must be blocked when frozen');
 });
+
+test('Freeze-Gate: non-leiter update blocked when freeze active', () => {
+  const room = 'freeze-gate-5';
+  applyMutation(room, { type: 'session_code_set', code: 'FRZ-005' });
+  applyMutation(room, { type: 'roles_set', roles: { 'p3': 'stellvertreter' } });
+  applyMutation(room, { type: 'moderation_freeze_set', frozen: true });
+  const ws = { _session: { userId: 'p3' }, _room: room };
+  const allowed = gateMutation(ws, room, 'update', undefined, freezeDeps());
+  assert.strictEqual(allowed, false, 'update must be blocked for stellvertreter when frozen');
+});
+
+test('Freeze-Gate: leiter update allowed when freeze active', () => {
+  const room = 'freeze-gate-6';
+  applyMutation(room, { type: 'session_code_set', code: 'FRZ-006' });
+  applyMutation(room, { type: 'roles_set', roles: { 'admin2': 'leiter' } });
+  applyMutation(room, { type: 'moderation_freeze_set', frozen: true });
+  const ws = { _session: { userId: 'admin2' }, _room: room };
+  const allowed = gateMutation(ws, room, 'update', undefined, freezeDeps());
+  assert.strictEqual(allowed, true, 'leiter update must still pass when frozen');
+});

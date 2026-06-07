@@ -556,7 +556,7 @@ export function updateModerationVisuals(figures: any[], state: ModerationVisualS
         }
       });
       fig._moderationCache = null;
-      return;
+      continue;
     }
 
     if (!hasModeration) continue;

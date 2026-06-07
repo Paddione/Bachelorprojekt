@@ -29,7 +29,7 @@ export interface SceneApi {
 }
 
 export function initScene(): SceneApi {
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight - 36);
   renderer.domElement.style.position = 'absolute';

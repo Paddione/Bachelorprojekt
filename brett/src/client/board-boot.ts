@@ -179,8 +179,8 @@ export async function bootBoard(): Promise<void> {
 
       // T000471: Freeze-Gate on client — show visual feedback, don't start drag
       if (currentModerationState.freeze) {
-        // Leiter-check: fetch role from lobby state
-        const myRole = wsClient.getLobbyState()?.participants?.find((p: any) => p.userId === currentUser.userId)?.role;
+        // Leiter-check: fetch role from lobby roster
+        const myRole = wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
         if (myRole !== 'leiter') {
           e.preventDefault();
           return; // Server will also reject; client skips drag start

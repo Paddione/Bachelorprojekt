@@ -28,7 +28,7 @@ pr_number: null
 - Create: `brett/src/types/events.ts`
 - Modify: `brett/src/types/messages.ts`
 
-- [ ] **Step 1: Erstelle `brett/src/types/events.ts` mit RecordedEvent und SessionMeta**
+- [x] **Step 1: Erstelle `brett/src/types/events.ts` mit RecordedEvent und SessionMeta**
 
 ```typescript
 // brett/src/types/events.ts
@@ -68,12 +68,12 @@ export interface ReplayBundle {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/types/events.ts
@@ -86,7 +86,7 @@ git commit -m "feat(brett): add RecordedEvent + SessionMeta shared types [T00047
 - Create: `brett/src/server/migrations/001_session_events.sql`
 - Modify: `brett/src/server/db.ts`
 
-- [ ] **Step 1: Erstelle SQL-Migrationsdatei**
+- [x] **Step 1: Erstelle SQL-Migrationsdatei**
 
 ```sql
 -- brett/src/server/migrations/001_session_events.sql
@@ -116,7 +116,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_session_events_room_seq
   ON session_events (room_token, seq);
 ```
 
-- [ ] **Step 2: Füge `runMigrations()` zu `db.ts` hinzu**
+- [x] **Step 2: Füge `runMigrations()` zu `db.ts` hinzu**
 
 Füge am Ende von `db.ts` folgende Funktion ein (vor dem letzten `export`-Block falls vorhanden):
 
@@ -149,7 +149,7 @@ Füge am Anfang der Datei den benötigten Import hinzu:
 import { readdirSync } from 'fs';
 ```
 
-- [ ] **Step 3: `runMigrations()` in `index.ts` aufrufen**
+- [x] **Step 3: `runMigrations()` in `index.ts` aufrufen**
 
 In `brett/src/server/index.ts`, nach der Zeile `db.initDb(...)`, füge hinzu:
 
@@ -160,12 +160,12 @@ if (process.env.MOCK_DB !== 'true') {
 }
 ```
 
-- [ ] **Step 4: TypeScript verifizieren**
+- [x] **Step 4: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add brett/src/server/migrations/001_session_events.sql brett/src/server/db.ts brett/src/server/index.ts
@@ -181,7 +181,7 @@ git commit -m "feat(brett): add session_events DB schema + runMigrations [T00047
 **Files:**
 - Create: `brett/src/server/event-log.ts`
 
-- [ ] **Step 1: Erstelle `brett/src/server/event-log.ts` mit Buffer und Flush-Logik**
+- [x] **Step 1: Erstelle `brett/src/server/event-log.ts` mit Buffer und Flush-Logik**
 
 ```typescript
 // brett/src/server/event-log.ts
@@ -365,12 +365,12 @@ export function resetEventLog(): void {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/server/event-log.ts
@@ -382,7 +382,7 @@ git commit -m "feat(brett): add event-log module with buffer+flush [T000472]"
 **Files:**
 - Modify: `brett/src/server/ws-handler.ts`
 
-- [ ] **Step 1: `logEvent` und `flushEventLog` zu `WsDeps` hinzufügen**
+- [x] **Step 1: `logEvent` und `flushEventLog` zu `WsDeps` hinzufügen**
 
 In der `WsDeps`-Interface-Definition, nach `flushImmediate`:
 
@@ -393,7 +393,7 @@ In der `WsDeps`-Interface-Definition, nach `flushImmediate`:
   flushEventLog?: (room: string) => Promise<void>;
 ```
 
-- [ ] **Step 2: Hilfsfunktion `getSessionCode` im ws-handler.ts hinzufügen**
+- [x] **Step 2: Hilfsfunktion `getSessionCode` im ws-handler.ts hinzufügen**
 
 Direkt nach der `resolvePlayerId`-Funktion:
 
@@ -408,7 +408,7 @@ function getSessionCode(room: string, deps: WsDeps): string | null {
 }
 ```
 
-- [ ] **Step 3: `logEvent`-Call nach jedem RELAY_TYPES-applyMutation einfügen**
+- [x] **Step 3: `logEvent`-Call nach jedem RELAY_TYPES-applyMutation einfügen**
 
 Suche den RELAY_TYPES-Handler-Block. Direkt nach dem `deps.applyMutation(room, msg)`-Call
 (innerhalb des `if (RELAY_TYPES.has(msg.type))` Blocks):
@@ -423,7 +423,7 @@ Suche den RELAY_TYPES-Handler-Block. Direkt nach dem `deps.applyMutation(room, m
         }
 ```
 
-- [ ] **Step 4: `flushEventLog` bei Session-Ende aufrufen**
+- [x] **Step 4: `flushEventLog` bei Session-Ende aufrufen**
 
 Im `admin_round_stop`-Handler-Block in `ws-admin-commands.ts` oder im
 `transitionPhase`-Callback in `ws-handler.ts`, nach dem Setzen der Phase auf `ended`:
@@ -440,12 +440,12 @@ nach dem `deps.schedulePersist`-Call ein:
         }
 ```
 
-- [ ] **Step 5: TypeScript verifizieren**
+- [x] **Step 5: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/server/ws-handler.ts
@@ -457,7 +457,7 @@ git commit -m "feat(brett): wire logEvent into ws-handler relay path [T000472]"
 **Files:**
 - Modify: `brett/src/server/index.ts`
 
-- [ ] **Step 1: `event-log.ts` in index.ts importieren und initialisieren**
+- [x] **Step 1: `event-log.ts` in index.ts importieren und initialisieren**
 
 Füge nach den bestehenden `import * as ...`-Zeilen hinzu:
 
@@ -472,7 +472,7 @@ In der Dependency-Wiring-Sektion, nach `db.initDb(...)`:
 eventLog.initEventLog({ pool: db.getPool() });
 ```
 
-- [ ] **Step 2: `logEvent` und `flushEventLog` in den WsDeps-Aufruf injizieren**
+- [x] **Step 2: `logEvent` und `flushEventLog` in den WsDeps-Aufruf injizieren**
 
 Suche die Stelle, wo `wsHandler.createWsHandler(deps)` aufgerufen wird (oder wo das
 `deps`-Objekt zusammengestellt wird). Füge die neuen Properties hinzu:
@@ -482,7 +482,7 @@ Suche die Stelle, wo `wsHandler.createWsHandler(deps)` aufgerufen wird (oder wo 
     flushEventLog: eventLog.flushEventBuffer,
 ```
 
-- [ ] **Step 3: Admin-Middleware erstellen**
+- [x] **Step 3: Admin-Middleware erstellen**
 
 Direkt vor den HTTP-Routen-Definitionen:
 
@@ -498,7 +498,7 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
 }
 ```
 
-- [ ] **Step 4: HTTP-API-Endpunkte für Replay registrieren**
+- [x] **Step 4: HTTP-API-Endpunkte für Replay registrieren**
 
 Nach den bestehenden API-Routen (z.B. nach `/api/snapshots`):
 
@@ -545,12 +545,12 @@ app.get('/api/sessions', requireAdmin, async (req, res) => {
 });
 ```
 
-- [ ] **Step 5: TypeScript verifizieren**
+- [x] **Step 5: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/server/index.ts
@@ -566,7 +566,7 @@ git commit -m "feat(brett): init event-log + register replay HTTP API endpoints 
 **Files:**
 - Create: `brett/test/event-log.test.ts`
 
-- [ ] **Step 1: Erstelle Test-Datei mit MockPool und Buffer-Tests**
+- [x] **Step 1: Erstelle Test-Datei mit MockPool und Buffer-Tests**
 
 ```typescript
 // brett/test/event-log.test.ts
@@ -696,12 +696,12 @@ test('event-log: double flush does not re-insert', async () => {
 });
 ```
 
-- [ ] **Step 2: Tests ausführen**
+- [x] **Step 2: Tests ausführen**
 
 Run: `cd brett && node --test test/event-log.test.ts 2>&1 | tail -20`
 Expected: All tests pass (0 failures)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/event-log.test.ts
@@ -713,7 +713,7 @@ git commit -m "test(brett): add event-log unit tests [T000472]"
 **Files:**
 - Create: `brett/test/event-log-ws-integration.test.ts`
 
-- [ ] **Step 1: Erstelle Integration-Test**
+- [x] **Step 1: Erstelle Integration-Test**
 
 ```typescript
 // brett/test/event-log-ws-integration.test.ts
@@ -739,12 +739,12 @@ test('event-log integration: request_state_snapshot excluded from logging (read-
 });
 ```
 
-- [ ] **Step 2: Tests ausführen**
+- [x] **Step 2: Tests ausführen**
 
 Run: `cd brett && node --test test/event-log-ws-integration.test.ts 2>&1 | tail -10`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/event-log-ws-integration.test.ts
@@ -760,7 +760,7 @@ git commit -m "test(brett): add event-log WS integration smoke test [T000472]"
 **Files:**
 - Create: `brett/src/client/replay-engine.ts`
 
-- [ ] **Step 1: Erstelle `brett/src/client/replay-engine.ts`**
+- [x] **Step 1: Erstelle `brett/src/client/replay-engine.ts`**
 
 ```typescript
 // brett/src/client/replay-engine.ts
@@ -1002,12 +1002,12 @@ export function createReplayController(
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/replay-engine.ts
@@ -1019,7 +1019,7 @@ git commit -m "feat(brett): add client-side replay-engine with seek+play+pause [
 **Files:**
 - Create: `brett/test/replay-engine.test.ts`
 
-- [ ] **Step 1: Erstelle Test-Datei**
+- [x] **Step 1: Erstelle Test-Datei**
 
 ```typescript
 // brett/test/replay-engine.test.ts
@@ -1146,12 +1146,12 @@ test('replay-engine: createReplayController — seek returns state', () => {
 });
 ```
 
-- [ ] **Step 2: Tests ausführen**
+- [x] **Step 2: Tests ausführen**
 
 Run: `cd brett && node --test test/replay-engine.test.ts 2>&1 | tail -20`
 Expected: All tests pass (0 failures)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/replay-engine.test.ts
@@ -1167,7 +1167,7 @@ git commit -m "test(brett): add replay-engine unit tests [T000472]"
 **Files:**
 - Create: `brett/src/client/ui/timeline.ts`
 
-- [ ] **Step 1: Erstelle `brett/src/client/ui/timeline.ts`**
+- [x] **Step 1: Erstelle `brett/src/client/ui/timeline.ts`**
 
 ```typescript
 // brett/src/client/ui/timeline.ts
@@ -1334,12 +1334,12 @@ export function destroyTimeline(): void {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/timeline.ts
@@ -1351,7 +1351,7 @@ git commit -m "feat(brett): add timeline UI component with scrubber [T000472]"
 **Files:**
 - Create: `brett/test/timeline.test.ts`
 
-- [ ] **Step 1: Erstelle jsdom-Test für Timeline-Komponente**
+- [x] **Step 1: Erstelle jsdom-Test für Timeline-Komponente**
 
 ```typescript
 // brett/test/timeline.test.ts
@@ -1429,12 +1429,12 @@ test('timeline: zero-duration controller does not divide by zero', () => {
 });
 ```
 
-- [ ] **Step 2: Tests ausführen**
+- [x] **Step 2: Tests ausführen**
 
 Run: `cd brett && node --test test/timeline.test.ts 2>&1 | tail -10`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/timeline.test.ts
@@ -1450,7 +1450,7 @@ git commit -m "test(brett): add timeline component tests [T000472]"
 **Files:**
 - Modify: `brett/src/client/board-boot.ts`
 
-- [ ] **Step 1: Replay-Modus-Erkennung und -Start in `board-boot.ts`**
+- [x] **Step 1: Replay-Modus-Erkennung und -Start in `board-boot.ts`**
 
 Lese zunächst die Datei um den Einstiegspunkt zu finden, dann füge am Ende der Boot-Sequenz
 (nach der WS-Connect-Initialisierung, aber bevor `render()` aufgerufen wird) folgendes ein:
@@ -1529,7 +1529,7 @@ function applyReplayStateToScene(state: ReplayBoardState): void {
 }
 ```
 
-- [ ] **Step 2: `maybeStartReplayMode` in Boot-Sequenz einbinden**
+- [x] **Step 2: `maybeStartReplayMode` in Boot-Sequenz einbinden**
 
 An der Stelle, wo der Board-Boot normalerweise `connectWS()` aufruft, ergänze:
 
@@ -1542,12 +1542,12 @@ An der Stelle, wo der Board-Boot normalerweise `connectWS()` aufruft, ergänze:
   }
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/client/board-boot.ts
@@ -1559,7 +1559,7 @@ git commit -m "feat(brett): add replay-mode boot path with feature flag [T000472
 **Files:**
 - Modify: `brett/README.md` (oder create `brett/docs/replay.md` falls README nicht existiert)
 
-- [ ] **Step 1: Feature-Flag-Dokumentation hinzufügen**
+- [x] **Step 1: Feature-Flag-Dokumentation hinzufügen**
 
 Öffne `brett/README.md` und füge einen Abschnitt hinzu:
 
@@ -1586,12 +1586,12 @@ Füge in `k3d/brett.yaml` zur `brett-features` ConfigMap hinzu:
 Dann `?replay=1&room=<room-token>` im Browser aufrufen.
 ```
 
-- [ ] **Step 2: TypeScript verifizieren (kein TS in README)**
+- [x] **Step 2: TypeScript verifizieren (kein TS in README)**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS (unverändert)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/README.md
@@ -1607,7 +1607,7 @@ git commit -m "docs(brett): document replay feature flag [T000472]"
 **Files:**
 - Modify: `brett/package.json`
 
-- [ ] **Step 1: Verify that new test files are picked up by existing test command**
+- [x] **Step 1: Verify that new test files are picked up by existing test command**
 
 Run: `cd brett && grep -E '"test"' package.json`
 
@@ -1620,17 +1620,17 @@ erfasst:
 
 Falls das Glob nicht passt, passe es in `package.json` an.
 
-- [ ] **Step 2: Alle Brett-Tests ausführen**
+- [x] **Step 2: Alle Brett-Tests ausführen**
 
 Run: `cd brett && npm test 2>&1 | tail -30`
 Expected: Alle bestehenden Tests grün + neue Tests grün, 0 Failures
 
-- [ ] **Step 3: TypeScript final verifizieren**
+- [x] **Step 3: TypeScript final verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS — keine Fehler
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/package.json
@@ -1641,7 +1641,7 @@ git commit -m "test(brett): ensure all replay tests are covered by npm test [T00
 
 **Files:** (kein neuer Code — nur Zusammenfassung)
 
-- [ ] **Step 1: Vollständige Liste der touched Files**
+- [x] **Step 1: Vollständige Liste der touched Files**
 
 Neue Dateien (Create):
 - `brett/src/types/events.ts`
@@ -1661,12 +1661,12 @@ Modifizierte Dateien (Modify):
 - `brett/src/client/board-boot.ts` (maybeStartReplayMode)
 - `brett/README.md` (Feature-Flag-Doku)
 
-- [ ] **Step 2: git log — alle Commits dieses Features prüfen**
+- [x] **Step 2: git log — alle Commits dieses Features prüfen**
 
 Run: `git log --oneline feature/brett-timeline-replay ^origin/main`
 Expected: Alle Commits aus diesem Plan erscheinen
 
-- [ ] **Step 3: PR erstellen**
+- [x] **Step 3: PR erstellen**
 
 ```bash
 gh pr create \
@@ -1696,7 +1696,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 4: Commit (falls nötig)**
+- [x] **Step 4: Commit (falls nötig)**
 
 ```bash
 git add .

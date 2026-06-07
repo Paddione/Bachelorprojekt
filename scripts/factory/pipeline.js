@@ -26,8 +26,6 @@
  * Layer-4 canary smoke + auto-rollback, directory-level conflict heuristic.
  */
 
-import { provision } from './provision.js'
-
 export const meta = {
   name: 'software-factory-pipeline',
   description: 'Phase-1 single-feature pipeline: Scout → Design → Plan → Implement → Verify → Deploy',
@@ -35,6 +33,63 @@ export const meta = {
     { title: 'Scout' }, { title: 'Design' }, { title: 'Plan' },
     { title: 'Implement' }, { title: 'Verify' }, { title: 'Deploy' },
   ],
+}
+
+// Inlined from provision.js for Workflow compatibility (no ESM imports allowed in harness)
+const ALWAYS_OPUS_ROLES = new Set(['review', 'security'])
+const COMPLEXITY_TIER = {
+  simple: 'haiku',
+  medium: 'sonnet',
+  complex: 'opus',
+}
+
+function chooseModel(complexity, role) {
+  if (ALWAYS_OPUS_ROLES.has(role)) return 'opus'
+  const tier = COMPLEXITY_TIER[complexity]
+  return tier ?? null
+}
+
+const EFFORT_LADDER = ['quick', 'standard', 'ultra']
+const COMPLEXITY_EFFORT_INDEX = {
+  simple: 0,
+  medium: 1,
+  complex: 2,
+}
+
+function clampEffortIdx(i) {
+  return Math.max(0, Math.min(EFFORT_LADDER.length - 1, i))
+}
+
+function chooseEffort(complexity, risk, budgetRemaining) {
+  let idx = COMPLEXITY_EFFORT_INDEX[complexity]
+  if (idx === undefined) idx = 1
+  if (risk === 'high') idx = clampEffortIdx(idx + 1)
+  const remaining = typeof budgetRemaining === 'number' ? budgetRemaining : 1
+  if (remaining < 0.25) idx -= 1
+  return EFFORT_LADDER[clampEffortIdx(idx)]
+}
+
+function buildContextHints(task) {
+  const t = task ?? {}
+  const hints = [
+    'Vorhaben pack T000413: vision + repo conventions + footguns (compact)',
+    'ticket spec + attachments via `ticket.sh get-attachments`',
+    `touched_files: ${(t.touchedFiles ?? []).length} path(s)`,
+    'relevant target-code excerpts only (no whole files)',
+  ]
+  if (t.gpuEmbeddings === true) {
+    hints.push('similar-tickets (pgvector top-k, GPU embeddings)')
+  }
+  return hints
+}
+
+function provision(task) {
+  const t = task ?? {}
+  return {
+    model: chooseModel(t.complexity, t.role),
+    effort: chooseEffort(t.complexity, t.risk, t.budgetRemaining),
+    contextHints: buildContextHints(t),
+  }
 }
 
 // Top-level globals injected by the harness: agent, parallel, pipeline, phase, log, args.
@@ -50,8 +105,6 @@ async function main() {
 // ─── Config ──────────────────────────────────────────────────────────────
 
 const A = args ?? {}
-// PushNotification is a deferred Workflow tool — load its schema before any call.
-await ToolSearch({ query: 'select:PushNotification', max_results: 1 })
 const slug = A.slug
 const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
@@ -461,10 +514,13 @@ if (typeof deploy === 'string' && /blocked/i.test(deploy)) {
   if (deploy.includes('deploy-guard') || deploy.includes('BLOCK: WORK_BRANCH') || deploy.includes('diff exceeds FACTORY_MAX_DIFF')) {
     return { status: 'blocked', reason: 'deploy-guard' }
   }
-  await PushNotification({
-    title: `Factory: ${A.ticket_id} CI-blocked`,
-    body: `Self-healing retry exhausted/escalated for "${A.title}" (${brand}). Human attention needed.`,
-  })
+  await agent(
+    `Notify the operator that self-healing was exhausted/escalated.
+     PushNotification is a DEFERRED tool — you MUST first run \`ToolSearch select:PushNotification\` to load its schema, then call it ONCE with:
+       title: "Factory: ${A.ticket_id} CI-blocked"
+       body:  "Self-healing retry exhausted/escalated for \\"${A.title}\\" (${brand}). Human attention needed."`,
+    { label: 'notify:ci-blocked', phase: 'Deploy' }
+  )
   return { status: 'blocked', reason: 'ci-red-after-retries', ticket: A.ticket_id }
 }
 
@@ -484,10 +540,13 @@ if (canaryRed.length) {
       { label: `canary:rollback:${b}`, phase: 'Deploy' },
     )
   }
-  await PushNotification({
-    title: `Factory: ${A.ticket_id} canary RED`,
-    body: `Live-prod canary failed on ${canaryRed.join(', ')} for "${A.title}". Rolled back + flag OFF.`,
-  })
+  await agent(
+    `Notify the operator that the canary failed and was rolled back.
+     PushNotification is a DEFERRED tool — you MUST first run \`ToolSearch select:PushNotification\` to load its schema, then call it ONCE with:
+       title: "Factory: ${A.ticket_id} canary RED"
+       body:  "Live-prod canary failed on ${canaryRed.join(', ')} for \\"${A.title}\\". Rolled back + flag OFF."`,
+    { label: 'notify:canary-red', phase: 'Deploy' }
+  )
   return { status: 'blocked', reason: 'canary-red', brands: canaryRed, ticket: A.ticket_id }
 }
 

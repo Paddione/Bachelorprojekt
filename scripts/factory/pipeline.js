@@ -134,9 +134,8 @@ let featureComplexity = null
 // Same hoist rationale: the Deploy phase's two-gated retry loop (outside the !REUSE block)
 // feeds the touched-file list to paths_are_escalate_class. Stays [] in the REUSE path.
 let featureTouchedFiles = []
-// The plan file path is captured from the Plan agent's return (the agent stamps the date
-// itself via `date +%F` — the harness does not reliably pass A.timestamp). Used by the
-// Deploy phase's archive-plan step. REUSE path sets it to the handed-off plan.
+// Plan file path: captured from the Plan agent's return (it stamps `date +%F` itself, as
+// A.timestamp is unreliable). Used by Deploy's archive-plan. REUSE → the handed-off plan.
 let planFilePath = REUSE ? REUSE_PLAN : null
 
 // JSON schemas for structured agent outputs
@@ -318,21 +317,15 @@ if (REUSE) {
 }
 
 // ── ④ Implement (ONE shared git-crypt-safe worktree, tasks run sequentially) ──
-// NOTE: we do NOT use the harness `isolation: 'worktree'` option here — it runs a
-// raw `git worktree add` whose checkout invokes the git-crypt smudge filter, which
-// fails fatally because the new per-worktree gitdir has no git-crypt key (T000473 /
-// T000426). Instead one shared worktree is created up front via the git-crypt-safe
-// scripts/worktree-create.sh, and the per-task prompts (and the Deploy phase) already
-// assume that single ${WORK_WT}. Tasks run SEQUENTIALLY: they share one worktree, so
-// concurrent `task test:all` / git-commit would race on the working tree + index.lock.
-// (Plan guarantees disjoint files, so sequential is purely a safety choice — parallel
-// per-task worktrees + a merge step is a possible future optimization.)
+// NOT the harness `isolation: 'worktree'` option: its raw `git worktree add` checkout
+// runs the git-crypt smudge filter and dies (new gitdir has no key) — T000473/T000426.
+// One shared worktree is made up front via scripts/worktree-create.sh; tasks run
+// SEQUENTIALLY (shared tree → concurrent test/commit would race the index.lock; Plan
+// guarantees disjoint files, so per-task worktrees+merge is a future optimization).
 let implemented = []
 if (tasks.length) {
   phase('Implement')
 
-  // Create the ONE shared worktree (git-crypt-safe). worktree-create.sh handles both
-  // a NEW branch (self-plan path, from origin/main) and an EXISTING branch (reuse path).
   const wtSetup = await agent(
     `Record pipeline liveness: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
      From ${REPO}, create the isolated worktree for this feature using the git-crypt-safe wrapper
@@ -342,8 +335,7 @@ if (tasks.length) {
     { label: 'impl:worktree-setup', phase: 'Implement' },
   )
   if (!/ready on/.test(String(wtSetup ?? ''))) {
-    // Fail loudly so the dispatcher's escalation routing surfaces it (a swallowed
-    // worktree failure is exactly how the 2026-06-07 first real run looked "green").
+    // Fail loudly so the dispatcher's escalation routing surfaces it (not a swallowed "green").
     await agent(
       `The git-crypt-safe worktree could not be created for ${A.ticket_id}; the pipeline cannot implement.
        Record it and notify: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked

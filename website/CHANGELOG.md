@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.34.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.33.0...website-v1.34.0) (2026-06-07)
+
+
+### Features
+
+* **brett:** Gruppen-Lobby + Rollen-Durchsetzung + mentolder-Facelift [T000459] ([#1388](https://github.com/Paddione/Bachelorprojekt/issues/1388)) ([a5bfdf5](https://github.com/Paddione/Bachelorprojekt/commit/a5bfdf5f56af660df1893a8050af996d4670d4e5))
+* **factory:** cleanup stale branches + worktrees after pipeline completion ([#1402](https://github.com/Paddione/Bachelorprojekt/issues/1402)) ([7073b41](https://github.com/Paddione/Bachelorprojekt/commit/7073b41f85e31c84871a5302588886a0b3f3a973))
+
+
+### Bug Fixes
+
+* **factory:** git-crypt-safe Implement worktree (unblocks autopilot) [T000473] ([#1394](https://github.com/Paddione/Bachelorprojekt/issues/1394)) ([8086298](https://github.com/Paddione/Bachelorprojekt/commit/8086298f626b53def73c3bba60b3ca0db4d375e4))
+* **factory:** resolve conflict-gate deadlock (backlog → serialize, not block) [T000473] ([#1396](https://github.com/Paddione/Bachelorprojekt/issues/1396)) ([c662f3c](https://github.com/Paddione/Bachelorprojekt/commit/c662f3c9cc62053536732b72798aaf6b8ef868ea))
+* **factory:** Verify/Deploy diff the worktree + RuntimeMaxSec + kill-switch fail-open [T000473][T000474] ([#1395](https://github.com/Paddione/Bachelorprojekt/issues/1395)) ([05c0fe9](https://github.com/Paddione/Bachelorprojekt/commit/05c0fe908dc62569bd5d82f79a63d7a960ae7683))
+
 ## [1.33.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.32.1...website-v1.33.0) (2026-06-06)
 
 

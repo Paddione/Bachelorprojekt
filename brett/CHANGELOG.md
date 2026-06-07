@@ -1,6 +1,20 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.17.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.16.1...brett-v0.17.0) (2026-06-07)
+
+
+### Features
+
+* **brett:** Gruppen-Lobby + Rollen-Durchsetzung + mentolder-Facelift [T000459] ([#1388](https://github.com/Paddione/Bachelorprojekt/issues/1388)) ([a5bfdf5](https://github.com/Paddione/Bachelorprojekt/commit/a5bfdf5f56af660df1893a8050af996d4670d4e5))
+* **brett:** Possession-System & Observer-Modus [D-spec] ([#1392](https://github.com/Paddione/Bachelorprojekt/issues/1392)) ([621d72e](https://github.com/Paddione/Bachelorprojekt/commit/621d72e882bf04c623a49f41b72875e34a4bc0cd))
+
+
+### Bug Fixes
+
+* **brett:** close 2 review blockers + integration gaps from [#1388](https://github.com/Paddione/Bachelorprojekt/issues/1388) [T000459] ([#1390](https://github.com/Paddione/Bachelorprojekt/issues/1390)) ([b5d1990](https://github.com/Paddione/Bachelorprojekt/commit/b5d1990314fdf1c7efb8ed7f7eedcf05fddb868a))
+* **brett:** update dev-start.sh and brett:sync for TypeScript refactor ([8b62b51](https://github.com/Paddione/Bachelorprojekt/commit/8b62b51a80d6ad11336d5bae13ad1baaafcd4ee2))
+
 ## [0.16.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.16.0...brett-v0.16.1) (2026-06-06)
 
 

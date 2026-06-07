@@ -18,11 +18,18 @@ import * as permissions from './permissions';
 import * as wsHandler from './ws-handler';
 import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
+import * as eventLog from './event-log';
 import { attachSkinsUpload } from './skins-upload';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
 db.initDb({ buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
+// Run DB migrations on startup (idempotent). Skipped under MOCK_DB (tests).
+if (process.env.MOCK_DB !== 'true') {
+  db.runMigrations().catch(err => console.error('[brett] migration error:', err));
+}
+// Event-log initialization (Slice 5, T000472 — replay recording).
+eventLog.initEventLog({ pool: db.getPool() });
 sessions.initSessions({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation, transitionPhase: phases.transitionPhase });
 figures.initFigures({ validateAppearance: presets.validateAppearance, buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 
@@ -232,6 +239,32 @@ app.get('/api/snapshots/:id', asyncHandler(async (req: any, res: any) => {
   res.json(rows[0]);
 }));
 
+// ── Replay / Event-Log API (Slice 5, T000472) ───────────────────────────────
+
+/** GET /api/sessions/:room/events — liefert alle Events einer Session (admin only). */
+app.get('/api/sessions/:room/events', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const { room } = req.params;
+  const sinceSeq = req.query.sinceSeq ? parseInt(req.query.sinceSeq as string, 10) : undefined;
+  const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 10_000) : undefined;
+  const events = await eventLog.loadEvents(room, { sinceSeq, limit });
+  res.json({ events });
+}));
+
+/** GET /api/sessions/:room/snapshot — liefert den initial gespeicherten State (admin only). */
+app.get('/api/sessions/:room/snapshot', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const { room } = req.params;
+  const state = await db.readState(room);
+  res.json({ state, recordedAt: new Date().toISOString() });
+}));
+
+/** GET /api/sessions — listet Sessions eines Rooms (admin only). */
+app.get('/api/sessions', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+  const room = req.query.room as string;
+  if (!room) { return res.status(400).json({ error: 'room required' }); }
+  const sessions = await eventLog.loadSessionMetas(room);
+  res.json({ sessions });
+}));
+
 // Admin room list.
 app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
   const liveTokens = Array.from(rooms.rooms.keys());
@@ -399,6 +432,8 @@ const wsDeps = {
   readState: db.readState,
   schedulePersist: db.schedulePersist,
   flushImmediate: db.flushImmediate,
+  logEvent: eventLog.appendEvent,
+  flushEventLog: eventLog.flushEventBuffer,
   handleAdminSessionCreate: sessions.handleAdminSessionCreate,
   handleAdminHandoffMessage: sessions.handleAdminHandoffMessage,
   handleAdminRoundStop: sessions.handleAdminRoundStop,
@@ -435,6 +470,8 @@ export async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[brett] ${signal} received, flushing...`);
+  // Flush event-log buffers before state (events should land before the snapshot).
+  try { await eventLog.flushAll(); } catch (err) { console.error('[brett] shutdown event-log flush:', err); }
   const pending = db.getPending();
   for (const room of pending.keys()) {
     try { await db.flushImmediate(room); } catch (err) { console.error('[brett] shutdown flush:', err); }

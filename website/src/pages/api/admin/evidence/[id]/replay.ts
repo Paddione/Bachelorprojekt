@@ -3,6 +3,10 @@ import { pool } from '../../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { createReadStream } from 'node:fs';
 import { Readable } from 'node:stream';
+import { resolve } from 'node:path';
+
+// Evidence replay files are stored under this directory only.
+const REPLAY_DIR = resolve(import.meta.env.REPLAY_STORAGE_PATH ?? '/var/brett/replays');
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -25,7 +29,14 @@ export const GET: APIRoute = async ({ params, request }) => {
     return new Response('not found', { status: 404 });
   }
 
-  const nodeStream = createReadStream(r.rows[0].replay_path);
+  // Guard against path-traversal: even if the DB row were tampered with, only
+  // files under REPLAY_DIR can be served.
+  const replayPath = resolve(r.rows[0].replay_path as string);
+  if (!replayPath.startsWith(REPLAY_DIR + '/')) {
+    return new Response('forbidden', { status: 403 });
+  }
+
+  const nodeStream = createReadStream(replayPath);
   // Convert Node.js Readable into a Web ReadableStream the Response constructor
   // can consume directly. Astro/Node serves either, but typing prefers the Web
   // form so this avoids a cast through any.

@@ -30,6 +30,10 @@ export interface WsDeps {
   readState: Function;
   schedulePersist: Function;
   flushImmediate: Function;
+  /** Log a mutation event for replay recording (optional for backwards-compat). */
+  logEvent?: (room: string, sessionCode: string | null, eventType: string, payload: any) => void;
+  /** Flush the event buffer for a room immediately (called on session-end). */
+  flushEventLog?: (room: string) => Promise<void>;
   handleAdminSessionCreate: Function;
   handleAdminHandoffMessage: Function;
   handleAdminRoundStop: Function;
@@ -86,6 +90,11 @@ export const ADMIN_TYPES = new Set<string>([
  */
 export function resolvePlayerId(ws: any): string {
   return ws?._session?.userId ?? ws?._playerId ?? 'anon';
+}
+
+/** Returns the active session code for a room, or null for free-board rooms. */
+export function getSessionCode(room: string, deps: Pick<WsDeps, 'buildStateFromMutations'>): string | null {
+  return deps.buildStateFromMutations(room)?.sessionCode ?? null;
 }
 
 /**
@@ -462,6 +471,11 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
 
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
+
+          if (deps.logEvent) {
+            const { type: _type, ...safePayload } = msg;
+            deps.logEvent(room, getSessionCode(room, deps), msg.type, safePayload);
+          }
 
           if (deps.captureBeforeSnapshot && deps.captureAfterSnapshot && deps.pushUndo && deps.getUndoStatus) {
             undoStack.tryRecordMutation(room, msg, deps.captureBeforeSnapshot, deps.captureAfterSnapshot,

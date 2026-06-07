@@ -13,6 +13,7 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
   'role_changed', 'figure_owner_changed', 'lobby_ready_changed', 'lobby_settings_change',
   'figure_possessed', 'figure_released', 'figure_type_changed',
   'moderation_state', 'figure_note_changed',
+  'anchor_added', 'anchor_removed', 'zone_added', 'zone_removed',
 ]);
 
 // Compile-time exhaustiveness: this function must handle every ServerMessage
@@ -48,6 +49,10 @@ function routeServer(msg: ServerMessage): string {
     case 'figure_type_changed': return 'figure_type_changed';
     case 'moderation_state': return 'moderation_state';
     case 'figure_note_changed': return 'figure_note_changed';
+    case 'anchor_added': return 'anchor_added';
+    case 'anchor_removed': return 'anchor_removed';
+    case 'zone_added': return 'zone_added';
+    case 'zone_removed': return 'zone_removed';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }
@@ -87,6 +92,10 @@ function routeClient(msg: ClientMessage): string {
     case 'admin_dim_set': return 'admin_dim_set';
     case 'admin_freeze_set': return 'admin_freeze_set';
     case 'figure_note_set': return 'figure_note_set';
+    case 'anchor_create': return 'anchor_create';
+    case 'anchor_delete': return 'anchor_delete';
+    case 'zone_create': return 'zone_create';
+    case 'zone_delete': return 'zone_delete';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }

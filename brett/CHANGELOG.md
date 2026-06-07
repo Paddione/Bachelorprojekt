@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.18.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.17.0...brett-v0.18.0) (2026-06-07)
+
+
+### Features
+
+* **brett:** verbleibende Brett- und Factory-Änderungen sichern ([#1403](https://github.com/Paddione/Bachelorprojekt/issues/1403)) ([f77baa1](https://github.com/Paddione/Bachelorprojekt/commit/f77baa16e5e8aba5192b7c68a7433227c7a0c769))
+
 ## [0.17.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.16.1...brett-v0.17.0) (2026-06-07)
 
 

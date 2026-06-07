@@ -1,3 +1,11 @@
+---
+title: Asset Generator Completion: End-to-End 3D Pipeline via ComfyUI + Hunyuan3D-2
+ticket_id: null
+domains: [website, infra, db, test, security]
+status: active
+pr_number: null
+---
+
 # Asset Generator Completion: End-to-End 3D Pipeline via ComfyUI + Hunyuan3D-2
 
 **Datum:** 2026-06-07  

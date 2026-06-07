@@ -24,14 +24,17 @@ source "${GUARDS_DIR}/lib.sh"
 
 # guard_killswitch_on <brand> — exit 0 (ON) when the global (brand NULL) OR the
 # per-brand kill-switch value is "on"/"true"/"1". Fail-closed: any read error → ON.
+# FAIL-CLOSED on duplicates too (T000474): a `get` may return MULTIPLE lines if
+# factory_control accumulated duplicate NULL-brand rows (ON CONFLICT does not fire
+# on NULL). Match per-LINE with grep so ANY 'on' line → paused; an exact-string
+# `case` over a multi-line "off\non" value would mis-read as OFF (silent fail-open).
 guard_killswitch_on() {
   local brand="${1:?brand required}" g b
   g=$(bash "${GUARDS_REPO}/scripts/ticket.sh" factory-control get --key killswitch 2>/dev/null) \
     || { echo "guard_killswitch_on: global read FAILED → fail-closed ON" >&2; return 0; }
   b=$(bash "${GUARDS_REPO}/scripts/ticket.sh" factory-control get --key killswitch --brand "$brand" 2>/dev/null) \
     || { echo "guard_killswitch_on: brand read FAILED → fail-closed ON" >&2; return 0; }
-  case "${g,,}" in on|true|1) return 0 ;; esac
-  case "${b,,}" in on|true|1) return 0 ;; esac
+  printf '%s\n%s\n' "$g" "$b" | grep -qiE '^[[:space:]]*(on|true|1)[[:space:]]*$' && return 0
   return 1
 }
 
@@ -62,8 +65,11 @@ guard_dryrun_ok() {
 # Reads `git diff --shortstat origin/main...HEAD`, sums insertions+deletions.
 # exit 0 if within budget; exit 1 if over (caller HARD-blocks). Read error → over (1).
 guard_check_diff_size() {
-  local max="${1:?max required}" line ins del total
-  line=$(git diff --shortstat origin/main...HEAD 2>/dev/null) \
+  # $1 = max line budget; $2 = ref to diff (default HEAD). The factory passes the
+  # feature branch (WORK_BRANCH): it runs from the MAIN repo whose HEAD is main, so
+  # diffing bare HEAD would always be empty and silently pass (T000473 follow-up).
+  local max="${1:?max required}" ref="${2:-HEAD}" line ins del total
+  line=$(git diff --shortstat "origin/main...${ref}" 2>/dev/null) \
     || { echo "guard_check_diff_size: git diff FAILED → fail-closed OVER" >&2; return 1; }
   ins=$(sed -nE 's/.*[, ]([0-9]+) insertion.*/\1/p' <<<"$line"); ins="${ins:-0}"
   del=$(sed -nE 's/.*[, ]([0-9]+) deletion.*/\1/p'  <<<"$line"); del="${del:-0}"

@@ -390,9 +390,9 @@ const lenses = [
 const reviews = (await parallel(
   lenses.map((l) => () => agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-     Read the review prompt at ${REPO}/${l.file} and apply it to the diff of
-     branch ${WORK_BRANCH} (run: git diff origin/main...HEAD in ${REPO}).
-     Return your findings as JSON matching the review schema.`,
+     Read the review prompt at ${REPO}/${l.file} and apply it to the diff of branch
+     ${WORK_BRANCH}: git -C ${WORK_WT} diff origin/main...HEAD  (in the WORKTREE — NOT
+     in ${REPO} whose HEAD is main → empty diff). Return findings as JSON per schema.`,
     { label: `review:${l.key}`, phase: 'Verify', schema: REVIEW_SCHEMA, model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
   )),
 )).filter(Boolean)
@@ -425,8 +425,8 @@ if (blocking.length) {
 phase('Deploy')
 if (DRY_RUN) {
   const report = await agent(
-    `DRY RUN — do NOT push, merge, or deploy anything. From ${REPO}:
-     1. Show the planned diff: git diff origin/main...HEAD (branch ${WORK_BRANCH}).
+    `DRY RUN — do NOT push, merge, or deploy anything. Work from the WORKTREE (HEAD=${WORK_BRANCH}):
+     1. Show the planned diff: git -C ${WORK_WT} diff origin/main...HEAD --stat
      2. Summarise the review findings already gathered (${reviews.length} review lens result(s)).
      3. Release the pipeline slot and return the ticket to the queue (nothing shipped):
         bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
@@ -447,7 +447,7 @@ const deploy = await agent(
       printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*"; exit 1; }
    b. Diff-size cap (HARD): from ${REPO},
       source ${REPO}/scripts/factory/guards.sh
-      GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'}
+      GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'} ${WORK_BRANCH}
       If guard_check_diff_size returns non-zero, the diff exceeds FACTORY_MAX_DIFF — DO NOT push/merge/deploy.
    c. CWD assertion: every git/gh/task command below MUST run with cwd = ${REPO} (the MAIN repo),
       never the worktree ${WORK_WT} (gotcha T000342).

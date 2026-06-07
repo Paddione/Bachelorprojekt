@@ -13,8 +13,12 @@ Type=oneshot
 WorkingDirectory=/home/patrick/Bachelorprojekt
 ExecStart=/home/patrick/Bachelorprojekt/scripts/factory/wakeup.sh
 # Hard-kill a hung `claude -p` tick so OnUnitInactiveSec can re-arm cleanly.
-RuntimeMaxSec=900
+# A REAL build (worktree + per-task `task test:all` + a 3-lens review panel, ×N
+# parallel pipelines) far exceeds the old 900s — that SIGTERM-killed the first real
+# run mid-Implement (T000473 follow-up). 3600s gives a real dry-run room; the timer
+# only re-arms after exit, so a long tick just delays the next one.
+RuntimeMaxSec=3600
 # wakeup.sh needs the user's git-crypt key + claude creds; pass via env file if present.
 EnvironmentFile=-%h/.config/factory/autopilot.env
 # Keep failures visible in the journal but never wedge the timer.
-TimeoutStartSec=960
+TimeoutStartSec=3660

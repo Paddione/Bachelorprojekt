@@ -1068,6 +1068,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-44",
+    "file": "tests/local/FA-SF-44-verify-diff-killswitch.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

@@ -116,6 +116,13 @@ export function handleAdminSessionCreate(room: string, adminPlayerId: string): {
   applyMutation(room, { type: 'session_admin_token_set', playerId: adminPlayerId });
   applyMutation(room, { type: 'session_created_at_set', ts: new Date().toISOString() });
   applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
+  // REG-1: seed the creator as `leiter`, MERGING into any existing __roles__ so a
+  // re-create over a prior (ended) session never clobbers other participants'
+  // roles. This guarantees a sessioned room always has at least one mutator AND
+  // that the gateMutation legacy-free-board bypass never misfires on a real
+  // session (it bypasses only when there is NO session code AND NO roles).
+  const existingRoles = figureMaps.get(room)?.get('__roles__')?.roles ?? {};
+  applyMutation(room, { type: 'roles_set', roles: { ...existingRoles, [adminPlayerId]: 'leiter' } });
   return { ok: true, code };
 }
 

@@ -35,6 +35,25 @@ test('seedFigureMapFromState re-seeds phase/figure/roles/settings (§4.6 round-t
   assert.strictEqual(rebuilt.sessionLastActivity, '2026-06-06T10:05:00.000Z');
 });
 
+test('PD-1: board-optik survives the persist → seed → build round-trip', () => {
+  const room = 'seed-optik-A';
+  applyMutation(room, { type: 'optik_set', settings: { sky: 'dusk', lightMood: 'warm', floor: 'oak' } });
+  const built = buildStateFromMutations(room);
+  assert.deepStrictEqual(built.optik, { sky: 'dusk', lightMood: 'warm', floor: 'oak' }, 'optik present pre-roundtrip');
+
+  // Simulate the last-leave → figureMaps.delete → next-join re-seed path.
+  const freshMap = new Map<string, any>();
+  figures.seedFigureMapFromState(freshMap, built);
+  figures.figureMaps.set('seed-optik-B', freshMap);
+
+  const rebuilt = buildStateFromMutations('seed-optik-B');
+  assert.deepStrictEqual(
+    rebuilt.optik,
+    { sky: 'dusk', lightMood: 'warm', floor: 'oak' },
+    'optik survives build → seed → build (PD-1: was silently dropped before)',
+  );
+});
+
 test('seedFigureMapFromState reads sessionPhase (not phase) — DB-round-trip field names', () => {
   // Simulate a DB-round-tripped state (only the buildStateFromMutations field names present).
   const persisted = {

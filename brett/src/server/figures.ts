@@ -176,6 +176,13 @@ export function seedFigureMapFromState(map: Map<string, any>, state: any): void 
   if (state.stiffness !== undefined) {
     map.set('__stiffness__', { id: '__stiffness__', value: state.stiffness });
   }
+  if (state.optik && typeof state.optik === 'object') {
+    // PD-1: re-seed the persisted board-optik. buildStateFromMutations emits
+    // state.optik = __optik__.settings, so the round-trip key MUST be `settings`.
+    // Without this branch the saved optik is silently dropped on every DB
+    // round-trip (figureMaps.delete on last-leave → re-seed on next join).
+    map.set('__optik__', { id: '__optik__', settings: state.optik });
+  }
   if (state.roles && typeof state.roles === 'object') {
     map.set('__roles__', { id: '__roles__', roles: state.roles });
   }

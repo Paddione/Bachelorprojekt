@@ -1,6 +1,6 @@
 # prod/rigger-gpu.yaml — Rigger (Blender headless) GPU-host service.
-# ${RIGGER_HOST_IP} and ${RIGGER_PORT} filled by envsubst at deploy time.
-# Defaults: RIGGER_HOST_IP == COMFY_HOST_IP, RIGGER_PORT == 8190.
+# ${RIGGER_HOST_IP} is filled by envsubst at deploy time. Port is fixed at 8190.
+# Defaults: RIGGER_HOST_IP == COMFY_HOST_IP.
 apiVersion: v1
 kind: Service
 metadata:

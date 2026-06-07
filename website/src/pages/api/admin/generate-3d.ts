@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { uploadImage, queuePrompt } from '../../../lib/comfy-client';
-import { insertJob, setJobPromptId, updateJobStatus } from '../../../lib/generation-jobs';
+import { insertJob, setJobPromptId, updateJobStage } from '../../../lib/generation-jobs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
     const promptId = await queuePrompt(comfyBase(), workflow);
     await setJobPromptId(jobId, promptId);
   } catch (err) {
-    await updateJobStatus(jobId, 'error', {
+    await updateJobStage(jobId, 'error', {
       error_msg: err instanceof Error ? err.message : String(err),
     });
     return new Response(JSON.stringify({ error: 'Failed to queue ComfyUI job', job_id: jobId }), {

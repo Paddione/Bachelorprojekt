@@ -2,6 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 export { handleAssignRole } from './ws-admin-commands';
 import { handleAdminMessage } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
+import * as undoStack from './undo-stack';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
@@ -47,6 +48,14 @@ export interface WsDeps {
   reclaimAdminToken: Function;
   roomAdminPresence: Map<string, Set<string>>;
   sessionMiddleware?: any;
+  // T000470: Undo/Redo-Stack
+  captureBeforeSnapshot?: (room: string, msg: any) => Map<string, any | null>;
+  captureAfterSnapshot?: (before: Map<string, any | null>, room: string, msg: any) => Map<string, any | null>;
+  pushUndo?: (room: string, entry: import('./undo-stack').UndoEntry) => void;
+  performUndo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
+  performRedo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
+  getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
+  clearUndoStacks?: (room: string) => void;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -63,6 +72,7 @@ export const ADMIN_TYPES = new Set<string>([
   'figure_type_set',
   'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
   'anchor_create', 'anchor_delete', 'zone_create', 'zone_delete',  // NEU T000468
+  'session_undo', 'session_redo',   // ← T000470
 ]);
 
 /**
@@ -449,8 +459,28 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (msg.type === 'request_state_snapshot') {
             return;
           }
+
+          // T000470: Undo-Snapshot-Capture für undo-bare Mutations
+          const isUndoable = deps.captureBeforeSnapshot != null && undoStack.UNDOABLE_TYPES.has(msg.type);
+          let beforeSnap: Map<string, any | null> | null = null;
+          if (isUndoable) {
+            beforeSnap = deps.captureBeforeSnapshot!(room, msg);
+          }
+
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
+
+          if (isUndoable && beforeSnap && deps.captureAfterSnapshot && deps.pushUndo && deps.getUndoStatus) {
+            const afterSnap = deps.captureAfterSnapshot(beforeSnap, room, msg);
+            deps.pushUndo(room, {
+              before: beforeSnap,
+              after: afterSnap,
+              mutationType: msg.type,
+              ts: Date.now(),
+            });
+            deps.broadcast(room, { type: 'undo_stack_changed', ...deps.getUndoStatus(room) });
+          }
+
           // A permitted stellvertreter `add` stamps ownership server-side so the
           // new figure is mutable by its creator (owner-scoped enforcement).
           if (msg.type === 'add') {
@@ -531,7 +561,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         try {
           await deps.flushImmediate(room);
         } finally {
-          if (!deps.rooms.has(room)) deps.figureMaps.delete(room);
+          if (!deps.rooms.has(room)) {
+            deps.figureMaps.delete(room);
+            deps.clearUndoStacks?.(room);  // T000470: Stacks beim Last-Leave bereinigen
+          }
         }
       }
     });

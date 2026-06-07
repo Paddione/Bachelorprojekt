@@ -1,4 +1,5 @@
 import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
+import { renderLine, removeLineFromScene, clearAllLines, rerenderLine } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase } from '../types/state';
 import { updateExportCache, type ExportFigure } from './ui/export';
@@ -277,6 +278,14 @@ export function onWsMessage(evt: MessageEvent): void {
       // NEU T000468: Ground-Objects aus Snapshot initialisieren (DARK-LAUNCH)
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.initGroundObjectsFromSnapshot(msg.anchors ?? [], msg.zones ?? []);
+      }
+
+      // Linien zurücksetzen und neu aufbauen (T000467)
+      clearAllLines();
+      STATE.lines.length = 0;
+      for (const line of (msg.lines || [])) {
+        STATE.lines.push(line);
+        renderLine(line);
       }
 
       // T000471: rehydrate moderation state from join snapshot
@@ -575,6 +584,27 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'zone_removed': {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.applyZoneRemoved(msg.zoneId);
+      }
+      break;
+    }
+
+    // ── T000467: Beziehungs-/Spannungslinien ────────────────────────────────
+    case 'line_created': {
+      STATE.lines.push(msg.line);
+      renderLine(msg.line);
+      break;
+    }
+    case 'line_deleted': {
+      const idx = STATE.lines.findIndex(l => l.id === msg.lineId);
+      if (idx !== -1) STATE.lines.splice(idx, 1);
+      removeLineFromScene(msg.lineId);
+      break;
+    }
+    case 'line_type_changed': {
+      const l = STATE.lines.find(l => l.id === msg.lineId);
+      if (l) {
+        l.lineType = msg.lineType;
+        rerenderLine(msg.lineId);
       }
       break;
     }

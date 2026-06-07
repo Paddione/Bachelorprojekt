@@ -45,6 +45,7 @@ export function buildStateFromMutations(room: string): any {
     '__session_created_at__', '__session_last_activity__',
     '__coaching_steps__', '__roles__', '__lobby_settings__',
     '__moderation__',   // ← T000471
+    '__anchors__', '__zones__',   // NEU T000468
   ];
   const figures = Array.from(figs.values()).filter(f => !SPECIAL.includes(f.id));
   const optikEntry        = figs.get('__optik__');
@@ -76,5 +77,9 @@ export function buildStateFromMutations(room: string): any {
       freeze: moderationEntry.freeze ?? false,
     };
   }
+  const anchorsEntry = figs.get('__anchors__');
+  const zonesEntry   = figs.get('__zones__');
+  result.anchors = anchorsEntry?.anchors ?? [];
+  result.zones   = zonesEntry?.zones   ?? [];
   return result;
 }

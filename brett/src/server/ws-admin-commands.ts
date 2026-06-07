@@ -223,5 +223,56 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.schedulePersist(adminRoom);
       break;
     }
+    case 'anchor_create': {
+      if (!msg.anchor || typeof msg.anchor !== 'object' ||
+          typeof msg.anchor.x !== 'number' || typeof msg.anchor.z !== 'number') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_anchor' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'anchor_create', anchor: msg.anchor });
+      const builtAnchors = deps.buildStateFromMutations(adminRoom)?.anchors ?? [];
+      const added = builtAnchors[builtAnchors.length - 1];
+      if (added) {
+        deps.broadcast(adminRoom, { type: 'anchor_added', anchor: added });
+      }
+      deps.schedulePersist(adminRoom);
+      return;
+    }
+    case 'anchor_delete': {
+      if (typeof msg.anchorId !== 'string') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_anchor_id' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'anchor_delete', anchorId: msg.anchorId });
+      deps.broadcast(adminRoom, { type: 'anchor_removed', anchorId: msg.anchorId });
+      deps.schedulePersist(adminRoom);
+      return;
+    }
+    case 'zone_create': {
+      if (!msg.zone || typeof msg.zone !== 'object' ||
+          typeof msg.zone.x !== 'number' || typeof msg.zone.z !== 'number' ||
+          (msg.zone.shape !== 'rect' && msg.zone.shape !== 'circle')) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_zone' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'zone_create', zone: msg.zone });
+      const builtZones = deps.buildStateFromMutations(adminRoom)?.zones ?? [];
+      const addedZone = builtZones[builtZones.length - 1];
+      if (addedZone) {
+        deps.broadcast(adminRoom, { type: 'zone_added', zone: addedZone });
+      }
+      deps.schedulePersist(adminRoom);
+      return;
+    }
+    case 'zone_delete': {
+      if (typeof msg.zoneId !== 'string') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_zone_id' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'zone_delete', zoneId: msg.zoneId });
+      deps.broadcast(adminRoom, { type: 'zone_removed', zoneId: msg.zoneId });
+      deps.schedulePersist(adminRoom);
+      return;
+    }
   }
 }

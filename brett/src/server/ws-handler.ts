@@ -62,6 +62,7 @@ export const ADMIN_TYPES = new Set<string>([
   'admin_set_template', 'admin_set_optik',
   'figure_type_set',
   'admin_spotlight_set', 'admin_dim_set', 'admin_freeze_set',  // ← T000471
+  'anchor_create', 'anchor_delete', 'zone_create', 'zone_delete',  // NEU T000468
 ]);
 
 /**
@@ -288,6 +289,8 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
                 // T000471: include moderation state so late-joiners/reloads
                 // get the current spotlight/dim/freeze without a separate broadcast.
                 moderation: freshState.moderation ?? null,
+                anchors: freshState.anchors ?? [],   // NEU T000468
+                zones: freshState.zones ?? [],       // NEU T000468
               }));
             } catch {}
           }

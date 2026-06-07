@@ -1,6 +1,14 @@
 export const figureMaps = new Map<string, Map<string, any>>();
 export const figureLocks = new Map<string, Map<string, { userId: string; name: string; color: string }>>();
 
+// ── ID-Generator für Anker & Zonen ───────────────────────────────────────────
+const ID_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789';
+function generateId(): string {
+  let s = '';
+  for (let i = 0; i < 12; i++) s += ID_CHARS[Math.floor(Math.random() * ID_CHARS.length)];
+  return s;
+}
+
 type ValidateAppearance = (a: any) => string | null;
 let validateAppearance: ValidateAppearance = () => null;
 
@@ -186,6 +194,36 @@ export function applyMutation(room: string, msg: any): void {
       figs.set('__moderation__', { ...prev, freeze: !!msg.frozen });
       break;
     }
+    case 'anchor_create': {
+      if (msg.anchor && typeof msg.anchor === 'object') {
+        const existing: any[] = figs.get('__anchors__')?.anchors ?? [];
+        const newAnchor = { ...msg.anchor, id: typeof msg.anchor.id === 'string' ? msg.anchor.id : generateId() };
+        figs.set('__anchors__', { id: '__anchors__', anchors: [...existing, newAnchor] });
+      }
+      break;
+    }
+    case 'anchor_delete': {
+      if (typeof msg.anchorId === 'string') {
+        const existing: any[] = figs.get('__anchors__')?.anchors ?? [];
+        figs.set('__anchors__', { id: '__anchors__', anchors: existing.filter((a: any) => a.id !== msg.anchorId) });
+      }
+      break;
+    }
+    case 'zone_create': {
+      if (msg.zone && typeof msg.zone === 'object') {
+        const existing: any[] = figs.get('__zones__')?.zones ?? [];
+        const newZone = { ...msg.zone, id: typeof msg.zone.id === 'string' ? msg.zone.id : generateId() };
+        figs.set('__zones__', { id: '__zones__', zones: [...existing, newZone] });
+      }
+      break;
+    }
+    case 'zone_delete': {
+      if (typeof msg.zoneId === 'string') {
+        const existing: any[] = figs.get('__zones__')?.zones ?? [];
+        figs.set('__zones__', { id: '__zones__', zones: existing.filter((z: any) => z.id !== msg.zoneId) });
+      }
+      break;
+    }
   }
 }
 
@@ -252,6 +290,12 @@ export function seedFigureMapFromState(map: Map<string, any>, state: any): void 
       dim: state.moderation.dim ?? null,
       freeze: state.moderation.freeze ?? false,
     });
+  }
+  if (state.anchors && Array.isArray(state.anchors) && state.anchors.length > 0) {
+    map.set('__anchors__', { id: '__anchors__', anchors: state.anchors });
+  }
+  if (state.zones && Array.isArray(state.zones) && state.zones.length > 0) {
+    map.set('__zones__', { id: '__zones__', zones: state.zones });
   }
 }
 

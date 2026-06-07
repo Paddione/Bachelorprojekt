@@ -108,8 +108,12 @@ spec:
           volumeMounts:
             - name: presets-data
               mountPath: /app/presets
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: presets-data
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}
 ---
 apiVersion: v1

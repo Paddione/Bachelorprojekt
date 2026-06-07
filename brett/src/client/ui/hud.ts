@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 import { STATE, ui, lockSprites, activeLocks } from '../state';
+import { lockBadgeStyle, type VarGetter } from './skin';
 
 const pillEl = document.getElementById('status-pill')!;
+
+// Browser CSS-variable resolver — injected only inside function bodies so the
+// module stays importable under node/tsx (no top-level DOM access).
+const cssVar: VarGetter = (n: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(n);;
 
 export function setFigureLockBadge(figureId: string, name: string, color: string): void {
   clearFigureLockBadge(figureId);
@@ -14,8 +20,9 @@ export function setFigureLockBadge(figureId: string, name: string, color: string
   canvas.height = 64;
   const ctx = canvas.getContext('2d')!;
 
-  // Draw background bubble
-  ctx.fillStyle = color || '#4ea1ff';
+  // Draw background bubble using design-system tokens (falls back to today's literals)
+  const badge = lockBadgeStyle(color, cssVar);
+  ctx.fillStyle = badge.bg;
   ctx.beginPath();
   if ((ctx as any).roundRect) {
     (ctx as any).roundRect(4, 4, 248, 56, 12);
@@ -25,8 +32,8 @@ export function setFigureLockBadge(figureId: string, name: string, color: string
   ctx.fill();
 
   // Draw text
-  ctx.font = 'bold 24px system-ui, sans-serif';
-  ctx.fillStyle = '#161b22';
+  ctx.font = badge.font;
+  ctx.fillStyle = badge.text;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(`🔒 ${name}`, 128, 32);

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STATE, PLACEMENT_SPEC } from '../state';
 import { sendUpdate } from '../ws-client';
+import { placeholderSvg, type VarGetter } from './skin';
 
 const textureCache = new Map<string, THREE.Texture>();
 
@@ -73,6 +74,10 @@ export function applyAppearanceToFig(fig: any, appearance: any): void {
 }
 
 // ── Appearance Drawer logic ─────────────────────────────────────────────────
+// CSS-variable resolver for token-driven canvas/SVG colors.
+const cssVar: VarGetter = (n: string) =>
+  getComputedStyle(document.documentElement).getPropertyValue(n);
+
 const appearanceDrawer = document.getElementById('appearance-drawer')!;
 const appearanceBtn    = document.getElementById('appearance-btn') as HTMLButtonElement | null;
 const drawerClose      = document.getElementById('appearance-drawer-close');
@@ -125,7 +130,7 @@ function buildFaceGrid(): void {
   grid.innerHTML = '';
   const faces = Object.keys(PLACEMENT_SPEC.faces || {}).filter(k => !k.startsWith('_'));
   // "No face" option
-  const nullEl = makeThumbItem('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="56" height="56" fill="%23222"/><text x="28" y="34" text-anchor="middle" fill="%23666" font-size="20">—</text></svg>', 'Keine', () => {
+  const nullEl = makeThumbItem(placeholderSvg('Keine', 'empty', cssVar), 'Keine', () => {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (fig) applyAppearanceToFig(fig, { face: null });
     syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));
@@ -148,7 +153,7 @@ function buildBodyGrid(): void {
   const bodies = Object.keys(PLACEMENT_SPEC.bodies || {}).filter(k => !k.startsWith('_'));
   for (const body of bodies) {
     const el = makeThumbItem(
-      'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="56" height="56" fill="#1a1f2a"/><text x="28" y="36" text-anchor="middle" fill="#c8a96e" font-size="11">${body}</text></svg>`),
+      placeholderSvg(body, 'body', cssVar),
       body,
       () => {
         const fig = STATE.figures.find(f => f.id === STATE.selectedId);
@@ -165,7 +170,7 @@ function buildAccGrid(slot: string, names: string[]): void {
   if (!grid) return;
   grid.innerHTML = '';
   // "No accessory" option
-  const nullEl = makeThumbItem('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56"><rect width="56" height="56" fill="%23222"/><text x="28" y="34" text-anchor="middle" fill="%23666" font-size="20">—</text></svg>', 'Keine', () => {
+  const nullEl = makeThumbItem(placeholderSvg('Keine', 'empty', cssVar), 'Keine', () => {
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
     if (fig) applyAppearanceToFig(fig, { accessories: { [slot]: null } });
     syncDrawerToFig(STATE.figures.find(f => f.id === STATE.selectedId));

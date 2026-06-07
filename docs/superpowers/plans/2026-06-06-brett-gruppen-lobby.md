@@ -1172,7 +1172,7 @@ All six blockers are covered by existing tasks; no extra task is required.
 
 ---
 
-### E1 — Token-resolution helper + token-driven HUD lock badge
+### E1 — Token-resolution helper + token-driven HUD lock badge — [x] DONE
 
 **target_files**
 - `brett/src/client/ui/skin.ts` (NEW — pure, **zero** `three`/DOM imports at module top-level so it loads under `tsx --test`)
@@ -1218,7 +1218,7 @@ Red because `skin.ts` does not exist and `hud.ts` hardcodes `#4ea1ff`/`#161b22`/
 
 ---
 
-### E2 — Appearance drawer + appearance-button CSS → tokens
+### E2 — Appearance drawer + appearance-button CSS → tokens — [x] DONE
 
 **target_files**
 - `brett/public/index.html` (EDIT — the `#appearance-btn` rules and the entire `/* ── Appearance Drawer ── */` `<style>` region, lines ≈120–193: drawer shell, `.drawer-header/-section/-footer`, `.thumb-grid/.thumb-item`, `.acc-group*`, `.drawer-close/-cancel/-apply`)
@@ -1242,7 +1242,7 @@ Red because `skin.ts` does not exist and `hud.ts` hardcodes `#4ea1ff`/`#161b22`/
 
 ---
 
-### E3 — Appearance placeholder thumbnails (SVG `data:` URIs) → tokens via `skin.ts`
+### E3 — Appearance placeholder thumbnails (SVG `data:` URIs) → tokens via `skin.ts` — [x] DONE
 
 **target_files**
 - `brett/src/client/ui/skin.ts` (EDIT — add `placeholderSvg`)
@@ -1268,7 +1268,7 @@ Red because `placeholderSvg` does not exist and `appearance.ts` inlines `#1a1f2a
 
 ---
 
-### E4 — Topbar chrome → tokens (preset/icon buttons, stiffness, online indicator)
+### E4 — Topbar chrome → tokens (preset/icon buttons, stiffness, online indicator) — [x] DONE
 
 **target_files**
 - `brett/public/index.html` (EDIT — `#topbar`, `.preset-btn`, `.icon-btn`, `#stiffness`, the topbar `@media` block, and a NEW rule for `#online-indicator`)
@@ -1289,7 +1289,7 @@ Red because `placeholderSvg` does not exist and `appearance.ts` inlines `#1a1f2a
 
 ---
 
-### E5 — Persons panel + remaining floating panels → tokens (inline styles → tokenized classes)
+### E5 — Persons panel + remaining floating panels → tokens (inline styles → tokenized classes) — [x] DONE
 
 **target_files**
 - `brett/src/client/ui/persons.ts` (EDIT — `buildPersonsPanel` inline `cssText`)
@@ -1310,7 +1310,7 @@ Red because `placeholderSvg` does not exist and `appearance.ts` inlines `#1a1f2a
 
 ---
 
-### E6 — Phase gate: typecheck + build (+ optional visual regression)
+### E6 — Phase gate: typecheck + build (+ optional visual regression) — [x] DONE
 
 **target_files**
 - none new (verification task); optional NEW `brett/test/visual/board-facelift.spec.ts` + Playwright config **only if** a Playwright harness is stood up.

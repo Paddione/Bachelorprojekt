@@ -1,4 +1,4 @@
-import { STATE, getWs, setWs, isWsReady, setWsReady, activeLocks, lockSprites, getScene, currentUser } from './state';
+import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase } from '../types/state';
 import * as mannequin from './mannequin';

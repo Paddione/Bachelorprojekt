@@ -8,19 +8,23 @@
   <style>
     *,*::before,*::after { box-sizing: border-box; }
     html, body { margin:0; height:100%; background:#0e1014; color:#e7ead0; font-family: ui-sans-serif, system-ui, sans-serif; overflow:hidden; }
+    /* ── Topbar chrome (Phase E) ──────────────────────────────────── */
     #topbar {
       position:fixed; top:0; left:0; right:0; height:36px; display:flex; align-items:center; gap:8px;
       padding:0 10px; background:rgba(14,16,20,0.85); backdrop-filter:blur(6px);
-      border-bottom:1px solid rgba(231,234,208,0.08); z-index:10; font-size:13px;
+      border-bottom:var(--hairline-soft, 1px solid rgba(231,234,208,0.08)); z-index:10; font-size:13px;
     }
     #topbar .group { display:flex; align-items:center; gap:6px; }
-    #topbar .sep { width:1px; height:20px; background:rgba(231,234,208,0.12); margin:0 6px; }
-    .preset-btn { background:transparent; color:inherit; border:1px solid rgba(231,234,208,0.18);
-      border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
-    .preset-btn:hover { background:rgba(231,234,208,0.08); }
-    .icon-btn { background:transparent; color:inherit; border:1px solid rgba(231,234,208,0.18);
-      border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer; }
-    #stiffness { width:160px; accent-color:#c8a96e; }
+    #topbar .sep { width:1px; height:20px; background:var(--parchment-3, rgba(231,234,208,0.12)); margin:0 6px; }
+    .preset-btn { background:transparent; color:var(--parchment, inherit); border:var(--hairline-soft, 1px solid rgba(231,234,208,0.18));
+      border-radius:var(--radius-sm, 4px); padding:4px 10px; font:inherit; cursor:pointer; }
+    .preset-btn:hover { background:var(--slate-2, rgba(231,234,208,0.08)); }
+    .icon-btn { background:transparent; color:var(--parchment, inherit); border:var(--hairline-soft, 1px solid rgba(231,234,208,0.18));
+      border-radius:var(--radius-sm, 4px); padding:4px 10px; font:inherit; cursor:pointer; }
+    #stiffness { width:160px; accent-color:var(--brass, #c8a96e); }
+    #online-indicator { font-size:var(--fs-small, 13px); color:var(--parchment-2, #b9bda3); }
+    /* ── Topbar chrome end ─────────────────────────────────────────── */
+
     #status-pill {
       position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
       padding:8px 14px; background:var(--brett-surface, #101826); border:1px solid var(--brett-line-2, rgba(255,255,255,0.12));
@@ -120,17 +124,17 @@
     /* ── Appearance Drawer ─────────────────────────────── */
     #appearance-btn {
       background: transparent; color: inherit;
-      border: 1px solid rgba(231,234,208,0.18);
-      border-radius: 4px; padding: 4px 10px;
+      border: var(--hairline-soft, 1px solid rgba(231,234,208,0.18));
+      border-radius: var(--radius-sm, 4px); padding: 4px 10px;
       font: inherit; cursor: pointer; white-space: nowrap;
     }
-    #appearance-btn:hover, #appearance-btn.open { background: rgba(231,234,208,0.12); }
+    #appearance-btn:hover, #appearance-btn.open { background: var(--slate-2, rgba(231,234,208,0.12)); }
     #appearance-btn:disabled { opacity: 0.35; cursor: default; }
 
     #appearance-drawer {
       position: fixed; top: 36px; right: 0; bottom: 0;
       width: 280px; z-index: 100;
-      background: #161a22; border-left: 1px solid rgba(200,169,110,0.25);
+      background: var(--slate-1, #161922); border-left: 1px solid rgba(var(--brass-rgb, 200,169,110),0.25);
       display: flex; flex-direction: column;
       transform: translateX(100%);
       transition: transform 200ms ease;
@@ -140,16 +144,16 @@
 
     .drawer-header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 14px; border-bottom: 1px solid rgba(231,234,208,0.08);
-      font-size: 11px; font-weight: 600; color: #c8a96e;
+      padding: 12px 14px; border-bottom: var(--hairline-soft, 1px solid rgba(231,234,208,0.08));
+      font-size: 11px; font-weight: 600; color: var(--brass, #c8a96e);
       text-transform: uppercase; letter-spacing: 0.1em;
     }
-    .drawer-close { background: none; border: none; color: rgba(231,234,208,0.4); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; }
-    .drawer-close:hover { color: #e7ead0; }
+    .drawer-close { background: none; border: none; color: var(--parchment-3, rgba(231,234,208,0.4)); cursor: pointer; font-size: 16px; padding: 0; line-height: 1; }
+    .drawer-close:hover { color: var(--parchment, #e7ead0); }
 
-    .drawer-section { padding: 10px 14px; border-bottom: 1px solid rgba(231,234,208,0.06); }
+    .drawer-section { padding: 10px 14px; border-bottom: var(--hairline-soft, 1px solid rgba(231,234,208,0.06)); }
     .drawer-section-title {
-      font-size: 10px; color: rgba(231,234,208,0.45);
+      font-size: 10px; color: var(--parchment-3, #7c8071);
       text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
     }
 
@@ -157,33 +161,33 @@
     .thumb-grid.two-col { grid-template-columns: repeat(2, 1fr); }
     .thumb-item {
       display: flex; flex-direction: column; align-items: center; gap: 4px;
-      cursor: pointer; padding: 4px; border-radius: 6px;
+      cursor: pointer; padding: 4px; border-radius: var(--radius-md, 6px);
       border: 2px solid transparent; transition: border-color 0.12s;
     }
-    .thumb-item:hover { border-color: rgba(200,169,110,0.4); }
-    .thumb-item.active { border-color: #c8a96e; }
-    .thumb-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; }
-    .thumb-item span { font-size: 9px; color: rgba(231,234,208,0.55); text-align: center; line-height: 1.2; }
+    .thumb-item:hover { border-color: var(--brass-soft, rgba(200,169,110,0.4)); }
+    .thumb-item.active { border-color: var(--brass, #c8a96e); }
+    .thumb-item img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--radius-sm, 4px); }
+    .thumb-item span { font-size: 9px; color: var(--parchment-3, #7c8071); text-align: center; line-height: 1.2; }
     .thumb-item.null-item img { opacity: 0.35; }
     .thumb-item.null-item.active img { opacity: 0.7; }
 
     .acc-group { margin-bottom: 8px; }
-    .acc-group-label { font-size: 9px; color: rgba(231,234,208,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .acc-group-label { font-size: 9px; color: var(--parchment-3, #7c8071); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
 
     .drawer-footer {
       padding: 12px 14px; display: flex; gap: 8px; margin-top: auto;
-      border-top: 1px solid rgba(231,234,208,0.08);
-      position: sticky; bottom: 0; background: #161a22;
+      border-top: var(--hairline-soft, 1px solid rgba(231,234,208,0.08));
+      position: sticky; bottom: 0; background: var(--slate-1, #161922);
     }
     .drawer-cancel {
-      flex: 1; background: transparent; color: rgba(231,234,208,0.7);
-      border: 1px solid rgba(231,234,208,0.2); border-radius: 6px;
+      flex: 1; background: transparent; color: var(--parchment-2, rgba(231,234,208,0.7));
+      border: 1px solid var(--parchment-3, rgba(231,234,208,0.2)); border-radius: var(--radius-md, 6px);
       padding: 8px; font: inherit; font-size: 12px; cursor: pointer;
     }
-    .drawer-cancel:hover { background: rgba(231,234,208,0.06); }
+    .drawer-cancel:hover { background: var(--slate-2, rgba(231,234,208,0.06)); }
     .drawer-apply {
-      flex: 1; background: #c8a96e; color: #0a0a14;
-      border: none; border-radius: 6px;
+      flex: 1; background: var(--brass, #c8a96e); color: var(--slate-0, #0e1014);
+      border: none; border-radius: var(--radius-md, 6px);
       padding: 8px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
     }
     .drawer-apply:hover { filter: brightness(1.1); }
@@ -191,6 +195,55 @@
     @media (max-width: 480px) {
       #appearance-drawer { width: 100%; }
     }
+
+    /* ── Remaining panels (Phase E) ──────────────────────────────── */
+    /* Co-op Wave HUD */
+    .coop-hud {
+      display: none; position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      background: var(--slate-0, rgba(10,10,20,.82)); border: 1px solid var(--sage, #4a7);
+      border-radius: var(--radius-md, 8px); padding: 8px 20px;
+      font-family: var(--font-mono, monospace); color: var(--parchment-2, #b9bda3); font-size: 13px;
+      flex-direction: column; gap: 4px; min-width: 220px; z-index: 200;
+    }
+    .coop-hud-header { display: flex; justify-content: space-between; align-items: center; }
+    .coop-hud-label { color: var(--brass, #c8a96e); font-weight: bold; letter-spacing: .1em; }
+    .coop-wave-label { font-size: 15px; font-weight: bold; color: var(--parchment, #e7ead0); }
+    .coop-enemy-count { color: var(--parchment-3, #e87); }
+    .coop-progress {
+      background: var(--slate-2, #1e1e1e); border-radius: var(--radius-sm, 4px); overflow: hidden; height: 4px;
+    }
+    .coop-progress-bar {
+      height: 100%; background: linear-gradient(90deg, var(--sage, #4a7), var(--brass, #c9aa71)); transition: width .5s;
+    }
+    .boss-hp-wrap { display: none; margin-top: 4px; }
+    .boss-hp-label { color: var(--danger, #f44); font-size: 11px; margin-bottom: 2px; }
+    .boss-hp-track {
+      background: var(--slate-2, #1e1e1e); border-radius: var(--radius-sm, 4px); overflow: hidden; height: 6px;
+    }
+    .boss-hp-bar { width: 100%; height: 100%; background: var(--danger, #f44); transition: width .3s; }
+
+    /* Session-created toast */
+    .session-toast {
+      position: fixed; bottom: 12px; left: 12px; z-index: 100;
+      background: var(--slate-1, rgba(22,27,34,0.93)); border: 1px solid var(--slate-3, #2a3340);
+      border-radius: var(--radius-lg, 10px); padding: 12px 16px;
+      color: var(--parchment, #e6edf3); font: 13px var(--font-sans, system-ui);
+      min-width: 200px; box-shadow: var(--shadow-2, 0 4px 12px rgba(0,0,0,0.5));
+    }
+    .session-toast-title { font-weight: bold; margin-bottom: 4px; color: var(--sage, #3fb950); }
+    .session-toast-code { font-family: var(--font-mono, monospace); font-size: 14px; color: var(--brass, #ffaa44); }
+    .session-toast-link {
+      color: var(--parchment-2, #58a6ff); text-decoration: none; display: inline-block; margin-top: 6px;
+    }
+
+    /* Person button (persons.ts — static parts → class, data-driven border stays inline) */
+    .person-btn {
+      text-align: left; padding: 4px 7px; font-size: 11px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .person-btn img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+
+    /* ── Remaining panels end ──────────────────────────────────────── */
 
     /* ── Hauptmenü overlay (Phase A) ───────────────────────────── */
     #brett-menu {
@@ -309,22 +362,19 @@
   <div id="status-pill">Klick = Figur wählen · Doppelklick Boden = Figur teleportieren / neue Figur</div>
 
   <!-- Co-op Wave HUD -->
-  <div id="coop-hud" style="display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);
-    background:rgba(10,10,20,.82);border:1px solid #4a7;border-radius:8px;
-    padding:8px 20px;font-family:monospace;color:#ccd;font-size:13px;
-    flex-direction:column;gap:4px;min-width:220px;z-index:200;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span style="color:#c9aa71;font-weight:bold;letter-spacing:.1em;">CO-OP</span>
-      <span id="coop-wave-label" style="font-size:15px;font-weight:bold;color:#fff;">WELLE 1 / 10</span>
-      <span id="coop-enemy-count" style="color:#e87;">Feinde: <strong>0</strong></span>
+  <div id="coop-hud" class="coop-hud">
+    <div class="coop-hud-header">
+      <span class="coop-hud-label">CO-OP</span>
+      <span id="coop-wave-label" class="coop-wave-label">WELLE 1 / 10</span>
+      <span id="coop-enemy-count" class="coop-enemy-count">Feinde: <strong>0</strong></span>
     </div>
-    <div style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:4px;">
-      <div id="coop-progress-bar" style="width:10%;height:100%;background:linear-gradient(90deg,#4a7,#c9aa71);transition:width .5s;"></div>
+    <div class="coop-progress">
+      <div id="coop-progress-bar" class="coop-progress-bar" style="width:10%;"></div>
     </div>
-    <div id="boss-hp-wrap" style="display:none;margin-top:4px;">
-      <div style="color:#f44;font-size:11px;margin-bottom:2px;">&#9888; BOSS HP</div>
-      <div style="background:#1e1e1e;border-radius:4px;overflow:hidden;height:6px;">
-        <div id="boss-hp-bar" style="width:100%;height:100%;background:#f44;transition:width .3s;"></div>
+    <div id="boss-hp-wrap" class="boss-hp-wrap">
+      <div class="boss-hp-label">&#9888; BOSS HP</div>
+      <div class="boss-hp-track">
+        <div id="boss-hp-bar" class="boss-hp-bar"></div>
       </div>
     </div>
   </div>
@@ -348,10 +398,10 @@
 
   wire.on('session_created', (m) => {
     const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:100;background:#161b22ee;border:1px solid #2a3340;border-radius:10px;padding:12px 16px;color:#e6edf3;font:13px system-ui;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
-    toast.innerHTML = `<div style="font-weight:bold;margin-bottom:4px;color:#3fb950;">Session erstellt!</div>` +
-      `Code: <strong style="font-family:monospace;font-size:14px;color:#ffaa44;">${m.code}</strong><br/>` +
-      `<a href="/api/join?code=${m.code}" style="color:#58a6ff;text-decoration:none;display:inline-block;margin-top:6px;" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
+    toast.className = 'session-toast';
+    toast.innerHTML = `<div class="session-toast-title">Session erstellt!</div>` +
+      `Code: <strong class="session-toast-code">${m.code}</strong><br/>` +
+      `<a href="/api/join?code=${m.code}" class="session-toast-link" onclick="navigator.clipboard.writeText(this.href); this.textContent='Kopiert!'; return false;">Link kopieren</a>`;
     document.body.appendChild(toast);
   });
 </script>

@@ -18,12 +18,12 @@ export function buildPersonsPanel(persons: Array<{ key: string; label: string; c
   grid.innerHTML = '';
   for (const p of persons) {
     const btn = document.createElement('button');
-    btn.className = 'fig-size-btn';
-    btn.style.cssText = `border-left:3px solid ${p.color};text-align:left;padding:4px 7px;` +
-      `font-size:11px;display:flex;align-items:center;gap:6px;`;
+    // Static structural styles live in the `.person-btn` class (index.html Phase E);
+    // only the data-driven per-person accent color is applied as an inline style.
+    btn.className = 'fig-size-btn person-btn';
+    btn.style.borderLeft = `3px solid ${p.color}`;
     const img = document.createElement('img');
     img.src = `/assets/figure-pack/faces/${p.key}.png`;
-    img.style.cssText = 'width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;';
     img.alt = p.label;
     const span = document.createElement('span');
     span.textContent = p.label;

@@ -7,7 +7,7 @@ const pillEl = document.getElementById('status-pill')!;
 // Browser CSS-variable resolver — injected only inside function bodies so the
 // module stays importable under node/tsx (no top-level DOM access).
 const cssVar: VarGetter = (n: string) =>
-  getComputedStyle(document.documentElement).getPropertyValue(n);;
+  getComputedStyle(document.documentElement).getPropertyValue(n);
 
 export function setFigureLockBadge(figureId: string, name: string, color: string): void {
   clearFigureLockBadge(figureId);

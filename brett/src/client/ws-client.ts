@@ -37,6 +37,12 @@ export function sendClient(msg: ClientMessage): void {
   send(msg);
 }
 
+/** True iff a socket exists and is OPEN (used to decide sync-send vs open-hook). */
+export function isWsOpen(): boolean {
+  const ws = getWs();
+  return !!ws && ws.readyState === WebSocket.OPEN;
+}
+
 export function sendMove(id: string, x: number, z: number, facingY: number): void {
   send({ type: 'move', id, x, z, facingY });
 }
@@ -74,7 +80,23 @@ export function sendAddFigure(fig: any): void {
   });
 }
 
+// Optional callback fired once per socket, right after the WS reaches OPEN and the
+// `join` frame is sent. Used by the bootstrap (main.ts) to send a one-shot
+// admin_session_create AFTER the handshake (FE-1/REG-4), never racing it.
+let onWsOpen: (() => void) | null = null;
+export function setWsOpenHandler(fn: (() => void) | null): void {
+  onWsOpen = fn;
+}
+
 export function connectWS(): void {
+  // REG-2: idempotent — never open a second socket if one is already
+  // CONNECTING/OPEN. The lobby bootstrap (main.ts) opens the socket as soon as the
+  // room is known, and bootBoard() later also calls connectWS() when the board
+  // mounts; without this guard that would create a duplicate connection.
+  const existing = getWs();
+  if (existing && (existing.readyState === WebSocket.CONNECTING || existing.readyState === WebSocket.OPEN)) {
+    return;
+  }
   // Thread room + (when known) the canonical identity into the /sync handshake so
   // the late-join guard (shouldRejectReconnect) can distinguish a true reconnect
   // of an already-active player from a genuine late-joiner. Omit playerId when
@@ -89,6 +111,10 @@ export function connectWS(): void {
   ws.addEventListener('open', () => {
     setWsReady(true);
     send({ type: 'join', room: roomFromUrl });
+    // FE-1/REG-4: fire the bootstrap's one-shot hook (e.g. admin_session_create)
+    // only AFTER the socket is OPEN and `join` is sent, so it never races the
+    // handshake.
+    if (onWsOpen) onWsOpen();
   });
   ws.addEventListener('close', () => {
     setWsReady(false);
@@ -181,6 +207,19 @@ export function onWsMessage(evt: MessageEvent): void {
       // Apply persisted board-optik on mount so late-joiners/reloads render the
       // saved look (§4.1 dead seam closed end-to-end, D11).
       if (msg.optik) applyOptikToScene(msg.optik);
+
+      // FE-2: the join snapshot is the FIRST (often ONLY) state a client gets on
+      // connect, and it carries the authoritative phase/sessionCode/roster. Route
+      // it through the lobby reducer and drive the view-machine on a phase change
+      // — exactly like the presence/session cases below — so a `?room=`/`/api/join`
+      // joiner into a `lobby`-phase session lands on the lobby screen instead of
+      // staring at empty board chrome.
+      {
+        const prevPhase = lobbyState.phase;
+        lobbyState = applyLobbyServerMessage(lobbyState, msg);
+        onLobbyChange(lobbyState);
+        if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      }
       break;
 
     case 'stiffness':
@@ -296,7 +335,6 @@ export function onWsMessage(evt: MessageEvent): void {
       break;
     }
 
-    case 'init':
     case 'presence_join':
     case 'presence_leave':
     case 'role_changed':
@@ -319,7 +357,11 @@ export function onWsMessage(evt: MessageEvent): void {
 
     case 'admin_token_changed':
     case 'coaching_steps_change':
-      // Routed (no silent drop); board-side handlers consume these elsewhere.
+      // CP-3: route through the lobby reducer so the leader handoff (B14) and the
+      // broadcast coaching flow (D10) are actually tracked in the store and the
+      // lobby UI re-renders via onLobbyChange — instead of being silently dropped.
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
       break;
 
     case 'figure_owner_changed':

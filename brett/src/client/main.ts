@@ -12,6 +12,7 @@ import { injectMenuStyles, mountMenu, type MenuUser } from './ui/menu';
 import { injectLobbyStyles, mountLobby, buildLobbyViewModel } from './ui/lobby';
 import { buildCoachingStepsPayload } from './lobby-coaching';
 import { createAppShell, type ViewState, type AppShell } from './app-shell';
+import { currentUser } from './state';
 
 function getMenuRoot(): HTMLElement | null {
   return document.getElementById('brett-menu');
@@ -77,6 +78,16 @@ async function main(): Promise<void> {
 
   const user = await fetchUser();
 
+  // Seed the shared currentUser BEFORE any connectWS so the canonical identity is
+  // threaded into the /sync handshake (?playerId=) on the very first connection —
+  // including the lobby-bootstrap connect, which can run before board-boot's own
+  // /auth/me fetch. Keeps the late-join reconnect guard accurate. board-boot may
+  // re-fetch and refine name/userId later (idempotent).
+  if (user.userId && user.userId !== 'anon') {
+    currentUser.userId = user.userId;
+    currentUser.name = user.name;
+  }
+
   const appShell = createAppShell({
     mountBoard: () => import('./board-boot').then((m) => m.bootBoard()),
     renderView: (v: ViewState) => {
@@ -88,16 +99,19 @@ async function main(): Promise<void> {
   // Server-driven phase changes (from the live socket) route the view-machine:
   // menu → lobby → board (active/paused) → summary (ended). Late-join into an
   // already-active room jumps straight to the board.
-  void import('./ws-client').then((ws) => {
-    ws.setPhaseChangeHandler((phase) => appShell.setPhase(phase));
-    ws.setLobbyChangeHandler(() => {
-      if (appShell.getView() === 'lobby') renderLobby(appShell, user);
-    });
+  const wsMod = await import('./ws-client');
+  wsMod.setPhaseChangeHandler((phase) => appShell.setPhase(phase));
+  wsMod.setLobbyChangeHandler(() => {
+    if (appShell.getView() === 'lobby') renderLobby(appShell, user);
   });
 
   const hasRoom = new URLSearchParams(location.search).has('room');
   if (hasRoom) {
     // Deep-link / legacy coaching path: straight to the board, no menu.
+    // REG-2: open the socket here too (bootBoard also calls connectWS, but
+    // connectWS is idempotent) so the snapshot's phase can route the view machine
+    // into the lobby screen if the deep-linked session is in `lobby`.
+    wsMod.connectWS();
     appShell.goTo('board');
     return;
   }
@@ -106,14 +120,36 @@ async function main(): Promise<void> {
   if (menuRoot) {
     mountMenu(menuRoot, {
       user,
-      onNewSession: () => appShell.goTo('board'),
+      // FE-1/REG-4: actually create a session. Open the socket (idempotent), then
+      // send admin_session_create on WS-OPEN (never synchronously — that would race
+      // the handshake). The resulting session_created + session_phase_change('lobby')
+      // drive the view machine into the lobby screen via the phase-change handler.
+      onNewSession: () => startNewSession(wsMod),
       onJoin: (code) => { window.location.href = `/api/join?code=${encodeURIComponent(code)}`; },
       onSavedList: () => appShell.goTo('board'),
-      onSettings: () => { /* Phase A: placeholder — settings screen lands later */ },
+      onSettings: () => { /* disabled menu item — see FE-4; settings screen lands later */ },
     });
   }
   // Stay in 'menu' (default view) — render the menu chrome.
   renderView('menu');
+}
+
+// FE-1/REG-4: open the WS (REG-2: idempotent) and register a ONE-SHOT WS-open
+// hook that emits admin_session_create after the handshake. The server seeds the
+// `lobby` phase + a session code and broadcasts session_phase_change('lobby'),
+// which the phase-change handler routes into the lobby view.
+function startNewSession(wsMod: typeof import('./ws-client')): void {
+  // If the socket is already OPEN (connectWS would early-return and never re-fire
+  // the open event), send immediately; otherwise arm a one-shot open hook.
+  if (wsMod.isWsOpen()) {
+    wsMod.sendClient({ type: 'admin_session_create' });
+    return;
+  }
+  wsMod.setWsOpenHandler(() => {
+    wsMod.setWsOpenHandler(null); // one-shot
+    wsMod.sendClient({ type: 'admin_session_create' });
+  });
+  wsMod.connectWS();
 }
 
 main();

@@ -22,6 +22,8 @@ export interface MenuItem {
   id: 'new-session' | 'join' | 'saved' | 'settings';
   label: string;
   hint?: string;
+  /** FE-4: rendered as a greyed, non-clickable button (feature lands later). */
+  disabled?: boolean;
 }
 
 export interface MenuModel {
@@ -43,8 +45,11 @@ export function menuModel(user: MenuUser): MenuModel {
     items.push({ id: 'new-session', label: 'Neue Session starten', hint: 'Eine Aufstellung leiten' });
   }
   items.push({ id: 'join', label: 'Session beitreten', hint: 'Mit Code teilnehmen' });
-  items.push({ id: 'saved', label: 'Gespeicherte Aufstellungen', hint: 'Frühere Sessions laden' });
-  items.push({ id: 'settings', label: 'Einstellungen', hint: 'Konto & Optik' });
+  // FE-4: these screens do not exist yet — render them visibly disabled ("bald
+  // verfügbar") instead of as active buttons that silently no-op / dump the user
+  // onto a blank board.
+  items.push({ id: 'saved', label: 'Gespeicherte Aufstellungen', hint: 'bald verfügbar', disabled: true });
+  items.push({ id: 'settings', label: 'Einstellungen', hint: 'bald verfügbar', disabled: true });
   return { items, identityLine: `angemeldet als: ${user.name}` };
 }
 
@@ -82,6 +87,16 @@ export function mountMenu(container: HTMLElement, opts: MenuHandlers): void {
   for (const item of model.items) {
     if (item.id === 'join') {
       card.appendChild(buildJoinRow(opts));
+      continue;
+    }
+    if (item.disabled) {
+      // FE-4: visibly disabled, non-clickable — no handler wired.
+      const btn = Button({ label: item.label, variant: 'ghost' });
+      btn.classList.add('brett-menu__action', 'brett-menu__action--disabled');
+      btn.dataset.itemId = item.id;
+      btn.disabled = true;
+      if (item.hint) btn.title = item.hint;
+      card.appendChild(btn);
       continue;
     }
     const onClick =
@@ -149,6 +164,7 @@ export function menuCss(): string {
     '.brett-menu__subtitle{margin:6px 0 0;color:var(--brett-mute);font-size:15px;letter-spacing:0.04em;}',
     '.brett-menu__card{width:min(440px,92vw);display:flex;flex-direction:column;gap:12px;}',
     '.brett-menu__action{width:100%;justify-content:flex-start;}',
+    '.brett-menu__action--disabled{opacity:0.45;cursor:not-allowed;pointer-events:none;}',
     '.brett-menu__join{display:flex;gap:8px;}',
     '.brett-menu__join-input{flex:1 1 auto;}',
     '.brett-menu__join-go{flex:0 0 auto;}',

@@ -45,6 +45,33 @@ test('session_created stores sessionCode', () => {
   assert.strictEqual(s.sessionCode, 'KRB-9A2');
 });
 
+test('FE-2/REG-6: snapshot seeds phase, sessionCode AND the roster (with roles)', () => {
+  let s = createLobbyState();
+  s = applyLobbyServerMessage(s, {
+    type: 'snapshot',
+    figures: [],
+    phase: 'lobby',
+    sessionCode: 'KRB-9A2',
+    participants: [
+      { userId: 'u1', name: 'Anna', color: '#4ea1ff', role: 'leiter' },
+      { userId: 'u2', name: 'Ben', color: '#3fb950' },
+    ],
+  });
+  assert.strictEqual(s.phase, 'lobby', 'join snapshot drives the authoritative phase');
+  assert.strictEqual(s.sessionCode, 'KRB-9A2');
+  assert.strictEqual(s.roster.u1.role, 'leiter', 'persisted role is merged into the late-joiner roster');
+  assert.strictEqual(s.roster.u2.name, 'Ben');
+  assert.strictEqual(s.roster.u2.role, undefined, 'unassigned participant has no role');
+});
+
+test('CP-3: admin_token_changed + coaching_steps_change are tracked (no silent drop)', () => {
+  let s = createLobbyState();
+  s = applyLobbyServerMessage(s, { type: 'admin_token_changed', holderPlayerId: 'u9', reason: 'handoff' });
+  assert.strictEqual(s.adminTokenHolder, 'u9');
+  s = applyLobbyServerMessage(s, { type: 'coaching_steps_change', steps: ['warmup', 'play'], index: 1 });
+  assert.deepStrictEqual(s.coachingSteps, { steps: ['warmup', 'play'], index: 1 });
+});
+
 test('unknown server message leaves state unchanged', () => {
   const s = createLobbyState();
   const s2 = applyLobbyServerMessage(s, { type: 'info', count: 3 } as any);

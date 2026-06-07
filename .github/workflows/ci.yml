@@ -4,7 +4,13 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main]
+    branches:
+      - main
+      # release-please PRs are opened by github-actions[bot] with GITHUB_TOKEN,
+      # which GitHub does not re-trigger pull_request workflows for (loop-prevention).
+      # Triggering on push to the release-please branch gives branch-protection the
+      # required check run so the PR can auto-merge.
+      - 'release-please--branches--main'
 
 concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);
@@ -28,12 +34,16 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611  # v2.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y jq curl python3-pip
-          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+          curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
       - name: Install node dependencies (docs-gen generator + tests)
         run: npm ci

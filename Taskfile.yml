@@ -1247,13 +1247,10 @@ tasks:
             export COLLABORA_INGRESS_MIDDLEWARES="${WORKSPACE_NAMESPACE:-workspace}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE:-workspace}-hsts-headers@kubernetescrd"
             ;;
         esac
-        # Single-brand deploy: second-brand vars are empty (only fleet-deploy populates them).
-        export COLLABORA_HOST_2=""
-        export COLLABORA_ALIASGROUP2=""
         context_flag=""
         [ "{{.ENV}}" != "dev" ] && context_flag="--context ${ENV_CONTEXT}"
         kustomize build k3d/office-stack \
-          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_HOST_2 $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
+          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
           | kubectl $context_flag apply -f -
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
@@ -1857,15 +1854,14 @@ tasks:
             | jq --arg ns "$NS" 'del(.metadata.resourceVersion,.metadata.uid,.metadata.creationTimestamp,.metadata.managedFields,.metadata.annotations) | .metadata.namespace = $ns' \
             | kubectl --context fleet apply -f - || echo "warn: failed to sync korczewski-tls to $NS"
         done
-        # --- Collabora (shared, dual-host) ---
-        # Primary host vars from fleet-mentolder; second host from fleet-korczewski.
+        # --- Collabora (shared, dual-brand) ---
+        # Primary (mentolder) vars; second brand applied as a separate Ingress resource
+        # (ingress-korczewski.yaml) so each brand gets its own TLS secret and its own
+        # namespace-prefixed middleware chain (T000478).
         source scripts/env-resolve.sh fleet-mentolder
         export COLLABORA_HOST="office.${PROD_DOMAIN}"
-        # Empty server_name → coolwsd derives the WOPI discovery urlsrc host
-        # from the request Host header. The shared dual-host office-stack
-        # serves both brands; a hardcoded office.${PROD_DOMAIN} would make
-        # office.korczewski.de/hosting/discovery advertise the mentolder
-        # host (T000478).
+        # Empty server_name → coolwsd auto-derives the WOPI discovery urlsrc hostname
+        # from the request Host header, making a single Collabora instance serve both brands.
         export COLLABORA_SERVER_NAME=""
         export COLLABORA_ALIASGROUP1="https://files\\.${PROD_DOMAIN}:443"
         export COLLABORA_SSL_TERMINATION="true"
@@ -1877,14 +1873,16 @@ tasks:
         ( source scripts/env-resolve.sh fleet-korczewski; echo "office.${PROD_DOMAIN}|https://files\\.${PROD_DOMAIN}:443" ) > /tmp/_kore_collabora.txt
         export COLLABORA_HOST_2="$(cut -d'|' -f1 /tmp/_kore_collabora.txt)"
         export COLLABORA_ALIASGROUP2="$(cut -d'|' -f2 /tmp/_kore_collabora.txt)"
+        export COLLABORA_TLS_SECRET_2="korczewski-tls"
+        export COLLABORA_INGRESS_MIDDLEWARES_2="workspace-korczewski-redirect-https@kubernetescrd,workspace-korczewski-hsts-headers@kubernetescrd"
+        # Apply kustomize (primary brand Deployment + Service + primary Ingress).
         kustomize build k3d/office-stack \
-          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_HOST_2 $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
+          | envsubst '$PROD_DOMAIN $COLLABORA_HOST $COLLABORA_ALIASGROUP1 $COLLABORA_ALIASGROUP2 $COLLABORA_SERVER_NAME $COLLABORA_SSL_TERMINATION $COLLABORA_TLS_SECRET $COLLABORA_INGRESS_MIDDLEWARES' \
           | kubectl --context fleet apply -f -
-        # Patch ingress to give korczewski its own TLS entry (its cert is in korczewski-tls).
-        kubectl --context fleet patch ingress office-ingress -n workspace-office --type=json -p='[
-          {"op":"replace","path":"/spec/tls/0/hosts/1","value":"office.korczewski.de"},
-          {"op":"add","path":"/spec/tls/-","value":{"hosts":["office.korczewski.de"],"secretName":"korczewski-tls"}}
-        ]' 2>/dev/null || true
+        # Apply second-brand Ingress separately (own TLS + own middleware namespace).
+        envsubst '$COLLABORA_HOST_2 $COLLABORA_TLS_SECRET_2 $COLLABORA_INGRESS_MIDDLEWARES_2' \
+          < k3d/office-stack/ingress-korczewski.yaml \
+          | kubectl --context fleet apply -f -
         kubectl --context fleet rollout status deploy/collabora -n workspace-office --timeout=300s
         # --- CoTURN/Janus (shared) ---
         export TURN_NODE="$MENTOLDER_TURN_NODE"; export TURN_PUBLIC_IP="$MENTOLDER_TURN_PUBLIC_IP"

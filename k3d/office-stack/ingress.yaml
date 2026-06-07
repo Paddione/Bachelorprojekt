@@ -4,40 +4,27 @@
 # Lives in this namespace because Ingress backends must point to a
 # Service in the same namespace. Host and TLS secret are envsubst'd
 # at deploy time:
-#   ${COLLABORA_HOST}       — fully-qualified hostname (e.g. office.mentolder.de)
-#   ${COLLABORA_TLS_SECRET} — name of the wildcard TLS secret
+#   ${COLLABORA_HOST}              — primary brand hostname (e.g. office.mentolder.de)
+#   ${COLLABORA_TLS_SECRET}        — TLS secret name for primary brand
+#   ${COLLABORA_INGRESS_MIDDLEWARES} — Traefik middleware chain for primary brand
 #
-# The Traefik middleware chain is hardcoded to
-# `workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd`
-# because both production clusters host their middlewares in the
-# `workspace` namespace (same as prod/ingress.yaml). Cross-namespace
-# middleware references are fine: Traefik resolves by the annotation
-# prefix, not the Ingress's own namespace.
+# For dual-brand fleet deploys the second brand gets its own Ingress in
+# ingress-korczewski.yaml (separate resource so each brand can reference
+# its own TLS secret and its own namespace-prefixed middleware chain).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: office-ingress
   namespace: workspace-office
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: "workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "${COLLABORA_INGRESS_MIDDLEWARES}"
 spec:
   tls:
     - hosts:
         - "${COLLABORA_HOST}"
-        - "${COLLABORA_HOST_2}"
       secretName: "${COLLABORA_TLS_SECRET}"
   rules:
     - host: "${COLLABORA_HOST}"
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: collabora
-                port:
-                  number: 9980
-    - host: "${COLLABORA_HOST_2}"
       http:
         paths:
           - path: /

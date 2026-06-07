@@ -101,7 +101,7 @@ async function main() {
      If a guard read errors (non-zero with no documented meaning), fail-closed: skip that brand.
      If a ticket has no plan reference, set branch and plan_path to null.
      If nothing was claimed across both brands, return { "launch": [], "skipped": [...] }.`,
-    { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
+    { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA, model: 'sonnet' },
   )
 
   log(
@@ -161,7 +161,7 @@ async function main() {
          bash ${REPO}/scripts/ticket.sh add-comment --id T000413 \\
            --body ${JSON.stringify('Factory dispatcher: ' + escalations.length + ' run(s) escalated this tick.')}
        Report what was notified and the ticket-comment output.`,
-      { label: 'escalate', phase: 'Launch' },
+      { label: 'escalate', phase: 'Launch', model: 'sonnet' },
     )
   } else {
     log(`Dispatcher: all ${results?.length ?? 0} pipeline run(s) completed without error/block.`)
@@ -174,7 +174,7 @@ async function main() {
        BRAND=mentolder bash ${REPO}/scripts/factory/metrics.sh
        BRAND=korczewski bash ${REPO}/scripts/factory/metrics.sh
      (metrics.sh is best-effort: a missing Vorhaben ticket on a brand is a silent no-op.)`,
-    { label: 'metrics', phase: 'Metrics' },
+    { label: 'metrics', phase: 'Metrics', model: 'sonnet' },
   )
 }
 await main();

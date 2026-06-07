@@ -1,11 +1,26 @@
 import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase } from '../types/state';
+import { updateExportCache, type ExportFigure } from './ui/export';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
 import { applyOptikToScene } from './ui/optik';
 import * as groundObjects from './ground-objects';
+
+/** Mappt eine runtime-Figure auf das serialisierbare ExportFigure-Format. */
+function _toExportFig(fig: any): ExportFigure {
+  return {
+    id: fig.id,
+    label: fig.label,
+    x: fig.root?.position?.x ?? fig.x ?? 0,
+    z: fig.root?.position?.z ?? fig.z ?? 0,
+    facingY: fig.facingY ?? 0,
+    color: fig.appearance?.color ?? fig.color,
+    figureType: fig.figureType,
+    ownerId: fig.ownerId,
+  };
+}
 
 // ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
 let lobbyState: LobbyState = createLobbyState();
@@ -272,6 +287,14 @@ export function onWsMessage(evt: MessageEvent): void {
         onLobbyChange(lobbyState);
         if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
       }
+      // Export-Cache aktualisieren:
+      updateExportCache({
+        phase: (msg as any).phase ?? 'lobby',
+        sessionCode: (msg as any).sessionCode ?? null,
+        stiffness: (msg as any).stiffness ?? STATE.stiffness,
+        figures: ((msg as any).figures ?? []).map(_toExportFig),
+        optik: (msg as any).optik ?? null,
+      });
       break;
 
     case 'stiffness':
@@ -279,6 +302,7 @@ export function onWsMessage(evt: MessageEvent): void {
       if (stiffSlider) {
         stiffSlider.value = String(msg.value);
       }
+      updateExportCache({ stiffness: msg.value ?? STATE.stiffness });
       break;
 
     case 'add': {
@@ -289,6 +313,8 @@ export function onWsMessage(evt: MessageEvent): void {
         applyAppearanceToFig(fig, msg.figure.appearance);
       }
       STATE.figures.push(fig);
+      // Export-Cache mit aktuellen STATE.figures synchronisieren:
+      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
       break;
     }
 
@@ -308,6 +334,8 @@ export function onWsMessage(evt: MessageEvent): void {
       if (c.appearance !== undefined) {
         applyAppearanceToFig(fig, c.appearance);
       }
+      // Export-Cache mit aktuellen STATE.figures synchronisieren:
+      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
       break;
     }
 
@@ -342,6 +370,8 @@ export function onWsMessage(evt: MessageEvent): void {
         fig.root.rotation.y = fig.facingY;
       }
       mannequin.resolveCollisions(fig, mannequin.BOUNCE_K_DRAG);
+      // Export-Cache mit aktuellen STATE.figures synchronisieren:
+      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
       break;
     }
 
@@ -365,6 +395,8 @@ export function onWsMessage(evt: MessageEvent): void {
         }).catch(() => {});
         STATE.figures.splice(idx, 1);
       }
+      // Export-Cache mit aktuellen STATE.figures synchronisieren:
+      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
       break;
     }
 
@@ -411,6 +443,9 @@ export function onWsMessage(evt: MessageEvent): void {
       lobbyState = applyLobbyServerMessage(lobbyState, msg);
       onLobbyChange(lobbyState);
       onPhaseChange(lobbyState.phase);
+      if (msg.type === 'session_phase_change') {
+        updateExportCache({ phase: (msg as any).phase });
+      }
       break;
     }
 

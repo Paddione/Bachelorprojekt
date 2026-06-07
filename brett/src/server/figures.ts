@@ -72,6 +72,38 @@ export function applyMutation(room: string, msg: any): void {
       }
       break;
     }
+    case 'figure_possess': {
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
+        const fig = figs.get(msg.figureId);
+        if (!fig.possessor) {
+          figs.set(msg.figureId, { ...fig, possessor: msg.playerId });
+        }
+      }
+      break;
+    }
+    case 'figure_release': {
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
+        const fig = figs.get(msg.figureId);
+        if (fig.possessor === msg.playerId) {
+          figs.set(msg.figureId, { ...fig, possessor: null });
+        }
+      }
+      break;
+    }
+    case 'figure_release_all': {
+      for (const [fid, fig] of figs.entries()) {
+        if (fig.possessor === msg.playerId) {
+          figs.set(fid, { ...fig, possessor: null });
+        }
+      }
+      break;
+    }
+    case 'figure_type_set': {
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId) && msg.figureType) {
+        figs.set(msg.figureId, { ...figs.get(msg.figureId), figureType: msg.figureType });
+      }
+      break;
+    }
     case 'clear':
       figs.clear();
       break;

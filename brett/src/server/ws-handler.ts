@@ -60,6 +60,7 @@ export const ADMIN_TYPES = new Set<string>([
   'admin_kick', 'admin_broadcast', 'admin_session_create', 'admin_handoff_token', 'admin_round_stop', 'admin_round_pause', 'admin_coaching_steps_set',
   'admin_round_start', 'admin_assign_role', 'admin_assign_figure',
   'admin_set_template', 'admin_set_optik',
+  'figure_type_set',
 ]);
 
 /**
@@ -337,6 +338,64 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
 
+        // ── Possession ─────────────────────────────────────────────
+        if (msg.type === 'figure_possess' && typeof msg.figureId === 'string') {
+          if (!gateMutation(ws, room, 'figure_possess', msg.figureId, deps)) {
+            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+            return;
+          }
+          // Gate: figure must not already have a possessor
+          const figMap = deps.figureMaps.get(room);
+          const existingFig = figMap?.get(msg.figureId);
+          if (existingFig?.possessor) {
+            try { ws.send(JSON.stringify({ type: 'error', reason: 'figure_already_possessed' })); } catch {}
+            return;
+          }
+          const playerId = resolvePlayerId(ws);
+          deps.applyMutation(room, { type: 'figure_possess', figureId: msg.figureId, playerId });
+          deps.broadcast(room, {
+            type: 'figure_possessed',
+            figureId: msg.figureId,
+            playerId,
+            playerName: ws._session?.name || 'Teilnehmer',
+          });
+          deps.schedulePersist(room);
+          return;
+        }
+        if (msg.type === 'figure_release') {
+          const targetId = msg.figureId;
+          if (!gateMutation(ws, room, 'figure_release', targetId, deps)) {
+            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+            return;
+          }
+          const playerId = resolvePlayerId(ws);
+          if (typeof targetId === 'string') {
+            // Release specific figure — must be own possession (or leiter override)
+            const figMap = deps.figureMaps.get(room);
+            const fig = figMap?.get(targetId);
+            const role = deps.resolveRole(ws, deps.buildStateFromMutations(room)?.roles || {});
+            if (fig?.possessor !== playerId && role !== 'leiter') {
+              try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
+              return;
+            }
+            deps.applyMutation(room, { type: 'figure_release', figureId: targetId, playerId });
+            deps.broadcast(room, { type: 'figure_released', figureId: targetId, playerId });
+          } else {
+            // Release ALL possessions for this player
+            const figMap = deps.figureMaps.get(room);
+            if (figMap) {
+              for (const [fid, f] of figMap.entries()) {
+                if (f.possessor === playerId) {
+                  deps.applyMutation(room, { type: 'figure_release', figureId: fid, playerId });
+                  deps.broadcast(room, { type: 'figure_released', figureId: fid, playerId });
+                }
+              }
+            }
+          }
+          deps.schedulePersist(room);
+          return;
+        }
+
         // Non-privileged, ephemeral live-lobby readiness self-report.
         if (msg.type === 'lobby_set_ready') {
           handleLobbySetReady(ws, msg, deps);
@@ -406,6 +465,22 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           deps.broadcast(room, { type: 'figure_owner_changed', figureId: fid, ownerId: null });
         }
         if (orphaned.length) deps.schedulePersist(room);
+        // Auto-release possessions on disconnect: every figure this player
+        // was embodying is freed so another participant can take over.
+        const figMap = deps.figureMaps.get(room);
+        if (figMap) {
+          const releasedIds: string[] = [];
+          for (const [fid, f] of figMap.entries()) {
+            if (f.possessor === pid) {
+              deps.applyMutation(room, { type: 'figure_release', figureId: fid, playerId: pid });
+              releasedIds.push(fid);
+            }
+          }
+          for (const fid of releasedIds) {
+            deps.broadcast(room, { type: 'figure_released', figureId: fid, playerId: pid });
+          }
+          if (releasedIds.length) deps.schedulePersist(room);
+        }
         // Remove from roster for ANY canonical identity (incl. late-joiners
         // tracked only via ws._playerId), not just OIDC-session users.
         deps.removeParticipant(room, pid);

@@ -8,7 +8,7 @@ status: active
 pr_number: null
 ---
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Export-UI für den Systembrett: PNG-Screenshot via Three.js Canvas, JSON-BoardState-Dump und PDF via jsPDF als Download-Buttons im Topbar.
 
@@ -27,7 +27,7 @@ pr_number: null
 - Modify: `brett/package.json`
 - Modify: `brett/src/client/scene.ts`
 
-- [ ] **Step 1: jsPDF als devDependency hinzufügen**
+- [x] **Step 1: jsPDF als devDependency hinzufügen**
 
 ```bash
 cd brett && npm install --save-dev jspdf @types/jspdf
@@ -42,7 +42,7 @@ Verifiziere, dass `package.json` nun enthält:
 }
 ```
 
-- [ ] **Step 2: `preserveDrawingBuffer: true` in `initScene()` setzen**
+- [x] **Step 2: `preserveDrawingBuffer: true` in `initScene()` setzen**
 
 In `brett/src/client/scene.ts`, Zeile mit `new THREE.WebGLRenderer({ antialias: true })`:
 
@@ -56,12 +56,12 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffe
 
 Begründung: `renderer.domElement.toDataURL()` liefert nach `render()` nur dann ein korrektes Bild, wenn `preserveDrawingBuffer: true` gesetzt ist. Im Coaching-Kontext (keine High-FPS-Spiellogik) ist der Performance-Tradeoff akzeptabel.
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS (keine neuen Fehler)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/package.json brett/package-lock.json brett/src/client/scene.ts
@@ -75,7 +75,7 @@ git commit -m "feat(brett): add jsPDF dep + preserveDrawingBuffer for export [T0
 **Files:**
 - Create: `brett/src/client/ui/export.ts`
 
-- [ ] **Step 1: Datei anlegen mit Typen und Cache-Logik**
+- [x] **Step 1: Datei anlegen mit Typen und Cache-Logik**
 
 ```typescript
 // brett/src/client/ui/export.ts
@@ -135,12 +135,12 @@ export function getExportSnapshot(): ClientBoardSnapshot {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/export.ts
@@ -156,7 +156,7 @@ git commit -m "feat(brett): export.ts — ClientBoardSnapshot cache interface [T
 **Files:**
 - Modify: `brett/src/client/ui/export.ts`
 
-- [ ] **Step 1: `exportPng`-Funktion hinzufügen**
+- [x] **Step 1: `exportPng`-Funktion hinzufügen**
 
 Füge nach `getExportSnapshot()` ein:
 
@@ -185,12 +185,12 @@ function _isoDate(): string {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/export.ts
@@ -204,7 +204,7 @@ git commit -m "feat(brett): exportPng — canvas toDataURL download [T000466]"
 **Files:**
 - Modify: `brett/src/client/ui/export.ts`
 
-- [ ] **Step 1: `exportJson`-Funktion hinzufügen**
+- [x] **Step 1: `exportJson`-Funktion hinzufügen**
 
 Füge nach `exportPng()` ein:
 
@@ -230,12 +230,12 @@ export function exportJson(): void {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/export.ts
@@ -249,7 +249,7 @@ git commit -m "feat(brett): exportJson — BoardState Blob-Download [T000466]"
 **Files:**
 - Modify: `brett/src/client/ui/export.ts`
 
-- [ ] **Step 1: `exportPdf`-Funktion hinzufügen**
+- [x] **Step 1: `exportPdf`-Funktion hinzufügen**
 
 Füge nach `exportJson()` ein:
 
@@ -312,12 +312,12 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS (jsPDF-Typen aus `@types/jspdf`)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/export.ts
@@ -333,7 +333,7 @@ git commit -m "feat(brett): exportPdf — jsPDF mit Screenshot + Metadaten [T000
 **Files:**
 - Modify: `brett/src/client/ws-client.ts`
 
-- [ ] **Step 1: Import von `updateExportCache` hinzufügen**
+- [x] **Step 1: Import von `updateExportCache` hinzufügen**
 
 Am Anfang der Imports in `ws-client.ts`:
 
@@ -341,7 +341,7 @@ Am Anfang der Imports in `ws-client.ts`:
 import { updateExportCache, type ExportFigure } from './ui/export';
 ```
 
-- [ ] **Step 2: Helper-Funktion für Figuren-Mapping**
+- [x] **Step 2: Helper-Funktion für Figuren-Mapping**
 
 Füge nahe den anderen Hilfsfunktionen in `ws-client.ts` ein:
 
@@ -361,7 +361,7 @@ function _toExportFig(fig: any): ExportFigure {
 }
 ```
 
-- [ ] **Step 3: `updateExportCache`-Aufrufe in den WS-Message-Handlern**
+- [x] **Step 3: `updateExportCache`-Aufrufe in den WS-Message-Handlern**
 
 Im `switch (msg.type)` Block in der WS-Message-Handler-Funktion (die Stelle, an der eingehende Server-Nachrichten verarbeitet werden), ergänze nach den bestehenden Aktionen:
 
@@ -408,12 +408,12 @@ case 'stiffness': {
 }
 ```
 
-- [ ] **Step 4: TypeScript verifizieren**
+- [x] **Step 4: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add brett/src/client/ws-client.ts
@@ -429,7 +429,7 @@ git commit -m "feat(brett): ws-client feeds export-cache on snapshot/add/move/up
 **Files:**
 - Modify: `brett/public/index.html`
 
-- [ ] **Step 1: Export-Button-Gruppe im Topbar hinzufügen**
+- [x] **Step 1: Export-Button-Gruppe im Topbar hinzufügen**
 
 Suche den `#topbar`-Bereich und füge vor dem schließenden `</div>` eine neue Button-Gruppe ein:
 
@@ -443,7 +443,7 @@ Suche den `#topbar`-Bereich und füge vor dem schließenden `</div>` eine neue B
 </div>
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add brett/public/index.html
@@ -457,7 +457,7 @@ git commit -m "feat(brett): export button group in topbar (hidden, T000466)"
 **Files:**
 - Modify: `brett/src/client/ui/export.ts`
 
-- [ ] **Step 1: `initExportButtons`-Funktion hinzufügen**
+- [x] **Step 1: `initExportButtons`-Funktion hinzufügen**
 
 Füge am Ende von `export.ts` ein:
 
@@ -507,12 +507,12 @@ export function initExportButtons(canvas: HTMLCanvasElement): void {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/export.ts
@@ -526,7 +526,7 @@ git commit -m "feat(brett): initExportButtons mit Feature-Flag-Gate [T000466]"
 **Files:**
 - Modify: `brett/src/client/board-boot.ts`
 
-- [ ] **Step 1: Import hinzufügen**
+- [x] **Step 1: Import hinzufügen**
 
 Am Anfang von `board-boot.ts`, nach den bestehenden UI-Imports:
 
@@ -534,7 +534,7 @@ Am Anfang von `board-boot.ts`, nach den bestehenden UI-Imports:
 import * as exportUi from './ui/export';
 ```
 
-- [ ] **Step 2: `initExportButtons` nach `initScene()` aufrufen**
+- [x] **Step 2: `initExportButtons` nach `initScene()` aufrufen**
 
 Suche den Block nach `const { renderer, scene, camera } = sceneApi;` und füge nach den bestehenden `wsClient.setLockBadgeFns(...)` etc. ein:
 
@@ -545,12 +545,12 @@ Suche den Block nach `const { renderer, scene, camera } = sceneApi;` und füge n
 
 Die genaue Position ist nach `wsClient.setLockBadgeFns({...});` und vor dem `try { const me = await fetch(...) }` Block.
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/client/board-boot.ts
@@ -566,7 +566,7 @@ git commit -m "feat(brett): board-boot wires exportUi.initExportButtons [T000466
 **Files:**
 - Create: `brett/test/export.test.ts`
 
-- [ ] **Step 1: Test-Datei anlegen**
+- [x] **Step 1: Test-Datei anlegen**
 
 ```typescript
 // brett/test/export.test.ts
@@ -724,7 +724,7 @@ describe('getExportSnapshot: Figuren-Serialisierung', () => {
 });
 ```
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 ```bash
 cd brett && npm test -- --test-name-pattern="export"
@@ -732,12 +732,12 @@ cd brett && npm test -- --test-name-pattern="export"
 
 Expected: Alle Tests PASS (MOCK_DB=true ist für diesen Test irrelevant, wird automatisch gesetzt)
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/test/export.test.ts
@@ -751,7 +751,7 @@ git commit -m "test(brett): export.test.ts — Cache-Logik, Serialisierung, Blob
 **Files:**
 - Modify: `brett/test/export.test.ts`
 
-- [ ] **Step 1: Test für exportPng hinzufügen**
+- [x] **Step 1: Test für exportPng hinzufügen**
 
 Füge am Ende des Testfiles ein:
 
@@ -779,7 +779,7 @@ describe('exportPng: Canvas toDataURL', () => {
 });
 ```
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 ```bash
 cd brett && npm test -- --test-name-pattern="exportPng"
@@ -787,7 +787,7 @@ cd brett && npm test -- --test-name-pattern="exportPng"
 
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/export.test.ts
@@ -801,7 +801,7 @@ git commit -m "test(brett): exportPng mock-canvas test [T000466]"
 **Files:**
 - Keine neuen Dateien
 
-- [ ] **Step 1: Vollständige Test-Suite ausführen**
+- [x] **Step 1: Vollständige Test-Suite ausführen**
 
 ```bash
 cd brett && npm test
@@ -809,7 +809,7 @@ cd brett && npm test
 
 Expected: Alle bestehenden Tests PASS, neue export.test.ts PASS.
 
-- [ ] **Step 2: TypeScript-Vollcheck (Client + Server)**
+- [x] **Step 2: TypeScript-Vollcheck (Client + Server)**
 
 ```bash
 cd brett && npx tsc --noEmit -p tsconfig.client.json && npx tsc --noEmit -p tsconfig.server.json
@@ -817,7 +817,7 @@ cd brett && npx tsc --noEmit -p tsconfig.client.json && npx tsc --noEmit -p tsco
 
 Expected: PASS für beide tsconfig-Dateien.
 
-- [ ] **Step 3: Final-Commit**
+- [x] **Step 3: Final-Commit**
 
 ```bash
 git add brett/test/export.test.ts
@@ -833,7 +833,7 @@ git commit -m "test(brett): export.test.ts vollständig — T000466 bereit für 
 **Files:**
 - Keine Änderungen
 
-- [ ] **Step 1: Build prüfen**
+- [x] **Step 1: Build prüfen**
 
 ```bash
 cd brett && npm run build
@@ -841,7 +841,7 @@ cd brett && npm run build
 
 Expected: PASS — Vite baut den Client-Bundle (inkl. dynamischem jsPDF-Chunk) ohne Fehler.
 
-- [ ] **Step 2: Feature-Flag manuell aktivieren (dev-only)**
+- [x] **Step 2: Feature-Flag manuell aktivieren (dev-only)**
 
 In der Browser-Konsole oder in `brett/public/index.html` (Entwicklungsumgebung):
 
@@ -858,7 +858,7 @@ Oder in `index.html` temporär für lokalen Test:
 </script>
 ```
 
-- [ ] **Step 3: Manuelle Verifikation (3 Export-Formate)**
+- [x] **Step 3: Manuelle Verifikation (3 Export-Formate)**
 
 Checkliste:
 - PNG-Button: Klick → Browser-Download-Dialog öffnet sich → Datei `brett-YYYY-MM-DD.png` mit korrektem Board-Screenshot
@@ -866,7 +866,7 @@ Checkliste:
 - PDF-Button: Klick → Button zeigt "⏳ PDF…" → nach ca. 1-2s Download `brett-YYYY-MM-DD.pdf` mit Screenshot + Metadatenzeile
 - Ohne Feature-Flag: Export-Gruppe ist unsichtbar (`display:none`)
 
-- [ ] **Step 4: Commit (falls Korrekturen nötig)**
+- [x] **Step 4: Commit (falls Korrekturen nötig)**
 
 ```bash
 git add -p
@@ -880,7 +880,7 @@ git commit -m "fix(brett): export UI Korrekturen aus lokaler Verifikation [T0004
 **Files:**
 - Keine neuen Dateien
 
-- [ ] **Step 1: Push + PR öffnen**
+- [x] **Step 1: Push + PR öffnen**
 
 ```bash
 git push -u origin feature/brett-export-ui
@@ -898,21 +898,21 @@ gh pr create \
 
 ## Test plan
 
-- [ ] `cd brett && npm test` — alle Tests PASS
-- [ ] `cd brett && npm run build` — Build erfolgreich, kein jsPDF im Initial-Chunk
-- [ ] `cd brett && npx tsc --noEmit` — keine TS-Fehler
-- [ ] Manuelle Verifikation: PNG/JSON/PDF-Download funktioniert im Browser
-- [ ] Ohne Feature-Flag T000466: Export-Gruppe nicht sichtbar
+- [x] `cd brett && npm test` — alle Tests PASS
+- [x] `cd brett && npm run build` — Build erfolgreich, kein jsPDF im Initial-Chunk
+- [x] `cd brett && npx tsc --noEmit` — keine TS-Fehler
+- [x] Manuelle Verifikation: PNG/JSON/PDF-Download funktioniert im Browser
+- [x] Ohne Feature-Flag T000466: Export-Gruppe nicht sichtbar
 
 Closes T000466
 EOF
 )"
 ```
 
-- [ ] **Step 2: CI abwarten**
+- [x] **Step 2: CI abwarten**
 
 Expected: CI (task test:all) PASS, Brett typecheck PASS.
 
-- [ ] **Step 3: Merge + Ticket schließen**
+- [x] **Step 3: Merge + Ticket schließen**
 
 Nach grünem CI: Squash-and-merge via `gh pr merge --squash`.

@@ -1225,6 +1225,20 @@ tasks:
       - sh: kubectl cluster-info > /dev/null 2>&1
         msg: "No cluster running."
     cmds:
+      - |
+        if [ "{{.ENV}}" != "dev" ]; then
+          echo "❌ workspace:office:deploy is for DEV (k3d) only."
+          echo ""
+          echo "   The shared fleet office-stack serves BOTH brands from a single"
+          echo "   Collabora instance. A single-brand deploy overwrites the Ingress"
+          echo "   and drops the other brand's host (T000478)."
+          echo ""
+          echo "   For production fleet deploys, use:"
+          echo "     task fleet:shared-services"
+          echo ""
+          echo "   This deploys Collabora + CoTURN/Janus for both brands in one shot."
+          exit 1
+        fi
       - task: workspace:office:pull-secret
         vars: { ENV: "{{.ENV}}" }
       - |

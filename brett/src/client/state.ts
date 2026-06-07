@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import type { BrettLine } from '../types/state';
 
 // ── App state (mirrors window.STATE from index.html line 310) ─────
 export interface AppState {
@@ -7,6 +8,7 @@ export interface AppState {
   hoveredId: string | null;
   stiffness: number;
   online: number;
+  lines: BrettLine[];  // ← NEU (T000467)
 }
 export const STATE: AppState = {
   figures: [],
@@ -14,6 +16,7 @@ export const STATE: AppState = {
   hoveredId: null,
   stiffness: 0.65,
   online: 1,
+  lines: [],  // ← NEU
 };
 
 // ── Three.js singletons, registered by scene.ts ───────────────────

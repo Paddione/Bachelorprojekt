@@ -1,4 +1,5 @@
 import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
+import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase } from '../types/state';
 import { updateExportCache, type ExportFigure } from './ui/export';
@@ -278,6 +279,8 @@ export function onWsMessage(evt: MessageEvent): void {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.initGroundObjectsFromSnapshot(msg.anchors ?? [], msg.zones ?? []);
       }
+
+      initLinesFromSnapshot(msg.lines ?? []);  // T000467
 
       // T000471: rehydrate moderation state from join snapshot
       if ((msg as any).moderation) {
@@ -578,6 +581,13 @@ export function onWsMessage(evt: MessageEvent): void {
       }
       break;
     }
+
+    // ── T000467: Beziehungs-/Spannungslinien (delegiert an scene-lines.ts) ──
+    case 'line_created':
+    case 'line_deleted':
+    case 'line_type_changed':
+      applyLineMessage(msg);
+      break;
 
     default:
       break;

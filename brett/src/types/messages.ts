@@ -1,4 +1,4 @@
-import type { Anchor, Figure, FigureAppearance, FigureType, OptikSettings, Participant, Phase, Role, Zone } from './state';
+import type { Anchor, BrettLine, Figure, FigureAppearance, FigureType, LineType, OptikSettings, Participant, Phase, Role, Zone } from './state';
 
 // ── Client → Server ──────────────────────────────────────────────
 export type ClientMessage =
@@ -40,11 +40,14 @@ export type ClientMessage =
   | { type: 'zone_create'; zone: Omit<Zone, 'id'> }
   | { type: 'zone_delete'; zoneId: string }
   | { type: 'session_undo' }
-  | { type: 'session_redo' };
+  | { type: 'session_redo' }
+  | { type: 'line_create'; fromId: string; toId: string; lineType: LineType }
+  | { type: 'line_delete'; lineId: string }
+  | { type: 'line_type_set'; lineId: string; lineType: LineType };
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
-  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; moderation?: { spotlight: string | null; dim: string | null; freeze: boolean }; anchors?: Anchor[]; zones?: Zone[] }
+  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; moderation?: { spotlight: string | null; dim: string | null; freeze: boolean }; anchors?: Anchor[]; zones?: Zone[]; lines?: BrettLine[] }
   | { type: 'add'; figure: Figure }
   | { type: 'move'; id: string; x: number; z: number; facingY: number }
   | { type: 'jump'; id: string }
@@ -77,7 +80,10 @@ export type ServerMessage =
   | { type: 'zone_added'; zone: Zone }
   | { type: 'zone_removed'; zoneId: string }
   | { type: 'undo_stack_changed'; canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number }
-  | { type: 'error'; reason: string };
+  | { type: 'error'; reason: string }
+  | { type: 'line_created'; line: BrettLine }
+  | { type: 'line_deleted'; lineId: string }
+  | { type: 'line_type_changed'; lineId: string; lineType: LineType };
 
 export interface ServerLock {
   figureId: string;

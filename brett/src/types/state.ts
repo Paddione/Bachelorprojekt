@@ -8,6 +8,22 @@ export type Role = 'leiter' | 'stellvertreter' | 'beobachter';
 
 export type FigureType = 'coachee' | 'team_active' | 'team_passive' | 'saboteur' | 'resource';
 
+// ── Line types (Slice 4 / T000467) ──────────────────────────────────────────
+export type LineType = 'relationship' | 'tension' | 'resource';
+
+export interface BrettLine {
+  /** Server-generierte ID (nanoid(8)). */
+  id: string;
+  /** figureId der Quellfigur. */
+  fromId: string;
+  /** figureId der Zielfigur. */
+  toId: string;
+  /** Visueller Linientyp. */
+  lineType: LineType;
+  /** playerId des Erstellers (informativ). */
+  createdBy?: string;
+}
+
 export interface OptikSettings {
   floor?: string;
   sky?: 'day' | 'dusk' | 'calm';

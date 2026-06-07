@@ -1,3 +1,5 @@
+import type { BrettLine } from '../types/state';
+
 export const figureMaps = new Map<string, Map<string, any>>();
 export const figureLocks = new Map<string, Map<string, { userId: string; name: string; color: string }>>();
 
@@ -26,6 +28,11 @@ export function ensureFigureMap(room: string): Map<string, any> {
   let m = figureMaps.get(room);
   if (!m) { m = new Map(); figureMaps.set(room, m); }
   return m;
+}
+
+/** Liest den __lines__-Sentinel und gibt eine kopierte lines-Map zurück (oder {}). */
+function ensureLines(figs: Map<string, any>): Record<string, BrettLine> {
+  return { ...(figs.get('__lines__')?.lines ?? {}) };
 }
 
 export function applyMutation(room: string, msg: any): void {
@@ -71,6 +78,19 @@ export function applyMutation(room: string, msg: any): void {
       break;
     case 'delete':
       figs.delete(msg.id);
+      // Linien-Cleanup: Lösche alle Linien, die die gelöschte Figur referenzieren.
+      if (typeof msg.id === 'string') {
+        const linesEntry = figs.get('__lines__');
+        if (linesEntry?.lines) {
+          const updatedLines = { ...linesEntry.lines };
+          for (const [lid, line] of Object.entries(updatedLines) as [string, any][]) {
+            if (line.fromId === msg.id || line.toId === msg.id) {
+              delete updatedLines[lid];
+            }
+          }
+          figs.set('__lines__', { id: '__lines__', lines: updatedLines });
+        }
+      }
       break;
     case 'figure_owner_set': {
       // The ONLY mutation that writes Figure.ownerId (server-authoritative).
@@ -118,6 +138,43 @@ export function applyMutation(room: string, msg: any): void {
       if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
         const note = typeof msg.note === 'string' ? msg.note.slice(0, 1000) : '';
         figs.set(msg.figureId, { ...figs.get(msg.figureId), note });
+      }
+      break;
+    }
+    case 'line_create': {
+      // Server-generierte ID muss im msg.id enthalten sein (ws-handler setzt sie).
+      if (typeof msg.id === 'string' && msg.id &&
+          typeof msg.fromId === 'string' && typeof msg.toId === 'string' &&
+          msg.fromId !== msg.toId && msg.lineType) {
+        const lines = ensureLines(figs);
+        // Cap: maximal 100 Linien pro Room.
+        if (Object.keys(lines).length >= 100) break;
+        lines[msg.id] = {
+          id: msg.id,
+          fromId: msg.fromId,
+          toId: msg.toId,
+          lineType: msg.lineType,
+          ...(msg.createdBy ? { createdBy: msg.createdBy } : {}),
+        };
+        figs.set('__lines__', { id: '__lines__', lines });
+      }
+      break;
+    }
+    case 'line_delete': {
+      if (typeof msg.lineId === 'string') {
+        const lines = ensureLines(figs);
+        delete lines[msg.lineId];
+        figs.set('__lines__', { id: '__lines__', lines });
+      }
+      break;
+    }
+    case 'line_type_set': {
+      if (typeof msg.lineId === 'string' && msg.lineType) {
+        const lines = ensureLines(figs);
+        if (lines[msg.lineId]) {
+          lines[msg.lineId] = { ...lines[msg.lineId], lineType: msg.lineType };
+          figs.set('__lines__', { id: '__lines__', lines });
+        }
       }
       break;
     }
@@ -296,6 +353,13 @@ export function seedFigureMapFromState(map: Map<string, any>, state: any): void 
   }
   if (state.zones && Array.isArray(state.zones) && state.zones.length > 0) {
     map.set('__zones__', { id: '__zones__', zones: state.zones });
+  }
+  if (state.lines && Array.isArray(state.lines)) {
+    const linesMap: Record<string, BrettLine> = {};
+    for (const line of state.lines) {
+      if (line && typeof line.id === 'string') linesMap[line.id] = line;
+    }
+    map.set('__lines__', { id: '__lines__', lines: linesMap });
   }
 }
 

@@ -1,9 +1,18 @@
 import { pool } from './website-db';
 
+export type JobStage =
+  | 'queued'
+  | 'generating'
+  | 'rigging'
+  | 'uploading'
+  | 'done'
+  | 'error';
+
 export interface GenerationJob {
   id: string;
   name: string;
   prompt_id: string | null;
+  stage: JobStage;
   status: 'pending' | 'running' | 'done' | 'error';
   skin_id: string | null;
   error_msg: string | null;
@@ -35,6 +44,24 @@ export async function updateJobStatus(
      SET status = $1, skin_id = COALESCE($2, skin_id), error_msg = COALESCE($3, error_msg)
      WHERE id = $4`,
     [status, extra.skin_id ?? null, extra.error_msg ?? null, id],
+  );
+}
+
+export async function updateJobStage(
+  id: string,
+  stage: JobStage,
+  extra: { skin_id?: string; error_msg?: string } = {},
+): Promise<void> {
+  const status =
+    stage === 'done' ? 'done' : stage === 'error' ? 'error' : 'pending';
+  await pool.query(
+    `UPDATE assets.generation_jobs
+     SET stage = $1,
+         status = $2,
+         skin_id = COALESCE($3, skin_id),
+         error_msg = COALESCE($4, error_msg)
+     WHERE id = $5`,
+    [stage, status, extra.skin_id ?? null, extra.error_msg ?? null, id],
   );
 }
 

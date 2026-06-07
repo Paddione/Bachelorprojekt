@@ -18,6 +18,7 @@ import * as permissions from './permissions';
 import * as wsHandler from './ws-handler';
 import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
+import { attachSkinsUpload } from './skins-upload';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
@@ -318,6 +319,9 @@ app.delete('/presets/:id', (req, res) => {
   presets.savePresets(list);
   res.status(204).end();
 });
+
+// ─── Skins upload (3D asset-generation pipeline target) ───────────────────────
+attachSkinsUpload(app);
 
 // Generic error handler so we never leak stack traces.
 app.use((err: any, _req: any, res: any, _next: any) => {

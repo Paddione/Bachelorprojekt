@@ -53,19 +53,23 @@ test('index.html does not contain gait, walking, or WASD movement tokens', () =>
   }
 });
 
-test('server source does not contain custom skins upload/validation/GLB/OIDC skins tokens', () => {
-  const skinsTokens = [
-    'validateGlb',
+// NOTE (T000505): The 3D asset-generation pipeline legitimately introduces a
+// single, validated POST /api/skins/upload endpoint (brett/src/server/skins-upload.ts)
+// as the storage sink for Mixamo-rigged GLBs produced by the website pipeline.
+// That sanctioned endpoint uses the names attachSkinsUpload / validateGlbSize /
+// glbHasMixamoBones / SKINS_ROOT. This guard therefore only forbids the tokens
+// unique to the *rejected* earlier skins implementation (a separate listing/
+// slugify/SKINS_DIR design that must not return).
+test('server source does not contain the rejected custom-skins-listing tokens', () => {
+  const rejectedTokens = [
     'SKINS_DIR',
     'listSkins',
-    'slugifyForSkin',
-    '/api/skins/upload',
-    '/api/skins'
+    'slugifyForSkin'
   ];
-  for (const token of skinsTokens) {
+  for (const token of rejectedTokens) {
     assert.ok(
       !serverSrcAll.includes(token),
-      `server source must not contain the custom skins token "${token}"`
+      `server source must not contain the rejected custom skins token "${token}"`
     );
   }
 });

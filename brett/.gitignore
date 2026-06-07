@@ -3,3 +3,4 @@ presets.json
 dist/
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+public/assets/skins/

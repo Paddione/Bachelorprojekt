@@ -13,10 +13,20 @@
 //     npx playwright test fa-content-hub-concurrency --project=services
 
 import { test, expect } from '@playwright/test';
+import { assertReachable } from '../lib/health-assertions';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 
 test.describe('FA content-hub: concurrency safety (AC 6)', () => {
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertReachable(
+      request,
+      BASE,
+      { acceptableStatuses: [200, 301, 302, 404], label: 'Astro website' },
+      testInfo
+    );
+  });
+
   test('save endpoint rejects request without auth (401)', async ({ request }) => {
     // services project has no storageState — confirm the auth gate is wired.
     const res = await request.post(`${BASE}/api/admin/content/save`, {

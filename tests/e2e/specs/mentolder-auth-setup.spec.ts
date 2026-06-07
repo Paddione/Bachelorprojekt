@@ -17,6 +17,7 @@ import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
 import { loginViaKeycloak, verifySession } from '../lib/auth';
+import { assertReachable } from '../lib/health-assertions';
 
 const WEBSITE_URL  = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 const ADMIN_USER   = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -33,14 +34,17 @@ function ensureAuthDir(): void {
 }
 
 // ── Admin login ──────────────────────────────────────────────────────────────
-setup('authenticate mentolder website admin', async ({ page }) => {
+setup('authenticate mentolder website admin', async ({ page, request }, testInfo) => {
   ensureAuthDir();
 
   if (!ADMIN_PASS) {
-    console.log('[mentolder-setup] E2E_ADMIN_PASS not set — writing empty state');
+    console.warn('[mentolder-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
     fs.writeFileSync(ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
     return;
   }
+
+  // Verify the website is reachable before attempting login
+  await assertReachable(request, WEBSITE_URL, { label: 'mentolder website' }, testInfo);
 
   await loginViaKeycloak(page, WEBSITE_URL, ADMIN_USER, ADMIN_PASS, '/admin');
 

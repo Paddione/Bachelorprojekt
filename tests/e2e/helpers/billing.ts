@@ -1,10 +1,19 @@
 import { Page, APIRequestContext, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 const ADMIN_USER = process.env.ADMIN_USER || process.env.E2E_ADMIN_USER || 'paddione';
 const ADMIN_PASS = process.env.ADMIN_PASS || process.env.E2E_ADMIN_PASS || '';
 
-export async function adminLogin(page: Page) {
+export async function adminLogin(page: Page, request?: APIRequestContext, testInfo?: any) {
+  if (request) {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/rechnungen`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin invoices' },
+      testInfo
+    );
+  }
   // Use the OIDC login redirect — works for both local dev and prod.
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/rechnungen`);
 

@@ -6,6 +6,7 @@
 // shows in portal (showCreate defaults to true).
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -32,47 +33,55 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
     expect(res.status()).toBe(403);
   });
 
-  // ── TicketQuickCreate always visible in portal ───────────────────────
-  test('T3: portal shows floating "Fehler melden" create button', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
-    await loginAndGo(page, '/portal');
-    await page.waitForLoadState('networkidle');
+  // ── Authenticated widget tests ─────────────────────────────────────
+  test.describe('authenticated portal widgets', () => {
+    test.beforeEach(async ({ request }, testInfo) => {
+      await assertAuthenticatedReachable(
+        request,
+        `${BASE}/portal`,
+        { acceptableStatuses: [200, 302, 401], label: 'portal' },
+        testInfo
+      );
+    });
 
-    // The floating widget bar is fixed bottom-right; aria-label uniquely identifies the create btn
-    const createBtn = page.locator('button[aria-label="Fehler melden"]');
-    await expect(createBtn).toBeVisible({ timeout: 10_000 });
-  });
+    // ── TicketQuickCreate always visible in portal ───────────────────────
+    test('T3: portal shows floating "Fehler melden" create button', async ({ page }) => {
+      await loginAndGo(page, '/portal');
+      await page.waitForLoadState('networkidle');
 
-  // ── TicketWidgetBar DOM presence (showEdit prop regression guard) ─────
-  test('T4: portal widget bar is attached in DOM', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
-    await loginAndGo(page, '/portal');
-    await page.waitForLoadState('networkidle');
+      // The floating widget bar is fixed bottom-right; aria-label uniquely identifies the create btn
+      const createBtn = page.locator('button[aria-label="Fehler melden"]');
+      await expect(createBtn).toBeVisible({ timeout: 10_000 });
+    });
 
-    // The fixed bottom-right container must be present — confirms TicketWidgetBar renders at all
-    const widgetBar = page.locator('.fixed.bottom-6.right-6');
-    await expect(widgetBar).toBeAttached({ timeout: 10_000 });
-  });
+    // ── TicketWidgetBar DOM presence (showEdit prop regression guard) ─────
+    test('T4: portal widget bar is attached in DOM', async ({ page }) => {
+      await loginAndGo(page, '/portal');
+      await page.waitForLoadState('networkidle');
 
-  // ── Admin layout: no floating create widget (moved to PlatformHub) ──
-  test('T5: admin layout has no floating aria-labeled "Fehler melden" button', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
-    await loginAndGo(page, '/admin');
-    await page.waitForLoadState('networkidle');
+      // The fixed bottom-right container must be present — confirms TicketWidgetBar renders at all
+      const widgetBar = page.locator('.fixed.bottom-6.right-6');
+      await expect(widgetBar).toBeAttached({ timeout: 10_000 });
+    });
 
-    // showCreate=false in AdminLayout — the floating widget button must not render
-    const floatingBtn = page.locator('button[aria-label="Fehler melden"]');
-    await expect(floatingBtn).toHaveCount(0);
-  });
+    // ── Admin layout: no floating create widget (moved to PlatformHub) ──
+    test('T5: admin layout has no floating aria-labeled "Fehler melden" button', async ({ page }) => {
+      await loginAndGo(page, '/admin');
+      await page.waitForLoadState('networkidle');
 
-  // ── PlatformHub Tickets tab: admin ticket creation ─────────────────
-  test('T6: PlatformHub Tickets tab renders create form', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
-    await loginAndGo(page, '/admin/platform');
-    await page.waitForLoadState('networkidle');
+      // showCreate=false in AdminLayout — the floating widget button must not render
+      const floatingBtn = page.locator('button[aria-label="Fehler melden"]');
+      await expect(floatingBtn).toHaveCount(0);
+    });
 
-    // Tickets is the first tab (default open), create-form heading is "NEUES TICKET ▲"
-    const formHeading = page.getByText('NEUES TICKET', { exact: false });
-    await expect(formHeading).toBeVisible({ timeout: 10_000 });
+    // ── PlatformHub Tickets tab: admin ticket creation ─────────────────
+    test('T6: PlatformHub Tickets tab renders create form', async ({ page }) => {
+      await loginAndGo(page, '/admin/platform');
+      await page.waitForLoadState('networkidle');
+
+      // Tickets is the first tab (default open), create-form heading is "NEUES TICKET ▲"
+      const formHeading = page.getByText('NEUES TICKET', { exact: false });
+      await expect(formHeading).toBeVisible({ timeout: 10_000 });
+    });
   });
 });

@@ -18,9 +18,9 @@
 // Authenticated tests skip when E2E_ADMIN_PASS is not set.
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
-const HAS_CREDS = !!process.env.E2E_ADMIN_PASS;
 
 // Match a EUR price token like "ab 60 € / Stunde" / "150 €" — tolerant of
 // surrounding copy.
@@ -65,8 +65,13 @@ test.describe('FA content-hub: price SSOT', () => {
     expect(matched, 'at least one priced, linked service card cross-checked').toBe(true);
   });
 
-  test('editing a catalog price propagates to the homepage (and is restored)', async ({ request }) => {
-    test.skip(!HAS_CREDS, 'requires E2E_ADMIN_PASS (authenticated write)');
+  test('editing a catalog price propagates to the homepage (and is restored)', async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/inhalte`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin inhalte' },
+      testInfo
+    );
 
     // The admin Inhalte page server-renders the current config into the editor;
     // we round-trip through the save endpoint instead of scraping it. Read the

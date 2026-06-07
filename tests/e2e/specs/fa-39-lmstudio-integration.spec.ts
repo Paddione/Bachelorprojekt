@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 /**
  * FA-39-LMStudio: LM Studio / local-first LLM integration test
@@ -40,7 +41,14 @@ async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/
 // ── API-level tests (no browser needed) ─────────────────────────────────────
 
 test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
-  test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping LM Studio integration tests');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/coaching/sessions`,
+      { acceptableStatuses: [200, 302, 401], label: 'coaching sessions' },
+      testInfo
+    );
+  });
 
   let sessionId: string;
   let kiProviders: Array<{ id: number; provider: string; isActive: boolean; apiEndpoint: string | null; modelName: string | null; displayName: string }>;
@@ -191,7 +199,14 @@ test.describe('FA-39-LMStudio: KI provider config & generate API', () => {
 // ── Browser wizard flow ──────────────────────────────────────────────────────
 
 test.describe('FA-39-LMStudio: SessionWizard browser flow', () => {
-  test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping browser flow tests');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/coaching/sessions`,
+      { acceptableStatuses: [200, 302, 401], label: 'coaching sessions' },
+      testInfo
+    );
+  });
 
   test('T6: wizard KI button enables when required fields are filled', async ({ page }) => {
     await loginAsAdmin(page, '/admin/coaching/sessions/new');

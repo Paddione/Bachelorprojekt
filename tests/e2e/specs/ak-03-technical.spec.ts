@@ -50,5 +50,5 @@ test.describe('AK-03: Technische Machbarkeit', () => {
     await expect(page.locator('body')).not.toContainText('502 Bad Gateway');
   });
 
-  test.skip(true, 'T1-T2, T4: kubectl-Operationen (Pod-Count, Image-Tags) und task workspace:status erfordern Cluster-Zugriff');
+  test.fixme(true, 'T1-T2, T4: kubectl-Operationen (Pod-Count, Image-Tags) und task workspace:status erfordern Cluster-Zugriff — T000480');
 });

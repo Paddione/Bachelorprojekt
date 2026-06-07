@@ -20,6 +20,7 @@
 // No clean-up step is required because nothing is created.
 
 import { test, expect, type Page } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -47,12 +48,13 @@ async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void
 }
 
 test.describe('FA-admin-inbox: two-pane rework', () => {
-  test.beforeEach(({ }, testInfo) => {
-    // Each scenario in this describe block needs an authenticated admin
-    // session against live web.mentolder.de — skip when no creds available.
-    if (!ADMIN_PASS) {
-      testInfo.skip(true, 'E2E_ADMIN_PASS not set — skipping admin inbox rework specs');
-    }
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/inbox`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin inbox' },
+      testInfo
+    );
   });
 
   // ── inbox-renders ──────────────────────────────────────────────

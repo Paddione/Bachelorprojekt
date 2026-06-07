@@ -1,5 +1,6 @@
 // tests/e2e/specs/fa-fragebogen.spec.ts
 import { test, expect, type Page } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 import { Pool } from 'pg';
 
 const BASE       = process.env.WEBSITE_URL         ?? 'http://localhost:4321';
@@ -65,8 +66,13 @@ test.describe('FA-Fragebogen: Auth gating', () => {
 test.describe('FA-Fragebogen: Fill flow', () => {
   const createdTemplateIds: string[] = [];
 
-  test.beforeEach(({ }, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin dashboard' },
+      testInfo
+    );
     if (isProd && !process.env.SESSIONS_DATABASE_URL) {
       testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
     }
@@ -179,8 +185,13 @@ test.describe('FA-Fragebogen: Fill flow', () => {
 test.describe('FA-Fragebogen: Admin view', () => {
   const createdTemplateIds: string[] = [];
 
-  test.beforeEach(({ }, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin dashboard' },
+      testInfo
+    );
     if (isProd && !process.env.SESSIONS_DATABASE_URL) {
       testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
     }
@@ -230,8 +241,13 @@ test.describe('FA-Fragebogen: Admin view', () => {
 test.describe('FA-Fragebogen: Archive → reassign → replay', () => {
   const createdTemplateIds: string[] = [];
 
-  test.beforeEach(({ }, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin dashboard' },
+      testInfo
+    );
     if (isProd && !process.env.SESSIONS_DATABASE_URL) {
       testInfo.skip(true, 'Direct DB access requires SESSIONS_DATABASE_URL (run: task workspace:port-forward ENV=<env>)');
     }

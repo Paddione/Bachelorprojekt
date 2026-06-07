@@ -7,6 +7,7 @@
 // Skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -23,8 +24,13 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 
 test.describe('FA-admin-db-crud-followups', () => {
 
-  test('follow-up CRUD: create → verify → mark done → verify → delete', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
+  test('follow-up CRUD: create → verify → mark done → verify → delete', async ({ page, request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/followups`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin followups page' },
+      testInfo
+    );
 
     await loginAsAdmin(page);
 
@@ -93,8 +99,13 @@ test.describe('FA-admin-db-crud-followups', () => {
     await expect(page.locator(`[data-testid="followup-item"]:has-text("${reason}")`)).toHaveCount(0);
   });
 
-  test('zeiterfassung CRUD: create project → create time entry → verify → delete', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
+  test('zeiterfassung CRUD: create project → create time entry → verify → delete', async ({ page, request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/projekte`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin projekte page' },
+      testInfo
+    );
 
     // Re-authenticate to /admin/projekte for this sub-test
     await page.goto(`${BASE}/api/auth/login?returnTo=/admin/projekte`);

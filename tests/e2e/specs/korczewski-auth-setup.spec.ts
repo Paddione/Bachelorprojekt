@@ -19,6 +19,7 @@
 import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
+import { assertReachable } from '../lib/health-assertions';
 
 const WEBSITE_URL = (process.env.KORCZEWSKI_URL ?? 'https://web.korczewski.de').replace(/\/$/, '');
 const BRETT_URL   = (process.env.BRETT_URL ?? 'https://brett.korczewski.de').replace(/\/$/, '');
@@ -35,11 +36,16 @@ function ensureAuthDir(): void {
 }
 
 // ── Website admin login ───────────────────────────────────────────────────────
-setup('authenticate korczewski website admin', async ({ page }) => {
+setup('authenticate korczewski website admin', async ({ page, request }, testInfo) => {
   ensureAuthDir();
 
+  // Verify the website is reachable before attempting login
+  if (ADMIN_PASS) {
+    await assertReachable(request, WEBSITE_URL, { label: 'korczewski website' }, testInfo);
+  }
+
   if (!ADMIN_PASS) {
-    console.log('[korczewski-setup] TEST_ADMIN_PASSWORD not set — writing empty state');
+    console.warn('[korczewski-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
     fs.writeFileSync(WEBSITE_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
     return;
   }
@@ -71,11 +77,16 @@ setup('authenticate korczewski website admin', async ({ page }) => {
 });
 
 // ── Brett admin login (oauth2-proxy) ─────────────────────────────────────────
-setup('authenticate korczewski brett', async ({ page }) => {
+setup('authenticate korczewski brett', async ({ page, request }, testInfo) => {
   ensureAuthDir();
 
+  // Verify brett is reachable before attempting login
+  if (ADMIN_PASS) {
+    await assertReachable(request, BRETT_URL, { label: 'korczewski brett' }, testInfo);
+  }
+
   if (!ADMIN_PASS) {
-    console.log('[korczewski-setup] TEST_ADMIN_PASSWORD not set — writing empty state');
+    console.warn('[korczewski-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
     fs.writeFileSync(BRETT_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
     return;
   }

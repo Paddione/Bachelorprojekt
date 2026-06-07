@@ -7,45 +7,39 @@
 //   E2E_ADMIN_USER   (default: paddione)
 //   E2E_ADMIN_PASS   — required; writes empty state if absent
 
-import { test as setup } from '@playwright/test';
+import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
+import { loginViaKeycloak, verifySession } from '../lib/auth';
+import { assertReachable } from '../lib/health-assertions';
 
-const BASE = 'https://web.mentolder.de';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
-const ADMIN_PASS = process.env.E2E_ADMIN_PASS ?? '';
+const ARENA_URL = (process.env.ARENA_WS_URL ?? 'wss://arena.localhost/ws').replace(/\/ws$/, '');
+const ARENA_HTTP_URL = ARENA_URL.replace(/^wss/, 'https').replace(/^ws/, 'http');
+const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
+const ADMIN_PASS  = process.env.E2E_ADMIN_PASS ?? '';
 
-const AUTH_DIR            = path.join(__dirname, '..', '.auth');
-const PORTAL_AUTH_STATE   = path.join(AUTH_DIR, 'mentolder-portal.json');
+const AUTH_DIR    = path.join(__dirname, '..', '.auth');
+const ADMIN_STATE = path.join(AUTH_DIR, 'mentolder-arena-admin.json');
 
-setup('authenticate mentolder portal', async ({ page }) => {
+function ensureAuthDir(): void {
   if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
+}
+
+setup('authenticate mentolder arena admin', async ({ page, request }, testInfo) => {
+  ensureAuthDir();
 
   if (!ADMIN_PASS) {
-    console.log('[arena-mentolder-setup] E2E_ADMIN_PASS not set — writing empty state');
-    fs.writeFileSync(PORTAL_AUTH_STATE, JSON.stringify({ cookies: [], origins: [] }));
+    console.warn('[arena-mentolder-setup] E2E_ADMIN_PASS not set — writing empty state (arena tests will use test.fixme)');
+    fs.writeFileSync(ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
     return;
   }
 
-  // When running against korczewski (PROD_DOMAIN set but not mentolder.de), skip this
-  // setup — it targets web.mentolder.de which requires cross-cluster credentials.
-  const prodDomain = process.env.PROD_DOMAIN;
-  if (prodDomain && prodDomain !== 'mentolder.de') {
-    console.log(`[arena-mentolder-setup] PROD_DOMAIN=${prodDomain} — skipping mentolder auth setup`);
-    fs.writeFileSync(PORTAL_AUTH_STATE, JSON.stringify({ cookies: [], origins: [] }));
-    return;
-  }
+  await assertReachable(request, ARENA_HTTP_URL, { label: 'arena server' }, testInfo);
+  await loginViaKeycloak(page, ARENA_HTTP_URL, ADMIN_USER, ADMIN_PASS, '/admin');
 
-  // Navigate to protected page which triggers Keycloak redirect
-  await page.goto(`${BASE}/portal/arena`, { waitUntil: 'domcontentloaded' });
-  await page.waitForURL(/auth\.|realms\/workspace/, { timeout: 15_000 });
+  const me = await verifySession(page.request, ARENA_HTTP_URL);
+  expect(me.authenticated, 'arena session should be authenticated').toBe(true);
 
-  await page.locator('#username').fill(ADMIN_USER);
-  await page.locator('#password').fill(ADMIN_PASS);
-  await page.locator('#kc-login').click();
-
-  await page.waitForURL(/web\.mentolder\.de/, { timeout: 25_000 });
-
-  await page.context().storageState({ path: PORTAL_AUTH_STATE });
-  console.log('[arena-mentolder-setup] saved mentolder-portal.json');
+  await page.context().storageState({ path: ADMIN_STATE });
+  console.log(`[arena-mentolder-setup] saved mentolder-arena-admin.json (user=${me.username})`);
 });

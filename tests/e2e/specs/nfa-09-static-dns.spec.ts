@@ -28,5 +28,5 @@ test.describe('NFA-09: Statisches DNS (kein DDNS)', () => {
     expect(content).toMatch(/dns01|dns-01/i);
   });
 
-  test.skip(true, 'T4: TLS-Zertifikat-Status im Produktionscluster erfordert kubectl-Zugriff');
+  test.fixme(true, 'T4: TLS-Zertifikat-Status im Produktionscluster erfordert kubectl-Zugriff — T000480');
 });

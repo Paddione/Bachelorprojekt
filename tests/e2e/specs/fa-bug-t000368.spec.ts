@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -15,8 +16,13 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
 }
 
 test.describe('Bug T000368 Reproduction', () => {
-  test('Clicking Quick Edit should not throw TypeError Symbol($state)', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping');
+  test('Clicking Quick Edit should not throw TypeError Symbol($state)', async ({ page, request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/tickets`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin tickets' },
+      testInfo
+    );
 
     const consoleErrors: string[] = [];
     page.on('pageerror', (exception) => {

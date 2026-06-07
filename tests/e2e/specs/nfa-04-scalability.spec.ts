@@ -33,5 +33,5 @@ test.describe('NFA-04: Skalierbarkeit', () => {
     }
   });
 
-  test.skip(true, 'T1-T2, T4-T5: kubectl scale-Operationen und Rolling-Update erfordern Cluster-Zugriff');
+  test.fixme(true, 'T1-T2, T4-T5: kubectl scale-Operationen und Rolling-Update erfordern Cluster-Zugriff — T000480');
 });

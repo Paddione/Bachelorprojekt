@@ -27,6 +27,7 @@ import * as freeFly from './free-fly-camera';
 import * as exportUi from './ui/export';
 import * as groundObjects from './ground-objects';
 import { initUndoRedo } from './ui/undo-redo-ui';
+import { updateLinePositions } from './scene-lines';
 import { createReplayController, type ReplayBoardState } from './replay-engine';
 import { renderTimeline } from './ui/timeline';
 
@@ -412,6 +413,7 @@ export async function bootBoard(): Promise<void> {
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
     lastTickMs = now;
     mannequin.tickSpring(dt);
+    updateLinePositions();
     mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);
     // T000471: Moderation visuals (Spotlight/Dim/Freeze)
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);

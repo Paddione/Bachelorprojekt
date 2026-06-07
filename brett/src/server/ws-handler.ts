@@ -197,23 +197,15 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         } catch {
           return;
         }
-
-        if (ws._room) {
-          // In the original, touchSessionActivity is called if ws._room exists.
-          // Since ws_room is only set after join, we check if it is set.
-        }
-
         if (msg.type === 'pong') {
           ws.isAlive = true;
           return;
         }
-
         // Block any non-pong message until the session is wired, so isAdmin/role
         // resolution never runs against an undefined session.
         if (!gateSessionReady(ws, (m: any) => ws.send(JSON.stringify(m)))) {
           return;
         }
-
         if (msg.type === 'join' && typeof msg.room === 'string') {
           const room = msg.room;
           deps.joinRoom(ws, room);

@@ -1,65 +1,88 @@
 version: "3"
 
 vars:
+  DETECTED_CMD:
+    sh: 'command -v opencode >/dev/null && echo opencode || echo openclaw'
+  OPCODE_CMD: '{{.OPCODE_CMD | default .DETECTED_CMD}}'
   OPENCLAW_HOME: '{{.OPENCLAW_HOME | default "/home/patrick/.openclaw"}}'
-  OPENCLAW_BACKUP_DIR: '{{.OPENCLAW_HOME}}.bak.20260514'
-  OPENCLAW_ENV_TEMPLATE: openclaw/.env.example
+  OPENCODE_HOME: '{{.OPENCODE_HOME | default "/home/patrick/.config/opencode"}}'
+  ACTIVE_HOME: '{{if eq .OPCODE_CMD "opencode"}}{{.OPENCODE_HOME}}{{else}}{{.OPENCLAW_HOME}}{{end}}'
+  BACKUP_DIR: '{{.ACTIVE_HOME}}.bak.20260514'
+  ENV_TEMPLATE: openclaw/.env.example
 
 tasks:
   backup:
-    desc: "Move existing ~/.openclaw to a dated backup directory (no-op if absent)"
+    desc: "Move existing config to a dated backup directory (no-op if absent)"
     cmds:
       - |
-        if [[ -d "{{.OPENCLAW_HOME}}" ]]; then
-          if [[ -e "{{.OPENCLAW_BACKUP_DIR}}" ]]; then
-            echo "Backup already exists at {{.OPENCLAW_BACKUP_DIR}} — refusing to overwrite."
+        if [[ -d "{{.ACTIVE_HOME}}" ]]; then
+          if [[ -e "{{.BACKUP_DIR}}" ]]; then
+            echo "Backup already exists at {{.BACKUP_DIR}} — refusing to overwrite."
             exit 1
           fi
-          mv "{{.OPENCLAW_HOME}}" "{{.OPENCLAW_BACKUP_DIR}}"
-          echo "Moved {{.OPENCLAW_HOME}} → {{.OPENCLAW_BACKUP_DIR}}"
+          mv "{{.ACTIVE_HOME}}" "{{.BACKUP_DIR}}"
+          echo "Moved {{.ACTIVE_HOME}} → {{.BACKUP_DIR}}"
         else
-          echo "No existing {{.OPENCLAW_HOME}} — nothing to back up."
+          echo "No existing {{.ACTIVE_HOME}} — nothing to back up."
         fi
 
   install:
-    desc: "npm install -g openclaw@latest (Node ≥ 22.16 required)"
+    desc: "npm install -g opencode@latest (Node ≥ 22.16 required)"
     preconditions:
       - sh: "node --version | awk -F. '{ exit ($1 == \"v24\" || ($1 == \"v22\" && $2 >= 16)) ? 0 : 1 }'"
         msg: "Node 22.16+ or 24 required (got $(node --version 2>/dev/null || echo 'no node'))"
     cmds:
-      - sudo npm install -g openclaw@latest
-      - openclaw --version
+      - sudo npm install -g opencode@latest
+      - opencode --version
 
   configure:
-    desc: "Run onboard --install-daemon, then write ~/.openclaw/.env from template"
+    desc: "Configure the CLI and ensure configuration directory exists"
     deps: [install]
     cmds:
       - |
-        # Always re-run after install so the systemd unit stays current across upgrades
-        openclaw onboard --install-daemon --non-interactive || \
-          openclaw onboard --install-daemon
-      - |
-        if [[ ! -f "{{.OPENCLAW_HOME}}/.env" ]]; then
-          cp "{{.OPENCLAW_ENV_TEMPLATE}}" "{{.OPENCLAW_HOME}}/.env"
-          chmod 600 "{{.OPENCLAW_HOME}}/.env"
-          echo "Wrote {{.OPENCLAW_HOME}}/.env from template — edit if defaults are wrong."
+        if [[ "{{.OPCODE_CMD}}" == "openclaw" ]]; then
+          openclaw onboard --install-daemon --non-interactive || \
+            openclaw onboard --install-daemon
         else
-          echo "{{.OPENCLAW_HOME}}/.env already exists — leaving untouched."
+          echo "Opencode configuration directory is located at {{.ACTIVE_HOME}}."
+          mkdir -p "{{.ACTIVE_HOME}}"
         fi
-      - task: start
+      - |
+        if [[ ! -f "{{.ACTIVE_HOME}}/.env" && "{{.OPCODE_CMD}}" == "openclaw" ]]; then
+          cp "{{.ENV_TEMPLATE}}" "{{.ACTIVE_HOME}}/.env"
+          chmod 600 "{{.ACTIVE_HOME}}/.env"
+          echo "Wrote {{.ACTIVE_HOME}}/.env from template — edit if defaults are wrong."
+        elif [[ ! -f "{{.ACTIVE_HOME}}/config.json" && "{{.OPCODE_CMD}}" == "opencode" ]]; then
+          echo "Opencode is installed and configured at {{.ACTIVE_HOME}}/config.json."
+        fi
+      - |
+        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
+          task: start
+        fi
 
   start:
-    desc: "Restart the systemd --user openclaw-gateway service"
+    desc: "Restart the user systemd service"
     cmds:
-      - systemctl --user daemon-reload
-      - systemctl --user restart openclaw-gateway
-      - systemctl --user status openclaw-gateway --no-pager | head -20
+      - |
+        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
+          systemctl --user daemon-reload
+          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
+          systemctl --user restart "$svc_name"
+          systemctl --user status "$svc_name" --no-pager | head -20
+        else
+          echo "No systemd service found for {{.OPCODE_CMD}}."
+        fi
 
   status:
     desc: "Show daemon status + gateway health probe"
     cmds:
       - |
-        systemctl --user is-active openclaw-gateway && echo "daemon: active" || echo "daemon: inactive"
+        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
+          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
+          systemctl --user is-active "$svc_name" && echo "daemon: active" || echo "daemon: inactive"
+        else
+          echo "daemon: no service configured"
+        fi
       - |
         port="${OPENCLAW_GATEWAY_PORT:-18789}"
         curl -sS --max-time 3 "http://127.0.0.1:${port}/healthz" \
@@ -67,39 +90,53 @@ tasks:
           || echo "gateway healthz did not respond on port ${port}"
       - |
         echo ""
-        echo "Backend reachability check (Ollama on 10.10.0.3:11434):"
-        curl -sS --max-time 3 http://10.10.0.3:11434/v1/models | head -c 400 \
+        echo "Backend reachability check (Ollama on localhost:11434):"
+        curl -sS --max-time 3 http://localhost:11434/v1/models | head -c 400 \
           && echo "" \
           || echo "WARNING: Ollama not reachable from WSL"
 
   logs:
     desc: "Tail daemon log via journalctl --user"
     cmds:
-      - journalctl --user -u openclaw-gateway -n 100 --no-pager
+      - |
+        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
+          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
+          journalctl --user -u "$svc_name" -n 100 --no-pager
+        else
+          echo "No service logs found."
+        fi
 
   restore:
-    desc: "Roll back: stop daemon, uninstall, remove fresh ~/.openclaw, move backup back"
+    desc: "Roll back: stop daemon, uninstall, remove config, move backup back"
     cmds:
-      - systemctl --user disable --now openclaw-gateway || true
-      - sudo npm uninstall -g openclaw || true
-      - rm -rf "{{.OPENCLAW_HOME}}"
       - |
-        if [[ -d "{{.OPENCLAW_BACKUP_DIR}}" ]]; then
-          mv "{{.OPENCLAW_BACKUP_DIR}}" "{{.OPENCLAW_HOME}}"
-          echo "Restored {{.OPENCLAW_BACKUP_DIR}} → {{.OPENCLAW_HOME}}"
+        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
+          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
+          systemctl --user disable --now "$svc_name" || true
+        fi
+      - sudo npm uninstall -g "{{.OPCODE_CMD}}" || true
+      - rm -rf "{{.ACTIVE_HOME}}"
+      - |
+        if [[ -d "{{.BACKUP_DIR}}" ]]; then
+          mv "{{.BACKUP_DIR}}" "{{.ACTIVE_HOME}}"
+          echo "Restored {{.BACKUP_DIR}} → {{.ACTIVE_HOME}}"
         else
-          echo "No backup at {{.OPENCLAW_BACKUP_DIR}} — fresh install fully removed."
+          echo "No backup at {{.BACKUP_DIR}} — fresh install fully removed."
         fi
 
   wipe:
-    desc: "Destructive: remove fresh ~/.openclaw AND backup. Requires CONFIRM=yes"
+    desc: "Destructive: remove config AND backup. Requires CONFIRM=yes"
     cmds:
       - |
         if [[ "${CONFIRM:-}" != "yes" ]]; then
-          echo "Refusing — set CONFIRM=yes to wipe both {{.OPENCLAW_HOME}} and {{.OPENCLAW_BACKUP_DIR}}"
+          echo "Refusing — set CONFIRM=yes to wipe both {{.ACTIVE_HOME}} and {{.BACKUP_DIR}}"
           exit 1
         fi
-      - systemctl --user disable --now openclaw-gateway || true
-      - sudo npm uninstall -g openclaw || true
-      - rm -rf "{{.OPENCLAW_HOME}}" "{{.OPENCLAW_BACKUP_DIR}}"
+      - |
+        if systemctl --user list-unit-files | grep -q "{{.OPCODE_CMD}}"; then
+          svc_name=$(systemctl --user list-unit-files | grep -oE "opencode[^ ]*|openclaw[^ ]*" | head -1)
+          systemctl --user disable --now "$svc_name" || true
+        fi
+      - sudo npm uninstall -g "{{.OPCODE_CMD}}" || true
+      - rm -rf "{{.ACTIVE_HOME}}" "{{.BACKUP_DIR}}"
       - echo "Wiped."

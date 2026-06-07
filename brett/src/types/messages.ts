@@ -33,7 +33,8 @@ export type ClientMessage =
   | { type: 'figure_type_set'; figureId: string; figureType: FigureType }
   | { type: 'admin_spotlight_set'; figureId: string | null }
   | { type: 'admin_dim_set'; figureId: string | null }
-  | { type: 'admin_freeze_set'; frozen: boolean };
+  | { type: 'admin_freeze_set'; frozen: boolean }
+  | { type: 'figure_note_set'; figureId: string; note: string };
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
@@ -64,6 +65,7 @@ export type ServerMessage =
   | { type: 'figure_released'; figureId: string; playerId: string }
   | { type: 'figure_type_changed'; figureId: string; figureType: FigureType }
   | { type: 'moderation_state'; spotlight: string | null; dim: string | null; freeze: boolean }
+  | { type: 'figure_note_changed'; figureId: string; note: string }
   | { type: 'error'; reason: string };
 
 export interface ServerLock {

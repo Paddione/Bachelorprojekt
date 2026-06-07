@@ -11,7 +11,8 @@ export type MutationType =
   | 'add' | 'move' | 'update' | 'jump' | 'delete'
   | 'clear' | 'stiffness' | 'snapshot' | 'request_state_snapshot'
   | 'figure_lock'
-  | 'figure_possess' | 'figure_release';
+  | 'figure_possess' | 'figure_release'
+  | 'figure_note_set';  // Slice 5: Notizen pro Figur
 
 export interface MutateContext {
   msgType: MutationType;
@@ -57,6 +58,7 @@ export function canMutate(ctx: MutateContext): boolean {
     case 'figure_lock':
     case 'figure_possess':
     case 'figure_release':
+    case 'figure_note_set':
       break;
     default:
       return false; // Default-Deny for any non-matrix msgType.
@@ -71,6 +73,7 @@ export function canMutate(ctx: MutateContext): boolean {
       case 'jump':
       case 'delete':
       case 'figure_lock':
+      case 'figure_note_set':
         return ctx.figureOwnerId != null && ctx.figureOwnerId === ctx.playerId;
       case 'add':
         return ctx.allowRepresentativeAdd === true;

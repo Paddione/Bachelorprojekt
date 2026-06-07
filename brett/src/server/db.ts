@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+import { readdirSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 type StateBuilder = (room: string) => any;
 
@@ -89,4 +91,22 @@ export async function flushImmediate(room: string): Promise<void> {
 
 export function getPending(): Map<string, NodeJS.Timeout> {
   return pending;
+}
+
+/**
+ * Runs all pending SQL migration files from src/server/migrations/.
+ * Safe to call on every startup (idempotent due to IF NOT EXISTS).
+ */
+export async function runMigrations(): Promise<void> {
+  const migrationsDir = join(__dirname, 'migrations');
+  let files: string[] = [];
+  try {
+    files = readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort();
+  } catch {
+    return; // no migrations directory — e.g. in test environments
+  }
+  for (const file of files) {
+    const sql = readFileSync(join(migrationsDir, file), 'utf-8');
+    await pool.query(sql);
+  }
 }

@@ -38,7 +38,9 @@ export type ClientMessage =
   | { type: 'anchor_create'; anchor: Omit<Anchor, 'id'> }
   | { type: 'anchor_delete'; anchorId: string }
   | { type: 'zone_create'; zone: Omit<Zone, 'id'> }
-  | { type: 'zone_delete'; zoneId: string };
+  | { type: 'zone_delete'; zoneId: string }
+  | { type: 'session_undo' }
+  | { type: 'session_redo' };
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
@@ -74,6 +76,7 @@ export type ServerMessage =
   | { type: 'anchor_removed'; anchorId: string }
   | { type: 'zone_added'; zone: Zone }
   | { type: 'zone_removed'; zoneId: string }
+  | { type: 'undo_stack_changed'; canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number }
   | { type: 'error'; reason: string };
 
 export interface ServerLock {

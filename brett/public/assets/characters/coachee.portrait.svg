@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" width="240" height="320" role="img" aria-label="Coachee portrait">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#17202e"></stop><stop offset="100%" stop-color="#0b111c"></stop>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0"></feColorMatrix></filter>
+  </defs>
+  <rect x="0" y="0" width="240" height="320" fill="url(#g)"></rect>
+  <rect x="0" y="0" width="240" height="320" filter="url(#grain)" opacity=".5"></rect>
+  <rect x="14" y="14" width="212" height="292" fill="none" stroke="#d7b06a" stroke-opacity=".22" stroke-width="1"></rect>
+  <g stroke="#d7b06a" stroke-opacity=".55" stroke-width="1" fill="none">
+    <path d="M14 24 L14 14 L24 14"></path><path d="M226 24 L226 14 L216 14"></path>
+    <path d="M14 296 L14 306 L24 306"></path><path d="M226 296 L226 306 L216 306"></path>
+  </g>
+  
+  <g fill="#e7ead0">
+    <ellipse cx="120" cy="140" rx="34" ry="42"></ellipse>
+    <path d="M50 280 Q52 220 80 196 Q98 184 120 184 Q142 184 160 196 Q188 220 190 280 Z"></path>
+    <path d="M70 230 Q120 254 170 230 L168 248 Q120 270 72 248 Z" fill="#b8c0a8" opacity=".55"></path>
+  </g>
+  <circle cx="108" cy="134" r="2" fill="#d7b06a"></circle>
+  <circle cx="132" cy="134" r="2" fill="#d7b06a"></circle>
+  <text x="120" y="296" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#d7b06a" letter-spacing="2">COACHEE · PORTRAIT</text>
+
+</svg>

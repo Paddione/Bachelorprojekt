@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 240" width="480" height="240" role="img" aria-label="Focus circle terrain">
+  <defs>
+    <radialGradient id="fc1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0d28c" stop-opacity="0.45"></stop>
+      <stop offset="30%" stop-color="#d7b06a" stop-opacity="0.22"></stop>
+      <stop offset="70%" stop-color="#101826" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <rect width="480" height="240" fill="#0b111c"></rect>
+  <circle cx="240" cy="120" r="220" fill="url(#fc1)"></circle>
+  <circle cx="240" cy="120" r="80" fill="none" stroke="#d7b06a" stroke-opacity=".55"></circle>
+  <circle cx="240" cy="120" r="120" fill="none" stroke="#d7b06a" stroke-opacity=".22"></circle>
+  <circle cx="240" cy="120" r="3" fill="#d7b06a"></circle>
+</svg>

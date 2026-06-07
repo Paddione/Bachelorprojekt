@@ -285,6 +285,9 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
                 // Late-joiners/reloads receive the persisted board-optik (§4.1
                 // end-to-end) so the scene renders it on mount (D11).
                 optik: freshState.optik,
+                // T000471: include moderation state so late-joiners/reloads
+                // get the current spotlight/dim/freeze without a separate broadcast.
+                moderation: freshState.moderation ?? null,
               }));
             } catch {}
           }

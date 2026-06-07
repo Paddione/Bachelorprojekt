@@ -10,6 +10,21 @@ import { applyOptikToScene } from './ui/optik';
 let lobbyState: LobbyState = createLobbyState();
 export function getLobbyState(): LobbyState { return lobbyState; }
 
+// Moderation-State (T000471): Spotlight / Dim / Freeze
+export interface ClientModerationState {
+  spotlight: string | null;
+  dim: string | null;
+  freeze: boolean;
+}
+let moderationState: ClientModerationState = { spotlight: null, dim: null, freeze: false };
+export function getModerationState(): ClientModerationState { return moderationState; }
+
+// Injected callback: fired when moderation state changes (board-boot wires this)
+let onModerationChange: (state: ClientModerationState) => void = () => {};
+export function setModerationChangeHandler(fn: (state: ClientModerationState) => void): void {
+  onModerationChange = fn;
+}
+
 // View-machine notifier — injected by board-boot / app-shell wiring. Fires on
 // every server-driven phase change so menu→lobby→board routing stays in sync.
 let onPhaseChange: (phase: Phase | null) => void = () => {};
@@ -209,6 +224,16 @@ export function onWsMessage(evt: MessageEvent): void {
       // saved look (§4.1 dead seam closed end-to-end, D11).
       if (msg.optik) applyOptikToScene(msg.optik);
 
+      // T000471: rehydrate moderation state from join snapshot
+      if ((msg as any).moderation) {
+        moderationState = {
+          spotlight: (msg as any).moderation.spotlight ?? null,
+          dim: (msg as any).moderation.dim ?? null,
+          freeze: (msg as any).moderation.freeze ?? false,
+        };
+        onModerationChange(moderationState);
+      }
+
       // FE-2: the join snapshot is the FIRST (often ONLY) state a client gets on
       // connect, and it carries the authoritative phase/sessionCode/roster. Route
       // it through the lobby reducer and drive the view-machine on a phase change
@@ -391,6 +416,12 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'figure_type_changed':
       // Figure type change — no local action needed (lobby roster re-renders from store)
       break;
+
+    case 'moderation_state': {
+      moderationState = { spotlight: msg.spotlight, dim: msg.dim, freeze: msg.freeze };
+      onModerationChange(moderationState);
+      break;
+    }
 
     case 'error':
       // Non-fatal protocol error from the server (e.g. forbidden / not-ready).

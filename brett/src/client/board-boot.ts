@@ -16,6 +16,7 @@ import * as figPanel from './ui/fig-panel';
 import * as hud from './ui/hud';
 import * as appearance from './ui/appearance';
 import * as persons from './ui/persons';
+import * as povCamera from './pov-camera';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -45,6 +46,53 @@ export async function bootBoard(): Promise<void> {
   figPanel.initFigPanel();
   appearance.initAppearance();
   persons.initPersons();
+
+  // ── D-spec: Observer hint + possession release button ──────────────
+  const observerHint = document.createElement('div');
+  observerHint.id = 'observer-hint';
+  observerHint.textContent = 'Klicke eine freie Figur, um sie zu verkörpern';
+  Object.assign(observerHint.style, {
+    display: 'none',
+    position: 'absolute',
+    bottom: '56px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: 'var(--brett-font-mono), monospace',
+    fontSize: '10px',
+    color: 'var(--brett-brass, #c8a96e)',
+    border: '1px dashed var(--brett-brass-dim, rgba(200,169,110,0.14))',
+    padding: '6px 14px',
+    borderRadius: 'var(--brett-radius-sm, 8px)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    zIndex: '20',
+    pointerEvents: 'none',
+  });
+  document.body.appendChild(observerHint);
+
+  const releaseBtn = document.createElement('button');
+  releaseBtn.id = 'btn-release-possession';
+  releaseBtn.textContent = '🚶 Loslassen';
+  Object.assign(releaseBtn.style, {
+    display: 'none',
+    position: 'absolute',
+    bottom: '52px',
+    right: '16px',
+    fontFamily: 'var(--brett-font-sans), sans-serif',
+    fontSize: '12px',
+    background: 'var(--brett-brass, #c8a96e)',
+    color: 'var(--brett-ink-900, #0b111c)',
+    border: 'none',
+    borderRadius: 'var(--brett-radius-sm, 8px)',
+    padding: '8px 16px',
+    cursor: 'pointer',
+    zIndex: '20',
+    fontWeight: '600',
+  });
+  releaseBtn.addEventListener('click', () => {
+    hud.releaseAllPossessions();
+  });
+  document.body.appendChild(releaseBtn);
 
   // ── Stiffness slider ───────────────────────────────────────────────
   const stiffSlider = document.getElementById('stiffness') as HTMLInputElement;
@@ -80,7 +128,13 @@ export async function bootBoard(): Promise<void> {
       e.preventDefault();
       return;
     }
-    if (e.button !== 0 || e.shiftKey) return;
+    if (e.button !== 0 || e.shiftKey) {
+      // D-spec: Shift+Click while in POV → exit POV for orbit
+      if (e.shiftKey && povCamera.isInPov()) {
+        povCamera.stopPov();
+      }
+      return;
+    }
     const sphere = mannequin.pickContact(e);
     if (sphere) {
       const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
@@ -90,6 +144,18 @@ export async function bootBoard(): Promise<void> {
       if (lock && lock.userId !== currentUser.userId) {
         e.preventDefault();
         return; // block!
+      }
+
+      // D-spec: click on a free figure → possess it instead of locking
+      const isFree = !(fig as any)._serverPossessor && !activeLocks.get(fig.id);
+      if (isFree) {
+        figPanel.selectFigure(fig.id);
+        const ws = getWs();
+        if (isWsReady() && ws) {
+          ws.send(JSON.stringify({ type: 'figure_possess', figureId: fig.id }));
+        }
+        e.preventDefault();
+        return;
       }
 
       figPanel.selectFigure(fig.id);
@@ -237,6 +303,19 @@ export async function bootBoard(): Promise<void> {
     const dt = Math.min(0.05, (now - lastTickMs) / 1000);
     lastTickMs = now;
     mannequin.tickSpring(dt);
+    mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);
+    povCamera.tickPov();
+
+    // D-spec: Update observer hint + release button visibility
+    const possessedFig = STATE.figures.find(f => (f as any)._serverPossessor === currentUser.userId);
+    const anyFree = STATE.figures.some(f => !(f as any)._serverPossessor);
+    if (observerHint) {
+      observerHint.style.display = (!possessedFig && anyFree) ? 'block' : 'none';
+    }
+    if (releaseBtn) {
+      releaseBtn.style.display = possessedFig ? 'block' : 'none';
+    }
+
     hud.updateStatusPill();
     if ((window as any).__brettPostFx) {
       (window as any).__brettPostFx.render(scene, camera);

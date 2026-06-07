@@ -181,6 +181,33 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.01; ring.visible = false;
   root.add(ring);
 
+  // Possession indicator ring (dashed brass torus — shown for free/possessed figures)
+  const possessionRingGeo = new THREE.TorusGeometry(0.52, 0.025, 8, 48);
+  const possessionRingMat = new THREE.MeshBasicMaterial({
+    color: 0xc8a96e,
+    transparent: true,
+    opacity: 0.45,
+    depthTest: true,
+  });
+  const possessionRing = new THREE.Mesh(possessionRingGeo, possessionRingMat);
+  possessionRing.rotation.x = -Math.PI / 2;
+  possessionRing.position.y = 0.03;
+  possessionRing.visible = false;
+  root.add(possessionRing);
+
+  // Floating possessor label sprite
+  const labelCanvas = document.createElement('canvas');
+  labelCanvas.width = 256;
+  labelCanvas.height = 64;
+  const labelTex = new THREE.CanvasTexture(labelCanvas);
+  labelTex.minFilter = THREE.LinearFilter;
+  const labelSpriteMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthTest: false, depthWrite: false });
+  const labelSprite = new THREE.Sprite(labelSpriteMat);
+  labelSprite.position.y = 2.4;
+  labelSprite.scale.set(2.0, 0.5, 1);
+  labelSprite.visible = false;
+  root.add(labelSprite);
+
   const { scene } = getScene();
   scene.add(root);
 
@@ -198,6 +225,8 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
     id,
     type: 'mannequin',
     root, hips, bones, ring,
+    possessionRing,
+    labelSprite,
     bone,
     headMesh,
     appearanceMeshes: {},
@@ -210,6 +239,7 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
     jumpV: 0,
     jumpY: 0,
     _lastCollisionCheck: 0,
+    _serverPossessor: null as string | null,
   };
 }
 
@@ -392,3 +422,54 @@ export function getTickRefs() {
   };
 }
 let lastTickMs = performance.now();
+
+// ── Possession Visuals (D-spec) ─────────────────────────────────────────
+
+/** Update all figure possession rings + floating labels based on _serverPossessor. */
+export function updatePossessionVisuals(figures: any[], currentUserId: string): void {
+  const now = performance.now();
+  for (const fig of figures) {
+    const possessor: string | null = fig._serverPossessor ?? null;
+    const isMine = possessor === currentUserId;
+    const isOthers = possessor && possessor !== currentUserId;
+
+    if (!possessor) {
+      // Free figure — dashed brass ring (pulsing)
+      fig.possessionRing.visible = true;
+      fig.possessionRing.material.opacity = 0.3 + Math.sin(now * 0.003) * 0.12;
+      fig.possessionRing.material.color.set(0xc8a96e); // brass
+      fig.labelSprite.visible = false;
+    } else if (isMine) {
+      // Own possession — solid brass ring + label
+      fig.possessionRing.visible = true;
+      fig.possessionRing.material.opacity = 0.75;
+      fig.possessionRing.material.color.set(0xc8a96e); // brass
+      updatePossessorLabel(fig, 'ICH', '#c8a96e');
+    } else if (isOthers) {
+      // Foreign possession — sage ring + name label
+      fig.possessionRing.visible = true;
+      fig.possessionRing.material.opacity = 0.5;
+      fig.possessionRing.material.color.set(0x7fa37a); // sage
+      const name = possessor.length > 12 ? possessor.slice(0, 12) + '…' : possessor;
+      updatePossessorLabel(fig, name, '#7fa37a');
+    }
+  }
+}
+
+function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
+  const canvas = fig.labelSprite.material.map.image as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, 256, 64);
+  ctx.font = 'bold 18px "Geist Mono", monospace';
+  ctx.fillStyle = hexColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text.toUpperCase(), 128, 32);
+  fig.labelSprite.material.map.needsUpdate = true;
+  fig.labelSprite.visible = true;
+}
+
+export function clearPossessionVisuals(fig: any): void {
+  fig.possessionRing.visible = false;
+  fig.labelSprite.visible = false;
+}

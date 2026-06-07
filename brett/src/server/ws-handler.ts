@@ -92,10 +92,7 @@ export function resolvePlayerId(ws: any): string {
   return ws?._session?.userId ?? ws?._playerId ?? 'anon';
 }
 
-/**
- * Reads the current session code for a room from the authoritative room state.
- * Returns null for free-board rooms (no active session).
- */
+/** Returns the active session code for a room, or null for free-board rooms. */
 export function getSessionCode(room: string, deps: Pick<WsDeps, 'buildStateFromMutations'>): string | null {
   return deps.buildStateFromMutations(room)?.sessionCode ?? null;
 }
@@ -475,13 +472,9 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
 
-          // Record event for replay (Slice 5, T000472). request_state_snapshot is a
-          // read and has already returned above, so only mutating relays reach here.
-          if (deps.logEvent && msg.type !== 'request_state_snapshot') {
-            const sessionCode = getSessionCode(room, deps);
-            // Strip the discriminant `type` field; it is stored separately as event_type.
+          if (deps.logEvent) {
             const { type: _type, ...safePayload } = msg;
-            deps.logEvent(room, sessionCode, msg.type, safePayload);
+            deps.logEvent(room, getSessionCode(room, deps), msg.type, safePayload);
           }
 
           if (deps.captureBeforeSnapshot && deps.captureAfterSnapshot && deps.pushUndo && deps.getUndoStatus) {

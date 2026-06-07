@@ -1,4 +1,4 @@
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer } from 'ws';
 export { handleAssignRole } from './ws-admin-commands';
 import { handleAdminMessage } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
@@ -48,7 +48,6 @@ export interface WsDeps {
   reclaimAdminToken: Function;
   roomAdminPresence: Map<string, Set<string>>;
   sessionMiddleware?: any;
-  // T000470: Undo/Redo-Stack
   captureBeforeSnapshot?: (room: string, msg: any) => Map<string, any | null>;
   captureAfterSnapshot?: (before: Map<string, any | null>, room: string, msg: any) => Map<string, any | null>;
   pushUndo?: (room: string, entry: import('./undo-stack').UndoEntry) => void;
@@ -362,7 +361,6 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
 
-        // ── Possession ─────────────────────────────────────────────
         if (msg.type === 'figure_possess' && typeof msg.figureId === 'string') {
           if (!gateMutation(ws, room, 'figure_possess', msg.figureId, deps)) {
             try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
@@ -420,7 +418,6 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           return;
         }
 
-        // ── Notiz-Mutation (Slice 5, T000469) ──────────────────────────────────
         if (msg.type === 'figure_note_set') {
           if (typeof msg.figureId !== 'string' || typeof msg.note !== 'string') return;
           if (!gateMutation(ws, room, 'figure_note_set', msg.figureId, deps)) {

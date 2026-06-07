@@ -186,6 +186,7 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 - **`LLM_HOST_IP` is required when `LLM_ENABLED=true`.** Set it in `environments/<env>.yaml` to the GPU host's wg-mesh IP. The `llm:deploy` task aborts if unset.
 - **Model swap costs ~3-6s on first call after idle.** Ollama's `OLLAMA_KEEP_ALIVE=5m` evicts idle models; the next request pays the swap. Router's chat-class timeout is 30s — beyond that, it falls back to Anthropic. Don't set the timeout below ~10s without testing all four models cold.
 - **Opencode / OpenClaw on the WSL host** (`openclaw/`, `Taskfile.openclaw.yml`) talks directly to Ollama on `localhost:11434/v1` or `10.10.0.3:11434/v1`, **not** through `llm-router`. Bootstrap: `task openclaw:install && task openclaw:configure`. Operational: `task openclaw:start` (restart daemon), `task openclaw:status` (health probe), `task openclaw:logs` (journalctl tail), `task openclaw:backup` / `task openclaw:restore` (snapshot ~/.openclaw), `task openclaw:wipe CONFIRM=yes` (destructive reset).
+- **Cross-brand shared-infrastructure security analysis:** Full analysis in `docs/superpowers/references/shared-infrastructure-security.md` — covers LLM GPU host brand isolation, backup encryption pipeline (AES-256-CBC encrypt-then-upload), Filen/SMTP shared-account risk assessment, and WireGuard mesh peer trust model. Key finding: no data leaks; collections are DB-level isolated per brand; all backups are encrypted before upload.
 
 ### dev.mentolder.de stack
 

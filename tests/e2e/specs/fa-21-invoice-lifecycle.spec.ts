@@ -4,8 +4,8 @@ import { adminLogin, createTestInvoice, finalizeInvoiceViaAPI } from '../helpers
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', () => {
-  test('partial payment then full payment toggles status', async ({ page }) => {
-    await adminLogin(page);
+  test('partial payment then full payment toggles status', async ({ page, request }, testInfo) => {
+    await adminLogin(page, request, testInfo);
 
     const inv = await createTestInvoice(page, { gross: 100 });
     await finalizeInvoiceViaAPI(page, inv.id);
@@ -37,8 +37,8 @@ test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', () => {
     await expect(invoiceRow2).toContainText(/Bezahlt/i);
   });
 
-  test('payment overshoot rejected', async ({ page }) => {
-    await adminLogin(page); // Need login for session
+  test('payment overshoot rejected', async ({ page, request }, testInfo) => {
+    await adminLogin(page, request, testInfo); // Need login for session
     
     const inv = await createTestInvoice(page, { gross: 100 });
     await finalizeInvoiceViaAPI(page, inv.id);

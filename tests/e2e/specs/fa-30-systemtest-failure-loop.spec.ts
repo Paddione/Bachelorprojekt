@@ -19,6 +19,7 @@
 // The test skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const isKorczewski = BASE.includes('korczewski.de');
@@ -53,45 +54,52 @@ test.describe('FA-30: System-test failure loop kanban', () => {
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T3: kanban page renders all four column headers (admin)', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping admin-required check');
-
-    const consoleErrors: string[] = [];
-    page.on('pageerror', (err) => consoleErrors.push(err.message));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') consoleErrors.push(msg.text());
+  test.describe('authenticated kanban checks', () => {
+    test.beforeEach(async ({ request }, testInfo) => {
+      await assertAuthenticatedReachable(
+        request,
+        `${BASE}/admin/systemtest/board`,
+        { acceptableStatuses: [200, 302, 401], label: 'admin systemtest board' },
+        testInfo
+      );
     });
 
-    await loginAsAdmin(page);
-    await page.waitForLoadState('networkidle');
-
-    for (const title of COLUMN_TITLES) {
-      await expect(page.getByRole('heading', { name: title, level: 2 })).toBeVisible({
-        timeout: 10_000,
+    test('T3: kanban page renders all four column headers (admin)', async ({ page }) => {
+      const consoleErrors: string[] = [];
+      page.on('pageerror', (err) => consoleErrors.push(err.message));
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') consoleErrors.push(msg.text());
       });
-    }
 
-    // No fatal page errors after first poll.
-    const fatal = consoleErrors.filter((m) =>
-      // Filter unrelated noise: vite HMR pings, third-party widgets, etc.
-      !/HMR|WebSocket|service worker/i.test(m),
-    );
-    expect(fatal, fatal.join('\n')).toEqual([]);
-  });
+      await loginAsAdmin(page);
+      await page.waitForLoadState('networkidle');
 
-  test('T4: /api/admin/systemtest/board returns canonical shape (admin session)', async ({ page }) => {
-    test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — skipping admin-required check');
+      for (const title of COLUMN_TITLES) {
+        await expect(page.getByRole('heading', { name: title, level: 2 })).toBeVisible({
+          timeout: 10_000,
+        });
+      }
 
-    await loginAsAdmin(page);
-    const res = await page.request.get(`${BASE}/api/admin/systemtest/board`);
-    expect(res.ok()).toBeTruthy();
-    const body = await res.json();
-    expect(body).toHaveProperty('columns');
-    expect(body).toHaveProperty('undelivered');
-    for (const key of ['open', 'fix_in_pr', 'retest_pending', 'green']) {
-      expect(body.columns).toHaveProperty(key);
-      expect(Array.isArray(body.columns[key])).toBe(true);
-    }
-    expect(typeof body.undelivered).toBe('number');
+      // No fatal page errors after first poll.
+      const fatal = consoleErrors.filter((m) =>
+        // Filter unrelated noise: vite HMR pings, third-party widgets, etc.
+        !/HMR|WebSocket|service worker/i.test(m),
+      );
+      expect(fatal, fatal.join('\n')).toEqual([]);
+    });
+
+    test('T4: /api/admin/systemtest/board returns canonical shape (admin session)', async ({ page }) => {
+      await loginAsAdmin(page);
+      const res = await page.request.get(`${BASE}/api/admin/systemtest/board`);
+      expect(res.ok()).toBeTruthy();
+      const body = await res.json();
+      expect(body).toHaveProperty('columns');
+      expect(body).toHaveProperty('undelivered');
+      for (const key of ['open', 'fix_in_pr', 'retest_pending', 'green']) {
+        expect(body.columns).toHaveProperty(key);
+        expect(Array.isArray(body.columns[key])).toBe(true);
+      }
+      expect(typeof body.undelivered).toBe('number');
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE        = process.env.WEBSITE_URL    ?? 'https://web.mentolder.de';
 const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -47,116 +48,111 @@ test.describe('FA-39: Coaching-Sessions', () => {
     expect([401, 403]).toContain(res.status());
   });
 
-  // ── Seitenstruktur ──────────────────────────────────────────────────────────
-  test('T5: sessions overview page has expected heading and new-session link', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
+  test.describe('authenticated coaching sessions', () => {
+    test.beforeEach(async ({ request }, testInfo) => {
+      await assertAuthenticatedReachable(
+        request,
+        `${BASE}/admin/coaching/sessions`,
+        { acceptableStatuses: [200, 302, 401], label: 'coaching sessions' },
+        testInfo
+      );
+    });
 
-    await loginAsAdmin(page, '/admin/coaching/sessions');
-    await page.waitForURL(/\/admin\/coaching\/sessions$/, { timeout: 20_000 });
+    // ── Seitenstruktur ──────────────────────────────────────────────────────────
+    test('T5: sessions overview page has expected heading and new-session link', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions');
+      await page.waitForURL(/\/admin\/coaching\/sessions$/, { timeout: 20_000 });
 
-    await expect(page.getByRole('heading', { name: 'Coaching-Sessions' })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Neue Session/ }).first()).toBeVisible();
-  });
+      await expect(page.getByRole('heading', { name: 'Coaching-Sessions' })).toBeVisible();
+      await expect(page.getByRole('link', { name: /Neue Session/ }).first()).toBeVisible();
+    });
 
-  test('T6: new session page has all required form fields', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
+    test('T6: new session page has all required form fields', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
 
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await expect(page.locator('#title')).toBeVisible();
+      await expect(page.locator('#clientId')).toBeVisible();
+      await expect(page.locator('#kiConfigId')).toBeVisible();
+      await expect(page.locator('input[name="mode"][value="live"]')).toBeVisible();
+      await expect(page.locator('input[name="mode"][value="prep"]')).toBeVisible();
+      await expect(page.locator('#submit-btn')).toBeVisible();
+    });
 
-    await expect(page.locator('#title')).toBeVisible();
-    await expect(page.locator('#clientId')).toBeVisible();
-    await expect(page.locator('#kiConfigId')).toBeVisible();
-    await expect(page.locator('input[name="mode"][value="live"]')).toBeVisible();
-    await expect(page.locator('input[name="mode"][value="prep"]')).toBeVisible();
-    await expect(page.locator('#submit-btn')).toBeVisible();
-  });
+    // ── Session-Wizard ──────────────────────────────────────────────────────────
+    test('T7: wizard shows 10 step buttons in the progress bar', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(`FA-39 E2E ${Date.now()}`);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-  // ── Session-Wizard ──────────────────────────────────────────────────────────
-  test('T7: wizard shows 10 step buttons in the progress bar', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
+      const progressBar = page.locator('[aria-label="Fortschritt"]');
+      await expect(progressBar).toBeVisible();
+      const buttons = progressBar.getByRole('button');
+      await expect(buttons).toHaveCount(10);
+    });
 
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
-    await page.locator('#title').fill(`FA-39 E2E ${Date.now()}`);
-    await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+    test('T8: wizard step 1 shows Erstanamnese with required inputs and disabled KI button', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(`FA-39 E2E T8 ${Date.now()}`);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    const progressBar = page.locator('[aria-label="Fortschritt"]');
-    await expect(progressBar).toBeVisible();
-    const buttons = progressBar.getByRole('button');
-    await expect(buttons).toHaveCount(10);
-  });
+      await expect(page.getByRole('heading', { name: /Schritt 1\/10.*Erstanamnese/ })).toBeVisible();
+      await expect(page.locator('#anlass')).toBeVisible();
+      await expect(page.locator('#situation')).toBeVisible();
+      await expect(page.getByRole('button', { name: /KI befragen/ })).toBeDisabled();
+    });
 
-  test('T8: wizard step 1 shows Erstanamnese with required inputs and disabled KI button', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
+    test('T9: KI button enables when required fields are filled', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(`FA-39 E2E T9 ${Date.now()}`);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
-    await page.locator('#title').fill(`FA-39 E2E T8 ${Date.now()}`);
-    await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+      await page.locator('#anlass').fill('Führungsproblem im Team');
+      await page.locator('#situation').fill('Konflikt zwischen Mitarbeitern, schlechte Stimmung');
+      await expect(page.getByRole('button', { name: /KI befragen/ })).toBeEnabled();
+    });
 
-    await expect(page.getByRole('heading', { name: /Schritt 1\/10.*Erstanamnese/ })).toBeVisible();
-    await expect(page.locator('#anlass')).toBeVisible();
-    await expect(page.locator('#situation')).toBeVisible();
-    await expect(page.getByRole('button', { name: /KI befragen/ })).toBeDisabled();
-  });
+    test('T10: skip advances wizard to the next step', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(`FA-39 E2E T10 ${Date.now()}`);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-  test('T9: KI button enables when required fields are filled', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
+      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
+      await page.getByRole('button', { name: 'Schritt überspringen' }).click();
+      await expect(page.getByRole('heading', { name: /Schritt 2\/10.*Schlüsselaffekt/ })).toBeVisible();
+    });
 
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
-    await page.locator('#title').fill(`FA-39 E2E T9 ${Date.now()}`);
-    await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+    test('T11: back button returns to previous step', async ({ page }) => {
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(`FA-39 E2E T11 ${Date.now()}`);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    await page.locator('#anlass').fill('Führungsproblem im Team');
-    await page.locator('#situation').fill('Konflikt zwischen Mitarbeitern, schlechte Stimmung');
-    await expect(page.getByRole('button', { name: /KI befragen/ })).toBeEnabled();
-  });
+      await page.getByRole('button', { name: 'Schritt überspringen' }).click();
+      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
+      await page.getByRole('button', { name: '← Zurück' }).click();
+      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
+    });
 
-  test('T10: skip advances wizard to the next step', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
+    test('T12: session-info box shows title and edit button', async ({ page }) => {
+      const title = `FA-39 Meta ${Date.now()}`;
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(title);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
-    await page.locator('#title').fill(`FA-39 E2E T10 ${Date.now()}`);
-    await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
-
-    await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
-    await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-    await expect(page.getByRole('heading', { name: /Schritt 2\/10.*Schlüsselaffekt/ })).toBeVisible();
-  });
-
-  test('T11: back button returns to previous step', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
-
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
-    await page.locator('#title').fill(`FA-39 E2E T11 ${Date.now()}`);
-    await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
-
-    await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-    await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
-    await page.getByRole('button', { name: '← Zurück' }).click();
-    await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
-  });
-
-  test('T12: session-info box shows title and edit button', async ({ page }) => {
-    if (!ADMIN_PASS) { test.skip(); return; }
-
-    const title = `FA-39 Meta ${Date.now()}`;
-    await loginAsAdmin(page, '/admin/coaching/sessions/new');
-    await page.waitForURL(/\/new$/, { timeout: 20_000 });
-    await page.locator('#title').fill(title);
-    await page.locator('#submit-btn').click();
-    await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
-
-    await expect(page.getByText(title).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /Bearbeiten/ })).toBeVisible();
+      await expect(page.getByText(title).first()).toBeVisible();
+      await expect(page.getByRole('button', { name: /Bearbeiten/ })).toBeVisible();
+    });
   });
 });

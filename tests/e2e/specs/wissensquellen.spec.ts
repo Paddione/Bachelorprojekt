@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 const isKorczewski = BASE.includes('korczewski.de');
@@ -74,8 +75,13 @@ test.describe('Wissensquellen API auth-gating', () => {
 // ── Custom source: create/delete via UI ─────────────────────────────────────
 
 test.describe('Wissensquellen admin — custom source', () => {
-  test.beforeEach(({}, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS unset');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/wissensquellen`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
+      testInfo
+    );
   });
   test.setTimeout(120_000);
 
@@ -123,8 +129,13 @@ test.describe('Wissensquellen admin — custom source', () => {
 // ── Web crawl source: API validation + lifecycle ─────────────────────────────
 
 test.describe('Wissensquellen — web_crawl collection API', () => {
-  test.beforeEach(({}, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS unset');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/wissensquellen`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
+      testInfo
+    );
   });
   test.setTimeout(120_000);
 
@@ -316,8 +327,13 @@ test.describe('Wissensquellen — web_crawl collection API', () => {
 // Both tests use page.route() to mock the crawl endpoint for determinism.
 
 test.describe('Wissensquellen — Crawl button progress UX', () => {
-  test.beforeEach(({}, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS unset');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/wissensquellen`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
+      testInfo
+    );
   });
   test.setTimeout(60_000);
 
@@ -473,8 +489,13 @@ test.describe('Wissensquellen — Crawl button progress UX', () => {
 // ── Web crawl source: UI creation via modal ─────────────────────────────────
 
 test.describe('Wissensquellen admin — web_crawl UI', () => {
-  test.beforeEach(({}, testInfo) => {
-    if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS unset');
+  test.beforeEach(async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/admin/wissensquellen`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
+      testInfo
+    );
   });
   test.setTimeout(120_000);
 

@@ -8,7 +8,7 @@ status: active
 pr_number: null
 ---
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Persistente bidirektionale Linien zwischen Figuren (relationship/tension/resource) mit 3D-Darstellung, CRUD-Mutations, DB-Persistenz und Leiter-only Permissions.
 
@@ -26,7 +26,7 @@ pr_number: null
 **Files:**
 - Modify: `brett/src/types/state.ts`
 
-- [ ] **Step 1: LineType union und BrettLine Interface ergänzen**
+- [x] **Step 1: LineType union und BrettLine Interface ergänzen**
 
 Füge nach dem `FigureType`-Export in `brett/src/types/state.ts` ein:
 
@@ -48,12 +48,12 @@ export interface BrettLine {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS (keine neuen Fehler)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/types/state.ts
@@ -67,7 +67,7 @@ git commit -m "feat(brett): add LineType + BrettLine shared types [T000467]"
 **Files:**
 - Modify: `brett/src/types/messages.ts`
 
-- [ ] **Step 1: Import BrettLine und LineType ergänzen**
+- [x] **Step 1: Import BrettLine und LineType ergänzen**
 
 Ändere die Import-Zeile am Anfang von `brett/src/types/messages.ts`:
 
@@ -75,7 +75,7 @@ git commit -m "feat(brett): add LineType + BrettLine shared types [T000467]"
 import type { Figure, FigureAppearance, FigureType, LineType, BrettLine, OptikSettings, Participant, Phase, Role } from './state';
 ```
 
-- [ ] **Step 2: ClientMessage-Varianten hinzufügen**
+- [x] **Step 2: ClientMessage-Varianten hinzufügen**
 
 Füge am Ende der `ClientMessage`-Union (vor dem Semikolon) hinzu:
 
@@ -85,7 +85,7 @@ Füge am Ende der `ClientMessage`-Union (vor dem Semikolon) hinzu:
   | { type: 'line_type_set'; lineId: string; lineType: LineType };
 ```
 
-- [ ] **Step 3: ServerMessage-Varianten hinzufügen**
+- [x] **Step 3: ServerMessage-Varianten hinzufügen**
 
 Füge am Ende der `ServerMessage`-Union hinzu:
 
@@ -95,7 +95,7 @@ Füge am Ende der `ServerMessage`-Union hinzu:
   | { type: 'line_type_changed'; lineId: string; lineType: LineType };
 ```
 
-- [ ] **Step 4: snapshot ServerMessage um lines erweitern**
+- [x] **Step 4: snapshot ServerMessage um lines erweitern**
 
 Ändere die `snapshot`-Variante der `ServerMessage`:
 
@@ -103,12 +103,12 @@ Füge am Ende der `ServerMessage`-Union hinzu:
   | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; lines?: BrettLine[] }
 ```
 
-- [ ] **Step 5: TypeScript verifizieren**
+- [x] **Step 5: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS (messages.test.ts wird Compilerfehler zeigen bis messages.test.ts in Meilenstein 4 aktualisiert wird — das ist erwartet; tsc --noEmit prüft nur die Typen, nicht die Tests)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/types/messages.ts
@@ -124,7 +124,7 @@ git commit -m "feat(brett): add line_create/delete/type_set message types [T0004
 **Files:**
 - Modify: `brett/src/server/figures.ts`
 
-- [ ] **Step 1: Import BrettLine am Anfang ergänzen**
+- [x] **Step 1: Import BrettLine am Anfang ergänzen**
 
 Füge am Anfang von `brett/src/server/figures.ts` nach den bestehenden Typ-Importen hinzu:
 
@@ -132,7 +132,7 @@ Füge am Anfang von `brett/src/server/figures.ts` nach den bestehenden Typ-Impor
 import type { BrettLine } from '../types/state';
 ```
 
-- [ ] **Step 2: ensureLines-Helper-Funktion hinzufügen**
+- [x] **Step 2: ensureLines-Helper-Funktion hinzufügen**
 
 Füge vor der `applyMutation`-Funktion in `brett/src/server/figures.ts` ein:
 
@@ -143,7 +143,7 @@ function ensureLines(figs: Map<string, any>): Record<string, BrettLine> {
 }
 ```
 
-- [ ] **Step 3: Drei neue Cases im applyMutation switch einfügen**
+- [x] **Step 3: Drei neue Cases im applyMutation switch einfügen**
 
 Füge in der `switch (msg.type)`-Struktur von `applyMutation`, direkt nach dem `figure_type_set`-Case und vor dem `clear`-Case, ein:
 
@@ -187,7 +187,7 @@ Füge in der `switch (msg.type)`-Struktur von `applyMutation`, direkt nach dem `
     }
 ```
 
-- [ ] **Step 4: delete-Case um Linien-Cleanup erweitern**
+- [x] **Step 4: delete-Case um Linien-Cleanup erweitern**
 
 Im bestehenden `case 'delete':` in `applyMutation`, nach `figs.delete(msg.id)`, Linien bereinigen die die gelöschte Figur referenzieren:
 
@@ -210,12 +210,12 @@ Im bestehenden `case 'delete':` in `applyMutation`, nach `figs.delete(msg.id)`, 
       break;
 ```
 
-- [ ] **Step 5: TypeScript verifizieren**
+- [x] **Step 5: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/server/figures.ts
@@ -229,7 +229,7 @@ git commit -m "feat(brett): add line_create/delete/type_set mutations + figure d
 **Files:**
 - Modify: `brett/src/server/phases.ts`
 
-- [ ] **Step 1: SPECIAL-Array um __lines__ erweitern**
+- [x] **Step 1: SPECIAL-Array um __lines__ erweitern**
 
 In `buildStateFromMutations` in `brett/src/server/phases.ts`, ergänze `'__lines__'` im `SPECIAL`-Array:
 
@@ -243,7 +243,7 @@ In `buildStateFromMutations` in `brett/src/server/phases.ts`, ergänze `'__lines
   ];
 ```
 
-- [ ] **Step 2: lines-Extraktion und Result-Zuweisung**
+- [x] **Step 2: lines-Extraktion und Result-Zuweisung**
 
 Im selben `buildStateFromMutations`, nach dem `lobbySettingsEntry`-Block, hinzufügen:
 
@@ -258,7 +258,7 @@ Und am Anfang der Datei den Import ergänzen:
 import type { Phase, BrettLine } from '../types/state';
 ```
 
-- [ ] **Step 3: seedFigureMapFromState — lines Round-Trip**
+- [x] **Step 3: seedFigureMapFromState — lines Round-Trip**
 
 In `brett/src/server/figures.ts`, in der `seedFigureMapFromState`-Funktion, nach dem `lobbySettings`-Block hinzufügen:
 
@@ -272,12 +272,12 @@ In `brett/src/server/figures.ts`, in der `seedFigureMapFromState`-Funktion, nach
   }
 ```
 
-- [ ] **Step 4: TypeScript verifizieren**
+- [x] **Step 4: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add brett/src/server/phases.ts brett/src/server/figures.ts
@@ -292,7 +292,7 @@ git commit -m "feat(brett): expose lines in buildStateFromMutations + seed round
 - Modify: `brett/src/server/ws-handler.ts`
 - Modify: `brett/src/server/ws-admin-commands.ts`
 
-- [ ] **Step 1: ADMIN_TYPES in ws-handler.ts erweitern**
+- [x] **Step 1: ADMIN_TYPES in ws-handler.ts erweitern**
 
 Im `ADMIN_TYPES`-Set in `brett/src/server/ws-handler.ts` drei neue Einträge hinzufügen:
 
@@ -308,7 +308,7 @@ export const ADMIN_TYPES = new Set<string>([
 ]);
 ```
 
-- [ ] **Step 2: Join-Snapshot um lines erweitern**
+- [x] **Step 2: Join-Snapshot um lines erweitern**
 
 Im `join`-Handler in `brett/src/server/ws-handler.ts`, im `ws.send(JSON.stringify({...}))` Aufruf, das `lines`-Feld ergänzen:
 
@@ -326,7 +326,7 @@ Im `join`-Handler in `brett/src/server/ws-handler.ts`, im `ws.send(JSON.stringif
               }));
 ```
 
-- [ ] **Step 3: Handler in ws-admin-commands.ts implementieren**
+- [x] **Step 3: Handler in ws-admin-commands.ts implementieren**
 
 In der `handleAdminMessage`-Funktion in `brett/src/server/ws-admin-commands.ts`, neue Cases im switch hinzufügen (nach dem `figure_type_set`-Case):
 
@@ -406,12 +406,12 @@ In der `handleAdminMessage`-Funktion in `brett/src/server/ws-admin-commands.ts`,
     }
 ```
 
-- [ ] **Step 4: TypeScript verifizieren**
+- [x] **Step 4: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add brett/src/server/ws-handler.ts brett/src/server/ws-admin-commands.ts
@@ -427,7 +427,7 @@ git commit -m "feat(brett): line_create/delete/type_set ADMIN_TYPES handler + jo
 **Files:**
 - Modify: `brett/src/client/state.ts`
 
-- [ ] **Step 1: BrettLine import und STATE.lines ergänzen**
+- [x] **Step 1: BrettLine import und STATE.lines ergänzen**
 
 Ergänze in `brett/src/client/state.ts`:
 
@@ -456,12 +456,12 @@ export const STATE: AppState = {
 };
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/state.ts
@@ -475,7 +475,7 @@ git commit -m "feat(brett): add STATE.lines for line entities [T000467]"
 **Files:**
 - Create: `brett/src/client/scene-lines.ts`
 
-- [ ] **Step 1: scene-lines.ts erstellen**
+- [x] **Step 1: scene-lines.ts erstellen**
 
 ```typescript
 // brett/src/client/scene-lines.ts — 3D-Linienrendering (T000467)
@@ -610,12 +610,12 @@ export function updateLinePositions(): void {
 }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/scene-lines.ts
@@ -629,7 +629,7 @@ git commit -m "feat(brett): scene-lines.ts 3D rendering with CatmullRomCurve3 + 
 **Files:**
 - Modify: `brett/src/client/ws-client.ts`
 
-- [ ] **Step 1: scene-lines Imports ergänzen**
+- [x] **Step 1: scene-lines Imports ergänzen**
 
 Füge am Anfang von `brett/src/client/ws-client.ts` nach den bestehenden Imports hinzu:
 
@@ -637,7 +637,7 @@ Füge am Anfang von `brett/src/client/ws-client.ts` nach den bestehenden Imports
 import { renderLine, removeLineFromScene, clearAllLines, rerenderLine } from './scene-lines';
 ```
 
-- [ ] **Step 2: snapshot-Handler um lines erweitern**
+- [x] **Step 2: snapshot-Handler um lines erweitern**
 
 Im `case 'snapshot':` Block, nach dem bestehenden `if (msg.optik) applyOptikToScene(msg.optik);`-Aufruf, hinzufügen:
 
@@ -651,7 +651,7 @@ Im `case 'snapshot':` Block, nach dem bestehenden `if (msg.optik) applyOptikToSc
       }
 ```
 
-- [ ] **Step 3: Drei neue Message-Handler Cases hinzufügen**
+- [x] **Step 3: Drei neue Message-Handler Cases hinzufügen**
 
 Im `switch (msg.type)` in `onWsMessage`, nach dem letzten bestehenden Case (vor `default`), hinzufügen:
 
@@ -677,16 +677,16 @@ Im `switch (msg.type)` in `onWsMessage`, nach dem letzten bestehenden Case (vor 
     }
 ```
 
-- [ ] **Step 4: HANDLED_SERVER_TYPES in messages.test.ts erweitern (Vorab-Hinweis)**
+- [x] **Step 4: HANDLED_SERVER_TYPES in messages.test.ts erweitern (Vorab-Hinweis)**
 
 Die drei neuen ServerMessage-Typen müssen in `brett/test/messages.test.ts` registriert werden — das erfolgt in Meilenstein 4 Task 4.1.
 
-- [ ] **Step 5: TypeScript verifizieren**
+- [x] **Step 5: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS — wenn messages.test.ts noch nicht aktualisiert wurde, sind nur die Typen entscheidend.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/ws-client.ts
@@ -700,7 +700,7 @@ git commit -m "feat(brett): ws-client handles line_created/deleted/type_changed 
 **Files:**
 - Modify: `brett/src/client/main.ts` (oder die Datei die den Render-Loop hostet)
 
-- [ ] **Step 1: Import ergänzen**
+- [x] **Step 1: Import ergänzen**
 
 Finde die Datei die `requestAnimationFrame` / den Render-Loop enthält (vermutlich `brett/src/client/main.ts` oder `brett/index.ts`). Import ergänzen:
 
@@ -708,7 +708,7 @@ Finde die Datei die `requestAnimationFrame` / den Render-Loop enthält (vermutli
 import { updateLinePositions } from './scene-lines';
 ```
 
-- [ ] **Step 2: updateLinePositions im Frame-Loop aufrufen**
+- [x] **Step 2: updateLinePositions im Frame-Loop aufrufen**
 
 Im Render-Loop, nach dem mannequin-Step-Update und vor `renderer.render()`, einfügen:
 
@@ -716,12 +716,12 @@ Im Render-Loop, nach dem mannequin-Step-Update und vor `renderer.render()`, einf
   updateLinePositions();
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/client/main.ts  # ggf. anpassen an tatsächlichen Dateinamen
@@ -737,7 +737,7 @@ git commit -m "feat(brett): wire updateLinePositions into render loop [T000467]"
 **Files:**
 - Modify: `brett/test/messages.test.ts`
 
-- [ ] **Step 1: HANDLED_SERVER_TYPES erweitern**
+- [x] **Step 1: HANDLED_SERVER_TYPES erweitern**
 
 Ergänze in `brett/test/messages.test.ts` im `HANDLED_SERVER_TYPES`-Set:
 
@@ -754,7 +754,7 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
 ]);
 ```
 
-- [ ] **Step 2: routeServer Exhaustiveness-Switch erweitern**
+- [x] **Step 2: routeServer Exhaustiveness-Switch erweitern**
 
 In der `routeServer`-Funktion:
 
@@ -764,7 +764,7 @@ In der `routeServer`-Funktion:
     case 'line_type_changed': return 'line_type_changed';
 ```
 
-- [ ] **Step 3: routeClient Exhaustiveness-Switch erweitern**
+- [x] **Step 3: routeClient Exhaustiveness-Switch erweitern**
 
 In der `routeClient`-Funktion:
 
@@ -783,12 +783,12 @@ Und die fehlenden possession-Typen ergänzen (falls noch nicht vorhanden):
     case 'lobby_set_ready': return 'lobby_set_ready';
 ```
 
-- [ ] **Step 4: TypeScript + Tests verifizieren**
+- [x] **Step 4: TypeScript + Tests verifizieren**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit && node --test test/messages.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add brett/test/messages.test.ts
@@ -802,7 +802,7 @@ git commit -m "test(brett): extend messages.test.ts exhaustiveness for line type
 **Files:**
 - Create: `brett/test/lines.test.ts`
 
-- [ ] **Step 1: Test-Datei anlegen**
+- [x] **Step 1: Test-Datei anlegen**
 
 ```typescript
 // brett/test/lines.test.ts — Meilenstein 4 / T000467
@@ -926,12 +926,12 @@ test('seedFigureMapFromState: lines survive build→seed→build round-trip', ()
 });
 ```
 
-- [ ] **Step 2: Tests ausführen**
+- [x] **Step 2: Tests ausführen**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && node --test test/lines.test.ts`
 Expected: All tests PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/lines.test.ts
@@ -945,7 +945,7 @@ git commit -m "test(brett): lines.test.ts — CRUD mutations + round-trip + casc
 **Files:**
 - Modify: `brett/test/relay-gate.test.ts`
 
-- [ ] **Step 1: Tests für line_create leiter/beobachter hinzufügen**
+- [x] **Step 1: Tests für line_create leiter/beobachter hinzufügen**
 
 Füge am Ende von `brett/test/relay-gate.test.ts` hinzu:
 
@@ -960,12 +960,12 @@ test('T000467: line_create is in ADMIN_TYPES (not in RELAY_TYPES)', () => {
 });
 ```
 
-- [ ] **Step 2: Tests ausführen**
+- [x] **Step 2: Tests ausführen**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && node --test test/relay-gate.test.ts`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/relay-gate.test.ts
@@ -981,7 +981,7 @@ git commit -m "test(brett): relay-gate.test.ts line_create in ADMIN_TYPES guard 
 **Files:**
 - Kein Code-Change — Infrastruktur/DB-Schritt
 
-- [ ] **Step 1: Alle Tests im Brett-Projekt ausführen**
+- [x] **Step 1: Alle Tests im Brett-Projekt ausführen**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && node --test test/*.test.ts`
 Expected: Alle Tests PASS
@@ -991,12 +991,12 @@ Alternativ via Task-Oracle:
 bash /home/patrick/Bachelorprojekt/scripts/task-oracle.sh 'run all brett unit tests'
 ```
 
-- [ ] **Step 2: TypeScript Final-Check**
+- [x] **Step 2: TypeScript Final-Check**
 
 Run: `cd /home/patrick/Bachelorprojekt/brett && npx tsc --noEmit`
 Expected: PASS (keine Fehler)
 
-- [ ] **Step 3: Feature-Flag DB-Seed verifizieren**
+- [x] **Step 3: Feature-Flag DB-Seed verifizieren**
 
 Das Feature-Flag `sf-t000467` muss in der `brett_feature_flags` Tabelle gesetzt sein (oder äquivalent in der Konfiguration). Auf dem Dev-Cluster:
 ```bash
@@ -1006,12 +1006,12 @@ bash scripts/task-oracle.sh 'set brett feature flag sf-t000467'
 
 Falls kein Feature-Flag-Mechanismus vorhanden: `window.__brettFeatures['sf-t000467'] = true` im Browser-Dev-Tools für lokalen Test ausreichen.
 
-- [ ] **Step 4: CI-Validierung lokal nachstellen**
+- [x] **Step 4: CI-Validierung lokal nachstellen**
 
 Run: `cd /home/patrick/Bachelorprojekt && task test:all`
 Expected: Alle Tests grün
 
-- [ ] **Step 5: Final-Commit und Push**
+- [x] **Step 5: Final-Commit und Push**
 
 ```bash
 git add -A
@@ -1026,7 +1026,7 @@ git push origin feature/brett-relationship-lines
 **Files:**
 - Keine Code-Änderungen — GitHub PR
 
-- [ ] **Step 1: PR erstellen via gh**
+- [x] **Step 1: PR erstellen via gh**
 
 ```bash
 gh pr create \
@@ -1044,18 +1044,18 @@ gh pr create \
 
 ## Test plan
 
-- [ ] `node --test test/lines.test.ts` → alle Tests grün
-- [ ] `node --test test/messages.test.ts` → Exhaustiveness-Router grün
-- [ ] `node --test test/relay-gate.test.ts` → ADMIN_TYPES Guard grün
-- [ ] `npx tsc --noEmit` → keine Typ-Fehler
-- [ ] `task test:all` → CI lokal grün
+- [x] `node --test test/lines.test.ts` → alle Tests grün
+- [x] `node --test test/messages.test.ts` → Exhaustiveness-Router grün
+- [x] `node --test test/relay-gate.test.ts` → ADMIN_TYPES Guard grün
+- [x] `npx tsc --noEmit` → keine Typ-Fehler
+- [x] `task test:all` → CI lokal grün
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
 )"
 ```
 
-- [ ] **Step 2: PR-URL notieren und Ticket schließen**
+- [x] **Step 2: PR-URL notieren und Ticket schließen**
 
 Nach erfolgreichem PR-Merge: `bash scripts/ticket.sh close --id T000467 --pr <pr-number>`
 

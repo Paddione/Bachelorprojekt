@@ -39,7 +39,9 @@ setup() {
   # The workspace:office:deploy task MUST either:
   #   a) refuse to run on prod contexts, OR
   #   b) warn that fleet:deploy:shared-services should be used instead
-  run grep -A100 'workspace:office:deploy:' "$TASKFILE" | grep -iE 'fleet|prod|shared|ENV.*dev|only.*dev|block'
+  # Note: run cmd | pipe doesn't work in bats (run captures stdout internally);
+  # use run bash -c "pipeline" to capture the whole pipeline's exit code.
+  run bash -c "grep -A100 'workspace:office:deploy:' '$TASKFILE' | grep -iE 'fleet|prod|shared|ENV.*dev|only.*dev|block'"
   [ "$status" -eq 0 ] || {
     echo "FAIL: workspace:office:deploy has no prod guard." >&2
     echo "      On fleet, use fleet:deploy:shared-services instead." >&2

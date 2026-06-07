@@ -263,12 +263,18 @@ tasks:
       - task: test:unit:quality-loop
       - task: test:unit:offline-batch
       - task: test:unit:collabora-wopi-discovery
+      - task: test:unit:collabora-wopi-single-brand-guard
       - task: test:unit:coverage-guard
 
   test:unit:collabora-wopi-discovery:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/collabora-wopi-discovery.bats
+
+  test:unit:collabora-wopi-single-brand-guard:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/collabora-wopi-single-brand-guard.bats
 
   test:unit:website-ci-deploy:
     internal: true

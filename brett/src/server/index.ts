@@ -461,6 +461,7 @@ export const releaseFigureLock = figures.releaseFigureLock;
 export const releaseLocksForUser = figures.releaseLocksForUser;
 export const orphanFiguresForUser = figures.orphanFiguresForUser;
 export const listFigureLocks = figures.listFigureLocks;
+export const seedFigureMapFromState = figures.seedFigureMapFromState;
 export const seedFiguresFromTemplate = figures.seedFiguresFromTemplate;
 export const applyTemplateToRoom = figures.applyTemplateToRoom;
 export const addParticipant = rooms.addParticipant;

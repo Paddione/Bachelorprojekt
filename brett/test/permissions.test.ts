@@ -150,3 +150,59 @@ test('resolveRole: no session (only _playerId) → beobachter even if id has a r
 test('resolveRole: empty ws → beobachter', () => {
   assert.strictEqual(resolveRole({}, {}), 'beobachter');
 });
+
+// ── Freeze-Gate (T000471) ────────────────────────────────────────────────────
+import { wsHandler, applyMutation, buildStateFromMutations, figureMaps } from '../src/server/index';
+
+const { gateMutation } = wsHandler as any;
+
+function freezeDeps() {
+  return {
+    buildStateFromMutations,
+    figureMaps,
+    canMutate,
+    resolveRole,
+  };
+}
+
+test('Freeze-Gate: non-leiter move blocked when freeze active', () => {
+  const room = 'freeze-gate-1';
+  applyMutation(room, { type: 'session_code_set', code: 'FRZ-001' });
+  applyMutation(room, { type: 'roles_set', roles: { 'p1': 'stellvertreter' } });
+  applyMutation(room, { type: 'moderation_freeze_set', frozen: true });
+  const ws = { _session: { userId: 'p1' }, _room: room };
+  const allowed = gateMutation(ws, room, 'move', undefined, freezeDeps());
+  assert.strictEqual(allowed, false, 'move must be blocked for stellvertreter when frozen');
+});
+
+test('Freeze-Gate: leiter move allowed even when freeze active', () => {
+  const room = 'freeze-gate-2';
+  applyMutation(room, { type: 'session_code_set', code: 'FRZ-002' });
+  applyMutation(room, { type: 'roles_set', roles: { 'admin1': 'leiter' } });
+  applyMutation(room, { type: 'moderation_freeze_set', frozen: true });
+  const ws = { _session: { userId: 'admin1' }, _room: room };
+  const allowed = gateMutation(ws, room, 'move', undefined, freezeDeps());
+  assert.strictEqual(allowed, true, 'leiter must still be able to move when frozen');
+});
+
+test('Freeze-Gate: move allowed for all when freeze inactive', () => {
+  const room = 'freeze-gate-3';
+  applyMutation(room, { type: 'session_code_set', code: 'FRZ-003' });
+  applyMutation(room, { type: 'roles_set', roles: { 'p2': 'stellvertreter' } });
+  applyMutation(room, { type: 'moderation_freeze_set', frozen: false });
+  applyMutation(room, { type: 'add', figure: { id: 'f1', x: 0, z: 0, facingY: 0, appearance: { face: null, body: 'adult-average', accessories: {} } } });
+  applyMutation(room, { type: 'figure_owner_set', figureId: 'f1', ownerId: 'p2' });
+  const ws = { _session: { userId: 'p2' }, _room: room };
+  const allowed = gateMutation(ws, room, 'move', 'f1', freezeDeps());
+  assert.strictEqual(allowed, true, 'stellvertreter must be able to move own figure when not frozen');
+});
+
+test('Freeze-Gate: beobachter jump blocked when freeze active', () => {
+  const room = 'freeze-gate-4';
+  applyMutation(room, { type: 'session_code_set', code: 'FRZ-004' });
+  applyMutation(room, { type: 'roles_set', roles: { 'obs1': 'beobachter' } });
+  applyMutation(room, { type: 'moderation_freeze_set', frozen: true });
+  const ws = { _session: { userId: 'obs1' }, _room: room };
+  const allowed = gateMutation(ws, room, 'jump', undefined, freezeDeps());
+  assert.strictEqual(allowed, false, 'beobachter jump must be blocked when frozen');
+});

@@ -210,7 +210,8 @@ export async function bootBoard(): Promise<void> {
         if (!(window as any).__brettAnchorPlacing) return;
         const { floor } = sceneApi as any;
         if (!floor) return;
-        const ndc = mannequin.getNdc ? mannequin.getNdc(e) : null;
+        mannequin.setNdc(e);
+        const { ndc } = mannequin.getTickRefs();
         if (!ndc) return;
         raycaster.setFromCamera(ndc, camera);
         const hits = raycaster.intersectObject(floor);

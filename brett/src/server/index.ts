@@ -23,6 +23,10 @@ import { attachSkinsUpload } from './skins-upload';
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
 db.initDb({ buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
+// Run DB migrations on startup (idempotent). Skipped under MOCK_DB (tests).
+if (process.env.MOCK_DB !== 'true') {
+  db.runMigrations().catch(err => console.error('[brett] migration error:', err));
+}
 sessions.initSessions({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation, transitionPhase: phases.transitionPhase });
 figures.initFigures({ validateAppearance: presets.validateAppearance, buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 

@@ -20,6 +20,12 @@
 #     FACTORY_CLAUDE_BIN      claude binary        (default: claude on PATH)
 set -euo pipefail
 
+if [[ -f "${HOME}/.config/factory/autopilot.env" ]]; then
+  set -a
+  source "${HOME}/.config/factory/autopilot.env"
+  set +a
+fi
+
 REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
 DRY_RUN="${FACTORY_DRY_RUN:-true}"
 CLAUDE_BIN="${FACTORY_CLAUDE_BIN:-claude}"
@@ -56,5 +62,6 @@ The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh pe
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
 exec "${CLAUDE_BIN:-claude}" -p "${PROMPT}" \
+  --effort low \
   --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
   --permission-mode acceptEdits

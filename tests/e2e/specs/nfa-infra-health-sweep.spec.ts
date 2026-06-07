@@ -75,8 +75,14 @@ test.describe('NFA-INFRA: Service Health Sweep', () => {
 
   test('docuseal: root reachable', async ({ request }) => {
     test.skip(SKIP_WHEN_LOCAL, 'requires PROD_DOMAIN');
-    const res = await request.get(url('sign'), OPTIONS);
-    // 200 (logged in) or 302/200 redirect to login — just must not 5xx
+    // Do NOT follow redirects: an un-provisioned DocuSeal instance answers the
+    // root with a 302 to the first-run /setup wizard, which masks a broken
+    // (un-signable) deployment. A provisioned instance serves the app directly
+    // (200) or redirects into the Keycloak/login flow — never to /setup.
+    const res = await request.get(url('sign'), { ...OPTIONS, maxRedirects: 0 });
+    // Reject the /setup first-run redirect: a 302 here means the instance was
+    // never provisioned (T000477). It must also never 5xx.
+    expect(res.status()).not.toBe(302);
     expect(res.status()).toBeLessThan(500);
   });
 

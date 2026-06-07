@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.20.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.19.0...brett-v0.20.0) (2026-06-07)
+
+
+### Features
+
+* **asset-gen:** end-to-end 3D pipeline — Rigger stage + Brett skins upload [T000505] ([#1416](https://github.com/Paddione/Bachelorprojekt/issues/1416)) ([e7fa843](https://github.com/Paddione/Bachelorprojekt/commit/e7fa8437f899c8bad5e5383d3b9891a580ea4b34))
+
 ## [0.19.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.18.0...brett-v0.19.0) (2026-06-07)
 
 

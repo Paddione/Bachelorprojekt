@@ -4,7 +4,7 @@ ticket_id: T000470
 spec: docs/superpowers/specs/2026-06-07-brett-undo-redo-design.md
 branch: feature/brett-undo-redo
 domains: [website]
-status: active
+status: executed
 pr_number: null
 ---
 

@@ -11,6 +11,8 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
   'info', 'presence_join', 'presence_leave', 'session_created', 'session_phase_change',
   'session_ended', 'admin_token_changed', 'coaching_steps_change', 'error',
   'role_changed', 'figure_owner_changed', 'lobby_ready_changed', 'lobby_settings_change',
+  'figure_possessed', 'figure_released', 'figure_type_changed',
+  'moderation_state',
 ]);
 
 // Compile-time exhaustiveness: this function must handle every ServerMessage
@@ -41,6 +43,10 @@ function routeServer(msg: ServerMessage): string {
     case 'figure_owner_changed': return 'figure_owner_changed';
     case 'lobby_ready_changed': return 'lobby_ready_changed';
     case 'lobby_settings_change': return 'lobby_settings_change';
+    case 'figure_possessed': return 'figure_possessed';
+    case 'figure_released': return 'figure_released';
+    case 'figure_type_changed': return 'figure_type_changed';
+    case 'moderation_state': return 'moderation_state';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }
@@ -73,6 +79,12 @@ function routeClient(msg: ClientMessage): string {
     case 'admin_set_template': return 'admin_set_template';
     case 'admin_set_optik': return 'admin_set_optik';
     case 'lobby_set_ready': return 'lobby_set_ready';
+    case 'figure_possess': return 'figure_possess';
+    case 'figure_release': return 'figure_release';
+    case 'figure_type_set': return 'figure_type_set';
+    case 'admin_spotlight_set': return 'admin_spotlight_set';
+    case 'admin_dim_set': return 'admin_dim_set';
+    case 'admin_freeze_set': return 'admin_freeze_set';
     default: return assertNever(msg); // ← compile error if a variant is unhandled
   }
 }

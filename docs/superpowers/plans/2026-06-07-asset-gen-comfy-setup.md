@@ -8,7 +8,7 @@ pr_number: null
 
 # Asset Generator Completion: End-to-End 3D Pipeline Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Close every gap in the existing 3D asset-generation pipeline so that uploading an image in the admin UI produces a Mixamo-rigged GLB skin in Brett, with full CI coverage that runs without a GPU host.
 
@@ -67,7 +67,7 @@ pr_number: null
 
 The `GenerationJob` interface and all queries currently lack the `stage` field. The DB column will be added in Task 6. We add the TypeScript surface here first (the lib is imported by `status.ts` which Task 4 rewrites).
 
-- [ ] **Step 1: Add `stage` to the interface and a `STAGE` union type**
+- [x] **Step 1: Add `stage` to the interface and a `STAGE` union type**
 
 In `website/src/lib/generation-jobs.ts`, replace the `GenerationJob` interface (lines 3–11) with:
 
@@ -92,7 +92,7 @@ export interface GenerationJob {
 }
 ```
 
-- [ ] **Step 2: Add `updateJobStage()` after `updateJobStatus()`**
+- [x] **Step 2: Add `updateJobStage()` after `updateJobStatus()`**
 
 Insert this function in `website/src/lib/generation-jobs.ts` immediately after the `updateJobStatus` function (after its closing brace, ~line 39). It updates `stage` and derives the legacy `status` column for backward compatibility (`done`→`done`, `error`→`error`, else `pending`):
 
@@ -116,17 +116,17 @@ export async function updateJobStage(
 }
 ```
 
-- [ ] **Step 3: Surface `stage` in the SELECT-based reads**
+- [x] **Step 3: Surface `stage` in the SELECT-based reads**
 
 `getJob` (currently `SELECT *`) and `listRecentJobs` (currently `SELECT *`) already return every column, so once the DB column exists they will include `stage`. No query change needed — but confirm both use `SELECT *` (they do). Leave them as-is.
 
-- [ ] **Step 4: Run the website unit suite to ensure nothing broke at type level**
+- [x] **Step 4: Run the website unit suite to ensure nothing broke at type level**
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/generation-jobs 2>&1 | tail -20`
 Expected: no test file exists yet for this lib, so vitest reports "No test files found" for that pattern OR the broader suite passes. Either is acceptable; the goal is no TypeScript compile error in the file. If you want a hard type check: `cd /tmp/wt-asset-gen/website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep generation-jobs || echo "no type errors in generation-jobs.ts"`
 Expected: `no type errors in generation-jobs.ts`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -145,7 +145,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 - Test: covered by Task 5's pipeline test (no standalone test file — the client is trivial passthrough exercised via the pipeline mocks). We still write a focused unit test inline here to keep TDD discipline.
 - Test: `website/src/lib/rigger-client.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/lib/rigger-client.test.ts`:
 
@@ -177,12 +177,12 @@ describe('rigGlb', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/rigger-client.test.ts 2>&1 | tail -15`
 Expected: FAIL with a module-resolution error (`Cannot find module './rigger-client'`).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `website/src/lib/rigger-client.ts`:
 
@@ -208,12 +208,12 @@ export async function rigGlb(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/rigger-client.test.ts 2>&1 | tail -15`
 Expected: PASS (2 passing).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -233,12 +233,12 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 We extract pure helpers (`checkSkinAuth`, `validateGlbSize`, `glbHasMixamoBones`) so they are unit-testable without spinning up Express, then a thin `attachSkinsUpload(app)` wirer used in Task 4-equivalent server wiring (Task 3b below). Brett uses `node:test`, NOT vitest.
 
-- [ ] **Step 1: Add `@types/multer` devDependency**
+- [x] **Step 1: Add `@types/multer` devDependency**
 
 Run: `cd /tmp/wt-asset-gen/brett && pnpm add -D @types/multer`
 Expected: `@types/multer` added to `brett/package.json` devDependencies. (`multer` itself is already a dependency.)
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `brett/test/skins-upload.test.ts`. The GLB bone check parses the GLB binary's JSON chunk and looks for `mixamorigHips` in the glTF `nodes[].name` array. We build minimal valid GLBs in-memory.
 
@@ -298,12 +298,12 @@ test('glbHasMixamoBones: false on malformed/non-GLB buffer', () => {
 });
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `cd /tmp/wt-asset-gen/brett && MOCK_DB=true npx tsx --test test/skins-upload.test.ts 2>&1 | tail -20`
 Expected: FAIL — `Cannot find module '../src/server/skins-upload'`.
 
-- [ ] **Step 4: Write the helpers**
+- [x] **Step 4: Write the helpers**
 
 Create `brett/src/server/skins-upload.ts`:
 
@@ -406,12 +406,12 @@ export function attachSkinsUpload(app: Express): void {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `cd /tmp/wt-asset-gen/brett && MOCK_DB=true npx tsx --test test/skins-upload.test.ts 2>&1 | tail -20`
 Expected: PASS — 5 tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -431,7 +431,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 The spec's 5 tests include "kein Auth → 401" and "GLB zu groß → 413" which exercise the *route*, not just helpers. We add route-level tests via Express directly (no listening socket needed; use `app` import + a lightweight request driver). Brett's `index.ts` exports `app`.
 
-- [ ] **Step 1: Add the route-level failing tests**
+- [x] **Step 1: Add the route-level failing tests**
 
 Append to `brett/test/skins-upload.test.ts`. Use `node:http` against the exported `server`-less app is awkward; instead import `attachSkinsUpload` onto a fresh express app and drive it with `supertest`-style raw http. Simplest: spin a throwaway express app + real listen on an ephemeral port.
 
@@ -529,7 +529,7 @@ test('POST /api/skins/upload: 413 for GLB over 20 MB', async () => {
 
 > NOTE: multer's `limits.fileSize` is `MAX_SKIN_BYTES + 1`, so a file of exactly `MAX_SKIN_BYTES + N` is still read into memory and our `validateGlbSize` returns the 413. If multer aborts first with its own error, the 413 still surfaces via the generic handler — but here we keep the limit one byte above the threshold specifically so our explicit 413 path runs. Storing skins under `public/assets/skins/` during the 200-path test writes real files; that is acceptable for the test (they land under the worktree). Add `brett/public/assets/skins/` to `.gitignore` in Step 3 so test artifacts are never committed.
 
-- [ ] **Step 2: Wire the route into the real server**
+- [x] **Step 2: Wire the route into the real server**
 
 In `brett/src/server/index.ts`, add the import near the other server imports (after line 20, the `undoStackModule` import):
 
@@ -544,7 +544,7 @@ Then add the wiring call immediately after the `/presets` routes block and BEFOR
 attachSkinsUpload(app);
 ```
 
-- [ ] **Step 3: Ignore generated skin artifacts**
+- [x] **Step 3: Ignore generated skin artifacts**
 
 Add to `brett/.gitignore` (create if absent) the line:
 
@@ -552,17 +552,17 @@ Add to `brett/.gitignore` (create if absent) the line:
 public/assets/skins/
 ```
 
-- [ ] **Step 4: Run the full Brett upload test file**
+- [x] **Step 4: Run the full Brett upload test file**
 
 Run: `cd /tmp/wt-asset-gen/brett && MOCK_DB=true npx tsx --test test/skins-upload.test.ts 2>&1 | tail -25`
 Expected: PASS — all 10 tests (5 helper + 5 route) pass.
 
-- [ ] **Step 5: Run the whole Brett suite to ensure the wiring did not break existing tests**
+- [x] **Step 5: Run the whole Brett suite to ensure the wiring did not break existing tests**
 
 Run: `cd /tmp/wt-asset-gen/brett && pnpm test 2>&1 | tail -25`
 Expected: all Brett tests pass (existing + new). If `index.ts` import of `skins-upload` triggers a side effect during other tests, confirm `attachSkinsUpload` is pure aside from route registration (it is).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -581,7 +581,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 Currently `finaliseJob` goes ComfyUI → Brett directly. We insert the Rigger call between the ComfyUI GLB download and the Brett upload, and drive the stage machine via `updateJobStage`. The tests in Task 5 mock all three services. We refactor `finaliseJob` to take an injectable `fetchFn` AND make the per-stage logic exported & testable.
 
-- [ ] **Step 1: Add config + imports**
+- [x] **Step 1: Add config + imports**
 
 In `website/src/pages/api/admin/generate-3d/status.ts`, update the imports (lines 3–4) to add the rigger client and the stage updater:
 
@@ -602,7 +602,7 @@ function riggerBase(): string {
 }
 ```
 
-- [ ] **Step 2: Refactor `finaliseJob` into a stage-driven, injectable pipeline**
+- [x] **Step 2: Refactor `finaliseJob` into a stage-driven, injectable pipeline**
 
 Replace the entire `finaliseJob` function (lines 16–64) with a version that takes injectable fetch functions and walks the stage machine. The pipeline runs in a single polling tick: ComfyUI complete → rig → upload → done.
 
@@ -691,7 +691,7 @@ async function finaliseJob(
 export { finaliseJob };
 ```
 
-- [ ] **Step 3: Update the timeout helper to set stage='error'**
+- [x] **Step 3: Update the timeout helper to set stage='error'**
 
 Replace `timeoutOldJob` (lines 66–74) to use `updateJobStage` and check `stage` instead of `status`:
 
@@ -716,7 +716,7 @@ import { getJob, updateJobStatus, updateJobStage, listRecentJobs, type Generatio
 
 (`updateJobStatus` may now be unused — if TypeScript/ESLint flags it, remove it from the import.)
 
-- [ ] **Step 4: Update the GET handler's terminal + finalise guards to use `stage`**
+- [x] **Step 4: Update the GET handler's terminal + finalise guards to use `stage`**
 
 In the `GET` handler, replace the terminal check (lines 99–102) and the timeout-response block (lines 104–108):
 
@@ -747,12 +747,12 @@ And the finalise guard (lines 111–119) — drive it whenever a prompt exists a
   }
 ```
 
-- [ ] **Step 5: Type-check the file**
+- [x] **Step 5: Type-check the file**
 
 Run: `cd /tmp/wt-asset-gen/website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E 'status\.ts' || echo "no type errors in status.ts"`
 Expected: `no type errors in status.ts` (remove any now-unused `updateJobStatus` import if flagged).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -771,7 +771,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 These 8 tests mock ComfyUI + Rigger + Brett and assert stage transitions. Because `status.ts` imports `pool` from `website-db` and `getJob`/`updateJobStage` hit the DB, we test `finaliseJob` by mocking the `generation-jobs` and `website-db` modules with `vi.mock`. The exported `finaliseJob(jobId, promptId, name, deps)` takes injectable fetch functions per service.
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 Create `website/src/lib/generate-3d-pipeline.test.ts`:
 
@@ -899,24 +899,24 @@ describe('generate-3d pipeline', () => {
 
 > NOTE on mock paths: `vi.mock` paths are resolved relative to the *test file*. The test sits in `website/src/lib/`, while `status.ts` imports `'../../../../lib/generation-jobs'`. vitest's `vi.mock` matches by the *resolved module id*, so the mock specifier must resolve to the same absolute file the SUT imports. If the relative path above does not intercept, switch to absolute aliases: `vi.mock(new URL('./generation-jobs.ts', import.meta.url).pathname, ...)` and `vi.mock(new URL('./website-db.ts', import.meta.url).pathname, ...)`. Verify interception by asserting `updateJobStage` is the mocked spy in the first run; if a real DB call is attempted (ECONNREFUSED), the path is wrong — fix it before proceeding.
 
-- [ ] **Step 2: Run to verify it fails first (red)**
+- [x] **Step 2: Run to verify it fails first (red)**
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/generate-3d-pipeline.test.ts 2>&1 | tail -30`
 Expected: FAIL initially — most likely because mock paths don't intercept yet (real DB call) OR because `finaliseJob` was just added (it was, in Task 4) so failures here are about mock wiring, not missing code. Iterate on the mock specifier per the NOTE until red turns to green legitimately (no DB connection attempts).
 
-- [ ] **Step 3: Make all 8 tests pass**
+- [x] **Step 3: Make all 8 tests pass**
 
 Adjust ONLY the `vi.mock` specifier paths and the SUT import path until the spies intercept. Do NOT weaken assertions. The production code from Task 4 already implements the behavior; this step is purely about correct mock resolution.
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/generate-3d-pipeline.test.ts 2>&1 | tail -20`
 Expected: PASS — 8 passing.
 
-- [ ] **Step 4: Run the rigger-client test too (regression)**
+- [x] **Step 4: Run the rigger-client test too (regression)**
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/rigger-client.test.ts src/lib/generate-3d-pipeline.test.ts 2>&1 | tail -15`
 Expected: PASS — 10 total.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -936,7 +936,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 There is NO migration runner — these are applied manually via `kubectl exec ... psql`. Each migration is idempotent. The `generation_jobs` table must include the `stage` column added in Task 1.
 
-- [ ] **Step 1: Create the enum-extension migration**
+- [x] **Step 1: Create the enum-extension migration**
 
 Create `website/src/db/migrations/20260607_add_model_3d_type.sql`:
 
@@ -949,7 +949,7 @@ Create `website/src/db/migrations/20260607_add_model_3d_type.sql`:
 ALTER TYPE assets.asset_type ADD VALUE IF NOT EXISTS 'model_3d';
 ```
 
-- [ ] **Step 2: Create the generation_jobs table migration**
+- [x] **Step 2: Create the generation_jobs table migration**
 
 Create `website/src/db/migrations/20260607_create_generation_jobs.sql`. This includes the `stage` column (NOT in the original spec snippet — required by Task 1 lib + Task 4 status code):
 
@@ -981,12 +981,12 @@ GRANT ALL PRIVILEGES ON assets.generation_jobs TO website;
 ALTER DEFAULT PRIVILEGES IN SCHEMA assets GRANT ALL ON TABLES TO website;
 ```
 
-- [ ] **Step 3: Validate SQL syntax locally (best-effort, no live DB required)**
+- [x] **Step 3: Validate SQL syntax locally (best-effort, no live DB required)**
 
 Run: `cd /tmp/wt-asset-gen && for f in website/src/db/migrations/20260607_*.sql; do echo "== $f =="; cat "$f" >/dev/null && echo "readable"; done`
 Expected: both files print `== ... ==` then `readable`. (No live DB in CI; syntax is reviewed by eye. If `psql` is available locally: `psql -d postgres --no-psqlrc -f <file>` against a throwaway DB with the `assets` schema seeded — optional.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -1006,7 +1006,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 Mirror `prod/comfy-gpu.yaml`: a headless-style Service + Endpoints pinning the Rigger to `${RIGGER_HOST_IP}:${RIGGER_PORT}` on the GPU host. The website resolves `rigger:8190` via `RIGGER_HOST_IP` env, but the cluster Service name keeps a stable in-cluster DNS target if other workloads need it.
 
-- [ ] **Step 1: Create the manifest**
+- [x] **Step 1: Create the manifest**
 
 Create `prod/rigger-gpu.yaml`:
 
@@ -1036,7 +1036,7 @@ subsets:
         port: 8190
 ```
 
-- [ ] **Step 2: Register it in the prod kustomization**
+- [x] **Step 2: Register it in the prod kustomization**
 
 In `prod/kustomization.yaml`, add `- rigger-gpu.yaml` immediately after the existing `- comfy-gpu.yaml` line (line 10):
 
@@ -1045,12 +1045,12 @@ In `prod/kustomization.yaml`, add `- rigger-gpu.yaml` immediately after the exis
   - rigger-gpu.yaml
 ```
 
-- [ ] **Step 3: Validate the kustomize build**
+- [x] **Step 3: Validate the kustomize build**
 
 Run: `cd /tmp/wt-asset-gen && RIGGER_HOST_IP=10.0.0.1 RIGGER_PORT=8190 COMFY_HOST_IP=10.0.0.1 COMFY_PORT=8189 kustomize build prod/ --load-restrictor=LoadRestrictionsNone 2>&1 | grep -A2 'name: rigger-gateway' | head`
 Expected: the rigger-gateway Service appears in the build output. (Note: `${RIGGER_HOST_IP}` stays literal in raw kustomize build — envsubst runs in the Taskfile deploy. Literal `${...}` in the build output is expected and fine for validation.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -1071,7 +1071,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 Register `RIGGER_HOST_IP` / `RIGGER_PORT`, expose them to the website Deployment, and add them to every envsubst list that renders `comfy-gpu.yaml`/`rigger-gpu.yaml`/`website.yaml`.
 
-- [ ] **Step 1: Add the vars to the schema**
+- [x] **Step 1: Add the vars to the schema**
 
 In `environments/schema.yaml`, immediately after the `COMFY_PORT` block (ends at the `description:` line ~242), add:
 
@@ -1087,7 +1087,7 @@ In `environments/schema.yaml`, immediately after the `COMFY_PORT` block (ends at
     description: "Port the Rigger FastAPI service listens on. Default 8190."
 ```
 
-- [ ] **Step 2: Expose the vars on the website Deployment**
+- [x] **Step 2: Expose the vars on the website Deployment**
 
 In `k3d/website.yaml`, after the `COMFY_PORT` env entry (lines 402–403), add:
 
@@ -1098,7 +1098,7 @@ In `k3d/website.yaml`, after the `COMFY_PORT` env entry (lines 402–403), add:
               value: "${RIGGER_PORT}"
 ```
 
-- [ ] **Step 3: Add to the prod-deploy ENVSUBST list + exports**
+- [x] **Step 3: Add to the prod-deploy ENVSUBST list + exports**
 
 In `Taskfile.yml`, find the prod-deploy ENVSUBST block. After line 2035 (`ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"`), add:
 
@@ -1113,7 +1113,7 @@ And after the `export COMFY_PORT=...` line (line 2055), add (defaulting RIGGER_H
           export RIGGER_PORT="${RIGGER_PORT:-8190}"
 ```
 
-- [ ] **Step 4: Add to the website ConfigMap envsubst lists**
+- [x] **Step 4: Add to the website ConfigMap envsubst lists**
 
 In `Taskfile.yml`, the website-render block (lines 3066–3092) has TWO `envsubst "..."` invocations that both end with `\$COMFY_HOST_IP \$COMFY_PORT`. In BOTH, append ` \$RIGGER_HOST_IP \$RIGGER_PORT` to the variable list. Also add the two `export` lines next to the existing `COMFY_HOST_IP=` / `COMFY_PORT=` exports at lines 3066–3067 and 3088–3089:
 
@@ -1124,17 +1124,17 @@ In `Taskfile.yml`, the website-render block (lines 3066–3092) has TWO `envsubs
 
 (Add this pair immediately after each `COMFY_PORT="${COMFY_PORT:-}" \` line at 3067 and 3089.)
 
-- [ ] **Step 5: Validate the env schema**
+- [x] **Step 5: Validate the env schema**
 
 Run: `cd /tmp/wt-asset-gen && bash scripts/task-oracle.sh 'validate environment variable schema' 2>/dev/null || task env:validate ENV=dev 2>&1 | tail -20`
 Expected: schema validation passes (no "unknown variable" / "missing from schema" error for RIGGER_*). If `env:validate` requires an env file, run with `ENV=dev`.
 
-- [ ] **Step 6: Validate the website render does not emit literal RIGGER placeholders**
+- [x] **Step 6: Validate the website render does not emit literal RIGGER placeholders**
 
 Run: `cd /tmp/wt-asset-gen && grep -c 'RIGGER_HOST_IP\|RIGGER_PORT' k3d/website.yaml`
 Expected: `2` (the two env entries added in Step 2). Confirm the envsubst lists in `Taskfile.yml` reference both vars: `grep -c 'RIGGER_HOST_IP' Taskfile.yml` → expect ≥ 3 (one ENVSUBST_VARS + two website envsubst lists + exports).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -1156,33 +1156,33 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 These run on the user-provided GPU host (not in CI / not in cluster). They are committed artifacts; CI does not execute them. Keep them exactly as specced (the spec provides authoritative content). Make the shell scripts executable.
 
-- [ ] **Step 1: Create `scripts/setup-comfyui.sh`**
+- [x] **Step 1: Create `scripts/setup-comfyui.sh`**
 
 Create `scripts/setup-comfyui.sh` with the exact content from the spec ("GPU-Host Setup → scripts/setup-comfyui.sh" section): the idempotent installer covering venv + PyTorch cu128, ComfyUI clone, kijai/ComfyUI-Hunyuan3D-2 custom nodes, Hunyuan3D-2 weights via huggingface-cli, Blender apt install, and FastAPI/uvicorn/python-multipart. (Reproduce the spec block verbatim.)
 
-- [ ] **Step 2: Create `scripts/start-comfyui.sh`**
+- [x] **Step 2: Create `scripts/start-comfyui.sh`**
 
 Create `scripts/start-comfyui.sh` with the exact content from the spec: two `screen -dmS` sessions — `comfyui` (ComfyUI `main.py --listen 0.0.0.0 --port 8189`) and `rigger` (`uvicorn scripts.rigger_server:app --host 0.0.0.0 --port 8190`), each tee'd to a logfile.
 
-- [ ] **Step 3: Create `scripts/rigger_server.py`**
+- [x] **Step 3: Create `scripts/rigger_server.py`**
 
 Create `scripts/rigger_server.py` with the exact FastAPI content from the spec: `POST /rig` accepting `glb` UploadFile + `method` query (`blender|mixamo`), `_rig_blender` shelling out to `blender --background --python rig_for_mixamo.py -- <in> <out>` with a 120s timeout, and `_rig_mixamo` raising `HTTPException(501, ...)` (out of scope per spec).
 
-- [ ] **Step 4: Create `scripts/rig_for_mixamo.py`**
+- [x] **Step 4: Create `scripts/rig_for_mixamo.py`**
 
 Create `scripts/rig_for_mixamo.py` with the spec's Blender-headless content: factory-reset, import GLB, find the mesh, compute bounding box, add an armature, the documented simplified bone hierarchy placeholder + `ARMATURE_AUTO` parenting, and GLB export. Preserve the spec's implementation-hint comments verbatim (bone coordinates are emergent and calibrated during real GPU-host bring-up, which is out of CI scope).
 
-- [ ] **Step 5: Make shell scripts executable**
+- [x] **Step 5: Make shell scripts executable**
 
 Run: `cd /tmp/wt-asset-gen && chmod +x scripts/setup-comfyui.sh scripts/start-comfyui.sh && ls -l scripts/setup-comfyui.sh scripts/start-comfyui.sh`
 Expected: both show `-rwxr-xr-x` (executable bit set).
 
-- [ ] **Step 6: Syntax-check the scripts (no execution)**
+- [x] **Step 6: Syntax-check the scripts (no execution)**
 
 Run: `cd /tmp/wt-asset-gen && bash -n scripts/setup-comfyui.sh && bash -n scripts/start-comfyui.sh && echo "bash OK"; python3 -m py_compile scripts/rigger_server.py scripts/rig_for_mixamo.py 2>&1 && echo "py OK"`
 Expected: `bash OK` then `py OK`. (If `fastapi`/`bpy` aren't installed locally, `py_compile` still passes — it only checks syntax, not imports.)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /tmp/wt-asset-gen
@@ -1201,27 +1201,27 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 CI re-runs `task test:inventory` and fails if the committed `test-inventory.json` differs. New tests were added, so regenerate it. Then run the full offline gate locally before opening the PR.
 
-- [ ] **Step 1: Regenerate the test inventory**
+- [x] **Step 1: Regenerate the test inventory**
 
 Run: `cd /tmp/wt-asset-gen && task test:inventory 2>&1 | tail -10`
 Expected: `website/src/data/test-inventory.json` regenerated (may or may not change depending on whether the build script scans these new files; if it scans `*.test.ts` it will pick up the new ones).
 
-- [ ] **Step 2: Run the full offline test gate**
+- [x] **Step 2: Run the full offline test gate**
 
 Run: `cd /tmp/wt-asset-gen && task test:all 2>&1 | tail -40`
 Expected: all offline tests pass (BATS units, kustomize structure, Taskfile dry-run, factory tests). If a kustomize-structure test validates `prod/`, confirm `rigger-gpu.yaml` is well-formed.
 
-- [ ] **Step 3: Run website + brett unit suites explicitly**
+- [x] **Step 3: Run website + brett unit suites explicitly**
 
 Run: `cd /tmp/wt-asset-gen/website && npx vitest run src/lib/ 2>&1 | tail -15 && cd /tmp/wt-asset-gen/brett && pnpm test 2>&1 | tail -15`
 Expected: website lib tests (incl. rigger-client + pipeline) pass; all brett tests (incl. skins-upload) pass.
 
-- [ ] **Step 4: Run the freshness check**
+- [x] **Step 4: Run the freshness check**
 
 Run: `cd /tmp/wt-asset-gen && task freshness:check 2>&1 | tail -15 || task freshness:regenerate 2>&1 | tail -15`
 Expected: no generated-artifact drift. If `freshness:check` reports drift, run `freshness:regenerate` and stage the result.
 
-- [ ] **Step 5: Commit the inventory (and any regenerated artifacts)**
+- [x] **Step 5: Commit the inventory (and any regenerated artifacts)**
 
 ```bash
 cd /tmp/wt-asset-gen

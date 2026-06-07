@@ -5,6 +5,7 @@ import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
 import { applyOptikToScene } from './ui/optik';
+import * as groundObjects from './ground-objects';
 
 // ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
 let lobbyState: LobbyState = createLobbyState();
@@ -227,6 +228,10 @@ export function onWsMessage(evt: MessageEvent): void {
       // Apply persisted board-optik on mount so late-joiners/reloads render the
       // saved look (§4.1 dead seam closed end-to-end, D11).
       if (msg.optik) applyOptikToScene(msg.optik);
+      // NEU T000468: Ground-Objects aus Snapshot initialisieren (DARK-LAUNCH)
+      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
+        groundObjects.initGroundObjectsFromSnapshot(msg.anchors ?? [], msg.zones ?? []);
+      }
 
       // T000471: rehydrate moderation state from join snapshot
       if ((msg as any).moderation) {
@@ -477,6 +482,32 @@ export function onWsMessage(evt: MessageEvent): void {
       // Non-fatal protocol error from the server (e.g. forbidden / not-ready).
       console.warn('[brett] server error:', msg.reason);
       break;
+
+    // ── T000468: Boden-Anker & Zonen (DARK-LAUNCH) ──────────────────────────
+    case 'anchor_added': {
+      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
+        groundObjects.applyAnchorAdded(msg.anchor);
+      }
+      break;
+    }
+    case 'anchor_removed': {
+      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
+        groundObjects.applyAnchorRemoved(msg.anchorId);
+      }
+      break;
+    }
+    case 'zone_added': {
+      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
+        groundObjects.applyZoneAdded(msg.zone);
+      }
+      break;
+    }
+    case 'zone_removed': {
+      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
+        groundObjects.applyZoneRemoved(msg.zoneId);
+      }
+      break;
+    }
 
     default:
       break;

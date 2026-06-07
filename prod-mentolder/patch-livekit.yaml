@@ -29,3 +29,11 @@ spec:
                     operator: In
                     values:
                       - gekko-hetzner-3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-ingress-rtmp
+  namespace: workspace
+  annotations:
+    svccontroller.k3s.cattle.io/nodeselector: "kubernetes.io/hostname=gekko-hetzner-3"

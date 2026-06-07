@@ -88,3 +88,10 @@ patches:
                         - key: kubernetes.io/hostname
                           operator: In
                           values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: livekit-ingress-rtmp
+        annotations:
+          svccontroller.k3s.cattle.io/nodeselector: "kubernetes.io/hostname=pk-hetzner-4"

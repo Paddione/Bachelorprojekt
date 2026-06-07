@@ -24,6 +24,7 @@ import * as appearance from './ui/appearance';
 import * as persons from './ui/persons';
 import * as povCamera from './pov-camera';
 import * as freeFly from './free-fly-camera';
+import * as exportUi from './ui/export';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -39,6 +40,9 @@ export async function bootBoard(): Promise<void> {
     clearLockBadgesForUser: hud.clearLockBadgesForUser,
     cancelDragFor: figPanel.cancelDragFor,
   });
+
+  // ── Export-UI (T000466) ────────────────────────────────────────────────────
+  exportUi.initExportButtons(renderer.domElement);
 
   // ── Auth ───────────────────────────────────────────────────────────
   try {

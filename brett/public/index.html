@@ -351,6 +351,13 @@
       <button id="appearance-btn" disabled title="Aussehen bearbeiten">✦ Aussehen</button>
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
     </div>
+    <!-- Export-Gruppe (T000466) — initial versteckt, von export.ts per Feature-Flag eingeblendet -->
+    <div class="group" id="export-group" style="display:none">
+      <span class="sep"></span>
+      <button id="btn-export-png" class="icon-btn" title="Aktuellen Board-Stand als PNG exportieren">📷 PNG</button>
+      <button id="btn-export-json" class="icon-btn" title="Board-Zustand als JSON exportieren">{ } JSON</button>
+      <button id="btn-export-pdf" class="icon-btn" title="Aufstellung als PDF exportieren">📄 PDF</button>
+    </div>
   </div>
   <div id="appearance-drawer" role="dialog" aria-label="Aussehen bearbeiten" aria-modal="true">
     <div class="drawer-header">

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 355,
+      "file_count": 356,
       "files": [
         "tests/.gitignore",
         "tests/e2e/brett-globals.d.ts",
@@ -242,6 +242,7 @@
         "tests/local/FA-SF-40-provision.bats",
         "tests/local/FA-SF-41-wakeup.bats",
         "tests/local/FA-SF-42-dashboard-route.bats",
+        "tests/local/FA-SF-43-worktree-gitcrypt.bats",
         "tests/local/NFA-01.sh",
         "tests/local/NFA-02.sh",
         "tests/local/NFA-03.sh",

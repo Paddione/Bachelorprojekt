@@ -6,7 +6,7 @@ import { assertNever } from '../src/types/messages';
 // The authoritative set of ServerMessage tags the client MUST handle.
 // Keep in sync with onWsMessage in src/client/ws-client.ts.
 const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
-  'snapshot', 'init', 'add', 'move', 'jump', 'update', 'delete', 'stiffness',
+  'snapshot', 'add', 'move', 'jump', 'update', 'delete', 'stiffness',
   'figure_locked', 'figure_unlocked', 'figure_lock_denied', 'locks_released_for',
   'info', 'presence_join', 'presence_leave', 'session_created', 'session_phase_change',
   'session_ended', 'admin_token_changed', 'coaching_steps_change', 'error',
@@ -18,7 +18,6 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
 function routeServer(msg: ServerMessage): string {
   switch (msg.type) {
     case 'snapshot': return 'snapshot';
-    case 'init': return 'init';
     case 'add': return 'add';
     case 'move': return 'move';
     case 'jump': return 'jump';
@@ -60,7 +59,6 @@ function routeClient(msg: ClientMessage): string {
     case 'snapshot': return 'snapshot';
     case 'figure_lock': return 'figure_lock';
     case 'figure_unlock': return 'figure_unlock';
-    case 'player_join': return 'player_join';
     case 'pong': return 'pong';
     case 'admin_kick': return 'admin_kick';
     case 'admin_broadcast': return 'admin_broadcast';

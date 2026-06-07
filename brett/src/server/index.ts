@@ -249,6 +249,16 @@ app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res
   res.json(result);
 }));
 
+// D8 / SEC-2 — Pure: may this request create a curated TEMPLATE (is_template=true)?
+// Admin-only — allowed iff the OIDC session is admin OR the request carries the
+// valid x-e2e-secret (E2E bypass). Extracted so the admin gate is unit-testable
+// against the real route logic, not a copy.
+export function canCreateTemplate(req: { session?: { isAdmin?: boolean }; header: (n: string) => string | undefined }): boolean {
+  if (req.session?.isAdmin) return true;
+  const e2eSecret = process.env.BRETT_OIDC_SECRET;
+  return !!e2eSecret && req.header('x-e2e-secret') === e2eSecret;
+}
+
 // Create a snapshot. Template creation (is_template=true) is admin-only —
 // curated Vorlagen may only be authored by admins (§5c / D8 guardrail).
 app.post('/api/snapshots', asyncHandler(async (req: any, res: any) => {
@@ -257,13 +267,8 @@ app.post('/api/snapshots', asyncHandler(async (req: any, res: any) => {
     return res.status(400).json({ error: 'name (≤200 chars) + state.figures[] required' });
   }
   const v = parsed.values;
-  if (v.is_template) {
-    const isAdmin = !!(req as any).session?.isAdmin;
-    const e2eSecret = process.env.BRETT_OIDC_SECRET;
-    const e2eOk = !!e2eSecret && req.header('x-e2e-secret') === e2eSecret;
-    if (!isAdmin && !e2eOk) {
-      return res.status(403).json({ error: 'forbidden: template creation is admin-only' });
-    }
+  if (v.is_template && !canCreateTemplate(req)) {
+    return res.status(403).json({ error: 'forbidden: template creation is admin-only' });
   }
   const { rows } = await db.getPool().query(
     `INSERT INTO brett_snapshots (room_token, customer_id, name, state, is_template)

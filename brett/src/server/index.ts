@@ -16,6 +16,7 @@ import * as rooms from './rooms';
 import * as presets from './presets';
 import * as permissions from './permissions';
 import * as wsHandler from './ws-handler';
+import * as undoStackModule from './undo-stack';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
@@ -340,6 +341,29 @@ export const wss = new WebSocketServer({
   },
 });
 
+// T000470: Undo/Redo wrapper functions (figureMaps-injection)
+function captureBeforeSnapshot(room: string, msg: any): Map<string, any | null> {
+  return undoStackModule.captureBeforeSnapshot(room, msg, figures.figureMaps);
+}
+function captureAfterSnapshot(before: Map<string, any | null>, room: string, msg: any): Map<string, any | null> {
+  return undoStackModule.captureAfterSnapshot(before, figures.figureMaps, room, msg);
+}
+function pushUndo(room: string, entry: undoStackModule.UndoEntry): void {
+  undoStackModule.pushUndo(room, entry);
+}
+function performUndo(room: string) {
+  return undoStackModule.performUndo(room, figures.figureMaps);
+}
+function performRedo(room: string) {
+  return undoStackModule.performRedo(room, figures.figureMaps);
+}
+function getUndoStatus(room: string) {
+  return undoStackModule.getUndoStatus(room);
+}
+function clearUndoStacks(room: string): void {
+  undoStackModule.clearStacks(room);
+}
+
 const wsDeps = {
   joinRoom: rooms.joinRoom,
   leaveRoom: rooms.leaveRoom,
@@ -383,6 +407,13 @@ const wsDeps = {
   reclaimAdminToken: sessions.reclaimAdminToken,
   roomAdminPresence: sessions.roomAdminPresence,
   sessionMiddleware,
+  captureBeforeSnapshot,
+  captureAfterSnapshot,
+  pushUndo,
+  performUndo,
+  performRedo,
+  getUndoStatus,
+  clearUndoStacks,
 };
 
 wsHandler.attachWsServer(wss, wsDeps);
@@ -482,3 +513,9 @@ export const tokenGraceTimers = sessions.tokenGraceTimers;
 export const roomAdminPresence = sessions.roomAdminPresence;
 
 export { app };
+
+// T000470: Re-exports for test suite
+export const undoStacks = undoStackModule.undoStacks;
+export const redoStacks = undoStackModule.redoStacks;
+export const UNDOABLE_TYPES = undoStackModule.UNDOABLE_TYPES;
+export { undoStackModule };

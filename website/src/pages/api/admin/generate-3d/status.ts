@@ -1,43 +1,80 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getHistory, downloadOutput, findGlbOutput } from '../../../../lib/comfy-client';
-import { getJob, updateJobStatus, listRecentJobs } from '../../../../lib/generation-jobs';
+import { rigGlb } from '../../../../lib/rigger-client';
+import { getJob, updateJobStage, listRecentJobs, type GenerationJob } from '../../../../lib/generation-jobs';
 import { pool } from '../../../../lib/website-db';
 
 const COMFY_HOST_IP = import.meta.env.COMFY_HOST_IP ?? '';
 const COMFY_PORT = import.meta.env.COMFY_PORT ?? '';
 const BRETT_INTERNAL_URL = import.meta.env.BRETT_INTERNAL_URL ?? 'http://brett.workspace.svc.cluster.local:3000';
 const BRETT_OIDC_SECRET = import.meta.env.BRETT_OIDC_SECRET ?? '';
+const RIGGER_HOST_IP = import.meta.env.RIGGER_HOST_IP ?? COMFY_HOST_IP;
+const RIGGER_PORT = import.meta.env.RIGGER_PORT ?? '8190';
 
 function comfyBase(): string {
   return `http://${COMFY_HOST_IP}:${COMFY_PORT}`;
 }
 
-async function finaliseJob(jobId: string, promptId: string, name: string): Promise<void> {
-  const history = await getHistory(comfyBase(), promptId);
+function riggerBase(): string {
+  return `http://${RIGGER_HOST_IP}:${RIGGER_PORT}`;
+}
+
+export interface PipelineDeps {
+  comfyFetch?: typeof fetch;
+  riggerFetch?: typeof fetch;
+  brettFetch?: typeof fetch;
+}
+
+async function finaliseJob(
+  jobId: string,
+  promptId: string,
+  name: string,
+  deps: PipelineDeps = {},
+): Promise<void> {
+  const comfyFetch = deps.comfyFetch ?? fetch;
+  const riggerFetch = deps.riggerFetch ?? fetch;
+  const brettFetch = deps.brettFetch ?? fetch;
+
+  // ── Stage: generating → wait for ComfyUI ────────────────────────────────────
+  await updateJobStage(jobId, 'generating');
+  const history = await getHistory(comfyBase(), promptId, comfyFetch);
   const entry = history[promptId];
-  if (!entry) return; // still queued
+  if (!entry) return; // still queued — stay in 'generating'
 
   if (!entry.status.completed) {
     if (entry.status.status_str === 'error') {
-      await updateJobStatus(jobId, 'error', { error_msg: 'ComfyUI reported generation error' });
+      await updateJobStage(jobId, 'error', { error_msg: 'ComfyUI reported generation error' });
     }
     return;
   }
 
   const glbFilename = findGlbOutput(entry.outputs);
   if (!glbFilename) {
-    await updateJobStatus(jobId, 'error', { error_msg: 'No .glb output found in ComfyUI history' });
+    await updateJobStage(jobId, 'error', { error_msg: 'No .glb output found in ComfyUI history' });
     return;
   }
 
-  const glbBuffer = await downloadOutput(comfyBase(), glbFilename);
+  const rawGlb = await downloadOutput(comfyBase(), glbFilename, comfyFetch);
 
-  // Forward to Brett
+  // ── Stage: rigging → Blender rig via Rigger service ─────────────────────────
+  await updateJobStage(jobId, 'rigging');
+  let riggedGlb: ArrayBuffer;
+  try {
+    riggedGlb = await rigGlb(riggerBase(), rawGlb, `${name}.glb`, riggerFetch);
+  } catch (err) {
+    await updateJobStage(jobId, 'error', {
+      error_msg: `Rigging failed: ${err instanceof Error ? err.message : String(err)}`,
+    });
+    return;
+  }
+
+  // ── Stage: uploading → Brett ────────────────────────────────────────────────
+  await updateJobStage(jobId, 'uploading');
   const form = new FormData();
-  form.append('glb', new Blob([glbBuffer], { type: 'model/gltf-binary' }), `${name}.glb`);
+  form.append('glb', new Blob([riggedGlb], { type: 'model/gltf-binary' }), `${name}.glb`);
   form.append('name', name);
-  const brettRes = await fetch(`${BRETT_INTERNAL_URL}/api/skins/upload`, {
+  const brettRes = await brettFetch(`${BRETT_INTERNAL_URL}/api/skins/upload`, {
     method: 'POST',
     headers: { 'x-e2e-secret': BRETT_OIDC_SECRET },
     body: form,
@@ -45,14 +82,14 @@ async function finaliseJob(jobId: string, promptId: string, name: string): Promi
 
   if (!brettRes.ok) {
     const msg = await brettRes.text();
-    await updateJobStatus(jobId, 'error', { error_msg: `Brett upload failed: ${msg}` });
+    await updateJobStage(jobId, 'error', { error_msg: `Brett upload failed: ${msg}` });
     return;
   }
 
   const brettData = await brettRes.json();
   const skinId: string = brettData.id;
 
-  // Register in assets.registry
+  // Register in assets.registry (type: model_3d)
   await pool.query(
     `INSERT INTO assets.registry (name, type, file_path, metadata)
      VALUES ($1, 'model_3d', $2, $3)
@@ -60,14 +97,18 @@ async function finaliseJob(jobId: string, promptId: string, name: string): Promi
     [name, `skins/${skinId}/skin.glb`, JSON.stringify({ skin_id: skinId, source: 'hunyuan3d-2', animations: brettData.animations ?? [] })],
   );
 
-  await updateJobStatus(jobId, 'done', { skin_id: skinId });
+  // ── Stage: done ─────────────────────────────────────────────────────────────
+  await updateJobStage(jobId, 'done', { skin_id: skinId });
 }
 
-// Timeout jobs older than 10 minutes that are still pending/running.
-async function timeoutOldJob(job: { id: string; created_at: string; status: string }): Promise<boolean> {
+export { finaliseJob };
+
+// Timeout jobs older than 10 minutes that are not yet terminal.
+async function timeoutOldJob(job: GenerationJob): Promise<boolean> {
   const age = Date.now() - new Date(job.created_at).getTime();
-  if (age > 10 * 60 * 1000 && (job.status === 'pending' || job.status === 'running')) {
-    await updateJobStatus(job.id, 'error', { error_msg: 'Generation timeout (>10 min)' });
+  const terminal = job.stage === 'done' || job.stage === 'error';
+  if (age > 10 * 60 * 1000 && !terminal) {
+    await updateJobStage(job.id, 'error', { error_msg: 'Generation timeout (>10 min)' });
     return true;
   }
   return false;
@@ -97,22 +138,22 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   // Already terminal
-  if (job.status === 'done' || job.status === 'error') {
+  if (job.stage === 'done' || job.stage === 'error') {
     return new Response(JSON.stringify(job), { headers: { 'Content-Type': 'application/json' } });
   }
 
   if (await timeoutOldJob(job)) {
-    return new Response(JSON.stringify({ ...job, status: 'error', error_msg: 'Generation timeout (>10 min)' }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const updated = await getJob(id);
+    return new Response(JSON.stringify(updated), { headers: { 'Content-Type': 'application/json' } });
   }
 
-  // Finalise if ComfyUI is done and skin_id not yet set (idempotent guard)
-  if (job.prompt_id && !job.skin_id) {
+  // Drive the pipeline forward one tick. (job is already non-terminal here:
+  // the done/error early-return above narrows stage to queued|generating|rigging|uploading.)
+  if (job.prompt_id) {
     try {
       await finaliseJob(job.id, job.prompt_id, job.name);
     } catch (err) {
-      await updateJobStatus(job.id, 'error', {
+      await updateJobStage(job.id, 'error', {
         error_msg: err instanceof Error ? err.message : String(err),
       });
     }

@@ -8,6 +8,7 @@ resources:
   # Production-only (no equivalent in base)
   - llm-gpu.yaml
   - comfy-gpu.yaml
+  - rigger-gpu.yaml
   - cluster-issuer.yaml
   - reflector.yaml
   - wildcard-certificate.yaml

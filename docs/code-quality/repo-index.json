@@ -2138,7 +2138,7 @@
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 250,
+      "file_count": 251,
       "files": [
         "brett/.dockerignore",
         "brett/.gitignore",
@@ -2338,6 +2338,7 @@
         "brett/test/facelift-tokens.test.ts",
         "brett/test/figure-label.test.ts",
         "brett/test/figure-locks.test.ts",
+        "brett/test/figure-note.test.ts",
         "brett/test/figure-owner.test.ts",
         "brett/test/free-fly-camera.test.ts",
         "brett/test/hud-model.test.ts",

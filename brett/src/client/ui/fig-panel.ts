@@ -1,6 +1,6 @@
 import { STATE, ui } from '../state';
 import { makeMannequin, recolorFigure } from '../mannequin';
-import { sendAddFigure, sendUpdate } from '../ws-client';
+import { sendAddFigure, sendUpdate, sendClient } from '../ws-client';
 
 export function addFigure(position: { x: number; z: number }): any {
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('f-' + Math.random().toString(36).slice(2,10));
@@ -20,16 +20,19 @@ export function syncPanelToSelection(id: string | null): void {
   const title  = document.getElementById('fig-panel-title');
   const addBtn = document.getElementById('fig-panel-add');
   const input  = document.getElementById('fig-label-input') as HTMLInputElement | null;
+  const noteArea = document.getElementById('fig-note-textarea') as HTMLTextAreaElement | null;
   if (!title) return;
   const fig = STATE.figures.find(f => f.id === id);
   if (fig) {
     title.textContent = 'FIGUR BEARBEITEN';
     if (addBtn) addBtn.hidden = true;
     if (input) input.value = fig.label || '';
+    if (noteArea) noteArea.value = (fig as any).note || '';
   } else {
     title.textContent = 'NEUE FIGUR';
     if (addBtn) addBtn.hidden = false;
     if (input) input.value = '';
+    if (noteArea) noteArea.value = '';
   }
 }
 
@@ -102,6 +105,26 @@ export function initFigPanel(): void {
     if (fig) {
       fig.label = (e.target as HTMLInputElement).value;
       sendUpdate(fig, { label: fig.label });
+    }
+  });
+
+  // Note textarea — sendet figure_note_set bei Eingabe (debounced via native input event)
+  document.getElementById('fig-note-textarea')!.addEventListener('input', e => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (fig) {
+      const note = (e.target as HTMLTextAreaElement).value;
+      (fig as any).note = note;
+      sendClient({ type: 'figure_note_set', figureId: fig.id, note });
+      // Billboard update (Feature-Flag sf-t000469) — lazy import to avoid hard dep
+      const feats: Record<string, boolean> =
+        (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+      if (feats['sf-t000469']) {
+        import('./hud').then(m => {
+          if (typeof (m as any).setFigureNoteBillboard === 'function') {
+            (m as any).setFigureNoteBillboard(fig.id, note);
+          }
+        }).catch(() => {});
+      }
     }
   });
 

@@ -49,6 +49,9 @@ export const PLACEMENT_SPEC: { faces: Record<string, any>; bodies: Record<string
 export const lockSprites = new Map<string, THREE.Sprite>();
 export const activeLocks = new Map<string, { userId: string; name: string; color: string }>();
 
+// ── Note billboard sprites (Slice 5, T000469) ─────────────────────
+export const noteSprites = new Map<string, THREE.Sprite>();
+
 // ── Drag/placement cross-cutting flags ────────────────────────────
 export const ui = {
   dragging: null as null | { figId: string; boneName: string; plane: any },

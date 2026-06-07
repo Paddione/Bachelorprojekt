@@ -87,6 +87,27 @@
     #fig-label-input:focus { outline: none; border-color: var(--brett-brass, oklch(0.80 0.09 75)); }
     #fig-label-input::placeholder { color: rgba(231,234,208,0.3); }
 
+    #fig-note-textarea {
+      background: var(--brett-ink-850, #101826);
+      border: 1px solid var(--brett-line-2, rgba(255,255,255,0.12));
+      border-radius: 5px;
+      color: var(--brett-fg, #eef1f3);
+      font: inherit;
+      font-size: 12px;
+      padding: 5px 8px;
+      width: 100%;
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.4;
+    }
+    #fig-note-textarea:focus {
+      outline: none;
+      border-color: var(--brett-brass, oklch(0.80 0.09 75));
+    }
+    #fig-note-textarea::placeholder {
+      color: rgba(231,234,208,0.3);
+    }
+
     #fig-panel-add {
       background: var(--brett-brass, oklch(0.80 0.09 75)); color: var(--brett-ink-900, #0b111c);
       border: none; border-radius: 6px;
@@ -319,6 +340,11 @@
           <div id="fig-panel-persons" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;"></div>
           <span class="fig-panel-label">Name</span>
           <input id="fig-label-input" type="text" placeholder="Figur benennen …" maxlength="40" />
+          <span class="fig-panel-label">Notiz / Statement</span>
+          <textarea id="fig-note-textarea"
+            placeholder="Was spricht diese Figur? Was sieht sie?"
+            maxlength="1000"
+            rows="4"></textarea>
           <button id="fig-panel-add">＋ Klick auf Brett zum Platzieren</button>
         </div>
       </div>

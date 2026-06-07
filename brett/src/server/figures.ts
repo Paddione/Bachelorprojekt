@@ -104,6 +104,15 @@ export function applyMutation(room: string, msg: any): void {
       }
       break;
     }
+    case 'figure_note_set': {
+      // Notiz-Mutation: Server-autoritativ, max. 1000 Zeichen.
+      // figureId muss existieren — kein Phantom-Figure-Erzeugen.
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
+        const note = typeof msg.note === 'string' ? msg.note.slice(0, 1000) : '';
+        figs.set(msg.figureId, { ...figs.get(msg.figureId), note });
+      }
+      break;
+    }
     case 'clear':
       figs.clear();
       break;

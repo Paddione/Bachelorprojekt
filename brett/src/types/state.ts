@@ -50,6 +50,11 @@ export interface Figure {
   possessor?: string | null;
   /** Semantic figure type from the design system. Leader-only via figure_type_set. */
   figureType?: FigureType;
+  /**
+   * Freitext-Notiz zur Figur (Aussagen, Perspektiven, Statements).
+   * Gesetzt via figure_note_set (server-authoritative, via applyMutation).
+   */
+  note?: string;
 }
 
 export interface Participant {

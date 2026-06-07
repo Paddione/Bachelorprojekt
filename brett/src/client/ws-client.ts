@@ -195,6 +195,10 @@ export function onWsMessage(evt: MessageEvent): void {
           fig.boneOverrides = { ...f.boneOverrides };
         }
         (fig as any)._serverPossessor = (f as any).possessor ?? null;
+        // Notizen aus Snapshot wiederherstellen (Slice 5, T000469)
+        if ((f as any).note !== undefined) {
+          (fig as any).note = (f as any).note;
+        }
         STATE.figures.push(fig);
         if (f.appearance) {
           applyAppearanceToFig(fig, f.appearance);
@@ -232,6 +236,23 @@ export function onWsMessage(evt: MessageEvent): void {
           freeze: (msg as any).moderation.freeze ?? false,
         };
         onModerationChange(moderationState);
+      }
+
+      // Billboard-Wiederherstellung für alle Figuren mit Notizen (Feature-Flag sf-t000469)
+      {
+        const feats: Record<string, boolean> =
+          (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+        if (feats['sf-t000469']) {
+          import('./ui/hud').then(m => {
+            if (typeof (m as any).setFigureNoteBillboard === 'function') {
+              for (const f of STATE.figures) {
+                if ((f as any).note) {
+                  (m as any).setFigureNoteBillboard(f.id, (f as any).note);
+                }
+              }
+            }
+          }).catch(() => {});
+        }
       }
 
       // FE-2: the join snapshot is the FIRST (often ONLY) state a client gets on
@@ -331,6 +352,12 @@ export function onWsMessage(evt: MessageEvent): void {
       const idx = STATE.figures.findIndex(f => f.id === msg.id);
       if (idx >= 0) {
         scene.remove(STATE.figures[idx].root);
+        // Billboard-Cleanup (Feature-Flag sf-t000469)
+        import('./ui/hud').then(m => {
+          if (typeof (m as any).clearFigureNoteBillboard === 'function') {
+            (m as any).clearFigureNoteBillboard(msg.id);
+          }
+        }).catch(() => {});
         STATE.figures.splice(idx, 1);
       }
       break;
@@ -420,6 +447,29 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'moderation_state': {
       moderationState = { spotlight: msg.spotlight, dim: msg.dim, freeze: msg.freeze };
       onModerationChange(moderationState);
+      break;
+    }
+
+    case 'figure_note_changed': {
+      const fig = STATE.figures.find(f => f.id === msg.figureId);
+      if (fig) {
+        (fig as any).note = msg.note;
+        // Panel aktualisieren wenn diese Figur gerade selektiert ist
+        if (STATE.selectedId === msg.figureId) {
+          const noteArea = document.getElementById('fig-note-textarea') as HTMLTextAreaElement | null;
+          if (noteArea) noteArea.value = msg.note;
+        }
+        // Billboard update (Feature-Flag sf-t000469)
+        const feats: Record<string, boolean> =
+          (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+        if (feats['sf-t000469']) {
+          import('./ui/hud').then(m => {
+            if (typeof (m as any).setFigureNoteBillboard === 'function') {
+              (m as any).setFigureNoteBillboard(msg.figureId, msg.note);
+            }
+          }).catch(() => {});
+        }
+      }
       break;
     }
 

@@ -78,6 +78,7 @@ node_modules/
 docs/superpowers/*
 !docs/superpowers/specs/
 !docs/superpowers/plans/
+!docs/superpowers/references/
 files_chore.txt
 files_main.txt
 website/node_modules.task/

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STATE, ui, lockSprites, activeLocks, currentUser, getWs, isWsReady } from '../state';
+import { STATE, ui, lockSprites, noteSprites, activeLocks, currentUser, getWs, isWsReady } from '../state';
 import { lockBadgeStyle, type VarGetter } from './skin';
 import { isFreeFly } from '../free-fly-camera';
 
@@ -161,5 +161,74 @@ export function releaseAllPossessions(): void {
   const ws = getWs();
   if (isWsReady() && ws) {
     ws.send(JSON.stringify({ type: 'figure_release' })); // no figureId → release all
+  }
+}
+
+/**
+ * Setzt oder aktualisiert den Notiz-Billboard-Sprite über einer Figur.
+ * Feature-Flag: sf-t000469. Zeigt max. 40 Zeichen der Notiz an.
+ */
+export function setFigureNoteBillboard(figureId: string, note: string): void {
+  clearFigureNoteBillboard(figureId);
+  const feats: Record<string, boolean> =
+    (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+  if (!feats['sf-t000469']) return;
+  if (!note || !note.trim()) return; // Leere Notizen: kein Sprite
+
+  const fig = STATE.figures.find(f => f.id === figureId);
+  if (!fig) return;
+
+  const preview = note.length > 40 ? note.slice(0, 40) + '…' : note;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 320;
+  canvas.height = 80;
+  const ctx = canvas.getContext('2d')!;
+
+  // Hintergrund: leicht transparentes Dunkel mit goldenem Rand
+  ctx.fillStyle = 'rgba(11,17,28,0.82)';
+  if ((ctx as any).roundRect) {
+    (ctx as any).roundRect(4, 4, 312, 72, 12);
+  } else {
+    ctx.rect(4, 4, 312, 72);
+  }
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(200,169,110,0.7)';
+  ctx.lineWidth = 2;
+  if ((ctx as any).roundRect) {
+    ctx.beginPath();
+    (ctx as any).roundRect(4, 4, 312, 72, 12);
+    ctx.stroke();
+  }
+
+  // Notiztext
+  ctx.font = '500 13px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillStyle = '#e7ead0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(preview, 160, 40);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  const sprite = new THREE.Sprite(mat);
+  // Breiter als Lock-Badge, höher positioniert (über dem Kopf der Figur)
+  sprite.scale.set(2.0, 0.5, 1);
+  sprite.position.set(0, 1.9, 0);
+
+  fig.root.add(sprite);
+  noteSprites.set(figureId, sprite);
+}
+
+/**
+ * Entfernt den Notiz-Billboard-Sprite einer Figur und gibt GPU-Ressourcen frei.
+ */
+export function clearFigureNoteBillboard(figureId: string): void {
+  const sprite = noteSprites.get(figureId);
+  if (sprite) {
+    const fig = STATE.figures.find(f => f.id === figureId);
+    if (fig) fig.root.remove(sprite);
+    if (sprite.material.map) sprite.material.map.dispose();
+    sprite.material.dispose();
+    noteSprites.delete(figureId);
   }
 }

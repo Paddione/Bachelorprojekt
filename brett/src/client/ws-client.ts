@@ -238,6 +238,23 @@ export function onWsMessage(evt: MessageEvent): void {
         onModerationChange(moderationState);
       }
 
+      // Billboard-Wiederherstellung für alle Figuren mit Notizen (Feature-Flag sf-t000469)
+      {
+        const feats: Record<string, boolean> =
+          (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
+        if (feats['sf-t000469']) {
+          import('./ui/hud').then(m => {
+            if (typeof (m as any).setFigureNoteBillboard === 'function') {
+              for (const f of STATE.figures) {
+                if ((f as any).note) {
+                  (m as any).setFigureNoteBillboard(f.id, (f as any).note);
+                }
+              }
+            }
+          }).catch(() => {});
+        }
+      }
+
       // FE-2: the join snapshot is the FIRST (often ONLY) state a client gets on
       // connect, and it carries the authoritative phase/sessionCode/roster. Route
       // it through the lobby reducer and drive the view-machine on a phase change
@@ -335,6 +352,12 @@ export function onWsMessage(evt: MessageEvent): void {
       const idx = STATE.figures.findIndex(f => f.id === msg.id);
       if (idx >= 0) {
         scene.remove(STATE.figures[idx].root);
+        // Billboard-Cleanup (Feature-Flag sf-t000469)
+        import('./ui/hud').then(m => {
+          if (typeof (m as any).clearFigureNoteBillboard === 'function') {
+            (m as any).clearFigureNoteBillboard(msg.id);
+          }
+        }).catch(() => {});
         STATE.figures.splice(idx, 1);
       }
       break;

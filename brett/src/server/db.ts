@@ -46,6 +46,19 @@ export async function readState(room: string): Promise<any> {
   return rows[0]?.state ?? { figures: [] };
 }
 
+/**
+ * D7 — Load a snapshot's persisted `state` JSON by id (template load). Returns
+ * the state object or null when the snapshot is absent. The only integration
+ * (DB) edge of the template-apply flow; the orchestrator itself is pure.
+ */
+export async function loadSnapshotState(id: string): Promise<any> {
+  const { rows } = await pool.query(
+    'SELECT state FROM brett_snapshots WHERE id = $1',
+    [id]
+  );
+  return rows[0]?.state ?? null;
+}
+
 export async function persistState(room: string): Promise<void> {
   const state = buildStateFromMutations(room);
   if (!state) return;

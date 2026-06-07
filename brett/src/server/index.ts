@@ -14,13 +14,14 @@ import * as phases from './phases';
 import * as sessions from './sessions';
 import * as rooms from './rooms';
 import * as presets from './presets';
+import * as permissions from './permissions';
 import * as wsHandler from './ws-handler';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
 db.initDb({ buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 sessions.initSessions({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation, transitionPhase: phases.transitionPhase });
-figures.initFigures({ validateAppearance: presets.validateAppearance });
+figures.initFigures({ validateAppearance: presets.validateAppearance, buildStateFromMutations: (room) => phases.buildStateFromMutations(room) });
 
 const app = express();
 app.set('trust proxy', 1);
@@ -108,17 +109,35 @@ app.get('/auth/me', (req: any, res: any) => {
   res.json({ authenticated: true, userId: req.session.userId, name: req.session.name, isAdmin: !!req.session.isAdmin });
 });
 
+/**
+ * Resolve the identity an /auth/e2e-login request asks for. The endpoint accepts
+ * optional `userId`/`name`/`isAdmin` so two browser contexts can hold DISTINCT,
+ * role-distinct identities (required by the C7 observer-gate E2E). Defaults match
+ * the historical single-admin behavior. `isAdmin` defaults to true and is only
+ * forced false when explicitly `false` (so a non-admin context can be created;
+ * the C7 test keeps both admins to prove enforcement keys on ROLE, not isAdmin).
+ */
+export function resolveE2eIdentity(body: any): { userId: string; name: string; isAdmin: boolean } {
+  const b = body || {};
+  return {
+    userId: typeof b.userId === 'string' && b.userId ? b.userId : 'e2e-admin',
+    name: typeof b.name === 'string' && b.name ? b.name : 'E2E Admin',
+    isAdmin: b.isAdmin === false ? false : true,
+  };
+}
+
 app.post('/auth/e2e-login', (req: any, res: any) => {
   const secret = process.env.BRETT_OIDC_SECRET;
   if (!secret || req.header('x-e2e-secret') !== secret) {
     return res.status(403).json({ error: 'forbidden' });
   }
-  req.session.userId = 'e2e-admin';
-  req.session.name = 'E2E Admin';
-  req.session.isAdmin = true;
+  const ident = resolveE2eIdentity(req.body);
+  req.session.userId = ident.userId;
+  req.session.name = ident.name;
+  req.session.isAdmin = ident.isAdmin;
   req.session.save((err: any) => {
     if (err) return res.status(500).json({ error: 'session save failed' });
-    return res.json({ success: true });
+    return res.json({ success: true, userId: ident.userId, isAdmin: ident.isAdmin });
   });
 });
 
@@ -141,25 +160,56 @@ app.get('/api/customers', asyncHandler(async (_req: any, res: any) => {
   res.json(rows);
 }));
 
-// List snapshots, optionally filtered.
+// D8 — Pure: build the snapshot-list SELECT. `isTemplate:true` is a valid
+// standalone filter (curated templates need no room/customer). room/customer_id
+// still filter as before; an empty filter set yields `valid:false`.
+export function buildSnapshotListQuery(
+  opts: { room?: string | null; customerId?: string | null; isTemplate?: boolean }
+): { sql: string; args: any[]; valid: boolean } {
+  const where: string[] = [];
+  const args: any[] = [];
+  if (opts.room)       { args.push(opts.room);       where.push(`room_token = $${args.length}`); }
+  if (opts.customerId) { args.push(opts.customerId); where.push(`customer_id = $${args.length}`); }
+  if (opts.isTemplate) { where.push('is_template = true'); }
+  const sql =
+    `SELECT id, name, room_token, customer_id, is_template, created_at
+       FROM brett_snapshots` +
+    (where.length ? `\n      WHERE ${where.join(' AND ')}` : '') +
+    `\n      ORDER BY created_at DESC
+      LIMIT 200`;
+  return { sql, args, valid: where.length > 0 };
+}
+
+// D8 — Pure: validate + normalize a snapshot-insert body. is_template defaults
+// to false; name (≤200) and state.figures[] are required.
+export function parseSnapshotInsert(
+  body: any
+): { valid: boolean; values?: { room_token: string | null; customer_id: string | null; name: string; state: any; is_template: boolean } } {
+  const b = body || {};
+  if (!b.name || typeof b.name !== 'string' || b.name.length > 200) return { valid: false };
+  if (!b.state || typeof b.state !== 'object' || !Array.isArray(b.state.figures)) return { valid: false };
+  return {
+    valid: true,
+    values: {
+      room_token: b.room_token || null,
+      customer_id: b.customer_id || null,
+      name: b.name,
+      state: b.state,
+      is_template: b.is_template === true,
+    },
+  };
+}
+
+// List snapshots, optionally filtered (incl. curated templates via is_template).
 app.get('/api/snapshots', asyncHandler(async (req: any, res: any) => {
   const room = req.query.room ? String(req.query.room) : null;
   const customerId = req.query.customer_id ? String(req.query.customer_id) : null;
-  if (!room && !customerId) {
-    return res.status(400).json({ error: 'room or customer_id required' });
+  const isTemplate = req.query.is_template === 'true';
+  const q = buildSnapshotListQuery({ room, customerId, isTemplate });
+  if (!q.valid) {
+    return res.status(400).json({ error: 'room, customer_id or is_template required' });
   }
-  const where = [];
-  const args = [];
-  if (room)       { args.push(room);       where.push(`room_token = $${args.length}`); }
-  if (customerId) { args.push(customerId); where.push(`customer_id = $${args.length}`); }
-  const { rows } = await db.getPool().query(
-    `SELECT id, name, room_token, customer_id, created_at
-       FROM brett_snapshots
-      WHERE ${where.join(' AND ')}
-      ORDER BY created_at DESC
-      LIMIT 200`,
-    args
-  );
+  const { rows } = await db.getPool().query(q.sql, q.args);
   res.json(rows);
 }));
 
@@ -199,20 +249,27 @@ app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res
   res.json(result);
 }));
 
-// Create a snapshot.
+// Create a snapshot. Template creation (is_template=true) is admin-only —
+// curated Vorlagen may only be authored by admins (§5c / D8 guardrail).
 app.post('/api/snapshots', asyncHandler(async (req: any, res: any) => {
-  const { room_token, customer_id, name, state } = req.body || {};
-  if (!name || typeof name !== 'string' || name.length > 200) {
-    return res.status(400).json({ error: 'name required (≤200 chars)' });
+  const parsed = parseSnapshotInsert(req.body);
+  if (!parsed.valid || !parsed.values) {
+    return res.status(400).json({ error: 'name (≤200 chars) + state.figures[] required' });
   }
-  if (!state || typeof state !== 'object' || !Array.isArray(state.figures)) {
-    return res.status(400).json({ error: 'state.figures[] required' });
+  const v = parsed.values;
+  if (v.is_template) {
+    const isAdmin = !!(req as any).session?.isAdmin;
+    const e2eSecret = process.env.BRETT_OIDC_SECRET;
+    const e2eOk = !!e2eSecret && req.header('x-e2e-secret') === e2eSecret;
+    if (!isAdmin && !e2eOk) {
+      return res.status(403).json({ error: 'forbidden: template creation is admin-only' });
+    }
   }
   const { rows } = await db.getPool().query(
-    `INSERT INTO brett_snapshots (room_token, customer_id, name, state)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO brett_snapshots (room_token, customer_id, name, state, is_template)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [room_token || null, customer_id || null, name, state]
+    [v.room_token, v.customer_id, v.name, v.state, v.is_template]
   );
   res.status(201).json({ id: rows[0].id });
 }));
@@ -266,7 +323,7 @@ export const wss = new WebSocketServer({
       const url = new URL(info.req.url, 'http://x');
       const room = url.searchParams.get('room');
       if (!room) return cb(true);
-      const decision = sessions.shouldRejectReconnect(room, null);
+      const decision = sessions.shouldRejectReconnect(room, url.searchParams.get('playerId'));
       if (decision.reject) {
         return cb(false, decision.code, decision.message);
       }
@@ -289,12 +346,16 @@ const wsDeps = {
   figureMaps: figures.figureMaps,
   rooms: rooms.rooms,
   ensureFigureMap: figures.ensureFigureMap,
+  seedFigureMapFromState: figures.seedFigureMapFromState,
   applyMutation: figures.applyMutation,
   buildStateFromMutations: phases.buildStateFromMutations,
   acquireFigureLock: figures.acquireFigureLock,
   releaseFigureLock: figures.releaseFigureLock,
   releaseLocksForUser: figures.releaseLocksForUser,
+  orphanFiguresForUser: figures.orphanFiguresForUser,
   listFigureLocks: figures.listFigureLocks,
+  canMutate: permissions.canMutate,
+  resolveRole: permissions.resolveRole,
   validateAppearance: presets.validateAppearance,
   readState: db.readState,
   schedulePersist: db.schedulePersist,
@@ -303,9 +364,19 @@ const wsDeps = {
   handleAdminHandoffMessage: sessions.handleAdminHandoffMessage,
   handleAdminRoundStop: sessions.handleAdminRoundStop,
   handleAdminRoundPause: sessions.handleAdminRoundPause,
+  handleAdminRoundStart: sessions.handleAdminRoundStart,
+  handleAdminSetOptik: sessions.handleAdminSetOptik,
+  handleAdminSetTemplate: sessions.handleAdminSetTemplate,
+  loadSnapshotState: db.loadSnapshotState,
+  applyTemplateToRoom: figures.applyTemplateToRoom,
   trackPlayerInRoom: sessions.trackPlayerInRoom,
   transitionPhase: phases.transitionPhase,
   isAdminFromClaims: auth.isAdminFromClaims,
+  getAdminTokenHolder: sessions.getAdminTokenHolder,
+  beginTokenGrace: sessions.beginTokenGrace,
+  setRoomAdminPresence: sessions.setRoomAdminPresence,
+  reclaimAdminToken: sessions.reclaimAdminToken,
+  roomAdminPresence: sessions.roomAdminPresence,
   sessionMiddleware,
 };
 
@@ -340,8 +411,10 @@ if (process.env.NODE_ENV !== 'test' && isMain) {
 
 // Re-export every symbol the test suite imports.
 export {
-  figures, phases, sessions, rooms, presets, auth, db, wsHandler
+  figures, phases, sessions, rooms, presets, permissions, auth, db, wsHandler
 };
+export const canMutate = permissions.canMutate;
+export const resolveRole = permissions.resolveRole;
 export const figureMaps = figures.figureMaps;
 export const applyMutation = figures.applyMutation;
 export const buildStateFromMutations = phases.buildStateFromMutations;
@@ -351,6 +424,11 @@ export const sessionCodeIndex = sessions.sessionCodeIndex;
 export const RELAY_TYPES = Array.from(wsHandler.RELAY_TYPES);
 export const pool = db.getPool();
 export const handleDisconnect = (ws: any) => wsHandler.handleDisconnect(ws, wsDeps);
+export const resolvePlayerId = wsHandler.resolvePlayerId;
+export const handleAssignRole = wsHandler.handleAssignRole;
+export const handleLobbySetReady = wsHandler.handleLobbySetReady;
+export const gateSessionReady = wsHandler.gateSessionReady;
+export const onLeaderDisconnect = wsHandler.onLeaderDisconnect;
 export const TRANSIENT_TYPES = new Set([]);
 
 export const assignAdminToken = sessions.assignAdminToken;
@@ -362,6 +440,7 @@ export const reclaimAdminToken = sessions.reclaimAdminToken;
 export const setRoomAdminPresence = sessions.setRoomAdminPresence;
 export const handleAdminHandoffMessage = sessions.handleAdminHandoffMessage;
 export const boardAuthRedirect = auth.boardAuthRedirect;
+// resolveE2eIdentity is declared above with `export function`; no re-export needed.
 export const resolveBrand = auth.resolveBrand;
 export const buildConfig = auth.buildConfig;
 export const isAdminFromClaims = auth.isAdminFromClaims;
@@ -375,16 +454,24 @@ export const rebuildSessionCodeIndexFromStates = sessions.rebuildSessionCodeInde
 export const acquireFigureLock = figures.acquireFigureLock;
 export const releaseFigureLock = figures.releaseFigureLock;
 export const releaseLocksForUser = figures.releaseLocksForUser;
+export const orphanFiguresForUser = figures.orphanFiguresForUser;
 export const listFigureLocks = figures.listFigureLocks;
+export const seedFiguresFromTemplate = figures.seedFiguresFromTemplate;
+export const applyTemplateToRoom = figures.applyTemplateToRoom;
 export const addParticipant = rooms.addParticipant;
 export const removeParticipant = rooms.removeParticipant;
 export const listParticipants = rooms.listParticipants;
+export const colorForIndex = rooms.colorForIndex;
 export const trackPlayerInRoom = sessions.trackPlayerInRoom;
 export const wasPreviouslyInRoom = sessions.wasPreviouslyInRoom;
 export const shouldRejectReconnect = sessions.shouldRejectReconnect;
 export const handleAdminSessionCreate = sessions.handleAdminSessionCreate;
 export const handleAdminRoundStop = sessions.handleAdminRoundStop;
 export const handleAdminRoundPause = sessions.handleAdminRoundPause;
+export const handleAdminRoundStart = sessions.handleAdminRoundStart;
+export const handleAdminSetOptik = sessions.handleAdminSetOptik;
+export const handleAdminSetTemplate = sessions.handleAdminSetTemplate;
+export const loadSnapshotState = db.loadSnapshotState;
 export const tokenGraceTimers = sessions.tokenGraceTimers;
 export const roomAdminPresence = sessions.roomAdminPresence;
 

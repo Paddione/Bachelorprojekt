@@ -112,7 +112,7 @@ export function handleAdminSessionCreate(room: string, adminPlayerId: string): {
   const code = generateSessionCode();
   registerSessionCode(code, room);
   applyMutation(room, { type: 'session_code_set', code });
-  applyMutation(room, { type: 'session_phase_set', phase: 'warmup' });
+  applyMutation(room, { type: 'session_phase_set', phase: 'lobby' });
   applyMutation(room, { type: 'session_admin_token_set', playerId: adminPlayerId });
   applyMutation(room, { type: 'session_created_at_set', ts: new Date().toISOString() });
   applyMutation(room, { type: 'session_last_activity_set', ts: new Date().toISOString() });
@@ -123,6 +123,20 @@ export function handleAdminHandoffMessage(room: string, fromPlayerId: string, to
   const result = handoffAdminToken(room, fromPlayerId, toPlayerId);
   if (!result.ok) return result;
   broadcastFn({ type: 'admin_token_changed', holderPlayerId: toPlayerId, reason: 'handoff' });
+  return result;
+}
+
+export function handleAdminRoundStart(room: string, broadcastFn: (m: any) => void): { ok: boolean; reason?: string; noop?: boolean } {
+  const current = figureMaps.get(room)?.get('__session_phase__')?.phase;
+  if (current === 'active') return { ok: true, noop: true };
+  const result = transitionPhase(room, 'active');
+  if (!result.ok) return result;
+  broadcastFn({
+    type: 'session_phase_change',
+    phase: 'active',
+    transitionedAt: new Date().toISOString(),
+    reason: 'round-start',
+  });
   return result;
 }
 
@@ -150,6 +164,30 @@ export function handleAdminRoundPause(room: string, broadcastFn: (m: any) => voi
   return result;
 }
 
+/**
+ * D4 — Board-Optik. Persist the optik in server state (via optik_set, so
+ * late-joiners receive it in their snapshot) and propagate it to OTHER clients
+ * via lobby_settings_change{optik}. Privileged: invoked only from the
+ * isAdmin-gated admin_set_optik switch case (§5b).
+ */
+export function handleAdminSetOptik(room: string, settings: any, broadcastFn: (m: any) => void): { ok: boolean } {
+  applyMutation(room, { type: 'optik_set', settings });
+  broadcastFn({ type: 'lobby_settings_change', optik: settings });
+  return { ok: true };
+}
+
+/**
+ * D5 — Szenario-Vorlage choice. Persist the chosen templateId into lobbySettings
+ * (survives reload / late-join roster) and propagate it via
+ * lobby_settings_change{templateId}. The figure apply is a separate orchestrator
+ * (D7) wired in the switch case after this choice-persist. Privileged (§5b).
+ */
+export function handleAdminSetTemplate(room: string, templateId: string, broadcastFn: (m: any) => void): { ok: boolean } {
+  applyMutation(room, { type: 'lobby_settings_set', settings: { templateId } });
+  broadcastFn({ type: 'lobby_settings_change', templateId });
+  return { ok: true };
+}
+
 export function trackPlayerInRoom(room: string, playerId: string): void {
   if (!playerId) return;
   let set = roomPreviousPlayers.get(room);
@@ -166,19 +204,24 @@ export function wasPreviouslyInRoom(room: string, playerId: string): boolean {
 
 export function shouldRejectReconnect(room: string, playerId: string | null): { reject: boolean; code?: number; message?: string } {
   const phase = figureMaps.get(room)?.get('__session_phase__')?.phase;
-  if (!phase || phase === 'warmup') return { reject: false };
-  if (phase === 'active' || phase === 'paused') {
-    return {
-      reject: true,
-      code: 409,
-      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
-    };
-  }
+  // lobby / warmup / no-session → admit (hybrid late-join).
+  if (!phase || phase === 'lobby' || phase === 'warmup') return { reject: false };
   if (phase === 'ended') {
     return {
       reject: true,
       code: 410,
       message: 'Session ist beendet.',
+    };
+  }
+  if (phase === 'active' || phase === 'paused') {
+    // Real late-joiner (never tracked in this room) → admit. A null/unknown
+    // playerId is never previously-in-room, so it admits too (matrix-safe).
+    if (!playerId || !wasPreviouslyInRoom(room, playerId)) return { reject: false };
+    // True reconnect of a player who was already active → reject.
+    return {
+      reject: true,
+      code: 409,
+      message: 'Reconnect nicht möglich während aktiver Runde — warte auf Pause oder Ende.',
     };
   }
   return { reject: false };
@@ -192,7 +235,7 @@ export function checkSessionIdle(room: string): { ended: boolean; reason?: strin
   const figs = figureMaps.get(room);
   if (!figs) return { ended: false, reason: 'no-room' };
   const phase = figs.get('__session_phase__')?.phase;
-  if (!phase || phase === 'ended' || phase === 'warmup') {
+  if (!phase || phase === 'ended' || phase === 'warmup' || phase === 'lobby') {
     return { ended: false, reason: 'not-applicable' };
   }
   const lastActivityIso = figs.get('__session_last_activity__')?.ts;

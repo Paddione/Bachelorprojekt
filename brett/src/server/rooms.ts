@@ -5,6 +5,16 @@ export const roomParticipants = new Map<string, Map<string, { userId: string; na
 
 export const PARTICIPANT_PALETTE = ['#4ea1ff', '#3fb950', '#f0a35e', '#c06be0', '#e06b8b', '#6be0d0'];
 
+/**
+ * D9 — Color for the i-th participant. The first 6 use the curated brand palette;
+ * beyond that, a golden-angle HSL rotation yields distinct, non-recycled colors
+ * (no `% length` wrap). The hard cap is `maxParticipants`, enforced at join.
+ */
+export function colorForIndex(i: number): string {
+  if (i < PARTICIPANT_PALETTE.length) return PARTICIPANT_PALETTE[i];
+  return `hsl(${(i * 137.508) % 360} 62% 58%)`;
+}
+
 export function joinRoom(ws: any, room: string): void {
   ws._room = room;
   if (!rooms.has(room)) rooms.set(room, new Set());
@@ -44,7 +54,7 @@ export function addParticipant(room: string, p: { userId: string; name: string }
     existing.name = p.name || existing.name;
     return existing;
   }
-  const color = PARTICIPANT_PALETTE[m.size % PARTICIPANT_PALETTE.length];
+  const color = colorForIndex(m.size);
   const participant = { userId: p.userId, name: p.name || p.userId, color };
   m.set(p.userId, participant);
   return participant;

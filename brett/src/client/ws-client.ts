@@ -1,7 +1,26 @@
-import { STATE, getWs, setWs, isWsReady, setWsReady, activeLocks, lockSprites, getScene } from './state';
+import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
 import type { ClientMessage, ServerMessage } from '../types/messages';
+import type { Phase } from '../types/state';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
+import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
+import { applyOptikToScene } from './ui/optik';
+
+// ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
+let lobbyState: LobbyState = createLobbyState();
+export function getLobbyState(): LobbyState { return lobbyState; }
+
+// View-machine notifier — injected by board-boot / app-shell wiring. Fires on
+// every server-driven phase change so menu→lobby→board routing stays in sync.
+let onPhaseChange: (phase: Phase | null) => void = () => {};
+export function setPhaseChangeHandler(fn: (phase: Phase | null) => void): void {
+  onPhaseChange = fn;
+}
+// Lobby roster/settings change notifier — injected by the lobby screen (B16).
+let onLobbyChange: (state: LobbyState) => void = () => {};
+export function setLobbyChangeHandler(fn: (state: LobbyState) => void): void {
+  onLobbyChange = fn;
+}
 
 const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
 const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -11,6 +30,11 @@ function send(msg: ClientMessage): void {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
   }
+}
+
+/** Public send for lobby/admin protocol messages (e.g. admin_round_start, lobby_set_ready). */
+export function sendClient(msg: ClientMessage): void {
+  send(msg);
 }
 
 export function sendMove(id: string, x: number, z: number, facingY: number): void {
@@ -51,7 +75,15 @@ export function sendAddFigure(fig: any): void {
 }
 
 export function connectWS(): void {
-  const ws = new WebSocket(`${wsProto}//${location.host}/sync`);
+  // Thread room + (when known) the canonical identity into the /sync handshake so
+  // the late-join guard (shouldRejectReconnect) can distinguish a true reconnect
+  // of an already-active player from a genuine late-joiner. Omit playerId when
+  // unknown/anon (server treats null as "not previously in room" → admit).
+  const params = new URLSearchParams({ room: roomFromUrl });
+  if (currentUser.userId && currentUser.userId !== 'anon') {
+    params.set('playerId', currentUser.userId);
+  }
+  const ws = new WebSocket(`${wsProto}//${location.host}/sync?${params.toString()}`);
   setWs(ws);
   (window as any).__brettWS = ws;
   ws.addEventListener('open', () => {
@@ -146,6 +178,9 @@ export function onWsMessage(evt: MessageEvent): void {
         activeLocks.set(l.figureId, { userId: l.userId, name: l.name, color: l.color });
         setFigureLockBadge(l.figureId, l.name, l.color);
       }
+      // Apply persisted board-optik on mount so late-joiners/reloads render the
+      // saved look (§4.1 dead seam closed end-to-end, D11).
+      if (msg.optik) applyOptikToScene(msg.optik);
       break;
 
     case 'stiffness':
@@ -241,6 +276,59 @@ export function onWsMessage(evt: MessageEvent): void {
       if (onlineCountEl) {
         onlineCountEl.textContent = String(STATE.online);
       }
+      break;
+
+    // ── Lobby / presence / session routing (§6c) ────────────────────────────
+    // Each delegates to the pure reducer, notifies the lobby UI, and (on a phase
+    // change) drives the view-machine. figure_owner_changed + the optik part of
+    // lobby_settings_change are routed/stored only in B (badge/optik apply = C/D);
+    // the case existing prevents silent drops.
+    case 'lobby_settings_change': {
+      // Reducer keeps the lobby store (templateId/optik) in sync → lobby UI
+      // re-renders via onLobbyChange (this is the templateId UI update, §13).
+      // ALSO apply optik to the live scene so it works IN-BOARD, not just the
+      // lobby (no-ops if the scene isn't mounted yet).
+      const prevPhase = lobbyState.phase;
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      if (msg.optik) applyOptikToScene(msg.optik);
+      break;
+    }
+
+    case 'init':
+    case 'presence_join':
+    case 'presence_leave':
+    case 'role_changed':
+    case 'lobby_ready_changed':
+    case 'session_created': {
+      const prevPhase = lobbyState.phase;
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      break;
+    }
+
+    case 'session_phase_change':
+    case 'session_ended': {
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      onPhaseChange(lobbyState.phase);
+      break;
+    }
+
+    case 'admin_token_changed':
+    case 'coaching_steps_change':
+      // Routed (no silent drop); board-side handlers consume these elsewhere.
+      break;
+
+    case 'figure_owner_changed':
+      // Routed/stored only in B — ownership badge apply lands in Phase C.
+      break;
+
+    case 'error':
+      // Non-fatal protocol error from the server (e.g. forbidden / not-ready).
+      console.warn('[brett] server error:', msg.reason);
       break;
 
     default:

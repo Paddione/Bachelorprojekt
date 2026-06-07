@@ -205,6 +205,7 @@ export default defineConfig({
       dependencies: ['brett-mentolder-setup'],
       testMatch: [
         '**/brett-mannequin.spec.ts',  // mannequin focus
+        '**/brett-roles.spec.ts',      // C7 role enforcement (opens its own contexts)
       ],
       use: {
         ...devices['Desktop Chrome'],

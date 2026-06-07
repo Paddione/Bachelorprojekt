@@ -31,6 +31,23 @@ test('transitionPhase: warmup → active is allowed', () => {
   assert.strictEqual(state.sessionPhase, 'active');
 });
 
+test('transitionPhase: lobby → active is allowed', () => {
+  const room = 'session-state-test-lobby-active';
+  applyMutation(room, { type: 'session_phase_set', phase: 'lobby' });
+  const result = transitionPhase(room, 'active');
+  assert.strictEqual(result.ok, true);
+  assert.strictEqual(buildStateFromMutations(room).sessionPhase, 'active');
+});
+
+test('transitionPhase: active → lobby is rejected (invalid-edge)', () => {
+  const room = 'session-state-test-active-lobby';
+  applyMutation(room, { type: 'session_phase_set', phase: 'active' });
+  const result = transitionPhase(room, 'lobby');
+  assert.strictEqual(result.ok, false);
+  assert.strictEqual(result.reason, 'invalid-edge');
+  assert.strictEqual(buildStateFromMutations(room).sessionPhase, 'active', 'phase unchanged on rejected edge');
+});
+
 test('transitionPhase: ended → anything is a no-op', () => {
   const room = 'session-state-test-3';
   applyMutation(room, { type: 'session_phase_set', phase: 'ended' });
@@ -48,13 +65,13 @@ test('transitionPhase: active ↔ paused round-trip preserves session', () => {
   assert.strictEqual(state.sessionPhase, 'active');
 });
 
-test('admin_session_create: creates session with code + warmup phase + sets holder', () => {
+test('admin_session_create: creates session with code + lobby phase + sets holder', () => {
   const room = 'session-create-test-1';
   const result = handleAdminSessionCreate(room, 'paddione');
   assert.strictEqual(result.ok, true);
   assert.match(result.code!, /^[A-HJ-NP-Z2-9]{3}-[A-HJ-NP-Z2-9]{3}$/);
   const state = buildStateFromMutations(room);
-  assert.strictEqual(state.sessionPhase, 'warmup');
+  assert.strictEqual(state.sessionPhase, 'lobby');
   assert.strictEqual(state.sessionCode, result.code);
   assert.strictEqual(state.adminTokenHolder, 'paddione');
 });

@@ -41,5 +41,5 @@ test.describe('NFA-08: Produktions-Deployment (Hetzner/k3s)', () => {
     expect(k3dFiles.length).toBeGreaterThan(0);
   });
 
-  test.skip(true, 'T4-T5: Manifest-Validierung (task workspace:validate) und Produktions-Deploy erfordern kubectl/task-Zugriff');
+  test.fixme(true, 'T4-T5: Manifest-Validierung (task workspace:validate) und Produktions-Deploy erfordern kubectl/task-Zugriff — T000480');
 });

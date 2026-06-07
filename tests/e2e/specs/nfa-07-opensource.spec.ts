@@ -29,5 +29,5 @@ test.describe('NFA-07: Open-Source-Lizenz', () => {
     expect(bodyText).not.toMatch(/All Rights Reserved.*Microsoft|All Rights Reserved.*Google/i);
   });
 
-  test.skip(true, 'T1-T2: Container-Image-Prüfungen und proprietäre Image-Suche erfordern kubectl-Zugriff');
+  test.fixme(true, 'T1-T2: Container-Image-Prüfungen und proprietäre Image-Suche erfordern kubectl-Zugriff — T000480');
 });

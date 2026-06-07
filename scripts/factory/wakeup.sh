@@ -58,9 +58,10 @@ fi
 # harness then sets thinking.type:disabled for agent() spawns → 400 API error.
 CLAUDE_CODE_EFFORT_LEVEL=low
 # Strip [1m] from model env vars if present (belt-and-suspenders).
-ANTHROPIC_MODEL="${ANTHROPIC_MODEL/\[1m\]/}"
-ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL/\[1m\]/}"
-ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL/\[1m\]/}"
+# Use :- default to avoid nounset errors in CI where autopilot.env is absent.
+ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-}"; ANTHROPIC_MODEL="${ANTHROPIC_MODEL/\[1m\]/}"
+ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL:-}"; ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL/\[1m\]/}"
+ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL:-}"; ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL/\[1m\]/}"
 
 # ── headless dispatcher tick: nest dispatcher.js via the Workflow tool ────────
 # The permission allowlist is tight: only the Workflow tool + the deterministic

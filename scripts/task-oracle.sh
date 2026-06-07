@@ -209,14 +209,95 @@ infer_env() {
   fi
 }
 
-# ── Wrapper: call Hermes, strip session_id noise ──────────────────────────
-ask_hermes() {
-  "${HERMES}" chat -q "$1" -m "${MODEL}" --quiet 2>/dev/null \
-    | grep -v "^session_id:" || true
+# ── Check if local LLM (Ollama or LM Studio) is available ──────────────────
+local_llm_available() {
+  if [[ "${HERMES:-}" == "/dev/null" ]]; then
+    return 1
+  fi
+  python3 -c '
+import urllib.request, sys
+try:
+    urllib.request.urlopen("http://localhost:11434/api/tags", timeout=0.8)
+    sys.exit(0)
+except Exception:
+    try:
+        urllib.request.urlopen("http://localhost:1234/v1/models", timeout=0.8)
+        sys.exit(0)
+    except Exception:
+        sys.exit(1)
+' 2>/dev/null
 }
 
-# ── Primary: Hermes (local model, no API cost) ────────────────────────────
-if [[ -x "${HERMES}" ]] && "${HERMES}" status 2>/dev/null | grep -q "Model:"; then
+# ── Wrapper: query local LLM ──────────────────────────────────────────────
+ask_llm() {
+  local prompt="$1"
+  python3 -c '
+import urllib.request, json, sys
+
+def get_ollama_model(base_url):
+    try:
+        req = urllib.request.Request(f"{base_url}/api/tags")
+        with urllib.request.urlopen(req, timeout=1.5) as response:
+            data = json.loads(response.read().decode("utf-8"))
+            models = [m["name"] for m in data.get("models", [])]
+            if models:
+                qwen_models = [m for m in models if "qwen" in m.lower()]
+                return qwen_models[0] if qwen_models else models[0]
+    except Exception:
+        pass
+    return None
+
+def query_ollama(base_url, prompt):
+    model = get_ollama_model(base_url)
+    if not model:
+        return None
+    url = f"{base_url}/api/generate"
+    payload = {"model": model, "prompt": prompt, "stream": False}
+    try:
+        req = urllib.request.Request(
+            url, 
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=30) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            return res_data.get("response", "")
+    except Exception:
+        return None
+
+def query_lmstudio(base_url, prompt):
+    url = f"{base_url}/v1/chat/completions"
+    payload = {
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.1
+    }
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=15) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            choices = res_data.get("choices", [])
+            if choices:
+                return choices[0].get("message", {}).get("content", "")
+    except Exception:
+        return None
+
+prompt = sys.argv[1]
+res = query_ollama("http://localhost:11434", prompt)
+if not res:
+    res = query_lmstudio("http://localhost:1234", prompt)
+if res:
+    print(res)
+    sys.exit(0)
+sys.exit(1)
+' "$prompt" 2>/dev/null
+}
+
+# ── Primary: Local LLM ────────────────────────────────────────────────────
+if local_llm_available; then
 
   # Full task list — no truncation
   set +o pipefail
@@ -269,7 +350,7 @@ Goal: ${GOAL}"
     if [[ -n "$OVERRIDE_NS" ]]; then
       echo "$OVERRIDE_NS"
     else
-      ask_hermes "$NS_PROMPT"
+      ask_llm "$NS_PROMPT"
     fi \
     | grep -oE '\b[a-z][a-z0-9_-]+\b' \
     | grep -xF -f <(echo "$KNOWN_NS") \
@@ -304,7 +385,7 @@ ${TASK_LIST}
 
 Goal: ${GOAL}"
 
-  RAW=$(ask_hermes "$TASK_PROMPT")
+  RAW=$(ask_llm "$TASK_PROMPT")
 
   # Build set of valid task names for exact-match fallback
   VALID_TASKS=$(echo "$NS_TASKS" | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
@@ -376,15 +457,15 @@ Goal: ${GOAL}"
   fi
 fi
 
-# ── Fallback: OpenClaw (Claude, reliable) ─────────────────────────────────
+# ── Fallback: Opencode / OpenClaw (Claude, reliable) ──────────────────────
 if curl -sf http://localhost:18789/healthz >/dev/null 2>&1; then
-  openclaw agent \
-    --agent task-runner \
-    --message "$GOAL" \
-    --json && exit 0
-  echo "OpenClaw agent failed (billing cooldown? run: openclaw configure --section model)" >&2
+  if command -v opencode &>/dev/null; then
+    opencode run --agent task-runner --format json "$GOAL" && exit 0
+  elif command -v openclaw &>/dev/null; then
+    openclaw agent --agent task-runner --message "$GOAL" --json && exit 0
+  fi
 fi
 
-echo "Neither Hermes nor OpenClaw is available." >&2
+echo "No local LLM service (Ollama/LM Studio) or Opencode/OpenClaw daemon is running (Neither Hermes nor OpenClaw is available)." >&2
 echo "Discover tasks manually: cd ${REPO} && task --list" >&2
 exit 1

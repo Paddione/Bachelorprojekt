@@ -45,12 +45,14 @@ export async function bootBoard(): Promise<void> {
   exportUi.initExportButtons(renderer.domElement);
 
   // ── Auth ───────────────────────────────────────────────────────────
+  let _isAdmin = false;
   try {
     const me = await (await fetch('/auth/me')).json();
     if (me.userId) {
       currentUser.userId = me.userId;
       currentUser.name = me.name;
     }
+    _isAdmin = !!me.isAdmin;
     if (me.isAdmin) (window as any).__brettCurrentUserIsAdmin = true;
   } catch { /* anon */ }
 
@@ -234,6 +236,86 @@ export async function bootBoard(): Promise<void> {
       }, { capture: true });
     }
   }
+
+  // ── T000470: Undo/Redo-Buttons (isAdmin-only, Dark-Launch) ────────────────
+  const undoBtn = document.createElement('button');
+  undoBtn.id = 'btn-undo';
+  undoBtn.textContent = '↩ Rückgängig';
+  Object.assign(undoBtn.style, {
+    display: 'none',
+    position: 'absolute',
+    bottom: '52px',
+    right: '160px',
+    fontFamily: 'var(--brett-font-mono, monospace)',
+    fontSize: '10px',
+    padding: '4px 10px',
+    borderRadius: 'var(--brett-radius-sm, 6px)',
+    border: '1px solid var(--brett-border, rgba(255,255,255,0.12))',
+    background: 'var(--brett-surface-1, rgba(0,0,0,0.45))',
+    color: 'var(--brett-fg, #e8e8e8)',
+    cursor: 'pointer',
+    opacity: '0.4',
+    pointerEvents: 'auto',
+    zIndex: '20',
+  });
+  undoBtn.disabled = true;
+
+  const redoBtn = document.createElement('button');
+  redoBtn.id = 'btn-redo';
+  redoBtn.textContent = '↪ Wiederholen';
+  Object.assign(redoBtn.style, {
+    display: 'none',
+    position: 'absolute',
+    bottom: '52px',
+    right: '80px',
+    fontFamily: 'var(--brett-font-mono, monospace)',
+    fontSize: '10px',
+    padding: '4px 10px',
+    borderRadius: 'var(--brett-radius-sm, 6px)',
+    border: '1px solid var(--brett-border, rgba(255,255,255,0.12))',
+    background: 'var(--brett-surface-1, rgba(0,0,0,0.45))',
+    color: 'var(--brett-fg, #e8e8e8)',
+    cursor: 'pointer',
+    opacity: '0.4',
+    pointerEvents: 'auto',
+    zIndex: '20',
+  });
+  redoBtn.disabled = true;
+
+  document.body.appendChild(undoBtn);
+  document.body.appendChild(redoBtn);
+
+  undoBtn.addEventListener('click', () => {
+    wsClient.sendUndo();
+  });
+  redoBtn.addEventListener('click', () => {
+    wsClient.sendRedo();
+  });
+
+  // Show undo/redo buttons only for admins (T000470)
+  if (_isAdmin) {
+    undoBtn.style.display = 'inline-block';
+    redoBtn.style.display = 'inline-block';
+  }
+
+  // Wire undo/redo state change handler to update button enabled state
+  wsClient.setUndoStateChangeHandler(({ canUndo, canRedo }) => {
+    hud.updateUndoRedoButtons(canUndo, canRedo);
+  });
+
+  // T000470: Keyboard shortcuts (Ctrl+Z = Undo, Ctrl+Y / Ctrl+Shift+Z = Redo)
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+    if (e.ctrlKey && !e.shiftKey && e.key === 'z') {
+      e.preventDefault();
+      wsClient.sendUndo();
+    } else if (e.ctrlKey && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+      e.preventDefault();
+      wsClient.sendRedo();
+    }
+  }, { capture: false });
 
   // ── Stiffness slider ───────────────────────────────────────────────
   const stiffSlider = document.getElementById('stiffness') as HTMLInputElement;

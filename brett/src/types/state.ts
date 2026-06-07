@@ -86,3 +86,45 @@ export interface RoomState {
   lastActivity?: number | null;
   coachingSteps?: { steps: string[]; index: number } | null;
 }
+
+// ── Boden-Anker & Zonen (T000468) ────────────────────────────────────────────
+
+/** Kleiner fester Punkt-Marker auf dem Boden des Bretts. */
+export interface Anchor {
+  /** Server-seitig generierte ID. */
+  id: string;
+  /** Board X-Koordinate. */
+  x: number;
+  /** Board Z-Koordinate. */
+  z: number;
+  /** Optionale Beschriftung. */
+  label?: string;
+  /** CSS-Farbe, z.B. '#c8a96e'. Default: '#c8a96e'. */
+  color?: string;
+}
+
+export type ZoneShape = 'rect' | 'circle';
+
+/** Farbige Fläche auf dem Boden mit optionaler Beschriftung. */
+export interface Zone {
+  /** Server-seitig generierte ID. */
+  id: string;
+  /** Mittelpunkt X. */
+  x: number;
+  /** Mittelpunkt Z. */
+  z: number;
+  /** Form: 'rect' (Rechteck) oder 'circle' (Kreis). */
+  shape: ZoneShape;
+  /** Breite in Board-Einheiten (nur für 'rect'). Default: 2.0 */
+  width?: number;
+  /** Tiefe in Board-Einheiten (nur für 'rect'). Default: 2.0 */
+  height?: number;
+  /** Radius in Board-Einheiten (nur für 'circle'). Default: 1.5 */
+  radius?: number;
+  /** Optionale Beschriftung. */
+  label?: string;
+  /** CSS-Farbe, z.B. '#4ea1ff'. Default: '#4ea1ff'. */
+  color?: string;
+  /** Deckkraft der Fläche, 0..1. Default: 0.25 */
+  opacity?: number;
+}

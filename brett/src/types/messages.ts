@@ -1,4 +1,4 @@
-import type { Figure, FigureAppearance, FigureType, OptikSettings, Participant, Phase, Role } from './state';
+import type { Anchor, Figure, FigureAppearance, FigureType, OptikSettings, Participant, Phase, Role, Zone } from './state';
 
 // ── Client → Server ──────────────────────────────────────────────
 export type ClientMessage =
@@ -34,11 +34,15 @@ export type ClientMessage =
   | { type: 'admin_spotlight_set'; figureId: string | null }
   | { type: 'admin_dim_set'; figureId: string | null }
   | { type: 'admin_freeze_set'; frozen: boolean }
-  | { type: 'figure_note_set'; figureId: string; note: string };
+  | { type: 'figure_note_set'; figureId: string; note: string }
+  | { type: 'anchor_create'; anchor: Omit<Anchor, 'id'> }
+  | { type: 'anchor_delete'; anchorId: string }
+  | { type: 'zone_create'; zone: Omit<Zone, 'id'> }
+  | { type: 'zone_delete'; zoneId: string };
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
-  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; moderation?: { spotlight: string | null; dim: string | null; freeze: boolean } }
+  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; moderation?: { spotlight: string | null; dim: string | null; freeze: boolean }; anchors?: Anchor[]; zones?: Zone[] }
   | { type: 'add'; figure: Figure }
   | { type: 'move'; id: string; x: number; z: number; facingY: number }
   | { type: 'jump'; id: string }
@@ -66,6 +70,10 @@ export type ServerMessage =
   | { type: 'figure_type_changed'; figureId: string; figureType: FigureType }
   | { type: 'moderation_state'; spotlight: string | null; dim: string | null; freeze: boolean }
   | { type: 'figure_note_changed'; figureId: string; note: string }
+  | { type: 'anchor_added'; anchor: Anchor }
+  | { type: 'anchor_removed'; anchorId: string }
+  | { type: 'zone_added'; zone: Zone }
+  | { type: 'zone_removed'; zoneId: string }
   | { type: 'error'; reason: string };
 
 export interface ServerLock {

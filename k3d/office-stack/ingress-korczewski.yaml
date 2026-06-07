@@ -1,0 +1,35 @@
+# ═══════════════════════════════════════════════════════════════════
+# office Ingress (Korczewski brand) — second brand pointing at the
+# shared Collabora Deployment in workspace-office namespace.
+# ═══════════════════════════════════════════════════════════════════
+# Applied only by the fleet:office:all-prods task, NOT included in
+# k3d/office-stack/kustomization.yaml (kustomize can't conditionally
+# skip resources with empty envsubst vars).
+#
+# envsubst vars set by the Taskfile fleet deploy:
+#   ${COLLABORA_HOST_2}              — e.g. office.korczewski.de
+#   ${COLLABORA_TLS_SECRET_2}        — e.g. korczewski-tls
+#   ${COLLABORA_INGRESS_MIDDLEWARES_2} — workspace-korczewski-redirect-https@kubernetescrd,...
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: office-ingress-korczewski
+  namespace: workspace-office
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${COLLABORA_INGRESS_MIDDLEWARES_2}"
+spec:
+  tls:
+    - hosts:
+        - "${COLLABORA_HOST_2}"
+      secretName: "${COLLABORA_TLS_SECRET_2}"
+  rules:
+    - host: "${COLLABORA_HOST_2}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: collabora
+                port:
+                  number: 9980

@@ -168,7 +168,7 @@ const REVIEW_SCHEMA = {
     summary: { type: 'string' },
   },
 }
-if (!REUSE) {
+try { if (!REUSE) {
 // ── ① Scout ────────────────────────────────────────────────────────────────
 phase('Scout')
 const scout = await agent(
@@ -594,7 +594,7 @@ if (canaryRed.length) {
 if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
   return { status: 'blocked', reason: 'deploy-guard' }
 }
-
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
+} finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } }
 }
 await main();

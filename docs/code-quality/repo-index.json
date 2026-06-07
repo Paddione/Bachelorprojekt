@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 363,
+      "file_count": 364,
       "files": [
         "tests/.gitignore",
         "tests/e2e/brett-globals.d.ts",
@@ -304,6 +304,7 @@
         "tests/unit/brainstorm-extract-choice.bats",
         "tests/unit/coaching-json-ingest.bats",
         "tests/unit/collabora-wopi-discovery.bats",
+        "tests/unit/collabora-wopi-single-brand-guard.bats",
         "tests/unit/dev-build-safety.bats",
         "tests/unit/dev-cluster-autostart.bats",
         "tests/unit/dev-mcp-route.bats",

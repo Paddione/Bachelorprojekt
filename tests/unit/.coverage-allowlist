@@ -43,3 +43,8 @@ fleet-dns-cutover
 # --- `task` binary (only curl is stubbed), so the structured-input cases exit non-zero
 # --- without a configured env. Needs a `task` stub before it can join the offline gate.
 task-oracle-fastpath
+#
+# --- Intentionally RED TDD guard (T000478): tests assert prod-safety guards and
+# --- dual-brand Ingress wiring that are not yet implemented. Excluded until
+# --- fleet:deploy:shared-services and workspace:office:deploy guards are in place.
+collabora-wopi-single-brand-guard

@@ -460,25 +460,12 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             return;
           }
 
-          // T000470: Undo-Snapshot-Capture für undo-bare Mutations
-          const isUndoable = deps.captureBeforeSnapshot != null && undoStack.UNDOABLE_TYPES.has(msg.type);
-          let beforeSnap: Map<string, any | null> | null = null;
-          if (isUndoable) {
-            beforeSnap = deps.captureBeforeSnapshot!(room, msg);
-          }
-
           deps.applyMutation(room, msg);
           deps.broadcast(room, msg, ws);
 
-          if (isUndoable && beforeSnap && deps.captureAfterSnapshot && deps.pushUndo && deps.getUndoStatus) {
-            const afterSnap = deps.captureAfterSnapshot(beforeSnap, room, msg);
-            deps.pushUndo(room, {
-              before: beforeSnap,
-              after: afterSnap,
-              mutationType: msg.type,
-              ts: Date.now(),
-            });
-            deps.broadcast(room, { type: 'undo_stack_changed', ...deps.getUndoStatus(room) });
+          if (deps.captureBeforeSnapshot && deps.captureAfterSnapshot && deps.pushUndo && deps.getUndoStatus) {
+            undoStack.tryRecordMutation(room, msg, deps.captureBeforeSnapshot, deps.captureAfterSnapshot,
+              deps.pushUndo, deps.getUndoStatus, (r, m) => deps.broadcast(r, m));
           }
 
           // A permitted stellvertreter `add` stamps ownership server-side so the

@@ -253,3 +253,20 @@ export function clearStacks(room: string): void {
   undoStacks.delete(room);
   redoStacks.delete(room);
 }
+
+/** Capture-before, apply callback, capture-after, push, broadcast — all in one call. */
+export function tryRecordMutation(
+  room: string,
+  msg: any,
+  captureBefore: (room: string, msg: any) => Map<string, any | null>,
+  captureAfter: (before: Map<string, any | null>, room: string, msg: any) => Map<string, any | null>,
+  pushFn: (room: string, entry: UndoEntry) => void,
+  statusFn: (room: string) => { canUndo: boolean; canRedo: boolean },
+  broadcastFn: (room: string, msg: any) => void,
+): void {
+  if (!UNDOABLE_TYPES.has(msg.type)) return;
+  const before = captureBefore(room, msg);
+  const after = captureAfter(before, room, msg);
+  pushFn(room, { before, after, mutationType: msg.type, ts: Date.now() });
+  broadcastFn(room, { type: 'undo_stack_changed', ...statusFn(room) });
+}

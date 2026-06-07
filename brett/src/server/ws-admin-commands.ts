@@ -1,5 +1,14 @@
 import type { WsDeps } from './ws-handler';
 
+function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {
+  const entry = deps.figureMaps.get(room)?.get('__moderation__');
+  return {
+    spotlight: entry?.spotlight ?? null,
+    dim: entry?.dim ?? null,
+    freeze: entry?.freeze ?? false,
+  };
+}
+
 /**
  * Assign a role to a current participant. Validates membership (rejects
  * non-members and `'anon'`, which is never a real participant key). Merges into
@@ -177,6 +186,40 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
         const snap = await deps.loadSnapshotState(msg.templateId);
         if (snap) deps.applyTemplateToRoom(adminRoom, snap, (m: any) => deps.broadcast(adminRoom, m));
       }
+      deps.schedulePersist(adminRoom);
+      break;
+    }
+    case 'admin_spotlight_set': {
+      // figureId: string|null — null deaktiviert den Spotlight
+      const figureId = (typeof msg.figureId === 'string') ? msg.figureId : null;
+      // Validate: wenn figureId gesetzt, muss die Figur existieren
+      if (figureId !== null && (figureId.startsWith('__') || !deps.figureMaps.get(adminRoom)?.has(figureId))) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'moderation_spotlight_set', figureId });
+      const spotlightState = getModerationState(deps, adminRoom);
+      deps.broadcast(adminRoom, { type: 'moderation_state', ...spotlightState });
+      deps.schedulePersist(adminRoom);
+      break;
+    }
+    case 'admin_dim_set': {
+      const figureId = (typeof msg.figureId === 'string') ? msg.figureId : null;
+      if (figureId !== null && (figureId.startsWith('__') || !deps.figureMaps.get(adminRoom)?.has(figureId))) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'moderation_dim_set', figureId });
+      const dimState = getModerationState(deps, adminRoom);
+      deps.broadcast(adminRoom, { type: 'moderation_state', ...dimState });
+      deps.schedulePersist(adminRoom);
+      break;
+    }
+    case 'admin_freeze_set': {
+      const frozen = !!msg.frozen;
+      deps.applyMutation(adminRoom, { type: 'moderation_freeze_set', frozen });
+      const freezeState = getModerationState(deps, adminRoom);
+      deps.broadcast(adminRoom, { type: 'moderation_state', ...freezeState });
       deps.schedulePersist(adminRoom);
       break;
     }

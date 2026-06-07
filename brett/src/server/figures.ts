@@ -162,6 +162,21 @@ export function applyMutation(room: string, msg: any): void {
       }
       break;
     }
+    case 'moderation_spotlight_set': {
+      const prev = figs.get('__moderation__') ?? { id: '__moderation__', spotlight: null, dim: null, freeze: false };
+      figs.set('__moderation__', { ...prev, spotlight: msg.figureId ?? null });
+      break;
+    }
+    case 'moderation_dim_set': {
+      const prev = figs.get('__moderation__') ?? { id: '__moderation__', spotlight: null, dim: null, freeze: false };
+      figs.set('__moderation__', { ...prev, dim: msg.figureId ?? null });
+      break;
+    }
+    case 'moderation_freeze_set': {
+      const prev = figs.get('__moderation__') ?? { id: '__moderation__', spotlight: null, dim: null, freeze: false };
+      figs.set('__moderation__', { ...prev, freeze: !!msg.frozen });
+      break;
+    }
   }
 }
 
@@ -220,6 +235,14 @@ export function seedFigureMapFromState(map: Map<string, any>, state: any): void 
   }
   if (state.lobbySettings && typeof state.lobbySettings === 'object') {
     map.set('__lobby_settings__', { id: '__lobby_settings__', settings: state.lobbySettings });
+  }
+  if (state.moderation && typeof state.moderation === 'object') {
+    map.set('__moderation__', {
+      id: '__moderation__',
+      spotlight: state.moderation.spotlight ?? null,
+      dim: state.moderation.dim ?? null,
+      freeze: state.moderation.freeze ?? false,
+    });
   }
 }
 

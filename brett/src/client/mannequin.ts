@@ -208,6 +208,24 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
   labelSprite.visible = false;
   root.add(labelSprite);
 
+  // Freeze indicator sprite (T000471) — shown when room is frozen
+  const freezeCanvas = document.createElement('canvas');
+  freezeCanvas.width = 64;
+  freezeCanvas.height = 64;
+  const freezeCtx = freezeCanvas.getContext('2d')!;
+  freezeCtx.font = '40px serif';
+  freezeCtx.fillStyle = '#7dc8f7';
+  freezeCtx.textAlign = 'center';
+  freezeCtx.textBaseline = 'middle';
+  freezeCtx.fillText('❄', 32, 32);
+  const freezeTex = new THREE.CanvasTexture(freezeCanvas);
+  const freezeSpriteMat = new THREE.SpriteMaterial({ map: freezeTex, transparent: true, depthTest: false, depthWrite: false });
+  const freezeSprite = new THREE.Sprite(freezeSpriteMat);
+  freezeSprite.position.y = 2.1;
+  freezeSprite.scale.set(0.5, 0.5, 1);
+  freezeSprite.visible = false;
+  root.add(freezeSprite);
+
   const { scene } = getScene();
   scene.add(root);
 
@@ -227,6 +245,7 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
     root, hips, bones, ring,
     possessionRing,
     labelSprite,
+    freezeSprite,
     bone,
     headMesh,
     appearanceMeshes: {},
@@ -472,4 +491,105 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
 export function clearPossessionVisuals(fig: any): void {
   fig.possessionRing.visible = false;
   fig.labelSprite.visible = false;
+}
+
+// ── Moderation Visuals (T000471) ───────────────────────────────────────────
+
+export interface ModerationVisualState {
+  spotlight: string | null;
+  dim: string | null;
+  freeze: boolean;
+}
+
+const SPOTLIGHT_EMISSIVE = new THREE.Color(0xc8a96e); // brass glow
+const DIM_OPACITY = 0.18;
+const FREEZE_TINT = new THREE.Color(0x7dc8f7);        // ice blue
+
+/**
+ * Per-frame moderation visual updater. Applies emissive glow (spotlight),
+ * opacity dimming (dim), and blue ice tint + freeze sprite (freeze) to figure
+ * meshes via material override. Caches original material values for restore.
+ */
+export function updateModerationVisuals(figures: any[], state: ModerationVisualState): void {
+  const hasModeration = state.spotlight !== null || state.dim !== null || state.freeze;
+
+  for (const fig of figures) {
+    const isSpotlit = state.spotlight !== null && fig.id === state.spotlight;
+    const isDimTarget = state.dim !== null && fig.id === state.dim;
+    const shouldGlow  = isSpotlit || isDimTarget;
+    const shouldDim   = (state.spotlight !== null && !isSpotlit) ||
+                        (state.dim !== null && !isDimTarget);
+
+    // Freeze sprite
+    if (fig.freezeSprite) {
+      fig.freezeSprite.visible = state.freeze;
+    }
+
+    // Cache original material values on first moderation frame
+    if (hasModeration && !fig._moderationCache) {
+      fig._moderationCache = new Map<string, { color: THREE.Color; emissive: THREE.Color; opacity: number; transparent: boolean }>();
+      fig.root.traverse((o: any) => {
+        if (o.isMesh && o.material && !o.userData.isContact && o !== fig.ring && o !== fig.possessionRing) {
+          const m = o.material;
+          fig._moderationCache.set(o.uuid, {
+            color: m.color.clone(),
+            emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x000000),
+            opacity: m.opacity ?? 1,
+            transparent: m.transparent ?? false,
+          });
+        }
+      });
+    }
+
+    // Restore original materials when moderation is cleared
+    if (!hasModeration && fig._moderationCache) {
+      fig.root.traverse((o: any) => {
+        if (o.isMesh && o.material && !o.userData.isContact && o !== fig.ring && o !== fig.possessionRing) {
+          const cached = fig._moderationCache.get(o.uuid);
+          if (cached) {
+            o.material.color.copy(cached.color);
+            if (o.material.emissive) o.material.emissive.copy(cached.emissive);
+            o.material.opacity = cached.opacity;
+            o.material.transparent = cached.transparent;
+            o.material.needsUpdate = true;
+          }
+        }
+      });
+      fig._moderationCache = null;
+      continue;
+    }
+
+    if (!hasModeration) continue;
+
+    // Apply moderation visuals
+    fig.root.traverse((o: any) => {
+      if (o.isMesh && o.material && !o.userData.isContact && o !== fig.ring && o !== fig.possessionRing) {
+        const m = o.material;
+        // Spotlight/Dim glow
+        if (shouldGlow && m.emissive) {
+          m.emissive.copy(SPOTLIGHT_EMISSIVE);
+          (m as any).emissiveIntensity = 0.55;
+          m.opacity = 1.0;
+          m.transparent = false;
+        }
+        // Dim (other figures fade)
+        if (shouldDim) {
+          m.opacity = DIM_OPACITY;
+          m.transparent = true;
+          if (m.emissive) m.emissive.set(0x000000);
+        }
+        // Freeze tint (overlaid on spotlight/dim)
+        if (state.freeze) {
+          const cached = fig._moderationCache?.get(o.uuid);
+          const baseColor = cached ? cached.color : m.color;
+          m.color.copy(baseColor).lerp(FREEZE_TINT, 0.3);
+        }
+        m.needsUpdate = true;
+      }
+    });
+  }
+}
+
+export function clearModerationVisuals(figures: any[]): void {
+  updateModerationVisuals(figures, { spotlight: null, dim: null, freeze: false });
 }

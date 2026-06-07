@@ -30,11 +30,14 @@ export type ClientMessage =
   | { type: 'lobby_set_ready'; ready: boolean }
   | { type: 'figure_possess'; figureId: string }
   | { type: 'figure_release'; figureId?: string }
-  | { type: 'figure_type_set'; figureId: string; figureType: FigureType };
+  | { type: 'figure_type_set'; figureId: string; figureType: FigureType }
+  | { type: 'admin_spotlight_set'; figureId: string | null }
+  | { type: 'admin_dim_set'; figureId: string | null }
+  | { type: 'admin_freeze_set'; frozen: boolean };
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
-  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[] }
+  | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; moderation?: { spotlight: string | null; dim: string | null; freeze: boolean } }
   | { type: 'add'; figure: Figure }
   | { type: 'move'; id: string; x: number; z: number; facingY: number }
   | { type: 'jump'; id: string }
@@ -60,6 +63,7 @@ export type ServerMessage =
   | { type: 'figure_possessed'; figureId: string; playerId: string; playerName?: string }
   | { type: 'figure_released'; figureId: string; playerId: string }
   | { type: 'figure_type_changed'; figureId: string; figureType: FigureType }
+  | { type: 'moderation_state'; spotlight: string | null; dim: string | null; freeze: boolean }
   | { type: 'error'; reason: string };
 
 export interface ServerLock {

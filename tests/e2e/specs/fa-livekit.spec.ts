@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { assertReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 const DOMAIN = process.env.PROD_DOMAIN || 'localhost';
@@ -31,15 +32,12 @@ test.describe('FA-LiveKit: Livestream — Auth-Gating & API', () => {
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T6: LiveKit server ingress is reachable', async ({ request }) => {
-    const res = await request.get(`https://livekit.${DOMAIN}/`, {
-      timeout: 10_000,
-    }).catch(() => null);
-    if (res === null) {
-      test.skip(true, 'LiveKit not reachable (dev cluster or not deployed)');
-      return;
-    }
-    // LiveKit returns 404/426 on HTTP root — both confirm the ingress is alive
-    expect([200, 404, 426]).toContain(res.status());
+  test('T6: LiveKit server ingress is reachable', async ({ request }, testInfo) => {
+    await assertReachable(
+      request,
+      `https://livekit.${DOMAIN}/`,
+      { acceptableStatuses: [200, 404, 426], timeout: 10_000, label: 'LiveKit' },
+      testInfo
+    );
   });
 });

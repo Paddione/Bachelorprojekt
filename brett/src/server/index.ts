@@ -48,7 +48,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, '..', '..', 'public'), {
+// In production (after `vite build`), serve from dist/client; in dev, fall back to public/.
+const distClient = path.join(__dirname, '..', '..', 'dist', 'client');
+const staticDir = fs.existsSync(path.join(distClient, 'index.html'))
+  ? distClient
+  : path.join(__dirname, '..', '..', 'public');
+app.use(express.static(staticDir, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-cache');

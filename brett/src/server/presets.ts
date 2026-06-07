@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 export const PRESETS_FILE = process.env.BRETT_PRESETS_PATH || path.join(__dirname, '..', '..', 'presets.json');
-export const SPEC_PATH = path.join(__dirname, '..', '..', 'public', 'assets', 'figure-pack', 'placement_spec.json');
+const SPEC_PATH_PUBLIC = path.join(__dirname, '..', '..', 'public', 'assets', 'figure-pack', 'placement_spec.json');
+const SPEC_PATH_DIST   = path.join(__dirname, '..', '..', 'dist', 'client', 'assets', 'figure-pack', 'placement_spec.json');
+export const SPEC_PATH = fs.existsSync(SPEC_PATH_PUBLIC) ? SPEC_PATH_PUBLIC : SPEC_PATH_DIST;
 
 export let SPEC: { faces: Record<string, any>; accessories: Record<string, any>; bodies: Record<string, any> } =
   { faces: {}, accessories: {}, bodies: {} };

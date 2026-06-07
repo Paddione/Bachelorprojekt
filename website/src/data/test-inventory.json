@@ -1080,6 +1080,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-46",
+    "file": "tests/local/FA-SF-46-cleanup.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

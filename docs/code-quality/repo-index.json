@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 360,
+      "file_count": 361,
       "files": [
         "tests/.gitignore",
         "tests/e2e/brett-globals.d.ts",
@@ -247,6 +247,7 @@
         "tests/local/FA-SF-43-worktree-gitcrypt.bats",
         "tests/local/FA-SF-44-verify-diff-killswitch.bats",
         "tests/local/FA-SF-45-conflict-gate-deadlock.bats",
+        "tests/local/FA-SF-46-cleanup.bats",
         "tests/local/NFA-01.sh",
         "tests/local/NFA-02.sh",
         "tests/local/NFA-03.sh",
@@ -1877,7 +1878,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 248,
+      "file_count": 249,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2009,6 +2010,7 @@
         "scripts/factory/README.md",
         "scripts/factory/classify-failure.sh",
         "scripts/factory/classify-paths.sh",
+        "scripts/factory/cleanup.sh",
         "scripts/factory/conflict-check.sh",
         "scripts/factory/dispatcher.js",
         "scripts/factory/factory.service",

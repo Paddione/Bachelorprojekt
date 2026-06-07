@@ -27,7 +27,7 @@ pr_number: null
 **Files:**
 - Modify: `brett/src/types/messages.ts`
 
-- [ ] **Step 1: Admin-Client-Messages hinzufuegen**
+- [x] **Step 1: Admin-Client-Messages hinzufuegen**
 
 Fuege nach der letzten `ClientMessage`-Zeile (`| { type: 'figure_type_set'; ... }`) folgende Varianten ein:
 
@@ -37,7 +37,7 @@ Fuege nach der letzten `ClientMessage`-Zeile (`| { type: 'figure_type_set'; ... 
   | { type: 'admin_freeze_set'; frozen: boolean }
 ```
 
-- [ ] **Step 2: Server-Message hinzufuegen**
+- [x] **Step 2: Server-Message hinzufuegen**
 
 Fuege nach `| { type: 'figure_type_changed'; figureId: string; figureType: FigureType }` ein:
 
@@ -45,12 +45,12 @@ Fuege nach `| { type: 'figure_type_changed'; figureId: string; figureType: Figur
   | { type: 'moderation_state'; spotlight: string | null; dim: string | null; freeze: boolean }
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS — falls `messages.test.ts` Compile-Fehler zeigt (routeServer nicht exhaustiv), weiter mit Task 1.2.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/types/messages.ts
@@ -62,7 +62,7 @@ git commit -m "feat(brett): add spotlight/dim/freeze message types [T000471]"
 **Files:**
 - Modify: `brett/test/messages.test.ts`
 
-- [ ] **Step 1: routeServer um moderation_state erweitern**
+- [x] **Step 1: routeServer um moderation_state erweitern**
 
 In der `routeServer`-Funktion, nach `case 'figure_type_changed': return 'figure_type_changed';` einfuegen:
 
@@ -70,7 +70,7 @@ In der `routeServer`-Funktion, nach `case 'figure_type_changed': return 'figure_
     case 'moderation_state': return 'moderation_state';
 ```
 
-- [ ] **Step 2: routeClient um neue Admin-Types erweitern**
+- [x] **Step 2: routeClient um neue Admin-Types erweitern**
 
 In der `routeClient`-Funktion, nach `case 'figure_type_set': return 'figure_type_set';` einfuegen. Ausserdem die fehlenden possession-Types nachtragen, falls noch nicht vorhanden:
 
@@ -83,7 +83,7 @@ In der `routeClient`-Funktion, nach `case 'figure_type_set': return 'figure_type
     case 'admin_freeze_set': return 'admin_freeze_set';
 ```
 
-- [ ] **Step 3: HANDLED_SERVER_TYPES erweitern**
+- [x] **Step 3: HANDLED_SERVER_TYPES erweitern**
 
 In der `HANDLED_SERVER_TYPES`-Konstante `'moderation_state'` sowie fehlende possession-Types ergaenzen:
 
@@ -95,17 +95,17 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
 ]);
 ```
 
-- [ ] **Step 4: TypeScript verifizieren**
+- [x] **Step 4: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS (keine Compile-Fehler im assertNever-Default mehr)
 
-- [ ] **Step 5: Tests ausfuehren**
+- [x] **Step 5: Tests ausfuehren**
 
 Run: `cd brett && node --test test/messages.test.ts`
 Expected: alle Tests PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/test/messages.test.ts
@@ -121,7 +121,7 @@ git commit -m "test(brett): extend messages.test.ts for moderation_state exhaust
 **Files:**
 - Modify: `brett/src/server/figures.ts`
 
-- [ ] **Step 1: Drei neue Mutation-Cases hinzufuegen**
+- [x] **Step 1: Drei neue Mutation-Cases hinzufuegen**
 
 Fuege innerhalb des `switch (msg.type)` Blocks in `applyMutation()`, nach dem `case 'lobby_settings_set':` Block ein:
 
@@ -143,7 +143,7 @@ Fuege innerhalb des `switch (msg.type)` Blocks in `applyMutation()`, nach dem `c
     }
 ```
 
-- [ ] **Step 2: seedFigureMapFromState erweitern**
+- [x] **Step 2: seedFigureMapFromState erweitern**
 
 In `seedFigureMapFromState()`, nach dem `if (state.lobbySettings ...)` Block:
 
@@ -158,12 +158,12 @@ In `seedFigureMapFromState()`, nach dem `if (state.lobbySettings ...)` Block:
   }
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/server/figures.ts
@@ -175,7 +175,7 @@ git commit -m "feat(brett): add moderation sentinel mutations to applyMutation [
 **Files:**
 - Modify: `brett/src/server/phases.ts`
 
-- [ ] **Step 1: Sentinel in SPECIAL-Liste und Extraktion hinzufuegen**
+- [x] **Step 1: Sentinel in SPECIAL-Liste und Extraktion hinzufuegen**
 
 In `buildStateFromMutations()`:
 
@@ -204,12 +204,12 @@ In `buildStateFromMutations()`:
   }
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/server/phases.ts
@@ -221,7 +221,7 @@ git commit -m "feat(brett): expose moderation state in buildStateFromMutations [
 **Files:**
 - Modify: `brett/src/server/ws-handler.ts`
 
-- [ ] **Step 1: Freeze-Gate nach dem REG-1-Bypass einfuegen**
+- [x] **Step 1: Freeze-Gate nach dem REG-1-Bypass einfuegen**
 
 In `gateMutation()`, nach dem `if (!state.sessionCode && ...)` Block (REG-1 free-board bypass) und vor `const role = deps.resolveRole(...)`:
 
@@ -235,7 +235,7 @@ In `gateMutation()`, nach dem `if (!state.sessionCode && ...)` Block (REG-1 free
   }
 ```
 
-- [ ] **Step 2: ADMIN_TYPES erweitern**
+- [x] **Step 2: ADMIN_TYPES erweitern**
 
 In der `ADMIN_TYPES`-Set-Deklaration die drei neuen Admin-Types hinzufuegen:
 
@@ -250,12 +250,12 @@ export const ADMIN_TYPES = new Set<string>([
 ]);
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/server/ws-handler.ts
@@ -267,7 +267,7 @@ git commit -m "feat(brett): add freeze gate to gateMutation + spotlight/dim/free
 **Files:**
 - Modify: `brett/src/server/ws-admin-commands.ts`
 
-- [ ] **Step 1: Helper-Funktion getModerationState hinzufuegen**
+- [x] **Step 1: Helper-Funktion getModerationState hinzufuegen**
 
 Fuege eine private Hilfsfunktion am Anfang der Datei (nach den Imports) ein:
 
@@ -282,7 +282,7 @@ function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { s
 }
 ```
 
-- [ ] **Step 2: Drei neue Cases in handleAdminMessage**
+- [x] **Step 2: Drei neue Cases in handleAdminMessage**
 
 Fuege nach dem `case 'figure_type_set':` Block (vor der schliessenden geschweiften Klammer des switch) ein:
 
@@ -323,12 +323,12 @@ Fuege nach dem `case 'figure_type_set':` Block (vor der schliessenden geschweift
     }
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/server/ws-admin-commands.ts
@@ -344,7 +344,7 @@ git commit -m "feat(brett): handleAdminMessage admin_spotlight_set/dim_set/freez
 **Files:**
 - Create: `brett/test/admin-spotlight.test.ts`
 
-- [ ] **Step 1: Testdatei anlegen**
+- [x] **Step 1: Testdatei anlegen**
 
 ```typescript
 // brett/test/admin-spotlight.test.ts — T000471: Spotlight/Dim/Freeze
@@ -474,17 +474,17 @@ test('seedFigureMapFromState: moderation state survives roundtrip', () => {
 });
 ```
 
-- [ ] **Step 2: Tests ausfuehren**
+- [x] **Step 2: Tests ausfuehren**
 
 Run: `cd brett && node --test test/admin-spotlight.test.ts`
 Expected: alle Tests PASS (Sentry-Roundtrip-Test kann require-Import-Problem geben — bei Bedarf auf direkten Import umstellen)
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/test/admin-spotlight.test.ts
@@ -496,7 +496,7 @@ git commit -m "test(brett): admin-spotlight.test.ts — Spotlight/Dim/Freeze ser
 **Files:**
 - Modify: `brett/test/permissions.test.ts`
 
-- [ ] **Step 1: Import gateMutation und Freeze-Gate-Tests hinzufuegen**
+- [x] **Step 1: Import gateMutation und Freeze-Gate-Tests hinzufuegen**
 
 Fuege am Ende der Datei nach den resolveRole-Tests ein:
 
@@ -559,12 +559,12 @@ test('Freeze-Gate: beobachter jump blocked when freeze active', () => {
 });
 ```
 
-- [ ] **Step 2: Tests ausfuehren**
+- [x] **Step 2: Tests ausfuehren**
 
 Run: `cd brett && node --test test/permissions.test.ts`
 Expected: alle Tests PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/test/permissions.test.ts
@@ -580,7 +580,7 @@ git commit -m "test(brett): Freeze-Gate tests in permissions.test.ts [T000471]"
 **Files:**
 - Modify: `brett/src/client/ws-client.ts`
 
-- [ ] **Step 1: Moderation-State-Variable und Accessor anlegen**
+- [x] **Step 1: Moderation-State-Variable und Accessor anlegen**
 
 Fuege nach `let lobbyState: LobbyState = createLobbyState();` ein:
 
@@ -601,7 +601,7 @@ export function setModerationChangeHandler(fn: (state: ClientModerationState) =>
 }
 ```
 
-- [ ] **Step 2: moderation_state case in onWsMessage**
+- [x] **Step 2: moderation_state case in onWsMessage**
 
 Fuege nach `case 'figure_type_changed':` folgenden Case ein:
 
@@ -613,7 +613,7 @@ Fuege nach `case 'figure_type_changed':` folgenden Case ein:
     }
 ```
 
-- [ ] **Step 3: Snapshot-Handling — Moderation aus Snapshot laden**
+- [x] **Step 3: Snapshot-Handling — Moderation aus Snapshot laden**
 
 Im `case 'snapshot':` Block, nach `if (msg.optik) applyOptikToScene(msg.optik);` einfuegen:
 
@@ -629,7 +629,7 @@ Im `case 'snapshot':` Block, nach `if (msg.optik) applyOptikToScene(msg.optik);`
       }
 ```
 
-- [ ] **Step 4: Snapshot-ServerMessage-Type um moderation erweitern**
+- [x] **Step 4: Snapshot-ServerMessage-Type um moderation erweitern**
 
 In `messages.ts`, die `snapshot`-ServerMessage-Variante um `moderation?` ergaenzen:
 
@@ -637,12 +637,12 @@ In `messages.ts`, die `snapshot`-ServerMessage-Variante um `moderation?` ergaenz
   | { type: 'snapshot'; figures: Figure[]; stiffness?: number; locks?: ServerLock[]; phase?: Phase; sessionCode?: string | null; optik?: OptikSettings; participants?: Participant[]; moderation?: { spotlight: string | null; dim: string | null; freeze: boolean } }
 ```
 
-- [ ] **Step 5: TypeScript verifizieren**
+- [x] **Step 5: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/ws-client.ts brett/src/types/messages.ts
@@ -654,7 +654,7 @@ git commit -m "feat(brett): receive moderation_state in ws-client + rehydrate fr
 **Files:**
 - Modify: `brett/src/server/ws-handler.ts`
 
-- [ ] **Step 1: Moderation in Join-Snapshot aufnehmen**
+- [x] **Step 1: Moderation in Join-Snapshot aufnehmen**
 
 Im `join`-Handler, bei der Snapshot-Zusammenstellung (wo `optik: freshState.optik` steht), `moderation` hinzufuegen:
 
@@ -672,12 +672,12 @@ Im `join`-Handler, bei der Snapshot-Zusammenstellung (wo `optik: freshState.opti
               }));
 ```
 
-- [ ] **Step 2: TypeScript verifizieren**
+- [x] **Step 2: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/server/ws-handler.ts
@@ -693,7 +693,7 @@ git commit -m "feat(brett): include moderation in join snapshot [T000471]"
 **Files:**
 - Modify: `brett/src/client/mannequin.ts`
 
-- [ ] **Step 1: Freeze-Eis-Sprite zur Mannequin-Fabrik hinzufuegen**
+- [x] **Step 1: Freeze-Eis-Sprite zur Mannequin-Fabrik hinzufuegen**
 
 In `makeMannequin()`, nach dem `labelSprite`-Block (vor `const { scene } = getScene();`), ein Freeze-Sprite anlegen:
 
@@ -723,7 +723,7 @@ Und im `return`-Statement des `makeMannequin`-Objekts `freezeSprite` hinzufuegen
     freezeSprite,
 ```
 
-- [ ] **Step 2: updateModerationVisuals Funktion hinzufuegen**
+- [x] **Step 2: updateModerationVisuals Funktion hinzufuegen**
 
 Fuege nach `updatePossessionVisuals` eine neue exportierte Funktion ein:
 
@@ -830,12 +830,12 @@ export function clearModerationVisuals(figures: any[]): void {
 }
 ```
 
-- [ ] **Step 3: TypeScript verifizieren**
+- [x] **Step 3: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS (Three.js-Typen sind importiert; falls `emissiveIntensity` fehlt, cast via `(m as any).emissiveIntensity`)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/src/client/mannequin.ts
@@ -847,7 +847,7 @@ git commit -m "feat(brett): updateModerationVisuals + freeze sprite in mannequin
 **Files:**
 - Modify: `brett/src/client/board-boot.ts`
 
-- [ ] **Step 1: Imports erweitern**
+- [x] **Step 1: Imports erweitern**
 
 In der Import-Sektion von `board-boot.ts`:
 
@@ -856,7 +856,7 @@ import * as mannequin from './mannequin';
 import type { ClientModerationState } from './ws-client';
 ```
 
-- [ ] **Step 2: Freeze-Indikator-Banner anlegen**
+- [x] **Step 2: Freeze-Indikator-Banner anlegen**
 
 In `bootBoard()`, nach dem `releaseBtn`-Block (vor dem Stiffness-Slider):
 
@@ -886,7 +886,7 @@ In `bootBoard()`, nach dem `releaseBtn`-Block (vor dem Stiffness-Slider):
   document.body.appendChild(freezeBanner);
 ```
 
-- [ ] **Step 3: Moderation-State-Handler registrieren**
+- [x] **Step 3: Moderation-State-Handler registrieren**
 
 Nach `wsClient.connectWS();`:
 
@@ -899,7 +899,7 @@ Nach `wsClient.connectWS();`:
   });
 ```
 
-- [ ] **Step 4: Moderation-Tick im Render-Loop aufrufen**
+- [x] **Step 4: Moderation-Tick im Render-Loop aufrufen**
 
 Im `tick()`-Loop, nach `mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);`:
 
@@ -908,7 +908,7 @@ Im `tick()`-Loop, nach `mannequin.updatePossessionVisuals(STATE.figures, current
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);
 ```
 
-- [ ] **Step 5: Freeze-Gate im Drag-Handler**
+- [x] **Step 5: Freeze-Gate im Drag-Handler**
 
 Im `mousedown`-Handler, nach dem `const lock = activeLocks.get(fig.id);` Check, vor dem Drag-Start:
 
@@ -924,12 +924,12 @@ Im `mousedown`-Handler, nach dem `const lock = activeLocks.get(fig.id);` Check, 
       }
 ```
 
-- [ ] **Step 6: TypeScript verifizieren**
+- [x] **Step 6: TypeScript verifizieren**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add brett/src/client/board-boot.ts
@@ -945,7 +945,7 @@ git commit -m "feat(brett): freeze banner + moderation tick in board-boot [T0004
 **Files:**
 - (keine Dateiänderungen)
 
-- [ ] **Step 1: Brett-Testsuite ausfuehren**
+- [x] **Step 1: Brett-Testsuite ausfuehren**
 
 Run: `cd brett && node --test test/`
 Expected: alle Tests PASS — insbesondere:
@@ -954,17 +954,17 @@ Expected: alle Tests PASS — insbesondere:
   - `messages.test.ts` — moderation_state exhaustiveness
   - `server-admin.test.ts` — vorhandene Admin-Tests unveraendert
 
-- [ ] **Step 2: TypeScript full compile**
+- [x] **Step 2: TypeScript full compile**
 
 Run: `cd brett && npx tsc --noEmit`
 Expected: PASS (0 errors)
 
-- [ ] **Step 3: Repo-Tests ausfuehren**
+- [x] **Step 3: Repo-Tests ausfuehren**
 
 Run: `bash /tmp/wt-brett-spotlight-dim-freeze/scripts/task-oracle.sh 'run all offline tests'` oder `task test:all` im Repo-Root
 Expected: CI-relevante Tests PASS
 
-- [ ] **Step 4: Commit (falls noetig fuer kleine Fixes)**
+- [x] **Step 4: Commit (falls noetig fuer kleine Fixes)**
 
 ```bash
 git add -p
@@ -973,13 +973,13 @@ git commit -m "fix(brett): post-test cleanup for spotlight/dim/freeze [T000471]"
 
 ### Task 6.2: PR erstellen
 
-- [ ] **Step 1: Branch pushen**
+- [x] **Step 1: Branch pushen**
 
 ```bash
 git push -u origin feature/brett-spotlight-dim-freeze
 ```
 
-- [ ] **Step 2: PR anlegen**
+- [x] **Step 2: PR anlegen**
 
 ```bash
 gh pr create \
@@ -994,23 +994,23 @@ gh pr create \
 - Neue Tests: \`admin-spotlight.test.ts\` (Sentinel-Roundtrip, DB-Seed), Freeze-Gate in \`permissions.test.ts\`
 
 ## Test plan
-- [ ] \`cd brett && node --test test/admin-spotlight.test.ts\` → alle PASS
-- [ ] \`cd brett && node --test test/permissions.test.ts\` → Freeze-Gate Tests PASS
-- [ ] \`cd brett && node --test test/messages.test.ts\` → moderation_state exhaustiveness PASS
-- [ ] \`cd brett && npx tsc --noEmit\` → 0 errors
-- [ ] \`task test:all\` im Repo-Root → CI-relevante Tests PASS
+- [x] \`cd brett && node --test test/admin-spotlight.test.ts\` → alle PASS
+- [x] \`cd brett && node --test test/permissions.test.ts\` → Freeze-Gate Tests PASS
+- [x] \`cd brett && node --test test/messages.test.ts\` → moderation_state exhaustiveness PASS
+- [x] \`cd brett && npx tsc --noEmit\` → 0 errors
+- [x] \`task test:all\` im Repo-Root → CI-relevante Tests PASS
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 ```
 
-- [ ] **Step 3: CI beobachten**
+- [x] **Step 3: CI beobachten**
 
 ```bash
 gh pr checks --watch
 ```
 Expected: alle CI-Checks PASS
 
-- [ ] **Step 4: Nach Merge — Branch aufraemen**
+- [x] **Step 4: Nach Merge — Branch aufraemen**
 
 ```bash
 git checkout main && git pull --rebase origin main

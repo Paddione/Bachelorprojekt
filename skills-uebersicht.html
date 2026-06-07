@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code — Skill-Übersicht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Newsreader:ital,opsz,wght@0,16..72,300;0,16..72,400;0,16..72,500;0,16..72,600;1,16..72,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f12;
+  --surface: #15181e;
+  --surface-raised: #1c1f27;
+  --border: #2a2d35;
+  --border-active: #4a4d55;
+  --text: #c8ccd4;
+  --text-muted: #6b6f78;
+  --text-dim: #4a4d55;
+  --accent: #e5a83e;
+  --accent-glow: rgba(229, 168, 62, 0.15);
+  --accent-strong: #f0b84d;
+  --green: #5ea97a;
+  --green-bg: rgba(94, 169, 122, 0.12);
+  --red: #d4706a;
+  --blue: #6b9cbd;
+  --purple: #a48cd3;
+  --teal: #70b5a9;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-mono: 'DM Mono', 'Cascadia Code', 'JetBrains Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-display);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Background pattern */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 1200px 800px at 20% 10%, rgba(229, 168, 62, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 800px 600px at 80% 50%, rgba(107, 156, 189, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse 600px 900px at 50% 90%, rgba(164, 140, 211, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle dot grid */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+/* ── Layout ─────────────────────── */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ─────────────────────── */
+.header {
+  padding: 5rem 0 3rem;
+  text-align: center;
+  position: relative;
+}
+
+.header::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: var(--accent);
+  margin: 2rem auto 0;
+  opacity: 0.5;
+}
+
+.header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 500;
+  color: #e8eaf0;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.header h1 span {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.header .subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.8rem;
+}
+
+/* ── Stats bar ──────────────────── */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stats-bar .stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-bar .stat strong {
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+/* ── Search ─────────────────────── */
+.search-wrap {
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+  padding: 1rem 0 1.5rem;
+  background: linear-gradient(to bottom, var(--bg) 60%, transparent);
+}
+
+.search-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.85rem 1rem 0.85rem 3rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem 0.5rem;
+  display: none;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+
+.search-clear:hover { color: var(--text); background: var(--border); }
+.search-clear.visible { display: block; }
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-style: italic;
+  display: none;
+}
+
+.no-results.visible { display: block; }
+
+/* ── Category Section ───────────── */
+.category {
+  margin-bottom: 2.5rem;
+  scroll-margin-top: 6rem;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5rem 0;
+  transition: opacity 0.2s;
+}
+
+.category-header:hover { opacity: 0.8; }
+
+.category-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.category-icon.process { background: rgba(229,168,62,0.12); color: var(--accent); }
+.category-icon.devflow { background: rgba(107,156,189,0.12); color: var(--blue); }
+.category-icon.infra { background: rgba(164,140,211,0.12); color: var(--purple); }
+.category-icon.quality { background: rgba(94,169,122,0.12); color: var(--green); }
+.category-icon.plugin { background: rgba(208,130,105,0.12); color: #d08269; }
+.category-icon.frontend { background: rgba(200,140,180,0.12); color: #c88cb4; }
+.category-icon.browser { background: rgba(112,181,169,0.12); color: var(--teal); }
+.category-icon.hf { background: rgba(240,180,77,0.12); color: #f0b44d; }
+.category-icon.utils { background: rgba(140,155,175,0.12); color: #8c9baf; }
+
+.category-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #d8dce4;
+  letter-spacing: -0.01em;
+}
+
+.category-count {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+.category-toggle {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  transition: transform 0.3s;
+}
+
+.category.collapsed .category-toggle { transform: rotate(-90deg); }
+.category.collapsed .skill-grid { display: none; }
+
+/* ── Skill Cards ────────────────── */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.75rem;
+}
+
+.skill-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  animation: cardIn 0.4s ease-out backwards;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.skill-card:hover {
+  border-color: var(--border-active);
+  background: var(--surface-raised);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.skill-card.filtered-out {
+  display: none;
+}
+
+.skill-card .card-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 0.45rem;
+  flex-shrink: 0;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.skill-card .card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.skill-card .skill-name {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #dde1e8;
+  word-break: break-all;
+  letter-spacing: -0.01em;
+}
+
+.skill-card .skill-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.skill-card .copy-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  margin-top: -2px;
+}
+
+.skill-card .copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(229,168,62,0.08);
+}
+
+.skill-card .copy-btn.copied {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-bg);
+}
+
+.skill-card .copy-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Toast ──────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius);
+  padding: 0.7rem 1.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text);
+  z-index: 999;
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ── Footer ─────────────────────── */
+.footer {
+  text-align: center;
+  padding: 3rem 0 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+/* ── Scrollbar ──────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+/* ── Quick-nav sidebar ──────────── */
+.quick-nav {
+  position: fixed;
+  right: max(1.5rem, calc((100vw - 1100px) / 2 - 3rem));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.quick-nav a {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s, transform 0.2s;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+.quick-nav a:hover,
+.quick-nav a.active {
+  background: var(--accent);
+  transform: scale(1.4);
+}
+
+@media (max-width: 1300px) {
+  .quick-nav { display: none; }
+}
+
+@media (max-width: 700px) {
+  .container { padding: 0 1rem; }
+  .skill-grid { grid-template-columns: 1fr; }
+  .header { padding: 3rem 0 2rem; }
+  .stats-bar { gap: 1.2rem; flex-wrap: wrap; }
+}
+
+/* ── Highlight matches ──────────── */
+.skill-card mark {
+  background: rgba(229,168,62,0.25);
+  color: var(--accent-strong);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* ── Selection colors ──────────── */
+::selection { background: rgba(229,168,62,0.3); color: #e8eaf0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header class="header">
+    <h1>Claude Code <span>Skill</span>-Übersicht</h1>
+    <p class="subtitle">Systematisches Verzeichnis aller verfügbaren Skills</p>
+    <div class="stats-bar">
+      <div class="stat"><strong id="totalCount">—</strong> Skills</div>
+      <div class="stat"><strong id="catCount">—</strong> Kategorien</div>
+    </div>
+  </header>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <div class="search-inner">
+      <span class="search-icon">⌕</span>
+      <input
+        type="text"
+        class="search-input"
+        id="searchInput"
+        placeholder="Skills durchsuchen …"
+        autocomplete="off"
+      >
+      <button class="search-clear" id="searchClear" aria-label="Suche löschen">✕</button>
+    </div>
+  </div>
+
+  <div class="no-results" id="noResults">
+    Keine Skills gefunden. Anderen Suchbegriff versuchen?
+  </div>
+
+  <!-- Skills injected by JS -->
+  <div id="skillsContainer"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    Bachelorprojekt · Stand Juni 2026 · Klick auf 〈📋〉 kopiert den Skill-Namen
+  </footer>
+
+</div>
+
+<!-- Quick nav -->
+<nav class="quick-nav" id="quickNav"></nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Skill Data ─────────────────────
+const categories = [
+  {
+    id: 'superpowers',
+    title: 'Superpowers — Arbeitsprozess & Methodik',
+    icon: '⚡',
+    iconClass: 'process',
+    skills: [
+      ['superpowers:brainstorming', 'Vor jeder kreativen Arbeit — Anforderungen, Design & User-Intent erkunden'],
+      ['superpowers:test-driven-development', 'Test-first: roter Test → grüner Test → Refactoring vor jeder Implementierung'],
+      ['superpowers:writing-plans', 'Mehrschrittige Implementierungspläne aus Specs erstellen'],
+      ['superpowers:executing-plans', 'Plan in isolierter Session mit Review-Checkpoints abarbeiten'],
+      ['superpowers:subagent-driven-development', 'Plan mit unabhängigen Tasks parallel per Subagenten umsetzen'],
+      ['superpowers:dispatching-parallel-agents', '2+ unabhängige Aufgaben parallel ausführen'],
+      ['superpowers:using-git-worktrees', 'Isolation via git worktree vor Plan-Implementierung'],
+      ['superpowers:systematic-debugging', 'Strukturierte Fehlersuche statt Ad-hoc-Fixes'],
+      ['superpowers:verification-before-completion', 'Ergebnisse verifizieren, bevor etwas als fertig gemeldet wird'],
+      ['superpowers:requesting-code-review', 'Review anfordern bei Task-Abschluss, großen Features oder vor Merge'],
+      ['superpowers:receiving-code-review', 'Review-Feedback technisch prüfen statt blind übernehmen'],
+      ['superpowers:finishing-a-development-branch', 'Strukturierte Merge/PR/Aufräum-Entscheidung nach Implementierung'],
+      ['superpowers:writing-skills', 'Neue Skills erstellen, editieren oder vor Deployment verifizieren'],
+      ['superpowers:using-superpowers', 'Start jeder Conversation — legt fest, wie Skills gefunden werden'],
+    ]
+  },
+  {
+    id: 'devflow',
+    title: 'Dev-Flow — Feature-Entwicklung (Bachelorprojekt)',
+    icon: '🏗️',
+    iconClass: 'devflow',
+    skills: [
+      ['dev-flow-plan', 'Entwicklungsweg wählen, Brainstorming, Spec + Plan, committen & pushen'],
+      ['dev-flow-execute', 'Implementierung ausführen, verifizieren, PR erstellen (auf Branch mit Plan)'],
+      ['dev-flow-iterate', 'Iterativ gegen k3d-Cluster entwickeln — Deploy, Logs, Fehler beheben'],
+      ['dev-flow-e2e', 'Playwright E2E-Tests nach Deployment schreiben & ausführen'],
+    ]
+  },
+  {
+    id: 'infra',
+    title: 'Infrastruktur & Betrieb',
+    icon: '☸️',
+    iconClass: 'infra',
+    skills: [
+      ['cluster-deployment', 'Cluster-Erstellung, Deployment, Gap-Analyse, dev.mentolder.de Stack'],
+      ['fleet-ops', 'Mandantenübergreifend deployen/verifizieren — Fan-out, Promotion, Smoke-Gates'],
+      ['host-node-networking', 'Hetzner-Provisioning, WireGuard-Mesh, UFW, LiveKit-Networking, WSL-Gateway'],
+      ['operations-management', 'Incident Response, Ticket-Management, Repo-Hygiene, PR-Triage, CI/CD-Merge'],
+      ['secret-rotation', 'Secrets rotieren — DB-Passwörter, API-Keys, Sealed-Secrets nach Cluster-Reset'],
+      ['keycloak-realm-sync', 'Keycloak-Realm abgleichen — OIDC-Clients, Gruppen, Realm-JSON, SSO-Fehler'],
+      ['arena-brett-deploy', 'Arena-Server (WebSocket) oder Brett (3D-Multiplayer) bauen & deployen'],
+      ['database-ops', 'DB-Operationen, Schema-Migrationen, DDL-Ownership, Backup/Restore-Audits'],
+      ['knowledge-management', 'Knowledge-Base, Embedding-Pipelines, TEI vs Voyage, Crawler-Management'],
+      ['mishap-tracker', 'MISHAP_LOG aus anderen Skills in tickets.tickets-Einträge konvertieren'],
+    ]
+  },
+  {
+    id: 'packages',
+    title: 'Paketmanagement',
+    icon: '📦',
+    iconClass: 'utils',
+    skills: [
+      ['update-dependencies', 'Paket-Updates — Deprecation-Audit, Major-Bumps, Lockfile, Rollback, EOL-Check'],
+    ]
+  },
+  {
+    id: 'plugin',
+    title: 'Plugin-Entwicklung',
+    icon: '🔌',
+    iconClass: 'plugin',
+    skills: [
+      ['plugin-dev:plugin-structure', 'Plugin-Verzeichnislayout, Manifest, Auto-Discovery, Architektur'],
+      ['plugin-dev:create-plugin', 'Geführter End-to-End-Workflow für neue Plugins'],
+      ['plugin-dev:agent-development', 'Subagent — System-Prompt, Trigger, Frontmatter, Tools'],
+      ['plugin-dev:command-development', 'Slash-Command — YAML-Frontmatter, Argumente, Bash, Interaktivität'],
+      ['plugin-dev:skill-development', 'Skill — Struktur, Progressive-Disclosure, Trigger-Optimierung'],
+      ['plugin-dev:hook-development', 'Hooks (PreToolUse, PostToolUse, Stop, etc.) — Event-Automatisierung'],
+      ['plugin-dev:mcp-integration', 'MCP-Server in Plugins integrieren (SSE, stdio, HTTP, WebSocket)'],
+      ['plugin-dev:plugin-settings', 'Plugin-Konfiguration via .local.md mit YAML-Frontmatter'],
+    ]
+  },
+  {
+    id: 'quality',
+    title: 'Code-Review & Qualität',
+    icon: '🔍',
+    iconClass: 'quality',
+    skills: [
+      ['code-review:code-review', 'PR reviewen — Korrektheits-Bugs, Wiederverwendung, Vereinfachung'],
+      ['pr-review-toolkit:review-pr', 'Umfassender PR-Review mit spezialisierten Agenten'],
+      ['commit-commands:commit', 'Git-Commit erstellen'],
+      ['commit-commands:commit-push-pr', 'Commit → Push → PR öffnen als ein Workflow'],
+      ['commit-commands:clean_gone', '[gone]-Branches und zugehörige Worktrees aufräumen'],
+      ['codequality-gates-sliceA-plan', 'Slice-A-Implementierungsplan für Codequality-Gates'],
+    ]
+  },
+  {
+    id: 'sdk',
+    title: 'Agent SDK',
+    icon: '🤖',
+    iconClass: 'utils',
+    skills: [
+      ['agent-sdk-dev:new-sdk-app', 'Neue Claude Agent SDK App erstellen und einrichten'],
+    ]
+  },
+  {
+    id: 'frontend',
+    title: 'Frontend & Design',
+    icon: '🎨',
+    iconClass: 'frontend',
+    skills: [
+      ['frontend-design:frontend-design', 'Produktionsreife Frontend-Interfaces — kreativ, unverwechselbar, kein KI-Einheitslook'],
+    ]
+  },
+  {
+    id: 'browser',
+    title: 'Browser-Automatisierung (Chrome DevTools MCP)',
+    icon: '🌐',
+    iconClass: 'browser',
+    skills: [
+      ['chrome-devtools-mcp:chrome-devtools', 'Debugging & Browser-Automatisierung via MCP'],
+      ['chrome-devtools-mcp:chrome-devtools-cli', 'Shell-Skripte für Browser-Automatisierung'],
+      ['chrome-devtools-mcp:a11y-debugging', 'Accessibility-Audit — HTML, ARIA, Fokus, Tastatur, Kontrast'],
+      ['chrome-devtools-mcp:debug-optimize-lcp', 'Largest Contentful Paint (LCP) debuggen & optimieren'],
+      ['chrome-devtools-mcp:memory-leak-debugging', 'Memory-Leaks in JavaScript/Node.js diagnostizieren'],
+      ['chrome-devtools-mcp:troubleshooting', 'Verbindungsprobleme mit Chrome DevTools MCP beheben'],
+    ]
+  },
+  {
+    id: 'huggingface',
+    title: 'HuggingFace-Ökosystem',
+    icon: '🤗',
+    iconClass: 'hf',
+    skills: [
+      ['huggingface-skills:hf-cli', 'hf CLI — Modelle, Datasets, Spaces, Buckets, Paper, Jobs'],
+      ['huggingface-skills:huggingface-best', 'Bestes Modell für Aufgabe finden (Benchmark-Vergleich)'],
+      ['huggingface-skills:huggingface-local-models', 'Modelle lokal mit llama.cpp/GGUF ausführen'],
+      ['huggingface-skills:huggingface-llm-trainer', 'LLMs mit TRL/Unsloth auf HF Jobs trainieren/finetunen'],
+      ['huggingface-skills:huggingface-vision-trainer', 'Vision-Modelle trainieren (Detection, Classification, SAM)'],
+      ['huggingface-skills:train-sentence-transformers', 'Sentence-Transformer — Bi-Encoder, Cross-Encoder, Sparse'],
+      ['huggingface-skills:huggingface-datasets', 'HF Dataset Viewer API — Metadaten, Paginierung, Filter'],
+      ['huggingface-skills:huggingface-spaces', 'Apps auf HF Spaces — Gradio, Docker, Static, ZeroGPU'],
+      ['huggingface-skills:huggingface-gradio', 'Gradio Web-UIs in Python bauen'],
+      ['huggingface-skills:huggingface-zerogpu', 'ZeroGPU-Code-Konstraints (@spaces.GPU, Pickle-Isolation)'],
+      ['huggingface-skills:huggingface-papers', 'HF Paper-Seiten lesen, arXiv via API abrufen'],
+      ['huggingface-skills:huggingface-paper-publisher', 'Research-Paper auf HF Hub publizieren'],
+      ['huggingface-skills:huggingface-community-evals', 'Modelle lokal mit inspect-ai/lighteval evaluieren'],
+      ['huggingface-skills:huggingface-tool-builder', 'Wiederverwendbare Skripte für HF-API-Daten'],
+      ['huggingface-skills:huggingface-trackio', 'ML-Training mit Trackio tracken & visualisieren'],
+      ['huggingface-skills:transformers-js', 'Transformers.js — ML-Modelle in JavaScript/TypeScript'],
+    ]
+  },
+  {
+    id: 'utils',
+    title: 'Sonstige Utilities',
+    icon: '🛠️',
+    iconClass: 'utils',
+    skills: [
+      ['deep-research', 'Tiefgehende Recherche — Websuche, Quellen, adversarial, zitierter Report'],
+      ['skill-creator:skill-creator', 'Skills erstellen, editieren, optimieren, evaluieren, Benchmark-Analyse'],
+      ['loop', 'Wiederkehrender Task in Intervallen (z.B. /loop 5m /check-deploy)'],
+      ['hookify:hookify', 'Hooks aus Conversation-Analyse oder expliziten Anweisungen erstellen'],
+      ['hookify:configure', 'Hookify-Regeln interaktiv ein-/ausschalten'],
+      ['hookify:list', 'Alle konfigurierten Hookify-Regeln auflisten'],
+      ['hookify:help', 'Hilfe zum Hookify-Plugin'],
+      ['hookify:writing-rules', 'Hookify-Regel-Syntax und -Patterns'],
+      ['remember:remember', 'Session-Status für saubere Fortsetzung speichern'],
+      ['verify', 'Code-Änderung durch Ausführen der App verifizieren'],
+      ['feature-dev:feature-dev', 'Geführte Feature-Entwicklung mit Codebase-Verständnis'],
+      ['init', 'Neue CLAUDE.md mit Codebase-Dokumentation initialisieren'],
+      ['review', 'Pull Request reviewen'],
+      ['security-review', 'Security-Review der pending Changes auf aktuellem Branch'],
+      ['simplify', 'Code auf Wiederverwendung, Vereinfachung, Effizienz prüfen'],
+      ['fewer-permission-prompts', 'Transcripts scannen, Allowlist für read-only Befehle erstellen'],
+      ['claude-api', 'Claude API / Anthropic SDK Referenz — Modelle, Pricing, Tokens, Caching'],
+      ['keybindings-help', 'Tastaturkürzel anpassen — Keybindings, Chord-Shortcuts'],
+      ['update-config', 'CLI-Konfiguration via settings.json — Permissions, Env-Vars, Hooks'],
+    ]
+  },
+];
+
+// ── Render ─────────────────────────
+const container = document.getElementById('skillsContainer');
+const quickNav = document.getElementById('quickNav');
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const noResults = document.getElementById('noResults');
+const toast = document.getElementById('toast');
+const totalCountEl = document.getElementById('totalCount');
+const catCountEl = document.getElementById('catCount');
+
+let totalSkills = 0;
+let allCards = [];
+let cardToSkill = new Map(); // card element → skill name
+
+categories.forEach((cat, ci) => {
+  const section = document.createElement('section');
+  section.className = 'category';
+  section.id = 'cat-' + cat.id;
+
+  section.innerHTML = `
+    <div class="category-header" data-cat="${cat.id}">
+      <div class="category-icon ${cat.iconClass}">${cat.icon}</div>
+      <h2 class="category-title">${cat.title}</h2>
+      <span class="category-count">${cat.skills.length} Skills</span>
+      <span class="category-toggle">▼</span>
+    </div>
+    <div class="skill-grid">
+      ${cat.skills.map((s, si) => {
+        const idx = totalSkills + si;
+        return `
+          <div class="skill-card" data-search="${s[0].toLowerCase()} ${s[1].toLowerCase()} ${cat.title.toLowerCase()}" style="animation-delay:${idx * 0.02}s">
+            <div class="card-dot"></div>
+            <div class="card-body">
+              <div class="skill-name">${s[0]}</div>
+              <div class="skill-desc">${s[1]}</div>
+            </div>
+            <button class="copy-btn" title="Skill-Namen kopieren" data-skill="${s[0]}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+              </svg>
+            </button>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+
+  container.appendChild(section);
+  totalSkills += cat.skills.length;
+
+  // Quick nav dot
+  const dot = document.createElement('a');
+  dot.href = '#cat-' + cat.id;
+  dot.title = cat.title.split('—')[0].trim();
+  dot.textContent = cat.title;
+  quickNav.appendChild(dot);
+});
+
+totalCountEl.textContent = totalSkills;
+catCountEl.textContent = categories.length;
+
+// Collect all cards
+allCards = Array.from(document.querySelectorAll('.skill-card'));
+allCards.forEach(card => {
+  const btn = card.querySelector('.copy-btn');
+  if (btn) cardToSkill.set(card, btn.dataset.skill);
+});
+
+// ── Category collapse ─────────────
+document.querySelectorAll('.category-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('collapsed');
+  });
+});
+
+// ── Copy ──────────────────────────
+let toastTimer;
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  toast.textContent = msg;
+  toast.classList.add('show');
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const skillName = btn.dataset.skill;
+    try {
+      await navigator.clipboard.writeText(skillName);
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+      showToast(`„${skillName}“ kopiert`);
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+      }, 1500);
+    } catch {
+      // Fallback: select text
+      const ta = document.createElement('textarea');
+      ta.value = skillName;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(`„${skillName}“ kopiert (Fallback)`);
+    }
+  });
+});
+
+// ── Search ────────────────────────
+function doSearch() {
+  const query = searchInput.value.toLowerCase().trim();
+  let visibleCount = 0;
+
+  if (query) {
+    searchClear.classList.add('visible');
+  } else {
+    searchClear.classList.remove('visible');
+  }
+
+  // Per card
+  allCards.forEach(card => {
+    const haystack = card.dataset.search;
+    if (!query || haystack.includes(query)) {
+      card.classList.remove('filtered-out');
+      visibleCount++;
+      // Highlight
+      const nameEl = card.querySelector('.skill-name');
+      const descEl = card.querySelector('.skill-desc');
+      if (query) {
+        highlightText(nameEl, query);
+        highlightText(descEl, query);
+      } else {
+        nameEl.innerHTML = nameEl.textContent;
+        descEl.innerHTML = descEl.textContent;
+      }
+    } else {
+      card.classList.add('filtered-out');
+    }
+  });
+
+  // Show/hide empty categories
+  document.querySelectorAll('.category').forEach(cat => {
+    const visibleCards = cat.querySelectorAll('.skill-card:not(.filtered-out)');
+    if (query && visibleCards.length === 0) {
+      cat.style.display = 'none';
+    } else {
+      cat.style.display = '';
+    }
+  });
+
+  // No results
+  if (query && visibleCount === 0) {
+    noResults.classList.add('visible');
+  } else {
+    noResults.classList.remove('visible');
+  }
+}
+
+function highlightText(el, query) {
+  const text = el.textContent;
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1) {
+    el.innerHTML = text;
+    return;
+  }
+  const before = text.slice(0, idx);
+  const match = text.slice(idx, idx + query.length);
+  const after = text.slice(idx + query.length);
+  el.innerHTML = before + '<mark>' + match + '</mark>' + after;
+}
+
+searchInput.addEventListener('input', doSearch);
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  doSearch();
+  searchInput.focus();
+});
+
+// Keyboard shortcut: / focuses search
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement !== searchInput && !e.target.closest('input,textarea,[contenteditable]')) {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+  if (e.key === 'Escape' && document.activeElement === searchInput) {
+    searchInput.value = '';
+    doSearch();
+    searchInput.blur();
+  }
+});
+
+// ── Intersection Observer for quick-nav active dot ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.quick-nav a').forEach(dot => {
+        dot.classList.toggle('active', dot.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+document.querySelectorAll('.category').forEach(cat => observer.observe(cat));
+
+// ── Init ──────────────────────────
+// Show "⌘/" hint in placeholder after load
+searchInput.placeholder = 'Skills durchsuchen … (drücke /)';
+</script>
+</body>
+</html>

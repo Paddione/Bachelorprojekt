@@ -1,4 +1,4 @@
-import type { Figure, FigureAppearance, OptikSettings, Participant, Phase, Role } from './state';
+import type { Figure, FigureAppearance, FigureType, OptikSettings, Participant, Phase, Role } from './state';
 
 // ── Client → Server ──────────────────────────────────────────────
 export type ClientMessage =
@@ -27,7 +27,10 @@ export type ClientMessage =
   | { type: 'admin_assign_figure'; figureId: string; toPlayerId: string | null }
   | { type: 'admin_set_template'; templateId: string }
   | { type: 'admin_set_optik'; settings: OptikSettings }
-  | { type: 'lobby_set_ready'; ready: boolean };
+  | { type: 'lobby_set_ready'; ready: boolean }
+  | { type: 'figure_possess'; figureId: string }
+  | { type: 'figure_release'; figureId?: string }
+  | { type: 'figure_type_set'; figureId: string; figureType: FigureType };
 
 // ── Server → Client ──────────────────────────────────────────────
 export type ServerMessage =
@@ -54,6 +57,9 @@ export type ServerMessage =
   | { type: 'figure_owner_changed'; figureId: string; ownerId: string | null }
   | { type: 'lobby_ready_changed'; userId: string; ready: boolean }
   | { type: 'lobby_settings_change'; templateId?: string; optik?: OptikSettings }
+  | { type: 'figure_possessed'; figureId: string; playerId: string; playerName?: string }
+  | { type: 'figure_released'; figureId: string; playerId: string }
+  | { type: 'figure_type_changed'; figureId: string; figureType: FigureType }
   | { type: 'error'; reason: string };
 
 export interface ServerLock {

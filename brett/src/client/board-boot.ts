@@ -27,7 +27,6 @@ import * as freeFly from './free-fly-camera';
 import * as exportUi from './ui/export';
 import * as groundObjects from './ground-objects';
 import { initUndoRedo } from './ui/undo-redo-ui';
-import { updateLinePositions } from './scene-lines';
 import { createReplayController, type ReplayBoardState } from './replay-engine';
 import { renderTimeline } from './ui/timeline';
 
@@ -416,8 +415,6 @@ export async function bootBoard(): Promise<void> {
     mannequin.updatePossessionVisuals(STATE.figures, currentUser.userId);
     // T000471: Moderation visuals (Spotlight/Dim/Freeze)
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);
-    // T000467: Update line positions when figures move
-    updateLinePositions();
 
     // T3 Single-Writer: POV has highest priority
     if (povCamera.isInPov()) {

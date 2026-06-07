@@ -241,6 +241,16 @@ env_vars:
     default_dev: ""
     description: "Port ComfyUI listens on. Must NOT be 8188 (conflicts with Janus WebSocket)."
 
+  - name: RIGGER_HOST_IP
+    required: false
+    default_dev: ""
+    description: "Mesh IP of the GPU host running the Blender Rigger service. Defaults to COMFY_HOST_IP when empty."
+
+  - name: RIGGER_PORT
+    required: false
+    default_dev: "8190"
+    description: "Port the Rigger FastAPI service listens on. Default 8190."
+
   - name: LLM_ROUTER_URL
     required: true
     default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"

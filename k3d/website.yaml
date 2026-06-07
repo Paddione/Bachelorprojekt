@@ -401,6 +401,10 @@ spec:
               value: "${COMFY_HOST_IP}"
             - name: COMFY_PORT
               value: "${COMFY_PORT}"
+            - name: RIGGER_HOST_IP
+              value: "${RIGGER_HOST_IP}"
+            - name: RIGGER_PORT
+              value: "${RIGGER_PORT}"
             - name: BRETT_OIDC_SECRET
               valueFrom:
                 secretKeyRef:

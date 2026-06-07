@@ -50,7 +50,16 @@ export function captureBeforeSnapshot(
 ): Map<string, any | null> {
   const figs = figureMaps.get(room);
   const snap = new Map<string, any | null>();
-  if (!figs) return snap;
+
+  // Special-case 'add' when room doesn't exist yet: figure definitely doesn't exist.
+  if (!figs) {
+    if (msg.type === 'add') {
+      const figData = msg.figure ?? msg.fig;
+      const id = figData?.id;
+      if (typeof id === 'string') snap.set(id, null);
+    }
+    return snap;
+  }
 
   switch (msg.type) {
     case 'clear': {

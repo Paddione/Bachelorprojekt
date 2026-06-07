@@ -120,3 +120,12 @@ test('REG-1: enforcement re-engages the moment roles exist (no bypass once sessi
   applyMutation(room, { type: 'roles_set', roles: { 'u-beob': 'beobachter' } });
   assert.strictEqual(gateMutation(beobWs, room, 'move', 'f1', deps), false, 'enforced once roles exist');
 });
+
+// ── T000467: Linien-Mutations sind in ADMIN_TYPES (isAdmin-Gate) ──────────────
+test('T000467: line_create is in ADMIN_TYPES (not in RELAY_TYPES)', () => {
+  const { ADMIN_TYPES, RELAY_TYPES } = require('../src/server/index') as any;
+  assert.ok(ADMIN_TYPES.has('line_create'), 'line_create must be in ADMIN_TYPES');
+  assert.ok(!RELAY_TYPES.includes('line_create'), 'line_create must NOT be in RELAY_TYPES');
+  assert.ok(ADMIN_TYPES.has('line_delete'), 'line_delete must be in ADMIN_TYPES');
+  assert.ok(ADMIN_TYPES.has('line_type_set'), 'line_type_set must be in ADMIN_TYPES');
+});

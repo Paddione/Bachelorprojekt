@@ -12,9 +12,13 @@
 # (locked repo). Finally it inits submodules (the BATS runner lives in one).
 #
 # Usage: scripts/worktree-create.sh <branch> <path> [<base>]
-#   <branch>  new branch name, e.g. fix/foo
+#   <branch>  branch name, e.g. fix/foo. If it already exists (locally or on
+#             origin) the worktree CHECKS IT OUT; otherwise a new branch is
+#             created from <base>. The existing-branch mode is what the Software
+#             Factory plan-reuse / dev-flow handoff path needs (T000473).
 #   <path>    worktree path, e.g. /tmp/wt-foo
-#   <base>    base ref (default: origin/main)
+#   <base>    base ref for a NEW branch (default: origin/main); ignored when the
+#             branch already exists.
 set -euo pipefail
 
 BRANCH="${1:?Usage: worktree-create.sh <branch> <path> [<base>]}"
@@ -25,19 +29,38 @@ BASE="${3:-origin/main}"
 COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
 KEY_SRC="$COMMON_DIR/git-crypt/keys/default"
 
+# Does the branch already exist locally or on origin? Decides create-vs-checkout
+# and whether rollback may delete the branch (never delete a pre-existing one).
+BRANCH_EXISTS=0
+if git show-ref --verify --quiet "refs/heads/$BRANCH" \
+   || git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+    BRANCH_EXISTS=1
+fi
+
+# Idempotency: drop a stale worktree at this path left by a prior aborted run
+# (removing a worktree never deletes its branch). Lets the factory retry cleanly.
+git worktree remove --force "$WT_PATH" 2>/dev/null || true
+git worktree prune 2>/dev/null || true
+
 # 1) Skeleton without checkout — never runs the smudge filter, so it cannot fail
 #    on git-crypt paths.
-git worktree add --no-checkout -b "$BRANCH" "$WT_PATH" "$BASE"
+if [ "$BRANCH_EXISTS" -eq 1 ]; then
+    # Existing branch: fetch it so the local ref is current, then check it out.
+    git fetch --quiet origin "$BRANCH" 2>/dev/null || true
+    git worktree add --no-checkout "$WT_PATH" "$BRANCH"
+else
+    git worktree add --no-checkout -b "$BRANCH" "$WT_PATH" "$BASE"
+fi
 
-# Roll back the half-created worktree + branch if any later step fails (cp,
-# checkout, submodule). Otherwise a retry hits a misleading "branch already
-# exists" / "<path> already exists" that hides the original error.
+# Roll back the half-created worktree (+ the branch ONLY if we created it) if any
+# later step fails (cp, checkout, submodule). Otherwise a retry hits a misleading
+# "branch already exists" / "<path> already exists" that hides the original error.
 _ok=0
 _rollback() {
     [ "$_ok" -eq 1 ] && return
-    echo "worktree-create: setup failed — rolling back $WT_PATH and branch $BRANCH" >&2
+    echo "worktree-create: setup failed — rolling back $WT_PATH${BRANCH_EXISTS:+ (keeping existing branch $BRANCH)}" >&2
     git worktree remove --force "$WT_PATH" 2>/dev/null || true
-    git branch -D "$BRANCH" 2>/dev/null || true
+    [ "$BRANCH_EXISTS" -eq 0 ] && git branch -D "$BRANCH" 2>/dev/null || true
 }
 trap _rollback EXIT
 
@@ -64,4 +87,8 @@ fi
 git -C "$WT_PATH" submodule update --init --recursive --quiet
 
 _ok=1   # reached a clean finish — disarm the rollback trap
-echo "worktree-create: $WT_PATH ready on branch $BRANCH (base $BASE)"
+if [ "$BRANCH_EXISTS" -eq 1 ]; then
+    echo "worktree-create: $WT_PATH ready on existing branch $BRANCH"
+else
+    echo "worktree-create: $WT_PATH ready on branch $BRANCH (base $BASE)"
+fi

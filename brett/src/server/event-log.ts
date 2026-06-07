@@ -23,8 +23,11 @@ export function initEventLog(deps: { pool: PoolLike }): void {
 /** Per-room event buffer (unflushed events). */
 const eventBuffers = new Map<string, Array<Omit<RecordedEvent, 'id'>>>();
 
-/** Per-room monotone sequence counter. */
+/** Per-room monotone sequence counter. Seeded from DB on first append to survive restarts. */
 const seqCounters = new Map<string, number>();
+
+/** Rooms for which seq has been seeded from DB (prevents re-seeding). */
+const seqSeeded = new Set<string>();
 
 /** Per-room flush timer handles. */
 const flushTimers = new Map<string, NodeJS.Timeout>();
@@ -35,6 +38,9 @@ const flushTimers = new Map<string, NodeJS.Timeout>();
  * Append one event to the in-memory buffer.
  * Schedules an automatic flush after FLUSH_INTERVAL_MS if not already scheduled.
  * No-op when MOCK_DB=true or pool not yet initialized.
+ *
+ * On the first append for a room after a server restart, seeds the seq counter
+ * from the DB MAX(seq) to avoid silent data loss via ON CONFLICT DO NOTHING.
  */
 export function appendEvent(
   room: string,
@@ -43,6 +49,21 @@ export function appendEvent(
   payload: Record<string, any>,
 ): void {
   if (!pool) return;
+
+  // Seed seq counter from DB on first use after restart (async, fire-and-forget).
+  // Events during seeding use an optimistic counter; seeding completes before
+  // the first flush (FLUSH_INTERVAL_MS = 2s >> typical seeding latency < 20ms).
+  if (!seqSeeded.has(room)) {
+    seqSeeded.add(room);
+    pool.query('SELECT COALESCE(MAX(seq), 0) AS max_seq FROM session_events WHERE room_token = $1', [room])
+      .then(({ rows }) => {
+        const dbMax = Number(rows[0]?.max_seq ?? 0);
+        const current = seqCounters.get(room) ?? 0;
+        // Advance the counter if DB is ahead of our in-memory start position.
+        if (dbMax >= current) seqCounters.set(room, dbMax);
+      })
+      .catch(err => console.error('[brett/event-log] seq seed error:', err));
+  }
 
   const seq = (seqCounters.get(room) ?? 0) + 1;
   seqCounters.set(room, seq);
@@ -175,5 +196,13 @@ export function resetEventLog(): void {
   for (const t of flushTimers.values()) clearTimeout(t);
   eventBuffers.clear();
   seqCounters.clear();
+  seqSeeded.clear();
   flushTimers.clear();
+}
+
+/** Flush all rooms with buffered events (call during graceful shutdown). */
+export async function flushAll(): Promise<void> {
+  await Promise.allSettled(
+    [...eventBuffers.keys()].map(room => flushEventBuffer(room))
+  );
 }

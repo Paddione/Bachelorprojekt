@@ -470,6 +470,8 @@ export async function shutdown(signal: string): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[brett] ${signal} received, flushing...`);
+  // Flush event-log buffers before state (events should land before the snapshot).
+  try { await eventLog.flushAll(); } catch (err) { console.error('[brett] shutdown event-log flush:', err); }
   const pending = db.getPending();
   for (const room of pending.keys()) {
     try { await db.flushImmediate(room); } catch (err) { console.error('[brett] shutdown flush:', err); }

@@ -7,7 +7,7 @@
 import type { Role } from '../../types/state';
 import type { LobbyState } from '../lobby-store';
 import { Panel, Button, Badge, RosterItem, type BadgeTone } from './primitives';
-import { stepsToTextarea, shouldPrefill } from '../lobby-template-fill';
+import { stepsToTextarea, shouldPrefill, DEFAULT_COACHING_STEPS } from '../lobby-template-fill';
 
 export interface LobbyRow {
   userId: string;
@@ -154,9 +154,10 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
     save.dataset.role = 'coaching-save';
     settingsPanel.append(label, editor, save);
 
-    // Prefill the coaching-steps editor from the selected coaching template,
-    // but only if the coach hasn't already typed steps. Best-effort: a failed
-    // fetch leaves the editor empty (coach types manually).
+    // Prefill the coaching-steps editor. Priority:
+    // 1. Selected coaching template (coachingTemplateId) — fetch from API.
+    // 2. No template selected — fall back to the built-in default steps.
+    // In both cases only prefill when the coach hasn't typed anything yet.
     const coachingTemplateId = vm.settings.coachingTemplateId;
     if (coachingTemplateId && shouldPrefill(editor.value)) {
       fetch(`/api/templates/${encodeURIComponent(coachingTemplateId)}`)
@@ -164,9 +165,15 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
         .then((tpl) => {
           if (tpl && Array.isArray(tpl.steps) && shouldPrefill(editor.value)) {
             editor.value = stepsToTextarea(tpl.steps);
+          } else if (shouldPrefill(editor.value)) {
+            editor.value = stepsToTextarea(DEFAULT_COACHING_STEPS);
           }
         })
-        .catch(() => { /* leave empty */ });
+        .catch(() => {
+          if (shouldPrefill(editor.value)) editor.value = stepsToTextarea(DEFAULT_COACHING_STEPS);
+        });
+    } else if (shouldPrefill(editor.value)) {
+      editor.value = stepsToTextarea(DEFAULT_COACHING_STEPS);
     }
   }
 

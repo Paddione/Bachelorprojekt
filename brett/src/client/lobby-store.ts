@@ -77,7 +77,7 @@ export function applyLobbyServerMessage(state: LobbyState, msg: ServerMessage): 
     case 'lobby_settings_change': {
       const settings: LobbySettings = { ...state.settings };
       if (msg.templateId !== undefined) settings.templateId = msg.templateId;
-      if ((msg as any).coachingTemplateId !== undefined) settings.coachingTemplateId = (msg as any).coachingTemplateId;
+      if (msg.coachingTemplateId !== undefined) settings.coachingTemplateId = msg.coachingTemplateId;
       if (msg.optik !== undefined) settings.optik = mergeOptik(state.settings.optik, msg.optik);
       return { ...state, settings };
     }

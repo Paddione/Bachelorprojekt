@@ -244,8 +244,8 @@ app.get('/api/snapshots/:id', asyncHandler(async (req: any, res: any) => {
 
 // Coaching-step templates surfaced in the lobby. Public read (no admin gate) —
 // they contain only generic coaching prompts, no client data.
-app.get('/api/templates', asyncHandler(async (req: any, res: any) => {
-  const brand = (req.query.brand as string) || process.env.BRAND || 'mentolder';
+app.get('/api/templates', asyncHandler(async (_req: any, res: any) => {
+  const brand = process.env.BRAND || 'mentolder';
   const rows = await listCoachingTemplates(db.getPool() as any, brand);
   res.json(rows);
 }));

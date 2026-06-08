@@ -308,7 +308,7 @@ export async function bootBoard(): Promise<void> {
       const fig = STATE.figures.find(f => f.id === contact.userData.figureId);
       if (fig) {
         const lock = activeLocks.get(fig.id);
-        if (lock && lock.userId !== currentUser.userId) return;
+        if (lock && lock.userId !== currentUser.userId) { e.preventDefault(); return; }
         figPanel.selectFigure(fig.id);
         appearance.openAppearanceDrawer();
         appearanceBadge.hideBadge();
@@ -487,9 +487,11 @@ export async function bootBoard(): Promise<void> {
   }
 
   // Feature 3: one-time onboarding for the coach (leiter). Delayed so the scene
-  // is visible first. No-op if already seen (localStorage) or non-leiter.
-  const myRole = wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
-  maybeStartOnboarding({ role: myRole });
+  // is visible first. Role is read lazily inside the delay — the WS roster may not
+  // be populated yet when bootBoard() first runs (snapshot arrives asynchronously).
+  maybeStartOnboarding({
+    role: () => wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role,
+  });
 
   console.log('[brett] scene up');
 }

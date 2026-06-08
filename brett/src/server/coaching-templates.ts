@@ -13,9 +13,12 @@ export interface CoachingTemplate {
 }
 
 function parseSteps(raw: unknown): string[] {
-  if (Array.isArray(raw)) return raw as string[];
+  if (Array.isArray(raw)) return (raw as unknown[]).filter(x => typeof x === 'string') as string[];
   if (typeof raw === 'string') {
-    try { const v = JSON.parse(raw); return Array.isArray(v) ? v : []; } catch { return []; }
+    try {
+      const v = JSON.parse(raw);
+      return Array.isArray(v) ? (v as unknown[]).filter(x => typeof x === 'string') as string[] : [];
+    } catch { return []; }
   }
   return [];
 }

@@ -69,7 +69,7 @@ export type ServerMessage =
   | { type: 'role_changed'; userId: string; role: Role }
   | { type: 'figure_owner_changed'; figureId: string; ownerId: string | null }
   | { type: 'lobby_ready_changed'; userId: string; ready: boolean }
-  | { type: 'lobby_settings_change'; templateId?: string; optik?: OptikSettings }
+  | { type: 'lobby_settings_change'; templateId?: string; coachingTemplateId?: string; optik?: OptikSettings }
   | { type: 'figure_possessed'; figureId: string; playerId: string; playerName?: string }
   | { type: 'figure_released'; figureId: string; playerId: string }
   | { type: 'figure_type_changed'; figureId: string; figureType: FigureType }

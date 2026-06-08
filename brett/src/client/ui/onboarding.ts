@@ -38,7 +38,8 @@ interface DocLike {
 }
 
 export interface OnboardingDeps {
-  role: string | null | undefined;
+  /** Role string or a getter called lazily inside the delay (use getter when role arrives async via WS). */
+  role: string | null | undefined | (() => string | null | undefined);
   storage?: StorageLike;
   doc?: DocLike;
   delayMs?: number;
@@ -48,17 +49,26 @@ export function maybeStartOnboarding(deps: OnboardingDeps): void {
   const storage = deps.storage ?? (typeof localStorage !== 'undefined' ? localStorage : null);
   const doc = deps.doc ?? (typeof document !== 'undefined' ? (document as unknown as DocLike) : null);
   if (!storage || !doc) return;
-  if (deps.role !== 'leiter') return;
+  // If role is known eagerly and is definitely not 'leiter', bail immediately.
+  if (typeof deps.role !== 'function' && deps.role !== 'leiter' && deps.role != null) return;
   if (storage.getItem(ONBOARDING_KEY)) return;
 
   const delay = deps.delayMs ?? 1000;
-  const start = () => mountToast(0, storage, doc);
+  const start = () => {
+    // Re-evaluate role lazily — it may not be available at call time (e.g. WS roster not yet received).
+    const resolvedRole = typeof deps.role === 'function' ? deps.role() : deps.role;
+    if (resolvedRole !== 'leiter') return;
+    if (storage.getItem(ONBOARDING_KEY)) return;
+    mountToast(0, storage, doc!);
+  };
   if (delay > 0 && typeof setTimeout !== 'undefined') setTimeout(start, delay);
   else start();
 }
 
 function mountToast(index: number, storage: StorageLike, doc: DocLike): void {
   if (index >= TOASTS.length) return;
+  // Mark as seen on first display so early navigation never re-triggers the sequence.
+  if (index === 0) storage.setItem(ONBOARDING_KEY, '1');
   const spec = TOASTS[index];
 
   const card = doc.createElement('div');

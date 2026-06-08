@@ -12,10 +12,11 @@ export function ndcToScreen(ndcX: number, ndcY: number, width: number, height: n
   };
 }
 
-/** Badge shows only for a current selection that projects in front of the camera. */
-export function badgeVisible(selectedId: string | null, ndcZ: number): boolean {
+/** Badge shows only for a selection in front of the camera and within the viewport frustum. */
+export function badgeVisible(selectedId: string | null, ndcZ: number, ndcX = 0, ndcY = 0): boolean {
   if (!selectedId) return false;
-  return ndcZ < 1; // z>=1 means at/behind the far plane / behind camera
+  if (ndcZ >= 1) return false; // at/behind far plane
+  return Math.abs(ndcX) <= 1 && Math.abs(ndcY) <= 1;
 }
 
 // ── DOM-dependent section (lazy access — not evaluated at import time) ────────
@@ -81,7 +82,7 @@ export function updateBadge(
   const anchor = getAnchor(id);
   if (!anchor) { el.style.display = 'none'; return; }
   const v = anchor.clone().project(camera);
-  if (!badgeVisible(id, v.z)) { el.style.display = 'none'; return; }
+  if (!badgeVisible(id, v.z, v.x, v.y)) { el.style.display = 'none'; return; }
   const rect = renderer.domElement.getBoundingClientRect();
   const p = ndcToScreen(v.x, v.y, rect.width, rect.height);
   el.style.left = `${rect.left + p.x}px`;

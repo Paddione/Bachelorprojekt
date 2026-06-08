@@ -1241,12 +1241,12 @@ This keeps the CI job's `npm ci` fast and isolated from the heavy website instal
 Pin to the SAME major as website/package.json to avoid drift — read that version first.
 -->
 
-- [ ] **Step 1: Read the website's SDK version**
+- [x] **Step 1: Read the website's SDK version**
 
 Run: `cd /tmp/wt-tiered-fresh && grep '@anthropic-ai/sdk' website/package.json`
 Note the version (e.g. `"^0.x.y"`). Use that exact spec below.
 
-- [ ] **Step 2: Create `scripts/factory/package.json`**
+- [x] **Step 2: Create `scripts/factory/package.json`**
 
 Create `scripts/factory/package.json` (replace `<VERSION>` with the spec from Step 1):
 
@@ -1262,7 +1262,7 @@ Create `scripts/factory/package.json` (replace `<VERSION>` with the spec from St
 }
 ```
 
-- [ ] **Step 3: Generate the lockfile**
+- [x] **Step 3: Generate the lockfile**
 
 Run: `cd /tmp/wt-tiered-fresh/scripts/factory && npm install --package-lock-only`
 Expected: `scripts/factory/package-lock.json` created.
@@ -1270,7 +1270,7 @@ Expected: `scripts/factory/package-lock.json` created.
 <!-- package-lock.json under scripts/factory/ is wanted here (npm ci needs it); it is NOT
 stripped by filter-diff.sh's review path because filter-diff only affects REVIEW input, not git. -->
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/package.json scripts/factory/package-lock.json

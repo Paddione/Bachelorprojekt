@@ -82,7 +82,7 @@ You have **no prior context** beyond this plan. Read these facts before starting
 
 ### Task A0: Setup — load atelier tools & study the house style
 
-- [ ] **Step 1: Load atelier tool schemas**
+- [x] **Step 1: Load atelier tool schemas**
 
 `ToolSearch` query:
 ```
@@ -90,11 +90,11 @@ select:mcp__atelier__doc_create,mcp__atelier__doc_batch,mcp__atelier__doc_render
 ```
 Expected: a `<functions>` block defining each `mcp__atelier__*` tool.
 
-- [ ] **Step 2: Study the reference faces**
+- [x] **Step 2: Study the reference faces**
 
 Read (visually) `brett/public/assets/figure-pack/faces/neutral.png` and `…/curious.png`, and `…/accessories/coat.png` + `…/shawl.png`. Note stroke weight, placement (eyes ~upper-third, mouth ~lower-third, centered horizontally), and palette.
 
-- [ ] **Step 3: Check for leftover demo docs**
+- [x] **Step 3: Check for leftover demo docs**
 
 Call `mcp__atelier__list_docs`. If a `relieved` (512²) or `scarf` (256²) doc from the earlier demo exists, note its `doc_id` for reuse in Tasks A1 / A4. Otherwise build fresh in those tasks.
 
@@ -106,12 +106,12 @@ Call `mcp__atelier__list_docs`. If a `relieved` (512²) or `scarf` (256²) doc f
 
 **Expression:** closed, content eyes (downward-arc `◠◠`) + soft exhale smile (gentle upward arc `‿`). Positive resolution. Strokes only, color `[27,31,40,255]`, transparent bg.
 
-- [ ] **Step 1: Create or reuse the doc**
+- [x] **Step 1: Create or reuse the doc**
 
 If a demo `relieved` doc exists (from A0 Step 3), use its `doc_id` and skip to Step 3. Otherwise:
 `mcp__atelier__doc_create(name="relieved", width=512, height=512)` → capture `doc_id`.
 
-- [ ] **Step 2: Draw the expression**
+- [x] **Step 2: Draw the expression**
 
 `mcp__atelier__doc_batch(doc_id, layer=0, frame=0, ops=[…])` with, using stroke color `[27,31,40,255]`:
 - Left closed eye: a downward arc (smile-shaped, opening down) centered near `(180,200)`, ~90px wide — draw as a `polyline` of points forming `◠` (e.g. `[[145,205],[160,192],[180,188],[200,192],[215,205]]`), or two short `line` segments meeting at the apex.
@@ -119,21 +119,21 @@ If a demo `relieved` doc exists (from A0 Step 3), use its `doc_id` and skip to S
 - Mouth: soft upward smile arc centered near `(256,330)`, ~120px wide, gentle curve (e.g. `polyline [[196,325],[226,340],[256,344],[286,340],[316,325]]`).
 Keep strokes 2–3px (repeat adjacent pixel rows via two parallel polylines if needed for weight matching `neutral.png`).
 
-- [ ] **Step 3: VISUAL-INSPECTION GATE — render & look**
+- [x] **Step 3: VISUAL-INSPECTION GATE — render & look**
 
 `mcp__atelier__doc_render(doc_id, frame=0)` (no `out_path`). LOOK at the result. Confirm: closed-eye arcs read as eased/content, mouth reads as a gentle smile, stroke weight matches `neutral.png`, bg transparent, centered. If not, return to Step 2 and adjust ops. Do NOT proceed until it reads clearly as "relieved".
 
-- [ ] **Step 4: Export final PNG**
+- [x] **Step 4: Export final PNG**
 
 `mcp__atelier__doc_render(doc_id, frame=0, scale=1, out_path="/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/faces/relieved.png")`
 
-- [ ] **Step 5: Verify file exists & dimensions**
+- [x] **Step 5: Verify file exists & dimensions**
 
 Run: `python3 -c "from PIL import Image; im=Image.open('/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/faces/relieved.png'); print(im.size, im.mode)"`
 Expected: `(512, 512) RGBA`
 (If PIL is unavailable, run `file brett/public/assets/figure-pack/faces/relieved.png` and confirm `512 x 512`.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/faces/relieved.png
@@ -148,11 +148,11 @@ git commit -m "feat(brett): add relieved face asset to figure-pack"
 
 **Expression:** brows angled inward-and-down (`\  /` knitted scowl) + flat/hard mouth (straight or slightly down). Hostile/standing-firm — distinct from `protective` (which is shielding, not aggressive). Strokes color `[27,31,40,255]`.
 
-- [ ] **Step 1: Create the doc**
+- [x] **Step 1: Create the doc**
 
 `mcp__atelier__doc_create(name="defiant", width=512, height=512)` → capture `doc_id`.
 
-- [ ] **Step 2: Draw the expression**
+- [x] **Step 2: Draw the expression**
 
 `mcp__atelier__doc_batch(doc_id, layer=0, frame=0, ops=[…])`, stroke `[27,31,40,255]`:
 - Left brow: a line angled down-toward-center, e.g. `line [[150,180],[210,205]]` (outer-high, inner-low).
@@ -162,20 +162,20 @@ git commit -m "feat(brett): add relieved face asset to figure-pack"
 - Mouth: hard flat line, slightly downturned, near `(256,335)`, e.g. `polyline [[200,332],[256,340],[312,332]]`.
 Match stroke weight to `neutral.png` (double parallel lines if needed).
 
-- [ ] **Step 3: VISUAL-INSPECTION GATE — render & look**
+- [x] **Step 3: VISUAL-INSPECTION GATE — render & look**
 
 `mcp__atelier__doc_render(doc_id, frame=0)` (no `out_path`). LOOK. Confirm the knitted brows read as defiant/hostile (not sad — sad brows angle the opposite way, inner-high), mouth reads hard/flat, weight & centering match neighbours. Iterate on Step 2 until clear. Do NOT proceed otherwise.
 
-- [ ] **Step 4: Export final PNG**
+- [x] **Step 4: Export final PNG**
 
 `mcp__atelier__doc_render(doc_id, frame=0, scale=1, out_path="/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/faces/defiant.png")`
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `python3 -c "from PIL import Image; im=Image.open('/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/faces/defiant.png'); print(im.size, im.mode)"`
 Expected: `(512, 512) RGBA`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/faces/defiant.png
@@ -190,11 +190,11 @@ git commit -m "feat(brett): add defiant face asset to figure-pack"
 
 **Expression:** wide round eyes (`○○`) + small tight mouth. Fear/alarm — distinct from `overwhelmed` (sensory overload, brows raised). Strokes color `[27,31,40,255]`.
 
-- [ ] **Step 1: Create the doc**
+- [x] **Step 1: Create the doc**
 
 `mcp__atelier__doc_create(name="fearful", width=512, height=512)` → capture `doc_id`.
 
-- [ ] **Step 2: Draw the eyes as thick rings (concentric-ellipse trick)**
+- [x] **Step 2: Draw the eyes as thick rings (concentric-ellipse trick)**
 
 `mcp__atelier__doc_batch(doc_id, layer=0, frame=0, ops=[…])`:
 - Left eye outer ellipse filled stroke color: `ellipse` centered ~`(185,200)`, radius ~38px, color `[27,31,40,255]`, filled.
@@ -204,20 +204,20 @@ git commit -m "feat(brett): add defiant face asset to figure-pack"
 (Remember: the `ellipse` op has **no thickness field** — the ring comes from outer-minus-inner. Order matters: outer first, inner second.)
 - Mouth: small tight shape near `(256,340)` — a small filled ellipse radius ~14px `[27,31,40,255]`, or a short `polyline` knot. Keep it small and tense.
 
-- [ ] **Step 3: VISUAL-INSPECTION GATE — render & look**
+- [x] **Step 3: VISUAL-INSPECTION GATE — render & look**
 
 `mcp__atelier__doc_render(doc_id, frame=0)` (no `out_path`). LOOK. Confirm: both eyes are clean open rings (not filled discs — if filled, the inner erase ellipse failed; re-check radius/order), mouth small & tight, reads as alarmed/fearful, palette & centering correct. Iterate Step 2 until clear.
 
-- [ ] **Step 4: Export final PNG**
+- [x] **Step 4: Export final PNG**
 
 `mcp__atelier__doc_render(doc_id, frame=0, scale=1, out_path="/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/faces/fearful.png")`
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `python3 -c "from PIL import Image; im=Image.open('/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/faces/fearful.png'); print(im.size, im.mode)"`
 Expected: `(512, 512) RGBA`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/faces/fearful.png
@@ -232,12 +232,12 @@ git commit -m "feat(brett): add fearful face asset to figure-pack"
 
 **Look:** a narrow draped neck-scarf, mirroring `shawl.png` but slimmer. Flat shapes, sage palette (`[184,192,168,255]` body, `[142,154,124,255]` shadow/fold accents). Transparent bg. Drapes over shoulders with hanging ends.
 
-- [ ] **Step 1: Create or reuse the doc**
+- [x] **Step 1: Create or reuse the doc**
 
 If a demo `scarf` doc exists (A0 Step 3), use its `doc_id` and skip to Step 3. Otherwise:
 `mcp__atelier__doc_create(name="scarf", width=256, height=256)` → capture `doc_id`.
 
-- [ ] **Step 2: Draw the scarf**
+- [x] **Step 2: Draw the scarf**
 
 `mcp__atelier__doc_batch(doc_id, layer=0, frame=0, ops=[…])`:
 - Neck band: a horizontal rounded band across the upper third, narrower than shawl — e.g. `rect`/`polygon` spanning x `[70,186]`, y `[70,100]`, filled sage `[184,192,168,255]`.
@@ -245,20 +245,20 @@ If a demo `scarf` doc exists (A0 Step 3), use its `doc_id` and skip to Step 3. O
 - Fold/shadow accents: a few `line` strokes in sage-deep `[142,154,124,255]` along the inner edges of the hanging ends for depth.
 Keep it visibly **slimmer** than `shawl.png`.
 
-- [ ] **Step 3: VISUAL-INSPECTION GATE — render & look**
+- [x] **Step 3: VISUAL-INSPECTION GATE — render & look**
 
 `mcp__atelier__doc_render(doc_id, frame=0)` (no `out_path`). LOOK. Confirm: reads as a draped scarf, slimmer than shawl, flat sage palette matching neighbour accessories, transparent bg, roughly centered horizontally (anchor will be `[128,80]`). Iterate Step 2 until clear.
 
-- [ ] **Step 4: Export final PNG**
+- [x] **Step 4: Export final PNG**
 
 `mcp__atelier__doc_render(doc_id, frame=0, scale=1, out_path="/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/accessories/scarf.png")`
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `python3 -c "from PIL import Image; im=Image.open('/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/accessories/scarf.png'); print(im.size, im.mode)"`
 Expected: `(256, 256) RGBA`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/accessories/scarf.png
@@ -273,11 +273,11 @@ git commit -m "feat(brett): add scarf accessory asset to figure-pack"
 
 **Look:** two round lens rings joined by a bridge, plus short temple arms. Brass frame (`[200,169,110,255]`, deeper `[138,114,68,255]` for shading). Lenses transparent (open rings). Sits at eye height in front of the face sphere.
 
-- [ ] **Step 1: Create the doc**
+- [x] **Step 1: Create the doc**
 
 `mcp__atelier__doc_create(name="spectacles", width=256, height=256)` → capture `doc_id`.
 
-- [ ] **Step 2: Draw the frames as thick rings (concentric-ellipse trick)**
+- [x] **Step 2: Draw the frames as thick rings (concentric-ellipse trick)**
 
 `mcp__atelier__doc_batch(doc_id, layer=0, frame=0, ops=[…])`, vertically centered ~y=128:
 - Left lens outer: `ellipse` center ~`(95,128)`, radius ~34px, brass `[200,169,110,255]`, filled.
@@ -289,20 +289,20 @@ git commit -m "feat(brett): add scarf accessory asset to figure-pack"
 - Optional shading: a few `[138,114,68,255]` pixels on the lower-inner ring edges.
 (Again: `ellipse` has **no thickness** — rings = outer filled then inner erased; inner ellipse MUST come after outer.)
 
-- [ ] **Step 3: VISUAL-INSPECTION GATE — render & look**
+- [x] **Step 3: VISUAL-INSPECTION GATE — render & look**
 
 `mcp__atelier__doc_render(doc_id, frame=0)` (no `out_path`). LOOK. Confirm: two clean open lens rings (not filled discs), joined bridge, short temple arms, brass palette, lenses transparent, bg transparent, horizontally centered (anchor `[128,128]`). Iterate Step 2 until clear.
 
-- [ ] **Step 4: Export final PNG**
+- [x] **Step 4: Export final PNG**
 
 `mcp__atelier__doc_render(doc_id, frame=0, scale=1, out_path="/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/accessories/spectacles.png")`
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `python3 -c "from PIL import Image; im=Image.open('/tmp/wt-brett-appearance-assets/brett/public/assets/figure-pack/accessories/spectacles.png'); print(im.size, im.mode)"`
 Expected: `(256, 256) RGBA`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/accessories/spectacles.png
@@ -317,7 +317,7 @@ git commit -m "feat(brett): add spectacles accessory asset to figure-pack"
 
 ### Task B1: Register the 3 faces
 
-- [ ] **Step 1: Add three face entries**
+- [x] **Step 1: Add three face entries**
 
 In the `"faces"` object (after the existing emotion entries, before the `portrait-*` entries is fine — order is not semantically significant), add:
 ```json
@@ -327,7 +327,7 @@ In the `"faces"` object (after the existing emotion entries, before the `portrai
 ```
 Match the existing two-space indentation and ensure trailing commas are correct (the inserted block needs a comma after each entry if more keys follow, none after the last key of the object).
 
-- [ ] **Step 2: Validate JSON & file paths**
+- [x] **Step 2: Validate JSON & file paths**
 
 Run:
 ```bash
@@ -343,7 +343,7 @@ for k in ['relieved','defiant','fearful']:
 ```
 Expected: `ok relieved …`, `ok defiant …`, `ok fearful …` (no exception = valid JSON + all files exist).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/placement_spec.json
@@ -352,7 +352,7 @@ git commit -m "feat(brett): register relieved/defiant/fearful faces in placement
 
 ### Task B2: Register the 2 accessories
 
-- [ ] **Step 1: Add two accessory entries**
+- [x] **Step 1: Add two accessory entries**
 
 In the `"accessories"` object, add (modelled on `shawl` for `scarf`; on `cap`/`crown` but at eye height for `spectacles`):
 ```json
@@ -379,7 +379,7 @@ In the `"accessories"` object, add (modelled on `shawl` for `scarf`; on `cap`/`c
 ```
 Mind the trailing-comma rules so the object stays valid JSON.
 
-- [ ] **Step 2: Validate JSON & file paths**
+- [x] **Step 2: Validate JSON & file paths**
 
 Run:
 ```bash
@@ -396,7 +396,7 @@ for k in ['scarf','spectacles']:
 ```
 Expected: `ok scarf neck …`, `ok spectacles head …`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/public/assets/figure-pack/placement_spec.json
@@ -411,7 +411,7 @@ git commit -m "feat(brett): register scarf/spectacles accessories in placement_s
 
 ### Task C1: Extend ACC_GROUPS
 
-- [ ] **Step 1: Edit the ACC_GROUPS map**
+- [x] **Step 1: Edit the ACC_GROUPS map**
 
 Change (current):
 ```ts
@@ -430,13 +430,13 @@ export const ACC_GROUPS: Record<string, string[]> = {
 };
 ```
 
-- [ ] **Step 2: Run the Brett typecheck**
+- [x] **Step 2: Run the Brett typecheck**
 
 Run: `cd /tmp/wt-brett-appearance-assets/brett && npm run typecheck`
 Expected: PASS, no errors (this is the gate that `task test:all` enforces).
 (If `node_modules` is absent, run `npm ci` in `brett/` first.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/src/client/ui/appearance.ts
@@ -449,19 +449,19 @@ git commit -m "feat(brett): add scarf/spectacles to ACC_GROUPS slot map"
 
 ### Task D1: Run `task test:all`
 
-- [ ] **Step 1: Run the full offline suite**
+- [x] **Step 1: Run the full offline suite**
 
 Run: `cd /tmp/wt-brett-appearance-assets && task test:all`
 Expected: green (includes the Brett typecheck gate + kustomize/Taskfile dry-run + BATS).
 
-- [ ] **Step 2: Handle test-inventory drift if reported**
+- [x] **Step 2: Handle test-inventory drift if reported**
 
 If CI/the suite flags `website/src/data/test-inventory.json` drift:
 Run: `task test:inventory`
 then `git add website/src/data/test-inventory.json && git commit -m "chore: regenerate test-inventory"`.
 (This change adds no tests, so drift is unlikely; only do this if flagged.)
 
-- [ ] **Step 3: Confirm clean tree**
+- [x] **Step 3: Confirm clean tree**
 
 Run: `git status --short`
 Expected: empty (everything committed).

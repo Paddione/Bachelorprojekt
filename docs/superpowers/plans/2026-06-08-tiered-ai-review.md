@@ -1291,7 +1291,7 @@ are added manually in repo settings (Task 12 documents this). The job must NOT b
 (advisory) — do not add it to branch protection.
 -->
 
-- [ ] **Step 1: Write the workflow**
+- [x] **Step 1: Write the workflow**
 
 Create `.github/workflows/ai-review.yml`:
 
@@ -1359,12 +1359,12 @@ jobs:
         run: node scripts/factory/ci-review.mjs
 ```
 
-- [ ] **Step 2: Validate the workflow YAML**
+- [x] **Step 2: Validate the workflow YAML**
 
 Run: `cd /tmp/wt-tiered-fresh && python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/ai-review.yml')); print('YAML-OK')"`
 Expected: `YAML-OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add .github/workflows/ai-review.yml

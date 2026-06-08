@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.36.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.35.0...website-v1.36.0) (2026-06-08)
+
+
+### Features
+
+* **brett:** Timeline/Replay — Event-Log, Scrubber, Replay-Engine (Slice 5) [T000472] ([#1425](https://github.com/Paddione/Bachelorprojekt/issues/1425)) ([d24fece](https://github.com/Paddione/Bachelorprojekt/commit/d24feceb83294b402466965cbf3da55f42c95c92))
+
 ## [1.35.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.34.1...website-v1.35.0) (2026-06-07)
 
 

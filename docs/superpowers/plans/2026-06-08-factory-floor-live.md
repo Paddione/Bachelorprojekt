@@ -1186,24 +1186,24 @@ git commit -m "test(factory-floor): playwright smoke for /dev-status hall [T-FAC
 
 **Files:** keine (Verifikation + generierte Artefakte)
 
-- [ ] **Step 1: Voller Offline-Test-Gate**
+- [x] **Step 1: Voller Offline-Test-Gate**
 
 Run: `cd /tmp/wt-factory-floor-live && task test:all`
 Expected: alle Subtasks PASS (insbesondere `test:factory` mit FA-SF-40 und `test:unit` mit den Vitest-Floor-Tests).
 
-- [ ] **Step 2: Freshness-Artefakte regenerieren (sonst rot in CI)**
+- [x] **Step 2: Freshness-Artefakte regenerieren (sonst rot in CI)**
 
 Run: `cd /tmp/wt-factory-floor-live && task freshness:regenerate`
 Expected: generierte Artefakte (test-inventory.json, route-manifest.json, …) aktualisiert. Die neuen Routen `/api/factory-floor` und `/api/factory-floor/[extId]` sollten im route-manifest erscheinen.
 
-- [ ] **Step 3: Geänderte generierte Artefakte committen (falls vorhanden)**
+- [x] **Step 3: Geänderte generierte Artefakte committen (falls vorhanden)**
 
 ```bash
 git add -A
 git diff --cached --quiet || git commit -m "chore(factory-floor): refresh generated artifacts [T-FACTORY-FLOOR]"
 ```
 
-- [ ] **Step 4: Vitest gezielt grün bestätigen**
+- [x] **Step 4: Vitest gezielt grün bestätigen**
 
 Run: `cd website && npx vitest run src/lib/factory-floor.test.ts`
 Expected: PASS (8/8).

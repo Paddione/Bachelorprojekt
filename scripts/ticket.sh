@@ -599,14 +599,14 @@ cmd_inject() {
     fi
   fi
   local pod; pod=$(_pgpod)
-  local tfarr="NULL"; [[ -n "$tfiles" ]] && tfarr="string_to_array(:'tfiles', ',')"
+  # Quoted heredoc (<<'EOF') → no shell expansion; every value a psql -v param, target_files via in-SQL CASE (injection-safe).
   _exec_sql "$pod" -v ext_id="$id" -v kind="$kind" -v phase="$phase" -v title="$title" \
     -v content="$content" -v tfiles="$tfiles" -v data_url="$data_url" -v nc_path="$nc_path" \
-    -v fname="$fname" -v mime="$mime" -v by="$by" <<EOF >/dev/null
+    -v fname="$fname" -v mime="$mime" -v by="$by" <<'EOF' >/dev/null
 INSERT INTO tickets.ticket_injections
   (ticket_id, phase, kind, title, content, target_files, data_url, nc_path, filename, mime_type, injected_by)
 SELECT id, NULLIF(:'phase',''), :'kind', NULLIF(:'title',''), NULLIF(:'content',''),
-       ${tfarr}, NULLIF(:'data_url',''), NULLIF(:'nc_path',''), NULLIF(:'fname',''), NULLIF(:'mime',''), :'by'
+       CASE WHEN :'tfiles'='' THEN NULL ELSE string_to_array(:'tfiles',',') END, NULLIF(:'data_url',''), NULLIF(:'nc_path',''), NULLIF(:'fname',''), NULLIF(:'mime',''), :'by'
 FROM tickets.tickets WHERE external_id = :'ext_id';
 EOF
   echo "injection added to ticket $id (kind=$kind${phase:+ phase=$phase})"

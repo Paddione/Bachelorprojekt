@@ -109,8 +109,18 @@ async function main() {
      If a guard read errors (non-zero with no documented meaning), fail-closed: skip that brand.
      If a ticket has no plan reference, set branch and plan_path to null.
      If nothing was claimed across both brands, return { "launch": [], "skipped": [...] }.`,
-    { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA, model: 'sonnet' },
+    { label: 'prep', phase: 'Prep', schema: PLAN_SCHEMA },
   )
+
+  // Guard: PREP agent returned null (API error, model config mismatch, or subagent failure).
+  // Fail-closed — record the outage and exit cleanly so the /loop can retry next tick.
+  if (!prep || !prep.launch) {
+    log(
+      `Dispatcher: PREP step returned null (agent error). No brands processed this tick. ` +
+        `Raw prep value: ${JSON.stringify(prep)}. Retrying next tick.`,
+    )
+    return
+  }
 
   log(
     `Dispatcher: ${prep.launch.length} feature(s) scheduled this tick (${A.timestamp ?? 'no timestamp'})`,
@@ -169,7 +179,7 @@ async function main() {
          bash ${REPO}/scripts/ticket.sh add-comment --id T000413 \\
            --body ${JSON.stringify('Factory dispatcher: ' + escalations.length + ' run(s) escalated this tick.')}
        Report what was notified and the ticket-comment output.`,
-      { label: 'escalate', phase: 'Launch', model: 'sonnet' },
+      { label: 'escalate', phase: 'Launch' },
     )
   } else {
     log(`Dispatcher: all ${results?.length ?? 0} pipeline run(s) completed without error/block.`)
@@ -182,7 +192,7 @@ async function main() {
        BRAND=mentolder bash ${REPO}/scripts/factory/metrics.sh
        BRAND=korczewski bash ${REPO}/scripts/factory/metrics.sh
      (metrics.sh is best-effort: a missing Vorhaben ticket on a brand is a silent no-op.)`,
-    { label: 'metrics', phase: 'Metrics', model: 'sonnet' },
+    { label: 'metrics', phase: 'Metrics' },
   )
 }
 await main();

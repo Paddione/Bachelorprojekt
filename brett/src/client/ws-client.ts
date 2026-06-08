@@ -217,15 +217,19 @@ export function onWsMessage(evt: MessageEvent): void {
     return;
   }
 
-  const { scene } = getScene();
   const presets = PRESETS;
   const stiffSlider = document.getElementById('stiffness') as HTMLInputElement | null;
 
   switch (msg.type) {
-    case 'snapshot':
+    case 'snapshot': {
+      // scene may not be initialized yet when main.ts connects the WS early
+      // (before bootBoard()/initScene()). Process lobby/phase parts regardless;
+      // skip scene-graph mutations until the scene is ready.
+      let sceneForSnapshot: ReturnType<typeof getScene> | null = null;
+      try { sceneForSnapshot = getScene(); } catch { /* pre-scene lobby snapshot */ }
       // Reset world from server state
       for (const f of STATE.figures) {
-        scene.remove(f.root);
+        sceneForSnapshot?.scene.remove(f.root);
       }
       STATE.figures.length = 0;
       STATE.selectedId = null;
@@ -330,6 +334,7 @@ export function onWsMessage(evt: MessageEvent): void {
         optik: (msg as any).optik ?? null,
       });
       break;
+    }
 
     case 'stiffness':
       STATE.stiffness = msg.value;
@@ -420,7 +425,7 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'delete': {
       const idx = STATE.figures.findIndex(f => f.id === msg.id);
       if (idx >= 0) {
-        scene.remove(STATE.figures[idx].root);
+        try { getScene().scene.remove(STATE.figures[idx].root); } catch { /* pre-scene */ }
         // Billboard-Cleanup (Feature-Flag sf-t000469)
         import('./ui/hud').then(m => {
           if (typeof (m as any).clearFigureNoteBillboard === 'function') {

@@ -458,10 +458,10 @@ tasks:
 
 
   test:factory:
-    desc: "Run the offline-safe Software Factory FA-SF bats (tests/local/FA-SF-*). Live-DB cases (FA-SF-04 + live-seed) skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe Software Factory bats (tests/local/FA-SF-* + FA-AR-*). Live-DB cases (FA-SF-04 + live-seed) skip without a reachable cluster, so this is CI-safe."
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
-      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats
+      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."

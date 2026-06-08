@@ -499,7 +499,7 @@ so they land in `task test:all` (test:all deps include test:factory) and execute
 glob to a brace expansion covering both FA-SF and FA-AR. Also update the desc to mention FA-AR.
 -->
 
-- [ ] **Step 1: Edit the task glob**
+- [x] **Step 1: Edit the task glob**
 
 In `Taskfile.yml`, replace the `test:factory` body:
 
@@ -511,12 +511,12 @@ In `Taskfile.yml`, replace the `test:factory` body:
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
 ```
 
-- [ ] **Step 2: Run the task to verify FA-AR tests are picked up**
+- [x] **Step 2: Run the task to verify FA-AR tests are picked up**
 
 Run: `cd /tmp/wt-tiered-fresh && task test:factory`
 Expected: PASS — output includes the `FA-AR-01:` and `FA-AR-02:` test names alongside `FA-SF-*`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add Taskfile.yml

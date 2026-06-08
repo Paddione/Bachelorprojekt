@@ -570,9 +570,79 @@ EOF
   echo "phase recorded: $id $phase/$state (driver=$driver)"
 }
 
+# Factory injection: operator notes/context/assets fed into a running/next pipeline. Validate-before-_pgpod (FA-SF-49).
+cmd_inject() {
+  local id="" kind="" phase="" title="" content="" tfiles="" file="" nc_path="" by="admin"
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id) id="$2"; shift 2 ;; --kind) kind="$2"; shift 2 ;; --phase) phase="$2"; shift 2 ;;
+      --title) title="$2"; shift 2 ;; --content) content="$2"; shift 2 ;; --target-files) tfiles="$2"; shift 2 ;;
+      --file) file="$2"; shift 2 ;; --nc-path) nc_path="$2"; shift 2 ;; --by) by="$2"; shift 2 ;;
+      *) echo "Unknown inject option: $1" >&2; exit 2 ;;
+    esac; done
+  [[ -z "$id" || -z "$kind" ]] && { echo "ERROR: --id and --kind are required." >&2; exit 2; }
+  case "$kind" in context|note|asset) ;; *) echo "ERROR: kind must be one of context|note|asset." >&2; exit 2 ;; esac
+  [[ -n "$phase" ]] && case "$phase" in scout|design|plan|implement|verify|deploy) ;; *) echo "ERROR: phase must be one of scout|design|plan|implement|verify|deploy." >&2; exit 2 ;; esac
+  local data_url="" mime="" fname=""
+  if [[ "$kind" == "asset" ]]; then
+    [[ -z "$file" && -z "$nc_path" ]] && { echo "ERROR: asset requires --file or --nc-path." >&2; exit 2; }
+    if [[ -n "$file" ]]; then
+      [[ ! -f "$file" ]] && { echo "ERROR: not a file: $file" >&2; exit 2; }
+      case "${file,,}" in
+        *.md) mime="text/markdown" ;; *.html|*.htm) mime="text/html" ;; *.txt|*.log) mime="text/plain" ;;
+        *.jpg|*.jpeg) mime="image/jpeg" ;; *.png) mime="image/png" ;; *.gif) mime="image/gif" ;; *.webp) mime="image/webp" ;;
+        *.pdf) mime="application/pdf" ;; *.mp4) mime="video/mp4" ;; *.webm) mime="video/webm" ;;
+        *) echo "ERROR: unsupported file extension: $file" >&2; exit 2 ;;
+      esac
+      local size; size=$(stat -c %s "$file" 2>/dev/null || stat -f %z "$file")
+      (( size > 10*1024*1024 )) && { echo "ERROR: $file exceeds 10 MB inline cap; use --nc-path." >&2; exit 2; }
+      fname=$(basename -- "$file"); data_url="data:${mime};base64,$(base64 -w0 < "$file")"
+    fi
+  fi
+  local pod; pod=$(_pgpod)
+  local tfarr="NULL"; [[ -n "$tfiles" ]] && tfarr="string_to_array(:'tfiles', ',')"
+  _exec_sql "$pod" -v ext_id="$id" -v kind="$kind" -v phase="$phase" -v title="$title" \
+    -v content="$content" -v tfiles="$tfiles" -v data_url="$data_url" -v nc_path="$nc_path" \
+    -v fname="$fname" -v mime="$mime" -v by="$by" <<EOF >/dev/null
+INSERT INTO tickets.ticket_injections
+  (ticket_id, phase, kind, title, content, target_files, data_url, nc_path, filename, mime_type, injected_by)
+SELECT id, NULLIF(:'phase',''), :'kind', NULLIF(:'title',''), NULLIF(:'content',''),
+       ${tfarr}, NULLIF(:'data_url',''), NULLIF(:'nc_path',''), NULLIF(:'fname',''), NULLIF(:'mime',''), :'by'
+FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+  echo "injection added to ticket $id (kind=$kind${phase:+ phase=$phase})"
+}
+
+cmd_get_injections() {
+  local id="" phase="" consume="false" format="text"
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id) id="$2"; shift 2 ;; --phase) phase="$2"; shift 2 ;; --consume) consume="true"; shift ;; --format) format="$2"; shift 2 ;;
+      *) echo "Unknown get-injections option: $1" >&2; exit 2 ;;
+    esac; done
+  [[ -z "$id" ]] && { echo "ERROR: --id is required." >&2; exit 2; }
+  [[ -n "$phase" ]] && case "$phase" in scout|design|plan|implement|verify|deploy) ;; *) echo "ERROR: phase must be one of scout|design|plan|implement|verify|deploy." >&2; exit 2 ;; esac
+  local pod; pod=$(_pgpod)
+  local jsonsel="json_agg(json_build_object('id',id,'kind',kind,'title',title,'content',content,'target_files',target_files,'data_url',data_url,'nc_path',nc_path,'filename',filename,'mime_type',mime_type,'phase',phase))"
+  if [[ "$consume" == "true" ]]; then
+    _exec_sql "$pod" -v ext_id="$id" -v phase="$phase" <<EOF
+WITH consumed AS (
+  UPDATE tickets.ticket_injections SET consumed_at = now()
+   WHERE consumed_at IS NULL AND (phase = NULLIF(:'phase','') OR phase IS NULL)
+     AND ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+  RETURNING id, kind, title, content, target_files, data_url, nc_path, filename, mime_type, phase)
+SELECT COALESCE(${jsonsel}, '[]'::json) FROM consumed;
+EOF
+  else
+    _exec_sql "$pod" -v ext_id="$id" -v phase="$phase" <<EOF
+SELECT COALESCE(${jsonsel}, '[]'::json) FROM tickets.ticket_injections
+ WHERE ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+   AND (:'phase' = '' OR phase = NULLIF(:'phase','') OR phase IS NULL);
+EOF
+  fi
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections" >&2
   exit 1
 fi
 
@@ -595,6 +665,8 @@ case "$cmd" in
   dryrun-check)      cmd_dryrun_check "$@" ;;
   feature-flag)      cmd_feature_flag "$@" ;;
   phase)             cmd_phase "$@" ;;
+  inject)            cmd_inject "$@" ;;
+  get-injections)    cmd_get_injections "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
 

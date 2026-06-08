@@ -614,7 +614,7 @@ git commit -m "feat(factory-injection): inject form + injection list in detail p
 
 > Pattern: `cmd_phase` (positional/validate-before-`_pgpod`) + `cmd_add_comment` (`--id` insert) + `ticket-attach.sh` (base64/MIME/cap for `--file`). All arg-validation happens BEFORE `_pgpod` so FA-SF-49 is offline-safe.
 
-- [ ] **Step 1: Write the failing BATS test**
+- [x] **Step 1: Write the failing BATS test**
 
 Create `tests/local/FA-SF-49-injection-cli.bats`:
 
@@ -667,12 +667,12 @@ setup() { load 'test_helper.bash'; }
 }
 ```
 
-- [ ] **Step 2: Run to confirm it fails**
+- [x] **Step 2: Run to confirm it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-49-injection-cli.bats`
 Expected: FAIL — `Unknown command: inject`.
 
-- [ ] **Step 3: Implement `cmd_inject` + `cmd_get_injections`**
+- [x] **Step 3: Implement `cmd_inject` + `cmd_get_injections`**
 
 In `scripts/ticket.sh`, add BEFORE the `if [[ $# -lt 1 ]]; then` dispatch block (anchor: the line `cmd_phase() {` … `}` precedes it; add after `cmd_phase`'s closing `}` / the `echo "phase recorded..."` line). Keep terse (S1 ratchet):
 
@@ -764,7 +764,7 @@ EOF
 
 > `--format` is accepted for forward-compat but the SELECT always emits JSON (the pipeline only ever consumes JSON); `text` is treated as JSON too. Keep it accepted so callers passing `--format json` don't error.
 
-- [ ] **Step 4: Wire dispatch + usage**
+- [x] **Step 4: Wire dispatch + usage**
 
 In `scripts/ticket.sh`, find the usage-list line:
 
@@ -791,12 +791,12 @@ Add after it:
   get-injections)    cmd_get_injections "$@" ;;
 ```
 
-- [ ] **Step 5: Run BATS to confirm it passes**
+- [x] **Step 5: Run BATS to confirm it passes**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-49-injection-cli.bats`
 Expected: PASS (8 tests).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/ticket.sh tests/local/FA-SF-49-injection-cli.bats

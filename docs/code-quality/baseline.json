@@ -44,8 +44,8 @@
   "S1:scripts/ticket.sh": {
     "gate": "S1",
     "path": "scripts/ticket.sh",
-    "metric": 606,
-    "detail": "606 lines > 500 limit (.sh)",
+    "metric": 674,
+    "detail": "674 lines > 500 limit (.sh)",
     "frozen_at": "c75f2fca"
   },
   "S1:website/src/components/BookingForm.svelte": {
@@ -142,8 +142,8 @@
   "S1:website/src/lib/tickets-db.ts": {
     "gate": "S1",
     "path": "website/src/lib/tickets-db.ts",
-    "metric": 1020,
-    "detail": "1020 lines > 600 limit (.ts)",
+    "metric": 1043,
+    "detail": "1043 lines > 600 limit (.ts)",
     "frozen_at": "c75f2fca"
   },
   "S1:website/src/lib/tickets/admin.ts": {

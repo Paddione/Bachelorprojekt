@@ -825,7 +825,7 @@ git commit -m "feat(factory-floor): instrument dev-flow-execute with phase telem
 **Files:**
 - Create: `website/src/components/FactoryFloor.svelte`
 
-- [ ] **Step 1: Komponente anlegen (Svelte 5 `$state`, 4-s-Poll, graceful Assets)**
+- [x] **Step 1: Komponente anlegen (Svelte 5 `$state`, 4-s-Poll, graceful Assets)**
 
 Erstelle `website/src/components/FactoryFloor.svelte`:
 
@@ -1005,12 +1005,12 @@ Erstelle `website/src/components/FactoryFloor.svelte`:
 </div>
 ```
 
-- [ ] **Step 2: TypeScript/Svelte-Check**
+- [x] **Step 2: TypeScript/Svelte-Check**
 
 Run: `cd website && npx svelte-check --tsconfig tsconfig.json 2>&1 | grep -i "factory-floor\|FactoryFloor" || echo "FactoryFloor clean"`
 Expected: `FactoryFloor clean` (keine Fehler in der Komponente; Warnungen aus Bestandscode ignorieren).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/FactoryFloor.svelte
@@ -1024,7 +1024,7 @@ git commit -m "feat(factory-floor): FactoryFloor.svelte live hall component [T-F
 **Files:**
 - Modify: `website/src/pages/dev-status.astro`
 
-- [ ] **Step 1: Astro-Seite anpassen (SSR-Initialload via `getFloor`)**
+- [x] **Step 1: Astro-Seite anpassen (SSR-Initialload via `getFloor`)**
 
 Ersetze den Inhalt von `website/src/pages/dev-status.astro` durch:
 
@@ -1062,12 +1062,12 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
 
 > `FactoryDashboard.svelte` und `factory-metrics.ts`/`api/factory-metrics.ts` bleiben unangetastet im Repo (keine Löschung) — sie sind nicht mehr von `/dev-status` referenziert, aber stören nicht und sind durch eigene Tests gedeckt.
 
-- [ ] **Step 2: Astro-Build/Typecheck**
+- [x] **Step 2: Astro-Build/Typecheck**
 
 Run: `cd website && npx astro check 2>&1 | grep -i "dev-status" || echo "dev-status clean"`
 Expected: `dev-status clean`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/dev-status.astro
@@ -1081,7 +1081,7 @@ git commit -m "feat(factory-floor): wire dev-status to FactoryFloor [T-FACTORY-F
 **Files:**
 - Create: `website/public/factory/MANIFEST.md`
 
-- [ ] **Step 1: Manifest schreiben**
+- [x] **Step 1: Manifest schreiben**
 
 Erstelle `website/public/factory/MANIFEST.md`:
 
@@ -1123,7 +1123,7 @@ Website-Deploy automatisch mitgezogen.
 - Keine eingebetteten Rasterbilder; reines SVG, < 8 KB pro Datei.
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add website/public/factory/MANIFEST.md
@@ -1139,7 +1139,7 @@ git commit -m "docs(factory-floor): asset manifest for the hall (D1) [T-FACTORY-
 
 > Der Smoke prüft Rendering + Detail-Interaktion gegen die Live-/Dev-Umgebung mit Admin-Session (wie die bestehenden `fa-admin-*`-Specs). Er fängt nur Fixture-/Smoke-Fälle ab; die DAL-Logik ist bereits durch Task 4/6 unit-getestet.
 
-- [ ] **Step 1: Smoke-Spec schreiben (Muster wie `tests/e2e/specs/fa-admin-live.spec.ts`)**
+- [x] **Step 1: Smoke-Spec schreiben (Muster wie `tests/e2e/specs/fa-admin-live.spec.ts`)**
 
 Erstelle `tests/e2e/specs/fa-factory-floor.spec.ts`:
 
@@ -1168,12 +1168,12 @@ test.describe('FactoryFloor /dev-status', () => {
 });
 ```
 
-- [ ] **Step 2: Spec parst (offline check; Live-Run passiert im nightly e2e)**
+- [x] **Step 2: Spec parst (offline check; Live-Run passiert im nightly e2e)**
 
 Run: `cd /tmp/wt-factory-floor-live && npx tsc --noEmit tests/e2e/specs/fa-factory-floor.spec.ts 2>&1 | grep -v "Cannot find module '@playwright" || echo "spec parses"`
 Expected: `spec parses` (Modulauflösung von `@playwright/test` außerhalb des e2e-tsconfig wird ignoriert; entscheidend ist syntaktische Korrektheit).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/e2e/specs/fa-factory-floor.spec.ts

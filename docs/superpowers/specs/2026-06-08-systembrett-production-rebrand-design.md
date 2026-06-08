@@ -121,6 +121,35 @@ Gleiche Sprache anwenden: Header mit Eyebrow + Session-Code + Copy (mit **Succes
 - **HUD / Status-Pill / Onboarding-Toasts:** hartkodierte Farben raus (§4.1); Onboarding nutzt das zentrale Toast-/Token-System; Lock-Badges/Note-Billboards via `resolveToken`.
 - **Konstellations-Motiv** dezent als Marken-Signatur ins Board-Leerflächen-Branding (optional, nicht über die 3D-Szene legen).
 
+### 5.4 Pose-Presets — Eindeutschung + neue „Sitzen"-Pose
+Pose-Presets sind Gelenkwinkel-Maps (`bone → {x,z}` in Radiant) in **`brett/src/client/presets.ts`** mit Server-Pendant **`brett/src/server/presets.ts`**; die Buttons stehen in `public/index.html:299-304` (`data-preset`).
+
+**(a) Eindeutschung der Button-Labels** (Keys/`data-preset` bleiben unverändert — nur die sichtbaren Labels):
+
+| `data-preset` | alt | neu |
+|---|---|---|
+| `stand` | Stand | Stehen |
+| `sitzen` *(neu)* | — | Sitzen |
+| `kneel` | Kneel | Knien |
+| `prone` | Prone | Liegen |
+| `crawl` | Crawl | Kriechen |
+| `slump` | Slump | Sacken |
+| `tpose` | T-Pose | T-Pose |
+
+**(b) Neue Pose `sitzen`** — in **beide** `presets.ts` (Client + Server) eintragen, mit ~90°-Beugung an Hüfte/Knie bei aufrechtem Oberkörper (exakte Werte, damit der Executor sie nur abtippt):
+```ts
+sitzen: {
+  hips:{x:0,z:0}, head:{x:0,z:0},
+  lShoulder:{x:0.1,z: 0.08}, rShoulder:{x:0.1,z:-0.08},
+  lElbow:{x:0.2,z:0}, rElbow:{x:0.2,z:0},
+  lWrist:{x:0,z:0}, rWrist:{x:0,z:0},
+  lHip:{x:-1.5708,z:0}, rHip:{x:-1.5708,z:0},   // ~90° Hüftbeugung
+  lKnee:{x: 1.5708,z:0}, rKnee:{x: 1.5708,z:0}, // ~90° Kniebeugung
+  lAnkle:{x:0,z:0}, rAnkle:{x:0,z:0},
+},
+```
+Plus ein Button `<button class="preset-btn" data-preset="sitzen">Sitzen</button>` (zwischen „Stehen" und „Knien"). **Konvention wie bestehende Posen:** keine Stuhl-/Prop-Geometrie — die Figur sitzt auf einem unsichtbaren Sitz (konsistent mit kneel/prone). **Design-sensibel:** Winkel nach Deploy visuell prüfen; falls sie unstimmig wirken, per `dev-flow-execute` (Opus) feinjustieren.
+
 ---
 
 ## 6. Neue Funktion — Offene Sessions (Live-Liste)
@@ -170,7 +199,7 @@ Aus dem GUI-Audit, jetzt als Akzeptanz-Anforderungen:
 
 **P3:**
 13. Feature-Flag-Reads (`window.__brettFeatures`) in eine Utility konsolidieren.
-14. UI-Copy konsistent **Deutsch**: gemischte EN-Labels prüfen (Pose-Presets „Stand/Kneel/…", „PHYS/IK"). *Entscheidung:* Pose-Presets ins Deutsche (z. B. „Stehen/Knien/Liegen/Kriechen/Hocken/T-Pose") — im Plan final festlegen.
+14. UI-Copy konsistent **Deutsch**. **Entschieden:** Pose-Presets eindeutschen + neue „Sitzen"-Pose ergänzen — siehe §5.4 (Label-Map + exakte Gelenkwinkel). Weitere gemischte EN-Labels prüfen (z. B. „PHYS/IK").
 15. Tastatur-Hinweise (Shortcuts) im Status-Pill/Tooltip.
 
 ---
@@ -208,7 +237,7 @@ Aus dem GUI-Audit, jetzt als Akzeptanz-Anforderungen:
 
 ## 11. Out of Scope (YAGNI)
 
-- Keine Änderung an der 3D-Szene/Physik/IK oder am WS-Protokoll (außer dem additiven Read-Endpoint).
+- Keine Änderung an der 3D-Szene/Physik/IK oder am WS-Protokoll (außer dem additiven Read-Endpoint und der additiven `sitzen`-Pose in §5.4 — beides rein additiv, keine Bestandslogik berührt).
 - Kein i18n-Framework (nur konsistentes Deutsch).
 - „Gespeicherte Aufstellungen" / „Einstellungen" bleiben deaktiviert („bald verfügbar") — nur die Offene-Sessions-Liste wird neu gebaut.
 - Keine feingranulare Sessions-Sichtbarkeit/Berechtigung in dieser Iteration (notiert für später, §6.2).

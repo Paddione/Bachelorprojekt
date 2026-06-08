@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.37.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.37.0...website-v1.37.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* **brett:** ship public/assets into served dist/client — figure-pack 404 regression [T000527] ([#1441](https://github.com/Paddione/Bachelorprojekt/issues/1441)) ([70ce68a](https://github.com/Paddione/Bachelorprojekt/commit/70ce68a6d1158db170318d07bc6328b7bc33a421))
+
 ## [1.37.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.36.0...website-v1.37.0) (2026-06-08)
 
 

@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.22.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.22.0...brett-v0.22.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* **brett:** ship public/assets into served dist/client — figure-pack 404 regression [T000527] ([#1441](https://github.com/Paddione/Bachelorprojekt/issues/1441)) ([70ce68a](https://github.com/Paddione/Bachelorprojekt/commit/70ce68a6d1158db170318d07bc6328b7bc33a421))
+
 ## [0.22.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.21.0...brett-v0.22.0) (2026-06-08)
 
 

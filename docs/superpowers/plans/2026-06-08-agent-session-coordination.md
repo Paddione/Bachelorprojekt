@@ -47,7 +47,7 @@ pr_number: null
 - Create: `scripts/agent-lock.sh`
 - Test: `tests/local/AGENT-LOCK-01-core.bats`
 
-- [ ] **Step 1: Write the failing test** — `tests/local/AGENT-LOCK-01-core.bats`
+- [x] **Step 1: Write the failing test** — `tests/local/AGENT-LOCK-01-core.bats`
 
 ```bash
 #!/usr/bin/env bats
@@ -113,12 +113,12 @@ teardown() { rm -rf "$AGENT_LOCK_DIR"; }
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-01-core.bats`
 Expected: FAIL — `scripts/agent-lock.sh` does not exist yet.
 
-- [ ] **Step 3: Write minimal implementation** — `scripts/agent-lock.sh`
+- [x] **Step 3: Write minimal implementation** — `scripts/agent-lock.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -304,7 +304,7 @@ main() {
 main "$@"
 ```
 
-- [ ] **Step 4: Make executable + run test to verify it passes**
+- [x] **Step 4: Make executable + run test to verify it passes**
 
 Run:
 ```bash
@@ -313,7 +313,7 @@ chmod +x scripts/agent-lock.sh
 ```
 Expected: PASS — 7/7 (01a–01g).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-lock.sh tests/local/AGENT-LOCK-01-core.bats
@@ -328,7 +328,7 @@ git commit -m "feat(agent-lock): core claim/refresh/release/check registry [T000
 - Modify: `scripts/agent-lock.sh` (add `cmd_reap` + dispatch entry)
 - Test: `tests/local/AGENT-LOCK-02-reap.bats`
 
-- [ ] **Step 1: Write the failing test** — `tests/local/AGENT-LOCK-02-reap.bats`
+- [x] **Step 1: Write the failing test** — `tests/local/AGENT-LOCK-02-reap.bats`
 
 ```bash
 #!/usr/bin/env bats
@@ -373,12 +373,12 @@ teardown() { rm -rf "$AGENT_LOCK_DIR"; }
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-02-reap.bats`
 Expected: FAIL — `reap` prints Usage / non-zero (unknown command) so 02a–02c fail; 02d already passes (claim reap-on-claim from Task 1).
 
-- [ ] **Step 3: Add `cmd_reap` to `scripts/agent-lock.sh`** (insert before `main()`)
+- [x] **Step 3: Add `cmd_reap` to `scripts/agent-lock.sh`** (insert before `main()`)
 
 ```bash
 cmd_reap() {
@@ -401,7 +401,7 @@ cmd_reap() {
 }
 ```
 
-- [ ] **Step 4: Add `reap` to the dispatch `case`** in `main()`
+- [x] **Step 4: Add `reap` to the dispatch `case`** in `main()`
 
 ```bash
     list)    cmd_list "$@";;
@@ -409,12 +409,12 @@ cmd_reap() {
     mine)    _my_sid;;
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-02-reap.bats`
 Expected: PASS — 4/4.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-lock.sh tests/local/AGENT-LOCK-02-reap.bats
@@ -429,7 +429,7 @@ git commit -m "feat(agent-lock): reaper for dead locks + orphan worktree process
 - Modify: `scripts/agent-lock.sh` (add `cmd_guard_precommit`, `cmd_guard_postcheckout` + dispatch)
 - Test: `tests/local/AGENT-LOCK-03-precommit.bats`
 
-- [ ] **Step 1: Write the failing test** — `tests/local/AGENT-LOCK-03-precommit.bats`
+- [x] **Step 1: Write the failing test** — `tests/local/AGENT-LOCK-03-precommit.bats`
 
 ```bash
 #!/usr/bin/env bats
@@ -502,12 +502,12 @@ teardown() { rm -rf "$AGENT_LOCK_DIR"; }
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-03-precommit.bats`
 Expected: FAIL — `guard-precommit` is unknown (03a–03e), and the hook has no agent-lock gate yet (03f).
 
-- [ ] **Step 3: Add the guard subcommands to `scripts/agent-lock.sh`** (before `main()`)
+- [x] **Step 3: Add the guard subcommands to `scripts/agent-lock.sh`** (before `main()`)
 
 ```bash
 cmd_guard_precommit() {
@@ -532,7 +532,7 @@ cmd_guard_postcheckout() {
 }
 ```
 
-- [ ] **Step 4: Add the guards to the dispatch `case`** in `main()`
+- [x] **Step 4: Add the guards to the dispatch `case`** in `main()`
 
 ```bash
     mine)    _my_sid;;
@@ -540,7 +540,7 @@ cmd_guard_postcheckout() {
     guard-postcheckout) cmd_guard_postcheckout "$@";;
 ```
 
-- [ ] **Step 5: Wire the gate into `.githooks/pre-commit`** (so 03f passes) — insert after the `set -euo pipefail` line, before the git-crypt block:
+- [x] **Step 5: Wire the gate into `.githooks/pre-commit`** (so 03f passes) — insert after the `set -euo pipefail` line, before the git-crypt block:
 
 ```bash
 # --- agent-lock: main-checkout mutex (only in the MAIN checkout; fail-open) ---
@@ -553,12 +553,12 @@ fi
 
 Note: `repo_root` is already defined above this point in the existing hook. `git rev-parse --git-dir` equals `--git-common-dir` only in the main checkout; in a linked worktree `--git-dir` is `.git/worktrees/<name>`, so the gate is skipped there.
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-03-precommit.bats`
 Expected: PASS — 6/6 (03a–03f).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/agent-lock.sh .githooks/pre-commit tests/local/AGENT-LOCK-03-precommit.bats
@@ -572,7 +572,7 @@ git commit -m "feat(agent-lock): main-checkout guard + pre-commit gate [T000510]
 **Files:**
 - Create: `.githooks/post-checkout`
 
-- [ ] **Step 1: Create `.githooks/post-checkout`**
+- [x] **Step 1: Create `.githooks/post-checkout`**
 
 ```bash
 #!/usr/bin/env bash
@@ -588,7 +588,7 @@ fi
 exit 0
 ```
 
-- [ ] **Step 2: Make executable + smoke-test**
+- [x] **Step 2: Make executable + smoke-test**
 
 Run:
 ```bash
@@ -597,7 +597,7 @@ bash -n .githooks/post-checkout && echo "syntax-ok"
 ```
 Expected: `syntax-ok`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .githooks/post-checkout
@@ -611,7 +611,7 @@ git commit -m "feat(agent-lock): post-checkout warning hook [T000510]"
 **Files:**
 - Modify: `Taskfile.yml` (add `test:agent-lock:` task; add it to `test:all` deps)
 
-- [ ] **Step 1: Add the `test:agent-lock` task** next to `test:factory` (around Taskfile.yml:460)
+- [x] **Step 1: Add the `test:agent-lock` task** next to `test:factory` (around Taskfile.yml:460)
 
 ```yaml
   test:agent-lock:
@@ -621,7 +621,7 @@ git commit -m "feat(agent-lock): post-checkout warning hook [T000510]"
       - ./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-*.bats
 ```
 
-- [ ] **Step 2: Add `test:agent-lock` to `test:all` deps** (Taskfile.yml `test:all:` block)
+- [x] **Step 2: Add `test:agent-lock` to `test:all` deps** (Taskfile.yml `test:all:` block)
 
 ```yaml
     deps:
@@ -637,12 +637,12 @@ git commit -m "feat(agent-lock): post-checkout warning hook [T000510]"
       - test:code-quality
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `task test:agent-lock`
 Expected: all AGENT-LOCK-01/02/03 tests PASS (17 tests total).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Taskfile.yml
@@ -655,13 +655,13 @@ git commit -m "test(agent-lock): wire test:agent-lock into task test:all [T00051
 
 **Befund beim Bauen:** `.claude/settings.json` ist **gitignored** (`.gitignore:99`) — eine lokale, maschinengebundene Datei. Ein committeter `SessionStart`-Hook ist daher der falsche Weg (nicht versionierbar, würde nur eine Maschine betreffen). Der Reaper läuft ohnehin (a) am Start von dev-flow-plan/execute (Task 7) und (b) über die committeten Git-Hooks (`.githooks/`).
 
-- [ ] **Step 1:** KEINE `.claude/settings.json` committen. Stattdessen den optionalen lokalen Hook in `CLAUDE.md`/`GEMINI.md` dokumentieren (siehe Task 8) — wer den Reaper bei *jedem* Session-Start (nicht nur dev-flow) will, fügt lokal hinzu:
+- [x] **Step 1:** KEINE `.claude/settings.json` committen. Stattdessen den optionalen lokalen Hook in `CLAUDE.md`/`GEMINI.md` dokumentieren (siehe Task 8) — wer den Reaper bei *jedem* Session-Start (nicht nur dev-flow) will, fügt lokal hinzu:
 
 ```json
 { "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash scripts/agent-lock.sh reap 2>/dev/null || true" } ] } ] } }
 ```
 
-- [ ] **Step 2:** (optional, lokal) Diesen Block in die eigene `.claude/settings.json` mergen; mit `python3 -c "import json; json.load(open('.claude/settings.json'))"` validieren. Nicht committen.
+- [x] **Step 2:** (optional, lokal) Diesen Block in die eigene `.claude/settings.json` mergen; mit `python3 -c "import json; json.load(open('.claude/settings.json'))"` validieren. Nicht committen.
 
 ---
 
@@ -672,7 +672,7 @@ git commit -m "test(agent-lock): wire test:agent-lock into task test:all [T00051
 - Modify: `.claude/skills/dev-flow-execute/SKILL.md` (pickup + teardown)
 - Modify: `scripts/factory/dispatcher.js` (before enqueue/claim)
 
-- [ ] **Step 1: dev-flow-plan — reap + claim at Schritt −1**
+- [x] **Step 1: dev-flow-plan — reap + claim at Schritt −1**
 
 In `.claude/skills/dev-flow-plan/SKILL.md`, in the "Schritt −1: Stale-Worktree-Audit" section, replace the manual `git worktree list` guidance prefix with a reap call and add a ticket/branch claim right after the ticket+path are chosen:
 
@@ -687,7 +687,7 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" --branch "feature/<slug
 
 Add a sentence in the Chore path: *"Wenn `agent-lock claim main-checkout` fehlschlägt (andere Session im main-Checkout), den Chore stattdessen in einem Worktree via `scripts/worktree-create.sh` ausführen statt inline."*
 
-- [ ] **Step 2: dev-flow-execute — reap + claim at pickup, registry-overlap warning, release at end**
+- [x] **Step 2: dev-flow-execute — reap + claim at pickup, registry-overlap warning, release at end**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, at the start of execution add:
 
@@ -712,7 +712,7 @@ bash scripts/agent-lock.sh release ticket "$TICKET_EXT_ID"
 bash scripts/agent-lock.sh release branch "$BRANCH"
 ```
 
-- [ ] **Step 3: Factory dispatcher — skip interactively-claimed tickets**
+- [x] **Step 3: Factory dispatcher — skip interactively-claimed tickets**
 
 **Befund beim Bauen:** `dispatcher.js` ist ein **Workflow-Script** (nutzt `agent()`/`parallel()`/`workflow()`) und läuft in der Workflow-Sandbox **ohne Node.js-API** (`require`/`child_process`/`fs` nicht verfügbar — dieselbe Klasse wie der pipeline.js-Bug T000460). Ein `execSync`-Guard im JS würde es brechen. Richtiger Hebel: der **Scheduler-Agent** (der `agent()`-Call, der `schedule.sh` + die Per-Ticket-Guards ausführt) hat Bash. In dessen Prompt — direkt nach dem DRY-RUN-FIRST-Guard — diese Anweisung ergänzen:
 
@@ -728,7 +728,7 @@ For EACH claimed external_id also enforce the SESSION-COORDINATION guard [T00051
 
 Danach `node --check scripts/factory/dispatcher.js`.
 
-- [ ] **Step 4: Manual verification**
+- [x] **Step 4: Manual verification**
 
 Run:
 ```bash
@@ -737,7 +737,7 @@ bash scripts/agent-lock.sh release ticket T-DEMO && echo released
 ```
 Expected: `list` shows the `T-DEMO` claim as `live`; release removes it.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-plan/SKILL.md .claude/skills/dev-flow-execute/SKILL.md scripts/factory/dispatcher.js
@@ -752,7 +752,7 @@ git commit -m "feat(agent-lock): wire claim/reap into dev-flow skills + factory 
 - Modify: `CLAUDE.md` (new "Session-Koordination" subsection under Gotchas)
 - Modify: `GEMINI.md` (identical subsection)
 
-- [ ] **Step 1: Add the identical section to both `CLAUDE.md` and `GEMINI.md`**
+- [x] **Step 1: Add the identical section to both `CLAUDE.md` and `GEMINI.md`**
 
 ```markdown
 ### Session-Koordination (parallele Agenten)
@@ -767,12 +767,12 @@ Mehrere Sessions (Claude + Gemini) teilen ein `.git`. Vor Arbeit an einem Ticket
 - **Wer macht was:** `bash scripts/agent-lock.sh list`.
 ```
 
-- [ ] **Step 2: Verify both files contain the section identically**
+- [x] **Step 2: Verify both files contain the section identically**
 
 Run: `diff <(sed -n '/### Session-Koordination/,/^### /p' CLAUDE.md) <(sed -n '/### Session-Koordination/,/^### /p' GEMINI.md)`
 Expected: no differences (identical block).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md GEMINI.md
@@ -783,16 +783,16 @@ git commit -m "docs(agent-lock): cross-tool session-coordination contract [T0005
 
 ## Task 9: Full-suite verification + freshness
 
-- [ ] **Step 1: Run the full offline suite**
+- [x] **Step 1: Run the full offline suite**
 
 Run: `task test:all`
 Expected: green, including the new `test:agent-lock` (17 tests).
 
-- [ ] **Step 2: Regenerate generated artifacts if required**
+- [x] **Step 2: Regenerate generated artifacts if required**
 
 Run: `task test:inventory` (then `git status` — commit `website/src/data/test-inventory.json` only if it changed).
 
-- [ ] **Step 3: Final commit (only if artifacts changed)**
+- [x] **Step 3: Final commit (only if artifacts changed)**
 
 ```bash
 git add -A

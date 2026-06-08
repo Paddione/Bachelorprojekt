@@ -18,25 +18,31 @@
 #     FACTORY_DRY_RUN         true|false           (default: true — fail-safe: never auto-merge unless opted in)
 #     FACTORY_GITCRYPT_KEY    path to bp-secrets.key for `task secrets:unlock`
 #     FACTORY_CLAUDE_BIN      claude binary        (default: claude on PATH)
+#     FACTORY_TICK_LOCK       single-flight lock   (default: /tmp/factory-tick.lock)
+#     FACTORY_ENV_FILE        prod config to source(default: ~/.config/factory/autopilot.env)
 set -euo pipefail
 
-if [[ -f "${HOME}/.config/factory/autopilot.env" ]]; then
+# Production config (real claude bin, DeepSeek creds, dry_run policy). Sourced
+# with set -a so it exports everything — which means it CLOBBERS pre-set env.
+# Tests point FACTORY_ENV_FILE at a non-existent path for full env isolation. [T000523]
+FACTORY_ENV_FILE="${FACTORY_ENV_FILE:-${HOME}/.config/factory/autopilot.env}"
+if [[ -f "${FACTORY_ENV_FILE}" ]]; then
   set -a
-  source "${HOME}/.config/factory/autopilot.env"
+  source "${FACTORY_ENV_FILE}"
   set +a
 fi
 
 REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
 DRY_RUN="${FACTORY_DRY_RUN:-true}"
 CLAUDE_BIN="${FACTORY_CLAUDE_BIN:-claude}"
-LOCKFILE="/tmp/factory-tick.lock"
+LOCKFILE="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
 
 cd "${REPO}"
 
 # ── single-flight: acquire the tick lock non-blocking; bail if a tick is live ──
 exec 9>"${LOCKFILE}"
 if ! flock -n 9; then
-  echo "wakeup.sh: a factory tick is already running (flock /tmp/factory-tick.lock held) — skipping" >&2
+  echo "wakeup.sh: a factory tick is already running (flock ${LOCKFILE} held) — skipping" >&2
   exit 0
 fi
 

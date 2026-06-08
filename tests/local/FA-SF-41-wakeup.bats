@@ -20,8 +20,12 @@ setup() { load 'test_helper.bash'; }
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-41: wakeup.sh single-flights via flock on /tmp/factory-tick.lock" {
-  run grep -E 'flock[^#]*/tmp/factory-tick\.lock' "$WAKEUP"
+@test "FA-SF-41: wakeup.sh single-flights via flock, default lock /tmp/factory-tick.lock, overridable" {
+  # Default preserved, but the path is sourced from FACTORY_TICK_LOCK so tests
+  # (and parallel hosts) can isolate the single-flight lock. [T000523]
+  run grep -E 'FACTORY_TICK_LOCK:-/tmp/factory-tick\.lock' "$WAKEUP"
+  [ "$status" -eq 0 ]
+  run grep -F 'flock -n 9' "$WAKEUP"
   [ "$status" -eq 0 ]
 }
 
@@ -54,14 +58,42 @@ setup() { load 'test_helper.bash'; }
 printf '%s\n' "\$@" > "${argfile}"
 STUB
   chmod +x "${tmp}/claude-stub"
+  # Isolate the single-flight lock (so a real autopilot tick holding the shared
+  # /tmp/factory-tick.lock can't false-red this) AND the env file (so a present
+  # ~/.config/factory/autopilot.env can't clobber FACTORY_CLAUDE_BIN). [T000523]
   FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" FACTORY_DRY_RUN=true \
-    run bash "$WAKEUP"
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP"
   [ "$status" -eq 0 ]
   run grep -q -- '-p' "${argfile}";              [ "$status" -eq 0 ]
   run grep -q -- '--allowedTools' "${argfile}";  [ "$status" -eq 0 ]
   run grep -qF 'Workflow' "${argfile}";          [ "$status" -eq 0 ]
   run grep -q -- '--permission-mode' "${argfile}"; [ "$status" -eq 0 ]
   run grep -qF 'acceptEdits' "${argfile}";       [ "$status" -eq 0 ]
+  rm -rf "${tmp}"
+}
+
+@test "FA-SF-41: wakeup.sh single-flight honors FACTORY_TICK_LOCK (hermetic, not the shared /tmp lock)" {
+  # Regression guard for the non-hermetic flock path [T000523]: hold an ISOLATED
+  # override lock and prove the wrapper skips on IT (not the shared /tmp lock).
+  # Pre-fix the wrapper ignored the override and flock'd /tmp/factory-tick.lock,
+  # so on a free host it would RUN and exec the stub → this test fails. Post-fix
+  # it skips cleanly without ever touching the stub.
+  tmp="$(mktemp -d)"
+  argfile="${tmp}/argv"
+  cat > "${tmp}/claude-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${argfile}"
+STUB
+  chmod +x "${tmp}/claude-stub"
+  lock="${tmp}/tick.lock"
+  exec 8>"${lock}"
+  flock -n 8   # hold the override lock for the duration of the run
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" FACTORY_DRY_RUN=true \
+    FACTORY_TICK_LOCK="${lock}" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP"
+  exec 8>&-
+  [ "$status" -eq 0 ]              # skip is a clean exit 0
+  [ ! -f "${argfile}" ]           # stub was NOT exec'd → single-flight honored the override
+  echo "$output" | grep -qF "${lock}"   # skip message names the override lock
   rm -rf "${tmp}"
 }
 

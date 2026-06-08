@@ -196,8 +196,13 @@ _reapable() {
 }
 
 _with_lock() {
-  local d; d="$(_lock_dir)"; mkdir -p "$d" 2>/dev/null || true
-  exec 9>"$d/.registry.lock" 2>/dev/null || return 0
+  local d lf; d="$(_lock_dir)"; mkdir -p "$d" 2>/dev/null || true
+  lf="$d/.registry.lock"
+  # Never put a persistent `2>` on the exec: with no command, exec applies the
+  # redirection to the whole shell and silences ALL later stderr. Ensure the
+  # anchor exists/writable first (a failed exec redirect would exit the shell).
+  touch "$lf" 2>/dev/null || return 0
+  exec 9>"$lf" || return 0
   flock 9 2>/dev/null || true
 }
 

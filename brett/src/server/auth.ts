@@ -1,4 +1,4 @@
-import { discovery, ClientSecretPost } from 'openid-client';
+import { discovery, ClientSecretPost, allowInsecureRequests } from 'openid-client';
 import type { Configuration } from 'openid-client';
 import type { Request, Response, NextFunction } from 'express';
 
@@ -11,7 +11,19 @@ export async function getOidcClient(): Promise<Configuration> {
   const clientId   = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
   const clientSecret = process.env.BRETT_OIDC_SECRET || '';
   const issuerUrl  = `${kcUrl}/realms/${kcRealm}`;
-  oidcConfig = await discovery(new URL(issuerUrl), clientId, { client_secret: clientSecret }, ClientSecretPost());
+  const url = new URL(issuerUrl);
+  const isClusterHttp = url.protocol === 'http:' &&
+    (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname.endsWith('.svc.cluster.local'));
+  if (url.protocol === 'http:' && !isClusterHttp) {
+    throw new Error(`OIDC issuer URL must use HTTPS or a cluster-internal hostname, got: ${url.hostname}`);
+  }
+  oidcConfig = await discovery(
+    url,
+    clientId,
+    { client_secret: clientSecret },
+    ClientSecretPost(),
+    isClusterHttp ? { execute: [allowInsecureRequests] } : undefined,
+  );
   return oidcConfig;
 }
 

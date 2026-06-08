@@ -107,6 +107,16 @@ const brand = A.brand ?? 'mentolder'
 const REPO = '/home/patrick/Bachelorprojekt'
 const WT = `/tmp/wt-${slug}`
 
+// Best-effort live-floor telemetry. NEVER throws — a failed insert must not kill
+// the pipeline (T-FACTORY-FLOOR). One INSERT per phase boundary, driver=factory.
+function phaseEvent(ph, state, detail) {
+  try {
+    const { execSync } = require('child_process')
+    const d = detail ? ` --detail ${JSON.stringify(String(detail).slice(0, 240))}` : ''
+    execSync(`bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} ${ph} ${state} --driver factory${d}`, { stdio: 'ignore', timeout: 15000 })
+  } catch { /* telemetry is best-effort; swallow */ }
+}
+
 // Dry-run: skip the destructive Deploy actions (push/merge/prod-deploy). Passed
 // in args by the dispatcher / task; default off. Lets us run Scout→Verify safely.
 const DRY_RUN = A.dry_run === true || A.dry_run === 'true'
@@ -135,42 +145,13 @@ let featureTouchedFiles = []
 // A.timestamp is unreliable). Used by Deploy's archive-plan. REUSE → the handed-off plan.
 let planFilePath = REUSE ? REUSE_PLAN : null
 
-// JSON schemas for structured agent outputs
-const SCOUT_SCHEMA = {
-  type: 'object',
-  required: ['complexity', 'touched_files', 'risk_areas', 'similar_tickets', 'estimated_slots'],
-  properties: {
-    complexity: { enum: ['simple', 'medium', 'complex'] },
-    touched_files: { type: 'array', items: { type: 'string' } },
-    risk_areas: { type: 'array', items: { type: 'string' } },
-    similar_tickets: { type: 'array', items: { type: 'string' } },
-    estimated_slots: { type: 'integer' },
-  },
-}
-const REVIEW_SCHEMA = {
-  type: 'object',
-  required: ['findings'],
-  properties: {
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['severity', 'file', 'description'],
-        properties: {
-          severity: { enum: ['low', 'medium', 'high', 'critical'] },
-          file: { type: 'string' },
-          line: { type: 'integer' },
-          description: { type: 'string' },
-          suggested_fix: { type: 'string' },
-        },
-      },
-    },
-    summary: { type: 'string' },
-  },
-}
+// JSON schemas for structured agent outputs (compact one-liners; same shape).
+const SCOUT_SCHEMA = { type: 'object', required: ['complexity', 'touched_files', 'risk_areas', 'similar_tickets', 'estimated_slots'], properties: { complexity: { enum: ['simple', 'medium', 'complex'] }, touched_files: { type: 'array', items: { type: 'string' } }, risk_areas: { type: 'array', items: { type: 'string' } }, similar_tickets: { type: 'array', items: { type: 'string' } }, estimated_slots: { type: 'integer' } } }
+const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { findings: { type: 'array', items: { type: 'object', required: ['severity', 'file', 'description'], properties: { severity: { enum: ['low', 'medium', 'high', 'critical'] }, file: { type: 'string' }, line: { type: 'integer' }, description: { type: 'string' }, suggested_fix: { type: 'string' } } } }, summary: { type: 'string' } } }
 try { if (!REUSE) {
 // ── ① Scout ────────────────────────────────────────────────────────────────
 phase('Scout')
+phaseEvent('scout', 'entered')
 const scout = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
    Scout the feature "${A.title}" against the codebase at ${REPO}.
@@ -197,6 +178,7 @@ await agent(
    Report the command output.`,
   { label: 'scout:persist', phase: 'Scout' },
 )
+phaseEvent('scout', 'done')
 
 // SIMPLE features skip Design/Plan/Implement and go straight to Verify→Deploy.
 const isSimple = scout.complexity === 'simple'
@@ -205,6 +187,7 @@ const isSimple = scout.complexity === 'simple'
 specPath = null
 if (!isSimple) {
   phase('Design')
+  phaseEvent('design', 'entered')
   const design = await agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
      Write a design spec for "${A.title}" following the structure in
@@ -223,12 +206,14 @@ if (!isSimple) {
     { label: 'design', phase: 'Design' },
   )
   specPath = design.trim()
+  phaseEvent('design', 'done')
 }
 
 // ── ③ Plan (with conflict gate) ────────────────────────────────────────────
 tasks = []
 if (!isSimple) {
   phase('Plan')
+  phaseEvent('plan', 'entered')
   // Brand-aware disjoint-files gate BEFORE fanning tasks.
   const conflict = await agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
@@ -253,6 +238,7 @@ if (!isSimple) {
        message "Pipeline blocked on overlap. ${String(conflict).slice(0, 200)}"`,
       { label: 'conflict:escalate', phase: 'Plan' },
     )
+    phaseEvent('plan', 'blocked', 'file-overlap: ' + String(conflict).slice(0, 120))
     return { status: 'blocked', reason: 'file-overlap', conflict, released: true }
   }
 
@@ -275,34 +261,18 @@ if (!isSimple) {
       ...(planProv.model ? { model: planProv.model } : {}),
       label: 'plan:decompose',
       phase: 'Plan',
-      schema: {
-        type: 'object',
-        required: ['tasks', 'plan_path'],
-        properties: {
-          plan_path: { type: 'string' },
-          tasks: {
-            type: 'array',
-            items: {
-              type: 'object',
-              required: ['id', 'target_files', 'acceptance_criteria'],
-              properties: {
-                id: { type: 'string' },
-                target_files: { type: 'array', items: { type: 'string' } },
-                acceptance_criteria: { type: 'array', items: { type: 'string' } },
-              },
-            },
-          },
-        },
-      },
+      schema: { type: 'object', required: ['tasks', 'plan_path'], properties: { plan_path: { type: 'string' }, tasks: { type: 'array', items: { type: 'object', required: ['id', 'target_files', 'acceptance_criteria'], properties: { id: { type: 'string' }, target_files: { type: 'array', items: { type: 'string' } }, acceptance_criteria: { type: 'array', items: { type: 'string' } } } } } } },
     },
   )
   tasks = plan.tasks
   planFilePath = plan.plan_path
+  phaseEvent('plan', 'done')
 }
 }
 
 if (REUSE) {
   phase('Plan')
+  phaseEvent('plan', 'entered')
   const reuse = await agent(
     `A human already planned this feature via dev-flow on the existing branch ${WORK_BRANCH}.
      Read the plan file WITHOUT creating a worktree (the Implement phase creates the shared
@@ -314,6 +284,7 @@ if (REUSE) {
     { label: 'plan:reuse', phase: 'Plan', schema: { type:'object', required:['tasks'], properties:{ tasks:{ type:'array', items:{ type:'object', required:['id','target_files','acceptance_criteria'], properties:{ id:{type:'string'}, target_files:{type:'array',items:{type:'string'}}, acceptance_criteria:{type:'array',items:{type:'string'}} } } } } } },
   )
   tasks = reuse.tasks
+  phaseEvent('plan', 'done')
 }
 
 // ── ④ Implement (ONE shared git-crypt-safe worktree, tasks run sequentially) ──
@@ -325,6 +296,7 @@ if (REUSE) {
 let implemented = []
 if (tasks.length) {
   phase('Implement')
+  phaseEvent('implement', 'entered')
 
   const wtSetup = await agent(
     `Record pipeline liveness: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
@@ -345,6 +317,7 @@ if (tasks.length) {
        Report what was notified.`,
       { label: 'impl:worktree-escalate', phase: 'Implement' },
     )
+    phaseEvent('implement', 'blocked', 'worktree-setup')
     return { status: 'blocked', reason: 'worktree-setup', detail: String(wtSetup ?? '').slice(0, 400) }
   }
 
@@ -379,9 +352,11 @@ if (tasks.length) {
     if (verify != null) implemented.push(verify)
   }
 }
+phaseEvent('implement', 'done')
 
 // ── ⑤ Verify (adversarial review panel — three parallel lenses) ────────────
 phase('Verify')
+phaseEvent('verify', 'entered')
 const lenses = [
   { key: 'bug',      file: 'scripts/factory/review-bug-hunter.prompt.md' },
   { key: 'security', file: 'scripts/factory/review-security-auditor.prompt.md' },
@@ -418,11 +393,14 @@ if (blocking.length) {
      Report the command outputs.`,
     { label: 'verify:escalate', phase: 'Verify' },
   )
+  phaseEvent('verify', 'blocked', blocking.length + ' HIGH/CRITICAL finding(s)')
   return { status: 'blocked', reason: 'review-findings', blocking }
 }
+phaseEvent('verify', 'done')
 
 // ── ⑥ Deploy (auto-merge on green CI + both-brand explicit deploy) ──────────
 phase('Deploy')
+phaseEvent('deploy', 'entered')
 if (DRY_RUN) {
   const report = await agent(
     `DRY RUN — do NOT push, merge, or deploy anything. Work from the WORKTREE (HEAD=${WORK_BRANCH}):
@@ -434,6 +412,7 @@ if (DRY_RUN) {
      Report the diff stat + a one-line verdict. Take NO other action.`,
     { label: 'deploy:dry-run', phase: 'Deploy' },
   )
+  phaseEvent('deploy', 'done', 'dry-run')
   return { status: 'dry-run', report, reviews: reviews.length, tasks: tasks.length }
 }
 
@@ -592,8 +571,10 @@ if (canaryRed.length) {
 }
 
 if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') || deploy.includes("status: 'blocked'")) {
+  phaseEvent('deploy', 'blocked', 'deploy-guard')
   return { status: 'blocked', reason: 'deploy-guard' }
 }
+phaseEvent('deploy', 'done')
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 } finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } }
 }

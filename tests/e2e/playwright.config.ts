@@ -244,6 +244,7 @@ export default defineConfig({
       testMatch: [
         '**/korczewski-home.spec.ts',  // Kore brand homepage
         '**/brett-art.spec.ts',        // Brett art-library (canvas sprites)
+        '**/fa-47-brett-figure-pack-assets.spec.ts', // figure-pack assets served (T000527/T000522)
         '**/dashboard-art.spec.ts',    // Dashboard art-library tab (web.korczewski.de/admin)
         '**/fa-content-hub-legal-ssot.spec.ts',
       ],

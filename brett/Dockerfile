@@ -15,6 +15,11 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY src ./src
 COPY --from=builder /app/dist/client ./dist/client
+# Vite (root: 'public') bundles only index.html + imported JS into dist/client; the
+# static figure-pack/props/terrain assets fetched at runtime (/assets/...) are NOT
+# emitted by the build, so ship public/assets into the served dir explicitly.
+# Without this, express.static(dist/client) 404s every figure-pack asset (T000527).
+COPY --from=builder /app/public/assets ./dist/client/assets
 USER node
 EXPOSE 3000
 CMD ["npm", "start"]

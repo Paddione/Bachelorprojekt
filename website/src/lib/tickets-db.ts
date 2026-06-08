@@ -124,7 +124,23 @@ export async function initTicketsSchema(): Promise<void> {
     )
   `);
 
-
+  // Software Factory Live-Floor (T-FACTORY-FLOOR): append-only phase telemetry.
+  // Each row is one phase transition emitted best-effort by `ticket.sh phase`
+  // from pipeline.js (driver=factory) or dev-flow-execute (driver=devflow).
+  // The latest row per ticket = its current phase/state. Never blocks the
+  // pipeline — a failed insert is swallowed by the caller.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.factory_phase_events (
+      id         BIGSERIAL PRIMARY KEY,
+      ticket_id  UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
+      phase      TEXT NOT NULL CHECK (phase IN ('scout','design','plan','implement','verify','deploy')),
+      state      TEXT NOT NULL CHECK (state IN ('entered','done','blocked')),
+      detail     TEXT,
+      driver     TEXT NOT NULL DEFAULT 'factory' CHECK (driver IN ('factory','devflow')),
+      at         TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS factory_phase_events_ticket_at_idx ON tickets.factory_phase_events (ticket_id, at DESC)`);
 
   await pool.query(`
     ALTER TABLE tickets.tickets

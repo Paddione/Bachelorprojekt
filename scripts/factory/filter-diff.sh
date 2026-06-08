@@ -39,9 +39,10 @@ _is_noise_path() {
 _has_generated_marker() {
   local count=0 line
   while IFS= read -r line && (( count < 5 )); do
-    # Only inspect added/context lines (skip diff metadata).
+    # Only inspect added/context lines (skip diff metadata and removed lines).
     case "$line" in
       diff\ --git\ *|index\ *|---\ *|+++\ *|@@*) continue ;;
+      -*)  continue ;;   # removed lines are already gone — don't count them
     esac
     count=$((count + 1))
     case "$line" in

@@ -100,9 +100,10 @@ function renderBody(tier, consolidated) {
 function postReview(verdict, body) {
   if (!PR_NUMBER) { console.log(body); return }
   const flag =
-    verdict === 'requested_changes' ? '--request-changes' :
-    verdict === 'minor_issues'      ? '--comment' :
-                                      '--approve'
+    verdict === 'requested_changes'      ? '--request-changes' :
+    verdict === 'minor_issues'           ? '--comment' :
+    verdict === 'approved_with_comments' ? '--comment' :
+                                           '--approve'
   try {
     execFileSync('gh', ['pr', 'review', String(PR_NUMBER), flag, '--body', body], { stdio: 'inherit' })
   } catch (e) {

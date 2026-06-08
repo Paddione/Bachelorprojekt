@@ -417,11 +417,23 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
   if (tier === 'full' && reviews.length >= 2) {
     const xml = '<reviews>\n' + reviews.map((r, i) =>
       `  <lens name="${(lenses[i] && lenses[i].key) || 'lens' + i}">${JSON.stringify(r)}</lens>`).join('\n') + '\n</reviews>'
+    const COORDINATOR_SCHEMA = {
+      type: 'object', required: ['verdict'],
+      properties: {
+        verdict: { type: 'string', enum: ['approved', 'approved_with_comments', 'minor_issues', 'requested_changes'] },
+        summary: { type: 'string' },
+        findings: { type: 'array', items: { type: 'object' } },
+      },
+    }
     const coord = await agent(
       `Read the coordinator prompt at ${REPO}/scripts/factory/review-coordinator.prompt.md and apply it to these lens findings. Return ONE consolidated JSON with a "verdict" field.\n${xml}`,
-      { label: 'review:coordinator', phase: 'Verify', model: provision({ role: 'review' }).model },
+      { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: provision({ role: 'review' }).model },
     )
-    if (coord && coord.verdict) coordinatorVerdict = coord.verdict
+    if (coord && coord.verdict) {
+      coordinatorVerdict = coord.verdict
+    } else if (coord) {
+      log('Verify: coordinator returned a result but verdict field is missing — falling back to rawBlocking.')
+    }
     log(`Verify: coordinator verdict = ${coordinatorVerdict || 'none'}`)
   }
 

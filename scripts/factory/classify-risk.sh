@@ -31,7 +31,11 @@ _json_string_array() {
 }
 
 main() {
-  local ref="${1:-HEAD}" numstat
+  local ref="${1:-}" numstat
+  if [[ -z "$ref" ]]; then
+    echo '{"tier":"full","linesChanged":0,"fileCount":0,"securityFiles":[],"reason":"no ref supplied — defaulting to full tier (safe)"}' >&1
+    return 0
+  fi
   if [[ -n "${CLASSIFY_NUMSTAT:-}" ]]; then
     numstat="$CLASSIFY_NUMSTAT"
   else

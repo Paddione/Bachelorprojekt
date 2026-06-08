@@ -218,7 +218,7 @@ git commit -m "feat(factory-floor): ticket.sh phase telemetry subcommand + FA-SF
 
 > TDD-Hinweis: Tests für diese DAL stehen in Task 4 (sie brauchen das pg-mem-Setup). Diese Task schreibt die Implementierung; Task 4 verifiziert sie rot→grün. Reihenfolge so gewählt, weil die pg-mem-Fixture exakt die hier verwendeten Spalten/Queries spiegeln muss.
 
-- [ ] **Step 1: DAL-Datei mit Typen + Query-Helpern anlegen**
+- [x] **Step 1: DAL-Datei mit Typen + Query-Helpern anlegen**
 
 Erstelle `website/src/lib/factory-floor.ts`:
 
@@ -385,12 +385,12 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
 }
 ```
 
-- [ ] **Step 2: TypeScript-Kompilierung prüfen**
+- [x] **Step 2: TypeScript-Kompilierung prüfen**
 
 Run: `cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep factory-floor || echo "factory-floor clean"`
 Expected: `factory-floor clean`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts
@@ -404,7 +404,7 @@ git commit -m "feat(factory-floor): factory-floor.ts read-only DAL [T-FACTORY-FL
 **Files:**
 - Create: `website/src/lib/factory-floor.test.ts`
 
-- [ ] **Step 1: Test mit pg-mem-Fixture schreiben (Muster wie `factory-metrics.test.ts`)**
+- [x] **Step 1: Test mit pg-mem-Fixture schreiben (Muster wie `factory-metrics.test.ts`)**
 
 Erstelle `website/src/lib/factory-floor.test.ts`:
 
@@ -503,12 +503,12 @@ describe('factory-floor DAL', () => {
 });
 ```
 
-- [ ] **Step 2: Test laufen lassen — erwarte PASS (DAL existiert aus Task 3)**
+- [x] **Step 2: Test laufen lassen — erwarte PASS (DAL existiert aus Task 3)**
 
 Run: `cd website && npx vitest run src/lib/factory-floor.test.ts`
 Expected: PASS (6/6). Falls eine pg-mem-Inkompatibilität auftritt (z. B. `LATERAL`/`INTERVAL`-Parsing), passe die Query in `factory-floor.ts` minimal an, bis Test + echte Postgres-Semantik beide erfüllt sind — niemals die Assertion abschwächen.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.test.ts

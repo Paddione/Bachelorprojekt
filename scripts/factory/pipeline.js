@@ -373,49 +373,92 @@ if (tasks.length) {
   phaseEvent('implement', 'done')
 }
 
-// ── ⑤ Verify (adversarial review panel — three parallel lenses) ────────────
+// ── ⑤ Verify (tiered adversarial review panel + coordinator) ────────────────
+// filter noise → classify tier → tier-selected lenses (parallel) → coordinator
+// (full tier) → verdict. `sh` here is bound to ticket.sh, so helpers run via agent().
 phase('Verify')
 phaseEvent('verify', 'entered')
-const lenses = [
-  { key: 'bug',      file: 'scripts/factory/review-bug-hunter.prompt.md' },
-  { key: 'security', file: 'scripts/factory/review-security-auditor.prompt.md' },
-  { key: 'pattern',  file: 'scripts/factory/review-pattern-enforcer.prompt.md' },
-]
-const reviews = (await parallel(
-  lenses.map((l) => () => agent(
-    `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-     Read the review prompt at ${REPO}/${l.file} and apply it to the diff of branch
-     ${WORK_BRANCH}: git -C ${WORK_WT} diff origin/main...HEAD  (in the WORKTREE — NOT
-     in ${REPO} whose HEAD is main → empty diff). Return findings as JSON per schema.` + consumeInjections('verify'),
-    { label: `review:${l.key}`, phase: 'Verify', schema: REVIEW_SCHEMA, model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
-  )),
-)).filter(Boolean)
+const cleanDiff = (await agent(
+  `cd ${WORK_WT} (HEAD=${WORK_BRANCH}) then run \`bash ${REPO}/scripts/factory/filter-diff.sh origin/main...HEAD\`. Return its raw stdout ONLY (empty = all-noise diff).`,
+  { label: 'verify:filter', phase: 'Verify' },
+)) || ''
+let reviews = []
+let coordinatorVerdict = null
+if (!cleanDiff || !String(cleanDiff).trim()) {
+  log('Verify: filtered diff is empty (noise-only) — skipping review lenses.')
+  phaseEvent('verify', 'done', 'noise-only')
+} else {
+  const tierJson = (await agent(
+    `cd ${WORK_WT} then run \`bash ${REPO}/scripts/factory/classify-risk.sh origin/main...HEAD\`. Return its raw JSON stdout ONLY.`,
+    { label: 'verify:classify', phase: 'Verify' },
+  )) || '{"tier":"full"}'
+  let tier = 'full'
+  try { tier = (JSON.parse(typeof tierJson === 'string' ? tierJson : JSON.stringify(tierJson)).tier) || 'full' } catch { tier = 'full' }
+  log(`Verify: risk tier = ${tier}`)
 
-await agent(
-  `Record a one-line factory status breadcrumb (non-blocking):
-   bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory: phase=Verify, ' + reviews.flatMap(r=>r.findings).length + ' finding(s).')}`,
-  { label: 'verify:breadcrumb', phase: 'Verify' },
-)
+  const ALL_LENSES = {
+    bug: 'scripts/factory/review-bug-hunter.prompt.md',
+    security: 'scripts/factory/review-security-auditor.prompt.md',
+    pattern: 'scripts/factory/review-pattern-enforcer.prompt.md',
+    perf: 'scripts/factory/review-perf-reviewer.prompt.md',
+    'agents-md': 'scripts/factory/review-agents-md-staleness.prompt.md',
+  }
+  const tierLenses = tier === 'trivial' ? ['bug']
+    : tier === 'lite' ? ['bug', 'security', 'pattern']
+    : ['bug', 'security', 'pattern', 'perf', 'agents-md']
+  const lenses = tierLenses.map((key) => ({ key, file: ALL_LENSES[key] }))
 
-const blocking = reviews.flatMap((r) => r.findings).filter((f) => f.severity === 'high' || f.severity === 'critical')
-if (blocking.length) {
+  reviews = (await parallel(lenses.map((l) => () => agent(
+    `Record pipeline liveness so the dispatcher watchdog does not flag this run stale: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then read the review prompt at ${REPO}/${l.file} and apply it to: git -C ${WORK_WT} diff origin/main...HEAD (in the WORKTREE — ${REPO} HEAD is main → empty). Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
+    { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
+  )))).filter(Boolean)
+  log(`Verify: ${reviews.length}/${lenses.length} lenses done, tier=${tier}`)
+
+  if (tier === 'full' && reviews.length >= 2) {
+    const xml = '<reviews>\n' + reviews.map((r, i) =>
+      `  <lens name="${(lenses[i] && lenses[i].key) || 'lens' + i}">${JSON.stringify(r)}</lens>`).join('\n') + '\n</reviews>'
+    const COORDINATOR_SCHEMA = {
+      type: 'object', required: ['verdict'],
+      properties: {
+        verdict: { type: 'string', enum: ['approved', 'approved_with_comments', 'minor_issues', 'requested_changes'] },
+        summary: { type: 'string' },
+        findings: { type: 'array', items: { type: 'object' } },
+      },
+    }
+    const coord = await agent(
+      `Read the coordinator prompt at ${REPO}/scripts/factory/review-coordinator.prompt.md and apply it to these lens findings. Return ONE consolidated JSON with a "verdict" field.\n${xml}`,
+      { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: provision({ role: 'review' }).model },
+    )
+    if (coord && coord.verdict) {
+      coordinatorVerdict = coord.verdict
+    } else if (coord) {
+      log('Verify: coordinator returned a result but verdict field is missing — falling back to rawBlocking.')
+    }
+    log(`Verify: coordinator verdict = ${coordinatorVerdict || 'none'}`)
+  }
+
   await agent(
-    `The adversarial review panel found HIGH/CRITICAL findings that block merge.
-     Run these commands to record the block:
-     bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-     bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
-       --body ${JSON.stringify('Factory Verify blocked: ' + JSON.stringify(blocking))}
-     Then notify the operator: PushNotification is a DEFERRED tool — run
-     \`ToolSearch select:PushNotification\` to load it, then call it once with
-       title:   "Factory Verify blocked: ${A.ticket_id} (${brand})"
-       message: "${blocking.length} HIGH/CRITICAL review finding(s) block merge."
-     Report the command outputs.`,
-    { label: 'verify:escalate', phase: 'Verify' },
+    `Record a one-line factory status breadcrumb (non-blocking): bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory: phase=Verify, tier=' + tier + ', ' + reviews.flatMap(r => r.findings || []).length + ' finding(s).')}`,
+    { label: 'verify:breadcrumb', phase: 'Verify' },
   )
-  phaseEvent('verify', 'blocked', blocking.length + ' HIGH/CRITICAL finding(s)')
-  return { status: 'blocked', reason: 'review-findings', blocking }
+
+  // Blocking: coordinator verdict (full) OR raw high/critical findings (fallback).
+  const rawBlocking = reviews.flatMap((r) => r.findings || []).filter((f) => f && (f.severity === 'high' || f.severity === 'critical'))
+  const isBlocked = coordinatorVerdict ? (coordinatorVerdict === 'requested_changes') : (rawBlocking.length > 0)
+  if (isBlocked) {
+    const blocking = rawBlocking
+    await agent(
+      `The adversarial review panel found blocking issues (coordinator verdict=${coordinatorVerdict || 'n/a'}). Record the block then notify:
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory Verify blocked: ' + JSON.stringify(blocking))}
+       PushNotification is a DEFERRED tool — run \`ToolSearch select:PushNotification\` to load it, then call it once with title "Factory Verify blocked: ${A.ticket_id} (${brand})" and message "${blocking.length} blocking review finding(s) / verdict=${coordinatorVerdict || 'high-severity'}.". Report the command outputs.`,
+      { label: 'verify:escalate', phase: 'Verify' },
+    )
+    phaseEvent('verify', 'blocked', (blocking.length || 1) + ' blocking finding(s)')
+    return { status: 'blocked', reason: 'review-findings', blocking, verdict: coordinatorVerdict }
+  }
+  phaseEvent('verify', 'done')
 }
-phaseEvent('verify', 'done')
 
 // ── ⑥ Deploy (auto-merge on green CI + both-brand explicit deploy) ──────────
 phase('Deploy')

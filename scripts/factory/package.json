@@ -1,0 +1,9 @@
+{
+  "name": "factory-ci-review",
+  "private": true,
+  "type": "module",
+  "description": "Isolated deps for the CI AI-review orchestrator (ci-review.mjs).",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0"
+  }
+}

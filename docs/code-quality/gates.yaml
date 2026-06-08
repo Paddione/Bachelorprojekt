@@ -50,6 +50,11 @@ s1:
     .php: 400
   ignore:
     - "website/src/lib/system-test-seed-data.ts"
+    # pipeline.js is a single monolithic Claude Code Workflow script: the harness
+    # forbids top-level imports-before-`meta` and dynamic import(), so it cannot be
+    # safely split into modules (see T000460). It is a sanctioned exception to the
+    # per-file line limit; the FA-SF-20 contract test guards its structural invariants.
+    - "scripts/factory/pipeline.js"
 
 s2:
   graphs:

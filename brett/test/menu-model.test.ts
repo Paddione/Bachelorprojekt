@@ -3,8 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { menuModel, isValidJoinCode } from '../src/client/ui/menu';
 
-test('admin/Leiter sees "Neue Session"; identity line reflects the name', () => {
-  const m = menuModel({ userId: 'u1', name: 'Anna', isAdmin: true });
+test('authenticated user sees "Neue Session"; identity line reflects the name', () => {
+  const m = menuModel({ userId: 'u1', name: 'Anna', isAdmin: false });
   const ids = m.items.map((i) => i.id);
   assert.ok(ids.includes('new-session'));
   assert.ok(ids.includes('join'));
@@ -13,10 +13,10 @@ test('admin/Leiter sees "Neue Session"; identity line reflects the name', () => 
   assert.equal(m.identityLine, 'angemeldet als: Anna');
 });
 
-test('non-admin omits "Neue Session" but keeps join/saved/settings', () => {
+test('anon user omits "Neue Session" but keeps join/saved/settings', () => {
   const m = menuModel({ userId: 'anon', name: 'Teilnehmer', isAdmin: false });
   const ids = m.items.map((i) => i.id);
-  assert.ok(!ids.includes('new-session'), '"Neue Session" is Leiter/Admin only');
+  assert.ok(!ids.includes('new-session'), '"Neue Session" requires authentication');
   assert.ok(ids.includes('join'));
   assert.ok(ids.includes('saved'));
   assert.ok(ids.includes('settings'));
@@ -31,7 +31,7 @@ test('isValidJoinCode accepts the 6-char session-code shape only', () => {
 });
 
 test('FE-4: saved + settings are disabled placeholders; join + new-session are active', () => {
-  const m = menuModel({ userId: 'u1', name: 'Anna', isAdmin: true });
+  const m = menuModel({ userId: 'u1', name: 'Anna', isAdmin: false });
   const byId = Object.fromEntries(m.items.map((i) => [i.id, i]));
   assert.equal(byId['saved'].disabled, true, 'Gespeicherte Aufstellungen is disabled');
   assert.equal(byId['settings'].disabled, true, 'Einstellungen is disabled');

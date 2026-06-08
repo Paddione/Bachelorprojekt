@@ -264,9 +264,6 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             }
           }
 
-          // Maintain admin presence for grace reassignment (B14). Accumulate any
-          // OIDC-admin into roomAdminPresence; if the (re)joining admin is the
-          // current token holder, cancel a pending grace timer.
           if (ws._session?.isAdmin) {
             const pid = resolvePlayerId(ws);
             const existing = [...(deps.roomAdminPresence.get(room) ?? [])];
@@ -279,10 +276,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
 
           const freshState = deps.buildStateFromMutations(room);
           if (freshState) {
-            // REG-6: merge the persisted __roles__ into each participant so the
-            // late-joiner's roster (seeded from this snapshot) shows assigned roles
-            // — not just {userId,name,color}. `ready` is ephemeral (never persisted)
-            // and defaults to false until the peer re-emits lobby_ready_changed.
+            // REG-6: merge persisted __roles__ into participants for late-joiner roster.
             const persistedRoles = freshState.roles || {};
             freshState.participants = deps.listParticipants(room).map((p: any) => ({
               ...p,
@@ -493,9 +487,6 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               deps.broadcast(room, { type: 'figure_owner_changed', figureId: newId, ownerId: playerId });
             }
           }
-          // Late-join tracking is done in the `join` handler (SEC-1/REG-3), not via
-          // a relay `player_join` (which was never in RELAY_TYPES nor sent by any
-          // client — dead code, removed).
           if (msg.type === 'clear') {
             deps.flushImmediate(room).catch((err: any) => console.error('[brett] flush:', err));
           }
@@ -505,9 +496,21 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         }
 
         if (ADMIN_TYPES.has(msg.type)) {
-          if (!ws._session?.isAdmin) return;
           const adminRoom = ws._room;
           if (!adminRoom) return;
+          const isKcAdmin = !!ws._session?.isAdmin;
+          if (msg.type === 'admin_session_create') {
+            // Any authenticated user may start a session and become its host.
+            if (!ws._session?.userId) return;
+          } else if (msg.type === 'admin_broadcast') {
+            // Internal website notification — Keycloak-admin only.
+            if (!isKcAdmin) return;
+          } else {
+            // All other host actions: Keycloak-admin OR current room leiter.
+            const roomRoles = deps.buildStateFromMutations(adminRoom)?.roles ?? {};
+            const isLeiter = deps.resolveRole(ws, roomRoles) === 'leiter';
+            if (!isKcAdmin && !isLeiter) return;
+          }
           await handleAdminMessage(ws, msg, adminRoom, deps);
           return;
         }

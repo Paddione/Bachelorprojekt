@@ -725,7 +725,7 @@ git commit -m "feat(factory-floor): ticket detail DAL + GET /api/factory-floor/[
 
 > Telemetrie ist best-effort: der Helper darf NIE werfen. `pipeline.js` ist ein Workflow-Script (keine ESM-Imports erlaubt) — `child_process.execSync` wird inline via `require` geholt, in `try/catch` gekapselt.
 
-- [ ] **Step 1: `phaseEvent`-Helper definieren**
+- [x] **Step 1: `phaseEvent`-Helper definieren**
 
 In `scripts/factory/pipeline.js` innerhalb der `async function main()`, direkt nach der Zeile, die `A` / `REPO` / `A.ticket_id` verfügbar macht (vor `phase('Scout')`, aktuell ~Zeile 170), einfügen:
 
@@ -742,7 +742,7 @@ function phaseEvent(ph, state, detail) {
 }
 ```
 
-- [ ] **Step 2: Calls an den 6 Phasen-Grenzen einsetzen**
+- [x] **Step 2: Calls an den 6 Phasen-Grenzen einsetzen**
 
 Jeweils direkt **nach** dem bestehenden `phase('X')`-Aufruf ein `entered`, und an den Phasen-Enden ein `done`/`blocked`:
 
@@ -759,17 +759,17 @@ Jeweils direkt **nach** dem bestehenden `phase('X')`-Aufruf ein `entered`, und a
 
 > Exakte Zeilennummern können nach vorherigen Tasks driften — orientiere dich an den `phase('X')`-Strings und den `return { status: 'blocked', reason: ... }`-Stellen, nicht an den Nummern.
 
-- [ ] **Step 3: Offline-Lint (Workflow-Script bleibt parsbar)**
+- [x] **Step 3: Offline-Lint (Workflow-Script bleibt parsbar)**
 
 Run: `cd /tmp/wt-factory-floor-live && node --check scripts/factory/pipeline.js`
 Expected: kein Output (Syntax OK).
 
-- [ ] **Step 4: Factory-Dry-Run-Gate grün halten**
+- [x] **Step 4: Factory-Dry-Run-Gate grün halten**
 
 Run: `cd /tmp/wt-factory-floor-live && task test:factory`
 Expected: alle FA-SF-*.bats PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js

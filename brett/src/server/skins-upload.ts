@@ -6,8 +6,16 @@ import multer from 'multer';
 
 export const MAX_SKIN_BYTES = 20 * 1024 * 1024; // 20 MB
 
-// Storage root: brett/public/assets/skins/<uuid>/
-const SKINS_ROOT = path.join(__dirname, '..', '..', 'public', 'assets', 'skins');
+// Resolve where skins are stored, mirroring the express.static root in index.ts.
+// In production the container ships no public/ dir; express.static serves from
+// dist/client, so uploads must land there too (T000529).
+export function computeSkinsRoot(distClientPath: string): string {
+  return fs.existsSync(path.join(distClientPath, 'index.html'))
+    ? path.join(distClientPath, 'assets', 'skins')
+    : path.join(path.dirname(path.dirname(distClientPath)), 'public', 'assets', 'skins');
+}
+
+const SKINS_ROOT = computeSkinsRoot(path.join(__dirname, '..', '..', 'dist', 'client'));
 
 export function checkSkinAuth(
   headerValue: string | undefined,

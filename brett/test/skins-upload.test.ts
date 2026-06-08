@@ -1,5 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import express from 'express';
 import { once } from 'node:events';
 import {
@@ -7,6 +10,7 @@ import {
   validateGlbSize,
   glbHasMixamoBones,
   attachSkinsUpload,
+  computeSkinsRoot,
   MAX_SKIN_BYTES,
 } from '../src/server/skins-upload';
 
@@ -140,5 +144,31 @@ test('POST /api/skins/upload: 413 for GLB over 20 MB', async () => {
     assert.equal(status, 413);
   } finally {
     close();
+  }
+});
+
+// ── T000529: SKINS_ROOT must resolve to the served static directory ─────────
+
+test('computeSkinsRoot: returns dist/client/assets/skins when index.html exists (regression T000529)', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'brett-skins-'));
+  try {
+    fs.writeFileSync(path.join(tmpDir, 'index.html'), '<html/>');
+    const result = computeSkinsRoot(tmpDir);
+    assert.equal(result, path.join(tmpDir, 'assets', 'skins'),
+      'production: skins must land inside dist/client so express.static serves them');
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true });
+  }
+});
+
+test('computeSkinsRoot: returns public/assets/skins when no built index.html (dev mode)', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'brett-skins-'));
+  try {
+    // No index.html → dev mode
+    const result = computeSkinsRoot(tmpDir);
+    const expected = path.join(path.dirname(path.dirname(tmpDir)), 'public', 'assets', 'skins');
+    assert.equal(result, expected, 'dev: fall back to public/assets/skins');
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true });
   }
 });

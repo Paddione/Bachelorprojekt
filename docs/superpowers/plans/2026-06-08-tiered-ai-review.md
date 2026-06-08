@@ -629,7 +629,7 @@ git -C /tmp/wt-tiered-fresh commit -m "feat(factory): add What-NOT-to-flag disci
 
 <!-- Prose prompt; verification = file exists + has the required sections. Schema mirrors bug-hunter. -->
 
-- [ ] **Step 1: Write the prompt file**
+- [x] **Step 1: Write the prompt file**
 
 Create `scripts/factory/review-perf-reviewer.prompt.md`:
 
@@ -683,12 +683,12 @@ Return JSON:
 - If you find ZERO performance issues, say so and name the hot paths you checked
 ```
 
-- [ ] **Step 2: Verify the file**
+- [x] **Step 2: Verify the file**
 
 Run: `cd /tmp/wt-tiered-fresh && grep -q "## What NOT to Flag" scripts/factory/review-perf-reviewer.prompt.md && grep -q '"findings"' scripts/factory/review-perf-reviewer.prompt.md && echo OK`
 Expected: `OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/review-perf-reviewer.prompt.md
@@ -707,7 +707,7 @@ Distinct output schema (spec §C): { materialityLevel, recommendedUpdate, specif
 The coordinator and pipeline treat this lens specially (it produces a recommendation, not severities).
 -->
 
-- [ ] **Step 1: Write the prompt file**
+- [x] **Step 1: Write the prompt file**
 
 Create `scripts/factory/review-agents-md-staleness.prompt.md`:
 
@@ -746,12 +746,12 @@ Return JSON ONLY:
 - Doc updates that the diff already includes (no need to recommend what was done)
 ```
 
-- [ ] **Step 2: Verify the file**
+- [x] **Step 2: Verify the file**
 
 Run: `cd /tmp/wt-tiered-fresh && grep -q '"materialityLevel"' scripts/factory/review-agents-md-staleness.prompt.md && echo OK`
 Expected: `OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/review-agents-md-staleness.prompt.md
@@ -772,7 +772,7 @@ The verdict enum drives both the Factory block decision AND the CI gh-review act
 enum MUST be exactly: approved | approved_with_comments | minor_issues | requested_changes.
 -->
 
-- [ ] **Step 1: Write the prompt file**
+- [x] **Step 1: Write the prompt file**
 
 Create `scripts/factory/review-coordinator.prompt.md`:
 
@@ -832,12 +832,12 @@ Return JSON ONLY:
 - Fold the agents-md lens output into `agentsMdRecommendation` (default low/false if absent).
 ```
 
-- [ ] **Step 2: Verify the file**
+- [x] **Step 2: Verify the file**
 
 Run: `cd /tmp/wt-tiered-fresh && grep -q 'requested_changes' scripts/factory/review-coordinator.prompt.md && grep -q '"verdict"' scripts/factory/review-coordinator.prompt.md && echo OK`
 Expected: `OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/review-coordinator.prompt.md

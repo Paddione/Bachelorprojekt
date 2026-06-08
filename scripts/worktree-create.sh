@@ -86,6 +86,18 @@ fi
 # 2) Init submodules (git worktree add does NOT; the BATS runner lives in one).
 git -C "$WT_PATH" submodule update --init --recursive --quiet
 
+# 3) node_modules: git worktrees don't share the gitignored root node_modules,
+#    and several `task test:all` subtasks (test:docs-gen, test:agent-guide) import
+#    third-party packages from it. Symlink the base checkout's node_modules so the
+#    worktree resolves deps instantly — no 536M reinstall, and the Taskfile's
+#    `[ -d node_modules ] || npm ci` guards short-circuit (avoiding their race
+#    under concurrent test:all). Skipped cleanly if the base has none. [T000526]
+MAIN_ROOT="$(dirname "$COMMON_DIR")"
+if [ -d "$MAIN_ROOT/node_modules" ] && [ ! -e "$WT_PATH/node_modules" ]; then
+    ln -s "$MAIN_ROOT/node_modules" "$WT_PATH/node_modules"
+    echo "worktree-create: linked node_modules → $MAIN_ROOT/node_modules" >&2
+fi
+
 _ok=1   # reached a clean finish — disarm the rollback trap
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
     echo "worktree-create: $WT_PATH ready on existing branch $BRANCH"

@@ -102,6 +102,30 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
 }
 
+# ── node_modules provisioning: worktrees share deps with the base checkout ──
+
+@test "T000526: a fresh worktree resolves node_modules from the base checkout" {
+  # The base has installed JS deps (gitignored, ~536M). git worktrees do NOT
+  # share node_modules, so without provisioning `task test:all`'s node-importing
+  # subtasks (test:docs-gen, test:agent-guide) die on ERR_MODULE_NOT_FOUND. The
+  # helper must make the base's node_modules resolvable from the worktree root.
+  mkdir -p "$MAIN/node_modules/cheerio"
+  printf '{"name":"cheerio"}\n' > "$MAIN/node_modules/cheerio/package.json"
+  run bash -c "cd '$MAIN' && bash '$HELPER' feature/nm '$TMP/wt-nm' HEAD"
+  [ "$status" -eq 0 ]
+  [ -e "$TMP/wt-nm/node_modules/cheerio/package.json" ]
+  grep -q 'cheerio' "$TMP/wt-nm/node_modules/cheerio/package.json"
+}
+
+@test "T000526: node_modules provisioning is skipped cleanly when the base has none" {
+  # No node_modules in the base → the helper must still succeed (no error, no
+  # dangling link), so a not-yet-installed repo can still spawn worktrees.
+  [ ! -e "$MAIN/node_modules" ]
+  run bash -c "cd '$MAIN' && bash '$HELPER' feature/nonm '$TMP/wt-nonm' HEAD"
+  [ "$status" -eq 0 ]
+  [ ! -e "$TMP/wt-nonm/node_modules" ]
+}
+
 # ── Rollback: a failure AFTER the --no-checkout skeleton must not leave junk ──
 
 @test "a post-skeleton failure rolls back the worktree and branch (no leftover)" {

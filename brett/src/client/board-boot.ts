@@ -21,6 +21,7 @@ import * as presets from './presets';
 import * as figPanel from './ui/fig-panel';
 import * as hud from './ui/hud';
 import * as appearance from './ui/appearance';
+import * as appearanceBadge from './ui/appearance-badge';
 import * as persons from './ui/persons';
 import * as povCamera from './pov-camera';
 import * as freeFly from './free-fly-camera';
@@ -300,6 +301,20 @@ export async function bootBoard(): Promise<void> {
   }
 
   renderer.domElement.addEventListener('dblclick', (e) => {
+    // Feature 2: dblclick on a figure → open the appearance drawer directly.
+    const contact = mannequin.pickContact(e);
+    if (contact) {
+      const fig = STATE.figures.find(f => f.id === contact.userData.figureId);
+      if (fig) {
+        const lock = activeLocks.get(fig.id);
+        if (lock && lock.userId !== currentUser.userId) return;
+        figPanel.selectFigure(fig.id);
+        appearance.openAppearanceDrawer();
+        appearanceBadge.hideBadge();
+      }
+      return;
+    }
+    // No figure hit → existing behavior: move selected figure / add a new one.
     const floorPt = mannequin.pickFloor(e);
     if (!floorPt) return;
     const fig = STATE.figures.find(f => f.id === STATE.selectedId);
@@ -444,6 +459,19 @@ export async function bootBoard(): Promise<void> {
     }
 
     hud.updateStatusPill();
+
+    // Feature 2: update the floating appearance badge each frame.
+    appearanceBadge.updateBadge(camera, renderer, (figId) => {
+      const fig = STATE.figures.find((f: any) => f.id === figId) as any;
+      if (!fig || !fig.root) return null;
+      const v = new THREE.Vector3();
+      const headGroup = fig.root.getObjectByName('head');
+      const src = headGroup ?? fig.headMesh ?? fig.root;
+      src.getWorldPosition(v);
+      v.y += 0.15;
+      return v;
+    });
+
     if ((window as any).__brettPostFx) {
       (window as any).__brettPostFx.render(scene, camera);
     } else {

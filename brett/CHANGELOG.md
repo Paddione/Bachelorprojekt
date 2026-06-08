@@ -1,7 +1,12 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
-## [0.23.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.23.0...brett-v0.23.1) (2026-06-08)
+## [0.24.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.23.0...brett-v0.24.0) (2026-06-08)
+
+
+### Features
+
+* **brett:** coaching-demo-ready — template, appearance badge, onboarding [T000534] ([#1454](https://github.com/Paddione/Bachelorprojekt/issues/1454)) ([5c10781](https://github.com/Paddione/Bachelorprojekt/commit/5c1078160c278e75a923b01c69a7d29912a88c8a))
 
 
 ### Bug Fixes

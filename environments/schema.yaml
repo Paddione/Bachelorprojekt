@@ -432,6 +432,15 @@ secrets:
   #    task body, passed directly to envsubst — not stored in environments/):
   #      ARENA_IMAGE         (prod-korczewski/arena.yaml — set to either
   #                           :latest or a pinned digest in arena:deploy)
+  #      COLLABORA_INGRESS_MIDDLEWARES
+  #                          (k3d/office-stack/ingress.yaml — computed from
+  #                           WORKSPACE_NAMESPACE in workspace:office:deploy)
+  #      COLLABORA_INGRESS_MIDDLEWARES_2
+  #                          (k3d/office-stack/ingress-korczewski.yaml — computed
+  #                           for the korczewski brand in workspace:office:deploy)
+  #      COLLABORA_TLS_SECRET_2
+  #                          (k3d/office-stack/ingress-korczewski.yaml — hardcoded
+  #                           to "korczewski-tls" in workspace:office:deploy)
   #
   # 6. Comment text matched by the audit regex (not real envsubst targets):
   #      VAR                 (k3d/coturn-stack/coturn.yaml line ~43 — used

@@ -103,6 +103,18 @@
       "file": "faces/blocked.png",
       "stance": "horizontal slate bar across eyes — cannot see"
     },
+    "relieved": {
+      "file": "faces/relieved.png",
+      "stance": "eased, present — soft closed eyes and a quiet exhale smile"
+    },
+    "defiant": {
+      "file": "faces/defiant.png",
+      "stance": "standing firm — brows knit inward, mouth set hard and flat"
+    },
+    "fearful": {
+      "file": "faces/fearful.png",
+      "stance": "alarmed — wide round eyes, small tight mouth"
+    },
     "portrait-patrick": {
       "file": "faces/portrait-patrick.png",
       "stance": "Patrick Korczewski — real photo portrait"

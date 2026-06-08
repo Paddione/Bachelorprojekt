@@ -276,6 +276,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-factory-injection",
+    "file": "tests/e2e/specs/fa-factory-injection.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-fragebogen",
     "file": "tests/e2e/specs/fa-fragebogen.spec.ts",
     "category": "E2E",
@@ -1112,6 +1118,12 @@
   {
     "id": "FA-SF-48",
     "file": "tests/local/FA-SF-48-ticket-phase-cli.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-49",
+    "file": "tests/local/FA-SF-49-injection-cli.bats",
     "category": "FA",
     "kind": "shell"
   },

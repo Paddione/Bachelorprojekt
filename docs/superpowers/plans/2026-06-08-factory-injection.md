@@ -1059,27 +1059,27 @@ git commit -m "test(factory-injection): Playwright smoke for inject form + POST 
 
 > New test files + a new API route MUST be reflected in the generated inventory/route artifacts or CI's `freshness:check` fails. This is the last task — run it after everything else compiles.
 
-- [ ] **Step 1: Regenerate all artifacts**
+- [x] **Step 1: Regenerate all artifacts**
 
 Run: `task freshness:regenerate`
 Expected: completes; `git status` may show changes to `test-inventory.json`, `route-manifest.json`, `repo-index.json`.
 
-- [ ] **Step 2: Run the full offline CI suite locally**
+- [x] **Step 2: Run the full offline CI suite locally**
 
 Run: `task test:all`
 Expected: PASS — includes `test:factory` (FA-SF-*.bats: FA-SF-49 + extended FA-SF-20) and the Vitest unit tests.
 
-- [ ] **Step 3: Run the freshness gate exactly as CI does**
+- [x] **Step 3: Run the freshness gate exactly as CI does**
 
 Run: `task freshness:check`
 Expected: PASS (no stale-artifact diff). If it fails, the previous regen left an uncommitted artifact — `git add` it.
 
-- [ ] **Step 4: Run the test-inventory check as CI does**
+- [x] **Step 4: Run the test-inventory check as CI does**
 
 Run: `task test:inventory && git diff --exit-code website/src/data/test-inventory.json`
 Expected: exit 0 (committed inventory matches regenerated).
 
-- [ ] **Step 5: Commit the generated artifacts**
+- [x] **Step 5: Commit the generated artifacts**
 
 ```bash
 git add website/src/data/test-inventory.json website/src/data/route-manifest.json docs/code-quality/repo-index.json

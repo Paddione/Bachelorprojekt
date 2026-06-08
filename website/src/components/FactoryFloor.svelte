@@ -11,7 +11,8 @@
 
   interface PhaseEventRow { phase: Phase; state: string; detail: string | null; driver: string; at: string; }
   interface Breadcrumb { authorLabel: string; body: string; at: string; }
-  interface TicketDetail { extId: string; title: string; status: string; priority: string; retryCount: number; prNumber: number | null; events: PhaseEventRow[]; breadcrumbs: Breadcrumb[]; }
+  interface InjectionRow { id: string; phase: string | null; kind: 'context'|'note'|'asset'; title: string | null; content: string | null; filename: string | null; injectedBy: string; injectedAt: string; consumedAt: string | null; }
+  interface TicketDetail { extId: string; title: string; status: string; priority: string; retryCount: number; prNumber: number | null; events: PhaseEventRow[]; breadcrumbs: Breadcrumb[]; injections: InjectionRow[]; }
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -44,6 +45,30 @@
     } catch { /* keep panel open with a spinner */ }
   }
   function closeDetail() { selected = null; detail = null; }
+
+  let injKind = $state<'context'|'note'|'asset'>('context');
+  let injPhase = $state<string>('');
+  let injTitle = $state('');
+  let injContent = $state('');
+  let injBusy = $state(false);
+  let injError = $state<string | null>(null);
+
+  async function submitInjection() {
+    if (!selected) return;
+    injBusy = true; injError = null;
+    const payload: Record<string, unknown> = { kind: injKind, title: injTitle || undefined, content: injContent || undefined };
+    if (injPhase) payload.phase = injPhase;
+    try {
+      const res = await fetch(`/api/factory-floor/${encodeURIComponent(selected)}/inject`, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
+      });
+      if (!res.ok) { injError = `Fehler (${res.status})`; return; }
+      injTitle = ''; injContent = '';
+      await openDetail(selected); // refresh injections list
+    } catch { injError = 'Netzwerkfehler'; }
+    finally { injBusy = false; }
+  }
 
   function hallAt(station: Phase): HallItem[] {
     return data?.hall.filter((h) => h.phase === station) ?? [];
@@ -166,6 +191,45 @@
               {/each}
             </ul>
           {/if}
+
+          <h4 class="font-semibold mt-4 mb-1">Injektionen</h4>
+          {#if detail.injections.length}
+            <ul class="space-y-1 text-sm mb-3" data-testid="inject-list">
+              {#each detail.injections as inj (inj.id)}
+                <li class="rounded bg-white/5 px-2 py-1">
+                  <span class="font-mono text-xs">{inj.kind}{inj.phase ? `@${inj.phase}` : ''}</span>
+                  {#if inj.title}<span class="font-semibold"> {inj.title}</span>{/if}
+                  <span class="block text-xs">{inj.consumedAt ? `✓ konsumiert ${new Date(inj.consumedAt).toLocaleString('de-DE')}` : '⏳ offen'}</span>
+                  {#if inj.content}<span class="block text-muted text-xs">{inj.content}</span>{/if}
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <p class="text-muted text-sm mb-3">Keine Injektionen.</p>
+          {/if}
+
+          <details class="mt-2" data-testid="inject-form">
+            <summary class="cursor-pointer font-semibold text-sm">Injizieren</summary>
+            <div class="mt-2 space-y-2">
+              <select bind:value={injKind} class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-kind">
+                <option value="context">context</option>
+                <option value="note">note</option>
+                <option value="asset">asset</option>
+              </select>
+              <select bind:value={injPhase} class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-phase">
+                <option value="">nächste Grenze (NULL)</option>
+                <option value="scout">scout</option><option value="design">design</option>
+                <option value="plan">plan</option><option value="implement">implement</option>
+                <option value="verify">verify</option><option value="deploy">deploy</option>
+              </select>
+              <input bind:value={injTitle} placeholder="Titel (optional)" class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-title" />
+              <textarea bind:value={injContent} placeholder="Kontext / Notiz" rows="3" class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-content"></textarea>
+              {#if injError}<p class="text-red-400 text-xs">{injError}</p>{/if}
+              <button onclick={submitInjection} disabled={injBusy} class="rounded bg-emerald-500/80 px-3 py-1 text-sm font-semibold disabled:opacity-50" data-testid="inject-submit">
+                {injBusy ? 'sende…' : 'injizieren'}
+              </button>
+            </div>
+          </details>
         {/if}
       </div>
     {/if}

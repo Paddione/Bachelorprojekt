@@ -489,7 +489,7 @@ git commit -m "feat(factory-injection): admin-gated POST /api/factory-floor/[ext
 
 > No new unit test here (Svelte render is covered by the Playwright smoke in Task 7). Keep the form simple; the data-testids are what the Playwright test asserts.
 
-- [ ] **Step 1: Extend the `TicketDetail` interface in the component**
+- [x] **Step 1: Extend the `TicketDetail` interface in the component**
 
 In `website/src/components/FactoryFloor.svelte`, find:
 
@@ -504,7 +504,7 @@ Replace with (add `InjectionRow` + `injections`):
   interface TicketDetail { extId: string; title: string; status: string; priority: string; retryCount: number; prNumber: number | null; events: PhaseEventRow[]; breadcrumbs: Breadcrumb[]; injections: InjectionRow[]; }
 ```
 
-- [ ] **Step 2: Add form state + submit handler**
+- [x] **Step 2: Add form state + submit handler**
 
 In the `<script>` block, find the existing `function closeDetail() { selected = null; detail = null; }` line and add after it:
 
@@ -534,7 +534,7 @@ In the `<script>` block, find the existing `function closeDetail() { selected = 
   }
 ```
 
-- [ ] **Step 3: Render the form + list in the panel**
+- [x] **Step 3: Render the form + list in the panel**
 
 In the detail panel, find the closing of the breadcrumbs block:
 
@@ -592,12 +592,12 @@ Insert AFTER that `{/if}` (still inside the `{:else}` of `{#if !detail}`):
           </details>
 ```
 
-- [ ] **Step 4: Typecheck (Svelte)**
+- [x] **Step 4: Typecheck (Svelte)**
 
 Run: `cd website && npx svelte-check --tsconfig ./tsconfig.json 2>&1 | tail -5`
 Expected: no new errors for `FactoryFloor.svelte`. (If `svelte-check` is unavailable, run `cd website && npx tsc --noEmit` — Svelte template typing is checked at build; at minimum the script-block types must compile.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/components/FactoryFloor.svelte

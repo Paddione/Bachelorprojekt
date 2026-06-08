@@ -12,8 +12,8 @@ export function loadTex(path: string): THREE.Texture {
 }
 
 export const ACC_GROUPS: Record<string, string[]> = {
-  head:  ['cap','blindfold','crown','veil','hair-short','hair-bun','hair-long','hair-braid','hair-curls'],
-  upper: ['satchel','cane','shawl','swaddle','tunic','coat','apron','robe','vest'],
+  head:  ['cap','blindfold','crown','veil','spectacles','hair-short','hair-bun','hair-long','hair-braid','hair-curls'],
+  upper: ['satchel','cane','shawl','scarf','swaddle','tunic','coat','apron','robe','vest'],
   feet:  ['boots-work','shoes-dress','sandals','barefoot'],
 };
 

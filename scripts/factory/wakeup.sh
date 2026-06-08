@@ -53,10 +53,14 @@ if [[ -f "${CRYPT_PROBE}" ]] && head -c 16 "${CRYPT_PROBE}" 2>/dev/null | grep -
   fi
 fi
 
-# ── ensure Extended Thinking is OFF so Workflow harness can spawn subagents ───
-# [1m] suffix or CLAUDE_CODE_EFFORT_LEVEL=max activates reasoning_effort; the
-# harness then sets thinking.type:disabled for agent() spawns → 400 API error.
-CLAUDE_CODE_EFFORT_LEVEL=low
+# ── reasoning_effort MUST stay UNSET so the Workflow harness can spawn subagents ─
+# The harness forces thinking.type=disabled for nested agent() spawns. If
+# reasoning_effort is ALSO set (any level), the Anthropic-compatible endpoint
+# (e.g. DeepSeek) rejects the request with:
+#   400 thinking options type cannot be disabled when reasoning_effort is set
+# → the dispatcher PREP step crashes. Setting it to "low" does NOT help — it must
+# be UNSET entirely. autopilot.env may export it, so neutralize it here. [T000519]
+unset CLAUDE_CODE_EFFORT_LEVEL
 # Strip [1m] from model env vars if present (belt-and-suspenders).
 # Use :- default to avoid nounset errors in CI where autopilot.env is absent.
 ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-}"; ANTHROPIC_MODEL="${ANTHROPIC_MODEL/\[1m\]/}"
@@ -72,6 +76,5 @@ The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh pe
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
 exec "${CLAUDE_BIN:-claude}" -p "${PROMPT}" \
-  --effort low \
   --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
   --permission-mode acceptEdits

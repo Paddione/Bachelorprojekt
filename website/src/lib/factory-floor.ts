@@ -176,11 +176,25 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
 
 export interface PhaseEventRow { phase: Phase; state: PhaseState; detail: string | null; driver: string; at: string; }
 export interface Breadcrumb { authorLabel: string; body: string; at: string; }
+export type InjectionKind = 'context' | 'note' | 'asset';
+export interface InjectionRow {
+  id: string; phase: Phase | null; kind: InjectionKind;
+  title: string | null; content: string | null; targetFiles: string[] | null;
+  dataUrl: string | null; ncPath: string | null; filename: string | null; mimeType: string | null;
+  injectedBy: string; injectedAt: string; consumedAt: string | null;
+}
+export interface InjectInput {
+  extId: string; kind: InjectionKind; phase?: Phase | null;
+  title?: string | null; content?: string | null; targetFiles?: string[] | null;
+  dataUrl?: string | null; ncPath?: string | null; filename?: string | null; mimeType?: string | null;
+  injectedBy: string;
+}
 export interface TicketDetail {
   extId: string; title: string; status: string; priority: string;
   retryCount: number; prNumber: number | null;
   events: PhaseEventRow[];
   breadcrumbs: Breadcrumb[];
+  injections: InjectionRow[];
 }
 
 /** Full per-ticket detail for the slide-in panel; null if the ext_id is unknown. */
@@ -191,7 +205,7 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
   );
   if (!t.rows.length) return null;
   const row = t.rows[0];
-  const [events, breadcrumbs, pr] = await Promise.all([
+  const [events, breadcrumbs, pr, injections] = await Promise.all([
     pool.query(
       `SELECT phase, state, detail, driver, at FROM tickets.factory_phase_events
         WHERE ticket_id = $1 ORDER BY at DESC`,
@@ -206,6 +220,14 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
       `SELECT pr_number FROM tickets.ticket_links
         WHERE from_id = $1 AND kind = 'pr' AND pr_number IS NOT NULL
         ORDER BY created_at DESC LIMIT 1`,
+      [row.id],
+    ),
+    pool.query(
+      `SELECT id, phase, kind, title, content, target_files, data_url, nc_path,
+              filename, mime_type, injected_by, injected_at, consumed_at
+         FROM tickets.ticket_injections
+        WHERE ticket_id = $1
+        ORDER BY (consumed_at IS NULL) DESC, injected_at DESC LIMIT 20`,
       [row.id],
     ),
   ]);
@@ -223,5 +245,62 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
     breadcrumbs: breadcrumbs.rows.map((b: any) => ({
       authorLabel: b.author_label, body: b.body, at: new Date(b.created_at).toISOString(),
     })),
+    injections: injections.rows.map(mapInjection),
   };
+}
+
+function mapInjection(r: any): InjectionRow {
+  return {
+    id: String(r.id), phase: r.phase ?? null, kind: r.kind,
+    title: r.title ?? null, content: r.content ?? null,
+    targetFiles: r.target_files ?? null,
+    dataUrl: r.data_url ?? null, ncPath: r.nc_path ?? null,
+    filename: r.filename ?? null, mimeType: r.mime_type ?? null,
+    injectedBy: r.injected_by, injectedAt: new Date(r.injected_at).toISOString(),
+    consumedAt: r.consumed_at ? new Date(r.consumed_at).toISOString() : null,
+  };
+}
+
+/** Insert an injection by ticket external_id; no-op (returns null) if the ticket is unknown. */
+export async function insertInjection(inp: InjectInput): Promise<InjectionRow | null> {
+  const t = await pool.query(`SELECT id FROM tickets.tickets WHERE external_id = $1`, [inp.extId]);
+  if (!t.rows.length) return null;
+  const r = await pool.query(
+    `INSERT INTO tickets.ticket_injections
+       (ticket_id, phase, kind, title, content, target_files, data_url, nc_path, filename, mime_type, injected_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+     RETURNING id, phase, kind, title, content, target_files, data_url, nc_path, filename, mime_type, injected_by, injected_at, consumed_at`,
+    [t.rows[0].id, inp.phase ?? null, inp.kind, inp.title ?? null, inp.content ?? null,
+     inp.targetFiles ?? null, inp.dataUrl ?? null, inp.ncPath ?? null, inp.filename ?? null,
+     inp.mimeType ?? null, inp.injectedBy],
+  );
+  return mapInjection(r.rows[0]);
+}
+
+/** Read-only list of injections (open + recently consumed) for the detail panel. */
+export async function getInjections(extId: string, limit = 20): Promise<InjectionRow[]> {
+  const r = await pool.query(
+    `SELECT i.id, i.phase, i.kind, i.title, i.content, i.target_files, i.data_url, i.nc_path,
+            i.filename, i.mime_type, i.injected_by, i.injected_at, i.consumed_at
+       FROM tickets.ticket_injections i
+       JOIN tickets.tickets t ON t.id = i.ticket_id
+      WHERE t.external_id = $1
+      ORDER BY (i.consumed_at IS NULL) DESC, i.injected_at DESC
+      LIMIT $2::int`,
+    [extId, limit],
+  );
+  return r.rows.map(mapInjection);
+}
+
+/** Atomically consume open injections for a phase (or NULL-phase = any boundary). */
+export async function consumeInjections(extId: string, phase: Phase): Promise<InjectionRow[]> {
+  const r = await pool.query(
+    `UPDATE tickets.ticket_injections SET consumed_at = now()
+      WHERE consumed_at IS NULL
+        AND (phase = $2 OR phase IS NULL)
+        AND ticket_id = (SELECT id FROM tickets.tickets WHERE external_id = $1)
+      RETURNING id, phase, kind, title, content, target_files, data_url, nc_path, filename, mime_type, injected_by, injected_at, consumed_at`,
+    [extId, phase],
+  );
+  return r.rows.map(mapInjection);
 }

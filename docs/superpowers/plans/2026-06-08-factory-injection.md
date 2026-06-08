@@ -105,7 +105,7 @@ git commit -m "feat(factory-injection): add tickets.ticket_injections schema [fa
 - Modify: `website/src/lib/factory-floor.ts`
 - Test: `website/src/lib/factory-floor.test.ts`
 
-- [ ] **Step 1: Add the pg-mem table to the test fixture**
+- [x] **Step 1: Add the pg-mem table to the test fixture**
 
 In `website/src/lib/factory-floor.test.ts`, inside the `mem.public.none(\`…\`)` schema block, find:
 
@@ -122,7 +122,7 @@ Add immediately after it (pg-mem ignores `[]`/UUID specifics, so use simple type
       injected_by text, injected_at timestamptz, consumed_at timestamptz);
 ```
 
-- [ ] **Step 2: Write the failing DAL tests**
+- [x] **Step 2: Write the failing DAL tests**
 
 In `website/src/lib/factory-floor.test.ts`, change the existing import line:
 
@@ -183,12 +183,12 @@ describe('factory-floor injection DAL', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to confirm they fail**
+- [x] **Step 3: Run the tests to confirm they fail**
 
 Run: `cd website && npx vitest run src/lib/factory-floor.test.ts`
 Expected: FAIL — `insertInjection`/`getInjections`/`consumeInjections` not exported; `injections` missing on `TicketDetail`.
 
-- [ ] **Step 4: Implement the DAL**
+- [x] **Step 4: Implement the DAL**
 
 In `website/src/lib/factory-floor.ts`, add the types + functions. First add interfaces near the existing `TicketDetail` interface (after the `Breadcrumb` interface, before `TicketDetail`):
 
@@ -282,7 +282,7 @@ export async function consumeInjections(extId: string, phase: Phase): Promise<In
 
 > Note: `consumeInjections` here is the DAL primitive used by tests and the API; the **pipeline's** consume goes through the CLI (`ticket.sh get-injections --consume`), not this TS function, because pipeline.js runs outside the website process.
 
-- [ ] **Step 5: Wire injections into `getTicketDetail`**
+- [x] **Step 5: Wire injections into `getTicketDetail`**
 
 In `getTicketDetail`, add a fourth parallel query. Change:
 
@@ -315,17 +315,17 @@ In the returned object, add after `breadcrumbs: …,`:
     injections: injections.rows.map(mapInjection),
 ```
 
-- [ ] **Step 6: Run the tests to confirm they pass**
+- [x] **Step 6: Run the tests to confirm they pass**
 
 Run: `cd website && npx vitest run src/lib/factory-floor.test.ts`
 Expected: PASS (all existing + 4 new).
 
-- [ ] **Step 7: Typecheck**
+- [x] **Step 7: Typecheck**
 
 Run: `cd website && npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts

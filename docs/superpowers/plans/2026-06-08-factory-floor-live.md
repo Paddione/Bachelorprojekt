@@ -785,7 +785,7 @@ git commit -m "feat(factory-floor): best-effort phase telemetry in pipeline.js [
 
 > Telemetrie hier ebenfalls best-effort: jeder Call mit `|| true` und `--driver devflow`, damit ein Insert-Fehler den manuellen Flow nie stoppt.
 
-- [ ] **Step 1: Schritt 1.5 — `implement entered`**
+- [x] **Step 1: Schritt 1.5 — `implement entered`**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, im Codeblock von **Schritt 1.5** nach der `update-status --status in_progress`-Zeile ergänzen:
 
@@ -794,7 +794,7 @@ In `.claude/skills/dev-flow-execute/SKILL.md`, im Codeblock von **Schritt 1.5** 
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow || true
 ```
 
-- [ ] **Step 2: Schritt 3 — `implement done` + `verify entered`**
+- [x] **Step 2: Schritt 3 — `implement done` + `verify entered`**
 
 In **Schritt 3 (Lokale Verifikation)**, am Anfang des Codeblocks (vor `task workspace:validate`) ergänzen:
 
@@ -803,7 +803,7 @@ In **Schritt 3 (Lokale Verifikation)**, am Anfang des Codeblocks (vor `task work
 ./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow || true
 ```
 
-- [ ] **Step 3: Schritt 6.5 — `deploy done`**
+- [x] **Step 3: Schritt 6.5 — `deploy done`**
 
 In **Schritt 6.5 (Ticket abschließen)**, im Codeblock nach der `update-status --status done`-Zeile ergänzen:
 
@@ -811,7 +811,7 @@ In **Schritt 6.5 (Ticket abschließen)**, im Codeblock nach der `update-status -
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-execute/SKILL.md

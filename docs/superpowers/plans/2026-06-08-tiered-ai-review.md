@@ -101,7 +101,7 @@ filter-diff.sh contract (from spec §A):
 The file path of a section = the b-path on the "diff --git a/X b/Y" line (use Y).
 -->
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/local/FA-AR-01-filter-diff.bats`:
 
@@ -189,12 +189,12 @@ $(_section pnpm-lock.yaml 'resolution')"
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /tmp/wt-tiered-fresh && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-AR-01-filter-diff.bats`
 Expected: FAIL — `scripts/factory/filter-diff.sh` does not exist (all cases error/fail).
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `scripts/factory/filter-diff.sh`:
 
@@ -292,12 +292,12 @@ main() {
 main "$@"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /tmp/wt-tiered-fresh && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-AR-01-filter-diff.bats`
 Expected: PASS — all 10 cases green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/filter-diff.sh tests/local/FA-AR-01-filter-diff.bats

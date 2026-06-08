@@ -7,6 +7,7 @@
 import type { Role } from '../../types/state';
 import type { LobbyState } from '../lobby-store';
 import { Panel, Button, Badge, RosterItem, type BadgeTone } from './primitives';
+import { stepsToTextarea, shouldPrefill } from '../lobby-template-fill';
 
 export interface LobbyRow {
   userId: string;
@@ -26,6 +27,7 @@ export interface LobbyViewModel {
   /** Read-only settings display (substance/edit lands in Phase D). */
   settings: {
     templateId?: string;
+    coachingTemplateId?: string;
     optikLabel?: string;
     maxParticipants?: number;
   };
@@ -59,6 +61,7 @@ export function buildLobbyViewModel(state: LobbyState, opts: { isLeader: boolean
     showReadyToggle: !opts.isLeader,
     settings: {
       templateId: state.settings.templateId,
+      coachingTemplateId: state.settings.coachingTemplateId,
       optikLabel: optikLabel(state),
       maxParticipants: state.settings.maxParticipants,
     },
@@ -150,6 +153,21 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
     });
     save.dataset.role = 'coaching-save';
     settingsPanel.append(label, editor, save);
+
+    // Prefill the coaching-steps editor from the selected coaching template,
+    // but only if the coach hasn't already typed steps. Best-effort: a failed
+    // fetch leaves the editor empty (coach types manually).
+    const coachingTemplateId = vm.settings.coachingTemplateId;
+    if (coachingTemplateId && shouldPrefill(editor.value)) {
+      fetch(`/api/templates/${encodeURIComponent(coachingTemplateId)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((tpl) => {
+          if (tpl && Array.isArray(tpl.steps) && shouldPrefill(editor.value)) {
+            editor.value = stepsToTextarea(tpl.steps);
+          }
+        })
+        .catch(() => { /* leave empty */ });
+    }
   }
 
   // Footer actions.

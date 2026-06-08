@@ -88,6 +88,8 @@ Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:
 
 ```bash
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
+# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
+./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow || true
 ```
 
 Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):
@@ -139,6 +141,9 @@ Nimm das Ergebnis entgegen und mach bei Schritt 3 (unabhängige Verifikation) we
 Rufe das Skill **`verification-before-completion`** auf, um die Verifikation strukturiert zu steuern.
 
 ```bash
+# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
+./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow || true
 task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX>
 task test:all
@@ -206,6 +211,8 @@ RESOLUTION="shipped" # oder "fixed" bei Fixes
 PR_NUM=$(gh pr view --json number -q '.number')
 
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 ```
 

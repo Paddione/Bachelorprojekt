@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.22.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.21.0...brett-v0.22.0) (2026-06-08)
+
+
+### Features
+
+* **brett:** add relieved/defiant/fearful faces + scarf/spectacles accessories [T000522] ([#1435](https://github.com/Paddione/Bachelorprojekt/issues/1435)) ([e510b40](https://github.com/Paddione/Bachelorprojekt/commit/e510b40e14e4b99f4b26ceb5af54a41b4da06aa9))
+
 ## [0.21.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.20.0...brett-v0.21.0) (2026-06-08)
 
 

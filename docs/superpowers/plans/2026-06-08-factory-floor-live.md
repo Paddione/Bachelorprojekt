@@ -522,7 +522,7 @@ git commit -m "test(factory-floor): pg-mem unit tests for the floor DAL [T-FACTO
 **Files:**
 - Create: `website/src/pages/api/factory-floor.ts`
 
-- [ ] **Step 1: Endpoint anlegen (admin-gated, Muster wie `factory-metrics.ts`)**
+- [x] **Step 1: Endpoint anlegen (admin-gated, Muster wie `factory-metrics.ts`)**
 
 Erstelle `website/src/pages/api/factory-floor.ts`:
 
@@ -558,12 +558,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: TypeScript-Kompilierung prüfen**
+- [x] **Step 2: TypeScript-Kompilierung prüfen**
 
 Run: `cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep "api/factory-floor" || echo "endpoint clean"`
 Expected: `endpoint clean`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/factory-floor.ts
@@ -579,7 +579,7 @@ git commit -m "feat(factory-floor): GET /api/factory-floor consolidated JSON [T-
 - Modify: `website/src/lib/factory-floor.test.ts` (Detail-Test ergänzen)
 - Create: `website/src/pages/api/factory-floor/[extId].ts`
 
-- [ ] **Step 1: Detail-Test schreiben (an bestehende factory-floor.test.ts anhängen)**
+- [x] **Step 1: Detail-Test schreiben (an bestehende factory-floor.test.ts anhängen)**
 
 Am Ende von `website/src/lib/factory-floor.test.ts`, vor der schließenden `});` des `describe`, ergänzen:
 
@@ -603,7 +603,7 @@ Am Ende von `website/src/lib/factory-floor.test.ts`, vor der schließenden `});`
 
 > Hinweis: Die pg-mem-Fixture in Task 4 enthält bereits keine `ticket_comments`-Tabelle. Füge sie im `mem.public.none(...)`-DDL-Block dieser Datei hinzu (eine Zeile: `CREATE TABLE tickets.ticket_comments (id serial, ticket_id text, author_label text, kind text, body text, visibility text, created_at timestamptz);`), damit der Breadcrumb-Join in `getTicketDetail` läuft. Keine Test-Zeilen nötig (leere Breadcrumb-Liste ist ein valider Fall).
 
-- [ ] **Step 2: Detail-Helper in `factory-floor.ts` anhängen**
+- [x] **Step 2: Detail-Helper in `factory-floor.ts` anhängen**
 
 Am Ende von `website/src/lib/factory-floor.ts` ergänzen:
 
@@ -661,12 +661,12 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
 }
 ```
 
-- [ ] **Step 3: Test laufen lassen — muss PASSEN**
+- [x] **Step 3: Test laufen lassen — muss PASSEN**
 
 Run: `cd website && npx vitest run src/lib/factory-floor.test.ts`
 Expected: PASS (8/8).
 
-- [ ] **Step 4: Detail-Endpoint anlegen**
+- [x] **Step 4: Detail-Endpoint anlegen**
 
 Erstelle `website/src/pages/api/factory-floor/[extId].ts`:
 
@@ -704,12 +704,12 @@ export const GET: APIRoute = async ({ request, params }) => {
 };
 ```
 
-- [ ] **Step 5: TypeScript-Kompilierung prüfen**
+- [x] **Step 5: TypeScript-Kompilierung prüfen**
 
 Run: `cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep factory-floor || echo "detail clean"`
 Expected: `detail clean`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts website/src/pages/api/factory-floor/[extId].ts

@@ -166,3 +166,55 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   ]);
   return { control, metrics, loadingDock, hall, shipped, fetchedAt: new Date().toISOString() };
 }
+
+export interface PhaseEventRow { phase: Phase; state: PhaseState; detail: string | null; driver: string; at: string; }
+export interface Breadcrumb { authorLabel: string; body: string; at: string; }
+export interface TicketDetail {
+  extId: string; title: string; status: string; priority: string;
+  retryCount: number; prNumber: number | null;
+  events: PhaseEventRow[];
+  breadcrumbs: Breadcrumb[];
+}
+
+/** Full per-ticket detail for the slide-in panel; null if the ext_id is unknown. */
+export async function getTicketDetail(extId: string): Promise<TicketDetail | null> {
+  const t = await pool.query(
+    `SELECT id, external_id, title, status, priority, retry_count FROM tickets.tickets WHERE external_id = $1`,
+    [extId],
+  );
+  if (!t.rows.length) return null;
+  const row = t.rows[0];
+  const [events, breadcrumbs, pr] = await Promise.all([
+    pool.query(
+      `SELECT phase, state, detail, driver, at FROM tickets.factory_phase_events
+        WHERE ticket_id = $1 ORDER BY at DESC`,
+      [row.id],
+    ),
+    pool.query(
+      `SELECT author_label, body, created_at FROM tickets.ticket_comments
+        WHERE ticket_id = $1 ORDER BY created_at DESC LIMIT 8`,
+      [row.id],
+    ),
+    pool.query(
+      `SELECT pr_number FROM tickets.ticket_links
+        WHERE from_id = $1 AND kind = 'pr' AND pr_number IS NOT NULL
+        ORDER BY created_at DESC LIMIT 1`,
+      [row.id],
+    ),
+  ]);
+  return {
+    extId: row.external_id,
+    title: row.title,
+    status: row.status,
+    priority: row.priority,
+    retryCount: row.retry_count ?? 0,
+    prNumber: pr.rows[0]?.pr_number ?? null,
+    events: events.rows.map((e: any) => ({
+      phase: e.phase, state: e.state, detail: e.detail ?? null, driver: e.driver,
+      at: new Date(e.at).toISOString(),
+    })),
+    breadcrumbs: breadcrumbs.rows.map((b: any) => ({
+      authorLabel: b.author_label, body: b.body, at: new Date(b.created_at).toISOString(),
+    })),
+  };
+}

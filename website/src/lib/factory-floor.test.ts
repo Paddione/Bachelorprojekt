@@ -90,4 +90,20 @@ describe('factory-floor DAL', () => {
     expect(c.slotsUsed).toBe(2); // h1 + b1 in slots
     expect(c.dailyCap).toBe(5);
   });
+
+  it('getTicketDetail returns the full phase timeline + breadcrumbs + PR for a ticket', async () => {
+    const { getTicketDetail } = await import('./factory-floor');
+    const detail = await getTicketDetail('T000459');
+    expect(detail).not.toBeNull();
+    expect(detail!.extId).toBe('T000459');
+    // two events for h1 (scout/done, implement/entered), newest first
+    expect(detail!.events.length).toBe(2);
+    expect(detail!.events[0].phase).toBe('implement');
+    expect(detail!.retryCount).toBe(0);
+  });
+
+  it('getTicketDetail returns null for an unknown ticket', async () => {
+    const { getTicketDetail } = await import('./factory-floor');
+    expect(await getTicketDetail('T999999')).toBeNull();
+  });
 });

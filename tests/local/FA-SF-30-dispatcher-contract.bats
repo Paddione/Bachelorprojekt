@@ -55,3 +55,14 @@ setup() { load 'test_helper.bash'; }
   run grep -q "ToolSearch select:PushNotification" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -Eq "\.error|status === 'blocked'|status: *'blocked'|blocked" "$SCRIPT"; [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-30: every agent() opts pins an explicit model (DeepSeek reasoning_effort 400 guard — T000528)" {
+  # The dispatcher runs under DeepSeek-backed autopilot; an agent() call that inherits the
+  # ambient model config trips the 'thinking cannot be disabled when reasoning_effort is set'
+  # 400 and fails PREP. Each agent() opts (prep/escalate/metrics) must pin model: explicitly.
+  # Sibling guard to the pipeline.js fix (T000519/#1430).
+  labels=$(grep -cE "label: '(prep|escalate|metrics)'" "$SCRIPT")
+  [ "$labels" -eq 3 ]
+  pinned=$(grep -E "label: '(prep|escalate|metrics)'" "$SCRIPT" | grep -c "model:")
+  [ "$pinned" -eq 3 ]
+}

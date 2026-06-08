@@ -1531,7 +1531,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 367,
+      "file_count": 368,
       "files": [
         "claude-code/gekko-android-mcp-guide.md",
         "claude-code/settings.json",
@@ -1877,6 +1877,7 @@
         "prod/mail-ingressroute.yaml",
         "prod/nextcloud-oidc-prod.php",
         "prod/old-webspace.yaml",
+        "prod/patch-brett.yaml",
         "prod/patch-claude-code-config.yaml",
         "prod/patch-docuseal.yaml",
         "prod/patch-keycloak.yaml",

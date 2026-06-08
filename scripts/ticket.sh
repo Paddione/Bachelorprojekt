@@ -55,8 +55,7 @@ _exec_sql() {
 
 cmd_create() {
   local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" is_test="false"
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --type)        type="$2"; shift 2 ;;
       --title)       title="$2"; shift 2 ;;
       --description) desc="$2"; shift 2 ;;
@@ -66,8 +65,7 @@ cmd_create() {
       --status)      status="$2"; shift 2 ;;
       --is-test-data) is_test="true"; shift ;;
       *)             echo "Unknown create option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
 
   if [[ -z "$priority" ]]; then
     priority="mittel"
@@ -98,15 +96,13 @@ EOF
 
 cmd_update_status() {
   local id="" status="" resolution="" notes=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)         id="$2"; shift 2 ;;
       --status)     status="$2"; shift 2 ;;
       --resolution) resolution="$2"; shift 2 ;;
       --notes)      notes="$2"; shift 2 ;;
       *)            echo "Unknown update-status option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
 
   if [[ -z "$id" || -z "$status" ]]; then
     echo "ERROR: --id and --status are required." >&2
@@ -134,15 +130,13 @@ EOF
 
 cmd_add_comment() {
   local id="" body="" author="claude-code" visibility="internal"
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)          id="$2"; shift 2 ;;
       --body)        body="$2"; shift 2 ;;
       --author)      author="$2"; shift 2 ;;
       --visibility)  visibility="$2"; shift 2 ;;
       *)             echo "Unknown add-comment option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
 
   if [[ -z "$id" || -z "$body" ]]; then
     echo "ERROR: --id and --body are required." >&2
@@ -167,16 +161,14 @@ EOF
 
 cmd_archive_plan() {
   local id="" slug="" branch="" plan_file="" pr=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)        id="$2"; shift 2 ;;
       --slug)      slug="$2"; shift 2 ;;
       --branch)    branch="$2"; shift 2 ;;
       --plan-file) plan_file="$2"; shift 2 ;;
       --pr)        pr="$2"; shift 2 ;;
       *)           echo "Unknown archive-plan option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
 
   if [[ -z "$id" || -z "$slug" || -z "$branch" || -z "$plan_file" ]]; then
     echo "ERROR: --id, --slug, --branch, and --plan-file are required." >&2
@@ -240,13 +232,11 @@ EOF
 
 cmd_get_attachments() {
   local id="" out_dir=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)      id="$2"; shift 2 ;;
       --out-dir) out_dir="$2"; shift 2 ;;
       *)         echo "Unknown get-attachments option: $1" >&2; shift ;;
-    esac
-  done
+    esac; done
 
   if [[ -z "$id" || -z "$out_dir" ]]; then
     echo "ERROR: --id and --out-dir are required." >&2
@@ -311,12 +301,10 @@ EOF
 
 cmd_get() {
   local id=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       *)    echo "Unknown get option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   # Metadata only — NEVER select ticket_plans.content.
@@ -337,14 +325,12 @@ EOF
 
 cmd_enqueue() {
   local id="" branch="" plan=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)     id="$2"; shift 2 ;;
       --branch) branch="$2"; shift 2 ;;
       --plan)   plan="$2"; shift 2 ;;
       *)        echo "Unknown enqueue option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   # Flip into the factory queue: type=feature, status=backlog (claimable by slots.sh).
@@ -363,13 +349,11 @@ EOF
 
 cmd_set_touched_files() {
   local id="" files=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)    id="$2"; shift 2 ;;
       --files) files="$2"; shift 2 ;;
       *)       echo "Unknown set-touched-files option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" || -z "$files" ]]; then echo "ERROR: --id and --files are required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v files="$files" <<'EOF' >/dev/null
@@ -380,13 +364,11 @@ EOF
 
 cmd_set_pipeline_slot() {
   local id="" slot=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id)   id="$2"; shift 2 ;;
       --slot) slot="$2"; shift 2 ;;
       *)      echo "Unknown set-pipeline-slot option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" || -z "$slot" ]]; then echo "ERROR: --id and --slot are required (use --slot null to clear)." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v slot="$slot" <<'EOF' >/dev/null
@@ -397,12 +379,10 @@ EOF
 
 cmd_release_slot() {
   local id=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       *)    echo "Unknown release-slot option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
@@ -413,12 +393,10 @@ EOF
 
 cmd_touch() {
   local id=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       *)    echo "Unknown touch option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   # Bump updated_at (the fn_lifecycle_ts BEFORE-UPDATE trigger sets it on any UPDATE).
@@ -431,12 +409,10 @@ EOF
 cmd_retry_count() {
   local action="" id=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       *)    echo "Unknown retry-count option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ "$action" != "get" && "$action" != "incr" && "$action" != "reset" ]]; then
     echo "ERROR: retry-count requires an action (get|incr|reset)." >&2; exit 2
   fi
@@ -464,15 +440,13 @@ EOF
 cmd_factory_control() {
   local action="" key="" brand="" value="" set_by=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --key)    key="$2"; shift 2 ;;
       --brand)  brand="$2"; shift 2 ;;
       --value)  value="$2"; shift 2 ;;
       --set-by) set_by="$2"; shift 2 ;;
       *)        echo "Unknown factory-control option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ "$action" != "get" && "$action" != "set" ]]; then
     echo "ERROR: factory-control requires an action (get|set)." >&2; exit 2
   fi
@@ -498,12 +472,10 @@ EOF
 
 cmd_dryrun_mark() {
   local id=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       *)    echo "Unknown dryrun-mark option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v key="dryrun:$id" <<'EOF' >/dev/null
@@ -516,12 +488,10 @@ EOF
 
 cmd_dryrun_check() {
   local id=""
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       *)    echo "Unknown dryrun-check option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod found
   pod=$(_pgpod)
@@ -535,15 +505,13 @@ EOF
 cmd_feature_flag() {
   local action="" brand="" key="" enabled="" set_by=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
+  while [[ $# -gt 0 ]]; do case "$1" in
       --brand)   brand="$2"; shift 2 ;;
       --key)     key="$2"; shift 2 ;;
       --enabled) enabled="$2"; shift 2 ;;
       --set-by)  set_by="$2"; shift 2 ;;
       *)         echo "Unknown feature-flag option: $1" >&2; exit 2 ;;
-    esac
-  done
+    esac; done
   if [[ "$action" != "set" && "$action" != "get" && "$action" != "list" ]]; then
     echo "ERROR: feature-flag requires an action (set|get|list)." >&2; exit 2
   fi
@@ -575,9 +543,34 @@ EOF
   esac
 }
 
+cmd_phase() {
+  # Positional <ext_id> <phase> <state>, then optional --detail / --driver.
+  local id="" phase="" state="" detail="" driver="factory"
+  [[ $# -ge 1 && "$1" != --* ]] && { id="$1"; shift; }
+  [[ $# -ge 1 && "$1" != --* ]] && { phase="$1"; shift; }
+  [[ $# -ge 1 && "$1" != --* ]] && { state="$1"; shift; }
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --detail) detail="$2"; shift 2 ;;
+      --driver) driver="$2"; shift 2 ;;
+      *) echo "Unknown phase option: $1" >&2; exit 2 ;;
+    esac; done
+  # Validate BEFORE _pgpod so bad-arg errors are deterministic w/o a cluster (FA-SF-48).
+  [[ -z "$id" || -z "$phase" || -z "$state" ]] && { echo "Usage: $0 phase <ext_id> <phase> <state> [--detail \"...\"] [--driver factory|devflow]" >&2; exit 2; }
+  case "$phase" in scout|design|plan|implement|verify|deploy) ;; *) echo "ERROR: phase must be one of scout|design|plan|implement|verify|deploy." >&2; exit 2 ;; esac
+  case "$state" in entered|done|blocked) ;; *) echo "ERROR: state must be one of entered|done|blocked." >&2; exit 2 ;; esac
+  case "$driver" in factory|devflow) ;; *) echo "ERROR: driver must be one of factory|devflow." >&2; exit 2 ;; esac
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" -v phase="$phase" -v state="$state" -v detail="$detail" -v driver="$driver" <<'EOF' >/dev/null
+INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
+SELECT id, :'phase', :'state', NULLIF(:'detail',''), :'driver'
+FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+  echo "phase recorded: $id $phase/$state (driver=$driver)"
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase" >&2
   exit 1
 fi
 
@@ -599,6 +592,7 @@ case "$cmd" in
   dryrun-mark)       cmd_dryrun_mark "$@" ;;
   dryrun-check)      cmd_dryrun_check "$@" ;;
   feature-flag)      cmd_feature_flag "$@" ;;
+  phase)             cmd_phase "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
 

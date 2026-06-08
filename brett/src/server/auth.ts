@@ -1,4 +1,4 @@
-import { discovery, ClientSecretPost } from 'openid-client';
+import { discovery, ClientSecretPost, allowInsecureRequests } from 'openid-client';
 import type { Configuration } from 'openid-client';
 import type { Request, Response, NextFunction } from 'express';
 
@@ -11,7 +11,14 @@ export async function getOidcClient(): Promise<Configuration> {
   const clientId   = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
   const clientSecret = process.env.BRETT_OIDC_SECRET || '';
   const issuerUrl  = `${kcUrl}/realms/${kcRealm}`;
-  oidcConfig = await discovery(new URL(issuerUrl), clientId, { client_secret: clientSecret }, ClientSecretPost());
+  const isHttp = issuerUrl.startsWith('http:');
+  oidcConfig = await discovery(
+    new URL(issuerUrl),
+    clientId,
+    { client_secret: clientSecret },
+    ClientSecretPost(),
+    isHttp ? { execute: [allowInsecureRequests] } : undefined,
+  );
   return oidcConfig;
 }
 

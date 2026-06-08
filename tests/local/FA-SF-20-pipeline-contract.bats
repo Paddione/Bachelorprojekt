@@ -69,3 +69,23 @@ SCRIPT="scripts/factory/pipeline.js"
   run awk -v end="$blockend" 'NR > end && /scout[.?]/ { print NR": "$0; f=1 } END { exit (f?1:0) }' "$SCRIPT"
   [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-20: defines consumeInjections and calls it after every phaseEvent(...,'entered')" {
+  run grep -q "function consumeInjections" "$SCRIPT"; [ "$status" -eq 0 ]
+  # one consume per entered-boundary: scout, design, plan(x2 reuse+fresh), implement, verify, deploy
+  run grep -c "consumeInjections(" "$SCRIPT"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 7 ]
+}
+
+@test "FA-SF-20: consumeInjections is best-effort (try/catch, never throws) and uses get-injections --consume" {
+  run grep -q "get-injections" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "'--consume'" "$SCRIPT"; [ "$status" -eq 0 ]
+  # the helper body wraps in try/catch (mirrors phaseEvent)
+  run bash -c "awk '/function consumeInjections/,/^}/' \"$SCRIPT\" | grep -q 'try {'"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-20: consumeInjections materializes assets into assets-inbox" {
+  run grep -q "assets-inbox" "$SCRIPT"; [ "$status" -eq 0 ]
+}

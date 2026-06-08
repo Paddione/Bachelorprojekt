@@ -14,6 +14,10 @@ vi.mock('pg', () => {
     CREATE TABLE tickets.ticket_links (
       id serial, from_id text, to_id text, kind text, pr_number int, created_at timestamptz);
     CREATE TABLE tickets.ticket_comments (id serial, ticket_id text, author_label text, kind text, body text, visibility text, created_at timestamptz);
+    CREATE TABLE tickets.ticket_injections (
+      id text, ticket_id text, phase text, kind text, title text, content text,
+      target_files text[], data_url text, nc_path text, filename text, mime_type text,
+      injected_by text, injected_at timestamptz, consumed_at timestamptz);
     CREATE VIEW tickets.v_factory_metrics AS
       SELECT day, features_shipped, avg_cycle_time_h FROM (VALUES
         ('2026-06-08'::date, 3, 4.2::numeric)) AS v(day, features_shipped, avg_cycle_time_h);
@@ -47,7 +51,8 @@ vi.mock('./tickets-db', () => ({
   isFeatureEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-import { getHall, getLoadingDock, getShipped, getMetrics, getControl } from './factory-floor';
+import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
+         insertInjection, getInjections, consumeInjections, getTicketDetail } from './factory-floor';
 
 describe('factory-floor DAL', () => {
   it('getHall derives the latest phase/state per active ticket and the block reason', async () => {
@@ -116,5 +121,47 @@ describe('factory-floor DAL', () => {
   it('getTicketDetail returns null for an unknown ticket', async () => {
     const { getTicketDetail } = await import('./factory-floor');
     expect(await getTicketDetail('T999999')).toBeNull();
+  });
+});
+
+describe('factory-floor injection DAL', () => {
+  it('insertInjection + getInjections round-trips and exposes open status', async () => {
+    await insertInjection({
+      extId: 'T000459', kind: 'context', phase: 'implement',
+      title: 'use the new util', content: 'prefer lib/foo over inline', injectedBy: 'admin',
+    });
+    const rows = await getInjections('T000459');
+    expect(rows.length).toBe(1);
+    expect(rows[0].kind).toBe('context');
+    expect(rows[0].phase).toBe('implement');
+    expect(rows[0].consumedAt).toBeNull();
+  });
+
+  it('consumeInjections is atomic: a second consume returns empty', async () => {
+    await insertInjection({ extId: 'T000459', kind: 'note', content: 'first', injectedBy: 'admin' });
+    const first = await consumeInjections('T000459', 'implement');
+    const got = first.filter((r) => r.content === 'first');
+    expect(got.length).toBe(1);
+    const second = await consumeInjections('T000459', 'implement');
+    expect(second.filter((r) => r.content === 'first').length).toBe(0);
+  });
+
+  it('phase targeting: a verify-phase injection is NOT consumed at implement, NULL-phase always is', async () => {
+    await insertInjection({ extId: 'T000460', kind: 'note', phase: 'verify', content: 'verify-only', injectedBy: 'admin' });
+    await insertInjection({ extId: 'T000460', kind: 'note', content: 'any-boundary', injectedBy: 'admin' });
+    const atImplement = await consumeInjections('T000460', 'implement');
+    const bodies = atImplement.map((r) => r.content);
+    expect(bodies).toContain('any-boundary');
+    expect(bodies).not.toContain('verify-only');
+    const atVerify = await consumeInjections('T000460', 'verify');
+    expect(atVerify.map((r) => r.content)).toContain('verify-only');
+  });
+
+  it('getTicketDetail returns injections (open + consumed)', async () => {
+    await insertInjection({ extId: 'T000459', kind: 'context', content: 'detail-test', injectedBy: 'admin' });
+    const d = await getTicketDetail('T000459');
+    expect(d).not.toBeNull();
+    expect(Array.isArray(d!.injections)).toBe(true);
+    expect(d!.injections.some((i) => i.content === 'detail-test')).toBe(true);
   });
 });

@@ -149,3 +149,6 @@ deeps.sh
 deepseek.sh
 environments/.secrets/.ssh/known_hosts
 .proxmox
+
+# Factory injection assets — materialized into the worktree at a phase boundary, never committed.
+assets-inbox/

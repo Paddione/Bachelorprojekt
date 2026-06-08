@@ -1,6 +1,18 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.23.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.22.1...brett-v0.23.0) (2026-06-08)
+
+
+### Features
+
+* **brett:** open-host — any authenticated user may start a session [T000532] ([#1447](https://github.com/Paddione/Bachelorprojekt/issues/1447)) ([72b1323](https://github.com/Paddione/Bachelorprojekt/commit/72b1323619216a607d44a756ee918f4aab112765))
+
+
+### Bug Fixes
+
+* **brett:** skins uploaded at runtime must land in the served dist/client dir [T000529] ([#1449](https://github.com/Paddione/Bachelorprojekt/issues/1449)) ([511f953](https://github.com/Paddione/Bachelorprojekt/commit/511f95332af5eb5cc2082d10e09b578cc75520f5))
+
 ## [0.22.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.22.0...brett-v0.22.1) (2026-06-08)
 
 

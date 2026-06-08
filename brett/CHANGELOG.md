@@ -1,6 +1,19 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.21.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.20.0...brett-v0.21.0) (2026-06-08)
+
+
+### Features
+
+* **brett:** Beziehungs-/Spannungslinien (Slice 4) [T000467] ([#1422](https://github.com/Paddione/Bachelorprojekt/issues/1422)) ([3506a68](https://github.com/Paddione/Bachelorprojekt/commit/3506a6864fdfc23d0f375160849ba1536c546df3))
+* **brett:** Timeline/Replay — Event-Log, Scrubber, Replay-Engine (Slice 5) [T000472] ([#1425](https://github.com/Paddione/Bachelorprojekt/issues/1425)) ([d24fece](https://github.com/Paddione/Bachelorprojekt/commit/d24feceb83294b402466965cbf3da55f42c95c92))
+
+
+### Bug Fixes
+
+* **brett:** replay-mode guards — updateLinePositions, seq seed race, sinceSeq NaN [T000472] ([#1427](https://github.com/Paddione/Bachelorprojekt/issues/1427)) ([38cfb81](https://github.com/Paddione/Bachelorprojekt/commit/38cfb8104b1996608acd171969a6f913ae44c7f8))
+
 ## [0.20.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.19.0...brett-v0.20.0) (2026-06-07)
 
 

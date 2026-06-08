@@ -331,7 +331,7 @@ classify-risk.sh contract (spec §B):
 JSON output must be valid (parseable by jq). Use a here-doc with the computed values.
 -->
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/local/FA-AR-02-classify-risk.bats`:
 
@@ -383,12 +383,12 @@ CR="scripts/factory/classify-risk.sh"
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /tmp/wt-tiered-fresh && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-AR-02-classify-risk.bats`
 Expected: FAIL — `scripts/factory/classify-risk.sh` does not exist.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `scripts/factory/classify-risk.sh`:
 
@@ -474,12 +474,12 @@ JSON
 main "$@"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /tmp/wt-tiered-fresh && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-AR-02-classify-risk.bats`
 Expected: PASS — all 6 cases green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/classify-risk.sh tests/local/FA-AR-02-classify-risk.bats

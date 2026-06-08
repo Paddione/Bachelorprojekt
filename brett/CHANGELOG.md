@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.23.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.23.0...brett-v0.23.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* **brett:** allow HTTP OIDC discovery after openid-client v4→v6 upgrade ([#1456](https://github.com/Paddione/Bachelorprojekt/issues/1456)) ([ca2a0ef](https://github.com/Paddione/Bachelorprojekt/commit/ca2a0ef535c61c7062c9f905adb696f4a1eb1321))
+
 ## [0.23.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.22.1...brett-v0.23.0) (2026-06-08)
 
 

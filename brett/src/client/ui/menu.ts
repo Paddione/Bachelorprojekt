@@ -38,10 +38,10 @@ export function isValidJoinCode(code: string): boolean {
   return JOIN_CODE_RE.test(code.trim());
 }
 
-/** Pure: admin-gated item list + identity line. */
+/** Item list + identity line. Any authenticated user may start a session. */
 export function menuModel(user: MenuUser): MenuModel {
   const items: MenuItem[] = [];
-  if (user.isAdmin) {
+  if (user.userId && user.userId !== 'anon') {
     items.push({ id: 'new-session', label: 'Neue Session starten', hint: 'Eine Aufstellung leiten' });
   }
   items.push({ id: 'join', label: 'Session beitreten', hint: 'Mit Code teilnehmen' });

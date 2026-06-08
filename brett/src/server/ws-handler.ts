@@ -505,9 +505,21 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         }
 
         if (ADMIN_TYPES.has(msg.type)) {
-          if (!ws._session?.isAdmin) return;
           const adminRoom = ws._room;
           if (!adminRoom) return;
+          const isKcAdmin = !!ws._session?.isAdmin;
+          if (msg.type === 'admin_session_create') {
+            // Any authenticated user may start a session and become its host.
+            if (!ws._session?.userId) return;
+          } else if (msg.type === 'admin_broadcast') {
+            // Internal website notification — Keycloak-admin only.
+            if (!isKcAdmin) return;
+          } else {
+            // All other host actions: Keycloak-admin OR current room leiter.
+            const roomRoles = deps.buildStateFromMutations(adminRoom)?.roles ?? {};
+            const isLeiter = deps.resolveRole(ws, roomRoles) === 'leiter';
+            if (!isKcAdmin && !isLeiter) return;
+          }
           await handleAdminMessage(ws, msg, adminRoom, deps);
           return;
         }

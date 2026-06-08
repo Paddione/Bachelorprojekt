@@ -1385,7 +1385,7 @@ is operational (not user docs), so it does not violate the no-proactive-docs rul
 deploy artifact for the feature to function.
 -->
 
-- [ ] **Step 1: Write the setup note**
+- [x] **Step 1: Write the setup note**
 
 Create `scripts/factory/AI-REVIEW-SETUP.md`:
 
@@ -1407,7 +1407,7 @@ Notes:
 - Model id is `deepseek-chat` by default; override with the `CI_REVIEW_MODEL` env in the workflow.
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/AI-REVIEW-SETUP.md

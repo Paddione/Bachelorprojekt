@@ -270,6 +270,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-factory-floor",
+    "file": "tests/e2e/specs/fa-factory-floor.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-fragebogen",
     "file": "tests/e2e/specs/fa-fragebogen.spec.ts",
     "category": "E2E",
@@ -1094,6 +1100,12 @@
   {
     "id": "FA-SF-47",
     "file": "tests/local/FA-SF-47-wakeup-reasoning-effort.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-48",
+    "file": "tests/local/FA-SF-48-ticket-phase-cli.bats",
     "category": "FA",
     "kind": "shell"
   },

@@ -992,12 +992,12 @@ git commit -m "feat(factory-injection): consumeInjections at every phase boundar
 
 > The smoke is intentionally light: it asserts the inject form renders inside the detail panel and that submitting issues a POST to `/api/factory-floor/<id>/inject`. Network is stubbed so it needs no live pipeline.
 
-- [ ] **Step 1: Locate the existing dev-status spec for the auth/setup pattern**
+- [x] **Step 1: Locate the existing dev-status spec for the auth/setup pattern**
 
 Run: `ls tests/playwright/ | grep -iE 'dev-status|factory|floor'`
 Read whichever exists to copy its admin-session/login `beforeEach` and base-URL handling. If none exists, search for the admin-login helper: `grep -rl "isAdmin\|admins\|preferred_username\|dev-status" tests/playwright/ | head`.
 
-- [ ] **Step 2: Write the smoke spec**
+- [x] **Step 2: Write the smoke spec**
 
 Create `tests/playwright/factory-injection.spec.ts` (adapt the `<ADMIN_LOGIN_SETUP>` block from Step 1 — do not invent an auth flow; reuse the existing one):
 
@@ -1038,12 +1038,12 @@ test('inject form renders in the detail panel and POSTs to the inject endpoint',
 });
 ```
 
-- [ ] **Step 3: Run the smoke (best-effort; Playwright needs a built/served site)**
+- [x] **Step 3: Run the smoke (best-effort; Playwright needs a built/served site)**
 
 Run: `cd website && npx playwright test factory-injection --reporter=line` (or the repo's Playwright task — `bash scripts/task-oracle.sh 'run playwright smoke against local site'`).
 Expected: PASS. If the local Playwright harness is not runnable in this environment, confirm the spec is syntactically valid with `npx tsc --noEmit` over the test and note it runs in the nightly `e2e.yml`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/playwright/factory-injection.spec.ts

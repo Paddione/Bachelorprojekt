@@ -119,6 +119,7 @@ export default defineConfig({
         '**/fa-content-hub-editor.spec.ts',
         '**/fa-content-hub-versioning.spec.ts',
         '**/fa-content-hub-service-consolidation.spec.ts',
+        '**/fa-factory-injection.spec.ts', // /dev-status inject form smoke (admin-gated) [factory-injection]
       ],
       use: {
         ...devices['Desktop Chrome'],

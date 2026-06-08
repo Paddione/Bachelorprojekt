@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.37.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.36.0...website-v1.37.0) (2026-06-08)
+
+
+### Features
+
+* **factory-floor:** live 'Fabrikhalle' visualization on /dev-status [T000518] ([#1432](https://github.com/Paddione/Bachelorprojekt/issues/1432)) ([56a2e01](https://github.com/Paddione/Bachelorprojekt/commit/56a2e0157f5486f6e57c061758f3c8276014dd4c))
+
+
+### Bug Fixes
+
+* **factory:** don't count terminal tickets' leaked pipeline_slot (8/3) [T000525] ([#1438](https://github.com/Paddione/Bachelorprojekt/issues/1438)) ([0e771cb](https://github.com/Paddione/Bachelorprojekt/commit/0e771cb8c7d9d8553709e78d92af7f066b4deb8d))
+* **factory:** unset reasoning_effort so DeepSeek-backed autopilot works [T000519] ([#1430](https://github.com/Paddione/Bachelorprojekt/issues/1430)) ([2f84ce9](https://github.com/Paddione/Bachelorprojekt/commit/2f84ce9d964c1591f327497e4a5721282b88c22e))
+
 ## [1.36.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.35.0...website-v1.36.0) (2026-06-08)
 
 

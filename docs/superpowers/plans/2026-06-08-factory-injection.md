@@ -49,7 +49,7 @@ pr_number: null
 **Files:**
 - Modify: `website/src/lib/tickets-db.ts` (in `initTicketsSchema()`, right after the `factory_phase_events` block — anchor string below)
 
-- [ ] **Step 1: Add the table + indexes (idempotent)**
+- [x] **Step 1: Add the table + indexes (idempotent)**
 
 In `website/src/lib/tickets-db.ts`, find the existing line ending the phase-events block:
 
@@ -85,12 +85,12 @@ Insert immediately AFTER it:
   await pool.query(`CREATE INDEX IF NOT EXISTS ticket_injections_open_idx ON tickets.ticket_injections (ticket_id) WHERE consumed_at IS NULL`);
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd website && npx tsc --noEmit`
 Expected: PASS (no new type errors from this file).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/tickets-db.ts

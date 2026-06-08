@@ -27,6 +27,7 @@ import * as povCamera from './pov-camera';
 import * as freeFly from './free-fly-camera';
 import * as exportUi from './ui/export';
 import * as groundObjects from './ground-objects';
+import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
 import { createReplayController, type ReplayBoardState } from './replay-engine';
@@ -484,6 +485,11 @@ export async function bootBoard(): Promise<void> {
   if ((window as any).BrettPostFx) {
     (window as any).__brettPostFx = (window as any).BrettPostFx.init(renderer);
   }
+
+  // Feature 3: one-time onboarding for the coach (leiter). Delayed so the scene
+  // is visible first. No-op if already seen (localStorage) or non-leiter.
+  const myRole = wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
+  maybeStartOnboarding({ role: myRole });
 
   console.log('[brett] scene up');
 }

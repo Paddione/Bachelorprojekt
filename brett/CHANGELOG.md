@@ -1,6 +1,20 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.25.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.24.0...brett-v0.25.0) (2026-06-08)
+
+
+### Features
+
+* **brett:** prefill coaching steps with default template when none selected ([a8633ee](https://github.com/Paddione/Bachelorprojekt/commit/a8633eefbf7268b91e95d346b56c5081499bb29c))
+
+
+### Bug Fixes
+
+* **brett:** guard getScene() in onWsMessage against pre-scene WebSocket messages ([#1462](https://github.com/Paddione/Bachelorprojekt/issues/1462)) ([aab5b52](https://github.com/Paddione/Bachelorprojekt/commit/aab5b52e89751320c58c402a4c2704eb1b09d4b6))
+* **brett:** resolve OIDC issuer mismatch after openid-client v6 upgrade [T000538] ([#1459](https://github.com/Paddione/Bachelorprojekt/issues/1459)) ([7da6d11](https://github.com/Paddione/Bachelorprojekt/commit/7da6d11007919650eb5e5f1b4601a524ba2a93e8))
+* **brett:** resolve OIDC issuer mismatch after openid-client v6 upgrade [T000538] ([#1461](https://github.com/Paddione/Bachelorprojekt/issues/1461)) ([7c750a6](https://github.com/Paddione/Bachelorprojekt/commit/7c750a626f1eb96978214c96fabaf45a142c4d90))
+
 ## [0.24.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.23.0...brett-v0.24.0) (2026-06-08)
 
 

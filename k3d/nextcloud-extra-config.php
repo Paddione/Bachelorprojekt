@@ -9,6 +9,12 @@ $CONFIG = [
     ],
     'forwarded_for_headers' => ['HTTP_X_FORWARDED_FOR'],
 
+    // Pretty URLs — route bare app paths (e.g. /apps/spreed/ for Talk) through
+    // index.php so they don't 403 against the physical app directory. The image
+    // entrypoint regenerates .htaccess via `occ maintenance:update:htaccess` on
+    // init, picking up this value, so the rewrite survives a pod rebuild.
+    'htaccess.RewriteBase' => '/',
+
     // Memcache
     'memcache.local'       => '\\OC\\Memcache\\APCu',
     'memcache.distributed' => '\\OC\\Memcache\\Redis',

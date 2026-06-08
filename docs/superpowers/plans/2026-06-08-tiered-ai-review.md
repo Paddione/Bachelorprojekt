@@ -1051,7 +1051,7 @@ node_modules location). Model ids: read from env CI_REVIEW_MODEL (default 'deeps
 DeepSeek-Anthropic endpoint gets a valid model name; do NOT hardcode a claude-* id.
 -->
 
-- [ ] **Step 1: Write the orchestrator**
+- [x] **Step 1: Write the orchestrator**
 
 Create `scripts/factory/ci-review.mjs`:
 
@@ -1198,7 +1198,7 @@ main().catch((e) => { console.error('ci-review failed:', e); process.exit(1) })
 runLens('bug') with empty content — it was a stray; the real coordinator call follows it.
 Final coordinate() should ONLY read review-coordinator.prompt.md and call the model once. -->
 
-- [ ] **Step 2: Clean up the stray placeholder in `coordinate()`**
+- [x] **Step 2: Clean up the stray placeholder in `coordinate()`**
 
 Remove this dead block inside `coordinate()` (it calls the model with empty content for no reason):
 
@@ -1209,17 +1209,17 @@ Remove this dead block inside `coordinate()` (it calls the model with empty cont
   } catch { /* ignore */ }
 ```
 
-- [ ] **Step 3: Parse-check**
+- [x] **Step 3: Parse-check**
 
 Run: `cd /tmp/wt-tiered-fresh && node --check scripts/factory/ci-review.mjs && echo PARSE-OK`
 Expected: `PARSE-OK`.
 
-- [ ] **Step 4: Smoke test the no-key skip path**
+- [x] **Step 4: Smoke test the no-key skip path**
 
 Run: `cd /tmp/wt-tiered-fresh && env -u ANTHROPIC_API_KEY node scripts/factory/ci-review.mjs; echo "exit=$?"`
 Expected: prints the skip warning and `exit=0`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/ci-review.mjs

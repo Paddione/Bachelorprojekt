@@ -41,13 +41,6 @@
     "detail": "514 lines > 500 limit (.sh)",
     "frozen_at": "c75f2fca"
   },
-  "S1:scripts/factory/pipeline.js": {
-    "gate": "S1",
-    "path": "scripts/factory/pipeline.js",
-    "metric": 620,
-    "detail": "620 lines > 600 limit (.js)",
-    "frozen_at": "c75f2fca"
-  },
   "S1:scripts/ticket.sh": {
     "gate": "S1",
     "path": "scripts/ticket.sh",

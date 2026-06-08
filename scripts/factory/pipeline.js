@@ -118,33 +118,20 @@ function phaseEvent(ph, state, detail) {
   } catch { /* telemetry is best-effort; swallow */ }
 }
 
-// Factory injection consume (factory-injection): atomically pull the operator's unconsumed
-// injections for this phase (or NULL-phase) at each boundary; fold context/note into a binding
-// prompt block ('' if none) and materialize assets to ${WORK_WT}/assets-inbox/<id>/. Best-effort
-// like phaseEvent — NEVER throws (a failed consume must not kill the pipeline). Breadcrumb via
-// add-comment because `ticket.sh phase` rejects state 'note' (enum entered|done|blocked).
+// Factory injection consume (factory-injection): atomically consume this phase's (or NULL-phase)
+// injections → binding prompt block ('' if none) + assets to assets-inbox/. Best-effort, NEVER throws.
 function consumeInjections(ph) {
   try {
-    const { execFileSync } = require('child_process'), fs = require('fs'), path = require('path')
-    const sh = (a, opt) => execFileSync('bash', [`${REPO}/scripts/ticket.sh`, ...a], opt)
-    const out = sh(['get-injections', '--id', String(A.ticket_id), '--phase', ph, '--consume', '--format', 'json'], { encoding: 'utf8', timeout: 20000 }).trim()
-    const rows = out ? JSON.parse(out) : []
+    const { execFileSync } = require('child_process'), fs = require('fs'), path = require('path'), sh = (a, opt) => execFileSync('bash', [`${REPO}/scripts/ticket.sh`, ...a], opt)
+    const rows = JSON.parse(sh(['get-injections', '--id', String(A.ticket_id), '--phase', ph, '--consume', '--format', 'json'], { encoding: 'utf8', timeout: 20000 }).trim() || '[]')
     if (!Array.isArray(rows) || !rows.length) return ''
-    const inbox = path.join(WORK_WT, 'assets-inbox', String(A.ticket_id)), lines = []
-    const forFiles = (r) => r.target_files ? ` [files: ${r.target_files.join(', ')}]` : ''
+    const inbox = path.join(WORK_WT, 'assets-inbox', String(A.ticket_id)), lines = [], files = (r) => r.target_files ? r.target_files.join(', ') : ''
     for (const r of rows) {
-      if (r.kind === 'asset' && r.data_url && r.filename) {
-        try {
-          fs.mkdirSync(inbox, { recursive: true })
-          const dest = path.join(inbox, path.basename(String(r.filename)))
-          fs.writeFileSync(dest, Buffer.from(String(r.data_url).replace(/^data:[^;]+;base64,/, ''), 'base64'))
-          lines.push(`ASSET available at ${dest}${r.target_files ? ` (for: ${r.target_files.join(', ')})` : ''}`)
-        } catch { /* asset write best-effort */ }
-      } else if (r.content || r.title) {
-        lines.push(`- ${r.title ? r.title + ': ' : ''}${r.content ?? ''}${forFiles(r)}`)
-      }
+      if (r.kind === 'asset' && r.data_url && r.filename)
+        try { fs.mkdirSync(inbox, { recursive: true }); const dest = path.join(inbox, path.basename(String(r.filename))); fs.writeFileSync(dest, Buffer.from(String(r.data_url).replace(/^data:[^;]+;base64,/, ''), 'base64')); lines.push(`ASSET available at ${dest}${files(r) ? ` (for: ${files(r)})` : ''}`) } catch { /* best-effort */ }
+      else if (r.content || r.title) lines.push(`- ${r.title ? r.title + ': ' : ''}${r.content ?? ''}${files(r) ? ` [files: ${files(r)}]` : ''}`)
     }
-    try { sh(['add-comment', '--id', String(A.ticket_id), '--author', 'factory', '--body', `consumed ${rows.length} injection(s) @ ${ph}`], { stdio: 'ignore', timeout: 15000 }) } catch {}
+    try { sh(['add-comment', '--id', String(A.ticket_id), '--author', 'factory', '--body', `consumed ${rows.length} @ ${ph}`], { stdio: 'ignore', timeout: 15000 }) } catch {}
     return lines.length ? `\n\nOPERATOR INJECTED CONTEXT — verbindlich berücksichtigen:\n${lines.join('\n')}\n` : ''
   } catch { return '' } // best-effort: swallow everything
 }
@@ -184,7 +171,6 @@ try { if (!REUSE) {
 // ── ① Scout ────────────────────────────────────────────────────────────────
 phase('Scout')
 phaseEvent('scout', 'entered')
-const injScout = consumeInjections('scout')
 const scout = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
    Scout the feature "${A.title}" against the codebase at ${REPO}.
@@ -197,7 +183,7 @@ const scout = await agent(
    3. Identify which files this feature will edit (touched_files), the complexity
       (simple/medium/complex), risk_areas, and estimated_slots.
 
-   Return a JSON object matching the scout schema.` + injScout,
+   Return a JSON object matching the scout schema.` + consumeInjections('scout'),
   { label: 'scout', phase: 'Scout', schema: SCOUT_SCHEMA },
 )
 
@@ -221,7 +207,6 @@ specPath = null
 if (!isSimple) {
   phase('Design')
   phaseEvent('design', 'entered')
-  const injDesign = consumeInjections('design')
   const design = await agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
      Write a design spec for "${A.title}" following the structure in
@@ -236,7 +221,7 @@ if (!isSimple) {
      Then attach it to the ticket:
      bash ${REPO}/scripts/ticket-attach.sh <uuid> <specfile>
 
-     Return the spec file path (just the absolute path you wrote, nothing else).` + injDesign,
+     Return the spec file path (just the absolute path you wrote, nothing else).` + consumeInjections('design'),
     { label: 'design', phase: 'Design' },
   )
   specPath = design.trim()
@@ -248,7 +233,6 @@ tasks = []
 if (!isSimple) {
   phase('Plan')
   phaseEvent('plan', 'entered')
-  const injPlanFresh = consumeInjections('plan')
   // Brand-aware disjoint-files gate BEFORE fanning tasks.
   const conflict = await agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
@@ -291,7 +275,7 @@ if (!isSimple) {
      bash ${REPO}/scripts/plan-frontmatter-hook.sh <the-plan-file-you-wrote>
 
      Return a JSON object { tasks: [...], plan_path: "<absolute path of the plan file you wrote>" }
-     matching the schema.` + injPlanFresh,
+     matching the schema.` + consumeInjections('plan'),
     {
       ...(planProv.model ? { model: planProv.model } : {}),
       label: 'plan:decompose',
@@ -308,7 +292,6 @@ if (!isSimple) {
 if (REUSE) {
   phase('Plan')
   phaseEvent('plan', 'entered')
-  const injPlanReuse = consumeInjections('plan')
   const reuse = await agent(
     `A human already planned this feature via dev-flow on the existing branch ${WORK_BRANCH}.
      Read the plan file WITHOUT creating a worktree (the Implement phase creates the shared
@@ -316,7 +299,7 @@ if (REUSE) {
      (fall back to \`git show "${WORK_BRANCH}:${REUSE_PLAN}"\` if the remote ref is absent).
      Decompose it into independent tasks where no two tasks touch the same file:
      each { id, target_files:[...], acceptance_criteria:[...] }.
-     Do NOT write a new plan or spec — reuse the human one. Return { tasks: [...] }.` + injPlanReuse,
+     Do NOT write a new plan or spec — reuse the human one. Return { tasks: [...] }.` + consumeInjections('plan'),
     { label: 'plan:reuse', phase: 'Plan', schema: { type:'object', required:['tasks'], properties:{ tasks:{ type:'array', items:{ type:'object', required:['id','target_files','acceptance_criteria'], properties:{ id:{type:'string'}, target_files:{type:'array',items:{type:'string'}}, acceptance_criteria:{type:'array',items:{type:'string'}} } } } } } },
   )
   tasks = reuse.tasks
@@ -333,7 +316,6 @@ let implemented = []
 if (tasks.length) {
   phase('Implement')
   phaseEvent('implement', 'entered')
-  const injImplement = consumeInjections('implement')
 
   const wtSetup = await agent(
     `Record pipeline liveness: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
@@ -376,7 +358,7 @@ if (tasks.length) {
        up to date so CI passes.)
        Finally COMMIT your work on ${WORK_BRANCH} (so the Verify/Deploy phases can diff it):
          cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
-       Return a summary of the diff and the local test result (pass/fail).` + injImplement,
+       Return a summary of the diff and the local test result (pass/fail).` + consumeInjections('implement'),
       { label: `impl:${t.id}`, phase: 'Implement', ...(prov.model ? { model: prov.model } : {}) },
     )
     if (impl == null) continue   // agent died (terminal API error) — skip its self-verify
@@ -394,7 +376,6 @@ if (tasks.length) {
 // ── ⑤ Verify (adversarial review panel — three parallel lenses) ────────────
 phase('Verify')
 phaseEvent('verify', 'entered')
-const injVerify = consumeInjections('verify')
 const lenses = [
   { key: 'bug',      file: 'scripts/factory/review-bug-hunter.prompt.md' },
   { key: 'security', file: 'scripts/factory/review-security-auditor.prompt.md' },
@@ -405,7 +386,7 @@ const reviews = (await parallel(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
      Read the review prompt at ${REPO}/${l.file} and apply it to the diff of branch
      ${WORK_BRANCH}: git -C ${WORK_WT} diff origin/main...HEAD  (in the WORKTREE — NOT
-     in ${REPO} whose HEAD is main → empty diff). Return findings as JSON per schema.` + injVerify,
+     in ${REPO} whose HEAD is main → empty diff). Return findings as JSON per schema.` + consumeInjections('verify'),
     { label: `review:${l.key}`, phase: 'Verify', schema: REVIEW_SCHEMA, model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
   )),
 )).filter(Boolean)
@@ -439,7 +420,6 @@ phaseEvent('verify', 'done')
 // ── ⑥ Deploy (auto-merge on green CI + both-brand explicit deploy) ──────────
 phase('Deploy')
 phaseEvent('deploy', 'entered')
-const injDeploy = consumeInjections('deploy')
 if (DRY_RUN) {
   const report = await agent(
     `DRY RUN — do NOT push, merge, or deploy anything. Work from the WORKTREE (HEAD=${WORK_BRANCH}):
@@ -564,7 +544,7 @@ const deploy = await agent(
        rolls that brand back to it (exit 1). Record the per-brand verdict (GREEN/RED).
        If ANY brand returns RED, output a line containing exactly: CANARY_RED <brand>
 
-    Report the merged PR number and the deploy command outputs.` + injDeploy,
+    Report the merged PR number and the deploy command outputs.` + consumeInjections('deploy'),
   { label: 'deploy', phase: 'Deploy' },
 )
 

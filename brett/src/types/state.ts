@@ -32,6 +32,7 @@ export interface OptikSettings {
 
 export interface LobbySettings {
   templateId?: string;
+  coachingTemplateId?: string;
   optik?: OptikSettings;
   maxParticipants?: number;
   /** Default: false — Stellvertreter darf NICHT add/delete. */

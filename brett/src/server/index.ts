@@ -20,6 +20,7 @@ import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
 import * as eventLog from './event-log';
 import { attachSkinsUpload } from './skins-upload';
+import { listCoachingTemplates, getCoachingTemplate } from './coaching-templates';
 
 // ── Dependency wiring (same order proven in Phase 2) ──────────────
 phases.initPhases({ figureMaps: figures.figureMaps, applyMutation: figures.applyMutation });
@@ -239,6 +240,20 @@ app.get('/api/snapshots/:id', asyncHandler(async (req: any, res: any) => {
   );
   if (!rows[0]) return res.status(404).json({ error: 'not found' });
   res.json(rows[0]);
+}));
+
+// Coaching-step templates surfaced in the lobby. Public read (no admin gate) —
+// they contain only generic coaching prompts, no client data.
+app.get('/api/templates', asyncHandler(async (_req: any, res: any) => {
+  const brand = process.env.BRAND || 'mentolder';
+  const rows = await listCoachingTemplates(db.getPool() as any, brand);
+  res.json(rows);
+}));
+
+app.get('/api/templates/:id', asyncHandler(async (req: any, res: any) => {
+  const tpl = await getCoachingTemplate(db.getPool() as any, req.params.id);
+  if (!tpl) { res.status(404).json({ error: 'not_found' }); return; }
+  res.json(tpl);
 }));
 
 // ── Replay / Event-Log API (Slice 5, T000472) ───────────────────────────────

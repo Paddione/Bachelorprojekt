@@ -54,7 +54,7 @@ pr_number: null
 - Modify: `website/src/lib/tickets-db.ts` (im `initTicketsSchema()`-Body, nach dem `factory_control`-Block bei ~Zeile 125)
 - Test: `website/src/lib/factory-floor.test.ts` (Tabelle wird im pg-mem-Setup von Task 4 mit-erstellt; hier nur der Schema-DDL-Block)
 
-- [ ] **Step 1: DDL-Block in `initTicketsSchema()` einfügen**
+- [x] **Step 1: DDL-Block in `initTicketsSchema()` einfügen**
 
 In `website/src/lib/tickets-db.ts` direkt nach dem schließenden ` ` ``)`` des `CREATE TABLE IF NOT EXISTS tickets.factory_control (...)`-Blocks (aktuell Zeile ~125) einfügen:
 
@@ -78,12 +78,12 @@ In `website/src/lib/tickets-db.ts` direkt nach dem schließenden ` ` ``)`` des `
   await pool.query(`CREATE INDEX IF NOT EXISTS factory_phase_events_ticket_at_idx ON tickets.factory_phase_events (ticket_id, at DESC)`);
 ```
 
-- [ ] **Step 2: TypeScript-Kompilierung prüfen**
+- [x] **Step 2: TypeScript-Kompilierung prüfen**
 
 Run: `cd website && npx tsc --noEmit -p tsconfig.json 2>&1 | grep tickets-db || echo "tickets-db clean"`
 Expected: `tickets-db clean` (keine Typfehler im geänderten Block).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/tickets-db.ts

@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brett
+spec:
+  template:
+    spec:
+      containers:
+        - name: brett
+          env:
+            - name: KEYCLOAK_PUBLIC_URL
+              value: "https://auth.${PROD_DOMAIN}"

@@ -1,4 +1,4 @@
-import { discovery, ClientSecretPost, allowInsecureRequests } from 'openid-client';
+import { discovery, ClientSecretPost, allowInsecureRequests, customFetch } from 'openid-client';
 import type { Configuration } from 'openid-client';
 import type { Request, Response, NextFunction } from 'express';
 
@@ -6,23 +6,45 @@ let oidcConfig: Configuration | null = null;
 
 export async function getOidcClient(): Promise<Configuration> {
   if (oidcConfig) return oidcConfig;
-  const kcUrl      = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
-  const kcRealm    = process.env.KEYCLOAK_REALM || 'workspace';
-  const clientId   = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
+  const kcUrl       = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
+  const kcPublicUrl = process.env.KEYCLOAK_PUBLIC_URL || '';
+  const kcRealm     = process.env.KEYCLOAK_REALM || 'workspace';
+  const clientId    = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
   const clientSecret = process.env.BRETT_OIDC_SECRET || '';
-  const issuerUrl  = `${kcUrl}/realms/${kcRealm}`;
-  const url = new URL(issuerUrl);
-  const isClusterHttp = url.protocol === 'http:' &&
-    (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname.endsWith('.svc.cluster.local'));
-  if (url.protocol === 'http:' && !isClusterHttp) {
-    throw new Error(`OIDC issuer URL must use HTTPS or a cluster-internal hostname, got: ${url.hostname}`);
+
+  const internalUrl = new URL(`${kcUrl}/realms/${kcRealm}`);
+  // When KEYCLOAK_PUBLIC_URL is set, openid-client validates the discovered issuer
+  // against the public URL while customFetch routes the actual request to the
+  // cluster-internal endpoint (avoids issuer mismatch with RFC-compliant v6).
+  const issuerUrl = kcPublicUrl ? new URL(`${kcPublicUrl}/realms/${kcRealm}`) : internalUrl;
+
+  const isClusterHttp = internalUrl.protocol === 'http:' &&
+    (internalUrl.hostname === 'localhost' || internalUrl.hostname === '127.0.0.1' || internalUrl.hostname.endsWith('.svc.cluster.local'));
+  if (internalUrl.protocol === 'http:' && !isClusterHttp) {
+    throw new Error(`OIDC issuer URL must use HTTPS or a cluster-internal hostname, got: ${internalUrl.hostname}`);
   }
+
+  const opts: Record<string | symbol, unknown> = {};
+  if (isClusterHttp) opts.execute = [allowInsecureRequests];
+  if (kcPublicUrl && kcPublicUrl !== kcUrl) {
+    opts[customFetch] = (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const href = typeof input === 'string' ? input : input instanceof URL ? input.href : (input as { url: string }).url;
+      const u = new URL(href);
+      if (u.hostname === issuerUrl.hostname) {
+        u.protocol = internalUrl.protocol;
+        u.host = internalUrl.host;
+        return fetch(u.toString(), init);
+      }
+      return fetch(input, init);
+    };
+  }
+
   oidcConfig = await discovery(
-    url,
+    issuerUrl,
     clientId,
     { client_secret: clientSecret },
     ClientSecretPost(),
-    isClusterHttp ? { execute: [allowInsecureRequests] } : undefined,
+    Object.keys(opts).length || Object.getOwnPropertySymbols(opts).length ? (opts as any) : undefined,
   );
   return oidcConfig;
 }

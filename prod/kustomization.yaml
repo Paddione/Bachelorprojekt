@@ -210,6 +210,7 @@ patches:
   - path: patch-oauth2-proxy-traefik.yaml
   - path: patch-oauth2-proxy-mailpit.yaml
   - path: patch-oauth2-proxy-brett.yaml
+  - path: patch-brett.yaml
   - path: patch-oauth2-proxy-comfy.yaml
   # Collabora lives in the workspace-office namespace, deployed via
   # task workspace:office:deploy — no patch target on this overlay.

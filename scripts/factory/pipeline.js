@@ -111,9 +111,10 @@ const WT = `/tmp/wt-${slug}`
 // the pipeline (T-FACTORY-FLOOR). One INSERT per phase boundary, driver=factory.
 function phaseEvent(ph, state, detail) {
   try {
-    const { execSync } = require('child_process')
-    const d = detail ? ` --detail ${JSON.stringify(String(detail).slice(0, 240))}` : ''
-    execSync(`bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} ${ph} ${state} --driver factory${d}`, { stdio: 'ignore', timeout: 15000 })
+    const { execFileSync } = require('child_process')
+    const a = [`${REPO}/scripts/ticket.sh`, 'phase', String(A.ticket_id), ph, state, '--driver', 'factory']
+    if (detail) a.push('--detail', String(detail).slice(0, 240))
+    execFileSync('bash', a, { stdio: 'ignore', timeout: 15000 }) // arg array → no shell injection via detail
   } catch { /* telemetry is best-effort; swallow */ }
 }
 
@@ -351,8 +352,8 @@ if (tasks.length) {
     )
     if (verify != null) implemented.push(verify)
   }
+  phaseEvent('implement', 'done')
 }
-phaseEvent('implement', 'done')
 
 // ── ⑤ Verify (adversarial review panel — three parallel lenses) ────────────
 phase('Verify')

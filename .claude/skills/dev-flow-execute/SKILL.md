@@ -18,6 +18,7 @@ Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und 
 Synchronisiere `main` im Haupt-Repo:
 
 ```bash
+bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombie-Prozesse, stale Worktrees & tote Locks räumen
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
 ```
@@ -56,6 +57,27 @@ Finde den neuesten Plan in `docs/superpowers/plans/*.md` und extrahiere die Tick
 ```bash
 PLAN_FILE="docs/superpowers/plans/<slug>.md"
 TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
+```
+
+---
+
+## Schritt 1.4: Doppelarbeit-Guard & Registry-Overlap (Session-Koordination [T000510])
+
+Claime Ticket + Branch, damit keine zweite Session (Claude/Gemini) dieselbe Arbeit dupliziert:
+
+```bash
+BRANCH=$(git branch --show-current)
+bash scripts/agent-lock.sh claim ticket "$TICKET_ID" --branch "$BRANCH" --worktree "$PWD" --label dev-flow-execute \
+  || { echo "🛑 Ticket $TICKET_ID wird bereits von einer lebenden Session bearbeitet (siehe Halter-Info oben) — koordinieren statt duplizieren."; exit 1; }
+bash scripts/agent-lock.sh claim branch "$BRANCH" --ticket "$TICKET_ID" --worktree "$PWD" --label dev-flow-execute || true
+
+# Weiche Warnung bei geteilten Registry-Dateien (Keep-both-Rebase-Risiko):
+for hf in k3d/configmap-domains.yaml environments/schema.yaml Taskfile.yml k3d/kustomization.yaml; do
+  git diff --name-only origin/main | grep -qx "$hf" || continue
+  [ "$(bash scripts/agent-lock.sh check registry "$hf" | head -1)" = "held" ] \
+    && echo "⚠ $hf wird parallel bearbeitet → Keep-both-Rebase erwarten."
+  bash scripts/agent-lock.sh claim registry "$hf" --ticket "$TICKET_ID" --label dev-flow-execute || true
+done
 ```
 
 ---
@@ -225,6 +247,9 @@ gh pr merge --squash --delete-branch
 Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):
 
 ```bash
+# Claims freigeben (Session-Koordination [T000510]) — VOR dem Worktree-Remove:
+bash scripts/agent-lock.sh release ticket "$TICKET_ID" 2>/dev/null || true
+bash scripts/agent-lock.sh release branch "<branch>" 2>/dev/null || true
 cd /home/patrick/Bachelorprojekt
 git worktree remove "/tmp/wt-<slug>" --force
 git branch -D "<branch>"

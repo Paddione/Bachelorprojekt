@@ -49,13 +49,14 @@ fi
 
 ---
 
-## Schritt −1: Stale-Worktree-Audit
+## Schritt −1: Reaper & Stale-Worktree-Audit
 
-Bereinige staler Worktrees von bereits gemergten Branches:
+Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet (Session-Koordination [T000510]):
 ```bash
+bash scripts/agent-lock.sh reap   # killt cwd-tote-Worktree-Prozesse, prunet Worktrees, räumt tote Locks
+bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Sessions
 git worktree list
-# Überprüfe staler Worktrees und lösche sie ggf. mit:
-# git worktree remove <path> --force && git branch -D <branch>
+# Stale Worktrees ggf. löschen: git worktree remove <path> --force && git branch -D <branch>
 ```
 
 ---
@@ -78,6 +79,9 @@ Erstelle einen neuen Worktree für den Feature-Branch (niemals `.claude/worktree
 # git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
 bash scripts/worktree-create.sh feature/<slug> /tmp/wt-<slug>
 cd /tmp/wt-<slug>
+# Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
+bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree "$PWD" --label dev-flow-plan \
+  || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
 ```
 
 ### Schritt 1.5: Optionale Asset-Sammlung
@@ -203,7 +207,7 @@ Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe `/schedule
 
 ### Schritt 1-7: Direkt bearbeiten und mergen
 1. Kurze Beschreibung formulieren.
-2. Worktree anlegen: `/tmp/wt-<slug>`.
+2. Worktree anlegen: `/tmp/wt-<slug>`; dann `bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore`. (Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich `claim main-checkout` — der `.githooks/pre-commit` sperrt sonst konkurrierende Commits anderer Sessions.)
 3. Änderungen vornehmen.
 4. Verifizieren (`task test:all`, `task workspace:validate` etc.).
 5. Committen, pushen und PR erstellen (`commit-commands:commit-push-pr`).

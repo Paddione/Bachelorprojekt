@@ -651,43 +651,17 @@ git commit -m "test(agent-lock): wire test:agent-lock into task test:all [T00051
 
 ---
 
-## Task 6: SessionStart reaper hook (Claude)
+## Task 6: SessionStart reaper hook (As-built: dokumentiert, nicht committed)
 
-**Files:**
-- Modify: `.claude/settings.json` (add a `SessionStart` hook → `agent-lock reap`)
+**Befund beim Bauen:** `.claude/settings.json` ist **gitignored** (`.gitignore:99`) — eine lokale, maschinengebundene Datei. Ein committeter `SessionStart`-Hook ist daher der falsche Weg (nicht versionierbar, würde nur eine Maschine betreffen). Der Reaper läuft ohnehin (a) am Start von dev-flow-plan/execute (Task 7) und (b) über die committeten Git-Hooks (`.githooks/`).
 
-- [ ] **Step 1: Read the current settings.json**
-
-Run: `cat .claude/settings.json`
-Confirm there is no existing `hooks` key (a fresh `hooks` object must be added without clobbering other keys).
-
-- [ ] **Step 2: Add the `SessionStart` hook** — merge this `hooks` block into `.claude/settings.json` (preserve all existing keys):
+- [ ] **Step 1:** KEINE `.claude/settings.json` committen. Stattdessen den optionalen lokalen Hook in `CLAUDE.md`/`GEMINI.md` dokumentieren (siehe Task 8) — wer den Reaper bei *jedem* Session-Start (nicht nur dev-flow) will, fügt lokal hinzu:
 
 ```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "bash scripts/agent-lock.sh reap 2>/dev/null || true" }
-        ]
-      }
-    ]
-  }
-}
+{ "hooks": { "SessionStart": [ { "hooks": [ { "type": "command", "command": "bash scripts/agent-lock.sh reap 2>/dev/null || true" } ] } ] } }
 ```
 
-- [ ] **Step 3: Validate JSON**
-
-Run: `python3 -c "import json; json.load(open('.claude/settings.json')); print('valid')"`
-Expected: `valid`.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add .claude/settings.json
-git commit -m "feat(agent-lock): SessionStart reaper hook [T000510]"
-```
+- [ ] **Step 2:** (optional, lokal) Diesen Block in die eigene `.claude/settings.json` mergen; mit `python3 -c "import json; json.load(open('.claude/settings.json'))"` validieren. Nicht committen.
 
 ---
 
@@ -738,26 +712,21 @@ bash scripts/agent-lock.sh release ticket "$TICKET_EXT_ID"
 bash scripts/agent-lock.sh release branch "$BRANCH"
 ```
 
-- [ ] **Step 3: Factory dispatcher — claim ticket before enqueue**
+- [ ] **Step 3: Factory dispatcher — skip interactively-claimed tickets**
 
-In `scripts/factory/dispatcher.js`, locate where a ticket is selected for the pipeline (before `enqueue`/slot-claim). Add a shell-out guard (Node `child_process.execSync`) that refuses to enqueue a ticket already claimed by a live interactive session:
+**Befund beim Bauen:** `dispatcher.js` ist ein **Workflow-Script** (nutzt `agent()`/`parallel()`/`workflow()`) und läuft in der Workflow-Sandbox **ohne Node.js-API** (`require`/`child_process`/`fs` nicht verfügbar — dieselbe Klasse wie der pipeline.js-Bug T000460). Ein `execSync`-Guard im JS würde es brechen. Richtiger Hebel: der **Scheduler-Agent** (der `agent()`-Call, der `schedule.sh` + die Per-Ticket-Guards ausführt) hat Bash. In dessen Prompt — direkt nach dem DRY-RUN-FIRST-Guard — diese Anweisung ergänzen:
 
-```javascript
-const { execSync } = require('node:child_process');
-function liveClaim(extId) {
-  try {
-    execSync(`bash scripts/agent-lock.sh check ticket ${extId}`, { stdio: 'pipe' });
-    return false; // exit 0 => free or mine
-  } catch (e) {
-    return (e.status === 3); // exit 3 => held by another live session
-  }
-}
-// before enqueue:
-if (liveClaim(ticket.external_id)) {
-  console.warn(`[dispatcher] skip ${ticket.external_id}: claimed by a live interactive session`);
-  continue;
-}
+```text
+For EACH claimed external_id also enforce the SESSION-COORDINATION guard [T000510]
+(never let the Factory duplicate work a live interactive Claude/Gemini session is doing):
+  bash ${REPO}/scripts/agent-lock.sh check ticket <external_id> ; AL=$?
+  If AL == 3 (a LIVE interactive session holds the ticket claim), DO NOT launch it:
+    release its slot — BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
+    and append { brand: <brand>, reason: "claimed by live interactive session" } to "skipped".
+  Any other AL value (0 = free/mine, 1) → proceed normally.
 ```
+
+Danach `node --check scripts/factory/dispatcher.js`.
 
 - [ ] **Step 4: Manual verification**
 

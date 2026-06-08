@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Warn (never block) on a branch-switch in the MAIN checkout while another
+# session holds the main-checkout lock. [T000510]
+set -uo pipefail
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+# $3 == 1 means a branch checkout (not a file checkout)
+[ "${3:-0}" = "1" ] || exit 0
+_al_gd="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
+_al_cd="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+case "$_al_cd" in /*) : ;; *) _al_cd="$(cd "$_al_cd" 2>/dev/null && pwd || echo "$_al_cd")";; esac
+if [ -n "$_al_gd" ] && [ "$_al_gd" = "$_al_cd" ]; then
+  bash "$repo_root/scripts/agent-lock.sh" guard-postcheckout || true
+fi
+exit 0

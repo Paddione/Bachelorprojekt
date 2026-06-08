@@ -463,11 +463,18 @@ tasks:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats
 
+  test:agent-lock:
+    desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
+    cmds:
+      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
+      - ./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-*.bats
+
   test:all:
-    desc: "Run all offline tests: unit + factory + manifests + art-library + menu-gate + dry-run + docs-gen"
+    desc: "Run all offline tests: unit + factory + agent-lock + manifests + art-library + menu-gate + dry-run + docs-gen"
     deps:
       - test:unit
       - test:factory
+      - test:agent-lock
       - test:manifests
       - test:art-library
       - test:menu-gate

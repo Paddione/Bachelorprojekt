@@ -63,6 +63,18 @@ task workspace:up
 
 ## Operational Footguns & Warnings
 
+### Session-Koordination (parallele Agenten — Claude + Gemini)
+
+Mehrere Agenten-Sessions teilen ein `.git`/denselben Checkout. `scripts/agent-lock.sh` (dateibasierte Claims unter `.git/agent-locks/`, Identität via Unix-Session-ID) verhindert Doppelarbeit und main-Checkout-Races. Kontrakt:
+
+- **Start jeder Session/Skill:** `bash scripts/agent-lock.sh reap` — räumt Zombie-Prozesse (cwd auf gelöschtem Worktree), stale Worktrees und tote Locks.
+- **Vor Ticket-/Branch-Arbeit:** `bash scripts/agent-lock.sh claim ticket <ext-id> --branch <b> --worktree <wt> --label <skill>` (und `claim branch <b>`). Exit 1 = eine **lebende** Session arbeitet bereits daran → koordinieren oder anderes Ticket, NICHT duplizieren.
+- **Am Ende / nach Merge:** `bash scripts/agent-lock.sh release ticket <ext-id>` (+ `release branch <b>`).
+- **main-Checkout:** Commits im main-Checkout sind über `.githooks/pre-commit` **hart gesperrt**, wenn eine andere lebende Session den `main-checkout`-Lock hält (Gate nur im main-Checkout, in Worktrees übersprungen, fail-open). Override: `AGENT_LOCK_FORCE=1 git commit …`. Besser: in einem Worktree (`scripts/worktree-create.sh`) arbeiten. Setzt `core.hooksPath=.githooks` voraus (via `task secrets:install-hooks`).
+- **Wer macht was:** `bash scripts/agent-lock.sh list`.
+- Live-Claims blocken auch die **Software Factory** (Dispatcher überspringt interaktiv geclaimte Tickets).
+- Optionaler **SessionStart-Reaper:** `.claude/settings.json` ist gitignored (lokal/maschinengebunden) — wer den Reaper bei jedem Session-Start (nicht nur dev-flow) will, fügt lokal hinzu: `{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"bash scripts/agent-lock.sh reap 2>/dev/null || true"}]}]}}`.
+
 > [!CAUTION]
 > **ENV= Behavior & Context Safety:**
 > The `ENV=` variable is explicit. Omitting it defaults to `dev`. 

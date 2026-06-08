@@ -89,6 +89,14 @@ async function main() {
        GUARDS_REPO=${REPO} guard_dryrun_ok <external_id> ; DR=$?
        If DR != 0 (not yet dry-run), STILL launch it but force dry_run=true for THAT object only.
 
+     For EACH claimed external_id also enforce the SESSION-COORDINATION guard [T000510]
+     (never let the Factory duplicate work a live interactive Claude/Gemini session is doing):
+       bash ${REPO}/scripts/agent-lock.sh check ticket <external_id> ; AL=$?
+       If AL == 3 (a LIVE interactive session holds the ticket claim), DO NOT launch it:
+         release its slot — BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
+         and append { brand: <brand>, reason: "claimed by live interactive session" } to "skipped".
+       Any other AL value (0 = free/mine, 1) → proceed normally.
+
      Collect every {brand, external_id, slot} object that schedule.sh claimed across both brands.
      For each claimed external_id, fetch its details:
        BRAND=<brand> bash ${REPO}/scripts/ticket.sh get --id <external_id>

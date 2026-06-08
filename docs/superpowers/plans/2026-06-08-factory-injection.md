@@ -814,7 +814,7 @@ git commit -m "feat(factory-injection): ticket.sh inject + get-injections (FA-SF
 
 > The helper mirrors `phaseEvent`: `try/catch`, never throws, uses `execFileSync` (arg array → no shell injection). It is called immediately after EACH `phaseEvent(<phase>,'entered')`. Anchor on those exact strings (line numbers drift).
 
-- [ ] **Step 1: Add `assets-inbox/` to `.gitignore`**
+- [x] **Step 1: Add `assets-inbox/` to `.gitignore`**
 
 Append to `/tmp/wt-factory-injection/.gitignore`:
 
@@ -823,7 +823,7 @@ Append to `/tmp/wt-factory-injection/.gitignore`:
 assets-inbox/
 ```
 
-- [ ] **Step 2: Write the failing pipeline-contract test**
+- [x] **Step 2: Write the failing pipeline-contract test**
 
 In `tests/local/FA-SF-20-pipeline-contract.bats`, append new cases at the end of the file:
 
@@ -851,12 +851,12 @@ In `tests/local/FA-SF-20-pipeline-contract.bats`, append new cases at the end of
 
 (The count `>= 7` matches: scout, design, plan-reuse, plan-fresh, implement, verify, deploy — 7 `phaseEvent(...,'entered')` anchors.)
 
-- [ ] **Step 3: Run to confirm it fails**
+- [x] **Step 3: Run to confirm it fails**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-20-pipeline-contract.bats`
 Expected: FAIL on the three new cases.
 
-- [ ] **Step 4: Implement the helper**
+- [x] **Step 4: Implement the helper**
 
 In `scripts/factory/pipeline.js`, find the end of the existing `phaseEvent` helper:
 
@@ -915,7 +915,7 @@ function consumeInjections(ph) {
 > ```
 > (This keeps the breadcrumb visible in the detail panel's Breadcrumbs section without abusing the phase-state enum.)
 
-- [ ] **Step 5: Call the helper after each `phaseEvent(<phase>,'entered')`**
+- [x] **Step 5: Call the helper after each `phaseEvent(<phase>,'entered')`**
 
 For EACH of the seven anchors below, insert a consume call on the next line and use its return string. Anchor on the exact existing strings.
 
@@ -963,7 +963,7 @@ and append `+ injDeploy` to the Deploy agent's prompt literal.
 
 > Implementation note: for each `agent(\`PROMPT\`, OPTS)` call, the change is `agent(\`PROMPT\` + injX, OPTS)`. If a prompt is built into a variable first, append `+ injX` where the string is finalized. Keep MVP simple: a single global block per phase. The `target_files` annotation inside the block is the scoping signal.
 
-- [ ] **Step 6: `node --check` + contract test**
+- [x] **Step 6: `node --check` + contract test**
 
 Run: `node --check scripts/factory/pipeline.js`
 Expected: exit 0.
@@ -971,12 +971,12 @@ Expected: exit 0.
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-20-pipeline-contract.bats`
 Expected: PASS (existing + 3 new).
 
-- [ ] **Step 7: Verify the S1 line-ratchet still passes**
+- [x] **Step 7: Verify the S1 line-ratchet still passes**
 
 Run: `task quality:check 2>&1 | tail -20` (or `task test:all`)
 Expected: PASS. If the pipeline.js / ticket.sh line gate fails, condense the new helpers (collapse multi-line `case`/`if` to one-liners as the existing code does) WITHOUT removing behavior, then re-run.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js .gitignore tests/local/FA-SF-20-pipeline-contract.bats

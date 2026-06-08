@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.37.1...website-v1.38.0) (2026-06-08)
+
+
+### Features
+
+* **factory:** operator note/context + asset injection into the pipeline [T000524] ([#1443](https://github.com/Paddione/Bachelorprojekt/issues/1443)) ([e925cbc](https://github.com/Paddione/Bachelorprojekt/commit/e925cbccb3ea40363df4d2561a8634b0416be8b6))
+
 ## [1.37.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.37.0...website-v1.37.1) (2026-06-08)
 
 

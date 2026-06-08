@@ -1,18 +1,18 @@
-import { Issuer } from 'openid-client';
+import { discovery, ClientSecretPost } from 'openid-client';
+import type { Configuration } from 'openid-client';
 import type { Request, Response, NextFunction } from 'express';
 
-let oidcClient: any = null;
+let oidcConfig: Configuration | null = null;
 
-export async function getOidcClient(): Promise<any> {
-  if (oidcClient) return oidcClient;
+export async function getOidcClient(): Promise<Configuration> {
+  if (oidcConfig) return oidcConfig;
   const kcUrl      = process.env.KEYCLOAK_URL || 'http://keycloak.workspace.svc.cluster.local:8080';
   const kcRealm    = process.env.KEYCLOAK_REALM || 'workspace';
   const clientId   = process.env.BRETT_KC_CLIENT_ID || 'brett-app';
   const clientSecret = process.env.BRETT_OIDC_SECRET || '';
   const issuerUrl  = `${kcUrl}/realms/${kcRealm}`;
-  const issuer     = await Issuer.discover(issuerUrl);
-  oidcClient = new issuer.Client({ client_id: clientId, client_secret: clientSecret, response_types: ['code'] });
-  return oidcClient;
+  oidcConfig = await discovery(new URL(issuerUrl), clientId, { client_secret: clientSecret }, ClientSecretPost());
+  return oidcConfig;
 }
 
 export function isAdminFromClaims(claims: any): boolean {

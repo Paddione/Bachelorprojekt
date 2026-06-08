@@ -5,7 +5,7 @@ import { WebSocketServer } from 'ws';
 import { randomUUID } from 'crypto';
 import path from 'path';
 import fs from 'fs';
-import { Issuer } from 'openid-client';
+import { buildAuthorizationUrl, authorizationCodeGrant } from 'openid-client';
 
 import * as db from './db';
 import * as auth from './auth';
@@ -97,24 +97,26 @@ app.get('/api/join', (req, res) => {
 const BRETT_PUBLIC_URL = process.env.BRETT_PUBLIC_URL || 'http://brett.localhost';
 
 app.get('/auth/login', asyncHandler(async (req: any, res: any) => {
-  const client = await auth.getOidcClient();
+  const config = await auth.getOidcClient();
   const returnTo = typeof req.query.returnTo === 'string' ? req.query.returnTo : '/';
   const state = Buffer.from(JSON.stringify({ returnTo })).toString('base64url');
   const redirectUri = `${BRETT_PUBLIC_URL}/auth/callback`;
-  const url = client.authorizationUrl({ scope: 'openid profile', redirect_uri: redirectUri, state });
-  res.redirect(url);
+  const url = buildAuthorizationUrl(config, { scope: 'openid profile', redirect_uri: redirectUri, state });
+  res.redirect(url.toString());
 }));
 
 app.get('/auth/callback', asyncHandler(async (req: any, res: any) => {
-  const client = await auth.getOidcClient();
-  const redirectUri = `${BRETT_PUBLIC_URL}/auth/callback`;
-  const params = client.callbackParams(req);
-  const tokenSet = await client.callback(redirectUri, params, { state: params.state });
-  const claims = tokenSet.claims();
+  const config = await auth.getOidcClient();
+  const host = (req.headers.host as string) || 'localhost';
+  const proto = (req.protocol as string) || 'http';
+  const currentUrl = new URL(req.url as string, `${proto}://${host}`);
+  const incomingState = currentUrl.searchParams.get('state') ?? '';
+  const tokens = await authorizationCodeGrant(config, currentUrl, { expectedState: incomingState });
+  const claims = tokens.claims();
   let returnTo = '/';
-  try { returnTo = JSON.parse(Buffer.from(params.state, 'base64url').toString()).returnTo || '/'; } catch {}
-  req.session.userId   = claims.sub;
-  req.session.name     = claims.name || claims.preferred_username || claims.sub;
+  try { returnTo = JSON.parse(Buffer.from(currentUrl.searchParams.get('state') || '', 'base64url').toString()).returnTo || '/'; } catch {}
+  req.session.userId   = claims?.sub;
+  req.session.name     = (claims as any)?.name || (claims as any)?.preferred_username || claims?.sub;
   req.session.isAdmin  = auth.isAdminFromClaims(claims);
   res.redirect(returnTo);
 }));

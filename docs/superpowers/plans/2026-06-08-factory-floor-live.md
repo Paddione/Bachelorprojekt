@@ -98,7 +98,7 @@ git commit -m "feat(factory-floor): add tickets.factory_phase_events schema [T-F
 - Modify: `scripts/ticket.sh` (neuer `cmd_phase` vor dem Dispatch-`case`; Dispatch-Eintrag + Usage-Zeile)
 - Test: `tests/local/FA-SF-40-ticket-phase-cli.bats`
 
-- [ ] **Step 1: BATS-Test schreiben (offline arg-validation, validate-before-DB)**
+- [x] **Step 1: BATS-Test schreiben (offline arg-validation, validate-before-DB)**
 
 Erstelle `tests/local/FA-SF-40-ticket-phase-cli.bats`:
 
@@ -135,12 +135,12 @@ setup() { load 'test_helper.bash'; }
 }
 ```
 
-- [ ] **Step 2: Test laufen lassen — muss FEHLSCHLAGEN (Subcommand existiert noch nicht)**
+- [x] **Step 2: Test laufen lassen — muss FEHLSCHLAGEN (Subcommand existiert noch nicht)**
 
 Run: `cd /tmp/wt-factory-floor-live && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-40-ticket-phase-cli.bats`
 Expected: FAIL — `phase` ist unbekanntes Kommando (`Unknown command: phase`, status 1 statt 2; bzw. Usage listet `phase` nicht).
 
-- [ ] **Step 3: `cmd_phase` implementieren**
+- [x] **Step 3: `cmd_phase` implementieren**
 
 In `scripts/ticket.sh` direkt vor der `if [[ $# -lt 1 ]]; then`-Zeile (aktuell ~Zeile 578) einfügen:
 
@@ -178,7 +178,7 @@ EOF
 }
 ```
 
-- [ ] **Step 4: Dispatch-Eintrag + Usage-Zeile ergänzen**
+- [x] **Step 4: Dispatch-Eintrag + Usage-Zeile ergänzen**
 
 In `scripts/ticket.sh` die Usage-Zeile (aktuell ~Zeile 580) erweitern — am Ende der `Commands: ...`-Liste `, phase` anhängen:
 
@@ -192,17 +192,17 @@ Und im `case "$cmd" in`-Block (nach `feature-flag)` ~Zeile 601) ergänzen:
   phase)             cmd_phase "$@" ;;
 ```
 
-- [ ] **Step 5: Test laufen lassen — muss PASSEN**
+- [x] **Step 5: Test laufen lassen — muss PASSEN**
 
 Run: `cd /tmp/wt-factory-floor-live && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-40-ticket-phase-cli.bats`
 Expected: PASS (5/5).
 
-- [ ] **Step 6: Full factory bats grün halten**
+- [x] **Step 6: Full factory bats grün halten**
 
 Run: `cd /tmp/wt-factory-floor-live && task test:factory`
 Expected: alle FA-SF-*.bats PASS (inkl. der neuen FA-SF-40).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/ticket.sh tests/local/FA-SF-40-ticket-phase-cli.bats

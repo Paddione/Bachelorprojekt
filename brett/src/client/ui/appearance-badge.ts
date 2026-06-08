@@ -19,6 +19,8 @@ export function badgeVisible(selectedId: string | null, ndcZ: number, ndcX = 0, 
   return Math.abs(ndcX) <= 1 && Math.abs(ndcY) <= 1;
 }
 
+import * as _stateModule from '../state';
+
 // ── DOM-dependent section (lazy access — not evaluated at import time) ────────
 
 let badgeEl: HTMLDivElement | null = null;
@@ -73,8 +75,7 @@ export function updateBadge(
   renderer: { domElement: HTMLCanvasElement },
   getAnchor: (figId: string) => import('three').Vector3 | null,
 ): void {
-  // Lazy import STATE to avoid circular / eager imports at module load.
-  const { STATE } = require('../state') as typeof import('../state');
+  const { STATE } = _stateModule;
   const el = ensureBadge();
   const id = STATE.selectedId;
   const drawerOpen = document.getElementById('appearance-drawer')?.classList.contains('open');

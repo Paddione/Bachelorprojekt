@@ -1092,6 +1092,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-47",
+    "file": "tests/local/FA-SF-47-wakeup-reasoning-effort.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

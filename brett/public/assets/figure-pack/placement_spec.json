@@ -763,6 +763,54 @@
       ],
       "billboard": "yAxis",
       "notes": "PAIRED — lAnkle + rAnkle. Explicit 'none' marker. Use when persona is intentionally barefoot (child, contemplation, vulnerability)."
+    },
+    "scarf": {
+      "file": "accessories/scarf.png",
+      "bone": "neck",
+      "anchorPx": [
+        128,
+        80
+      ],
+      "sizeMeters": [
+        0.7,
+        0.7
+      ],
+      "positionOffset": [
+        0,
+        -0.02,
+        0.05
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Narrow neck-scarf, slimmer than shawl. Slight Z forward to avoid torso clipping."
+    },
+    "spectacles": {
+      "file": "accessories/spectacles.png",
+      "bone": "head",
+      "anchorPx": [
+        128,
+        128
+      ],
+      "sizeMeters": [
+        0.4,
+        0.4
+      ],
+      "positionOffset": [
+        0,
+        0.02,
+        0.16
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "billboard": "yAxis",
+      "notes": "Sits at eye height in front of the face sphere (u/v ~= 0.5), pushed forward in +Z — not on the head apex like cap/crown."
     }
   },
   "selectionRing": {

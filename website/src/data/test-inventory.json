@@ -948,6 +948,18 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-AR-01",
+    "file": "tests/local/FA-AR-01-filter-diff.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-AR-02",
+    "file": "tests/local/FA-AR-02-classify-risk.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "FA-SF-01",
     "file": "tests/local/FA-SF-01-conflict-check.bats",
     "category": "FA",

@@ -1420,17 +1420,17 @@ git -C /tmp/wt-tiered-fresh commit -m "docs(factory): AI review GitHub-secrets s
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run the whole offline test suite**
+- [x] **Step 1: Run the whole offline test suite**
 
 Run: `cd /tmp/wt-tiered-fresh && task test:all`
 Expected: PASS — `FA-SF-*`, `FA-AR-01`, `FA-AR-02`, manifests, and all other offline suites green.
 
-- [ ] **Step 2: Parse-check both Node entry points**
+- [x] **Step 2: Parse-check both Node entry points**
 
 Run: `cd /tmp/wt-tiered-fresh && node --check scripts/factory/pipeline.js && node --check scripts/factory/ci-review.mjs && echo ALL-PARSE-OK`
 Expected: `ALL-PARSE-OK`.
 
-- [ ] **Step 3: Confirm freshness artifacts are current**
+- [x] **Step 3: Confirm freshness artifacts are current**
 
 Run: `cd /tmp/wt-tiered-fresh && task freshness:check || task freshness:regenerate`
 If `freshness:regenerate` changed any generated file, commit it:
@@ -1440,7 +1440,7 @@ git -C /tmp/wt-tiered-fresh add -A
 git -C /tmp/wt-tiered-fresh commit -m "chore: regenerate freshness artifacts for tiered-ai-review"
 ```
 
-- [ ] **Step 4: Final state check**
+- [x] **Step 4: Final state check**
 
 Run: `cd /tmp/wt-tiered-fresh && git status && git log --oneline origin/main..HEAD`
 Expected: clean tree; the commit list matches Tasks 1–12 (+ optional freshness commit).

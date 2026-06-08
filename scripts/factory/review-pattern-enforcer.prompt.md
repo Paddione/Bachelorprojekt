@@ -52,6 +52,12 @@ Return JSON:
 }
 ```
 
+## What NOT to Flag
+- Pre-existing pattern deviations the diff does not touch
+- Deviations the repo itself documents as intentional (e.g. `:latest` tags on website/brett/docs images per CLAUDE.md)
+- Personal style preferences not encoded in an existing repo convention
+- Missing abstractions that would be premature (YAGNI)
+
 ## Rules
 - Check CLAUDE.md and website/WEBSITE-STANDARDS.md for the authoritative conventions
 - If you're not sure about a convention, flag it as `info` severity

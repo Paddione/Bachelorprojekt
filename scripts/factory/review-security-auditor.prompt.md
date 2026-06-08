@@ -38,7 +38,14 @@ Return JSON:
 }
 ```
 
+## What NOT to Flag
+- Theoretical vulnerabilities with no reachable attack path in this diff
+- Defense-in-depth suggestions where an existing control already mitigates the risk
+- Secrets that are clearly dev-only placeholders (e.g. k3d/secrets.yaml dev values)
+- Generic "consider hardening" notes without a concrete exploit
+- hostNetwork/privileged usage that is pre-existing and unchanged by the diff
+
 ## Rules
-- Flag anything that COULD be a vulnerability, even if exploitation seems unlikely
-- Kubernetes manifests: check for privileged mode, hostNetwork, missing resource limits
-- Every finding must include a concrete exploit scenario
+- Only flag a finding when you can describe a concrete, reachable exploit scenario
+- Every finding MUST include that exploit scenario and a concrete remediation
+- Kubernetes manifests: flag privileged mode, hostNetwork, or missing limits only when the diff INTRODUCES them

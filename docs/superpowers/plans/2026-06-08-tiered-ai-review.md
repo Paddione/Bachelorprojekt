@@ -539,7 +539,7 @@ Verification = re-read each file and confirm the section exists. The security pr
 exploitable findings).
 -->
 
-- [ ] **Step 1: Bug hunter — replace the Rules block**
+- [x] **Step 1: Bug hunter — replace the Rules block**
 
 In `scripts/factory/review-bug-hunter.prompt.md`, replace:
 
@@ -566,7 +566,7 @@ with:
 - Each finding MUST include a suggested fix (not just "add error handling")
 ```
 
-- [ ] **Step 2: Security auditor — replace the Rules block**
+- [x] **Step 2: Security auditor — replace the Rules block**
 
 In `scripts/factory/review-security-auditor.prompt.md`, replace:
 
@@ -593,7 +593,7 @@ with:
 - Kubernetes manifests: flag privileged mode, hostNetwork, or missing limits only when the diff INTRODUCES them
 ```
 
-- [ ] **Step 3: Pattern enforcer — append a What NOT to Flag section**
+- [x] **Step 3: Pattern enforcer — append a What NOT to Flag section**
 
 Read `scripts/factory/review-pattern-enforcer.prompt.md`, then append (before the final Rules block if one exists, otherwise at end of file):
 
@@ -605,7 +605,7 @@ Read `scripts/factory/review-pattern-enforcer.prompt.md`, then append (before th
 - Missing abstractions that would be premature (YAGNI)
 ```
 
-- [ ] **Step 4: Verify all three sections exist**
+- [x] **Step 4: Verify all three sections exist**
 
 Run: `cd /tmp/wt-tiered-fresh && grep -l "## What NOT to Flag" scripts/factory/review-bug-hunter.prompt.md scripts/factory/review-security-auditor.prompt.md scripts/factory/review-pattern-enforcer.prompt.md`
 Expected: all three filenames printed.
@@ -613,7 +613,7 @@ Expected: all three filenames printed.
 Run: `cd /tmp/wt-tiered-fresh && ! grep -q "even if exploitation seems unlikely" scripts/factory/review-security-auditor.prompt.md && echo OK`
 Expected: `OK` (the old framing is gone).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/review-bug-hunter.prompt.md scripts/factory/review-security-auditor.prompt.md scripts/factory/review-pattern-enforcer.prompt.md

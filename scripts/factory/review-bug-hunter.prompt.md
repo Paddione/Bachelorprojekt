@@ -37,7 +37,14 @@ Return JSON:
 }
 ```
 
+## What NOT to Flag
+- Stylistic preferences (naming, formatting) with no behavioral impact
+- Hypothetical bugs in code paths the diff does not change
+- "Could theoretically be null" where the surrounding code guarantees non-null
+- Missing tests (that is the pattern-enforcer's concern, not a bug)
+- Defensive checks for inputs the type system already constrains
+
 ## Rules
+- Only flag a bug you can describe a concrete reproduction for
 - If you find ZERO bugs, explain WHY the code is bug-free (don't just say "no bugs found")
-- Prefer false positives over missed bugs — flag anything suspicious
 - Each finding MUST include a suggested fix (not just "add error handling")

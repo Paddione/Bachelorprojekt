@@ -1,6 +1,6 @@
 ---
 title: Tiered AI Code Review Orchestration Implementation Plan
-ticket_id: null
+ticket_id: T000549
 domains: [website, infra, db, test, security]
 status: active
 pr_number: null

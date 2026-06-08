@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"],
+      "env": {
+        "OLLAMA_BASE_URL": "http://localhost:11434/api"
+      }
+    },
+    "openspec": {
+      "command": "npx",
+      "args": ["-y", "openspec-mcp"]
+    }
+  }
+}

@@ -883,12 +883,12 @@ task = FA-SF-20 contract bats stays green + `node --check scripts/factory/pipeli
 Read FA-SF-20 first to learn what structural invariants it asserts and do not break them.
 -->
 
-- [ ] **Step 1: Read the contract test and current Verify block**
+- [x] **Step 1: Read the contract test and current Verify block**
 
 Run: `cd /tmp/wt-tiered-fresh && sed -n '1,80p' tests/local/FA-SF-20-pipeline-contract.bats`
 Note which strings/structure it greps for (e.g. `phase('Verify')`, `phaseEvent('verify'`, `status: 'blocked'`). Preserve every asserted token.
 
-- [ ] **Step 2: Replace the Verify block (lines 376–418)**
+- [x] **Step 2: Replace the Verify block (lines 376–418)**
 
 Replace the block starting at `// ── ⑤ Verify` through the line `phaseEvent('verify', 'done')` with:
 
@@ -982,7 +982,7 @@ if (!cleanDiff || !cleanDiff.trim()) {
 }
 ```
 
-- [ ] **Step 3: Confirm a `sh()` helper exists in the harness**
+- [x] **Step 3: Confirm a `sh()` helper exists in the harness**
 
 Run: `cd /tmp/wt-tiered-fresh && grep -nE 'function sh|const sh|sh *=|async function sh' scripts/factory/pipeline.js | head`
 If `sh(cmd, {cwd})` does NOT exist in the harness, replace the two `await sh(...)` calls with an `agent()` call that runs the script and returns stdout, e.g.:
@@ -995,7 +995,7 @@ const cleanDiff = await agent(
 ```
 and likewise for `classify-risk.sh` (returning the JSON string). Pick whichever (`sh` vs `agent`) the harness actually supports; do not invent `sh` if it is absent.
 
-- [ ] **Step 4: Parse-check and run the contract test**
+- [x] **Step 4: Parse-check and run the contract test**
 
 Run: `cd /tmp/wt-tiered-fresh && node --check scripts/factory/pipeline.js && echo PARSE-OK`
 Expected: `PARSE-OK`.
@@ -1003,12 +1003,12 @@ Expected: `PARSE-OK`.
 Run: `cd /tmp/wt-tiered-fresh && ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-20-pipeline-contract.bats`
 Expected: PASS — contract invariants intact.
 
-- [ ] **Step 5: Full factory test sweep**
+- [x] **Step 5: Full factory test sweep**
 
 Run: `cd /tmp/wt-tiered-fresh && task test:factory`
 Expected: PASS — all `FA-SF-*` and `FA-AR-*` green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -C /tmp/wt-tiered-fresh add scripts/factory/pipeline.js

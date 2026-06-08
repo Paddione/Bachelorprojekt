@@ -50,10 +50,17 @@ export async function getControl(slotsCap: number): Promise<ControlSnapshot> {
     readControl('daily-cap', '5'),
     readControl(`daily-deploys:${new Date().toISOString().slice(0, 10)}`, '0'),
     readControl('dry-run', 'off'),
-    pool.query(`SELECT COUNT(*)::int AS n FROM tickets.tickets WHERE pipeline_slot IS NOT NULL`),
+    // A slot only counts as occupied while the ticket is actively running. Terminal
+    // tickets (done/archived) can retain a stale pipeline_slot — exclude them so the
+    // Leitstand never shows e.g. "8/3" from leaked slots. Mirrors slots.sh's status gate.
     pool.query(
       `SELECT COUNT(*)::int AS n FROM tickets.tickets
-        WHERE pipeline_slot IS NOT NULL AND updated_at < now() - INTERVAL '20 minutes'`,
+        WHERE pipeline_slot IS NOT NULL AND status IN ('in_progress','in_review')`,
+    ),
+    pool.query(
+      `SELECT COUNT(*)::int AS n FROM tickets.tickets
+        WHERE pipeline_slot IS NOT NULL AND status IN ('in_progress','in_review')
+          AND updated_at < now() - INTERVAL '20 minutes'`,
     ),
   ]);
   return {
@@ -112,7 +119,7 @@ export async function getHall(): Promise<HallItem[]> {
            FROM tickets.factory_phase_events
           ORDER BY ticket_id, at DESC
        ) e ON e.ticket_id = t.id
-      WHERE t.pipeline_slot IS NOT NULL
+      WHERE t.pipeline_slot IS NOT NULL AND t.status IN ('in_progress','in_review')
       ORDER BY t.pipeline_slot`,
   );
   return r.rows.map((row: any) => ({

@@ -121,6 +121,8 @@ UPDATE tickets.tickets SET
   status = :'status',
   resolution = NULLIF(:'res', ''),
   done_at = CASE WHEN :'status' = 'done' THEN now() ELSE done_at END,
+  -- Release the pipeline slot on a terminal transition so the ledger never leaks (T000525).
+  pipeline_slot = CASE WHEN :'status' IN ('done','archived') THEN NULL ELSE pipeline_slot END,
   notes = CASE WHEN :'notes' <> '' THEN COALESCE(notes || E'\n\n', '') || :'notes' ELSE notes END
 WHERE external_id = :'ext_id';
 EOF

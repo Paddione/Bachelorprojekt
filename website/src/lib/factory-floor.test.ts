@@ -26,7 +26,9 @@ vi.mock('pg', () => {
       -- one backlog feature waiting (no slot)
       ('d1','T000480','feature','Dock feature','niedrig','backlog',NULL,0,NULL, now(), now()),
       -- one shipped ticket
-      ('s1','T000467','feature','Shipped feature','mittel','done',NULL,0, now(), now(), now());
+      ('s1','T000467','feature','Shipped feature','mittel','done',NULL,0, now(), now(), now()),
+      -- LEAKED: a terminal (archived) ticket that still holds a stale pipeline_slot
+      ('x1','T000466','feature','Leaked terminal slot','mittel','archived',4,0,NULL, now(), now() - INTERVAL '30 min');
     INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver, at) VALUES
       ('h1','scout','done',NULL,'factory', now() - INTERVAL '10 min'),
       ('h1','implement','entered',NULL,'factory', now() - INTERVAL '2 min'),
@@ -89,6 +91,15 @@ describe('factory-floor DAL', () => {
     expect(c.slotsCap).toBe(3);
     expect(c.slotsUsed).toBe(2); // h1 + b1 in slots
     expect(c.dailyCap).toBe(5);
+  });
+
+  it('ignores terminal tickets that still hold a stale pipeline_slot (slot-leak guard)', async () => {
+    // x1 is archived but still has pipeline_slot=4 (a leaked slot) and is 30 min stale.
+    const c = await getControl(3);
+    expect(c.slotsUsed).toBe(2); // x1 (archived) is NOT counted as occupied
+    expect(c.watchdogStale).toBe(0); // a terminal ticket's stale slot is NOT a running-stale
+    const hall = await getHall();
+    expect(hall.map((h) => h.extId)).not.toContain('T000466'); // archived ticket not in the Halle
   });
 
   it('getTicketDetail returns the full phase timeline + breadcrumbs + PR for a ticket', async () => {

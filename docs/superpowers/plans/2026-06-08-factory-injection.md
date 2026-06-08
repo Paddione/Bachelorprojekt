@@ -342,7 +342,7 @@ git commit -m "feat(factory-injection): injection DAL + getTicketDetail.injectio
 
 > Mirrors the gate pattern of `website/src/pages/api/factory-floor/[extId].ts` (`getSession`+`isAdmin`, 401 on no session) and the POST/JSON-parse pattern of `website/src/pages/api/admin/tickets/[id].ts`.
 
-- [ ] **Step 1: Write the failing API gate test**
+- [x] **Step 1: Write the failing API gate test**
 
 Create `website/src/pages/api/factory-floor/inject.test.ts`:
 
@@ -391,12 +391,12 @@ describe('POST /api/factory-floor/[extId]/inject', () => {
 });
 ```
 
-- [ ] **Step 2: Run to confirm it fails**
+- [x] **Step 2: Run to confirm it fails**
 
 Run: `cd website && npx vitest run src/pages/api/factory-floor/inject.test.ts`
 Expected: FAIL — module `./[extId]/inject` not found.
 
-- [ ] **Step 3: Implement the endpoint**
+- [x] **Step 3: Implement the endpoint**
 
 Create `website/src/pages/api/factory-floor/[extId]/inject.ts`:
 
@@ -463,17 +463,17 @@ export const POST: APIRoute = async ({ request, params }) => {
 };
 ```
 
-- [ ] **Step 4: Run to confirm it passes**
+- [x] **Step 4: Run to confirm it passes**
 
 Run: `cd website && npx vitest run src/pages/api/factory-floor/inject.test.ts`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `cd website && npx tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/pages/api/factory-floor/[extId]/inject.ts website/src/pages/api/factory-floor/inject.test.ts

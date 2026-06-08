@@ -374,67 +374,51 @@ if (tasks.length) {
 }
 
 // ── ⑤ Verify (tiered adversarial review panel + coordinator) ────────────────
+// filter noise → classify tier → tier-selected lenses (parallel) → coordinator
+// (full tier) → verdict. `sh` here is bound to ticket.sh, so helpers run via agent().
 phase('Verify')
 phaseEvent('verify', 'entered')
-
-// (a) Filter noise out of the diff; an all-noise diff needs no review.
-//     `sh` in this harness is bound to ticket.sh, so run the helper scripts via agent().
 const cleanDiff = (await agent(
-  `Run \`bash ${REPO}/scripts/factory/filter-diff.sh origin/main...HEAD\` from the WORKTREE ${WORK_WT}
-   (cd ${WORK_WT} first; its HEAD is ${WORK_BRANCH}). Return its raw stdout ONLY, no commentary.
-   Empty output means the whole diff was noise.`,
+  `cd ${WORK_WT} (HEAD=${WORK_BRANCH}) then run \`bash ${REPO}/scripts/factory/filter-diff.sh origin/main...HEAD\`. Return its raw stdout ONLY (empty = all-noise diff).`,
   { label: 'verify:filter', phase: 'Verify' },
 )) || ''
 let reviews = []
 let coordinatorVerdict = null
 if (!cleanDiff || !String(cleanDiff).trim()) {
-  log('Verify: filtered diff is empty (noise-only change) — skipping review lenses.')
+  log('Verify: filtered diff is empty (noise-only) — skipping review lenses.')
   phaseEvent('verify', 'done', 'noise-only')
 } else {
-  // (b) Classify the risk tier.
   const tierJson = (await agent(
-    `Run \`bash ${REPO}/scripts/factory/classify-risk.sh origin/main...HEAD\` from the WORKTREE ${WORK_WT}
-     (cd ${WORK_WT} first). Return its raw JSON stdout ONLY, no commentary.`,
+    `cd ${WORK_WT} then run \`bash ${REPO}/scripts/factory/classify-risk.sh origin/main...HEAD\`. Return its raw JSON stdout ONLY.`,
     { label: 'verify:classify', phase: 'Verify' },
   )) || '{"tier":"full"}'
   let tier = 'full'
   try { tier = (JSON.parse(typeof tierJson === 'string' ? tierJson : JSON.stringify(tierJson)).tier) || 'full' } catch { tier = 'full' }
   log(`Verify: risk tier = ${tier}`)
 
-  // (c) Tier-driven lens selection.
   const ALL_LENSES = {
-    bug:        'scripts/factory/review-bug-hunter.prompt.md',
-    security:   'scripts/factory/review-security-auditor.prompt.md',
-    pattern:    'scripts/factory/review-pattern-enforcer.prompt.md',
-    perf:       'scripts/factory/review-perf-reviewer.prompt.md',
-    'agents-md':'scripts/factory/review-agents-md-staleness.prompt.md',
+    bug: 'scripts/factory/review-bug-hunter.prompt.md',
+    security: 'scripts/factory/review-security-auditor.prompt.md',
+    pattern: 'scripts/factory/review-pattern-enforcer.prompt.md',
+    perf: 'scripts/factory/review-perf-reviewer.prompt.md',
+    'agents-md': 'scripts/factory/review-agents-md-staleness.prompt.md',
   }
-  const tierLenses =
-    tier === 'trivial' ? ['bug'] :
-    tier === 'lite'    ? ['bug', 'security', 'pattern'] :
-                         ['bug', 'security', 'pattern', 'perf', 'agents-md']
+  const tierLenses = tier === 'trivial' ? ['bug']
+    : tier === 'lite' ? ['bug', 'security', 'pattern']
+    : ['bug', 'security', 'pattern', 'perf', 'agents-md']
   const lenses = tierLenses.map((key) => ({ key, file: ALL_LENSES[key] }))
 
-  // (d) Run lenses in parallel; drop dead agents.
-  reviews = (await parallel(
-    lenses.map((l) => () => agent(
-      `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-       Read the review prompt at ${REPO}/${l.file} and apply it to the diff of branch
-       ${WORK_BRANCH}: git -C ${WORK_WT} diff origin/main...HEAD  (in the WORKTREE — NOT
-       in ${REPO} whose HEAD is main → empty diff). Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
-      { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
-    )),
-  )).filter(Boolean)
+  reviews = (await parallel(lenses.map((l) => () => agent(
+    `Record pipeline liveness so the dispatcher watchdog does not flag this run stale: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then read the review prompt at ${REPO}/${l.file} and apply it to: git -C ${WORK_WT} diff origin/main...HEAD (in the WORKTREE — ${REPO} HEAD is main → empty). Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
+    { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
+  )))).filter(Boolean)
   log(`Verify: ${reviews.length}/${lenses.length} lenses done, tier=${tier}`)
 
-  // (e) Full tier with >=2 live lenses → coordinator consolidates into a verdict.
   if (tier === 'full' && reviews.length >= 2) {
-    log('Verify: starting coordinator consolidation.')
     const xml = '<reviews>\n' + reviews.map((r, i) =>
       `  <lens name="${(lenses[i] && lenses[i].key) || 'lens' + i}">${JSON.stringify(r)}</lens>`).join('\n') + '\n</reviews>'
     const coord = await agent(
-      `Read the coordinator prompt at ${REPO}/scripts/factory/review-coordinator.prompt.md and apply it
-       to these lens findings. Return ONE consolidated JSON with a "verdict" field.\n${xml}`,
+      `Read the coordinator prompt at ${REPO}/scripts/factory/review-coordinator.prompt.md and apply it to these lens findings. Return ONE consolidated JSON with a "verdict" field.\n${xml}`,
       { label: 'review:coordinator', phase: 'Verify', model: provision({ role: 'review' }).model },
     )
     if (coord && coord.verdict) coordinatorVerdict = coord.verdict
@@ -442,27 +426,20 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
   }
 
   await agent(
-    `Record a one-line factory status breadcrumb (non-blocking):
-     bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory: phase=Verify, tier=' + tier + ', ' + reviews.flatMap(r=>r.findings||[]).length + ' finding(s).')}`,
+    `Record a one-line factory status breadcrumb (non-blocking): bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory: phase=Verify, tier=' + tier + ', ' + reviews.flatMap(r => r.findings || []).length + ' finding(s).')}`,
     { label: 'verify:breadcrumb', phase: 'Verify' },
   )
 
-  // (f) Blocking decision: coordinator verdict (full) OR raw high/critical findings (fallback).
+  // Blocking: coordinator verdict (full) OR raw high/critical findings (fallback).
   const rawBlocking = reviews.flatMap((r) => r.findings || []).filter((f) => f && (f.severity === 'high' || f.severity === 'critical'))
   const isBlocked = coordinatorVerdict ? (coordinatorVerdict === 'requested_changes') : (rawBlocking.length > 0)
   if (isBlocked) {
     const blocking = rawBlocking
     await agent(
-      `The adversarial review panel found blocking issues (coordinator verdict=${coordinatorVerdict || 'n/a'}).
-       Run these commands to record the block:
+      `The adversarial review panel found blocking issues (coordinator verdict=${coordinatorVerdict || 'n/a'}). Record the block then notify:
        bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \
-         --body ${JSON.stringify('Factory Verify blocked: ' + JSON.stringify(blocking))}
-       Then notify the operator: PushNotification is a DEFERRED tool — run
-       \`ToolSearch select:PushNotification\` to load it, then call it once with
-         title:   "Factory Verify blocked: ${A.ticket_id} (${brand})"
-         message: "${blocking.length} blocking review finding(s) / verdict=${coordinatorVerdict || 'high-severity'}."
-       Report the command outputs.`,
+       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body ${JSON.stringify('Factory Verify blocked: ' + JSON.stringify(blocking))}
+       PushNotification is a DEFERRED tool — run \`ToolSearch select:PushNotification\` to load it, then call it once with title "Factory Verify blocked: ${A.ticket_id} (${brand})" and message "${blocking.length} blocking review finding(s) / verdict=${coordinatorVerdict || 'high-severity'}.". Report the command outputs.`,
       { label: 'verify:escalate', phase: 'Verify' },
     )
     phaseEvent('verify', 'blocked', (blocking.length || 1) + ' blocking finding(s)')

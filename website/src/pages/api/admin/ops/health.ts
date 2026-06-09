@@ -17,7 +17,6 @@ const SERVICES: Record<string, { name: string; internalUrl: string }[]> = {
     { name: 'Nextcloud',    internalUrl: 'http://nextcloud.workspace.svc.cluster.local/status.php' },
     { name: 'Collabora',    internalUrl: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' },
     { name: 'Vaultwarden',  internalUrl: 'http://vaultwarden.workspace.svc.cluster.local/alive' },
-    { name: 'DocuSeal',     internalUrl: 'http://docuseal.workspace.svc.cluster.local:3000' },
     { name: 'Website',      internalUrl: 'http://website.website.svc.cluster.local' },
   ],
   korczewski: [
@@ -25,7 +24,6 @@ const SERVICES: Record<string, { name: string; internalUrl: string }[]> = {
     { name: 'Nextcloud',    internalUrl: 'http://nextcloud.workspace-korczewski.svc.cluster.local/status.php' },
     { name: 'Collabora',    internalUrl: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' },
     { name: 'Vaultwarden',  internalUrl: 'http://vaultwarden.workspace-korczewski.svc.cluster.local/alive' },
-    { name: 'DocuSeal',     internalUrl: 'http://docuseal.workspace-korczewski.svc.cluster.local:3000' },
     { name: 'Website',      internalUrl: 'http://website.website-korczewski.svc.cluster.local' },
   ],
 };

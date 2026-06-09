@@ -34,7 +34,7 @@ kubectl rollout status deployment/shared-db -n workspace --timeout=120s
 
 # ── Dienste abwarten ────────────────────────────────────────────────
 echo "[5/5] Warte auf Dienste (kann 2-3 Minuten dauern)..."
-for svc in keycloak nextcloud vaultwarden docuseal tracking; do
+for svc in keycloak nextcloud vaultwarden tracking; do
   kubectl rollout status "deployment/$svc" -n workspace --timeout=300s 2>/dev/null || \
     echo "  WARNUNG: $svc noch nicht bereit — startet möglicherweise noch."
 done

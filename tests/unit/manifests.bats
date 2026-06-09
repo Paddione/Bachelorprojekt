@@ -237,7 +237,6 @@ all_images() {
   grep -q 'name: pvc-backup' "$RENDERED"
   grep -q 'nextcloud-data-pvc' "$RENDERED"
   grep -q 'vaultwarden-data-pvc' "$RENDERED"
-  grep -q 'docuseal-data-pvc' "$RENDERED"
 }
 
 @test "pvc-backup filen-upload fails loudly on upload error (exit 1, not silent warning)" {
@@ -579,30 +578,21 @@ PY
 @test "pvc-backup gates clone creation on storageClassName == longhorn (T000403)" {
   # Orchestrator must read each data PVC's storageClassName.
   grep -q 'get pvc vaultwarden-data-pvc -o jsonpath=.*storageClassName' k3d/pvc-backup-cronjob.yaml
-  grep -q 'get pvc docuseal-data-pvc'   k3d/pvc-backup-cronjob.yaml
-  # And the clone list must be built conditionally on the longhorn class —
-  # not the old static "both clones always" assignment.
   grep -qE '\[ "\$VW_SC" = "longhorn" \]' k3d/pvc-backup-cronjob.yaml
-  grep -qE '\[ "\$DS_SC" = "longhorn" \]' k3d/pvc-backup-cronjob.yaml
 }
 
-@test "pvc-backup no longer unconditionally clones both data PVCs (T000403)" {
+@test "pvc-backup no longer unconditionally clones vaultwarden data PVC (T000403)" {
   # The regression shape: a static CLONES assignment naming both clones
   # (ignoring comment lines). Must be absent — cloning is now gated.
-  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'CLONES=\"vaultwarden-data-backup-clone docuseal-data-backup-clone\"'"
+  run bash -c "grep -vE '^[[:space:]]*#' k3d/pvc-backup-cronjob.yaml | grep -E 'CLONES=\"vaultwarden-data-backup-clone'"
   assert_failure
 }
 
-# ── korczewski pins data PVCs to longhorn so pvc-backup can clone (T000403) ──
-# #1296's local-path-aware code does NOT actually fix korczewski: its three
-# local-path data volumes (nextcloud+docuseal on pk-8, vaultwarden on pk-6) span
-# two nodes, and the mounter's requiredDuringScheduling podAffinity demands all
-# three on ONE node — local-path PVs are node-pinned, so the mounter is stuck
-# Pending ("didn't match PersistentVolume's node affinity"). The real fix mirrors
-# mentolder: pin vaultwarden+docuseal to longhorn (placement-independent CSI
-# clone), leaving only single-node nextcloud-data on local-path. This asserts the
-# korczewski overlay carries that pin so a regression to local-path fails CI.
-@test "korczewski overlay pins vaultwarden+docuseal data PVCs to longhorn (T000403)" {
+# ── korczewski pins vaultwarden data PVC to longhorn so pvc-backup can clone (T000403) ──
+# The mounter's requiredDuringScheduling podAffinity demands all data volumes on
+# one node — local-path PVs are node-pinned. Pin vaultwarden to longhorn
+# (placement-independent CSI clone), leaving nextcloud-data on local-path.
+@test "korczewski overlay pins vaultwarden data PVC to longhorn (T000403)" {
   local rendered="${BATS_TEST_TMPDIR}/korcz.yaml"
   run kubectl kustomize "${PROJECT_DIR}/prod-fleet/korczewski" --load-restrictor=LoadRestrictionsNone
   assert_success
@@ -610,7 +600,7 @@ PY
   run python3 - "$rendered" <<'PY'
 import sys, yaml
 docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
-want = {"vaultwarden-data-pvc", "docuseal-data-pvc"}
+want = {"vaultwarden-data-pvc"}
 seen = {}
 for d in docs:
     if d.get("kind") == "PersistentVolumeClaim" and d.get("metadata", {}).get("name") in want:
@@ -623,7 +613,7 @@ bad = {n: sc for n, sc in seen.items() if sc != "longhorn"}
 if bad:
     print(f"PVC(s) not pinned to longhorn: {bad}")
     sys.exit(1)
-print("OK: vaultwarden+docuseal pinned to longhorn")
+print("OK: vaultwarden pinned to longhorn")
 PY
   assert_success
 }

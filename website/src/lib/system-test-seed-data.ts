@@ -195,9 +195,9 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
     ],
   },
   {
-    title: 'System-Test 5: Dokumente & DocuSeal-Unterschriften',
-    description: 'Prüft den nativen Dokument-Editor, den CMS-Inhalte-Editor und den vollständigen DocuSeal-Signatur-Roundtrip (Versenden → Signieren → Audit-Trail-Verifikation) als OIDC-integrierter externer Dienst. Dieser Test verifiziert die Anforderungen FA-11 (Dokumentenverwaltung), FA-12 (Elektronische Signatur via DocuSeal) und SA-04 (Audit-Trail rechtsverbindlicher Aktionen). Voraussetzung: DocuSeal via OIDC eingebunden und erreichbar, Mailpit für E-Mail-Empfang aktiv, Testnutzer als Signaturempfänger eingetragen.',
-    instructions: 'Schritte 1, 2, 3 und 5 im Admin-Browser (Profil A), Schritt 4 im Testnutzer-Browser (Profil B). Öffne jeweils den Link im Schritt. Der Signaturschritt (4) ist eine rechtsverbindliche Aktion — übergib die Kontrolle bewusst und warte auf explizite Bestätigung durch den Testnutzer. Überprüfe nach Schritt 5 den Audit-Trail auf IP-Adresse und exakten Zeitstempel.',
+    title: 'System-Test 5: Dokumente & Signatur-System',
+    description: 'Prüft den nativen Dokument-Editor, den CMS-Inhalte-Editor und den vollständigen Signatur-Roundtrip (Versenden → Signieren per Portal → PDF-Download) über das integrierte Signatur-System. Dieser Test verifiziert die Anforderungen FA-11 (Dokumentenverwaltung), FA-12 (Elektronische Signatur) und SA-04 (Audit-Trail rechtsverbindlicher Aktionen). Voraussetzung: Mailpit für E-Mail-Empfang aktiv, Testnutzer als Signatur-Empfänger eingetragen.',
+    instructions: 'Schritte 1, 2, 3 und 5 im Admin-Browser (Profil A), Schritt 4 im Testnutzer-Browser (Profil B). Öffne jeweils den Link im Schritt. Der Signaturschritt (4) ist eine rechtsverbindliche Aktion — übergib die Kontrolle bewusst und warte auf explizite Bestätigung durch den Testnutzer.',
     steps: [
       {
         question_text: 'Öffne Dokumente (Link) → klicke „Neues Dokument" → schreibe einen Beispiel-Inhalt und speichere → lade die Seite neu und prüfe ob der Inhalt erhalten bleibt.',
@@ -211,19 +211,19 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       },
       {
         question_text: 'Öffne Dokumente (Link) → wähle ein Dokument aus → klicke „Zur Unterschrift senden" → wähle den Testnutzer als Empfänger.',
-        expected_result: 'Nutzer erhält Mail/Notification mit Signatur-Link.',
+        expected_result: 'Nutzer erhält Mail/Notification mit Signatur-Link (URL enthält /portal/sign/[id]).',
         test_function_url: '/admin/dokumente', test_menu_path: 'Admin-Bereich → Dokumente', test_role: 'admin',
       },
       {
-        question_text: 'Öffne DocuSeal (Link) als Testnutzer — rufe den Signatur-Link aus der E-Mail auf, unterzeichne das Dokument und schließe den Vorgang ab. → Nutzer: Testnutzer-Browser + tatsächliche Signatur bestätigen.',
-        expected_result: 'Signatur wird gespeichert; Dokument-Status wechselt auf „Completed".',
-        test_function_url: `https://sign.${D}`, test_role: 'user',
+        question_text: 'Öffne den Signatur-Link (/portal/sign/[id]) als Testnutzer — unterzeichne das Dokument auf dem Canvas per Maus/Stift und klicke „Unterschrift bestätigen". → Nutzer: Testnutzer-Browser + tatsächliche Signatur bestätigen.',
+        expected_result: 'Signatur wird gespeichert; Dokument-Status wechselt auf „completed". PDF-Download-Link wird angezeigt.',
+        test_function_url: '/portal/sign/[id]', test_menu_path: 'Portal → Dokument unterschreiben', test_role: 'user',
         agent_notes: 'Rechtsverbindliche Signatur — Nutzer muss bewusst bestätigen. Kontrolle für diesen Schritt übergeben.',
       },
       {
-        question_text: 'Öffne DocuSeal (Link) als Admin — finde das unterzeichnete Dokument und prüfe ob „Completed" + Audit-Trail (IP, Timestamp) angezeigt werden.',
-        expected_result: 'DocuSeal zeigt „Completed" + Audit-Trail (IP, Timestamp).',
-        test_function_url: `https://sign.${D}`, test_role: 'admin',
+        question_text: 'Öffne Dokumente (Link) als Admin — finde das unterzeichnete Dokument, prüfe auf Status „completed" und lade das signierte PDF herunter.',
+        expected_result: 'Dokument-Status = „completed"; signiertes PDF wird heruntergeladen.',
+        test_function_url: '/admin/dokumente', test_menu_path: 'Admin-Bereich → Dokumente', test_role: 'admin',
       },
     ],
   },
@@ -788,7 +788,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
         expected_result: 'Alle 12 System-Test-Templates sichtbar mit Last-Result/Last-Success-Status.',
         test_function_url: '/admin/monitoring', test_role: 'admin',
       },
-      // ── ST-5: Dokumente & DocuSeal ─────────────────────────────────────────
+      // ── ST-5: Dokumente & Signatur-System ──────────────────────────────────
       {
         question_text: '[ST-5: Dokumente] Öffne Dokumente (Link) → klicke „Neues Dokument" → schreibe einen Beispiel-Inhalt und speichere → lade die Seite neu und prüfe ob der Inhalt erhalten bleibt.',
         expected_result: 'Dokument wird gespeichert; nach Reload weiterhin lesbar; Versionshistorie sichtbar.',
@@ -801,19 +801,19 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       },
       {
         question_text: '[ST-5: Dokumente] Öffne Dokumente (Link) → wähle ein Dokument aus → klicke „Zur Unterschrift senden" → wähle den Testnutzer als Empfänger.',
-        expected_result: 'Nutzer erhält Mail/Notification mit Signatur-Link.',
+        expected_result: 'Nutzer erhält Mail/Notification mit Signatur-Link (URL enthält /portal/sign/[id]).',
         test_function_url: '/admin/dokumente', test_role: 'admin',
       },
       {
-        question_text: '[ST-5: Dokumente] Öffne DocuSeal (Link) als Testnutzer — rufe den Signatur-Link aus der E-Mail auf, unterzeichne das Dokument und schließe den Vorgang ab. → Nutzer: Testnutzer-Browser + tatsächliche Signatur bestätigen.',
-        expected_result: 'Signatur wird gespeichert; Dokument-Status wechselt auf „Completed".',
-        test_function_url: `https://sign.${D}`, test_role: 'user',
+        question_text: '[ST-5: Dokumente] Öffne den Signatur-Link (/portal/sign/[id]) als Testnutzer — unterzeichne das Dokument auf dem Canvas per Maus/Stift und klicke „Unterschrift bestätigen". → Nutzer: Testnutzer-Browser + tatsächliche Signatur bestätigen.',
+        expected_result: 'Signatur wird gespeichert; Dokument-Status wechselt auf „completed". PDF-Download-Link wird angezeigt.',
+        test_function_url: '/portal/sign/[id]', test_role: 'user',
         agent_notes: 'Rechtsverbindliche Signatur — Nutzer muss bewusst bestätigen. Kontrolle für diesen Schritt übergeben.',
       },
       {
-        question_text: '[ST-5: Dokumente] Öffne DocuSeal (Link) als Admin — finde das unterzeichnete Dokument und prüfe ob „Completed" + Audit-Trail (IP, Timestamp) angezeigt werden.',
-        expected_result: 'DocuSeal zeigt „Completed" + Audit-Trail (IP, Timestamp).',
-        test_function_url: `https://sign.${D}`, test_role: 'admin',
+        question_text: '[ST-5: Dokumente] Öffne Dokumente (Link) als Admin — finde das unterzeichnete Dokument, prüfe auf Status „completed" und lade das signierte PDF herunter.',
+        expected_result: 'Dokument-Status = „completed"; signiertes PDF wird heruntergeladen.',
+        test_function_url: '/admin/dokumente', test_role: 'admin',
       },
       // ── ST-6: Steuer-Modus & § 19 UStG ────────────────────────────────────
       {

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.41.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.40.0...website-v1.41.0) (2026-06-09)
+
+
+### Features
+
+* **dev-status:** Versand-Liste verlinken + Fabrikhalle-Politur ([#1491](https://github.com/Paddione/Bachelorprojekt/issues/1491)) ([acd98d1](https://github.com/Paddione/Bachelorprojekt/commit/acd98d1453d990917376e40570f8e2cc753c4b63))
+
+
+### Bug Fixes
+
+* **docs-gen:** depth-aware asset paths for subdir pages (CSS corruption) [T000560] ([#1488](https://github.com/Paddione/Bachelorprojekt/issues/1488)) ([cb11007](https://github.com/Paddione/Bachelorprojekt/commit/cb110076856c869ea33388ff561d5fbb14d3ffa0))
+
 ## [1.40.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.39.1...website-v1.40.0) (2026-06-09)
 
 

@@ -76,6 +76,9 @@ let onLobbyChange: (state: LobbyState) => void = () => {};
 export function setLobbyChangeHandler(fn: (state: LobbyState) => void): void {
   onLobbyChange = fn;
 }
+export function getLobbyChangeHandler(): (state: LobbyState) => void {
+  return onLobbyChange;
+}
 
 // ── T000555: Late-join notification hook ──────────────────────────────────────
 // Fired when a participant joins AFTER the round has started (not in lobby).

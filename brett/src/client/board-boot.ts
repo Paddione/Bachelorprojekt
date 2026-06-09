@@ -32,6 +32,9 @@ import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
 import { createReplayController, type ReplayBoardState } from './replay-engine';
 import { renderTimeline } from './ui/timeline';
+import { mountInviteButton } from './ui/topbar-invite';
+import { mountParticipantsButton } from './ui/topbar-participants';
+import { showLateJoinToast } from './ui/late-join-toast';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -67,6 +70,40 @@ export async function bootBoard(): Promise<void> {
   figPanel.initFigPanel();
   appearance.initAppearance();
   persons.initPersons();
+
+  // ── Coachee late-join UI (T000555) ─────────────────────────────────
+  const inviteSlot = document.getElementById('topbar-invite-slot');
+  const participantsSlot = document.getElementById('topbar-participants-slot');
+
+  const myRole = () => wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
+
+  let inviteCtl: { refresh: () => void } | null = null;
+  if (inviteSlot) {
+    inviteCtl = mountInviteButton(inviteSlot, () => wsClient.getLobbyState()?.sessionCode ?? null);
+  }
+
+  let participantsPanel: { update: () => void } | null = null;
+  if (participantsSlot) {
+    participantsPanel = mountParticipantsButton(participantsSlot, {
+      getLobbyState: wsClient.getLobbyState,
+      sendClient: wsClient.sendClient,
+      isLeiter: () => myRole() === 'leiter',
+    });
+  }
+
+  wsClient.setLateJoinHandler((name) => {
+    if (myRole() === 'leiter') showLateJoinToast(name);
+    participantsPanel?.update();
+  });
+
+  // Keep invite-button visibility + panel in sync when the roster/session code
+  // changes. Chain onto any existing lobbyChange consumer rather than clobbering.
+  const prevLobbyChange = wsClient.getLobbyChangeHandler?.() ?? null;
+  wsClient.setLobbyChangeHandler((state) => {
+    prevLobbyChange?.(state);
+    inviteCtl?.refresh();
+    participantsPanel?.update();
+  });
 
   // ── D-spec: Observer hint + possession release button ──────────────
   const observerHint = document.createElement('div');

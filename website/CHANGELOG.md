@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.39.1...website-v1.40.0) (2026-06-09)
+
+
+### Features
+
+* **signing:** replace DocuSeal with self-written signing system [T000557] ([#1485](https://github.com/Paddione/Bachelorprojekt/issues/1485)) ([8d5943a](https://github.com/Paddione/Bachelorprojekt/commit/8d5943af64e1cabe852d8386bdbb66b0162e5acd))
+
 ## [1.39.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.39.0...website-v1.39.1) (2026-06-09)
 
 

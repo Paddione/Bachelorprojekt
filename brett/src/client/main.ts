@@ -67,6 +67,12 @@ function renderLobby(appShell: AppShell, user: MenuUser): void {
             if (payload) ws.sendClient({ type: 'admin_coaching_steps_set', steps: payload.steps, index: payload.index });
           }
         : undefined,
+      onSetTemplate: isLeader
+        ? (id) => ws.sendClient({ type: 'admin_set_template', templateId: id })
+        : undefined,
+      onSetOptik: isLeader
+        ? (s) => ws.sendClient({ type: 'admin_set_optik', settings: s })
+        : undefined,
     });
   });
 }

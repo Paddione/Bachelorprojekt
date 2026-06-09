@@ -250,7 +250,7 @@ done
 <hr>
 <h2 id="schritt-6-auto-merge-wenn-ci-gruen">Schritt 6: Auto-Merge wenn CI grün</h2>
 <div class="code-wrapper"><pre><code class="language-bash"># Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
-(cd "$MAIN_REPO" &amp;&amp; gh pr merge --squash --delete-branch)
+(cd "$MAIN_REPO" &amp;&amp; gh pr merge --auto --squash --delete-branch)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-65-ticket-abschliessen">Schritt 6.5: Ticket abschließen</h2>
@@ -287,7 +287,7 @@ ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
 git checkout -b "$ARCHIVE_BRANCH"
 git push -u origin "$ARCHIVE_BRANCH"
 gh pr create --title "chore(plans): archive $SLUG → postgres [$TICKET_ID]" --base main
-gh pr merge --squash --delete-branch
+gh pr merge --auto --squash --delete-branch
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-75-worktree--branch-bereinigen">Schritt 7.5: Worktree &amp; Branch bereinigen</h2>

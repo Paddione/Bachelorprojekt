@@ -254,6 +254,46 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
   color:var(--ink-mute);font-size:.85rem;font-family:var(--font-sans);
   border-top:1px solid var(--line)}
 
+/* ── hub landing tiles ── */
+.hub-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.5rem 0 2.2rem}
+@media(max-width:600px){.hub-tiles{grid-template-columns:1fr}}
+.hub-tile{display:flex;flex-direction:column;align-items:flex-start;background:var(--paper);
+  border:1px solid var(--line);border-radius:10px;padding:1.3rem 1.4rem;
+  text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.hub-tile:hover{border-color:var(--accent-line);transform:translateY(-2px)}
+.hub-tile-count{font-family:var(--font-serif);font-size:2rem;font-weight:900;
+  color:var(--accent);line-height:1;margin:.15rem 0 .25rem}
+.hub-tile-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-mute)}
+.hub-tile-name{font-size:1rem;font-weight:600;color:var(--ink);margin-top:.2rem}
+
+.hub-section{margin:2.5rem 0}
+.hub-section-title{font-family:var(--font-serif);font-size:1.4rem;font-weight:700;
+  color:var(--ink);display:flex;align-items:baseline;gap:.8rem;margin:0 0 .8rem;
+  padding-bottom:.5rem;border-bottom:1px solid var(--line)}
+.hub-section-title .arrow{font-family:var(--font-sans);font-size:.85rem;font-weight:600;
+  color:var(--accent);text-decoration:none;margin-left:auto}
+.hub-section-title .arrow:hover{color:var(--accent-soft)}
+
+/* ── skill star (repo-eigene Skills) ── */
+.skill-star{color:var(--repo-fg);font-size:.8em;margin-right:.2em}
+.section-card.skill-repo{border-left:2px solid var(--repo-line)}
+
+/* ── category filter strip (skills.html) ── */
+.cat-filter-row{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.2rem 0 1.8rem}
+.cat-filter-btn{background:var(--paper-2);border:1px solid var(--line);border-radius:999px;
+  padding:.3em .9em;font-size:.78rem;font-weight:600;color:var(--ink-mute);
+  cursor:pointer;transition:all .15s;font-family:var(--font-sans)}
+.cat-filter-btn:hover{border-color:var(--accent-line);color:var(--accent)}
+.cat-filter-btn.active{background:var(--accent-bg);border-color:var(--accent-line);
+  color:var(--accent)}
+
+/* ── agent group + doc group headers ── */
+.agent-group-header,.doc-group-header{font-size:.72rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-mute);margin:2rem 0 .8rem;
+  padding-bottom:.4rem;border-bottom:1px solid var(--line-soft)}
+.agent-group-header:first-child,.doc-group-header:first-child{margin-top:.5rem}
+
 ${GRAPH_CSS}`;
 }
 
@@ -368,9 +408,25 @@ export const SEARCH_JS = `
   }
 })();`;
 
+/** Category filter for skills.html — toggles .section-card visibility by data-category. */
+export const CAT_FILTER_JS = `
+(function(){
+  var btns=document.querySelectorAll('.cat-filter-btn');
+  if(!btns.length)return;
+  btns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var cat=btn.getAttribute('data-cat');
+      btns.forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      document.querySelectorAll('.section-card[data-category]').forEach(function(card){
+        card.style.display=(cat==='all'||card.getAttribute('data-category')===cat)?'':'none';
+      });
+    });
+  });
+})();`;
+
 /**
- * Compose the full client script from the named pieces. Plan 2 extends this by
- * appending graphJs() to the join list.
+ * Compose the full client script from the named pieces.
  * @returns {string} client JS source
  */
 // ─── graphJs ────────────────────────────────────────────────────────────────
@@ -438,5 +494,5 @@ export function graphJs() {
 }
 
 export function clientJs() {
-  return [SUBST_JS, COPY_JS, DIAGRAM_JS, SEARCH_JS, GRAPH_JS].join('\n');
+  return [SUBST_JS, COPY_JS, DIAGRAM_JS, SEARCH_JS, CAT_FILTER_JS, GRAPH_JS].join('\n');
 }

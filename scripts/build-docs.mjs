@@ -19,7 +19,7 @@ import { discoverSources } from './docs-gen/discover.mjs';
 import { buildPages, buildRegistry, parseRoutingTable, collectEdges } from './docs-gen/registry.mjs';
 import { renderMarkdown } from './docs-gen/render-markdown.mjs';
 import { editorialCss, clientJs } from './docs-gen/theme.mjs';
-import { renderPage, renderSectionIndex, renderLanding } from './docs-gen/templates.mjs';
+import { renderPage, renderSkillsIndex, renderAgentsIndex, renderDocsIndex, renderLanding, deduplicateSkills } from './docs-gen/templates.mjs';
 import { rewrapLegacyPage } from './docs-gen/legacy.mjs';
 import { buildGraph } from './docs-gen/graph-data.mjs';
 import { layoutGraph } from './docs-gen/graph-layout.mjs';
@@ -201,17 +201,17 @@ export async function runBuild(opts = {}) {
     }
   }
 
-  // (7) Section index pages.
-  const sectionDefs = [
-    { type: 'skill', title: 'Skills', file: 'skills.html' },
-    { type: 'agent', title: 'Agents', file: 'agents.html' },
-    { type: 'doc', title: 'Docs', file: 'docs.html' },
-  ];
-  for (const def of sectionDefs) {
-    const sectionPages = pages.filter((p) => p.type === def.type);
-    const html = renderSectionIndex({ type: def.type, title: def.title, pages: sectionPages });
-    writeOut(outDir, def.file, html);
-  }
+  // (7) Section index pages (specialized renderers replace renderSectionIndex).
+  const skillPages = pages.filter((p) => p.type === 'skill');
+  const agentPages = pages.filter((p) => p.type === 'agent');
+  const docPages = pages.filter((p) => p.type === 'doc');
+
+  report.counts.skillsRaw = skillPages.length;
+  report.counts.skillsUnique = deduplicateSkills(skillPages).length;
+
+  writeOut(outDir, 'skills.html', renderSkillsIndex({ pages: skillPages }));
+  writeOut(outDir, 'agents.html', renderAgentsIndex({ pages: agentPages }));
+  writeOut(outDir, 'docs.html', renderDocsIndex({ pages: docPages }));
 
   // (8) Landing page (graph-forward in Plan 2; editorial card grid in Plan 1).
   writeOut(outDir, 'index.html', renderLanding({ pages, registry, edges, routingRows }));
@@ -322,7 +322,8 @@ function printReport(report) {
   const c = report.counts;
   console.log('\n── Docs build report ────────────────────────────');
   console.log(`  docs:               ${c.doc}`);
-  console.log(`  skills:             ${c.skill}`);
+  console.log(`  skills (raw):       ${c.skillsRaw ?? c.skill}`);
+  console.log(`  skills (unique):    ${c.skillsUnique ?? '–'}`);
   console.log(`  agents:             ${c.agent}`);
   console.log(`  legacy rewrapped:   ${c.legacyRewrapped}`);
   console.log(`  legacy copied:      ${c.legacyCopied}`);

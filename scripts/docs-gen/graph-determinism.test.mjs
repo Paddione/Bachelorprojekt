@@ -47,46 +47,47 @@ function fixtureEdges() {
   ];
 }
 
-function extractGraphSvg(html) {
-  const m = html.match(/<svg\b[^>]*class="graph-svg"[\s\S]*?<\/svg>/);
-  assert.ok(m, 'landing HTML must contain a graph-svg <svg> block');
+function extractHubTiles(html) {
+  const m = html.match(/<div class="hub-tiles">[\s\S]*?<\/div>/);
+  assert.ok(m, 'landing HTML must contain hub tiles');
   return m[0];
 }
 
-test('renderLanding: graph SVG is byte-identical across two renders', () => {
+test('renderLanding: hub tiles are byte-identical across two renders', () => {
   const pages = buildPages(fixtureSources());
   const registry = buildRegistry(pages);
   const args = { pages, registry, edges: fixtureEdges(), routingRows: fixtureRoutingRows() };
 
-  const svg1 = extractGraphSvg(renderLanding(args));
-  const svg2 = extractGraphSvg(renderLanding(args));
-  assert.equal(svg1, svg2, 'two consecutive renders must produce identical graph SVG');
+  const tiles1 = extractHubTiles(renderLanding(args));
+  const tiles2 = extractHubTiles(renderLanding(args));
+  assert.equal(tiles1, tiles2, 'two consecutive renders must produce identical hub tiles');
 });
 
-test('renderLanding: graph SVG is independent of input array order', () => {
+test('renderLanding: hub tiles are independent of input array order', () => {
   const pages = buildPages(fixtureSources());
   const registry = buildRegistry(pages);
-  const svgForward = extractGraphSvg(renderLanding({
+  const tilesForward = extractHubTiles(renderLanding({
     pages, registry, edges: fixtureEdges(), routingRows: fixtureRoutingRows(),
   }));
 
   // Reverse every input array; deterministic layout must sort internally.
-  const svgReversed = extractGraphSvg(renderLanding({
+  const tilesReversed = extractHubTiles(renderLanding({
     pages: [...pages].reverse(),
     registry,
     edges: [...fixtureEdges()].reverse(),
     routingRows: [...fixtureRoutingRows()].reverse(),
   }));
-  assert.equal(svgForward, svgReversed, 'layout must not depend on input array order');
+  assert.equal(tilesForward, tilesReversed, 'hub tiles must not depend on input array order');
 });
 
-test('renderLanding: graph SVG carries per-node interactivity attributes', () => {
+test('renderLanding: hub tiles carry correct section hrefs and counts', () => {
   const pages = buildPages(fixtureSources());
   const registry = buildRegistry(pages);
-  const svg = extractGraphSvg(renderLanding({
+  const html = renderLanding({
     pages, registry, edges: fixtureEdges(), routingRows: fixtureRoutingRows(),
-  }));
-  assert.ok(svg.includes('data-node='), 'nodes must expose data-node');
-  assert.ok(svg.includes('data-neighbors='), 'nodes must expose data-neighbors for hover-highlight');
-  assert.ok(svg.includes('data-domain='), 'nodes must expose data-domain for region grouping');
+  });
+  assert.ok(html.includes('href="./skills.html"'), 'skills link present');
+  assert.ok(html.includes('href="./agents.html"'), 'agents link present');
+  assert.ok(html.includes('href="./docs.html"'), 'docs link present');
+  assert.ok(html.includes('hub-tile'), 'hub tiles rendered');
 });

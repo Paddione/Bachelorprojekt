@@ -6,9 +6,119 @@
 // and ./app.js (theme.mjs#clientJs), and is self-contained for static serving
 // (joseluisq/static-web-server, read-only rootfs). Never SSR, never write fs.
 
-import { buildGraph } from './graph-data.mjs';
-import { layoutGraph } from './graph-layout.mjs';
-import { renderGraphSvg } from './graph-svg.mjs';
+import { pluginNameOf } from './registry.mjs';
+
+/**
+ * Maps plugin name → skill category slug.
+ * Skills without a matching plugin entry fall back to 'claude-code'.
+ */
+const PLUGIN_SKILL_CATEGORIES = {
+  'superpowers': 'dev-workflow',
+  'superpowers-lab': 'claude-code',          // mcp-cli overridden per-name below
+  'superpowers-chrome': 'browser',
+  'superpowers-developing-for-claude-code': 'claude-code',
+  'huggingface-skills': 'ki-ml',
+  'chrome-devtools-mcp': 'browser',
+  'plugin-dev': 'plugin-bau',
+  'skill-creator': 'plugin-bau',
+  'hookify': 'plugin-bau',
+  'mcp-server-dev': 'mcp-api',
+  'postman': 'mcp-api',
+  'claude-code-setup': 'claude-code',
+  'claude-md-management': 'claude-code',
+  'remember': 'claude-code',
+  'desktop-commander': 'claude-code',
+  'frontend-design': 'claude-code',
+  'playground': 'claude-code',
+};
+
+/** Per-skill overrides that take priority over the plugin mapping. */
+const SKILL_NAME_OVERRIDES = {
+  'mcp-cli': 'mcp-api',
+};
+
+/** Repo skills mapped by skill name → category. */
+const REPO_SKILL_CATEGORIES = {
+  'dev-flow-plan': 'dev-workflow',
+  'dev-flow-execute': 'dev-workflow',
+  'dev-flow-iterate': 'dev-workflow',
+  'dev-flow-e2e': 'dev-workflow',
+  'using-git-worktrees': 'dev-workflow',
+  'arena-brett-deploy': 'bachelorprojekt-infra',
+  'cluster-deployment': 'bachelorprojekt-infra',
+  'database-ops': 'bachelorprojekt-infra',
+  'fleet-ops': 'bachelorprojekt-infra',
+  'host-node-networking': 'bachelorprojekt-infra',
+  'keycloak-realm-sync': 'bachelorprojekt-infra',
+  'knowledge-management': 'bachelorprojekt-infra',
+  'mishap-tracker': 'bachelorprojekt-infra',
+  'operations-management': 'bachelorprojekt-infra',
+  'secret-rotation': 'bachelorprojekt-infra',
+  'update-dependencies': 'bachelorprojekt-infra',
+};
+
+const CATEGORY_LABELS = {
+  'dev-workflow': 'Dev-Workflow',
+  'bachelorprojekt-infra': 'Bachelorprojekt-Infra',
+  'ki-ml': 'KI / ML',
+  'plugin-bau': 'Plugin- & Skill-Bau',
+  'browser': 'Browser & Debugging',
+  'mcp-api': 'MCP & API',
+  'claude-code': 'Claude Code & Tooling',
+};
+
+const CATEGORY_ORDER = [
+  'dev-workflow',
+  'bachelorprojekt-infra',
+  'ki-ml',
+  'plugin-bau',
+  'browser',
+  'mcp-api',
+  'claude-code',
+];
+
+/**
+ * Assign a display category to a skill page.
+ * @param {Page} page
+ * @returns {string} category slug
+ */
+export function categoryForSkill(page) {
+  if (SKILL_NAME_OVERRIDES[page.name]) return SKILL_NAME_OVERRIDES[page.name];
+  if (page.provenance === 'repo') {
+    return REPO_SKILL_CATEGORIES[page.name] ?? 'claude-code';
+  }
+  const plugin = pluginNameOf(page.provenance);
+  return PLUGIN_SKILL_CATEGORIES[plugin] ?? 'claude-code';
+}
+
+/**
+ * Remove duplicate skill pages: keep only the newest version per (pluginName, skillName) pair.
+ * Repo skills have no plugin name and are never deduplicated against each other.
+ * @param {Page[]} pages
+ * @returns {Page[]}
+ */
+export function deduplicateSkills(pages) {
+  /** @type {Map<string, Page>} */
+  const best = new Map();
+  for (const page of pages) {
+    if (page.type !== 'skill') continue;
+    const plugin = pluginNameOf(page.provenance);
+    const key = page.provenance === 'repo'
+      ? `repo:${page.name}`
+      : `${plugin}:${page.name}`;
+    const existing = best.get(key);
+    if (!existing) {
+      best.set(key, page);
+      continue;
+    }
+    // Compare versions: existing vs page. Keep the lexicographically greater one
+    // (semver strings like '5.1.0' compare correctly that way for simple cases).
+    const existingVer = page.provenance === 'repo' ? '' : (existing.provenance.split('@')[1] ?? '');
+    const newVer = page.provenance === 'repo' ? '' : (page.provenance.split('@')[1] ?? '');
+    if (newVer > existingVer) best.set(key, page);
+  }
+  return Array.from(best.values());
+}
 
 /**
  * @typedef {Object} Page
@@ -231,51 +341,337 @@ ${documentTail('./')}`;
 }
 
 /**
- * Render the landing page: an editorial hero with the interactive domain-clustered
- * relationship graph as the centrepiece, plus a <noscript>-friendly fallback that
- * lists the sections (skills/agents/docs) with counts so the page is usable without JS.
- *
- * Signature change (Plan 2, IC-4): supersedes the Plan-1 `renderLanding({ pages, registry })`
- * card-grid landing. `edges` and `routingRows` are required to build the graph.
+ * Skills index page with deduplication, 7 category filter buttons, and repo-star markers.
+ * Replaces renderSectionIndex for type='skill'.
+ * @param {{ pages: Page[] }} args
+ * @returns {string}
+ */
+export function renderSkillsIndex({ pages }) {
+  const deduped = deduplicateSkills(pages);
+  const count = deduped.length;
+
+  // Build filter buttons (Alle + one per non-empty category)
+  const usedCats = new Set(deduped.map(categoryForSkill));
+  const filterBtns = [
+    `<button class="cat-filter-btn active" data-cat="all">Alle (${count})</button>`,
+    ...CATEGORY_ORDER
+      .filter((c) => usedCats.has(c))
+      .map((c) => {
+        const n = deduped.filter((p) => categoryForSkill(p) === c).length;
+        return `<button class="cat-filter-btn" data-cat="${esc(c)}">${esc(CATEGORY_LABELS[c])} (${n})</button>`;
+      }),
+  ].join('\n');
+
+  // Sort within each category alphabetically
+  const sorted = deduped.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+  const cards = sorted.map((page) => {
+    const cat = categoryForSkill(page);
+    const isRepo = page.provenance === 'repo';
+    const star = isRepo ? '<span class="skill-star" aria-label="repo-eigener Skill">★</span>' : '';
+    const repoClass = isRepo ? ' skill-repo' : '';
+    return `<a class="section-card${repoClass}" href="./${esc(page.outRelPath)}" data-category="${esc(cat)}">
+  <span class="section-card-head">
+    ${star}<span class="section-card-title">${esc(page.title)}</span>
+    ${provenanceBadge(page.provenance)}${domainTag(page.domain)}
+  </span>
+  <span class="section-card-desc">${esc(page.description)}</span>
+</a>`;
+  }).join('\n');
+
+  const header = `<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Skills</span></nav>
+    <h1>Skills</h1>
+    <p class="page-desc">${count} Skills (${pages.length - count} Duplikate bereinigt)</p>
+  </div>
+</header>`;
+
+  return `${documentHead('Skills', './')}
+<div id="app">
+  <main id="main">
+${header}
+<div class="cat-filter-row">
+${filterBtns}
+</div>
+<section class="section-grid">
+${cards}
+</section>
+  </main>
+</div>
+${documentTail('./')}`;
+}
+
+/** Map agent slug prefix → display group. Order = display order. */
+const AGENT_GROUPS = [
+  { key: 'bachelorprojekt', label: 'Bachelorprojekt', match: (p) => p.name.startsWith('bachelorprojekt') || (p.provenance === 'repo' && p.name.startsWith('bachelorprojekt')) },
+  { key: 'dev-workflow', label: 'Dev-Workflow', match: (p) => {
+    const plugin = pluginNameOf(p.provenance);
+    return ['feature-dev', 'pr-review-toolkit', 'code-simplifier'].some((pfx) => plugin.startsWith(pfx));
+  }},
+  { key: 'plugin-bau', label: 'Plugin- & Skill-Bau', match: (p) => {
+    const plugin = pluginNameOf(p.provenance);
+    return ['plugin-dev', 'hookify', 'agent-sdk-dev', 'skill-creator'].some((pfx) => plugin.startsWith(pfx));
+  }},
+];
+
+/**
+ * Agents index page grouped by plugin family.
+ * @param {{ pages: Page[] }} args
+ * @returns {string}
+ */
+export function renderAgentsIndex({ pages }) {
+  // Assign each agent to a group; unmatched go to 'Sonstige'
+  const buckets = new Map(AGENT_GROUPS.map((g) => [g.key, []]));
+  buckets.set('sonstige', []);
+
+  for (const page of pages) {
+    const group = AGENT_GROUPS.find((g) => g.match(page));
+    buckets.get(group ? group.key : 'sonstige').push(page);
+  }
+
+  const allGroups = [
+    ...AGENT_GROUPS,
+    { key: 'sonstige', label: 'Sonstige' },
+  ];
+
+  const sections = allGroups
+    .filter((g) => (buckets.get(g.key) ?? []).length > 0)
+    .map((g) => {
+      const groupPages = (buckets.get(g.key) ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
+      const cards = groupPages.map((page) => `<a class="section-card" href="./${esc(page.outRelPath)}">
+  <span class="section-card-head">
+    <span class="section-card-title">${esc(page.title)}</span>
+    ${provenanceBadge(page.provenance)}${domainTag(page.domain)}
+  </span>
+  <span class="section-card-desc">${esc(page.description)}</span>
+</a>`).join('\n');
+      return `<h2 class="agent-group-header">${esc(g.label)} (${groupPages.length})</h2>
+<section class="section-grid">
+${cards}
+</section>`;
+    }).join('\n');
+
+  const header = `<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Agents</span></nav>
+    <h1>Agents</h1>
+    <p class="page-desc">${pages.length} Agents</p>
+  </div>
+</header>`;
+
+  return `${documentHead('Agents', './')}
+<div id="app">
+  <main id="main">
+${header}
+${sections}
+  </main>
+</div>
+${documentTail('./')}`;
+}
+
+/** Static slug-to-group assignment for doc pages. */
+const DOC_GROUPS = [
+  {
+    key: 'handbuecher',
+    label: 'Handbücher',
+    slugs: new Set(['benutzerhandbuch', 'adminhandbuch', 'claude-code', 'contributing', 'readme']),
+  },
+  {
+    key: 'architektur',
+    label: 'Architektur & Bausteine',
+    slugs: new Set(['architecture', 'bereitstellungsdetails', 'db-schema', 'datamodel-workflow',
+      '30-bausteine', '20-werkzeuge', '10-ziele', '00-anleitung']),
+  },
+  {
+    key: 'audits',
+    label: 'Audits & Reports',
+    matchFn: (slug) => /^\d{4}-\d{2}-\d{2}/.test(slug) || ['findings', 'db-audit'].includes(slug),
+  },
+  {
+    key: 'entscheidungen',
+    label: 'Entscheidungen',
+    slugs: new Set(['decision-log', 'decisions', 'CHANGELOG']),
+  },
+];
+
+/** Fallback description derived from slug when page.description is empty. */
+function fallbackDescription(slug) {
+  const MAP = {
+    'decision-log': 'Protokoll getroffener Architektur- und Designentscheidungen',
+    'decisions': 'Entscheidungsübersicht',
+    'CHANGELOG': 'Versionshistorie und Änderungsprotokoll',
+    'architecture': 'Übersicht der Systemarchitektur und ihrer Komponenten',
+    'bereitstellungsdetails': 'Server-Topologie und Bereitstellungsdetails',
+    'db-schema': 'Datenbankschema-Diagramm',
+    'datamodel-workflow': 'Datenmodell und Workflow-Dokumentation',
+    'contributing': 'Beitragsleitfaden für Entwickler',
+    'backup': 'Backup- und Wiederherstellungsdokumentation',
+    'dsgvo': 'DSGVO-Konformität und Datenschutzdokumentation',
+  };
+  return MAP[slug] ?? slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Docs index page with group headers and fallback descriptions.
+ * @param {{ pages: Page[] }} args
+ * @returns {string}
+ */
+export function renderDocsIndex({ pages }) {
+  // Assign slugs to groups; unmatched go to 'Referenz'
+  const buckets = new Map(DOC_GROUPS.map((g) => [g.key, []]));
+  buckets.set('referenz', []);
+
+  for (const page of pages) {
+    const group = DOC_GROUPS.find((g) => {
+      if (g.slugs) return g.slugs.has(page.slug);
+      if (g.matchFn) return g.matchFn(page.slug);
+      return false;
+    });
+    buckets.get(group ? group.key : 'referenz').push(page);
+  }
+
+  const allGroups = [
+    ...DOC_GROUPS,
+    { key: 'referenz', label: 'Referenz' },
+  ];
+
+  const sections = allGroups
+    .filter((g) => (buckets.get(g.key) ?? []).length > 0)
+    .map((g) => {
+      const groupPages = (buckets.get(g.key) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title));
+      const cards = groupPages.map((page) => {
+        const desc = page.description || fallbackDescription(page.slug);
+        return `<a class="section-card" href="./${esc(page.outRelPath)}">
+  <span class="section-card-head">
+    <span class="section-card-title">${esc(page.title)}</span>
+    ${provenanceBadge(page.provenance)}${domainTag(page.domain)}
+  </span>
+  <span class="section-card-desc">${esc(desc)}</span>
+</a>`;
+      }).join('\n');
+      return `<h2 class="doc-group-header">${esc(g.label)}</h2>
+<section class="section-grid">
+${cards}
+</section>`;
+    }).join('\n');
+
+  const header = `<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Docs</span></nav>
+    <h1>Docs</h1>
+    <p class="page-desc">${pages.length} Seiten</p>
+  </div>
+</header>`;
+
+  return `${documentHead('Docs', './')}
+<div id="app">
+  <main id="main">
+${header}
+${sections}
+  </main>
+</div>
+${documentTail('./')}`;
+}
+
+/**
+ * Hub landing page: 3 Kacheln (Skills/Agents/Docs) + Skills-Vorschau mit Kategorien
+ * + Bachelorprojekt-Agents-Vorschau. Kein SVG-Graph.
  *
  * @param {object} args
  * @param {Page[]} args.pages
- * @param {object} args.registry
- * @param {Array<{from:string,to:string,kind?:string}>} args.edges
- * @param {Array<{signals:string[],agent:string}>} args.routingRows
+ * @param {object} args.registry  (unused in Hub mode, kept for API compat)
+ * @param {Array} [args.edges]     (unused in Hub mode, kept for API compat)
+ * @param {Array} [args.routingRows] (unused in Hub mode, kept for API compat)
  * @returns {string} full HTML5 document
  */
-export function renderLanding({ pages, registry: _registry, edges = [], routingRows = [] }) {
-  const graph = buildGraph(pages, edges, routingRows);
-  const layout = layoutGraph(graph, { width: 1200, height: 760 });
-  const svg = renderGraphSvg(layout);
+export function renderLanding({ pages, registry: _registry, edges: _edges, routingRows: _routingRows }) {
+  const skills = pages.filter((p) => p.type === 'skill');
+  const agents = pages.filter((p) => p.type === 'agent');
+  const docs = pages.filter((p) => p.type === 'doc');
 
-  const sections = [
-    { type: 'skill', title: 'Skills', indexPath: './skills.html' },
-    { type: 'agent', title: 'Agents', indexPath: './agents.html' },
-    { type: 'doc', title: 'Docs', indexPath: './docs.html' },
-  ];
+  const uniqueSkills = deduplicateSkills(skills);
+  const skillCount = uniqueSkills.length;
+  const agentCount = agents.length;
+  const docCount = docs.length;
 
-  const fallback = sections.map((section) => {
-    const items = pages.filter((p) => p.type === section.type);
-    const links = items
-      .slice()
-      .sort((a, b) => a.title.localeCompare(b.title))
-      .map((p) => `        <li><a href="./${esc(p.outRelPath)}">${esc(p.title)}</a></li>`)
-      .join('\n');
-    return `    <section class="fallback-section">
-      <h2><a href="${section.indexPath}">${section.title} (${items.length})</a></h2>
-      <ul>
-${links}
-      </ul>
-    </section>`;
-  }).join('\n');
+  // ── 3 Kacheln ──
+  const tiles = `<div class="hub-tiles">
+  <a class="hub-tile" href="./skills.html">
+    <span class="hub-tile-label">Skills</span>
+    <span class="hub-tile-count">${skillCount}</span>
+    <span class="hub-tile-name">Tools &amp; Workflows</span>
+  </a>
+  <a class="hub-tile" href="./agents.html">
+    <span class="hub-tile-label">Agents</span>
+    <span class="hub-tile-count">${agentCount}</span>
+    <span class="hub-tile-name">Spezialisierte KI-Agents</span>
+  </a>
+  <a class="hub-tile" href="./docs.html">
+    <span class="hub-tile-label">Docs</span>
+    <span class="hub-tile-count">${docCount}</span>
+    <span class="hub-tile-name">Handbücher &amp; Referenz</span>
+  </a>
+</div>`;
+
+  // ── Skills-Vorschau: 7 Kategorie-Buttons + 6 Beispiel-Chips ──
+  const usedCats = new Set(uniqueSkills.map(categoryForSkill));
+  const previewBtns = [
+    `<button class="cat-filter-btn active" data-cat="all">Alle</button>`,
+    ...CATEGORY_ORDER
+      .filter((c) => usedCats.has(c))
+      .map((c) => `<button class="cat-filter-btn" data-cat="${esc(c)}">${esc(CATEGORY_LABELS[c])}</button>`),
+  ].join('\n');
+
+  const skillPreviewCards = uniqueSkills
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 6)
+    .map((p) => {
+      const cat = categoryForSkill(p);
+      const isRepo = p.provenance === 'repo';
+      const star = isRepo ? '<span class="skill-star">★</span>' : '';
+      return `<a class="section-card${isRepo ? ' skill-repo' : ''}" href="./${esc(p.outRelPath)}" data-category="${esc(cat)}">
+  <span class="section-card-head">
+    ${star}<span class="section-card-title">${esc(p.title)}</span>
+  </span>
+</a>`;
+    }).join('\n');
+
+  const skillsPreview = `<section class="hub-section">
+  <h2 class="hub-section-title">Skills <a class="arrow" href="./skills.html">alle anzeigen →</a></h2>
+  <div class="cat-filter-row">
+${previewBtns}
+  </div>
+  <section class="section-grid" id="hub-skills-grid">
+${skillPreviewCards}
+  </section>
+</section>`;
+
+  // ── Agents-Vorschau: Bachelorprojekt-Agents ──
+  const bpAgents = agents
+    .filter((p) => p.name.startsWith('bachelorprojekt'))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const agentCards = bpAgents.map((p) => `<a class="section-card" href="./${esc(p.outRelPath)}">
+  <span class="section-card-head">
+    <span class="section-card-title">${esc(p.title)}</span>
+    ${domainTag(p.domain)}
+  </span>
+  <span class="section-card-desc">${esc(p.description)}</span>
+</a>`).join('\n');
+
+  const agentsPreview = bpAgents.length > 0 ? `<section class="hub-section">
+  <h2 class="hub-section-title">Bachelorprojekt-Agents <a class="arrow" href="./agents.html">alle anzeigen →</a></h2>
+  <section class="section-grid">
+${agentCards}
+  </section>
+</section>` : '';
 
   const header = `<header class="page-header landing-hero">
   <div class="page-header-body">
     <p class="kicker">Workspace MVP</p>
     <h1>Dokumentation</h1>
-    <p class="page-desc">Eine interaktive, nach Domänen geclusterte Karte aller Skills, Agents und Docs. Knoten überfahren hebt die Nachbarn hervor, Klick öffnet die Seite, Scrollen zoomt, Ziehen verschiebt. Klick auf den Hintergrund setzt zurück.</p>
+    <p class="page-desc">Skills, Agents und Handbücher für die Plattform. Ctrl+K zum Suchen.</p>
   </div>
 </header>`;
 
@@ -283,15 +679,9 @@ ${links}
 <div id="app">
   <main id="main">
 ${header}
-<section class="graph-hero" aria-label="Relationship graph">
-  <div class="graph-container" id="docs-graph">
-${svg}
-  </div>
-</section>
-<noscript>
-  <p class="noscript-note">Der interaktive Graph benötigt JavaScript. Stattdessen nach Bereich browsen:</p>
-${fallback}
-</noscript>
+${tiles}
+${skillsPreview}
+${agentsPreview}
   </main>
 </div>
 ${documentTail('./')}`;

@@ -66,6 +66,8 @@ test('clientJs: composes the exported named pieces', () => {
 // ── Task 4: graph interactivity (graphJs) + graph CSS ──────────────────────────
 import { graphJs, graphCss } from './theme.mjs';
 
+// ── Task 1: hub + skill-filter CSS and category filter JS ─────────────────────
+
 test('graphJs: returns a syntactically valid script that wires neighbor highlighting', () => {
   const js = graphJs();
   assert.equal(typeof js, 'string', 'graphJs returns a string');
@@ -108,4 +110,21 @@ test('graphCss + pills reference theme variables, not raw light-theme hex', () =
   // the old light accent must be gone everywhere
   assert.ok(!css.includes('#2f6db5'), 'no leftover light-theme accent hex');
   assert.ok(css.includes('var(--accent)'), 'graph highlight uses --accent');
+});
+
+test('editorialCss: contains hub and skill-filter class hooks', () => {
+  const css = editorialCss();
+  assert.ok(css.includes('.hub-tiles'), '.hub-tiles grid');
+  assert.ok(css.includes('.hub-tile'), '.hub-tile card');
+  assert.ok(css.includes('.skill-star'), '.skill-star repo highlight');
+  assert.ok(css.includes('.cat-filter-row'), '.cat-filter-row button strip');
+  assert.ok(css.includes('.cat-filter-btn'), '.cat-filter-btn button');
+  assert.ok(css.includes('.agent-group-header'), '.agent-group-header');
+  assert.ok(css.includes('.doc-group-header'), '.doc-group-header');
+});
+
+test('clientJs: includes the category filter script', () => {
+  const js = clientJs();
+  assert.ok(js.includes('cat-filter-btn'), 'category filter JS included');
+  assert.ok(js.includes('data-category'), 'references data-category attribute');
 });

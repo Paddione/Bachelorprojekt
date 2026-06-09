@@ -20,6 +20,12 @@ Klassifiziere die Aufgabe nach **Komplexität × Risiko × Rolle**:
 Im Zweifel **eine Stufe höher**. Wenn unsicher, ob ein Spezial-Modell überhaupt passt: **`model` weglassen**
 → der Subagent erbt das Main-Loop-Modell (fast immer korrekt).
 
+> **⚠ Haiku-Fußangel bei Spec-Reviews [T000551]:** Haiku liest ohne expliziten `limit`-Parameter nur
+> die ersten ~80 Zeilen einer Datei und liefert daher false negatives bei Spec-Compliance-Prüfungen
+> über mehrere Dateien. **Spec-Reviewer-Subagenten müssen `sonnet` oder besser verwenden.**
+> Zusätzlich: Im Prompt explizit `grep`-basierte Verifikation verlangen statt blindem `Read()` — das
+> umgeht sowohl das Zeilenlimit als auch potenzielle Read-Caching-Artefakte.
+
 ## 2. Effort (per Prompt-Direktive)
 
 Das `Agent`/`Task`-Tool kennt **nur `model`, keinen Effort-Regler** — Effort wird über die Prompt-Einleitung vermittelt:

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.38.0...website-v1.39.0) (2026-06-08)
+
+
+### Features
+
+* **factory:** tiered AI code review orchestration (Cloudflare-inspired) ([#1464](https://github.com/Paddione/Bachelorprojekt/issues/1464)) ([a56a876](https://github.com/Paddione/Bachelorprojekt/commit/a56a87632dfd19f41ea613c7b4a7f9381dce7802))
+
 ## [1.38.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.37.1...website-v1.38.0) (2026-06-08)
 
 

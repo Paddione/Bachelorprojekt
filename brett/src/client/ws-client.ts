@@ -1,7 +1,7 @@
 import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
-import type { Phase } from '../types/state';
+import type { Phase, Participant } from '../types/state';
 import { updateExportCache, type ExportFigure } from './ui/export';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
@@ -75,6 +75,24 @@ export function setPhaseChangeHandler(fn: (phase: Phase | null) => void): void {
 let onLobbyChange: (state: LobbyState) => void = () => {};
 export function setLobbyChangeHandler(fn: (state: LobbyState) => void): void {
   onLobbyChange = fn;
+}
+
+// ── T000555: Late-join notification hook ──────────────────────────────────────
+// Fired when a participant joins AFTER the round has started (not in lobby).
+// board-boot wires this to show a toast (leader only) + refresh the participants
+// panel. Pure decision logic lives in decideLateJoin() so it is node-testable.
+export function decideLateJoin(
+  phase: Phase | null,
+  participant: Participant | undefined,
+): { notify: boolean; name: string } {
+  const name = participant?.name ?? 'Unbekannt';
+  const inSession = phase === 'active' || phase === 'warmup' || phase === 'paused';
+  return { notify: inSession, name };
+}
+
+let lateJoinHandler: ((name: string) => void) | null = null;
+export function setLateJoinHandler(cb: ((name: string) => void) | null): void {
+  lateJoinHandler = cb;
 }
 
 const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
@@ -465,7 +483,17 @@ export function onWsMessage(evt: MessageEvent): void {
       break;
     }
 
-    case 'presence_join':
+    case 'presence_join': {
+      const prevPhase = lobbyState.phase;
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      // Late-join: notify when someone joins mid-session (not in lobby).
+      const decision = decideLateJoin(lobbyState.phase, msg.participant);
+      if (decision.notify) lateJoinHandler?.(decision.name);
+      break;
+    }
+
     case 'presence_leave':
     case 'role_changed':
     case 'lobby_ready_changed':

@@ -74,7 +74,7 @@ These are load-bearing facts discovered from the codebase. Violating them breaks
 
 The late-join detection is pure decision logic: *"given the current phase and an incoming participant name, should we notify, and with what name?"* Extract that into a pure exported function so it is testable without a WebSocket.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `brett/test/ws-client-late-join.test.ts`:
 
@@ -112,12 +112,12 @@ test('decideLateJoin: falls back to "Unbekannt" when participant has no name', (
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/ws-client-late-join.test.ts`
 Expected: FAIL — `decideLateJoin` is not exported / not defined.
 
-- [ ] **Step 3: Add the pure helper + handler plumbing**
+- [x] **Step 3: Add the pure helper + handler plumbing**
 
 In `brett/src/client/ws-client.ts`, after the `onLobbyChange` handler block (after line 78), add:
 
@@ -151,12 +151,12 @@ import type { Participant } from '../types/state';
 ```
 (Both forms are valid; keep one import per line to match file style.)
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/ws-client-late-join.test.ts`
 Expected: PASS — all 6 tests green.
 
-- [ ] **Step 5: Fire the hook in the `presence_join` case**
+- [x] **Step 5: Fire the hook in the `presence_join` case**
 
 In `onWsMessage`, the `presence_join` variant is currently folded into a shared `case` block (lines 468-478). Split `presence_join` out so it can fire the late-join hook **after** the reducer/`onLobbyChange`, using the phase that the reducer left in place (`presence_join` does not change phase, so reading post-reducer phase is correct).
 
@@ -202,17 +202,17 @@ with:
     }
 ```
 
-- [ ] **Step 6: Run the full brett test suite to confirm no regression**
+- [x] **Step 6: Run the full brett test suite to confirm no regression**
 
 Run: `cd brett && npm test`
 Expected: PASS — existing suite green (especially `presence-lobby.test.ts`, `lobby-store.test.ts`) plus the new file.
 
-- [ ] **Step 7: Typecheck**
+- [x] **Step 7: Typecheck**
 
 Run: `cd brett && npx tsc -p tsconfig.client.json --noEmit`
 Expected: no errors.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add brett/src/client/ws-client.ts brett/test/ws-client-late-join.test.ts
@@ -229,7 +229,7 @@ git commit -m "feat(brett): add setLateJoinHandler hook for mid-session joins"
 
 The branchy logic is: (a) building the invite URL, and (b) deciding whether the button is visible (sessionCode present or not). Both go into pure exported functions. The popup/clipboard DOM behavior lives in `mountInviteButton`; clipboard is injected so a test can assert it was called with the right URL.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `brett/test/topbar-invite.test.ts`:
 
@@ -261,12 +261,12 @@ test('inviteButtonVisible: true only when a non-empty session code exists', () =
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/topbar-invite.test.ts`
 Expected: FAIL — module / exports not found.
 
-- [ ] **Step 3: Write the module (pure helpers + DOM mount)**
+- [x] **Step 3: Write the module (pure helpers + DOM mount)**
 
 Create `brett/src/client/ui/topbar-invite.ts`:
 
@@ -400,17 +400,17 @@ export function mountInviteButton(
 
 Note: the spec's signature is `mountInviteButton(anchorEl, getSessionCode): void`. We return `{ refresh, destroy }` instead of `void` so board-boot can re-evaluate visibility when the session code arrives asynchronously (the snapshot/`session_created` may land after mount). This is a superset of the spec contract and breaks nothing.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/topbar-invite.test.ts`
 Expected: PASS — 3 tests green.
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `cd brett && npx tsc -p tsconfig.client.json --noEmit`
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/ui/topbar-invite.ts brett/test/topbar-invite.test.ts
@@ -427,7 +427,7 @@ git commit -m "feat(brett): add topbar invite button with link popup + clipboard
 
 The testable surface: the toast **text** for a given name, and the **container management** (stacking N toasts, dismissing after the timeout). DOM is injected via a tiny stub so we can assert without jsdom.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `brett/test/late-join-toast.test.ts`:
 
@@ -491,12 +491,12 @@ test('showLateJoinToast: auto-dismiss removes the toast when the timer fires', (
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/late-join-toast.test.ts`
 Expected: FAIL — module / exports not found.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `brett/src/client/ui/late-join-toast.ts`:
 
@@ -572,17 +572,17 @@ export function showLateJoinToast(name: string, deps: LateJoinToastDeps = realDe
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/late-join-toast.test.ts`
 Expected: PASS — 3 tests green.
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `cd brett && npx tsc -p tsconfig.client.json --noEmit`
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/ui/late-join-toast.ts brett/test/late-join-toast.test.ts
@@ -599,7 +599,7 @@ git commit -m "feat(brett): add stacking late-join toast notification"
 
 Two pure surfaces: (a) `buildParticipantRows(state)` derives the roster rows (color/name/role) from `LobbyState` — same shape as `buildLobbyViewModel`'s rows but standalone here; (b) `roleOptions()` / `canAssignRoles(isLeiter)` decide whether the dropdown shows. The `sendClient` call for role change is verified by asserting the message a click would build via a pure `buildAssignRoleMessage(targetPlayerId, role)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `brett/test/topbar-participants.test.ts`:
 
@@ -652,12 +652,12 @@ test('buildAssignRoleMessage: builds the admin_assign_role protocol message', ()
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/topbar-participants.test.ts`
 Expected: FAIL — module / exports not found.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `brett/src/client/ui/topbar-participants.ts`:
 
@@ -838,17 +838,17 @@ export function mountParticipantsButton(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd brett && MOCK_DB=true npx tsx --test test/topbar-participants.test.ts`
 Expected: PASS — 4 tests green.
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `cd brett && npx tsc -p tsconfig.client.json --noEmit`
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/ui/topbar-participants.ts brett/test/topbar-participants.test.ts
@@ -864,7 +864,7 @@ git commit -m "feat(brett): add participants panel with leader role assignment"
 
 Add the two slot divs in the right-aligned `.group` (the one with `style="margin-left:auto;"`) so the new buttons sit next to the online indicator.
 
-- [ ] **Step 1: Add the slot divs**
+- [x] **Step 1: Add the slot divs**
 
 In `brett/public/index.html`, find (around line 351-352):
 
@@ -882,12 +882,12 @@ Replace with:
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
 ```
 
-- [ ] **Step 2: Verify the slots are present**
+- [x] **Step 2: Verify the slots are present**
 
 Run: `grep -n "topbar-invite-slot\|topbar-participants-slot" brett/public/index.html`
 Expected: two matches, both inside `#topbar`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add brett/public/index.html
@@ -903,12 +903,12 @@ git commit -m "feat(brett): add topbar slots for invite + participants buttons"
 
 `board-boot.ts` currently has NO `setLobbyChangeHandler` call of its own (the lobby screen owns that in app-shell). To keep the participants panel in sync without stealing the lobby screen's handler, we read state lazily and refresh on the **late-join hook** plus a lightweight polling-free approach: register our own `setLobbyChangeHandler` only if board-boot is the active view. **Verify first** whether another module already calls `wsClient.setLobbyChangeHandler` at runtime for the board view.
 
-- [ ] **Step 1: Check for an existing lobbyChange consumer in the board path**
+- [x] **Step 1: Check for an existing lobbyChange consumer in the board path**
 
 Run: `grep -rn "setLobbyChangeHandler" brett/src/client/`
 Expected: shows where it is wired (likely `app-shell.ts` / `main.ts`). If the board view does not set it, board-boot can safely set it. If it IS set elsewhere for the board view, **wrap** rather than overwrite: capture the existing behavior by chaining. Record the finding before editing.
 
-- [ ] **Step 2: Add imports**
+- [x] **Step 2: Add imports**
 
 In `brett/src/client/board-boot.ts`, after the existing `ui/*` imports (after line 34 `import { renderTimeline } from './ui/timeline';`), add:
 
@@ -918,7 +918,7 @@ import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
 ```
 
-- [ ] **Step 3: Mount the modules + register the late-join hook**
+- [x] **Step 3: Mount the modules + register the late-join hook**
 
 In `bootBoard()`, after `persons.initPersons();` (line 69), add:
 
@@ -960,7 +960,7 @@ In `bootBoard()`, after `persons.initPersons();` (line 69), add:
 
 This references `wsClient.getLobbyChangeHandler` — add that getter in Step 4.
 
-- [ ] **Step 4: Add a `getLobbyChangeHandler` getter in ws-client.ts (chaining safety)**
+- [x] **Step 4: Add a `getLobbyChangeHandler` getter in ws-client.ts (chaining safety)**
 
 In `brett/src/client/ws-client.ts`, next to `setLobbyChangeHandler` (lines 74-78), add a getter so board-boot can chain instead of clobbering:
 
@@ -976,17 +976,17 @@ export function getLobbyChangeHandler(): (state: LobbyState) => void {
 
 (The `let onLobbyChange`/`setLobbyChangeHandler` already exist — only **add** the `getLobbyChangeHandler` export; do not duplicate the others.)
 
-- [ ] **Step 5: Typecheck the whole client**
+- [x] **Step 5: Typecheck the whole client**
 
 Run: `cd brett && npx tsc -p tsconfig.client.json --noEmit`
 Expected: no errors. (If `getLobbyChangeHandler?.()` optional-call triggers a "always defined" lint, drop the `?.` — it is a real export now.)
 
-- [ ] **Step 6: Run the full brett test suite**
+- [x] **Step 6: Run the full brett test suite**
 
 Run: `cd brett && npm test`
 Expected: PASS — all existing + new tests green.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add brett/src/client/board-boot.ts brett/src/client/ws-client.ts
@@ -999,23 +999,23 @@ git commit -m "feat(brett): wire invite/participants/late-join into board boot"
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Client build**
+- [x] **Step 1: Client build**
 
 Run the brett client build to confirm the new modules bundle cleanly.
 Run: `cd brett && grep -E '"build' package.json` to find the build script, then run it (e.g. `npm run build` or the esbuild/vite script listed).
 Expected: build succeeds, no unresolved imports.
 
-- [ ] **Step 2: Full typecheck (client + server)**
+- [x] **Step 2: Full typecheck (client + server)**
 
 Run: `cd brett && npx tsc -p tsconfig.client.json --noEmit && npx tsc -p tsconfig.server.json --noEmit`
 Expected: no errors.
 
-- [ ] **Step 3: Full test suite once more**
+- [x] **Step 3: Full test suite once more**
 
 Run: `cd brett && npm test`
 Expected: all green.
 
-- [ ] **Step 4: Record the manual smoke checklist in the PR body (do NOT run live here)**
+- [x] **Step 4: Record the manual smoke checklist in the PR body (do NOT run live here)**
 
 The following require a running brett + a started session; note them for the executor/QA, do not block the plan on them:
 - Host starts a round → "🔗 Einladen" button appears in the topbar; click copies the link and shows the popup with "Kopiert ✓" for 2s, then "Link zum Teilen"; clicking outside closes it.

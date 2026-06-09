@@ -1,6 +1,14 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.26.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.26.0...brett-v0.26.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* **brett:** ghost participant + missing start button on new session ([11605e7](https://github.com/Paddione/Bachelorprojekt/commit/11605e7cc3d741aa196aff0047e9825c23cfc09f))
+* **brett:** use resolvePlayerId in admin_session_create to prevent ghost participants ([2ad8b2b](https://github.com/Paddione/Bachelorprojekt/commit/2ad8b2be4b56c8834f1e63958fdd7845e12f1e4f))
+
 ## [0.26.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.25.1...brett-v0.26.0) (2026-06-09)
 
 

@@ -1032,6 +1032,7 @@ tasks:
     cmds:
       - git config core.hooksPath .githooks
       - chmod +x .githooks/pre-commit
+      - chmod +x .githooks/pre-push
       - echo "hooksPath set to .githooks"
 
   secrets:unlock:

@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.25.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.25.0...brett-v0.25.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* **brett:** lobby start button, stale roster, and settings controls [T000544] ([#1469](https://github.com/Paddione/Bachelorprojekt/issues/1469)) ([52cfe2d](https://github.com/Paddione/Bachelorprojekt/commit/52cfe2df2029f70582262ce795609b87629750c2))
+
 ## [0.25.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.24.0...brett-v0.25.0) (2026-06-08)
 
 

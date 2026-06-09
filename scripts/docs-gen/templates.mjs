@@ -405,6 +405,74 @@ ${cards}
 ${documentTail('./')}`;
 }
 
+/** Map agent slug prefix → display group. Order = display order. */
+const AGENT_GROUPS = [
+  { key: 'bachelorprojekt', label: 'Bachelorprojekt', match: (p) => p.name.startsWith('bachelorprojekt') || (p.provenance === 'repo' && p.name.startsWith('bachelorprojekt')) },
+  { key: 'dev-workflow', label: 'Dev-Workflow', match: (p) => {
+    const plugin = pluginNameOf(p.provenance);
+    return ['feature-dev', 'pr-review-toolkit', 'code-simplifier'].some((pfx) => plugin.startsWith(pfx));
+  }},
+  { key: 'plugin-bau', label: 'Plugin- & Skill-Bau', match: (p) => {
+    const plugin = pluginNameOf(p.provenance);
+    return ['plugin-dev', 'hookify', 'agent-sdk-dev', 'skill-creator'].some((pfx) => plugin.startsWith(pfx));
+  }},
+];
+
+/**
+ * Agents index page grouped by plugin family.
+ * @param {{ pages: Page[] }} args
+ * @returns {string}
+ */
+export function renderAgentsIndex({ pages }) {
+  // Assign each agent to a group; unmatched go to 'Sonstige'
+  const buckets = new Map(AGENT_GROUPS.map((g) => [g.key, []]));
+  buckets.set('sonstige', []);
+
+  for (const page of pages) {
+    const group = AGENT_GROUPS.find((g) => g.match(page));
+    buckets.get(group ? group.key : 'sonstige').push(page);
+  }
+
+  const allGroups = [
+    ...AGENT_GROUPS,
+    { key: 'sonstige', label: 'Sonstige' },
+  ];
+
+  const sections = allGroups
+    .filter((g) => (buckets.get(g.key) ?? []).length > 0)
+    .map((g) => {
+      const groupPages = (buckets.get(g.key) ?? []).slice().sort((a, b) => a.name.localeCompare(b.name));
+      const cards = groupPages.map((page) => `<a class="section-card" href="./${esc(page.outRelPath)}">
+  <span class="section-card-head">
+    <span class="section-card-title">${esc(page.title)}</span>
+    ${provenanceBadge(page.provenance)}${domainTag(page.domain)}
+  </span>
+  <span class="section-card-desc">${esc(page.description)}</span>
+</a>`).join('\n');
+      return `<h2 class="agent-group-header">${esc(g.label)} (${groupPages.length})</h2>
+<section class="section-grid">
+${cards}
+</section>`;
+    }).join('\n');
+
+  const header = `<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Agents</span></nav>
+    <h1>Agents</h1>
+    <p class="page-desc">${pages.length} Agents</p>
+  </div>
+</header>`;
+
+  return `${documentHead('Agents', './')}
+<div id="app">
+  <main id="main">
+${header}
+${sections}
+  </main>
+</div>
+${documentTail('./')}`;
+}
+
 /**
  * Render the landing page: an editorial hero with the interactive domain-clustered
  * relationship graph as the centrepiece, plus a <noscript>-friendly fallback that

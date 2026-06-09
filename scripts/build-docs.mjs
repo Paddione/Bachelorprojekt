@@ -19,7 +19,7 @@ import { discoverSources } from './docs-gen/discover.mjs';
 import { buildPages, buildRegistry, parseRoutingTable, collectEdges } from './docs-gen/registry.mjs';
 import { renderMarkdown } from './docs-gen/render-markdown.mjs';
 import { editorialCss, clientJs } from './docs-gen/theme.mjs';
-import { renderPage, renderSectionIndex, renderSkillsIndex, renderLanding, deduplicateSkills } from './docs-gen/templates.mjs';
+import { renderPage, renderSectionIndex, renderSkillsIndex, renderAgentsIndex, renderLanding, deduplicateSkills } from './docs-gen/templates.mjs';
 import { rewrapLegacyPage } from './docs-gen/legacy.mjs';
 import { buildGraph } from './docs-gen/graph-data.mjs';
 import { layoutGraph } from './docs-gen/graph-layout.mjs';
@@ -201,23 +201,17 @@ export async function runBuild(opts = {}) {
     }
   }
 
-  // (7) Section index pages.
-  const sectionDefs = [
-    { type: 'agent', title: 'Agents', file: 'agents.html' },
-    { type: 'doc', title: 'Docs', file: 'docs.html' },
-  ];
-  for (const def of sectionDefs) {
-    const sectionPages = pages.filter((p) => p.type === def.type);
-    const html = renderSectionIndex({ type: def.type, title: def.title, pages: sectionPages });
-    writeOut(outDir, def.file, html);
-  }
-
-  // Skills use the new deduplicated + categorized renderer.
+  // (7) Section index pages (specialized renderers replace renderSectionIndex).
   const skillPages = pages.filter((p) => p.type === 'skill');
+  const agentPages = pages.filter((p) => p.type === 'agent');
+  const docPages = pages.filter((p) => p.type === 'doc');
+
   report.counts.skillsRaw = skillPages.length;
   report.counts.skillsUnique = deduplicateSkills(skillPages).length;
-  const skillsHtml = renderSkillsIndex({ pages: skillPages });
-  writeOut(outDir, 'skills.html', skillsHtml);
+
+  writeOut(outDir, 'skills.html', renderSkillsIndex({ pages: skillPages }));
+  writeOut(outDir, 'agents.html', renderAgentsIndex({ pages: agentPages }));
+  writeOut(outDir, 'docs.html', renderSectionIndex({ type: 'doc', title: 'Docs', pages: docPages }));
 
   // (8) Landing page (graph-forward in Plan 2; editorial card grid in Plan 1).
   writeOut(outDir, 'index.html', renderLanding({ pages, registry, edges, routingRows }));

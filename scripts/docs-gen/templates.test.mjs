@@ -7,6 +7,7 @@ import {
   renderSectionIndex,
   renderLanding,
   renderSkillsIndex,
+  renderAgentsIndex,
   deduplicateSkills,
   categoryForSkill,
 } from './templates.mjs';
@@ -414,4 +415,50 @@ test('renderSkillsIndex: count in header shows deduplicated number', () => {
   ];
   const html = renderSkillsIndex({ pages });
   assert.ok(html.includes('1 '), 'deduplicated count (1) shown, not 2');
+});
+
+// ─── renderAgentsIndex ───────────────────────────────────────────────────────
+
+const makeAgentPage = (name, provenance, domain) => ({
+  slug: name,
+  type: 'agent',
+  provenance: provenance ?? 'repo',
+  name,
+  title: name,
+  description: `Triggers: ${domain ?? 'general'} tasks.`,
+  domain: domain ?? null,
+  bodyMarkdown: '',
+  sourcePath: `/x/.claude/agents/${name}.md`,
+  outRelPath: `agents/${name}.html`,
+});
+
+test('renderAgentsIndex: Bachelorprojekt group appears first', () => {
+  const bp = makeAgentPage('bachelorprojekt-infra', 'repo', 'infra');
+  const other = makeAgentPage('feature-dev--code-architect', 'feature-dev@1.0.0', null);
+  const html = renderAgentsIndex({ pages: [other, bp] });
+  const bpIdx = html.indexOf('bachelorprojekt-infra');
+  const otherIdx = html.indexOf('feature-dev--code-architect');
+  assert.ok(bpIdx < otherIdx, 'bachelorprojekt agent appears before other agent');
+});
+
+test('renderAgentsIndex: shows trigger description on card', () => {
+  const bp = makeAgentPage('bachelorprojekt-ops', 'repo', 'ops');
+  const html = renderAgentsIndex({ pages: [bp] });
+  assert.ok(html.includes('Triggers: ops tasks.'), 'description shown on card');
+});
+
+test('renderAgentsIndex: renders group headers', () => {
+  const html = renderAgentsIndex({ pages: [
+    makeAgentPage('bachelorprojekt-website', 'repo', 'website'),
+    makeAgentPage('feature-dev--code-architect', 'feature-dev@1.0.0'),
+  ]});
+  assert.ok(html.includes('agent-group-header'), 'group headers present');
+  assert.ok(html.includes('Bachelorprojekt'), 'Bachelorprojekt header present');
+});
+
+test('renderAgentsIndex: is a full HTML5 document with breadcrumbs', () => {
+  const html = renderAgentsIndex({ pages: [makeAgentPage('bachelorprojekt-db', 'repo', 'db')] });
+  assert.ok(html.startsWith('<!DOCTYPE html>'), 'full document');
+  assert.ok(html.includes('Agents'), 'section title');
+  assert.ok(html.includes('href="./index.html"'), 'breadcrumb to landing');
 });

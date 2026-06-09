@@ -39,6 +39,7 @@ const ctx = vm.createContext({
   document: { createElement: () => mockEl(), body: { appendChild() {} } },
   setInterval: () => {},
   WebSocket: class { constructor() { this.readyState = 3; } },
+  URLSearchParams,
   JSON,
   setTimeout: () => {},
 });

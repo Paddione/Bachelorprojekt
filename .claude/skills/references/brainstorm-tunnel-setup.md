@@ -137,3 +137,21 @@ If the WS upgrade breaks in practice (check browser DevTools → Network → WS
 frames), fall back to running oauth2-proxy with `--upstream=http://sish:80`
 (full-proxy mode) and remove the IngressRoute routing to sish — the proxy
 handles all traffic end-to-end in that case.
+
+## Headless / Automated Browser Access (T000542)
+
+The collab-patch shows a blocking `window.prompt()` to collect the user's display
+name on first load. Headless browsers (Playwright MCP) timeout waiting for this
+dialog. To bypass it, append `?who=<name>` to the URL:
+
+```
+https://brainstorm.dev.mentolder.de/?who=AutoBot
+```
+
+- The value is saved to `localStorage.brainstorm_who` and reused on subsequent
+  visits (no re-prompt).
+- Names are trimmed to 24 characters.
+- The `?who=` param is checked **before** `prompt()` — no `handle_dialog` needed.
+- Pre-setting `localStorage` also works if the page is already loaded without a
+  URL param (existing behavior, unchanged).
+

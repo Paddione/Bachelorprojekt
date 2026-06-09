@@ -5,7 +5,15 @@
 
   const WS = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host;
   let who = localStorage.getItem('brainstorm_who');
-  if (!who) { who = (prompt('Dein Name für diese Session:') || 'Gast').slice(0, 24); localStorage.setItem('brainstorm_who', who); }
+  if (!who) {
+    const urlWho = new URLSearchParams(location.search).get('who');
+    if (urlWho) {
+      who = urlWho.slice(0, 24);
+    } else {
+      who = (prompt('Dein Name für diese Session:') || 'Gast').slice(0, 24);
+    }
+    localStorage.setItem('brainstorm_who', who);
+  }
 
   // ---- panel ----
   // Build panel via DOM to avoid any innerHTML-injection risk from `who` or message text.

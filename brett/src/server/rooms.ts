@@ -65,6 +65,10 @@ export function removeParticipant(room: string, userId: string): void {
   if (m) m.delete(userId);
 }
 
+export function clearParticipants(room: string): void {
+  roomParticipants.delete(room);
+}
+
 export function listParticipants(room: string): Array<{ userId: string; name: string; color: string }> {
   const m = roomParticipants.get(room);
   return m ? [...m.values()] : [];

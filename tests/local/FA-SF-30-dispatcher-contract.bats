@@ -56,13 +56,14 @@ setup() { load 'test_helper.bash'; }
   run grep -Eq "\.error|status === 'blocked'|status: *'blocked'|blocked" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-30: every agent() opts pins an explicit model (DeepSeek reasoning_effort 400 guard — T000528)" {
-  # The dispatcher runs under DeepSeek-backed autopilot; an agent() call that inherits the
-  # ambient model config trips the 'thinking cannot be disabled when reasoning_effort is set'
-  # 400 and fails PREP. Each agent() opts (prep/escalate/metrics) must pin model: explicitly.
-  # Sibling guard to the pipeline.js fix (T000519/#1430).
+@test "FA-SF-30: agent() opts do NOT pin a model (T000543/#1466 — inherit session model via run-dispatcher.sh)" {
+  # T000519/#1430 fixed the DeepSeek 400 by unsetting CLAUDE_CODE_EFFORT_LEVEL in wakeup.sh
+  # and run-dispatcher.sh, so the ambient config no longer carries reasoning_effort.
+  # T000543/#1466 then intentionally removed the model: pins so the dispatcher inherits the
+  # session model from the invoker (DeepSeek or Anthropic), keeping dispatch flexible.
+  # Guard: verify all 3 agent labels are present but none carry a hard model: pin.
   labels=$(grep -cE "label: '(prep|escalate|metrics)'" "$SCRIPT")
   [ "$labels" -eq 3 ]
-  pinned=$(grep -E "label: '(prep|escalate|metrics)'" "$SCRIPT" | grep -c "model:")
-  [ "$pinned" -eq 3 ]
+  pinned=$(grep -E "label: '(prep|escalate|metrics)'" "$SCRIPT" | grep "model:" | wc -l)
+  [ "$pinned" -eq 0 ]
 }

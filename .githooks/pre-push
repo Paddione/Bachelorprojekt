@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Warn if .bats files changed but repo-index.json is not part of this push. [T000553]
+# Fail-open: only prints a warning, never blocks the push.
+set -uo pipefail
+
+warn() { printf '⚠  pre-push: %s\n' "$*" >&2; }
+
+# Determine range of commits being pushed
+REMOTE="$1"
+URL="$2"
+while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
+  [[ "$LOCAL_SHA" == "0000000000000000000000000000000000000000" ]] && continue
+  BASE="${REMOTE_SHA:-}"
+  if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+    BASE=$(git rev-parse --verify "origin/main" 2>/dev/null || git rev-parse --verify "HEAD~1" 2>/dev/null || true)
+  fi
+  [[ -z "$BASE" ]] && continue
+
+  CHANGED_BATS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep '\.bats$' || true)
+  [[ -z "$CHANGED_BATS" ]] && continue
+
+  CHANGED_INDEX=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep 'repo-index\.json\|test-inventory\.json' || true)
+  if [[ -z "$CHANGED_INDEX" ]]; then
+    warn "BATS-Dateien geändert, aber repo-index.json/test-inventory.json fehlen im Push."
+    warn "CI schlägt möglicherweise fehl. Fix:"
+    warn "  task freshness:regenerate"
+    warn "  git add docs/code-quality/repo-index.json website/src/data/test-inventory.json"
+    warn "  git commit --amend --no-edit && git push --force-with-lease"
+  fi
+done
+
+exit 0

@@ -2,7 +2,8 @@ name: Build Brett
 
 on:
   push:
-    tags: ['brett-v*']
+    branches: [main]
+    paths: ['brett/**']
 
 jobs:
   build:
@@ -15,9 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
-      # Quality gate: a tag cut from a branch that skipped PR CI cannot ship a
-      # type-broken or test-failing image. Typecheck is a no-op until brett's TS
-      # refactor lands (npm run --if-present), then enforces automatically.
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: '22'
@@ -32,12 +30,9 @@ jobs:
         env:
           MOCK_DB: 'true'
 
-      - name: Extract version from tag
+      - name: Get short SHA
         id: version
-        run: |
-          TAG="${GITHUB_REF_NAME}"           # brett-v1.2.3
-          VERSION="${TAG#brett-v}"           # 1.2.3
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
@@ -49,13 +44,13 @@ jobs:
       - name: Build & push Docker image
         run: |
           IMAGE="ghcr.io/paddione/workspace-brett"
-          VERSION="${{ steps.version.outputs.version }}"
+          SHA="${{ steps.version.outputs.sha }}"
           docker build \
-            -t "${IMAGE}:v${VERSION}" \
+            -t "${IMAGE}:sha-${SHA}" \
             -t "${IMAGE}:latest" \
             -f brett/Dockerfile \
             brett
-          docker push "${IMAGE}:v${VERSION}"
+          docker push "${IMAGE}:sha-${SHA}"
           docker push "${IMAGE}:latest"
 
       - name: Deploy to mentolder

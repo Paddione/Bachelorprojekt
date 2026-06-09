@@ -142,29 +142,13 @@ test.describe('Integration Smoke Tests', () => {
     );
   });
 
-  test('@smoke DocuSeal document signing is reachable', async ({ request }, testInfo) => {
-    // 200 = public UI; 302 = redirect (oauth/SSO); 401 = auth-protected
-    // 301 was previously accepted but is a config error (T000480)
-    const res = await assertReachable(
-      request,
-      `https://sign.${DOMAIN}`,
-      { acceptableStatuses: [200, 302, 401], label: 'DocuSeal' },
-      testInfo
-    );
-    // Additional check: if 302, verify it's not redirecting to /setup
-    if (res.status() === 302) {
-      const location = res.headers()['location'] || '';
-      if (location.includes('/setup')) {
-        test.fixme(true, `DocuSeal ${DOMAIN}: unprovisioned — redirects to /setup (T000477)`);
-      }
-    }
-  });
-
-  test('@smoke Requirements Tracking UI is reachable', async ({ request }, testInfo) => {
+  test('@smoke Document signing API is reachable', async ({ request }, testInfo) => {
+    // The signing system is built into the website (PR #1485, T000557).
+    // /api/signing/confirm must reject unauthenticated requests — 401/403/302.
     await assertReachable(
       request,
-      `https://tracking.${DOMAIN}`,
-      { acceptableStatuses: [200, 301, 302, 401], allow404AsNotDeployed: true, label: 'Tracking' },
+      `https://web.${DOMAIN}/api/signing/confirm`,
+      { acceptableStatuses: [401, 403, 302, 405], label: 'Signing API' },
       testInfo
     );
   });

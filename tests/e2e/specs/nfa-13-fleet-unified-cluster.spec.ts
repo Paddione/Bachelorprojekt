@@ -2,18 +2,13 @@
 //
 // NFA-13: Unified Fleet Cluster — korczewski deploy GATE
 //
-// ⚠ INTENTIONAL RED GATE ⚠
-// These checks are EXPECTED TO FAIL until Phase 2b of the Fleet Stage 2
-// migration completes (`task fleet:deploy ENV=korczewski` against the unified
-// `fleet` cluster, namespace workspace-korczewski). They go green the moment
-// the fleet Traefik + cert-manager serve the korczewski brand. Do NOT
-// "stabilise" them with skips — a failure here is the signal that korczewski
-// is not yet live on the unified cluster.
-//
-// Topology: the standalone korczewski cluster was torn down; its hosts
-// (pk-hetzner-4/6/8) now run the unified `fleet` k3s cluster which will serve
-// the korczewski brand from namespace workspace-korczewski. mentolder remains
-// a separate standalone cluster until its (later) DNS flip.
+// Fleet Stage 3 — FULLY CONSOLIDATED (2026-05-31)
+// Both brands are live on the unified `fleet` cluster (pk-hetzner-4/6/8):
+//   • mentolder  → namespace workspace (26/26 pods)
+//   • korczewski → namespace workspace-korczewski (26/26 pods)
+// The mentolder-standalone cluster has been DECOMMISSIONED.
+// These checks verify korczewski is reachable on fleet. A failure here means
+// the korczewski brand is unhealthy — investigate fleet cluster health.
 //
 // Verification is external HTTP/TLS only — no kubectl/cluster-internal access.
 //

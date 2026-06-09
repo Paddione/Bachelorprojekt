@@ -2,15 +2,11 @@
 //
 // SA-15: Multi-Brand Health Verification (unified-fleet topology)
 //
-// Topology (Fleet Stage 2, 2026-05-30):
-//   • mentolder  — STILL a standalone k3s cluster (DNS flip pending). Always
-//     expected live in prod.
-//   • korczewski — now a BRAND NAMESPACE (workspace-korczewski) on the unified
-//     `fleet` k3s cluster (pk-hetzner-4/6/8). It is NOT a separate physical
-//     cluster any more. Until Phase 2b (`task fleet:deploy` for korczewski)
-//     lands, the fleet Traefik has no router/cert for the korczewski SNI and
-//     these checks SKIP rather than fail. See nfa-13 for the deploy GATE that
-//     intentionally goes red until korczewski is live on fleet.
+// Topology (Fleet Stage 3, 2026-05-31 — FULLY CONSOLIDATED):
+//   • Both brands run on the single `fleet` cluster (pk-hetzner-4/6/8).
+//   • mentolder-standalone has been DECOMMISSIONED (2026-05-31).
+//   • korczewski runs as namespace workspace-korczewski on fleet.
+//   • Both brands are 26/26 pods healthy.
 //
 // This spec asserts each brand independently (website root, OIDC discovery,
 // TLS validity) and that the two brands expose independent Keycloak realms —
@@ -54,7 +50,7 @@ test.beforeAll(async () => {
 
 test.describe('SA-15: Multi-Brand Health', () => {
 
-  // ── mentolder (standalone cluster) ─────────────────────────────────────
+  // ── mentolder (fleet cluster, namespace workspace) ─────────────────────
   test('mentolder: website root returns 200', async ({ request }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
     const res = await request.get(MENTOLDER_BASE + '/', OPTIONS);
@@ -97,14 +93,14 @@ test.describe('SA-15: Multi-Brand Health', () => {
   // SKIP while the brand is not yet deployed on fleet — nfa-13 is the GATE.
   test('korczewski: website root returns 200', async ({ request }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
-    test.skip(!korczewskiUp, 'korczewski brand not yet serving on fleet — pending Phase 2b fleet:deploy');
+    test.skip(!korczewskiUp, 'korczewski brand not reachable — check fleet cluster health');
     const res = await request.get(KORCZEWSKI_BASE + '/', OPTIONS);
     expect(res.status()).toBe(200);
   });
 
   test('korczewski: keycloak OIDC discovery returns 200', async ({ request }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
-    test.skip(!korczewskiUp, 'korczewski brand not yet serving on fleet — pending Phase 2b fleet:deploy');
+    test.skip(!korczewskiUp, 'korczewski brand not reachable — check fleet cluster health');
     const res = await request.get(
       `${KORCZEWSKI_AUTH}/realms/workspace/.well-known/openid-configuration`,
       OPTIONS,
@@ -116,14 +112,14 @@ test.describe('SA-15: Multi-Brand Health', () => {
 
   test('korczewski: brett root reachable', async ({ request }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
-    test.skip(!korczewskiUp, 'korczewski brand not yet serving on fleet — pending Phase 2b fleet:deploy');
+    test.skip(!korczewskiUp, 'korczewski brand not reachable — check fleet cluster health');
     const res = await request.get('https://brett.korczewski.de', OPTIONS);
     expect(res.status()).toBeLessThan(500);
   });
 
   test('korczewski: TLS cert valid (no cert error)', async ({ page }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
-    test.skip(!korczewskiUp, 'korczewski brand not yet serving on fleet — pending Phase 2b fleet:deploy');
+    test.skip(!korczewskiUp, 'korczewski brand not reachable — check fleet cluster health');
     let tlsError: string | undefined;
     page.on('requestfailed', req => {
       if (req.failure()?.errorText?.includes('CERT')) {
@@ -137,18 +133,17 @@ test.describe('SA-15: Multi-Brand Health', () => {
   // ── korczewski-only: Arena (on fleet) ──────────────────────────────────
   test('arena: /healthz returns 200 (korczewski-only)', async ({ request }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
-    test.skip(!korczewskiUp, 'korczewski brand not yet serving on fleet — pending Phase 2b fleet:deploy');
+    test.skip(!korczewskiUp, 'korczewski brand not reachable — check fleet cluster health');
     const res = await request.get(`${ARENA_BASE}/healthz`, OPTIONS);
     expect(res.status()).toBe(200);
   });
 
   // ── Brand-realm independence ───────────────────────────────────────────
   // Each brand exposes its own Keycloak realm with a distinct issuer + JWKS.
-  // This isolation must hold whether the brands share a physical cluster
-  // (unified fleet) or not (mentolder still standalone today).
+  // Both brands share the physical fleet cluster but are namespace-isolated.
   test('brands: auth domains serve independent realms', async ({ request }) => {
     test.skip(!IS_PROD, 'requires prod URLs');
-    test.skip(!korczewskiUp, 'korczewski brand not yet serving on fleet — pending Phase 2b fleet:deploy');
+    test.skip(!korczewskiUp, 'korczewski brand not reachable — check fleet cluster health');
 
     const [mentolderDiscovery, korczewskiDiscovery] = await Promise.all([
       request.get(

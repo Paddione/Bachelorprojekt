@@ -42,6 +42,27 @@ test('admin_session_create registers the creator as a leiter participant', async
   assert.strictEqual(join.participant.ready, false);
 });
 
+// REG: when _playerId is unset (no active session at join time), resolvePlayerId falls
+// back to _session.userId so the creator uses their OIDC UUID, not their display name.
+test('admin_session_create uses _session.userId when _playerId is unset', async () => {
+  const room = 'admin-create-oidc-fallback';
+  const collected: any[] = [];
+  const ws = { _playerId: undefined, _session: { name: 'Coach OIDC', userId: 'oidc-uuid-42' }, send: () => {} };
+
+  await handleAdminMessage(ws, { type: 'admin_session_create' }, room, makeDeps(collected));
+
+  const parts = listParticipants(room);
+  assert.strictEqual(parts.some((p: any) => p.userId === 'oidc-uuid-42'), true,
+    'creator must be keyed by OIDC userId, not by display name');
+  assert.strictEqual(parts.some((p: any) => p.userId === 'Coach OIDC'), false,
+    'display name must not be used as userId');
+
+  const join = collected.find((m: any) => m.type === 'presence_join');
+  assert.ok(join, 'expected a presence_join broadcast');
+  assert.strictEqual(join.participant.userId, 'oidc-uuid-42');
+  assert.strictEqual(join.participant.role, 'leiter');
+});
+
 test('admin_session_create clears stale participants before adding the creator', async () => {
   const room = 'admin-create-stale';
   const collected: any[] = [];

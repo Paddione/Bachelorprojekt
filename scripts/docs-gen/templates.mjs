@@ -6,9 +6,6 @@
 // and ./app.js (theme.mjs#clientJs), and is self-contained for static serving
 // (joseluisq/static-web-server, read-only rootfs). Never SSR, never write fs.
 
-import { buildGraph } from './graph-data.mjs';
-import { layoutGraph } from './graph-layout.mjs';
-import { renderGraphSvg } from './graph-svg.mjs';
 import { pluginNameOf } from './registry.mjs';
 
 /**
@@ -578,51 +575,103 @@ ${documentTail('./')}`;
 }
 
 /**
- * Render the landing page: an editorial hero with the interactive domain-clustered
- * relationship graph as the centrepiece, plus a <noscript>-friendly fallback that
- * lists the sections (skills/agents/docs) with counts so the page is usable without JS.
- *
- * Signature change (Plan 2, IC-4): supersedes the Plan-1 `renderLanding({ pages, registry })`
- * card-grid landing. `edges` and `routingRows` are required to build the graph.
+ * Hub landing page: 3 Kacheln (Skills/Agents/Docs) + Skills-Vorschau mit Kategorien
+ * + Bachelorprojekt-Agents-Vorschau. Kein SVG-Graph.
  *
  * @param {object} args
  * @param {Page[]} args.pages
- * @param {object} args.registry
- * @param {Array<{from:string,to:string,kind?:string}>} args.edges
- * @param {Array<{signals:string[],agent:string}>} args.routingRows
+ * @param {object} args.registry  (unused in Hub mode, kept for API compat)
+ * @param {Array} [args.edges]     (unused in Hub mode, kept for API compat)
+ * @param {Array} [args.routingRows] (unused in Hub mode, kept for API compat)
  * @returns {string} full HTML5 document
  */
-export function renderLanding({ pages, registry: _registry, edges = [], routingRows = [] }) {
-  const graph = buildGraph(pages, edges, routingRows);
-  const layout = layoutGraph(graph, { width: 1200, height: 760 });
-  const svg = renderGraphSvg(layout);
+export function renderLanding({ pages, registry: _registry, edges: _edges, routingRows: _routingRows }) {
+  const skills = pages.filter((p) => p.type === 'skill');
+  const agents = pages.filter((p) => p.type === 'agent');
+  const docs = pages.filter((p) => p.type === 'doc');
 
-  const sections = [
-    { type: 'skill', title: 'Skills', indexPath: './skills.html' },
-    { type: 'agent', title: 'Agents', indexPath: './agents.html' },
-    { type: 'doc', title: 'Docs', indexPath: './docs.html' },
-  ];
+  const uniqueSkills = deduplicateSkills(skills);
+  const skillCount = uniqueSkills.length;
+  const agentCount = agents.length;
+  const docCount = docs.length;
 
-  const fallback = sections.map((section) => {
-    const items = pages.filter((p) => p.type === section.type);
-    const links = items
-      .slice()
-      .sort((a, b) => a.title.localeCompare(b.title))
-      .map((p) => `        <li><a href="./${esc(p.outRelPath)}">${esc(p.title)}</a></li>`)
-      .join('\n');
-    return `    <section class="fallback-section">
-      <h2><a href="${section.indexPath}">${section.title} (${items.length})</a></h2>
-      <ul>
-${links}
-      </ul>
-    </section>`;
-  }).join('\n');
+  // ── 3 Kacheln ──
+  const tiles = `<div class="hub-tiles">
+  <a class="hub-tile" href="./skills.html">
+    <span class="hub-tile-label">Skills</span>
+    <span class="hub-tile-count">${skillCount}</span>
+    <span class="hub-tile-name">Tools &amp; Workflows</span>
+  </a>
+  <a class="hub-tile" href="./agents.html">
+    <span class="hub-tile-label">Agents</span>
+    <span class="hub-tile-count">${agentCount}</span>
+    <span class="hub-tile-name">Spezialisierte KI-Agents</span>
+  </a>
+  <a class="hub-tile" href="./docs.html">
+    <span class="hub-tile-label">Docs</span>
+    <span class="hub-tile-count">${docCount}</span>
+    <span class="hub-tile-name">Handbücher &amp; Referenz</span>
+  </a>
+</div>`;
+
+  // ── Skills-Vorschau: 7 Kategorie-Buttons + 6 Beispiel-Chips ──
+  const usedCats = new Set(uniqueSkills.map(categoryForSkill));
+  const previewBtns = [
+    `<button class="cat-filter-btn active" data-cat="all">Alle</button>`,
+    ...CATEGORY_ORDER
+      .filter((c) => usedCats.has(c))
+      .map((c) => `<button class="cat-filter-btn" data-cat="${esc(c)}">${esc(CATEGORY_LABELS[c])}</button>`),
+  ].join('\n');
+
+  const skillPreviewCards = uniqueSkills
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 6)
+    .map((p) => {
+      const cat = categoryForSkill(p);
+      const isRepo = p.provenance === 'repo';
+      const star = isRepo ? '<span class="skill-star">★</span>' : '';
+      return `<a class="section-card${isRepo ? ' skill-repo' : ''}" href="./${esc(p.outRelPath)}" data-category="${esc(cat)}">
+  <span class="section-card-head">
+    ${star}<span class="section-card-title">${esc(p.title)}</span>
+  </span>
+</a>`;
+    }).join('\n');
+
+  const skillsPreview = `<section class="hub-section">
+  <h2 class="hub-section-title">Skills <a class="arrow" href="./skills.html">alle anzeigen →</a></h2>
+  <div class="cat-filter-row">
+${previewBtns}
+  </div>
+  <section class="section-grid" id="hub-skills-grid">
+${skillPreviewCards}
+  </section>
+</section>`;
+
+  // ── Agents-Vorschau: Bachelorprojekt-Agents ──
+  const bpAgents = agents
+    .filter((p) => p.name.startsWith('bachelorprojekt'))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const agentCards = bpAgents.map((p) => `<a class="section-card" href="./${esc(p.outRelPath)}">
+  <span class="section-card-head">
+    <span class="section-card-title">${esc(p.title)}</span>
+    ${domainTag(p.domain)}
+  </span>
+  <span class="section-card-desc">${esc(p.description)}</span>
+</a>`).join('\n');
+
+  const agentsPreview = bpAgents.length > 0 ? `<section class="hub-section">
+  <h2 class="hub-section-title">Bachelorprojekt-Agents <a class="arrow" href="./agents.html">alle anzeigen →</a></h2>
+  <section class="section-grid">
+${agentCards}
+  </section>
+</section>` : '';
 
   const header = `<header class="page-header landing-hero">
   <div class="page-header-body">
     <p class="kicker">Workspace MVP</p>
     <h1>Dokumentation</h1>
-    <p class="page-desc">Eine interaktive, nach Domänen geclusterte Karte aller Skills, Agents und Docs. Knoten überfahren hebt die Nachbarn hervor, Klick öffnet die Seite, Scrollen zoomt, Ziehen verschiebt. Klick auf den Hintergrund setzt zurück.</p>
+    <p class="page-desc">Skills, Agents und Handbücher für die Plattform. Ctrl+K zum Suchen.</p>
   </div>
 </header>`;
 
@@ -630,15 +679,9 @@ ${links}
 <div id="app">
   <main id="main">
 ${header}
-<section class="graph-hero" aria-label="Relationship graph">
-  <div class="graph-container" id="docs-graph">
-${svg}
-  </div>
-</section>
-<noscript>
-  <p class="noscript-note">Der interaktive Graph benötigt JavaScript. Stattdessen nach Bereich browsen:</p>
-${fallback}
-</noscript>
+${tiles}
+${skillsPreview}
+${agentsPreview}
   </main>
 </div>
 ${documentTail('./')}`;

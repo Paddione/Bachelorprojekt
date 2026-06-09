@@ -267,6 +267,14 @@ body{margin:0;background:var(--paper-2);color:var(--ink);
   color:var(--ink-mute)}
 .hub-tile-name{font-size:1rem;font-weight:600;color:var(--ink);margin-top:.2rem}
 
+.hub-section{margin:2.5rem 0}
+.hub-section-title{font-family:var(--font-serif);font-size:1.4rem;font-weight:700;
+  color:var(--ink);display:flex;align-items:baseline;gap:.8rem;margin:0 0 .8rem;
+  padding-bottom:.5rem;border-bottom:1px solid var(--line)}
+.hub-section-title .arrow{font-family:var(--font-sans);font-size:.85rem;font-weight:600;
+  color:var(--accent);text-decoration:none;margin-left:auto}
+.hub-section-title .arrow:hover{color:var(--accent-soft)}
+
 /* ── skill star (repo-eigene Skills) ── */
 .skill-star{color:var(--repo-fg);font-size:.8em;margin-right:.2em}
 .section-card.skill-repo{border-left:2px solid var(--repo-line)}

@@ -12,6 +12,15 @@ metadata:
 spec:
   # Daily at 06:00 UTC — Hetzner VPS IPs are static, no need to poll every 5 min
   schedule: "0 6 * * *"
+  # SUSPENDED: this updater used the ipv64 DynDNS form (add_record=<fqdn>), which
+  # only manages the root domain entity and never creates subdomain records, while
+  # its root logic (update+add, NO delete) accumulated stale A records — that is how
+  # a bogus 220.181.108.111 entry persisted on korczewski.de and broke ~1/3 of all
+  # requests (including Talk signaling). korczewski DNS is now maintained statically
+  # via the ipv64 Bearer REST API (praefix form), matching mentolder (which runs no
+  # updater at all). Re-enable only after rewriting the script to the REST praefix
+  # form (domain=korczewski.de + praefix=<sub>), which DOES create subdomain records.
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -90,11 +99,13 @@ spec:
                   [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ] && echo "  ✓ korczewski.de -> ${IP_8}" || { echo "  WARN: HTTP ${STATUS} for korczewski.de -> ${IP_8}" >&2; FAILED=$((FAILED + 1)); }
                   set_records "*.korczewski.de" "$IP_4" "$IP_6" "$IP_8"
 
-                  echo "=== LiveKit domains → pk-hetzner-6 only (hostNetwork + STUN pin) ==="
+                  echo "=== LiveKit edge → pk-hetzner-6 · Talk TURN → pk-hetzner-4 ==="
                   # Specific records override the wildcard for these pinned services.
                   set_records "livekit.korczewski.de" "$IP_6"
                   set_records "stream.korczewski.de"  "$IP_6"
-                  set_records "turn.korczewski.de"    "$IP_6"
+                  # coturn/Janus (Talk HPB) is the SHARED fleet:shared-services stack
+                  # on pk-hetzner-4 (IP_4) — NOT this brand's LiveKit node (IP_6).
+                  set_records "turn.korczewski.de"    "$IP_4"
 
                   if [ "$FAILED" -gt 0 ]; then
                     echo "ERROR: ${FAILED} API call(s) failed — check ipv64 account/quota" >&2

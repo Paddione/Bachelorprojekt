@@ -35,7 +35,16 @@ build_change_set() {
     label="${p:-@}"
     for ip in "${FLEET_NODE_IPS[@]}"; do echo "A|${label}|${ip}"; done
   done
-  for p in "${SERVICE_PREFIXES[@]}"; do echo "A|${p}|${LIVEKIT_PIN_IP}"; done
+  # turn (coturn/Janus) and livekit/stream may live on DIFFERENT fleet nodes
+  # (e.g. korczewski: livekit→pk-6, shared coturn/Janus→pk-4). Pin turn to
+  # TURN_PUBLIC_IP when set; fall back to LIVEKIT_PIN_IP for the co-located case.
+  for p in "${SERVICE_PREFIXES[@]}"; do
+    if [ "$p" = "turn" ]; then
+      echo "A|${p}|${TURN_PUBLIC_IP:-$LIVEKIT_PIN_IP}"
+    else
+      echo "A|${p}|${LIVEKIT_PIN_IP}"
+    fi
+  done
 }
 
 # State file path for the active domain.
@@ -44,22 +53,28 @@ state_file() { echo "${STATE_DIR}/fleet-dns-rollback-${PROD_DOMAIN}.state"; }
 # Map the human "@" label back to the empty praefix the ipv64 API expects.
 _praefix() { [ "$1" = "@" ] && echo "" || echo "$1"; }
 
-# Delete existing A records for a prefix, then add the new one (ipv64 has no
-# atomic set). Mirrors prod-korczewski/ddns-updater.yaml's del-then-add pattern.
-apply_record() {
-  local prefix="$1" ip="$2" px; px="$(_praefix "$prefix")"
+# ipv64 has no atomic multi-set, so a prefix is cleared once (DELETE removes ALL
+# A records for that praefix) and then each desired IP is POSTed. The earlier
+# apply_record() deleted before EVERY add, which collapsed multi-IP round-robin
+# prefixes (@ and *) to only their LAST IP — callers below now delete a prefix
+# exactly once (seen-tracker) before adding its records.
+delete_prefix_a() {
+  local px; px="$(_praefix "$1")"
   curl -fsS -X DELETE "${IPV64_API}" \
     -H "Authorization: Bearer ${IPV64_API_KEY}" \
     --data-urlencode "domain=${PROD_DOMAIN}" \
     --data-urlencode "praefix=${px}" \
     --data-urlencode "type=A" \
     -H "Content-Type: application/x-www-form-urlencoded" || true
+}
+add_one_a() {
+  local px; px="$(_praefix "$1")"
   curl -fsS -X POST "${IPV64_API}" \
     -H "Authorization: Bearer ${IPV64_API_KEY}" \
     --data-urlencode "domain=${PROD_DOMAIN}" \
     --data-urlencode "praefix=${px}" \
     --data-urlencode "type=A" \
-    --data-urlencode "content=${ip}" \
+    --data-urlencode "content=${2}" \
     -H "Content-Type: application/x-www-form-urlencoded"
 }
 
@@ -99,10 +114,13 @@ cmd_plan() {
 cmd_cutover() {
   require PROD_DOMAIN; require LIVEKIT_PIN_IP; require IPV64_API_KEY
   capture_rollback_state
-  local type label ip
+  local type label ip seen=" "
   while IFS='|' read -r type label ip; do
     [ "$type" = "A" ] || { echo "refusing non-A change: $type" >&2; exit 4; }
-    apply_record "$label" "$ip"
+    # Quote ${label} inside the pattern so a "*" prefix is matched literally,
+    # not as a glob. Delete each prefix exactly once before adding its IPs.
+    if [[ "$seen" != *" ${label} "* ]]; then delete_prefix_a "$label"; seen="${seen}${label} "; fi
+    add_one_a "$label" "$ip"
     echo "set ${label}.${PROD_DOMAIN} A -> ${ip}"
   done < <(build_change_set)
   echo "Cutover complete for ${PROD_DOMAIN}"
@@ -112,10 +130,11 @@ cmd_rollback() {
   require PROD_DOMAIN; require IPV64_API_KEY
   local sf; sf="$(state_file)"
   [ -s "$sf" ] || { echo "ERROR: no rollback state at $sf" >&2; exit 5; }
-  local type label ip
+  local type label ip seen=" "
   while IFS='|' read -r type label ip; do
     [ "$type" = "A" ] || continue
-    apply_record "$label" "$ip"
+    if [[ "$seen" != *" ${label} "* ]]; then delete_prefix_a "$label"; seen="${seen}${label} "; fi
+    add_one_a "$label" "$ip"
     echo "restored ${label}.${PROD_DOMAIN} A -> ${ip}"
   done < "$sf"
   echo "Rollback complete for ${PROD_DOMAIN}"

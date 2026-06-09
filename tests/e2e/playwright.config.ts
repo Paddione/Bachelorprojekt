@@ -86,6 +86,8 @@ export default defineConfig({
         '**/wissensquellen.spec.ts',                 // knowledge collections CRUD + web_crawl ingest (PR #830)
         '**/fa-admin-db-crud-*.spec.ts',             // DB-object CRUD via web UI: projekte, followups, clients, shortcuts
         '**/agent-guide-walkthrough.spec.ts',        // in-app Agent-Anleitung E2E (public, no auth)
+        '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
+        '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -111,8 +113,7 @@ export default defineConfig({
       testMatch: [
         '**/fa-46-*.spec.ts',
         '**/fa-45-*.spec.ts',
-        '**/nfa-infra-health-sweep.spec.ts',
-        '**/sa-15-*.spec.ts',
+        '**/fa-42-*.spec.ts',             // platform asset inventory (admin-gated)
         '**/fa-content-hub-price-ssot.spec.ts',
         '**/fa-content-hub-editability.spec.ts',
         '**/fa-content-hub-legal-ssot.spec.ts',
@@ -120,6 +121,9 @@ export default defineConfig({
         '**/fa-content-hub-versioning.spec.ts',
         '**/fa-content-hub-service-consolidation.spec.ts',
         '**/fa-factory-injection.spec.ts', // /dev-status inject form smoke (admin-gated) [factory-injection]
+        '**/fa-factory-floor.spec.ts',     // /dev-status hall render (admin-gated)
+        '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
+        '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
       ],
       use: {
         ...devices['Desktop Chrome'],
@@ -142,7 +146,6 @@ export default defineConfig({
         '**/fa-25-*.spec.ts',    // Mailpit
         '**/fa-27-*.spec.ts',    // Systemisches Brett service
         // brett-mayhem now lives in its own authenticated project (brett-mentolder)
-        '**/fa-29-*.spec.ts',    // Requirements Tracking UI
         '**/fa-30-einvoice.spec.ts', // E-Rechnung / XRechnung (einvoice-sidecar)
         '**/fa-32-*.spec.ts',    // LLM-Router bge-m3 Embeddings
         '**/fa-33-*.spec.ts',    // LLM-Router voyage-multilingual-2

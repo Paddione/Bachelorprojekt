@@ -2,7 +2,11 @@ name: Build Docs
 
 on:
   push:
-    tags: ['docs-v*']
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'scripts/build-docs.mjs'
+      - 'scripts/docs.Dockerfile'
 
 jobs:
   build:
@@ -15,12 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
 
-      - name: Extract version from tag
+      - name: Get short SHA
         id: version
-        run: |
-          TAG="${GITHUB_REF_NAME}"       # docs-v1.2.3
-          VERSION="${TAG#docs-v}"        # 1.2.3
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
@@ -41,11 +42,35 @@ jobs:
       - name: Build & push Docker image
         run: |
           IMAGE="ghcr.io/paddione/workspace-docs"
-          VERSION="${{ steps.version.outputs.version }}"
+          SHA="${{ steps.version.outputs.sha }}"
           docker build \
-            -t "${IMAGE}:v${VERSION}" \
+            -t "${IMAGE}:sha-${SHA}" \
             -t "${IMAGE}:latest" \
             -f scripts/docs.Dockerfile \
             .
-          docker push "${IMAGE}:v${VERSION}"
+          docker push "${IMAGE}:sha-${SHA}"
           docker push "${IMAGE}:latest"
+
+      - name: Deploy to mentolder
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          kubectl rollout restart deployment/docs -n workspace
+          kubectl rollout status deployment/docs -n workspace --timeout=120s
+
+      - name: Deploy to korczewski
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          kubectl rollout restart deployment/docs -n workspace-korczewski
+          kubectl rollout status deployment/docs -n workspace-korczewski --timeout=120s

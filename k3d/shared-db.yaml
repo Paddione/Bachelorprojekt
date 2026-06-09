@@ -33,7 +33,6 @@ data:
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'nextcloud') THEN CREATE USER nextcloud; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'vaultwarden') THEN CREATE USER vaultwarden; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'website') THEN CREATE USER website; END IF;
-        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'docuseal') THEN CREATE USER docuseal; END IF;
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'pentest') THEN CREATE USER pentest; END IF;
       END $$;
     EOSQL
@@ -44,11 +43,10 @@ data:
       -c "ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';" \
       -c "ALTER USER vaultwarden WITH PASSWORD '$${VAULTWARDEN_DB_PASSWORD}';" \
       -c "ALTER USER website WITH PASSWORD '$${WEBSITE_DB_PASSWORD}';" \
-      -c "ALTER USER docuseal WITH PASSWORD '$${DOCUSEAL_DB_PASSWORD}';" \
       -c "ALTER USER pentest WITH PASSWORD 'pentest_access_2026';"
 
     # Create databases if not exists
-    for db_user in keycloak nextcloud vaultwarden website docuseal pentest; do
+    for db_user in keycloak nextcloud vaultwarden website pentest; do
       psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
         SELECT 'CREATE DATABASE $${db_user} OWNER $${db_user}'
         WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$${db_user}')\gexec
@@ -180,11 +178,7 @@ spec:
                 secretKeyRef:
                   name: workspace-secrets
                   key: WEBSITE_DB_PASSWORD
-            - name: DOCUSEAL_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: workspace-secrets
-                  key: DOCUSEAL_DB_PASSWORD
+
           lifecycle:
             postStart:
               exec:
@@ -205,10 +199,9 @@ spec:
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='nextcloud')   THEN CREATE USER nextcloud;   END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='vaultwarden') THEN CREATE USER vaultwarden; END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website')     THEN CREATE USER website;     END IF;
-                      IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='docuseal')    THEN CREATE USER docuseal;    END IF;
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pentest')     THEN CREATE USER pentest;     END IF;
                     END \$\$;"
-                    for db in keycloak nextcloud vaultwarden website docuseal pentest; do
+                    for db in keycloak nextcloud vaultwarden website pentest; do
                       psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$db'" | grep -q 1 \
                         || psql -U postgres -c "CREATE DATABASE \"$$db\" OWNER \"$$db\";"
                     done
@@ -217,7 +210,7 @@ spec:
                       -c "ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';" \
                       -c "ALTER USER vaultwarden WITH PASSWORD '$${VAULTWARDEN_DB_PASSWORD}';" \
                       -c "ALTER USER website WITH PASSWORD '$${WEBSITE_DB_PASSWORD}';"
-                    psql -U postgres -c "DO \$\$ BEGIN IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'docuseal') THEN EXECUTE 'ALTER USER docuseal WITH PASSWORD ''$${DOCUSEAL_DB_PASSWORD}'''; END IF; END \$\$;"
+
                     bash /scripts/ensure-knowledge-schema.sh || true
                     bash /scripts/ensure-meetings-schema.sh || true
                     bash /scripts/ensure-bachelorprojekt-schema.sh || true

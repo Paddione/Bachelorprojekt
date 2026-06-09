@@ -271,14 +271,6 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: NEXTCLOUD_CALDAV_PASSWORD
-            - name: DOCUSEAL_API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: DOCUSEAL_API_TOKEN
-                  optional: true
-            - name: DOCUSEAL_INTERNAL_URL
-              value: "http://docuseal.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
             - name: SELLER_NAME
               valueFrom:
                 configMapKeyRef:

@@ -14,7 +14,6 @@ data:
   DOCS_DOMAIN: "docs.localhost"
   RECOVER_DOMAIN: "recover.localhost"
   WEB_DOMAIN: "web.localhost"
-  SIGN_DOMAIN: "sign.localhost"
   TRAEFIK_DOMAIN: "traefik.localhost"
   # Env-registry values (dev defaults — prod overlay overrides these)
   PROD_DOMAIN: "localhost"

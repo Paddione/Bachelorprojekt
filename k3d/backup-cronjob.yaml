@@ -66,11 +66,6 @@ spec:
                     secretKeyRef:
                       name: workspace-secrets
                       key: WEBSITE_DB_PASSWORD
-                - name: DOCUSEAL_DB_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: workspace-secrets
-                      key: DOCUSEAL_DB_PASSWORD
                 - name: BACKUP_PASSPHRASE
                   valueFrom:
                     secretKeyRef:
@@ -130,13 +125,12 @@ spec:
                   mkdir -p "$${BACKUP_DIR}"
 
                   # Dump all databases (all on shared-db instance)
-                  for db in keycloak nextcloud vaultwarden website docuseal; do
+                  for db in keycloak nextcloud vaultwarden website; do
                     case "$${db}" in
                       keycloak)    PASS="$${KEYCLOAK_DB_PASSWORD}" ;;
                       nextcloud)   PASS="$${NEXTCLOUD_DB_PASSWORD}" ;;
                       vaultwarden) PASS="$${VAULTWARDEN_DB_PASSWORD}" ;;
                       website)     PASS="$${WEBSITE_DB_PASSWORD}" ;;
-                      docuseal)    PASS="$${DOCUSEAL_DB_PASSWORD}" ;;
                     esac
                     DUMP="$${BACKUP_DIR}/$${db}.dump"
                     echo "Backing up $${db}..."

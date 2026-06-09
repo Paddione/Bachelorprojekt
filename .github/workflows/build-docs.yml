@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'scripts/build-docs.mjs'
+      - 'scripts/docs-gen/**'
       - 'scripts/docs.Dockerfile'
 
 jobs:

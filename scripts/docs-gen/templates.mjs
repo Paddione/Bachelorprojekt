@@ -76,8 +76,19 @@ function domainTag(domain) {
   return `<span class="domain-tag">${esc(domain)}</span>`;
 }
 
+/**
+ * Asset path prefix for a page.
+ * Pages in a subdirectory (skills/, agents/) must navigate up one level to
+ * reach root-level assets (style.css, app.js, index.html).
+ * @param {string} outRelPath  e.g. 'agents/foo.html' or 'foo.html'
+ * @returns {'./'|'../'}
+ */
+function assetPrefix(outRelPath) {
+  return outRelPath.includes('/') ? '../' : './';
+}
+
 /** The shared <head> + opening body, including the search overlay shell. */
-function documentHead(titleText) {
+function documentHead(titleText, prefix) {
   return `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -87,11 +98,11 @@ function documentHead(titleText) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="${prefix}style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="${prefix}index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -105,22 +116,22 @@ function documentHead(titleText) {
 }
 
 /** The shared closing markup (client JS). */
-function documentTail() {
+function documentTail(prefix) {
   return `<footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="${prefix}app.js"></script>
 </body>
 </html>`;
 }
 
 /** Breadcrumb trail: landing → section index → current page. */
-function breadcrumbs(page) {
+function breadcrumbs(page, prefix) {
   const section = SECTION_BY_TYPE.get(page.type);
-  const crumbs = [`<a href="./index.html">Übersicht</a>`];
+  const crumbs = [`<a href="${prefix}index.html">Übersicht</a>`];
   if (section) {
     crumbs.push(
-      `<a href="./${section.indexSlug}.html">${esc(section.label)}</a>`,
+      `<a href="${prefix}${section.indexSlug}.html">${esc(section.label)}</a>`,
     );
   }
   crumbs.push(`<span class="crumb-current">${esc(page.title)}</span>`);
@@ -154,9 +165,10 @@ ${items}
  * @returns {string}
  */
 export function renderPage({ page, contentHtml, toc, related }) {
+  const prefix = assetPrefix(page.outRelPath);
   const header = `<header class="page-header">
   <div class="page-header-body">
-    ${breadcrumbs(page)}
+    ${breadcrumbs(page, prefix)}
     <h1>${esc(page.title)}</h1>
     <p class="page-desc">${esc(page.description)}</p>
     <div class="page-meta">
@@ -166,7 +178,7 @@ export function renderPage({ page, contentHtml, toc, related }) {
   </div>
 </header>`;
 
-  return `${documentHead(page.title)}
+  return `${documentHead(page.title, prefix)}
 <div id="app">
   <main id="main">
 ${header}
@@ -177,7 +189,7 @@ ${contentHtml}
 ${relatedFooter(related)}
   </main>
 </div>
-${documentTail()}`;
+${documentTail(prefix)}`;
 }
 
 /** A single card linking a page (its provenance badge + description). */
@@ -206,7 +218,7 @@ export function renderSectionIndex({ type, title, pages }) {
   </div>
 </header>`;
 
-  return `${documentHead(title)}
+  return `${documentHead(title, './')}
 <div id="app">
   <main id="main">
 ${header}
@@ -215,7 +227,7 @@ ${cards}
 </section>
   </main>
 </div>
-${documentTail()}`;
+${documentTail('./')}`;
 }
 
 /**
@@ -267,7 +279,7 @@ ${links}
   </div>
 </header>`;
 
-  return `${documentHead('Dokumentation')}
+  return `${documentHead('Dokumentation', './')}
 <div id="app">
   <main id="main">
 ${header}
@@ -282,5 +294,5 @@ ${fallback}
 </noscript>
   </main>
 </div>
-${documentTail()}`;
+${documentTail('./')}`;
 }

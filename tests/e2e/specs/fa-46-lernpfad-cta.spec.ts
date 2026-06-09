@@ -42,15 +42,20 @@ test.describe('FA-46 Lernpfad CTA', () => {
     await expect(target.locator('.ag-card-head')).toHaveAttribute('aria-expanded', 'true');
   });
 
-  test('Banner führt in die Agent-Anleitung', async ({ page }) => {
+  test('Banner navigiert zu /portal/loslernen und schließt den Drawer', async ({ page }) => {
     await page.goto('/portal/loslernen');
-    // Open the Sidekick via its FAB; the home banner (start/continue) routes to agent-guide.
+    // Open the Sidekick via its FAB; the home banner (start/continue) closes the drawer and navigates.
     await page.locator('.fab').click();
     const banner = page.locator('.sk-banner');
     if (await banner.count()) {
       if (await banner.evaluate((el) => el.tagName === 'BUTTON')) {
         await banner.click();
-        await expect(page.locator('.sk-title')).toContainText('Agent-Anleitung', { timeout: 5_000 });
+        // After clicking the banner, the drawer should close and we land on /portal/loslernen.
+        // The drawer is closed by default, so its aria-hidden should be true or the .fab is visible.
+        await expect(page.locator('.drawer')).toHaveAttribute('aria-hidden', 'true', { timeout: 5_000 });
+        // The .fab is still visible (not navigating away).
+        await expect(page.locator('.fab')).toBeVisible();
+        await expect(page).toHaveURL('/portal/loslernen');
       }
     }
   });

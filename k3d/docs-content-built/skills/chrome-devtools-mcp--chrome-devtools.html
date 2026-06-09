@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -26,11 +26,11 @@
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
-    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">chrome-devtools</span></nav>
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">chrome-devtools</span></nav>
     <h1>chrome-devtools</h1>
     <p class="page-desc">Uses Chrome DevTools via MCP for efficient debugging, troubleshooting and browser automation. Use when debugging web pages, automating browser interactions, analyzing performance, or inspecting network requests. This skill does not apply to `--slim` mode (MCP configuration).</p>
     <div class="page-meta">
-      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.1.1</span></span>
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.2.0</span></span>
       
     </div>
   </div>
@@ -43,9 +43,14 @@
 <li class="toc-item"><a href="#workflow-patterns"><span class="toc-num">2.</span> Workflow Patterns</a></li>
 <li class="toc-item"><a href="#troubleshooting"><span class="toc-num">3.</span> Troubleshooting</a></li></ul>
 </div><h2 id="core-concepts">Core Concepts</h2>
-<p><strong>Browser lifecycle</strong>: Browser starts automatically on first tool call using a persistent Chrome profile. Configure via CLI args in the MCP server configuration: <code>npx chrome-devtools-mcp@latest --help</code>. To enable extensions, use <code>--categoryExtensions</code>.
-<strong>Page selection</strong>: Tools operate on the currently selected page. Use <code>list_pages</code> to see available pages, then <code>select_page</code> to switch context.</p>
-<p><strong>Element interaction</strong>: Use <code>take_snapshot</code> to get page structure with element <code>uid</code>s. Each element has a unique <code>uid</code> for interaction. If an element isn't found, take a fresh snapshot - the element may have been removed or the page changed.</p>
+<p><strong>Browser lifecycle</strong>: Browser starts automatically on first tool call using a persistent Chrome profile. Configure via CLI args in the MCP server configuration: <code>npx chrome-devtools-mcp@latest --help</code>.
+Addional tooling can be enabled by providing the following flags:</p>
+<ul>
+<li>For extension tooling, use the <code>--categoryExtensions</code> flag.</li>
+<li>For memory tooling, use the <code>--memoryDebugging</code> flag.</li>
+</ul>
+<p><strong>Page selection</strong>: Tools operate on the currently selected page. Use <code>list_pages</code> to see available pages, then <code>select_page</code> to switch context.
+<strong>Element interaction</strong>: Use <code>take_snapshot</code> to get page structure with element <code>uid</code>s. Each element has a unique <code>uid</code> for interaction. If an element isn't found, take a fresh snapshot - the element may have been removed or the page changed.</p>
 <h2 id="workflow-patterns">Workflow Patterns</h2>
 <h3>Before interacting with a page</h3>
 <ol>
@@ -69,6 +74,19 @@
 <h3>Parallel execution</h3>
 <p>You can send multiple tool calls in parallel, but maintain correct order: navigate → wait → snapshot → interact.</p>
 <h3>Testing an extension</h3>
+<blockquote>
+<p><strong>Before proceeding</strong>: Extension tools (<code>install_extension</code>, <code>list_extensions</code>, etc.) are only available when the MCP server is started with the <code>--categoryExtensions</code> flag. If these tools are not in your tool list, stop and ask the user to update their MCP server configuration:</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["chrome-devtools-mcp@latest", "--categoryExtensions"]
+    }
+  }
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>After updating, the user must restart the MCP server (or their AI client) for the change to take effect.</p>
+</blockquote>
 <ol>
 <li><strong>Install</strong>: Use <code>install_extension</code> with the path to the unpacked extension.</li>
 <li><strong>Identify</strong>: Get the extension ID from the response or by calling <code>list_extensions</code>.</li>
@@ -91,6 +109,6 @@
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="../app.js"></script>
 </body>
 </html>

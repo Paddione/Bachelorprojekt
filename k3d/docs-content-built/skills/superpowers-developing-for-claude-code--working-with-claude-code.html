@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>working-with-claude-code — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">working-with-claude-code</span></nav>
+    <h1>working-with-claude-code</h1>
+    <p class="page-desc">Use when working with Claude Code CLI, plugins, hooks, MCP servers, skills, configuration, or any Claude Code feature - provides comprehensive official documentation for all aspects of Claude Code</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-developing-for-claude-code</span> <span class="pv-ver">0.3.1</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Working with Claude Code</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#when-to-use"><span class="toc-num">2.</span> When to Use</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">3.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#documentation-organization"><span class="toc-num">4.</span> Documentation Organization</a></li>
+<li class="toc-item"><a href="#workflow"><span class="toc-num">5.</span> Workflow</a></li>
+<li class="toc-item"><a href="#updating-documentation"><span class="toc-num">6.</span> Updating Documentation</a></li>
+<li class="toc-item"><a href="#common-patterns"><span class="toc-num">7.</span> Common Patterns</a></li>
+<li class="toc-item"><a href="#what-this-skill-does-not-do"><span class="toc-num">8.</span> What This Skill Does NOT Do</a></li>
+<li class="toc-item"><a href="#red-flags"><span class="toc-num">9.</span> Red Flags</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>This skill provides complete, authoritative documentation for Claude Code directly from docs.claude.com. Instead of guessing about configuration paths, API structures, or feature capabilities, read the official docs stored in this skill's references directory.</p>
+<h2 id="when-to-use">When to Use</h2>
+<p>Use this skill when:</p>
+<ul>
+<li>Creating or configuring Claude Code plugins</li>
+<li>Setting up MCP servers</li>
+<li>Working with hooks (pre-commit, session-start, etc.)</li>
+<li>Writing or testing skills</li>
+<li>Configuring Claude Code settings</li>
+<li>Troubleshooting Claude Code issues</li>
+<li>Understanding CLI commands</li>
+<li>Setting up integrations (VS Code, JetBrains, etc.)</li>
+<li>Configuring networking, security, or enterprise features</li>
+</ul>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Read This File</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Create a plugin</td>
+<td><code>plugins.md</code> then <code>plugins-reference.md</code></td>
+</tr>
+<tr>
+<td>Set up MCP server</td>
+<td><code>mcp.md</code></td>
+</tr>
+<tr>
+<td>Configure hooks</td>
+<td><code>hooks.md</code> then <code>hooks-guide.md</code></td>
+</tr>
+<tr>
+<td>Write a skill</td>
+<td><code>skills.md</code></td>
+</tr>
+<tr>
+<td>CLI commands</td>
+<td><code>cli-reference.md</code></td>
+</tr>
+<tr>
+<td>Troubleshoot issues</td>
+<td><code>troubleshooting.md</code></td>
+</tr>
+<tr>
+<td>General setup</td>
+<td><code>setup.md</code> or <code>quickstart.md</code></td>
+</tr>
+<tr>
+<td>Configuration options</td>
+<td><code>settings.md</code></td>
+</tr>
+</tbody></table>
+<h2 id="documentation-organization">Documentation Organization</h2>
+<p>All documentation is stored as individual markdown files in <code>references/</code>. Use the Read tool to access specific documentation:</p>
+<div class="code-wrapper"><pre><code>references/
+├── overview.md              # Claude Code introduction
+├── quickstart.md           # Getting started guide
+├── setup.md                # Installation and setup
+├── plugins.md              # Plugin development
+├── plugins-reference.md    # Plugin API reference
+├── plugin-marketplaces.md  # Plugin marketplaces
+├── skills.md               # Skill creation
+├── mcp.md                  # MCP server integration
+├── hooks.md                # Hooks overview
+├── hooks-guide.md          # Hooks implementation guide
+├── slash-commands.md       # Slash command reference
+├── sub-agents.md           # Subagent usage
+├── settings.md             # Configuration reference
+├── cli-reference.md        # CLI command reference
+├── common-workflows.md     # Common usage patterns
+├── interactive-mode.md     # Interactive mode guide
+├── headless.md             # Headless mode guide
+├── output-styles.md        # Output customization
+├── statusline.md           # Status line configuration
+├── memory.md               # Memory and context management
+├── checkpointing.md        # Checkpointing feature
+├── analytics.md            # Usage analytics
+├── costs.md                # Cost tracking
+├── monitoring-usage.md     # Usage monitoring
+├── data-usage.md           # Data usage policies
+├── security.md             # Security features
+├── iam.md                  # IAM integration
+├── network-config.md       # Network configuration
+├── terminal-config.md      # Terminal configuration
+├── model-config.md         # Model configuration
+├── llm-gateway.md          # LLM gateway setup
+├── amazon-bedrock.md       # AWS Bedrock integration
+├── google-vertex-ai.md     # Google Vertex AI integration
+├── vs-code.md              # VS Code integration
+├── jetbrains.md            # JetBrains integration
+├── devcontainer.md         # Dev container support
+├── github-actions.md       # GitHub Actions integration
+├── gitlab-ci-cd.md         # GitLab CI/CD integration
+├── third-party-integrations.md  # Other integrations
+├── legal-and-compliance.md # Legal information
+├── troubleshooting.md      # Troubleshooting guide
+└── migration-guide.md      # Migration guide
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="workflow">Workflow</h2>
+<h3>For Specific Questions</h3>
+<ol>
+<li>Identify the relevant documentation file from the list above</li>
+<li>Use Read tool to load: <code>@references/filename.md</code></li>
+<li>Find the answer in the official documentation</li>
+<li>Apply the solution</li>
+</ol>
+<p><strong>Example:</strong></p>
+<div class="code-wrapper"><pre><code>User: "How do I create a Claude Code plugin?"
+→ Read @references/plugins.md
+→ Follow the official plugin creation steps
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>For Broad Topics</h3>
+<p>When exploring a topic, start with the overview document, then drill into specific files:</p>
+<ul>
+<li><strong>Extending Claude Code</strong>: Start with <code>plugins.md</code>, <code>skills.md</code>, or <code>mcp.md</code></li>
+<li><strong>Configuration</strong>: Start with <code>settings.md</code> or <code>setup.md</code></li>
+<li><strong>Integrations</strong>: Check relevant integration file (vs-code.md, github-actions.md, etc.)</li>
+<li><strong>Troubleshooting</strong>: Start with <code>troubleshooting.md</code></li>
+</ul>
+<h3>For Uncertain Topics</h3>
+<p>Use Grep tool to search across all documentation:</p>
+<div class="code-wrapper"><pre><code class="language-bash">pattern: "search term"
+path: ~/.claude/skills/working-with-claude-code/references/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="updating-documentation">Updating Documentation</h2>
+<p>The skill includes <code>scripts/update_docs.js</code> to fetch the latest documentation from docs.claude.com.</p>
+<p>Run when:</p>
+<ul>
+<li>Documentation seems outdated</li>
+<li>New Claude Code features are released</li>
+<li>Official docs have been updated</li>
+</ul>
+<div class="code-wrapper"><pre><code class="language-bash">node ~/.claude/skills/working-with-claude-code/scripts/update_docs.js
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The script:</p>
+<ol>
+<li>Fetches llms.txt from docs.claude.com</li>
+<li>Extracts all Claude Code documentation URLs</li>
+<li>Downloads each page to <code>references/</code></li>
+<li>Reports success/failures</li>
+</ol>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3>Plugin Development</h3>
+<p>Read <code>plugins.md</code> for overview, then <code>plugins-reference.md</code> for API details.</p>
+<h3>MCP Server Setup</h3>
+<p>Read <code>mcp.md</code> for configuration format and examples.</p>
+<h3>Hook Configuration</h3>
+<p>Read <code>hooks.md</code> for overview, then <code>hooks-guide.md</code> for implementation details.</p>
+<h3>Skill Creation</h3>
+<p>Read <code>skills.md</code> for the complete skill authoring guide.</p>
+<h2 id="what-this-skill-does-not-do">What This Skill Does NOT Do</h2>
+<ul>
+<li>This skill provides <strong>documentation access</strong>, not procedural guidance</li>
+<li>For workflows on <strong>how to build</strong> plugins/skills, use the <code>extending-claude-code</code> skill (when available)</li>
+<li>This skill is a <strong>reference library</strong>, not a tutorial</li>
+</ul>
+<h2 id="red-flags">Red Flags</h2>
+<p>If you find yourself:</p>
+<ul>
+<li>Guessing about configuration file locations → Read <code>settings.md</code></li>
+<li>Speculating about API structures → Read relevant reference doc</li>
+<li>Unsure about hook names → Read <code>hooks.md</code></li>
+<li>Making assumptions about features → Search the docs first</li>
+</ul>
+<p><strong>Always consult the official documentation before guessing.</strong></p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

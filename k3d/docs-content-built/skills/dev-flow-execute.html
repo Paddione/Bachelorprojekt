@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -26,7 +26,7 @@
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
-    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-execute</span></nav>
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-execute</span></nav>
     <h1>dev-flow-execute</h1>
     <p class="page-desc">Use when on a feature/* or fix/* branch that has a staged plan in docs/superpowers/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.</p>
     <div class="page-meta">
@@ -44,21 +44,23 @@
 <li class="toc-item"><a href="#schritt-0-worktree-konsistenz-pruefen"><span class="toc-num">3.</span> Schritt 0: Worktree-Konsistenz prüfen</a></li>
 <li class="toc-item"><a href="#schritt-05-sync-mit-main--rebase"><span class="toc-num">4.</span> Schritt 0.5: Sync mit main &amp; Rebase</a></li>
 <li class="toc-item"><a href="#schritt-1-plan-finden--ticket-id-extrahieren"><span class="toc-num">5.</span> Schritt 1: Plan finden &amp; Ticket ID extrahieren</a></li>
-<li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren"><span class="toc-num">6.</span> Schritt 1.5: Ticket auf in_progress setzen und touched_files registrieren</a></li>
-<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">7.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
-<li class="toc-item"><a href="#schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren"><span class="toc-num">8.</span> Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</a></li>
-<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">9.</span> Schritt 3: Lokale Verifikation</a></li>
-<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">10.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
-<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">11.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
-<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">12.</span> Schritt 4: Dev-Iteration (optional)</a></li>
-<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">13.</span> Schritt 5: PR erstellen</a></li>
-<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">14.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
-<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">15.</span> Schritt 6.5: Ticket abschließen</a></li>
-<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">16.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
-<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">17.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
-<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">18.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
-<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">19.</span> Verwandte Skills</a></li>
-<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">20.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+<li class="toc-item"><a href="#schritt-14-doppelarbeit-guard--registry-overlap-session-koordination-t000510"><span class="toc-num">6.</span> Schritt 1.4: Doppelarbeit-Guard &amp; Registry-Overlap (Session-Koordination [T000510])</a></li>
+<li class="toc-item"><a href="#schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren"><span class="toc-num">7.</span> Schritt 1.5: Ticket auf in_progress setzen und touched_files registrieren</a></li>
+<li class="toc-item"><a href="#schritt-17-visual--textual-assets-laden-visual-handoff"><span class="toc-num">8.</span> Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</a></li>
+<li class="toc-item"><a href="#schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren"><span class="toc-num">9.</span> Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</a></li>
+<li class="toc-item"><a href="#schritt-3-lokale-verifikation"><span class="toc-num">10.</span> Schritt 3: Lokale Verifikation</a></li>
+<li class="toc-item"><a href="#schritt-35-admin-menu-placement-gate"><span class="toc-num">11.</span> Schritt 3.5: Admin-Menu Placement Gate</a></li>
+<li class="toc-item"><a href="#schritt-38-code-review-gate-mandatory"><span class="toc-num">12.</span> Schritt 3.8: Code Review Gate (Mandatory)</a></li>
+<li class="toc-item"><a href="#schritt-4-dev-iteration-optional"><span class="toc-num">13.</span> Schritt 4: Dev-Iteration (optional)</a></li>
+<li class="toc-item"><a href="#schritt-5-pr-erstellen"><span class="toc-num">14.</span> Schritt 5: PR erstellen</a></li>
+<li class="toc-item"><a href="#schritt-55-cicd-fix-schleife"><span class="toc-num">15.</span> Schritt 5.5: CI/CD-Fix-Schleife</a></li>
+<li class="toc-item"><a href="#schritt-6-auto-merge-wenn-ci-gruen"><span class="toc-num">16.</span> Schritt 6: Auto-Merge wenn CI grün</a></li>
+<li class="toc-item"><a href="#schritt-65-ticket-abschliessen"><span class="toc-num">17.</span> Schritt 6.5: Ticket abschließen</a></li>
+<li class="toc-item"><a href="#schritt-7-plan-archivieren--datei-loeschen"><span class="toc-num">18.</span> Schritt 7: Plan archivieren &amp; Datei löschen</a></li>
+<li class="toc-item"><a href="#schritt-75-worktree--branch-bereinigen"><span class="toc-num">19.</span> Schritt 7.5: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-8-post-merge-deploy--verify"><span class="toc-num">20.</span> Schritt 8: Post-Merge Deploy &amp; Verify</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">21.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">22.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
 </div>
 <h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
 <p>Du bist auf einem <code>feature/*</code> oder <code>fix/*</code> Branch. <code>dev-flow-plan</code> hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.</p>
@@ -66,7 +68,8 @@
 <hr>
 <h2 id="schritt-1-main-branch-im-haupt-repo-synchronisieren-pull-first">Schritt −1: Main-Branch im Haupt-Repo synchronisieren (Pull-First)</h2>
 <p>Synchronisiere <code>main</code> im Haupt-Repo:</p>
-<div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombie-Prozesse, stale Worktrees &amp; tote Locks räumen
+MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 (cd "$MAIN_REPO" &amp;&amp; git fetch origin main &amp;&amp; git pull --rebase origin main)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
@@ -93,9 +96,27 @@ git submodule update --init --recursive
 TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
+<h2 id="schritt-14-doppelarbeit-guard--registry-overlap-session-koordination-t000510">Schritt 1.4: Doppelarbeit-Guard &amp; Registry-Overlap (Session-Koordination [T000510])</h2>
+<p>Claime Ticket + Branch, damit keine zweite Session (Claude/Gemini) dieselbe Arbeit dupliziert:</p>
+<div class="code-wrapper"><pre><code class="language-bash">BRANCH=$(git branch --show-current)
+bash scripts/agent-lock.sh claim ticket "$TICKET_ID" --branch "$BRANCH" --worktree "$PWD" --label dev-flow-execute \
+  || { echo "🛑 Ticket $TICKET_ID wird bereits von einer lebenden Session bearbeitet (siehe Halter-Info oben) — koordinieren statt duplizieren."; exit 1; }
+bash scripts/agent-lock.sh claim branch "$BRANCH" --ticket "$TICKET_ID" --worktree "$PWD" --label dev-flow-execute || true
+
+# Weiche Warnung bei geteilten Registry-Dateien (Keep-both-Rebase-Risiko):
+for hf in k3d/configmap-domains.yaml environments/schema.yaml Taskfile.yml k3d/kustomization.yaml; do
+  git diff --name-only origin/main | grep -qx "$hf" || continue
+  [ "$(bash scripts/agent-lock.sh check registry "$hf" | head -1)" = "held" ] \
+    &amp;&amp; echo "⚠ $hf wird parallel bearbeitet → Keep-both-Rebase erwarten."
+  bash scripts/agent-lock.sh claim registry "$hf" --ticket "$TICKET_ID" --label dev-flow-execute || true
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
 <h2 id="schritt-15-ticket-auf-inprogress-setzen-und-touchedfiles-registrieren">Schritt 1.5: Ticket auf <code>in_progress</code> setzen und touched_files registrieren</h2>
 <p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
+# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
+./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "&lt;comma-separated-paths&gt;"
@@ -134,7 +155,10 @@ TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
 <hr>
 <h2 id="schritt-3-lokale-verifikation">Schritt 3: Lokale Verifikation</h2>
 <p>Rufe das Skill <strong><code>verification-before-completion</code></strong> auf, um die Verifikation strukturiert zu steuern.</p>
-<div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
+<div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
+./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow || true
+task workspace:validate
 ./tests/runner.sh local &lt;FA-XX oder SA-XX&gt;
 task test:all
 task freshness:regenerate
@@ -165,9 +189,67 @@ git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;" # commitlint regeln
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Rufe <code>commit-commands:commit-push-pr</code> auf (oder führe <code>gh pr create</code> manuell aus).</p>
 <hr>
+<h2 id="schritt-55-cicd-fix-schleife">Schritt 5.5: CI/CD-Fix-Schleife</h2>
+<p>Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst.</p>
+<div class="code-wrapper"><pre><code class="language-bash">MAX_CI_ATTEMPTS=5
+CI_ATTEMPT=0
+PR_URL=$(gh pr view --json url -q '.url')
+
+while true; do
+  CI_ATTEMPT=$((CI_ATTEMPT + 1))
+  echo "⏳ CI-Check Versuch $CI_ATTEMPT/$MAX_CI_ATTEMPTS für $PR_URL ..."
+
+  # Warte auf alle Checks (blockierend; bricht ab, wenn alle done)
+  gh pr checks --watch --interval 15 2&gt;/dev/null || true
+
+  # Welche Checks sind rot?
+  FAILED_CHECKS=$(gh pr checks --json name,state,link \
+    | jq -r '.[] | select(.state == "FAILURE" or .state == "TIMED_OUT") | "\(.name): \(.link)"')
+
+  if -z &amp;quot;$FAILED_CHECKS&amp;quot;; then
+    echo "✅ Alle CI-Checks grün."
+    break
+  fi
+
+  if $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS; then
+    echo "❌ CI nach $MAX_CI_ATTEMPTS Versuchen noch rot — manuelles Eingreifen nötig:"
+    echo "$FAILED_CHECKS"
+    exit 1
+  fi
+
+  echo "⚠ Fehlgeschlagene Checks:"
+  echo "$FAILED_CHECKS"
+
+  # Logs der fehlgeschlagenen Jobs holen (GitHub Actions)
+  FAILED_RUN_ID=$(gh run list --json databaseId,status,conclusion \
+    | jq -r '[.[] | select(.conclusion == "failure")] | sort_by(.databaseId) | last | .databaseId // empty')
+
+  if -n &amp;quot;$FAILED_RUN_ID&amp;quot;; then
+    echo "--- CI-Logs (Run $FAILED_RUN_ID) ---"
+    gh run view "$FAILED_RUN_ID" --log-failed 2&gt;&amp;1 | tail -200
+  fi
+
+  # Delegiere die Diagnose + den Fix an einen frischen Subagenten
+  # (er hat die Logs oben als Teil des Prompts erhalten)
+  # Hinweis: Schreibe hier den Kontext explizit herein und nutze das Agent-Tool
+  # mit dem passenden Prompt. Das Modell für CI-Fixes: sonnet (standard).
+  # Nach dem Fix: commit + push, dann Loop wiederholen.
+  #
+  # Typische CI-Ursachen (prüfe in dieser Reihenfolge):
+  #   1. Freshness-Artefakte veraltet → task freshness:regenerate &amp;&amp; git add … &amp;&amp; git commit …
+  #   2. TypeScript-Fehler (pnpm typecheck) → Typfehler beheben
+  #   3. BATS-Tests schlagen fehl (task test:all) → Testfehler beheben
+  #   4. Kustomize-Validierung → task workspace:validate
+  #   5. Commitlint-Verletzung → Commit-Message anpassen (rebase -i ist interaktiv,
+  #      daher: git commit --amend ist im Worktree erlaubt)
+  echo "🔧 Starte CI-Fix-Subagenten ..."
+  # --&gt; spawn Agent-Tool mit obigen Logs + PLAN_FILE + Branch + Worktree-Pfad
+  # Stoppe nach erfolgreichem Push und lass den Loop erneut prüfen
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
 <h2 id="schritt-6-auto-merge-wenn-ci-gruen">Schritt 6: Auto-Merge wenn CI grün</h2>
-<div class="code-wrapper"><pre><code class="language-bash"># Prüfe CI-Status (siehe gotchas [T000342])
-# Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
+<div class="code-wrapper"><pre><code class="language-bash"># Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
 (cd "$MAIN_REPO" &amp;&amp; gh pr merge --squash --delete-branch)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
@@ -177,6 +259,8 @@ git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;" # commitlint regeln
 PR_NUM=$(gh pr view --json number -q '.number')
 
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+# Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
@@ -208,19 +292,98 @@ gh pr merge --squash --delete-branch
 <hr>
 <h2 id="schritt-75-worktree--branch-bereinigen">Schritt 7.5: Worktree &amp; Branch bereinigen</h2>
 <p>Lösche den lokalen Worktree und Branch (im Haupt-Repo ausführen):</p>
-<div class="code-wrapper"><pre><code class="language-bash">cd /home/patrick/Bachelorprojekt
+<div class="code-wrapper"><pre><code class="language-bash"># Claims freigeben (Session-Koordination [T000510]) — VOR dem Worktree-Remove:
+bash scripts/agent-lock.sh release ticket "$TICKET_ID" 2&gt;/dev/null || true
+bash scripts/agent-lock.sh release branch "&lt;branch&gt;" 2&gt;/dev/null || true
+cd /home/patrick/Bachelorprojekt
 git worktree remove "/tmp/wt-&lt;slug&gt;" --force
 git branch -D "&lt;branch&gt;"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-8-post-merge-deploy--verify">Schritt 8: Post-Merge Deploy &amp; Verify</h2>
-<p>Deployment ausführen basierend auf den geänderten Dateien:</p>
-<ul>
-<li>Astro/Website: <code>task feature:website</code></li>
-<li>Brett: <code>task feature:brett</code></li>
-<li>K8s/Manifeste: <code>task feature:deploy</code></li>
-</ul>
-<p>Führe danach <code>dev-flow-e2e</code> aus, um E2E Tests gegen die Live-Umgebung zu schreiben.</p>
+<p>Bestimme automatisch welche Services deployed werden müssen, basierend auf den Dateien des gemergten PRs.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Gemergte Dateien des PRs ermitteln (gegen main-1 = direkt vor dem Squash)
+MERGE_COMMIT=$(git log origin/main -1 --format="%H")
+CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT")
+
+DEPLOY_WEBSITE=false
+DEPLOY_BRETT=false
+DEPLOY_K8S=false
+DEPLOY_DOCS=false
+
+echo "$CHANGED" | grep -qE '^website/' &amp;&amp; DEPLOY_WEBSITE=true
+echo "$CHANGED" | grep -qE '^brett/' &amp;&amp; DEPLOY_BRETT=true
+echo "$CHANGED" | grep -qE '^docs/' &amp;&amp; DEPLOY_DOCS=true
+echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' \
+  &amp;&amp; DEPLOY_K8S=true
+
+# Fallback: Wenn nichts erkannt → manuell bestimmen
+if &amp;quot;$DEPLOY_WEBSITE&amp;quot; == false &amp;amp;&amp;amp; &amp;quot;$DEPLOY_BRETT&amp;quot; == false \
+      &amp;amp;&amp;amp; &amp;quot;$DEPLOY_K8S&amp;quot; == false &amp;amp;&amp;amp; &amp;quot;$DEPLOY_DOCS&amp;quot; == false; then
+  echo "⚠ Keine bekannten Deploy-Trigger in den geänderten Dateien erkannt."
+  echo "Geänderte Dateien:"
+  echo "$CHANGED"
+  echo "Bitte manuell deployen."
+fi
+
+# Deployments ausführen
+if &amp;quot;$DEPLOY_WEBSITE&amp;quot; == true; then
+  echo "🚀 Deploye Website (beide Brands)..."
+  task feature:website
+fi
+
+if &amp;quot;$DEPLOY_BRETT&amp;quot; == true; then
+  echo "🚀 Deploye Brett (beide Brands)..."
+  task feature:brett
+fi
+
+if &amp;quot;$DEPLOY_DOCS&amp;quot; == true; then
+  echo "🚀 Deploye Docs..."
+  task docs:deploy
+fi
+
+if &amp;quot;$DEPLOY_K8S&amp;quot; == true; then
+  echo "🚀 Deploye K8s-Manifeste (beide Brands)..."
+  task feature:deploy
+fi
+
+# Deploy-Telemetrie
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Deploy-Mapping (Referenz):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Geänderte Dateipfade</th>
+<th>Task</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>website/**</code></td>
+<td><code>task feature:website</code></td>
+</tr>
+<tr>
+<td><code>brett/**</code></td>
+<td><code>task feature:brett</code></td>
+</tr>
+<tr>
+<td><code>docs/**</code></td>
+<td><code>task docs:deploy</code></td>
+</tr>
+<tr>
+<td><code>k3d/**</code>, <code>prod*/**</code>, <code>environments/**</code></td>
+<td><code>task feature:deploy</code></td>
+</tr>
+<tr>
+<td>Mehrere Bereiche</td>
+<td>Alle zutreffenden Tasks nacheinander</td>
+</tr>
+</tbody></table>
+<p><strong>Nach dem Deploy:</strong> Überprüfe kurz, dass die Pods <code>Running</code> sind:</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl --context fleet get pods -n workspace | grep -v Running
+kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Führe danach <code>dev-flow-e2e</code> aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.</p>
 <hr>
 <h2 id="verwandte-skills">Verwandte Skills</h2>
 <table>
@@ -257,6 +420,6 @@ git branch -D "&lt;branch&gt;"
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="../app.js"></script>
 </body>
 </html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>finding-duplicate-functions — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">finding-duplicate-functions</span></nav>
+    <h1>finding-duplicate-functions</h1>
+    <p class="page-desc">Use when auditing a codebase for semantic duplication - functions that do the same thing but have different names or implementations. Especially useful for LLM-generated codebases where new functions are often created rather than reusing existing ones.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-lab</span> <span class="pv-ver">0.5.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Finding Duplicate-Intent Functions</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#when-to-use"><span class="toc-num">2.</span> When to Use</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">3.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#process"><span class="toc-num">4.</span> Process</a></li>
+<li class="toc-item"><a href="#high-risk-duplicate-zones"><span class="toc-num">5.</span> High-Risk Duplicate Zones</a></li>
+<li class="toc-item"><a href="#common-mistakes"><span class="toc-num">6.</span> Common Mistakes</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>LLM-generated codebases accumulate semantic duplicates: functions that serve the same purpose but were implemented independently. Classical copy-paste detectors (jscpd) find syntactic duplicates but miss "same intent, different implementation."</p>
+<p>This skill uses a two-phase approach: classical extraction followed by LLM-powered intent clustering.</p>
+<h2 id="when-to-use">When to Use</h2>
+<ul>
+<li>Codebase has grown organically with multiple contributors (human or LLM)</li>
+<li>You suspect utility functions have been reimplemented multiple times</li>
+<li>Before major refactoring to identify consolidation opportunities</li>
+<li>After jscpd has been run and syntactic duplicates are already handled</li>
+</ul>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Tool</th>
+<th>Model</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. Extract</td>
+<td><code>scripts/extract-functions.sh</code></td>
+<td>-</td>
+<td><code>catalog.json</code></td>
+</tr>
+<tr>
+<td>2. Categorize</td>
+<td><code>scripts/categorize-prompt.md</code></td>
+<td>haiku</td>
+<td><code>categorized.json</code></td>
+</tr>
+<tr>
+<td>3. Split</td>
+<td><code>scripts/prepare-category-analysis.sh</code></td>
+<td>-</td>
+<td><code>categories/*.json</code></td>
+</tr>
+<tr>
+<td>4. Detect</td>
+<td><code>scripts/find-duplicates-prompt.md</code></td>
+<td>opus</td>
+<td><code>duplicates/*.json</code></td>
+</tr>
+<tr>
+<td>5. Report</td>
+<td><code>scripts/generate-report.sh</code></td>
+<td>-</td>
+<td><code>report.md</code></td>
+</tr>
+</tbody></table>
+<h2 id="process">Process</h2>
+<pre class="diagram-fallback"><code>digraph duplicate_detection {
+  rankdir=TB;
+  node [shape=box];
+
+  extract [label="1. Extract function catalog\n./scripts/extract-functions.sh"];
+  categorize [label="2. Categorize by domain\n(haiku subagent)"];
+  split [label="3. Split into categories\n./scripts/prepare-category-analysis.sh"];
+  detect [label="4. Find duplicates per category\n(opus subagent per category)"];
+  report [label="5. Generate report\n./scripts/generate-report.sh"];
+  review [label="6. Human review &amp; consolidate"];
+
+  extract -&gt; categorize -&gt; split -&gt; detect -&gt; report -&gt; review;
+}
+</code></pre>
+<h3>Phase 1: Extract Function Catalog</h3>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/extract-functions.sh src/ -o catalog.json
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Options:</p>
+<ul>
+<li><code>-o FILE</code>: Output file (default: stdout)</li>
+<li><code>-c N</code>: Lines of context to capture (default: 15)</li>
+<li><code>-t GLOB</code>: File types (default: <code>*.ts,*.tsx,*.js,*.jsx</code>)</li>
+<li><code>--include-tests</code>: Include test files (excluded by default)</li>
+</ul>
+<p>Test files (<code>*.test.*</code>, <code>*.spec.*</code>, <code>__tests__/**</code>) are excluded by default since test utilities are less likely to be consolidation candidates.</p>
+<h3>Phase 2: Categorize by Domain</h3>
+<p>Dispatch a <strong>haiku</strong> subagent using the prompt in <code>scripts/categorize-prompt.md</code>.</p>
+<p>Insert the contents of <code>catalog.json</code> where indicated in the prompt template. Save output as <code>categorized.json</code>.</p>
+<h3>Phase 3: Split into Categories</h3>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/prepare-category-analysis.sh categorized.json ./categories
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Creates one JSON file per category. Only categories with 3+ functions are worth analyzing.</p>
+<h3>Phase 4: Find Duplicates (Per Category)</h3>
+<p>For each category file in <code>./categories/</code>, dispatch an <strong>opus</strong> subagent using the prompt in <code>scripts/find-duplicates-prompt.md</code>.</p>
+<p>Save each output as <code>./duplicates/{category}.json</code>.</p>
+<h3>Phase 5: Generate Report</h3>
+<div class="code-wrapper"><pre><code class="language-bash">./scripts/generate-report.sh ./duplicates ./duplicates-report.md
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Produces a prioritized markdown report grouped by confidence level.</p>
+<h3>Phase 6: Human Review</h3>
+<p>Review the report. For HIGH confidence duplicates:</p>
+<ol>
+<li>Verify the recommended survivor has tests</li>
+<li>Update callers to use the survivor</li>
+<li>Delete the duplicates</li>
+<li>Run tests</li>
+</ol>
+<h2 id="high-risk-duplicate-zones">High-Risk Duplicate Zones</h2>
+<p>Focus extraction on these areas first - they accumulate duplicates fastest:</p>
+<table>
+<thead>
+<tr>
+<th>Zone</th>
+<th>Common Duplicates</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>utils/</code>, <code>helpers/</code>, <code>lib/</code></td>
+<td>General utilities reimplemented</td>
+</tr>
+<tr>
+<td>Validation code</td>
+<td>Same checks written multiple ways</td>
+</tr>
+<tr>
+<td>Error formatting</td>
+<td>Error-to-string conversions</td>
+</tr>
+<tr>
+<td>Path manipulation</td>
+<td>Joining, resolving, normalizing paths</td>
+</tr>
+<tr>
+<td>String formatting</td>
+<td>Case conversion, truncation, escaping</td>
+</tr>
+<tr>
+<td>Date formatting</td>
+<td>Same formats implemented repeatedly</td>
+</tr>
+<tr>
+<td>API response shaping</td>
+<td>Similar transformations for different endpoints</td>
+</tr>
+</tbody></table>
+<h2 id="common-mistakes">Common Mistakes</h2>
+<p><strong>Extracting too much</strong>: Focus on exported functions and public methods. Internal helpers are less likely to be duplicated across files.</p>
+<p><strong>Skipping the categorization step</strong>: Going straight to duplicate detection on the full catalog produces noise. Categories focus the comparison.</p>
+<p><strong>Using haiku for duplicate detection</strong>: Haiku is cost-effective for categorization but misses subtle semantic duplicates. Use Opus for the actual duplicate analysis.</p>
+<p><strong>Consolidating without tests</strong>: Before deleting duplicates, ensure the survivor has tests covering all use cases of the deleted functions.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

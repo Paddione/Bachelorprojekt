@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>silent-failure-hunter — Workspace MVP</title>
+<title>Silent Failure Hunter — Workspace MVP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -26,9 +26,9 @@
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
-    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">silent-failure-hunter</span></nav>
-    <h1>silent-failure-hunter</h1>
-    <p class="page-desc">Use this agent when reviewing code changes in a pull request to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors. Examples:\n\n&lt;example&gt;\nContext: Daisy has just finished implementing a new feature that fetches data from an API with fallback behavior.\nDaisy: &quot;I've added error handling to the API client. Can you review it?&quot;\nAssistant: &quot;Let me use the silent-failure-hunter agent to thoroughly examine the error handling in your changes.&quot;\n&lt;Task tool invocation to launch silent-failure-hunter agent&gt;\n&lt;/example&gt;\n\n&lt;example&gt;\nContext: Daisy has created a PR with changes that include try-catch blocks.\nDaisy: &quot;Please review PR #1234&quot;\nAssistant: &quot;I'll use the silent-failure-hunter agent to check for any silent failures or inadequate error handling in this PR.&quot;\n&lt;Task tool invocation to launch silent-failure-hunter agent&gt;\n&lt;/example&gt;\n\n&lt;example&gt;\nContext: Daisy has just refactored error handling code.\nDaisy: &quot;I've updated the error handling in the authentication module&quot;\nAssistant: &quot;Let me proactively use the silent-failure-hunter agent to ensure the error handling changes don't introduce silent failures.&quot;\n&lt;Task tool invocation to launch silent-failure-hunter agent&gt;\n&lt;/example&gt;</p>
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../agents.html">Agents</a> <span class="sep">/</span> <span class="crumb-current">Silent Failure Hunter</span></nav>
+    <h1>Silent Failure Hunter</h1>
+    <p class="page-desc"></p>
     <div class="page-meta">
       <span class="provenance-badge plugin">plugin · <span class="pv-name">pr-review-toolkit</span> <span class="pv-ver">unknown</span></span>
       
@@ -39,12 +39,21 @@
 <article class="doc-body">
 <html><head></head><body><div class="toc-box auto-toc">
   <div class="toc-title">Auf dieser Seite</div>
-  <ul class="toc-list"><li class="toc-item"><a href="#core-principles"><span class="toc-num">1.</span> Core Principles</a></li>
-<li class="toc-item"><a href="#your-review-process"><span class="toc-num">2.</span> Your Review Process</a></li>
-<li class="toc-item"><a href="#your-output-format"><span class="toc-num">3.</span> Your Output Format</a></li>
-<li class="toc-item"><a href="#your-tone"><span class="toc-num">4.</span> Your Tone</a></li>
-<li class="toc-item"><a href="#special-considerations"><span class="toc-num">5.</span> Special Considerations</a></li></ul>
-</div><p>You are an elite error handling auditor with zero tolerance for silent failures and inadequate error handling. Your mission is to protect users from obscure, hard-to-debug issues by ensuring every error is properly surfaced, logged, and actionable.</p>
+  <ul class="toc-list"><li class="toc-item"><a href="#name-silent-failure-hunter-description-use-this-agent-when-reviewing-code-changes-in-a-pull-request-to-identify-silent-failures-inadequate-error-handling-and-inappropriate-fallback-behavior-this-agent-should-be-invoked-proactively-after-completing-a-logical-chunk-of-work-that-involves-error-handling-catch-blocks-fallback-logic-or-any-code-that-could-potentially-suppress-errors-examplesnnncontext-daisy-has-just-finished-implementing-a-new-feature-that-fetches-data-from-an-api-with-fallback-behaviorndaisy-ive-added-error-handling-to-the-api-client-can-you-review-itnassistant-let-me-use-the-silent-failure-hunter-agent-to-thoroughly-examine-the-error-handling-in-your-changesnnnnncontext-daisy-has-created-a-pr-with-changes-that-include-try-catch-blocksndaisy-please-review-pr-1234nassistant-ill-use-the-silent-failure-hunter-agent-to-check-for-any-silent-failures-or-inadequate-error-handling-in-this-prnnnnncontext-daisy-has-just-refactored-error-handling-codendaisy-ive-updated-the-error-handling-in-the-authentication-modulenassistant-let-me-proactively-use-the-silent-failure-hunter-agent-to-ensure-the-error-handling-changes-dont-introduce-silent-failuresnn-model-inherit-color-yellow"><span class="toc-num">1.</span> name: silent-failure-hunter
+description: Use this agent when reviewing code changes in a pull request to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors. Examples:\n\n\nContext: Daisy has just finished implementing a new feature that fetches data from an API with fallback behavior.\nDaisy: "I've added error handling to the API client. Can you review it?"\nAssistant: "Let me use the silent-failure-hunter agent to thoroughly examine the error handling in your changes."\n\n\n\n\nContext: Daisy has created a PR with changes that include try-catch blocks.\nDaisy: "Please review PR #1234"\nAssistant: "I'll use the silent-failure-hunter agent to check for any silent failures or inadequate error handling in this PR."\n\n\n\n\nContext: Daisy has just refactored error handling code.\nDaisy: "I've updated the error handling in the authentication module"\nAssistant: "Let me proactively use the silent-failure-hunter agent to ensure the error handling changes don't introduce silent failures."\n\n
+model: inherit
+color: yellow</a></li>
+<li class="toc-item"><a href="#core-principles"><span class="toc-num">2.</span> Core Principles</a></li>
+<li class="toc-item"><a href="#your-review-process"><span class="toc-num">3.</span> Your Review Process</a></li>
+<li class="toc-item"><a href="#your-output-format"><span class="toc-num">4.</span> Your Output Format</a></li>
+<li class="toc-item"><a href="#your-tone"><span class="toc-num">5.</span> Your Tone</a></li>
+<li class="toc-item"><a href="#special-considerations"><span class="toc-num">6.</span> Special Considerations</a></li></ul>
+</div><hr>
+<h2 id="name-silent-failure-hunter-description-use-this-agent-when-reviewing-code-changes-in-a-pull-request-to-identify-silent-failures-inadequate-error-handling-and-inappropriate-fallback-behavior-this-agent-should-be-invoked-proactively-after-completing-a-logical-chunk-of-work-that-involves-error-handling-catch-blocks-fallback-logic-or-any-code-that-could-potentially-suppress-errors-examplesnnncontext-daisy-has-just-finished-implementing-a-new-feature-that-fetches-data-from-an-api-with-fallback-behaviorndaisy-ive-added-error-handling-to-the-api-client-can-you-review-itnassistant-let-me-use-the-silent-failure-hunter-agent-to-thoroughly-examine-the-error-handling-in-your-changesnnnnncontext-daisy-has-created-a-pr-with-changes-that-include-try-catch-blocksndaisy-please-review-pr-1234nassistant-ill-use-the-silent-failure-hunter-agent-to-check-for-any-silent-failures-or-inadequate-error-handling-in-this-prnnnnncontext-daisy-has-just-refactored-error-handling-codendaisy-ive-updated-the-error-handling-in-the-authentication-modulenassistant-let-me-proactively-use-the-silent-failure-hunter-agent-to-ensure-the-error-handling-changes-dont-introduce-silent-failuresnn-model-inherit-color-yellow">name: silent-failure-hunter
+description: Use this agent when reviewing code changes in a pull request to identify silent failures, inadequate error handling, and inappropriate fallback behavior. This agent should be invoked proactively after completing a logical chunk of work that involves error handling, catch blocks, fallback logic, or any code that could potentially suppress errors. Examples:\n\n<example>\nContext: Daisy has just finished implementing a new feature that fetches data from an API with fallback behavior.\nDaisy: "I've added error handling to the API client. Can you review it?"\nAssistant: "Let me use the silent-failure-hunter agent to thoroughly examine the error handling in your changes."\n<task tool="" invocation="" to="" launch="" silent-failure-hunter="" agent="">\n</task></example>\n\n<example>\nContext: Daisy has created a PR with changes that include try-catch blocks.\nDaisy: "Please review PR #1234"\nAssistant: "I'll use the silent-failure-hunter agent to check for any silent failures or inadequate error handling in this PR."\n<task tool="" invocation="" to="" launch="" silent-failure-hunter="" agent="">\n</task></example>\n\n<example>\nContext: Daisy has just refactored error handling code.\nDaisy: "I've updated the error handling in the authentication module"\nAssistant: "Let me proactively use the silent-failure-hunter agent to ensure the error handling changes don't introduce silent failures."\n<task tool="" invocation="" to="" launch="" silent-failure-hunter="" agent="">\n</task></example>
+model: inherit
+color: yellow</h2>
+<p>You are an elite error handling auditor with zero tolerance for silent failures and inadequate error handling. Your mission is to protect users from obscure, hard-to-debug issues by ensuring every error is properly surfaced, logged, and actionable.</p>
 <h2 id="core-principles">Core Principles</h2>
 <p>You operate under these non-negotiable rules:</p>
 <ol>
@@ -173,6 +182,6 @@
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="../app.js"></script>
 </body>
 </html>

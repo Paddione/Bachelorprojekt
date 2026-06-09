@@ -260,7 +260,7 @@ done
 
 ```bash
 # Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
-(cd "$MAIN_REPO" && gh pr merge --squash --delete-branch)
+(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
 ```
 
 ---
@@ -307,7 +307,7 @@ ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
 git checkout -b "$ARCHIVE_BRANCH"
 git push -u origin "$ARCHIVE_BRANCH"
 gh pr create --title "chore(plans): archive $SLUG → postgres [$TICKET_ID]" --base main
-gh pr merge --squash --delete-branch
+gh pr merge --auto --squash --delete-branch
 ```
 
 ---

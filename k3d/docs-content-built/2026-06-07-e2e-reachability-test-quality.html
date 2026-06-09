@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>E2E Reachability &amp; Test-Quality-Audit — 2026-06-07 — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</span></nav>
+    <h1>E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">test</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>E2E Reachability &amp; Test-Quality-Audit — 2026-06-07</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#kernmechanismen-des-green-on-skip"><span class="toc-num">1.</span> Kernmechanismen des Green-on-Skip</a></li>
+<li class="toc-item"><a href="#uebersichtstabelle-app--reachability--test-qualitaet"><span class="toc-num">2.</span> Übersichtstabelle: App × Reachability × Test-Qualität</a></li>
+<li class="toc-item"><a href="#was-ist-aktuell-tatsaechlich-kaputt"><span class="toc-num">3.</span> Was ist aktuell tatsächlich kaputt?</a></li>
+<li class="toc-item"><a href="#tests-die-luegen--die-top-8"><span class="toc-num">4.</span> Tests die lügen — die Top 8</a></li>
+<li class="toc-item"><a href="#remediation-assertreachableorfail-helper"><span class="toc-num">5.</span> Remediation: assertReachableOrFail Helper</a></li>
+<li class="toc-item"><a href="#statistik"><span class="toc-num">6.</span> Statistik</a></li></ul>
+</div>
+<p><strong>These: „Tests laufen grün, aber Services sind ständig nicht erreichbar oder funktionieren nicht"</strong></p>
+<p>Ursache ist ein systematisches <strong>Green-on-Skip</strong>-Muster in der E2E-Suite. Die Playwright-Tests überspringen sich in Produktionsumgebungen selbst, wenn Services nicht erreichbar sind oder Auth-Credentials fehlen. Die CI-Nightly (<code>e2e.yml</code>) setzt <code>E2E_ADMIN_PASS</code> <strong>nie</strong>, wodurch die gesamte authentifizierte Testoberfläche (Admin-CRUD, Content-Hub, Inbox, Invoicing, Coaching) strukturell ausfällt — grün, ohne je etwas zu testen.</p>
+<hr>
+<h2 id="kernmechanismen-des-green-on-skip">Kernmechanismen des Green-on-Skip</h2>
+<table>
+<thead>
+<tr>
+<th>Mechanismus</th>
+<th>Vorkommen</th>
+<th>Beispiel</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>test.skip(!E2E_ADMIN_PASS, ...)</code></td>
+<td>35+ Specs</td>
+<td>Admin-CRUD, Inbox, Tickets, Content-Hub-Save</td>
+</tr>
+<tr>
+<td><code>test.skip(!!PROD_DOMAIN, ...)</code></td>
+<td>11 Tests in fa-27-brett</td>
+<td>Brett API/DB vollständig ungetestet in Prod</td>
+</tr>
+<tr>
+<td><code>test.skip(!serviceAvailable, ...)</code></td>
+<td>7 Tests in fa-18-transcription</td>
+<td>Transcriber ClusterIP-only → immer Skip extern</td>
+</tr>
+<tr>
+<td><code>test.skip(true, ...)</code> (Hard-Skip)</td>
+<td>fa-17-meeting, Teile sa-03</td>
+<td>Permanente Stubs, testen nie</td>
+</tr>
+<tr>
+<td><code>if (404) test.skip(true, ...)</code></td>
+<td>integration-smoke (Collabora)</td>
+<td>Ein 404 (Service down) wird als Skip behandelt</td>
+</tr>
+<tr>
+<td><code>expect([200,503]).toContain(...)</code></td>
+<td>fa-03-video, integration-smoke</td>
+<td>Signaling 503 = NATS-Backend tot → trotzdem grün</td>
+</tr>
+<tr>
+<td><code>.catch(() =&gt; null) → test.skip</code></td>
+<td>fa-livekit, fa-content-hub</td>
+<td>Transportfehler → skip statt fail</td>
+</tr>
+<tr>
+<td><code>if (/redirect_uri/.test(...)) test.skip()</code></td>
+<td>sa-08-sso</td>
+<td>Echte SSO-Fehlkonfiguration → skip statt fail</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="uebersichtstabelle-app--reachability--test-qualitaet">Übersichtstabelle: App × Reachability × Test-Qualität</h2>
+<table>
+<thead>
+<tr>
+<th>App</th>
+<th>Live mentolder</th>
+<th>Live korczewski</th>
+<th>greenOnSkipRisk</th>
+<th>Asserts Real Health?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Website + /api</strong></td>
+<td>✅ 200, Auth korrekt, API 401</td>
+<td>✅ 200, Auth korrekt, API 401</td>
+<td><strong>high</strong></td>
+<td>✅ public; ❌ authenticated</td>
+</tr>
+<tr>
+<td><strong>Keycloak (OIDC)</strong></td>
+<td>✅ well-known 200</td>
+<td>✅ well-known 200</td>
+<td><strong>high</strong></td>
+<td>❌ nur redirect-Strings</td>
+</tr>
+<tr>
+<td><strong>Nextcloud (Files+Talk)</strong></td>
+<td>✅ 200, signaling ok</td>
+<td>✅ 200, signaling ok</td>
+<td><strong>high</strong></td>
+<td>❌ nur Redirect-to-Login</td>
+</tr>
+<tr>
+<td><strong>Collabora (Office)</strong></td>
+<td>✅ 200, WOPI ok</td>
+<td>✅ 200, urlsrc FALSCH</td>
+<td><strong>high</strong></td>
+<td>❌ 404 = Skip</td>
+</tr>
+<tr>
+<td><strong>Vaultwarden</strong></td>
+<td>✅ 200, signups disabled</td>
+<td>✅ 200, signups disabled</td>
+<td><strong>medium</strong></td>
+<td>✅ /alive + /api/config</td>
+</tr>
+<tr>
+<td><strong>Whiteboard</strong></td>
+<td>✅ 200</td>
+<td>✅ 200</td>
+<td><strong>high</strong></td>
+<td>❌ nur status&lt;500</td>
+</tr>
+<tr>
+<td><strong>DocuSeal (Signing)</strong></td>
+<td>⚠️ 302→/setup</td>
+<td>⚠️ 302→/setup</td>
+<td><strong>high</strong></td>
+<td>❌ akzeptiert /setup</td>
+</tr>
+<tr>
+<td><strong>Docs (Statisch)</strong></td>
+<td>✅ 302→Auth</td>
+<td>✅ 302→Auth</td>
+<td><strong>high</strong></td>
+<td>❌ prüft Keycloak-Loginpage</td>
+</tr>
+<tr>
+<td><strong>Mailpit</strong></td>
+<td>✅ 401</td>
+<td>✅ 401</td>
+<td><strong>high</strong></td>
+<td>❌ 401 = Skip</td>
+</tr>
+<tr>
+<td><strong>Brett (3D)</strong></td>
+<td>✅ 302→Auth</td>
+<td>✅ 302→Auth</td>
+<td><strong>high</strong></td>
+<td>❌ 11/13 Tests skippen</td>
+</tr>
+<tr>
+<td><strong>LiveKit (WebRTC)</strong></td>
+<td>✅ 200, Auth ok</td>
+<td>✅ 200, Auth ok</td>
+<td><strong>high</strong></td>
+<td>✅ Auth-Gate; ❌ Server-Liveness</td>
+</tr>
+<tr>
+<td><strong>Talk HPB + Signaling</strong></td>
+<td>✅ 200, NATS up</td>
+<td>✅ 200, NATS up</td>
+<td><strong>high</strong></td>
+<td>❌ 100% Skip; 503=PASS</td>
+</tr>
+<tr>
+<td><strong>Recovery Browser</strong></td>
+<td>N/A (on-demand)</td>
+<td>N/A (on-demand)</td>
+<td><strong>high</strong></td>
+<td>❌ Null Coverage</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>✅ = erreichbar, korrekt | ⚠️ = erreichbar aber defekt | ❌ = nicht gegeben</p>
+</blockquote>
+<hr>
+<h2 id="was-ist-aktuell-tatsaechlich-kaputt">Was ist aktuell tatsächlich kaputt?</h2>
+<h3>🔴 1. DocuSeal — beide Brands unprovisioniert</h3>
+<p><code>sign.mentolder.de</code> und <code>sign.korczewski.de</code> leiten alle Requests auf <code>/setup</code> — der First-Run-Admin-Wizard. Kein Signing möglich. Die E2E-Suite erkennt das nicht: <code>integration-smoke</code> akzeptiert <code>[200,301,302,401]</code> und <code>systemtest-05</code> klickt nie auf die echte DocuSeal-UI.</p>
+<p><strong>Fix:</strong> Instanz provisionieren; dann E2E-Test der <code>/setup</code>-Redirect als FAILURE wertet.</p>
+<h3>🔴 2. Collabora korczewski WOPI urlsrc hartkodiert auf mentolder</h3>
+<p><code>office.korczewski.de/hosting/discovery</code> returned alle <code>urlsrc</code>-Attribute mit <code>office.mentolder.de</code>. Korczewski-Office-Dokumente würden den Editor von der falschen Brand laden. <strong>Konfigurationsfehler.</strong></p>
+<h3>🔴 3. Recovery Browser — Null E2E-Coverage, sensitive-ops blind</h3>
+<p>Kein Spec prüft dass <code>task recovery:browse</code> den oauth2-proxy-Gate tatsächlich aktiviert. Ein Regression die den filebrowser <code>--noauth</code> ungeschützt exponiert wäre unsichtbar.</p>
+<hr>
+<h2 id="tests-die-luegen--die-top-8">Tests die lügen — die Top 8</h2>
+<h3>1. Website: 35+ Specs skippen weil E2E_ADMIN_PASS nie gesetzt</h3>
+<p><code>e2e.yml</code> setzt <code>E2E_ADMIN_PASS</code> <strong>nie</strong>. <code>mentolder-auth-setup.spec.ts:40</code> schreibt leeren <code>storageState</code>. Alle Admin-CRUD, Inbox, Tickets, Coaching, Content-Hub-Assertions → tot. Die gesamte <code>/api/*</code>-Backend-Testfläche ist strukturell grün ohne Coverage.</p>
+<h3>2. Brett: fa-27 skippt 11/13 Tests wenn PROD_DOMAIN gesetzt</h3>
+<p><code>test.skip(!!process.env.PROD_DOMAIN, 'Brett API requires auth in prod')</code> auf Zeilen 18,32,43,51,59,65,75,83,91,108. Board-State-Read, Snapshot-CRUD, Customers, Presets — alles tot in Prod.</p>
+<h3>3. Collabora: 404 (Service down) → Skip</h3>
+<p><code>integration-smoke.spec.ts:29-31</code>: <code>if (res.status() === 404) test.skip(true, 'Collabora not deployed')</code>. Office-Stack down → grün.</p>
+<h3>4. Talk-HPB Transkription: 100% Skip extern</h3>
+<p><code>fa-18-transcription.spec.ts:4</code>: <code>TRANSCRIBER_URL</code> defaultet auf ClusterIP. <code>beforeAll</code> fängt Verbindungsfehler → <code>serviceAvailable=false</code> → alle 7 Tests skippen. Transcriber-Tot unsichtbar.</p>
+<h3>5. LiveKit: <code>.catch(() =&gt; null)</code> → toter Server = Skip</h3>
+<p><code>fa-livekit.spec.ts:37-39</code>: <code>request.get(BASE).catch(() =&gt; null)</code> dann <code>if (res === null) test.skip(true)</code>. Pod down, DNS-Fehler → grün.</p>
+<h3>6. Signaling: 503 wird als PASS akzeptiert</h3>
+<p><code>fa-03-video.spec.ts:31</code> + <code>integration-smoke</code> 2×: <code>expect([200,503]).toContain(status)</code>. 503 = NATS-Backend tot, Signaling kann keine Calls vermitteln → trotzdem grün.</p>
+<h3>7. Keycloak: Redirect-String-Tests ohne echten Login</h3>
+<p><code>fa-15-oidc</code> prüft nur dass <code>/api/auth/login</code> den String <code>openid-connect/auth</code> im Location-Header hat — folgt nie dem Redirect. Keycloak könnte 503 sein → grün.</p>
+<h3>8. Docs: T4 prüft Keycloak-Loginpage, nicht Docs-Inhalt</h3>
+<p><code>fa-13-docs.spec.ts:35-45</code> navigiert zu <code>DOCS_URL</code> (unauthenticated) → wird zu Keycloak redirected. Assertions (#app sichtbar, kein "500/502") bestehen auf der Keycloak-Loginpage. Docs-Content komplett down → grün.</p>
+<hr>
+<h2 id="remediation-assertreachableorfail-helper">Remediation: <code>assertReachableOrFail</code> Helper</h2>
+<div class="code-wrapper"><pre><code class="language-typescript">// tests/e2e/lib/health-assertions.ts (NEU)
+import { expect } from '@playwright/test';
+
+const IS_PROD = !!process.env.PROD_DOMAIN;
+
+export async function assertReachableOrFail(
+  url: string,
+  testInfo: { skip: (cond: boolean, reason: string) =&gt; void },
+  opts?: { expectedStatus?: number; allowSkipInDev?: boolean }
+) {
+  const response = await fetch(url, { redirect: 'manual' });
+
+  if (!response.ok &amp;&amp; response.status !== (opts?.expectedStatus ?? 200)) {
+    if (IS_PROD) {
+      throw new Error(
+        `Service unreachable in PROD: ${url} returned ${response.status}`
+      );
+    }
+    if (opts?.allowSkipInDev !== false) {
+      testInfo.skip(true, `Service not reachable in dev: ${url} → ${response.status}`);
+    } else {
+      throw new Error(`Service unreachable: ${url} → ${response.status}`);
+    }
+  }
+  return response;
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Sanierungsregeln:</strong></p>
+<ol>
+<li><strong>Prod:</strong> Nicht erreichbarer Service → <strong>immer Hard-Failure</strong> (<code>throw</code>), nie Skip</li>
+<li><strong>Dev:</strong> Skip akzeptabel, aber nur als <code>test.fixme()</code></li>
+<li><strong><code>E2E_ADMIN_PASS</code> muss in <code>e2e.yml</code></strong> — ohne das sind 35+ Specs wertlos</li>
+<li><strong>ClusterIP-only Services</strong> brauchen In-Cluster-Runner, nicht Playwright</li>
+</ol>
+<hr>
+<h2 id="statistik">Statistik</h2>
+<table>
+<thead>
+<tr>
+<th>Metrik</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Apps auditiert</td>
+<td>13</td>
+</tr>
+<tr>
+<td><code>greenOnSkipRisk: high</code></td>
+<td>12 von 13</td>
+</tr>
+<tr>
+<td><code>test.skip(</code> insgesamt</td>
+<td>230×</td>
+</tr>
+<tr>
+<td>Konditionale Skips</td>
+<td>167×</td>
+</tr>
+<tr>
+<td><code>E2E_ADMIN_PASS</code> in CI</td>
+<td>❌ Nicht gesetzt</td>
+</tr>
+<tr>
+<td>Tatsächlich kaputt</td>
+<td>2 (DocuSeal /setup, Collabora urlsrc)</td>
+</tr>
+<tr>
+<td>Null Coverage</td>
+<td>1 (Recovery Browser)</td>
+</tr>
+<tr>
+<td>Konfigurationsfehler</td>
+<td>1 (Collabora cross-brand urlsrc)</td>
+</tr>
+</tbody></table>
+<p><strong>Kurzgefasst:</strong> Die Suite beweist dass HTTP-Endpunkte antworten. Sie beweist nicht dass Services funktionieren.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -26,7 +26,7 @@
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
-    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">operations-management</span></nav>
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">operations-management</span></nav>
     <h1>operations-management</h1>
     <p class="page-desc">Unified runbook for incident response (production triage, scope, fix/rollback, post-mortem), internal ticket management (triaging, closing, routing tickets in tickets.tickets), repo hygiene (worktree/branch pruning), GitHub PR triage and CI/CD merge with closure of the linked internal ticket, GitHub issue intake, and mishap tracking.</p>
     <div class="page-meta">
@@ -66,7 +66,7 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 </ul>
 <p>Never use <code>tickets.ticket_links</code> for PR references — it is ticket→ticket only (<code>to_id</code> is <code>NOT NULL</code>, <code>kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by</code>).</p>
 <p><strong>Enum reference</strong> (closing a ticket with an out-of-set value fails the CHECK constraint):
-<code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,in_progress,done,archived,blocked}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code> · <code>attention_mode ∈ {auto,ai_ready,needs_human}</code> (default <code>auto</code>).</p>
+<code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,backlog,in_progress,in_review,blocked,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code> · <code>attention_mode ∈ {auto,ai_ready,needs_human}</code> (default <code>auto</code>).</p>
 <p>All SQL below assumes:</p>
 <div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
@@ -261,6 +261,6 @@ kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U websit
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="../app.js"></script>
 </body>
 </html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>trl-training — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">trl-training</span></nav>
+    <h1>trl-training</h1>
+    <p class="page-desc">Train and fine-tune transformer language models using TRL (Transformers Reinforcement Learning). Supports SFT, DPO, GRPO, KTO, RLOO and Reward Model training via CLI commands.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.8</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>TRL Training Skill</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#core-commands"><span class="toc-num">2.</span> Core Commands</a></li>
+<li class="toc-item"><a href="#configuration-files"><span class="toc-num">3.</span> Configuration Files</a></li>
+<li class="toc-item"><a href="#distributed-training"><span class="toc-num">4.</span> Distributed Training</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">5.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#additional-resources"><span class="toc-num">6.</span> Additional Resources</a></li>
+<li class="toc-item"><a href="#best-practices"><span class="toc-num">7.</span> Best Practices</a></li></ul>
+</div>
+<p>You are an expert at using the TRL (Transformers Reinforcement Learning) library to train and fine-tune large language models.</p>
+<h2 id="overview">Overview</h2>
+<p>TRL provides CLI commands for post-training foundation models using state-of-the-art techniques:</p>
+<ul>
+<li><strong>SFT</strong> (Supervised Fine-Tuning): Fine-tune models on instruction-following or conversational datasets</li>
+<li><strong>DPO</strong> (Direct Preference Optimization): Align models using preference data</li>
+<li><strong>GRPO</strong> (Group Relative Policy Optimization): Train models by ranking multiple sampled outputs relative to each other and optimizing based on their comparative rewards.</li>
+<li><strong>RLOO</strong> (Reinforce Leave One Out): Online RL training with generation-based rewards</li>
+<li><strong>Reward Model Training</strong>: Train reward models for RLHF</li>
+</ul>
+<p>TRL is built on top of Hugging Face Transformers and Accelerate, providing seamless integration with the Hugging Face ecosystem.</p>
+<h2 id="core-commands">Core Commands</h2>
+<h3>trl sft - Supervised Fine-Tuning</h3>
+<p>Fine-tune language models on instruction-following or conversational datasets.</p>
+<p><strong>Full training:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft \
+  --model_name_or_path Qwen/Qwen2-0.5B \
+  --dataset_name trl-lib/Capybara \
+  --learning_rate 2.0e-5 \
+  --num_train_epochs 1 \
+  --packing \
+  --per_device_train_batch_size 2 \
+  --gradient_accumulation_steps 8 \
+  --eos_token '&lt;|im_end|&gt;' \
+  --eval_strategy steps \
+  --eval_steps 100 \
+  --output_dir Qwen2-0.5B-SFT \
+  --push_to_hub
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Train with LoRA adapters:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft \
+  --model_name_or_path Qwen/Qwen2-0.5B \
+  --dataset_name trl-lib/Capybara \
+  --learning_rate 2.0e-4 \
+  --num_train_epochs 1 \
+  --packing \
+  --per_device_train_batch_size 2 \
+  --gradient_accumulation_steps 8 \
+  --eos_token '&lt;|im_end|&gt;' \
+  --eval_strategy steps \
+  --eval_steps 100 \
+  --use_peft \
+  --lora_r 32 \
+  --lora_alpha 16 \
+  --output_dir Qwen2-0.5B-SFT \
+  --push_to_hub
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>trl dpo - Direct Preference Optimization</h3>
+<p>Align models using preference data (chosen/rejected pairs).</p>
+<p><strong>Full training:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl dpo \
+  --dataset_name trl-lib/ultrafeedback_binarized \
+  --model_name_or_path Qwen/Qwen2-0.5B-Instruct \
+  --learning_rate 5.0e-7 \
+  --num_train_epochs 1 \
+  --per_device_train_batch_size 2 \
+  --max_steps 1000 \
+  --gradient_accumulation_steps 8 \
+  --eval_strategy steps \
+  --eval_steps 50 \
+  --output_dir Qwen2-0.5B-DPO \
+  --no_remove_unused_columns
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Train with LoRA adapters:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl dpo \
+  --dataset_name trl-lib/ultrafeedback_binarized \
+  --model_name_or_path Qwen/Qwen2-0.5B-Instruct \
+  --learning_rate 5.0e-6 \
+  --num_train_epochs 1 \
+  --per_device_train_batch_size 2 \
+  --max_steps 1000 \
+  --gradient_accumulation_steps 8 \
+  --eval_strategy steps \
+  --eval_steps 50 \
+  --output_dir Qwen2-0.5B-DPO \
+  --no_remove_unused_columns \
+  --use_peft \
+  --lora_r 32 \
+  --lora_alpha 16
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>trl grpo - Group Relative Policy Optimization</h3>
+<p>Train models using reward functions or LLM-as-a-judge for evaluating generations and providing rewards.</p>
+<p><strong>Basic usage:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl grpo \
+  --model_name_or_path Qwen/Qwen2.5-0.5B \
+  --dataset_name trl-lib/gsm8k \
+  --reward_funcs accuracy_reward \
+  --output_dir Qwen2-0.5B-GRPO \
+  --push_to_hub
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>trl rloo - Reinforce Leave One Out</h3>
+<p>Online RL training where the model generates text and receives rewards based on custom criteria.</p>
+<p><strong>Basic usage:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl rloo \
+  --model_name_or_path Qwen/Qwen2.5-0.5B \
+  --dataset_name trl-lib/tldr \
+  --reward_model_name_or_path sentiment-analysis:nlptown/bert-base-multilingual-uncased-sentiment \
+  --output_dir Qwen2-0.5B-RLOO \
+  --push_to_hub
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>trl reward - Reward Model Training</h3>
+<p>Train a reward model to score text quality for RLHF.</p>
+<p><strong>Full training:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl reward \
+  --model_name_or_path Qwen/Qwen2-0.5B-Instruct \
+  --dataset_name trl-lib/ultrafeedback_binarized \
+  --output_dir Qwen2-0.5B-Reward \
+  --per_device_train_batch_size 8 \
+  --num_train_epochs 1 \
+  --learning_rate 1.0e-5 \
+  --eval_strategy steps \
+  --eval_steps 50 \
+  --max_length 2048
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Train with LoRA adapters:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl reward \
+  --model_name_or_path Qwen/Qwen2-0.5B-Instruct \
+  --dataset_name trl-lib/ultrafeedback_binarized \
+  --output_dir Qwen2-0.5B-Reward-LoRA \
+  --per_device_train_batch_size 8 \
+  --num_train_epochs 1 \
+  --learning_rate 1.0e-4 \
+  --eval_strategy steps \
+  --eval_steps 50 \
+  --max_length 2048 \
+  --use_peft \
+  --lora_task_type SEQ_CLS \
+  --lora_r 32 \
+  --lora_alpha 16
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="configuration-files">Configuration Files</h2>
+<p>TRL supports YAML configuration files for reproducible training. All CLI arguments can be specified in a config file.</p>
+<p><strong>Example config (sft_config.yaml):</strong></p>
+<div class="code-wrapper"><pre><code class="language-yaml">model_name_or_path: Qwen/Qwen2.5-0.5B
+dataset_name: trl-lib/Capybara
+learning_rate: 2.0e-5
+num_train_epochs: 1
+per_device_train_batch_size: 8
+gradient_accumulation_steps: 2
+output_dir: ./sft_output
+use_peft: true
+lora_r: 16
+lora_alpha: 16
+report_to: trackio
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Launch with config:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft --config sft_config.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Override config values:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft --config sft_config.yaml --learning_rate 1.0e-5
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="distributed-training">Distributed Training</h2>
+<p>TRL integrates with Accelerate for multi-GPU and multi-node training.</p>
+<p><strong>Multi-GPU training:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft \
+  --config sft_config.yaml \
+  --num_processes 4
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Use predefined Accelerate configs:</strong></p>
+<p>TRL provides predefined configs: <code>single_gpu</code>, <code>multi_gpu</code>, <code>fsdp1</code>, <code>fsdp2</code>, <code>zero1</code>, <code>zero2</code>, <code>zero3</code></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft \
+  --config sft_config.yaml \
+  --accelerate_config zero2
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Custom Accelerate config:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># Generate custom config
+accelerate config
+
+# Use custom config
+trl sft --config sft_config.yaml --config_file ~/.cache/huggingface/accelerate/default_config.yaml
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Fully Sharded Data Parallel (FSDP):</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft --config sft_config.yaml --accelerate_config fsdp2
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>DeepSpeed ZeRO:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">trl sft --config sft_config.yaml --accelerate_config zero3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3>CUDA Out of Memory</h3>
+<ul>
+<li>Reduce <code>--per_device_train_batch_size</code> and increase <code>--gradient_accumulation_steps</code></li>
+<li>Enable <code>--use_peft</code> for LoRA training</li>
+<li>Use <code>--gradient_checkpointing</code> to save memory</li>
+<li>Try smaller model or longer sequence truncation</li>
+</ul>
+<h3>Dataset Loading Issues</h3>
+<ul>
+<li>Verify dataset exists: check Hugging Face Hub or local path</li>
+<li>Check dataset format matches expected columns</li>
+<li>Use <code>--dataset_config</code> for multi-config datasets</li>
+<li>Inspect dataset: <code>from datasets import load_dataset; ds = load_dataset(name)</code></li>
+</ul>
+<h3>Model Loading Issues</h3>
+<ul>
+<li>Verify model exists on Hugging Face Hub</li>
+<li>Check if gated model requires authentication: <code>hf auth login</code></li>
+<li>For local models, provide absolute path</li>
+<li>Ensure sufficient disk space and memory</li>
+</ul>
+<h3>Slow Training</h3>
+<ul>
+<li>Enable dataset <code>--packing</code> for short sequences</li>
+<li>Use larger <code>--per_device_train_batch_size</code> if memory allows</li>
+<li>Enable <code>--tf32</code> for faster computation on Ampere GPUs</li>
+<li>Use <code>--bf16</code> on supported hardware</li>
+<li>Consider multi-GPU training with <code>--num_processes</code></li>
+</ul>
+<h3>Generation Issues (GRPO/RLOO)</h3>
+<ul>
+<li>Check prompt format in dataset</li>
+<li>Adjust <code>--temperature</code> and <code>--top_p</code> for generation</li>
+<li>Verify the reward function (for GRPO/RLOO)</li>
+</ul>
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><strong>Documentation</strong>: <a href="https://huggingface.co/docs/trl">https://huggingface.co/docs/trl</a></li>
+<li><strong>GitHub</strong>: <a href="https://github.com/huggingface/trl">https://github.com/huggingface/trl</a></li>
+<li><strong>Examples</strong>: <a href="https://github.com/huggingface/trl/tree/main/examples">https://github.com/huggingface/trl/tree/main/examples</a></li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Start with SFT</strong>: Always fine-tune base models with SFT before preference alignment</li>
+<li><strong>Use LoRA for efficiency</strong>: Enable <code>--use_peft</code> for faster training and lower memory</li>
+<li><strong>Monitor training</strong>: Use <code>--report_to trackio</code> (or <code>--report_to wandb</code> or <code>--report_to tensorboard</code>) for tracking</li>
+<li><strong>Save checkpoints</strong>: TRL automatically saves checkpoints in <code>--output_dir</code></li>
+<li><strong>Test on small datasets first</strong>: Verify pipeline works before full training</li>
+<li><strong>Use configuration files</strong>: Create YAML configs for reproducibility</li>
+<li><strong>Leverage Accelerate</strong>: Use multi-GPU training for faster iteration</li>
+</ol>
+<p>When helping users with TRL:</p>
+<ul>
+<li>Always check which training method is appropriate for their use case</li>
+<li>Verify dataset format matches the expected schema</li>
+<li>Recommend starting with smaller models for testing</li>
+<li>Suggest LoRA for resource-constrained environments</li>
+<li>Point to specific documentation sections for advanced features</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

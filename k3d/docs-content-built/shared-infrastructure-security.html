@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Shared Infrastructure Security — Cross-Brand Analysis — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Shared Infrastructure Security — Cross-Brand Analysis</span></nav>
+    <h1>Shared Infrastructure Security — Cross-Brand Analysis</h1>
+    <p class="page-desc">Security analysis of shared infrastructure between mentolder and korczewski brands — LLM GPU host, backup encryption, Filen, and SMTP</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">security</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Shared Infrastructure Security — Cross-Brand Analysis</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#1-shared-llm-gpu-host"><span class="toc-num">1.</span> 1. Shared LLM GPU Host</a></li>
+<li class="toc-item"><a href="#2-backup-encryption-pipeline"><span class="toc-num">2.</span> 2. Backup Encryption Pipeline</a></li>
+<li class="toc-item"><a href="#3-shared-infrastructure-risk-assessment"><span class="toc-num">3.</span> 3. Shared Infrastructure Risk Assessment</a></li>
+<li class="toc-item"><a href="#4-zusammenfassung"><span class="toc-num">4.</span> 4. Zusammenfassung</a></li></ul>
+</div>
+<p>Beide Brands (mentolder.de / korczewski.de) laufen auf demselben <strong>fleet</strong> Kubernetes-Cluster, in getrennten Namespaces (<code>workspace</code> / <code>workspace-korczewski</code>). Einige Infrastruktur-Komponenten werden jedoch <strong>cluster-übergreifend geteilt</strong>. Dieses Dokument analysiert die Sicherheits-Implikationen der geteilten Ressourcen.</p>
+<hr>
+<h2 id="1-shared-llm-gpu-host">1. Shared LLM GPU Host</h2>
+<h3>Architektur</h3>
+<p>Beide Brands nutzen <strong>dieselbe physische GPU-Box</strong> für KI-Workloads:</p>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Hardware</strong></td>
+<td>NVIDIA RTX 5070 Ti (16 GB VRAM), Ubuntu 24.04</td>
+</tr>
+<tr>
+<td><strong>WireGuard IP</strong></td>
+<td><code>100.102.71.114</code> (wg-mesh)</td>
+</tr>
+<tr>
+<td><strong>Erreichbarkeit</strong></td>
+<td>Nur innerhalb des wg-mesh VPNs — kein öffentlicher Zugriff</td>
+</tr>
+<tr>
+<td><strong>Services</strong></td>
+<td>TEI Embed (<code>:8081</code>), TEI Rerank (<code>:8082</code>), Ollama Chat (<code>:11434</code>)</td>
+</tr>
+<tr>
+<td><strong>Kubernetes</strong></td>
+<td>Drei <code>Service</code>/<code>Endpoints</code>-Paare pro Brand → <code>${LLM_HOST_IP}</code></td>
+</tr>
+</tbody></table>
+<div class="code-wrapper"><pre><code>┌─────────────────────────────────────────────────────────┐
+│                    wg-mesh (WireGuard)                    │
+│                                                          │
+│  ┌──────────────────┐         ┌──────────────────────┐  │
+│  │ fleet mentolder   │         │ fleet korczewski      │  │
+│  │ ns: workspace     │         │ ns: workspace-korczewski│
+│  │                   │         │                       │  │
+│  │ llm-gateway-embed │         │ llm-gateway-embed     │  │
+│  │ llm-gateway-rerank│         │ llm-gateway-rerank    │  │
+│  │ llm-gateway-chat  │         │ llm-gateway-chat      │  │
+│  └──────┬───────────┘         └──────┬────────────────┘  │
+│         │                            │                   │
+│         └──────────┬─────────────────┘                   │
+│                    ▼                                     │
+│         ┌──────────────────────┐                         │
+│         │   GPU Host           │                         │
+│         │   100.102.71.114     │                         │
+│         │                      │                         │
+│         │  TEI (bge-m3) :8081  │                         │
+│         │  TEI (rerank) :8082  │                         │
+│         │  Ollama (chat) :11434│                         │
+│         └──────────────────────┘                         │
+└─────────────────────────────────────────────────────────┘
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Brand-Isolation der Embeddings</h3>
+<p><strong>Fazit: Collections sind pro Brand logisch isoliert. Kein Cross-Brand-Leak möglich.</strong></p>
+<p>Die Isolation erfolgt auf <strong>Applikations-Ebene</strong>, nicht auf GPU-Ebene:</p>
+<ol>
+<li><p><strong>Datenbank-Level:</strong> Jede <code>knowledge.collections</code>-Zeile hat eine <code>brand</code>-Spalte. Queries der Website filtern immer auf die eigene Brand (<code>WHERE brand = $1</code>). Die <code>website</code>-DB selbst ist pro Brand getrennt (separate PostgreSQL-Instanzen: <code>shared-db.workspace</code> vs <code>shared-db.workspace-korczewski</code>).</p>
+</li>
+<li><p><strong>Embedding-Modell-Pinning:</strong> Jede Collection ist fest an <strong>genau ein</strong> Embedding-Modell gebunden (<code>embedding_model</code>-Spalte: <code>bge-m3</code> oder <code>voyage-multilingual-2</code>). Cross-Modell-Queries werden von <code>MixedEmbeddingModelError</code> hart abgelehnt — es gibt keinen Fallback zwischen Vektorräumen.</p>
+</li>
+<li><p><strong>GPU-Host ist stateless:</strong> Die TEI/Ollama-Instanzen auf dem GPU-Host speichern keine Embeddings persistent. Sie empfangen Plaintext, berechnen Vektoren, und geben sie zurück. Es gibt kein Caching, keine Persistenz, keine Query-Logs auf dem GPU-Host.</p>
+</li>
+<li><p><strong>Kein Cross-Brand-Routing:</strong> Obwohl beide Brands denselben GPU-Host ansteuern, geschieht dies über separate <code>Service</code>/<code>Endpoints</code>-Objekte in getrennten Namespaces. Eine mentolder-Collection kann nicht versehentlich eine korczewski-Collection abfragen, weil die Website nur ihre eigene Datenbank kennt.</p>
+</li>
+</ol>
+<h3>Restrisiko: Plaintext-HTTP innerhalb wg-mesh</h3>
+<p>Der Traffic zwischen Cluster und GPU-Host läuft <strong>unverschlüsselt als HTTP</strong> innerhalb des WireGuard-Tunnels. WireGuard selbst bietet Verschlüsselung auf Layer 3 (ChaCha20-Poly1305), aber:</p>
+<ul>
+<li>Ein kompromittierter wg-mesh-Peer (z. B. der Entwickler-Laptop <code>10.13.14.11</code>) könnte den Plaintext-Traffic mitschneiden.</li>
+<li>Embedding-Anfragen enthalten den zu vektorisierenden Plaintext — bei Coaching-Dokumenten potenziell PII.</li>
+<li><strong>Akzeptiertes Risiko:</strong> wg-mesh ist ein geschlossenes VPN mit bekannten Peers. Die Alternative (TLS-Terminierung auf dem GPU-Host) würde Zertifikatsmanagement auf einem nicht-Cluster-Node erfordern.</li>
+</ul>
+<h3>GPU-Host-Ausfall</h3>
+<p>Fällt der GPU-Host aus:</p>
+<ul>
+<li><code>bge-m3</code>-Collections: Embedding-Indexierung und -Queries <strong>fail closed</strong> (503). Kein Fallback auf Voyage — unterschiedliche Vektorräume würden garbage results liefern.</li>
+<li><code>voyage-multilingual-2</code>-Collections: <strong>nicht betroffen</strong> (Voyage-API ist Cloud-basiert, unabhängig vom GPU-Host).</li>
+<li>Chat-class-Anfragen: <strong>fallen zurück auf Anthropic</strong> (pro Call, via llm-router Timeout nach 30s).</li>
+</ul>
+<p>Siehe auch: CLAUDE.md § "Local-first LLM pipeline", <code>docs/superpowers/plans/archive/2026-05-10-local-llm-pipeline.md</code>.</p>
+<hr>
+<h2 id="2-backup-encryption-pipeline">2. Backup Encryption Pipeline</h2>
+<h3>Übersicht</h3>
+<p><strong>Fazit: ALLE Backups werden vor dem Upload mit AES-256-CBC verschlüsselt. Filen sieht nur verschlüsselte Daten.</strong></p>
+<p>Es gibt zwei Backup-Ströme, beide folgen demselben Prinzip: <strong>encrypt-then-upload</strong>.</p>
+<h3>2.1 DB-Backup (<code>db-backup</code> CronJob, 02:00 UTC täglich)</h3>
+<div class="code-wrapper"><pre><code>┌──────────┐    pg_dump -Fc     ┌──────────┐    openssl enc     ┌───────────┐    @filen/cli    ┌───────┐
+│ shared-db │ ────────────────► │  *.dump   │ ────────────────► │ *.dump.enc │ ──────────────► │ Filen │
+│ PostgreSQL│   (plaintext)     │ (raw SQL) │  aes-256-cbc      │(encrypted) │   (encrypted)   │ Cloud │
+└──────────┘                   └──────────┘  -salt -pbkdf2     └───────────┘                 └───────┘
+                                                    │
+                                           BACKUP_PASSPHRASE
+                                           (workspace-secrets
+                                            → SealedSecret)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Datenbanken im Backup:</strong> <code>keycloak</code>, <code>nextcloud</code>, <code>vaultwarden</code>, <code>website</code>, <code>docuseal</code></p>
+<p><strong>PII pro DB:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Datenbank</th>
+<th>Enthaltene PII</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>website</code></td>
+<td>Namen, Emails, Adressen, Telefon, <strong>Coaching-Notizen</strong>, Rechnungen, Zahlungsdaten, CRM</td>
+</tr>
+<tr>
+<td><code>keycloak</code></td>
+<td>Usernamen, Emails, Vor-/Nachname, bcrypt-Passwort-Hashes, Gruppen-Zugehörigkeit</td>
+</tr>
+<tr>
+<td><code>nextcloud</code></td>
+<td>Dateinamen, Dateiinhalte, Chat-Nachrichten, Share-Links, E-Mail-Adressen</td>
+</tr>
+<tr>
+<td><code>vaultwarden</code></td>
+<td>Emails, <strong>client-seitig verschlüsselte</strong> Vault-Inhalte (Passwörter, Notizen, Karten, TOTP)</td>
+</tr>
+<tr>
+<td><code>docuseal</code></td>
+<td>Namen, Emails, IP-Adressen, PDF-Dokumente mit Unterschriften</td>
+</tr>
+</tbody></table>
+<p><strong>Verschlüsselung:</strong> <code>openssl enc -aes-256-cbc -salt -pbkdf2 -pass env:BACKUP_PASSPHRASE</code></p>
+<ul>
+<li><code>BACKUP_PASSPHRASE</code> stammt aus <code>workspace-secrets</code> (SealedSecret → nur cluster-intern entschlüsselbar)</li>
+<li><strong>Verschlüsselung geschieht IM Pod, vor dem Upload.</strong> Filen empfängt ausschließlich <code>.dump.enc</code>-Dateien.</li>
+<li>Retention: 30 Tage lokal auf <code>backup-pvc</code> + dauerhaft in Filen</li>
+</ul>
+<h3>2.2 PVC-Backup (<code>pvc-backup</code> CronJob, 03:00 UTC täglich)</h3>
+<div class="code-wrapper"><pre><code>┌───────────┐    tar czf    ┌──────────────┐    openssl enc     ┌──────────────────┐    @filen/cli    ┌───────┐
+│ data-PVCs  │ ───────────► │  *.tar.gz     │ ────────────────► │ *.tar.gz.enc      │ ──────────────► │ Filen │
+│ (readOnly) │  (plaintext) │  (raw files)  │  aes-256-cbc      │ (encrypted)        │   (encrypted)   │ Cloud │
+└───────────┘              └──────────────┘  -salt -pbkdf2     └──────────────────┘                 └───────┘
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>PVCs im Backup:</strong> <code>nextcloud-data-pvc</code>, <code>vaultwarden-data-pvc</code>, <code>docuseal-data-pvc</code></p>
+<p><strong>PII pro PVC:</strong></p>
+<table>
+<thead>
+<tr>
+<th>PVC</th>
+<th>Enthaltene PII</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nextcloud-data-pvc</code></td>
+<td>Nutzerdateien, hochgeladene Dokumente, Preview-Thumbnails</td>
+</tr>
+<tr>
+<td><code>vaultwarden-data-pvc</code></td>
+<td>Client-seitig verschlüsselte Attachments, Icons</td>
+</tr>
+<tr>
+<td><code>docuseal-data-pvc</code></td>
+<td>Hochgeladene PDFs, signierte Dokumente</td>
+</tr>
+</tbody></table>
+<p><strong>Verschlüsselung:</strong> Identisch zu DB-Backup — <code>openssl enc -aes-256-cbc -salt -pbkdf2</code> mit <code>BACKUP_PASSPHRASE</code>.</p>
+<h3>2.3 Defense-in-Depth: Filen-eigene Verschlüsselung</h3>
+<p>Zusätzlich zur AES-256-CBC-Verschlüsselung vor dem Upload bietet Filen <strong>client-seitige Ende-zu-Ende-Verschlüsselung</strong> (Zero-Knowledge-Architektur). Das bedeutet:</p>
+<ol>
+<li><strong>Unsere Schicht:</strong> <code>openssl enc -aes-256-cbc</code> → Dateien sind bereits verschlüsselt, bevor sie den Pod verlassen</li>
+<li><strong>Filens Schicht:</strong> Filen verschlüsselt alle Uploads client-seitig mit dem Account-Master-Key → Filen kann die Inhalte selbst dann nicht lesen, wenn der <code>BACKUP_PASSPHRASE</code> schwach wäre</li>
+</ol>
+<p><strong>Doppelte Verschlüsselung ist hier gewollt</strong> — sie schützt auch dann, wenn eine der beiden Schichten kompromittiert wird.</p>
+<h3>2.4 Recovery-Prozess</h3>
+<p>Der <code>BACKUP_PASSPHRASE</code> wird im Disaster-Recovery-Fall benötigt:</p>
+<ol>
+<li><code>scripts/backup-restore.sh filen-pull &lt;timestamp&gt;</code> — lädt verschlüsselte Backups aus Filen in den leeren <code>backup-pvc</code></li>
+<li><code>scripts/backup-restore.sh restore &lt;db&gt; &lt;timestamp&gt;</code> — entschlüsselt mit <code>BACKUP_PASSPHRASE</code> und stellt wieder her</li>
+</ol>
+<p><strong>Kritische Abhängigkeit:</strong> Ohne <code>BACKUP_PASSPHRASE</code> sind alle Backups unwiederbringlich verloren. Der Passphrase ist Teil der <code>workspace-secrets</code> und wird als SealedSecret versioniert in <code>environments/sealed-secrets/&lt;env&gt;.yaml</code>. Bei einem Komplettverlust des Clusters muss der Passphrase aus dem Git-Repository (git-crypt-encrypted) wiederhergestellt werden.</p>
+<hr>
+<h2 id="3-shared-infrastructure-risk-assessment">3. Shared Infrastructure Risk Assessment</h2>
+<h3>3.1 Filen Backup Account</h3>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Account</strong></td>
+<td>Ein Filen-Account für beide Brands</td>
+</tr>
+<tr>
+<td><strong>Trennung</strong></td>
+<td>Separate Pfade: <code>BACKUPS/mentolder/</code> und <code>BACKUPS/korczewski/</code></td>
+</tr>
+<tr>
+<td><strong>Zugriff</strong></td>
+<td>Credentials in separaten <code>workspace-secrets</code> pro Brand (verschiedene SealedSecrets)</td>
+</tr>
+<tr>
+<td><strong>Risiko</strong></td>
+<td>🟢 <strong>Akzeptabel</strong> — Verschlüsselung vor Upload macht Pfad-Trennung redundant; selbst bei Pfad-Verwechslung sind die Daten AES-256-verschlüsselt</td>
+</tr>
+</tbody></table>
+<p><strong>Begründung:</strong> Da beide Brands denselben Filen-Account nutzen, könnte ein Fehler in der Upload-Pfad-Logik theoretisch mentolder-Backups in den korczewski-Pfad schreiben (oder umgekehrt). Dies hätte aber <strong>keine Sicherheitsimplikation</strong>, weil:</p>
+<ol>
+<li>Die Dateien sind AES-256-CBC verschlüsselt — ohne <code>BACKUP_PASSPHRASE</code> nicht lesbar</li>
+<li>Der <code>BACKUP_PASSPHRASE</code> ist pro Brand unterschiedlich (separate <code>workspace-secrets</code>)</li>
+<li>Selbst bei gleichem Passphrase würden die <code>pg_restore</code>-Befehle gegen die falsche DB fehlschlagen (falsche Credentials)</li>
+</ol>
+<h3>3.2 SMTP (smtp.mailbox.org)</h3>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Provider</strong></td>
+<td>mailbox.org (gleicher Anbieter für beide Brands)</td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td>Separate SMTP-Credentials pro Brand (<code>SMTP_USER</code> / <code>SMTP_PASSWORD</code>)</td>
+</tr>
+<tr>
+<td><strong>Transport</strong></td>
+<td>STARTTLS (<code>:587</code>) — TLS-verschlüsselt in transit</td>
+</tr>
+<tr>
+<td><strong>Risiko</strong></td>
+<td>🟢 <strong>Akzeptabel</strong> — Gleicher Provider, aber separate Auth + separate Absender-Domains</td>
+</tr>
+</tbody></table>
+<p><strong>Begründung:</strong> <code>smtp.mailbox.org</code> ist lediglich der Transport-Provider. Beide Brands authentifizieren sich mit separaten Credentials und versenden E-Mails von unterschiedlichen Domains (<code>@mentolder.de</code> vs <code>@korczewski.de</code>). Die E-Mail-Inhalte sind per STARTTLS geschützt. Ein Provider-seitiger Fehler (falsches Routing) könnte E-Mails der falschen Domain zuordnen, aber:</p>
+<ol>
+<li>SMTP-Auth trennt die Absender-Identitäten auf Protokollebene</li>
+<li>E-Mails enthalten die Absender-Domain im <code>From:</code>-Header (vom Client gesetzt)</li>
+<li>DSGVO-Relevanz: Rechnungen/Coaching-Mails sind bereits per STARTTLS verschlüsselt; ein Routing-Fehler würde zu einem Zustellfehler führen, nicht zu einem Leak</li>
+</ol>
+<h3>3.3 WireGuard Mesh (gemeinsames VPN)</h3>
+<table>
+<thead>
+<tr>
+<th>Eigenschaft</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Netzwerke</strong></td>
+<td><code>wg-fleet</code> (10.20.0.0/24) für Cluster-intern, <code>wg-mesh</code> (192.168.100.0/24 + 10.13.14.0/24) für externe Peers</td>
+</tr>
+<tr>
+<td><strong>Peers</strong></td>
+<td>Fleet-Nodes (6) + GPU-Host + Entwickler-Laptop</td>
+</tr>
+<tr>
+<td><strong>Verschlüsselung</strong></td>
+<td>ChaCha20-Poly1305 (WireGuard-Standard)</td>
+</tr>
+<tr>
+<td><strong>Risiko</strong></td>
+<td>🟡 <strong>Beobachtet</strong> — GPU-Host-Plaintext-HTTP innerhalb wg-mesh; Entwickler-Laptop als Peer mit Zugriff auf alle Mesh-Subnetze</td>
+</tr>
+</tbody></table>
+<p><strong>Begründung:</strong> Die WireGuard-Konfiguration erlaubt allen Peers im <code>wg-mesh</code> prinzipiell Zugriff auf den GPU-Host und potenziell auf Cluster-Services. Der Entwickler-Laptop ist ein vollwertiger Mesh-Peer. Kompromittierung des Laptops würde einem Angreifer Zugriff auf den GPU-Traffic (Plaintext-Embedding-Anfragen) geben. Dies ist ein <strong>akzeptiertes Risiko</strong> für die aktuelle Betriebsgröße — die Alternative (TLS auf dem GPU-Host) würde erhebliches Zertifikatsmanagement erfordern.</p>
+<hr>
+<h2 id="4-zusammenfassung">4. Zusammenfassung</h2>
+<table>
+<thead>
+<tr>
+<th>Komponente</th>
+<th>Isolation</th>
+<th>Verschlüsselung</th>
+<th>Risiko</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>LLM GPU Host</strong></td>
+<td>Collections pro Brand (DB-Level)</td>
+<td>WireGuard (Layer 3) + Plaintext-HTTP intern</td>
+<td>🟡 Beobachtet</td>
+</tr>
+<tr>
+<td><strong>DB-Backups</strong></td>
+<td>Separate <code>workspace-secrets</code> pro Brand</td>
+<td>AES-256-CBC vor Upload + Filen E2E</td>
+<td>🟢 Akzeptabel</td>
+</tr>
+<tr>
+<td><strong>PVC-Backups</strong></td>
+<td>Separate <code>workspace-secrets</code> pro Brand</td>
+<td>AES-256-CBC vor Upload + Filen E2E</td>
+<td>🟢 Akzeptabel</td>
+</tr>
+<tr>
+<td><strong>Filen Account</strong></td>
+<td>Separate Pfade pro Brand</td>
+<td>Doppelt (AES + Filen Zero-Knowledge)</td>
+<td>🟢 Akzeptabel</td>
+</tr>
+<tr>
+<td><strong>SMTP</strong></td>
+<td>Separate Auth pro Brand</td>
+<td>STARTTLS</td>
+<td>🟢 Akzeptabel</td>
+</tr>
+<tr>
+<td><strong>WireGuard Mesh</strong></td>
+<td>Shared (alle Peers)</td>
+<td>ChaCha20-Poly1305</td>
+<td>🟡 Beobachtet</td>
+</tr>
+</tbody></table>
+<p><strong>Keine Datenlecks.</strong> Alle geteilten Ressourcen haben entweder logische Isolation auf Applikations-Ebene (LLM-Collections, Filen-Pfade, SMTP-Auth) oder kryptografische Isolation (Backup-Passphrase pro Brand, AES-256-CBC). Es gibt keinen Pfad, über den PII einer Brand unverschlüsselt in den Besitz der anderen Brand gelangen könnte.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

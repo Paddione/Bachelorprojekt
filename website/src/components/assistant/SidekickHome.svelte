@@ -60,7 +60,7 @@
 
   {#if banner}
     {#if banner.cta}
-      <button type="button" class="sk-banner sk-banner--{banner.kind}" onclick={() => onNavigate('agent-guide')}>
+      <button type="button" class="sk-banner sk-banner--{banner.kind}" onclick={() => { onClose?.(); window.location.href = '/portal/loslernen'; }}>
         <span class="sk-banner-label">{banner.label}</span>
         <span class="sk-banner-arrow" aria-hidden="true">→</span>
       </button>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>using-tmux-for-interactive-commands — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">using-tmux-for-interactive-commands</span></nav>
+    <h1>using-tmux-for-interactive-commands</h1>
+    <p class="page-desc">Use when you need to run interactive CLI tools (vim, git rebase -i, Python REPL, etc.) that require real-time input/output - provides tmux-based approach for controlling interactive sessions through detached sessions and send-keys</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-lab</span> <span class="pv-ver">0.5.0</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Using tmux for Interactive Commands</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#when-to-use"><span class="toc-num">2.</span> When to Use</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">3.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#core-pattern"><span class="toc-num">4.</span> Core Pattern</a></li>
+<li class="toc-item"><a href="#implementation"><span class="toc-num">5.</span> Implementation</a></li>
+<li class="toc-item"><a href="#common-patterns"><span class="toc-num">6.</span> Common Patterns</a></li>
+<li class="toc-item"><a href="#common-mistakes"><span class="toc-num">7.</span> Common Mistakes</a></li>
+<li class="toc-item"><a href="#real-world-impact"><span class="toc-num">8.</span> Real-World Impact</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Interactive CLI tools (vim, interactive git rebase, REPLs, etc.) cannot be controlled through standard bash because they require a real terminal. tmux provides detached sessions that can be controlled programmatically via <code>send-keys</code> and <code>capture-pane</code>.</p>
+<h2 id="when-to-use">When to Use</h2>
+<p><strong>Use tmux when:</strong></p>
+<ul>
+<li>Running vim, nano, or other text editors programmatically</li>
+<li>Controlling interactive REPLs (Python, Node, etc.)</li>
+<li>Handling interactive git commands (<code>git rebase -i</code>, <code>git add -p</code>)</li>
+<li>Working with full-screen terminal apps (htop, etc.)</li>
+<li>Commands that require terminal control codes or readline</li>
+</ul>
+<p><strong>Don't use for:</strong></p>
+<ul>
+<li>Simple non-interactive commands (use regular Bash tool)</li>
+<li>Commands that accept input via stdin redirection</li>
+<li>One-shot commands that don't need interaction</li>
+</ul>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Start session</td>
+<td><code>tmux new-session -d -s &lt;name&gt; &lt;command&gt;</code></td>
+</tr>
+<tr>
+<td>Send input</td>
+<td><code>tmux send-keys -t &lt;name&gt; 'text' Enter</code></td>
+</tr>
+<tr>
+<td>Capture output</td>
+<td><code>tmux capture-pane -t &lt;name&gt; -p</code></td>
+</tr>
+<tr>
+<td>Stop session</td>
+<td><code>tmux kill-session -t &lt;name&gt;</code></td>
+</tr>
+<tr>
+<td>List sessions</td>
+<td><code>tmux list-sessions</code></td>
+</tr>
+</tbody></table>
+<h2 id="core-pattern">Core Pattern</h2>
+<h3>Before (Won't Work)</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># This hangs because vim expects interactive terminal
+bash -c "vim file.txt"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>After (Works)</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Create detached tmux session
+tmux new-session -d -s edit_session vim file.txt
+
+# Send commands (Enter, Escape are tmux key names)
+tmux send-keys -t edit_session 'i' 'Hello World' Escape ':wq' Enter
+
+# Capture what's on screen
+tmux capture-pane -t edit_session -p
+
+# Clean up
+tmux kill-session -t edit_session
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="implementation">Implementation</h2>
+<h3>Basic Workflow</h3>
+<ol>
+<li><strong>Create detached session</strong> with the interactive command</li>
+<li><strong>Wait briefly</strong> for initialization (100-500ms depending on command)</li>
+<li><strong>Send input</strong> using <code>send-keys</code> (can send special keys like Enter, Escape)</li>
+<li><strong>Capture output</strong> using <code>capture-pane -p</code> to see current screen state</li>
+<li><strong>Repeat</strong> steps 3-4 as needed</li>
+<li><strong>Terminate</strong> session when done</li>
+</ol>
+<h3>Special Keys</h3>
+<p>Common tmux key names:</p>
+<ul>
+<li><code>Enter</code> - Return/newline</li>
+<li><code>Escape</code> - ESC key</li>
+<li><code>C-c</code> - Ctrl+C</li>
+<li><code>C-x</code> - Ctrl+X</li>
+<li><code>Up</code>, <code>Down</code>, <code>Left</code>, <code>Right</code> - Arrow keys</li>
+<li><code>Space</code> - Space bar</li>
+<li><code>BSpace</code> - Backspace</li>
+</ul>
+<h3>Working Directory</h3>
+<p>Specify working directory when creating session:</p>
+<div class="code-wrapper"><pre><code class="language-bash">tmux new-session -d -s git_session -c /path/to/repo git rebase -i HEAD~3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Helper Wrapper</h3>
+<p>For easier use, see <code>/home/jesse/git/interactive-command/tmux-wrapper.sh</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Start session
+/path/to/tmux-wrapper.sh start &lt;session-name&gt; &lt;command&gt; [args...]
+
+# Send input
+/path/to/tmux-wrapper.sh send &lt;session-name&gt; 'text' Enter
+
+# Capture current state
+/path/to/tmux-wrapper.sh capture &lt;session-name&gt;
+
+# Stop
+/path/to/tmux-wrapper.sh stop &lt;session-name&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3>Python REPL</h3>
+<div class="code-wrapper"><pre><code class="language-bash">tmux new-session -d -s python python3 -i
+tmux send-keys -t python 'import math' Enter
+tmux send-keys -t python 'print(math.pi)' Enter
+tmux capture-pane -t python -p  # See output
+tmux kill-session -t python
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Vim Editing</h3>
+<div class="code-wrapper"><pre><code class="language-bash">tmux new-session -d -s vim vim /tmp/file.txt
+sleep 0.3  # Wait for vim to start
+tmux send-keys -t vim 'i' 'New content' Escape ':wq' Enter
+# File is now saved
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Interactive Git Rebase</h3>
+<div class="code-wrapper"><pre><code class="language-bash">tmux new-session -d -s rebase -c /repo/path git rebase -i HEAD~3
+sleep 0.5
+tmux capture-pane -t rebase -p  # See rebase editor
+# Send commands to modify rebase instructions
+tmux send-keys -t rebase 'Down' 'Home' 'squash' Escape
+tmux send-keys -t rebase ':wq' Enter
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-mistakes">Common Mistakes</h2>
+<h3>Not Waiting After Session Start</h3>
+<p><strong>Problem:</strong> Capturing immediately after <code>new-session</code> shows blank screen</p>
+<p><strong>Fix:</strong> Add brief sleep (100-500ms) before first capture</p>
+<div class="code-wrapper"><pre><code class="language-bash">tmux new-session -d -s sess command
+sleep 0.3  # Let command initialize
+tmux capture-pane -t sess -p
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Forgetting Enter Key</h3>
+<p><strong>Problem:</strong> Commands typed but not executed</p>
+<p><strong>Fix:</strong> Explicitly send Enter</p>
+<div class="code-wrapper"><pre><code class="language-bash">tmux send-keys -t sess 'print("hello")' Enter  # Note: Enter is separate argument
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Using Wrong Key Names</h3>
+<p><strong>Problem:</strong> <code>tmux send-keys -t sess '\n'</code> doesn't work</p>
+<p><strong>Fix:</strong> Use tmux key names: <code>Enter</code>, not <code>\n</code></p>
+<div class="code-wrapper"><pre><code class="language-bash">tmux send-keys -t sess 'text' Enter  # ✓
+tmux send-keys -t sess 'text\n'      # ✗
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Not Cleaning Up Sessions</h3>
+<p><strong>Problem:</strong> Orphaned tmux sessions accumulate</p>
+<p><strong>Fix:</strong> Always kill sessions when done</p>
+<div class="code-wrapper"><pre><code class="language-bash">tmux kill-session -t session_name
+# Or check for existing: tmux has-session -t name 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="real-world-impact">Real-World Impact</h2>
+<ul>
+<li>Enables programmatic control of vim/nano for file editing</li>
+<li>Allows automation of interactive git workflows (rebase, add -p)</li>
+<li>Makes REPL-based testing/debugging possible</li>
+<li>Unblocks any tool that requires terminal interaction</li>
+<li>No need to build custom PTY management - tmux handles it all</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

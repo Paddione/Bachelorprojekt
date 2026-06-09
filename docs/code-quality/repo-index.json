@@ -1920,7 +1920,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 264,
+      "file_count": 265,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2128,6 +2128,7 @@
         "scripts/llm/ollama.service",
         "scripts/llm/tei-embed.service",
         "scripts/llm/tei-rerank.service",
+        "scripts/mcp-portforward.sh",
         "scripts/migrate-bugs-to-tickets.mjs",
         "scripts/migrate-content-hub-ssot.mjs",
         "scripts/migrate-content-versions.mjs",

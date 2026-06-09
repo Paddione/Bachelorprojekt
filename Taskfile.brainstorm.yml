@@ -37,10 +37,18 @@ tasks:
         if [[ -z "$PORT" ]]; then
           echo "Usage: task brainstorm:publish -- <localport>" >&2; exit 2
         fi
+        # Proactively check dev-cluster reachability before attempting the tunnel [T000541]
+        if ! kubectl --context {{.CTX_DEV}} cluster-info --request-timeout=3s >/dev/null 2>&1; then
+          echo "⚠  Dev-Cluster ({{.CTX_DEV}}) nicht erreichbar — Tunnel nicht möglich." >&2
+          echo "   Fallback: Companion läuft lokal auf http://localhost:$PORT" >&2
+          echo "   Starte den Companion mit: node scripts/companion.js $PORT" >&2
+          exit 1
+        fi
         echo "Publishing localhost:$PORT as https://brainstorm.$DEV_DOMAIN — leave this terminal open."
         echo "  ssh -p {{.SSH_PORT}} -R brainstorm:80:localhost:$PORT tunnel@$DEV_DOMAIN"
         exec ssh -p {{.SSH_PORT}} -N \
           -o StrictHostKeyChecking=accept-new \
+          -o ConnectTimeout=5 \
           -o ServerAliveInterval=30 \
           -o ServerAliveCountMax=3 \
           -o ExitOnForwardFailure=yes \
@@ -88,6 +96,13 @@ tasks:
       - |
         set -euo pipefail
         source scripts/env-resolve.sh "{{.ENV}}"
+        # Quick reachability check first to avoid a long kubectl timeout [T000541]
+        if ! kubectl --context {{.CTX_DEV}} cluster-info --request-timeout=3s >/dev/null 2>&1; then
+          echo "⚠  Dev-Cluster ({{.CTX_DEV}}) nicht erreichbar."
+          echo "   Brainstorm-Tunnel ist nicht verfügbar. Fallback: lokaler Companion auf localhost:<port>"
+          echo "   Sobald der Dev-Cluster wieder läuft: task brainstorm:publish -- <port>"
+          exit 0
+        fi
         kubectl --context {{.CTX_DEV}} -n {{.NS_DEV}} get pod -l app=sish -o wide
         echo "── HTTPS probe ────────────────────────────────────────────"
         curl -sSI --max-time 5 "https://brainstorm.${DEV_DOMAIN}/" || true

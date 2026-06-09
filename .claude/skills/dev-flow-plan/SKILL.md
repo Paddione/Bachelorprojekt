@@ -211,7 +211,7 @@ Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe `/schedule
 3. Änderungen vornehmen.
 4. Verifizieren (`task test:all`, `task workspace:validate` etc.).
 5. Committen, pushen und PR erstellen (`commit-commands:commit-push-pr`).
-6. PR mergen (`gh pr merge --squash --delete-branch`).
+6. PR mergen (`gh pr merge --auto --squash --delete-branch`).
 7. Passenden Deploy-Task aufrufen (siehe Deploy-Tabelle in [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md)).
 
 ---

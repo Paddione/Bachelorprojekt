@@ -29,8 +29,11 @@ env_vars:
   SMTP_HOST: smtp.mailbox.org
   SMTP_PORT: "587"
   SMTP_SECURE: "false"
-  TURN_PUBLIC_IP: "37.27.251.38"
-  TURN_NODE: "pk-hetzner-6"
+  # Talk HPB (coturn + Janus SFU) is the SHARED fleet:shared-services stack on
+  # pk-hetzner-4 — NOT co-located with this brand's LiveKit edge (pk-hetzner-6).
+  # turn.korczewski.de must therefore pin to pk-4, while LIVEKIT_PIN_IP stays pk-6.
+  TURN_PUBLIC_IP: "204.168.244.104"
+  TURN_NODE: "pk-hetzner-4"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
   DOCS_URL: "https://docs.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"

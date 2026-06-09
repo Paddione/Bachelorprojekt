@@ -217,7 +217,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       {
         question_text: 'Öffne den Signatur-Link (/portal/sign/[id]) als Testnutzer — unterzeichne das Dokument auf dem Canvas per Maus/Stift und klicke „Unterschrift bestätigen". → Nutzer: Testnutzer-Browser + tatsächliche Signatur bestätigen.',
         expected_result: 'Signatur wird gespeichert; Dokument-Status wechselt auf „completed". PDF-Download-Link wird angezeigt.',
-        test_menu_path: 'Portal → Dokument unterschreiben', test_role: 'user',
+        test_function_url: '/portal/sign/[id]', test_menu_path: 'Portal → Dokument unterschreiben', test_role: 'user',
         agent_notes: 'Rechtsverbindliche Signatur — Nutzer muss bewusst bestätigen. Kontrolle für diesen Schritt übergeben.',
       },
       {
@@ -807,7 +807,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
       {
         question_text: '[ST-5: Dokumente] Öffne den Signatur-Link (/portal/sign/[id]) als Testnutzer — unterzeichne das Dokument auf dem Canvas per Maus/Stift und klicke „Unterschrift bestätigen". → Nutzer: Testnutzer-Browser + tatsächliche Signatur bestätigen.',
         expected_result: 'Signatur wird gespeichert; Dokument-Status wechselt auf „completed". PDF-Download-Link wird angezeigt.',
-        test_role: 'user',
+        test_function_url: '/portal/sign/[id]', test_role: 'user',
         agent_notes: 'Rechtsverbindliche Signatur — Nutzer muss bewusst bestätigen. Kontrolle für diesen Schritt übergeben.',
       },
       {

@@ -2181,7 +2181,7 @@
       "id": "brett",
       "name": "Brett 3D board (CommonJS)",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 286,
+      "file_count": 287,
       "files": [
         "brett/.dockerignore",
         "brett/.gitignore",
@@ -2419,6 +2419,7 @@
         "brett/test/join-overlay.test.ts",
         "brett/test/leader-grace.test.ts",
         "brett/test/lines.test.ts",
+        "brett/test/lobby-admin-session-create.test.ts",
         "brett/test/lobby-persistence.test.ts",
         "brett/test/lobby-ready.test.ts",
         "brett/test/lobby-render.test.ts",

@@ -433,6 +433,7 @@ const wsDeps = {
   broadcastInfo: rooms.broadcastInfo,
   addParticipant: rooms.addParticipant,
   removeParticipant: rooms.removeParticipant,
+  clearParticipants: rooms.clearParticipants,
   listParticipants: rooms.listParticipants,
   figureMaps: figures.figureMaps,
   rooms: rooms.rooms,
@@ -564,6 +565,7 @@ export const seedFiguresFromTemplate = figures.seedFiguresFromTemplate;
 export const applyTemplateToRoom = figures.applyTemplateToRoom;
 export const addParticipant = rooms.addParticipant;
 export const removeParticipant = rooms.removeParticipant;
+export const clearParticipants = rooms.clearParticipants;
 export const listParticipants = rooms.listParticipants;
 export const colorForIndex = rooms.colorForIndex;
 export const trackPlayerInRoom = sessions.trackPlayerInRoom;

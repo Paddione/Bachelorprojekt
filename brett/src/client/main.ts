@@ -54,7 +54,8 @@ function renderLobby(appShell: AppShell, user: MenuUser): void {
   // Lazily import the ws-client lobby store to avoid pulling the board bundle.
   import('./ws-client').then((ws) => {
     const state = ws.getLobbyState();
-    const isLeader = state.roster[user.userId]?.role === 'leiter';
+    const isLeader = state.roster[user.userId]?.role === 'leiter'
+      || state.adminTokenHolder === user.userId;
     const vm = buildLobbyViewModel(state, { isLeader });
     mountLobby(lobbyRoot, vm, {
       onStart: () => ws.sendClient({ type: 'admin_round_start' }),
@@ -65,6 +66,12 @@ function renderLobby(appShell: AppShell, user: MenuUser): void {
             const payload = buildCoachingStepsPayload(raw);
             if (payload) ws.sendClient({ type: 'admin_coaching_steps_set', steps: payload.steps, index: payload.index });
           }
+        : undefined,
+      onSetTemplate: isLeader
+        ? (id) => ws.sendClient({ type: 'admin_set_template', templateId: id })
+        : undefined,
+      onSetOptik: isLeader
+        ? (s) => ws.sendClient({ type: 'admin_set_optik', settings: s })
         : undefined,
     });
   });

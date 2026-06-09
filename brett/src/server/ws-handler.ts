@@ -12,6 +12,7 @@ export interface WsDeps {
   broadcastInfo: Function;
   addParticipant: Function;
   removeParticipant: Function;
+  clearParticipants: Function;
   listParticipants: Function;
   figureMaps: Map<string, Map<string, any>>;
   rooms: Map<string, Set<any>>;

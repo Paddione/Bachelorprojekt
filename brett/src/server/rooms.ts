@@ -25,7 +25,7 @@ export function leaveRoom(ws: any): string | undefined {
   const room = ws._room;
   if (!room || !rooms.has(room)) return;
   rooms.get(room)!.delete(ws);
-  if (rooms.get(room)!.size === 0) rooms.delete(room);
+  if (rooms.get(room)!.size === 0) { rooms.delete(room); clearParticipants(room); }
   return room;
 }
 
@@ -63,6 +63,10 @@ export function addParticipant(room: string, p: { userId: string; name: string }
 export function removeParticipant(room: string, userId: string): void {
   const m = roomParticipants.get(room);
   if (m) m.delete(userId);
+}
+
+export function clearParticipants(room: string): void {
+  roomParticipants.delete(room);
 }
 
 export function listParticipants(room: string): Array<{ userId: string; name: string; color: string }> {

@@ -49,3 +49,20 @@ test('buildLobbyViewModel: non-leader cannot start + has a Bereit toggle', () =>
 test('buildLobbyViewModel: importable under node (no DOM at module load)', () => {
   assert.strictEqual(typeof buildLobbyViewModel, 'function');
 });
+
+test('buildLobbyViewModel: leader gets editable settings', () => {
+  const vm = buildLobbyViewModel(seed(), { isLeader: true });
+  assert.strictEqual(vm.settings.editable, true);
+});
+
+test('buildLobbyViewModel: non-leader gets read-only settings', () => {
+  const vm = buildLobbyViewModel(seed(), { isLeader: false });
+  assert.strictEqual(vm.settings.editable, false);
+});
+
+test('buildLobbyViewModel: settings expose raw optik for controls', () => {
+  const s: LobbyState = { ...seed(), settings: { templateId: 't1', optik: { sky: 'dusk', lightMood: 'warm' } } };
+  const vm = buildLobbyViewModel(s, { isLeader: true });
+  assert.strictEqual(vm.settings.optik?.sky, 'dusk');
+  assert.strictEqual(vm.settings.optik?.lightMood, 'warm');
+});

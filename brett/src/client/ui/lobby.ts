@@ -29,7 +29,9 @@ export interface LobbyViewModel {
     templateId?: string;
     coachingTemplateId?: string;
     optikLabel?: string;
+    optik?: import('../../types/state').OptikSettings;
     maxParticipants?: number;
+    editable: boolean;
   };
 }
 
@@ -63,7 +65,9 @@ export function buildLobbyViewModel(state: LobbyState, opts: { isLeader: boolean
       templateId: state.settings.templateId,
       coachingTemplateId: state.settings.coachingTemplateId,
       optikLabel: optikLabel(state),
+      optik: state.settings.optik,
       maxParticipants: state.settings.maxParticipants,
+      editable: opts.isLeader,
     },
   };
 }
@@ -85,6 +89,8 @@ export interface LobbyHandlers {
   onCopyCode: (code: string) => void;
   /** Leader-only: emit the built coaching steps (D10). Absent ⇒ editor hidden. */
   onCoachingSteps?: (raw: string) => void;
+  onSetTemplate?: (templateId: string) => void;
+  onSetOptik?: (settings: import('../../types/state').OptikSettings) => void;
 }
 
 /**
@@ -132,9 +138,67 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
   settingsTitle.className = 'brett-lobby__section-title';
   settingsTitle.textContent = 'Vorgelagerte Einstellungen';
   settingsPanel.appendChild(settingsTitle);
-  settingsPanel.appendChild(settingRow('Vorlage', vm.settings.templateId ?? '–'));
-  settingsPanel.appendChild(settingRow('Optik', vm.settings.optikLabel ?? '–'));
-  settingsPanel.appendChild(settingRow('Max. Teiln.', vm.settings.maxParticipants != null ? String(vm.settings.maxParticipants) : '–'));
+  if (vm.settings.editable && handlers.onSetTemplate && handlers.onSetOptik) {
+    const tplSelect = document.createElement('select');
+    tplSelect.className = 'brett-lobby__select';
+    tplSelect.dataset.role = 'setting-template';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Vorlage wählen …';
+    tplSelect.appendChild(placeholder);
+    tplSelect.addEventListener('change', () => {
+      if (tplSelect.value) handlers.onSetTemplate!(tplSelect.value);
+    });
+    fetch('/api/templates')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list: Array<{ id: string; name?: string; label?: string }>) => {
+        for (const t of Array.isArray(list) ? list : []) {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.label ?? t.name ?? t.id;
+          if (t.id === vm.settings.templateId) opt.selected = true;
+          tplSelect.appendChild(opt);
+        }
+      })
+      .catch(() => { /* leave placeholder only */ });
+    settingsPanel.appendChild(settingControl('Vorlage', tplSelect));
+
+    const skySelect = document.createElement('select');
+    skySelect.className = 'brett-lobby__select';
+    skySelect.dataset.role = 'setting-sky';
+    for (const [value, text] of [['day', 'Tag'], ['dusk', 'Dämmerung'], ['calm', 'Ruhig']] as [string, string][]) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = text;
+      if (vm.settings.optik?.sky === value) opt.selected = true;
+      skySelect.appendChild(opt);
+    }
+    skySelect.addEventListener('change', () => {
+      handlers.onSetOptik!({ sky: skySelect.value as 'day' | 'dusk' | 'calm' });
+    });
+    settingsPanel.appendChild(settingControl('Himmel', skySelect));
+
+    const moodSelect = document.createElement('select');
+    moodSelect.className = 'brett-lobby__select';
+    moodSelect.dataset.role = 'setting-mood';
+    for (const [value, text] of [['neutral', 'Neutral'], ['warm', 'Warm'], ['cool', 'Kühl']] as [string, string][]) {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = text;
+      if (vm.settings.optik?.lightMood === value) opt.selected = true;
+      moodSelect.appendChild(opt);
+    }
+    moodSelect.addEventListener('change', () => {
+      handlers.onSetOptik!({ lightMood: moodSelect.value as 'neutral' | 'warm' | 'cool' });
+    });
+    settingsPanel.appendChild(settingControl('Licht', moodSelect));
+
+    settingsPanel.appendChild(settingRow('Max. Teiln.', vm.settings.maxParticipants != null ? String(vm.settings.maxParticipants) : '–'));
+  } else {
+    settingsPanel.appendChild(settingRow('Vorlage', vm.settings.templateId ?? '–'));
+    settingsPanel.appendChild(settingRow('Optik', vm.settings.optikLabel ?? '–'));
+    settingsPanel.appendChild(settingRow('Max. Teiln.', vm.settings.maxParticipants != null ? String(vm.settings.maxParticipants) : '–'));
+  }
 
   // Leader-only Coaching-Ablauf editor (D10). Steps built here become active at
   // round-start (admin_coaching_steps_set, survives lobby→active).
@@ -216,6 +280,16 @@ function settingRow(label: string, value: string): HTMLElement {
   return row;
 }
 
+function settingControl(label: string, control: HTMLElement): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'brett-lobby__setting';
+  const k = document.createElement('span');
+  k.className = 'brett-lobby__setting-label';
+  k.textContent = label;
+  row.append(k, control);
+  return row;
+}
+
 // ── Styles (token-driven; no hardcoded brand hex) ──────────────────────
 const LOBBY_STYLE_ID = 'brett-lobby';
 
@@ -244,6 +318,9 @@ export function lobbyCss(): string {
     '.brett-lobby__coaching{width:100%;box-sizing:border-box;background:var(--brett-ink-850);',
     'color:var(--brett-fg);border:1px solid var(--brett-line-2);border-radius:8px;padding:8px;',
     'font-family:var(--brett-font-sans);resize:vertical;margin-bottom:8px;}',
+    '.brett-lobby__select{background:var(--brett-ink-850);color:var(--brett-fg);',
+    'border:1px solid var(--brett-line-2);border-radius:8px;padding:4px 8px;',
+    'font-family:var(--brett-font-sans);}',
   ].join('');
 }
 

@@ -1909,7 +1909,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 263,
+      "file_count": 264,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2067,6 +2067,7 @@
         "scripts/factory/review-pattern-enforcer.prompt.md",
         "scripts/factory/review-perf-reviewer.prompt.md",
         "scripts/factory/review-security-auditor.prompt.md",
+        "scripts/factory/run-dispatcher.sh",
         "scripts/factory/schedule.sh",
         "scripts/factory/shared-state-allowlist.txt",
         "scripts/factory/slots.sh",

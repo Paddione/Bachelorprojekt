@@ -1,8 +1,10 @@
 ---
 import PortalLayout from '../../../layouts/PortalLayout.astro';
 import { getSession, getLoginUrl } from '../../../lib/auth';
+import { getDocumentAssignmentById, getDocumentTemplate, listAssignmentsForCustomer } from '../../../lib/documents-db';
+import { renderTemplate } from '../../../lib/signing/template-renderer';
 import { getCustomerByEmail } from '../../../lib/website-db';
-import { listAssignmentsForCustomer } from '../../../lib/documents-db';
+import { logSigningEvent } from '../../../lib/signing/audit';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -10,45 +12,178 @@ if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 const { assignmentId } = Astro.params;
 if (!assignmentId) return Astro.redirect('/portal?section=unterschriften');
 
-const customer = await getCustomerByEmail(session.email).catch(() => null);
+const customer = await getCustomerByEmail(session.email);
 if (!customer) return Astro.redirect('/portal?section=unterschriften');
 
 const assignments = await listAssignmentsForCustomer(customer.id).catch(() => []);
 const assignment = assignments.find(a => a.id === assignmentId);
 
-if (!assignment || assignment.status !== 'pending') {
-  return Astro.redirect('/portal?section=unterschriften');
-}
+if (!assignment) return Astro.redirect('/portal?section=unterschriften');
 
-const embedSrc = assignment.docuseal_embed_src;
+const template = await getDocumentTemplate(assignment.template_id);
+if (!template) return Astro.redirect('/portal?section=unterschriften');
+
+const ip = Astro.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '0.0.0.0';
+await logSigningEvent(assignment.id, 'viewed', ip, Astro.request.headers.get('user-agent'), session.email);
+
+const today = new Date();
+const editableDefaults: Record<string, string> = {
+  KUNDENNAME: customer.name,
+  EMAIL: customer.email,
+  TELEFON: customer.phone ?? '',
+  FIRMA: customer.company ?? '',
+};
+const fixedVars: Record<string, string> = {
+  KUNDENNUMMER: customer.customer_number ?? '',
+  DATUM: today.toLocaleDateString('de-DE'),
+  JAHR: String(today.getFullYear()),
+  Stand: template.stand_date ?? today.toLocaleDateString('de-DE'),
+};
+
+const renderedHtml = assignment.status === 'completed'
+  ? (assignment.signed_html ?? '')
+  : renderTemplate(template.html_body, fixedVars, editableDefaults);
+
+const isCompleted = assignment.status === 'completed';
+const pendingCount = assignments.filter(a => a.status === 'pending').length;
 ---
 
-<PortalLayout
-  title={`Unterschriften — ${assignment.template_title}`}
-  section="unterschriften"
-  session={session}
-  pendingSignatures={assignments.filter(a => a.status === 'pending').length}
->
+<PortalLayout title={template.title} section="unterschriften" session={session} pendingSignatures={pendingCount}>
   <section class="pt-6 pb-20 bg-dark min-h-screen">
     <div class="max-w-4xl mx-auto px-6">
       <div class="mb-6 flex items-center gap-3">
         <a href="/portal?section=unterschriften" class="text-muted hover:text-light text-sm transition-colors">← Zurück</a>
-        <h1 class="text-2xl font-bold text-light font-serif">{assignment.template_title}</h1>
+        <h1 class="text-2xl font-bold text-light font-serif">{template.title}</h1>
       </div>
-      {embedSrc ? (
-        <div class="bg-white rounded-xl overflow-hidden" style="height: 80vh; min-height: 600px;">
-          <iframe
-            src={embedSrc}
-            title={`Dokument: ${assignment.template_title}`}
-            class="w-full h-full border-0"
-            allow="camera"
-          ></iframe>
-        </div>
+
+      {isCompleted ? (
+        <>
+          <div class="signed-notice">
+            <p>✓ Dieses Dokument wurde am {new Date(assignment.signed_at!).toLocaleDateString('de-DE')} unterschrieben.</p>
+            <a href={`/api/portal/documents/${assignmentId}/pdf`} class="btn-download">PDF herunterladen</a>
+          </div>
+          <div class="document-body" set:html={renderedHtml} />
+        </>
       ) : (
-        <div class="p-8 bg-dark-light rounded-xl border border-dark-lighter text-center">
-          <p class="text-muted">Das Dokument konnte nicht geladen werden. Bitte versuche es später erneut.</p>
-        </div>
+        <form id="signing-form">
+          <div class="document-body" set:html={renderedHtml} />
+
+          <div class="signature-bar">
+            <div class="sig-tabs">
+              <button type="button" class="sig-tab active" data-mode="canvas">✍️ Zeichnen</button>
+              <button type="button" class="sig-tab" data-mode="checkbox">☑ Bestätigen</button>
+            </div>
+
+            <div id="canvas-section">
+              <canvas id="signature-canvas" width="300" height="80"></canvas>
+              <button type="button" id="clear-btn">Löschen</button>
+            </div>
+
+            <div id="checkbox-section" style="display:none">
+              <label>
+                <input type="checkbox" id="accept-checkbox" />
+                Ich akzeptiere das Dokument und bestätige meine Identität.
+              </label>
+            </div>
+
+            <input type="text" id="signer-name" placeholder="Ihr vollständiger Name" required value={editableDefaults.KUNDENNAME} />
+            <button type="submit" id="submit-btn">Jetzt unterschreiben</button>
+            <p id="error-msg" style="color:red;display:none"></p>
+          </div>
+        </form>
       )}
     </div>
   </section>
 </PortalLayout>
+
+<script>
+  import SignaturePad from 'signature_pad';
+
+  const canvas = document.getElementById('signature-canvas') as HTMLCanvasElement;
+  const pad = canvas ? new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)' }) : null;
+
+  document.getElementById('clear-btn')?.addEventListener('click', () => pad?.clear());
+
+  document.querySelectorAll('.sig-tab').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const mode = (e.target as HTMLElement).dataset.mode;
+      document.querySelectorAll('.sig-tab').forEach(b => b.classList.remove('active'));
+      (e.target as HTMLElement).classList.add('active');
+      (document.getElementById('canvas-section') as HTMLElement).style.display = mode === 'canvas' ? '' : 'none';
+      (document.getElementById('checkbox-section') as HTMLElement).style.display = mode === 'checkbox' ? '' : 'none';
+    });
+  });
+
+  document.getElementById('signing-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const signerName = (document.getElementById('signer-name') as HTMLInputElement).value.trim();
+    const activeTab = document.querySelector('.sig-tab.active') as HTMLElement;
+    const mode = activeTab?.dataset.mode ?? 'canvas';
+    const errorMsg = document.getElementById('error-msg') as HTMLElement;
+    errorMsg.style.display = 'none';
+
+    if (!signerName) { errorMsg.textContent = 'Bitte Namen eingeben.'; errorMsg.style.display = ''; return; }
+    if (mode === 'canvas' && (!pad || pad.isEmpty())) { errorMsg.textContent = 'Bitte Unterschrift zeichnen.'; errorMsg.style.display = ''; return; }
+    if (mode === 'checkbox' && !(document.getElementById('accept-checkbox') as HTMLInputElement).checked) {
+      errorMsg.textContent = 'Bitte Checkbox bestätigen.'; errorMsg.style.display = ''; return;
+    }
+
+    const editableFields: Record<string, string> = {};
+    document.querySelectorAll<HTMLInputElement>('input.doc-edit-field[name]').forEach(input => {
+      editableFields[input.name] = input.value;
+    });
+
+    const id = window.location.pathname.split('/').pop();
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Wird verarbeitet…';
+
+    try {
+      const res = await fetch(`/api/portal/sign/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          signatureType: mode,
+          imageData: mode === 'canvas' ? pad!.toDataURL() : undefined,
+          signerName,
+          editableFields,
+        }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        errorMsg.textContent = error ?? 'Fehler beim Unterschreiben.';
+        errorMsg.style.display = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Jetzt unterschreiben';
+      } else {
+        window.location.href = '/portal?section=unterschriften&signed=1';
+      }
+    } catch {
+      errorMsg.textContent = 'Netzwerkfehler. Bitte erneut versuchen.';
+      errorMsg.style.display = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Jetzt unterschreiben';
+    }
+  });
+</script>
+
+<style>
+  .document-body { max-width: 800px; margin: 0 auto; padding: 24px; line-height: 1.7; }
+  .signature-bar {
+    position: sticky; bottom: 0;
+    background: var(--color-surface, #1a1a1a);
+    border-top: 1px solid #333;
+    padding: 16px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  }
+  .sig-tabs { display: flex; gap: 8px; }
+  .sig-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid #444; background: #252525; color: #aaa; cursor: pointer; }
+  .sig-tab.active { border-color: #2563eb; background: #1e3a5f; color: #93c5fd; }
+  #signature-canvas { border: 1px dashed #555; border-radius: 4px; background: #fff; display: block; }
+  #signer-name { padding: 8px; border: 1px solid #444; border-radius: 6px; background: #252525; color: #e5e5e5; font-size: 0.9rem; }
+  #submit-btn { padding: 10px 20px; background: #16a34a; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+  #submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .signed-notice { background: #0a2010; border: 1px solid #166534; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  .btn-download { display: inline-block; margin-top: 8px; padding: 8px 16px; background: #2563eb; color: #fff; border-radius: 6px; text-decoration: none; }
+</style>

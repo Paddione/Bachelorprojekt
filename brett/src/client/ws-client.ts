@@ -1,14 +1,13 @@
 import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } from './state';
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
-import type { Phase } from '../types/state';
+import type { Phase, Participant } from '../types/state';
 import { updateExportCache, type ExportFigure } from './ui/export';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
 import { applyOptikToScene } from './ui/optik';
 import * as groundObjects from './ground-objects';
-
 /** Mappt eine runtime-Figure auf das serialisierbare ExportFigure-Format. */
 function _toExportFig(fig: any): ExportFigure {
   return {
@@ -22,15 +21,13 @@ function _toExportFig(fig: any): ExportFigure {
     ownerId: fig.ownerId,
   };
 }
-
-// ── T000470: Undo/Redo-Stack-Status ──────────────────────────────────────────
+// ── T000470: Undo/Redo-Stack-Status ─────────────────────────────────────
 export const undoState = {
   canUndo: false,
   canRedo: false,
   undoCount: 0,
   redoCount: 0,
 };
-
 let onUndoStateChange: ((state: typeof undoState) => void) | null = null;
 export function setUndoStateChangeHandler(fn: typeof onUndoStateChange): void {
   onUndoStateChange = fn;
@@ -45,8 +42,7 @@ function applyUndoStateChange(
   undoState.redoCount = redoCount;
   if (onUndoStateChange) onUndoStateChange({ ...undoState });
 }
-
-// ── Lobby/presence/session state (pure reducer; see lobby-store.ts) ──────────
+// ── Lobby/presence/session state (pure reducer) ─────────────────────────────
 let lobbyState: LobbyState = createLobbyState();
 export function getLobbyState(): LobbyState { return lobbyState; }
 
@@ -58,7 +54,6 @@ export interface ClientModerationState {
 }
 let moderationState: ClientModerationState = { spotlight: null, dim: null, freeze: false };
 export function getModerationState(): ClientModerationState { return moderationState; }
-
 // Injected callback: fired when moderation state changes (board-boot wires this)
 let onModerationChange: (state: ClientModerationState) => void = () => {};
 export function setModerationChangeHandler(fn: (state: ClientModerationState) => void): void {
@@ -76,7 +71,23 @@ let onLobbyChange: (state: LobbyState) => void = () => {};
 export function setLobbyChangeHandler(fn: (state: LobbyState) => void): void {
   onLobbyChange = fn;
 }
+export function getLobbyChangeHandler(): (state: LobbyState) => void {
+  return onLobbyChange;
+}
 
+// T000555: Late-join notification hook (leader toast + panel refresh)
+export function decideLateJoin(
+  phase: Phase | null,
+  participant: Participant | undefined,
+): { notify: boolean; name: string } {
+  const name = participant?.name ?? 'Unbekannt';
+  const inSession = phase === 'active' || phase === 'warmup' || phase === 'paused';
+  return { notify: inSession, name };
+}
+let lateJoinHandler: ((name: string) => void) | null = null;
+export function setLateJoinHandler(cb: ((name: string) => void) | null): void {
+  lateJoinHandler = cb;
+}
 const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
 const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
 
@@ -86,12 +97,10 @@ function send(msg: ClientMessage): void {
     ws.send(JSON.stringify(msg));
   }
 }
-
-/** Public send for lobby/admin protocol messages (e.g. admin_round_start, lobby_set_ready). */
+/** Public send for lobby/admin protocol messages. */
 export function sendClient(msg: ClientMessage): void {
   send(msg);
 }
-
 /** True iff a socket exists and is OPEN (used to decide sync-send vs open-hook). */
 export function isWsOpen(): boolean {
   const ws = getWs();
@@ -101,33 +110,26 @@ export function isWsOpen(): boolean {
 export function sendMove(id: string, x: number, z: number, facingY: number): void {
   send({ type: 'move', id, x, z, facingY });
 }
-
 export function sendJump(id: string): void {
   send({ type: 'jump', id });
 }
-
 export function sendUpdate(fig: any, changes: any): void {
   send({ type: 'update', id: fig.id, changes });
 }
-
 export function sendStiffness(value: number): void {
   send({ type: 'stiffness', value });
 }
-
 export function sendDelete(): void {
   if (STATE.selectedId) {
     send({ type: 'delete', id: STATE.selectedId });
   }
 }
-
 export function sendUndo(): void {
   send({ type: 'session_undo' });
 }
-
 export function sendRedo(): void {
   send({ type: 'session_redo' });
 }
-
 export function sendAddFigure(fig: any): void {
   send({
     type: 'add',
@@ -143,14 +145,11 @@ export function sendAddFigure(fig: any): void {
   });
 }
 
-// Optional callback fired once per socket, right after the WS reaches OPEN and the
-// `join` frame is sent. Used by the bootstrap (main.ts) to send a one-shot
-// admin_session_create AFTER the handshake (FE-1/REG-4), never racing it.
+// One-shot callback after WS OPEN + `join` frame (FE-1/REG-4 bootstrap)
 let onWsOpen: (() => void) | null = null;
 export function setWsOpenHandler(fn: (() => void) | null): void {
   onWsOpen = fn;
 }
-
 export function connectWS(): void {
   // REG-2: idempotent — never open a second socket if one is already
   // CONNECTING/OPEN. The lobby bootstrap (main.ts) opens the socket as soon as the
@@ -185,7 +184,6 @@ export function connectWS(): void {
   });
   ws.addEventListener('message', onWsMessage);
 }
-
 // Injected to avoid cycle with appearance.ts.
 let applyAppearanceToFig: (fig: any, a: any) => void = () => {};
 export function setApplyAppearance(fn: typeof applyAppearanceToFig): void {
@@ -196,7 +194,6 @@ let setFigureLockBadge: (id: string, name: string, color: string) => void = () =
 let clearFigureLockBadge: (id: string) => void = () => {};
 let clearLockBadgesForUser: (userId: string) => void = () => {};
 let cancelDragFor: (id: string) => void = () => {};
-
 export function setLockBadgeFns(fns: {
   setFigureLockBadge: typeof setFigureLockBadge;
   clearFigureLockBadge: typeof clearFigureLockBadge;
@@ -208,7 +205,6 @@ export function setLockBadgeFns(fns: {
   clearLockBadgesForUser = fns.clearLockBadgesForUser;
   cancelDragFor = fns.cancelDragFor;
 }
-
 export function onWsMessage(evt: MessageEvent): void {
   let msg: ServerMessage;
   try {
@@ -285,7 +281,6 @@ export function onWsMessage(evt: MessageEvent): void {
       }
 
       initLinesFromSnapshot(msg.lines ?? []);  // T000467
-
       // T000471: rehydrate moderation state from join snapshot
       if ((msg as any).moderation) {
         moderationState = {
@@ -312,7 +307,6 @@ export function onWsMessage(evt: MessageEvent): void {
           }).catch(() => {});
         }
       }
-
       // FE-2: the join snapshot is the FIRST (often ONLY) state a client gets on
       // connect, and it carries the authoritative phase/sessionCode/roster. Route
       // it through the lobby reducer and drive the view-machine on a phase change
@@ -356,7 +350,6 @@ export function onWsMessage(evt: MessageEvent): void {
       updateExportCache({ figures: STATE.figures.map(_toExportFig) });
       break;
     }
-
     case 'update': {
       const fig = STATE.figures.find(f => f.id === msg.id);
       if (!fig) break;
@@ -377,7 +370,6 @@ export function onWsMessage(evt: MessageEvent): void {
       updateExportCache({ figures: STATE.figures.map(_toExportFig) });
       break;
     }
-
     case 'figure_locked': {
       activeLocks.set(msg.id, { userId: msg.userId, name: msg.name, color: msg.color });
       setFigureLockBadge(msg.id, msg.name, msg.color);
@@ -464,8 +456,15 @@ export function onWsMessage(evt: MessageEvent): void {
       if (msg.optik) applyOptikToScene(msg.optik);
       break;
     }
-
-    case 'presence_join':
+    case 'presence_join': {
+      const prevPhase = lobbyState.phase;
+      lobbyState = applyLobbyServerMessage(lobbyState, msg);
+      onLobbyChange(lobbyState);
+      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
+      const decision = decideLateJoin(lobbyState.phase, msg.participant);
+      if (decision.notify) lateJoinHandler?.(decision.name);
+      break;
+    }
     case 'presence_leave':
     case 'role_changed':
     case 'lobby_ready_changed':
@@ -476,7 +475,6 @@ export function onWsMessage(evt: MessageEvent): void {
       if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
       break;
     }
-
     case 'session_phase_change':
     case 'session_ended': {
       lobbyState = applyLobbyServerMessage(lobbyState, msg);

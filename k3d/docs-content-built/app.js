@@ -98,6 +98,21 @@
 })();
 
 (function(){
+  var btns=document.querySelectorAll('.cat-filter-btn');
+  if(!btns.length)return;
+  btns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var cat=btn.getAttribute('data-cat');
+      btns.forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      document.querySelectorAll('.section-card[data-category]').forEach(function(card){
+        card.style.display=(cat==='all'||card.getAttribute('data-category')===cat)?'':'none';
+      });
+    });
+  });
+})();
+
+(function(){
   var container=document.getElementById('docs-graph');
   if(!container)return;
   var svg=container.querySelector('svg');

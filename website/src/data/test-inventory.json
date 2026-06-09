@@ -390,8 +390,8 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:systemtest-05-docuseal",
-    "file": "tests/e2e/specs/systemtest-05-docuseal.spec.ts",
+    "id": "E2E:systemtest-05-signing",
+    "file": "tests/e2e/specs/systemtest-05-signing.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

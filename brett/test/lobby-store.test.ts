@@ -85,3 +85,26 @@ test('reducer does not mutate the previous state object (roster identity)', () =
   assert.notStrictEqual(s2.roster, s.roster, 'returns a fresh roster, does not mutate in place');
   assert.strictEqual(s.roster.x, undefined, 'previous state untouched');
 });
+
+test('session_phase_change(reason=admin-create) clears the roster', () => {
+  let s = createLobbyState();
+  s = applyLobbyServerMessage(s, { type: 'presence_join', participant: { userId: 'old', name: 'Old', color: '#4ea1ff' } });
+  assert.strictEqual(Object.keys(s.roster).length, 1);
+  s = applyLobbyServerMessage(s, { type: 'session_phase_change', phase: 'lobby', transitionedAt: 't', reason: 'admin-create' });
+  assert.deepStrictEqual(s.roster, {});
+  assert.strictEqual(s.phase, 'lobby');
+});
+
+test('session_phase_change with a non-admin-create reason keeps the roster', () => {
+  let s = createLobbyState();
+  s = applyLobbyServerMessage(s, { type: 'presence_join', participant: { userId: 'u', name: 'U', color: '#4ea1ff' } });
+  s = applyLobbyServerMessage(s, { type: 'session_phase_change', phase: 'active', transitionedAt: 't', reason: 'round-start' });
+  assert.strictEqual(s.roster.u.name, 'U');
+  assert.strictEqual(s.phase, 'active');
+});
+
+test('presence_join with role leiter is reflected in the roster', () => {
+  let s = createLobbyState();
+  s = applyLobbyServerMessage(s, { type: 'presence_join', participant: { userId: 'me', name: 'Me', color: '#4ea1ff', role: 'leiter', ready: false } });
+  assert.strictEqual(s.roster.me.role, 'leiter');
+});

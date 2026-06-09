@@ -61,6 +61,9 @@ export function applyLobbyServerMessage(state: LobbyState, msg: ServerMessage): 
       return { ...state, roster: { ...state.roster, [msg.userId]: { ...existing, ready: msg.ready } } };
     }
     case 'session_phase_change':
+      if (msg.reason === 'admin-create' && msg.phase === 'lobby') {
+        return { ...state, phase: msg.phase, roster: {} };
+      }
       return { ...state, phase: msg.phase };
     case 'session_ended':
       return { ...state, phase: 'ended' };

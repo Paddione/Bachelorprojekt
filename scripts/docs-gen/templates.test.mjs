@@ -6,6 +6,7 @@ import {
   provenanceBadge,
   renderSectionIndex,
   renderLanding,
+  renderSkillsIndex,
   deduplicateSkills,
   categoryForSkill,
 } from './templates.mjs';
@@ -353,4 +354,64 @@ test('categoryForSkill: repo infra skills → bachelorprojekt-infra', () => {
 test('categoryForSkill: unknown plugin → fallback claude-code', () => {
   const unknown = { ...pluginSkillPage, provenance: 'some-new-plugin@1.0.0', name: 'some-skill' };
   assert.equal(categoryForSkill(unknown), 'claude-code');
+});
+
+// ─── renderSkillsIndex ────────────────────────────────────────────────────────
+
+test('renderSkillsIndex: renders 7 category filter buttons + "Alle" button', () => {
+  const pages = [
+    { ...pluginSkillPage, slug: 'brainstorming', name: 'brainstorming',
+      provenance: 'superpowers@5.1.0', outRelPath: 'skills/superpowers--brainstorming.html' },
+    { ...pluginSkillPage, slug: 'hf-cli', name: 'hf-cli',
+      provenance: 'huggingface-skills@1.0.3', outRelPath: 'skills/huggingface-skills--hf-cli.html' },
+  ];
+  const html = renderSkillsIndex({ pages });
+  assert.ok(html.startsWith('<!DOCTYPE html>'), 'full document');
+  assert.ok(html.includes('cat-filter-btn'), 'filter buttons present');
+  assert.ok(html.includes('data-cat="all"'), 'Alle button present');
+  assert.ok(html.includes('Dev-Workflow'), 'dev-workflow category label');
+  assert.ok(html.includes('KI / ML'), 'ki-ml category label');
+});
+
+test('renderSkillsIndex: cards have data-category attribute', () => {
+  const page = { ...pluginSkillPage, slug: 'brainstorming', name: 'brainstorming',
+    provenance: 'superpowers@5.1.0', outRelPath: 'skills/superpowers--brainstorming.html' };
+  const html = renderSkillsIndex({ pages: [page] });
+  assert.ok(html.includes('data-category="dev-workflow"'), 'card has data-category');
+});
+
+test('renderSkillsIndex: deduplicates skills before rendering', () => {
+  const old = { ...pluginSkillPage, slug: 'superpowers--brainstorming',
+    name: 'brainstorming', provenance: 'superpowers@4.0.0',
+    outRelPath: 'skills/superpowers--brainstorming.html' };
+  const newer = { ...pluginSkillPage, slug: 'superpowers--brainstorming',
+    name: 'brainstorming', provenance: 'superpowers@5.1.0',
+    outRelPath: 'skills/superpowers--brainstorming.html' };
+  const html = renderSkillsIndex({ pages: [old, newer] });
+  const count = (html.match(/superpowers--brainstorming/g) ?? []).length;
+  assert.ok(count <= 2, 'skill not listed twice (one card + one href)');
+  assert.ok(html.includes('5.1.0'), 'newer version shown');
+  assert.ok(!html.includes('4.0.0'), 'older version removed');
+});
+
+test('renderSkillsIndex: repo skills have star marker', () => {
+  const repoSkill = {
+    slug: 'dev-flow-plan', type: 'skill', provenance: 'repo', name: 'dev-flow-plan',
+    title: 'dev-flow-plan', description: '', domain: null, bodyMarkdown: '',
+    sourcePath: '/x/SKILL.md', outRelPath: 'skills/dev-flow-plan.html',
+  };
+  const html = renderSkillsIndex({ pages: [repoSkill] });
+  assert.ok(html.includes('skill-star'), 'repo skill has star marker');
+  assert.ok(html.includes('skill-repo'), 'repo skill has repo CSS class');
+});
+
+test('renderSkillsIndex: count in header shows deduplicated number', () => {
+  const pages = [
+    { ...pluginSkillPage, slug: 'a', name: 'alpha', provenance: 'superpowers@5.0.0',
+      outRelPath: 'skills/superpowers--alpha.html' },
+    { ...pluginSkillPage, slug: 'b', name: 'alpha', provenance: 'superpowers@5.1.0',
+      outRelPath: 'skills/superpowers--alpha.html' },
+  ];
+  const html = renderSkillsIndex({ pages });
+  assert.ok(html.includes('1 '), 'deduplicated count (1) shown, not 2');
 });

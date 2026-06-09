@@ -344,6 +344,68 @@ ${documentTail('./')}`;
 }
 
 /**
+ * Skills index page with deduplication, 7 category filter buttons, and repo-star markers.
+ * Replaces renderSectionIndex for type='skill'.
+ * @param {{ pages: Page[] }} args
+ * @returns {string}
+ */
+export function renderSkillsIndex({ pages }) {
+  const deduped = deduplicateSkills(pages);
+  const count = deduped.length;
+
+  // Build filter buttons (Alle + one per non-empty category)
+  const usedCats = new Set(deduped.map(categoryForSkill));
+  const filterBtns = [
+    `<button class="cat-filter-btn active" data-cat="all">Alle (${count})</button>`,
+    ...CATEGORY_ORDER
+      .filter((c) => usedCats.has(c))
+      .map((c) => {
+        const n = deduped.filter((p) => categoryForSkill(p) === c).length;
+        return `<button class="cat-filter-btn" data-cat="${esc(c)}">${esc(CATEGORY_LABELS[c])} (${n})</button>`;
+      }),
+  ].join('\n');
+
+  // Sort within each category alphabetically
+  const sorted = deduped.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+  const cards = sorted.map((page) => {
+    const cat = categoryForSkill(page);
+    const isRepo = page.provenance === 'repo';
+    const star = isRepo ? '<span class="skill-star" aria-label="repo-eigener Skill">★</span>' : '';
+    const repoClass = isRepo ? ' skill-repo' : '';
+    return `<a class="section-card${repoClass}" href="./${esc(page.outRelPath)}" data-category="${esc(cat)}">
+  <span class="section-card-head">
+    ${star}<span class="section-card-title">${esc(page.title)}</span>
+    ${provenanceBadge(page.provenance)}${domainTag(page.domain)}
+  </span>
+  <span class="section-card-desc">${esc(page.description)}</span>
+</a>`;
+  }).join('\n');
+
+  const header = `<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Skills</span></nav>
+    <h1>Skills</h1>
+    <p class="page-desc">${count} Skills (${pages.length - count} Duplikate bereinigt)</p>
+  </div>
+</header>`;
+
+  return `${documentHead('Skills', './')}
+<div id="app">
+  <main id="main">
+${header}
+<div class="cat-filter-row">
+${filterBtns}
+</div>
+<section class="section-grid">
+${cards}
+</section>
+  </main>
+</div>
+${documentTail('./')}`;
+}
+
+/**
  * Render the landing page: an editorial hero with the interactive domain-clustered
  * relationship graph as the centrepiece, plus a <noscript>-friendly fallback that
  * lists the sections (skills/agents/docs) with counts so the page is usable without JS.

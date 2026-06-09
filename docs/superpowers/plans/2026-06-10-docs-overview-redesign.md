@@ -28,7 +28,7 @@
 - Modify: `scripts/docs-gen/theme.mjs`
 - Test: `scripts/docs-gen/theme.test.mjs`
 
-- [ ] **Schritt 1.1: Test schreiben (schlägt fehl)**
+- [x] **Schritt 1.1: Test schreiben (schlägt fehl)**
 
 Ans Ende von `scripts/docs-gen/theme.test.mjs` hinzufügen:
 
@@ -51,7 +51,7 @@ test('clientJs: includes the category filter script', () => {
 });
 ```
 
-- [ ] **Schritt 1.2: Test laufen lassen — muss fehlschlagen**
+- [x] **Schritt 1.2: Test laufen lassen — muss fehlschlagen**
 
 ```bash
 node --test scripts/docs-gen/theme.test.mjs
@@ -59,7 +59,7 @@ node --test scripts/docs-gen/theme.test.mjs
 
 Erwartet: FAIL auf den beiden neuen Tests.
 
-- [ ] **Schritt 1.3: Neue CSS-Klassen in editorialCss() hinzufügen**
+- [x] **Schritt 1.3: Neue CSS-Klassen in editorialCss() hinzufügen**
 
 In `scripts/docs-gen/theme.mjs`, direkt vor der Zeile `${GRAPH_CSS}` am Ende der CSS-Template-String in `editorialCss()` einfügen:
 
@@ -97,7 +97,7 @@ In `scripts/docs-gen/theme.mjs`, direkt vor der Zeile `${GRAPH_CSS}` am Ende der
 .agent-group-header:first-child,.doc-group-header:first-child{margin-top:.5rem}
 ```
 
-- [ ] **Schritt 1.4: CAT_FILTER_JS hinzufügen**
+- [x] **Schritt 1.4: CAT_FILTER_JS hinzufügen**
 
 In `scripts/docs-gen/theme.mjs` nach der `SEARCH_JS`-Konstante einfügen:
 
@@ -120,7 +120,7 @@ export const CAT_FILTER_JS = `
 })();`;
 ```
 
-- [ ] **Schritt 1.5: clientJs() updaten**
+- [x] **Schritt 1.5: clientJs() updaten**
 
 In `scripts/docs-gen/theme.mjs`, die `clientJs()`-Funktion ändern:
 
@@ -130,7 +130,7 @@ export function clientJs() {
 }
 ```
 
-- [ ] **Schritt 1.6: Tests laufen lassen — müssen bestehen**
+- [x] **Schritt 1.6: Tests laufen lassen — müssen bestehen**
 
 ```bash
 node --test scripts/docs-gen/theme.test.mjs
@@ -138,7 +138,7 @@ node --test scripts/docs-gen/theme.test.mjs
 
 Erwartet: alle Tests PASS.
 
-- [ ] **Schritt 1.7: Commit**
+- [x] **Schritt 1.7: Commit**
 
 ```bash
 git add scripts/docs-gen/theme.mjs scripts/docs-gen/theme.test.mjs
@@ -153,7 +153,7 @@ git commit -m "feat(docs-gen): hub CSS classes + cat-filter JS"
 - Modify: `scripts/docs-gen/templates.mjs`
 - Test: `scripts/docs-gen/templates.test.mjs`
 
-- [ ] **Schritt 2.1: Tests schreiben (schlagen fehl)**
+- [x] **Schritt 2.1: Tests schreiben (schlagen fehl)**
 
 Ans Ende von `scripts/docs-gen/templates.test.mjs` hinzufügen:
 
@@ -266,7 +266,7 @@ test('categoryForSkill: unknown plugin → fallback claude-code', () => {
 
 **Hinweis:** Den `import`-Block am Anfang von `templates.test.mjs` um `deduplicateSkills` und `categoryForSkill` erweitern.
 
-- [ ] **Schritt 2.2: Tests laufen lassen — müssen fehlschlagen**
+- [x] **Schritt 2.2: Tests laufen lassen — müssen fehlschlagen**
 
 ```bash
 node --test scripts/docs-gen/templates.test.mjs 2>&1 | head -30
@@ -274,7 +274,7 @@ node --test scripts/docs-gen/templates.test.mjs 2>&1 | head -30
 
 Erwartet: FAIL mit "deduplicateSkills is not a function" o.ä.
 
-- [ ] **Schritt 2.3: Kategorien-Mapping und Hilfsfunktionen in templates.mjs hinzufügen**
+- [x] **Schritt 2.3: Kategorien-Mapping und Hilfsfunktionen in templates.mjs hinzufügen**
 
 Direkt nach den `import`-Zeilen (nach `import { renderGraphSvg } from './graph-svg.mjs';`) in `scripts/docs-gen/templates.mjs` einfügen:
 
@@ -394,7 +394,7 @@ export function deduplicateSkills(pages) {
 }
 ```
 
-- [ ] **Schritt 2.4: Tests laufen lassen — müssen bestehen**
+- [x] **Schritt 2.4: Tests laufen lassen — müssen bestehen**
 
 ```bash
 node --test scripts/docs-gen/templates.test.mjs 2>&1 | grep -E 'pass|fail|ok|not ok' | head -30
@@ -402,7 +402,7 @@ node --test scripts/docs-gen/templates.test.mjs 2>&1 | grep -E 'pass|fail|ok|not
 
 Erwartet: alle neuen Tests PASS, bestehende Tests unverändert PASS.
 
-- [ ] **Schritt 2.5: Commit**
+- [x] **Schritt 2.5: Commit**
 
 ```bash
 git add scripts/docs-gen/templates.mjs scripts/docs-gen/templates.test.mjs
@@ -418,7 +418,7 @@ git commit -m "feat(docs-gen): skill deduplication + category mapping"
 - Modify: `scripts/docs-gen/templates.test.mjs`
 - Modify: `scripts/build-docs.mjs`
 
-- [ ] **Schritt 3.1: Test schreiben**
+- [x] **Schritt 3.1: Test schreiben**
 
 In `scripts/docs-gen/templates.test.mjs` den Import-Block am Anfang um `renderSkillsIndex` erweitern. Dann ans Ende hinzufügen:
 
@@ -486,7 +486,7 @@ test('renderSkillsIndex: count in header shows deduplicated number', () => {
 });
 ```
 
-- [ ] **Schritt 3.2: Test laufen lassen — muss fehlschlagen**
+- [x] **Schritt 3.2: Test laufen lassen — muss fehlschlagen**
 
 ```bash
 node --test scripts/docs-gen/templates.test.mjs 2>&1 | grep "renderSkillsIndex" | head -10
@@ -494,7 +494,7 @@ node --test scripts/docs-gen/templates.test.mjs 2>&1 | grep "renderSkillsIndex" 
 
 Erwartet: FAIL mit "renderSkillsIndex is not a function".
 
-- [ ] **Schritt 3.3: renderSkillsIndex in templates.mjs implementieren**
+- [x] **Schritt 3.3: renderSkillsIndex in templates.mjs implementieren**
 
 In `scripts/docs-gen/templates.mjs` nach der `renderSectionIndex`-Funktion hinzufügen:
 
@@ -562,7 +562,7 @@ ${documentTail('./')}`;
 }
 ```
 
-- [ ] **Schritt 3.4: Tests laufen lassen — müssen bestehen**
+- [x] **Schritt 3.4: Tests laufen lassen — müssen bestehen**
 
 ```bash
 node --test scripts/docs-gen/templates.test.mjs 2>&1 | grep -E "renderSkillsIndex|pass|fail" | head -20
@@ -570,7 +570,7 @@ node --test scripts/docs-gen/templates.test.mjs 2>&1 | grep -E "renderSkillsInde
 
 Erwartet: alle `renderSkillsIndex`-Tests PASS.
 
-- [ ] **Schritt 3.5: build-docs.mjs verdrahten**
+- [x] **Schritt 3.5: build-docs.mjs verdrahten**
 
 In `scripts/build-docs.mjs` den Import aus `templates.mjs` um `renderSkillsIndex` erweitern:
 
@@ -630,7 +630,7 @@ console.log(`  skills (raw):       ${c.skillsRaw ?? c.skill}`);
 console.log(`  skills (unique):    ${c.skillsUnique ?? '–'}`);
 ```
 
-- [ ] **Schritt 3.6: Smoke-Test laufen lassen**
+- [x] **Schritt 3.6: Smoke-Test laufen lassen**
 
 ```bash
 node --test scripts/docs-gen/build-smoke.test.mjs
@@ -638,7 +638,7 @@ node --test scripts/docs-gen/build-smoke.test.mjs
 
 Erwartet: alle Tests PASS.
 
-- [ ] **Schritt 3.7: Commit**
+- [x] **Schritt 3.7: Commit**
 
 ```bash
 git add scripts/docs-gen/templates.mjs scripts/docs-gen/templates.test.mjs scripts/build-docs.mjs

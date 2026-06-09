@@ -178,6 +178,8 @@ cmd_reap() {
   done
   # 2) prune git worktree admin entries for gone directories
   git worktree prune 2>/dev/null || true
+  # 2b) prune stale remote-tracking refs (branches deleted on GitHub after merge)
+  git fetch --prune origin 2>/dev/null || true
   # 3) drop reapable (clearly dead) locks
   if [ -d "$d" ]; then
     local f

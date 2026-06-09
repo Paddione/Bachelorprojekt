@@ -28,6 +28,18 @@ RUN apk add --no-cache bash curl jq && \
     rm kubectl.sha256 && \
     chmod +x kubectl && mv kubectl /usr/local/bin/kubectl
 
+# Chromium for Playwright PDF generation (system install — Alpine-compatible)
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # Only copy the built output (server + client assets)
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules

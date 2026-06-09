@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { IMemoryDb, newDb } from 'pg-mem';
+import { type IMemoryDb, newDb, DataType } from 'pg-mem';
 import type { SignatureData } from '../../src/lib/signing/types';
 
 describe('documents-db signing functions', () => {
@@ -10,7 +10,7 @@ describe('documents-db signing functions', () => {
     db.public.registerFunction({
       name: 'gen_random_uuid',
       args: [],
-      returns: 'uuid',
+      returns: DataType.uuid,
       implementation: () => 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
     });
     db.public.none(`

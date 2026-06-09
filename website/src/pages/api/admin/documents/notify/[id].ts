@@ -22,8 +22,10 @@ export const POST: APIRoute = async ({ params, request }) => {
     return new Response(JSON.stringify({ error: 'Customer email not found' }), { status: 422 });
   }
 
-  const baseUrl = import.meta.env.SITE ?? process.env.SITE_URL ?? 'https://portal.mentolder.de';
-  const signingUrl = `${baseUrl}/portal/sign/${id}`;
+  const PROD_DOMAIN = process.env.PROD_DOMAIN || '';
+  const signingUrl = PROD_DOMAIN
+    ? `https://web.${PROD_DOMAIN}/portal/sign/${id}`
+    : `/portal/sign/${id}`;
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST ?? 'mailpit.workspace.svc.cluster.local',

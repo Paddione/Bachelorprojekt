@@ -1,10 +1,11 @@
 <script lang="ts">
   import { decideBanner, type BannerDecision } from '../../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide' | 'loslernen';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide';
 
   let {
     onNavigate,
+    onClose,
     pendingQuestionnaires = 0,
     helpSection = '',
     helpContext = 'portal',
@@ -13,6 +14,7 @@
     summary = null,
   }: {
     onNavigate: (view: View) => void;
+    onClose?: () => void;
     pendingQuestionnaires?: number;
     helpSection?: string;
     helpContext?: string;
@@ -79,6 +81,7 @@
           class:sk-row--hover={hover === item.id}
           onmouseenter={() => hover = item.id}
           onmouseleave={() => hover = null}
+          onclick={() => onClose?.()}
           role="listitem"
           aria-label="{item.title} — {item.sub}"
         >

@@ -233,6 +233,7 @@
     {#if view === 'home'}
       <SidekickHome
         onNavigate={navigate}
+        onClose={closeDrawer}
         {pendingQuestionnaires}
         {helpSection}
         {helpContext}

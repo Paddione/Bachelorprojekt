@@ -75,6 +75,34 @@
   }
   function assetFallback(e: Event) { (e.currentTarget as HTMLImageElement).style.display = 'none'; }
 
+  // --- Verlinkung + Zeit-Helfer -------------------------------------------------
+  const GH_REPO = 'Paddione/Bachelorprojekt';
+  const prUrl = (n: number) => `https://github.com/${GH_REPO}/pull/${n}`;
+  const ticketUrl = (extId: string) => `/admin/tickets?q=${encodeURIComponent(extId)}`;
+
+  /** Kompakte deutsche Relativzeit ("vor 2 Min."). Aktualisiert mit jedem Poll. */
+  function relTime(iso: string | null): string {
+    if (!iso) return '';
+    const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+    if (s < 60) return `vor ${s} Sek.`;
+    const m = Math.round(s / 60);
+    if (m < 60) return `vor ${m} Min.`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `vor ${h} Std.`;
+    return `vor ${Math.round(h / 24)} Tg.`;
+  }
+  function minutesSince(iso: string | null): number {
+    if (!iso) return 0;
+    return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  }
+  const STUCK_MIN = 15; // Werkstück hängt verdächtig lange in einer Phase
+  function prioDot(p: string): string {
+    if (p === 'hoch') return 'bg-red-400';
+    if (p === 'mittel') return 'bg-amber-400';
+    if (p === 'niedrig') return 'bg-emerald-400';
+    return 'bg-white/40';
+  }
+
   onMount(() => { if (!initial) refresh(); timer = setInterval(refresh, POLL_MS); });
   onDestroy(() => { if (timer) clearInterval(timer); });
 </script>
@@ -83,9 +111,20 @@
   {#if !data}
     <p class="text-muted">Fabrikhalle lädt…</p>
   {:else}
-    {#if stale}
-      <div class="mb-3 text-sm text-amber-400/80" data-testid="floor-stale">Veraltet — letzter Stand wird gezeigt.</div>
-    {/if}
+    <!-- Live-Indikator: zeigt, dass das 4s-Polling lebt -->
+    <div class="mb-3 flex items-center gap-2 text-xs" data-testid="floor-pulse">
+      <span class="relative flex h-2 w-2">
+        <span class="absolute inline-flex h-full w-full rounded-full opacity-75"
+              class:bg-emerald-400={!stale} class:bg-amber-400={stale} class:animate-ping={!stale}></span>
+        <span class="relative inline-flex h-2 w-2 rounded-full"
+              class:bg-emerald-400={!stale} class:bg-amber-400={stale}></span>
+      </span>
+      {#if stale}
+        <span class="text-amber-400/90" data-testid="floor-stale">Veraltet — letzter Stand wird gezeigt.</span>
+      {:else}
+        <span class="text-muted">live · aktualisiert {relTime(data.fetchedAt)}</span>
+      {/if}
+    </div>
 
     <!-- ① Leitstand -->
     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" data-testid="floor-leitstand">
@@ -109,7 +148,11 @@
           <ul class="space-y-1">
             {#each data.loadingDock as d (d.extId)}
               <li class="rounded bg-white/5 px-2 py-1 text-sm">
-                <span class="font-mono">{d.extId}</span> — {d.title}
+                <div class="flex items-center gap-1.5">
+                  <span class="h-2 w-2 shrink-0 rounded-full {prioDot(d.priority)}" title={`Priorität: ${d.priority}`}></span>
+                  <a href={ticketUrl(d.extId)} class="font-mono text-xs text-gold hover:underline">{d.extId}</a>
+                  <span class="truncate">{d.title}</span>
+                </div>
                 <span class="block text-muted text-xs">⏳ {d.waitReason}</span>
               </li>
             {/each}
@@ -132,12 +175,13 @@
                 <button
                   onclick={() => openDetail(w.extId)}
                   data-testid="floor-workpiece"
+                  title={`${w.title}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
                   class="block w-full text-left rounded px-1 py-0.5 text-xs mb-1 transition-all"
                   class:bg-gold={w.phaseState !== 'blocked'}
                   class:text-dark={w.phaseState !== 'blocked'}
                   class:bg-red-500={w.phaseState === 'blocked'}
                   class:animate-pulse={w.phaseState === 'blocked'}>
-                  {w.extId}{w.phaseState === 'blocked' ? ' ⛔' : ''}
+                  {w.extId}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}
                 </button>
               {/each}
             </div>
@@ -151,11 +195,29 @@
         {#if data.shipped.length === 0}
           <p class="text-muted text-sm">Noch nichts versandt.</p>
         {:else}
-          <ul class="space-y-1">
+          <ul class="space-y-1.5">
             {#each data.shipped as s (s.extId)}
-              <li class="rounded bg-white/5 px-2 py-1 text-sm">
-                <span class="font-mono">{s.extId}</span> — {s.title}
-                {#if s.prNumber}<span class="block text-muted text-xs">PR #{s.prNumber}</span>{/if}
+              <li class="rounded-lg border border-transparent bg-white/5 px-2.5 py-2 text-sm transition-colors hover:border-white/10 hover:bg-white/[0.08]"
+                  data-testid="floor-shipped-item">
+                <div class="flex items-center justify-between gap-2">
+                  <a href={ticketUrl(s.extId)} class="font-mono text-xs text-gold hover:underline"
+                     title="In der Ticket-Übersicht öffnen">{s.extId}</a>
+                  {#if s.doneAt}
+                    <span class="whitespace-nowrap text-[10px] text-muted"
+                          title={new Date(s.doneAt).toLocaleString('de-DE')}>{relTime(s.doneAt)}</span>
+                  {/if}
+                </div>
+                <button type="button" onclick={() => openDetail(s.extId)}
+                        class="mt-0.5 block w-full text-left leading-snug transition-colors hover:text-gold"
+                        title="Phasen-Timeline &amp; Details anzeigen">{s.title}</button>
+                {#if s.prNumber}
+                  <a href={prUrl(s.prNumber)} target="_blank" rel="noopener noreferrer"
+                     data-testid="floor-shipped-pr"
+                     class="mt-1 inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-gold hover:text-dark">
+                    <svg viewBox="0 0 16 16" class="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg>
+                    PR #{s.prNumber}<span class="opacity-60">↗</span>
+                  </a>
+                {/if}
               </li>
             {/each}
           </ul>
@@ -172,7 +234,7 @@
           <p class="text-muted text-sm">Lädt…</p>
         {:else}
           <p class="mb-2">{detail.title}</p>
-          <p class="text-muted text-sm mb-3">Status: {detail.status} · Priorität: {detail.priority} · Retries: {detail.retryCount}{#if detail.prNumber} · PR #{detail.prNumber}{/if}</p>
+          <p class="text-muted text-sm mb-3">Status: {detail.status} · Priorität: {detail.priority} · Retries: {detail.retryCount}{#if detail.prNumber} · <a href={prUrl(detail.prNumber)} target="_blank" rel="noopener noreferrer" class="text-gold hover:underline">PR #{detail.prNumber} ↗</a>{/if}</p>
           <h4 class="font-semibold mt-3 mb-1">Phasen-Timeline</h4>
           <ul class="space-y-1 text-sm">
             {#each detail.events as e}

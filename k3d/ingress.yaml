@@ -72,16 +72,6 @@ spec:
                 name: vaultwarden
                 port:
                   number: 80
-    - host: sign.localhost
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: docuseal
-                port:
-                  number: 3000
 ---
 # ─── Interne Tools (Docs, Brett — oauth2-proxy-protected) ────────
 apiVersion: networking.k8s.io/v1

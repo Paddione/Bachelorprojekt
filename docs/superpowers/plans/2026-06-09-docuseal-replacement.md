@@ -73,7 +73,7 @@ pr_number: null
 - Create: `scripts/datamodel/2026-06-09-docuseal-replacement-mentolder.sql`
 - Create: `scripts/datamodel/2026-06-09-docuseal-replacement-korczewski.sql`
 
-- [ ] **Step 1: Create mentolder migration**
+- [x] **Step 1: Create mentolder migration**
 
 ```sql
 -- scripts/datamodel/2026-06-09-docuseal-replacement-mentolder.sql
@@ -115,11 +115,11 @@ CREATE INDEX IF NOT EXISTS idx_signing_audit_log__assignment_id
 COMMIT;
 ```
 
-- [ ] **Step 2: Create korczewski migration (identical content)**
+- [x] **Step 2: Create korczewski migration (identical content)**
 
 Copy the same SQL to `scripts/datamodel/2026-06-09-docuseal-replacement-korczewski.sql`.
 
-- [ ] **Step 3: Apply to dev cluster**
+- [x] **Step 3: Apply to dev cluster**
 
 ```bash
 # Apply to k3d dev DB
@@ -129,7 +129,7 @@ kubectl exec -it -n workspace deployment/shared-db -- \
 
 Expected: `ALTER TABLE` × 3, `CREATE TABLE`, `CREATE INDEX`, `COMMIT`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/datamodel/2026-06-09-docuseal-replacement-mentolder.sql \
@@ -144,7 +144,7 @@ git commit -m "chore(db): add docuseal-replacement migration — drop docuseal c
 **Files:**
 - Modify: `website/src/lib/documents-db.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/tests/api/documents-db.test.ts`:
 
@@ -226,7 +226,7 @@ describe('documents-db signing functions', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/documents-db.test.ts
@@ -234,7 +234,7 @@ cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/documents-db
 
 Expected: FAIL — `SignatureData` not found (signing/types.ts doesn't exist yet)
 
-- [ ] **Step 3: Update `documents-db.ts`**
+- [x] **Step 3: Update `documents-db.ts`**
 
 Replace the `DocumentTemplate` and `DocumentAssignment` interfaces and add new functions. Edit `website/src/lib/documents-db.ts`:
 
@@ -326,7 +326,7 @@ export async function getDocumentAssignmentById(id: string): Promise<DocumentAss
 
 Also remove the old `markAssignmentCompleted(slug: string)` function (it relied on `docuseal_submission_slug`).
 
-- [ ] **Step 4: Run test again**
+- [x] **Step 4: Run test again**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/documents-db.test.ts
@@ -334,7 +334,7 @@ cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/documents-db
 
 Expected: FAIL — `signing/types` not found (Task 3 creates it)
 
-- [ ] **Step 5: Commit stub**
+- [x] **Step 5: Commit stub**
 
 ```bash
 git add website/src/lib/documents-db.ts website/tests/api/documents-db.test.ts
@@ -350,7 +350,7 @@ git commit -m "feat(signing): update documents-db types + signing functions"
 - Create: `website/src/lib/signing/audit.ts`
 - Create: `website/src/lib/signing/index.ts`
 
-- [ ] **Step 1: Create `types.ts`**
+- [x] **Step 1: Create `types.ts`**
 
 ```typescript
 // website/src/lib/signing/types.ts
@@ -371,7 +371,7 @@ export interface SigningResult {
 export type AuditEvent = 'viewed' | 'signed' | 'revoked' | 'email_sent' | 'pdf_downloaded';
 ```
 
-- [ ] **Step 2: Create `audit.ts`**
+- [x] **Step 2: Create `audit.ts`**
 
 ```typescript
 // website/src/lib/signing/audit.ts
@@ -394,7 +394,7 @@ export async function logSigningEvent(
 }
 ```
 
-- [ ] **Step 3: Create `index.ts`**
+- [x] **Step 3: Create `index.ts`**
 
 ```typescript
 // website/src/lib/signing/index.ts
@@ -404,7 +404,7 @@ export * from './pdf-service';
 export * from './audit';
 ```
 
-- [ ] **Step 4: Run documents-db test — now passes**
+- [x] **Step 4: Run documents-db test — now passes**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/documents-db.test.ts
@@ -412,7 +412,7 @@ cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/documents-db
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/signing/types.ts website/src/lib/signing/audit.ts website/src/lib/signing/index.ts
@@ -427,7 +427,7 @@ git commit -m "feat(signing): add signing types, audit log module"
 - Create: `website/src/lib/signing/template-renderer.ts`
 - Create: `website/tests/api/signing-template-renderer.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```typescript
 // website/tests/api/signing-template-renderer.test.ts
@@ -500,7 +500,7 @@ describe('embedSignature', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/signing-template-renderer.test.ts
@@ -508,7 +508,7 @@ cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/signing-temp
 
 Expected: FAIL — module not found
 
-- [ ] **Step 3: Implement `template-renderer.ts`**
+- [x] **Step 3: Implement `template-renderer.ts`**
 
 ```typescript
 // website/src/lib/signing/template-renderer.ts
@@ -576,7 +576,7 @@ export function embedSignature(
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/signing-template-renderer.test.ts
@@ -584,7 +584,7 @@ cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/signing-temp
 
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/signing/template-renderer.ts website/tests/api/signing-template-renderer.test.ts
@@ -600,7 +600,7 @@ git commit -m "feat(signing): template renderer with fixed/editable vars and sig
 - Modify: `website/package.json`
 - Modify: `website/Dockerfile`
 
-- [ ] **Step 1: Add production dependencies to `package.json`**
+- [x] **Step 1: Add production dependencies to `package.json`**
 
 In `website/package.json`, add to `"dependencies"`:
 ```json
@@ -613,7 +613,7 @@ Run:
 cd /tmp/wt-docuseal-replacement/website && npm install
 ```
 
-- [ ] **Step 2: Update `Dockerfile` — add Chromium to runtime stage**
+- [x] **Step 2: Update `Dockerfile` — add Chromium to runtime stage**
 
 In `website/Dockerfile`, after the `apk add --no-cache bash curl jq ...` block in the runtime stage, add:
 
@@ -631,7 +631,7 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ```
 
-- [ ] **Step 3: Create `pdf-service.ts`**
+- [x] **Step 3: Create `pdf-service.ts`**
 
 ```typescript
 // website/src/lib/signing/pdf-service.ts
@@ -679,7 +679,7 @@ process.on('SIGTERM', async () => {
 });
 ```
 
-- [ ] **Step 4: Verify TypeScript compiles**
+- [x] **Step 4: Verify TypeScript compiles**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | head -30
@@ -687,7 +687,7 @@ cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | head -30
 
 Expected: no errors related to pdf-service.ts or signing/ module
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/signing/pdf-service.ts website/package.json website/package-lock.json website/Dockerfile
@@ -702,7 +702,7 @@ git commit -m "feat(signing): add Playwright PDF service + Chromium to Dockerfil
 - Create: `website/src/pages/api/portal/sign/[assignmentId].ts`
 - Create: `website/tests/api/portal-sign.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```typescript
 // website/tests/api/portal-sign.test.ts
@@ -759,7 +759,7 @@ describe('POST /api/portal/sign/[assignmentId] validation', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify test passes conceptually**
+- [x] **Step 2: Run to verify test passes conceptually**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/portal-sign.test.ts
@@ -767,7 +767,7 @@ cd /tmp/wt-docuseal-replacement/website && npx vitest run tests/api/portal-sign.
 
 Expected: PASS (validation logic tested via mocks)
 
-- [ ] **Step 3: Implement the endpoint**
+- [x] **Step 3: Implement the endpoint**
 
 Create `website/src/pages/api/portal/sign/[assignmentId].ts`:
 
@@ -856,7 +856,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 };
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/pages/api/portal/sign/ website/tests/api/portal-sign.test.ts
@@ -870,7 +870,7 @@ git commit -m "feat(signing): POST /api/portal/sign/[assignmentId] endpoint"
 **Files:**
 - Create: `website/src/pages/api/portal/documents/[assignmentId]/pdf.ts`
 
-- [ ] **Step 1: Implement**
+- [x] **Step 1: Implement**
 
 ```typescript
 // website/src/pages/api/portal/documents/[assignmentId]/pdf.ts
@@ -911,7 +911,7 @@ export const GET: APIRoute = async ({ params, request }) => {
 };
 ```
 
-- [ ] **Step 2: Verify TypeScript**
+- [x] **Step 2: Verify TypeScript**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep -E "portal/documents" || echo "OK"
@@ -919,7 +919,7 @@ cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep -E "port
 
 Expected: OK
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/portal/documents/
@@ -934,7 +934,7 @@ git commit -m "feat(signing): GET /api/portal/documents/[id]/pdf download endpoi
 - Create: `website/src/pages/api/admin/documents/notify/[id].ts`
 - Create: `website/src/pages/api/admin/documents/assignments/[id].ts`
 
-- [ ] **Step 1: Create notify endpoint**
+- [x] **Step 1: Create notify endpoint**
 
 ```typescript
 // website/src/pages/api/admin/documents/notify/[id].ts
@@ -989,7 +989,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 };
 ```
 
-- [ ] **Step 2: Create revoke/extend endpoint**
+- [x] **Step 2: Create revoke/extend endpoint**
 
 ```typescript
 // website/src/pages/api/admin/documents/assignments/[id].ts
@@ -1042,7 +1042,7 @@ export const PATCH: APIRoute = async ({ params, request }) => {
 };
 ```
 
-- [ ] **Step 3: Verify TypeScript**
+- [x] **Step 3: Verify TypeScript**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep -E "notify|assignments/\[id\]" || echo "OK"
@@ -1050,7 +1050,7 @@ cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep -E "noti
 
 Expected: OK
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/pages/api/admin/documents/notify/ \
@@ -1067,7 +1067,7 @@ git commit -m "feat(signing): admin endpoints — notify, revoke, extend deadlin
 
 The current `assign.ts` calls `createTemplate()` and `createSubmission()` from `docuseal.ts`. These are replaced: assignment creation is now just a DB write.
 
-- [ ] **Step 1: Rewrite `assign.ts`**
+- [x] **Step 1: Rewrite `assign.ts`**
 
 Replace the file content with (keep the session/admin check and customer lookup logic, remove DocuSeal):
 
@@ -1109,7 +1109,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Verify TypeScript**
+- [x] **Step 2: Verify TypeScript**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep "assign.ts" || echo "OK"
@@ -1117,14 +1117,14 @@ cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep "assign.
 
 Expected: OK
 
-- [ ] **Step 3: Delete `docuseal.ts` and `webhooks/docuseal.ts`**
+- [x] **Step 3: Delete `docuseal.ts` and `webhooks/docuseal.ts`**
 
 ```bash
 rm /tmp/wt-docuseal-replacement/website/src/lib/docuseal.ts
 rm /tmp/wt-docuseal-replacement/website/src/pages/api/webhooks/docuseal.ts
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/pages/api/admin/documents/assign.ts
@@ -1139,7 +1139,7 @@ git commit -m "feat(signing): remove DocuSeal API calls from assign.ts, delete d
 **Files:**
 - Rewrite: `website/src/pages/portal/sign/[assignmentId].astro`
 
-- [ ] **Step 1: Rewrite the page**
+- [x] **Step 1: Rewrite the page**
 
 ```astro
 ---
@@ -1329,13 +1329,13 @@ const isCompleted = assignment.status === 'completed';
 </style>
 ```
 
-- [ ] **Step 2: Verify TypeScript**
+- [x] **Step 2: Verify TypeScript**
 
 ```bash
 cd /tmp/wt-docuseal-replacement/website && npx tsc --noEmit 2>&1 | grep "sign/\[assignmentId\]" || echo "OK"
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/portal/sign/
@@ -1348,7 +1348,7 @@ git commit -m "feat(signing): rewrite signing page — inline HTML, sticky signa
 
 **Files:** k3d/, prod/ changes
 
-- [ ] **Step 1: Delete DocuSeal deployment manifest**
+- [x] **Step 1: Delete DocuSeal deployment manifest**
 
 ```bash
 cd /tmp/wt-docuseal-replacement
@@ -1356,23 +1356,23 @@ rm k3d/docuseal.yaml
 rm prod/patch-docuseal.yaml
 ```
 
-- [ ] **Step 2: Update `k3d/kustomization.yaml` — remove docuseal resource**
+- [x] **Step 2: Update `k3d/kustomization.yaml` — remove docuseal resource**
 
 Find and remove the line `- docuseal.yaml` from the `resources:` list.
 
-- [ ] **Step 3: Update `prod/kustomization.yaml` — remove patch**
+- [x] **Step 3: Update `prod/kustomization.yaml` — remove patch**
 
 Find and remove the line referencing `patch-docuseal.yaml` from the `patches:` or `patchesStrategicMerge:` list.
 
-- [ ] **Step 4: Update `prod/ingress.yaml` — remove sign.${PROD_DOMAIN} block**
+- [x] **Step 4: Update `prod/ingress.yaml` — remove sign.${PROD_DOMAIN} block**
 
 Remove the IngressRoute or Ingress block for `sign.${PROD_DOMAIN}` (currently lines 125–147 per the spec). The block starts with a comment `# DocuSeal` or the host rule `Host(\`sign.` and ends before the next service block.
 
-- [ ] **Step 5: Update configmap-domains — remove SIGN_DOMAIN**
+- [x] **Step 5: Update configmap-domains — remove SIGN_DOMAIN**
 
 In both `k3d/configmap-domains.yaml` and `prod/configmap-domains.yaml`, remove the line `SIGN_DOMAIN: "sign.${PROD_DOMAIN}"` (or the dev equivalent).
 
-- [ ] **Step 6: Update `k3d/shared-db.yaml` — remove docuseal DB init**
+- [x] **Step 6: Update `k3d/shared-db.yaml` — remove docuseal DB init**
 
 In the `postStart` lifecycle script, remove:
 - The line creating the `docuseal` role
@@ -1381,7 +1381,7 @@ In the `postStart` lifecycle script, remove:
 
 These are typically `psql ... -c "CREATE ROLE docuseal ..."` style lines.
 
-- [ ] **Step 7: Update `k3d/secrets.yaml` — remove DOCUSEAL_* entries**
+- [x] **Step 7: Update `k3d/secrets.yaml` — remove DOCUSEAL_* entries**
 
 Remove:
 ```yaml
@@ -1390,13 +1390,13 @@ DOCUSEAL_API_TOKEN: "devdocusealapitoken"
 DOCUSEAL_DB_PASSWORD: "devdocusealdb"
 ```
 
-- [ ] **Step 8: Update `k3d/website.yaml` — remove DOCUSEAL env vars**
+- [x] **Step 8: Update `k3d/website.yaml` — remove DOCUSEAL env vars**
 
 Remove the env entries:
 - `DOCUSEAL_API_TOKEN` (secret ref)
 - `DOCUSEAL_INTERNAL_URL` (value)
 
-- [ ] **Step 9: Update `k3d/backup-cronjob.yaml` — remove DocuSeal entries**
+- [x] **Step 9: Update `k3d/backup-cronjob.yaml` — remove DocuSeal entries**
 
 Remove:
 - The `docuseal-data` volume mount
@@ -1425,14 +1425,14 @@ git commit -m "chore(infra): remove DocuSeal k8s deployment, ingress, backup, an
 
 **Files:** environments/schema.yaml, environments/.secrets/dev.yaml, environments/sealed-secrets/*.yaml
 
-- [ ] **Step 1: Remove DOCUSEAL_* from `environments/schema.yaml`**
+- [x] **Step 1: Remove DOCUSEAL_* from `environments/schema.yaml`**
 
 Delete the three variable entries (lines ~622–637 per spec):
 - `DOCUSEAL_SECRET_KEY_BASE`
 - `DOCUSEAL_API_TOKEN` (including `extra_namespaces` block)
 - `DOCUSEAL_DB_PASSWORD`
 
-- [ ] **Step 2: Remove DOCUSEAL_* from `environments/.secrets/dev.yaml`**
+- [x] **Step 2: Remove DOCUSEAL_* from `environments/.secrets/` all files**
 
 Delete the two lines:
 ```yaml
@@ -1442,7 +1442,7 @@ DOCUSEAL_DB_PASSWORD: "20356fdb..."
 
 Also remove `DOCUSEAL_API_TOKEN` if present.
 
-- [ ] **Step 3: Regenerate sealed secrets for both brands**
+- [x] **Step 3: Regenerate sealed secrets for both brands**
 
 ```bash
 task env:seal ENV=mentolder
@@ -1451,7 +1451,7 @@ task env:seal ENV=korczewski
 
 This re-encrypts the `.secrets/` without the removed DocuSeal vars and writes new sealed secrets files.
 
-- [ ] **Step 4: Validate schemas**
+- [x] **Step 4: Validate schemas**
 
 ```bash
 task env:validate ENV=mentolder && task env:validate ENV=korczewski

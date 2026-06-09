@@ -3,7 +3,7 @@
 # SA-07: Daily at 03:00 UTC (one hour after db-backup at 02:00)
 #
 # Design (T000317): the orchestrator pod clones the two Longhorn data
-# PVCs (vaultwarden, docuseal) via CSI dataSource so the backup mounts
+# PVCs (vaultwarden) via CSI dataSource so the backup mounts
 # placement-independent copies — never the live RWO volumes, which
 # deadlock on Multi-Attach when the app pod runs on another node.
 # nextcloud-data stays on local-path (no clone support) and is mounted
@@ -70,15 +70,12 @@ spec:
                   # RWO local-path volume is shareable — the same model already
                   # used for nextcloud-data. mentolder keeps both data PVCs on
                   # longhorn (cloned); korczewski has no Longhorn install, so its
-                  # vaultwarden/docuseal PVCs stay on local-path and are tarred
-                  # live. [T000403]
-                  VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}')
-                  DS_SC=$(kubectl -n "$NS" get pvc docuseal-data-pvc   -o jsonpath='{.spec.storageClassName}')
-                  echo "Storage classes: vaultwarden=$VW_SC docuseal=$DS_SC"
+                   # vaultwarden PVC stays on local-path and is tarred
+                   # live. [T000403]
+                   VW_SC=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.storageClassName}')
 
-                  CLONES=""
-                  [ "$VW_SC" = "longhorn" ] && CLONES="$CLONES vaultwarden-data-backup-clone"
-                  [ "$DS_SC" = "longhorn" ] && CLONES="$CLONES docuseal-data-backup-clone"
+                   CLONES=""
+                   [ "$VW_SC" = "longhorn" ] && CLONES="$CLONES vaultwarden-data-backup-clone"
 
                   # Each data volume points at its clone (longhorn) or its live
                   # PVC (local-path). The mounter co-locates with every live
@@ -91,14 +88,7 @@ spec:
                               - labelSelector: { matchLabels: { app: vaultwarden } }
                                 topologyKey: kubernetes.io/hostname"
                   fi
-                  if [ "$DS_SC" = "longhorn" ]; then
-                    DS_CLAIM="docuseal-data-backup-clone"; DS_AFFINITY=""
-                  else
-                    DS_CLAIM="docuseal-data-pvc"
-                    DS_AFFINITY="
-                              - labelSelector: { matchLabels: { app: docuseal } }
-                                topologyKey: kubernetes.io/hostname"
-                  fi
+
 
                   cleanup() {
                     echo "Cleanup: deleting mounter Job and clone PVCs..."
@@ -116,12 +106,10 @@ spec:
 
                   if [ -n "$CLONES" ]; then
                     echo "Creating clone PVCs from live Longhorn volumes..."
-                    VW_SIZE=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.resources.requests.storage}')
-                    DS_SIZE=$(kubectl -n "$NS" get pvc docuseal-data-pvc   -o jsonpath='{.spec.resources.requests.storage}')
+                     VW_SIZE=$(kubectl -n "$NS" get pvc vaultwarden-data-pvc -o jsonpath='{.spec.resources.requests.storage}')
                     for c in $CLONES; do
                       case "$c" in
-                        vaultwarden-data-backup-clone) SRC=vaultwarden-data-pvc; SIZE=$VW_SIZE ;;
-                        docuseal-data-backup-clone)    SRC=docuseal-data-pvc;    SIZE=$DS_SIZE ;;
+                       vaultwarden-data-backup-clone) SRC=vaultwarden-data-pvc; SIZE=$VW_SIZE ;;
                       esac
                       kubectl -n "$NS" apply -f - <<CLONE
                   apiVersion: v1
@@ -181,7 +169,7 @@ spec:
                           podAffinity:
                             requiredDuringSchedulingIgnoredDuringExecution:
                               - labelSelector: { matchLabels: { app: nextcloud } }
-                                topologyKey: kubernetes.io/hostname$${VW_AFFINITY}$${DS_AFFINITY}
+                                topologyKey: kubernetes.io/hostname$${VW_AFFINITY}
                         securityContext:
                           runAsNonRoot: true
                           runAsUser: 65534
@@ -232,7 +220,7 @@ spec:
                                 }
                                 backup_dir /nextcloud-data   nextcloud-files.tar.gz.enc  nextcloud-data
                                 backup_dir /vaultwarden-data vaultwarden-data.tar.gz.enc vaultwarden-data
-                                backup_dir /docuseal-data    docuseal-data.tar.gz.enc    docuseal-data
+
                                 find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
                                 printf '%s' "\$${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
                                 printf '%s' "pvc-\$${STAMP}" > /staging/.done
@@ -243,7 +231,7 @@ spec:
                               - { name: backup-storage,   mountPath: /backups }
                               - { name: nextcloud-data,   mountPath: /nextcloud-data,   readOnly: true }
                               - { name: vaultwarden-data, mountPath: /vaultwarden-data, readOnly: true }
-                              - { name: docuseal-data,    mountPath: /docuseal-data,    readOnly: true }
+
                               - { name: staging,          mountPath: /staging }
                             resources:
                               requests: { memory: 256Mi, cpu: "200m" }
@@ -297,8 +285,7 @@ spec:
                             persistentVolumeClaim: { claimName: nextcloud-data-pvc }
                           - name: vaultwarden-data
                             persistentVolumeClaim: { claimName: $${VW_CLAIM} }
-                          - name: docuseal-data
-                            persistentVolumeClaim: { claimName: $${DS_CLAIM} }
+
                           - name: staging
                             emptyDir: {}
                   MJOB

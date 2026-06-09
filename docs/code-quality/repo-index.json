@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 381,
+      "file_count": 380,
       "files": [
         "tests/.gitignore",
         "tests/e2e/brett-globals.d.ts",
@@ -42,7 +42,6 @@
         "tests/e2e/specs/brett-mobile.spec.ts",
         "tests/e2e/specs/brett-roles.spec.ts",
         "tests/e2e/specs/dashboard-art.spec.ts",
-        "tests/e2e/specs/debug-auth.spec.ts",
         "tests/e2e/specs/fa-01-messaging.spec.ts",
         "tests/e2e/specs/fa-03-video.spec.ts",
         "tests/e2e/specs/fa-04-files.spec.ts",

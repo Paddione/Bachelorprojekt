@@ -78,12 +78,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:debug-auth",
-    "file": "tests/e2e/specs/debug-auth.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:fa-admin-backup-ops",
     "file": "tests/e2e/specs/fa-admin-backup-ops.spec.ts",
     "category": "E2E",

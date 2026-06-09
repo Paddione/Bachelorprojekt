@@ -74,14 +74,11 @@ export async function bootBoard(): Promise<void> {
   // ── Coachee late-join UI (T000555) ─────────────────────────────────
   const inviteSlot = document.getElementById('topbar-invite-slot');
   const participantsSlot = document.getElementById('topbar-participants-slot');
-
   const myRole = () => wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
-
   let inviteCtl: { refresh: () => void } | null = null;
   if (inviteSlot) {
     inviteCtl = mountInviteButton(inviteSlot, () => wsClient.getLobbyState()?.sessionCode ?? null);
   }
-
   let participantsPanel: { update: () => void } | null = null;
   if (participantsSlot) {
     participantsPanel = mountParticipantsButton(participantsSlot, {

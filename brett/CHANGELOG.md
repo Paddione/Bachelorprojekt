@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.26.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.25.1...brett-v0.26.0) (2026-06-09)
+
+
+### Features
+
+* **brett:** coachee late-join UI — invite button, participants panel, toast notification ([#1477](https://github.com/Paddione/Bachelorprojekt/issues/1477)) ([f00c901](https://github.com/Paddione/Bachelorprojekt/commit/f00c901758c9ffc15a1a1b34aa368c9787a23022))
+
 ## [0.25.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.25.0...brett-v0.25.1) (2026-06-09)
 
 

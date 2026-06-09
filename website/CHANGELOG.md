@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.39.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.39.0...website-v1.39.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* **sidekick:** close drawer when navigating to Lernpfad [T000558] ([7beb0a5](https://github.com/Paddione/Bachelorprojekt/commit/7beb0a5c4122480b3bb6d23f38e5c5e14a6c5544))
+* **sidekick:** Drawer schließen beim Klick auf Lernpfad [T000558] ([22c5900](https://github.com/Paddione/Bachelorprojekt/commit/22c590040635f854ba094a8e709da2b0d4b7159d))
+
 ## [1.39.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.38.0...website-v1.39.0) (2026-06-08)
 
 

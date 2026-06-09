@@ -9,6 +9,119 @@
 import { buildGraph } from './graph-data.mjs';
 import { layoutGraph } from './graph-layout.mjs';
 import { renderGraphSvg } from './graph-svg.mjs';
+import { pluginNameOf } from './registry.mjs';
+
+/**
+ * Maps plugin name → skill category slug.
+ * Skills without a matching plugin entry fall back to 'claude-code'.
+ */
+const PLUGIN_SKILL_CATEGORIES = {
+  'superpowers': 'dev-workflow',
+  'superpowers-lab': 'claude-code',          // mcp-cli overridden per-name below
+  'superpowers-chrome': 'browser',
+  'superpowers-developing-for-claude-code': 'claude-code',
+  'huggingface-skills': 'ki-ml',
+  'chrome-devtools-mcp': 'browser',
+  'plugin-dev': 'plugin-bau',
+  'skill-creator': 'plugin-bau',
+  'hookify': 'plugin-bau',
+  'mcp-server-dev': 'mcp-api',
+  'postman': 'mcp-api',
+  'claude-code-setup': 'claude-code',
+  'claude-md-management': 'claude-code',
+  'remember': 'claude-code',
+  'desktop-commander': 'claude-code',
+  'frontend-design': 'claude-code',
+  'playground': 'claude-code',
+};
+
+/** Per-skill overrides that take priority over the plugin mapping. */
+const SKILL_NAME_OVERRIDES = {
+  'mcp-cli': 'mcp-api',
+};
+
+/** Repo skills mapped by skill name → category. */
+const REPO_SKILL_CATEGORIES = {
+  'dev-flow-plan': 'dev-workflow',
+  'dev-flow-execute': 'dev-workflow',
+  'dev-flow-iterate': 'dev-workflow',
+  'dev-flow-e2e': 'dev-workflow',
+  'using-git-worktrees': 'dev-workflow',
+  'arena-brett-deploy': 'bachelorprojekt-infra',
+  'cluster-deployment': 'bachelorprojekt-infra',
+  'database-ops': 'bachelorprojekt-infra',
+  'fleet-ops': 'bachelorprojekt-infra',
+  'host-node-networking': 'bachelorprojekt-infra',
+  'keycloak-realm-sync': 'bachelorprojekt-infra',
+  'knowledge-management': 'bachelorprojekt-infra',
+  'mishap-tracker': 'bachelorprojekt-infra',
+  'operations-management': 'bachelorprojekt-infra',
+  'secret-rotation': 'bachelorprojekt-infra',
+  'update-dependencies': 'bachelorprojekt-infra',
+};
+
+const CATEGORY_LABELS = {
+  'dev-workflow': 'Dev-Workflow',
+  'bachelorprojekt-infra': 'Bachelorprojekt-Infra',
+  'ki-ml': 'KI / ML',
+  'plugin-bau': 'Plugin- & Skill-Bau',
+  'browser': 'Browser & Debugging',
+  'mcp-api': 'MCP & API',
+  'claude-code': 'Claude Code & Tooling',
+};
+
+const CATEGORY_ORDER = [
+  'dev-workflow',
+  'bachelorprojekt-infra',
+  'ki-ml',
+  'plugin-bau',
+  'browser',
+  'mcp-api',
+  'claude-code',
+];
+
+/**
+ * Assign a display category to a skill page.
+ * @param {Page} page
+ * @returns {string} category slug
+ */
+export function categoryForSkill(page) {
+  if (SKILL_NAME_OVERRIDES[page.name]) return SKILL_NAME_OVERRIDES[page.name];
+  if (page.provenance === 'repo') {
+    return REPO_SKILL_CATEGORIES[page.name] ?? 'claude-code';
+  }
+  const plugin = pluginNameOf(page.provenance);
+  return PLUGIN_SKILL_CATEGORIES[plugin] ?? 'claude-code';
+}
+
+/**
+ * Remove duplicate skill pages: keep only the newest version per (pluginName, skillName) pair.
+ * Repo skills have no plugin name and are never deduplicated against each other.
+ * @param {Page[]} pages
+ * @returns {Page[]}
+ */
+export function deduplicateSkills(pages) {
+  /** @type {Map<string, Page>} */
+  const best = new Map();
+  for (const page of pages) {
+    if (page.type !== 'skill') continue;
+    const plugin = pluginNameOf(page.provenance);
+    const key = page.provenance === 'repo'
+      ? `repo:${page.name}`
+      : `${plugin}:${page.name}`;
+    const existing = best.get(key);
+    if (!existing) {
+      best.set(key, page);
+      continue;
+    }
+    // Compare versions: existing vs page. Keep the lexicographically greater one
+    // (semver strings like '5.1.0' compare correctly that way for simple cases).
+    const existingVer = page.provenance === 'repo' ? '' : (existing.provenance.split('@')[1] ?? '');
+    const newVer = page.provenance === 'repo' ? '' : (page.provenance.split('@')[1] ?? '');
+    if (newVer > existingVer) best.set(key, page);
+  }
+  return Array.from(best.values());
+}
 
 /**
  * @typedef {Object} Page

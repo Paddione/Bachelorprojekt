@@ -19,7 +19,7 @@ import { discoverSources } from './docs-gen/discover.mjs';
 import { buildPages, buildRegistry, parseRoutingTable, collectEdges } from './docs-gen/registry.mjs';
 import { renderMarkdown } from './docs-gen/render-markdown.mjs';
 import { editorialCss, clientJs } from './docs-gen/theme.mjs';
-import { renderPage, renderSectionIndex, renderSkillsIndex, renderAgentsIndex, renderLanding, deduplicateSkills } from './docs-gen/templates.mjs';
+import { renderPage, renderSkillsIndex, renderAgentsIndex, renderDocsIndex, renderLanding, deduplicateSkills } from './docs-gen/templates.mjs';
 import { rewrapLegacyPage } from './docs-gen/legacy.mjs';
 import { buildGraph } from './docs-gen/graph-data.mjs';
 import { layoutGraph } from './docs-gen/graph-layout.mjs';
@@ -211,7 +211,7 @@ export async function runBuild(opts = {}) {
 
   writeOut(outDir, 'skills.html', renderSkillsIndex({ pages: skillPages }));
   writeOut(outDir, 'agents.html', renderAgentsIndex({ pages: agentPages }));
-  writeOut(outDir, 'docs.html', renderSectionIndex({ type: 'doc', title: 'Docs', pages: docPages }));
+  writeOut(outDir, 'docs.html', renderDocsIndex({ pages: docPages }));
 
   // (8) Landing page (graph-forward in Plan 2; editorial card grid in Plan 1).
   writeOut(outDir, 'index.html', renderLanding({ pages, registry, edges, routingRows }));

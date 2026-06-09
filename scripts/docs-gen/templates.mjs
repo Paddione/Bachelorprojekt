@@ -473,6 +473,110 @@ ${sections}
 ${documentTail('./')}`;
 }
 
+/** Static slug-to-group assignment for doc pages. */
+const DOC_GROUPS = [
+  {
+    key: 'handbuecher',
+    label: 'Handbücher',
+    slugs: new Set(['benutzerhandbuch', 'adminhandbuch', 'claude-code', 'contributing', 'readme']),
+  },
+  {
+    key: 'architektur',
+    label: 'Architektur & Bausteine',
+    slugs: new Set(['architecture', 'bereitstellungsdetails', 'db-schema', 'datamodel-workflow',
+      '30-bausteine', '20-werkzeuge', '10-ziele', '00-anleitung']),
+  },
+  {
+    key: 'audits',
+    label: 'Audits & Reports',
+    matchFn: (slug) => /^\d{4}-\d{2}-\d{2}/.test(slug) || ['findings', 'db-audit'].includes(slug),
+  },
+  {
+    key: 'entscheidungen',
+    label: 'Entscheidungen',
+    slugs: new Set(['decision-log', 'decisions', 'CHANGELOG']),
+  },
+];
+
+/** Fallback description derived from slug when page.description is empty. */
+function fallbackDescription(slug) {
+  const MAP = {
+    'decision-log': 'Protokoll getroffener Architektur- und Designentscheidungen',
+    'decisions': 'Entscheidungsübersicht',
+    'CHANGELOG': 'Versionshistorie und Änderungsprotokoll',
+    'architecture': 'Übersicht der Systemarchitektur und ihrer Komponenten',
+    'bereitstellungsdetails': 'Server-Topologie und Bereitstellungsdetails',
+    'db-schema': 'Datenbankschema-Diagramm',
+    'datamodel-workflow': 'Datenmodell und Workflow-Dokumentation',
+    'contributing': 'Beitragsleitfaden für Entwickler',
+    'backup': 'Backup- und Wiederherstellungsdokumentation',
+    'dsgvo': 'DSGVO-Konformität und Datenschutzdokumentation',
+  };
+  return MAP[slug] ?? slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/**
+ * Docs index page with group headers and fallback descriptions.
+ * @param {{ pages: Page[] }} args
+ * @returns {string}
+ */
+export function renderDocsIndex({ pages }) {
+  // Assign slugs to groups; unmatched go to 'Referenz'
+  const buckets = new Map(DOC_GROUPS.map((g) => [g.key, []]));
+  buckets.set('referenz', []);
+
+  for (const page of pages) {
+    const group = DOC_GROUPS.find((g) => {
+      if (g.slugs) return g.slugs.has(page.slug);
+      if (g.matchFn) return g.matchFn(page.slug);
+      return false;
+    });
+    buckets.get(group ? group.key : 'referenz').push(page);
+  }
+
+  const allGroups = [
+    ...DOC_GROUPS,
+    { key: 'referenz', label: 'Referenz' },
+  ];
+
+  const sections = allGroups
+    .filter((g) => (buckets.get(g.key) ?? []).length > 0)
+    .map((g) => {
+      const groupPages = (buckets.get(g.key) ?? []).slice().sort((a, b) => a.title.localeCompare(b.title));
+      const cards = groupPages.map((page) => {
+        const desc = page.description || fallbackDescription(page.slug);
+        return `<a class="section-card" href="./${esc(page.outRelPath)}">
+  <span class="section-card-head">
+    <span class="section-card-title">${esc(page.title)}</span>
+    ${provenanceBadge(page.provenance)}${domainTag(page.domain)}
+  </span>
+  <span class="section-card-desc">${esc(desc)}</span>
+</a>`;
+      }).join('\n');
+      return `<h2 class="doc-group-header">${esc(g.label)}</h2>
+<section class="section-grid">
+${cards}
+</section>`;
+    }).join('\n');
+
+  const header = `<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <span class="crumb-current">Docs</span></nav>
+    <h1>Docs</h1>
+    <p class="page-desc">${pages.length} Seiten</p>
+  </div>
+</header>`;
+
+  return `${documentHead('Docs', './')}
+<div id="app">
+  <main id="main">
+${header}
+${sections}
+  </main>
+</div>
+${documentTail('./')}`;
+}
+
 /**
  * Render the landing page: an editorial hero with the interactive domain-clustered
  * relationship graph as the centrepiece, plus a <noscript>-friendly fallback that

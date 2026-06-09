@@ -8,6 +8,7 @@ import {
   renderLanding,
   renderSkillsIndex,
   renderAgentsIndex,
+  renderDocsIndex,
   deduplicateSkills,
   categoryForSkill,
 } from './templates.mjs';
@@ -461,4 +462,47 @@ test('renderAgentsIndex: is a full HTML5 document with breadcrumbs', () => {
   assert.ok(html.startsWith('<!DOCTYPE html>'), 'full document');
   assert.ok(html.includes('Agents'), 'section title');
   assert.ok(html.includes('href="./index.html"'), 'breadcrumb to landing');
+});
+
+// ─── renderDocsIndex ─────────────────────────────────────────────────────────
+
+const makeDocPage = (slug, description) => ({
+  slug,
+  type: 'doc',
+  provenance: 'repo',
+  name: slug,
+  title: slug,
+  description: description ?? '',
+  domain: null,
+  bodyMarkdown: '',
+  sourcePath: `/x/docs/${slug}.md`,
+  outRelPath: `${slug}.html`,
+});
+
+test('renderDocsIndex: renders group headers', () => {
+  const pages = [
+    makeDocPage('benutzerhandbuch', 'Anleitung für Endnutzer'),
+    makeDocPage('architecture', 'Übersicht der Systemarchitektur'),
+    makeDocPage('decision-log', ''),
+  ];
+  const html = renderDocsIndex({ pages });
+  assert.ok(html.includes('doc-group-header'), 'group headers present');
+  assert.ok(html.startsWith('<!DOCTYPE html>'), 'full document');
+  assert.ok(html.includes('Handbücher'), 'Handbücher group present');
+});
+
+test('renderDocsIndex: generates fallback description for empty description', () => {
+  const page = makeDocPage('decision-log', '');
+  const html = renderDocsIndex({ pages: [page] });
+  assert.ok(html.includes('decision-log'), 'slug present in output');
+  // The card should not have an empty description span (either hidden or replaced)
+  const emptyDescMatch = html.match(/<span class="section-card-desc"><\/span>/);
+  assert.ok(!emptyDescMatch, 'empty description not rendered as empty span');
+});
+
+test('renderDocsIndex: is a full HTML5 document with correct breadcrumbs', () => {
+  const html = renderDocsIndex({ pages: [makeDocPage('architecture', 'arch doc')] });
+  assert.ok(html.startsWith('<!DOCTYPE html>'), 'full document');
+  assert.ok(html.includes('href="./index.html"'), 'breadcrumb to landing');
+  assert.ok(html.includes('Docs'), 'section title present');
 });

@@ -3,7 +3,7 @@ import { createK8sClient } from '../../../../lib/k8s';
 import { getSession, isAdmin } from '../../../../lib/auth';
 
 const NS: Record<string, string> = { mentolder: 'workspace', korczewski: 'workspace-korczewski' };
-const VALID_DBS = ['keycloak', 'nextcloud', 'vaultwarden', 'website', 'docuseal', 'all'];
+const VALID_DBS = ['keycloak', 'nextcloud', 'vaultwarden', 'website', 'all'];
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

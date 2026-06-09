@@ -1473,7 +1473,7 @@ git commit -m "chore(secrets): remove DOCUSEAL_* vars from schema + reseal both 
 
 **Files:** tests/, website/src/pages/api/admin/ops/, website/src/lib/, pentest-dashboard/
 
-- [ ] **Step 1: Rename + rewrite E2E systemtest**
+- [x] **Step 1: Rename + rewrite E2E systemtest**
 
 ```bash
 cd /tmp/wt-docuseal-replacement
@@ -1496,13 +1496,13 @@ test.describe('System-Test 5: Dokumente & Self-Written Signing', () => {
 });
 ```
 
-- [ ] **Step 2: Update `website/src/lib/system-test-seed-data.ts`**
+- [x] **Step 2: Update `website/src/lib/system-test-seed-data.ts`**
 
 Find the entry for Systemtest 5 and update the title/description:
 - Old: `"System-Test 5: Dokumente & DocuSeal"` and mentions of DocuSeal
 - New: `"System-Test 5: Dokumente & Signatur-System"` — description should reference the self-written signing system, `/portal/sign/[id]`, and PDF-Download
 
-- [ ] **Step 3: Update `tests/e2e/specs/integration-smoke.spec.ts`**
+- [x] **Step 3: Update `tests/e2e/specs/integration-smoke.spec.ts`**
 
 Find the DocuSeal smoke test block (around line 145–158) and replace:
 
@@ -1514,15 +1514,15 @@ test('@smoke document signing page is accessible', async ({ request }, testInfo)
 });
 ```
 
-- [ ] **Step 4: Update `tests/e2e/specs/nfa-infra-health-sweep.spec.ts`**
+- [x] **Step 4: Update `tests/e2e/specs/nfa-infra-health-sweep.spec.ts`**
 
 Find and remove the `test('docuseal: root reachable', ...)` block entirely (the service no longer exists).
 
-- [ ] **Step 5: Update `website/src/pages/api/admin/ops/health.ts`**
+- [x] **Step 5: Update `website/src/pages/api/admin/ops/health.ts`**
 
 Remove DocuSeal from the SERVICES record for both clusters. Find the `docuseal` entry in the services object and delete it.
 
-- [ ] **Step 6: Update `website/src/pages/api/admin/ops/restore.ts`**
+- [x] **Step 6: Update `website/src/pages/api/admin/ops/restore.ts`**
 
 Change the `db` validation from:
 ```typescript
@@ -1537,14 +1537,14 @@ z.enum(['keycloak', 'nextcloud', 'vaultwarden', 'website', 'all'])
 
 (If not using zod, find the enum/array where `'docuseal'` appears and remove it.)
 
-- [ ] **Step 7: Update `pentest-dashboard/app.py`**
+- [x] **Step 7: Update `pentest-dashboard/app.py`**
 
 Remove:
 1. The DocuSeal service entries for mentolder (`m-sign`) and korczewski (`k-sign`) from the SERVICES dict
 2. The `docuseal-probe` scan template
 3. The `v-ds-publink` vulnerability entry
 
-- [ ] **Step 8: Run full offline tests**
+- [x] **Step 8: Run full offline tests**
 
 ```bash
 cd /tmp/wt-docuseal-replacement && bash scripts/task-oracle.sh 'run all offline tests'

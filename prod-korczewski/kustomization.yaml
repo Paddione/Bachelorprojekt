@@ -56,7 +56,7 @@ patches:
   # fleet — see patch-data-pvc-storage.yaml — but livekit recordings stay local.)
   - path: patch-livekit.yaml
   - path: patch-backup-config.yaml
-  # Pin vaultwarden+docuseal data PVCs to longhorn so pvc-backup can clone them
+  # Pin vaultwarden data PVC to longhorn so pvc-backup can clone it
   # placement-independently (mirrors prod-mentolder). [T000403]
   - path: patch-data-pvc-storage.yaml
   - path: patch-cronjob-urls.yaml

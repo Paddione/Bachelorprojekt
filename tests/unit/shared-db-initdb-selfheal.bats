@@ -14,13 +14,13 @@ setup() {
 }
 
 @test "postStart self-heals databases (CREATE DATABASE loop over all services)" {
-  run grep -qE 'for db in keycloak nextcloud vaultwarden website docuseal pentest; do' "$MANIFEST"
+  run grep -qE 'for db in keycloak nextcloud vaultwarden website pentest; do' "$MANIFEST"
   [ "$status" -eq 0 ]
   grep -qE 'CREATE DATABASE' "$MANIFEST"
 }
 
 @test "postStart self-heals roles (CREATE USER guarded by NOT EXISTS) for every service" {
-  for role in keycloak nextcloud vaultwarden website docuseal pentest; do
+  for role in keycloak nextcloud vaultwarden website pentest; do
     grep -qE "rolname='$role'.*CREATE USER $role" "$MANIFEST" \
       || grep -qE "rolname='$role'\)    THEN CREATE USER $role" "$MANIFEST"
   done

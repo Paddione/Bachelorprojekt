@@ -1,29 +1,18 @@
-# Overrides storageClassName from local-path (base) to longhorn (prod) for the
-# two data PVCs the pvc-backup mounter must reach placement-independently.
+# Overrides storageClassName from local-path (base) to longhorn (prod) for
+# vaultwarden data PVCs so pvc-backup can clone them placement-independently.
 # local-path PVCs are node-pinned RWO; the mounter cannot mount PVCs from two
-# nodes at once, and korczewski's vaultwarden lives on pk-hetzner-6 while
-# nextcloud/docuseal/backup-pvc live on pk-hetzner-8. Longhorn is distributed —
-# pvc-backup clones the longhorn-backed PVCs (placement-independent), so the
-# mounter only needs to co-locate with the remaining single-node local-path
-# source (nextcloud, on pk-hetzner-8). [T000403]
+# nodes at once. Longhorn is distributed — the mounter only needs to co-locate
+# with the remaining single-node local-path source (nextcloud on pk-hetzner-8).
+# [T000403]
 #
 # NOTE: storageClass is immutable on an existing bound PVC. Apply this patch
 # AFTER the manual data migration (scale down -> copy to a temp Longhorn staging
 # PVC -> delete old PVC -> create new Longhorn PVC -> restore).
 #
-# nextcloud-data-pvc (50Gi) is intentionally EXCLUDED — the Longhorn nodes lack
-# headroom for 3x50Gi replicas; nextcloud-data stays on local-path (pk-hetzner-8)
-# and is mounted LIVE by the mounter via podAffinity, same as mentolder.
+# nextcloud-data-pvc (50Gi) is intentionally EXCLUDED — see comment above.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: vaultwarden-data-pvc
-spec:
-  storageClassName: longhorn
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: docuseal-data-pvc
 spec:
   storageClassName: longhorn

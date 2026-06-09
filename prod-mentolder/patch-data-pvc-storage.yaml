@@ -11,10 +11,3 @@ metadata:
   name: vaultwarden-data-pvc
 spec:
   storageClassName: longhorn
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: docuseal-data-pvc
-spec:
-  storageClassName: longhorn

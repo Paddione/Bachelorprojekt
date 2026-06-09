@@ -25,7 +25,7 @@ export function leaveRoom(ws: any): string | undefined {
   const room = ws._room;
   if (!room || !rooms.has(room)) return;
   rooms.get(room)!.delete(ws);
-  if (rooms.get(room)!.size === 0) rooms.delete(room);
+  if (rooms.get(room)!.size === 0) { rooms.delete(room); clearParticipants(room); }
   return room;
 }
 

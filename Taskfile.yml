@@ -2633,6 +2633,13 @@ tasks:
         kubectl $CTX $NS_FLAG rollout restart deployment/claude-code-mcp-monolith
         kubectl $CTX $NS_FLAG rollout status deployment/claude-code-mcp-monolith --timeout=120s
 
+  mcp:portforward:
+    desc: "Start/stop/status kubectl port-forwards for the MCP monolith (start|stop|status)"
+    vars:
+      ACTION: '{{.ACTION | default "start"}}'
+    cmds:
+      - bash scripts/mcp-portforward.sh {{.ACTION}}
+
   mcp:set-github-pat:
     desc: Update GITHUB_PAT in claude-code-secrets
     vars:

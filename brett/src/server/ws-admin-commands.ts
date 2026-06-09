@@ -84,6 +84,17 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
         holderPlayerId: playerId,
         reason: 'handoff',
       });
+      deps.clearParticipants(adminRoom);
+      const creatorParticipant = deps.addParticipant(adminRoom, {
+        userId: playerId,
+        name: ws._session?.name || playerId,
+      });
+      if (creatorParticipant) {
+        deps.broadcast(adminRoom, {
+          type: 'presence_join',
+          participant: { ...creatorParticipant, role: 'leiter', ready: false },
+        });
+      }
       deps.schedulePersist(adminRoom);
       try {
         ws.send(JSON.stringify({ type: 'session_created', code: result.code }));

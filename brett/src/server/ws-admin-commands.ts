@@ -58,7 +58,7 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       break;
     }
     case 'admin_session_create': {
-      const playerId = ws._playerId || ws._session?.name;
+      const playerId = resolvePlayerId(ws);
       if (!playerId) return;
       // CP-2: do NOT silently reset a LIVE session back to lobby. A raw
       // session_phase_set bypasses the per-edge transition allowlist
@@ -103,8 +103,8 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
     }
     case 'admin_handoff_token': {
       if (typeof msg.targetPlayerId !== 'string') return;
-      const fromPlayerId = ws._playerId || ws._session?.name;
-      if (!fromPlayerId) return;
+      const fromPlayerId = resolvePlayerId(ws);
+      if (!fromPlayerId || fromPlayerId === 'anon') return;
       deps.handleAdminHandoffMessage(adminRoom, fromPlayerId, msg.targetPlayerId, (out: any) => deps.broadcast(adminRoom, out));
       deps.schedulePersist(adminRoom);
       break;

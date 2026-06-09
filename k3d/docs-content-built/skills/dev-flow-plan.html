@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -26,7 +26,7 @@
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
-    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-plan</span></nav>
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-plan</span></nav>
     <h1>dev-flow-plan</h1>
     <p class="page-desc">Use to choose the development path (feature/fix/chore), run brainstorming, and generate a design spec and implementation plan.</p>
     <div class="page-meta">
@@ -42,7 +42,7 @@
   <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
 <li class="toc-item"><a href="#schritt-3-deep-grilling-optional"><span class="toc-num">2.</span> Schritt −3: Deep Grilling (optional)</a></li>
 <li class="toc-item"><a href="#schritt-2-main-branch-sync-pull-first"><span class="toc-num">3.</span> Schritt −2: Main-Branch sync (Pull-First)</a></li>
-<li class="toc-item"><a href="#schritt-1-stale-worktree-audit"><span class="toc-num">4.</span> Schritt −1: Stale-Worktree-Audit</a></li>
+<li class="toc-item"><a href="#schritt-1-reaper--stale-worktree-audit"><span class="toc-num">4.</span> Schritt −1: Reaper &amp; Stale-Worktree-Audit</a></li>
 <li class="toc-item"><a href="#schritt-0-pfad-bestimmen"><span class="toc-num">5.</span> Schritt 0: Pfad bestimmen</a></li>
 <li class="toc-item"><a href="#feature-pfad"><span class="toc-num">6.</span> Feature-Pfad</a></li>
 <li class="toc-item"><a href="#fix-pfad"><span class="toc-num">7.</span> Fix-Pfad</a></li>
@@ -79,11 +79,12 @@ else
 fi
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="schritt-1-stale-worktree-audit">Schritt −1: Stale-Worktree-Audit</h2>
-<p>Bereinige staler Worktrees von bereits gemergten Branches:</p>
-<div class="code-wrapper"><pre><code class="language-bash">git worktree list
-# Überprüfe staler Worktrees und lösche sie ggf. mit:
-# git worktree remove &lt;path&gt; --force &amp;&amp; git branch -D &lt;branch&gt;
+<h2 id="schritt-1-reaper--stale-worktree-audit">Schritt −1: Reaper &amp; Stale-Worktree-Audit</h2>
+<p>Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet (Session-Koordination [T000510]):</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh reap   # killt cwd-tote-Worktree-Prozesse, prunet Worktrees, räumt tote Locks
+bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Sessions
+git worktree list
+# Stale Worktrees ggf. löschen: git worktree remove &lt;path&gt; --force &amp;&amp; git branch -D &lt;branch&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-0-pfad-bestimmen">Schritt 0: Pfad bestimmen</h2>
@@ -100,6 +101,9 @@ fi
 <div class="code-wrapper"><pre><code class="language-bash"># git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
 bash scripts/worktree-create.sh feature/&lt;slug&gt; /tmp/wt-&lt;slug&gt;
 cd /tmp/wt-&lt;slug&gt;
+# Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
+bash scripts/agent-lock.sh claim branch "feature/&lt;slug&gt;" --worktree "$PWD" --label dev-flow-plan \
+  || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Schritt 1.5: Optionale Asset-Sammlung</h3>
 <p>Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und Image-Dateien mit dem <code>Read</code> Tool ein, um sie in den Kontext zu laden.</p>
@@ -205,7 +209,7 @@ cd /tmp/wt-&lt;slug&gt;
 <h3>Schritt 1-7: Direkt bearbeiten und mergen</h3>
 <ol>
 <li>Kurze Beschreibung formulieren.</li>
-<li>Worktree anlegen: <code>/tmp/wt-&lt;slug&gt;</code>.</li>
+<li>Worktree anlegen: <code>/tmp/wt-&lt;slug&gt;</code>; dann <code>bash scripts/agent-lock.sh claim branch "chore/&lt;slug&gt;" --worktree "$PWD" --label dev-flow-chore</code>. (Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich <code>claim main-checkout</code> — der <code>.githooks/pre-commit</code> sperrt sonst konkurrierende Commits anderer Sessions.)</li>
 <li>Änderungen vornehmen.</li>
 <li>Verifizieren (<code>task test:all</code>, <code>task workspace:validate</code> etc.).</li>
 <li>Committen, pushen und PR erstellen (<code>commit-commands:commit-push-pr</code>).</li>
@@ -244,6 +248,6 @@ cd /tmp/wt-&lt;slug&gt;
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="../app.js"></script>
 </body>
 </html>

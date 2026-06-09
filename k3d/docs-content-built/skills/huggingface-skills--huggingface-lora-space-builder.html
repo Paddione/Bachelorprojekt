@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>huggingface-lora-space-builder — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">huggingface-lora-space-builder</span></nav>
+    <h1>huggingface-lora-space-builder</h1>
+    <p class="page-desc">Build and publish a Gradio demo on Hugging Face Spaces for a user-provided LoRA. Use when someone asks to create, generate, ship, or publish a Space, demo, Gradio app, or playground for a LoRA — including LoRAs for Qwen-Image, Qwen-Image-Edit, LTX-Video, Wan, FLUX, SDXL, or other diffusion base models. Also triggers when someone describes a LoRA they trained or hosts on the Hub and wants to share it. Covers picking the right base pipeline and `diffusers` inference recipe, designing a UI tailored to the LoRA's task and inputs (Union/multi-task control, edit, video, image, etc.), respecting model-card recommendations (trigger words, steps, guidance, LoRA scale, example inputs), and shipping to ZeroGPU hardware as a private Space by default.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">huggingface-skills</span> <span class="pv-ver">1.0.8</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Gradio LoRA Space Builder</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-good-looks-like-for-these-demos"><span class="toc-num">1.</span> What "good" looks like for these demos</a></li>
+<li class="toc-item"><a href="#workflow"><span class="toc-num">2.</span> Workflow</a></li>
+<li class="toc-item"><a href="#phase-1--gather-lora-info"><span class="toc-num">3.</span> Phase 1 — Gather LoRA info</a></li>
+<li class="toc-item"><a href="#phase-2--pick-the-base-pipeline"><span class="toc-num">4.</span> Phase 2 — Pick the base pipeline</a></li>
+<li class="toc-item"><a href="#phase-3--design-the-ui-for-this-lora"><span class="toc-num">5.</span> Phase 3 — Design the UI for this LoRA</a></li>
+<li class="toc-item"><a href="#phase-4--write-the-space-files"><span class="toc-num">6.</span> Phase 4 — Write the Space files</a></li>
+<li class="toc-item"><a href="#phase-5--publish-the-space"><span class="toc-num">7.</span> Phase 5 — Publish the Space</a></li>
+<li class="toc-item"><a href="#phase-6--smoke-test-the-space"><span class="toc-num">8.</span> Phase 6 — Smoke-test the Space</a></li>
+<li class="toc-item"><a href="#what-to-avoid"><span class="toc-num">9.</span> What to avoid</a></li></ul>
+</div>
+<p>Build and publish a Gradio demo on Hugging Face Spaces that runs inference with a user-provided LoRA. Use whenever someone asks to create, generate, ship, or publish "a Space", "a demo", "a Gradio app", or "a playground" for a LoRA — whether the base model is Qwen-Image, Qwen-Image-Edit, LTX, or another diffusion model. Also use when someone describes a LoRA they trained or hosts on the Hub and wants to share it. The default target is ZeroGPU hardware and the default inference library is <code>diffusers</code> when the base model supports it.</p>
+<p>The output is a real, published Space (private by default) that the user can try in the browser, not a local script.</p>
+<h2 id="what-good-looks-like-for-these-demos">What "good" looks like for these demos</h2>
+<p>The demo should feel handcrafted for this specific LoRA, not a generic template with the LoRA bolted on. Two LoRAs that share a task can still need different demos: a pose-control video LoRA and an outpainting video LoRA both take video in and produce video out, but the inputs the user provides, the preprocessing, and the controls are completely different. Recognizing that is the central job here.</p>
+<p>Concretely, a good demo:</p>
+<ul>
+<li>Loads fast and runs fast — minimal model loading, sensible step count, no wasted computation per call.</li>
+<li>Has a UI with exactly the controls this LoRA needs and nothing else. Excess sliders are a cost, not a feature.</li>
+<li>Shows the user what's happening — progress, intermediate outputs where useful, the seed used, a clear error when input is missing.</li>
+<li>Honors the LoRA's own recommendations from its model card: trigger words, recommended step count, recommended guidance scale, recommended LoRA scale, example inputs.</li>
+<li>Is creative where creativity helps — interactive canvases, before/after sliders, side-by-side previews of intermediate processing — and plain where plainness is right.</li>
+</ul>
+<h2 id="workflow">Workflow</h2>
+<p>Work through these phases in order. Information gathered in one phase decides the next.</p>
+<ol>
+<li>Gather the LoRA info needed to pick a pipeline and design a UI.</li>
+<li>Pick the base pipeline and inference recipe.</li>
+<li>Design the UI for this specific LoRA's task and inputs.</li>
+<li>Write <code>app.py</code>, <code>requirements.txt</code>, and <code>README.md</code> together; show all three to the user for one batched approval.</li>
+<li>Publish the Space (private).</li>
+</ol>
+<p>Don't drip-feed questions across multiple turns. Batch them.</p>
+<hr>
+<h2 id="phase-1--gather-lora-info">Phase 1 — Gather LoRA info</h2>
+<p>Required: a LoRA repo on the Hub (e.g. <code>username/my-lora</code>).</p>
+<p><strong>First, try to read the repo without a token.</strong> If it succeeds, the repo is public — proceed. If it fails with 401/403, the repo is private/gated and you need an authenticated session to read it. <strong>Don't immediately ask for a token.</strong> Check first whether the user is already authenticated.</p>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi, get_token
+
+cached_token = get_token()  # picks up HF_TOKEN env var or cached CLI login
+if cached_token:
+    try:
+        info = HfApi().whoami(token=cached_token)
+        username = info["name"]
+        # info also has fine-grained token scope info if applicable
+    except Exception:
+        cached_token = None  # token exists but is invalid/expired
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Then:</p>
+<ul>
+<li>If a valid cached token exists <em>and</em> it can read the repo, use it. No prompt needed.</li>
+<li>If no cached token, or the cached token can't read this private repo, ask the user for a token — once, with the explanation below.</li>
+</ul>
+<p>When asking for a token (and only when you actually need to ask):</p>
+<blockquote>
+<p>I need a Hugging Face access token with <strong>write</strong> scope (to read the LoRA if it's private/gated, and to publish the Space). Create one at <a href="https://huggingface.co/settings/tokens">https://huggingface.co/settings/tokens</a>. Paste it here.</p>
+</blockquote>
+<p>The same token will be reused for publishing in the final phase, so this is a one-time ask.</p>
+<p><strong>Then read what's in the repo:</strong></p>
+<ul>
+<li>List the repo files (<code>huggingface_hub.HfApi().list_repo_files(repo_id)</code>). Look for <code>.safetensors</code>, <code>README.md</code>, example images/videos, multiple checkpoints.</li>
+<li>Fetch the model card (<code>huggingface_hub.ModelCard.load(repo_id)</code>). The <code>data</code> dict has structured fields; the <code>text</code> has the README body.</li>
+<li>If multiple <code>.safetensors</code> files exist, pick the right one — see "Picking the LoRA weights file" in <code>references/zerogpu-and-publishing.md</code>. Briefly: README-recommended file wins, then <code>pytorch_lora_weights.safetensors</code>, then latest training checkpoint, otherwise ask.</li>
+</ul>
+<p><strong>From the model card, try to determine:</strong></p>
+<ul>
+<li><strong>Base model</strong> — the <code>base_model</code> field, or text mentions in the README. Usually present. Use it to pick the pipeline reference file (see Phase 2).</li>
+<li><strong>Task</strong> — <code>pipeline_tag</code> if set, otherwise inferred from the base model and README text. The five tasks this skill handles: <code>text-to-image</code>, <code>image-to-image</code>, <code>text-to-video</code>, <code>image-to-video</code>, <code>video-to-video</code>.</li>
+<li><strong>Trigger words</strong> — often called "trigger word", "instance prompt", "activation word"; sometimes embedded in example prompts.</li>
+<li><strong>Recommended inference recipe</strong> — step count, guidance scale, true CFG scale, LoRA scale, resolution. Many LoRA cards include a Python snippet; trust its <em>parameters</em> (steps, guidance, CFG, LoRA scale, dtype). For <em>loading mechanics</em>, see <code>adapting-to-the-lora.md</code> — prefer <code>pipe.load_lora_weights(...)</code> over whatever loading approach the snippet uses.</li>
+<li><strong>Example prompts and example media</strong> — use these as Gradio examples in the UI.</li>
+<li><strong>Sub-task / specific use case</strong> — for image edits and video LoRAs, "what does this LoRA actually do" matters as much as the task category. A relighting LoRA, a face-swap LoRA, and a style LoRA all might be image-to-image, but the UI for each is different.</li>
+</ul>
+<p><strong>When something can't be inferred, ask the user — once, in a single batched message.</strong> Format the question to make answering trivial. For task category, list the five options as a numbered choice. For sub-task, give a one-line description ("what does this LoRA do? e.g. 'relight portraits', 'apply manga style', 'extend videos to wider aspect ratios'"). Don't ask if you can already infer it confidently from the base model or README.</p>
+<p>If the model card has nothing helpful at all — no base model, no task, no example — surface that clearly: "The model card has no usable info. I'll need you to tell me: (1) base model, (2) what this LoRA does, (3) recommended step count and guidance scale if you know them."</p>
+<hr>
+<h2 id="phase-2--pick-the-base-pipeline">Phase 2 — Pick the base pipeline</h2>
+<p>Two things to decide here: which reference file to load, and which pipeline class to use. They're not the same question — a base-model family file (e.g. <code>qwen-image.md</code>) covers multiple variants, and variants in the same family don't always share a pipeline class. Get this wrong and the Space loads but produces wrong output, or fails at startup.</p>
+<p><strong>Step 1 — Load the reference file for this base model family.</strong></p>
+<ul>
+<li><code>references/base-models/qwen-image.md</code> — covers Qwen-Image and Qwen-Image-Edit family (text-to-image and image-to-image).</li>
+<li><code>references/base-models/ltx.md</code> — covers LTX family (text-to-video, image-to-video, video-to-video, including IC-LoRAs).</li>
+</ul>
+<p>If the base model isn't in one of these files, this skill doesn't have first-class support yet. Tell the user, and ask whether they want to proceed by analogy (use the closest model's recipe and adjust) or stop. Don't guess silently.</p>
+<p><strong>Step 2 — Verify the pipeline class against the base model's own card. This step is mandatory, not optional.</strong></p>
+<p>A new base model variant might use the same pipeline class with a different repo path, or a new pipeline class entirely. Don't trust the reference file's table alone — it's best-effort and can lag a recent release. Verify before committing:</p>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import ModelCard
+base_card = ModelCard.load(base_model_id)
+# Read base_card.text — find the diffusers inference snippet, note the pipeline class it imports.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>The class imported in the base model card's diffusers snippet is the source of truth. Real examples where this matters:</p>
+<ul>
+<li><code>Qwen-Image-Edit</code> uses <code>QwenImageEditPipeline</code>. <code>Qwen-Image-Edit-2509</code> and <code>Qwen-Image-Edit-2511</code> use <code>QwenImageEditPlusPipeline</code> — different class, different default parameters, takes a list of images instead of one. A LoRA targeting 2511 loaded onto <code>QwenImageEditPipeline</code> produces broken output.</li>
+<li>LTX-Video uses <code>LTXPipeline</code>/<code>LTXImageToVideoPipeline</code>/<code>LTXConditionPipeline</code>. LTX-2 uses <code>LTX2Pipeline</code> from a different module path. LTX-2.3 sometimes needs a native pipeline outside diffusers.</li>
+</ul>
+<p>If the base model card has no diffusers snippet at all, fall back to the reference file's table — and tell the user you're falling back, in case they know something the table doesn't.</p>
+<p>The cost of this verification is one Hub fetch and a few seconds of reading. The cost of skipping it is the failure mode the previous bullet describes — a "working" Space that's quietly using the wrong class.</p>
+<p><strong>Step 3 — Diffusers vs native pipeline.</strong> Default to <code>diffusers</code> when the base model has a diffusers pipeline class. That's the case for Qwen-Image and Qwen-Image-Edit and most of LTX. Some LTX variants (notably LTX-2.3 with certain IC-LoRAs) need a native pipeline; the LTX reference says when. Diffusers gives standard <code>load_lora_weights</code> / <code>set_adapters</code> semantics; the native path needs LoRA-specific glue.</p>
+<hr>
+<h2 id="phase-3--design-the-ui-for-this-lora">Phase 3 — Design the UI for this LoRA</h2>
+<p>Don't reach for a template. Reason from the LoRA's task and inputs to a UI.</p>
+<p>Read <code>references/tasks.md</code> for the per-task baseline UI patterns (what the standard inputs/outputs look like for T2I, I2I, T2V, I2V, V2V).</p>
+<p>Then read <code>references/adapting-to-the-lora.md</code>, which is about <em>thinking through what this specific LoRA needs</em> — beyond the task category. That file is the most important one in this skill. The same task can need very different UIs: a pose-control LTX LoRA needs a video input and a pose-extraction preview; an outpaint LTX LoRA needs an aspect-ratio picker and a black-margin preview; a relighting Flux LoRA needs an image and a brush canvas for indicating where to add light. None of those reduce to "the V2V template" or "the I2I template".</p>
+<p><strong>Self-check before writing the UI.</strong> Write one sentence describing what a user does with this Space in 10 seconds. If that sentence doesn't distinguish this LoRA from any other LoRA of the same task, the UI isn't shaped enough yet.</p>
+<p>Examples that pass the self-check:</p>
+<ul>
+<li>"Upload a video, pick a target aspect ratio, click Generate; the model fills the empty margins."</li>
+<li>"Draw colored brush strokes where you want light, pick an illumination style, click Generate; the model relights the photo."</li>
+<li>"Upload a video of someone moving and an image of a different character; the model produces a video of the character doing the motion."</li>
+</ul>
+<p>Examples that fail:</p>
+<ul>
+<li>"Type a prompt and click generate." (Generic T2I — say more.)</li>
+<li>"Upload an image and an instruction." (Generic edit — what kind of edit?)</li>
+</ul>
+<p><strong>Gradio component freshness.</strong> Gradio's component set evolves. Before defaulting to plain components, consider whether something newer fits better — for example <code>gr.ImageSlider</code> for before/after on edit LoRAs, <code>gr.BrowserState</code> for persistent prefs, <code>@gr.render</code> for UIs that change based on input. If you're unsure whether a component exists or what its signature is, web-fetch the current Gradio docs at <a href="https://www.gradio.app/docs">https://www.gradio.app/docs</a> rather than guessing.</p>
+<p><strong>When stock and Hub custom components aren't enough — creative mode.</strong> If the LoRA's natural input is a shape no Gradio component (built-in or on the Hub) expresses well — point sets, strokes, trajectories, multi-region annotations with metadata, 3D rotation gizmos, timeline scrubbers, anything where the user manipulates a thing on top of media — drop down to custom HTML/JS via <code>gr.HTML</code>. See <code>references/creative-mode.md</code> for the Gradio primitives (<code>gr.HTML</code>, <code>head=</code> injection, <code>elem_id</code> addressing, the two JS↔Python state-sync approaches), the discipline around defining a JSON wire format, and the pitfalls. Don't reach for creative mode just because it would be cool — reach for it when the LoRA's input shape demands it. And don't skip the Hub custom components rung above (e.g. <code>gradio_image_annotation</code>) before going fully bespoke.</p>
+<p><strong><code>gr.Examples</code> for media-input Spaces.</strong> When no fitting example media is available from the model's own repo, pull from the shared input pools — split by modality so the HF dataset viewer can render proper thumbnails: images at <a href="https://huggingface.co/datasets/linoyts/repo-to-space-example-inputs"><code>linoyts/repo-to-space-example-inputs</code></a>, videos at <a href="https://huggingface.co/datasets/linoyts/repo-to-space-example-videos"><code>linoyts/repo-to-space-example-videos</code></a>. Both are CC0 with <code>categories</code> + natural-language <code>caption</code> metadata and the same filter/rank recipe in each dataset README. Pick 2–3 that fit the task, preprocess to the shapes the model expects, and bake the copies into the Space. Set <code>cache_examples=True, cache_mode="lazy"</code> so the first click caches without running examples at build time (see <code>references/zerogpu-and-publishing.md</code>).</p>
+<hr>
+<h2 id="phase-4--write-the-space-files">Phase 4 — Write the Space files</h2>
+<p>Before writing, tell the user concretely what's about to happen — name the actual files. Not "I'll write the three files" but something like:</p>
+<blockquote>
+<p>"Now I'll write the three files needed to publish a Space: <strong><code>app.py</code></strong> (the Gradio demo and inference code), <strong><code>requirements.txt</code></strong> (Python dependencies), and <strong><code>README.md</code></strong> (Space configuration including ZeroGPU hardware setting). Then I'll show all three for your review before publishing."</p>
+</blockquote>
+<p>This anchors the user in what's being produced. Don't say "three files" without naming them — it's vague and signals lack of commitment to the deliverable.</p>
+<p>The three files are tightly coupled: <code>requirements.txt</code> is determined by what <code>app.py</code> imports, and the <code>README.md</code> YAML frontmatter sets the SDK version, hardware, and Space title that have to match. Write them together, then show all three to the user for approval in <strong>one batched message</strong> before publishing.</p>
+<p>Read <code>references/zerogpu-and-publishing.md</code> for the ZeroGPU rules. The non-obvious ones:</p>
+<ul>
+<li>Models go on <code>cuda</code> at module level (not lazy-loaded inside the GPU function). ZeroGPU has a CUDA emulation that makes this work pre-allocation, and module-level placement is significantly faster than deferred placement.</li>
+<li>The function that runs inference is decorated with <code>@spaces.GPU(duration=...)</code>. Pick a duration appropriate for the task — short for image generation, longer for video.</li>
+<li>Don't use <code>torch.compile</code> — it's incompatible with ZeroGPU's process model.</li>
+</ul>
+<h3><code>app.py</code></h3>
+<p>Compose from the pieces decided in Phases 1–3. Don't paste from a template. Each section should be there because it's needed:</p>
+<ul>
+<li>Imports — <code>gradio as gr</code>, <code>torch</code>, <code>spaces</code>, the pipeline class, anything the preprocessing needs.</li>
+<li>Constants — <code>LORA_REPO</code>, <code>BASE_MODEL</code>, recommended step count, guidance, LoRA scale, trigger word.</li>
+<li>Module-level model load — pipeline <code>from_pretrained</code>, <code>.to("cuda")</code>, <code>load_lora_weights</code>. If the LoRA repo is private, pass <code>token=os.environ["HF_TOKEN"]</code>.</li>
+<li>Preprocessing functions (if any) — pose extraction, padding, mask building, etc. CPU code can run at module level; GPU code needs to be inside a <code>@spaces.GPU</code> function.</li>
+<li>The inference function — decorated with <code>@spaces.GPU(duration=...)</code>. Validates inputs, applies trigger word, builds the pipeline kwargs, returns outputs.</li>
+<li>The Gradio Blocks — the UI from Phase 3, wired to the inference function.</li>
+</ul>
+<p>Common things to get right:</p>
+<ul>
+<li>Return the actually-used seed alongside the result so the user can reproduce.</li>
+<li><code>gr.Progress(track_tqdm=True)</code> on the inference function surfaces diffusers' internal progress bar.</li>
+<li>Validate inputs — raise <code>gr.Error("Please upload an image first.")</code> when a required input is missing, rather than letting the pipeline fail with a cryptic error.</li>
+<li>On <code>gr.Examples</code>, use <code>cache_examples=True, cache_mode="lazy"</code> — plain <code>cache_examples=True</code> runs examples at build time and fails on ZeroGPU; lazy mode defers caching to the first user click.</li>
+</ul>
+<h3><code>requirements.txt</code></h3>
+<p>Don't ship a fixed minimal list and hope for the best. The "minimal" list works for plain T2I LoRAs and breaks the moment the base model has a vision-language text encoder, video output, or any non-trivial preprocessing. <strong>Derive <code>requirements.txt</code> from what the Space actually needs</strong>, in this order:</p>
+<ol>
+<li><strong>Every top-level non-stdlib import in <code>app.py</code>.</strong> If <code>app.py</code> does <code>import cv2</code>, <code>requirements.txt</code> has <code>opencv-python</code>. If it does <code>from controlnet_aux import OpenposeDetector</code>, <code>requirements.txt</code> has <code>controlnet-aux</code>. Walk the imports mechanically. (Note the exclusions in the next paragraph — some imports are runtime built-ins and don't need to be listed.)</li>
+<li><strong>What the base-model reference's "Required dependencies" subsection says.</strong> Each base-model file lists the non-obvious extras the pipeline pulls in — <code>torchvision</code> for Qwen-Image (Qwen 2.5-VL text encoder), <code>imageio[ffmpeg]</code> for LTX (video export), etc. Include all of them. These are the deps that aren't picked up from imports because the pipeline's components import them transitively at load time.</li>
+<li><strong>What the LoRA's own model card explicitly mentions installing.</strong> If the LoRA README has its own <code>pip install</code> block, lift the deps from there.</li>
+<li><strong>The diffusers/ML stack:</strong> <code>diffusers</code>, <code>transformers</code>, <code>accelerate</code>, <code>peft</code>, <code>safetensors</code>. Default to plain (unpinned). Switch <code>diffusers</code> to <code>git+https://github.com/huggingface/diffusers</code> if the base-model reference says the model needs it (recent releases often do — Qwen-Image-Edit-2511 is a current example).</li>
+</ol>
+<p><strong>What <em>not</em> to list in <code>requirements.txt</code>:</strong></p>
+<ul>
+<li><strong><code>gradio</code></strong> — controlled by the <code>sdk_version:</code> field in <code>README.md</code>'s YAML frontmatter, not by <code>requirements.txt</code>. Listing it in requirements is at best ignored, at worst causes a version conflict with the SDK. Set the version in the README only.</li>
+<li><strong><code>torch</code></strong> — provided by the Space runtime. Only add if you need a specific version pinned (rare, and usually a sign something else is wrong).</li>
+<li><strong><code>spaces</code></strong> — provided by the Space runtime. Only add if you need a specific version pinned.</li>
+<li><strong><code>huggingface_hub</code></strong> — provided by the Space runtime. Only add if you need a specific version pinned.</li>
+</ul>
+<p>These four come pre-installed in the ZeroGPU container. Listing them anyway is the kind of "include rather than skip" instinct that's right for non-baseline deps but wrong for baseline ones, because pinning conflicts with the runtime's managed versions.</p>
+<p><strong>Bias for everything else: include rather than skip when uncertain.</strong> A package the Space doesn't actually use causes a slightly slower build. A missing required package causes a startup-time crash that's much harder for the user to diagnose. These costs aren't symmetric — the test failure that prompted this rule was exactly the second kind.</p>
+<p><strong>But two specific deps are <em>not</em> safe to add reflexively</strong> because they routinely cause more problems than they solve on ZeroGPU:</p>
+<ul>
+<li><p><code>xformers</code> — pinned to specific torch versions, frequent source of conflicts. The ZeroGPU runtime ships torch 2.8+, so any pinned <code>xformers</code> version must support that. Additional gotcha on Blackwell: xformers' FA3 dispatch mis-gates the hardware (FA3 kernels are Hopper-only at <code>sm_90a</code>, but the dispatcher gates on <code>device_capability &gt;= (9, 0)</code>, which also matches Blackwell) and crashes at kernel launch with <code>CUDA invalid argument</code>. If a Space using xformers attention hits this, disable FA3 dispatch at module load:</p>
+<div class="code-wrapper"><pre><code class="language-python">try:
+    from xformers.ops.fmha import _set_use_fa3
+    _set_use_fa3(False)
+except Exception:
+    pass
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Only include <code>xformers</code> if <code>app.py</code> actually uses it.</p>
+</li>
+<li><p><code>flash-attn</code> — needs a build step, often fails to install. Same torch 2.8+ alignment caveat as <code>xformers</code>. Only include if <code>app.py</code> actually uses it.</p>
+</li>
+</ul>
+<p><strong>Pin other versions only when you have a reason</strong> (e.g. a known incompatibility, or matching a recipe from the model card).</p>
+<h3><code>README.md</code></h3>
+<p>Spaces are configured by the YAML frontmatter at the top of <code>README.md</code>. This frontmatter is what selects ZeroGPU.</p>
+<div class="code-wrapper"><pre><code>---
+title: &lt;human-readable title&gt;
+emoji: 🎨
+colorFrom: pink
+colorTo: purple
+sdk: gradio
+sdk_version: &lt;current Gradio version&gt;
+app_file: app.py
+pinned: false
+hardware: zero-a10g
+short_description: &lt;one short line for the Space tile, ~60 chars max&gt;
+models:
+  - &lt;base model repo&gt;
+  - &lt;lora repo&gt;
+---
+
+# &lt;title&gt;
+
+A short description with links to the LoRA and base model.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Key fields:</p>
+<ul>
+<li><code>sdk: gradio</code> — required for ZeroGPU.</li>
+<li><code>sdk_version</code> — match the Gradio version you wrote against. Look up the current version (<code>pip index versions gradio</code>, or check <a href="https://www.gradio.app">https://www.gradio.app</a>) rather than guessing.</li>
+<li><code>hardware: zero-a10g</code> — the legacy string for ZeroGPU. The actual hardware is NVIDIA RTX Pro 6000 Blackwell, but the identifier is <code>zero-a10g</code>. ZeroGPU is available to PRO, Team, and Enterprise accounts; if the user isn't subscribed, the Space will fall back to CPU. Mention this if you suspect they aren't on PRO.</li>
+<li><code>models:</code> — list base and LoRA repos. This enables Hub caching and discovery.</li>
+<li><code>short_description</code> — appears on the Space tile. <strong>Keep it short (~60 characters or less).</strong> The Hub's YAML validator rejects long values with a 400 from <code>https://huggingface.co/api/validate-yaml</code>, which surfaces as an <code>HfHubHTTPError</code> during <code>create_repo</code> or <code>upload_file</code>. The exact server-side limit isn't documented and may change, so target the visible-tile-length range rather than pushing right up to a cap. If you do hit the 400, the fix is almost always to shorten this field. One sentence describing what the Space does is plenty — the README body below the YAML is where you put longer prose.</li>
+</ul>
+<h3>Single batched approval — order of operations matters</h3>
+<p>The discipline here is <strong>write all three files first, then show them all together in one message</strong>. Not "write app.py → talk about it → write requirements → talk about it → write README → talk about it." That rhythm produces three approval moments even if you don't explicitly ask for approval, because the user is being asked to react after each file.</p>
+<p>Concretely:</p>
+<ol>
+<li><strong>Write <code>app.py</code>, <code>requirements.txt</code>, and <code>README.md</code> in succession with no intervening prose.</strong> No commentary between files. No "Now I'll write the next one." No description of what each file does as you produce it. Just the three files, back to back.</li>
+<li><strong>Then, in a single message, ask for approval covering all three at once.</strong> Something like: "Here's the Space — <code>app.py</code> (N lines), <code>requirements.txt</code>, and <code>README.md</code>. Review and confirm to publish, or tell me what to change."</li>
+<li>The user responds once, covering whatever they want changed across any of the three files.</li>
+</ol>
+<p>What to avoid:</p>
+<ul>
+<li>Walking through <code>app.py</code>'s structure or design choices after writing it but before writing the others. Save commentary for either the pre-writing announcement (Phase 4 opening) or the single approval message after all three exist.</li>
+<li>Asking "ready for the next one?" or "want me to continue with requirements?" — those are implicit per-file approvals.</li>
+<li>Showing one file inline and offering to "show the next when you're ready" — same trap.</li>
+<li>Treating any of the three files as optional or as a follow-up. They are produced together as one deliverable.</li>
+</ul>
+<p>If the user interrupts after seeing the first file with feedback or a question, that's fine — engage with it — but the rule still applies: the next time you produce code, produce all remaining files together, not one at a time.</p>
+<hr>
+<h2 id="phase-5--publish-the-space">Phase 5 — Publish the Space</h2>
+<p>Use the authenticated session from Phase 1. Default to <strong>private</strong>, so the user can vet the Space before flipping it public. Confirm the target username with the user before creating: "I'll publish to <code>{username}/{space_name}</code> — confirm?"</p>
+<div class="code-wrapper"><pre><code class="language-python">from huggingface_hub import HfApi, SpaceHardware
+
+api = HfApi(token=hf_token)
+username = api.whoami()["name"]
+repo_id = f"{username}/{space_name}"
+
+api.create_repo(
+    repo_id=repo_id,
+    repo_type="space",
+    space_sdk="gradio",
+    space_hardware=SpaceHardware.ZERO_A10G,
+    private=True,
+    exist_ok=True,
+)
+
+# Upload files
+for path in ["app.py", "requirements.txt", "README.md"]:
+    api.upload_file(path_or_fileobj=path, path_in_repo=path,
+                    repo_id=repo_id, repo_type="space")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If the LoRA repo itself is private/gated, the Space needs the token at runtime to download the LoRA. Set it as a Space secret:</p>
+<div class="code-wrapper"><pre><code class="language-python">api.add_space_secret(repo_id=repo_id, key="HF_TOKEN", value=HF_TOKEN)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>…and in <code>app.py</code>, load the LoRA with <code>token=os.environ["HF_TOKEN"]</code>.</p>
+<p><strong>After upload</strong>, run the smoke-test below before sharing — the build runs asynchronously and silent failures (wrong <code>weight_name</code>, missing dep, wrong pipeline class) only surface at first inference. <strong>Once the smoke-test passes</strong>, share the Space URL (<code>https://huggingface.co/spaces/{repo_id}</code>) and tell the user the Space is private — they'll need to be logged in to view it. Note that the build takes a few minutes; the logs are at <code>https://huggingface.co/spaces/{repo_id}/logs/container</code> if anything fails.</p>
+<p><strong>Publish-time failures (before the build starts):</strong></p>
+<ul>
+<li><strong><code>HfHubHTTPError: 400 Bad Request</code> from <code>https://huggingface.co/api/validate-yaml</code></strong> during <code>create_repo</code> or <code>upload_file</code>. The README YAML failed server-side validation. By far the most common cause is a <code>short_description</code> that's too long; sometimes a stray field or malformed value. Fix: shorten <code>short_description</code> to ~60 characters and retry. If shortening doesn't fix it, look for typos in field names or invalid values (e.g. unsupported colors in <code>colorFrom</code>/<code>colorTo</code>, an invalid <code>hardware</code> string).</li>
+<li><strong>403 on <code>create_repo</code></strong> with <code>space_hardware="zero-a10g"</code>: user isn't on PRO/Team/Enterprise, so they can't request ZeroGPU at creation time. Fix: retry <code>create_repo</code> without <code>space_hardware</code>, leave <code>hardware: zero-a10g</code> in the README YAML — the Space gets created on CPU. The user can then either upgrade to PRO (auto-promotes to ZeroGPU) or apply for a <a href="https://huggingface.co/docs/hub/spaces-gpus#community-gpu-grants">community GPU grant</a> (request via the Space's hardware settings).</li>
+<li><strong>401/403 on <code>upload_file</code></strong>: token doesn't have write scope. Fix: ask the user for a write-scoped token.</li>
+</ul>
+<p><strong>Common build failures (after the build starts):</strong></p>
+<ul>
+<li>LoRA <code>weight_name</code> mismatch in <code>load_lora_weights</code> → check the actual filename via <code>list_repo_files</code>.</li>
+<li>Base model is gated and the token wasn't set as a Space secret.</li>
+<li>ZeroGPU not allocated (user not on PRO) → Space falls back to CPU and is unusably slow.</li>
+<li>Diffusers version doesn't recognize the pipeline class → pin to git diffusers in <code>requirements.txt</code>.</li>
+<li>Missing dependency at module load → see <code>requirements.txt</code> derivation rules above; the most common case is a transitive dep like <code>torchvision</code> for Qwen-Image's text encoder.</li>
+</ul>
+<p>If a build fails, offer to read the logs and propose a fix.</p>
+<hr>
+<h2 id="phase-6--smoke-test-the-space">Phase 6 — Smoke-test the Space</h2>
+<p>Before declaring the Space done and handing the URL to the user, exercise it once end-to-end. Several failure modes (wrong <code>weight_name</code>, wrong pipeline class, missing transitive dep, gated-base-model token issue) build cleanly and only surface at first inference. The <code>gradio</code> Python package ships a CLI that does exactly this — <code>gradio info</code> returns the endpoint signature, <code>gradio predict</code> runs an actual inference. Both ship with the <code>gradio</code> pip dependency the Space already needs, so they're available in any environment where this skill ran.</p>
+<p><strong>Step 1 — Wait for the build.</strong> <code>create_repo</code> returns immediately, but the container image is still building. Poll <code>HfApi().get_space_runtime(repo_id).stage</code> until it reaches <code>RUNNING</code>:</p>
+<div class="code-wrapper"><pre><code class="language-python">import time
+from huggingface_hub import HfApi
+api = HfApi(token=hf_token)
+while True:
+    stage = api.get_space_runtime(repo_id).stage
+    if stage == "RUNNING": break
+    if stage in {"BUILD_ERROR", "RUNTIME_ERROR", "CONFIG_ERROR"}:
+        raise RuntimeError(f"Build failed: {stage}. Logs: https://huggingface.co/spaces/{repo_id}/logs/container")
+    time.sleep(15)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If the build fails, fetch the container logs (<code>https://huggingface.co/spaces/{repo_id}/logs/container</code>), read the traceback, and propose a fix. Don't run <code>gradio info</code> against a Space that isn't running — it'll hang or 503.</p>
+<p><strong>Step 2 — Verify the endpoint signature.</strong> <code>gradio info {repo_id} --token {hf_token}</code> returns the exposed endpoints and their parameter types. Read the output and confirm: (a) the endpoint exists (default is <code>/predict</code>, but Blocks Spaces often have a custom name from the Python function name), (b) the parameters in order match what <code>app.py</code> declares, (c) file-typed params show <code>"type": "filepath"</code> as expected. If any of this is off, the user-facing UI may still appear correct but API calls will fail — fix and re-upload.</p>
+<p><strong>Step 3 — Run one real inference.</strong> Pick the lightest viable input — the simplest example from the LoRA card, or one of the <code>gr.Examples</code> entries. Pass <code>--token</code> for private Spaces. For file inputs, the payload uses <code>{"path": "...", "meta": {"_type": "gradio.FileData"}}</code>.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Text-to-image:
+gradio predict {repo_id} /predict '{"prompt": "...", "aspect_ratio": "1:1", ...}' --token $HF_TOKEN
+
+# Image-to-image (file input):
+gradio predict {repo_id} /predict '{"input_image": {"path": "/tmp/sample.jpg", "meta": {"_type": "gradio.FileData"}}, "prompt": "..."}' --token $HF_TOKEN
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If you don't have a local sample image for I2I, lift one from the LoRA repo (<code>hf_hub_download(repo_id, filename="example.png")</code>) or the base model card.</p>
+<p><strong>Caveat for creative-mode Spaces.</strong> <code>gradio info</code> and <code>gradio predict</code> only exercise the Python endpoint — they tell you nothing about whether custom JS in a <code>gr.HTML</code> widget works. If the Space uses creative mode (see <code>references/creative-mode.md</code>), after the API smoke-test passes, <strong>open the Space URL in a browser and verify the interaction once</strong> before sharing. Server-side green plus broken JS is the most common failure mode for these.</p>
+<p><strong>Step 4 — Interpret the result.</strong></p>
+<ul>
+<li><strong>Returns successfully and the output looks plausible</strong> → done. Share the URL.</li>
+<li><strong>HTTPError 503 / "Space is sleeping"</strong> → the Space spun down between steps 1 and 3. Wake it (<code>api.restart_space(repo_id)</code>) and retry.</li>
+<li><strong>Inference error mentioning <code>weight_name</code> / <code>safetensors</code></strong> → the LoRA filename in <code>app.py</code> doesn't match the actual file in the LoRA repo. Re-check <code>list_repo_files</code>, fix <code>weight_name=</code>, re-upload <code>app.py</code>.</li>
+<li><strong>Inference error mentioning a missing pipeline class or attribute</strong> → diffusers version too old. Switch <code>requirements.txt</code> to <code>git+https://github.com/huggingface/diffusers</code> and re-upload.</li>
+<li><strong><code>ImportError</code> at module load</strong> → missing dep. Add it to <code>requirements.txt</code> and re-upload. The runtime logs (<code>/logs/run</code>) name the missing package.</li>
+<li><strong>OOM</strong> → reduce default resolution or step count, or pick a smaller base variant.</li>
+<li><strong>Timeout / hangs</strong> → bump <code>@spaces.GPU(duration=...)</code> and re-upload.</li>
+</ul>
+<p>The smoke-test exists to convert these from "user discovers it and reports back" to "you discover it and fix it before sharing." Don't skip it because the build went green — green-build-broken-inference is the most common failure mode for Spaces with a non-trivial pipeline.</p>
+<hr>
+<h2 id="what-to-avoid">What to avoid</h2>
+<ul>
+<li>A generic "one demo for all LoRAs" template. The whole point of this skill is to tailor.</li>
+<li>Lazy-loading the model inside the GPU function. Slow on ZeroGPU, and hides startup errors until first request.</li>
+<li><code>torch.compile</code>. Not supported on ZeroGPU.</li>
+<li><code>cache_examples=True</code> without <code>cache_mode="lazy"</code> on ZeroGPU.</li>
+<li>Uploading the LoRA weights into the Space repo. Pull from the LoRA's own Hub repo at runtime.</li>
+<li>Asking for the HF token only at the end, then discovering the LoRA was private all along and you couldn't read the model card.</li>
+<li>Exposing every diffusers knob. Pick the 1–3 controls that matter for this LoRA.</li>
+<li>Long preambles in the chat reply once the Space is published. The Space URL is the deliverable; keep the wrap-up brief.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

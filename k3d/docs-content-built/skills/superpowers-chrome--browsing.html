@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>browsing — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">browsing</span></nav>
+    <h1>browsing</h1>
+    <p class="page-desc">Use when you need direct browser control - teaches Chrome DevTools Protocol for controlling existing browser sessions, multi-tab management, form automation, and content extraction via use_browser MCP tool</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-chrome</span> <span class="pv-ver">3.0.2</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Browsing with Chrome Direct</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#when-to-use"><span class="toc-num">2.</span> When to Use</a></li>
+<li class="toc-item"><a href="#auto-capture"><span class="toc-num">3.</span> Auto-Capture</a></li>
+<li class="toc-item"><a href="#the-usebrowser-tool"><span class="toc-num">4.</span> The use_browser Tool</a></li>
+<li class="toc-item"><a href="#actions-reference"><span class="toc-num">5.</span> Actions Reference</a></li>
+<li class="toc-item"><a href="#quick-start-pattern"><span class="toc-num">6.</span> Quick Start Pattern</a></li>
+<li class="toc-item"><a href="#common-patterns"><span class="toc-num">7.</span> Common Patterns</a></li>
+<li class="toc-item"><a href="#tips"><span class="toc-num">8.</span> Tips</a></li>
+<li class="toc-item"><a href="#troubleshooting"><span class="toc-num">9.</span> Troubleshooting</a></li>
+<li class="toc-item"><a href="#test-automation-advanced"><span class="toc-num">10.</span> Test Automation (Advanced)</a></li>
+<li class="toc-item"><a href="#advanced-usage"><span class="toc-num">11.</span> Advanced Usage</a></li>
+<li class="toc-item"><a href="#protocol-reference"><span class="toc-num">12.</span> Protocol Reference</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>Control Chrome via DevTools Protocol using the <code>use_browser</code> MCP tool. Single unified interface with auto-starting Chrome.</p>
+<p><strong>Announce:</strong> "I'm using the browsing skill to control Chrome."</p>
+<h2 id="when-to-use">When to Use</h2>
+<p><strong>Use this when:</strong></p>
+<ul>
+<li>Controlling authenticated sessions</li>
+<li>Managing multiple tabs in running browser</li>
+<li>Playwright MCP unavailable or excessive</li>
+</ul>
+<p><strong>Use Playwright MCP when:</strong></p>
+<ul>
+<li>Need fresh browser instances</li>
+<li>Generating screenshots/PDFs</li>
+<li>Prefer higher-level abstractions</li>
+</ul>
+<h2 id="auto-capture">Auto-Capture</h2>
+<p>Every DOM action (navigate, click, type, select, eval, keyboard_press, hover, drag_drop, double_click, right_click, file_upload) automatically saves:</p>
+<ul>
+<li><code>{prefix}.png</code> — viewport screenshot</li>
+<li><code>{prefix}.md</code> — page content as structured markdown</li>
+<li><code>{prefix}.html</code> — full rendered DOM</li>
+<li><code>{prefix}-console.txt</code> — browser console messages</li>
+</ul>
+<p>Files are saved to the session directory with sequential prefixes (001-navigate, 002-click, etc.). You must check these before using extract or screenshot actions.</p>
+<h2 id="the-usebrowser-tool">The use_browser Tool</h2>
+<p>Single MCP tool with action-based interface. Chrome auto-starts on first use.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>action</code> (required): Operation to perform</li>
+<li><code>selector</code> (optional): CSS or XPath selector for element operations</li>
+<li><code>payload</code> (optional): Action-specific data (string or object)</li>
+<li><code>timeout</code> (optional): Timeout in ms for await operations (default: 5000)</li>
+</ul>
+<p><strong>Active tab</strong>: Every action operates on the current <code>activeTab</code>. Use <code>switch_tab</code> to change it.</p>
+<h2 id="actions-reference">Actions Reference</h2>
+<h3>Navigation</h3>
+<ul>
+<li><p><strong>navigate</strong>: Navigate to URL</p>
+<ul>
+<li><code>payload</code>: URL string</li>
+<li>Example: <code>{action: "navigate", payload: "https://example.com"}</code></li>
+</ul>
+</li>
+<li><p><strong>await_element</strong>: Wait for element to appear</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li><code>timeout</code>: Max wait time in ms</li>
+<li>Example: <code>{action: "await_element", selector: ".loaded", timeout: 10000}</code></li>
+</ul>
+</li>
+<li><p><strong>await_text</strong>: Wait for text to appear</p>
+<ul>
+<li><code>payload</code>: Text to wait for</li>
+<li>Example: <code>{action: "await_text", payload: "Welcome"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Interaction</h3>
+<ul>
+<li><p><strong>click</strong>: Click element</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li>Example: <code>{action: "click", selector: "button.submit"}</code></li>
+</ul>
+</li>
+<li><p><strong>type</strong>: Text input</p>
+<ul>
+<li><code>selector</code>: Optional — clicks to focus first</li>
+<li><code>payload</code>: Text to type (<code>\t</code>=Tab, <code>\n</code>=Enter)</li>
+<li>Example: <code>{action: "type", selector: "#email", payload: "user@example.com"}</code></li>
+</ul>
+</li>
+<li><p><strong>double_click</strong>: Double-click element (fires dblclick event)</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li>Example: <code>{action: "double_click", selector: ".item"}</code></li>
+</ul>
+</li>
+<li><p><strong>right_click</strong>: Right-click element (fires contextmenu event)</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li>Example: <code>{action: "right_click", selector: ".row"}</code></li>
+</ul>
+</li>
+<li><p><strong>select</strong>: Select dropdown option</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li><code>payload</code>: Option value(s)</li>
+<li>Example: <code>{action: "select", selector: "select[name=state]", payload: "CA"}</code></li>
+</ul>
+</li>
+<li><p><strong>keyboard_press</strong>: Press special keys (Tab, Enter, Escape, Arrow keys, F1-F12)</p>
+<ul>
+<li><code>payload</code>: Key name (string) or <code>{"key": "Tab", "modifiers": {"shift": true, "ctrl": false, "alt": false, "meta": false}}</code></li>
+<li>Example: <code>{action: "keyboard_press", payload: "Tab"}</code></li>
+<li>Example with modifiers: <code>{action: "keyboard_press", payload: {"key": "Tab", "modifiers": {"shift": true}}}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Mouse Actions (CDP-Level)</h3>
+<p>These use CDP Input.dispatchMouseEvent, bypassing synthetic event restrictions.</p>
+<ul>
+<li><p><strong>hover</strong>: Move mouse over element (CSS :hover, tooltips, menus)</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li>Example: <code>{action: "hover", selector: ".menu-trigger"}</code></li>
+</ul>
+</li>
+<li><p><strong>drag_drop</strong>: Drag element to target (native drag-and-drop via CDP)</p>
+<ul>
+<li><code>selector</code>: Source element</li>
+<li><code>payload</code>: Target selector or JSON coordinates <code>{"x":N,"y":N}</code></li>
+<li>Example: <code>{action: "drag_drop", selector: ".card", payload: ".column-2"}</code></li>
+</ul>
+</li>
+<li><p><strong>mouse_move</strong>: Move mouse to coordinates</p>
+<ul>
+<li><code>payload</code>: JSON <code>{"x":N,"y":N}</code> (optional: <code>steps</code>, <code>fromX</code>, <code>fromY</code> for smooth movement)</li>
+<li>Example: <code>{action: "mouse_move", payload: "{\"x\":100,\"y\":200}"}</code></li>
+</ul>
+</li>
+<li><p><strong>scroll</strong>: Scroll via mouse wheel events</p>
+<ul>
+<li><code>payload</code>: Direction (up/down/left/right) or JSON <code>{"deltaX":N,"deltaY":N}</code></li>
+<li><code>selector</code>: Optional — scroll within element</li>
+<li>Example: <code>{action: "scroll", payload: "down"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>File Upload</h3>
+<ul>
+<li><strong>file_upload</strong>: Set files on input[type=file] elements (can't be done via JavaScript)<ul>
+<li><code>selector</code>: File input element</li>
+<li><code>payload</code>: File path or JSON <code>{"files":["/path/a.pdf","/path/b.jpg"]}</code></li>
+<li>Example: <code>{action: "file_upload", selector: "#upload", payload: "/tmp/doc.pdf"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Extraction</h3>
+<ul>
+<li><p><strong>extract</strong>: Get page content</p>
+<ul>
+<li><code>payload</code>: Format ('markdown'|'text'|'html')</li>
+<li><code>selector</code>: Optional - limit to element</li>
+<li>Example: <code>{action: "extract", payload: "markdown"}</code></li>
+<li>Example: <code>{action: "extract", payload: "text", selector: "h1"}</code></li>
+</ul>
+</li>
+<li><p><strong>attr</strong>: Get element attribute</p>
+<ul>
+<li><code>selector</code>: CSS selector</li>
+<li><code>payload</code>: Attribute name</li>
+<li>Example: <code>{action: "attr", selector: "a.download", payload: "href"}</code></li>
+</ul>
+</li>
+<li><p><strong>eval</strong>: Execute JavaScript</p>
+<ul>
+<li><code>payload</code>: JavaScript code</li>
+<li>Example: <code>{action: "eval", payload: "document.title"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Export</h3>
+<ul>
+<li><strong>screenshot</strong>: Capture screenshot of a specific element<ul>
+<li><code>payload</code>: Filename</li>
+<li><code>selector</code>: Optional - screenshot specific element</li>
+<li>Viewport screenshots are auto-captured after every DOM action. Use this only when you need a specific element.</li>
+<li>Example: <code>{action: "screenshot", payload: "/tmp/chart.png", selector: ".chart"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Tab Management</h3>
+<ul>
+<li><p><strong>list_tabs</strong>: List all open tabs</p>
+<ul>
+<li>Example: <code>{action: "list_tabs"}</code></li>
+</ul>
+</li>
+<li><p><strong>new_tab</strong>: Create new tab</p>
+<ul>
+<li>Example: <code>{action: "new_tab"}</code></li>
+</ul>
+</li>
+<li><p><strong>close_tab</strong>: Close the active tab</p>
+<ul>
+<li>Example: <code>{action: "close_tab"}</code></li>
+</ul>
+</li>
+<li><p><strong>switch_tab</strong>: Switch the active tab (sticky — stays until changed)</p>
+<ul>
+<li><code>payload</code>: Tab index (number), URL substring, or title substring</li>
+<li>Example: <code>{action: "switch_tab", payload: 1}</code> (by index)</li>
+<li>Example: <code>{action: "switch_tab", payload: "example.com"}</code> (by URL substring)</li>
+<li>Example: <code>{action: "switch_tab", payload: "GitHub"}</code> (by title substring)</li>
+</ul>
+</li>
+</ul>
+<h3>Browser Mode Control</h3>
+<ul>
+<li><p><strong>show_browser</strong>: Make browser window visible (headed mode)</p>
+<ul>
+<li>Example: <code>{action: "show_browser"}</code></li>
+<li>⚠️ <strong>WARNING</strong>: Restarts Chrome, reloads pages via GET, loses POST state</li>
+</ul>
+</li>
+<li><p><strong>hide_browser</strong>: Switch to headless mode (invisible browser)</p>
+<ul>
+<li>Example: <code>{action: "hide_browser"}</code></li>
+<li>⚠️ <strong>WARNING</strong>: Restarts Chrome, reloads pages via GET, loses POST state</li>
+</ul>
+</li>
+<li><p><strong>browser_mode</strong>: Check current browser mode, port, and profile</p>
+<ul>
+<li>Example: <code>{action: "browser_mode"}</code></li>
+<li>Returns: <code>{"headless": true|false, "mode": "headless"|"headed", "running": true|false, "port": 9222, "profile": "name", "profileDir": "/path"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Profile Management</h3>
+<ul>
+<li><p><strong>set_profile</strong>: Change Chrome profile (must kill Chrome first)</p>
+<ul>
+<li>Example: <code>{action: "set_profile", "payload": "browser-user"}</code></li>
+<li>⚠️ <strong>WARNING</strong>: Chrome must be stopped first</li>
+<li><strong>Side effect</strong>: marks the profile as explicit, opting out of auto-disambiguation (see below)</li>
+</ul>
+</li>
+<li><p><strong>get_profile</strong>: Get current profile name and directory</p>
+<ul>
+<li>Example: <code>{action: "get_profile"}</code></li>
+<li>Returns: <code>{"profile": "name", "profileDir": "/path"}</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Default behavior</strong>: Chrome starts in <strong>headless mode</strong> with <strong>"superpowers-chrome" profile</strong> on a <strong>dynamically allocated port</strong> (range 9222-12111). Override the port with <code>CHROME_WS_PORT</code>; override the profile with <code>CHROME_WS_PROFILE</code>.</p>
+<p><strong>Auto-disambiguation across parallel MCPs</strong>:
+When two MCP servers start on the same host with the default profile, the first claims <code>superpowers-chrome</code> (port 9222) and later ones silently fall through to <code>superpowers-chrome-2</code> (port 9223), <code>superpowers-chrome-3</code>, etc. Each MCP drives its own Chrome with its own profile dir; they don't fight over <code>activeTab</code>. The bridge tracks ownership via a lock file at <code>~/.cache/superpowers/browser-profiles/&lt;profile&gt;.mcp.lock</code>; stale locks (dead PIDs) are reclaimed automatically.</p>
+<p>To opt <strong>out</strong> of disambiguation — e.g., to intentionally share Chrome between a long-lived <code>chrome-ws</code> CLI session and your MCP — set the profile name explicitly:</p>
+<ul>
+<li>Env var: <code>CHROME_WS_PROFILE=my-profile</code></li>
+<li>Or: <code>{action: "set_profile", payload: "my-profile"}</code> at runtime</li>
+</ul>
+<p>An explicit profile name still acquires the lock, but on conflict the bridge <strong>shares</strong> rather than disambiguates — the second process reconnects to the first's Chrome (the original reconnect-on-restart behavior).</p>
+<h3>Chrome Lifecycle (Recovery)</h3>
+<ul>
+<li><p><strong>kill_chrome</strong>: Kill the Chrome process this MCP is driving</p>
+<ul>
+<li>Example: <code>{action: "kill_chrome"}</code></li>
+<li>Releases the meta.json; next page action auto-restarts Chrome</li>
+</ul>
+</li>
+<li><p><strong>restart_chrome</strong>: kill_chrome + immediate spawn</p>
+<ul>
+<li>Example: <code>{action: "restart_chrome"}</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Auto-restart banner</strong>: when the bridge has to spawn a fresh Chrome (because the previous one died or was killed externally — e.g., <code>kill -9 &lt;pid&gt;</code> from the shell), the first response after the restart prepends:</p>
+<div class="code-wrapper"><pre><code>[Chrome auto-restarted; URL reset to about:blank. Re-navigate to continue.]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Treat this as a signal that your prior URL / tab state is gone — re-navigate before assuming anything about the current page.</p>
+<h3>Console Logging</h3>
+<p>Capture browser console output for the active tab. Buffer is keyed by the page session's <code>sessionId</code>, so it survives <code>close_tab</code>/<code>new_tab</code> ordering quirks. Levels: <code>log</code>, <code>info</code>, <code>warn</code>, <code>error</code>.</p>
+<ul>
+<li><p><strong>enable_console_logging</strong>: Start capturing</p>
+<ul>
+<li>Example: <code>{action: "enable_console_logging"}</code></li>
+</ul>
+</li>
+<li><p><strong>get_console_messages</strong>: Read captured messages</p>
+<ul>
+<li>All: <code>{action: "get_console_messages"}</code></li>
+<li>Since timestamp (epoch ms): <code>{action: "get_console_messages", payload: {since: 1716000000000}}</code></li>
+<li>Returns: array of <code>{timestamp, level, text}</code> entries</li>
+</ul>
+</li>
+<li><p><strong>clear_console_messages</strong>: Reset the buffer</p>
+<ul>
+<li>Example: <code>{action: "clear_console_messages"}</code></li>
+</ul>
+</li>
+</ul>
+<h3>Dialog Handling</h3>
+<p>Native dialogs (JS alert/confirm/prompt, beforeunload, HTTP basic-auth, permission prompts, device choosers) pause the page. While a dialog is open, page-targeted actions (<code>extract</code>, <code>click</code>, <code>eval</code>, etc.) return a refusal whose text contains <code>Page is behind a dialog</code> and lists the available <code>dialog::*</code> selectors.</p>
+<p>When a dialog fires <strong>during</strong> a <code>navigate</code> (typical for HTTP basic-auth), <code>navigate</code> itself throws with the dialog grammar in the message — you don't have to issue a separate page-targeted call to discover the dialog.</p>
+<p>Handle dialogs by clicking/typing a <code>dialog::*</code> selector:</p>
+<ul>
+<li><code>{action: "click", selector: "dialog::accept"}</code> — accept JS alert/confirm/prompt, beforeunload, permission grant</li>
+<li><code>{action: "click", selector: "dialog::dismiss"}</code> — dismiss / cancel / deny</li>
+<li><code>{action: "type", selector: "dialog::prompt", payload: "text"}</code> then accept — respond to JS prompt</li>
+<li><code>{action: "type", selector: "dialog::username", payload: "alice"}</code> + <code>{action: "type", selector: "dialog::password", payload: "secret"}</code> + <code>{action: "click", selector: "dialog::accept"}</code> — HTTP basic-auth</li>
+<li><code>{action: "click", selector: "dialog::device[id=\"&lt;deviceId&gt;\"]"}</code> — pick a WebUSB/Bluetooth/Serial/HID device</li>
+</ul>
+<p><strong>Critical caveats when toggling modes</strong>:</p>
+<ol>
+<li><strong>Chrome must restart</strong> - Cannot switch headless/headed mode on running Chrome</li>
+<li><strong>Pages reload via GET</strong> - All open tabs are reopened with GET requests</li>
+<li><strong>POST state is lost</strong> - Form submissions, POST results, and POST-based navigation will be lost</li>
+<li><strong>Session state is lost</strong> - Any client-side state (JavaScript variables, etc.) is cleared</li>
+<li><strong>Cookies/auth may persist</strong> - Uses same user data directory, so logged-in sessions may survive</li>
+</ol>
+<p><strong>When to use headed mode</strong>:</p>
+<ul>
+<li>Debugging visual rendering issues</li>
+<li>Demonstrating browser behavior to user</li>
+<li>Testing features that only work with visible browser</li>
+<li>Debugging issues that don't reproduce in headless mode</li>
+</ul>
+<p><strong>When to stay in headless mode</strong> (default):</p>
+<ul>
+<li>All other cases - faster, cleaner, less intrusive</li>
+<li>Screenshots work perfectly in headless mode</li>
+<li>Most automation works identically in both modes</li>
+</ul>
+<p><strong>Profile management</strong>:
+Profiles store persistent browser data (cookies, localStorage, extensions, auth sessions).</p>
+<p><strong>Profile locations</strong>:</p>
+<ul>
+<li>macOS: <code>~/Library/Caches/superpowers/browser-profiles/{name}/</code></li>
+<li>Linux: <code>~/.cache/superpowers/browser-profiles/{name}/</code></li>
+<li>Windows: <code>%LOCALAPPDATA%/superpowers/browser-profiles/{name}/</code></li>
+</ul>
+<p><strong>When to use separate profiles</strong>:</p>
+<ul>
+<li><strong>Default profile ("superpowers-chrome")</strong>: General automation, shared sessions</li>
+<li><strong>Agent-specific profiles</strong>: Isolate different agents' browser state<ul>
+<li>Example: browser-user agent uses "browser-user" profile</li>
+</ul>
+</li>
+<li><strong>Task-specific profiles</strong>: Testing with different user contexts<ul>
+<li>Example: "test-logged-in" vs "test-logged-out"</li>
+</ul>
+</li>
+</ul>
+<p><strong>Profile data persists across</strong>:</p>
+<ul>
+<li>Chrome restarts</li>
+<li>Mode toggles (headless ↔ headed)</li>
+<li>System reboots (data is in cache directory)</li>
+</ul>
+<p><strong>To use a different profile</strong>:</p>
+<ol>
+<li>Kill Chrome if running: <code>await chromeLib.killChrome()</code></li>
+<li>Set profile: <code>{action: "set_profile", "payload": "my-profile"}</code></li>
+<li>Start Chrome: Next navigate/action will use new profile</li>
+</ol>
+<h2 id="quick-start-pattern">Quick Start Pattern</h2>
+<div class="code-wrapper"><pre><code>Navigate and extract:
+{action: "navigate", payload: "https://example.com"}
+{action: "await_element", selector: "h1"}
+{action: "extract", payload: "text", selector: "h1"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3>Fill and Submit Form</h3>
+<div class="code-wrapper"><pre><code>{action: "navigate", payload: "https://example.com/login"}
+{action: "await_element", selector: "input[name=email]"}
+{action: "type", selector: "input[name=email]", payload: "user@example.com"}
+{action: "type", selector: "input[name=password]", payload: "pass123"}
+{action: "keyboard_press", payload: "Enter"}
+{action: "await_text", payload: "Welcome"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Uses <code>keyboard_press</code> to submit the form.</p>
+<h3>Multi-Tab Workflow</h3>
+<div class="code-wrapper"><pre><code>{action: "list_tabs"}
+{action: "switch_tab", payload: 2}
+{action: "click", selector: "a.email"}
+{action: "await_element", selector: ".content"}
+{action: "extract", payload: "text", selector: ".amount"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Dynamic Content</h3>
+<div class="code-wrapper"><pre><code>{action: "navigate", payload: "https://example.com"}
+{action: "type", selector: "input[name=q]", payload: "query"}
+{action: "click", selector: "button.search"}
+{action: "await_element", selector: ".results"}
+{action: "extract", payload: "text", selector: ".result-title"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Get Link Attribute</h3>
+<div class="code-wrapper"><pre><code>{action: "navigate", payload: "https://example.com"}
+{action: "await_element", selector: "a.download"}
+{action: "attr", selector: "a.download", payload: "href"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Execute JavaScript</h3>
+<div class="code-wrapper"><pre><code>{action: "eval", payload: "document.querySelectorAll('a').length"}
+{action: "eval", payload: "Array.from(document.querySelectorAll('a')).map(a =&gt; a.href)"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Resize Viewport (Responsive Testing)</h3>
+<p>Use <code>eval</code> to resize the browser window for testing responsive layouts:</p>
+<div class="code-wrapper"><pre><code>{action: "eval", payload: "window.resizeTo(375, 812); 'Resized to mobile'"}
+{action: "eval", payload: "window.resizeTo(768, 1024); 'Resized to tablet'"}
+{action: "eval", payload: "window.resizeTo(1920, 1080); 'Resized to desktop'"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Note</strong>: This resizes the window, not device emulation. It won't change:</p>
+<ul>
+<li>Device pixel ratio (retina displays)</li>
+<li>Touch events</li>
+<li>User-Agent string</li>
+</ul>
+<p>For most responsive testing, window resize is sufficient.</p>
+<h3>Clear Cookies</h3>
+<p>Use <code>eval</code> to clear cookies accessible to JavaScript:</p>
+<div class="code-wrapper"><pre><code>{action: "eval", payload: "document.cookie.split(';').forEach(c =&gt; { document.cookie = c.trim().split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'; }); 'Cookies cleared'"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Note</strong>: This clears cookies accessible to JavaScript. It won't clear:</p>
+<ul>
+<li>httpOnly cookies (server-side only)</li>
+<li>Cookies from other domains</li>
+</ul>
+<p>For most logout/reset scenarios, this is sufficient.</p>
+<h3>Scroll Page</h3>
+<div class="code-wrapper"><pre><code>{action: "scroll", payload: "down"}
+{action: "scroll", payload: "up"}
+{action: "scroll", selector: ".container", payload: "{\"deltaX\":0,\"deltaY\":500}"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Uses real mouse wheel events (vs <code>eval</code> + <code>scrollTo</code> which bot detectors flag).</p>
+<h2 id="tips">Tips</h2>
+<p><strong>Always wait before interaction:</strong>
+Don't click or fill immediately after navigate - pages need time to load.</p>
+<div class="code-wrapper"><pre><code>// BAD - might fail if page slow
+{action: "navigate", payload: "https://example.com"}
+{action: "click", selector: "button"}  // May fail!
+
+// GOOD - wait first
+{action: "navigate", payload: "https://example.com"}
+{action: "await_element", selector: "button"}
+{action: "click", selector: "button"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Use specific selectors:</strong>
+Avoid generic selectors that match multiple elements.</p>
+<div class="code-wrapper"><pre><code>// BAD - matches first button
+{action: "click", selector: "button"}
+
+// GOOD - specific
+{action: "click", selector: "button[type=submit]"}
+{action: "click", selector: "#login-button"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Submit forms:</strong>
+Use <code>keyboard_press</code> with Enter after <code>type</code>, or append <code>\n</code> to the payload.</p>
+<div class="code-wrapper"><pre><code>{action: "type", selector: "#search", payload: "query"}
+{action: "keyboard_press", payload: "Enter"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Check content first:</strong>
+Extract page content to verify selectors before building workflow.</p>
+<div class="code-wrapper"><pre><code>{action: "extract", payload: "html"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>Element not found:</strong></p>
+<ul>
+<li>Use <code>await_element</code> before interaction</li>
+<li>Verify selector with <code>extract</code> action using 'html' format</li>
+</ul>
+<p><strong>Timeout errors:</strong></p>
+<ul>
+<li>Increase timeout: <code>{timeout: 30000}</code> for slow pages</li>
+<li>Wait for specific element instead of text</li>
+</ul>
+<p><strong>Wrong tab active:</strong></p>
+<ul>
+<li>Use <code>list_tabs</code> to see all open tabs</li>
+<li>Use <code>switch_tab</code> with a URL or title substring to reliably switch tabs</li>
+<li>Tab indices shift when tabs close — prefer URL/title-based switching</li>
+</ul>
+<p><strong>eval returns <code>[object Object]</code>:</strong></p>
+<ul>
+<li>Use <code>JSON.stringify()</code> for complex objects: <code>{action: "eval", payload: "JSON.stringify({name: 'test'})"}</code></li>
+<li>For async functions: <code>{action: "eval", payload: "JSON.stringify(await yourAsyncFunction())"}</code></li>
+</ul>
+<h2 id="test-automation-advanced">Test Automation (Advanced)</h2>
+<details>
+<summary>Click to expand test automation guidance</summary><p>When building test automation, you have two approaches:</p>
+<h3>Approach 1: use_browser MCP (Simple Tests)</h3>
+<p>Best for: Single-step tests, direct Claude control during conversation</p>
+<div class="code-wrapper"><pre><code class="language-json">{"action": "navigate", "payload": "https://app.com"}
+{"action": "click", "selector": "#test-button"}
+{"action": "eval", "payload": "JSON.stringify({passed: document.querySelector('.success') !== null})"}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Approach 2: chrome-ws CLI (Complex Tests)</h3>
+<p>Best for: Multi-step test suites, standalone automation scripts</p>
+<p><strong>Key insight</strong>: <code>chrome-ws</code> is the reference implementation showing proper Chrome DevTools Protocol usage. When <code>use_browser</code> doesn't work as expected, examine how <code>chrome-ws</code> handles the same operation.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Example: Automated form testing
+./chrome-ws navigate 0 "https://app.com/form"
+./chrome-ws fill 0 "#email" "test@example.com"
+./chrome-ws click 0 "button[type=submit]"
+./chrome-ws wait-text 0 "Success"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>When use_browser Fails</h3>
+<ol>
+<li><strong>Check chrome-ws source code</strong> - It shows the correct CDP pattern</li>
+<li><strong>Use chrome-ws to verify</strong> - Test the same operation via CLI</li>
+<li><strong>Adapt the pattern</strong> - Apply the working CDP approach to use_browser</li>
+</ol>
+<h3>Common Test Automation Patterns</h3>
+<ul>
+<li><strong>Form validation</strong>: Fill forms, check error states</li>
+<li><strong>UI state testing</strong>: Click elements, verify DOM changes</li>
+<li><strong>Performance testing</strong>: Measure load times, capture metrics</li>
+<li><strong>Screenshot comparison</strong>: Capture before/after states</li>
+</ul>
+</details><h2 id="advanced-usage">Advanced Usage</h2>
+<p>For command-line usage outside Claude Code, see <a href="COMMANDLINE-USAGE.md">COMMANDLINE-USAGE.md</a>.</p>
+<p>For detailed examples, see <a href="EXAMPLES.md">EXAMPLES.md</a>.</p>
+<h2 id="protocol-reference">Protocol Reference</h2>
+<p>Full CDP documentation: <a href="https://chromedevtools.github.io/devtools-protocol/">https://chromedevtools.github.io/devtools-protocol/</a></p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

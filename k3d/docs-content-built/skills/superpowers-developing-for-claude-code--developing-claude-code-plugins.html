@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>developing-claude-code-plugins — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">developing-claude-code-plugins</span></nav>
+    <h1>developing-claude-code-plugins</h1>
+    <p class="page-desc">Use when working on Claude Code plugins (creating, modifying, testing, releasing, or maintaining) - provides streamlined workflows, patterns, and examples for the complete plugin lifecycle</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-developing-for-claude-code</span> <span class="pv-ver">0.3.1</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Developing Claude Code Plugins</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#overview"><span class="toc-num">1.</span> Overview</a></li>
+<li class="toc-item"><a href="#when-to-use"><span class="toc-num">2.</span> When to Use</a></li>
+<li class="toc-item"><a href="#quick-reference"><span class="toc-num">3.</span> Quick Reference</a></li>
+<li class="toc-item"><a href="#plugin-development-workflow"><span class="toc-num">4.</span> Plugin Development Workflow</a></li>
+<li class="toc-item"><a href="#critical-rules"><span class="toc-num">5.</span> Critical Rules</a></li>
+<li class="toc-item"><a href="#resources-in-this-skill"><span class="toc-num">6.</span> Resources in This Skill</a></li>
+<li class="toc-item"><a href="#cross-references"><span class="toc-num">7.</span> Cross-References</a></li>
+<li class="toc-item"><a href="#best-practices"><span class="toc-num">8.</span> Best Practices</a></li>
+<li class="toc-item"><a href="#workflow-summary"><span class="toc-num">9.</span> Workflow Summary</a></li></ul>
+</div>
+<h2 id="overview">Overview</h2>
+<p>This skill provides efficient workflows for creating Claude Code plugins. Use it to make plugin development fast and correct - it synthesizes official docs into actionable steps and provides working examples.</p>
+<h2 id="when-to-use">When to Use</h2>
+<p>Use this skill when:</p>
+<ul>
+<li>Creating a new Claude Code plugin from scratch</li>
+<li>Adding components to an existing plugin (skills, commands, hooks, MCP servers)</li>
+<li>Setting up a development marketplace for testing</li>
+<li>Troubleshooting plugin structure issues</li>
+<li>Understanding plugin architecture and patterns</li>
+<li>Releasing a plugin (versioning, tagging, marketplace distribution)</li>
+<li>Publishing updates or maintaining existing plugins</li>
+</ul>
+<p><strong>For comprehensive official documentation</strong>, use the <code>working-with-claude-code</code> skill to access full docs.</p>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Need to...</th>
+<th>Read This</th>
+<th>Official Docs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Understand directory structure</td>
+<td><code>references/plugin-structure.md</code></td>
+<td><code>plugins.md</code></td>
+</tr>
+<tr>
+<td>Choose a plugin pattern</td>
+<td><code>references/common-patterns.md</code></td>
+<td><code>plugins.md</code></td>
+</tr>
+<tr>
+<td>Make hooks work cross-platform</td>
+<td><code>references/polyglot-hooks.md</code></td>
+<td><code>hooks.md</code></td>
+</tr>
+<tr>
+<td>Debug plugin issues</td>
+<td><code>references/troubleshooting.md</code></td>
+<td>Various</td>
+</tr>
+<tr>
+<td>See working examples</td>
+<td><code>examples/</code> directory</td>
+<td>N/A</td>
+</tr>
+</tbody></table>
+<h2 id="plugin-development-workflow">Plugin Development Workflow</h2>
+<h3>Phase 1: Plan</h3>
+<p>Before writing code:</p>
+<ol>
+<li><p><strong>Define your plugin's purpose</strong></p>
+<ul>
+<li>What problem does it solve?</li>
+<li>Who will use it?</li>
+<li>What components will it need?</li>
+</ul>
+</li>
+<li><p><strong>Choose your pattern</strong> (read <code>references/common-patterns.md</code>)</p>
+<ul>
+<li>Simple plugin with one skill?</li>
+<li>MCP integration with guidance?</li>
+<li>Command collection?</li>
+<li>Full-featured platform?</li>
+</ul>
+</li>
+<li><p><strong>Review examples</strong></p>
+<ul>
+<li><code>examples/simple-greeter-plugin/</code> - Minimal plugin</li>
+<li><code>examples/full-featured-plugin/</code> - All components</li>
+<li>Installed plugins in <code>~/.claude/plugins/</code></li>
+</ul>
+</li>
+</ol>
+<h3>Phase 2: Create Structure</h3>
+<ol>
+<li><p><strong>Create directories</strong> (see <code>references/plugin-structure.md</code> for details):</p>
+<div class="code-wrapper"><pre><code class="language-bash">mkdir -p my-plugin/.claude-plugin
+mkdir -p my-plugin/skills
+# Add other component directories as needed
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>Write plugin.json</strong> (required):</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "description": "What your plugin does",
+  "author": {"name": "Your Name"}
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>See <code>references/plugin-structure.md</code> for complete format.</p>
+</li>
+<li><p><strong>Create development marketplace</strong> (for local testing):</p>
+<p>Create <code>.claude-plugin/marketplace.json</code>:</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "name": "my-dev",
+  "plugins": [{
+    "name": "my-plugin",
+    "source": "./"
+  }]
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>See <code>references/plugin-structure.md</code> for complete format.</p>
+</li>
+</ol>
+<h3>Phase 3: Add Components</h3>
+<p>Use TodoWrite to track component creation:</p>
+<p><strong>Example:</strong></p>
+<div class="code-wrapper"><pre><code>- Create skill: main-workflow
+- Add command: /hello
+- Configure hooks
+- Write README
+- Test installation
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For each component type, see:</p>
+<ul>
+<li><strong>Format/syntax</strong>: <code>references/plugin-structure.md</code></li>
+<li><strong>When to use</strong>: <code>references/common-patterns.md</code></li>
+<li><strong>Working code</strong>: <code>examples/</code> directory</li>
+</ul>
+<h3>Phase 4: Test Locally</h3>
+<ol>
+<li><p><strong>Install for testing</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">/plugin marketplace add /path/to/my-plugin
+/plugin install my-plugin@my-dev
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Then restart Claude Code.</p>
+</li>
+<li><p><strong>Test each component</strong>:</p>
+<ul>
+<li>Skills: Ask for tasks matching skill descriptions</li>
+<li>Commands: Run <code>/your-command</code></li>
+<li>MCP servers: Check tools are available</li>
+<li>Hooks: Trigger relevant events</li>
+</ul>
+</li>
+<li><p><strong>Iterate</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">/plugin uninstall my-plugin@my-dev
+# Make changes
+/plugin install my-plugin@my-dev
+# Restart Claude Code
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<h3>Phase 5: Debug and Refine</h3>
+<p>If something doesn't work, read <code>references/troubleshooting.md</code> for:</p>
+<ul>
+<li>Plugin not loading</li>
+<li>Skill not triggering</li>
+<li>Command not appearing</li>
+<li>MCP server not starting</li>
+<li>Hooks not firing</li>
+</ul>
+<p>Common issues are usually:</p>
+<ul>
+<li>Wrong directory structure</li>
+<li>Hardcoded paths (use <code>${CLAUDE_PLUGIN_ROOT}</code>)</li>
+<li>Forgot to restart Claude Code</li>
+<li>Missing executable permissions on scripts</li>
+</ul>
+<h3>Phase 6: Release and Distribute</h3>
+<ol>
+<li><p><strong>Write README</strong> with:</p>
+<ul>
+<li>What the plugin does</li>
+<li>Installation instructions</li>
+<li>Usage examples</li>
+<li>Component descriptions</li>
+</ul>
+</li>
+<li><p><strong>Version your release</strong> using semantic versioning:</p>
+<ul>
+<li>Update <code>version</code> in <code>.claude-plugin/plugin.json</code></li>
+<li>Document changes in CHANGELOG.md or RELEASE-NOTES.md</li>
+<li>Example: <code>"version": "1.2.1"</code> (major.minor.patch)</li>
+</ul>
+</li>
+<li><p><strong>Commit and tag your release</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">git add .
+git commit -m "Release v1.2.1: [brief description]"
+git tag v1.2.1
+git push origin main
+git push origin v1.2.1
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>Choose distribution method</strong>:</p>
+<p><strong>Option A: Direct GitHub distribution</strong></p>
+<ul>
+<li>Users add: <code>/plugin marketplace add your-org/your-plugin-repo</code></li>
+<li>Your plugin.json serves as the manifest</li>
+</ul>
+<p><strong>Option B: Marketplace distribution</strong> (recommended for multi-plugin collections)</p>
+<ul>
+<li>Create separate marketplace repository</li>
+<li>Add <code>.claude-plugin/marketplace.json</code> with plugin references:<div class="code-wrapper"><pre><code class="language-json">{
+  "name": "my-marketplace",
+  "owner": {"name": "Your Name"},
+  "plugins": [{
+    "name": "your-plugin",
+    "source": {
+      "source": "url",
+      "url": "https://github.com/your-org/your-plugin.git"
+    },
+    "version": "1.2.1",
+    "description": "Plugin description"
+  }]
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li>Users add: <code>/plugin marketplace add your-org/your-marketplace</code></li>
+<li>Update marketplace manifest for each plugin release</li>
+</ul>
+<p><strong>Option C: Private/team distribution</strong></p>
+<ul>
+<li>Configure in team's <code>.claude/settings.json</code>:<div class="code-wrapper"><pre><code class="language-json">{
+  "extraKnownMarketplaces": {
+    "team-tools": {
+      "source": {"source": "github", "repo": "your-org/plugins"}
+    }
+  }
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ul>
+</li>
+<li><p><strong>Test the release</strong>:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Test fresh installation
+/plugin marketplace add your-marketplace-source
+/plugin install your-plugin@marketplace-name
+# Verify functionality, then clean up
+/plugin uninstall your-plugin@marketplace-name
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p><strong>Announce and maintain</strong>:</p>
+<ul>
+<li>GitHub releases (optional)</li>
+<li>Team notifications</li>
+<li>Monitor for issues and user feedback</li>
+<li>Plan maintenance updates</li>
+</ul>
+</li>
+</ol>
+<h2 id="critical-rules">Critical Rules</h2>
+<p><strong>Always follow these</strong> (from <code>references/plugin-structure.md</code>):</p>
+<ol>
+<li><p><strong><code>.claude-plugin/</code> contains ONLY manifests</strong> (<code>plugin.json</code> and optionally <code>marketplace.json</code>)</p>
+<ul>
+<li>❌ Don't put skills, commands, or other components inside</li>
+<li>✅ Put them at plugin root</li>
+</ul>
+</li>
+<li><p><strong>Use <code>${CLAUDE_PLUGIN_ROOT}</code> for all paths in config files</strong></p>
+<ul>
+<li>Makes plugin portable across systems</li>
+<li>Required for hooks, MCP servers, scripts</li>
+</ul>
+</li>
+<li><p><strong>Use relative paths in <code>plugin.json</code></strong></p>
+<ul>
+<li>Start with <code>./</code></li>
+<li>Relative to plugin root</li>
+</ul>
+</li>
+<li><p><strong>Make scripts executable</strong></p>
+<ul>
+<li><code>chmod +x script.sh</code></li>
+<li>Required for hooks and MCP servers</li>
+</ul>
+</li>
+</ol>
+<h2 id="resources-in-this-skill">Resources in This Skill</h2>
+<ul>
+<li><strong><code>references/plugin-structure.md</code></strong> - Directory layout, file formats, component syntax</li>
+<li><strong><code>references/common-patterns.md</code></strong> - When to use each plugin pattern, examples</li>
+<li><strong><code>references/polyglot-hooks.md</code></strong> - Cross-platform hook wrapper for Windows/macOS/Linux</li>
+<li><strong><code>references/troubleshooting.md</code></strong> - Debug guide for common issues</li>
+<li><strong><code>examples/simple-greeter-plugin/</code></strong> - Minimal working plugin (one skill)</li>
+<li><strong><code>examples/full-featured-plugin/</code></strong> - Complete plugin with all components (includes <code>run-hook.cmd</code>)</li>
+</ul>
+<h2 id="cross-references">Cross-References</h2>
+<p>For deep dives into official documentation, use the <code>working-with-claude-code</code> skill to access:</p>
+<ul>
+<li><code>plugins.md</code> - Plugin development overview</li>
+<li><code>plugins-reference.md</code> - Complete API reference</li>
+<li><code>skills.md</code> - Skill authoring guide</li>
+<li><code>slash-commands.md</code> - Command format</li>
+<li><code>hooks.md</code>, <code>hooks-guide.md</code> - Hook system</li>
+<li><code>mcp.md</code> - MCP server integration</li>
+<li><code>plugin-marketplaces.md</code> - Distribution</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Start simple</strong> - Begin with minimal structure, add complexity when needed</li>
+<li><strong>Test frequently</strong> - Install → test → uninstall → modify → repeat</li>
+<li><strong>Use examples</strong> - Copy patterns from working plugins</li>
+<li><strong>Follow conventions</strong> - Match style of existing plugins</li>
+<li><strong>Document everything</strong> - Clear README helps users and future you</li>
+<li><strong>Version properly</strong> - Use semantic versioning (major.minor.patch)</li>
+</ol>
+<h2 id="workflow-summary">Workflow Summary</h2>
+<div class="code-wrapper"><pre><code>Plan → Choose pattern, review examples
+Create → Make structure, write manifests
+Add → Build components (skills, commands, etc.)
+Test → Install via dev marketplace
+Debug → Use troubleshooting guide
+Release → Version, tag, distribute via marketplace
+Maintain → Monitor, update, support users
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>The correct path is the fast path.</strong> Use references, follow patterns, test frequently.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

@@ -95,8 +95,8 @@ test('renderPage: header shows provenance badge, domain tag, and breadcrumbs', (
   });
   assert.ok(html.includes('repo'), 'provenance badge text present');
   assert.ok(html.includes('website'), 'domain tag present');
-  assert.ok(html.includes('href="./index.html"'), 'breadcrumb to landing');
-  assert.ok(html.includes('href="./agents.html"'), 'breadcrumb to section index');
+  assert.ok(html.includes('href="../index.html"'), 'breadcrumb to landing (subdir → ../)');
+  assert.ok(html.includes('href="../agents.html"'), 'breadcrumb to section index (subdir → ../');
 });
 
 test('renderPage: appends a related-links footer when related is non-empty', () => {
@@ -214,4 +214,45 @@ test('renderPage emits a branded site header and footer', () => {
   assert.ok(html.includes('site-header'), 'branded site header present');
   assert.ok(html.includes('Dokumentation'), 'wordmark text present');
   assert.ok(html.includes('site-footer'), 'branded site footer present');
+});
+
+// ─── Subdir-path correctness (FA regression) ─────────────────────────────────
+// Pages in agents/ or skills/ must use ../ to reach root-level assets.
+// Pages at root level must keep ./.
+test('renderPage: subdir pages use depth-aware relative paths for assets and nav', () => {
+  // agents/ subdir page
+  const htmlAgent = renderPage({
+    page: agentPage,
+    contentHtml: '<p>x</p>',
+    toc: '',
+    related: [],
+  });
+  assert.ok(htmlAgent.includes('href="../style.css"'), 'agent page: style.css uses ../');
+  assert.ok(htmlAgent.includes('src="../app.js"'), 'agent page: app.js uses ../');
+  assert.ok(htmlAgent.includes('href="../index.html"'), 'agent page: brand link uses ../');
+  assert.ok(htmlAgent.includes('href="../agents.html"'), 'agent page: section breadcrumb uses ../');
+  assert.ok(!htmlAgent.includes('href="./style.css"'), 'agent page: no ./ for style.css');
+
+  // skills/ subdir page (plugin)
+  const htmlSkill = renderPage({
+    page: pluginSkillPage,
+    contentHtml: '<p>x</p>',
+    toc: '',
+    related: [],
+  });
+  assert.ok(htmlSkill.includes('href="../style.css"'), 'skill page: style.css uses ../');
+  assert.ok(htmlSkill.includes('src="../app.js"'), 'skill page: app.js uses ../');
+  assert.ok(htmlSkill.includes('href="../index.html"'), 'skill page: brand link uses ../');
+  assert.ok(htmlSkill.includes('href="../skills.html"'), 'skill page: section breadcrumb uses ../');
+
+  // root-level doc page must keep ./
+  const htmlDoc = renderPage({
+    page: docPage,
+    contentHtml: '<p>x</p>',
+    toc: '',
+    related: [],
+  });
+  assert.ok(htmlDoc.includes('href="./style.css"'), 'doc page: style.css keeps ./');
+  assert.ok(htmlDoc.includes('src="./app.js"'), 'doc page: app.js keeps ./');
+  assert.ok(htmlDoc.includes('href="./index.html"'), 'doc page: index.html keeps ./');
 });

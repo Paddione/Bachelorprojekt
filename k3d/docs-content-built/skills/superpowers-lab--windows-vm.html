@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>windows-vm — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">windows-vm</span></nav>
+    <h1>windows-vm</h1>
+    <p class="page-desc">Create, manage, or connect to a headless Windows 11 VM running in Docker with SSH access. Use when the user wants to spin up, stop, restart, or SSH into a Windows VM.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">superpowers-lab</span> <span class="pv-ver">0.5.0</span></span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Headless Windows 11 VM</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#host-prerequisites"><span class="toc-num">1.</span> Host prerequisites</a></li>
+<li class="toc-item"><a href="#configuration"><span class="toc-num">2.</span> Configuration</a></li>
+<li class="toc-item"><a href="#actions"><span class="toc-num">3.</span> Actions</a></li>
+<li class="toc-item"><a href="#important-notes"><span class="toc-num">4.</span> Important Notes</a></li>
+<li class="toc-item"><a href="#post-install-gotchas"><span class="toc-num">5.</span> Post-install gotchas</a></li></ul>
+</div>
+<p>Manage a headless Windows 11 VM running via <a href="https://github.com/dockur/windows">dockur/windows</a> in Docker with KVM acceleration. The VM is accessible via SSH only — no RDP or GUI required.</p>
+<h2 id="host-prerequisites">Host prerequisites</h2>
+<ul>
+<li>Docker</li>
+<li>KVM support (<code>/dev/kvm</code> must exist — check with <code>ls /dev/kvm</code>)</li>
+<li><code>sshpass</code> (<code>sudo apt install sshpass</code>)</li>
+<li><code>imagemagick</code> (optional, for screenshot debugging: <code>sudo apt install imagemagick</code>)</li>
+</ul>
+<h2 id="configuration">Configuration</h2>
+<ul>
+<li><strong>Container name</strong>: <code>windows11</code></li>
+<li><strong>VM directory</strong>: <code>$HOME/windows-vm/</code><ul>
+<li><code>storage/</code> — VM disk image (managed by dockur, wiped on recreate)</li>
+<li><code>iso/win11x64.iso</code> — cached Windows ISO (7.3GB, persists across recreates)</li>
+<li><code>oem/install.bat</code> — post-install script (installs OpenSSH Server)</li>
+</ul>
+</li>
+<li><strong>Credentials</strong>: user / password</li>
+<li><strong>SSH</strong>: <code>localhost:2222</code> (bound to 127.0.0.1 only)</li>
+<li><strong>RDP</strong>: <code>localhost:3389</code> (bound to 127.0.0.1 only, fallback)</li>
+<li><strong>Web console</strong>: <code>localhost:8006</code> (VNC in browser, for debugging)</li>
+<li><strong>Resources</strong>: 8GB RAM, 4 CPU cores, 64GB disk</li>
+</ul>
+<h2 id="actions">Actions</h2>
+<h3>create — First-time setup or full recreate</h3>
+<ol>
+<li><p>Ensure directories exist:</p>
+<div class="code-wrapper"><pre><code class="language-bash">mkdir -p "$HOME/windows-vm/oem" "$HOME/windows-vm/storage" "$HOME/windows-vm/iso"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Ensure <code>$HOME/windows-vm/oem/install.bat</code> exists with OpenSSH setup:</p>
+<div class="code-wrapper"><pre><code class="language-bat">@echo off
+echo Installing OpenSSH Server...
+powershell -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0" 2&gt;nul
+powershell -Command "Get-WindowsCapability -Online -Name OpenSSH.Server* | Add-WindowsCapability -Online" 2&gt;nul
+dism /Online /Add-Capability /CapabilityName:OpenSSH.Server~~~~0.0.1.0 2&gt;nul
+powershell -Command "Start-Service sshd" 2&gt;nul
+powershell -Command "Set-Service -Name sshd -StartupType Automatic"
+powershell -Command "New-ItemProperty -Path 'HKLM:\SOFTWARE\OpenSSH' -Name DefaultShell -Value 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -PropertyType String -Force"
+powershell -Command "New-NetFirewallRule -Name 'OpenSSH-Server' -DisplayName 'OpenSSH Server' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22"
+powershell -Command "Get-Service sshd" 2&gt;nul
+echo Done.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>If recreating, remove the old container and disk:</p>
+<div class="code-wrapper"><pre><code class="language-bash">docker stop windows11 &amp;&amp; docker rm windows11
+rm -f "$HOME/windows-vm/storage/data.img"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Launch the container. There are two cases:</p>
+<p><strong>If cached ISO exists</strong> (<code>$HOME/windows-vm/iso/win11x64.iso</code>):</p>
+<div class="code-wrapper"><pre><code class="language-bash">docker run -d \
+  --name windows11 \
+  -p 127.0.0.1:3389:3389 \
+  -p 127.0.0.1:2222:22 \
+  -p 127.0.0.1:8006:8006 \
+  -e RAM_SIZE="8G" \
+  -e CPU_CORES="4" \
+  -e DISK_SIZE="64G" \
+  -e USERNAME="user" \
+  -e PASSWORD="password" \
+  --cap-add NET_ADMIN \
+  --device /dev/kvm \
+  -v "$HOME/windows-vm/storage:/storage" \
+  -v "$HOME/windows-vm/oem:/oem" \
+  -v "$HOME/windows-vm/iso/win11x64.iso:/boot.iso" \
+  dockurr/windows
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>First time (no cached ISO)</strong> — omit the <code>/boot.iso</code> mount and add <code>VERSION</code>:</p>
+<div class="code-wrapper"><pre><code class="language-bash">docker run -d \
+  --name windows11 \
+  -p 127.0.0.1:3389:3389 \
+  -p 127.0.0.1:2222:22 \
+  -p 127.0.0.1:8006:8006 \
+  -e RAM_SIZE="8G" \
+  -e CPU_CORES="4" \
+  -e DISK_SIZE="64G" \
+  -e VERSION="win11" \
+  -e USERNAME="user" \
+  -e PASSWORD="password" \
+  --cap-add NET_ADMIN \
+  --device /dev/kvm \
+  -v "$HOME/windows-vm/storage:/storage" \
+  -v "$HOME/windows-vm/oem:/oem" \
+  dockurr/windows
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>After the ISO downloads and Windows boots, <strong>immediately</strong> copy the ISO out before
+the container is ever stopped (dockur wipes <code>/storage</code> on recreate):</p>
+<div class="code-wrapper"><pre><code class="language-bash">cp "$HOME/windows-vm/storage/win11x64.iso" "$HOME/windows-vm/iso/win11x64.iso"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Wait for Windows install + OpenSSH setup to complete. This takes <strong>20-30 minutes</strong> for a
+fresh install (the OEM install.bat runs at the end of Windows OOBE and downloads OpenSSH
+from Microsoft, which is slow). Monitor with:</p>
+<div class="code-wrapper"><pre><code class="language-bash">docker logs -f windows11
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>You can also watch the VM screen via the web console at <code>http://localhost:8006</code>.</p>
+<p>To check if SSH is up:</p>
+<div class="code-wrapper"><pre><code class="language-bash">sshpass -p 'password' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -p 2222 user@localhost "whoami"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+<li><p>Once SSH is responding, install Node.js and Claude Code by piping a setup script via stdin
+(avoids PowerShell escaping hell over SSH):</p>
+<div class="code-wrapper"><pre><code class="language-bash">cat &lt;&lt; 'PS' | sshpass -p 'password' ssh -o StrictHostKeyChecking=no -p 2222 user@localhost "powershell -ExecutionPolicy Bypass -Command -"
+# Download and install Node.js silently
+Invoke-WebRequest -Uri 'https://nodejs.org/dist/v22.14.0/node-v22.14.0-x64.msi' -OutFile 'C:\Users\user\node-install.msi'
+Start-Process msiexec.exe -ArgumentList '/i C:\Users\user\node-install.msi /qn /norestart' -Wait -Verb RunAs
+Write-Host "Node.js installed"
+
+# Install Claude Code globally
+&amp; 'C:\Program Files\nodejs\npm.cmd' install -g @anthropic-ai/claude-code
+Write-Host "Claude Code installed"
+
+# Add npm global bin to SYSTEM PATH (user PATH is not read by sshd)
+$systemPath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+$additions = @()
+if ($systemPath -notlike '*AppData*npm*') { $additions += 'C:\Users\user\AppData\Roaming\npm' }
+if ($systemPath -notlike '*Git\cmd*') { $additions += 'C:\Program Files\Git\cmd' }
+if ($additions.Count -gt 0) {
+    [Environment]::SetEnvironmentVariable('Path', $systemPath + ';' + ($additions -join ';'), 'Machine')
+    Write-Host "Added to system PATH: $($additions -join ', ')"
+}
+
+# Set execution policy machine-wide (required for claude.ps1)
+Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force -ErrorAction SilentlyContinue
+
+# Create system-wide PowerShell profile that rebuilds PATH from registry on login.
+# Without this, interactive SSH sessions don't pick up the full system PATH.
+$profileDir = Split-Path $PROFILE.AllUsersAllHosts
+if (-not (Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force }
+@'
+$machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+$env:Path = "$machinePath;$userPath"
+'@ | Set-Content -Path $PROFILE.AllUsersAllHosts -Force
+Write-Host "PowerShell profile created"
+
+# Restart sshd so it picks up the new PATH
+Restart-Service sshd -Force
+PS
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Note: the connection will drop when sshd restarts — that's expected.</p>
+</li>
+<li><p>Clear the stale host key (new VM = new host key) and verify:</p>
+<div class="code-wrapper"><pre><code class="language-bash">ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2222'
+sshpass -p 'password' ssh -o StrictHostKeyChecking=no -p 2222 user@localhost "claude --version"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ol>
+<h3>start — Start a stopped VM</h3>
+<div class="code-wrapper"><pre><code class="language-bash">docker start windows11
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>stop — Stop the VM</h3>
+<div class="code-wrapper"><pre><code class="language-bash">docker stop windows11
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>restart — Restart the VM</h3>
+<div class="code-wrapper"><pre><code class="language-bash">docker restart windows11
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>status — Check VM status</h3>
+<div class="code-wrapper"><pre><code class="language-bash">docker ps -f name=windows11 --format "table {{.Status}}\t{{.Ports}}"
+docker logs windows11 2&gt;&amp;1 | tail -5
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>ssh — Connect to the VM</h3>
+<div class="code-wrapper"><pre><code class="language-bash">ssh -p 2222 user@localhost
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>screenshot — See what's on the VM screen (for debugging)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">docker exec windows11 bash -c "echo 'screendump /tmp/screen.ppm' | nc -w 2 localhost 7100" &gt; /dev/null 2&gt;&amp;1
+sleep 1
+docker cp windows11:/tmp/screen.ppm /tmp/screen.ppm
+convert /tmp/screen.ppm /tmp/screen.png
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="important-notes">Important Notes</h2>
+<ul>
+<li><strong>ISO caching</strong>: The <code>/storage</code> volume is managed by dockur and gets wiped on recreate. Store the ISO separately in <code>$HOME/windows-vm/iso/</code> and mount it as <code>/boot.iso</code> to skip the 7.3GB download.</li>
+<li><strong><code>--cap-add NET_ADMIN</code></strong> is required for port forwarding to work. Without it, QEMU falls back to user-mode networking and port forwarding silently fails.</li>
+<li><strong><code>--device /dev/kvm</code></strong> is required for hardware acceleration.</li>
+<li><strong>Boot time</strong>: Fresh install takes 20-30 min (Windows install + OpenSSH download from Microsoft). Subsequent boots from existing <code>data.img</code> are fast (~2 min).</li>
+<li>Ports are bound to <code>127.0.0.1</code> only — not exposed to the network.</li>
+<li>Do NOT use <code>-e VERSION="win11"</code> when mounting <code>/boot.iso</code> — the version is auto-detected from the ISO.</li>
+</ul>
+<h2 id="post-install-gotchas">Post-install gotchas</h2>
+<ul>
+<li><strong>Node.js is not pre-installed</strong> — the Claude Code install script (<code>irm https://claude.ai/install.ps1 | iex</code>) will report success but <code>claude</code> won't work without Node. Install Node.js via MSI first.</li>
+<li><strong>npm global bin not in PATH</strong> — Node's MSI adds <code>C:\Program Files\nodejs</code> to PATH but not <code>C:\Users\user\AppData\Roaming\npm</code> (where <code>npm install -g</code> puts binaries). Must add it to the <strong>system</strong> PATH (not user PATH) because OpenSSH's sshd only reads system PATH. After changing system PATH, restart sshd.</li>
+<li><strong>PowerShell execution policy</strong> — Default policy is <code>Restricted</code>, which blocks <code>claude.ps1</code>. Must set to <code>RemoteSigned</code> at <strong>LocalMachine</strong> scope (not CurrentUser) for it to take effect in SSH sessions.</li>
+<li><strong>Escaping hell</strong> — Running PowerShell commands over SSH with nested quotes is unreliable. Pipe scripts via stdin using <code>powershell -ExecutionPolicy Bypass -Command -</code> instead.</li>
+<li><strong>Interactive SSH sessions don't get full PATH</strong> — Windows OpenSSH sshd doesn't properly propagate the system PATH to interactive PowerShell sessions. Fix: create a system-wide PowerShell profile (<code>$PROFILE.AllUsersAllHosts</code>) that rebuilds <code>$env:Path</code> from the registry on every login.</li>
+<li><strong>winget may not work</strong> — The Microsoft Store certificate can fail in a VM. Use direct MSI/installer downloads instead.</li>
+<li><strong>Host key changes</strong> — Each recreated VM gets new SSH host keys. Run <code>ssh-keygen -R '[localhost]:2222'</code> to clear the old one.</li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

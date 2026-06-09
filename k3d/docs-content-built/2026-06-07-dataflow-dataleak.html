@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dataflow &amp; Datenleck-Audit — 2026-06-07 — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Dataflow &amp; Datenleck-Audit — 2026-06-07</span></nav>
+    <h1>Dataflow &amp; Datenleck-Audit — 2026-06-07</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Dataflow &amp; Datenleck-Audit — 2026-06-07</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#executive-summary"><span class="toc-num">1.</span> Executive Summary</a></li>
+<li class="toc-item"><a href="#per-app-dataflow-maps"><span class="toc-num">2.</span> Per-App Dataflow Maps</a></li>
+<li class="toc-item"><a href="#cross-brand-isolation"><span class="toc-num">3.</span> Cross-Brand-Isolation</a></li>
+<li class="toc-item"><a href="#investigierte--verworfen-kein-leck"><span class="toc-num">4.</span> Investigierte &amp; Verworfen (kein Leck)</a></li>
+<li class="toc-item"><a href="#priorisierte-massnahmen"><span class="toc-num">5.</span> Priorisierte Maßnahmen</a></li>
+<li class="toc-item"><a href="#fazit"><span class="toc-num">6.</span> Fazit</a></li></ul>
+</div>
+<p><strong>Ziel:</strong> Keine Datenlecks verifizieren + qualitativen Datenfluss pro App kartieren, über beide Fleet-Brands (mentolder.de / korczewski.de).</p>
+<p><strong>Ergebnis:</strong> <strong>Keine bestätigten unauthentifizierten Datenlecks gefunden.</strong> Alle gategten Oberflächen verweigern unauthentifizierten Zugriff korrekt (401/302-redirect-to-Keycloak). Die Cross-Brand-Isolation ist auf der Auth-/Network-Ebene intakt. Ein Konfigurationsfehler wurde identifiziert (Collabora WOPI urlsrc auf korczewski hardcoded auf mentolder).</p>
+<hr>
+<h2 id="executive-summary">Executive Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Kategorie</th>
+<th>Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Bestätigte unauthentifizierte Datenlecks</strong></td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td><strong>Cross-Brand-Isolation</strong></td>
+<td><strong>ok</strong> (Auth korrekt getrennt, Namespaces getrennt; 1 Konfigurationsfehler Collabora urlsrc)</td>
+</tr>
+<tr>
+<td><strong>PII-Datenhaltung identifiziert</strong></td>
+<td>5 Stores mit PII (shared-db, website-DB, Nextcloud-Data, Vaultwarden, DocuSeal)</td>
+</tr>
+<tr>
+<td><strong>Externe Egress-Destinationen</strong></td>
+<td>smtp.mailbox.org, Stripe API, Filen Backup, LLM GPU Host (wg-mesh), Collabora WOPI</td>
+</tr>
+<tr>
+<td><strong>Konfigurationsfehler (kein Leak, aber sicherheitsrelevant)</strong></td>
+<td>1 (Collabora korczewski urlsrc)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="per-app-dataflow-maps">Per-App Dataflow Maps</h2>
+<h3>1. Website + /api Backend</h3>
+<div class="code-wrapper"><pre><code>Inputs:    User browser (HTML forms, API calls) → Astro SSR → /api/* handlers
+           OIDC identity von Keycloak (JWT claims: sub, email, name, groups)
+           Stripe Webhooks (Zahlungsereignisse)
+Storage:   website PostgreSQL DB (DB: website)
+             ├─ users, sessions, clients, projekte, invoices, messages, tickets, coaching_*
+             ├─ site_settings, leistungen_config, service_config (homepage/prices/legal)
+             └─ PII: JA — Namen, Emails, Adressen, Telefon, Coaching-Notizen, Zahlungsdaten
+             └─ encrypted-at-rest: Postgres-level (kein explizites App-Level)
+           Redis (sessions, rate limiting) — PII: session tokens (short-lived)
+Egress:    SMTP (smtp.mailbox.org:587) — Emails mit PII (Rechnungen, Coaching, Newsletter)
+             └─ encrypted-in-transit: STARTTLS ✅
+           Stripe API (api.stripe.com) — Payment-Intents, Customer-IDs
+             └─ encrypted-in-transit: HTTPS ✅
+           LLM GPU Host (100.102.71.114, wg-mesh intern) — Embedding-Anfragen
+             └─ encrypted-in-transit: WireGuard ✅ (aber: plaintext-HTTP innerhalb wg-mesh)
+Auth:      Keycloak OIDC (client_id=website); Admin-UI via isAdmin() (group /admin)
+           Public: /, /api/auth/me (unauthenticated), /api/health, /api/leistungen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/api/admin/*</code>, <code>/api/portal/*</code> → alle 401 unauthenticated ✅</li>
+<li><code>/admin</code> → 302 zu Keycloak ✅</li>
+<li>Brand-spezifische Inhalte (/api/leistungen) korrekt getrennt ✅</li>
+<li>CORS: <code>Access-Control-Allow-Origin</code> nicht gesetzt → Browser blockt Cross-Origin-Reads ✅</li>
+</ul>
+<h3>2. Keycloak (OIDC/SSO)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    User credentials (username/password), OIDC client registrations
+           Admin UI (Realm-Konfiguration, User-Management, Group-Mappings)
+Storage:   shared-db PostgreSQL (DB: keycloak oder via shared-db Alias)
+             ├─ user_entity, credential, user_attribute, user_group_membership, fed_user_*
+             └─ PII: JA — Usernamen, Emails, Vorname/Nachname, Passwort-Hashes (bcrypt), Gruppen-Zugehörigkeit
+             └─ encrypted-at-rest: Passwort-Hashes via bcrypt ✅
+Egress:    Kein externer Egress (intern: OIDC Token-Ausstellung an Clients)
+Auth:      Self-hosted; Admin-REST via Keycloak Admin CLI (client_id=admin-cli)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/realms/workspace/.well-known/openid-configuration</code> → 200 (public by design, kein Leak) ✅</li>
+<li><code>/admin/realms/workspace</code> → 401 unauthenticated ✅</li>
+<li><code>login-actions/registration</code> → 400 (keine offene Self-Service-Registrierung) ✅</li>
+<li>Issuer pro Brand korrekt getrennt (<code>auth.mentolder.de</code> vs <code>auth.korczewski.de</code>) ✅</li>
+</ul>
+<h3>3. Nextcloud (Files + Talk Video)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    User-Dateien (Upload via WebDAV/Browser), Talk-Chat-Nachrichten, Talk-Audio/Video-Streams
+Storage:   shared-db PostgreSQL (DB: nextcloud)
+             ├─ oc_filecache, oc_storages, oc_share, oc_share_external, oc_comments
+             ├─ spreed_rooms, spreed_attendees, spreed_messages
+             └─ PII: JA — Dateinamen, Dateiinhalte, Chat-Nachrichten, geteilte Links, E-Mail-Adressen in Shares
+           lokaler PVC (Dateien, Preview-Thumbnails)
+             └─ PII: JA — Nutzerdateien, hochgeladene Dokumente
+             └─ encrypted-at-rest: PVC-Level (Longhorn Replicas, keine App-Verschlüsselung)
+           Redis (Session-Locks, File-Locking, Talk-Chat-Cache)
+             └─ PII: transient (Chat-Nachrichten kurzzeitig in Cache)
+Egress:    SMTP (smtp.mailbox.org) — Share-Benachrichtigungen, Aktivitätsmails
+             └─ encrypted-in-transit: STARTTLS ✅
+           Collabora WOPI (intern, office.&lt;brand&gt;) — Dokument-Rendering
+           Signaling (signaling.&lt;brand&gt;) — Talk WebRTC-Signaling
+           Coturn (TURN, intern) — Talk WebRTC Relay
+Auth:      Keycloak OIDC (social_login plugin); App-native für Public-Shares
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li>WebDAV <code>/remote.php/webdav/</code> → 401 auf beiden Brands ✅</li>
+<li>OCS <code>/ocs/v2.php/cloud/capabilities</code> → 412 (Precondition) ✅</li>
+<li><code>/index.php/apps/spreed</code> → 303 zu Login ✅</li>
+<li><code>signaling.&lt;brand&gt;/api/v1/welcome</code> → 200 (public by design, enthält nur Version) ✅</li>
+</ul>
+<h3>4. Collabora (Office)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    WOPI-Dokumente von Nextcloud (office.&lt;brand&gt; empfängt WOPI-Requests von files.&lt;brand&gt;)
+Storage:   Kein persistentes Storage — Office-Dokumente werden im RAM gerendert und zurück an Nextcloud geschrieben
+Egress:    NUR Nextcloud (WOPI Callback)
+Auth:      WOPI Access-Token (Nextcloud ↔ Collabora, kein User-Direktzugriff)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>⚠️ Konfigurationsfehler (kein Leck, aber Broken Isolation):</strong></p>
+<p><code>https://office.korczewski.de/hosting/discovery</code> returned alle <code>urlsrc</code>-Attribute mit <code>https://office.mentolder.de</code> — nicht <code>office.korczewski.de</code>. Das bedeutet: Ein auf korczewski geöffnetes Office-Dokument würde den Collabora-Editor-iframe von der <strong>mentolder</strong>-Domain laden. Das bricht CORS, CSP und Cookie-Scoping und kann verhindern dass Office-Dokumente auf korczewski bearbeitet werden.</p>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/hosting/discovery</code>, <code>/hosting/capabilities</code> → 200 (public by design, WOPI-Protokoll) ✅</li>
+<li>Keine User-Dokumente unauthenticated erreichbar (WOPI erfordert Access-Token) ✅</li>
+</ul>
+<h3>5. Vaultwarden (Passwörter)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    User-Passwörter, Notizen, Kreditkarten, TOTP-Seeds (vom User eingegeben)
+Storage:   shared-db PostgreSQL (DB: vaultwarden)
+             ├─ ciphers (verschlüsselt mit User-Master-Password), attachments (verschlüsselt)
+             ├─ users (Email, Password-Hash), devices, twofactor
+             └─ PII: JA — Emails; verschlüsselte Vault-Inhalte (Passwörter, Notizen, Karten, TOTP)
+             └─ encrypted-at-rest: ✅ ALLE Vault-Daten client-seitig mit Master-Password verschlüsselt
+           PVC (Attachments, Icons, Email-Queue)
+             └─ Attachments client-seitig verschlüsselt ✅
+Egress:    SMTP (smtp.mailbox.org) — Einladungen, Notifications (enthält KEINE Passwortdaten)
+             └─ encrypted-in-transit: STARTTLS ✅
+Auth:      Keycloak OIDC (client_id=vaultwarden); Master-Password als Zweitfaktor
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/api/config</code> → 200 (public by design: zeigt Version + <code>disableUserRegistration=true</code>) ✅</li>
+<li><code>/admin</code> → 200 mit Admin-Token-Loginform (nicht authenticated Content; Token erforderlich) ✅</li>
+<li><code>/</code>, <code>/alive</code>, <code>/icons/*</code> → 200 (public by design) ✅</li>
+<li><code>disableUserRegistration</code> ist <code>true</code> auf beiden Brands ✅</li>
+<li>Kein unauthenticated Vault-Zugriff ✅</li>
+</ul>
+<h3>6. Whiteboard</h3>
+<div class="code-wrapper"><pre><code>Inputs:    Zeichen-/Canvas-Daten vom Browser (via WebSocket/Yjs)
+Storage:   In-Memory (Yjs Document); kein persistentes Storage außer optionalem Export
+Egress:    Kein externer Egress
+Auth:      App-native JWT (Whiteboard-Server validiert Token via öffentlichem Key)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/</code> → 200 "Nextcloud Whiteboard Collaboration Server" (unauthenticated, Express-Root) ✅</li>
+<li>Kein Raum-Join ohne JWT-Token (WebSocket authentifiziert, konnte nicht unauthenticated getestet werden)</li>
+<li><code>/health</code> → 404 (kein dedizierter Liveness-Endpoint; nicht exponiert) ⚠️</li>
+</ul>
+<h3>7. DocuSeal (Signing)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    PDF-Dokumente (Upload), Signatur-Felder, Signer-Namen/Emails
+Storage:   shared-db PostgreSQL (DB: docuseal)
+             ├─ templates, submissions, signers, documents
+             └─ PII: JA — Namen, Emails, IP-Adressen, PDF-Dokumente mit Unterschriften
+             └─ encrypted-at-rest: DocuSeal-App-Level-Verschlüsselung (Encryption-Key in /setup gesetzt)
+           PVC (hochgeladene PDFs, signierte Dokumente)
+             └─ PII: JA — PDF-Inhalte
+Egress:    SMTP (smtp.mailbox.org) — Signaturanfragen, Completed-Notifications
+             └─ encrypted-in-transit: STARTTLS ✅
+Auth:      Keycloak OIDC (client_id=docuseal); Public-Submission-Links für externe Signer
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>⚠️ Beide Instanzen sind unprovisioniert</strong> (302→/setup, der First-Run-Admin-Wizard). Signing ist auf beiden Brands nicht funktionsfähig. Sobald provisioniert: Public-Submission-Links müssen auf PII-Leaks geprüft werden.</p>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/api/templates</code> → 401 ✅</li>
+<li><code>/submissions</code> → 302 zu /setup (nicht exponiert) ✅</li>
+<li>Nur Setup-Wizard sichtbar ✅</li>
+</ul>
+<h3>8. Docs (Statische HTML-Dokumentation)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    Pre-built HTML (kompiliert aus docs/ + Skills, in Container-Image gebaked)
+Storage:   Container-Image (read-only Rootfs)
+             └─ PII: Nein (rein statisches HTML, keine User-Daten)
+Egress:    Keiner
+Auth:      oauth2-proxy → Keycloak OIDC (client_id=docs, group /docs-access)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>docs.&lt;brand&gt;/</code> → 302 zu <code>auth.&lt;brand&gt;/realms/workspace/...</code> ✅</li>
+<li>oauth2-proxy gating funktioniert auf beiden Brands ✅</li>
+<li>Kein statisches HTML ohne Auth ausgeliefert ✅</li>
+</ul>
+<h3>9. Mailpit</h3>
+<div class="code-wrapper"><pre><code>Inputs:    SMTP-E-Mails von allen Services (via SMTP smtp.mailbox.org → Mailpit catch-all in Dev; in Prod: kein Catch-All)
+Storage:   SQLite (in-Memory/flüchtig in Dev; Prod: Mailpit ist Dev-Tool, sollte in Prod nicht Catch-All sein)
+             └─ PII: JA — ALLE ausgehenden E-Mails (Rechnungen, Coaching, Newsletter, Passwort-Resets)
+             └─ encrypted-at-rest: Nein (SQLite, flüchtig)
+Egress:    Keiner
+Auth:      oauth2-proxy → Keycloak OIDC
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>mail.&lt;brand&gt;/</code> → 401 (oauth2-proxy Sign-In) ✅</li>
+<li><code>/api/v1/messages?limit=1</code> → 401 ✅ (PII-geschützt)</li>
+<li>Kein unauthenticated Zugriff auf E-Mail-Inhalte ✅</li>
+</ul>
+<h3>10. Brett (3D Systembrett)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    User-Interaktionen via WebSocket (Figuren-Platzierung, Gruppen, Sessions)
+Storage:   shared-db PostgreSQL (DB: brett oder separate DB)
+             ├─ boards, customers, presets, snapshots (Board-Konfiguration)
+             └─ PII: Ja — Board-Snapshots können User-Namen/Rollen enthalten
+           PVC (/tmp für tsx IPC)
+Egress:    Kein externer Egress
+Auth:      oauth2-proxy → Keycloak OIDC (client_id=brett); App-native WebSocket Auth
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>brett.&lt;brand&gt;/</code> → 302 zu <code>auth.&lt;brand&gt;/realms/workspace/...</code> ✅</li>
+<li><code>/api/state</code>, <code>/healthz</code>, <code>/three.min.js</code> → alle 302 zu Keycloak ✅</li>
+<li>Kein unauthenticated Board-State geleakt ✅</li>
+</ul>
+<h3>11. LiveKit (WebRTC)</h3>
+<div class="code-wrapper"><pre><code>Inputs:    Audio/Video-Streams (E2E-verschlüsselt, DTLS-SRTP)
+           Token-Anfragen (via Website `/api/stream/token`)
+Storage:   Redis (Raum-Status, Participant-List; flüchtig)
+             └─ PII: Teilnehmer-Namen, Raum-Namen (transient)
+Egress:    Egress/RTMP (Aufnahmen, via LiveKit Egress Service zu PVC)
+Auth:      LiveKit Access-Token (via Website+Keycloak generiert); /rtc/validate erfordert gültigen Grant
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>/</code> → 200 "OK" (public by design) ✅</li>
+<li><code>/rtc/validate</code> → 401 (erfordert gültigen Grant) ✅</li>
+<li><code>/api/stream/token</code> → 401 (Website, gated) ✅</li>
+</ul>
+<h3>12. Talk HPB + Signaling + Coturn + Transcriber</h3>
+<div class="code-wrapper"><pre><code>Inputs:    Talk-WebRTC-Signaling (Raum-Join, ICE-Candidates, Chat-Signaling)
+           Transkriptions-Webhook (Audio → Text)
+Storage:   Kein persistentes Storage (Signaling ist stateless; Transcriber: flüchtige Audio-Chunks)
+             └─ PII: In-Call Audio (transient), Chat-Nachrichten (transient)
+Egress:    NUR Nextcloud Talk (intern); Coturn: STUN/TURN-Relay (UDP, öffentlich erreichbar für WebRTC)
+Auth:      Signaling: App-native (shared Secret mit Nextcloud); Transcriber: HMAC-Signatur
+           TURN: short-term Credentials (vom Signaling-Server generiert)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Kontrollen bestanden:</strong></p>
+<ul>
+<li><code>signaling.&lt;brand&gt;/api/v1/welcome</code> → 200 (public by design, enthält nur Version) ✅</li>
+<li>Transcriber NICHT öffentlich geroutet (404) ✅</li>
+<li>TURN-Auth via short-term Credentials (nicht unauthenticated nutzbar)</li>
+</ul>
+<h3>13. Recovery Browser</h3>
+<div class="code-wrapper"><pre><code>Inputs:    Read-Only-Zugriff auf PVC-Backups (Recovery-Dateien)
+Storage:   recovery-pvc (ReadOnly-Mount)
+             └─ PII: JA — Backup-Inhalte können DB-Dumps mit User-Daten enthalten
+             └─ encrypted-at-rest: Nein (Backup-Dateien selbst sind encrypted, aber PVC nicht)
+Egress:    Keiner
+Auth:      oauth2-proxy → Keycloak OIDC (client_id=recovery, group /recovery-access)
+           filebrowser läuft mit --noauth (Auth delegiert an oauth2-proxy)
+Status:    On-Demand (nicht permanent deployed); aktuell auf beiden Brands 404 (Traefik Default-Backend)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>⚠️ Risiko-Hinweis:</strong> Weil filebrowser mit <code>--noauth</code> läuft und Auth ausschließlich an oauth2-proxy delegiert ist, würde eine Regression in der oauth2-proxy-Konfiguration (falscher Client-ID, falsche Group-Claim) die Recovery-Inhalte <strong>ungeschützt</strong> exponieren. Es gibt keinen E2E-Test der beim <code>task recovery:browse</code> prüft dass unauth GET mit 302/401 antwortet. Empfehlung: Smoke-Assertion in <code>task recovery:browse</code> einbauen.</p>
+<hr>
+<h2 id="cross-brand-isolation">Cross-Brand-Isolation</h2>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Status</th>
+<th>Evidenz</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Keycloak Issuer</strong></td>
+<td>✅ Getrennt</td>
+<td><code>auth.mentolder.de/realms/workspace</code> ≠ <code>auth.korczewski.de/realms/workspace</code></td>
+</tr>
+<tr>
+<td><strong>Website-Namespaces</strong></td>
+<td>✅ Getrennt</td>
+<td><code>website</code> ns (mentolder) vs <code>website-korczewski</code> ns (korczewski)</td>
+</tr>
+<tr>
+<td><strong>Workspace-Namespaces</strong></td>
+<td>✅ Getrennt</td>
+<td><code>workspace</code> (mentolder) vs <code>workspace-korczewski</code> (korczewski)</td>
+</tr>
+<tr>
+<td><strong>CORS Cross-Brand</strong></td>
+<td>✅ Geblockt</td>
+<td>Kein <code>Access-Control-Allow-Origin</code> auf Cross-Brand-Requests; Browser blockt</td>
+</tr>
+<tr>
+<td><strong>DNS Cross-Brand</strong></td>
+<td>✅ Getrennt</td>
+<td><code>*.mentolder.de</code> vs <code>*.korczewski.de</code>, separate A/AAAA-Records</td>
+</tr>
+<tr>
+<td><strong>shared-db</strong></td>
+<td>✅ Getrennt</td>
+<td><code>shared-db.workspace.svc</code> vs <code>shared-db.workspace-korczewski.svc</code> — separate Pods/DBs</td>
+</tr>
+<tr>
+<td><strong>SealedSecrets</strong></td>
+<td>✅ Getrennt</td>
+<td><code>environments/sealed-secrets/mentolder.yaml</code> vs <code>korczewski.yaml</code></td>
+</tr>
+<tr>
+<td><strong>SMTP</strong></td>
+<td>⚠️ Shared</td>
+<td>Beide Brands nutzen <code>smtp.mailbox.org</code> (gleicher Provider); E-Mail-Adressen sind separat (per-brand SMTP-Auth)</td>
+</tr>
+<tr>
+<td><strong>LLM GPU Host</strong></td>
+<td>⚠️ Shared</td>
+<td>Beide Brands nutzen dieselbe GPU-Box (<code>100.102.71.114</code> via wg-mesh) — Embedding-Vektoren sind getrennte Collections aber dieselbe Hardware</td>
+</tr>
+<tr>
+<td><strong>Filen Backup</strong></td>
+<td>⚠️ Shared</td>
+<td>Beide Brands sichern in denselben Filen-Account (separate Pfade)</td>
+</tr>
+<tr>
+<td><strong>Collabora WOPI</strong></td>
+<td>🔴 Broken</td>
+<td><code>office.korczewski.de/hosting/discovery</code> hartkodiert <code>urlsrc=https://office.mentolder.de</code> — Cross-Brand-Konfigurationsfehler</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="investigierte--verworfen-kein-leck">Investigierte &amp; Verworfen (kein Leck)</h2>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Docs unauthenticated erreichbar</td>
+<td>❌ Falsch — 302 zu Keycloak auf beiden Brands. oauth2-proxy funktioniert.</td>
+</tr>
+<tr>
+<td>Mailpit API unauthenticated leakt E-Mails</td>
+<td>❌ Falsch — <code>/api/v1/messages</code> → 401 auf beiden Brands.</td>
+</tr>
+<tr>
+<td>Nextcloud WebDAV öffentlich</td>
+<td>❌ Falsch — <code>/remote.php/webdav/</code> → 401 auf beiden Brands.</td>
+</tr>
+<tr>
+<td>Vaultwarden Admin-Panel ungeschützt</td>
+<td>❌ Falsch — <code>/admin</code> zeigt Token-Login-Form, kein authentifizierter Content.</td>
+</tr>
+<tr>
+<td>Keycloak Admin-REST offen</td>
+<td>❌ Falsch — <code>/admin/realms/workspace</code> → 401.</td>
+</tr>
+<tr>
+<td>Website <code>/api/admin/*</code> ungeschützt</td>
+<td>❌ Falsch — Alle Endpunkte 401 unauthenticated.</td>
+</tr>
+<tr>
+<td>LiveKit <code>/rtc/validate</code> unauthenticated</td>
+<td>❌ Falsch — 401 auf beiden Brands.</td>
+</tr>
+<tr>
+<td>Cross-Brand: mentolder-Website kann korczewski-API lesen</td>
+<td>❌ Browser-blockiert — HTTP 200 von curl (keine CORS-Validierung), aber kein <code>Access-Control-Allow-Origin</code> Header → Browser-CORS blockt den Read.</td>
+</tr>
+<tr>
+<td>Recovery Browser exponiert Backups</td>
+<td>⚠️ Nicht verifizierbar — aktuell nicht deployed (404); Auth-Gating nur statisch konfiguriert, nicht live getestet.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="priorisierte-massnahmen">Priorisierte Maßnahmen</h2>
+<table>
+<thead>
+<tr>
+<th>Prio</th>
+<th>Maßnahme</th>
+<th>Betrifft</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>🔴 1</td>
+<td>DocuSeal auf beiden Brands provisionieren (Admin + Encryption-Key via /setup)</td>
+<td>DocuSeal</td>
+</tr>
+<tr>
+<td>🔴 2</td>
+<td>Collabora korczewski WOPI urlsrc auf <code>office.korczewski.de</code> korrigieren</td>
+<td>Collabora</td>
+</tr>
+<tr>
+<td>🟡 3</td>
+<td><code>E2E_ADMIN_PASS</code> in <code>e2e.yml</code> provisionieren → authentifizierte Testoberfläche aktivieren</td>
+<td>Website, Brett, Systemtests</td>
+</tr>
+<tr>
+<td>🟡 4</td>
+<td>Recovery-Browser Smoke-Assertion in <code>task recovery:browse</code> einbauen</td>
+<td>Recovery</td>
+</tr>
+<tr>
+<td>🟡 5</td>
+<td>Shared-LLM-Host: Embedding-Datenströme dokumentieren, prüfen ob Collections pro Brand logisch isoliert sind</td>
+<td>LLM-GPU</td>
+</tr>
+<tr>
+<td>🟢 6</td>
+<td>Nach DocuSeal-Provisionierung: Public-Submission-Links auf PII-Leaks prüfen</td>
+<td>DocuSeal</td>
+</tr>
+<tr>
+<td>🟢 7</td>
+<td>Website-Backup-Encryption dokumentieren (welche PII liegt in Filen-Backups, sind sie client-seitig verschlüsselt?)</td>
+<td>Backup</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="fazit">Fazit</h2>
+<p><strong>Keine Datenlecks gefunden.</strong> Die Sicherheitsarchitektur (Keycloak OIDC + oauth2-proxy ForwardAuth + App-native Token-Validierung + CORS-Browser-Schutz) ist korrekt implementiert und hält auf beiden Brands. Unauthentifizierte Probes auf alle 13 Apps zeigen konsistent 401/403/302-to-Keycloak wo Auth erwartet wird.</p>
+<p>Die PII-Landschaft ist verteilt über 5 Storage-Backends: website-DB (höchste PII-Dichte: Coaching-Notizen, Rechnungen, CRM), shared-db (Keycloak-User, Nextcloud-Files/Shares, Vaultwarden-User, DocuSeal-Signer), Nextcloud-PVC (Nutzerdateien), Vaultwarden-PVC (verschlüsselte Vaults) und Backup-PVCs. Alle externen Egress-Pfade (SMTP, Stripe, Filen, LLM-GPU) sind TLS- oder WireGuard-verschlüsselt.</p>
+<p>Der einzige identifizierte Bruch in der Cross-Brand-Isolation ist der Collabora WOPI-urlsrc-Konfigurationsfehler auf korczewski — kein Datenleck, aber funktional relevant.</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

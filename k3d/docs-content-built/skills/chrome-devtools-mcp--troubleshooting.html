@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="../style.css">
 </head>
 <body>
 <header class="site-header">
-  <a class="site-header-brand" href="./index.html">
+  <a class="site-header-brand" href="../index.html">
     <span class="site-mark" aria-hidden="true">◆</span>
     <span class="site-wordmark">Dokumentation</span>
   </a>
@@ -26,11 +26,11 @@
   <main id="main">
 <header class="page-header">
   <div class="page-header-body">
-    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">troubleshooting</span></nav>
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">troubleshooting</span></nav>
     <h1>troubleshooting</h1>
     <p class="page-desc">Uses Chrome DevTools MCP and documentation to troubleshoot connection and target issues. Trigger this skill when list_pages, new_page, or navigate_page fail, or when the server initialization fails.</p>
     <div class="page-meta">
-      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.1.1</span></span>
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">chrome-devtools-mcp</span> <span class="pv-ver">1.2.0</span></span>
       
     </div>
   </div>
@@ -66,7 +66,7 @@
 <li><strong>Verify the configuration:</strong> Ensure the arguments match the expected flags exactly.</li>
 </ul>
 <h4>Symptom: Missing Tools / Only 9 tools available</h4>
-<p>If the server starts successfully but only a limited subset of tools (like <code>list_pages</code>, <code>get_console_message</code>, <code>lighthouse_audit</code>, <code>take_memory_snapshot</code>) are available, this is likely because the MCP client is enforcing a <strong>read-only mode</strong>.</p>
+<p>If the server starts successfully but only a limited subset of tools (like <code>list_pages</code>, <code>get_console_message</code>, <code>lighthouse_audit</code>, <code>take_heapsnapshot</code>) are available, this is likely because the MCP client is enforcing a <strong>read-only mode</strong>.</p>
 <p>All tools in <code>chrome-devtools-mcp</code> are annotated with <code>readOnlyHint: true</code> (for safe, non-modifying tools) or <code>readOnlyHint: false</code> (for tools that modify browser state, like <code>emulate</code>, <code>click</code>, <code>navigate_page</code>). To access the full suite of tools, the user must disable read-only mode in their MCP client (e.g., by exiting "Plan Mode" in Gemini CLI or adjusting their client's tool safety settings).</p>
 <h4>Symptom: Extension tools are missing or extensions fail to load</h4>
 <p>If the tools related to extensions (like <code>install_extension</code>) are not available, or if the extensions you load are not functioning:</p>
@@ -117,6 +117,6 @@
 <footer class="site-footer">
   <span>Workspace MVP — generierte Dokumentation</span>
 </footer>
-<script src="./app.js"></script>
+<script src="../app.js"></script>
 </body>
 </html>

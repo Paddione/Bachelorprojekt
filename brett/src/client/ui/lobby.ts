@@ -29,7 +29,9 @@ export interface LobbyViewModel {
     templateId?: string;
     coachingTemplateId?: string;
     optikLabel?: string;
+    optik?: import('../../types/state').OptikSettings;
     maxParticipants?: number;
+    editable: boolean;
   };
 }
 
@@ -63,7 +65,9 @@ export function buildLobbyViewModel(state: LobbyState, opts: { isLeader: boolean
       templateId: state.settings.templateId,
       coachingTemplateId: state.settings.coachingTemplateId,
       optikLabel: optikLabel(state),
+      optik: state.settings.optik,
       maxParticipants: state.settings.maxParticipants,
+      editable: opts.isLeader,
     },
   };
 }

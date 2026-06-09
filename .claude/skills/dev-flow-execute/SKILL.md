@@ -192,10 +192,73 @@ Rufe `commit-commands:commit-push-pr` auf (oder führe `gh pr create` manuell au
 
 ---
 
+## Schritt 5.5: CI/CD-Fix-Schleife
+
+Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst.
+
+```bash
+MAX_CI_ATTEMPTS=5
+CI_ATTEMPT=0
+PR_URL=$(gh pr view --json url -q '.url')
+
+while true; do
+  CI_ATTEMPT=$((CI_ATTEMPT + 1))
+  echo "⏳ CI-Check Versuch $CI_ATTEMPT/$MAX_CI_ATTEMPTS für $PR_URL ..."
+
+  # Warte auf alle Checks (blockierend; bricht ab, wenn alle done)
+  gh pr checks --watch --interval 15 2>/dev/null || true
+
+  # Welche Checks sind rot?
+  FAILED_CHECKS=$(gh pr checks --json name,state,link \
+    | jq -r '.[] | select(.state == "FAILURE" or .state == "TIMED_OUT") | "\(.name): \(.link)"')
+
+  if [[ -z "$FAILED_CHECKS" ]]; then
+    echo "✅ Alle CI-Checks grün."
+    break
+  fi
+
+  if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
+    echo "❌ CI nach $MAX_CI_ATTEMPTS Versuchen noch rot — manuelles Eingreifen nötig:"
+    echo "$FAILED_CHECKS"
+    exit 1
+  fi
+
+  echo "⚠ Fehlgeschlagene Checks:"
+  echo "$FAILED_CHECKS"
+
+  # Logs der fehlgeschlagenen Jobs holen (GitHub Actions)
+  FAILED_RUN_ID=$(gh run list --json databaseId,status,conclusion \
+    | jq -r '[.[] | select(.conclusion == "failure")] | sort_by(.databaseId) | last | .databaseId // empty')
+
+  if [[ -n "$FAILED_RUN_ID" ]]; then
+    echo "--- CI-Logs (Run $FAILED_RUN_ID) ---"
+    gh run view "$FAILED_RUN_ID" --log-failed 2>&1 | tail -200
+  fi
+
+  # Delegiere die Diagnose + den Fix an einen frischen Subagenten
+  # (er hat die Logs oben als Teil des Prompts erhalten)
+  # Hinweis: Schreibe hier den Kontext explizit herein und nutze das Agent-Tool
+  # mit dem passenden Prompt. Das Modell für CI-Fixes: sonnet (standard).
+  # Nach dem Fix: commit + push, dann Loop wiederholen.
+  #
+  # Typische CI-Ursachen (prüfe in dieser Reihenfolge):
+  #   1. Freshness-Artefakte veraltet → task freshness:regenerate && git add … && git commit …
+  #   2. TypeScript-Fehler (pnpm typecheck) → Typfehler beheben
+  #   3. BATS-Tests schlagen fehl (task test:all) → Testfehler beheben
+  #   4. Kustomize-Validierung → task workspace:validate
+  #   5. Commitlint-Verletzung → Commit-Message anpassen (rebase -i ist interaktiv,
+  #      daher: git commit --amend ist im Worktree erlaubt)
+  echo "🔧 Starte CI-Fix-Subagenten ..."
+  # --> spawn Agent-Tool mit obigen Logs + PLAN_FILE + Branch + Worktree-Pfad
+  # Stoppe nach erfolgreichem Push und lass den Loop erneut prüfen
+done
+```
+
+---
+
 ## Schritt 6: Auto-Merge wenn CI grün
 
 ```bash
-# Prüfe CI-Status (siehe gotchas [T000342])
 # Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
 (cd "$MAIN_REPO" && gh pr merge --squash --delete-branch)
 ```
@@ -266,12 +329,75 @@ git branch -D "<branch>"
 
 ## Schritt 8: Post-Merge Deploy & Verify
 
-Deployment ausführen basierend auf den geänderten Dateien:
-- Astro/Website: `task feature:website`
-- Brett: `task feature:brett`
-- K8s/Manifeste: `task feature:deploy`
+Bestimme automatisch welche Services deployed werden müssen, basierend auf den Dateien des gemergten PRs.
 
-Führe danach `dev-flow-e2e` aus, um E2E Tests gegen die Live-Umgebung zu schreiben.
+```bash
+# Gemergte Dateien des PRs ermitteln (gegen main-1 = direkt vor dem Squash)
+MERGE_COMMIT=$(git log origin/main -1 --format="%H")
+CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT")
+
+DEPLOY_WEBSITE=false
+DEPLOY_BRETT=false
+DEPLOY_K8S=false
+DEPLOY_DOCS=false
+
+echo "$CHANGED" | grep -qE '^website/' && DEPLOY_WEBSITE=true
+echo "$CHANGED" | grep -qE '^brett/' && DEPLOY_BRETT=true
+echo "$CHANGED" | grep -qE '^docs/' && DEPLOY_DOCS=true
+echo "$CHANGED" | grep -qE '^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)' \
+  && DEPLOY_K8S=true
+
+# Fallback: Wenn nichts erkannt → manuell bestimmen
+if [[ "$DEPLOY_WEBSITE" == false && "$DEPLOY_BRETT" == false \
+      && "$DEPLOY_K8S" == false && "$DEPLOY_DOCS" == false ]]; then
+  echo "⚠ Keine bekannten Deploy-Trigger in den geänderten Dateien erkannt."
+  echo "Geänderte Dateien:"
+  echo "$CHANGED"
+  echo "Bitte manuell deployen."
+fi
+
+# Deployments ausführen
+if [[ "$DEPLOY_WEBSITE" == true ]]; then
+  echo "🚀 Deploye Website (beide Brands)..."
+  task feature:website
+fi
+
+if [[ "$DEPLOY_BRETT" == true ]]; then
+  echo "🚀 Deploye Brett (beide Brands)..."
+  task feature:brett
+fi
+
+if [[ "$DEPLOY_DOCS" == true ]]; then
+  echo "🚀 Deploye Docs..."
+  task docs:deploy
+fi
+
+if [[ "$DEPLOY_K8S" == true ]]; then
+  echo "🚀 Deploye K8s-Manifeste (beide Brands)..."
+  task feature:deploy
+fi
+
+# Deploy-Telemetrie
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
+```
+
+**Deploy-Mapping (Referenz):**
+
+| Geänderte Dateipfade | Task |
+|---|---|
+| `website/**` | `task feature:website` |
+| `brett/**` | `task feature:brett` |
+| `docs/**` | `task docs:deploy` |
+| `k3d/**`, `prod*/**`, `environments/**` | `task feature:deploy` |
+| Mehrere Bereiche | Alle zutreffenden Tasks nacheinander |
+
+**Nach dem Deploy:** Überprüfe kurz, dass die Pods `Running` sind:
+```bash
+kubectl --context fleet get pods -n workspace | grep -v Running
+kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
+```
+
+Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.
 
 ---
 

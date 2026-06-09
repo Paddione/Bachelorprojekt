@@ -61,6 +61,24 @@ task feature:deploy                # fan-out to both brands
 - **`env:generate ENV=<target>` must run before `env:seal`** — talk-hpb-setup.sh aborts on placeholder values.
 - **Cluster reset order**: sealed-secrets:install → env:fetch-cert → env:seal → cert:install → cert:secret → workspace:deploy.
 
+## CI/CD Requirements (dev-flow-execute)
+
+Every change MUST satisfy all checks in `ci.yml` before commit:
+
+- **`task test:all` grün** (BATS 18 Sub-Suiten + Factory + Manifests + Menu-Gate + Dry-Run + Docs-Gen + Agent-Guide + Code-Quality)
+- **`task freshness:check` grün** — alle Generated Artifacts (test-inventory, route-manifest, learning-assets, quality-index, agent-guide) müssen committed sein
+- **Quality Gates S1–S4**: keine Verschlechterung (File-Size, Import-Cycles, Hardcoded-Hostnames, Orphans)
+- **Security**: keine `:latest` in k3d/*.yaml (außer Website/Brett/Docs — intentional), keine hartcodierten Secrets, git-crypt-Verschlüsselung für `environments/.secrets/*`
+- **Brett**: `npm run typecheck --prefix brett`, `npm test --prefix brett`, `npm run build --prefix brett`
+- **Website**: `npm --prefix website run test:unit` (vitest)
+- **Arena**: `npm --prefix arena-server test` (vitest)
+- **PR-Titel**: Conventional Commits (`feat:|fix:|chore:|docs:|refactor:|test:|build:|ci:|perf:|revert:`), 1–200 Zeichen
+- **Neue `${VAR}` in Manifest?** → Registrieren in `environments/schema.yaml` + `envsubst`-Liste
+- **Neue Admin-Seite?** → Muss im Sidemenu erreichbar sein (Gate R1), Labels sind Ziele (R2), max 6 Items/Gruppe (R4), max 6 Gruppen (R5)
+- **Neue `tests/unit/*.bats`?** → In `task test:unit` einbinden ODER in `.coverage-allowlist`
+- **Cross-cutting DB/OIDC** → Immer beide Namespaces (`workspace` + `workspace-korczewski`)
+- **Nach letzter Änderung**: `task freshness:regenerate` laufen + Ergebnis committen
+
 ## Agent Coordination
 
 Multiple agent sessions share one checkout. Use:

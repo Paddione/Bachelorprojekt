@@ -7,7 +7,7 @@ kind: Deployment
 metadata:
   name: oauth2-proxy-docs
   labels:
-    app: oauth2-proxy-docs
+    app: docs
 spec:
   replicas: 1
   selector:
@@ -132,6 +132,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: oauth2-proxy-docs
+  labels:
+    app: docs
 spec:
   selector:
     app: oauth2-proxy-docs

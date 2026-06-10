@@ -41,7 +41,7 @@ pr_number: null
 
 Die Batch-Felder werden am Ende des Frontmatter-Blocks eingefügt wenn sie fehlen. Das betrifft sowohl Case A (neues Frontmatter) als auch Case C (reparieren). Ziel: idempotent, bestehende Pläne unverändert.
 
-- [ ] **Schritt 1: Failing-Test schreiben**
+- [x] **Schritt 1: Failing-Test schreiben**
 
 Erstelle `tests/batch/frontmatter-batch.bats`:
 
@@ -99,7 +99,7 @@ teardown() { rm -rf "$TMPDIR"; }
 }
 ```
 
-- [ ] **Schritt 2: Test ausführen — erwartet FAIL**
+- [x] **Schritt 2: Test ausführen — erwartet FAIL**
 
 ```bash
 cd /tmp/wt-batch-spec-plan
@@ -110,7 +110,7 @@ bats tests/batch/frontmatter-batch.bats
 
 Erwartet: FAIL — `file_locks` Zeile existiert noch nicht.
 
-- [ ] **Schritt 3: Batch-Felder in plan-frontmatter-hook.sh einbauen**
+- [x] **Schritt 3: Batch-Felder in plan-frontmatter-hook.sh einbauen**
 
 **Case A (ab Zeile 82):** Füge Batch-Felder in den `{`-Block ein, direkt nach `pr_number: null`:
 
@@ -195,7 +195,7 @@ mv "$tmpfile" "$FILE"
 echo "Repaired frontmatter in $FILE (domains=$derived_yaml needs_status=$needs_status needs_batch=$needs_batch)"
 ```
 
-- [ ] **Schritt 4: Tests ausführen — erwartet PASS**
+- [x] **Schritt 4: Tests ausführen — erwartet PASS**
 
 ```bash
 bats tests/batch/frontmatter-batch.bats
@@ -203,7 +203,7 @@ bats tests/batch/frontmatter-batch.bats
 
 Erwartet: 4/4 PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-batch-spec-plan
@@ -221,7 +221,7 @@ git commit -m "feat(batch): plan-frontmatter-hook adds batch fields [T000592]"
 
 Holt alle `status=planning` Tickets als JSON-Array. Nutzt dasselbe kubectl/psql-Muster wie `ticket.sh`.
 
-- [ ] **Schritt 1: Failing-Test schreiben**
+- [x] **Schritt 1: Failing-Test schreiben**
 
 Erstelle `tests/batch/batch-gap-analysis.bats`:
 
@@ -268,7 +268,7 @@ MOCK
 }
 ```
 
-- [ ] **Schritt 2: Test ausführen — erwartet FAIL**
+- [x] **Schritt 2: Test ausführen — erwartet FAIL**
 
 ```bash
 bats tests/batch/batch-gap-analysis.bats
@@ -276,7 +276,7 @@ bats tests/batch/batch-gap-analysis.bats
 
 Erwartet: FAIL — Script existiert noch nicht.
 
-- [ ] **Schritt 3: batch-gap-analysis.sh implementieren**
+- [x] **Schritt 3: batch-gap-analysis.sh implementieren**
 
 Erstelle `scripts/batch-gap-analysis.sh`:
 
@@ -313,7 +313,7 @@ FROM (
 EOF
 ```
 
-- [ ] **Schritt 4: Tests ausführen — erwartet PASS**
+- [x] **Schritt 4: Tests ausführen — erwartet PASS**
 
 ```bash
 bats tests/batch/batch-gap-analysis.bats
@@ -321,7 +321,7 @@ bats tests/batch/batch-gap-analysis.bats
 
 Erwartet: 3/3 PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 chmod +x scripts/batch-gap-analysis.sh
@@ -339,7 +339,7 @@ git commit -m "feat(batch): batch-gap-analysis.sh fetches planning tickets [T000
 
 Schreibt ein valides Workflow-Script (`.mjs`) nach `/tmp/batch-workflow-<id>.mjs`. Die Ticket-Daten kommen zur Laufzeit via `args` — kein JSON-Embedding nötig.
 
-- [ ] **Schritt 1: Failing-Test schreiben**
+- [x] **Schritt 1: Failing-Test schreiben**
 
 Erstelle `tests/batch/batch-workflow-gen.bats`:
 
@@ -377,7 +377,7 @@ teardown() { rm -f "$OUTFILE"; }
 }
 ```
 
-- [ ] **Schritt 2: Test ausführen — erwartet FAIL**
+- [x] **Schritt 2: Test ausführen — erwartet FAIL**
 
 ```bash
 bats tests/batch/batch-workflow-gen.bats
@@ -385,7 +385,7 @@ bats tests/batch/batch-workflow-gen.bats
 
 Erwartet: FAIL — Script existiert noch nicht.
 
-- [ ] **Schritt 3: batch-workflow-gen.sh implementieren**
+- [x] **Schritt 3: batch-workflow-gen.sh implementieren**
 
 Erstelle `scripts/batch-workflow-gen.sh`:
 
@@ -537,7 +537,7 @@ WORKFLOW_EOF
 echo "$OUTPUT"
 ```
 
-- [ ] **Schritt 4: Tests ausführen — erwartet PASS**
+- [x] **Schritt 4: Tests ausführen — erwartet PASS**
 
 ```bash
 bats tests/batch/batch-workflow-gen.bats
@@ -545,7 +545,7 @@ bats tests/batch/batch-workflow-gen.bats
 
 Erwartet: 4/4 PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 chmod +x scripts/batch-workflow-gen.sh
@@ -560,14 +560,14 @@ git commit -m "feat(batch): batch-workflow-gen.sh generates Workflow script [T00
 **Files:**
 - Modify: `.gitignore`
 
-- [ ] **Schritt 1: Eintrag prüfen und hinzufügen**
+- [x] **Schritt 1: Eintrag prüfen und hinzufügen**
 
 ```bash
 grep -q "specs/.gaps" /tmp/wt-batch-spec-plan/.gitignore \
   || echo "docs/superpowers/specs/.gaps/" >> /tmp/wt-batch-spec-plan/.gitignore
 ```
 
-- [ ] **Schritt 2: Commit**
+- [x] **Schritt 2: Commit**
 
 ```bash
 git add .gitignore
@@ -583,7 +583,7 @@ git commit -m "chore(batch): gitignore gap-context files"
 
 Der Skill ist der Entry-Point. Er orchestriert Gap-Analyse, Q&A-Bündelung und Workflow-Start. Beide Modi (Batch aus planning-Tickets / Feature splitten) werden hier gesteuert.
 
-- [ ] **Schritt 1: Verzeichnis anlegen und SKILL.md schreiben**
+- [x] **Schritt 1: Verzeichnis anlegen und SKILL.md schreiben**
 
 ```bash
 mkdir -p /tmp/wt-batch-spec-plan/.claude/skills/dev-flow-batch
@@ -818,7 +818,7 @@ Identisch zu Modus 1 Schritt 5 — `batch-workflow-gen.sh` + `Workflow({scriptPa
   `bash scripts/ticket.sh enqueue --id <ext-id> --branch <branch> --plan <plan>`
 ```
 
-- [ ] **Schritt 2: Commit**
+- [x] **Schritt 2: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-batch/SKILL.md

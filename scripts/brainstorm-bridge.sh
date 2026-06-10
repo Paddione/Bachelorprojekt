@@ -82,45 +82,54 @@ wire_serve() {  # tailscale serve (HTTPS:443, tailnet-only) -> 127.0.0.1:<port>;
     || echo "→ (tailscale serve nicht verdrahtet — roher Port/IP-Weg bleibt nutzbar)"
 }
 
-cmd_start() {
-  local magic url session port pid
+# Companion DIREKT starten (nicht via start-server.sh), mit BRAINSTORM_OWNER_PID=1 —
+# sonst bindet der Companion seine Lebensdauer an den Harness-Prozess und stirbt beim
+# Zug-Wechsel ("server-stopped: owner process exited"). owner=1 (init, immer da) ->
+# überlebt, bis 30-min-Idle-Timeout oder 'stop'. nohup in Subshell -> sauber detached.
+launch_companion() {
+  local port="$1" magic sess i
   magic="$(ts_magicdns)"; magic="${magic:-localhost}"
+  sess="$BRAINSTORM_ROOT/$$-$(date +%s)/"
+  mkdir -p "${sess}content" "${sess}state"
+  ( cd "$COMP" && { nohup env \
+      BRAINSTORM_DIR="${sess%/}" BRAINSTORM_HOST=0.0.0.0 BRAINSTORM_URL_HOST="$magic" \
+      BRAINSTORM_PORT="$port" BRAINSTORM_OWNER_PID=1 \
+      node server.cjs > "${sess}state/server.log" 2>&1 & echo $! > "${sess}state/server.pid"; } )
+  for i in $(seq 1 30); do
+    curl -sS --max-time 2 -o /dev/null "http://127.0.0.1:$port/" 2>/dev/null && { echo "$sess"; return 0; }
+    sleep 0.2
+  done
+  return 1
+}
 
-  # Alte Bridge-Session auf dem festen Port sauber beenden (Neustart).
+cmd_start() {
+  local port session pid t
+  # Laufende Bridge-Session auf dem festen Port sauber beenden (Neustart).
   session="$(active_session)"
   if [[ -n "$session" && "$(session_port "$session")" == "$BRIDGE_PORT" ]]; then
     pid="$(cat "${session}state/server.pid" 2>/dev/null || true)"
     [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
-    sleep 1
+  fi
+  # Auf den festen Port warten, bis er frei ist (stale socket / TIME_WAIT), max ~4s.
+  port="$BRIDGE_PORT"
+  for t in 1 2 3 4 5 6 7 8; do port_free "$port" && break; sleep 0.5; done
+  if ! port_free "$port"; then
+    port="$(free_port)"; echo "⚠  Port $BRIDGE_PORT belegt → nutze $port (funnel/serve neu zeigen)." >&2
   fi
 
-  # Port wählen: bevorzugt der feste; sonst freier (serve muss dann ggf. neu zeigen).
-  if port_free "$BRIDGE_PORT"; then port="$BRIDGE_PORT"
-  else port="$(free_port)"; echo "⚠  Port $BRIDGE_PORT belegt → nutze $port (serve zeigt evtl. auf alten Port)." >&2; fi
+  session="$(launch_companion "$port")" || {
+    echo "brainstorm-bridge: Server-Start auf $port fehlgeschlagen." >&2
+    return 1; }
 
-  for _ in 1 2 3; do
-    BRAINSTORM_PORT="$port" "$COMP/start-server.sh" \
-      --project-dir "$REPO" --host 0.0.0.0 --url-host "$magic" >/dev/null 2>&1 || true
-    session="$(active_session)"
-    if [[ -n "$session" && "$(session_port "$session")" == "$port" ]]; then
-      pid="$(cat "${session}state/server.pid" 2>/dev/null || true)"
-      if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-        echo "Companion läuft (PID $pid) auf 0.0.0.0:$port"
-        echo "screen_dir=${session}content"
-        echo "state_dir=${session}state"
-        wire_serve "$port"
-        print_urls "$port"
-        "$SELF_DIR/wsl-open.sh" "http://localhost:$port" >/dev/null 2>&1 \
-          && echo "→ Windows-Browser (localhost) geöffnet." \
-          || echo "→ Browser-Auto-Open fehlgeschlagen; URL oben manuell öffnen."
-        return 0
-      fi
-    fi
-    port="$(free_port)"   # Race -> nächster Versuch mit frischem Port
-  done
-  echo "brainstorm-bridge: Server-Start fehlgeschlagen (3 Versuche)." >&2
-  [[ -n "${session:-}" ]] && { echo "--- log ---" >&2; cat "${session}state/server.log" >&2 2>/dev/null || true; }
-  return 1
+  pid="$(cat "${session}state/server.pid" 2>/dev/null || true)"
+  echo "Companion läuft (PID $pid) auf 0.0.0.0:$port — überlebt Zug-Wechsel (owner=1)"
+  echo "screen_dir=${session}content"
+  echo "state_dir=${session}state"
+  wire_serve "$port"
+  print_urls "$port"
+  "$SELF_DIR/wsl-open.sh" "http://localhost:$port" >/dev/null 2>&1 \
+    && echo "→ Windows-Browser (localhost) geöffnet." \
+    || echo "→ Browser-Auto-Open fehlgeschlagen; URL oben manuell öffnen."
 }
 
 cmd_urls() {

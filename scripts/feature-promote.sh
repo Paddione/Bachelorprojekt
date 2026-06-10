@@ -54,6 +54,11 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
+# shellcheck disable=SC1091
+source "$REPO/scripts/lib/notify.sh"
+# shellcheck disable=SC1091
+source "$REPO/scripts/lib/post-deploy-watch.sh"
+
 SERVICE="${SERVICE:-}"
 TARGET="${TARGET:-}"
 PROMOTE_TAG="${PROMOTE_TAG:-promote-$(git rev-parse --short HEAD 2>/dev/null || echo nogit)-$(date +%s)}"
@@ -225,16 +230,14 @@ roll() {
 # ── Layer-4 live-prod canary + capture-revision rollback (Phase 1D) ───────────
 # observe_prod <cluster> <full_image>
 # Precondition: the prod set-image for <cluster> already ran (via roll prod …).
-# Captures the pre-deploy revision FIRST, re-probes the LIVE web.<brand>.de site
-# (unauth grep from tests/e2e/smoke/website.txt) for ~5 min, and on red rolls the
-# deployment back to the captured revision. Context is resolved STRICTLY via
-# env-resolve.sh (ENV_CONTEXT=fleet); prod_ctx() also resolves via env-resolve.sh now.
+# Runs post_deploy_watch() for CrashLoopBackOff + healthcheck monitoring,
+# then runs Playwright smoke only if the watch passes. On failure, rolls back
+# to the captured pre-deploy revision.
 observe_prod() {
   local cluster="$1" full="$2"
   local deploy ns ctx prev_rev live grep_pat
   deploy=$(svc_deployment "$SERVICE")
 
-  # Context strictly via env-resolve.sh → ENV_CONTEXT=fleet (same as prod_ctx() does).
   # shellcheck disable=SC1091
   source "$REPO/scripts/env-resolve.sh" "$cluster" >/dev/null
   ctx="$ENV_CONTEXT"
@@ -245,42 +248,37 @@ observe_prod() {
     korczewski) live="https://web.korczewski.de" ;;
   esac
 
-  # Pre-deploy revision = current minus one (the set-image already bumped it).
   prev_rev=$(run kubectl --context "$ctx" -n "$ns" rollout history "deploy/${deploy}" \
               2>/dev/null | awk 'NF && $1 ~ /^[0-9]+$/ {r=$1} END{print r-1}')
   [[ -z "$prev_rev" || "$prev_rev" -lt 1 ]] && prev_rev=""
 
-  echo "▸ Canary observe prod/${cluster}: re-probe ${live} for ~5 min (rev to keep=${full}, fallback rev=${prev_rev:-<none>})"
+  echo "▸ Canary observe prod/${cluster}: post-deploy-watch + smoke (${live}, rev=${prev_rev:-<none>})"
+
+  if ! post_deploy_watch "$cluster" "$deploy" "$ns" "$ctx" "${live}/api/health"; then
+    echo "✗ post-deploy-watch FAILED on prod/${cluster} — rollback already triggered" >&2
+    return 1
+  fi
 
   grep_pat=$(resolve_smoke_grep "$SERVICE")
-  local ok=1 i
-  for i in 1 2 3 4 5; do
-    # readiness gate first: /api/health must answer 200 on the live site.
+  if [[ -n "$grep_pat" ]]; then
     if [[ "$DRY_RUN" == "1" ]]; then
-      echo "  [dry-run] canary probe $i/5: curl -fsS ${live}/api/health && playwright --grep '${grep_pat}'"
-    else
-      if curl -fsS -o /dev/null --max-time 20 "${live}/api/health"; then
-        if [[ -z "$grep_pat" ]] || smoke_one "$cluster" "$grep_pat"; then ok=0; break; fi
+      echo "  [dry-run] playwright --grep '${grep_pat}' against ${live}"
+    elif ! smoke_one "$cluster" "$grep_pat"; then
+      echo "✗ Canary RED on prod/${cluster} — rolling back ${deploy} to revision ${prev_rev:-previous}…" >&2
+      if [[ -n "$prev_rev" ]]; then
+        run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" --to-revision="$prev_rev" || true
+      else
+        run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" || true
       fi
-      [[ "$i" -lt 5 ]] && sleep 60
+      run kubectl --context "$ctx" -n "$ns" rollout status "deploy/${deploy}" --timeout=120s || true
+      notify_pushover "Deploy FAIL ${cluster}" "Playwright smoke failed on ${deploy} — rolled back to rev ${prev_rev:-previous}" "1"
+      echo "↩ Canary rolled prod/${cluster} back (rev=${prev_rev:-previous})." >&2
+      return 1
     fi
-  done
-  [[ "$DRY_RUN" == "1" ]] && return 0
-
-  if (( ok == 0 )); then
-    echo "✓ Canary GREEN on prod/${cluster}."
-    return 0
   fi
 
-  echo "✗ Canary RED on prod/${cluster} — rolling back ${deploy} to revision ${prev_rev:-previous}…" >&2
-  if [[ -n "$prev_rev" ]]; then
-    run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" --to-revision="$prev_rev" || true
-  else
-    run kubectl --context "$ctx" -n "$ns" rollout undo "deploy/${deploy}" || true
-  fi
-  run kubectl --context "$ctx" -n "$ns" rollout status "deploy/${deploy}" --timeout=120s || true
-  echo "↩ Canary rolled prod/${cluster} back (rev=${prev_rev:-previous})." >&2
-  return 1
+  echo "✓ Canary GREEN on prod/${cluster}."
+  return 0
 }
 
 # ── Playwright smoke ─────────────────────────────────────────────────────────

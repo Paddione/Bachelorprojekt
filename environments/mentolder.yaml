@@ -69,6 +69,8 @@ env_vars:
   # dev node's public IP), so the brainstorm reverse-SSH tunnel can publish to
   # the dev sish (brainstorm.dev.mentolder.de) [T000364].
   DEV_SSH_ALLOWLIST: "217.195.151.153/32"
+  PUSHOVER_TOKEN: ""
+  PUSHOVER_USER: ""
 
 overlay: prod-fleet/mentolder
 workspace_namespace: workspace

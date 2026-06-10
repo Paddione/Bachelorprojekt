@@ -4,7 +4,7 @@ import ContactHub from '../components/ContactHub.svelte';
 import BookingForm from '../components/BookingForm.svelte';
 import { config } from '../config/index';
 import { getEffectiveKontakt, getEffectiveStammdaten } from '../lib/content';
-import { getSiteSetting } from '../lib/website-db';
+import { getSiteSetting, getSeoOgImage } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
@@ -31,9 +31,10 @@ const slotPreview  = rawMode === 'termin' && initialDate && initialStart;
 const seoTitle = await getSiteSetting(BRAND_ID, 'seo_title_kontakt').catch(() => null) ?? 'Kontakt | mentolder.de';
 const seoDesc  = await getSiteSetting(BRAND_ID, 'seo_meta_desc_kontakt').catch(() => null)
   ?? 'Nehmen Sie Kontakt auf. Kostenloses Erstgespräch vereinbaren – kein Verkaufsdruck.';
+const seoOgImage = await getSeoOgImage(BRAND_ID, 'kontakt').catch(() => null);
 ---
 
-<Layout title={seoTitle} description={seoDesc} brand={layoutBrand}>
+<Layout title={seoTitle} description={seoDesc} brand={layoutBrand} ogImage={seoOgImage ?? undefined}>
   {slotPreview && (
     <section class="slot-preview">
       <div class="slot-preview-inner">

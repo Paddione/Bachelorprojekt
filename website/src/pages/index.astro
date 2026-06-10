@@ -12,7 +12,7 @@ import { config } from '../config/index';
 import type { DaySlots } from '../lib/caldav';
 import { getAvailableSlots } from '../lib/caldav';
 import { getEffectiveServices, getEffectiveHomepage, getEffectiveFaq, getEffectiveStammdaten, getEffectiveNavigation, getEffectiveFooter, getEffectiveKoreFlags } from '../lib/content';
-import { listTimeline, getSiteSetting, getSeoTitle } from '../lib/website-db';
+import { listTimeline, getSiteSetting, getSeoTitle, getSeoOgImage } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
@@ -27,6 +27,10 @@ const homeTitle = !isKore
   ? await getSeoTitle(BRAND_ID, 'home').catch(() => null)
   : null;
 const pageTitle = homeTitle ?? config.meta.siteTitle;
+
+const homeOgImage = !isKore
+  ? await getSeoOgImage(BRAND_ID, 'home').catch(() => null)
+  : null;
 
 const [homepage, faq, allServices, stammdaten, effectiveNav, effectiveFooter, effectiveKoreFlags] = await Promise.all([
   getEffectiveHomepage(),
@@ -56,7 +60,7 @@ try {
 const processSteps = homepage.processSteps ?? [];
 ---
 
-<Layout title={pageTitle} rawTitle={!isKore} description={metaDescription} brand={layoutBrand}>
+<Layout title={pageTitle} rawTitle={!isKore} description={metaDescription} brand={layoutBrand} ogImage={homeOgImage ?? undefined}>
   {isKore ? (
     <KoreHomepage
       client:load

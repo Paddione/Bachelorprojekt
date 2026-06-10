@@ -14,11 +14,13 @@ interface Props {
   rawTitle?: boolean;
   description?: string;
   brand?: string;
+  ogImage?: string;
 }
 
-const { title, rawTitle = false, description = config.meta.siteDescription, brand } = Astro.props;
+const { title, rawTitle = false, description = config.meta.siteDescription, brand, ogImage } = Astro.props;
 const isKore = brand === 'korczewski-kore';
 const pageTitle = rawTitle ? title : `${title} | ${config.meta.siteTitle}`;
+const effectiveOgImage = ogImage || (isKore ? '/brand/korczewski/og-image.png' : '/brand/mentolder/og-image.png');
 const effectiveNav = await getEffectiveNavigation().catch(() => null);
 // Map NavItem[] (with order) to NavigationLink[] shape expected by Navigation component
 const navLinks = effectiveNav
@@ -44,11 +46,11 @@ const navLinks = effectiveNav
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={`https://web.korczewski.de${Astro.url.pathname}`} />
-        <meta property="og:image" content="/brand/korczewski/og-image.png" />
+        <meta property="og:image" content={effectiveOgImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="/brand/korczewski/og-image.png" />
+        <meta name="twitter:image" content={effectiveOgImage} />
       </>
     ) : (
       <>
@@ -57,11 +59,11 @@ const navLinks = effectiveNav
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={`https://web.mentolder.de${Astro.url.pathname}`} />
-        <meta property="og:image" content="/brand/mentolder/og-image.png" />
+        <meta property="og:image" content={effectiveOgImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content="/brand/mentolder/og-image.png" />
+        <meta name="twitter:image" content={effectiveOgImage} />
       </>
     )}
     <link rel="preconnect" href="https://fonts.googleapis.com" />

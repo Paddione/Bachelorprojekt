@@ -4,17 +4,11 @@ import { setSiteSetting } from '../../../../lib/website-db';
 
 const BRAND = process.env.BRAND || 'mentolder';
 
-const ALLOWED_PAGE_KEYS = [
-  'home', 'kontakt', 'ueber-mich', 'leistungen',
-  'coaching', '50plus-digital', 'beratung', 'ki-transition',
-  'fuehrung-persoenlichkeit',
-];
-
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
-  let body: { pageKey: string; description: string; title?: string };
+  let body: { pageKey: string; description: string; title?: string; ogImage?: string };
   try {
     body = await request.json();
   } catch {
@@ -24,10 +18,10 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { pageKey, description, title } = body;
+  const { pageKey, description, title, ogImage } = body;
 
-  if (!ALLOWED_PAGE_KEYS.includes(pageKey)) {
-    return new Response(JSON.stringify({ error: 'Invalid pageKey' }), {
+  if (typeof pageKey !== 'string' || !pageKey) {
+    return new Response(JSON.stringify({ error: 'pageKey is required' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -43,9 +37,22 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     if (description.trim()) {
       await setSiteSetting(BRAND, `seo_meta_desc_${pageKey}`, description);
+    } else {
+      await setSiteSetting(BRAND, `seo_meta_desc_${pageKey}`, '');
     }
-    if (title !== undefined && typeof title === 'string' && title.trim()) {
-      await setSiteSetting(BRAND, `seo_title_${pageKey}`, title);
+    if (title !== undefined && typeof title === 'string') {
+      if (title.trim()) {
+        await setSiteSetting(BRAND, `seo_title_${pageKey}`, title);
+      } else {
+        await setSiteSetting(BRAND, `seo_title_${pageKey}`, '');
+      }
+    }
+    if (ogImage !== undefined) {
+      if (typeof ogImage === 'string' && ogImage.trim()) {
+        await setSiteSetting(BRAND, `seo_og_image_${pageKey}`, ogImage);
+      } else {
+        await setSiteSetting(BRAND, `seo_og_image_${pageKey}`, '');
+      }
     }
   } catch (err) {
     console.error('[seo/save] DB error:', err);

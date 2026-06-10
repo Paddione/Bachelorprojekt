@@ -1,68 +1,8 @@
 <script lang="ts">
-  type PageDef = { key: string; label: string; fallbackDesc: string; fallbackTitle?: string };
+  type PageDef = { key: string; label: string; path: string };
 
-  const PAGES: PageDef[] = [
-    {
-      key: 'home',
-      label: 'Startseite',
-      fallbackTitle: 'Gerald Korczewski – Coach & Mentor',
-      fallbackDesc: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungsperslichkeiten und Menschen in Veränderung.',
-    },
-    {
-      key: 'kontakt',
-      label: 'Kontakt',
-      fallbackDesc: 'Nehmen Sie Kontakt auf – kostenloses Erstgespräch, kein Verkaufsdruck.',
-    },
-    {
-      key: 'ueber-mich',
-      label: 'Über mich',
-      fallbackTitle: 'Gerald Korczewski – Coach, Mentor & KI-Pionier',
-      fallbackDesc: 'Gerald Korczewski: 30+ Jahre Führungserfahrung bei der Polizei Hamburg, systemischer Coach, KI-Pionier. Begleitung für Frauen und Männer in Führung und Veränderung.',
-    },
-    {
-      key: 'leistungen',
-      label: 'Angebote',
-      fallbackDesc: 'Coaching, digitale Begleitung 50+ und Unternehmensberatung – Angebote von Gerald Korczewski.',
-    },
-    {
-      key: 'coaching',
-      label: '/coaching',
-      fallbackTitle: 'Coaching für Führungskräfte & Menschen in Verantwortung | mentolder.de',
-      // KORRIGIERT: 40+ → 30+ Jahre Führungserfahrung
-      fallbackDesc: 'Karriere-Coaching für Führungskräfte in Lüneburg und Hamburg. Profil schärfen, Strategie entwickeln, Gespräche vorbereiten – auf Augenhöhe mit 30+ Jahren Führungserfahrung.',
-    },
-    {
-      key: '50plus-digital',
-      label: '/50plus-digital',
-      fallbackTitle: '50+ digital – Digitale Begleitung in Lüneburg & Hamburg | mentolder.de',
-      fallbackDesc: 'Digitale Begleitung für Menschen 50+ in Lüneburg und Hamburg. Smartphone, WhatsApp, Online-Banking – Schritt für Schritt, ohne Fachchinesisch, in Ihrem Tempo.',
-    },
-    {
-      key: 'beratung',
-      label: '/beratung',
-      fallbackTitle: 'Digitale Transformation & KI-Beratung für Mittelstand | mentolder.de',
-      fallbackDesc: 'Digitale Transformation & KI-Strategie für Mittelstand, Verwaltung und kritische Infrastrukturen – mit 40 Jahren Praxis. Lüneburg & Hamburg.',
-    },
-    {
-      key: 'ki-transition',
-      label: '/ki-transition',
-      fallbackTitle: 'KI-Transition Coaching – Orientierung im digitalen Wandel | mentolder.de',
-      fallbackDesc: 'KI verändert Berufsbilder – ich begleite Sie dabei. Für IT-Fachkräfte, Führungspersonlichkeiten und Unternehmen in Lüneburg, Hamburg und online.',
-    },
-    {
-      key: 'fuehrung-persoenlichkeit',
-      label: '/fuehrung-persoenlichkeit',
-      fallbackTitle: 'Führung & Persönlichkeit – Coaching für Führungskräfte | mentolder.de',
-      fallbackDesc: 'Führen aus der Mitte: Coaching für Frauen und Männer in Führung. Standortbestimmung, Authentizität, Entscheidungen in Unsicherheit – in Lüneburg, Hamburg und online.',
-    },
-    {
-      key: 'referenzen',
-      label: '/referenzen',
-      fallbackDesc: 'Referenzen und Kooperationspartner von Gerald Korczewski – Unternehmen, Behörden und Organisationen, mit denen ich zusammengearbeitet habe.',
-    },
-  ];
-
-  let values = $state<Record<string, { desc: string; title: string }>>({});
+  let pages = $state<PageDef[]>([]);
+  let values = $state<Record<string, { desc: string; title: string; ogImage: string }>>({});
   let savingKey = $state<string | null>(null);
   let messages = $state<Record<string, { text: string; ok: boolean }>>({});
   let loading = $state(true);
@@ -70,14 +10,20 @@
 
   async function load() {
     try {
-      const res = await fetch('/api/admin/seo');
-      if (!res.ok) { loadError = 'Fehler beim Laden.'; return; }
-      const data: { descriptions: Record<string, string>; titles: Record<string, string> } = await res.json();
-      const initial: Record<string, { desc: string; title: string }> = {};
-      for (const p of PAGES) {
+      const [pagesRes, seoRes] = await Promise.all([
+        fetch('/api/admin/seo/pages'),
+        fetch('/api/admin/seo'),
+      ]);
+      if (!pagesRes.ok || !seoRes.ok) { loadError = 'Fehler beim Laden.'; return; }
+      const pagesData: { pages: PageDef[] } = await pagesRes.json();
+      const seoData: { descriptions: Record<string, string>; titles: Record<string, string>; ogImages: Record<string, string> } = await seoRes.json();
+      pages = pagesData.pages;
+      const initial: Record<string, { desc: string; title: string; ogImage: string }> = {};
+      for (const p of pagesData.pages) {
         initial[p.key] = {
-          desc: data.descriptions?.[p.key] ?? p.fallbackDesc,
-          title: data.titles?.[p.key] ?? (p.fallbackTitle ?? ''),
+          desc: seoData.descriptions?.[p.key] ?? '',
+          title: seoData.titles?.[p.key] ?? '',
+          ogImage: seoData.ogImages?.[p.key] ?? '',
         };
       }
       values = initial;
@@ -99,6 +45,7 @@
           pageKey,
           description: values[pageKey]?.desc ?? '',
           title: values[pageKey]?.title ?? '',
+          ogImage: values[pageKey]?.ogImage ?? '',
         }),
       });
       messages = {
@@ -114,7 +61,29 @@
     }
   }
 
-  function charClass(len: number): string {
+  async function uploadOgImage(pageKey: string, file: File) {
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch('/api/admin/seo/upload-og-image', { method: 'POST', body: form });
+      if (!res.ok) return;
+      const data: { src: string } = await res.json();
+      values = { ...values, [pageKey]: { ...values[pageKey], ogImage: data.src } };
+    } catch { /* ignore */ }
+  }
+
+  function removeOgImage(pageKey: string) {
+    values = { ...values, [pageKey]: { ...values[pageKey], ogImage: '' } };
+  }
+
+  function titleCharClass(len: number): string {
+    if (len >= 50 && len <= 70) return 'text-green-400';
+    if (len >= 30 && len < 50) return 'text-yellow-400';
+    if (len > 70) return 'text-red-400';
+    return 'text-yellow-400';
+  }
+
+  function descCharClass(len: number): string {
     if (len >= 120 && len <= 160) return 'text-green-400';
     if (len >= 100 && len < 120) return 'text-yellow-400';
     if (len > 160) return 'text-red-400';
@@ -140,23 +109,35 @@
   {:else if loadError}
     <p class="text-red-400 text-sm">{loadError}</p>
   {:else}
-    {#each PAGES as page}
+    {#each pages as page}
       {@const desc = values[page.key]?.desc ?? ''}
       {@const descLen = desc.length}
+      {@const titleVal = values[page.key]?.title ?? ''}
+      {@const titleLen = titleVal.length}
+      {@const ogImg = values[page.key]?.ogImage ?? ''}
       <div class="border border-dark-lighter rounded-xl p-4 space-y-3">
-        <p class="text-xs font-mono uppercase tracking-widest text-gold">{page.label}</p>
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-mono uppercase tracking-widest text-gold">{page.label}</p>
+          <span class="text-xs text-muted font-mono">{page.path}</span>
+        </div>
 
-        {#if page.fallbackTitle !== undefined}
-          <div>
-            <label class={labelCls}>Seitentitel (title-Tag)</label>
-            <input
-              type="text"
-              class={inputLineCls}
-              bind:value={values[page.key].title}
-              placeholder={page.fallbackTitle}
-            />
+        <div>
+          <label class={labelCls}>Seitentitel (title-Tag)</label>
+          <input
+            type="text"
+            class={inputLineCls}
+            bind:value={values[page.key].title}
+            placeholder="Standard-Titel verwenden"
+          />
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-xs {titleCharClass(titleLen)} font-mono">
+              {titleLen} Zeichen
+              {#if titleLen >= 50 && titleLen <= 70}(gut)
+              {:else if titleLen > 70}(zu lang — Ziel: 50–70)
+              {:else}(Ziel: 50–70){/if}
+            </span>
           </div>
-        {/if}
+        </div>
 
         <div>
           <label class={labelCls}>Meta-Beschreibung</label>
@@ -164,14 +145,44 @@
             rows={3}
             class={inputCls}
             bind:value={values[page.key].desc}
-            placeholder={page.fallbackDesc}
+            placeholder="Standard-Beschreibung verwenden"
           ></textarea>
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-xs {charClass(descLen)} font-mono">
+            <span class="text-xs {descCharClass(descLen)} font-mono">
               {descLen} Zeichen
               {#if descLen < 120}(zu kurz — Ziel: 120–160){:else if descLen > 160}(zu lang — Ziel: 120–160){:else}(gut){/if}
             </span>
           </div>
+        </div>
+
+        <div>
+          <label class={labelCls}>OG-Bild</label>
+          {#if ogImg}
+            <div class="flex items-center gap-3">
+              <img src={ogImg} alt="OG-Bild Vorschau" class="h-16 w-auto rounded border border-dark-lighter" />
+              <button
+                onclick={() => removeOgImage(page.key)}
+                class="px-3 py-1.5 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+              >
+                Entfernen
+              </button>
+            </div>
+          {:else}
+            <p class="text-xs text-muted mb-2">Brand-Default wird verwendet.</p>
+          {/if}
+          <label class="inline-flex items-center gap-2 mt-2 px-3 py-1.5 bg-dark-lighter text-light text-xs rounded-lg cursor-pointer hover:bg-dark-lighter/80">
+            <span>{ogImg ? 'Anderes Bild hochladen' : 'Bild hochladen'}</span>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="hidden"
+              onchange={(e) => {
+                const f = (e.target as HTMLInputElement).files?.[0];
+                if (f) uploadOgImage(page.key, f);
+                (e.target as HTMLInputElement).value = '';
+              }}
+            />
+          </label>
         </div>
 
         <div class="flex items-center justify-end gap-3">

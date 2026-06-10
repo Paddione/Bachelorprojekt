@@ -1952,7 +1952,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 265,
+      "file_count": 268,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2000,6 +2000,8 @@
         "scripts/assets-index.sh",
         "scripts/assets-sync.sh",
         "scripts/backup-restore.sh",
+        "scripts/brainstorm-bridge.sh",
+        "scripts/brainstorm-companion-harden.sh",
         "scripts/brainstorm-extract-choice.sh",
         "scripts/brett-bot-setup.sh",
         "scripts/build-docs.mjs",
@@ -2218,7 +2220,8 @@
         "scripts/transcriber-setup.sh",
         "scripts/verify-deployment.sh",
         "scripts/whiteboard-setup.sh",
-        "scripts/worktree-create.sh"
+        "scripts/worktree-create.sh",
+        "scripts/wsl-open.sh"
       ]
     },
     {

@@ -67,6 +67,11 @@ ticket_id: null
 domains: [infra]
 status: active
 pr_number: null
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
 ---
 
 # Plan

@@ -366,6 +366,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:planungsbuero-klaerung",
+    "file": "tests/e2e/specs/planungsbuero-klaerung.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:systemtest-00-gesamt",
     "file": "tests/e2e/specs/systemtest-00-gesamt.spec.ts",
     "category": "E2E",

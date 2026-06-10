@@ -128,6 +128,17 @@ Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden v
 
 Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
 - **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) → `haiku`; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → `sonnet`; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → `opus`. Im Zweifel eine Stufe höher.
+- **Provider-Routing (Kosten/Resilienz):** Vor dem Spawnen den Provider routen:
+  ```bash
+  ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
+  MODEL=$(echo "$ROUTE" | jq -r .modelId)
+  SLOT=$(echo "$ROUTE" | jq -r .slotId)
+  ```
+  Subagent mit `--model "$MODEL"` spawnen. Danach den Slot freigeben:
+  ```bash
+  bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
+  ```
+  `opus`/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).
 - **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
 - `subagent_type: general-purpose`.
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):

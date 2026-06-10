@@ -70,7 +70,29 @@ Ich will etwas ändern – starte die Planung (dev-flow-plan).
 
 **Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST)
 
-**Verwandt:** [[dev-flow-execute]]
+**Verwandt:** [[dev-flow-execute]], Wartungs-Skill (dev-flow-chore)
+
+## Wartungs-Skill (dev-flow-chore)
+
+**Skill** · 🟡 **Vorsicht**
+
+Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie.
+
+**Wofür?** Für Doku, Dependency-Bumps, Config/Umbenennungen, CI-Tweaks und Aufräumen — direkt ausgeführt und gemergt, ohne Plan und ohne dev-flow-execute. Für Features/Fixes stattdessen dev-flow-plan.
+
+**So startest du:** Sage z.B. 'bump die Abhängigkeiten' oder 'räum die Doku auf' – der Skill startet von selbst, oder dev-flow-plan leitet Chores hierher.
+
+**Was schiefgehen kann:** Wenig: keine Verhaltensänderung. CI könnte den Merge blockieren; der falsche Branch könnte aktiv sein (🟡).
+
+**Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
+
+```text
+/dev-flow-chore – erledige diese Wartung und merge sie.
+```
+
+**Schutzregeln (Guardrails):** Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)
+
+**Verwandt:** [[dev-flow-plan]]
 
 ## Umsetzungs-Skill (dev-flow-execute)
 

@@ -40,9 +40,24 @@
   stages: [plan]
   aliases_de: [plan, planen, brainstorm, spec]
   guardrails: [G-PULL-FIRST]
-  related: [dev-flow-execute]
+  related: [dev-flow-execute, dev-flow-chore]
   links: []
   init_prompt_de: "Ich will etwas ändern – starte die Planung (dev-flow-plan)."
+- id: dev-flow-chore
+  name_de: "Wartungs-Skill (dev-flow-chore)"
+  kind: skill
+  summary_de: "Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie."
+  what_for_de: "Für Doku, Dependency-Bumps, Config/Umbenennungen, CI-Tweaks und Aufräumen — direkt ausgeführt und gemergt, ohne Plan und ohne dev-flow-execute. Für Features/Fixes stattdessen dev-flow-plan."
+  how_to_start_de: "Sage z.B. 'bump die Abhängigkeiten' oder 'räum die Doku auf' – der Skill startet von selbst, oder dev-flow-plan leitet Chores hierher."
+  what_could_go_wrong_de: "Wenig: keine Verhaltensänderung. CI könnte den Merge blockieren; der falsche Branch könnte aktiv sein (🟡)."
+  danger: caution
+  theme: entwickeln
+  stages: [code, pr-ci]
+  aliases_de: [chore, wartung, aufraeumen, "dependency-bump", doku]
+  guardrails: [G-PULL-FIRST, G-PR-NOT-MAIN]
+  related: [dev-flow-plan]
+  links: []
+  init_prompt_de: "/dev-flow-chore – erledige diese Wartung und merge sie."
 - id: dev-flow-execute
   name_de: "Umsetzungs-Skill (dev-flow-execute)"
   kind: skill

@@ -117,6 +117,8 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 
 Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion, **Modell + Effort passend zum Charakter der Plan-Tasks**. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 
+> **Warum EIN Implementer statt `superpowers:subagent-driven-development`-Fan-out?** Dieser Skill läuft bereits *selbst* als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre **verschachtelte Delegation** → Kontext-Explosion und Synthese-Last (siehe [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md), 162k-Prompt-Lehre). Der Implementer ruft `superpowers:executing-plans` daher **in-context** auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele **voneinander unabhängige** Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf `subagent-driven-development` bzw. einen `Workflow`-Fan-out — bewusste Eskalation, nicht Default.
+
 Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß** [subagent-provisioning.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md) (Modell · Effort · Kontext):
 - **Modell — nach Plan-Charakter wählen, nicht pauschal:** mechanisch (Config/Doku/Single-File) → `haiku`; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → `sonnet`; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → `opus`. Im Zweifel eine Stufe höher.
 - **Effort per Prompt-Direktive** (das `Agent`-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."
@@ -381,21 +383,9 @@ fi
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
 ```
 
-**Deploy-Mapping (Referenz):**
-
-| Geänderte Dateipfade | Task |
-|---|---|
-| `website/**` | `task feature:website` |
-| `brett/**` | `task feature:brett` |
-| `docs/**` | `task docs:deploy` |
-| `k3d/**`, `prod*/**`, `environments/**` | `task feature:deploy` |
-| Mehrere Bereiche | Alle zutreffenden Tasks nacheinander |
-
-**Nach dem Deploy:** Überprüfe kurz, dass die Pods `Running` sind:
-```bash
-kubectl --context fleet get pods -n workspace | grep -v Running
-kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
-```
+**Deploy-Mapping (Single Source of Truth):** Die obige Auto-Detection und die vollständige
+Pfad→Task-Tabelle leben in [deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md) — dort steht auch die Pod-Verify-Schleife und die
+Stale-Tree-/Digest-Pin-Footguns. Bei Änderungen am Deploy-Mapping **nur** diese Referenz pflegen.
 
 Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.
 

@@ -910,7 +910,8 @@
         }
       ],
       "related": [
-        "dev-flow-execute"
+        "dev-flow-execute",
+        "dev-flow-chore"
       ],
       "links": [],
       "theme": "entwickeln",
@@ -926,6 +927,50 @@
         "plan"
       ],
       "init_prompt_de": "Ich will etwas ändern – starte die Planung (dev-flow-plan)."
+    },
+    {
+      "id": "dev-flow-chore",
+      "name_de": "Wartungs-Skill (dev-flow-chore)",
+      "kind": "skill",
+      "kind_de": "Fertigkeit",
+      "summary_de": "Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie.",
+      "what_for_de": "Für Doku, Dependency-Bumps, Config/Umbenennungen, CI-Tweaks und Aufräumen — direkt ausgeführt und gemergt, ohne Plan und ohne dev-flow-execute. Für Features/Fixes stattdessen dev-flow-plan.",
+      "how_to_start_de": "Sage z.B. 'bump die Abhängigkeiten' oder 'räum die Doku auf' – der Skill startet von selbst, oder dev-flow-plan leitet Chores hierher.",
+      "what_could_go_wrong_de": "Wenig: keine Verhaltensänderung. CI könnte den Merge blockieren; der falsche Branch könnte aktiv sein (🟡).",
+      "danger": "caution",
+      "guardrails": [
+        {
+          "id": "G-PULL-FIRST",
+          "name_de": "Erst ziehen, dann arbeiten",
+          "rule_de": "Immer 'git pull --rebase origin main' bevor du etwas änderst.",
+          "why_de": "Sonst arbeitest du auf einem veralteten Stand und bekommst Konflikte."
+        },
+        {
+          "id": "G-PR-NOT-MAIN",
+          "name_de": "Nie direkt auf main",
+          "rule_de": "Änderungen immer über einen Branch + Pull Request, niemals direkt nach main pushen.",
+          "why_de": "main ist geschützt; direktes Pushen umgeht Review und CI."
+        }
+      ],
+      "related": [
+        "dev-flow-plan"
+      ],
+      "links": [],
+      "theme": "entwickeln",
+      "aliases_de": [
+        "chore",
+        "wartung",
+        "aufraeumen",
+        "dependency-bump",
+        "doku"
+      ],
+      "common": false,
+      "order": 999,
+      "stages": [
+        "code",
+        "pr-ci"
+      ],
+      "init_prompt_de": "/dev-flow-chore – erledige diese Wartung und merge sie."
     },
     {
       "id": "dev-flow-execute",
@@ -1876,6 +1921,7 @@
           "factory-autopilot"
         ],
         "toolIds": [
+          "dev-flow-chore",
           "dev-flow-execute",
           "dev-flow-iterate",
           "factory",
@@ -1897,6 +1943,7 @@
           "factory-autopilot"
         ],
         "toolIds": [
+          "dev-flow-chore",
           "dev-flow-execute",
           "factory",
           "factory-dispatch"

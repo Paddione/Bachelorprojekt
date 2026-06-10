@@ -65,9 +65,12 @@ git worktree list
 
 Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre dies mit dem User ab.
 
-- **feature**: Neue Funktionen oder UI-Elemente.
-- **fix**: Fehlerbehebung (erfordert Ticket-ID).
-- **chore**: Wartung, Doku, Dependency-Bumps (keine Verhaltensänderung).
+- **feature**: Neue Funktionen oder UI-Elemente. → diese Skill (Feature-Pfad unten).
+- **fix**: Fehlerbehebung (erfordert Ticket-ID). → diese Skill (Fix-Pfad unten).
+- **chore**: Wartung, Doku, Dependency-Bumps (keine Verhaltensänderung). → **rufe `dev-flow-chore` auf und STOPP** — Chores werden dort direkt ausgeführt und gemergt, nicht hier geplant.
+
+> Diese Skill plant nur (Feature/Fix) und stoppt vor der Umsetzung. Die Umsetzung übernimmt
+> `dev-flow-execute`. Chores laufen vollständig in `dev-flow-chore`.
 
 ---
 
@@ -200,19 +203,8 @@ Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch
 
 ## Chore-Pfad
 
-Chores brauchen keinen Plan, sie werden direkt ausgeführt und gemergt.
-
-### Schritt 0.5: Wiederkehrend oder einmalig?
-Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe `/schedule` auf und richte einen Cron-Job ein. **STOPP hier.**
-
-### Schritt 1-7: Direkt bearbeiten und mergen
-1. Kurze Beschreibung formulieren.
-2. Worktree anlegen: `/tmp/wt-<slug>`; dann `bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore`. (Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich `claim main-checkout` — der `.githooks/pre-commit` sperrt sonst konkurrierende Commits anderer Sessions.)
-3. Änderungen vornehmen.
-4. Verifizieren (`task test:all`, `task workspace:validate` etc.).
-5. Committen, pushen und PR erstellen (`commit-commands:commit-push-pr`).
-6. PR mergen (`gh pr merge --auto --squash --delete-branch`).
-7. Passenden Deploy-Task aufrufen (siehe Deploy-Tabelle in [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md)).
+Ausgelagert nach `dev-flow-chore` — Chores brauchen keinen Plan und werden dort direkt ausgeführt
+und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier stoppen.
 
 ---
 
@@ -221,8 +213,11 @@ Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe `/schedule
 
 | Skill | Beziehung |
 |-------|-----------|
-| `using-git-worktrees` | Voraussetzung — Worktree-Isolation |
+| `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
+| `superpowers:brainstorming` | Aufgerufen in Schritt 3 — Intent/Design klären |
+| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7) |
 | `dev-flow-execute` | Folge — implementiert den erstellten Plan |
+| `dev-flow-chore` | Geschwister — Chores statt Features/Fixes |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 
 ## Nachbereitung & Mishap Report

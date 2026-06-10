@@ -64,6 +64,8 @@ echo "Surface erkannt: $SURFACE"
 | `brett` | `task dev:redeploy:brett ENV=$ENV` | `app=brett` |
 | `full` | `task dev:deploy ENV=$ENV` | `app=website`, `app=brett` |
 
+> Diese Dev-Cluster-Tabelle ist die Loop-nahe Kopie aus der SSOT [deploy-routing.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md) (Abschnitt „Dev-Cluster-Redeploy"). Änderungen am Mapping dort pflegen.
+
 ---
 
 ## Schritt 2: Ziel-URL ableiten
@@ -184,10 +186,18 @@ Loop beenden, zu Schritt 4.
 - Aufgerufen von `dev-flow-execute` → Kontrolle zurück an **Schritt 5 (PR)**.
 - Standalone → Ende. Berichte Zusammenfassung: Cycles gelaufen, Issues gefixt.
 
+## Identität (eine Rolle, nicht drei)
+
+Dieser Skill ist eine **Sub-Routine von `dev-flow-execute`** (Schritt 4, optional) plus ein
+**Standalone-Werkzeug** für ad-hoc Dev-Cluster-Loops. Er ist **keine Alternative** zu
+`dev-flow-execute` — die eigentliche Implementierung (Plan-Ausführung, Tests, PR, Merge) gehört
+immer zu `dev-flow-execute`. `dev-flow-iterate` deployt nur ins Dev-Cluster, liest Logs/Browser
+und wendet kleine Fixes an.
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
 |-------|-----------|
-| `dev-flow-execute` | Alternative — batch-weise Implementierung |
+| `dev-flow-execute` | Eltern — ruft diesen Skill in Schritt 4 auf (und nimmt Kontrolle zurück) |
 | `cluster-deployment` | Querschnitt — bei Cluster-Problemen |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

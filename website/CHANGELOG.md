@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.48.1...website-v1.49.0) (2026-06-10)
+
+
+### Features
+
+* **portal:** Termin buchen, absagen, verschieben, anfragen ([#1528](https://github.com/Paddione/Bachelorprojekt/issues/1528)) ([ffa9adf](https://github.com/Paddione/Bachelorprojekt/commit/ffa9adfeaa78df0ebd4d6634a314eef6069e93ea))
+
 ## [1.48.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.48.0...website-v1.48.1) (2026-06-10)
 
 

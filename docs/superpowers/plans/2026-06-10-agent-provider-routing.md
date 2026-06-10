@@ -1,6 +1,6 @@
 ---
 title: Agent Provider Routing Implementation Plan
-ticket_id: null
+ticket_id: T000595
 domains: [website, infra, db, ops, test]
 status: active
 pr_number: null

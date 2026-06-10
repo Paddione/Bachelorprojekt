@@ -33,13 +33,17 @@ vi.mock('pg', () => {
       ('s1','T000467','feature','Shipped feature','mittel','done',NULL,0, now(), now(), now()),
       -- LEAKED: a terminal (archived) ticket that still holds a stale pipeline_slot
       ('x1','T000466','feature','Leaked terminal slot','mittel','archived',4,0,NULL, now(), now() - INTERVAL '30 min')
+      -- devflow ticket: NO pipeline_slot, but has driver='devflow' phase events
+      ,('dv1','T000582','feature','Devflow feature','hoch','in_progress',NULL,0,NULL, now(), now())
       -- Kommissionierung: two plan_staged tickets (one with ref, one without)
       ,('p1','T000490','feature','Staged mit Ref','hoch','plan_staged',NULL,0,NULL, now() - INTERVAL '5 min', now())
       ,('p2','T000491','feature','Staged ohne Ref','niedrig','plan_staged',NULL,0,NULL, now() - INTERVAL '2 min', now());
     INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver, at) VALUES
       ('h1','scout','done',NULL,'factory', now() - INTERVAL '10 min'),
       ('h1','implement','entered',NULL,'factory', now() - INTERVAL '2 min'),
-      ('b1','verify','blocked','2 HIGH review findings','factory', now() - INTERVAL '1 min');
+      ('b1','verify','blocked','2 HIGH review findings','factory', now() - INTERVAL '1 min'),
+      ('dv1','implement','done',NULL,'devflow', now() - INTERVAL '4 min'),
+      ('dv1','deploy','entered','PR #1512 · CI watch','devflow', now() - INTERVAL '1 min');
     INSERT INTO tickets.factory_control (key, brand, value) VALUES
       ('killswitch', NULL, 'off'),
       ('daily-cap', NULL, '5');
@@ -59,6 +63,7 @@ vi.mock('./tickets-db', () => ({
 import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          insertInjection, getInjections, consumeInjections, getTicketDetail,
          getStaged, releaseToBacklog } from './factory-floor';
+import { aggregateCheckRuns } from './github-ci';
 
 describe('factory-floor DAL', () => {
   it('getHall derives the latest phase/state per active ticket and the block reason', async () => {
@@ -164,6 +169,52 @@ describe('factory-floor DAL', () => {
   it('releaseToBacklog returns false for an unknown / non-staged ext_id', async () => {
     expect(await releaseToBacklog('T999999')).toBe(false);
     expect(await releaseToBacklog('T000467')).toBe(false); // done, nicht plan_staged
+  });
+
+  it('getHall includes slot-less devflow tickets and tags driver + prNumber', async () => {
+    const hall = await getHall();
+    const byId = Object.fromEntries(hall.map((h) => [h.extId, h]));
+    // Factory ticket keeps driver=factory, no prNumber from its detail
+    expect(byId['T000459'].driver).toBe('factory');
+    // devflow ticket present despite NULL pipeline_slot
+    expect(byId['T000582']).toBeDefined();
+    expect(byId['T000582'].driver).toBe('devflow');
+    expect(byId['T000582'].phase).toBe('deploy');
+    expect(byId['T000582'].prNumber).toBe(1512);
+    // ciStatus is null until the API enriches it
+    expect(byId['T000582'].ciStatus).toBeNull();
+  });
+
+  it('getControl does NOT count slot-less devflow tickets toward slots', async () => {
+    const c = await getControl(3);
+    expect(c.slotsUsed).toBe(2); // h1 + b1 only; dv1 (no slot) excluded
+  });
+});
+
+describe('github-ci aggregation', () => {
+  it('all completed+success → success', () => {
+    expect(aggregateCheckRuns([
+      { status: 'completed', conclusion: 'success' },
+      { status: 'completed', conclusion: 'success' },
+    ])).toBe('success');
+  });
+  it('any failure-ish conclusion → failure', () => {
+    expect(aggregateCheckRuns([
+      { status: 'completed', conclusion: 'success' },
+      { status: 'completed', conclusion: 'failure' },
+    ])).toBe('failure');
+    expect(aggregateCheckRuns([
+      { status: 'completed', conclusion: 'timed_out' },
+    ])).toBe('failure');
+  });
+  it('any still-running check → pending', () => {
+    expect(aggregateCheckRuns([
+      { status: 'completed', conclusion: 'success' },
+      { status: 'in_progress', conclusion: null },
+    ])).toBe('pending');
+  });
+  it('empty list → pending', () => {
+    expect(aggregateCheckRuns([])).toBe('pending');
   });
 });
 

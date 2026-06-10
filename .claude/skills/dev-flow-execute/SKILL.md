@@ -89,13 +89,15 @@ Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:
 ```bash
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow || true
+SLUG=$(basename "$PLAN_FILE" .md)
+./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 ```
 
 Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):
 
 ```bash
 ./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
+./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
 ```
 
 ---
@@ -114,6 +116,11 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 ---
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
+
+```bash
+# Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt
+./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
+```
 
 Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die **gesamte Implementierung an EINEN frischen Subagenten** — sauberer Kontext per Konstruktion, **Modell + Effort passend zum Charakter der Plan-Tasks**. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.
 
@@ -144,12 +151,13 @@ Rufe das Skill **`verification-before-completion`** auf, um die Verifikation str
 
 ```bash
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow || true
-./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:all + freshness" || true
 task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX>
 task test:all
 task freshness:regenerate
+./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
 
 **Wichtig: `task freshness:regenerate` stellt sicher, dass alle generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json) aktuell sind, bevor committet wird. Andernfalls schlägt CI fehl.**
@@ -202,10 +210,13 @@ Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst.
 MAX_CI_ATTEMPTS=5
 CI_ATTEMPT=0
 PR_URL=$(gh pr view --json url -q '.url')
+PR_NUM_TELEM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
+./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow --detail "PR #$PR_NUM_TELEM · CI watch" || true
 
 while true; do
   CI_ATTEMPT=$((CI_ATTEMPT + 1))
   echo "⏳ CI-Check Versuch $CI_ATTEMPT/$MAX_CI_ATTEMPTS für $PR_URL ..."
+  ./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow --detail "CI attempt $CI_ATTEMPT/$MAX_CI_ATTEMPTS" || true
 
   # Warte auf alle Checks (blockierend; bricht ab, wenn alle done)
   gh pr checks --watch --interval 15 2>/dev/null || true
@@ -277,7 +288,7 @@ PR_NUM=$(gh pr view --json number -q '.number')
 
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 ```
 
@@ -380,7 +391,7 @@ if [[ "$DEPLOY_K8S" == true ]]; then
 fi
 
 # Deploy-Telemetrie
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "deployed (post-merge)" || true
 ```
 
 **Deploy-Mapping (Single Source of Truth):** Die obige Auto-Detection und die vollständige

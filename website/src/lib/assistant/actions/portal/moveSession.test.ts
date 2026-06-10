@@ -8,19 +8,19 @@ const { mockGetClientBookings, mockUpdateCalendarEventTime, mockSendRescheduleNo
     mockGetCustomerByKeycloakId: vi.fn().mockResolvedValue(null),
   }));
 
-vi.mock('../../../../caldav.js', () => ({
+vi.mock('../../../caldav', () => ({
   getClientBookings: mockGetClientBookings,
   updateCalendarEventTime: mockUpdateCalendarEventTime,
 }));
-vi.mock('../../../../email.js', () => ({
+vi.mock('../../../email', () => ({
   sendRescheduleNotification: mockSendRescheduleNotification,
 }));
-vi.mock('../../../../website-db.js', () => ({
+vi.mock('../../../website-db', () => ({
   getCustomerByKeycloakId: mockGetCustomerByKeycloakId,
 }));
 
-import './moveSession.js';
-import { executeAction } from '../../actions.js';
+import './moveSession';
+import { executeAction } from '../../actions';
 
 beforeEach(() => {
   mockGetClientBookings.mockReset();

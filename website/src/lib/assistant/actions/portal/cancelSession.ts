@@ -1,7 +1,7 @@
-import { registerAction } from '../../actions.js';
-import type { ActionResult } from '../../types.js';
-import { getClientBookings, deleteCalendarEvent } from '../../../../caldav.js';
-import { sendCancellationNotification } from '../../../../email.js';
+import { registerAction } from '../../actions';
+import type { ActionResult } from '../../types';
+import { getClientBookings, deleteCalendarEvent } from '../../../caldav';
+import { sendCancellationNotification } from '../../../email';
 
 registerAction({
   id: 'portal:cancel-session',
@@ -28,7 +28,7 @@ registerAction({
     let bookingStart: Date | undefined;
     try {
       const bookings = await getClientBookings(ctx.email);
-      const own = bookings.find((b) => b.uid === uid);
+      const own = bookings.find((b: { uid: string }) => b.uid === uid);
       if (!own) {
         return {
           ok: false,

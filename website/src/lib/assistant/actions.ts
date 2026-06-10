@@ -1,5 +1,5 @@
 import type { AssistantProfile, ActionResult } from './types';
-import { getCustomerByKeycloakId } from '../website-db.js';
+import { getCustomerByKeycloakId } from '../website-db';
 
 export interface ActionContext {
   profile: AssistantProfile;

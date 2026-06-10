@@ -11,19 +11,19 @@ const { mockCreateCalendarEvent, mockSendBookingConfirmation, mockGetCustomerByK
     }),
   }));
 
-vi.mock('../../../../caldav.js', () => ({
+vi.mock('../../../caldav', () => ({
   createCalendarEvent: mockCreateCalendarEvent,
 }));
-vi.mock('../../../../email.js', () => ({
+vi.mock('../../../email', () => ({
   sendBookingConfirmation: mockSendBookingConfirmation,
 }));
-vi.mock('../../../../website-db.js', () => ({
+vi.mock('../../../website-db', () => ({
   getCustomerByKeycloakId: mockGetCustomerByKeycloakId,
 }));
 
 // Register the action via side-effect import (top-level, runs once)
-import './bookSession.js';
-import { executeAction } from '../../actions.js';
+import './bookSession';
+import { executeAction } from '../../actions';
 
 beforeEach(() => {
   mockCreateCalendarEvent.mockReset();

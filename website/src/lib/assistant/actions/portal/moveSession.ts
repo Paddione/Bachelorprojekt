@@ -1,7 +1,7 @@
-import { registerAction } from '../../actions.js';
-import type { ActionResult } from '../../types.js';
-import { getClientBookings, updateCalendarEventTime } from '../../../../caldav.js';
-import { sendRescheduleNotification } from '../../../../email.js';
+import { registerAction } from '../../actions';
+import type { ActionResult } from '../../types';
+import { getClientBookings, updateCalendarEventTime } from '../../../caldav';
+import { sendRescheduleNotification } from '../../../email';
 
 registerAction({
   id: 'portal:move-session',
@@ -40,7 +40,7 @@ registerAction({
     // Ownership guard
     try {
       const bookings = await getClientBookings(ctx.email);
-      const own = bookings.find((b) => b.uid === uid);
+      const own = bookings.find((b: { uid: string }) => b.uid === uid);
       if (!own) {
         return {
           ok: false,

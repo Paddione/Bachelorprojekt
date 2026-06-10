@@ -1,6 +1,6 @@
-import { registerAction } from '../../actions.js';
-import type { ActionResult } from '../../types.js';
-import { createInboxItem } from '../../../../messaging-db.js';
+import { registerAction } from '../../actions';
+import type { ActionResult } from '../../types';
+import { createInboxItem } from '../../../messaging-db';
 
 registerAction({
   id: 'portal:request-session',

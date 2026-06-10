@@ -1,7 +1,7 @@
-import { registerAction } from '../../actions.js';
-import type { ActionResult } from '../../types.js';
-import { createCalendarEvent } from '../../../../caldav.js';
-import { sendBookingConfirmation } from '../../../../email.js';
+import { registerAction } from '../../actions';
+import type { ActionResult } from '../../types';
+import { createCalendarEvent } from '../../../caldav';
+import { sendBookingConfirmation } from '../../../email';
 
 registerAction({
   id: 'portal:book-session',

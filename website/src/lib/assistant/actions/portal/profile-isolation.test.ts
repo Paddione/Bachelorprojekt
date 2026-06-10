@@ -2,10 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 
 // Mock external dependencies that the portal action handlers import.
 // These modules are not available in the unit test environment.
-vi.mock('../../../../caldav.js', () => ({}));
-vi.mock('../../../../email.js', () => ({}));
-vi.mock('../../../../messaging-db.js', () => ({}));
-vi.mock('../../../../website-db.js', () => ({
+vi.mock('../../../caldav', () => ({}));
+vi.mock('../../../email', () => ({}));
+vi.mock('../../../messaging-db', () => ({}));
+vi.mock('../../../website-db', () => ({
   getCustomerByKeycloakId: vi.fn().mockResolvedValue(null),
 }));
 

@@ -6,15 +6,15 @@ const { mockCreateInboxItem, mockGetCustomerByKeycloakId } =
     mockGetCustomerByKeycloakId: vi.fn().mockResolvedValue(null),
   }));
 
-vi.mock('../../../../messaging-db.js', () => ({
+vi.mock('../../../messaging-db', () => ({
   createInboxItem: mockCreateInboxItem,
 }));
-vi.mock('../../../../website-db.js', () => ({
+vi.mock('../../../website-db', () => ({
   getCustomerByKeycloakId: mockGetCustomerByKeycloakId,
 }));
 
-import './requestSession.js';
-import { executeAction } from '../../actions.js';
+import './requestSession';
+import { executeAction } from '../../actions';
 
 beforeEach(() => {
   mockCreateInboxItem.mockReset().mockResolvedValue({ id: 42 });

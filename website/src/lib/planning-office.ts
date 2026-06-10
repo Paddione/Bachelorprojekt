@@ -120,3 +120,52 @@ export async function officeCount(): Promise<number> {
   );
   return r.rows[0]?.n ?? 0;
 }
+
+export const CLARIFY_EFFORTS = ['klein', 'mittel', 'gross'] as const;
+
+export async function clarifyItem(
+  extId: string,
+  commentBody: string,
+  readinessUpdates: Partial<Record<DorKey, boolean>>,
+  opts?: { dependsOn?: string[]; effort?: string },
+): Promise<boolean> {
+  const r = await pool.query(
+    `SELECT id FROM tickets.tickets WHERE external_id = $1 AND status = 'planning'`,
+    [extId],
+  );
+  const id = r.rows[0]?.id;
+  if (!id) return false;
+
+  if (commentBody && commentBody.trim() !== '') {
+    await pool.query(
+      `INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+       VALUES ($1, 'planning-office', $2, 'internal')`,
+      [id, commentBody],
+    );
+  }
+
+  const clean: Readiness = {};
+  for (const k of DOR_KEYS) if (readinessUpdates[k] !== undefined) clean[k] = !!readinessUpdates[k];
+  if (Object.keys(clean).length > 0) {
+    await pool.query(
+      `UPDATE tickets.tickets SET readiness = readiness || $1::jsonb, updated_at = now() WHERE id = $2`,
+      [JSON.stringify(clean), id],
+    );
+  }
+
+  if (opts?.dependsOn && opts.dependsOn.length > 0) {
+    await pool.query(
+      `UPDATE tickets.tickets SET depends_on = $1, updated_at = now() WHERE id = $2`,
+      [opts.dependsOn, id],
+    );
+  }
+
+  if (opts?.effort) {
+    await pool.query(
+      `UPDATE tickets.tickets SET effort = $1, updated_at = now() WHERE id = $2`,
+      [opts.effort, id],
+    );
+  }
+
+  return true;
+}

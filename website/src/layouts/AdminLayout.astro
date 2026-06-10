@@ -148,8 +148,7 @@ const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
     iconClass: 'nav-icon-kontrolle',
     items: [
       { href: '/admin/platform',                            label: 'Plattform Hub', icon: 'monitor', matches: ['/admin/monitoring', '/admin/ops', '/admin/platform'] },
-      { href: '/dev-status',                                label: 'Factory Status', icon: 'activity', matches: ['/dev-status'] },
-      { href: '/admin/planungsbuero',                       label: 'Planungsbüro', icon: 'clipboard', matches: ['/admin/planungsbuero'] },
+      { href: '/dev-status', label: 'Dev Status', icon: 'activity', matches: ['/dev-status', '/admin/planungsbuero'] },
       { href: '/admin/einstellungen/benachrichtigungen',    label: 'System-Setup',  icon: 'settings', matches: ['/admin/einstellungen/'] },
     ],
   },

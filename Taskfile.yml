@@ -264,6 +264,7 @@ tasks:
       - task: test:unit:offline-batch
       - task: test:unit:collabora-wopi-discovery
       - task: test:unit:collabora-wopi-single-brand-guard
+      - task: test:unit:ticket-triage
       - task: test:unit:coverage-guard
 
   test:unit:collabora-wopi-discovery:
@@ -275,6 +276,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/collabora-wopi-single-brand-guard.bats
+
+  test:unit:ticket-triage:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
 
   test:unit:website-ci-deploy:
     internal: true

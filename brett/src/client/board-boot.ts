@@ -1,11 +1,6 @@
 // brett/src/client/board-boot.ts — Phase A / A5 + T3 (sf-t000465)
-//
-// The full 3D-board boot logic, moved VERBATIM (behaviour-unchanged) out of the
-// former main.ts boot(). This is the lazy chunk: it statically imports Three.js
-// + scene + all board UI, so importing it pulls the whole 3D bundle. main.ts only
-// ever reaches it via `import('./board-boot')` on first board-view entry, which
-// keeps the Hauptmenü Three-free.
-//
+// Full 3D-board boot logic (lazy chunk). main.ts reaches it via
+// `import('./board-boot')` on first board-view entry, keeping the Hauptmenü Three-free.
 // T3 additions (DARK-LAUNCH: gated behind window.__brettFeatures['sf-t000465']):
 //   • Free-Fly camera mode wired into tick loop with priority POV > Free-Fly > Orbit
 //   • F-key toggle: only when local player owns no figure

@@ -220,7 +220,7 @@ git commit -m "feat(provider-routing): provider_config + provider_health tables 
 **Files:**
 - Create: `scripts/migrations/2026-06-10-provider-routing.sql`
 
-- [ ] **Step 1: Write the migration file**
+- [x] **Step 1: Write the migration file**
 
 Create `scripts/migrations/2026-06-10-provider-routing.sql` with EXACTLY the DDL + seed from the Data Model section (byte-identical to Task 1's `CREATE TABLE`/`INSERT` so the two never drift). Wrap in a comment header:
 
@@ -244,12 +244,12 @@ COMMIT;
 
 (Replace the `/* …exact DDL… */` comments with the full column lists from the Data Model section.)
 
-- [ ] **Step 2: Validate it parses**
+- [x] **Step 2: Validate it parses**
 
 Run: `cd /tmp/wt-agent-provider-routing && grep -c 'CREATE TABLE IF NOT EXISTS tickets.provider' scripts/migrations/2026-06-10-provider-routing.sql`
 Expected: `2`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/migrations/2026-06-10-provider-routing.sql

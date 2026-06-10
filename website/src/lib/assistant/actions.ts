@@ -1,8 +1,10 @@
 import type { AssistantProfile, ActionResult } from './types';
+import { getCustomerByKeycloakId } from '../website-db.js';
 
 export interface ActionContext {
   profile: AssistantProfile;
   userSub: string;
+  email?: string;
   payload: Record<string, unknown>;
 }
 
@@ -32,6 +34,17 @@ export async function executeAction(
   if (!descriptor.allowedProfiles.includes(ctx.profile)) {
     throw new Error(`action ${actionId} not allowed for profile ${ctx.profile}`);
   }
+
+  // Fill ctx.email via DB lookup when not already provided
+  if (!ctx.email && ctx.userSub) {
+    try {
+      const customer = await getCustomerByKeycloakId(ctx.userSub);
+      if (customer) ctx = { ...ctx, email: customer.email };
+    } catch {
+      // Non-fatal: action runs without email (handler must guard)
+    }
+  }
+
   return descriptor.handler(ctx);
 }
 

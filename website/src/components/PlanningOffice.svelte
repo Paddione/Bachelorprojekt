@@ -1,283 +1,749 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  const DOR_KEYS = ['spec_skizziert','offene_fragen_geklaert','abhaengigkeiten_klar','aufwand_geschaetzt'];
-  const DOR_LABEL: Record<string,string> = {
-    spec_skizziert: 'Spec skizziert', offene_fragen_geklaert: 'Fragen geklärt',
-    abhaengigkeiten_klar: 'Abhängigkeiten klar', aufwand_geschaetzt: 'Aufwand geschätzt',
+  import { onMount, onDestroy } from 'svelte';
+
+  const { brand }: { brand: string } = $props();
+
+  const DOR_KEYS = ['spec_skizziert', 'offene_fragen_geklaert', 'abhaengigkeiten_klar', 'aufwand_geschaetzt'] as const;
+  const DOR_LABEL: Record<string, string> = {
+    spec_skizziert: 'Spec skizziert',
+    offene_fragen_geklaert: 'Fragen geklärt',
+    abhaengigkeiten_klar: 'Abhängigkeiten klar',
+    aufwand_geschaetzt: 'Aufwand geschätzt',
   };
-  export let brand: string = 'mentolder';
-  let items: any[] = []; let selected: any = null; let loading = true; let override = false;
-  let newTitle = ''; let newEffort = 'mittel';
-  import { deriveSections, buildCommentBody, type ClarificationSection } from '../lib/clarification-questions';
 
-  let expanded: Record<string, boolean> = {};
-  let answers: Record<string, Record<string, any>> = {};
-  let clarifying: Record<string, boolean> = {};
-
-  function toggleExpand(extId: string) {
-    expanded = { ...expanded, [extId]: !expanded[extId] };
+  interface PlanItem {
+    extId: string;
+    title: string;
+    valueProp: string | null;
+    priority: string;
+    effort: string | null;
+    areas: string[];
+    dependsOn: string[];
+    rank: number | null;
+    readiness: Record<string, boolean>;
+    dorScore: number;
+    isNextCandidate: boolean;
+    pinned: boolean;
   }
 
-  function setAnswer(extId: string, key: string, value: any) {
-    const cur = answers[extId] ?? {};
-    answers = { ...answers, [extId]: { ...cur, [key]: value } };
+  interface Stats {
+    planning: number;
+    ready: number;
+    blocked: number;
   }
 
-  function toggleCheckbox(extId: string, key: string, option: string) {
-    const cur: string[] = (answers[extId]?.[key] as string[]) ?? [];
-    const next = cur.includes(option) ? cur.filter((o) => o !== option) : [...cur, option];
-    setAnswer(extId, key, next);
-  }
+  let items: PlanItem[] = $state([]);
+  let stats: Stats = $state({ planning: 0, ready: 0, blocked: 0 });
+  let selected: PlanItem | null = $state(null);
+  let loading = $state(true);
+  let override = $state(false);
+  let viewOverride = $state<'desktop' | 'mobile' | null>(null);
+  let windowWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  let sheetOpen = $state(false);
+  let sheetItem: PlanItem | null = $state(null);
+  let dragSrcExtId: string | null = $state(null);
+  let dropTargetIdx: number | null = $state(null);
+  let newDep = $state('');
+  let touchDragExtId: string | null = $state(null);
+  let touchStartY = $state(0);
+  let sheetSwipeStartY = $state(0);
 
-  function isChecked(extId: string, key: string, option: string): boolean {
-    return ((answers[extId]?.[key] as string[]) ?? []).includes(option);
-  }
-
-  async function saveClarification(it: any) {
-    clarifying = { ...clarifying, [it.extId]: true };
-    const itemAnswers: Record<string, any> = answers[it.extId] ?? {};
-    const sections: ClarificationSection[] = deriveSections(it);
-
-    const labels: Record<string, string> = {};
-    for (const sec of sections) for (const f of sec.fields) labels[f.key] = f.label;
-
-    const answered = (key: string) => {
-      const v = itemAnswers[key];
-      return Array.isArray(v) ? v.length > 0 : !!(v && String(v).trim());
-    };
-    const readinessUpdates: Record<string, boolean> = {};
-    for (const sec of sections) {
-      if (sec.fields.some((f) => answered(f.key))) readinessUpdates[sec.dorFlag] = true;
-    }
-
-    const depRaw = itemAnswers['abhaengigkeiten'];
-    const dependsOn = typeof depRaw === 'string'
-      ? depRaw.split(',').map((s) => s.trim()).filter(Boolean)
-      : undefined;
-
-    const effort = typeof itemAnswers['effort'] === 'string' ? itemAnswers['effort'] : undefined;
-
-    const today = new Date().toISOString().slice(0, 10);
-    const commentBody = buildCommentBody(itemAnswers, labels, today);
-
-    await fetch(`/api/planning-office/${it.extId}/clarify`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ commentBody, readinessUpdates, dependsOn, effort }),
-    });
-
-    clarifying = { ...clarifying, [it.extId]: false };
-    expanded = { ...expanded, [it.extId]: false };
-    answers = { ...answers, [it.extId]: {} };
-    await load();
-  }
-
-  const dor = (r: any) => DOR_KEYS.reduce((n,k)=> n + (r?.[k]===true?1:0), 0);
+  let isMobile = $derived(
+    (viewOverride ?? (windowWidth < 768 ? 'mobile' : 'desktop')) === 'mobile'
+  );
 
   async function load() {
     loading = true;
-    const r = await fetch('/api/planning-office');
-    items = r.ok ? (await r.json()).items : [];
-    if (selected) selected = items.find(i => i.extId === selected.extId) ?? null;
+    try {
+      const r = await fetch('/api/admin/planungsbuero');
+      if (r.ok) {
+        const data = await r.json();
+        items = data.items;
+        stats = data.stats;
+        if (selected) {
+          selected = items.find((i: PlanItem) => i.extId === selected!.extId) ?? null;
+        }
+      }
+    } catch {
+      items = [];
+    }
     loading = false;
   }
-  async function patch(extId: string, body: any) {
-    await fetch(`/api/planning-office/${extId}`, {
-      method: 'PATCH', headers: {'content-type':'application/json'}, body: JSON.stringify(body) });
+
+  async function patch(extId: string, body: Record<string, unknown>) {
+    await fetch(`/api/admin/planungsbuero/${extId}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
     await load();
   }
-  async function toggleDor(it: any, key: string) {
+
+  async function toggleDor(it: PlanItem, key: string) {
     await patch(it.extId, { readiness: { ...it.readiness, [key]: !(it.readiness?.[key]) } });
   }
-  async function move(it: any, dir: number) {
-    await patch(it.extId, { rank: (it.rank ?? 0) + dir });
-  }
-  async function promote(it: any) {
+
+  async function promote(it: PlanItem) {
     const r = await fetch(`/api/planning-office/${it.extId}/promote`, {
-      method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ override }) });
-    if (!r.ok) alert('Promote abgelehnt: ' + (await r.json()).error);
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ override }),
+    });
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({ error: 'unknown' }));
+      alert('Promote abgelehnt: ' + data.error);
+    }
     await load();
   }
-  async function addIdea() {
-    if (!newTitle.trim()) return;
-    await fetch('/api/planning-office', {
-      method:'POST', headers:{'content-type':'application/json'},
-      body: JSON.stringify({ title: newTitle, brand, effort: newEffort }) });
-    newTitle = ''; await load();
+
+  function selectItem(it: PlanItem) {
+    if (isMobile) {
+      sheetItem = it;
+      sheetOpen = true;
+    } else {
+      selected = it;
+    }
   }
-  async function togglePin(it: any) {
-    await patch(it.extId, { pinned: !it.pinned });
+
+  function onDragStart(e: DragEvent, it: PlanItem) {
+    dragSrcExtId = it.extId;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', it.extId);
+    }
   }
-  async function cleanupEphemeral() {
-    if (!confirm('Alle nicht gepinnten Ideen löschen?')) return;
-    await fetch('/api/planning-office', { method: 'DELETE' });
-    await load();
+
+  function onDragOver(e: DragEvent, idx: number) {
+    e.preventDefault();
+    dropTargetIdx = idx;
   }
-  onMount(load);
+
+  function onDragLeave() {
+    dropTargetIdx = null;
+  }
+
+  async function onDrop(e: DragEvent, targetIdx: number) {
+    e.preventDefault();
+    dropTargetIdx = null;
+    if (!dragSrcExtId) return;
+    const srcItem = items.find((i) => i.extId === dragSrcExtId);
+    if (!srcItem) return;
+    await patch(dragSrcExtId, { rank: targetIdx });
+    dragSrcExtId = null;
+  }
+
+  function onDragEnd() {
+    dragSrcExtId = null;
+    dropTargetIdx = null;
+  }
+
+  function onHandlePointerDown(e: PointerEvent, it: PlanItem) {
+    if (!isMobile) return;
+    touchDragExtId = it.extId;
+    touchStartY = e.clientY;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function onHandlePointerMove(e: PointerEvent) {
+    if (!touchDragExtId) return;
+    const rows = document.querySelectorAll('[data-testid^="pb-queue-row-"]');
+    for (let i = 0; i < rows.length; i++) {
+      const rect = rows[i].getBoundingClientRect();
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        dropTargetIdx = i;
+        break;
+      }
+    }
+  }
+
+  async function onHandlePointerUp(e: PointerEvent) {
+    if (!touchDragExtId) return;
+    if (dropTargetIdx !== null) {
+      await patch(touchDragExtId, { rank: dropTargetIdx });
+    }
+    touchDragExtId = null;
+    dropTargetIdx = null;
+  }
+
+  function toggleView() {
+    const next = isMobile ? 'desktop' : 'mobile';
+    viewOverride = next;
+    try { localStorage.setItem('planungsbuero_view', next); } catch {}
+  }
+
+  function onResize() {
+    windowWidth = window.innerWidth;
+  }
+
+  function onSheetPointerDown(e: PointerEvent) {
+    sheetSwipeStartY = e.clientY;
+  }
+
+  function onSheetPointerUp(e: PointerEvent) {
+    const delta = e.clientY - sheetSwipeStartY;
+    if (delta > 80) sheetOpen = false;
+  }
+
+  async function removeDep(dep: string) {
+    if (!selected) return;
+    await patch(selected.extId, { dependsOn: selected.dependsOn.filter((d) => d !== dep) });
+  }
+
+  async function addDep() {
+    if (!newDep.trim() || !selected) return;
+    await patch(selected.extId, { dependsOn: [...selected.dependsOn, newDep.trim()] });
+    newDep = '';
+  }
+
+  function priorityColor(p: string): string {
+    switch (p) {
+      case 'critical': return '#ef4444';
+      case 'high': return '#f97316';
+      case 'medium': return '#eab308';
+      default: return '#6b7280';
+    }
+  }
+
+  onMount(() => {
+    try {
+      const v = localStorage.getItem('planungsbuero_view');
+      if (v === 'desktop' || v === 'mobile') viewOverride = v;
+    } catch {}
+    window.addEventListener('resize', onResize);
+    load();
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('resize', onResize);
+  });
 </script>
 
-<div class="po" data-testid="office-root">
-  <div class="po-list" data-testid="office-list">
-    <form class="po-add" data-testid="office-add-form" on:submit|preventDefault={addIdea}>
-      <input data-testid="office-add-title" placeholder="Neue Idee…" bind:value={newTitle} />
-      <select data-testid="office-add-effort" bind:value={newEffort}>
-        <option value="klein">klein</option><option value="mittel">mittel</option><option value="gross">groß</option>
-      </select>
-      <button type="submit">+ Anlegen</button>
-      <button type="button" class="po-cleanup" data-testid="office-cleanup"
-              on:click={cleanupEphemeral} title="Nicht gepinnte Ideen löschen">
-        🗑 Ephemere löschen
-      </button>
-    </form>
-    {#if loading}<p>Lädt…</p>
-    {:else if !items.length}<p class="muted">Büro leer.</p>
-    {:else}
-      {#each items as it (it.extId)}
-        <div class="po-card" data-testid="office-card"
-             class:next={it.rank===0 && dor(it.readiness)===4}
-             class:ephemeral={!it.pinned}
-             on:click={() => selected = it}>
-          <div class="po-rank">
-            <button data-testid="office-rank-up" on:click|stopPropagation={() => move(it,-1)}>▲</button>
-            <button data-testid="office-rank-down" on:click|stopPropagation={() => move(it,1)}>▼</button>
-          </div>
-          <button class="po-pin" data-testid="office-pin-{it.extId}"
-                  class:pinned={it.pinned}
-                  on:click|stopPropagation={() => togglePin(it)}
-                  title={it.pinned ? 'Gepinnt — beim nächsten Lauf behalten' : 'Nicht gepinnt — wird beim nächsten Lauf gelöscht'}>
-            {it.pinned ? '📌' : '📍'}
-          </button>
-          <div class="po-body">
-            <strong>{it.title}</strong>
-            <span class="po-badge">{it.effort ?? '—'}</span>
-            {#each it.areas as a}<span class="po-chip">{a}</span>{/each}
-            {#if it.rank===0 && dor(it.readiness)===4}<span class="po-next">✅ Nächster</span>{/if}
-          </div>
-          <div class="po-dor" data-testid="office-dor">{dor(it.readiness)}/4</div>
-          <button class="po-expand" data-testid="office-expand"
-                  on:click|stopPropagation={() => toggleExpand(it.extId)}
-                  aria-expanded={expanded[it.extId] ?? false}
-                  title="Klärungsfragen">
-            {expanded[it.extId] ? '▲' : '▼'}
-          </button>
-        </div>
-        {#if expanded[it.extId]}
-          <div class="po-clarify" data-testid="office-clarify-{it.extId}">
-            {#if it.valueProp}<p class="po-clarify-value">📎 {it.valueProp}</p>{/if}
-            {#each deriveSections(it) as section}
-              <fieldset class="po-clarify-section">
-                <legend>🔴 {section.title}</legend>
-                {#each section.fields as field}
-                  <div class="po-field">
-                    <label class="po-field-label">{field.label}</label>
-                    {#if field.type === 'text'}
-                      {#if field.multiline}
-                        <textarea data-testid="clarify-{field.key}"
-                          value={answers[it.extId]?.[field.key] ?? ''}
-                          on:input={(e:any) => setAnswer(it.extId, field.key, e.target.value)}></textarea>
-                      {:else}
-                        <input type="text" data-testid="clarify-{field.key}"
-                          value={answers[it.extId]?.[field.key] ?? ''}
-                          on:input={(e:any) => setAnswer(it.extId, field.key, e.target.value)} />
-                      {/if}
-                    {:else if field.type === 'radio'}
-                      <div class="po-options">
-                        {#each field.options ?? [] as opt}
-                          <label class="po-opt">
-                            <input type="radio" name="{it.extId}-{field.key}"
-                              data-testid="clarify-{field.key}-{opt}"
-                              checked={answers[it.extId]?.[field.key] === opt}
-                              on:change={() => setAnswer(it.extId, field.key, opt)} />
-                            {opt}
-                          </label>
-                        {/each}
-                      </div>
-                    {:else if field.type === 'checkboxes'}
-                      <div class="po-options">
-                        {#each field.options ?? [] as opt}
-                          <label class="po-opt">
-                            <input type="checkbox"
-                              data-testid="clarify-{field.key}-{opt}"
-                              checked={isChecked(it.extId, field.key, opt)}
-                              on:change={() => toggleCheckbox(it.extId, field.key, opt)} />
-                            {opt}
-                          </label>
-                        {/each}
-                      </div>
-                    {/if}
-                  </div>
-                {/each}
-              </fieldset>
-            {/each}
-            <button class="po-clarify-save" data-testid="office-clarify-save"
-                    on:click|stopPropagation={() => saveClarification(it)}
-                    disabled={clarifying[it.extId]}>
-              {clarifying[it.extId] ? 'Speichern…' : '✓ Antworten speichern'}
-            </button>
-          </div>
-        {/if}
-      {/each}
-    {/if}
+<div class="pb-root" data-testid="pb-root">
+  <div class="pb-stats-bar" data-testid="pb-stats-bar">
+    <span>{stats.planning} planning · {stats.ready} ready · {stats.blocked} blocked</span>
   </div>
 
-  {#if selected}
-    <div class="po-editor" data-testid="office-editor">
-      <h3>{selected.title}</h3>
-      <label>Kern-Nutzen
-        <input data-testid="office-edit-valueprop" value={selected.valueProp ?? ''}
-               on:change={(e:any) => patch(selected.extId, { valueProp: e.target.value })} />
-      </label>
-      <fieldset>
-        <legend>Definition of Ready</legend>
-        {#each DOR_KEYS as k}
-          <label class="po-check">
-            <input type="checkbox" data-testid={`office-dor-${k}`}
-                   checked={selected.readiness?.[k]===true} on:change={() => toggleDor(selected, k)} />
-            {DOR_LABEL[k]}
-          </label>
+  <button class="pb-view-toggle" data-testid="pb-view-toggle" onclick={toggleView}>
+    {isMobile ? '⊞' : '≡'}
+  </button>
+
+  {#if loading}
+    <div class="pb-loading">Lädt…</div>
+  {:else if !items.length}
+    <div class="pb-empty">Büro leer.</div>
+  {:else}
+    <div class="pb-layout" class:pb-mobile={isMobile}>
+      <div class="pb-queue" data-testid="pb-queue">
+        {#each items as it, idx (it.extId)}
+          <div
+            class="pb-row"
+            class:selected={!isMobile && selected?.extId === it.extId}
+            class:drag-source={dragSrcExtId === it.extId}
+            class:drop-target={dropTargetIdx === idx}
+            data-testid="pb-queue-row-{it.extId}"
+            draggable={!isMobile}
+            ondragstart={(e) => onDragStart(e, it)}
+            ondragover={(e) => onDragOver(e, idx)}
+            ondragleave={onDragLeave}
+            ondrop={(e) => onDrop(e, idx)}
+            ondragend={onDragEnd}
+            onclick={() => selectItem(it)}
+          >
+            <span
+              class="pb-handle"
+              onpointerdown={(e) => onHandlePointerDown(e, it)}
+              onpointermove={onHandlePointerMove}
+              onpointerup={onHandlePointerUp}
+            >☰</span>
+            <span class="pb-rank">{String(idx + 1).padStart(2, '0')}</span>
+            <span class="pb-priority-dot" style="background:{priorityColor(it.priority)}"></span>
+            <span class="pb-extid">{it.extId}</span>
+            <span class="pb-title">{it.title}</span>
+            <span class="pb-dor-squares">
+              {#each DOR_KEYS as k}
+                <span class="pb-dor-sq" class:pb-dor-on={it.readiness?.[k] === true}></span>
+              {/each}
+            </span>
+          </div>
         {/each}
-      </fieldset>
-      <label class="po-check">
-        <input type="checkbox" data-testid="office-override" bind:checked={override} /> Override (trotz &lt; 4/4)
-      </label>
-      <button data-testid="office-promote" disabled={!override && dor(selected.readiness) < 4}
-              on:click={() => promote(selected)}>Als nächstes planen</button>
+      </div>
+
+      {#if !isMobile && selected}
+        <div class="pb-detail" data-testid="pb-detail">
+          <h2 class="pb-detail-title">{selected.title}</h2>
+          <label class="pb-field-label">Kern-Nutzen
+            <textarea
+              class="pb-textarea"
+              value={selected.valueProp ?? ''}
+              onblur={(e) => patch(selected!.extId, { valueProp: (e.target as HTMLTextAreaElement).value })}
+            ></textarea>
+          </label>
+          <fieldset class="pb-fieldset">
+            <legend>Definition of Ready</legend>
+            {#each DOR_KEYS as k}
+              <label class="pb-check">
+                <input type="checkbox" checked={selected.readiness?.[k] === true} onchange={() => toggleDor(selected!, k)} />
+                {DOR_LABEL[k]}
+              </label>
+            {/each}
+          </fieldset>
+          <div class="pb-deps">
+            <span class="pb-field-label">Abhängigkeiten</span>
+            <div class="pb-chips">
+              {#each selected.dependsOn as dep}
+                <span class="pb-chip">{dep}<button class="pb-chip-x" onclick={() => removeDep(dep)}>×</button></span>
+              {/each}
+            </div>
+            <input
+              class="pb-dep-input"
+              placeholder="Neue Abhängigkeit…"
+              bind:value={newDep}
+              onkeydown={(e) => { if (e.key === 'Enter') addDep(); }}
+            />
+          </div>
+          <div class="pb-effort-btns">
+            {#each ['klein', 'mittel', 'gross'] as eff}
+              <button
+                class="pb-effort-btn"
+                class:active={selected.effort === eff}
+                onclick={() => patch(selected!.extId, { effort: eff })}
+              >{eff}</button>
+            {/each}
+          </div>
+          <label class="pb-check pb-override-check">
+            <input type="checkbox" data-testid="pb-override" bind:checked={override} />
+            Override (trotz &lt; 4/4)
+          </label>
+          <button
+            class="pb-promote-btn"
+            data-testid="pb-detail-promote"
+            disabled={!override && selected.dorScore < 4}
+            onclick={() => promote(selected!)}
+          >Als nächstes planen</button>
+        </div>
+      {/if}
+    </div>
+  {/if}
+
+  {#if isMobile && sheetItem}
+    <div class="pb-sheet" class:open={sheetOpen} data-testid="pb-sheet">
+      <div
+        class="pb-sheet-handle"
+        onpointerdown={onSheetPointerDown}
+        onpointerup={onSheetPointerUp}
+      >
+        <button class="pb-sheet-close" data-testid="pb-sheet-close" onclick={() => sheetOpen = false}>×</button>
+      </div>
+      <div class="pb-sheet-body">
+        <h2 class="pb-detail-title">{sheetItem.title}</h2>
+        <label class="pb-field-label">Kern-Nutzen
+          <textarea
+            class="pb-textarea"
+            value={sheetItem.valueProp ?? ''}
+            onblur={(e) => {
+              patch(sheetItem!.extId, { valueProp: (e.target as HTMLTextAreaElement).value });
+            }}
+          ></textarea>
+        </label>
+        <fieldset class="pb-fieldset">
+          <legend>Definition of Ready</legend>
+          {#each DOR_KEYS as k}
+            <label class="pb-check">
+              <input type="checkbox" checked={sheetItem.readiness?.[k] === true} onchange={() => toggleDor(sheetItem!, k)} />
+              {DOR_LABEL[k]}
+            </label>
+          {/each}
+        </fieldset>
+        <div class="pb-deps">
+          <span class="pb-field-label">Abhängigkeiten</span>
+          <div class="pb-chips">
+            {#each sheetItem.dependsOn as dep}
+              <span class="pb-chip">{dep}<button class="pb-chip-x" onclick={() => removeDep(dep)}>×</button></span>
+            {/each}
+          </div>
+          <input
+            class="pb-dep-input"
+            placeholder="Neue Abhängigkeit…"
+            bind:value={newDep}
+            onkeydown={(e) => { if (e.key === 'Enter') addDep(); }}
+          />
+        </div>
+        <div class="pb-effort-btns">
+          {#each ['klein', 'mittel', 'gross'] as eff}
+            <button
+              class="pb-effort-btn"
+              class:active={sheetItem.effort === eff}
+              onclick={() => patch(sheetItem!.extId, { effort: eff })}
+            >{eff}</button>
+          {/each}
+        </div>
+        <label class="pb-check pb-override-check">
+          <input type="checkbox" bind:checked={override} />
+          Override (trotz &lt; 4/4)
+        </label>
+        <button
+          class="pb-promote-btn"
+          disabled={!override && sheetItem.dorScore < 4}
+          onclick={() => promote(sheetItem!)}
+        >Als nächstes planen</button>
+      </div>
     </div>
   {/if}
 </div>
 
 <style>
-  .po { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
-  .po-add { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; margin-bottom:.6rem; }
-  .po-card { display:flex; gap:.5rem; align-items:center; padding:.5rem; border:1px solid #333;
-             border-radius:.4rem; cursor:pointer; margin-bottom:.4rem; }
-  .po-card.next { border-color:#d4af37; }
-  .po-card.ephemeral { border-color:#444; opacity:.75; }
-  .po-pin { background:none; border:none; cursor:pointer; font-size:1rem; padding:0 .1rem; opacity:.5; }
-  .po-pin.pinned { opacity:1; }
-  .po-cleanup { margin-left:auto; background:none; border:1px solid #555; color:#888; border-radius:.3rem;
-                padding:.2rem .5rem; cursor:pointer; font-size:.75rem; }
-  .po-cleanup:hover { border-color:#e05; color:#e05; }
-  .po-badge { font-size:.7rem; background:#33333f; border-radius:.3rem; padding:.1rem .3rem; }
-  .po-chip { font-size:.7rem; background:#222; border-radius:.3rem; padding:.1rem .3rem; margin-left:.2rem; }
-  .po-next { color:#d4af37; font-size:.75rem; margin-left:.4rem; }
-  .po-dor { color:#5fd35f; font-weight:600; }
-  .po-rank button { display:block; background:none; border:none; color:#888; cursor:pointer; }
-  .po-editor { border:1px solid #333; border-radius:.4rem; padding:.75rem; }
-  .po-check { display:block; }
-  .po-expand { background:none; border:none; color:#888; cursor:pointer; font-size:.9rem; }
-  .po-clarify { border:1px solid #333; border-top:none; border-radius:0 0 .4rem .4rem;
-                padding:.6rem .75rem; margin:-.4rem 0 .6rem 0; background:#1b1b22; }
-  .po-clarify-value { color:#aaa; font-size:.8rem; margin:0 0 .5rem; }
-  .po-clarify-section { border:1px solid #2a2a33; border-radius:.4rem; margin:0 0 .6rem; padding:.4rem .6rem; }
-  .po-clarify-section legend { font-size:.8rem; color:#e0653f; }
-  .po-field { margin:.4rem 0; }
-  .po-field-label { display:block; font-size:.78rem; color:#ccc; margin-bottom:.2rem; }
-  .po-field input[type="text"], .po-field textarea { width:100%; box-sizing:border-box;
-    background:#111; border:1px solid #333; color:#eee; border-radius:.3rem; padding:.3rem; }
-  .po-field textarea { min-height:3rem; resize:vertical; }
-  .po-options { display:flex; flex-wrap:wrap; gap:.5rem; }
-  .po-opt { font-size:.78rem; display:flex; align-items:center; gap:.2rem; }
-  .po-clarify-save { margin-top:.3rem; }
-  .muted { color:#888; }
+  :root {
+    --pb-bg: #0f1117;
+    --pb-surface: #161b22;
+    --pb-surface-hover: #1c2129;
+    --pb-border: #21262d;
+    --pb-text: #e6edf3;
+    --pb-text-muted: #64748b;
+    --pb-amber: #d4af37;
+    --pb-amber-dim: #b8962e;
+    --pb-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --pb-selected-bg: #1e2736;
+  }
+
+  .pb-root {
+    position: relative;
+    background: var(--pb-bg);
+    color: var(--pb-text);
+    font-family: var(--pb-mono);
+    min-height: 400px;
+  }
+
+  .pb-stats-bar {
+    font-family: var(--pb-mono);
+    color: var(--pb-text-muted);
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--pb-border);
+    font-size: 0.8rem;
+  }
+
+  .pb-view-toggle {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: 1px solid var(--pb-border);
+    color: var(--pb-text-muted);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .pb-view-toggle:hover {
+    color: var(--pb-text);
+    border-color: var(--pb-text-muted);
+  }
+
+  .pb-loading,
+  .pb-empty {
+    padding: 2rem;
+    color: var(--pb-text-muted);
+    text-align: center;
+  }
+
+  .pb-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    min-height: 300px;
+  }
+
+  .pb-layout.pb-mobile {
+    grid-template-columns: 1fr;
+  }
+
+  .pb-queue {
+    border-right: 1px solid var(--pb-border);
+    overflow-y: auto;
+  }
+
+  .pb-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--pb-border);
+    border-left: 3px solid transparent;
+    transition: background 0.12s;
+  }
+
+  .pb-row:hover {
+    background: var(--pb-surface-hover);
+  }
+
+  .pb-row.selected {
+    border-left: 3px solid var(--pb-amber);
+    background: var(--pb-selected-bg);
+  }
+
+  .pb-row.drag-source {
+    opacity: 0.4;
+  }
+
+  .pb-row.drop-target {
+    border-top: 2px solid var(--pb-amber);
+  }
+
+  .pb-handle {
+    cursor: grab;
+    color: var(--pb-text-muted);
+    font-size: 1rem;
+    width: 24px;
+    text-align: center;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .pb-rank {
+    font-family: var(--pb-mono);
+    font-size: 0.75rem;
+    color: var(--pb-text-muted);
+    width: 20px;
+  }
+
+  .pb-priority-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .pb-extid {
+    font-family: var(--pb-mono);
+    font-size: 0.7rem;
+    color: var(--pb-amber);
+    white-space: nowrap;
+    min-width: 60px;
+  }
+
+  .pb-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
+
+  .pb-dor-squares {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .pb-dor-sq {
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: var(--pb-border);
+  }
+
+  .pb-dor-sq.pb-dor-on {
+    background: var(--pb-amber);
+  }
+
+  .pb-detail {
+    padding: 16px;
+    overflow-y: auto;
+    background: var(--pb-surface);
+  }
+
+  .pb-detail-title {
+    font-size: 1.1rem;
+    margin: 0 0 12px;
+    color: var(--pb-text);
+  }
+
+  .pb-field-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--pb-text-muted);
+    margin-bottom: 4px;
+  }
+
+  .pb-textarea {
+    width: 100%;
+    min-height: 60px;
+    background: var(--pb-bg);
+    border: 1px solid var(--pb-border);
+    color: var(--pb-text);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-family: var(--pb-mono);
+    font-size: 0.8rem;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+
+  .pb-fieldset {
+    border: 1px solid var(--pb-border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 12px 0;
+  }
+
+  .pb-fieldset legend {
+    font-size: 0.75rem;
+    color: var(--pb-text-muted);
+  }
+
+  .pb-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    margin: 4px 0;
+    cursor: pointer;
+  }
+
+  .pb-check input[type="checkbox"] {
+    accent-color: var(--pb-amber);
+  }
+
+  .pb-deps {
+    margin: 12px 0;
+  }
+
+  .pb-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 4px 0;
+  }
+
+  .pb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--pb-bg);
+    border: 1px solid var(--pb-border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    color: var(--pb-amber);
+  }
+
+  .pb-chip-x {
+    background: none;
+    border: none;
+    color: var(--pb-text-muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .pb-chip-x:hover {
+    color: #ef4444;
+  }
+
+  .pb-dep-input {
+    width: 100%;
+    background: var(--pb-bg);
+    border: 1px solid var(--pb-border);
+    color: var(--pb-text);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: var(--pb-mono);
+    font-size: 0.75rem;
+    margin-top: 4px;
+    box-sizing: border-box;
+  }
+
+  .pb-effort-btns {
+    display: flex;
+    gap: 6px;
+    margin: 12px 0;
+  }
+
+  .pb-effort-btn {
+    background: var(--pb-bg);
+    border: 1px solid var(--pb-border);
+    color: var(--pb-text-muted);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--pb-mono);
+    font-size: 0.75rem;
+  }
+
+  .pb-effort-btn.active {
+    border-color: var(--pb-amber);
+    color: var(--pb-amber);
+    background: var(--pb-selected-bg);
+  }
+
+  .pb-override-check {
+    margin: 12px 0 8px;
+  }
+
+  .pb-promote-btn {
+    width: 100%;
+    padding: 8px;
+    background: var(--pb-amber);
+    color: var(--pb-bg);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--pb-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pb-promote-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .pb-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60vh;
+    background: var(--pb-surface);
+    border-radius: 12px 12px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .pb-sheet.open {
+    transform: translateY(0);
+  }
+
+  .pb-sheet-handle {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 12px;
+    touch-action: none;
+  }
+
+  .pb-sheet-close {
+    background: none;
+    border: none;
+    color: var(--pb-text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .pb-sheet-body {
+    padding: 0 16px 16px;
+  }
+
+  @media (max-width: 767px) {
+    .pb-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .pb-queue {
+      border-right: none;
+    }
+  }
 </style>

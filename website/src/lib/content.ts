@@ -203,10 +203,12 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
     avatarType: db.avatarType ?? c.avatarType,
     avatarSrc: db.avatarSrc ?? c.avatarSrc,
     avatarInitials: db.avatarInitials ?? c.avatarInitials,
-    whyMePoints: db.whyMePoints.map((pt, i) => ({
-      ...pt,
-      iconPath: c.whyMePoints[i]?.iconPath,
-    })),
+    whyMePoints: Array.isArray(db.whyMePoints)
+      ? db.whyMePoints.map((pt, i) => ({
+          ...pt,
+          iconPath: c.whyMePoints[i]?.iconPath,
+        }))
+      : c.whyMePoints.map(p => ({ title: p.title, text: p.text, iconPath: p.iconPath })),
     processSteps: db.processSteps ?? DEFAULT_PROCESS_STEPS,
     processEyebrow: db.processEyebrow ?? 'So arbeiten wir',
     processHeadline: db.processHeadline ?? 'Vier ruhige Schritte.',
@@ -215,11 +217,17 @@ export async function getEffectiveHomepage(): Promise<HomepageContent> {
 
 export async function getEffectiveUebermich(): Promise<UebermichContent> {
   const db = await getUebermichContent(BRAND).catch(() => null);
-  const fallback = config.uebermich;
-  if (!db) return fallback;
+  const f = config.uebermich;
+  if (!db) return f;
   return {
-    ...db,
-    warumdieserName: db.warumdieserName ?? fallback.warumdieserName,
+    pageHeadline: typeof db.pageHeadline === 'string' ? db.pageHeadline : f.pageHeadline,
+    subheadline: typeof db.subheadline === 'string' ? db.subheadline : f.subheadline,
+    introParagraphs: Array.isArray(db.introParagraphs) ? db.introParagraphs : f.introParagraphs,
+    sections: Array.isArray(db.sections) ? db.sections : f.sections,
+    milestones: Array.isArray(db.milestones) ? db.milestones : f.milestones,
+    notDoing: Array.isArray(db.notDoing) ? db.notDoing : f.notDoing,
+    privateText: typeof db.privateText === 'string' ? db.privateText : f.privateText,
+    warumdieserName: db.warumdieserName ?? f.warumdieserName,
   };
 }
 

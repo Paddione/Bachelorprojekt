@@ -46,8 +46,9 @@ test('runS1 over the real repo returns the documented contract shape', () => {
     assert.equal(typeof v.metric, 'number');
     assert.equal(v.key, `S1:${v.path}`);
   }
-  // the known over-limit DB file is present; the ignored seed file is not.
+  // Both website-db.ts and system-test-seed-data.ts are in the S1 ignore list
+  // (sanctioned exceptions — see gates.yaml s1.ignore).
   const keys = new Set(res.violations.map((v) => v.key));
-  assert.ok(keys.has('S1:website/src/lib/website-db.ts'));
+  assert.ok(!keys.has('S1:website/src/lib/website-db.ts'));
   assert.ok(!keys.has('S1:website/src/lib/system-test-seed-data.ts'));
 });

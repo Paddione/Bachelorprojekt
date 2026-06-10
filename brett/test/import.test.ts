@@ -33,6 +33,8 @@ function setupDomMocks() {
     constructor(_parts: any[], opts: any) { this.type = opts?.type ?? ''; }
   };
   (global as any).window = { __brettFeatures: {} };
+  // ws-client.ts reads location.search + location.protocol at module init level
+  (global as any).location = { search: '', protocol: 'https:' };
 }
 
 setupDomMocks();

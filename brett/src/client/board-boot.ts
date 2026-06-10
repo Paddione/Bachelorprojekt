@@ -555,7 +555,6 @@ export async function maybeStartReplayMode(): Promise<boolean> {
       fetch(`/api/sessions/${encodeURIComponent(room)}/events`),
       fetch(`/api/sessions/${encodeURIComponent(room)}/snapshot`),
     ]);
-
     if (!eventsRes.ok || !snapshotRes.ok) {
       console.error('[brett/replay] failed to load replay data', eventsRes.status, snapshotRes.status);
       return false;
@@ -563,18 +562,13 @@ export async function maybeStartReplayMode(): Promise<boolean> {
 
     const { events } = await eventsRes.json();
     const { state: initialState } = await snapshotRes.json();
-
     const ctrl = createReplayController(events ?? [], initialState ?? {});
-
-    // Apply initial state to the scene.
+    // Apply initial state to the scene, then render timeline overlay.
     applyReplayStateToScene(ctrl.seek(0));
-
-    // Render timeline overlay; each seek re-applies the reconstructed state.
     const appRoot = document.getElementById('app') ?? document.body;
     renderTimeline(appRoot, ctrl, (state: ReplayBoardState) => {
       applyReplayStateToScene(state);
     });
-
     return true;
   } catch (err) {
     console.error('[brett/replay] error starting replay mode:', err);

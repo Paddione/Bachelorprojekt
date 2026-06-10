@@ -88,6 +88,11 @@ if ! _has_frontmatter; then
         printf 'domains: %s\n' "$domains_yaml"
         printf 'status: active\n'
         printf 'pr_number: null\n'
+        printf 'file_locks: []\n'
+        printf 'shared_changes: false\n'
+        printf 'batch_id: null\n'
+        printf 'parent_feature: null\n'
+        printf 'depends_on_plans: []\n'
         printf '%s\n\n' "---"
         cat "$FILE"
     } > "$tmpfile"
@@ -99,13 +104,16 @@ fi
 # ── Case B/C: frontmatter present → check the routing-critical fields ──
 dom_raw="$(_fm_field domains | tr -d ' \t\r')"
 st_raw="$(_fm_field status | tr -d ' \t\r')"
+fl_raw="$(_fm_field file_locks | tr -d ' \t\r')"
 
 needs_domains=0
 case "$dom_raw" in ""|"[]"|"null") needs_domains=1 ;; esac
 needs_status=0
 case "$st_raw" in ""|"null") needs_status=1 ;; esac
+needs_batch=0
+[[ -z "$fl_raw" ]] && needs_batch=1
 
-if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 ]]; then
+if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 && "$needs_batch" -eq 0 ]]; then
     echo "Frontmatter already complete in $FILE — nothing to do."
     exit 0
 fi
@@ -116,13 +124,21 @@ derived_yaml="$(_domains_to_yaml "$derived")"
     echo "WARNING: domains is empty and no signals found in $FILE — set domains manually." >&2
 
 tmpfile="$(mktemp)"
-awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" -v needs_st="$needs_status" '
-    BEGIN { infm=0; dom_seen=0; st_seen=0 }
+awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
+    -v needs_st="$needs_status" -v needs_batch="$needs_batch" '
+    BEGIN { infm=0; dom_seen=0; st_seen=0; batch_seen=0 }
     { sub(/\r$/,"") }
     NR==1 && $0=="---" { print; infm=1; next }
     infm==1 && $0=="---" {
-        if (needs_dom==1 && dom_seen==0) print "domains: " derived
-        if (needs_st==1  && st_seen==0)  print "status: active"
+        if (needs_dom==1   && dom_seen==0)   print "domains: " derived
+        if (needs_st==1    && st_seen==0)    print "status: active"
+        if (needs_batch==1 && batch_seen==0) {
+            print "file_locks: []"
+            print "shared_changes: false"
+            print "batch_id: null"
+            print "parent_feature: null"
+            print "depends_on_plans: []"
+        }
         print; infm=0; next
     }
     infm==1 && $0 ~ /^domains:/ {
@@ -135,7 +151,8 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" -v needs_st="$needs
         if (needs_st==1) { print "status: active" } else { print }
         next
     }
+    infm==1 && $0 ~ /^file_locks:/ { batch_seen=1; print; next }
     { print }
 ' "$FILE" > "$tmpfile"
 mv "$tmpfile" "$FILE"
-echo "Repaired frontmatter in $FILE (domains=$derived_yaml needs_status=$needs_status)"
+echo "Repaired frontmatter in $FILE (domains=$derived_yaml needs_status=$needs_status needs_batch=$needs_batch)"

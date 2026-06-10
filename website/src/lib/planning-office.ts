@@ -10,7 +10,7 @@ export interface OfficeItem {
   extId: string; title: string; valueProp: string | null; priority: string;
   effort: string | null; areas: string[]; dependsOn: string[];
   rank: number | null; readiness: Readiness; dorScore: number;
-  isNextCandidate: boolean; createdAt: string; updatedAt: string;
+  isNextCandidate: boolean; pinned: boolean; createdAt: string; updatedAt: string;
 }
 
 export function dorScore(r: Readiness | null): number {
@@ -26,17 +26,17 @@ function mapRow(row: any): OfficeItem {
     areas: row.areas ?? [], dependsOn: row.depends_on ?? [],
     rank: row.planning_rank, readiness, dorScore: dorScore(readiness),
     isNextCandidate: (row.planning_rank ?? 99) === 0 && dorScore(readiness) === 4,
-    createdAt: row.created_at, updatedAt: row.updated_at,
+    pinned: row.pinned ?? false, createdAt: row.created_at, updatedAt: row.updated_at,
   };
 }
 
 export async function listOffice(): Promise<OfficeItem[]> {
   const r = await pool.query(
     `SELECT external_id, title, value_prop, priority, effort, areas, depends_on,
-            planning_rank, readiness, created_at, updated_at
+            planning_rank, readiness, pinned, created_at, updated_at
        FROM tickets.tickets
       WHERE type = 'feature' AND status = 'planning'
-      ORDER BY COALESCE(planning_rank, 2147483647), created_at`,
+      ORDER BY pinned DESC, COALESCE(planning_rank, 2147483647), created_at`,
   );
   return r.rows.map(mapRow);
 }
@@ -61,7 +61,7 @@ export async function createIdea(inp: CreateInput): Promise<string> {
 
 export interface PatchInput {
   valueProp?: string; priority?: string; effort?: string;
-  areas?: string[]; dependsOn?: string[]; rank?: number; readiness?: Readiness;
+  areas?: string[]; dependsOn?: string[]; rank?: number; readiness?: Readiness; pinned?: boolean;
 }
 export async function patchItem(extId: string, p: PatchInput): Promise<boolean> {
   const sets: string[] = []; const vals: any[] = []; let i = 1;
@@ -72,6 +72,7 @@ export async function patchItem(extId: string, p: PatchInput): Promise<boolean> 
   if (p.areas !== undefined) add('areas', p.areas);
   if (p.dependsOn !== undefined) add('depends_on', p.dependsOn);
   if (p.rank !== undefined) add('planning_rank', p.rank);
+  if (p.pinned !== undefined) add('pinned', p.pinned);
   if (p.readiness !== undefined) {
     const clean: Readiness = {};
     for (const k of DOR_KEYS) if (p.readiness[k] !== undefined) clean[k] = !!p.readiness[k];
@@ -119,6 +120,17 @@ export async function officeCount(): Promise<number> {
     `SELECT COUNT(*)::int AS n FROM tickets.tickets WHERE type='feature' AND status='planning'`,
   );
   return r.rows[0]?.n ?? 0;
+}
+
+// Löscht alle nicht-gepinnten planning-Ideen — wird vor jedem neuen Ideengenerierungslauf
+// aufgerufen, damit nur explizit bewahrte Ideen erhalten bleiben.
+export async function cleanupEphemeral(): Promise<number> {
+  const r = await pool.query(
+    `DELETE FROM tickets.tickets
+      WHERE status = 'planning' AND pinned = false
+     RETURNING id`,
+  );
+  return r.rowCount ?? 0;
 }
 
 export const CLARIFY_EFFORTS = ['klein', 'mittel', 'gross'] as const;

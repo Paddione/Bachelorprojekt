@@ -1,0 +1,232 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PilotLight from '../../components/factory/PilotLight.svelte';
+import WorkpieceCard from '../../components/factory/WorkpieceCard.svelte';
+import PhaseBadge from '../../components/factory/PhaseBadge.svelte';
+import ViewSwitcher from '../../components/factory/ViewSwitcher.svelte';
+import type { FactoryTicket } from '../../components/factory/types';
+
+const sampleTickets: FactoryTicket[] = [
+  { id: 'T000597', title: 'Factory UI — Design System', priority: 'high', phase: 'implement', assignee: 'patrick', updatedAt: '2026-06-10' },
+  { id: 'T000598', title: 'Factory Floor — Live Dashboard', priority: 'critical', phase: 'plan', assignee: 'team', updatedAt: '2026-06-09' },
+  { id: 'T000599', title: 'Workpiece Tracker — Backend API', priority: 'medium', phase: 'scout', updatedAt: '2026-06-08' },
+  { id: 'T000600', title: 'Phase Gate Automation', priority: 'low', phase: 'done', assignee: 'patrick', updatedAt: '2026-06-07' },
+  { id: 'T000601', title: 'Integration Test Suite', priority: 'high', phase: 'blocked', assignee: 'qa', updatedAt: '2026-06-06' },
+];
+
+const sampleTicketsCompact: FactoryTicket[] = [
+  { id: 'T000602', title: 'Deploy Pipeline v2', priority: 'critical', phase: 'review' },
+  { id: 'T000603', title: 'Keycloak Realm Sync', priority: 'medium', phase: 'implement' },
+  { id: 'T000604', title: 'Docs Generator', priority: 'low', phase: 'scout' },
+];
+---
+
+<Layout title="Factory Design System" rawTitle>
+  <div class="factory-demo">
+    <header class="factory-demo__header">
+      <h1>Factory Design System</h1>
+      <p class="factory-demo__subtitle">Industrial/Loft component library — token reference & component showcase</p>
+      <ViewSwitcher client:load />
+    </header>
+
+    <section class="factory-demo__section">
+      <h2>PilotLight — Status Indicator</h2>
+      <div class="factory-demo__grid">
+        <div class="factory-demo__card">
+          <h3>Green (Success)</h3>
+          <PilotLight client:load state="green" label="Operational" />
+        </div>
+        <div class="factory-demo__card">
+          <h3>Amber (Warning)</h3>
+          <PilotLight client:load state="amber" label="Degraded" />
+        </div>
+        <div class="factory-demo__card">
+          <h3>Red (Error)</h3>
+          <PilotLight client:load state="red" label="Offline" />
+        </div>
+        <div class="factory-demo__card">
+          <h3>Sizes</h3>
+          <div class="factory-demo__row">
+            <PilotLight client:load state="green" size="sm" />
+            <PilotLight client:load state="amber" size="md" />
+            <PilotLight client:load state="red" size="lg" />
+          </div>
+        </div>
+        <div class="factory-demo__card">
+          <h3>Static (no animation)</h3>
+          <PilotLight client:load state="green" label="Static" animated={false} />
+        </div>
+      </div>
+    </section>
+
+    <section class="factory-demo__section">
+      <h2>PhaseBadge — Phase Pill</h2>
+      <div class="factory-demo__row">
+        <PhaseBadge phase="scout" />
+        <PhaseBadge phase="plan" />
+        <PhaseBadge phase="implement" />
+        <PhaseBadge phase="review" />
+        <PhaseBadge phase="done" />
+        <PhaseBadge phase="blocked" />
+        <PhaseBadge phase="unknown" />
+      </div>
+    </section>
+
+    <section class="factory-demo__section">
+      <h2>WorkpieceCard — Ticket Card (Full)</h2>
+      <div class="factory-demo__stack">
+        {sampleTickets.map((ticket) => (
+          <WorkpieceCard client:load {ticket} />
+        ))}
+      </div>
+    </section>
+
+    <section class="factory-demo__section">
+      <h2>WorkpieceCard — Compact</h2>
+      <div class="factory-demo__stack">
+        {sampleTicketsCompact.map((ticket) => (
+          <WorkpieceCard client:load {ticket} compact />
+        ))}
+      </div>
+    </section>
+
+    <section class="factory-demo__section">
+      <h2>Token Reference</h2>
+      <div class="factory-demo__tokens">
+        <div class="factory-demo__token-group">
+          <h3>Colors</h3>
+          <div class="factory-demo__swatch" style="background: var(--factory-bg);">--factory-bg</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-surface);">--factory-surface</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-surface-elevated);">--factory-surface-elevated</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-accent);">--factory-accent</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-success);">--factory-success</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-error);">--factory-error</div>
+        </div>
+        <div class="factory-demo__token-group">
+          <h3>Priority Colors</h3>
+          <div class="factory-demo__swatch" style="background: var(--factory-priority-critical);">--factory-priority-critical</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-priority-high);">--factory-priority-high</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-priority-medium);">--factory-priority-medium</div>
+          <div class="factory-demo__swatch" style="background: var(--factory-priority-low);">--factory-priority-low</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .factory-demo {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--factory-spacing-2xl) var(--factory-spacing-lg);
+  }
+
+  .factory-demo__header {
+    margin-bottom: var(--factory-spacing-2xl);
+  }
+
+  .factory-demo__header h1 {
+    font-family: var(--factory-font-sans);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--factory-text-primary);
+    margin: 0 0 0.5rem;
+  }
+
+  .factory-demo__subtitle {
+    font-family: var(--factory-font-mono);
+    font-size: var(--factory-text-sm);
+    color: var(--factory-text-muted);
+    margin: 0 0 1.5rem;
+  }
+
+  .factory-demo__section {
+    margin-bottom: var(--factory-spacing-2xl);
+  }
+
+  .factory-demo__section h2 {
+    font-family: var(--factory-font-sans);
+    font-size: var(--factory-text-lg);
+    font-weight: 600;
+    color: var(--factory-text-primary);
+    margin: 0 0 var(--factory-spacing-md);
+    padding-bottom: var(--factory-spacing-sm);
+    border-bottom: 1px solid var(--factory-border);
+  }
+
+  .factory-demo__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--factory-spacing-md);
+  }
+
+  .factory-demo__card {
+    background: var(--factory-surface);
+    border: 1px solid var(--factory-border);
+    border-radius: var(--factory-radius-md);
+    padding: var(--factory-spacing-md);
+  }
+
+  .factory-demo__card h3 {
+    font-family: var(--factory-font-mono);
+    font-size: var(--factory-text-xs);
+    color: var(--factory-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 var(--factory-spacing-sm);
+  }
+
+  .factory-demo__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--factory-spacing-sm);
+    align-items: center;
+  }
+
+  .factory-demo__stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--factory-spacing-sm);
+  }
+
+  .factory-demo__tokens {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--factory-spacing-lg);
+  }
+
+  .factory-demo__token-group h3 {
+    font-family: var(--factory-font-mono);
+    font-size: var(--factory-text-xs);
+    color: var(--factory-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 var(--factory-spacing-sm);
+  }
+
+  .factory-demo__swatch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--factory-spacing-sm) var(--factory-spacing-md);
+    border-radius: var(--factory-radius-sm);
+    font-family: var(--factory-font-mono);
+    font-size: var(--factory-text-xs);
+    color: var(--factory-text-primary);
+    margin-bottom: 2px;
+  }
+
+  @media (max-width: 375px) {
+    .factory-demo {
+      padding: var(--factory-spacing-md) var(--factory-spacing-sm);
+    }
+
+    .factory-demo__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .factory-demo__tokens {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

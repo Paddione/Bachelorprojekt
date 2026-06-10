@@ -128,6 +128,7 @@
       await refresh();
     } catch { releaseErr = 'Netzwerkfehler'; }
     finally { releasing = null; }
+  }
   let manualHintFor = $state<string | null>(null);
   function toggleManualHint(extId: string) {
     manualHintFor = manualHintFor === extId ? null : extId;

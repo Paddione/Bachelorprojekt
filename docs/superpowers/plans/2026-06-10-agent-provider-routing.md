@@ -264,7 +264,7 @@ git commit -m "feat(provider-routing): standalone idempotent migration for manua
 - Create: `scripts/factory/provider-router.js`
 - Test: `scripts/factory/provider-router.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `scripts/factory/provider-router.test.mjs`:
 
@@ -290,12 +290,12 @@ test('EMERGENCY_FALLBACK is anthropic sonnet with no base url', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /tmp/wt-agent-provider-routing && node --test scripts/factory/provider-router.test.mjs`
 Expected: FAIL — cannot find module `./provider-router.js`.
 
-- [ ] **Step 3: Create the module with constants + opus decision**
+- [x] **Step 3: Create the module with constants + opus decision**
 
 Create `scripts/factory/provider-router.js`:
 
@@ -322,12 +322,12 @@ export function decideOpus() {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /tmp/wt-agent-provider-routing && node --test scripts/factory/provider-router.test.mjs`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/factory/provider-router.js scripts/factory/provider-router.test.mjs
@@ -342,7 +342,7 @@ git commit -m "feat(provider-routing): provider-router module with opus hardcode
 - Modify: `scripts/factory/provider-router.js`
 - Test: `scripts/factory/provider-router.test.mjs`
 
-- [ ] **Step 1: Add failing tests for ordering + gating**
+- [x] **Step 1: Add failing tests for ordering + gating**
 
 Append to `provider-router.test.mjs`:
 
@@ -381,12 +381,12 @@ test('openCircuit: opens at threshold, stays closed below', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /tmp/wt-agent-provider-routing && node --test scripts/factory/provider-router.test.mjs`
 Expected: FAIL — `orderCandidates is not a function`.
 
-- [ ] **Step 3: Implement the pure helpers**
+- [x] **Step 3: Implement the pure helpers**
 
 Append to `provider-router.js`:
 
@@ -420,12 +420,12 @@ export function openCircuit(failureCount) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /tmp/wt-agent-provider-routing && node --test scripts/factory/provider-router.test.mjs`
 Expected: PASS (7 tests total).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/factory/provider-router.js scripts/factory/provider-router.test.mjs
@@ -442,7 +442,7 @@ git commit -m "feat(provider-routing): candidate ordering + circuit/capacity gat
 
 The DB-touching functions accept an injected async `query(sql, params)` returning `{ rows }` (so a fake is used in tests; the real wrappers pass a `factory_psql`-backed adapter). The actual atomic-claim SQL lives here as a string constant so the bash wrapper and the unit test share one definition.
 
-- [ ] **Step 1: Add failing tests with a fake query**
+- [x] **Step 1: Add failing tests with a fake query**
 
 Append to `provider-router.test.mjs`:
 
@@ -541,12 +541,12 @@ test('releaseSlot(false) records a failure; (true) does not', async () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd /tmp/wt-agent-provider-routing && node --test scripts/factory/provider-router.test.mjs`
 Expected: FAIL — `routeProvider is not a function`.
 
-- [ ] **Step 3: Implement `routeProvider` + `releaseSlot`**
+- [x] **Step 3: Implement `routeProvider` + `releaseSlot`**
 
 Append to `provider-router.js`:
 
@@ -591,12 +591,12 @@ export async function releaseSlot(query, provider, success) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd /tmp/wt-agent-provider-routing && node --test scripts/factory/provider-router.test.mjs`
 Expected: PASS (12 tests total).
 
-- [ ] **Step 5: Lint + commit**
+- [x] **Step 5: Lint + commit**
 
 ```bash
 node --check scripts/factory/provider-router.js

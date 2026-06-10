@@ -1,0 +1,85 @@
+// scripts/factory/provider-router.js
+//
+// Central agent→provider routing + circuit-breaker. PURE-DECISION + injected-query
+// SSOT. The Factory Workflow script (pipeline.js) cannot ESM-import this (harness
+// forbids imports) — it INLINES an equivalent copy and shells out to the bash
+// wrappers. dev-flow + website use the wrappers / website/src/lib/provider-config.ts.
+//
+// Offline lint:  node --check scripts/factory/provider-router.js
+// Unit tests:    node --test scripts/factory/provider-router.test.mjs
+
+export const OPUS_MODEL = 'claude-opus-4-6'
+export const EMERGENCY_FALLBACK = { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null }
+export const FAILURE_THRESHOLD = 3
+export const COOLDOWN_MINUTES = 10
+export const DEFAULT_MAX_CONCURRENT = 3
+
+/** opus is hardcoded to Anthropic in CODE, never read from the DB. */
+export function decideOpus() {
+  return { provider: 'anthropic', modelId: OPUS_MODEL, baseUrl: null, releaseSlot: async () => {} }
+}
+
+/**
+ * Order config rows: source-specific entries before wildcard '*', then priority asc.
+ * @param {Array} rows  provider_config rows for source IN (source,'*') AND enabled.
+ * @param {string} source
+ */
+export function orderCandidates(rows, source) {
+  return [...rows].sort((a, b) => {
+    const aSpecific = a.source === source ? 0 : 1
+    const bSpecific = b.source === source ? 0 : 1
+    if (aSpecific !== bSpecific) return aSpecific - bSpecific
+    return a.priority - b.priority
+  })
+}
+
+/** Circuit closed (not in cooldown) AND below the concurrency cap. */
+export function isUsable(health, maxConcurrent) {
+  const h = health ?? {}
+  const inCooldown = h.cooldown_until != null && new Date(h.cooldown_until).getTime() > Date.now()
+  if (inCooldown) return false
+  const active = Number(h.active_agents ?? 0)
+  return active < Number(maxConcurrent ?? DEFAULT_MAX_CONCURRENT)
+}
+
+/** Circuit breaker opens once failures reach the threshold. */
+export function openCircuit(failureCount) {
+  return Number(failureCount ?? 0) >= FAILURE_THRESHOLD
+}
+
+/**
+ * Claim a provider slot for (source, tier). `query` is an injected async fn
+ * (kind, params) => { rows } so the same logic runs against the fake (tests) and
+ * a factory_psql/pg adapter (wrappers). opus short-circuits to Anthropic (no DB).
+ * Returns { provider, modelId, baseUrl, releaseSlot(success), emergency? }.
+ */
+export async function routeProvider(query, source, tier) {
+  if (tier === 'opus') return decideOpus()
+
+  const { rows: cfg } = await query('load-config', { source, tier })
+  const candidates = orderCandidates((cfg ?? []).filter(r => r.tier === tier), source)
+
+  for (const c of candidates) {
+    const { rows: hrows } = await query('load-health', { provider: c.provider })
+    const health = hrows && hrows[0]
+    const cap = Number(c.max_concurrent ?? DEFAULT_MAX_CONCURRENT)
+    if (!isUsable(health, cap)) continue
+    const { rows: claimed } = await query('claim-slot', { provider: c.provider, maxConcurrent: cap })
+    if (!claimed || !claimed.length) continue
+    const provider = c.provider
+    return {
+      provider,
+      modelId: c.model_id,
+      baseUrl: c.base_url ?? null,
+      releaseSlot: (success) => releaseSlot(query, provider, success),
+    }
+  }
+
+  return { ...EMERGENCY_FALLBACK, emergency: true, releaseSlot: async () => {} }
+}
+
+/** Release a claimed slot (always decrements); record a failure when success=false. */
+export async function releaseSlot(query, provider, success) {
+  await query('release-slot', { provider })
+  if (!success) await query('record-failure', { provider })
+}

@@ -159,7 +159,7 @@ if command -v npx >/dev/null 2>&1 && [[ -f "$REPO/website/scripts/find-similar-t
     && timeout 15 npx tsx scripts/find-similar-tickets.mjs "$TITLE $DESCRIPTION" 5 \
        2>/dev/null)" || raw=""
   if [[ -n "$raw" ]]; then
-    mapped="$(printf '%s' "$raw" | jq -c 'if type=="array" then [.[] | (.external_id // .ticket_id) | select(. != null) | tostring] else [] end' 2>/dev/null)" || mapped=""
+    mapped="$(printf '%s' "$raw" | jq -c 'if type=="array" then [.[] | .external_id | select(. != null and (. | tostring | startswith("T"))) | tostring] else [] end' 2>/dev/null)" || mapped=""
     [[ -n "$mapped" ]] && SIMILAR="$mapped"
   fi
 fi

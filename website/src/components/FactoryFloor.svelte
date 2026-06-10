@@ -5,7 +5,7 @@
   interface ControlSnapshot { killSwitch: boolean; slotsUsed: number; slotsCap: number; dailyCap: number; dailyUsed: number; dryRun: boolean; watchdogStale: number; }
   interface FloorMetrics { shippedToday: number; avgCycleH: number | null; }
   interface LoadingDockItem { extId: string; title: string; priority: string; waitReason: string; }
-  interface HallItem { extId: string; title: string; priority: string; phase: Phase | null; phaseState: 'entered'|'done'|'blocked'|null; phaseSince: string | null; retryCount: number; blockReason: string | null; slot: number | null; }
+  interface HallItem { extId: string; title: string; priority: string; phase: Phase | null; phaseState: 'entered'|'done'|'blocked'|null; phaseSince: string | null; retryCount: number; blockReason: string | null; slot: number | null; driver: 'factory'|'devflow'|null; prNumber: number | null; ciStatus: 'success'|'pending'|'failure'|null; }
   interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
   interface StagedItem { extId: string; title: string; priority: string; branch: string | null; planPath: string | null; createdAt: string | null; }
   interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; staged: StagedItem[]; officeWaiting: number; stagedWaiting: number; fetchedAt: string; }
@@ -17,7 +17,6 @@
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
-  const POLL_MS = 4000;
   const STATIONS: { key: Phase; label: string }[] = [
     { key: 'scout', label: 'Scout' }, { key: 'design', label: 'Design' }, { key: 'plan', label: 'Plan' },
     { key: 'implement', label: 'Implement' }, { key: 'verify', label: 'Verify' }, { key: 'deploy', label: 'Deploy' },
@@ -27,7 +26,8 @@
   let stale = $state(false);
   let selected = $state<string | null>(null);
   let detail = $state<TicketDetail | null>(null);
-  let timer: ReturnType<typeof setInterval> | null = null;
+  let es: EventSource | null = null;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   async function refresh() {
     try {
@@ -122,6 +122,10 @@
     return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   }
   const STUCK_MIN = 15; // Werkstück hängt verdächtig lange in einer Phase
+  function ciIcon(s: 'success'|'pending'|'failure'|null): string {
+    return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';
+  }
+  function openPR(n: number | null) { if (n) window.open(prUrl(n), '_blank', 'noopener'); }
   function prioDot(p: string): string {
     if (p === 'hoch') return 'bg-red-400';
     if (p === 'mittel') return 'bg-amber-400';
@@ -129,8 +133,21 @@
     return 'bg-white/40';
   }
 
-  onMount(() => { if (!initial) refresh(); timer = setInterval(refresh, POLL_MS); });
-  onDestroy(() => { if (timer) clearInterval(timer); });
+  function connectSSE() {
+    es = new EventSource('/api/factory-floor/stream', { withCredentials: true });
+    es.addEventListener('phase', () => { void refresh(); });
+    es.addEventListener('heartbeat', () => { stale = false; });
+    es.onerror = () => {
+      es?.close(); es = null;
+      if (!reconnectTimer) reconnectTimer = setTimeout(() => { reconnectTimer = null; connectSSE(); }, 5000);
+    };
+  }
+
+  onMount(() => { if (!initial) void refresh(); connectSSE(); });
+  onDestroy(() => {
+    es?.close();
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+  });
 </script>
 
 <div class="text-light" data-testid="factory-floor">
@@ -262,13 +279,29 @@
                 <button
                   onclick={() => openDetail(w.extId)}
                   data-testid="floor-workpiece"
-                  title={`${w.title}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
-                  class="block w-full text-left rounded px-1 py-0.5 text-xs mb-1 transition-all"
-                  class:bg-gold={w.phaseState !== 'blocked'}
-                  class:text-dark={w.phaseState !== 'blocked'}
-                  class:bg-red-500={w.phaseState === 'blocked'}
+                  data-driver={w.driver ?? 'factory'}
+                  title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
+                  class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
+                  class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                  class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                  class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
+                  class:border={w.driver === 'devflow'}
+                  class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                  class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                  class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                  class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                  class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                  class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
                   class:animate-pulse={w.phaseState === 'blocked'}>
-                  {w.extId}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}
+                  <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
+                  {#if w.driver === 'devflow' && w.ciStatus}
+                    <span role="button" tabindex="0" data-testid="floor-ci-badge"
+                          title={`CI: ${w.ciStatus} — PR öffnen`}
+                          onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
+                          onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
+                      {ciIcon(w.ciStatus)}
+                    </span>
+                  {/if}
                 </button>
               {/each}
             </div>

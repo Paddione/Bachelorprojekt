@@ -40,7 +40,7 @@ domains: [website, db]
 
 The Hall must include devflow tickets that have **no** `pipeline_slot` but **do** have at least one `driver='devflow'` phase event. The slot-counting in `getControl()` stays untouched (capacity must not be inflated by devflow tickets).
 
-- [ ] **Step 1: Add fixture rows for a devflow ticket to the test mock**
+ - [x] **Step 1: Add fixture rows for a devflow ticket to the test mock**
 
 In `website/src/lib/factory-floor.test.ts`, inside the `vi.mock('pg', ...)` seed block, add one slot-less devflow ticket and its events. Append to the existing `INSERT INTO tickets.tickets VALUES` list (before the trailing `;`):
 
@@ -56,7 +56,7 @@ And append to the existing `INSERT INTO tickets.factory_phase_events (...) VALUE
       ,('dv1','deploy','entered','PR #1512 · CI watch','devflow', now() - INTERVAL '1 min')
 ```
 
-- [ ] **Step 2: Write the failing test for the widened Hall**
+ - [x] **Step 2: Write the failing test for the widened Hall**
 
 Add inside `describe('factory-floor DAL', ...)`:
 
@@ -81,12 +81,12 @@ Add inside `describe('factory-floor DAL', ...)`:
   });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+ - [x] **Step 3: Run the test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t "devflow"`
 Expected: FAIL — `T000582` is `undefined` (not returned by `getHall()`), and `driver`/`prNumber`/`ciStatus` are not on `HallItem`.
 
-- [ ] **Step 4: Extend the `HallItem` interface**
+ - [x] **Step 4: Extend the `HallItem` interface**
 
 In `website/src/lib/factory-floor.ts`, replace the `HallItem` interface (currently ending `... slot: number | null; }`) with:
 
@@ -101,7 +101,7 @@ export interface HallItem {
 }
 ```
 
-- [ ] **Step 5: Add the `parsePrNumber` helper**
+ - [x] **Step 5: Add the `parsePrNumber` helper**
 
 In `website/src/lib/factory-floor.ts`, near `parsePlanRef` (~line 205), add an exported pure helper:
 
@@ -114,7 +114,7 @@ export function parsePrNumber(detail: string | null): number | null {
 }
 ```
 
-- [ ] **Step 6: Widen `getHall()` and map the new fields**
+ - [x] **Step 6: Widen `getHall()` and map the new fields**
 
 In `website/src/lib/factory-floor.ts`, replace the body of `getHall()` (the `pool.query(...)` template + the `.map(...)`):
 
@@ -159,12 +159,12 @@ export async function getHall(): Promise<HallItem[]> {
 }
 ```
 
-- [ ] **Step 7: Run the test to verify it passes**
+ - [x] **Step 7: Run the test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS — all existing tests stay green (the `getControl` slot-leak test still expects `slotsUsed=2`), the two new tests pass.
 
-- [ ] **Step 8: Commit**
+ - [x] **Step 8: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -181,7 +181,7 @@ git commit -m "feat(factory-floor): widen Hall query for slot-less devflow ticke
 
 This module fetches the CI verdict for a PR and aggregates per-check-run conclusions into one of `success | pending | failure`. The aggregation is a **pure, exported** function so it is unit-testable without network; the fetch wrapper caches results 60s in-memory to avoid GitHub rate limits.
 
-- [ ] **Step 1: Write the failing aggregation test**
+ - [x] **Step 1: Write the failing aggregation test**
 
 Add a new block at the bottom of `website/src/lib/factory-floor.test.ts`:
 
@@ -216,12 +216,12 @@ describe('github-ci aggregation', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+ - [x] **Step 2: Run the test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t "github-ci"`
 Expected: FAIL — cannot resolve module `./github-ci`.
 
-- [ ] **Step 3: Create `github-ci.ts` with the pure aggregator + cached fetch**
+ - [x] **Step 3: Create `github-ci.ts` with the pure aggregator + cached fetch**
 
 Create `website/src/lib/github-ci.ts`:
 
@@ -289,12 +289,12 @@ export async function getPrCiStatus(prNumber: number): Promise<CiStatus | null> 
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+ - [x] **Step 4: Run the test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t "github-ci"`
 Expected: PASS — all four aggregation cases.
 
-- [ ] **Step 5: Commit**
+ - [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/github-ci.ts website/src/lib/factory-floor.test.ts
@@ -310,7 +310,7 @@ git commit -m "feat(factory-floor): GitHub CI-status helper with aggregation + 6
 
 The Hall already returns `prNumber` and `ciStatus: null` for devflow tickets. The main API enriches `ciStatus` (only for devflow tickets in the `deploy` phase that have a `prNumber`) before serialising. This keeps GitHub calls off the SSE path and off the DAL.
 
-- [ ] **Step 1: Enrich the payload after `getFloor()`**
+ - [x] **Step 1: Enrich the payload after `getFloor()`**
 
 In `website/src/pages/api/factory-floor.ts`, replace the `try { ... }` block's body:
 
@@ -336,7 +336,7 @@ In `website/src/pages/api/factory-floor.ts`, replace the `try { ... }` block's b
   }
 ```
 
-- [ ] **Step 2: Add the import**
+ - [x] **Step 2: Add the import**
 
 At the top of `website/src/pages/api/factory-floor.ts`, add below the existing `getFloor` import:
 
@@ -349,7 +349,7 @@ import { getPrCiStatus } from '../../lib/github-ci';
 Run: `cd website && pnpm typecheck`
 Expected: PASS — no type errors (`h.ciStatus` and `h.prNumber` exist on `HallItem` from Task 1).
 
-- [ ] **Step 4: Commit**
+ - [x] **Step 4: Commit**
 
 ```bash
 git add website/src/pages/api/factory-floor.ts
@@ -365,7 +365,7 @@ git commit -m "feat(factory-floor): enrich devflow deploy-phase tickets with liv
 
 A `GET /api/factory-floor/stream` route that emits an SSE `phase` event whenever `MAX(at)` of `tickets.factory_phase_events` advances (polled server-side every 5s), plus a `heartbeat` every 30s to keep the connection open. Admin-gated, identical to the main API.
 
-- [ ] **Step 1: Create the SSE endpoint**
+ - [x] **Step 1: Create the SSE endpoint**
 
 Create `website/src/pages/api/factory-floor/stream.ts`:
 
@@ -440,12 +440,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+ - [x] **Step 2: Typecheck**
 
 Run: `cd website && pnpm typecheck`
 Expected: PASS — `pool` is exported from `./website-db`, `getSession`/`isAdmin` from `./auth` (same imports the main API uses).
 
-- [ ] **Step 3: Commit**
+ - [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/factory-floor/stream.ts
@@ -461,7 +461,7 @@ git commit -m "feat(factory-floor): SSE stream endpoint for real-time phase upda
 
 Replace the 4s polling `setInterval` with an `EventSource` that re-fetches on `phase` events (with auto-reconnect on error). Extend the `HallItem` TS interface in the component to match the DAL. Render devflow workpieces with a blue outline and a clickable CI badge (🟢/🔴/🟡) that opens the PR.
 
-- [ ] **Step 1: Extend the component's `HallItem` interface**
+ - [x] **Step 1: Extend the component's `HallItem` interface**
 
 In `website/src/components/FactoryFloor.svelte`, replace the `HallItem` interface line (line ~8) with:
 
@@ -469,7 +469,7 @@ In `website/src/components/FactoryFloor.svelte`, replace the `HallItem` interfac
   interface HallItem { extId: string; title: string; priority: string; phase: Phase | null; phaseState: 'entered'|'done'|'blocked'|null; phaseSince: string | null; retryCount: number; blockReason: string | null; slot: number | null; driver: 'factory'|'devflow'|null; prNumber: number | null; ciStatus: 'success'|'pending'|'failure'|null; }
 ```
 
-- [ ] **Step 2: Replace polling with an SSE client**
+ - [x] **Step 2: Replace polling with an SSE client**
 
 In `website/src/components/FactoryFloor.svelte`, replace the `let timer: ... = null;` declaration (line ~30) with:
 
@@ -498,11 +498,11 @@ Then replace the `onMount`/`onDestroy` pair at the bottom of the `<script>` (lin
   });
 ```
 
-- [ ] **Step 3: Remove the now-unused `POLL_MS` constant**
+ - [x] **Step 3: Remove the now-unused `POLL_MS` constant**
 
 In `website/src/components/FactoryFloor.svelte`, delete the line `const POLL_MS = 4000;` (line ~20) — it is no longer referenced.
 
-- [ ] **Step 4: Add a CI-badge helper + render devflow chips**
+ - [x] **Step 4: Add a CI-badge helper + render devflow chips**
 
 In `website/src/components/FactoryFloor.svelte`, add near `prioDot` (~line 125) a helper:
 
@@ -545,12 +545,12 @@ Then replace the Hall workpiece `<button>` block (lines ~262-272, inside `{#each
                 </button>
 ```
 
-- [ ] **Step 5: Typecheck + build the Svelte component**
+ - [x] **Step 5: Typecheck + build the Svelte component**
 
 Run: `cd website && pnpm typecheck`
 Expected: PASS — no unused `POLL_MS`/`timer`, `HallItem` fields resolve, no Svelte type errors.
 
-- [ ] **Step 6: Commit**
+ - [x] **Step 6: Commit**
 
 ```bash
 git add website/src/components/FactoryFloor.svelte
@@ -566,7 +566,7 @@ git commit -m "feat(factory-floor): SSE client + devflow blue chip + CI-status b
 
 Emit the full 8-event phase sequence with `--driver devflow` and `--detail` strings, all best-effort (`|| true`). Replace the existing minimal `implement entered/done` + `verify entered` events; add `plan entered/done`, `verify done`, and `deploy entered`.
 
-- [ ] **Step 1: Add `plan entered`/`plan done` at Schritt 1.5**
+ - [x] **Step 1: Add `plan entered`/`plan done` at Schritt 1.5**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, in the Schritt 1.5 code block, replace the existing telemetry line:
 
@@ -588,7 +588,7 @@ Then, after the `set-touched-files` block in Schritt 1.5, add:
 ./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
 ```
 
-- [ ] **Step 2: Add `implement entered` at the start of Schritt 2**
+ - [x] **Step 2: Add `implement entered` at the start of Schritt 2**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, at the very start of Schritt 2 (just before "Statt deinen eigenen Kontext…"), add a fenced bash block:
 
@@ -597,7 +597,7 @@ In `.claude/skills/dev-flow-execute/SKILL.md`, at the very start of Schritt 2 (j
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
 ```
 
-- [ ] **Step 3: Enrich the Schritt 3 verify telemetry**
+ - [x] **Step 3: Enrich the Schritt 3 verify telemetry**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, replace the Schritt 3 telemetry lines:
 
@@ -619,7 +619,7 @@ Then, after the `task freshness:regenerate` line in the same block, add:
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
 
-- [ ] **Step 4: Add `deploy entered` at Schritt 5.5**
+ - [x] **Step 4: Add `deploy entered` at Schritt 5.5**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, at the start of Schritt 5.5 (just after the `PR_URL=$(...)` line in the CI-loop block), add:
 
@@ -634,7 +634,7 @@ And inside the CI retry loop, just after `echo "⏳ CI-Check Versuch $CI_ATTEMPT
   ./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow --detail "CI attempt $CI_ATTEMPT/$MAX_CI_ATTEMPTS" || true
 ```
 
-- [ ] **Step 5: Enrich the Schritt 6.5 deploy-done telemetry**
+ - [x] **Step 5: Enrich the Schritt 6.5 deploy-done telemetry**
 
 In `.claude/skills/dev-flow-execute/SKILL.md`, replace the Schritt 6.5 telemetry line:
 
@@ -654,7 +654,7 @@ And update the Schritt 8 telemetry line at the bottom (the `deploy done` after d
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "deployed (post-merge)" || true
 ```
 
-- [ ] **Step 6: Commit**
+ - [x] **Step 6: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-execute/SKILL.md
@@ -670,7 +670,7 @@ git commit -m "feat(dev-flow-execute): full devflow phase telemetry with detail 
 
 Add a `--detail` argument to each `phaseEvent(...)` call that currently has none, per the spec's table. The `phaseEvent(ph, state, detail)` signature already supports it (line ~112); only the `entered`/`done` calls that pass no detail need updating. Where a count (`<N>`) is known from a prior agent result, interpolate it; otherwise use the static string.
 
-- [ ] **Step 1: Add detail to scout events**
+ - [x] **Step 1: Add detail to scout events**
 
 In `scripts/factory/pipeline.js`, update:
 
@@ -692,14 +692,14 @@ phaseEvent('scout', 'done')
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 ```
 
-- [ ] **Step 2: Add detail to design events**
+ - [x] **Step 2: Add detail to design events**
 
 ```javascript
 phaseEvent('design', 'entered')   →   phaseEvent('design', 'entered', 'Spec-Generierung')
 phaseEvent('design', 'done')      →   phaseEvent('design', 'done', 'Spec erstellt')
 ```
 
-- [ ] **Step 3: Add detail to plan events (both the fresh-plan and reuse branches)**
+ - [x] **Step 3: Add detail to plan events (both the fresh-plan and reuse branches)**
 
 In the fresh-plan branch:
 
@@ -717,7 +717,7 @@ phaseEvent('plan', 'done')      →   phaseEvent('plan', 'done', `${(plan.tasks 
 
 > Verify the in-scope variable name for the task array at each call site (`plan.tasks` vs `tasks`) by reading the surrounding lines; use the one that is defined there. Leave the blocked-state plan event (`phaseEvent('plan', 'blocked', 'file-overlap: …')`) unchanged — it already carries a detail.
 
-- [ ] **Step 4: Add detail to implement events**
+ - [x] **Step 4: Add detail to implement events**
 
 ```javascript
 phaseEvent('implement', 'entered')   →   phaseEvent('implement', 'entered', 'Implementierung gestartet')
@@ -726,7 +726,7 @@ phaseEvent('implement', 'done')      →   phaseEvent('implement', 'done', `${ta
 
 Leave `phaseEvent('implement', 'blocked', 'worktree-setup')` unchanged.
 
-- [ ] **Step 5: Add detail to verify events**
+ - [x] **Step 5: Add detail to verify events**
 
 ```javascript
 phaseEvent('verify', 'entered')   →   phaseEvent('verify', 'entered', 'Tests + Freshness')
@@ -735,7 +735,7 @@ phaseEvent('verify', 'done')      →   phaseEvent('verify', 'done', 'Tests ✓'
 
 Leave the `phaseEvent('verify', 'done', 'noise-only')` call (the noise-only short-circuit) unchanged — it already carries a detail.
 
-- [ ] **Step 6: Add detail to the final deploy-done event**
+ - [x] **Step 6: Add detail to the final deploy-done event**
 
 The deploy block already has `phaseEvent('deploy', 'entered')`. The instruction string that opens the PR records the PR number into a shell var; the JS `phaseEvent` cannot read it, so use a static detail. Update:
 
@@ -746,19 +746,19 @@ phaseEvent('deploy', 'done')      →   phaseEvent('deploy', 'done', 'PR merged'
 
 Leave `phaseEvent('deploy', 'done', 'dry-run')` and `phaseEvent('deploy', 'blocked', 'deploy-guard')` unchanged.
 
-- [ ] **Step 7: Syntax-check pipeline.js**
+ - [x] **Step 7: Syntax-check pipeline.js**
 
 Run: `node --check scripts/factory/pipeline.js`
 Expected: no output, exit 0 (valid JS).
 
-- [ ] **Step 8: Run the Factory smoke test to confirm loadability**
+ - [x] **Step 8: Run the Factory smoke test to confirm loadability**
 
 Run: `./tests/runner.sh local FA-SF-20`
 Expected: PASS (pipeline.js still loads/nests as a Workflow script).
 
 > If FA-SF-20 is not runnable offline in this environment, fall back to `node --check` (Step 7) and note it; do not block on the smoke test.
 
-- [ ] **Step 9: Commit**
+ - [x] **Step 9: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js
@@ -772,22 +772,22 @@ git commit -m "feat(factory): detail strings on pipeline phase events"
 **Files:**
 - No new files — verification + any test fixups uncovered.
 
-- [ ] **Step 1: Run the full website unit suite**
+ - [x] **Step 1: Run the full website unit suite**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS — all DAL tests (existing + new Hall/devflow), the github-ci aggregation block.
 
-- [ ] **Step 2: Typecheck the website**
+ - [x] **Step 2: Typecheck the website**
 
 Run: `cd website && pnpm typecheck`
 Expected: PASS — no TS errors across `factory-floor.ts`, `github-ci.ts`, `factory-floor.ts` API, `stream.ts`, `FactoryFloor.svelte`.
 
-- [ ] **Step 3: Run the offline test umbrella**
+ - [x] **Step 3: Run the offline test umbrella**
 
 Run: `task test:all`
 Expected: PASS — BATS, kustomize, Taskfile dry-run, Factory FA-SF tests all green.
 
-- [ ] **Step 4: Regenerate freshness artefacts**
+ - [x] **Step 4: Regenerate freshness artefacts**
 
 Run: `task freshness:regenerate`
 Then: `git status --porcelain`
@@ -798,12 +798,12 @@ git add -A
 git commit -m "chore(factory-floor): regenerate freshness artefacts" || echo "nothing to regenerate"
 ```
 
-- [ ] **Step 5: Run the freshness check gate**
+ - [x] **Step 5: Run the freshness check gate**
 
 Run: `task freshness:check`
 Expected: PASS — no drift between generated artefacts and committed versions.
 
-- [ ] **Step 6: Final commit (if any residual)**
+ - [x] **Step 6: Final commit (if any residual)**
 
 ```bash
 git status

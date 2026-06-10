@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 103,
+  "count": 104,
   "routes": [
     {
       "route": "/",
@@ -421,6 +421,14 @@
     },
     {
       "route": "/admin/ops",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/planungsbuero",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

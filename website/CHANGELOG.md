@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.46.0...website-v1.47.0) (2026-06-10)
+
+
+### Features
+
+* **qs:** Qualitätssicherungs-Stufe — 5. Spalte im Factory Floor [T000581] ([#1517](https://github.com/Paddione/Bachelorprojekt/issues/1517)) ([52f8566](https://github.com/Paddione/Bachelorprojekt/commit/52f856605b7475d07a688645ede345f9e91871e0))
+
 ## [1.46.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.45.0...website-v1.46.0) (2026-06-10)
 
 

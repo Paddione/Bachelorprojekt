@@ -69,7 +69,8 @@ export default defineConfig({
         '**/fa-21-*.spec.ts',
         '**/fa-26-*.spec.ts',
         '**/fa-28-*.spec.ts',
-        '**/fa-fragebogen.spec.ts',
+        // fa-fragebogen.spec.ts benötigt direkten DB-Zugriff via `pg` — nur nightly
+
         '**/fa-admin-settings.spec.ts',
         '**/fa-admin-live.spec.ts',
         '**/fa-admin-crm.spec.ts',

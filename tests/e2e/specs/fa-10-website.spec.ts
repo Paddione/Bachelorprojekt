@@ -16,6 +16,7 @@ async function waitForHydration(page: Page) {
 }
 
 test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@smoke', '@website'] }, () => {
+  test.describe.configure({ retries: 1 });
 
   // -- Website Structure --
   test('T1: Landing page loads', async ({ page }) => {

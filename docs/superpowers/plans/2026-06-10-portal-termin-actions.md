@@ -2,7 +2,7 @@
 title: Portal-Terminbuchung: 4 AI-Assistant-Actions
 ticket_id: T000582
 domains: [website, db, test, security]
-status: active
+status: done
 pr_number: null
 ---
 
@@ -45,7 +45,7 @@ pr_number: null
 
 Der iCal-String in `createCalendarEvent` verwendet `\n` statt `\r\n`. Strict RFC-5545-Parser (wie manche Nextcloud-Versionen bei PUT) akzeptieren das nicht.
 
-- [ ] **Schritt 1: Failing Unit-Test schreiben**
+- [x] **Schritt 1: Failing Unit-Test schreiben**
 
 Erstelle `website/src/lib/__tests__/caldav-crlf.test.ts`:
 
@@ -84,7 +84,7 @@ describe('createCalendarEvent CRLF', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-crlf.test.ts 2>&1 | tail -20
@@ -92,7 +92,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-crlf
 
 Erwartetes Ergebnis: FAIL (bare `\n` vorhanden).
 
-- [ ] **Schritt 3: CRLF-Fix implementieren**
+- [x] **Schritt 3: CRLF-Fix implementieren**
 
 In `website/src/lib/caldav.ts` die `createCalendarEvent`-Funktion anpassen. Suche den Template-Literal-Block (Zeilen ~476–487) und ersetze alle `\n` durch `\r\n`:
 
@@ -124,7 +124,7 @@ Passe gleichzeitig `attendeeLine` an — statt dem abschließenden `\n` nur den 
   }
 ```
 
-- [ ] **Schritt 4: Test ausführen — muss PASS sein**
+- [x] **Schritt 4: Test ausführen — muss PASS sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-crlf.test.ts 2>&1 | tail -10
@@ -132,7 +132,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-crlf
 
 Erwartetes Ergebnis: PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/caldav.ts website/src/lib/__tests__/caldav-crlf.test.ts
@@ -148,7 +148,7 @@ git commit -m "fix(caldav): use CRLF line endings in createCalendarEvent (RFC 55
 
 `getClientBookings()` liefert aktuell kein `uid`. Die Actions `cancelSession` und `moveSession` brauchen es, um den richtigen CalDAV-Event zu adressieren.
 
-- [ ] **Schritt 1: Failing Test schreiben**
+- [x] **Schritt 1: Failing Test schreiben**
 
 Erweitere `website/src/lib/__tests__/caldav-crlf.test.ts` (oder erstelle `website/src/lib/__tests__/caldav-uid.test.ts`):
 
@@ -195,7 +195,7 @@ describe('getClientBookings uid', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-uid.test.ts 2>&1 | tail -20
@@ -203,7 +203,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-uid.
 
 Erwartetes Ergebnis: FAIL (`uid` ist undefined).
 
-- [ ] **Schritt 3: Interface und Implementierung erweitern**
+- [x] **Schritt 3: Interface und Implementierung erweitern**
 
 In `website/src/lib/caldav.ts` das Interface `ClientBooking` erweitern:
 
@@ -232,13 +232,13 @@ In `getClientBookings()` den `uid`-Wert beim Aufbau des Booking-Objekts mit extr
       }
 ```
 
-- [ ] **Schritt 4: Test ausführen — muss PASS sein**
+- [x] **Schritt 4: Test ausführen — muss PASS sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-uid.test.ts 2>&1 | tail -10
 ```
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/caldav.ts website/src/lib/__tests__/caldav-uid.test.ts
@@ -254,7 +254,7 @@ git commit -m "feat(caldav): add uid field to ClientBooking / getClientBookings"
 
 Neue Funktion, die DTSTART und DTEND eines existierenden Events per UID patcht (analog zu `updateCalendarEventStatus`).
 
-- [ ] **Schritt 1: Failing Test schreiben**
+- [x] **Schritt 1: Failing Test schreiben**
 
 Erstelle `website/src/lib/__tests__/caldav-move.test.ts`:
 
@@ -317,7 +317,7 @@ describe('updateCalendarEventTime', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-move.test.ts 2>&1 | tail -20
@@ -325,7 +325,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-move
 
 Erwartetes Ergebnis: FAIL (`updateCalendarEventTime is not a function`).
 
-- [ ] **Schritt 3: Funktion implementieren**
+- [x] **Schritt 3: Funktion implementieren**
 
 Füge nach `updateCalendarEventStatus` in `website/src/lib/caldav.ts` ein:
 
@@ -368,13 +368,13 @@ export async function updateCalendarEventTime(
 }
 ```
 
-- [ ] **Schritt 4: Test ausführen — muss PASS sein**
+- [x] **Schritt 4: Test ausführen — muss PASS sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/caldav-move.test.ts 2>&1 | tail -10
 ```
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/caldav.ts website/src/lib/__tests__/caldav-move.test.ts
@@ -390,7 +390,7 @@ git commit -m "feat(caldav): add updateCalendarEventTime() for rescheduling even
 
 Neue Funktion, die anhand des Keycloak-Sub (`keycloak_user_id`) `id`, `email` und `name` des Kunden aus der `customers`-Tabelle liefert. Wird von der Middleware in `actions.ts` aufgerufen.
 
-- [ ] **Schritt 1: Failing Test schreiben**
+- [x] **Schritt 1: Failing Test schreiben**
 
 Erstelle `website/src/lib/__tests__/website-db-customer.test.ts`:
 
@@ -437,7 +437,7 @@ describe('getCustomerByKeycloakId', () => {
 
 > **Note:** Das Mock-Pattern für pg ist aufwendig wegen der globalen Pool-Instanz. Der Test prüft primär die Typen und SQL — in der Praxis reicht es, die Funktion mit dem richtigen SQL zu verifi­zieren.
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/website-db-customer.test.ts 2>&1 | tail -20
@@ -445,7 +445,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/website-db-
 
 Erwartetes Ergebnis: FAIL (`getCustomerByKeycloakId is not a function`).
 
-- [ ] **Schritt 3: Funktion implementieren**
+- [x] **Schritt 3: Funktion implementieren**
 
 Füge in `website/src/lib/website-db.ts` nach `getCustomerFullById` (ca. Zeile 235) ein:
 
@@ -461,13 +461,13 @@ export async function getCustomerByKeycloakId(
 }
 ```
 
-- [ ] **Schritt 4: Test ausführen — muss PASS sein**
+- [x] **Schritt 4: Test ausführen — muss PASS sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/website-db-customer.test.ts 2>&1 | tail -10
 ```
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/website-db.ts website/src/lib/__tests__/website-db-customer.test.ts
@@ -486,7 +486,7 @@ git commit -m "feat(website-db): add getCustomerByKeycloakId()"
 
 Wichtig: `ActionContext` ist in `website/src/lib/assistant/actions.ts` definiert (nicht in `types.ts` — `types.ts` enthält nur `AssistantProfile`, `Message`, etc.). Das `AssistantProfile`-Import-Pfad bleibt `./types`.
 
-- [ ] **Schritt 1: Test für das neue Feld schreiben**
+- [x] **Schritt 1: Test für das neue Feld schreiben**
 
 Erstelle `website/src/lib/assistant/actions-email.test.ts`:
 
@@ -552,7 +552,7 @@ describe('executeAction — email middleware', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions-email.test.ts 2>&1 | tail -20
@@ -560,7 +560,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions-ema
 
 Erwartetes Ergebnis: FAIL (`ctx.email` ist nicht befüllt).
 
-- [ ] **Schritt 3: `ActionContext` und `executeAction` anpassen**
+- [x] **Schritt 3: `ActionContext` und `executeAction` anpassen**
 
 Ersetze in `website/src/lib/assistant/actions.ts` den gesamten Dateiinhalt:
 
@@ -622,7 +622,7 @@ export function describeAction(actionId: string, payload: Record<string, unknown
 }
 ```
 
-- [ ] **Schritt 4: Bestehende Tests noch grün**
+- [x] **Schritt 4: Bestehende Tests noch grün**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions.test.ts src/lib/assistant/actions-email.test.ts 2>&1 | tail -20
@@ -630,7 +630,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions.tes
 
 Erwartetes Ergebnis: alle PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/assistant/actions.ts website/src/lib/assistant/actions-email.test.ts
@@ -646,7 +646,7 @@ git commit -m "feat(actions): add email field to ActionContext + DB-lookup middl
 
 Drei neue Export-Funktionen für die drei schreibenden Flows.
 
-- [ ] **Schritt 1: Test schreiben**
+- [x] **Schritt 1: Test schreiben**
 
 Erstelle `website/src/lib/__tests__/email-booking.test.ts`:
 
@@ -696,7 +696,7 @@ describe('booking email helpers', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/email-booking.test.ts 2>&1 | tail -20
@@ -704,7 +704,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/email-booki
 
 Erwartetes Ergebnis: FAIL (Funktionen nicht exportiert).
 
-- [ ] **Schritt 3: Drei Helfer am Ende von email.ts anhängen**
+- [x] **Schritt 3: Drei Helfer am Ende von email.ts anhängen**
 
 ```typescript
 function formatDe(d: Date): string {
@@ -776,13 +776,13 @@ ${FROM_NAME}`,
 }
 ```
 
-- [ ] **Schritt 4: Test ausführen — muss PASS sein**
+- [x] **Schritt 4: Test ausführen — muss PASS sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/__tests__/email-booking.test.ts 2>&1 | tail -10
 ```
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/email.ts website/src/lib/__tests__/email-booking.test.ts
@@ -798,7 +798,7 @@ git commit -m "feat(email): add sendBookingConfirmation, sendCancellationNotific
 
 Der Handler nimmt `payload.datetime` (ISO-String) und optional `payload.serviceId` (Betreff-Zusatz), erstellt via `createCalendarEvent()` einen CalDAV-Event mit `ctx.email` als ATTENDEE und schickt anschließend eine Bestätigungs-E-Mail.
 
-- [ ] **Schritt 1: Unit-Test schreiben**
+- [x] **Schritt 1: Unit-Test schreiben**
 
 Erstelle `website/src/lib/assistant/actions/portal/bookSession.test.ts`:
 
@@ -867,7 +867,7 @@ describe('bookSession handler', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/bookSession.test.ts 2>&1 | tail -20
@@ -875,7 +875,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Erwartetes Ergebnis: Test 3 FAIL (Handler gibt `ok: false, STUB_MESSAGE` zurück).
 
-- [ ] **Schritt 3: Handler implementieren**
+- [x] **Schritt 3: Handler implementieren**
 
 Ersetze den Inhalt von `website/src/lib/assistant/actions/portal/bookSession.ts`:
 
@@ -953,7 +953,7 @@ registerAction({
 });
 ```
 
-- [ ] **Schritt 4: Tests ausführen**
+- [x] **Schritt 4: Tests ausführen**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/bookSession.test.ts 2>&1 | tail -15
@@ -961,7 +961,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Alle 3 Tests PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/assistant/actions/portal/bookSession.ts website/src/lib/assistant/actions/portal/bookSession.test.ts
@@ -977,7 +977,7 @@ git commit -m "feat(portal): implement bookSession action via CalDAV + email con
 
 Der Handler liest den `uid`-Payload, prüft über `getClientBookings(ctx.email)`, dass der Event dem eingeloggten Kunden gehört (Ownership-Guard), und löscht ihn dann via `deleteCalendarEvent(uid)`.
 
-- [ ] **Schritt 1: Unit-Test schreiben**
+- [x] **Schritt 1: Unit-Test schreiben**
 
 Erstelle `website/src/lib/assistant/actions/portal/cancelSession.test.ts`:
 
@@ -1051,13 +1051,13 @@ describe('cancelSession handler', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/cancelSession.test.ts 2>&1 | tail -20
 ```
 
-- [ ] **Schritt 3: Handler implementieren**
+- [x] **Schritt 3: Handler implementieren**
 
 Ersetze den Inhalt von `website/src/lib/assistant/actions/portal/cancelSession.ts`:
 
@@ -1125,7 +1125,7 @@ registerAction({
 });
 ```
 
-- [ ] **Schritt 4: Tests ausführen**
+- [x] **Schritt 4: Tests ausführen**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/cancelSession.test.ts 2>&1 | tail -15
@@ -1133,7 +1133,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Alle 3 Tests PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/assistant/actions/portal/cancelSession.ts website/src/lib/assistant/actions/portal/cancelSession.test.ts
@@ -1149,7 +1149,7 @@ git commit -m "feat(portal): implement cancelSession action with ownership guard
 
 Analoger Flow zu `cancelSession`, aber statt Löschen wird `updateCalendarEventTime(uid, newStart, newEnd)` aufgerufen.
 
-- [ ] **Schritt 1: Unit-Test schreiben**
+- [x] **Schritt 1: Unit-Test schreiben**
 
 Erstelle `website/src/lib/assistant/actions/portal/moveSession.test.ts`:
 
@@ -1223,13 +1223,13 @@ describe('moveSession handler', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/moveSession.test.ts 2>&1 | tail -20
 ```
 
-- [ ] **Schritt 3: Handler implementieren**
+- [x] **Schritt 3: Handler implementieren**
 
 Ersetze den Inhalt von `website/src/lib/assistant/actions/portal/moveSession.ts`:
 
@@ -1317,7 +1317,7 @@ registerAction({
 });
 ```
 
-- [ ] **Schritt 4: Tests ausführen**
+- [x] **Schritt 4: Tests ausführen**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/moveSession.test.ts 2>&1 | tail -15
@@ -1325,7 +1325,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Alle 3 Tests PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/assistant/actions/portal/moveSession.ts website/src/lib/assistant/actions/portal/moveSession.test.ts
@@ -1341,7 +1341,7 @@ git commit -m "feat(portal): implement moveSession action via updateCalendarEven
 
 Keine direkte CalDAV-Aktion — stattdessen InboxItem vom Typ `'booking'` anlegen (Admin muss manuell bestätigen). Analog zum bestehenden Kontaktformular-Flow.
 
-- [ ] **Schritt 1: Unit-Test schreiben**
+- [x] **Schritt 1: Unit-Test schreiben**
 
 Erstelle `website/src/lib/assistant/actions/portal/requestSession.test.ts`:
 
@@ -1403,7 +1403,7 @@ describe('requestSession handler', () => {
 });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/requestSession.test.ts 2>&1 | tail -20
@@ -1411,7 +1411,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Erwartetes Ergebnis: FAIL (`portal:request-session` nicht registriert).
 
-- [ ] **Schritt 3: Handler anlegen**
+- [x] **Schritt 3: Handler anlegen**
 
 Erstelle `website/src/lib/assistant/actions/portal/requestSession.ts`:
 
@@ -1466,7 +1466,7 @@ registerAction({
 });
 ```
 
-- [ ] **Schritt 4: Tests ausführen**
+- [x] **Schritt 4: Tests ausführen**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/requestSession.test.ts 2>&1 | tail -15
@@ -1474,7 +1474,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Alle 2 Tests PASS.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/assistant/actions/portal/requestSession.ts website/src/lib/assistant/actions/portal/requestSession.test.ts
@@ -1491,7 +1491,7 @@ git commit -m "feat(portal): add requestSession action (InboxItem booking)"
 
 `requestSession` registrieren und den Action-Zähler im Isolation-Test von 7 auf 8 heben.
 
-- [ ] **Schritt 1: Test zuerst anpassen — erwarte 8 Actions**
+- [x] **Schritt 1: Test zuerst anpassen — erwarte 8 Actions**
 
 In `website/src/lib/assistant/actions/portal/profile-isolation.test.ts` die `toEqual`-Assertion auf 8 Actions erweitern:
 
@@ -1511,7 +1511,7 @@ In `website/src/lib/assistant/actions/portal/profile-isolation.test.ts` die `toE
   });
 ```
 
-- [ ] **Schritt 2: Test ausführen — muss FAIL sein**
+- [x] **Schritt 2: Test ausführen — muss FAIL sein**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/profile-isolation.test.ts 2>&1 | tail -20
@@ -1519,7 +1519,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Erwartetes Ergebnis: FAIL (7 statt 8 Actions).
 
-- [ ] **Schritt 3: Import in index.ts ergänzen**
+- [x] **Schritt 3: Import in index.ts ergänzen**
 
 In `website/src/lib/assistant/actions/portal/index.ts` die Zeile hinzufügen:
 
@@ -1535,7 +1535,7 @@ import './messageCoach';
 import './startQuestionnaire';
 ```
 
-- [ ] **Schritt 4: Tests ausführen**
+- [x] **Schritt 4: Tests ausführen**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/portal/profile-isolation.test.ts 2>&1 | tail -15
@@ -1543,7 +1543,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/actions/por
 
 Alle Tests PASS.
 
-- [ ] **Schritt 5: Gesamttest-Suite**
+- [x] **Schritt 5: Gesamttest-Suite**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/ 2>&1 | tail -20
@@ -1551,7 +1551,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/ 2>&1 | tai
 
 Erwartetes Ergebnis: alle Tests im `assistant/`-Baum PASS.
 
-- [ ] **Schritt 6: Commit**
+- [x] **Schritt 6: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/lib/assistant/actions/portal/index.ts website/src/lib/assistant/actions/portal/profile-isolation.test.ts
@@ -1567,11 +1567,11 @@ git commit -m "feat(portal): register requestSession in index + update isolation
 
 Playwright-Happy-Path gegen eine laufende Instanz. Die Tests nutzen die `website`-Playwright-Konfiguration mit Keycloak-SSO. Da CalDAV-Direktabfragen aus Playwright nicht praktikabel sind, prüfen wir primär die AI-Chat-Response.
 
-- [ ] **Schritt 1: Schaue dir ein bestehendes Portal-E2E an (Referenz)**
+- [x] **Schritt 1: Schaue dir ein bestehendes Portal-E2E an (Referenz)**
 
 Lese `tests/e2e/specs/fa-client-portal.spec.ts` für Konventionen und Auth-Setup.
 
-- [ ] **Schritt 2: Test-Datei anlegen**
+- [x] **Schritt 2: Test-Datei anlegen**
 
 Erstelle `tests/e2e/specs/portal-termin-actions.spec.ts`:
 
@@ -1680,7 +1680,7 @@ test.describe('Portal Terminbuchung Actions', () => {
 });
 ```
 
-- [ ] **Schritt 3: Test syntaktisch prüfen (TypeScript-Check)**
+- [x] **Schritt 3: Test syntaktisch prüfen (TypeScript-Check)**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx tsc --noEmit 2>&1 | grep -i portal-termin | head -10
@@ -1688,7 +1688,7 @@ cd /tmp/wt-portal-termin/website && npx tsc --noEmit 2>&1 | grep -i portal-termi
 
 Erwartetes Ergebnis: keine Fehler für diese Datei.
 
-- [ ] **Schritt 4: Commit**
+- [x] **Schritt 4: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add tests/e2e/specs/portal-termin-actions.spec.ts
@@ -1704,7 +1704,7 @@ git commit -m "test(e2e): add portal-termin-actions happy-path spec (4 actions)"
 
 CI prüft, ob `test-inventory.json` aktuell ist. Neue E2E-Datei muss darin erscheinen.
 
-- [ ] **Schritt 1: Inventar regenerieren**
+- [x] **Schritt 1: Inventar regenerieren**
 
 ```bash
 cd /tmp/wt-portal-termin && bash scripts/build-test-inventory.sh
@@ -1712,7 +1712,7 @@ cd /tmp/wt-portal-termin && bash scripts/build-test-inventory.sh
 
 Erwartetes Ergebnis: `website/src/data/test-inventory.json` aktualisiert, enthält jetzt einen Eintrag mit `"file": "tests/e2e/specs/portal-termin-actions.spec.ts"`.
 
-- [ ] **Schritt 2: Prüfen ob neuer Eintrag vorhanden**
+- [x] **Schritt 2: Prüfen ob neuer Eintrag vorhanden**
 
 ```bash
 grep "portal-termin-actions" /tmp/wt-portal-termin/website/src/data/test-inventory.json
@@ -1720,7 +1720,7 @@ grep "portal-termin-actions" /tmp/wt-portal-termin/website/src/data/test-invento
 
 Erwartetes Ergebnis: Zeile mit `portal-termin-actions.spec.ts` gefunden.
 
-- [ ] **Schritt 3: Commit**
+- [x] **Schritt 3: Commit**
 
 ```bash
 cd /tmp/wt-portal-termin && git add website/src/data/test-inventory.json
@@ -1731,7 +1731,7 @@ git commit -m "chore(test-inventory): regenerate after portal-termin-actions spe
 
 ## Task 14: Gesamtprüfung
 
-- [ ] **Schritt 1: Alle Unit-Tests laufen lassen**
+- [x] **Schritt 1: Alle Unit-Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/ src/lib/__tests__/ 2>&1 | tail -30
@@ -1739,7 +1739,7 @@ cd /tmp/wt-portal-termin/website && npx vitest run src/lib/assistant/ src/lib/__
 
 Erwartetes Ergebnis: alle Tests PASS, keine Fehlermeldungen.
 
-- [ ] **Schritt 2: TypeScript-Check**
+- [x] **Schritt 2: TypeScript-Check**
 
 ```bash
 cd /tmp/wt-portal-termin/website && npx tsc --noEmit 2>&1 | head -30
@@ -1747,7 +1747,7 @@ cd /tmp/wt-portal-termin/website && npx tsc --noEmit 2>&1 | head -30
 
 Erwartetes Ergebnis: keine Fehler.
 
-- [ ] **Schritt 3: Offline CI simulieren**
+- [x] **Schritt 3: Offline CI simulieren**
 
 ```bash
 cd /tmp/wt-portal-termin && bash scripts/task-oracle.sh 'run all offline tests' 2>/dev/null || task test:all 2>&1 | tail -30
@@ -1755,7 +1755,7 @@ cd /tmp/wt-portal-termin && bash scripts/task-oracle.sh 'run all offline tests' 
 
 Erwartetes Ergebnis: grün.
 
-- [ ] **Schritt 4: Branch-Status prüfen**
+- [x] **Schritt 4: Branch-Status prüfen**
 
 ```bash
 cd /tmp/wt-portal-termin && git log --oneline -15

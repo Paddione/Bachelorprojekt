@@ -597,10 +597,11 @@ const deploy = await agent(
        isFeatureEnabled('${slug}') gate added during Implement):
       bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
       bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
-   6. Deploy BOTH brands explicitly (fleet cluster, push-based — no GitOps reconciler):
-      Website changes: task feature:website (auto-rolls out via CI for both brands)
-      K8s/manifest changes: task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
-      (Or use the umbrella if available: task feature:deploy)
+   6. Deploy BOTH brands explicitly (fleet cluster, push-based — no GitOps reconciler).
+      DEPLOY MODE (pre-computed from touched_files): ${partialServices ? `PARTIAL — only services [${partialServices}]` : 'FULL'}.
+      Website changes still auto-roll-out via CI (task feature:website); for the K8s/manifest
+      deploy run EXACTLY this command (do not substitute a different one):
+        ${deployStepCmd}
     7. Verify rollout on both brands:
        kubectl --context fleet rollout status deployment/website -n website --timeout=300s
        kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s

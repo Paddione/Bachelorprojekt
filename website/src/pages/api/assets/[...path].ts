@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ params }) => {
 
     const mime = row.metadata?.mime_type || 'application/octet-stream';
 
-    return new Response(buffer, {
+    return new Response(buffer as unknown as BodyInit, {
       headers: {
         'Content-Type': mime,
         'Cache-Control': 'public, max-age=86400',

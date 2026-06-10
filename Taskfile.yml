@@ -256,6 +256,7 @@ tasks:
       - task: test:unit:wg-mesh-fullmesh
       - task: test:unit:recovery-domain-durability
       - task: test:unit:ticket-external-id
+      - task: test:unit:ticket-triage
       - task: test:unit:website-ci-deploy
       - task: test:unit:plan-frontmatter-hook
       - task: test:unit:worktree-create
@@ -346,6 +347,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-external-id-sequence.bats
+
+  test:unit:ticket-triage:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
 
   test:unit:plan-frontmatter-hook:
     internal: true

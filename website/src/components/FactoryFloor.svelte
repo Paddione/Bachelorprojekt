@@ -15,6 +15,10 @@
   interface InjectionRow { id: string; phase: string | null; kind: 'context'|'note'|'asset'; title: string | null; content: string | null; filename: string | null; injectedBy: string; injectedAt: string; consumedAt: string | null; }
   interface TicketDetail { extId: string; title: string; status: string; priority: string; retryCount: number; prNumber: number | null; events: PhaseEventRow[]; breadcrumbs: Breadcrumb[]; injections: InjectionRow[]; }
 
+  import QaChip from './QaChip.svelte';
+  import QaModal from './QaModal.svelte';
+  import type { QaItem } from '../lib/qa-dal';
+
   let { initial }: { initial: FloorPayload | null } = $props();
 
   const STATIONS: { key: Phase; label: string }[] = [
@@ -26,15 +30,24 @@
   let stale = $state(false);
   let selected = $state<string | null>(null);
   let detail = $state<TicketDetail | null>(null);
+  let qaItems = $state<QaItem[]>([]);
+  let qaCriteria = $state<{ key: string; label: string }[]>([]);
+  let qaModalItem = $state<QaItem | null>(null);
   let es: EventSource | null = null;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   async function refresh() {
     try {
-      const res = await fetch('/api/factory-floor', { credentials: 'same-origin' });
-      if (!res.ok) { stale = true; return; }
-      data = await res.json() as FloorPayload;
+      const [floorRes, qaRes, criteriaRes] = await Promise.all([
+        fetch('/api/factory-floor', { credentials: 'same-origin' }),
+        fetch('/api/admin/qa-queue', { credentials: 'same-origin' }),
+        fetch('/api/admin/qa-criteria', { credentials: 'same-origin' }),
+      ]);
+      if (!floorRes.ok) { stale = true; return; }
+      data = await floorRes.json() as FloorPayload;
       stale = false;
+      if (qaRes.ok) { const { items } = await qaRes.json(); qaItems = items ?? []; }
+      if (criteriaRes.ok) { const { criteria } = await criteriaRes.json(); qaCriteria = criteria ?? []; }
     } catch { stale = true; }
   }
 
@@ -343,9 +356,28 @@
           </ul>
         {/if}
       </div>
+
+      <!-- ⑤ QS-Abnahme -->
+      <div class="lg:w-1/5" data-testid="floor-qa">
+        <h3 class="font-semibold mb-2">QS-Abnahme</h3>
+        {#if qaItems.length === 0}
+          <p class="text-muted text-sm">Keine Tickets warten auf Abnahme.</p>
+        {:else}
+          <div class="space-y-1">
+            {#each qaItems as item (item.extId)}
+              <QaChip
+                {item}
+                isActive={qaModalItem?.extId === item.extId}
+                draftCount={0}
+                on:click={() => { qaModalItem = item; }}
+              />
+            {/each}
+          </div>
+        {/if}
+      </div>
     </div>
 
-    <!-- ⑤ Detail-Panel (Slide-in) -->
+    <!-- ⑥ Detail-Panel (Slide-in) -->
     {#if selected}
       <div class="fixed inset-y-0 right-0 w-full max-w-md bg-dark-light border-l border-white/10 p-5 overflow-y-auto z-50" data-testid="floor-detail">
         <button onclick={closeDetail} class="float-right text-muted">✕</button>
@@ -414,6 +446,15 @@
           </details>
         {/if}
       </div>
+    {/if}
+
+    {#if qaModalItem}
+      <QaModal
+        item={qaModalItem}
+        criteria={qaCriteria}
+        on:close={() => { qaModalItem = null; }}
+        on:submitted={() => { qaModalItem = null; refresh(); }}
+      />
     {/if}
   {/if}
 </div>

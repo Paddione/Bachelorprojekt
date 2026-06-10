@@ -564,7 +564,7 @@ const deploy = await agent(
       main, --auto merges the instant the gate is green and refuses a red merge:
       cd ${REPO} && gh pr merge "$PR" --squash --delete-branch --auto
    5. Close the ticket and archive the plan:
-      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
+      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status qa_review
       bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} \
         --branch ${WORK_BRANCH} --plan-file ${planFilePath ?? `${REPO}/docs/superpowers/plans/${slug}.md`}
    5b. Seed the dark-launch flag default-OFF for BOTH brands (mirrors the

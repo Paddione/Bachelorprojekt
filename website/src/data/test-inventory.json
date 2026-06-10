@@ -330,6 +330,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-qa-review",
+    "file": "tests/e2e/specs/fa-qa-review.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-slot-widget",
     "file": "tests/e2e/specs/fa-slot-widget.spec.ts",
     "category": "E2E",

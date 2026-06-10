@@ -48,3 +48,6 @@ task-oracle-fastpath
 # --- dual-brand Ingress wiring that are not yet implemented. Excluded until
 # --- fleet:deploy:shared-services and workspace:office:deploy guards are in place.
 collabora-wopi-single-brand-guard
+#
+# --- Requires postgres (skips offline):
+qa-dal

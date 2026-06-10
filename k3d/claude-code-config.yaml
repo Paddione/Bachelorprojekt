@@ -2,6 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: claude-code-config
+  labels:
+    app: claude-code
 data:
   OPENID_PROVIDER_URL: "http://keycloak:8080/realms/workspace/.well-known/openid-configuration"
   MCP_KUBERNETES_URL: "http://claude-code-mcp-ops:8080/mcp"

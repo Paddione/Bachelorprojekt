@@ -2,11 +2,16 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: claude-code-agent
+  labels:
+    app: claude-code
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: claude-code-agent
+  labels:
+    app: claude-code
 rules:
   # ─── Broad read access ────────────────────────────────────────
   - apiGroups: [""]
@@ -52,10 +57,13 @@ rules:
   # - No delete on namespaces, PVCs, or deployments
   # - No create on any resource except via patch
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: claude-code-agent
+  labels:
+    app: claude-code
 subjects:
   - kind: ServiceAccount
     name: claude-code-agent

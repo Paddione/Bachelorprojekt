@@ -16,9 +16,9 @@ const brand = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 let initial = null;
 try { initial = await getFloor(slotsCap); } catch { initial = null; }
 
-type Tab = 'factory' | 'planung' | 'control';
+type Tab = 'factory' | 'planung' | 'control' | 'analytics';
 const rawTab = Astro.url.searchParams.get('tab');
-const initialTab: Tab = rawTab === 'planung' ? 'planung' : rawTab === 'control' ? 'control' : 'factory';
+const initialTab: Tab = rawTab === 'planung' ? 'planung' : rawTab === 'control' ? 'control' : rawTab === 'analytics' ? 'analytics' : 'factory';
 ---
 
 <AdminLayout title="Dev Status">

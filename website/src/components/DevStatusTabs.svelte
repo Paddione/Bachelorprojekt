@@ -3,9 +3,13 @@
   import FactoryFloor from './FactoryFloor.svelte';
   import PlanningOffice from './PlanningOffice.svelte';
   import ControlPanel from './factory/ControlPanel.svelte';
-  import type { FloorPayload } from '../lib/factory-floor';
+  import FactoryKpiGrid from './factory/FactoryKpiGrid.svelte';
+  import FactoryThroughputChart from './factory/FactoryThroughputChart.svelte';
+  import FactoryPhaseHeatmap from './factory/FactoryPhaseHeatmap.svelte';
+  import FactoryShippedBar from './factory/FactoryShippedBar.svelte';
+  import type { Floor_payload } from '../lib/factory-floor';
 
-  type Tab = 'factory' | 'planung' | 'control';
+  type Tab = 'factory' | 'planung' | 'control' | 'analytics';
 
   let { initial, initialTab, brand }: {
     initial: FloorPayload | null;
@@ -27,7 +31,7 @@
 
   onMount(() => {
     const saved = localStorage.getItem('dev-status-tab') as Tab | null;
-    if (saved && ['factory', 'planung', 'control'].includes(saved)) {
+    if (saved && ['factory', 'planung', 'control', 'analytics'].includes(saved)) {
       activeTab = saved;
     }
 
@@ -39,7 +43,7 @@
 
     window.addEventListener('popstate', () => {
       const t = new URLSearchParams(window.location.search).get('tab') as Tab | null;
-      if (t === 'factory' || t === 'planung' || t === 'control') activeTab = t;
+      if (t === 'factory' || t === 'planung' || t === 'control' || t === 'analytics') activeTab = t;
     });
   });
 
@@ -77,6 +81,13 @@
     >
       Control Panel
     </button>
+    <button
+      class="ds-tab"
+      class:active={activeTab === 'analytics'}
+      onclick={() => switchTab('analytics')}
+    >
+      Analytics
+    </button>
   </div>
 </div>
 
@@ -88,6 +99,13 @@
   </div>
 {:else if activeTab === 'control'}
   <ControlPanel />
+{:else if activeTab === 'analytics'}
+  <div class="analytics-tab-wrap">
+    <FactoryKpiGrid client:load />
+    <FactoryThroughputChart client:load />
+    <FactoryPhaseHeatmap client:load />
+    <FactoryShippedBar client:load />
+  </div>
 {/if}
 
 <style>
@@ -123,4 +141,11 @@
   @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
 
   .planning-tab-wrap { padding: 1.5rem; }
+
+  .analytics-tab-wrap {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--factory-spacing-lg, 1.5rem);
+  }
 </style>

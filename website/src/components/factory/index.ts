@@ -9,4 +9,8 @@ export { default as DryRunCard } from './DryRunCard.svelte';
 export { default as SlotCapCard } from './SlotCapCard.svelte';
 export { default as DailyCapCard } from './DailyCapCard.svelte';
 export { default as StatusStrip } from './StatusStrip.svelte';
+export { default as FactoryKpiGrid } from './FactoryKpiGrid.svelte';
+export { default as FactoryThroughputChart } from './FactoryThroughputChart.svelte';
+export { default as FactoryPhaseHeatmap } from './FactoryPhaseHeatmap.svelte';
+export { default as FactoryShippedBar } from './FactoryShippedBar.svelte';
 export type { FactoryTicket } from './types';

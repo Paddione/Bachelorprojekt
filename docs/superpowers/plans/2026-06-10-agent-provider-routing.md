@@ -616,7 +616,7 @@ git commit -m "feat(provider-routing): routeProvider + releaseSlot with injected
 
 These shell out to `factory_psql` (from `lib.sh`). The atomic claim is done in SQL (`UPDATE … WHERE active_agents < cap RETURNING`), so the wrappers do NOT re-implement the JS race logic — they implement the exact same SQL the injected-query adapter would issue.
 
-- [ ] **Step 1: Write the failing BATS test (offline-safe via factory_psql mock)**
+- [x] **Step 1: Write the failing BATS test (offline-safe via factory_psql mock)**
 
 Create `tests/local/FA-SF-70-provider-router.bats`. Mirror the mocking style in `tests/local/FA-SF-35-factory-cli.bats` (it stubs `kubectl`/`factory_psql`). Minimum coverage:
 
@@ -657,12 +657,12 @@ setup() {
 
 If FA-SF-35 has no reusable `kubectl` mock dir, add a local stub under `tests/local/mocks/` and `chmod +x` it; the opus + usage paths above do NOT hit the DB so they pass offline regardless.
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `cd /tmp/wt-agent-provider-routing && ./tests/runner.sh local FA-SF-70`
 Expected: FAIL — scripts do not exist.
 
-- [ ] **Step 3: Write `provider-config.sh`**
+- [x] **Step 3: Write `provider-config.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -737,7 +737,7 @@ SQL
 esac
 ```
 
-- [ ] **Step 4: Write `route-provider.sh`**
+- [x] **Step 4: Write `route-provider.sh`**
 
 Emits the claim as JSON. opus short-circuits without DB. The atomic claim loop walks ordered candidates; the SQL `UPDATE … RETURNING` enforces the cap.
 
@@ -793,7 +793,7 @@ printf '{"provider":"anthropic","modelId":"claude-sonnet-4-6","baseUrl":null,"sl
 
 Note: `slotId` is the provider name (slots are per-provider counters, not per-claim UUIDs — release just decrements that provider's counter). Document this in a comment.
 
-- [ ] **Step 5: Write `release-slot.sh`**
+- [x] **Step 5: Write `release-slot.sh`**
 
 ```bash
 #!/usr/bin/env bash
@@ -826,7 +826,7 @@ fi
 echo "released $PROV (success=$SUCCESS)"
 ```
 
-- [ ] **Step 6: chmod + run tests to verify they pass**
+- [x] **Step 6: chmod + run tests to verify they pass**
 
 ```bash
 chmod +x scripts/factory/provider-config.sh scripts/factory/route-provider.sh scripts/factory/release-slot.sh
@@ -834,7 +834,7 @@ cd /tmp/wt-agent-provider-routing && ./tests/runner.sh local FA-SF-70
 ```
 Expected: PASS (offline paths: usage, opus, arg-validation).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/factory/provider-config.sh scripts/factory/route-provider.sh scripts/factory/release-slot.sh tests/local/FA-SF-70-provider-router.bats tests/local/mocks 2>/dev/null

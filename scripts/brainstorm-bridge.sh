@@ -25,7 +25,16 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 BRAINSTORM_ROOT="$REPO/.superpowers/brainstorm"
 SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
-BRIDGE_PORT="${BRAINSTORM_BRIDGE_PORT:-47600}"   # fester kanonischer Port -> stabile serve-URL
+BRIDGE_PORT="${BRAINSTORM_BRIDGE_PORT:-47600}"   # fester kanonischer Port -> stabile serve/funnel-URL
+BOARD_DIR="$BRAINSTORM_ROOT/board"               # fester Session-Dir des Dauer-Service
+SERVICE_NAME="brainstorm-board.service"
+UNIT_FILE="$HOME/.config/systemd/user/$SERVICE_NAME"
+# systemctl --user aus einer Nicht-Login-Shell erreichbar machen
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR}/bus}"
+service_active() { systemctl --user is-active --quiet "$SERVICE_NAME" 2>/dev/null; }
+# Wenn der Dauer-Service läuft, zielen show/choice/urls auf dessen festen Board-Dir.
+target_session() { if service_active; then echo "$BOARD_DIR/"; else active_session; fi; }
 
 find_companion() {
   local matches=( "$HOME"/.claude/plugins/cache/claude-plugins-official/superpowers/*/skills/brainstorming/scripts )
@@ -53,10 +62,12 @@ finally: s.close()' "$1"; }
 free_port() { python3 -c 'import socket
 s=socket.socket(); s.bind(("0.0.0.0",0)); print(s.getsockname()[1]); s.close()'; }
 
-serve_active_root() {  # ist 'serve' mit port-loser HTTPS-Root-Map aktiv?
-  local ts magic; ts="$(ts_exe)"; magic="$(ts_magicdns)"
+serve_active_root() {  # ist eine port-lose HTTPS-Root-Map aktiv (serve ODER funnel)?
+  local ts magic out; ts="$(ts_exe)"; magic="$(ts_magicdns)"
   [[ -n "$ts" && -n "$magic" ]] || return 1
-  "$ts" serve status 2>/dev/null | grep -qE "https://${magic}([[:space:]]|/|$)"
+  # In eine Variable einlesen (kein Pipe-Producer) — sonst SIGPIPE+pipefail = falsch negativ.
+  out="$({ "$ts" funnel status 2>/dev/null; "$ts" serve status 2>/dev/null; } || true)"
+  grep -qE "https://${magic}([[:space:]]|/|$)" <<<"$out"
 }
 
 print_urls() {
@@ -66,7 +77,7 @@ print_urls() {
   echo "── Brainstorm-Board erreichbar unter ────────────────────────"
   echo "  Desktop (hier):         http://localhost:$port"
   if serve_active_root; then
-  echo "  Handy/Laptop (überall): https://$magic/   ← Tailscale serve, KEINE Ports nötig, HTTPS"
+  echo "  Handy/Laptop (überall): https://$magic/   ← Tailscale (HTTPS, KEINE Ports nötig)"
   elif [[ -n "$magic" ]]; then
   echo "  Handy/Laptop (überall): http://$magic:$port   ← Tailscale MagicDNS"
   fi
@@ -104,6 +115,14 @@ launch_companion() {
 
 cmd_start() {
   local port session pid t
+  # Dauer-Service aktiv? Dann nicht konkurrieren — auf dessen Board verweisen.
+  if service_active; then
+    echo "Dauer-Service '$SERVICE_NAME' läuft bereits auf :$BRIDGE_PORT (Board-Dir $BOARD_DIR)."
+    echo "→ 'show'/'choice' zielen automatisch darauf; 'service status' für Details."
+    print_urls "$BRIDGE_PORT"
+    "$SELF_DIR/wsl-open.sh" "http://localhost:$BRIDGE_PORT" >/dev/null 2>&1 && echo "→ Windows-Browser (localhost) geöffnet." || true
+    return 0
+  fi
   # Laufende Bridge-Session auf dem festen Port sauber beenden (Neustart).
   session="$(active_session)"
   if [[ -n "$session" && "$(session_port "$session")" == "$BRIDGE_PORT" ]]; then
@@ -133,20 +152,21 @@ cmd_start() {
 }
 
 cmd_urls() {
-  local s; s="$(active_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
-  print_urls "$(session_port "$s")"
+  local s; s="$(target_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
+  local p; p="$(session_port "$s")"; [[ -n "$p" ]] || p="$BRIDGE_PORT"
+  print_urls "$p"
 }
 
 cmd_show() {
   local file="${1:?usage: brainstorm-bridge.sh show <file>}"
   [[ -f "$file" ]] || { echo "Datei nicht gefunden: $file" >&2; exit 2; }
-  local s; s="$(active_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
+  local s; s="$(target_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
   local dest="${s}content/$(basename "${file%.html}")-$(date +%s).html"
   cp "$file" "$dest"; echo "→ $dest (Board lädt neu)"
 }
 
 cmd_choice() {
-  local s; s="$(active_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
+  local s; s="$(target_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
   "$SELF_DIR/brainstorm-extract-choice.sh" "${s}state"
 }
 
@@ -172,12 +192,80 @@ cmd_stop() {
   fi
 }
 
+# ── Dauer-Service (systemd --user) für ein immer-erreichbares, öffentliches Board ──
+gen_unit() {
+  local magic; magic="$(ts_magicdns)"; magic="${magic:-localhost}"
+  mkdir -p "$(dirname "$UNIT_FILE")"
+  cat > "$UNIT_FILE" <<UNIT
+[Unit]
+Description=Brainstorm Companion board (fixed public port ${BRIDGE_PORT})
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=${COMP}
+ExecStartPre=/usr/bin/mkdir -p ${BOARD_DIR}/content ${BOARD_DIR}/state
+ExecStart=$(command -v node) ${COMP}/server.cjs
+Environment=BRAINSTORM_DIR=${BOARD_DIR}
+Environment=BRAINSTORM_HOST=0.0.0.0
+Environment=BRAINSTORM_URL_HOST=${magic}
+Environment=BRAINSTORM_PORT=${BRIDGE_PORT}
+Environment=BRAINSTORM_OWNER_PID=1
+Environment=BRAINSTORM_PUBLIC=1
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target
+UNIT
+  echo "→ Unit: $UNIT_FILE (node=$(command -v node), port=$BRIDGE_PORT, public=read-only)"
+}
+
+cmd_service() {
+  local sub="${1:-status}" ts s pid
+  case "$sub" in
+    install)
+      "$SELF_DIR/brainstorm-companion-harden.sh" || true          # 1) härten (idempotent)
+      for s in "$BRAINSTORM_ROOT"/*/; do                          # 2) ad-hoc Server beenden -> Port frei
+        [[ "$s" == "$BOARD_DIR/" || ! -d "$s" ]] && continue
+        pid="$(cat "${s}state/server.pid" 2>/dev/null || true)"
+        [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
+      done
+      gen_unit                                                    # 3) Unit + linger + enable
+      loginctl enable-linger "$USER" 2>/dev/null || sudo -n loginctl enable-linger "$USER" 2>/dev/null || \
+        echo "⚠ enable-linger nicht gesetzt — Service startet evtl. erst nach Login. Manuell: sudo loginctl enable-linger $USER" >&2
+      systemctl --user daemon-reload
+      systemctl --user enable --now "$SERVICE_NAME"
+      ts="$(ts_exe)"                                              # 4) Funnel (öffentlich) auf festen Port
+      [[ -n "$ts" ]] && "$ts" funnel --bg --https=443 "http://127.0.0.1:$BRIDGE_PORT" >/dev/null 2>&1 \
+        && echo "→ Funnel (öffentlich) → 127.0.0.1:$BRIDGE_PORT" \
+        || echo "⚠ Funnel nicht gesetzt — manuell: tailscale.exe funnel --bg --https=443 http://127.0.0.1:$BRIDGE_PORT" >&2
+      echo; cmd_service status
+      ;;
+    remove)
+      systemctl --user disable --now "$SERVICE_NAME" 2>/dev/null && echo "Service entfernt" || echo "Service war nicht aktiv"
+      ts="$(ts_exe)"
+      if [[ -n "$ts" ]]; then "$ts" funnel --https=443 off >/dev/null 2>&1 && echo "Funnel (443) aus"; "$ts" serve --https=443 off >/dev/null 2>&1 || true; fi
+      ;;
+    status)
+      systemctl --user status "$SERVICE_NAME" --no-pager 2>&1 | head -6 || true
+      echo
+      curl -sS --max-time 4 -o /dev/null -w "localhost:$BRIDGE_PORT -> HTTP %{http_code}\n" "http://127.0.0.1:$BRIDGE_PORT/" || true
+      print_urls "$BRIDGE_PORT"
+      ;;
+    *) echo "usage: brainstorm-bridge.sh service {install|remove|status}" >&2; exit 2 ;;
+  esac
+}
+
 case "${1:-}" in
   start)   cmd_start ;;
   urls)    cmd_urls ;;
   show)    shift; cmd_show "$@" ;;
   choice)  cmd_choice ;;
   funnel)  cmd_funnel ;;
+  service) shift; cmd_service "$@" ;;
   stop)    cmd_stop ;;
-  *) echo "usage: $0 {start|urls|show <file>|choice|funnel|stop}" >&2; exit 2 ;;
+  *) echo "usage: $0 {start|urls|show <file>|choice|funnel|service <install|remove|status>|stop}" >&2; exit 2 ;;
 esac

@@ -170,6 +170,18 @@ Kurze Zusammenfassung: welche Tickets sind jetzt vollständig readiness-ready (a
 
 **Zweck:** Nicht aus einer vordefinierten Liste wählen, sondern *unbekannte* Schmerzen und Wünsche von gekko herauskitzeln — offener Entdeckungscharakter. Das Interview generiert Rohideen, die Claude anschließend in vollständige `planning`-Tickets überführt.
 
+**Bekannter Kontext über gekko (nicht abfragen):**
+- Nutzt die Plattform täglich
+- Primärgerät: Android-Smartphone → Handy-Usability ist implizit hochpriorisiert
+- Deadlines sind nebensächlich — kein Deadline-Block im Formular
+- Kein DocuSeal — Verträge werden intern selbst gebaut, also kein DocuSeal-Fieldset
+
+**Formular-Leitprinzipien:**
+- Kein "Was nutzt du aktiv?"-Filter (Block-1 ist weggefallen) — alle Schmerz-Bereiche direkt zeigen
+- Kein Ranking-Block — Priorität wird beim Ticket-Anlegen von Claude abgeleitet, nicht von gekko bewertet
+- Kein Kontext-/Timing-Block
+- Kernfokus: **Feature-Vorschläge mit Würfeln** + **Schmerz-Freitext** + **Wunschzettel**
+
 **Sage:** "Ich erstelle ein Entdeckungs-Interview-Formular für gekko."
 
 ### Schritt 1 — Bestehende Tickets laden (Duplikatschutz)
@@ -187,95 +199,49 @@ Halte diese Liste im Arbeitsgedächtnis — sie dient später beim Ticket-Anlege
 
 Erstelle `/tmp/gekko-interview-<DATUM>.html` mit dem `Write`-Tool. Das Formular ist ein **eigenständiges, backend-freies HTML**, läuft via `file://`.
 
-**Formular-Design:** Dark Theme (`#0d1117` / `#c9d1d9`), große Schrift, viel Weißraum — entspannt ausfüllbar, kein Zeitdruck. Überschrift: „Hey gekko — was brauchst du?" Introtext: „5–10 Minuten. Keine falschen Antworten. Deine Inputs landen direkt im Planungsbüro."
+**Formular-Design:** Dark Theme (`#0d1117` / `#c9d1d9`), große Schrift, viel Weißraum. Überschrift: „Hey gekko — was brauchst du?" Introtext: „5 Minuten. Keine falschen Antworten. Deine Inputs landen direkt im Planungsbüro."
 
-#### Frageblöcke (in dieser Reihenfolge)
+#### Formular-Blöcke (genau diese 3, keine anderen)
 
-**Block 1 — Schnell-Check: Was nutzt du gerade aktiv?**
-Checkboxen (Mehrfachauswahl):
-- Brett (3D-Board)
-- Website / Admin-Bereich
-- Chat / Messaging
-- Nextcloud (Dateien / Office)
-- Vaultwarden (Passwörter)
-- DocuSeal (Verträge)
-- Keycloak / Login
-- Etwas anderes: `<text input>`
+**Block 1 — Feature-Vorschläge mit Würfeln**
 
-> Ziel: Scope einschränken — nur aktiv genutzte Bereiche werden in Block 2 vertieft.
+- Zeige **12 zufällige Features** aus einem großen Pool (~60 Einträge) als anklickbare Karten
+- Jede Karte: Bereichs-Tag + Feature-Text, Klick = auswählen/abwählen
+- **„🎲 Neu würfeln"-Button**: lädt 12 neue Karten aus dem Pool — bereits ausgewählte Karten bleiben erhalten und werden als Chips unterhalb angezeigt
+- Auswahlzähler: „Ausgewählt: N"
 
-**Block 2 — Schmerzen (dynamisch nach Block-1-Auswahl)**
+Feature-Pool — Bereiche und Einträge:
 
-Für jeden in Block 1 angehakten Bereich erscheint ein Fieldset. Die Fragen sind **bereichsspezifisch**:
+| Bereich | Beispiel-Einträge |
+|---------|------------------|
+| Brett | Board-Export PNG/PDF, Touch-Drag Android, Figuren-Animationen, Gruppen-Lobby, Zuschauer-Modus, Board-Templates, Verbindungslinien, Figuren filtern, Undo/Redo, Board-Kommentare, Board teilen (Link), Offline-Modus |
+| Website | Bild-Upload im Editor, Newsletter-Vorlagen, Referenzen-Galerie, SEO-Editor, Zeitgesteuertes Veröffentlichen, Vertrags-PDF-Preview, Kontaktformular-Admin, Mehrsprachigkeit DE/EN, Bewertungs-Modul, Content-Kalender |
+| Chat | Push-Notifications Android, Emoji-Reaktionen, Thread-Antworten, Datei-Anhänge >10 MB, Gelesen-Bestätigungen, Sprachnachrichten, Nachrichten bearbeiten, DMs, @mention, Link-Vorschau, Kanal-Archiv, Videoanruf |
+| Nextcloud | Auto-Backup Ordner, Gemeinsames Bearbeiten stabil, Offline Mobile, Ordner-Freigabe vereinfachen, Bilder-Sync |
+| Vaultwarden | Android Autofill zuverlässiger, Import aus anderem Manager, Ordner teilen, Passwort-Stärke-Bericht |
+| Login | Self-Service Passwort-Reset, Einladungs-Link, Login-Verlauf, Längere Session |
+| Allgemein | Plattformweite Suche, Benachrichtigungs-Zentrale, Performance-Dashboard, Kalender-Integration, To-do-Liste, Android-Widget |
+| AI | KI-Textzusammenfassung, Chat-Bot, Ticket-Auto-Triage, KI schlägt Newsletter vor |
 
-*Brett:*
-- Was nervt dich am meisten, wenn du Brett benutzt? `<textarea rows=2>`
-- Gibt es Situationen, wo du Brett *nicht* benutzt, obwohl du es könntest — warum? `<textarea rows=2>`
-- Was fehlt dir, damit Brett auch auf dem Handy gut funktioniert? `<textarea rows=2>`
+**Block 2 — Schmerzen**
 
-*Website / Admin:*
-- Was machst du umständlich, weil es kein gutes Tool gibt? `<textarea rows=2>`
-- Welche Inhalte pflegst du regelmäßig — und was davon ist mühsam? `<textarea rows=2>`
-- Gibt es etwas, das du *anderen* zeigen willst, aber die Website das noch nicht hergibt? `<textarea rows=2>`
+Alle Bereiche direkt anzeigen (kein Filter). Bereich **DocuSeal weglassen** — wird intern selbst gebaut.
 
-*Chat / Messaging:*
-- Wann greifst du auf ein anderes Tool zurück, weil der Chat nicht reicht? `<textarea rows=2>`
-- Was fehlt dir im Vergleich zu anderen Messengern, die du kennst? `<textarea rows=2>`
+Bereiche: Brett (2 Fragen inkl. Handy), Website / Admin (2), Chat (1), Vaultwarden (1), Nextcloud (1), Keycloak / Login (1)
 
-*Nextcloud / Dateien:*
-- Was machst du manuell, das automatisch sein sollte? `<textarea rows=2>`
-- Gibt es Zusammenarbeits-Szenarien, die noch nicht funktionieren? `<textarea rows=2>`
+**Block 3 — Wunschzettel**
 
-*Vaultwarden / Passwörter:*
-- Hast du Passwörter, die du noch nicht migriert hast — warum nicht? `<textarea rows=2>`
-- Was wäre nötig, dass Vaultwarden dein einziger Passwort-Manager wird? `<textarea rows=2>`
+Drei Freitext-Felder: „Sofort hätte ich…", „In 6 Monaten…", „Vermisse von anderen Apps…"
 
-*DocuSeal / Verträge:*
-- Welcher Schritt im Vertragsworkflow kostet dich am meisten Zeit? `<textarea rows=2>`
-- Gibt es Dokumenttypen, die noch nicht abgedeckt sind? `<textarea rows=2>`
-
-*Keycloak / Login:*
-- Gab es Login-Probleme, über die du einfach drübergestrichen hast? `<textarea rows=2>`
-- Wie läuft dein Onboarding neuer Nutzer — was ist hakelig? `<textarea rows=2>`
-
-**Block 3 — Wunschzettel (offen)**
-
-Drei Freitext-Felder, betitelt:
-- „Wenn ich eine Sache sofort hätte, wäre es…" `<textarea rows=2>`
-- „In 6 Monaten würde ich mir wünschen, dass…" `<textarea rows=2>`
-- „Andere Plattformen haben X, das vermisse ich hier…" `<textarea rows=2>`
-
-**Block 4 — Quick-Ranking**
-
-5 vorgefertigte Ideen (dynamisch aus den aktuellen Planungsbüro-Einträgen oder Standardkandidaten), präsentiert als **Drag-and-Drop-Rangliste** (oder Fallback: 1–5 Nummern-Dropdowns). Überschrift: „Bring diese Ideen in deine Reihenfolge (1 = zuerst):"
-
-Standard-Kandidaten (falls keine planning-Tickets vorhanden):
-1. Brett: Board-Export als PNG/PDF
-2. Website: Bild-Upload im HTML-Editor
-3. Chat: Push-Notifications (PWA)
-4. Allgemein: Performance-Dashboard
-5. AI: Ticket-Auto-Triage
-
-Falls planning-Tickets existieren: erste 5 davon als Ranking-Items verwenden.
-
-**Block 5 — Kontext & Timing**
-
-Radio-Buttons:
-- „Wie oft nutzt du die Plattform?" → Täglich / Mehrmals/Woche / Seltener
-- „Was ist dein primäres Gerät?" → Desktop / Laptop / Tablet / Handy
-- „Hast du konkrete Deadlines, auf die du wartest?" → Ja (Freitext) / Nein
-
-**[FOOTER]**
-- Absende-Info: „Markdown kopieren"-Button + Fallback-Textarea
-- Hinweis: „Patrick schaut sich das innerhalb von 24h an."
+**[FOOTER]** „Markdown kopieren"-Button + Fallback-Textarea
 
 #### Technische Anforderungen
 
-- `name`-Attribute: `block1_<bereich>`, `block2_<bereich>_<nr>`, `block3_<nr>`, `block4_rank_<nr>`, `block5_freq`, `block5_device`, `block5_deadline`
-- Block 2 Fieldsets initial `display:none`; JS zeigt sie an, wenn der Block-1-Checkbox aktiviert wird
-- Drag-and-Drop-Ranking: HTML5 draggable, Fallback: Nummern-Dropdowns (1–5, keine Doppelwahl)
+- Kein Block-1-Filter, kein Ranking, kein Kontext-Block
+- Feature-Karten: `display:grid`, anklickbar, selected-State via CSS-Klasse
+- Würfel-Button: Fisher-Yates shuffle auf verbleibenden Pool-Einträgen
 - `buildMarkdown()` erzeugt das Ausgabeformat (siehe unten)
-- `navigator.clipboard` mit Fallback-Textarea
+- `navigator.clipboard` mit `document.execCommand('copy')` Fallback-Textarea
 
 ### Schritt 3 — Formular liefern
 
@@ -291,39 +257,37 @@ Wenn das ausgefüllte Markdown zurückkommt:
 ## GekkoMode Interview: <Datum>
 Eingereicht von: gekko
 
-### Block 1 — Aktiv genutzte Bereiche
-- Brett
-- Website / Admin-Bereich
-- Chat
+### Block 1 — Ausgewählte Feature-Vorschläge
+- [Brett] Touch-Drag & Drop auf Android verbessern
+- [Chat] Push-Notifications auf Android (PWA)
+- [Website] Bild-Upload direkt im HTML-Editor
 
 ### Block 2 — Schmerzen
 
 **Brett:**
 - Nervt: "Figuren lassen sich nicht gruppieren"
-- Nicht genutzt weil: "Auf Handy zu fummelig"
 - Handy-Problem: "Buttons zu klein, kein Touch-Drag"
 
 **Website / Admin:**
 - Umständlich: "Newsletter-Bilder muss ich extern hochladen"
-- Mühsam: "Vertragsvorlagen jedes Mal neu tippen"
 - Zeigen will: "Referenzen-Galerie fehlt"
+
+**Chat:**
+- Greift auf anderes Tool zurück weil: "Datei-Anhänge > 5 MB"
+
+**Vaultwarden:**
+- Bremst Nutzung: "Android Autofill klappt nicht immer"
+
+**Nextcloud:**
+- Manuell statt automatisch: "Ordner-Struktur händisch anlegen"
+
+**Keycloak / Login:**
+- Probleme ignoriert: "Token läuft nach 30 min ab, nervt"
 
 ### Block 3 — Wunschzettel
 - Sofort: "Brett auf Handy benutzbar machen"
 - In 6 Monaten: "Newsletter komplett in der Plattform"
 - Vermisse: "Notion-ähnliche Datenbanken"
-
-### Block 4 — Ranking
-1. Chat: Push-Notifications
-2. Website: Bild-Upload
-3. Brett: Board-Export
-4. AI: Auto-Triage
-5. Allgemein: Performance-Dashboard
-
-### Block 5 — Kontext
-- Nutzungsfrequenz: Täglich
-- Primärgerät: Handy
-- Deadline: "Vertrags-Feature bis Ende Juli"
 ```
 
 #### Tickets anlegen
@@ -360,13 +324,15 @@ bash scripts/ticket.sh add-comment \
 
 #### Priorisierungslogik für `--priority`
 
+Kein Ranking-Block — Claude leitet Priorität aus Kombination folgender Signale ab:
+
 | Signal | Priorität |
 |--------|-----------|
-| Im Block-4-Ranking auf Platz 1–2 | `hoch` |
-| Block-4-Rang 3–4 + Schmerz-Nennung | `mittel` |
-| Block-4-Rang 5 oder nur Wunsch ohne Schmerz | `niedrig` |
-| Konkrete Deadline in Block 5 genannt | Upgrade um eine Stufe |
-| Primärgerät = Handy + Usability-Problem | Upgrade um eine Stufe |
+| Feature aus Block 1 ausgewählt **und** passendes Schmerz-Zitat in Block 2 | `hoch` |
+| Feature aus Block 1 ausgewählt, aber kein Schmerz-Zitat | `mittel` |
+| Schmerz-Zitat in Block 2 ohne passende Block-1-Auswahl | `mittel` |
+| Nur Wunschzettel-Nennung (Block 3), kein Schmerz | `niedrig` |
+| Feature betrifft Handy / Android-Usability | Upgrade um eine Stufe (bekannter Kontext) |
 
 #### Readiness-Flags für GekkoMode-Tickets
 

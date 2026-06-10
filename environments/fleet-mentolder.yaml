@@ -65,6 +65,8 @@ env_vars:
   ARENA_WS_URL: https://arena-ws.mentolder.de
   # Dev stack intentionally omitted — dev migration is Phase 2c.
   DEV_SSH_ALLOWLIST: ""
+  PUSHOVER_TOKEN: ""
+  PUSHOVER_USER: ""
 
 # overlay points at the fleet wrapper (reuses prod-mentolder + deletes the
 # platform-owned cluster singletons via the fleet-common component). workspace:deploy

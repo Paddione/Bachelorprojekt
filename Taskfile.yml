@@ -2143,6 +2143,7 @@ tasks:
           if [ "{{.ENV}}" = "mentolder" ]; then
             task livekit:dns-pin ENV="{{.ENV}}" APPLY=true || true
           fi
+          bash scripts/post-deploy-watch.sh "{{.ENV}}" || true
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
       - 'echo ""'

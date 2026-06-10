@@ -1,0 +1,110 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import FactoryFloor from './FactoryFloor.svelte';
+  import PlanningOffice from './PlanningOffice.svelte';
+  import type { FloorPayload } from '../lib/factory-floor';
+
+  type Tab = 'factory' | 'planung';
+
+  let { initial, initialTab, brand }: {
+    initial: FloorPayload | null;
+    initialTab: Tab;
+    brand: string;
+  } = $props();
+
+  let activeTab = $state<Tab>(initialTab);
+  let planningCount = $state(initial?.planningCount ?? { total: 0, ready: 0 });
+  let hallActive   = $state(initial?.hall.length ?? 0);
+
+  function switchTab(tab: Tab) {
+    activeTab = tab;
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    history.pushState({}, '', url.toString());
+  }
+
+  onMount(() => {
+    window.addEventListener('factory-floor-refreshed', (e: Event) => {
+      const detail = (e as CustomEvent<{ planningCount?: typeof planningCount; hallActive?: number }>).detail;
+      if (detail.planningCount) planningCount = detail.planningCount;
+      if (detail.hallActive != null) hallActive = detail.hallActive;
+    });
+
+    window.addEventListener('popstate', () => {
+      const t = new URLSearchParams(window.location.search).get('tab') as Tab | null;
+      if (t === 'factory' || t === 'planung') activeTab = t;
+    });
+  });
+
+  function planningBadge() {
+    return planningCount.ready > 0 ? planningCount.ready : planningCount.total;
+  }
+</script>
+
+<div class="dev-status-tabs">
+  <div class="tab-bar-wrap">
+    <button
+      class="ds-tab"
+      class:active={activeTab === 'factory'}
+      onclick={() => switchTab('factory')}
+    >
+      Factory Floor
+      {#if hallActive > 0}
+        <span class="tab-badge live">{hallActive} aktiv</span>
+      {/if}
+    </button>
+    <button
+      class="ds-tab"
+      class:active={activeTab === 'planung'}
+      onclick={() => switchTab('planung')}
+    >
+      Planungsbüro
+      {#if planningBadge() > 0}
+        <span class="tab-badge">{planningBadge()} {planningCount.ready > 0 ? 'bereit' : 'in Planung'}</span>
+      {/if}
+    </button>
+  </div>
+</div>
+
+{#if activeTab === 'factory'}
+  <FactoryFloor {initial} />
+{:else}
+  <div class="planning-tab-wrap">
+    <PlanningOffice {brand} />
+  </div>
+{/if}
+
+<style>
+  .dev-status-tabs { border-bottom: 1px solid var(--admin-border, rgba(255,255,255,0.07)); }
+  .tab-bar-wrap { display: flex; gap: 0; padding: 0 1.5rem; }
+
+  .ds-tab {
+    padding: 10px 18px; font-size: 13px; font-weight: 500;
+    color: var(--admin-text-mute, #8c96a3);
+    border: none; background: transparent; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    display: flex; align-items: center; gap: 7px;
+    transition: color 0.15s;
+    font-family: var(--font-sans, inherit);
+  }
+  .ds-tab:hover { color: var(--admin-text, #eef1f3); }
+  .ds-tab.active {
+    color: var(--admin-primary, oklch(0.80 0.09 75));
+    border-bottom-color: var(--admin-primary, oklch(0.80 0.09 75));
+  }
+
+  .tab-badge {
+    background: oklch(0.80 0.09 75 / 0.14);
+    color: oklch(0.80 0.09 75);
+    font-size: 10px; font-family: var(--font-mono, monospace);
+    padding: 1px 6px; border-radius: 3px; font-weight: 600;
+  }
+  .tab-badge.live {
+    background: oklch(0.80 0.06 160 / 0.12);
+    color: oklch(0.80 0.06 160);
+    animation: badge-pulse 2s infinite;
+  }
+  @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+  .planning-tab-wrap { padding: 1.5rem; }
+</style>

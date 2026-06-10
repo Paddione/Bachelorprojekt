@@ -10,10 +10,47 @@
 
 | Skill | When to use |
 |---|---|
-| `dev-flow-plan` | **Entry point** for all repo changes — determines feature/fix/chore path, runs brainstorming, creates spec + plan, commits to branch. Chores finish inline. |
+| `dev-flow-plan` | **Entry point** for feature/fix changes — runs brainstorming, creates spec + plan, commits to branch, then **stops**. Routes chores to `dev-flow-chore`. |
+| `dev-flow-chore` | Maintenance with no behavior change (docs, dep bumps, config, CI) — executes and merges **inline**, no plan/execute handoff. |
 | `dev-flow-execute` | After `dev-flow-plan` has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
-| `dev-flow-iterate` | Deploys a surface, browses with Playwright MCP, tails logs, applies fixes, and loops until dev cluster is clean (used standalone or within `dev-flow-execute`). |
+| `dev-flow-iterate` | **Sub-routine of `dev-flow-execute`** (Schritt 4) + standalone dev-cluster loop — deploys a surface, browses with Playwright MCP, tails logs, applies small fixes. **Not** an alternative to execute. |
 | `dev-flow-e2e` | After `dev-flow-execute` has merged and deployed — writes + runs Playwright E2E tests against live environment. |
+
+---
+
+## Schicht-Kontrakt: dev-flow orchestriert, superpowers liefert Disziplin
+
+Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Sie rufen die generischen
+`superpowers:*`-Skills für die Disziplin-Schritte auf und ergänzen Projekt-Tooling
+(`worktree-create.sh`, `ticket.sh`, `agent-lock.sh`, Deploy-Tasks).
+
+**Regel:** Für Repo-Arbeit **immer über `dev-flow-*` einsteigen** — nie direkt in
+`superpowers:brainstorming` / `writing-plans` / `executing-plans` / `finishing-a-development-branch`.
+Der dev-flow-Skill ruft diese zur richtigen Zeit selbst auf.
+
+| dev-flow-Schritt | ruft superpowers-Skill |
+|---|---|
+| `dev-flow-plan` Schritt 3 | `brainstorming` |
+| `dev-flow-plan` Schritt 3.7 (Subagent) | `writing-plans` |
+| `dev-flow-execute` Schritt 2 (Implementer) | `executing-plans` (in-context) + `test-driven-development` |
+| `dev-flow-execute` bei Fehlern | `systematic-debugging` |
+| `dev-flow-execute` Schritt 3 | `verification-before-completion` |
+| `dev-flow-execute` Schritt 3.8 | `requesting-code-review` |
+
+> **Worktrees:** `using-git-worktrees` (superpowers) ist im dev-flow-Pfad durch
+> `scripts/worktree-create.sh` ersetzt (git-crypt-safe). Nicht beide mischen.
+
+### Verifikations-Leiter (wer prüft was — kein doppeltes Gate)
+
+Verifikation passiert bewusst auf zwei Ebenen mit **unterschiedlichem Zweck** — das ist kein Stacking:
+
+1. **Implementer-Subagent:** `test-driven-development` (Rot-Grün) → stoppt erst bei grünen Tests. *Selbst-Check.*
+2. **Eltern (execute):** `verification-before-completion` → **unabhängige** Re-Verifikation der Subagent-Behauptung (Evidence vor Assertion).
+3. **Eltern (execute):** `requesting-code-review` → fremde Augen auf Korrektheit/Stil **vor** Merge.
+4. **Eltern (execute):** CI-Fix-Loop → die Wahrheit der CI nach dem Push.
+
+Stufe 2 wiederholt Stufe 1 *nicht* aus Misstrauen, sondern weil delegierte Selbstauskunft kein
+unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualität, CI-Realität).
 
 ---
 
@@ -67,10 +104,27 @@
 ```mermaid
 graph TD
     subgraph "Dev-Flow Pipeline (sequentiell)"
-        DP[dev-flow-plan] --> DE[dev-flow-execute]
-        DE --> DI[dev-flow-iterate]
+        DP[dev-flow-plan] -->|feature/fix| DE[dev-flow-execute]
+        DP -->|chore| DC[dev-flow-chore]
+        DE -->|Schritt 4 Sub-Routine| DI[dev-flow-iterate]
         DE --> DEE[dev-flow-e2e]
     end
+
+    subgraph "superpowers (Disziplin-Schicht)"
+        BS[brainstorming]
+        WP[writing-plans]
+        EP[executing-plans]
+        TDD[test-driven-development]
+        VBC[verification-before-completion]
+        RCR[requesting-code-review]
+    end
+
+    DP --> BS
+    DP --> WP
+    DE --> EP
+    DE --> TDD
+    DE --> VBC
+    DE --> RCR
 
     subgraph "Runbooks (eigenständig)"
         CD[cluster-deployment]
@@ -120,6 +174,7 @@ graph TD
 | Start | Verlauf | Ergebnis |
 |-------|---------|----------|
 | Feature entwickeln | `dev-flow-plan` → `dev-flow-execute` → `dev-flow-e2e` | Gemergetes + getestetes Feature |
+| Wartung (Chore) | `dev-flow-chore` (inline) | Gemergte Wartung ohne Plan-Handoff |
 | Cluster aufsetzen | `cluster-deployment` → `fleet-ops` → `secret-rotation` | Produktions-Cluster |
 | DB-Migration | `database-ops` → `dev-flow-execute` (Schema-Change) | Gemergte Migration |
 | Secret rotieren | `secret-rotation` → `fleet-ops` (Deploy) | Rotierte Secrets |

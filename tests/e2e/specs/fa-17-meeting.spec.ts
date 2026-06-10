@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-17: Meeting Lifecycle', () => {
+test.describe('FA-17: Meeting Lifecycle', { tag: ['@meeting'] }, () => {
   test('T1: Reminders process endpoint works', async ({ request }) => {
     // /api/reminders/process was never implemented — endpoint returns 404.
     // Skip until the reminders pipeline is built.

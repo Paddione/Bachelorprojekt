@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-16: Calendar Booking', () => {
+test.describe('FA-16: Calendar Booking', { tag: ['@booking'] }, () => {
   test('T1: /api/calendar/slots returns JSON array', async ({ request }) => {
     const res = await request.get(`${BASE}/api/calendar/slots`);
     expect(res.status()).toBe(200);

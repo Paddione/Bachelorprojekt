@@ -26,7 +26,7 @@ const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/
 // surrounding copy.
 const PRICE_RE = /(?:ab\s*)?\d{1,4}(?:[.,]\d{2})?\s*€/;
 
-test.describe('FA content-hub: price SSOT', () => {
+test.describe('FA content-hub: price SSOT', { tag: ['@content-hub'] }, () => {
   test('headline price of a linked card appears on homepage, detail page and Leistungen', async ({ page, request }) => {
     // Homepage: find a service card with a price and capture its slug + price.
     await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });

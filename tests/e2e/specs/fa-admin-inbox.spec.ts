@@ -47,7 +47,7 @@ async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void
   await page.waitForURL(/\/admin\/inbox/, { timeout: 20_000 });
 }
 
-test.describe('FA-admin-inbox: two-pane rework', () => {
+test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,

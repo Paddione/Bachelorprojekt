@@ -22,7 +22,7 @@ import { test, expect } from '@playwright/test';
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 const KORE_BASE = (process.env.KORCZEWSKI_URL ?? 'https://web.korczewski.de').replace(/\/$/, '');
 
-test.describe('FA content-hub: editability render-path', () => {
+test.describe('FA content-hub: editability render-path', { tag: ['@content-hub'] }, () => {
   test('navigation links render from the editable nav source', async ({ page }) => {
     await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
     const nav = page.locator('header nav a, nav[aria-label] a').first();

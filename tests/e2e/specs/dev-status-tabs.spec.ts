@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.describe('FA-UNIF: Dev-Status tabs', { tag: ['@admin', '@factory'] }, () => {
+
 test('FA-UNIF-01: /dev-status öffnet Factory-Tab', async ({ page }) => {
   await page.goto('/dev-status');
   await expect(page.locator('.ds-tab.active')).toContainText('Factory Floor');
@@ -51,4 +53,6 @@ test('FA-UNIF-08: Sidebar hat einen Dev-Status-Eintrag', async ({ page }) => {
   await expect(devStatusLinks).toHaveCount(1);
   await expect(devStatusLinks.first()).toContainText('Dev Status');
   await expect(page.locator('#admin-sidebar a[href="/admin/planungsbuero"]')).toHaveCount(0);
+});
+
 });

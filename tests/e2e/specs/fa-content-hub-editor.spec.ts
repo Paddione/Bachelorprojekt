@@ -17,7 +17,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 
-test.describe('FA content-hub: unified editor (AC 4)', () => {
+test.describe('FA content-hub: unified editor (AC 4)', { tag: ['@content-hub'] }, () => {
   test('save rejects unauthenticated requests with 401', async ({ request }) => {
     // Make an intentionally un-credentialed request (fresh request context bypasses storageState).
     const res = await request.post(`${BASE}/api/admin/content/save`, {

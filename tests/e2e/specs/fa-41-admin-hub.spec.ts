@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'https://web.mentolder.de';
 
-test.describe('FA-41: Admin Platform Hub — visual overhaul', () => {
+test.describe('FA-41: Admin Platform Hub — visual overhaul', { tag: ['@admin', '@smoke'] }, () => {
   // ── Auth-Gating ────────────────────────────────────────────────
   test('T1: /admin/platform requires authentication', async ({ page }) => {
     await page.goto(`${BASE}/admin/platform`);

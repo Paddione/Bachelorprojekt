@@ -19,7 +19,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 
-test.describe('FA content-hub: versioning (AC 5)', () => {
+test.describe('FA content-hub: versioning (AC 5)', { tag: ['@content-hub'] }, () => {
   test('versions endpoint requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/content/versions?key=stammdaten`);
     expect([401, 403], 'versions endpoint requires auth').toContain(res.status());

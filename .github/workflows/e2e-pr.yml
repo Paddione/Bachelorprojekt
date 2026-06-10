@@ -1,0 +1,138 @@
+name: E2E (PR — gefiltert)
+
+# Läuft bei jedem PR auf main, der Website-Code ändert.
+# Führt nur die Tests aus, die zum Feature-Bereich des Branch gehören,
+# plus den @smoke-Set — kein vollständiger Suite-Lauf.
+#
+# Ziel:  Regressionsschutz im eigenen Scope, schnell (<5 min).
+# Nightly e2e.yml testet weiterhin die gesamte Suite gegen Fleet.
+#
+# Tag-Mapping (Branch-Name → Playwright --grep):
+#   feature/content-hub-*  → @content-hub
+#   feature/brainstorm-*   → @admin
+#   feature/factory-*      → @factory
+#   feature/planungsbuero* → @planungsbuero
+#   feature/booking-*      → @booking
+#   feature/meeting-*      → @meeting
+#   feature/billing-*      → @billing
+#   feature/messaging-*    → @messaging
+#   feature/brett-*        → @brett
+#   feature/fragebogen-*   → @fragebogen
+#   feature/crm-*          → @crm
+#   fix/content-hub-*      → @content-hub
+#   (sonstige)             → nur @smoke
+#
+# Neue Tests MÜSSEN ein @-Tag im test.describe-Header haben:
+#   test.describe('...', { tag: ['@feature-name'] }, () => { ... })
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'tests/e2e/**'
+      - '.github/workflows/e2e-pr.yml'
+
+concurrency:
+  group: e2e-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-pr:
+    name: E2E PR (${{ github.head_ref }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WEBSITE_URL: https://web.mentolder.de
+      TEST_KC_URL: https://auth.mentolder.de
+      PROD_DOMAIN: mentolder.de
+      SKIP_DB_PURGE: "1"
+      E2E_ADMIN_USER: paddione
+      E2E_ADMIN_PASS: ${{ secrets.E2E_ADMIN_PASS }}
+      MM_TEST_USER: ${{ secrets.MM_TEST_USER }}
+      MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tests/e2e/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tests/e2e
+        run: npm ci
+
+      - name: Install Playwright browsers (chromium only)
+        working-directory: tests/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Leite Feature-Tag aus Branch-Name ab
+        id: tag
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          echo "Branch: $BRANCH"
+
+          # Normalisiere: feature/content-hub-xyz → content-hub
+          SEGMENT=$(echo "$BRANCH" | sed 's|^feature/||;s|^fix/||;s|^chore/||' | cut -d'-' -f1-2)
+
+          TAG=""
+          case "$BRANCH" in
+            *content-hub*)  TAG="content-hub" ;;
+            *planungsbuero*|*planning-office*) TAG="planungsbuero" ;;
+            *factory*|*dev-status*) TAG="factory" ;;
+            *brainstorm*|*admin-hub*) TAG="admin" ;;
+            *booking*)      TAG="booking" ;;
+            *meeting*)      TAG="meeting" ;;
+            *billing*|*invoice*|*rechnun*) TAG="billing" ;;
+            *messaging*|*chat*|*inbox*) TAG="messaging" ;;
+            *brett*)        TAG="brett" ;;
+            *fragebogen*)   TAG="fragebogen" ;;
+            *crm*)          TAG="crm" ;;
+            *website*|*astro*|*landing*) TAG="website" ;;
+            *)              TAG="" ;;
+          esac
+
+          if [ -n "$TAG" ]; then
+            GREP_PATTERN="@${TAG}|@smoke"
+            echo "Feature-Tag: @${TAG} → grep: $GREP_PATTERN"
+          else
+            GREP_PATTERN="@smoke"
+            echo "Kein Feature-Tag erkannt → nur @smoke"
+          fi
+
+          echo "grep_pattern=$GREP_PATTERN" >> "$GITHUB_OUTPUT"
+          echo "feature_tag=$TAG"          >> "$GITHUB_OUTPUT"
+
+      - name: E2E — ${{ steps.tag.outputs.feature_tag || 'smoke' }} + @smoke gegen web.mentolder.de
+        id: playwright
+        working-directory: tests/e2e
+        run: |
+          npx playwright test \
+            --config playwright.pr.config.ts \
+            --grep "${{ steps.tag.outputs.grep_pattern }}"
+
+      - name: Upload Ergebnisse (Traces + JSON)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: e2e-pr-results-${{ github.run_id }}
+          path: tests/results
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Kommentar bei Fehler
+        if: failure() && steps.playwright.outcome == 'failure'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
+        with:
+          script: |
+            const tag = '${{ steps.tag.outputs.feature_tag }}' || 'smoke';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ❌ E2E-Tests fehlgeschlagen\n\nGetesteter Bereich: \`@${tag}\` + \`@smoke\`\n\n[Artifact herunterladen](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+            });

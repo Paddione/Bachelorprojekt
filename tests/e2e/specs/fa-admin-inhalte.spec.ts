@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA: Admin Inhalte — unified content editor + legacy stubs', () => {
+test.describe('FA: Admin Inhalte — unified content editor + legacy stubs', { tag: ['@admin', '@content-hub'] }, () => {
   // ── Main editor ────────────────────────────────────────────────
   test('T1: /admin/inhalte redirects unauthenticated users', async ({ page }) => {
     await page.goto(`${BASE}/admin/inhalte`);

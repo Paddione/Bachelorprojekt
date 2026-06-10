@@ -3,7 +3,7 @@ import { adminLogin, createTestInvoice, finalizeInvoiceViaAPI } from '../helpers
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', () => {
+test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@billing'] }, () => {
   test('partial payment then full payment toggles status', async ({ page, request }, testInfo) => {
     await adminLogin(page, request, testInfo);
 

@@ -8,7 +8,7 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 // 'mentolder'; the korczewski brand (namespace workspace-korczewski on the
 // unified `fleet` cluster) reports 'korczewski'. The single-cluster assertion
 // in T3 holds for both — there is deliberately no cross-cluster fan-out.
-test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', () => {
+test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { tag: ['@admin', '@smoke'] }, () => {
   test('T1: /api/admin/platform/software requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/platform/software`);
     expect([401, 403]).toContain(res.status());

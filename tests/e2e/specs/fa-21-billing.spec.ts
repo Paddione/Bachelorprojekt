@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-21: Service Catalog & Billing', () => {
+test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
   test('T1: /leistungen page displays services', async ({ page }) => {
     await page.goto(`${BASE}/leistungen`);
     await expect(page.getByRole('heading', { name: /Leistungen|Services/i }).first()).toBeVisible();

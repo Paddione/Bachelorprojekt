@@ -27,7 +27,7 @@ async function assertEmailOnPage(request: Parameters<typeof test>[1] extends { r
   expect(html, `${label} contains an email address (stammdaten token)`).toMatch(EMAIL_RE);
 }
 
-test.describe('FA content-hub: legal SSOT token resolution', () => {
+test.describe('FA content-hub: legal SSOT token resolution', { tag: ['@content-hub'] }, () => {
   test('mentolder /impressum renders stammdaten email', async ({ request }) => {
     await assertEmailOnPage(request, `${MENTOLDER_BASE}/impressum`, 'mentolder /impressum');
   });

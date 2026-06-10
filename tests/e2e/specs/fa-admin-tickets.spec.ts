@@ -42,7 +42,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.waitForURL(/\/admin\/tickets/, { timeout: 20_000 });
 }
 
-test.describe('FA-admin-tickets', () => {
+test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
   test('full flow: filter + comment + transition + timeline', async ({ page, request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 396,
+      "file_count": 397,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -31,6 +31,7 @@
         "tests/e2e/playwright.config.ts",
         "tests/e2e/playwright.film.config.ts",
         "tests/e2e/playwright.local.config.ts",
+        "tests/e2e/playwright.pr.config.ts",
         "tests/e2e/playwright.visual-sweep.config.ts",
         "tests/e2e/smoke/README.md",
         "tests/e2e/smoke/website.txt",

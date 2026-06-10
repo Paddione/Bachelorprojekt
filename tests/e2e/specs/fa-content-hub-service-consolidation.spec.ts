@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 
-test.describe('FA content-hub: service consolidation (AC 3)', () => {
+test.describe('FA content-hub: service consolidation (AC 3)', { tag: ['@content-hub'] }, () => {
   test('/leistungen page loads and lists service items', async ({ request }) => {
     const res = await request.get(`${BASE}/leistungen`);
     expect(res.status(), '/leistungen loads').toBe(200);

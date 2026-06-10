@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BRETT_URL = process.env.BRETT_URL
   ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://brett.localhost');
 
-test.describe('FA-27: Systemisches Brett', () => {
+test.describe('FA-27: Systemisches Brett', { tag: ['@brett'] }, () => {
   test('T1: Brett service is reachable', async ({ request }) => {
     const res = await request.get(BRETT_URL);
     expect([200, 301, 302]).toContain(res.status());

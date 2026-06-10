@@ -173,18 +173,38 @@ phase('Scout')
 phaseEvent('scout', 'entered', 'Codebase-Analyse gestartet')
 const scout = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-   Scout the feature "${A.title}" against the codebase at ${REPO}.
-   Description: ${A.description}.
 
-   1. Read the scout template at ${REPO}/scripts/factory/templates/scout-template.md.
-   2. Find similar past tickets by running:
-      \`cd ${REPO}/website && npx tsx scripts/find-similar-tickets.mjs "${A.title} ${A.description}" 5\`
-      (fail-soft: [] is fine if the DB is empty or the GPU host is down).
-   3. Identify which files this feature will edit (touched_files), the complexity
-      (simple/medium/complex), risk_areas, and estimated_slots.
+   Scout the feature "${A.title}" for codebase at ${REPO}.
+   Description: ${A.description}
 
-   Return a JSON object matching the scout schema.` + consumeInjections('scout'),
-  { label: 'scout', phase: 'Scout', schema: SCOUT_SCHEMA },
+   Work through these steps IN ORDER using tools — do NOT guess file paths from the title alone:
+
+   1. Read the scout template:
+      Read ${REPO}/scripts/factory/templates/scout-template.md
+
+   2. Grep for keywords from the feature title across the main source trees:
+      bash -c 'grep -rl "${A.title.split(' ').slice(0,3).join('\\|')}" ${REPO}/website/src ${REPO}/scripts ${REPO}/brett 2>/dev/null | head -30'
+
+   3. Find files by name patterns suggested by the ticket slug:
+      bash -c 'find ${REPO}/website/src ${REPO}/scripts ${REPO}/brett -type f \\( -name "*.ts" -o -name "*.js" -o -name "*.svelte" \\) 2>/dev/null | grep -i "${A.slug.replace(/-/g, "\\\\|")}" | head -20'
+
+   4. Read up to 3 of the most-likely candidate files (first 60 lines each) to confirm they are in scope.
+
+   5. Find similar past tickets (fail-soft: [] is fine if DB or GPU host is down):
+      cd ${REPO}/website && npx tsx scripts/find-similar-tickets.mjs "${A.title} ${A.description}" 5
+
+   6. Based on the files you actually found (not guesses), classify complexity:
+      - simple:  ≤3 files, single subsystem, no DB migration
+      - medium:  4–10 files or crosses 2 subsystems
+      - complex: >10 files or DB migration or multi-brand impact
+
+   7. Return a JSON object matching the scout schema with:
+      - touched_files: the actual file paths found in steps 2–4 (absolute paths)
+      - complexity: your classification from step 6
+      - risk_areas: concrete risks based on what you read (not generic)
+      - similar_tickets: IDs from step 5
+      - estimated_slots: 1 for simple, 2-3 for medium, 4+ for complex` + consumeInjections('scout'),
+  { label: 'scout', phase: 'Scout', schema: SCOUT_SCHEMA, model: 'sonnet' },
 )
 
 // Persist touched_files back onto the ticket via ticket.sh (NO raw SQL).

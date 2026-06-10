@@ -41,7 +41,7 @@ Cache-Quellen (Anker verifiziert, count=1): `~/.claude/plugins/cache/claude-plug
 **Files:**
 - Create: `scripts/superpowers-submit/helper-submit.js`
 
-- [ ] **Step 1: Verzeichnis + Datei anlegen**
+- [x] **Step 1: Verzeichnis + Datei anlegen**
 
 ```bash
 mkdir -p scripts/superpowers-submit
@@ -152,12 +152,12 @@ Create `scripts/superpowers-submit/helper-submit.js` mit exakt diesem Inhalt (re
 })();
 ```
 
-- [ ] **Step 2: Syntax prüfen**
+- [x] **Step 2: Syntax prüfen**
 
 Run: `node --check scripts/superpowers-submit/helper-submit.js`
 Expected: keine Ausgabe, Exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/superpowers-submit/helper-submit.js
@@ -171,7 +171,7 @@ git commit -m "feat(brainstorm): client submit block (floating button, gatherSel
 **Files:**
 - Create: `scripts/superpowers-submit-patch.sh`
 
-- [ ] **Step 1: Skript anlegen**
+- [x] **Step 1: Skript anlegen**
 
 Create `scripts/superpowers-submit-patch.sh` mit exakt diesem Inhalt. Es folgt dem collab-Patch-Muster (helper.js append) + harden-Muster (server.cjs node-String-Replace mit Anker-Eindeutigkeitsprüfung). Eigene Marker, koexistiert mit harden + collab.
 
@@ -357,7 +357,7 @@ fi
 echo "submit patch: ${done_n} file edit(s) applied"
 ```
 
-- [ ] **Step 2: Ausführbar machen + Syntaxcheck**
+- [x] **Step 2: Ausführbar machen + Syntaxcheck**
 
 Run:
 ```bash
@@ -366,7 +366,7 @@ bash -n scripts/superpowers-submit-patch.sh
 ```
 Expected: keine Ausgabe, Exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/superpowers-submit-patch.sh
@@ -380,7 +380,7 @@ git commit -m "feat(brainstorm): idempotent submit-channel patcher (helper.js ap
 **Files:**
 - Create: `tests/unit/superpowers-submit-patch.bats`
 
-- [ ] **Step 1: Failing test schreiben**
+- [x] **Step 1: Failing test schreiben**
 
 Create `tests/unit/superpowers-submit-patch.bats` (Stand-in-Fixtures tragen die exakten Anker; `$HOME` zeigt auf einen Fake-Cache — wie `superpowers-collab-patch.bats`):
 
@@ -458,14 +458,14 @@ EOF
 }
 ```
 
-- [ ] **Step 2: Test laufen lassen — muss fehlschlagen (Skript fehlt noch nicht? → es existiert; daher prüfen wir gegen das in Task 2 erstellte Skript)**
+- [x] **Step 2: Test laufen lassen — muss fehlschlagen (Skript fehlt noch nicht? → es existiert; daher prüfen wir gegen das in Task 2 erstellte Skript)**
 
 > TDD-Hinweis: Task 2 erzeugt das Skript zuerst. Falls strikt rot-grün gewünscht, dieser Test wird VOR Task 2 geschrieben — dann schlägt er mit „No such file" fehl. In der hier gewählten Reihenfolge (Skript zuerst) verifiziert dieser Test das Verhalten.
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/superpowers-submit-patch.bats`
 Expected: 4 Tests grün (`4 tests, 0 failures`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/unit/superpowers-submit-patch.bats
@@ -479,7 +479,7 @@ git commit -m "test(brainstorm): submit-patch idempotency + anchor-safety bats"
 **Files:**
 - Modify: `scripts/brainstorm-bridge.sh`
 
-- [ ] **Step 1: `cmd_submission()` nach `cmd_choice()` einfügen**
+- [x] **Step 1: `cmd_submission()` nach `cmd_choice()` einfügen**
 
 Anker (Original, `scripts/brainstorm-bridge.sh:168-171`):
 ```bash
@@ -502,7 +502,7 @@ cmd_submission() {
 }
 ```
 
-- [ ] **Step 2: Submit-Patch in `cmd_start` verdrahten (vor dem Launch)**
+- [x] **Step 2: Submit-Patch in `cmd_start` verdrahten (vor dem Launch)**
 
 Anker (Original, Anfang von `cmd_start`, `scripts/brainstorm-bridge.sh:116-118`):
 ```bash
@@ -518,7 +518,7 @@ cmd_start() {
   # Dauer-Service aktiv? Dann nicht konkurrieren — auf dessen Board verweisen.
 ```
 
-- [ ] **Step 3: Submit-Patch in `service install` verdrahten + Restart**
+- [x] **Step 3: Submit-Patch in `service install` verdrahten + Restart**
 
 Anker (Original, `scripts/brainstorm-bridge.sh:229-230`):
 ```bash
@@ -542,7 +542,7 @@ Ersetzen durch (Restart lädt die frisch gepatchte Cache-Datei):
       systemctl --user restart "$SERVICE_NAME"
 ```
 
-- [ ] **Step 4: `submission` in das case-Statement + Usage aufnehmen**
+- [x] **Step 4: `submission` in das case-Statement + Usage aufnehmen**
 
 Anker (Original, `scripts/brainstorm-bridge.sh:266-270`):
 ```bash
@@ -562,12 +562,12 @@ Ersetzen durch:
   *) echo "usage: $0 {start|urls|show <file>|choice|submission|funnel|service <install|remove|status>|stop}" >&2; exit 2 ;;
 ```
 
-- [ ] **Step 5: Syntaxcheck**
+- [x] **Step 5: Syntaxcheck**
 
 Run: `bash -n scripts/brainstorm-bridge.sh`
 Expected: keine Ausgabe, Exit 0.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/brainstorm-bridge.sh
@@ -581,7 +581,7 @@ git commit -m "feat(brainstorm): bridge submission subcommand + wire submit-patc
 **Files:**
 - Create: `scripts/tests/brainstorm-submit-smoke.sh`
 
-- [ ] **Step 1: Smoke-Skript anlegen**
+- [x] **Step 1: Smoke-Skript anlegen**
 
 Create `scripts/tests/brainstorm-submit-smoke.sh` (patcht eine Fixture-Kopie der echten Cache-Dateien, bootet den Server, testet `/submit`). Läuft NICHT im CI-Offline-Batch (bootet einen Node-Server); für die Execute-Verifikation gedacht.
 
@@ -637,7 +637,7 @@ echo "---- smoke: $ok ok, $fail fail ----"
 [[ $fail -eq 0 ]]
 ```
 
-- [ ] **Step 2: Ausführbar machen + Syntaxcheck**
+- [x] **Step 2: Ausführbar machen + Syntaxcheck**
 
 Run:
 ```bash
@@ -646,12 +646,12 @@ bash -n scripts/tests/brainstorm-submit-smoke.sh
 ```
 Expected: keine Ausgabe, Exit 0.
 
-- [ ] **Step 3: Smoke ausführen**
+- [x] **Step 3: Smoke ausführen**
 
 Run: `bash scripts/tests/brainstorm-submit-smoke.sh`
 Expected: `---- smoke: 6 ok, 0 fail ----`, Exit 0. (clip.exe-Push wird auf Linux/CI still verworfen; submission.json/events bleiben.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/tests/brainstorm-submit-smoke.sh
@@ -666,7 +666,7 @@ git commit -m "test(brainstorm): execute-time /submit listener smoke (origin, wr
 - Modify: `Taskfile.yml`
 - Modify: `docs/superpowers/references/brainstorm-bridge-wsl.md`
 
-- [ ] **Step 1: bats in den Offline-Batch aufnehmen**
+- [x] **Step 1: bats in den Offline-Batch aufnehmen**
 
 Anker (Original, `Taskfile.yml`, im `test:unit:offline-batch`):
 ```
@@ -680,12 +680,12 @@ Ersetzen durch:
         tests/unit/helper-collab-headless.bats
 ```
 
-- [ ] **Step 2: coverage-guard prüfen (neue bats ist gewired)**
+- [x] **Step 2: coverage-guard prüfen (neue bats ist gewired)**
 
 Run: `bash scripts/tests/unit-coverage-guard.sh`
 Expected: Exit 0 (keine ungewireten bats).
 
-- [ ] **Step 3: Referenz-Doc ergänzen**
+- [x] **Step 3: Referenz-Doc ergänzen**
 
 In `docs/superpowers/references/brainstorm-bridge-wsl.md` nach dem `## Ad-hoc interaktive Session`-Block diesen Abschnitt einfügen:
 
@@ -714,7 +714,7 @@ In der `## Verwandt`-Liste am Dateiende ergänzen:
 - `scripts/superpowers-submit-patch.sh` — idempotenter Submit-Kanal-Patch (loopback /submit)
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Taskfile.yml docs/superpowers/references/brainstorm-bridge-wsl.md

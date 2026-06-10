@@ -267,6 +267,11 @@ tasks:
       - task: test:unit:ticket-triage
       - task: test:unit:coverage-guard
 
+  test:unit:ticket-triage:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-triage.bats
+
   test:unit:collabora-wopi-discovery:
     internal: true
     cmds:

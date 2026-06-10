@@ -55,6 +55,8 @@ task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
 
 Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm-Gotchas in Worktrees.
 
+> **⚠ Freshness-Guard (vor jedem Commit):** Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (`repo-index.json`, `test-inventory.json`, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach `task secrets:install-hooks` — ohne Hook: `task freshness:regenerate` manuell ausführen und staged Änderungen mitcommittten.
+
 ## Schritt 4: Commit, Push & PR
 
 ```bash

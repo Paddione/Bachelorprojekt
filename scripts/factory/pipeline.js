@@ -186,7 +186,7 @@ const scout = await agent(
       bash -c 'grep -rl "${A.title.split(' ').slice(0,3).join('\\|')}" ${REPO}/website/src ${REPO}/scripts ${REPO}/brett 2>/dev/null | head -30'
 
    3. Find files by name patterns suggested by the ticket slug:
-      bash -c 'find ${REPO}/website/src ${REPO}/scripts ${REPO}/brett -type f \\( -name "*.ts" -o -name "*.js" -o -name "*.svelte" \\) 2>/dev/null | grep -i "${A.slug.replace(/-/g, "\\\\|")}" | head -20'
+      bash -c 'find ${REPO}/website/src ${REPO}/scripts ${REPO}/brett -type f \\( -name "*.ts" -o -name "*.js" -o -name "*.svelte" \\) 2>/dev/null | grep -i "${(A.slug ?? '').replace(/-/g, "\\|")}" | head -20'
 
    4. Read up to 3 of the most-likely candidate files (first 60 lines each) to confirm they are in scope.
 

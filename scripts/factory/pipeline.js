@@ -478,6 +478,32 @@ if (DRY_RUN) {
   return { status: 'dry-run', report, reviews: reviews.length, tasks: tasks.length }
 }
 
+// ── Partial-deploy decision (T000591) ───────────────────────────────────────
+// Source the bash service-registry SSOT and ask it whether the touched k3d files
+// qualify for a partial deploy (≤5 services, no infra/unknown k3d files). If they
+// do, we deploy only those `app:` slugs; otherwise we fall back to full
+// workspace:deploy. featureTouchedFiles was hoisted in the Scout phase (line ~193).
+function resolvePartialServices(touched) {
+  try {
+    const { execFileSync } = require('child_process')
+    const csv = (touched ?? []).join(',')
+    const out = execFileSync('bash', ['-c',
+      `source ${REPO}/scripts/factory/service-registry.sh && resolve_partial_services "$1"`,
+      'bash', csv],
+      { encoding: 'utf8' }).trim()
+    return out.length > 0 ? out : null  // empty stdout = no partial (caller falls back)
+  } catch {
+    return null  // resolver returned non-zero (infra/unknown/over-threshold) → full deploy
+  }
+}
+const partialServices = resolvePartialServices(featureTouchedFiles)
+// Per-brand deploy command injected into the Deploy agent's step 6.
+const deployStepCmd = partialServices
+  ? `task workspace:partial-deploy ENV=mentolder PARTIAL_SERVICES=${partialServices} && task workspace:partial-deploy ENV=korczewski PARTIAL_SERVICES=${partialServices}`
+  : `task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski`
+log(`Deploy mode: ${partialServices ? `PARTIAL [${partialServices}]` : 'FULL'} (touched=${(featureTouchedFiles ?? []).length})`)
+phaseEvent('deploy', partialServices ? 'partial' : 'full', partialServices ? `services=${partialServices}` : 'full deploy')
+
 const deploy = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
    Deploy the feature to both brands. Operate from the MAIN repo at ${REPO}

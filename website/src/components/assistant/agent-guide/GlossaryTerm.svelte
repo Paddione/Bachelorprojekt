@@ -1,6 +1,8 @@
 <script lang="ts">
   let { term, def }: { term: string; def: string } = $props();
-  let open = $state(false);
+  let pinned = $state(false);
+  let hovered = $state(false);
+  let open = $derived(pinned || hovered);
 </script>
 
 <span class="ag-gloss-wrap">
@@ -8,9 +10,9 @@
     type="button"
     class="ag-gloss"
     aria-expanded={open}
-    onclick={() => (open = !open)}
-    onmouseenter={() => (open = true)}
-    onmouseleave={() => (open = false)}
+    onclick={() => (pinned = !pinned)}
+    onmouseenter={() => (hovered = true)}
+    onmouseleave={() => (hovered = false)}
   >{term}</button>
   {#if open}
     <span class="ag-gloss-pop" role="note">{def}</span>

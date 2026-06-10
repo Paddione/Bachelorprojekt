@@ -1,6 +1,19 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
+
+/**
+ * Wait for all Astro islands to finish hydration by polling for the removal
+ * of the `ssr` attribute. Astro removes this attribute from <astro-island>
+ * elements after the component JavaScript finishes loading and the framework
+ * (Svelte, Vue, etc.) completes hydration.
+ */
+async function waitForHydration(page: Page) {
+  await page.waitForFunction(
+    () => document.querySelectorAll('astro-island[ssr]').length === 0,
+    { timeout: 8000 }
+  );
+}
 
 test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
 
@@ -42,6 +55,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
 
   test('T5: Contact form has all required fields', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
+    await waitForHydration(page);
     // The new UI uses tabs. "Nachricht" is tab 02.
     await page.getByRole('tab', { name: /Nachricht/i }).click();
     await expect(page.getByRole('combobox', { name: /wie kann ich helfen/i })).toBeVisible();
@@ -52,6 +66,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
 
   test('T6: Valid form submission succeeds', async ({ page }) => {
     await page.goto(`${BASE}/kontakt`);
+    await waitForHydration(page);
     await page.getByRole('tab', { name: /Nachricht/i }).click();
     await page.getByRole('textbox', { name: /name/i }).first().fill('Test E2E User');
     await page.getByRole('textbox', { name: /e-mail/i }).fill('test-e2e@example.de');

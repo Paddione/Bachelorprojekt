@@ -727,12 +727,12 @@ git commit -m "docs(brainstorm): document submit channel + wire submit-patch bat
 
 **Files:** keine
 
-- [ ] **Step 1: Offline-Tests grün**
+- [x] **Step 1: Offline-Tests grün**
 
 Run: `task test:all`
 Expected: alle grün, inkl. `superpowers-submit-patch.bats` (4 Tests) + coverage-guard.
 
-- [ ] **Step 2: Freshness**
+- [x] **Step 2: Freshness**
 
 Run: `task freshness:check`
 Expected: grün. Falls ein generiertes Artefakt (repo-index/quality:index) die neuen Skripte erwartet → regenerieren (z.B. `task quality:index` o.ä. gemäß Fehlermeldung), Diff committen:
@@ -740,7 +740,7 @@ Expected: grün. Falls ein generiertes Artefakt (repo-index/quality:index) die n
 git add -A && git commit -m "chore(freshness): regenerate index after submit-channel scripts"
 ```
 
-- [ ] **Step 3: Listener-Smoke**
+- [x] **Step 3: Listener-Smoke**
 
 Run: `bash scripts/tests/brainstorm-submit-smoke.sh`
 Expected: `6 ok, 0 fail`.

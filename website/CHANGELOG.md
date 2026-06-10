@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.48.0...website-v1.48.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* **factory-floor:** missing closing brace breaks build since [#1520](https://github.com/Paddione/Bachelorprojekt/issues/1520) ([#1523](https://github.com/Paddione/Bachelorprojekt/issues/1523)) ([30096fa](https://github.com/Paddione/Bachelorprojekt/commit/30096fa4fe37067023ee4b23661feee0d624895d))
+
 ## [1.48.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.47.0...website-v1.48.0) (2026-06-10)
 
 

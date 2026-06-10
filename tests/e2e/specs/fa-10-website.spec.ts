@@ -65,11 +65,27 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', () => {
   });
 
   test('T6: Valid form submission succeeds', async ({ page }) => {
+    // Intercept the API call to inject the E2E marker headers so the row is
+    // stamped is_test_data=true and cleaned up by the purge bracket. Without
+    // this the browser-submitted POST carries no X-E2E-Test / X-Cron-Secret
+    // and real inbox items accumulate on every E2E run.
+    const cronSecret = process.env.CRON_SECRET;
+    if (cronSecret) {
+      await page.route('**/api/contact', async (route) => {
+        await route.continue({
+          headers: {
+            ...route.request().headers(),
+            'X-E2E-Test': '1',
+            'X-Cron-Secret': cronSecret,
+          },
+        });
+      });
+    }
     await page.goto(`${BASE}/kontakt`);
     await waitForHydration(page);
     await page.getByRole('tab', { name: /Nachricht/i }).click();
-    await page.getByRole('textbox', { name: /name/i }).first().fill('Test E2E User');
-    await page.getByRole('textbox', { name: /e-mail/i }).fill('test-e2e@example.de');
+    await page.getByRole('textbox', { name: /name/i }).first().fill('[TEST] E2E User');
+    await page.getByRole('textbox', { name: /e-mail/i }).fill('test-e2e@example.invalid');
     await page.getByRole('textbox', { name: /ihre nachricht/i }).fill('Dies ist eine automatisierte Testnachricht.');
     await page.getByRole('button', { name: /nachricht senden/i }).click();
     await expect(page.locator('text=Vielen Dank')).toBeVisible({ timeout: 10_000 });

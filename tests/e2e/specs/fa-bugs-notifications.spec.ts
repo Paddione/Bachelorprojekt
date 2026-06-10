@@ -20,10 +20,11 @@
 import { test, expect } from '@playwright/test';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
-const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
-const MAILPIT    = process.env.MAILPIT_URL  ?? 'http://localhost:8025';
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
-const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
+const BASE        = process.env.WEBSITE_URL ?? 'http://localhost:4321';
+const MAILPIT     = process.env.MAILPIT_URL  ?? 'http://localhost:8025';
+const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
+const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
+const CRON_SECRET = process.env.CRON_SECRET;
 
 test.describe('FA-bug-notify', () => {
   test('reporter receives close-mail when admin resolves ticket', async ({ page, request }, testInfo) => {
@@ -37,7 +38,13 @@ test.describe('FA-bug-notify', () => {
     // ── Step 1: Submit public bug report via API (no auth required) ──
     const reporter = `e2e-${Date.now()}@example.com`;
 
+    const e2eHeaders: Record<string, string> = {};
+    if (CRON_SECRET) {
+      e2eHeaders['X-E2E-Test'] = '1';
+      e2eHeaders['X-Cron-Secret'] = CRON_SECRET;
+    }
     const create = await request.post(`${BASE}/api/bug-report`, {
+      headers: e2eHeaders,
       multipart: {
         description: 'E2E notification test — Playwright FA-bug-notify',
         email:       reporter,

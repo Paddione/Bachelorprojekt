@@ -27,8 +27,10 @@ jobs:
       contents: read
     steps:
       - name: Enable squash auto-merge
+        # GITHUB_TOKEN darf enablePullRequestAutoMerge nicht ausführen
+        # ("Resource not accessible by integration") — daher PAT.
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: gh pr merge --auto --squash --delete-branch --repo "$REPO" "$PR_NUMBER"

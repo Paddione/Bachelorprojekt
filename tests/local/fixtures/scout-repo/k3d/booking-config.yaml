@@ -1,0 +1,7 @@
+# fixture manifest for scout.sh risk-area tests
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: booking-config
+data:
+  feature: booking

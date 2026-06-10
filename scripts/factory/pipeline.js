@@ -165,58 +165,61 @@ let featureTouchedFiles = []
 let planFilePath = REUSE ? REUSE_PLAN : null
 
 // JSON schemas for structured agent outputs (compact one-liners; same shape).
-const SCOUT_SCHEMA = { type: 'object', required: ['complexity', 'touched_files', 'risk_areas', 'similar_tickets', 'estimated_slots'], properties: { complexity: { enum: ['simple', 'medium', 'complex'] }, touched_files: { type: 'array', items: { type: 'string' } }, risk_areas: { type: 'array', items: { type: 'string' } }, similar_tickets: { type: 'array', items: { type: 'string' } }, estimated_slots: { type: 'integer' } } }
 const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { findings: { type: 'array', items: { type: 'object', required: ['severity', 'file', 'description'], properties: { severity: { enum: ['low', 'medium', 'high', 'critical'] }, file: { type: 'string' }, line: { type: 'integer' }, description: { type: 'string' }, suggested_fix: { type: 'string' } } } }, summary: { type: 'string' } } }
 try { if (!REUSE) {
-// ── ① Scout ────────────────────────────────────────────────────────────────
+// ── ① Scout (deterministisch) ─────────────────────────────────────────────
 phase('Scout')
-phaseEvent('scout', 'entered', 'Codebase-Analyse gestartet')
-const scout = await agent(
-  `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
+phaseEvent('scout', 'entered', 'Codebase-Analyse (deterministisch) gestartet')
 
-   Scout the feature "${A.title}" for codebase at ${REPO}.
-   Description: ${A.description}
+const cp = require('child_process')
 
-   Work through these steps IN ORDER using tools — do NOT guess file paths from the title alone:
+// Liveness touch FIRST (separate, direct, best-effort) so a slow scout.sh
+// similar-tickets lookup never starves the dispatcher watchdog.
+try {
+  cp.execFileSync('bash',
+    [`${REPO}/scripts/ticket.sh`, 'touch', '--id', String(A.ticket_id)],
+    { stdio: 'ignore', timeout: 10000 })
+} catch { /* best-effort liveness ping */ }
 
-   1. Read the scout template:
-      Read ${REPO}/scripts/factory/templates/scout-template.md
+// Deterministic scout: grep/find file discovery + complexity + risks + similar.
+const scoutJson = cp.execFileSync('bash',
+  [`${REPO}/scripts/factory/scout.sh`,
+   '--ticket-id',   String(A.ticket_id),
+   '--title',       String(A.title),
+   '--slug',        String(A.slug ?? ''),
+   '--description', String(A.description ?? ''),
+   '--repo',        REPO],
+  { encoding: 'utf8', timeout: 60000 })
 
-   2. Grep for keywords from the feature title across the main source trees:
-      bash -c 'grep -rl "${A.title.split(' ').slice(0,3).join('\\|')}" ${REPO}/website/src ${REPO}/scripts ${REPO}/brett 2>/dev/null | head -30'
+let scout
+try {
+  scout = JSON.parse(scoutJson)
+} catch (e) {
+  throw new Error(`Scout output not valid JSON: ${String(scoutJson).slice(0, 200)}`)
+}
+// Rudimentary schema validation (analogous to the harness SCOUT_SCHEMA check).
+if (!scout || typeof scout.complexity !== 'string'
+    || !['simple', 'medium', 'complex'].includes(scout.complexity)
+    || !Array.isArray(scout.touched_files)
+    || !Array.isArray(scout.risk_areas)
+    || !Array.isArray(scout.similar_tickets)) {
+  throw new Error(`Scout output invalid: ${String(scoutJson).slice(0, 200)}`)
+}
 
-   3. Find files by name patterns suggested by the ticket slug:
-      bash -c 'find ${REPO}/website/src ${REPO}/scripts ${REPO}/brett -type f \\( -name "*.ts" -o -name "*.js" -o -name "*.svelte" \\) 2>/dev/null | grep -i "${(A.slug ?? '').replace(/-/g, "\\|")}" | head -20'
-
-   4. Read up to 3 of the most-likely candidate files (first 60 lines each) to confirm they are in scope.
-
-   5. Find similar past tickets (fail-soft: [] is fine if DB or GPU host is down):
-      cd ${REPO}/website && npx tsx scripts/find-similar-tickets.mjs "${A.title} ${A.description}" 5
-
-   6. Based on the files you actually found (not guesses), classify complexity:
-      - simple:  ≤3 files, single subsystem, no DB migration
-      - medium:  4–10 files or crosses 2 subsystems
-      - complex: >10 files or DB migration or multi-brand impact
-
-   7. Return a JSON object matching the scout schema with:
-      - touched_files: the actual file paths found in steps 2–4 (absolute paths)
-      - complexity: your classification from step 6
-      - risk_areas: concrete risks based on what you read (not generic)
-      - similar_tickets: IDs from step 5
-      - estimated_slots: 1 for simple, 2-3 for medium, 4+ for complex` + consumeInjections('scout'),
-  { label: 'scout', phase: 'Scout', schema: SCOUT_SCHEMA, model: 'sonnet' },
-)
-
-// Persist touched_files back onto the ticket via ticket.sh (NO raw SQL).
 log(`Scout: complexity=${scout.complexity}, ${scout.touched_files.length} touched files`)
-featureComplexity = scout.complexity // hoist for the out-of-block Implement fan-out provisioning
+featureComplexity = scout.complexity      // hoist for the out-of-block Implement fan-out provisioning
 featureTouchedFiles = scout.touched_files // hoist for the out-of-block Deploy retry-loop escalate-class gate
-await agent(
-  `Run the following command to record which files this feature touches on the ticket:
-   bash ${REPO}/scripts/ticket.sh set-touched-files --id ${A.ticket_id} --files ${JSON.stringify(scout.touched_files.join(','))}
-   Report the command output.`,
-  { label: 'scout:persist', phase: 'Scout' },
-)
+
+// Persist touched_files onto the ticket (direct call, no LLM agent — was scout:persist).
+try {
+  cp.execFileSync('bash',
+    [`${REPO}/scripts/ticket.sh`, 'set-touched-files',
+     '--id', String(A.ticket_id),
+     '--files', scout.touched_files.join(',')],
+    { stdio: 'ignore', timeout: 15000 })
+} catch (e) {
+  log(`scout:persist set-touched-files failed (non-fatal): ${e.message}`)
+}
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
 // SIMPLE features skip Design/Plan/Implement and go straight to Verify→Deploy.

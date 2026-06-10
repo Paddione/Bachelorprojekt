@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
+      - '**/CLAUDE.md'
   push:
     branches:
       - main
@@ -17,6 +18,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
+      - '**/CLAUDE.md'
 
 concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);

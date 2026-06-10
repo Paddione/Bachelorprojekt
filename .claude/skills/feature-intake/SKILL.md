@@ -11,19 +11,23 @@ Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen u
 
 | Modus | Wann | Ergebnis |
 |-------|------|---------|
-| **Brainstorm** | User ist anwesend, möchte gemeinsam ideieren | Strukturierte Feature-Liste → direkt zu `dev-flow-plan` |
-| **PM-Formular** | PM (gekko) soll Anforderungen offline einsammeln | HTML-Datei in `/tmp/` → ausgefülltes Markdown → `dev-flow-plan` |
+| **Brainstorm** | User will jetzt live mitreden / frei ideieren | Strukturierte Feature-Liste → direkt zu `dev-flow-plan` |
+| **HTML-Formular** | Auswahl + Priorisierung soll bequem per Klick statt Tippen erfolgen — **für Patrick selbst ODER für gekko** | Leicht ausfüllbares HTML-Formular → ausgefülltes Markdown → `dev-flow-plan` |
+
+**Standard-Annahme:** Patrick füllt Auswahl/Priorisierung lieber in einem **HTML-Formular** aus als in einer Inline-Text-Frage-Antwort-Runde (siehe Memory „Grilling via HTML form"). Im Zweifel **generiere das Formular** und liefere es per `SendUserFile` — nicht für gekko, sondern für ihn selbst.
 
 ---
 
 ## Modus-Wahl
 
 ```
-User ist verfügbar und will jetzt planen?
-  → Brainstorm-Modus
+User will JETZT frei mitdenken / Cluster live durchgehen?
+  → Brainstorm-Modus (Modus A)
 
-User sagt "schick gekko einen Fragebogen" / "PM soll entscheiden"?
-  → PM-Formular-Modus
+User will Features nur auswählen + priorisieren (wenig tippen),
+ODER sagt "schick gekko einen Fragebogen" / "PM soll entscheiden",
+ODER "mach mir ein Formular"?
+  → HTML-Formular-Modus (Modus B) — Empfänger = Patrick oder gekko
 ```
 
 ---
@@ -89,18 +93,33 @@ Danach: direkt zu **`dev-flow-plan`** für den gewählten Kandidaten.
 
 ---
 
-## Modus B: PM-Fragebogen (HTML-Formular)
+## Modus B: HTML-Formular (für Patrick oder gekko)
 
-**Sage:** "Ich generiere ein HTML-Formular für gekko."
+**Sage:** "Ich generiere ein HTML-Formular zum Ausfüllen." (Bei Empfänger gekko: "… für gekko.")
 
-Erstelle eine selbst-enthaltene HTML-Datei unter `/tmp/feature-intake-<YYYY-MM-DD>.html`.
+### Schritt 1 — Template nutzen, NICHT neu bauen
+
+Es gibt ein fertiges, getestetes Template: **`.claude/skills/feature-intake/pm-form-template.html`** (selbst-enthalten, dark theme, Bereich-Chips → Feature-Listen → Prio/Aufwand-Dropdowns → robuster "Markdown kopieren"-Button mit Fallback-Textfeld).
+
+```bash
+cp .claude/skills/feature-intake/pm-form-template.html /tmp/feature-intake-$(date +%F).html
+```
+
+Dann **nur den `FEATURES`-Block anpassen** (JS-Objekt im `<script>`): die Kandidaten-Listen aktualisieren, falls neue Projektbereiche/Tickets relevant sind (siehe „Vorausgefüllte Feature-Kandidaten" unten). Layout/Copy-Logik nicht neu erfinden.
+
+> Nur falls das Template fehlt oder grundlegend anders sein soll, baue von Grund auf neu — dann gelten die „Formular-Anforderungen" und „Formular-Struktur" unten als Spezifikation.
+
+### Schritt 2 — An den Empfänger liefern
+
+- **Empfänger Patrick (Standard):** Liefere die Datei direkt per `SendUserFile` (`/tmp/feature-intake-<datum>.html`), damit er sie mit einem Klick im Browser öffnen kann. Sag ihm: ausfüllen → „Markdown kopieren" → hier einfügen.
+- **Empfänger gekko:** Nenne den `/tmp/`-Pfad und beschreibe den Versandweg (z.B. anhängen/teilen). Gleiche Ausfüll-Anleitung.
 
 ### Formular-Anforderungen
 
 Das Formular muss:
-- **Kein Backend** benötigen (läuft lokal im Browser)
+- **Kein Backend** benötigen (läuft lokal im Browser via `file://`)
 - Überwiegend **Checkboxen / Radio-Buttons / Dropdowns** verwenden (minimales Tippen)
-- Einen **"Markdown kopieren"**-Button haben, der strukturierten Output in die Zwischenablage legt
+- Einen **"Markdown kopieren"**-Button haben, der strukturierten Output in die Zwischenablage legt — **mit Fallback-Textfeld**, falls `navigator.clipboard` auf `file://` scheitert (Template hat das bereits)
 - Das kopierte Markdown muss **direkt von Claude** lesbar/verarbeitbar sein
 
 ### Formular-Struktur
@@ -181,7 +200,7 @@ Nutze diese als Checkbox-Vorschläge im Formular:
 
 ### Übergabe nach Rücklauf
 
-Wenn gekko das Markdown zurückschickt:
+Wenn das ausgefüllte Markdown zurückkommt (egal ob von Patrick oder gekko):
 1. Parse die Feature-Liste (Abschnitte Hohe/Mittlere Priorität + Freie Ideen)
 2. Schlage vor, welches Feature als erstes zu `dev-flow-plan` gehen soll
 3. Erstelle auf Anfrage Tickets für alle Features der Liste

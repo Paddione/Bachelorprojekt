@@ -1,23 +1,11 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-
-  type Phase = 'scout' | 'design' | 'plan' | 'implement' | 'verify' | 'deploy';
-  interface ControlSnapshot { killSwitch: boolean; slotsUsed: number; slotsCap: number; dailyCap: number; dailyUsed: number; dryRun: boolean; watchdogStale: number; }
-  interface FloorMetrics { shippedToday: number; avgCycleH: number | null; }
-  interface LoadingDockItem { extId: string; title: string; priority: string; waitReason: string; }
-  interface HallItem { extId: string; title: string; priority: string; phase: Phase | null; phaseState: 'entered'|'done'|'blocked'|null; phaseSince: string | null; retryCount: number; blockReason: string | null; slot: number | null; driver: 'factory'|'devflow'|null; prNumber: number | null; ciStatus: 'success'|'pending'|'failure'|null; }
-  interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
-  interface StagedItem { extId: string; title: string; priority: string; branch: string | null; planPath: string | null; createdAt: string | null; }
-  interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; staged: StagedItem[]; officeWaiting: number; stagedWaiting: number; fetchedAt: string; }
-
-  interface PhaseEventRow { phase: Phase; state: string; detail: string | null; driver: string; at: string; }
-  interface Breadcrumb { authorLabel: string; body: string; at: string; }
-  interface InjectionRow { id: string; phase: string | null; kind: 'context'|'note'|'asset'; title: string | null; content: string | null; filename: string | null; injectedBy: string; injectedAt: string; consumedAt: string | null; }
-  interface TicketDetail { extId: string; title: string; status: string; priority: string; retryCount: number; prNumber: number | null; events: PhaseEventRow[]; breadcrumbs: Breadcrumb[]; injections: InjectionRow[]; }
+  import type { FloorPayload, TicketDetail, HallItem, Phase } from '../lib/factory-floor';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
   import MobileFloorNav from './MobileFloorNav.svelte';
+  import ProviderStatus from './ProviderStatus.svelte';
   import type { QaItem } from '../lib/qa-dal';
 
   let { initial }: { initial: FloorPayload | null } = $props();
@@ -203,6 +191,8 @@
       <a href="/admin/planungsbuero" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-office" title="Im Planungsbüro"><p class="text-muted text-xs">Büro</p><p class="text-xl font-bold">{data.officeWaiting ?? 0}</p></a>
       <a href="#floor-kommissionierung" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-komm-count" title="Zur Kommissionierung"><p class="text-muted text-xs">Kommissionierung</p><p class="text-xl font-bold">{data.stagedWaiting ?? 0}</p></a>
     </div>
+
+    <ProviderStatus providerHealth={data.providerHealth} />
 
     <MobileFloorNav {mobileColIndex} onPrev={mobilePrev} onNext={mobileNext} />
 

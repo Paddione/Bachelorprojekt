@@ -38,6 +38,14 @@ export interface StagedItem {
   extId: string; title: string; priority: string;
   branch: string | null; planPath: string | null; createdAt: string | null;
 }
+export interface ProviderStatus {
+  provider: string;
+  status: 'healthy' | 'cooldown';
+  activeAgents: number;
+  maxConcurrent: number;
+  cooldownUntil: string | null;
+  tiers: string[];
+}
 export interface FloorPayload {
   control: ControlSnapshot;
   metrics: FloorMetrics;
@@ -45,6 +53,7 @@ export interface FloorPayload {
   hall: HallItem[];
   shipped: ShippedItem[];
   staged: StagedItem[];
+  providerHealth: ProviderStatus[];
   officeWaiting: number;
   stagedWaiting: number;
   planningCount: PlanningCount;
@@ -267,10 +276,32 @@ export async function releaseToBacklog(extId: string): Promise<boolean> {
   return (r.rowCount ?? 0) > 0;
 }
 
+export async function getProviderHealth(): Promise<ProviderStatus[]> {
+  const { rows } = await pool.query(`
+    SELECT ph.provider,
+           ph.active_agents,
+           ph.cooldown_until,
+           COALESCE(MAX(pc.max_concurrent), 3) AS max_concurrent,
+           COALESCE(array_agg(DISTINCT pc.tier) FILTER (WHERE pc.tier IS NOT NULL), '{}') AS tiers
+      FROM tickets.provider_health ph
+      LEFT JOIN tickets.provider_config pc ON pc.provider = ph.provider AND pc.enabled = true
+     GROUP BY ph.provider, ph.active_agents, ph.cooldown_until
+     ORDER BY ph.provider`);
+  const now = Date.now();
+  return rows.map((r: any) => ({
+    provider: r.provider,
+    status: r.cooldown_until && new Date(r.cooldown_until).getTime() > now ? 'cooldown' : 'healthy' as const,
+    activeAgents: Number(r.active_agents),
+    maxConcurrent: Number(r.max_concurrent),
+    cooldownUntil: r.cooldown_until ?? null,
+    tiers: r.tiers ?? [],
+  }));
+}
+
 /** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
-  const [metrics, loadingDock, hall, shipped, staged, officeWaiting, planningCount] = await Promise.all([
+  const [metrics, loadingDock, hall, shipped, staged, officeWaiting, planningCount, providerHealth] = await Promise.all([
     getMetrics(),
     getLoadingDock(control.slotsUsed, control.slotsCap),
     getHall(),
@@ -278,9 +309,10 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
     getStaged(),
     officeCount(),
     getPlanningCount(),
+    getProviderHealth(),
   ]);
   return {
-    control, metrics, loadingDock, hall, shipped, staged,
+    control, metrics, loadingDock, hall, shipped, staged, providerHealth,
     officeWaiting, stagedWaiting: staged.length,
     planningCount,
     qaQueue: [],

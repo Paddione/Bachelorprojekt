@@ -14,10 +14,16 @@ vi.mock('pg', () => {
     CREATE TABLE tickets.ticket_links (
       id serial, from_id text, to_id text, kind text, pr_number int, created_at timestamptz);
     CREATE TABLE tickets.ticket_comments (id serial, ticket_id text, author_label text, kind text, body text, visibility text, created_at timestamptz);
-    CREATE TABLE tickets.ticket_injections (
+      CREATE TABLE tickets.ticket_injections (
       id text, ticket_id text, phase text, kind text, title text, content text,
       target_files text[], data_url text, nc_path text, filename text, mime_type text,
       injected_by text, injected_at timestamptz, consumed_at timestamptz);
+    CREATE TABLE tickets.provider_config (
+      id bigserial, source text, tier text, priority int, provider text, model_id text,
+      base_url text, max_concurrent int, enabled boolean, updated_at timestamptz);
+    CREATE TABLE tickets.provider_health (
+      provider text, failure_count int, last_failure timestamptz, cooldown_until timestamptz,
+      active_agents int, updated_at timestamptz);
     CREATE VIEW tickets.v_factory_metrics AS
       SELECT day, features_shipped, avg_cycle_time_h FROM (VALUES
         ('2026-06-08'::date, 3, 4.2::numeric)) AS v(day, features_shipped, avg_cycle_time_h);
@@ -51,6 +57,12 @@ vi.mock('pg', () => {
       ('s1','s1','pr', 1422, now());
     INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility) VALUES
       ('p1','dev-flow-plan','FACTORY-PLAN-REF branch=feature/staged-eins plan=docs/superpowers/plans/2026-06-10-staged-eins.md','internal');
+    INSERT INTO tickets.provider_config (source, tier, priority, provider, model_id, max_concurrent, enabled) VALUES
+      ('*', 'sonnet', 1, 'deepseek', 'deepseek-chat', 3, true),
+      ('*', 'sonnet', 2, 'ollama', 'qwen3', 2, true);
+    INSERT INTO tickets.provider_health (provider, failure_count, cooldown_until, active_agents) VALUES
+      ('deepseek', 0, NULL, 2),
+      ('ollama', 3, now() + INTERVAL '10 min', 0);
   `);
   const { Pool } = mem.adapters.createPg();
   return { default: { Pool }, Pool };
@@ -62,7 +74,7 @@ vi.mock('./tickets-db', () => ({
 
 import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          insertInjection, getInjections, consumeInjections, getTicketDetail,
-         getStaged, releaseToBacklog } from './factory-floor';
+         getStaged, releaseToBacklog, getProviderHealth } from './factory-floor';
 import { aggregateCheckRuns } from './github-ci';
 
 describe('factory-floor DAL', () => {
@@ -188,6 +200,12 @@ describe('factory-floor DAL', () => {
   it('getControl does NOT count slot-less devflow tickets toward slots', async () => {
     const c = await getControl(3);
     expect(c.slotsUsed).toBe(2); // h1 + b1 only; dv1 (no slot) excluded
+  });
+
+  it('getProviderHealth maps rows to status objects with cooldown flag', async () => {
+    const rows = await getProviderHealth();
+    expect(rows.find(r => r.provider === 'deepseek')).toMatchObject({ activeAgents: 2, maxConcurrent: 3, status: 'healthy' });
+    expect(rows.find(r => r.provider === 'ollama')?.status).toBe('cooldown');
   });
 });
 

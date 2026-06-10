@@ -91,6 +91,44 @@ function provision(task) {
   }
 }
 
+// ── Inlined provider router (provider-router.js is the unit-tested SSOT; the
+//    Workflow harness forbids ESM imports, so we shell out to the bash wrappers
+//    which talk to tickets.provider_config / provider_health). opus → no DB. ──
+// SPIKE VERDICT (Task 9): per-call `baseURL` override is NOT supported by the
+// Workflow agent() API. ANTHROPIC_BASE_URL is set process-level via autopilot.env
+// (sourced by wakeup.sh). Only `model` can vary per agent() call. The router
+// still picks the provider/model per phase for slot claim/release (resilience),
+// but baseUrl is fixed for the whole pipeline run.
+function routeProviderSync(source, tier) {
+  if (tier === 'opus') return { provider: 'anthropic', modelId: 'claude-opus-4-6', baseUrl: null, slotId: null, emergency: false }
+  if (process.env.ANTHROPIC_MODEL) {
+    return { provider: 'anthropic-compat', modelId: process.env.ANTHROPIC_MODEL,
+             baseUrl: process.env.ANTHROPIC_BASE_URL || null, slotId: null, emergency: false }
+  }
+  try {
+    const { execFileSync } = require('child_process')
+    const out = execFileSync('bash', [`${REPO}/scripts/factory/route-provider.sh`, source, tier],
+      { encoding: 'utf8', timeout: 20000, env: { ...process.env, BRAND: brand } }).trim()
+    return JSON.parse(out)
+  } catch (e) {
+    log(`routeProvider(${source},${tier}) failed → emergency anthropic-sonnet: ${e.message}`)
+    return { provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null, slotId: null, emergency: true }
+  }
+}
+function releaseSlotSync(slotId, success) {
+  if (!slotId) return
+  try {
+    const { execFileSync } = require('child_process')
+    execFileSync('bash', [`${REPO}/scripts/factory/release-slot.sh`, String(slotId), success ? 'true' : 'false'],
+      { stdio: 'ignore', timeout: 20000, env: { ...process.env, BRAND: brand } })
+  } catch (e) { log(`releaseSlot(${slotId}) failed (non-fatal): ${e.message}`) }
+}
+function routerSource(phaseKey) {
+  return ({ scout: 'factory-scout', design: 'factory-plan', plan: 'factory-plan',
+            implement: 'factory-implement', verify: 'factory-review', deploy: 'factory-implement' })[phaseKey] || '*'
+}
+function routerTier(model) { return model === 'opus' ? 'opus' : (model === 'haiku' ? 'haiku' : 'sonnet') }
+
 // Top-level globals injected by the harness: agent, parallel, pipeline, phase, log, args.
 // args.timestamp (never Date.now()), args.slug, args.title, args.description, args.ticket_id, args.brand.
 
@@ -285,6 +323,7 @@ if (!isSimple) {
   }
 
   const planProv = provision({ complexity: scout.complexity, role: 'plan', risk: (scout.risk_areas?.length ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: scout.touched_files, gpuEmbeddings: false })
+  const planRoute = routeProviderSync('factory-plan', routerTier(planProv.model))
   const plan = await agent(
     `Decompose the spec at ${specPath} into independent tasks where no two tasks
      touch the same file. For each task provide: id, target_files (array),
@@ -300,12 +339,13 @@ if (!isSimple) {
      Return a JSON object { tasks: [...], plan_path: "<absolute path of the plan file you wrote>" }
      matching the schema.` + consumeInjections('plan'),
     {
-      ...(planProv.model ? { model: planProv.model } : {}),
+      model: planRoute.modelId,
       label: 'plan:decompose',
       phase: 'Plan',
       schema: { type: 'object', required: ['tasks', 'plan_path'], properties: { plan_path: { type: 'string' }, tasks: { type: 'array', items: { type: 'object', required: ['id', 'target_files', 'acceptance_criteria'], properties: { id: { type: 'string' }, target_files: { type: 'array', items: { type: 'string' } }, acceptance_criteria: { type: 'array', items: { type: 'string' } } } } } } },
     },
   )
+  releaseSlotSync(planRoute.slotId, plan != null)
   tasks = plan.tasks
   planFilePath = plan.plan_path
   phaseEvent('plan', 'done', `${(plan.tasks || []).length} Tasks`)
@@ -365,25 +405,33 @@ if (tasks.length) {
 
   for (const t of tasks) {
     const prov = provision({ complexity: featureComplexity, role: 'implement', risk: (t.target_files?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: t.target_files, gpuEmbeddings: false })
-    const impl = await agent(
-      `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
-       Implement task ${t.id} on branch ${WORK_BRANCH} in the SHARED worktree at ${WORK_WT}
-       (it already exists and ${WORK_BRANCH} is checked out there — do NOT run \`git worktree add\`).
-       Target files: ${t.target_files.join(', ')}.
-       Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
-       DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
-       (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
-       do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
-       Provisioned context hints (assemble compactly, never raw-dump): ${prov.contextHints.join(' | ')}.
-       After implementing, run locally:
-         cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
-       (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
-       up to date so CI passes.)
-       Finally COMMIT your work on ${WORK_BRANCH} (so the Verify/Deploy phases can diff it):
-         cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
-       Return a summary of the diff and the local test result (pass/fail).` + consumeInjections('implement'),
-      { label: `impl:${t.id}`, phase: 'Implement', ...(prov.model ? { model: prov.model } : {}) },
-    )
+    const route = routeProviderSync('factory-implement', routerTier(prov.model))
+    let impl = null
+    try {
+      impl = await agent(
+        `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
+         Implement task ${t.id} on branch ${WORK_BRANCH} in the SHARED worktree at ${WORK_WT}
+         (it already exists and ${WORK_BRANCH} is checked out there — do NOT run \`git worktree add\`).
+         Target files: ${t.target_files.join(', ')}.
+         Follow TDD (red-green). Acceptance criteria: ${t.acceptance_criteria.join('; ')}.
+         DARK-LAUNCH: gate every new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}')
+         (import from website/src/lib/tickets-db.ts). The flag defaults OFF, so the merge ships dark;
+         do NOT enable it in code. The default-OFF feature_flags row is seeded in the Deploy phase.
+         Provisioned context hints (assemble compactly, never raw-dump): ${prov.contextHints.join(' | ')}.
+         After implementing, run locally:
+           cd ${WORK_WT} && task workspace:validate && task test:all && task freshness:regenerate
+         (freshness:regenerate keeps generated artifacts like test-inventory.json and route-manifest.json
+         up to date so CI passes.)
+         Finally COMMIT your work on ${WORK_BRANCH} (so the Verify/Deploy phases can diff it):
+           cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
+         Return a summary of the diff and the local test result (pass/fail).` + consumeInjections('implement'),
+        { label: `impl:${t.id}`, phase: 'Implement', model: route.modelId },
+      )
+      releaseSlotSync(route.slotId, impl != null)
+    } catch (err) {
+      releaseSlotSync(route.slotId, false)
+      throw err
+    }
     if (impl == null) continue   // agent died (terminal API error) — skip its self-verify
     const verify = await agent(
       `Self-verify task ${t.id}: re-read the implementation diff in ${WORK_WT}
@@ -431,10 +479,13 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
     : ['bug', 'security', 'pattern', 'perf', 'agents-md']
   const lenses = tierLenses.map((key) => ({ key, file: ALL_LENSES[key] }))
 
-  reviews = (await parallel(lenses.map((l) => () => agent(
-    `Record pipeline liveness so the dispatcher watchdog does not flag this run stale: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then read the review prompt at ${REPO}/${l.file} and apply it to: git -C ${WORK_WT} diff origin/main...HEAD (in the WORKTREE — ${REPO} HEAD is main → empty). Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
-    { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: provision({ role: l.key === 'security' ? 'security' : 'review' }).model },
-  )))).filter(Boolean)
+  reviews = (await parallel(lenses.map((l) => () => {
+    const route = routeProviderSync('factory-review', 'opus')
+    return agent(
+      `Record pipeline liveness so the dispatcher watchdog does not flag this run stale: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then read the review prompt at ${REPO}/${l.file} and apply it to: git -C ${WORK_WT} diff origin/main...HEAD (in the WORKTREE — ${REPO} HEAD is main → empty). Return findings as JSON per the prompt's schema.` + consumeInjections('verify'),
+      { label: `review:${l.key}`, phase: 'Verify', ...(l.key === 'agents-md' ? {} : { schema: REVIEW_SCHEMA }), model: route.modelId },
+    )
+  }))).filter(Boolean)
   log(`Verify: ${reviews.length}/${lenses.length} lenses done, tier=${tier}`)
 
   if (tier === 'full' && reviews.length >= 2) {
@@ -448,9 +499,10 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
         findings: { type: 'array', items: { type: 'object' } },
       },
     }
+    const coordRoute = routeProviderSync('factory-review', 'opus')
     const coord = await agent(
       `Read the coordinator prompt at ${REPO}/scripts/factory/review-coordinator.prompt.md and apply it to these lens findings. Return ONE consolidated JSON with a "verdict" field.\n${xml}`,
-      { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: provision({ role: 'review' }).model },
+      { label: 'review:coordinator', phase: 'Verify', schema: COORDINATOR_SCHEMA, model: coordRoute.modelId },
     )
     if (coord && coord.verdict) {
       coordinatorVerdict = coord.verdict

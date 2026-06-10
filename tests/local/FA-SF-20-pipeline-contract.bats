@@ -15,13 +15,15 @@ SCRIPT="scripts/factory/pipeline.js"
   run grep -Eq "export const meta" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-20: wires the existing factory parts (conflict-check, review prompts, ticket.sh)" {
+@test "FA-SF-20: wires the existing factory parts (conflict-check, review prompts, ticket.sh, scout.sh)" {
   run grep -q "conflict-check.sh" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -q "review-bug-hunter.prompt.md" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -q "review-security-auditor.prompt.md" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -q "review-pattern-enforcer.prompt.md" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -q "scripts/ticket.sh" "$SCRIPT"; [ "$status" -eq 0 ]
-  run grep -q "find-similar-tickets.mjs" "$SCRIPT"; [ "$status" -eq 0 ]
+  # find-similar-tickets.mjs is now an implementation detail of scout.sh (not pipeline.js).
+  # Instead verify that pipeline.js invokes the deterministic scout.sh.
+  run grep -q "scout.sh" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-20: uses args.timestamp and not Date.now()/Math.random() (resume-safe)" {

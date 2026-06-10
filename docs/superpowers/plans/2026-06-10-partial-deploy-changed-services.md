@@ -8,7 +8,7 @@ pr_number: null
 
 # Partial-Deploy — nur geänderte Services deployen — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Der Factory-Deploy-Schritt rollt nur die Services aus, deren `k3d/*.yaml` ein PR tatsächlich geändert hat (statt aller ~57), via `kubectl apply -l "app in (...)"` auf dem vollständigen kustomize-Build-Output.
 
@@ -51,7 +51,7 @@ Ziel: Die Registry ist die Single Source of Truth. Wir bauen sie TDD-first: zuer
 **Files:**
 - Create: `tests/local/FA-SF-60-partial-deploy.bats`
 
-- [ ] **Step 1: Schreibe die Testdatei mit dem Vollständigkeits-Test**
+- [x] **Step 1: Schreibe die Testdatei mit dem Vollständigkeits-Test**
 
 Datei `tests/local/FA-SF-60-partial-deploy.bats`:
 
@@ -90,12 +90,12 @@ setup() { load 'test_helper.bash'; }
 }
 ```
 
-- [ ] **Step 2: Lauf zur Bestätigung, dass er fehlschlägt**
+- [x] **Step 2: Lauf zur Bestätigung, dass er fehlschlägt**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats`
 Expected: FAIL — `scripts/factory/service-registry.sh` existiert noch nicht (`[ -f "$REG" ]` rot).
 
-- [ ] **Step 3: Commit (red test)**
+- [x] **Step 3: Commit (red test)**
 
 ```bash
 git add tests/local/FA-SF-60-partial-deploy.bats
@@ -108,7 +108,7 @@ git commit -m "test(factory): failing contract for partial-deploy service regist
 - Create: `scripts/factory/service-registry.sh`
 - Test: `tests/local/FA-SF-60-partial-deploy.bats` (aus A1)
 
-- [ ] **Step 1: Lege `scripts/factory/service-registry.sh` an**
+- [x] **Step 1: Lege `scripts/factory/service-registry.sh` an**
 
 Vollständiger Inhalt (deckt ALLE 56 deploybaren + Infra-Dateien ab; `k3d/kustomization.yaml` ist bewusst ausgenommen):
 
@@ -220,12 +220,12 @@ resolve_partial_services() {
 }
 ```
 
-- [ ] **Step 2: Lauf des Vollständigkeits-Tests**
+- [x] **Step 2: Lauf des Vollständigkeits-Tests**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats`
 Expected: Beide Tests PASS. Falls `FA-SF-60: every k3d/*.yaml is classified` fehlschlägt, druckt der Test `UNCLASSIFIED: k3d/<datei>.yaml` auf stderr — füge die Datei der Registry oder `INFRA_FILES` hinzu und wiederhole.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/service-registry.sh
@@ -237,7 +237,7 @@ git commit -m "feat(factory): service-registry maps k3d files to app slugs [T000
 **Files:**
 - Modify: `tests/local/FA-SF-60-partial-deploy.bats`
 
-- [ ] **Step 1: Hänge die Verhaltens-Tests an die Testdatei an**
+- [x] **Step 1: Hänge die Verhaltens-Tests an die Testdatei an**
 
 ```bash
 @test "FA-SF-60: resolve_partial_services returns slugs for a small service-only diff" {
@@ -285,12 +285,12 @@ git commit -m "feat(factory): service-registry maps k3d files to app slugs [T000
 }
 ```
 
-- [ ] **Step 2: Lauf**
+- [x] **Step 2: Lauf**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats`
 Expected: alle Tests PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/local/FA-SF-60-partial-deploy.bats
@@ -319,7 +319,7 @@ Die Arbeit ist in Slug-Gruppen aufgeteilt; jede Gruppe ist ein eigener Commit, d
 **Files:**
 - Read-only: `k3d/brett.yaml`, `k3d/keycloak.yaml`, `k3d/nextcloud.yaml`, `k3d/website.yaml`, `k3d/shared-db.yaml`
 
-- [ ] **Step 1: Prüfe, welche Service-Dateien schon vollständig gelabelt sind**
+- [x] **Step 1: Prüfe, welche Service-Dateien schon vollständig gelabelt sind**
 
 Run (für jede Datei):
 ```bash
@@ -330,14 +330,14 @@ done
 ```
 Expected: Dateien, deren jede Ressource `-> app: <slug>` zeigt, sind fertig — überspringen. Notiere die mit `NO app label` für die nächsten Tasks.
 
-- [ ] **Step 2: Kein Commit (reine Inspektion).**
+- [x] **Step 2: Kein Commit (reine Inspektion).**
 
 ### Task B2: Label-Gruppe „backup" (5 Dateien)
 
 **Files:**
 - Modify: `k3d/backup-cronjob.yaml`, `k3d/backup-config.yaml`, `k3d/backup-pvc.yaml`, `k3d/backup-secrets.yaml`, `k3d/pvc-backup-cronjob.yaml`, `k3d/pvc-backup-rbac.yaml`
 
-- [ ] **Step 1: Füge `app: backup` zu jeder top-level Ressource hinzu, der es fehlt**
+- [x] **Step 1: Füge `app: backup` zu jeder top-level Ressource hinzu, der es fehlt**
 
 Für jede Ressource ohne `app:`-Label, unter `metadata:` ergänzen (Beispiel-Form):
 ```yaml
@@ -348,7 +348,7 @@ metadata:
 ```
 Existiert bereits ein `labels:`-Block, nur die Zeile `    app: backup` ergänzen. Existiert kein `labels:`-Block, den ganzen Block wie oben einfügen (Einrückung: `labels:` 2 Spaces, `app:` 4 Spaces).
 
-- [ ] **Step 2: Verifiziere, dass jede Ressource nun ein `app:`-Label trägt**
+- [x] **Step 2: Verifiziere, dass jede Ressource nun ein `app:`-Label trägt**
 
 Run:
 ```bash
@@ -359,12 +359,12 @@ done
 ```
 Expected: für jede Datei `app-labels >= kinds` (≥, da manche Ressourcen schon ein anderes `app:` an tieferer Stelle haben können — entscheidend ist, dass jede top-level Ressource abgedeckt ist; bei Zweifel die awk-Inspektion aus B1 erneut laufen).
 
-- [ ] **Step 3: Validiere, dass kustomize weiterhin baut**
+- [x] **Step 3: Validiere, dass kustomize weiterhin baut**
 
 Run: `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
 Expected: `OK` (kein YAML-Fehler durch die Edits).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/backup-cronjob.yaml k3d/backup-config.yaml k3d/backup-pvc.yaml k3d/backup-secrets.yaml k3d/pvc-backup-cronjob.yaml k3d/pvc-backup-rbac.yaml
@@ -376,10 +376,10 @@ git commit -m "chore(k3d): app=backup labels for partial-deploy [T000588]"
 **Files:**
 - Modify: `k3d/claude-code-config.yaml`, `k3d/claude-code-mcp-auth.yaml`, `k3d/claude-code-mcp-browser.yaml`, `k3d/claude-code-mcp-github.yaml`, `k3d/claude-code-mcp-ops.yaml`, `k3d/claude-code-rbac.yaml`
 
-- [ ] **Step 1:** Füge `app: claude-code` zu jeder top-level Ressource ohne `app:`-Label hinzu (Form wie B2, Slug `claude-code`).
-- [ ] **Step 2:** Verifiziere wie B2-Step-2 (Slug `claude-code`).
-- [ ] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
-- [ ] **Step 4: Commit**
+- [x] **Step 1:** Füge `app: claude-code` zu jeder top-level Ressource ohne `app:`-Label hinzu (Form wie B2, Slug `claude-code`).
+- [x] **Step 2:** Verifiziere wie B2-Step-2 (Slug `claude-code`).
+- [x] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/claude-code-config.yaml k3d/claude-code-mcp-auth.yaml k3d/claude-code-mcp-browser.yaml k3d/claude-code-mcp-github.yaml k3d/claude-code-mcp-ops.yaml k3d/claude-code-rbac.yaml
@@ -391,10 +391,10 @@ git commit -m "chore(k3d): app=claude-code labels for partial-deploy [T000588]"
 **Files:**
 - Modify: `k3d/notify-unread-cronjob.yaml`, `k3d/admin-actions-cronjobs.yaml`, `k3d/cronjob-monthly-billing.yaml`, `k3d/cronjob-dunning-detection.yaml`, `k3d/cronjob-systemtest-cleanup.yaml`, `k3d/tests-retention-cronjob.yaml`
 
-- [ ] **Step 1:** Füge `app: cronjobs` zu jeder top-level Ressource ohne `app:`-Label hinzu.
-- [ ] **Step 2:** Verifiziere (Slug `cronjobs`).
-- [ ] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
-- [ ] **Step 4: Commit**
+- [x] **Step 1:** Füge `app: cronjobs` zu jeder top-level Ressource ohne `app:`-Label hinzu.
+- [x] **Step 2:** Verifiziere (Slug `cronjobs`).
+- [x] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/notify-unread-cronjob.yaml k3d/admin-actions-cronjobs.yaml k3d/cronjob-monthly-billing.yaml k3d/cronjob-dunning-detection.yaml k3d/cronjob-systemtest-cleanup.yaml k3d/tests-retention-cronjob.yaml
@@ -406,10 +406,10 @@ git commit -m "chore(k3d): app=cronjobs labels for partial-deploy [T000588]"
 **Files:**
 - Modify: `k3d/ingress.yaml`, `k3d/traefik-dashboard-dev.yaml`, `k3d/oauth2-proxy-traefik.yaml` (slug `traefik`); `k3d/mailpit.yaml`, `k3d/mail-ingressroute-dev.yaml`, `k3d/oauth2-proxy-mailpit.yaml` (slug `mailpit`); `k3d/docs.yaml`, `k3d/oauth2-proxy-docs.yaml` (slug `docs`)
 
-- [ ] **Step 1:** Pro Datei den jeweils zugehörigen Slug (`traefik` / `mailpit` / `docs`) auf jede top-level Ressource ohne `app:`-Label setzen.
-- [ ] **Step 2:** Verifiziere pro Slug-Gruppe (awk-Inspektion aus B1).
-- [ ] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
-- [ ] **Step 4: Commit**
+- [x] **Step 1:** Pro Datei den jeweils zugehörigen Slug (`traefik` / `mailpit` / `docs`) auf jede top-level Ressource ohne `app:`-Label setzen.
+- [x] **Step 2:** Verifiziere pro Slug-Gruppe (awk-Inspektion aus B1).
+- [x] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/ingress.yaml k3d/traefik-dashboard-dev.yaml k3d/oauth2-proxy-traefik.yaml k3d/mailpit.yaml k3d/mail-ingressroute-dev.yaml k3d/oauth2-proxy-mailpit.yaml k3d/docs.yaml k3d/oauth2-proxy-docs.yaml
@@ -425,10 +425,10 @@ git commit -m "chore(k3d): app labels traefik/mailpit/docs for partial-deploy [T
 - Modify (cicd): `k3d/cicd-deploy-sa.yaml`
 - Modify (oauth2-proxy slug): `k3d/oauth2-proxy-comfy.yaml`
 
-- [ ] **Step 1:** Pro Datei zugehörigen Slug (`website`/`vaultwarden`/`recovery`/`cicd`/`oauth2-proxy`) auf jede top-level Ressource ohne `app:`-Label setzen.
-- [ ] **Step 2:** Verifiziere pro Slug-Gruppe.
-- [ ] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
-- [ ] **Step 4: Commit**
+- [x] **Step 1:** Pro Datei zugehörigen Slug (`website`/`vaultwarden`/`recovery`/`cicd`/`oauth2-proxy`) auf jede top-level Ressource ohne `app:`-Label setzen.
+- [x] **Step 2:** Verifiziere pro Slug-Gruppe.
+- [x] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/website.yaml k3d/website-rbac.yaml k3d/website-schema.yaml k3d/website-seller-config.yaml k3d/website-dev-secrets.yaml k3d/vaultwarden.yaml k3d/vaultwarden-seed-job.yaml k3d/vaultwarden-seed-credentials.yaml k3d/recovery-browser.yaml k3d/recovery-pvc.yaml k3d/cicd-deploy-sa.yaml k3d/oauth2-proxy-comfy.yaml
@@ -440,10 +440,10 @@ git commit -m "chore(k3d): app labels website/vaultwarden/recovery/cicd for part
 **Files:**
 - Modify: `k3d/talk-hpb.yaml`, `k3d/talk-recording.yaml` (slug `talk`); `k3d/knowledge-ingest-cronjob.yaml` (slug `knowledge`); `k3d/einvoice-sidecar.yaml` (slug `einvoice`); `k3d/whiteboard.yaml` (slug `whiteboard`); `k3d/livekit.yaml` (slug `livekit`); `k3d/pentest-flags.yaml` (slug `pentest`); `k3d/oauth2-proxy-brett.yaml` (slug `brett`); `k3d/nextcloud-redis.yaml` (slug `nextcloud`)
 
-- [ ] **Step 1:** Pro Datei zugehörigen Slug auf jede top-level Ressource ohne `app:`-Label setzen.
-- [ ] **Step 2:** Verifiziere pro Datei.
-- [ ] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
-- [ ] **Step 4: Commit**
+- [x] **Step 1:** Pro Datei zugehörigen Slug auf jede top-level Ressource ohne `app:`-Label setzen.
+- [x] **Step 2:** Verifiziere pro Datei.
+- [x] **Step 3:** `kustomize build k3d/ --load-restrictor=LoadRestrictionsNone > /dev/null && echo OK`
+- [x] **Step 4: Commit**
 
 ```bash
 git add k3d/talk-hpb.yaml k3d/talk-recording.yaml k3d/knowledge-ingest-cronjob.yaml k3d/einvoice-sidecar.yaml k3d/whiteboard.yaml k3d/livekit.yaml k3d/pentest-flags.yaml k3d/oauth2-proxy-brett.yaml k3d/nextcloud-redis.yaml
@@ -455,7 +455,7 @@ git commit -m "chore(k3d): app labels remaining single-file services for partial
 **Files:**
 - Modify: `tests/local/FA-SF-60-partial-deploy.bats`
 
-- [ ] **Step 1: Hänge einen Test an, der die gebaute Ausgabe gegen die Registry-Slugs prüft**
+- [x] **Step 1: Hänge einen Test an, der die gebaute Ausgabe gegen die Registry-Slugs prüft**
 
 Dieser Test ist offline-fähig (kustomize ist lokal verfügbar; falls nicht, skippt er):
 
@@ -481,12 +481,12 @@ Dieser Test ist offline-fähig (kustomize ist lokal verfügbar; falls nicht, ski
 }
 ```
 
-- [ ] **Step 2: Lauf**
+- [x] **Step 2: Lauf**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats`
 Expected: PASS. Falls `SLUG WITH NO app: LABEL IN BUILD: <slug>` erscheint, fehlt das Label auf einer Datei dieses Slugs — zurück zur jeweiligen B-Task und ergänzen.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/local/FA-SF-60-partial-deploy.bats
@@ -504,7 +504,7 @@ Ziel: Ein Task, der die Overlay wie `workspace:deploy` (prod-Pfad) baut, aber de
 **Files:**
 - Modify: `tests/local/FA-SF-60-partial-deploy.bats`
 
-- [ ] **Step 1: Hänge Tests an, die den Task und seinen Selektor-Aufbau prüfen (statisch, kein Cluster)**
+- [x] **Step 1: Hänge Tests an, die den Task und seinen Selektor-Aufbau prüfen (statisch, kein Cluster)**
 
 ```bash
 @test "FA-SF-60: Taskfile defines workspace:partial-deploy" {
@@ -524,12 +524,12 @@ Ziel: Ein Task, der die Overlay wie `workspace:deploy` (prod-Pfad) baut, aber de
 }
 ```
 
-- [ ] **Step 2: Lauf zur Bestätigung Fehlschlag**
+- [x] **Step 2: Lauf zur Bestätigung Fehlschlag**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats -f "partial-deploy"`
 Expected: die drei neuen Tests FAIL (Task existiert noch nicht).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/local/FA-SF-60-partial-deploy.bats
@@ -541,7 +541,7 @@ git commit -m "test(factory): contract for workspace:partial-deploy task [T00058
 **Files:**
 - Modify: `Taskfile.yml` (neuer Task direkt nach `workspace:deploy`, das endet bei ~Zeile 2111)
 
-- [ ] **Step 1: Füge den Task unmittelbar nach dem `workspace:deploy`-Block ein**
+- [x] **Step 1: Füge den Task unmittelbar nach dem `workspace:deploy`-Block ein**
 
 > Begründung der Struktur: Wir bauen die **Overlay** (`ENV_OVERLAY`) wie der prod-Zweig von `workspace:deploy`, nutzen dieselbe `ENVSUBST_VARS`-Liste und denselben `sed -E 's/\$\$.../$.../'`-Schritt, und hängen nur `-l "app in (${PARTIAL_SERVICES})"` an das finale `kubectl apply`. `--selector` filtert die `-f -`-Eingabe; nicht-passende Ressourcen werden nicht angewendet. Partial-Deploy ist prod-only (Factory deployt nach mentolder/korczewski) — der dev-Zweig wird nicht benötigt.
 
@@ -616,17 +616,17 @@ git commit -m "test(factory): contract for workspace:partial-deploy task [T00058
         done
 ```
 
-- [ ] **Step 2: Validiere die Taskfile-Syntax + Dry-Run-Parse**
+- [x] **Step 2: Validiere die Taskfile-Syntax + Dry-Run-Parse**
 
 Run: `task --list 2>&1 | grep partial-deploy && echo TASK-OK`
 Expected: Zeile `* workspace:partial-deploy:` + `TASK-OK` (Taskfile parst).
 
-- [ ] **Step 3: Lauf der C1-Tests**
+- [x] **Step 3: Lauf der C1-Tests**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats -f "partial-deploy"`
 Expected: alle Task-Tests PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Taskfile.yml
@@ -644,7 +644,7 @@ Ziel: In der Deploy-Phase wird VOR dem Deploy-Agent berechnet, ob ein partial- o
 **Files:**
 - Modify: `scripts/factory/pipeline.js` (vor dem `const deploy = await agent(`-Block, ~Zeile 480)
 
-- [ ] **Step 1: Füge unmittelbar vor `const deploy = await agent(` (pipeline.js:481) den Resolver-Block ein**
+- [x] **Step 1: Füge unmittelbar vor `const deploy = await agent(` (pipeline.js:481) den Resolver-Block ein**
 
 ```javascript
 // ── Partial-deploy decision (T000588) ───────────────────────────────────────
@@ -676,12 +676,12 @@ phaseEvent('deploy', partialServices ? 'partial' : 'full', partialServices ? `se
 
 > Note: `REPO`, `log`, `phaseEvent`, `featureTouchedFiles` sind bereits oben in pipeline.js definiert/gehoistet (REPO als Konstante; `featureTouchedFiles` an Zeile ~193). `require('child_process')` wird an anderen Stellen in dieser Datei ebenso inline genutzt (z. B. Zeile 114/125).
 
-- [ ] **Step 2: Verifiziere, dass die Datei weiterhin lädt**
+- [x] **Step 2: Verifiziere, dass die Datei weiterhin lädt**
 
 Run: `node --check scripts/factory/pipeline.js && echo NODE-CHECK-OK`
 Expected: `NODE-CHECK-OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js
@@ -693,7 +693,7 @@ git commit -m "feat(factory): compute partial-vs-full deploy from touched_files 
 **Files:**
 - Modify: `scripts/factory/pipeline.js` (Deploy-Agent-Prompt, Schritt 6, derzeit Zeilen 574-577)
 
-- [ ] **Step 1: Ersetze den statischen Schritt-6-Text durch das berechnete Kommando**
+- [x] **Step 1: Ersetze den statischen Schritt-6-Text durch das berechnete Kommando**
 
 Suche im Deploy-Agent-Prompt den Block:
 
@@ -716,12 +716,12 @@ Ersetze ihn durch (interpolierte Template-Literal-Variante):
 
 > Wichtig: Der gesamte Deploy-Agent-Prompt ist bereits ein Template-Literal (Backticks) — `${deployStepCmd}` und `${partialServices ? ... : ...}` werden korrekt interpoliert. Keine zusätzliche Escaping-Behandlung nötig.
 
-- [ ] **Step 2: Verifiziere Lade- und Interpolations-Korrektheit**
+- [x] **Step 2: Verifiziere Lade- und Interpolations-Korrektheit**
 
 Run: `node --check scripts/factory/pipeline.js && echo NODE-CHECK-OK`
 Expected: `NODE-CHECK-OK`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js
@@ -733,7 +733,7 @@ git commit -m "feat(factory): inject pre-computed deploy command into Deploy age
 **Files:**
 - Modify: `tests/local/FA-SF-60-partial-deploy.bats`
 
-- [ ] **Step 1: Hänge einen Test an, der den JS-→-Bash-Resolver-Pfad end-to-end (offline) prüft**
+- [x] **Step 1: Hänge einen Test an, der den JS-→-Bash-Resolver-Pfad end-to-end (offline) prüft**
 
 ```bash
 @test "FA-SF-60: pipeline.js references the service-registry resolver" {
@@ -756,12 +756,12 @@ git commit -m "feat(factory): inject pre-computed deploy command into Deploy age
 }
 ```
 
-- [ ] **Step 2: Lauf**
+- [x] **Step 2: Lauf**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-60-partial-deploy.bats`
 Expected: alle Tests PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/local/FA-SF-60-partial-deploy.bats
@@ -776,28 +776,28 @@ Ziel: Die volle Offline-Test-Suite ist grün (so wie CI sie fährt), und das Fea
 
 ### Task E1: Volle Offline-Suite reproduzieren (wie CI)
 
-- [ ] **Step 1: Factory-Bats isoliert**
+- [x] **Step 1: Factory-Bats isoliert**
 
 Run: `task test:factory`
 Expected: `tests/local/FA-SF-60-partial-deploy.bats` läuft mit und ist grün; keine Regression in den übrigen FA-SF-*.
 
-- [ ] **Step 2: Manifest-Struktur-Tests (Labels dürfen kustomize nicht brechen)**
+- [x] **Step 2: Manifest-Struktur-Tests (Labels dürfen kustomize nicht brechen)**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats`
 Expected: PASS (die neuen `app:`-Labels brechen keine bestehende Manifest-Assertion).
 
-- [ ] **Step 3: Komplette Offline-Suite + Freshness (CLAUDE.md: vor Push lokal reproduzieren)**
+- [x] **Step 3: Komplette Offline-Suite + Freshness (CLAUDE.md: vor Push lokal reproduzieren)**
 
 Run: `task test:all && task freshness:check`
 Expected: beide grün. Falls `freshness:check` rot ist, regeneriere die betroffenen Artefakte (`task freshness:regenerate`) und committe.
 
-- [ ] **Step 4: Falls etwas rot ist** — nutze `superpowers:systematic-debugging`, fixe, committe, und wiederhole Step 3. Kein Weitergehen mit roter Suite.
+- [x] **Step 4: Falls etwas rot ist** — nutze `superpowers:systematic-debugging`, fixe, committe, und wiederhole Step 3. Kein Weitergehen mit roter Suite.
 
 ### Task E2: Manuelle Verifikation am Dev-k3d-Cluster
 
 > Voraussetzung: ein erreichbarer Dev-Cluster (Kontext `k3d-mentolder-dev`, siehe CLAUDE.md „dev k3d cluster access"). Falls kein Cluster verfügbar ist, dokumentiere das im PR und überspringe E2 mit Begründung — die Offline-Suite (E1) ist das Gate, E2 ist Best-Effort-Beobachtung.
 
-- [ ] **Step 1: Baseline-Pod-Generationen festhalten**
+- [x] **Step 1: Baseline-Pod-Generationen festhalten**
 
 Run:
 ```bash
@@ -806,12 +806,12 @@ kubectl --context k3d-mentolder-dev -n workspace get deploy brett docs keycloak 
 ```
 Notiere die `GEN`-Werte.
 
-- [ ] **Step 2: Partial-Deploy nur brett**
+- [x] **Step 2: Partial-Deploy nur brett**
 
 Run: `task workspace:partial-deploy ENV=dev PARTIAL_SERVICES=brett`
 Expected: Output `Partial-deploy ENV=dev ... services=[brett]`, und `deployment/brett` wird angewendet/gerollt. (ENV=dev nutzt `ENV_OVERLAY=prod`-Fallback → falls dev keine Overlay hat, teste stattdessen mit `ENV=mentolder` gegen einen Test-Kontext, ODER prüfe das gerenderte Selektor-Apply via `--dry-run=server`.)
 
-- [ ] **Step 3: Bestätige, dass NUR brett berührt wurde**
+- [x] **Step 3: Bestätige, dass NUR brett berührt wurde**
 
 Run:
 ```bash
@@ -820,7 +820,7 @@ kubectl --context k3d-mentolder-dev -n workspace get deploy brett docs keycloak 
 ```
 Expected: `brett` GEN ist (höchstens) inkrementiert, `docs`/`keycloak` GEN UNVERÄNDERT gegenüber Step 1. Das beweist, dass der Label-Selector unberührte Services nicht anwendet/restartet.
 
-- [ ] **Step 4: Full-Fallback-Pfad belegen (Infra-Änderung)**
+- [x] **Step 4: Full-Fallback-Pfad belegen (Infra-Änderung)**
 
 Run (Trockenlauf der Resolver-Entscheidung, kein echter Deploy nötig):
 ```bash
@@ -828,15 +828,15 @@ bash -c 'source scripts/factory/service-registry.sh && resolve_partial_services 
 ```
 Expected: leere Ausgabe + `rc=1` → Pipeline würde `workspace:deploy` (full) fahren. (Spec-Akzeptanzkriterium „PR mit `k3d/namespace.yaml` → full".)
 
-- [ ] **Step 5: Verifikations-Notiz in den PR**
+- [x] **Step 5: Verifikations-Notiz in den PR**
 
 Dokumentiere im PR-Body die beobachteten GEN-Werte aus Step 1+3 und die `rc=1`-Ausgabe aus Step 4 als Evidenz (gemäß `superpowers:verification-before-completion`).
 
 ### Task E3: Abschluss
 
-- [ ] **Step 1:** `superpowers:requesting-code-review` auf dem gesamten Branch-Diff laufen lassen; Findings adressieren.
-- [ ] **Step 2:** Sicherstellen, dass alle Commits `[T000588]` tragen und die Branch-History sauber ist.
-- [ ] **Step 3:** Übergabe an `dev-flow-execute` / Factory-Deploy-Phase (PR mit Auto-Merge öffnen — `gh pr merge <n> --squash --auto`).
+- [x] **Step 1:** `superpowers:requesting-code-review` auf dem gesamten Branch-Diff laufen lassen; Findings adressieren.
+- [x] **Step 2:** Sicherstellen, dass alle Commits `[T000588]` tragen und die Branch-History sauber ist.
+- [x] **Step 3:** Übergabe an `dev-flow-execute` / Factory-Deploy-Phase (PR mit Auto-Merge öffnen — `gh pr merge <n> --squash --auto`).
 
 ---
 

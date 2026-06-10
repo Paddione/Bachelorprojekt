@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.44.0...website-v1.45.0) (2026-06-10)
+
+
+### Features
+
+* **planungsbuero:** inline clarification form — deriveSections + DAL + endpoint + Svelte + E2E ([#1508](https://github.com/Paddione/Bachelorprojekt/issues/1508)) ([40c4de5](https://github.com/Paddione/Bachelorprojekt/commit/40c4de564c01969880762e8a6a742d732be35437))
+
 ## [1.44.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.43.0...website-v1.44.0) (2026-06-10)
 
 

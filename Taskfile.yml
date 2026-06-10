@@ -267,6 +267,18 @@ tasks:
       - task: test:unit:collabora-wopi-single-brand-guard
       - task: test:unit:ticket-triage
       - task: test:unit:coverage-guard
+      - task: test:unit:build-graph
+      - task: test:unit:freshness-graph
+
+  test:unit:build-graph:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/build-graph.bats
+
+  test:unit:freshness-graph:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/freshness-graph.bats
 
   test:unit:ticket-triage:
     internal: true
@@ -543,6 +555,34 @@ tasks:
       - node scripts/build-graph.mjs
       - node scripts/build-api-map.mjs
 
+  freshness:graph-check:
+    desc: "Prüft ob graph.json + api-map.json aktuell sind (kein Drift zu K8s-Manifesten)"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph.mjs
+      - node scripts/build-api-map.mjs
+      - |
+        ERRORS=0
+        # Compare structural content (node/edge/endpoint counts) against committed version.
+        # generatedAt timestamps are intentionally excluded from drift detection.
+        committed_nodes=$(git show HEAD:docs/generated/graph.json 2>/dev/null | jq '.nodes | length' || echo "-1")
+        committed_edges=$(git show HEAD:docs/generated/graph.json 2>/dev/null | jq '.edges | length' || echo "-1")
+        committed_endpoints=$(git show HEAD:docs/generated/api-map.json 2>/dev/null | jq '.endpoints | length' || echo "-1")
+        fresh_nodes=$(jq '.nodes | length' docs/generated/graph.json)
+        fresh_edges=$(jq '.edges | length' docs/generated/graph.json)
+        fresh_endpoints=$(jq '.endpoints | length' docs/generated/api-map.json)
+        if [ "$committed_nodes" != "$fresh_nodes" ] || [ "$committed_edges" != "$fresh_edges" ]; then
+          echo "  ✗ docs/generated/graph.json is stale (committed: ${committed_nodes} nodes/${committed_edges} edges, fresh: ${fresh_nodes} nodes/${fresh_edges} edges)"
+          echo "    run 'task graph:build' and commit"
+          ERRORS=$((ERRORS + 1))
+        fi
+        if [ "$committed_endpoints" != "$fresh_endpoints" ]; then
+          echo "  ✗ docs/generated/api-map.json is stale (committed: ${committed_endpoints} endpoints, fresh: ${fresh_endpoints} endpoints)"
+          echo "    run 'task graph:build' and commit"
+          ERRORS=$((ERRORS + 1))
+        fi
+        [ $ERRORS -eq 0 ] && echo "✓ Graph artifacts are fresh (nodes: ${fresh_nodes}, edges: ${fresh_edges}, endpoints: ${fresh_endpoints})" || exit 1
+
   freshness:regenerate:
     desc: "Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)"
     cmds:
@@ -589,6 +629,8 @@ tasks:
           exit 1
         fi
         echo "✓ All generated artifacts are fresh"
+      # --- Phase 1b: LAD graph freshness (structural drift check) ---
+      - task: freshness:graph-check
       # --- Phase 2: code-quality gate (baseline ratchet) ---
       - task: quality:check
       # --- Phase 3: baseline count assertion ---

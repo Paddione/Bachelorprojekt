@@ -16,6 +16,37 @@ const pool = new pg.Pool(
   { connectionString: DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig,
 );
 
+let tablesReady = false;
+async function ensureTables(): Promise<void> {
+  if (tablesReady) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS document_templates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title TEXT NOT NULL,
+      html_body TEXT NOT NULL,
+      docuseal_template_id INTEGER,
+      stand_date TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS document_assignments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      customer_id UUID NOT NULL,
+      template_id UUID NOT NULL REFERENCES document_templates(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'pending',
+      signature_data JSONB,
+      signed_html TEXT,
+      signed_pdf BYTEA,
+      expires_at TIMESTAMPTZ,
+      assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      signed_at TIMESTAMPTZ
+    )
+  `);
+  tablesReady = true;
+}
+
 export async function getPool(): Promise<typeof pool> {
   return pool;
 }
@@ -46,6 +77,7 @@ export interface DocumentAssignment {
 // ── Templates ─────────────────────────────────────────────────────
 
 export async function listDocumentTemplates(): Promise<DocumentTemplate[]> {
+  await ensureTables();
   const r = await pool.query(
     `SELECT id, title, html_body, stand_date, created_at, updated_at
      FROM document_templates ORDER BY created_at DESC`,
@@ -54,6 +86,7 @@ export async function listDocumentTemplates(): Promise<DocumentTemplate[]> {
 }
 
 export async function getDocumentTemplate(id: string): Promise<DocumentTemplate | null> {
+  await ensureTables();
   const r = await pool.query(
     `SELECT id, title, html_body, stand_date, created_at, updated_at
      FROM document_templates WHERE id = $1`,
@@ -66,6 +99,7 @@ export async function createDocumentTemplate(params: {
   title: string;
   html_body: string;
 }): Promise<DocumentTemplate> {
+  await ensureTables();
   const r = await pool.query(
     `INSERT INTO document_templates (title, html_body)
      VALUES ($1, $2)
@@ -79,6 +113,7 @@ export async function updateDocumentTemplate(
   id: string,
   params: { title?: string; html_body?: string; stand_date?: string | null },
 ): Promise<DocumentTemplate | null> {
+  await ensureTables();
   const sets: string[] = ['updated_at = now()'];
   const vals: unknown[] = [];
   if (params.title !== undefined) { vals.push(params.title); sets.push(`title = $${vals.length}`); }
@@ -95,6 +130,7 @@ export async function updateDocumentTemplate(
 }
 
 export async function deleteDocumentTemplate(id: string): Promise<void> {
+  await ensureTables();
   await pool.query(`DELETE FROM document_templates WHERE id = $1`, [id]);
 }
 
@@ -105,6 +141,7 @@ export async function createDocumentAssignment(params: {
   templateId: string;
   status: 'pending' | 'completed' | 'expired' | 'revoked';
 }): Promise<DocumentAssignment> {
+  await ensureTables();
   const r = await pool.query(
     `INSERT INTO document_assignments
        (customer_id, template_id, status)
@@ -118,6 +155,7 @@ export async function createDocumentAssignment(params: {
 }
 
 export async function listAssignmentsForCustomer(customerId: string): Promise<DocumentAssignment[]> {
+  await ensureTables();
   const r = await pool.query(
     `SELECT a.id, a.customer_id, a.template_id, t.title AS template_title,
             a.status, a.assigned_at, a.signed_at,
@@ -132,6 +170,7 @@ export async function listAssignmentsForCustomer(customerId: string): Promise<Do
 }
 
 export async function countPendingAssignmentsForCustomer(customerId: string): Promise<number> {
+  await ensureTables();
   const r = await pool.query(
     `SELECT COUNT(*)::int FROM document_assignments
      WHERE customer_id = $1 AND status = 'pending'`,
@@ -148,6 +187,7 @@ export async function markAssignmentSigned(
   signedHtml: string,
   signedPdf: Buffer
 ): Promise<void> {
+  await ensureTables();
   const p = await getPool();
   await p.query(
     `UPDATE document_assignments
@@ -159,6 +199,7 @@ export async function markAssignmentSigned(
 }
 
 export async function getAssignmentPdf(id: string): Promise<Buffer | null> {
+  await ensureTables();
   const p = await getPool();
   const { rows } = await p.query<{ signed_pdf: Buffer | null }>(
     `SELECT signed_pdf FROM document_assignments WHERE id = $1`,
@@ -168,6 +209,7 @@ export async function getAssignmentPdf(id: string): Promise<Buffer | null> {
 }
 
 export async function revokeAssignment(id: string): Promise<void> {
+  await ensureTables();
   const p = await getPool();
   await p.query(
     `UPDATE document_assignments SET status = 'revoked' WHERE id = $1`,
@@ -176,6 +218,7 @@ export async function revokeAssignment(id: string): Promise<void> {
 }
 
 export async function extendAssignmentDeadline(id: string, expiresAt: Date): Promise<void> {
+  await ensureTables();
   const p = await getPool();
   await p.query(
     `UPDATE document_assignments SET expires_at = $1 WHERE id = $2`,
@@ -184,6 +227,7 @@ export async function extendAssignmentDeadline(id: string, expiresAt: Date): Pro
 }
 
 export async function getDocumentAssignmentById(id: string): Promise<DocumentAssignment | null> {
+  await ensureTables();
   const p = await getPool();
   const { rows } = await p.query<DocumentAssignment>(
     `SELECT da.*, dt.title AS template_title

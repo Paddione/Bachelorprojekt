@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.52.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.51.0...website-v1.52.0) (2026-06-10)
+
+
+### Features
+
+* **factory:** partial-deploy — only changed services per PR [T000591] ([#1558](https://github.com/Paddione/Bachelorprojekt/issues/1558)) ([b54f9c3](https://github.com/Paddione/Bachelorprojekt/commit/b54f9c3b94081a880764190991ae8c475e6e38ae))
+* **website:** add automatic ticket triage with LLM severity detection ([#1554](https://github.com/Paddione/Bachelorprojekt/issues/1554)) ([b7462cf](https://github.com/Paddione/Bachelorprojekt/commit/b7462cf82027732488085851d3c4517d52ad292e))
+* **website:** add image upload to HTML editor ([#1551](https://github.com/Paddione/Bachelorprojekt/issues/1551)) ([944c908](https://github.com/Paddione/Bachelorprojekt/commit/944c908b6339a36664e8fb15c53455c8e03a9374))
+* **website:** dynamic SEO metadata editor with OG image upload and sitemap ([#1553](https://github.com/Paddione/Bachelorprojekt/issues/1553)) ([9340d6b](https://github.com/Paddione/Bachelorprojekt/commit/9340d6b87dbc4db8c4a2030286cdc9f49600d556))
+* **website:** Factory UI Design System — Industrial/Loft token library [T000597] ([#1559](https://github.com/Paddione/Bachelorprojekt/issues/1559)) ([2ef4dbc](https://github.com/Paddione/Bachelorprojekt/commit/2ef4dbcda9fa7f7db999c4e43ab79ccd4c320f79))
+
+
+### Bug Fixes
+
+* **ci:** defer location access in ws-client and refresh quality baseline ([#1560](https://github.com/Paddione/Bachelorprojekt/issues/1560)) ([c194091](https://github.com/Paddione/Bachelorprojekt/commit/c1940913b42acf0b88011f737345a2d00a42012d))
+* **ci:** resolve TS errors, Brett test, quality-gate violations ([#1561](https://github.com/Paddione/Bachelorprojekt/issues/1561)) ([d454de9](https://github.com/Paddione/Bachelorprojekt/commit/d454de9e910271d5d320455670d8231e1cf0358f))
+
 ## [1.51.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.50.0...website-v1.51.0) (2026-06-10)
 
 

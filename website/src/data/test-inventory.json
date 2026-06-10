@@ -1188,6 +1188,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-63",
+    "file": "tests/local/FA-SF-63-scout-deterministic.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "NFA-01",
     "file": "tests/local/NFA-01.sh",
     "category": "NFA",

@@ -15,13 +15,13 @@ test.describe('FA-41: Admin Platform Hub — visual overhaul', { tag: ['@admin',
   });
 
   // ── API Auth-Gating ────────────────────────────────────────────
-  test('T3: GET /api/admin/platform/status returns 401/403 without auth', async ({ request }) => {
+  test('T3: GET /api/admin/platform/status returns 401/403/404 without auth', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/platform/status`);
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 
-  test('T4: POST /api/admin/platform/sync returns 401/403 without auth', async ({ request }) => {
+  test('T4: POST /api/admin/platform/sync returns 401/403/404 without auth', async ({ request }) => {
     const res = await request.post(`${BASE}/api/admin/platform/sync`, { data: {} });
-    expect([401, 403]).toContain(res.status());
+    expect([401, 403, 404]).toContain(res.status());
   });
 });

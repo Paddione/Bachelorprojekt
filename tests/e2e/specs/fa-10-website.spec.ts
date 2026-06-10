@@ -35,7 +35,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
       '/registrieren',
     ];
     for (const path of pages) {
-      const res = await page.goto(`${BASE}${path}`, { timeout: 15000 });
+      const res = await page.goto(`${BASE}${path}`, { timeout: 15000, waitUntil: 'domcontentloaded' });
       expect(res?.status(), `${path} should return 200`).toBe(200);
     }
   });

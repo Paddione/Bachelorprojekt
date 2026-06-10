@@ -1,6 +1,13 @@
 name: E2E (PR — gefiltert)
 
-# Läuft bei jedem PR auf main, der Website-Code ändert.
+# Läuft bei jedem PR auf main — statischer Job-Name "E2E PR" damit GitHub
+# Branch Protection den Check als Required registrieren kann.
+#
+# Pfad-Filter intern: Nur wenn website/** oder tests/e2e/** geändert wurden,
+# laufen Playwright-Tests. Sonst: sofortiger Erfolg ("übersprungen").
+# Das ist nötig, weil Branch Protection einen Job, der gar nicht startet,
+# als "pending" (= blockierend) behandelt.
+#
 # Führt nur die Tests aus, die zum Feature-Bereich des Branch gehören,
 # plus den @smoke-Set — kein vollständiger Suite-Lauf.
 #
@@ -28,10 +35,6 @@ name: E2E (PR — gefiltert)
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'website/**'
-      - 'tests/e2e/**'
-      - '.github/workflows/e2e-pr.yml'
 
 concurrency:
   group: e2e-pr-${{ github.ref }}
@@ -39,7 +42,7 @@ concurrency:
 
 jobs:
   e2e-pr:
-    name: E2E PR (${{ github.head_ref }})
+    name: E2E PR
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -54,30 +57,50 @@ jobs:
 
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Prüfe ob E2E-relevante Dateien geändert wurden
+        id: paths
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF" --depth=1
+          CHANGED=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+          echo "Geänderte Dateien:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -qE '^(website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)'; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+            echo "→ E2E-relevante Änderungen gefunden, Tests werden ausgeführt."
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            echo "→ Keine website/** oder tests/e2e/** Änderungen — E2E wird übersprungen."
+          fi
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        if: steps.paths.outputs.relevant == 'true'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: tests/e2e/package-lock.json
 
       - name: Install dependencies
+        if: steps.paths.outputs.relevant == 'true'
         working-directory: tests/e2e
         run: npm ci
 
       - name: Install Playwright browsers (chromium only)
+        if: steps.paths.outputs.relevant == 'true'
         working-directory: tests/e2e
         run: npx playwright install --with-deps chromium
 
       - name: Leite Feature-Tag aus Branch-Name ab
         id: tag
+        if: steps.paths.outputs.relevant == 'true'
         env:
           BRANCH: ${{ github.head_ref }}
         run: |
           echo "Branch: $BRANCH"
-
-          # Normalisiere: feature/content-hub-xyz → content-hub
-          SEGMENT=$(echo "$BRANCH" | sed 's|^feature/||;s|^fix/||;s|^chore/||' | cut -d'-' -f1-2)
 
           TAG=""
           case "$BRANCH" in
@@ -109,14 +132,17 @@ jobs:
 
       - name: E2E — ${{ steps.tag.outputs.feature_tag || 'smoke' }} + @smoke gegen web.mentolder.de
         id: playwright
+        if: steps.paths.outputs.relevant == 'true'
         working-directory: tests/e2e
+        env:
+          GREP_PATTERN: ${{ steps.tag.outputs.grep_pattern }}
         run: |
           npx playwright test \
             --config playwright.pr.config.ts \
-            --grep "${{ steps.tag.outputs.grep_pattern }}"
+            --grep "$GREP_PATTERN"
 
       - name: Upload Ergebnisse (Traces + JSON)
-        if: always()
+        if: steps.paths.outputs.relevant == 'true' && always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: e2e-pr-results-${{ github.run_id }}

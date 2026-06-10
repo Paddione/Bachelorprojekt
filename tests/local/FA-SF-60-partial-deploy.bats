@@ -74,3 +74,27 @@ setup() { load 'test_helper.bash'; }
   run resolve_partial_services "k3d/kustomization.yaml"
   [ "$status" -ne 0 ]
 }
+
+@test "FA-SF-60: every registry slug appears as an app: label in the kustomize build" {
+  command -v kustomize >/dev/null || skip "kustomize not installed"
+  source "$REG"
+  local built; built=$(kustomize build k3d/ --load-restrictor=LoadRestrictionsNone 2>/dev/null) || skip "kustomize build failed offline"
+  local missing=()
+  local seen=()
+  # unique slug set — only check slugs whose files appear in kustomization.yaml
+  local kustomization; kustomization=$(cat k3d/kustomization.yaml)
+  local slug
+  for f in "${!SERVICE_REGISTRY[@]}"; do
+    # skip files not referenced by kustomization.yaml (deployed separately by workspace:deploy)
+    local basename="${f##k3d/}"
+    printf '%s' "$kustomization" | grep -qF "$basename" || continue
+    slug="${SERVICE_REGISTRY[$f]}"
+    printf '%s\n' "${seen[@]}" | grep -qx "$slug" && continue
+    seen+=("$slug")
+    grep -Eq "app: ${slug}( |$)" <<< "$built" || missing+=("$slug")
+  done
+  if [ "${#missing[@]}" -ne 0 ]; then
+    printf 'SLUG WITH NO app: LABEL IN BUILD: %s\n' "${missing[@]}" >&2
+  fi
+  [ "${#missing[@]}" -eq 0 ]
+}

@@ -13,7 +13,7 @@ export function ticketEmbeddingModel(): EmbeddingModel {
 
 let schemaReady = false;
 
-async function initProviderRouting(c: Awaited<ReturnType<typeof pool.connect>>): Promise<void> {
+async function initProviderRouting(c: import('pg').PoolClient): Promise<void> {
   await c.query(`CREATE TABLE IF NOT EXISTS tickets.provider_config (
     id BIGSERIAL PRIMARY KEY, source TEXT NOT NULL, tier TEXT NOT NULL CHECK (tier IN ('sonnet','haiku')),
     priority INTEGER NOT NULL, provider TEXT NOT NULL, model_id TEXT NOT NULL, base_url TEXT,

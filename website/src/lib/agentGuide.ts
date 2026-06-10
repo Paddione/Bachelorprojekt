@@ -130,7 +130,7 @@ export const themes: Theme[] = (data.themes ?? []) as Theme[];
 export const glossary: GlossaryEntry[] = (data.glossary ?? []) as GlossaryEntry[];
 export const goals: Goal[] = data.goals as Goal[];
 export const tools: Tool[] = data.tools as Tool[];
-export const components: Record<string, Component> = data.components as Record<string, Component>;
+export const components: Record<string, Component> = data.components as unknown as Record<string, Component>;
 export const guideMap: MapData = (data.map ?? { flow: [], territory: [] }) as MapData;
 
 /** Single resolver over taxonomy[]; the conveniences below are derived from it. */

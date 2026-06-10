@@ -7,10 +7,7 @@
 // Ticket: 00899a42
 
 import { STATE, getScene } from '../state';
-import * as mannequin from '../mannequin';
-import * as wsClient from '../ws-client';
 import { updateExportCache, type ClientBoardSnapshot, type ExportFigure } from './export';
-import { applyOptikToScene } from './optik';
 
 export function validateSnapshot(data: unknown): ClientBoardSnapshot {
   if (typeof data !== 'object' || data === null) {
@@ -61,7 +58,12 @@ export function validateSnapshot(data: unknown): ClientBoardSnapshot {
   };
 }
 
-export function applyImportedSnapshot(snapshot: ClientBoardSnapshot): void {
+export async function applyImportedSnapshot(snapshot: ClientBoardSnapshot): Promise<void> {
+  const [wsClient, mannequin, { applyOptikToScene }] = await Promise.all([
+    import('../ws-client'),
+    import('../mannequin'),
+    import('./optik'),
+  ]);
   const scene = getScene().scene;
 
   for (const fig of STATE.figures) {
@@ -106,7 +108,7 @@ export async function processImportFile(file: File): Promise<void> {
   const text = await file.text();
   const data = JSON.parse(text);
   const snapshot = validateSnapshot(data);
-  applyImportedSnapshot(snapshot);
+  await applyImportedSnapshot(snapshot);
 }
 
 export function importJson(): void {

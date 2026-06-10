@@ -125,7 +125,7 @@ Constants (defined once in `provider-router.js`, re-declared inline in `pipeline
 - Modify: `website/src/lib/tickets-db.ts` (inside `initTicketsSchema`, after the `feature_flags` block ~line 445–465)
 - Test: `website/src/lib/tickets-db.providerrouting.test.ts` (new)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/lib/tickets-db.providerrouting.test.ts`. Follow the pattern in `website/src/lib/questionnaire-db.ensure.test.ts` / `platform-db.ensure.test.ts` (they use the project's pg-mem harness). If those tests mock `pool`, mirror that exact setup.
 
@@ -158,12 +158,12 @@ describe('provider routing schema', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/tickets-db.providerrouting.test.ts`
 Expected: FAIL — relation `tickets.provider_config` does not exist.
 
-- [ ] **Step 3: Add the DDL inside `initTicketsSchema()`**
+- [x] **Step 3: Add the DDL inside `initTicketsSchema()`**
 
 In `website/src/lib/tickets-db.ts`, immediately after the `feature_flags` table block (the one ending around line 465), add:
 
@@ -201,12 +201,12 @@ In `website/src/lib/tickets-db.ts`, immediately after the `feature_flags` table 
     ON CONFLICT (source, tier, priority) DO NOTHING`);
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/tickets-db.providerrouting.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/tickets-db.ts website/src/lib/tickets-db.providerrouting.test.ts

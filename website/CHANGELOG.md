@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.43.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.42.1...website-v1.43.0) (2026-06-10)
+
+
+### Features
+
+* **planungsbuero:** Planungsbüro / Feature-Backlog mit DoR-basierter Priorisierung ([#1500](https://github.com/Paddione/Bachelorprojekt/issues/1500)) ([0104adb](https://github.com/Paddione/Bachelorprojekt/commit/0104adb9c184ca8af420e6adea5f2d839e67c511))
+
 ## [1.42.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.42.0...website-v1.42.1) (2026-06-10)
 
 

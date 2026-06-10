@@ -1,4 +1,5 @@
 <script lang="ts">
+  import HtmlEditor from './HtmlEditor.svelte';
   import NewsletterAdmin from './NewsletterAdmin.svelte';
   import QuestionnaireTemplateEditor from './QuestionnaireTemplateEditor.svelte';
 
@@ -240,16 +241,9 @@
 
         <!-- HTML editor — DIN-A4 width (794 px) -->
         <div class="overflow-x-auto">
-          <div>
-            <label class="block text-sm text-muted mb-1">HTML-Inhalt *</label>
-            <textarea
-              bind:value={composeHtml}
-              placeholder="<h1>Vertrag</h1><p>Inhalt hier…</p>"
-              rows="18"
-              style="width: 794px"
-              class="bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y"
-            ></textarea>
-            <p class="text-xs text-muted mt-1" style="width: 794px">
+          <div style="width: 794px">
+            <HtmlEditor bind:value={composeHtml} rows={18} label="HTML-Inhalt *" />
+            <p class="text-xs text-muted mt-1">
               Feste Platzhalter (direkt ins PDF eingebettet):
               <span class="font-mono text-gold/80">&#123;&#123;KUNDENNUMMER&#125;&#125;</span>
               <span class="font-mono text-gold/80">&#123;&#123;DATUM&#125;&#125;</span>

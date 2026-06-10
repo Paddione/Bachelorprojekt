@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.51.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.50.0...website-v1.51.0) (2026-06-10)
+
+
+### Features
+
+* **factory:** add Industrial/Loft design system tokens and core components ([#1544](https://github.com/Paddione/Bachelorprojekt/issues/1544)) ([e58d0f2](https://github.com/Paddione/Bachelorprojekt/commit/e58d0f26da30f0fbee5ac45de0bc97bc6b3dd0bb))
+* **factory:** Analytics Dashboard with KPI cards, throughput chart, heatmap ([#1547](https://github.com/Paddione/Bachelorprojekt/issues/1547)) ([ce03347](https://github.com/Paddione/Bachelorprojekt/commit/ce0334727c302f34ceee1ebc3a9f5c6a9b31acc7))
+* **factory:** Control Panel with Kill-Switch, Dry-Run, Slot/Daily Caps ([#1548](https://github.com/Paddione/Bachelorprojekt/issues/1548)) ([d6d66fa](https://github.com/Paddione/Bachelorprojekt/commit/d6d66fa9c37f7803f90d201460e3358e10eab3b4))
+* **factory:** deterministic scout.sh replaces LLM scout agent ([#1538](https://github.com/Paddione/Bachelorprojekt/issues/1538)) ([2b2ea08](https://github.com/Paddione/Bachelorprojekt/commit/2b2ea081e5fd41f640bd40f4cfb3d00b1fecacb0))
+* **factory:** FactoryFloor Redesign — conveyor belt layout with Industrial/Loft aesthetic ([#1545](https://github.com/Paddione/Bachelorprojekt/issues/1545)) ([8844972](https://github.com/Paddione/Bachelorprojekt/commit/884497284019de69d14f391cd0693ccc49cd94ab))
+* **provider-routing:** DB-backed agent→provider routing with circuit-breaker ([#1542](https://github.com/Paddione/Bachelorprojekt/issues/1542)) ([384119f](https://github.com/Paddione/Bachelorprojekt/commit/384119f37724479bd014eef61391a0178771b188))
+* **website:** Planungsbüro UI overhaul with Industrial-Loft design ([#1546](https://github.com/Paddione/Bachelorprojekt/issues/1546)) ([afee5ce](https://github.com/Paddione/Bachelorprojekt/commit/afee5ce256955a84d3683ae383db0c9749cddfbc))
+
 ## [1.50.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.49.0...website-v1.50.0) (2026-06-10)
 
 

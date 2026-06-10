@@ -458,6 +458,43 @@ export async function updateCalendarEventStatus(uid: string, status: 'CANCELLED'
   }
 }
 
+export async function updateCalendarEventTime(
+  uid: string,
+  newStart: Date,
+  newEnd: Date,
+): Promise<boolean> {
+  const url = await findEventUrl(uid);
+  if (!url) return false;
+
+  const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+  try {
+    const getRes = await fetch(url, {
+      headers: { Authorization: getAuthHeader() },
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
+    if (!getRes.ok) return false;
+    let ical = await getRes.text();
+
+    ical = ical.replace(/DTSTART[^\r\n]+/i, `DTSTART:${formatDt(newStart)}`);
+    ical = ical.replace(/DTEND[^\r\n]+/i, `DTEND:${formatDt(newEnd)}`);
+
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: getAuthHeader(),
+        'Content-Type': 'text/calendar; charset=utf-8',
+      },
+      body: ical,
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
+    return putRes.ok || putRes.status === 204;
+  } catch (err) {
+    console.error('[caldav] Update event time error:', err);
+    return false;
+  }
+}
+
 // Create a calendar event in Nextcloud
 export async function createCalendarEvent(params: {
   summary: string;

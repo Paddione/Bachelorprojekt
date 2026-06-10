@@ -344,7 +344,7 @@ At the top of `website/src/pages/api/factory-floor.ts`, add below the existing `
 import { getPrCiStatus } from '../../lib/github-ci';
 ```
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `cd website && pnpm typecheck`
 Expected: PASS — no type errors (`h.ciStatus` and `h.prNumber` exist on `HallItem` from Task 1).

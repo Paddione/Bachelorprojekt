@@ -77,6 +77,24 @@ scripts/brainstorm-bridge.sh stop          # Server stoppen + Funnel/serve 443 a
 Im interaktiven Modus (ohne `BRAINSTORM_PUBLIC=1`) sind Klick/Chat aktiv — bei öffentlichem Funnel
 ist das eine Schreib-Oberfläche; für Entscheidungen den Terminal-Kanal als Wahrheit nehmen.
 
+## Auswahl ans Terminal (Submit-Knopf)
+
+In **jedem** Encounter rendert `helper.js` auf der **localhost**-Seite einen schwebenden
+Knopf „✓ Auswahl ans Terminal". Klick → die komplette Maskenauswahl (markierte Optionen +
+Formularfelder + Frage) geht per `POST /submit` an einen **separaten, nur an `127.0.0.1`
+gebundenen** HTTP-Listener (Default-Port `BRAINSTORM_PORT+1`, **nicht** funnel-gemappt).
+Der Listener (a) schreibt `state/submission.json` (mode 600) + eine `events`-Zeile, (b) pusht
+den gerenderten Sentinel-Block (`«BRAINSTORM-AUSWAHL» … «ENDE»`) via `clip.exe` in die
+Windows-Zwischenablage. Der Nutzer fügt mit **Strg+V** ein und drückt **Enter**.
+
+- **Read-only übers Funnel bleibt garantiert:** der Submit-Port ist nicht gemappt, der Knopf
+  rendert nur auf `http://localhost`/`127.0.0.1` (die Funnel-Seite ist `https://<magicdns>` →
+  kein Knopf; `https→http`-fetch wäre mixed-content-blockiert). Remote-gekko kann NICHT absenden.
+- Auslieferung: `scripts/superpowers-submit-patch.sh` (idempotent, Marker `brainstorm-submit v1`),
+  von `service install` und `start` automatisch angewandt.
+- Agent zieht die Auswahl bei Bedarf: `scripts/brainstorm-bridge.sh submission` (gibt
+  `state/submission.json` aus); `choice` bleibt funktionsfähig.
+
 ## Entscheidungsbaum — welches Werkzeug für welches Bedürfnis
 
 | Bedürfnis | Werkzeug | Warum |
@@ -103,4 +121,5 @@ scripts/wsl-open.sh http://localhost:47600    # URL -> Windows-Default-Browser (
 - `skills/brainstorming/visual-companion.md` (superpowers) — Companion-Details, CSS, Event-Format
 - `scripts/brainstorm-companion-harden.sh` — idempotente Sicherheits-Härtung des Companion
 - `scripts/brainstorm-extract-choice.sh` — Choice-Rückkanal
+- `scripts/superpowers-submit-patch.sh` — idempotenter Submit-Kanal-Patch (loopback /submit)
 - Memory `reference_brainstorm_bridge_wsl`, `feedback-grilling-html-form`, `project_collab_brainstorm_tunnel`

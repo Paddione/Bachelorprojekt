@@ -115,6 +115,7 @@ launch_companion() {
 
 cmd_start() {
   local port session pid t
+  "$SELF_DIR/superpowers-submit-patch.sh" >/dev/null 2>&1 || true   # Submit-Kanal idempotent in den Cache patchen
   # Dauer-Service aktiv? Dann nicht konkurrieren — auf dessen Board verweisen.
   if service_active; then
     echo "Dauer-Service '$SERVICE_NAME' läuft bereits auf :$BRIDGE_PORT (Board-Dir $BOARD_DIR)."
@@ -168,6 +169,12 @@ cmd_show() {
 cmd_choice() {
   local s; s="$(target_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
   "$SELF_DIR/brainstorm-extract-choice.sh" "${s}state"
+}
+
+cmd_submission() {
+  local s; s="$(target_session)"; [[ -n "$s" ]] || { echo "keine aktive Session" >&2; exit 1; }
+  local f="${s}state/submission.json"
+  [[ -f "$f" ]] && cat "$f" || { echo "keine submission (Knopf noch nicht gedrückt)" >&2; exit 1; }
 }
 
 cmd_funnel() {
@@ -228,6 +235,7 @@ cmd_service() {
   case "$sub" in
     install)
       "$SELF_DIR/brainstorm-companion-harden.sh" || true          # 1) härten (idempotent)
+      "$SELF_DIR/superpowers-submit-patch.sh" || true             # 1b) Submit-Kanal (idempotent)
       for s in "$BRAINSTORM_ROOT"/*/; do                          # 2) ad-hoc Server beenden -> Port frei
         [[ "$s" == "$BOARD_DIR/" || ! -d "$s" ]] && continue
         pid="$(cat "${s}state/server.pid" 2>/dev/null || true)"
@@ -237,7 +245,8 @@ cmd_service() {
       loginctl enable-linger "$USER" 2>/dev/null || sudo -n loginctl enable-linger "$USER" 2>/dev/null || \
         echo "⚠ enable-linger nicht gesetzt — Service startet evtl. erst nach Login. Manuell: sudo loginctl enable-linger $USER" >&2
       systemctl --user daemon-reload
-      systemctl --user enable --now "$SERVICE_NAME"
+      systemctl --user enable "$SERVICE_NAME"
+      systemctl --user restart "$SERVICE_NAME"
       ts="$(ts_exe)"                                              # 4) Funnel (öffentlich) auf festen Port
       [[ -n "$ts" ]] && "$ts" funnel --bg --https=443 "http://127.0.0.1:$BRIDGE_PORT" >/dev/null 2>&1 \
         && echo "→ Funnel (öffentlich) → 127.0.0.1:$BRIDGE_PORT" \
@@ -264,8 +273,9 @@ case "${1:-}" in
   urls)    cmd_urls ;;
   show)    shift; cmd_show "$@" ;;
   choice)  cmd_choice ;;
+  submission) cmd_submission ;;
   funnel)  cmd_funnel ;;
   service) shift; cmd_service "$@" ;;
   stop)    cmd_stop ;;
-  *) echo "usage: $0 {start|urls|show <file>|choice|funnel|service <install|remove|status>|stop}" >&2; exit 2 ;;
+  *) echo "usage: $0 {start|urls|show <file>|choice|submission|funnel|service <install|remove|status>|stop}" >&2; exit 2 ;;
 esac

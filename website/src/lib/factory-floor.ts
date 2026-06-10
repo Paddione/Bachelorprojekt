@@ -20,6 +20,10 @@ export interface ControlSnapshot {
   watchdogStale: number;
 }
 export interface FloorMetrics { shippedToday: number; avgCycleH: number | null; }
+export interface PlanningCount {
+  total: number;
+  ready: number;
+}
 export interface LoadingDockItem { extId: string; title: string; priority: string; waitReason: string; }
 export interface HallItem {
   extId: string; title: string; priority: string;
@@ -43,6 +47,8 @@ export interface FloorPayload {
   staged: StagedItem[];
   officeWaiting: number;
   stagedWaiting: number;
+  planningCount: PlanningCount;
+  qaQueue: never[];
   fetchedAt: string;
 }
 
@@ -212,6 +218,26 @@ export async function getStaged(limit = 12): Promise<StagedItem[]> {
   });
 }
 
+/** Anzahl planning/plan_staged Tickets; ready = DoR 4/4. */
+export async function getPlanningCount(): Promise<PlanningCount> {
+  const r = await pool.query(
+    `SELECT
+       COUNT(*)::int AS total,
+       COUNT(*) FILTER (
+         WHERE (readiness->>'spec_skizziert')::bool IS TRUE
+           AND (readiness->>'offene_fragen_geklaert')::bool IS TRUE
+           AND (readiness->>'abhaengigkeiten_klar')::bool IS TRUE
+           AND (readiness->>'aufwand_geschaetzt')::bool IS TRUE
+       )::int AS ready
+       FROM tickets.tickets
+      WHERE status IN ('planning','plan_staged')`,
+  );
+  return {
+    total: r.rows[0]?.total ?? 0,
+    ready: r.rows[0]?.ready ?? 0,
+  };
+}
+
 /** Extract a PR number from a phase-event detail string ("PR #1512 · …"); null on miss. */
 export function parsePrNumber(detail: string | null): number | null {
   if (!detail) return null;
@@ -244,17 +270,20 @@ export async function releaseToBacklog(extId: string): Promise<boolean> {
 /** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
-  const [metrics, loadingDock, hall, shipped, staged, officeWaiting] = await Promise.all([
+  const [metrics, loadingDock, hall, shipped, staged, officeWaiting, planningCount] = await Promise.all([
     getMetrics(),
     getLoadingDock(control.slotsUsed, control.slotsCap),
     getHall(),
     getShipped(),
     getStaged(),
     officeCount(),
+    getPlanningCount(),
   ]);
   return {
     control, metrics, loadingDock, hall, shipped, staged,
     officeWaiting, stagedWaiting: staged.length,
+    planningCount,
+    qaQueue: [],
     fetchedAt: new Date().toISOString(),
   };
 }

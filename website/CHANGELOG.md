@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.47.0...website-v1.48.0) (2026-06-10)
+
+
+### Features
+
+* **dev-status:** Unified Planungsbüro + Factory Integration [T000583] ([#1520](https://github.com/Paddione/Bachelorprojekt/issues/1520)) ([568f254](https://github.com/Paddione/Bachelorprojekt/commit/568f254b358dda5de9945c7c0ea55080d5ee26a9))
+
 ## [1.47.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.46.0...website-v1.47.0) (2026-06-10)
 
 

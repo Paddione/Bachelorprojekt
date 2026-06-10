@@ -88,8 +88,6 @@ let lateJoinHandler: ((name: string) => void) | null = null;
 export function setLateJoinHandler(cb: ((name: string) => void) | null): void {
   lateJoinHandler = cb;
 }
-const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
-const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
 
 function send(msg: ClientMessage): void {
   const ws = getWs();
@@ -163,11 +161,12 @@ export function connectWS(): void {
   // the late-join guard (shouldRejectReconnect) can distinguish a true reconnect
   // of an already-active player from a genuine late-joiner. Omit playerId when
   // unknown/anon (server treats null as "not previously in room" → admit).
+  const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
   const params = new URLSearchParams({ room: roomFromUrl });
   if (currentUser.userId && currentUser.userId !== 'anon') {
     params.set('playerId', currentUser.userId);
   }
-  const ws = new WebSocket(`${wsProto}//${location.host}/sync?${params.toString()}`);
+  const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/sync?${params.toString()}`);
   setWs(ws);
   (window as any).__brettWS = ws;
   ws.addEventListener('open', () => {

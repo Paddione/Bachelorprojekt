@@ -125,6 +125,7 @@ export default defineConfig({
         '**/fa-factory-floor.spec.ts',     // /dev-status hall render (admin-gated)
         '**/fa-kommissionierung.spec.ts',  // /dev-status Kommissionierung column (admin-gated)
         '**/fa-planning-office.spec.ts',   // /admin/planungsbuero CRUD/rank/DoR (admin-gated)
+        '**/dev-status-tabs.spec.ts',      // FA-UNIF-01..08 — unified tabs, redirect, mobile (admin-gated)
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
         '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
       ],

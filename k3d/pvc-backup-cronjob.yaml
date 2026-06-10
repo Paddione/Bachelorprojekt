@@ -17,7 +17,7 @@ metadata:
   name: pvc-backup
   namespace: workspace
   labels:
-    app: pvc-backup
+    app: backup
 spec:
   schedule: "0 3 * * *"
   concurrencyPolicy: Forbid

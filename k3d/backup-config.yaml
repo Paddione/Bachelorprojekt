@@ -5,6 +5,8 @@ metadata:
   namespace: workspace
   # Dev defaults — overridden by prod-mentolder/ and prod-korczewski/ patch-backup-config.yaml
   # for production (prod overlays set BRAND and FILEN_DEFAULT_UPLOAD_PATH to env-specific values).
+  labels:
+    app: backup
 data:
   BRAND: "${BRAND_ID}"
   FILEN_DEFAULT_UPLOAD_PATH: "/workspace-backups/${BRAND_ID}"

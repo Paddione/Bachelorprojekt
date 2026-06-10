@@ -3,6 +3,8 @@ kind: CronJob
 metadata:
   name: notify-unread
   namespace: workspace
+  labels:
+    app: cronjobs
 spec:
   schedule: "0 */6 * * *"
   concurrencyPolicy: Forbid

@@ -3,6 +3,8 @@ kind: CronJob
 metadata:
   name: tests-results-retention
   namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: cronjobs
 spec:
   schedule: '0 3 * * *'
   successfulJobsHistoryLimit: 1
@@ -41,12 +43,16 @@ spec:
                     find . -maxdepth 1 -type d -name "playwright-traces" -mtime +14 -print -exec rm -rf {} +
                   '
 ---
+
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: tests-retention-sa
   namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: cronjobs
 ---
+
 # Role lives in the website namespace because that is where the target pods
 # (the Astro website Deployment) actually run. The CronJob's SA in
 # ${WORKSPACE_NAMESPACE} reaches across via the RoleBinding below.
@@ -55,6 +61,8 @@ kind: Role
 metadata:
   name: tests-retention-role
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cronjobs
 rules:
   - apiGroups: [""]
     resources: [pods]
@@ -63,11 +71,14 @@ rules:
     resources: [pods/exec]
     verbs: [create]
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tests-retention-rb
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cronjobs
 subjects:
   - kind: ServiceAccount
     name: tests-retention-sa

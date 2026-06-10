@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.41.0...website-v1.42.0) (2026-06-10)
+
+
+### Features
+
+* **admin:** Content-Hub UX Overhaul — sidebar nav, HTML editor, Verträge fix, newsletter seeding ([#1495](https://github.com/Paddione/Bachelorprojekt/issues/1495)) ([fcc09bb](https://github.com/Paddione/Bachelorprojekt/commit/fcc09bb6840c5dc085271109bf0db341403b2347))
+
 ## [1.41.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.40.0...website-v1.41.0) (2026-06-09)
 
 

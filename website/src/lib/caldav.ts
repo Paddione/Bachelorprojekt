@@ -154,6 +154,7 @@ function parseICalDate(val: string): Date {
 }
 
 export interface ClientBooking {
+  uid: string;
   summary: string;
   start: Date;
   end: Date;
@@ -256,7 +257,9 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
       const status = extractICalProp(block, 'STATUS') || 'CONFIRMED';
 
       if (dtstart) {
+        const uid = extractICalProp(block, 'UID') || '';
         bookings.push({
+          uid,
           summary,
           start: parseICalDate(dtstart),
           end: dtend ? parseICalDate(dtend) : new Date(parseICalDate(dtstart).getTime() + 3600000),

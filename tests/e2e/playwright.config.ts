@@ -111,6 +111,7 @@ export default defineConfig({
       name: 'mentolder',
       dependencies: ['mentolder-setup'],
       testMatch: [
+        '**/fa-48-*.spec.ts',
         '**/fa-46-*.spec.ts',
         '**/fa-45-*.spec.ts',
         '**/fa-42-*.spec.ts',             // platform asset inventory (admin-gated)

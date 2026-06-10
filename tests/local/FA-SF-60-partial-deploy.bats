@@ -114,3 +114,22 @@ setup() { load 'test_helper.bash'; }
   run grep -Eq 'PARTIAL_SERVICES.*(required|must be set|empty)' Taskfile.yml
   [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-60: pipeline.js references the service-registry resolver" {
+  run grep -q 'resolve_partial_services' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  run grep -q 'service-registry.sh' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-60: pipeline.js passes node --check" {
+  command -v node >/dev/null || skip "node not installed"
+  run node --check scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-60: the registry resolver invoked the JS way yields a slug for a service-only diff" {
+  run bash -c 'source scripts/factory/service-registry.sh && resolve_partial_services "k3d/brett.yaml"'
+  [ "$status" -eq 0 ]
+  [ "$output" = "brett" ]
+}

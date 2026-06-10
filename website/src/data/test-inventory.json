@@ -288,6 +288,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-kommissionierung",
+    "file": "tests/e2e/specs/fa-kommissionierung.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-livekit",
     "file": "tests/e2e/specs/fa-livekit.spec.ts",
     "category": "E2E",
@@ -1136,6 +1142,12 @@
   {
     "id": "FA-SF-49",
     "file": "tests/local/FA-SF-49-injection-cli.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-50",
+    "file": "tests/local/FA-SF-50-stage-plan.bats",
     "category": "FA",
     "kind": "shell"
   },

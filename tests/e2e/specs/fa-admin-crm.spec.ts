@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA: Admin CRM & operations pages', () => {
+test.describe('FA: Admin CRM & operations pages', { tag: ['@admin', '@crm'] }, () => {
   // ── Page auth-gating ───────────────────────────────────────────
   const adminPages = [
     '/admin/termine',

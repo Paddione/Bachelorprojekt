@@ -15,7 +15,7 @@ const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
  * T8: Im Browser — /portal redirects unauthenticated user to login.
  */
 
-test.describe('FA-28: Website-Messaging (internes Chat-System)', () => {
+test.describe('FA-28: Website-Messaging (internes Chat-System)', { tag: ['@messaging'] }, () => {
   // T1: kubectl readiness
   test('T1: website deployment readiness (kubectl, skipped without cluster context)', async () => {
     test.skip(!process.env.KUBECONFIG && !process.env.MCP_CLUSTER_CONTEXT,

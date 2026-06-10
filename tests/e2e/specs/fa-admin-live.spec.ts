@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA: Admin Live Cockpit', () => {
+test.describe('FA: Admin Live Cockpit', { tag: ['@admin', '@smoke'] }, () => {
   test('T1: /admin/live redirects unauthenticated users', async ({ page }) => {
     await page.goto(`${BASE}/admin/live`);
     await expect(page).not.toHaveURL(`${BASE}/admin/live`);

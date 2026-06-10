@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Planungsbüro', () => {
+test.describe('Planungsbüro', { tag: ['@admin', '@planungsbuero'] }, () => {
   test.beforeEach(async ({ page }) => { await page.goto('/admin/planungsbuero'); });
 
   test('legt eine Idee an und zeigt sie in der Liste', async ({ page }) => {

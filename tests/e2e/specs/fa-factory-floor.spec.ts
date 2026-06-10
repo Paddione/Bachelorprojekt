@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Smoke: /dev-status renders the Fabrikhalle and the detail panel opens on click.
 // Runs in the `website` project (uses its stored admin auth state).
-test.describe('FactoryFloor /dev-status', () => {
+test.describe('FactoryFloor /dev-status', { tag: ['@admin', '@factory'] }, () => {
   test('renders the hall sections', async ({ page }) => {
     await page.goto('/dev-status');
     await expect(page.getByTestId('factory-floor')).toBeVisible();

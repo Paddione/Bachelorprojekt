@@ -23,7 +23,7 @@ async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
 
 // ── Auth gating ─────────────────────────────────────────────────────────────
 
-test.describe('FA-Fragebogen: Auth gating', () => {
+test.describe('FA-Fragebogen: Auth gating', { tag: ['@fragebogen'] }, () => {
   test('GET /api/portal/questionnaires → 401/403', async ({ request }) => {
     const res = await request.get(`${BASE}/api/portal/questionnaires`);
     expect([401, 403]).toContain(res.status());
@@ -63,7 +63,7 @@ test.describe('FA-Fragebogen: Auth gating', () => {
 
 // ── Fill flow ────────────────────────────────────────────────────────────────
 
-test.describe('FA-Fragebogen: Fill flow', () => {
+test.describe('FA-Fragebogen: Fill flow', { tag: ['@fragebogen'] }, () => {
   const createdTemplateIds: string[] = [];
 
   test.beforeEach(async ({ request }, testInfo) => {
@@ -182,7 +182,7 @@ test.describe('FA-Fragebogen: Fill flow', () => {
 
 // ── Admin view ───────────────────────────────────────────────────────────────
 
-test.describe('FA-Fragebogen: Admin view', () => {
+test.describe('FA-Fragebogen: Admin view', { tag: ['@fragebogen'] }, () => {
   const createdTemplateIds: string[] = [];
 
   test.beforeEach(async ({ request }, testInfo) => {
@@ -238,7 +238,7 @@ test.describe('FA-Fragebogen: Admin view', () => {
 // ── Archive → reassign → replay ──────────────────────────────────────────────
 // Ported from fa-fragebogen-archive.spec.ts (previously unregistered)
 
-test.describe('FA-Fragebogen: Archive → reassign → replay', () => {
+test.describe('FA-Fragebogen: Archive → reassign → replay', { tag: ['@fragebogen'] }, () => {
   const createdTemplateIds: string[] = [];
 
   test.beforeEach(async ({ request }, testInfo) => {
@@ -389,7 +389,7 @@ test.describe('FA-Fragebogen: Archive → reassign → replay', () => {
 // for the admin user in prod so a human can walk through it manually.
 // Only runs when WEBSITE_URL points to a prod domain AND E2E_ADMIN_PASS is set.
 
-test.describe('FA-Fragebogen: Real-user handoff', () => {
+test.describe('FA-Fragebogen: Real-user handoff', { tag: ['@fragebogen'] }, () => {
   test.beforeEach(({ }, testInfo) => {
     if (!ADMIN_PASS) testInfo.skip(true, 'E2E_ADMIN_PASS not set');
     if (!isProd) testInfo.skip(true, 'Real-user handoff only runs against prod (WEBSITE_URL must contain mentolder.de or korczewski.de)');

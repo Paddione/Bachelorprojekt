@@ -17,7 +17,7 @@ import { assertReachable } from '../lib/health-assertions';
 
 const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 
-test.describe('FA content-hub: concurrency safety (AC 6)', () => {
+test.describe('FA content-hub: concurrency safety (AC 6)', { tag: ['@content-hub'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertReachable(
       request,

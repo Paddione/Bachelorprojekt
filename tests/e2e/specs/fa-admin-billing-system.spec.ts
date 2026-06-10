@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA: Admin native billing system (SEPA/ZUGFeRD)', () => {
+test.describe('FA: Admin native billing system (SEPA/ZUGFeRD)', { tag: ['@admin', '@billing'] }, () => {
   // ── Page auth-gating ───────────────────────────────────────────
   const adminPages = [
     '/admin/rechnungen',

@@ -90,7 +90,12 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
-test.describe('FA-<NN>: <Feature-Name>', () => {
+// PFLICHT: Tag-Annotation für den PR-E2E-Workflow (e2e-pr.yml).
+// Der Tag steuert, welche Tests bei PRs mit diesem Feature-Scope laufen.
+// Verfügbare Tags: @smoke @website @content-hub @admin @factory @planungsbuero
+//                  @booking @meeting @billing @messaging @brett @fragebogen @crm
+// Neue Feature-Tags können ergänzt werden (Branch-Mapping in e2e-pr.yml erweitern).
+test.describe('FA-<NN>: <Feature-Name>', { tag: ['@<feature-tag>'] }, () => {
   test('T1: /<pfad> requires authentication', async ({ page }) => {
     await page.goto(`${BASE}/<pfad>`);
     await expect(page).not.toHaveURL(`${BASE}/<pfad>`);

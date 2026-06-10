@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA: Public static pages', () => {
+test.describe('FA: Public static pages', { tag: ['@smoke', '@website'] }, () => {
   const publicPages = [
     { path: '/agb',                   title: /AGB|Geschäftsbedingungen/i },
     { path: '/datenschutz',           title: /Datenschutz/i },

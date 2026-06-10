@@ -69,7 +69,7 @@ async function seedTestContactRow(api: APIRequestContext): Promise<string> {
   return seedName;
 }
 
-test.describe('FA-admin-inbox-delete: Löschen escape hatch', () => {
+test.describe('FA-admin-inbox-delete: Löschen escape hatch', { tag: ['@admin', '@messaging'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,

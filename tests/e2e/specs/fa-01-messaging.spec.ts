@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-01: Messaging (Portal Nachrichten & Räume)', () => {
+test.describe('FA-01: Messaging (Portal Nachrichten & Räume)', { tag: ['@messaging'] }, () => {
   test('T1: /api/portal/rooms requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/api/portal/rooms`);
     expect([401, 403]).toContain(res.status());

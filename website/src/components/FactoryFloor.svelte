@@ -128,6 +128,7 @@
       await refresh();
     } catch { releaseErr = 'Netzwerkfehler'; }
     finally { releasing = null; }
+  }
   let manualHintFor = $state<string | null>(null);
   function toggleManualHint(extId: string) {
     manualHintFor = manualHintFor === extId ? null : extId;
@@ -491,7 +492,6 @@
 </div>
 <style>
   .col-label-qa { color: #818cf8; }
-
   @media (max-width: 767px) {
     .kanban-container [data-col] { display: none; }
     .kanban-container [data-col].mobile-visible { display: flex; flex-direction: column; width: 100%; }

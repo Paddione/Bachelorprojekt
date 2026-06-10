@@ -7,8 +7,8 @@
     plan: '#8b5cf6',
     implement: '#f59e0b',
     verify: '#14b8a6',
-    deploy: '#10b981',
-    done: '#10b981',
+    deploy: '#22c55e',
+    done: '#22c55e',
     blocked: '#ef4444',
   };
 

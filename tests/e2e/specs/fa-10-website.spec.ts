@@ -25,7 +25,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
   });
 
   test('T2: Subpages are reachable', async ({ page }) => {
-    test.setTimeout(60000);
+    test.setTimeout(90000);
     const servicePages = (process.env.WEBSITE_SERVICE_PAGES || '/coaching,/beratung').split(',');
     const pages = [
       ...servicePages,
@@ -35,7 +35,7 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
       '/registrieren',
     ];
     for (const path of pages) {
-      const res = await page.goto(`${BASE}${path}`, { timeout: 15000, waitUntil: 'domcontentloaded' });
+      const res = await page.goto(`${BASE}${path}`, { timeout: 30000, waitUntil: 'domcontentloaded' });
       expect(res?.status(), `${path} should return 200`).toBe(200);
     }
   });

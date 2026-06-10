@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 104,
+  "count": 105,
   "routes": [
     {
       "route": "/",
@@ -656,6 +656,14 @@
     },
     {
       "route": "/dev-status",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/factory/design-system",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

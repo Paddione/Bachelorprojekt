@@ -1,0 +1,58 @@
+:root {
+  --factory-bg: #0a0a0a;
+  --factory-surface: #141414;
+  --factory-surface-elevated: #1a1a1a;
+  --factory-border: #2a2a2a;
+  --factory-text-primary: #e5e5e5;
+  --factory-text-secondary: #a3a3a3;
+  --factory-text-muted: #737373;
+  --factory-accent: #f59e0b;
+  --factory-accent-hover: #d97706;
+  --factory-error: #ef4444;
+  --factory-success: #10b981;
+
+  --factory-priority-critical: #ef4444;
+  --factory-priority-high: #f97316;
+  --factory-priority-medium: #eab308;
+  --factory-priority-low: #6b7280;
+
+  --factory-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --factory-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --factory-text-xs: 0.75rem;
+  --factory-text-sm: 0.875rem;
+  --factory-text-base: 1rem;
+  --factory-text-lg: 1.125rem;
+  --factory-text-xl: 1.25rem;
+
+  --factory-spacing-xs: 0.25rem;
+  --factory-spacing-sm: 0.5rem;
+  --factory-spacing-md: 1rem;
+  --factory-spacing-lg: 1.5rem;
+  --factory-spacing-xl: 2rem;
+  --factory-spacing-2xl: 3rem;
+
+  --factory-radius-sm: 0.25rem;
+  --factory-radius-md: 0.375rem;
+  --factory-radius-lg: 0.5rem;
+
+  --factory-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --factory-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --factory-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+.factory-grid-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 80px 80px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.factory-grid-overlay.visible {
+  opacity: 1;
+}

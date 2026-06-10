@@ -288,7 +288,7 @@ Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
 RESOLUTION="shipped" # oder "fixed" bei Fixes
 PR_NUM=$(gh pr view --json number -q '.number')
 
-./scripts/ticket.sh update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+./scripts/ticket.sh update-status --id "$TICKET_ID" --status qa_review
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."

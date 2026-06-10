@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>dev-flow-chore — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-chore</span></nav>
+    <h1>dev-flow-chore</h1>
+    <p class="page-desc">Use for maintenance work with no behavior change — docs, dependency bumps, config/rename, CI tweaks, cleanup. Executes and merges inline; no separate plan or dev-flow-execute handoff.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>dev-flow-chore — Wartung direkt ausführen &amp; mergen</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#wann-diese-skill-greift"><span class="toc-num">1.</span> Wann diese Skill greift</a></li>
+<li class="toc-item"><a href="#schritt-0-reaper--pull-first"><span class="toc-num">2.</span> Schritt 0: Reaper &amp; Pull-First</a></li>
+<li class="toc-item"><a href="#schritt-05-wiederkehrend-oder-einmalig"><span class="toc-num">3.</span> Schritt 0.5: Wiederkehrend oder einmalig?</a></li>
+<li class="toc-item"><a href="#schritt-1-worktree-anlegen--claimen"><span class="toc-num">4.</span> Schritt 1: Worktree anlegen &amp; claimen</a></li>
+<li class="toc-item"><a href="#schritt-2-aenderungen-vornehmen"><span class="toc-num">5.</span> Schritt 2: Änderungen vornehmen</a></li>
+<li class="toc-item"><a href="#schritt-3-verifizieren"><span class="toc-num">6.</span> Schritt 3: Verifizieren</a></li>
+<li class="toc-item"><a href="#schritt-4-commit-push--pr"><span class="toc-num">7.</span> Schritt 4: Commit, Push &amp; PR</a></li>
+<li class="toc-item"><a href="#schritt-5-merge-wenn-ci-gruen"><span class="toc-num">8.</span> Schritt 5: Merge wenn CI grün</a></li>
+<li class="toc-item"><a href="#schritt-6-worktree--branch-bereinigen"><span class="toc-num">9.</span> Schritt 6: Worktree &amp; Branch bereinigen</a></li>
+<li class="toc-item"><a href="#schritt-7-deploy-falls-noetig"><span class="toc-num">10.</span> Schritt 7: Deploy (falls nötig)</a></li>
+<li class="toc-item"><a href="#verwandte-skills"><span class="toc-num">11.</span> Verwandte Skills</a></li>
+<li class="toc-item"><a href="#nachbereitung--mishap-report"><span class="toc-num">12.</span> Nachbereitung &amp; Mishap Report</a></li></ul>
+</div>
+<h2 id="wann-diese-skill-greift">Wann diese Skill greift</h2>
+<p>Eine <strong>Chore</strong>: Wartung ohne Verhaltensänderung — Doku, Dependency-Bumps, Config/Rename, CI-Tweaks,
+Aufräumen. Chores brauchen <strong>keinen</strong> Plan und <strong>keinen</strong> <code>dev-flow-execute</code>-Handoff: sie werden in
+einem Rutsch erledigt und gemergt. Für Features/Fixes stattdessen <code>dev-flow-plan</code> nutzen.</p>
+<p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-chore und führe die Wartung direkt aus."</p>
+<hr>
+<h2 id="schritt-0-reaper--pull-first">Schritt 0: Reaper &amp; Pull-First</h2>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombies/stale Worktrees/tote Locks räumen
+git fetch origin main
+if git diff --quiet HEAD; then git pull --rebase origin main; else git stash &amp;&amp; git pull --rebase origin main &amp;&amp; git stash pop; fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="schritt-05-wiederkehrend-oder-einmalig">Schritt 0.5: Wiederkehrend oder einmalig?</h2>
+<p>Frage den User, ob die Chore regelmäßig laufen soll. Falls ja, rufe <code>/schedule</code> auf und richte
+einen Cron-Job ein. <strong>STOPP hier.</strong></p>
+<h2 id="schritt-1-worktree-anlegen--claimen">Schritt 1: Worktree anlegen &amp; claimen</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+bash scripts/worktree-create.sh chore/&lt;slug&gt; /tmp/wt-&lt;slug&gt;
+cd /tmp/wt-&lt;slug&gt;
+bash scripts/agent-lock.sh claim branch "chore/&lt;slug&gt;" --worktree "$PWD" --label dev-flow-chore
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich <code>claim main-checkout</code> —
+der <code>.githooks/pre-commit</code> sperrt sonst konkurrierende Commits anderer Sessions.</p>
+<h2 id="schritt-2-aenderungen-vornehmen">Schritt 2: Änderungen vornehmen</h2>
+<p>Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
+provisionierten Subagenten delegieren (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> — Chores sind i.d.R. <code>haiku</code>/<code>sonnet</code>, Effort low).</p>
+<h2 id="schritt-3-verifizieren">Schritt 3: Verifizieren</h2>
+<div class="code-wrapper"><pre><code class="language-bash">task workspace:validate
+task test:all
+task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm-Gotchas in Worktrees.</p>
+<h2 id="schritt-4-commit-push--pr">Schritt 4: Commit, Push &amp; PR</h2>
+<div class="code-wrapper"><pre><code class="language-bash">git add -A
+git commit -m "chore(&lt;scope&gt;): &lt;subject&gt;"   # commitlint: Body-Zeilen &lt;100 Zeichen
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Rufe <code>commit-commands:commit-push-pr</code> auf (oder <code>gh pr create</code> manuell).</p>
+<h2 id="schritt-5-merge-wenn-ci-gruen">Schritt 5: Merge wenn CI grün</h2>
+<div class="code-wrapper"><pre><code class="language-bash">MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+(cd "$MAIN_REPO" &amp;&amp; gh pr merge --auto --squash --delete-branch)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="schritt-6-worktree--branch-bereinigen">Schritt 6: Worktree &amp; Branch bereinigen</h2>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/agent-lock.sh release branch "chore/&lt;slug&gt;" 2&gt;/dev/null || true
+cd /home/patrick/Bachelorprojekt
+git worktree remove "/tmp/wt-&lt;slug&gt;" --force
+git branch -D "chore/&lt;slug&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="schritt-7-deploy-falls-noetig">Schritt 7: Deploy (falls nötig)</h2>
+<p>Nur wenn die Chore deploybare Pfade berührt — Mapping in
+<a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md">deploy-routing.md</a> (Single Source of Truth).</p>
+<hr>
+<h2 id="verwandte-skills">Verwandte Skills</h2>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Beziehung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dev-flow-plan</code></td>
+<td>Geschwister — Features/Fixes (mit Plan + Handoff) statt Chores</td>
+</tr>
+<tr>
+<td><code>using-git-worktrees</code></td>
+<td>Hintergrund — wird hier durch <code>scripts/worktree-create.sh</code> (git-crypt-safe) ersetzt</td>
+</tr>
+<tr>
+<td><code>mishap-tracker</code></td>
+<td>Abschluss — protokolliert Frictions</td>
+</tr>
+</tbody></table>
+<h2 id="nachbereitung--mishap-report">Nachbereitung &amp; Mishap Report</h2>
+<p>Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über <code>mishap-tracker</code>
+(<code>bash scripts/hooks/mishap-tracker.sh</code>).</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

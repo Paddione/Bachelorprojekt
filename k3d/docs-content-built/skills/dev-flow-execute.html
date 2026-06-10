@@ -131,6 +131,9 @@ done
 <hr>
 <h2 id="schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren">Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</h2>
 <p>Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die <strong>gesamte Implementierung an EINEN frischen Subagenten</strong> — sauberer Kontext per Konstruktion, <strong>Modell + Effort passend zum Charakter der Plan-Tasks</strong>. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.</p>
+<blockquote>
+<p><strong>Warum EIN Implementer statt <code>superpowers:subagent-driven-development</code>-Fan-out?</strong> Dieser Skill läuft bereits <em>selbst</em> als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre <strong>verschachtelte Delegation</strong> → Kontext-Explosion und Synthese-Last (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a>, 162k-Prompt-Lehre). Der Implementer ruft <code>superpowers:executing-plans</code> daher <strong>in-context</strong> auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele <strong>voneinander unabhängige</strong> Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf <code>subagent-driven-development</code> bzw. einen <code>Workflow</code>-Fan-out — bewusste Eskalation, nicht Default.</p>
+</blockquote>
 <p>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):</p>
 <ul>
 <li><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) → <code>haiku</code>; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → <code>opus</code>. Im Zweifel eine Stufe höher.</li>
@@ -350,39 +353,9 @@ fi
 # Deploy-Telemetrie
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>Deploy-Mapping (Referenz):</strong></p>
-<table>
-<thead>
-<tr>
-<th>Geänderte Dateipfade</th>
-<th>Task</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>website/**</code></td>
-<td><code>task feature:website</code></td>
-</tr>
-<tr>
-<td><code>brett/**</code></td>
-<td><code>task feature:brett</code></td>
-</tr>
-<tr>
-<td><code>docs/**</code></td>
-<td><code>task docs:deploy</code></td>
-</tr>
-<tr>
-<td><code>k3d/**</code>, <code>prod*/**</code>, <code>environments/**</code></td>
-<td><code>task feature:deploy</code></td>
-</tr>
-<tr>
-<td>Mehrere Bereiche</td>
-<td>Alle zutreffenden Tasks nacheinander</td>
-</tr>
-</tbody></table>
-<p><strong>Nach dem Deploy:</strong> Überprüfe kurz, dass die Pods <code>Running</code> sind:</p>
-<div class="code-wrapper"><pre><code class="language-bash">kubectl --context fleet get pods -n workspace | grep -v Running
-kubectl --context fleet get pods -n workspace-korczewski | grep -v Running
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Deploy-Mapping (Single Source of Truth):</strong> Die obige Auto-Detection und die vollständige
+Pfad→Task-Tabelle leben in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md">deploy-routing.md</a> — dort steht auch die Pod-Verify-Schleife und die
+Stale-Tree-/Digest-Pin-Footguns. Bei Änderungen am Deploy-Mapping <strong>nur</strong> diese Referenz pflegen.</p>
 <p>Führe danach <code>dev-flow-e2e</code> aus, um E2E-Tests gegen die Live-Umgebung zu schreiben.</p>
 <hr>
 <h2 id="verwandte-skills">Verwandte Skills</h2>

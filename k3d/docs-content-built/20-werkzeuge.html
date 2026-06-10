@@ -42,18 +42,19 @@
   <ul class="toc-list"><li class="toc-item"><a href="#superpowers-superpowers"><span class="toc-num">1.</span> Superpowers (/superpowers)</a></li>
 <li class="toc-item"><a href="#brainstorming-brainstorming"><span class="toc-num">2.</span> Brainstorming (/brainstorming)</a></li>
 <li class="toc-item"><a href="#planungs-skill-dev-flow-plan"><span class="toc-num">3.</span> Planungs-Skill (dev-flow-plan)</a></li>
-<li class="toc-item"><a href="#umsetzungs-skill-dev-flow-execute"><span class="toc-num">4.</span> Umsetzungs-Skill (dev-flow-execute)</a></li>
-<li class="toc-item"><a href="#dev-iterations-skill-dev-flow-iterate"><span class="toc-num">5.</span> Dev-Iterations-Skill (dev-flow-iterate)</a></li>
-<li class="toc-item"><a href="#e2e-test-skill-dev-flow-e2e"><span class="toc-num">6.</span> E2E-Test-Skill (dev-flow-e2e)</a></li>
-<li class="toc-item"><a href="#task-orakel-task-oracle"><span class="toc-num">7.</span> Task-Orakel (task-oracle)</a></li>
-<li class="toc-item"><a href="#website-agent"><span class="toc-num">8.</span> Website-Agent</a></li>
-<li class="toc-item"><a href="#betriebs-agent-ops"><span class="toc-num">9.</span> Betriebs-Agent (ops)</a></li>
-<li class="toc-item"><a href="#infrastruktur-agent-infra"><span class="toc-num">10.</span> Infrastruktur-Agent (infra)</a></li>
-<li class="toc-item"><a href="#test-agent"><span class="toc-num">11.</span> Test-Agent</a></li>
-<li class="toc-item"><a href="#datenbank-agent-db"><span class="toc-num">12.</span> Datenbank-Agent (db)</a></li>
-<li class="toc-item"><a href="#sicherheits-agent-security"><span class="toc-num">13.</span> Sicherheits-Agent (security)</a></li>
-<li class="toc-item"><a href="#software-factory-auto-bau"><span class="toc-num">14.</span> Software Factory (Auto-Bau)</a></li>
-<li class="toc-item"><a href="#factory-dispatcher-warteschlange"><span class="toc-num">15.</span> Factory-Dispatcher (Warteschlange)</a></li></ul>
+<li class="toc-item"><a href="#wartungs-skill-dev-flow-chore"><span class="toc-num">4.</span> Wartungs-Skill (dev-flow-chore)</a></li>
+<li class="toc-item"><a href="#umsetzungs-skill-dev-flow-execute"><span class="toc-num">5.</span> Umsetzungs-Skill (dev-flow-execute)</a></li>
+<li class="toc-item"><a href="#dev-iterations-skill-dev-flow-iterate"><span class="toc-num">6.</span> Dev-Iterations-Skill (dev-flow-iterate)</a></li>
+<li class="toc-item"><a href="#e2e-test-skill-dev-flow-e2e"><span class="toc-num">7.</span> E2E-Test-Skill (dev-flow-e2e)</a></li>
+<li class="toc-item"><a href="#task-orakel-task-oracle"><span class="toc-num">8.</span> Task-Orakel (task-oracle)</a></li>
+<li class="toc-item"><a href="#website-agent"><span class="toc-num">9.</span> Website-Agent</a></li>
+<li class="toc-item"><a href="#betriebs-agent-ops"><span class="toc-num">10.</span> Betriebs-Agent (ops)</a></li>
+<li class="toc-item"><a href="#infrastruktur-agent-infra"><span class="toc-num">11.</span> Infrastruktur-Agent (infra)</a></li>
+<li class="toc-item"><a href="#test-agent"><span class="toc-num">12.</span> Test-Agent</a></li>
+<li class="toc-item"><a href="#datenbank-agent-db"><span class="toc-num">13.</span> Datenbank-Agent (db)</a></li>
+<li class="toc-item"><a href="#sicherheits-agent-security"><span class="toc-num">14.</span> Sicherheits-Agent (security)</a></li>
+<li class="toc-item"><a href="#software-factory-auto-bau"><span class="toc-num">15.</span> Software Factory (Auto-Bau)</a></li>
+<li class="toc-item"><a href="#factory-dispatcher-warteschlange"><span class="toc-num">16.</span> Factory-Dispatcher (Warteschlange)</a></li></ul>
 </div>
 <blockquote>
 <p>Diese Seite wird automatisch aus der Registry erzeugt
@@ -90,7 +91,18 @@ Zurück zur Übersicht: <a href="./00-anleitung.html" class="xref">00-anleitung<
 <div class="code-wrapper"><pre><code class="language-text">Ich will etwas ändern – starte die Planung (dev-flow-plan).
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Schutzregeln (Guardrails):</strong> Erst ziehen, dann arbeiten (G-PULL-FIRST)</p>
-<p><strong>Verwandt:</strong> <a href="./skills/dev-flow-execute.html" class="xref">dev-flow-execute</a></p>
+<p><strong>Verwandt:</strong> <a href="./skills/dev-flow-execute.html" class="xref">dev-flow-execute</a>, Wartungs-Skill (dev-flow-chore)</p>
+<h2 id="wartungs-skill-dev-flow-chore">Wartungs-Skill (dev-flow-chore)</h2>
+<p><strong>Skill</strong> · 🟡 <strong>Vorsicht</strong></p>
+<p>Erledigt Wartung ohne Verhaltensänderung in einem Rutsch und mergt sie.</p>
+<p><strong>Wofür?</strong> Für Doku, Dependency-Bumps, Config/Umbenennungen, CI-Tweaks und Aufräumen — direkt ausgeführt und gemergt, ohne Plan und ohne dev-flow-execute. Für Features/Fixes stattdessen dev-flow-plan.</p>
+<p><strong>So startest du:</strong> Sage z.B. 'bump die Abhängigkeiten' oder 'räum die Doku auf' – der Skill startet von selbst, oder dev-flow-plan leitet Chores hierher.</p>
+<p><strong>Was schiefgehen kann:</strong> Wenig: keine Verhaltensänderung. CI könnte den Merge blockieren; der falsche Branch könnte aktiv sein (🟡).</p>
+<p><strong>Du kannst diesen Prompt kopieren und in Claude Code einfügen:</strong></p>
+<div class="code-wrapper"><pre><code class="language-text">/dev-flow-chore – erledige diese Wartung und merge sie.
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Schutzregeln (Guardrails):</strong> Erst ziehen, dann arbeiten (G-PULL-FIRST), Nie direkt auf main (G-PR-NOT-MAIN)</p>
+<p><strong>Verwandt:</strong> <a href="./skills/dev-flow-plan.html" class="xref">dev-flow-plan</a></p>
 <h2 id="umsetzungs-skill-dev-flow-execute">Umsetzungs-Skill (dev-flow-execute)</h2>
 <p><strong>Skill</strong> · 🟡 <strong>Vorsicht</strong></p>
 <p>Setzt einen fertigen Plan um und öffnet einen Pull Request.</p>

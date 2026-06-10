@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.49.0...website-v1.50.0) (2026-06-10)
+
+
+### Features
+
+* **deploy:** partial-deploy — nur geänderte Services ausrollen [T000591] ([#1530](https://github.com/Paddione/Bachelorprojekt/issues/1530)) ([17518af](https://github.com/Paddione/Bachelorprojekt/commit/17518afcb4f5d9e7abee35953db609ab3a69dbcf))
+
 ## [1.49.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.48.1...website-v1.49.0) (2026-06-10)
 
 

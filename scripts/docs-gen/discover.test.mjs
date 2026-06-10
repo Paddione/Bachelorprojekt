@@ -38,6 +38,8 @@ test('discoverSources: finds repo skill, repo agent, doc; excludes specs; missin
     // repo skill
     await mkdir(join(root, '.claude/skills/fleet-ops'), { recursive: true });
     await writeFile(join(root, '.claude/skills/fleet-ops/SKILL.md'), '---\nname: fleet-ops\n---\n# Fleet Ops\n');
+    // top-level skills index/overview markdown (not a per-skill SKILL.md) → renders as a doc page
+    await writeFile(join(root, '.claude/skills/OVERVIEW.md'), '# Skills Overview\n');
     // one-level-deeper superpowers sub-skill
     await mkdir(join(root, '.claude/skills/superpowers/brainstorming'), { recursive: true });
     await writeFile(join(root, '.claude/skills/superpowers/brainstorming/SKILL.md'), '---\nname: brainstorming\n---\n# Brainstorm\n');
@@ -89,6 +91,13 @@ test('discoverSources: finds repo skill, repo agent, doc; excludes specs; missin
     const doc = sources.find(s => s.sourcePath.endsWith('docs/website/overview.md'));
     assert.equal(doc.type, 'doc');
     assert.equal(doc.provenance, 'repo');
+
+    // top-level skills OVERVIEW.md renders as a doc page (not a skill)
+    const overview = sources.find(s => s.sourcePath.endsWith('.claude/skills/OVERVIEW.md'));
+    assert.ok(overview, 'skills OVERVIEW.md discovered');
+    assert.equal(overview.type, 'doc');
+    assert.equal(overview.name, 'OVERVIEW');
+    assert.equal(overview.provenance, 'repo');
 
     // deterministic sort: by type then sourcePath
     const sortedCopy = [...sources].sort((a, b) =>

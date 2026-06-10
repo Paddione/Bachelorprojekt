@@ -73,6 +73,8 @@ async function listMdFiles(dir) {
 }
 
 // Repo skills: .claude/skills/<name>/SKILL.md, plus superpowers/<sub>/SKILL.md (one deeper).
+// Also: top-level *.md files directly under .claude/skills/ (e.g. OVERVIEW.md) render as 'doc'
+// pages — they are index/overview content, not invokable per-skill SKILL.md files.
 async function discoverRepoSkills(repoRoot, pluginsRoot) {
   const skillsRoot = join(repoRoot, '.claude', 'skills');
   const docs = [];
@@ -87,6 +89,9 @@ async function discoverRepoSkills(repoRoot, pluginsRoot) {
     }
     const md = join(dir, 'SKILL.md');
     if (existsSync(md)) docs.push(await makeSourceDoc('skill', name, md, pluginsRoot));
+  }
+  for (const md of await listMdFiles(skillsRoot)) {
+    docs.push(await makeSourceDoc('doc', basename(md, '.md'), md, pluginsRoot));
   }
   return docs;
 }

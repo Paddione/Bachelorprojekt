@@ -20,3 +20,37 @@ if ! bash "$repo_root/scripts/git-crypt-guard.sh" check-staged; then
   echo "Did you run 'git-crypt unlock'? See docs/WSL-BOOTSTRAP.md." >&2
   exit 1
 fi
+
+# --- freshness: auto-regenerate generated artifacts before commit [T000581] ---
+# Prevents CI failures when new test/route/asset files are added without regenerating.
+# Best-effort: never blocks the commit if task or node is unavailable.
+_FRESHNESS_FILES=(
+  website/src/data/test-inventory.json
+  website/src/data/route-manifest.json
+  website/src/lib/learning-assets.generated.json
+  website/public/learning-assets/THIRD-PARTY-ASSETS.md
+  docs/code-quality/repo-index.json
+  docs/agent-guide/10-ziele.md
+  docs/agent-guide/20-werkzeuge.md
+  docs/agent-guide/30-bausteine.md
+  docs/agent-guide/maps/goals-map.md
+  docs/agent-guide/maps/tools-map.md
+  docs/agent-guide/maps/danger-map.md
+  website/src/lib/agent-guide.generated.json
+  website/src/lib/platform-descriptions.generated.json
+)
+if command -v task >/dev/null 2>&1 && task --version 2>&1 | grep -q "Task version"; then
+  if (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then
+    _staged=0
+    for _f in "${_FRESHNESS_FILES[@]}"; do
+      if ! git -C "$repo_root" diff --quiet -- "$_f" 2>/dev/null; then
+        git -C "$repo_root" add -- "$_f"
+        echo "  ↻ freshness: auto-staged $_f"
+        _staged=$((_staged + 1))
+      fi
+    done
+    [ "$_staged" -gt 0 ] && echo "  ↻ freshness: $_staged artifact(s) updated — included in this commit."
+  else
+    echo "  ⚠ freshness:regenerate failed — verify generated artifacts are current." >&2
+  fi
+fi

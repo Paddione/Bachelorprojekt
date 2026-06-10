@@ -189,6 +189,8 @@ Rufe `dev-flow-iterate` auf, um Änderungen im dev-Cluster zu testen.
 
 ---
 
+> **⚠ Freshness-Guard (vor dem Commit):** Wenn Schritt 3 (`task freshness:regenerate`) übersprungen oder der Subagent es vergessen hat, schlägt CI mit "stale artifact" fehl. Prüfe: `git diff --name-only` sollte keine generierten Indexdateien zeigen. Falls doch: `task freshness:regenerate && git add` nachholen. Der Pre-commit-Hook automatisiert das nach `task secrets:install-hooks`.
+
 ## Schritt 5: PR erstellen
 
 ```bash

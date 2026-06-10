@@ -1,6 +1,6 @@
 ---
 title: Planungsbüro — Inline-Klärungsrunde Implementation Plan
-ticket_id: null
+ticket_id: T000580
 domains: [website, db, test, security]
 status: active
 pr_number: null

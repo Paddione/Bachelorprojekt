@@ -155,6 +155,31 @@ export async function initTicketsSchema(): Promise<void> {
       CHECK (attention_mode IN ('auto', 'ai_ready', 'needs_human'))
   `);
 
+  // Planungsbüro [feature/planungsbuero]: neuer Status 'planning' (kuratierte
+  // Vorstufe vor 'backlog'/Laderampe — die Factory rührt ihn nicht an) plus
+  // planungskritische Metadaten. Constraint ist inline/unbenannt → drop+add.
+  await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_status_check`);
+  await pool.query(`
+    ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check
+      CHECK (status IN ('triage','planning','backlog','in_progress','in_review','blocked','done','archived'))
+  `);
+  await pool.query(`
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS value_prop    TEXT,
+      ADD COLUMN IF NOT EXISTS effort        TEXT,
+      ADD COLUMN IF NOT EXISTS areas         TEXT[],
+      ADD COLUMN IF NOT EXISTS depends_on    TEXT[],
+      ADD COLUMN IF NOT EXISTS planning_rank INTEGER,
+      ADD COLUMN IF NOT EXISTS readiness     JSONB
+  `);
+  await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_effort_check`);
+  await pool.query(`
+    ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_effort_check
+      CHECK (effort IS NULL OR effort IN ('klein','mittel','gross'))
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS tickets_planning_idx
+    ON tickets.tickets (planning_rank, created_at) WHERE status = 'planning'`);
+
   await pool.query(`
     CREATE OR REPLACE FUNCTION tickets.fn_effective_attention_mode(t tickets.tickets)
     RETURNS text AS $$

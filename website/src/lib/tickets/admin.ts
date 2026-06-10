@@ -667,7 +667,6 @@ export async function listKnownComponents(brand: string, opts: { includeTestData
     [brand]);
   return r.rows.map(x => x.component);
 }
-
 export async function listKnownThesisTags(brand: string): Promise<string[]> {
   await initTicketsSchema();
   const r = await pool.query<{ thesis_tag: string }>(

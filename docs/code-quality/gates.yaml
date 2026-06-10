@@ -55,6 +55,10 @@ s1:
     # safely split into modules (see T000460). It is a sanctioned exception to the
     # per-file line limit; the FA-SF-20 contract test guards its structural invariants.
     - "scripts/factory/pipeline.js"
+    # website-db.ts is the central DB access layer for the website — it accumulates all
+    # queries across all features. Splitting it would require carefully managing the
+    # single PostgreSQL pool. Accepted as a long-term refactoring target.
+    - "website/src/lib/website-db.ts"
 
 s2:
   graphs:
@@ -74,8 +78,10 @@ s3:
     - prod-korczewski/
     - website/src/
   # configmap-domains.yaml is the *.localhost dev SSOT — never a violation.
+  # sitemap.xml.ts derives domain from BRAND env var (legitimate conditional) — not a hardcoded host.
   allowlist_files:
     - k3d/configmap-domains.yaml
+    - website/src/pages/sitemap.xml.ts
 
 s4:
   manifest_globs:

@@ -3,6 +3,8 @@
 // existing tickets/factory_control tables. PER-BRAND pool, same-namespace only.
 // factory-metrics.ts is intentionally left untouched; this is a separate module.
 import { pool } from './website-db';
+import { officeCount } from './planning-office';
+
 
 const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type Phase = (typeof PHASE_ORDER)[number];
@@ -31,6 +33,7 @@ export interface FloorPayload {
   loadingDock: LoadingDockItem[];
   hall: HallItem[];
   shipped: ShippedItem[];
+  officeWaiting: number;
   fetchedAt: string;
 }
 
@@ -165,13 +168,14 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
 /** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
-  const [metrics, loadingDock, hall, shipped] = await Promise.all([
+  const [metrics, loadingDock, hall, shipped, officeWaiting] = await Promise.all([
     getMetrics(),
     getLoadingDock(control.slotsUsed, control.slotsCap),
     getHall(),
     getShipped(),
+    officeCount(),
   ]);
-  return { control, metrics, loadingDock, hall, shipped, fetchedAt: new Date().toISOString() };
+  return { control, metrics, loadingDock, hall, shipped, officeWaiting, fetchedAt: new Date().toISOString() };
 }
 
 export interface PhaseEventRow { phase: Phase; state: PhaseState; detail: string | null; driver: string; at: string; }

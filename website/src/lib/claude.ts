@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { getProviderConfig } from './provider-config';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 
@@ -21,7 +22,11 @@ export async function generateMeetingInsights(params: {
     return null;
   }
 
-  const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  const cfg = await getProviderConfig('website-llm', 'sonnet');
+  const client = new Anthropic({
+    apiKey: cfg.apiKey,
+    ...(cfg.baseUrl ? { baseURL: cfg.baseUrl } : {}),
+  });
 
   const artifactSection = params.artifacts
     ? `\n\n## Whiteboard-Artefakte\n${params.artifacts}`
@@ -49,7 +54,7 @@ Antworte ausschliesslich mit dem JSON-Objekt.`;
 
   try {
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: cfg.modelId,
       max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }],
     });

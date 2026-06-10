@@ -850,7 +850,7 @@ git commit -m "feat(provider-routing): provider-config CLI + route/release bash 
 - Create: `website/src/lib/provider-config.test.ts`
 - Modify: `website/src/lib/claude.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/lib/provider-config.test.ts` (mirror the pool-mocking style of `website/src/lib/tickets-db.test.ts`):
 
@@ -890,12 +890,12 @@ describe('getProviderConfig', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/provider-config.test.ts`
 Expected: FAIL — cannot resolve `./provider-config`.
 
-- [ ] **Step 3: Implement `getProviderConfig`**
+- [x] **Step 3: Implement `getProviderConfig`**
 
 Create `website/src/lib/provider-config.ts`. The website path is read-only (it does NOT claim circuit-breaker slots — concurrency capping is a Factory concern; the website just picks the top healthy non-cooldown provider). It still honours cooldown so a dead provider isn't used.
 
@@ -940,12 +940,12 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/provider-config.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Wire into `claude.ts`**
+- [x] **Step 5: Wire into `claude.ts`**
 
 Modify `website/src/lib/claude.ts`. Replace the hardcoded client + model with the router. Keep the early-return when no API key is configured.
 
@@ -981,7 +981,7 @@ and:
     });
 ```
 
-- [ ] **Step 6: Typecheck + commit**
+- [x] **Step 6: Typecheck + commit**
 
 ```bash
 cd website && pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | grep -E 'claude|provider-config' || echo "no type errors in touched files"

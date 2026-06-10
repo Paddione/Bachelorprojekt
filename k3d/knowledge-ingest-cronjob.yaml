@@ -11,6 +11,8 @@ kind: ConfigMap
 metadata:
   name: knowledge-scripts
   namespace: workspace
+  labels:
+    app: knowledge
 data:
   lib-knowledge-pg.mjs: |
     import pg from 'pg';
@@ -266,6 +268,7 @@ data:
     main().catch(err => { console.error(err); process.exit(1); });
 
 ---
+
 # ── CronJob: ingest PR history (daily 02:00 UTC) ──────────────────
 apiVersion: batch/v1
 kind: CronJob
@@ -273,7 +276,7 @@ metadata:
   name: knowledge-ingest-prs
   namespace: workspace
   labels:
-    app: knowledge-ingest-prs
+    app: knowledge
 spec:
   schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
@@ -349,6 +352,7 @@ spec:
             - name: node-modules
               emptyDir: {}
 ---
+
 # ── CronJob: ingest markdown / specs / plans (daily 02:30 UTC) ────
 apiVersion: batch/v1
 kind: CronJob
@@ -356,7 +360,7 @@ metadata:
   name: knowledge-ingest-markdown
   namespace: workspace
   labels:
-    app: knowledge-ingest-markdown
+    app: knowledge
 spec:
   schedule: "30 2 * * *"
   concurrencyPolicy: Forbid
@@ -395,6 +399,7 @@ spec:
               configMap:
                 name: knowledge-scripts
 ---
+
 # ── CronJob: ingest bug tickets (daily 03:00 UTC) ─────────────────
 apiVersion: batch/v1
 kind: CronJob
@@ -402,7 +407,7 @@ metadata:
   name: knowledge-ingest-bugs
   namespace: workspace
   labels:
-    app: knowledge-ingest-bugs
+    app: knowledge
 spec:
   schedule: "0 3 * * *"
   concurrencyPolicy: Forbid
@@ -480,6 +485,7 @@ spec:
             - name: node-modules
               emptyDir: {}
 ---
+
 # ── CronJob: full reindex — all sources (weekly Sunday 04:00 UTC) ─
 apiVersion: batch/v1
 kind: CronJob
@@ -487,7 +493,7 @@ metadata:
   name: knowledge-reindex-all
   namespace: workspace
   labels:
-    app: knowledge-reindex-all
+    app: knowledge
 spec:
   schedule: "0 4 * * 0"
   concurrencyPolicy: Forbid

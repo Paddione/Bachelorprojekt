@@ -202,10 +202,13 @@ spec:
           configMap:
             name: realm-template
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: keycloak
+  labels:
+    app: keycloak
 spec:
   selector:
     app: keycloak

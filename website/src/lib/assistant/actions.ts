@@ -35,8 +35,8 @@ export async function executeAction(
     throw new Error(`action ${actionId} not allowed for profile ${ctx.profile}`);
   }
 
-  // Fill ctx.email via DB lookup when not already provided
-  if (!ctx.email && ctx.userSub) {
+  // Fill ctx.email via DB lookup when not already provided (portal profile only)
+  if (ctx.profile === 'portal' && !ctx.email && ctx.userSub) {
     try {
       const customer = await getCustomerByKeycloakId(ctx.userSub);
       if (customer) ctx = { ...ctx, email: customer.email };

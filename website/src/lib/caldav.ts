@@ -470,21 +470,24 @@ export async function createCalendarEvent(params: {
   let attendeeLine = '';
   if (params.attendeeEmail) {
     const cn = params.attendeeName || params.attendeeEmail;
-    attendeeLine = `ATTENDEE;CN=${cn};RSVP=TRUE:mailto:${params.attendeeEmail}\n`;
+    attendeeLine = `ATTENDEE;CN=${cn};RSVP=TRUE:mailto:${params.attendeeEmail}`;
   }
 
-  const ical = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//${BRAND_NAME}//Booking//DE
-BEGIN:VEVENT
-UID:${uid}@${BRAND_NAME}
-DTSTART:${formatDt(params.start)}
-DTEND:${formatDt(params.end)}
-SUMMARY:${params.summary}
-DESCRIPTION:${params.description.replace(/\n/g, '\\n')}
-${attendeeLine}STATUS:CONFIRMED
-END:VEVENT
-END:VCALENDAR`;
+  const ical = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    `PRODID:-//${BRAND_NAME}//Booking//DE`,
+    'BEGIN:VEVENT',
+    `UID:${uid}@${BRAND_NAME}`,
+    `DTSTART:${formatDt(params.start)}`,
+    `DTEND:${formatDt(params.end)}`,
+    `SUMMARY:${params.summary}`,
+    `DESCRIPTION:${params.description.replace(/\n/g, '\\n')}`,
+    ...(attendeeLine ? [attendeeLine] : []),
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n') + '\r\n';
 
   try {
     const res = await fetch(`${CALDAV_BASE}/${uid}.ics`, {

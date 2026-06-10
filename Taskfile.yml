@@ -369,6 +369,7 @@ tasks:
         tests/unit/purge-fn-gaps.bats
         tests/unit/skill-orchestrator.bats
         tests/unit/superpowers-collab-patch.bats
+        tests/unit/superpowers-submit-patch.bats
         tests/unit/helper-collab-headless.bats
         tests/unit/tickets-plan-staged-migration.bats
         tests/unit/env-resolve.bats

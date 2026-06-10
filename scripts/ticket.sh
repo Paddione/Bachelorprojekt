@@ -342,13 +342,54 @@ cmd_enqueue() {
 UPDATE tickets.tickets SET type='feature', status='backlog' WHERE external_id = :'ext_id';
 EOF
   # Record a DDL-free plan reference for the pipeline's plan-reuse entrypoint.
+  # Idempotent: skip if a FACTORY-PLAN-REF already exists (e.g. written by
+  # `stage-plan` during Kommissionierung) to avoid duplicate refs.
   if [[ -n "$branch" || -n "$plan" ]]; then
     _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
-SELECT id, 'factory', :'ref', 'internal' FROM tickets.tickets WHERE external_id = :'ext_id';
+SELECT t.id, 'factory', :'ref', 'internal'
+  FROM tickets.tickets t
+ WHERE t.external_id = :'ext_id'
+   AND NOT EXISTS (
+     SELECT 1 FROM tickets.ticket_comments c
+      WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
+   );
 EOF
   fi
   echo "Ticket $id enqueued for the Software Factory (type=feature, status=backlog)"
+}
+
+cmd_stage_plan() {
+  local id="" branch="" plan=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id)     id="$2"; shift 2 ;;
+      --branch) branch="$2"; shift 2 ;;
+      --plan)   plan="$2"; shift 2 ;;
+      *)        echo "Unknown stage-plan option: $1" >&2; exit 2 ;;
+    esac; done
+  # Validate BEFORE _pgpod so bad-arg errors are deterministic w/o a cluster (FA-SF-35/50).
+  if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
+  if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
+  if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
+  local pod; pod=$(_pgpod)
+  # Kommissionierung: type=feature, status=plan_staged (factory-unsichtbar; der
+  # Dispatcher pollt nur 'backlog'). Wartet auf manuelle Freigabe in /dev-status.
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET type='feature', status='plan_staged' WHERE external_id = :'ext_id';
+EOF
+  # FACTORY-PLAN-REF nur schreiben, falls noch keiner existiert (idempotent ->
+  # kein Duplikat beim spateren Staging->Enqueue).
+  _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
+INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
+  FROM tickets.tickets t
+ WHERE t.external_id = :'ext_id'
+   AND NOT EXISTS (
+     SELECT 1 FROM tickets.ticket_comments c
+      WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
+   );
+EOF
+  echo "Ticket $id staged in Kommissionierung (type=feature, status=plan_staged)"
 }
 
 cmd_set_touched_files() {
@@ -718,7 +759,7 @@ _readiness_to_json() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta" >&2
   exit 1
 fi
 
@@ -735,6 +776,7 @@ case "$cmd" in
   release-slot)      cmd_release_slot "$@" ;;
   touch)             cmd_touch "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
+  stage-plan)        cmd_stage_plan "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
   factory-control)   cmd_factory_control "$@" ;;
   dryrun-mark)       cmd_dryrun_mark "$@" ;;

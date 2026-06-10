@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { insertBugTicket } from '../../../../lib/website-db';
 import { config } from '../../../../config/index.js';
+import { autoTriage } from '../../../../lib/ticket-triage';
 
 const BRAND = config.brand;
 const VALID_CATEGORIES = new Set(['fehler', 'verbesserung', 'erweiterungswunsch']);
@@ -52,6 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonError('Ticket konnte nicht erstellt werden', 500);
     }
     ticketId = inserted.ticketId;
+    void autoTriage(inserted.id, BRAND).catch(err => console.error('[autoTriage]', err));
   } catch (err) {
     console.error('[bugs/create] DB error:', err);
     return jsonError('Datenbankfehler', 500);

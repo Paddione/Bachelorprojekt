@@ -3,6 +3,7 @@ import { addComment, createAdminTicket } from '../../../lib/tickets/admin';
 import { checkRateLimit, getClientIp } from '../../../lib/rate-limit';
 import { config } from '../../../config/index.js';
 import { pool } from '../../../lib/website-db';
+import { autoTriage } from '../../../lib/ticket-triage';
 
 const BRAND = config.brand;
 const EXTERNAL_ID_RE = /^T\d{6}$/i;
@@ -47,7 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
         actor: { label: 'Portal-Nutzer' },
       });
     } else {
-      await createAdminTicket({
+      const newTicketId = await createAdminTicket({
         brand: BRAND,
         type: 'task',
         title: 'Portal-Feedback',
@@ -55,6 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
         priority: 'niedrig',
         actor: { label: 'Portal-Nutzer' },
       });
+      void autoTriage(newTicketId, BRAND).catch(err => console.error('[autoTriage]', err));
     }
     return new Response(JSON.stringify({ ok: true }), {
       status: 200, headers: { 'Content-Type': 'application/json' },

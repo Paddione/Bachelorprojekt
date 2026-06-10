@@ -1000,7 +1000,7 @@ git commit -m "feat(provider-routing): website getProviderConfig + claude.ts use
 - Modify: `website/src/components/FactoryFloor.svelte`
 - Verify: `website/src/pages/api/factory-floor.ts` returns the new field (it spreads `getFloor`'s payload — confirm).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `website/src/lib/factory-floor.test.ts` a test for `getProviderHealth` (mirror the existing `getControl`/`getHall` test setup in that file — reuse its pool mock):
 
@@ -1018,12 +1018,12 @@ it('getProviderHealth maps rows to status objects with cooldown flag', async () 
 
 (Adapt the mock-row injection to whatever mechanism `factory-floor.test.ts` already uses — do not invent a new harness.)
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: FAIL — `getProviderHealth` is not exported.
 
-- [ ] **Step 3: Implement `getProviderHealth` + extend payload**
+- [x] **Step 3: Implement `getProviderHealth` + extend payload**
 
 In `website/src/lib/factory-floor.ts`, add the interface + function and include it in `getFloor`'s returned payload:
 
@@ -1067,12 +1067,12 @@ Add `providerHealth: ProviderStatus[]` to the `FloorPayload` interface, and in `
   // … include `providerHealth` in the returned payload object …
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Render the widget in `FactoryFloor.svelte`**
+- [x] **Step 5: Render the widget in `FactoryFloor.svelte`**
 
 In `website/src/components/FactoryFloor.svelte`:
 
@@ -1119,11 +1119,11 @@ In `website/src/components/FactoryFloor.svelte`:
 
 The existing SSE/`refresh()` already repaints `data` on every poll, so the widget updates without new wiring.
 
-- [ ] **Step 6: Confirm the API route forwards the field**
+- [x] **Step 6: Confirm the API route forwards the field**
 
 Read `website/src/pages/api/factory-floor.ts`. If it returns `await getFloor(cap)` verbatim, no change is needed (the new field rides along). If it cherry-picks fields, add `providerHealth`. Make the minimal edit only if required.
 
-- [ ] **Step 7: Typecheck + commit**
+- [x] **Step 7: Typecheck + commit**
 
 ```bash
 cd website && pnpm vitest run src/lib/factory-floor.test.ts
@@ -1141,7 +1141,7 @@ git commit -m "feat(provider-routing): provider-status widget on the factory flo
 **Files:**
 - Modify: `scripts/factory/pipeline.js`
 
-- [ ] **Step 1: Spike — determine how a Workflow `agent()` call selects model + base URL**
+- [x] **Step 1: Spike — determine how a Workflow `agent()` call selects model + base URL**
 
 Investigate (do NOT guess):
 1. Re-read the header + existing `agent(..., { model })` call sites in `pipeline.js` (the `provision().model` usage at the Implement/Verify lenses). Confirm that `{ model }` is already an accepted per-call option.
@@ -1155,7 +1155,7 @@ Investigate (do NOT guess):
 
 Pick the branch that matches reality. The rest of this task assumes per-call `model` always works (it does — see point 1) and treats `baseURL` per the decision.
 
-- [ ] **Step 2: Inline the router helpers into `pipeline.js`**
+- [x] **Step 2: Inline the router helpers into `pipeline.js`**
 
 After the existing inlined `provision()` block (~line 92), add an inlined router that shells out to the wrappers (Workflow scripts cannot `import`; `require('child_process')` is allowed and already used):
 
@@ -1202,7 +1202,7 @@ function routerTier(model) { return model === 'opus' ? 'opus' : (model === 'haik
 
 (`brand` and `REPO` are already defined in the `main()` scope above this point.)
 
-- [ ] **Step 3: Wrap the Implement-phase `agent()` call with claim/release**
+- [x] **Step 3: Wrap the Implement-phase `agent()` call with claim/release**
 
 Replace the per-task implement block (~lines 366–386). Keep `provision()` for `effort`/`contextHints`; use the router for `model` + slot:
 
@@ -1229,7 +1229,7 @@ Replace the per-task implement block (~lines 366–386). Keep `provision()` for 
 
 Keep the implement prompt body byte-for-byte identical to the current one — only the `{ ...prov.model ? {model} : {} }` option is replaced by `{ model: route.modelId }` and the try/finally release is added.
 
-- [ ] **Step 4: Wrap the Verify review-lens `agent()` calls**
+- [x] **Step 4: Wrap the Verify review-lens `agent()` calls**
 
 The review/security lenses are opus-tier (correctness-critical) — route them through `routeProviderSync('factory-review', 'opus')`, which returns the Anthropic-opus no-DB choice (slotId null → release no-op). This keeps the opus invariant explicit and uniform:
 
@@ -1245,11 +1245,11 @@ The review/security lenses are opus-tier (correctness-critical) — route them t
 
 The coordinator call similarly uses `routeProviderSync('factory-review','opus').modelId` for `model`. Since opus → no slot, no release is needed, but keeping the router call documents intent and routes through one code path.
 
-- [ ] **Step 5: Plan/Design phase routing**
+- [x] **Step 5: Plan/Design phase routing**
 
 The Plan-decompose `agent()` call currently uses `planProv.model`. Replace with `routeProviderSync('factory-plan', routerTier(planProv.model)).modelId` for `model`, and release its slot after the call (opus complexity → no-op). The Design call has no explicit model today — leave it inheriting the loop default (do NOT add a route unless it already set `model`). Keep changes minimal and surgical.
 
-- [ ] **Step 6: Offline lint + contract test**
+- [x] **Step 6: Offline lint + contract test**
 
 ```bash
 cd /tmp/wt-agent-provider-routing
@@ -1258,7 +1258,7 @@ node --check scripts/factory/pipeline.js
 ```
 Expected: `node --check` clean; FA-SF-20 (pipeline structure contract) PASS. If FA-SF-20 asserts specific `agent()` option shapes, update those assertions to match the new `model: route.modelId` form.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/factory/pipeline.js
@@ -1274,12 +1274,12 @@ git commit -m "feat(provider-routing): pipeline.js routes agents via provider-ro
 
 dev-flow-execute spawns subagents interactively, not via the Workflow `agent()` API, so the integration is a documented convention: before spawning an implementation subagent, the skill calls `route-provider.sh dev-flow-execute sonnet`, uses the returned `modelId`/`baseUrl`, and calls `release-slot.sh` after.
 
-- [ ] **Step 1: Locate the subagent-spawn step**
+- [x] **Step 1: Locate the subagent-spawn step**
 
 Run: `grep -n 'subagent\|model\|spawn\|dispatch' .claude/skills/dev-flow-execute/SKILL.md | head`
 Identify where the skill provisions the implementation subagent.
 
-- [ ] **Step 2: Add the routing convention**
+- [x] **Step 2: Add the routing convention**
 
 Insert a short block in the implementation step:
 
@@ -1305,7 +1305,7 @@ bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → C
 `opus`/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).
 ````
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .claude/skills/dev-flow-execute/SKILL.md
@@ -1318,12 +1318,12 @@ git commit -m "docs(provider-routing): dev-flow-execute routes implementation su
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run the full offline test suite**
+- [x] **Step 1: Run the full offline test suite**
 
 Run: `cd /tmp/wt-agent-provider-routing && task test:all`
 Expected: GREEN. Investigate any red (likely culprits: FA-SF-20 option-shape assertions, test-inventory drift).
 
-- [ ] **Step 2: Run the factory unit + contract subset explicitly**
+- [x] **Step 2: Run the factory unit + contract subset explicitly**
 
 ```bash
 node --test scripts/factory/provider-router.test.mjs
@@ -1332,14 +1332,14 @@ node --test scripts/factory/provider-router.test.mjs
 ```
 Expected: all PASS.
 
-- [ ] **Step 3: Website unit tests**
+- [x] **Step 3: Website unit tests**
 
 ```bash
 cd website && pnpm vitest run src/lib/provider-config.test.ts src/lib/factory-floor.test.ts src/lib/tickets-db.providerrouting.test.ts
 ```
 Expected: all PASS.
 
-- [ ] **Step 4: Regenerate freshness artifacts**
+- [x] **Step 4: Regenerate freshness artifacts**
 
 Run: `cd /tmp/wt-agent-provider-routing && task freshness:regenerate`
 Then: `git status --porcelain` — if `test-inventory.json` or other generated files changed, commit them:
@@ -1348,12 +1348,12 @@ Then: `git status --porcelain` — if `test-inventory.json` or other generated f
 git add -A && git commit -m "chore: refresh generated artifacts (provider-routing)"
 ```
 
-- [ ] **Step 5: Manifest validation (touched no manifests, but confirm)**
+- [x] **Step 5: Manifest validation (touched no manifests, but confirm)**
 
 Run: `task workspace:validate`
 Expected: PASS (no manifest changes in this feature, but the suite is cheap insurance).
 
-- [ ] **Step 6: Final summary**
+- [x] **Step 6: Final summary**
 
 Confirm every spec file in the "Dateien" table is implemented:
 - `provider-router.js` ✓ (Task 3–5), `provider-config.sh` ✓ (Task 6), `route-provider.sh`/`release-slot.sh` ✓ (Task 6)

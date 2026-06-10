@@ -8,7 +8,8 @@
   interface HallItem { extId: string; title: string; priority: string; phase: Phase | null; phaseState: 'entered'|'done'|'blocked'|null; phaseSince: string | null; retryCount: number; blockReason: string | null; slot: number | null; driver: 'factory'|'devflow'|null; prNumber: number | null; ciStatus: 'success'|'pending'|'failure'|null; }
   interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
   interface StagedItem { extId: string; title: string; priority: string; branch: string | null; planPath: string | null; createdAt: string | null; }
-  interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; staged: StagedItem[]; officeWaiting: number; stagedWaiting: number; fetchedAt: string; }
+  interface ProviderStatus { provider: string; status: 'healthy'|'cooldown'; activeAgents: number; maxConcurrent: number; cooldownUntil: string | null; tiers: string[]; }
+  interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; staged: StagedItem[]; providerHealth: ProviderStatus[]; officeWaiting: number; stagedWaiting: number; fetchedAt: string; }
 
   interface PhaseEventRow { phase: Phase; state: string; detail: string | null; driver: string; at: string; }
   interface Breadcrumb { authorLabel: string; body: string; at: string; }
@@ -143,6 +144,11 @@
     if (h < 24) return `vor ${h} Std.`;
     return `vor ${Math.round(h / 24)} Tg.`;
   }
+  function cooldownLabel(iso: string | null): string {
+    if (!iso) return '';
+    const min = Math.ceil((new Date(iso).getTime() - Date.now()) / 60000);
+    return min > 0 ? `wieder in ${min}min` : '';
+  }
   function minutesSince(iso: string | null): number {
     if (!iso) return 0;
     return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -202,6 +208,27 @@
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Watchdog-Stale</p><p class="text-xl font-bold">{data.control.watchdogStale}</p></div>
       <a href="/admin/planungsbuero" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-office" title="Im Planungsbüro"><p class="text-muted text-xs">Büro</p><p class="text-xl font-bold">{data.officeWaiting ?? 0}</p></a>
       <a href="#floor-kommissionierung" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-komm-count" title="Zur Kommissionierung"><p class="text-muted text-xs">Kommissionierung</p><p class="text-xl font-bold">{data.stagedWaiting ?? 0}</p></a>
+    </div>
+
+    <!-- Provider-Status -->
+    <div class="mb-6 rounded-xl bg-white/5 p-3" data-testid="floor-provider-status">
+      <h3 class="font-semibold mb-2 text-sm">Provider-Status</h3>
+      {#if !data.providerHealth || data.providerHealth.length === 0}
+        <p class="text-muted text-xs">Keine Provider-Telemetrie.</p>
+      {:else}
+        <ul class="space-y-1 text-sm">
+          {#each data.providerHealth as p (p.provider)}
+            <li class="flex items-center gap-3" data-testid="provider-row">
+              <span class="h-2 w-2 rounded-full {p.status === 'healthy' ? 'bg-emerald-400' : 'bg-amber-400'}"
+                    title={p.status}></span>
+              <span class="font-mono w-24">{p.provider}</span>
+              <span class="text-muted w-20">{p.activeAgents}/{p.maxConcurrent} aktiv</span>
+              <span class="text-muted flex-1">{p.tiers.join(', ') || '—'}</span>
+              {#if p.status === 'cooldown'}<span class="text-amber-400/90 text-xs">{cooldownLabel(p.cooldownUntil)}</span>{/if}
+            </li>
+          {/each}
+        </ul>
+      {/if}
     </div>
 
     <MobileFloorNav {mobileColIndex} onPrev={mobilePrev} onNext={mobileNext} />

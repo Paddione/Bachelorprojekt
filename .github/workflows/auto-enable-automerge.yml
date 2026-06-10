@@ -1,0 +1,36 @@
+name: Auto-enable Auto-Merge
+
+# Aktiviert Squash-Auto-Merge auf jeder neuen Nicht-Draft-PR gegen main.
+# Der Merge selbst passiert erst, wenn alle Required-Checks grün sind und
+# Branch-Protection erfüllt ist — diese Action setzt nur das --auto-Flag,
+# das bislang manuell via `gh pr merge --auto` gesetzt werden musste.
+# Repo-Voraussetzung: allow_auto_merge ist aktiviert.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, ready_for_review, reopened]
+
+concurrency:
+  group: auto-enable-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  enable-automerge:
+    name: Enable Auto-Merge
+    # Drafts ausnehmen — "fertig, aber nicht mergen" bleibt über Draft-Status möglich.
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Enable squash auto-merge
+        # GITHUB_TOKEN darf enablePullRequestAutoMerge nicht ausführen
+        # ("Resource not accessible by integration") — daher PAT.
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: gh pr merge --auto --squash --delete-branch --repo "$REPO" "$PR_NUMBER"

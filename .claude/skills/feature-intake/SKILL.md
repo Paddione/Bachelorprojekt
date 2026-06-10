@@ -1,34 +1,156 @@
 ---
 name: feature-intake
-description: Use when the user wants to discover, brainstorm, or collect features before planning. Triggers on requests like "was könnten wir als nächstes bauen", "schick gekko einen Fragebogen", "feature-ideen sammeln", "was wäre sinnvoll", or any pre-planning feature-discovery session.
+description: Use when the user wants to discover, brainstorm, or collect features before planning, OR when the user wants to clarify open questions on existing Planungsbüro tickets. Triggers on: "was könnten wir als nächstes bauen", "schick gekko einen Fragebogen", "feature-ideen sammeln", "klär die offenen Fragen im Planungsbüro", "planungsbüro tickets klären", "plan-ready machen", "offene Fragen", or any pre-planning feature-discovery or ticket-clarification session.
 ---
 
-# feature-intake — Feature-Entdeckung & PM-Fragebogen
+# feature-intake — Feature-Entdeckung, PM-Fragebogen & Planungsbüro-Klärung
 
 ## Überblick
 
-Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen und überführt sie in plan-ready Tickets. Zwei Modi:
+Dieser Skill ist dem `dev-flow-plan` **vorgelagert**: er sammelt Feature-Ideen und überführt sie in plan-ready Tickets. Drei Modi:
 
 | Modus | Wann | Ergebnis |
 |-------|------|---------|
+| **Planungsbüro-Klärung** | Bestehende `planning`-Tickets haben offene Fragen / fehlende Readiness-Flags | HTML-Klärungsformular pro Ticket → Antworten ins Ticket schreiben |
 | **Brainstorm** | User will jetzt live mitreden / frei ideieren | Strukturierte Feature-Liste → direkt zu `dev-flow-plan` |
-| **HTML-Formular** | Auswahl + Priorisierung soll bequem per Klick statt Tippen erfolgen — **für Patrick selbst ODER für gekko** | Leicht ausfüllbares HTML-Formular → ausgefülltes Markdown → `dev-flow-plan` |
+| **HTML-Formular** | Auswahl + Priorisierung neuer Ideen per Klick — **für Patrick oder gekko** | HTML-Formular → ausgefülltes Markdown → `dev-flow-plan` |
 
-**Standard-Annahme:** Patrick füllt Auswahl/Priorisierung lieber in einem **HTML-Formular** aus als in einer Inline-Text-Frage-Antwort-Runde (siehe Memory „Grilling via HTML form"). Im Zweifel **generiere das Formular** und liefere es per `SendUserFile` — nicht für gekko, sondern für ihn selbst.
+**Standard-Annahme:** Patrick füllt lieber ein **HTML-Formular** aus als inline zu tippen (siehe Memory „Grilling via HTML form"). Im Zweifel **generiere das Formular** und liefere es per `SendUserFile`.
 
 ---
 
 ## Modus-Wahl
 
 ```
-User will JETZT frei mitdenken / Cluster live durchgehen?
-  → Brainstorm-Modus (Modus A)
+User spricht von "Planungsbüro", "klären", "offene Fragen", "plan-ready",
+"Readiness", oder will bestehende planning-Tickets vorbereiten?
+  → Planungsbüro-Klärung (Modus C) — PRIORITÄT vor B und A
 
 User will Features nur auswählen + priorisieren (wenig tippen),
-ODER sagt "schick gekko einen Fragebogen" / "PM soll entscheiden",
-ODER "mach mir ein Formular"?
+ODER "schick gekko einen Fragebogen" / "PM soll entscheiden" / "mach mir ein Formular"?
   → HTML-Formular-Modus (Modus B) — Empfänger = Patrick oder gekko
+
+User will JETZT frei mitdenken / Cluster live durchgehen?
+  → Brainstorm-Modus (Modus A)
 ```
+
+---
+
+## Modus C: Planungsbüro-Klärungsrunde
+
+**Sage:** "Ich lade alle Planungsbüro-Tickets und leite offene Fragen ab."
+
+### Schritt 1 — Tickets laden
+
+```bash
+kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+"SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
+ array_to_string(areas,','), COALESCE(description,''), readiness::text,
+ COALESCE(array_to_string(depends_on,','),'')
+ FROM tickets.tickets WHERE status='planning'
+ ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null
+```
+
+### Schritt 2 — Offene Fragen pro Ticket ableiten
+
+Für jedes Ticket prüfe die Readiness-Flags und leite daraus konkrete Fragen ab:
+
+#### Universelle Fragen (wenn Flag false)
+
+| Readiness-Flag | Abzuleitende Frage |
+|---------------|-------------------|
+| `spec_skizziert: false` | Beschreibe die Kernfunktionalität in 2-3 Sätzen. Was ist explizit NICHT im Scope? |
+| `abhaengigkeiten_klar: false` | Welche anderen Tickets / Features müssen VORHER fertig sein? Welche externen Dienste werden benötigt? |
+| `offene_fragen_geklaert: false` | → Domain-spezifische Fragen (siehe unten) |
+| `aufwand_geschaetzt: false` | Wie groß schätzt du den Aufwand? (klein ≤1d / mittel 2-4d / groß ≥1W) |
+
+#### Domain-spezifische Fragen nach `areas`
+
+**brett:** Welche Benutzerrollen sind betroffen? Soll das Feature auf Mobilgeräten vollständig funktionieren? Wie verhält sich das Feature bei Verbindungsunterbrechungen? Gibt es Abhängigkeiten zu bestehenden Brett-Figuren oder Board-States?
+
+**website:** Für welche Benutzergruppe? (Admin / Endkunde / beide) — Beide Brands oder nur eine? — Sollen Änderungen versioniert werden? — SEO-relevant?
+
+**chat:** Real-time (WebSocket) oder darf kurze Verzögerung akzeptabel sein? — Benachrichtigungen: E-Mail, Push oder nur in-App? — DSGVO-Löschkonzept nötig?
+
+**infra:** Beide Brands deployen oder nur eine? — Breaking Change? Rollout-Strategie? — Ressourcenschätzung bekannt?
+
+**auth:** Betrifft beide Keycloak-Realms? — Opt-in für bestehende User oder erzwungen? — Rollback-Plan?
+
+**ai/factory:** Welche Modelle (Claude / DeepSeek) betroffen? — Dry-run-Modus nötig? — Wie messen wir Erfolg?
+
+### Schritt 3 — HTML-Klärungsformular generieren
+
+Generiere ein **eigenständiges HTML-Formular** (kein Backend, läuft via `file://`) direkt mit dem `Write`-Tool — **nicht** das pm-form-template.html kopieren (das ist Modus B). Dieses Formular wird **dynamisch aus den Ticket-Daten** aufgebaut.
+
+**Datei:** `/tmp/planungsbuero-klaerung-<DATUM>.html`
+
+**Formular-Struktur pro Ticket-Section:**
+```
+<section data-ticket="T000xxx">
+  Ticket-Header: ID + Titel + Priorität-Badge
+  Metadaten: Bereich, Aufwand, value_prop
+  Readiness-Ampel: 🟢 true / 🔴 false pro Flag
+  <fieldset legend="Abhängigkeiten"> — nur wenn abhaengigkeiten_klar: false
+    Text-Input "Welche Tickets müssen vorher fertig sein?" + structured follow-ups
+  <fieldset legend="Spec-Skizze"> — nur wenn spec_skizziert: false
+    Textarea für Kernflow-Beschreibung + Not-Scope
+  <fieldset legend="Domain-Fragen"> — immer wenn offene_fragen_geklaert: false
+    Domain-spezifische Radio/Checkbox-Fragen basierend auf areas
+</section>
+```
+
+**Technische Anforderungen:**
+- Dark Theme (`background: #0d1117; color: #c9d1d9`)
+- Alle Form-Felder mit `name="<external_id>_<schlüssel>"` — Ticket-Bezug für `buildMarkdown()`
+- Structured fields bevorzugen: Radio/Checkbox für Ja/Nein/Optionen, Textarea nur für Freitext
+- „Markdown kopieren"-Button mit `navigator.clipboard` + Fallback-Textarea für `file://`
+- Fortschrittsbalken (wie viele Tickets ausgefüllt)
+- `buildMarkdown()` erzeugt `### <ID> — <Titel>` pro Ticket mit allen `- **Frage**: Antwort`-Zeilen
+
+### Schritt 4 — Formular liefern
+
+Liefere die Datei per `SendUserFile`. Sage: "Ausfüllen → ‚Markdown kopieren' → hier einfügen."
+
+### Schritt 5 — Antworten verarbeiten (nach Rücklauf)
+
+Wenn das ausgefüllte Markdown zurückkommt, verarbeite **pro Ticket**:
+
+#### 5a — Kommentar im Ticket hinterlegen
+
+```bash
+bash scripts/ticket.sh add-comment \
+  --id <external_id> \
+  --author "feature-intake" \
+  --body "## Klärungsrunde $(date +%F)
+
+**Abhängigkeiten:** <wert>
+**Brand-Scope:** <wert>
+**Spec-Skizze:** <freitext>
+**Domain-Fragen:**
+- <frage>: <antwort>"
+```
+
+#### 5b — Readiness-Flags aktualisieren
+
+Setze einen Flag auf `true` nur wenn die zugehörige Frage tatsächlich beantwortet wurde:
+
+```bash
+bash scripts/ticket.sh plan-meta set \
+  --id <external_id> \
+  --readiness offene_fragen_geklaert=true,abhaengigkeiten_klar=true
+```
+
+#### 5c — Abhängigkeiten eintragen (wenn konkrete IDs genannt)
+
+```bash
+bash scripts/ticket.sh plan-meta set \
+  --id <external_id> \
+  --depends-on T000571,T000573
+```
+
+#### 5d — Status-Report ausgeben
+
+Kurze Zusammenfassung: welche Tickets sind jetzt vollständig readiness-ready (alle 4 Flags true), welche bleiben offen. Tickets mit allen Flags auf `true` → proaktiv vorschlagen: „T000xxx ist plan-ready → `dev-flow-plan` starten?"
 
 ---
 

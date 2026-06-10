@@ -1,4 +1,6 @@
 <script lang="ts">
+  import HtmlEditor from '../HtmlEditor.svelte';
+
   type Template = {
     id: string;
     title: string;
@@ -225,42 +227,37 @@
         />
       </div>
 
-      <!-- HTML editor — DIN-A4 width (794 px) -->
-      <div class="overflow-x-auto">
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm text-muted">HTML-Inhalt *</label>
-            {#if !editingId}
-              <button
-                onclick={loadStarter}
-                disabled={starterLoading}
-                class="text-xs text-gold/80 hover:text-gold border border-gold/20 hover:border-gold/50 rounded px-2 py-1 transition-colors disabled:opacity-50"
-              >{starterLoading ? 'Lade…' : 'Design-System Vorlage laden'}</button>
-            {/if}
-          </div>
-          <textarea
-            bind:value={composeHtml}
-            placeholder="<h1>Vertrag</h1><p>Inhalt hier…</p>"
-            rows="18"
-            style="width: 794px"
-            class="bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y"
-          ></textarea>
-          <p class="text-xs text-muted mt-1" style="width: 794px">
-            Feste Platzhalter (direkt ins PDF eingebettet):
-            <span class="font-mono text-gold/80">&#123;&#123;KUNDENNUMMER&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;DATUM&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;JAHR&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;Stand&#125;&#125;</span>
-            — Editierbare Felder (Kunde kann vor Unterschrift ändern):
-            <span class="font-mono text-gold/80">&#123;&#123;KUNDENNAME&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;EMAIL&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;TELEFON&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;FIRMA&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;VORNAME&#125;&#125;</span>
-            <span class="font-mono text-gold/80">&#123;&#123;NACHNAME&#125;&#125;</span>
-          </p>
-        </div>
+      <div class="flex items-center justify-between mb-1">
+        <label class="block text-sm text-muted">HTML-Inhalt *</label>
+        {#if !editingId}
+          <button
+            onclick={loadStarter}
+            disabled={starterLoading}
+            class="text-xs text-gold/80 hover:text-gold border border-gold/20 hover:border-gold/50 rounded px-2 py-1 transition-colors disabled:opacity-50"
+          >{starterLoading ? 'Lade…' : 'Design-System Vorlage laden'}</button>
+        {/if}
       </div>
+      <HtmlEditor
+        bind:value={composeHtml}
+        previewMode="direct"
+        label=""
+        placeholder="<h1>Vertrag</h1><p>Inhalt hier…</p>"
+        rows={18}
+      />
+      <p class="text-xs text-muted mt-1">
+        Feste Platzhalter (direkt ins PDF eingebettet):
+        <span class="font-mono text-gold/80">&#123;&#123;KUNDENNUMMER&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;DATUM&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;JAHR&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;Stand&#125;&#125;</span>
+        — Editierbare Felder:
+        <span class="font-mono text-gold/80">&#123;&#123;KUNDENNAME&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;EMAIL&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;TELEFON&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;FIRMA&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;VORNAME&#125;&#125;</span>
+        <span class="font-mono text-gold/80">&#123;&#123;NACHNAME&#125;&#125;</span>
+      </p>
 
       {#if composeMsg}
         <p class={`text-sm ${composeMsg.includes('Fehler') || composeMsg.includes('erforderlich') ? 'text-red-400' : 'text-green-400'}`}>{composeMsg}</p>
@@ -271,18 +268,6 @@
         </button>
       </div>
 
-      <!-- Preview — full DIN-A4 page (794 × 1123 px) -->
-      <div class="overflow-x-auto">
-        <div>
-          <p class="text-sm text-muted mb-1">Vorschau (DIN A4)</p>
-          <iframe
-            srcdoc={composeHtml || '<p style="color:#666;font-family:sans-serif;padding:20px;">Vorschau erscheint hier…</p>'}
-            title="Vertragsvorschau"
-            style="width: 794px; height: 1123px"
-            class="rounded-xl border border-dark-lighter bg-white block"
-          ></iframe>
-        </div>
-      </div>
     </div>
   {/if}
 </div>

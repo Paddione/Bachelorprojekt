@@ -165,7 +165,7 @@ export async function initTicketsSchema(): Promise<void> {
   await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_status_check`);
   await pool.query(`
     ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check
-      CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','done','archived'))
+      CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','qa_review','done','archived'))
   `);
   await pool.query(`
     ALTER TABLE tickets.tickets
@@ -1044,6 +1044,21 @@ export async function initTicketsSchema(): Promise<void> {
     WHEN (NEW.type = 'feature')
     EXECUTE FUNCTION tickets.notify_feature_inserted();
   `);
+
+  // QS-Abnahme [qualitaetssicherung]: menschliche Abnahme-Stufe zwischen deploy und done.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets.qa_reviews (
+      id             BIGSERIAL PRIMARY KEY,
+      ticket_id      UUID NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
+      criteria       JSONB NOT NULL,
+      notes          TEXT,
+      verdict        TEXT NOT NULL CHECK (verdict IN ('approved','rejected')),
+      re_entry_phase TEXT CHECK (re_entry_phase IN ('scout','implement','verify')),
+      reviewed_by    TEXT NOT NULL DEFAULT 'admin',
+      reviewed_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS qa_reviews_ticket_idx ON tickets.qa_reviews (ticket_id)`);
       } finally {
         await client.query(`SELECT pg_advisory_unlock(hashtext('init:tickets'))`);
       }

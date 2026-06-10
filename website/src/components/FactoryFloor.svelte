@@ -7,7 +7,8 @@
   interface LoadingDockItem { extId: string; title: string; priority: string; waitReason: string; }
   interface HallItem { extId: string; title: string; priority: string; phase: Phase | null; phaseState: 'entered'|'done'|'blocked'|null; phaseSince: string | null; retryCount: number; blockReason: string | null; slot: number | null; }
   interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
-  interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; officeWaiting: number; fetchedAt: string; }
+  interface StagedItem { extId: string; title: string; priority: string; branch: string | null; planPath: string | null; createdAt: string | null; }
+  interface FloorPayload { control: ControlSnapshot; metrics: FloorMetrics; loadingDock: LoadingDockItem[]; hall: HallItem[]; shipped: ShippedItem[]; staged: StagedItem[]; officeWaiting: number; stagedWaiting: number; fetchedAt: string; }
 
   interface PhaseEventRow { phase: Phase; state: string; detail: string | null; driver: string; at: string; }
   interface Breadcrumb { authorLabel: string; body: string; at: string; }
@@ -79,6 +80,31 @@
   const GH_REPO = 'Paddione/Bachelorprojekt';
   const prUrl = (n: number) => `https://github.com/${GH_REPO}/pull/${n}`;
   const ticketUrl = (extId: string) => `/admin/tickets?q=${encodeURIComponent(extId)}`;
+  const planUrl = (branch: string, planPath: string) =>
+    `https://github.com/${GH_REPO}/blob/${branch}/${planPath}`;
+
+  let releasing = $state<string | null>(null);
+  let releaseErr = $state<string | null>(null);
+
+  /** „-> Factory": plan_staged -> backlog, dann optimistisch neu laden. */
+  async function releaseToFactory(extId: string) {
+    releasing = extId; releaseErr = null;
+    try {
+      const res = await fetch(`/api/factory-floor/${encodeURIComponent(extId)}/release`, {
+        method: 'POST', credentials: 'same-origin',
+      });
+      if (!res.ok) { releaseErr = `Freigabe fehlgeschlagen (${res.status})`; return; }
+      if (data) data = { ...data, staged: data.staged.filter((s) => s.extId !== extId),
+                         stagedWaiting: Math.max(0, (data.stagedWaiting ?? 1) - 1) };
+      await refresh();
+    } catch { releaseErr = 'Netzwerkfehler'; }
+    finally { releasing = null; }
+  }
+
+  let manualHintFor = $state<string | null>(null);
+  function toggleManualHint(extId: string) {
+    manualHintFor = manualHintFor === extId ? null : extId;
+  }
 
   /** Kompakte deutsche Relativzeit ("vor 2 Min."). Aktualisiert mit jedem Poll. */
   function relTime(iso: string | null): string {
@@ -137,9 +163,69 @@
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Ø Zyklus</p><p class="text-xl font-bold">{data.metrics.avgCycleH ?? '–'}h</p></div>
       <div class="rounded-xl bg-white/5 p-3"><p class="text-muted text-xs">Watchdog-Stale</p><p class="text-xl font-bold">{data.control.watchdogStale}</p></div>
       <a href="/admin/planungsbuero" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-office" title="Im Planungsbüro"><p class="text-muted text-xs">Büro</p><p class="text-xl font-bold">{data.officeWaiting ?? 0}</p></a>
+      <a href="#floor-kommissionierung" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-komm-count" title="Zur Kommissionierung"><p class="text-muted text-xs">Kommissionierung</p><p class="text-xl font-bold">{data.stagedWaiting ?? 0}</p></a>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-4">
+      <!-- ⓪ Kommissionierung -->
+      <div class="lg:w-1/5 scroll-mt-24" id="floor-kommissionierung" data-testid="floor-kommissionierung">
+        <h3 class="font-semibold mb-2">Kommissionierung</h3>
+        {#if data.staged.length === 0}
+          <p class="text-muted text-sm">Nichts kommissioniert.</p>
+        {:else}
+          <ul class="space-y-1.5">
+            {#each data.staged as s (s.extId)}
+              <li class="rounded-lg border border-transparent bg-white/5 px-2.5 py-2 text-sm transition-colors hover:border-white/10 hover:bg-white/[0.08]"
+                  data-testid="floor-staged-item">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="h-2 w-2 shrink-0 rounded-full {prioDot(s.priority)}" title={`Priorität: ${s.priority}`}></span>
+                    <a href={ticketUrl(s.extId)} class="font-mono text-xs text-gold hover:underline"
+                       title="In der Ticket-Übersicht öffnen">{s.extId}</a>
+                  </div>
+                  {#if s.createdAt}
+                    <span class="whitespace-nowrap text-[10px] text-muted"
+                          title={new Date(s.createdAt).toLocaleString('de-DE')}>{relTime(s.createdAt)}</span>
+                  {/if}
+                </div>
+                <button type="button" onclick={() => openDetail(s.extId)}
+                        class="mt-0.5 block w-full text-left leading-snug transition-colors hover:text-gold"
+                        title="Phasen-Timeline &amp; Details anzeigen">{s.title}</button>
+                {#if s.branch && s.planPath}
+                  <a href={planUrl(s.branch, s.planPath)} target="_blank" rel="noopener noreferrer"
+                     data-testid="floor-staged-plan"
+                     class="mt-1 inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-gold hover:text-dark"
+                     title={`Branch ${s.branch} · Plan ansehen`}>
+                    <svg viewBox="0 0 16 16" class="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M11.75 1.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM4.25 1.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM4.25 11a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM3.5 6.5v3h1.5v-3H3.5Zm8.25-1.25a3.25 3.25 0 0 1-3.25 3.25H5v1.5h3.5A4.75 4.75 0 0 0 13.25 5.25h-1.5Z"/></svg>
+                    {s.branch}<span class="opacity-60">↗</span>
+                  </a>
+                {:else}
+                  <span class="mt-1 block text-[10px] text-muted">⚠ kein Plan-Ref</span>
+                {/if}
+                <div class="mt-1.5 flex gap-1.5">
+                  <button type="button" onclick={() => releaseToFactory(s.extId)} disabled={releasing === s.extId}
+                          data-testid="floor-staged-release"
+                          class="rounded bg-emerald-500/80 px-2 py-0.5 text-[11px] font-semibold transition-colors hover:bg-emerald-400 disabled:opacity-50">
+                    {releasing === s.extId ? '…' : '→ Factory'}
+                  </button>
+                  <button type="button" onclick={() => toggleManualHint(s.extId)}
+                          data-testid="floor-staged-manual"
+                          class="rounded bg-white/10 px-2 py-0.5 text-[11px] font-semibold transition-colors hover:bg-white/20">
+                    → Manuell
+                  </button>
+                </div>
+                {#if manualHintFor === s.extId}
+                  <p class="mt-1 rounded bg-white/5 px-2 py-1 text-[10px] text-muted" data-testid="floor-staged-manual-hint">
+                    Lokal <code class="text-gold">dev-flow-execute</code> auf <code class="text-gold">{s.branch ?? 'feature/<branch>'}</code> aufrufen.
+                  </p>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
+        {#if releaseErr}<p class="mt-2 text-xs text-red-400" data-testid="floor-staged-error">{releaseErr}</p>{/if}
+      </div>
+
       <!-- ② Laderampe -->
       <div class="lg:w-1/5" data-testid="floor-loadingdock">
         <h3 class="font-semibold mb-2">Laderampe</h3>
@@ -162,7 +248,7 @@
       </div>
 
       <!-- ③ Die Halle -->
-      <div class="lg:w-3/5" data-testid="floor-hall">
+      <div class="lg:w-2/5" data-testid="floor-hall">
         <h3 class="font-semibold mb-2">Halle</h3>
         {#if data.hall.length === 0}
           <p class="text-muted text-sm">Fabrik im Leerlauf.</p>

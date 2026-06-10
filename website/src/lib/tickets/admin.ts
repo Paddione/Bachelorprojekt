@@ -14,7 +14,7 @@ import { initTicketsSchema } from '../tickets-db';
 
 export type TicketType = 'bug' | 'feature' | 'task' | 'project';
 export type TicketStatus =
-  'triage' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
+  'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
 export type TicketResolution =
   'fixed' | 'shipped' | 'wontfix' | 'duplicate' | 'cant_reproduce' | 'obsolete';
 export type TicketPriority = 'hoch' | 'mittel' | 'niedrig';

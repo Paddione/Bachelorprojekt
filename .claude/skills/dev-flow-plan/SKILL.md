@@ -143,6 +143,13 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 
 sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/<date>-<slug>.md
+
+# Plan in die Kommissionierung stellen: type=feature, status=plan_staged.
+# Read-only sichtbar in /dev-status; wartet auf manuelle Freigabe (-> Factory / -> Manuell).
+./scripts/ticket.sh stage-plan \
+  --id "$TICKET_EXT_ID" \
+  --branch "feature/<slug>" \
+  --plan "docs/superpowers/plans/<date>-<slug>.md"
 ```
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
@@ -154,9 +161,9 @@ git add docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
-**STOPP.** Informiere den User, dass der Plan bereit zur Implementierung ist. Er hat nun folgende Optionen:
-1. Den Plan manuell ausführen lassen: Bitte den User, `dev-flow-execute` aufzurufen.
-2. Alternativ — an die Software Factory übergeben: Statt `dev-flow-execute` selbst aufzurufen, kann der geplante Branch autonom abgearbeitet werden. Frage den User; bei Zustimmung:
+**STOPP.** Informiere den User, dass der Plan bereit zur Implementierung ist. Der Plan liegt jetzt in der **Kommissionierung** (`/dev-status`) und wartet dort auf manuelle Freigabe. Er hat nun folgende Optionen:
+1. **-> Manuell** ausführen lassen: Bitte den User, `dev-flow-execute` auf `feature/<slug>` aufzurufen (oder den „-> Manuell"-Hinweis in der Kommissionierung).
+2. **-> Factory** übergeben: In der Kommissionierung (`/dev-status`) den Knopf **-> Factory** drücken — das verschiebt das Ticket in die Laderampe (`status=backlog`); der Factory-Dispatcher arbeitet es mit **Plan-Reuse** (kein Neu-Planen) ab. Äquivalent von der CLI:
 ```bash
 bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"

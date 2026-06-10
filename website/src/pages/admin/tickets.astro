@@ -82,6 +82,7 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
   { label: '👤 Mensch nötig', href: '/admin/tickets?attention=needs_human&status=open' },
   { label: 'Meine offenen', href: `/admin/tickets?status=open&assigneeId=${admins.find(a => a.email === session.email)?.id ?? ''}` },
   { label: 'Triage',        href: '/admin/tickets?status=triage' },
+  { label: '📦 Kommissionierung', href: '/admin/tickets?status=plan_staged' },
   { label: 'In Review',     href: '/admin/tickets?status=in_review' },
   { label: 'Blockiert',     href: '/admin/tickets?status=blocked' },
   { label: 'Thesis FA',     href: '/admin/tickets?thesisTag=FA' },
@@ -139,6 +140,8 @@ const SAVED_VIEWS: { label: string; href: string }[] = [
             <option value="open"        selected={statusFilter === 'open'}>Offen (alle aktiven)</option>
             <option value="all"         selected={statusFilter === 'all'}>Alle (auch fertig/archiv)</option>
             <option value="triage"      selected={statusFilter === 'triage'}>Triage</option>
+            <option value="planning"    selected={statusFilter === 'planning'}>Planungsbüro</option>
+            <option value="plan_staged" selected={statusFilter === 'plan_staged'}>Kommissionierung</option>
             <option value="backlog"     selected={statusFilter === 'backlog'}>Backlog</option>
             <option value="in_progress" selected={statusFilter === 'in_progress'}>In Arbeit</option>
             <option value="in_review"   selected={statusFilter === 'in_review'}>Review</option>

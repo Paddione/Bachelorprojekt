@@ -27,13 +27,19 @@ export interface HallItem {
   retryCount: number; blockReason: string | null; slot: number | null;
 }
 export interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
+export interface StagedItem {
+  extId: string; title: string; priority: string;
+  branch: string | null; planPath: string | null; createdAt: string | null;
+}
 export interface FloorPayload {
   control: ControlSnapshot;
   metrics: FloorMetrics;
   loadingDock: LoadingDockItem[];
   hall: HallItem[];
   shipped: ShippedItem[];
+  staged: StagedItem[];
   officeWaiting: number;
+  stagedWaiting: number;
   fetchedAt: string;
 }
 
@@ -165,17 +171,75 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
   }));
 }
 
+/** Plan_staged features (Kommissionierung) with branch/plan parsed from the latest
+ *  FACTORY-PLAN-REF comment. Newest first. branch/planPath are null when no ref. */
+export async function getStaged(limit = 12): Promise<StagedItem[]> {
+  const r = await pool.query(
+    `SELECT t.external_id, t.title, t.priority, t.created_at, c.body AS ref_body
+       FROM tickets.tickets t
+       LEFT JOIN (
+         SELECT DISTINCT ON (ticket_id) ticket_id, body
+           FROM tickets.ticket_comments
+          WHERE body LIKE 'FACTORY-PLAN-REF %'
+          ORDER BY ticket_id, created_at DESC
+       ) c ON c.ticket_id = t.id
+      WHERE t.type = 'feature' AND t.status = 'plan_staged'
+      ORDER BY CASE t.priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
+               t.created_at DESC
+      LIMIT $1::int`,
+    [limit],
+  );
+  return r.rows.map((row: any) => {
+    const { branch, planPath } = parsePlanRef(row.ref_body);
+    return {
+      extId: row.external_id,
+      title: row.title,
+      priority: row.priority,
+      branch,
+      planPath,
+      createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+    };
+  });
+}
+
+/** Parse "FACTORY-PLAN-REF branch=<b> plan=<p>" -> { branch, planPath }; nulls on miss. */
+function parsePlanRef(body: string | null): { branch: string | null; planPath: string | null } {
+  if (!body) return { branch: null, planPath: null };
+  const branch = /\bbranch=(\S+)/.exec(body)?.[1] ?? null;
+  const planPath = /\bplan=(\S+)/.exec(body)?.[1] ?? null;
+  return { branch, planPath };
+}
+
+/** Manuelle Freigabe (Kommissionierung -> Laderampe): flip plan_staged -> backlog.
+ *  Idempotent & guarded: nur ein aktuell plan_staged Feature wird verschoben.
+ *  Der FACTORY-PLAN-REF-Kommentar besteht bereits (vom Staging) -> nicht erneut schreiben.
+ *  Returns true if a row was updated, false otherwise. */
+export async function releaseToBacklog(extId: string): Promise<boolean> {
+  const r = await pool.query(
+    `UPDATE tickets.tickets
+        SET status = 'backlog', updated_at = now()
+      WHERE external_id = $1 AND type = 'feature' AND status = 'plan_staged'`,
+    [extId],
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
 /** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
-  const [metrics, loadingDock, hall, shipped, officeWaiting] = await Promise.all([
+  const [metrics, loadingDock, hall, shipped, staged, officeWaiting] = await Promise.all([
     getMetrics(),
     getLoadingDock(control.slotsUsed, control.slotsCap),
     getHall(),
     getShipped(),
+    getStaged(),
     officeCount(),
   ]);
-  return { control, metrics, loadingDock, hall, shipped, officeWaiting, fetchedAt: new Date().toISOString() };
+  return {
+    control, metrics, loadingDock, hall, shipped, staged,
+    officeWaiting, stagedWaiting: staged.length,
+    fetchedAt: new Date().toISOString(),
+  };
 }
 
 export interface PhaseEventRow { phase: Phase; state: PhaseState; detail: string | null; driver: string; at: string; }

@@ -158,10 +158,14 @@ export async function initTicketsSchema(): Promise<void> {
   // Planungsbüro [feature/planungsbuero]: neuer Status 'planning' (kuratierte
   // Vorstufe vor 'backlog'/Laderampe — die Factory rührt ihn nicht an) plus
   // planungskritische Metadaten. Constraint ist inline/unbenannt → drop+add.
+  // Kommissionierung [feature/factory-plan-staging]: Status 'plan_staged' — fertige,
+  // ausführbereite Pläne warten zwischen Planungsbüro ('planning') und Laderampe
+  // ('backlog') auf manuelle Freigabe. Der Dispatcher pollt nur 'backlog' → die
+  // Factory rührt 'plan_staged' nicht an. Constraint ist inline/unbenannt → drop+add.
   await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_status_check`);
   await pool.query(`
     ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check
-      CHECK (status IN ('triage','planning','backlog','in_progress','in_review','blocked','done','archived'))
+      CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','done','archived'))
   `);
   await pool.query(`
     ALTER TABLE tickets.tickets

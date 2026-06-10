@@ -4,13 +4,13 @@ import { sendBugCloseEmail } from './email-templates';
 import { linkReporterByEmail } from './reporter-link';
 
 export type TicketStatus =
-  'triage' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
+  'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
 
 export type TicketResolution =
   'fixed' | 'shipped' | 'wontfix' | 'duplicate' | 'cant_reproduce' | 'obsolete';
 
 const VALID_STATUSES: ReadonlySet<TicketStatus> = new Set(
-  ['triage', 'backlog', 'in_progress', 'in_review', 'blocked', 'done', 'archived']);
+  ['triage', 'planning', 'plan_staged', 'backlog', 'in_progress', 'in_review', 'blocked', 'done', 'archived']);
 
 const VALID_RESOLUTIONS: ReadonlySet<TicketResolution> = new Set(
   ['fixed', 'shipped', 'wontfix', 'duplicate', 'cant_reproduce', 'obsolete']);

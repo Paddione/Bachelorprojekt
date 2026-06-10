@@ -89,11 +89,11 @@ on:
 
 ### Steps
 
-- [ ] **Step 1: Open `.github/workflows/ci.yml` and locate the trigger block**
+- [x] **Step 1: Open `.github/workflows/ci.yml` and locate the trigger block**
 
   The `on:` block starts at line 3. The `pull_request` trigger is lines 4-5; the `push` trigger is lines 6-13. These are the only two places that need editing.
 
-- [ ] **Step 2: Add `paths-ignore` to the `pull_request` trigger**
+- [x] **Step 2: Add `paths-ignore` to the `pull_request` trigger**
 
   After line 5 (`    branches: [main]`), insert two lines:
 
@@ -110,7 +110,7 @@ on:
         - 'docs/**'
   ```
 
-- [ ] **Step 3: Add `paths-ignore` to the `push` trigger**
+- [x] **Step 3: Add `paths-ignore` to the `push` trigger**
 
   After the last `push.branches` entry (`      - 'release-please--branches--main'`), insert two lines:
 
@@ -135,7 +135,7 @@ on:
 
   > **Indentation note:** `paths-ignore` is a sibling of `branches` under `push`, so it uses 4-space indent (same level as `branches:`).
 
-- [ ] **Step 4: Validate the YAML syntax locally**
+- [x] **Step 4: Validate the YAML syntax locally**
 
   ```bash
   python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/ci.yml'))" && echo "YAML OK"
@@ -145,7 +145,7 @@ on:
 
   If you see a `ScannerError`, the indentation is wrong — re-check that `paths-ignore` under `push` uses 4 spaces (not 6).
 
-- [ ] **Step 5: Verify the full trigger block looks exactly right**
+- [x] **Step 5: Verify the full trigger block looks exactly right**
 
   ```bash
   head -20 .github/workflows/ci.yml
@@ -174,7 +174,7 @@ on:
   concurrency:
   ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
   ```bash
   git add .github/workflows/ci.yml
@@ -187,7 +187,7 @@ on:
 
 **Files:** none (GitHub UI / CLI actions only)
 
-- [ ] **Step 1: Push the branch and open PR**
+- [x] **Step 1: Push the branch and open PR**
 
   ```bash
   git push -u origin feature/ci-docs-only-skip

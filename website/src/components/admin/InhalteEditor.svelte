@@ -144,10 +144,9 @@
   ];
 
   const tabBtnCls = (a: boolean) => `px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${a ? 'border-gold text-gold' : 'border-transparent text-muted hover:text-light'}`;
-  const secBtnCls = (a: boolean) => `px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${a ? 'border-green-500 text-green-400' : 'border-transparent text-muted hover:text-light'}`;
 </script>
 
-<div>
+<div class="flex flex-col h-full">
   <div class="flex gap-0 border-b border-dark-lighter overflow-x-auto flex-shrink-0">
     <button onclick={() => switchTab('website')} class={tabBtnCls(activeTab==='website')}>🌐 Website</button>
     <button onclick={() => switchTab('newsletter')} class={tabBtnCls(activeTab==='newsletter')}>✉️ Newsletter</button>
@@ -157,76 +156,88 @@
   </div>
 
   {#if activeTab === 'website'}
-    <div class="flex items-center gap-2 px-2 py-1.5 border-b border-dark-lighter/40 bg-dark/20 flex-shrink-0">
-      <input
-        type="search"
-        bind:value={sectionSearch}
-        onkeydown={onSectionSearchKeydown}
-        placeholder="Abschnitt suchen…"
-        class="w-40 px-2 py-1 text-xs rounded bg-dark border border-dark-lighter text-light placeholder:text-muted focus:outline-none focus:border-gold/60"
-      />
-    </div>
-    <div class="flex items-center gap-0 border-b border-dark-lighter/60 overflow-x-auto bg-dark/30 flex-shrink-0">
-      {#each filteredSections.staticEntries as [sec, label]}
-        <button onclick={() => activeSection = sec} class={secBtnCls(activeSection===sec)}>{label}</button>
-      {/each}
-      {#each filteredSections.customEntries as cs}
-        <button onclick={() => activeSection = cs.slug} class={secBtnCls(activeSection===cs.slug)}>{cs.title} ★</button>
-      {/each}
-      <button onclick={() => showNewDialog = true}
-        class="ml-2 px-3 py-1.5 text-xs bg-gold text-dark font-semibold rounded-md hover:bg-gold/80 my-1 flex-shrink-0">
-        + Abschnitt
-      </button>
-    </div>
-  {/if}
-
-  <div class="max-w-4xl px-8">
-    {#if activeTab === 'website'}
-      {#if activeSection === 'seo'}<SeoEditor />
-      {:else if activeSection === 'startseite'}<StartseiteSection initialData={initialData.startseite} />
-      {:else if activeSection === 'uebermich'}<UebermichSection initialData={initialData.uebermich} />
-      {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? null} initialVersion={initialData.coaching?.version ?? 0} />
-      {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? null} initialVersion={initialData.fuehrung?.version ?? 0} />
-      {:else if activeSection === '50plus-digital'}
-        <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital" />
-      {:else if activeSection === 'ki-transition'}
-        <ServicePageSection initialData={initialData['ki-transition']} slug="ki-transition" pageLabel="KI-Transition Coaching" />
-      {:else if activeSection === 'beratung'}
-        <ServicePageSection initialData={initialData.beratung} slug="beratung" pageLabel="Unternehmensberatung" />
-      {:else if activeSection === 'angebote'}
-        <AngeboteSection initialServices={initialData.services} initialLeistungen={initialData.leistungen} initialPriceListUrl={initialData.priceListUrl} staticSlugs={staticServiceSlugs} />
-      {:else if activeSection === 'faq'}<FaqSection initialData={initialData.faq} />
-      {:else if activeSection === 'kontakt'}<KontaktSection initialData={initialData.kontakt} />
-      {:else if activeSection === 'referenzen'}<ReferenzenSection initialData={initialData.referenzen} />
-      {:else if activeSection === 'rechtliches'}
-        <RechtlichesSection initialData={initialData.rechtliches} rechtlichesHasCustom={initialData.rechtlichesHasCustom} />
-      {:else if activeSection === 'stammdaten'}<StammdatenSection initialData={initialData.stammdaten} />
-      {:else if activeSection === 'navigation'}<NavigationSection initialData={initialData.navigation} />
-      {:else if activeSection === 'footer'}<FooterSection initialData={initialData.footer} />
-      {:else if activeSection === 'kore-flags' && brand === 'korczewski'}<KoreFlagsSection initialData={initialData.koreFlags} />
-      {:else}
-        {@const cs = customSections.find(s => s.slug === activeSection)}
-        {#if cs}<CustomSection section={cs} onDeleted={() => onCustomDeleted(cs.slug)} />{/if}
-      {/if}
-    {:else if activeTab === 'newsletter'}<div class="pt-6 pb-20"><NewsletterAdmin /></div>
-    {:else if activeTab === 'fragebogen'}
-      <div class="pt-6 pb-20">
-        <QuestionnaireTemplateEditor />
-        <div class="mt-8 pt-6 border-t border-dark-lighter/60">
-          <p class="text-xs text-muted mb-2 font-mono uppercase tracking-widest">Druckvorlage</p>
-          <a href="/brand/{brand}/starters/questionnaire.html" target="_blank" rel="noopener"
-            class="inline-flex items-center gap-2 text-sm text-muted hover:text-gold transition-colors">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
-              <path d="M17 17H17.01M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 8v6m-3-3h6"/>
-            </svg>
-            Branded Druckvorlage öffnen &amp; drucken
-          </a>
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Left sidebar -->
+      <div class="w-[180px] flex-shrink-0 border-r border-dark-lighter/40 flex flex-col bg-dark/10">
+        <div class="px-2 py-2">
+          <input
+            type="search"
+            bind:value={sectionSearch}
+            onkeydown={onSectionSearchKeydown}
+            placeholder="Suchen…"
+            class="w-full px-2 py-1 text-xs rounded bg-dark border border-dark-lighter text-light placeholder:text-muted focus:outline-none focus:border-gold/60"
+          />
+        </div>
+        <div class="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+          {#each filteredSections.staticEntries as [sec, label]}
+            <button
+              onclick={() => activeSection = sec}
+              class={`w-full text-left px-2.5 py-1.5 text-xs rounded transition-colors ${activeSection === sec ? 'bg-gold/15 text-gold font-semibold' : 'text-muted hover:text-light hover:bg-dark-lighter/40'}`}
+            >{label}</button>
+          {/each}
+          {#each filteredSections.customEntries as cs}
+            <button
+              onclick={() => activeSection = cs.slug}
+              class={`w-full text-left px-2.5 py-1.5 text-xs rounded transition-colors ${activeSection === cs.slug ? 'bg-gold/15 text-gold font-semibold' : 'text-muted hover:text-light hover:bg-dark-lighter/40'}`}
+            >{cs.title} ★</button>
+          {/each}
+        </div>
+        <div class="px-2 py-2 border-t border-dark-lighter/40">
+          <button onclick={() => showNewDialog = true}
+            class="w-full px-2.5 py-1.5 text-xs bg-gold text-dark font-semibold rounded-md hover:bg-gold/80 text-center">
+            + Abschnitt
+          </button>
         </div>
       </div>
-    {:else if activeTab === 'vertraege'}<div class="pt-6 pb-20"><VertragsvorlagenSection /></div>
-    {:else if activeTab === 'rechnungen'}<div class="pt-6 pb-20"><RechnungsvorlagenSection initialData={rechnungsvorlagen} /></div>
-    {/if}
-  </div>
+      <!-- Right: content -->
+      <div class="flex-1 overflow-y-auto px-8 pt-6 pb-20">
+        {#if activeSection === 'seo'}<SeoEditor />
+        {:else if activeSection === 'startseite'}<StartseiteSection initialData={initialData.startseite} />
+        {:else if activeSection === 'uebermich'}<UebermichSection initialData={initialData.uebermich} />
+        {:else if activeSection === 'coaching'}<SchemaEditor schema={schemaFor('service:coaching')!} initialValue={initialData.coaching?.value ?? null} initialVersion={initialData.coaching?.version ?? 0} />
+        {:else if activeSection === 'fuehrung-persoenlichkeit'}<SchemaEditor schema={schemaFor('service:fuehrung-persoenlichkeit')!} initialValue={initialData.fuehrung?.value ?? null} initialVersion={initialData.fuehrung?.version ?? 0} />
+        {:else if activeSection === '50plus-digital'}
+          <ServicePageSection initialData={initialData['50plus-digital']} slug="50plus-digital" pageLabel="50+ digital" />
+        {:else if activeSection === 'ki-transition'}
+          <ServicePageSection initialData={initialData['ki-transition']} slug="ki-transition" pageLabel="KI-Transition Coaching" />
+        {:else if activeSection === 'beratung'}
+          <ServicePageSection initialData={initialData.beratung} slug="beratung" pageLabel="Unternehmensberatung" />
+        {:else if activeSection === 'angebote'}
+          <AngeboteSection initialServices={initialData.services} initialLeistungen={initialData.leistungen} initialPriceListUrl={initialData.priceListUrl} staticSlugs={staticServiceSlugs} />
+        {:else if activeSection === 'faq'}<FaqSection initialData={initialData.faq} />
+        {:else if activeSection === 'kontakt'}<KontaktSection initialData={initialData.kontakt} />
+        {:else if activeSection === 'referenzen'}<ReferenzenSection initialData={initialData.referenzen} />
+        {:else if activeSection === 'rechtliches'}
+          <RechtlichesSection initialData={initialData.rechtliches} rechtlichesHasCustom={initialData.rechtlichesHasCustom} />
+        {:else if activeSection === 'stammdaten'}<StammdatenSection initialData={initialData.stammdaten} />
+        {:else if activeSection === 'navigation'}<NavigationSection initialData={initialData.navigation} />
+        {:else if activeSection === 'footer'}<FooterSection initialData={initialData.footer} />
+        {:else if activeSection === 'kore-flags' && brand === 'korczewski'}<KoreFlagsSection initialData={initialData.koreFlags} />
+        {:else}
+          {@const cs = customSections.find(s => s.slug === activeSection)}
+          {#if cs}<CustomSection section={cs} onDeleted={() => onCustomDeleted(cs.slug)} />{/if}
+        {/if}
+      </div>
+    </div>
+  {:else if activeTab === 'newsletter'}
+    <div class="max-w-4xl px-8 pt-6 pb-20"><NewsletterAdmin /></div>
+  {:else if activeTab === 'fragebogen'}
+    <div class="max-w-4xl px-8 pt-6 pb-20">
+      <QuestionnaireTemplateEditor />
+      <div class="mt-8 pt-6 border-t border-dark-lighter/60">
+        <p class="text-xs text-muted mb-2 font-mono uppercase tracking-widest">Druckvorlage</p>
+        <a href="/brand/{brand}/starters/questionnaire.html" target="_blank" rel="noopener"
+          class="inline-flex items-center gap-2 text-sm text-muted hover:text-gold transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+            <path d="M17 17H17.01M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 8v6m-3-3h6"/>
+          </svg>
+          Branded Druckvorlage öffnen &amp; drucken
+        </a>
+      </div>
+    </div>
+  {:else if activeTab === 'vertraege'}<div class="max-w-4xl px-8 pt-6 pb-20"><VertragsvorlagenSection /></div>
+  {:else if activeTab === 'rechnungen'}<div class="max-w-4xl px-8 pt-6 pb-20"><RechnungsvorlagenSection initialData={rechnungsvorlagen} /></div>
+  {/if}
 </div>
 
 {#if showNewDialog}

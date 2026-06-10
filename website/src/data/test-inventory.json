@@ -960,6 +960,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-48",
+    "file": "tests/e2e/specs/fa-48-factory-devflow.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",

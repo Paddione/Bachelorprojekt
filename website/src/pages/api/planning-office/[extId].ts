@@ -23,6 +23,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
       areas: Array.isArray(b.areas) ? b.areas : undefined,
       dependsOn: Array.isArray(b.dependsOn) ? b.dependsOn : undefined,
       rank: typeof b.rank === 'number' ? b.rank : undefined, readiness,
+      pinned: typeof b.pinned === 'boolean' ? b.pinned : undefined,
     });
     return ok ? json({ ok: true }) : json({ error: 'not_found_or_noop' }, 404);
   } catch (e) { console.error('[api/planning-office PATCH]', e); return json({ error: 'patch_failed' }, 500); }

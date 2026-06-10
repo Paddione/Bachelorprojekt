@@ -105,6 +105,14 @@
       body: JSON.stringify({ title: newTitle, brand, effort: newEffort }) });
     newTitle = ''; await load();
   }
+  async function togglePin(it: any) {
+    await patch(it.extId, { pinned: !it.pinned });
+  }
+  async function cleanupEphemeral() {
+    if (!confirm('Alle nicht gepinnten Ideen löschen?')) return;
+    await fetch('/api/planning-office', { method: 'DELETE' });
+    await load();
+  }
   onMount(load);
 </script>
 
@@ -116,22 +124,34 @@
         <option value="klein">klein</option><option value="mittel">mittel</option><option value="gross">groß</option>
       </select>
       <button type="submit">+ Anlegen</button>
+      <button type="button" class="po-cleanup" data-testid="office-cleanup"
+              on:click={cleanupEphemeral} title="Nicht gepinnte Ideen löschen">
+        🗑 Ephemere löschen
+      </button>
     </form>
     {#if loading}<p>Lädt…</p>
     {:else if !items.length}<p class="muted">Büro leer.</p>
     {:else}
       {#each items as it (it.extId)}
-        <div class="po-card" data-testid="office-card" class:next={it.rank===0 && dor(it.readiness)===4}
+        <div class="po-card" data-testid="office-card"
+             class:next={it.rank===0 && dor(it.readiness)===4}
+             class:ephemeral={!it.pinned}
              on:click={() => selected = it}>
           <div class="po-rank">
             <button data-testid="office-rank-up" on:click|stopPropagation={() => move(it,-1)}>▲</button>
             <button data-testid="office-rank-down" on:click|stopPropagation={() => move(it,1)}>▼</button>
           </div>
+          <button class="po-pin" data-testid="office-pin-{it.extId}"
+                  class:pinned={it.pinned}
+                  on:click|stopPropagation={() => togglePin(it)}
+                  title={it.pinned ? 'Gepinnt — beim nächsten Lauf behalten' : 'Nicht gepinnt — wird beim nächsten Lauf gelöscht'}>
+            {it.pinned ? '📌' : '📍'}
+          </button>
           <div class="po-body">
             <strong>{it.title}</strong>
             <span class="po-badge">{it.effort ?? '—'}</span>
             {#each it.areas as a}<span class="po-chip">{a}</span>{/each}
-            {#if it.rank===0 && dor(it.readiness)===4}<span class="po-next">📌 Nächster</span>{/if}
+            {#if it.rank===0 && dor(it.readiness)===4}<span class="po-next">✅ Nächster</span>{/if}
           </div>
           <div class="po-dor" data-testid="office-dor">{dor(it.readiness)}/4</div>
           <button class="po-expand" data-testid="office-expand"
@@ -228,9 +248,16 @@
 
 <style>
   .po { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+  .po-add { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; margin-bottom:.6rem; }
   .po-card { display:flex; gap:.5rem; align-items:center; padding:.5rem; border:1px solid #333;
              border-radius:.4rem; cursor:pointer; margin-bottom:.4rem; }
   .po-card.next { border-color:#d4af37; }
+  .po-card.ephemeral { border-color:#444; opacity:.75; }
+  .po-pin { background:none; border:none; cursor:pointer; font-size:1rem; padding:0 .1rem; opacity:.5; }
+  .po-pin.pinned { opacity:1; }
+  .po-cleanup { margin-left:auto; background:none; border:1px solid #555; color:#888; border-radius:.3rem;
+                padding:.2rem .5rem; cursor:pointer; font-size:.75rem; }
+  .po-cleanup:hover { border-color:#e05; color:#e05; }
   .po-badge { font-size:.7rem; background:#33333f; border-radius:.3rem; padding:.1rem .3rem; }
   .po-chip { font-size:.7rem; background:#222; border-radius:.3rem; padding:.1rem .3rem; margin-left:.2rem; }
   .po-next { color:#d4af37; font-size:.75rem; margin-left:.4rem; }

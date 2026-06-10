@@ -1,6 +1,20 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.27.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.26.1...brett-v0.27.0) (2026-06-10)
+
+
+### Features
+
+* **brett:** add JSON board import ([#1550](https://github.com/Paddione/Bachelorprojekt/issues/1550)) ([319e4bc](https://github.com/Paddione/Bachelorprojekt/commit/319e4bc9b87da016d497319aac2d132cc022aa96))
+* **factory:** partial-deploy — only changed services per PR [T000591] ([#1558](https://github.com/Paddione/Bachelorprojekt/issues/1558)) ([b54f9c3](https://github.com/Paddione/Bachelorprojekt/commit/b54f9c3b94081a880764190991ae8c475e6e38ae))
+
+
+### Bug Fixes
+
+* **ci:** defer location access in ws-client and refresh quality baseline ([#1560](https://github.com/Paddione/Bachelorprojekt/issues/1560)) ([c194091](https://github.com/Paddione/Bachelorprojekt/commit/c1940913b42acf0b88011f737345a2d00a42012d))
+* **ci:** resolve TS errors, Brett test, quality-gate violations ([#1561](https://github.com/Paddione/Bachelorprojekt/issues/1561)) ([d454de9](https://github.com/Paddione/Bachelorprojekt/commit/d454de9e910271d5d320455670d8231e1cf0358f))
+
 ## [0.26.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.26.0...brett-v0.26.1) (2026-06-09)
 
 

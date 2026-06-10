@@ -13,4 +13,8 @@ export { default as FactoryKpiGrid } from './FactoryKpiGrid.svelte';
 export { default as FactoryThroughputChart } from './FactoryThroughputChart.svelte';
 export { default as FactoryPhaseHeatmap } from './FactoryPhaseHeatmap.svelte';
 export { default as FactoryShippedBar } from './FactoryShippedBar.svelte';
+export { default as StationColumn } from './StationColumn.svelte';
+export { default as ConveyorBelt } from './ConveyorBelt.svelte';
+export { default as MobileTabBar } from './MobileTabBar.svelte';
+export { default as DetailPanel } from './DetailPanel.svelte';
 export type { FactoryTicket } from './types';

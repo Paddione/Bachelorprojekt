@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { FloorPayload, TicketDetail, HallItem, Phase } from '../lib/factory-floor';
+  import type { FloorPayload, TicketDetail, HallItem, Phase, InjectionKind } from '../lib/factory-floor';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
-  import MobileFloorNav from './MobileFloorNav.svelte';
   import ProviderStatus from './ProviderStatus.svelte';
+  import ConveyorBelt from './factory/ConveyorBelt.svelte';
+  import DetailPanel from './factory/DetailPanel.svelte';
+  import MobileTabBar from './factory/MobileTabBar.svelte';
   import type { QaItem } from '../lib/qa-dal';
 
   let { initial }: { initial: FloorPayload | null } = $props();
@@ -30,6 +32,28 @@
     const delta = e.changedTouches[0].clientX - touchStartX;
     if (delta < -40) mobileNext();
     else if (delta > 40) mobilePrev();
+  }
+
+  type FloorView = 'conveyor' | 'kanban';
+  let floorView = $state<FloorView>('conveyor');
+  let viewMounted = $state(false);
+
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('ff-view');
+    if (stored === 'conveyor' || stored === 'kanban') {
+      floorView = stored;
+    } else if (window.innerWidth < 768) {
+      floorView = 'conveyor';
+    }
+    viewMounted = true;
+  });
+
+  function toggleView() {
+    floorView = floorView === 'conveyor' ? 'kanban' : 'conveyor';
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ff-view', floorView);
+    }
   }
 
   let data = $state<FloorPayload | null>(initial);
@@ -70,7 +94,7 @@
     } catch { /* keep panel open with a spinner */ }
   }
   function closeDetail() { selected = null; detail = null; }
-  let injKind = $state<'context'|'note'|'asset'>('context');
+  let injKind = $state<InjectionKind>('context');
   let injPhase = $state<string>('');
   let injTitle = $state('');
   let injContent = $state('');
@@ -88,7 +112,7 @@
       });
       if (!res.ok) { injError = `Fehler (${res.status})`; return; }
       injTitle = ''; injContent = '';
-      await openDetail(selected); // refresh injections list
+      await openDetail(selected);
     } catch { injError = 'Netzwerkfehler'; }
     finally { injBusy = false; }
   }
@@ -135,7 +159,7 @@
     if (!iso) return 0;
     return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   }
-  const STUCK_MIN = 15; // Werkstück hängt verdächtig lange in einer Phase
+  const STUCK_MIN = 15;
   function ciIcon(s: 'success'|'pending'|'failure'|null): string {
     return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';
   }
@@ -163,7 +187,6 @@
   {#if !data}
     <p class="text-muted">Fabrikhalle lädt…</p>
   {:else}
-    <!-- Live-Indikator: zeigt, dass das 4s-Polling lebt -->
     <div class="mb-3 flex items-center gap-2 text-xs" data-testid="floor-pulse">
       <span class="relative flex h-2 w-2">
         <span class="absolute inline-flex h-full w-full rounded-full opacity-75"
@@ -176,9 +199,27 @@
       {:else}
         <span class="text-muted">live · aktualisiert {relTime(data.fetchedAt)}</span>
       {/if}
+      {#if viewMounted}
+        <button type="button" class="ml-auto ff-view-toggle" onclick={toggleView} aria-label="Ansicht wechseln">
+          {#if floorView === 'conveyor'}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="1" y="1" width="6" height="6" rx="1" />
+              <rect x="9" y="1" width="6" height="6" rx="1" />
+              <rect x="1" y="9" width="6" height="6" rx="1" />
+              <rect x="9" y="9" width="6" height="6" rx="1" />
+            </svg>
+          {:else}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="1" y1="4" x2="15" y2="4" />
+              <line x1="1" y1="8" x2="15" y2="8" />
+              <line x1="1" y1="12" x2="15" y2="12" />
+            </svg>
+          {/if}
+          <span class="ff-view-toggle__label">{floorView === 'conveyor' ? 'Band' : 'Kanban'}</span>
+        </button>
+      {/if}
     </div>
 
-    <!-- ① Leitstand -->
     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" data-testid="floor-leitstand">
       <div class="rounded-xl p-3" class:bg-red-500={data.control.killSwitch} class:bg-white={!data.control.killSwitch} class:bg-opacity-5={!data.control.killSwitch}>
         <p class="text-muted text-xs">Kill-Switch</p><p class="text-xl font-bold">{data.control.killSwitch ? 'AN' : 'aus'}</p>
@@ -194,14 +235,69 @@
 
     <ProviderStatus providerHealth={data.providerHealth} />
 
-    <MobileFloorNav {mobileColIndex} onPrev={mobilePrev} onNext={mobileNext} />
+    <MobileTabBar activeIndex={mobileColIndex} onSelect={(i) => { mobileColIndex = i; }} />
 
     <div
       class="kanban-container flex flex-col lg:flex-row gap-4"
       ontouchstart={onTouchStart}
       ontouchend={onTouchEnd}
     >
-      <!-- ⓪ Kommissionierung -->
+      {#if floorView === 'conveyor'}
+        <div class="conveyor-wrapper w-full" data-testid="floor-hall">
+          <ConveyorBelt
+            stations={STATIONS}
+            hallItems={data.hall}
+            {mobileColIndex}
+            onSelect={openDetail}
+          />
+        </div>
+      {:else}
+        <div class="lg:w-2/5" data-testid="floor-hall">
+          <h3 class="font-semibold mb-2">Halle</h3>
+          {#if data.hall.length === 0}
+            <p class="text-muted text-sm">Fabrik im Leerlauf.</p>
+          {:else}
+            <div class="grid grid-cols-6 gap-2">
+              {#each STATIONS as st (st.key)}
+                <div data-col={st.key} class:mobile-visible={mobileColIndex === MOBILE_COL_INDEX[st.key]} class="rounded-lg bg-white/5 p-2 min-h-24">
+                  <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
+                  <p class="text-center text-xs text-muted mb-1">{st.label}</p>
+                  {#each hallAt(st.key) as w (w.extId)}
+                    <button
+                      onclick={() => openDetail(w.extId)}
+                      data-testid="floor-workpiece"
+                      data-driver={w.driver ?? 'factory'}
+                      title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
+                      class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
+                      class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                      class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                      class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
+                      class:border={w.driver === 'devflow'}
+                      class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                      class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                      class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                      class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                      class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                      class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                      class:animate-pulse={w.phaseState === 'blocked'}>
+                      <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
+                      {#if w.driver === 'devflow' && w.ciStatus}
+                        <span role="button" tabindex="0" data-testid="floor-ci-badge"
+                              title={`CI: ${w.ciStatus} — PR öffnen`}
+                              onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
+                              onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
+                          {ciIcon(w.ciStatus)}
+                        </span>
+                      {/if}
+                    </button>
+                  {/each}
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
+
       <div data-col="staged" class:mobile-visible={mobileColIndex === 0} class="lg:w-1/5 scroll-mt-24" id="floor-kommissionierung" data-testid="floor-kommissionierung">
         <h3 class="font-semibold mb-2">Kommissionierung</h3>
         {#if data.staged.length === 0}
@@ -260,7 +356,6 @@
         {#if releaseErr}<p class="mt-2 text-xs text-red-400" data-testid="floor-staged-error">{releaseErr}</p>{/if}
       </div>
 
-      <!-- ② Laderampe -->
       <div data-col="backlog" class:mobile-visible={mobileColIndex === 1} class="lg:w-1/5" data-testid="floor-loadingdock">
         <h3 class="font-semibold mb-2">Laderampe</h3>
         {#if data.loadingDock.length === 0}
@@ -281,53 +376,6 @@
         {/if}
       </div>
 
-      <!-- ③ Die Halle — mobile: data-col Fokus, desktop: grid -->
-      <div class="lg:w-2/5" data-testid="floor-hall">
-        <h3 class="font-semibold mb-2">Halle</h3>
-        {#if data.hall.length === 0}
-          <p class="text-muted text-sm">Fabrik im Leerlauf.</p>
-        {:else}
-          <div class="grid grid-cols-6 gap-2">
-            {#each STATIONS as st (st.key)}
-              <div data-col={st.key} class:mobile-visible={mobileColIndex === MOBILE_COL_INDEX[st.key]} class="rounded-lg bg-white/5 p-2 min-h-24">
-                <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
-                <p class="text-center text-xs text-muted mb-1">{st.label}</p>
-                {#each hallAt(st.key) as w (w.extId)}
-                  <button
-                    onclick={() => openDetail(w.extId)}
-                    data-testid="floor-workpiece"
-                    data-driver={w.driver ?? 'factory'}
-                    title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
-                    class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
-                    class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                    class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                    class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
-                    class:border={w.driver === 'devflow'}
-                    class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                    class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                    class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                    class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                    class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                    class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                    class:animate-pulse={w.phaseState === 'blocked'}>
-                    <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
-                    {#if w.driver === 'devflow' && w.ciStatus}
-                      <span role="button" tabindex="0" data-testid="floor-ci-badge"
-                            title={`CI: ${w.ciStatus} — PR öffnen`}
-                            onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
-                            onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
-                        {ciIcon(w.ciStatus)}
-                      </span>
-                    {/if}
-                  </button>
-                {/each}
-              </div>
-            {/each}
-          </div>
-        {/if}
-      </div>
-
-      <!-- QS-Platzhalter-Spalte: Implementierung via T000581 -->
       <div
         data-col="qs"
         class:mobile-visible={mobileColIndex === 8}
@@ -339,12 +387,10 @@
         </div>
         <div class="col-body">
           {#each data?.qaQueue ?? [] as _item}
-            <!-- T000581 befüllt diesen Block -->
           {/each}
         </div>
       </div>
 
-      <!-- ④ Versand -->
       <div data-col="done" class:mobile-visible={mobileColIndex === 9} class="lg:w-1/5" data-testid="floor-shipped">
         <h3 class="font-semibold mb-2">Versand</h3>
         {#if data.shipped.length === 0}
@@ -379,7 +425,6 @@
         {/if}
       </div>
 
-      <!-- ⑤ QS-Abnahme (existierend) -->
       <div class="lg:w-1/5" data-testid="floor-qa">
         <h3 class="font-semibold mb-2">QS-Abnahme</h3>
         {#if qaItems.length === 0}
@@ -399,76 +444,19 @@
       </div>
     </div>
 
-    <!-- ⑥ Detail-Panel (Slide-in) -->
-    {#if selected}
-      <div class="fixed inset-y-0 right-0 w-full max-w-md bg-dark-light border-l border-white/10 p-5 overflow-y-auto z-50" data-testid="floor-detail">
-        <button onclick={closeDetail} class="float-right text-muted">✕</button>
-        <h3 class="font-bold mb-3">{selected}</h3>
-        {#if !detail}
-          <p class="text-muted text-sm">Lädt…</p>
-        {:else}
-          <p class="mb-2">{detail.title}</p>
-          <p class="text-muted text-sm mb-3">Status: {detail.status} · Priorität: {detail.priority} · Retries: {detail.retryCount}{#if detail.prNumber} · <a href={prUrl(detail.prNumber)} target="_blank" rel="noopener noreferrer" class="text-gold hover:underline">PR #{detail.prNumber} ↗</a>{/if}</p>
-          <h4 class="font-semibold mt-3 mb-1">Phasen-Timeline</h4>
-          <ul class="space-y-1 text-sm">
-            {#each detail.events as e}
-              <li class="rounded bg-white/5 px-2 py-1">
-                <span class="font-mono">{e.phase}/{e.state}</span>
-                <span class="text-muted text-xs"> · {new Date(e.at).toLocaleString('de-DE')} · {e.driver}</span>
-                {#if e.detail}<span class="block text-muted text-xs">{e.detail}</span>{/if}
-              </li>
-            {/each}
-          </ul>
-          {#if detail.breadcrumbs.length}
-            <h4 class="font-semibold mt-3 mb-1">Breadcrumbs</h4>
-            <ul class="space-y-1 text-sm">
-              {#each detail.breadcrumbs as b}
-                <li class="rounded bg-white/5 px-2 py-1"><span class="text-muted text-xs">{b.authorLabel}:</span> {b.body}</li>
-              {/each}
-            </ul>
-          {/if}
-
-          <h4 class="font-semibold mt-4 mb-1">Injektionen</h4>
-          {#if detail.injections.length}
-            <ul class="space-y-1 text-sm mb-3" data-testid="inject-list">
-              {#each detail.injections as inj (inj.id)}
-                <li class="rounded bg-white/5 px-2 py-1">
-                  <span class="font-mono text-xs">{inj.kind}{inj.phase ? `@${inj.phase}` : ''}</span>
-                  {#if inj.title}<span class="font-semibold"> {inj.title}</span>{/if}
-                  <span class="block text-xs">{inj.consumedAt ? `✓ konsumiert ${new Date(inj.consumedAt).toLocaleString('de-DE')}` : '⏳ offen'}</span>
-                  {#if inj.content}<span class="block text-muted text-xs">{inj.content}</span>{/if}
-                </li>
-              {/each}
-            </ul>
-          {:else}
-            <p class="text-muted text-sm mb-3">Keine Injektionen.</p>
-          {/if}
-
-          <details class="mt-2" data-testid="inject-form">
-            <summary class="cursor-pointer font-semibold text-sm">Injizieren</summary>
-            <div class="mt-2 space-y-2">
-              <select bind:value={injKind} class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-kind">
-                <option value="context">context</option>
-                <option value="note">note</option>
-                <option value="asset">asset</option>
-              </select>
-              <select bind:value={injPhase} class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-phase">
-                <option value="">nächste Grenze (NULL)</option>
-                <option value="scout">scout</option><option value="design">design</option>
-                <option value="plan">plan</option><option value="implement">implement</option>
-                <option value="verify">verify</option><option value="deploy">deploy</option>
-              </select>
-              <input bind:value={injTitle} placeholder="Titel (optional)" class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-title" />
-              <textarea bind:value={injContent} placeholder="Kontext / Notiz" rows="3" class="w-full rounded bg-white/10 px-2 py-1 text-sm" data-testid="inject-content"></textarea>
-              {#if injError}<p class="text-red-400 text-xs">{injError}</p>{/if}
-              <button onclick={submitInjection} disabled={injBusy} class="rounded bg-emerald-500/80 px-3 py-1 text-sm font-semibold disabled:opacity-50" data-testid="inject-submit">
-                {injBusy ? 'sende…' : 'injizieren'}
-              </button>
-            </div>
-          </details>
-        {/if}
-      </div>
-    {/if}
+    <DetailPanel
+      {detail}
+      {selected}
+      onClose={closeDetail}
+      {injKind}
+      {injPhase}
+      {injTitle}
+      {injContent}
+      {injBusy}
+      {injError}
+      onSubmitInjection={submitInjection}
+      {prUrl}
+    />
 
     {#if qaModalItem}
       <QaModal
@@ -486,5 +474,25 @@
     .kanban-container [data-col] { display: none; }
     .kanban-container [data-col].mobile-visible { display: flex; flex-direction: column; width: 100%; }
     .kanban-container { overflow-x: hidden; }
+    .conveyor-wrapper { display: none; }
   }
+  .ff-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem;
+    background: transparent;
+    color: #8c96a3;
+    font-family: var(--factory-font-mono, monospace);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .ff-view-toggle:hover {
+    color: #eef1f3;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .ff-view-toggle__label { text-transform: uppercase; letter-spacing: 0.05em; }
 </style>

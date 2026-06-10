@@ -170,7 +170,7 @@ const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { fi
 try { if (!REUSE) {
 // ── ① Scout ────────────────────────────────────────────────────────────────
 phase('Scout')
-phaseEvent('scout', 'entered')
+phaseEvent('scout', 'entered', 'Codebase-Analyse gestartet')
 const scout = await agent(
   `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
    Scout the feature "${A.title}" against the codebase at ${REPO}.
@@ -197,7 +197,7 @@ await agent(
    Report the command output.`,
   { label: 'scout:persist', phase: 'Scout' },
 )
-phaseEvent('scout', 'done')
+phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
 // SIMPLE features skip Design/Plan/Implement and go straight to Verify→Deploy.
 const isSimple = scout.complexity === 'simple'
@@ -206,7 +206,7 @@ const isSimple = scout.complexity === 'simple'
 specPath = null
 if (!isSimple) {
   phase('Design')
-  phaseEvent('design', 'entered')
+  phaseEvent('design', 'entered', 'Spec-Generierung')
   const design = await agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
      Write a design spec for "${A.title}" following the structure in
@@ -225,14 +225,14 @@ if (!isSimple) {
     { label: 'design', phase: 'Design' },
   )
   specPath = design.trim()
-  phaseEvent('design', 'done')
+  phaseEvent('design', 'done', 'Spec erstellt')
 }
 
 // ── ③ Plan (with conflict gate) ────────────────────────────────────────────
 tasks = []
 if (!isSimple) {
   phase('Plan')
-  phaseEvent('plan', 'entered')
+  phaseEvent('plan', 'entered', 'Plan-Erstellung')
   // Brand-aware disjoint-files gate BEFORE fanning tasks.
   const conflict = await agent(
     `Record pipeline liveness first so the dispatcher watchdog does not flag this run as stale: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
@@ -285,13 +285,13 @@ if (!isSimple) {
   )
   tasks = plan.tasks
   planFilePath = plan.plan_path
-  phaseEvent('plan', 'done')
+  phaseEvent('plan', 'done', `${(plan.tasks || []).length} Tasks`)
 }
 }
 
 if (REUSE) {
   phase('Plan')
-  phaseEvent('plan', 'entered')
+  phaseEvent('plan', 'entered', 'Plan-Reuse')
   const reuse = await agent(
     `A human already planned this feature via dev-flow on the existing branch ${WORK_BRANCH}.
      Read the plan file WITHOUT creating a worktree (the Implement phase creates the shared
@@ -303,7 +303,7 @@ if (REUSE) {
     { label: 'plan:reuse', phase: 'Plan', schema: { type:'object', required:['tasks'], properties:{ tasks:{ type:'array', items:{ type:'object', required:['id','target_files','acceptance_criteria'], properties:{ id:{type:'string'}, target_files:{type:'array',items:{type:'string'}}, acceptance_criteria:{type:'array',items:{type:'string'}} } } } } } },
   )
   tasks = reuse.tasks
-  phaseEvent('plan', 'done')
+  phaseEvent('plan', 'done', `${(tasks || []).length} Tasks (reuse)`)
 }
 
 // ── ④ Implement (ONE shared git-crypt-safe worktree, tasks run sequentially) ──
@@ -315,7 +315,7 @@ if (REUSE) {
 let implemented = []
 if (tasks.length) {
   phase('Implement')
-  phaseEvent('implement', 'entered')
+  phaseEvent('implement', 'entered', 'Implementierung gestartet')
 
   const wtSetup = await agent(
     `Record pipeline liveness: run \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`. Then:
@@ -370,14 +370,14 @@ if (tasks.length) {
     )
     if (verify != null) implemented.push(verify)
   }
-  phaseEvent('implement', 'done')
+  phaseEvent('implement', 'done', `${tasks.length} Tasks implementiert`)
 }
 
 // ── ⑤ Verify (tiered adversarial review panel + coordinator) ────────────────
 // filter noise → classify tier → tier-selected lenses (parallel) → coordinator
 // (full tier) → verdict. `sh` here is bound to ticket.sh, so helpers run via agent().
 phase('Verify')
-phaseEvent('verify', 'entered')
+phaseEvent('verify', 'entered', 'Tests + Freshness')
 const cleanDiff = (await agent(
   `cd ${WORK_WT} (HEAD=${WORK_BRANCH}) then run \`bash ${REPO}/scripts/factory/filter-diff.sh origin/main...HEAD\`. Return its raw stdout ONLY (empty = all-noise diff).`,
   { label: 'verify:filter', phase: 'Verify' },
@@ -457,12 +457,12 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
     phaseEvent('verify', 'blocked', (blocking.length || 1) + ' blocking finding(s)')
     return { status: 'blocked', reason: 'review-findings', blocking, verdict: coordinatorVerdict }
   }
-  phaseEvent('verify', 'done')
+  phaseEvent('verify', 'done', 'Tests ✓')
 }
 
 // ── ⑥ Deploy (auto-merge on green CI + both-brand explicit deploy) ──────────
 phase('Deploy')
-phaseEvent('deploy', 'entered')
+phaseEvent('deploy', 'entered', 'PR erstellt · CI watch')
 if (DRY_RUN) {
   const report = await agent(
     `DRY RUN — do NOT push, merge, or deploy anything. Work from the WORKTREE (HEAD=${WORK_BRANCH}):
@@ -636,7 +636,7 @@ if (deploy.includes('deploy-guard') || deploy.includes('"status": "blocked"') ||
   phaseEvent('deploy', 'blocked', 'deploy-guard')
   return { status: 'blocked', reason: 'deploy-guard' }
 }
-phaseEvent('deploy', 'done')
+phaseEvent('deploy', 'done', 'PR merged')
 return { status: 'done', pr: deploy, reviews: reviews.length, tasks: tasks.length, implemented: implemented.length }
 } finally { if (WORK_BRANCH || WORK_WT) { try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup' }) } catch (_) {} } }
 }

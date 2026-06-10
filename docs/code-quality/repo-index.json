@@ -450,7 +450,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1180,
+      "file_count": 1184,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",

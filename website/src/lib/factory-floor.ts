@@ -25,6 +25,9 @@ export interface HallItem {
   extId: string; title: string; priority: string;
   phase: Phase | null; phaseState: PhaseState | null; phaseSince: string | null;
   retryCount: number; blockReason: string | null; slot: number | null;
+  driver: 'factory' | 'devflow' | null;   // NEU — vom neuesten Phase-Event
+  prNumber: number | null;                 // NEU — aus deploy-detail geparst
+  ciStatus: 'success' | 'pending' | 'failure' | null;  // NEU — vom API befüllt
 }
 export interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
 export interface StagedItem {
@@ -116,20 +119,24 @@ export async function getLoadingDock(slotsUsed: number, slotsCap: number): Promi
 
 /** Active features (in a slot) joined with their latest phase event. */
 export async function getHall(): Promise<HallItem[]> {
-  // latest phase event per ticket via DISTINCT ON, then LEFT JOIN onto the
-  // active tickets. Equivalent to a LATERAL top-1 but pg-mem-friendly (it does
-  // not resolve correlated LATERAL/scalar subqueries referencing the outer row).
+  // latest phase event per ticket via DISTINCT ON, then LEFT JOIN. A ticket
+  // qualifies for the Hall if it holds a pipeline_slot (Factory) OR if it has
+  // at least one driver='devflow' phase event (dev-flow-execute run, no slot).
   const r = await pool.query(
     `SELECT t.external_id, t.title, t.priority, t.pipeline_slot, t.retry_count,
-            e.phase, e.state, e.detail, e.at
+            e.phase, e.state, e.detail, e.driver, e.at
        FROM tickets.tickets t
        LEFT JOIN (
-         SELECT DISTINCT ON (ticket_id) ticket_id, phase, state, detail, at
+         SELECT DISTINCT ON (ticket_id) ticket_id, phase, state, detail, driver, at
            FROM tickets.factory_phase_events
           ORDER BY ticket_id, at DESC
        ) e ON e.ticket_id = t.id
-      WHERE t.pipeline_slot IS NOT NULL AND t.status IN ('in_progress','in_review')
-      ORDER BY t.pipeline_slot`,
+       LEFT JOIN (
+         SELECT DISTINCT ticket_id FROM tickets.factory_phase_events WHERE driver = 'devflow'
+       ) dv ON dv.ticket_id = t.id
+      WHERE t.status IN ('in_progress','in_review')
+        AND (t.pipeline_slot IS NOT NULL OR dv.ticket_id IS NOT NULL)
+      ORDER BY t.pipeline_slot NULLS LAST, t.external_id`,
   );
   return r.rows.map((row: any) => ({
     extId: row.external_id,
@@ -141,6 +148,9 @@ export async function getHall(): Promise<HallItem[]> {
     retryCount: row.retry_count ?? 0,
     blockReason: row.state === 'blocked' ? (row.detail ?? 'blockiert') : null,
     slot: row.pipeline_slot ?? null,
+    driver: row.driver ?? null,
+    prNumber: row.driver === 'devflow' ? parsePrNumber(row.detail) : null,
+    ciStatus: null,
   }));
 }
 
@@ -200,6 +210,13 @@ export async function getStaged(limit = 12): Promise<StagedItem[]> {
       createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
     };
   });
+}
+
+/** Extract a PR number from a phase-event detail string ("PR #1512 · …"); null on miss. */
+export function parsePrNumber(detail: string | null): number | null {
+  if (!detail) return null;
+  const m = /PR #(\d+)/.exec(detail);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 /** Parse "FACTORY-PLAN-REF branch=<b> plan=<p>" -> { branch, planPath }; nulls on miss. */

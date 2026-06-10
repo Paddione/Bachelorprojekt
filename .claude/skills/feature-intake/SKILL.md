@@ -80,13 +80,24 @@ Abhängigkeiten: <andere Tickets/Features, falls bekannt>
 
 ### Schritt 4 — Tickets erstellen (optional, auf Anfrage)
 
+Lege ein neues Ticket mit `status=planning` an (statt `triage`), damit es im
+Planungsbüro landet:
+
 ```bash
 bash scripts/ticket.sh create \
   --type <typ> \
   --brand <brand> \
   --title "<titel>" \
   --priority <prio> \
-  --description "<beschreibung>"
+  --description "<beschreibung>" \
+  --status planning
+```
+
+Nach dem Anlegen die Büro-Metadaten setzen:
+
+```bash
+bash scripts/ticket.sh plan-meta set --id <ext-id> \
+  --value-prop "<kern-nutzen>" --effort <klein|mittel|gross> --areas <Bereich>
 ```
 
 Danach: direkt zu **`dev-flow-plan`** für den gewählten Kandidaten.
@@ -136,7 +147,7 @@ Das Formular muss:
   • Kommentar: textarea (klein, optional — NICHT Pflicht)
 
 [ABSCHNITT: Freie Ideen]
-  2-3 Zeilen Freitext (für Ideen, die keine Checkbox abdeckt)
+  2-3 Zeilen Freitext (für Ideen, keine Checkbox abdeckt)
 
 [FOOTER]
   "Markdown kopieren" Button → clipboard

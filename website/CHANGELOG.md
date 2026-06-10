@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.44.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.43.0...website-v1.44.0) (2026-06-10)
+
+
+### Features
+
+* **factory:** Kommissionierung — plan_staged staging column + release gate [T000579] ([#1505](https://github.com/Paddione/Bachelorprojekt/issues/1505)) ([81dfeca](https://github.com/Paddione/Bachelorprojekt/commit/81dfeca7a934952806c7d5b442614d544ac35134))
+
 ## [1.43.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.42.1...website-v1.43.0) (2026-06-10)
 
 

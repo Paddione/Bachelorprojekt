@@ -1,15 +1,15 @@
 :root {
-  --factory-bg: #0a0a0a;
-  --factory-surface: #141414;
-  --factory-surface-elevated: #1a1a1a;
-  --factory-border: #2a2a2a;
+  --factory-bg: #0d1117;
+  --factory-surface: #161b22;
+  --factory-surface-elevated: #21262d;
+  --factory-border: #30363d;
   --factory-text-primary: #e5e5e5;
   --factory-text-secondary: #a3a3a3;
   --factory-text-muted: #737373;
   --factory-accent: #f59e0b;
   --factory-accent-hover: #d97706;
   --factory-error: #ef4444;
-  --factory-success: #10b981;
+  --factory-success: #22c55e;
 
   --factory-priority-critical: #ef4444;
   --factory-priority-high: #f97316;
@@ -41,13 +41,13 @@
 
   --factory-spotlight-color: rgba(245, 158, 11, 0.35);
   --factory-spotlight-spread: 32px;
-  --factory-conveyor-line: #2a2a2a;
-  --factory-conveyor-bg: #0d0d0d;
+  --factory-conveyor-line: #30363d;
+  --factory-conveyor-bg: #0d1117;
   --factory-detail-width: 400px;
   --factory-tab-bar-height: 48px;
 
   --factory-phase-entered: #f59e0b;
-  --factory-phase-done: #10b981;
+  --factory-phase-done: #22c55e;
   --factory-phase-blocked: #ef4444;
   --factory-phase-future: rgba(255, 255, 255, 0.15);
 }

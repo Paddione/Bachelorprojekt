@@ -77,6 +77,12 @@
   <button class="btn btn-primary" onclick="copyMarkdown()">📋 Markdown kopieren</button>
 </div>
 
+<div class="section" id="fallbackSection" style="display:none">
+  <h2>Markdown — manuell kopieren</h2>
+  <p style="color:var(--muted);font-size:.82rem;margin-bottom:.5rem">Automatisches Kopieren hat nicht geklappt (passiert manchmal bei lokalen Dateien). Markiere den Text unten und kopiere ihn von Hand (Strg/Cmd + C).</p>
+  <textarea id="fallbackOut" readonly style="width:100%;min-height:180px;background:var(--bg);color:var(--text);border:1px solid var(--accent);border-radius:6px;padding:.6rem .75rem;font-family:ui-monospace,monospace;font-size:.82rem;resize:vertical"></textarea>
+</div>
+
 <div class="toast" id="toast">✓ In Zwischenablage kopiert!</div>
 
 <script>
@@ -242,11 +248,38 @@ function copyMarkdown() {
     return;
   }
 
-  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+  const md = lines.join('\n');
+
+  // Fallback-Textfeld immer befüllen, damit der Output nie verloren geht
+  const out = document.getElementById('fallbackOut');
+  out.value = md;
+
+  const showToast = () => {
     const t = document.getElementById('toast');
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
-  });
+  };
+  const showFallback = () => {
+    document.getElementById('fallbackSection').style.display = 'block';
+    out.focus();
+    out.select();
+    out.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  // 1. moderner Clipboard-API-Weg
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(md).then(showToast).catch(() => {
+      // 2. Fallback: execCommand('copy') über das Textfeld
+      out.style.display = 'block';
+      document.getElementById('fallbackSection').style.display = 'block';
+      out.focus(); out.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ok ? showToast() : showFallback();
+    });
+  } else {
+    showFallback();
+  }
 }
 </script>
 </body>

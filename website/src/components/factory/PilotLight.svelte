@@ -7,11 +7,17 @@
     label = '',
     size = 'md',
     animated = true,
+    spotlight = false,
+    active = false,
+    children,
   }: {
     state?: PilotState;
     label?: string;
     size?: PilotSize;
     animated?: boolean;
+    spotlight?: boolean;
+    active?: boolean;
+    children?: import('svelte').Snippet;
   } = $props();
 
   const colorMap: Record<PilotState, string> = {
@@ -30,16 +36,26 @@
   let diameter = $derived(sizeMap[size]);
 </script>
 
-<span
-  class="pilot-light"
-  class:animated
-  style="--pl-color: {color}; --pl-size: {diameter};"
-  role="status"
-  aria-label={label || state}
->
-  <span class="pilot-light__dot"></span>
-  {#if label}<span class="pilot-light__label">{label}</span>{/if}
-</span>
+{#if spotlight}
+  <div
+    class="pilot-spotlight"
+    class:active
+    data-testid="station-spotlight"
+  >
+    {#if children}{@render children()}{/if}
+  </div>
+{:else}
+  <span
+    class="pilot-light"
+    class:animated
+    style="--pl-color: {color}; --pl-size: {diameter};"
+    role="status"
+    aria-label={label || state}
+  >
+    <span class="pilot-light__dot"></span>
+    {#if label}<span class="pilot-light__label">{label}</span>{/if}
+  </span>
+{/if}
 
 <style>
   .pilot-light {
@@ -68,6 +84,15 @@
     color: var(--factory-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  .pilot-spotlight {
+    position: relative;
+    transition: box-shadow 0.3s ease;
+  }
+
+  .pilot-spotlight.active {
+    box-shadow: 0 -8px var(--factory-spotlight-spread) 4px var(--factory-spotlight-color);
   }
 
   @keyframes pilot-glow {

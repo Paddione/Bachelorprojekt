@@ -38,6 +38,18 @@
   --factory-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --factory-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
   --factory-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  --factory-spotlight-color: rgba(245, 158, 11, 0.35);
+  --factory-spotlight-spread: 32px;
+  --factory-conveyor-line: #2a2a2a;
+  --factory-conveyor-bg: #0d0d0d;
+  --factory-detail-width: 400px;
+  --factory-tab-bar-height: 48px;
+
+  --factory-phase-entered: #f59e0b;
+  --factory-phase-done: #10b981;
+  --factory-phase-blocked: #ef4444;
+  --factory-phase-future: rgba(255, 255, 255, 0.15);
 }
 
 .factory-grid-overlay {
@@ -55,4 +67,14 @@
 
 .factory-grid-overlay.visible {
   opacity: 1;
+}
+
+@keyframes ff-blocked-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes ff-slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }

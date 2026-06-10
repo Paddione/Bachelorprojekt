@@ -231,7 +231,7 @@
   name: "LiveKit Server"
   emoji: "📡"
   sensitivity: assisted
-  placeholder_en: "WebRTC server (hostNetwork, pinned to gekko-hetzner-3)"
+  placeholder_en: "WebRTC server (hostNetwork, pinned to pk-hetzner-4)"
   summary_de: "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen)."
   what_for_de: "Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden."
   url: null
@@ -310,35 +310,34 @@
   links: []
 # ── Hardware ──────────────────────────────────────────────────────────────────
 # NOTE: roles below reflect the CURRENT fleet topology (pk-* = control-plane,
-# gekko-* = workers). The DB rows' role/cluster columns are pre-consolidation and
-# stale — see plan "Risks & data note". summary_de describes reality; column
-# correction is a flagged follow-up.
+# gekko-* = workers). name / placeholder_en / summary_de / what_for_de are all
+# aligned to this topology; LiveKit is pinned to pk-hetzner-4 (nodeAffinity).
 - slug: gekko-hetzner-2
   kind: hardware
-  name: "Gekko CP 1"
+  name: "Gekko Worker 1"
   emoji: "🖥️"
   sensitivity: assisted
-  placeholder_en: "Control-plane Helsinki"
+  placeholder_en: "Worker Helsinki"
   summary_de: "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken."
   what_for_de: "Einer der drei Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki."
   url: null
   links: []
 - slug: gekko-hetzner-3
   kind: hardware
-  name: "Gekko CP 2"
+  name: "Gekko Worker 2"
   emoji: "🖥️"
   sensitivity: assisted
-  placeholder_en: "Control-plane Helsinki"
-  summary_de: "Fleet-Arbeitsknoten in Helsinki. Beherbergt unter anderem den LiveKit-Server."
-  what_for_de: "Worker-Knoten des Fleet-Clusters; LiveKit ist hier per Node-Affinität verankert."
+  placeholder_en: "Worker Helsinki"
+  summary_de: "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken."
+  what_for_de: "Zweiter Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki."
   url: null
   links: []
 - slug: gekko-hetzner-4
   kind: hardware
-  name: "Gekko CP 3"
+  name: "Gekko Worker 3"
   emoji: "🖥️"
   sensitivity: assisted
-  placeholder_en: "Control-plane Helsinki"
+  placeholder_en: "Worker Helsinki"
   summary_de: "Fleet-Arbeitsknoten in Helsinki (Hetzner)."
   what_for_de: "Dritter Worker-Knoten des Fleet-Clusters (gekko-Reihe)."
   url: null
@@ -349,8 +348,8 @@
   emoji: "🏠"
   sensitivity: assisted
   placeholder_en: "Home Worker 1"
-  summary_de: "Heim-Server (Proxmox-VM). Beherbergt die Dev-Umgebung dev.mentolder.de."
-  what_for_de: "Lokaler Knoten zuhause; trägt den Dev-k3d-Stack der Entwicklung."
+  summary_de: "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31). Dev läuft jetzt lokal via k3d auf dem WSL-Host."
+  what_for_de: "Stillgelegt; die Dev-Umgebung (Kontext k3d-mentolder-dev) läuft heute lokal auf dem WSL-Host, nicht mehr hier."
   url: null
   links: []
 - slug: k3s-2
@@ -378,27 +377,27 @@
   name: "PK CP 1"
   emoji: "🖥️"
   sensitivity: assisted
-  placeholder_en: "Control-plane Helsinki"
-  summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki. LiveKit-DNS zeigt hierhin."
-  what_for_de: "Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki."
+  placeholder_en: "Control-plane Helsinki (LiveKit pinned here)"
+  summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki. Beherbergt den LiveKit-Server (per Node-Affinität gebunden); LiveKit-DNS zeigt hierhin."
+  what_for_de: "Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki; LiveKit ist hier per Node-Affinität verankert."
   url: null
   links: []
 - slug: pk-hetzner-6
   kind: hardware
-  name: "PK Worker 1"
+  name: "PK CP 2"
   emoji: "🖥️"
   sensitivity: assisted
-  placeholder_en: "Worker Helsinki"
+  placeholder_en: "Control-plane Helsinki"
   summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner)."
   what_for_de: "Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki."
   url: null
   links: []
 - slug: pk-hetzner-8
   kind: hardware
-  name: "PK Worker 2"
+  name: "PK CP 3"
   emoji: "🖥️"
   sensitivity: assisted
-  placeholder_en: "Worker Helsinki"
+  placeholder_en: "Control-plane Helsinki"
   summary_de: "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner)."
   what_for_de: "Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki."
   url: null

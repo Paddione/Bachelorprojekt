@@ -90,16 +90,12 @@ DELETE /api/skins/:id     — admin-only; "default" is write-protected → HTTP 
 ### Brett Unit Tests (required before PR)
 
 ```bash
-npm ci --prefix brett && \
-  node --test brett/test/ws-reconnect.test.mjs \
-       brett/test/physics.test.js \
-       brett/test/damage.test.mjs \
-       brett/test/pickups.test.mjs \
-       brett/test/mode-state.test.mjs \
-       brett/test/skin-validator.test.js \
-       brett/test/skin-catalog.test.js \
-       brett/test/skin-upload.test.js
+npm ci --prefix brett && npm test --prefix brett
 ```
+
+> `npm test` runs `MOCK_DB=true tsx --test test/*.test.ts test/*.test.js test/*.test.mjs`
+> (see `brett/package.json`) — i.e. it discovers every `brett/test/*.test.*` file automatically;
+> do not hand-list individual test files.
 
 Also run the Systembrett template validation:
 

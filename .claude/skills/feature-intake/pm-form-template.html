@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature-Intake — Bachelorprojekt</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2e3244;
+    --accent: #6c7bff; --green: #4ade80; --text: #e2e8f0;
+    --muted: #8892a4; --danger: #f87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; padding: 2rem; }
+  h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: .25rem; }
+  .subtitle { color: var(--muted); font-size: .85rem; margin-bottom: 2rem; }
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .section h2 { font-size: 1rem; margin-bottom: 1rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .5rem; }
+  label.area-chip { display: flex; align-items: center; gap: .5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .5rem .75rem; cursor: pointer; transition: border-color .15s; }
+  label.area-chip:has(input:checked) { border-color: var(--accent); background: #1e2240; }
+  label.area-chip input { accent-color: var(--accent); }
+  .features-block { display: none; margin-top: .75rem; }
+  .features-block.visible { display: block; }
+  .features-block h3 { font-size: .9rem; color: var(--text); margin-bottom: .6rem; border-bottom: 1px solid var(--border); padding-bottom: .4rem; }
+  .feature-row { display: grid; grid-template-columns: 1fr auto auto; align-items: start; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid var(--border); }
+  .feature-row:last-child { border-bottom: none; }
+  .feature-label { display: flex; align-items: flex-start; gap: .5rem; cursor: pointer; font-size: .9rem; }
+  .feature-label input[type=checkbox] { margin-top: .15rem; accent-color: var(--accent); flex-shrink: 0; }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: .25rem .4rem; font-size: .78rem; }
+  select:focus { outline: none; border-color: var(--accent); }
+  .comment-row { margin-top: .3rem; }
+  .comment-row textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: .4rem .6rem; font-size: .8rem; resize: vertical; min-height: 36px; }
+  .comment-row textarea::placeholder { color: var(--muted); }
+  textarea#freitext { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .6rem .75rem; font-size: .9rem; min-height: 80px; resize: vertical; }
+  input#submitter { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .5rem .75rem; font-size: .9rem; }
+  .btn { display: inline-block; padding: .7rem 1.5rem; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { opacity: .85; }
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--green); color: #111; padding: .75rem 1.25rem; border-radius: 8px; font-weight: 600; display: none; }
+  .toast.show { display: block; }
+  .prio-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .prio-kritisch { background: var(--danger); }
+  .prio-hoch { background: #fb923c; }
+  .prio-mittel { background: #facc15; }
+  .prio-niedrig { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>📋 Feature-Intake</h1>
+<p class="subtitle">Bachelorprojekt · Wähle Features aus, setze Prioritäten — dann "Markdown kopieren" und an Patrick schicken.</p>
+
+<div class="section">
+  <h2>Dein Name</h2>
+  <input type="text" id="submitter" placeholder="z.B. Gekko" value="">
+</div>
+
+<div class="section">
+  <h2>1 · Welche Bereiche sind relevant?</h2>
+  <div class="area-grid" id="areaGrid"></div>
+</div>
+
+<div class="section" id="featuresSection">
+  <h2>2 · Features auswählen &amp; priorisieren</h2>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:.75rem">Wähle Bereiche oben aus, um Feature-Listen zu sehen.</p>
+  <div id="featureBlocks"></div>
+</div>
+
+<div class="section">
+  <h2>3 · Freie Ideen</h2>
+  <p style="color:var(--muted);font-size:.82rem;margin-bottom:.5rem">Ideen, die keine Checkbox abdeckt — eine pro Zeile.</p>
+  <textarea id="freitext" placeholder="z.B. Export-Funktion für Brett-Sessions als PDF&#10;Dunkelmodus für das Kunden-Frontend&#10;..."></textarea>
+</div>
+
+<div style="text-align:center;margin-top:1.5rem">
+  <button class="btn btn-primary" onclick="copyMarkdown()">📋 Markdown kopieren</button>
+</div>
+
+<div class="toast" id="toast">✓ In Zwischenablage kopiert!</div>
+
+<script>
+const AREAS = [
+  { id: 'brett',   label: '3D-Board (Brett)',    emoji: '🎭' },
+  { id: 'website', label: 'Website / Content',   emoji: '🌐' },
+  { id: 'chat',    label: 'Chat / Messaging',    emoji: '💬' },
+  { id: 'infra',   label: 'Infra / DevEx',       emoji: '⚙️' },
+  { id: 'ai',      label: 'AI / Factory',        emoji: '🤖' },
+  { id: 'auth',    label: 'Auth / Keycloak',     emoji: '🔐' },
+  { id: 'files',   label: 'Nextcloud / Files',   emoji: '📂' },
+];
+
+const FEATURES = {
+  brett: [
+    'Gruppen-Lobby (mehrere Boards gleichzeitig)',
+    'Figuren-Animationen & Gesten',
+    'Board-Export (PNG / PDF)',
+    'Zuschauer-Modus (read-only)',
+    'Board-Templates',
+    'Board-Verlauf / Undo-History',
+    'Mobile-Touch-Steuerung',
+  ],
+  website: [
+    'Newsletter-Vorlagen-Bibliothek',
+    'Vertrags-PDF-Preview',
+    'Bild-Upload im HTML-Editor',
+    'Mehrsprachigkeit (DE / EN)',
+    'SEO-Metadaten-Editor',
+    'Kundenprofil-Seiten',
+    'Preisrechner / Konfigurator',
+  ],
+  chat: [
+    'Emoji-Reaktionen',
+    'Thread-Antworten',
+    'Datei-Anhänge (>10 MB)',
+    'Gelesen-Bestätigungen',
+    'Push-Notifications (PWA)',
+    'Kanal-Archivierung',
+    'Direktnachrichten (DM)',
+  ],
+  infra: [
+    'Auto-Deploy bei Merge',
+    'Staging-Umgebung',
+    'Performance-Dashboard',
+    'Alert-Regeln (Grafana)',
+    'One-Click Cluster-Reset',
+    'Kosten-Übersicht (Hetzner)',
+  ],
+  ai: [
+    'Autopilot-Qualitäts-Ratchet',
+    'Ticket-Auto-Triage',
+    'PR-Summary-Bot',
+    'DeepSeek Code-Review-Qualität verbessern',
+    'AI-gestützter Entwurf für Kundenmails',
+    'Gemini ↔ Claude Handoff-Protokoll',
+  ],
+  auth: [
+    'Passwort-Reset-Flow für Endnutzer',
+    'Zwei-Faktor-Auth (TOTP)',
+    'Rollen-Management-UI',
+    'Einladungslinks (magic link)',
+    'Session-Timeout konfigurierbar',
+  ],
+  files: [
+    'Automatische Nextcloud-Backups anzeigen',
+    'Direkter Datei-Share-Link im Chat',
+    'Collabora-Vorlage-Verwaltung',
+    'Datei-Versionierungs-UI',
+  ],
+};
+
+const PRIO_OPTIONS = ['Kritisch','Hoch','Mittel','Niedrig'];
+const AUFWAND_OPTIONS = ['Klein (≤1d)','Mittel (2-4d)','Groß (≥1W)'];
+
+// Render area chips
+const areaGrid = document.getElementById('areaGrid');
+AREAS.forEach(area => {
+  const lbl = document.createElement('label');
+  lbl.className = 'area-chip';
+  lbl.innerHTML = `<input type="checkbox" data-area="${area.id}"> ${area.emoji} ${area.label}`;
+  lbl.querySelector('input').addEventListener('change', updateBlocks);
+  areaGrid.appendChild(lbl);
+});
+
+// Render feature block for each area
+const featureBlocks = document.getElementById('featureBlocks');
+AREAS.forEach(area => {
+  const block = document.createElement('div');
+  block.className = 'features-block';
+  block.id = `block-${area.id}`;
+  const featureRows = (FEATURES[area.id] || []).map(f => `
+    <div class="feature-row">
+      <label class="feature-label">
+        <input type="checkbox" data-area="${area.id}" data-feature="${f}">
+        ${f}
+      </label>
+      <select data-role="prio" data-area="${area.id}" data-feature="${f}">
+        ${PRIO_OPTIONS.map((p,i) => `<option value="${p}"${i===2?' selected':''}>${p}</option>`).join('')}
+      </select>
+      <select data-role="aufwand" data-area="${area.id}" data-feature="${f}">
+        ${AUFWAND_OPTIONS.map((a,i) => `<option value="${a}"${i===1?' selected':''}>${a}</option>`).join('')}
+      </select>
+    </div>
+    <div class="comment-row">
+      <textarea data-role="comment" data-area="${area.id}" data-feature="${f}" placeholder="Kommentar (optional)..." rows="1"></textarea>
+    </div>
+  `).join('');
+  block.innerHTML = `<h3>${area.emoji} ${area.label}</h3>${featureRows}`;
+  featureBlocks.appendChild(block);
+});
+
+function updateBlocks() {
+  AREAS.forEach(area => {
+    const checked = document.querySelector(`input[data-area="${area.id}"][type="checkbox"]:not([data-feature])`);
+    const block = document.getElementById(`block-${area.id}`);
+    if (checked && checked.checked) block.classList.add('visible');
+    else block.classList.remove('visible');
+  });
+}
+
+function copyMarkdown() {
+  const name = document.getElementById('submitter').value.trim() || 'Unbekannt';
+  const today = new Date().toISOString().slice(0,10);
+  const lines = [`## Feature-Intake: ${today}`, `Eingereicht von: ${name}`, ''];
+
+  const byPrio = { Kritisch: [], Hoch: [], Mittel: [], Niedrig: [] };
+
+  AREAS.forEach(area => {
+    const block = document.getElementById(`block-${area.id}`);
+    if (!block.classList.contains('visible')) return;
+    block.querySelectorAll('input[type=checkbox][data-feature]').forEach(cb => {
+      if (!cb.checked) return;
+      const f = cb.dataset.feature;
+      const a = cb.dataset.area;
+      const prio = block.querySelector(`select[data-role="prio"][data-feature="${f}"]`).value;
+      const aufwand = block.querySelector(`select[data-role="aufwand"][data-feature="${f}"]`).value;
+      const comment = block.querySelector(`textarea[data-role="comment"][data-feature="${f}"]`).value.trim();
+      const areaLabel = AREAS.find(x => x.id === a)?.label || a;
+      let line = `- [ ] **[${areaLabel}] ${f}** | Priorität: ${prio} | Aufwand: ${aufwand}`;
+      if (comment) line += ` | Kommentar: "${comment}"`;
+      byPrio[prio].push(line);
+    });
+  });
+
+  const ORDER = ['Kritisch','Hoch','Mittel','Niedrig'];
+  ORDER.forEach(p => {
+    if (byPrio[p].length === 0) return;
+    lines.push(`### ${p}e Priorität`);
+    byPrio[p].forEach(l => lines.push(l));
+    lines.push('');
+  });
+
+  const freitext = document.getElementById('freitext').value.trim();
+  if (freitext) {
+    lines.push('### Freie Ideen');
+    freitext.split('\n').filter(l => l.trim()).forEach(l => lines.push(`> "${l.trim()}"`));
+    lines.push('');
+  }
+
+  if (lines.length <= 3) {
+    alert('Bitte mindestens ein Feature auswählen oder eine freie Idee eintragen.');
+    return;
+  }
+
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  });
+}
+</script>
+</body>
+</html>

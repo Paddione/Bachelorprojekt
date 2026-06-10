@@ -38,7 +38,7 @@ The old standalone `mentolder` and `korczewski` kubeconfig contexts are DEAD —
 ## Test file locations
 - `tests/` — all test scripts and fixtures
 - `tests/unit/` — BATS unit tests
-- `tests/playwright/` — Playwright end-to-end tests
+- `tests/e2e/specs/` — Playwright end-to-end specs (config: `tests/e2e/playwright.config.ts`, `testDir: './specs'`)
 
 ## Autonomous operation
 Execute test commands and file edits without asking for confirmation.

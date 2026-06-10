@@ -1,6 +1,6 @@
 # Skills Overview
 
-11 core project-local skills (plus dev-flow pipeline) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+12 core project-local skills (plus dev-flow pipeline) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Für Agenten:** Schnelle Routing-Karten (Intention → Weg → Tier → Guardrails) unter `docs/agent-guide/maps/` — `goals-map.md`, `tools-map.md`, `danger-map.md`. Generiert aus `docs/agent-guide/registry/`.
 
@@ -15,6 +15,14 @@
 | `dev-flow-execute` | After `dev-flow-plan` has pushed a staged plan — implements, verifies, opens PR, merges, deploys. |
 | `dev-flow-iterate` | **Sub-routine of `dev-flow-execute`** (Schritt 4) + standalone dev-cluster loop — deploys a surface, browses with Playwright MCP, tails logs, applies small fixes. **Not** an alternative to execute. |
 | `dev-flow-e2e` | After `dev-flow-execute` has merged and deployed — writes + runs Playwright E2E tests against live environment. |
+
+---
+
+## Feature Discovery (vorgelagert zur Pipeline)
+
+| Skill | When to use |
+|---|---|
+| `feature-intake` | **Vor `dev-flow-plan`** — Feature-Ideen entdecken, brainstormen oder sammeln (z.B. Fragebogen an gekko), bevor geplant wird. Kein Teil der dev-flow-Pipeline; speist `dev-flow-plan`. |
 
 ---
 
@@ -103,6 +111,8 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 ```mermaid
 graph TD
+    FI[feature-intake] -.->|vorgelagert| DP
+
     subgraph "Dev-Flow Pipeline (sequentiell)"
         DP[dev-flow-plan] -->|feature/fix| DE[dev-flow-execute]
         DP -->|chore| DC[dev-flow-chore]

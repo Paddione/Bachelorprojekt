@@ -184,7 +184,7 @@ build_and_push() {
     brett)   run docker build -t "$full" brett/ >&2 ;;
     arena)   run docker build -t "$full" arena-server/ >&2 ;;
     docs)
-      run node scripts/build-docs.js >&2
+      run node scripts/build-docs.mjs >&2
       run docker build -t "$full" -f scripts/docs.Dockerfile . >&2
       ;;
   esac

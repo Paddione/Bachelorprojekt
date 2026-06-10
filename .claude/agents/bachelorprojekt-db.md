@@ -33,8 +33,8 @@ bugs.bug_tickets              -- bug tickets; fixed_in_pr links back to features
 ```bash
 task workspace:backup                              # trigger immediate backup
 task workspace:backup:list                         # list available timestamps
-task workspace:restore -- <db> <timestamp>         # restore one DB
-task workspace:restore -- all <timestamp>          # restore all DBs from one snapshot
+task workspace:db:restore -- <db> <timestamp>         # restore one DB
+task workspace:db:restore -- all <timestamp>          # restore all DBs from one snapshot
 ```
 
 ## Password drift warning

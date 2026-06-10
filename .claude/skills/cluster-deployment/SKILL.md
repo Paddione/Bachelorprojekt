@@ -424,11 +424,11 @@ Then re-verify ingress accessibility (Step 1.5 → "Ingress Accessibility Verifi
 
 ## Phase 3 — dev.mentolder.de Stack Operations
 
-The development stack runs inside a k3d cluster hosted on the LAN node `k3s-1`.
+The development stack runs inside a **local k3d cluster on the WSL host** (context `k3d-mentolder-dev`). The former LAN node `k3s-1` has been permanently **decommissioned** (see CLAUDE.md) — do not target it.
 
 ### Step 3.1: Cluster Lifecycle
 ```bash
-# Create cluster (MUST run from k3s-1 machine via task wrapper)
+# Create cluster (runs locally on the WSL host via task wrapper)
 task dev:cluster:create
 
 # Deploy dev resources (website + workspace manifests)

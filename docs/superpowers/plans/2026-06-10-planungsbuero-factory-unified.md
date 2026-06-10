@@ -41,7 +41,7 @@ pr_number: null
 **Files:**
 - Modify: `website/src/lib/factory-floor.ts`
 
-- [ ] **Schritt 1: Interface ergänzen**
+- [x] **Schritt 1: Interface ergänzen**
 
   In `website/src/lib/factory-floor.ts` direkt nach Zeile 21 (`export interface FloorMetrics …`) einfügen:
 
@@ -52,7 +52,7 @@ pr_number: null
   }
   ```
 
-- [ ] **Schritt 2: `FloorPayload` erweitern**
+- [x] **Schritt 2: `FloorPayload` erweitern**
 
   In der `FloorPayload`-Interface (Zeile 37–47) zwei neue Felder ergänzen:
 
@@ -72,7 +72,7 @@ pr_number: null
   }
   ```
 
-- [ ] **Schritt 3: `getPlanningCount()` schreiben**
+- [x] **Schritt 3: `getPlanningCount()` schreiben**
 
   Direkt nach `officeCount`-Import (Zeile 7) neue Funktion hinzufügen — am besten nach `getStaged()`, vor `parsePrNumber()`:
 
@@ -98,7 +98,7 @@ pr_number: null
   }
   ```
 
-- [ ] **Schritt 4: `getFloor()` anpassen**
+- [x] **Schritt 4: `getFloor()` anpassen**
 
   In `getFloor()` (Zeile 245–260) `getPlanningCount()` parallel mitladen und im Return-Objekt einsetzen:
 
@@ -124,7 +124,7 @@ pr_number: null
   }
   ```
 
-- [ ] **Schritt 5: TypeScript-Check**
+- [x] **Schritt 5: TypeScript-Check**
 
   ```bash
   cd website && pnpm tsc --noEmit 2>&1 | grep factory-floor
@@ -132,7 +132,7 @@ pr_number: null
 
   Erwartet: keine Fehler für `factory-floor.ts`.
 
-- [ ] **Schritt 6: Commit**
+- [x] **Schritt 6: Commit**
 
   ```bash
   cd /tmp/wt-planungsbuero-factory
@@ -149,51 +149,10 @@ pr_number: null
 
 Aktuell sendet der Stream nur `event: phase` mit `{at: timestamp}`. Wir ergänzen `planningCount` damit `DevStatusTabs` bei einem Phase-Event die Badges aktualisieren kann ohne extra Fetch.
 
-- [ ] **Schritt 1: Import ergänzen**
-
-  Zeile 3 in `stream.ts` nach dem `pool`-Import:
-
-  ```ts
-  import { getPlanningCount } from '../../../lib/factory-floor';
-  ```
-
-- [ ] **Schritt 2: `poll()`-Funktion erweitern**
-
-  Den `poll`-Block (Zeilen 27–39) ersetzen:
-
-  ```ts
-  const poll = async () => {
-    try {
-      const [phaseRow, planningCount] = await Promise.all([
-        pool.query(`SELECT COALESCE(MAX(at)::text, '') AS m FROM tickets.factory_phase_events`),
-        getPlanningCount(),
-      ]);
-      const m = phaseRow.rows[0]?.m ?? '';
-      if (m && m !== lastMax) {
-        lastMax = m;
-        send('phase', { at: m, planningCount });
-      }
-    } catch {
-      /* swallow — heartbeat keeps stream alive */
-    }
-  };
-  ```
-
-- [ ] **Schritt 3: TypeScript-Check**
-
-  ```bash
-  cd website && pnpm tsc --noEmit 2>&1 | grep stream
-  ```
-
-  Erwartet: keine Fehler.
-
-- [ ] **Schritt 4: Commit**
-
-  ```bash
-  cd /tmp/wt-planungsbuero-factory
-  git add website/src/pages/api/factory-floor/stream.ts
-  git commit -m "feat(factory-floor): planningCount in SSE phase events"
-  ```
+- [x] **Schritt 1: Import ergänzen**
+- [x] **Schritt 2: `poll()`-Funktion erweitern**
+- [x] **Schritt 3: TypeScript-Check**
+- [x] **Schritt 4: Commit**
 
 ---
 
@@ -204,146 +163,9 @@ Aktuell sendet der Stream nur `event: phase` mit `{at: timestamp}`. Wir ergänze
 
 Diese Komponente hält Tab-Zustand + URL-Sync + Badge-Anzeige und rendert `FactoryFloor` oder `PlanningOffice`.
 
-- [ ] **Schritt 1: Datei anlegen**
-
-  Erstelle `website/src/components/DevStatusTabs.svelte`:
-
-  ```svelte
-  <script lang="ts">
-    import { onMount } from 'svelte';
-    import FactoryFloor from './FactoryFloor.svelte';
-    import PlanningOffice from './PlanningOffice.svelte';
-    import type { FloorPayload } from '../lib/factory-floor';
-
-    type Tab = 'factory' | 'planung';
-
-    let { initial, initialTab, brand }: {
-      initial: FloorPayload | null;
-      initialTab: Tab;
-      brand: string;
-    } = $props();
-
-    let activeTab = $state<Tab>(initialTab);
-    let planningCount = $state(initial?.planningCount ?? { total: 0, ready: 0 });
-    let hallActive   = $state(initial?.hall.length ?? 0);
-
-    function switchTab(tab: Tab) {
-      activeTab = tab;
-      const url = new URL(window.location.href);
-      url.searchParams.set('tab', tab);
-      history.pushState({}, '', url.toString());
-    }
-
-    onMount(() => {
-      // Sync badge counts when FactoryFloor refreshes (custom event).
-      window.addEventListener('factory-floor-refreshed', (e: Event) => {
-        const detail = (e as CustomEvent<{ planningCount?: typeof planningCount; hallActive?: number }>).detail;
-        if (detail.planningCount) planningCount = detail.planningCount;
-        if (detail.hallActive != null) hallActive = detail.hallActive;
-      });
-
-      // Handle browser back/forward.
-      window.addEventListener('popstate', () => {
-        const t = new URLSearchParams(window.location.search).get('tab') as Tab | null;
-        if (t === 'factory' || t === 'planung') activeTab = t;
-      });
-    });
-
-    $derived: {
-      const badge = planningCount.ready > 0 ? planningCount.ready : planningCount.total;
-      // exposed for template
-    }
-    function planningBadge() {
-      return planningCount.ready > 0 ? planningCount.ready : planningCount.total;
-    }
-  </script>
-
-  <!-- Tab bar -->
-  <div class="dev-status-tabs">
-    <div class="tab-bar-wrap">
-      <button
-        class="ds-tab"
-        class:active={activeTab === 'factory'}
-        onclick={() => switchTab('factory')}
-      >
-        Factory Floor
-        {#if hallActive > 0}
-          <span class="tab-badge live">{hallActive} aktiv</span>
-        {/if}
-      </button>
-      <button
-        class="ds-tab"
-        class:active={activeTab === 'planung'}
-        onclick={() => switchTab('planung')}
-      >
-        Planungsbüro
-        {#if planningBadge() > 0}
-          <span class="tab-badge">{planningBadge()} {planningCount.ready > 0 ? 'bereit' : 'in Planung'}</span>
-        {/if}
-      </button>
-    </div>
-  </div>
-
-  <!-- Tab content -->
-  {#if activeTab === 'factory'}
-    <FactoryFloor {initial} />
-  {:else}
-    <div class="planning-tab-wrap">
-      <PlanningOffice client:load {brand} />
-    </div>
-  {/if}
-
-  <style>
-    .dev-status-tabs { border-bottom: 1px solid var(--admin-border, rgba(255,255,255,0.07)); }
-    .tab-bar-wrap { display: flex; gap: 0; padding: 0 1.5rem; }
-
-    .ds-tab {
-      padding: 10px 18px; font-size: 13px; font-weight: 500;
-      color: var(--admin-text-mute, #8c96a3);
-      border: none; background: transparent; cursor: pointer;
-      border-bottom: 2px solid transparent;
-      display: flex; align-items: center; gap: 7px;
-      transition: color 0.15s;
-      font-family: var(--font-sans, inherit);
-    }
-    .ds-tab:hover { color: var(--admin-text, #eef1f3); }
-    .ds-tab.active {
-      color: var(--admin-primary, oklch(0.80 0.09 75));
-      border-bottom-color: var(--admin-primary, oklch(0.80 0.09 75));
-    }
-
-    .tab-badge {
-      background: oklch(0.80 0.09 75 / 0.14);
-      color: oklch(0.80 0.09 75);
-      font-size: 10px; font-family: var(--font-mono, monospace);
-      padding: 1px 6px; border-radius: 3px; font-weight: 600;
-    }
-    .tab-badge.live {
-      background: oklch(0.80 0.06 160 / 0.12);
-      color: oklch(0.80 0.06 160);
-      animation: badge-pulse 2s infinite;
-    }
-    @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
-
-    .planning-tab-wrap { padding: 1.5rem; }
-  </style>
-  ```
-
-- [ ] **Schritt 2: TypeScript-Check**
-
-  ```bash
-  cd website && pnpm tsc --noEmit 2>&1 | grep DevStatusTabs
-  ```
-
-  Erwartet: keine Fehler.
-
-- [ ] **Schritt 3: Commit**
-
-  ```bash
-  cd /tmp/wt-planungsbuero-factory
-  git add website/src/components/DevStatusTabs.svelte
-  git commit -m "feat: DevStatusTabs — tab wrapper with URL sync and live badges"
-  ```
+- [x] **Schritt 1: Datei anlegen**
+- [x] **Schritt 2: TypeScript-Check**
+- [x] **Schritt 3: Commit**
 
 ---
 
@@ -352,71 +174,10 @@ Diese Komponente hält Tab-Zustand + URL-Sync + Badge-Anzeige und rendert `Facto
 **Files:**
 - Modify: `website/src/pages/dev-status.astro`
 
-- [ ] **Schritt 1: `planungsbuero.astro` zu Redirect umbauen** (kurz, gehört logisch hierher)
-
-  `website/src/pages/admin/planungsbuero.astro` vollständig ersetzen mit:
-
-  ```astro
-  ---
-  export const prerender = false;
-  return Astro.redirect('/dev-status?tab=planung', 302);
-  ---
-  ```
-
-- [ ] **Schritt 2: `dev-status.astro` umbauen**
-
-  Vollständig ersetzen mit:
-
-  ```astro
-  ---
-  import AdminLayout from '../layouts/AdminLayout.astro';
-  import { getSession, isAdmin } from '../lib/auth';
-  import DevStatusTabs from '../components/DevStatusTabs.svelte';
-  import { getFloor } from '../lib/factory-floor';
-
-  export const prerender = false;
-
-  const session = await getSession(Astro.request.headers.get('cookie'));
-  if (!session) return Astro.redirect(`/api/auth/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
-  if (!isAdmin(session)) return Astro.redirect('/admin');
-
-  const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
-  const brand = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
-
-  let initial = null;
-  try { initial = await getFloor(slotsCap); } catch { initial = null; }
-
-  type Tab = 'factory' | 'planung';
-  const rawTab = Astro.url.searchParams.get('tab');
-  const initialTab: Tab = rawTab === 'planung' ? 'planung' : 'factory';
-  ---
-
-  <AdminLayout title="Dev Status">
-    <section class="bg-dark min-h-screen">
-      <div class="max-w-screen-2xl mx-auto">
-        <DevStatusTabs client:load {initial} {initialTab} {brand} />
-      </div>
-    </section>
-  </AdminLayout>
-  ```
-
-  Hinweis: `pt-6 pb-12 px-6` wird entfernt — `DevStatusTabs` steuert das eigene Layout (Kanban braucht `overflow-x:auto` ohne äußeres Padding).
-
-- [ ] **Schritt 3: Build-Test**
-
-  ```bash
-  cd website && pnpm build 2>&1 | tail -20
-  ```
-
-  Erwartet: `Build complete` ohne Fehler.
-
-- [ ] **Schritt 4: Commit**
-
-  ```bash
-  cd /tmp/wt-planungsbuero-factory
-  git add website/src/pages/dev-status.astro website/src/pages/admin/planungsbuero.astro
-  git commit -m "feat(dev-status): tab-based unified page + planungsbuero redirect"
-  ```
+- [x] **Schritt 1: `planungsbuero.astro` zu Redirect umbauen**
+- [x] **Schritt 2: `dev-status.astro` umbauen**
+- [x] **Schritt 3: Build-Test**
+- [x] **Schritt 4: Commit**
 
 ---
 
@@ -425,36 +186,9 @@ Diese Komponente hält Tab-Zustand + URL-Sync + Badge-Anzeige und rendert `Facto
 **Files:**
 - Modify: `website/src/layouts/AdminLayout.astro` (Zeilen 151–152)
 
-- [ ] **Schritt 1: Sidebar-Einträge ersetzen**
-
-  Zeilen 151–152 in `AdminLayout.astro`:
-
-  ```ts
-  // VORHER:
-  { href: '/dev-status',          label: 'Factory Status', icon: 'activity',   matches: ['/dev-status'] },
-  { href: '/admin/planungsbuero', label: 'Planungsbüro',   icon: 'clipboard',  matches: ['/admin/planungsbuero'] },
-
-  // NACHHER (eine Zeile):
-  { href: '/dev-status', label: 'Dev Status', icon: 'activity', matches: ['/dev-status', '/admin/planungsbuero'] },
-  ```
-
-  Die `matches`-Liste enthält `/admin/planungsbuero` damit der Sidebar-Eintrag auch beim Redirect (bevor der Browser zu `/dev-status` wechselt) als aktiv markiert ist.
-
-- [ ] **Schritt 2: Build-Test**
-
-  ```bash
-  cd website && pnpm build 2>&1 | grep -E "error|Error" | head -10
-  ```
-
-  Erwartet: keine Fehler.
-
-- [ ] **Schritt 3: Commit**
-
-  ```bash
-  cd /tmp/wt-planungsbuero-factory
-  git add website/src/layouts/AdminLayout.astro
-  git commit -m "feat(admin): merge Factory Status + Planungsbüro sidebar → Dev Status"
-  ```
+- [x] **Schritt 1: Sidebar-Einträge ersetzen**
+- [x] **Schritt 2: Build-Test**
+- [x] **Schritt 3: Commit**
 
 ---
 
@@ -465,7 +199,7 @@ Diese Komponente hält Tab-Zustand + URL-Sync + Badge-Anzeige und rendert `Facto
 
 Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht hinzu: eine Spalte voll-breit, Pfeile + Touch-Swipe, Fortschritts-Pips.
 
-- [ ] **Schritt 1: Spalten-Konstante und State ergänzen**
+- [x] **Schritt 1: Spalten-Konstante und State ergänzen**
 
   Im `<script>`-Block von `FactoryFloor.svelte` nach den bestehenden `STATIONS`-Konstanten (nach Zeile 24) einfügen:
 
@@ -491,7 +225,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   }
   ```
 
-- [ ] **Schritt 2: `factory-floor-refreshed`-Event dispatchen**
+- [x] **Schritt 2: `factory-floor-refreshed`-Event dispatchen**
 
   Am Ende der bestehenden `refresh()`-Funktion (nach `data = await res.json()`) anfügen:
 
@@ -504,7 +238,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   }));
   ```
 
-- [ ] **Schritt 3: Mobile-Wrapper um das Kanban-HTML legen**
+- [x] **Schritt 3: Mobile-Wrapper um das Kanban-HTML legen**
 
   Das bestehende Kanban-Markup (der `<div>` der alle Spalten enthält) mit einem Touch-Container umschließen. Suche den äußersten Kanban-Container — er beginnt mit einer Klasse wie `flex gap-2` oder ähnlich. Füge `ontouchstart` + `ontouchend` hinzu:
 
@@ -521,7 +255,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
 
   Jede bestehende Spalte bekommt ein `data-col`-Attribut mit dem passenden MOBILE_COLS-Namen (z.B. `data-col="scout"`, `data-col="backlog"` usw.). Die Staged-Spalte bekommt `data-col="staged"`, Loading Dock → `data-col="backlog"`, die 6 Phase-Spalten → ihren Phase-Key, QS-Platzhalter → `data-col="qs"`, Shipped → `data-col="done"`.
 
-- [ ] **Schritt 4: Pips + Navigations-Header für Mobile hinzufügen**
+- [x] **Schritt 4: Pips + Navigations-Header für Mobile hinzufügen**
 
   Direkt vor dem Kanban-Container einfügen (nur auf Mobile sichtbar):
 
@@ -541,7 +275,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   </div>
   ```
 
-- [ ] **Schritt 5: CSS für Mobile-Ansicht ergänzen**
+- [x] **Schritt 5: CSS für Mobile-Ansicht ergänzen**
 
   Am Ende des `<style>`-Blocks (oder in einem neuen `<style>`-Block) ergänzen:
 
@@ -594,7 +328,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   }
   ```
 
-- [ ] **Schritt 6: `mobile-visible`-Klasse reaktiv setzen**
+- [x] **Schritt 6: `mobile-visible`-Klasse reaktiv setzen**
 
   Im Template jede Spalte mit der reaktiven Klasse versehen. Beispiel für die Staged-Spalte:
 
@@ -612,7 +346,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
 
   Erwartet: keine Fehler.
 
-- [ ] **Schritt 8: Commit**
+- [x] **Schritt 8: Commit**
 
   ```bash
   cd /tmp/wt-planungsbuero-factory
@@ -627,11 +361,11 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
 **Files:**
 - Modify: `website/src/components/FactoryFloor.svelte`
 
-- [ ] **Schritt 1: `qaQueue`-Prop aus FloorPayload lesen**
+- [x] **Schritt 1: `qaQueue`-Prop aus FloorPayload lesen**
 
   Im `<script>`-Block: `data?.qaQueue` wird im Template verwendet. Da `FloorPayload.qaQueue` `never[]` ist, wird der Block immer leer gerendert — kein weiterer State nötig.
 
-- [ ] **Schritt 2: QS-Spalte nach Deploy einfügen**
+- [x] **Schritt 2: QS-Spalte nach Deploy einfügen**
 
   Direkt nach der Deploy-Spalte im Template, vor der Shipped/Done-Spalte, einfügen:
 
@@ -654,13 +388,13 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   </div>
   ```
 
-- [ ] **Schritt 3: CSS für QS-Spalte ergänzen**
+- [x] **Schritt 3: CSS für QS-Spalte ergänzen**
 
   ```css
   .col-label-qa { color: #818cf8; }   /* indigo — passt zu admin-accent */
   ```
 
-- [ ] **Schritt 4: TypeScript-Check**
+- [x] **Schritt 4: TypeScript-Check**
 
   ```bash
   cd website && pnpm tsc --noEmit 2>&1 | grep FactoryFloor
@@ -668,7 +402,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
 
   Erwartet: keine Fehler.
 
-- [ ] **Schritt 5: Commit**
+- [x] **Schritt 5: Commit**
 
   ```bash
   cd /tmp/wt-planungsbuero-factory
@@ -683,7 +417,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
 **Files:**
 - Modify/Create: `website/tests/e2e/` — neue Test-Datei oder Erweiterung der bestehenden Factory-Floor-Tests
 
-- [ ] **Schritt 1: Vorhandene E2E-Testdatei für Factory Floor finden**
+- [x] **Schritt 1: Vorhandene E2E-Testdatei für Factory Floor finden**
 
   ```bash
   find /tmp/wt-planungsbuero-factory/website/tests -name "*.spec.ts" | xargs grep -l "dev-status\|factory" 2>/dev/null
@@ -691,7 +425,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
 
   Notiere den Pfad (typisch `tests/e2e/factory-floor.spec.ts` o.ä.).
 
-- [ ] **Schritt 2: Test-Datei anlegen oder erweitern**
+- [x] **Schritt 2: Test-Datei anlegen oder erweitern**
 
   Neue Datei `website/tests/e2e/dev-status-tabs.spec.ts` (oder in bestehende Datei anfügen):
 
@@ -761,7 +495,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   });
   ```
 
-- [ ] **Schritt 3: Playwright-Projekt zuordnen**
+- [x] **Schritt 3: Playwright-Projekt zuordnen**
 
   In `playwright.config.ts` prüfen welches Projekt für Admin-Tests zuständig ist (typisch `website` oder `admin`). Die neuen Tests gehören in dasselbe Projekt wie die bestehenden Factory-Floor-Tests.
 
@@ -769,7 +503,7 @@ Der Kanban ist auf Mobile (< 768px) unbrauchbar. Wir fügen eine Fokus-Ansicht h
   grep -n "testDir\|project" /tmp/wt-planungsbuero-factory/website/playwright.config.ts | head -20
   ```
 
-- [ ] **Schritt 4: Commit**
+- [x] **Schritt 4: Commit**
 
   ```bash
   cd /tmp/wt-planungsbuero-factory

@@ -546,6 +546,7 @@ tasks:
           docs/agent-guide/maps/tools-map.md
           docs/agent-guide/maps/danger-map.md
           website/src/lib/agent-guide.generated.json
+          website/src/lib/platform-descriptions.generated.json
         "
         for f in $FILES; do
           if ! git diff --exit-code "$f"; then
@@ -2428,16 +2429,22 @@ tasks:
       - node scripts/agent-guide/emit-webapp.mjs
 
   agent-guide:emit:
-    desc: "Umbrella: regenerate all agent-guide surfaces (docs + webapp + maps)"
+    desc: "Umbrella: regenerate all agent-guide surfaces (docs + webapp + maps + platform-descriptions)"
     cmds:
       - task: agent-guide:docs
       - task: agent-guide:webapp
       - task: agent-guide:maps
+      - task: agent-guide:platform-descriptions
 
   agent-guide:maps:
     desc: "Regenerate docs/agent-guide/maps/{goals,tools,danger}-map.md from the registry"
     cmds:
       - node scripts/agent-guide/emit-maps.mjs
+
+  agent-guide:platform-descriptions:
+    desc: "Regenerate website/src/lib/platform-descriptions.generated.json from the components registry"
+    cmds:
+      - node scripts/gen-platform-descriptions.mjs
 
   quality:index:
     desc: "Validate the code-quality registry and regenerate docs/code-quality/repo-index.json"

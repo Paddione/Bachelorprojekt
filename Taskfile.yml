@@ -536,6 +536,13 @@ tasks:
     cmds:
       - node scripts/build-learning-assets.mjs
 
+  graph:build:
+    desc: "Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph.mjs
+      - node scripts/build-api-map.mjs
+
   freshness:regenerate:
     desc: "Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)"
     cmds:
@@ -547,6 +554,7 @@ tasks:
       - task: assets:learning
       - task: quality:index
       - task: agent-guide:emit
+      - task: graph:build    # LAD: K8s graph artifacts
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"

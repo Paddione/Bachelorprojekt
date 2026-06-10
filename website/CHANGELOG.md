@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.45.0...website-v1.46.0) (2026-06-10)
+
+
+### Features
+
+* **factory-floor:** devflow Hall visibility with SSE + CI badge ([#1512](https://github.com/Paddione/Bachelorprojekt/issues/1512)) ([5163bbb](https://github.com/Paddione/Bachelorprojekt/commit/5163bbb4d860399364ab55f5bbc790e959ceb2a2))
+
 ## [1.45.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.44.0...website-v1.45.0) (2026-06-10)
 
 

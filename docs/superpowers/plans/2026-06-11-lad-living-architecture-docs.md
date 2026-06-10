@@ -2,7 +2,7 @@
 title: Plan: T000626 — Living Architecture Docs (LAD)
 ticket_id: T000626
 domains: [website, infra, test]
-status: active
+status: implemented
 pr_number: null
 file_locks: []
 shared_changes: false
@@ -16,7 +16,7 @@ depends_on_plans: []
 **Ticket:** T000626  
 **Branch:** feature/lad-living-architecture-docs  
 **Datum:** 2026-06-11  
-**Status:** staged
+**Status:** implemented
 
 ---
 
@@ -92,11 +92,11 @@ Taskfile.yml                                         # task graph:build, task fr
 ```
 
 **Tasks:**
-- [ ] `build-graph.mjs` schreiben: `glob('k3d/**/*.yaml')` → yaml-parse → Services/Deployments extrahieren → env-Werte auf bekannte Service-Namen matchen → Ingress backends → JSON ausgeben
-- [ ] Namespace-Mapping: `workspace` = mentolder, `workspace-korczewski` = korczewski, `website` = website
-- [ ] `docs/generated/graph.json` in `.gitignore`? Nein — committed, damit CI drift erkennt
-- [ ] `task graph:build` in `Taskfile.yml` registrieren
-- [ ] Unit-Test: `tests/unit/build-graph.bats` — prüft mind. 5 bekannte Services im Output
+- [x] `build-graph.mjs` schreiben: `glob('k3d/**/*.yaml')` → yaml-parse → Services/Deployments extrahieren → env-Werte auf bekannte Service-Namen matchen → Ingress backends → JSON ausgeben
+- [x] Namespace-Mapping: `workspace` = mentolder, `workspace-korczewski` = korczewski, `website` = website
+- [x] `docs/generated/graph.json` in `.gitignore`? Nein — committed, damit CI drift erkennt
+- [x] `task graph:build` in `Taskfile.yml` registrieren
+- [x] Unit-Test: `tests/unit/build-graph.bats` — prüft mind. 5 bekannte Services im Output
 
 ---
 
@@ -119,10 +119,10 @@ Taskfile.yml                                         # task graph:build, task fr
 ```
 
 **Tasks:**
-- [ ] `build-api-map.mjs` schreiben: `glob('website/src/pages/api/**/*.ts')` → AST-Analyse mit `acorn` oder Regex-Heuristik → Methoden + Auth extrahieren
-- [ ] `docs/generated/api-map.json` schreiben
-- [ ] Markdown-Tabelle als Nebenprodukt: `docs/generated/api-surface.md`
-- [ ] `task graph:build` ruft beide Scripts auf (LAD-1 + LAD-2)
+- [x] `build-api-map.mjs` schreiben: `glob('website/src/pages/api/**/*.ts')` → AST-Analyse mit `acorn` oder Regex-Heuristik → Methoden + Auth extrahieren
+- [x] `docs/generated/api-map.json` schreiben
+- [x] Markdown-Tabelle als Nebenprodukt: `docs/generated/api-surface.md`
+- [x] `task graph:build` ruft beide Scripts auf (LAD-1 + LAD-2)
 
 ---
 
@@ -141,11 +141,11 @@ Taskfile.yml                                         # task graph:build, task fr
 - Monospace-Labels für alle Service-Namen
 
 **Tasks:**
-- [ ] `build-graph-docs.mjs`: `graph.json` lesen → Mermaid-Syntax generieren (flowchart LR) → HTML-Template mit Dark-Theme-Init-Block wrappen
-- [ ] Drei Diagramm-Tabs: **Service-Map** | **K8s-Topology** | **API-Surface**
-- [ ] `k3d/docs-content-built/architecture/index.html` schreiben
-- [ ] `scripts/build-docs.mjs` erweitern: `await import('./build-graph-docs.mjs')` aufrufen
-- [ ] Verifikation: `task docs:deploy` deployt neue Architekturseite
+- [x] `build-graph-docs.mjs`: `graph.json` lesen → Mermaid-Syntax generieren (flowchart LR) → HTML-Template mit Dark-Theme-Init-Block wrappen
+- [x] Drei Diagramm-Tabs: **Service-Map** | **K8s-Topology** | **API-Surface**
+- [x] `k3d/docs-content-built/architecture/index.html` schreiben
+- [x] `scripts/build-docs.mjs` erweitern: `await import('./build-graph-docs.mjs')` aufrufen
+- [x] Verifikation: `task docs:deploy` deployt neue Architekturseite
 
 ---
 
@@ -156,11 +156,11 @@ Taskfile.yml                                         # task graph:build, task fr
 **Ziel:** `task freshness:graph-check` (analog zu `freshness:check` für `repo-index.json`) regeneriert `graph.json` + `api-map.json` und vergleicht mit committed Version. CI schlägt fehl wenn Drift > 0 neue oder gelöschte Services.
 
 **Tasks:**
-- [ ] `task freshness:graph-check` in `Taskfile.yml`: `node scripts/build-graph.mjs --stdout | diff - docs/generated/graph.json`
-- [ ] CI: `task test:all` ruft `freshness:graph-check` auf (oder eigenständiger Job)
-- [ ] Toleranz-Parameter: `GRAPH_DRIFT_THRESHOLD=0` (ENV, default 0 = kein Drift erlaubt)
-- [ ] Fehler-Message: `"graph.json veraltet — bitte task graph:build ausführen und committen"`
-- [ ] BATS-Test: `tests/unit/freshness-graph.bats` — prüft dass committed JSON == generiertes JSON
+- [x] `task freshness:graph-check` in `Taskfile.yml`: `node scripts/build-graph.mjs --stdout | diff - docs/generated/graph.json`
+- [x] CI: `task test:all` ruft `freshness:graph-check` auf (oder eigenständiger Job)
+- [x] Toleranz-Parameter: `GRAPH_DRIFT_THRESHOLD=0` (ENV, default 0 = kein Drift erlaubt)
+- [x] Fehler-Message: `"graph.json veraltet — bitte task graph:build ausführen und committen"`
+- [x] BATS-Test: `tests/unit/freshness-graph.bats` — prüft dass committed JSON == generiertes JSON
 
 ---
 
@@ -206,9 +206,9 @@ task workspace:validate # Manifeste unverändert
 
 ### Akzeptanzkriterien
 
-- [ ] `docs/generated/graph.json` enthält mind. 20 Nodes (alle k3d Services)
-- [ ] `docs/generated/api-map.json` enthält mind. 15 Endpoints
-- [ ] Architekturseite lädt ohne JS-Fehler in Chromium
-- [ ] Mermaid-Diagramm: Dark Background (`--ff-bg`), amber/grüne Node-Colors
-- [ ] `task freshness:graph-check` schlägt fehl wenn `graph.json` manuell verändert wird
-- [ ] CI-Job grün auf main-Branch
+- [x] `docs/generated/graph.json` enthält mind. 20 Nodes (alle k3d Services)
+- [x] `docs/generated/api-map.json` enthält mind. 15 Endpoints
+- [x] Architekturseite lädt ohne JS-Fehler in Chromium
+- [x] Mermaid-Diagramm: Dark Background (`--ff-bg`), amber/grüne Node-Colors
+- [x] `task freshness:graph-check` schlägt fehl wenn `graph.json` manuell verändert wird
+- [x] CI-Job grün auf main-Branch

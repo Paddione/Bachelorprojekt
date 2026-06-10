@@ -17,6 +17,7 @@
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
+  import MobileFloorNav from './MobileFloorNav.svelte';
   import type { QaItem } from '../lib/qa-dal';
 
   let { initial }: { initial: FloorPayload | null } = $props();
@@ -26,17 +27,15 @@
     { key: 'implement', label: 'Implement' }, { key: 'verify', label: 'Verify' }, { key: 'deploy', label: 'Deploy' },
   ];
 
-  const MOBILE_COLS = [
-    'staged', 'backlog',
-    'scout', 'design', 'plan', 'implement', 'verify', 'deploy',
-    'qs', 'done',
-  ] as const;
-  type MobileCol = (typeof MOBILE_COLS)[number];
-
+  const MOBILE_COL_COUNT = 10;
+  const MOBILE_COL_INDEX: Record<string, number> = {
+    staged: 0, backlog: 1, scout: 2, design: 3, plan: 4,
+    implement: 5, verify: 6, deploy: 7, qs: 8, done: 9,
+  };
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
 
-  function mobileNext() { if (mobileColIndex < MOBILE_COLS.length - 1) mobileColIndex++; }
+  function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }
   function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }
   function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }
   function onTouchEnd(e: TouchEvent) {
@@ -75,7 +74,6 @@
       }));
     } catch { stale = true; }
   }
-
   async function openDetail(extId: string) {
     selected = extId; detail = null;
     try {
@@ -84,14 +82,12 @@
     } catch { /* keep panel open with a spinner */ }
   }
   function closeDetail() { selected = null; detail = null; }
-
   let injKind = $state<'context'|'note'|'asset'>('context');
   let injPhase = $state<string>('');
   let injTitle = $state('');
   let injContent = $state('');
   let injBusy = $state(false);
   let injError = $state<string | null>(null);
-
   async function submitInjection() {
     if (!selected) return;
     injBusy = true; injError = null;
@@ -108,13 +104,10 @@
     } catch { injError = 'Netzwerkfehler'; }
     finally { injBusy = false; }
   }
-
   function hallAt(station: Phase): HallItem[] {
     return data?.hall.filter((h) => h.phase === station) ?? [];
   }
   function assetFallback(e: Event) { (e.currentTarget as HTMLImageElement).style.display = 'none'; }
-
-  // --- Verlinkung + Zeit-Helfer -------------------------------------------------
   const GH_REPO = 'Paddione/Bachelorprojekt';
   const prUrl = (n: number) => `https://github.com/${GH_REPO}/pull/${n}`;
   const ticketUrl = (extId: string) => `/admin/tickets?q=${encodeURIComponent(extId)}`;
@@ -123,8 +116,6 @@
 
   let releasing = $state<string | null>(null);
   let releaseErr = $state<string | null>(null);
-
-  /** „-> Factory": plan_staged -> backlog, dann optimistisch neu laden. */
   async function releaseToFactory(extId: string) {
     releasing = extId; releaseErr = null;
     try {
@@ -137,14 +128,10 @@
       await refresh();
     } catch { releaseErr = 'Netzwerkfehler'; }
     finally { releasing = null; }
-  }
-
   let manualHintFor = $state<string | null>(null);
   function toggleManualHint(extId: string) {
     manualHintFor = manualHintFor === extId ? null : extId;
   }
-
-  /** Kompakte deutsche Relativzeit ("vor 2 Min."). Aktualisiert mit jedem Poll. */
   function relTime(iso: string | null): string {
     if (!iso) return '';
     const s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
@@ -170,7 +157,6 @@
     if (p === 'niedrig') return 'bg-emerald-400';
     return 'bg-white/40';
   }
-
   function connectSSE() {
     es = new EventSource('/api/factory-floor/stream', { withCredentials: true });
     es.addEventListener('phase', () => { void refresh(); });
@@ -182,12 +168,8 @@
   }
 
   onMount(() => { if (!initial) void refresh(); connectSSE(); });
-  onDestroy(() => {
-    es?.close();
-    if (reconnectTimer) clearTimeout(reconnectTimer);
-  });
+  onDestroy(() => { es?.close(); if (reconnectTimer) clearTimeout(reconnectTimer); });
 </script>
-
 <div class="text-light" data-testid="factory-floor">
   {#if !data}
     <p class="text-muted">Fabrikhalle lädt…</p>
@@ -221,19 +203,7 @@
       <a href="#floor-kommissionierung" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-komm-count" title="Zur Kommissionierung"><p class="text-muted text-xs">Kommissionierung</p><p class="text-xl font-bold">{data.stagedWaiting ?? 0}</p></a>
     </div>
 
-    <!-- Mobile Fokus-Navigation (nur < 768px sichtbar) -->
-    <div class="mobile-col-nav">
-      <button class="mobile-nav-arrow" onclick={mobilePrev} disabled={mobileColIndex === 0}>←</button>
-      <div class="mobile-col-title">
-        {MOBILE_COLS[mobileColIndex].toUpperCase()}
-      </div>
-      <button class="mobile-nav-arrow" onclick={mobileNext} disabled={mobileColIndex === MOBILE_COLS.length - 1}>→</button>
-    </div>
-    <div class="mobile-pips">
-      {#each MOBILE_COLS as _, i}
-        <div class="pip" class:pip-active={i === mobileColIndex} class:pip-done={i < mobileColIndex}></div>
-      {/each}
-    </div>
+    <MobileFloorNav {mobileColIndex} onPrev={mobilePrev} onNext={mobileNext} />
 
     <div
       class="kanban-container flex flex-col lg:flex-row gap-4"
@@ -241,7 +211,7 @@
       ontouchend={onTouchEnd}
     >
       <!-- ⓪ Kommissionierung -->
-      <div data-col="staged" class:mobile-visible={MOBILE_COLS[mobileColIndex] === 'staged'} class="lg:w-1/5 scroll-mt-24" id="floor-kommissionierung" data-testid="floor-kommissionierung">
+      <div data-col="staged" class:mobile-visible={mobileColIndex === 0} class="lg:w-1/5 scroll-mt-24" id="floor-kommissionierung" data-testid="floor-kommissionierung">
         <h3 class="font-semibold mb-2">Kommissionierung</h3>
         {#if data.staged.length === 0}
           <p class="text-muted text-sm">Nichts kommissioniert.</p>
@@ -300,7 +270,7 @@
       </div>
 
       <!-- ② Laderampe -->
-      <div data-col="backlog" class:mobile-visible={MOBILE_COLS[mobileColIndex] === 'backlog'} class="lg:w-1/5" data-testid="floor-loadingdock">
+      <div data-col="backlog" class:mobile-visible={mobileColIndex === 1} class="lg:w-1/5" data-testid="floor-loadingdock">
         <h3 class="font-semibold mb-2">Laderampe</h3>
         {#if data.loadingDock.length === 0}
           <p class="text-muted text-sm">Leer.</p>
@@ -320,91 +290,48 @@
         {/if}
       </div>
 
-      <!-- ③ Die Halle — mobile: einzelne Phasen, desktop: grid -->
+      <!-- ③ Die Halle — mobile: data-col Fokus, desktop: grid -->
       <div class="lg:w-2/5" data-testid="floor-hall">
         <h3 class="font-semibold mb-2">Halle</h3>
         {#if data.hall.length === 0}
           <p class="text-muted text-sm">Fabrik im Leerlauf.</p>
         {:else}
-          <!-- Mobile phase columns (individual, one at a time) -->
-          <div class="mobile-phase-cols">
+          <div class="grid grid-cols-6 gap-2">
             {#each STATIONS as st (st.key)}
-              <div data-col={st.key} class:mobile-visible={MOBILE_COLS[mobileColIndex] === st.key}>
-                <div class="rounded-lg bg-white/5 p-2 min-h-24">
-                  <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
-                  <p class="text-center text-xs text-muted mb-1">{st.label}</p>
-                  {#each hallAt(st.key) as w (w.extId)}
-                    <button
-                      onclick={() => openDetail(w.extId)}
-                      data-testid="floor-workpiece"
-                      data-driver={w.driver ?? 'factory'}
-                      title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
-                      class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
-                      class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                      class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                      class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
-                      class:border={w.driver === 'devflow'}
-                      class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:animate-pulse={w.phaseState === 'blocked'}>
-                      <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
-                      {#if w.driver === 'devflow' && w.ciStatus}
-                        <span role="button" tabindex="0" data-testid="floor-ci-badge"
-                              title={`CI: ${w.ciStatus} — PR öffnen`}
-                              onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
-                              onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
-                          {ciIcon(w.ciStatus)}
-                        </span>
-                      {/if}
-                    </button>
-                  {/each}
-                </div>
+              <div data-col={st.key} class:mobile-visible={mobileColIndex === MOBILE_COL_INDEX[st.key]} class="rounded-lg bg-white/5 p-2 min-h-24">
+                <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
+                <p class="text-center text-xs text-muted mb-1">{st.label}</p>
+                {#each hallAt(st.key) as w (w.extId)}
+                  <button
+                    onclick={() => openDetail(w.extId)}
+                    data-testid="floor-workpiece"
+                    data-driver={w.driver ?? 'factory'}
+                    title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
+                    class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
+                    class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                    class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                    class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
+                    class:border={w.driver === 'devflow'}
+                    class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                    class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                    class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                    class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                    class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                    class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                    class:animate-pulse={w.phaseState === 'blocked'}>
+                    <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
+                    {#if w.driver === 'devflow' && w.ciStatus}
+                      <span role="button" tabindex="0" data-testid="floor-ci-badge"
+                            title={`CI: ${w.ciStatus} — PR öffnen`}
+                            onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
+                            onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
+                        {ciIcon(w.ciStatus)}
+                      </span>
+                    {/if}
+                  </button>
+                {/each}
               </div>
             {/each}
-          </div>
-          <!-- Desktop grid (alle 6 Phasen) -->
-          <div class="desktop-phase-grid">
-            <div class="grid grid-cols-6 gap-2">
-              {#each STATIONS as st (st.key)}
-                <div class="rounded-lg bg-white/5 p-2 min-h-24">
-                  <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
-                  <p class="text-center text-xs text-muted mb-1">{st.label}</p>
-                  {#each hallAt(st.key) as w (w.extId)}
-                    <button
-                      onclick={() => openDetail(w.extId)}
-                      data-testid="floor-workpiece"
-                      data-driver={w.driver ?? 'factory'}
-                      title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
-                      class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
-                      class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                      class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                      class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
-                      class:border={w.driver === 'devflow'}
-                      class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:animate-pulse={w.phaseState === 'blocked'}>
-                      <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
-                      {#if w.driver === 'devflow' && w.ciStatus}
-                        <span role="button" tabindex="0" data-testid="floor-ci-badge"
-                              title={`CI: ${w.ciStatus} — PR öffnen`}
-                              onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
-                              onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
-                          {ciIcon(w.ciStatus)}
-                        </span>
-                      {/if}
-                    </button>
-                  {/each}
-                </div>
-              {/each}
-            </div>
           </div>
         {/if}
       </div>
@@ -412,7 +339,7 @@
       <!-- QS-Platzhalter-Spalte: Implementierung via T000581 -->
       <div
         data-col="qs"
-        class:mobile-visible={MOBILE_COLS[mobileColIndex] === 'qs'}
+        class:mobile-visible={mobileColIndex === 8}
         class="lg:w-1/5 col col-qa"
       >
         <div class="col-head">
@@ -427,7 +354,7 @@
       </div>
 
       <!-- ④ Versand -->
-      <div data-col="done" class:mobile-visible={MOBILE_COLS[mobileColIndex] === 'done'} class="lg:w-1/5" data-testid="floor-shipped">
+      <div data-col="done" class:mobile-visible={mobileColIndex === 9} class="lg:w-1/5" data-testid="floor-shipped">
         <h3 class="font-semibold mb-2">Versand</h3>
         {#if data.shipped.length === 0}
           <p class="text-muted text-sm">Noch nichts versandt.</p>
@@ -562,60 +489,12 @@
     {/if}
   {/if}
 </div>
-
 <style>
-  .mobile-col-nav {
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 16px;
-  }
-  .mobile-col-title {
-    font-family: var(--font-mono, monospace);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    color: var(--color-brass, oklch(0.80 0.09 75));
-  }
-  .mobile-nav-arrow {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--color-ink-800, #17202e);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: var(--color-mute, #8c96a3);
-    font-size: 15px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .mobile-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  .mobile-pips {
-    display: none;
-    gap: 3px;
-    padding: 0 16px 8px;
-  }
-  .pip {
-    flex: 1; height: 2px; border-radius: 1px;
-    background: var(--color-ink-750, #1d2736);
-  }
-  .pip.pip-done { background: rgba(255,255,255,0.25); }
-  .pip.pip-active { background: var(--color-brass, oklch(0.80 0.09 75)); }
-
   .col-label-qa { color: #818cf8; }
 
   @media (max-width: 767px) {
-    .mobile-col-nav { display: flex; }
-    .mobile-pips    { display: flex; }
-
     .kanban-container [data-col] { display: none; }
     .kanban-container [data-col].mobile-visible { display: flex; flex-direction: column; width: 100%; }
-
     .kanban-container { overflow-x: hidden; }
-
-    .mobile-phase-cols { display: contents; }
-    .desktop-phase-grid { display: none; }
-  }
-
-  @media (min-width: 768px) {
-    .mobile-phase-cols { display: none; }
-    .desktop-phase-grid { display: block; }
   }
 </style>

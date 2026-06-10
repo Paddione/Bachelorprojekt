@@ -76,7 +76,7 @@ describe('provider routing DDL in initTicketsSchema source', () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const src = readFileSync(fileURLToPath(new URL('./tickets-db.ts', import.meta.url)), 'utf8');
-    expect(src).toContain("('*', 'sonnet', 99, 'anthropic'");
-    expect(src).toContain("('*', 'haiku',  99, 'anthropic'");
+    expect(src).toContain("('*','sonnet',99,'anthropic'");
+    expect(src).toContain("('*','haiku',99,'anthropic'");
   });
 });

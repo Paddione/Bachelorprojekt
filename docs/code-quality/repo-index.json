@@ -448,7 +448,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1149,
+      "file_count": 1150,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -588,6 +588,7 @@
         "website/src/components/PortalSidekick.svelte",
         "website/src/components/Portrait.svelte",
         "website/src/components/Process.astro",
+        "website/src/components/ProviderStatus.svelte",
         "website/src/components/QaChip.svelte",
         "website/src/components/QaModal.svelte",
         "website/src/components/QuoteCard.svelte",

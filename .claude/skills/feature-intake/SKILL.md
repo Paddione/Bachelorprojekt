@@ -233,6 +233,14 @@ Bereiche: Brett (2 Fragen inkl. Handy), Website / Admin (2), Chat (1), Vaultward
 
 Drei Freitext-Felder: „Sofort hätte ich…", „In 6 Monaten…", „Vermisse von anderen Apps…"
 
+**Block 4 — Große Vision (Major-Feature)**
+
+Ein Freitext-Feld mit Leitfrage: „Wenn du die Plattform komplett neu erfinden könntest — was wäre anders?"
+
+Darunter eine Checkbox: „Ich bin offen, dass dieses Feature in mehrere unabhängige Teile zerlegt und parallel entwickelt wird."
+
+Dieser Block identifiziert Major-Features die via `dev-flow-batch` zerlegt werden können.
+
 **[FOOTER]** „Markdown kopieren"-Button + Fallback-Textarea
 
 #### Technische Anforderungen
@@ -288,6 +296,10 @@ Eingereicht von: gekko
 - Sofort: "Brett auf Handy benutzbar machen"
 - In 6 Monaten: "Newsletter komplett in der Plattform"
 - Vermisse: "Notion-ähnliche Datenbanken"
+
+### Block 4 — Große Vision
+- Vision: "Eine App für alles — Brett, Chat, Dateien, Verträge in einem Flow"
+- Parallel-Entwicklung: ✓ (Checkbox gesetzt)
 ```
 
 #### Tickets anlegen
@@ -321,6 +333,39 @@ bash scripts/ticket.sh add-comment \
 **Kontext:** Primärgerät: <gerät>, Nutzung: <frequenz>
 **Ranking-Position:** <1-5 oder 'unranked'>"
 ```
+
+#### Major-Feature aus Block 4
+
+Wenn Block 4 "Große Vision" ausgefüllt ist und die "Parallel-Entwicklung"-Checkbox gesetzt:
+
+```bash
+# Major-Feature-Ticket mit speziellem Kommentar
+TICKET_RESULT=$(bash scripts/ticket.sh create \
+  --type feature \
+  --brand mentolder \
+  --title "<destillierte Vision>" \
+  --priority hoch \
+  --description "<Vision-Text aus Block 4>" \
+  --status planning)
+
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+
+bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
+  --value-prop "<Hauptnutzen der Vision>" \
+  --effort gross \
+  --areas <bereich>
+
+bash scripts/ticket.sh add-comment \
+  --id "$TICKET_EXT_ID" \
+  --author "feature-intake/gekkomode" \
+  --body "## Major-Feature aus GekkoMode $(date +%F)
+
+**Vision:** \"<exakte Vision aus Block 4>\"
+**Parallel-Entwicklung:** ✓ (vom User bestätigt)
+**Nächster Schritt:** via dev-flow-batch in Sub-Features zerlegen"
+```
+
+Nach dem Anlegen aller Tickets: Schlage vor, das Major-Feature via `dev-flow-batch` zu zerlegen.
 
 #### Priorisierungslogik für `--priority`
 
@@ -359,9 +404,14 @@ Neu angelegt:
   • T000xxx [hoch] <Titel> — "<Originalzitat>"
   • T000xxx [mittel] <Titel> — "<Originalzitat>"
 
+🏗️ Major-Feature erkannt:
+  • T000xxx [hoch/gross] <Vision-Titel>
+    → via dev-flow-batch in Sub-Features zerlegen?
+
 Deadline-Flag: T000xxx erwartet bis <datum> (aus Block 5)
 
 → Planungsbüro öffnen? Oder direkt T000xxx zu dev-flow-plan?
+→ Major-Feature via dev-flow-batch starten?
 ```
 
 ---
@@ -377,6 +427,40 @@ Lies die planning-Tickets und offene Backlog-Einträge (nicht alle open-Tickets)
 bash scripts/ticket.sh list --status planning --limit 20 2>/dev/null | head -40 || true
 bash scripts/ticket.sh list --status backlog  --limit 10 2>/dev/null | head -20 || true
 ```
+
+### Schritt 1.5 — Major-Feature-Frage
+
+Bevor du in die Ideation gehst, frage:
+
+```
+Möchtest du auch Major-Features in Betracht ziehen? Das sind große Features
+die in 2-6 unabhängige Sub-Features zerlegt und parallel entwickelt werden
+können (z.B. "Komplette Plattform-Überholung", "Neues Abrechnungssystem",
+"Mobile-First Redesign"). Die Sub-Features werden via dev-flow-batch parallel
+geplant und können unabhängig voneinander deployed werden.
+
+→ Ja, zeig mir Major-Feature-Ideen
+→ Nein, nur einzelne Features
+```
+
+Wenn **Ja**: Präsentiere nach den normalen Clustern einen zusätzlichen Block:
+
+```
+🏗️ Major-Feature-Kandidaten (zerlegbar in 2-6 Sub-Features):
+
+• Plattform-Modernisierung — Neues UI-Framework, API v2, Mobile-First
+  → Sub-Features: UI-Redesign, API-Migration, Responsive-Layout, PWA-Shell
+
+• Billing-Revolution — Abo-Modelle, Usage-Based, Invoice-Automation
+  → Sub-Features: Abo-Engine, Usage-Tracking, Invoice-Gen, Payment-Integration
+
+• Collaboration-Suite — Echtzeit-Edit, Comments, Presence, Versioning
+  → Sub-Features: CRDT-Editor, Comment-System, Presence-Indicator, Version-History
+
+→ Interessiert dich ein Major-Feature? Welches?
+```
+
+Nutze diese Major-Feature-Vorlagen als Inspiration, aber passe sie an den Projekt-Kontext an. Wenn der User ein eigenes Major-Feature beschreibt, zerlege es in Sub-Features.
 
 ### Schritt 2 — Ideation-Runden
 
@@ -481,6 +565,12 @@ Das Formular muss:
   • Aufwand: Dropdown (Klein / Mittel / Groß)
   • Kommentar: textarea (klein, optional — NICHT Pflicht)
 
+[ABSCHNITT: Major-Feature]
+  Checkbox: "Ich habe eine große Vision die in mehrere Teile zerlegt werden kann"
+  Textarea: "Beschreibe dein Major-Feature (2-3 Sätze)"
+  Hinweis: "Z.B. 'Komplettes Redesign der Plattform' oder 'Neues Abrechnungssystem'"
+  → Wenn Checkbox gesetzt: wird via dev-flow-batch in Sub-Features zerlegt
+
 [ABSCHNITT: Freie Ideen]
   2-3 Zeilen Freitext (für Ideen, keine Checkbox abdeckt)
 
@@ -502,6 +592,11 @@ Eingereicht von: gekko
 
 ### Mittlere Priorität
 - [ ] **[Chat] Reaktionen** | Priorität: Mittel | Aufwand: Klein
+
+### Major-Feature
+- [x] **Major-Feature gewünscht**
+- Beschreibung: "Komplette Plattform-Modernisierung — neues UI, API v2, Mobile-First"
+- Parallel-Entwicklung: ✓
 
 ### Freie Ideen
 > "Export-Funktion für Brett-Sessions als PDF"
@@ -587,11 +682,16 @@ bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
   --areas <normalisierter-areas-key>
 ```
 
-3. Schlage vor, welches Feature als erstes zu `dev-flow-plan` gehen soll (höchste Priorität → kleinster Aufwand als Tiebreaker)
+3. **Major-Feature erkennen:** Wenn der Abschnitt "Major-Feature" vorhanden und die Checkbox gesetzt ist:
+   - Erstelle ein Ticket mit `--effort gross` und `--priority hoch`
+   - Setze im Kommentar: `major_feature: true`
+   - Schlage nach der normalen Feature-Liste vor: `→ Major-Feature via dev-flow-batch zerlegen?`
+
+4. Schlage vor, welches Feature als erstes zu `dev-flow-plan` gehen soll (höchste Priorität → kleinster Aufwand als Tiebreaker)
 
 ---
 
-## Übergabe an dev-flow-plan
+## Übergabe an dev-flow-plan / dev-flow-batch
 
 Nach Brainstorm oder Rücklauf, wenn eines oder mehrere Features als nächstes gebaut werden sollen:
 
@@ -612,3 +712,32 @@ Starte **immer nur ein** `dev-flow-plan` zur Zeit — parallele Feature-Worktree
 auf `k3d/configmap-domains.yaml` und `environments/schema.yaml` (siehe CLAUDE.md Gotcha
 „Parallel plans share registry files"). Restliche Features bleiben im Planungsbüro mit
 `status=planning` und warten dort auf Freigabe.
+
+### Major-Feature → dev-flow-batch
+
+Wenn ein **Major-Feature** ausgewählt wurde (aus Schritt 1.5 oder Block 4 GekkoMode):
+
+```
+🏗️ Major-Feature erkannt: <Titel>
+
+Dieses Feature wird in 2-6 unabhängige Sub-Features zerlegt und parallel geplant.
+Die Sub-Features können unabhängig voneinander deployed werden.
+
+→ dev-flow-batch starten? (zerlegt das Feature und plant alle Sub-Features parallel)
+```
+
+Wenn der User bestätigt, rufe `dev-flow-batch` auf mit dem Major-Feature als Argument:
+
+```
+dev-flow-batch "<Major-Feature Beschreibung>"
+```
+
+Der Batch-Skill:
+1. Zerlegt das Feature in ≤6 Sub-Features (Decompose-Subagent)
+2. Erstellt für jedes Sub-Feature einen eigenen Branch + Spec + Plan (parallel)
+3. Alle fertigen Pläne landen in `status=plan_staged` in der Kommissionierung
+4. Factory kann die Sub-Features parallel implementieren
+
+**Größenordnung:** Ein Major-Feature kann 2-6 Wochen Arbeit umfassen, verteilt auf
+parallele Workstreams. Beispiel: "Plattform-Modernisierung" = 4 Sub-Features × ~1 Woche
+= 1 Woche real (bei voller Parallelität).

@@ -5,6 +5,7 @@ import {
   listAdminTickets, countAdminTickets, createAdminTicket,
   type ListFilters, type TicketType, type TicketPriority, type TicketSeverity,
 } from '../../../../lib/tickets/admin';
+import { autoTriage } from '../../../../lib/ticket-triage';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
@@ -73,6 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
       estimateMinutes: typeof body.estimateMinutes === 'number' ? body.estimateMinutes : undefined,
       actor: { label: session.preferred_username },
     });
+    void autoTriage(id, BRAND()).catch(err => console.error('[autoTriage]', err));
     return new Response(JSON.stringify({ ok: true, id }), {
       status: 200, headers: { 'Content-Type': 'application/json' },
     });

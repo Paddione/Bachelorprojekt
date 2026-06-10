@@ -540,6 +540,7 @@ export async function addComment(p: {
   body: string;
   visibility: 'internal' | 'public';
   actor: { id?: string; label: string };
+  kind?: 'comment' | 'status_change' | 'system';
 }): Promise<{ id: number; emailSent: boolean }> {
   await initTicketsSchema();
   const guard = await pool.query<{ brand: string; reporter_email: string | null; external_id: string | null; type: string }>(
@@ -554,9 +555,9 @@ export async function addComment(p: {
   const r = await pool.query<{ id: number }>(
     `INSERT INTO tickets.ticket_comments
        (ticket_id, author_id, author_label, kind, body, visibility)
-     VALUES ($1, $2, $3, 'comment', $4, $5)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
-    [p.ticketId, p.actor.id ?? null, p.actor.label, trimmed, p.visibility]);
+    [p.ticketId, p.actor.id ?? null, p.actor.label, p.kind ?? 'comment', trimmed, p.visibility]);
 
   let emailSent = false;
   if (p.visibility === 'public' && guard.rows[0].reporter_email && guard.rows[0].type === 'bug') {

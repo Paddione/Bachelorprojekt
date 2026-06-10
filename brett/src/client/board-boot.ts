@@ -26,6 +26,7 @@ import * as persons from './ui/persons';
 import * as povCamera from './pov-camera';
 import * as freeFly from './free-fly-camera';
 import * as exportUi from './ui/export';
+import * as importUi from './ui/import';
 import * as groundObjects from './ground-objects';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
@@ -53,6 +54,9 @@ export async function bootBoard(): Promise<void> {
 
   // ── Export-UI (T000466) ────────────────────────────────────────────────────
   exportUi.initExportButtons(renderer.domElement);
+
+  // ── Import-UI (00899a42) ────────────────────────────────────────────────────
+  importUi.initImportButton();
 
   // ── Auth ───────────────────────────────────────────────────────────
   let _isAdmin = false;

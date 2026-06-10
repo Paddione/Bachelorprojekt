@@ -10,23 +10,31 @@ kind: ServiceAccount
 metadata:
   name: cicd-deploy
   namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: cicd
 ---
+
 # Role + RoleBinding in workspace namespace (brett, arena-server)
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: cicd-rollout
   namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: cicd
 rules:
 - apiGroups: ["apps"]
   resources: ["deployments"]
   verbs: ["get", "list", "watch", "patch"]
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: cicd-deploy-rollout
   namespace: ${WORKSPACE_NAMESPACE}
+  labels:
+    app: cicd
 subjects:
 - kind: ServiceAccount
   name: cicd-deploy
@@ -36,22 +44,28 @@ roleRef:
   name: cicd-rollout
   apiGroup: rbac.authorization.k8s.io
 ---
+
 # Role + RoleBinding in website namespace (website deployment)
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: cicd-rollout
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cicd
 rules:
 - apiGroups: ["apps"]
   resources: ["deployments"]
   verbs: ["get", "list", "watch", "patch"]
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: cicd-deploy-rollout
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cicd
 subjects:
 - kind: ServiceAccount
   name: cicd-deploy

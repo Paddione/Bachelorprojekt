@@ -116,10 +116,13 @@ spec:
         - name: tmp
           emptyDir: {}
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: brett
+  labels:
+    app: brett
 spec:
   selector:
     app: brett

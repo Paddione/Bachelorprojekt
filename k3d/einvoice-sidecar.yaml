@@ -4,7 +4,7 @@ metadata:
   name: einvoice-sidecar
   namespace: workspace
   labels:
-    app: einvoice-sidecar
+    app: einvoice
 spec:
   replicas: 1
   selector:
@@ -57,6 +57,8 @@ kind: Service
 metadata:
   name: einvoice-sidecar
   namespace: workspace
+  labels:
+    app: einvoice
 spec:
   type: ClusterIP
   selector:

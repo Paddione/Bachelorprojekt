@@ -3,12 +3,17 @@ kind: ServiceAccount
 metadata:
   name: website
   namespace: website
+  labels:
+    app: website
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: website-monitoring-role
   namespace: workspace
+  labels:
+    app: website
 rules:
   - apiGroups: [""]
     resources: ["pods", "events"]
@@ -17,11 +22,14 @@ rules:
     resources: ["deployments"]
     verbs: ["get", "list", "patch"]
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: website-monitoring-rolebinding
   namespace: workspace
+  labels:
+    app: website
 subjects:
   - kind: ServiceAccount
     name: website
@@ -31,10 +39,13 @@ roleRef:
   name: website-monitoring-role
   apiGroup: rbac.authorization.k8s.io
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: website-monitoring-clusterrole
+  labels:
+    app: website
 rules:
   - apiGroups: [""]
     resources: ["nodes"]
@@ -43,10 +54,13 @@ rules:
     resources: ["nodes", "pods"]
     verbs: ["get", "list"]
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: website-monitoring-clusterrolebinding
+  labels:
+    app: website
 subjects:
   - kind: ServiceAccount
     name: website

@@ -8,7 +8,7 @@ metadata:
   name: db-backup
   namespace: workspace
   labels:
-    app: db-backup
+    app: backup
 spec:
   schedule: "0 2 * * *"
   successfulJobsHistoryLimit: 3

@@ -7,6 +7,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: shared-db-pvc
   namespace: workspace
+  labels:
+    app: shared-db
 spec:
   storageClassName: local-path
   accessModes: [ReadWriteOnce]
@@ -14,11 +16,14 @@ spec:
     requests:
       storage: 25Gi
 ---
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: shared-db-init
   namespace: workspace
+  labels:
+    app: shared-db
 data:
   init-databases.sh: |
     #!/bin/bash
@@ -66,6 +71,7 @@ data:
       WHERE NOT EXISTS (SELECT 1 FROM confidential_projects WHERE project_name = 'PROJECT_NEBULA');
     EOSQL
 ---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -264,12 +270,15 @@ spec:
         - name: tls-certs
           emptyDir: {}
 ---
+
 # Primary service name — used by MCP and direct access
 apiVersion: v1
 kind: Service
 metadata:
   name: shared-db
   namespace: workspace
+  labels:
+    app: shared-db
 spec:
   selector:
     app: shared-db
@@ -277,12 +286,15 @@ spec:
     - port: 5432
       targetPort: 5432
 ---
+
 # Backward-compatible aliases so existing service connection strings work unchanged
 apiVersion: v1
 kind: Service
 metadata:
   name: keycloak-db
   namespace: workspace
+  labels:
+    app: shared-db
 spec:
   selector:
     app: shared-db
@@ -290,11 +302,14 @@ spec:
     - port: 5432
       targetPort: 5432
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: nextcloud-db
   namespace: workspace
+  labels:
+    app: shared-db
 spec:
   selector:
     app: shared-db

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: mcp-browser
   labels:
-    app: mcp-browser
+    app: claude-code
 spec:
   replicas: 1
   selector:
@@ -76,6 +76,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mcp-browser
+  labels:
+    app: claude-code
 spec:
   selector:
     app: mcp-browser

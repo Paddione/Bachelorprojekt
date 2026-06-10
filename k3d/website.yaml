@@ -4,15 +4,19 @@ kind: Namespace
 metadata:
   name: ${WEBSITE_NAMESPACE}
   labels:
+    app: website
     pod-security.kubernetes.io/enforce: baseline
     pod-security.kubernetes.io/warn: restricted
 ---
+
 # ── Website ConfigMap ─────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: website-config
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 data:
   # Brand
   BRAND: "${BRAND_ID}"
@@ -86,17 +90,23 @@ data:
   # after the rollout checklist in feat/systemtest-failure-loop has been run.
   SYSTEMTEST_LOOP_ENABLED: "${SYSTEMTEST_LOOP_ENABLED}"
 ---
+
 # ── Monitoring RBAC ──────────────────────────────────────────────────────────
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: website
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  labels:
+    app: website
 rules:
   - apiGroups: [""]
     resources: ["pods", "events", "nodes", "namespaces", "configmaps", "persistentvolumeclaims", "services"]
@@ -133,10 +143,13 @@ rules:
     resources: ["pods/log"]
     verbs: ["get"]
 ---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ${WEBSITE_NAMESPACE}-monitoring-reader
+  labels:
+    app: website
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -146,12 +159,15 @@ subjects:
     name: website
     namespace: ${WEBSITE_NAMESPACE}
 ---
+
 # ── Website Deployment ────────────────────────────────────────────────────────
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: website
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   replicas: 1
   # /var/evidence is an emptyDir — rrweb test artifacts are ephemeral and the
@@ -432,12 +448,15 @@ spec:
         - name: evidence
           emptyDir: {}
 ---
+
 # ── Website Service ───────────────────────────────────────────────────────────
 apiVersion: v1
 kind: Service
 metadata:
   name: website
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   selector:
     app: website
@@ -445,12 +464,15 @@ spec:
     - port: 80
       targetPort: 4321
 ---
+
 # ── IngressRoute ─────────────────────────────────────────────────────────────
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: website
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   entryPoints:
     - web
@@ -461,32 +483,41 @@ spec:
         - name: website
           port: 80
 ---
+
 # ── NetworkPolicies: website-Namespace ───────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
   - Ingress
 ---
+
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
   - Egress
 ---
+
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-dns-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -508,12 +539,15 @@ spec:
     - port: 53
       protocol: TCP
 ---
+
 # Website-Pod darf workspace-Services erreichen
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-egress-to-workspace
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -524,6 +558,7 @@ spec:
         matchLabels:
           kubernetes.io/metadata.name: ${WORKSPACE_NAMESPACE}
 ---
+
 # Website-Pod darf Collabora im workspace-office-Namespace erreichen
 # (Platform Hub System-Integrität Health-Probe → collabora:9980, T000287).
 # workspace-office trägt denselben Namespace-Namen auf beiden Clustern → literal, keine Variable.
@@ -532,6 +567,8 @@ kind: NetworkPolicy
 metadata:
   name: allow-egress-to-workspace-office
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -545,12 +582,15 @@ spec:
     - port: 9980
       protocol: TCP
 ---
+
 # Traefik-Ingress aus kube-system erlauben
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-traefik-ingress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -564,12 +604,15 @@ spec:
         matchLabels:
           app.kubernetes.io/name: traefik
 ---
+
 # Intra-namespace communication for website pods
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -578,11 +621,14 @@ spec:
   - to:
     - podSelector: {}
 ---
+
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-intra-namespace-ingress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -591,6 +637,7 @@ spec:
   - from:
     - podSelector: {}
 ---
+
 # kube-router IPSet race fix: short-lived Job pods may not be added to the podSelector
 # IPSet fast enough. ipBlock predicate is evaluated immediately — no lookup needed.
 apiVersion: networking.k8s.io/v1
@@ -598,6 +645,8 @@ kind: NetworkPolicy
 metadata:
   name: allow-pod-cidr-ingress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -607,6 +656,7 @@ spec:
     - ipBlock:
         cidr: 10.42.0.0/16
 ---
+
 # Service-CIDR Egress: pods must reach ClusterIP services.
 # podSelector: {} only covers pod IPs, not 10.43.x.x ClusterIPs.
 apiVersion: networking.k8s.io/v1
@@ -614,6 +664,8 @@ kind: NetworkPolicy
 metadata:
   name: allow-service-cidr-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -623,6 +675,7 @@ spec:
     - ipBlock:
         cidr: 10.43.0.0/16
 ---
+
 # LiveKit management port: kube-router enforces egress NetworkPolicies AFTER iptables DNAT.
 # livekit-server uses hostNetwork so its endpoint IP is the node IP (not in pod/service CIDR).
 # Allowing port 7880 by port (not destination) covers the post-DNAT node IP.
@@ -631,6 +684,8 @@ kind: NetworkPolicy
 metadata:
   name: allow-livekit-management-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -640,12 +695,15 @@ spec:
     - port: 7880
       protocol: TCP
 ---
+
 # SMTP Egress: Website-Pod darf externen SMTP-Server erreichen (Mailpit dev / mailbox.org prod)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-smtp-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -657,12 +715,15 @@ spec:
     - port: 1025
       protocol: TCP
 ---
+
 # HTTPS Egress: Website-Pod darf externe HTTPS-Dienste erreichen (Anthropic API, GitHub webhooks, etc.)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-https-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -674,12 +735,15 @@ spec:
     - port: 6443
       protocol: TCP
 ---
+
 # LLM-Gateway Egress: Website-Pod darf wg-mesh LLM-Endpunkt (LM Studio via WireGuard) auf Port 1234 erreichen
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-llm-egress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector: {}
   policyTypes:
@@ -692,12 +756,15 @@ spec:
     - ipBlock:
         cidr: 192.168.100.0/24
 ---
+
 # Ingress von Workspace-Namespace erlauben (für CronJobs)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-workspace-ingress
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 spec:
   podSelector:
     matchLabels:

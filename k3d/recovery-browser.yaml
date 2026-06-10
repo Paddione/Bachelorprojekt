@@ -14,7 +14,7 @@ kind: Deployment
 metadata:
   name: recovery-browser
   labels:
-    app: recovery-browser
+    app: recovery
 spec:
   replicas: 1
   selector:
@@ -74,6 +74,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: recovery-browser
+  labels:
+    app: recovery
 spec:
   selector:
     app: recovery-browser
@@ -86,7 +88,7 @@ kind: Deployment
 metadata:
   name: oauth2-proxy-recovery
   labels:
-    app: oauth2-proxy-recovery
+    app: recovery
 spec:
   replicas: 1
   selector:
@@ -211,6 +213,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: oauth2-proxy-recovery
+  labels:
+    app: recovery
 spec:
   selector:
     app: oauth2-proxy-recovery
@@ -224,6 +228,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: workspace-ingress-recovery
+  labels:
+    app: recovery
   annotations:
     traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
 spec:

@@ -6,6 +6,8 @@ kind: Middleware
 metadata:
   name: mailpit-auth
   namespace: workspace
+  labels:
+    app: mailpit
 spec:
   forwardAuth:
     address: http://oauth2-proxy-mailpit.workspace.svc.cluster.local:4180/oauth2/auth
@@ -15,11 +17,14 @@ spec:
       - X-Auth-Request-Email
       - X-Auth-Request-Access-Token
 ---
+
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: mailpit-errors
   namespace: workspace
+  labels:
+    app: mailpit
 spec:
   errors:
     status:
@@ -29,11 +34,14 @@ spec:
       port: 4180
     query: "/oauth2/sign_in?rd={url}"
 ---
+
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: mailpit-dev
   namespace: workspace
+  labels:
+    app: mailpit
 spec:
   entryPoints:
     - web

@@ -8,6 +8,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: website-schema
+  labels:
+    app: website
 data:
   init-meetings-schema.sh: |
     #!/bin/bash

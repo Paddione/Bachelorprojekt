@@ -8,6 +8,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: oauth2-proxy-traefik-allowed-emails
+  labels:
+    app: traefik
 data:
   # Admin allow-list. Must match users' Keycloak email addresses.
   allowed-emails: |
@@ -19,7 +21,7 @@ kind: Deployment
 metadata:
   name: oauth2-proxy-traefik
   labels:
-    app: oauth2-proxy-traefik
+    app: traefik
 spec:
   replicas: 1
   selector:
@@ -152,6 +154,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: oauth2-proxy-traefik
+  labels:
+    app: traefik
 spec:
   selector:
     app: oauth2-proxy-traefik

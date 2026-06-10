@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: mcp-github
   labels:
-    app: mcp-github
+    app: claude-code
 spec:
   replicas: 1
   selector:
@@ -60,6 +60,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mcp-github
+  labels:
+    app: claude-code
 spec:
   selector:
     app: mcp-github

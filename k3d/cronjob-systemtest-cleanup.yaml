@@ -16,11 +16,14 @@
 # transformer would otherwise force these into the wrong ns, so this manifest is
 # applied separately by `task workspace:deploy` via envsubst (see Taskfile).
 ---
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: systemtest-cleanup
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cronjobs
 spec:
   schedule: "0 * * * *"
   concurrencyPolicy: Forbid
@@ -79,11 +82,14 @@ spec:
                 limits:
                   memory: 64Mi
 ---
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: systemtest-purge-all
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cronjobs
 spec:
   schedule: "0 */6 * * *"
   concurrencyPolicy: Forbid
@@ -140,11 +146,14 @@ spec:
                 limits:
                   memory: 64Mi
 ---
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: systemtest-outbox
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: cronjobs
 spec:
   schedule: "*/5 * * * *"
   concurrencyPolicy: Forbid

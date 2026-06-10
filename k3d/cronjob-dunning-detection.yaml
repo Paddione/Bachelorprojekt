@@ -3,6 +3,8 @@ kind: CronJob
 metadata:
   name: billing-dunning-detection
   namespace: workspace
+  labels:
+    app: cronjobs
 spec:
   schedule: "0 6 * * *" # Daily at 06:00
   concurrencyPolicy: Forbid

@@ -9,16 +9,16 @@ kind: Deployment
 metadata:
   name: livekit-redis
   labels:
-    app: livekit-redis
+    app: livekit
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: livekit-redis
+      app: livekit
   template:
     metadata:
       labels:
-        app: livekit-redis
+        app: livekit
     spec:
       securityContext:
         runAsNonRoot: true
@@ -47,17 +47,21 @@ spec:
             capabilities:
               drop: [ALL]
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: livekit-redis
+  labels:
+    app: livekit
 spec:
   selector:
-    app: livekit-redis
+    app: livekit
   ports:
     - port: 6379
       targetPort: 6379
 ---
+
 # livekit-server runs with hostNetwork: true; its SYNs to livekit-redis arrive
 # at the destination node sourced from the flannel.1 tunnel IP (10.42.x.0), not
 # from a pod IP — so kube-router's allow-intra-namespace-ingress (podSelector:{})
@@ -67,10 +71,12 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-hostnet-to-livekit-redis-ingress
+  labels:
+    app: livekit
 spec:
   podSelector:
     matchLabels:
-      app: livekit-redis
+      app: livekit
   policyTypes:
     - Ingress
   ingress:
@@ -87,6 +93,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: livekit-server-config
+  labels:
+    app: livekit
 data:
   config.yaml: |
     port: 7880
@@ -129,7 +137,7 @@ kind: Deployment
 metadata:
   name: livekit-server
   labels:
-    app: livekit-server
+    app: livekit
 spec:
   replicas: 1
   # hostNetwork binds ports 7880/7881 directly on the node; a RollingUpdate
@@ -139,11 +147,11 @@ spec:
     type: Recreate
   selector:
     matchLabels:
-      app: livekit-server
+      app: livekit
   template:
     metadata:
       labels:
-        app: livekit-server
+        app: livekit
     spec:
       # WebRTC media uses UDP 50000-60000 + TCP 7881. The Service can't
       # publish a 10k-port UDP range, so the pod shares the node's network
@@ -204,13 +212,16 @@ spec:
           configMap:
             name: livekit-server-config
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: livekit-server
+  labels:
+    app: livekit
 spec:
   selector:
-    app: livekit-server
+    app: livekit
   ports:
     - name: http
       port: 7880
@@ -219,12 +230,15 @@ spec:
       port: 7881
       targetPort: 7881
 ---
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: livekit-server-ingress
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
+  labels:
+    app: livekit
 spec:
   rules:
     - host: "livekit.${PROD_DOMAIN}"
@@ -238,6 +252,7 @@ spec:
                 port:
                   number: 7880
 ---
+
 # CORS middleware: livekit-client in the browser fetches /rtc/v1/validate
 # from the website origin before opening the wss:// connection. Without these
 # headers the cross-origin request is blocked and the WebSocket never opens.
@@ -246,6 +261,8 @@ kind: Middleware
 metadata:
   name: livekit-cors
   namespace: workspace
+  labels:
+    app: livekit
 spec:
   headers:
     accessControlAllowOriginList:
@@ -262,6 +279,7 @@ spec:
     accessControlAllowCredentials: true
     addVaryHeader: true
 ---
+
 # HTTPS entry for LiveKit. The plain HTTP Ingress above stays for local/legacy
 # clients (e.g. server-to-server calls inside the cluster); browsers must use
 # wss:// from the HTTPS website, which requires this websecure router with
@@ -271,6 +289,8 @@ kind: IngressRoute
 metadata:
   name: livekit-server
   namespace: workspace
+  labels:
+    app: livekit
 spec:
   entryPoints:
     - websecure
@@ -292,16 +312,16 @@ kind: Deployment
 metadata:
   name: livekit-ingress
   labels:
-    app: livekit-ingress
+    app: livekit
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: livekit-ingress
+      app: livekit
   template:
     metadata:
       labels:
-        app: livekit-ingress
+        app: livekit
     spec:
       securityContext:
         runAsNonRoot: true
@@ -352,14 +372,17 @@ spec:
             capabilities:
               drop: [ALL]
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: livekit-ingress-rtmp
+  labels:
+    app: livekit
 spec:
   type: LoadBalancer
   selector:
-    app: livekit-ingress
+    app: livekit
   ports:
     - name: rtmp
       port: 1935
@@ -372,6 +395,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: livekit-recordings-pvc
+  labels:
+    app: livekit
 spec:
   storageClassName: local-path
   accessModes: [ReadWriteOnce]
@@ -379,21 +404,22 @@ spec:
     requests:
       storage: 20Gi
 ---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: livekit-egress
   labels:
-    app: livekit-egress
+    app: livekit
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: livekit-egress
+      app: livekit
   template:
     metadata:
       labels:
-        app: livekit-egress
+        app: livekit
     spec:
       containers:
         - name: egress

@@ -2147,6 +2147,75 @@ tasks:
       - 'echo ""'
       - 'echo "  Next → task workspace:office:deploy ENV={{.ENV}}"'
 
+  workspace:partial-deploy:
+    desc: "Nur geänderte Services deployen (ENV=mentolder PARTIAL_SERVICES=brett,docs)"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ -z "{{.PARTIAL_SERVICES}}" ]; then
+          echo "PARTIAL_SERVICES must be set (comma-separated app slugs), e.g. PARTIAL_SERVICES=brett,docs — aborting" >&2
+          exit 1
+        fi
+        source scripts/env-resolve.sh "{{.ENV}}"
+
+        if [ "{{.ENV}}" != "dev" ]; then
+          active_ctx=$(kubectl config current-context 2>/dev/null || echo "")
+          if [ "$active_ctx" != "$ENV_CONTEXT" ]; then
+            echo "Switching kubectl context: $active_ctx → $ENV_CONTEXT"
+            kubectl config use-context "$ENV_CONTEXT"
+          fi
+        fi
+
+        _ws_ns="${WORKSPACE_NAMESPACE:-workspace}"
+        overlay="${ENV_OVERLAY:-prod}"
+
+        # Mirror workspace:deploy's prod envsubst contract EXACTLY so rendered
+        # manifests are byte-identical (only the label selector differs).
+        export MAIL_FROM_LOCAL="${SMTP_FROM%@*}"
+        export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
+        ENVSUBST_VARS="\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$BRAND_ID"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$LIVEKIT_DOMAIN \$STREAM_DOMAIN \$RECOVER_DOMAIN"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$RIGGER_HOST_IP \$RIGGER_PORT"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL \$ARENA_IMAGE"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$DEV_DOMAIN \$DEV_NODE \$DEV_WEBSITE_HOST \$DEV_BRETT_HOST"
+        export ARENA_IMAGE="${ARENA_IMAGE:-ghcr.io/paddione/arena-server:latest}"
+        export DEV_DOMAIN="${DEV_DOMAIN:-}"
+        export DEV_NODE="${DEV_NODE:-}"
+        export DEV_WEBSITE_HOST="${DEV_WEBSITE_HOST:-}"
+        export DEV_BRETT_HOST="${DEV_BRETT_HOST:-}"
+        export SYSTEMTEST_LOOP_ENABLED="${SYSTEMTEST_LOOP_ENABLED:-false}"
+        export LLM_HOST_IP="${LLM_HOST_IP:-}"
+        export LLM_ENABLED="${LLM_ENABLED:-false}"
+        export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
+        export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
+        export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}"
+        export COMFY_HOST_IP="${COMFY_HOST_IP:-}"
+        export COMFY_PORT="${COMFY_PORT:-}"
+        export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
+        export RIGGER_PORT="${RIGGER_PORT:-8190}"
+
+        echo "Partial-deploy ENV={{.ENV}} ns=${_ws_ns} services=[{{.PARTIAL_SERVICES}}]"
+        kustomize build "$overlay/" --load-restrictor=LoadRestrictionsNone \
+          | envsubst "$ENVSUBST_VARS" \
+          | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
+          | kubectl --context "$ENV_CONTEXT" apply --server-side --force-conflicts \
+            -l "app in ({{.PARTIAL_SERVICES}})" -f -
+        echo "Partial-deploy applied. Rollout status per service:"
+        for svc in $(printf '%s' "{{.PARTIAL_SERVICES}}" | tr ',' ' '); do
+          kubectl --context "$ENV_CONTEXT" -n "${_ws_ns}" rollout status \
+            "deployment/$svc" --timeout=180s 2>/dev/null || \
+            echo "  (no deployment/$svc — service may be CronJob/Job-only, skipping rollout wait)"
+        done
+
   workspace:fix-tickets-grants:
     desc: "Idempotent: GRANT website role on tickets+bachelorprojekt schemas (ENV=dev|mentolder|korczewski). Run once after fresh bootstrap or any time pg_dump fails on tickets.* with permission denied."
     vars:

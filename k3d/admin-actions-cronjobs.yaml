@@ -4,7 +4,7 @@ metadata:
   name: admin-actions-cleanup
   namespace: workspace
   labels:
-    app: admin-actions
+    app: cronjobs
 spec:
   schedule: "*/30 * * * *"
   concurrencyPolicy: Forbid
@@ -55,7 +55,7 @@ metadata:
   name: admin-actions-prune
   namespace: workspace
   labels:
-    app: admin-actions
+    app: cronjobs
 spec:
   schedule: "0 4 * * *"
   concurrencyPolicy: Forbid

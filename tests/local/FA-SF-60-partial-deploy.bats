@@ -98,3 +98,19 @@ setup() { load 'test_helper.bash'; }
   fi
   [ "${#missing[@]}" -eq 0 ]
 }
+
+@test "FA-SF-60: Taskfile defines workspace:partial-deploy" {
+  run grep -Eq '^  workspace:partial-deploy:' Taskfile.yml
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-60: partial-deploy uses a label selector apply (app in (...))" {
+  # the rendered apply must filter by the PARTIAL_SERVICES label set
+  run grep -Eq 'app in \(' Taskfile.yml
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-60: partial-deploy aborts when PARTIAL_SERVICES is empty" {
+  run grep -Eq 'PARTIAL_SERVICES.*(required|must be set|empty)' Taskfile.yml
+  [ "$status" -eq 0 ]
+}

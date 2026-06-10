@@ -122,6 +122,7 @@ export default defineConfig({
         '**/fa-content-hub-service-consolidation.spec.ts',
         '**/fa-factory-injection.spec.ts', // /dev-status inject form smoke (admin-gated) [factory-injection]
         '**/fa-factory-floor.spec.ts',     // /dev-status hall render (admin-gated)
+        '**/fa-planning-office.spec.ts',   // /admin/planungsbuero CRUD/rank/DoR (admin-gated)
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
         '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
       ],

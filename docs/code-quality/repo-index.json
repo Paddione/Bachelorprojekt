@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 387,
+      "file_count": 389,
       "files": [
         "tests/.gitignore",
         "tests/e2e/brett-globals.d.ts",

@@ -154,6 +154,7 @@ function parseICalDate(val: string): Date {
 }
 
 export interface ClientBooking {
+  uid: string;
   summary: string;
   start: Date;
   end: Date;
@@ -256,7 +257,9 @@ export async function getClientBookings(clientEmail: string): Promise<ClientBook
       const status = extractICalProp(block, 'STATUS') || 'CONFIRMED';
 
       if (dtstart) {
+        const uid = extractICalProp(block, 'UID') || '';
         bookings.push({
+          uid,
           summary,
           start: parseICalDate(dtstart),
           end: dtend ? parseICalDate(dtend) : new Date(parseICalDate(dtstart).getTime() + 3600000),
@@ -455,6 +458,43 @@ export async function updateCalendarEventStatus(uid: string, status: 'CANCELLED'
   }
 }
 
+export async function updateCalendarEventTime(
+  uid: string,
+  newStart: Date,
+  newEnd: Date,
+): Promise<boolean> {
+  const url = await findEventUrl(uid);
+  if (!url) return false;
+
+  const formatDt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+  try {
+    const getRes = await fetch(url, {
+      headers: { Authorization: getAuthHeader() },
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
+    if (!getRes.ok) return false;
+    let ical = await getRes.text();
+
+    ical = ical.replace(/DTSTART[^\r\n]+/i, `DTSTART:${formatDt(newStart)}`);
+    ical = ical.replace(/DTEND[^\r\n]+/i, `DTEND:${formatDt(newEnd)}`);
+
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: getAuthHeader(),
+        'Content-Type': 'text/calendar; charset=utf-8',
+      },
+      body: ical,
+      signal: AbortSignal.timeout(CALDAV_TIMEOUT_MS),
+    });
+    return putRes.ok || putRes.status === 204;
+  } catch (err) {
+    console.error('[caldav] Update event time error:', err);
+    return false;
+  }
+}
+
 // Create a calendar event in Nextcloud
 export async function createCalendarEvent(params: {
   summary: string;
@@ -470,21 +510,24 @@ export async function createCalendarEvent(params: {
   let attendeeLine = '';
   if (params.attendeeEmail) {
     const cn = params.attendeeName || params.attendeeEmail;
-    attendeeLine = `ATTENDEE;CN=${cn};RSVP=TRUE:mailto:${params.attendeeEmail}\n`;
+    attendeeLine = `ATTENDEE;CN=${cn};RSVP=TRUE:mailto:${params.attendeeEmail}`;
   }
 
-  const ical = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//${BRAND_NAME}//Booking//DE
-BEGIN:VEVENT
-UID:${uid}@${BRAND_NAME}
-DTSTART:${formatDt(params.start)}
-DTEND:${formatDt(params.end)}
-SUMMARY:${params.summary}
-DESCRIPTION:${params.description.replace(/\n/g, '\\n')}
-${attendeeLine}STATUS:CONFIRMED
-END:VEVENT
-END:VCALENDAR`;
+  const ical = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    `PRODID:-//${BRAND_NAME}//Booking//DE`,
+    'BEGIN:VEVENT',
+    `UID:${uid}@${BRAND_NAME}`,
+    `DTSTART:${formatDt(params.start)}`,
+    `DTEND:${formatDt(params.end)}`,
+    `SUMMARY:${params.summary}`,
+    `DESCRIPTION:${params.description.replace(/\n/g, '\\n')}`,
+    ...(attendeeLine ? [attendeeLine] : []),
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n') + '\r\n';
 
   try {
     const res = await fetch(`${CALDAV_BASE}/${uid}.ics`, {

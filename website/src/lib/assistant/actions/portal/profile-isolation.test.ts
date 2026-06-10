@@ -1,4 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock external dependencies that the portal action handlers import.
+// These modules are not available in the unit test environment.
+vi.mock('../../../caldav', () => ({}));
+vi.mock('../../../email', () => ({}));
+vi.mock('../../../messaging-db', () => ({}));
+vi.mock('../../../website-db', () => ({
+  getCustomerByKeycloakId: vi.fn().mockResolvedValue(null),
+}));
+
 import './index';
 import '../admin/index';
 import { listActionsFor } from '../../actions';
@@ -14,13 +24,14 @@ describe('portal/admin action isolation', () => {
     expect(adminIds.every((id) => !id.startsWith('portal:'))).toBe(true);
   });
 
-  it('all 7 portal actions are registered', () => {
+  it('all 8 portal actions are registered', () => {
     const portalIds = listActionsFor('portal').map((a) => a.id).sort();
     expect(portalIds).toEqual([
       'portal:book-session',
       'portal:cancel-session',
       'portal:message-coach',
       'portal:move-session',
+      'portal:request-session',
       'portal:sign-document',
       'portal:start-questionnaire',
       'portal:upload-file',

@@ -258,3 +258,71 @@ ${FROM_NAME}`,
     html: `<p><strong>${params.clientName}</strong> hat den Fragebogen <strong>${params.questionnaireTitle}</strong> abgelehnt.</p>${params.reason ? `<p>Grund: ${params.reason}</p>` : ''}`,
   });
 }
+
+function formatDe(d: Date): string {
+  return d.toLocaleString('de-DE', {
+    timeZone: 'Europe/Berlin',
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export async function sendBookingConfirmation(params: {
+  to: string;
+  name: string;
+  start: Date;
+  end: Date;
+}): Promise<boolean> {
+  const dateStr = formatDe(params.start);
+  return sendEmail({
+    to: params.to,
+    subject: `Terminbestätigung — ${dateStr}`,
+    text: `Hallo ${params.name},
+
+Ihr Termin am ${dateStr} ist bestätigt.
+
+Mit freundlichen Grüßen
+${FROM_NAME}`,
+  });
+}
+
+export async function sendCancellationNotification(params: {
+  to: string;
+  name: string;
+  start: Date;
+}): Promise<boolean> {
+  const dateStr = formatDe(params.start);
+  return sendEmail({
+    to: params.to,
+    subject: 'Terminabsage bestätigt',
+    text: `Hallo ${params.name},
+
+Ihr Termin am ${dateStr} wurde erfolgreich abgesagt.
+
+Mit freundlichen Grüßen
+${FROM_NAME}`,
+  });
+}
+
+export async function sendRescheduleNotification(params: {
+  to: string;
+  name: string;
+  newStart: Date;
+  newEnd: Date;
+}): Promise<boolean> {
+  const dateStr = formatDe(params.newStart);
+  return sendEmail({
+    to: params.to,
+    subject: `Termin verschoben — ${dateStr}`,
+    text: `Hallo ${params.name},
+
+Ihr Termin wurde auf ${dateStr} verschoben.
+
+Mit freundlichen Grüßen
+${FROM_NAME}`,
+  });
+}

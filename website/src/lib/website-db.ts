@@ -232,6 +232,16 @@ export async function getCustomerFullById(id: string): Promise<{
   return result.rows[0] ?? null;
 }
 
+export async function getCustomerByKeycloakId(
+  keycloakSub: string,
+): Promise<{ id: string; email: string; name: string } | null> {
+  const { rows } = await pool.query<{ id: string; email: string; name: string }>(
+    `SELECT id, email, name FROM customers WHERE keycloak_user_id = $1 LIMIT 1`,
+    [keycloakSub],
+  );
+  return rows[0] ?? null;
+}
+
 export async function setCustomerNumber(
   customerId: string,
   customerNumber: string | null

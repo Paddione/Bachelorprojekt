@@ -494,8 +494,5 @@
     color: #eef1f3;
     border-color: rgba(255, 255, 255, 0.2);
   }
-  .ff-view-toggle__label {
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
+  .ff-view-toggle__label { text-transform: uppercase; letter-spacing: 0.05em; }
 </style>

@@ -1072,6 +1072,26 @@ export async function getSeoTitle(brand: string, pageKey: string): Promise<strin
   return getSiteSetting(brand, `seo_title_${pageKey}`).catch(() => null);
 }
 
+export async function getSeoOgImage(brand: string, pageKey: string): Promise<string | null> {
+  return getSiteSetting(brand, `seo_og_image_${pageKey}`).catch(() => null);
+}
+
+export async function getSeoMeta(brand: string, pageKey: string): Promise<{ title: string | null; description: string | null; ogImage: string | null }> {
+  const result = await pool.query(
+    `SELECT key, value FROM site_settings WHERE brand = $1 AND key IN ($2, $3, $4)`,
+    [brand, `seo_title_${pageKey}`, `seo_meta_desc_${pageKey}`, `seo_og_image_${pageKey}`],
+  );
+  const map: Record<string, string> = {};
+  for (const row of result.rows) {
+    map[row.key as string] = row.value as string;
+  }
+  return {
+    title: map[`seo_title_${pageKey}`] ?? null,
+    description: map[`seo_meta_desc_${pageKey}`] ?? null,
+    ogImage: map[`seo_og_image_${pageKey}`] ?? null,
+  };
+}
+
 // ── Vacation / Blackout Periods ───────────────────────────────────────────────
 
 export interface VacationPeriod {

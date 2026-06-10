@@ -4,7 +4,7 @@ import CallToAction from '../components/CallToAction.svelte';
 import FAQ from '../components/FAQ.svelte';
 import { getEffectiveServices } from '../lib/content';
 import { config } from '../config/index';
-import { getSiteSetting, getSeoTitle } from '../lib/website-db';
+import { getSiteSetting, getSeoTitle, getSeoOgImage } from '../lib/website-db';
 
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const layoutBrand = BRAND_ID === 'korczewski' ? 'korczewski-kore' : undefined;
@@ -33,13 +33,15 @@ const useRawTitle = seoTitle !== svc.title;
 const dbSeoDesc = await getSiteSetting(BRAND_ID, `seo_meta_desc_${svc.slug}`).catch(() => null);
 const seoDesc = dbSeoDesc ?? (pc as any).seoDescription ?? svc.description;
 
+const seoOgImage = await getSeoOgImage(BRAND_ID, svc.slug).catch(() => null);
+
 // introNote: special section rendered between intro and forWhom
 const introNoteSection = pc.sections?.find((s) => s.title === '__introNote__');
 const introNoteParagraphs = introNoteSection?.items ?? [];
 const visibleSections = (pc.sections ?? []).filter((s) => s.title !== '__introNote__');
 ---
 
-<Layout title={seoTitle} rawTitle={useRawTitle} description={seoDesc} brand={layoutBrand}>
+<Layout title={seoTitle} rawTitle={useRawTitle} description={seoDesc} brand={layoutBrand} ogImage={seoOgImage ?? undefined}>
   <section class="pt-28 pb-16 bg-dark">
     <div class="max-w-4xl mx-auto px-6">
       <nav class="mb-6" aria-label="Breadcrumb">

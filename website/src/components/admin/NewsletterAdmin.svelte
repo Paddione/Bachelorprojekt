@@ -1,4 +1,6 @@
 <script lang="ts">
+  import HtmlEditor from './HtmlEditor.svelte';
+
   type Subscriber = {
     id: string;
     email: string;
@@ -93,6 +95,13 @@
       const res = await fetch('/api/admin/newsletter/campaigns');
       campaigns = res.ok ? await res.json() : [];
       if (!res.ok) campError = 'Fehler beim Laden.';
+      if (campaigns.length === 0 && !hasSeededExample && activeTab === 'campaigns') {
+        hasSeededExample = true;
+        composeSubject = EXAMPLE_SUBJECT;
+        composeHtml = EXAMPLE_HTML;
+        composeDraftId = null;
+        composeMsg = 'Beispiel-Kampagne wurde als Entwurf geladen. Bearbeite sie oder sende sie später.';
+      }
     } catch {
       campError = 'Verbindungsfehler.';
     } finally {
@@ -121,36 +130,12 @@
   let confirmedCount = $state(0);
   let sending = $state(false);
   let nextAusgabe = $state('');
+  let hasSeededExample = $state(false);
 
-  // Server-rendered preview HTML (matches the actual outbound send 1:1).
-  // We render via /api/admin/newsletter/preview so preview and send share the
-  // same branded wrapper + legal footer (fixes T000173 / T000171).
-  let previewHtml = $state('');
-  let previewDebounce: ReturnType<typeof setTimeout> | null = null;
-
-  async function refreshPreview() {
-    try {
-      const res = await fetch('/api/admin/newsletter/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject: composeSubject, html_body: composeHtml }),
-      });
-      previewHtml = res.ok
-        ? await res.text()
-        : '<p style="color:#a33;font-family:sans-serif;padding:20px;">Vorschau konnte nicht geladen werden.</p>';
-    } catch {
-      previewHtml = '<p style="color:#a33;font-family:sans-serif;padding:20px;">Vorschau-Fehler (Verbindung).</p>';
-    }
-  }
-
-  $effect(() => {
-    if (activeTab !== 'compose') return;
-    // Track the deps Svelte needs to know about (synchronous reads).
-    void composeSubject;
-    void composeHtml;
-    if (previewDebounce) clearTimeout(previewDebounce);
-    previewDebounce = setTimeout(refreshPreview, 250);
-  });
+  const EXAMPLE_SUBJECT = 'Deine erste Ausgabe – herzlich willkommen!';
+  const EXAMPLE_HTML = `<h1 style="color:#333;font-family:sans-serif;">Herzlich willkommen!</h1>
+<p style="color:#555;font-family:sans-serif;font-size:16px;">Schön, dass du dabei bist. Dies ist eine automatisch erstellte Beispiel-Kampagne, die du bearbeiten oder als Vorlage für deine erste echte Ausgabe verwenden kannst.</p>
+<p style="color:#555;font-family:sans-serif;font-size:16px;">Viel Erfolg!<br>Dein Team</p>`;
 
   async function loadNextAusgabe() {
     try {
@@ -367,25 +352,21 @@
       />
     </div>
 
-    <!-- HTML editor — DIN-A4 width (794 px) -->
-    <div class="overflow-x-auto">
-      <div>
-        <label class="block text-sm text-muted mb-1">HTML-Inhalt *</label>
-        <textarea
-          bind:value={composeHtml}
-          placeholder="<h1>Hallo!</h1><p>Dein Newsletter-Inhalt hier.</p>"
-          rows="20"
-          style="width: 794px"
-          class="bg-dark border border-dark-lighter rounded-lg px-3 py-2 text-light text-sm font-mono focus:border-gold focus:ring-1 focus:ring-gold/20 outline-none resize-y"
-        ></textarea>
-        {#if nextAusgabe}
-          <p class="text-xs text-muted mt-1" style="width: 794px">
-            Platzhalter: <span class="font-mono text-gold/80">&#123;&#123;AUSGABE&#125;&#125;</span>
-            wird beim Versenden durch <span class="font-mono text-gold font-semibold">{nextAusgabe}</span> ersetzt.
-          </p>
-        {/if}
-      </div>
-    </div>
+    <HtmlEditor
+      bind:value={composeHtml}
+      previewMode="server"
+      previewUrl="/api/admin/newsletter/preview"
+      previewBody={() => ({ subject: composeSubject, html_body: composeHtml })}
+      label="HTML-Inhalt *"
+      placeholder="<h1>Hallo!</h1><p>Dein Newsletter-Inhalt hier.</p>"
+      rows={20}
+    />
+    {#if nextAusgabe}
+      <p class="text-xs text-muted mt-1">
+        Platzhalter: <span class="font-mono text-gold/80">&#123;&#123;AUSGABE&#125;&#125;</span>
+        wird beim Versenden durch <span class="font-mono text-gold font-semibold">{nextAusgabe}</span> ersetzt.
+      </p>
+    {/if}
 
     {#if composeMsg}
       <p class={`text-sm ${composeMsg.includes('Fehler') || composeMsg.includes('erforderlich') ? 'text-red-400' : 'text-green-400'}`}>{composeMsg}</p>
@@ -399,20 +380,6 @@
       </button>
     </div>
 
-    <!-- Preview — full DIN-A4 page (794 × 1123 px). Server-rendered with
-         the SAME branded wrapper the outbound send uses (header + Pflicht-
-         Footer mit Anbieterkennzeichnung + Abmelde-Link). -->
-    <div class="overflow-x-auto">
-      <div>
-        <p class="text-sm text-muted mb-1">Vorschau (1:1 wie versendet)</p>
-        <iframe
-          srcdoc={previewHtml || '<p style="color:#666;font-family:sans-serif;padding:20px;">Vorschau erscheint hier…</p>'}
-          title="E-Mail Vorschau"
-          style="width: 794px; height: 1123px"
-          class="rounded-xl border border-dark-lighter bg-white block"
-        ></iframe>
-      </div>
-    </div>
   </div>
 {/if}
 

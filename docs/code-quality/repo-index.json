@@ -425,7 +425,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1113,
+      "file_count": 1114,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -593,6 +593,7 @@
         "website/src/components/admin/DokumentEditor.svelte",
         "website/src/components/admin/DraftsInbox.svelte",
         "website/src/components/admin/EurReport.svelte",
+        "website/src/components/admin/HtmlEditor.svelte",
         "website/src/components/admin/InhalteEditor.svelte",
         "website/src/components/admin/KnowledgeJsonImport.svelte",
         "website/src/components/admin/KnowledgeSourceModal.svelte",

@@ -1,0 +1,2966 @@
+{
+  "generatedAt": "2026-06-10T23:41:10.525Z",
+  "endpoints": [
+    {
+      "path": "/api/admin/angebote/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/angebote/save.ts"
+    },
+    {
+      "path": "/api/admin/assets",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/assets.ts"
+    },
+    {
+      "path": "/api/admin/assets/upload",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/assets/upload.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/index.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/discard",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/discard.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/finalize-from-prepayment",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/item",
+      "methods": [
+        "POST",
+        "PATCH",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/item.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/payments",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/payments.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/send",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/send.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/storno",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/storno.ts"
+    },
+    {
+      "path": "/api/admin/billing/{id}/validate",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/[id]/validate.ts"
+    },
+    {
+      "path": "/api/admin/billing/create-invoice",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/create-invoice.ts"
+    },
+    {
+      "path": "/api/admin/billing/create-monthly-invoices",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/create-monthly-invoices.ts"
+    },
+    {
+      "path": "/api/admin/billing/customers/{id}/leitweg",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/customers/[id]/leitweg.ts"
+    },
+    {
+      "path": "/api/admin/billing/datev-email",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/datev-email.ts"
+    },
+    {
+      "path": "/api/admin/billing/datev-export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/datev-export.ts"
+    },
+    {
+      "path": "/api/admin/billing/draft-count",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/draft-count.ts"
+    },
+    {
+      "path": "/api/admin/billing/drafts",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/drafts.ts"
+    },
+    {
+      "path": "/api/admin/billing/dunning/{id}/send",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/dunning/[id]/send.ts"
+    },
+    {
+      "path": "/api/admin/billing/dunning/run",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/dunning/run.ts"
+    },
+    {
+      "path": "/api/admin/billing/integrity-check",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/integrity-check.ts"
+    },
+    {
+      "path": "/api/admin/billing/sepa-export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/billing/sepa-export.ts"
+    },
+    {
+      "path": "/api/admin/bookings/{uid}/delete",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bookings/[uid]/delete.ts"
+    },
+    {
+      "path": "/api/admin/bookings/{uid}/remind",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bookings/[uid]/remind.ts"
+    },
+    {
+      "path": "/api/admin/bookings/{uid}/status",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bookings/[uid]/status.ts"
+    },
+    {
+      "path": "/api/admin/bookings/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bookings/create.ts"
+    },
+    {
+      "path": "/api/admin/bookkeeping/summary",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bookkeeping/summary.ts"
+    },
+    {
+      "path": "/api/admin/brand-starter",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/brand-starter.ts"
+    },
+    {
+      "path": "/api/admin/brett/broadcast",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/brett/broadcast.ts"
+    },
+    {
+      "path": "/api/admin/bugs/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/[id].ts"
+    },
+    {
+      "path": "/api/admin/bugs/{id}/comments",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/[id]/comments.ts"
+    },
+    {
+      "path": "/api/admin/bugs/archive",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/archive.ts"
+    },
+    {
+      "path": "/api/admin/bugs/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/create.ts"
+    },
+    {
+      "path": "/api/admin/bugs/list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/list.ts"
+    },
+    {
+      "path": "/api/admin/bugs/reopen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/reopen.ts"
+    },
+    {
+      "path": "/api/admin/bugs/resolve",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/bugs/resolve.ts"
+    },
+    {
+      "path": "/api/admin/clientnotes/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clientnotes/create.ts"
+    },
+    {
+      "path": "/api/admin/clientnotes/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clientnotes/delete.ts"
+    },
+    {
+      "path": "/api/admin/clients-list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients-list.ts"
+    },
+    {
+      "path": "/api/admin/clients/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/create.ts"
+    },
+    {
+      "path": "/api/admin/clients/decline-enrollment",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/decline-enrollment.ts"
+    },
+    {
+      "path": "/api/admin/clients/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/delete.ts"
+    },
+    {
+      "path": "/api/admin/clients/enroll",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/enroll.ts"
+    },
+    {
+      "path": "/api/admin/clients/flag-user",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/flag-user.ts"
+    },
+    {
+      "path": "/api/admin/clients/newsletter-toggle",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/newsletter-toggle.ts"
+    },
+    {
+      "path": "/api/admin/clients/reset-password",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/reset-password.ts"
+    },
+    {
+      "path": "/api/admin/clients/roles-assign",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/roles-assign.ts"
+    },
+    {
+      "path": "/api/admin/clients/roles-remove",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/roles-remove.ts"
+    },
+    {
+      "path": "/api/admin/clients/set-admin-number",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/set-admin-number.ts"
+    },
+    {
+      "path": "/api/admin/clients/set-customer-number",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/set-customer-number.ts"
+    },
+    {
+      "path": "/api/admin/clients/set-is-admin",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/set-is-admin.ts"
+    },
+    {
+      "path": "/api/admin/clients/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/update.ts"
+    },
+    {
+      "path": "/api/admin/cluster/logs",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cluster/logs.ts"
+    },
+    {
+      "path": "/api/admin/cluster/pods-list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cluster/pods-list.ts"
+    },
+    {
+      "path": "/api/admin/cluster/warnings",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cluster/warnings.ts"
+    },
+    {
+      "path": "/api/admin/coaching/books",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/books/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/books/{id}",
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/books/[id]/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/books/{id}/acceptance-rate",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts"
+    },
+    {
+      "path": "/api/admin/coaching/books/{id}/chunks",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/books/[id]/chunks.ts"
+    },
+    {
+      "path": "/api/admin/coaching/books/upload",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/books/upload.ts"
+    },
+    {
+      "path": "/api/admin/coaching/clusters",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/clusters/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/drafts",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/drafts/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/drafts/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/drafts/[id].ts"
+    },
+    {
+      "path": "/api/admin/coaching/drafts/{id}/accept",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/drafts/[id]/accept.ts"
+    },
+    {
+      "path": "/api/admin/coaching/drafts/{id}/reject",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/drafts/[id]/reject.ts"
+    },
+    {
+      "path": "/api/admin/coaching/ki-config",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/ki-config/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/ki-config/{id}",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/ki-config/[id].ts"
+    },
+    {
+      "path": "/api/admin/coaching/ki-config/active",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/ki-config/active.ts"
+    },
+    {
+      "path": "/api/admin/coaching/projects",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/projects/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/projects/{id}",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/projects/[id].ts"
+    },
+    {
+      "path": "/api/admin/coaching/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/save.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}",
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/archive",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/archive.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/audit",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/audit.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/complete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/complete.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/status",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/status.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/steps/{n}",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/steps/{n}/generate",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/unarchive",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts"
+    },
+    {
+      "path": "/api/admin/coaching/snippets",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/snippets/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/snippets/{id}",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/snippets/[id].ts"
+    },
+    {
+      "path": "/api/admin/coaching/snippets/{id}/draft-template",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/snippets/[id]/draft-template.ts"
+    },
+    {
+      "path": "/api/admin/coaching/step-templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/step-templates/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/step-templates/{id}",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/step-templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/coaching/templates",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/templates/index.ts"
+    },
+    {
+      "path": "/api/admin/coaching/templates/{id}",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/coaching/templates/{id}/publish",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/templates/[id]/publish.ts"
+    },
+    {
+      "path": "/api/admin/coaching/templates/{id}/versions",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/templates/[id]/versions.ts"
+    },
+    {
+      "path": "/api/admin/components",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/components/index.ts"
+    },
+    {
+      "path": "/api/admin/components/{id}",
+      "methods": [
+        "PATCH",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/components/[id].ts"
+    },
+    {
+      "path": "/api/admin/content/restore",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/content/restore.ts"
+    },
+    {
+      "path": "/api/admin/content/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/content/save.ts"
+    },
+    {
+      "path": "/api/admin/content/versions",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/content/versions.ts"
+    },
+    {
+      "path": "/api/admin/customers",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/customers.ts"
+    },
+    {
+      "path": "/api/admin/customers-list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/customers-list.ts"
+    },
+    {
+      "path": "/api/admin/deployments",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/deployments.ts"
+    },
+    {
+      "path": "/api/admin/deployments/{name}/restart",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/deployments/[name]/restart.ts"
+    },
+    {
+      "path": "/api/admin/deployments/{name}/scale",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/deployments/[name]/scale.ts"
+    },
+    {
+      "path": "/api/admin/documents/assign",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/assign.ts"
+    },
+    {
+      "path": "/api/admin/documents/assignments",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/assignments.ts"
+    },
+    {
+      "path": "/api/admin/documents/assignments/{id}",
+      "methods": [
+        "DELETE",
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/assignments/[id].ts"
+    },
+    {
+      "path": "/api/admin/documents/notify/{id}",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/notify/[id].ts"
+    },
+    {
+      "path": "/api/admin/documents/templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/templates/index.ts"
+    },
+    {
+      "path": "/api/admin/documents/templates/{id}",
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/einstellungen/backup",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/einstellungen/backup.ts"
+    },
+    {
+      "path": "/api/admin/einstellungen/benachrichtigungen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/einstellungen/benachrichtigungen.ts"
+    },
+    {
+      "path": "/api/admin/einstellungen/branding",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/einstellungen/branding.ts"
+    },
+    {
+      "path": "/api/admin/einstellungen/email",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/einstellungen/email.ts"
+    },
+    {
+      "path": "/api/admin/einstellungen/rechnungen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/einstellungen/rechnungen.ts"
+    },
+    {
+      "path": "/api/admin/einstellungen/upload-logo",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/einstellungen/upload-logo.ts"
+    },
+    {
+      "path": "/api/admin/evidence/{id}/replay",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/evidence/[id]/replay.ts"
+    },
+    {
+      "path": "/api/admin/evidence/upload",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/evidence/upload.ts"
+    },
+    {
+      "path": "/api/admin/factory-control",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/factory-control.ts"
+    },
+    {
+      "path": "/api/admin/faq/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/faq/save.ts"
+    },
+    {
+      "path": "/api/admin/followups/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/followups/create.ts"
+    },
+    {
+      "path": "/api/admin/followups/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/followups/delete.ts"
+    },
+    {
+      "path": "/api/admin/followups/notify",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/followups/notify.ts"
+    },
+    {
+      "path": "/api/admin/followups/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/followups/update.ts"
+    },
+    {
+      "path": "/api/admin/footer/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/footer/save.ts"
+    },
+    {
+      "path": "/api/admin/fuehrung/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/fuehrung/save.ts"
+    },
+    {
+      "path": "/api/admin/generate-3d",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/generate-3d.ts"
+    },
+    {
+      "path": "/api/admin/generate-3d/status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/generate-3d/status.ts"
+    },
+    {
+      "path": "/api/admin/inbox",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inbox.ts"
+    },
+    {
+      "path": "/api/admin/inbox/{id}/action",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inbox/[id]/action.ts"
+    },
+    {
+      "path": "/api/admin/inbox/count",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inbox/count.ts"
+    },
+    {
+      "path": "/api/admin/inhalte/custom",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inhalte/custom/index.ts"
+    },
+    {
+      "path": "/api/admin/inhalte/custom/{slug}",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inhalte/custom/[slug].ts"
+    },
+    {
+      "path": "/api/admin/inhalte/rechnungsvorlagen/preview",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts"
+    },
+    {
+      "path": "/api/admin/inhalte/rechnungsvorlagen/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/index.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}",
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/index.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}/context7",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/context7.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}/context7-config",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}/crawl",
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}/crawl-config",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}/documents",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/documents.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/{id}/reindex",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/[id]/reindex.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/merge",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/merge.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/collections/suggest",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/collections/suggest.ts"
+    },
+    {
+      "path": "/api/admin/knowledge/import/json",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/knowledge/import/json.ts"
+    },
+    {
+      "path": "/api/admin/kontakt/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/kontakt/save.ts"
+    },
+    {
+      "path": "/api/admin/kore-flags/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/kore-flags/save.ts"
+    },
+    {
+      "path": "/api/admin/legal/{key}/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/legal/[key]/save.ts"
+    },
+    {
+      "path": "/api/admin/legal/retokenize",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/legal/retokenize.ts"
+    },
+    {
+      "path": "/api/admin/meetings",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/meetings/index.ts"
+    },
+    {
+      "path": "/api/admin/meetings/{id}",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/meetings/[id].ts"
+    },
+    {
+      "path": "/api/admin/meetings/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/meetings/create.ts"
+    },
+    {
+      "path": "/api/admin/members/{userId}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/members/[userId].ts"
+    },
+    {
+      "path": "/api/admin/members/list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/members/list.ts"
+    },
+    {
+      "path": "/api/admin/messages",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/messages.ts"
+    },
+    {
+      "path": "/api/admin/messages/{threadId}",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/messages/[threadId].ts"
+    },
+    {
+      "path": "/api/admin/monitoring",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/monitoring.ts"
+    },
+    {
+      "path": "/api/admin/navigation/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/navigation/save.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/campaigns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/campaigns/index.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/campaigns/{id}",
+      "methods": [
+        "PUT"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/campaigns/[id].ts"
+    },
+    {
+      "path": "/api/admin/newsletter/campaigns/{id}/send",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/preview",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/preview.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/subscribers",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/subscribers/index.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/subscribers/{id}",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/subscribers/[id].ts"
+    },
+    {
+      "path": "/api/admin/onboarding/reset",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/onboarding/reset.ts"
+    },
+    {
+      "path": "/api/admin/onboarding/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/onboarding/update.ts"
+    },
+    {
+      "path": "/api/admin/ops/ai/reindex",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/ai/reindex.ts"
+    },
+    {
+      "path": "/api/admin/ops/audit/log",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/audit/log.ts"
+    },
+    {
+      "path": "/api/admin/ops/backup/list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/backup/list.ts"
+    },
+    {
+      "path": "/api/admin/ops/backup/trigger",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/backup/trigger.ts"
+    },
+    {
+      "path": "/api/admin/ops/certs",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/certs.ts"
+    },
+    {
+      "path": "/api/admin/ops/deployments/{ns}/{name}/restart",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/deployments/[ns]/[name]/restart.ts"
+    },
+    {
+      "path": "/api/admin/ops/deployments/{ns}/{name}/scale",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts"
+    },
+    {
+      "path": "/api/admin/ops/deployments/list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/deployments/list.ts"
+    },
+    {
+      "path": "/api/admin/ops/dns/pin",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/dns/pin.ts"
+    },
+    {
+      "path": "/api/admin/ops/health",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/health.ts"
+    },
+    {
+      "path": "/api/admin/ops/log-stream/stream",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/log-stream/stream.ts"
+    },
+    {
+      "path": "/api/admin/ops/redeploy/brett",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/redeploy/brett.ts"
+    },
+    {
+      "path": "/api/admin/ops/redeploy/docs",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/redeploy/docs.ts"
+    },
+    {
+      "path": "/api/admin/ops/redeploy/website",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/redeploy/website.ts"
+    },
+    {
+      "path": "/api/admin/ops/restore",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/restore.ts"
+    },
+    {
+      "path": "/api/admin/ops/users/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/users/create.ts"
+    },
+    {
+      "path": "/api/admin/ops/users/groups",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/users/groups.ts"
+    },
+    {
+      "path": "/api/admin/ops/users/list",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/ops/users/list.ts"
+    },
+    {
+      "path": "/api/admin/planungsbuero",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/planungsbuero/index.ts"
+    },
+    {
+      "path": "/api/admin/planungsbuero/{extId}",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/planungsbuero/[extId].ts"
+    },
+    {
+      "path": "/api/admin/platform/assets/{slug}/tickets",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/platform/assets/[slug]/tickets.ts"
+    },
+    {
+      "path": "/api/admin/platform/hardware",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/platform/hardware.ts"
+    },
+    {
+      "path": "/api/admin/platform/software",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/platform/software.ts"
+    },
+    {
+      "path": "/api/admin/platform/software/{id}",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/platform/software/[id].ts"
+    },
+    {
+      "path": "/api/admin/poll",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/poll/index.ts"
+    },
+    {
+      "path": "/api/admin/poll/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/poll/[id].ts"
+    },
+    {
+      "path": "/api/admin/poll/{id}/share",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/poll/[id]/share.ts"
+    },
+    {
+      "path": "/api/admin/poll/active",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/poll/active.ts"
+    },
+    {
+      "path": "/api/admin/poll/templates",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/poll/templates.ts"
+    },
+    {
+      "path": "/api/admin/projekte/attachments/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/attachments/delete.ts"
+    },
+    {
+      "path": "/api/admin/projekte/attachments/download",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/attachments/download.ts"
+    },
+    {
+      "path": "/api/admin/projekte/attachments/upload",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/attachments/upload.ts"
+    },
+    {
+      "path": "/api/admin/projekte/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/create.ts"
+    },
+    {
+      "path": "/api/admin/projekte/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/delete.ts"
+    },
+    {
+      "path": "/api/admin/projekte/export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/export.ts"
+    },
+    {
+      "path": "/api/admin/projekte/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekte/update.ts"
+    },
+    {
+      "path": "/api/admin/projekttasks/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekttasks/create.ts"
+    },
+    {
+      "path": "/api/admin/projekttasks/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekttasks/delete.ts"
+    },
+    {
+      "path": "/api/admin/projekttasks/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/projekttasks/update.ts"
+    },
+    {
+      "path": "/api/admin/prompt-library",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/prompt-library/index.ts"
+    },
+    {
+      "path": "/api/admin/prompt-library/{id}",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/prompt-library/[id].ts"
+    },
+    {
+      "path": "/api/admin/prompt-library/{id}/use",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/prompt-library/[id]/use.ts"
+    },
+    {
+      "path": "/api/admin/qa-criteria",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/qa-criteria.ts"
+    },
+    {
+      "path": "/api/admin/qa-queue",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/qa-queue.ts"
+    },
+    {
+      "path": "/api/admin/qa-reviews",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/qa-reviews.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assign",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assign.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assignments",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assignments/index.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assignments/{id}",
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assignments/[id].ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assignments/{id}/archive",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/archive.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assignments/{id}/create-task",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/create-task.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assignments/{id}/reassign",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/assignments/{id}/reopen",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/assignments/[id]/reopen.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/templates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/templates/index.ts"
+    },
+    {
+      "path": "/api/admin/questionnaires/templates/{id}",
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/questionnaires/templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/rechtliches/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/rechtliches/save.ts"
+    },
+    {
+      "path": "/api/admin/referenzen/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/referenzen/save.ts"
+    },
+    {
+      "path": "/api/admin/rooms",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/rooms.ts"
+    },
+    {
+      "path": "/api/admin/rooms/{id}",
+      "methods": [
+        "GET",
+        "PUT",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/rooms/[id].ts"
+    },
+    {
+      "path": "/api/admin/rooms/{id}/members",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/rooms/[id]/members.ts"
+    },
+    {
+      "path": "/api/admin/rooms/direct",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/rooms/direct.ts"
+    },
+    {
+      "path": "/api/admin/seo",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/seo/index.ts"
+    },
+    {
+      "path": "/api/admin/seo/pages",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/seo/pages.ts"
+    },
+    {
+      "path": "/api/admin/seo/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/seo/save.ts"
+    },
+    {
+      "path": "/api/admin/seo/upload-og-image",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/seo/upload-og-image.ts"
+    },
+    {
+      "path": "/api/admin/service-page/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/service-page/save.ts"
+    },
+    {
+      "path": "/api/admin/shortcuts/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/shortcuts/create.ts"
+    },
+    {
+      "path": "/api/admin/shortcuts/delete",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/shortcuts/delete.ts"
+    },
+    {
+      "path": "/api/admin/shortcuts/fetch-title",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/shortcuts/fetch-title.ts"
+    },
+    {
+      "path": "/api/admin/shortcuts/update",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/shortcuts/update.ts"
+    },
+    {
+      "path": "/api/admin/slots/add",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/slots/add.ts"
+    },
+    {
+      "path": "/api/admin/slots/remove",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/slots/remove.ts"
+    },
+    {
+      "path": "/api/admin/stammdaten/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/stammdaten/save.ts"
+    },
+    {
+      "path": "/api/admin/startseite/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/startseite/save.ts"
+    },
+    {
+      "path": "/api/admin/startseite/upload-portrait",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/startseite/upload-portrait.ts"
+    },
+    {
+      "path": "/api/admin/subprojekte/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/subprojekte/create.ts"
+    },
+    {
+      "path": "/api/admin/subprojekte/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/subprojekte/delete.ts"
+    },
+    {
+      "path": "/api/admin/subprojekte/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/subprojekte/update.ts"
+    },
+    {
+      "path": "/api/admin/systemtest/board",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/systemtest/board.ts"
+    },
+    {
+      "path": "/api/admin/systemtest/cleanup-fixtures",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/systemtest/cleanup-fixtures.ts"
+    },
+    {
+      "path": "/api/admin/systemtest/drain-outbox",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/systemtest/drain-outbox.ts"
+    },
+    {
+      "path": "/api/admin/systemtest/purge-all-test-data",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/systemtest/purge-all-test-data.ts"
+    },
+    {
+      "path": "/api/admin/systemtest/seed",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/systemtest/seed.ts"
+    },
+    {
+      "path": "/api/admin/tax-monitor/status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tax-monitor/status.ts"
+    },
+    {
+      "path": "/api/admin/tax-monitor/ustvaexport",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tax-monitor/ustvaexport.ts"
+    },
+    {
+      "path": "/api/admin/test-results",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/test-results.ts"
+    },
+    {
+      "path": "/api/admin/test-runs",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/test-runs.ts"
+    },
+    {
+      "path": "/api/admin/testdata/purge",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/testdata/purge.ts"
+    },
+    {
+      "path": "/api/admin/testdata/seed",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/testdata/seed.ts"
+    },
+    {
+      "path": "/api/admin/tests/flake",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/flake.ts"
+    },
+    {
+      "path": "/api/admin/tests/ingest-e2e",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/ingest-e2e.ts"
+    },
+    {
+      "path": "/api/admin/tests/playwright-report",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/playwright-report.ts"
+    },
+    {
+      "path": "/api/admin/tests/report",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/report.ts"
+    },
+    {
+      "path": "/api/admin/tests/results/{jobId}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/results/[jobId].ts"
+    },
+    {
+      "path": "/api/admin/tests/run",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/run.ts"
+    },
+    {
+      "path": "/api/admin/tests/stream/{jobId}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/stream/[jobId].ts"
+    },
+    {
+      "path": "/api/admin/tests/traceability",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/traceability.ts"
+    },
+    {
+      "path": "/api/admin/tests/trend",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tests/trend.ts"
+    },
+    {
+      "path": "/api/admin/tickets",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/index.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id].ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/attachments",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/attachments.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/classify",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/classify.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/comments",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/comments.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/links",
+      "methods": [
+        "POST",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/links.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/transition",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/transition.ts"
+    },
+    {
+      "path": "/api/admin/tickets/{id}/triage",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/tickets/[id]/triage.ts"
+    },
+    {
+      "path": "/api/admin/time-windows/add",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/time-windows/add.ts"
+    },
+    {
+      "path": "/api/admin/time-windows/remove",
+      "methods": [
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/time-windows/remove.ts"
+    },
+    {
+      "path": "/api/admin/transcription",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/transcription/index.ts"
+    },
+    {
+      "path": "/api/admin/uebermich/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/uebermich/save.ts"
+    },
+    {
+      "path": "/api/admin/urlaub/save",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/urlaub/save.ts"
+    },
+    {
+      "path": "/api/admin/zeiterfassung/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/zeiterfassung/create.ts"
+    },
+    {
+      "path": "/api/admin/zeiterfassung/delete",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/zeiterfassung/delete.ts"
+    },
+    {
+      "path": "/api/admin/zeiterfassung/export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/zeiterfassung/export.ts"
+    },
+    {
+      "path": "/api/arena/1v3",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/1v3.ts"
+    },
+    {
+      "path": "/api/arena/active",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/arena/active.ts"
+    },
+    {
+      "path": "/api/arena/duel",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/duel.ts"
+    },
+    {
+      "path": "/api/arena/lobby",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/lobby.ts"
+    },
+    {
+      "path": "/api/arena/matches",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/matches.ts"
+    },
+    {
+      "path": "/api/arena/solo",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/solo.ts"
+    },
+    {
+      "path": "/api/arena/start",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/start.ts"
+    },
+    {
+      "path": "/api/arena/token",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/arena/token.ts"
+    },
+    {
+      "path": "/api/assets/{...path}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/assets/[...path].ts"
+    },
+    {
+      "path": "/api/assistant/chat",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/assistant/chat.ts"
+    },
+    {
+      "path": "/api/assistant/dismiss",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/assistant/dismiss.ts"
+    },
+    {
+      "path": "/api/assistant/execute",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/assistant/execute.ts"
+    },
+    {
+      "path": "/api/assistant/nudges",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/assistant/nudges.ts"
+    },
+    {
+      "path": "/api/assistant/transcribe",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/assistant/transcribe.ts"
+    },
+    {
+      "path": "/api/auth/callback",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/auth/callback.ts"
+    },
+    {
+      "path": "/api/auth/delete-account",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/auth/delete-account.ts"
+    },
+    {
+      "path": "/api/auth/login",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/auth/login.ts"
+    },
+    {
+      "path": "/api/auth/logout",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/auth/logout.ts"
+    },
+    {
+      "path": "/api/auth/magic",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/auth/magic.ts"
+    },
+    {
+      "path": "/api/auth/me",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/auth/me.ts"
+    },
+    {
+      "path": "/api/billing/create-invoice",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/billing/create-invoice.ts"
+    },
+    {
+      "path": "/api/billing/invoice/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/billing/invoice/[id]/pdf.ts"
+    },
+    {
+      "path": "/api/billing/invoice/{id}/xrechnung.xml",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts"
+    },
+    {
+      "path": "/api/billing/invoice/{id}/zugferd",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/billing/invoice/[id]/zugferd.ts"
+    },
+    {
+      "path": "/api/booking",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/booking.ts"
+    },
+    {
+      "path": "/api/bookings/{uid}/project",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/bookings/[uid]/project.ts"
+    },
+    {
+      "path": "/api/brett/bot",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/brett/bot.ts"
+    },
+    {
+      "path": "/api/bug-report",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/bug-report.ts"
+    },
+    {
+      "path": "/api/calendar/slots",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/calendar/slots.ts"
+    },
+    {
+      "path": "/api/cluster/status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/cluster/status.ts"
+    },
+    {
+      "path": "/api/contact",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/contact.ts"
+    },
+    {
+      "path": "/api/cron/notify-unread",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/cron/notify-unread.ts"
+    },
+    {
+      "path": "/api/dsgvo-request",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/dsgvo-request.ts"
+    },
+    {
+      "path": "/api/factory-floor",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-floor.ts"
+    },
+    {
+      "path": "/api/factory-floor/{extId}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-floor/[extId].ts"
+    },
+    {
+      "path": "/api/factory-floor/{extId}/inject",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-floor/[extId]/inject.ts"
+    },
+    {
+      "path": "/api/factory-floor/{extId}/release",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-floor/[extId]/release.ts"
+    },
+    {
+      "path": "/api/factory-floor/stream",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-floor/stream.ts"
+    },
+    {
+      "path": "/api/factory-metrics",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-metrics.ts"
+    },
+    {
+      "path": "/api/health",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/health.ts"
+    },
+    {
+      "path": "/api/internal/tickets/notify-close",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/internal/tickets/notify-close.ts"
+    },
+    {
+      "path": "/api/leistungen",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/leistungen.ts"
+    },
+    {
+      "path": "/api/live/state",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/live/state.ts"
+    },
+    {
+      "path": "/api/meeting/finalize",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/meeting/finalize.ts"
+    },
+    {
+      "path": "/api/meeting/release",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/meeting/release.ts"
+    },
+    {
+      "path": "/api/meeting/save-transcript",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/meeting/save-transcript.ts"
+    },
+    {
+      "path": "/api/meeting/transcribe",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/meeting/transcribe.ts"
+    },
+    {
+      "path": "/api/meetings/{id}/project",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/meetings/[id]/project.ts"
+    },
+    {
+      "path": "/api/newsletter/confirm",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/newsletter/confirm.ts"
+    },
+    {
+      "path": "/api/newsletter/subscribe",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/newsletter/subscribe.ts"
+    },
+    {
+      "path": "/api/newsletter/unsubscribe",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/newsletter/unsubscribe.ts"
+    },
+    {
+      "path": "/api/planning-office",
+      "methods": [
+        "GET",
+        "POST",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/planning-office/index.ts"
+    },
+    {
+      "path": "/api/planning-office/{extId}",
+      "methods": [
+        "PATCH"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/planning-office/[extId].ts"
+    },
+    {
+      "path": "/api/planning-office/{extId}/clarify",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/planning-office/[extId]/clarify.ts"
+    },
+    {
+      "path": "/api/planning-office/{extId}/promote",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/planning-office/[extId]/promote.ts"
+    },
+    {
+      "path": "/api/poll/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/poll/[id].ts"
+    },
+    {
+      "path": "/api/poll/{id}/answer",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/poll/[id]/answer.ts"
+    },
+    {
+      "path": "/api/poll/{id}/results",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/poll/[id]/results.ts"
+    },
+    {
+      "path": "/api/portal/documents/{assignmentId}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/documents/[assignmentId]/pdf.ts"
+    },
+    {
+      "path": "/api/portal/learning/summary",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/learning/summary.ts"
+    },
+    {
+      "path": "/api/portal/learning/track",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/learning/track.ts"
+    },
+    {
+      "path": "/api/portal/messages",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/messages.ts"
+    },
+    {
+      "path": "/api/portal/messages/{threadId}",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/messages/[threadId].ts"
+    },
+    {
+      "path": "/api/portal/nachrichten",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/nachrichten.ts"
+    },
+    {
+      "path": "/api/portal/onboarding/mark-step",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/onboarding/mark-step.ts"
+    },
+    {
+      "path": "/api/portal/projekte",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/projekte.ts"
+    },
+    {
+      "path": "/api/portal/projekttasks/{id}/done",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/projekttasks/[id]/done.ts"
+    },
+    {
+      "path": "/api/portal/questionnaires",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/questionnaires/index.ts"
+    },
+    {
+      "path": "/api/portal/questionnaires/{id}",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/questionnaires/[id]/index.ts"
+    },
+    {
+      "path": "/api/portal/questionnaires/{id}/answer",
+      "methods": [
+        "PUT"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/questionnaires/[id]/answer.ts"
+    },
+    {
+      "path": "/api/portal/questionnaires/{id}/dismiss",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/questionnaires/[id]/dismiss.ts"
+    },
+    {
+      "path": "/api/portal/questionnaires/{id}/submit",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/questionnaires/[id]/submit.ts"
+    },
+    {
+      "path": "/api/portal/rooms",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/rooms.ts"
+    },
+    {
+      "path": "/api/portal/rooms/{id}/messages",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/rooms/[id]/messages.ts"
+    },
+    {
+      "path": "/api/portal/rooms/ensure-direct",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/rooms/ensure-direct.ts"
+    },
+    {
+      "path": "/api/portal/sign/{assignmentId}",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/sign/[assignmentId].ts"
+    },
+    {
+      "path": "/api/register",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/register.ts"
+    },
+    {
+      "path": "/api/signing/confirm",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/signing/confirm.ts"
+    },
+    {
+      "path": "/api/status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/status.ts"
+    },
+    {
+      "path": "/api/stream/end",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/stream/end.ts"
+    },
+    {
+      "path": "/api/stream/recording",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/stream/recording.ts"
+    },
+    {
+      "path": "/api/stream/status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/stream/status.ts"
+    },
+    {
+      "path": "/api/stream/token",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/stream/token.ts"
+    },
+    {
+      "path": "/api/stripe/checkout",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/stripe/checkout.ts"
+    },
+    {
+      "path": "/api/stripe/invoice-payment-intent",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/stripe/invoice-payment-intent.ts"
+    },
+    {
+      "path": "/api/stripe/webhook",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/stripe/webhook.ts"
+    },
+    {
+      "path": "/api/tickets/comment",
+      "methods": [
+        "POST"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/tickets/comment.ts"
+    },
+    {
+      "path": "/api/timeline",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/timeline.ts"
+    }
+  ]
+}

@@ -165,7 +165,6 @@ let featureTouchedFiles = []
 let planFilePath = REUSE ? REUSE_PLAN : null
 
 // JSON schemas for structured agent outputs (compact one-liners; same shape).
-const SCOUT_SCHEMA = { type: 'object', required: ['complexity', 'touched_files', 'risk_areas', 'similar_tickets', 'estimated_slots'], properties: { complexity: { enum: ['simple', 'medium', 'complex'] }, touched_files: { type: 'array', items: { type: 'string' } }, risk_areas: { type: 'array', items: { type: 'string' } }, similar_tickets: { type: 'array', items: { type: 'string' } }, estimated_slots: { type: 'integer' } } }
 const REVIEW_SCHEMA = { type: 'object', required: ['findings'], properties: { findings: { type: 'array', items: { type: 'object', required: ['severity', 'file', 'description'], properties: { severity: { enum: ['low', 'medium', 'high', 'critical'] }, file: { type: 'string' }, line: { type: 'integer' }, description: { type: 'string' }, suggested_fix: { type: 'string' } } } }, summary: { type: 'string' } } }
 try { if (!REUSE) {
 // ── ① Scout (deterministisch) ─────────────────────────────────────────────

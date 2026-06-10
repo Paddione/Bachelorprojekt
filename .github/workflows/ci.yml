@@ -3,6 +3,9 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
   push:
     branches:
       - main
@@ -11,6 +14,9 @@ on:
       # Triggering on push to the release-please branch gives branch-protection the
       # required check run so the PR can auto-merge.
       - 'release-please--branches--main'
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
 
 concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);

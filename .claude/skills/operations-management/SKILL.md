@@ -27,7 +27,7 @@ GitHub **PRs are the CI/CD merge mechanism** and link back to a ticket by conven
 Never use `tickets.ticket_links` for PR references — it is ticket→ticket only (`to_id` is `NOT NULL`, `kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by`).
 
 **Enum reference** (closing a ticket with an out-of-set value fails the CHECK constraint):
-`priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,backlog,in_progress,in_review,blocked,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}` · `attention_mode ∈ {auto,ai_ready,needs_human}` (default `auto`).
+`priority ∈ {hoch,mittel,niedrig}` · `severity ∈ {critical,major,minor,trivial}` · `status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}` · `resolution ∈ {fixed,shipped,obsolete}` · `attention_mode ∈ {auto,ai_ready,needs_human}` (default `auto`).
 
 All SQL below assumes:
 ```bash

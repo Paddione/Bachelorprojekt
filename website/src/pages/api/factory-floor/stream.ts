@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
+import { getPlanningCount } from '../../../lib/factory-floor';
 
 export const prerender = false;
 
@@ -26,16 +27,17 @@ export const GET: APIRoute = async ({ request }) => {
 
       const poll = async () => {
         try {
-          const r = await pool.query(
-            `SELECT COALESCE(MAX(at)::text, '') AS m FROM tickets.factory_phase_events`,
-          );
-          const m = r.rows[0]?.m ?? '';
+          const [phaseRow, planningCount] = await Promise.all([
+            pool.query(`SELECT COALESCE(MAX(at)::text, '') AS m FROM tickets.factory_phase_events`),
+            getPlanningCount(),
+          ]);
+          const m = phaseRow.rows[0]?.m ?? '';
           if (m && m !== lastMax) {
             lastMax = m;
-            send('phase', { at: m });
+            send('phase', { at: m, planningCount });
           }
         } catch {
-          /* swallow — heartbeat keeps the stream alive, client re-fetches on next phase */
+          /* swallow — heartbeat keeps stream alive */
         }
       };
 

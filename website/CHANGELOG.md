@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.42.0...website-v1.42.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* **e2e:** repair FA-10 website tests — SSR crash + hydration race ([#1497](https://github.com/Paddione/Bachelorprojekt/issues/1497)) ([5e512a5](https://github.com/Paddione/Bachelorprojekt/commit/5e512a5b8a48048a3c2a0d9abb44777ae389a3a6))
+
 ## [1.42.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.41.0...website-v1.42.0) (2026-06-10)
 
 

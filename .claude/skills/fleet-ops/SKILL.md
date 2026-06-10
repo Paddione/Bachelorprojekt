@@ -117,7 +117,7 @@ What it does, in order:
 
 | Phase | Side effect |
 |---|---|
-| 1 | `node scripts/build-docs.js` regenerates `k3d/docs-content-built/` from the Markdown source. |
+| 1 | `node scripts/build-docs.mjs` regenerates `k3d/docs-content-built/` from the Markdown source. |
 | 1 | `docker build -f scripts/docs.Dockerfile .` produces `ghcr.io/paddione/workspace-docs:promote-<sha>-<epoch>`. |
 | 1 | `docker push` uploads that tag to ghcr. |
 | 2-3 | Skipped (docs has no dev cluster mapping). |

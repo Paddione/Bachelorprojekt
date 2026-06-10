@@ -1778,7 +1778,7 @@
     "gekko-hetzner-2": {
       "slug": "gekko-hetzner-2",
       "kind": "hardware",
-      "name": "Gekko CP 1",
+      "name": "Gekko Worker 1",
       "emoji": "🖥️",
       "summary_de": "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken.",
       "sensitivity": "assisted",
@@ -1787,16 +1787,16 @@
     "gekko-hetzner-3": {
       "slug": "gekko-hetzner-3",
       "kind": "hardware",
-      "name": "Gekko CP 2",
+      "name": "Gekko Worker 2",
       "emoji": "🖥️",
-      "summary_de": "Fleet-Arbeitsknoten in Helsinki. Beherbergt unter anderem den LiveKit-Server.",
+      "summary_de": "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken.",
       "sensitivity": "assisted",
       "url": null
     },
     "gekko-hetzner-4": {
       "slug": "gekko-hetzner-4",
       "kind": "hardware",
-      "name": "Gekko CP 3",
+      "name": "Gekko Worker 3",
       "emoji": "🖥️",
       "summary_de": "Fleet-Arbeitsknoten in Helsinki (Hetzner).",
       "sensitivity": "assisted",
@@ -1807,7 +1807,7 @@
       "kind": "hardware",
       "name": "k3s-1",
       "emoji": "🏠",
-      "summary_de": "Heim-Server (Proxmox-VM). Beherbergt die Dev-Umgebung dev.mentolder.de.",
+      "summary_de": "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31). Dev läuft jetzt lokal via k3d auf dem WSL-Host.",
       "sensitivity": "assisted",
       "url": null
     },
@@ -1834,14 +1834,14 @@
       "kind": "hardware",
       "name": "PK CP 1",
       "emoji": "🖥️",
-      "summary_de": "Fleet-Steuerknoten (Control-Plane) in Helsinki. LiveKit-DNS zeigt hierhin.",
+      "summary_de": "Fleet-Steuerknoten (Control-Plane) in Helsinki. Beherbergt den LiveKit-Server (per Node-Affinität gebunden); LiveKit-DNS zeigt hierhin.",
       "sensitivity": "assisted",
       "url": null
     },
     "pk-hetzner-6": {
       "slug": "pk-hetzner-6",
       "kind": "hardware",
-      "name": "PK Worker 1",
+      "name": "PK CP 2",
       "emoji": "🖥️",
       "summary_de": "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner).",
       "sensitivity": "assisted",
@@ -1850,7 +1850,7 @@
     "pk-hetzner-8": {
       "slug": "pk-hetzner-8",
       "kind": "hardware",
-      "name": "PK Worker 2",
+      "name": "PK CP 3",
       "emoji": "🖥️",
       "summary_de": "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner).",
       "sensitivity": "assisted",

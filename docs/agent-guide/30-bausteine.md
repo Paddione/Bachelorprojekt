@@ -182,19 +182,19 @@ WebSocket-Spielserver der Marke korczewski; validiert JWTs aus beiden Keycloak-R
 
 ## Hardware
 
-### 🖥️ Gekko CP 1
+### 🖥️ Gekko Worker 1
 
 🟠 **Nur mit Hilfe**
 
 Einer der drei Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki.
 
-### 🖥️ Gekko CP 2
+### 🖥️ Gekko Worker 2
 
 🟠 **Nur mit Hilfe**
 
-Worker-Knoten des Fleet-Clusters; LiveKit ist hier per Node-Affinität verankert.
+Zweiter Worker-Knoten des Fleet-Clusters (gekko-Reihe), Standort Helsinki.
 
-### 🖥️ Gekko CP 3
+### 🖥️ Gekko Worker 3
 
 🟠 **Nur mit Hilfe**
 
@@ -204,7 +204,7 @@ Dritter Worker-Knoten des Fleet-Clusters (gekko-Reihe).
 
 🟠 **Nur mit Hilfe**
 
-Lokaler Knoten zuhause; trägt den Dev-k3d-Stack der Entwicklung.
+Stillgelegt; die Dev-Umgebung (Kontext k3d-mentolder-dev) läuft heute lokal auf dem WSL-Host, nicht mehr hier.
 
 ### 🏠 k3s-2
 
@@ -222,15 +222,15 @@ Lokaler Knoten zuhause.
 
 🟠 **Nur mit Hilfe**
 
-Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki.
+Einer der drei Steuer-Knoten des Fleet-Clusters (pk-Reihe), Standort Helsinki; LiveKit ist hier per Node-Affinität verankert.
 
-### 🖥️ PK Worker 1
+### 🖥️ PK CP 2
 
 🟠 **Nur mit Hilfe**
 
 Steuer-Knoten des Fleet-Clusters (pk-Reihe), Helsinki.
 
-### 🖥️ PK Worker 2
+### 🖥️ PK CP 3
 
 🟠 **Nur mit Hilfe**
 

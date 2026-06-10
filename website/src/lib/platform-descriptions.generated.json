@@ -82,7 +82,7 @@
     },
     "livekit": {
       "de": "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen).",
-      "en": "WebRTC server (hostNetwork, pinned to gekko-hetzner-3)"
+      "en": "WebRTC server (hostNetwork, pinned to pk-hetzner-4)"
     },
     "livekit-ingress": {
       "de": "Nimmt eingehende Video-Streams an (RTMP) und gibt sie an LiveKit weiter.",
@@ -116,18 +116,18 @@
   "hardware": {
     "gekko-hetzner-2": {
       "de": "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken.",
-      "en": "Control-plane Helsinki"
+      "en": "Worker Helsinki"
     },
     "gekko-hetzner-3": {
-      "de": "Fleet-Arbeitsknoten in Helsinki. Beherbergt unter anderem den LiveKit-Server.",
-      "en": "Control-plane Helsinki"
+      "de": "Fleet-Arbeitsknoten in Helsinki (Hetzner). Trägt Plattform-Workloads beider Marken.",
+      "en": "Worker Helsinki"
     },
     "gekko-hetzner-4": {
       "de": "Fleet-Arbeitsknoten in Helsinki (Hetzner).",
-      "en": "Control-plane Helsinki"
+      "en": "Worker Helsinki"
     },
     "k3s-1": {
-      "de": "Heim-Server (Proxmox-VM). Beherbergt die Dev-Umgebung dev.mentolder.de.",
+      "de": "Ehemaliger Heim-Server (Proxmox-VM) — permanent DECOMMISSIONED (2026-05-31). Dev läuft jetzt lokal via k3d auf dem WSL-Host.",
       "en": "Home Worker 1"
     },
     "k3s-2": {
@@ -139,16 +139,16 @@
       "en": "Home Worker 3"
     },
     "pk-hetzner-4": {
-      "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki. LiveKit-DNS zeigt hierhin.",
-      "en": "Control-plane Helsinki"
+      "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki. Beherbergt den LiveKit-Server (per Node-Affinität gebunden); LiveKit-DNS zeigt hierhin.",
+      "en": "Control-plane Helsinki (LiveKit pinned here)"
     },
     "pk-hetzner-6": {
       "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner).",
-      "en": "Worker Helsinki"
+      "en": "Control-plane Helsinki"
     },
     "pk-hetzner-8": {
       "de": "Fleet-Steuerknoten (Control-Plane) in Helsinki (Hetzner).",
-      "en": "Worker Helsinki"
+      "en": "Control-plane Helsinki"
     }
   }
 }

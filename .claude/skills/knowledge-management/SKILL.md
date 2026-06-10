@@ -89,7 +89,7 @@ Ensure the embedding backend for the target collection is reachable:
 ```bash
 task knowledge:reindex ENV=mentolder SOURCE=<source>
 ```
-*`SOURCE` can be: `prs` (GitHub interactions), `markdown` (docs/markd directory files), `bugs` (tickets database), or `all`.*
+*`SOURCE` can be: `prs` (GitHub interactions), `markdown` (`docs/superpowers/specs` + `docs/superpowers/plans` + root `CLAUDE.md`, per `scripts/knowledge/ingest-markdown.mjs`), `bugs` (tickets database), or `all`.*
 
 ### Step 2.3: Verification
 Check that document counts are populated:
@@ -122,7 +122,7 @@ Go to `/admin/wissensquellen` → "Web-Quellen" → click **"Crawl starten"**.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `knowledge:reindex` indexes 0 docs | Embedding API down during indexing. Collection cleared! | 1. **Stop:** Do not commit empty state. <br>2. Restore DB from backup: `task workspace:restore -- website <timestamp>` <br>3. Fix the embedding endpoint before retrying. |
+| `knowledge:reindex` indexes 0 docs | Embedding API down during indexing. Collection cleared! | 1. **Stop:** Do not commit empty state. <br>2. Restore DB from backup: `task workspace:db:restore -- website <timestamp>` <br>3. Fix the embedding endpoint before retrying. |
 | TEI returns 503 / classify hangs | GPU box unreachable or Ollama service stopped | SSH to GPU host and restart docker image: `docker restart tei-embed` |
 | `MixedEmbeddingModelError` | Query tried searching across models | Check code: split the query so it targets only one collection type. |
 

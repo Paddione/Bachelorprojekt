@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: website-seller-config
   namespace: ${WEBSITE_NAMESPACE}
+  labels:
+    app: website
 data:
   SELLER_NAME: "Gerald Korczewski"
   SELLER_ADDRESS: "Ludwig-Erhard-Str. 18"

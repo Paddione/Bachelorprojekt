@@ -3,6 +3,8 @@ kind: Job
 metadata:
   name: vaultwarden-seed
   namespace: workspace
+  labels:
+    app: vaultwarden
 spec:
   template:
     spec:

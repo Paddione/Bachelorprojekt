@@ -2,9 +2,10 @@
   import { onMount } from 'svelte';
   import FactoryFloor from './FactoryFloor.svelte';
   import PlanningOffice from './PlanningOffice.svelte';
+  import ControlPanel from './factory/ControlPanel.svelte';
   import type { FloorPayload } from '../lib/factory-floor';
 
-  type Tab = 'factory' | 'planung';
+  type Tab = 'factory' | 'planung' | 'control';
 
   let { initial, initialTab, brand }: {
     initial: FloorPayload | null;
@@ -21,9 +22,15 @@
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     history.pushState({}, '', url.toString());
+    try { localStorage.setItem('dev-status-tab', tab); } catch {}
   }
 
   onMount(() => {
+    const saved = localStorage.getItem('dev-status-tab') as Tab | null;
+    if (saved && ['factory', 'planung', 'control'].includes(saved)) {
+      activeTab = saved;
+    }
+
     window.addEventListener('factory-floor-refreshed', (e: Event) => {
       const detail = (e as CustomEvent<{ planningCount?: typeof planningCount; hallActive?: number }>).detail;
       if (detail.planningCount) planningCount = detail.planningCount;
@@ -32,7 +39,7 @@
 
     window.addEventListener('popstate', () => {
       const t = new URLSearchParams(window.location.search).get('tab') as Tab | null;
-      if (t === 'factory' || t === 'planung') activeTab = t;
+      if (t === 'factory' || t === 'planung' || t === 'control') activeTab = t;
     });
   });
 
@@ -63,15 +70,24 @@
         <span class="tab-badge">{planningBadge()} {planningCount.ready > 0 ? 'bereit' : 'in Planung'}</span>
       {/if}
     </button>
+    <button
+      class="ds-tab"
+      class:active={activeTab === 'control'}
+      onclick={() => switchTab('control')}
+    >
+      Control Panel
+    </button>
   </div>
 </div>
 
 {#if activeTab === 'factory'}
   <FactoryFloor {initial} />
-{:else}
+{:else if activeTab === 'planung'}
   <div class="planning-tab-wrap">
     <PlanningOffice {brand} />
   </div>
+{:else if activeTab === 'control'}
+  <ControlPanel />
 {/if}
 
 <style>

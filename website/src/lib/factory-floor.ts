@@ -61,7 +61,15 @@ export interface FloorPayload {
   fetchedAt: string;
 }
 
-/** Reads a factory_control value (key, global brand=NULL row), default on absence. */
+export async function writeControl(key: string, value: string, setBy = 'admin-ui'): Promise<void> {
+  await pool.query(
+    `INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+     VALUES ($1, NULL, $2, $3, now())
+     ON CONFLICT (key, brand) DO UPDATE SET value = $2, set_by = $3, updated_at = now()`,
+    [key, value, setBy],
+  );
+}
+
 async function readControl(key: string, fallback: string): Promise<string> {
   const r = await pool.query(
     `SELECT value FROM tickets.factory_control WHERE key = $1 AND brand IS NULL LIMIT 1`,

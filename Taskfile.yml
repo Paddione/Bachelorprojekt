@@ -373,6 +373,7 @@ tasks:
         tests/unit/env-resolve.bats
         tests/unit/env-validate.bats
         tests/unit/keycloak-sync.bats
+        tests/unit/planning-office.bats
 
   test:unit:coverage-guard:
     internal: true

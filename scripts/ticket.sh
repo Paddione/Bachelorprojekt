@@ -12,6 +12,8 @@
 #   set-pipeline-slot --id <external_id> --slot <integer|null>
 #   release-slot --id <external_id>
 #   touch --id <external_id>
+#   plan-meta set --id <external_id> [--value-prop ..] [--effort klein|mittel|gross] [--areas a,b] [--depends-on T-1,T-2] [--rank N] [--readiness k=true,..]
+#   plan-meta get --id <external_id>
 
 set -euo pipefail
 
@@ -640,9 +642,83 @@ EOF
   fi
 }
 
+cmd_plan_meta() {
+  local action="${1:-}"; shift || true
+  if [[ "$action" != "set" && "$action" != "get" ]]; then
+    echo "ERROR: plan-meta requires a subaction: set|get" >&2; exit 2
+  fi
+  local id="" value_prop="" effort="" areas="" depends="" rank="" readiness=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id)          id="$2"; shift 2 ;;
+      --value-prop)  value_prop="$2"; shift 2 ;;
+      --effort)      effort="$2"; shift 2 ;;
+      --areas)       areas="$2"; shift 2 ;;
+      --depends-on)  depends="$2"; shift 2 ;;
+      --rank)        rank="$2"; shift 2 ;;
+      --readiness)   readiness="$2"; shift 2 ;;
+      *) echo "Unknown plan-meta option: $1" >&2; exit 2 ;;
+    esac; done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  if [[ -n "$effort" && "$effort" != "klein" && "$effort" != "mittel" && "$effort" != "gross" ]]; then
+    echo "ERROR: --effort must be klein|mittel|gross." >&2; exit 2
+  fi
+  local pod; pod=$(_pgpod)
+
+  if [[ "$action" == "get" ]]; then
+    _exec_sql "$pod" -v ext_id="$id" <<'EOF'
+SELECT json_build_object(
+  'external_id', external_id, 'status', status, 'value_prop', value_prop,
+  'effort', effort, 'areas', areas, 'depends_on', depends_on,
+  'planning_rank', planning_rank, 'readiness', readiness
+) FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+    return
+  fi
+
+  local areas_sql="NULL" depends_sql="NULL" rank_sql="NULL" readiness_sql="NULL"
+  [[ -n "$areas" ]]   && areas_sql="ARRAY[$(_csv_to_quoted "$areas")]"
+  [[ -n "$depends" ]] && depends_sql="ARRAY[$(_csv_to_quoted "$depends")]"
+  [[ -n "$rank" ]]    && rank_sql="$rank"
+  [[ -n "$readiness" ]] && readiness_sql="'$(_readiness_to_json "$readiness")'::jsonb"
+  _exec_sql "$pod" \
+    -v ext_id="$id" -v vp="$value_prop" -v eff="$effort" <<EOF >/dev/null
+UPDATE tickets.tickets SET
+  value_prop    = COALESCE(NULLIF(:'vp',''), value_prop),
+  effort        = COALESCE(NULLIF(:'eff',''), effort),
+  areas         = COALESCE($areas_sql, areas),
+  depends_on    = COALESCE($depends_sql, depends_on),
+  planning_rank = COALESCE($rank_sql, planning_rank),
+  readiness     = COALESCE($readiness_sql, readiness),
+  updated_at    = now()
+WHERE external_id = :'ext_id';
+EOF
+  echo "plan-meta updated for $id"
+}
+
+# "a,b,c" -> "'a','b','c'" (single-quote each, escape embedded quotes)
+_csv_to_quoted() {
+  local IFS=','; local out=""; local item
+  for item in $1; do
+    item="${item//\'/\'\'}"
+    out+="${out:+,}'$item'"
+  done
+  echo "$out"
+}
+
+# "spec_skizziert=true,aufwand_geschaetzt=false" -> {"spec_skizziert":true,...}
+_readiness_to_json() {
+  local IFS=','; local out=""; local kv k v
+  for kv in $1; do
+    k="${kv%%=*}" v="${kv#*=}"
+    [[ "$v" == "true" ]] && v="true" || v="false"
+    out+="${out:+,}\"$k\":$v"
+  done
+  echo "{$out}"
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections" >&2
+  echo "Commands: create, update-status, add-comment, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta" >&2
   exit 1
 fi
 
@@ -667,6 +743,7 @@ case "$cmd" in
   phase)             cmd_phase "$@" ;;
   inject)            cmd_inject "$@" ;;
   get-injections)    cmd_get_injections "$@" ;;
+  plan-meta)         cmd_plan_meta "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
 

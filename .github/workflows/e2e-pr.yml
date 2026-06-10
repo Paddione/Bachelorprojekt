@@ -1,8 +1,8 @@
 name: E2E (PR — gefiltert)
 
-# Läuft bei jedem PR auf main, der Website-Code ändert.
-# Führt nur die Tests aus, die zum Feature-Bereich des Branch gehören,
-# plus den @smoke-Set — kein vollständiger Suite-Lauf.
+# Läuft bei jedem PR auf main. Prüft zuerst ob E2E-relevante Dateien
+# (website/**, tests/e2e/**) geändert wurden. Falls nicht, wird der Job
+# übersprungen — erfüllt aber den Required-Check "E2E PR".
 #
 # Ziel:  Regressionsschutz im eigenen Scope, schnell (<5 min).
 # Nightly e2e.yml testet weiterhin die gesamte Suite gegen Fleet.
@@ -28,14 +28,13 @@ name: E2E (PR — gefiltert)
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'website/**'
-      - 'tests/e2e/**'
-      - '.github/workflows/e2e-pr.yml'
 
 concurrency:
   group: e2e-pr-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   e2e-pr:
@@ -54,22 +53,40 @@ jobs:
 
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-depth: 0
+
+      - name: Check if E2E-relevant files changed
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
+          if echo "$CHANGED" | grep -qE '^(website/|tests/e2e/|\.github/workflows/e2e-pr\.yml)'; then
+            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+            echo "E2E-relevant files changed, running tests"
+          else
+            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
+            echo "No E2E-relevant files changed, skipping tests"
+          fi
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        if: steps.filter.outputs.run_e2e == 'true'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: tests/e2e/package-lock.json
 
       - name: Install dependencies
+        if: steps.filter.outputs.run_e2e == 'true'
         working-directory: tests/e2e
         run: npm ci
 
       - name: Install Playwright browsers (chromium only)
+        if: steps.filter.outputs.run_e2e == 'true'
         working-directory: tests/e2e
         run: npx playwright install --with-deps chromium
 
       - name: Leite Feature-Tag aus Branch-Name ab
+        if: steps.filter.outputs.run_e2e == 'true'
         id: tag
         env:
           BRANCH: ${{ github.head_ref }}
@@ -108,6 +125,7 @@ jobs:
           echo "feature_tag=$TAG"          >> "$GITHUB_OUTPUT"
 
       - name: E2E — ${{ steps.tag.outputs.feature_tag || 'smoke' }} + @smoke gegen web.mentolder.de
+        if: steps.filter.outputs.run_e2e == 'true'
         id: playwright
         working-directory: tests/e2e
         run: |
@@ -116,7 +134,7 @@ jobs:
             --grep "${{ steps.tag.outputs.grep_pattern }}"
 
       - name: Upload Ergebnisse (Traces + JSON)
-        if: always()
+        if: always() && steps.filter.outputs.run_e2e == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: e2e-pr-results-${{ github.run_id }}

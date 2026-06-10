@@ -1,6 +1,6 @@
 ---
 title: Unified Dev-Status: Planungsbüro + Factory Integration Implementation Plan
-ticket_id: null
+ticket_id: T000583
 domains: [website, db, test]
 status: active
 pr_number: null

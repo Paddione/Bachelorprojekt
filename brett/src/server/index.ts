@@ -287,7 +287,7 @@ app.get('/api/sessions', auth.requireAdmin, asyncHandler(async (req: any, res: a
 }));
 
 // Admin room list.
-app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (_req: any, res: any) => {
   const liveTokens = Array.from(rooms.rooms.keys());
   let nameMap: Record<string, string> = {};
   if (liveTokens.length > 0) {

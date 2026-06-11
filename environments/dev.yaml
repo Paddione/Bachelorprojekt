@@ -12,9 +12,9 @@ env_vars:
   WEBSITE_IMAGE: korczewski-website
   DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: workspace-korczewski-dev
-  LLM_ENABLED: "false"
+  LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
-  LLM_HOST_IP: ""
+  LLM_HOST_IP: "172.17.0.1"
   ARENA_WS_URL: http://arena.localhost
 
 # Dev secrets: generated from schema defaults at deploy time.

@@ -1,9 +1,9 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # llm-gpu: external GPU peer (TEI embed, LM Studio chat)
 #
-# The GPU box runs on the wg-mesh overlay. Two Services + Endpoints route
-# traffic to it from inside the cluster. ${LLM_HOST_IP} is filled by envsubst
-# at deploy time from environments/<env>.yaml.
+# The GPU box runs on the wg-mesh overlay (prod) or via Docker bridge (dev/k3d).
+# ${LLM_HOST_IP} is filled by envsubst at deploy time from environments/<env>.yaml.
+# Dev default: 172.17.0.1 (Docker bridge gateway → WSL2 host).
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Embeddings (TEI bge-m3) ──────────────────────────────────────────────────
@@ -11,6 +11,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: llm-gateway-embed
+  labels:
+    app: llm-gateway
 spec:
   ports:
     - name: http
@@ -21,6 +23,8 @@ apiVersion: v1
 kind: Endpoints
 metadata:
   name: llm-gateway-embed
+  labels:
+    app: llm-gateway
 subsets:
   - addresses:
       - ip: ${LLM_HOST_IP}
@@ -33,6 +37,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: llm-gateway-lmstudio
+  labels:
+    app: llm-gateway
 spec:
   ports:
     - name: http
@@ -43,6 +49,8 @@ apiVersion: v1
 kind: Endpoints
 metadata:
   name: llm-gateway-lmstudio
+  labels:
+    app: llm-gateway
 subsets:
   - addresses:
       - ip: ${LLM_HOST_IP}

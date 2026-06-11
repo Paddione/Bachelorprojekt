@@ -6,7 +6,6 @@ namespace: workspace
 resources:
   - ../k3d
   # Production-only (no equivalent in base)
-  - llm-gpu.yaml
   - comfy-gpu.yaml
   - rigger-gpu.yaml
   - cluster-issuer.yaml

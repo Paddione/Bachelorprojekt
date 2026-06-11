@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-10T23:47:05.346Z</span>
+    <span class="meta">Generiert: 2026-06-11T00:54:21.435Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">64</span>
+      <span class="stat-value">67</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">52</span>
+      <span class="stat-value">126</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">363</span>
+      <span class="stat-value">366</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -276,35 +276,102 @@ flowchart LR
   traefik["traefik"]:::ingress
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
+  tracking["tracking"]:::default
+  docuseal["docuseal"]:::default
+  livekit["livekit"]:::default
   admin_actions_cleanup -->|"PGHOST"| shared_db
   admin_actions_cleanup -->|"PGUSER"| website
   admin_actions_prune -->|"PGHOST"| shared_db
   admin_actions_prune -->|"PGUSER"| website
+  db_backup -->|"command"| shared_db
+  db_backup -->|"command"| keycloak
+  db_backup -->|"command"| nextcloud
+  db_backup -->|"command"| vaultwarden
+  db_backup -->|"command"| website
   brett -->|"DATABASE_URL"| shared_db
   brett -->|"DATABASE_URL"| website
   brett -->|"KEYCLOAK_URL"| keycloak
   claude_code_mcp_auth -->|"KC_URL"| keycloak
+  claude_code_mcp_ops -->|"command"| shared_db
+  claude_code_mcp_ops -->|"command"| website
+  billing_dunning_detection -->|"command"| website
+  monthly_billing -->|"command"| website
+  systemtest_cleanup -->|"command"| website
+  systemtest_purge_all -->|"command"| website
+  systemtest_outbox -->|"command"| website
+  mcp_auth_proxy_dev -->|"configmap:mcp-auth…"| traefik
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
+  oauth2_proxy_brainstorm -->|"command"| keycloak
+  oauth2_proxy_dev -->|"command"| traefik
+  keycloak -->|"configmap:domain-c…"| brett
+  keycloak -->|"configmap:domain-c…"| livekit
+  keycloak -->|"configmap:domain-c…"| traefik
   knowledge_ingest_prs -->|"PGHOST"| shared_db
   knowledge_ingest_prs -->|"PGDATABASE"| website
+  knowledge_ingest_markdown -->|"configmap:knowledg…"| shared_db
+  knowledge_ingest_markdown -->|"configmap:knowledg…"| website
   knowledge_ingest_bugs -->|"PGHOST"| shared_db
   knowledge_ingest_bugs -->|"PGDATABASE"| website
   knowledge_reindex_all -->|"PGHOST"| shared_db
   knowledge_reindex_all -->|"PGDATABASE"| website
+  livekit_server -->|"configmap:livekit-…"| livekit
+  livekit_server -->|"configmap:livekit-…"| coturn
   livekit_ingress -->|"INGRESS_CONFIG_BODY"| livekit_server
   livekit_egress -->|"EGRESS_CONFIG_BODY"| livekit_server
   nextcloud -->|"SMTP_HOST"| mailpit
+  nextcloud -->|"configmap:domain-c…"| brett
+  nextcloud -->|"configmap:domain-c…"| livekit
+  nextcloud -->|"configmap:domain-c…"| traefik
+  nextcloud -->|"configmap:nextclou…"| spreed_signaling
+  notify_unread -->|"command"| website
+  oauth2_proxy_brett -->|"command"| keycloak
+  oauth2_proxy_brett -->|"command"| brett
+  oauth2_proxy_comfy -->|"command"| keycloak
+  oauth2_proxy_docs -->|"command"| keycloak
+  oauth2_proxy_mailpit -->|"command"| keycloak
+  oauth2_proxy_traefik -->|"command"| keycloak
+  oauth2_proxy_traefik -->|"command"| traefik
+  pvc_backup -->|"command"| nextcloud
+  pvc_backup -->|"command"| vaultwarden
+  oauth2_proxy_recovery -->|"command"| keycloak
+  oauth2_proxy_recovery -->|"command"| recovery_browser
+  shared_db -->|"configmap:shared-d…"| keycloak
+  shared_db -->|"configmap:shared-d…"| nextcloud
+  shared_db -->|"configmap:shared-d…"| vaultwarden
+  shared_db -->|"configmap:shared-d…"| website
+  shared_db -->|"configmap:website-…"| brett
+  shared_db -->|"configmap:website-…"| tracking
+  shared_db -->|"configmap:website-…"| docuseal
+  shared_db -->|"configmap:website-…"| whiteboard
+  shared_db -->|"configmap:website-…"| arena_server
+  spreed_signaling -->|"configmap:signalin…"| coturn
+  spreed_signaling -->|"configmap:signalin…"| nats
+  spreed_signaling -->|"configmap:signalin…"| janus
   talk_recording -->|"NC_DOMAIN"| nextcloud
   talk_recording -->|"HPB_DOMAIN"| spreed_signaling
+  tests_results_retention -->|"command"| website
   vaultwarden -->|"DATABASE_URL"| shared_db
   vaultwarden -->|"SSO_AUTHORITY"| keycloak
   vaultwarden -->|"SMTP_HOST"| mailpit
+  vaultwarden -->|"configmap:domain-c…"| brett
+  vaultwarden -->|"configmap:domain-c…"| livekit
+  vaultwarden -->|"configmap:domain-c…"| traefik
   website -->|"SESSIONS_DATABASE_…"| shared_db
   website -->|"LIVEKIT_SERVICE_URL"| livekit_server
+  website -->|"configmap:website-…"| keycloak
+  website -->|"configmap:website-…"| nextcloud
+  website -->|"configmap:website-…"| brett
+  website -->|"configmap:website-…"| livekit
   whiteboard -->|"NEXTCLOUD_URL"| nextcloud
+  tls_sync -->|"command"| coturn
   dev_db_refresh -->|"SOURCE_PGHOST"| shared_db
   talk_transcriber -->|"NC_DB_HOST"| shared_db
   talk_transcriber -->|"NC_DB_NAME"| nextcloud
+  arena_server -->|"annotation"| shared_db
+  arena_server -->|"annotation"| keycloak
+  ddns_updater -->|"command"| livekit
+  ddns_updater -->|"command"| coturn
+  ddns_updater -->|"command"| janus
   traefik -->|"ingress"| brett
   traefik -->|"ingress"| oauth2_proxy_dev
   traefik -->|"ingress"| website
@@ -323,7 +390,7 @@ flowchart LR
   traefik -->|"ingress"| bachelorprojekt
       </div>
     </div>
-    <p class="diagram-caption">Alle 64 K8s-Services und ihre 52 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 67 K8s-Services und ihre 126 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -384,6 +451,9 @@ flowchart TB
     traefik["traefik"]
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
+    tracking["tracking"]
+    docuseal["docuseal"]
+    livekit["livekit"]
   end
   subgraph coturn["coturn"]
     coturn["coturn"]
@@ -422,7 +492,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">363 endpoints</span>
+      <span class="filter-label" id="api-count">366 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -1960,6 +2030,11 @@ flowchart TB
       <td style="color:#10b981">🌐 public</td>
     </tr>
       <tr>
+      <td><code>/api/codesearch</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
       <td><code>/api/contact</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#10b981">🌐 public</td>
@@ -2240,9 +2315,19 @@ flowchart TB
       <td style="color:#10b981">🌐 public</td>
     </tr>
       <tr>
+      <td><code>/api/tickets/{id}/readiness</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
+    </tr>
+      <tr>
       <td><code>/api/tickets/comment</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#10b981">🌐 public</td>
+    </tr>
+      <tr>
+      <td><code>/api/tickets/graph</code></td>
+      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
+      <td style="color:#ef4444">🔐 admin</td>
     </tr>
       <tr>
       <td><code>/api/timeline</code></td>
@@ -2254,8 +2339,8 @@ flowchart TB
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"
-          integrity="sha384-qX9VvWkP79m/O121ZE6sOYp0nf/pldQgtvWDbkpzi+3mUo4Wn4Ix4cFzNPay3VaB"
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js"
+          integrity="sha384-R63zfMfSwJF4xCR11wXii+QUsbiBIdiDzDbtxia72oGWfkT7WHJfmD/I/eeHPJyT"
           crossorigin="anonymous"></script>
   <script>
     mermaid.initialize({
@@ -2277,7 +2362,7 @@ flowchart TB
         curve: 'basis',
         padding: 20,
       },
-      securityLevel: 'loose',
+      securityLevel: 'antiscript',
     });
 
     function switchTab(tabId) {

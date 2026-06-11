@@ -39,6 +39,8 @@ const KNOWN_SERVICES = [
   'livekit-server',
   'arena-server',
   'recovery-browser',
+  'nats',
+  'janus',
 ];
 
 // ── Namespace → brand mapping ────────────────────────────────────────────────
@@ -98,8 +100,8 @@ function findServiceRefs(value) {
   if (typeof value !== 'string') return [];
   const found = [];
   for (const svc of KNOWN_SERVICES) {
-    // Match hostname patterns: svc, svc:PORT, svc.namespace, http://svc
-    const pattern = new RegExp(`(?:^|[/:@.])${svc}(?:[:/.]|$)`, 'i');
+    // Match hostname patterns: svc, svc:PORT, svc.namespace, http://svc, 'svc', "svc", =svc
+    const pattern = new RegExp(`(?:^|[\\s'"=/:@.,>])${svc}(?:[\\s'",:@/.>]|$)`, 'i');
     if (pattern.test(value) || value === svc) {
       found.push(svc);
     }
@@ -107,7 +109,7 @@ function findServiceRefs(value) {
   return found;
 }
 
-// ── Extract edges from env array ────────────────────────────────────────────
+// ── Extract edges from env array (literal values only) ──────────────────────
 function extractEnvEdges(fromId, envArray) {
   const edges = [];
   if (!Array.isArray(envArray)) return edges;
@@ -125,18 +127,56 @@ function extractEnvEdges(fromId, envArray) {
   return edges;
 }
 
-// ── Extract edges from initContainers (nc / wait patterns) ──────────────────
-function extractInitContainerEdges(fromId, initContainers) {
+// ── Collect ConfigMap names referenced via envFrom/valueFrom/volumes ─────────
+function collectConfigMapRefs(envArray, envFromArray, volumeArray) {
+  const names = new Set();
+  if (Array.isArray(envFromArray)) {
+    for (const item of envFromArray) {
+      const cmName = item?.configMapRef?.name;
+      if (cmName) names.add(cmName);
+    }
+  }
+  if (Array.isArray(envArray)) {
+    for (const item of envArray) {
+      const cmName = item?.valueFrom?.configMapKeyRef?.name;
+      if (cmName) names.add(cmName);
+    }
+  }
+  // ConfigMaps mounted as volumes (e.g. config files injected into the container)
+  if (Array.isArray(volumeArray)) {
+    for (const vol of volumeArray) {
+      const cmName = vol?.configMap?.name;
+      if (cmName) names.add(cmName);
+    }
+  }
+  return [...names];
+}
+
+// ── Extract edges from container command/args ────────────────────────────────
+function extractCommandEdges(fromId, containers, via) {
   const edges = [];
-  if (!Array.isArray(initContainers)) return edges;
-  for (const c of initContainers) {
-    const cmd = Array.isArray(c.command) ? c.command.join(' ') : '';
-    const args = Array.isArray(c.args) ? c.args.join(' ') : '';
+  if (!Array.isArray(containers)) return edges;
+  for (const c of containers) {
+    const cmd = Array.isArray(c.command) ? c.command.join(' ') : (c.command || '');
+    const args = Array.isArray(c.args) ? c.args.join(' ') : (c.args || '');
     const refs = [...findServiceRefs(cmd), ...findServiceRefs(args)];
     for (const svc of refs) {
       if (svc !== fromId) {
-        edges.push({ from: fromId, to: svc, via: 'initContainer:wait' });
+        edges.push({ from: fromId, to: svc, via });
       }
+    }
+  }
+  return edges;
+}
+
+// ── Extract edges from annotation graph.bachelorprojekt.de/depends-on ───────
+function extractAnnotationEdges(fromId, annotations) {
+  const edges = [];
+  const raw = annotations?.['graph.bachelorprojekt.de/depends-on'] || '';
+  if (!raw) return edges;
+  for (const svc of raw.split(',').map(s => s.trim()).filter(Boolean)) {
+    if (svc !== fromId) {
+      edges.push({ from: fromId, to: svc, via: 'annotation' });
     }
   }
   return edges;
@@ -157,9 +197,29 @@ function main() {
     yamlFiles.push(...files);
   }
 
+  // ── Pass 1: collect ConfigMap data → service refs ─────────────────────────
+  // ConfigMap data values may contain service hostnames (e.g. nats://nats:4222).
+  // We collect them so Pass 2 can add edges for deployments that mount these CMs.
+  const configMapServices = new Map(); // configMapName → Set<serviceName>
+  for (const filePath of yamlFiles) {
+    const docs = parseYamlFile(filePath);
+    for (const doc of docs) {
+      if (!doc || doc.kind !== 'ConfigMap') continue;
+      const cmName = doc.metadata?.name || '';
+      if (!cmName) continue;
+      const data = doc.data || {};
+      const allValues = Object.values(data).join('\n');
+      const refs = findServiceRefs(allValues);
+      if (refs.length > 0) {
+        configMapServices.set(cmName, new Set(refs));
+      }
+    }
+  }
+
   // Ingress backends
   const ingressEdges = [];
 
+  // ── Pass 2: build nodes and edges ─────────────────────────────────────────
   for (const filePath of yamlFiles) {
     const docs = parseYamlFile(filePath);
     for (const doc of docs) {
@@ -177,38 +237,59 @@ function main() {
         const cleanName = name.replace(/\$\{[^}]+\}/g, '').trim();
         if (!cleanName) continue;
 
-        // For known services use the canonical name, otherwise use the resource name
         const nodeId = cleanName;
 
         if (!nodes.has(nodeId)) {
           nodes.set(nodeId, { id: nodeId, namespace, type: kind, name: cleanName });
         }
 
-        // Extract container env refs
         const podSpec =
           kind === 'CronJob'
             ? doc.spec?.jobTemplate?.spec?.template?.spec
             : doc.spec?.template?.spec;
 
         if (podSpec) {
-          const containers = [
-            ...(podSpec.containers || []),
-          ];
+          const containers = podSpec.containers || [];
+          const initContainers = podSpec.initContainers || [];
 
           for (const c of containers) {
+            // Literal env values
             const envEdges = extractEnvEdges(nodeId, c.env || []);
             for (const e of envEdges) {
               const key = `${e.from}→${e.to}→${e.via}`;
               if (!edgeSet.has(key)) { edgeSet.add(key); edges.push(e); }
             }
+
+            // ConfigMap-backed env: envFrom + valueFrom.configMapKeyRef + volume mounts
+            const cmRefs = collectConfigMapRefs(c.env || [], c.envFrom || [], podSpec.volumes || []);
+            for (const cmName of cmRefs) {
+              const svcs = configMapServices.get(cmName) || new Set();
+              for (const svc of svcs) {
+                if (svc !== nodeId) {
+                  const e = { from: nodeId, to: svc, via: `configmap:${cmName}` };
+                  const key = `${e.from}→${e.to}→${e.via}`;
+                  if (!edgeSet.has(key)) { edgeSet.add(key); edges.push(e); }
+                }
+              }
+            }
           }
 
-          // initContainer wait dependencies
-          const initEdges = extractInitContainerEdges(nodeId, podSpec.initContainers || []);
-          for (const e of initEdges) {
+          // Container command/args (curl calls, wait scripts etc.)
+          const cmdEdges = [
+            ...extractCommandEdges(nodeId, containers, 'command'),
+            ...extractCommandEdges(nodeId, initContainers, 'initContainer:wait'),
+          ];
+          for (const e of cmdEdges) {
             const key = `${e.from}→${e.to}→${e.via}`;
             if (!edgeSet.has(key)) { edgeSet.add(key); edges.push(e); }
           }
+        }
+
+        // Annotation-declared dependencies (for secretKeyRef-hidden refs)
+        const annotEdges = extractAnnotationEdges(nodeId, metadata.annotations);
+        for (const e of annotEdges) {
+          const key = `${e.from}→${e.to}→${e.via}`;
+          if (!edgeSet.has(key)) { edgeSet.add(key); edges.push(e); }
         }
       }
 

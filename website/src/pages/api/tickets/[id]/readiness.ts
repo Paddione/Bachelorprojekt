@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';
-import { updateSuccessorReadiness } from '../../../../lib/ticket-graph';
+import { updateSuccessorReadiness } from '../../../../lib/ticket-readiness';
 
 export const prerender = false;
 
@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       });
     }
 
-    const updated = await updateSuccessorReadiness(rows[0].id);
+    const updated = await updateSuccessorReadiness(rows[0].id, pool);
     return new Response(JSON.stringify({ ok: true, successors_updated: updated }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

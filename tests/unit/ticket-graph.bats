@@ -9,6 +9,7 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 setup() {
   export PROJECT_DIR
   GRAPH_LIB="${PROJECT_DIR}/website/src/lib/ticket-graph.ts"
+  READINESS_LIB="${PROJECT_DIR}/website/src/lib/ticket-readiness.ts"
   GRAPH_API="${PROJECT_DIR}/website/src/pages/api/tickets/graph.ts"
 }
 
@@ -25,11 +26,11 @@ setup() {
 }
 
 @test "static: exports allPredecessorsDone function" {
-  grep -q "export async function allPredecessorsDone" "$GRAPH_LIB"
+  grep -q "export async function allPredecessorsDone" "$READINESS_LIB"
 }
 
 @test "static: exports updateSuccessorReadiness function" {
-  grep -q "export async function updateSuccessorReadiness" "$GRAPH_LIB"
+  grep -q "export async function updateSuccessorReadiness" "$READINESS_LIB"
 }
 
 @test "static: exports TicketGraph interface" {
@@ -85,15 +86,15 @@ setup() {
 }
 
 @test "static: allPredecessorsDone checks status=done" {
-  grep -q "status === 'done'" "$GRAPH_LIB"
+  grep -q "status === 'done'" "$READINESS_LIB"
 }
 
 @test "static: updateSuccessorReadiness sets abhaengigkeiten_klar" {
-  grep -q "abhaengigkeiten_klar" "$GRAPH_LIB"
+  grep -q "abhaengigkeiten_klar" "$READINESS_LIB"
 }
 
 @test "static: updateSuccessorReadiness finds successors via depends_on" {
-  grep -q '\$1 = ANY(depends_on)' "$GRAPH_LIB"
+  grep -q '\$1 = ANY(depends_on)' "$READINESS_LIB"
 }
 
 @test "static: TypeScript syntax valid" {

@@ -2,6 +2,7 @@
 import { pool } from '../website-db';
 import { sendBugCloseEmail } from './email-templates';
 import { linkReporterByEmail } from './reporter-link';
+import { updateSuccessorReadiness } from '../ticket-readiness';
 
 export type TicketStatus =
   'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
@@ -121,6 +122,12 @@ export async function transitionTicket(
         resolution: after.resolution,
         note: p.noteVisibility === 'public' ? p.note : undefined,
       });
+    }
+
+    if (becomingDone) {
+      updateSuccessorReadiness(after.id, pool).catch((err: unknown) =>
+        console.error('[transition] updateSuccessorReadiness failed:', err)
+      );
     }
 
     return {

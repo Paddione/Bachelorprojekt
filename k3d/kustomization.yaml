@@ -41,6 +41,7 @@ resources:
   - pvc-backup-rbac.yaml
   - backup-config.yaml
   - notify-unread-cronjob.yaml
+  - cronjob-scheduled-publish.yaml
   # Abrechnung
   - admin-actions-cronjobs.yaml
   - cronjob-monthly-billing.yaml

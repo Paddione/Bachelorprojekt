@@ -15,7 +15,8 @@
     id: string;
     subject: string;
     html_body: string;
-    status: 'draft' | 'sent';
+    status: 'draft' | 'scheduled' | 'sent';
+    scheduled_publish_at: string | null;
     sent_at: string | null;
     recipient_count: number | null;
     created_at: string;
@@ -121,6 +122,15 @@
     activeTab = 'compose';
   }
 
+  async function unschedule(id: string) {
+    const res = await fetch(`/api/admin/newsletter/campaigns/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scheduled_publish_at: null, status: 'draft' }),
+    });
+    if (res.ok) loadCampaigns();
+  }
+
   // ── Compose ───────────────────────────────────────────────────────────────────
   let composeSubject = $state('');
   let composeHtml = $state('');
@@ -132,6 +142,8 @@
   let sending = $state(false);
   let nextAusgabe = $state('');
   let hasSeededExample = $state(false);
+  let scheduleEnabled = $state(false);
+  let scheduleAt = $state('');
 
   const EXAMPLE_SUBJECT = 'Deine erste Ausgabe – herzlich willkommen!';
   const EXAMPLE_HTML = `<h1 style="color:#333;font-family:sans-serif;">Herzlich willkommen!</h1>
@@ -213,12 +225,65 @@
     }
   }
 
+  async function scheduleCampaign() {
+    if (!composeSubject.trim() || !composeHtml.trim()) {
+      composeMsg = 'Betreff und Inhalt sind erforderlich.'; return;
+    }
+    if (!scheduleAt) {
+      composeMsg = 'Bitte ein Sendedatum wählen.'; return;
+    }
+    const when = new Date(scheduleAt);
+    const minTime = new Date(Date.now() + 5 * 60 * 1000);
+    if (Number.isNaN(when.getTime()) || when < minTime) {
+      composeMsg = 'Der Sendezeitpunkt muss mindestens 5 Minuten in der Zukunft liegen.'; return;
+    }
+    if (!composeDraftId) {
+      const createRes = await fetch('/api/admin/newsletter/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: composeSubject, html_body: composeHtml }),
+      });
+      if (!createRes.ok) { composeMsg = 'Fehler beim Speichern.'; return; }
+      composeDraftId = (await createRes.json()).id;
+    }
+    const res = await fetch(`/api/admin/newsletter/campaigns/${composeDraftId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: composeSubject,
+        html_body: composeHtml,
+        scheduled_publish_at: when.toISOString(),
+        status: 'scheduled',
+      }),
+    });
+    if (res.ok) {
+      composeMsg = `Geplant für ${when.toLocaleString('de-DE')}.`;
+      composeSubject = ''; composeHtml = ''; composeDraftId = null;
+      scheduleEnabled = false; scheduleAt = '';
+      loadCampaigns();
+    } else {
+      composeMsg = (await res.json()).error ?? 'Fehler beim Planen.';
+    }
+  }
+
   // helpers
   function statusBadge(s: string): string {
     if (s === 'confirmed') return 'bg-green-500/10 text-green-400 border-green-500/20';
     if (s === 'pending')   return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
-    if (s === 'sent')      return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    if (s === 'sent')      return 'bg-green-500/10 text-green-400 border-green-500/20';
+    if (s === 'scheduled') return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     return 'bg-dark-lighter text-muted border-dark-lighter';
+  }
+
+  function relativeSchedule(iso: string | null): string {
+    if (!iso) return '';
+    const diffMs = new Date(iso).getTime() - Date.now();
+    if (diffMs <= 0) return 'fällig';
+    const mins = Math.round(diffMs / 60000);
+    if (mins < 60) return `in ${mins} Min`;
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return `in ${hours} Std`;
+    return `in ${Math.round(hours / 24)} Tagen`;
   }
 
   function fmtDate(d: string | null): string {
@@ -372,7 +437,13 @@
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class={`px-2 py-0.5 rounded border text-xs ${statusBadge(c.status)}`}>{c.status}</span>
+            {#if c.status === 'scheduled'}
+              <span class="text-xs text-blue-300">{relativeSchedule(c.scheduled_publish_at)}</span>
+            {/if}
             <button onclick={() => useAsTemplate(c)} class="text-xs text-muted hover:text-gold transition-colors">Als Vorlage</button>
+            {#if c.status === 'scheduled'}
+              <button onclick={() => unschedule(c.id)} class="text-xs text-muted hover:text-red-400 transition-colors">Planung aufheben</button>
+            {/if}
           </div>
         </div>
       {/each}
@@ -441,12 +512,21 @@
     {#if composeMsg}
       <p class={`text-sm ${composeMsg.includes('Fehler') || composeMsg.includes('erforderlich') ? 'text-red-400' : 'text-green-400'}`}>{composeMsg}</p>
     {/if}
+    <div class="flex items-center gap-2 mb-3">
+      <input type="checkbox" id="schedule-toggle" bind:checked={scheduleEnabled}
+        class="accent-gold" />
+      <label for="schedule-toggle" class="text-sm text-light">Geplant senden</label>
+      {#if scheduleEnabled}
+        <input type="datetime-local" bind:value={scheduleAt}
+          class="ml-2 px-2 py-1 bg-dark-light border border-dark-lighter rounded text-sm text-light" />
+      {/if}
+    </div>
     <div class="flex gap-3">
       <button onclick={saveDraft} disabled={composeSaving} class="px-4 py-2 bg-dark-lighter text-light rounded-lg text-sm font-medium hover:bg-dark-light transition-colors disabled:opacity-50">
         {composeSaving ? 'Speichere…' : 'Als Draft speichern'}
       </button>
-      <button onclick={openSendConfirm} disabled={sending} class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50">
-        {sending ? 'Sende…' : 'Senden'}
+      <button onclick={() => scheduleEnabled ? scheduleCampaign() : openSendConfirm()} disabled={sending} class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50">
+        {sending ? 'Sende…' : scheduleEnabled ? 'Versand planen' : 'Senden'}
       </button>
     </div>
 

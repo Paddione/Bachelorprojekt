@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T17:25:17.361Z",
+  "generatedAt": "2026-06-11T04:13:39.504Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -72,6 +72,12 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "monthly-billing"
+    },
+    {
+      "id": "scheduled-publish",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "scheduled-publish"
     },
     {
       "id": "systemtest-cleanup",
@@ -206,24 +212,6 @@
       "name": "mailpit"
     },
     {
-      "id": "monitoring-grafana",
-      "namespace": "monitoring",
-      "type": "Deployment",
-      "name": "monitoring-grafana"
-    },
-    {
-      "id": "monitoring-kube-state-metrics",
-      "namespace": "monitoring",
-      "type": "Deployment",
-      "name": "monitoring-kube-state-metrics"
-    },
-    {
-      "id": "monitoring-operator",
-      "namespace": "monitoring",
-      "type": "Deployment",
-      "name": "monitoring-operator"
-    },
-    {
       "id": "nextcloud-redis",
       "namespace": "mentolder",
       "type": "Deployment",
@@ -306,12 +294,6 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "shared-db"
-    },
-    {
-      "id": "shared-db-staging",
-      "namespace": "$STAGING_NS",
-      "type": "StatefulSet",
-      "name": "shared-db-staging"
     },
     {
       "id": "nats",
@@ -531,6 +513,11 @@
     },
     {
       "from": "monthly-billing",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "website",
       "via": "command"
     },
@@ -928,11 +915,6 @@
       "from": "whiteboard",
       "to": "nextcloud",
       "via": "env:NEXTCLOUD_URL"
-    },
-    {
-      "from": "monitoring-grafana",
-      "to": "keycloak",
-      "via": "env:GF_AUTH_GENERIC_OAUTH_NAME"
     },
     {
       "from": "tls-sync",

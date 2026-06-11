@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T04:08:55.145Z",
+  "generatedAt": "2026-06-11T04:20:00.532Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -839,6 +839,14 @@
       "file": "website/src/pages/api/admin/documents/assignments/[id].ts"
     },
     {
+      "path": "/api/admin/documents/assignments/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/assignments/[id]/pdf.ts"
+    },
+    {
       "path": "/api/admin/documents/notify/{id}",
       "methods": [
         "POST"
@@ -864,6 +872,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/documents/templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/documents/templates/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/templates/[id]/pdf.ts"
     },
     {
       "path": "/api/admin/einstellungen/backup",

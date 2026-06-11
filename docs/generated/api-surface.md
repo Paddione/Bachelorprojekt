@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-11T04:08:55.145Z
+> Generated at 2026-06-11T04:20:00.532Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -106,9 +106,11 @@
 | `/api/admin/documents/assign` | POST | 🔐 admin | `website/src/pages/api/admin/documents/assign.ts` |
 | `/api/admin/documents/assignments` | GET | 🔐 admin | `website/src/pages/api/admin/documents/assignments.ts` |
 | `/api/admin/documents/assignments/{id}` | DELETE, PATCH | 🔐 admin | `website/src/pages/api/admin/documents/assignments/[id].ts` |
+| `/api/admin/documents/assignments/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/assignments/[id]/pdf.ts` |
 | `/api/admin/documents/notify/{id}` | POST | 🔐 admin | `website/src/pages/api/admin/documents/notify/[id].ts` |
 | `/api/admin/documents/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/documents/templates/index.ts` |
 | `/api/admin/documents/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id].ts` |
+| `/api/admin/documents/templates/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id]/pdf.ts` |
 | `/api/admin/einstellungen/backup` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/backup.ts` |
 | `/api/admin/einstellungen/benachrichtigungen` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/benachrichtigungen.ts` |
 | `/api/admin/einstellungen/branding` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/branding.ts` |

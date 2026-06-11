@@ -181,6 +181,29 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
     });
   }
 
+  // ── Beziehungslinien-Tabelle (T000605) ───────────────────────────────────
+  if (snapshot.lines.length > 0) {
+    // Label-Lookup aus den Figuren (Fallback: figureId selbst)
+    const labelOf = (id: string): string => {
+      const f = snapshot.figures.find(fig => fig.id === id);
+      return (f?.label && f.label.trim()) ? f.label : id;
+    };
+    // Startposition: unterhalb der (max. 8-zeiligen) Figurenliste oder Metadaten
+    const labelledCount = snapshot.figures.filter(f => f.label && f.label.trim()).length;
+    const listRows = Math.min(labelledCount, 8);
+    const LINES_Y = META_Y + 7 + (labelledCount > 0 ? 5 + listRows * 5 : 0) + 4;
+    doc.setFontSize(7);
+    doc.setTextColor(80);
+    doc.text('Beziehungen:', 20, LINES_Y);
+    snapshot.lines.forEach((l, i) => {
+      const col = Math.floor(i / 8);
+      const row = i % 8;
+      const x = 20 + col * 90;
+      const y = LINES_Y + 5 + row * 5;
+      doc.text(`• ${labelOf(l.fromId)} → ${labelOf(l.toId)}  [${l.lineType}]`, x, y);
+    });
+  }
+
   doc.save(`brett-${_isoDate()}.pdf`);
 }
 

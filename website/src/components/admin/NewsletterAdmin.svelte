@@ -1,5 +1,6 @@
 <script lang="ts">
   import HtmlEditor from './HtmlEditor.svelte';
+  import NewsletterBlockLibrary from './NewsletterBlockLibrary.svelte';
 
   type Subscriber = {
     id: string;
@@ -20,7 +21,7 @@
     created_at: string;
   };
 
-  let activeTab: 'subscribers' | 'campaigns' | 'compose' = $state('subscribers');
+  let activeTab: 'subscribers' | 'campaigns' | 'compose' | 'vorlagen' = $state('subscribers');
 
   // ── Subscribers ──────────────────────────────────────────────────────────────
   let subscribers: Subscriber[] = $state([]);
@@ -224,11 +225,49 @@
     if (!d) return '—';
     return new Date(d).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
   }
+
+  // ── Block insert (Compose tab) ───────────────────────────────────────────────
+  let showBlockPicker = $state(false);
+  let blockPickerBlocks: { id: string; title: string; block_type: string; html_body: string }[] = $state([]);
+  let blockPickerLoading = $state(false);
+
+  async function loadBlockPicker() {
+    if (blockPickerBlocks.length > 0) return; // cached
+    blockPickerLoading = true;
+    try {
+      const res = await fetch('/api/admin/newsletter/blocks');
+      blockPickerBlocks = res.ok ? await res.json() : [];
+    } catch { /* ignore */ } finally {
+      blockPickerLoading = false;
+    }
+  }
+
+  function insertBlock(htmlBody: string) {
+    composeHtml = composeHtml + '\n' + htmlBody;
+    showBlockPicker = false;
+  }
+
+  const BLOCK_TYPE_LABELS: Record<string, string> = {
+    header: 'Kopfzeile', angebot: 'Angebot', cta: 'CTA', text: 'Text', footer: 'Abschluss',
+  };
+
+  // Close block picker when clicking outside
+  $effect(() => {
+    if (!showBlockPicker) return;
+    function handleOutside(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-block-picker]')) {
+        showBlockPicker = false;
+      }
+    }
+    document.addEventListener('click', handleOutside, { capture: true });
+    return () => document.removeEventListener('click', handleOutside, { capture: true });
+  });
 </script>
 
 <!-- Tab bar -->
 <div class="flex gap-1 mb-6 border-b border-dark-lighter">
-  {#each [['subscribers','Abonnenten'],['campaigns','Kampagnen'],['compose','Neue Kampagne']] as [tab, label]}
+  {#each [['subscribers','Abonnenten'],['campaigns','Kampagnen'],['compose','Neue Kampagne'],['vorlagen','Vorlagen']] as [tab, label]}
     <button
       onclick={() => activeTab = tab as typeof activeTab}
       class={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === tab ? 'text-gold border-b-2 border-gold -mb-px bg-dark-light' : 'text-muted hover:text-light'}`}
@@ -352,15 +391,46 @@
       />
     </div>
 
-    <HtmlEditor
-      bind:value={composeHtml}
-      previewMode="server"
-      previewUrl="/api/admin/newsletter/preview"
-      previewBody={() => ({ subject: composeSubject, html_body: composeHtml })}
-      label="HTML-Inhalt *"
-      placeholder="<h1>Hallo!</h1><p>Dein Newsletter-Inhalt hier.</p>"
-      rows={20}
-    />
+    <div>
+      <div class="flex items-center justify-between mb-1">
+        <label class="text-sm text-muted">HTML-Inhalt *</label>
+        <div class="relative" data-block-picker>
+          <button
+            onclick={async () => { showBlockPicker = !showBlockPicker; if (showBlockPicker) await loadBlockPicker(); }}
+            class="px-3 py-1 bg-dark-lighter text-muted hover:text-light text-xs rounded-lg border border-dark-lighter hover:border-gold/40 transition-colors"
+          >
+            + Block einfügen
+          </button>
+          {#if showBlockPicker}
+            <div class="absolute right-0 top-8 z-20 w-72 bg-dark-light border border-dark-lighter rounded-xl shadow-lg p-3 space-y-1 max-h-64 overflow-y-auto">
+              {#if blockPickerLoading}
+                <p class="text-muted text-xs">Lade…</p>
+              {:else if blockPickerBlocks.length === 0}
+                <p class="text-muted text-xs">Keine Blöcke gespeichert. Erstelle welche im Tab „Vorlagen".</p>
+              {:else}
+                {#each blockPickerBlocks as b}
+                  <button
+                    onclick={() => insertBlock(b.html_body)}
+                    class="w-full text-left px-3 py-2 rounded-lg hover:bg-gold/10 transition-colors"
+                  >
+                    <p class="text-light text-xs font-medium">{b.title}</p>
+                    <p class="text-muted text-[10px]">{BLOCK_TYPE_LABELS[b.block_type] ?? b.block_type}</p>
+                  </button>
+                {/each}
+              {/if}
+            </div>
+          {/if}
+        </div>
+      </div>
+      <HtmlEditor
+        bind:value={composeHtml}
+        previewMode="server"
+        previewUrl="/api/admin/newsletter/preview"
+        previewBody={() => ({ subject: composeSubject, html_body: composeHtml })}
+        placeholder="<h1>Hallo!</h1><p>Dein Newsletter-Inhalt hier.</p>"
+        rows={20}
+      />
+    </div>
     {#if nextAusgabe}
       <p class="text-xs text-muted mt-1">
         Platzhalter: <span class="font-mono text-gold/80">&#123;&#123;AUSGABE&#125;&#125;</span>
@@ -380,6 +450,12 @@
       </button>
     </div>
 
+  </div>
+
+{:else if activeTab === 'vorlagen'}
+  <div class="pt-2">
+    <p class="text-xs text-muted mb-4">Gespeicherte Blöcke kannst du im Tab „Neue Kampagne" per „Block einfügen" direkt in den Entwurf übernehmen.</p>
+    <NewsletterBlockLibrary />
   </div>
 {/if}
 

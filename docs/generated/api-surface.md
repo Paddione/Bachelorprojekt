@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-11T01:08:21.497Z
+> Generated at 2026-06-11T02:10:18.926Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -158,6 +158,8 @@
 | `/api/admin/messages/{threadId}` | GET, POST | 🔐 admin | `website/src/pages/api/admin/messages/[threadId].ts` |
 | `/api/admin/monitoring` | GET | 🔐 admin | `website/src/pages/api/admin/monitoring.ts` |
 | `/api/admin/navigation/save` | POST | 🔐 admin | `website/src/pages/api/admin/navigation/save.ts` |
+| `/api/admin/newsletter/blocks` | GET, POST | 🔐 admin | `website/src/pages/api/admin/newsletter/blocks/index.ts` |
+| `/api/admin/newsletter/blocks/{id}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/newsletter/blocks/[id].ts` |
 | `/api/admin/newsletter/campaigns` | GET, POST | 🔐 admin | `website/src/pages/api/admin/newsletter/campaigns/index.ts` |
 | `/api/admin/newsletter/campaigns/{id}` | PUT | 🔐 admin | `website/src/pages/api/admin/newsletter/campaigns/[id].ts` |
 | `/api/admin/newsletter/campaigns/{id}/send` | POST | 🔐 admin | `website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts` |

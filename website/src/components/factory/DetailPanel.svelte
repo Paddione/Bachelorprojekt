@@ -40,6 +40,12 @@
     if (phaseIdx < currentIdx) return 'done';
     return 'future';
   }
+
+  function scoreColor(score: number): string {
+    if (score >= 0.9) return 'var(--factory-success, #4ade80)';
+    if (score >= 0.75) return 'var(--factory-accent, #f59e0b)';
+    return 'var(--factory-text-muted, #6b7280)';
+  }
 </script>
 
 {#if selected}
@@ -135,6 +141,19 @@
           </button>
         </div>
       </details>
+
+      {#if detail.suggested_files?.length}
+        <h4 class="detail-panel__section">Semantisch verwandte Dateien</h4>
+        <ul class="detail-panel__suggested" data-testid="suggested-files">
+          {#each detail.suggested_files as f}
+            <li class="detail-panel__suggested-item" style="border-left: 3px solid {scoreColor(f.score)}">
+              <code class="detail-panel__suggested-path">{f.path}</code>
+              <span class="detail-panel__suggested-score">{(f.score * 100).toFixed(0)}%</span>
+              <pre class="detail-panel__suggested-snippet">{f.snippet}</pre>
+            </li>
+          {/each}
+        </ul>
+      {/if}
     {/if}
   </div>
 {/if}
@@ -407,5 +426,46 @@
     .detail-panel {
       width: 100%;
     }
+  }
+
+  .detail-panel__suggested {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--factory-spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--factory-spacing-xs);
+  }
+
+  .detail-panel__suggested-item {
+    background: var(--factory-surface);
+    border: 1px solid var(--factory-border);
+    border-radius: var(--factory-radius-sm);
+    padding: var(--factory-spacing-xs) var(--factory-spacing-sm);
+  }
+
+  .detail-panel__suggested-path {
+    font-family: var(--factory-font-mono);
+    font-size: var(--factory-text-xs);
+    color: var(--factory-accent);
+    word-break: break-all;
+  }
+
+  .detail-panel__suggested-score {
+    font-family: var(--factory-font-mono);
+    font-size: 10px;
+    color: var(--factory-text-muted);
+    margin-left: var(--factory-spacing-xs);
+  }
+
+  .detail-panel__suggested-snippet {
+    font-family: var(--factory-font-mono);
+    font-size: 11px;
+    color: var(--factory-text-muted);
+    margin: var(--factory-spacing-xs) 0 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 80px;
+    overflow: hidden;
   }
 </style>

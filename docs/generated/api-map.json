@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T00:02:59.737Z",
+  "generatedAt": "2026-06-11T00:31:36.088Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2492,6 +2492,14 @@
       ],
       "auth": "public",
       "file": "website/src/pages/api/cluster/status.ts"
+    },
+    {
+      "path": "/api/codesearch",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/codesearch.ts"
     },
     {
       "path": "/api/contact",

@@ -269,6 +269,8 @@ tasks:
       - task: test:unit:coverage-guard
       - task: test:unit:build-graph
       - task: test:unit:freshness-graph
+      - task: test:unit:scs-index
+      - task: test:unit:scs-search
 
   test:unit:build-graph:
     internal: true
@@ -413,6 +415,16 @@ tasks:
     # Fail if any tests/unit/*.bats is neither run by a task nor allowlisted.
     cmds:
       - bash scripts/tests/unit-coverage-guard.sh
+
+  test:unit:scs-index:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scs-index.bats
+
+  test:unit:scs-search:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/scs-search.bats
 
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
@@ -1116,6 +1128,7 @@ tasks:
       - git config core.hooksPath .githooks
       - chmod +x .githooks/pre-commit
       - chmod +x .githooks/pre-push
+      - chmod +x .githooks/post-commit-index
       - echo "hooksPath set to .githooks"
 
   secrets:unlock:
@@ -4313,3 +4326,57 @@ tasks:
     desc: "Run AI classifier over UNCLASSIFIED chunks of a coaching book. Args: -- --slug=<slug> | --all"
     cmds:
       - source scripts/env-resolve.sh "${ENV:-dev}" && cd website && npx tsx ../scripts/coaching/classify-book.mts {{.CLI_ARGS}}
+
+  scs:index:
+    desc: "Build the semantic code search index (bge-m3 embeddings → pgvector). Requires cluster DB access."
+    cmds:
+      - |
+        source scripts/env-resolve.sh "${ENV:-dev}"
+        ctx_flag=""
+        [ "${ENV:-dev}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        fuser -k 15434/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15434:5432 \
+          >/tmp/scs-index-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null || true' EXIT
+        sleep 4
+        if ! nc -z 127.0.0.1 15434 2>/dev/null; then
+          echo "ERROR: port-forward not listening on 15434:" >&2
+          cat /tmp/scs-index-pf.log >&2
+          exit 1
+        fi
+
+        PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
+          npx tsx scripts/index-repo.ts
+
+  scs:search:
+    desc: "Semantic code search — Usage: task scs:search -- 'query text' [--limit=5] [--augmented]"
+    cmds:
+      - |
+        source scripts/env-resolve.sh "${ENV:-dev}"
+        ctx_flag=""
+        [ "${ENV:-dev}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        fuser -k 15434/tcp 2>/dev/null || true
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15434:5432 \
+          >/tmp/scs-search-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null || true' EXIT
+        sleep 4
+
+        PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
+          npx tsx -e "
+            import { searchCode, searchCodeAugmented } from './website/src/lib/codesearch-db.ts';
+            const args = process.argv.slice(1);
+            const q = args[0];
+            const augmented = args.includes('--augmented');
+            const limitMatch = args.find(a => a.startsWith('--limit='));
+            const limit = limitMatch ? parseInt(limitMatch.split('=')[1]) : 5;
+            const fn = augmented ? searchCodeAugmented : searchCode;
+            fn(q, limit).then(r => console.log(JSON.stringify(r, null, 2))).catch(e => { console.error(e.message); process.exit(1); });
+          " {{.CLI_ARGS}}

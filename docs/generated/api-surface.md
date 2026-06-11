@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-11T00:02:59.737Z
+> Generated at 2026-06-11T00:31:36.088Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -309,6 +309,7 @@
 | `/api/bug-report` | POST | 🌐 public | `website/src/pages/api/bug-report.ts` |
 | `/api/calendar/slots` | GET | 🌐 public | `website/src/pages/api/calendar/slots.ts` |
 | `/api/cluster/status` | GET | 🌐 public | `website/src/pages/api/cluster/status.ts` |
+| `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
 | `/api/contact` | POST | 🌐 public | `website/src/pages/api/contact.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
 | `/api/dsgvo-request` | POST | 🌐 public | `website/src/pages/api/dsgvo-request.ts` |

@@ -2,7 +2,7 @@ import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } f
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase, Participant } from '../types/state';
-import { updateExportCache, type ExportFigure } from './ui/export';
+import { updateExportCache, type ExportFigure, type ExportLine } from './ui/export';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
@@ -20,6 +20,22 @@ function _toExportFig(fig: any): ExportFigure {
     color: fig.appearance?.color ?? fig.color,
     figureType: fig.figureType,
     ownerId: fig.ownerId,
+    // NEU (T000605) — vollständiger Roundtrip:
+    scale: fig.scale,
+    preset: fig.preset,
+    note: fig.note,
+    boneOverrides: fig.boneOverrides ? { ...fig.boneOverrides } : undefined,
+    appearance: fig.appearance ? { ...fig.appearance } : undefined,
+  };
+}
+
+/** Mappt eine BrettLine (STATE.lines) auf das serialisierbare ExportLine-Format. */
+function _toExportLine(line: any): ExportLine {
+  return {
+    id: line.id,
+    fromId: line.fromId,
+    toId: line.toId,
+    lineType: line.lineType,
   };
 }
 // ── T000470: Undo/Redo-Stack-Status ─────────────────────────────────────
@@ -326,6 +342,9 @@ export function onWsMessage(evt: MessageEvent): void {
         sessionCode: (msg as any).sessionCode ?? null,
         stiffness: (msg as any).stiffness ?? STATE.stiffness,
         figures: ((msg as any).figures ?? []).map(_toExportFig),
+        lines: ((msg as any).lines ?? []).map(_toExportLine),
+        anchors: [...((msg as any).anchors ?? [])],
+        zones: [...((msg as any).zones ?? [])],
         optik: (msg as any).optik ?? null,
       });
       break;
@@ -528,28 +547,41 @@ export function onWsMessage(evt: MessageEvent): void {
       console.warn('[brett] server error:', msg.reason);
       break;
 
-    // ── T000468: Boden-Anker & Zonen (DARK-LAUNCH) ──────────────────────────
+    // ── T000468: Boden-Anker & Zonen (DARK-LAUNCH-Rendering, Cache immer pflegen) ─
     case 'anchor_added': {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.applyAnchorAdded(msg.anchor);
+        updateExportCache({ anchors: [...STATE.anchors] });
+      } else {
+        // Rendering aus, aber Export-Cache soll den Anker dennoch kennen
+        updateExportCache({ anchors: [...STATE.anchors, msg.anchor] });
       }
       break;
     }
     case 'anchor_removed': {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.applyAnchorRemoved(msg.anchorId);
+        updateExportCache({ anchors: [...STATE.anchors] });
+      } else {
+        updateExportCache({ anchors: STATE.anchors.filter(a => a.id !== msg.anchorId) });
       }
       break;
     }
     case 'zone_added': {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.applyZoneAdded(msg.zone);
+        updateExportCache({ zones: [...STATE.zones] });
+      } else {
+        updateExportCache({ zones: [...STATE.zones, msg.zone] });
       }
       break;
     }
     case 'zone_removed': {
       if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
         groundObjects.applyZoneRemoved(msg.zoneId);
+        updateExportCache({ zones: [...STATE.zones] });
+      } else {
+        updateExportCache({ zones: STATE.zones.filter(z => z.id !== msg.zoneId) });
       }
       break;
     }
@@ -559,6 +591,9 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'line_deleted':
     case 'line_type_changed':
       applyLineMessage(msg);
+      // Export-Cache mit aktuellem STATE.lines synchronisieren (scene-lines.ts
+      // mutiert STATE.lines, hat aber keinen Export-Cache-Zugriff — T000605):
+      updateExportCache({ lines: STATE.lines.map(_toExportLine) });
       break;
 
     default:

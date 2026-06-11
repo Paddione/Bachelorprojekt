@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>troubleshoot-braintrust-mcp — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">troubleshoot-braintrust-mcp</span></nav>
+    <h1>troubleshoot-braintrust-mcp</h1>
+    <p class="page-desc">This plugin auto-configures a &quot;braintrust&quot; MCP server. If you can't see it or reach it, activate this skill</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">braintrust</span> <span class="pv-ver">1.3.1</span></span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><p>This Claude plugin automatically sets up a Braintrust MCP connection. The connection reads the <code>BRAINTRUST_API_KEY</code> environment variable to establish the MCP connection.</p>
+<h2 id="troubleshooting-steps">Troubleshooting steps</h2>
+<h3>1. Verify the environment variable is set</h3>
+<p>Run <code>echo $BRAINTRUST_API_KEY</code> to check if the variable is exported</p>
+<p>API keys can be created at <a href="https://www.braintrust.dev/app/settings?subroute=api-keys">https://www.braintrust.dev/app/settings?subroute=api-keys</a></p>
+<h3>2. Verify the API key is valid</h3>
+<p>Test the key by calling the Braintrust API:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s https://api.braintrust.dev/api/self/me -H "Authorization: Bearer $BRAINTRUST_API_KEY"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>If valid: returns JSON with user info (id, email, organizations, etc.)</li>
+<li>If invalid: returns an authentication error</li>
+</ul>
+<p>NOTE: Even if you can curl the api via http, continue to attempt MCP setup. Http is just a troubleshooting tool, not a replacement for MCP</p>
+<h3>3. Check if the MCP server is reachable</h3>
+<p>If the key is valid but connection still fails, check if the MCP server is up:</p>
+<div class="code-wrapper"><pre><code class="language-bash">curl -s -o /dev/null -w "%{http_code}" https://api.braintrust.dev/mcp
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ul>
+<li>Any HTTP response (even 401 or 405) means the server is reachable</li>
+<li>Connection timeout or "connection refused" means the server may be down</li>
+</ul>
+<h3>4. Contact support</h3>
+<p>If nothing else works, encourage the user to reach out:</p>
+<ul>
+<li>Discord: <a href="https://discord.com/invite/6G8s47F44X">https://discord.com/invite/6G8s47F44X</a></li>
+<li>Email: <a href="mailto:support@braintrust.dev">support@braintrust.dev</a></li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

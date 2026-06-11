@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 412,
+      "file_count": 413,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -136,6 +136,7 @@
         "tests/e2e/specs/fa-poll.spec.ts",
         "tests/e2e/specs/fa-public-pages.spec.ts",
         "tests/e2e/specs/fa-qa-review.spec.ts",
+        "tests/e2e/specs/fa-scs-scout.spec.ts",
         "tests/e2e/specs/fa-slot-widget.spec.ts",
         "tests/e2e/specs/global-db-cleanup-teardown.ts",
         "tests/e2e/specs/global-db-cleanup.ts",

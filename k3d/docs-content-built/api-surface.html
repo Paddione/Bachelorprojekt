@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>API Surface Map — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">API Surface Map</span></nav>
+    <h1>API Surface Map</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>API Surface Map</h1>
+<blockquote>
+<p>Generated at 2026-06-11T00:06:19.843Z</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Methods</th>
+<th>Auth</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/admin/angebote/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/angebote/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/assets</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/assets.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/assets/upload</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/assets/upload.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/discard</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/discard.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/finalize-from-prepayment</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/finalize-from-prepayment.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/item</code></td>
+<td>POST, PATCH, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/item.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/payments</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/payments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/send</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/send.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/storno</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/storno.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/{id}/validate</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/[id]/validate.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/create-invoice</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/create-invoice.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/create-monthly-invoices</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/create-monthly-invoices.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/customers/{id}/leitweg</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/customers/[id]/leitweg.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/datev-email</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/datev-email.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/datev-export</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/datev-export.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/draft-count</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/draft-count.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/drafts</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/drafts.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/dunning/{id}/send</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/dunning/[id]/send.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/dunning/run</code></td>
+<td>POST, GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/dunning/run.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/integrity-check</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/integrity-check.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/billing/sepa-export</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/billing/sepa-export.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bookings/{uid}/delete</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bookings/[uid]/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bookings/{uid}/remind</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bookings/[uid]/remind.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bookings/{uid}/status</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bookings/[uid]/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bookings/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bookings/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bookkeeping/summary</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bookkeeping/summary.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/brand-starter</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/brand-starter.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/brett/broadcast</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/brett/broadcast.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/{id}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/{id}/comments</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/[id]/comments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/archive</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/archive.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/reopen</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/reopen.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/bugs/resolve</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/bugs/resolve.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clientnotes/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clientnotes/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clientnotes/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clientnotes/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients-list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients-list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/decline-enrollment</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/decline-enrollment.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/enroll</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/enroll.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/flag-user</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/flag-user.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/newsletter-toggle</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/newsletter-toggle.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/reset-password</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/reset-password.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/roles-assign</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/roles-assign.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/roles-remove</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/roles-remove.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/set-admin-number</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/set-admin-number.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/set-customer-number</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/set-customer-number.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/set-is-admin</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/set-is-admin.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cluster/logs</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cluster/logs.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cluster/pods-list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cluster/pods-list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cluster/warnings</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cluster/warnings.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/books</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/books/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/books/{id}</code></td>
+<td>GET, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/books/[id]/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/books/{id}/acceptance-rate</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/books/[id]/acceptance-rate.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/books/{id}/chunks</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/books/[id]/chunks.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/books/upload</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/books/upload.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/clusters</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/clusters/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/drafts</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/drafts/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/drafts/{id}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/drafts/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/drafts/{id}/accept</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/drafts/[id]/accept.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/drafts/{id}/reject</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/drafts/[id]/reject.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/ki-config</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/ki-config/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/ki-config/{id}</code></td>
+<td>PATCH, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/ki-config/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/ki-config/active</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/ki-config/active.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/projects</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/projects/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/projects/{id}</code></td>
+<td>GET, PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/projects/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}</code></td>
+<td>GET, PATCH, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/archive</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/archive.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/audit</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/audit.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/complete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/complete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/status</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/steps/{n}</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/steps/{n}/generate</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/sessions/{id}/unarchive</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/snippets</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/snippets/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/snippets/{id}</code></td>
+<td>PATCH, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/snippets/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/snippets/{id}/draft-template</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/snippets/[id]/draft-template.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/step-templates</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/step-templates/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/step-templates/{id}</code></td>
+<td>PATCH, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/step-templates/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/templates</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/templates/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/templates/{id}</code></td>
+<td>GET, PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/templates/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/templates/{id}/publish</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/templates/[id]/publish.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/coaching/templates/{id}/versions</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/coaching/templates/[id]/versions.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/components</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/components/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/components/{id}</code></td>
+<td>PATCH, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/components/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/content/restore</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/content/restore.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/content/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/content/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/content/versions</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/content/versions.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/customers</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/customers.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/customers-list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/customers-list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/deployments</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/deployments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/deployments/{name}/restart</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/deployments/[name]/restart.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/deployments/{name}/scale</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/deployments/[name]/scale.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/assign</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/assign.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/assignments</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/assignments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/assignments/{id}</code></td>
+<td>DELETE, PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/assignments/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/notify/{id}</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/notify/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/templates</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/templates/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/templates/{id}</code></td>
+<td>GET, PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/templates/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/einstellungen/backup</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/einstellungen/backup.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/einstellungen/benachrichtigungen</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/einstellungen/benachrichtigungen.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/einstellungen/branding</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/einstellungen/branding.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/einstellungen/email</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/einstellungen/email.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/einstellungen/rechnungen</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/einstellungen/rechnungen.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/einstellungen/upload-logo</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/einstellungen/upload-logo.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/evidence/{id}/replay</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/evidence/[id]/replay.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/evidence/upload</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/evidence/upload.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/factory-control</code></td>
+<td>GET, PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/factory-control.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/faq/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/faq/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/followups/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/followups/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/followups/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/followups/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/followups/notify</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/followups/notify.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/followups/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/followups/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/footer/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/footer/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/fuehrung/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/fuehrung/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/generate-3d</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/generate-3d.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/generate-3d/status</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/generate-3d/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inbox</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inbox.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inbox/{id}/action</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inbox/[id]/action.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inbox/count</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inbox/count.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inhalte/custom</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inhalte/custom/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inhalte/custom/{slug}</code></td>
+<td>PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inhalte/custom/[slug].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inhalte/rechnungsvorlagen/preview</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/inhalte/rechnungsvorlagen/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}</code></td>
+<td>GET, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}/context7</code></td>
+<td>POST, GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/context7.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}/context7-config</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/context7-config.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}/crawl</code></td>
+<td>POST, GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/crawl.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}/crawl-config</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/crawl-config.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}/documents</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/documents.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/{id}/reindex</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/[id]/reindex.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/merge</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/merge.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/collections/suggest</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/collections/suggest.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/knowledge/import/json</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/knowledge/import/json.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/kontakt/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/kontakt/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/kore-flags/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/kore-flags/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/legal/{key}/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/legal/[key]/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/legal/retokenize</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/legal/retokenize.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/meetings</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/meetings/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/meetings/{id}</code></td>
+<td>GET, PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/meetings/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/meetings/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/meetings/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/members/{userId}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/members/[userId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/members/list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/members/list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/messages</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/messages.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/messages/{threadId}</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/messages/[threadId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/monitoring</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/monitoring.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/navigation/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/navigation/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/campaigns</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/campaigns/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/campaigns/{id}</code></td>
+<td>PUT</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/campaigns/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/campaigns/{id}/send</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/preview</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/preview.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/subscribers</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/subscribers/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/subscribers/{id}</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/subscribers/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/onboarding/reset</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/onboarding/reset.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/onboarding/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/onboarding/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/ai/reindex</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/ai/reindex.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/audit/log</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/audit/log.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/backup/list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/backup/list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/backup/trigger</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/backup/trigger.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/certs</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/certs.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/deployments/{ns}/{name}/restart</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/deployments/[ns]/[name]/restart.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/deployments/{ns}/{name}/scale</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/deployments/list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/deployments/list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/dns/pin</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/dns/pin.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/health</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/health.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/log-stream/stream</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/log-stream/stream.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/redeploy/brett</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/redeploy/brett.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/redeploy/docs</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/redeploy/docs.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/redeploy/website</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/redeploy/website.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/restore</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/restore.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/users/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/users/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/users/groups</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/users/groups.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/ops/users/list</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/ops/users/list.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/planungsbuero</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/planungsbuero/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/planungsbuero/{extId}</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/planungsbuero/[extId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/platform/assets/{slug}/tickets</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/platform/assets/[slug]/tickets.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/platform/hardware</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/platform/hardware.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/platform/software</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/platform/software.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/platform/software/{id}</code></td>
+<td>PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/platform/software/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/poll</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/poll/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/poll/{id}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/poll/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/poll/{id}/share</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/poll/[id]/share.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/poll/active</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/poll/active.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/poll/templates</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/poll/templates.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/attachments/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/attachments/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/attachments/download</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/attachments/download.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/attachments/upload</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/attachments/upload.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/export</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/export.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekte/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekte/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekttasks/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekttasks/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekttasks/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekttasks/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/projekttasks/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/projekttasks/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/prompt-library</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/prompt-library/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/prompt-library/{id}</code></td>
+<td>PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/prompt-library/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/prompt-library/{id}/use</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/prompt-library/[id]/use.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/qa-criteria</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/qa-criteria.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/qa-queue</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/qa-queue.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/qa-reviews</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/qa-reviews.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assign</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assign.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assignments</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assignments/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assignments/{id}</code></td>
+<td>GET, PUT</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assignments/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assignments/{id}/archive</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assignments/[id]/archive.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assignments/{id}/create-task</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assignments/[id]/create-task.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assignments/{id}/reassign</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assignments/[id]/reassign.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/assignments/{id}/reopen</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/assignments/[id]/reopen.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/templates</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/templates/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/questionnaires/templates/{id}</code></td>
+<td>GET, PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/questionnaires/templates/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/rechtliches/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/rechtliches/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/referenzen/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/referenzen/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/rooms</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/rooms.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/rooms/{id}</code></td>
+<td>GET, PUT, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/rooms/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/rooms/{id}/members</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/rooms/[id]/members.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/rooms/direct</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/rooms/direct.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/seo</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/seo/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/seo/pages</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/seo/pages.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/seo/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/seo/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/seo/upload-og-image</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/seo/upload-og-image.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/service-page/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/service-page/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/shortcuts/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/shortcuts/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/shortcuts/delete</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/shortcuts/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/shortcuts/fetch-title</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/shortcuts/fetch-title.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/shortcuts/update</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/shortcuts/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/slots/add</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/slots/add.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/slots/remove</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/slots/remove.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/stammdaten/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/stammdaten/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/startseite/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/startseite/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/startseite/upload-portrait</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/startseite/upload-portrait.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/subprojekte/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/subprojekte/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/subprojekte/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/subprojekte/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/subprojekte/update</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/subprojekte/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/systemtest/board</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/systemtest/board.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/systemtest/cleanup-fixtures</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/systemtest/cleanup-fixtures.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/systemtest/drain-outbox</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/systemtest/drain-outbox.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/systemtest/purge-all-test-data</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/systemtest/purge-all-test-data.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/systemtest/seed</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/systemtest/seed.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tax-monitor/status</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tax-monitor/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tax-monitor/ustvaexport</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tax-monitor/ustvaexport.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/test-results</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/test-results.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/test-runs</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/test-runs.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/testdata/purge</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/testdata/purge.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/testdata/seed</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/testdata/seed.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/flake</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/flake.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/ingest-e2e</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/ingest-e2e.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/playwright-report</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/playwright-report.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/report</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/report.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/results/{jobId}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/results/[jobId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/run</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/run.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/stream/{jobId}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/stream/[jobId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/traceability</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/traceability.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tests/trend</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tests/trend.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}</code></td>
+<td>GET, PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/attachments</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/attachments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/classify</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/classify.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/comments</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/comments.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/links</code></td>
+<td>POST, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/links.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/transition</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/transition.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/tickets/{id}/triage</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/tickets/[id]/triage.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/time-windows/add</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/time-windows/add.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/time-windows/remove</code></td>
+<td>DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/time-windows/remove.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/transcription</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/transcription/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/uebermich/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/uebermich/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/urlaub/save</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/urlaub/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/zeiterfassung/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/zeiterfassung/create.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/zeiterfassung/delete</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/zeiterfassung/delete.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/zeiterfassung/export</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/zeiterfassung/export.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/1v3</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/1v3.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/active</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/arena/active.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/duel</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/duel.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/lobby</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/lobby.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/matches</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/matches.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/solo</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/solo.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/start</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/start.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/arena/token</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/arena/token.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/assets/{...path}</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/assets/[...path].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/assistant/chat</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/assistant/chat.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/assistant/dismiss</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/assistant/dismiss.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/assistant/execute</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/assistant/execute.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/assistant/nudges</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/assistant/nudges.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/assistant/transcribe</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/assistant/transcribe.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/auth/callback</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/auth/callback.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/auth/delete-account</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/auth/delete-account.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/auth/login</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/auth/login.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/auth/logout</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/auth/logout.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/auth/magic</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/auth/magic.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/auth/me</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/auth/me.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/billing/create-invoice</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/billing/create-invoice.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/billing/invoice/{id}/pdf</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/billing/invoice/[id]/pdf.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/billing/invoice/{id}/xrechnung.xml</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/billing/invoice/{id}/zugferd</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/billing/invoice/[id]/zugferd.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/booking</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/booking.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/bookings/{uid}/project</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/bookings/[uid]/project.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/brett/bot</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/brett/bot.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/bug-report</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/bug-report.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/calendar/slots</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/calendar/slots.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/cluster/status</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/cluster/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/contact</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/contact.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/cron/notify-unread</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/cron/notify-unread.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/dsgvo-request</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/dsgvo-request.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-floor</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-floor.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-floor/{extId}</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-floor/[extId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-floor/{extId}/inject</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-floor/[extId]/inject.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-floor/{extId}/release</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-floor/[extId]/release.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-floor/stream</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-floor/stream.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/factory-metrics</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/factory-metrics.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/health</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/health.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/internal/tickets/notify-close</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/internal/tickets/notify-close.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/leistungen</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/leistungen.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/live/state</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/live/state.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/meeting/finalize</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/meeting/finalize.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/meeting/release</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/meeting/release.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/meeting/save-transcript</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/meeting/save-transcript.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/meeting/transcribe</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/meeting/transcribe.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/meetings/{id}/project</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/meetings/[id]/project.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/newsletter/confirm</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/newsletter/confirm.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/newsletter/subscribe</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/newsletter/subscribe.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/newsletter/unsubscribe</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/newsletter/unsubscribe.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/planning-office</code></td>
+<td>GET, POST, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/planning-office/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/planning-office/{extId}</code></td>
+<td>PATCH</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/planning-office/[extId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/planning-office/{extId}/clarify</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/planning-office/[extId]/clarify.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/planning-office/{extId}/promote</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/planning-office/[extId]/promote.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/poll/{id}</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/poll/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/poll/{id}/answer</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/poll/[id]/answer.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/poll/{id}/results</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/poll/[id]/results.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/documents/{assignmentId}/pdf</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/documents/[assignmentId]/pdf.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/learning/summary</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/learning/summary.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/learning/track</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/learning/track.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/messages</code></td>
+<td>GET, POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/messages.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/messages/{threadId}</code></td>
+<td>GET, POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/messages/[threadId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/nachrichten</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/nachrichten.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/onboarding/mark-step</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/onboarding/mark-step.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/projekte</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/projekte.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/projekttasks/{id}/done</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/projekttasks/[id]/done.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/questionnaires</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/questionnaires/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/questionnaires/{id}</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/questionnaires/[id]/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/questionnaires/{id}/answer</code></td>
+<td>PUT</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/questionnaires/[id]/answer.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/questionnaires/{id}/dismiss</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/questionnaires/[id]/dismiss.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/questionnaires/{id}/submit</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/questionnaires/[id]/submit.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/rooms</code></td>
+<td>GET</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/rooms.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/rooms/{id}/messages</code></td>
+<td>GET, POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/rooms/[id]/messages.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/rooms/ensure-direct</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/rooms/ensure-direct.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/sign/{assignmentId}</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/portal/sign/[assignmentId].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/register</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/register.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/signing/confirm</code></td>
+<td>POST</td>
+<td>🔑 auth</td>
+<td><code>website/src/pages/api/signing/confirm.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/status</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stream/end</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/stream/end.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stream/recording</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/stream/recording.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stream/status</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/stream/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stream/token</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/stream/token.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stripe/checkout</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/stripe/checkout.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stripe/invoice-payment-intent</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/stripe/invoice-payment-intent.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/stripe/webhook</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/stripe/webhook.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/tickets/comment</code></td>
+<td>POST</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/tickets/comment.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/timeline</code></td>
+<td>GET</td>
+<td>🌐 public</td>
+<td><code>website/src/pages/api/timeline.ts</code></td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

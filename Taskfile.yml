@@ -267,6 +267,18 @@ tasks:
       - task: test:unit:collabora-wopi-single-brand-guard
       - task: test:unit:ticket-triage
       - task: test:unit:coverage-guard
+      - task: test:unit:build-graph
+      - task: test:unit:freshness-graph
+
+  test:unit:build-graph:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/build-graph.bats
+
+  test:unit:freshness-graph:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/freshness-graph.bats
 
   test:unit:ticket-triage:
     internal: true
@@ -536,6 +548,32 @@ tasks:
     cmds:
       - node scripts/build-learning-assets.mjs
 
+  graph:build:
+    desc: "Generiere K8s-Abhängigkeitsgraph + API-Surface-Map nach docs/generated/"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph.mjs
+      - node scripts/build-api-map.mjs
+
+  freshness:graph-check:
+    desc: "Prüft ob graph.json + api-map.json aktuell sind (kein struktureller Drift)"
+    cmds:
+      - '[ -d node_modules ] || npm ci'
+      - node scripts/build-graph.mjs
+      - node scripts/build-api-map.mjs
+      - |
+        ERRORS=0
+        for f in docs/generated/graph.json docs/generated/api-map.json; do
+          # Strip generatedAt before diffing (timestamp changes on every run)
+          committed=$(git show HEAD:"$f" 2>/dev/null | jq 'del(.generatedAt)' 2>/dev/null || echo "")
+          current=$(jq 'del(.generatedAt)' "$f" 2>/dev/null || echo "")
+          if [ "$committed" != "$current" ]; then
+            echo "  ✗ $f strukturell veraltet — bitte 'task graph:build' ausführen und committen"
+            ERRORS=$((ERRORS + 1))
+          fi
+        done
+        [ $ERRORS -eq 0 ] && echo "✓ Graph-Artefakte sind aktuell" || exit 1
+
   freshness:regenerate:
     desc: "Regenerate ALL generated artifacts (inventory, routes, learning, quality index, agent-guide surfaces)"
     cmds:
@@ -547,6 +585,7 @@ tasks:
       - task: assets:learning
       - task: quality:index
       - task: agent-guide:emit
+      - task: graph:build    # LAD: K8s graph artifacts
 
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
@@ -581,6 +620,8 @@ tasks:
           exit 1
         fi
         echo "✓ All generated artifacts are fresh"
+      # --- Phase 1b: LAD graph freshness (structural drift check) ---
+      - task: freshness:graph-check
       # --- Phase 2: code-quality gate (baseline ratchet) ---
       - task: quality:check
       # --- Phase 3: baseline count assertion ---

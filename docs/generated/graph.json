@@ -1,0 +1,651 @@
+{
+  "generatedAt": "2026-06-11T00:02:59.684Z",
+  "nodes": [
+    {
+      "id": "admin-actions-cleanup",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "admin-actions-cleanup"
+    },
+    {
+      "id": "admin-actions-prune",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "admin-actions-prune"
+    },
+    {
+      "id": "db-backup",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "db-backup"
+    },
+    {
+      "id": "brett",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "brett"
+    },
+    {
+      "id": "claude-code-mcp-auth",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "claude-code-mcp-auth"
+    },
+    {
+      "id": "mcp-browser",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "mcp-browser"
+    },
+    {
+      "id": "mcp-github",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "mcp-github"
+    },
+    {
+      "id": "claude-code-mcp-ops",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "claude-code-mcp-ops"
+    },
+    {
+      "id": "coturn",
+      "namespace": "coturn",
+      "type": "Deployment",
+      "name": "coturn"
+    },
+    {
+      "id": "janus",
+      "namespace": "coturn",
+      "type": "Deployment",
+      "name": "janus"
+    },
+    {
+      "id": "billing-dunning-detection",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "billing-dunning-detection"
+    },
+    {
+      "id": "monthly-billing",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "monthly-billing"
+    },
+    {
+      "id": "systemtest-cleanup",
+      "namespace": "${WEBSITE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "systemtest-cleanup"
+    },
+    {
+      "id": "systemtest-purge-all",
+      "namespace": "${WEBSITE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "systemtest-purge-all"
+    },
+    {
+      "id": "systemtest-outbox",
+      "namespace": "${WEBSITE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "systemtest-outbox"
+    },
+    {
+      "id": "mcp-auth-proxy-dev",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "mcp-auth-proxy-dev"
+    },
+    {
+      "id": "claude-code-mcp-monolith",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "claude-code-mcp-monolith"
+    },
+    {
+      "id": "oauth2-proxy-brainstorm",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-brainstorm"
+    },
+    {
+      "id": "oauth2-proxy-dev",
+      "namespace": "workspace-dev",
+      "type": "Deployment",
+      "name": "oauth2-proxy-dev"
+    },
+    {
+      "id": "shared-db-dev",
+      "namespace": "mentolder",
+      "type": "StatefulSet",
+      "name": "shared-db-dev"
+    },
+    {
+      "id": "sish",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "sish"
+    },
+    {
+      "id": "website",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "website"
+    },
+    {
+      "id": "docs",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "docs"
+    },
+    {
+      "id": "einvoice-sidecar",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "einvoice-sidecar"
+    },
+    {
+      "id": "keycloak",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "keycloak"
+    },
+    {
+      "id": "knowledge-ingest-prs",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "knowledge-ingest-prs"
+    },
+    {
+      "id": "knowledge-ingest-markdown",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "knowledge-ingest-markdown"
+    },
+    {
+      "id": "knowledge-ingest-bugs",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "knowledge-ingest-bugs"
+    },
+    {
+      "id": "knowledge-reindex-all",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "knowledge-reindex-all"
+    },
+    {
+      "id": "livekit-redis",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "livekit-redis"
+    },
+    {
+      "id": "livekit-server",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "livekit-server"
+    },
+    {
+      "id": "livekit-ingress",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "livekit-ingress"
+    },
+    {
+      "id": "livekit-egress",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "livekit-egress"
+    },
+    {
+      "id": "mailpit",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "mailpit"
+    },
+    {
+      "id": "nextcloud-redis",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "nextcloud-redis"
+    },
+    {
+      "id": "nextcloud",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "nextcloud"
+    },
+    {
+      "id": "notify-unread",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "notify-unread"
+    },
+    {
+      "id": "oauth2-proxy-brett",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-brett"
+    },
+    {
+      "id": "oauth2-proxy-comfy",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-comfy"
+    },
+    {
+      "id": "oauth2-proxy-docs",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-docs"
+    },
+    {
+      "id": "oauth2-proxy-mailpit",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-mailpit"
+    },
+    {
+      "id": "oauth2-proxy-traefik",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-traefik"
+    },
+    {
+      "id": "collabora",
+      "namespace": "workspace-office",
+      "type": "Deployment",
+      "name": "collabora"
+    },
+    {
+      "id": "pvc-backup",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "pvc-backup"
+    },
+    {
+      "id": "recovery-browser",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "recovery-browser"
+    },
+    {
+      "id": "oauth2-proxy-recovery",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-recovery"
+    },
+    {
+      "id": "sealed-secrets-controller",
+      "namespace": "sealed-secrets",
+      "type": "Deployment",
+      "name": "sealed-secrets-controller"
+    },
+    {
+      "id": "shared-db",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "shared-db"
+    },
+    {
+      "id": "nats",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "nats"
+    },
+    {
+      "id": "spreed-signaling",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "spreed-signaling"
+    },
+    {
+      "id": "talk-recording",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "talk-recording"
+    },
+    {
+      "id": "tests-results-retention",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "tests-results-retention"
+    },
+    {
+      "id": "vaultwarden",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "vaultwarden"
+    },
+    {
+      "id": "whiteboard",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "whiteboard"
+    },
+    {
+      "id": "coredns",
+      "namespace": "kube-system",
+      "type": "Deployment",
+      "name": "coredns"
+    },
+    {
+      "id": "tls-sync",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "tls-sync"
+    },
+    {
+      "id": "dev-db-refresh",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "dev-db-refresh"
+    },
+    {
+      "id": "talk-transcriber",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "talk-transcriber"
+    },
+    {
+      "id": "whisper",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "whisper"
+    },
+    {
+      "id": "arena-server",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "Deployment",
+      "name": "arena-server"
+    },
+    {
+      "id": "ddns-updater",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "ddns-updater"
+    },
+    {
+      "id": "traefik",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "traefik"
+    },
+    {
+      "id": "old-webspace",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "old-webspace"
+    },
+    {
+      "id": "bachelorprojekt",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "bachelorprojekt"
+    }
+  ],
+  "edges": [
+    {
+      "from": "admin-actions-cleanup",
+      "to": "shared-db",
+      "via": "env:PGHOST"
+    },
+    {
+      "from": "admin-actions-cleanup",
+      "to": "website",
+      "via": "env:PGUSER"
+    },
+    {
+      "from": "admin-actions-cleanup",
+      "to": "website",
+      "via": "env:PGDATABASE"
+    },
+    {
+      "from": "admin-actions-prune",
+      "to": "shared-db",
+      "via": "env:PGHOST"
+    },
+    {
+      "from": "admin-actions-prune",
+      "to": "website",
+      "via": "env:PGUSER"
+    },
+    {
+      "from": "admin-actions-prune",
+      "to": "website",
+      "via": "env:PGDATABASE"
+    },
+    {
+      "from": "brett",
+      "to": "shared-db",
+      "via": "env:DATABASE_URL"
+    },
+    {
+      "from": "brett",
+      "to": "website",
+      "via": "env:DATABASE_URL"
+    },
+    {
+      "from": "brett",
+      "to": "keycloak",
+      "via": "env:KEYCLOAK_URL"
+    },
+    {
+      "from": "brett",
+      "to": "website",
+      "via": "env:WEBSITE_INTERNAL_URL"
+    },
+    {
+      "from": "claude-code-mcp-auth",
+      "to": "keycloak",
+      "via": "env:KC_URL"
+    },
+    {
+      "from": "claude-code-mcp-monolith",
+      "to": "website",
+      "via": "env:DATABASE_URL"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "shared-db",
+      "via": "env:PGHOST"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "website",
+      "via": "env:PGDATABASE"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "website",
+      "via": "env:PGUSER"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "shared-db",
+      "via": "env:PGHOST"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "website",
+      "via": "env:PGDATABASE"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "website",
+      "via": "env:PGUSER"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "shared-db",
+      "via": "env:PGHOST"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "website",
+      "via": "env:PGDATABASE"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "website",
+      "via": "env:PGUSER"
+    },
+    {
+      "from": "livekit-ingress",
+      "to": "livekit-server",
+      "via": "env:INGRESS_CONFIG_BODY"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "livekit-server",
+      "via": "env:EGRESS_CONFIG_BODY"
+    },
+    {
+      "from": "nextcloud",
+      "to": "mailpit",
+      "via": "env:SMTP_HOST"
+    },
+    {
+      "from": "talk-recording",
+      "to": "nextcloud",
+      "via": "env:NC_DOMAIN"
+    },
+    {
+      "from": "talk-recording",
+      "to": "spreed-signaling",
+      "via": "env:HPB_DOMAIN"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "shared-db",
+      "via": "env:DATABASE_URL"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "keycloak",
+      "via": "env:SSO_AUTHORITY"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "mailpit",
+      "via": "env:SMTP_HOST"
+    },
+    {
+      "from": "website",
+      "to": "shared-db",
+      "via": "env:SESSIONS_DATABASE_URL"
+    },
+    {
+      "from": "website",
+      "to": "livekit-server",
+      "via": "env:LIVEKIT_SERVICE_URL"
+    },
+    {
+      "from": "whiteboard",
+      "to": "nextcloud",
+      "via": "env:NEXTCLOUD_URL"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "shared-db",
+      "via": "env:SOURCE_PGHOST"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "shared-db",
+      "via": "env:NC_DB_HOST"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "nextcloud",
+      "via": "env:NC_DB_NAME"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "nextcloud",
+      "via": "env:NC_DB_USER"
+    },
+    {
+      "from": "traefik",
+      "to": "brett",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-dev",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "website",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "keycloak",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "nextcloud",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "whiteboard",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "spreed-signaling",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "vaultwarden",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-docs",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-brett",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-comfy",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "livekit-server",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "collabora",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-recovery",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "old-webspace",
+      "via": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "bachelorprojekt",
+      "via": "ingress"
+    }
+  ]
+}

@@ -6,13 +6,19 @@
 //
 // Ticket: T000466
 
+import type { Anchor, Zone, LineType, FigureAppearance } from '../../types/state';
+
 /** Client-seitiger Board-Snapshot für den Export. */
 export interface ClientBoardSnapshot {
+  version: number;          // NEU (T000605) — Schema-Version für Migration. Aktuell 1.
   exportedAt: string;       // ISO-8601
   sessionCode: string | null;
   phase: string;
   stiffness: number;
   figures: ExportFigure[];
+  lines: ExportLine[];      // NEU (T000605)
+  anchors: Anchor[];        // NEU (T000605)
+  zones: Zone[];            // NEU (T000605)
   optik: Record<string, unknown> | null;
 }
 
@@ -26,16 +32,34 @@ export interface ExportFigure {
   color?: string;
   figureType?: string;
   ownerId?: string;
+  // NEU (T000605):
+  scale?: number;
+  preset?: string;
+  note?: string;
+  boneOverrides?: Record<string, { x: number; z: number }>;
+  appearance?: FigureAppearance;
+}
+
+/** Beziehungs-/Spannungslinie im Export. */
+export interface ExportLine {
+  id: string;
+  fromId: string;
+  toId: string;
+  lineType: LineType;
 }
 
 // ── Interner Cache ───────────────────────────────────────────────────────────
 
 let _cache: ClientBoardSnapshot = {
+  version: 1,
   exportedAt: new Date().toISOString(),
   sessionCode: null,
   phase: 'lobby',
   stiffness: 0.65,
   figures: [],
+  lines: [],
+  anchors: [],
+  zones: [],
   optik: null,
 };
 
@@ -51,7 +75,13 @@ export function updateExportCache(patch: Partial<ClientBoardSnapshot>): void {
  * Gibt eine Kopie des aktuellen Export-Snapshots zurück.
  */
 export function getExportSnapshot(): ClientBoardSnapshot {
-  return { ..._cache, figures: _cache.figures.map(f => ({ ...f })) };
+  return {
+    ..._cache,
+    figures: _cache.figures.map(f => ({ ...f })),
+    lines: _cache.lines.map(l => ({ ...l })),
+    anchors: _cache.anchors.map(a => ({ ...a })),
+    zones: _cache.zones.map(z => ({ ...z })),
+  };
 }
 
 // ── PNG-Export ───────────────────────────────────────────────────────────────

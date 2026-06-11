@@ -20,15 +20,15 @@ import * as appearanceBadge from './ui/appearance-badge';
 import * as persons from './ui/persons';
 import * as povCamera from './pov-camera';
 import * as freeFly from './free-fly-camera';
-import { initTouchHandler, type TouchDeps } from './touch-handler';
+import { initBoardTouchControls } from './touch-controls';
 import * as exportUi from './ui/export';
 import * as importUi from './ui/import';
 import * as groundObjects from './ground-objects';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
-import { createReplayController, type ReplayBoardState } from './replay-engine';
-import { renderTimeline } from './ui/timeline';
+import { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
+export { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
 import { mountInviteButton } from './ui/topbar-invite';
 import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
@@ -205,83 +205,13 @@ export async function bootBoard(): Promise<void> {
   }
 
   // ── T000606: Touch / Pointer-Events handler ────────────────────────────────
-  {
-    let touchDrag: { figId: string; boneName: string; plane: THREE.Plane } | null = null;
-
-    const canDragFigure = (sphere: any): boolean => {
-      const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
-      if (!fig) return false;
-      const lock = activeLocks.get(fig.id);
-      if (lock && lock.userId !== currentUser.userId) return false;
-      if (currentModerationState.freeze) {
-        const myRole = wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
-        if (myRole !== 'leiter') return false;
-      }
-      return true;
-    };
-
-    const touchDeps: TouchDeps = {
-      pickContactAt: (x, y) => mannequin.pickContact({ clientX: x, clientY: y }),
-      canDragFigure,
-      startFigureDrag: (sphere, x, y) => {
-        const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
-        if (!fig) return;
-        const isFree = !(fig as any)._serverPossessor && !activeLocks.get(fig.id);
-        figPanel.selectFigure(fig.id);
-        const ws = getWs();
-        if (isFree) {
-          if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_possess', figureId: fig.id }));
-          touchDrag = null;
-          return;
-        }
-        if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_lock', id: fig.id, color: currentUser.color }));
-        const worldPos = new THREE.Vector3();
-        sphere.getWorldPosition(worldPos);
-        const camDir = new THREE.Vector3();
-        camera.getWorldDirection(camDir);
-        const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPos);
-        touchDrag = { figId: fig.id, boneName: sphere.userData.boneName, plane };
-      },
-      moveFigureDrag: (x, y) => {
-        if (!touchDrag) return;
-        mannequin.setNdcFromPoint(x, y);
-        const { ndc } = mannequin.getTickRefs();
-        raycaster.setFromCamera(ndc, camera);
-        const target = new THREE.Vector3();
-        raycaster.ray.intersectPlane(touchDrag.plane, target);
-        if (!target) return;
-        const fig = STATE.figures.find(f => f.id === touchDrag!.figId);
-        if (!fig) return;
-        mannequin.ccdIK(fig, touchDrag.boneName, target, 6);
-        wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
-        const now = performance.now();
-        if (now - (fig._lastCollisionCheck || 0) > 33) {
-          fig._lastCollisionCheck = now;
-          mannequin.resolveCollisions(fig, mannequin.BOUNCE_K_DRAG);
-        }
-      },
-      endFigureDrag: () => {
-        if (!touchDrag) return;
-        const fig = STATE.figures.find(f => f.id === touchDrag!.figId);
-        if (fig) {
-          const chain = mannequin.IK_CHAINS[touchDrag.boneName] || [];
-          for (const b of chain) delete fig.boneOverrides[b];
-          delete fig.boneOverrides[touchDrag.boneName];
-          wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
-          const ws = getWs();
-          if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_unlock', id: fig.id }));
-        }
-        touchDrag = null;
-      },
-      getOrbitDist: () => sceneApi.getOrbitState().dist,
-      setOrbitDist: (d) => sceneApi.setOrbitDist(d),
-      applyOrbitDelta: (dTheta, dPhi) => sceneApi.applyOrbitDelta(dTheta, dPhi),
-      capturePointer: (id) => { try { renderer.domElement.setPointerCapture(id); } catch { /* ignore */ } },
-      releasePointer: (id) => { try { renderer.domElement.releasePointerCapture(id); } catch { /* ignore */ } },
-    };
-
-    initTouchHandler({ canvas: renderer.domElement, deps: touchDeps });
-  }
+  initBoardTouchControls({
+    renderer,
+    camera,
+    raycaster,
+    sceneApi,
+    getCurrentModerationState: () => currentModerationState,
+  });
 
   (window as any).__brettScene = sceneApi;
 
@@ -620,64 +550,3 @@ export async function bootBoard(): Promise<void> {
   console.log('[brett] scene up');
 }
 
-/**
- * Check if replay mode is requested via URL params and, if so, start it.
- * Activated by: ?replay=1&room=<roomToken>
- * Gated by feature flag: window.__brettFeatures['replay'] (dark-launch).
- * Returns true iff replay mode was started (caller then skips the live WS connect).
- */
-export async function maybeStartReplayMode(): Promise<boolean> {
-  if (typeof window === 'undefined' || typeof location === 'undefined') return false;
-  const params = new URLSearchParams(location.search);
-  const replayMode = params.get('replay') === '1';
-  const featureEnabled = (window as any).__brettFeatures?.['replay'] === true;
-
-  if (!replayMode || !featureEnabled) return false;
-
-  const room = params.get('room');
-  if (!room) {
-    console.warn('[brett/replay] replay=1 but no room param');
-    return false;
-  }
-
-  try {
-    // Load events and initial snapshot from server (admin-gated endpoints).
-    const [eventsRes, snapshotRes] = await Promise.all([
-      fetch(`/api/sessions/${encodeURIComponent(room)}/events`),
-      fetch(`/api/sessions/${encodeURIComponent(room)}/snapshot`),
-    ]);
-    if (!eventsRes.ok || !snapshotRes.ok) {
-      console.error('[brett/replay] failed to load replay data', eventsRes.status, snapshotRes.status);
-      return false;
-    }
-
-    const { events } = await eventsRes.json();
-    const { state: initialState } = await snapshotRes.json();
-    const ctrl = createReplayController(events ?? [], initialState ?? {});
-    // Apply initial state to the scene, then render timeline overlay.
-    applyReplayStateToScene(ctrl.seek(0));
-    const appRoot = document.getElementById('app') ?? document.body;
-    renderTimeline(appRoot, ctrl, (state: ReplayBoardState) => {
-      applyReplayStateToScene(state);
-    });
-    return true;
-  } catch (err) {
-    console.error('[brett/replay] error starting replay mode:', err);
-    return false;
-  }
-}
-
-/**
- * Apply a replay board state to the local STATE without sending any WS messages.
- * Note: this populates STATE.figures with the reconstructed figure data; the
- * normal animation loop renders from STATE. Three.js figure objects (with .root,
- * .ring, etc.) are NOT rebuilt here — replay is a dark-launch read-only view and
- * full scene-graph reconstruction is out of scope for this slice.
- */
-export function applyReplayStateToScene(state: ReplayBoardState): void {
-  const figureArray = Object.values(state.figures);
-  STATE.figures.length = 0;
-  for (const fig of figureArray) {
-    STATE.figures.push(fig as any);
-  }
-}

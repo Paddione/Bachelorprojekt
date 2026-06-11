@@ -74,7 +74,7 @@ Diese Fakten wurden vor dem Schreiben des Plans verifiziert — der ausführende
 - Create: `website/src/lib/customer-crm-db.ts`
 - Test: `website/src/lib/customer-crm-db.ensure.test.ts`
 
-- [ ] **Step 1: Failing test schreiben** (`website/src/lib/customer-crm-db.ensure.test.ts`)
+~~DONE~~ **Step 1: Failing test schreiben** (`website/src/lib/customer-crm-db.ensure.test.ts`)
 
 ```ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -104,12 +104,12 @@ describe('ensureCustomerCrmSchema', () => {
 });
 ```
 
-- [ ] **Step 2: Test ausführen, Fehlschlag bestätigen**
+~~DONE~~ **Step 2: Test ausführen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.ensure.test.ts`
 Expected: FAIL — `Cannot find module './customer-crm-db'`.
 
-- [ ] **Step 3: Migration implementieren** (`website/src/lib/customer-crm-db.ts`)
+~~DONE~~ **Step 3: Migration implementieren** (`website/src/lib/customer-crm-db.ts`)
 
 ```ts
 import { pool, ensureSchemaOnce } from './website-db';
@@ -150,12 +150,12 @@ export function ensureCustomerCrmSchema(): Promise<void> {
 }
 ```
 
-- [ ] **Step 4: Test ausführen, Erfolg bestätigen**
+~~DONE~~ **Step 4: Test ausführen, Erfolg bestätigen**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.ensure.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+~~DONE~~ **Step 5: Commit**
 
 ```bash
 git add website/src/lib/customer-crm-db.ts website/src/lib/customer-crm-db.ensure.test.ts
@@ -168,7 +168,7 @@ git commit -m "feat(db): add customer CRM schema migration (T000614)"
 - Modify: `website/src/lib/customer-crm-db.ts`
 - Test: `website/src/lib/customer-crm-db.test.ts`
 
-- [ ] **Step 1: Failing test** (`website/src/lib/customer-crm-db.test.ts`)
+~~DONE~~ **Step 1: Failing test** (`website/src/lib/customer-crm-db.test.ts`)
 
 ```ts
 import { describe, it, expect } from 'vitest';
@@ -202,12 +202,12 @@ describe('validateProfileInput', () => {
 });
 ```
 
-- [ ] **Step 2: Test ausführen, Fehlschlag bestätigen**
+~~DONE~~ **Step 2: Test ausführen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.test.ts`
 Expected: FAIL — Exporte fehlen.
 
-- [ ] **Step 3: Implementieren** (an `customer-crm-db.ts` anhängen)
+~~DONE~~ **Step 3: Implementieren** (an `customer-crm-db.ts` anhängen)
 
 ```ts
 export const CONTACT_CHANNELS = ['email', 'phone', 'portal'] as const;
@@ -252,12 +252,12 @@ export function validateProfileInput(input: ProfileInput): { ok: true } | { ok: 
 }
 ```
 
-- [ ] **Step 4: Test ausführen, Erfolg bestätigen**
+~~DONE~~ **Step 4: Test ausführen, Erfolg bestätigen**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+~~DONE~~ **Step 5: Commit**
 
 ```bash
 git add website/src/lib/customer-crm-db.ts website/src/lib/customer-crm-db.test.ts
@@ -270,7 +270,7 @@ git commit -m "feat(db): add CRM enums + profile input validation (T000614)"
 - Modify: `website/src/lib/customer-crm-db.ts`
 - Test: `website/src/lib/customer-crm-db.test.ts`
 
-- [ ] **Step 1: Failing test anhängen** (`customer-crm-db.test.ts`)
+~~DONE~~ **Step 1: Failing test anhängen** (`customer-crm-db.test.ts`)
 
 ```ts
 import { vi } from 'vitest';
@@ -306,12 +306,12 @@ describe('addContactHistoryEntry', () => {
 
 (Hinweis: Diese Mock-Tests prüfen Query-Shape; echte DB-Logik wird in BATS/Playwright/dev-Cluster verifiziert.)
 
-- [ ] **Step 2: Test ausführen, Fehlschlag bestätigen**
+~~DONE~~ **Step 2: Test ausführen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.test.ts`
 Expected: FAIL — Funktionen fehlen.
 
-- [ ] **Step 3: Implementieren** (an `customer-crm-db.ts` anhängen)
+~~DONE~~ **Step 3: Implementieren** (an `customer-crm-db.ts` anhängen)
 
 ```ts
 export interface CustomerProfile {
@@ -428,12 +428,12 @@ export async function collectCustomerDsgvoData(keycloakUserId: string): Promise<
 }
 ```
 
-- [ ] **Step 4: Test ausführen, Erfolg bestätigen**
+~~DONE~~ **Step 4: Test ausführen, Erfolg bestätigen**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+~~DONE~~ **Step 5: Commit**
 
 ```bash
 git add website/src/lib/customer-crm-db.ts website/src/lib/customer-crm-db.test.ts
@@ -446,7 +446,7 @@ git commit -m "feat(db): add CRM profile + contact-history + dsgvo aggregate fun
 - Modify: `website/src/lib/keycloak.ts`
 - Test: `website/src/lib/keycloak.attribute.test.ts`
 
-- [ ] **Step 1: Failing test** (`website/src/lib/keycloak.attribute.test.ts`)
+~~DONE~~ **Step 1: Failing test** (`website/src/lib/keycloak.attribute.test.ts`)
 
 ```ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -475,12 +475,12 @@ describe('updateUserAttribute', () => {
 });
 ```
 
-- [ ] **Step 2: Test ausführen, Fehlschlag bestätigen**
+~~DONE~~ **Step 2: Test ausführen, Fehlschlag bestätigen**
 
 Run: `cd website && npx vitest run src/lib/keycloak.attribute.test.ts`
 Expected: FAIL — `updateUserAttribute` nicht exportiert.
 
-- [ ] **Step 3: Implementieren** (an `keycloak.ts` anhängen — nutzt das vorhandene private `kcApi`)
+~~DONE~~ **Step 3: Implementieren** (an `keycloak.ts` anhängen — nutzt das vorhandene private `kcApi`)
 
 ```ts
 /**
@@ -507,12 +507,12 @@ export async function updateUserAttribute(
 }
 ```
 
-- [ ] **Step 4: Test ausführen, Erfolg bestätigen**
+~~DONE~~ **Step 4: Test ausführen, Erfolg bestätigen**
 
 Run: `cd website && npx vitest run src/lib/keycloak.attribute.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+~~DONE~~ **Step 5: Commit**
 
 ```bash
 git add website/src/lib/keycloak.ts website/src/lib/keycloak.attribute.test.ts
@@ -528,7 +528,7 @@ git commit -m "feat(keycloak): add updateUserAttribute GET-merge-PUT helper (T00
 **Files:**
 - Create: `website/src/pages/api/portal/profile/update.ts`
 
-- [ ] **Step 1: Implementieren**
+~~DONE~~ **Step 1: Implementieren**
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -579,12 +579,12 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+~~DONE~~ **Step 2: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -i "profile/update" || echo "no errors in file"`
 Expected: keine Fehler in `update.ts`.
 
-- [ ] **Step 3: Commit**
+~~DONE~~ **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/portal/profile/update.ts
@@ -596,7 +596,7 @@ git commit -m "feat(api): add portal self-service profile update endpoint (T0006
 **Files:**
 - Create: `website/src/pages/api/admin/clients/contact-history/create.ts`
 
-- [ ] **Step 1: Implementieren** (Pfadtiefe = 5 → `../../../../../lib/...`)
+~~DONE~~ **Step 1: Implementieren** (Pfadtiefe = 5 → `../../../../../lib/...`)
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -641,12 +641,12 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+~~DONE~~ **Step 2: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -i "contact-history" || echo "no errors in file"`
 Expected: keine Fehler.
 
-- [ ] **Step 3: Commit**
+~~DONE~~ **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/admin/clients/contact-history/create.ts
@@ -658,7 +658,7 @@ git commit -m "feat(api): add admin contact-history create endpoint (T000614)"
 **Files:**
 - Create: `website/src/pages/api/admin/clients/update-crm.ts`
 
-- [ ] **Step 1: Implementieren** (Pfadtiefe = 4 → `../../../../lib/...`)
+~~DONE~~ **Step 1: Implementieren** (Pfadtiefe = 4 → `../../../../lib/...`)
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -701,12 +701,12 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+~~DONE~~ **Step 2: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -i "update-crm" || echo "no errors in file"`
 Expected: keine Fehler.
 
-- [ ] **Step 3: Commit**
+~~DONE~~ **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/admin/clients/update-crm.ts
@@ -722,7 +722,7 @@ git commit -m "feat(api): add admin update-crm endpoint (T000614)"
 **Files:**
 - Create: `website/src/components/admin/CrmStatusPanel.svelte`
 
-- [ ] **Step 1: Implementieren**
+~~DONE~~ **Step 1: Implementieren**
 
 ```svelte
 <script lang="ts">
@@ -811,7 +811,7 @@ git commit -m "feat(api): add admin update-crm endpoint (T000614)"
 </div>
 ```
 
-- [ ] **Step 2: Commit**
+~~DONE~~ **Step 2: Commit**
 
 ```bash
 git add website/src/components/admin/CrmStatusPanel.svelte
@@ -823,7 +823,7 @@ git commit -m "feat(admin-ui): add CrmStatusPanel component (T000614)"
 **Files:**
 - Create: `website/src/components/admin/ContactHistoryTimeline.svelte`
 
-- [ ] **Step 1: Implementieren**
+~~DONE~~ **Step 1: Implementieren**
 
 ```svelte
 <script lang="ts">
@@ -913,7 +913,7 @@ git commit -m "feat(admin-ui): add CrmStatusPanel component (T000614)"
 </div>
 ```
 
-- [ ] **Step 2: Commit**
+~~DONE~~ **Step 2: Commit**
 
 ```bash
 git add website/src/components/admin/ContactHistoryTimeline.svelte
@@ -925,7 +925,7 @@ git commit -m "feat(admin-ui): add ContactHistoryTimeline component (T000614)"
 **Files:**
 - Modify: `website/src/pages/admin/[clientId].astro`
 
-- [ ] **Step 1: Imports ergänzen** (bei den bestehenden Imports oben)
+~~DONE~~ **Step 1: Imports ergänzen** (bei den bestehenden Imports oben)
 
 ```ts
 import CrmStatusPanel from '../../components/admin/CrmStatusPanel.svelte';
@@ -933,7 +933,7 @@ import ContactHistoryTimeline from '../../components/admin/ContactHistoryTimelin
 import { getCustomerProfile, getContactHistory } from '../../lib/customer-crm-db';
 ```
 
-- [ ] **Step 2: Daten laden** (im Frontmatter, nach dem `customerRecord`-Block ≈ Zeile 62)
+~~DONE~~ **Step 2: Daten laden** (im Frontmatter, nach dem `customerRecord`-Block ≈ Zeile 62)
 
 ```ts
 let crmProfile: Awaited<ReturnType<typeof getCustomerProfile>> = null;
@@ -946,13 +946,13 @@ try {
 }
 ```
 
-- [ ] **Step 3: Tab in die Navigation aufnehmen** (im `[...].map`-Array, nach `{ id: 'onboarding', label: 'Onboarding' }`)
+~~DONE~~ **Step 3: Tab in die Navigation aufnehmen** (im `[...].map`-Array, nach `{ id: 'onboarding', label: 'Onboarding' }`)
 
 ```ts
           { id: 'profil', label: 'Profil' },
 ```
 
-- [ ] **Step 4: Tab-Content rendern** (im Tab-Content-Block, z. B. nach dem `onboarding`-Block)
+~~DONE~~ **Step 4: Tab-Content rendern** (im Tab-Content-Block, z. B. nach dem `onboarding`-Block)
 
 ```astro
         {tab === 'profil' && (
@@ -973,12 +973,12 @@ try {
         )}
 ```
 
-- [ ] **Step 5: Typecheck**
+~~DONE~~ **Step 5: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -i "clientId" || echo "no errors"`
 Expected: keine Fehler.
 
-- [ ] **Step 6: Commit**
+~~DONE~~ **Step 6: Commit**
 
 ```bash
 git add "website/src/pages/admin/[clientId].astro"
@@ -994,7 +994,7 @@ git commit -m "feat(admin-ui): wire Profil tab with CRM panel + contact history 
 **Files:**
 - Create: `website/src/components/portal/ProfileCard.astro`
 
-- [ ] **Step 1: Implementieren**
+~~DONE~~ **Step 1: Implementieren**
 
 ```astro
 ---
@@ -1047,7 +1047,7 @@ const CHANNEL_LABEL: Record<string, string> = { email: 'E-Mail', phone: 'Telefon
 </div>
 ```
 
-- [ ] **Step 2: Commit**
+~~DONE~~ **Step 2: Commit**
 
 ```bash
 git add website/src/components/portal/ProfileCard.astro
@@ -1059,7 +1059,7 @@ git commit -m "feat(portal-ui): add read-only ProfileCard component (T000614)"
 **Files:**
 - Create: `website/src/components/portal/ProfileEditor.svelte`
 
-- [ ] **Step 1: Implementieren**
+~~DONE~~ **Step 1: Implementieren**
 
 ```svelte
 <script lang="ts">
@@ -1148,7 +1148,7 @@ git commit -m "feat(portal-ui): add read-only ProfileCard component (T000614)"
 {/if}
 ```
 
-- [ ] **Step 2: Commit**
+~~DONE~~ **Step 2: Commit**
 
 ```bash
 git add website/src/components/portal/ProfileEditor.svelte
@@ -1161,7 +1161,7 @@ git commit -m "feat(portal-ui): add inline ProfileEditor component (T000614)"
 - Modify: `website/src/components/portal/KontoSection.astro`
 - Modify: `website/src/pages/portal.astro`
 
-- [ ] **Step 1: `portal.astro` — Profil laden und durchreichen**
+~~DONE~~ **Step 1: `portal.astro` — Profil laden und durchreichen**
 
 Import ergänzen (bei den anderen Imports):
 
@@ -1181,7 +1181,7 @@ const crmProfile = await getCustomerProfile(session.sub).catch(() => null);
 <KontoSection session={session} keycloakBase={keycloakBase} realm={realm} profile={crmProfile} />
 ```
 
-- [ ] **Step 2: `KontoSection.astro` neu schreiben** (komplette Datei ersetzen)
+~~DONE~~ **Step 2: `KontoSection.astro` neu schreiben** (komplette Datei ersetzen)
 
 ```astro
 ---
@@ -1243,12 +1243,12 @@ const kcAccountUrl = `${keycloakBase}/realms/${realm}/account/`;
 </div>
 ```
 
-- [ ] **Step 3: Typecheck**
+~~DONE~~ **Step 3: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -iE "KontoSection|portal.astro" || echo "no errors"`
 Expected: keine Fehler.
 
-- [ ] **Step 4: Commit**
+~~DONE~~ **Step 4: Commit**
 
 ```bash
 git add website/src/components/portal/KontoSection.astro website/src/pages/portal.astro
@@ -1264,7 +1264,7 @@ git commit -m "feat(portal-ui): rebuild KontoSection with ProfileCard + ProfileE
 **Files:**
 - Create: `website/src/pages/api/portal/profile/export.ts`
 
-- [ ] **Step 1: Implementieren**
+~~DONE~~ **Step 1: Implementieren**
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -1304,12 +1304,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+~~DONE~~ **Step 2: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -i "profile/export" || echo "no errors"`
 Expected: keine Fehler.
 
-- [ ] **Step 3: Commit**
+~~DONE~~ **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/portal/profile/export.ts
@@ -1321,12 +1321,12 @@ git commit -m "feat(api): add DSGVO self-service data export endpoint (T000614)"
 **Files:**
 - Modify: `website/src/components/DataManagement.svelte`
 
-- [ ] **Step 1: Bestehende Komponente lesen** und die State-Variable identifizieren, die den Login-Status aus `/api/auth/me` hält (im `fetch('/api/auth/me')`-Block, ≈ Zeile 25–35).
+~~DONE~~ **Step 1: Bestehende Komponente lesen** und die State-Variable identifizieren, die den Login-Status aus `/api/auth/me` hält (im `fetch('/api/auth/me')`-Block, ≈ Zeile 25–35).
 
 Run: `cd website && sed -n '20,40p' src/components/DataManagement.svelte`
 Expected: Variable für das `me`-Ergebnis bestimmen (Name notieren).
 
-- [ ] **Step 2: Download-Button ergänzen** — im DSGVO-Bereich (neben „Auskunft anfordern", ≈ Zeile 138). Konditional rendern, wenn eingeloggt:
+~~DONE~~ **Step 2: Download-Button ergänzen** — im DSGVO-Bereich (neben „Auskunft anfordern", ≈ Zeile 138). Konditional rendern, wenn eingeloggt:
 
 ```svelte
 {#if me}
@@ -1339,12 +1339,12 @@ Expected: Variable für das `me`-Ergebnis bestimmen (Name notieren).
 
 > Falls die State-Variable nicht `me` heißt: an die tatsächliche Variable anpassen. Reicht das Login-Signal nicht aus, den Button unkonditional rendern — das Endpoint gibt für nicht eingeloggte Nutzer ohnehin 401 zurück.
 
-- [ ] **Step 3: Typecheck**
+~~DONE~~ **Step 3: Typecheck**
 
 Run: `cd website && npx astro check --minimumSeverity error 2>&1 | grep -i "DataManagement" || echo "no errors"`
 Expected: keine Fehler.
 
-- [ ] **Step 4: Commit**
+~~DONE~~ **Step 4: Commit**
 
 ```bash
 git add website/src/components/DataManagement.svelte
@@ -1362,12 +1362,12 @@ git commit -m "feat(dsgvo): add self-service data download button (T000614)"
 
 Diese Tests verifizieren die Validierungslogik (`validateProfileInput` + Enums) direkt aus der TS-Quelle via `tsx`.
 
-- [ ] **Step 1: `tsx`-Verfügbarkeit prüfen**
+~~DONE~~ **Step 1: `tsx`-Verfügbarkeit prüfen**
 
 Run: `ls /tmp/wt-T000614-kundenprofil-upgrade/website/node_modules/.bin/tsx 2>/dev/null && echo "tsx present" || echo "MISSING — cd website && npm i -D tsx"`
 Expected: `tsx present` (sonst installieren).
 
-- [ ] **Step 2: BATS-Test schreiben** (`tests/unit/portal-profile-update.bats`)
+~~DONE~~ **Step 2: BATS-Test schreiben** (`tests/unit/portal-profile-update.bats`)
 
 ```bash
 #!/usr/bin/env bats
@@ -1398,17 +1398,17 @@ setup() {
 }
 ```
 
-- [ ] **Step 3: Test ausführen**
+~~DONE~~ **Step 3: Test ausführen**
 
 Run: `cd /tmp/wt-T000614-kundenprofil-upgrade && bats tests/unit/portal-profile-update.bats`
 Expected: 4 Tests PASS.
 
-- [ ] **Step 4: Inventory aktualisieren** (CI verlangt das bei Test-Additionen)
+~~DONE~~ **Step 4: Inventory aktualisieren** (CI verlangt das bei Test-Additionen)
 
 Run: `cd /tmp/wt-T000614-kundenprofil-upgrade && task test:inventory`
 Expected: `website/src/data/test-inventory.json` regeneriert.
 
-- [ ] **Step 5: Commit**
+~~DONE~~ **Step 5: Commit**
 
 ```bash
 git add tests/unit/portal-profile-update.bats website/src/data/test-inventory.json
@@ -1422,7 +1422,7 @@ git commit -m "test: add BATS validation tests for profile update (T000614)"
 
 > Vorab prüfen, wie bestehende authenticated-Specs Login/Storage handhaben: `grep -rl "mentolder-authenticated\|storageState" website/tests/e2e | head` und ein Beispiel als Vorlage nehmen.
 
-- [ ] **Step 1: Spec schreiben** (`website/tests/e2e/kundenprofil-portal.spec.ts`)
+~~DONE~~ **Step 1: Spec schreiben** (`website/tests/e2e/kundenprofil-portal.spec.ts`)
 
 ```ts
 import { test, expect } from '@playwright/test';
@@ -1446,12 +1446,12 @@ test.describe('Kundenprofil — Portal Self-Service', () => {
 });
 ```
 
-- [ ] **Step 2: Lokal/nightly ausführen**
+~~DONE~~ **Step 2: Lokal/nightly ausführen**
 
 Run: `cd website && npx playwright test tests/e2e/kundenprofil-portal.spec.ts --project=mentolder-authenticated`
 Expected: PASS (oder dokumentiert übersprungen, falls kein Auth-State lokal — dann verlässt sich der Plan auf den nightly e2e-Lauf).
 
-- [ ] **Step 3: Commit**
+~~DONE~~ **Step 3: Commit**
 
 ```bash
 git add website/tests/e2e/kundenprofil-portal.spec.ts
@@ -1463,7 +1463,7 @@ git commit -m "test(e2e): add portal Kundenprofil Playwright spec (T000614)"
 **Files:**
 - Create: `website/tests/e2e/kundenprofil-admin.spec.ts`
 
-- [ ] **Step 1: Spec schreiben** (`website/tests/e2e/kundenprofil-admin.spec.ts`)
+~~DONE~~ **Step 1: Spec schreiben** (`website/tests/e2e/kundenprofil-admin.spec.ts`)
 
 ```ts
 import { test, expect } from '@playwright/test';
@@ -1499,12 +1499,12 @@ test.describe('Kundenprofil — Admin CRM', () => {
 });
 ```
 
-- [ ] **Step 2: Lokal ausführen**
+~~DONE~~ **Step 2: Lokal ausführen**
 
 Run: `cd website && npx playwright test tests/e2e/kundenprofil-admin.spec.ts --project=admin`
 Expected: PASS oder dokumentiert übersprungen (keine `E2E_TEST_CLIENT_ID`).
 
-- [ ] **Step 3: Commit**
+~~DONE~~ **Step 3: Commit**
 
 ```bash
 git add website/tests/e2e/kundenprofil-admin.spec.ts
@@ -1513,22 +1513,22 @@ git commit -m "test(e2e): add admin Kundenprofil CRM Playwright spec (T000614)"
 
 ### Task F4: Voller Offline-CI-Lauf lokal
 
-- [ ] **Step 1: Vitest gesamt**
+~~DONE~~ **Step 1: Vitest gesamt**
 
 Run: `cd website && npx vitest run src/lib/customer-crm-db.test.ts src/lib/customer-crm-db.ensure.test.ts src/lib/keycloak.attribute.test.ts`
 Expected: alle PASS.
 
-- [ ] **Step 2: Astro typecheck gesamt**
+~~DONE~~ **Step 2: Astro typecheck gesamt**
 
 Run: `cd website && npx astro check --minimumSeverity error`
 Expected: 0 errors.
 
-- [ ] **Step 3: Offline-Test-Suite + Freshness (wie CI)**
+~~DONE~~ **Step 3: Offline-Test-Suite + Freshness (wie CI)**
 
 Run: `cd /tmp/wt-T000614-kundenprofil-upgrade && task test:all && task freshness:check`
 Expected: grün. Falls `test:inventory`-Diff: regenerieren + committen.
 
-- [ ] **Step 4: Commit (falls Artefakte regeneriert)**
+~~DONE~~ **Step 4: Commit (falls Artefakte regeneriert)**
 
 ```bash
 git add -A

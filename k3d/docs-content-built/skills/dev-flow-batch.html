@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>dev-flow-batch — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">dev-flow-batch</span></nav>
+    <h1>dev-flow-batch</h1>
+    <p class="page-desc">Batch-Erstellung von Specs und Implementierungsplänen. Modus 1: alle status=planning Tickets parallel verarbeiten. Modus 2: ein großes Feature in parallele Sub-Pläne zerlegen. Verwende diesen Skill wenn der User mehrere Tickets auf einmal planen will oder ein Feature zu groß für einen einzelnen Plan ist.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>dev-flow-batch — Batch Spec+Plan-Erstellung</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#modus-erkennung"><span class="toc-num">1.</span> Modus-Erkennung</a></li>
+<li class="toc-item"><a href="#schritt-1-pull-first--reaper"><span class="toc-num">2.</span> Schritt −1: Pull-First + Reaper</a></li>
+<li class="toc-item"><a href="#modus-1-batch-aus-planning-tickets"><span class="toc-num">3.</span> Modus 1: Batch aus planning-Tickets</a></li>
+<li class="toc-item"><a href="#modus-2-grosses-feature-splitten"><span class="toc-num">4.</span> Modus 2: Großes Feature splitten</a></li>
+<li class="toc-item"><a href="#abgrenzung"><span class="toc-num">5.</span> Abgrenzung</a></li></ul>
+</div>
+<p><strong>Sage zu Beginn:</strong> "Ich nutze dev-flow-batch für Batch-Plan-Erstellung."</p>
+<h2 id="modus-erkennung">Modus-Erkennung</h2>
+<ul>
+<li><strong>Kein Argument</strong> → Modus 1: alle <code>status=planning</code> Tickets</li>
+<li><strong>Pfad zu Spec-Datei</strong> (endet auf <code>.md</code>) → Modus 2: Spec splitten</li>
+<li><strong>Freier Text</strong> (kein <code>.md</code>-Pfad) → Modus 2: Feature inline beschreiben</li>
+</ul>
+<h2 id="schritt-1-pull-first--reaper">Schritt −1: Pull-First + Reaper</h2>
+<div class="code-wrapper"><pre><code class="language-bash">git fetch origin main &amp;&amp; git pull --rebase origin main
+bash scripts/agent-lock.sh reap
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="modus-1-batch-aus-planning-tickets">Modus 1: Batch aus planning-Tickets</h2>
+<h3>Schritt 1: Tickets holen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">TICKETS_JSON=$(bash scripts/batch-gap-analysis.sh)
+TICKET_COUNT=$(echo "$TICKETS_JSON" | jq 'length')
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Wenn <code>TICKET_COUNT == 0</code>: informiere den User und STOPP.</p>
+<h3>Schritt 2: Gap-Analyse (parallel via Agent-Tool)</h3>
+<p>Spawne für jedes Ticket einen Gap-Analyse-Subagenten parallel. Jeder Subagent bekommt:</p>
+<p><strong>Prompt-Template:</strong></p>
+<div class="code-wrapper"><pre><code>Analysiere dieses Ticket auf Vollständigkeit für das Schreiben einer Spec.
+
+TICKET: &lt;external_id&gt; — &lt;title&gt;
+BESCHREIBUNG: &lt;description&gt;
+
+Prüfe ob folgende Informationen vorhanden sind:
+1. Ziel klar genug für eine Spec? (ja/nein + was fehlt)
+2. Domains erkennbar? (website/db/infra/ops/test/security)
+3. Akzeptanzkriterien vorhanden?
+4. Abhängigkeiten zu anderen Features?
+5. Shared-Changes nötig? (neue Domain, neues Schema-Var, neues ConfigMap-Eintrag)
+
+Gib zurück als JSON:
+{
+  "ticket_id": "&lt;external_id&gt;",
+  "gaps": [{"field": "...", "question": "..."}],
+  "can_proceed": true/false,
+  "preliminary_domains": ["website"],
+  "needs_shared_changes": false
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Schema:</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "type": "object",
+  "required": ["ticket_id", "gaps", "can_proceed", "preliminary_domains", "needs_shared_changes"],
+  "properties": {
+    "ticket_id": { "type": "string" },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": { "field": { "type": "string" }, "question": { "type": "string" } }
+      }
+    },
+    "can_proceed": { "type": "boolean" },
+    "preliminary_domains": { "type": "array", "items": { "type": "string" } },
+    "needs_shared_changes": { "type": "boolean" }
+  }
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 3: Fragen bündeln und User fragen</h3>
+<p>Sammle alle Gaps aus allen Ergebnissen. Wenn Gaps vorhanden: präsentiere dem User eine konsolidierte Liste, gruppiert nach Ticket:</p>
+<div class="code-wrapper"><pre><code>Ich habe X Tickets mit status=planning gefunden. Bevor ich die Pläne erstelle,
+habe ich einige Fragen:
+
+**T000601 — Login-Redesign:**
+- Welches Brand ist betroffen? (mentolder / korczewski / beide)
+- Wird eine neue Domain benötigt?
+
+**T000602 — Export-Feature:**
+- Welches Format: CSV, PDF oder beides?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Warte auf Antworten. Speichere Antworten als <code>docs/superpowers/specs/.gaps/&lt;ticket_id&gt;.md</code> pro Ticket (erstelle das Verzeichnis falls nötig).</p>
+<p>Tickets mit <code>can_proceed: false</code> nach der Q&amp;A-Runde (Beschreibung zu vage, keine Antwort gegeben): markiere als SKIPPED — schließe sie aus <code>TICKETS_JSON</code> aus.</p>
+<h3>Schritt 4: Worktree für Batch anlegen</h3>
+<div class="code-wrapper"><pre><code class="language-bash">BATCH_DATE=$(date +%Y-%m-%d)
+BATCH_BRANCH="feature/batch-${BATCH_DATE}-planning"
+bash scripts/worktree-create.sh "$BATCH_BRANCH" "/tmp/wt-batch-${BATCH_DATE}"
+bash scripts/agent-lock.sh claim branch "$BATCH_BRANCH" \
+  --worktree "/tmp/wt-batch-${BATCH_DATE}" --label dev-flow-batch
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 5: Workflow-Script generieren und starten</h3>
+<div class="code-wrapper"><pre><code class="language-bash">SCRIPT_PATH="/tmp/batch-workflow-$(date +%s).mjs"
+bash scripts/batch-workflow-gen.sh "$SCRIPT_PATH"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Dann starte via Workflow-Tool:</p>
+<div class="code-wrapper"><pre><code>Workflow({
+  scriptPath: SCRIPT_PATH,
+  args: {
+    tickets: &lt;TICKETS_JSON als Objekt&gt;,
+    gap_context: &lt;Map von ticket_id → Inhalt der .gaps-Datei&gt;,
+    repo_root: "/home/patrick/Bachelorprojekt",
+    today: &lt;BATCH_DATE&gt;
+  }
+})
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 6: Ergebnis berichten</h3>
+<p>Nach Workflow-Abschluss: berichte dem User wie viele Specs+Pläne erfolgreich erstellt wurden, welche übersprungen wurden (SKIPPED), und dass alle fertigen Pläne in der Kommissionierung (<code>/dev-status</code>) unter <code>status=plan_staged</code> auf Freigabe warten.</p>
+<hr>
+<h2 id="modus-2-grosses-feature-splitten">Modus 2: Großes Feature splitten</h2>
+<h3>Schritt 1: Input normalisieren</h3>
+<ul>
+<li>Wenn Argument ein <code>.md</code>-Pfad: lese Datei ein als <code>SPEC_CONTENT</code></li>
+<li>Wenn freier Text: nutze Text direkt als <code>FEATURE_DESCRIPTION</code></li>
+</ul>
+<h3>Schritt 2: Decompose-Subagent</h3>
+<p>Spawne einen Decompose-Subagenten mit Schema:</p>
+<div class="code-wrapper"><pre><code class="language-json">{
+  "type": "object",
+  "required": ["parent_feature", "sub_features"],
+  "properties": {
+    "parent_feature": { "type": "string" },
+    "sub_features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "title", "description", "domains", "depends_on", "shared_changes"],
+        "properties": {
+          "slug":           { "type": "string" },
+          "title":          { "type": "string" },
+          "description":    { "type": "string" },
+          "domains":        { "type": "array", "items": { "type": "string" } },
+          "depends_on":     { "type": "array", "items": { "type": "string" } },
+          "shared_changes": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Prompt:</strong></p>
+<div class="code-wrapper"><pre><code>Zerlege dieses Feature in unabhängige Sub-Features die parallel implementiert werden können.
+
+FEATURE:
+&lt;SPEC_CONTENT oder FEATURE_DESCRIPTION&gt;
+
+Regeln:
+- Jedes Sub-Feature muss für sich allein testbar und deploybar sein
+- depends_on listet slugs von Sub-Features die zuerst fertig sein müssen
+- shared_changes: true wenn das Sub-Feature k3d/configmap-domains.yaml oder
+  environments/schema.yaml ändern muss
+- Maximal 6 Sub-Features — wenn das Feature größer ist, fasse verwandte Teile zusammen
+- Gib einen parent_feature slug (kebab-case, kurz) zurück
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 3: Sub-Features als Tickets-Array formatieren</h3>
+<p>Wandle die Sub-Features in das Ticket-Format um das der Workflow erwartet:</p>
+<div class="code-wrapper"><pre><code class="language-json">[
+  {
+    "external_id": "sub-&lt;parent&gt;-&lt;slug&gt;",
+    "title": "&lt;title&gt;",
+    "description": "&lt;description&gt;",
+    "brand": "mentolder",
+    "priority": "mittel"
+  }
+]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Füge <code>depends_on</code> und <code>parent_feature</code> in den <code>gap_context</code> pro Sub-Feature ein.</p>
+<h3>Schritt 4: Workflow starten</h3>
+<p>Identisch zu Modus 1 Schritt 5 — <code>batch-workflow-gen.sh</code> + <code>Workflow({scriptPath, args})</code>.</p>
+<hr>
+<h2 id="abgrenzung">Abgrenzung</h2>
+<ul>
+<li>Dieser Skill <strong>plant nur</strong> (Spec + Plan) — keine Implementierung, kein Deploy</li>
+<li>Fertige Pläne landen in <code>status=plan_staged</code> in der Kommissionierung</li>
+<li>Factory-Übergabe: <code>/dev-status</code> → "→ Factory" Knopf, oder:
+<code>bash scripts/ticket.sh enqueue --id &lt;ext-id&gt; --branch &lt;branch&gt; --plan &lt;plan&gt;</code></li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

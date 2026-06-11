@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</span></nav>
+    <h1>Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#brauche-ich-ports-oeffnen-nein"><span class="toc-num">1.</span> Brauche ich Ports öffnen? Nein.</a></li>
+<li class="toc-item"><a href="#transport-tiers-server-bindet-0000-fester-port-47600"><span class="toc-num">2.</span> Transport-Tiers (Server bindet 0.0.0.0, fester Port 47600)</a></li>
+<li class="toc-item"><a href="#sicherheit-public-board-haertung-stand-2026-06-10"><span class="toc-num">3.</span> Sicherheit (Public-Board-Härtung, Stand 2026-06-10)</a></li>
+<li class="toc-item"><a href="#dauerhaft-oeffentlich-der-systemd-user-service"><span class="toc-num">4.</span> Dauerhaft öffentlich: der systemd-User-Service</a></li>
+<li class="toc-item"><a href="#ad-hoc-interaktive-session-klickchat-z-b-aktiv-mit-gekko"><span class="toc-num">5.</span> Ad-hoc interaktive Session (Klick/Chat, z. B. aktiv mit gekko)</a></li>
+<li class="toc-item"><a href="#auswahl-ans-terminal-submit-knopf"><span class="toc-num">6.</span> Auswahl ans Terminal (Submit-Knopf)</a></li>
+<li class="toc-item"><a href="#entscheidungsbaum--welches-werkzeug-fuer-welches-beduerfnis"><span class="toc-num">7.</span> Entscheidungsbaum — welches Werkzeug für welches Bedürfnis</a></li>
+<li class="toc-item"><a href="#scriptswsl-opensh--wslwindows-browser-bruecke"><span class="toc-num">8.</span> scripts/wsl-open.sh — WSL→Windows-Browser-Brücke</a></li>
+<li class="toc-item"><a href="#was-nicht-mehr-noetig-ist"><span class="toc-num">9.</span> Was NICHT mehr nötig ist</a></li>
+<li class="toc-item"><a href="#verwandt"><span class="toc-num">10.</span> Verwandt</a></li></ul>
+</div>
+<p><strong>Kontext:</strong> Der Dev-Node ist endgültig diese WSL-Maschine, und sie läuft im
+<strong>mirrored networking mode</strong> — <code>eth0</code> trägt die echten Host-IPs direkt (Tailscale,
+wg-mesh, LAN), kein NAT-172.x. Ein Server, der in WSL auf <strong><code>0.0.0.0</code></strong> lauscht, ist
+darum <strong>gleichzeitig über alle Wege</strong> erreichbar. <strong>localhost ist nur einer davon.</strong></p>
+<blockquote>
+<p>Nutzer-Anforderungen: <em>„muss auch ohne localhost funktionieren"</em> + <em>„muss ich Ports
+öffnen?"</em> + <em>„öffentliche Zugänglichkeit dauerhaft aktiv halten"</em> → <strong>ohne localhost: ja
+(Tailscale); Ports öffnen: nein; dauerhaft öffentlich: ja, als gehärteter systemd-Service.</strong></p>
+</blockquote>
+<h2 id="brauche-ich-ports-oeffnen-nein">Brauche ich Ports öffnen? <strong>Nein.</strong></h2>
+<p>Tailscale ist ein WireGuard-Mesh-VPN: Peers verbinden sich <strong>durch NAT/Firewall hindurch</strong>
+(DERP + NAT-Traversal). Kein Router-Port-Forwarding, nie. <strong><code>tailscale funnel</code>/<code>serve</code></strong>
+terminieren im Tailscale-Prozess (Windows) und proxyen nach <code>127.0.0.1</code> → keine eingehende
+App-Port-Exposition, kein Windows-Firewall-Thema, echtes HTTPS, port-lose URL.</p>
+<h2 id="transport-tiers-server-bindet-0000-fester-port-47600">Transport-Tiers (Server bindet <code>0.0.0.0</code>, fester Port 47600)</h2>
+<table>
+<thead>
+<tr>
+<th>Weg</th>
+<th>URL</th>
+<th>Wann</th>
+<th>Ports?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>localhost</strong></td>
+<td><code>http://localhost:47600</code></td>
+<td>Auf diesem Desktop (auto-geöffnet).</td>
+<td>–</td>
+</tr>
+<tr>
+<td><strong>Tailscale Funnel (öffentlich)</strong></td>
+<td><code>https://pk-desktop.tail8a4425.ts.net/</code></td>
+<td><strong>Jedes Gerät, auch ohne Tailscale (gekko).</strong> Port-los, HTTPS, vom Dauer-Service gesetzt.</td>
+<td><strong>keine</strong></td>
+</tr>
+<tr>
+<td>Tailscale serve (tailnet-only)</td>
+<td><code>https://pk-desktop.tail8a4425.ts.net/</code></td>
+<td>Nur eigene Tailnet-Geräte (statt Funnel).</td>
+<td>keine</td>
+</tr>
+<tr>
+<td>Tailscale IP / MagicDNS (roh)</td>
+<td><code>http://100.102.71.114:47600</code></td>
+<td>Tailnet-Fallback.</td>
+<td>keine</td>
+</tr>
+<tr>
+<td>LAN / wg-mesh</td>
+<td><code>http://192.168.100.10:47600</code> / <code>10.10.0.3</code></td>
+<td>Gerät im selben Netz / Mesh-Peer.</td>
+<td>keine</td>
+</tr>
+</tbody></table>
+<p>Tailnet <code>tail8a4425.ts.net</code>, Node <code>pk-desktop</code> = <code>100.102.71.114</code>. <code>serve</code>/<code>funnel</code> auf <code>--https=443</code>
+sind <strong>additiv</strong> — die fremde <code>:9878</code>-Map (OpenClaw-Gateway, tailnet-only) bleibt unberührt.</p>
+<h2 id="sicherheit-public-board-haertung-stand-2026-06-10">Sicherheit (Public-Board-Härtung, Stand 2026-06-10)</h2>
+<p>Der Companion-<code>server.cjs</code> ist über Funnel <strong>öffentlich + unauthentifiziert</strong>. Multi-Agent-Review
+(20/21 Befunde bestätigt): <strong>kein Path-Traversal</strong> (<code>/files/</code> nutzt <code>path.basename</code>, gegen <code>../</code>,
+encoded, nullbyte, absolut getestet), <strong>keine RCE/File-Write-Primitive</strong>. Gefixt via idempotentem
+Patch <code>scripts/brainstorm-companion-harden.sh</code> (marker-guarded, re-anwendbar nach Plugin-Update):</p>
+<ul>
+<li><strong>MUST-FIX Crash-Kills:</strong> <code>GET /files/..</code> (Verzeichnis → EISDIR) crashte den Prozess (kein
+try/catch, kein <code>uncaughtException</code>) → <code>isFile()</code>-Guard + try/catch + <code>process.on</code>-Netz.
+Unbegrenzte WS-Frame-/Akku-Größe → OOM → <code>MAX_FRAME=64 KB</code>-Cap.</li>
+<li><strong>Read-only Public-Modus (<code>BRAINSTORM_PUBLIC=1</code>):</strong> Default des Dauer-Service. Besucher sehen
+alles live, können aber <strong>nichts schreiben</strong> — verhindert anonyme Decision-/Prompt-Injection in
+<code>state/events</code> (das ist der Entscheidungs-Input des Agenten via <code>brainstorm-extract-choice.sh</code>).</li>
+<li><strong>Limits:</strong> <code>MAX_CLIENTS=50</code>, Origin-Allowlist (public), per-Event 4 KB + events-Datei 5 MB Cap
+(greifen im interaktiven Modus). <strong>Residual/Follow-up:</strong> per-Connection-Rate-Limit + Dead-Socket-
+PING-Eviction noch offen (im read-only Public-Modus unkritisch, da keine Client-Writes).</li>
+<li>Inhalt von <code>CONTENT_DIR</code> ist <strong>vollständig öffentlich</strong> — nie Secrets/PII dort ablegen.</li>
+</ul>
+<h2 id="dauerhaft-oeffentlich-der-systemd-user-service">Dauerhaft öffentlich: der systemd-User-Service</h2>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/brainstorm-bridge.sh service install   # härtet Companion, installiert+started systemd-User-
+                                               # Service auf festem Port 47600 (BRAINSTORM_PUBLIC=1,
+                                               # Restart=always, owner=1), loginctl enable-linger,
+                                               # Funnel öffentlich → 47600
+scripts/brainstorm-bridge.sh service status    # systemctl status + HTTP-Probe + URL-Menü
+scripts/brainstorm-bridge.sh service remove     # Service disable + Funnel/serve 443 aus
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Service-Unit: <code>~/.config/systemd/user/brainstorm-board.service</code> (aus <code>$COMP</code>/<code>$BRIDGE_PORT</code>/<code>$BOARD_DIR</code>
+generiert → self-tracking nach Plugin-Update via erneutem <code>service install</code>). Fester Board-Dir
+<code>.superpowers/brainstorm/board/</code> (Inhalt überlebt Restarts). <code>Restart=always</code> heilt den 30-Min-Idle-
+Selbstexit. Funnel-Config liegt Windows-seitig (tailscale.exe) → überlebt WSL/Windows-Reboots.</p>
+<p>Wenn der Service läuft, zielen <code>show</code>/<code>choice</code>/<code>urls</code> automatisch auf den Board-Dir, und <code>start</code>
+konkurriert nicht (Guard).</p>
+<h2 id="ad-hoc-interaktive-session-klickchat-z-b-aktiv-mit-gekko">Ad-hoc interaktive Session (Klick/Chat, z. B. aktiv mit gekko)</h2>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/brainstorm-bridge.sh start   # Companion (0.0.0.0, fester Port), localhost auto-open, URL-Menü
+scripts/brainstorm-bridge.sh show f.html   # HTML-Fragment in die aktive Session (Board lädt neu)
+scripts/brainstorm-bridge.sh choice        # letzte vom Nutzer geklickte {"choice":...}
+scripts/brainstorm-bridge.sh funnel        # öffentliches HTTPS für die laufende Session
+scripts/brainstorm-bridge.sh stop          # Server stoppen + Funnel/serve 443 aus
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Im interaktiven Modus (ohne <code>BRAINSTORM_PUBLIC=1</code>) sind Klick/Chat aktiv — bei öffentlichem Funnel
+ist das eine Schreib-Oberfläche; für Entscheidungen den Terminal-Kanal als Wahrheit nehmen.</p>
+<h2 id="auswahl-ans-terminal-submit-knopf">Auswahl ans Terminal (Submit-Knopf)</h2>
+<p>In <strong>jedem</strong> Encounter rendert <code>helper.js</code> auf der <strong>localhost</strong>-Seite einen schwebenden
+Knopf „✓ Auswahl ans Terminal". Klick → die komplette Maskenauswahl (markierte Optionen +
+Formularfelder + Frage) geht per <code>POST /submit</code> an einen <strong>separaten, nur an <code>127.0.0.1</code>
+gebundenen</strong> HTTP-Listener (Default-Port <code>BRAINSTORM_PORT+1</code>, <strong>nicht</strong> funnel-gemappt).
+Der Listener (a) schreibt <code>state/submission.json</code> (mode 600) + eine <code>events</code>-Zeile, (b) pusht
+den gerenderten Sentinel-Block (<code>«BRAINSTORM-AUSWAHL» … «ENDE»</code>) via <code>clip.exe</code> in die
+Windows-Zwischenablage. Der Nutzer fügt mit <strong>Strg+V</strong> ein und drückt <strong>Enter</strong>.</p>
+<ul>
+<li><strong>Read-only übers Funnel bleibt garantiert:</strong> der Submit-Port ist nicht gemappt, der Knopf
+rendert nur auf <code>http://localhost</code>/<code>127.0.0.1</code> (die Funnel-Seite ist <code>https://&lt;magicdns&gt;</code> →
+kein Knopf; <code>https→http</code>-fetch wäre mixed-content-blockiert). Remote-gekko kann NICHT absenden.</li>
+<li>Auslieferung: <code>scripts/superpowers-submit-patch.sh</code> (idempotent, Marker <code>brainstorm-submit v1</code>),
+von <code>service install</code> und <code>start</code> automatisch angewandt.</li>
+<li>Agent zieht die Auswahl bei Bedarf: <code>scripts/brainstorm-bridge.sh submission</code> (gibt
+<code>state/submission.json</code> aus); <code>choice</code> bleibt funktionsfähig.</li>
+</ul>
+<h2 id="entscheidungsbaum--welches-werkzeug-fuer-welches-beduerfnis">Entscheidungsbaum — welches Werkzeug für welches Bedürfnis</h2>
+<table>
+<thead>
+<tr>
+<th>Bedürfnis</th>
+<th>Werkzeug</th>
+<th>Warum</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Auswahl</strong> — Worte/Optionen, ≤ 4</td>
+<td><strong><code>AskUserQuestion</code></strong> (Harness-Tool)</td>
+<td>Null Infrastruktur, inline, <code>preview</code> für ASCII/Code/Diagramm. <strong>Default für reine Auswahlen.</strong></td>
+</tr>
+<tr>
+<td><strong>Gerendertes Visual</strong> + Klick</td>
+<td><strong>Visual Companion</strong> via <code>brainstorm-bridge.sh</code></td>
+<td>Echtes HTML, iterierbar, Klick-Events. MIT und OHNE localhost.</td>
+</tr>
+<tr>
+<td><strong>Statisches Bild</strong> (PNG/SVG)</td>
+<td><strong><code>SendUserFile</code></strong></td>
+<td>Direkt in den Chat, kein Browser/Server, geräteunabhängig.</td>
+</tr>
+<tr>
+<td><strong>Viele Textfragen</strong> (Grilling)</td>
+<td><strong>HTML-Formular</strong> + <code>show</code></td>
+<td>Batch, <code>localStorage</code>. Siehe <code>feedback-grilling-html-form</code>.</td>
+</tr>
+<tr>
+<td><strong>gekko (remote) live</strong></td>
+<td><strong>Tailscale Funnel</strong> (Dauer-Service)</td>
+<td>Öffentlich, kein Cluster nötig — robuster als der alte sish-Tunnel.</td>
+</tr>
+</tbody></table>
+<p><strong>Faustregel:</strong> Pro <em>Frage</em> entscheiden. Test: <em>Versteht der Nutzer es besser, wenn er es <strong>sieht</strong>?</em></p>
+<h2 id="scriptswsl-opensh--wslwindows-browser-bruecke"><code>scripts/wsl-open.sh</code> — WSL→Windows-Browser-Brücke</h2>
+<div class="code-wrapper"><pre><code class="language-bash">scripts/wsl-open.sh http://localhost:47600    # URL -&gt; Windows-Default-Browser (cmd.exe/powershell/explorer)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="was-nicht-mehr-noetig-ist">Was NICHT mehr nötig ist</h2>
+<ul>
+<li><strong>Keine Ports öffnen</strong> — Tailscale tunnelt selbst.</li>
+<li><strong>Kein manuelles URL-Kopieren</strong> — <code>start</code>/<code>service</code> öffnen localhost + drucken die öffentliche URL.</li>
+<li><strong>Kein sish-Cluster-Tunnel</strong> — Funnel ist der robuste Ersatz für Remote-Viewer.</li>
+</ul>
+<h2 id="verwandt">Verwandt</h2>
+<ul>
+<li><code>skills/brainstorming/visual-companion.md</code> (superpowers) — Companion-Details, CSS, Event-Format</li>
+<li><code>scripts/brainstorm-companion-harden.sh</code> — idempotente Sicherheits-Härtung des Companion</li>
+<li><code>scripts/brainstorm-extract-choice.sh</code> — Choice-Rückkanal</li>
+<li><code>scripts/superpowers-submit-patch.sh</code> — idempotenter Submit-Kanal-Patch (loopback /submit)</li>
+<li>Memory <code>reference_brainstorm_bridge_wsl</code>, <code>feedback-grilling-html-form</code>, <code>project_collab_brainstorm_tunnel</code></li>
+</ul>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

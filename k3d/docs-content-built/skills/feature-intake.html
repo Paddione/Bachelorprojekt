@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>feature-intake — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay">
+  <div id="search-box">
+    <input id="search-input" type="text" placeholder="Suchen… (Esc schließt)" autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+</div>
+<div id="app">
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">feature-intake</span></nav>
+    <h1>feature-intake</h1>
+    <p class="page-desc">Use when the user wants to discover, brainstorm, or collect features before planning, OR when the user wants to clarify open questions on existing Planungsbüro tickets. Triggers on: &quot;was könnten wir als nächstes bauen&quot;, &quot;schick gekko einen Fragebogen&quot;, &quot;feature-ideen sammeln&quot;, &quot;klär die offenen Fragen im Planungsbüro&quot;, &quot;planungsbüro tickets klären&quot;, &quot;plan-ready machen&quot;, &quot;offene Fragen&quot;, &quot;gekkomode&quot;, &quot;frag gekko&quot;, &quot;interview gekko&quot;, &quot;was braucht gekko&quot;, &quot;gekko befragen&quot;, or any pre-planning feature-discovery or ticket-clarification session.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>feature-intake — Feature-Entdeckung, PM-Fragebogen &amp; Planungsbüro-Klärung</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#ueberblick"><span class="toc-num">1.</span> Überblick</a></li>
+<li class="toc-item"><a href="#modus-wahl"><span class="toc-num">2.</span> Modus-Wahl</a></li>
+<li class="toc-item"><a href="#modus-c-planungsbuero-klaerungsrunde"><span class="toc-num">3.</span> Modus C: Planungsbüro-Klärungsrunde</a></li>
+<li class="toc-item"><a href="#modus-d-gekkomode--entdeckungs-interview"><span class="toc-num">4.</span> Modus D: GekkoMode — Entdeckungs-Interview</a></li>
+<li class="toc-item"><a href="#modus-a-interaktiver-brainstorm"><span class="toc-num">5.</span> Modus A: Interaktiver Brainstorm</a></li>
+<li class="toc-item"><a href="#modus-b-html-formular-fuer-patrick-oder-gekko"><span class="toc-num">6.</span> Modus B: HTML-Formular (für Patrick oder gekko)</a></li>
+<li class="toc-item"><a href="#uebergabe-an-dev-flow-plan--dev-flow-batch"><span class="toc-num">7.</span> Übergabe an dev-flow-plan / dev-flow-batch</a></li></ul>
+</div>
+<h2 id="ueberblick">Überblick</h2>
+<p>Dieser Skill ist dem <code>dev-flow-plan</code> <strong>vorgelagert</strong>: er sammelt Feature-Ideen und überführt sie in plan-ready Tickets. Vier Modi:</p>
+<table>
+<thead>
+<tr>
+<th>Modus</th>
+<th>Wann</th>
+<th>Ergebnis</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Planungsbüro-Klärung</strong></td>
+<td>Bestehende <code>planning</code>-Tickets haben offene Fragen / fehlende Readiness-Flags</td>
+<td>HTML-Klärungsformular pro Ticket → Antworten ins Ticket schreiben</td>
+</tr>
+<tr>
+<td><strong>Brainstorm</strong></td>
+<td>User will jetzt live mitreden / frei ideieren</td>
+<td>Strukturierte Feature-Liste → direkt zu <code>dev-flow-plan</code></td>
+</tr>
+<tr>
+<td><strong>HTML-Formular</strong></td>
+<td>Auswahl + Priorisierung neuer Ideen per Klick — <strong>für Patrick oder gekko</strong></td>
+<td>HTML-Formular → ausgefülltes Markdown → <code>dev-flow-plan</code></td>
+</tr>
+<tr>
+<td><strong>GekkoMode</strong></td>
+<td>Offenes Entdeckungs-Interview mit gekko — Schmerzen + Wünsche herauskitzeln</td>
+<td>Interview-HTML-Formular → strukturierter Rücklauf → neue <code>planning</code>-Tickets</td>
+</tr>
+</tbody></table>
+<p><strong>Standard-Annahme:</strong> Patrick füllt lieber ein <strong>HTML-Formular</strong> aus als inline zu tippen (siehe Memory „Grilling via HTML form"). Im Zweifel <strong>generiere das Formular</strong> und liefere es per <code>SendUserFile</code>.</p>
+<hr>
+<h2 id="modus-wahl">Modus-Wahl</h2>
+<div class="code-wrapper"><pre><code>User nennt "gekkomode" / "frag gekko" / "interview gekko" / "was braucht gekko"
+  → GekkoMode (Modus D) — PRIORITÄT vor B und A
+
+User spricht von "Planungsbüro", "klären", "offene Fragen", "plan-ready",
+"Readiness", oder will bestehende planning-Tickets vorbereiten?
+  → Planungsbüro-Klärung (Modus C) — PRIORITÄT vor B und A
+
+User will Features nur auswählen + priorisieren (wenig tippen),
+ODER "schick gekko einen Fragebogen" / "PM soll entscheiden" / "mach mir ein Formular"
+  OHNE Entdeckungscharakter (Ideen bereits bekannt)?
+  → HTML-Formular-Modus (Modus B) — Empfänger = Patrick oder gekko
+
+User will JETZT frei mitdenken / Cluster live durchgehen?
+  → Brainstorm-Modus (Modus A)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="modus-c-planungsbuero-klaerungsrunde">Modus C: Planungsbüro-Klärungsrunde</h2>
+<p><strong>Sage:</strong> "Ich lade alle Planungsbüro-Tickets und leite offene Fragen ab."</p>
+<h3>Schritt 1 — Tickets laden</h3>
+<div class="code-wrapper"><pre><code class="language-bash">PLANNING_ROWS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+"SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
+ array_to_string(areas,','), COALESCE(description,''), readiness::text,
+ COALESCE(array_to_string(depends_on,','),'')
+ FROM tickets.tickets WHERE status='planning'
+ ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2&gt;/dev/null)
+
+if -z &amp;quot;$PLANNING_ROWS&amp;quot;; then
+  echo "ℹ️  Keine planning-Tickets vorhanden. Modus C entfällt — stattdessen Modus A oder B starten?"
+  exit 0
+fi
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 2 — Offene Fragen pro Ticket ableiten</h3>
+<p>Für jedes Ticket prüfe die Readiness-Flags und leite daraus konkrete Fragen ab:</p>
+<h4>Gültige Readiness-Schlüssel (alle 4 Pflicht-Flags)</h4>
+<table>
+<thead>
+<tr>
+<th>Schlüssel</th>
+<th>Bedeutung</th>
+<th>Abzuleitende Frage wenn <code>false</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>spec_skizziert</code></td>
+<td>Kernfunktionalität beschrieben</td>
+<td>Beschreibe die Kernfunktionalität in 2-3 Sätzen. Was ist explizit NICHT im Scope?</td>
+</tr>
+<tr>
+<td><code>abhaengigkeiten_klar</code></td>
+<td>Blockierende Tickets/Dienste bekannt</td>
+<td>Welche anderen Tickets / Features müssen VORHER fertig sein? Welche externen Dienste werden benötigt?</td>
+</tr>
+<tr>
+<td><code>offene_fragen_geklaert</code></td>
+<td>Domain-Fragen beantwortet</td>
+<td>→ Domain-spezifische Fragen (siehe unten)</td>
+</tr>
+<tr>
+<td><code>aufwand_geschaetzt</code></td>
+<td>Aufwand grob geschätzt</td>
+<td>Wie groß schätzt du den Aufwand? (klein ≤1d / mittel 2-4d / groß ≥1W)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Wichtig:</strong> Nur diese exakten Schlüssel in <code>--readiness</code> verwenden — <code>ticket.sh</code> parst sie als freeform JSON, falsch geschriebene Keys werden stillschweigend ignoriert.</p>
+</blockquote>
+<h4>Domain-spezifische Fragen nach <code>areas</code></h4>
+<p><strong>brett:</strong> Welche Benutzerrollen sind betroffen? Soll das Feature auf Mobilgeräten vollständig funktionieren? Wie verhält sich das Feature bei Verbindungsunterbrechungen? Gibt es Abhängigkeiten zu bestehenden Brett-Figuren oder Board-States?</p>
+<p><strong>website:</strong> Für welche Benutzergruppe? (Admin / Endkunde / beide) — Beide Brands oder nur eine? — Sollen Änderungen versioniert werden? — SEO-relevant?</p>
+<p><strong>chat:</strong> Real-time (WebSocket) oder darf kurze Verzögerung akzeptabel sein? — Benachrichtigungen: E-Mail, Push oder nur in-App? — DSGVO-Löschkonzept nötig?</p>
+<p><strong>infra:</strong> Beide Brands deployen oder nur eine? — Breaking Change? Rollout-Strategie? — Ressourcenschätzung bekannt?</p>
+<p><strong>auth:</strong> Betrifft beide Keycloak-Realms? — Opt-in für bestehende User oder erzwungen? — Rollback-Plan?</p>
+<p><strong>ai/factory:</strong> Welche Modelle (Claude / DeepSeek) betroffen? — Dry-run-Modus nötig? — Wie messen wir Erfolg?</p>
+<h3>Schritt 3 — HTML-Klärungsformular generieren</h3>
+<p>Generiere ein <strong>eigenständiges HTML-Formular</strong> (kein Backend, läuft via <code>file://</code>) direkt mit dem <code>Write</code>-Tool — <strong>nicht</strong> das pm-form-template.html kopieren (das ist Modus B). Dieses Formular wird <strong>dynamisch aus den Ticket-Daten</strong> aufgebaut.</p>
+<p><strong>Datei:</strong> <code>/tmp/planungsbuero-klaerung-&lt;DATUM&gt;.html</code></p>
+<p><strong>Formular-Struktur pro Ticket-Section:</strong></p>
+<div class="code-wrapper"><pre><code>&lt;section data-ticket="T000xxx"&gt;
+  Ticket-Header: ID + Titel + Priorität-Badge
+  Metadaten: Bereich, Aufwand, value_prop
+  Readiness-Ampel: 🟢 true / 🔴 false pro Flag
+  &lt;fieldset legend="Abhängigkeiten"&gt; — nur wenn abhaengigkeiten_klar: false
+    Text-Input "Welche Tickets müssen vorher fertig sein?" + structured follow-ups
+  &lt;fieldset legend="Spec-Skizze"&gt; — nur wenn spec_skizziert: false
+    Textarea für Kernflow-Beschreibung + Not-Scope
+  &lt;fieldset legend="Domain-Fragen"&gt; — immer wenn offene_fragen_geklaert: false
+    Domain-spezifische Radio/Checkbox-Fragen basierend auf areas
+&lt;/section&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Technische Anforderungen:</strong></p>
+<ul>
+<li>Dark Theme (<code>background: #0d1117; color: #c9d1d9</code>)</li>
+<li>Alle Form-Felder mit <code>name="&lt;external_id&gt;_&lt;schlüssel&gt;"</code> — Ticket-Bezug für <code>buildMarkdown()</code></li>
+<li>Structured fields bevorzugen: Radio/Checkbox für Ja/Nein/Optionen, Textarea nur für Freitext</li>
+<li>„Markdown kopieren"-Button mit <code>navigator.clipboard</code> + Fallback-Textarea für <code>file://</code></li>
+<li>Fortschrittsbalken (wie viele Tickets ausgefüllt)</li>
+<li><code>buildMarkdown()</code> erzeugt <code>### &lt;ID&gt; — &lt;Titel&gt;</code> pro Ticket mit allen <code>- **Frage**: Antwort</code>-Zeilen</li>
+</ul>
+<h3>Schritt 4 — Formular liefern</h3>
+<p>Liefere die Datei per <code>SendUserFile</code>. Sage: "Ausfüllen → ‚Markdown kopieren' → hier einfügen."</p>
+<h3>Schritt 5 — Antworten verarbeiten (nach Rücklauf)</h3>
+<p>Wenn das ausgefüllte Markdown zurückkommt, verarbeite <strong>pro Ticket</strong>:</p>
+<h4>5a — Kommentar im Ticket hinterlegen</h4>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh add-comment \
+  --id &lt;external_id&gt; \
+  --author "feature-intake" \
+  --body "## Klärungsrunde $(date +%F)
+
+**Abhängigkeiten:** &lt;wert&gt;
+**Brand-Scope:** &lt;wert&gt;
+**Spec-Skizze:** &lt;freitext&gt;
+**Domain-Fragen:**
+- &lt;frage&gt;: &lt;antwort&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>5b — Readiness-Flags aktualisieren</h4>
+<p>Setze einen Flag auf <code>true</code> nur wenn die zugehörige Frage tatsächlich beantwortet wurde:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh plan-meta set \
+  --id &lt;external_id&gt; \
+  --readiness offene_fragen_geklaert=true,abhaengigkeiten_klar=true
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>5c — Abhängigkeiten eintragen (wenn konkrete IDs genannt)</h4>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh plan-meta set \
+  --id &lt;external_id&gt; \
+  --depends-on T000571,T000573
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>5d — Status-Report ausgeben</h4>
+<p>Kurze Zusammenfassung: welche Tickets sind jetzt vollständig readiness-ready (alle 4 Flags true), welche bleiben offen. Tickets mit allen Flags auf <code>true</code> → proaktiv vorschlagen: „T000xxx ist plan-ready → <code>dev-flow-plan</code> starten?"</p>
+<hr>
+<h2 id="modus-d-gekkomode--entdeckungs-interview">Modus D: GekkoMode — Entdeckungs-Interview</h2>
+<p><strong>Zweck:</strong> Nicht aus einer vordefinierten Liste wählen, sondern <em>unbekannte</em> Schmerzen und Wünsche von gekko herauskitzeln — offener Entdeckungscharakter. Das Interview generiert Rohideen, die Claude anschließend in vollständige <code>planning</code>-Tickets überführt.</p>
+<p><strong>Bekannter Kontext über gekko (nicht abfragen):</strong></p>
+<ul>
+<li>Nutzt die Plattform täglich</li>
+<li>Primärgerät: Android-Smartphone → Handy-Usability ist implizit hochpriorisiert</li>
+<li>Deadlines sind nebensächlich — kein Deadline-Block im Formular</li>
+<li>Kein DocuSeal — Verträge werden intern selbst gebaut, also kein DocuSeal-Fieldset</li>
+</ul>
+<p><strong>Formular-Leitprinzipien:</strong></p>
+<ul>
+<li>Kein "Was nutzt du aktiv?"-Filter (Block-1 ist weggefallen) — alle Schmerz-Bereiche direkt zeigen</li>
+<li>Kein Ranking-Block — Priorität wird beim Ticket-Anlegen von Claude abgeleitet, nicht von gekko bewertet</li>
+<li>Kein Kontext-/Timing-Block</li>
+<li>Kernfokus: <strong>Feature-Vorschläge mit Würfeln</strong> + <strong>Schmerz-Freitext</strong> + <strong>Wunschzettel</strong></li>
+</ul>
+<p><strong>Sage:</strong> "Ich erstelle ein Entdeckungs-Interview-Formular für gekko."</p>
+<h3>Schritt 1 — Bestehende Tickets laden (Duplikatschutz)</h3>
+<div class="code-wrapper"><pre><code class="language-bash">EXISTING=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, status FROM tickets.tickets
+   WHERE status NOT IN ('done','archived')
+   ORDER BY created_at DESC LIMIT 60;" 2&gt;/dev/null)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Halte diese Liste im Arbeitsgedächtnis — sie dient später beim Ticket-Anlegen zum Duplikatcheck.</p>
+<h3>Schritt 2 — Interview-HTML-Formular generieren</h3>
+<p>Erstelle <code>/tmp/gekko-interview-&lt;DATUM&gt;.html</code> mit dem <code>Write</code>-Tool. Das Formular ist ein <strong>eigenständiges, backend-freies HTML</strong>, läuft via <code>file://</code>.</p>
+<p><strong>Formular-Design:</strong> Dark Theme (<code>#0d1117</code> / <code>#c9d1d9</code>), große Schrift, viel Weißraum. Überschrift: „Hey gekko — was brauchst du?" Introtext: „5 Minuten. Keine falschen Antworten. Deine Inputs landen direkt im Planungsbüro."</p>
+<h4>Formular-Blöcke (genau diese 3, keine anderen)</h4>
+<p><strong>Block 1 — Feature-Vorschläge mit Würfeln</strong></p>
+<ul>
+<li>Zeige <strong>12 zufällige Features</strong> aus einem großen Pool (~60 Einträge) als anklickbare Karten</li>
+<li>Jede Karte: Bereichs-Tag + Feature-Text, Klick = auswählen/abwählen</li>
+<li><strong>„🎲 Neu würfeln"-Button</strong>: lädt 12 neue Karten aus dem Pool — bereits ausgewählte Karten bleiben erhalten und werden als Chips unterhalb angezeigt</li>
+<li>Auswahlzähler: „Ausgewählt: N"</li>
+</ul>
+<p>Feature-Pool — Bereiche und Einträge:</p>
+<table>
+<thead>
+<tr>
+<th>Bereich</th>
+<th>Beispiel-Einträge</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Brett</td>
+<td>Board-Export PNG/PDF, Touch-Drag Android, Figuren-Animationen, Gruppen-Lobby, Zuschauer-Modus, Board-Templates, Verbindungslinien, Figuren filtern, Undo/Redo, Board-Kommentare, Board teilen (Link), Offline-Modus</td>
+</tr>
+<tr>
+<td>Website</td>
+<td>Bild-Upload im Editor, Newsletter-Vorlagen, Referenzen-Galerie, SEO-Editor, Zeitgesteuertes Veröffentlichen, Vertrags-PDF-Preview, Kontaktformular-Admin, Mehrsprachigkeit DE/EN, Bewertungs-Modul, Content-Kalender</td>
+</tr>
+<tr>
+<td>Chat</td>
+<td>Push-Notifications Android, Emoji-Reaktionen, Thread-Antworten, Datei-Anhänge &gt;10 MB, Gelesen-Bestätigungen, Sprachnachrichten, Nachrichten bearbeiten, DMs, @mention, Link-Vorschau, Kanal-Archiv, Videoanruf</td>
+</tr>
+<tr>
+<td>Nextcloud</td>
+<td>Auto-Backup Ordner, Gemeinsames Bearbeiten stabil, Offline Mobile, Ordner-Freigabe vereinfachen, Bilder-Sync</td>
+</tr>
+<tr>
+<td>Vaultwarden</td>
+<td>Android Autofill zuverlässiger, Import aus anderem Manager, Ordner teilen, Passwort-Stärke-Bericht</td>
+</tr>
+<tr>
+<td>Login</td>
+<td>Self-Service Passwort-Reset, Einladungs-Link, Login-Verlauf, Längere Session</td>
+</tr>
+<tr>
+<td>Allgemein</td>
+<td>Plattformweite Suche, Benachrichtigungs-Zentrale, Performance-Dashboard, Kalender-Integration, To-do-Liste, Android-Widget</td>
+</tr>
+<tr>
+<td>AI</td>
+<td>KI-Textzusammenfassung, Chat-Bot, Ticket-Auto-Triage, KI schlägt Newsletter vor</td>
+</tr>
+</tbody></table>
+<p><strong>Block 2 — Schmerzen</strong></p>
+<p>Alle Bereiche direkt anzeigen (kein Filter). Bereich <strong>DocuSeal weglassen</strong> — wird intern selbst gebaut.</p>
+<p>Bereiche: Brett (2 Fragen inkl. Handy), Website / Admin (2), Chat (1), Vaultwarden (1), Nextcloud (1), Keycloak / Login (1)</p>
+<p><strong>Block 3 — Wunschzettel</strong></p>
+<p>Drei Freitext-Felder: „Sofort hätte ich…", „In 6 Monaten…", „Vermisse von anderen Apps…"</p>
+<p><strong>Block 4 — Große Vision (Major-Feature)</strong></p>
+<p>Ein Freitext-Feld mit Leitfrage: „Wenn du die Plattform komplett neu erfinden könntest — was wäre anders?"</p>
+<p>Darunter eine Checkbox: „Ich bin offen, dass dieses Feature in mehrere unabhängige Teile zerlegt und parallel entwickelt wird."</p>
+<p>Dieser Block identifiziert Major-Features die via <code>dev-flow-batch</code> zerlegt werden können.</p>
+<p><strong>[FOOTER]</strong> „Markdown kopieren"-Button + Fallback-Textarea</p>
+<h4>Technische Anforderungen</h4>
+<ul>
+<li>Kein Block-1-Filter, kein Ranking, kein Kontext-Block</li>
+<li>Feature-Karten: <code>display:grid</code>, anklickbar, selected-State via CSS-Klasse</li>
+<li>Würfel-Button: Fisher-Yates shuffle auf verbleibenden Pool-Einträgen</li>
+<li><code>buildMarkdown()</code> erzeugt das Ausgabeformat (siehe unten)</li>
+<li><code>navigator.clipboard</code> mit <code>document.execCommand('copy')</code> Fallback-Textarea</li>
+</ul>
+<h3>Schritt 3 — Formular liefern</h3>
+<p>Liefere <code>/tmp/gekko-interview-&lt;DATUM&gt;.html</code> per <code>SendUserFile</code>. Sage Patrick: „Schick das an gekko — ausfüllen → ‚Markdown kopieren' → dir zurückschicken → du gibst es mir hier."</p>
+<h3>Schritt 4 — Rücklauf verarbeiten</h3>
+<p>Wenn das ausgefüllte Markdown zurückkommt:</p>
+<h4>Markdown-Ausgabeformat (was der Button erzeugt)</h4>
+<div class="code-wrapper"><pre><code class="language-markdown">## GekkoMode Interview: &lt;Datum&gt;
+Eingereicht von: gekko
+
+### Block 1 — Ausgewählte Feature-Vorschläge
+- [Brett] Touch-Drag &amp; Drop auf Android verbessern
+- [Chat] Push-Notifications auf Android (PWA)
+- [Website] Bild-Upload direkt im HTML-Editor
+
+### Block 2 — Schmerzen
+
+**Brett:**
+- Nervt: "Figuren lassen sich nicht gruppieren"
+- Handy-Problem: "Buttons zu klein, kein Touch-Drag"
+
+**Website / Admin:**
+- Umständlich: "Newsletter-Bilder muss ich extern hochladen"
+- Zeigen will: "Referenzen-Galerie fehlt"
+
+**Chat:**
+- Greift auf anderes Tool zurück weil: "Datei-Anhänge &gt; 5 MB"
+
+**Vaultwarden:**
+- Bremst Nutzung: "Android Autofill klappt nicht immer"
+
+**Nextcloud:**
+- Manuell statt automatisch: "Ordner-Struktur händisch anlegen"
+
+**Keycloak / Login:**
+- Probleme ignoriert: "Token läuft nach 30 min ab, nervt"
+
+### Block 3 — Wunschzettel
+- Sofort: "Brett auf Handy benutzbar machen"
+- In 6 Monaten: "Newsletter komplett in der Plattform"
+- Vermisse: "Notion-ähnliche Datenbanken"
+
+### Block 4 — Große Vision
+- Vision: "Eine App für alles — Brett, Chat, Dateien, Verträge in einem Flow"
+- Parallel-Entwicklung: ✓ (Checkbox gesetzt)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Tickets anlegen</h4>
+<p>Pro Schmerz-Nennung + Wunsch aus Block 3 (der noch kein Ticket hat):</p>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Duplikatcheck gegen $EXISTING — nur anlegen wenn kein ähnlicher Titel
+TICKET_RESULT=$(bash scripts/ticket.sh create \
+  --type feature \
+  --brand mentolder \
+  --title "&lt;destillierter Titel&gt;" \
+  --priority &lt;hoch|mittel|niedrig — abgeleitet aus Ranking+Intensität der Nennung&gt; \
+  --description "&lt;Originalzitat aus dem Interview in Anführungszeichen&gt;" \
+  --status planning)
+
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+
+bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
+  --value-prop "&lt;kern-nutzen für gekko&gt;" \
+  --effort &lt;klein|mittel|gross&gt; \
+  --areas &lt;normalisierter-areas-key&gt;
+
+# Originalzitat als Kommentar hinterlegen
+bash scripts/ticket.sh add-comment \
+  --id "$TICKET_EXT_ID" \
+  --author "feature-intake/gekkomode" \
+  --body "## GekkoMode-Rücklauf $(date +%F)
+
+**Originalzitat:** \"&lt;exaktes Zitat aus Interview&gt;\"
+**Kontext:** Primärgerät: &lt;gerät&gt;, Nutzung: &lt;frequenz&gt;
+**Ranking-Position:** &lt;1-5 oder 'unranked'&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h4>Major-Feature aus Block 4</h4>
+<p>Wenn Block 4 "Große Vision" ausgefüllt ist und die "Parallel-Entwicklung"-Checkbox gesetzt:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Major-Feature-Ticket mit speziellem Kommentar
+TICKET_RESULT=$(bash scripts/ticket.sh create \
+  --type feature \
+  --brand mentolder \
+  --title "&lt;destillierte Vision&gt;" \
+  --priority hoch \
+  --description "&lt;Vision-Text aus Block 4&gt;" \
+  --status planning)
+
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+
+bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
+  --value-prop "&lt;Hauptnutzen der Vision&gt;" \
+  --effort gross \
+  --areas &lt;bereich&gt;
+
+bash scripts/ticket.sh add-comment \
+  --id "$TICKET_EXT_ID" \
+  --author "feature-intake/gekkomode" \
+  --body "## Major-Feature aus GekkoMode $(date +%F)
+
+**Vision:** \"&lt;exakte Vision aus Block 4&gt;\"
+**Parallel-Entwicklung:** ✓ (vom User bestätigt)
+**Nächster Schritt:** via dev-flow-batch in Sub-Features zerlegen"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nach dem Anlegen aller Tickets: Schlage vor, das Major-Feature via <code>dev-flow-batch</code> zu zerlegen.</p>
+<h4>Priorisierungslogik für <code>--priority</code></h4>
+<p>Kein Ranking-Block — Claude leitet Priorität aus Kombination folgender Signale ab:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Priorität</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Feature aus Block 1 ausgewählt <strong>und</strong> passendes Schmerz-Zitat in Block 2</td>
+<td><code>hoch</code></td>
+</tr>
+<tr>
+<td>Feature aus Block 1 ausgewählt, aber kein Schmerz-Zitat</td>
+<td><code>mittel</code></td>
+</tr>
+<tr>
+<td>Schmerz-Zitat in Block 2 ohne passende Block-1-Auswahl</td>
+<td><code>mittel</code></td>
+</tr>
+<tr>
+<td>Nur Wunschzettel-Nennung (Block 3), kein Schmerz</td>
+<td><code>niedrig</code></td>
+</tr>
+<tr>
+<td>Feature betrifft Handy / Android-Usability</td>
+<td>Upgrade um eine Stufe (bekannter Kontext)</td>
+</tr>
+</tbody></table>
+<h4>Readiness-Flags für GekkoMode-Tickets</h4>
+<p>GekkoMode-Tickets starten mit partieller Readiness — setze direkt was bekannt ist:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
+  --readiness offene_fragen_geklaert=true
+# spec_skizziert=false (muss Patrick noch verfeinern)
+# abhaengigkeiten_klar=false (unbekannt aus Interview)
+# aufwand_geschaetzt=false (muss geschätzt werden, es sei denn Zitat gibt Hinweis)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 5 — Abschluss-Report</h3>
+<p>Nach dem Anlegen:</p>
+<div class="code-wrapper"><pre><code>GekkoMode-Ergebnis:
+  Neue Tickets: &lt;n&gt;
+  Duplikate übersprungen: &lt;m&gt; (bereits als TXXXxxx vorhanden)
+
+Neu angelegt:
+  • T000xxx [hoch] &lt;Titel&gt; — "&lt;Originalzitat&gt;"
+  • T000xxx [mittel] &lt;Titel&gt; — "&lt;Originalzitat&gt;"
+
+🏗️ Major-Feature erkannt:
+  • T000xxx [hoch/gross] &lt;Vision-Titel&gt;
+    → via dev-flow-batch in Sub-Features zerlegen?
+
+Deadline-Flag: T000xxx erwartet bis &lt;datum&gt; (aus Block 5)
+
+→ Planungsbüro öffnen? Oder direkt T000xxx zu dev-flow-plan?
+→ Major-Feature via dev-flow-batch starten?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="modus-a-interaktiver-brainstorm">Modus A: Interaktiver Brainstorm</h2>
+<p><strong>Sage:</strong> "Ich führe einen Feature-Brainstorm durch."</p>
+<h3>Schritt 1 — Kontext laden</h3>
+<p>Lies die planning-Tickets und offene Backlog-Einträge (nicht alle open-Tickets):</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh list --status planning --limit 20 2&gt;/dev/null | head -40 || true
+bash scripts/ticket.sh list --status backlog  --limit 10 2&gt;/dev/null | head -20 || true
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 1.5 — Major-Feature-Frage</h3>
+<p>Bevor du in die Ideation gehst, frage:</p>
+<div class="code-wrapper"><pre><code>Möchtest du auch Major-Features in Betracht ziehen? Das sind große Features
+die in 2-6 unabhängige Sub-Features zerlegt und parallel entwickelt werden
+können (z.B. "Komplette Plattform-Überholung", "Neues Abrechnungssystem",
+"Mobile-First Redesign"). Die Sub-Features werden via dev-flow-batch parallel
+geplant und können unabhängig voneinander deployed werden.
+
+→ Ja, zeig mir Major-Feature-Ideen
+→ Nein, nur einzelne Features
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Wenn <strong>Ja</strong>: Präsentiere nach den normalen Clustern einen zusätzlichen Block:</p>
+<div class="code-wrapper"><pre><code>🏗️ Major-Feature-Kandidaten (zerlegbar in 2-6 Sub-Features):
+
+• Plattform-Modernisierung — Neues UI-Framework, API v2, Mobile-First
+  → Sub-Features: UI-Redesign, API-Migration, Responsive-Layout, PWA-Shell
+
+• Billing-Revolution — Abo-Modelle, Usage-Based, Invoice-Automation
+  → Sub-Features: Abo-Engine, Usage-Tracking, Invoice-Gen, Payment-Integration
+
+• Collaboration-Suite — Echtzeit-Edit, Comments, Presence, Versioning
+  → Sub-Features: CRDT-Editor, Comment-System, Presence-Indicator, Version-History
+
+→ Interessiert dich ein Major-Feature? Welches?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nutze diese Major-Feature-Vorlagen als Inspiration, aber passe sie an den Projekt-Kontext an. Wenn der User ein eigenes Major-Feature beschreibt, zerlege es in Sub-Features.</p>
+<h3>Schritt 2 — Ideation-Runden</h3>
+<p>Präsentiere Feature-Kandidaten in Clustern. Pro Cluster eine kurze Frage:</p>
+<div class="code-wrapper"><pre><code>Cluster: [Bereich, z.B. "Brett / Gruppenarbeit"]
+Kandidaten:
+  • &lt;Feature A&gt; — &lt;Nutzen in einem Satz&gt;
+  • &lt;Feature B&gt; — &lt;Nutzen in einem Satz&gt;
+
+→ Welche davon sind interessant? Gibt es Varianten oder andere Ideen?
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nutze bekannte Projektbereiche als Cluster-Vorlage:</p>
+<ul>
+<li><strong>Brett</strong> (3D-Board, Gruppenarbeit, Figuren, Animation)</li>
+<li><strong>Website / Content-Hub</strong> (Newsletter, Verträge, CMS)</li>
+<li><strong>Chat / Messaging</strong> (Kanäle, Notifications, Media)</li>
+<li><strong>Infra / DevEx</strong> (CI, Factory, Monitoring, Deployment)</li>
+<li><strong>Keycloak / Auth</strong> (SSO, Rollen, Onboarding)</li>
+<li><strong>Nextcloud / Files</strong> (Kollaboration, Office, Backup)</li>
+<li><strong>AI / Factory</strong> (Autopilot, Code-Review, Dispatcher)</li>
+</ul>
+<h3>Schritt 3 — Priorisieren</h3>
+<p>Für jeden ausgewählten Kandidaten:</p>
+<div class="code-wrapper"><pre><code>Feature: &lt;Titel&gt;
+Typ: feature | fix | task
+Brand: mentolder | korczewski | beide
+Priorität: kritisch | hoch | mittel | niedrig
+Aufwand (geschätzt): klein (≤1d) | mittel (2-4d) | groß (≥1W)
+Kern-Nutzen: &lt;ein Satz&gt;
+Abhängigkeiten: &lt;andere Tickets/Features, falls bekannt&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Schritt 4 — Tickets erstellen (optional, auf Anfrage)</h3>
+<p>Lege ein neues Ticket mit <code>status=planning</code> an (statt <code>triage</code>), damit es im
+Planungsbüro landet:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh create \
+  --type &lt;typ&gt; \
+  --brand &lt;brand&gt; \
+  --title "&lt;titel&gt;" \
+  --priority &lt;prio&gt; \
+  --description "&lt;beschreibung&gt;" \
+  --status planning
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Nach dem Anlegen die Büro-Metadaten setzen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh plan-meta set --id &lt;ext-id&gt; \
+  --value-prop "&lt;kern-nutzen&gt;" --effort &lt;klein|mittel|gross&gt; --areas &lt;Bereich&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Danach: direkt zu <strong><code>dev-flow-plan</code></strong> für den gewählten Kandidaten.</p>
+<hr>
+<h2 id="modus-b-html-formular-fuer-patrick-oder-gekko">Modus B: HTML-Formular (für Patrick oder gekko)</h2>
+<p><strong>Sage:</strong> "Ich generiere ein HTML-Formular zum Ausfüllen." (Bei Empfänger gekko: "… für gekko.")</p>
+<h3>Schritt 1 — Template nutzen, NICHT neu bauen</h3>
+<p>Es gibt ein fertiges, getestetes Template: <strong><code>.claude/skills/feature-intake/pm-form-template.html</code></strong> (selbst-enthalten, dark theme, Bereich-Chips → Feature-Listen → Prio/Aufwand-Dropdowns → robuster "Markdown kopieren"-Button mit Fallback-Textfeld).</p>
+<div class="code-wrapper"><pre><code class="language-bash">cp .claude/skills/feature-intake/pm-form-template.html /tmp/feature-intake-$(date +%F).html
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Dann <strong>nur den <code>FEATURES</code>-Block anpassen</strong> (JS-Objekt im <code>&lt;script&gt;</code>): die Kandidaten-Listen aktualisieren, falls neue Projektbereiche/Tickets relevant sind (siehe „Vorausgefüllte Feature-Kandidaten" unten). Layout/Copy-Logik nicht neu erfinden.</p>
+<blockquote>
+<p>Nur falls das Template fehlt oder grundlegend anders sein soll, baue von Grund auf neu — dann gelten die „Formular-Anforderungen" und „Formular-Struktur" unten als Spezifikation.</p>
+</blockquote>
+<h3>Schritt 2 — An den Empfänger liefern</h3>
+<ul>
+<li><strong>Empfänger Patrick (Standard):</strong> Liefere die Datei direkt per <code>SendUserFile</code> (<code>/tmp/feature-intake-&lt;datum&gt;.html</code>), damit er sie mit einem Klick im Browser öffnen kann. Sag ihm: ausfüllen → „Markdown kopieren" → hier einfügen.</li>
+<li><strong>Empfänger gekko:</strong> Nenne den <code>/tmp/</code>-Pfad und beschreibe den Versandweg (z.B. anhängen/teilen). Gleiche Ausfüll-Anleitung.</li>
+</ul>
+<h3>Formular-Anforderungen</h3>
+<p>Das Formular muss:</p>
+<ul>
+<li><strong>Kein Backend</strong> benötigen (läuft lokal im Browser via <code>file://</code>)</li>
+<li>Überwiegend <strong>Checkboxen / Radio-Buttons / Dropdowns</strong> verwenden (minimales Tippen)</li>
+<li>Einen <strong>"Markdown kopieren"</strong>-Button haben, der strukturierten Output in die Zwischenablage legt — <strong>mit Fallback-Textfeld</strong>, falls <code>navigator.clipboard</code> auf <code>file://</code> scheitert (Template hat das bereits)</li>
+<li>Das kopierte Markdown muss <strong>direkt von Claude</strong> lesbar/verarbeitbar sein</li>
+</ul>
+<h3>Formular-Struktur</h3>
+<div class="code-wrapper"><pre><code>[ABSCHNITT: Feature-Bereiche]
+  Checkboxen pro Bereich (Brett, Website, Chat, Infra, …)
+
+[ABSCHNITT: Feature-Details — ein Block pro Bereich]
+  Für jeden aktivierten Bereich erscheinen:
+  • Feature-Ideen als Checkboxen (vorausgefüllt mit häufigen Kandidaten)
+  • Priorität: Dropdown (Kritisch / Hoch / Mittel / Niedrig)
+  • Aufwand: Dropdown (Klein / Mittel / Groß)
+  • Kommentar: textarea (klein, optional — NICHT Pflicht)
+
+[ABSCHNITT: Major-Feature]
+  Checkbox: "Ich habe eine große Vision die in mehrere Teile zerlegt werden kann"
+  Textarea: "Beschreibe dein Major-Feature (2-3 Sätze)"
+  Hinweis: "Z.B. 'Komplettes Redesign der Plattform' oder 'Neues Abrechnungssystem'"
+  → Wenn Checkbox gesetzt: wird via dev-flow-batch in Sub-Features zerlegt
+
+[ABSCHNITT: Freie Ideen]
+  2-3 Zeilen Freitext (für Ideen, keine Checkbox abdeckt)
+
+[FOOTER]
+  "Markdown kopieren" Button → clipboard
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Markdown-Output-Format (was der Button erzeugt)</h3>
+<p>Das kopierte Markdown muss dieses Format erzeugen — eine Zeile pro Feature:</p>
+<div class="code-wrapper"><pre><code class="language-markdown">## Feature-Intake: &lt;Datum&gt;
+Eingereicht von: gekko
+
+### Hohe Priorität
+- [ ] **[Brett] Gruppen-Lobby** | Priorität: Hoch | Aufwand: Groß | Kommentar: "mit Avatar-Auswahl"
+- [ ] **[Website] Newsletter-Vorlagen** | Priorität: Hoch | Aufwand: Mittel
+
+### Mittlere Priorität
+- [ ] **[Chat] Reaktionen** | Priorität: Mittel | Aufwand: Klein
+
+### Major-Feature
+- [x] **Major-Feature gewünscht**
+- Beschreibung: "Komplette Plattform-Modernisierung — neues UI, API v2, Mobile-First"
+- Parallel-Entwicklung: ✓
+
+### Freie Ideen
+&gt; "Export-Funktion für Brett-Sessions als PDF"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3>Vorausgefüllte Feature-Kandidaten je Bereich</h3>
+<blockquote>
+<p><strong>Vor der Formular-Generierung:</strong> Prüfe, welche Kandidaten bereits als Ticket existieren, um Duplikate zu vermeiden:</p>
+<div class="code-wrapper"><pre><code class="language-bash">kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -c \
+  "SELECT external_id, title, status FROM tickets.tickets WHERE status NOT IN ('done','archived') ORDER BY created_at DESC LIMIT 40;" 2&gt;/dev/null
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Bereits vorhandene Einträge aus den Kandidaten-Listen entfernen oder als „(bereits geplant: TXXXxxx)" markieren.</p>
+</blockquote>
+<p><strong>Brett:</strong></p>
+<ul>
+<li>Figuren-Animationen / Gesten</li>
+<li>Board-Export (PNG / PDF)</li>
+<li>Zuschauer-Modus (read-only)</li>
+<li>Board-Templates</li>
+<li>Mobile-Touch-Optimierung</li>
+</ul>
+<p><strong>Website / Content-Hub:</strong></p>
+<ul>
+<li>Newsletter-Vorlagen-Bibliothek</li>
+<li>Vertrags-PDF-Preview</li>
+<li>Bild-Upload im HTML-Editor</li>
+<li>Mehrsprachigkeit (DE/EN)</li>
+<li>SEO-Metadaten-Editor</li>
+</ul>
+<p><strong>Chat / Messaging:</strong></p>
+<ul>
+<li>Emoji-Reaktionen</li>
+<li>Thread-Antworten</li>
+<li>Datei-Anhänge (&gt;10 MB)</li>
+<li>Gelesen-Bestätigungen</li>
+<li>Push-Notifications (PWA)</li>
+</ul>
+<p><strong>Infra / DevEx:</strong></p>
+<ul>
+<li>Staging-Umgebung (k3d-isoliert)</li>
+<li>Performance-Dashboard</li>
+<li>Alert-Regeln (Grafana)</li>
+<li>Automated Rollback bei Failed Deploy</li>
+</ul>
+<p><strong>AI / Factory:</strong></p>
+<ul>
+<li>Ticket-Auto-Triage (Severity-Erkennung)</li>
+<li>Factory-Qualitäts-Ratchet (Scout-Output-Bewertung)</li>
+<li>DeepSeek Scout-Qualität verbessern (touched_files Coverage)</li>
+</ul>
+<h3>Areas-Normalisierung (für <code>--areas</code>-Parameter)</h3>
+<p>Formular-Output verwendet deutsche/kapitalisierte Namen — vor <code>plan-meta set</code> auf lowercase-Keys normalisieren:</p>
+<table>
+<thead>
+<tr>
+<th>Formular-Ausgabe</th>
+<th><code>--areas</code>-Wert</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Brett</code></td>
+<td><code>brett</code></td>
+</tr>
+<tr>
+<td><code>Website / Content-Hub</code></td>
+<td><code>website</code></td>
+</tr>
+<tr>
+<td><code>Chat / Messaging</code></td>
+<td><code>chat</code></td>
+</tr>
+<tr>
+<td><code>Infra / DevEx</code></td>
+<td><code>infra</code></td>
+</tr>
+<tr>
+<td><code>AI / Factory</code></td>
+<td><code>ai/factory</code></td>
+</tr>
+<tr>
+<td><code>Keycloak / Auth</code></td>
+<td><code>auth</code></td>
+</tr>
+<tr>
+<td><code>Nextcloud / Files</code></td>
+<td><code>nextcloud</code></td>
+</tr>
+</tbody></table>
+<h3>Übergabe nach Rücklauf</h3>
+<p>Wenn das ausgefüllte Markdown zurückkommt (egal ob von Patrick oder gekko):</p>
+<ol>
+<li>Parse die Feature-Liste (Abschnitte Hohe/Mittlere Priorität + Freie Ideen)</li>
+<li>Erstelle für jedes ausgewählte Feature ein Ticket <strong>mit</strong> plan-meta:</li>
+</ol>
+<div class="code-wrapper"><pre><code class="language-bash"># Pro Feature aus dem Rücklauf:
+TICKET_RESULT=$(bash scripts/ticket.sh create \
+  --type feature \
+  --brand mentolder \
+  --title "&lt;titel&gt;" \
+  --priority &lt;kritisch|hoch|mittel|niedrig&gt; \
+  --description "&lt;kommentar aus Formular&gt;" \
+  --status planning)
+
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+
+# Areas-Wert aus Formular-Ausgabe normalisieren (siehe Tabelle oben)
+bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
+  --value-prop "&lt;kern-nutzen&gt;" \
+  --effort &lt;klein|mittel|gross&gt; \
+  --areas &lt;normalisierter-areas-key&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<ol start="3">
+<li><p><strong>Major-Feature erkennen:</strong> Wenn der Abschnitt "Major-Feature" vorhanden und die Checkbox gesetzt ist:</p>
+<ul>
+<li>Erstelle ein Ticket mit <code>--effort gross</code> und <code>--priority hoch</code></li>
+<li>Setze im Kommentar: <code>major_feature: true</code></li>
+<li>Schlage nach der normalen Feature-Liste vor: <code>→ Major-Feature via dev-flow-batch zerlegen?</code></li>
+</ul>
+</li>
+<li><p>Schlage vor, welches Feature als erstes zu <code>dev-flow-plan</code> gehen soll (höchste Priorität → kleinster Aufwand als Tiebreaker)</p>
+</li>
+</ol>
+<hr>
+<h2 id="uebergabe-an-dev-flow-plan--dev-flow-batch">Übergabe an dev-flow-plan / dev-flow-batch</h2>
+<p>Nach Brainstorm oder Rücklauf, wenn eines oder mehrere Features als nächstes gebaut werden sollen:</p>
+<p><strong>Ein Feature:</strong> Rufe <code>dev-flow-plan</code> direkt auf, übergib Titel + Kern-Nutzen + Priorität als Kontext.</p>
+<p><strong>Mehrere Features:</strong> Präsentiere eine sortierte Liste und lass den User wählen oder bestätige die Reihenfolge:</p>
+<div class="code-wrapper"><pre><code>Nächste Features (sortiert: Priorität ↓, Aufwand ↑):
+1. [hoch/klein]  &lt;Titel A&gt; — &lt;Kern-Nutzen&gt;
+2. [hoch/mittel] &lt;Titel B&gt; — &lt;Kern-Nutzen&gt;
+3. [mittel/groß] &lt;Titel C&gt; — &lt;Kern-Nutzen&gt;
+
+→ Mit welchem soll dev-flow-plan starten?
+  (Standard: Nummer 1 — bestätige oder nenne eine andere Nummer)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Starte <strong>immer nur ein</strong> <code>dev-flow-plan</code> zur Zeit — parallele Feature-Worktrees kollidieren
+auf <code>k3d/configmap-domains.yaml</code> und <code>environments/schema.yaml</code> (siehe CLAUDE.md Gotcha
+„Parallel plans share registry files"). Restliche Features bleiben im Planungsbüro mit
+<code>status=planning</code> und warten dort auf Freigabe.</p>
+<h3>Major-Feature → dev-flow-batch</h3>
+<p>Wenn ein <strong>Major-Feature</strong> ausgewählt wurde (aus Schritt 1.5 oder Block 4 GekkoMode):</p>
+<div class="code-wrapper"><pre><code>🏗️ Major-Feature erkannt: &lt;Titel&gt;
+
+Dieses Feature wird in 2-6 unabhängige Sub-Features zerlegt und parallel geplant.
+Die Sub-Features können unabhängig voneinander deployed werden.
+
+→ dev-flow-batch starten? (zerlegt das Feature und plant alle Sub-Features parallel)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Wenn der User bestätigt, rufe <code>dev-flow-batch</code> auf mit dem Major-Feature als Argument:</p>
+<div class="code-wrapper"><pre><code>dev-flow-batch "&lt;Major-Feature Beschreibung&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Der Batch-Skill:</p>
+<ol>
+<li>Zerlegt das Feature in ≤6 Sub-Features (Decompose-Subagent)</li>
+<li>Erstellt für jedes Sub-Feature einen eigenen Branch + Spec + Plan (parallel)</li>
+<li>Alle fertigen Pläne landen in <code>status=plan_staged</code> in der Kommissionierung</li>
+<li>Factory kann die Sub-Features parallel implementieren</li>
+</ol>
+<p><strong>Größenordnung:</strong> Ein Major-Feature kann 2-6 Wochen Arbeit umfassen, verteilt auf
+parallele Workstreams. Beispiel: "Plattform-Modernisierung" = 4 Sub-Features × ~1 Woche
+= 1 Woche real (bei voller Parallelität).</p>
+</body></html>
+</article>
+
+  </main>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

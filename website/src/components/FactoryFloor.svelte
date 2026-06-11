@@ -24,14 +24,24 @@
   };
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
+  let isMobile = $state(false);
+
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    isMobile = mq.matches;
+    const handler = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  });
 
   function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }
   function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }
   function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }
   function onTouchEnd(e: TouchEvent) {
     const delta = e.changedTouches[0].clientX - touchStartX;
-    if (delta < -40) mobileNext();
-    else if (delta > 40) mobilePrev();
+    if (delta < -40) { mobileNext(); if ('vibrate' in navigator) navigator.vibrate(5); }
+    else if (delta > 40) { mobilePrev(); if ('vibrate' in navigator) navigator.vibrate(5); }
   }
 
   type FloorView = 'conveyor' | 'kanban';
@@ -235,6 +245,11 @@
 
     <ProviderStatus providerHealth={data.providerHealth} />
 
+    <div class="mobile-station-dots" aria-hidden="true">
+      {#each Array(10) as _, i}
+        <span class="dot" class:active={i === mobileColIndex}></span>
+      {/each}
+    </div>
     <MobileTabBar activeIndex={mobileColIndex} onSelect={(i) => { mobileColIndex = i; }} />
 
     <div
@@ -456,6 +471,7 @@
       {injError}
       onSubmitInjection={submitInjection}
       {prUrl}
+      {isMobile}
     />
 
     {#if qaModalItem}
@@ -495,4 +511,57 @@
     border-color: rgba(255, 255, 255, 0.2);
   }
   .ff-view-toggle__label { text-transform: uppercase; letter-spacing: 0.05em; }
+
+  @media (max-width: 767px) {
+    .kanban-container {
+      padding-bottom: calc(var(--factory-tab-bar-height, 48px) + env(safe-area-inset-bottom, 0px) + 8px);
+    }
+  }
+
+  .mobile-station-dots {
+    display: none;
+  }
+  @media (max-width: 767px) {
+    .mobile-station-dots {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 0 2px;
+    }
+    .dot {
+      width: 4px;
+      height: 4px;
+      background: var(--factory-border);
+      border-radius: 2px;
+      transition: width 0.15s ease, background 0.15s ease;
+      flex-shrink: 0;
+    }
+    .dot.active {
+      width: 8px;
+      background: var(--factory-accent);
+    }
+  }
+
+  @media (max-width: 767px) {
+    :global([data-testid="floor-leitstand"] > *) {
+      padding: 0.5rem !important;
+    }
+    :global([data-testid="floor-leitstand"] p.text-xl) {
+      font-size: 1.125rem !important;
+    }
+    :global([data-testid="floor-leitstand"] p.text-xs) {
+      font-size: 10px !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    :global([data-testid="floor-pulse"]) {
+      flex-wrap: wrap;
+      row-gap: 4px;
+    }
+    :global([data-testid="floor-stale"]) {
+      font-size: 12px;
+      flex-basis: 100%;
+    }
+  }
 </style>

@@ -15,6 +15,7 @@
     injError,
     onSubmitInjection,
     prUrl,
+    isMobile = false,
   }: {
     detail: TicketDetail | null;
     selected: string | null;
@@ -27,6 +28,7 @@
     injError: string | null;
     onSubmitInjection: () => void;
     prUrl: (n: number) => string;
+    isMobile?: boolean;
   } = $props();
 
   function phaseDotState(phase: Phase): 'active' | 'done' | 'future' {
@@ -49,7 +51,10 @@
 </script>
 
 {#if selected}
-  <div class="detail-panel" data-testid="floor-detail">
+  {#if isMobile}
+    <div class="detail-panel__backdrop" onclick={onClose} aria-hidden="true"></div>
+  {/if}
+  <div class="detail-panel" class:open={isMobile} data-testid="floor-detail">
     <button class="detail-panel__close" onclick={onClose}>✕</button>
     <h3 class="detail-panel__title">{selected}</h3>
 
@@ -424,8 +429,55 @@
 
   @media (max-width: 767px) {
     .detail-panel {
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
       width: 100%;
+      height: 75vh;
+      max-height: calc(100vh - 60px - 48px);
+      border-left: none;
+      border-top: 1px solid var(--factory-border);
+      border-radius: var(--factory-radius-md) var(--factory-radius-md) 0 0;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 200;
+      animation: none;
     }
+
+    .detail-panel.open {
+      transform: translateY(0);
+    }
+
+    .detail-panel::before {
+      content: '';
+      display: block;
+      width: 36px;
+      height: 4px;
+      background: var(--factory-border);
+      border-radius: 2px;
+      margin: 8px auto 12px;
+      flex-shrink: 0;
+    }
+
+    .detail-panel__close {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+  }
+
+  .detail-panel__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 199;
   }
 
   .detail-panel__suggested {

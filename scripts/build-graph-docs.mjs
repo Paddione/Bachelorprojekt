@@ -15,6 +15,10 @@ import { fileURLToPath } from 'url';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
 
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function readJson(relPath) {
   const full = join(ROOT, relPath);
   return JSON.parse(readFileSync(full, 'utf8'));
@@ -45,7 +49,7 @@ function buildServiceMap(graph) {
     if (node.id === 'shared-db') cls = 'db';
     else if (node.id === 'traefik') cls = 'ingress';
     else if (node.id === 'keycloak') cls = 'auth';
-    lines.push(`  ${id}["${label}"]:::${cls}`);
+    lines.push(`  ${id}["${esc(label)}"]:::${cls}`);
   }
 
   // Add edges (deduplicated from→to pairs, keeping first via)
@@ -62,7 +66,7 @@ function buildServiceMap(graph) {
     // Shorten via label
     const via = edge.via.replace('initContainer:', '').replace('env:', '');
     const shortVia = via.length > 20 ? via.slice(0, 18) + '…' : via;
-    lines.push(`  ${fromId} -->|"${shortVia}"| ${toId}`);
+    lines.push(`  ${fromId} -->|"${esc(shortVia)}"| ${toId}`);
   }
 
   return lines.join('\n');
@@ -92,10 +96,10 @@ function buildTopology(graph) {
 
   for (const [ns, nodes] of Object.entries(byNamespace)) {
     const label = nsLabels[ns] || ns;
-    lines.push(`  subgraph ${mermaidId(ns)}["${label}"]`);
+    lines.push(`  subgraph ${mermaidId(ns)}["${esc(label)}"]`);
     for (const node of nodes) {
       const id = mermaidId(node.id);
-      const shape = node.type === 'CronJob' ? `(["${node.id}"])` : `["${node.id}"]`;
+      const shape = node.type === 'CronJob' ? `(["${esc(node.id)}"])` : `["${esc(node.id)}"]`;
       lines.push(`    ${id}${shape}`);
     }
     lines.push('  end');
@@ -111,15 +115,15 @@ function buildApiTable(apiMap) {
 
   const rows = apiMap.endpoints.map(ep => {
     const methods = ep.methods.map(m =>
-      `<code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">${m}</code>`
+      `<code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">${esc(m)}</code>`
     ).join(' ');
     const color = authColor[ep.auth] || '#6b7280';
     const icon = authIcon[ep.auth] || '?';
     const pathShort = ep.path.length > 60 ? ep.path.slice(0, 58) + '…' : ep.path;
     return `<tr>
-      <td><code>${pathShort}</code></td>
+      <td><code>${esc(pathShort)}</code></td>
       <td>${methods}</td>
-      <td style="color:${color}">${icon} ${ep.auth}</td>
+      <td style="color:${color}">${icon} ${esc(ep.auth)}</td>
     </tr>`;
   });
 
@@ -387,8 +391,8 @@ ${topologyDiagram}
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"
-          integrity="sha384-qX9VvWkP79m/O121ZE6sOYp0nf/pldQgtvWDbkpzi+3mUo4Wn4Ix4cFzNPay3VaB"
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js"
+          integrity="sha384-R63zfMfSwJF4xCR11wXii+QUsbiBIdiDzDbtxia72oGWfkT7WHJfmD/I/eeHPJyT"
           crossorigin="anonymous"></script>
   <script>
     mermaid.initialize({
@@ -410,7 +414,7 @@ ${topologyDiagram}
         curve: 'basis',
         padding: 20,
       },
-      securityLevel: 'loose',
+      securityLevel: 'antiscript',
     });
 
     function switchTab(tabId) {

@@ -39,6 +39,8 @@ setup() {
   node scripts/build-api-map.mjs
   g_ts=$(jq -r '.generatedAt' docs/generated/graph.json)
   a_ts=$(jq -r '.generatedAt' docs/generated/api-map.json)
-  [ -n "$g_ts" ] && [ "$g_ts" != "null" ]
-  [ -n "$a_ts" ] && [ "$a_ts" != "null" ]
+  [ -n "$g_ts" ]
+  [ "$g_ts" != "null" ]
+  [ -n "$a_ts" ]
+  [ "$a_ts" != "null" ]
 }

@@ -1,4 +1,4 @@
-import pg from 'pg';
+import { Pool } from 'pg';
 import { resolve4 } from 'dns';
 
 const DB_URL =
@@ -13,7 +13,7 @@ function nodeLookup(
   resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
 }
 
-const defaultPool = new pg.Pool(
+const defaultPool = new Pool(
   { connectionString: DB_URL, lookup: nodeLookup } as unknown as import('pg').PoolConfig,
 );
 
@@ -28,7 +28,7 @@ export interface NewsletterContentBlock {
   updated_at: Date;
 }
 
-async function ensureTable(pool: pg.Pool): Promise<void> {
+async function ensureTable(pool: Pool): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_content_blocks (
       id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,7 +42,7 @@ async function ensureTable(pool: pg.Pool): Promise<void> {
 }
 
 export async function listContentBlocks(
-  pool: pg.Pool = defaultPool,
+  pool: Pool = defaultPool,
 ): Promise<NewsletterContentBlock[]> {
   await ensureTable(pool);
   const result = await pool.query(
@@ -55,7 +55,7 @@ export async function listContentBlocks(
 
 export async function getContentBlock(
   id: string,
-  pool: pg.Pool = defaultPool,
+  pool: Pool = defaultPool,
 ): Promise<NewsletterContentBlock | null> {
   await ensureTable(pool);
   const result = await pool.query(
@@ -68,7 +68,7 @@ export async function getContentBlock(
 
 export async function createContentBlock(
   params: { title: string; block_type: NewsletterBlockType; html_body: string },
-  pool: pg.Pool = defaultPool,
+  pool: Pool = defaultPool,
 ): Promise<NewsletterContentBlock> {
   await ensureTable(pool);
   const result = await pool.query(
@@ -83,7 +83,7 @@ export async function createContentBlock(
 export async function updateContentBlock(
   id: string,
   params: { title?: string; block_type?: NewsletterBlockType; html_body?: string },
-  pool: pg.Pool = defaultPool,
+  pool: Pool = defaultPool,
 ): Promise<NewsletterContentBlock | null> {
   await ensureTable(pool);
   const sets: string[] = ['updated_at = now()'];
@@ -113,7 +113,7 @@ export async function updateContentBlock(
 
 export async function deleteContentBlock(
   id: string,
-  pool: pg.Pool = defaultPool,
+  pool: Pool = defaultPool,
 ): Promise<void> {
   await ensureTable(pool);
   await pool.query(`DELETE FROM newsletter_content_blocks WHERE id = $1`, [id]);

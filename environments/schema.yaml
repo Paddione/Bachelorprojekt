@@ -756,6 +756,14 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: HUGGINGFACE_TOKEN
+    required: false
+    generate: false
+    description: "HuggingFace API token for authenticated model downloads (ComfyUI, bge-m3 via TEI, Hunyuan3D). Get from https://huggingface.co/settings/tokens."
+    extra_namespaces:
+      - namespace: workspace
+        secret: knowledge-secrets
+
   - name: HETZNER_API_KEY
     required: false
     generate: false

@@ -64,18 +64,17 @@ test('runS2 THROWS (fail closed) when a graph dir is missing instead of reportin
   );
 });
 
-test('real-tree S2 counts are unchanged: website=6, arena-server=0, e2e=0', () => {
+test('real-tree S2 counts are unchanged: website=5, arena-server=0, e2e=0', () => {
   // Frozen-baseline guard: the hardening must not perturb the live counts.
-  // Baseline bumped 5→6: transition.ts now imports ticket-graph.ts which imports
-  // website-db.ts, extending the pre-existing transition↔website-db cycle by one node.
+  // ticket-readiness.ts uses Pool DI (no import of website-db.ts), so no new cycle.
   const res = runS2(repoRoot, loadGates(cfgDir));
   const byGraph = {};
   for (const v of res.violations) {
     const id = v.key.split(':')[1];
     byGraph[id] = (byGraph[id] || 0) + 1;
   }
-  assert.equal(byGraph.website ?? 0, 6);
+  assert.equal(byGraph.website ?? 0, 5);
   assert.equal(byGraph['arena-server'] ?? 0, 0);
   assert.equal(byGraph.e2e ?? 0, 0);
-  assert.equal(res.violations.length, 6);
+  assert.equal(res.violations.length, 5);
 });

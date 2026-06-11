@@ -9,7 +9,7 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 setup() {
   export PROJECT_DIR
   READINESS_API="${PROJECT_DIR}/website/src/pages/api/tickets/[id]/readiness.ts"
-  GRAPH_LIB="${PROJECT_DIR}/website/src/lib/ticket-graph.ts"
+  READINESS_LIB="${PROJECT_DIR}/website/src/lib/ticket-readiness.ts"
 }
 
 @test "static: readiness API endpoint exists" {
@@ -48,16 +48,16 @@ setup() {
   grep -q "updateSuccessorReadiness" "$READINESS_API"
 }
 
-@test "static: graph lib exports updateSuccessorReadiness" {
-  grep -q "export async function updateSuccessorReadiness" "$GRAPH_LIB"
+@test "static: readiness lib exports updateSuccessorReadiness" {
+  grep -q "export async function updateSuccessorReadiness" "$READINESS_LIB"
 }
 
-@test "static: graph lib exports allPredecessorsDone" {
-  grep -q "export async function allPredecessorsDone" "$GRAPH_LIB"
+@test "static: readiness lib exports allPredecessorsDone" {
+  grep -q "export async function allPredecessorsDone" "$READINESS_LIB"
 }
 
 @test "static: updateSuccessorReadiness sets abhaengigkeiten_klar in readiness JSONB" {
-  grep -q "abhaengigkeiten_klar" "$GRAPH_LIB"
+  grep -q "abhaengigkeiten_klar" "$READINESS_LIB"
 }
 
 @test "static: TypeScript syntax valid" {

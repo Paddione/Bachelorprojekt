@@ -593,3 +593,4 @@ export function updateModerationVisuals(figures: any[], state: ModerationVisualS
 export function clearModerationVisuals(figures: any[]): void {
   updateModerationVisuals(figures, { spotlight: null, dim: null, freeze: false });
 }
+

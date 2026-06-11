@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-11T00:31:36.088Z
+> Generated at 2026-06-11T00:39:12.993Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -366,5 +366,7 @@
 | `/api/stripe/checkout` | POST | 🌐 public | `website/src/pages/api/stripe/checkout.ts` |
 | `/api/stripe/invoice-payment-intent` | POST | 🌐 public | `website/src/pages/api/stripe/invoice-payment-intent.ts` |
 | `/api/stripe/webhook` | POST | 🌐 public | `website/src/pages/api/stripe/webhook.ts` |
+| `/api/tickets/{id}/readiness` | POST | 🔐 admin | `website/src/pages/api/tickets/[id]/readiness.ts` |
 | `/api/tickets/comment` | POST | 🌐 public | `website/src/pages/api/tickets/comment.ts` |
+| `/api/tickets/graph` | GET | 🔐 admin | `website/src/pages/api/tickets/graph.ts` |
 | `/api/timeline` | GET | 🌐 public | `website/src/pages/api/timeline.ts` |

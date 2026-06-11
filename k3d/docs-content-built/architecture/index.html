@@ -178,12 +178,12 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-11T04:13:39.594Z</span>
+    <span class="meta">Generiert: 2026-06-11T04:20:59.173Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">68</span>
+      <span class="stat-value">69</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
@@ -261,6 +261,7 @@ flowchart LR
   oauth2_proxy_recovery["oauth2-proxy-recovery"]:::default
   sealed_secrets_controller["sealed-secrets-controller"]:::default
   shared_db["shared-db"]:::db
+  shared_db_staging["shared-db-staging"]:::default
   nats["nats"]:::default
   spreed_signaling["spreed-signaling"]:::default
   talk_recording["talk-recording"]:::default
@@ -392,7 +393,7 @@ flowchart LR
   traefik -->|"ingress"| bachelorprojekt
       </div>
     </div>
-    <p class="diagram-caption">Alle 68 K8s-Services und ihre 127 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 69 K8s-Services und ihre 127 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -475,6 +476,9 @@ flowchart TB
   end
   subgraph sealed_secrets["sealed-secrets"]
     sealed_secrets_controller["sealed-secrets-controller"]
+  end
+  subgraph STAGING_NS["$STAGING_NS"]
+    shared_db_staging["shared-db-staging"]
   end
   subgraph WORKSPACE_NAMESPACE["${WORKSPACE_NAMESPACE}"]
     tests_results_retention(["tests-results-retention"])

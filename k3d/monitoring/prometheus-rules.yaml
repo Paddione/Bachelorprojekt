@@ -1,0 +1,73 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: workspace-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    release: monitoring
+spec:
+  groups:
+    - name: workspace.rules
+      rules:
+        - alert: PodCrashLoopBackOff
+          expr: |
+            kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff",namespace=~"workspace|workspace-korczewski"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} in CrashLoopBackOff ({{ $labels.namespace }})"
+            description: "Container {{ $labels.container }} crasht wiederholt seit 5 Minuten."
+        - alert: HighCPUUsage
+          expr: |
+            (
+              sum by (namespace, pod, container) (
+                rate(container_cpu_usage_seconds_total{namespace=~"workspace|workspace-korczewski",container!=""}[5m])
+              )
+              /
+              sum by (namespace, pod, container) (
+                kube_pod_container_resource_limits{namespace=~"workspace|workspace-korczewski",resource="cpu"}
+              )
+            ) > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Hohe CPU-Auslastung: {{ $labels.pod }} ({{ $labels.namespace }})"
+            description: "CPU-Auslastung > 80% für 5 Minuten: {{ $value | humanizePercentage }}"
+        - alert: HighMemoryUsage
+          expr: |
+            (
+              container_memory_working_set_bytes{namespace=~"workspace|workspace-korczewski",container!=""}
+              /
+              kube_pod_container_resource_limits{namespace=~"workspace|workspace-korczewski",resource="memory"}
+            ) > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Hohe Memory-Auslastung: {{ $labels.pod }} ({{ $labels.namespace }})"
+            description: "Memory > 90% des Limits: {{ $value | humanizePercentage }}"
+        - alert: HighDiskUsage
+          expr: |
+            (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Hohe Disk-Auslastung: PVC {{ $labels.persistentvolumeclaim }}"
+            description: "PVC-Auslastung > 85%: {{ $value | humanizePercentage }}"
+        - alert: High5xxErrorRate
+          expr: |
+            (
+              sum by (router) (rate(traefik_router_requests_total{code=~"5.."}[5m]))
+              /
+              sum by (router) (rate(traefik_router_requests_total[5m]))
+            ) > 0.01
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Hohe 5xx-Rate auf Router {{ $labels.router }}"
+            description: "Mehr als 1% HTTP-5xx-Fehler für 5 Minuten: {{ $value | humanizePercentage }}"

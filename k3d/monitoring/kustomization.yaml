@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - kube-prometheus-stack-rendered.yaml
+  - traefik-metrics.yaml
+  - servicemonitor-traefik.yaml
+  - prometheus-rules.yaml
+  - alertmanager-config.yaml
+  - alertmanager-pushover-secret.yaml
+  - grafana-oidc-secret.yaml
+  - grafana-ingress.yaml
+  - networkpolicy.yaml
+  - grafana-dashboards

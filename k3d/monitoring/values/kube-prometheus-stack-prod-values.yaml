@@ -1,0 +1,59 @@
+# Prod kube-prometheus-stack values (fleet cluster).
+# Longhorn PVCs, longer retention, full resources. Grafana OIDC + ingress are
+# layered via the prod/monitoring kustomize patches (not here) so brand-specific
+# hosts/secrets stay out of the rendered baseline.
+fullnameOverride: monitoring
+
+defaultRules:
+  create: false
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits:   { cpu: 200m, memory: 256Mi }
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    resources:
+      requests: { cpu: 250m, memory: 1Gi }
+      limits:   { cpu: 1, memory: 2Gi }
+
+grafana:
+  persistence:
+    enabled: true
+    storageClassName: longhorn
+    size: 5Gi
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: monitoring
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+nodeExporter:
+  enabled: true
+kube-state-metrics:
+  enabled: true

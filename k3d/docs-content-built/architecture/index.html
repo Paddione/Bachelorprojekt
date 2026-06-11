@@ -178,20 +178,20 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-12T17:10:56.628Z</span>
+    <span class="meta">Generiert: 2026-06-11T04:15:10.065Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">68</span>
+      <span class="stat-value">70</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">126</span>
+      <span class="stat-value">127</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
-      <span class="stat-value">372</span>
+      <span class="stat-value">368</span>
       <span class="stat-label">API Endpoints</span>
     </div>
   </div>
@@ -246,6 +246,9 @@ flowchart LR
   livekit_ingress["livekit-ingress"]:::default
   livekit_egress["livekit-egress"]:::default
   mailpit["mailpit"]:::default
+  monitoring_grafana["monitoring-grafana"]:::default
+  monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
+  monitoring_operator["monitoring-operator"]:::default
   nextcloud_redis["nextcloud-redis"]:::default
   nextcloud["nextcloud"]:::default
   notify_unread["notify-unread"]:::default
@@ -260,7 +263,6 @@ flowchart LR
   oauth2_proxy_recovery["oauth2-proxy-recovery"]:::default
   sealed_secrets_controller["sealed-secrets-controller"]:::default
   shared_db["shared-db"]:::db
-  shared_db_staging["shared-db-staging"]:::default
   nats["nats"]:::default
   spreed_signaling["spreed-signaling"]:::default
   talk_recording["talk-recording"]:::default
@@ -364,6 +366,7 @@ flowchart LR
   website -->|"configmap:website-…"| brett
   website -->|"configmap:website-…"| livekit
   whiteboard -->|"NEXTCLOUD_URL"| nextcloud
+  monitoring_grafana -->|"GF_AUTH_GENERIC_OA…"| keycloak
   tls_sync -->|"command"| coturn
   dev_db_refresh -->|"SOURCE_PGHOST"| shared_db
   talk_transcriber -->|"NC_DB_HOST"| shared_db
@@ -391,7 +394,7 @@ flowchart LR
   traefik -->|"ingress"| bachelorprojekt
       </div>
     </div>
-    <p class="diagram-caption">Alle 68 K8s-Services und ihre 126 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 70 K8s-Services und ihre 127 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -468,14 +471,16 @@ flowchart TB
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]
   end
+  subgraph monitoring["monitoring"]
+    monitoring_grafana["monitoring-grafana"]
+    monitoring_kube_state_metrics["monitoring-kube-state-metrics"]
+    monitoring_operator["monitoring-operator"]
+  end
   subgraph workspace_office["workspace-office"]
     collabora["collabora"]
   end
   subgraph sealed_secrets["sealed-secrets"]
     sealed_secrets_controller["sealed-secrets-controller"]
-  end
-  subgraph STAGING_NS["$STAGING_NS"]
-    shared_db_staging["shared-db-staging"]
   end
   subgraph WORKSPACE_NAMESPACE["${WORKSPACE_NAMESPACE}"]
     tests_results_retention(["tests-results-retention"])
@@ -496,7 +501,7 @@ flowchart TB
     <div class="filter-bar">
       <span class="filter-label">Filter:</span>
       <input class="filter-input" type="text" id="api-filter" placeholder="/api/..." oninput="filterApi(this.value)">
-      <span class="filter-label" id="api-count">372 endpoints</span>
+      <span class="filter-label" id="api-count">368 endpoints</span>
     </div>
     <div style="max-height:70vh;overflow-y:auto;border:1px solid var(--ff-border);border-radius:4px;">
       <table>
@@ -704,11 +709,6 @@ flowchart TB
       <td style="color:#ef4444">🔐 admin</td>
     </tr>
       <tr>
-      <td><code>/api/admin/clients/contact-history/create</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#ef4444">🔐 admin</td>
-    </tr>
-      <tr>
       <td><code>/api/admin/clients/create</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#ef4444">🔐 admin</td>
@@ -770,11 +770,6 @@ flowchart TB
     </tr>
       <tr>
       <td><code>/api/admin/clients/update</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#ef4444">🔐 admin</td>
-    </tr>
-      <tr>
-      <td><code>/api/admin/clients/update-crm</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#ef4444">🔐 admin</td>
     </tr>
@@ -2230,16 +2225,6 @@ flowchart TB
     </tr>
       <tr>
       <td><code>/api/portal/onboarding/mark-step</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
-      <td style="color:#f59e0b">🔑 auth</td>
-    </tr>
-      <tr>
-      <td><code>/api/portal/profile/export</code></td>
-      <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">GET</code></td>
-      <td style="color:#f59e0b">🔑 auth</td>
-    </tr>
-      <tr>
-      <td><code>/api/portal/profile/update</code></td>
       <td><code style="background:#1a1a1a;color:#f59e0b;padding:1px 5px;border-radius:3px;font-size:11px">POST</code></td>
       <td style="color:#f59e0b">🔑 auth</td>
     </tr>

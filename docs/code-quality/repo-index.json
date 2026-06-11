@@ -458,7 +458,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1197,
+      "file_count": 1198,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -1133,6 +1133,7 @@
         "website/src/lib/tax-monitor.ts",
         "website/src/lib/test-runner.ts",
         "website/src/lib/ticket-graph.ts",
+        "website/src/lib/ticket-readiness.ts",
         "website/src/lib/ticket-triage.ts",
         "website/src/lib/tickets-db.featureflag.test.ts",
         "website/src/lib/tickets-db.providerrouting.test.ts",

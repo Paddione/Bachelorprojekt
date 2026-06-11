@@ -1,0 +1,137 @@
+# ════════════════════════════════════════════════════════════════════
+# shared-db-staging — ephemeral Postgres 16 for a staging namespace.
+# Data lives in emptyDir (lost on pod restart — intentional).
+# No PVC, no NodePort; website reaches it via cluster DNS:
+#   shared-db-staging.<STAGING_NS>.svc.cluster.local:5432
+# ════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shared-db-staging
+  namespace: $STAGING_NS
+  labels:
+    app: shared-db-staging
+    staging-id: $STAGING_ID
+spec:
+  serviceName: shared-db-staging
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-db-staging
+  template:
+    metadata:
+      labels:
+        app: shared-db-staging
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:0.8.0-pg16
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staging-db-secrets
+                  key: STAGING_DB_PASSWORD
+            - name: POSTGRES_DB
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, postgres]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+              cpu: 300m
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared-db-staging
+  namespace: $STAGING_NS
+spec:
+  selector:
+    app: shared-db-staging
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+# Init Job — creates roles + databases after Postgres is ready.
+# Runs once; idempotent (IF NOT EXISTS guards).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shared-db-staging-init
+  namespace: $STAGING_NS
+  labels:
+    staging-id: $STAGING_ID
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: pgvector/pgvector:0.8.0-pg16
+          env:
+            - name: PGHOST
+              value: shared-db-staging
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staging-db-secrets
+                  key: STAGING_DB_PASSWORD
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staging-db-secrets
+                  key: STAGING_WEBSITE_DB_PASSWORD
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              echo "waiting for postgres..."
+              for i in {1..30}; do
+                pg_isready -h "$PGHOST" -U "$PGUSER" && break
+                sleep 2
+              done
+              psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" <<-SQL
+                DO \$\$ BEGIN
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='website') THEN
+                    EXECUTE format('CREATE ROLE website LOGIN PASSWORD %L', '$WEBSITE_DB_PASSWORD');
+                  ELSE
+                    EXECUTE format('ALTER ROLE website WITH PASSWORD %L', '$WEBSITE_DB_PASSWORD');
+                  END IF;
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='arena_app') THEN
+                    CREATE ROLE arena_app NOLOGIN;
+                  END IF;
+                END \$\$;
+                SELECT 'CREATE DATABASE website OWNER website'
+                  WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='website')
+                \gexec
+                SELECT 'CREATE DATABASE bugs OWNER website'
+                  WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='bugs')
+                \gexec
+                SELECT 'CREATE DATABASE bachelorprojekt OWNER website'
+                  WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='bachelorprojekt')
+                \gexec
+              SQL
+              echo "DB init complete."

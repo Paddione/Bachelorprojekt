@@ -1,0 +1,87 @@
+# ════════════════════════════════════════════════════════════════════
+# website-staging — Astro website in a staging namespace.
+# Image is built from the feature branch and imported via k3d.
+# No SSO, no Stripe, no Nextcloud — website starts and serves pages.
+# DB is the co-located shared-db-staging (cluster-local DNS).
+# ════════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-staging-config
+  namespace: $STAGING_NS
+data:
+  NODE_ENV: production
+  BRAND: mentolder
+  BRAND_ID: mentolder
+  PROD_DOMAIN: staging-$STAGING_ID.localhost
+  WEBSITE_SITE_URL: "http://web.staging-$STAGING_ID.localhost"
+  WEBSITE_HOST: "web.staging-$STAGING_ID.localhost"
+  KEYCLOAK_FRONTEND_URL: "http://auth.localhost"
+  CONTACT_EMAIL: "staging@staging.local"
+  LLM_ENABLED: "false"
+  LLM_RERANK_ENABLED: "false"
+  DB_HOST: shared-db-staging
+  DB_PORT: "5432"
+  DB_NAME: website
+  DB_USER: website
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+  namespace: $STAGING_NS
+  labels:
+    app: website
+    staging-id: $STAGING_ID
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: website
+  template:
+    metadata:
+      labels:
+        app: website
+    spec:
+      containers:
+        - name: website
+          image: $STAGING_IMAGE
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 4321
+          envFrom:
+            - configMapRef:
+                name: website-staging-config
+          env:
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: staging-db-secrets
+                  key: STAGING_WEBSITE_DB_PASSWORD
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:$(WEBSITE_DB_PASSWORD)@shared-db-staging:5432/website"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 4321
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: website
+  namespace: $STAGING_NS
+spec:
+  selector:
+    app: website
+  ports:
+    - port: 80
+      targetPort: 4321

@@ -1,0 +1,24 @@
+# ════════════════════════════════════════════════════════════════════
+# Staging ingress — plain HTTP, no TLS, no SSO.
+# Host: web.staging-<id>.localhost
+# *.localhost resolves locally without /etc/hosts entries (WSL2).
+# ════════════════════════════════════════════════════════════════════
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-staging
+  namespace: $STAGING_NS
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: "web.staging-$STAGING_ID.localhost"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

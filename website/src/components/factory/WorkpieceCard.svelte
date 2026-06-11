@@ -14,27 +14,39 @@
     onClick?: () => void;
   } = $props();
 
-  const priorityColors: Record<string, string> = {
-    critical: 'var(--factory-priority-critical)',
-    high: 'var(--factory-priority-high)',
-    hoch: 'var(--factory-priority-critical)',
-    medium: 'var(--factory-priority-medium)',
-    mittel: 'var(--factory-priority-medium)',
-    low: 'var(--factory-priority-low)',
-    niedrig: 'var(--factory-priority-low)',
+  // priority → edge strip colour + optional glow
+  const PRIO_EDGE: Record<string, { color: string; glow: string }> = {
+    kritisch: { color: 'var(--danger)',   glow: '0 0 10px -1px color-mix(in oklab, var(--danger) 70%, transparent)' },
+    hoch:     { color: 'var(--brass)',    glow: '0 0 10px -2px color-mix(in oklab, var(--brass) 60%, transparent)' },
+    mittel:   { color: 'color-mix(in oklab, var(--brass) 55%, var(--mute-2))', glow: 'none' },
+    niedrig:  { color: 'var(--mute-2)',   glow: 'none' },
+    high:     { color: 'var(--brass)',    glow: '0 0 10px -2px color-mix(in oklab, var(--brass) 60%, transparent)' },
+    medium:   { color: 'color-mix(in oklab, var(--brass) 55%, var(--mute-2))', glow: 'none' },
+    low:      { color: 'var(--mute-2)',   glow: 'none' },
+    critical: { color: 'var(--danger)',   glow: '0 0 10px -1px color-mix(in oklab, var(--danger) 70%, transparent)' },
   };
 
-  let displayId = $derived(item?.extId ?? ticket?.id ?? '');
+  const PRIO_LABEL: Record<string, string> = {
+    kritisch: 'Kritisch', hoch: 'Hoch', mittel: 'Mittel', niedrig: 'Niedrig',
+    critical: 'Kritisch', high: 'Hoch', medium: 'Mittel', low: 'Niedrig',
+  };
+
+  let displayId    = $derived(item?.extId ?? ticket?.id ?? '');
   let displayTitle = $derived(item?.title ?? ticket?.title ?? '');
-  let displayPriority = $derived(item?.priority ?? ticket?.priority ?? 'low');
-  let borderColor = $derived(priorityColors[displayPriority] ?? 'var(--factory-priority-low)');
-  let isBlocked = $derived(item?.phaseState === 'blocked');
-  let isStuck = $derived.by(() => {
-    if (!item?.phaseSince) return false;
-    const mins = Math.floor((Date.now() - new Date(item.phaseSince).getTime()) / 60000);
-    return mins >= 15 && !isBlocked;
+  let displayPrio  = $derived((item?.priority ?? ticket?.priority ?? 'low').toLowerCase());
+  let isBlocked    = $derived(item?.phaseState === 'blocked');
+  let isDevflow    = $derived(item?.driver === 'devflow');
+  let isAlert      = $derived(isBlocked);
+  let edgeStyle    = $derived(PRIO_EDGE[displayPrio] ?? PRIO_EDGE.low);
+  let prioLabel    = $derived(PRIO_LABEL[displayPrio] ?? displayPrio);
+
+  let elapsedText = $derived.by(() => {
+    if (!item?.phaseSince) return '';
+    const m = Math.floor((Date.now() - new Date(item.phaseSince).getTime()) / 60000);
+    if (m < 60) return `${m} Min.`;
+    const h = Math.floor(m / 60), r = m % 60;
+    return r ? `${h} h ${r} Min.` : `${h} h`;
   });
-  let isDevflow = $derived(item?.driver === 'devflow');
 
   function ciIcon(s: 'success' | 'pending' | 'failure' | null): string {
     return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';
@@ -43,145 +55,197 @@
 
 <button
   type="button"
-  class="workpiece-card"
-  class:compact
-  class:blocked={isBlocked}
-  class:stuck={isStuck}
-  style="--wp-border: {borderColor};"
+  class="wp"
+  class:wp--blocked={isBlocked}
+  class:wp--compact={compact}
   data-ticket-id={displayId}
   data-testid="floor-workpiece"
   data-driver={item?.driver ?? 'factory'}
   onclick={onClick}
+  style="--edge-color:{edgeStyle.color}; --edge-glow:{edgeStyle.glow};"
 >
-  <div class="workpiece-card__header">
-    <span class="workpiece-card__id">{displayId}</span>
-    {#if item && isDevflow && item.ciStatus}
-      <span class="workpiece-card__ci">{ciIcon(item.ciStatus)}</span>
-    {:else}
-      <span class="workpiece-card__priority">{displayPriority}</span>
-    {/if}
-  </div>
-  <h3 class="workpiece-card__title">{displayTitle}</h3>
-  {#if !compact && ticket}
-    <div class="workpiece-card__meta">
-      {#if ticket.phase}
-        <span class="workpiece-card__phase">{ticket.phase}</span>
+  <!-- priority edge strip -->
+  <span class="wp-edge"></span>
+
+  <!-- card body -->
+  <span class="wp-body">
+    <!-- row 1: id + status -->
+    <span class="wp-header">
+      <span class="wp-id">{displayId}</span>
+      <span class="wp-badge">
+        {#if isBlocked}
+          <span class="wp-pill wp-pill--danger">⛔ Blockiert</span>
+        {:else if isDevflow && item?.ciStatus}
+          <span class="wp-ci">{ciIcon(item.ciStatus)}</span>
+        {:else}
+          <span class="wp-live-dot"></span>
+        {/if}
+      </span>
+    </span>
+
+    <!-- row 2: title (serif) -->
+    <span class="wp-title">{displayTitle}</span>
+
+    <!-- row 3: prio label + elapsed -->
+    <span class="wp-footer">
+      {#if isDevflow}
+        <span class="wp-meta">👨‍💻 devflow</span>
+      {:else}
+        <span class="wp-meta">{prioLabel.toUpperCase()}</span>
       {/if}
-      {#if ticket.assignee}
-        <span class="workpiece-card__assignee">{ticket.assignee}</span>
+      {#if elapsedText}
+        <span class="wp-time" class:wp-time--alert={isBlocked}>{elapsedText}</span>
       {/if}
-      {#if ticket.updatedAt}
-        <time class="workpiece-card__time">{ticket.updatedAt}</time>
-      {/if}
-    </div>
-  {/if}
-  {#if item && isDevflow}
-    <span class="workpiece-card__driver">👨‍💻</span>
-  {/if}
+    </span>
+  </span>
 </button>
 
 <style>
-  .workpiece-card {
+  .wp {
     display: flex;
-    flex-direction: column;
-    background: var(--factory-surface);
-    border: 1px solid var(--factory-border);
-    border-left: 4px solid var(--wp-border);
-    border-radius: var(--factory-radius-md);
-    padding: var(--factory-spacing-sm) var(--factory-spacing-md);
-    width: 160px;
-    min-height: 80px;
-    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    align-items: stretch;
+    width: 100%;
+    padding: 0;
+    background: var(--ink-850);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
     cursor: pointer;
     text-align: left;
     font: inherit;
     color: inherit;
+    overflow: hidden;
+    transition:
+      border-color var(--dur-base) var(--ease-soft),
+      transform    var(--dur-base) var(--ease-soft),
+      background   var(--dur-base) var(--ease-soft);
   }
 
-  .workpiece-card:hover {
-    background: var(--factory-surface-elevated);
-    border-color: var(--factory-text-muted);
-    border-left-color: var(--wp-border);
+  .wp:hover {
+    border-color: color-mix(in oklab, var(--brass) 50%, var(--line-2));
+    transform: translateY(-2px);
+    background: var(--ink-800);
   }
 
-  .workpiece-card.blocked {
+  .wp--blocked {
+    border-color: color-mix(in oklab, var(--danger) 32%, var(--line));
     animation: ff-blocked-pulse 2s ease-in-out infinite;
-    border-left-color: var(--factory-error);
   }
 
-  .workpiece-card.stuck {
-    border-left-color: var(--factory-accent);
-    box-shadow: inset 0 0 0 1px var(--factory-accent);
+  .wp--compact .wp-body { padding: 8px 10px; }
+  .wp--compact .wp-title { font-size: 13px; -webkit-line-clamp: 1; }
+
+  /* priority edge strip */
+  .wp-edge {
+    width: 3px;
+    flex: none;
+    align-self: stretch;
+    background: var(--edge-color);
+    box-shadow: var(--edge-glow);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
   }
 
-  .workpiece-card.compact {
-    padding: var(--factory-spacing-xs) var(--factory-spacing-sm);
-    width: auto;
-    min-height: auto;
-  }
-
-  .workpiece-card__header {
+  /* card body */
+  .wp-body {
+    flex: 1;
+    padding: 13px 14px;
+    min-width: 0;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .wp-header {
+    display: flex;
     align-items: center;
-    margin-bottom: var(--factory-spacing-xs);
+    justify-content: space-between;
+    margin-bottom: 9px;
   }
 
-  .workpiece-card__id {
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--factory-text-muted);
+  .wp-id {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--mute);
+    letter-spacing: .06em;
   }
 
-  .workpiece-card__priority {
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--wp-border);
+  .wp-badge {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* live pulse dot */
+  .wp-live-dot {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--sage);
+    flex: none;
+  }
+  .wp-live-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--sage);
+    animation: ff-pulse-ring 2.2s var(--ease-soft) infinite;
+  }
+
+  /* danger pill */
+  .wp-pill {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+  }
+  .wp-pill--danger {
+    color: var(--danger);
+    background: color-mix(in oklab, var(--danger) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--danger) 45%, transparent);
   }
 
-  .workpiece-card__ci {
-    font-size: var(--factory-text-xs);
-  }
-
-  .workpiece-card__title {
-    font-family: var(--factory-font-sans);
-    font-size: var(--factory-text-sm);
-    color: var(--factory-text-primary);
-    margin: 0;
-    line-height: 1.4;
+  /* title in serif */
+  .wp-title {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--fg);
+    letter-spacing: -.01em;
+    margin-bottom: 10px;
   }
 
-  .workpiece-card__meta {
+  .wp-footer {
     display: flex;
-    gap: var(--factory-spacing-sm);
-    margin-top: var(--factory-spacing-sm);
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--factory-text-muted);
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
-  .workpiece-card__phase {
-    background: var(--factory-surface-elevated);
-    padding: 1px 6px;
-    border-radius: var(--factory-radius-sm);
+  .wp-meta {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--mute-2);
+    letter-spacing: .1em;
+    text-transform: uppercase;
   }
 
-  .workpiece-card__assignee::before {
-    content: '@';
+  .wp-ci {
+    font-size: 10px;
   }
 
-  .workpiece-card__time {
-    margin-left: auto;
+  .wp-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--mute);
   }
-
-  .workpiece-card__driver {
-    font-size: var(--factory-text-xs);
-    margin-top: 2px;
-  }
+  .wp-time--alert { color: var(--danger); }
 </style>

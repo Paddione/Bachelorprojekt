@@ -18,69 +18,37 @@
     return hallItems.filter((h) => h.phase === phase);
   }
 
-  function isMobileVisible(station: Phase): boolean {
-    const mobileIndex: Record<string, number> = {
-      scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7,
-    };
-    return mobileColIndex === (mobileIndex[station] ?? -1);
+  const mobileIndex: Record<string, number> = {
+    scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7,
+  };
+
+  function isMobileVisible(phase: Phase): boolean {
+    return mobileColIndex === (mobileIndex[phase] ?? -1);
   }
 </script>
 
-<div class="conveyor-belt">
+<div class="belt">
   {#each stations as station, i (station.key)}
-    {#if i > 0}
-      <div class="conveyor-belt__link"></div>
-    {/if}
     <StationColumn
       {station}
       items={itemsFor(station.key)}
       mobileVisible={isMobileVisible(station.key)}
+      isFirst={i === 0}
       {onSelect}
     />
   {/each}
 </div>
 
 <style>
-  .conveyor-belt {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
+  .belt {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(168px, 1fr));
+    gap: 14px;
     width: 100%;
-    position: relative;
+    min-width: 1040px;
   }
-
-  .conveyor-belt__link {
-    width: 32px;
-    flex-shrink: 0;
-    align-self: center;
-    height: 4px;
-    background:
-      repeating-linear-gradient(
-        90deg,
-        var(--factory-conveyor-line) 0px,
-        var(--factory-conveyor-line) 8px,
-        transparent 8px,
-        transparent 12px
-      );
-    position: relative;
-  }
-
-  .conveyor-belt__link::before,
-  .conveyor-belt__link::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--factory-conveyor-line);
-  }
-
-  .conveyor-belt__link::before { top: -2px; }
-  .conveyor-belt__link::after { bottom: -2px; }
 
   @media (max-width: 767px) {
-    .conveyor-belt {
-      display: none;
-    }
+    .belt { display: block; min-width: unset; }
   }
 </style>

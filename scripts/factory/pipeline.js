@@ -260,6 +260,37 @@ try {
 }
 phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
+// ── SCS: Semantic Code Search — suggest relevant files ──────────────────────
+let scsSuggestedFiles = []
+try {
+  const BASE_URL = process.env.WEBSITE_BASE_URL ?? 'http://website.workspace.svc.cluster.local:4321'
+  const scsRes = await fetch(
+    `${BASE_URL}/api/codesearch?q=${encodeURIComponent(A.title)}&limit=5`,
+    { headers: { Cookie: process.env.ADMIN_COOKIE ?? '' }, signal: AbortSignal.timeout(8000) }
+  )
+  if (scsRes.ok) {
+    const scsJson = await scsRes.json()
+    scsSuggestedFiles = scsJson.results ?? []
+    log(`SCS: ${scsSuggestedFiles.length} semantically related files found`)
+    if (scsSuggestedFiles.length > 0) {
+      scout.suggested_files = scsSuggestedFiles
+      const scsPaths = scsSuggestedFiles.map(f => `${REPO}/${f.path}`)
+      const existingSet = new Set(scout.touched_files)
+      for (const p of scsPaths) {
+        if (!existingSet.has(p)) {
+          scout.touched_files.push(p)
+          existingSet.add(p)
+        }
+      }
+      featureTouchedFiles = scout.touched_files
+      log(`SCS: merged ${scsSuggestedFiles.length} semantic paths into touched_files (now ${scout.touched_files.length})`)
+    }
+  }
+} catch (scsErr) {
+  log(`SCS: unavailable (graceful degradation) — ${scsErr.message ?? scsErr}`)
+  scout.suggested_files = []
+}
+
 // SIMPLE features skip Design/Plan/Implement and go straight to Verify→Deploy.
 const isSimple = scout.complexity === 'simple'
 

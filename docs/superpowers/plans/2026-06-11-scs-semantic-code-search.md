@@ -16,7 +16,7 @@ depends_on_plans: []
 **Ticket:** T000628  
 **Branch:** feature/scs-semantic-code-search  
 **Datum:** 2026-06-11  
-**Status:** staged
+**Status:** active
 
 ---
 
@@ -127,11 +127,11 @@ CREATE INDEX ON code_embeddings USING ivfflat (embedding vector_cosine_ops) WITH
 - Ignoriert: `node_modules/`, `dist/`, `k3d/docs-content-built/`, `*.lock`
 
 **Tasks:**
-- [ ] `pgvector`-Extension sicherstellen (siehe Voraussetzung oben)
-- [ ] `scripts/index-repo.ts` schreiben: `glob` + chunking + `fetch(LLM_GATEWAY_EMBED/embed)` + `upsert` per `file_hash`
-- [ ] `task scs:index` in `Taskfile.yml` (ruft `npx tsx scripts/index-repo.ts`)
-- [ ] Smoke-Test: nach Ausführen min. 500 Rows in `code_embeddings`
-- [ ] BATS-Test: `tests/unit/scs-index.bats` — prüft Schema + Row-Count + Vektor-Dimension
+- [x] `pgvector`-Extension sicherstellen (siehe Voraussetzung oben)
+- [x] `scripts/index-repo.ts` schreiben: `glob` + chunking + `fetch(LLM_GATEWAY_EMBED/embed)` + `upsert` per `file_hash`
+- [x] `task scs:index` in `Taskfile.yml` (ruft `npx tsx scripts/index-repo.ts`)
+- [x] Smoke-Test: nach Ausführen min. 500 Rows in `code_embeddings`
+- [x] BATS-Test: `tests/unit/scs-index.bats` — prüft Schema + Row-Count + Vektor-Dimension
 
 ---
 
@@ -157,10 +157,10 @@ CREATE INDEX ON code_embeddings USING ivfflat (embedding vector_cosine_ops) WITH
 ```
 
 **Tasks:**
-- [ ] `website/src/lib/codesearch-db.ts`: `searchCode(query: string, limit: number)` — embed query → `SELECT ... ORDER BY embedding <=> $1 LIMIT $2`
-- [ ] `GET /api/codesearch.ts`: Query-Param `q` validieren, `requireAdmin` guard, `searchCode` aufrufen
-- [ ] Error-Handling: GPU-Host down → 503 mit `{"error": "embedding service unavailable"}` (kein silent fallback)
-- [ ] BATS-Test: `tests/unit/scs-search.bats` — mockt pgvector-Query, prüft Response-Format
+- [x] `website/src/lib/codesearch-db.ts`: `searchCode(query: string, limit: number)` — embed query → `SELECT ... ORDER BY embedding <=> $1 LIMIT $2`
+- [x] `GET /api/codesearch.ts`: Query-Param `q` validieren, `requireAdmin` guard, `searchCode` aufrufen
+- [x] Error-Handling: GPU-Host down → 503 mit `{"error": "embedding service unavailable"}` (kein silent fallback)
+- [x] BATS-Test: `tests/unit/scs-search.bats` — mockt pgvector-Query, prüft Response-Format
 
 ---
 
@@ -198,10 +198,10 @@ const neighbors = await db.query(
 ```
 
 **Tasks:**
-- [ ] Import-Analyse in `scripts/index-repo.ts` ergänzen → `file_dependencies` befüllen
-- [ ] `codesearch-db.ts`: `searchCodeAugmented()` mit 1-Hop-Nachbarn
-- [ ] `GET /api/codesearch?augmented=true` — Default: `false` (rückwärtskompatibel)
-- [ ] BATS-Test: prüft dass Augmented-Query mehr Results zurückgibt als einfache Query
+- [x] Import-Analyse in `scripts/index-repo.ts` ergänzen → `file_dependencies` befüllen
+- [x] `codesearch-db.ts`: `searchCodeAugmented()` mit 1-Hop-Nachbarn
+- [x] `GET /api/codesearch?augmented=true` — Default: `false` (rückwärtskompatibel)
+- [x] BATS-Test: prüft dass Augmented-Query mehr Results zurückgibt als einfache Query
 
 ---
 
@@ -233,11 +233,11 @@ ${suggestedFiles.length ? `\nRelevante Dateien (semantisch):\n${suggestedFiles.m
 - Score-Farbskala: ≥ 0.9 → `--ff-green`, ≥ 0.75 → `--ff-amber`, < 0.75 → `--ff-muted`
 
 **Tasks:**
-- [ ] `pipeline.js`: SCS-Query vor Scout-Prompt einbauen (try/catch mit log)
-- [ ] `website/src/lib/factory-floor.ts`: `TicketDetail.suggested_files?: Array<{path, score, snippet}>` ergänzen
-- [ ] `website/src/pages/api/factory-floor/[id].ts` (Detail-API): SCS-Query einbauen
-- [ ] `DetailPanel.svelte`: suggested_files Sektion hinzufügen
-- [ ] E2E-Test: `tests/e2e/fa-scs-scout.spec.ts` — öffnet Detail-Panel eines Tickets, prüft `suggested-files`-Sektion
+- [x] `pipeline.js`: SCS-Query vor Scout-Prompt einbauen (try/catch mit log)
+- [x] `website/src/lib/factory-floor.ts`: `TicketDetail.suggested_files?: Array<{path, score, snippet}>` ergänzen
+- [x] `website/src/pages/api/factory-floor/[id].ts` (Detail-API): SCS-Query einbauen
+- [x] `DetailPanel.svelte`: suggested_files Sektion hinzufügen
+- [x] E2E-Test: `tests/e2e/fa-scs-scout.spec.ts` — öffnet Detail-Panel eines Tickets, prüft `suggested-files`-Sektion
 
 ---
 
@@ -260,11 +260,11 @@ fi
 ```
 
 **Tasks:**
-- [ ] `scripts/index-repo.ts`: `--file <path>` Flag für Single-File-Reindex
-- [ ] `scripts/index-repo-incremental.sh` schreiben
-- [ ] `task secrets:install-hooks` erweitern um Post-Commit-Index-Hook (neben existierendem pre-commit)
-- [ ] Performance-Test: Single-File-Reindex < 2 s (bge-m3 Latenz ~300 ms + DB-Upsert)
-- [ ] BATS-Test: prüft dass Hook nur geänderte Dateien reindexiert
+- [x] `scripts/index-repo.ts`: `--file <path>` Flag für Single-File-Reindex
+- [x] `scripts/index-repo-incremental.sh` schreiben
+- [x] `task secrets:install-hooks` erweitern um Post-Commit-Index-Hook (neben existierendem pre-commit)
+- [x] Performance-Test: Single-File-Reindex < 2 s (bge-m3 Latenz ~300 ms + DB-Upsert)
+- [x] BATS-Test: prüft dass Hook nur geänderte Dateien reindexiert
 
 ---
 
@@ -312,12 +312,12 @@ task workspace:validate
 
 ### Akzeptanzkriterien
 
-- [ ] `pgvector`-Extension aktiv in `shared-db`
-- [ ] `code_embeddings` > 500 Rows nach `task scs:index`
-- [ ] `GET /api/codesearch?q=auth` gibt mind. 3 relevante Dateien zurück (Score > 0.7)
-- [ ] Augmented-Query liefert mehr Results als einfache Query für denselben Term
-- [ ] Factory Scout-Output enthält `suggested_files` für bekannte Tickets
-- [ ] `DetailPanel.svelte`: suggested_files Sektion mit Dark-Background + Score-Farben
-- [ ] Post-Commit-Hook reindexiert geänderte Dateien in < 2 s
-- [ ] GPU-Host down → Scout läuft weiter (kein Absturz), log-Hinweis im Scout-Output
-- [ ] `task test:all` grün
+- [x] `pgvector`-Extension aktiv in `shared-db`
+- [x] `code_embeddings` > 500 Rows nach `task scs:index`
+- [x] `GET /api/codesearch?q=auth` gibt mind. 3 relevante Dateien zurück (Score > 0.7)
+- [x] Augmented-Query liefert mehr Results als einfache Query für denselben Term
+- [x] Factory Scout-Output enthält `suggested_files` für bekannte Tickets
+- [x] `DetailPanel.svelte`: suggested_files Sektion mit Dark-Background + Score-Farben
+- [x] Post-Commit-Hook reindexiert geänderte Dateien in < 2 s
+- [x] GPU-Host down → Scout läuft weiter (kein Absturz), log-Hinweis im Scout-Output
+- [x] `task test:all` grün

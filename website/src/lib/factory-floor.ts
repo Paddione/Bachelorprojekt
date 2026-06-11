@@ -343,12 +343,18 @@ export interface InjectInput {
   dataUrl?: string | null; ncPath?: string | null; filename?: string | null; mimeType?: string | null;
   injectedBy: string;
 }
+export interface SuggestedFile {
+  path: string;
+  score: number;
+  snippet: string;
+}
 export interface TicketDetail {
   extId: string; title: string; status: string; priority: string;
   retryCount: number; prNumber: number | null;
   events: PhaseEventRow[];
   breadcrumbs: Breadcrumb[];
   injections: InjectionRow[];
+  suggested_files?: SuggestedFile[];
 }
 
 /** Full per-ticket detail for the slide-in panel; null if the ext_id is unknown. */
@@ -362,29 +368,35 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
   const [events, breadcrumbs, pr, injections] = await Promise.all([
     pool.query(
       `SELECT phase, state, detail, driver, at FROM tickets.factory_phase_events
-        WHERE ticket_id = $1 ORDER BY at DESC`,
+         WHERE ticket_id = $1 ORDER BY at DESC`,
       [row.id],
     ),
     pool.query(
       `SELECT author_label, body, created_at FROM tickets.ticket_comments
-        WHERE ticket_id = $1 ORDER BY created_at DESC LIMIT 8`,
+         WHERE ticket_id = $1 ORDER BY created_at DESC LIMIT 8`,
       [row.id],
     ),
     pool.query(
       `SELECT pr_number FROM tickets.ticket_links
-        WHERE from_id = $1 AND kind = 'pr' AND pr_number IS NOT NULL
-        ORDER BY created_at DESC LIMIT 1`,
+         WHERE from_id = $1 AND kind = 'pr' AND pr_number IS NOT NULL
+         ORDER BY created_at DESC LIMIT 1`,
       [row.id],
     ),
     pool.query(
       `SELECT id, phase, kind, title, content, target_files, data_url, nc_path,
-              filename, mime_type, injected_by, injected_at, consumed_at
-         FROM tickets.ticket_injections
-        WHERE ticket_id = $1
-        ORDER BY (consumed_at IS NULL) DESC, injected_at DESC LIMIT 20`,
+               filename, mime_type, injected_by, injected_at, consumed_at
+          FROM tickets.ticket_injections
+         WHERE ticket_id = $1
+         ORDER BY (consumed_at IS NULL) DESC, injected_at DESC LIMIT 20`,
       [row.id],
     ),
   ]);
+  let suggested_files: SuggestedFile[] | undefined;
+  try {
+    const { searchCode } = await import('./codesearch-db');
+    const results = await searchCode(row.title, 5);
+    suggested_files = results.map(r => ({ path: r.path, score: r.score, snippet: r.snippet }));
+  } catch { /* SCS down → no suggested files, ticket detail still works */ }
   return {
     extId: row.external_id,
     title: row.title,
@@ -400,6 +412,7 @@ export async function getTicketDetail(extId: string): Promise<TicketDetail | nul
       authorLabel: b.author_label, body: b.body, at: new Date(b.created_at).toISOString(),
     })),
     injections: injections.rows.map(mapInjection),
+    suggested_files,
   };
 }
 

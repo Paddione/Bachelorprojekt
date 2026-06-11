@@ -188,17 +188,13 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
 
 /**
  * Registriert Click-Handler für die Export-Buttons im Topbar.
- * Zeigt die Export-Gruppe nur, wenn das Feature-Flag T000466 aktiv ist.
  * DOM-Zugriff erst innerhalb des Funktionskörpers — module bleibt headless-importierbar.
  *
  * @param canvas - HTMLCanvasElement des Three.js-Renderers (renderer.domElement)
  */
 export function initExportButtons(canvas: HTMLCanvasElement): void {
-  // Feature-Flag-Prüfung (DARK-LAUNCH: T000466)
-  const feats: Record<string, boolean> =
-    (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
-  if (!feats['T000466']) return;
-
+  // T000605: Feature-Flag entfernt — Export ist permanent verfügbar.
+  // Die Gruppe ist im HTML initial display:none und wird hier eingeblendet.
   const group = document.getElementById('export-group');
   if (group) group.style.display = '';
 

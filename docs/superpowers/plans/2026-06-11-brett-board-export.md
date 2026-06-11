@@ -1,5 +1,5 @@
 ---
-ticket_id: T000605
+ticket_id: T000654
 spec: docs/superpowers/specs/2026-06-11-brett-board-export-design.md
 branch: feature/T000605-brett-export
 status: plan_staged

@@ -2,7 +2,7 @@
 ticket_id: T000652
 branch: feature/T000602-factory-mobile-view
 spec: docs/superpowers/specs/2026-06-11-t000602-factory-mobile-view-design.md
-status: staged
+status: done
 domains: [website]
 file_locks: []
 shared_changes: false
@@ -13,7 +13,7 @@ depends_on_plans: []
 
 # T000602 Factory UI — Mobile Factory View: Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Close three critical mobile gaps on `/dev-status` (DetailPanel Bottom-Sheet, content padding-bottom, DevStatusTabs scrollable) and add four enhancements (dot indicators, haptic feedback, Leitstand compaction, Stale-Banner placement) so the Factory View has full mobile parity on 375×812 viewports.
 
@@ -27,21 +27,21 @@ depends_on_plans: []
 
 Before starting any task, verify:
 
-- [ ] Active branch is `feature/T000602-factory-mobile-view`:
+- [x] Active branch is `feature/T000602-factory-mobile-view`:
   ```bash
   git -C /tmp/wt-factory-mobile branch --show-current
   # expected: feature/T000602-factory-mobile-view
   ```
-- [ ] Worktree clean (no uncommitted work from another session):
+- [x] Worktree clean (no uncommitted work from another session):
   ```bash
   git -C /tmp/wt-factory-mobile status --short
   # expected: empty or only your own changes
   ```
-- [ ] Spec file exists:
+- [x] Spec file exists:
   ```bash
   ls /tmp/wt-factory-mobile/docs/superpowers/specs/2026-06-11-t000602-factory-mobile-view-design.md
   ```
-- [ ] Dev cluster reachable (optional, only needed for FA-MOBILE manual run):
+- [x] Dev cluster reachable (optional, only needed for FA-MOBILE manual run):
   ```bash
   kubectl --context k3d-mentolder-dev get pods -n workspace --field-selector=status.phase=Running | grep website
   ```
@@ -68,7 +68,7 @@ Before starting any task, verify:
 
 This task fixes the most critical gap: on mobile, the DetailPanel must behave as a Bottom-Sheet (slide-up from bottom, 75 vh, backdrop, drag handle, correct close button, safe-area padding). Currently the `@media (max-width: 767px)` block only sets `width: 100%`, leaving all Desktop `position: fixed; inset: 0 auto 0 0` rules active which pins the panel to the left edge.
 
-- [ ] **Step 1: Add `isMobile` prop to DetailPanel**
+- [x] **Step 1: Add `isMobile` prop to DetailPanel**
 
   In `website/src/components/factory/DetailPanel.svelte`, update the `$props()` destructure (lines 6–30). Add `isMobile` boolean prop with default `false`:
 
@@ -102,7 +102,7 @@ This task fixes the most critical gap: on mobile, the DetailPanel must behave as
   } = $props();
   ```
 
-- [ ] **Step 2: Add Backdrop element to template**
+- [x] **Step 2: Add Backdrop element to template**
 
   After line 51 (`{#if selected}`), insert the backdrop div before `.detail-panel`. The full `{#if selected}` block should become:
 
@@ -116,11 +116,11 @@ This task fixes the most critical gap: on mobile, the DetailPanel must behave as
 
   Keep the closing `</div>` and `{/if}` as-is (line 158–159). The `class:open={isMobile}` toggles the slide-up animation: when `isMobile` is false (desktop), the panel uses the existing `ff-slide-in` keyframe; when `isMobile` is true, the `open` class activates `transform: translateY(0)`.
 
-- [ ] **Step 3: Increase close-button touch target**
+- [x] **Step 3: Increase close-button touch target**
 
   The existing `detail-panel__close` button (line 53) stays in place — the CSS change in Step 4 will handle its sizing. No template change needed here.
 
-- [ ] **Step 4: Replace the `@media (max-width: 767px)` CSS block**
+- [x] **Step 4: Replace the `@media (max-width: 767px)` CSS block**
 
   Find the existing mobile block (lines 425–429 in the `<style>` section):
   ```css
@@ -193,7 +193,7 @@ This task fixes the most critical gap: on mobile, the DetailPanel must behave as
   }
   ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -210,7 +210,7 @@ This task fixes the most critical gap: on mobile, the DetailPanel must behave as
 
 Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `padding-bottom` so content isn't clipped by the Tab-Bar, (3) add dot-indicator HTML + CSS, (4) add haptic vibration on swipe.
 
-- [ ] **Step 1: Add `isMobile` reactive state**
+- [x] **Step 1: Add `isMobile` reactive state**
 
   After `let mobileColIndex = $state(0);` (line 25), add:
 
@@ -227,7 +227,7 @@ Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `p
   });
   ```
 
-- [ ] **Step 2: Add haptic feedback to swipe**
+- [x] **Step 2: Add haptic feedback to swipe**
 
   In the existing `onTouchEnd` function (lines 31–35), add `navigator.vibrate(5)` after any column change:
 
@@ -239,7 +239,7 @@ Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `p
   }
   ```
 
-- [ ] **Step 3: Add dot-indicator HTML**
+- [x] **Step 3: Add dot-indicator HTML**
 
   In the template, find the `<MobileTabBar>` line (line 238):
   ```svelte
@@ -256,7 +256,7 @@ Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `p
   <MobileTabBar activeIndex={mobileColIndex} onSelect={(i) => { mobileColIndex = i; }} />
   ```
 
-- [ ] **Step 4: Pass `isMobile` to DetailPanel**
+- [x] **Step 4: Pass `isMobile` to DetailPanel**
 
   Find the `<DetailPanel>` block (lines 447–459) and add the `{isMobile}` prop:
 
@@ -277,7 +277,7 @@ Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `p
   />
   ```
 
-- [ ] **Step 5: Add padding-bottom and dot CSS to the `<style>` block**
+- [x] **Step 5: Add padding-bottom and dot CSS to the `<style>` block**
 
   In the `<style>` section (after line 471), append:
 
@@ -315,7 +315,7 @@ Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `p
   }
   ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -332,7 +332,7 @@ Four related changes in one file: (1) pass `isMobile` to DetailPanel, (2) add `p
 
 Currently `.tab-bar-wrap` has `display: flex; padding: 0 1.5rem` with no overflow handling. On 375 px viewports, the 5 tabs overflow invisibly. This task makes the outer tab-bar horizontally scrollable with short labels on mobile.
 
-- [ ] **Step 1: Add short-label spans to each tab button**
+- [x] **Step 1: Add short-label spans to each tab button**
 
   Replace the five `<button class="ds-tab">` elements (lines 58–98). Each button gets a `<span class="tab-label-full">` for desktop and `<span class="tab-label-short">` for mobile, using CSS visibility:
 
@@ -385,7 +385,7 @@ Currently `.tab-bar-wrap` has `display: flex; padding: 0 1.5rem` with no overflo
   </button>
   ```
 
-- [ ] **Step 2: Add mobile CSS to the `<style>` block**
+- [x] **Step 2: Add mobile CSS to the `<style>` block**
 
   Append to the existing `<style>` section (after the `@keyframes badge-pulse` block):
 
@@ -415,7 +415,7 @@ Currently `.tab-bar-wrap` has `display: flex; padding: 0 1.5rem` with no overflo
   }
   ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -432,7 +432,7 @@ Currently `.tab-bar-wrap` has `display: flex; padding: 0 1.5rem` with no overflo
 
 Add `navigator.vibrate(5)` on tab tap and `aria-label` attributes for WCAG 2.5.5 accessibility.
 
-- [ ] **Step 1: Add haptic wrapper function**
+- [x] **Step 1: Add haptic wrapper function**
 
   In `<script lang="ts">`, after the `$props()` block (line 21), add:
 
@@ -443,7 +443,7 @@ Add `navigator.vibrate(5)` on tab tap and `aria-label` attributes for WCAG 2.5.5
   }
   ```
 
-- [ ] **Step 2: Update button to use `handleSelect` and add `aria-label`**
+- [x] **Step 2: Update button to use `handleSelect` and add `aria-label`**
 
   Replace the `<button>` element (lines 26–32):
 
@@ -459,7 +459,7 @@ Add `navigator.vibrate(5)` on tab tap and `aria-label` attributes for WCAG 2.5.5
   </button>
   ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -476,7 +476,7 @@ Add `navigator.vibrate(5)` on tab tap and `aria-label` attributes for WCAG 2.5.5
 
 The 8 Leitstand cards use `text-xl font-bold` for values and `p-3` padding. On 375 px with 2 columns this is tight. Switch to `text-lg` and `p-2` on mobile via CSS utility overrides.
 
-- [ ] **Step 1: Add mobile overrides for Leitstand grid to the `<style>` block**
+- [x] **Step 1: Add mobile overrides for Leitstand grid to the `<style>` block**
 
   In `FactoryFloor.svelte`'s `<style>` section (append after the dot CSS from A2):
 
@@ -511,7 +511,7 @@ The 8 Leitstand cards use `text-xl font-bold` for values and `p-3` padding. On 3
   }
   ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -528,7 +528,7 @@ The 8 Leitstand cards use `text-xl font-bold` for values and `p-3` padding. On 3
 
 The `floor-pulse` bar (lines 190–221) renders as a normal block element at the top of `[data-testid="factory-floor"]`. On mobile it sits between the Topbar (60 px) and the Leitstand grid. It is NOT `position: fixed`, so it is not obscured by the TabBar. However, on mobile the stale banner text (`data-testid="floor-stale"`) can be cut off if it wraps. Ensure it wraps cleanly and is always above the kanban-container.
 
-- [ ] **Step 1: Add mobile wrapping CSS for the pulse row**
+- [x] **Step 1: Add mobile wrapping CSS for the pulse row**
 
   Append to `FactoryFloor.svelte`'s `<style>` block:
 
@@ -546,7 +546,7 @@ The `floor-pulse` bar (lines 190–221) renders as a normal block element at the
   }
   ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -563,7 +563,7 @@ The `floor-pulse` bar (lines 190–221) renders as a normal block element at the
 
 Small utility token that components can reference instead of repeating the `calc()`.
 
-- [ ] **Step 1: Append token to `:root` block**
+- [x] **Step 1: Append token to `:root` block**
 
   Open `website/src/styles/factory-tokens.css`. After the `--factory-tab-bar-height: 48px;` line (line 47), add:
 
@@ -571,7 +571,7 @@ Small utility token that components can reference instead of repeating the `calc
   --factory-bottom-safe: calc(var(--factory-tab-bar-height) + env(safe-area-inset-bottom, 0px));
   ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -588,7 +588,7 @@ Small utility token that components can reference instead of repeating the `calc
 
 Write Playwright tests that verify all six mobile acceptance criteria. All tests use `viewport: { width: 375, height: 812 }` (iPhone 12). The tests navigate to `/dev-status` and interact with the Factory Floor tab.
 
-- [ ] **Step 1: Check existing Playwright config for base URL and auth**
+- [x] **Step 1: Check existing Playwright config for base URL and auth**
 
   ```bash
   cat /tmp/wt-factory-mobile/playwright.config.ts | grep -E 'baseURL|storageState|use:'
@@ -596,7 +596,7 @@ Write Playwright tests that verify all six mobile acceptance criteria. All tests
 
   Identify whether `storageState` is set (SSO session) or whether `/dev-status` is publicly accessible in tests. Note the value — you'll use it in the test file.
 
-- [ ] **Step 2: Create the test file**
+- [x] **Step 2: Create the test file**
 
   Create `tests/e2e/specs/fa-mobile-factory.spec.ts` with this content:
 
@@ -769,7 +769,7 @@ Write Playwright tests that verify all six mobile acceptance criteria. All tests
   });
   ```
 
-- [ ] **Step 3: Run tests in offline/local mode to verify they load**
+- [x] **Step 3: Run tests in offline/local mode to verify they load**
 
   ```bash
   cd /tmp/wt-factory-mobile/website
@@ -778,7 +778,7 @@ Write Playwright tests that verify all six mobile acceptance criteria. All tests
   # Expected output: 6 tests listed under "FA-MOBILE: Factory Floor mobile parity"
   ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
   ```bash
   cd /tmp/wt-factory-mobile
@@ -794,7 +794,7 @@ Write Playwright tests that verify all six mobile acceptance criteria. All tests
 
 This task confirms the implementation visually using Playwright in headed mobile mode against the dev cluster.
 
-- [ ] **Step 1: Ensure dev cluster website is up-to-date**
+- [x] **Step 1: Ensure dev cluster website is up-to-date**
 
   ```bash
   # Check that the website pod is running
@@ -803,7 +803,7 @@ This task confirms the implementation visually using Playwright in headed mobile
   # bash /tmp/wt-factory-mobile/scripts/task-oracle.sh 'deploy website to dev'
   ```
 
-- [ ] **Step 2: Run FA-MOBILE-01 in headed mode to see Bottom-Sheet visually**
+- [x] **Step 2: Run FA-MOBILE-01 in headed mode to see Bottom-Sheet visually**
 
   ```bash
   cd /tmp/wt-factory-mobile/website
@@ -814,7 +814,7 @@ This task confirms the implementation visually using Playwright in headed mobile
 
   Expected: Browser opens at 375×812, a staged item is clicked, the Bottom-Sheet slides up from the bottom, backdrop is visible.
 
-- [ ] **Step 3: Run full FA-MOBILE suite**
+- [x] **Step 3: Run full FA-MOBILE suite**
 
   ```bash
   cd /tmp/wt-factory-mobile/website
@@ -823,14 +823,14 @@ This task confirms the implementation visually using Playwright in headed mobile
 
   Expected: All 6 tests pass (or `FA-MOBILE-02` skips if loading dock is empty in dev, which is acceptable).
 
-- [ ] **Step 4: Verify AC-M-07 and AC-M-08 manually**
+- [x] **Step 4: Verify AC-M-07 and AC-M-08 manually**
 
   Open Chrome DevTools, set device to iPhone 12, navigate to `/dev-status?tab=factory`.
 
   - `[data-testid="floor-pulse"]` is visible below the Topbar: PASS if it shows the amber/green dot.
   - All `data-testid` from T000598 (`floor-staged-item`, `floor-workpiece`, `floor-shipped-item`, etc.) are present in DOM: PASS if DevTools Elements panel shows them.
 
-- [ ] **Step 5: Final commit (if any fixups needed)**
+- [x] **Step 5: Final commit (if any fixups needed)**
 
   ```bash
   cd /tmp/wt-factory-mobile

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.54.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.53.0...website-v1.54.0) (2026-06-11)
+
+
+### Features
+
+* **website:** Newsletter-Vorlagen-Bibliothek — wiederverwendbare Inhaltsblöcke [T000609] ([#1570](https://github.com/Paddione/Bachelorprojekt/issues/1570)) ([2635f6e](https://github.com/Paddione/Bachelorprojekt/commit/2635f6e8bd3cae1358ae27a8ae7f90c2b42a95b3))
+
+
+### Bug Fixes
+
+* **tdr:** auto-trigger successor readiness on ticket → done ([#1571](https://github.com/Paddione/Bachelorprojekt/issues/1571)) ([e5dbed6](https://github.com/Paddione/Bachelorprojekt/commit/e5dbed6f5377d6a21069bbcb92b995a5eb7a5186))
+
 ## [1.53.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.52.0...website-v1.53.0) (2026-06-11)
 
 

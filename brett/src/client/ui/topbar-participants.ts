@@ -35,6 +35,7 @@ const ROLE_LABEL: Record<Role, string> = {
   leiter: 'Leiter',
   stellvertreter: 'Stellvertreter',
   beobachter: 'Beobachter',
+  gast: 'Gast',
 };
 
 /** Pure: build the admin_assign_role message a dropdown change emits. */

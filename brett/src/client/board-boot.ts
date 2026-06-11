@@ -30,6 +30,7 @@ import { updateLinePositions } from './scene-lines';
 import { maybeStartReplayMode } from './replay-board';
 export { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
 import { mountInviteButton } from './ui/topbar-invite';
+import { mountShareButton } from './ui/topbar-share';
 import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
 import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topbar-filter';
@@ -92,6 +93,14 @@ export async function bootBoard(): Promise<void> {
   if (filterSlot) {
     mountFilterInput(filterSlot, {
       onChange: (_q) => { /* tick loop reads getFilterQuery() directly */ },
+    });
+  }
+  {
+    const roomToken = new URLSearchParams(location.search).get('room') || 'default';
+    mountShareButton(document.getElementById('topbar-share-slot'), {
+      roomToken,
+      role: myRole(),
+      isAdmin: _isAdmin,
     });
   }
 

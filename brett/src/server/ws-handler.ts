@@ -62,6 +62,7 @@ export interface WsDeps {
   getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
   clearUndoStacks?: (room: string) => void;
   cleanupRoomTracking?: (room: string) => void;
+  resolveShareToken?: (token: string) => Promise<string | null>;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -120,6 +121,9 @@ export function gateMutation(
   figureId: string | undefined,
   deps: Pick<WsDeps, 'buildStateFromMutations' | 'figureMaps' | 'canMutate' | 'resolveRole'>,
 ): boolean {
+  if (ws?._isGuest) {
+    return msgType === 'request_state_snapshot';
+  }
   const state = deps.buildStateFromMutations(room) || {};
   const roles = state.roles || {};
   // Legacy free-board bypass (REG-1): a room that has NEITHER a session code NOR
@@ -199,7 +203,19 @@ export function handleDisconnect(ws: any, deps: WsDeps): void {
 }
 
 export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
-  wss.on('connection', (ws: any, req: any) => {
+  wss.on('connection', async (ws: any, req: any) => {
+    try {
+      const wsUrl = new URL(req?.url ?? '/', `http://${req?.headers?.host ?? 'x'}`);
+      const shareToken = wsUrl.searchParams.get('share_token');
+      if (shareToken && deps.resolveShareToken) {
+        const roomToken = await deps.resolveShareToken(shareToken);
+        if (!roomToken) { ws.close(4403, 'invalid_share_token'); return; }
+        ws._shareRoom = roomToken;
+        ws._isGuest = true;
+      }
+    } catch (err) {
+      console.error('[brett] share-token resolve error:', err);
+    }
     if (deps.sessionMiddleware && req) {
       deps.sessionMiddleware(req, {}, () => {
         ws._session = req.session;

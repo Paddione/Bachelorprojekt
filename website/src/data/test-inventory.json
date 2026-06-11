@@ -324,6 +324,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:fa-mobile-factory",
+    "file": "tests/e2e/specs/fa-mobile-factory.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:fa-planning-office",
     "file": "tests/e2e/specs/fa-planning-office.spec.ts",
     "category": "E2E",

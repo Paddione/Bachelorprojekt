@@ -34,6 +34,28 @@ for c in "${candidates[@]}"; do
   [[ "$global_used" -ge "$GLOBAL_CAP" ]] && break
   ext_id=$(echo "$c" | jq -r '.external_id')
 
+  # Dependency blocker gate (TDR-2): skip tickets whose depends_on predecessors
+  # are not all done. Queries the DB directly via factory_psql.
+  set +e
+  blocker_json=$(cat <<SQL | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql 2>/dev/null
+SELECT COALESCE(json_build_object(
+  'blocked', true,
+  'blockers', json_agg(d.external_id)
+), '{"blocked":false,"blockers":[]}'::json)
+FROM (
+  SELECT unnest(depends_on) AS dep_id
+  FROM tickets.tickets WHERE external_id = '${ext_id}'
+) d
+LEFT JOIN tickets.tickets t ON t.external_id = d.dep_id
+WHERE t.status IS DISTINCT FROM 'done'
+SQL
+)
+  set -e
+  if [[ -n "$blocker_json" ]] && echo "$blocker_json" | jq -e '.blocked == true' >/dev/null 2>&1; then
+    blockers=$(echo "$blocker_json" | jq -r '.blockers | join(", ")')
+    continue
+  fi
+
   # Best-effort conflict gate on known touched_files. rc 0 = no conflict,
   # rc 1 = conflict (skip), rc 2 = error/null touched_files (treat as schedulable).
   set +e

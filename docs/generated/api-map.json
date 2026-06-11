@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T00:31:36.088Z",
+  "generatedAt": "2026-06-11T00:39:12.993Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2955,12 +2955,28 @@
       "file": "website/src/pages/api/stripe/webhook.ts"
     },
     {
+      "path": "/api/tickets/{id}/readiness",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/tickets/[id]/readiness.ts"
+    },
+    {
       "path": "/api/tickets/comment",
       "methods": [
         "POST"
       ],
       "auth": "public",
       "file": "website/src/pages/api/tickets/comment.ts"
+    },
+    {
+      "path": "/api/tickets/graph",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/tickets/graph.ts"
     },
     {
       "path": "/api/timeline",

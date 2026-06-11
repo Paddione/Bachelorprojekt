@@ -7,9 +7,10 @@
   import FactoryThroughputChart from './factory/FactoryThroughputChart.svelte';
   import FactoryPhaseHeatmap from './factory/FactoryPhaseHeatmap.svelte';
   import FactoryShippedBar from './factory/FactoryShippedBar.svelte';
+  import DependencyGraph from './DependencyGraph.svelte';
   import type { Floor_payload } from '../lib/factory-floor';
 
-  type Tab = 'factory' | 'planung' | 'control' | 'analytics';
+  type Tab = 'factory' | 'planung' | 'control' | 'analytics' | 'abhaengigkeiten';
 
   let { initial, initialTab, brand }: {
     initial: FloorPayload | null;
@@ -31,7 +32,7 @@
 
   onMount(() => {
     const saved = localStorage.getItem('dev-status-tab') as Tab | null;
-    if (saved && ['factory', 'planung', 'control', 'analytics'].includes(saved)) {
+    if (saved && ['factory', 'planung', 'control', 'analytics', 'abhaengigkeiten'].includes(saved)) {
       activeTab = saved;
     }
 
@@ -43,7 +44,7 @@
 
     window.addEventListener('popstate', () => {
       const t = new URLSearchParams(window.location.search).get('tab') as Tab | null;
-      if (t === 'factory' || t === 'planung' || t === 'control' || t === 'analytics') activeTab = t;
+      if (t === 'factory' || t === 'planung' || t === 'control' || t === 'analytics' || t === 'abhaengigkeiten') activeTab = t;
     });
   });
 
@@ -88,6 +89,13 @@
     >
       Analytics
     </button>
+    <button
+      class="ds-tab"
+      class:active={activeTab === 'abhaengigkeiten'}
+      onclick={() => switchTab('abhaengigkeiten')}
+    >
+      Abhängigkeiten
+    </button>
   </div>
 </div>
 
@@ -105,6 +113,10 @@
     <FactoryThroughputChart client:load />
     <FactoryPhaseHeatmap client:load />
     <FactoryShippedBar client:load />
+  </div>
+{:else if activeTab === 'abhaengigkeiten'}
+  <div class="dag-tab-wrap">
+    <DependencyGraph client:load />
   </div>
 {/if}
 
@@ -147,5 +159,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--factory-spacing-lg, 1.5rem);
+  }
+
+  .dag-tab-wrap {
+    padding: 1.5rem;
   }
 </style>

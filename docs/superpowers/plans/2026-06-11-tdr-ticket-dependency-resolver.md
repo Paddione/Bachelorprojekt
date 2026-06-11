@@ -112,10 +112,10 @@ SELECT DISTINCT * FROM dep_graph;
 ```
 
 **Tasks:**
-- [ ] `website/src/lib/ticket-graph.ts`: `getTicketGraph()` mit recursive CTE, kritischer-Pfad-Algo (longest path by ticket count)
-- [ ] `GET /api/tickets/graph` in `website/src/pages/api/tickets/graph.ts` — Auth: Admin
-- [ ] `tests/unit/ticket-graph.bats`: prüft Nodes-Count, Edges-Count, criticalPath nicht leer
-- [ ] Freshness: kein Caching (live DB-Query, max 200 ms erwartet)
+- [x] `website/src/lib/ticket-graph.ts`: `getTicketGraph()` mit recursive CTE, kritischer-Pfad-Algo (longest path by ticket count)
+- [x] `GET /api/tickets/graph` in `website/src/pages/api/tickets/graph.ts` — Auth: Admin
+- [x] `tests/unit/ticket-graph.bats`: prüft Nodes-Count, Edges-Count, criticalPath nicht leer
+- [x] Freshness: kein Caching (live DB-Query, max 200 ms erwartet)
 
 ---
 
@@ -141,9 +141,9 @@ if (blockers.length > 0) {
 ```
 
 **Tasks:**
-- [ ] `scripts/factory/pipeline.js`: Blocker-Check vor `claim()` einbauen
-- [ ] Log-Ausgabe: `"[BLOCKED] T000634 wartet auf T000633"` — Factory-UI zeigt das als Status
-- [ ] BATS-Test `tests/unit/factory-blocked.bats`: mockt Graph-API, prüft dass blockiertes Ticket übersprungen wird
+- [x] `scripts/factory/schedule.sh`: Blocker-Check vor `claim()` einbauen
+- [x] Log-Ausgabe: `"[BLOCKED] T000634 wartet auf T000633"` — Factory-UI zeigt das als Status
+- [x] BATS-Test `tests/unit/factory-blocked.bats`: mockt Graph-API, prüft dass blockiertes Ticket übersprungen wird
 - [ ] Dispatcher-Dashboard: Blocked-Tickets in Factory-Floor als Stuck-State (roter PilotLight-Puls)
 
 ---
@@ -182,9 +182,9 @@ let { graphData }: { graphData: TicketGraph } = $props();
 - Legende: 4 Chips (Done / Aktiv / Blockiert / Geplant) in Factory-Token-Farben
 
 **Tasks:**
-- [ ] D3.js als Dependency prüfen (evtl. schon vorhanden) oder lightweight SVG-Renderer selbst schreiben
-- [ ] `DependencyGraph.svelte` implementieren (dagre-Layout bevorzugt für klare Kanten)
-- [ ] Planungsbüro-Tab ergänzen
+- [x] D3.js als Dependency prüfen (evtl. schon vorhanden) oder lightweight SVG-Renderer selbst schreiben
+- [x] `DependencyGraph.svelte` implementieren (dagre-Layout bevorzugt für klare Kanten)
+- [x] Planungsbüro-Tab ergänzen
 - [ ] Mobile: Pinch-Zoom + Pan, Nodes ggf. kleiner (80 px)
 - [ ] E2E-Test: `tests/e2e/fa-tdr-dag.spec.ts` — prüft dass DAG-Canvas rendert, min. 1 Node sichtbar
 
@@ -214,10 +214,10 @@ for (const s of successors) {
 ```
 
 **Tasks:**
-- [ ] `POST /api/tickets/[id]/readiness.ts` implementieren
+- [x] `POST /api/tickets/[id]/readiness.ts` implementieren
 - [ ] `PATCH /api/tickets/[id].ts`: bei `status=done` intern `readiness`-Endpunkt aufrufen
-- [ ] `website/src/lib/tickets-db.ts`: `allPredecessorsDone(dependsOn: string[])` schreiben
-- [ ] BATS-Test `tests/unit/readiness-webhook.bats`: Ticket done → Nachfolger `abhaengigkeiten_klar=true`
+- [x] `website/src/lib/tickets-db.ts`: `allPredecessorsDone(dependsOn: string[])` schreiben
+- [x] BATS-Test `tests/unit/readiness-webhook.bats`: Ticket done → Nachfolger `abhaengigkeiten_klar=true`
 - [ ] Factory-Dispatcher: nach jedem erfolgreichen Deploy `PATCH status=done` → Readiness-Update läuft automatisch
 
 ---

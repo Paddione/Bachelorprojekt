@@ -20,6 +20,8 @@ import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
 import * as eventLog from './event-log';
 import * as shareTokens from './share-tokens';
+import { attachShareRoutes } from './share-routes';
+import { asyncHandler } from './helpers';
 import { attachSkinsUpload } from './skins-upload';
 import { listCoachingTemplates, getCoachingTemplate } from './coaching-templates';
 
@@ -75,47 +77,10 @@ app.use(express.static(staticDir, {
   }
 }));
 
-export function asyncHandler(fn: any) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
+export { asyncHandler } from './helpers';
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
-
-// ─── Public share links (T000608) — NO Keycloak gate ──────────────────────────
-app.get('/share/:token', asyncHandler(async (req: any, res: any) => {
-  const roomToken = await shareTokens.resolveShareToken(req.params.token);
-  if (!roomToken) return res.status(404).type('text/plain').send('Link ungültig oder deaktiviert.');
-  res.sendFile(path.join(staticDir, 'share.html'));
-}));
-
-app.get('/api/share/:token', asyncHandler(async (req: any, res: any) => {
-  const roomToken = await shareTokens.resolveShareToken(req.params.token);
-  if (!roomToken) return res.status(404).json({ error: 'invalid_token' });
-  res.json({ valid: true, roomToken });
-}));
-
-const leiterOrAdmin = auth.requireLeiterOrAdmin(
-  (room: string) => (phases.buildStateFromMutations(room)?.roles ?? {}) as Record<string, import('../types/state').Role>,
-);
-
-app.post('/api/rooms/:roomToken/share', leiterOrAdmin, asyncHandler(async (req: any, res: any) => {
-  const { roomToken } = req.params;
-  const userId = req.session?.userId;
-  const token = await shareTokens.createShareToken(roomToken, userId);
-  const baseUrl = process.env.BRETT_PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
-  res.json({ token, url: `${baseUrl}/share/${token}` });
-}));
-
-app.get('/api/rooms/:roomToken/shares', leiterOrAdmin, asyncHandler(async (req: any, res: any) => {
-  const tokens = await shareTokens.listShareTokens(req.params.roomToken);
-  res.json({ tokens });
-}));
-
-app.delete('/api/rooms/:roomToken/share/:token', leiterOrAdmin, asyncHandler(async (req: any, res: any) => {
-  const ok = await shareTokens.disableShareToken(req.params.token, req.params.roomToken);
-  if (!ok) return res.status(404).json({ error: 'not_found' });
-  res.json({ disabled: true });
-}));
+attachShareRoutes(app, staticDir);
 
 app.get('/api/config', (_req, res) =>
   res.json({ ...auth.buildConfig(process.env), brand: auth.resolveBrand(process.env) }));

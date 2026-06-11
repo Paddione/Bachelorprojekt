@@ -148,7 +148,6 @@ export function buildSyncUrl(search: string, host: string, protocol: string, use
   const scheme = protocol === 'https:' ? 'wss:' : 'ws:';
   return `${scheme}//${host}/sync?${params.toString()}`;
 }
-
 export function connectWS(): void {
   // REG-2: idempotent — never open a second socket if one is already
   // CONNECTING/OPEN. The lobby bootstrap (main.ts) opens the socket as soon as the
@@ -158,10 +157,6 @@ export function connectWS(): void {
   if (existing && (existing.readyState === WebSocket.CONNECTING || existing.readyState === WebSocket.OPEN)) {
     return;
   }
-  // Thread room + (when known) the canonical identity into the /sync handshake so
-  // the late-join guard (shouldRejectReconnect) can distinguish a true reconnect
-  // of an already-active player from a genuine late-joiner. Omit playerId when
-  // unknown/anon (server treats null as "not previously in room" → admit).
   const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
   const ws = new WebSocket(buildSyncUrl(location.search, location.host, location.protocol, currentUser.userId));
   setWs(ws);

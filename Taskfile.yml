@@ -584,6 +584,7 @@ tasks:
       - '[ -d node_modules ] || npm ci'
       - node scripts/build-graph.mjs
       - node scripts/build-api-map.mjs
+      - node scripts/build-graph-docs.mjs
 
   graph:build-docs:
     desc: "Generiere Mermaid-Architecture-Page nach k3d/docs-content-built/architecture/ (LAD-3)"

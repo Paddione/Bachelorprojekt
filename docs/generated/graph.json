@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T00:39:12.941Z",
+  "generatedAt": "2026-06-11T00:54:21.346Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -384,6 +384,24 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "bachelorprojekt"
+    },
+    {
+      "id": "tracking",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "tracking"
+    },
+    {
+      "id": "docuseal",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "docuseal"
+    },
+    {
+      "id": "livekit",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "livekit"
     }
   ],
   "edges": [
@@ -418,6 +436,36 @@
       "via": "env:PGDATABASE"
     },
     {
+      "from": "db-backup",
+      "to": "shared-db",
+      "via": "command"
+    },
+    {
+      "from": "db-backup",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "db-backup",
+      "to": "nextcloud",
+      "via": "command"
+    },
+    {
+      "from": "db-backup",
+      "to": "vaultwarden",
+      "via": "command"
+    },
+    {
+      "from": "db-backup",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "db-backup",
+      "to": "shared-db",
+      "via": "annotation"
+    },
+    {
       "from": "brett",
       "to": "shared-db",
       "via": "env:DATABASE_URL"
@@ -443,11 +491,76 @@
       "via": "env:KC_URL"
     },
     {
+      "from": "claude-code-mcp-ops",
+      "to": "shared-db",
+      "via": "command"
+    },
+    {
+      "from": "claude-code-mcp-ops",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "billing-dunning-detection",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "monthly-billing",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "systemtest-cleanup",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "systemtest-purge-all",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "systemtest-outbox",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "mcp-auth-proxy-dev",
+      "to": "traefik",
+      "via": "configmap:mcp-auth-proxy-dev-config"
+    },
+    {
       "from": "claude-code-mcp-monolith",
       "to": "website",
       "via": "env:DATABASE_URL"
     },
     {
+      "from": "oauth2-proxy-brainstorm",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-dev",
+      "to": "traefik",
+      "via": "command"
+    },
+    {
+      "from": "keycloak",
+      "to": "brett",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "keycloak",
+      "to": "livekit",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "keycloak",
+      "to": "traefik",
+      "via": "configmap:domain-config"
+    },
+    {
       "from": "knowledge-ingest-prs",
       "to": "shared-db",
       "via": "env:PGHOST"
@@ -461,6 +574,26 @@
       "from": "knowledge-ingest-prs",
       "to": "website",
       "via": "env:PGUSER"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "shared-db",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "website",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
+      "from": "knowledge-ingest-markdown",
+      "to": "shared-db",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
+      "from": "knowledge-ingest-markdown",
+      "to": "website",
+      "via": "configmap:knowledge-scripts"
     },
     {
       "from": "knowledge-ingest-bugs",
@@ -478,6 +611,16 @@
       "via": "env:PGUSER"
     },
     {
+      "from": "knowledge-ingest-bugs",
+      "to": "shared-db",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "website",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
       "from": "knowledge-reindex-all",
       "to": "shared-db",
       "via": "env:PGHOST"
@@ -491,6 +634,31 @@
       "from": "knowledge-reindex-all",
       "to": "website",
       "via": "env:PGUSER"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "shared-db",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "website",
+      "via": "configmap:knowledge-scripts"
+    },
+    {
+      "from": "livekit-server",
+      "to": "livekit",
+      "via": "configmap:livekit-server-config"
+    },
+    {
+      "from": "livekit-server",
+      "to": "coturn",
+      "via": "configmap:livekit-server-config"
+    },
+    {
+      "from": "livekit-server",
+      "to": "livekit",
+      "via": "command"
     },
     {
       "from": "livekit-ingress",
@@ -508,6 +676,151 @@
       "via": "env:SMTP_HOST"
     },
     {
+      "from": "nextcloud",
+      "to": "brett",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "nextcloud",
+      "to": "livekit",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "nextcloud",
+      "to": "traefik",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "nextcloud",
+      "to": "spreed-signaling",
+      "via": "configmap:nextcloud-signaling-proxy"
+    },
+    {
+      "from": "notify-unread",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "brett",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-docs",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "traefik",
+      "via": "command"
+    },
+    {
+      "from": "pvc-backup",
+      "to": "nextcloud",
+      "via": "command"
+    },
+    {
+      "from": "pvc-backup",
+      "to": "vaultwarden",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "keycloak",
+      "via": "command"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "recovery-browser",
+      "via": "command"
+    },
+    {
+      "from": "shared-db",
+      "to": "keycloak",
+      "via": "configmap:shared-db-init"
+    },
+    {
+      "from": "shared-db",
+      "to": "nextcloud",
+      "via": "configmap:shared-db-init"
+    },
+    {
+      "from": "shared-db",
+      "to": "vaultwarden",
+      "via": "configmap:shared-db-init"
+    },
+    {
+      "from": "shared-db",
+      "to": "website",
+      "via": "configmap:shared-db-init"
+    },
+    {
+      "from": "shared-db",
+      "to": "website",
+      "via": "configmap:website-schema"
+    },
+    {
+      "from": "shared-db",
+      "to": "brett",
+      "via": "configmap:website-schema"
+    },
+    {
+      "from": "shared-db",
+      "to": "tracking",
+      "via": "configmap:website-schema"
+    },
+    {
+      "from": "shared-db",
+      "to": "docuseal",
+      "via": "configmap:website-schema"
+    },
+    {
+      "from": "shared-db",
+      "to": "whiteboard",
+      "via": "configmap:website-schema"
+    },
+    {
+      "from": "shared-db",
+      "to": "arena-server",
+      "via": "configmap:website-schema"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "coturn",
+      "via": "configmap:signaling-config"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "nats",
+      "via": "configmap:signaling-config"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "janus",
+      "via": "configmap:signaling-config"
+    },
+    {
       "from": "talk-recording",
       "to": "nextcloud",
       "via": "env:NC_DOMAIN"
@@ -516,6 +829,11 @@
       "from": "talk-recording",
       "to": "spreed-signaling",
       "via": "env:HPB_DOMAIN"
+    },
+    {
+      "from": "tests-results-retention",
+      "to": "website",
+      "via": "command"
     },
     {
       "from": "vaultwarden",
@@ -533,6 +851,26 @@
       "via": "env:SMTP_HOST"
     },
     {
+      "from": "vaultwarden",
+      "to": "brett",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "livekit",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "traefik",
+      "via": "configmap:domain-config"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "shared-db",
+      "via": "initContainer:wait"
+    },
+    {
       "from": "website",
       "to": "shared-db",
       "via": "env:SESSIONS_DATABASE_URL"
@@ -543,9 +881,34 @@
       "via": "env:LIVEKIT_SERVICE_URL"
     },
     {
+      "from": "website",
+      "to": "keycloak",
+      "via": "configmap:website-config"
+    },
+    {
+      "from": "website",
+      "to": "nextcloud",
+      "via": "configmap:website-config"
+    },
+    {
+      "from": "website",
+      "to": "brett",
+      "via": "configmap:website-config"
+    },
+    {
+      "from": "website",
+      "to": "livekit",
+      "via": "configmap:website-config"
+    },
+    {
       "from": "whiteboard",
       "to": "nextcloud",
       "via": "env:NEXTCLOUD_URL"
+    },
+    {
+      "from": "tls-sync",
+      "to": "coturn",
+      "via": "command"
     },
     {
       "from": "dev-db-refresh",
@@ -566,6 +929,31 @@
       "from": "talk-transcriber",
       "to": "nextcloud",
       "via": "env:NC_DB_USER"
+    },
+    {
+      "from": "arena-server",
+      "to": "shared-db",
+      "via": "annotation"
+    },
+    {
+      "from": "arena-server",
+      "to": "keycloak",
+      "via": "annotation"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "livekit",
+      "via": "command"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "coturn",
+      "via": "command"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "janus",
+      "via": "command"
     },
     {
       "from": "traefik",

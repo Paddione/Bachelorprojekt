@@ -22,10 +22,12 @@ setup() {
   [ "$committed_count" -eq "$fresh_count" ]
 }
 
-@test "graph.json enthält mind. 20 Nodes" {
+@test "graph.json enthält mind. 20 Nodes und 60 Kanten" {
   node scripts/build-graph.mjs
-  count=$(jq '.nodes | length' docs/generated/graph.json)
-  [ "$count" -ge 20 ]
+  node_count=$(jq '.nodes | length' docs/generated/graph.json)
+  edge_count=$(jq '.edges | length' docs/generated/graph.json)
+  [ "$node_count" -ge 20 ]
+  [ "$edge_count" -ge 60 ]
 }
 
 @test "api-map.json enthält mind. 15 Endpoints" {

@@ -9,6 +9,8 @@ metadata:
   namespace: workspace
   labels:
     app: backup
+  annotations:
+    graph.bachelorprojekt.de/depends-on: shared-db
 spec:
   schedule: "0 2 * * *"
   successfulJobsHistoryLimit: 3

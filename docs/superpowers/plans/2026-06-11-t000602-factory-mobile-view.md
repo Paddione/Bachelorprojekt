@@ -1,5 +1,5 @@
 ---
-ticket_id: T000602
+ticket_id: T000652
 branch: feature/T000602-factory-mobile-view
 spec: docs/superpowers/specs/2026-06-11-t000602-factory-mobile-view-design.md
 status: staged

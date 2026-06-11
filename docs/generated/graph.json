@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T04:13:17.460Z",
+  "generatedAt": "2026-06-11T04:20:31.184Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -288,6 +288,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "shared-db"
+    },
+    {
+      "id": "shared-db-staging",
+      "namespace": "$STAGING_NS",
+      "type": "StatefulSet",
+      "name": "shared-db-staging"
     },
     {
       "id": "nats",

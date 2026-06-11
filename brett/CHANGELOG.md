@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.28.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.27.0...brett-v0.28.0) (2026-06-11)
+
+
+### Features
+
+* **brett:** Figuren filtern & suchen — topbar filter input [T000607] ([#1568](https://github.com/Paddione/Bachelorprojekt/issues/1568)) ([aaff951](https://github.com/Paddione/Bachelorprojekt/commit/aaff951f86212cea1337aec45764fcd38f1e2dc3))
+
 ## [0.27.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.26.1...brett-v0.27.0) (2026-06-10)
 
 

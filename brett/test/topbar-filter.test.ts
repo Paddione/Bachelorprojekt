@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { matchesFigureFilter } from '../src/client/ui/topbar-filter';
-import { updateFilterVisuals } from '../src/client/mannequin';
+import { updateFilterVisuals } from '../src/client/ui/topbar-filter';
 
 // ── matchesFigureFilter ──────────────────────────────────────────────────────
 

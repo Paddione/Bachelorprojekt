@@ -124,3 +124,51 @@ export function mountFilterInput(
     },
   };
 }
+
+// ── Filter Visuals (T000607) ─────────────────────────────────────────────────
+// Lives here (not mannequin.ts) to keep mannequin.ts under the 600-line gate.
+
+const FILTER_DIM_OPACITY = 0.15;
+
+/**
+ * Per-frame visual updater. Dims non-matching figures to 0.15 opacity.
+ * Called from the board-boot tick loop after updateModerationVisuals.
+ */
+export function updateFilterVisuals(figures: any[], query: string): void {
+  const hasFilter = query.length > 0;
+
+  for (const fig of figures) {
+    const matches = !hasFilter || (fig.label ?? '').toLowerCase().includes(query.toLowerCase());
+
+    fig.root.traverse((o: any) => {
+      if (!o.isMesh || !o.material) return;
+      if (o === fig.ring || o === fig.possessionRing) return;
+      if (o.userData?.isContact) return;
+
+      if (!hasFilter) {
+        if (o.material._filterDimmed) {
+          o.material.opacity = o.material._filterOriginalOpacity ?? 1.0;
+          o.material.transparent = o.material._filterOriginalTransparent ?? false;
+          o.material._filterDimmed = false;
+          o.material.needsUpdate = true;
+        }
+      } else if (!matches) {
+        if (!o.material._filterDimmed) {
+          o.material._filterOriginalOpacity = o.material.opacity;
+          o.material._filterOriginalTransparent = o.material.transparent;
+          o.material._filterDimmed = true;
+        }
+        o.material.opacity = FILTER_DIM_OPACITY;
+        o.material.transparent = true;
+        o.material.needsUpdate = true;
+      } else {
+        if (o.material._filterDimmed) {
+          o.material.opacity = o.material._filterOriginalOpacity ?? 1.0;
+          o.material.transparent = o.material._filterOriginalTransparent ?? false;
+          o.material._filterDimmed = false;
+          o.material.needsUpdate = true;
+        }
+      }
+    });
+  }
+}

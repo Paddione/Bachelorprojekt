@@ -31,7 +31,7 @@ import { renderTimeline } from './ui/timeline';
 import { mountInviteButton } from './ui/topbar-invite';
 import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
-import { mountFilterInput, getFilterQuery } from './ui/topbar-filter';
+import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topbar-filter';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -476,7 +476,7 @@ export async function bootBoard(): Promise<void> {
     // T000471: Moderation visuals (Spotlight/Dim/Freeze)
     mannequin.updateModerationVisuals(STATE.figures, currentModerationState);
     // T000607: Filter visuals (dim non-matching figures)
-    mannequin.updateFilterVisuals(STATE.figures, getFilterQuery());
+    updateFilterVisuals(STATE.figures, getFilterQuery());
 
     // T3 Single-Writer: POV has highest priority
     if (povCamera.isInPov()) {

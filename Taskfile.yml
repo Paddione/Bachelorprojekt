@@ -4377,6 +4377,11 @@ tasks:
           LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.${NS}.svc.cluster.local:8081}" \
           npx tsx scripts/index-repo.ts
 
+  scs:index-incremental:
+    desc: "Incremental SCS reindex — pass changed file paths as args: task scs:index-incremental -- path/to/file.ts"
+    cmds:
+      - bash scripts/index-repo-incremental.sh {{.CLI_ARGS}}
+
   scs:search:
     desc: "Semantic code search — Usage: task scs:search -- 'query text' [--limit=5] [--augmented]"
     cmds:

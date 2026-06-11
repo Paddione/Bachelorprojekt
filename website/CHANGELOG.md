@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.53.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.52.0...website-v1.53.0) (2026-06-11)
+
+
+### Features
+
+* **scs:** semantic code search — bge-m3 embeddings + pgvector + Scout integration [T000628] ([a05b0ce](https://github.com/Paddione/Bachelorprojekt/commit/a05b0cef764f0461c7799dec807fb465f3b9ccc0))
+* **scs:** semantic code search — bge-m3 embeddings + pgvector + Scout integration [T000628] ([#1566](https://github.com/Paddione/Bachelorprojekt/issues/1566)) ([a05b0ce](https://github.com/Paddione/Bachelorprojekt/commit/a05b0cef764f0461c7799dec807fb465f3b9ccc0))
+* **tdr:** ticket dependency resolver — graph API, DAG viz, blocker gate, readiness webhook [T000627] ([#1565](https://github.com/Paddione/Bachelorprojekt/issues/1565)) ([72fa016](https://github.com/Paddione/Bachelorprojekt/commit/72fa016b12674be632dab9e9c3c74138075c5d95))
+
 ## [1.52.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.51.0...website-v1.52.0) (2026-06-10)
 
 

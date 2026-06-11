@@ -3,7 +3,7 @@
 // initTouchHandler(). Extracted from board-boot.ts to keep it under 600 lines.
 
 import * as THREE from 'three';
-import { STATE, ui, getWs, isWsReady, currentUser, activeLocks } from './state';
+import { STATE, getWs, isWsReady, currentUser, activeLocks } from './state';
 import * as mannequin from './mannequin';
 import * as wsClient from './ws-client';
 import * as figPanel from './ui/fig-panel';

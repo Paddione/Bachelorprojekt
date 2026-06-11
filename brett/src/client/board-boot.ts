@@ -27,7 +27,7 @@ import * as groundObjects from './ground-objects';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
-import { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
+import { maybeStartReplayMode } from './replay-board';
 export { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
 import { mountInviteButton } from './ui/topbar-invite';
 import { mountParticipantsButton } from './ui/topbar-participants';

@@ -1,0 +1,347 @@
+# Taskfile.staging.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# On-demand per-branch staging in the k3d-mentolder-dev cluster.
+# Usage:
+#   task staging:up BRANCH=feature/xyz [SEED=empty|snapshot] [WITH_BRETT=false]
+#   task staging:down BRANCH=feature/xyz
+#   task staging:list
+#   task staging:status BRANCH=feature/xyz
+#   task staging:clean
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+vars:
+  CTX: k3d-mentolder-dev
+  CLUSTER_NAME: mentolder-dev
+  STATE_DIR:
+    sh: echo "${HOME}/.local/share/workspace-staging"
+  STATE_FILE:
+    sh: echo "${HOME}/.local/share/workspace-staging/active.json"
+
+tasks:
+
+  _ensure-state-dir:
+    internal: true
+    cmds:
+      - mkdir -p "{{.STATE_DIR}}"
+      - |
+        if [[ ! -f "{{.STATE_FILE}}" ]]; then
+          echo '{}' > "{{.STATE_FILE}}"
+        fi
+
+  _cluster-guard:
+    internal: true
+    preconditions:
+      - sh: k3d cluster list 2>/dev/null | grep -q "^{{.CLUSTER_NAME}}"
+        msg: |
+          k3d cluster '{{.CLUSTER_NAME}}' not found.
+          Start it first: task dev:cluster:create_legacy
+          Or check: k3d cluster list
+
+  up:
+    desc: "Spin up a staging namespace for a given branch. BRANCH=<name> [SEED=empty|snapshot]"
+    vars:
+      BRANCH: '{{.BRANCH | default ""}}'
+      SEED: '{{.SEED | default "empty"}}'
+    preconditions:
+      - sh: '[ -n "{{.BRANCH}}" ]'
+        msg: "BRANCH is required. Usage: task staging:up BRANCH=feature/xyz"
+    deps: [_cluster-guard, _ensure-state-dir]
+    cmds:
+      - |
+        set -euo pipefail
+        BRANCH="{{.BRANCH}}"
+        SEED="{{.SEED}}"
+
+        # 1. Compute STAGING_ID (deterministic from branch name)
+        STAGING_ID=$(bash scripts/staging-id.sh "$BRANCH")
+        STAGING_NS="workspace-staging-${STAGING_ID}"
+        STAGING_IMAGE="ghcr.io/paddione/workspace-website:staging-${STAGING_ID}"
+        WORKTREE_PATH="/tmp/staging-${STAGING_ID}"
+
+        echo "==> staging:up  BRANCH=${BRANCH}  ID=${STAGING_ID}  NS=${STAGING_NS}"
+
+        # 2. Validate branch exists (locally or on origin)
+        if ! git rev-parse --verify "refs/heads/${BRANCH}" >/dev/null 2>&1 && \
+           ! git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+          echo "ERROR: Branch '${BRANCH}' not found locally or on origin." >&2
+          exit 1
+        fi
+
+        # 3. Worktree — create if not present, reuse if already there
+        if [[ -d "$WORKTREE_PATH" ]]; then
+          echo "==> Reusing worktree at ${WORKTREE_PATH}"
+        else
+          bash scripts/worktree-create.sh "$BRANCH" "$WORKTREE_PATH"
+        fi
+
+        # 4. Build website image from the worktree
+        echo "==> Building website image from ${WORKTREE_PATH}/website/"
+        docker build --provenance=false \
+          -t "$STAGING_IMAGE" \
+          -f "${WORKTREE_PATH}/website/Dockerfile" \
+          --build-arg PROD_DOMAIN="staging-${STAGING_ID}.localhost" \
+          --build-arg BRAND=mentolder \
+          "${WORKTREE_PATH}"
+
+        # 5. Import image into k3d cluster
+        echo "==> Importing image into k3d cluster {{.CLUSTER_NAME}}"
+        TMP_TAR=$(mktemp /tmp/staging-img-XXXXXX.tar)
+        trap "rm -f '$TMP_TAR'" EXIT
+        docker save "$STAGING_IMAGE" > "$TMP_TAR"
+        k3d image import "$TMP_TAR" -c {{.CLUSTER_NAME}}
+
+        # 6. Generate ephemeral DB passwords (per staging instance)
+        STAGING_DB_PASSWORD=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | head -c24)
+        STAGING_WEBSITE_DB_PASSWORD=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | head -c24)
+
+        # 7. Create namespace + secret (idempotent)
+        kubectl --context {{.CTX}} create namespace "$STAGING_NS" \
+          --dry-run=client -o yaml | kubectl --context {{.CTX}} apply -f -
+        kubectl --context {{.CTX}} -n "$STAGING_NS" create secret generic staging-db-secrets \
+          --from-literal=STAGING_DB_PASSWORD="$STAGING_DB_PASSWORD" \
+          --from-literal=STAGING_WEBSITE_DB_PASSWORD="$STAGING_WEBSITE_DB_PASSWORD" \
+          --dry-run=client -o yaml | kubectl --context {{.CTX}} apply -f -
+
+        # 8. Apply manifests via kustomize + envsubst
+        echo "==> Applying staging manifests"
+        STAGING_NS="$STAGING_NS" STAGING_ID="$STAGING_ID" STAGING_IMAGE="$STAGING_IMAGE" \
+          kubectl kustomize k3d/staging-stack/ \
+          | envsubst '$STAGING_NS $STAGING_ID $STAGING_IMAGE' \
+          | kubectl --context {{.CTX}} apply -f -
+
+        # Cleanup trap after successful apply (image tar already cleaned by EXIT trap)
+
+        # 9. Wait for DB init job
+        echo "==> Waiting for DB init job..."
+        kubectl --context {{.CTX}} -n "$STAGING_NS" \
+          wait --for=condition=Complete job/shared-db-staging-init --timeout=90s
+
+        # 10. DB seed
+        if [[ "$SEED" == "snapshot" ]]; then
+          echo "==> Seeding from prod snapshot (SEED=snapshot)..."
+          SECRETS_FILE="environments/.secrets/mentolder.yaml"
+          if [[ ! -f "$SECRETS_FILE" ]]; then
+            echo "ERROR: $SECRETS_FILE not found. Cannot seed from snapshot." >&2
+            kubectl --context {{.CTX}} delete namespace "$STAGING_NS" --wait=false || true
+            exit 1
+          fi
+          BACKUP_PASSPHRASE=$(yq -r '.BACKUP_PASSPHRASE // ""' "$SECRETS_FILE")
+          if [[ -z "$BACKUP_PASSPHRASE" ]]; then
+            echo "ERROR: BACKUP_PASSPHRASE missing in $SECRETS_FILE." >&2
+            kubectl --context {{.CTX}} delete namespace "$STAGING_NS" --wait=false || true
+            exit 1
+          fi
+          # Expose staging DB via a temporary port-forward in the background
+          STAGING_PG_PORT=$(shuf -i 20000-29999 -n1)
+          kubectl --context {{.CTX}} -n "$STAGING_NS" \
+            port-forward svc/shared-db-staging "${STAGING_PG_PORT}:5432" &
+          PF_PID=$!
+          trap "kill $PF_PID 2>/dev/null || true; rm -f '$TMP_TAR'" EXIT
+          sleep 3  # wait for port-forward to establish
+
+          # Refresh from backup (reuses dev-db-refresh.sh against staging port)
+          TMP_BACKUP=$(mktemp -d)
+          trap "kill $PF_PID 2>/dev/null || true; rm -rf '$TMP_BACKUP' '$TMP_TAR'" EXIT
+          HELPER="staging-snapshot-helper-$$"
+          cleanup_helper() {
+            kubectl --context fleet -n workspace delete pod "$HELPER" \
+              --ignore-not-found --wait=false >/dev/null 2>&1 || true
+          }
+          trap "cleanup_helper; kill $PF_PID 2>/dev/null || true; rm -rf '$TMP_BACKUP' '$TMP_TAR'" EXIT
+          kubectl --context fleet -n workspace apply -f - <<PODEOF
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: $HELPER
+            labels: { app: staging-snapshot-helper }
+          spec:
+            restartPolicy: Never
+            containers:
+            - name: c
+              image: busybox:1.36
+              command: ["sh","-c","sleep 300"]
+              volumeMounts:
+              - { name: backup, mountPath: /backups, readOnly: true }
+            volumes:
+            - name: backup
+              persistentVolumeClaim: { claimName: backup-pvc }
+          PODEOF
+          kubectl --context fleet -n workspace wait \
+            --for=condition=Ready pod/$HELPER --timeout=120s
+          kubectl --context fleet -n workspace cp "$HELPER:/backups" "$TMP_BACKUP/backups"
+          cleanup_helper
+
+          BACKUP_DIR="$TMP_BACKUP/backups" \
+          PGHOST=127.0.0.1 \
+          PGPORT="$STAGING_PG_PORT" \
+          BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" \
+          DEV_SHARED_DB_PASSWORD="$STAGING_DB_PASSWORD" \
+          DEV_WEBSITE_DB_PASSWORD="$STAGING_WEBSITE_DB_PASSWORD" \
+            bash scripts/dev-db-refresh.sh
+
+          # Anonymize
+          PGHOST=127.0.0.1 \
+          PGPORT="$STAGING_PG_PORT" \
+          STAGING_DB_PASSWORD="$STAGING_DB_PASSWORD" \
+            bash scripts/staging-db-anonymize.sh || {
+              echo "ERROR: Anonymization failed — tearing down namespace." >&2
+              kubectl --context {{.CTX}} delete namespace "$STAGING_NS" --wait=false || true
+              exit 1
+            }
+
+          kill $PF_PID 2>/dev/null || true
+          echo "==> Snapshot seed + anonymization complete."
+        fi
+
+        # 11. Wait for website rollout
+        echo "==> Waiting for website deployment..."
+        kubectl --context {{.CTX}} -n "$STAGING_NS" \
+          rollout status deploy/website --timeout=180s
+
+        # 12. Record in state file
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        jq --arg id "$STAGING_ID" \
+           --arg branch "$BRANCH" \
+           --arg ns "$STAGING_NS" \
+           --arg ts "$TIMESTAMP" \
+           --arg url "http://web.staging-${STAGING_ID}.localhost" \
+           '.[$id] = {branch: $branch, ns: $ns, created_at: $ts, url: $url}' \
+           "{{.STATE_FILE}}" > "{{.STATE_FILE}}.tmp" \
+        && mv "{{.STATE_FILE}}.tmp" "{{.STATE_FILE}}"
+
+        echo ""
+        echo "✓ Staging ready:"
+        echo "  URL:       http://web.staging-${STAGING_ID}.localhost"
+        echo "  Namespace: ${STAGING_NS}"
+        echo "  Branch:    ${BRANCH}"
+        echo "  Seed:      ${SEED}"
+
+  down:
+    desc: "Tear down the staging namespace for a given branch. BRANCH=<name>"
+    vars:
+      BRANCH: '{{.BRANCH | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.BRANCH}}" ]'
+        msg: "BRANCH is required. Usage: task staging:down BRANCH=feature/xyz"
+    deps: [_ensure-state-dir]
+    cmds:
+      - |
+        set -euo pipefail
+        BRANCH="{{.BRANCH}}"
+        STAGING_ID=$(bash scripts/staging-id.sh "$BRANCH")
+        STAGING_NS="workspace-staging-${STAGING_ID}"
+        STAGING_IMAGE="ghcr.io/paddione/workspace-website:staging-${STAGING_ID}"
+        WORKTREE_PATH="/tmp/staging-${STAGING_ID}"
+
+        echo "==> staging:down  BRANCH=${BRANCH}  NS=${STAGING_NS}"
+
+        # Delete namespace (idempotent — no error if already gone)
+        if kubectl --context {{.CTX}} get namespace "$STAGING_NS" >/dev/null 2>&1; then
+          kubectl --context {{.CTX}} delete namespace "$STAGING_NS" --wait=false
+          echo "==> Namespace ${STAGING_NS} deletion initiated."
+        else
+          echo "==> Namespace ${STAGING_NS} not found (already gone or never created)."
+        fi
+
+        # Remove worktree if present
+        if [[ -d "$WORKTREE_PATH" ]]; then
+          git worktree remove "$WORKTREE_PATH" --force 2>/dev/null || true
+          echo "==> Worktree ${WORKTREE_PATH} removed."
+        fi
+
+        # Remove local image
+        docker rmi "$STAGING_IMAGE" 2>/dev/null && echo "==> Image ${STAGING_IMAGE} removed." || true
+
+        # Remove from state file
+        if [[ -f "{{.STATE_FILE}}" ]]; then
+          jq --arg id "$STAGING_ID" 'del(.[$id])' "{{.STATE_FILE}}" \
+            > "{{.STATE_FILE}}.tmp" && mv "{{.STATE_FILE}}.tmp" "{{.STATE_FILE}}"
+        fi
+
+        echo "✓ Staging ${STAGING_NS} torn down."
+
+  list:
+    desc: "List all active staging namespaces"
+    deps: [_ensure-state-dir]
+    cmds:
+      - |
+        set -euo pipefail
+        echo "Active staging instances:"
+        echo ""
+
+        # Show from cluster (ground truth)
+        LIVE=$(kubectl --context {{.CTX}} get ns \
+          -l staging=true \
+          --no-headers \
+          -o custom-columns=NAME:.metadata.name 2>/dev/null || echo "")
+
+        if [[ -z "$LIVE" ]]; then
+          echo "  (none)"
+        else
+          printf "  %-25s %-30s %s\n" "STAGING_ID" "BRANCH" "URL"
+          printf "  %-25s %-30s %s\n" "─────────────────────────" "──────────────────────────────" "───────────────────────────────────"
+          while IFS= read -r NS; do
+            ID="${NS#workspace-staging-}"
+            BRANCH=$(jq -r --arg id "$ID" '.[$id].branch // "unknown"' "{{.STATE_FILE}}" 2>/dev/null || echo "unknown")
+            URL="http://web.staging-${ID}.localhost"
+            printf "  %-25s %-30s %s\n" "$ID" "$BRANCH" "$URL"
+          done <<< "$LIVE"
+        fi
+        echo ""
+
+  status:
+    desc: "Show pod/deployment status for a staging namespace. BRANCH=<name>"
+    vars:
+      BRANCH: '{{.BRANCH | default ""}}'
+    preconditions:
+      - sh: '[ -n "{{.BRANCH}}" ]'
+        msg: "BRANCH is required. Usage: task staging:status BRANCH=feature/xyz"
+    cmds:
+      - |
+        set -euo pipefail
+        STAGING_ID=$(bash scripts/staging-id.sh "{{.BRANCH}}")
+        STAGING_NS="workspace-staging-${STAGING_ID}"
+        echo "==> Status for ${STAGING_NS}"
+        kubectl --context {{.CTX}} get pods,svc,ingress,job -n "$STAGING_NS" 2>/dev/null \
+          || echo "Namespace ${STAGING_NS} not found."
+
+  clean:
+    desc: "Destroy ALL staging namespaces + worktrees + images (with confirmation prompt)"
+    deps: [_ensure-state-dir]
+    cmds:
+      - |
+        set -euo pipefail
+
+        NAMESPACES=$(kubectl --context {{.CTX}} get ns \
+          -l staging=true \
+          --no-headers \
+          -o custom-columns=NAME:.metadata.name 2>/dev/null || echo "")
+
+        if [[ -z "$NAMESPACES" ]]; then
+          echo "No staging namespaces found — nothing to clean."
+          exit 0
+        fi
+
+        echo "The following staging namespaces will be DELETED:"
+        echo "$NAMESPACES" | sed 's/^/  /'
+        echo ""
+        read -r -p "Type 'yes' to confirm: " CONFIRM
+        if [[ "$CONFIRM" != "yes" ]]; then
+          echo "Aborted."
+          exit 0
+        fi
+
+        while IFS= read -r NS; do
+          echo "==> Deleting ${NS}"
+          kubectl --context {{.CTX}} delete namespace "$NS" --wait=false || true
+          ID="${NS#workspace-staging-}"
+          WORKTREE="/tmp/staging-${ID}"
+          IMAGE="ghcr.io/paddione/workspace-website:staging-${ID}"
+          [[ -d "$WORKTREE" ]] && git worktree remove "$WORKTREE" --force 2>/dev/null || true
+          docker rmi "$IMAGE" 2>/dev/null || true
+        done <<< "$NAMESPACES"
+
+        # Reset state file
+        echo '{}' > "{{.STATE_FILE}}"
+        echo "✓ All staging namespaces cleaned."

@@ -3,7 +3,7 @@ title: Brett Mobile-Touch-Steuerung Implementation Plan
 ticket_id: T000656
 domains: [website, test]
 status: active
-pr_number: null
+pr_number: 1582
 file_locks: []
 shared_changes: false
 batch_id: null
@@ -13,7 +13,7 @@ depends_on_plans: []
 
 # Brett Mobile-Touch-Steuerung Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make the Brett 3D board fully operable on touch devices — one-finger orbit, one-finger figure-drag, two-finger pinch-zoom, and ≥44px touch targets — via a new Pointer-Events-based `touch-handler.ts` module, without changing desktop mouse behavior.
 
@@ -57,7 +57,7 @@ The design spec (`docs/superpowers/specs/2026-06-11-T000606-brett-mobile-touch-d
 - Modify: `brett/src/client/mannequin.ts:358-395`
 - Test: `brett/test/touch-handler.test.ts` (created in Task 6; this task is verified via existing `tsc` + existing mannequin-consuming tests)
 
-- [ ] **Step 1: Add `setNdcFromPoint` and refactor `setNdc` to delegate**
+- [x] **Step 1: Add `setNdcFromPoint` and refactor `setNdc` to delegate**
 
 In `brett/src/client/mannequin.ts`, replace the existing `setNdc` (lines 358-363):
 
@@ -76,7 +76,7 @@ export function setNdc(ev: { clientX: number; clientY: number }): void {
 }
 ```
 
-- [ ] **Step 2: Loosen the pick-helper parameter types**
+- [x] **Step 2: Loosen the pick-helper parameter types**
 
 In the same file, change the three picking helpers so they accept the duck-type (only `.clientX`/`.clientY` are used):
 
@@ -92,17 +92,17 @@ export function pickFloor(ev: { clientX: number; clientY: number }): THREE.Vecto
 
 Leave each function **body** unchanged — only the parameter type annotation changes. The `setNdc(ev)` call inside each now accepts the wider type.
 
-- [ ] **Step 3: Type-check (existing call sites must still compile)**
+- [x] **Step 3: Type-check (existing call sites must still compile)**
 
 Run: `cd brett && npx tsc --noEmit -p tsconfig.client.json`
 Expected: exit 0, no errors. `board-boot.ts` passes `MouseEvent` to `pickContact`/`pickFloor`/`setNdc` — `MouseEvent` is assignable to `{clientX,clientY}`, so these still compile.
 
-- [ ] **Step 4: Run the full brett unit suite (regression check)**
+- [x] **Step 4: Run the full brett unit suite (regression check)**
 
 Run: `cd brett && npm test`
 Expected: all existing tests pass (the change is type-only + a delegating wrapper). The `scene-orbit-api.test.ts` static checks are unaffected.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add brett/src/client/mannequin.ts
@@ -117,7 +117,7 @@ git commit -m "refactor(brett): generalize mannequin pick helpers to {clientX,cl
 - Modify: `brett/src/client/scene.ts:15-29` (interface) and `:177-199` (impl + return)
 - Test: `brett/test/scene-orbit-api.test.ts` (extend with one static assertion)
 
-- [ ] **Step 1: Write the failing static test**
+- [x] **Step 1: Write the failing static test**
 
 Append to `brett/test/scene-orbit-api.test.ts`:
 
@@ -131,12 +131,12 @@ test('SceneApi interface declares setOrbitDist(dist)', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it fails**
+- [x] **Step 2: Run it to confirm it fails**
 
 Run: `cd brett && npx tsx --test test/scene-orbit-api.test.ts`
 Expected: FAIL — the new assertion does not match (no `setOrbitDist` in source yet).
 
-- [ ] **Step 3: Declare `setOrbitDist` on the `SceneApi` interface**
+- [x] **Step 3: Declare `setOrbitDist` on the `SceneApi` interface**
 
 In `brett/src/client/scene.ts`, inside `interface SceneApi` (after `setCameraToOrbit`, before the closing `}` at line 29):
 
@@ -149,7 +149,7 @@ In `brett/src/client/scene.ts`, inside `interface SceneApi` (after `setCameraToO
   setOrbitDist: (dist: number) => void;
 ```
 
-- [ ] **Step 4: Implement `setOrbitDist` and add it to the return object**
+- [x] **Step 4: Implement `setOrbitDist` and add it to the return object**
 
 In `initScene`, after the `setCameraToOrbit` function definition (after line 196), add:
 
@@ -166,17 +166,17 @@ Then extend the return statement (line 199) to include it:
   return { renderer, scene, camera, floor: floorMesh, updateCameraFromOrbit, getOrbitState, setCameraToOrbit, setOrbitDist };
 ```
 
-- [ ] **Step 5: Run the test to confirm it passes**
+- [x] **Step 5: Run the test to confirm it passes**
 
 Run: `cd brett && npx tsx --test test/scene-orbit-api.test.ts`
 Expected: PASS (all assertions incl. the new one).
 
-- [ ] **Step 6: Type-check**
+- [x] **Step 6: Type-check**
 
 Run: `cd brett && npx tsc --noEmit -p tsconfig.client.json`
 Expected: exit 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add brett/src/client/scene.ts brett/test/scene-orbit-api.test.ts
@@ -193,7 +193,7 @@ This task creates the module skeleton with **only the pure, DOM-free helpers** s
 - Create: `brett/src/client/touch-handler.ts`
 - Test: `brett/test/touch-handler.test.ts`
 
-- [ ] **Step 1: Write the failing unit tests for the pure helpers**
+- [x] **Step 1: Write the failing unit tests for the pure helpers**
 
 Create `brett/test/touch-handler.test.ts`:
 
@@ -255,12 +255,12 @@ test('orbitDelta scales pixel deltas by TOUCH_ORBIT_SENSITIVITY', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it fails**
+- [x] **Step 2: Run it to confirm it fails**
 
 Run: `cd brett && npx tsx --test test/touch-handler.test.ts`
 Expected: FAIL — `Cannot find module '../src/client/touch-handler'`.
 
-- [ ] **Step 3: Create the module with the pure helpers**
+- [x] **Step 3: Create the module with the pure helpers**
 
 Create `brett/src/client/touch-handler.ts`:
 
@@ -317,17 +317,17 @@ export function orbitDelta(dx: number, dy: number): { dTheta: number; dPhi: numb
 }
 ```
 
-- [ ] **Step 4: Run the unit tests to confirm they pass**
+- [x] **Step 4: Run the unit tests to confirm they pass**
 
 Run: `cd brett && npx tsx --test test/touch-handler.test.ts`
 Expected: PASS (all 9 tests green).
 
-- [ ] **Step 5: Type-check**
+- [x] **Step 5: Type-check**
 
 Run: `cd brett && npx tsc --noEmit -p tsconfig.client.json`
 Expected: exit 0. (`THREE` import is currently unused — that's fine; Task 4 uses it. If your tsconfig has `noUnusedLocals`, instead omit the `import * as THREE` line until Task 4 — check with the type-check; the default brett tsconfig does NOT set `noUnusedLocals`, so keep it.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/touch-handler.ts brett/test/touch-handler.test.ts
@@ -344,7 +344,7 @@ Add `initTouchHandler(deps)` and the mode state machine (orbit / figure-drag / p
 - Modify: `brett/src/client/touch-handler.ts`
 - Test: `brett/test/touch-handler.test.ts` (extend with mode-transition tests using a fake pointer harness)
 
-- [ ] **Step 1: Write failing tests for the mode state machine**
+- [x] **Step 1: Write failing tests for the mode state machine**
 
 The state machine is tested via exported test hooks `_resetTouchState()`, `_getTouchMode()`, and a `_simulate*` API that accepts plain objects (no real DOM). Append to `brett/test/touch-handler.test.ts`:
 
@@ -451,12 +451,12 @@ test('orbit move calls applyOrbitDelta with sensitivity-scaled deltas', () => {
 });
 ```
 
-- [ ] **Step 2: Run to confirm failure**
+- [x] **Step 2: Run to confirm failure**
 
 Run: `cd brett && npx tsx --test test/touch-handler.test.ts`
 Expected: FAIL — `_resetTouchState`, `_onPointerDown`, etc. not exported.
 
-- [ ] **Step 3: Implement the state machine + test hooks**
+- [x] **Step 3: Implement the state machine + test hooks**
 
 Append to `brett/src/client/touch-handler.ts`:
 
@@ -635,17 +635,17 @@ export function initTouchHandler({ canvas, deps }: TouchHandlerWireDeps): void {
 }
 ```
 
-- [ ] **Step 4: Run the unit tests to confirm they pass**
+- [x] **Step 4: Run the unit tests to confirm they pass**
 
 Run: `cd brett && npx tsx --test test/touch-handler.test.ts`
 Expected: PASS (all pure-helper tests + all 8 new state-machine tests).
 
-- [ ] **Step 5: Type-check**
+- [x] **Step 5: Type-check**
 
 Run: `cd brett && npx tsc --noEmit -p tsconfig.client.json`
 Expected: exit 0.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add brett/src/client/touch-handler.ts brett/test/touch-handler.test.ts
@@ -663,7 +663,7 @@ Build a concrete `TouchDeps` from the live scene/mannequin/ws state, replicating
 - Modify: `brett/src/client/scene.ts` — already has `getOrbitState`/`setOrbitDist` from Task 2; also need to mutate `theta`/`phi`. Add `applyOrbitDelta` (Step 2 below).
 - Test: covered by `tsc` + E2E in Task 7 (integration glue; no new headless unit test — the logic it adds is exercised in `touch-handler.test.ts` via fakes).
 
-- [ ] **Step 1: Add `applyOrbitDelta` to SceneApi (mutate theta/phi like the mouse orbit)**
+- [x] **Step 1: Add `applyOrbitDelta` to SceneApi (mutate theta/phi like the mouse orbit)**
 
 The mouse orbit at `scene.ts:146-155` mutates `cameraOrbit.theta -= dx*0.005` and clamps `phi` to `[-1.2,1.2]`. Touch needs the same mutation exposed. In `scene.ts`, add to the `SceneApi` interface (after `setOrbitDist`):
 
@@ -688,7 +688,7 @@ Extend the return object:
   return { renderer, scene, camera, floor: floorMesh, updateCameraFromOrbit, getOrbitState, setCameraToOrbit, setOrbitDist, applyOrbitDelta };
 ```
 
-- [ ] **Step 2: Add a static assertion for `applyOrbitDelta`**
+- [x] **Step 2: Add a static assertion for `applyOrbitDelta`**
 
 Append to `brett/test/scene-orbit-api.test.ts`:
 
@@ -705,7 +705,7 @@ test('SceneApi interface declares applyOrbitDelta(dTheta, dPhi)', () => {
 Run: `cd brett && npx tsx --test test/scene-orbit-api.test.ts`
 Expected: PASS.
 
-- [ ] **Step 3: Import touch-handler in board-boot.ts**
+- [x] **Step 3: Import touch-handler in board-boot.ts**
 
 In `brett/src/client/board-boot.ts`, add to the import block (after line 21's `pov-camera` import or alongside the other client imports near line 22):
 
@@ -713,7 +713,7 @@ In `brett/src/client/board-boot.ts`, add to the import block (after line 21's `p
 import { initTouchHandler, type TouchDeps } from './touch-handler';
 ```
 
-- [ ] **Step 4: Build the TouchDeps and call initTouchHandler**
+- [x] **Step 4: Build the TouchDeps and call initTouchHandler**
 
 In `bootBoard()`, immediately after the drag-handling setup (after the `const { raycaster } = mannequin.getTickRefs();` line at `:199`, and after the ground-objects toolbar block at `:202-204`), insert the wiring. This block defines a local figure-drag closure mirroring the mouse path (`:230-300`), enforcing the same gates:
 
@@ -809,17 +809,17 @@ In `bootBoard()`, immediately after the drag-handling setup (after the `const { 
 
 > **TDZ note:** `currentModerationState` is declared with `let` at `board-boot.ts:447`, *after* this block. The mouse `mousedown` handler at `:242` already references it the same way (closure reads it lazily at event time, not at wiring time), so the `canDragFigure` closure is safe — it only reads `currentModerationState` when a pointerdown actually fires, by which point line 447 has executed. Do **not** move the declaration.
 
-- [ ] **Step 5: Type-check the whole client**
+- [x] **Step 5: Type-check the whole client**
 
 Run: `cd brett && npx tsc --noEmit -p tsconfig.client.json`
 Expected: exit 0. If `currentModerationState` is reported as "used before declaration", that's a false alarm only if you call it at module-eval time — it's inside a closure, so it compiles. If TS still complains, hoist the `let currentModerationState` declaration to just above this block (it has a literal initializer at `:447`, so moving the declaration up and leaving the initializer is safe).
 
-- [ ] **Step 6: Run the full brett unit suite**
+- [x] **Step 6: Run the full brett unit suite**
 
 Run: `cd brett && npm test`
 Expected: all pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add brett/src/client/board-boot.ts brett/src/client/scene.ts brett/test/scene-orbit-api.test.ts
@@ -834,7 +834,7 @@ git commit -m "feat(brett): wire touch-handler into board with lock/freeze/posse
 - Modify: `brett/public/index.html` (`:5` viewport, `:8-290` style block)
 - Test: covered by E2E in Task 7 + a static assertion below.
 
-- [ ] **Step 1: Update the viewport meta to block double-tap zoom**
+- [x] **Step 1: Update the viewport meta to block double-tap zoom**
 
 In `brett/public/index.html` line 5, change:
 
@@ -848,7 +848,7 @@ to:
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 ```
 
-- [ ] **Step 2: Add touch CSS rules at the end of the `<style>` block**
+- [x] **Step 2: Add touch CSS rules at the end of the `<style>` block**
 
 In `brett/public/index.html`, immediately before the closing `</style>` (line 290), insert:
 
@@ -881,12 +881,12 @@ In `brett/public/index.html`, immediately before the closing `</style>` (line 29
 
 > Note: `#stiffness` width on mobile is set to 90px by the existing `@media (max-width: …)` rule at `:141`; this `pointer:coarse` rule only sets height, so there is no conflict.
 
-- [ ] **Step 3: Verify the markup is well-formed (no broken style block)**
+- [x] **Step 3: Verify the markup is well-formed (no broken style block)**
 
 Run: `cd brett && node -e "const s=require('fs').readFileSync('public/index.html','utf8'); const o=(s.match(/<style/g)||[]).length, c=(s.match(/<\/style>/g)||[]).length; if(o!==c) throw new Error('style tag mismatch '+o+'/'+c); if(!s.includes('touch-action: none')) throw new Error('canvas touch-action missing'); if(!s.includes('maximum-scale=1')) throw new Error('viewport not updated'); console.log('index.html OK: style', o+'/'+c);"`
 Expected: `index.html OK: style 1/1`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add brett/public/index.html
@@ -903,7 +903,7 @@ Add touch tests to the existing `brett-mobile.spec.ts` (runs in the `android` Pi
 - Modify: `tests/e2e/specs/brett-mobile.spec.ts`
 - (No change to `tests/e2e/playwright.config.ts` — the `android` project already covers this file with `hasTouch`.)
 
-- [ ] **Step 1: Tighten the existing T8 tap-target assertion to 44px**
+- [x] **Step 1: Tighten the existing T8 tap-target assertion to 44px**
 
 In `tests/e2e/specs/brett-mobile.spec.ts`, the T8 test currently asserts `heights.every(h => h >= 20)`. Replace that block. Find:
 
@@ -920,7 +920,7 @@ Replace with:
       expect(heights.every(h => h >= 44)).toBe(true);
 ```
 
-- [ ] **Step 2: Add the pinch-zoom and orbit-drag touch tests**
+- [x] **Step 2: Add the pinch-zoom and orbit-drag touch tests**
 
 Append inside the `test.describe('Brett Mobile (Android) @mobile', …)` block (before its closing `});`):
 
@@ -990,14 +990,14 @@ Append inside the `test.describe('Brett Mobile (Android) @mobile', …)` block (
   });
 ```
 
-- [ ] **Step 3: Lint-compile the spec (type-check only — do not run against prod here)**
+- [x] **Step 3: Lint-compile the spec (type-check only — do not run against prod here)**
 
 Run: `cd tests/e2e && npx tsc --noEmit -p tsconfig.json`
 Expected: exit 0. (If `tsconfig.json` lacks a `noEmit` build path, instead run `npx playwright test --list --project=android tests/e2e/specs/brett-mobile.spec.ts` to confirm the file parses and the tests are discovered — expected: lists T1–T10 with no parse error.)
 
 > **E2E execution note:** These tests run nightly via `e2e.yml` against the live `android` project (requires `.auth/mentolder-brett.json`). They self-skip when auth state is absent, so a local `--list` is the offline gate. Full execution belongs to the `dev-flow-e2e` phase after deploy, not this plan.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/e2e/specs/brett-mobile.spec.ts
@@ -1010,32 +1010,32 @@ git commit -m "test(brett): e2e pinch-zoom + orbit-drag touch tests; tighten tap
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Full client + server type-check (mirrors `npm run typecheck`)**
+- [x] **Step 1: Full client + server type-check (mirrors `npm run typecheck`)**
 
 Run: `cd brett && npm run typecheck`
 Expected: exit 0 (both `tsconfig.client.json` and `tsconfig.server.json` clean).
 
-- [ ] **Step 2: Full brett unit suite**
+- [x] **Step 2: Full brett unit suite**
 
 Run: `cd brett && npm test`
 Expected: all tests pass, including the new `touch-handler.test.ts` (17 tests) and extended `scene-orbit-api.test.ts`.
 
-- [ ] **Step 3: Production client build (catches Vite/Rollup resolution issues)**
+- [x] **Step 3: Production client build (catches Vite/Rollup resolution issues)**
 
 Run: `cd brett && npm run build`
 Expected: exit 0 — `vite build` bundles `touch-handler.ts` (reached lazily via `board-boot.ts`) and `tsc -p tsconfig.server.json` passes.
 
-- [ ] **Step 4: Repo-level offline test gate (the CI job)**
+- [x] **Step 4: Repo-level offline test gate (the CI job)**
 
 Run: `cd /tmp/wt-T000606-brett-mobile-touch && task test:all`
 Expected: exit 0. If `task` is unavailable, at minimum the brett suite (Steps 1-3) must be green.
 
-- [ ] **Step 5: Confirm the desktop mouse path is untouched (no regression)**
+- [x] **Step 5: Confirm the desktop mouse path is untouched (no regression)**
 
 Run: `cd brett && grep -n "addEventListener('mousedown'\|addEventListener('mousemove'\|addEventListener('mouseup'\|addEventListener('wheel'" src/client/scene.ts src/client/board-boot.ts`
 Expected: the original mouse/wheel listeners are all still present (scene.ts mousedown+wheel+window mousemove/mouseup; board-boot.ts mousedown/click/dblclick + window mousemove/mouseup). Touch is additive.
 
-- [ ] **Step 6: Final commit (only if any verification fix was needed)**
+- [x] **Step 6: Final commit (only if any verification fix was needed)**
 
 ```bash
 git add -A

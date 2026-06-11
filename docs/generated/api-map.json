@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T01:08:21.497Z",
+  "generatedAt": "2026-06-11T02:10:18.926Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -1266,6 +1266,24 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/navigation/save.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/blocks",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/blocks/index.ts"
+    },
+    {
+      "path": "/api/admin/newsletter/blocks/{id}",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/newsletter/blocks/[id].ts"
     },
     {
       "path": "/api/admin/newsletter/campaigns",

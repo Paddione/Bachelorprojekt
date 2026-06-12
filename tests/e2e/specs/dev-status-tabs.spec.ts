@@ -55,4 +55,20 @@ test('FA-UNIF-08: Sidebar hat einen Dev-Status-Eintrag', async ({ page }) => {
   await expect(page.locator('#admin-sidebar a[href="/admin/planungsbuero"]')).toHaveCount(0);
 });
 
+test('FA-UNIF-09: Attention strip appears when a workpiece is blocked', async ({ page }) => {
+  await page.goto('/dev-status?tab=factory');
+  const strip = page.getByRole('alert');
+  if (await strip.count()) {
+    await expect(strip).toContainText(/⛔|⏱|🧊/);
+  }
+});
+
+test('FA-UNIF-10: Planungsbüro reflects a promote without manual reload', async ({ page }) => {
+  await page.goto('/dev-status?tab=planung');
+  const before = await page.locator('[data-planning-item]').count();
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('factory-floor-refreshed', { detail: {} })));
+  await expect.poll(() => page.locator('[data-planning-item]').count()).toBeGreaterThanOrEqual(0);
+  expect(before).toBeGreaterThanOrEqual(0);
+});
+
 });

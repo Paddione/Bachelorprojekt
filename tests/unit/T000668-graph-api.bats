@@ -2,7 +2,7 @@
 # T000668 — Admin Live-Architektur-Graph API offline tests.
 
 setup() {
-  cd "$BATS_TEST_DIRNAME/.." || exit 1
+  cd "$BATS_TEST_DIRNAME/../.." || exit 1
 }
 
 @test "graph.json exists and contains WEBSITE_NAMESPACE placeholder" {

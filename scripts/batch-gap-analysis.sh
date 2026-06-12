@@ -19,11 +19,11 @@ fi
 kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
   psql -U website -d website -qtA -v ON_ERROR_STOP=1 <<'EOF'
 SELECT COALESCE(
-  json_agg(row_to_json(t) ORDER BY t.created_at),
+  json_agg(row_to_json(t) ORDER BY t.external_id),
   '[]'::json
 )
 FROM (
-  SELECT external_id, uuid, title, description, brand, priority, severity
+  SELECT external_id, id AS uuid, title, description, brand, priority, severity
   FROM tickets.tickets
   WHERE status = 'planning'
 ) t;

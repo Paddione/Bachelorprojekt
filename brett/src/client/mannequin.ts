@@ -499,6 +499,13 @@ export function updatePossessionVisuals(figures: any[], currentUserId: string): 
 }
 
 function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
+  const upperText = text.toUpperCase();
+  // Cache: Bei unverändertem Text kein Canvas-Redraw und kein needsUpdate.
+  if (fig._lastLabelText === upperText) {
+    fig.labelSprite.visible = true;
+    return;
+  }
+  fig._lastLabelText = upperText;
   const canvas = fig.labelSprite.material.map.image as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, 256, 64);
@@ -506,7 +513,7 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
   ctx.fillStyle = hexColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text.toUpperCase(), 128, 32);
+  ctx.fillText(upperText, 128, 32);
   fig.labelSprite.material.map.needsUpdate = true;
   fig.labelSprite.visible = true;
 }
@@ -514,6 +521,7 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
 export function clearPossessionVisuals(fig: any): void {
   fig.possessionRing.visible = false;
   fig.labelSprite.visible = false;
+  fig._lastLabelText = undefined;  // Cache invalidieren
 }
 
 // ── Moderation Visuals (T000471) ───────────────────────────────────────────

@@ -26,8 +26,8 @@ import * as groundObjects from './ground-objects';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
-import { createReplayController, type ReplayBoardState } from './replay-engine';
-import { renderTimeline } from './ui/timeline';
+import { createModerationElements } from './board-moderation-ui';
+import { maybeStartReplayMode, applyReplayStateToScene } from './board-replay';
 import { mountInviteButton } from './ui/topbar-invite';
 import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
@@ -109,75 +109,10 @@ export async function bootBoard(): Promise<void> {
   });
 
   // ── D-spec: Observer hint + possession release button ──────────────
-  const observerHint = document.createElement('div');
-  observerHint.id = 'observer-hint';
-  observerHint.textContent = 'Klicke eine freie Figur, um sie zu verkörpern';
-  Object.assign(observerHint.style, {
-    display: 'none',
-    position: 'absolute',
-    bottom: '56px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: 'var(--brett-font-mono), monospace',
-    fontSize: '10px',
-    color: 'var(--brett-brass, #c8a96e)',
-    border: '1px dashed var(--brett-brass-dim, rgba(200,169,110,0.14))',
-    padding: '6px 14px',
-    borderRadius: 'var(--brett-radius-sm, 8px)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    zIndex: '20',
-    pointerEvents: 'none',
-  });
-  document.body.appendChild(observerHint);
-
-  const releaseBtn = document.createElement('button');
-  releaseBtn.id = 'btn-release-possession';
-  releaseBtn.textContent = '🚶 Loslassen';
-  Object.assign(releaseBtn.style, {
-    display: 'none',
-    position: 'absolute',
-    bottom: '52px',
-    right: '16px',
-    fontFamily: 'var(--brett-font-sans), sans-serif',
-    fontSize: '12px',
-    background: 'var(--brett-brass, #c8a96e)',
-    color: 'var(--brett-ink-900, #0b111c)',
-    border: 'none',
-    borderRadius: 'var(--brett-radius-sm, 8px)',
-    padding: '8px 16px',
-    cursor: 'pointer',
-    zIndex: '20',
-    fontWeight: '600',
-  });
+  const { observerHint, releaseBtn, freezeBanner } = createModerationElements();
   releaseBtn.addEventListener('click', () => {
     hud.releaseAllPossessions();
   });
-  document.body.appendChild(releaseBtn);
-
-  // T000471: Freeze-Indikator-Banner
-  const freezeBanner = document.createElement('div');
-  freezeBanner.id = 'freeze-indicator';
-  freezeBanner.textContent = '❄ EINGEFROREN — Figuren koennen nicht bewegt werden';
-  Object.assign(freezeBanner.style, {
-    display: 'none',
-    position: 'absolute',
-    top: '44px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: 'var(--brett-font-mono), monospace',
-    fontSize: '10px',
-    color: '#7dc8f7',
-    border: '1px solid rgba(125,200,247,0.3)',
-    background: 'rgba(0,16,32,0.85)',
-    padding: '4px 18px',
-    borderRadius: '6px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    zIndex: '25',
-    pointerEvents: 'none',
-  });
-  document.body.appendChild(freezeBanner);
 
   initUndoRedo(wsClient, hud, _isAdmin);
 
@@ -538,64 +473,5 @@ export async function bootBoard(): Promise<void> {
   console.log('[brett] scene up');
 }
 
-/**
- * Check if replay mode is requested via URL params and, if so, start it.
- * Activated by: ?replay=1&room=<roomToken>
- * Gated by feature flag: window.__brettFeatures['replay'] (dark-launch).
- * Returns true iff replay mode was started (caller then skips the live WS connect).
- */
-export async function maybeStartReplayMode(): Promise<boolean> {
-  if (typeof window === 'undefined' || typeof location === 'undefined') return false;
-  const params = new URLSearchParams(location.search);
-  const replayMode = params.get('replay') === '1';
-  const featureEnabled = (window as any).__brettFeatures?.['replay'] === true;
-
-  if (!replayMode || !featureEnabled) return false;
-
-  const room = params.get('room');
-  if (!room) {
-    console.warn('[brett/replay] replay=1 but no room param');
-    return false;
-  }
-
-  try {
-    // Load events and initial snapshot from server (admin-gated endpoints).
-    const [eventsRes, snapshotRes] = await Promise.all([
-      fetch(`/api/sessions/${encodeURIComponent(room)}/events`),
-      fetch(`/api/sessions/${encodeURIComponent(room)}/snapshot`),
-    ]);
-    if (!eventsRes.ok || !snapshotRes.ok) {
-      console.error('[brett/replay] failed to load replay data', eventsRes.status, snapshotRes.status);
-      return false;
-    }
-
-    const { events } = await eventsRes.json();
-    const { state: initialState } = await snapshotRes.json();
-    const ctrl = createReplayController(events ?? [], initialState ?? {});
-    // Apply initial state to the scene, then render timeline overlay.
-    applyReplayStateToScene(ctrl.seek(0));
-    const appRoot = document.getElementById('app') ?? document.body;
-    renderTimeline(appRoot, ctrl, (state: ReplayBoardState) => {
-      applyReplayStateToScene(state);
-    });
-    return true;
-  } catch (err) {
-    console.error('[brett/replay] error starting replay mode:', err);
-    return false;
-  }
-}
-
-/**
- * Apply a replay board state to the local STATE without sending any WS messages.
- * Note: this populates STATE.figures with the reconstructed figure data; the
- * normal animation loop renders from STATE. Three.js figure objects (with .root,
- * .ring, etc.) are NOT rebuilt here — replay is a dark-launch read-only view and
- * full scene-graph reconstruction is out of scope for this slice.
- */
-export function applyReplayStateToScene(state: ReplayBoardState): void {
-  const figureArray = Object.values(state.figures);
-  STATE.figures.length = 0;
-  for (const fig of figureArray) {
-    STATE.figures.push(fig as any);
-  }
-}
+// Re-exports für Rückwärtskompatibilität
+export { maybeStartReplayMode, applyReplayStateToScene } from './board-replay';

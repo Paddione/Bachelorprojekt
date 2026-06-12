@@ -1,7 +1,7 @@
 ---
 ticket_id: T000661
 title: "Brett Code-Hygiene-Refactor (T000661)"
-status: staged
+status: done
 domains: [brett]
 created: 2026-06-12
 depends_on_plans: [docs/superpowers/plans/2026-06-12-t000660-brett-security-leaks.md, docs/superpowers/plans/2026-06-12-t000662-brett-client-perf.md]
@@ -13,7 +13,7 @@ parent_feature: null
 
 # Brett Code-Hygiene-Refactor (T000661) — Implementierungsplan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fünf Server- und Client-Dateien an der ~600-Zeilen-Grenze auf klar abgegrenzte Module aufteilen, 20+ `Function`-Typings in `WsDeps` durch konkrete Signaturen ersetzen und Test-only-Exports explizit markieren — alles verhaltensneutral.
 
@@ -34,7 +34,7 @@ parent_feature: null
 **Files:**
 - Modify: _(keine — nur Prüfung)_
 
-- [ ] **Schritt 0.1: Rebase auf origin/main**
+- [x] **Schritt 0.1: Rebase auf origin/main**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -43,7 +43,7 @@ git rebase origin/main
 
 Erwartetes Ergebnis: `Successfully rebased` (kein Rebase-Fehler).
 
-- [ ] **Schritt 0.2: Beide Tickets merged prüfen**
+- [x] **Schritt 0.2: Beide Tickets merged prüfen**
 
 ```bash
 gh pr list --state merged --search "T000660 OR T000662" --json number,title,mergedAt
@@ -51,7 +51,7 @@ gh pr list --state merged --search "T000660 OR T000662" --json number,title,merg
 
 Erwartetes Ergebnis: **Beide** PRs tauchen als `merged` auf. Wenn eines davon fehlt → **ABBRUCH**, Implementierung erst nach Merge beider Tickets fortführen.
 
-- [ ] **Schritt 0.3: Baseline-Tests grün**
+- [x] **Schritt 0.3: Baseline-Tests grün**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -348,7 +348,7 @@ git commit -m "refactor(brett): ws-handler.ts → ws-connection (Lifecycle) + ws
 - Create: `brett/src/server/routes/presets.ts`
 - Modify: `brett/src/server/index.ts` — Routen entfernen, Router-Dateien registrieren, Re-Exports für Test-Suite beibehalten
 
-- [ ] **Schritt 3.1: Grep Importstellen für index.ts-Symbole**
+- [x] **Schritt 3.1: Grep Importstellen für index.ts-Symbole**
 
 ```bash
 grep -rn "from.*server/index\|from.*\.\.\/index\|require.*server/index" /tmp/wt-brett-hygiene/brett/test/ 2>/dev/null | grep -E "buildSnapshotListQuery|parseSnapshotInsert|canCreateTemplate|resolveE2eIdentity" | head -20
@@ -356,7 +356,7 @@ grep -rn "from.*server/index\|from.*\.\.\/index\|require.*server/index" /tmp/wt-
 
 Dokumentiere: welche Tests importieren direkt aus `index.ts`. Diese Imports müssen nach dem Split über die Re-Exports in `index.ts` weiter funktionieren.
 
-- [ ] **Schritt 3.2: `brett/src/server/routes/snapshots.ts` erstellen**
+- [x] **Schritt 3.2: `brett/src/server/routes/snapshots.ts` erstellen**
 
 ```typescript
 // brett/src/server/routes/snapshots.ts
@@ -412,7 +412,7 @@ function asyncHandler(fn: any) {
 }
 ```
 
-- [ ] **Schritt 3.3: `brett/src/server/routes/auth.ts` erstellen**
+- [x] **Schritt 3.3: `brett/src/server/routes/auth.ts` erstellen**
 
 ```typescript
 // brett/src/server/routes/auth.ts
@@ -448,7 +448,7 @@ authRouter.post('/auth/e2e-login', (req: any, res: any) => {
 });
 ```
 
-- [ ] **Schritt 3.4: `brett/src/server/routes/admin.ts` erstellen**
+- [x] **Schritt 3.4: `brett/src/server/routes/admin.ts` erstellen**
 
 ```typescript
 // brett/src/server/routes/admin.ts
@@ -483,7 +483,7 @@ function asyncHandler(fn: any) {
 // GET /api/admin/rooms (auth.requireAdmin)
 ```
 
-- [ ] **Schritt 3.5: `brett/src/server/routes/presets.ts` erstellen**
+- [x] **Schritt 3.5: `brett/src/server/routes/presets.ts` erstellen**
 
 ```typescript
 // brett/src/server/routes/presets.ts
@@ -505,7 +505,7 @@ function asyncHandler(fn: any) {
 // DELETE /presets/:id
 ```
 
-- [ ] **Schritt 3.6: `index.ts` anpassen**
+- [x] **Schritt 3.6: `index.ts` anpassen**
 
 In `index.ts`:
 1. Alle ausgelagerten Route-Handler **entfernen**.
@@ -533,7 +533,7 @@ export { resolveE2eIdentity } from './routes/auth';
 
 **Hinweis:** `resolveE2eIdentity` und die drei Snapshot-Hilfsfunktionen werden von Tests direkt aus `../src/server/index` importiert — die Re-Exports sichern das ohne jede Teständerung.
 
-- [ ] **Schritt 3.7: tsc-Check**
+- [x] **Schritt 3.7: tsc-Check**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -542,7 +542,7 @@ npx tsc --noEmit -p tsconfig.server.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler.
 
-- [ ] **Schritt 3.8: Tests laufen lassen**
+- [x] **Schritt 3.8: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -550,7 +550,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 3.9: Commit**
+- [x] **Schritt 3.9: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -574,7 +574,7 @@ git commit -m "refactor(brett): index.ts → routes/snapshots+auth+admin+presets
 
 **Achtung lazy-chunk-Constraint:** Keine der neuen Client-Dateien darf `three` statisch importieren (nur `ws-client.ts` importiert `mannequin`, das wiederum Three.js importiert — und `ws-client.ts` selbst ist lazy). Die neue `ws-connection-client.ts` darf **kein** `mannequin`-Import haben. `board-boot.ts` importiert `ws-client` direkt und ist bereits ein lazy chunk — dieser Split verändert die Chunk-Grenzen nicht, solange neue Dateien über `ws-client.ts` importiert werden.
 
-- [ ] **Schritt 4.1: Grep Importstellen**
+- [x] **Schritt 4.1: Grep Importstellen**
 
 ```bash
 grep -rn "from.*ws-client" /tmp/wt-brett-hygiene/brett/src/ /tmp/wt-brett-hygiene/brett/test/ 2>/dev/null | grep -v "\.d\.ts" | head -30
@@ -582,7 +582,7 @@ grep -rn "from.*ws-client" /tmp/wt-brett-hygiene/brett/src/ /tmp/wt-brett-hygien
 
 Dokumentiere alle Importstellen. Kein bestehender Import-Pfad muss sich ändern — `ws-client.ts` re-exportiert alles.
 
-- [ ] **Schritt 4.2: `brett/src/client/ws-undo-state.ts` erstellen**
+- [x] **Schritt 4.2: `brett/src/client/ws-undo-state.ts` erstellen**
 
 ```typescript
 // brett/src/client/ws-undo-state.ts
@@ -612,7 +612,7 @@ export function applyUndoStateChange(
 }
 ```
 
-- [ ] **Schritt 4.3: `brett/src/client/ws-connection-client.ts` erstellen**
+- [x] **Schritt 4.3: `brett/src/client/ws-connection-client.ts` erstellen**
 
 ```typescript
 // brett/src/client/ws-connection-client.ts
@@ -649,7 +649,7 @@ import { setMessageHandler } from './ws-connection-client';
 setMessageHandler(onWsMessage);
 ```
 
-- [ ] **Schritt 4.4: `ws-client.ts` bereinigen und Re-Exports ergänzen**
+- [x] **Schritt 4.4: `ws-client.ts` bereinigen und Re-Exports ergänzen**
 
 Aus `ws-client.ts` entfernen:
 - `undoState`, `setUndoStateChangeHandler`, `applyUndoStateChange` (jetzt in `ws-undo-state.ts`)
@@ -666,7 +666,7 @@ export {
 } from './ws-connection-client';
 ```
 
-- [ ] **Schritt 4.5: no-eager-three-Test läuft noch**
+- [x] **Schritt 4.5: no-eager-three-Test läuft noch**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test -- --grep "no-eager-three" 2>&1
@@ -674,7 +674,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test -- --grep "no-eager-three" 2>&1
 
 Erwartetes Ergebnis: PASS. `ws-connection-client.ts` darf kein `three` importieren.
 
-- [ ] **Schritt 4.6: tsc-Check (Client)**
+- [x] **Schritt 4.6: tsc-Check (Client)**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -683,7 +683,7 @@ npx tsc --noEmit -p tsconfig.client.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler.
 
-- [ ] **Schritt 4.7: Tests laufen lassen**
+- [x] **Schritt 4.7: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -691,7 +691,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 4.8: Commit**
+- [x] **Schritt 4.8: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -715,7 +715,7 @@ Da `bootBoard` die einzige exportierte Einstiegsfunktion ist und intern alle Sub
 - Create: `brett/src/client/board-moderation-ui.ts` ← DOM-Erstellung für Observer-Hint, Release-Button, Freeze-Banner
 - Modify: `brett/src/client/board-boot.ts` ← importiert + ruft die extrahierten Funktionen auf; bestehende Exporte bleiben
 
-- [ ] **Schritt 5.1: Grep Importstellen**
+- [x] **Schritt 5.1: Grep Importstellen**
 
 ```bash
 grep -rn "from.*board-boot\|import.*board-boot" /tmp/wt-brett-hygiene/brett/src/ /tmp/wt-brett-hygiene/brett/test/ 2>/dev/null | head -20
@@ -723,7 +723,7 @@ grep -rn "from.*board-boot\|import.*board-boot" /tmp/wt-brett-hygiene/brett/src/
 
 Die meisten Tests importieren `maybeStartReplayMode` und `applyReplayStateToScene` aus `board-boot`. Diese Re-Exports müssen erhalten bleiben.
 
-- [ ] **Schritt 5.2: `brett/src/client/board-replay.ts` erstellen**
+- [x] **Schritt 5.2: `brett/src/client/board-replay.ts` erstellen**
 
 ```typescript
 // brett/src/client/board-replay.ts
@@ -742,7 +742,7 @@ export function applyReplayStateToScene(state: ReplayBoardState): void {
 }
 ```
 
-- [ ] **Schritt 5.3: `brett/src/client/board-moderation-ui.ts` erstellen**
+- [x] **Schritt 5.3: `brett/src/client/board-moderation-ui.ts` erstellen**
 
 ```typescript
 // brett/src/client/board-moderation-ui.ts
@@ -764,7 +764,7 @@ export function createModerationElements(): ModerationElements {
 
 **Hinweis:** Der `click`-Handler auf `releaseBtn` (`hud.releaseAllPossessions()`) bleibt in `board-boot.ts`, da er `hud` importiert. `board-moderation-ui.ts` erstellt nur das DOM-Element ohne Event-Handler und gibt es zurück.
 
-- [ ] **Schritt 5.4: `board-boot.ts` anpassen**
+- [x] **Schritt 5.4: `board-boot.ts` anpassen**
 
 ```typescript
 import { maybeStartReplayMode, applyReplayStateToScene } from './board-replay';
@@ -785,7 +785,7 @@ Re-Exports am Ende von `board-boot.ts` ergänzen:
 export { maybeStartReplayMode, applyReplayStateToScene } from './board-replay';
 ```
 
-- [ ] **Schritt 5.5: no-eager-three-Test läuft noch**
+- [x] **Schritt 5.5: no-eager-three-Test läuft noch**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test -- --grep "no-eager-three" 2>&1
@@ -793,7 +793,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test -- --grep "no-eager-three" 2>&1
 
 Erwartetes Ergebnis: PASS.
 
-- [ ] **Schritt 5.6: tsc-Check (Client)**
+- [x] **Schritt 5.6: tsc-Check (Client)**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -802,7 +802,7 @@ npx tsc --noEmit -p tsconfig.client.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler.
 
-- [ ] **Schritt 5.7: Tests laufen lassen**
+- [x] **Schritt 5.7: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -810,7 +810,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 5.8: Commit**
+- [x] **Schritt 5.8: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -832,7 +832,7 @@ git commit -m "refactor(brett): board-boot.ts → board-replay + board-moderatio
 - Create: `brett/src/client/mannequin-visuals.ts` ← `updatePossessionVisuals`, `updatePossessorLabel`, `clearPossessionVisuals`, `updateModerationVisuals`, `clearModerationVisuals`, `ModerationVisualState`
 - Modify: `brett/src/client/mannequin.ts` ← behält Skeleton/IK + BONE_NAMES/Konstanten; re-exportiert alles
 
-- [ ] **Schritt 6.1: Grep Importstellen**
+- [x] **Schritt 6.1: Grep Importstellen**
 
 ```bash
 grep -rn "from.*mannequin\|import.*mannequin" /tmp/wt-brett-hygiene/brett/src/ /tmp/wt-brett-hygiene/brett/test/ 2>/dev/null | grep -v "\.d\.ts" | head -30
@@ -840,7 +840,7 @@ grep -rn "from.*mannequin\|import.*mannequin" /tmp/wt-brett-hygiene/brett/src/ /
 
 Dokumentiere. Alle Imports aus `mannequin` bleiben über Re-Exports kompatibel.
 
-- [ ] **Schritt 6.2: `brett/src/client/mannequin-physics.ts` erstellen**
+- [x] **Schritt 6.2: `brett/src/client/mannequin-physics.ts` erstellen**
 
 ```typescript
 // brett/src/client/mannequin-physics.ts
@@ -882,7 +882,7 @@ export function setSendMove(fn: typeof sendMove): void {
 }
 ```
 
-- [ ] **Schritt 6.3: `brett/src/client/mannequin-visuals.ts` erstellen**
+- [x] **Schritt 6.3: `brett/src/client/mannequin-visuals.ts` erstellen**
 
 ```typescript
 // brett/src/client/mannequin-visuals.ts
@@ -919,7 +919,7 @@ export function clearModerationVisuals(figures: any[]): void {
 }
 ```
 
-- [ ] **Schritt 6.4: `mannequin.ts` bereinigen und Re-Exports ergänzen**
+- [x] **Schritt 6.4: `mannequin.ts` bereinigen und Re-Exports ergänzen**
 
 Aus `mannequin.ts` entfernen:
 - `tickSpring`, `startJump`, `resolveCollisions` (→ `mannequin-physics.ts`)
@@ -938,7 +938,7 @@ export {
 } from './mannequin-visuals';
 ```
 
-- [ ] **Schritt 6.5: tsc-Check (Client)**
+- [x] **Schritt 6.5: tsc-Check (Client)**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -947,7 +947,7 @@ npx tsc --noEmit -p tsconfig.client.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler.
 
-- [ ] **Schritt 6.6: Tests laufen lassen**
+- [x] **Schritt 6.6: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -955,7 +955,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 6.7: Commit**
+- [x] **Schritt 6.7: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -975,7 +975,7 @@ git commit -m "refactor(brett): mannequin.ts → mannequin-physics + mannequin-v
 - Modify: `brett/src/client/free-fly-camera.ts` (Z. ~217–234)
 - Modify: `brett/src/server/routes/snapshots.ts` (Kommentar ergänzen)
 
-- [ ] **Schritt 7.1: free-fly-camera.ts Test-Helfer-Block dokumentieren**
+- [x] **Schritt 7.1: free-fly-camera.ts Test-Helfer-Block dokumentieren**
 
 Ersetze den vorhandenen Kommentar-Block (ca. Z. 217–219):
 
@@ -996,7 +996,7 @@ durch:
 
 Kein Code ändert sich — nur der Kommentar.
 
-- [ ] **Schritt 7.2: routes/snapshots.ts Test-Helfer-Block dokumentieren**
+- [x] **Schritt 7.2: routes/snapshots.ts Test-Helfer-Block dokumentieren**
 
 Ergänze über `buildSnapshotListQuery` in `brett/src/server/routes/snapshots.ts` folgenden Kommentar:
 
@@ -1007,7 +1007,7 @@ Ergänze über `buildSnapshotListQuery` in `brett/src/server/routes/snapshots.ts
 // used by the route handlers below. If renaming, update snapshots-route.test.ts.
 ```
 
-- [ ] **Schritt 7.3: Tests laufen lassen**
+- [x] **Schritt 7.3: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -1015,7 +1015,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 7.4: tsc-Check (beide)**
+- [x] **Schritt 7.4: tsc-Check (beide)**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -1025,7 +1025,7 @@ npx tsc --noEmit -p tsconfig.client.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler in beiden.
 
-- [ ] **Schritt 7.5: Commit**
+- [x] **Schritt 7.5: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -1037,7 +1037,7 @@ git commit -m "refactor(brett): Test-only-Exports explizit dokumentieren (T00066
 
 ## Task 8: Abschluss-Verifikation und PR
 
-- [ ] **Schritt 8.1: Vollständiger Test-Lauf**
+- [x] **Schritt 8.1: Vollständiger Test-Lauf**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | grep -E "pass|fail|error"
@@ -1045,7 +1045,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | grep -E "pass|fail|error"
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 8.2: Beide tsc-Checks**
+- [x] **Schritt 8.2: Beide tsc-Checks**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -1055,7 +1055,7 @@ npx tsc --noEmit -p tsconfig.client.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler in beiden.
 
-- [ ] **Schritt 8.3: no-eager-three läuft**
+- [x] **Schritt 8.3: no-eager-three läuft**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test -- --grep "no-eager-three" 2>&1
@@ -1063,7 +1063,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test -- --grep "no-eager-three" 2>&1
 
 Erwartetes Ergebnis: PASS.
 
-- [ ] **Schritt 8.4: PR öffnen**
+- [x] **Schritt 8.4: PR öffnen**
 
 ```bash
 cd /tmp/wt-brett-hygiene
@@ -1084,10 +1084,10 @@ Alle 506 Tests grün. Verhaltensneutral — kein Logik-Änderung.
 Depends on: T000660 (security), T000662 (perf).
 
 ## Test plan
-- [ ] `cd brett && npm test` → 506 pass, 0 fail
-- [ ] `npx tsc --noEmit -p tsconfig.server.json` → 0 errors
-- [ ] `npx tsc --noEmit -p tsconfig.client.json` → 0 errors
-- [ ] `npm test -- --grep "no-eager-three"` → PASS
+- [x] `cd brett && npm test` → 506 pass, 0 fail
+- [x] `npx tsc --noEmit -p tsconfig.server.json` → 0 errors
+- [x] `npx tsc --noEmit -p tsconfig.client.json` → 0 errors
+- [x] `npm test -- --grep "no-eager-three"` → PASS
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF

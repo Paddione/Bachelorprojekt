@@ -482,6 +482,7 @@ const wsDeps = {
   performRedo,
   getUndoStatus,
   clearUndoStacks,
+  cleanupRoomTracking: sessions.cleanupRoomTracking,
 };
 
 wsHandler.attachWsServer(wss, wsDeps);

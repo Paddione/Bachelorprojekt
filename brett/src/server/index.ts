@@ -19,6 +19,9 @@ import * as wsHandler from './ws-handler';
 import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
 import * as eventLog from './event-log';
+import * as shareTokens from './share-tokens';
+import { attachShareRoutes } from './share-routes';
+import { asyncHandler } from './helpers';
 import { attachSkinsUpload } from './skins-upload';
 import { listCoachingTemplates, getCoachingTemplate } from './coaching-templates';
 
@@ -74,11 +77,10 @@ app.use(express.static(staticDir, {
   }
 }));
 
-export function asyncHandler(fn: any) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
+export { asyncHandler } from './helpers';
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
+attachShareRoutes(app, staticDir);
 
 app.get('/api/config', (_req, res) =>
   res.json({ ...auth.buildConfig(process.env), brand: auth.resolveBrand(process.env) }));
@@ -285,7 +287,7 @@ app.get('/api/sessions', auth.requireAdmin, asyncHandler(async (req: any, res: a
 }));
 
 // Admin room list.
-app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (_req: any, res: any) => {
   const liveTokens = Array.from(rooms.rooms.keys());
   let nameMap: Record<string, string> = {};
   if (liveTokens.length > 0) {
@@ -483,6 +485,7 @@ const wsDeps = {
   getUndoStatus,
   clearUndoStacks,
   cleanupRoomTracking: sessions.cleanupRoomTracking,
+  resolveShareToken: shareTokens.resolveShareToken,
 };
 
 wsHandler.attachWsServer(wss, wsDeps);

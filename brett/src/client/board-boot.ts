@@ -1,10 +1,6 @@
-// brett/src/client/board-boot.ts — Phase A / A5 + T3 (sf-t000465)
-// Full 3D-board boot logic (lazy chunk). main.ts reaches it via
-// `import('./board-boot')` on first board-view entry, keeping the Hauptmenü Three-free.
-// T3 additions (DARK-LAUNCH: gated behind window.__brettFeatures['sf-t000465']):
-//   • Free-Fly camera mode wired into tick loop with priority POV > Free-Fly > Orbit
-//   • F-key toggle: only when local player owns no figure
-//   • Esc exits Free-Fly first (capture phase, stopImmediatePropagation)
+// brett/src/client/board-boot.ts — Full 3D-board boot logic (lazy chunk).
+// main.ts reaches it via `import('./board-boot')` on first board-view entry,
+// keeping the Hauptmenü Three-free.
 
 import * as THREE from 'three';
 import { STATE, ui, getWs, isWsReady, currentUser, activeLocks } from './state';
@@ -30,6 +26,7 @@ import { updateLinePositions } from './scene-lines';
 import { maybeStartReplayMode } from './replay-board';
 export { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
 import { mountInviteButton } from './ui/topbar-invite';
+import { mountShareButton } from './ui/topbar-share';
 import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
 import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topbar-filter';
@@ -94,6 +91,11 @@ export async function bootBoard(): Promise<void> {
       onChange: (_q) => { /* tick loop reads getFilterQuery() directly */ },
     });
   }
+  mountShareButton(document.getElementById('topbar-share-slot'), {
+    roomToken: new URLSearchParams(location.search).get('room') || 'default',
+    role: myRole(),
+    isAdmin: _isAdmin,
+  });
 
   wsClient.setLateJoinHandler((name) => {
     if (myRole() === 'leiter') showLateJoinToast(name);

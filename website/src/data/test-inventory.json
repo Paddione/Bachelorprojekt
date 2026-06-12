@@ -72,6 +72,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-share-link",
+    "file": "tests/e2e/specs/brett-share-link.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",

@@ -214,6 +214,7 @@ export default defineConfig({
       testMatch: [
         '**/brett-mannequin.spec.ts',  // mannequin focus
         '**/brett-roles.spec.ts',      // C7 role enforcement (opens its own contexts)
+        '**/brett-share-link.spec.ts', // T000608 public view-only share link
       ],
       use: {
         ...devices['Desktop Chrome'],

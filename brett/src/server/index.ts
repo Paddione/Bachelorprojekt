@@ -181,6 +181,7 @@ const wsDeps = {
   loadSnapshotState: db.loadSnapshotState,
   applyTemplateToRoom: figures.applyTemplateToRoom,
   trackPlayerInRoom: sessions.trackPlayerInRoom,
+  cleanupRoomTracking: sessions.cleanupRoomTracking,
   transitionPhase: phases.transitionPhase,
   isAdminFromClaims: auth.isAdminFromClaims,
   getAdminTokenHolder: sessions.getAdminTokenHolder,
@@ -196,7 +197,6 @@ const wsDeps = {
   performRedo,
   getUndoStatus,
   clearUndoStacks,
-  cleanupRoomTracking: sessions.cleanupRoomTracking,
   resolveShareToken: shareTokens.resolveShareToken,
 };
 
@@ -312,3 +312,4 @@ export const undoStacks = undoStackModule.undoStacks;
 export const redoStacks = undoStackModule.redoStacks;
 export const UNDOABLE_TYPES = undoStackModule.UNDOABLE_TYPES;
 export { undoStackModule };
+

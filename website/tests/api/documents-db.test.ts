@@ -1,10 +1,33 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { type IMemoryDb, newDb, DataType } from 'pg-mem';
 import type { SignatureData } from '../../src/lib/signing/types';
 
-describe('documents-db signing functions', () => {
-  let db: IMemoryDb;
+let db: IMemoryDb;
 
+vi.mock('pg', () => {
+  return {
+    default: {
+      Pool: class MockPool {
+        query(...args: unknown[]) {
+          return (db.public as any).query(...args);
+        }
+      },
+    },
+    Pool: class MockPool {
+      query(...args: unknown[]) {
+        return (db.public as any).query(...args);
+      }
+    },
+  };
+});
+
+vi.mock('dns', () => ({
+  resolve4: (_hostname: string, _opts: unknown, cb: (err: null, addrs: string[]) => void) => {
+    cb(null, ['127.0.0.1']);
+  },
+}));
+
+describe('documents-db signing functions', () => {
   beforeEach(() => {
     db = newDb();
     db.public.registerFunction({
@@ -24,6 +47,7 @@ describe('documents-db signing functions', () => {
       );
       CREATE TABLE customers (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT,
         email TEXT NOT NULL
       );
       CREATE TABLE document_assignments (
@@ -76,5 +100,36 @@ describe('documents-db signing functions', () => {
     expect(updated.status).toBe('completed');
     expect(updated.signed_html).toBe('<p>signed</p>');
     expect(updated.signature_data.signerName).toBe('Max Muster');
+  });
+
+  it('listAllAssignments returns assignments joined with template + customer', async () => {
+    const { rows: tpl } = db.public.query(
+      `INSERT INTO document_templates (title, html_body) VALUES ('Vertrag', '<p>x</p>') RETURNING id`,
+    ) as unknown as { rows: { id: string }[] };
+    const { rows: cust } = db.public.query(
+      `INSERT INTO customers (name, email) VALUES ('Alice', 'a@b.de') RETURNING id`,
+    ) as unknown as { rows: { id: string }[] };
+    db.public.none(
+      `INSERT INTO document_assignments (customer_id, template_id, status)
+       VALUES ('${cust[0].id}', '${tpl[0].id}', 'pending')`,
+    );
+
+    const { rows } = db.public.query(
+      `SELECT a.id, a.customer_id,
+              c.name  AS customer_name,
+              c.email AS customer_email,
+              a.template_id, t.title AS template_title,
+              a.status, a.assigned_at, a.signed_at, a.expires_at
+       FROM document_assignments a
+       JOIN document_templates t ON t.id = a.template_id
+       LEFT JOIN customers c ON c.id = a.customer_id
+       ORDER BY a.assigned_at DESC`,
+    ) as unknown as { rows: any[] };
+
+    expect(rows.length).toBe(1);
+    expect(rows[0].template_title).toBe('Vertrag');
+    expect(rows[0].status).toBe('pending');
+    expect(rows[0].customer_name).toBe('Alice');
+    expect(rows[0].customer_email).toBe('a@b.de');
   });
 });

@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.57.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.56.0...website-v1.57.0) (2026-06-12)
+
+
+### Features
+
+* **ci:** API auth coverage gate with allowlist (T000666) ([#1600](https://github.com/Paddione/Bachelorprojekt/issues/1600)) ([69a95a0](https://github.com/Paddione/Bachelorprojekt/commit/69a95a0f12395ef78c4975954e98031581578358))
+
+## [1.56.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.55.0...website-v1.56.0) (2026-06-12)
+
+
+### Features
+
+* **website:** Vertrags-PDF preview & download (T000610) ([#1581](https://github.com/Paddione/Bachelorprojekt/issues/1581)) ([cee4038](https://github.com/Paddione/Bachelorprojekt/commit/cee4038ad440a66a32cbd648408ea5e292d35bfa))
+
+## [1.55.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.54.0...website-v1.55.0) (2026-06-12)
+
+
+### Features
+
+* **brett:** share board as public view-only link (T000608) ([#1584](https://github.com/Paddione/Bachelorprojekt/issues/1584)) ([534fa91](https://github.com/Paddione/Bachelorprojekt/commit/534fa911a36fb879a37eefeb528f3e832eea09aa))
+* **mobile:** Factory View mobile parity — Bottom-Sheet, dots, haptic, scrollable tabs ([#1579](https://github.com/Paddione/Bachelorprojekt/issues/1579)) ([6bb0d81](https://github.com/Paddione/Bachelorprojekt/commit/6bb0d8197bbaf9b94df9f9c495882bb8ff113de8))
+* **website:** Kundenprofil upgrade — CRM, self-service, contact history (T000614) ([#1585](https://github.com/Paddione/Bachelorprojekt/issues/1585)) ([0b6cf77](https://github.com/Paddione/Bachelorprojekt/commit/0b6cf772d195fc6bd14ed7c716c33770b472817a))
+* **website:** scheduled newsletter publish with CronJob (T000615) ([#1586](https://github.com/Paddione/Bachelorprojekt/issues/1586)) ([ab66432](https://github.com/Paddione/Bachelorprojekt/commit/ab6643204f9be0d87aa772951e9863031e08ae42))
+
+
+### Bug Fixes
+
+* **website:** DependencyGraph legacy $: statements break runes-mode build ([#1598](https://github.com/Paddione/Bachelorprojekt/issues/1598)) ([6d4e0b0](https://github.com/Paddione/Bachelorprojekt/commit/6d4e0b0db2ec11166375854126000b2bbe24ca19))
+
 ## [1.54.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.53.0...website-v1.54.0) (2026-06-11)
 
 

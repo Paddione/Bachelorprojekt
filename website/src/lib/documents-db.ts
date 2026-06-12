@@ -238,3 +238,32 @@ export async function getDocumentAssignmentById(id: string): Promise<DocumentAss
   );
   return rows[0] ?? null;
 }
+
+export interface AdminAssignmentRow {
+  id: string;
+  customer_id: string;
+  customer_name: string;
+  customer_email: string;
+  template_id: string;
+  template_title: string;
+  status: 'pending' | 'completed' | 'expired' | 'revoked';
+  assigned_at: string;
+  signed_at: string | null;
+  expires_at: string | null;
+}
+
+export async function listAllAssignments(): Promise<AdminAssignmentRow[]> {
+  await ensureTables();
+  const r = await pool.query(
+    `SELECT a.id, a.customer_id,
+            c.name  AS customer_name,
+            c.email AS customer_email,
+            a.template_id, t.title AS template_title,
+            a.status, a.assigned_at, a.signed_at, a.expires_at
+     FROM document_assignments a
+     JOIN document_templates t ON t.id = a.template_id
+     LEFT JOIN customers c ON c.id = a.customer_id
+     ORDER BY a.assigned_at DESC`,
+  );
+  return r.rows;
+}

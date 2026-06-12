@@ -3,7 +3,7 @@ import { getSession } from '../../../../../lib/auth';
 import { getDocumentAssignmentById, getAssignmentPdf } from '../../../../../lib/documents-db';
 import { logSigningEvent } from '../../../../../lib/signing/audit';
 
-export const GET: APIRoute = async ({ params, request }) => {
+export const GET: APIRoute = async ({ params, request, url }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session?.email) {
     return new Response('Unauthorized', { status: 401 });
@@ -24,11 +24,12 @@ export const GET: APIRoute = async ({ params, request }) => {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '0.0.0.0';
   await logSigningEvent(assignmentId, 'pdf_downloaded', ip, null, session.email);
 
+  const inline = url.searchParams.get('inline') === '1';
   return new Response(new Uint8Array(pdfBuffer), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="dokument-${assignmentId}.pdf"`,
+      'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="dokument-${assignmentId}.pdf"`,
       'Content-Length': String(pdfBuffer.length),
     },
   });

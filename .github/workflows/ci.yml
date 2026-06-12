@@ -65,6 +65,12 @@ jobs:
       - name: Run all offline tests
         run: task test:all
 
+      - name: API auth regression gate
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json
+          node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
+
       - name: Verify generated artifacts are fresh
         run: task freshness:check
 

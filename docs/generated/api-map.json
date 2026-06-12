@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T18:29:31.695Z",
+  "generatedAt": "2026-06-12T19:49:54.496Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -855,6 +855,14 @@
       "file": "website/src/pages/api/admin/documents/assignments/[id].ts"
     },
     {
+      "path": "/api/admin/documents/assignments/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/assignments/[id]/pdf.ts"
+    },
+    {
       "path": "/api/admin/documents/notify/{id}",
       "methods": [
         "POST"
@@ -880,6 +888,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/documents/templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/documents/templates/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/templates/[id]/pdf.ts"
     },
     {
       "path": "/api/admin/einstellungen/backup",
@@ -2292,7 +2308,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/1v3.ts"
     },
     {
@@ -2300,7 +2316,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/arena/active.ts"
     },
     {
@@ -2308,7 +2324,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/duel.ts"
     },
     {
@@ -2316,7 +2332,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/lobby.ts"
     },
     {
@@ -2324,7 +2340,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/matches.ts"
     },
     {
@@ -2332,7 +2348,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/solo.ts"
     },
     {
@@ -2340,7 +2356,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/start.ts"
     },
     {
@@ -2348,7 +2364,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/arena/token.ts"
     },
     {
@@ -2356,7 +2372,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/assets/[...path].ts"
     },
     {
@@ -2372,7 +2388,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/assistant/dismiss.ts"
     },
     {
@@ -2396,7 +2412,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/assistant/transcribe.ts"
     },
     {
@@ -2412,7 +2428,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/auth/delete-account.ts"
     },
     {
@@ -2420,7 +2436,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/auth/login.ts"
     },
     {
@@ -2428,7 +2444,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/auth/logout.ts"
     },
     {
@@ -2436,7 +2452,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/auth/magic.ts"
     },
     {
@@ -2452,7 +2468,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/billing/create-invoice.ts"
     },
     {
@@ -2484,7 +2500,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/booking.ts"
     },
     {
@@ -2500,7 +2516,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/brett/bot.ts"
     },
     {
@@ -2508,7 +2524,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/bug-report.ts"
     },
     {
@@ -2516,7 +2532,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/calendar/slots.ts"
     },
     {
@@ -2524,7 +2540,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/cluster/status.ts"
     },
     {
@@ -2540,7 +2556,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/contact.ts"
     },
     {
@@ -2556,7 +2572,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "cron",
       "file": "website/src/pages/api/cron/scheduled-publish.ts"
     },
     {
@@ -2564,7 +2580,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/dsgvo-request.ts"
     },
     {
@@ -2620,7 +2636,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/health.ts"
     },
     {
@@ -2628,7 +2644,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "internal",
       "file": "website/src/pages/api/internal/tickets/notify-close.ts"
     },
     {
@@ -2636,7 +2652,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/leistungen.ts"
     },
     {
@@ -2652,7 +2668,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/meeting/finalize.ts"
     },
     {
@@ -2668,7 +2684,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/meeting/save-transcript.ts"
     },
     {
@@ -2676,7 +2692,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/meeting/transcribe.ts"
     },
     {
@@ -2692,7 +2708,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/newsletter/confirm.ts"
     },
     {
@@ -2700,7 +2716,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/newsletter/subscribe.ts"
     },
     {
@@ -2708,7 +2724,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/newsletter/unsubscribe.ts"
     },
     {
@@ -2750,7 +2766,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/poll/[id].ts"
     },
     {
@@ -2758,7 +2774,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/poll/[id]/answer.ts"
     },
     {
@@ -2766,7 +2782,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/poll/[id]/results.ts"
     },
     {
@@ -2774,7 +2790,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/documents/[assignmentId]/pdf.ts"
     },
     {
@@ -2782,7 +2798,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/learning/summary.ts"
     },
     {
@@ -2790,7 +2806,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/learning/track.ts"
     },
     {
@@ -2799,7 +2815,7 @@
         "GET",
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/messages.ts"
     },
     {
@@ -2808,7 +2824,7 @@
         "GET",
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/messages/[threadId].ts"
     },
     {
@@ -2816,7 +2832,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/nachrichten.ts"
     },
     {
@@ -2824,7 +2840,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/onboarding/mark-step.ts"
     },
     {
@@ -2832,7 +2848,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/profile/export.ts"
     },
     {
@@ -2840,7 +2856,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/profile/update.ts"
     },
     {
@@ -2848,7 +2864,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/projekte.ts"
     },
     {
@@ -2856,7 +2872,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/projekttasks/[id]/done.ts"
     },
     {
@@ -2864,7 +2880,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/questionnaires/index.ts"
     },
     {
@@ -2872,7 +2888,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/questionnaires/[id]/index.ts"
     },
     {
@@ -2880,7 +2896,7 @@
       "methods": [
         "PUT"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/questionnaires/[id]/answer.ts"
     },
     {
@@ -2888,7 +2904,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/questionnaires/[id]/dismiss.ts"
     },
     {
@@ -2896,7 +2912,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/questionnaires/[id]/submit.ts"
     },
     {
@@ -2904,7 +2920,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/rooms.ts"
     },
     {
@@ -2913,7 +2929,7 @@
         "GET",
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/rooms/[id]/messages.ts"
     },
     {
@@ -2921,7 +2937,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/rooms/ensure-direct.ts"
     },
     {
@@ -2929,7 +2945,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/portal/sign/[assignmentId].ts"
     },
     {
@@ -2937,7 +2953,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/register.ts"
     },
     {
@@ -2945,7 +2961,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "auth",
+      "auth": "session",
       "file": "website/src/pages/api/signing/confirm.ts"
     },
     {
@@ -2953,7 +2969,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/status.ts"
     },
     {
@@ -2977,7 +2993,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/stream/status.ts"
     },
     {
@@ -2993,7 +3009,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/stripe/checkout.ts"
     },
     {
@@ -3001,7 +3017,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/stripe/invoice-payment-intent.ts"
     },
     {
@@ -3009,7 +3025,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/stripe/webhook.ts"
     },
     {
@@ -3025,7 +3041,7 @@
       "methods": [
         "POST"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/tickets/comment.ts"
     },
     {
@@ -3041,7 +3057,7 @@
       "methods": [
         "GET"
       ],
-      "auth": "public",
+      "auth": "unclassified",
       "file": "website/src/pages/api/timeline.ts"
     }
   ]

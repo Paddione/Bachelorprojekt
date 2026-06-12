@@ -911,11 +911,20 @@ task test:all
 ```
 Expected: GRÜN. (Bei intermittierendem Exit 128 im frischen Worktree: einmal erneut ausführen — bekannter Race, dev-flow-gotchas T000218.)
 
-- [ ] **Step 4: Commit Test-Inventar (falls geändert)**
+- [ ] **Step 3b: Freshness + Code-Quality-Gates (CI-Äquivalent)**
+
+Run (im Repo-Root):
+```bash
+task freshness:regenerate
+task freshness:check
+```
+Expected: „All generated artifacts are fresh" und `quality:check — … 0 blocking` (keine neuen/verschlechterten Violations). Die S1-Zeilenbudgets dieses Plans sind unkritisch (Ausgangswerte: `health.ts` 75/600, `platform-db.ts` 134/600, `SoftwareTab.svelte` 154/500, `HealthTab.svelte` 62/500, `AssetModal.svelte` 136/500, `software.ts` 85/600; `platform-links.ts` ist neu und klein). Falls `freshness:regenerate` generierte Dateien ändert (z.B. `repo-index.json` wegen der neuen Datei `platform-links.ts`), diese mitcommitten.
+
+- [ ] **Step 4: Commit Test-Inventar + Freshness-Artefakte (falls geändert)**
 
 ```bash
-git add website/src/data/test-inventory.json
-git commit -m "chore(test): regenerate test-inventory for platform service-link e2e" || echo "no inventory change"
+git add website/src/data/test-inventory.json docs/generated docs/code-quality
+git commit -m "chore(test): regenerate test-inventory + freshness artifacts for platform service-link e2e" || echo "no inventory change"
 ```
 
 ---

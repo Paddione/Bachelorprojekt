@@ -4,6 +4,10 @@ import {
   buildSnapshotListQuery,
   parseSnapshotInsert,
   canCreateTemplate,
+  // SEC bug #2 (T000660): the session guard the unauthenticated read/write
+  // snapshot routes (GET /api/snapshots/:id, POST /api/snapshots) must use.
+  // Not yet implemented — undefined until the guard exists.
+  requireSession,
 } from '../src/server/index';
 
 function reqWith(opts: { isAdmin?: boolean; e2eHeader?: string }): any {
@@ -81,6 +85,37 @@ test('SEC-2: canCreateTemplate ALLOWS the correct x-e2e-secret', () => {
   } finally {
     if (prev === undefined) delete process.env.BRETT_OIDC_SECRET; else process.env.BRETT_OIDC_SECRET = prev;
   }
+});
+
+// ── SEC bug #2 (T000660): unauthenticated snapshot read/write must be gated ──
+// GET /api/snapshots/:id and POST /api/snapshots (non-template) carried no
+// session check. The same requireSession guard exported from index must 401
+// anonymous callers and admit a real session.
+test('SEC bug #2: requireSession is exported and is a function', () => {
+  assert.strictEqual(typeof requireSession, 'function');
+});
+
+test('SEC bug #2: requireSession 401s an anonymous snapshot request', () => {
+  const res: any = { code: 0 };
+  res.status = (c: number) => { res.code = c; return res; };
+  res.json = () => res;
+  const prev = process.env.BRETT_OIDC_SECRET;
+  delete process.env.BRETT_OIDC_SECRET;
+  let nextCalled = false;
+  requireSession({ session: {}, header: () => undefined } as any, res, () => { nextCalled = true; });
+  if (prev !== undefined) process.env.BRETT_OIDC_SECRET = prev;
+  assert.strictEqual(nextCalled, false);
+  assert.strictEqual(res.code, 401);
+});
+
+test('SEC bug #2: requireSession admits an authenticated session', () => {
+  let passed = false;
+  requireSession(
+    { session: { userId: 'u1' }, header: () => undefined } as any,
+    { status: () => ({ json: () => {} }) } as any,
+    () => { passed = true; },
+  );
+  assert.strictEqual(passed, true);
 });
 
 test('SEC-2: with no BRETT_OIDC_SECRET set, the x-e2e bypass is closed', () => {

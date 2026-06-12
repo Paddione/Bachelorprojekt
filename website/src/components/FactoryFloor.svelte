@@ -15,6 +15,7 @@
   import AttentionStrip from './factory/AttentionStrip.svelte';
   import type { QaItem } from '../lib/qa-dal';
   import type { CiRollup } from '../lib/factory-ci';
+  import { SSE_RECONNECT_MS, STUCK_MIN } from '../lib/factory-constants';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 

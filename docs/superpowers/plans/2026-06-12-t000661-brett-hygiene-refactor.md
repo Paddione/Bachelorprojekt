@@ -222,7 +222,7 @@ Die Trennung ist sauber, weil der Dispatcher keine direkten WSS-Lifecycle-Hooks 
 - `resolvePlayerId`, `getSessionCode`, `gateMutation`, `handleLobbySetReady`, `gateSessionReady`, `onLeaderDisconnect`
 - Re-exports: `export { attachWsServer, handleDisconnect, startHeartbeat } from './ws-connection'`
 
-- [ ] **Schritt 2.1: Grep alle Importstellen**
+- [x] **Schritt 2.1: Grep alle Importstellen**
 
 ```bash
 grep -rn "from.*ws-handler\|require.*ws-handler" /tmp/wt-brett-hygiene/brett/src/ /tmp/wt-brett-hygiene/brett/test/ 2>/dev/null
@@ -230,7 +230,7 @@ grep -rn "from.*ws-handler\|require.*ws-handler" /tmp/wt-brett-hygiene/brett/src
 
 Dokumentiere alle gefundenen Dateien — diese müssen nach dem Split **nicht** verändert werden, da `ws-handler.ts` alles re-exportiert.
 
-- [ ] **Schritt 2.2: `brett/src/server/ws-connection.ts` erstellen**
+- [x] **Schritt 2.2: `brett/src/server/ws-connection.ts` erstellen**
 
 Erstelle die Datei mit folgendem Inhalt (die tatsächlichen Funktionen 1:1 aus ws-handler.ts übernehmen — kein Code verändern):
 
@@ -284,7 +284,7 @@ export function startHeartbeat(wss: WebSocketServer): NodeJS.Timeout {
 
 **WICHTIG:** Die Implementierung von `attachWsServer` und `handleDisconnect` sind die vollständigen Funktionskörper aus der aktuellen `ws-handler.ts` (ca. Z. 194–579). Wörtlich kopieren, nichts verändern.
 
-- [ ] **Schritt 2.3: `ws-handler.ts` bereinigen und Re-Exports ergänzen**
+- [x] **Schritt 2.3: `ws-handler.ts` bereinigen und Re-Exports ergänzen**
 
 Entferne aus `ws-handler.ts`:
 - die Funktion `handleDisconnect` (inkl. Body)
@@ -299,7 +299,7 @@ Füge am Ende von `ws-handler.ts` hinzu:
 export { attachWsServer, handleDisconnect, startHeartbeat } from './ws-connection';
 ```
 
-- [ ] **Schritt 2.4: tsc-Check**
+- [x] **Schritt 2.4: tsc-Check**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -308,7 +308,7 @@ npx tsc --noEmit -p tsconfig.server.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler.
 
-- [ ] **Schritt 2.5: Tests laufen lassen**
+- [x] **Schritt 2.5: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -316,7 +316,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 2.6: Commit**
+- [x] **Schritt 2.6: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene

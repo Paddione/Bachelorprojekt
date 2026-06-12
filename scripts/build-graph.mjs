@@ -120,7 +120,7 @@ function extractEnvEdges(fromId, envArray) {
     const refs = findServiceRefs(varValue);
     for (const svc of refs) {
       if (svc !== fromId) {
-        edges.push({ from: fromId, to: svc, via: `env:${varName}` });
+        edges.push({ from: fromId, to: svc, via: `env:${varName}`, kind: 'env' });
       }
     }
   }
@@ -156,13 +156,14 @@ function collectConfigMapRefs(envArray, envFromArray, volumeArray) {
 function extractCommandEdges(fromId, containers, via) {
   const edges = [];
   if (!Array.isArray(containers)) return edges;
+  const edgeKind = via.startsWith('initContainer') ? 'initContainer' : 'command';
   for (const c of containers) {
     const cmd = Array.isArray(c.command) ? c.command.join(' ') : (c.command || '');
     const args = Array.isArray(c.args) ? c.args.join(' ') : (c.args || '');
     const refs = [...findServiceRefs(cmd), ...findServiceRefs(args)];
     for (const svc of refs) {
       if (svc !== fromId) {
-        edges.push({ from: fromId, to: svc, via });
+        edges.push({ from: fromId, to: svc, via, kind: edgeKind });
       }
     }
   }
@@ -176,7 +177,7 @@ function extractAnnotationEdges(fromId, annotations) {
   if (!raw) return edges;
   for (const svc of raw.split(',').map(s => s.trim()).filter(Boolean)) {
     if (svc !== fromId) {
-      edges.push({ from: fromId, to: svc, via: 'annotation' });
+      edges.push({ from: fromId, to: svc, via: 'annotation', kind: 'annotation' });
     }
   }
   return edges;
@@ -201,23 +202,38 @@ function main() {
   // ConfigMap data values may contain service hostnames (e.g. nats://nats:4222).
   // We collect them so Pass 2 can add edges for deployments that mount these CMs.
   const configMapServices = new Map(); // configMapName → Set<serviceName>
+  const serviceSelectors = new Map(); // serviceName → { selector: {labelKey: labelValue} }
   for (const filePath of yamlFiles) {
     const docs = parseYamlFile(filePath);
     for (const doc of docs) {
-      if (!doc || doc.kind !== 'ConfigMap') continue;
-      const cmName = doc.metadata?.name || '';
-      if (!cmName) continue;
-      const data = doc.data || {};
-      const allValues = Object.values(data).join('\n');
-      const refs = findServiceRefs(allValues);
-      if (refs.length > 0) {
-        configMapServices.set(cmName, new Set(refs));
+      if (!doc || !doc.kind) continue;
+      if (doc.kind === 'ConfigMap') {
+        const cmName = doc.metadata?.name || '';
+        if (!cmName) continue;
+        const data = doc.data || {};
+        const allValues = Object.values(data).join('\n');
+        const refs = findServiceRefs(allValues);
+        if (refs.length > 0) {
+          configMapServices.set(cmName, new Set(refs));
+        }
+      }
+      if (doc.kind === 'Service') {
+        const svcName = doc.metadata?.name || '';
+        const selector = doc.spec?.selector;
+        if (svcName && selector && typeof selector === 'object') {
+          serviceSelectors.set(svcName, { selector });
+        }
       }
     }
   }
 
   // Ingress backends
   const ingressEdges = [];
+
+  // Secret → workloads mapping (for shared-secret edges)
+  const secretConsumers = new Map(); // secretName → Set<workloadId>
+  // Workload → pod labels (for selector resolution)
+  const workloadPodLabels = new Map(); // workloadId → {labelKey: labelValue}
 
   // ── Pass 2: build nodes and edges ─────────────────────────────────────────
   for (const filePath of yamlFiles) {
@@ -252,6 +268,44 @@ function main() {
           const containers = podSpec.containers || [];
           const initContainers = podSpec.initContainers || [];
 
+          // Collect pod labels for selector resolution
+          const podLabels = kind === 'CronJob'
+            ? doc.spec?.jobTemplate?.spec?.template?.metadata?.labels || {}
+            : doc.spec?.template?.metadata?.labels || {};
+          workloadPodLabels.set(nodeId, podLabels);
+
+          // Collect secret references (excluding imagePullSecrets)
+          const allContainers = [...containers, ...initContainers];
+          for (const c of allContainers) {
+            if (Array.isArray(c.env)) {
+              for (const env of c.env) {
+                const secretName = env?.valueFrom?.secretKeyRef?.name;
+                if (secretName) {
+                  if (!secretConsumers.has(secretName)) secretConsumers.set(secretName, new Set());
+                  secretConsumers.get(secretName).add(nodeId);
+                }
+              }
+            }
+            if (Array.isArray(c.envFrom)) {
+              for (const ef of c.envFrom) {
+                const secretName = ef?.secretRef?.name;
+                if (secretName) {
+                  if (!secretConsumers.has(secretName)) secretConsumers.set(secretName, new Set());
+                  secretConsumers.get(secretName).add(nodeId);
+                }
+              }
+            }
+          }
+          if (Array.isArray(podSpec.volumes)) {
+            for (const vol of podSpec.volumes) {
+              const secretName = vol?.secret?.secretName;
+              if (secretName) {
+                if (!secretConsumers.has(secretName)) secretConsumers.set(secretName, new Set());
+                secretConsumers.get(secretName).add(nodeId);
+              }
+            }
+          }
+
           for (const c of containers) {
             // Literal env values
             const envEdges = extractEnvEdges(nodeId, c.env || []);
@@ -266,7 +320,7 @@ function main() {
               const svcs = configMapServices.get(cmName) || new Set();
               for (const svc of svcs) {
                 if (svc !== nodeId) {
-                  const e = { from: nodeId, to: svc, via: `configmap:${cmName}` };
+                  const e = { from: nodeId, to: svc, via: `configmap:${cmName}`, kind: 'configmap' };
                   const key = `${e.from}→${e.to}→${e.via}`;
                   if (!edgeSet.has(key)) { edgeSet.add(key); edges.push(e); }
                 }
@@ -301,7 +355,20 @@ function main() {
           for (const p of paths) {
             const backendName = p.backend?.service?.name || '';
             if (backendName) {
-              ingressEdges.push({ from: 'traefik', to: backendName, via: 'ingress' });
+              ingressEdges.push({ from: 'traefik', to: backendName, via: 'ingress', kind: 'ingress' });
+            }
+          }
+        }
+      }
+
+      if (kind === 'IngressRoute' && doc.apiVersion?.startsWith('traefik.io/')) {
+        const routes = doc.spec?.routes || [];
+        for (const route of routes) {
+          const services = route.services || [];
+          for (const svc of services) {
+            const svcName = svc.name || '';
+            if (svcName) {
+              ingressEdges.push({ from: 'traefik', to: svcName, via: 'ingress', kind: 'ingress' });
             }
           }
         }
@@ -319,6 +386,43 @@ function main() {
     // Ensure target node exists (may not be a Deployment in our files)
     if (!nodes.has(e.to)) {
       nodes.set(e.to, { id: e.to, namespace: 'mentolder', type: 'Service', name: e.to });
+    }
+  }
+
+  // ── Selector resolution: Service → Workload ───────────────────────────────
+  for (const [svcName, { selector }] of serviceSelectors) {
+    if (svcName === 'traefik') continue;
+    const selectorEntries = Object.entries(selector);
+    if (selectorEntries.length === 0) continue;
+    for (const [workloadId, podLabels] of workloadPodLabels) {
+      if (workloadId === 'traefik') continue;
+      const matches = selectorEntries.every(([k, v]) => podLabels[k] === v);
+      if (matches) {
+        const e = { from: svcName, to: workloadId, via: 'selector', kind: 'selector' };
+        const key = `${e.from}→${e.to}→${e.via}`;
+        if (!edgeSet.has(key)) { edgeSet.add(key); edges.push(e); }
+        if (!nodes.has(svcName)) {
+          nodes.set(svcName, { id: svcName, namespace: 'mentolder', type: 'Service', name: svcName });
+        }
+      }
+    }
+  }
+
+  // ── Pass 3: Shared-secret edges ───────────────────────────────────────────
+  for (const [secretName, consumers] of secretConsumers) {
+    if (consumers.size < 2) continue;
+    const consumerList = [...consumers];
+    for (let i = 0; i < consumerList.length; i++) {
+      for (let j = i + 1; j < consumerList.length; j++) {
+        const wA = consumerList[i];
+        const wB = consumerList[j];
+        const e1 = { from: wA, to: wB, via: `secret:${secretName}`, kind: 'secret' };
+        const e2 = { from: wB, to: wA, via: `secret:${secretName}`, kind: 'secret' };
+        const key1 = `${e1.from}→${e1.to}→${e1.via}`;
+        const key2 = `${e2.from}→${e2.to}→${e2.via}`;
+        if (!edgeSet.has(key1)) { edgeSet.add(key1); edges.push(e1); }
+        if (!edgeSet.has(key2)) { edgeSet.add(key2); edges.push(e2); }
+      }
     }
   }
 

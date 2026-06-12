@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T17:25:17.450Z",
+  "generatedAt": "2026-06-12T17:29:27.906Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2550,6 +2550,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/cron/notify-unread.ts"
+    },
+    {
+      "path": "/api/cron/scheduled-publish",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/cron/scheduled-publish.ts"
     },
     {
       "path": "/api/dsgvo-request",

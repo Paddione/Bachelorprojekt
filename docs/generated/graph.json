@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T17:25:17.361Z",
+  "generatedAt": "2026-06-12T17:29:27.841Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -72,6 +72,12 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "monthly-billing"
+    },
+    {
+      "id": "scheduled-publish",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "scheduled-publish"
     },
     {
       "id": "systemtest-cleanup",
@@ -531,6 +537,11 @@
     },
     {
       "from": "monthly-billing",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "website",
       "via": "command"
     },

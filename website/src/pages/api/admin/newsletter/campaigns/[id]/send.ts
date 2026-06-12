@@ -1,13 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
-import {
-  getCampaign,
-  getConfirmedSubscribers,
-  markCampaignSent,
-  createSendLog,
-  countSentCampaigns,
-} from '../../../../../../lib/newsletter-db';
-import { sendNewsletterCampaign } from '../../../../../../lib/email';
+import { getCampaign, sendCampaignById } from '../../../../../../lib/newsletter-db';
 
 export const POST: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -25,38 +18,12 @@ export const POST: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ error: 'Kampagne wurde bereits versendet' }), { status: 409 });
   }
 
-  const subscribers = await getConfirmedSubscribers();
-  if (subscribers.length === 0) {
-    return new Response(JSON.stringify({ error: 'Keine bestätigten Abonnenten vorhanden' }), { status: 400 });
+  const result = await sendCampaignById(id);
+  if (!result.success) {
+    return new Response(JSON.stringify({ error: result.error ?? 'Versand fehlgeschlagen' }), { status: 400 });
   }
-
-  const prodDomain = process.env.PROD_DOMAIN || '';
-  const baseUrl = prodDomain ? `https://web.${prodDomain}` : 'http://web.localhost';
-
-  const sentCount = await countSentCampaigns();
-  const ausgabe = String(sentCount + 1).padStart(2, '0');
-  const renderedHtml = campaign.html_body.replace(/\{\{AUSGABE\}\}/g, ausgabe);
-
-  let sent = 0;
-  for (const sub of subscribers) {
-    const unsubscribeUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${sub.unsubscribe_token}`;
-    const ok = await sendNewsletterCampaign({
-      to: sub.email,
-      subject: campaign.subject,
-      html: renderedHtml,
-      unsubscribeUrl,
-    });
-    await createSendLog({
-      campaignId: id,
-      subscriberId: sub.id,
-      status: ok ? 'sent' : 'failed',
-    });
-    if (ok) sent++;
-  }
-
-  await markCampaignSent(id, sent);
-
-  return new Response(JSON.stringify({ ok: true, sent, total: subscribers.length }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  return new Response(
+    JSON.stringify({ ok: true, sent: result.recipientCount, total: result.recipientCount }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
 };

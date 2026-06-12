@@ -38,6 +38,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/cronjob-dunning-detection.yaml]="cronjobs"
   [k3d/cronjob-systemtest-cleanup.yaml]="cronjobs"
   [k3d/tests-retention-cronjob.yaml]="cronjobs"
+  [k3d/cronjob-scheduled-publish.yaml]="cronjobs"
   [k3d/einvoice-sidecar.yaml]="einvoice"
   [k3d/oauth2-proxy-comfy.yaml]="oauth2-proxy"
   [k3d/oauth2-proxy-traefik.yaml]="traefik"

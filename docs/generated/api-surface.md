@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-12T17:25:17.450Z
+> Generated at 2026-06-12T17:29:27.906Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -316,6 +316,7 @@
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
 | `/api/contact` | POST | 🌐 public | `website/src/pages/api/contact.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
+| `/api/cron/scheduled-publish` | GET | 🌐 public | `website/src/pages/api/cron/scheduled-publish.ts` |
 | `/api/dsgvo-request` | POST | 🌐 public | `website/src/pages/api/dsgvo-request.ts` |
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |

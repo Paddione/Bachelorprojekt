@@ -13,7 +13,7 @@ depends_on_plans: []
 
 # Factory-Flow-Polish Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make the Software Factory's already-collected-but-unshown telemetry visible on `/dev-status` — pipeline-phase progress per workpiece, full ticket-status coverage, an attention strip (blocked/stuck/provider-cooldown), live GitHub CI checks, a single shared refresh path, and hygiene fixes.
 
@@ -69,7 +69,7 @@ These were confirmed against the code on 2026-06-12. Do not re-litigate; build o
 - Modify: `website/src/lib/factory-floor.ts` (add `PHASE_ORDER` is already there at line 9; add exported helper + `PhaseProgress` type near the `HallItem` interface ~line 28)
 - Test: `website/src/lib/factory-floor.test.ts` (extend)
 
-- [ ] **Step 1: Write the failing test** — append to `factory-floor.test.ts` (new `describe` block):
+- [x] **Step 1: Write the failing test** — append to `factory-floor.test.ts` (new `describe` block):
 
 ```ts
 import { phaseProgress } from './factory-floor';
@@ -104,12 +104,12 @@ describe('phaseProgress', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t phaseProgress`
 Expected: FAIL — `phaseProgress is not a function` / import error.
 
-- [ ] **Step 3: Implement the helper** — add to `factory-floor.ts` (after the `PhaseState` type, ~line 11):
+- [x] **Step 3: Implement the helper** — add to `factory-floor.ts` (after the `PhaseState` type, ~line 11):
 
 ```ts
 export type PhaseSegmentState = 'pending' | 'active' | 'done' | 'blocked';
@@ -129,12 +129,12 @@ export function phaseProgress(phase: Phase | null, state: PhaseState | null): Ph
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t phaseProgress`
 Expected: PASS (4 assertions).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -149,7 +149,7 @@ git commit -m "feat(factory-floor): pure phaseProgress helper for the per-card s
 - Modify: `website/src/lib/factory-floor.ts` — extend `HallItem` (line 28) and `getHall()` (line 144); the SQL already joins the latest phase event.
 - Test: `website/src/lib/factory-floor.test.ts` (extend existing `getHall` block — there is already a pg-mem fixture with `h1` active + `b1` blocked + `dv1` devflow).
 
-- [ ] **Step 1: Write the failing test** — add inside the existing `describe` that calls `getHall()`:
+- [x] **Step 1: Write the failing test** — add inside the existing `describe` that calls `getHall()`:
 
 ```ts
 it('attaches a phaseProgress array reflecting the latest event', async () => {
@@ -162,12 +162,12 @@ it('attaches a phaseProgress array reflecting the latest event', async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t getHall`
 Expected: FAIL — `phaseProgress` undefined on the returned object.
 
-- [ ] **Step 3: Implement** — in `factory-floor.ts`:
+- [x] **Step 3: Implement** — in `factory-floor.ts`:
 
 Extend the `HallItem` interface (line 28) by adding:
 ```ts
@@ -178,12 +178,12 @@ In `getHall()`'s `.map(...)` return (line 164), add:
     phaseProgress: phaseProgress(row.phase ?? null, row.state ?? null),
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t getHall`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -198,7 +198,7 @@ git commit -m "feat(factory-floor): expose phaseProgress per Hall workpiece"
 - Create: `website/src/lib/factory-floor.ts` — add an exported `STATUS_BUCKETS` constant mapping every status to a UI bucket.
 - Test: `website/src/lib/factory-floor.test.ts` (extend).
 
-- [ ] **Step 1: Write the failing test** — append:
+- [x] **Step 1: Write the failing test** — append:
 
 ```ts
 import { STATUS_BUCKETS, ALL_TICKET_STATUSES } from './factory-floor';
@@ -222,12 +222,12 @@ describe('status coverage', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t "status coverage"`
 Expected: FAIL — `STATUS_BUCKETS`/`ALL_TICKET_STATUSES` not exported.
 
-- [ ] **Step 3: Implement** — add to `factory-floor.ts`:
+- [x] **Step 3: Implement** — add to `factory-floor.ts`:
 
 ```ts
 export const ALL_TICKET_STATUSES = [
@@ -253,12 +253,12 @@ export const STATUS_BUCKETS: Record<TicketStatus, string> = {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t "status coverage"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -273,7 +273,7 @@ git commit -m "feat(factory-floor): STATUS_BUCKETS coverage guard (no invisible 
 - Modify: `website/src/lib/factory-floor.ts` — add `AttentionPayload` type, `buildAttention()` pure helper, and include it in `FloorPayload` from `getFloor()`. Reuses existing `hall` (blocked/stuck) + `providerHealth` (cooldown). Remove the dead `qaQueue: never[]` field.
 - Test: `website/src/lib/factory-floor.test.ts` (extend).
 
-- [ ] **Step 1: Write the failing test** — append:
+- [x] **Step 1: Write the failing test** — append:
 
 ```ts
 import { buildAttention } from './factory-floor';
@@ -305,12 +305,12 @@ describe('buildAttention', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t buildAttention`
 Expected: FAIL — `buildAttention` not a function.
 
-- [ ] **Step 3: Implement** — in `factory-floor.ts`:
+- [x] **Step 3: Implement** — in `factory-floor.ts`:
 
 ```ts
 export interface AttentionPayload {
@@ -342,12 +342,12 @@ export function buildAttention(
 In `FloorPayload` (line 49): remove `qaQueue: never[];`, add `attention: AttentionPayload;`.
 In `getFloor()` return (line 322): remove `qaQueue: [],`, add `attention: buildAttention(hall, providerHealth),`.
 
-- [ ] **Step 4: Run + the existing getFloor test must still pass (it references qaQueue — update it)**
+- [x] **Step 4: Run + the existing getFloor test must still pass (it references qaQueue — update it)**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS. If an existing assertion checks `qaQueue`, replace it with an `attention` assertion (the pg-mem fixture has a blocked `b1` → `attention.blocked` should contain `T000460`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts
@@ -362,7 +362,7 @@ git commit -m "feat(factory-floor): attention aggregation (blocked/stuck/cooldow
 - Create: `website/src/lib/factory-ci.ts`
 - Test: `website/src/lib/factory-ci.test.ts` (new — no existing file covers CI fetching)
 
-- [ ] **Step 1: Write the failing test** — `factory-ci.test.ts`:
+- [x] **Step 1: Write the failing test** — `factory-ci.test.ts`:
 
 ```ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -401,12 +401,12 @@ describe('factory-ci normalization', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/factory-ci.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement** — `factory-ci.ts` (server-only; reads token from env, never client):
+- [x] **Step 3: Implement** — `factory-ci.ts` (server-only; reads token from env, never client):
 
 ```ts
 // Server-only: live GitHub CI check-runs for a Factory workpiece's PR. CI results
@@ -467,12 +467,12 @@ export async function fetchCiChecks(prNumber: number): Promise<{ checks: CiCheck
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/factory-ci.test.ts`
 Expected: PASS (5 assertions).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-ci.ts website/src/lib/factory-ci.test.ts
@@ -487,7 +487,7 @@ git commit -m "feat(factory-ci): server-side GitHub check-runs fetch + rollup (D
 - Create: `website/src/pages/api/factory-floor/[extId]/ci.ts`
 - Test: `website/src/pages/api/factory-floor/ci.test.ts` (new — mirrors the `inject.test.ts` auth+mock pattern; no existing test for this route)
 
-- [ ] **Step 1: Write the failing test** — `ci.test.ts`:
+- [x] **Step 1: Write the failing test** — `ci.test.ts`:
 
 ```ts
 import { describe, it, expect, vi } from 'vitest';
@@ -524,12 +524,12 @@ describe('GET /api/factory-floor/[extId]/ci', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/pages/api/factory-floor/ci.test.ts`
 Expected: FAIL — route module not found.
 
-- [ ] **Step 3: Implement** — `[extId]/ci.ts` (mirror `[extId].ts` auth):
+- [x] **Step 3: Implement** — `[extId]/ci.ts` (mirror `[extId].ts` auth):
 
 ```ts
 import type { APIRoute } from 'astro';
@@ -570,12 +570,12 @@ export const GET: APIRoute = async ({ request, params }) => {
 
 Note: the test imports `./[extId]/ci` from `src/pages/api/factory-floor/` so the auth path from THAT route file is `../../../../lib/auth` (4 levels). Verify the relative depth matches `[extId].ts` siblings (which use `../../../lib`); the `[extId]/` subdir adds one level → `../../../../lib`. Adjust the `vi.mock` paths in the test to the path that resolves to the real module if the first run mis-resolves (same caveat as `inject.test.ts` lines 3-5).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/pages/api/factory-floor/ci.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "website/src/pages/api/factory-floor/[extId]/ci.ts" website/src/pages/api/factory-floor/ci.test.ts
@@ -590,7 +590,7 @@ git commit -m "feat(api): factory-floor CI-checks endpoint (admin, cached, serve
 - Create: `website/src/components/factory/PhaseStepper.svelte`, `website/src/components/factory/CiBadge.svelte`
 - Modify: `website/src/components/FactoryFloor.svelte` (render stepper inside the conveyor card; fetch CI per PR card)
 
-- [ ] **Step 1: Write `PhaseStepper.svelte`** (presentational, props-only):
+- [x] **Step 1: Write `PhaseStepper.svelte`** (presentational, props-only):
 
 ```svelte
 <script lang="ts">
@@ -612,7 +612,7 @@ git commit -m "feat(api): factory-floor CI-checks endpoint (admin, cached, serve
 </style>
 ```
 
-- [ ] **Step 2: Write `CiBadge.svelte`**:
+- [x] **Step 2: Write `CiBadge.svelte`**:
 
 ```svelte
 <script lang="ts">
@@ -631,7 +631,7 @@ git commit -m "feat(api): factory-floor CI-checks endpoint (admin, cached, serve
 </style>
 ```
 
-- [ ] **Step 3: Wire into `FactoryFloor.svelte`** — import both; in the conveyor card loop (the `{#each STATIONS}` block ~line 261) render `<PhaseStepper segments={w.phaseProgress} />` under the card title, and `<CiBadge rollup={ciByExt[w.extId] ?? null} />` next to the ext-id when `w.prNumber` is set. Add a `$state` `ciByExt: Record<string, CiRollup>` populated by a CI fetch in `refresh()`:
+- [x] **Step 3: Wire into `FactoryFloor.svelte`** — import both; in the conveyor card loop (the `{#each STATIONS}` block ~line 261) render `<PhaseStepper segments={w.phaseProgress} />` under the card title, and `<CiBadge rollup={ciByExt[w.extId] ?? null} />` next to the ext-id when `w.prNumber` is set. Add a `$state` `ciByExt: Record<string, CiRollup>` populated by a CI fetch in `refresh()`:
 
 ```ts
 import PhaseStepper from './factory/PhaseStepper.svelte';
@@ -649,12 +649,12 @@ async function refreshCi(extIds: string[]) {
 ```
 Call `refreshCi(data.hall.filter(w => w.prNumber).map(w => w.extId))` at the end of `refresh()`.
 
-- [ ] **Step 4: Verify build + typecheck + existing tests**
+- [x] **Step 4: Verify build + typecheck + existing tests**
 
 Run: `cd website && pnpm check && pnpm vitest run src/lib/factory-floor.test.ts src/lib/factory-ci.test.ts`
 Expected: typecheck clean, tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/components/factory/PhaseStepper.svelte website/src/components/factory/CiBadge.svelte website/src/components/FactoryFloor.svelte
@@ -669,7 +669,7 @@ git commit -m "feat(factory-floor): phase stepper + CI badge on workpiece cards 
 - Create: `website/src/components/factory/AttentionStrip.svelte`
 - Modify: `website/src/components/FactoryFloor.svelte` (render strip at top from `data.attention`; delete the dead `data.qaQueue` column at lines ~382-389)
 
-- [ ] **Step 1: Write `AttentionStrip.svelte`**:
+- [x] **Step 1: Write `AttentionStrip.svelte`**:
 
 ```svelte
 <script lang="ts">
@@ -692,19 +692,19 @@ git commit -m "feat(factory-floor): phase stepper + CI badge on workpiece cards 
 </style>
 ```
 
-- [ ] **Step 2: Wire into `FactoryFloor.svelte`** — import and render `<AttentionStrip attention={data.attention} />` immediately above the `<ProviderStatus ... />` line (~236). Delete the dead `data.qaQueue` placeholder column block (lines ~382-389, the `col-qa` div that renders `data?.qaQueue?.length` and `{#each data?.qaQueue ?? []}`). Keep the real qa-dal column (`data-testid="floor-qa"`, lines ~428+) untouched.
+- [x] **Step 2: Wire into `FactoryFloor.svelte`** — import and render `<AttentionStrip attention={data.attention} />` immediately above the `<ProviderStatus ... />` line (~236). Delete the dead `data.qaQueue` placeholder column block (lines ~382-389, the `col-qa` div that renders `data?.qaQueue?.length` and `{#each data?.qaQueue ?? []}`). Keep the real qa-dal column (`data-testid="floor-qa"`, lines ~428+) untouched.
 
-- [ ] **Step 3: Verify typecheck (FloorPayload no longer has qaQueue → the deleted refs must be the only ones)**
+- [x] **Step 3: Verify typecheck (FloorPayload no longer has qaQueue → the deleted refs must be the only ones)**
 
 Run: `cd website && pnpm check`
 Expected: clean. If `pnpm check` flags a leftover `qaQueue` reference, remove it.
 
-- [ ] **Step 4: Run the floor tests**
+- [x] **Step 4: Run the floor tests**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/components/factory/AttentionStrip.svelte website/src/components/FactoryFloor.svelte
@@ -718,7 +718,7 @@ git commit -m "feat(factory-floor): AttentionStrip (blocked/stuck/cooldown); rem
 **Files:**
 - Modify: `website/src/components/factory/DetailPanel.svelte` (timeline from `detail.events` with per-phase durations; CI check list fetched from the ci endpoint)
 
-- [ ] **Step 1: Add a pure duration helper + test** — extend `factory-floor.test.ts`:
+- [x] **Step 1: Add a pure duration helper + test** — extend `factory-floor.test.ts`:
 
 ```ts
 import { phaseDurations } from './factory-floor';
@@ -734,12 +734,12 @@ describe('phaseDurations', () => {
 });
 ```
 
-- [ ] **Step 2: Run to fail**
+- [x] **Step 2: Run to fail**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t phaseDurations`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement `phaseDurations` in `factory-floor.ts`** (events come newest-first from `getTicketDetail`; sort ascending, diff consecutive):
+- [x] **Step 3: Implement `phaseDurations` in `factory-floor.ts`** (events come newest-first from `getTicketDetail`; sort ascending, diff consecutive):
 
 ```ts
 export interface TimelineEntry extends PhaseEventRow { durationSec: number | null; }
@@ -752,13 +752,13 @@ export function phaseDurations(events: PhaseEventRow[]): TimelineEntry[] {
 }
 ```
 
-- [ ] **Step 4: Run to pass + wire UI**
+- [x] **Step 4: Run to pass + wire UI**
 
 Run: `cd website && pnpm vitest run src/lib/factory-floor.test.ts -t phaseDurations` → PASS.
 Then in `DetailPanel.svelte`: render `phaseDurations(detail.events)` as a vertical timeline (phase · state · duration), and fetch `/api/factory-floor/${extId}/ci` to render a CI check list — each row `name · status/conclusion` linking to `check.url` (open in new tab). Show "keine CI-Checks" when `rollup === null`.
 Run: `cd website && pnpm check` → clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-floor.ts website/src/lib/factory-floor.test.ts website/src/components/factory/DetailPanel.svelte
@@ -773,7 +773,7 @@ git commit -m "feat(factory-floor): DetailPanel phase timeline with durations + 
 - Modify: `website/src/components/PlanningOffice.svelte` (subscribe to the existing `factory-floor-refreshed` window event → re-fetch its list)
 - Modify: `website/src/components/factory/StatusBoundary.svelte` (new shared loading/error wrapper) + apply in PlanningOffice and FactoryFloor fetch paths (D7 consistency / AK#5)
 
-- [ ] **Step 1: Create `StatusBoundary.svelte`** (shared loading/error UI):
+- [x] **Step 1: Create `StatusBoundary.svelte`** (shared loading/error UI):
 
 ```svelte
 <script lang="ts">
@@ -790,7 +790,7 @@ git commit -m "feat(factory-floor): DetailPanel phase timeline with durations + 
 </style>
 ```
 
-- [ ] **Step 2: Subscribe PlanningOffice to the shared stream** — in `PlanningOffice.svelte`'s `onMount`, add:
+- [x] **Step 2: Subscribe PlanningOffice to the shared stream** — in `PlanningOffice.svelte`'s `onMount`, add:
 
 ```ts
 const onRefresh = () => { void reloadList(); };  // reloadList = existing fetch of planning items
@@ -800,14 +800,14 @@ window.addEventListener('factory-floor-refreshed', onRefresh);
 The event is already dispatched by `FactoryFloor.svelte` on every SSE tick (`factory-floor.ts` SSE → `refresh()` → `dispatchEvent(new CustomEvent('factory-floor-refreshed', …))`). Promote/Enqueue mutations in PlanningOffice should additionally call `reloadList()` optimistically right after the mutation resolves (no extra polling path — D2).
 Wrap PlanningOffice's initial fetch and FactoryFloor's `refresh()` error path with `StatusBoundary` (set `loading`/`error` state). Ensure every fetch sets `error` on a non-ok response instead of failing silently (AK#5).
 
-- [ ] **Step 3: Typecheck + existing tests**
+- [x] **Step 3: Typecheck + existing tests**
 
 Run: `cd website && pnpm check && pnpm vitest run`
 Expected: clean + all PASS (incl. `planning-office.clarify.test.ts`).
 
-- [ ] **Step 4: Manual smoke note (no code)** — the live behavior is asserted by the Playwright task below.
+- [x] **Step 4: Manual smoke note (no code)** — the live behavior is asserted by the Playwright task below.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/components/PlanningOffice.svelte website/src/components/factory/StatusBoundary.svelte website/src/components/FactoryFloor.svelte
@@ -821,12 +821,12 @@ git commit -m "feat(factory): shared SSE refresh drives Planungsbüro live + Sta
 **Files:**
 - Modify: `website/src/components/FactoryFloor.svelte` (replace literal `5000`/`15`/`STUCK_MIN`/heartbeat literals with named constants near the top), `website/src/styles/factory-tokens.css` (or the existing factory token file — locate via `grep -rl "factory-spacing" website/src`), `website/src/components/factory/MobileTabBar.svelte` (min 44px touch targets).
 
-- [ ] **Step 1: Audit current magic numbers**
+- [x] **Step 1: Audit current magic numbers**
 
 Run: `cd website && grep -rn "5000\|5_000\|30_000\|setInterval\|STUCK_MIN\|setTimeout" src/components/FactoryFloor.svelte src/pages/api/factory-floor/stream.ts`
 Expected: lists the literals to centralize (SSE reconnect 5000, STUCK_MIN 15, stream POLL_MS/HEARTBEAT_MS).
 
-- [ ] **Step 2: Centralize** — add a `src/lib/factory-constants.ts`:
+- [x] **Step 2: Centralize** — add a `src/lib/factory-constants.ts`:
 
 ```ts
 export const SSE_RECONNECT_MS = 5_000;
@@ -836,14 +836,14 @@ export const STREAM_HEARTBEAT_MS = 30_000;
 ```
 Import in `FactoryFloor.svelte` (replace local `STUCK_MIN = 15` and the `5000` reconnect) and in `stream.ts` (replace local `POLL_MS`/`HEARTBEAT_MS`). Keep behavior identical.
 
-- [ ] **Step 3: Touch targets** — in `MobileTabBar.svelte` and the conveyor card buttons, ensure `min-height: 44px; min-width: 44px;` on tappable controls (add to existing CSS rules; do not change layout otherwise).
+- [x] **Step 3: Touch targets** — in `MobileTabBar.svelte` and the conveyor card buttons, ensure `min-height: 44px; min-width: 44px;` on tappable controls (add to existing CSS rules; do not change layout otherwise).
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `cd website && pnpm check && pnpm vitest run`
 Expected: clean + PASS. `grep -rn "5000" src/components/FactoryFloor.svelte` → no bare literal left.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/factory-constants.ts website/src/components/FactoryFloor.svelte website/src/pages/api/factory-floor/stream.ts website/src/components/factory/MobileTabBar.svelte
@@ -857,7 +857,7 @@ git commit -m "chore(factory): centralize interval constants + 44px touch target
 **Files:**
 - Modify (extend): the existing dev-status Playwright spec. Locate it: `grep -rl "dev-status\|factory-floor\|Planungsbüro" website/tests` (extend that file; do NOT create a parallel spec). Tag new tests with the PR-tier tag used by the project (locate via `grep -rn "@pr\|grep:\|tag" website/playwright.config*`).
 
-- [ ] **Step 1: Add an attention-strip test** (PR-tier tag, k3d-tauglich):
+- [x] **Step 1: Add an attention-strip test** (PR-tier tag, k3d-tauglich):
 
 ```ts
 test('@pr Attention strip appears when a workpiece is blocked', async ({ page }) => {
@@ -872,7 +872,7 @@ test('@pr Attention strip appears when a workpiece is blocked', async ({ page })
 });
 ```
 
-- [ ] **Step 2: Add a Planungsbüro live-update test**:
+- [x] **Step 2: Add a Planungsbüro live-update test**:
 
 ```ts
 test('@pr Planungsbüro reflects a promote without manual reload', async ({ page }) => {
@@ -887,12 +887,12 @@ test('@pr Planungsbüro reflects a promote without manual reload', async ({ page
 ```
 (Adjust `getByTestId` to the real Planungsbüro item selector — `grep -rn "data-testid" website/src/components/PlanningOffice.svelte`; add a `data-testid="planning-item"` if none exists.)
 
-- [ ] **Step 3: Run the PR-tier subset locally** (tag-filtered)
+- [x] **Step 3: Run the PR-tier subset locally** (tag-filtered)
 
 Run: `cd website && pnpm exec playwright test --grep @pr tests/<dev-status-spec>.spec.ts`
 Expected: PASS (or skipped if the live env/auth helper is unavailable locally — document which).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/tests
@@ -905,27 +905,27 @@ git commit -m "test(e2e): @pr attention-strip + planungsbüro live-update (exten
 
 **Files:** none (verification + generated artifacts).
 
-- [ ] **Step 1: Run the website unit suite**
+- [x] **Step 1: Run the website unit suite**
 
 Run: `cd website && pnpm vitest run`
 Expected: all PASS (factory-floor, factory-ci, ci.test, inject, planning-office.clarify, factory-metrics).
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd website && pnpm check`
 Expected: 0 errors.
 
-- [ ] **Step 3: Regenerate test inventory if tests were added** (CI fails on drift)
+- [x] **Step 3: Regenerate test inventory if tests were added** (CI fails on drift)
 
 Run: `task test:inventory` (from repo root)
 Expected: `website/src/data/test-inventory.json` updated; commit if changed.
 
-- [ ] **Step 4: Full offline CI + freshness (CI reproduction, per repo rule)**
+- [x] **Step 4: Full offline CI + freshness (CI reproduction, per repo rule)**
 
 Run: `task test:all && task freshness:check`
 Expected: both green. Fix any drift before opening the PR.
 
-- [ ] **Step 5: Commit any regenerated artifacts**
+- [x] **Step 5: Commit any regenerated artifacts**
 
 ```bash
 git add website/src/data/test-inventory.json

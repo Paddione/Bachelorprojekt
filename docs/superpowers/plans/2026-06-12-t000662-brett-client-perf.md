@@ -476,7 +476,7 @@ git commit -m "perf(brett): in-place geometry update in updateLinePositions + ge
 **Files:**
 - Keine Änderungen — nur Verifikationsläufe
 
-- [ ] **Step 1: Vollständiger Test-Lauf im Worktree**
+- [x] **Step 1: Vollständiger Test-Lauf im Worktree**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -490,7 +490,7 @@ Erwartetes Ergebnis:
 ℹ fail 0
 ```
 
-- [ ] **Step 2: Alle drei Performance-Tests explizit prüfen**
+- [x] **Step 2: Alle drei Performance-Tests explizit prüfen**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -504,7 +504,7 @@ Erwartetes Ergebnis:
 ✓ Bug 3 — Scratch-Vector: _floorClampScratch muss als modul-weiter Vector3 exportiert werden
 ```
 
-- [ ] **Step 3: Beide TypeScript-Configs final**
+- [x] **Step 3: Beide TypeScript-Configs final**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -518,7 +518,7 @@ client OK
 server OK
 ```
 
-- [ ] **Step 4: Git-Log prüfen (3 Fix-Commits erwartet)**
+- [x] **Step 4: Git-Log prüfen (3 Fix-Commits erwartet)**
 
 ```bash
 cd /tmp/wt-brett-perf

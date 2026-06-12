@@ -215,7 +215,10 @@ function _handleKey(code: string, down: boolean): void {
 }
 
 // ── Test helpers (exported for headless unit tests only) ─────────────────────
-// These are not part of the production API; do not use outside of tests.
+// These exports exist solely to allow headless unit tests (brett/test/free-fly-camera.test.ts)
+// to set internal state without DOM/WebGL. They are NOT part of the production API.
+// Do NOT import these outside of test files.
+// Removing or renaming them requires updating free-fly-camera.test.ts.
 
 /** @internal */
 export function _setYaw(yaw: number): void { _yaw = yaw; }

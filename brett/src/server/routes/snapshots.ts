@@ -11,6 +11,11 @@ function asyncHandler(fn: any) {
   return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
 }
 
+// ── Test-exported pure helpers ────────────────────────────────────────────────
+// buildSnapshotListQuery, parseSnapshotInsert, canCreateTemplate are exported
+// primarily for unit tests (brett/test/snapshots-route.test.ts). They are also
+// used by the route handlers below. If renaming, update snapshots-route.test.ts.
+
 // D8 — Pure: build the snapshot-list SELECT. `isTemplate:true` is a valid
 // standalone filter (curated templates need no room/customer). room/customer_id
 // still filter as before; an empty filter set yields `valid:false`.

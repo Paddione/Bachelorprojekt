@@ -50,8 +50,15 @@
             <div class="p-3 rounded-lg bg-black/20 border border-white/5 flex items-center justify-between">
               <span class="text-sm font-medium">{svc.name}</span>
               <div class="flex items-center gap-2">
+                {#if svc.status === 'optional'}
+                  <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-gray-500/10 text-gray-400">optional</span>
+                {/if}
                 <span class="text-[10px] text-admin-text-disabled">{svc.latencyMs ?? '?'}ms</span>
-                <div class="w-2 h-2 rounded-full {svc.status === 'ok' ? 'bg-green-500' : svc.status === 'slow' ? 'bg-yellow-500' : 'bg-red-500'} shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+                <div class="w-2 h-2 rounded-full {
+                  svc.status === 'ok' ? 'bg-green-500' :
+                  svc.status === 'slow' ? 'bg-yellow-500' :
+                  svc.status === 'optional' ? 'bg-gray-500' :
+                  'bg-red-500'}"></div>
               </div>
             </div>
           {/each}

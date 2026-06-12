@@ -178,16 +178,16 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-12T17:12:53.360Z</span>
+    <span class="meta">Generiert: 2026-06-12T17:22:22.314Z</span>
   </div>
 
   <div class="stats">
     <div class="stat">
-      <span class="stat-value">68</span>
+      <span class="stat-value">71</span>
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">126</span>
+      <span class="stat-value">127</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -246,6 +246,9 @@ flowchart LR
   livekit_ingress["livekit-ingress"]:::default
   livekit_egress["livekit-egress"]:::default
   mailpit["mailpit"]:::default
+  monitoring_grafana["monitoring-grafana"]:::default
+  monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
+  monitoring_operator["monitoring-operator"]:::default
   nextcloud_redis["nextcloud-redis"]:::default
   nextcloud["nextcloud"]:::default
   notify_unread["notify-unread"]:::default
@@ -364,6 +367,7 @@ flowchart LR
   website -->|"configmap:website-…"| brett
   website -->|"configmap:website-…"| livekit
   whiteboard -->|"NEXTCLOUD_URL"| nextcloud
+  monitoring_grafana -->|"GF_AUTH_GENERIC_OA…"| keycloak
   tls_sync -->|"command"| coturn
   dev_db_refresh -->|"SOURCE_PGHOST"| shared_db
   talk_transcriber -->|"NC_DB_HOST"| shared_db
@@ -391,7 +395,7 @@ flowchart LR
   traefik -->|"ingress"| bachelorprojekt
       </div>
     </div>
-    <p class="diagram-caption">Alle 68 K8s-Services und ihre 126 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 71 K8s-Services und ihre 127 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->
@@ -467,6 +471,11 @@ flowchart TB
   end
   subgraph workspace_dev["workspace-dev"]
     oauth2_proxy_dev["oauth2-proxy-dev"]
+  end
+  subgraph monitoring["monitoring"]
+    monitoring_grafana["monitoring-grafana"]
+    monitoring_kube_state_metrics["monitoring-kube-state-metrics"]
+    monitoring_operator["monitoring-operator"]
   end
   subgraph workspace_office["workspace-office"]
     collabora["collabora"]

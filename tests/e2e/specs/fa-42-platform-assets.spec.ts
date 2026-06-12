@@ -48,4 +48,16 @@ test.describe('FA-42: Platform Asset Inventory', () => {
     await expect(page.locator('h2:has-text("Asset bearbeiten")')).not.toBeVisible();
     await expect(page.locator('p:has-text("' + newDesc + '")')).toBeVisible();
   });
+
+  test('should render an Öffnen link for keycloak pointing at auth.<domain>', async ({ page }) => {
+    await page.goto('/admin/platform');
+    await page.click('button:has-text("Software")');
+
+    const keycloakCard = page.locator('.admin-card', { hasText: 'Keycloak' });
+    await expect(keycloakCard).toBeVisible();
+    const openLink = keycloakCard.locator('a:has-text("Öffnen")');
+    await expect(openLink).toBeVisible();
+    await expect(openLink).toHaveAttribute('href', /^https:\/\/auth\./);
+    await expect(openLink).toHaveAttribute('target', '_blank');
+  });
 });

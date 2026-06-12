@@ -1864,6 +1864,30 @@ tasks:
       - kubectl kustomize k3d/ --load-restrictor=LoadRestrictionsNone | kubectl apply --dry-run=client -f -
       - echo "✓ Manifests are valid"
 
+  monitoring:render:
+    desc: "Pre-render kube-prometheus-stack to committed YAML (re-run on Helm chart upgrade). Renders the DEV values baseline; prod layers patches via prod/monitoring."
+    preconditions:
+      - sh: command -v helm > /dev/null
+        msg: "helm not found. Install: https://helm.sh/docs/intro/install/"
+    cmds:
+      - |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || true
+        helm repo update prometheus-community
+        helm template monitoring prometheus-community/kube-prometheus-stack \
+          --namespace monitoring \
+          --include-crds \
+          -f k3d/monitoring/values/kube-prometheus-stack-dev-values.yaml \
+          > k3d/monitoring/kube-prometheus-stack-rendered.yaml
+        echo "✓ Rendered to k3d/monitoring/kube-prometheus-stack-rendered.yaml — review the diff and commit."
+
+  monitoring:validate:
+    desc: "Validate the monitoring base + prod overlays build cleanly."
+    cmds:
+      - kubectl kustomize k3d/monitoring/ --load-restrictor=LoadRestrictionsNone | kubectl apply --dry-run=client -f - >/dev/null
+      - echo "✓ k3d/monitoring builds"
+      - kustomize build prod-fleet/mentolder/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/mentolder builds"
+      - kustomize build prod-fleet/korczewski/ --load-restrictor=LoadRestrictionsNone >/dev/null && echo "✓ prod-fleet/korczewski builds"
+
   workspace:preflight:
     desc: "Pre-deploy checklist — secrets, SealedSecrets, overlay, cluster health (ENV=dev|mentolder|korczewski)"
     vars:

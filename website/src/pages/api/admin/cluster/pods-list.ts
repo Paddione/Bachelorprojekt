@@ -42,6 +42,7 @@ export const GET: APIRoute = async ({ request }) => {
       ready: p.status?.containerStatuses?.every((c: any) => c.ready) ?? false,
       restarts: (p.status?.containerStatuses ?? []).reduce((a: number, c: any) => a + (c.restartCount ?? 0), 0),
       containers: (p.spec?.containers ?? []).map((c: any) => c.name),
+      labels: p.metadata.labels ?? {},
     }));
     pods.sort((a: any, b: any) => a.name.localeCompare(b.name));
     return new Response(JSON.stringify({ pods, namespace: ns }), {

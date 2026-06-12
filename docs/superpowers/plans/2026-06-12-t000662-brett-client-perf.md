@@ -71,7 +71,7 @@ Bei Konflikten in `mannequin.ts`: In-Place-Block behalten, den `disposeMannequin
 - Modify: `brett/src/client/mannequin.ts` (ca. Z.1–25 für den Export; ca. Z.299–310 für die Nutzung)
 - Test: `brett/test/client-render-perf.test.ts` (bereits vorhanden)
 
-- [ ] **Step 1: Tests laufen lassen — Bug-3-Test muss rot sein**
+- [x] **Step 1: Tests laufen lassen — Bug-3-Test muss rot sein**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -84,7 +84,7 @@ Erwartetes Ergebnis:
   AssertionError: Bug 3: _floorClampScratch muss aus mannequin.ts exportiert werden
 ```
 
-- [ ] **Step 2: Modul-weiten Scratch-Vector nach den Konstanten-Exporten hinzufügen**
+- [x] **Step 2: Modul-weiten Scratch-Vector nach den Konstanten-Exporten hinzufügen**
 
 In `brett/src/client/mannequin.ts`, nach Zeile 23 (Ende von `CONTACT_POINTS`), direkt vor `const K_SPRING`:
 
@@ -109,7 +109,7 @@ export const _floorClampScratch = new THREE.Vector3();
 const K_SPRING = 80;
 ```
 
-- [ ] **Step 3: Floor-Clamp in `tickSpring` auf Scratch-Vector umstellen**
+- [x] **Step 3: Floor-Clamp in `tickSpring` auf Scratch-Vector umstellen**
 
 In `brett/src/client/mannequin.ts`, im `tickSpring`-Floor-Clamp-Block (ca. Z.301–310). Ersetze:
 
@@ -142,7 +142,7 @@ for (const cp of CONTACT_POINTS) {
 }
 ```
 
-- [ ] **Step 4: Test grün machen — Bug 3 prüfen**
+- [x] **Step 4: Test grün machen — Bug 3 prüfen**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -154,7 +154,7 @@ Erwartetes Ergebnis:
 ✓ Bug 3 — Scratch-Vector: _floorClampScratch muss als modul-weiter Vector3 exportiert werden
 ```
 
-- [ ] **Step 5: TypeScript-Typprüfung**
+- [x] **Step 5: TypeScript-Typprüfung**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -164,7 +164,7 @@ npx tsc --noEmit -p tsconfig.server.json
 
 Erwartetes Ergebnis: Keine Fehler.
 
-- [ ] **Step 6: no-eager-three-Test prüfen**
+- [x] **Step 6: no-eager-three-Test prüfen**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -173,7 +173,7 @@ npm test 2>&1 | grep -A3 'no-eager'
 
 Erwartetes Ergebnis: Beide Tests in `no-eager-three.test.ts` weiterhin grün (sie prüfen nur `main.ts`, nicht `mannequin.ts`).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 cd /tmp/wt-brett-perf

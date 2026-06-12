@@ -557,3 +557,5 @@ export function disposeMannequin(fig: { root: THREE.Object3D }): void {
   });
 }
 
+
+

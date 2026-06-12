@@ -12,4 +12,11 @@ export interface SigningResult {
   assignmentId: string;
 }
 
-export type AuditEvent = 'viewed' | 'signed' | 'revoked' | 'email_sent' | 'pdf_downloaded';
+export type AuditEvent =
+  | 'viewed'
+  | 'signed'
+  | 'revoked'
+  | 'email_sent'
+  | 'pdf_downloaded'
+  | 'pdf_admin_viewed'
+  | 'pdf_admin_downloaded';

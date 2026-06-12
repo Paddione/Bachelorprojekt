@@ -1,7 +1,25 @@
 ---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import DokumenteAdmin from '../../components/admin/DokumenteAdmin.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import { listAllAssignments } from '../../lib/documents-db';
+
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
 if (!isAdmin(session)) return Astro.redirect('/admin');
-return Astro.redirect('/admin/inhalte?tab=newsletter', 301);
+
+const assignments = await listAllAssignments().catch(() => []);
+const initial = JSON.parse(JSON.stringify(assignments));
 ---
+
+<AdminLayout title="Admin — Dokumente">
+  <section class="pt-0 pb-0 bg-dark min-h-screen">
+    <div class="px-8 pt-8 mb-2">
+      <h1 class="text-3xl font-bold text-light font-serif">Dokumente</h1>
+      <p class="text-muted mt-1 text-sm">Alle Vertrags-Zuweisungen — Vorschau und Download</p>
+    </div>
+    <div class="px-8 pb-12">
+      <DokumenteAdmin assignments={initial} client:load />
+    </div>
+  </section>
+</AdminLayout>

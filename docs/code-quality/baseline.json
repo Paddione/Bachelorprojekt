@@ -621,5 +621,26 @@
     "metric": 601,
     "detail": "601 lines > 600 limit (.ts)",
     "frozen_at": "58d80484"
+  },
+  "S3:k3d/realm-workspace-dev.json:grafana.korczewski.de": {
+    "gate": "S3",
+    "path": "k3d/realm-workspace-dev.json",
+    "metric": 1,
+    "detail": "hardcoded host: grafana.korczewski.de",
+    "frozen_at": "6190a4e5"
+  },
+  "S3:k3d/realm-workspace-dev.json:grafana.mentolder.de": {
+    "gate": "S3",
+    "path": "k3d/realm-workspace-dev.json",
+    "metric": 1,
+    "detail": "hardcoded host: grafana.mentolder.de",
+    "frozen_at": "6190a4e5"
+  },
+  "S3:prod/monitoring/grafana-oidc-patch.yaml:auth.mentolder.de": {
+    "gate": "S3",
+    "path": "prod/monitoring/grafana-oidc-patch.yaml",
+    "metric": 1,
+    "detail": "hardcoded host: auth.mentolder.de",
+    "frozen_at": "6190a4e5"
   }
 }

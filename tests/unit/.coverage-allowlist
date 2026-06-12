@@ -54,3 +54,6 @@ qa-dal
 #
 # --- Requires a live DB (tests portal profile update API against real postgres):
 portal-profile-update
+#
+# --- Requires promtool/yq (Grafana alert validation — skips offline):
+T000617-alert-rules

@@ -1,0 +1,23 @@
+# k3s-native HelmChartConfig that re-renders the built-in Traefik chart with
+# Prometheus metrics enabled on a dedicated `metrics` entrypoint (port 9101).
+# Stays in kube-system (where k3s manages Traefik) — NOT rewritten by the
+# monitoring kustomization's namespace transformer because the namespace is
+# explicit here.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |
+    metrics:
+      prometheus:
+        entryPoint: metrics
+        addRoutersLabels: true
+    ports:
+      metrics:
+        port: 9101
+        expose:
+          default: false
+        exposedPort: 9101
+        protocol: TCP

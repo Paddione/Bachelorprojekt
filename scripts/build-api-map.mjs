@@ -69,8 +69,7 @@ function extractMethods(content) {
 }
 
 // ── Determine auth level ──────────────────────────────────────────────────────
-function extractAuthLevel(content) {
-  // Check for admin-level auth
+function extractAuthLevel(content, urlPath) {
   if (
     /isAdmin\s*\(/.test(content) ||
     /requireAdmin/.test(content) ||
@@ -79,7 +78,6 @@ function extractAuthLevel(content) {
   ) {
     return 'admin';
   }
-  // Check for auth-required (any session)
   if (
     /getSession\s*\(/.test(content) ||
     /requireAuth/.test(content) ||
@@ -88,9 +86,22 @@ function extractAuthLevel(content) {
     /verifyToken/.test(content) ||
     /checkAuth/.test(content)
   ) {
-    return 'auth';
+    return 'session';
   }
-  return 'public';
+  if (
+    /INTERNAL_API_TOKEN/.test(content) ||
+    /x-internal-token/.test(content) ||
+    urlPath.startsWith('/api/internal/')
+  ) {
+    return 'internal';
+  }
+  if (
+    /CRON_SECRET/.test(content) ||
+    /Bearer \$\{CRON_SECRET\}/.test(content)
+  ) {
+    return 'cron';
+  }
+  return 'unclassified';
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -106,7 +117,7 @@ function main() {
     if (methods.length === 0) continue; // Skip files with no exports
 
     const path = fileToUrlPath(filePath);
-    const auth = extractAuthLevel(content);
+    const auth = extractAuthLevel(content, path);
     const fileRel = relative(ROOT, filePath);
 
     endpoints.push({ path, methods, auth, file: fileRel });
@@ -137,7 +148,12 @@ function main() {
   ];
   for (const ep of endpoints) {
     const methods = ep.methods.join(', ');
-    const authBadge = ep.auth === 'admin' ? '🔐 admin' : ep.auth === 'auth' ? '🔑 auth' : '🌐 public';
+    const authBadge = ep.auth === 'admin' ? '🔐 admin'
+      : ep.auth === 'session' ? '🔑 session'
+      : ep.auth === 'internal' ? '🔒 internal'
+      : ep.auth === 'cron' ? '⏰ cron'
+      : ep.auth === 'unclassified' ? '❓ unclassified'
+      : '🌐 public';
     mdLines.push(`| \`${ep.path}\` | ${methods} | ${authBadge} | \`${ep.file}\` |`);
   }
   mdLines.push('');

@@ -45,6 +45,12 @@
     return 'future';
   }
 
+  function scoreColor(score: number): string {
+    if (score >= 0.9) return 'var(--factory-success, #4ade80)';
+    if (score >= 0.75) return 'var(--factory-accent, #f59e0b)';
+    return 'var(--factory-text-muted, #6b7280)';
+  }
+
 
 </script>
 

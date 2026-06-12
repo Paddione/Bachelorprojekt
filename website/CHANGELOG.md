@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.57.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.56.0...website-v1.57.0) (2026-06-12)
+
+
+### Features
+
+* **ci:** API auth coverage gate with allowlist (T000666) ([#1600](https://github.com/Paddione/Bachelorprojekt/issues/1600)) ([69a95a0](https://github.com/Paddione/Bachelorprojekt/commit/69a95a0f12395ef78c4975954e98031581578358))
+
 ## [1.56.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.55.0...website-v1.56.0) (2026-06-12)
 
 

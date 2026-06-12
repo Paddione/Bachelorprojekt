@@ -69,7 +69,7 @@ Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 - Modify: `brett/src/server/ws-handler.ts` (Z. ~8–62, `WsDeps`-Interface)
 - Test: Kein neuer Test nötig — `npx tsc` ist der Verifikationstest.
 
-- [ ] **Schritt 1.1: Tsc-Baseline dokumentieren**
+- [x] **Schritt 1.1: Tsc-Baseline dokumentieren**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -78,7 +78,7 @@ npx tsc --noEmit -p tsconfig.server.json 2>&1 | head -30
 
 Erwartetes Ergebnis: Null Fehler (sauberer Baseline).
 
-- [ ] **Schritt 1.2: Konkrete Signaturen einsetzen**
+- [x] **Schritt 1.2: Konkrete Signaturen einsetzen**
 
 Ersetze in `brett/src/server/ws-handler.ts` den gesamten `WsDeps`-Block (ab `export interface WsDeps {` bis zur schließenden `}`, aktuell ca. Z. 8–63) durch folgende konkrete Typen. **Logik bleibt unverändert:**
 
@@ -170,7 +170,7 @@ export interface WsDeps {
 }
 ```
 
-- [ ] **Schritt 1.3: tsc-Check**
+- [x] **Schritt 1.3: tsc-Check**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett
@@ -179,7 +179,7 @@ npx tsc --noEmit -p tsconfig.server.json 2>&1
 
 Erwartetes Ergebnis: Null Fehler. Bei Fehlern: `import type { UndoEntry }` prüfen; ggf. Import-Pfad anpassen.
 
-- [ ] **Schritt 1.4: Tests laufen lassen**
+- [x] **Schritt 1.4: Tests laufen lassen**
 
 ```bash
 cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
@@ -187,7 +187,7 @@ cd /tmp/wt-brett-hygiene/brett && npm test 2>&1 | tail -10
 
 Erwartetes Ergebnis: `# pass 506`, `# fail 0`.
 
-- [ ] **Schritt 1.5: Commit**
+- [x] **Schritt 1.5: Commit**
 
 ```bash
 cd /tmp/wt-brett-hygiene

@@ -4,61 +4,88 @@ import { handleAdminMessage } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
 import * as undoStack from './undo-stack';
 import { handleFigurePossess, handleFigureRelease, handleFigureNoteSet } from './ws-figure-commands';
+import type { UndoEntry } from './undo-stack';
+import type { Role, Phase } from '../types/state';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
-  joinRoom: Function;
-  leaveRoom: Function;
-  broadcast: Function;
-  broadcastInfo: Function;
-  addParticipant: Function;
-  removeParticipant: Function;
-  clearParticipants: Function;
-  listParticipants: Function;
+  // ── Room management ────────────────────────────────────────────────
+  joinRoom: (ws: any, room: string) => void;
+  leaveRoom: (ws: any) => string | undefined;
+  broadcast: (room: string, msg: any, exclude?: any) => void;
+  broadcastInfo: (room: string) => void;
+
+  // ── Participant roster ─────────────────────────────────────────────
+  addParticipant: (room: string, p: { userId: string; name: string }) => any | null;
+  removeParticipant: (room: string, userId: string) => void;
+  clearParticipants: (room: string) => void;
+  listParticipants: (room: string) => any[];
+
+  // ── Figure state ───────────────────────────────────────────────────
   figureMaps: Map<string, Map<string, any>>;
   rooms: Map<string, Set<any>>;
-  ensureFigureMap: Function;
-  seedFigureMapFromState: Function;
-  applyMutation: Function;
-  buildStateFromMutations: Function;
-  acquireFigureLock: Function;
-  releaseFigureLock: Function;
-  releaseLocksForUser: Function;
-  orphanFiguresForUser: Function;
-  listFigureLocks: Function;
+  ensureFigureMap: (room: string) => Map<string, any>;
+  seedFigureMapFromState: (map: Map<string, any>, state: any) => void;
+  applyMutation: (room: string, msg: any) => void;
+  buildStateFromMutations: (room: string) => any;
+
+  // ── Figure locks ───────────────────────────────────────────────────
+  acquireFigureLock: (room: string, id: string, owner: { userId: string; name: string; color: string }) => boolean;
+  releaseFigureLock: (room: string, id: string, userId: string) => boolean;
+  releaseLocksForUser: (room: string, userId: string) => void;
+  orphanFiguresForUser: (room: string, userId: string) => string[];
+  listFigureLocks: (room: string) => any[];
+
+  // ── Permissions ────────────────────────────────────────────────────
   canMutate: (ctx: MutateContext) => boolean;
-  resolveRole: Function;
-  validateAppearance: Function;
-  readState: Function;
-  schedulePersist: Function;
-  flushImmediate: Function;
-  /** Log a mutation event for replay recording (optional for backwards-compat). */
+  resolveRole: (ws: any, roles: Record<string, Role>) => Role;
+  validateAppearance: (appearance: any) => string | null;
+
+  // ── Persistence ────────────────────────────────────────────────────
+  readState: (room: string) => Promise<any>;
+  schedulePersist: (room: string) => void;
+  flushImmediate: (room: string) => Promise<void>;
+
+  // ── Event log (optional — backwards-compat) ────────────────────────
+  /** Log a mutation event for replay recording. */
   logEvent?: (room: string, sessionCode: string | null, eventType: string, payload: any) => void;
   /** Flush the event buffer for a room immediately (called on session-end). */
   flushEventLog?: (room: string) => Promise<void>;
-  handleAdminSessionCreate: Function;
-  handleAdminHandoffMessage: Function;
-  handleAdminRoundStop: Function;
-  handleAdminRoundPause: Function;
-  handleAdminRoundStart: Function;
-  handleAdminSetOptik: Function;
-  handleAdminSetTemplate: Function;
-  loadSnapshotState?: Function;
-  applyTemplateToRoom?: Function;
-  trackPlayerInRoom: Function;
-  transitionPhase: Function;
-  isAdminFromClaims: Function;
-  getAdminTokenHolder: Function;
-  beginTokenGrace: Function;
-  setRoomAdminPresence: Function;
-  reclaimAdminToken: Function;
+
+  // ── Admin / session commands ───────────────────────────────────────
+  handleAdminSessionCreate: (room: string, adminPlayerId: string) => { ok: boolean; code?: string };
+  handleAdminHandoffMessage: (room: string, fromPlayerId: string, toPlayerId: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string };
+  handleAdminRoundStart: (room: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string; noop?: boolean };
+  handleAdminRoundStop: (room: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string };
+  handleAdminRoundPause: (room: string, broadcastFn: (m: any) => void) => { ok: boolean; reason?: string };
+  handleAdminSetOptik: (room: string, settings: any, broadcastFn: (m: any) => void) => { ok: boolean };
+  handleAdminSetTemplate: (room: string, templateId: string, broadcastFn: (m: any) => void) => { ok: boolean };
+
+  // ── Snapshot & template ────────────────────────────────────────────
+  loadSnapshotState?: (snapshotId: string) => Promise<any>;
+  applyTemplateToRoom?: (room: string, templateState: any, broadcastFn: (m: any) => void) => void;
+
+  // ── Player tracking ────────────────────────────────────────────────
+  trackPlayerInRoom: (room: string, playerId: string) => void;
+  transitionPhase: (room: string, phase: Phase) => { ok: boolean; from?: Phase | null; to?: Phase; reason?: string };
+
+  // ── Admin token ────────────────────────────────────────────────────
+  isAdminFromClaims: (claims: any) => boolean;
+  getAdminTokenHolder: (room: string) => string | null;
+  beginTokenGrace: (room: string, playerId: string) => void;
+  setRoomAdminPresence: (room: string, admins: string[]) => void;
+  reclaimAdminToken: (room: string, playerId: string) => void;
   roomAdminPresence: Map<string, Set<string>>;
+
+  // ── Session middleware ─────────────────────────────────────────────
   sessionMiddleware?: any;
+
+  // ── Undo/Redo (optional — T000470) ────────────────────────────────
   captureBeforeSnapshot?: (room: string, msg: any) => Map<string, any | null>;
   captureAfterSnapshot?: (before: Map<string, any | null>, room: string, msg: any) => Map<string, any | null>;
-  pushUndo?: (room: string, entry: import('./undo-stack').UndoEntry) => void;
-  performUndo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
-  performRedo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
+  pushUndo?: (room: string, entry: UndoEntry) => void;
+  performUndo?: (room: string) => { applied: true; entry: UndoEntry } | { applied: false };
+  performRedo?: (room: string) => { applied: true; entry: UndoEntry } | { applied: false };
   getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
   clearUndoStacks?: (room: string) => void;
   cleanupRoomTracking?: (room: string) => void;

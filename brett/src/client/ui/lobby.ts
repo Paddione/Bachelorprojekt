@@ -39,6 +39,7 @@ const ROLE_LABEL: Record<Role, string> = {
   leiter: 'Leiter',
   stellvertreter: 'Stellv.',
   beobachter: 'Beob.',
+  gast: 'Gast',
 };
 
 /**

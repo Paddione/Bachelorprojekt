@@ -54,3 +54,6 @@ qa-dal
 #
 # --- Requires a live DB (tests portal profile update API against real postgres):
 portal-profile-update
+#
+# --- Requires kubectl kustomize (CronJob validation — needs cluster context):
+newsletter-scheduled-publish

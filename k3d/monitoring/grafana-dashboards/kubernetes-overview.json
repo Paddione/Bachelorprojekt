@@ -1,0 +1,7 @@
+{
+  "title": "Kubernetes Overview",
+  "uid": "k8s-overview",
+  "schemaVersion": 39,
+  "panels": [],
+  "templating": { "list": [ { "name": "namespace", "type": "query", "query": "label_values(kube_pod_info, namespace)" } ] }
+}

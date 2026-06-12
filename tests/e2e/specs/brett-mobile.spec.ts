@@ -166,9 +166,68 @@ test.describe('Brett Mobile (Android) @mobile', () => {
         Array.from(document.querySelectorAll<HTMLElement>('.preset-btn'))
           .map(btn => btn.offsetHeight)
       );
-      // Each preset button row touches the 36px topbar — at minimum 24px button
-      // height. We relax to 20px here since the topbar provides the touch surface.
-      expect(heights.every(h => h >= 20)).toBe(true);
+      // T000606: pointer:coarse media query enforces a 44px minimum tap height.
+      expect(heights.every(h => h >= 44)).toBe(true);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test('T9: pinch-out zooms the orbit camera in (orbit dist decreases)', async ({ browser }) => {
+    if (!hasAuthState()) { test.skip(); return; }
+    const ctx = await browser.newContext({
+      ignoreHTTPSErrors: true,
+      storageState: BRETT_AUTH_STATE,
+      hasTouch: true,
+    });
+    const page = await ctx.newPage();
+    try {
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-pinch-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.waitForFunction(() => !!(window as any).__brettScene, { timeout: 10_000 });
+
+      const before = await page.evaluate(() => (window as any).__brettScene.getOrbitState().dist);
+
+      const cdp = await ctx.newCDPSession(page);
+      const cx = await page.evaluate(() => window.innerWidth / 2);
+      const cy = await page.evaluate(() => window.innerHeight / 2);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart',
+        touchPoints: [{ x: cx - 20, y: cy }, { x: cx + 20, y: cy }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove',
+        touchPoints: [{ x: cx - 100, y: cy }, { x: cx + 100, y: cy }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await page.waitForTimeout(200);
+
+      const after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().dist);
+      expect(after).toBeLessThan(before);
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test('T10: one-finger drag on empty floor orbits the camera (theta changes)', async ({ browser }) => {
+    if (!hasAuthState()) { test.skip(); return; }
+    const ctx = await browser.newContext({
+      ignoreHTTPSErrors: true,
+      storageState: BRETT_AUTH_STATE,
+      hasTouch: true,
+    });
+    const page = await ctx.newPage();
+    try {
+      await page.goto(`${BRETT_URL}?room=e2e-mobile-orbit-${Date.now()}`, { waitUntil: 'networkidle', timeout: 30_000 });
+      await page.waitForFunction(() => !!(window as any).__brettScene, { timeout: 10_000 });
+
+      const before = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
+
+      const cdp = await ctx.newCDPSession(page);
+      const startX = await page.evaluate(() => Math.round(window.innerWidth * 0.2));
+      const y = await page.evaluate(() => Math.round(window.innerHeight * 0.3));
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove',  touchPoints: [{ x: startX + 120, y }] });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd',   touchPoints: [] });
+      await page.waitForTimeout(200);
+
+      const after = await page.evaluate(() => (window as any).__brettScene.getOrbitState().theta);
+      expect(Math.abs(after - before)).toBeGreaterThan(0.01);
     } finally {
       await ctx.close();
     }

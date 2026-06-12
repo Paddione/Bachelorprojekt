@@ -72,6 +72,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:brett-share-link",
+    "file": "tests/e2e/specs/brett-share-link.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:dashboard-art",
     "file": "tests/e2e/specs/dashboard-art.spec.ts",
     "category": "E2E",
@@ -314,6 +320,12 @@
   {
     "id": "E2E:fa-meeting-history",
     "file": "tests/e2e/specs/fa-meeting-history.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
+    "id": "E2E:fa-mobile-factory",
+    "file": "tests/e2e/specs/fa-mobile-factory.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

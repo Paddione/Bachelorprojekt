@@ -58,6 +58,7 @@ import {
   exportPng,
   type ClientBoardSnapshot,
   type ExportFigure,
+  type ExportLine,
 } from '../src/client/ui/export.js';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -71,6 +72,14 @@ describe('getExportSnapshot: Defaults', () => {
     assert.deepEqual(snap.figures, []);
     assert.equal(snap.optik, null);
     assert.ok(snap.exportedAt, 'exportedAt muss gesetzt sein');
+  });
+
+  test('enthält version, lines, anchors, zones Defaults', () => {
+    const snap = getExportSnapshot();
+    assert.equal(snap.version, 1);
+    assert.deepEqual(snap.lines, []);
+    assert.deepEqual(snap.anchors, []);
+    assert.deepEqual(snap.zones, []);
   });
 });
 
@@ -148,6 +157,42 @@ describe('getExportSnapshot: Figuren-Serialisierung', () => {
     assert.equal(f.z, -1.2);
     assert.equal(f.figureType, 'resource');
     assert.equal(f.ownerId, 'user-123');
+  });
+
+  test('ExportFigure trägt scale/preset/note/boneOverrides/appearance', () => {
+    const fig: ExportFigure = {
+      id: 'f99',
+      x: 0,
+      z: 0,
+      facingY: 0,
+      scale: 1.4,
+      preset: 'sitzend',
+      note: 'wichtige Aussage',
+      boneOverrides: { head: { x: 0.1, z: -0.2 } },
+      appearance: { color: '#00ff00', face: 'face1', body: null, accessories: {} },
+    };
+    updateExportCache({ figures: [fig] });
+    const f = getExportSnapshot().figures[0];
+    assert.equal(f.scale, 1.4);
+    assert.equal(f.preset, 'sitzend');
+    assert.equal(f.note, 'wichtige Aussage');
+    assert.deepEqual(f.boneOverrides, { head: { x: 0.1, z: -0.2 } });
+    assert.equal(f.appearance?.color, '#00ff00');
+  });
+
+  test('lines/anchors/zones werden als Kopie durchgereicht', () => {
+    updateExportCache({
+      lines: [{ id: 'l1', fromId: 'a', toId: 'b', lineType: 'tension' }],
+      anchors: [{ id: 'an1', x: 1, z: 2, label: 'Ziel' }],
+      zones: [{ id: 'zo1', x: 0, z: 0, shape: 'circle', radius: 1.5 }],
+    });
+    const snap = getExportSnapshot();
+    assert.equal(snap.lines[0].lineType, 'tension');
+    assert.equal(snap.anchors[0].label, 'Ziel');
+    assert.equal(snap.zones[0].shape, 'circle');
+    // Mutation der Kopie darf den Cache nicht verändern
+    snap.lines[0].lineType = 'relationship';
+    assert.equal(getExportSnapshot().lines[0].lineType, 'tension');
   });
 });
 

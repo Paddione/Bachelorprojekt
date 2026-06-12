@@ -1,0 +1,7 @@
+{
+  "title": "Traefik Dashboard",
+  "uid": "traefik-dashboard",
+  "schemaVersion": 39,
+  "panels": [],
+  "templating": { "list": [ { "name": "router", "type": "query", "query": "label_values(traefik_router_requests_total, router)" } ] }
+}

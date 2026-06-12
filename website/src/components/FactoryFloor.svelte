@@ -15,6 +15,7 @@
   import AttentionStrip from './factory/AttentionStrip.svelte';
   import type { QaItem } from '../lib/qa-dal';
   import type { CiRollup } from '../lib/factory-ci';
+  import { SSE_RECONNECT_MS, STUCK_MIN } from '../lib/factory-constants';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -185,7 +186,6 @@
     if (!iso) return 0;
     return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   }
-  const STUCK_MIN = 15;
   function ciIcon(s: 'success'|'pending'|'failure'|null): string {
     return s === 'success' ? '🟢' : s === 'failure' ? '🔴' : s === 'pending' ? '🟡' : '';
   }
@@ -202,7 +202,7 @@
     es.addEventListener('heartbeat', () => { stale = false; });
     es.onerror = () => {
       es?.close(); es = null;
-      if (!reconnectTimer) reconnectTimer = setTimeout(() => { reconnectTimer = null; connectSSE(); }, 5000);
+      if (!reconnectTimer) reconnectTimer = setTimeout(() => { reconnectTimer = null; connectSSE(); }, SSE_RECONNECT_MS);
     };
   }
 

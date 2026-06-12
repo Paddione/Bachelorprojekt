@@ -8,13 +8,15 @@ vi.mock('pg', () => {
   // one English-placeholder row and one admin-customised row per table.
   mem.public.none(`
     CREATE SCHEMA platform;
-    CREATE TABLE platform.software_assets (slug text PRIMARY KEY, name text, description text, updated_at timestamptz, sort_order integer default 0);
+    CREATE TABLE platform.software_assets (slug text PRIMARY KEY, name text, description text, url text, subdomain text, health_url text, base_status text, updated_at timestamptz, sort_order integer default 0);
     CREATE TABLE platform.hardware_assets (slug text PRIMARY KEY, name text, description text, sort_order integer default 0);
     INSERT INTO platform.software_assets (slug, name, description) VALUES
       ('keycloak', 'Keycloak', 'SSO / OIDC identity provider'),
       ('website',  'Website',  'Mein eigener Text');
     INSERT INTO platform.hardware_assets (slug, name, description) VALUES
       ('pk-hetzner-4', 'PK CP 1', NULL);
+    UPDATE platform.software_assets SET subdomain = 'auth', health_url = 'http://keycloak.{ns}.svc.cluster.local:8080/health/ready' WHERE slug = 'keycloak';
+    UPDATE platform.software_assets SET subdomain = 'web', health_url = 'http://website.{ns}.svc.cluster.local' WHERE slug = 'website';
   `);
   const { Pool: MemPool } = mem.adapters.createPg();
   function isPlatformCreateDdl(sql: string): boolean {
@@ -60,5 +62,16 @@ describe('ensurePlatformSchema seeds German descriptions safely', () => {
     await listHardwareAssets();
     await listSoftwareAssets();
     expect(CountingPool.platformCreateDdlCount).toBe(afterFirst); // ensureSchemaOnce → no re-run
+  });
+
+  it('exposes seeded subdomain/health_url and is idempotent across two reads', async () => {
+    const first = await listSoftwareAssets();
+    const kc1 = first.find((r) => r.slug === 'keycloak');
+    expect(kc1?.subdomain).toBe('auth');
+    expect(kc1?.health_url).toBe('http://keycloak.{ns}.svc.cluster.local:8080/health/ready');
+    const second = await listSoftwareAssets();
+    const kc2 = second.find((r) => r.slug === 'keycloak');
+    expect(kc2?.subdomain).toBe('auth');
+    expect(kc2?.health_url).toBe(kc1?.health_url);
   });
 });

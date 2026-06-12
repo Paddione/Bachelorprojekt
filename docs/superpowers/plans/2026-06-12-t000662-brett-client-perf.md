@@ -191,7 +191,7 @@ git commit -m "perf(brett): reuse _floorClampScratch in tickSpring floor-clamp (
 - Modify: `brett/src/client/mannequin.ts` (Funktion `updatePossessorLabel`, ca. Z.478–489)
 - Test: `brett/test/client-render-perf.test.ts` (bereits vorhanden)
 
-- [ ] **Step 1: Test rot bestätigen**
+- [x] **Step 1: Test rot bestätigen**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -204,7 +204,7 @@ Erwartetes Ergebnis:
   AssertionError: Bug 1: clearRect darf bei unverändertem Label-Text nicht erneut aufgerufen werden
 ```
 
-- [ ] **Step 2: `updatePossessorLabel` mit Cache-Guard erweitern**
+- [x] **Step 2: `updatePossessorLabel` mit Cache-Guard erweitern**
 
 In `brett/src/client/mannequin.ts`, Funktion `updatePossessorLabel` (ca. Z.478). Ersetze die gesamte Funktion:
 
@@ -251,7 +251,7 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
 
 **Hinweis:** Der Cache-Key ist der Upper-Case-Text (ohne `hexColor`). Damit wird bei einem Farbwechsel (z.B. eigene → fremde Possession) der Canvas trotzdem neu gezeichnet, weil sich der Text ändert (`'ICH'` vs. Name). Wenn sich nur die Farbe ändern würde ohne Textänderung, würde der neue Farbton nicht gerendert — dieses Edge-Case tritt im aktuellen Aufrufmuster nicht auf (Farbänderung ist immer mit Text-Änderung verbunden: `'ICH'` ↔ Name). Wenn künftig Farb-Only-Wechsel nötig werden, Cache-Key um Farbe erweitern.
 
-- [ ] **Step 3: Cache bei `clearPossessionVisuals` zurücksetzen**
+- [x] **Step 3: Cache bei `clearPossessionVisuals` zurücksetzen**
 
 Damit nach einem `clearPossessionVisuals`-Aufruf (Figur wird freigegeben) beim nächsten Besitz der Canvas neu gezeichnet wird, den Cache löschen:
 
@@ -274,7 +274,7 @@ export function clearPossessionVisuals(fig: any): void {
 }
 ```
 
-- [ ] **Step 4: Test grün**
+- [x] **Step 4: Test grün**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -286,7 +286,7 @@ Erwartetes Ergebnis:
 ✓ Bug 1 — Label-Cache: unveränderter Text führt beim zweiten Frame zu keinem Canvas-Redraw
 ```
 
-- [ ] **Step 5: Vollständige Typprüfung**
+- [x] **Step 5: Vollständige Typprüfung**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -296,7 +296,7 @@ npx tsc --noEmit -p tsconfig.server.json
 
 Erwartetes Ergebnis: Keine Fehler.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /tmp/wt-brett-perf

@@ -60,6 +60,7 @@ export interface WsDeps {
   performRedo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
   getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
   clearUndoStacks?: (room: string) => void;
+  cleanupRoomTracking?: (room: string) => void;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -569,6 +570,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (!deps.rooms.has(room)) {
             deps.figureMaps.delete(room);
             deps.clearUndoStacks?.(room);  // T000470: Stacks beim Last-Leave bereinigen
+            deps.cleanupRoomTracking?.(room);  // T000660: Server-Map-Leaks bereinigen
           }
         }
       }

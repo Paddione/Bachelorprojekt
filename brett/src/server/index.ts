@@ -464,6 +464,7 @@ const wsDeps = {
   loadSnapshotState: db.loadSnapshotState,
   applyTemplateToRoom: figures.applyTemplateToRoom,
   trackPlayerInRoom: sessions.trackPlayerInRoom,
+  cleanupRoomTracking: sessions.cleanupRoomTracking,
   transitionPhase: phases.transitionPhase,
   isAdminFromClaims: auth.isAdminFromClaims,
   getAdminTokenHolder: sessions.getAdminTokenHolder,

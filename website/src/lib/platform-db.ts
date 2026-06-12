@@ -14,6 +14,8 @@ export interface SoftwareAsset {
   deployment_name: string | null;
   image_tag: string | null;
   url: string | null;
+  subdomain: string | null;
+  health_url: string | null;
   base_status: string;
   sort_order: number;
 }
@@ -43,8 +45,11 @@ export async function runPlatformSchema(db: { query: typeof platformPool.query }
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
     description TEXT, category TEXT NOT NULL DEFAULT 'other', emoji TEXT NOT NULL DEFAULT '📦',
     clusters TEXT[] NOT NULL DEFAULT '{}', namespace TEXT, deployment_name TEXT, image_tag TEXT,
-    url TEXT, base_status TEXT NOT NULL DEFAULT 'live', sort_order INT NOT NULL DEFAULT 0,
+    url TEXT, subdomain TEXT, health_url TEXT, base_status TEXT NOT NULL DEFAULT 'live', sort_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
+  await db.query(`ALTER TABLE platform.software_assets
+    ADD COLUMN IF NOT EXISTS subdomain TEXT,
+    ADD COLUMN IF NOT EXISTS health_url TEXT`);
   await db.query(`CREATE TABLE IF NOT EXISTS platform.hardware_assets (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
     description TEXT, role TEXT NOT NULL DEFAULT 'unknown', cluster TEXT NOT NULL DEFAULT 'both',
@@ -90,8 +95,8 @@ export async function listHardwareAssets(): Promise<HardwareAsset[]> {
 export async function upsertSoftwareAsset(asset: Partial<SoftwareAsset>): Promise<SoftwareAsset> {
   const result = await platformPool.query(
     `INSERT INTO platform.software_assets
-      (slug, name, description, category, emoji, clusters, namespace, deployment_name, image_tag, url, base_status, sort_order)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      (slug, name, description, category, emoji, clusters, namespace, deployment_name, image_tag, url, subdomain, health_url, base_status, sort_order)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      ON CONFLICT (slug) DO UPDATE SET
        name = EXCLUDED.name,
        description = EXCLUDED.description,
@@ -101,15 +106,17 @@ export async function upsertSoftwareAsset(asset: Partial<SoftwareAsset>): Promis
        namespace = EXCLUDED.namespace,
        deployment_name = EXCLUDED.deployment_name,
        image_tag = EXCLUDED.image_tag,
-       url = EXCLUDED.url,
-       base_status = EXCLUDED.base_status,
+        url = EXCLUDED.url,
+        subdomain = EXCLUDED.subdomain,
+        health_url = EXCLUDED.health_url,
+        base_status = EXCLUDED.base_status,
        sort_order = EXCLUDED.sort_order,
        updated_at = now()
      RETURNING *`,
     [
       asset.slug, asset.name, asset.description, asset.category, asset.emoji,
       asset.clusters, asset.namespace, asset.deployment_name, asset.image_tag,
-      asset.url, asset.base_status, asset.sort_order || 0
+      asset.url, asset.subdomain ?? null, asset.health_url ?? null, asset.base_status, asset.sort_order || 0
     ]
   );
   return result.rows[0];

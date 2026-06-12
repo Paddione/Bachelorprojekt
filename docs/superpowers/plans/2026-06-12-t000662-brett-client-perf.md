@@ -321,7 +321,7 @@ git commit -m "perf(brett): cache label text in updatePossessorLabel to skip red
 - Modify: `brett/src/client/scene-lines.ts`
 - Test: `brett/test/client-render-perf.test.ts` (bereits vorhanden)
 
-- [ ] **Step 1: Test rot bestätigen**
+- [x] **Step 1: Test rot bestätigen**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -334,7 +334,7 @@ Erwartetes Ergebnis:
   AssertionError: Bug 2: getLineObjects muss als Test-Seam exportiert werden (heute fehlt dieser Export)
 ```
 
-- [ ] **Step 2: Test-Seam `getLineObjects` exportieren**
+- [x] **Step 2: Test-Seam `getLineObjects` exportieren**
 
 In `brett/src/client/scene-lines.ts`, direkt nach `const lineObjects = new Map<string, THREE.Line>();` (ca. Z.14), die Zeile für `lastPositions` belassen und danach:
 
@@ -351,7 +351,7 @@ export function getLineObjects(): Map<string, THREE.Line> {
 const lastPositions = new Map<string, { x: number; z: number }>();
 ```
 
-- [ ] **Step 3: Hilfsfunktion `updateGeometryInPlace` hinzufügen**
+- [x] **Step 3: Hilfsfunktion `updateGeometryInPlace` hinzufügen**
 
 In `brett/src/client/scene-lines.ts`, nach der Funktion `buildGeometry` (ca. Z.39, nach `}`), neue private Hilfsfunktion einfügen:
 
@@ -381,7 +381,7 @@ function updateGeometryInPlace(mesh: THREE.Line, line: BrettLine): boolean {
 }
 ```
 
-- [ ] **Step 4: `updateLinePositions` auf In-Place-Pfad umstellen**
+- [x] **Step 4: `updateLinePositions` auf In-Place-Pfad umstellen**
 
 In `brett/src/client/scene-lines.ts`, im letzten Block von `updateLinePositions` (ca. Z.124–130). Ersetze:
 
@@ -412,7 +412,7 @@ Mit:
   }
 ```
 
-- [ ] **Step 5: Test grün**
+- [x] **Step 5: Test grün**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -424,7 +424,7 @@ Erwartetes Ergebnis:
 ✓ Bug 2 — Geometry-Identität: updateLinePositions darf THREE.Line-Referenz nicht ersetzen
 ```
 
-- [ ] **Step 6: Vollständige Typprüfung**
+- [x] **Step 6: Vollständige Typprüfung**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -434,7 +434,7 @@ npx tsc --noEmit -p tsconfig.server.json
 
 Erwartetes Ergebnis: Keine Fehler.
 
-- [ ] **Step 7: Alle Tests grün — Gesamtlauf**
+- [x] **Step 7: Alle Tests grün — Gesamtlauf**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -448,7 +448,7 @@ Erwartetes Ergebnis (ca.):
 ℹ fail 0
 ```
 
-- [ ] **Step 8: no-eager-three-Test explizit prüfen**
+- [x] **Step 8: no-eager-three-Test explizit prüfen**
 
 ```bash
 cd /tmp/wt-brett-perf/brett
@@ -461,7 +461,7 @@ Erwartetes Ergebnis:
 ✓ main.ts dynamic-imports board-boot (lazy mount)
 ```
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd /tmp/wt-brett-perf

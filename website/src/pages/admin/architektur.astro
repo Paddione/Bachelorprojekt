@@ -1,0 +1,19 @@
+---
+export const prerender = false;
+
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
+import ArchitekturGraph from '../../components/admin/ArchitekturGraph.svelte';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const brandId = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
+---
+
+<AdminLayout title="Architektur-Graph">
+  <div style="height: calc(100vh - 4rem);">
+    <ArchitekturGraph client:load cluster={brandId} />
+  </div>
+</AdminLayout>

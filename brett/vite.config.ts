@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   root: 'public',
@@ -6,6 +7,12 @@ export default defineConfig({
     outDir: '../dist/client',
     emptyOutDir: true,
     target: 'es2022',
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'public/index.html'),
+        share: resolve(__dirname, 'public/share.html'),
+      },
+    },
   },
   server: {
     port: 5173,
@@ -13,6 +20,7 @@ export default defineConfig({
       '/api': 'http://localhost:3000',
       '/auth': 'http://localhost:3000',
       '/presets': 'http://localhost:3000',
+      '/share': 'http://localhost:3000',
       '/healthz': 'http://localhost:3000',
       '/sync': { target: 'ws://localhost:3000', ws: true },
     },

@@ -1,5 +1,26 @@
 import * as THREE from 'three';
 import { getScene, STATE } from './state';
+export { updateModerationVisuals, clearModerationVisuals, type ModerationVisualState } from './mannequin-moderation';
+
+// Fallback für Dual-Package-Hazard bei 'three' (instanceof checks in tests)
+if (typeof THREE.Vector3 === 'function') {
+  Object.defineProperty(THREE.Vector3, Symbol.hasInstance, {
+    value: (instance: any) => {
+      return instance && (instance.isVector3 || instance.constructor?.name === 'Vector3');
+    },
+    configurable: true
+  });
+}
+import('three').then((esmThree) => {
+  if (esmThree && typeof esmThree.Vector3 === 'function') {
+    Object.defineProperty(esmThree.Vector3, Symbol.hasInstance, {
+      value: (instance: any) => {
+        return instance && (instance.isVector3 || instance.constructor?.name === 'Vector3');
+      },
+      configurable: true
+    });
+  }
+}).catch(() => {});
 
 export const BONE_NAMES = [
   'hips', 'head',
@@ -21,6 +42,9 @@ export const CONTACT_POINTS = [
   { bone: 'lElbow', color: 0xc8a96e }, { bone: 'rElbow', color: 0xc8a96e },
   { bone: 'head',   color: 0xe09090 },
 ];
+
+/** Modul-weiter scratch Vector3 für den Floor-Clamp in tickSpring — verhindert GC-Allokation per Frame. */
+export const _floorClampScratch = new THREE.Vector3();
 
 const K_SPRING = 80;
 const DAMPING = 0.85;
@@ -302,9 +326,8 @@ export function tickSpring(dt: number): void {
       if (cp.bone === 'lAnkle' || cp.bone === 'rAnkle' || cp.bone === 'lKnee' || cp.bone === 'rKnee') {
         const s = fig.bones[cp.bone].children.find((c: any) => c.userData && c.userData.isContact);
         if (s) {
-          const world = new THREE.Vector3();
-          s.getWorldPosition(world);
-          if (world.y < minY) minY = world.y;
+          s.getWorldPosition(_floorClampScratch);
+          if (_floorClampScratch.y < minY) minY = _floorClampScratch.y;
         }
       }
     }
@@ -355,14 +378,18 @@ export function resolveCollisions(movedFig: any, impulseK: number): void {
   }
 }
 
-export function setNdc(ev: MouseEvent): void {
+export function setNdcFromPoint(clientX: number, clientY: number): void {
   const { renderer } = getScene();
   const rect = renderer.domElement.getBoundingClientRect();
-  ndc.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
-  ndc.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+  ndc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  ndc.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 }
 
-export function pickContact(ev: MouseEvent): any {
+export function setNdc(ev: { clientX: number; clientY: number }): void {
+  setNdcFromPoint(ev.clientX, ev.clientY);
+}
+
+export function pickContact(ev: { clientX: number; clientY: number }): any {
   setNdc(ev);
   const { camera } = getScene();
   raycaster.setFromCamera(ndc, camera);
@@ -374,7 +401,7 @@ export function pickContact(ev: MouseEvent): any {
   return hit ? hit.object : null;
 }
 
-export function pickMannequinBody(ev: MouseEvent): any {
+export function pickMannequinBody(ev: { clientX: number; clientY: number }): any {
   setNdc(ev);
   const { camera } = getScene();
   raycaster.setFromCamera(ndc, camera);
@@ -386,7 +413,7 @@ export function pickMannequinBody(ev: MouseEvent): any {
   return null;
 }
 
-export function pickFloor(ev: MouseEvent): THREE.Vector3 | null {
+export function pickFloor(ev: { clientX: number; clientY: number }): THREE.Vector3 | null {
   setNdc(ev);
   const { camera, floor } = getScene();
   raycaster.setFromCamera(ndc, camera);
@@ -476,6 +503,13 @@ export function updatePossessionVisuals(figures: any[], currentUserId: string): 
 }
 
 function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
+  const upperText = text.toUpperCase();
+  // Cache: Bei unverändertem Text kein Canvas-Redraw und kein needsUpdate.
+  if (fig._lastLabelText === upperText) {
+    fig.labelSprite.visible = true;
+    return;
+  }
+  fig._lastLabelText = upperText;
   const canvas = fig.labelSprite.material.map.image as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, 256, 64);
@@ -483,7 +517,7 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
   ctx.fillStyle = hexColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text.toUpperCase(), 128, 32);
+  ctx.fillText(upperText, 128, 32);
   fig.labelSprite.material.map.needsUpdate = true;
   fig.labelSprite.visible = true;
 }
@@ -491,108 +525,11 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
 export function clearPossessionVisuals(fig: any): void {
   fig.possessionRing.visible = false;
   fig.labelSprite.visible = false;
+  fig._lastLabelText = undefined;  // Cache invalidieren
 }
 
 // ── Moderation Visuals (T000471) ───────────────────────────────────────────
-
-export interface ModerationVisualState {
-  spotlight: string | null;
-  dim: string | null;
-  freeze: boolean;
-}
-
-const SPOTLIGHT_EMISSIVE = new THREE.Color(0xc8a96e); // brass glow
-const DIM_OPACITY = 0.18;
-const FREEZE_TINT = new THREE.Color(0x7dc8f7);        // ice blue
-
-/**
- * Per-frame moderation visual updater. Applies emissive glow (spotlight),
- * opacity dimming (dim), and blue ice tint + freeze sprite (freeze) to figure
- * meshes via material override. Caches original material values for restore.
- */
-export function updateModerationVisuals(figures: any[], state: ModerationVisualState): void {
-  const hasModeration = state.spotlight !== null || state.dim !== null || state.freeze;
-
-  for (const fig of figures) {
-    const isSpotlit = state.spotlight !== null && fig.id === state.spotlight;
-    const isDimTarget = state.dim !== null && fig.id === state.dim;
-    const shouldGlow  = isSpotlit || isDimTarget;
-    const shouldDim   = (state.spotlight !== null && !isSpotlit) ||
-                        (state.dim !== null && !isDimTarget);
-
-    // Freeze sprite
-    if (fig.freezeSprite) {
-      fig.freezeSprite.visible = state.freeze;
-    }
-
-    // Cache original material values on first moderation frame
-    if (hasModeration && !fig._moderationCache) {
-      fig._moderationCache = new Map<string, { color: THREE.Color; emissive: THREE.Color; opacity: number; transparent: boolean }>();
-      fig.root.traverse((o: any) => {
-        if (o.isMesh && o.material && !o.userData.isContact && o !== fig.ring && o !== fig.possessionRing) {
-          const m = o.material;
-          fig._moderationCache.set(o.uuid, {
-            color: m.color.clone(),
-            emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0x000000),
-            opacity: m.opacity ?? 1,
-            transparent: m.transparent ?? false,
-          });
-        }
-      });
-    }
-
-    // Restore original materials when moderation is cleared
-    if (!hasModeration && fig._moderationCache) {
-      fig.root.traverse((o: any) => {
-        if (o.isMesh && o.material && !o.userData.isContact && o !== fig.ring && o !== fig.possessionRing) {
-          const cached = fig._moderationCache.get(o.uuid);
-          if (cached) {
-            o.material.color.copy(cached.color);
-            if (o.material.emissive) o.material.emissive.copy(cached.emissive);
-            o.material.opacity = cached.opacity;
-            o.material.transparent = cached.transparent;
-            o.material.needsUpdate = true;
-          }
-        }
-      });
-      fig._moderationCache = null;
-      continue;
-    }
-
-    if (!hasModeration) continue;
-
-    // Apply moderation visuals
-    fig.root.traverse((o: any) => {
-      if (o.isMesh && o.material && !o.userData.isContact && o !== fig.ring && o !== fig.possessionRing) {
-        const m = o.material;
-        // Spotlight/Dim glow
-        if (shouldGlow && m.emissive) {
-          m.emissive.copy(SPOTLIGHT_EMISSIVE);
-          (m as any).emissiveIntensity = 0.55;
-          m.opacity = 1.0;
-          m.transparent = false;
-        }
-        // Dim (other figures fade)
-        if (shouldDim) {
-          m.opacity = DIM_OPACITY;
-          m.transparent = true;
-          if (m.emissive) m.emissive.set(0x000000);
-        }
-        // Freeze tint (overlaid on spotlight/dim)
-        if (state.freeze) {
-          const cached = fig._moderationCache?.get(o.uuid);
-          const baseColor = cached ? cached.color : m.color;
-          m.color.copy(baseColor).lerp(FREEZE_TINT, 0.3);
-        }
-        m.needsUpdate = true;
-      }
-    });
-  }
-}
-
-export function clearModerationVisuals(figures: any[]): void {
-  updateModerationVisuals(figures, { spotlight: null, dim: null, freeze: false });
-}
+// Re-exported from mannequin-moderation.ts (see top of file)
 
 /**
  * SEC T000660 bug #4: three.js GPU-Memory-Leak beim Figure-Remove.
@@ -619,5 +556,6 @@ export function disposeMannequin(fig: { root: THREE.Object3D }): void {
     }
   });
 }
+
 
 

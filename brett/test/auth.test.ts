@@ -13,6 +13,7 @@ import {
   sanitizeReturnTo,
   // SEC: session-guard for unauthenticated read/write API routes (T000660 bug #2).
   requireSession,
+  requireLeiterOrAdmin,
 } from '../src/server/auth';
 
 test('isAdminFromClaims: true only when realm_access.roles includes "admin"', () => {
@@ -135,4 +136,47 @@ test('requireAdmin: next() for admin session, 403 otherwise', () => {
   assert.equal(nextCalled, false);
   assert.equal(res.code, 403);
   assert.deepEqual(res.body, { error: 'forbidden' });
+});
+
+function mockRes() {
+  return {
+    statusCode: 0,
+    body: null as any,
+    status(c: number) { this.statusCode = c; return this; },
+    json(b: any) { this.body = b; return this; },
+  };
+}
+
+test('FA-BRT-B1a: requireLeiterOrAdmin allows admin sessions', () => {
+  let called = false;
+  const req: any = { session: { isAdmin: true }, params: {}, header: () => undefined };
+  requireLeiterOrAdmin(() => ({}))(req, mockRes() as any, () => { called = true; });
+  assert.equal(called, true);
+});
+
+test('FA-BRT-B1b: requireLeiterOrAdmin allows the room leiter', () => {
+  let called = false;
+  const req: any = { session: { userId: 'u1' }, params: { roomToken: 'r1' }, header: () => undefined };
+  const getRoles = (room: string) => (room === 'r1' ? { u1: 'leiter' } : {});
+  requireLeiterOrAdmin(getRoles)(req, mockRes() as any, () => { called = true; });
+  assert.equal(called, true);
+});
+
+test('FA-BRT-B1c: requireLeiterOrAdmin rejects a non-leiter with 403', () => {
+  const req: any = { session: { userId: 'u2' }, params: { roomToken: 'r1' }, header: () => undefined };
+  const res = mockRes();
+  let called = false;
+  requireLeiterOrAdmin(() => ({ u1: 'leiter' }))(req, res as any, () => { called = true; });
+  assert.equal(called, false);
+  assert.equal(res.statusCode, 403);
+  assert.deepEqual(res.body, { error: 'forbidden' });
+});
+
+test('FA-BRT-B1d: requireLeiterOrAdmin honors the e2e secret bypass', () => {
+  process.env.BRETT_OIDC_SECRET = 'e2e-secret';
+  let called = false;
+  const req: any = { session: {}, params: { roomToken: 'r1' }, header: (h: string) => (h === 'x-e2e-secret' ? 'e2e-secret' : undefined) };
+  requireLeiterOrAdmin(() => ({}))(req, mockRes() as any, () => { called = true; });
+  assert.equal(called, true);
+  delete process.env.BRETT_OIDC_SECRET;
 });

@@ -70,3 +70,19 @@ test('cameraOrbit object still present (orbit state not replaced)', () => {
     'cameraOrbit object must remain in scene.ts',
   );
 });
+
+test('SceneApi interface declares setOrbitDist(dist)', () => {
+  assert.match(
+    sceneSrc,
+    /setOrbitDist\s*\(\s*\w+\s*:\s*number\s*\)\s*:/,
+    'SceneApi must have setOrbitDist(dist: number) method',
+  );
+});
+
+test('SceneApi interface declares applyOrbitDelta(dTheta, dPhi)', () => {
+  assert.match(
+    sceneSrc,
+    /applyOrbitDelta\s*\(\s*\w+\s*:\s*number\s*,\s*\w+\s*:\s*number\s*\)\s*:/,
+    'SceneApi must have applyOrbitDelta(dTheta, dPhi)',
+  );
+});

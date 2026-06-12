@@ -278,4 +278,3 @@ export function cleanupRoomTracking(room: string): void {
     tokenGraceTimers.delete(room);
   }
 }
-

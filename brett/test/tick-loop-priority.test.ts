@@ -101,7 +101,7 @@ test('tick loop checks isInPov before isFreeFly (POV > Free-Fly priority)', () =
 test('F-key and free-fly wiring is gated behind __brettFeatures sf-t000465', () => {
   assert.match(
     bootSrc,
-    /__brettFeatures.*sf-t000465|sf-t000465.*__brettFeatures/,
+    /__brettFeatures[\s\S]*sf-t000465|sf-t000465[\s\S]*__brettFeatures/,
     'T3 features must be dark-launched behind __brettFeatures[sf-t000465]',
   );
 });

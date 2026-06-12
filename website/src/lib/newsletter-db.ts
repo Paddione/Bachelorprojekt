@@ -1,6 +1,7 @@
 // website/src/lib/newsletter-db.ts
 import pg from 'pg';
 import { resolve4 } from 'dns';
+import { sendNewsletterCampaign } from './email';
 
 const DB_URL = process.env.SESSIONS_DATABASE_URL
   || 'postgresql://website:devwebsitedb@shared-db.workspace.svc.cluster.local:5432/website';
@@ -46,6 +47,10 @@ async function ensureTables(): Promise<void> {
     )
   `);
   await pool.query(`
+    ALTER TABLE newsletter_campaigns
+      ADD COLUMN IF NOT EXISTS scheduled_publish_at TIMESTAMPTZ
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS newsletter_send_log (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       campaign_id UUID NOT NULL REFERENCES newsletter_campaigns(id),
@@ -70,7 +75,8 @@ export interface NewsletterCampaign {
   id: string;
   subject: string;
   html_body: string;
-  status: 'draft' | 'sent';
+  status: 'draft' | 'scheduled' | 'sent';
+  scheduled_publish_at: Date | null;
   sent_at: Date | null;
   recipient_count: number | null;
   created_at: Date;
@@ -190,7 +196,7 @@ export async function getConfirmedSubscribers(): Promise<
 export async function listCampaigns(): Promise<NewsletterCampaign[]> {
   await ensureTables();
   const result = await pool.query(
-    `SELECT id, subject, html_body, status, sent_at, recipient_count, created_at, updated_at
+    `SELECT id, subject, html_body, status, scheduled_publish_at, sent_at, recipient_count, created_at, updated_at
      FROM newsletter_campaigns ORDER BY created_at DESC`
   );
   return result.rows;
@@ -199,7 +205,7 @@ export async function listCampaigns(): Promise<NewsletterCampaign[]> {
 export async function getCampaign(id: string): Promise<NewsletterCampaign | null> {
   await ensureTables();
   const result = await pool.query(
-    `SELECT id, subject, html_body, status, sent_at, recipient_count, created_at, updated_at
+    `SELECT id, subject, html_body, status, scheduled_publish_at, sent_at, recipient_count, created_at, updated_at
      FROM newsletter_campaigns WHERE id = $1`,
     [id]
   );
@@ -211,7 +217,7 @@ export async function createCampaign(params: { subject: string; html_body: strin
   const result = await pool.query(
     `INSERT INTO newsletter_campaigns (subject, html_body)
      VALUES ($1, $2)
-     RETURNING id, subject, html_body, status, sent_at, recipient_count, created_at, updated_at`,
+      RETURNING id, subject, html_body, status, scheduled_publish_at, sent_at, recipient_count, created_at, updated_at`,
     [params.subject, params.html_body]
   );
   return result.rows[0];
@@ -219,9 +225,21 @@ export async function createCampaign(params: { subject: string; html_body: strin
 
 export async function updateCampaign(
   id: string,
-  params: { subject?: string; html_body?: string }
+  params: {
+    subject?: string;
+    html_body?: string;
+    scheduled_publish_at?: Date | null;
+    status?: 'draft' | 'scheduled';
+  }
 ): Promise<NewsletterCampaign | null> {
-  if (params.subject === undefined && params.html_body === undefined) return getCampaign(id);
+  if (
+    params.subject === undefined &&
+    params.html_body === undefined &&
+    params.scheduled_publish_at === undefined &&
+    params.status === undefined
+  ) {
+    return getCampaign(id);
+  }
   await ensureTables();
   const sets: string[] = ['updated_at = now()'];
   const values: unknown[] = [];
@@ -233,11 +251,19 @@ export async function updateCampaign(
     values.push(params.html_body);
     sets.push(`html_body = $${values.length}`);
   }
+  if (params.scheduled_publish_at !== undefined) {
+    values.push(params.scheduled_publish_at);
+    sets.push(`scheduled_publish_at = $${values.length}`);
+  }
+  if (params.status !== undefined) {
+    values.push(params.status);
+    sets.push(`status = $${values.length}`);
+  }
   values.push(id);
   const result = await pool.query(
     `UPDATE newsletter_campaigns SET ${sets.join(', ')}
-     WHERE id = $${values.length} AND status = 'draft'
-     RETURNING id, subject, html_body, status, sent_at, recipient_count, created_at, updated_at`,
+     WHERE id = $${values.length} AND status IN ('draft', 'scheduled')
+     RETURNING id, subject, html_body, status, scheduled_publish_at, sent_at, recipient_count, created_at, updated_at`,
     values
   );
   return result.rows[0] ?? null;
@@ -259,6 +285,94 @@ export async function countSentCampaigns(): Promise<number> {
     `SELECT COUNT(*)::int FROM newsletter_campaigns WHERE status = 'sent'`
   );
   return result.rows[0]?.count ?? 0;
+}
+
+export async function sendCampaignById(campaignId: string): Promise<{
+  success: boolean;
+  recipientCount: number;
+  error?: string;
+}> {
+  await ensureTables();
+  const campaign = await getCampaign(campaignId);
+  if (!campaign) {
+    return { success: false, recipientCount: 0, error: 'Kampagne nicht gefunden' };
+  }
+  const subscribers = await getConfirmedSubscribers();
+  if (subscribers.length === 0) {
+    return { success: false, recipientCount: 0, error: 'Keine bestätigten Abonnenten vorhanden' };
+  }
+
+  const prodDomain = process.env.PROD_DOMAIN || '';
+  const baseUrl = prodDomain ? `https://web.${prodDomain}` : 'http://web.localhost';
+
+  const sentCount = await countSentCampaigns();
+  const ausgabe = String(sentCount + 1).padStart(2, '0');
+  const renderedHtml = campaign.html_body.replace(/\{\{AUSGABE\}\}/g, ausgabe);
+
+  let sent = 0;
+  for (const sub of subscribers) {
+    const unsubscribeUrl = `${baseUrl}/api/newsletter/unsubscribe?token=${sub.unsubscribe_token}`;
+    const ok = await sendNewsletterCampaign({
+      to: sub.email,
+      subject: campaign.subject,
+      html: renderedHtml,
+      unsubscribeUrl,
+    });
+    await createSendLog({
+      campaignId,
+      subscriberId: sub.id,
+      status: ok ? 'sent' : 'failed',
+    });
+    if (ok) sent++;
+  }
+
+  await markCampaignSent(campaignId, sent);
+  return { success: true, recipientCount: sent };
+}
+
+// ── Scheduled publishing (Cron) ────────────────────────────────────────────────
+
+export async function listDueCampaignIds(): Promise<string[]> {
+  await ensureTables();
+  const result = await pool.query(
+    `SELECT id FROM newsletter_campaigns
+     WHERE status = 'scheduled' AND scheduled_publish_at <= now()
+     ORDER BY scheduled_publish_at ASC`
+  );
+  return result.rows.map((r) => r.id as string);
+}
+
+export async function lockDueCampaign(id: string): Promise<boolean> {
+  await ensureTables();
+  const result = await pool.query(
+    `UPDATE newsletter_campaigns
+     SET status = 'sending', updated_at = now()
+     WHERE id = $1 AND status = 'scheduled' AND scheduled_publish_at <= now()
+     RETURNING id`,
+    [id]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function unlockCampaignToScheduled(id: string): Promise<void> {
+  await ensureTables();
+  await pool.query(
+    `UPDATE newsletter_campaigns
+     SET status = 'scheduled', updated_at = now()
+     WHERE id = $1 AND status = 'sending'`,
+    [id]
+  );
+}
+
+export async function resetStaleSendingCampaigns(): Promise<number> {
+  await ensureTables();
+  const result = await pool.query(
+    `UPDATE newsletter_campaigns
+     SET status = 'scheduled', updated_at = now()
+     WHERE status = 'sending' AND updated_at < now() - INTERVAL '10 minutes'
+     RETURNING id`
+  );
+  return result.rowCount ?? 0;
 }
 
 // ── Send log ──────────────────────────────────────────────────────────────────

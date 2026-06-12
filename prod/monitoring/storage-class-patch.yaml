@@ -1,0 +1,45 @@
+# Patch the committed rendered YAML (dev values → local-path) to longhorn for prod.
+# Targets the Prometheus + Alertmanager CRs (which carry storage.volumeClaimTemplate)
+# and the Grafana PVC directly.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: monitoring-alertmanager
+  namespace: monitoring
+spec:
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: longhorn
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: monitoring-prometheus
+  namespace: monitoring
+spec:
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: longhorn
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: monitoring-grafana
+  namespace: monitoring
+spec:
+  storageClassName: longhorn
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi

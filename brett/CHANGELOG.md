@@ -1,6 +1,27 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.29.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.28.1...brett-v0.29.0) (2026-06-12)
+
+
+### Features
+
+* **brett:** board export PNG/PDF/JSON-snapshot (T000605) ([#1583](https://github.com/Paddione/Bachelorprojekt/issues/1583)) ([49c90b7](https://github.com/Paddione/Bachelorprojekt/commit/49c90b773b073b5fd2ef7ba09c4194480bc6e6e9))
+* **brett:** mobile touch controls — orbit, pinch-zoom, figure-drag (T000606) ([#1582](https://github.com/Paddione/Bachelorprojekt/issues/1582)) ([4911da6](https://github.com/Paddione/Bachelorprojekt/commit/4911da6bbb896d3cc3854959c2a5a617eca07bfc))
+* **brett:** share board as public view-only link (T000608) ([#1584](https://github.com/Paddione/Bachelorprojekt/issues/1584)) ([534fa91](https://github.com/Paddione/Bachelorprojekt/commit/534fa911a36fb879a37eefeb528f3e832eea09aa))
+
+
+### Performance Improvements
+
+* **brett:** client render performance fixes for mannequin and scene lines (T000662) ([#1593](https://github.com/Paddione/Bachelorprojekt/issues/1593)) ([5b94ff9](https://github.com/Paddione/Bachelorprojekt/commit/5b94ff9e6e054bacbddbcbee89e71d857167e854))
+
+## [0.28.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.28.0...brett-v0.28.1) (2026-06-12)
+
+
+### Bug Fixes
+
+* **brett:** close 4 security leaks — open redirect, auth gates, server map & GPU memory leaks (T000660) ([#1588](https://github.com/Paddione/Bachelorprojekt/issues/1588)) ([07e74db](https://github.com/Paddione/Bachelorprojekt/commit/07e74db576600141897a765a2840a1550c7b17eb))
+
 ## [0.28.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.27.0...brett-v0.28.0) (2026-06-11)
 
 

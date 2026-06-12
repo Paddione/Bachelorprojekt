@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-12T16:24:10.395Z
+> Generated at 2026-06-12T18:57:05.360Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -43,6 +43,7 @@
 | `/api/admin/clientnotes/create` | POST | 🔐 admin | `website/src/pages/api/admin/clientnotes/create.ts` |
 | `/api/admin/clientnotes/delete` | POST | 🔐 admin | `website/src/pages/api/admin/clientnotes/delete.ts` |
 | `/api/admin/clients-list` | GET | 🔐 admin | `website/src/pages/api/admin/clients-list.ts` |
+| `/api/admin/clients/contact-history/create` | POST | 🔐 admin | `website/src/pages/api/admin/clients/contact-history/create.ts` |
 | `/api/admin/clients/create` | POST | 🔐 admin | `website/src/pages/api/admin/clients/create.ts` |
 | `/api/admin/clients/decline-enrollment` | POST | 🔐 admin | `website/src/pages/api/admin/clients/decline-enrollment.ts` |
 | `/api/admin/clients/delete` | POST | 🔐 admin | `website/src/pages/api/admin/clients/delete.ts` |
@@ -56,6 +57,7 @@
 | `/api/admin/clients/set-customer-number` | POST | 🔐 admin | `website/src/pages/api/admin/clients/set-customer-number.ts` |
 | `/api/admin/clients/set-is-admin` | POST | 🔐 admin | `website/src/pages/api/admin/clients/set-is-admin.ts` |
 | `/api/admin/clients/update` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update.ts` |
+| `/api/admin/clients/update-crm` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update-crm.ts` |
 | `/api/admin/cluster/logs` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/logs.ts` |
 | `/api/admin/cluster/pods-list` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/pods-list.ts` |
 | `/api/admin/cluster/warnings` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/warnings.ts` |
@@ -106,9 +108,11 @@
 | `/api/admin/documents/assign` | POST | 🔐 admin | `website/src/pages/api/admin/documents/assign.ts` |
 | `/api/admin/documents/assignments` | GET | 🔐 admin | `website/src/pages/api/admin/documents/assignments.ts` |
 | `/api/admin/documents/assignments/{id}` | DELETE, PATCH | 🔐 admin | `website/src/pages/api/admin/documents/assignments/[id].ts` |
+| `/api/admin/documents/assignments/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/assignments/[id]/pdf.ts` |
 | `/api/admin/documents/notify/{id}` | POST | 🔐 admin | `website/src/pages/api/admin/documents/notify/[id].ts` |
 | `/api/admin/documents/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/documents/templates/index.ts` |
 | `/api/admin/documents/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id].ts` |
+| `/api/admin/documents/templates/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id]/pdf.ts` |
 | `/api/admin/einstellungen/backup` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/backup.ts` |
 | `/api/admin/einstellungen/benachrichtigungen` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/benachrichtigungen.ts` |
 | `/api/admin/einstellungen/branding` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/branding.ts` |
@@ -314,6 +318,7 @@
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
 | `/api/contact` | POST | 🌐 public | `website/src/pages/api/contact.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
+| `/api/cron/scheduled-publish` | GET | 🌐 public | `website/src/pages/api/cron/scheduled-publish.ts` |
 | `/api/dsgvo-request` | POST | 🌐 public | `website/src/pages/api/dsgvo-request.ts` |
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |
@@ -347,6 +352,8 @@
 | `/api/portal/messages/{threadId}` | GET, POST | 🔑 auth | `website/src/pages/api/portal/messages/[threadId].ts` |
 | `/api/portal/nachrichten` | GET | 🔑 auth | `website/src/pages/api/portal/nachrichten.ts` |
 | `/api/portal/onboarding/mark-step` | POST | 🔑 auth | `website/src/pages/api/portal/onboarding/mark-step.ts` |
+| `/api/portal/profile/export` | GET | 🔑 auth | `website/src/pages/api/portal/profile/export.ts` |
+| `/api/portal/profile/update` | POST | 🔑 auth | `website/src/pages/api/portal/profile/update.ts` |
 | `/api/portal/projekte` | GET | 🔑 auth | `website/src/pages/api/portal/projekte.ts` |
 | `/api/portal/projekttasks/{id}/done` | POST | 🔑 auth | `website/src/pages/api/portal/projekttasks/[id]/done.ts` |
 | `/api/portal/questionnaires` | GET | 🔑 auth | `website/src/pages/api/portal/questionnaires/index.ts` |

@@ -1,0 +1,45 @@
+---
+import type { CustomerProfile } from '../../lib/customer-crm-db';
+interface Props {
+  name: string;
+  email: string;
+  profile: CustomerProfile | null;
+}
+const { name, email, profile } = Astro.props;
+const initial = (name?.trim()?.[0] ?? '?').toUpperCase();
+const addressLine = [profile?.address, [profile?.postal_code, profile?.city].filter(Boolean).join(' ')]
+  .filter(Boolean).join(', ');
+const CHANNEL_LABEL: Record<string, string> = { email: 'E-Mail', phone: 'Telefon', portal: 'Portal-Nachricht' };
+---
+
+<div class="rounded-lg border border-[#30363d] bg-[#161b22] overflow-hidden">
+  <div class="flex items-center gap-4 p-5 border-b border-[#30363d]">
+    <div class="w-12 h-12 rounded-lg bg-[#21262d] border border-[#30363d] flex items-center justify-center text-xl font-bold text-[#f59e0b] font-mono">
+      {initial}
+    </div>
+    <div class="min-w-0">
+      <div class="text-base font-semibold text-[#e5e5e5] truncate">{name}</div>
+      <div class="text-xs text-[#a3a3a3] font-mono truncate">{email}</div>
+      {profile?.customer_number && (
+        <div class="text-xs text-[#737373] font-mono mt-0.5">Kundennummer: {profile.customer_number}</div>
+      )}
+    </div>
+  </div>
+
+  <div class="p-5 border-b border-[#30363d]">
+    <h3 class="text-xs font-mono uppercase tracking-widest text-[#a3a3a3] mb-3">Meine Kontaktdaten</h3>
+    <dl class="grid grid-cols-1 gap-2 text-sm">
+      <div class="flex gap-2"><dt class="text-[#737373] w-24">Telefon</dt><dd class="text-[#e5e5e5]">{profile?.phone || '—'}</dd></div>
+      <div class="flex gap-2"><dt class="text-[#737373] w-24">Firma</dt><dd class="text-[#e5e5e5]">{profile?.company || '—'}</dd></div>
+      <div class="flex gap-2"><dt class="text-[#737373] w-24">Adresse</dt><dd class="text-[#e5e5e5]">{addressLine || '—'}</dd></div>
+    </dl>
+  </div>
+
+  <div class="p-5">
+    <h3 class="text-xs font-mono uppercase tracking-widest text-[#a3a3a3] mb-3">Präferenzen</h3>
+    <dl class="grid grid-cols-1 gap-2 text-sm">
+      <div class="flex gap-2"><dt class="text-[#737373] w-32">Kontaktkanal</dt><dd class="text-[#e5e5e5]">{CHANNEL_LABEL[profile?.preferred_contact_channel ?? 'email'] ?? 'E-Mail'}</dd></div>
+      <div class="flex gap-2"><dt class="text-[#737373] w-32">Frequenz</dt><dd class="text-[#e5e5e5] capitalize">{profile?.communication_frequency ?? 'monatlich'}</dd></div>
+    </dl>
+  </div>
+</div>

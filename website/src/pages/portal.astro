@@ -8,6 +8,7 @@ import { listFiles, getClientFolderPath, PENDING_SIGNATURES_DIR } from '../lib/n
 import { countPendingAssignmentsForCustomer } from '../lib/documents-db';
 import { countPendingQAssignmentsForCustomer, listQAssignmentsForCustomer } from '../lib/questionnaire-db';
 import type { QAssignment } from '../lib/questionnaire-db';
+import { getCustomerProfile } from '../lib/customer-crm-db';
 
 import NachrichtenSection   from '../components/portal/NachrichtenSection.astro';
 import BesprechungenSection from '../components/portal/BesprechungenSection.astro';
@@ -54,6 +55,7 @@ let pendingQuestionnaires = 0;
 // Ensure a customer record exists for every Keycloak user so room lookups work
 await upsertCustomer({ name: session.name, email: session.email, keycloakUserId: session.sub }).catch(() => null);
 const customer = await getCustomerByEmail(session.email).catch(() => null);
+const crmProfile = await getCustomerProfile(session.sub).catch(() => null);
 if (customer) {
   const rooms = await listRoomsWithInboxData(customer.id).catch(() => []);
   unreadMessages = rooms.reduce((s, r) => s + r.unreadCount, 0);
@@ -122,6 +124,6 @@ const questionnaires: QAssignment[] = (section === 'fragebögen' && customer)
   )}
   {section === 'fragebögen'     && <FragebogenSection assignments={questionnaires} />}
   {section === 'dienste'        && <DiensteSection {ncBase} {vaultUrl} {bretUrl} {keycloakBase} isKore={session.brand === 'korczewski'} />}
-  {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} />}
+  {section === 'konto'          && <KontoSection {session} {keycloakBase} {realm} profile={crmProfile} />}
   {section === 'buchung'        && <BuchungSection ncBase={ncBase} />}
 </PortalLayout>

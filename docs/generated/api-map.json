@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T16:24:10.395Z",
+  "generatedAt": "2026-06-12T18:57:05.360Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -319,6 +319,14 @@
       "file": "website/src/pages/api/admin/clients-list.ts"
     },
     {
+      "path": "/api/admin/clients/contact-history/create",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/contact-history/create.ts"
+    },
+    {
       "path": "/api/admin/clients/create",
       "methods": [
         "POST"
@@ -421,6 +429,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/clients/update.ts"
+    },
+    {
+      "path": "/api/admin/clients/update-crm",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/clients/update-crm.ts"
     },
     {
       "path": "/api/admin/cluster/logs",
@@ -839,6 +855,14 @@
       "file": "website/src/pages/api/admin/documents/assignments/[id].ts"
     },
     {
+      "path": "/api/admin/documents/assignments/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/assignments/[id]/pdf.ts"
+    },
+    {
       "path": "/api/admin/documents/notify/{id}",
       "methods": [
         "POST"
@@ -864,6 +888,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/documents/templates/[id].ts"
+    },
+    {
+      "path": "/api/admin/documents/templates/{id}/pdf",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/documents/templates/[id]/pdf.ts"
     },
     {
       "path": "/api/admin/einstellungen/backup",
@@ -2536,6 +2568,14 @@
       "file": "website/src/pages/api/cron/notify-unread.ts"
     },
     {
+      "path": "/api/cron/scheduled-publish",
+      "methods": [
+        "GET"
+      ],
+      "auth": "public",
+      "file": "website/src/pages/api/cron/scheduled-publish.ts"
+    },
+    {
       "path": "/api/dsgvo-request",
       "methods": [
         "POST"
@@ -2802,6 +2842,22 @@
       ],
       "auth": "auth",
       "file": "website/src/pages/api/portal/onboarding/mark-step.ts"
+    },
+    {
+      "path": "/api/portal/profile/export",
+      "methods": [
+        "GET"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/profile/export.ts"
+    },
+    {
+      "path": "/api/portal/profile/update",
+      "methods": [
+        "POST"
+      ],
+      "auth": "auth",
+      "file": "website/src/pages/api/portal/profile/update.ts"
     },
     {
       "path": "/api/portal/projekte",

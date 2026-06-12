@@ -267,6 +267,14 @@
           <button onclick={saveTemplate} disabled={composeSaving} class="px-4 py-2 bg-gold text-dark rounded-lg text-sm font-semibold hover:bg-gold/80 transition-colors disabled:opacity-50">
             {composeSaving ? 'Speichere…' : 'Speichern'}
           </button>
+          {#if editingId}
+            <a
+              href={`/api/admin/documents/templates/${editingId}/pdf?inline=1`}
+              target="_blank"
+              rel="noopener"
+              class="px-4 py-2 border border-dark-lighter text-light rounded-lg text-sm font-semibold hover:border-gold hover:text-gold transition-colors"
+            >Als PDF previewen</a>
+          {/if}
         </div>
 
         <!-- Preview — full DIN-A4 page (794 × 1123 px) -->

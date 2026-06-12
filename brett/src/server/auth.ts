@@ -1,6 +1,7 @@
 import { discovery, ClientSecretPost, allowInsecureRequests, customFetch } from 'openid-client';
 import type { Configuration } from 'openid-client';
 import type { Request, Response, NextFunction } from 'express';
+import type { Role } from '../types/state';
 
 let oidcConfig: Configuration | null = null;
 
@@ -105,4 +106,19 @@ export function requireSession(req: Request, res: Response, next: NextFunction):
   res.status(401).json({ error: 'unauthenticated' });
 }
 
-
+export function requireLeiterOrAdmin(
+  getRoomRoles: (room: string) => Record<string, Role>,
+) {
+  return function (req: Request, res: Response, next: NextFunction): void {
+    const session = (req as any).session;
+    if (session?.isAdmin) return next();
+    const roomToken = (req as any).params?.roomToken;
+    if (roomToken && session?.userId) {
+      const roles = getRoomRoles(roomToken);
+      if (roles?.[session.userId] === 'leiter') return next();
+    }
+    const e2eSecret = process.env.BRETT_OIDC_SECRET;
+    if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
+    res.status(403).json({ error: 'forbidden' });
+  };
+}

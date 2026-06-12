@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.28.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.28.0...brett-v0.28.1) (2026-06-12)
+
+
+### Bug Fixes
+
+* **brett:** close 4 security leaks — open redirect, auth gates, server map & GPU memory leaks (T000660) ([#1588](https://github.com/Paddione/Bachelorprojekt/issues/1588)) ([07e74db](https://github.com/Paddione/Bachelorprojekt/commit/07e74db576600141897a765a2840a1550c7b17eb))
+
 ## [0.28.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.27.0...brett-v0.28.0) (2026-06-11)
 
 

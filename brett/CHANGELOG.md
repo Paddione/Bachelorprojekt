@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.29.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.29.0...brett-v0.29.1) (2026-06-12)
+
+
+### Bug Fixes
+
+* **brett:** Security-Hardening — Open Redirect, Auth-Gates, Resource-Leaks (T000660) ([#1601](https://github.com/Paddione/Bachelorprojekt/issues/1601)) ([3948707](https://github.com/Paddione/Bachelorprojekt/commit/394870774b98091ffe1edcd94dd9ef0d85223000))
+
 ## [0.29.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.28.1...brett-v0.29.0) (2026-06-12)
 
 

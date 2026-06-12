@@ -10,7 +10,11 @@
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
   import ShippedColumn from './factory/ShippedColumn.svelte';
+  import PhaseStepper from './factory/PhaseStepper.svelte';
+  import CiBadge from './factory/CiBadge.svelte';
+  import AttentionStrip from './factory/AttentionStrip.svelte';
   import type { QaItem } from '../lib/qa-dal';
+  import type { CiRollup } from '../lib/factory-ci';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
@@ -77,6 +81,7 @@
   let qaModalItem = $state<QaItem | null>(null);
   let es: EventSource | null = null;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  let ciByExt = $state<Record<string, CiRollup>>({});
 
   async function refresh() {
     try {
@@ -90,6 +95,7 @@
       stale = false;
       if (qaRes.ok) { const { items } = await qaRes.json(); qaItems = items ?? []; }
       if (criteriaRes.ok) { const { criteria } = await criteriaRes.json(); qaCriteria = criteria ?? []; }
+      void refreshCi(data.hall.filter(w => w.prNumber).map(w => w.extId));
       window.dispatchEvent(new CustomEvent('factory-floor-refreshed', {
         detail: {
           planningCount: (data as any).planningCount,
@@ -97,6 +103,14 @@
         },
       }));
     } catch { stale = true; }
+  }
+  async function refreshCi(extIds: string[]) {
+    await Promise.all(extIds.map(async (id) => {
+      try {
+        const r = await fetch(`/api/factory-floor/${encodeURIComponent(id)}/ci`, { credentials: 'same-origin' });
+        if (r.ok) { const { rollup } = await r.json(); ciByExt = { ...ciByExt, [id]: rollup }; }
+      } catch { /* CI badge stays absent on error */ }
+    }));
   }
   async function openDetail(extId: string) {
     selected = extId; detail = null;
@@ -245,6 +259,8 @@
       <a href="#floor-kommissionierung" class="rounded-xl bg-white/5 p-3 hover:bg-white/10 transition-colors" data-testid="floor-komm-count" title="Zur Kommissionierung"><p class="text-muted text-xs">Kommissionierung</p><p class="text-xl font-bold">{data.stagedWaiting ?? 0}</p></a>
     </div>
 
+    <AttentionStrip attention={data.attention} />
+
     <ProviderStatus providerHealth={data.providerHealth} />
 
     <div class="mobile-station-dots" aria-hidden="true">
@@ -280,33 +296,39 @@
                   <img src={`/factory/station-${st.key}.svg`} alt="" class="h-8 mx-auto mb-1" onerror={assetFallback} />
                   <p class="text-center text-xs text-muted mb-1">{st.label}</p>
                   {#each hallAt(st.key) as w (w.extId)}
-                    <button
-                      onclick={() => openDetail(w.extId)}
-                      data-testid="floor-workpiece"
-                      data-driver={w.driver ?? 'factory'}
-                      title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
-                      class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs mb-1 transition-all"
-                      class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                      class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
-                      class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
-                      class:border={w.driver === 'devflow'}
-                      class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
-                      class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
-                      class:animate-pulse={w.phaseState === 'blocked'}>
-                      <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
-                      {#if w.driver === 'devflow' && w.ciStatus}
-                        <span role="button" tabindex="0" data-testid="floor-ci-badge"
-                              title={`CI: ${w.ciStatus} — PR öffnen`}
-                              onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
-                              onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
-                          {ciIcon(w.ciStatus)}
-                        </span>
-                      {/if}
-                    </button>
+                    <div class="mb-1">
+                      <button
+                        onclick={() => openDetail(w.extId)}
+                        data-testid="floor-workpiece"
+                        data-driver={w.driver ?? 'factory'}
+                        title={`${w.title}${w.driver === 'devflow' && w.prNumber ? ` · PR #${w.prNumber}` : ''}${w.blockReason ? ` · ⛔ ${w.blockReason}` : ''}${w.phaseSince ? ` · seit ${minutesSince(w.phaseSince)} Min. in ${w.phase}` : ''}`}
+                        class="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-xs transition-all"
+                        class:bg-gold={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                        class:text-dark={w.driver !== 'devflow' && w.phaseState !== 'blocked'}
+                        class:bg-red-500={w.driver !== 'devflow' && w.phaseState === 'blocked'}
+                        class:border={w.driver === 'devflow'}
+                        class:border-blue-400={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                        class:text-blue-300={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                        class:bg-blue-950={w.driver === 'devflow' && w.phaseState !== 'blocked'}
+                        class:border-red-400={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                        class:text-red-300={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                        class:bg-red-950={w.driver === 'devflow' && w.phaseState === 'blocked'}
+                        class:animate-pulse={w.phaseState === 'blocked'}>
+                        <span class="truncate">{w.extId}{w.driver === 'devflow' ? ' 👨‍💻' : ''}{w.phaseState === 'blocked' ? ' ⛔' : (minutesSince(w.phaseSince) >= STUCK_MIN ? ' ⏱' : '')}</span>
+                        {#if w.driver === 'devflow' && w.prNumber}
+                          <CiBadge rollup={ciByExt[w.extId] ?? null} />
+                        {/if}
+                        {#if w.driver === 'devflow' && w.ciStatus}
+                          <span role="button" tabindex="0" data-testid="floor-ci-badge"
+                                title={`CI: ${w.ciStatus} — PR öffnen`}
+                                onclick={(e) => { e.stopPropagation(); openPR(w.prNumber); }}
+                                onkeydown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); openPR(w.prNumber); } }}>
+                            {ciIcon(w.ciStatus)}
+                          </span>
+                        {/if}
+                      </button>
+                      <PhaseStepper segments={w.phaseProgress} />
+                    </div>
                   {/each}
                 </div>
               {/each}
@@ -350,19 +372,6 @@
         {/if}
       </div>
 
-      <div
-        data-col="qs"
-        class:mobile-visible={mobileColIndex === 8}
-        class="lg:w-1/5 col col-qa"
-      >
-        <div class="col-head">
-          <span class="col-label col-label-qa">QS</span>
-          <span class="col-count">{data?.qaQueue?.length ?? 0}</span>
-        </div>
-        <div class="col-body">
-          {#each data?.qaQueue ?? [] as _item}{/each}
-        </div>
-      </div>
       <ShippedColumn
         shipped={data.shipped}
         {mobileColIndex}
@@ -417,7 +426,6 @@
   {/if}
 </div>
 <style>
-  .col-label-qa { color: #818cf8; }
   @media (max-width: 767px) {
     .kanban-container [data-col] { display: none; }
     .kanban-container [data-col].mobile-visible { display: flex; flex-direction: column; width: 100%; }

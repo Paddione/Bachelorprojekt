@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T17:25:23.568Z",
+  "generatedAt": "2026-06-12T17:32:02.226Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -72,6 +72,12 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "monthly-billing"
+    },
+    {
+      "id": "scheduled-publish",
+      "namespace": "mentolder",
+      "type": "CronJob",
+      "name": "scheduled-publish"
     },
     {
       "id": "systemtest-cleanup",
@@ -204,6 +210,24 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "mailpit"
+    },
+    {
+      "id": "monitoring-grafana",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "monitoring-grafana"
+    },
+    {
+      "id": "monitoring-kube-state-metrics",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "monitoring-kube-state-metrics"
+    },
+    {
+      "id": "monitoring-operator",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "monitoring-operator"
     },
     {
       "id": "nextcloud-redis",
@@ -513,6 +537,11 @@
     },
     {
       "from": "monthly-billing",
+      "to": "website",
+      "via": "command"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "website",
       "via": "command"
     },
@@ -910,6 +939,11 @@
       "from": "whiteboard",
       "to": "nextcloud",
       "via": "env:NEXTCLOUD_URL"
+    },
+    {
+      "from": "monitoring-grafana",
+      "to": "keycloak",
+      "via": "env:GF_AUTH_GENERIC_OAUTH_NAME"
     },
     {
       "from": "tls-sync",

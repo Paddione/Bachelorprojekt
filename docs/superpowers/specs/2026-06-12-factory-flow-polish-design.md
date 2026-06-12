@@ -22,10 +22,10 @@
 ### P2 — Konsistenz & Live-Verhalten
 6. **Planungsbüro hat kein Auto-Refresh** (Floor: SSE; Planning: statisch nach Load). Promote/Enqueue in einem Tab aktualisiert den anderen nicht (Event-Sync zwischen Tabs fehlt).
 7. **Error-/Loading-States inkonsistent** über die Tabs (teils gar keine Fehler-UI, teils stumm fehlschlagende Fetches).
-8. **QA-Spalten-Leiche:** Der QA-Tab selbst ist funktional (`qa-dal`, `/api/admin/qa-queue`, Status `qa_review`); tot ist nur die nie befüllte `qaQueue: never[]`-Spalte in `FactoryFloor.svelte` — diese entfernen. *(Korrigiert nach Code-Verifikation; ursprüngliche Annahme „Tab leer" war falsch.)*
+8. **QA-Tab leer/Platzhalter** — entweder mit echten Daten füllen (CI-Review-Ergebnisse aus `scripts/factory/ci-review.mjs`-Artefakten, sofern in DB) oder den Tab bis dahin ausblenden.
 
 ### P3 — Code-/UI-Hygiene
-9. ~~`brand`-Prop in DevStatusTabs ist dead code~~ — *widerlegt: wird an `<PlanningOffice {brand}>` durchgereicht, bleibt.*
+9. `brand`-Prop in DevStatusTabs ist dead code.
 10. Magic numbers (Poll-Intervalle, Timeouts) verstreut statt zentral in `factory-tokens.css`/Konstanten.
 11. Touch-Targets/Mobile: MobileTabBar vorhanden, aber einzelne Buttons unter 44px; Drag-Drop-Fallback prüfen.
 
@@ -34,7 +34,7 @@
 - **D1 — Phasen-Stepper als Kernstück:** WorkpieceCard bekommt eine kompakte Phasen-Leiste (Punkte/Segmente je Pipeline-Phase: pending/active/done/blocked), DetailPanel eine ausführliche Timeline aus `factory_phase_events` (mit Dauer je Phase). Datenquelle: bestehendes Floor-API erweitern (reines Lese-Feld), kein neues Schema.
 - **D2 — Ein gemeinsamer Refresh-Mechanismus:** Der bestehende SSE-Stream wird zur einzigen Live-Quelle für alle Tabs (DevStatusTabs hält die EventSource, Tabs subscriben). Planungsbüro-Mutationen triggern optimistisches Update + Streamen ohnehin binnen 5s nach. Kein zweiter Polling-Pfad.
 - **D3 — „Attention"-Strip:** Oben im Floor ein schmaler Streifen, der blocked-Phasen, stuck Workpieces und Provider-Cooldown/402 aggregiert anzeigt (nur wenn nicht leer). Nutzt vorhandene Daten; Cooldown-Status via kleinem Lese-API auf vorhandene Factory-State-Tabelle, falls vorhanden — sonst Scope auf blocked/stuck reduzieren (Plan prüft Datenlage).
-- **D4 — QA-Aufräumen:** Die tote `qaQueue: never[]`-Spalte in `FactoryFloor.svelte` wird entfernt; der funktionale QA-Tab (qa-dal/`qa_review`) bleibt unverändert. Kein neuer Daten-Ingest in diesem Plan.
+- **D4 — QA-Tab:** Wenn keine in der DB liegenden Review-Daten existieren, wird der Tab hinter ein Feature-Flag gelegt/ausgeblendet statt halb leer zu rendern. Kein neuer Daten-Ingest in diesem Plan.
 - **D5 — Status-Vollabdeckung als Test:** Ein Unit-/Vitest-Test, der das Status-Enum gegen die Stations-/Bucket-Zuordnung der UI prüft (neuer Status ⇒ Test rot statt unsichtbares Ticket).
 - **D7 — Git-CI-Checks in der Pipeline sichtbar (User-Anforderung):** Sobald ein Workpiece einen PR hat, erscheinen die GitHub-CI-Checks als eigener Abschnitt im Phasen-Stepper/DetailPanel (je Check: pending/success/failure, verlinkt auf den GitHub-Run). Datenquelle: serverseitiges Lese-API (`api/factory-floor/...`), das die Check-Runs des PR-Head-SHA über die GitHub-API holt (Token serverseitig, kurzes Caching ~30s, nie im Client); falls der Factory-CI-wait (`scripts/factory/`) Check-Ergebnisse bereits in die DB schreibt, diese bevorzugen — der Plan prüft die Datenlage. Auf der WorkpieceCard ein kompaktes CI-Badge (grün/gelb/rot), Details im DetailPanel.
 - **D6 — Hygiene en passant:** brand-dead-code raus, Intervall-Konstanten zentralisieren, Touch-Target-Fixes — kleine, klar abgegrenzte Tasks am Ende des Plans.

@@ -13,8 +13,11 @@ import OnboardingTab from '../../components/portal/OnboardingTab.astro';
 import AdminBookingModal from '../../components/admin/AdminBookingModal.svelte';
 import ClientContractsPanel from '../../components/admin/ClientContractsPanel.svelte';
 import ClientQuestionnairesPanel from '../../components/admin/ClientQuestionnairesPanel.svelte';
+import CrmStatusPanel from '../../components/admin/CrmStatusPanel.svelte';
+import ContactHistoryTimeline from '../../components/admin/ContactHistoryTimeline.svelte';
 import { listProjectsForCustomer, getCustomerByEmail } from '../../lib/website-db';
 import { getSubscriberByEmail } from '../../lib/newsletter-db';
+import { getCustomerProfile, getContactHistory } from '../../lib/customer-crm-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) {
@@ -69,6 +72,15 @@ try {
   }
 } catch {
   // newsletter DB unavailable
+}
+
+let crmProfile: Awaited<ReturnType<typeof getCustomerProfile>> = null;
+let contactHistory: Awaited<ReturnType<typeof getContactHistory>> = [];
+try {
+  crmProfile = await getCustomerProfile(clientId);
+  contactHistory = await getContactHistory(clientId, 100);
+} catch {
+  // CRM-Tab bleibt leer, falls DB nicht erreichbar
 }
 ---
 
@@ -312,6 +324,7 @@ try {
           { id: 'signatures', label: 'Zur Unterschrift' },
           { id: 'meetings', label: 'Besprechungen' },
           { id: 'onboarding', label: 'Onboarding' },
+          { id: 'profil', label: 'Profil' },
           { id: 'book', label: 'Leistung buchen' },
           { id: 'vertraege', label: 'Verträge & Newsletter' },
           { id: 'fragebögen', label: 'Fragebögen' },
@@ -391,6 +404,22 @@ try {
             keycloakUserId={clientId}
             back={`/admin/${clientId}?tab=onboarding`}
           />
+        )}
+        {tab === 'profil' && (
+          <div class="flex flex-col gap-4" data-testid="admin-client-profil">
+            <CrmStatusPanel
+              client:load
+              keycloakUserId={clientId}
+              status={crmProfile?.customer_status ?? 'aktiv'}
+              acquisitionSource={crmProfile?.acquisition_source ?? ''}
+              tags={crmProfile?.tags ?? []}
+            />
+            <ContactHistoryTimeline
+              client:load
+              keycloakUserId={clientId}
+              entries={contactHistory}
+            />
+          </div>
         )}
         {tab === 'book' && (
           <div>

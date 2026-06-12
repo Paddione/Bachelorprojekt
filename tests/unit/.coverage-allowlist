@@ -51,3 +51,6 @@ collabora-wopi-single-brand-guard
 #
 # --- Requires postgres (skips offline):
 qa-dal
+#
+# --- Requires a live DB (tests portal profile update API against real postgres):
+portal-profile-update

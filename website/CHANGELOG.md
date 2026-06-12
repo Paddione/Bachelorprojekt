@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.56.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.55.0...website-v1.56.0) (2026-06-12)
+
+
+### Features
+
+* **website:** Vertrags-PDF preview & download (T000610) ([#1581](https://github.com/Paddione/Bachelorprojekt/issues/1581)) ([cee4038](https://github.com/Paddione/Bachelorprojekt/commit/cee4038ad440a66a32cbd648408ea5e292d35bfa))
+
 ## [1.55.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.54.0...website-v1.55.0) (2026-06-12)
 
 

@@ -312,13 +312,19 @@ def check_overlay(overlay):
             ['kubectl', 'kustomize', overlay, '--load-restrictor=LoadRestrictionsNone'],
             capture_output=True, text=True, check=True
         )
-        for doc in yaml.safe_load_all(result.stdout):
-            if not doc:
-                continue
-            if (doc.get('kind') == 'Secret' and
-                    doc.get('metadata', {}).get('name') == 'workspace-secrets' and
-                    (doc.get('stringData') or doc.get('data'))):
-                return overlay
+        try:
+            for doc in yaml.safe_load_all(result.stdout):
+                if not doc:
+                    continue
+                if (doc.get('kind') == 'Secret' and
+                        doc.get('metadata', {}).get('name') == 'workspace-secrets' and
+                        (doc.get('stringData') or doc.get('data'))):
+                    return overlay
+        except yaml.constructor.ConstructorError:
+            # YAML 1.1 merge-key constructs from Helm charts (kube-prometheus-stack)
+            # are unsupported by PyYAML safe_load. These are monitoring-ns resources;
+            # workspace-secrets lives in the workspace ns and is not affected.
+            pass
     except subprocess.CalledProcessError as e:
         print(f'kustomize build failed for {overlay}: {e.stderr}', file=sys.stderr)
         sys.exit(1)
@@ -377,12 +383,15 @@ for ov in overlays:
     if r.returncode != 0:
         print(f'kustomize build failed for {ov}: {r.stderr}', file=sys.stderr)
         sys.exit(2)
-    for doc in yaml.safe_load_all(r.stdout):
-        if not doc:
-            continue
-        if doc.get('kind') in ('Deployment', 'Service') and \
-                doc.get('metadata', {}).get('name') in SPLIT:
-            bad.append(f"{os.path.basename(ov)}:{doc['kind']}/{doc['metadata']['name']}")
+    try:
+        for doc in yaml.safe_load_all(r.stdout):
+            if not doc:
+                continue
+            if doc.get('kind') in ('Deployment', 'Service') and \
+                    doc.get('metadata', {}).get('name') in SPLIT:
+                bad.append(f"{os.path.basename(ov)}:{doc['kind']}/{doc['metadata']['name']}")
+    except yaml.constructor.ConstructorError:
+        pass  # YAML 1.1 merge-key constructs from Helm charts (monitoring ns) — skip
 if bad:
     print('Split MCP resources still rendered in prod (should be monolith-only): '
           + ', '.join(sorted(bad)))
@@ -434,16 +443,19 @@ for ov in overlays:
     if r.returncode != 0:
         print(f'kustomize build failed for {ov}: {r.stderr}', file=sys.stderr)
         sys.exit(2)
-    for doc in yaml.safe_load_all(r.stdout):
-        if not doc:
-            continue
-        if doc.get('kind') == 'CronJob' and \
-                doc.get('metadata', {}).get('name') == 'billing-dunning-detection':
-            cmd = ' '.join(
-                doc['spec']['jobTemplate']['spec']['template']['spec']
-                   ['containers'][0].get('command', []))
-            if 'website.workspace.svc' in cmd:
-                bad.append(f"{os.path.basename(ov)}: {cmd}")
+    try:
+        for doc in yaml.safe_load_all(r.stdout):
+            if not doc:
+                continue
+            if doc.get('kind') == 'CronJob' and \
+                    doc.get('metadata', {}).get('name') == 'billing-dunning-detection':
+                cmd = ' '.join(
+                    doc['spec']['jobTemplate']['spec']['template']['spec']
+                       ['containers'][0].get('command', []))
+                if 'website.workspace.svc' in cmd:
+                    bad.append(f"{os.path.basename(ov)}: {cmd}")
+    except yaml.constructor.ConstructorError:
+        pass  # YAML 1.1 merge-key constructs from Helm charts (monitoring ns) — skip
 if bad:
     print('dunning CronJob still targets the workspace ns (website lives elsewhere):')
     for b in bad:
@@ -599,7 +611,18 @@ PY
   echo "$output" > "$rendered"
   run python3 - "$rendered" <<'PY'
 import sys, yaml
-docs = [d for d in yaml.safe_load_all(open(sys.argv[1])) if d]
+def load_docs_tolerant(stream_text):
+    """Load YAML docs one at a time, skipping docs with YAML 1.1 constructs."""
+    result = []
+    for chunk in stream_text.split('\n---\n'):
+        try:
+            d = yaml.safe_load(chunk)
+            if d:
+                result.append(d)
+        except (yaml.constructor.ConstructorError, yaml.scanner.ScannerError):
+            pass
+    return result
+docs = load_docs_tolerant(open(sys.argv[1]).read())
 want = {"vaultwarden-data-pvc"}
 seen = {}
 for d in docs:

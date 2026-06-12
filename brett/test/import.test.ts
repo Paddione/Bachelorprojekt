@@ -194,3 +194,54 @@ describe('validateSnapshot: Figuren-Validierung', () => {
     assert.throws(() => validateSnapshot(data), /object/);
   });
 });
+
+describe('validateSnapshot: v0→v1 Migration + lines/anchors/zones', () => {
+  test('altes Snapshot ohne version/lines/anchors/zones → version 0 + leere Arrays', () => {
+    const data = {
+      exportedAt: '2024-01-15T10:30:00.000Z',
+      phase: 'active',
+      stiffness: 0.65,
+      figures: [{ id: 'f1', x: 1.0, z: 2.0, facingY: 0.0 }],
+    };
+    const result = validateSnapshot(data);
+    assert.equal(result.version, 0);
+    assert.deepEqual(result.lines, []);
+    assert.deepEqual(result.anchors, []);
+    assert.deepEqual(result.zones, []);
+  });
+
+  test('neues Snapshot mit version 1 + lines/anchors/zones → Roundtrip', () => {
+    const data = {
+      version: 1,
+      exportedAt: '2024-01-15T10:30:00.000Z',
+      phase: 'active',
+      stiffness: 0.65,
+      figures: [{ id: 'f1', x: 1.0, z: 2.0, facingY: 0.0 }],
+      lines: [{ id: 'l1', fromId: 'f1', toId: 'f2', lineType: 'tension' }],
+      anchors: [{ id: 'an1', x: 0.5, z: 0.5, label: 'Anker' }],
+      zones: [{ id: 'zo1', x: 0, z: 0, shape: 'rect', width: 2, height: 2 }],
+    };
+    const result = validateSnapshot(data);
+    assert.equal(result.version, 1);
+    assert.equal(result.lines.length, 1);
+    assert.equal(result.lines[0].lineType, 'tension');
+    assert.equal(result.anchors[0].label, 'Anker');
+    assert.equal(result.zones[0].shape, 'rect');
+  });
+
+  test('nicht-Array lines/anchors/zones → werden zu leeren Arrays defaultet', () => {
+    const data = {
+      exportedAt: '2024-01-15T10:30:00.000Z',
+      phase: 'active',
+      stiffness: 0.65,
+      figures: [],
+      lines: 'kaputt',
+      anchors: null,
+      zones: 42,
+    };
+    const result = validateSnapshot(data);
+    assert.deepEqual(result.lines, []);
+    assert.deepEqual(result.anchors, []);
+    assert.deepEqual(result.zones, []);
+  });
+});

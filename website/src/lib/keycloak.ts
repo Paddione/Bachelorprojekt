@@ -214,3 +214,21 @@ export async function assignUserToGroups(userId: string, groupIds: string[]): Pr
   }
   return true;
 }
+
+export async function updateUserAttribute(
+  userId: string, key: string, value: string,
+): Promise<boolean> {
+  const getRes = await kcApi('GET', `/users/${encodeURIComponent(userId)}`);
+  if (!getRes.ok) {
+    console.error(`updateUserAttribute GET failed: ${getRes.status}`);
+    return false;
+  }
+  const user = await getRes.json() as { attributes?: Record<string, string[]> };
+  const attributes = { ...(user.attributes ?? {}), [key]: [value] };
+  const putRes = await kcApi('PUT', `/users/${encodeURIComponent(userId)}`, { attributes });
+  if (!putRes.ok) {
+    const body = await putRes.text().catch(() => '');
+    console.error(`updateUserAttribute PUT failed: ${putRes.status} ${body}`);
+  }
+  return putRes.ok;
+}

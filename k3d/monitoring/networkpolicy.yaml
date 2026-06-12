@@ -1,0 +1,32 @@
+# Egress: Prometheus must reach pods/kubelet across the cluster; Alertmanager
+# must reach api.pushover.net (external). We allow all egress from monitoring
+# (a single-tenant observability ns), but keep an explicit policy so the ns is
+# not accidentally locked down later. Ingress is restricted to Traefik + intra-ns.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-allow-egress
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - {} # allow all egress (scraping + Pushover API + DNS)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-allow-ingress-traefik-and-intra
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+        - podSelector: {}

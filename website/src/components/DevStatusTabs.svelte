@@ -60,7 +60,8 @@
       class:active={activeTab === 'factory'}
       onclick={() => switchTab('factory')}
     >
-      Factory Floor
+      <span class="tab-label-full">Factory Floor</span>
+      <span class="tab-label-short">Factory</span>
       {#if hallActive > 0}
         <span class="tab-badge live">{hallActive} aktiv</span>
       {/if}
@@ -70,7 +71,8 @@
       class:active={activeTab === 'planung'}
       onclick={() => switchTab('planung')}
     >
-      Planungsbüro
+      <span class="tab-label-full">Planungsbüro</span>
+      <span class="tab-label-short">Planung</span>
       {#if planningBadge() > 0}
         <span class="tab-badge">{planningBadge()} {planningCount.ready > 0 ? 'bereit' : 'in Planung'}</span>
       {/if}
@@ -80,21 +82,24 @@
       class:active={activeTab === 'control'}
       onclick={() => switchTab('control')}
     >
-      Control Panel
+      <span class="tab-label-full">Control Panel</span>
+      <span class="tab-label-short">Control</span>
     </button>
     <button
       class="ds-tab"
       class:active={activeTab === 'analytics'}
       onclick={() => switchTab('analytics')}
     >
-      Analytics
+      <span class="tab-label-full">Analytics</span>
+      <span class="tab-label-short">Analytics</span>
     </button>
     <button
       class="ds-tab"
       class:active={activeTab === 'abhaengigkeiten'}
       onclick={() => switchTab('abhaengigkeiten')}
     >
-      Abhängigkeiten
+      <span class="tab-label-full">Abhängigkeiten</span>
+      <span class="tab-label-short">Deps</span>
     </button>
   </div>
 </div>
@@ -151,6 +156,29 @@
     animation: badge-pulse 2s infinite;
   }
   @keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+  .tab-label-short { display: none; }
+  .tab-label-full  { display: inline; }
+
+  @media (max-width: 767px) {
+    .tab-bar-wrap {
+      padding: 0 0.5rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tab-bar-wrap::-webkit-scrollbar { display: none; }
+
+    .ds-tab {
+      padding: 8px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tab-label-full  { display: none; }
+    .tab-label-short { display: inline; }
+  }
 
   .planning-tab-wrap { padding: 1.5rem; }
 

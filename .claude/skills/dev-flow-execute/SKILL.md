@@ -145,6 +145,14 @@ Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß**
   - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
   - Plan-Datei `docs/superpowers/plans/<slug>.md` + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
+- **⚠️ BATS-Pflicht (kein neues File ohne Prüfung):**
+  Bevor du eine neue `.bats`-Datei erstellst, suche erst in `tests/unit/` nach einer thematisch passenden bestehenden Datei und erweitere diese stattdessen:
+  ```bash
+  # Beispiel: testest du ein Script → scripts.bats; Ticket-Logik → tickets-*.bats; Website → website-*.bats
+  grep -rl "<modul-stichwort>" tests/unit/ tests/local/
+  ```
+  **Neue `.bats`-Datei nur wenn:** das zu testende Modul hat bisher NULL Testabdeckung UND kein thematisch verwandter Dateiname existiert. In allen anderen Fällen: `@test`-Block in die passende bestehende Datei einfügen. Ziel: die Gesamtzahl der `.bats`-Dateien in `tests/unit/` sinkt oder bleibt konstant.
+
 - **Auftrag:**
   - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.

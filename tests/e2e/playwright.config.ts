@@ -127,6 +127,7 @@ export default defineConfig({
         '**/fa-planning-office.spec.ts',   // /admin/planungsbuero CRUD/rank/DoR (admin-gated)
         '**/dev-status-tabs.spec.ts',      // FA-UNIF-01..08 — unified tabs, redirect, mobile (admin-gated)
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
+        '**/fa-mobile-factory.spec.ts',           // FA-MOBILE-01..06 mobile factory parity (admin-gated)
         '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
       ],
       use: {
@@ -214,6 +215,7 @@ export default defineConfig({
       testMatch: [
         '**/brett-mannequin.spec.ts',  // mannequin focus
         '**/brett-roles.spec.ts',      // C7 role enforcement (opens its own contexts)
+        '**/brett-share-link.spec.ts', // T000608 public view-only share link
       ],
       use: {
         ...devices['Desktop Chrome'],

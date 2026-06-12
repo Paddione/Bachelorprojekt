@@ -3,6 +3,7 @@ export { handleAssignRole } from './ws-admin-commands';
 import { handleAdminMessage } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
 import * as undoStack from './undo-stack';
+import { handleFigurePossess, handleFigureRelease, handleFigureNoteSet } from './ws-figure-commands';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
@@ -60,6 +61,8 @@ export interface WsDeps {
   performRedo?: (room: string) => { applied: true; entry: import('./undo-stack').UndoEntry } | { applied: false };
   getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
   clearUndoStacks?: (room: string) => void;
+  cleanupRoomTracking?: (room: string) => void;
+  resolveShareToken?: (token: string) => Promise<string | null>;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -118,6 +121,9 @@ export function gateMutation(
   figureId: string | undefined,
   deps: Pick<WsDeps, 'buildStateFromMutations' | 'figureMaps' | 'canMutate' | 'resolveRole'>,
 ): boolean {
+  if (ws?._isGuest) {
+    return msgType === 'request_state_snapshot';
+  }
   const state = deps.buildStateFromMutations(room) || {};
   const roles = state.roles || {};
   // Legacy free-board bypass (REG-1): a room that has NEITHER a session code NOR
@@ -197,7 +203,19 @@ export function handleDisconnect(ws: any, deps: WsDeps): void {
 }
 
 export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
-  wss.on('connection', (ws: any, req: any) => {
+  wss.on('connection', async (ws: any, req: any) => {
+    try {
+      const wsUrl = new URL(req?.url ?? '/', `http://${req?.headers?.host ?? 'x'}`);
+      const shareToken = wsUrl.searchParams.get('share_token');
+      if (shareToken && deps.resolveShareToken) {
+        const roomToken = await deps.resolveShareToken(shareToken);
+        if (!roomToken) { ws.close(4403, 'invalid_share_token'); return; }
+        ws._shareRoom = roomToken;
+        ws._isGuest = true;
+      }
+    } catch (err) {
+      console.error('[brett] share-token resolve error:', err);
+    }
     if (deps.sessionMiddleware && req) {
       deps.sessionMiddleware(req, {}, () => {
         ws._session = req.session;
@@ -369,79 +387,16 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         }
 
         if (msg.type === 'figure_possess' && typeof msg.figureId === 'string') {
-          if (!gateMutation(ws, room, 'figure_possess', msg.figureId, deps)) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-            return;
-          }
-          // Gate: figure must not already have a possessor
-          const figMap = deps.figureMaps.get(room);
-          const existingFig = figMap?.get(msg.figureId);
-          if (existingFig?.possessor) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'figure_already_possessed' })); } catch {}
-            return;
-          }
-          const playerId = resolvePlayerId(ws);
-          deps.applyMutation(room, { type: 'figure_possess', figureId: msg.figureId, playerId });
-          deps.broadcast(room, {
-            type: 'figure_possessed',
-            figureId: msg.figureId,
-            playerId,
-            playerName: ws._session?.name || 'Teilnehmer',
-          });
-          deps.schedulePersist(room);
+          handleFigurePossess(ws, msg, room, deps);
           return;
         }
         if (msg.type === 'figure_release') {
-          const targetId = msg.figureId;
-          if (!gateMutation(ws, room, 'figure_release', targetId, deps)) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-            return;
-          }
-          const playerId = resolvePlayerId(ws);
-          if (typeof targetId === 'string') {
-            // Release specific figure — must be own possession (or leiter override)
-            const figMap = deps.figureMaps.get(room);
-            const fig = figMap?.get(targetId);
-            const role = deps.resolveRole(ws, deps.buildStateFromMutations(room)?.roles || {});
-            if (fig?.possessor !== playerId && role !== 'leiter') {
-              try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-              return;
-            }
-            deps.applyMutation(room, { type: 'figure_release', figureId: targetId, playerId });
-            deps.broadcast(room, { type: 'figure_released', figureId: targetId, playerId });
-          } else {
-            // Release ALL possessions for this player
-            const figMap = deps.figureMaps.get(room);
-            if (figMap) {
-              for (const [fid, f] of figMap.entries()) {
-                if (f.possessor === playerId) {
-                  deps.applyMutation(room, { type: 'figure_release', figureId: fid, playerId });
-                  deps.broadcast(room, { type: 'figure_released', figureId: fid, playerId });
-                }
-              }
-            }
-          }
-          deps.schedulePersist(room);
+          handleFigureRelease(ws, msg, room, deps);
           return;
         }
 
         if (msg.type === 'figure_note_set') {
-          if (typeof msg.figureId !== 'string' || typeof msg.note !== 'string') return;
-          if (!gateMutation(ws, room, 'figure_note_set', msg.figureId, deps)) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-            return;
-          }
-          deps.applyMutation(room, {
-            type: 'figure_note_set',
-            figureId: msg.figureId,
-            note: msg.note,
-          });
-          deps.broadcast(room, {
-            type: 'figure_note_changed',
-            figureId: msg.figureId,
-            note: msg.note.slice(0, 1000),
-          });
-          deps.schedulePersist(room);
+          handleFigureNoteSet(ws, msg, room, deps);
           return;
         }
 
@@ -569,6 +524,7 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           if (!deps.rooms.has(room)) {
             deps.figureMaps.delete(room);
             deps.clearUndoStacks?.(room);  // T000470: Stacks beim Last-Leave bereinigen
+            deps.cleanupRoomTracking?.(room);  // T000660: Server-Map-Leaks bereinigen
           }
         }
       }

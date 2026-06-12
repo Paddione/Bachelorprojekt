@@ -93,6 +93,10 @@ export function canMutate(ctx: MutateContext): boolean {
     return false; // read-only for everything else
   }
 
+  if (ctx.role === 'gast') {
+    return false;
+  }
+
   // beobachter (and any unrecognized role) → read-only; request_state_snapshot
   // already returned true above, every write type falls through to deny.
   return false;
@@ -105,6 +109,7 @@ export function canMutate(ctx: MutateContext): boolean {
  * `{type:'join', playerId:'<leiter-userId>'}` escalation.
  */
 export function resolveRole(ws: any, roles: Record<string, Role>): Role {
+  if (ws?._isGuest) return 'gast';
   const uid = ws?._session?.userId;
   if (!uid) return 'beobachter';
   return roles?.[uid] ?? 'beobachter';

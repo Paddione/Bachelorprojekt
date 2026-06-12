@@ -1,0 +1,36 @@
+# Scrape the Traefik metrics endpoint (port 9101, opened by traefik-metrics.yaml).
+# k3s exposes Traefik via the `traefik` Service in kube-system; we add a
+# dedicated metrics Service + ServiceMonitor so Prometheus discovers it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-metrics
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: traefik-metrics
+spec:
+  selector:
+    app.kubernetes.io/name: traefik
+  ports:
+    - name: metrics
+      port: 9101
+      targetPort: 9101
+      protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: traefik
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames: [kube-system]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: traefik-metrics
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

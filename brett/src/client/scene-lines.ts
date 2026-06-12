@@ -13,6 +13,11 @@ export const LINE_COLORS: Record<LineType, number> = {
 // Aktive THREE.Line Objekte, geindext nach lineId
 const lineObjects = new Map<string, THREE.Line>();
 
+/** Test-Seam: gibt die interne lineObjects-Map zurück (für Identitäts-Tests). */
+export function getLineObjects(): Map<string, THREE.Line> {
+  return lineObjects;
+}
+
 // Letzte bekannte Positionen der Figuren (dirty-check für Frame-Loop Update)
 const lastPositions = new Map<string, { x: number; z: number }>();
 
@@ -36,6 +41,30 @@ function buildGeometry(line: BrettLine): THREE.BufferGeometry | null {
   const curve = new THREE.CatmullRomCurve3([from, mid, to]);
   const points = curve.getPoints(40);
   return new THREE.BufferGeometry().setFromPoints(points);
+}
+
+/**
+ * Aktualisiert die Positionen eines bestehenden THREE.Line-Objekts in-place.
+ * Setzt positions-Attribute via setXYZ + needsUpdate = true.
+ * KEINE neue Geometrie, KEIN dispose — Objekt-Identität bleibt erhalten.
+ * Vorbedingung: Die Geometrie muss mit getPoints(40) (= 41 Punkte) erstellt worden sein.
+ */
+function updateGeometryInPlace(mesh: THREE.Line, line: BrettLine): boolean {
+  const from = getFigPos(line.fromId);
+  const to = getFigPos(line.toId);
+  if (!from || !to) return false;
+  const mid = from.clone().lerp(to, 0.5).add(new THREE.Vector3(0, 0.25, 0));
+  const curve = new THREE.CatmullRomCurve3([from, mid, to]);
+  const points = curve.getPoints(40); // immer 41 Punkte
+  const posAttr = mesh.geometry.getAttribute('position') as THREE.BufferAttribute;
+  for (let i = 0; i < points.length; i++) {
+    posAttr.setXYZ(i, points[i].x, points[i].y, points[i].z);
+  }
+  posAttr.needsUpdate = true;
+  if (line.lineType === 'tension') {
+    mesh.computeLineDistances();
+  }
+  return true;
 }
 
 /** Rendert eine neue Linie in die Szene. No-op außerhalb des Feature-Flags. */
@@ -121,10 +150,17 @@ export function updateLinePositions(): void {
     if (fig) lastPositions.set(figId, { x: fig.root.position.x, z: fig.root.position.z });
   }
 
-  // Neu rendern der betroffenen Linien
+  // In-Place-Update der betroffenen Linien (kein dispose/rebuild).
+  // renderLine wird nur aufgerufen wenn die Linie noch nicht in lineObjects existiert
+  // (sollte nicht vorkommen, aber als Fallback für Konsistenz).
   for (const line of STATE.lines) {
     if (affectedFigIds.has(line.fromId) || affectedFigIds.has(line.toId)) {
-      renderLine(line);
+      const existing = lineObjects.get(line.id);
+      if (existing) {
+        updateGeometryInPlace(existing, line);
+      } else {
+        renderLine(line);
+      }
     }
   }
 }

@@ -770,14 +770,38 @@ secrets:
     description: "Hetzner Cloud API token for the cluster's project. Used for node provisioning and automation via the Hetzner Cloud API."
 
   - name: PUSHOVER_TOKEN
-    required: false
+    required: true
     generate: false
-    description: "Pushover API token for deploy notifications. Optional — notifications are skipped when unset."
+    description: "Pushover API token for Alertmanager + deploy notifications."
+    extra_namespaces:
+      - namespace: monitoring
+        secret: alertmanager-pushover
 
   - name: PUSHOVER_USER
-    required: false
+    required: true
     generate: false
-    description: "Pushover user key for deploy notifications. Optional — notifications are skipped when unset."
+    description: "Pushover user key for Alertmanager + deploy notifications."
+    extra_namespaces:
+      - namespace: monitoring
+        secret: alertmanager-pushover
+
+  - name: GRAFANA_OIDC_SECRET
+    required: true
+    generate: true
+    length: 40
+    description: "Confidential client secret for the `grafana` Keycloak OIDC client."
+    extra_namespaces:
+      - namespace: monitoring
+        secret: grafana-oidc
+
+  - name: GRAFANA_ADMIN_PASSWORD
+    required: true
+    generate: true
+    length: 24
+    description: "Grafana local admin password (fallback when OIDC is unavailable)."
+    extra_namespaces:
+      - namespace: monitoring
+        secret: grafana-oidc
 
   # ─────────────────────────────────────────────────────────────────
   # Dev stack — sealed against mentolder cluster cert.

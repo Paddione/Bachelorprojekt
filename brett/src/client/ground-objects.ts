@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import type { Anchor, Zone } from '../types/state';
-import { getScene, getWs, isWsReady } from './state';
+import { STATE, getScene, getWs, isWsReady } from './state';
 
 // Mesh-Maps: anchorId / zoneId → THREE.Group (enthält Mesh + optionalen Sprite)
 export const anchorMeshes = new Map<string, THREE.Group>();
@@ -103,6 +103,7 @@ export function applyAnchorAdded(anchor: Anchor): void {
 
   scene.add(group);
   anchorMeshes.set(anchor.id, group);
+  STATE.anchors.push(anchor);
 }
 
 export function applyAnchorRemoved(anchorId: string): void {
@@ -114,6 +115,8 @@ export function applyAnchorRemoved(anchorId: string): void {
   } catch { /* scene nicht initialisiert */ }
   disposeGroup(group);
   anchorMeshes.delete(anchorId);
+  const aIdx = STATE.anchors.findIndex(a => a.id === anchorId);
+  if (aIdx !== -1) STATE.anchors.splice(aIdx, 1);
 }
 
 // ── Zone-Rendering ────────────────────────────────────────────────────────────
@@ -187,6 +190,7 @@ export function applyZoneAdded(zone: Zone): void {
 
   scene.add(group);
   zoneMeshes.set(zone.id, group);
+  STATE.zones.push(zone);
 }
 
 export function applyZoneRemoved(zoneId: string): void {
@@ -198,6 +202,8 @@ export function applyZoneRemoved(zoneId: string): void {
   } catch { /* scene nicht initialisiert */ }
   disposeGroup(group);
   zoneMeshes.delete(zoneId);
+  const zIdx = STATE.zones.findIndex(z => z.id === zoneId);
+  if (zIdx !== -1) STATE.zones.splice(zIdx, 1);
 }
 
 // ── Snapshot-Initialisierung ──────────────────────────────────────────────────
@@ -208,11 +214,14 @@ export function applyZoneRemoved(zoneId: string): void {
  * entfernt (idempotent bei reconnect).
  */
 export function initGroundObjectsFromSnapshot(anchors: Anchor[], zones: Zone[]): void {
-  // Cleanup bestehender Meshes
+  // Cleanup bestehender Meshes (entfernt parallel aus STATE.anchors/zones)
   for (const [id] of anchorMeshes) applyAnchorRemoved(id);
   for (const [id] of zoneMeshes)   applyZoneRemoved(id);
+  // Defensive: Arrays hart zurücksetzen, falls Mesh-Map/Array divergierten
+  STATE.anchors.length = 0;
+  STATE.zones.length = 0;
 
-  // Neu rendern
+  // Neu rendern (push'd parallel in STATE.anchors/zones)
   for (const anchor of anchors) applyAnchorAdded(anchor);
   for (const zone   of zones)   applyZoneAdded(zone);
 }

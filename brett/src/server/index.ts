@@ -19,6 +19,9 @@ import * as wsHandler from './ws-handler';
 import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
 import * as eventLog from './event-log';
+import * as shareTokens from './share-tokens';
+import { attachShareRoutes } from './share-routes';
+import { asyncHandler } from './helpers';
 import { attachSkinsUpload } from './skins-upload';
 import { listCoachingTemplates, getCoachingTemplate } from './coaching-templates';
 
@@ -74,11 +77,10 @@ app.use(express.static(staticDir, {
   }
 }));
 
-export function asyncHandler(fn: any) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
+export { asyncHandler } from './helpers';
 
 app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
+attachShareRoutes(app, staticDir);
 
 app.get('/api/config', (_req, res) =>
   res.json({ ...auth.buildConfig(process.env), brand: auth.resolveBrand(process.env) }));
@@ -115,7 +117,7 @@ app.get('/auth/callback', asyncHandler(async (req: any, res: any) => {
   const tokens = await authorizationCodeGrant(config, currentUrl, { expectedState: incomingState });
   const claims = tokens.claims();
   let returnTo = '/';
-  try { returnTo = JSON.parse(Buffer.from(currentUrl.searchParams.get('state') || '', 'base64url').toString()).returnTo || '/'; } catch {}
+  try { returnTo = auth.sanitizeReturnTo(JSON.parse(Buffer.from(currentUrl.searchParams.get('state') || '', 'base64url').toString()).returnTo); } catch {}
   req.session.userId   = claims?.sub;
   req.session.name     = (claims as any)?.name || (claims as any)?.preferred_username || claims?.sub;
   req.session.isAdmin  = auth.isAdminFromClaims(claims);
@@ -160,7 +162,7 @@ app.post('/auth/e2e-login', (req: any, res: any) => {
 });
 
 // Live state for a room.
-app.get('/api/state', asyncHandler(async (req: any, res: any) => {
+app.get('/api/state', auth.requireSession, asyncHandler(async (req: any, res: any) => {
   const room = String(req.query.room || '');
   if (!room) return res.status(400).json({ error: 'room required' });
   const { rows } = await db.getPool().query(
@@ -232,7 +234,7 @@ app.get('/api/snapshots', asyncHandler(async (req: any, res: any) => {
 }));
 
 // Load one snapshot.
-app.get('/api/snapshots/:id', asyncHandler(async (req: any, res: any) => {
+app.get('/api/snapshots/:id', auth.requireSession, asyncHandler(async (req: any, res: any) => {
   const { rows } = await db.getPool().query(
     `SELECT id, name, state, customer_id, room_token, created_at
        FROM brett_snapshots WHERE id = $1`,
@@ -285,7 +287,7 @@ app.get('/api/sessions', auth.requireAdmin, asyncHandler(async (req: any, res: a
 }));
 
 // Admin room list.
-app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (req: any, res: any) => {
+app.get('/api/admin/rooms', auth.requireAdmin, asyncHandler(async (_req: any, res: any) => {
   const liveTokens = Array.from(rooms.rooms.keys());
   let nameMap: Record<string, string> = {};
   if (liveTokens.length > 0) {
@@ -319,9 +321,12 @@ export function canCreateTemplate(req: { session?: { isAdmin?: boolean }; header
   return !!e2eSecret && req.header('x-e2e-secret') === e2eSecret;
 }
 
+// SEC T000660: re-export for direct unit-test access (snapshots-route.test.ts)
+export { requireSession } from './auth';
+
 // Create a snapshot. Template creation (is_template=true) is admin-only —
 // curated Vorlagen may only be authored by admins (§5c / D8 guardrail).
-app.post('/api/snapshots', asyncHandler(async (req: any, res: any) => {
+app.post('/api/snapshots', auth.requireSession, asyncHandler(async (req: any, res: any) => {
   const parsed = parseSnapshotInsert(req.body);
   if (!parsed.valid || !parsed.values) {
     return res.status(400).json({ error: 'name (≤200 chars) + state.figures[] required' });
@@ -479,6 +484,8 @@ const wsDeps = {
   performRedo,
   getUndoStatus,
   clearUndoStacks,
+  cleanupRoomTracking: sessions.cleanupRoomTracking,
+  resolveShareToken: shareTokens.resolveShareToken,
 };
 
 wsHandler.attachWsServer(wss, wsDeps);

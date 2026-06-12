@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../k3d/monitoring
+  - grafana-ingress.yaml
+
+patches:
+  - target: { kind: Secret, name: alertmanager-pushover }
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata: { name: alertmanager-pushover }
+      $patch: delete
+  - target: { kind: Secret, name: grafana-oidc }
+    patch: |
+      apiVersion: v1
+      kind: Secret
+      metadata: { name: grafana-oidc }
+      $patch: delete
+  - target: { kind: IngressRoute, name: grafana }
+    patch: |
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata: { name: grafana, namespace: monitoring }
+      $patch: delete
+  - path: storage-class-patch.yaml
+  - path: grafana-oidc-patch.yaml
+  - path: resource-limits-patch.yaml

@@ -239,3 +239,37 @@ test('T000470: session_undo ist in ADMIN_TYPES', () => {
 test('T000470: session_redo ist in ADMIN_TYPES', () => {
   assert.ok(ADMIN_TYPES.has('session_redo'), 'session_redo muss in ADMIN_TYPES sein');
 });
+
+test('FA-BRT-C2a: gast may read (request_state_snapshot) but nothing else', () => {
+  assert.equal(canMutate({ msgType: 'request_state_snapshot', role: 'gast', playerId: 'g' }), true);
+  for (const t of ['add','move','update','jump','delete','clear','stiffness','snapshot','figure_lock','figure_possess','figure_release','figure_note_set'] as const) {
+    assert.equal(canMutate({ msgType: t, role: 'gast', playerId: 'g' }), false, `gast must not ${t}`);
+  }
+});
+
+test('FA-BRT-C2b: resolveRole returns gast for a guest ws', () => {
+  assert.equal(resolveRole({ _isGuest: true }, { u1: 'leiter' }), 'gast');
+  assert.equal(resolveRole({ _isGuest: true, _session: { userId: 'u1' } }, { u1: 'leiter' }), 'gast');
+});
+
+test('FA-BRT-C3a: gateMutation denies a guest write even on a free board', () => {
+  const deps = {
+    buildStateFromMutations: () => ({}),
+    figureMaps: new Map(),
+    canMutate,
+    resolveRole,
+  };
+  const guestWs = { _isGuest: true };
+  assert.equal(gateMutation(guestWs, 'room-free', 'move', 'fig1', deps as any), false);
+  assert.equal(gateMutation(guestWs, 'room-free', 'request_state_snapshot', undefined, deps as any), true);
+});
+
+test('FA-BRT-C3b: gateMutation still bypasses for a normal anon on a free board', () => {
+  const deps = {
+    buildStateFromMutations: () => ({}),
+    figureMaps: new Map(),
+    canMutate,
+    resolveRole,
+  };
+  assert.equal(gateMutation({}, 'room-free', 'move', 'fig1', deps as any), true);
+});

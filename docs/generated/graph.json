@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T17:12:37.311Z",
+  "generatedAt": "2026-06-12T17:29:27.841Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -210,6 +210,24 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "mailpit"
+    },
+    {
+      "id": "monitoring-grafana",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "monitoring-grafana"
+    },
+    {
+      "id": "monitoring-kube-state-metrics",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "monitoring-kube-state-metrics"
+    },
+    {
+      "id": "monitoring-operator",
+      "namespace": "monitoring",
+      "type": "Deployment",
+      "name": "monitoring-operator"
     },
     {
       "id": "nextcloud-redis",
@@ -921,6 +939,11 @@
       "from": "whiteboard",
       "to": "nextcloud",
       "via": "env:NEXTCLOUD_URL"
+    },
+    {
+      "from": "monitoring-grafana",
+      "to": "keycloak",
+      "via": "env:GF_AUTH_GENERIC_OAUTH_NAME"
     },
     {
       "from": "tls-sync",

@@ -66,6 +66,7 @@
       class:drag-source={dragSrcExtId === it.extId}
       class:drop-target={dropTargetIdx === idx}
       data-testid="pb-queue-row-{it.extId}"
+      data-planning-item=""
       draggable={!isMobile}
       ondragstart={(e) => onDragStart(e, it)}
       ondragover={(e) => onDragOver(e, idx)}

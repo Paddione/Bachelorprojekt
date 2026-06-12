@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { TicketDetail, Phase, InjectionKind } from '../../lib/factory-floor';
+  import SuggestedFiles from './SuggestedFiles.svelte';
+
 
   const PHASE_ORDER: Phase[] = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'];
 
@@ -15,6 +17,7 @@
     injError,
     onSubmitInjection,
     prUrl,
+    isMobile = false,
   }: {
     detail: TicketDetail | null;
     selected: string | null;
@@ -27,6 +30,7 @@
     injError: string | null;
     onSubmitInjection: () => void;
     prUrl: (n: number) => string;
+    isMobile?: boolean;
   } = $props();
 
   function phaseDotState(phase: Phase): 'active' | 'done' | 'future' {
@@ -46,10 +50,15 @@
     if (score >= 0.75) return 'var(--factory-accent, #f59e0b)';
     return 'var(--factory-text-muted, #6b7280)';
   }
+
+
 </script>
 
 {#if selected}
-  <div class="detail-panel" data-testid="floor-detail">
+  {#if isMobile}
+    <div class="detail-panel__backdrop" onclick={onClose} aria-hidden="true"></div>
+  {/if}
+  <div class="detail-panel" class:open={isMobile} data-testid="floor-detail">
     <button class="detail-panel__close" onclick={onClose}>✕</button>
     <h3 class="detail-panel__title">{selected}</h3>
 
@@ -143,16 +152,7 @@
       </details>
 
       {#if detail.suggested_files?.length}
-        <h4 class="detail-panel__section">Semantisch verwandte Dateien</h4>
-        <ul class="detail-panel__suggested" data-testid="suggested-files">
-          {#each detail.suggested_files as f}
-            <li class="detail-panel__suggested-item" style="border-left: 3px solid {scoreColor(f.score)}">
-              <code class="detail-panel__suggested-path">{f.path}</code>
-              <span class="detail-panel__suggested-score">{(f.score * 100).toFixed(0)}%</span>
-              <pre class="detail-panel__suggested-snippet">{f.snippet}</pre>
-            </li>
-          {/each}
-        </ul>
+        <SuggestedFiles files={detail.suggested_files} />
       {/if}
     {/if}
   </div>
@@ -424,48 +424,56 @@
 
   @media (max-width: 767px) {
     .detail-panel {
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
       width: 100%;
+      height: 75vh;
+      max-height: calc(100vh - 60px - 48px);
+      border-left: none;
+      border-top: 1px solid var(--factory-border);
+      border-radius: var(--factory-radius-md) var(--factory-radius-md) 0 0;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 200;
+      animation: none;
+    }
+
+    .detail-panel.open {
+      transform: translateY(0);
+    }
+
+    .detail-panel::before {
+      content: '';
+      display: block;
+      width: 36px;
+      height: 4px;
+      background: var(--factory-border);
+      border-radius: 2px;
+      margin: 8px auto 12px;
+      flex-shrink: 0;
+    }
+
+    .detail-panel__close {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
     }
   }
 
-  .detail-panel__suggested {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 var(--factory-spacing-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--factory-spacing-xs);
+  .detail-panel__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 199;
   }
 
-  .detail-panel__suggested-item {
-    background: var(--factory-surface);
-    border: 1px solid var(--factory-border);
-    border-radius: var(--factory-radius-sm);
-    padding: var(--factory-spacing-xs) var(--factory-spacing-sm);
-  }
 
-  .detail-panel__suggested-path {
-    font-family: var(--factory-font-mono);
-    font-size: var(--factory-text-xs);
-    color: var(--factory-accent);
-    word-break: break-all;
-  }
-
-  .detail-panel__suggested-score {
-    font-family: var(--factory-font-mono);
-    font-size: 10px;
-    color: var(--factory-text-muted);
-    margin-left: var(--factory-spacing-xs);
-  }
-
-  .detail-panel__suggested-snippet {
-    font-family: var(--factory-font-mono);
-    font-size: 11px;
-    color: var(--factory-text-muted);
-    margin: var(--factory-spacing-xs) 0 0;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 80px;
-    overflow: hidden;
-  }
 </style>

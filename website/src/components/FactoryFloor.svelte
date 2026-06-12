@@ -8,6 +8,8 @@
   import ConveyorBelt from './factory/ConveyorBelt.svelte';
   import DetailPanel from './factory/DetailPanel.svelte';
   import MobileTabBar from './factory/MobileTabBar.svelte';
+  import StagedColumn from './factory/StagedColumn.svelte';
+  import ShippedColumn from './factory/ShippedColumn.svelte';
   import type { QaItem } from '../lib/qa-dal';
 
   let { initial }: { initial: FloorPayload | null } = $props();
@@ -24,14 +26,24 @@
   };
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
+  let isMobile = $state(false);
+
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    isMobile = mq.matches;
+    const handler = (e: MediaQueryListEvent) => { isMobile = e.matches; };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  });
 
   function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }
   function mobilePrev() { if (mobileColIndex > 0) mobileColIndex--; }
   function onTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; }
   function onTouchEnd(e: TouchEvent) {
     const delta = e.changedTouches[0].clientX - touchStartX;
-    if (delta < -40) mobileNext();
-    else if (delta > 40) mobilePrev();
+    if (delta < -40) { mobileNext(); if ('vibrate' in navigator) navigator.vibrate(5); }
+    else if (delta > 40) { mobilePrev(); if ('vibrate' in navigator) navigator.vibrate(5); }
   }
 
   type FloorView = 'conveyor' | 'kanban';
@@ -235,6 +247,11 @@
 
     <ProviderStatus providerHealth={data.providerHealth} />
 
+    <div class="mobile-station-dots" aria-hidden="true">
+      {#each Array(10) as _, i}
+        <span class="dot" class:active={i === mobileColIndex}></span>
+      {/each}
+    </div>
     <MobileTabBar activeIndex={mobileColIndex} onSelect={(i) => { mobileColIndex = i; }} />
 
     <div
@@ -298,64 +315,21 @@
         </div>
       {/if}
 
-      <div data-col="staged" class:mobile-visible={mobileColIndex === 0} class="lg:w-1/5 scroll-mt-24" id="floor-kommissionierung" data-testid="floor-kommissionierung">
-        <h3 class="font-semibold mb-2">Kommissionierung</h3>
-        {#if data.staged.length === 0}
-          <p class="text-muted text-sm">Nichts kommissioniert.</p>
-        {:else}
-          <ul class="space-y-1.5">
-            {#each data.staged as s (s.extId)}
-              <li class="rounded-lg border border-transparent bg-white/5 px-2.5 py-2 text-sm transition-colors hover:border-white/10 hover:bg-white/[0.08]"
-                  data-testid="floor-staged-item">
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="h-2 w-2 shrink-0 rounded-full {prioDot(s.priority)}" title={`Priorität: ${s.priority}`}></span>
-                    <a href={ticketUrl(s.extId)} class="font-mono text-xs text-gold hover:underline"
-                       title="In der Ticket-Übersicht öffnen">{s.extId}</a>
-                  </div>
-                  {#if s.createdAt}
-                    <span class="whitespace-nowrap text-[10px] text-muted"
-                          title={new Date(s.createdAt).toLocaleString('de-DE')}>{relTime(s.createdAt)}</span>
-                  {/if}
-                </div>
-                <button type="button" onclick={() => openDetail(s.extId)}
-                        class="mt-0.5 block w-full text-left leading-snug transition-colors hover:text-gold"
-                        title="Phasen-Timeline &amp; Details anzeigen">{s.title}</button>
-                {#if s.branch && s.planPath}
-                  <a href={planUrl(s.branch, s.planPath)} target="_blank" rel="noopener noreferrer"
-                     data-testid="floor-staged-plan"
-                     class="mt-1 inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-gold hover:text-dark"
-                     title={`Branch ${s.branch} · Plan ansehen`}>
-                    <svg viewBox="0 0 16 16" class="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M11.75 1.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM4.25 1.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM4.25 11a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM3.5 6.5v3h1.5v-3H3.5Zm8.25-1.25a3.25 3.25 0 0 1-3.25 3.25H5v1.5h3.5A4.75 4.75 0 0 0 13.25 5.25h-1.5Z"/></svg>
-                    {s.branch}<span class="opacity-60">↗</span>
-                  </a>
-                {:else}
-                  <span class="mt-1 block text-[10px] text-muted">⚠ kein Plan-Ref</span>
-                {/if}
-                <div class="mt-1.5 flex gap-1.5">
-                  <button type="button" onclick={() => releaseToFactory(s.extId)} disabled={releasing === s.extId}
-                          data-testid="floor-staged-release"
-                          class="rounded bg-emerald-500/80 px-2 py-0.5 text-[11px] font-semibold transition-colors hover:bg-emerald-400 disabled:opacity-50">
-                    {releasing === s.extId ? '…' : '→ Factory'}
-                  </button>
-                  <button type="button" onclick={() => toggleManualHint(s.extId)}
-                          data-testid="floor-staged-manual"
-                          class="rounded bg-white/10 px-2 py-0.5 text-[11px] font-semibold transition-colors hover:bg-white/20">
-                    → Manuell
-                  </button>
-                </div>
-                {#if manualHintFor === s.extId}
-                  <p class="mt-1 rounded bg-white/5 px-2 py-1 text-[10px] text-muted" data-testid="floor-staged-manual-hint">
-                    Lokal <code class="text-gold">dev-flow-execute</code> auf <code class="text-gold">{s.branch ?? 'feature/<branch>'}</code> aufrufen.
-                  </p>
-                {/if}
-              </li>
-            {/each}
-          </ul>
-        {/if}
-        {#if releaseErr}<p class="mt-2 text-xs text-red-400" data-testid="floor-staged-error">{releaseErr}</p>{/if}
-      </div>
-
+      <StagedColumn
+        staged={data.staged}
+        stagedWaiting={data.stagedWaiting ?? 0}
+        {releasing}
+        {releaseErr}
+        {manualHintFor}
+        {mobileColIndex}
+        onOpenDetail={openDetail}
+        onReleaseToFactory={releaseToFactory}
+        onToggleManualHint={toggleManualHint}
+        {relTime}
+        {prioDot}
+        {planUrl}
+        {ticketUrl}
+      />
       <div data-col="backlog" class:mobile-visible={mobileColIndex === 1} class="lg:w-1/5" data-testid="floor-loadingdock">
         <h3 class="font-semibold mb-2">Laderampe</h3>
         {#if data.loadingDock.length === 0}
@@ -386,44 +360,17 @@
           <span class="col-count">{data?.qaQueue?.length ?? 0}</span>
         </div>
         <div class="col-body">
-          {#each data?.qaQueue ?? [] as _item}
-          {/each}
+          {#each data?.qaQueue ?? [] as _item}{/each}
         </div>
       </div>
-
-      <div data-col="done" class:mobile-visible={mobileColIndex === 9} class="lg:w-1/5" data-testid="floor-shipped">
-        <h3 class="font-semibold mb-2">Versand</h3>
-        {#if data.shipped.length === 0}
-          <p class="text-muted text-sm">Noch nichts versandt.</p>
-        {:else}
-          <ul class="space-y-1.5">
-            {#each data.shipped as s (s.extId)}
-              <li class="rounded-lg border border-transparent bg-white/5 px-2.5 py-2 text-sm transition-colors hover:border-white/10 hover:bg-white/[0.08]"
-                  data-testid="floor-shipped-item">
-                <div class="flex items-center justify-between gap-2">
-                  <a href={ticketUrl(s.extId)} class="font-mono text-xs text-gold hover:underline"
-                     title="In der Ticket-Übersicht öffnen">{s.extId}</a>
-                  {#if s.doneAt}
-                    <span class="whitespace-nowrap text-[10px] text-muted"
-                          title={new Date(s.doneAt).toLocaleString('de-DE')}>{relTime(s.doneAt)}</span>
-                  {/if}
-                </div>
-                <button type="button" onclick={() => openDetail(s.extId)}
-                        class="mt-0.5 block w-full text-left leading-snug transition-colors hover:text-gold"
-                        title="Phasen-Timeline &amp; Details anzeigen">{s.title}</button>
-                {#if s.prNumber}
-                  <a href={prUrl(s.prNumber)} target="_blank" rel="noopener noreferrer"
-                     data-testid="floor-shipped-pr"
-                     class="mt-1 inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-[11px] font-medium transition-colors hover:bg-gold hover:text-dark">
-                    <svg viewBox="0 0 16 16" class="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg>
-                    PR #{s.prNumber}<span class="opacity-60">↗</span>
-                  </a>
-                {/if}
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
+      <ShippedColumn
+        shipped={data.shipped}
+        {mobileColIndex}
+        onOpenDetail={openDetail}
+        {relTime}
+        {prUrl}
+        {ticketUrl}
+      />
 
       <div class="lg:w-1/5" data-testid="floor-qa">
         <h3 class="font-semibold mb-2">QS-Abnahme</h3>
@@ -456,6 +403,7 @@
       {injError}
       onSubmitInjection={submitInjection}
       {prUrl}
+      {isMobile}
     />
 
     {#if qaModalItem}
@@ -495,4 +443,57 @@
     border-color: rgba(255, 255, 255, 0.2);
   }
   .ff-view-toggle__label { text-transform: uppercase; letter-spacing: 0.05em; }
+
+  @media (max-width: 767px) {
+    .kanban-container {
+      padding-bottom: calc(var(--factory-tab-bar-height, 48px) + env(safe-area-inset-bottom, 0px) + 8px);
+    }
+  }
+
+  .mobile-station-dots {
+    display: none;
+  }
+  @media (max-width: 767px) {
+    .mobile-station-dots {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 0 2px;
+    }
+    .dot {
+      width: 4px;
+      height: 4px;
+      background: var(--factory-border);
+      border-radius: 2px;
+      transition: width 0.15s ease, background 0.15s ease;
+      flex-shrink: 0;
+    }
+    .dot.active {
+      width: 8px;
+      background: var(--factory-accent);
+    }
+  }
+
+  @media (max-width: 767px) {
+    :global([data-testid="floor-leitstand"] > *) {
+      padding: 0.5rem !important;
+    }
+    :global([data-testid="floor-leitstand"] p.text-xl) {
+      font-size: 1.125rem !important;
+    }
+    :global([data-testid="floor-leitstand"] p.text-xs) {
+      font-size: 10px !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    :global([data-testid="floor-pulse"]) {
+      flex-wrap: wrap;
+      row-gap: 4px;
+    }
+    :global([data-testid="floor-stale"]) {
+      font-size: 12px;
+      flex-basis: 100%;
+    }
+  }
 </style>

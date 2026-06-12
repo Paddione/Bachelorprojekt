@@ -45,6 +45,7 @@
   --factory-conveyor-bg: #0d1117;
   --factory-detail-width: 400px;
   --factory-tab-bar-height: 48px;
+  --factory-bottom-safe: calc(var(--factory-tab-bar-height) + env(safe-area-inset-bottom, 0px));
 
   --factory-phase-entered: #f59e0b;
   --factory-phase-done: #22c55e;

@@ -8,6 +8,7 @@ import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
 import { applyOptikToScene } from './ui/optik';
 import * as groundObjects from './ground-objects';
+import { handleLobbyMessage } from './ws-lobby-handlers';
 /** Mappt eine runtime-Figure auf das serialisierbare ExportFigure-Format. */
 function _toExportFig(fig: any): ExportFigure {
   return {
@@ -443,59 +444,24 @@ export function onWsMessage(evt: MessageEvent): void {
       break;
 
     // ── Lobby / presence / session routing (§6c) ────────────────────────────
-    // Each delegates to the pure reducer, notifies the lobby UI, and (on a phase
-    // change) drives the view-machine. figure_owner_changed + the optik part of
-    // lobby_settings_change are routed/stored only in B (badge/optik apply = C/D);
-    // the case existing prevents silent drops.
-    case 'lobby_settings_change': {
-      // Reducer keeps the lobby store (templateId/optik) in sync → lobby UI
-      // re-renders via onLobbyChange (this is the templateId UI update, §13).
-      // ALSO apply optik to the live scene so it works IN-BOARD, not just the
-      // lobby (no-ops if the scene isn't mounted yet).
-      const prevPhase = lobbyState.phase;
-      lobbyState = applyLobbyServerMessage(lobbyState, msg);
-      onLobbyChange(lobbyState);
-      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
-      if (msg.optik) applyOptikToScene(msg.optik);
-      break;
-    }
-    case 'presence_join': {
-      const prevPhase = lobbyState.phase;
-      lobbyState = applyLobbyServerMessage(lobbyState, msg);
-      onLobbyChange(lobbyState);
-      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
-      const decision = decideLateJoin(lobbyState.phase, msg.participant);
-      if (decision.notify) lateJoinHandler?.(decision.name);
-      break;
-    }
+    case 'lobby_settings_change':
+    case 'presence_join':
     case 'presence_leave':
     case 'role_changed':
     case 'lobby_ready_changed':
-    case 'session_created': {
-      const prevPhase = lobbyState.phase;
-      lobbyState = applyLobbyServerMessage(lobbyState, msg);
-      onLobbyChange(lobbyState);
-      if (lobbyState.phase !== prevPhase) onPhaseChange(lobbyState.phase);
-      break;
-    }
+    case 'session_created':
     case 'session_phase_change':
-    case 'session_ended': {
-      lobbyState = applyLobbyServerMessage(lobbyState, msg);
-      onLobbyChange(lobbyState);
-      onPhaseChange(lobbyState.phase);
-      if (msg.type === 'session_phase_change') {
-        updateExportCache({ phase: (msg as any).phase });
-      }
-      break;
-    }
-
+    case 'session_ended':
     case 'admin_token_changed':
     case 'coaching_steps_change':
-      // CP-3: route through the lobby reducer so the leader handoff (B14) and the
-      // broadcast coaching flow (D10) are actually tracked in the store and the
-      // lobby UI re-renders via onLobbyChange — instead of being silently dropped.
-      lobbyState = applyLobbyServerMessage(lobbyState, msg);
-      onLobbyChange(lobbyState);
+      handleLobbyMessage(msg, {
+        getLobbyState: () => lobbyState,
+        setLobbyState: (s) => { lobbyState = s; },
+        onLobbyChange,
+        onPhaseChange,
+        decideLateJoin,
+        lateJoinHandler,
+      });
       break;
 
     case 'figure_owner_changed':

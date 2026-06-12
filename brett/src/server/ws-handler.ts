@@ -3,6 +3,7 @@ export { handleAssignRole } from './ws-admin-commands';
 import { handleAdminMessage } from './ws-admin-commands';
 import type { MutationType, MutateContext } from './permissions';
 import * as undoStack from './undo-stack';
+import { handleFigurePossess, handleFigureRelease, handleFigureNoteSet } from './ws-figure-commands';
 
 // The full set of server-side collaborators, injected once at startup.
 export interface WsDeps {
@@ -370,79 +371,16 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         }
 
         if (msg.type === 'figure_possess' && typeof msg.figureId === 'string') {
-          if (!gateMutation(ws, room, 'figure_possess', msg.figureId, deps)) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-            return;
-          }
-          // Gate: figure must not already have a possessor
-          const figMap = deps.figureMaps.get(room);
-          const existingFig = figMap?.get(msg.figureId);
-          if (existingFig?.possessor) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'figure_already_possessed' })); } catch {}
-            return;
-          }
-          const playerId = resolvePlayerId(ws);
-          deps.applyMutation(room, { type: 'figure_possess', figureId: msg.figureId, playerId });
-          deps.broadcast(room, {
-            type: 'figure_possessed',
-            figureId: msg.figureId,
-            playerId,
-            playerName: ws._session?.name || 'Teilnehmer',
-          });
-          deps.schedulePersist(room);
+          handleFigurePossess(ws, msg, room, deps);
           return;
         }
         if (msg.type === 'figure_release') {
-          const targetId = msg.figureId;
-          if (!gateMutation(ws, room, 'figure_release', targetId, deps)) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-            return;
-          }
-          const playerId = resolvePlayerId(ws);
-          if (typeof targetId === 'string') {
-            // Release specific figure — must be own possession (or leiter override)
-            const figMap = deps.figureMaps.get(room);
-            const fig = figMap?.get(targetId);
-            const role = deps.resolveRole(ws, deps.buildStateFromMutations(room)?.roles || {});
-            if (fig?.possessor !== playerId && role !== 'leiter') {
-              try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-              return;
-            }
-            deps.applyMutation(room, { type: 'figure_release', figureId: targetId, playerId });
-            deps.broadcast(room, { type: 'figure_released', figureId: targetId, playerId });
-          } else {
-            // Release ALL possessions for this player
-            const figMap = deps.figureMaps.get(room);
-            if (figMap) {
-              for (const [fid, f] of figMap.entries()) {
-                if (f.possessor === playerId) {
-                  deps.applyMutation(room, { type: 'figure_release', figureId: fid, playerId });
-                  deps.broadcast(room, { type: 'figure_released', figureId: fid, playerId });
-                }
-              }
-            }
-          }
-          deps.schedulePersist(room);
+          handleFigureRelease(ws, msg, room, deps);
           return;
         }
 
         if (msg.type === 'figure_note_set') {
-          if (typeof msg.figureId !== 'string' || typeof msg.note !== 'string') return;
-          if (!gateMutation(ws, room, 'figure_note_set', msg.figureId, deps)) {
-            try { ws.send(JSON.stringify({ type: 'error', reason: 'forbidden' })); } catch {}
-            return;
-          }
-          deps.applyMutation(room, {
-            type: 'figure_note_set',
-            figureId: msg.figureId,
-            note: msg.note,
-          });
-          deps.broadcast(room, {
-            type: 'figure_note_changed',
-            figureId: msg.figureId,
-            note: msg.note.slice(0, 1000),
-          });
-          deps.schedulePersist(room);
+          handleFigureNoteSet(ws, msg, room, deps);
           return;
         }
 

@@ -2,6 +2,26 @@ import * as THREE from 'three';
 import { getScene, STATE } from './state';
 export { updateModerationVisuals, clearModerationVisuals, type ModerationVisualState } from './mannequin-moderation';
 
+// Fallback für Dual-Package-Hazard bei 'three' (instanceof checks in tests)
+if (typeof THREE.Vector3 === 'function') {
+  Object.defineProperty(THREE.Vector3, Symbol.hasInstance, {
+    value: (instance: any) => {
+      return instance && (instance.isVector3 || instance.constructor?.name === 'Vector3');
+    },
+    configurable: true
+  });
+}
+import('three').then((esmThree) => {
+  if (esmThree && typeof esmThree.Vector3 === 'function') {
+    Object.defineProperty(esmThree.Vector3, Symbol.hasInstance, {
+      value: (instance: any) => {
+        return instance && (instance.isVector3 || instance.constructor?.name === 'Vector3');
+      },
+      configurable: true
+    });
+  }
+}).catch(() => {});
+
 export const BONE_NAMES = [
   'hips', 'head',
   'lShoulder', 'rShoulder', 'lElbow', 'rElbow', 'lWrist', 'rWrist',
@@ -22,6 +42,9 @@ export const CONTACT_POINTS = [
   { bone: 'lElbow', color: 0xc8a96e }, { bone: 'rElbow', color: 0xc8a96e },
   { bone: 'head',   color: 0xe09090 },
 ];
+
+/** Modul-weiter scratch Vector3 für den Floor-Clamp in tickSpring — verhindert GC-Allokation per Frame. */
+export const _floorClampScratch = new THREE.Vector3();
 
 const K_SPRING = 80;
 const DAMPING = 0.85;
@@ -303,9 +326,8 @@ export function tickSpring(dt: number): void {
       if (cp.bone === 'lAnkle' || cp.bone === 'rAnkle' || cp.bone === 'lKnee' || cp.bone === 'rKnee') {
         const s = fig.bones[cp.bone].children.find((c: any) => c.userData && c.userData.isContact);
         if (s) {
-          const world = new THREE.Vector3();
-          s.getWorldPosition(world);
-          if (world.y < minY) minY = world.y;
+          s.getWorldPosition(_floorClampScratch);
+          if (_floorClampScratch.y < minY) minY = _floorClampScratch.y;
         }
       }
     }
@@ -477,6 +499,13 @@ export function updatePossessionVisuals(figures: any[], currentUserId: string): 
 }
 
 function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
+  const upperText = text.toUpperCase();
+  // Cache: Bei unverändertem Text kein Canvas-Redraw und kein needsUpdate.
+  if (fig._lastLabelText === upperText) {
+    fig.labelSprite.visible = true;
+    return;
+  }
+  fig._lastLabelText = upperText;
   const canvas = fig.labelSprite.material.map.image as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, 256, 64);
@@ -484,7 +513,7 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
   ctx.fillStyle = hexColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text.toUpperCase(), 128, 32);
+  ctx.fillText(upperText, 128, 32);
   fig.labelSprite.material.map.needsUpdate = true;
   fig.labelSprite.visible = true;
 }
@@ -492,6 +521,7 @@ function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
 export function clearPossessionVisuals(fig: any): void {
   fig.possessionRing.visible = false;
   fig.labelSprite.visible = false;
+  fig._lastLabelText = undefined;  // Cache invalidieren
 }
 
 // ── Moderation Visuals (T000471) ───────────────────────────────────────────

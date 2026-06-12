@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { TicketDetail, Phase, InjectionKind } from '../../lib/factory-floor';
+  import { phaseDurations } from '../../lib/factory-floor';
+  import type { CiCheck, CiRollup } from '../../lib/factory-ci';
   import SuggestedFiles from './SuggestedFiles.svelte';
 
 
@@ -33,6 +35,25 @@
     isMobile?: boolean;
   } = $props();
 
+  let ciChecks = $state<CiCheck[]>([]);
+  let ciRollup = $state<CiRollup>(null);
+
+  $effect(() => {
+    if (!selected) { ciChecks = []; ciRollup = null; return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`/api/factory-floor/${encodeURIComponent(selected)}/ci`, { credentials: 'same-origin' });
+        if (r.ok && !cancelled) {
+          const d = await r.json();
+          ciChecks = d.checks ?? [];
+          ciRollup = d.rollup ?? null;
+        }
+      } catch { /* CI stays empty on error */ }
+    })();
+    return () => { cancelled = true; };
+  });
+
   function phaseDotState(phase: Phase): 'active' | 'done' | 'future' {
     if (!detail) return 'future';
     const currentPhase = detail.events[0]?.phase;
@@ -49,6 +70,13 @@
     if (score >= 0.9) return 'var(--factory-success, #4ade80)';
     if (score >= 0.75) return 'var(--factory-accent, #f59e0b)';
     return 'var(--factory-text-muted, #6b7280)';
+  }
+
+  function fmtDuration(sec: number | null): string {
+    if (sec == null) return '';
+    if (sec < 60) return `${sec}s`;
+    if (sec < 3600) return `${Math.round(sec / 60)}min`;
+    return `${(sec / 3600).toFixed(1)}h`;
   }
 
 
@@ -89,14 +117,33 @@
 
       <h4 class="detail-panel__section">Phasen-Timeline</h4>
       <ul class="detail-panel__events">
-        {#each detail.events as e}
+        {#each phaseDurations(detail.events) as e}
           <li class="detail-panel__event">
             <span class="detail-panel__event-phase">{e.phase}/{e.state}</span>
             <span class="detail-panel__event-meta"> · {new Date(e.at).toLocaleString('de-DE')} · {e.driver}</span>
+            {#if e.durationSec != null}<span class="detail-panel__event-duration"> · {fmtDuration(e.durationSec)}</span>{/if}
             {#if e.detail}<span class="detail-panel__event-detail">{e.detail}</span>{/if}
           </li>
         {/each}
       </ul>
+
+      <h4 class="detail-panel__section">CI-Checks</h4>
+      {#if ciRollup === null}
+        <p class="detail-panel__empty">keine CI-Checks</p>
+      {:else}
+        <ul class="detail-panel__events">
+          {#each ciChecks as c}
+            <li class="detail-panel__event">
+              {#if c.url}
+                <a href={c.url} target="_blank" rel="noopener noreferrer" class="detail-panel__link">{c.name}</a>
+              {:else}
+                <span>{c.name}</span>
+              {/if}
+              <span class="detail-panel__event-meta"> · {c.status}{c.conclusion ? `/${c.conclusion}` : ''}</span>
+            </li>
+          {/each}
+        </ul>
+      {/if}
 
       {#if detail.breadcrumbs.length}
         <h4 class="detail-panel__section">Breadcrumbs</h4>
@@ -300,6 +347,11 @@
     color: var(--factory-text-muted);
     font-size: 10px;
     margin-top: 2px;
+  }
+
+  .detail-panel__event-duration {
+    color: var(--factory-accent);
+    font-size: 10px;
   }
 
   .detail-panel__breadcrumbs {

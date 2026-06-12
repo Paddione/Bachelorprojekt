@@ -594,3 +594,30 @@ export function clearModerationVisuals(figures: any[]): void {
   updateModerationVisuals(figures, { spotlight: null, dim: null, freeze: false });
 }
 
+/**
+ * SEC T000660 bug #4: three.js GPU-Memory-Leak beim Figure-Remove.
+ * Traversiert fig.root (THREE.Group) und ruft dispose() auf jede
+ * BufferGeometry, jedes Material und jede Textur (material.map) auf.
+ * Muss an BEIDEN scene.remove()-Stellen in ws-client.ts aufgerufen werden:
+ * - Snapshot-Reset (~Z.226): for (const f of STATE.figures) { disposeMannequin(f); ... }
+ * - delete-Handler (~Z.419): disposeMannequin(STATE.figures[idx]); getScene().scene.remove(...)
+ */
+export function disposeMannequin(fig: { root: THREE.Object3D }): void {
+  fig.root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh;
+    if (mesh.geometry) {
+      mesh.geometry.dispose();
+    }
+    if (mesh.material) {
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      for (const mat of mats) {
+        if ((mat as any).map) {
+          (mat as any).map.dispose();
+        }
+        mat.dispose();
+      }
+    }
+  });
+}
+
+

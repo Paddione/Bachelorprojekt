@@ -74,7 +74,9 @@ vi.mock('./tickets-db', () => ({
 
 import { getHall, getLoadingDock, getShipped, getMetrics, getControl,
          insertInjection, getInjections, consumeInjections, getTicketDetail,
-         getStaged, releaseToBacklog, getProviderHealth } from './factory-floor';
+         getStaged, releaseToBacklog, getProviderHealth,
+         phaseProgress, STATUS_BUCKETS, ALL_TICKET_STATUSES,
+         buildAttention, phaseDurations } from './factory-floor';
 import { aggregateCheckRuns } from './github-ci';
 
 describe('factory-floor DAL', () => {
@@ -275,5 +277,101 @@ describe('factory-floor injection DAL', () => {
     expect(d).not.toBeNull();
     expect(Array.isArray(d!.injections)).toBe(true);
     expect(d!.injections.some((i) => i.content === 'detail-test')).toBe(true);
+  });
+});
+
+describe('phaseProgress', () => {
+  it('marks earlier phases done, current phase by its state, later phases pending', () => {
+    const p = phaseProgress('implement', 'entered');
+    expect(p).toEqual([
+      { phase: 'scout', state: 'done' },
+      { phase: 'design', state: 'done' },
+      { phase: 'plan', state: 'done' },
+      { phase: 'implement', state: 'active' },
+      { phase: 'verify', state: 'pending' },
+      { phase: 'deploy', state: 'pending' },
+    ]);
+  });
+
+  it('renders a blocked current phase as blocked', () => {
+    const p = phaseProgress('verify', 'blocked');
+    expect(p.find(s => s.phase === 'verify')).toEqual({ phase: 'verify', state: 'blocked' });
+    expect(p.find(s => s.phase === 'implement')).toEqual({ phase: 'implement', state: 'done' });
+  });
+
+  it('returns all pending when phase is null', () => {
+    expect(phaseProgress(null, null).every(s => s.state === 'pending')).toBe(true);
+  });
+
+  it('treats a done current phase as done (not active)', () => {
+    expect(phaseProgress('deploy', 'done').find(s => s.phase === 'deploy'))
+      .toEqual({ phase: 'deploy', state: 'done' });
+  });
+});
+
+describe('getHall phaseProgress', () => {
+  it('attaches a phaseProgress array reflecting the latest event', async () => {
+    const hall = await getHall();
+    const h1 = hall.find(x => x.extId === 'T000459')!;
+    expect(h1.phaseProgress.map(s => s.state))
+      .toEqual(['done', 'done', 'done', 'active', 'pending', 'pending']);
+    const b1 = hall.find(x => x.extId === 'T000460')!;
+    expect(b1.phaseProgress.find(s => s.phase === 'verify')!.state).toBe('blocked');
+  });
+});
+
+describe('status coverage', () => {
+  const ENUM = [
+    'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
+    'in_review', 'blocked', 'qa_review', 'done', 'archived',
+  ];
+
+  it('exports every enum value (drift guard against tickets-db.ts)', () => {
+    expect([...ALL_TICKET_STATUSES].sort()).toEqual([...ENUM].sort());
+  });
+
+  it('maps every status to a non-empty UI bucket (no invisible tickets)', () => {
+    for (const s of ENUM) {
+      expect(STATUS_BUCKETS[s], `status "${s}" has no UI bucket`).toBeTruthy();
+    }
+  });
+});
+
+describe('buildAttention', () => {
+  const hall = [
+    { extId: 'A', phaseState: 'blocked', blockReason: 'review', phaseSince: new Date(Date.now() - 60_000).toISOString() },
+    { extId: 'B', phaseState: 'entered', blockReason: null, phaseSince: new Date(Date.now() - 30 * 60_000).toISOString() },
+    { extId: 'C', phaseState: 'entered', blockReason: null, phaseSince: new Date().toISOString() },
+  ] as any;
+  const providers = [
+    { provider: 'deepseek', status: 'cooldown', cooldownUntil: new Date(Date.now() + 60_000).toISOString() },
+    { provider: 'anthropic', status: 'healthy', cooldownUntil: null },
+  ] as any;
+
+  it('collects blocked, stuck (>15min) and cooled-down providers', () => {
+    const a = buildAttention(hall, providers, 15);
+    expect(a.blocked.map(x => x.extId)).toEqual(['A']);
+    expect(a.stuck.map(x => x.extId)).toEqual(['B']);
+    expect(a.cooldowns.map(x => x.provider)).toEqual(['deepseek']);
+    expect(a.isEmpty).toBe(false);
+  });
+
+  it('is empty when nothing needs attention', () => {
+    const a = buildAttention(
+      [{ extId: 'C', phaseState: 'entered', blockReason: null, phaseSince: new Date().toISOString() }] as any,
+      [{ provider: 'x', status: 'healthy', cooldownUntil: null }] as any, 15);
+    expect(a.isEmpty).toBe(true);
+  });
+});
+
+describe('phaseDurations', () => {
+  it('computes seconds between consecutive events (oldest→newest)', () => {
+    const events = [
+      { phase: 'scout', state: 'entered', at: '2026-06-12T10:00:00.000Z' },
+      { phase: 'scout', state: 'done',    at: '2026-06-12T10:05:00.000Z' },
+    ] as any;
+    const d = phaseDurations(events);
+    expect(d[0]).toMatchObject({ phase: 'scout', state: 'entered', durationSec: null });
+    expect(d[1]).toMatchObject({ phase: 'scout', state: 'done', durationSec: 300 });
   });
 });

@@ -6,13 +6,19 @@
 //
 // Ticket: T000466
 
+import type { Anchor, Zone, LineType, FigureAppearance } from '../../types/state';
+
 /** Client-seitiger Board-Snapshot für den Export. */
 export interface ClientBoardSnapshot {
+  version: number;          // NEU (T000605) — Schema-Version für Migration. Aktuell 1.
   exportedAt: string;       // ISO-8601
   sessionCode: string | null;
   phase: string;
   stiffness: number;
   figures: ExportFigure[];
+  lines: ExportLine[];      // NEU (T000605)
+  anchors: Anchor[];        // NEU (T000605)
+  zones: Zone[];            // NEU (T000605)
   optik: Record<string, unknown> | null;
 }
 
@@ -26,16 +32,34 @@ export interface ExportFigure {
   color?: string;
   figureType?: string;
   ownerId?: string;
+  // NEU (T000605):
+  scale?: number;
+  preset?: string;
+  note?: string;
+  boneOverrides?: Record<string, { x: number; z: number }>;
+  appearance?: FigureAppearance;
+}
+
+/** Beziehungs-/Spannungslinie im Export. */
+export interface ExportLine {
+  id: string;
+  fromId: string;
+  toId: string;
+  lineType: LineType;
 }
 
 // ── Interner Cache ───────────────────────────────────────────────────────────
 
 let _cache: ClientBoardSnapshot = {
+  version: 1,
   exportedAt: new Date().toISOString(),
   sessionCode: null,
   phase: 'lobby',
   stiffness: 0.65,
   figures: [],
+  lines: [],
+  anchors: [],
+  zones: [],
   optik: null,
 };
 
@@ -51,7 +75,13 @@ export function updateExportCache(patch: Partial<ClientBoardSnapshot>): void {
  * Gibt eine Kopie des aktuellen Export-Snapshots zurück.
  */
 export function getExportSnapshot(): ClientBoardSnapshot {
-  return { ..._cache, figures: _cache.figures.map(f => ({ ...f })) };
+  return {
+    ..._cache,
+    figures: _cache.figures.map(f => ({ ...f })),
+    lines: _cache.lines.map(l => ({ ...l })),
+    anchors: _cache.anchors.map(a => ({ ...a })),
+    zones: _cache.zones.map(z => ({ ...z })),
+  };
 }
 
 // ── PNG-Export ───────────────────────────────────────────────────────────────
@@ -151,6 +181,29 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
     });
   }
 
+  // ── Beziehungslinien-Tabelle (T000605) ───────────────────────────────────
+  if (snapshot.lines.length > 0) {
+    // Label-Lookup aus den Figuren (Fallback: figureId selbst)
+    const labelOf = (id: string): string => {
+      const f = snapshot.figures.find(fig => fig.id === id);
+      return (f?.label && f.label.trim()) ? f.label : id;
+    };
+    // Startposition: unterhalb der (max. 8-zeiligen) Figurenliste oder Metadaten
+    const labelledCount = snapshot.figures.filter(f => f.label && f.label.trim()).length;
+    const listRows = Math.min(labelledCount, 8);
+    const LINES_Y = META_Y + 7 + (labelledCount > 0 ? 5 + listRows * 5 : 0) + 4;
+    doc.setFontSize(7);
+    doc.setTextColor(80);
+    doc.text('Beziehungen:', 20, LINES_Y);
+    snapshot.lines.forEach((l, i) => {
+      const col = Math.floor(i / 8);
+      const row = i % 8;
+      const x = 20 + col * 90;
+      const y = LINES_Y + 5 + row * 5;
+      doc.text(`• ${labelOf(l.fromId)} → ${labelOf(l.toId)}  [${l.lineType}]`, x, y);
+    });
+  }
+
   doc.save(`brett-${_isoDate()}.pdf`);
 }
 
@@ -158,17 +211,13 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
 
 /**
  * Registriert Click-Handler für die Export-Buttons im Topbar.
- * Zeigt die Export-Gruppe nur, wenn das Feature-Flag T000466 aktiv ist.
  * DOM-Zugriff erst innerhalb des Funktionskörpers — module bleibt headless-importierbar.
  *
  * @param canvas - HTMLCanvasElement des Three.js-Renderers (renderer.domElement)
  */
 export function initExportButtons(canvas: HTMLCanvasElement): void {
-  // Feature-Flag-Prüfung (DARK-LAUNCH: T000466)
-  const feats: Record<string, boolean> =
-    (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
-  if (!feats['T000466']) return;
-
+  // T000605: Feature-Flag entfernt — Export ist permanent verfügbar.
+  // Die Gruppe ist im HTML initial display:none und wird hier eingeblendet.
   const group = document.getElementById('export-group');
   if (group) group.style.display = '';
 

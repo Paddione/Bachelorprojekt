@@ -2,26 +2,15 @@ import { STATE, getWs, setWs, setWsReady, activeLocks, getScene, currentUser } f
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ClientMessage, ServerMessage } from '../types/messages';
 import type { Phase, Participant } from '../types/state';
-import { updateExportCache, type ExportFigure } from './ui/export';
+import { updateExportCache } from './ui/export';
 import * as mannequin from './mannequin';
 import { PRESETS } from './presets';
 import { createLobbyState, applyLobbyServerMessage, type LobbyState } from './lobby-store';
 import { applyOptikToScene } from './ui/optik';
 import * as groundObjects from './ground-objects';
 import { handleLobbyMessage } from './ws-lobby-handlers';
-/** Mappt eine runtime-Figure auf das serialisierbare ExportFigure-Format. */
-function _toExportFig(fig: any): ExportFigure {
-  return {
-    id: fig.id,
-    label: fig.label,
-    x: fig.root?.position?.x ?? fig.x ?? 0,
-    z: fig.root?.position?.z ?? fig.z ?? 0,
-    facingY: fig.facingY ?? 0,
-    color: fig.appearance?.color ?? fig.color,
-    figureType: fig.figureType,
-    ownerId: fig.ownerId,
-  };
-}
+import { toExportFig, toExportLine } from './ws-export-mappers';
+import { handleGroundMessage } from './ws-message-ground';
 // ── T000470: Undo/Redo-Stack-Status ─────────────────────────────────────
 export const undoState = {
   canUndo: false,
@@ -325,7 +314,10 @@ export function onWsMessage(evt: MessageEvent): void {
         phase: (msg as any).phase ?? 'lobby',
         sessionCode: (msg as any).sessionCode ?? null,
         stiffness: (msg as any).stiffness ?? STATE.stiffness,
-        figures: ((msg as any).figures ?? []).map(_toExportFig),
+        figures: ((msg as any).figures ?? []).map(toExportFig),
+        lines: ((msg as any).lines ?? []).map(toExportLine),
+        anchors: [...((msg as any).anchors ?? [])],
+        zones: [...((msg as any).zones ?? [])],
         optik: (msg as any).optik ?? null,
       });
       break;
@@ -348,7 +340,7 @@ export function onWsMessage(evt: MessageEvent): void {
       }
       STATE.figures.push(fig);
       // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
+      updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;
     }
     case 'update': {
@@ -368,7 +360,7 @@ export function onWsMessage(evt: MessageEvent): void {
         applyAppearanceToFig(fig, c.appearance);
       }
       // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
+      updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;
     }
     case 'figure_locked': {
@@ -403,7 +395,7 @@ export function onWsMessage(evt: MessageEvent): void {
       }
       mannequin.resolveCollisions(fig, mannequin.BOUNCE_K_DRAG);
       // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
+      updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;
     }
 
@@ -431,7 +423,7 @@ export function onWsMessage(evt: MessageEvent): void {
         STATE.figures.splice(idx, 1);
       }
       // Export-Cache mit aktuellen STATE.figures synchronisieren:
-      updateExportCache({ figures: STATE.figures.map(_toExportFig) });
+      updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;
     }
 
@@ -528,37 +520,22 @@ export function onWsMessage(evt: MessageEvent): void {
       console.warn('[brett] server error:', msg.reason);
       break;
 
-    // ── T000468: Boden-Anker & Zonen (DARK-LAUNCH) ──────────────────────────
-    case 'anchor_added': {
-      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
-        groundObjects.applyAnchorAdded(msg.anchor);
-      }
+    // ── T000468: Boden-Anker & Zonen (DARK-LAUNCH-Rendering, Cache immer pflegen) ─
+    case 'anchor_added':
+    case 'anchor_removed':
+    case 'zone_added':
+    case 'zone_removed':
+      handleGroundMessage(msg);
       break;
-    }
-    case 'anchor_removed': {
-      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
-        groundObjects.applyAnchorRemoved(msg.anchorId);
-      }
-      break;
-    }
-    case 'zone_added': {
-      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
-        groundObjects.applyZoneAdded(msg.zone);
-      }
-      break;
-    }
-    case 'zone_removed': {
-      if ((window as any).__brettFeatures?.['t000468-ground-anchors']) {
-        groundObjects.applyZoneRemoved(msg.zoneId);
-      }
-      break;
-    }
 
     // ── T000467: Beziehungs-/Spannungslinien (delegiert an scene-lines.ts) ──
     case 'line_created':
     case 'line_deleted':
     case 'line_type_changed':
       applyLineMessage(msg);
+      // Export-Cache mit aktuellem STATE.lines synchronisieren (scene-lines.ts
+      // mutiert STATE.lines, hat aber keinen Export-Cache-Zugriff — T000605):
+      updateExportCache({ lines: STATE.lines.map(toExportLine) });
       break;
 
     default:

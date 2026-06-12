@@ -280,6 +280,7 @@ tasks:
       - task: test:unit:factory-blocked
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
+      - task: test:unit:api-auth-gate
 
   test:unit:build-graph:
     internal: true
@@ -310,6 +311,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/staging.bats
+
+  test:unit:api-auth-gate:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/api-auth-gate.bats
 
   test:unit:ticket-triage:
     internal: true
@@ -547,7 +553,7 @@ tasks:
       - ./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-*.bats
 
   test:all:
-    desc: "Run all offline tests: unit + factory + agent-lock + manifests + art-library + menu-gate + dry-run + docs-gen"
+    desc: "Run all offline tests: unit + factory + agent-lock + manifests + art-library + menu-gate + dry-run + docs-gen + api-auth"
     deps:
       - test:unit
       - test:factory
@@ -559,6 +565,18 @@ tasks:
       - test:docs-gen
       - test:agent-guide
       - test:code-quality
+      - test:api-auth
+
+  test:api-auth:
+    desc: "API auth coverage gate — every endpoint must be classified; public endpoints need an allowlist entry"
+    cmds:
+      - node scripts/api-auth-check.mjs
+
+  test:api-auth:regression:
+    desc: "API auth regression check against origin/main"
+    cmds:
+      - git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json
+      - node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
 
   test:e2e:agent-guide:film:
     desc: "Filmable Agent-Anleitung walkthrough — headed, slowMo, video recorded (no auth required)"

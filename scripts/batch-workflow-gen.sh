@@ -73,6 +73,11 @@ ABLAUF (führe jeden Schritt aus):
 5. Schreibe Plan nach docs/superpowers/plans/${today}-${slug}.md
    - Vollständiger Implementierungsplan mit Tasks und Checkboxen
    - Nutze writing-plans Konventionen (Ziel, Architektur, Tech-Stack, Tasks)
+   - Lies VORHER .claude/skills/references/plan-quality-gates.md und halte den Plan daran:
+     wc -l auf jede zu ändernde Datei (S1-Zeilenbudget notieren, bei >~80% des Limits Modul-Split
+     einplanen), keine Brand-Domain-Literale in Snippets (S3), pure Helper ohne Import-Zyklen (S2),
+     neue Manifeste/Skripte referenzieren (S4). Der finale Verifikations-Task MUSS
+     task test:all, task freshness:regenerate und task freshness:check enthalten.
 6. Führe aus: bash ${repoRoot}/scripts/plan-frontmatter-hook.sh docs/superpowers/plans/${today}-${slug}.md
 7. Setze shared_changes im Frontmatter auf true wenn der Plan k3d/configmap-domains.yaml,
    environments/schema.yaml oder k3d/kustomization.yaml ändern muss — sonst false
@@ -86,10 +91,11 @@ Gib zurück (JSON gemäß Schema):
 - plan_path: "docs/superpowers/plans/${today}-${slug}.md"
 - shared_changes: true/false (ob der Plan geteilte Dateien ändern muss)`,
       {
-        phase:     'Isolated',
-        label:     ticket.external_id,
-        isolation: 'worktree',
-        schema:    RESULT_SCHEMA
+        phase:  'Isolated',
+        label:  ticket.external_id,
+        // KEIN isolation:'worktree' — bricht mit git-crypt (smudge-filter); der Prompt
+        // legt selbst via scripts/worktree-create.sh einen git-crypt-sicheren Worktree an.
+        schema: RESULT_SCHEMA
       }
     )
   }

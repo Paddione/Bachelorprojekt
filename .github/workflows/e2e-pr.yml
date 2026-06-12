@@ -38,7 +38,9 @@ env:
 
 jobs:
   e2e-pr:
-    name: E2E PR (${{ github.head_ref }})
+    # Static name — branch protection requires the context "E2E PR";
+    # a dynamic name (with branch) never satisfies it and blocks every merge.
+    name: E2E PR
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:

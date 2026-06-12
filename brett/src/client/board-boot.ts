@@ -23,6 +23,7 @@ import * as groundObjects from './ground-objects';
 import { maybeStartOnboarding } from './ui/onboarding';
 import { initUndoRedo } from './ui/undo-redo-ui';
 import { updateLinePositions } from './scene-lines';
+import { createModerationElements } from './board-moderation-ui';
 import { maybeStartReplayMode } from './replay-board';
 export { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
 import { mountInviteButton } from './ui/topbar-invite';
@@ -112,75 +113,10 @@ export async function bootBoard(): Promise<void> {
   });
 
   // ── D-spec: Observer hint + possession release button ──────────────
-  const observerHint = document.createElement('div');
-  observerHint.id = 'observer-hint';
-  observerHint.textContent = 'Klicke eine freie Figur, um sie zu verkörpern';
-  Object.assign(observerHint.style, {
-    display: 'none',
-    position: 'absolute',
-    bottom: '56px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: 'var(--brett-font-mono), monospace',
-    fontSize: '10px',
-    color: 'var(--brett-brass, #c8a96e)',
-    border: '1px dashed var(--brett-brass-dim, rgba(200,169,110,0.14))',
-    padding: '6px 14px',
-    borderRadius: 'var(--brett-radius-sm, 8px)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    zIndex: '20',
-    pointerEvents: 'none',
-  });
-  document.body.appendChild(observerHint);
-
-  const releaseBtn = document.createElement('button');
-  releaseBtn.id = 'btn-release-possession';
-  releaseBtn.textContent = '🚶 Loslassen';
-  Object.assign(releaseBtn.style, {
-    display: 'none',
-    position: 'absolute',
-    bottom: '52px',
-    right: '16px',
-    fontFamily: 'var(--brett-font-sans), sans-serif',
-    fontSize: '12px',
-    background: 'var(--brett-brass, #c8a96e)',
-    color: 'var(--brett-ink-900, #0b111c)',
-    border: 'none',
-    borderRadius: 'var(--brett-radius-sm, 8px)',
-    padding: '8px 16px',
-    cursor: 'pointer',
-    zIndex: '20',
-    fontWeight: '600',
-  });
+  const { observerHint, releaseBtn, freezeBanner } = createModerationElements();
   releaseBtn.addEventListener('click', () => {
     hud.releaseAllPossessions();
   });
-  document.body.appendChild(releaseBtn);
-
-  // T000471: Freeze-Indikator-Banner
-  const freezeBanner = document.createElement('div');
-  freezeBanner.id = 'freeze-indicator';
-  freezeBanner.textContent = '❄ EINGEFROREN — Figuren koennen nicht bewegt werden';
-  Object.assign(freezeBanner.style, {
-    display: 'none',
-    position: 'absolute',
-    top: '44px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: 'var(--brett-font-mono), monospace',
-    fontSize: '10px',
-    color: '#7dc8f7',
-    border: '1px solid rgba(125,200,247,0.3)',
-    background: 'rgba(0,16,32,0.85)',
-    padding: '4px 18px',
-    borderRadius: '6px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    zIndex: '25',
-    pointerEvents: 'none',
-  });
-  document.body.appendChild(freezeBanner);
 
   initUndoRedo(wsClient, hud, _isAdmin);
 

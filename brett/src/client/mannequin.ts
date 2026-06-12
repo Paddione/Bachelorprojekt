@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { getScene, STATE } from './state';
-export { updateModerationVisuals, clearModerationVisuals, type ModerationVisualState } from './mannequin-moderation';
+import { setPhysicsSendMove } from './mannequin-physics';
 
 // Fallback für Dual-Package-Hazard bei 'three' (instanceof checks in tests)
 if (typeof THREE.Vector3 === 'function') {
@@ -43,22 +43,7 @@ export const CONTACT_POINTS = [
   { bone: 'head',   color: 0xe09090 },
 ];
 
-/** Modul-weiter scratch Vector3 für den Floor-Clamp in tickSpring — verhindert GC-Allokation per Frame. */
-export const _floorClampScratch = new THREE.Vector3();
 
-const K_SPRING = 80;
-const DAMPING = 0.85;
-
-const GRAVITY_OFFSET: Record<string, { x: number; z: number }> = {
-  hips:     { x: 0.2,  z: 0 },
-  head:     { x: 0.4,  z: 0 },
-  lShoulder:{ x: 0.6,  z: 0.3 }, rShoulder:{ x: 0.6, z: -0.3 },
-  lElbow:   { x: 0.3,  z: 0 },   rElbow:   { x: 0.3, z: 0 },
-  lWrist:   { x: 0,    z: 0 },   rWrist:   { x: 0,   z: 0 },
-  lHip:     { x: -0.2, z: 0 },   rHip:     { x: -0.2, z: 0 },
-  lKnee:    { x: 0.2,  z: 0 },   rKnee:    { x: 0.2, z: 0 },
-  lAnkle:   { x: 0,    z: 0 },   rAnkle:   { x: 0,   z: 0 },
-};
 
 export const IK_CHAINS: Record<string, string[]> = {
   lWrist: ['lElbow', 'lShoulder'],
@@ -77,7 +62,10 @@ const ndc = new THREE.Vector2();
 
 // sendMove is injected to avoid a cycle with ws-client.ts.
 let sendMove: (id: string, x: number, z: number, facingY: number) => void = () => {};
-export function setSendMove(fn: typeof sendMove): void { sendMove = fn; }
+export function setSendMove(fn: typeof sendMove): void {
+  sendMove = fn;
+  setPhysicsSendMove(fn);
+}
 
 export function makeBone(parent: THREE.Object3D, length: number, color = 0xb8c0a8): THREE.Group {
   const g = new THREE.Group();
@@ -296,87 +284,7 @@ export function recolorFigure(fig: any, hexColor: string): void {
   fig.color = hexColor;
 }
 
-export function tickSpring(dt: number): void {
-  const stiff = STATE.stiffness;
-  for (const fig of STATE.figures) {
-    for (const name of BONE_NAMES) {
-      const b = fig.bone[name];
-      if (fig.boneOverrides[name]) {
-        // IK has authoritative rotation for this bone; sync state and skip spring
-        b.currentRot.x = fig.boneOverrides[name].x;
-        b.currentRot.z = fig.boneOverrides[name].z;
-        b.velocity.x = 0; b.velocity.z = 0;
-      } else {
-        const grav = GRAVITY_OFFSET[name];
-        const tx = b.targetRot.x + grav.x * (1 - stiff);
-        const tz = b.targetRot.z + grav.z * (1 - stiff);
-        const ax = (tx - b.currentRot.x) * stiff * K_SPRING;
-        const az = (tz - b.currentRot.z) * stiff * K_SPRING;
-        b.velocity.x = b.velocity.x * DAMPING + ax * dt;
-        b.velocity.z = b.velocity.z * DAMPING + az * dt;
-        b.currentRot.x += b.velocity.x * dt;
-        b.currentRot.z += b.velocity.z * dt;
-      }
-      fig.bones[name].rotation.x = b.currentRot.x;
-      fig.bones[name].rotation.z = b.currentRot.z;
-    }
-    // Floor clamp: lift root if any ankle/knee contact sphere is below y=0
-    let minY = 0;
-    for (const cp of CONTACT_POINTS) {
-      if (cp.bone === 'lAnkle' || cp.bone === 'rAnkle' || cp.bone === 'lKnee' || cp.bone === 'rKnee') {
-        const s = fig.bones[cp.bone].children.find((c: any) => c.userData && c.userData.isContact);
-        if (s) {
-          s.getWorldPosition(_floorClampScratch);
-          if (_floorClampScratch.y < minY) minY = _floorClampScratch.y;
-        }
-      }
-    }
-    if (fig.jumping) {
-      fig.jumpY += fig.jumpV * dt;
-      fig.jumpV -= GRAVITY * dt;
-      if (fig.jumpY <= 0) {
-        fig.jumpY = 0;
-        fig.jumpV = 0;
-        fig.jumping = false;
-        resolveCollisions(fig, BOUNCE_K_LAND); // Landungs-Impact
-      }
-      fig.root.position.y = fig.jumpY;
-    } else if (minY < 0) {
-      fig.root.position.y -= minY; // lift onto floor
-    }
-  }
-}
 
-export function startJump(fig: any): void {
-  fig.jumping = true;
-  fig.jumpV = JUMP_V0;
-  fig.jumpY = 0;
-}
-
-export function resolveCollisions(movedFig: any, impulseK: number): void {
-  for (let iter = 0; iter < COLLISION_MAX_ITER; iter++) {
-    let resolved = false;
-    for (const other of STATE.figures) {
-      if (other === movedFig) continue;
-      const dx = other.root.position.x - movedFig.root.position.x;
-      const dz = other.root.position.z - movedFig.root.position.z;
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      const minDist = 2 * BODY_RADIUS;
-      if (dist >= minDist || dist === 0) continue;
-      const nx = dx / dist, nz = dz / dist;
-      const overlap = minDist - dist + 0.02;
-      other.root.position.x += nx * overlap;
-      other.root.position.z += nz * overlap;
-      for (const name of BONE_NAMES) {
-        other.bone[name].velocity.x += impulseK * nx;
-        other.bone[name].velocity.z += impulseK * nz;
-      }
-      sendMove(other.id, other.root.position.x, other.root.position.z, other.facingY);
-      resolved = true;
-    }
-    if (!resolved) break;
-  }
-}
 
 export function setNdcFromPoint(clientX: number, clientY: number): void {
   const { renderer } = getScene();
@@ -469,67 +377,9 @@ export function getTickRefs() {
 }
 let lastTickMs = performance.now();
 
-// ── Possession Visuals (D-spec) ─────────────────────────────────────────
 
-/** Update all figure possession rings + floating labels based on _serverPossessor. */
-export function updatePossessionVisuals(figures: any[], currentUserId: string): void {
-  const now = performance.now();
-  for (const fig of figures) {
-    const possessor: string | null = fig._serverPossessor ?? null;
-    const isMine = possessor === currentUserId;
-    const isOthers = possessor && possessor !== currentUserId;
-
-    if (!possessor) {
-      // Free figure — dashed brass ring (pulsing)
-      fig.possessionRing.visible = true;
-      fig.possessionRing.material.opacity = 0.3 + Math.sin(now * 0.003) * 0.12;
-      fig.possessionRing.material.color.set(0xc8a96e); // brass
-      fig.labelSprite.visible = false;
-    } else if (isMine) {
-      // Own possession — solid brass ring + label
-      fig.possessionRing.visible = true;
-      fig.possessionRing.material.opacity = 0.75;
-      fig.possessionRing.material.color.set(0xc8a96e); // brass
-      updatePossessorLabel(fig, 'ICH', '#c8a96e');
-    } else if (isOthers) {
-      // Foreign possession — sage ring + name label
-      fig.possessionRing.visible = true;
-      fig.possessionRing.material.opacity = 0.5;
-      fig.possessionRing.material.color.set(0x7fa37a); // sage
-      const name = possessor.length > 12 ? possessor.slice(0, 12) + '…' : possessor;
-      updatePossessorLabel(fig, name, '#7fa37a');
-    }
-  }
-}
-
-function updatePossessorLabel(fig: any, text: string, hexColor: string): void {
-  const upperText = text.toUpperCase();
-  // Cache: Bei unverändertem Text kein Canvas-Redraw und kein needsUpdate.
-  if (fig._lastLabelText === upperText) {
-    fig.labelSprite.visible = true;
-    return;
-  }
-  fig._lastLabelText = upperText;
-  const canvas = fig.labelSprite.material.map.image as HTMLCanvasElement;
-  const ctx = canvas.getContext('2d')!;
-  ctx.clearRect(0, 0, 256, 64);
-  ctx.font = 'bold 18px "Geist Mono", monospace';
-  ctx.fillStyle = hexColor;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(upperText, 128, 32);
-  fig.labelSprite.material.map.needsUpdate = true;
-  fig.labelSprite.visible = true;
-}
-
-export function clearPossessionVisuals(fig: any): void {
-  fig.possessionRing.visible = false;
-  fig.labelSprite.visible = false;
-  fig._lastLabelText = undefined;  // Cache invalidieren
-}
 
 // ── Moderation Visuals (T000471) ───────────────────────────────────────────
-// Re-exported from mannequin-moderation.ts (see top of file)
 
 /**
  * SEC T000660 bug #4: three.js GPU-Memory-Leak beim Figure-Remove.
@@ -557,5 +407,11 @@ export function disposeMannequin(fig: { root: THREE.Object3D }): void {
   });
 }
 
-
+// Re-exports für Rückwärtskompatibilität
+export { tickSpring, startJump, resolveCollisions, _floorClampScratch } from './mannequin-physics';
+export {
+  updatePossessionVisuals, clearPossessionVisuals,
+  updateModerationVisuals, clearModerationVisuals,
+  type ModerationVisualState,
+} from './mannequin-visuals';
 

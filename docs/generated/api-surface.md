@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-13T10:50:34.438Z
+> Generated at 2026-06-12T18:07:32.787Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -58,7 +58,6 @@
 | `/api/admin/clients/set-is-admin` | POST | 🔐 admin | `website/src/pages/api/admin/clients/set-is-admin.ts` |
 | `/api/admin/clients/update` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update.ts` |
 | `/api/admin/clients/update-crm` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update-crm.ts` |
-| `/api/admin/cluster/graph` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/graph.ts` |
 | `/api/admin/cluster/logs` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/logs.ts` |
 | `/api/admin/cluster/pods-list` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/pods-list.ts` |
 | `/api/admin/cluster/warnings` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/warnings.ts` |
@@ -109,11 +108,9 @@
 | `/api/admin/documents/assign` | POST | 🔐 admin | `website/src/pages/api/admin/documents/assign.ts` |
 | `/api/admin/documents/assignments` | GET | 🔐 admin | `website/src/pages/api/admin/documents/assignments.ts` |
 | `/api/admin/documents/assignments/{id}` | DELETE, PATCH | 🔐 admin | `website/src/pages/api/admin/documents/assignments/[id].ts` |
-| `/api/admin/documents/assignments/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/assignments/[id]/pdf.ts` |
 | `/api/admin/documents/notify/{id}` | POST | 🔐 admin | `website/src/pages/api/admin/documents/notify/[id].ts` |
 | `/api/admin/documents/templates` | GET, POST | 🔐 admin | `website/src/pages/api/admin/documents/templates/index.ts` |
 | `/api/admin/documents/templates/{id}` | GET, PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id].ts` |
-| `/api/admin/documents/templates/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/admin/documents/templates/[id]/pdf.ts` |
 | `/api/admin/einstellungen/backup` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/backup.ts` |
 | `/api/admin/einstellungen/benachrichtigungen` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/benachrichtigungen.ts` |
 | `/api/admin/einstellungen/branding` | POST | 🔐 admin | `website/src/pages/api/admin/einstellungen/branding.ts` |
@@ -286,98 +283,97 @@
 | `/api/admin/zeiterfassung/create` | POST | 🔐 admin | `website/src/pages/api/admin/zeiterfassung/create.ts` |
 | `/api/admin/zeiterfassung/delete` | POST | 🔐 admin | `website/src/pages/api/admin/zeiterfassung/delete.ts` |
 | `/api/admin/zeiterfassung/export` | GET | 🔐 admin | `website/src/pages/api/admin/zeiterfassung/export.ts` |
-| `/api/arena/1v3` | POST | 🔑 session | `website/src/pages/api/arena/1v3.ts` |
-| `/api/arena/active` | GET | ❓ unclassified | `website/src/pages/api/arena/active.ts` |
-| `/api/arena/duel` | POST | 🔑 session | `website/src/pages/api/arena/duel.ts` |
-| `/api/arena/lobby` | GET | 🔑 session | `website/src/pages/api/arena/lobby.ts` |
-| `/api/arena/matches` | GET | 🔑 session | `website/src/pages/api/arena/matches.ts` |
-| `/api/arena/solo` | POST | 🔑 session | `website/src/pages/api/arena/solo.ts` |
-| `/api/arena/start` | POST | 🔑 session | `website/src/pages/api/arena/start.ts` |
-| `/api/arena/token` | POST | 🔑 session | `website/src/pages/api/arena/token.ts` |
-| `/api/assets/{...path}` | GET | ❓ unclassified | `website/src/pages/api/assets/[...path].ts` |
+| `/api/arena/1v3` | POST | 🔑 auth | `website/src/pages/api/arena/1v3.ts` |
+| `/api/arena/active` | GET | 🌐 public | `website/src/pages/api/arena/active.ts` |
+| `/api/arena/duel` | POST | 🔑 auth | `website/src/pages/api/arena/duel.ts` |
+| `/api/arena/lobby` | GET | 🔑 auth | `website/src/pages/api/arena/lobby.ts` |
+| `/api/arena/matches` | GET | 🔑 auth | `website/src/pages/api/arena/matches.ts` |
+| `/api/arena/solo` | POST | 🔑 auth | `website/src/pages/api/arena/solo.ts` |
+| `/api/arena/start` | POST | 🔑 auth | `website/src/pages/api/arena/start.ts` |
+| `/api/arena/token` | POST | 🔑 auth | `website/src/pages/api/arena/token.ts` |
+| `/api/assets/{...path}` | GET | 🌐 public | `website/src/pages/api/assets/[...path].ts` |
 | `/api/assistant/chat` | POST | 🔐 admin | `website/src/pages/api/assistant/chat.ts` |
-| `/api/assistant/dismiss` | POST | 🔑 session | `website/src/pages/api/assistant/dismiss.ts` |
+| `/api/assistant/dismiss` | POST | 🔑 auth | `website/src/pages/api/assistant/dismiss.ts` |
 | `/api/assistant/execute` | POST | 🔐 admin | `website/src/pages/api/assistant/execute.ts` |
 | `/api/assistant/nudges` | GET | 🔐 admin | `website/src/pages/api/assistant/nudges.ts` |
-| `/api/assistant/transcribe` | POST | 🔑 session | `website/src/pages/api/assistant/transcribe.ts` |
+| `/api/assistant/transcribe` | POST | 🔑 auth | `website/src/pages/api/assistant/transcribe.ts` |
 | `/api/auth/callback` | GET | 🔐 admin | `website/src/pages/api/auth/callback.ts` |
-| `/api/auth/delete-account` | POST | 🔑 session | `website/src/pages/api/auth/delete-account.ts` |
-| `/api/auth/login` | GET | ❓ unclassified | `website/src/pages/api/auth/login.ts` |
-| `/api/auth/logout` | GET | ❓ unclassified | `website/src/pages/api/auth/logout.ts` |
-| `/api/auth/magic` | GET | ❓ unclassified | `website/src/pages/api/auth/magic.ts` |
+| `/api/auth/delete-account` | POST | 🔑 auth | `website/src/pages/api/auth/delete-account.ts` |
+| `/api/auth/login` | GET | 🌐 public | `website/src/pages/api/auth/login.ts` |
+| `/api/auth/logout` | GET | 🌐 public | `website/src/pages/api/auth/logout.ts` |
+| `/api/auth/magic` | GET | 🌐 public | `website/src/pages/api/auth/magic.ts` |
 | `/api/auth/me` | GET | 🔐 admin | `website/src/pages/api/auth/me.ts` |
-| `/api/billing/create-invoice` | POST | ❓ unclassified | `website/src/pages/api/billing/create-invoice.ts` |
+| `/api/billing/create-invoice` | POST | 🌐 public | `website/src/pages/api/billing/create-invoice.ts` |
 | `/api/billing/invoice/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/pdf.ts` |
 | `/api/billing/invoice/{id}/xrechnung.xml` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts` |
 | `/api/billing/invoice/{id}/zugferd` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/zugferd.ts` |
-| `/api/booking` | POST | ❓ unclassified | `website/src/pages/api/booking.ts` |
+| `/api/booking` | POST | 🌐 public | `website/src/pages/api/booking.ts` |
 | `/api/bookings/{uid}/project` | PATCH | 🔐 admin | `website/src/pages/api/bookings/[uid]/project.ts` |
-| `/api/brett/bot` | POST | ❓ unclassified | `website/src/pages/api/brett/bot.ts` |
-| `/api/bug-report` | POST | ❓ unclassified | `website/src/pages/api/bug-report.ts` |
-| `/api/calendar/slots` | GET | ❓ unclassified | `website/src/pages/api/calendar/slots.ts` |
-| `/api/cluster/status` | GET | ❓ unclassified | `website/src/pages/api/cluster/status.ts` |
+| `/api/brett/bot` | POST | 🌐 public | `website/src/pages/api/brett/bot.ts` |
+| `/api/bug-report` | POST | 🌐 public | `website/src/pages/api/bug-report.ts` |
+| `/api/calendar/slots` | GET | 🌐 public | `website/src/pages/api/calendar/slots.ts` |
+| `/api/cluster/status` | GET | 🌐 public | `website/src/pages/api/cluster/status.ts` |
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |
-| `/api/contact` | POST | ❓ unclassified | `website/src/pages/api/contact.ts` |
+| `/api/contact` | POST | 🌐 public | `website/src/pages/api/contact.ts` |
 | `/api/cron/notify-unread` | POST | 🔐 admin | `website/src/pages/api/cron/notify-unread.ts` |
-| `/api/cron/scheduled-publish` | GET | ⏰ cron | `website/src/pages/api/cron/scheduled-publish.ts` |
-| `/api/dsgvo-request` | POST | ❓ unclassified | `website/src/pages/api/dsgvo-request.ts` |
+| `/api/cron/scheduled-publish` | GET | 🌐 public | `website/src/pages/api/cron/scheduled-publish.ts` |
+| `/api/dsgvo-request` | POST | 🌐 public | `website/src/pages/api/dsgvo-request.ts` |
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |
-| `/api/factory-floor/{extId}/ci` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/ci.ts` |
 | `/api/factory-floor/{extId}/inject` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/inject.ts` |
 | `/api/factory-floor/{extId}/release` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/release.ts` |
 | `/api/factory-floor/stream` | GET | 🔐 admin | `website/src/pages/api/factory-floor/stream.ts` |
 | `/api/factory-metrics` | GET | 🔐 admin | `website/src/pages/api/factory-metrics.ts` |
-| `/api/health` | GET | ❓ unclassified | `website/src/pages/api/health.ts` |
-| `/api/internal/tickets/notify-close` | POST | 🔒 internal | `website/src/pages/api/internal/tickets/notify-close.ts` |
-| `/api/leistungen` | GET | ❓ unclassified | `website/src/pages/api/leistungen.ts` |
+| `/api/health` | GET | 🌐 public | `website/src/pages/api/health.ts` |
+| `/api/internal/tickets/notify-close` | POST | 🌐 public | `website/src/pages/api/internal/tickets/notify-close.ts` |
+| `/api/leistungen` | GET | 🌐 public | `website/src/pages/api/leistungen.ts` |
 | `/api/live/state` | GET | 🔐 admin | `website/src/pages/api/live/state.ts` |
-| `/api/meeting/finalize` | POST | ❓ unclassified | `website/src/pages/api/meeting/finalize.ts` |
+| `/api/meeting/finalize` | POST | 🌐 public | `website/src/pages/api/meeting/finalize.ts` |
 | `/api/meeting/release` | POST | 🔐 admin | `website/src/pages/api/meeting/release.ts` |
-| `/api/meeting/save-transcript` | POST | ❓ unclassified | `website/src/pages/api/meeting/save-transcript.ts` |
-| `/api/meeting/transcribe` | POST | ❓ unclassified | `website/src/pages/api/meeting/transcribe.ts` |
+| `/api/meeting/save-transcript` | POST | 🌐 public | `website/src/pages/api/meeting/save-transcript.ts` |
+| `/api/meeting/transcribe` | POST | 🌐 public | `website/src/pages/api/meeting/transcribe.ts` |
 | `/api/meetings/{id}/project` | PATCH | 🔐 admin | `website/src/pages/api/meetings/[id]/project.ts` |
-| `/api/newsletter/confirm` | GET | ❓ unclassified | `website/src/pages/api/newsletter/confirm.ts` |
-| `/api/newsletter/subscribe` | POST | ❓ unclassified | `website/src/pages/api/newsletter/subscribe.ts` |
-| `/api/newsletter/unsubscribe` | GET | ❓ unclassified | `website/src/pages/api/newsletter/unsubscribe.ts` |
+| `/api/newsletter/confirm` | GET | 🌐 public | `website/src/pages/api/newsletter/confirm.ts` |
+| `/api/newsletter/subscribe` | POST | 🌐 public | `website/src/pages/api/newsletter/subscribe.ts` |
+| `/api/newsletter/unsubscribe` | GET | 🌐 public | `website/src/pages/api/newsletter/unsubscribe.ts` |
 | `/api/planning-office` | GET, POST, DELETE | 🔐 admin | `website/src/pages/api/planning-office/index.ts` |
 | `/api/planning-office/{extId}` | PATCH | 🔐 admin | `website/src/pages/api/planning-office/[extId].ts` |
 | `/api/planning-office/{extId}/clarify` | POST | 🔐 admin | `website/src/pages/api/planning-office/[extId]/clarify.ts` |
 | `/api/planning-office/{extId}/promote` | POST | 🔐 admin | `website/src/pages/api/planning-office/[extId]/promote.ts` |
-| `/api/poll/{id}` | GET | ❓ unclassified | `website/src/pages/api/poll/[id].ts` |
-| `/api/poll/{id}/answer` | POST | ❓ unclassified | `website/src/pages/api/poll/[id]/answer.ts` |
-| `/api/poll/{id}/results` | GET | ❓ unclassified | `website/src/pages/api/poll/[id]/results.ts` |
-| `/api/portal/documents/{assignmentId}/pdf` | GET | 🔑 session | `website/src/pages/api/portal/documents/[assignmentId]/pdf.ts` |
-| `/api/portal/learning/summary` | GET | 🔑 session | `website/src/pages/api/portal/learning/summary.ts` |
-| `/api/portal/learning/track` | POST | 🔑 session | `website/src/pages/api/portal/learning/track.ts` |
-| `/api/portal/messages` | GET, POST | 🔑 session | `website/src/pages/api/portal/messages.ts` |
-| `/api/portal/messages/{threadId}` | GET, POST | 🔑 session | `website/src/pages/api/portal/messages/[threadId].ts` |
-| `/api/portal/nachrichten` | GET | 🔑 session | `website/src/pages/api/portal/nachrichten.ts` |
-| `/api/portal/onboarding/mark-step` | POST | 🔑 session | `website/src/pages/api/portal/onboarding/mark-step.ts` |
-| `/api/portal/profile/export` | GET | 🔑 session | `website/src/pages/api/portal/profile/export.ts` |
-| `/api/portal/profile/update` | POST | 🔑 session | `website/src/pages/api/portal/profile/update.ts` |
-| `/api/portal/projekte` | GET | 🔑 session | `website/src/pages/api/portal/projekte.ts` |
-| `/api/portal/projekttasks/{id}/done` | POST | 🔑 session | `website/src/pages/api/portal/projekttasks/[id]/done.ts` |
-| `/api/portal/questionnaires` | GET | 🔑 session | `website/src/pages/api/portal/questionnaires/index.ts` |
-| `/api/portal/questionnaires/{id}` | GET | 🔑 session | `website/src/pages/api/portal/questionnaires/[id]/index.ts` |
-| `/api/portal/questionnaires/{id}/answer` | PUT | 🔑 session | `website/src/pages/api/portal/questionnaires/[id]/answer.ts` |
-| `/api/portal/questionnaires/{id}/dismiss` | POST | 🔑 session | `website/src/pages/api/portal/questionnaires/[id]/dismiss.ts` |
-| `/api/portal/questionnaires/{id}/submit` | POST | 🔑 session | `website/src/pages/api/portal/questionnaires/[id]/submit.ts` |
-| `/api/portal/rooms` | GET | 🔑 session | `website/src/pages/api/portal/rooms.ts` |
-| `/api/portal/rooms/{id}/messages` | GET, POST | 🔑 session | `website/src/pages/api/portal/rooms/[id]/messages.ts` |
-| `/api/portal/rooms/ensure-direct` | POST | 🔑 session | `website/src/pages/api/portal/rooms/ensure-direct.ts` |
-| `/api/portal/sign/{assignmentId}` | POST | 🔑 session | `website/src/pages/api/portal/sign/[assignmentId].ts` |
-| `/api/register` | POST | ❓ unclassified | `website/src/pages/api/register.ts` |
-| `/api/signing/confirm` | POST | 🔑 session | `website/src/pages/api/signing/confirm.ts` |
-| `/api/status` | GET | ❓ unclassified | `website/src/pages/api/status.ts` |
+| `/api/poll/{id}` | GET | 🌐 public | `website/src/pages/api/poll/[id].ts` |
+| `/api/poll/{id}/answer` | POST | 🌐 public | `website/src/pages/api/poll/[id]/answer.ts` |
+| `/api/poll/{id}/results` | GET | 🌐 public | `website/src/pages/api/poll/[id]/results.ts` |
+| `/api/portal/documents/{assignmentId}/pdf` | GET | 🔑 auth | `website/src/pages/api/portal/documents/[assignmentId]/pdf.ts` |
+| `/api/portal/learning/summary` | GET | 🔑 auth | `website/src/pages/api/portal/learning/summary.ts` |
+| `/api/portal/learning/track` | POST | 🔑 auth | `website/src/pages/api/portal/learning/track.ts` |
+| `/api/portal/messages` | GET, POST | 🔑 auth | `website/src/pages/api/portal/messages.ts` |
+| `/api/portal/messages/{threadId}` | GET, POST | 🔑 auth | `website/src/pages/api/portal/messages/[threadId].ts` |
+| `/api/portal/nachrichten` | GET | 🔑 auth | `website/src/pages/api/portal/nachrichten.ts` |
+| `/api/portal/onboarding/mark-step` | POST | 🔑 auth | `website/src/pages/api/portal/onboarding/mark-step.ts` |
+| `/api/portal/profile/export` | GET | 🔑 auth | `website/src/pages/api/portal/profile/export.ts` |
+| `/api/portal/profile/update` | POST | 🔑 auth | `website/src/pages/api/portal/profile/update.ts` |
+| `/api/portal/projekte` | GET | 🔑 auth | `website/src/pages/api/portal/projekte.ts` |
+| `/api/portal/projekttasks/{id}/done` | POST | 🔑 auth | `website/src/pages/api/portal/projekttasks/[id]/done.ts` |
+| `/api/portal/questionnaires` | GET | 🔑 auth | `website/src/pages/api/portal/questionnaires/index.ts` |
+| `/api/portal/questionnaires/{id}` | GET | 🔑 auth | `website/src/pages/api/portal/questionnaires/[id]/index.ts` |
+| `/api/portal/questionnaires/{id}/answer` | PUT | 🔑 auth | `website/src/pages/api/portal/questionnaires/[id]/answer.ts` |
+| `/api/portal/questionnaires/{id}/dismiss` | POST | 🔑 auth | `website/src/pages/api/portal/questionnaires/[id]/dismiss.ts` |
+| `/api/portal/questionnaires/{id}/submit` | POST | 🔑 auth | `website/src/pages/api/portal/questionnaires/[id]/submit.ts` |
+| `/api/portal/rooms` | GET | 🔑 auth | `website/src/pages/api/portal/rooms.ts` |
+| `/api/portal/rooms/{id}/messages` | GET, POST | 🔑 auth | `website/src/pages/api/portal/rooms/[id]/messages.ts` |
+| `/api/portal/rooms/ensure-direct` | POST | 🔑 auth | `website/src/pages/api/portal/rooms/ensure-direct.ts` |
+| `/api/portal/sign/{assignmentId}` | POST | 🔑 auth | `website/src/pages/api/portal/sign/[assignmentId].ts` |
+| `/api/register` | POST | 🌐 public | `website/src/pages/api/register.ts` |
+| `/api/signing/confirm` | POST | 🔑 auth | `website/src/pages/api/signing/confirm.ts` |
+| `/api/status` | GET | 🌐 public | `website/src/pages/api/status.ts` |
 | `/api/stream/end` | POST | 🔐 admin | `website/src/pages/api/stream/end.ts` |
 | `/api/stream/recording` | POST | 🔐 admin | `website/src/pages/api/stream/recording.ts` |
-| `/api/stream/status` | GET | ❓ unclassified | `website/src/pages/api/stream/status.ts` |
+| `/api/stream/status` | GET | 🌐 public | `website/src/pages/api/stream/status.ts` |
 | `/api/stream/token` | POST | 🔐 admin | `website/src/pages/api/stream/token.ts` |
-| `/api/stripe/checkout` | POST | ❓ unclassified | `website/src/pages/api/stripe/checkout.ts` |
-| `/api/stripe/invoice-payment-intent` | POST | ❓ unclassified | `website/src/pages/api/stripe/invoice-payment-intent.ts` |
-| `/api/stripe/webhook` | POST | ❓ unclassified | `website/src/pages/api/stripe/webhook.ts` |
+| `/api/stripe/checkout` | POST | 🌐 public | `website/src/pages/api/stripe/checkout.ts` |
+| `/api/stripe/invoice-payment-intent` | POST | 🌐 public | `website/src/pages/api/stripe/invoice-payment-intent.ts` |
+| `/api/stripe/webhook` | POST | 🌐 public | `website/src/pages/api/stripe/webhook.ts` |
 | `/api/tickets/{id}/readiness` | POST | 🔐 admin | `website/src/pages/api/tickets/[id]/readiness.ts` |
-| `/api/tickets/comment` | POST | ❓ unclassified | `website/src/pages/api/tickets/comment.ts` |
+| `/api/tickets/comment` | POST | 🌐 public | `website/src/pages/api/tickets/comment.ts` |
 | `/api/tickets/graph` | GET | 🔐 admin | `website/src/pages/api/tickets/graph.ts` |
-| `/api/timeline` | GET | ❓ unclassified | `website/src/pages/api/timeline.ts` |
+| `/api/timeline` | GET | 🌐 public | `website/src/pages/api/timeline.ts` |

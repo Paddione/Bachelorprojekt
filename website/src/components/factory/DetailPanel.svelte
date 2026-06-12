@@ -332,7 +332,10 @@
     margin-top: 2px;
   }
 
-  .detail-panel__event-duration { color: var(--factory-accent); font-size: 10px; }
+  .detail-panel__event-duration {
+    color: var(--factory-accent);
+    font-size: 10px;
+  }
 
   .detail-panel__breadcrumbs {
     list-style: none;

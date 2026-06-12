@@ -11,7 +11,7 @@ depends_on_plans: []
 
 # Brett Security Leaks Fix (T000660) — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Schließe vier verifizierte Sicherheitslücken im Brett-Server und -Client: Open Redirect, fehlende Session-Gates auf drei API-Routes, Server-Map-Leaks beim Room-Destroy und three.js GPU-Memory-Leaks beim Figure-Remove.
 
@@ -40,7 +40,7 @@ depends_on_plans: []
 - Modify: `brett/src/server/auth.ts` (Ende der Datei, nach `requireAdmin`)
 - Test: `brett/test/auth.test.ts` (bereits vorhanden, Tests 64–66)
 
-- [ ] **Step 1.1: Failing-Tests bestätigen**
+- [x] **Step 1.1: Failing-Tests bestätigen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "^not ok (64|65|66)"
@@ -52,7 +52,7 @@ not ok 65 - sanitizeReturnTo: rejects absolute / protocol-relative / scheme URLs
 not ok 66 - sanitizeReturnTo: non-string / empty → "/"
 ```
 
-- [ ] **Step 1.2: Funktion in auth.ts ergänzen**
+- [x] **Step 1.2: Funktion in auth.ts ergänzen**
 
 Füge am Ende von `brett/src/server/auth.ts` (nach der `requireAdmin`-Funktion, Zeile 77) hinzu:
 
@@ -75,7 +75,7 @@ export function sanitizeReturnTo(raw: any): string {
 }
 ```
 
-- [ ] **Step 1.3: Tests laufen lassen — nur diese drei**
+- [x] **Step 1.3: Tests laufen lassen — nur diese drei**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "(64|65|66) -"
@@ -87,7 +87,7 @@ ok 65 - sanitizeReturnTo: rejects absolute / protocol-relative / scheme URLs →
 ok 66 - sanitizeReturnTo: non-string / empty → "/"
 ```
 
-- [ ] **Step 1.4: Commit**
+- [x] **Step 1.4: Commit**
 
 ```bash
 cd /tmp/wt-brett-security
@@ -103,7 +103,7 @@ git commit -m "fix(brett): add sanitizeReturnTo to prevent open redirect (T00066
 - Modify: `brett/src/server/auth.ts` (nach `sanitizeReturnTo`)
 - Test: `brett/test/auth.test.ts` (Tests 67–68)
 
-- [ ] **Step 2.1: Failing-Tests bestätigen**
+- [x] **Step 2.1: Failing-Tests bestätigen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "^not ok (67|68)"
@@ -114,7 +114,7 @@ not ok 67 - requireSession: next() for an authenticated session
 not ok 68 - requireSession: 401 for an unauthenticated request
 ```
 
-- [ ] **Step 2.2: `requireSession` in auth.ts ergänzen**
+- [x] **Step 2.2: `requireSession` in auth.ts ergänzen**
 
 Füge direkt nach `sanitizeReturnTo` in `brett/src/server/auth.ts` hinzu:
 
@@ -132,7 +132,7 @@ export function requireSession(req: Request, res: Response, next: NextFunction):
 }
 ```
 
-- [ ] **Step 2.3: Tests laufen lassen**
+- [x] **Step 2.3: Tests laufen lassen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "(67|68) -"
@@ -143,7 +143,7 @@ ok 67 - requireSession: next() for an authenticated session
 ok 68 - requireSession: 401 for an unauthenticated request
 ```
 
-- [ ] **Step 2.4: Commit**
+- [x] **Step 2.4: Commit**
 
 ```bash
 cd /tmp/wt-brett-security
@@ -162,7 +162,7 @@ git commit -m "fix(brett): add requireSession middleware (T000660 bug #2)"
 **Hinweis zu Aufrufer-Analyse (Share-Link-Branch T000608):**
 `grep -rn "api/state\|api/snapshots" brett/src/` zeigt, dass `/api/state` und `/api/snapshots/:id` ausschließlich serverseitig definiert sind — kein Client-Code im `brett/src/client/`-Verzeichnis ruft diese Endpoints direkt auf (der WS-Sync-Pfad liefert State via WebSocket, nicht per REST). Falls Branch `feature/T000608-brett-share-link` einen anonymen Board-Viewer einführt, der `/api/state` per HTTP aufruft, wäre nach einem Merge ein `requireSession`-Konflikt möglich. **Vor dem Merge prüfen:** `git log --oneline feature/T000608-brett-share-link | head -5` und ggf. `requireSession` für den Share-Link-Pfad durch eine gesonderte Middleware ersetzen.
 
-- [ ] **Step 3.1: Failing-Tests bestätigen**
+- [x] **Step 3.1: Failing-Tests bestätigen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "^not ok (433|434|435)"
@@ -174,7 +174,7 @@ not ok 434 - SEC bug #2: requireSession 401s an anonymous snapshot request
 not ok 435 - SEC bug #2: requireSession admits an authenticated session
 ```
 
-- [ ] **Step 3.2: returnTo in /auth/callback sanitizen**
+- [x] **Step 3.2: returnTo in /auth/callback sanitizen**
 
 In `brett/src/server/index.ts`, Zeile 118, ändere:
 ```typescript
@@ -189,7 +189,7 @@ try { returnTo = auth.sanitizeReturnTo(JSON.parse(Buffer.from(currentUrl.searchP
 
 (Die Zeile ist jetzt etwas länger, aber `sanitizeReturnTo` wurde in Task 1 eingeführt und ist über das `auth`-Objekt verfügbar.)
 
-- [ ] **Step 3.3: requireSession auf GET /api/state**
+- [x] **Step 3.3: requireSession auf GET /api/state**
 
 In `brett/src/server/index.ts`, Zeile 163:
 ```typescript
@@ -201,7 +201,7 @@ app.get('/api/state', asyncHandler(async (req: any, res: any) => {
 app.get('/api/state', auth.requireSession, asyncHandler(async (req: any, res: any) => {
 ```
 
-- [ ] **Step 3.4: requireSession auf GET /api/snapshots/:id**
+- [x] **Step 3.4: requireSession auf GET /api/snapshots/:id**
 
 In `brett/src/server/index.ts`, Zeile 235:
 ```typescript
@@ -213,7 +213,7 @@ app.get('/api/snapshots/:id', asyncHandler(async (req: any, res: any) => {
 app.get('/api/snapshots/:id', auth.requireSession, asyncHandler(async (req: any, res: any) => {
 ```
 
-- [ ] **Step 3.5: requireSession auf POST /api/snapshots (non-template)**
+- [x] **Step 3.5: requireSession auf POST /api/snapshots (non-template)**
 
 In `brett/src/server/index.ts`, Zeile 324:
 ```typescript
@@ -227,7 +227,7 @@ app.post('/api/snapshots', auth.requireSession, asyncHandler(async (req: any, re
 
 *Hinweis: Das nachgelagerte `canCreateTemplate`-Gate (Zeile 330) bleibt unverändert — es läuft nach `requireSession` und prüft zusätzlich Admin-Rechte für `is_template=true`.*
 
-- [ ] **Step 3.6: requireSession aus index.ts re-exportieren**
+- [x] **Step 3.6: requireSession aus index.ts re-exportieren**
 
 Der Test `snapshots-route.test.ts` importiert `requireSession` aus `'../src/server/index'`, nicht aus `auth`. Füge am Ende der Exports in `brett/src/server/index.ts` (z.B. direkt nach `export function canCreateTemplate`) eine Re-Export-Zeile hinzu:
 
@@ -238,7 +238,7 @@ export { requireSession } from './auth';
 
 *(Alternativ kann die bestehende `export … from './auth'` erweitert werden, falls es bereits eine solche Zeile gibt — prüfe mit `grep "export.*from.*auth" brett/src/server/index.ts`.)*
 
-- [ ] **Step 3.7: Tests laufen lassen**
+- [x] **Step 3.7: Tests laufen lassen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "(433|434|435) -"
@@ -250,14 +250,14 @@ ok 434 - SEC bug #2: requireSession 401s an anonymous snapshot request
 ok 435 - SEC bug #2: requireSession admits an authenticated session
 ```
 
-- [ ] **Step 3.8: TypeScript-Check (Server)**
+- [x] **Step 3.8: TypeScript-Check (Server)**
 
 ```bash
 cd brett && npx tsc --noEmit -p tsconfig.server.json
 ```
 Erwartete Ausgabe: keine Fehler (leer).
 
-- [ ] **Step 3.9: Commit**
+- [x] **Step 3.9: Commit**
 
 ```bash
 cd /tmp/wt-brett-security
@@ -273,7 +273,7 @@ git commit -m "fix(brett): wire sanitizeReturnTo + requireSession on 3 routes (T
 - Modify: `brett/src/server/sessions.ts` (neue Funktion am Ende, nach `checkAllSessions`)
 - Test: `brett/test/leader-grace.test.ts` (Tests 184–186)
 
-- [ ] **Step 4.1: Failing-Tests bestätigen**
+- [x] **Step 4.1: Failing-Tests bestätigen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "^not ok (184|185|186)"
@@ -285,7 +285,7 @@ not ok 185 - cleanupRoomTracking: cancels and removes the pending grace timer
 not ok 186 - cleanupRoomTracking: leaves other rooms untouched
 ```
 
-- [ ] **Step 4.2: cleanupRoomTracking in sessions.ts hinzufügen**
+- [x] **Step 4.2: cleanupRoomTracking in sessions.ts hinzufügen**
 
 Füge am Ende von `brett/src/server/sessions.ts` (nach `checkAllSessions`, Zeile 266) hinzu:
 
@@ -305,7 +305,7 @@ export function cleanupRoomTracking(room: string): void {
 }
 ```
 
-- [ ] **Step 4.3: Tests laufen lassen**
+- [x] **Step 4.3: Tests laufen lassen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "(184|185|186) -"
@@ -317,7 +317,7 @@ ok 185 - cleanupRoomTracking: cancels and removes the pending grace timer
 ok 186 - cleanupRoomTracking: leaves other rooms untouched
 ```
 
-- [ ] **Step 4.4: Commit**
+- [x] **Step 4.4: Commit**
 
 ```bash
 cd /tmp/wt-brett-security
@@ -335,7 +335,7 @@ git commit -m "fix(brett): add cleanupRoomTracking to prevent server Map leaks (
 
 *Hinweis: Die Tests für `cleanupRoomTracking` rufen die Funktion direkt auf — der ws-handler-Aufruf ist die Produktions-Verdrahtung, kein neuer Testpfad.*
 
-- [ ] **Step 5.1: Import in ws-handler.ts ergänzen**
+- [x] **Step 5.1: Import in ws-handler.ts ergänzen**
 
 Prüfe die bestehenden `sessions`-Imports in `brett/src/server/ws-handler.ts`:
 ```bash
@@ -347,7 +347,7 @@ Die Datei verwendet `deps.trackPlayerInRoom` (über das deps-Objekt). `cleanupRo
 grep -n "WsDeps\|type.*Deps\|interface.*Deps" brett/src/server/ws-handler.ts | head -5
 ```
 
-- [ ] **Step 5.2: cleanupRoomTracking zu den Deps hinzufügen**
+- [x] **Step 5.2: cleanupRoomTracking zu den Deps hinzufügen**
 
 In `brett/src/server/ws-handler.ts`, im `WsDeps`-Interface (oder dem äquivalenten Typ, der `trackPlayerInRoom` enthält), ergänze:
 
@@ -357,7 +357,7 @@ cleanupRoomTracking?: (room: string) => void;
 
 *(Optional, damit bestehende Tests ohne Änderung weiterlaufen)*
 
-- [ ] **Step 5.3: Aufruf im Last-Leave-Block**
+- [x] **Step 5.3: Aufruf im Last-Leave-Block**
 
 In `brett/src/server/ws-handler.ts` im `close`-Handler (Zeile ~569), direkt nach dem `deps.clearUndoStacks?.(room)`-Aufruf:
 
@@ -375,7 +375,7 @@ if (!deps.rooms.has(room)) {
 }
 ```
 
-- [ ] **Step 5.4: Dependency-Injection in index.ts verdrahten**
+- [x] **Step 5.4: Dependency-Injection in index.ts verdrahten**
 
 In `brett/src/server/index.ts`, suche den `wsDeps`-Block (Zeile ~429) und ergänze `cleanupRoomTracking`:
 
@@ -390,21 +390,21 @@ cleanupRoomTracking: sessions.cleanupRoomTracking,
 
 *(Direkt neben `trackPlayerInRoom` oder `clearUndoStacks` einfügen, damit die Struktur konsistent bleibt.)*
 
-- [ ] **Step 5.5: TypeScript-Check**
+- [x] **Step 5.5: TypeScript-Check**
 
 ```bash
 cd brett && npx tsc --noEmit -p tsconfig.server.json
 ```
 Erwartete Ausgabe: keine Fehler.
 
-- [ ] **Step 5.6: Alle Tests laufen lassen (Smoke)**
+- [x] **Step 5.6: Alle Tests laufen lassen (Smoke)**
 
 ```bash
 cd brett && npm test 2>&1 | tail -10
 ```
 Erwartete Ausgabe: `# fail 4` (nur noch die 4 mannequin-dispose-Tests offen).
 
-- [ ] **Step 5.7: Commit**
+- [x] **Step 5.7: Commit**
 
 ```bash
 cd /tmp/wt-brett-security
@@ -420,7 +420,7 @@ git commit -m "fix(brett): wire cleanupRoomTracking at last-leave in ws-handler 
 - Modify: `brett/src/client/mannequin.ts` (neue Export-Funktion am Ende)
 - Test: `brett/test/mannequin-dispose.test.ts` (Tests 238–239)
 
-- [ ] **Step 6.1: Failing-Tests bestätigen**
+- [x] **Step 6.1: Failing-Tests bestätigen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "^not ok (238|239)"
@@ -431,7 +431,7 @@ not ok 238 - disposeMannequin: is exported and is a function
 not ok 239 - disposeMannequin: disposes geometries, materials and textures under fig.root
 ```
 
-- [ ] **Step 6.2: disposeMannequin in mannequin.ts ergänzen**
+- [x] **Step 6.2: disposeMannequin in mannequin.ts ergänzen**
 
 Füge am Ende von `brett/src/client/mannequin.ts` hinzu (kein neuer Import nötig — THREE ist bereits importiert):
 
@@ -465,7 +465,7 @@ export function disposeMannequin(fig: { root: THREE.Object3D }): void {
 
 *Erklärung: `traverse` besucht den Knoten selbst und alle Nachkommen (Meshes, Sprites, Groups). Sprites haben eine `material`-Property (SpriteMaterial), deren `.map`-Textur ebenfalls disposed werden muss. Groups haben keine Geometrie/Material, `traverse` überspringt sie implizit durch die `if`-Guards.*
 
-- [ ] **Step 6.3: Tests laufen lassen**
+- [x] **Step 6.3: Tests laufen lassen**
 
 ```bash
 cd brett && npm test 2>&1 | grep -E "(238|239) -"
@@ -476,14 +476,14 @@ ok 238 - disposeMannequin: is exported and is a function
 ok 239 - disposeMannequin: disposes geometries, materials and textures under fig.root
 ```
 
-- [ ] **Step 6.4: TypeScript-Check (Client)**
+- [x] **Step 6.4: TypeScript-Check (Client)**
 
 ```bash
 cd brett && npx tsc --noEmit -p tsconfig.json 2>/dev/null || npx tsc --noEmit
 ```
 *(Brett hat möglicherweise ein gemeinsames tsconfig.json — prüfe mit `ls brett/tsconfig*.json`)*
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 cd /tmp/wt-brett-security
@@ -499,7 +499,7 @@ git commit -m "fix(brett): add disposeMannequin to prevent three.js GPU leaks (T
 - Modify: `brett/src/client/ws-client.ts` (~Zeile 227, ~Zeile 419)
 - Test: Tests 238–239 bereits grün; dieser Schritt ist die Produktions-Verdrahtung.
 
-- [ ] **Step 7.1: Import prüfen**
+- [x] **Step 7.1: Import prüfen**
 
 ```bash
 grep -n "import.*mannequin\|from.*mannequin" brett/src/client/ws-client.ts
@@ -510,7 +510,7 @@ Erwartete Ausgabe:
 ```
 `mannequin.disposeMannequin` ist damit bereits erreichbar — kein neuer Import nötig.
 
-- [ ] **Step 7.2: Snapshot-Reset-Pfad (~Zeile 226)**
+- [x] **Step 7.2: Snapshot-Reset-Pfad (~Zeile 226)**
 
 Suche den Block:
 ```typescript
@@ -529,7 +529,7 @@ for (const f of STATE.figures) {
 STATE.figures.length = 0;
 ```
 
-- [ ] **Step 7.3: delete-Handler (~Zeile 419)**
+- [x] **Step 7.3: delete-Handler (~Zeile 419)**
 
 Suche den Block:
 ```typescript
@@ -544,14 +544,14 @@ try {
 } catch { /* pre-scene */ }
 ```
 
-- [ ] **Step 7.4: TypeScript-Check (Client)**
+- [x] **Step 7.4: TypeScript-Check (Client)**
 
 ```bash
 cd brett && npx tsc --noEmit -p tsconfig.json 2>/dev/null || npx tsc --noEmit
 ```
 Erwartete Ausgabe: keine Fehler.
 
-- [ ] **Step 7.5: Alle Tests — finales Grün**
+- [x] **Step 7.5: Alle Tests — finales Grün**
 
 ```bash
 cd brett && npm test 2>&1 | tail -10
@@ -564,7 +564,7 @@ Erwartete Ausgabe:
 # fail 0
 ```
 
-- [ ] **Step 7.6: TypeScript-Checks beider Configs**
+- [x] **Step 7.6: TypeScript-Checks beider Configs**
 
 ```bash
 cd brett && npx tsc --noEmit -p tsconfig.server.json && echo "SERVER OK"
@@ -572,7 +572,7 @@ cd brett && npx tsc --noEmit && echo "CLIENT OK"
 ```
 Erwartete Ausgabe: `SERVER OK` und `CLIENT OK` (keine Fehler).
 
-- [ ] **Step 7.7: Commit**
+- [x] **Step 7.7: Commit**
 
 ```bash
 cd /tmp/wt-brett-security

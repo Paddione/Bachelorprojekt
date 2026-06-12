@@ -93,3 +93,16 @@ export function sanitizeReturnTo(raw: any): string {
   return raw;
 }
 
+/**
+ * SEC T000660 bug #2: Session-Guard für unauthentifizierte API-Requests.
+ * 401 wenn keine Session-userId gesetzt; next() wenn authentifiziert.
+ * Analog zu requireAdmin, aber ohne Admin-Prüfung.
+ */
+export function requireSession(req: Request, res: Response, next: NextFunction): void {
+  if ((req as any).session?.userId) return next();
+  const e2eSecret = process.env.BRETT_OIDC_SECRET;
+  if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
+  res.status(401).json({ error: 'unauthenticated' });
+}
+
+

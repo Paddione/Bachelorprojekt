@@ -264,3 +264,17 @@ export function checkAllSessions(): Array<{ ended: boolean; reason?: string; roo
   }
   return results;
 }
+
+/**
+ * SEC T000660 bug #3: Räumt beide Server-Maps für einen Room auf, wenn der
+ * letzte Spieler den Room verlässt. Cancelt auch einen laufenden Grace-Timer,
+ * falls vorhanden. Ohne diesen Aufruf wachsen roomPreviousPlayers und
+ * tokenGraceTimers unbegrenzt über die gesamte Prozess-Laufzeit.
+ */
+export function cleanupRoomTracking(room: string): void {
+  roomPreviousPlayers.delete(room);
+  if (tokenGraceTimers.has(room)) {
+    clearTimeout(tokenGraceTimers.get(room)!);
+    tokenGraceTimers.delete(room);
+  }
+}

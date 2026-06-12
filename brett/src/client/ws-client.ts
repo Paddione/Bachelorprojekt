@@ -224,6 +224,7 @@ export function onWsMessage(evt: MessageEvent): void {
       try { sceneForSnapshot = getScene(); } catch { /* pre-scene lobby snapshot */ }
       // Reset world from server state
       for (const f of STATE.figures) {
+        mannequin.disposeMannequin(f);
         sceneForSnapshot?.scene.remove(f.root);
       }
       STATE.figures.length = 0;
@@ -416,7 +417,10 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'delete': {
       const idx = STATE.figures.findIndex(f => f.id === msg.id);
       if (idx >= 0) {
-        try { getScene().scene.remove(STATE.figures[idx].root); } catch { /* pre-scene */ }
+        try {
+          mannequin.disposeMannequin(STATE.figures[idx]);
+          getScene().scene.remove(STATE.figures[idx].root);
+        } catch { /* pre-scene */ }
         // Billboard-Cleanup (Feature-Flag sf-t000469)
         import('./ui/hud').then(m => {
           if (typeof (m as any).clearFigureNoteBillboard === 'function') {

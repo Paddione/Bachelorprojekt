@@ -75,3 +75,32 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
   if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
   res.status(403).json({ error: 'forbidden' });
 }
+
+/**
+ * SEC T000660 bug #1: Open-Redirect-Sanitizer für den OIDC `returnTo`-Parameter.
+ * Erlaubt nur site-relative Pfade (beginnt mit genau einem `/`, kein `//`, kein `://`).
+ * Alles andere (absolute URLs, protocol-relative, javascript:, Backslash-Tricks) → '/'.
+ */
+export function sanitizeReturnTo(raw: any): string {
+  if (typeof raw !== 'string' || raw === '') return '/';
+  // Muss mit genau einem Slash beginnen — nicht doppelt (protocol-relative)
+  if (!raw.startsWith('/')) return '/';
+  if (raw.startsWith('//')) return '/';
+  // Backslash-Trick: /\foo wird von Browsern als //foo interpretiert
+  if (raw.startsWith('/\\')) return '/';
+  // Scheme-bearing (javascript:, data:, etc.) — darf nach dem / nie ein `:` kommen
+  if (/^\/[^/].*:/.test(raw)) return '/';
+  return raw;
+}
+
+/**
+ * SEC T000660 bug #2: Session-Guard für unauthentifizierte API-Requests.
+ * 401 wenn keine Session-userId gesetzt; next() wenn authentifiziert.
+ * Analog zu requireAdmin, aber ohne Admin-Prüfung.
+ */
+export function requireSession(req: Request, res: Response, next: NextFunction): void {
+  if ((req as any).session?.userId) return next();
+  const e2eSecret = process.env.BRETT_OIDC_SECRET;
+  if (e2eSecret && req.header('x-e2e-secret') === e2eSecret) return next();
+  res.status(401).json({ error: 'unauthenticated' });
+}

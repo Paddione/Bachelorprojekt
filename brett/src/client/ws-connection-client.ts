@@ -72,6 +72,22 @@ export function setWsOpenHandler(fn: (() => void) | null): void {
   onWsOpen = fn;
 }
 
+/**
+ * Baut die /sync-WebSocket-URL: room + share_token (T000608, view-only-Link)
+ * + playerId (Late-Join-Guard) aus dem URL-Querystring.
+ * Omit playerId when unknown/anon (server treats null as "not previously in
+ * room" → admit).
+ */
+export function buildSyncUrl(search: string, host: string, protocol: string, userId: string): string {
+  const src = new URLSearchParams(search);
+  const params = new URLSearchParams({ room: src.get('room') || 'default' });
+  const shareToken = src.get('share_token');
+  if (shareToken) params.set('share_token', shareToken);
+  if (userId && userId !== 'anon') params.set('playerId', userId);
+  const scheme = protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${scheme}//${host}/sync?${params.toString()}`;
+}
+
 export function connectWS(): void {
   // REG-2: idempotent — never open a second socket if one is already
   // CONNECTING/OPEN. The lobby bootstrap (main.ts) opens the socket as soon as the
@@ -81,16 +97,8 @@ export function connectWS(): void {
   if (existing && (existing.readyState === WebSocket.CONNECTING || existing.readyState === WebSocket.OPEN)) {
     return;
   }
-  // Thread room + (when known) the canonical identity into the /sync handshake so
-  // the late-join guard (shouldRejectReconnect) can distinguish a true reconnect
-  // of an already-active player from a genuine late-joiner. Omit playerId when
-  // unknown/anon (server treats null as "not previously in room" → admit).
   const roomFromUrl = new URLSearchParams(location.search).get('room') || 'default';
-  const params = new URLSearchParams({ room: roomFromUrl });
-  if (currentUser.userId && currentUser.userId !== 'anon') {
-    params.set('playerId', currentUser.userId);
-  }
-  const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/sync?${params.toString()}`);
+  const ws = new WebSocket(buildSyncUrl(location.search, location.host, location.protocol, currentUser.userId));
   setWs(ws);
   (window as any).__brettWS = ws;
   ws.addEventListener('open', () => {

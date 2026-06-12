@@ -26,6 +26,14 @@ export interface SceneApi {
    * the flag is absent or false so the merge ships dark.
    */
   setCameraToOrbit: (position: OrbitState) => void;
+  /**
+   * Set the orbit camera radial distance directly and re-render.
+   * Clamped to [2, 40] (same range as wheel/pinch zoom). Un-gated
+   * (unlike setCameraToOrbit) — used by touch pinch-zoom.
+   */
+  setOrbitDist: (dist: number) => void;
+  /** Apply incremental orbit angle deltas (theta += dTheta, phi += dPhi, phi clamped). */
+  applyOrbitDelta: (dTheta: number, dPhi: number) => void;
 }
 
 export function initScene(): SceneApi {
@@ -195,6 +203,17 @@ export function initScene(): SceneApi {
     updateCameraFromOrbit();
   }
 
+  function setOrbitDist(dist: number): void {
+    cameraOrbit.dist = Math.max(2, Math.min(40, dist));
+    updateCameraFromOrbit();
+  }
+
+  function applyOrbitDelta(dTheta: number, dPhi: number): void {
+    cameraOrbit.theta += dTheta;
+    cameraOrbit.phi = Math.max(-1.2, Math.min(1.2, cameraOrbit.phi + dPhi));
+    updateCameraFromOrbit();
+  }
+
   setScene({ renderer, scene, camera, floor: floorMesh });
-  return { renderer, scene, camera, floor: floorMesh, updateCameraFromOrbit, getOrbitState, setCameraToOrbit };
+  return { renderer, scene, camera, floor: floorMesh, updateCameraFromOrbit, getOrbitState, setCameraToOrbit, setOrbitDist, applyOrbitDelta };
 }

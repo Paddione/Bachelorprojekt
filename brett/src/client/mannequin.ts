@@ -286,14 +286,18 @@ export function recolorFigure(fig: any, hexColor: string): void {
 
 
 
-export function setNdc(ev: MouseEvent): void {
+export function setNdcFromPoint(clientX: number, clientY: number): void {
   const { renderer } = getScene();
   const rect = renderer.domElement.getBoundingClientRect();
-  ndc.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
-  ndc.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+  ndc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  ndc.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 }
 
-export function pickContact(ev: MouseEvent): any {
+export function setNdc(ev: { clientX: number; clientY: number }): void {
+  setNdcFromPoint(ev.clientX, ev.clientY);
+}
+
+export function pickContact(ev: { clientX: number; clientY: number }): any {
   setNdc(ev);
   const { camera } = getScene();
   raycaster.setFromCamera(ndc, camera);
@@ -305,7 +309,7 @@ export function pickContact(ev: MouseEvent): any {
   return hit ? hit.object : null;
 }
 
-export function pickMannequinBody(ev: MouseEvent): any {
+export function pickMannequinBody(ev: { clientX: number; clientY: number }): any {
   setNdc(ev);
   const { camera } = getScene();
   raycaster.setFromCamera(ndc, camera);
@@ -317,7 +321,7 @@ export function pickMannequinBody(ev: MouseEvent): any {
   return null;
 }
 
-export function pickFloor(ev: MouseEvent): THREE.Vector3 | null {
+export function pickFloor(ev: { clientX: number; clientY: number }): THREE.Vector3 | null {
   setNdc(ev);
   const { camera, floor } = getScene();
   raycaster.setFromCamera(ndc, camera);

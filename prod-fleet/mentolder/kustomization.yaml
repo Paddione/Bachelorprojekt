@@ -8,6 +8,7 @@ kind: Kustomization
 # environments/fleet-mentolder.yaml.
 resources:
   - ../../prod-mentolder
+  - ../../prod/monitoring
 components:
   - ../components/fleet-common
 

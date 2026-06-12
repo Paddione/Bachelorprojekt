@@ -7,7 +7,8 @@
 // Ticket: 00899a42
 
 import { STATE, getScene } from '../state';
-import { updateExportCache, type ClientBoardSnapshot, type ExportFigure } from './export';
+import { updateExportCache, type ClientBoardSnapshot, type ExportFigure, type ExportLine } from './export';
+import type { Anchor, Zone } from '../../types/state';
 
 export function validateSnapshot(data: unknown): ClientBoardSnapshot {
   if (typeof data !== 'object' || data === null) {
@@ -48,24 +49,36 @@ export function validateSnapshot(data: unknown): ClientBoardSnapshot {
     }
   }
 
+  const version = typeof obj.version === 'number' ? obj.version : 0; // fehlend → v0 (Migration)
+  const lines = Array.isArray(obj.lines) ? (obj.lines as ExportLine[]) : [];
+  const anchors = Array.isArray(obj.anchors) ? (obj.anchors as Anchor[]) : [];
+  const zones = Array.isArray(obj.zones) ? (obj.zones as Zone[]) : [];
+
   return {
+    version,
     exportedAt: obj.exportedAt,
     sessionCode: (obj.sessionCode as string | null) ?? null,
     phase: obj.phase,
     stiffness: obj.stiffness,
     figures: obj.figures as ExportFigure[],
+    lines,
+    anchors,
+    zones,
     optik: (obj.optik as Record<string, unknown> | null) ?? null,
   };
 }
 
 export async function applyImportedSnapshot(snapshot: ClientBoardSnapshot): Promise<void> {
-  const [wsClient, mannequin, { applyOptikToScene }] = await Promise.all([
+  const [wsClient, mannequin, { applyOptikToScene }, sceneLines, groundObjects] = await Promise.all([
     import('../ws-client'),
     import('../mannequin'),
     import('./optik'),
+    import('../scene-lines'),
+    import('../ground-objects'),
   ]);
   const scene = getScene().scene;
 
+  // ── Figuren zurücksetzen ────────────────────────────────────────────────
   for (const fig of STATE.figures) {
     scene.remove(fig.root);
   }
@@ -78,7 +91,22 @@ export async function applyImportedSnapshot(snapshot: ClientBoardSnapshot): Prom
     if (expFig.label) {
       fig.label = expFig.label;
     }
-    if (expFig.color) {
+    // Erweiterte serialisierbare Felder (T000605):
+    if (typeof expFig.scale === 'number') {
+      (fig as any).scale = expFig.scale;
+    }
+    if (expFig.preset) {
+      (fig as any).preset = expFig.preset;
+    }
+    if (expFig.note !== undefined) {
+      (fig as any).note = expFig.note;
+    }
+    if (expFig.boneOverrides) {
+      (fig as any).boneOverrides = { ...expFig.boneOverrides };
+    }
+    if (expFig.appearance) {
+      (fig as any).appearance = { ...expFig.appearance };
+    } else if (expFig.color) {
       mannequin.recolorFigure(fig, expFig.color);
     }
     STATE.figures.push(fig);
@@ -96,10 +124,24 @@ export async function applyImportedSnapshot(snapshot: ClientBoardSnapshot): Prom
     applyOptikToScene(snapshot.optik as any);
   }
 
+  // ── Lines wiederherstellen (lokales Re-Rendering via scene-lines.ts) ──────
+  // initLinesFromSnapshot rendert nur, wenn das sf-t000467-Flag aktiv ist —
+  // STATE.lines wird unabhängig davon gefüllt, sodass der Export-Cache stimmt.
+  sceneLines.initLinesFromSnapshot(snapshot.lines ?? []);
+
+  // ── Anchors/Zones wiederherstellen (Rendering via ground-objects.ts) ──────
+  // initGroundObjectsFromSnapshot rendert die Meshes und pflegt STATE.anchors/zones.
+  groundObjects.initGroundObjectsFromSnapshot(snapshot.anchors ?? [], snapshot.zones ?? []);
+
+  // ── Export-Cache mit dem importierten Vollzustand synchronisieren ─────────
   updateExportCache({
+    version: snapshot.version,
     phase: snapshot.phase,
     stiffness: snapshot.stiffness,
     figures: snapshot.figures,
+    lines: snapshot.lines,
+    anchors: snapshot.anchors,
+    zones: snapshot.zones,
     optik: snapshot.optik,
   });
 }
@@ -121,10 +163,7 @@ export function importJson(): void {
 }
 
 export function initImportButton(): void {
-  const feats: Record<string, boolean> =
-    (typeof window !== 'undefined' && (window as any).__brettFeatures) || {};
-  if (!feats['T000466']) return;
-
+  // T000605: Feature-Flag entfernt — Import ist permanent verfügbar.
   const btn = document.getElementById('btn-import-json') as HTMLButtonElement | null;
   const input = document.getElementById('import-file-input') as HTMLInputElement | null;
 

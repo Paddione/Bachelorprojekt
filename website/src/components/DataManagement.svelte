@@ -101,6 +101,14 @@
   {#if authState?.authenticated}
     <!-- Logged-in: direct delete -->
     <div class="mb-6">
+      <h3 class="text-light font-semibold mb-2">Meine Daten herunterladen</h3>
+      <p class="text-muted mb-3 text-sm">Exportiert Ihr Profil, CRM-Daten und Kontakthistorie als JSON (Art. 15 DSGVO).</p>
+      <a href="/api/portal/profile/export"
+         class="px-4 py-2 border border-dark-lighter text-muted hover:text-light hover:border-light rounded text-sm transition-colors inline-block">
+        Meine Daten herunterladen (JSON)
+      </a>
+    </div>
+    <div class="mb-6">
       <h3 class="text-light font-semibold mb-2">Konto löschen</h3>
       <p class="text-muted mb-3 text-sm">Löscht Ihr Konto dauerhaft. Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
       {#if !deleteConfirm}

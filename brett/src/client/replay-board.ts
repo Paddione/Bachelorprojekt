@@ -1,10 +1,18 @@
-// brett/src/client/board-replay.ts
-// Replay-Modus-Logik (Slice 5, T000472). Dark-Launch, gated by window.__brettFeatures['replay'].
+// brett/src/client/replay-board.ts — replay mode helpers
+// Extracted from board-boot.ts to keep it under 600 lines.
+// maybeStartReplayMode / applyReplayStateToScene are re-exported from board-boot.ts
+// so external callers are unaffected.
 
 import { STATE } from './state';
 import { createReplayController, type ReplayBoardState } from './replay-engine';
 import { renderTimeline } from './ui/timeline';
 
+/**
+ * Check if replay mode is requested via URL params and, if so, start it.
+ * Activated by: ?replay=1&room=<roomToken>
+ * Gated by feature flag: window.__brettFeatures['replay'] (dark-launch).
+ * Returns true iff replay mode was started (caller then skips the live WS connect).
+ */
 export async function maybeStartReplayMode(): Promise<boolean> {
   if (typeof window === 'undefined' || typeof location === 'undefined') return false;
   const params = new URLSearchParams(location.search);
@@ -46,6 +54,13 @@ export async function maybeStartReplayMode(): Promise<boolean> {
   }
 }
 
+/**
+ * Apply a replay board state to the local STATE without sending any WS messages.
+ * Note: this populates STATE.figures with the reconstructed figure data; the
+ * normal animation loop renders from STATE. Three.js figure objects (with .root,
+ * .ring, etc.) are NOT rebuilt here — replay is a dark-launch read-only view and
+ * full scene-graph reconstruction is out of scope for this slice.
+ */
 export function applyReplayStateToScene(state: ReplayBoardState): void {
   const figureArray = Object.values(state.figures);
   STATE.figures.length = 0;

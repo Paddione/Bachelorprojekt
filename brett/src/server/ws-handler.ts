@@ -89,6 +89,7 @@ export interface WsDeps {
   getUndoStatus?: (room: string) => { canUndo: boolean; canRedo: boolean; undoCount: number; redoCount: number };
   clearUndoStacks?: (room: string) => void;
   cleanupRoomTracking?: (room: string) => void;
+  resolveShareToken?: (token: string) => Promise<string | null>;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -147,6 +148,9 @@ export function gateMutation(
   figureId: string | undefined,
   deps: Pick<WsDeps, 'buildStateFromMutations' | 'figureMaps' | 'canMutate' | 'resolveRole'>,
 ): boolean {
+  if (ws?._isGuest) {
+    return msgType === 'request_state_snapshot';
+  }
   const state = deps.buildStateFromMutations(room) || {};
   const roles = state.roles || {};
   // Legacy free-board bypass (REG-1): a room that has NEITHER a session code NOR

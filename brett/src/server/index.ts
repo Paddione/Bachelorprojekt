@@ -17,6 +17,9 @@ import * as wsHandler from './ws-handler';
 import * as wsAdminCommands from './ws-admin-commands';
 import * as undoStackModule from './undo-stack';
 import * as eventLog from './event-log';
+import * as shareTokens from './share-tokens';
+import { attachShareRoutes } from './share-routes';
+import { asyncHandler } from './helpers';
 import { attachSkinsUpload } from './skins-upload';
 
 import { snapshotsRouter } from './routes/snapshots';
@@ -76,14 +79,15 @@ app.use(express.static(staticDir, {
   }
 }));
 
-export function asyncHandler(fn: any) {
-  return (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next);
-}
+export { asyncHandler } from './helpers';
 
 app.use(authRouter);
 app.use(adminRouter);
 app.use(snapshotsRouter);
 app.use(presetsRouter);
+
+// T000608: View-only-Share-Link-Routen (/share/:token + Token-CRUD).
+attachShareRoutes(app, staticDir);
 
 // ─── Skins upload (3D asset-generation pipeline target) ───────────────────────
 attachSkinsUpload(app);
@@ -193,6 +197,7 @@ const wsDeps = {
   getUndoStatus,
   clearUndoStacks,
   cleanupRoomTracking: sessions.cleanupRoomTracking,
+  resolveShareToken: shareTokens.resolveShareToken,
 };
 
 wsHandler.attachWsServer(wss, wsDeps);

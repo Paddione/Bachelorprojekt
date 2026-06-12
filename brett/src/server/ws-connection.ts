@@ -24,7 +24,22 @@ export function handleDisconnect(ws: any, deps: WsDeps): void {
 }
 
 export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
-  wss.on('connection', (ws: any, req: any) => {
+  wss.on('connection', async (ws: any, req: any) => {
+    // T000608: View-only-Share-Link — ein gültiger share_token macht die
+    // Verbindung zum read-only-Gast (ws._isGuest), ungültige Tokens werden
+    // mit 4403 geschlossen.
+    try {
+      const wsUrl = new URL(req?.url ?? '/', `http://${req?.headers?.host ?? 'x'}`);
+      const shareToken = wsUrl.searchParams.get('share_token');
+      if (shareToken && deps.resolveShareToken) {
+        const roomToken = await deps.resolveShareToken(shareToken);
+        if (!roomToken) { ws.close(4403, 'invalid_share_token'); return; }
+        ws._shareRoom = roomToken;
+        ws._isGuest = true;
+      }
+    } catch (err) {
+      console.error('[brett] share-token resolve error:', err);
+    }
     if (deps.sessionMiddleware && req) {
       deps.sessionMiddleware(req, {}, () => {
         ws._session = req.session;

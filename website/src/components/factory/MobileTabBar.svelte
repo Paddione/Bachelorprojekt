@@ -19,6 +19,11 @@
     activeIndex: number;
     onSelect: (i: number) => void;
   } = $props();
+
+  function handleSelect(i: number) {
+    if ('vibrate' in navigator) navigator.vibrate(5);
+    onSelect(i);
+  }
 </script>
 
 <nav class="mobile-tab-bar">
@@ -26,7 +31,9 @@
     <button
       class="mobile-tab-bar__tab"
       class:active={i === activeIndex}
-      onclick={() => onSelect(i)}
+      onclick={() => handleSelect(i)}
+      aria-label={`Station: ${tab.label}`}
+      aria-pressed={i === activeIndex}
     >
       {tab.label}
     </button>

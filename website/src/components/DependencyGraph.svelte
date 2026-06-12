@@ -193,15 +193,15 @@
     if (pollInterval) clearInterval(pollInterval);
   });
 
-  $: layout = graphData ? layoutNodes(graphData) : [];
-  $: nodePos = new Map(layout.map(n => [n.id, n]));
-  $: maxLayer = layout.reduce((m, n) => Math.max(m, n.layer), 0);
-  $: maxPerLayer = layout.reduce((acc, n) => {
+  const layout = $derived(graphData ? layoutNodes(graphData) : []);
+  const nodePos = $derived(new Map(layout.map(n => [n.id, n])));
+  const maxLayer = $derived(layout.reduce((m, n) => Math.max(m, n.layer), 0));
+  const maxPerLayer = $derived(layout.reduce((acc, n) => {
     acc[n.layer] = (acc[n.layer] ?? 0) + 1;
     return acc;
-  }, {} as Record<number, number>);
-  $: svgW = PAD * 2 + (maxLayer + 1) * LAYER_GAP_X;
-  $: svgH = PAD * 2 + Math.max(...Object.values(maxPerLayer), 1) * NODE_GAP_Y;
+  }, {} as Record<number, number>));
+  const svgW = $derived(PAD * 2 + (maxLayer + 1) * LAYER_GAP_X);
+  const svgH = $derived(PAD * 2 + Math.max(...Object.values(maxPerLayer), 1) * NODE_GAP_Y);
 </script>
 
 <div class="dag-container">

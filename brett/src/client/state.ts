@@ -1,5 +1,5 @@
 import type * as THREE from 'three';
-import type { BrettLine } from '../types/state';
+import type { BrettLine, Anchor, Zone } from '../types/state';
 
 // ── App state (mirrors window.STATE from index.html line 310) ─────
 export interface AppState {
@@ -9,6 +9,8 @@ export interface AppState {
   stiffness: number;
   online: number;
   lines: BrettLine[];  // ← NEU (T000467)
+  anchors: Anchor[];   // ← NEU (T000605) — Plain-Data-Spiegel der anchorMeshes
+  zones: Zone[];       // ← NEU (T000605) — Plain-Data-Spiegel der zoneMeshes
 }
 export const STATE: AppState = {
   figures: [],
@@ -17,6 +19,8 @@ export const STATE: AppState = {
   stiffness: 0.65,
   online: 1,
   lines: [],  // ← NEU
+  anchors: [], // ← NEU (T000605)
+  zones: [],   // ← NEU (T000605)
 };
 
 // ── Three.js singletons, registered by scene.ts ───────────────────

@@ -1,0 +1,53 @@
+# Slim kube-prometheus-stack values for the k3d dev cluster.
+# No Longhorn (local-path), short retention, local Grafana auth, no Pushover.
+fullnameOverride: monitoring
+
+defaultRules:
+  create: false  # we ship our own PrometheusRule (prometheus-rules.yaml)
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+    # Pushover disabled in dev — AlertmanagerConfig CR is applied but the
+    # secret holds placeholder values, so notifications are dry-run no-ops.
+
+prometheus:
+  prometheusSpec:
+    retention: 24h
+    # Discover PrometheusRule + ServiceMonitor across all namespaces (not just
+    # the ones with the release label), so our CRs in `monitoring` are picked up.
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+grafana:
+  adminPassword: admin  # dev only — prod uses OIDC + GRAFANA_ADMIN_PASSWORD secret
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 1Gi
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: monitoring
+
+nodeExporter:
+  enabled: true
+kube-state-metrics:
+  enabled: true

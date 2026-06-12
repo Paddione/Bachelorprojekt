@@ -438,6 +438,7 @@ tasks:
         tests/unit/planning-office.bats
         tests/unit/planungsbuero-stats.bats
         tests/unit/ticket-triage.bats
+        tests/unit/T000617-alert-rules.bats
 
   test:unit:coverage-guard:
     internal: true

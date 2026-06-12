@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Brett · Mannequin</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e1014'/%3E%3Ccircle cx='16' cy='11' r='4' fill='%23c8a96e'/%3E%3Cpath d='M9 27c0-3.9 3.1-7 7-7s7 3.1 7 7' stroke='%23c8a96e' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
   <style>
@@ -287,6 +287,30 @@
     body.brett-menu-active #status-pill,
     body.brett-menu-active #appearance-drawer,
     body.brett-menu-active #coop-hud { display: none !important; }
+
+    /* ── T000606: Mobile-Touch-Steuerung ───────────────────────────── */
+    canvas { touch-action: none; }
+
+    @media (pointer: coarse) {
+      .preset-btn {
+        min-height: 44px;
+        padding: 8px 12px;
+        touch-action: manipulation;
+      }
+      #fig-panel-btn,
+      #appearance-btn,
+      #btn-export-png,
+      #btn-export-json,
+      #btn-export-pdf,
+      #btn-release-possession {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+      }
+      #stiffness {
+        height: 44px;
+      }
+    }
   </style>
 </head>
 <body class="brett-menu-active">
@@ -352,6 +376,7 @@
       <div id="topbar-filter-slot"></div>
       <div id="topbar-participants-slot"></div>
       <div id="topbar-invite-slot"></div>
+      <div id="topbar-share-slot"></div>
       <span id="online-indicator">● <span id="online-count">1</span> online</span>
     </div>
     <!-- Export-Gruppe (T000466) — initial versteckt, von export.ts per Feature-Flag eingeblendet -->

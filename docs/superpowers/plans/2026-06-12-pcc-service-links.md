@@ -100,7 +100,7 @@ Diese Werte wurden aus dem Repo verifiziert. Die ausführende Agentin verlässt 
 **Files:**
 - Create: `website/src/db/migrations/20260612_add_service_links.sql`
 
-- [ ] **Step 1: Migration schreiben**
+- [x] **Step 1: Migration schreiben**
 
 Erstelle `website/src/db/migrations/20260612_add_service_links.sql` mit **exakt** folgendem Inhalt (additiv, idempotent — `ADD COLUMN IF NOT EXISTS` + `UPDATE` pro Slug; mehrfacher Lauf ist sicher):
 
@@ -162,7 +162,7 @@ Expected: Beide Läufe enden ohne Fehler (`ALTER TABLE`, mehrere `UPDATE N`). De
 
 > Falls keine dev-DB erreichbar ist, ist Step 2 optional — die Idempotenz wird zusätzlich durch den pg-mem-Test in Task 8 abgesichert und durch das `ADD COLUMN IF NOT EXISTS` + reine `UPDATE`-Semantik garantiert.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/db/migrations/20260612_add_service_links.sql
@@ -177,7 +177,7 @@ git commit -m "feat(platform): add subdomain + health_url columns with service-l
 - Create: `website/src/lib/platform-links.test.ts`
 - Create: `website/src/lib/platform-links.ts` (in Task 3)
 
-- [ ] **Step 1: Failing-Test schreiben**
+- [x] **Step 1: Failing-Test schreiben**
 
 Erstelle `website/src/lib/platform-links.test.ts` mit **exakt** folgendem Inhalt:
 
@@ -271,13 +271,13 @@ describe('resolveHealthUrl', () => {
 
 > **Wichtiger Hinweis für die Implementierung (Task 3):** Der `{ns}`-Platzhalter steht für den **Namespace des jeweiligen Dienstes**, nicht pauschal `workspace`. In den Seed-Templates ist `{ns}` der Default-Namespace `workspace` (mentolder). `resolveHealthUrl` muss `{ns}` daher durch `mapNamespaceForBrand('workspace', brand)` für die `workspace`-Dienste ersetzen — UND für `website` durch `mapNamespaceForBrand('website', brand)`. Da das Template selbst nicht weiß, welcher Namespace gemeint ist, kodieren wir den Default-Namespace pro Template **implizit über den Hostnamen**: `website.{ns}` → website-Namespace, alle übrigen `{ns}` → `workspace`. Implementiere das deterministisch wie in Task 3 beschrieben.
 
-- [ ] **Step 2: Test laufen lassen → muss fehlschlagen**
+- [x] **Step 2: Test laufen lassen → muss fehlschlagen**
 
 Run: `pnpm --filter mentolder-website exec vitest run src/lib/platform-links.test.ts`
 (`exec vitest run <pfad>` läuft nur diese Datei — `pnpm` resolved den Workspace.)
 Expected: FAIL — `Cannot find module './platform-links'` o.ä.
 
-- [ ] **Step 3: Commit (nur Test)**
+- [x] **Step 3: Commit (nur Test)**
 
 ```bash
 git add website/src/lib/platform-links.test.ts
@@ -291,7 +291,7 @@ git commit -m "test(platform): failing unit tests for platform-links helpers"
 **Files:**
 - Create: `website/src/lib/platform-links.ts`
 
-- [ ] **Step 1: Helper-Modul schreiben**
+- [x] **Step 1: Helper-Modul schreiben**
 
 Erstelle `website/src/lib/platform-links.ts` mit **exakt** folgendem Inhalt:
 
@@ -352,17 +352,17 @@ export function resolveHealthUrl(asset: Pick<ServiceLinkAsset, 'health_url'>, br
 }
 ```
 
-- [ ] **Step 2: Test laufen lassen → muss bestehen**
+- [x] **Step 2: Test laufen lassen → muss bestehen**
 
 Run: `pnpm --filter mentolder-website exec vitest run src/lib/platform-links.test.ts`
 Expected: PASS — alle Tests grün.
 
-- [ ] **Step 3: Astro Typecheck (nur als Sanity, ganzes Projekt)**
+- [x] **Step 3: Astro Typecheck (nur als Sanity, ganzes Projekt)**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine NEUEN Typfehler in `platform-links.ts`. (Vorbestehende, unverwandte Warnungen im Repo ignorieren.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/lib/platform-links.ts
@@ -376,7 +376,7 @@ git commit -m "feat(platform): pure resolveServiceUrl/resolveHealthUrl/mapNamesp
 **Files:**
 - Modify: `website/src/lib/platform-db.ts`
 
-- [ ] **Step 1: `SoftwareAsset`-Interface erweitern**
+- [x] **Step 1: `SoftwareAsset`-Interface erweitern**
 
 In `website/src/lib/platform-db.ts`, im `interface SoftwareAsset` (nach `url: string | null;`) zwei Felder ergänzen:
 
@@ -389,7 +389,7 @@ In `website/src/lib/platform-db.ts`, im `interface SoftwareAsset` (nach `url: st
 
 (Die Zeilen `url`, `base_status` existieren bereits — füge `subdomain` und `health_url` dazwischen ein.)
 
-- [ ] **Step 2: `runPlatformSchema`-DDL um die neuen Spalten spiegeln**
+- [x] **Step 2: `runPlatformSchema`-DDL um die neuen Spalten spiegeln**
 
 In `runPlatformSchema`, im `CREATE TABLE IF NOT EXISTS platform.software_assets (...)`-String die Spaltenliste so erweitern, dass auf einer frischen DB `subdomain` und `health_url` mitangelegt werden. Ändere die betreffende Zeile von:
 
@@ -411,7 +411,7 @@ Ergänze direkt **nach** dem `CREATE TABLE`-Block für `software_assets` (vor de
 
 > Grund: `CREATE TABLE IF NOT EXISTS` legt auf einer bereits existierenden Tabelle KEINE neuen Spalten an. Das `ALTER` schließt diese Lücke (mirror der Migration aus Task 1) und hält `runPlatformSchema` als reproduzierbaren Schema-SSOT konsistent. Idempotent durch `IF NOT EXISTS`.
 
-- [ ] **Step 3: `upsertSoftwareAsset` um beide Felder erweitern**
+- [x] **Step 3: `upsertSoftwareAsset` um beide Felder erweitern**
 
 In `upsertSoftwareAsset`:
 
@@ -445,17 +445,17 @@ zu
 
 > `listSoftwareAssets()` nutzt `SELECT *` → liefert die neuen Spalten automatisch mit, keine Änderung dort nötig.
 
-- [ ] **Step 4: Astro Typecheck**
+- [x] **Step 4: Astro Typecheck**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine neuen Typfehler in `platform-db.ts`.
 
-- [ ] **Step 5: Bestehenden pg-mem-Test weiterhin grün**
+- [x] **Step 5: Bestehenden pg-mem-Test weiterhin grün**
 
 Run: `pnpm --filter mentolder-website exec vitest run src/lib/platform-db.ensure.test.ts`
 Expected: PASS (der Test nutzt eine eigene vereinfachte pg-mem-DDL; die Änderungen brechen ihn nicht).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/platform-db.ts
@@ -469,7 +469,7 @@ git commit -m "feat(platform): thread subdomain/health_url through SoftwareAsset
 **Files:**
 - Modify: `website/src/pages/api/admin/platform/software.ts`
 
-- [ ] **Step 1: Import + Brand-Domain-Auflösung ergänzen**
+- [x] **Step 1: Import + Brand-Domain-Auflösung ergänzen**
 
 Oben in `website/src/pages/api/admin/platform/software.ts`, nach den bestehenden Imports, ergänze:
 
@@ -483,7 +483,7 @@ Im `GET`-Handler, **vor** dem `const enrichedAssets = await Promise.all(...)`, e
     const brandDomain = process.env.PROD_DOMAIN ?? '';
 ```
 
-- [ ] **Step 2: `serviceUrl` in den Rückgabe-Objekten setzen**
+- [x] **Step 2: `serviceUrl` in den Rückgabe-Objekten setzen**
 
 Im `return { ...asset, live_status, replicas }`-Block innerhalb von `enrichedAssets.map` ergänze `serviceUrl`:
 
@@ -498,12 +498,12 @@ Im `return { ...asset, live_status, replicas }`-Block innerhalb von `enrichedAss
 
 > `asset` enthält dank `SELECT *` bereits `url` und `subdomain`. `resolveServiceUrl` ist pur und DB-frei.
 
-- [ ] **Step 3: Astro Typecheck**
+- [x] **Step 3: Astro Typecheck**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine neuen Typfehler.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/pages/api/admin/platform/software.ts
@@ -517,7 +517,7 @@ git commit -m "feat(platform): GET software returns computed serviceUrl per asse
 **Files:**
 - Modify: `website/src/pages/api/admin/ops/health.ts`
 
-- [ ] **Step 1: Statische `SERVICES`-Map entfernen, datengetrieben ersetzen**
+- [x] **Step 1: Statische `SERVICES`-Map entfernen, datengetrieben ersetzen**
 
 Ersetze den **gesamten** Inhalt von `website/src/pages/api/admin/ops/health.ts` durch:
 
@@ -610,12 +610,12 @@ export const GET: APIRoute = async ({ request }) => {
 > - `collabora` hat `clusters = {mentolder,korczewski}` und wird in beiden Brands geprobt (Namespace `workspace-office`, geteilt) — exakt wie heute.
 > - Einzelne Probe-Fehler blockieren die anderen nicht (`Promise.all` über try/catch pro Dienst).
 
-- [ ] **Step 2: Astro Typecheck**
+- [x] **Step 2: Astro Typecheck**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine neuen Typfehler.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/admin/ops/health.ts
@@ -629,7 +629,7 @@ git commit -m "feat(platform): health endpoint probes all data-driven assets (br
 **Files:**
 - Modify: `website/src/components/admin/platform/SoftwareTab.svelte`
 
-- [ ] **Step 1: Link-Markup im Card-Footer ergänzen**
+- [x] **Step 1: Link-Markup im Card-Footer ergänzen**
 
 In `website/src/components/admin/platform/SoftwareTab.svelte`, innerhalb der Asset-Card, im `<div class="flex items-center gap-3">`-Block (nach dem `{#if asset.replicas}…{/if}`), ergänze einen Link, der nur erscheint, wenn `asset.serviceUrl` gesetzt ist:
 
@@ -654,12 +654,12 @@ In `website/src/components/admin/platform/SoftwareTab.svelte`, innerhalb der Ass
 
 > `on:click|stopPropagation` verhindert, dass ein Klick auf den Link versehentlich die Card-Hover-Buttons/Bearbeiten triggert. `serviceUrl` kommt aus der GET-Response (Task 5).
 
-- [ ] **Step 2: Build-Sanity (Komponente kompiliert)**
+- [x] **Step 2: Build-Sanity (Komponente kompiliert)**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine neuen Svelte-/Typfehler.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/platform/SoftwareTab.svelte
@@ -673,7 +673,7 @@ git commit -m "feat(platform): SoftwareTab renders Öffnen link for assets with 
 **Files:**
 - Modify: `website/src/components/admin/platform/AssetModal.svelte`
 
-- [ ] **Step 1: Eingabefelder ergänzen**
+- [x] **Step 1: Eingabefelder ergänzen**
 
 In `website/src/components/admin/platform/AssetModal.svelte`, innerhalb des „Kubernetes Verknüpfung"-Blocks (`<div class="p-4 bg-admin-bg/50 …">`), nach dem Namespace/Deployment-Grid und vor dem „Aktiv auf Clustern"-Block, ergänze:
 
@@ -697,12 +697,12 @@ In `website/src/components/admin/platform/AssetModal.svelte`, innerhalb des „K
 
 > `{'{ns}'}` ist die Svelte-Escape-Form, damit der Literal-Text `{ns}` im Label/Placeholder erscheint (geschweifte Klammern sind in Svelte sonst Ausdruck-Delimiter). `asset.url` wird hier ebenfalls editierbar gemacht (Override), da die Spec den `url`-Override als Admin-editierbar fordert und das Modal ihn bisher nicht anbot.
 
-- [ ] **Step 2: Build-Sanity**
+- [x] **Step 2: Build-Sanity**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine neuen Fehler.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/platform/AssetModal.svelte
@@ -716,7 +716,7 @@ git commit -m "feat(platform): AssetModal edits subdomain, url-override and heal
 **Files:**
 - Modify: `website/src/components/admin/platform/HealthTab.svelte`
 
-- [ ] **Step 1: Status-Punkt-Klasse um `optional` erweitern**
+- [x] **Step 1: Status-Punkt-Klasse um `optional` erweitern**
 
 In `website/src/components/admin/platform/HealthTab.svelte`, im Service-Eintrag, ersetze den Status-Indikator-Block:
 
@@ -745,12 +745,12 @@ durch:
 
 > Die Liste ist jetzt länger (alle probebaren Dienste). Das bestehende `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3` skaliert mit — keine weitere Layout-Änderung nötig. (Eine Kategorie-Gruppierung ist laut Spec optional/P2; YAGNI → weggelassen, da die Daten kein `category`-Feld im Health-Response tragen und ein zweiter Roundtrip unnötig wäre.)
 
-- [ ] **Step 2: Build-Sanity**
+- [x] **Step 2: Build-Sanity**
 
 Run: `pnpm --filter mentolder-website exec astro check`
 Expected: Keine neuen Fehler.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/platform/HealthTab.svelte
@@ -764,7 +764,7 @@ git commit -m "feat(platform): HealthTab renders optional services with neutral 
 **Files:**
 - Modify: `website/src/lib/platform-db.ensure.test.ts`
 
-- [ ] **Step 1: pg-mem-DDL um die neuen Spalten + Seed-Stub erweitern und Assertion ergänzen**
+- [x] **Step 1: pg-mem-DDL um die neuen Spalten + Seed-Stub erweitern und Assertion ergänzen**
 
 Der bestehende Test mockt `pg` via pg-mem mit einer vereinfachten Tabelle. Erweitere ihn so, dass `subdomain`/`health_url` Teil der Tabelle sind und ein Seed-`UPDATE` (wie in der Migration) getestet wird.
 
@@ -795,12 +795,12 @@ und ergänze direkt nach den bestehenden INSERTs ein Seed-`UPDATE` (mirror der M
 
 > Falls `runPlatformSchema` in diesem Test über die `CountingPool`-Mock-DDL läuft und das neue `ALTER TABLE … ADD COLUMN IF NOT EXISTS` (aus Task 4 Step 2) als CREATE-DDL fehlinterpretiert würde: Der bestehende `isPlatformCreateDdl`-Filter prüft auf `'create'` im SQL — `ALTER TABLE` enthält kein `create`, wird also durchgereicht und gegen pg-mem ausgeführt. pg-mem unterstützt `ALTER TABLE … ADD COLUMN IF NOT EXISTS`. Sollte pg-mem hier doch stolpern, fange den Fall ab, indem du im Mock `super.query` für `alter table … add column` no-op-pst (analog zum CREATE-Branch) — die Spalten existieren in der Test-DDL ohnehin bereits.
 
-- [ ] **Step 2: Test laufen lassen → muss bestehen**
+- [x] **Step 2: Test laufen lassen → muss bestehen**
 
 Run: `pnpm --filter mentolder-website exec vitest run src/lib/platform-db.ensure.test.ts`
 Expected: PASS — inkl. neuem Idempotenz-/Seed-Fall.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/platform-db.ensure.test.ts
@@ -815,7 +815,7 @@ git commit -m "test(platform): cover seeded subdomain/health_url + idempotency i
 - Modify: `tests/e2e/specs/fa-42-platform-assets.spec.ts`
 - Modify: `tests/e2e/specs/fa-44-platform-health-integrity.spec.ts`
 
-- [ ] **Step 1: `fa-42` — „Öffnen"-Link für keycloak prüfen**
+- [x] **Step 1: `fa-42` — „Öffnen"-Link für keycloak prüfen**
 
 In `tests/e2e/specs/fa-42-platform-assets.spec.ts`, am Ende des `test.describe('FA-42: …')`-Blocks (vor der schließenden `});`), neuen Test ergänzen:
 
@@ -836,7 +836,7 @@ In `tests/e2e/specs/fa-42-platform-assets.spec.ts`, am Ende des `test.describe('
 
 > Läuft im Playwright-Projekt **`mentolder`** (Zuordnung: `fa-42-*` → `mentolder`, siehe `tests/e2e/playwright.config.ts`).
 
-- [ ] **Step 2: `fa-44` — `optional` als gültigen Status zulassen + Health-Abdeckung > 5 prüfen**
+- [x] **Step 2: `fa-44` — `optional` als gültigen Status zulassen + Health-Abdeckung > 5 prüfen**
 
 In `tests/e2e/specs/fa-44-platform-health-integrity.spec.ts`, Test **T3**: erweitere die Status-Assertion, damit das neue `'optional'` nicht fälschlich fehlschlägt. Ändere:
 ```ts
@@ -876,7 +876,7 @@ Ergänze außerdem am Ende des `describe`-Blocks (vor der schließenden `});`) e
 
 > Läuft im Playwright-Projekt **`website`** (Zuordnung: `fa-44-*` → `website`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/e2e/specs/fa-42-platform-assets.spec.ts tests/e2e/specs/fa-44-platform-health-integrity.spec.ts
@@ -890,7 +890,7 @@ git commit -m "test(platform): e2e Öffnen-link + data-driven health coverage (>
 **Files:**
 - Modify: `website/src/data/test-inventory.json` (generiert)
 
-- [ ] **Step 1: Test-Inventar regenerieren**
+- [x] **Step 1: Test-Inventar regenerieren**
 
 Run (im Repo-Root):
 ```bash
@@ -898,12 +898,12 @@ task test:inventory
 ```
 Expected: `website/src/data/test-inventory.json` wird aktualisiert (enthält jetzt die neuen E2E-Tests aus `fa-42`/`fa-44`). Wenn sich nichts ändert (weil das Inventar nur Datei-/Suite-Ebene zählt), ist das ebenfalls ok — dann ist Step 2 ein No-op-Commit-Skip.
 
-- [ ] **Step 2: Vollständige Vitest-Suite (website)**
+- [x] **Step 2: Vollständige Vitest-Suite (website)**
 
 Run: `pnpm --filter mentolder-website test:unit`
 Expected: PASS — inkl. `platform-links.test.ts`, `platform-db.ensure.test.ts`. Keine neuen Failures.
 
-- [ ] **Step 3: Offline-Gesamtsuite (CI-Äquivalent) lokal**
+- [x] **Step 3: Offline-Gesamtsuite (CI-Äquivalent) lokal**
 
 Run (im Repo-Root):
 ```bash
@@ -911,7 +911,7 @@ task test:all
 ```
 Expected: GRÜN. (Bei intermittierendem Exit 128 im frischen Worktree: einmal erneut ausführen — bekannter Race, dev-flow-gotchas T000218.)
 
-- [ ] **Step 3b: Freshness + Code-Quality-Gates (CI-Äquivalent)**
+- [x] **Step 3b: Freshness + Code-Quality-Gates (CI-Äquivalent)**
 
 Run (im Repo-Root):
 ```bash
@@ -920,7 +920,7 @@ task freshness:check
 ```
 Expected: „All generated artifacts are fresh" und `quality:check — … 0 blocking` (keine neuen/verschlechterten Violations). Die S1-Zeilenbudgets dieses Plans sind unkritisch (Ausgangswerte: `health.ts` 75/600, `platform-db.ts` 134/600, `SoftwareTab.svelte` 154/500, `HealthTab.svelte` 62/500, `AssetModal.svelte` 136/500, `software.ts` 85/600; `platform-links.ts` ist neu und klein). Falls `freshness:regenerate` generierte Dateien ändert (z.B. `repo-index.json` wegen der neuen Datei `platform-links.ts`), diese mitcommitten.
 
-- [ ] **Step 4: Commit Test-Inventar + Freshness-Artefakte (falls geändert)**
+- [x] **Step 4: Commit Test-Inventar + Freshness-Artefakte (falls geändert)**
 
 ```bash
 git add website/src/data/test-inventory.json docs/generated docs/code-quality

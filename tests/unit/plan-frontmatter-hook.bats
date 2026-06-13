@@ -197,3 +197,35 @@ EOF
   [ "$status" -eq 0 ]
   grep -q "^status: completed$" "$TMP/e-keep.md"
 }
+
+@test "--spec adds spec frontmatter to a spec missing it" {
+  cat > "$TMP/f-spec.md" <<'EOF'
+# My Feature Design
+
+Some design prose.
+EOF
+  run bash "$HOOK" --spec "$TMP/f-spec.md"
+  [ "$status" -eq 0 ]
+  head -1 "$TMP/f-spec.md" | grep -q '^---$'
+  grep -q '^ticket_id:' "$TMP/f-spec.md"
+  grep -q '^plan_ref:'  "$TMP/f-spec.md"
+  grep -q '^status: active$' "$TMP/f-spec.md"
+  grep -q '^date:' "$TMP/f-spec.md"
+}
+
+@test "--spec is idempotent when frontmatter already present" {
+  cat > "$TMP/g-spec.md" <<'EOF'
+---
+ticket_id: T000999
+plan_ref: null
+status: active
+date: 2026-06-13
+---
+
+# Already Has It
+EOF
+  before="$(cat "$TMP/g-spec.md")"
+  run bash "$HOOK" --spec "$TMP/g-spec.md"
+  [ "$status" -eq 0 ]
+  [ "$before" == "$(cat "$TMP/g-spec.md")" ]
+}

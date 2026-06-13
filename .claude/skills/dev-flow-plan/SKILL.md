@@ -103,6 +103,10 @@ Starte den Companion-Server und Tunnel. Detaillierte Befehle und Fehlerbehebunge
 ### Schritt 3: Brainstorming
 Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
+Nach dem Schreiben der Spec das Frontmatter setzen (siehe
+`docs/superpowers/specs/spec-frontmatter-standard.md`):
+`bash scripts/plan-frontmatter-hook.sh --spec docs/superpowers/specs/<date>-<slug>-design.md`
+und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
 ### Schritt 3.5: Playwright-Projekt-Gate
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).

@@ -2,30 +2,17 @@ import type { APIRoute } from 'astro';
 import http from 'node:http';
 import https from 'node:https';
 import { getSession, isAdmin } from '../../../../lib/auth';
+import { listSoftwareAssets } from '../../../../lib/platform-db';
+import { resolveHealthUrl } from '../../../../lib/platform-links';
 
 type ServiceCheck = {
   name: string;
+  slug: string;
   url: string;
-  status: 'ok' | 'slow' | 'error';
+  status: 'ok' | 'slow' | 'error' | 'optional';
   latencyMs: number | null;
+  optional: boolean;
   error?: string;
-};
-
-const SERVICES: Record<string, { name: string; internalUrl: string }[]> = {
-  mentolder: [
-    { name: 'Keycloak',     internalUrl: 'http://keycloak.workspace.svc.cluster.local:8080/health/ready' },
-    { name: 'Nextcloud',    internalUrl: 'http://nextcloud.workspace.svc.cluster.local/status.php' },
-    { name: 'Collabora',    internalUrl: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' },
-    { name: 'Vaultwarden',  internalUrl: 'http://vaultwarden.workspace.svc.cluster.local/alive' },
-    { name: 'Website',      internalUrl: 'http://website.website.svc.cluster.local' },
-  ],
-  korczewski: [
-    { name: 'Keycloak',     internalUrl: 'http://keycloak.workspace-korczewski.svc.cluster.local:8080/health/ready' },
-    { name: 'Nextcloud',    internalUrl: 'http://nextcloud.workspace-korczewski.svc.cluster.local/status.php' },
-    { name: 'Collabora',    internalUrl: 'http://collabora.workspace-office.svc.cluster.local:9980/hosting/capabilities' },
-    { name: 'Vaultwarden',  internalUrl: 'http://vaultwarden.workspace-korczewski.svc.cluster.local/alive' },
-    { name: 'Website',      internalUrl: 'http://website.website-korczewski.svc.cluster.local' },
-  ],
 };
 
 function checkUrl(url: string, timeoutMs = 5000): Promise<{ latencyMs: number; ok: boolean }> {
@@ -49,22 +36,39 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   const currentCluster = (process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder').toLowerCase();
-  const services = SERVICES[currentCluster] ?? SERVICES['mentolder'];
+
+  let assets;
+  try {
+    assets = await listSoftwareAssets();
+  } catch (e: any) {
+    return new Response(
+      JSON.stringify({ error: `DB unreachable: ${e?.message ?? 'unknown'}` }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
+
+  const probeable = assets.filter(
+    (a) => a.health_url && a.health_url.trim() !== '' && a.clusters.includes(currentCluster),
+  );
 
   const probeResults = await Promise.all(
-    services.map(async (svc) => {
+    probeable.map(async (asset) => {
+      const url = resolveHealthUrl(asset, currentCluster) ?? '';
+      const optional = asset.base_status === 'optional';
       try {
-        const { latencyMs, ok } = await checkUrl(svc.internalUrl);
-        return {
-          name: svc.name,
-          url: svc.internalUrl,
-          status: !ok ? 'error' : latencyMs > 2000 ? 'slow' : 'ok',
-          latencyMs,
-        } satisfies ServiceCheck;
+        const { latencyMs, ok } = await checkUrl(url);
+        let status: ServiceCheck['status'];
+        if (!ok) status = optional ? 'optional' : 'error';
+        else status = latencyMs > 2000 ? 'slow' : 'ok';
+        return { name: asset.name, slug: asset.slug, url, status, latencyMs, optional } satisfies ServiceCheck;
       } catch (e: any) {
-        return { name: svc.name, url: svc.internalUrl, status: 'error', latencyMs: null, error: e.message } satisfies ServiceCheck;
+        return {
+          name: asset.name, slug: asset.slug, url,
+          status: optional ? 'optional' : 'error',
+          latencyMs: null, optional, error: e?.message,
+        } satisfies ServiceCheck;
       }
-    })
+    }),
   );
 
   const results: Record<string, ServiceCheck[]> = { [currentCluster]: probeResults };

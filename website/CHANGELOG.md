@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.60.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.59.0...website-v1.60.0) (2026-06-13)
+
+
+### Features
+
+* **platform:** Data-driven service links + health probes (T000665) ([#1613](https://github.com/Paddione/Bachelorprojekt/issues/1613)) ([1ef1b03](https://github.com/Paddione/Bachelorprojekt/commit/1ef1b03f024cca6e4f1dd9a28d8231bcfc90cad5))
+
 ## [1.59.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.58.0...website-v1.59.0) (2026-06-13)
 
 

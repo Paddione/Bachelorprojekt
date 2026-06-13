@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.62.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.1...website-v1.62.2) (2026-06-13)
+
+
+### Bug Fixes
+
+* **api:** qa-queue 500 — add missing tickets. schema prefix to ticket_links JOIN [T000678] ([#1629](https://github.com/Paddione/Bachelorprojekt/issues/1629)) ([e6c76e1](https://github.com/Paddione/Bachelorprojekt/commit/e6c76e1e616009b1bf4813f31923a260fd10a8c1))
+
 ## [1.62.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.0...website-v1.62.1) (2026-06-13)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.61.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.60.1...website-v1.61.0) (2026-06-13)
+
+
+### Features
+
+* **graph:** Knowledge-Graph v2 — ingress/secret/selector + blast-radius (T000667) ([#1616](https://github.com/Paddione/Bachelorprojekt/issues/1616)) ([3a7f44c](https://github.com/Paddione/Bachelorprojekt/commit/3a7f44c9ac9f8351de21ca804979645cbd167d1e))
+
 ## [1.60.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.60.0...website-v1.60.1) (2026-06-13)
 
 

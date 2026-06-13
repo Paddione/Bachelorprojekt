@@ -1,6 +1,6 @@
 ---
 ticket_id: T000653
-status: planning
+status: done
 domains: [website, infra]
 file_locks: []
 shared_changes: false
@@ -11,7 +11,7 @@ depends_on_plans: []
 
 # Zeitgesteuertes Veröffentlichen (Scheduled Publish) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Newsletter-Kampagnen können mit einem zukünftigen Sendezeitpunkt geplant werden; ein Kubernetes CronJob versendet fällige Kampagnen idempotent alle 5 Minuten.
 
@@ -49,7 +49,7 @@ depends_on_plans: []
 **Files:**
 - Modify: `website/src/lib/newsletter-db.ts` (Funktion `ensureTables()`)
 
-- [ ] **Step 1: Spalte idempotent hinzufügen**
+- [x] **Step 1: Spalte idempotent hinzufügen**
 
 In `ensureTables()`, direkt **nach** dem `CREATE TABLE IF NOT EXISTS newsletter_campaigns (...)`-Block und **vor** dem `newsletter_send_log`-Block, diese Query einfügen:
 
@@ -60,12 +60,12 @@ In `ensureTables()`, direkt **nach** dem `CREATE TABLE IF NOT EXISTS newsletter_
   `);
 ```
 
-- [ ] **Step 2: Verifizieren, dass die Migration syntaktisch korrekt ist**
+- [x] **Step 2: Verifizieren, dass die Migration syntaktisch korrekt ist**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'newsletter-db' || echo "no newsletter-db errors"`
 Expected: `no newsletter-db errors`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/newsletter-db.ts
@@ -79,7 +79,7 @@ git commit -m "feat(newsletter): add scheduled_publish_at column to campaigns (T
 **Files:**
 - Modify: `website/src/lib/newsletter-db.ts` (Interface `NewsletterCampaign` + alle `SELECT`-Spaltenlisten)
 
-- [ ] **Step 1: Interface erweitern**
+- [x] **Step 1: Interface erweitern**
 
 Ersetze das bestehende Interface:
 
@@ -112,7 +112,7 @@ export interface NewsletterCampaign {
 }
 ```
 
-- [ ] **Step 2: `scheduled_publish_at` in allen Campaign-SELECTs ergänzen**
+- [x] **Step 2: `scheduled_publish_at` in allen Campaign-SELECTs ergänzen**
 
 In `listCampaigns()`, `getCampaign()`, `createCampaign()` (RETURNING) und `updateCampaign()` (RETURNING) jeweils die Spaltenliste
 `id, subject, html_body, status, sent_at, recipient_count, created_at, updated_at`
@@ -121,12 +121,12 @@ ersetzen durch
 
 (Vier Stellen — alle vier müssen geändert werden, sonst ist `scheduled_publish_at` im Rückgabewert `undefined`.)
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'newsletter' || echo "clean"`
 Expected: `clean`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/lib/newsletter-db.ts
@@ -140,7 +140,7 @@ git commit -m "feat(newsletter): add scheduled status + scheduled_publish_at to 
 **Files:**
 - Modify: `website/src/lib/newsletter-db.ts` (neue Funktion + benötigte Imports)
 
-- [ ] **Step 1: Import von `sendNewsletterCampaign` oben in `newsletter-db.ts` ergänzen**
+- [x] **Step 1: Import von `sendNewsletterCampaign` oben in `newsletter-db.ts` ergänzen**
 
 Nach den bestehenden Imports (`import pg from 'pg';` …) hinzufügen:
 
@@ -148,7 +148,7 @@ Nach den bestehenden Imports (`import pg from 'pg';` …) hinzufügen:
 import { sendNewsletterCampaign } from './email';
 ```
 
-- [ ] **Step 2: `sendCampaignById()` ans Ende des Campaigns-Abschnitts (vor `// ── Send log ──`) einfügen**
+- [x] **Step 2: `sendCampaignById()` ans Ende des Campaigns-Abschnitts (vor `// ── Send log ──`) einfügen**
 
 Diese Funktion kapselt die Versand-Logik, die aktuell in `send.ts` inline steht (Subscriber laden, Ausgabe-Nummer berechnen, pro Subscriber senden + loggen, `markCampaignSent`). Sie nimmt KEINE Status-Transition vor (das macht der Cron-Endpunkt / die HTTP-Route über die Lock-Funktionen aus A4 bzw. den `status='sent'` über `markCampaignSent`):
 
@@ -197,12 +197,12 @@ export async function sendCampaignById(campaignId: string): Promise<{
 }
 ```
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'newsletter-db' || echo "clean"`
 Expected: `clean`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/lib/newsletter-db.ts
@@ -216,7 +216,7 @@ git commit -m "feat(newsletter): extract reusable sendCampaignById() (T000615)"
 **Files:**
 - Modify: `website/src/lib/newsletter-db.ts`
 
-- [ ] **Step 1: `updateCampaign()` ersetzen — `scheduled_publish_at` + Status-Transition zulassen**
+- [x] **Step 1: `updateCampaign()` ersetzen — `scheduled_publish_at` + Status-Transition zulassen**
 
 Die bestehende `updateCampaign()` erlaubt nur `subject`/`html_body` und nur, wenn `status='draft'`. Sie wird ersetzt, um zusätzlich `scheduled_publish_at` und `status` (`draft` ↔ `scheduled`) zu setzen. Updates bleiben auf nicht-versendete Kampagnen beschränkt (`status IN ('draft','scheduled')`):
 
@@ -268,7 +268,7 @@ export async function updateCampaign(
 }
 ```
 
-- [ ] **Step 2: Lock- und Cleanup-Funktionen ans Ende des Campaigns-Abschnitts einfügen**
+- [x] **Step 2: Lock- und Cleanup-Funktionen ans Ende des Campaigns-Abschnitts einfügen**
 
 Diese Funktionen kapseln die atomaren Status-Transitionen aus Spec 4.3 / ADR-2:
 
@@ -328,12 +328,12 @@ export async function resetStaleSendingCampaigns(): Promise<number> {
 
 > **Hinweis:** `sendCampaignById()` ruft am Ende `markCampaignSent()` auf, das `status='sent'` setzt — daher braucht der Erfolgsfall keine separate `finalize`-Funktion. Nur der Fehlerfall (`unlockCampaignToScheduled`) und der Stale-Cleanup brauchen eigene Queries.
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'newsletter-db' || echo "clean"`
 Expected: `clean`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/lib/newsletter-db.ts
@@ -349,7 +349,7 @@ git commit -m "feat(newsletter): updateCampaign scheduling + atomic lock/cleanup
 **Files:**
 - Modify: `website/src/pages/api/admin/newsletter/campaigns/[id].ts`
 
-- [ ] **Step 1: PUT-Handler ersetzen**
+- [x] **Step 1: PUT-Handler ersetzen**
 
 Body-Typ um `scheduled_publish_at` und `status` erweitern; Validation gemäß Spec 4.7 (Status `scheduled` erfordert ein zukünftiges Datum; `null` setzt zurück auf `draft`). Datum wird zu einem `Date` geparst, bevor es an `updateCampaign()` geht:
 
@@ -415,12 +415,12 @@ export const PUT: APIRoute = async ({ request, params }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'campaigns/\[id\].ts' || echo "clean"`
 Expected: `clean`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add "website/src/pages/api/admin/newsletter/campaigns/[id].ts"
@@ -434,7 +434,7 @@ git commit -m "feat(newsletter): PUT campaign accepts scheduled_publish_at + sta
 **Files:**
 - Modify: `website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts`
 
-- [ ] **Step 1: send.ts auf die extrahierte Funktion umstellen**
+- [x] **Step 1: send.ts auf die extrahierte Funktion umstellen**
 
 Die inline-Versandlogik wird durch einen Aufruf von `sendCampaignById()` ersetzt. Die Status-Guards (`bereits versendet` → 409) bleiben in der Route:
 
@@ -472,12 +472,12 @@ export const POST: APIRoute = async ({ request, params }) => {
 
 > **Hinweis:** Das frühere Response-Feld `total` war die Anzahl aller Abonnenten. Da `sendCampaignById()` nur die erfolgreich versendeten zurückgibt, melden wir `total = recipientCount`. Die UI in Phase D zeigt nur noch `sent`.
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'send.ts' || echo "clean"`
 Expected: `clean`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add "website/src/pages/api/admin/newsletter/campaigns/[id]/send.ts"
@@ -491,7 +491,7 @@ git commit -m "refactor(newsletter): send route uses sendCampaignById() (T000615
 **Files:**
 - Create: `website/src/pages/api/cron/scheduled-publish.ts`
 
-- [ ] **Step 1: Cron-Endpunkt anlegen**
+- [x] **Step 1: Cron-Endpunkt anlegen**
 
 Bearer-Auth (401 bei fehlendem/falschem Token), Stale-Cleanup, dann pro fälliger Kampagne: atomarer Lock → `sendCampaignById()` → bei Fehler `unlockCampaignToScheduled()`. Antwort `{ processed, sent, errors }`:
 
@@ -555,12 +555,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `cd website && npx tsc --noEmit 2>&1 | grep -i 'scheduled-publish' || echo "clean"`
 Expected: `clean`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/api/cron/scheduled-publish.ts
@@ -576,7 +576,7 @@ git commit -m "feat(newsletter): cron endpoint /api/cron/scheduled-publish (T000
 **Files:**
 - Create: `k3d/cronjob-scheduled-publish.yaml`
 
-- [ ] **Step 1: Manifest anlegen** (modelliert nach `k3d/notify-unread-cronjob.yaml`; GET-Aufruf, 5-Min-Schedule, `timeZone`, `concurrencyPolicy: Forbid`)
+- [x] **Step 1: Manifest anlegen** (modelliert nach `k3d/notify-unread-cronjob.yaml`; GET-Aufruf, 5-Min-Schedule, `timeZone`, `concurrencyPolicy: Forbid`)
 
 ```yaml
 apiVersion: batch/v1
@@ -632,7 +632,7 @@ spec:
                       key: CRON_SECRET
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add k3d/cronjob-scheduled-publish.yaml
@@ -646,7 +646,7 @@ git commit -m "feat(infra): scheduled-publish CronJob manifest (T000615)"
 **Files:**
 - Modify: `k3d/kustomization.yaml`
 
-- [ ] **Step 1: Eintrag direkt nach der `notify-unread-cronjob.yaml`-Zeile hinzufügen**
+- [x] **Step 1: Eintrag direkt nach der `notify-unread-cronjob.yaml`-Zeile hinzufügen**
 
 Finde die Zeile `  - notify-unread-cronjob.yaml` und füge darunter ein:
 
@@ -654,12 +654,12 @@ Finde die Zeile `  - notify-unread-cronjob.yaml` und füge darunter ein:
   - cronjob-scheduled-publish.yaml
 ```
 
-- [ ] **Step 2: Kustomize-Build verifizieren**
+- [x] **Step 2: Kustomize-Build verifizieren**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && kubectl kustomize k3d --load-restrictor=LoadRestrictionsNone | grep -A2 'name: scheduled-publish'`
 Expected: Der CronJob `scheduled-publish` taucht in der gerenderten Ausgabe auf.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add k3d/kustomization.yaml
@@ -673,7 +673,7 @@ git commit -m "feat(infra): register scheduled-publish CronJob in base kustomiza
 **Files:**
 - Modify: `prod-korczewski/patch-cronjob-urls.yaml`
 
-- [ ] **Step 1: Patch-Eintrag ans Ende der Datei anhängen** (nach dem letzten `---`-Block; ruft den korczewski-lokalen Service auf)
+- [x] **Step 1: Patch-Eintrag ans Ende der Datei anhängen** (nach dem letzten `---`-Block; ruft den korczewski-lokalen Service auf)
 
 ```yaml
 ---
@@ -698,12 +698,12 @@ spec:
                     http://website.website-korczewski.svc.cluster.local/api/cron/scheduled-publish
 ```
 
-- [ ] **Step 2: Verifizieren, dass der Patch greift** (sofern `prod-korczewski` als Overlay buildbar ist)
+- [x] **Step 2: Verifizieren, dass der Patch greift** (sofern `prod-korczewski` als Overlay buildbar ist)
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && grep -c 'name: scheduled-publish' prod-korczewski/patch-cronjob-urls.yaml`
 Expected: `1`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add prod-korczewski/patch-cronjob-urls.yaml
@@ -719,7 +719,7 @@ git commit -m "feat(infra): korczewski URL patch for scheduled-publish CronJob (
 **Files:**
 - Modify: `website/src/components/admin/NewsletterAdmin.svelte`
 
-- [ ] **Step 1: State-Variablen + lokale Campaign-Typ-Erweiterung**
+- [x] **Step 1: State-Variablen + lokale Campaign-Typ-Erweiterung**
 
 Im `<script>`-Block bei den anderen Compose-State-Deklarationen (`let composeSubject = $state('')` …) ergänzen:
 
@@ -731,7 +731,7 @@ Im `<script>`-Block bei den anderen Compose-State-Deklarationen (`let composeSub
 Im lokalen Campaign-Interface (aktuell `status: 'draft' | 'sent';` mit `sent_at`) den Typ auf
 `status: 'draft' | 'scheduled' | 'sent';` ändern und das Feld `scheduled_publish_at: string | null;` ergänzen.
 
-- [ ] **Step 2: UI-Block im Compose-Tab einfügen** (oberhalb des bestehenden "Senden"-Buttons im Compose-Tab)
+- [x] **Step 2: UI-Block im Compose-Tab einfügen** (oberhalb des bestehenden "Senden"-Buttons im Compose-Tab)
 
 ```svelte
   <div class="flex items-center gap-2 mb-3">
@@ -745,7 +745,7 @@ Im lokalen Campaign-Interface (aktuell `status: 'draft' | 'sent';` mit `sent_at`
   </div>
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/NewsletterAdmin.svelte
@@ -759,7 +759,7 @@ git commit -m "feat(newsletter-ui): scheduled-send datetime picker in compose ta
 **Files:**
 - Modify: `website/src/components/admin/NewsletterAdmin.svelte`
 
-- [ ] **Step 1: Scheduling-Funktion hinzufügen** (im `<script>`-Block, neben der bestehenden Sende-Funktion)
+- [x] **Step 1: Scheduling-Funktion hinzufügen** (im `<script>`-Block, neben der bestehenden Sende-Funktion)
 
 Validiert ≥ jetzt + 5 Minuten, speichert ggf. erst einen Draft, schickt dann das PUT mit `status: 'scheduled'`:
 
@@ -809,7 +809,7 @@ Validiert ≥ jetzt + 5 Minuten, speichert ggf. erst einen Draft, schickt dann d
 
 > **Hinweis:** Falls die Campaign-Liste über einen anders benannten Loader geladen wird (z. B. `loadCampaigns`/`fetchCampaigns`), den im File vorhandenen Namen verwenden.
 
-- [ ] **Step 2: Sende-Button verzweigen** — wenn `scheduleEnabled`, ruft der Button `scheduleCampaign()` statt der Sofort-Sende-Funktion auf. Den bestehenden Senden-Button im Compose-Tab so anpassen:
+- [x] **Step 2: Sende-Button verzweigen** — wenn `scheduleEnabled`, ruft der Button `scheduleCampaign()` statt der Sofort-Sende-Funktion auf. Den bestehenden Senden-Button im Compose-Tab so anpassen:
 
 ```svelte
   <button onclick={() => scheduleEnabled ? scheduleCampaign() : sendCampaign()}
@@ -820,7 +820,7 @@ Validiert ≥ jetzt + 5 Minuten, speichert ggf. erst einen Draft, schickt dann d
 
 (Den realen Funktionsnamen der Sofort-Sende-Aktion und das reale Button-Markup aus dem File übernehmen.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/NewsletterAdmin.svelte
@@ -834,7 +834,7 @@ git commit -m "feat(newsletter-ui): validate + submit scheduled campaign (T00061
 **Files:**
 - Modify: `website/src/components/admin/NewsletterAdmin.svelte`
 
-- [ ] **Step 1: `statusBadge()` um `scheduled` erweitern**
+- [x] **Step 1: `statusBadge()` um `scheduled` erweitern**
 
 Die aktuelle Funktion mappt `sent` auf blau. Spec verlangt: `draft`=grau, `scheduled`=blau, `sent`=grün. `statusBadge()` ersetzen durch:
 
@@ -848,7 +848,7 @@ Die aktuelle Funktion mappt `sent` auf blau. Spec verlangt: `draft`=grau, `sched
   }
 ```
 
-- [ ] **Step 2: Relatives Datum bei `scheduled` Helper hinzufügen**
+- [x] **Step 2: Relatives Datum bei `scheduled` Helper hinzufügen**
 
 ```typescript
   function relativeSchedule(iso: string | null): string {
@@ -863,7 +863,7 @@ Die aktuelle Funktion mappt `sent` auf blau. Spec verlangt: `draft`=grau, `sched
   }
 ```
 
-- [ ] **Step 3: Im Kampagnen-`{#each campaigns as c}`-Block das relative Datum bei `scheduled` anzeigen**
+- [x] **Step 3: Im Kampagnen-`{#each campaigns as c}`-Block das relative Datum bei `scheduled` anzeigen**
 
 Neben dem bestehenden Status-`<span>` (das `{c.status}` rendert) ergänzen:
 
@@ -873,7 +873,7 @@ Neben dem bestehenden Status-`<span>` (das `{c.status}` rendert) ergänzen:
             {/if}
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/components/admin/NewsletterAdmin.svelte
@@ -887,7 +887,7 @@ git commit -m "feat(newsletter-ui): scheduled status badge + relative date (T000
 **Files:**
 - Modify: `website/src/components/admin/NewsletterAdmin.svelte`
 
-- [ ] **Step 1: Unschedule-Funktion hinzufügen** (im `<script>`-Block)
+- [x] **Step 1: Unschedule-Funktion hinzufügen** (im `<script>`-Block)
 
 ```typescript
   async function unschedule(id: string) {
@@ -902,7 +902,7 @@ git commit -m "feat(newsletter-ui): scheduled status badge + relative date (T000
 
 (Realen Campaign-Loader-Namen verwenden, vgl. D2.)
 
-- [ ] **Step 2: Button im Kampagnen-`{#each}`-Block nur bei `scheduled` zeigen**
+- [x] **Step 2: Button im Kampagnen-`{#each}`-Block nur bei `scheduled` zeigen**
 
 Neben dem bestehenden "Als Vorlage"-Button ergänzen:
 
@@ -912,12 +912,12 @@ Neben dem bestehenden "Als Vorlage"-Button ergänzen:
             {/if}
 ```
 
-- [ ] **Step 3: Typecheck der gesamten Svelte-Änderungen**
+- [x] **Step 3: Typecheck der gesamten Svelte-Änderungen**
 
 Run: `cd website && npx svelte-check --tsconfig ./tsconfig.json 2>&1 | grep -i 'NewsletterAdmin' || echo "clean"`
 Expected: `clean` (oder keine NEUEN Fehler ggü. main)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add website/src/components/admin/NewsletterAdmin.svelte
@@ -933,7 +933,7 @@ git commit -m "feat(newsletter-ui): unschedule (Planung aufheben) button (T00061
 **Files:**
 - Create: `tests/unit/newsletter-scheduled-publish.bats`
 
-- [ ] **Step 1: Offline-BATS-Test schreiben** (prüft CronJob-Manifest-Struktur + Endpunkt-Quelltext-Invarianten; keine Live-DB nötig, modelliert nach `tests/unit/knowledge-ingest-manifest.bats`)
+- [x] **Step 1: Offline-BATS-Test schreiben** (prüft CronJob-Manifest-Struktur + Endpunkt-Quelltext-Invarianten; keine Live-DB nötig, modelliert nach `tests/unit/knowledge-ingest-manifest.bats`)
 
 ```bash
 #!/usr/bin/env bats
@@ -990,12 +990,12 @@ setup_file() {
 
 > **Hinweis:** Falls `assert_success`/`load test_helper` in diesem Verzeichnis anders heißen, das in benachbarten `tests/unit/*manifest*.bats` verwendete Muster spiegeln (dort `load test_helper` + `assert_success`).
 
-- [ ] **Step 2: Test ausführen**
+- [x] **Step 2: Test ausführen**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && bats tests/unit/newsletter-scheduled-publish.bats`
 Expected: alle Tests PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/unit/newsletter-scheduled-publish.bats
@@ -1009,17 +1009,17 @@ git commit -m "test(newsletter): offline bats for scheduled-publish cron + manif
 **Files:**
 - Modify: `website/src/data/test-inventory.json`
 
-- [ ] **Step 1: Inventory regenerieren**
+- [x] **Step 1: Inventory regenerieren**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && task test:inventory`
 Expected: `website/src/data/test-inventory.json` enthält jetzt den neuen Test.
 
-- [ ] **Step 2: Verifizieren, dass der neue Test im Inventory steht**
+- [x] **Step 2: Verifizieren, dass der neue Test im Inventory steht**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && grep -c 'newsletter-scheduled-publish' website/src/data/test-inventory.json`
 Expected: `>= 1`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/data/test-inventory.json
@@ -1032,19 +1032,19 @@ git commit -m "test(inventory): register newsletter-scheduled-publish bats (T000
 
 ### Task V1: Kustomize-Manifeste validieren
 
-- [ ] **Step 1: Validate**
+- [x] **Step 1: Validate**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && task workspace:validate`
 Expected: kein Fehler; CronJob `scheduled-publish` wird sauber gerendert.
 
 ### Task V2: Vollständige Offline-Tests
 
-- [ ] **Step 1: Alle Offline-Tests**
+- [x] **Step 1: Alle Offline-Tests**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish && task test:all`
 Expected: PASS — inkl. `test:factory`, `test:inventory`-Diff-Check (Inventory committed) und der neuen `newsletter-scheduled-publish.bats`.
 
-- [ ] **Step 2: TypeScript-Gesamtcheck der Website**
+- [x] **Step 2: TypeScript-Gesamtcheck der Website**
 
 Run: `cd /tmp/wt-T000615-scheduled-publish/website && npx tsc --noEmit`
 Expected: keine NEUEN Fehler ggü. `main`.

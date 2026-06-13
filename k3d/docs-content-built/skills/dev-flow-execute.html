@@ -116,10 +116,12 @@ done
 <p>Falls eine Ticket-ID vorhanden ist, setze das Ticket auf in_progress:</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh update-status --id "$TICKET_ID" --status in_progress
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow || true
+SLUG=$(basename "$PLAN_FILE" .md)
+./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (damit ein paralleler Factory-Lauf die Kollision sieht):</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "&lt;comma-separated-paths&gt;"
+./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="schritt-17-visual--textual-assets-laden-visual-handoff">Schritt 1.7: Visual &amp; Textual Assets laden (Visual Handoff)</h2>
@@ -130,22 +132,47 @@ done
 <p><strong>⚠️ Pflicht für UI-Arbeiten:</strong> Lies (mit dem <code>Read</code> Tool) alle heruntergeladenen Bilddateien und Textdateien in diesem Ordner ein, um ein pixelgenaues Verständnis des UI-Designs zu erlangen. Verlasse dich nicht auf Prose allein.</p>
 <hr>
 <h2 id="schritt-2-implementierung-an-frischen-implementer-subagenten-delegieren">Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt
+./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Statt deinen eigenen Kontext/Modell zurückzusetzen (das ließe dich den Faden verlieren), delegiere die <strong>gesamte Implementierung an EINEN frischen Subagenten</strong> — sauberer Kontext per Konstruktion, <strong>Modell + Effort passend zum Charakter der Plan-Tasks</strong>. Du behältst den vollen Plan-Kontext und verifizierst das Ergebnis anschließend unabhängig.</p>
 <blockquote>
 <p><strong>Warum EIN Implementer statt <code>superpowers:subagent-driven-development</code>-Fan-out?</strong> Dieser Skill läuft bereits <em>selbst</em> als delegierte Ebene (oft aus einem dev-flow-Orchestrator). Ein zusätzlicher Per-Task-Fan-out wäre <strong>verschachtelte Delegation</strong> → Kontext-Explosion und Synthese-Last (siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a>, 162k-Prompt-Lehre). Der Implementer ruft <code>superpowers:executing-plans</code> daher <strong>in-context</strong> auf (kein weiterer Agenten-Fan-out). Nur wenn der Plan ausdrücklich viele <strong>voneinander unabhängige</strong> Tasks hat und der Einzel-Implementer am Kontext-Limit scheitert, lohnt der Wechsel auf <code>subagent-driven-development</code> bzw. einen <code>Workflow</code>-Fan-out — bewusste Eskalation, nicht Default.</p>
 </blockquote>
 <p>Spawne über das <code>Agent</code>/<code>Task</code>-Tool einen Subagenten, <strong>provisioniert gemäß</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md">subagent-provisioning.md</a> (Modell · Effort · Kontext):</p>
 <ul>
-<li><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) → <code>haiku</code>; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → <code>opus</code>. Im Zweifel eine Stufe höher.</li>
-<li><strong>Effort per Prompt-Direktive</strong> (das <code>Agent</code>-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."</li>
-<li><code>subagent_type: general-purpose</code>.</li>
-<li><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):<ul>
+<li><p><strong>Modell — nach Plan-Charakter wählen, nicht pauschal:</strong> mechanisch (Config/Doku/Single-File) → <code>haiku</code>; Standard-Feature/Fix (mehrere Dateien, klarer Plan) → <code>sonnet</code>; komplex/riskant (systemübergreifend, Architektur, Security, DB-/Schema-Migration, Auto-Deploy) → <code>opus</code>. Im Zweifel eine Stufe höher.</p>
+</li>
+<li><p><strong>Provider-Routing (Kosten/Resilienz):</strong> Vor dem Spawnen den Provider routen:</p>
+<div class="code-wrapper"><pre><code class="language-bash">ROUTE=$(bash scripts/factory/route-provider.sh dev-flow-execute sonnet)
+MODEL=$(echo "$ROUTE" | jq -r .modelId)
+SLOT=$(echo "$ROUTE" | jq -r .slotId)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Subagent mit <code>--model "$MODEL"</code> spawnen. Danach den Slot freigeben:</p>
+<div class="code-wrapper"><pre><code class="language-bash">bash scripts/factory/release-slot.sh "$SLOT" true   # false bei Fehlschlag → Circuit-Breaker
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><code>opus</code>/plan-kritische Subagenten IMMER ohne Routing (hardcodiert Anthropic).</p>
+</li>
+<li><p><strong>Effort per Prompt-Direktive</strong> (das <code>Agent</code>-Tool kennt keinen Effort-Regler): mechanisch „Arbeite zügig und fokussiert."; komplex/riskant „Ultrathink. Denke sehr gründlich nach."</p>
+</li>
+<li><p><code>subagent_type: general-purpose</code>.</p>
+</li>
+<li><p><strong>Kontext-Injektion</strong> (er hat sonst KEINEN Kontext — gib ihm alles explizit):</p>
+<ul>
 <li>Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.</li>
 <li>Plan-Datei <code>docs/superpowers/plans/&lt;slug&gt;.md</code> + Ticket-ID.</li>
 <li>Attachment-Verzeichnis <code>$ATTACHMENT_DIR</code> — bei UI-Arbeit ALLE Bilder/Texte mit dem <code>Read</code>-Tool einlesen.</li>
 </ul>
 </li>
-<li><strong>Auftrag:</strong><ul>
+<li><p><strong>⚠️ BATS-Pflicht (kein neues File ohne Prüfung):</strong>
+Bevor du eine neue <code>.bats</code>-Datei erstellst, suche erst in <code>tests/unit/</code> nach einer thematisch passenden bestehenden Datei und erweitere diese stattdessen:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Beispiel: testest du ein Script → scripts.bats; Ticket-Logik → tickets-*.bats; Website → website-*.bats
+grep -rl "&lt;modul-stichwort&gt;" tests/unit/ tests/local/
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Neue <code>.bats</code>-Datei nur wenn:</strong> das zu testende Modul hat bisher NULL Testabdeckung UND kein thematisch verwandter Dateiname existiert. In allen anderen Fällen: <code>@test</code>-Block in die passende bestehende Datei einfügen. Ziel: die Gesamtzahl der <code>.bats</code>-Dateien in <code>tests/unit/</code> sinkt oder bleibt konstant.</p>
+</li>
+<li><p><strong>Auftrag:</strong></p>
+<ul>
 <li><em>Feature:</em> Rufe <code>superpowers:executing-plans</code> (in-context, KEIN weiterer Agenten-Fan-out) + <code>test-driven-development</code> auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (<code>- [ ] M1</code> → <code>- [x] M1</code>), committe und pushe.</li>
 <li><em>Fix:</em> Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.</li>
 <li>Bei Kompilier-/Testfehlern: starte sofort <code>systematic-debugging</code>.</li>
@@ -159,12 +186,13 @@ done
 <h2 id="schritt-3-lokale-verifikation">Schritt 3: Lokale Verifikation</h2>
 <p>Rufe das Skill <strong><code>verification-before-completion</code></strong> auf, um die Verifikation strukturiert zu steuern.</p>
 <div class="code-wrapper"><pre><code class="language-bash"># Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow || true
-./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:all + freshness" || true
 task workspace:validate
 ./tests/runner.sh local &lt;FA-XX oder SA-XX&gt;
 task test:all
 task freshness:regenerate
+./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Wichtig: <code>task freshness:regenerate</code> stellt sicher, dass alle generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json) aktuell sind, bevor committet wird. Andernfalls schlägt CI fehl.</strong></p>
 <p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm Gotchas in Worktrees.</p>
@@ -184,6 +212,9 @@ task freshness:regenerate
 <h2 id="schritt-4-dev-iteration-optional">Schritt 4: Dev-Iteration (optional)</h2>
 <p>Rufe <code>dev-flow-iterate</code> auf, um Änderungen im dev-Cluster zu testen.</p>
 <hr>
+<blockquote>
+<p><strong>⚠ Freshness-Guard (vor dem Commit):</strong> Wenn Schritt 3 (<code>task freshness:regenerate</code>) übersprungen oder der Subagent es vergessen hat, schlägt CI mit "stale artifact" fehl. Prüfe: <code>git diff --name-only</code> sollte keine generierten Indexdateien zeigen. Falls doch: <code>task freshness:regenerate &amp;&amp; git add</code> nachholen. Der Pre-commit-Hook automatisiert das nach <code>task secrets:install-hooks</code>.</p>
+</blockquote>
 <h2 id="schritt-5-pr-erstellen">Schritt 5: PR erstellen</h2>
 <div class="code-wrapper"><pre><code class="language-bash"># Branch-Guard prüfen
 git add -A
@@ -197,10 +228,13 @@ git commit -m "&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;" # commitlint regeln
 <div class="code-wrapper"><pre><code class="language-bash">MAX_CI_ATTEMPTS=5
 CI_ATTEMPT=0
 PR_URL=$(gh pr view --json url -q '.url')
+PR_NUM_TELEM=$(gh pr view --json number -q '.number' 2&gt;/dev/null || echo "")
+./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow --detail "PR #$PR_NUM_TELEM · CI watch" || true
 
 while true; do
   CI_ATTEMPT=$((CI_ATTEMPT + 1))
   echo "⏳ CI-Check Versuch $CI_ATTEMPT/$MAX_CI_ATTEMPTS für $PR_URL ..."
+  ./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow --detail "CI attempt $CI_ATTEMPT/$MAX_CI_ATTEMPTS" || true
 
   # Warte auf alle Checks (blockierend; bricht ab, wenn alle done)
   gh pr checks --watch --interval 15 2&gt;/dev/null || true
@@ -261,9 +295,9 @@ done
 <div class="code-wrapper"><pre><code class="language-bash">RESOLUTION="shipped" # oder "fixed" bei Fixes
 PR_NUM=$(gh pr view --json number -q '.number')
 
-./scripts/ticket.sh update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+./scripts/ticket.sh update-status --id "$TICKET_ID" --status qa_review
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true
 ./scripts/ticket.sh add-comment --id "$TICKET_ID" --body "PR #$PR_NUM merged. Plan archived to tickets.ticket_plans."
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
@@ -351,7 +385,7 @@ if &amp;quot;$DEPLOY_K8S&amp;quot; == true; then
 fi
 
 # Deploy-Telemetrie
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow || true
+./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "deployed (post-merge)" || true
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Deploy-Mapping (Single Source of Truth):</strong> Die obige Auto-Detection und die vollständige
 Pfad→Task-Tabelle leben in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/deploy-routing.md">deploy-routing.md</a> — dort steht auch die Pod-Verify-Schleife und die

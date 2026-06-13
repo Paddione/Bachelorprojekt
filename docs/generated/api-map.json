@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T03:35:23.391Z",
+  "generatedAt": "2026-06-13T04:16:26.373Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -437,6 +437,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/clients/update-crm.ts"
+    },
+    {
+      "path": "/api/admin/cluster/graph",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cluster/graph.ts"
     },
     {
       "path": "/api/admin/cluster/logs",

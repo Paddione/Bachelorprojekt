@@ -39,7 +39,7 @@
 <article class="doc-body">
 <html><head></head><body><h1>API Surface Map</h1>
 <blockquote>
-<p>Generated at 2026-06-11T00:06:19.843Z</p>
+<p>Generated at 2026-06-13T03:27:12.200Z</p>
 </blockquote>
 <table>
 <thead>
@@ -285,6 +285,12 @@
 <td><code>website/src/pages/api/admin/clients-list.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/admin/clients/contact-history/create</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/contact-history/create.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/clients/create</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
@@ -361,6 +367,18 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/clients/update.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/clients/update-crm</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/clients/update-crm.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/cluster/graph</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/cluster/graph.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/cluster/logs</code></td>
@@ -663,6 +681,12 @@
 <td><code>website/src/pages/api/admin/documents/assignments/[id].ts</code></td>
 </tr>
 <tr>
+<td><code>/api/admin/documents/assignments/{id}/pdf</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/assignments/[id]/pdf.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/admin/documents/notify/{id}</code></td>
 <td>POST</td>
 <td>🔐 admin</td>
@@ -679,6 +703,12 @@
 <td>GET, PUT, DELETE</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/documents/templates/[id].ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/documents/templates/{id}/pdf</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/documents/templates/[id]/pdf.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/einstellungen/backup</code></td>
@@ -973,6 +1003,18 @@
 <td>POST</td>
 <td>🔐 admin</td>
 <td><code>website/src/pages/api/admin/navigation/save.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/blocks</code></td>
+<td>GET, POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/blocks/index.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/admin/newsletter/blocks/{id}</code></td>
+<td>PUT, DELETE</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/admin/newsletter/blocks/[id].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/admin/newsletter/campaigns</code></td>
@@ -1703,55 +1745,55 @@
 <tr>
 <td><code>/api/arena/1v3</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/1v3.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/active</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/arena/active.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/duel</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/duel.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/lobby</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/lobby.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/matches</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/matches.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/solo</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/solo.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/start</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/start.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/arena/token</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/arena/token.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/assets/{...path}</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/assets/[...path].ts</code></td>
 </tr>
 <tr>
@@ -1763,7 +1805,7 @@
 <tr>
 <td><code>/api/assistant/dismiss</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/assistant/dismiss.ts</code></td>
 </tr>
 <tr>
@@ -1781,7 +1823,7 @@
 <tr>
 <td><code>/api/assistant/transcribe</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/assistant/transcribe.ts</code></td>
 </tr>
 <tr>
@@ -1793,25 +1835,25 @@
 <tr>
 <td><code>/api/auth/delete-account</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/auth/delete-account.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/auth/login</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/auth/login.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/auth/logout</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/auth/logout.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/auth/magic</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/auth/magic.ts</code></td>
 </tr>
 <tr>
@@ -1823,7 +1865,7 @@
 <tr>
 <td><code>/api/billing/create-invoice</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/billing/create-invoice.ts</code></td>
 </tr>
 <tr>
@@ -1847,7 +1889,7 @@
 <tr>
 <td><code>/api/booking</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/booking.ts</code></td>
 </tr>
 <tr>
@@ -1859,31 +1901,37 @@
 <tr>
 <td><code>/api/brett/bot</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/brett/bot.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/bug-report</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/bug-report.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/calendar/slots</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/calendar/slots.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/cluster/status</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/cluster/status.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/codesearch</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/codesearch.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/contact</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/contact.ts</code></td>
 </tr>
 <tr>
@@ -1893,9 +1941,15 @@
 <td><code>website/src/pages/api/cron/notify-unread.ts</code></td>
 </tr>
 <tr>
+<td><code>/api/cron/scheduled-publish</code></td>
+<td>GET</td>
+<td>⏰ cron</td>
+<td><code>website/src/pages/api/cron/scheduled-publish.ts</code></td>
+</tr>
+<tr>
 <td><code>/api/dsgvo-request</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/dsgvo-request.ts</code></td>
 </tr>
 <tr>
@@ -1937,19 +1991,19 @@
 <tr>
 <td><code>/api/health</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/health.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/internal/tickets/notify-close</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>🔒 internal</td>
 <td><code>website/src/pages/api/internal/tickets/notify-close.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/leistungen</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/leistungen.ts</code></td>
 </tr>
 <tr>
@@ -1961,7 +2015,7 @@
 <tr>
 <td><code>/api/meeting/finalize</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/meeting/finalize.ts</code></td>
 </tr>
 <tr>
@@ -1973,13 +2027,13 @@
 <tr>
 <td><code>/api/meeting/save-transcript</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/meeting/save-transcript.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/meeting/transcribe</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/meeting/transcribe.ts</code></td>
 </tr>
 <tr>
@@ -1991,19 +2045,19 @@
 <tr>
 <td><code>/api/newsletter/confirm</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/newsletter/confirm.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/newsletter/subscribe</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/newsletter/subscribe.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/newsletter/unsubscribe</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/newsletter/unsubscribe.ts</code></td>
 </tr>
 <tr>
@@ -2033,145 +2087,157 @@
 <tr>
 <td><code>/api/poll/{id}</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/poll/[id].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/poll/{id}/answer</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/poll/[id]/answer.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/poll/{id}/results</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/poll/[id]/results.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/documents/{assignmentId}/pdf</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/documents/[assignmentId]/pdf.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/learning/summary</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/learning/summary.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/learning/track</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/learning/track.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/messages</code></td>
 <td>GET, POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/messages.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/messages/{threadId}</code></td>
 <td>GET, POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/messages/[threadId].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/nachrichten</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/nachrichten.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/onboarding/mark-step</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/onboarding/mark-step.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/profile/export</code></td>
+<td>GET</td>
+<td>🔑 session</td>
+<td><code>website/src/pages/api/portal/profile/export.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/portal/profile/update</code></td>
+<td>POST</td>
+<td>🔑 session</td>
+<td><code>website/src/pages/api/portal/profile/update.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/projekte</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/projekte.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/projekttasks/{id}/done</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/projekttasks/[id]/done.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/questionnaires</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/questionnaires/index.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/questionnaires/{id}</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/questionnaires/[id]/index.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/questionnaires/{id}/answer</code></td>
 <td>PUT</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/questionnaires/[id]/answer.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/questionnaires/{id}/dismiss</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/questionnaires/[id]/dismiss.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/questionnaires/{id}/submit</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/questionnaires/[id]/submit.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/rooms</code></td>
 <td>GET</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/rooms.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/rooms/{id}/messages</code></td>
 <td>GET, POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/rooms/[id]/messages.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/rooms/ensure-direct</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/rooms/ensure-direct.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/portal/sign/{assignmentId}</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/portal/sign/[assignmentId].ts</code></td>
 </tr>
 <tr>
 <td><code>/api/register</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/register.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/signing/confirm</code></td>
 <td>POST</td>
-<td>🔑 auth</td>
+<td>🔑 session</td>
 <td><code>website/src/pages/api/signing/confirm.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/status</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/status.ts</code></td>
 </tr>
 <tr>
@@ -2189,7 +2255,7 @@
 <tr>
 <td><code>/api/stream/status</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/stream/status.ts</code></td>
 </tr>
 <tr>
@@ -2201,31 +2267,43 @@
 <tr>
 <td><code>/api/stripe/checkout</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/stripe/checkout.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/stripe/invoice-payment-intent</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/stripe/invoice-payment-intent.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/stripe/webhook</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/stripe/webhook.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/tickets/{id}/readiness</code></td>
+<td>POST</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/tickets/[id]/readiness.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/tickets/comment</code></td>
 <td>POST</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/tickets/comment.ts</code></td>
+</tr>
+<tr>
+<td><code>/api/tickets/graph</code></td>
+<td>GET</td>
+<td>🔐 admin</td>
+<td><code>website/src/pages/api/tickets/graph.ts</code></td>
 </tr>
 <tr>
 <td><code>/api/timeline</code></td>
 <td>GET</td>
-<td>🌐 public</td>
+<td>❓ unclassified</td>
 <td><code>website/src/pages/api/timeline.ts</code></td>
 </tr>
 </tbody></table>

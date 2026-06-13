@@ -152,7 +152,12 @@ mcp__plugin_playwright_playwright__browser_take_screenshot → { filename: "/tmp
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
-test.describe('FA-&lt;NN&gt;: &lt;Feature-Name&gt;', () =&gt; {
+// PFLICHT: Tag-Annotation für den PR-E2E-Workflow (e2e-pr.yml).
+// Der Tag steuert, welche Tests bei PRs mit diesem Feature-Scope laufen.
+// Verfügbare Tags: @smoke @website @content-hub @admin @factory @planungsbuero
+//                  @booking @meeting @billing @messaging @brett @fragebogen @crm
+// Neue Feature-Tags können ergänzt werden (Branch-Mapping in e2e-pr.yml erweitern).
+test.describe('FA-&lt;NN&gt;: &lt;Feature-Name&gt;', { tag: ['@&lt;feature-tag&gt;'] }, () =&gt; {
   test('T1: /&lt;pfad&gt; requires authentication', async ({ page }) =&gt; {
     await page.goto(`${BASE}/&lt;pfad&gt;`);
     await expect(page).not.toHaveURL(`${BASE}/&lt;pfad&gt;`);

@@ -493,9 +493,9 @@ task workspace:vaultwarden:seed ENV=&lt;env&gt;    # optional: secret templates
 <p>Then re-verify ingress accessibility (Step 1.5 → "Ingress Accessibility Verification"): <code>task workspace:check-connectivity ENV=&lt;env&gt;</code>.</p>
 <hr>
 <h2 id="phase-3--devmentolderde-stack-operations">Phase 3 — dev.mentolder.de Stack Operations</h2>
-<p>The development stack runs inside a k3d cluster hosted on the LAN node <code>k3s-1</code>.</p>
+<p>The development stack runs inside a <strong>local k3d cluster on the WSL host</strong> (context <code>k3d-mentolder-dev</code>). The former LAN node <code>k3s-1</code> has been permanently <strong>decommissioned</strong> (see CLAUDE.md) — do not target it.</p>
 <h3>Step 3.1: Cluster Lifecycle</h3>
-<div class="code-wrapper"><pre><code class="language-bash"># Create cluster (MUST run from k3s-1 machine via task wrapper)
+<div class="code-wrapper"><pre><code class="language-bash"># Create cluster (runs locally on the WSL host via task wrapper)
 task dev:cluster:create
 
 # Deploy dev resources (website + workspace manifests)

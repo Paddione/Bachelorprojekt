@@ -126,7 +126,7 @@ To bulk approve via SQL:</p>
 <h3>Step 2.2: Execute Reindex</h3>
 <div class="code-wrapper"><pre><code class="language-bash">task knowledge:reindex ENV=mentolder SOURCE=&lt;source&gt;
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><em><code>SOURCE</code> can be: <code>prs</code> (GitHub interactions), <code>markdown</code> (docs/markd directory files), <code>bugs</code> (tickets database), or <code>all</code>.</em></p>
+<p><em><code>SOURCE</code> can be: <code>prs</code> (GitHub interactions), <code>markdown</code> (<code>docs/superpowers/specs</code> + <code>docs/superpowers/plans</code> + root <code>CLAUDE.md</code>, per <code>scripts/knowledge/ingest-markdown.mjs</code>), <code>bugs</code> (tickets database), or <code>all</code>.</em></p>
 <h3>Step 2.3: Verification</h3>
 <p>Check that document counts are populated:</p>
 <div class="code-wrapper"><pre><code class="language-sql">SELECT collection_name, document_count, updated_at FROM knowledge.collections ORDER BY updated_at DESC;
@@ -156,7 +156,7 @@ To bulk approve via SQL:</p>
 <tbody><tr>
 <td><code>knowledge:reindex</code> indexes 0 docs</td>
 <td>Embedding API down during indexing. Collection cleared!</td>
-<td>1. <strong>Stop:</strong> Do not commit empty state. <br>2. Restore DB from backup: <code>task workspace:restore -- website &lt;timestamp&gt;</code> <br>3. Fix the embedding endpoint before retrying.</td>
+<td>1. <strong>Stop:</strong> Do not commit empty state. <br>2. Restore DB from backup: <code>task workspace:db:restore -- website &lt;timestamp&gt;</code> <br>3. Fix the embedding endpoint before retrying.</td>
 </tr>
 <tr>
 <td>TEI returns 503 / classify hangs</td>

@@ -66,7 +66,7 @@ an entry with: <code>type</code> (broken/degraded/suspicious/security/drift), <c
 </ul>
 <p>Never use <code>tickets.ticket_links</code> for PR references — it is ticket→ticket only (<code>to_id</code> is <code>NOT NULL</code>, <code>kind ∈ blocks|blocked_by|duplicate_of|relates_to|fixes|fixed_by</code>).</p>
 <p><strong>Enum reference</strong> (closing a ticket with an out-of-set value fails the CHECK constraint):
-<code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,backlog,in_progress,in_review,blocked,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code> · <code>attention_mode ∈ {auto,ai_ready,needs_human}</code> (default <code>auto</code>).</p>
+<code>priority ∈ {hoch,mittel,niedrig}</code> · <code>severity ∈ {critical,major,minor,trivial}</code> · <code>status ∈ {triage,planning,plan_staged,backlog,in_progress,in_review,blocked,qa_review,done,archived}</code> · <code>resolution ∈ {fixed,shipped,obsolete}</code> · <code>attention_mode ∈ {auto,ai_ready,needs_human}</code> (default <code>auto</code>).</p>
 <p>All SQL below assumes:</p>
 <div class="code-wrapper"><pre><code class="language-bash">PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }

@@ -114,14 +114,14 @@
   <ControlPanel />
 {:else if activeTab === 'analytics'}
   <div class="analytics-tab-wrap">
-    <FactoryKpiGrid client:load />
-    <FactoryThroughputChart client:load />
-    <FactoryPhaseHeatmap client:load />
-    <FactoryShippedBar client:load />
+    <FactoryKpiGrid />
+    <FactoryThroughputChart />
+    <FactoryPhaseHeatmap />
+    <FactoryShippedBar />
   </div>
 {:else if activeTab === 'abhaengigkeiten'}
   <div class="dag-tab-wrap">
-    <DependencyGraph client:load />
+    <DependencyGraph />
   </div>
 {/if}
 

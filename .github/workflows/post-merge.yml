@@ -22,7 +22,9 @@ jobs:
           fi
           echo "Closing ticket $TICKET_ID (merged to main)."
           mkdir -p "$HOME/.kube"
-          printf '%s' "$FLEET_KUBECONFIG" > "$HOME/.kube/config"
+          # FLEET_KUBECONFIG is stored base64-encoded (matches build-brett.yml:63, build-website.yml:75)
+          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
           export KUBECONFIG="$HOME/.kube/config"
           export TICKET_CTX=fleet BRAND=mentolder
           # Idempotent: re-running update-status to 'done' on an already-done

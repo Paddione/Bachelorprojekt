@@ -11,7 +11,7 @@ setup() {
 #!/usr/bin/env bash
 # get pod → fake pod name; exec → record stdin SQL to \$CAP
 if [[ "\$*" == *"get pod"* ]]; then echo "pod/shared-db-0"; exit 0; fi
-if [[ "\$*" == *"exec"* ]]; then cat > "$CAP"; echo "fake-uuid-1234"; exit 0; fi
+if [[ "\$*" == *"exec"* ]]; then cat >> "$CAP"; echo "fake-uuid-1234"; exit 0; fi
 exit 0
 EOF
   chmod +x "$MOCKDIR/kubectl"
@@ -36,6 +36,8 @@ teardown() { rm -rf "$MOCKDIR"; }
 @test "add-pr-link inserts into ticket_links with kind='pr' and pr_number" {
   run bash "$TICKET" add-pr-link --id T000123 --pr 1234
   [ "$status" -eq 0 ]
+  # Both SQL calls (UUID SELECT + INSERT) are appended to $CAP; assert both present
+  grep -q "SELECT id FROM tickets.tickets" "$CAP"
   grep -q "INSERT INTO tickets.ticket_links" "$CAP"
   grep -q "kind" "$CAP"
   grep -qi "pr_number" "$CAP"

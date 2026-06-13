@@ -21,6 +21,25 @@ If the log is empty or no mishaps were found, report that and stop — nothing t
 
 ---
 
+## Step 0: Verify Before Creating (False-Positive Guard)
+
+Before inserting any ticket, verify the claim with a concrete check. Each mishap type has a minimum verification:
+
+| Mishap type | Required verification |
+|---|---|
+| `broken` (import cycle) | `grep -r 'import.*<file>' <target>` to confirm the cycle actually exists |
+| `broken` (file missing/stale) | `ls` or `git show HEAD:<file>` to confirm the file is actually absent or stale |
+| `drift` (version mismatch) | Check current value via kubectl/grep before asserting drift |
+| `suspicious` (unexpected state) | Run the command that would reveal the state and confirm it |
+| `process` | These are observations, not assertions — no verification needed |
+| `security` | These are always created without suppression |
+
+**If verification contradicts the observation:** drop the mishap entry and log `[mishap-tracker] SKIP <title> — verified false positive: <reason>` instead of creating a ticket.
+
+**If verification is not feasible in context** (e.g. no cluster access): create the ticket but add `[UNVERIFIED — <reason>]` to the description so the assignee knows to verify first.
+
+---
+
 ## Step 1: Severity Mapping
 
 | Mishap type | Ticket type | Ticket severity |

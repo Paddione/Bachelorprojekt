@@ -58,6 +58,7 @@
   .mobile-tab-bar__tab {
     flex: 0 0 auto;
     min-width: 56px;
+    min-height: 44px;
     height: 100%;
     padding: 0 8px;
     border: none;

@@ -10,6 +10,71 @@ const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy']
 export type Phase = (typeof PHASE_ORDER)[number];
 export type PhaseState = 'entered' | 'done' | 'blocked';
 
+export type PhaseSegmentState = 'pending' | 'active' | 'done' | 'blocked';
+export interface PhaseProgressSegment { phase: Phase; state: PhaseSegmentState; }
+
+export function phaseProgress(phase: Phase | null, state: PhaseState | null): PhaseProgressSegment[] {
+  const idx = phase ? PHASE_ORDER.indexOf(phase) : -1;
+  return PHASE_ORDER.map((p, i): PhaseProgressSegment => {
+    if (idx < 0 || i < idx) return { phase: p, state: idx < 0 ? 'pending' : 'done' };
+    if (i > idx) return { phase: p, state: 'pending' };
+    if (state === 'blocked') return { phase: p, state: 'blocked' };
+    if (state === 'done') return { phase: p, state: 'done' };
+    return { phase: p, state: 'active' };
+  });
+}
+
+export const ALL_TICKET_STATUSES = [
+  'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
+  'in_review', 'blocked', 'qa_review', 'done', 'archived',
+] as const;
+export type TicketStatus = (typeof ALL_TICKET_STATUSES)[number];
+
+export const STATUS_BUCKETS: Record<TicketStatus, string> = {
+  triage:      'planning',
+  planning:    'planning',
+  plan_staged: 'staged',
+  backlog:     'loadingDock',
+  in_progress: 'hall',
+  in_review:   'hall',
+  blocked:     'attention',
+  qa_review:   'qa',
+  done:        'shipped',
+  archived:    'archive',
+};
+
+export interface AttentionPayload {
+  blocked: { extId: string; reason: string }[];
+  stuck:   { extId: string; minutes: number }[];
+  cooldowns: { provider: string; cooldownUntil: string | null }[];
+  isEmpty: boolean;
+}
+
+export function buildAttention(
+  hall: HallItem[], providers: ProviderStatus[], stuckMin = 15,
+): AttentionPayload {
+  const blocked = hall
+    .filter(h => h.phaseState === 'blocked')
+    .map(h => ({ extId: h.extId, reason: h.blockReason ?? 'blockiert' }));
+  const stuck = hall
+    .filter(h => h.phaseState !== 'blocked' && h.phaseSince &&
+      (Date.now() - new Date(h.phaseSince).getTime()) / 60_000 >= stuckMin)
+    .map(h => ({ extId: h.extId, minutes: Math.round((Date.now() - new Date(h.phaseSince!).getTime()) / 60_000) }));
+  const cooldowns = providers
+    .filter(p => p.status === 'cooldown')
+    .map(p => ({ provider: p.provider, cooldownUntil: p.cooldownUntil }));
+  return { blocked, stuck, cooldowns, isEmpty: !blocked.length && !stuck.length && !cooldowns.length };
+}
+
+export interface TimelineEntry extends PhaseEventRow { durationSec: number | null; }
+export function phaseDurations(events: PhaseEventRow[]): TimelineEntry[] {
+  const asc = [...events].sort((a, b) => +new Date(a.at) - +new Date(b.at));
+  return asc.map((e, i) => ({
+    ...e,
+    durationSec: i === 0 ? null : Math.round((+new Date(e.at) - +new Date(asc[i - 1].at)) / 1000),
+  }));
+}
+
 export interface ControlSnapshot {
   killSwitch: boolean;
   slotsUsed: number;
@@ -29,9 +94,10 @@ export interface HallItem {
   extId: string; title: string; priority: string;
   phase: Phase | null; phaseState: PhaseState | null; phaseSince: string | null;
   retryCount: number; blockReason: string | null; slot: number | null;
-  driver: 'factory' | 'devflow' | null;   // NEU — vom neuesten Phase-Event
-  prNumber: number | null;                 // NEU — aus deploy-detail geparst
-  ciStatus: 'success' | 'pending' | 'failure' | null;  // NEU — vom API befüllt
+  driver: 'factory' | 'devflow' | null;
+  prNumber: number | null;
+  ciStatus: 'success' | 'pending' | 'failure' | null;
+  phaseProgress: PhaseProgressSegment[];
 }
 export interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
 export interface StagedItem {
@@ -57,7 +123,7 @@ export interface FloorPayload {
   officeWaiting: number;
   stagedWaiting: number;
   planningCount: PlanningCount;
-  qaQueue: never[];
+  attention: AttentionPayload;
   fetchedAt: string;
 }
 
@@ -174,6 +240,7 @@ export async function getHall(): Promise<HallItem[]> {
     driver: row.driver ?? null,
     prNumber: row.driver === 'devflow' ? parsePrNumber(row.detail) : null,
     ciStatus: null,
+    phaseProgress: phaseProgress(row.phase ?? null, row.state ?? null),
   }));
 }
 
@@ -323,7 +390,7 @@ export async function getFloor(slotsCap: number): Promise<FloorPayload> {
     control, metrics, loadingDock, hall, shipped, staged, providerHealth,
     officeWaiting, stagedWaiting: staged.length,
     planningCount,
-    qaQueue: [],
+    attention: buildAttention(hall, providerHealth),
     fetchedAt: new Date().toISOString(),
   };
 }

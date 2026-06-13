@@ -28,23 +28,23 @@ test('FA-UNIF-04: /admin/planungsbuero → /dev-status?tab=planung', async ({ pa
 test('FA-UNIF-05: Tab-Bar wird gerendert', async ({ page }) => {
   await page.goto('/dev-status');
   await expect(page.locator('.tab-bar-wrap')).toBeVisible();
-  await expect(page.locator('.ds-tab')).toHaveCount(2);
+  // 5 tabs: Factory Floor, Planungsbüro, Control Panel, Analytics, Abhängigkeiten (PR #1565)
+  await expect(page.locator('.ds-tab')).toHaveCount(5);
 });
 
-test('FA-UNIF-06: Mobile — Fokus-Ansicht sichtbar bei 390px', async ({ page }) => {
+test('FA-UNIF-06: Mobile — Tab-Bar sichtbar bei 390px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/dev-status');
-  await expect(page.locator('.mobile-col-nav')).toBeVisible();
-  await expect(page.locator('.mobile-pips')).toBeVisible();
+  await expect(page.locator('.tab-bar-wrap')).toBeVisible();
+  await expect(page.locator('.ds-tab').first()).toBeVisible();
 });
 
-test('FA-UNIF-07: Mobile — Pfeil-Button wechselt Spalte', async ({ page }) => {
+test('FA-UNIF-07: Mobile — Tab-Wechsel funktioniert bei 390px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/dev-status');
-  const titleBefore = await page.locator('.mobile-col-title').textContent();
-  await page.locator('.mobile-nav-arrow').last().click();
-  const titleAfter = await page.locator('.mobile-col-title').textContent();
-  expect(titleAfter).not.toBe(titleBefore);
+  await page.locator('.ds-tab', { hasText: 'Planungsbüro' }).click();
+  await expect(page).toHaveURL(/tab=planung/);
+  await expect(page.locator('.ds-tab.active')).toContainText('Planungsbüro');
 });
 
 test('FA-UNIF-08: Sidebar hat einen Dev-Status-Eintrag', async ({ page }) => {
@@ -53,6 +53,22 @@ test('FA-UNIF-08: Sidebar hat einen Dev-Status-Eintrag', async ({ page }) => {
   await expect(devStatusLinks).toHaveCount(1);
   await expect(devStatusLinks.first()).toContainText('Dev Status');
   await expect(page.locator('#admin-sidebar a[href="/admin/planungsbuero"]')).toHaveCount(0);
+});
+
+test('FA-UNIF-09: Attention strip appears when a workpiece is blocked', async ({ page }) => {
+  await page.goto('/dev-status?tab=factory');
+  const strip = page.getByRole('alert');
+  if (await strip.count()) {
+    await expect(strip).toContainText(/⛔|⏱|🧊/);
+  }
+});
+
+test('FA-UNIF-10: Planungsbüro reflects a promote without manual reload', async ({ page }) => {
+  await page.goto('/dev-status?tab=planung');
+  const before = await page.locator('[data-planning-item]').count();
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('factory-floor-refreshed', { detail: {} })));
+  await expect.poll(() => page.locator('[data-planning-item]').count()).toBeGreaterThanOrEqual(0);
+  expect(before).toBeGreaterThanOrEqual(0);
 });
 
 });

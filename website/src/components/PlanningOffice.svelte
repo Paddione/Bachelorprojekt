@@ -195,11 +195,17 @@
       if (v === 'desktop' || v === 'mobile') viewOverride = v;
     } catch {}
     window.addEventListener('resize', onResize);
+    window.addEventListener('factory-floor-refreshed', onFloorRefresh);
     load();
   });
 
+  function onFloorRefresh() {
+    void load();
+  }
+
   onDestroy(() => {
     window.removeEventListener('resize', onResize);
+    window.removeEventListener('factory-floor-refreshed', onFloorRefresh);
   });
 </script>
 

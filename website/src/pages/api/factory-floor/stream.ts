@@ -2,11 +2,9 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
 import { getPlanningCount } from '../../../lib/factory-floor';
+import { STREAM_POLL_MS, STREAM_HEARTBEAT_MS } from '../../../lib/factory-constants';
 
 export const prerender = false;
-
-const POLL_MS = 5_000;
-const HEARTBEAT_MS = 30_000;
 
 export const GET: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -43,8 +41,8 @@ export const GET: APIRoute = async ({ request }) => {
 
       // Prime lastMax so the first poll only fires on a *new* event, then start loops.
       void poll();
-      pollTimer = setInterval(poll, POLL_MS);
-      beatTimer = setInterval(() => send('heartbeat', { t: Date.now() }), HEARTBEAT_MS);
+      pollTimer = setInterval(poll, STREAM_POLL_MS);
+      beatTimer = setInterval(() => send('heartbeat', { t: Date.now() }), STREAM_HEARTBEAT_MS);
 
       const cleanup = () => {
         if (pollTimer) clearInterval(pollTimer);

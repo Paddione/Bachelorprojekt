@@ -109,6 +109,22 @@
           </div>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-admin-text-mute uppercase">Subdomain</label>
+            <input type="text" bind:value={asset.subdomain} class="admin-input w-full font-mono text-[10px]" placeholder="z.B. auth" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-admin-text-mute uppercase">URL-Override</label>
+            <input type="text" bind:value={asset.url} class="admin-input w-full font-mono text-[10px]" placeholder="https://… (überschreibt Subdomain)" />
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-admin-text-mute uppercase">Health-URL (Template, {'{ns}'} erlaubt)</label>
+          <input type="text" bind:value={asset.health_url} class="admin-input w-full font-mono text-[10px]" placeholder="http://svc.{'{ns}'}.svc.cluster.local/health" />
+        </div>
+
         <div class="space-y-2">
           <label class="text-xs font-bold text-admin-text-mute uppercase">Aktiv auf Clustern</label>
           <div class="flex gap-4">

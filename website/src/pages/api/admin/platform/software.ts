@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { listSoftwareAssets, upsertSoftwareAsset } from '../../../../lib/platform-db';
 import { createK8sClient, K8sApiError, type K8sClient } from '../../../../lib/k8s';
+import { resolveServiceUrl } from '../../../../lib/platform-links';
 
 export const prerender = false;
 
@@ -23,6 +24,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     const currentCluster = process.env.BRAND_ID || 'mentolder';
+    const brandDomain = process.env.PROD_DOMAIN ?? '';
     const enrichedAssets = await Promise.all(assets.map(async (asset) => {
       let liveStatus = 'unknown';
       let readyReplicas = 0;
@@ -57,7 +59,8 @@ export const GET: APIRoute = async ({ request }) => {
       return {
         ...asset,
         live_status: liveStatus,
-        replicas: { ready: readyReplicas, total: totalReplicas }
+        replicas: { ready: readyReplicas, total: totalReplicas },
+        serviceUrl: resolveServiceUrl(asset, brandDomain),
       };
     }));
 

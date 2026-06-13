@@ -51,7 +51,8 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     for (const svc of results) {
       expect(svc).toHaveProperty('name');
       expect(svc).toHaveProperty('status');
-      expect(['ok', 'slow', 'error']).toContain(svc.status);
+      expect(['ok', 'slow', 'error', 'optional']).toContain(svc.status);
+      expect(svc).toHaveProperty('slug');
     }
   });
 
@@ -93,5 +94,25 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     expect(collabora).toBeDefined();
     // The website pod must be able to reach collabora.workspace-office:9980.
     expect(['ok', 'slow']).toContain(collabora.status);
+  });
+
+  test('T6: health API now probes more than the 5 hardcoded services', async ({ request }, testInfo) => {
+    await assertAuthenticatedReachable(
+      request,
+      `${BASE}/api/admin/ops/health`,
+      { acceptableStatuses: [200, 302, 401, 403], label: 'ops health API' },
+      testInfo
+    );
+    const res = await request.get(`${BASE}/api/admin/ops/health`);
+    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    const clusterKey = Object.keys(body.results)[0];
+    const results: any[] = body.results[clusterKey];
+    expect(results.length).toBeGreaterThan(5);
+    for (const svc of results) {
+      expect(svc).toHaveProperty('slug');
+      expect(typeof svc.optional).toBe('boolean');
+    }
   });
 });

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { t, type Locale } from '../i18n/index';
+
   interface FAQItem {
     question: string;
     answer: string;
@@ -6,11 +8,14 @@
 
   interface Props {
     items: FAQItem[];
+    locale?: Locale;
     title?: string;
   }
 
-  let { items, title = 'Häufig gestellte Fragen' }: Props = $props();
+  let { items, locale = 'de', title }: Props = $props();
   let openIndex = $state<number | null>(null);
+
+  const effectiveTitle = $derived(title ?? t(locale, 'faq.title'));
 
   function toggle(index: number) {
     openIndex = openIndex === index ? null : index;
@@ -19,7 +24,7 @@
 
 <section class="faq-section" aria-labelledby="faq-heading">
   <div class="faq-wrap">
-    <h2 id="faq-heading">{title}</h2>
+    <h2 id="faq-heading">{effectiveTitle}</h2>
 
     <div class="faq-list">
       {#each items as item, i}

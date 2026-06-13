@@ -1,5 +1,12 @@
 <script lang="ts">
-  // Section 1: Cookie consent
+  import { t, type Locale } from '../i18n/index';
+
+  interface Props {
+    locale?: Locale;
+  }
+
+  let { locale = 'de' }: Props = $props();
+
   let cookieConsent = $state<string | null>(null);
 
   // Section 2: Auth state
@@ -64,69 +71,69 @@
 
 <!-- Section 1: Cookie-Einstellungen -->
 <div class="mb-8 p-6 bg-dark-light rounded-2xl border border-dark-lighter">
-  <h2 class="text-xl font-semibold text-gold mb-3">Cookie-Einstellungen</h2>
+  <h2 class="text-xl font-semibold text-gold mb-3">{t(locale, 'data.cookie-title')}</h2>
   {#if cookieConsent}
-    <p class="text-muted mb-4">Aktueller Status: <span class="text-light">{cookieConsent === 'all' ? 'Alle akzeptiert' : cookieConsent === 'essential' ? 'Nur notwendige' : cookieConsent}</span></p>
+    <p class="text-muted mb-4">Aktueller Status: <span class="text-light">{cookieConsent === 'all' ? t(locale, 'data.cookie-all') : cookieConsent === 'essential' ? t(locale, 'data.cookie-essential') : cookieConsent}</span></p>
   {:else}
-    <p class="text-muted mb-4">Keine Cookie-Einwilligung gefunden (nur technisch notwendige Cookies aktiv).</p>
+    <p class="text-muted mb-4">{t(locale, 'data.cookie-none')}</p>
   {/if}
   <button onclick={reopenCookies} class="px-4 py-2 bg-gold text-dark font-semibold rounded hover:bg-gold/90 transition-colors text-sm">
-    Einstellungen ändern
+    {t(locale, 'data.cookie-change')}
   </button>
 </div>
 
 <!-- Section 2: Anmeldung / Session -->
 <div class="mb-8 p-6 bg-dark-light rounded-2xl border border-dark-lighter">
-  <h2 class="text-xl font-semibold text-gold mb-3">Anmeldung / Session</h2>
+  <h2 class="text-xl font-semibold text-gold mb-3">{t(locale, 'data.session-title')}</h2>
   {#if authState === null}
-    <p class="text-muted">Wird geladen…</p>
+    <p class="text-muted">{t(locale, 'data.loading')}</p>
   {:else if authState.authenticated && authState.user}
-    <p class="text-muted mb-1">Angemeldet als: <span class="text-light">{authState.user.name}</span></p>
-    <p class="text-muted mb-4">E-Mail: <span class="text-light">{authState.user.email}</span></p>
+    <p class="text-muted mb-1">{t(locale, 'data.logged-in-as')} <span class="text-light">{authState.user.name}</span></p>
+    <p class="text-muted mb-4">{t(locale, 'data.email-label')} <span class="text-light">{authState.user.email}</span></p>
     <a href="/api/auth/logout" class="px-4 py-2 border border-dark-lighter text-muted hover:text-light hover:border-light rounded text-sm transition-colors">
-      Ausloggen
+      {t(locale, 'data.logout')}
     </a>
   {:else}
-    <p class="text-muted mb-4">Kein Konto angemeldet.</p>
+    <p class="text-muted mb-4">{t(locale, 'data.no-account')}</p>
     <a href="/api/auth/login" class="px-4 py-2 bg-gold text-dark font-semibold rounded hover:bg-gold/90 transition-colors text-sm">
-      Zum Login
+      {t(locale, 'data.go-login')}
     </a>
   {/if}
 </div>
 
 <!-- Section 3: Daten einsehen und löschen -->
 <div class="p-6 bg-dark-light rounded-2xl border border-dark-lighter">
-  <h2 class="text-xl font-semibold text-gold mb-3">Daten einsehen und löschen</h2>
+  <h2 class="text-xl font-semibold text-gold mb-3">{t(locale, 'data.data-title')}</h2>
 
   {#if authState?.authenticated}
     <!-- Logged-in: direct delete -->
     <div class="mb-6">
-      <h3 class="text-light font-semibold mb-2">Meine Daten herunterladen</h3>
-      <p class="text-muted mb-3 text-sm">Exportiert Ihr Profil, CRM-Daten und Kontakthistorie als JSON (Art. 15 DSGVO).</p>
+      <h3 class="text-light font-semibold mb-2">{t(locale, 'data.download-title')}</h3>
+      <p class="text-muted mb-3 text-sm">{t(locale, 'data.download-desc')}</p>
       <a href="/api/portal/profile/export"
          class="px-4 py-2 border border-dark-lighter text-muted hover:text-light hover:border-light rounded text-sm transition-colors inline-block">
-        Meine Daten herunterladen (JSON)
+        {t(locale, 'data.download-btn')}
       </a>
     </div>
     <div class="mb-6">
-      <h3 class="text-light font-semibold mb-2">Konto löschen</h3>
-      <p class="text-muted mb-3 text-sm">Löscht Ihr Konto dauerhaft. Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+      <h3 class="text-light font-semibold mb-2">{t(locale, 'data.delete-title')}</h3>
+      <p class="text-muted mb-3 text-sm">{t(locale, 'data.delete-desc')}</p>
       {#if !deleteConfirm}
         <button onclick={() => deleteConfirm = true} class="px-4 py-2 border border-red-600 text-red-400 hover:bg-red-600 hover:text-white rounded text-sm transition-colors">
-          Konto löschen
+          {t(locale, 'data.delete-btn')}
         </button>
       {:else}
-        <p class="text-red-400 font-semibold mb-3">Sind Sie sicher? Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+        <p class="text-red-400 font-semibold mb-3">{t(locale, 'data.delete-confirm')}</p>
         <div class="flex gap-3">
           <button onclick={deleteAccount} disabled={deleteStatus === 'deleting'} class="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors disabled:opacity-50">
-            {deleteStatus === 'deleting' ? 'Wird gelöscht…' : 'Ja, Konto löschen'}
+            {deleteStatus === 'deleting' ? t(locale, 'data.delete-deleting') : t(locale, 'data.delete-yes')}
           </button>
           <button onclick={() => { deleteConfirm = false; deleteStatus = 'idle'; }} class="px-4 py-2 border border-dark-lighter text-muted hover:text-light rounded text-sm transition-colors">
-            Abbrechen
+            {t(locale, 'data.cancel')}
           </button>
         </div>
         {#if deleteStatus === 'error'}
-          <p class="text-red-400 mt-2 text-sm">Fehler beim Löschen. Bitte versuchen Sie es erneut.</p>
+          <p class="text-red-400 mt-2 text-sm">{t(locale, 'data.delete-error')}</p>
         {/if}
       {/if}
     </div>
@@ -134,39 +141,39 @@
 
   <!-- DSGVO request form (always shown) -->
   {#if requestStatus === 'sent'}
-    <p class="text-green-400">Ihre Anfrage wurde übermittelt. Wir melden uns innerhalb von 30 Tagen.</p>
+    <p class="text-green-400">{t(locale, 'data.dsgvo-sent')}</p>
   {:else}
     <div>
-      <h3 class="text-light font-semibold mb-3">Anfrage stellen</h3>
+      <h3 class="text-light font-semibold mb-3">{t(locale, 'data.request-title')}</h3>
       <div class="flex gap-3 mb-4 flex-wrap">
         <button
           onclick={() => requestType = 'auskunft'}
           class={`px-4 py-2 rounded text-sm border transition-colors ${requestType === 'auskunft' ? 'bg-gold text-dark border-gold' : 'border-dark-lighter text-muted hover:text-light'}`}
         >
-          Auskunft anfordern (Art. 15 DSGVO)
+          {t(locale, 'data.request-auskunft')}
         </button>
         <button
           onclick={() => requestType = 'loeschung'}
           class={`px-4 py-2 rounded text-sm border transition-colors ${requestType === 'loeschung' ? 'bg-gold text-dark border-gold' : 'border-dark-lighter text-muted hover:text-light'}`}
         >
-          Löschung beantragen (Art. 17 DSGVO)
+          {t(locale, 'data.request-loeschung')}
         </button>
       </div>
       {#if requestType}
         <div class="space-y-3">
-          <label for="req-name" class="sr-only">Ihr Name</label>
+          <label for="req-name" class="sr-only">{t(locale, 'data.request-name')}</label>
           <input
             id="req-name"
             type="text"
-            placeholder="Ihr Name"
+            placeholder={t(locale, 'data.request-name')}
             bind:value={requestName}
             class="w-full px-4 py-2.5 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold/20 text-sm"
           />
-          <label for="req-email" class="sr-only">Ihre E-Mail-Adresse</label>
+          <label for="req-email" class="sr-only">{t(locale, 'data.request-email')}</label>
           <input
             id="req-email"
             type="email"
-            placeholder="Ihre E-Mail-Adresse"
+            placeholder={t(locale, 'data.request-email')}
             bind:value={requestEmail}
             class="w-full px-4 py-2.5 rounded border border-dark-lighter bg-dark text-light focus:border-gold focus:ring-2 focus:ring-gold/20 text-sm"
           />
@@ -175,10 +182,10 @@
             disabled={requestStatus === 'sending' || !requestName.trim() || !requestEmail.trim()}
             class="px-4 py-2 bg-gold text-dark font-semibold rounded hover:bg-gold/90 transition-colors text-sm disabled:opacity-50"
           >
-            {requestStatus === 'sending' ? 'Wird gesendet…' : 'Anfrage senden'}
+            {requestStatus === 'sending' ? t(locale, 'data.request-sending') : t(locale, 'data.request-send')}
           </button>
           {#if requestStatus === 'error'}
-            <p class="text-red-400 text-sm">Fehler beim Senden. Bitte versuchen Sie es erneut.</p>
+            <p class="text-red-400 text-sm">{t(locale, 'data.request-error')}</p>
           {/if}
         </div>
       {/if}

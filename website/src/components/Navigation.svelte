@@ -2,12 +2,13 @@
   import { onMount } from 'svelte';
   import type { NavigationLink } from '../config/types';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
+  import { t, type Locale } from '../i18n/index';
 
   interface Props {
     siteTitle?: string;
-    /** Top-nav links from the active BrandConfig. Falls back to mentolder defaults. */
     links?: NavigationLink[];
     pathname?: string;
+    locale?: Locale;
   }
 
   let {
@@ -19,6 +20,7 @@
       { label: 'Kontakt',    href: '/kontakt' },
     ],
     pathname = '/',
+    locale = 'de',
   }: Props = $props();
   const brandWord = siteTitle.replace(/\.de$/i, '').toLowerCase();
 
@@ -57,10 +59,10 @@
   }
 </script>
 
-<header class="topbar" aria-label="Hauptnavigation">
+<header class="topbar" aria-label={t(locale, 'nav.aria-main')}>
   <div class="wrap">
     <!-- Brand mark -->
-    <a href="/" class="brand" aria-label="{brandWord} Startseite">
+    <a href="/" class="brand" aria-label={`${brandWord} ${t(locale, 'nav.startpage')}`}>
       <div class="mark" aria-hidden="true">
         <svg class="mark-m" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <text x="16" y="22" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="18">m</text>
@@ -70,7 +72,7 @@
     </a>
 
     <!-- Desktop nav -->
-    <nav class="nav-links" aria-label="Seitennavigation">
+    <nav class="nav-links" aria-label={t(locale, 'nav.aria-side')}>
       {#each links as link}
         <a
           href={link.href}
@@ -81,7 +83,7 @@
     </nav>
 
     <div class="nav-right">
-      <span class="nav-meta" aria-hidden="true">Lüneburg, Hamburg und Umgebung · DE</span>
+      <span class="nav-meta" aria-hidden="true">{t(locale, 'nav.location')}</span>
 
       {#if authChecked}
         {#if user}
@@ -92,7 +94,7 @@
               onclick={() => (menuOpen = !menuOpen)}
               aria-expanded={menuOpen}
               aria-haspopup="true"
-              aria-label="Benutzermenu öffnen"
+              aria-label={t(locale, 'nav.user-menu')}
             >
               <span class="user-avatar">{initial(user.name)}</span>
               <span class="user-pill-name">{user.name.split(' ')[0]}</span>
@@ -124,20 +126,20 @@
                   role="menuitem"
                   data-testid="nav-user-area"
                 >
-                  {#if user.isAdmin}
+                    {#if user.isAdmin}
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <rect x="2" y="2" width="5" height="5" rx="0.5"/>
                       <rect x="9" y="2" width="5" height="5" rx="0.5"/>
                       <rect x="2" y="9" width="5" height="5" rx="0.5"/>
                       <rect x="9" y="9" width="5" height="5" rx="0.5"/>
                     </svg>
-                    Admin
+                    {t(locale, 'nav.admin')}
                   {:else}
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <circle cx="8" cy="5" r="3"/>
                       <path d="M2 15a6 6 0 0 1 12 0"/>
                     </svg>
-                    Mein Portal
+                    {t(locale, 'nav.portal')}
                   {/if}
                 </a>
 
@@ -152,7 +154,7 @@
                       <circle cx="8" cy="5" r="3"/>
                       <path d="M2 15a6 6 0 0 1 12 0"/>
                     </svg>
-                    Als Nutzer ansehen
+                    {t(locale, 'nav.view-as-user')}
                   </a>
                 {/if}
 
@@ -166,9 +168,9 @@
                     <circle cx="8" cy="8" r="6"/>
                     <polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor" stroke="none"/>
                   </svg>
-                  Livestream
+                  {t(locale, 'nav.livestream')}
                   {#if streamLive}
-                    <span class="live-badge" aria-label="Live">LIVE</span>
+                    <span class="live-badge" aria-label="Live">{t(locale, 'nav.live')}</span>
                   {/if}
                 </a>
 
@@ -179,19 +181,19 @@
                     <path d="M6 12H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>
                     <path d="M10.5 11l3-3-3-3M13.5 8H6"/>
                   </svg>
-                  Abmelden
+                  {t(locale, 'nav.logout')}
                 </a>
               </div>
             {/if}
           </div>
         {:else}
-          <a href="/registrieren" class="nav-link-sm">Registrieren</a>
-          <a href="/api/auth/login" class="nav-link-sm">Anmelden</a>
+          <a href="/registrieren" class="nav-link-sm">{t(locale, 'nav.register')}</a>
+          <a href="/api/auth/login" class="nav-link-sm">{t(locale, 'nav.login')}</a>
         {/if}
       {/if}
 
-      <a href="/kontakt" class="nav-cta" aria-label="Kostenloses Erstgespräch vereinbaren">
-        Erstgespräch
+      <a href="/kontakt" class="nav-cta" aria-label={t(locale, 'nav.cta-aria')}>
+        {t(locale, 'nav.cta-label')}
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M2 7h10M8 3l4 4-4 4"/>
         </svg>
@@ -202,7 +204,7 @@
       <button
         class="mobile-toggle"
         onclick={() => (mobileOpen = !mobileOpen)}
-        aria-label={mobileOpen ? 'Menü schließen' : 'Menü öffnen'}
+        aria-label={mobileOpen ? t(locale, 'nav.menu-close') : t(locale, 'nav.menu-open')}
         aria-expanded={mobileOpen}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -218,7 +220,7 @@
 
   <!-- Mobile menu -->
   {#if mobileOpen}
-    <nav class="mobile-menu" aria-label="Mobilnavigation">
+    <nav class="mobile-menu" aria-label={t(locale, 'nav.aria-mobile')}>
       {#each links as link}
         <a
           href={link.href}
@@ -238,21 +240,21 @@
               <span class="mobile-user-email">{user.email}</span>
             </div>
           </div>
-          <a href={user.isAdmin ? '/admin' : '/portal'} onclick={() => (mobileOpen = false)} data-testid="nav-user-area">{user.isAdmin ? 'Admin' : 'Mein Portal'}</a>
+          <a href={user.isAdmin ? '/admin' : '/portal'} onclick={() => (mobileOpen = false)} data-testid="nav-user-area">{user.isAdmin ? t(locale, 'nav.admin') : t(locale, 'nav.portal')}</a>
           {#if user.isAdmin}
-            <a href="/portal" onclick={() => (mobileOpen = false)}>Als Nutzer ansehen</a>
+            <a href="/portal" onclick={() => (mobileOpen = false)}>{t(locale, 'nav.view-as-user')}</a>
           {/if}
           <a href="/portal/stream" onclick={() => (mobileOpen = false)} class="mobile-stream-link">
-            Livestream
+            {t(locale, 'nav.livestream')}
             {#if streamLive}
-              <span class="live-badge" aria-label="Live">LIVE</span>
+              <span class="live-badge" aria-label="Live">{t(locale, 'nav.live')}</span>
             {/if}
           </a>
-          <a href="/api/auth/logout" onclick={() => (mobileOpen = false)} class="mobile-logout">Abmelden</a>
+          <a href="/api/auth/logout" onclick={() => (mobileOpen = false)} class="mobile-logout">{t(locale, 'nav.logout')}</a>
         {:else}
           <div class="mobile-divider"></div>
-          <a href="/registrieren" onclick={() => (mobileOpen = false)}>Registrieren</a>
-          <a href="/api/auth/login" onclick={() => (mobileOpen = false)}>Anmelden</a>
+          <a href="/registrieren" onclick={() => (mobileOpen = false)}>{t(locale, 'nav.register')}</a>
+          <a href="/api/auth/login" onclick={() => (mobileOpen = false)}>{t(locale, 'nav.login')}</a>
         {/if}
       {/if}
 
@@ -260,7 +262,7 @@
         <LanguageSwitcher {pathname} />
       </div>
       <a href="/kontakt" class="mobile-cta" onclick={() => (mobileOpen = false)}>
-        Kostenloses Erstgespräch
+        {t(locale, 'hero.cta-primary')}
       </a>
     </nav>
   {/if}

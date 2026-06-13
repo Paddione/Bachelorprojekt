@@ -32,17 +32,17 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Nachricht wurde gesendet. Wir melden uns in Kürze bei Ihnen.' };
+        result = { success: true, message: t(locale, 'contact.success') };
         name = '';
         email = '';
         phone = '';
         type = 'allgemein';
         message = '';
       } else {
-        result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.' };
+        result = { success: false, message: data.error || t(locale, 'contact.error-generic') };
       }
     } catch {
-      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es später erneut.' };
+      result = { success: false, message: t(locale, 'contact.error-connection') };
     } finally {
       submitting = false;
     }
@@ -52,46 +52,46 @@
 <form onsubmit={handleSubmit} class="cf-form">
 
   <div class="cf-field">
-    <label for="cf-type" class="cf-label">Wie kann ich helfen?</label>
+    <label for="cf-type" class="cf-label">{t(locale, 'contact.type-label')}</label>
     <select id="cf-type" bind:value={type} class="cf-input">
-      {#each types as t}
-        <option value={t.value}>{t.label}</option>
+      {#each getTypes(locale) as item}
+        <option value={item.value}>{item.label}</option>
       {/each}
     </select>
   </div>
 
   <div class="cf-field-row">
     <div class="cf-field">
-      <label for="cf-name" class="cf-label">Name <span class="cf-req">*</span></label>
+      <label for="cf-name" class="cf-label">{t(locale, 'contact.name-label')} <span class="cf-req">{t(locale, 'contact.required')}</span></label>
       <input id="cf-name" type="text" bind:value={name} required
-        placeholder="Andrea Müller" class="cf-input" />
+        placeholder={t(locale, 'contact.name-placeholder')} class="cf-input" />
     </div>
     <div class="cf-field">
-      <label for="cf-email" class="cf-label">E-Mail <span class="cf-req">*</span></label>
+      <label for="cf-email" class="cf-label">{t(locale, 'contact.email-label')} <span class="cf-req">{t(locale, 'contact.required')}</span></label>
       <input id="cf-email" type="email" bind:value={email} required
-        placeholder="ihre@email.de" class="cf-input" />
+        placeholder={t(locale, 'contact.email-placeholder')} class="cf-input" />
     </div>
   </div>
 
   <div class="cf-field">
-    <label for="cf-phone" class="cf-label">Telefon <span class="cf-opt">(optional)</span></label>
+    <label for="cf-phone" class="cf-label">{t(locale, 'contact.phone-label')} <span class="cf-opt">{t(locale, 'contact.phone-optional')}</span></label>
     <input id="cf-phone" type="tel" bind:value={phone}
-      placeholder="+49 …" class="cf-input" />
+      placeholder={t(locale, 'contact.phone-placeholder')} class="cf-input" />
   </div>
 
   <div class="cf-field">
-    <label for="cf-message" class="cf-label">Ihre Nachricht <span class="cf-req">*</span></label>
+    <label for="cf-message" class="cf-label">{t(locale, 'contact.message-label')} <span class="cf-req">{t(locale, 'contact.required')}</span></label>
     <textarea id="cf-message" bind:value={message} required rows="5"
-      placeholder="Beschreiben Sie kurz Ihr Anliegen…"
+      placeholder={t(locale, 'contact.message-placeholder')}
       class="cf-input cf-textarea"></textarea>
   </div>
 
   <div class="cf-submit-area">
     <button type="submit" disabled={submitting} class="cf-btn">
-      {#if submitting}Wird gesendet…{:else}Nachricht senden →{/if}
+      {#if submitting}{t(locale, 'contact.submitting')}{:else}{t(locale, 'contact.submit')}{/if}
     </button>
     <p class="cf-submit-note">
-      Mit dem Absenden stimmen Sie der <a href="/datenschutz">Datenschutzerklärung</a> und den <a href="/agb">AGB</a> zu.
+      {t(locale, 'contact.consent-text')}
     </p>
   </div>
 

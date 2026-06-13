@@ -277,6 +277,7 @@ tasks:
       - task: test:unit:scs-index
       - task: test:unit:scs-search
       - task: test:unit:ticket-graph
+      - task: test:unit:T000668-graph-api
       - task: test:unit:factory-blocked
       - task: test:unit:readiness-webhook
       - task: test:unit:staging
@@ -296,6 +297,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-graph.bats
+
+  test:unit:T000668-graph-api:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/T000668-graph-api.bats
 
   test:unit:factory-blocked:
     internal: true

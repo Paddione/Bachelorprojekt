@@ -202,31 +202,31 @@ spec:
                                 set -euo pipefail
                                 sleep 5
                                 STAMP=\$(date +%Y%m%d-%H%M%S)
-                                BACKUP_DIR=/backups/pvc-\$${STAMP}
-                                mkdir -p "\$${BACKUP_DIR}"
+                                BACKUP_DIR=/backups/pvc-\${STAMP}
+                                mkdir -p "\${BACKUP_DIR}"
                                 FAILED=0
                                 backup_dir() {
                                   SRC="\$1"; OUT="\$2"; LABEL="\$3"
-                                  echo "Backing up \$${LABEL} (\$${SRC})..."
-                                  if [ "\$(ls -A "\$${SRC}" 2>/dev/null)" ]; then
-                                    tar czf - -C "\$${SRC}" . \
+                                  echo "Backing up \${LABEL} (\${SRC})..."
+                                  if [ "\$(ls -A "\${SRC}" 2>/dev/null)" ]; then
+                                    tar czf - -C "\${SRC}" . \
                                       | openssl enc -aes-256-cbc -salt -pbkdf2 \
-                                          -out "\$${BACKUP_DIR}/\$${OUT}" -pass env:BACKUP_PASSPHRASE \
-                                      && echo "  ✓ \$${LABEL} OK (\$(ls -lh "\$${BACKUP_DIR}/\$${OUT}" | awk '{print \$5}'))" \
-                                      || { echo "  ✗ \$${LABEL} FAILED"; FAILED=\$((FAILED+1)); }
+                                          -out "\${BACKUP_DIR}/\${OUT}" -pass env:BACKUP_PASSPHRASE \
+                                      && echo "  ✓ \${LABEL} OK (\$(ls -lh "\${BACKUP_DIR}/\${OUT}" | awk '{print \$5}'))" \
+                                      || { echo "  ✗ \${LABEL} FAILED"; FAILED=\$((FAILED+1)); }
                                   else
-                                    echo "  ⚠ \$${SRC} empty — skipping"
+                                    echo "  ⚠ \${SRC} empty — skipping"
                                   fi
                                 }
                                 backup_dir /nextcloud-data   nextcloud-files.tar.gz.enc  nextcloud-data
                                 backup_dir /vaultwarden-data vaultwarden-data.tar.gz.enc vaultwarden-data
 
                                 find /backups -maxdepth 1 -type d -name 'pvc-*' -mtime +30 -exec rm -rf {} +
-                                printf '%s' "\$${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
-                                printf '%s' "pvc-\$${STAMP}" > /staging/.done
-                                echo "PVC backup complete: \$${BACKUP_DIR}"
-                                ls -lh "\$${BACKUP_DIR}/"
-                                [ "\$${FAILED}" -eq 0 ] || { echo "WARN: \$${FAILED} backup(s) failed"; exit 1; }
+                                printf '%s' "\${FILEN_DEFAULT_UPLOAD_PATH}" > /staging/.filen_path
+                                printf '%s' "pvc-\${STAMP}" > /staging/.done
+                                echo "PVC backup complete: \${BACKUP_DIR}"
+                                ls -lh "\${BACKUP_DIR}/"
+                                [ "\${FAILED}" -eq 0 ] || { echo "WARN: \${FAILED} backup(s) failed"; exit 1; }
                             volumeMounts:
                               - { name: backup-storage,   mountPath: /backups }
                               - { name: nextcloud-data,   mountPath: /nextcloud-data,   readOnly: true }
@@ -245,7 +245,7 @@ spec:
                             command: ["/bin/sh", "-c"]
                             args:
                               - |
-                                if [ -z "\$${FILEN_EMAIL}" ] || [ -z "\$${FILEN_PASSWORD}" ]; then
+                                if [ -z "\${FILEN_EMAIL}" ] || [ -z "\${FILEN_PASSWORD}" ]; then
                                   echo "Filen not configured — skipping remote backup"
                                   until [ -f /staging/.done ]; do sleep 2; done
                                   exit 0
@@ -259,10 +259,10 @@ spec:
                                 npm install -g @filen/cli --prefix /tmp/npm-global 2>&1 \
                                   || { echo "ERROR: filen-cli install failed"; exit 1; }
                                 export PATH="/tmp/npm-global/bin:\$PATH"
-                                echo "Uploading \$${STAMP} to Filen: \$${UPLOAD_PATH}/\$${STAMP}/"
-                                if ! filen --email "\$${FILEN_EMAIL}" --password "\$${FILEN_PASSWORD}" \
-                                     upload "/backups/\$${STAMP}/" "\$${UPLOAD_PATH}/\$${STAMP}/"; then
-                                  echo "ERROR: Filen remote upload failed for \$${STAMP} — local backup on backup-pvc is intact."
+                                echo "Uploading \${STAMP} to Filen: \${UPLOAD_PATH}/\${STAMP}/"
+                                if ! filen --email "\${FILEN_EMAIL}" --password "\${FILEN_PASSWORD}" \
+                                     upload "/backups/\${STAMP}/" "\${UPLOAD_PATH}/\${STAMP}/"; then
+                                  echo "ERROR: Filen remote upload failed for \${STAMP} — local backup on backup-pvc is intact."
                                   echo "       Likely cause: invalid credentials, or 2FA enabled (this job requires 2FA OFF)."
                                   exit 1
                                 fi

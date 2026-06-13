@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.62.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.0...website-v1.62.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **api:** qa-queue 500 — ticket_links uses from_id not ticket_id [T000678] ([#1627](https://github.com/Paddione/Bachelorprojekt/issues/1627)) ([6efc091](https://github.com/Paddione/Bachelorprojekt/commit/6efc0919df7ce56ce0f1c27e348439869c58285e))
+
 ## [1.62.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.61.0...website-v1.62.0) (2026-06-13)
 
 

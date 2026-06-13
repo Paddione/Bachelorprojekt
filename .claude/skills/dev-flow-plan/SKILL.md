@@ -199,11 +199,31 @@ bash scripts/worktree-create.sh fix/<slug> /tmp/wt-<slug>
 cd /tmp/wt-<slug>
 ```
 
+### Schritt 2.5: Ticket & Branch claimen (Session-Koordination [T000510])
+```bash
+bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
+  --branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
+bash scripts/agent-lock.sh claim branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
+```
+Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.
+
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
 
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
+
+### Schritt 4.5: Plan stagen + Frontmatter aktivieren (Fix 6)
+```bash
+./scripts/ticket.sh stage-plan \
+  --id "$TICKET_EXT_ID" \
+  --branch "fix/<slug>" \
+  --plan "docs/superpowers/plans/<date>-<slug>.md"
+
+bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-<slug>.md"
+```
+Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
+`ticket.sh enqueue` an die Factory übergeben werden.
 
 ### Schritt 5: Commit & Push — dann STOPP
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch.

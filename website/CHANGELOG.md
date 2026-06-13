@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.62.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.2...website-v1.62.3) (2026-06-13)
+
+
+### Bug Fixes
+
+* **website:** remove invalid client:load directives — restore /dev-status JS hydration [T000675] ([#1631](https://github.com/Paddione/Bachelorprojekt/issues/1631)) ([b695b3b](https://github.com/Paddione/Bachelorprojekt/commit/b695b3b6452335c9c2b6150d59d5764bdf8b91c6))
+
 ## [1.62.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.1...website-v1.62.2) (2026-06-13)
 
 

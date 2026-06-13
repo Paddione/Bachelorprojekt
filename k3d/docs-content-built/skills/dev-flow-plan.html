@@ -135,14 +135,15 @@ Ergebnis: Spec-Datei in <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-d
 <li>Absoluter Worktree-Pfad (<code>pwd</code>) + Branch-Name; er arbeitet NUR relativ dazu.</li>
 <li>Spec-Pfad: <code>docs/superpowers/specs/&lt;date&gt;-&lt;slug&gt;-design.md</code></li>
 <li>Ticket-/Grilling-Kontext (<code>$GRILLING_TICKET_EXT_ID</code> etc.), falls vorhanden.</li>
+<li><strong>CI-/Quality-Gates:</strong> <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md">plan-quality-gates.md</a> — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: <code>wc -l</code> auf jede zu ändernde Datei und S1-Zeilenbudget im Plan notieren (bei voraussichtlich &gt;~80 % des Limits Modul-Split einplanen), keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).</li>
 </ul>
 </li>
-<li><strong>Auftrag:</strong> „Lies die Spec. Rufe <code>superpowers:writing-plans</code> auf und schreibe den Implementierungsplan nach <code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code>. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach <code>bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code> aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."</li>
+<li><strong>Auftrag:</strong> „Lies die Spec UND <code>.claude/skills/references/plan-quality-gates.md</code>. Rufe <code>superpowers:writing-plans</code> auf und schreibe den Implementierungsplan nach <code>docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code>. Der finale Verifikations-Task des Plans MUSS <code>task test:all</code>, <code>task freshness:regenerate</code> und <code>task freshness:check</code> als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich <code>task test:inventory</code> + Commit des Inventars. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach <code>bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md</code> aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."</li>
 </ul>
 </li>
 </ol>
 <h3>Schritt 4: Plan prüfen &amp; übernehmen</h3>
-<p>Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.</p>
+<p>Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md">plan-quality-gates.md</a>): S1-Zeilenbudgets pro Datei notiert? Finaler Verifikations-Task enthält <code>task test:all</code> + <code>task freshness:regenerate</code> + <code>task freshness:check</code>? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.</p>
 <h3>Schritt 4.5: Ticket anlegen</h3>
 <p>Erstelle ein Plan-Ticket in der Datenbank:</p>
 <div class="code-wrapper"><pre><code class="language-bash">GRILLING_REF=""
@@ -161,6 +162,13 @@ TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 
 sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
+
+# Plan in die Kommissionierung stellen: type=feature, status=plan_staged.
+# Read-only sichtbar in /dev-status; wartet auf manuelle Freigabe (-&gt; Factory / -&gt; Manuell).
+./scripts/ticket.sh stage-plan \
+  --id "$TICKET_EXT_ID" \
+  --branch "feature/&lt;slug&gt;" \
+  --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Hänge gesammelte Assets mit <code>bash scripts/ticket-attach.sh "$TICKET_UUID" &lt;pfade&gt;</code> an.</p>
 <h3>Schritt 5: Commit &amp; Push — dann STOPP</h3>
@@ -169,10 +177,10 @@ git add docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md
 git commit -m "chore(plans): stage &lt;slug&gt; for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<p><strong>STOPP.</strong> Informiere den User, dass der Plan bereit zur Implementierung ist. Er hat nun folgende Optionen:</p>
+<p><strong>STOPP.</strong> Informiere den User, dass der Plan bereit zur Implementierung ist. Der Plan liegt jetzt in der <strong>Kommissionierung</strong> (<code>/dev-status</code>) und wartet dort auf manuelle Freigabe. Er hat nun folgende Optionen:</p>
 <ol>
-<li>Den Plan manuell ausführen lassen: Bitte den User, <code>dev-flow-execute</code> aufzurufen.</li>
-<li>Alternativ — an die Software Factory übergeben: Statt <code>dev-flow-execute</code> selbst aufzurufen, kann der geplante Branch autonom abgearbeitet werden. Frage den User; bei Zustimmung:</li>
+<li><strong>-&gt; Manuell</strong> ausführen lassen: Bitte den User, <code>dev-flow-execute</code> auf <code>feature/&lt;slug&gt;</code> aufzurufen (oder den „-&gt; Manuell"-Hinweis in der Kommissionierung).</li>
+<li><strong>-&gt; Factory</strong> übergeben: In der Kommissionierung (<code>/dev-status</code>) den Knopf <strong>-&gt; Factory</strong> drücken — das verschiebt das Ticket in die Laderampe (<code>status=backlog</code>); der Factory-Dispatcher arbeitet es mit <strong>Plan-Reuse</strong> (kein Neu-Planen) ab. Äquivalent von der CLI:</li>
 </ol>
 <div class="code-wrapper"><pre><code class="language-bash">bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
   --branch "feature/&lt;slug&gt;" --plan "docs/superpowers/plans/&lt;date&gt;-&lt;slug&gt;.md"

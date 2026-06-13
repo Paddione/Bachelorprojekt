@@ -98,16 +98,13 @@ POST /api/skins/upload    — admin-only; multipart/form-data with name, glb (�
 DELETE /api/skins/:id     — admin-only; "default" is write-protected → HTTP 400
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Brett Unit Tests (required before PR)</h3>
-<div class="code-wrapper"><pre><code class="language-bash">npm ci --prefix brett &amp;&amp; \
-  node --test brett/test/ws-reconnect.test.mjs \
-       brett/test/physics.test.js \
-       brett/test/damage.test.mjs \
-       brett/test/pickups.test.mjs \
-       brett/test/mode-state.test.mjs \
-       brett/test/skin-validator.test.js \
-       brett/test/skin-catalog.test.js \
-       brett/test/skin-upload.test.js
+<div class="code-wrapper"><pre><code class="language-bash">npm ci --prefix brett &amp;&amp; npm test --prefix brett
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<blockquote>
+<p><code>npm test</code> runs <code>MOCK_DB=true tsx --test test/*.test.ts test/*.test.js test/*.test.mjs</code>
+(see <code>brett/package.json</code>) — i.e. it discovers every <code>brett/test/*.test.*</code> file automatically;
+do not hand-list individual test files.</p>
+</blockquote>
 <p>Also run the Systembrett template validation:</p>
 <div class="code-wrapper"><pre><code class="language-bash">./scripts/tests/systembrett-template.test.sh
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>

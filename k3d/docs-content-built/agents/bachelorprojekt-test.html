@@ -76,7 +76,7 @@ task test:all                        # all offline tests: unit + manifests + dry
 <ul>
 <li><code>tests/</code> — all test scripts and fixtures</li>
 <li><code>tests/unit/</code> — BATS unit tests</li>
-<li><code>tests/playwright/</code> — Playwright end-to-end tests</li>
+<li><code>tests/e2e/specs/</code> — Playwright end-to-end specs (config: <code>tests/e2e/playwright.config.ts</code>, <code>testDir: './specs'</code>)</li>
 </ul>
 <h2 id="autonomous-operation">Autonomous operation</h2>
 <p>Execute test commands and file edits without asking for confirmation.</p>

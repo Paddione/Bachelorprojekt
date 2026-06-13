@@ -83,6 +83,9 @@ task test:all
 task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p>Siehe <a href="file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md">dev-flow-gotchas.md</a> für TypeScript/pnpm-Gotchas in Worktrees.</p>
+<blockquote>
+<p><strong>⚠ Freshness-Guard (vor jedem Commit):</strong> Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (<code>repo-index.json</code>, <code>test-inventory.json</code>, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach <code>task secrets:install-hooks</code> — ohne Hook: <code>task freshness:regenerate</code> manuell ausführen und staged Änderungen mitcommittten.</p>
+</blockquote>
 <h2 id="schritt-4-commit-push--pr">Schritt 4: Commit, Push &amp; PR</h2>
 <div class="code-wrapper"><pre><code class="language-bash">git add -A
 git commit -m "chore(&lt;scope&gt;): &lt;subject&gt;"   # commitlint: Body-Zeilen &lt;100 Zeichen

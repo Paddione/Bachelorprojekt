@@ -44,7 +44,7 @@ export async function getQaQueue(): Promise<QaItem[]> {
       qr.criteria     AS last_criteria,
       qr.notes        AS last_notes
     FROM tickets.tickets t
-    LEFT JOIN ticket_links tl ON tl.ticket_id = t.id AND tl.pr_number IS NOT NULL
+    LEFT JOIN ticket_links tl ON tl.from_id = t.id AND tl.pr_number IS NOT NULL
     LEFT JOIN LATERAL (
       SELECT at FROM tickets.factory_phase_events
       WHERE ticket_id = t.id AND phase = 'deploy' AND state = 'done'

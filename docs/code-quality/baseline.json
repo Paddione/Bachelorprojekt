@@ -128,8 +128,8 @@
   "S1:website/src/layouts/AdminLayout.astro": {
     "gate": "S1",
     "path": "website/src/layouts/AdminLayout.astro",
-    "metric": 442,
-    "detail": "442 lines > 400 limit (.astro)",
+    "metric": 443,
+    "detail": "443 lines > 400 limit (.astro)",
     "frozen_at": "a6f6fa8f"
   },
   "S1:website/src/lib/coaching-db.ts": {

@@ -152,3 +152,6 @@ environments/.secrets/.ssh/known_hosts
 
 # Factory injection assets — materialized into the worktree at a phase boundary, never committed.
 assets-inbox/docs/superpowers/specs/.gaps/
+
+# Mishap tracker local log (gitignored; use --ticket for persistent records)
+.mishaps.log

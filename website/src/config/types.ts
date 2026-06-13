@@ -158,4 +158,9 @@ export interface BrandConfig {
     hasOIDC: boolean;
     hasBilling: boolean;
   };
+  i18n?: {
+    tagline?: { de: string; en: string };
+    siteDescription?: { de: string; en: string };
+    copyright?: { de: string; en: string };
+  };
 }

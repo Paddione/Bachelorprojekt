@@ -21,6 +21,13 @@ export default defineConfig({
     },
   },
   server: { host: true, port: 4321 },
-  i18n: { defaultLocale: 'de', locales: ['de'] },
+  i18n: {
+    defaultLocale: 'de',
+    locales: ['de', 'en'],
+    routing: {
+      prefixDefaultLocale: false,
+      redirectToDefaultLocale: false,
+    },
+  },
   security: { checkOrigin: false },
 });

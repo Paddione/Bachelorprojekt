@@ -377,4 +377,12 @@ export const mentolderConfig: BrandConfig = {
     hasOIDC: true,
     hasBilling: true,
   },
+  i18n: {
+    tagline: { de: 'Digital Coaching & Führungskräfte-Beratung', en: 'Digital Coaching & Leadership Consulting' },
+    siteDescription: {
+      de: 'Coaching & digitale Begleitung in Lüneburg und Hamburg – persönlich, erfahren, auf Augenhöhe. Für Führungsperslichkeiten und Menschen in Veränderung.',
+      en: 'Coaching & digital accompaniment in Lüneburg and Hamburg – personal, experienced, at eye level. For leadership personalities and people in transition.',
+    },
+    copyright: { de: 'Alle Rechte vorbehalten', en: 'All rights reserved' },
+  },
 };

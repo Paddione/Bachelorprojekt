@@ -1,23 +1,21 @@
 <script lang="ts">
+  import { t, type Locale } from '../i18n/index';
+
   interface Props {
+    locale?: Locale;
     title: string;
     description: string;
     icon: string;
-    /** Optional symbol id within a brand SVG sprite. When set, renders an
-     *  inline `<svg><use href="..."/></svg>` instead of the emoji icon.
-     *  See `BrandConfig.services[].iconSpriteId` and the per-brand sprite at
-     *  `/brand/<brand>/icons.svg`. */
     iconSpriteId?: string;
-    /** Brand-id segment for the sprite path (default `korczewski`). */
     iconSpriteBrand?: string;
     features: string[];
     href: string;
     price?: string;
-    /** @deprecated direct buy buttons removed; kept for backwards compat */
     stripeServiceKey?: string;
   }
 
   let {
+    locale = 'de',
     title,
     description,
     icon,
@@ -57,10 +55,10 @@
 
   <a
     {href}
-    aria-label={`Mehr erfahren über ${title}`}
+    aria-label={`${t(locale, 'service.learn-more-aria')} ${title}`}
     class="block text-center bg-gold hover:bg-gold-light text-dark px-6 py-3.5 rounded-full font-bold text-lg transition-colors uppercase tracking-wide"
   >
-    Mehr erfahren
+    {t(locale, 'service.learn-more')}
   </a>
 </div>
 

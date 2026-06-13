@@ -1,4 +1,12 @@
 <script lang="ts">
+  import { t, type Locale } from '../i18n/index';
+
+  interface Props {
+    locale?: Locale;
+  }
+
+  let { locale = 'de' }: Props = $props();
+
   let firstName = $state('');
   let lastName = $state('');
   let email = $state('');
@@ -23,7 +31,7 @@
       const data = await response.json();
 
       if (response.ok) {
-        result = { success: true, message: 'Vielen Dank! Ihre Registrierung wurde eingereicht. Sie erhalten eine Bestätigung per E-Mail.' };
+        result = { success: true, message: t(locale, 'reg.success') };
         firstName = '';
         lastName = '';
         email = '';
@@ -31,10 +39,10 @@
         company = '';
         message = '';
       } else {
-        result = { success: false, message: data.error || 'Es ist ein Fehler aufgetreten.' };
+        result = { success: false, message: data.error || t(locale, 'reg.error-generic') };
       }
     } catch {
-      result = { success: false, message: 'Verbindungsfehler. Bitte versuchen Sie es später erneut.' };
+      result = { success: false, message: t(locale, 'reg.error-connection') };
     } finally {
       submitting = false;
     }
@@ -45,27 +53,27 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>
       <label for="firstName" class="block text-lg font-medium text-light mb-2">
-        Vorname <span class="text-gold">*</span>
+        {t(locale, 'reg.firstname')} <span class="text-gold">{t(locale, 'reg.required')}</span>
       </label>
       <input
         id="firstName"
         type="text"
         bind:value={firstName}
         required
-        placeholder="Max"
+        placeholder={t(locale, 'reg.firstname-placeholder')}
         class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
       />
     </div>
     <div>
       <label for="lastName" class="block text-lg font-medium text-light mb-2">
-        Nachname <span class="text-gold">*</span>
+        {t(locale, 'reg.lastname')} <span class="text-gold">{t(locale, 'reg.required')}</span>
       </label>
       <input
         id="lastName"
         type="text"
         bind:value={lastName}
         required
-        placeholder="Mustermann"
+        placeholder={t(locale, 'reg.lastname-placeholder')}
         class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
       />
     </div>
@@ -73,14 +81,14 @@
 
   <div>
     <label for="reg-email" class="block text-lg font-medium text-light mb-2">
-      E-Mail-Adresse <span class="text-gold">*</span>
+      {t(locale, 'reg.email-label')} <span class="text-gold">{t(locale, 'reg.required')}</span>
     </label>
     <input
       id="reg-email"
       type="email"
       bind:value={email}
       required
-      placeholder="max@beispiel.de"
+      placeholder={t(locale, 'reg.email-placeholder')}
       class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
     />
   </div>
@@ -88,25 +96,25 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>
       <label for="reg-phone" class="block text-lg font-medium text-light mb-2">
-        Telefon <span class="text-muted-dark">(optional)</span>
+        {t(locale, 'reg.phone-label')} <span class="text-muted-dark">{t(locale, 'reg.optional')}</span>
       </label>
       <input
         id="reg-phone"
         type="tel"
         bind:value={phone}
-        placeholder="+49 ..."
+        placeholder={t(locale, 'reg.phone-placeholder')}
         class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
       />
     </div>
     <div>
       <label for="company" class="block text-lg font-medium text-light mb-2">
-        Unternehmen <span class="text-muted-dark">(optional)</span>
+        {t(locale, 'reg.company')} <span class="text-muted-dark">{t(locale, 'reg.optional')}</span>
       </label>
       <input
         id="company"
         type="text"
         bind:value={company}
-        placeholder="Firma GmbH"
+        placeholder={t(locale, 'reg.company-placeholder')}
         class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors"
       />
     </div>
@@ -114,13 +122,13 @@
 
   <div>
     <label for="reg-message" class="block text-lg font-medium text-light mb-2">
-      Warum möchten Sie sich registrieren? <span class="text-muted-dark">(optional)</span>
+      {t(locale, 'reg.message-label')} <span class="text-muted-dark">{t(locale, 'reg.optional')}</span>
     </label>
     <textarea
       id="reg-message"
       bind:value={message}
       rows="3"
-      placeholder="Kurze Beschreibung Ihres Interesses..."
+      placeholder={t(locale, 'reg.message-placeholder')}
       class="w-full px-4 py-3.5 rounded-lg border border-dark-lighter text-lg bg-dark text-light placeholder-muted-dark focus:border-gold focus:ring-2 focus:ring-gold-dim transition-colors resize-y"
     ></textarea>
   </div>
@@ -131,9 +139,9 @@
     class="w-full bg-gold hover:bg-gold-light disabled:bg-dark-lighter disabled:text-muted-dark text-dark px-8 py-4 rounded-full font-bold text-lg transition-colors cursor-pointer disabled:cursor-not-allowed uppercase tracking-wide"
   >
     {#if submitting}
-      Wird gesendet...
+      {t(locale, 'reg.submitting')}
     {:else}
-      Registrierung einreichen
+      {t(locale, 'reg.submit')}
     {/if}
   </button>
 
@@ -148,8 +156,6 @@
   {/if}
 
   <p class="text-sm text-muted-dark text-center">
-    Mit der Registrierung stimmen Sie unserer
-    <a href="/datenschutz" class="text-gold hover:underline">Datenschutzerklärung</a>
-    und unseren <a href="/agb" class="text-gold hover:underline">AGB</a> zu.
+    {t(locale, 'reg.consent-text')}
   </p>
 </form>

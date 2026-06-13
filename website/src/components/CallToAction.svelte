@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { t, type Locale } from '../i18n/index';
+
   interface Props {
+    locale?: Locale;
     eyebrow?: string;
     title?: string;
     titleEmphasis?: string;
@@ -11,31 +14,38 @@
   }
 
   let {
-    eyebrow = 'Kostenloses Erstgespräch',
-    title = 'In 30 Minuten wissen wir,',
-    titleEmphasis = 'ob es passt.',
-    subtitle = 'Kein Verkaufsgespräch. Kein Druck. Nur Klarheit. Wo stehen Sie – und wie könnte eine Zusammenarbeit konkret aussehen?',
-    primaryText = 'Termin vorschlagen',
+    locale = 'de',
+    eyebrow,
+    title,
+    titleEmphasis,
+    subtitle,
+    primaryText,
     primaryHref = '/kontakt',
     secondaryText = '',
     secondaryHref = '',
   }: Props = $props();
+
+  const effectiveEyebrow = $derived(eyebrow ?? t(locale, 'cta.eyebrow'));
+  const effectiveTitle = $derived(title ?? t(locale, 'cta.title'));
+  const effectiveTitleEmphasis = $derived(titleEmphasis ?? t(locale, 'cta.title-emphasis'));
+  const effectiveSubtitle = $derived(subtitle ?? t(locale, 'cta.subtitle'));
+  const effectivePrimaryText = $derived(primaryText ?? t(locale, 'cta.primary'));
 </script>
 
 <section class="cta" id="termin" aria-labelledby="cta-heading">
   <div class="glow" aria-hidden="true"></div>
   <div class="wrap">
-    <p class="eyebrow">{eyebrow}</p>
+    <p class="eyebrow">{effectiveEyebrow}</p>
     <h2 id="cta-heading">
-      {title}
-      {#if titleEmphasis}
-        {' '}<em>{titleEmphasis}</em>
+      {effectiveTitle}
+      {#if effectiveTitleEmphasis}
+        {' '}<em>{effectiveTitleEmphasis}</em>
       {/if}
     </h2>
-    <p class="subtitle">{subtitle}</p>
-    <div class="btn-row" role="group" aria-label="Kontaktoptionen">
+    <p class="subtitle">{effectiveSubtitle}</p>
+    <div class="btn-row" role="group" aria-label={t(locale, 'cta.aria-group')}>
       <a href={primaryHref} class="btn btn-primary">
-        {primaryText}
+        {effectivePrimaryText}
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M2 7h10M8 3l4 4-4 4"/>
         </svg>

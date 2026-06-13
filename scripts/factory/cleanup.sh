@@ -21,6 +21,13 @@ done
 
 cleaned=()
 
+# Belt-and-suspenders: even if a later step aborts, ensure the worktree is gone.
+_trap_cleanup() {
+  [[ -n "${WT_PATH:-}" && -d "${WT_PATH:-/nonexistent}" ]] && \
+    git worktree remove --force "$WT_PATH" 2>/dev/null || true
+}
+trap _trap_cleanup EXIT
+
 # 1) Remove the worktree (force — even if dirty). Idempotent: a missing worktree
 #    is not an error (exit 0 from `git worktree remove --force`).
 if [[ -n "$WT_PATH" ]] && [[ -d "$WT_PATH" ]]; then

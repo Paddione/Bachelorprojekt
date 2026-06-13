@@ -642,6 +642,7 @@ const deploy = await agent(
       gh pr create --title "feat(${slug}): ${A.title}" --base main
       PR=$(gh pr view --json number -q .number)
       bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
+      bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR"
     3. STRUCTURED SELF-HEALING RETRY LOOP (≤2 fix attempts; NO raw SQL — use ticket.sh).
        Run CI to green using this exact loop. Per attempt:
 

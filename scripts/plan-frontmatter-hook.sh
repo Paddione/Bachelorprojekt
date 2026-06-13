@@ -8,10 +8,35 @@
 #                                 status: active when missing/null. All other
 #                                 fields (title/ticket_id/pr_number) and any
 #                                 deliberate non-active status are preserved.
-# Usage: scripts/plan-frontmatter-hook.sh <plan.md>
+# Usage: scripts/plan-frontmatter-hook.sh [--activate|--spec] <plan.md>
 set -euo pipefail
 
-FILE="${1:?Usage: plan-frontmatter-hook.sh <plan.md>}"
+FORCE_ACTIVE=0
+SPEC_MODE=0
+if [[ "${1:-}" == "--activate" ]]; then FORCE_ACTIVE=1; shift; fi
+if [[ "${1:-}" == "--spec" ]]; then SPEC_MODE=1; shift; fi
+FILE="${1:?Usage: plan-frontmatter-hook.sh [--activate|--spec] <plan.md>}"
+
+if [[ "$SPEC_MODE" -eq 1 ]]; then
+  # Idempotent: only prepend when the file has no frontmatter yet.
+  if [[ "$(head -1 "$FILE" | tr -d '\r')" == "---" ]]; then
+    echo "Spec frontmatter already present in $FILE — nothing to do."
+    exit 0
+  fi
+  tmpfile="$(mktemp)"
+  {
+    printf '%s\n' "---"
+    printf 'ticket_id: null\n'
+    printf 'plan_ref: null\n'
+    printf 'status: active\n'
+    printf 'date: %s\n' "$(date +%F)"
+    printf '%s\n\n' "---"
+    cat "$FILE"
+  } > "$tmpfile"
+  mv "$tmpfile" "$FILE"
+  echo "Added spec frontmatter to $FILE"
+  exit 0
+fi
 
 CANON_ROLES="infra website db ops test security"
 
@@ -110,6 +135,7 @@ needs_domains=0
 case "$dom_raw" in ""|"[]"|"null") needs_domains=1 ;; esac
 needs_status=0
 case "$st_raw" in ""|"null") needs_status=1 ;; esac
+[[ "$FORCE_ACTIVE" -eq 1 ]] && needs_status=1
 needs_batch=0
 [[ -z "$fl_raw" ]] && needs_batch=1
 

@@ -1,7 +1,7 @@
 ---
 title: Workspace Docs Refresh Implementation Plan
 domains: [infra, website]
-status: active
+status: completed
 pr_number: null
 ---
 

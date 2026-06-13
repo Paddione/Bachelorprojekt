@@ -1,0 +1,33 @@
+name: post-merge
+on:
+  push:
+    branches: [main]
+
+jobs:
+  close-ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Extract ticket id from merge commit and close it
+        env:
+          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          set -euo pipefail
+          TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
+          if [[ -z "$TICKET_ID" ]]; then
+            echo "No T###### id in merge commit — nothing to close."
+            exit 0
+          fi
+          echo "Closing ticket $TICKET_ID (merged to main)."
+          mkdir -p "$HOME/.kube"
+          # FLEET_KUBECONFIG is stored base64-encoded (matches build-brett.yml:63, build-website.yml:75)
+          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          export KUBECONFIG="$HOME/.kube/config"
+          export TICKET_CTX=fleet BRAND=mentolder
+          # Idempotent: re-running update-status to 'done' on an already-done
+          # ticket is a no-op. Never fail the workflow on a DB hiccup.
+          bash scripts/ticket.sh update-status --id "$TICKET_ID" --status done \
+            || echo "WARNING: update-status failed for $TICKET_ID (non-fatal)."

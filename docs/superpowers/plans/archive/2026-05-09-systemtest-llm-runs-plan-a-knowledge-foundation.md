@@ -1,7 +1,7 @@
 ---
 title: Knowledge Foundation — Implementation Plan (Plan A of 3)
 domains: [db, website, test, ops]
-status: active
+status: completed
 pr_number: null
 ---
 

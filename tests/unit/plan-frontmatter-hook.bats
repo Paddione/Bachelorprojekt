@@ -165,3 +165,67 @@ teardown() { rm -rf "$TMP"; }
   # a single frontmatter block contributes exactly 2 delimiter lines
   [ "$count" -eq 2 ]
 }
+
+@test "--activate forces status:active even over an existing completed value" {
+  cat > "$TMP/d-completed.md" <<'EOF'
+---
+title: Done Plan
+domains: [infra]
+status: completed
+---
+
+# Done Plan
+Touches k3d/ kustomize overlays.
+EOF
+  run bash "$HOOK" --activate "$TMP/d-completed.md"
+  [ "$status" -eq 0 ]
+  grep -q "^status: active$" "$TMP/d-completed.md"
+}
+
+@test "without --activate a deliberate completed status is preserved" {
+  cat > "$TMP/e-keep.md" <<'EOF'
+---
+title: Keep Plan
+domains: [infra]
+status: completed
+---
+
+# Keep Plan
+Touches k3d/ kustomize overlays.
+EOF
+  run bash "$HOOK" "$TMP/e-keep.md"
+  [ "$status" -eq 0 ]
+  grep -q "^status: completed$" "$TMP/e-keep.md"
+}
+
+@test "--spec adds spec frontmatter to a spec missing it" {
+  cat > "$TMP/f-spec.md" <<'EOF'
+# My Feature Design
+
+Some design prose.
+EOF
+  run bash "$HOOK" --spec "$TMP/f-spec.md"
+  [ "$status" -eq 0 ]
+  head -1 "$TMP/f-spec.md" | grep -q '^---$'
+  grep -q '^ticket_id:' "$TMP/f-spec.md"
+  grep -q '^plan_ref:'  "$TMP/f-spec.md"
+  grep -q '^status: active$' "$TMP/f-spec.md"
+  grep -q '^date:' "$TMP/f-spec.md"
+}
+
+@test "--spec is idempotent when frontmatter already present" {
+  cat > "$TMP/g-spec.md" <<'EOF'
+---
+ticket_id: T000999
+plan_ref: null
+status: active
+date: 2026-06-13
+---
+
+# Already Has It
+EOF
+  before="$(cat "$TMP/g-spec.md")"
+  run bash "$HOOK" --spec "$TMP/g-spec.md"
+  [ "$status" -eq 0 ]
+  [ "$before" == "$(cat "$TMP/g-spec.md")" ]
+}

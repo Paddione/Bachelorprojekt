@@ -1,7 +1,7 @@
 ---
 title: Arena — Game Client (Plan 2b of 3) Implementation Plan
 domains: [website, arena-server]
-status: active
+status: completed
 pr_number: null
 ---
 

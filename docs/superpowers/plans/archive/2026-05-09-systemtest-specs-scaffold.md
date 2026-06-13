@@ -1,7 +1,7 @@
 ---
 title: Scaffold the 9 missing System-Test specs — Implementation Plan
 domains: [test, infra]
-status: active
+status: completed
 pr_number: null
 ---
 

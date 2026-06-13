@@ -1,7 +1,7 @@
 ---
 title: Brett Controls Redesign Implementation Plan
 domains: [website, test]
-status: active
+status: completed
 pr_number: null
 ---
 

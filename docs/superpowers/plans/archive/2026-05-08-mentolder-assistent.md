@@ -1,7 +1,7 @@
 ---
 title: Mentolder-Assistent Implementation Plan
 domains: [website]
-status: active
+status: completed
 pr_number: null
 ---
 

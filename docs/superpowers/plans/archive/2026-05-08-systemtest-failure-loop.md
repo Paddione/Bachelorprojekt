@@ -1,7 +1,7 @@
 ---
 title: System Test Failure Loop Implementation Plan
 domains: [test, infra]
-status: active
+status: completed
 pr_number: null
 ---
 

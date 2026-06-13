@@ -103,6 +103,10 @@ Starte den Companion-Server und Tunnel. Detaillierte Befehle und Fehlerbehebunge
 ### Schritt 3: Brainstorming
 Rufe `superpowers:brainstorming` auf. Nutze das visual Board auf `https://brainstorm.dev.mentolder.de`.
 Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
+Nach dem Schreiben der Spec das Frontmatter setzen (siehe
+`docs/superpowers/specs/spec-frontmatter-standard.md`):
+`bash scripts/plan-frontmatter-hook.sh --spec docs/superpowers/specs/<date>-<slug>-design.md`
+und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 
 ### Schritt 3.5: Playwright-Projekt-Gate
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
@@ -151,6 +155,8 @@ sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/<
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
   --plan "docs/superpowers/plans/<date>-<slug>.md"
+
+bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-<slug>.md"
 ```
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
@@ -197,11 +203,31 @@ bash scripts/worktree-create.sh fix/<slug> /tmp/wt-<slug>
 cd /tmp/wt-<slug>
 ```
 
+### Schritt 2.5: Ticket & Branch claimen (Session-Koordination [T000510])
+```bash
+bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
+  --branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
+bash scripts/agent-lock.sh claim branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
+```
+Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.
+
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
 
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf. Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
+
+### Schritt 4.5: Plan stagen + Frontmatter aktivieren (Fix 6)
+```bash
+./scripts/ticket.sh stage-plan \
+  --id "$TICKET_EXT_ID" \
+  --branch "fix/<slug>" \
+  --plan "docs/superpowers/plans/<date>-<slug>.md"
+
+bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-<slug>.md"
+```
+Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
+`ticket.sh enqueue` an die Factory übergeben werden.
 
 ### Schritt 5: Commit & Push — dann STOPP
 Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch.

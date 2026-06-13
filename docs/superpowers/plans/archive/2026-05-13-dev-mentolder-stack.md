@@ -1,7 +1,7 @@
 ---
 title: dev.mentolder.de Implementation Plan
 domains: [infra, security, website, test, db]
-status: active
+status: completed
 pr_number: null
 ---
 

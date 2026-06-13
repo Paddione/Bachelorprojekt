@@ -1,7 +1,7 @@
 ---
 title: Live-Cockpit Implementation Plan
 domains: [website, infra]
-status: active
+status: completed
 pr_number: null
 ---
 

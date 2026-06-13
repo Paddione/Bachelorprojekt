@@ -1,7 +1,7 @@
 ---
 title: Fragebogen Archive Implementation Plan
 domains: [website, db]
-status: active
+status: completed
 pr_number: null
 ---
 

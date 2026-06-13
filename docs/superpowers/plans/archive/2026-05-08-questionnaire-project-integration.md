@@ -1,7 +1,7 @@
 ---
 title: Questionnaire → Project Integration & Content Update — Implementation Plan
 domains: [website, db]
-status: active
+status: completed
 pr_number: null
 ---
 

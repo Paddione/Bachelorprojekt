@@ -57,3 +57,6 @@ portal-profile-update
 #
 # --- Requires kubectl kustomize (CronJob validation — needs cluster context):
 newsletter-scheduled-publish
+#
+# --- Requires a live API server (graph API integration — needs Kubernetes cluster):
+T000668-graph-api

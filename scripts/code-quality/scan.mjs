@@ -7,7 +7,7 @@ import { matchGlob } from './glob.mjs';
 /** All git-tracked files at repoRoot, sorted, POSIX-separated. */
 export function trackedFiles(repoRoot) {
   const out = execFileSync('git', ['ls-files'], { cwd: repoRoot, encoding: 'utf8' });
-  return out.split('\n').map((l) => l.trim()).filter(Boolean).sort();
+  return [...new Set(out.split('\n').map((l) => l.trim()).filter(Boolean))].sort();
 }
 
 /** True iff `file` is under one of the code_roots prefixes. */

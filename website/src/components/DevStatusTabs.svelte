@@ -8,7 +8,7 @@
   import FactoryPhaseHeatmap from './factory/FactoryPhaseHeatmap.svelte';
   import FactoryShippedBar from './factory/FactoryShippedBar.svelte';
   import DependencyGraph from './DependencyGraph.svelte';
-  import type { Floor_payload } from '../lib/factory-floor';
+  import type { FloorPayload } from '../lib/factory-floor';
 
   type Tab = 'factory' | 'planung' | 'control' | 'analytics' | 'abhaengigkeiten';
 

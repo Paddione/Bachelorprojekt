@@ -2106,7 +2106,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 292,
+      "file_count": 293,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2163,6 +2163,7 @@
         "scripts/brainstorm-extract-choice.sh",
         "scripts/brett-bot-setup.sh",
         "scripts/build-api-map.mjs",
+        "scripts/build-blast-radius.mjs",
         "scripts/build-docs.mjs",
         "scripts/build-graph-docs.mjs",
         "scripts/build-graph.mjs",

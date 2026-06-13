@@ -36,8 +36,8 @@ describe('resolveServiceUrl', () => {
   });
 
   it('baut https://<subdomain>.<brandDomain> wenn kein Override', () => {
-    expect(resolveServiceUrl(asset({ subdomain: 'auth' }), 'mentolder.de'))
-      .toBe('https://auth.mentolder.de');
+    expect(resolveServiceUrl(asset({ subdomain: 'auth' }), 'example.test'))
+      .toBe('https://auth.example.test');
   });
 
   it('funktioniert in dev mit PROD_DOMAIN=localhost', () => {

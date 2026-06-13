@@ -128,8 +128,8 @@
   "S1:website/src/layouts/AdminLayout.astro": {
     "gate": "S1",
     "path": "website/src/layouts/AdminLayout.astro",
-    "metric": 442,
-    "detail": "442 lines > 400 limit (.astro)",
+    "metric": 443,
+    "detail": "443 lines > 400 limit (.astro)",
     "frozen_at": "6190a4e5"
   },
   "S1:website/src/lib/coaching-db.ts": {
@@ -656,5 +656,12 @@
     "metric": 1,
     "detail": "hardcoded host: auth.mentolder.de",
     "frozen_at": "c69a1ae4"
+  },
+  "S4:scripts/migrate-content-hub-ssot.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-content-hub-ssot.mjs",
+    "metric": 1,
+    "detail": "no reference to 'migrate-content-hub-ssot.mjs' in any configured source",
+    "frozen_at": "61680229"
   }
 }

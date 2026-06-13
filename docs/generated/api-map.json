@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-13T11:24:13.278Z",
+  "generatedAt": "2026-06-13T03:27:12.200Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2606,14 +2606,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/factory-floor/[extId].ts"
-    },
-    {
-      "path": "/api/factory-floor/{extId}/ci",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/[extId]/ci.ts"
     },
     {
       "path": "/api/factory-floor/{extId}/inject",

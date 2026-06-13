@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-13T11:24:13.278Z
+> Generated at 2026-06-13T03:27:12.200Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -323,7 +323,6 @@
 | `/api/dsgvo-request` | POST | ❓ unclassified | `website/src/pages/api/dsgvo-request.ts` |
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |
-| `/api/factory-floor/{extId}/ci` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/ci.ts` |
 | `/api/factory-floor/{extId}/inject` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/inject.ts` |
 | `/api/factory-floor/{extId}/release` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/release.ts` |
 | `/api/factory-floor/stream` | GET | 🔐 admin | `website/src/pages/api/factory-floor/stream.ts` |

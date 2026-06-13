@@ -1,5 +1,5 @@
 ---
-ticket_id: null
+ticket_id: T000687
 plan_ref: null
 status: active
 date: 2026-06-13

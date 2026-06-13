@@ -1,6 +1,6 @@
 ---
 title: Dev-Flow Tracking Improvements Implementation Plan
-ticket_id: null
+ticket_id: T000687
 domains: [website, infra, db, ops, test, security]
 status: active
 pr_number: null
@@ -646,7 +646,7 @@ Create `docs/superpowers/specs/spec-frontmatter-standard.md`. Keep it ~60 lines.
 
 ```markdown
 ---
-ticket_id: null
+ticket_id: T000687
 plan_ref: null
 status: active
 date: 2026-06-13

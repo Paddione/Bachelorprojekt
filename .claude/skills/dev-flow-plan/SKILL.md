@@ -151,6 +151,8 @@ sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/<
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
   --plan "docs/superpowers/plans/<date>-<slug>.md"
+
+bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-<slug>.md"
 ```
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.

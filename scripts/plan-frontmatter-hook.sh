@@ -8,10 +8,12 @@
 #                                 status: active when missing/null. All other
 #                                 fields (title/ticket_id/pr_number) and any
 #                                 deliberate non-active status are preserved.
-# Usage: scripts/plan-frontmatter-hook.sh <plan.md>
+# Usage: scripts/plan-frontmatter-hook.sh [--activate] <plan.md>
 set -euo pipefail
 
-FILE="${1:?Usage: plan-frontmatter-hook.sh <plan.md>}"
+FORCE_ACTIVE=0
+if [[ "${1:-}" == "--activate" ]]; then FORCE_ACTIVE=1; shift; fi
+FILE="${1:?Usage: plan-frontmatter-hook.sh [--activate] <plan.md>}"
 
 CANON_ROLES="infra website db ops test security"
 
@@ -110,6 +112,7 @@ needs_domains=0
 case "$dom_raw" in ""|"[]"|"null") needs_domains=1 ;; esac
 needs_status=0
 case "$st_raw" in ""|"null") needs_status=1 ;; esac
+[[ "$FORCE_ACTIVE" -eq 1 ]] && needs_status=1
 needs_batch=0
 [[ -z "$fl_raw" ]] && needs_batch=1
 

@@ -165,3 +165,35 @@ teardown() { rm -rf "$TMP"; }
   # a single frontmatter block contributes exactly 2 delimiter lines
   [ "$count" -eq 2 ]
 }
+
+@test "--activate forces status:active even over an existing completed value" {
+  cat > "$TMP/d-completed.md" <<'EOF'
+---
+title: Done Plan
+domains: [infra]
+status: completed
+---
+
+# Done Plan
+Touches k3d/ kustomize overlays.
+EOF
+  run bash "$HOOK" --activate "$TMP/d-completed.md"
+  [ "$status" -eq 0 ]
+  grep -q "^status: active$" "$TMP/d-completed.md"
+}
+
+@test "without --activate a deliberate completed status is preserved" {
+  cat > "$TMP/e-keep.md" <<'EOF'
+---
+title: Keep Plan
+domains: [infra]
+status: completed
+---
+
+# Keep Plan
+Touches k3d/ kustomize overlays.
+EOF
+  run bash "$HOOK" "$TMP/e-keep.md"
+  [ "$status" -eq 0 ]
+  grep -q "^status: completed$" "$TMP/e-keep.md"
+}

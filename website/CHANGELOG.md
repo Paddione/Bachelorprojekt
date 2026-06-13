@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.62.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.61.0...website-v1.62.0) (2026-06-13)
+
+
+### Features
+
+* **website:** Mehrsprachigkeit DE/EN — i18n infrastructure + 22 EN pages (T000612) ([#1624](https://github.com/Paddione/Bachelorprojekt/issues/1624)) ([205d96a](https://github.com/Paddione/Bachelorprojekt/commit/205d96ac037033e8a2f77b005ec5f884dbc63457))
+
 ## [1.61.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.60.1...website-v1.61.0) (2026-06-13)
 
 

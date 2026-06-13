@@ -1,6 +1,12 @@
 /// <reference types="astro/client" />
 /// <reference types="node" />
 
+declare namespace App {
+  interface Locals {
+    locale?: 'de' | 'en';
+  }
+}
+
 interface ImportMetaEnv {
   // Keycloak
   readonly KEYCLOAK_URL: string;

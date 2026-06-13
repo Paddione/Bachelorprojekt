@@ -1,7 +1,7 @@
 ---
 title: Project & Ticket Overview — Questionnaire Section Implementation Plan
 domains: [website, db]
-status: active
+status: completed
 pr_number: null
 ---
 

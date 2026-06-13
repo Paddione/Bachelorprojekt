@@ -2,7 +2,7 @@
 ticket_id: T000290
 title: Dev-Flow PR-Link + Plan-Archiv in Postgres
 domains: [skills]
-status: active
+status: completed
 pr_number: null
 ---
 

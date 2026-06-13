@@ -1,7 +1,7 @@
 ---
 title: Arena — Polish Pass (Plan 2c of 3) Implementation Plan
 domains: [website, arena-server]
-status: active
+status: completed
 pr_number: null
 ---
 

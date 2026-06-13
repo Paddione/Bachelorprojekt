@@ -1,7 +1,7 @@
 ---
 title: Wizard + Run UI — Implementation Plan (Plan C of 3)
 domains: [website]
-status: active
+status: completed
 pr_number: null
 ---
 

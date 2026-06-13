@@ -1,7 +1,7 @@
 ---
 title: dev-flow Skill Implementation Plan
 domains: []
-status: active
+status: completed
 pr_number: null
 ---
 

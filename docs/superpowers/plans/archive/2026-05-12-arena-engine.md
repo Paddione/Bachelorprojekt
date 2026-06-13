@@ -1,7 +1,7 @@
 ---
 title: Arena — Server Gameplay Engine (Plan 2a of 3) Implementation Plan
 domains: []
-status: active
+status: completed
 pr_number: null
 ---
 

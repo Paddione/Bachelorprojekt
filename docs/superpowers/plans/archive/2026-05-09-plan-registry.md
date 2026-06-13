@@ -1,7 +1,7 @@
 ---
 title: Plan Registry: Rich Agent Context Injection — Implementation Plan
 domains: [infra, db]
-status: active
+status: completed
 pr_number: null
 ---
 
@@ -442,7 +442,7 @@ cat > /tmp/test-plan.md << 'EOF'
 ---
 title: Test Plan
 domains: [infra, website]
-status: active
+status: completed
 pr_number: null
 ---
 
@@ -513,7 +513,7 @@ title=$(grep -m1 '^# ' "$FILE" | sed 's/^# //' || echo "$slug")
 FRONTMATTER="---
 title: $title
 domains: $domains_yaml
-status: active
+status: completed
 pr_number: null
 ---
 "

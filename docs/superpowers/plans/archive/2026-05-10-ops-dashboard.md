@@ -1,7 +1,7 @@
 ---
 title: Ops-Dashboard `/admin/ops` Implementation Plan
 domains: [infra, website]
-status: active
+status: completed
 pr_number: null
 ---
 

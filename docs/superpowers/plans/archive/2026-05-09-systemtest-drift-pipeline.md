@@ -1,7 +1,7 @@
 ---
 title: System-Test Drift Pipeline — Implementation Plan
 domains: [test, infra]
-status: active
+status: completed
 pr_number: null
 ---
 

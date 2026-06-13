@@ -621,5 +621,12 @@
     "metric": 1,
     "detail": "no reference to 'skill-orchestrator.sh' in any configured source",
     "frozen_at": "a6f6fa8f"
+  },
+  "S4:scripts/migrate-content-hub-ssot.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-content-hub-ssot.mjs",
+    "metric": 1,
+    "detail": "no reference to 'migrate-content-hub-ssot.mjs' in any configured source",
+    "frozen_at": "61680229"
   }
 }

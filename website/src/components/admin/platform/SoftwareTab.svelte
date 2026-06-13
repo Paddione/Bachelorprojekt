@@ -120,6 +120,17 @@
                     {asset.replicas.ready}/{asset.replicas.total} pods
                   </span>
                 {/if}
+                {#if asset.serviceUrl}
+                  <a
+                    href={asset.serviceUrl}
+                    target="_blank"
+                    rel="noopener"
+                    class="text-[10px] font-bold text-admin-primary hover:underline"
+                    on:click|stopPropagation
+                  >
+                    Öffnen ↗
+                  </a>
+                {/if}
               </div>
             </div>
           </div>

@@ -1210,13 +1210,14 @@ tasks:
         done
 
   secrets:install-hooks:
-    desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard"
+    desc: "Point git at the repo's tracked hooks (.githooks) — installs the plaintext-secret pre-commit guard + merge drivers"
     cmds:
       - git config core.hooksPath .githooks
       - chmod +x .githooks/pre-commit
       - chmod +x .githooks/pre-push
       - chmod +x .githooks/post-commit-index
-      - echo "hooksPath set to .githooks"
+      - git config merge.ours.driver true
+      - echo "hooksPath set to .githooks; merge.ours driver registered"
 
   secrets:unlock:
     desc: "Decrypt git-crypt secrets on a new machine (KEY=/path/to/bp-secrets.key)"

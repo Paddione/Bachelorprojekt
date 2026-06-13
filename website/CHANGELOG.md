@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.59.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.58.0...website-v1.59.0) (2026-06-13)
+
+
+### Features
+
+* **factory:** Flow-Polish — PhaseStepper, CI-Badge, AttentionStrip, Planningsbüro-Live-Update (T000663) ([#1608](https://github.com/Paddione/Bachelorprojekt/issues/1608)) ([1ccb307](https://github.com/Paddione/Bachelorprojekt/commit/1ccb307992d25f72dc10a8116e1fc235fbec594f))
+
 ## [1.58.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.57.0...website-v1.58.0) (2026-06-13)
 
 

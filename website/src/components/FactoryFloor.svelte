@@ -25,10 +25,7 @@
   ];
 
   const MOBILE_COL_COUNT = 10;
-  const MOBILE_COL_INDEX: Record<string, number> = {
-    staged: 0, backlog: 1, scout: 2, design: 3, plan: 4,
-    implement: 5, verify: 6, deploy: 7, qs: 8, done: 9,
-  };
+  const MOBILE_COL_INDEX: Record<string, number> = { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, done: 9 };
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
   let isMobile = $state(false);
@@ -452,16 +449,13 @@
   }
   .ff-view-toggle__label { text-transform: uppercase; letter-spacing: 0.05em; }
 
-  @media (max-width: 767px) {
-    .kanban-container {
-      padding-bottom: calc(var(--factory-tab-bar-height, 48px) + env(safe-area-inset-bottom, 0px) + 8px);
-    }
-  }
-
   .mobile-station-dots {
     display: none;
   }
   @media (max-width: 767px) {
+    .kanban-container {
+      padding-bottom: calc(var(--factory-tab-bar-height, 48px) + env(safe-area-inset-bottom, 0px) + 8px);
+    }
     .mobile-station-dots {
       display: flex;
       justify-content: center;
@@ -483,25 +477,10 @@
   }
 
   @media (max-width: 767px) {
-    :global([data-testid="floor-leitstand"] > *) {
-      padding: 0.5rem !important;
-    }
-    :global([data-testid="floor-leitstand"] p.text-xl) {
-      font-size: 1.125rem !important;
-    }
-    :global([data-testid="floor-leitstand"] p.text-xs) {
-      font-size: 10px !important;
-    }
-  }
-
-  @media (max-width: 767px) {
-    :global([data-testid="floor-pulse"]) {
-      flex-wrap: wrap;
-      row-gap: 4px;
-    }
-    :global([data-testid="floor-stale"]) {
-      font-size: 12px;
-      flex-basis: 100%;
-    }
+    :global([data-testid="floor-leitstand"] > *) { padding: 0.5rem !important; }
+    :global([data-testid="floor-leitstand"] p.text-xl) { font-size: 1.125rem !important; }
+    :global([data-testid="floor-leitstand"] p.text-xs) { font-size: 10px !important; }
+    :global([data-testid="floor-pulse"]) { flex-wrap: wrap; row-gap: 4px; }
+    :global([data-testid="floor-stale"]) { font-size: 12px; flex-basis: 100%; }
   }
 </style>

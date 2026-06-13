@@ -327,6 +327,9 @@ SLUG="<slug>"
 BRANCH="feature/<slug>" # oder fix/<slug>
 PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
 
+# Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird (Fix 3/4):
+sed -i 's/^status: active$/status: completed/' "$PLAN_FILE"
+
 ./scripts/ticket.sh archive-plan \
   --id "$TICKET_ID" \
   --slug "$SLUG" \

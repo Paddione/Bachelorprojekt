@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.60.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.60.0...website-v1.60.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **quality:** dedup repo-index + DevStatusTabs type [T000677, T000679] ([#1615](https://github.com/Paddione/Bachelorprojekt/issues/1615)) ([1aea9b8](https://github.com/Paddione/Bachelorprojekt/commit/1aea9b8f147a4809a21710fefb08c89ee84ae937))
+
 ## [1.60.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.59.0...website-v1.60.0) (2026-06-13)
 
 

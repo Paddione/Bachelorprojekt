@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-13T04:28:05.403Z
+> Generated at 2026-06-13T03:24:11.093Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -58,7 +58,6 @@
 | `/api/admin/clients/set-is-admin` | POST | 🔐 admin | `website/src/pages/api/admin/clients/set-is-admin.ts` |
 | `/api/admin/clients/update` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update.ts` |
 | `/api/admin/clients/update-crm` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update-crm.ts` |
-| `/api/admin/cluster/graph` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/graph.ts` |
 | `/api/admin/cluster/logs` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/logs.ts` |
 | `/api/admin/cluster/pods-list` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/pods-list.ts` |
 | `/api/admin/cluster/warnings` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/warnings.ts` |
@@ -323,6 +322,7 @@
 | `/api/dsgvo-request` | POST | ❓ unclassified | `website/src/pages/api/dsgvo-request.ts` |
 | `/api/factory-floor` | GET | 🔐 admin | `website/src/pages/api/factory-floor.ts` |
 | `/api/factory-floor/{extId}` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId].ts` |
+| `/api/factory-floor/{extId}/ci` | GET | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/ci.ts` |
 | `/api/factory-floor/{extId}/inject` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/inject.ts` |
 | `/api/factory-floor/{extId}/release` | POST | 🔐 admin | `website/src/pages/api/factory-floor/[extId]/release.ts` |
 | `/api/factory-floor/stream` | GET | 🔐 admin | `website/src/pages/api/factory-floor/stream.ts` |

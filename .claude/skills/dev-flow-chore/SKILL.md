@@ -40,6 +40,18 @@ bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label
 Falls ausnahmsweise inline im main-Checkout gearbeitet wird: zusätzlich `claim main-checkout` —
 der `.githooks/pre-commit` sperrt sonst konkurrierende Commits anderer Sessions.
 
+Lege ein minimales Audit-Ticket an (type=task, status=done — Chores haben keinen Plan,
+nur eine Audit-Spur):
+```bash
+TICKET_RESULT=$(./scripts/ticket.sh create \
+  --type task \
+  --brand mentolder \
+  --title "chore: <slug>" \
+  --status done \
+  --description "Branch: chore/<slug>"$'\n'"Kein Plan — direktes Chore.")
+TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+```
+
 ## Schritt 2: Änderungen vornehmen
 
 Setze die Wartung um. Bei mechanischer Arbeit über mehrere Dateien kannst du an einen passend
@@ -61,8 +73,11 @@ Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/
 
 ```bash
 git add -A
-git commit -m "chore(<scope>): <subject>"   # commitlint: Body-Zeilen <100 Zeichen
+git commit -m "chore(<scope>): <subject> [$TICKET_EXT_ID]"   # commitlint: Body-Zeilen <100 Zeichen
 ```
+Die `[T000XXX]`-Referenz wird von `.github/workflows/post-merge.yml` gelesen — das Ticket ist
+bereits `done`, der Status-Update ist ein idempotenter No-op.
+
 Rufe `commit-commands:commit-push-pr` auf (oder `gh pr create` manuell).
 
 ## Schritt 5: Merge wenn CI grün

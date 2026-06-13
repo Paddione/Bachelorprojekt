@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { NavigationLink } from '../config/types';
+  import LanguageSwitcher from './LanguageSwitcher.svelte';
 
   interface Props {
     siteTitle?: string;
     /** Top-nav links from the active BrandConfig. Falls back to mentolder defaults. */
     links?: NavigationLink[];
+    pathname?: string;
   }
 
   let {
@@ -16,6 +18,7 @@
       { label: 'Referenzen', href: '/referenzen' },
       { label: 'Kontakt',    href: '/kontakt' },
     ],
+    pathname = '/',
   }: Props = $props();
   const brandWord = siteTitle.replace(/\.de$/i, '').toLowerCase();
 
@@ -195,6 +198,7 @@
       </a>
 
       <!-- Mobile toggle -->
+      <LanguageSwitcher {pathname} />
       <button
         class="mobile-toggle"
         onclick={() => (mobileOpen = !mobileOpen)}
@@ -252,6 +256,9 @@
         {/if}
       {/if}
 
+      <div class="mobile-lang-row">
+        <LanguageSwitcher {pathname} />
+      </div>
       <a href="/kontakt" class="mobile-cta" onclick={() => (mobileOpen = false)}>
         Kostenloses Erstgespräch
       </a>
@@ -676,6 +683,12 @@
 
   .mobile-cta:hover {
     background: var(--brass-2) !important;
+  }
+
+  .mobile-lang-row {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
   }
 
   @media (max-width: 860px) {

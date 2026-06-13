@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-13T11:44:44.422Z
+> Generated at 2026-06-13T03:24:11.093Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -58,7 +58,6 @@
 | `/api/admin/clients/set-is-admin` | POST | 🔐 admin | `website/src/pages/api/admin/clients/set-is-admin.ts` |
 | `/api/admin/clients/update` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update.ts` |
 | `/api/admin/clients/update-crm` | POST | 🔐 admin | `website/src/pages/api/admin/clients/update-crm.ts` |
-| `/api/admin/cluster/graph` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/graph.ts` |
 | `/api/admin/cluster/logs` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/logs.ts` |
 | `/api/admin/cluster/pods-list` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/pods-list.ts` |
 | `/api/admin/cluster/warnings` | GET | 🔐 admin | `website/src/pages/api/admin/cluster/warnings.ts` |

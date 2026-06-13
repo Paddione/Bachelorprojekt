@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.58.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.57.0...website-v1.58.0) (2026-06-13)
+
+
+### Features
+
+* **admin:** Live-Architektur-Graph mit Pod-Status-Overlay (T000668) ([#1604](https://github.com/Paddione/Bachelorprojekt/issues/1604)) ([736516c](https://github.com/Paddione/Bachelorprojekt/commit/736516c8f4946b949c73153d1499206c09e537cc))
+
 ## [1.57.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.56.0...website-v1.57.0) (2026-06-12)
 
 

@@ -307,6 +307,9 @@ Falls eine Ticket-ID vorhanden ist, schließe das Ticket:
 RESOLUTION="shipped" # oder "fixed" bei Fixes
 PR_NUM=$(gh pr view --json number -q '.number')
 
+# PR-Nummer in ticket_links eintragen, damit der Shipped-Tab sie zeigt (Fix 1):
+./scripts/ticket.sh add-pr-link --id "$TICKET_ID" --pr "$PR_NUM"
+
 ./scripts/ticket.sh update-status --id "$TICKET_ID" --status qa_review
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow --detail "PR #$PR_NUM merged · deployed" || true

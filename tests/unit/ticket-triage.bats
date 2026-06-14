@@ -156,8 +156,11 @@ setup() {
 
 # ── Provider config ──────────────────────────────────────────────
 
-@test "static: uses getProviderConfig with ticket-triage source" {
-  grep -q "getProviderConfig('ticket-triage', 'haiku')" "$TRIAGE_FILE"
+@test "static: uses getProviderConfig with the ticket-triage source from the registry (SSOT)" {
+  # Die Source kommt aus der ki-services-Registry (SOURCE.ticketTriage), nicht als Literal,
+  # damit Dashboard-Auswahl und Runtime denselben String teilen (Anti-Drift).
+  grep -q "getProviderConfig(SOURCE.ticketTriage, 'haiku')" "$TRIAGE_FILE"
+  grep -q "import { SOURCE } from './ki-services'" "$TRIAGE_FILE"
 }
 
 @test "static: uses Anthropic client" {

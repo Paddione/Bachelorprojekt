@@ -4,7 +4,7 @@ import { searchHelp, formatHit, noMatchReply } from './search';
 import { queryNearest } from '../knowledge-db';
 import { resolveCoachingCollectionIds } from './coaching-collections';
 import { pool } from '../website-db';
-import { getProviderConfig } from '../provider-config';
+import { getProviderConfig, setProviderCooldown } from '../provider-config';
 import { SOURCE } from '../ki-services';
 
 export interface AssistantChatInput {
@@ -85,15 +85,22 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
     apiKey: cfg.apiKey,
     ...(cfg.baseUrl ? { baseURL: cfg.baseUrl } : {}),
   });
-  const response = await client.messages.create({
-    model: cfg.modelId,
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages: input.messages.map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    })),
-  });
+
+  let response: Anthropic.Message;
+  try {
+    response = await client.messages.create({
+      model: cfg.modelId,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: input.messages.map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      })),
+    });
+  } catch (err) {
+    await setProviderCooldown(pool, SOURCE.assistantChat, cfg.provider, 5);
+    throw err;
+  }
 
   const reply = response.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')

@@ -1,7 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { getProviderConfig } from './provider-config';
+import { getProviderConfig, setProviderCooldown } from './provider-config';
 import { SOURCE } from './ki-services';
 import { getTicketDetail, addComment } from './tickets/admin';
+import { pool } from './website-db';
 
 export interface TriageResult {
   priority: string;
@@ -74,6 +75,7 @@ Regeln:
       }
     } catch (err) {
       if (attempt === 1) {
+        await setProviderCooldown(pool, SOURCE.ticketTriage, cfg.provider, 5);
         console.error('[ticket-triage] LLM call failed after retry:', err);
         return null;
       }

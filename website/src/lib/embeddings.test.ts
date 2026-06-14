@@ -112,4 +112,38 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     await embedQuery('x', { model: 'bge-m3', purpose: 'query' });
     expect(String(fetchMock.mock.calls[0][0])).toContain('voyageai.com');
   });
+
+  test('voyage model: ECONNREFUSED from router → falls back to Voyage with console.warn', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let callCount = 0;
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      callCount++;
+      if (String(url).includes('llm-router.test')) {
+        return Promise.reject(Object.assign(new Error('ECONNREFUSED'), { code: 'ECONNREFUSED' }));
+      }
+      // Voyage fallback succeeds
+      return Promise.resolve(new Response(
+        JSON.stringify({ data: [{ embedding: Array(1024).fill(0.5) }], usage: { total_tokens: 5 } }),
+        { status: 200 },
+      ));
+    });
+    process.env.VOYAGE_API_KEY = 'test-voyage-key';
+
+    const r = await embedQuery('hello', { model: 'voyage-multilingual-2', purpose: 'query', maxAttempts: 1 });
+    expect(r.embedding).toHaveLength(1024);
+    expect(callCount).toBeGreaterThan(1); // router was tried, then voyage
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('[embeddings] GPU router unreachable'));
+
+    delete process.env.VOYAGE_API_KEY;
+    warnSpy.mockRestore();
+  });
+
+  test('bge-m3 model: ECONNREFUSED from router → throws EmbeddingQueryError (no fallback)', async () => {
+    global.fetch = vi.fn().mockRejectedValue(
+      Object.assign(new Error('ECONNREFUSED'), { code: 'ECONNREFUSED' }),
+    );
+    await expect(
+      embedQuery('x', { model: 'bge-m3', purpose: 'query', maxAttempts: 1, baseDelayMs: 1 }),
+    ).rejects.toThrow(/EmbeddingQueryError/);
+  });
 });

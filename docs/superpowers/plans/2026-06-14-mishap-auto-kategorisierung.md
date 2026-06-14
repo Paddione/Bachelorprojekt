@@ -19,7 +19,7 @@ Mishap-Tickets erhalten eine automatische `category`-Einstufung (7 Kategorien + 
 
 ## Tasks
 
-- [ ] **Task 1 — DB-Migration: `category`-Spalte**
+- [x] **Task 1 — DB-Migration: `category`-Spalte**
 
   Prüfe zuerst, ob die Spalte schon existiert:
 
@@ -44,7 +44,7 @@ Mishap-Tickets erhalten eine automatische `category`-Einstufung (7 Kategorien + 
 
   Bestehende Zeilen bleiben `NULL` — kein Backfill nötig.
 
-- [ ] **Task 2 — `scripts/mishap-keywords.json` erstellen**
+- [x] **Task 2 — `scripts/mishap-keywords.json` erstellen**
 
   Neue Datei: `scripts/mishap-keywords.json` (max. ~60 Zeilen).
 
@@ -63,7 +63,7 @@ Mishap-Tickets erhalten eine automatische `category`-Einstufung (7 Kategorien + 
 
   Die Keywords werden case-insensitiv gegen `<title> <description>` gematcht.
 
-- [ ] **Task 3 — `scripts/mishap-categorize.sh` erstellen** (max. 200 Zeilen)
+- [x] **Task 3 — `scripts/mishap-categorize.sh` erstellen** (max. 200 Zeilen)
 
   Signatur: `mishap-categorize.sh <external_id> <title> <description>`
 
@@ -76,7 +76,7 @@ Mishap-Tickets erhalten eine automatische `category`-Einstufung (7 Kategorien + 
   6. DB-Update: `UPDATE tickets.tickets SET category='<kategorie>' WHERE external_id='<external_id>'` via `kubectl exec` auf shared-db.
   7. Fehler bei DB-Update → `stderr`, exit 0 (best-effort).
 
-- [ ] **Task 4 — `scripts/ticket.sh` integrieren** (Netto 0 Zeilen; Budget: 793 Zeilen Baseline)
+- [x] **Task 4 — `scripts/ticket.sh` integrieren** (Netto 0 Zeilen; Budget: 793 Zeilen Baseline)
 
   In `cmd_create()`, nach dem `_exec_sql`-Block, der `external_id|id` zurückgibt:
 
@@ -93,7 +93,7 @@ Mishap-Tickets erhalten eine automatische `category`-Einstufung (7 Kategorien + 
 
   **Budget-Check vor Commit**: `wc -l scripts/ticket.sh` muss ≤793 ergeben.
 
-- [ ] **Task 5 — Taskfile-Task `mishap:categorize`** hinzufügen
+- [x] **Task 5 — Taskfile-Task `mishap:categorize`** hinzufügen
 
   In `Taskfile.yml` neuen Task:
   ```yaml
@@ -105,7 +105,7 @@ Mishap-Tickets erhalten eine automatische `category`-Einstufung (7 Kategorien + 
 
   Verwendung: `task mishap:categorize -- <external_id> "<title>" "<description>"`
 
-- [ ] **Task 6 — Verifikation**
+- [x] **Task 6 — Verifikation**
 
   ```bash
   # 1. Offline tests

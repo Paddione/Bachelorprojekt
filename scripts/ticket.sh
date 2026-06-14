@@ -68,20 +68,13 @@ cmd_create() {
       --is-test-data) is_test="true"; shift ;;
       *)             echo "Unknown create option: $1" >&2; exit 2 ;;
     esac; done
-
-  if [[ -z "$priority" ]]; then
-    priority="mittel"
-  fi
-
   if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
     echo "ERROR: --type, --title, and --description are required." >&2
     exit 2
   fi
-
-  local pod
-  pod=$(_pgpod)
-
-  _exec_sql "$pod" \
+  local pod; pod=$(_pgpod)
+  local result ext_id
+  result=$(_exec_sql "$pod" \
     -v type="$type" \
     -v brand="$brand" \
     -v title="$title" \
@@ -94,6 +87,13 @@ INSERT INTO tickets.tickets (type, brand, title, description, status, severity, 
 VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', :'is_test'::boolean)
 RETURNING external_id || '|' || id;
 EOF
+)
+  ext_id="${result%%|*}"
+  echo "$result"
+  if [[ "$type" == "mishap" ]] && [[ -n "$ext_id" ]]; then
+    local sdir; sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    "$sdir/mishap-categorize.sh" "$ext_id" "$title" "$desc" >&2 || true
+  fi
 }
 
 cmd_update_status() {

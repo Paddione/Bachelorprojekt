@@ -450,6 +450,8 @@
             <div class="provider-model">{p.modelName ?? 'kein Modell'}</div>
             {#if p.apiKey}
               <div class="provider-key">API-Key gesetzt ✓</div>
+            {:else if p.provider === 'deepseek' || p.provider === 'anthropic'}
+              <div class="provider-key">ENV-Key konfiguriert ✓</div>
             {:else if p.provider !== 'lumo'}
               <div class="provider-key warn">kein API-Key</div>
             {/if}
@@ -550,10 +552,12 @@
   .btn-activate { padding: 0.4rem 0.8rem; background: var(--gold,#c9a55c); color: #111; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; }
   .btn-activate:disabled { opacity: 0.5; cursor: not-allowed; }
   .provider-badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; letter-spacing: 0.03em; }
-  .provider-badge.openai  { background: #16a34a22; color: #4ade80; border: 1px solid #16a34a44; }
-  .provider-badge.mistral { background: #ea580c22; color: #fb923c; border: 1px solid #ea580c44; }
-  .provider-badge.lumo    { background: #0891b222; color: #38bdf8; border: 1px solid #0891b244; }
-  .provider-badge.custom  { background: #52525b22; color: #a1a1aa; border: 1px solid #52525b44; }
+  .provider-badge.openai    { background: #16a34a22; color: #4ade80; border: 1px solid #16a34a44; }
+  .provider-badge.mistral   { background: #ea580c22; color: #fb923c; border: 1px solid #ea580c44; }
+  .provider-badge.lumo      { background: #0891b222; color: #38bdf8; border: 1px solid #0891b244; }
+  .provider-badge.deepseek  { background: #1d4ed822; color: #60a5fa; border: 1px solid #1d4ed844; }
+  .provider-badge.anthropic { background: #7c3aed22; color: #c084fc; border: 1px solid #7c3aed44; }
+  .provider-badge.custom    { background: #52525b22; color: #a1a1aa; border: 1px solid #52525b44; }
   .edit-panel { border: 1px solid var(--gold,#c9a55c); border-radius: 10px; background: var(--bg-2,#1a1a1a); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
   .edit-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .edit-title { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; color: var(--text-light,#f0f0f0); }

@@ -742,7 +742,7 @@ spec:
       protocol: TCP
 ---
 
-# LLM-Gateway Egress: Website-Pod darf wg-mesh LLM-Endpunkt (LM Studio via WireGuard) auf Port 1234 erreichen
+# LLM-Gateway Egress: Website-Pod darf wg-mesh LLM-Endpunkt (TEI port 8081, LM Studio port 1234) erreichen
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -757,6 +757,8 @@ spec:
   egress:
   - ports:
     - port: 1234
+      protocol: TCP
+    - port: 8081
       protocol: TCP
     to:
     - ipBlock:

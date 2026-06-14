@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brett – Zuschauer</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b111c; color: #e7ead0;
+      font-family: system-ui, sans-serif; }
+    #view-only-badge {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 100;
+      background: rgba(200,169,110,0.9); color: #0b111c; font-weight: 600; font-size: 13px;
+      padding: 5px 14px; border-radius: 999px; pointer-events: none;
+    }
+    #share-status {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-size: 15px; color: #aab; text-align: center; max-width: 80vw;
+    }
+  </style>
+</head>
+<body>
+  <div id="view-only-badge">👁 Zuschauer</div>
+  <div id="share-status">Lädt …</div>
+  <script>window.__brettIsZuschauer = true;</script>
+  <script type="module" src="../src/client/zuschauer.ts"></script>
+</body>
+</html>

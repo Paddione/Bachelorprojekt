@@ -4,7 +4,7 @@
 
 export type Phase = 'lobby' | 'warmup' | 'active' | 'paused' | 'ended';
 
-export type Role = 'leiter' | 'stellvertreter' | 'beobachter' | 'gast';
+export type Role = 'leiter' | 'stellvertreter' | 'beobachter' | 'gast' | 'zuschauer';
 
 export type FigureType = 'coachee' | 'team_active' | 'team_passive' | 'saboteur' | 'resource';
 

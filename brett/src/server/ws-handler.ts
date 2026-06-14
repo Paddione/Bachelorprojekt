@@ -90,6 +90,7 @@ export interface WsDeps {
   clearUndoStacks?: (room: string) => void;
   cleanupRoomTracking?: (room: string) => void;
   resolveShareToken?: (token: string) => Promise<string | null>;
+  resolveZuschauerToken?: (token: string) => Promise<string | null>;
 }
 
 // Coaching-only relay set. `jump` (§4.5) is relayed + canMutate-gated like move,
@@ -149,6 +150,9 @@ export function gateMutation(
   deps: Pick<WsDeps, 'buildStateFromMutations' | 'figureMaps' | 'canMutate' | 'resolveRole'>,
 ): boolean {
   if (ws?._isGuest) {
+    return msgType === 'request_state_snapshot';
+  }
+  if (ws?._isZuschauer) {
     return msgType === 'request_state_snapshot';
   }
   const state = deps.buildStateFromMutations(room) || {};

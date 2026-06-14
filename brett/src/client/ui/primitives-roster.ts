@@ -4,7 +4,7 @@
 // ~300-line module budget (spec §6d). Re-exported from primitives.ts.
 // Pure class helpers + DOM factories; DOM access only inside factory bodies.
 
-export type BadgeTone = 'leiter' | 'stellvertreter' | 'beobachter' | 'gast' | 'neutral';
+export type BadgeTone = 'leiter' | 'stellvertreter' | 'beobachter' | 'gast' | 'zuschauer' | 'neutral';
 
 export interface RosterItemOptions {
   active?: boolean;

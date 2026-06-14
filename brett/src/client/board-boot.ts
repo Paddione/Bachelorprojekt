@@ -65,6 +65,10 @@ export async function bootBoard(): Promise<void> {
     if (me.isAdmin) (window as any).__brettCurrentUserIsAdmin = true;
   } catch { /* anon */ }
 
+  if ((window as any).__brettIsZuschauer) {
+    _isAdmin = false;
+  }
+
   // ── UI init ────────────────────────────────────────────────────────
   figPanel.initFigPanel();
   appearance.initAppearance();

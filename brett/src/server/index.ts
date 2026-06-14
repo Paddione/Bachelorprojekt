@@ -198,6 +198,7 @@ const wsDeps = {
   getUndoStatus,
   clearUndoStacks,
   resolveShareToken: shareTokens.resolveShareToken,
+  resolveZuschauerToken: shareTokens.resolveZuschauerToken,
 };
 
 wsHandler.attachWsServer(wss, wsDeps);

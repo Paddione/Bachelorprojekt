@@ -163,7 +163,11 @@ export function importJson(): void {
 }
 
 export function initImportButton(): void {
-  // T000605: Feature-Flag entfernt — Import ist permanent verfügbar.
+  if ((window as any).__brettIsZuschauer) {
+    const btn = document.getElementById('btn-import-json') as HTMLButtonElement | null;
+    if (btn) btn.disabled = true;
+    return;
+  }
   const btn = document.getElementById('btn-import-json') as HTMLButtonElement | null;
   const input = document.getElementById('import-file-input') as HTMLInputElement | null;
 

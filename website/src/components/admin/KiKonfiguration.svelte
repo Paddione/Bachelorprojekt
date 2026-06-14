@@ -6,6 +6,7 @@
     id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;
     provider: string; model_id: string; base_url: string | null;
     max_concurrent: number; enabled: boolean;
+    api_key_hint: string | null;
   }
   interface Health {
     provider: string; cooldown_until: string | null; active_agents: number;
@@ -46,7 +47,7 @@
   let form = $state(blankForm());
 
   function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {
-    return { source, tier, priority: 1, provider: '', model_id: '', base_url: '', max_concurrent: 3, enabled: true };
+    return { source, tier, priority: 1, provider: '', model_id: '', base_url: '', max_concurrent: 3, enabled: true, api_key: '' };
   }
 
   // When a GPU-worker / cluster provider is chosen and base_url is still empty,
@@ -120,7 +121,7 @@
 
   function startEdit(e: ProviderEntry) {
     editId = e.id;
-    form = { source: e.source, tier: e.tier, priority: e.priority, provider: e.provider, model_id: e.model_id, base_url: e.base_url ?? '', max_concurrent: e.max_concurrent, enabled: e.enabled };
+    form = { source: e.source, tier: e.tier, priority: e.priority, provider: e.provider, model_id: e.model_id, base_url: e.base_url ?? '', max_concurrent: e.max_concurrent, enabled: e.enabled, api_key: '' };
   }
   function startNew() {
     editId = -1;
@@ -129,7 +130,13 @@
   }
 
   async function saveForm() {
-    const payload = { ...form, base_url: form.base_url.trim() || null };
+    const payload: Record<string, unknown> = { ...form, base_url: form.base_url.trim() || null };
+    // On edit: empty api_key = keep existing (omit from payload). On create: empty = no key (null).
+    if (editId !== -1 && !form.api_key.trim()) {
+      delete payload.api_key;
+    } else {
+      payload.api_key = form.api_key.trim() || null;
+    }
     const isNew = editId === -1;
     const res = await fetch(isNew ? '/api/admin/ki/providers' : `/api/admin/ki/providers/${editId}`, {
       method: isNew ? 'POST' : 'PUT',
@@ -275,7 +282,7 @@
                   {e.priority}
                   <button onclick={() => changePriority(e, 1)} aria-label="niedriger">↓</button>
                 </span>
-                <span class="who">{e.provider} · {e.model_id} · {e.tier}</span>
+                <span class="who">{e.provider} · {e.model_id} · {e.tier}{e.api_key_hint ? ' 🔑' : ''}</span>
                 <span class="badge {inCooldown(e.provider) ? 'cooldown' : e.enabled ? 'live' : 'off'}">
                   &#9679; {inCooldown(e.provider) ? 'cooldown' : e.enabled ? 'live' : 'off'}
                 </span>
@@ -321,6 +328,14 @@
       <input placeholder="model_id" bind:value={form.model_id} />
     {/if}
     <input placeholder="base_url (optional)" bind:value={form.base_url} />
+    {#if editId !== -1}
+      {@const hint = entries.find((e) => e.id === editId)?.api_key_hint}
+      <input type="password" autocomplete="new-password"
+        placeholder={hint ? `Key gesetzt (${hint}) — leer lassen = unverändert` : 'API-Key setzen (optional)'}
+        bind:value={form.api_key} />
+    {:else}
+      <input type="password" autocomplete="new-password" placeholder="API-Key (optional)" bind:value={form.api_key} />
+    {/if}
     <select bind:value={form.tier}><option value="sonnet">sonnet</option><option value="haiku">haiku</option></select>
     <input placeholder="source" bind:value={form.source} />
     <input type="number" min="1" placeholder="max_concurrent" bind:value={form.max_concurrent} />

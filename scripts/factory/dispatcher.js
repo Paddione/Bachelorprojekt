@@ -18,6 +18,8 @@
  * Usage (Workflow tool): args = { timestamp }  // ISO8601 passed in
  */
 
+import { execFileSync } from 'node:child_process'
+
 export const meta = {
   name: 'software-factory-dispatcher',
   description:
@@ -129,10 +131,66 @@ async function main() {
     return
   }
 
+  // Run budget guards and estimates
+  const launches = []
+  const blockedLaunches = []
+  for (const f of prep.launch) {
+    try {
+      execFileSync('bash', [`${REPO}/scripts/factory/budget-guard.sh`, f.brand], {
+        env: { ...process.env, BRAND: f.brand }
+      })
+
+      // Guard OK: Run estimate (best-effort)
+      try {
+        log(`Dispatcher: running budget estimate for ticket ${f.external_id} (${f.brand})`)
+        const estJson = execFileSync('bash', [`${REPO}/scripts/factory/budget-estimate.sh`, f.external_id, f.brand], {
+          encoding: 'utf8',
+          env: { ...process.env, BRAND: f.brand }
+        })
+        log(`Dispatcher: budget estimate result: ${estJson.trim()}`)
+      } catch (estErr) {
+        log(`Dispatcher: budget-estimate failed for ${f.external_id} (non-fatal): ${estErr.message}`)
+      }
+
+      launches.push(f)
+    } catch (guardErr) {
+      log(`Dispatcher: budget guard failed/tripped for ${f.external_id} (${f.brand}): ${guardErr.message}`)
+
+      // 1. Set ticket status to blocked
+      try {
+        execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'update-status', '--id', f.external_id, '--status', 'blocked'], {
+          env: { ...process.env, BRAND: f.brand }
+        })
+      } catch (err) {
+        log(`Dispatcher: failed to set ticket ${f.external_id} status: ${err.message}`)
+      }
+
+      // 2. Log blocked phase event
+      try {
+        execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'phase', f.external_id, 'scout', 'blocked', '--detail', 'daily budget exceeded'], {
+          env: { ...process.env, BRAND: f.brand }
+        })
+      } catch (err) {
+        log(`Dispatcher: failed to log phase event for ${f.external_id}: ${err.message}`)
+      }
+
+      // 3. Release slot
+      try {
+        execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'release-slot', '--id', f.external_id], {
+          env: { ...process.env, BRAND: f.brand }
+        })
+      } catch (err) {
+        log(`Dispatcher: failed to release slot for ticket ${f.external_id}: ${err.message}`)
+      }
+
+      blockedLaunches.push(f)
+    }
+  }
+
   // ── ② Launch: nest one pipeline workflow per scheduled feature (Model A) ──────
   phase('Launch')
   const results = await parallel(
-    prep.launch.map(
+    launches.map(
       (f) => () =>
         workflow(
           { scriptPath: 'scripts/factory/pipeline.js' },
@@ -156,9 +214,17 @@ async function main() {
   // ── ②b Escalation routing: surface every error / blocked pipeline (never silent) ──
   // The parallel() result was previously discarded (gotcha: dispatcher.js:88) which
   // swallowed both .catch errors (:105-106) and structured { status:'blocked' } returns.
-  const escalations = (results ?? []).filter(
-    (r) => r && (r.error || (r.result && r.result.status === 'blocked')),
-  )
+  const blockedResults = blockedLaunches.map(f => ({
+    external_id: f.external_id,
+    brand: f.brand,
+    result: { status: 'blocked', reason: 'daily budget exceeded' }
+  }))
+  const escalations = [
+    ...blockedResults,
+    ...(results ?? []).filter(
+      (r) => r && (r.error || (r.result && r.result.status === 'blocked')),
+    )
+  ]
   if (escalations.length) {
     await agent(
       `${escalations.length} pipeline run(s) ended in error or blocked this tick. Notify the operator

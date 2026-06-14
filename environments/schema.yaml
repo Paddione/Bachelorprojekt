@@ -751,7 +751,15 @@ secrets:
   - name: DEEPSEEK_API_KEY
     required: false
     generate: false
-    description: "DeepSeek API key for website AI features (meeting insights, ticket triage, assistant chat). When set, DeepSeek is preferred over Anthropic as the sonnet/haiku provider via the provider_config routing table."
+    description: "DeepSeek API key for coaching and website AI features (meeting insights, ticket triage, assistant chat). When set, DeepSeek is preferred over Anthropic via provider_config routing."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
+  - name: DEEPSEEK_API_KEY_PK
+    required: false
+    generate: false
+    description: "DeepSeek API key for the Software Factory autopilot (pk-deepseek). Separate from the coaching key so billing can be tracked per purpose. Exposed to the website pod; also set as ANTHROPIC_AUTH_TOKEN in ~/.config/factory/autopilot.env."
     extra_namespaces:
       - namespace: website
         secret: website-secrets

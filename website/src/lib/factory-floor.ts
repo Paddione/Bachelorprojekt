@@ -538,3 +538,4 @@ export async function consumeInjections(extId: string, phase: Phase): Promise<In
   );
   return r.rows.map(mapInjection);
 }
+export type { FactoryRunBudget } from './factory-budget';

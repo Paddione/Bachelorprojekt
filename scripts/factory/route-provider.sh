@@ -17,7 +17,7 @@ fi
 
 # Ordered candidates: source-specific before '*', then priority asc.
 CANDS=$(factory_psql -v src="$SOURCE" -v tier="$TIER" <<'SQL'
-SELECT provider||'\t'||model_id||'\t'||COALESCE(base_url,'')||'\t'||max_concurrent
+SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')||E'\t'||max_concurrent
 FROM tickets.provider_config
 WHERE (source=:'src' OR source='*') AND tier=:'tier' AND enabled=true
 ORDER BY (source=:'src') DESC, priority ASC;

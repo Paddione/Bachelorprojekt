@@ -144,23 +144,34 @@ bash scripts/plan-qa-check.sh docs/superpowers/plans/<date>-<slug>.md
 ### Schritt 4: Plan prüfen & übernehmen
 Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)): S1-Budgets gegen die **wirksame Schwelle** (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält `task test:all` + `task freshness:regenerate` + `task freshness:check`? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.
 
-### Schritt 4.5: Ticket anlegen
-Erstelle ein Plan-Ticket in der Datenbank:
+### Schritt 4.5: Ticket anlegen oder wiederverwenden
+
+Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`):
+
 ```bash
-GRILLING_REF=""
-if [[ -n "${GRILLING_TICKET_EXT_ID:-}" ]]; then
-  GRILLING_REF=$'\n'"Grilling-Ticket: ${GRILLING_TICKET_EXT_ID}"
+# Falls TICKET_EXT_ID bereits gesetzt ist (von feature-intake oder User-Input),
+# wiederverwenden — kein neues Ticket erstellen.
+if [[ -z "${TICKET_EXT_ID:-}" ]]; then
+  # Kein bestehendes Ticket — neues erstellen
+  GRILLING_REF=""
+  if [[ -n "${GRILLING_TICKET_EXT_ID:-}" ]]; then
+    GRILLING_REF=$'\n'"Grilling-Ticket: ${GRILLING_TICKET_EXT_ID}"
+  fi
+
+  TICKET_RESULT=$(./scripts/ticket.sh create \
+    --type task \
+    --brand mentolder \
+    --title "Plan: <slug>" \
+    --priority mittel \
+    --description "Branch: feature/<slug>"$'\n'"Plan: docs/superpowers/plans/<date>-<slug>.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
+
+  TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
+  TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
+else
+  # Bestehendes Ticket wiederverwenden — UUID für Attachments holen
+  TICKET_UUID=$(./scripts/ticket.sh get --id "$TICKET_EXT_ID" | jq -r '.id')
+  echo "✅ Wiederverwende bestehendes Ticket $TICKET_EXT_ID"
 fi
-
-TICKET_RESULT=$(./scripts/ticket.sh create \
-  --type task \
-  --brand mentolder \
-  --title "Plan: <slug>" \
-  --priority mittel \
-  --description "Branch: feature/<slug>"$'\n'"Plan: docs/superpowers/plans/<date>-<slug>.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
-
-TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
-TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 
 sed -i "s/^ticket_id: null$/ticket_id: $TICKET_EXT_ID/" docs/superpowers/plans/<date>-<slug>.md
 
@@ -183,14 +194,67 @@ git add docs/superpowers/plans/<date>-<slug>.md
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
-**STOPP.** Informiere den User, dass der Plan bereit zur Implementierung ist. Der Plan liegt jetzt in der **Kommissionierung** (`/dev-status`) und wartet dort auf manuelle Freigabe. Er hat nun folgende Optionen:
-1. **-> Manuell** ausführen lassen: Bitte den User, `dev-flow-execute` auf `feature/<slug>` aufzurufen (oder den „-> Manuell"-Hinweis in der Kommissionierung).
-2. **-> Factory** übergeben: In der Kommissionierung (`/dev-status`) den Knopf **-> Factory** drücken — das verschiebt das Ticket in die Laderampe (`status=backlog`); der Factory-Dispatcher arbeitet es mit **Plan-Reuse** (kein Neu-Planen) ab. Äquivalent von der CLI:
+
+### Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen
+
+Prüfe ob weitere Pläne in der Kommissionierung warten und zeige dem User die Batch-Ausführungsoptionen:
+
 ```bash
-bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
-  --branch "feature/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
+# Alle staged plans abrufen (status=plan_staged)
+STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
+   array_to_string(areas,','), COALESCE(depends_on::text,'{}')
+   FROM tickets.tickets WHERE status='plan_staged'
+   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null)
+
+STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' || echo 0)
+
+# Alle planning tickets (noch nicht geplant)
+PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -c \
+  "SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';" 2>/dev/null)
 ```
-Das Ticket wird `type=feature/status=backlog` und vom Factory-Dispatcher mit **Plan-Reuse** (kein Neu-Planen) abgearbeitet. STOPP danach.
+
+**STOPP.** Informiere den User über den aktuellen Plan-Status und die Batch-Ausführungsoptionen:
+
+```
+✅ Plan bereit: <slug> (Ticket $TICKET_EXT_ID)
+   Branch: feature/<slug>
+   Plan: docs/superpowers/plans/<date>-<slug>.md
+
+📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
+   • T000xxx [priorität] <titel> — <value_prop>
+   • T000yyy [priorität] <titel> — <value_prop>
+   ...
+
+📝 Planungsbüro (status=planning): $PLANNING_COUNT Ticket(s) warten auf Planung
+
+🚀 Ausführungsoptionen:
+
+1. **Einzel-Ausführung (Manuell):**
+   dev-flow-execute auf feature/<slug> aufrufen
+   → Implementiert nur diesen einen Plan
+
+2. **Einzel-Ausführung (Factory):**
+   bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
+     --branch "feature/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
+   → Factory-Dispatcher arbeitet den Plan automatisch ab
+
+3. **Batch-Ausführung (alle staged plans):**
+   Wenn mehrere Pläne bereit sind, können sie parallel via Factory implementiert werden:
+   - UI: In /dev-status alle staged plans auswählen → "→ Factory (Batch)"
+   - CLI: Für jeden staged plan:
+     bash scripts/ticket.sh enqueue --id <ext_id> --branch <branch> --plan <plan>
+   → Factory-Dispatcher verarbeitet alle Pläne parallel (Plan-Reuse, kein Neu-Planen)
+
+4. **Batch-Ausführung (mit dev-flow-batch):**
+   Wenn weitere planning-Tickets existieren und du erst alle planen willst:
+   dev-flow-batch aufrufen → plant alle status=planning Tickets parallel
+   → Danach alle fertigen Pläne via Option 3 an Factory übergeben
+```
+
+**Empfehlung:** Wenn nur dieser eine Plan fertig ist → Option 2 (Factory einzeln). Wenn mehrere Pläne fertig sind → Option 3 (Batch via Factory). Wenn noch planning-Tickets warten → Option 4 (erst dev-flow-batch, dann Factory).
+
+STOPP danach.
 
 ---
 
@@ -244,9 +308,57 @@ bash scripts/plan-frontmatter-hook.sh --activate "docs/superpowers/plans/<date>-
 Damit ist das Fix-Ticket in der Kommissionierung sichtbar und kann via UI-Knopf oder
 `ticket.sh enqueue` an die Factory übergeben werden.
 
-### Schritt 5: Commit & Push — dann STOPP
-Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch.
-**STOPP.** Weise den User darauf hin, `dev-flow-execute` aufzurufen.
+### Schritt 5: Commit & Push
+
+Füge den failing Test und den Plan hinzu, committe und pushe auf den fix Branch:
+```bash
+git add tests/ docs/superpowers/plans/<date>-<slug>.md
+git commit -m "fix(<scope>): add failing test + stage plan [$TICKET_EXT_ID]"
+git push -u origin $(git branch --show-current)
+```
+
+### Schritt 6: Batch-Status prüfen und Ausführungsoptionen anzeigen
+
+```bash
+STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
+   array_to_string(areas,',')
+   FROM tickets.tickets WHERE status='plan_staged'
+   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null)
+
+STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' || echo 0)
+
+PLANNING_COUNT=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -c \
+  "SELECT COUNT(*) FROM tickets.tickets WHERE status='planning';" 2>/dev/null)
+```
+
+**STOPP.** Informiere den User:
+
+```
+✅ Fix-Plan bereit: <slug> (Ticket $TICKET_EXT_ID)
+   Branch: fix/<slug>
+   Plan: docs/superpowers/plans/<date>-<slug>.md
+
+📋 Kommissionierung (status=plan_staged): $STAGED_COUNT Plan(s)
+   • T000xxx [priorität] <titel> — <value_prop>
+   ...
+
+📝 Planungsbüro (status=planning): $PLANNING_COUNT Ticket(s) warten auf Planung
+
+🚀 Ausführungsoptionen:
+
+1. **Einzel-Ausführung (Manuell):**
+   dev-flow-execute auf fix/<slug> aufrufen
+
+2. **Einzel-Ausführung (Factory):**
+   bash scripts/ticket.sh enqueue --id "$TICKET_EXT_ID" \
+     --branch "fix/<slug>" --plan "docs/superpowers/plans/<date>-<slug>.md"
+
+3. **Batch-Ausführung (alle staged plans):**
+   Wenn mehrere Pläne bereit sind, können sie parallel via Factory implementiert werden.
+```
+
+STOPP danach.
 
 ---
 

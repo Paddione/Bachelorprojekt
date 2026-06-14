@@ -8,18 +8,22 @@
 #   1. cd's to the repo (the single locus with checkout + git-crypt + kubeconfig)
 #   2. single-flights via flock (belt-and-braces over OnUnitInactiveSec)
 #   3. unlocks git-crypt if the working tree is locked
-#   4. exec's a headless `claude -p` run that nests dispatcher.js via the Workflow tool
+#   4. runs a headless `claude -p` dispatcher tick, then loops while the queue
+#      has pending work (idle-retick) — the next tick starts immediately instead
+#      of waiting for the timer's OnUnitInactiveSec delay.
 #
 # The Cron-poll IS the trigger: dispatcher.js → schedule.sh polls the backlog.
 # RuntimeMaxSec (hung-run kill) is handled by systemd, not here.
 #
 #   Env knobs (all optional, sane defaults):
-#     FACTORY_REPO            repo root            (default: /home/patrick/Bachelorprojekt)
-#     FACTORY_DRY_RUN         true|false           (default: true — fail-safe: never auto-merge unless opted in)
-#     FACTORY_GITCRYPT_KEY    path to bp-secrets.key for `task secrets:unlock`
-#     FACTORY_CLAUDE_BIN      claude binary        (default: claude on PATH)
-#     FACTORY_TICK_LOCK       single-flight lock   (default: /tmp/factory-tick.lock)
-#     FACTORY_ENV_FILE        prod config to source(default: ~/.config/factory/autopilot.env)
+#     FACTORY_REPO                  repo root            (default: /home/patrick/Bachelorprojekt)
+#     FACTORY_DRY_RUN               true|false           (default: true — fail-safe)
+#     FACTORY_GITCRYPT_KEY          path to bp-secrets.key for `task secrets:unlock`
+#     FACTORY_CLAUDE_BIN            claude binary        (default: claude on PATH)
+#     FACTORY_TICK_LOCK             single-flight lock   (default: /tmp/factory-tick.lock)
+#     FACTORY_ENV_FILE              prod config to source(default: ~/.config/factory/autopilot.env)
+#     FACTORY_IDLE_RETICK_ENABLED   true|false  immediately re-tick if queue non-empty after tick (default: true)
+#     FACTORY_IDLE_RETICK_DELAY     seconds to wait between reticks (default: 5)
 set -euo pipefail
 
 # Production config (real claude bin, DeepSeek creds, dry_run policy). Sourced
@@ -36,6 +40,8 @@ REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
 DRY_RUN="${FACTORY_DRY_RUN:-true}"
 CLAUDE_BIN="${FACTORY_CLAUDE_BIN:-claude}"
 LOCKFILE="${FACTORY_TICK_LOCK:-/tmp/factory-tick.lock}"
+IDLE_RETICK="${FACTORY_IDLE_RETICK_ENABLED:-true}"
+RETICK_DELAY="${FACTORY_IDLE_RETICK_DELAY:-5}"
 
 cd "${REPO}"
 
@@ -73,14 +79,46 @@ ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-}"; ANTHROPIC_MODEL="${ANTHROPIC_MODEL/\[1m\
 ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL:-}"; ANTHROPIC_DEFAULT_OPUS_MODEL="${ANTHROPIC_DEFAULT_OPUS_MODEL/\[1m\]/}"
 ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL:-}"; ANTHROPIC_DEFAULT_SONNET_MODEL="${ANTHROPIC_DEFAULT_SONNET_MODEL/\[1m\]/}"
 
-# ── headless dispatcher tick: nest dispatcher.js via the Workflow tool ────────
-# The permission allowlist is tight: only the Workflow tool + the deterministic
-# factory primitives the dispatcher shells out to. dry_run is the ONLY policy.
-PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
-scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '$(date -u +%FT%TZ)', dry_run: ${DRY_RUN} }. \
+# ── idle-retick loop ──────────────────────────────────────────────────────────
+# Runs one dispatcher tick, then checks both brand queues. If work remains and
+# FACTORY_IDLE_RETICK_ENABLED=true, loops immediately (no 10-min timer wait).
+# The flock is held for the entire loop, guaranteeing single-flight.
+# systemd's RuntimeMaxSec is the hard ceiling for the total loop duration.
+TICK=0
+while true; do
+  TICK=$(( TICK + 1 ))
+  TIMESTAMP="$(date -u +%FT%TZ)"
+  PROMPT="Run the Software Factory dispatcher now. Invoke the Workflow tool with \
+scriptPath 'scripts/factory/dispatcher.js' and args { timestamp: '${TIMESTAMP}', dry_run: ${DRY_RUN} }. \
 The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh per brand inside its PREP step. \
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
-exec "${CLAUDE_BIN:-claude}" -p "${PROMPT}" \
-  --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
-  --permission-mode acceptEdits
+  echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
+  "${CLAUDE_BIN}" -p "${PROMPT}" \
+    --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
+    --permission-mode acceptEdits
+  TICK_EXIT=$?
+
+  if [[ ${TICK_EXIT} -ne 0 ]]; then
+    echo "wakeup.sh: tick #${TICK} exited with code ${TICK_EXIT} — stopping loop" >&2
+    exit ${TICK_EXIT}
+  fi
+
+  if [[ "${IDLE_RETICK}" != "true" ]]; then
+    break
+  fi
+
+  # Check both brand backlogs; retick if either has pending work.
+  BL_M=$(BRAND=mentolder bash "${REPO}/scripts/factory/queue.sh" 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+  BL_K=$(BRAND=korczewski bash "${REPO}/scripts/factory/queue.sh" 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+  TOTAL=$(( BL_M + BL_K ))
+
+  if [[ "${TOTAL}" -gt 0 ]]; then
+    echo "wakeup.sh: idle-retick — ${TOTAL} item(s) in queue (mentolder=${BL_M}, korczewski=${BL_K}), re-arming in ${RETICK_DELAY}s" >&2
+    sleep "${RETICK_DELAY}"
+    continue
+  fi
+
+  echo "wakeup.sh: idle-retick — queue empty after tick #${TICK}, exiting (timer handles future work)" >&2
+  break
+done

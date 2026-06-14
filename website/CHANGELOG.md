@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.67.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.66.1...website-v1.67.0) (2026-06-14)
+
+
+### Features
+
+* **ki:** provider selection per section + GPU worker (LM Studio/Ollama) + DeepSeek coaching ([#1656](https://github.com/Paddione/Bachelorprojekt/issues/1656)) ([c862518](https://github.com/Paddione/Bachelorprojekt/commit/c862518021d0feb5424a825222c9048333f04ebf))
+
 ## [1.66.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.66.0...website-v1.66.1) (2026-06-14)
 
 

@@ -276,6 +276,7 @@
   </div>
 
   {#if activeTab === 'ki'}
+    <div class="ki-global-hint"><span>Globales KI-Routing (Chat, Tickets, Meetings):</span> <a href="/admin/ki-konfiguration" class="hint-link">KI-Konfiguration →</a></div>
     {#if editingProvider}
       <div class="edit-panel">
         <div class="edit-panel-header">
@@ -539,7 +540,8 @@
   .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--line,#333); }
   .tab { padding: 0.5rem 1rem; background: none; border: none; color: var(--text-muted,#888); cursor: pointer; font-size: 0.9rem; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .tab.active { color: var(--gold,#c9a55c); border-bottom-color: var(--gold,#c9a55c); }
-
+  .ki-global-hint { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.9rem; margin-bottom: 1rem; background: var(--bg-2,#1a1a1a); border: 1px solid var(--line,#333); border-radius: 6px; font-size: 0.82rem; color: var(--text-muted,#888); }
+  .hint-link { color: var(--gold,#c9a55c); text-decoration: none; font-weight: 600; } .hint-link:hover { text-decoration: underline; }
   .ki-grid-header { display: flex; justify-content: flex-end; margin-bottom: 0.75rem; }
   .ki-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
   .provider-card { padding: 1.2rem; border: 1px solid var(--line,#333); border-radius: 8px; background: var(--bg-2,#1a1a1a); display: flex; flex-direction: column; gap: 0.4rem; }
@@ -553,13 +555,11 @@
   .provider-actions { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
   .btn-activate { padding: 0.4rem 0.8rem; background: var(--gold,#c9a55c); color: #111; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.82rem; }
   .btn-activate:disabled { opacity: 0.5; cursor: not-allowed; }
-
   .provider-badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 99px; letter-spacing: 0.03em; }
   .provider-badge.openai  { background: #16a34a22; color: #4ade80; border: 1px solid #16a34a44; }
   .provider-badge.mistral { background: #ea580c22; color: #fb923c; border: 1px solid #ea580c44; }
   .provider-badge.lumo    { background: #0891b222; color: #38bdf8; border: 1px solid #0891b244; }
   .provider-badge.custom  { background: #52525b22; color: #a1a1aa; border: 1px solid #52525b44; }
-
   .edit-panel { border: 1px solid var(--gold,#c9a55c); border-radius: 10px; background: var(--bg-2,#1a1a1a); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
   .edit-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .edit-title { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; color: var(--text-light,#f0f0f0); }

@@ -200,6 +200,14 @@
         {/if}
       </button>
     {/each}
+    <a class="card card-link" href="/admin/coaching/settings">
+      <div class="card-head">
+        <span class="icon">🤝</span>
+        <span class="title">Coaching</span>
+      </div>
+      <p class="meta">Provider & Prompt-Templates</p>
+      <p class="chain">→ Coaching-Einstellungen</p>
+    </a>
   </div>
 
   {#if openCard}
@@ -275,6 +283,7 @@
   .banner.err { background: #fde8e8; color: #9b1c1c; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .card { text-align: left; padding: 16px; border: 1px solid var(--admin-border, #e4e4e7); border-radius: 12px; background: var(--admin-bg, #fff); cursor: pointer; }
+  .card-link { text-decoration: none; color: inherit; border-style: dashed; }
   .card-head { display: flex; align-items: center; gap: 8px; }
   .card .icon { font-size: 20px; }
   .card .title { font-weight: 700; flex: 1; }

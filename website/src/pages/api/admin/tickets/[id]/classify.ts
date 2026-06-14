@@ -3,6 +3,9 @@ import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getTicketDetail, patchAdminTicket } from '../../../../../lib/tickets/admin';
+import { getProviderConfig, setProviderCooldown } from '../../../../../lib/provider-config';
+import { SOURCE } from '../../../../../lib/ki-services';
+import { pool } from '../../../../../lib/website-db';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
@@ -22,8 +25,10 @@ export const POST: APIRoute = async ({ request, params }) => {
   const detail = await getTicketDetail(BRAND(), id);
   if (!detail) return new Response(JSON.stringify({ error: 'not found' }), { status: 404 });
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), { status: 503 });
+  const cfg = await getProviderConfig(SOURCE.ticketTriage, 'haiku');
+  if (!cfg.apiKey) {
+    return new Response(JSON.stringify({ error: 'KI-Provider nicht konfiguriert' }), { status: 503 });
+  }
 
   const prompt = `Classify this support ticket and respond with ONLY valid JSON, no other text.
 
@@ -42,9 +47,12 @@ Rules:
 
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const client = new Anthropic({ apiKey });
+      const client = new Anthropic({
+        apiKey: cfg.apiKey,
+        ...(cfg.baseUrl ? { baseURL: cfg.baseUrl } : {}),
+      });
       const msg = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model: cfg.modelId,
         max_tokens: 150,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -54,7 +62,8 @@ Rules:
         parsed = JSON.parse(jsonMatch[0]);
         break;
       }
-    } catch (_) {
+    } catch (err) {
+      await setProviderCooldown(pool, SOURCE.ticketTriage, cfg.provider, 5);
       if (attempt === 1) {
         return new Response(JSON.stringify({ error: 'LLM nicht erreichbar' }), { status: 503 });
       }

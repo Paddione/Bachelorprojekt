@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, join as joinPath } from 'node:path';
 
 // Anti-Drift: die Runtime-Call-Sites MÜSSEN ihren Source-String aus der Registry (SOURCE)
 // beziehen, nicht aus einem Literal. Sonst kann das Dashboard (das KI_SERVICES nutzt) Sources
@@ -23,4 +23,33 @@ describe('Runtime-Call-Sites beziehen Source aus der Registry (Anti-Drift)', () 
       expect(src).not.toContain(c.literal);
     });
   }
+});
+
+const pagesRoot = joinPath(here, '..', 'pages');
+const readPage = (rel: string) => readFileSync(joinPath(pagesRoot, rel), 'utf8');
+
+describe('classify.ts — Source-String kommt aus der Registry (Anti-Drift)', () => {
+  it('classify.ts importiert SOURCE aus ki-services', () => {
+    const src = readPage('api/admin/tickets/[id]/classify.ts');
+    expect(src).toContain("from '");
+    expect(src).toContain('SOURCE');
+  });
+
+  it('classify.ts nutzt SOURCE.ticketTriage statt String-Literal', () => {
+    const src = readPage('api/admin/tickets/[id]/classify.ts');
+    expect(src).toContain('SOURCE.ticketTriage');
+    expect(src).not.toContain("getProviderConfig('ticket-triage'");
+  });
+
+  it('classify.ts enthält keine hardcoded claude-haiku Modell-ID', () => {
+    const src = readPage('api/admin/tickets/[id]/classify.ts');
+    expect(src).not.toContain('claude-haiku-4-5-20251001');
+    expect(src).not.toContain('claude-haiku-4-5');
+  });
+
+  it('classify.ts hat keinen hardcoded ANTHROPIC_API_KEY Guard mehr', () => {
+    const src = readPage('api/admin/tickets/[id]/classify.ts');
+    expect(src).not.toContain("process.env.ANTHROPIC_API_KEY");
+    expect(src).not.toContain('ANTHROPIC_API_KEY not configured');
+  });
 });

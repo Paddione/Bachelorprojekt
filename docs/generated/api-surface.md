@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-14T11:20:02.243Z
+> Generated at 2026-06-14T11:48:19.453Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -139,6 +139,10 @@
 | `/api/admin/inhalte/custom/{slug}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/inhalte/custom/[slug].ts` |
 | `/api/admin/inhalte/rechnungsvorlagen/preview` | GET | 🔐 admin | `website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts` |
 | `/api/admin/inhalte/rechnungsvorlagen/save` | POST | 🔐 admin | `website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts` |
+| `/api/admin/ki/embeddings` | GET, PUT | 🔐 admin | `website/src/pages/api/admin/ki/embeddings.ts` |
+| `/api/admin/ki/env-status` | GET | 🔐 admin | `website/src/pages/api/admin/ki/env-status.ts` |
+| `/api/admin/ki/providers` | GET, POST | 🔐 admin | `website/src/pages/api/admin/ki/providers.ts` |
+| `/api/admin/ki/providers/{id}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/ki/providers/[id].ts` |
 | `/api/admin/knowledge/collections` | GET, POST | 🔐 admin | `website/src/pages/api/admin/knowledge/collections/index.ts` |
 | `/api/admin/knowledge/collections/{id}` | GET, DELETE | 🔐 admin | `website/src/pages/api/admin/knowledge/collections/[id]/index.ts` |
 | `/api/admin/knowledge/collections/{id}/context7` | POST, GET | 🔐 admin | `website/src/pages/api/admin/knowledge/collections/[id]/context7.ts` |

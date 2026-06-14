@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { KiConfig } from '../../../lib/coaching-ki-config-db';
   import type { StepTemplate } from '../../../lib/coaching-templates-db';
-  import { interfaceById, type InterfaceDef, type ParamKey } from '../../../lib/ki-catalog';
+  import { KI_CATALOG, interfaceById, type InterfaceDef, type ParamKey } from '../../../lib/ki-catalog';
 
   let {
     initialProviders,
@@ -187,11 +187,7 @@
     const res = await fetch('/api/admin/coaching/ki-config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        displayName: newProviderForm.displayName.trim(),
-        slug: newProviderForm.slug.trim(),
-        enabledFields: newProviderForm.enabledFields,
-      }),
+      body: (() => { const s = newProviderForm.slug.trim(); const cat = KI_CATALOG.some(c => c.id === s && c.kinds.includes('chat')); return JSON.stringify(cat ? { catalogId: s, displayName: newProviderForm.displayName.trim() || undefined } : { displayName: newProviderForm.displayName.trim(), slug: s, enabledFields: newProviderForm.enabledFields }); })(),
     });
     const data = await res.json();
     if (!res.ok) { alert(data.error ?? 'Fehler beim Anlegen'); savingNewProvider = false; return; }
@@ -413,8 +409,8 @@
           <label class="field-label">Name / Label
             <input type="text" bind:value={newProviderForm.displayName} placeholder="z.B. Mein eigener GPT" />
           </label>
-          <label class="field-label">Interner Slug (nur a–z, 0–9, Bindestrich — wird zu <code>custom_&lt;slug&gt;</code>)
-            <input type="text" bind:value={newProviderForm.slug} placeholder="z.B. mein-gpt" />
+          <label class="field-label">Provider-ID oder Slug (Katalog-IDs wie <code>deepseek</code> werden direkt übernommen, andere als <code>custom_slug</code> gespeichert)
+            <input type="text" bind:value={newProviderForm.slug} placeholder="z.B. deepseek oder mein-gpt" />
           </label>
           <div class="field-label">Verfügbare Felder auswählen
             <div class="fields-grid">

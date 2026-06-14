@@ -4,7 +4,7 @@ date: 2026-06-14
 slug: ki-unified-config
 domains: [website]
 status: spec
-ticket_id: null
+ticket_id: T000711
 plan_ref: docs/superpowers/plans/2026-06-14-ki-unified-config.md
 ---
 

@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { KI_SERVICES } from '../../lib/ki-services';
+  import { modelsFor, type InterfaceDef } from '../../lib/ki-catalog';
+
   interface ProviderEntry {
     id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;
     provider: string; model_id: string; base_url: string | null;
@@ -12,14 +15,21 @@
     LLM_ENABLED: boolean; LLM_HOST_IP: string | null;
   }
 
-  // Each card maps an action label to the source-patterns that belong to it.
-  const CARDS = [
-    { key: 'chat',     icon: '💬', label: 'Chat',     sources: ['chat/*', '*'] },
-    { key: 'tickets',  icon: '🎫', label: 'Tickets',  sources: ['tickets/classify'] },
-    { key: 'meetings', icon: '📅', label: 'Meetings', sources: ['meetings/*'] },
-    { key: 'embed',    icon: '🔢', label: 'Embeddings', sources: [] },
-  ] as const;
-  type CardKey = (typeof CARDS)[number]['key'];
+  // Karten kommen aus der Service-Registry (SSOT) — identische Source-Strings wie die Runtime,
+  // damit die Auswahl real wirkt. 'global' verwaltet die *-Fallback-Kette; 'embed' ist Sonderfall.
+  type CardDef = { key: string; icon: string; label: string; sources: string[]; defaultTier: 'sonnet' | 'haiku' };
+  const CARDS: CardDef[] = [
+    { key: 'global', icon: '⭐', label: 'Standard (global)', sources: ['*'], defaultTier: 'sonnet' },
+    ...KI_SERVICES.filter((s) => s.paramSet === 'routing').map((s) => ({
+      key: s.key, icon: s.icon, label: s.label, sources: [s.source],
+      defaultTier: (s.tier === 'haiku' ? 'haiku' : 'sonnet') as 'sonnet' | 'haiku',
+    })),
+    { key: 'embed', icon: '🔢', label: 'Embeddings', sources: [] as string[], defaultTier: 'sonnet' },
+  ];
+  type CardKey = string;
+
+  // Kuratierter Katalog der angebotenen Schnittstellen (Dropdown-Quelle), vom Endpoint geladen.
+  let catalog = $state<InterfaceDef[]>([]);
 
   let entries = $state<ProviderEntry[]>([]);
   let health = $state<Health[]>([]);
@@ -33,8 +43,12 @@
   let editId = $state<number | null>(null); // null = no inline form; -1 = "new"
   let form = $state(blankForm());
 
-  function blankForm(source = '') {
-    return { source, tier: 'sonnet' as 'sonnet' | 'haiku', priority: 1, provider: '', model_id: '', base_url: '', max_concurrent: 3, enabled: true };
+  function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {
+    return { source, tier, priority: 1, provider: '', model_id: '', base_url: '', max_concurrent: 3, enabled: true };
+  }
+
+  function cardFor(key: CardKey): CardDef | undefined {
+    return CARDS.find((c) => c.key === key);
   }
 
   function showToast(msg: string) { toast = msg; setTimeout(() => { if (toast === msg) toast = ''; }, 5000); }
@@ -66,16 +80,18 @@
   async function load() {
     loadError = '';
     try {
-      const [pRes, eRes, mRes] = await Promise.all([
+      const [pRes, eRes, mRes, cRes] = await Promise.all([
         fetch('/api/admin/ki/providers'),
         fetch('/api/admin/ki/env-status'),
         fetch('/api/admin/ki/embeddings'),
+        fetch('/api/admin/ki/catalog'),
       ]);
-      if (!pRes.ok || !eRes.ok || !mRes.ok) throw new Error('Laden fehlgeschlagen');
+      if (!pRes.ok || !eRes.ok || !mRes.ok || !cRes.ok) throw new Error('Laden fehlgeschlagen');
       const p = await pRes.json();
       entries = p.entries; health = p.health;
       env = await eRes.json();
       embed = await mRes.json();
+      catalog = (await cRes.json()).catalog;
     } catch (err) {
       loadError = err instanceof Error ? err.message : 'Unbekannter Fehler';
     }
@@ -86,7 +102,8 @@
   function openDrawer(card: CardKey) {
     openCard = card;
     editId = null;
-    form = blankForm(CARDS.find((c) => c.key === card)!.sources[0] ?? '');
+    const def = cardFor(card);
+    form = blankForm(def?.sources[0] ?? '', def?.defaultTier ?? 'sonnet');
   }
   function closeDrawer() { openCard = null; editId = null; confirmingDelete = null; }
 
@@ -96,7 +113,8 @@
   }
   function startNew() {
     editId = -1;
-    form = blankForm(openCard ? CARDS.find((c) => c.key === openCard)!.sources[0] ?? '' : '');
+    const def = openCard ? cardFor(openCard) : undefined;
+    form = blankForm(def?.sources[0] ?? '', def?.defaultTier ?? 'sonnet');
   }
 
   async function saveForm() {
@@ -205,8 +223,8 @@
         <span class="icon">🤝</span>
         <span class="title">Coaching</span>
       </div>
-      <p class="meta">Provider & Prompt-Templates</p>
-      <p class="chain">→ Coaching-Einstellungen</p>
+      <p class="meta">Provider, Modell & Prompt-Templates</p>
+      <p class="chain">→ Coaching-Einstellungen (gleicher Speicher)</p>
     </a>
   </div>
 
@@ -265,8 +283,18 @@
 
 {#snippet formFields()}
   <form class="fields" onsubmit={(ev) => { ev.preventDefault(); saveForm(); }}>
-    <input placeholder="provider" bind:value={form.provider} />
-    <input placeholder="model_id" bind:value={form.model_id} />
+    <select bind:value={form.provider}>
+      <option value="" disabled>— Schnittstelle wählen —</option>
+      {#each catalog as ic (ic.id)}<option value={ic.id}>{ic.label}</option>{/each}
+    </select>
+    {#if modelsFor(form.provider).length}
+      <select bind:value={form.model_id}>
+        <option value="" disabled>— Modell wählen —</option>
+        {#each modelsFor(form.provider) as m (m.id)}<option value={m.id}>{m.label}</option>{/each}
+      </select>
+    {:else}
+      <input placeholder="model_id" bind:value={form.model_id} />
+    {/if}
     <input placeholder="base_url (optional)" bind:value={form.base_url} />
     <select bind:value={form.tier}><option value="sonnet">sonnet</option><option value="haiku">haiku</option></select>
     <input placeholder="source" bind:value={form.source} />

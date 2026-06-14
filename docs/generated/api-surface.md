@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-14T17:17:02.645Z
+> Generated at 2026-06-14T17:23:57.897Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -139,6 +139,7 @@
 | `/api/admin/inhalte/custom/{slug}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/inhalte/custom/[slug].ts` |
 | `/api/admin/inhalte/rechnungsvorlagen/preview` | GET | 🔐 admin | `website/src/pages/api/admin/inhalte/rechnungsvorlagen/preview.ts` |
 | `/api/admin/inhalte/rechnungsvorlagen/save` | POST | 🔐 admin | `website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts` |
+| `/api/admin/ki/catalog` | GET | 🔐 admin | `website/src/pages/api/admin/ki/catalog.ts` |
 | `/api/admin/ki/embeddings` | GET, PUT | 🔐 admin | `website/src/pages/api/admin/ki/embeddings.ts` |
 | `/api/admin/ki/env-status` | GET | 🔐 admin | `website/src/pages/api/admin/ki/env-status.ts` |
 | `/api/admin/ki/providers` | GET, POST | 🔐 admin | `website/src/pages/api/admin/ki/providers.ts` |

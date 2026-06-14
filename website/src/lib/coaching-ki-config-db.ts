@@ -1,5 +1,13 @@
 import type { Pool } from 'pg';
 
+// ADAPTER über den vereinheitlichten Store tickets.provider_config (source='coaching').
+// Der öffentliche Vertrag (KiConfig-Typ + Funktionssignaturen) bleibt identisch, damit die
+// Coaching-Consumer (coaching-session-db, session-agent-factory, generate.ts, die
+// /api/admin/coaching/ki-config-Endpoints, CoachingSettings.svelte) unverändert weiterlaufen.
+// Speicherung ist physisch fusioniert; coaching.ki_config wird nicht mehr gelesen/geschrieben.
+
+const COACHING_SOURCE = 'coaching';
+const COACHING_TIER = 'coaching';
 const KNOWN_PROVIDERS = new Set(['openai', 'mistral', 'lumo', 'claude', 'custom_lmstudio']);
 
 export interface KiConfig {
@@ -35,14 +43,16 @@ export interface KiConfig {
 export type UpdateKiProviderFields = Partial<Omit<KiConfig, 'id' | 'brand' | 'provider' | 'isActive' | 'createdAt' | 'enabledFields'>>;
 
 function rowToKiConfig(row: Record<string, unknown>): KiConfig {
+  const modelId = (row.model_id as string | null) ?? null;
   return {
     id: row.id as number,
     brand: row.brand as string,
     provider: row.provider as string,
-    isActive: row.is_active as boolean,
-    modelName: (row.model_name as string | null) ?? null,
-    displayName: row.display_name as string,
-    createdAt: row.created_at as Date,
+    isActive: (row.is_active as boolean) ?? false,
+    // model_id ist NOT NULL im Routing-Schema; Coaching speichert '' statt NULL → zurück auf null.
+    modelName: modelId === '' ? null : modelId,
+    displayName: (row.display_name as string | null) ?? (row.provider as string),
+    createdAt: (row.updated_at as Date) ?? new Date(0),
     apiKey: (row.api_key as string | null) ?? null,
     apiEndpoint: (row.api_endpoint as string | null) ?? null,
     temperature: row.temperature != null ? Number(row.temperature) : null,
@@ -68,29 +78,32 @@ function rowToKiConfig(row: Record<string, unknown>): KiConfig {
 
 export async function listKiProviders(pool: Pool, brand: string): Promise<KiConfig[]> {
   const r = await pool.query(
-    `SELECT * FROM coaching.ki_config WHERE brand = $1 ORDER BY id`,
-    [brand],
+    `SELECT * FROM tickets.provider_config WHERE source = $1 AND brand = $2 ORDER BY id`,
+    [COACHING_SOURCE, brand],
   );
   return r.rows.map(rowToKiConfig);
 }
 
 export async function getActiveProvider(pool: Pool, brand: string): Promise<KiConfig | null> {
   const r = await pool.query(
-    `SELECT * FROM coaching.ki_config WHERE brand = $1 AND is_active = true LIMIT 1`,
-    [brand],
+    `SELECT * FROM tickets.provider_config WHERE source = $1 AND brand = $2 AND is_active = true LIMIT 1`,
+    [COACHING_SOURCE, brand],
   );
   return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
 }
 
 export async function getKiProviderById(pool: Pool, id: number): Promise<KiConfig | null> {
-  const r = await pool.query(`SELECT * FROM coaching.ki_config WHERE id = $1`, [id]);
+  const r = await pool.query(
+    `SELECT * FROM tickets.provider_config WHERE id = $1 AND source = $2`,
+    [id, COACHING_SOURCE],
+  );
   return r.rows[0] ? rowToKiConfig(r.rows[0]) : null;
 }
 
 export async function setActiveProvider(pool: Pool, brand: string, provider: string): Promise<void> {
   const exists = await pool.query(
-    `SELECT id FROM coaching.ki_config WHERE brand = $1 AND provider = $2`,
-    [brand, provider],
+    `SELECT id FROM tickets.provider_config WHERE source = $1 AND brand = $2 AND provider = $3`,
+    [COACHING_SOURCE, brand, provider],
   );
   if (exists.rows.length === 0) {
     throw new Error(`Provider '${provider}' not found for brand '${brand}'`);
@@ -98,10 +111,13 @@ export async function setActiveProvider(pool: Pool, brand: string, provider: str
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query(`UPDATE coaching.ki_config SET is_active = false WHERE brand = $1`, [brand]);
     await client.query(
-      `UPDATE coaching.ki_config SET is_active = true WHERE brand = $1 AND provider = $2`,
-      [brand, provider],
+      `UPDATE tickets.provider_config SET is_active = false WHERE source = $1 AND brand = $2`,
+      [COACHING_SOURCE, brand],
+    );
+    await client.query(
+      `UPDATE tickets.provider_config SET is_active = true WHERE source = $1 AND brand = $2 AND provider = $3`,
+      [COACHING_SOURCE, brand, provider],
     );
     await client.query('COMMIT');
   } catch (e) {
@@ -113,7 +129,7 @@ export async function setActiveProvider(pool: Pool, brand: string, provider: str
 }
 
 const COLUMN_MAP: Record<string, string> = {
-  modelName: 'model_name', displayName: 'display_name',
+  modelName: 'model_id', displayName: 'display_name',
   apiKey: 'api_key', apiEndpoint: 'api_endpoint',
   temperature: 'temperature', maxTokens: 'max_tokens', topP: 'top_p',
   systemPrompt: 'system_prompt', notes: 'notes',
@@ -135,16 +151,17 @@ export async function updateKiProvider(
     const col = COLUMN_MAP[k];
     if (!col) continue;
     sets.push(`${col} = $${i++}`);
-    vals.push(v);
+    // model_id ist NOT NULL: modelName=null wird als '' gespeichert (Lesen mappt zurück).
+    vals.push(k === 'modelName' ? (v ?? '') : v);
   }
   if (sets.length === 0) {
-    const r = await pool.query(`SELECT * FROM coaching.ki_config WHERE id = $1`, [id]);
+    const r = await pool.query(`SELECT * FROM tickets.provider_config WHERE id = $1 AND source = $2`, [id, COACHING_SOURCE]);
     if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
     return rowToKiConfig(r.rows[0]);
   }
   vals.push(id);
   const r = await pool.query(
-    `UPDATE coaching.ki_config SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`,
+    `UPDATE tickets.provider_config SET ${sets.join(', ')} WHERE id = $${i} AND source = '${COACHING_SOURCE}' RETURNING *`,
     vals,
   );
   if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
@@ -156,21 +173,39 @@ export async function createKiProvider(
   brand: string,
   data: { displayName: string; provider: string; enabledFields: string[] },
 ): Promise<KiConfig> {
+  // Explizite Eindeutigkeits-Prüfung (brand, provider) — robust unabhängig von Index-Enforcement.
+  const dup = await pool.query(
+    `SELECT 1 FROM tickets.provider_config WHERE source = $1 AND brand = $2 AND provider = $3`,
+    [COACHING_SOURCE, brand, data.provider],
+  );
+  if (dup.rows.length > 0) {
+    throw new Error(`Provider '${data.provider}' existiert bereits für Brand '${brand}'`);
+  }
+  // priority muss unter UNIQUE(source,tier,priority) eindeutig sein → max+1 über alle Coaching-Rows.
+  const next = await pool.query(
+    `SELECT COALESCE(MAX(priority), 0) + 1 AS p FROM tickets.provider_config WHERE source = $1 AND tier = $2`,
+    [COACHING_SOURCE, COACHING_TIER],
+  );
+  const priority = next.rows[0].p as number;
   const r = await pool.query(
-    `INSERT INTO coaching.ki_config (brand, provider, display_name, is_active, enabled_fields)
-     VALUES ($1, $2, $3, false, $4)
+    `INSERT INTO tickets.provider_config
+       (brand, source, tier, priority, provider, model_id, enabled, is_active, display_name, enabled_fields)
+     VALUES ($1, $2, $3, $4, $5, '', true, false, $6, $7)
      RETURNING *`,
-    [brand, data.provider, data.displayName, JSON.stringify(data.enabledFields)],
+    [brand, COACHING_SOURCE, COACHING_TIER, priority, data.provider, data.displayName, JSON.stringify(data.enabledFields)],
   );
   return rowToKiConfig(r.rows[0]);
 }
 
 export async function deleteKiProvider(pool: Pool, id: number): Promise<void> {
-  const r = await pool.query(`SELECT provider FROM coaching.ki_config WHERE id = $1`, [id]);
+  const r = await pool.query(
+    `SELECT provider FROM tickets.provider_config WHERE id = $1 AND source = $2`,
+    [id, COACHING_SOURCE],
+  );
   if (r.rows.length === 0) throw new Error(`KI-Provider id=${id} nicht gefunden`);
   const provider = r.rows[0].provider as string;
   if (KNOWN_PROVIDERS.has(provider)) {
     throw new Error('Nur Custom-Provider können gelöscht werden');
   }
-  await pool.query(`DELETE FROM coaching.ki_config WHERE id = $1`, [id]);
+  await pool.query(`DELETE FROM tickets.provider_config WHERE id = $1 AND source = $2`, [id, COACHING_SOURCE]);
 }

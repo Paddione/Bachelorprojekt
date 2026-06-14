@@ -2,6 +2,7 @@
 import { pool, ensureSchemaOnce } from './website-db';
 import { MixedEmbeddingModelError } from './knowledge-db';
 import type { EmbeddingModel } from './embeddings';
+import { initProviderConfigSchema } from './schema/provider-config-schema';
 
 export { MixedEmbeddingModelError };
 
@@ -12,20 +13,6 @@ export function ticketEmbeddingModel(): EmbeddingModel {
 }
 
 let schemaReady = false;
-
-async function initProviderRouting(c: import('pg').PoolClient): Promise<void> {
-  await c.query(`CREATE TABLE IF NOT EXISTS tickets.provider_config (
-    id BIGSERIAL PRIMARY KEY, source TEXT NOT NULL, tier TEXT NOT NULL CHECK (tier IN ('sonnet','haiku')),
-    priority INTEGER NOT NULL, provider TEXT NOT NULL, model_id TEXT NOT NULL, base_url TEXT,
-    max_concurrent INTEGER NOT NULL DEFAULT 3, enabled BOOLEAN NOT NULL DEFAULT true,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (source, tier, priority))`);
-  await c.query(`CREATE TABLE IF NOT EXISTS tickets.provider_health (
-    provider TEXT PRIMARY KEY, failure_count INTEGER NOT NULL DEFAULT 0, last_failure TIMESTAMPTZ,
-    cooldown_until TIMESTAMPTZ, active_agents INTEGER NOT NULL DEFAULT 0, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
-  await c.query(`INSERT INTO tickets.provider_config (source,tier,priority,provider,model_id,base_url)
-    VALUES ('*','sonnet',99,'anthropic','claude-sonnet-4-6',NULL),('*','haiku',99,'anthropic','claude-haiku-4-5',NULL),('*','sonnet',1,'deepseek','deepseek-v4-pro','https://api.deepseek.com/anthropic'),('*','haiku',1,'deepseek','deepseek-v4-flash','https://api.deepseek.com/anthropic')
-    ON CONFLICT (source,tier,priority) DO NOTHING`);
-}
 
 // WARNING: If you manually create or alter tables in production, you MUST run
 // it as the `website` role, or run `ALTER TABLE ... OWNER TO website;`.
@@ -476,7 +463,7 @@ export async function initTicketsSchema(): Promise<void> {
 
   // Provider routing (T-provider-routing): central DB-backed agent→provider routing
   // + circuit-breaker. opus is code-hardcoded to Anthropic, so tier CHECK forbids it.
-  await initProviderRouting(client);
+  await initProviderConfigSchema(client);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS tickets.ticket_tags (

@@ -5,6 +5,7 @@ import { queryNearest } from '../knowledge-db';
 import { resolveCoachingCollectionIds } from './coaching-collections';
 import { pool } from '../website-db';
 import { getProviderConfig } from '../provider-config';
+import { SOURCE } from '../ki-services';
 
 export interface AssistantChatInput {
   profile: AssistantProfile;
@@ -35,7 +36,7 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
     return { reply: 'Frag mich etwas — ich bin für dich da.' };
   }
 
-  const cfg = await getProviderConfig('assistant-chat', 'sonnet');
+  const cfg = await getProviderConfig(SOURCE.assistantChat, 'sonnet');
   if (!cfg.apiKey) {
     // Fallback: keyword search (dev without API key)
     const hit = searchHelp(lastUser.content, input.profile);

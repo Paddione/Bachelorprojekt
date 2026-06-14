@@ -20,6 +20,13 @@ describe('ki-config-db', () => {
     expect(sql).toMatch(/priority/i);
   });
 
+  it('listProviders schließt Coaching-Rows aus', async () => {
+    query.mockResolvedValueOnce({ rows: [] });
+    await listProviders();
+    const sql = query.mock.calls[0][0] as string;
+    expect(sql).toMatch(/source\s*<>\s*'coaching'/i);
+  });
+
   it('countEnabledForSource returns the integer count', async () => {
     query.mockResolvedValueOnce({ rows: [{ n: '2' }] });
     const n = await countEnabledForSource('chat/*', 'sonnet', 5);

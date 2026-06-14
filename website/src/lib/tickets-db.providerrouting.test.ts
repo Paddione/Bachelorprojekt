@@ -1,14 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
 
+// Spiegelt das VEREINHEITLICHTE provider_config-Schema (siehe schema/provider-config-schema.ts):
+// brand + Coaching-Spalten, KEIN tier-CHECK mehr (tier wird app-seitig validiert), Default-Rows
+// inkl. DeepSeek.
 vi.mock('pg', () => {
   const { newDb } = require('pg-mem') as typeof import('pg-mem');
-  const mem = newDb();
+  const mem = newDb({ noAstCoverageCheck: true });
   mem.public.none(`
     CREATE SCHEMA tickets;
     CREATE TABLE tickets.provider_config (
       id             BIGSERIAL PRIMARY KEY,
       source         TEXT NOT NULL,
-      tier           TEXT NOT NULL CHECK (tier IN ('sonnet','haiku')),
+      tier           TEXT NOT NULL,
       priority       INTEGER NOT NULL,
       provider       TEXT NOT NULL,
       model_id       TEXT NOT NULL,
@@ -16,6 +19,8 @@ vi.mock('pg', () => {
       max_concurrent INTEGER NOT NULL DEFAULT 3,
       enabled        BOOLEAN NOT NULL DEFAULT true,
       updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+      brand          TEXT NOT NULL DEFAULT '*',
+      is_active      BOOLEAN,
       UNIQUE (source, tier, priority)
     );
     CREATE TABLE tickets.provider_health (
@@ -43,15 +48,18 @@ vi.mock('./tickets-db', () => ({
 import { pool } from './website-db';
 
 describe('provider routing schema', () => {
-  it('creates provider_config with a tier CHECK that forbids opus', async () => {
-    await expect(
-      pool.query(`INSERT INTO tickets.provider_config (source,tier,priority,provider,model_id) VALUES ('x','opus',1,'anthropic','m')`)
-    ).rejects.toThrow();
+  it('erlaubt tier=coaching (Coaching-Fusion; tier-Validierung ist app-seitig)', async () => {
+    await pool.query(
+      `INSERT INTO tickets.provider_config (brand,source,tier,priority,provider,model_id,is_active)
+       VALUES ('mentolder','coaching','coaching',1,'claude','',true)`,
+    );
+    const { rows } = await pool.query(`SELECT brand, tier FROM tickets.provider_config WHERE source='coaching'`);
+    expect(rows[0]).toMatchObject({ brand: 'mentolder', tier: 'coaching' });
   });
 
   it('seeds wildcard anthropic rows for sonnet and haiku', async () => {
     const { rows } = await pool.query(
-      `SELECT tier FROM tickets.provider_config WHERE source='*' AND provider='anthropic' ORDER BY tier`
+      `SELECT tier FROM tickets.provider_config WHERE source='*' AND provider='anthropic' ORDER BY tier`,
     );
     expect(rows.map((r: any) => r.tier)).toEqual(['haiku', 'sonnet']);
   });
@@ -63,20 +71,28 @@ describe('provider routing schema', () => {
   });
 });
 
-describe('provider routing DDL in initTicketsSchema source', () => {
-  it('contains CREATE TABLE for provider_config and provider_health', async () => {
+describe('provider routing DDL lebt im ausgelagerten Schema-Modul', () => {
+  it('provider-config-schema.ts enthält CREATE TABLE für provider_config und provider_health', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
-    const src = readFileSync(fileURLToPath(new URL('./tickets-db.ts', import.meta.url)), 'utf8');
+    const src = readFileSync(fileURLToPath(new URL('./schema/provider-config-schema.ts', import.meta.url)), 'utf8');
     expect(src).toContain('CREATE TABLE IF NOT EXISTS tickets.provider_config');
     expect(src).toContain('CREATE TABLE IF NOT EXISTS tickets.provider_health');
   });
 
-  it('seeds wildcard anthropic rows', async () => {
+  it('seedet wildcard anthropic + deepseek Rows', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const src = readFileSync(fileURLToPath(new URL('./schema/provider-config-schema.ts', import.meta.url)), 'utf8');
+    expect(src).toContain("('*','sonnet',99,'anthropic'");
+    expect(src).toContain("('*','haiku',99,'anthropic'");
+    expect(src).toContain("'deepseek'");
+  });
+
+  it('tickets-db.ts ruft das ausgelagerte initProviderConfigSchema auf', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const src = readFileSync(fileURLToPath(new URL('./tickets-db.ts', import.meta.url)), 'utf8');
-    expect(src).toContain("('*','sonnet',99,'anthropic'");
-    expect(src).toContain("('*','haiku',99,'anthropic'");
+    expect(src).toContain('initProviderConfigSchema');
   });
 });

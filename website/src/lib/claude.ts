@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getProviderConfig } from './provider-config';
+import { SOURCE } from './ki-services';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 
@@ -22,7 +23,7 @@ export async function generateMeetingInsights(params: {
     return null;
   }
 
-  const cfg = await getProviderConfig('website-llm', 'sonnet');
+  const cfg = await getProviderConfig(SOURCE.websiteLlm, 'sonnet');
   const client = new Anthropic({
     apiKey: cfg.apiKey,
     ...(cfg.baseUrl ? { baseURL: cfg.baseUrl } : {}),

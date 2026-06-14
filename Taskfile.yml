@@ -1239,6 +1239,21 @@ tasks:
       - git-crypt lock
       - echo "working tree re-locked"
 
+  gh:branch-protection:apply:
+    desc: "Set required checks for main (removes E2E PR). Requires GH_PAT env-var with admin:repo scope."
+    cmds:
+      - bash scripts/gh-branch-protection.sh
+
+  gh:branch-protection:status:
+    desc: "Show current required status checks for main branch"
+    cmds:
+      - bash scripts/gh-branch-protection.sh --status
+
+  gh:branch-protection:emergency-add-e2e:
+    desc: "Emergency: add E2E PR back to required checks (re-enables the Henne-Ei block)"
+    cmds:
+      - bash scripts/gh-branch-protection.sh --add-e2e
+
   workspace:post-setup:all-prods:
     desc: "Run workspace:post-setup + talk-setup + recording-setup on mentolder + korczewski"
     cmds:

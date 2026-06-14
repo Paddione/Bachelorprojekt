@@ -4,6 +4,7 @@ import { searchHelp, formatHit, noMatchReply } from './search';
 import { queryNearest } from '../knowledge-db';
 import { resolveCoachingCollectionIds } from './coaching-collections';
 import { pool } from '../website-db';
+import { getProviderConfig } from '../provider-config';
 
 export interface AssistantChatInput {
   profile: AssistantProfile;
@@ -34,8 +35,8 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
     return { reply: 'Frag mich etwas — ich bin für dich da.' };
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const cfg = await getProviderConfig('assistant-chat', 'sonnet');
+  if (!cfg.apiKey) {
     // Fallback: keyword search (dev without API key)
     const hit = searchHelp(lastUser.content, input.profile);
     if (!hit) return { reply: noMatchReply(input.profile) };
@@ -79,9 +80,12 @@ export async function assistantChat(input: AssistantChatInput): Promise<Assistan
     }
   }
 
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({
+    apiKey: cfg.apiKey,
+    ...(cfg.baseUrl ? { baseURL: cfg.baseUrl } : {}),
+  });
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: cfg.modelId,
     max_tokens: 1024,
     system: systemPrompt,
     messages: input.messages.map((m) => ({

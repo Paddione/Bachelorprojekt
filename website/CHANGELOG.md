@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.66.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.65.0...website-v1.66.0) (2026-06-14)
+
+
+### Features
+
+* **website:** Vereinheitlichte KI-API-Konfiguration — Dienst×Schnittstelle wählbar + Coaching-Fusion [T000711] ([#1651](https://github.com/Paddione/Bachelorprojekt/issues/1651)) ([98ee0a4](https://github.com/Paddione/Bachelorprojekt/commit/98ee0a4df388e52607ae0f24b2430d0c67c4d09c))
+
+
+### Bug Fixes
+
+* **website:** Kontaktformular-Hydration reparieren (i18n-Imports + locale) [T000712] ([#1652](https://github.com/Paddione/Bachelorprojekt/issues/1652)) ([80a6749](https://github.com/Paddione/Bachelorprojekt/commit/80a67498e130dd7a51262674cc4fa6bdbb34d8a4))
+
 ## [1.65.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.64.0...website-v1.65.0) (2026-06-14)
 
 

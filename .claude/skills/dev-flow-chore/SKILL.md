@@ -63,11 +63,14 @@ provisionierten Subagenten delegieren (siehe [subagent-provisioning.md](file:///
 task workspace:validate
 task test:all
 task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
+task freshness:check        # CI-Äquivalent: S1–S4-Ratchet (Zeilenlimits!) gegen baseline.json — fängt das Gate VOR dem Push
 ```
 
 Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm-Gotchas in Worktrees.
 
 > **⚠ Freshness-Guard (vor jedem Commit):** Neue Test-Specs, Routen oder Assets ändern generierte Indexdateien (`repo-index.json`, `test-inventory.json`, …). Ohne Regenerierung schlägt CI fehl. Der Pre-commit-Hook erledigt das automatisch nach `task secrets:install-hooks` — ohne Hook: `task freshness:regenerate` manuell ausführen und staged Änderungen mitcommittten.
+
+> **⚠ S1-Gate-Guard (Chores ohne Plan!):** Chores haben **kein** Zeilenbudget-Planungsschritt. Berührt die Chore Code-Dateien (`.ts/.svelte/.astro/.sh/.mjs/...`), prüfe vor dem Commit das S1-Ratchet mit `task freshness:check`. Achtung: Das Ratchet vergleicht gegen den **eingefrorenen Baseline-Wert** in `docs/code-quality/baseline.json`, nicht nur gegen das statische Limit — eine schon gebaselinete (gewachsene) Datei hat **0 Zeilen Budget**, d.h. schon +1 Zeile macht CI rot. Dann die Datei **echt verkleinern/aufteilen**, nicht kosmetisch Zeilen zusammenziehen (das trippt bei der nächsten Änderung erneut).
 
 ## Schritt 4: Commit, Push & PR
 

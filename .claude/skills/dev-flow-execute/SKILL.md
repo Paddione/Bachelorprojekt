@@ -176,10 +176,13 @@ task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX>
 task test:all
 task freshness:regenerate
+task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–S4-Ratchet + Baseline-Assertion)
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
 ```
 
-**Wichtig: `task freshness:regenerate` stellt sicher, dass alle generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json) aktuell sind, bevor committet wird. Andernfalls schlägt CI fehl.**
+**Wichtig — beide Befehle sind nötig:**
+- `task freshness:regenerate` aktualisiert die generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json), sonst CI rot.
+- `task freshness:check` ist das **CI-Äquivalent** und failt lokal genauso wie CI — insbesondere am **S1-Zeilen-Ratchet** (`quality:check` gegen `docs/code-quality/baseline.json`) sowie der Baseline-Key-Count-Assertion. **`task test:all` fängt S1 NICHT** (sein `test:code-quality` läuft nur die Gate-Unit-Tests, nicht das Ratchet über deine Dateien). Ohne `freshness:check` lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.
 
 Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
 

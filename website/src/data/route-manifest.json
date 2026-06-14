@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 128,
+  "count": 129,
   "routes": [
     {
       "route": "/",
@@ -309,6 +309,14 @@
     },
     {
       "route": "/admin/kalender",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/ki-konfiguration",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

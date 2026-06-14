@@ -12,6 +12,7 @@ import {
   _onPointerDown,
   _onPointerMove,
   _onPointerUp,
+  initTouchHandler,
   type TouchDeps,
 } from '../src/client/touch-handler';
 
@@ -146,4 +147,69 @@ test('orbit move calls applyOrbitDelta with sensitivity-scaled deltas', () => {
   assert.ok(captured);
   assert.strictEqual(captured!.dTheta, -10 * TOUCH_ORBIT_SENSITIVITY);
   assert.strictEqual(captured!.dPhi, -10 * TOUCH_ORBIT_SENSITIVITY);
+});
+
+// ── DOM wiring tests (contextmenu + multi-touch guard) ─────────────────────
+
+function makeMinimalCanvas() {
+  const listeners = new Map<string, ((...args: any[]) => void)[]>();
+  return {
+    addEventListener(type: string, fn: (...args: any[]) => void, _opts?: any) {
+      if (!listeners.has(type)) listeners.set(type, []);
+      listeners.get(type)!.push(fn);
+    },
+    removeEventListener() {},
+    triggerEvent(type: string, event: any) {
+      const fns = listeners.get(type) ?? [];
+      for (const fn of fns) fn(event);
+    },
+  };
+}
+
+function makeMinimalTouchDeps() {
+  return {
+    pickContactAt: () => null,
+    canDragFigure: () => false,
+    startFigureDrag: () => {},
+    moveFigureDrag: () => {},
+    endFigureDrag: () => {},
+    getOrbitDist: () => 10,
+    setOrbitDist: () => {},
+    applyOrbitDelta: () => {},
+    capturePointer: () => {},
+    releasePointer: () => {},
+  };
+}
+
+test('contextmenu listener calls preventDefault', () => {
+  const canvas = makeMinimalCanvas();
+  initTouchHandler({ canvas: canvas as any, deps: makeMinimalTouchDeps() });
+  let prevented = false;
+  const fakeEvent = { preventDefault: () => { prevented = true; } };
+  canvas.triggerEvent('contextmenu', fakeEvent);
+  assert.ok(prevented, 'contextmenu should call preventDefault');
+});
+
+test('touchstart with 2 fingers calls preventDefault', () => {
+  const canvas = makeMinimalCanvas();
+  initTouchHandler({ canvas: canvas as any, deps: makeMinimalTouchDeps() });
+  let prevented = false;
+  const fakeEvent = {
+    touches: { length: 2 },
+    preventDefault: () => { prevented = true; },
+  };
+  canvas.triggerEvent('touchstart', fakeEvent);
+  assert.ok(prevented, 'two-finger touchstart should call preventDefault');
+});
+
+test('touchstart with 1 finger does not call preventDefault', () => {
+  const canvas = makeMinimalCanvas();
+  initTouchHandler({ canvas: canvas as any, deps: makeMinimalTouchDeps() });
+  let prevented = false;
+  const fakeEvent = {
+    touches: { length: 1 },
+    preventDefault: () => { prevented = true; },
+  };
+  canvas.triggerEvent('touchstart', fakeEvent);
+  assert.ok(!prevented, 'single-finger touchstart should not call preventDefault');
 });

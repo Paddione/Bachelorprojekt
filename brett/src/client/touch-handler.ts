@@ -207,4 +207,14 @@ export function initTouchHandler({ canvas, deps }: TouchHandlerWireDeps): void {
   };
   canvas.addEventListener('pointerup', up);
   canvas.addEventListener('pointercancel', up);
+
+  canvas.addEventListener('contextmenu', (e: Event) => {
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('touchstart', (e: TouchEvent) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
 }

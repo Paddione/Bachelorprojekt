@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { GraphNode, PodEntry } from '../../../pages/api/admin/cluster/graph';
+  import type { GraphNode, PodEntry } from '../../../lib/graph-utils';
 
   interface Warning {
     namespace: string;

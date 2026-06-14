@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { resolve4 } from 'dns';
+import dns from 'dns';
 import { embedQuery, type EmbeddingModel } from './embeddings';
 
 export class MixedEmbeddingModelError extends Error {
@@ -17,7 +17,7 @@ function nodeLookup(
   _opts: unknown,
   cb: (err: Error | null, addr: string, family: number) => void,
 ) {
-  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+  dns.resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
 }
 
 let _pool: Pool | null = null;

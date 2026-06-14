@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import * as d3 from 'd3';
-  import type { GraphNode, GraphEdge, NodeStatus } from '../../../pages/api/admin/cluster/graph';
+  import type { GraphNode, GraphEdge, NodeStatus } from '../../../lib/graph-utils';
   import GraphNodeComponent from './GraphNode.svelte';
   import GraphLegend from './GraphLegend.svelte';
 

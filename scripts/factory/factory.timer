@@ -1,21 +1,23 @@
 # scripts/factory/factory.timer
-# Software Factory — systemd USER timer. Drives one dispatcher tick every
-# ~10 min, re-arming ONLY after the previous tick exits (single-flight).
+# Software Factory — systemd USER timer. wakeup.sh loops internally while the
+# queue is non-empty (idle-retick), so this timer fires only as a fallback.
 # Enable via `task factory:autopilot:install`.
 [Unit]
-Description=Software Factory dispatcher tick (every ~10 min, re-armed after exit)
+Description=Software Factory dispatcher tick (idle-retick loop; 5 min fallback timer)
 Documentation=file:///home/patrick/Bachelorprojekt/scripts/factory/README.md
 
 [Timer]
 Unit=factory.service
 # First tick 2 min after the user manager comes up.
 OnBootSec=2min
-# Next tick fires 10 min AFTER the previous tick went inactive (no overlap).
-OnUnitInactiveSec=10min
+# Fallback: re-arm 5 min after the previous tick service exits.
+# In practice wakeup.sh loops while the queue is non-empty, so the timer only
+# fires after the queue drains and the service exits cleanly.
+OnUnitInactiveSec=5min
 # Run a tick that was missed while the host was off, on next boot.
 Persistent=true
-# Smear ±60s so multiple machines don't all hit the DB on the same second.
-RandomizedDelaySec=60
+# Smear ±30s (reduced since idle-retick shrinks the gap between busy ticks).
+RandomizedDelaySec=30
 
 [Install]
 WantedBy=timers.target

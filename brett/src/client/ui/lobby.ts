@@ -91,6 +91,7 @@ export interface LobbyHandlers {
   /** Leader-only: emit the built coaching steps (D10). Absent ⇒ editor hidden. */
   onCoachingSteps?: (raw: string) => void;
   onSetTemplate?: (templateId: string) => void;
+  onSetBoardTemplate?: (boardTemplateId: string) => void;
   onSetOptik?: (settings: import('../../types/state').OptikSettings) => void;
 }
 
@@ -148,7 +149,12 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
     placeholder.textContent = 'Vorlage wählen …';
     tplSelect.appendChild(placeholder);
     tplSelect.addEventListener('change', () => {
-      if (tplSelect.value) handlers.onSetTemplate!(tplSelect.value);
+      if (!tplSelect.value) return;
+      if (tplSelect.value.startsWith('bt:')) {
+        handlers.onSetBoardTemplate?.(tplSelect.value.slice(3));
+      } else {
+        handlers.onSetTemplate!(tplSelect.value);
+      }
     });
     fetch('/api/templates')
       .then((r) => (r.ok ? r.json() : []))
@@ -162,6 +168,24 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
         }
       })
       .catch(() => { /* leave placeholder only */ });
+    fetch(`/api/board-templates?brand=${new URLSearchParams(location.search).get('brand') || 'mentolder'}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((list: any[]) => {
+        if (!Array.isArray(list)) return;
+        const systemGroup = document.createElement('optgroup');
+        systemGroup.label = 'System-Szenarien';
+        const customGroup = document.createElement('optgroup');
+        customGroup.label = 'Eigene Templates';
+        for (const t of list) {
+          const opt = document.createElement('option');
+          opt.value = `bt:${t.id}`;
+          opt.textContent = t.name;
+          (t.is_system ? systemGroup : customGroup).appendChild(opt);
+        }
+        if (systemGroup.children.length) tplSelect.appendChild(systemGroup);
+        if (customGroup.children.length) tplSelect.appendChild(customGroup);
+      })
+      .catch(() => {});
     settingsPanel.appendChild(settingControl('Vorlage', tplSelect));
 
     const skySelect = document.createElement('select');

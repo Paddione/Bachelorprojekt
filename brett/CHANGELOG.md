@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.30.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.29.1...brett-v0.30.0) (2026-06-14)
+
+
+### Features
+
+* **brett:** Touch-Drag Android — contextmenu block + multi-touch guard (T000703) ([#1636](https://github.com/Paddione/Bachelorprojekt/issues/1636)) ([86bd8f4](https://github.com/Paddione/Bachelorprojekt/commit/86bd8f4c48a6679546a2791bb0415c9ae25d5efa))
+
 ## [0.29.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.29.0...brett-v0.29.1) (2026-06-12)
 
 

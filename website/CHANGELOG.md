@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.65.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.64.0...website-v1.65.0) (2026-06-14)
+
+
+### Features
+
+* **brett:** Zuschauer-Modus read-only (T000706) ([#1639](https://github.com/Paddione/Bachelorprojekt/issues/1639)) ([c0bea55](https://github.com/Paddione/Bachelorprojekt/commit/c0bea554c1a0da0fb2d1d7c17950eb387aa2dee2))
+
+
+### Bug Fixes
+
+* **website:** extract graph-utils lib to fix SSR/browser bundle leak ([#1648](https://github.com/Paddione/Bachelorprojekt/issues/1648)) ([150c146](https://github.com/Paddione/Bachelorprojekt/commit/150c146242d5b2f2f6a84e8abb85484e0cf05a5d))
+
 ## [1.64.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.63.0...website-v1.64.0) (2026-06-14)
 
 

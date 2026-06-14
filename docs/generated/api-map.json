@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T22:29:00.186Z",
+  "generatedAt": "2026-06-14T22:45:59.748Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -2633,6 +2633,15 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/dsgvo-request.ts"
+    },
+    {
+      "path": "/api/factory-budget",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory-budget.ts"
     },
     {
       "path": "/api/factory-floor",

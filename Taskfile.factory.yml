@@ -93,3 +93,22 @@ tasks:
         systemctl --user list-timers factory.timer --no-pager || true
         echo "--- last factory.service tick ---"
         systemctl --user status factory.service --no-pager -n 20 || true
+
+  budget:estimate:
+    desc: "Calculate token and cost estimate for a ticket (usage: task factory:budget:estimate -- <ticket_id> [ENV=...])"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        if [ -z "{{.CLI_ARGS}}" ]; then
+          echo "ERROR: specify a ticket ID: task factory:budget:estimate -- <ticket_id>"
+          exit 1
+        fi
+        bash scripts/factory/budget-estimate.sh "{{.CLI_ARGS}}" "{{.ENV}}"
+
+  budget:guard:
+    desc: "Check if daily budget limit has been reached (usage: task factory:budget:guard [ENV=...])"
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - bash scripts/factory/budget-guard.sh "{{.ENV}}"

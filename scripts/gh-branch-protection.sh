@@ -2,7 +2,8 @@
 # gh-branch-protection.sh — Idempotentes Branch-Protection-Setup für main
 #
 # Setzt die required status checks für Paddione/Bachelorprojekt:main
-# auf: offline-tests, security-scan, brett-typescript, vitest, commit-lint
+# auf: Offline Tests (Manifests, Configs, Unit), Security Scan, Brett TypeScript,
+#      Vitest (website + arena-server), Conventional Commits
 # (E2E PR ist NICHT enthalten — informativ, blockiert keinen Auto-Merge)
 #
 # Verwendung:
@@ -21,21 +22,22 @@ BRANCH="main"
 MANUAL_URL="https://github.com/${REPO}/settings/branches"
 
 # Required checks ohne E2E (Normalzustand nach diesem Feature)
+# Namen sind die GitHub-status-check-Namen (name:-Feld der Job-Definition), nicht job-IDs.
 REQUIRED_CHECKS_BASE=(
-  "offline-tests"
-  "security-scan"
-  "brett-typescript"
-  "vitest"
-  "commit-lint"
+  "Offline Tests (Manifests, Configs, Unit)"
+  "Security Scan"
+  "Brett TypeScript"
+  "Vitest (website + arena-server)"
+  "Conventional Commits"
 )
 
 # Required checks inkl. E2E (Emergency-Stop-Zustand)
 REQUIRED_CHECKS_WITH_E2E=(
-  "offline-tests"
-  "security-scan"
-  "brett-typescript"
-  "vitest"
-  "commit-lint"
+  "Offline Tests (Manifests, Configs, Unit)"
+  "Security Scan"
+  "Brett TypeScript"
+  "Vitest (website + arena-server)"
+  "Conventional Commits"
   "E2E PR"
 )
 

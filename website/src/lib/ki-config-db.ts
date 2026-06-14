@@ -44,8 +44,10 @@ const COLS =
   'id, source, tier, priority, provider, model_id, base_url, max_concurrent, enabled, updated_at';
 
 export async function listProviders(): Promise<ProviderConfigEntry[]> {
+  // Coaching-Rows (source='coaching') leben im selben Store, werden aber über die
+  // Coaching-UI/-Endpoints verwaltet — hier ausschließen, damit die Routing-Karten sauber bleiben.
   const { rows } = await pool.query(
-    `SELECT ${COLS} FROM tickets.provider_config ORDER BY source, tier, priority`,
+    `SELECT ${COLS} FROM tickets.provider_config WHERE source <> 'coaching' ORDER BY source, tier, priority`,
   );
   return rows.map(mapRow);
 }

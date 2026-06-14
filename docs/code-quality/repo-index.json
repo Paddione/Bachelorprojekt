@@ -439,7 +439,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 28,
+      "file_count": 29,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -468,6 +468,7 @@
         "scripts/migrations/2026-06-10-provider-routing.sql",
         "scripts/migrations/2026-06-14-coaching-data-migrate.sql",
         "scripts/migrations/2026-06-14-coaching-deepseek-seed.sql",
+        "scripts/migrations/2026-06-14-llm-availability-seed.sql",
         "scripts/migrations/2026-06-14-provider-config-unify.sql"
       ]
     },

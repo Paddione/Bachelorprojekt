@@ -46,6 +46,7 @@ vi.mock('./tickets-db', () => ({
 }));
 
 import { pool } from './website-db';
+import { getProviderConfig, setProviderCooldown } from './provider-config';
 
 describe('provider routing schema', () => {
   it('erlaubt tier=coaching (Coaching-Fusion; tier-Validierung ist app-seitig)', async () => {
@@ -68,6 +69,28 @@ describe('provider routing schema', () => {
     await pool.query(`INSERT INTO tickets.provider_health (provider) VALUES ('deepseek') ON CONFLICT DO NOTHING`);
     const { rows } = await pool.query(`SELECT active_agents, failure_count FROM tickets.provider_health WHERE provider='deepseek'`);
     expect(rows[0]).toMatchObject({ active_agents: 0, failure_count: 0 });
+  });
+});
+
+describe('provider-config helpers', () => {
+  it('apiKeyForProvider returns non-empty string for local-cluster (no key needed)', async () => {
+    await pool.query(
+      `INSERT INTO tickets.provider_config (source, tier, priority, provider, model_id, base_url)
+       VALUES ('assistant-chat', 'sonnet', 1, 'local-cluster', 'mistral', 'http://llm-gw:11434/v1')
+       ON CONFLICT (source, tier, priority) DO UPDATE SET provider=EXCLUDED.provider`,
+    );
+    const cfg = await getProviderConfig('assistant-chat', 'sonnet');
+    expect(cfg.provider).toBe('local-cluster');
+    expect(cfg.apiKey).toBeTruthy();
+  });
+
+  it('setProviderCooldown inserts/updates provider_health cooldown_until', async () => {
+    await setProviderCooldown(pool, 'ticket-triage', 'deepseek', 5);
+    const { rows } = await pool.query(
+      `SELECT cooldown_until FROM tickets.provider_health WHERE provider = 'deepseek'`,
+    );
+    expect(rows).toHaveLength(1);
+    expect(new Date(rows[0].cooldown_until).getTime()).toBeGreaterThan(Date.now());
   });
 });
 

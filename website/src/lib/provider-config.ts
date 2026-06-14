@@ -1,4 +1,5 @@
 import { pool } from './website-db';
+import type { Pool } from 'pg';
 
 export interface ProviderChoice {
   provider: string;
@@ -14,7 +15,9 @@ const FALLBACK: Omit<ProviderChoice, 'apiKey'> = {
 
 function apiKeyForProvider(provider: string): string {
   if (provider === 'deepseek') return process.env.DEEPSEEK_API_KEY || '';
-  return process.env.ANTHROPIC_API_KEY || '';
+  if (provider === 'anthropic') return process.env.ANTHROPIC_API_KEY || '';
+  // local-cluster, local-lmstudio, local-ollama: no key needed
+  return 'not-required';
 }
 
 export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku' | 'opus'): Promise<ProviderChoice> {
@@ -40,4 +43,31 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
     console.error('[provider-config] DB lookup failed, falling back to anthropic:', err);
   }
   return { ...FALLBACK, apiKey: process.env.ANTHROPIC_API_KEY || '' };
+}
+
+/**
+ * Record a provider failure. Sets cooldown_until = now() + minutesFromNow minutes.
+ * The next call to getProviderConfig will skip this provider until the cooldown expires,
+ * automatically falling through to the next priority row.
+ */
+export async function setProviderCooldown(
+  dbPool: Pool,
+  source: string,
+  provider: string,
+  minutesFromNow: number,
+): Promise<void> {
+  try {
+    await dbPool.query(
+      `INSERT INTO tickets.provider_health (provider, failure_count, last_failure, cooldown_until)
+       VALUES ($1, 1, now(), now() + ($2 || ' minutes')::interval)
+       ON CONFLICT (provider) DO UPDATE
+         SET failure_count  = tickets.provider_health.failure_count + 1,
+             last_failure   = now(),
+             cooldown_until = now() + ($2 || ' minutes')::interval`,
+      [provider, minutesFromNow],
+    );
+    console.warn(`[provider-config] ${source}: provider '${provider}' put on cooldown for ${minutesFromNow}m`);
+  } catch (err) {
+    console.error('[provider-config] setProviderCooldown failed (non-fatal):', err);
+  }
 }

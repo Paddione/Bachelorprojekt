@@ -66,7 +66,7 @@ S2 (no import cycles): `ki-catalog.ts` stays a pure data module (zero imports). 
 - Modify: `website/src/lib/ki-catalog.ts:70-80` (the `local-llm` entry)
 - Test: `website/src/lib/ki-catalog.test.ts`
 
-- [ ] **Step 1: Update the catalog test first (rename + new-provider assertions)**
+- [x] **Step 1: Update the catalog test first (rename + new-provider assertions)**
 
 In `website/src/lib/ki-catalog.test.ts`, the existing `arrayContaining` list still names `local-llm`, which will fail after the rename. Replace the first two `it` blocks' relevant lines and add a new block. Apply these exact edits:
 
@@ -110,12 +110,12 @@ with:
   });
 ```
 
-- [ ] **Step 2: Run the catalog tests — verify they FAIL**
+- [x] **Step 2: Run the catalog tests — verify they FAIL**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx vitest run src/lib/ki-catalog.test.ts`
 Expected: FAIL — `local-cluster`/`local-lmstudio`/`local-ollama` not found; `local-llm` still defined.
 
-- [ ] **Step 3: Edit the catalog — rename + two new entries**
+- [x] **Step 3: Edit the catalog — rename + two new entries**
 
 In `website/src/lib/ki-catalog.ts`, replace the entire `local-llm` block (lines 70-80):
 ```typescript
@@ -172,12 +172,12 @@ with:
   },
 ```
 
-- [ ] **Step 4: Run the catalog tests — verify they PASS**
+- [x] **Step 4: Run the catalog tests — verify they PASS**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx vitest run src/lib/ki-catalog.test.ts`
 Expected: PASS (all blocks incl. the new ones; the existing "S3 no brand domains", "unique ids", "exactly one custom" blocks still pass).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-ki-provider-selection
@@ -195,7 +195,7 @@ git commit -m "feat(ki-catalog): add local-lmstudio/local-ollama, rename local-l
 
 **Design:** A server-side helper `checkLocalEndpoint(url)` does `fetch(url, { signal: AbortSignal.timeout(1000) })`, parses the OpenAI-style `{ data: [{id}, ...] }` model list on 2xx, and returns `{ reachable: boolean, models?: string[] }`. Any throw (timeout, ECONNREFUSED, parse error) → `{ reachable: false }` — **fail-soft is correct here** (the provider stays selectable; this is a connectivity hint, not an auth gate). The two probes run with `Promise.all`. The response adds a `localGpu` object alongside the existing keys.
 
-- [ ] **Step 1: Rewrite the env-status test to cover localGpu (extend existing file)**
+- [x] **Step 1: Rewrite the env-status test to cover localGpu (extend existing file)**
 
 Replace the entire contents of `website/src/pages/api/admin/ki/env-status.test.ts` with:
 ```typescript
@@ -264,12 +264,12 @@ it('localGpu: non-2xx response counts as unreachable', async () => {
 });
 ```
 
-- [ ] **Step 2: Run env-status tests — verify they FAIL**
+- [x] **Step 2: Run env-status tests — verify they FAIL**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx vitest run src/pages/api/admin/ki/env-status.test.ts`
 Expected: FAIL — `json.localGpu` is undefined.
 
-- [ ] **Step 3: Rewrite env-status.ts with the localGpu probe**
+- [x] **Step 3: Rewrite env-status.ts with the localGpu probe**
 
 Replace the entire contents of `website/src/pages/api/admin/ki/env-status.ts` with:
 ```typescript
@@ -318,12 +318,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: Run env-status tests — verify they PASS**
+- [x] **Step 4: Run env-status tests — verify they PASS**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx vitest run src/pages/api/admin/ki/env-status.test.ts`
 Expected: PASS (all four `it` blocks).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-ki-provider-selection
@@ -340,7 +340,7 @@ git commit -m "feat(ki/env-status): add localGpu reachability probe for LM Studi
 
 **Design:** Two independent changes, no new test (Svelte component has no unit test; covered by Vitest catalog/env-status tests + manual check). (1) Extend the `EnvStatus` interface with `localGpu` and render a third banner row. (2) When the provider `<select>` changes to a catalog entry whose `defaultBaseUrl` is set AND the current `base_url` is empty, prefill it from the catalog (editable).
 
-- [ ] **Step 1: Extend the `EnvStatus` interface**
+- [x] **Step 1: Extend the `EnvStatus` interface**
 
 In `website/src/components/admin/KiKonfiguration.svelte`, replace the interface (lines 13-16):
 ```typescript
@@ -359,7 +359,7 @@ with:
   }
 ```
 
-- [ ] **Step 2: Import `interfaceById` from the catalog (for autofill)**
+- [x] **Step 2: Import `interfaceById` from the catalog (for autofill)**
 
 Replace the import (line 3):
 ```typescript
@@ -370,7 +370,7 @@ with:
   import { modelsFor, interfaceById, type InterfaceDef } from '../../lib/ki-catalog';
 ```
 
-- [ ] **Step 3: Add the base_url autofill handler**
+- [x] **Step 3: Add the base_url autofill handler**
 
 Add this function immediately after `blankForm()` (after line 48, before `cardFor`):
 ```typescript
@@ -384,7 +384,7 @@ Add this function immediately after `blankForm()` (after line 48, before `cardFo
   }
 ```
 
-- [ ] **Step 4: Wire the handler into the provider `<select>`**
+- [x] **Step 4: Wire the handler into the provider `<select>`**
 
 Replace the provider select (lines 286-289):
 ```svelte
@@ -401,7 +401,7 @@ with:
     </select>
 ```
 
-- [ ] **Step 5: Add the GPU-worker banner row**
+- [x] **Step 5: Add the GPU-worker banner row**
 
 Replace the keys banner block (lines 195-201):
 ```svelte
@@ -438,7 +438,7 @@ with:
   {/if}
 ```
 
-- [ ] **Step 6: Add styles for the GPU banner**
+- [x] **Step 6: Add styles for the GPU banner**
 
 In the `<style>` block, find the existing `.banner` rule and add these rules immediately after it (search for `.banner` to locate; if a `.banner.keys` rule exists, add after that). Insert:
 ```css
@@ -448,17 +448,17 @@ In the `<style>` block, find the existing `.banner` rule and add these rules imm
   .gpu-pill.off { color: #a1a1aa; border-color: #52525b44; background: #52525b22; }
 ```
 
-- [ ] **Step 7: Typecheck the website (Svelte + TS)**
+- [x] **Step 7: Typecheck the website (Svelte + TS)**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx svelte-check --tsconfig ./tsconfig.json 2>&1 | tail -20`
 Expected: no NEW errors referencing `KiKonfiguration.svelte`, `localGpu`, `onProviderChange`, or `EnvStatus`. (Pre-existing repo-wide warnings unrelated to these symbols are acceptable — compare against a clean `git stash` run if unsure.)
 
-- [ ] **Step 8: Verify line budget (limit 500)**
+- [x] **Step 8: Verify line budget (limit 500)**
 
 Run: `cd /tmp/wt-ki-provider-selection && wc -l website/src/components/admin/KiKonfiguration.svelte`
 Expected: well under 500 (≈360). If somehow ≥500, that's a hard CI fail — but with ~20 added lines from 339 this cannot happen.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd /tmp/wt-ki-provider-selection
@@ -479,7 +479,7 @@ git commit -m "feat(ki-konfiguration): GPU-worker reachability badge + base_url 
 
 The coaching `provider` strings (e.g. `openai`, `mistral`, `lumo`) match catalog ids 1:1, so `interfaceById(p.provider)` resolves directly. `local-lmstudio`/`local-ollama` become available automatically (they have `supportsParams: COMMON_PARAMS` → temperature/maxTokens/topP/systemPrompt + apiEndpoint + modelName, no apiKey).
 
-- [ ] **Step 1: Add the catalog import**
+- [x] **Step 1: Add the catalog import**
 
 In `website/src/components/admin/coaching/CoachingSettings.svelte`, after the existing imports (after line 3 `import type { StepTemplate }...`), add:
 ```typescript
@@ -487,7 +487,7 @@ In `website/src/components/admin/coaching/CoachingSettings.svelte`, after the ex
 ```
 Path depth: this file's sibling import is `import type { KiConfig } from '../../../lib/coaching-ki-config-db'` — **three** `../` reaches `website/src/lib/`. Use three `../` exactly as shown above.
 
-- [ ] **Step 2: Replace `KNOWN_FIELD_MAP` + `showField` with a catalog-derived resolver**
+- [x] **Step 2: Replace `KNOWN_FIELD_MAP` + `showField` with a catalog-derived resolver**
 
 Replace the block (lines 86-95):
 ```typescript
@@ -520,7 +520,7 @@ with:
   }
 ```
 
-- [ ] **Step 3: Replace `PROVIDER_BADGE` + `providerBadgeLabel` with a catalog fallback**
+- [x] **Step 3: Replace `PROVIDER_BADGE` + `providerBadgeLabel` with a catalog fallback**
 
 Replace the block (lines 97-103):
 ```typescript
@@ -539,30 +539,30 @@ with:
   }
 ```
 
-- [ ] **Step 4: Confirm the `ParamKey` ⊃ coaching-field overlap**
+- [x] **Step 4: Confirm the `ParamKey` ⊃ coaching-field overlap**
 
 The catalog `ParamKey` union is `temperature | maxTokens | topP | topK | systemPrompt | presencePenalty | frequencyPenalty | safePrompt | randomSeed | organizationId | euEndpoint | thinkingMode`. These are exactly the coaching field keys consumed by `showField` checks in the template (`topK`, `thinkingMode`, `presencePenalty`, `frequencyPenalty`, `safePrompt`, `randomSeed`, `organizationId`, `euEndpoint`, `temperature`, `maxTokens`, `topP`, `systemPrompt`). No mapping/translation needed — they share the same string keys. This step is verification only; no edit.
 
-- [ ] **Step 5: Verify the provider-badge CSS classes still resolve**
+- [x] **Step 5: Verify the provider-badge CSS classes still resolve**
 
 The template uses `class="provider-badge {isCustom(p) ? 'custom' : p.provider}"`. The `<style>` block has `.provider-badge.openai/.mistral/.lumo/.custom`. New providers (`local-lmstudio` etc.) produce class `provider-badge local-lmstudio` with no matching style rule — the base `.provider-badge` styling still applies (pill shape, padding), just no accent color. **This is acceptable** (graceful default). No edit needed; this step is verification only.
 
-- [ ] **Step 6: Run the coaching ki-config tests**
+- [x] **Step 6: Run the coaching ki-config tests**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx vitest run src/lib/coaching-ki-config-db.test.ts`
 Expected: PASS (these test the DB layer, not the Svelte component, but confirm the `provider`/`enabledFields` contract this component relies on is unbroken).
 
-- [ ] **Step 7: Typecheck**
+- [x] **Step 7: Typecheck**
 
 Run: `cd /tmp/wt-ki-provider-selection/website && npx svelte-check --tsconfig ./tsconfig.json 2>&1 | grep -i coaching/CoachingSettings || echo "no CoachingSettings errors"`
 Expected: `no CoachingSettings errors`.
 
-- [ ] **Step 8: Verify line budget — MUST be ≤ 600**
+- [x] **Step 8: Verify line budget — MUST be ≤ 600**
 
 Run: `cd /tmp/wt-ki-provider-selection && wc -l website/src/components/admin/coaching/CoachingSettings.svelte`
 Expected: **≤ 600**. If > 600: the removed code (KNOWN_FIELD_MAP 5 lines + showField 4 lines + PROVIDER_BADGE 3 lines + providerBadgeLabel 3 lines = ~15 lines removed; new code = fieldsForCatalog 8 lines + showField 4 lines + providerBadgeLabel 3 lines + 1 import = ~16 lines) is near-neutral. If 601-602, tighten `fieldsForCatalog` (e.g. inline the `params` const) until ≤ 600. Do NOT add a baseline entry.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 cd /tmp/wt-ki-provider-selection
@@ -576,15 +576,15 @@ git commit -m "feat(coaching): derive provider field map from KI catalog (drop h
 
 **Files:** none modified — this task documents why two spec items are descoped.
 
-- [ ] **Step 1: Confirm no schema default rows are added**
+- [x] **Step 1: Confirm no schema default rows are added**
 
 The spec's "optional default rows" (priority=50, disabled) for the new providers are **descoped**: (a) no acceptance criterion requires them; (b) `tickets.provider_config` already accepts any `provider` string, so an admin can add a `local-lmstudio` row via the UI (Task 3); (c) adding INSERTs to `provider-config-schema.ts` would also require mirroring into `scripts/migrations/*.sql` (per the file's own header comment) and would be untested. Leave `website/src/lib/schema/provider-config-schema.ts` unchanged. No edit.
 
-- [ ] **Step 2: Confirm no runtime-routing change in `provider-config.ts`**
+- [x] **Step 2: Confirm no runtime-routing change in `provider-config.ts`**
 
 `getProviderConfig(source, tier)` reads `provider`, `model_id`, `base_url` from the DB and resolves the API key via `apiKeyForProvider(provider)`, which returns `''` for any non-deepseek/non-anthropic provider. For `local-lmstudio`/`local-ollama` the empty key is fine — OpenAI-compatible local servers ignore the key (the SDK sends `Authorization: Bearer` with whatever, including empty). The `base_url` from the DB row routes the call to localhost. **No code change needed in `provider-config.ts`.** If a future ticket shows a local server rejecting an empty key, add a `'sk-local'` dummy in `apiKeyForProvider` then — out of scope now. No edit.
 
-- [ ] **Step 3: No commit (no files changed).**
+- [x] **Step 3: No commit (no files changed).**
 
 ---
 
@@ -592,7 +592,7 @@ The spec's "optional default rows" (priority=50, disabled) for the new providers
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Regenerate the test inventory (Vitest test counts changed in Tasks 1 & 2)**
+- [x] **Step 1: Regenerate the test inventory (Vitest test counts changed in Tasks 1 & 2)**
 
 Run: `cd /tmp/wt-ki-provider-selection && task test:inventory`
 Then confirm the generated file is staged:
@@ -601,12 +601,12 @@ git add website/src/data/test-inventory.json
 ```
 Expected: `test-inventory.json` reflects the new env-status + catalog test blocks.
 
-- [ ] **Step 2: Run the full offline test suite**
+- [x] **Step 2: Run the full offline test suite**
 
 Run: `cd /tmp/wt-ki-provider-selection && task test:all`
 Expected: PASS (BATS units, kustomize structure, Taskfile dry-run, AND the website Vitest suite incl. the new/changed tests). If the inventory check inside `test:all` fails, re-run Step 1 and re-commit.
 
-- [ ] **Step 3: Regenerate freshness artifacts**
+- [x] **Step 3: Regenerate freshness artifacts**
 
 Run: `cd /tmp/wt-ki-provider-selection && task freshness:regenerate`
 Then stage any regenerated artifacts:
@@ -615,7 +615,7 @@ git add docs/generated docs/code-quality/repo-index.json k3d/docs-content-built 
 git status --short
 ```
 
-- [ ] **Step 4: Run the CI-equivalent freshness + quality gate (S1–S4 ratchet + baseline assertion)**
+- [x] **Step 4: Run the CI-equivalent freshness + quality gate (S1–S4 ratchet + baseline assertion)**
 
 Run: `cd /tmp/wt-ki-provider-selection && task freshness:check`
 Expected: PASS. Critical checks:
@@ -624,7 +624,7 @@ Expected: PASS. Critical checks:
 - S3: no brand-domain literals introduced (all new literals are `localhost`/`api.deepseek.com`).
 If S1 reports `CoachingSettings.svelte` worsened, STOP and shrink that file (do not add a baseline entry).
 
-- [ ] **Step 5: Commit any regenerated artifacts**
+- [x] **Step 5: Commit any regenerated artifacts**
 
 ```bash
 cd /tmp/wt-ki-provider-selection
@@ -632,7 +632,7 @@ git add -A
 git commit -m "chore: regenerate freshness + test-inventory artifacts for ki-provider-selection" || echo "nothing to commit"
 ```
 
-- [ ] **Step 6: Manual smoke (documented, not blocking — requires a running dev website)**
+- [x] **Step 6: Manual smoke (documented, not blocking — requires a running dev website)**
 
 If a dev website is running: open `/admin/ki-konfiguration`, verify (a) the GPU-worker banner row shows LM Studio / Ollama pills (green when localhost:1234/11434 answer, grey otherwise); (b) opening any non-embed card → "+ Provider hinzufügen" → selecting "LM Studio (GPU-Worker localhost:1234)" auto-fills `base_url` with `http://localhost:1234/v1`; (c) `/admin/coaching/settings` → KI-Provider tab still renders existing provider cards with correct field visibility. No code change here.
 

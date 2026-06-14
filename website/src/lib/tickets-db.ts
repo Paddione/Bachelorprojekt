@@ -23,10 +23,7 @@ async function initProviderRouting(c: import('pg').PoolClient): Promise<void> {
     provider TEXT PRIMARY KEY, failure_count INTEGER NOT NULL DEFAULT 0, last_failure TIMESTAMPTZ,
     cooldown_until TIMESTAMPTZ, active_agents INTEGER NOT NULL DEFAULT 0, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`);
   await c.query(`INSERT INTO tickets.provider_config (source,tier,priority,provider,model_id,base_url)
-    VALUES ('*','sonnet',99,'anthropic','claude-sonnet-4-6',NULL),
-           ('*','haiku',99,'anthropic','claude-haiku-4-5',NULL),
-           ('*','sonnet',1,'deepseek','deepseek-v4-pro','https://api.deepseek.com/anthropic'),
-           ('*','haiku',1,'deepseek','deepseek-v4-flash','https://api.deepseek.com/anthropic')
+    VALUES ('*','sonnet',99,'anthropic','claude-sonnet-4-6',NULL),('*','haiku',99,'anthropic','claude-haiku-4-5',NULL),('*','sonnet',1,'deepseek','deepseek-v4-pro','https://api.deepseek.com/anthropic'),('*','haiku',1,'deepseek','deepseek-v4-flash','https://api.deepseek.com/anthropic')
     ON CONFLICT (source,tier,priority) DO NOTHING`);
 }
 

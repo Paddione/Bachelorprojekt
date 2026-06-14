@@ -39,8 +39,9 @@ setup() { load 'test_helper.bash'; }
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-41: wakeup.sh exec's headless claude with the Workflow tool allowlisted" {
-  run grep -E 'exec[[:space:]]+"\$\{CLAUDE_BIN' "$WAKEUP"
+@test "FA-SF-41: wakeup.sh calls headless claude with the Workflow tool allowlisted" {
+  # idle-retick: claude is called without exec (so the loop can continue after it)
+  run grep -E '"\$\{CLAUDE_BIN\}"[[:space:]]+-p' "$WAKEUP"
   [ "$status" -eq 0 ]
   run grep -E -- '--allowedTools' "$WAKEUP"
   [ "$status" -eq 0 ]
@@ -180,4 +181,39 @@ README="${BATS_TEST_DIRNAME}/../../scripts/factory/README.md"
 @test "FA-SF-41: README notes the inert (not consumed) pg_notify trigger" {
   run grep -F 'pg_notify' "$README"
   [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-41: wakeup.sh supports idle-retick via FACTORY_IDLE_RETICK_ENABLED" {
+  run grep -F 'FACTORY_IDLE_RETICK_ENABLED' "$WAKEUP"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-41: wakeup.sh checks both brand queues before retick" {
+  run grep -E 'BRAND=mentolder.*queue\.sh' "$WAKEUP"
+  [ "$status" -eq 0 ]
+  run grep -E 'BRAND=korczewski.*queue\.sh' "$WAKEUP"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-41: wakeup.sh idle-retick exits cleanly when queue is empty" {
+  # Stub: records args and exits 0. FACTORY_REPO points to a tmp dir with no queue.sh,
+  # so the queue check returns 0 items → loop exits after one tick.
+  tmp="$(mktemp -d)"
+  argfile="${tmp}/argv"
+  cat > "${tmp}/claude-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${argfile}"
+STUB
+  chmod +x "${tmp}/claude-stub"
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" FACTORY_DRY_RUN=true \
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" \
+    FACTORY_IDLE_RETICK_ENABLED=true run bash "$WAKEUP"
+  [ "$status" -eq 0 ]
+  [ -f "${argfile}" ]   # claude was invoked exactly once
+  rm -rf "${tmp}"
+}
+
+@test "FA-SF-41: wakeup.sh skips idle-retick when FACTORY_IDLE_RETICK_ENABLED=false" {
+  run grep -E 'IDLE_RETICK.*true' "$WAKEUP"
+  [ "$status" -eq 0 ]   # confirms the break path exists when disabled
 }

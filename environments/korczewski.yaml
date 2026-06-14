@@ -52,7 +52,7 @@ env_vars:
   KEYCLOAK_FRONTEND_URL: "https://auth.korczewski.de"
   # System-test failure loop master kill-switch (Task 10).
   SYSTEMTEST_LOOP_ENABLED: "true"
-  LLM_HOST_IP: "100.102.71.114"
+  LLM_HOST_IP: "192.168.100.10"
   COMFY_HOST_IP: "10.13.14.10"
   COMFY_PORT: "8189"
   LLM_ENABLED: "true"

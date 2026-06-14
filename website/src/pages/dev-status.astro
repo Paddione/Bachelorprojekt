@@ -2,6 +2,7 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../lib/auth';
 import DevStatusTabs from '../components/DevStatusTabs.svelte';
+import BudgetPanel from '../components/factory/BudgetPanel.svelte';
 import { getFloor } from '../lib/factory-floor';
 
 export const prerender = false;
@@ -22,9 +23,14 @@ const initialTab: Tab = rawTab === 'planung' ? 'planung' : rawTab === 'control' 
 ---
 
 <AdminLayout title="Dev Status">
-  <section class="bg-dark min-h-screen">
-    <div class="max-w-screen-2xl mx-auto">
-      <DevStatusTabs client:load {initial} {initialTab} {brand} />
+  <section class="bg-dark min-h-screen p-6">
+    <div class="max-w-screen-2xl mx-auto flex flex-col lg:flex-row gap-6">
+      <div class="flex-1 min-w-0">
+        <DevStatusTabs client:load {initial} {initialTab} {brand} />
+      </div>
+      <div class="w-full lg:w-80 shrink-0">
+        <BudgetPanel client:load />
+      </div>
     </div>
   </section>
 </AdminLayout>

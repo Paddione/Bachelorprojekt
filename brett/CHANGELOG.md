@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.33.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.32.0...brett-v0.33.0) (2026-06-14)
+
+
+### Features
+
+* **brett:** Zuschauer-Modus read-only (T000706) ([#1639](https://github.com/Paddione/Bachelorprojekt/issues/1639)) ([c0bea55](https://github.com/Paddione/Bachelorprojekt/commit/c0bea554c1a0da0fb2d1d7c17950eb387aa2dee2))
+
 ## [0.32.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.31.0...brett-v0.32.0) (2026-06-14)
 
 

@@ -5,48 +5,27 @@ import {
   listKiProviders, getActiveProvider, setActiveProvider,
   updateKiProvider, createKiProvider, deleteKiProvider,
 } from './coaching-ki-config-db';
+import { initProviderConfigSchema } from './schema/provider-config-schema';
 
 let pool: Pool;
 
+// Coaching ist jetzt physisch in tickets.provider_config (source='coaching') fusioniert.
+// Der Vertrag der Funktionen ist unverändert — dieser Test beweist die Äquivalenz gegen den
+// vereinheitlichten Store. model_id ist NOT NULL: null-Modelle werden als '' gespeichert.
 beforeAll(async () => {
-  const db = newDb();
-  db.public.none(`
-    CREATE SCHEMA coaching;
-    CREATE TABLE coaching.ki_config (
-      id SERIAL PRIMARY KEY,
-      brand TEXT NOT NULL,
-      provider TEXT NOT NULL,
-      is_active BOOLEAN NOT NULL DEFAULT false,
-      model_name TEXT,
-      display_name TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      api_key TEXT,
-      api_endpoint TEXT,
-      temperature NUMERIC(5,3),
-      max_tokens INT,
-      top_p NUMERIC(5,3),
-      system_prompt TEXT,
-      notes TEXT,
-      top_k INT,
-      thinking_mode BOOLEAN NOT NULL DEFAULT false,
-      presence_penalty NUMERIC(5,3),
-      frequency_penalty NUMERIC(5,3),
-      safe_prompt BOOLEAN NOT NULL DEFAULT false,
-      random_seed INT,
-      organization_id TEXT,
-      eu_endpoint BOOLEAN NOT NULL DEFAULT false,
-      enabled_fields JSONB,
-      UNIQUE (brand, provider)
-    );
-    INSERT INTO coaching.ki_config (brand, provider, is_active, model_name, display_name)
-    VALUES
-      ('mentolder', 'claude',  true,  'claude-haiku', 'Claude'),
-      ('mentolder', 'openai',  false, 'gpt-4o-mini',  'ChatGPT'),
-      ('mentolder', 'mistral', false, null,            'Mistral'),
-      ('mentolder', 'lumo',    false, null,            'Lumo');
-  `);
+  const db = newDb({ noAstCoverageCheck: true });
+  db.public.none('CREATE SCHEMA tickets');
   const { Pool: PgMemPool } = db.adapters.createPg();
   pool = new PgMemPool() as unknown as Pool;
+  await initProviderConfigSchema(pool as never);
+  await pool.query(`
+    INSERT INTO tickets.provider_config (brand, source, tier, priority, provider, model_id, is_active, display_name)
+    VALUES
+      ('mentolder','coaching','coaching',1,'claude','claude-haiku',true,'Claude'),
+      ('mentolder','coaching','coaching',2,'openai','gpt-4o-mini',false,'ChatGPT'),
+      ('mentolder','coaching','coaching',3,'mistral','',false,'Mistral'),
+      ('mentolder','coaching','coaching',4,'lumo','',false,'Lumo')
+  `);
 });
 
 describe('listKiProviders', () => {

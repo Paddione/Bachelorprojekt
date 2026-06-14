@@ -472,7 +472,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1289,
+      "file_count": 1290,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -590,6 +590,7 @@
         "website/src/components/BookingForm.svelte",
         "website/src/components/CallToAction.svelte",
         "website/src/components/ChatRoomPanel.svelte",
+        "website/src/components/ContactForm.i18n.test.ts",
         "website/src/components/ContactForm.svelte",
         "website/src/components/ContactHub.svelte",
         "website/src/components/CookieConsent.svelte",

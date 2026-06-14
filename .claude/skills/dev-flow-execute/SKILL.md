@@ -473,6 +473,12 @@ done
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
+> **Hinweis:** `E2E PR` ist kein required check (T000722). Auto-Merge wartet nur auf:
+> `Offline Tests (Manifests, Configs, Unit)`, `Security Scan`, `Brett TypeScript`,
+> `Vitest (website + arena-server)`, `Conventional Commits`.
+> Ein roter E2E-Check blockiert den Merge NICHT — er erscheint als informativer
+> gelber Status im PR. PR-Autor prüft E2E-Ergebnis manuell bei Bedarf.
+
 ```bash
 # Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
 (cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)

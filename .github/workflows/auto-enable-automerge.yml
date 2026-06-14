@@ -5,6 +5,10 @@ name: Auto-enable Auto-Merge
 # Branch-Protection erfüllt ist — diese Action setzt nur das --auto-Flag,
 # das bislang manuell via `gh pr merge --auto` gesetzt werden musste.
 # Repo-Voraussetzung: allow_auto_merge ist aktiviert.
+# E2E PR is intentionally not a required check — see scripts/gh-branch-protection.sh
+# and task gh:branch-protection:status. Required checks: Offline Tests (Manifests, Configs, Unit),
+# Security Scan, Brett TypeScript, Vitest (website + arena-server), Conventional Commits.
+# Emergency: task gh:branch-protection:emergency-add-e2e
 
 on:
   pull_request:

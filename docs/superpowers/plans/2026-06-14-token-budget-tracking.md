@@ -76,7 +76,7 @@ GPU $0 (Token-Äquivalent dennoch gespeichert).
 
 ## Task 1 — DB-Migration `factory_run_budget`
 
-- [ ] Lege `scripts/migrations/2026-06-14-factory-run-budget.sql` an (idempotent,
+- [x] Lege `scripts/migrations/2026-06-14-factory-run-budget.sql` an (idempotent,
       `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS`):
 
 ```sql
@@ -104,85 +104,85 @@ CREATE INDEX IF NOT EXISTS factory_run_budget_date_provider_idx
 --   key='budget-limit-daily-usd', value='5.00'
 ```
 
-- [ ] Migration gegen **beide** Brand-DBs (`workspace` + `workspace-korczewski`) anwendbar
+- [x] Migration gegen **beide** Brand-DBs (`workspace` + `workspace-korczewski`) anwendbar
       dokumentieren (cross-brand, siehe CLAUDE.md — separate Deployments).
 
 ## Task 2 — Budget-Estimate-Script
 
-- [ ] `scripts/factory/budget-estimate.sh <ticket_id> <brand>` (< 500 Zeilen, ~60):
-  - [ ] Ticket-Effort aus `tickets.tickets` lesen (Fallback: Medium).
-  - [ ] Provider/Modell aus `tickets.provider_config` lesen (Fallback: Anthropic-Default).
-  - [ ] Tokens je Phase (Scout/Design/Plan 15k, Implement 50k, Verify/Deploy 20k).
-  - [ ] Kosten je Provider: Claude in $3 / out $15; DeepSeek in $0.27 / out $1.10;
+- [x] `scripts/factory/budget-estimate.sh <ticket_id> <brand>` (< 500 Zeilen, ~60):
+  - [x] Ticket-Effort aus `tickets.tickets` lesen (Fallback: Medium).
+  - [x] Provider/Modell aus `tickets.provider_config` lesen (Fallback: Anthropic-Default).
+  - [x] Tokens je Phase (Scout/Design/Plan 15k, Implement 50k, Verify/Deploy 20k).
+  - [x] Kosten je Provider: Claude in $3 / out $15; DeepSeek in $0.27 / out $1.10;
         GPU $0 (Tokens dennoch geführt) — pro Mtok.
-  - [ ] Estimate-Rows (`*_est`-Spalten) je Phase in `factory_run_budget` schreiben.
-  - [ ] JSON ausgeben: `{estimate_usd, tokens_est, provider, model_id}`.
-  - [ ] Keine Brand-Hostnamen hardcoden; Brand-Namespace/DB über `env-resolve.sh` ableiten.
+  - [x] Estimate-Rows (`*_est`-Spalten) je Phase in `factory_run_budget` schreiben.
+  - [x] JSON ausgeben: `{estimate_usd, tokens_est, provider, model_id}`.
+  - [x] Keine Brand-Hostnamen hardcoden; Brand-Namespace/DB über `env-resolve.sh` ableiten.
 
 ## Task 3 — Budget-Guard-Script (Hard-Stop)
 
-- [ ] `scripts/factory/budget-guard.sh <brand>` (< 500 Zeilen, ~80):
-  - [ ] `used = SUM(cost_usd_act) WHERE run_date=CURRENT_DATE` aus `factory_run_budget`.
-  - [ ] `limit = factory_control['budget-limit-daily-usd']`.
-  - [ ] Kein Limit gesetzt → Exit 0 (unbegrenzt).
-  - [ ] `used >= limit` → Exit 1 (Hard-Stop).
-  - [ ] DB nicht erreichbar → **fail-closed** Exit 1.
-  - [ ] Brand-Auflösung über `env-resolve.sh`; keine Hostnamen hardcoden.
+- [x] `scripts/factory/budget-guard.sh <brand>` (< 500 Zeilen, ~80):
+  - [x] `used = SUM(cost_usd_act) WHERE run_date=CURRENT_DATE` aus `factory_run_budget`.
+  - [x] `limit = factory_control['budget-limit-daily-usd']`.
+  - [x] Kein Limit gesetzt → Exit 0 (unbegrenzt).
+  - [x] `used >= limit` → Exit 1 (Hard-Stop).
+  - [x] DB nicht erreichbar → **fail-closed** Exit 1.
+  - [x] Brand-Auflösung über `env-resolve.sh`; keine Hostnamen hardcoden.
 
 ## Task 4 — Dispatcher-Integration
 
-- [ ] In `scripts/factory/dispatcher.js` (Ziel ≤ 280 Zeilen) nach Slot-Claim und
+- [x] In `scripts/factory/dispatcher.js` (Ziel ≤ 280 Zeilen) nach Slot-Claim und
       **vor** `parallel(prep.launch.map(...))`:
-  - [ ] Pro geclaimtem Ticket `budget-guard.sh <brand>` via `execFileSync`.
-  - [ ] Guard Exit 1 → Ticket-Status `blocked` setzen, `phaseEvent` → `blocked`
+  - [x] Pro geclaimtem Ticket `budget-guard.sh <brand>` via `execFileSync`.
+  - [x] Guard Exit 1 → Ticket-Status `blocked` setzen, `phaseEvent` → `blocked`
         (Detail „daily budget exceeded"), Operator-Notify über bestehenden
         Escalation-Mechanismus, Ticket aus dem Launch-Set entfernen (skip).
-  - [ ] Guard Exit 0 → `budget-estimate.sh <ticket_id> <brand>` aufrufen
+  - [x] Guard Exit 0 → `budget-estimate.sh <ticket_id> <brand>` aufrufen
         (best-effort: Fehler loggen, NICHT blockieren), dann normal launchen.
-  - [ ] `pipeline.js` bleibt unverändert (SANCTIONED EXCEPTION).
+  - [x] `pipeline.js` bleibt unverändert (SANCTIONED EXCEPTION).
 
 ## Task 5 — DAL: `factory-budget.ts`
 
-- [ ] Neue Datei `website/src/lib/factory-budget.ts` (< 600 Zeilen, ~200):
-  - [ ] `getDailyBudgetSummary(date?)` → `{ used, limit, byProvider[] }`.
-  - [ ] `getRunBudgetByTicket(ticketId)` → Phasen-Zeilen (est + act).
-  - [ ] `getBudgetLimit()` / `setBudgetLimit(usd)` (Letzteres via `writeControl` aus
+- [x] Neue Datei `website/src/lib/factory-budget.ts` (< 600 Zeilen, ~200):
+  - [x] `getDailyBudgetSummary(date?)` → `{ used, limit, byProvider[] }`.
+  - [x] `getRunBudgetByTicket(ticketId)` → Phasen-Zeilen (est + act).
+  - [x] `getBudgetLimit()` / `setBudgetLimit(usd)` (Letzteres via `writeControl` aus
         `factory-floor.ts`, key `budget-limit-daily-usd`).
-  - [ ] Typ `FactoryRunBudget` exportieren.
-- [ ] `website/src/lib/factory-floor.ts`: NUR Re-Export von `FactoryRunBudget`
+  - [x] Typ `FactoryRunBudget` exportieren.
+- [x] `website/src/lib/factory-floor.ts`: NUR Re-Export von `FactoryRunBudget`
       (1–2 Zeilen, Budget=60 strikt einhalten).
 
 ## Task 6 — Admin-UI
 
-- [ ] `website/src/components/factory/BudgetPanel.svelte` (< 500 Zeilen, ~120):
-  - [ ] Zeigt heutiges Budget used/limit (Balken), Provider-Aufschlüsselung,
+- [x] `website/src/components/factory/BudgetPanel.svelte` (< 500 Zeilen, ~120):
+  - [x] Zeigt heutiges Budget used/limit (Balken), Provider-Aufschlüsselung,
         letzte 5 Runs.
-  - [ ] Holt Daten von `api/factory-budget.ts` (GET). Kein Realtime/Polling.
-- [ ] `website/src/pages/dev-status.astro` (≤ 400): `BudgetPanel` einbinden
+  - [x] Holt Daten von `api/factory-budget.ts` (GET). Kein Realtime/Polling.
+- [x] `website/src/pages/dev-status.astro` (≤ 400): `BudgetPanel` einbinden
       (NICHT in `FactoryFloor.svelte` — Budget=0).
-- [ ] `website/src/pages/admin/factory-budget.astro` (< 400 Zeilen, ~120):
-  - [ ] Admin-geschützt (bestehende Auth/Session-Guard-Konvention der `admin/*`-Seiten).
-  - [ ] Tages-Limit konfigurierbar (POST an API → `setBudgetLimit`).
-  - [ ] Tages-Übersicht + per-Ticket-Kosten (`getRunBudgetByTicket`).
-  - [ ] Keine Brand-Hostnamen hardcoden.
+- [x] `website/src/pages/admin/factory-budget.astro` (< 400 Zeilen, ~120):
+  - [x] Admin-geschützt (bestehende Auth/Session-Guard-Konvention der `admin/*`-Seiten).
+  - [x] Tages-Limit konfigurierbar (POST an API → `setBudgetLimit`).
+  - [x] Tages-Übersicht + per-Ticket-Kosten (`getRunBudgetByTicket`).
+  - [x] Keine Brand-Hostnamen hardcoden.
 
 ## Task 7 — API-Endpoint
 
-- [ ] `website/src/pages/api/factory-budget.ts` (< 600 Zeilen, ~100):
-  - [ ] `GET` → `getDailyBudgetSummary()` (täglich + Provider-Aufschlüsselung)
+- [x] `website/src/pages/api/factory-budget.ts` (< 600 Zeilen, ~100):
+  - [x] `GET` → `getDailyBudgetSummary()` (täglich + Provider-Aufschlüsselung)
         + optional `?ticketId=` → `getRunBudgetByTicket`.
-  - [ ] `POST` → Limit setzen via `setBudgetLimit`; **Admin-only** → sonst 403.
+  - [x] `POST` → Limit setzen via `setBudgetLimit`; **Admin-only** → sonst 403.
 
 ## Task 8 — Taskfile-Erreichbarkeit (S4)
 
-- [ ] Beide neuen `.sh`-Scripts über den Taskfile erreichbar machen
+- [x] Beide neuen `.sh`-Scripts über den Taskfile erreichbar machen
       (z. B. `factory:budget:estimate`, `factory:budget:guard`), inkl. `ENV=`-Passing.
-- [ ] Migration über bestehenden Migrations-Task / Runbook anwendbar dokumentieren.
+- [x] Migration über bestehenden Migrations-Task / Runbook anwendbar dokumentieren.
 
 ## Task 9 — Verifikation (PFLICHT, letzter Task)
 
-- [ ] `task test:all`
-- [ ] `task freshness:regenerate`
-- [ ] `task freshness:check`
-- [ ] Manuell: Guard Exit-Codes (Limit gesetzt/überschritten/fehlt/DB-down) prüfen;
+- [x] `task test:all`
+- [x] `task freshness:regenerate`
+- [x] `task freshness:check`
+- [x] Manuell: Guard Exit-Codes (Limit gesetzt/überschritten/fehlt/DB-down) prüfen;
       Estimate-JSON validieren; Panel rendert; API GET/POST + 403 ohne Admin.

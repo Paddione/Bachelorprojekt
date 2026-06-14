@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 129,
+  "count": 130,
   "routes": [
     {
       "route": "/",
@@ -253,6 +253,14 @@
     },
     {
       "route": "/admin/einstellungen/rechnungen",
+      "authTier": "admin",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/admin/factory-budget",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,

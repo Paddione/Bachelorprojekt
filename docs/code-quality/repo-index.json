@@ -472,7 +472,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1288,
+      "file_count": 1289,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -1063,6 +1063,7 @@
         "website/src/lib/generate-3d-pipeline.test.ts",
         "website/src/lib/generation-jobs.ts",
         "website/src/lib/github-ci.ts",
+        "website/src/lib/graph-utils.ts",
         "website/src/lib/helpContent.platform.test.ts",
         "website/src/lib/helpContent.ts",
         "website/src/lib/ingest-json-core.ts",

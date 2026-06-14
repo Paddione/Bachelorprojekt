@@ -12,9 +12,15 @@ const FALLBACK: Omit<ProviderChoice, 'apiKey'> = {
   provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null,
 };
 
+function apiKeyForProvider(provider: string): string {
+  if (provider === 'deepseek') return process.env.DEEPSEEK_API_KEY || '';
+  return process.env.ANTHROPIC_API_KEY || '';
+}
+
 export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku' | 'opus'): Promise<ProviderChoice> {
-  const apiKey = process.env.ANTHROPIC_API_KEY || '';
-  if (tier === 'opus') return { provider: 'anthropic', modelId: OPUS_MODEL, baseUrl: null, apiKey };
+  if (tier === 'opus') {
+    return { provider: 'anthropic', modelId: OPUS_MODEL, baseUrl: null, apiKey: process.env.ANTHROPIC_API_KEY || '' };
+  }
   try {
     const { rows } = await pool.query(
       `SELECT pc.provider, pc.model_id, pc.base_url
@@ -27,10 +33,11 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
       [source, tier],
     );
     if (rows.length) {
-      return { provider: rows[0].provider, modelId: rows[0].model_id, baseUrl: rows[0].base_url ?? null, apiKey };
+      const { provider, model_id, base_url } = rows[0];
+      return { provider, modelId: model_id, baseUrl: base_url ?? null, apiKey: apiKeyForProvider(provider) };
     }
   } catch (err) {
     console.error('[provider-config] DB lookup failed, falling back to anthropic:', err);
   }
-  return { ...FALLBACK, apiKey };
+  return { ...FALLBACK, apiKey: process.env.ANTHROPIC_API_KEY || '' };
 }

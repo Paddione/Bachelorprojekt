@@ -748,6 +748,14 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: DEEPSEEK_API_KEY
+    required: false
+    generate: false
+    description: "DeepSeek API key for website AI features (meeting insights, ticket triage, assistant chat). When set, DeepSeek is preferred over Anthropic as the sonnet/haiku provider via the provider_config routing table."
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+
   - name: LLM_ROUTER_API_KEY
     required: false
     generate: false

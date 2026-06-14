@@ -16,6 +16,7 @@ vi.mock('pg', () => {
       provider       TEXT NOT NULL,
       model_id       TEXT NOT NULL,
       base_url       TEXT,
+      api_key        TEXT,
       max_concurrent INTEGER NOT NULL DEFAULT 3,
       enabled        BOOLEAN NOT NULL DEFAULT true,
       updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),

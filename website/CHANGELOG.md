@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.67.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.67.0...website-v1.67.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* **coaching:** route deepseek+local providers to OpenAI-compat agent; mount DEEPSEEK_API_KEY ([91df92f](https://github.com/Paddione/Bachelorprojekt/commit/91df92f24d1ce580e98cf7ac12f0fdc8091c3539))
+
 ## [1.67.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.66.1...website-v1.67.0) (2026-06-14)
 
 

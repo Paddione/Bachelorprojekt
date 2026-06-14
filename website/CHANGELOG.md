@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.64.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.63.0...website-v1.64.0) (2026-06-14)
+
+
+### Features
+
+* **website:** DeepSeek als primärer AI-Provider für Website-Endpunkte ([#1635](https://github.com/Paddione/Bachelorprojekt/issues/1635)) ([63606cf](https://github.com/Paddione/Bachelorprojekt/commit/63606cfa4585458cc3b407016ad0bb19f340e2a6))
+
 ## [1.63.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.3...website-v1.63.0) (2026-06-14)
 
 

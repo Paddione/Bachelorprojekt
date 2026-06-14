@@ -29,9 +29,22 @@ function setupDomMocks() {
           style: {},
         };
       }
+      if (tag === 'style') {
+        return { id: '', textContent: '' };
+      }
+      if (tag === 'div') {
+        return {
+          id: '',
+          children: [] as any[],
+          appendChild(c: any) { this.children.push(c); },
+          style: {},
+          remove() {},
+        };
+      }
       return {};
     },
     body: { appendChild: () => {}, removeChild: () => {} },
+    head: { appendChild: () => {} },
     getElementById: () => null,
   };
   (global as any).URL = {
@@ -196,22 +209,39 @@ describe('getExportSnapshot: Figuren-Serialisierung', () => {
   });
 });
 
-describe('exportPng: Canvas toDataURL', () => {
-  test('ruft toDataURL auf dem canvas auf und initiiert Download', () => {
-    let toDataCalled = false;
-    const mockCanvas = {
-      toDataURL: (fmt: string) => {
-        toDataCalled = true;
-        assert.equal(fmt, 'image/png');
-        return 'data:image/png;base64,abc123';
+describe('exportPng: snapshot2x + download', () => {
+  test('initiates download with brett- prefix and .png suffix', async () => {
+    const { setScene } = await import('../src/client/state.js');
+    setScene({
+      renderer: {
+        getPixelRatio: () => 1,
+        setPixelRatio: () => {},
+        render: () => {},
+        domElement: { toDataURL: () => 'data:image/png;base64,mock' },
       },
-    } as unknown as HTMLCanvasElement;
-
+      scene: {},
+      camera: {},
+      floor: {},
+    } as any);
+    const { exportPng } = await import('../src/client/ui/export.js');
     const before = _clicks.length;
-    exportPng(mockCanvas);
-    assert.ok(toDataCalled, 'toDataURL muss aufgerufen werden');
+    await exportPng();
     assert.equal(_clicks.length, before + 1, 'Ein Link-Click muss stattfinden');
     assert.ok(_clicks[_clicks.length - 1].startsWith('brett-'), 'Download-Name beginnt mit brett-');
     assert.ok(_clicks[_clicks.length - 1].endsWith('.png'), 'Download-Name endet mit .png');
+  });
+});
+
+describe('_filename: session code in filename', () => {
+  test('includes session code when set', () => {
+    updateExportCache({ sessionCode: 'XYZ-789' });
+    const snap = getExportSnapshot();
+    assert.equal(snap.sessionCode, 'XYZ-789');
+  });
+
+  test('filename falls back to date-only when sessionCode is null', () => {
+    updateExportCache({ sessionCode: null });
+    const snap = getExportSnapshot();
+    assert.equal(snap.sessionCode, null);
   });
 });

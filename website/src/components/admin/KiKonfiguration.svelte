@@ -1,6 +1,6 @@
 <script lang="ts">
   import { KI_SERVICES } from '../../lib/ki-services';
-  import { modelsFor, type InterfaceDef } from '../../lib/ki-catalog';
+  import { modelsFor, interfaceById, type InterfaceDef } from '../../lib/ki-catalog';
 
   interface ProviderEntry {
     id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;
@@ -10,9 +10,11 @@
   interface Health {
     provider: string; cooldown_until: string | null; active_agents: number;
   }
+  interface LocalGpuStatus { reachable: boolean; models?: string[]; }
   interface EnvStatus {
     ANTHROPIC_API_KEY: boolean; VOYAGE_API_KEY: boolean;
     LLM_ENABLED: boolean; LLM_HOST_IP: string | null;
+    localGpu?: { lmstudio: LocalGpuStatus; ollama: LocalGpuStatus };
   }
 
   // Karten kommen aus der Service-Registry (SSOT) — identische Source-Strings wie die Runtime,
@@ -45,6 +47,15 @@
 
   function blankForm(source = '', tier: 'sonnet' | 'haiku' = 'sonnet') {
     return { source, tier, priority: 1, provider: '', model_id: '', base_url: '', max_concurrent: 3, enabled: true };
+  }
+
+  // When a GPU-worker / cluster provider is chosen and base_url is still empty,
+  // prefill it from the catalog default (stays editable for advanced use).
+  function onProviderChange() {
+    const def = interfaceById(form.provider);
+    if (def?.defaultBaseUrl && !form.base_url.trim()) {
+      form.base_url = def.defaultBaseUrl;
+    }
   }
 
   function cardFor(key: CardKey): CardDef | undefined {
@@ -198,6 +209,20 @@
       <span>VOYAGE_API_KEY {env.VOYAGE_API_KEY ? '✓' : '⚠ fehlt'}</span>
       <span>LLM {env.LLM_ENABLED ? `✓ (${env.LLM_HOST_IP ?? 'kein Host'})` : 'aus'}</span>
     </div>
+    {#if env.localGpu}
+      <div class="banner gpu">
+        <span class="gpu-pill {env.localGpu.lmstudio.reachable ? 'on' : 'off'}">
+          LM Studio {env.localGpu.lmstudio.reachable
+            ? `✓ (${env.localGpu.lmstudio.models?.length ?? 0} Modelle)`
+            : 'nicht erreichbar'}
+        </span>
+        <span class="gpu-pill {env.localGpu.ollama.reachable ? 'on' : 'off'}">
+          Ollama {env.localGpu.ollama.reachable
+            ? `✓ (${env.localGpu.ollama.models?.length ?? 0} Modelle)`
+            : 'nicht erreichbar'}
+        </span>
+      </div>
+    {/if}
   {/if}
 
   <div class="grid">
@@ -283,7 +308,7 @@
 
 {#snippet formFields()}
   <form class="fields" onsubmit={(ev) => { ev.preventDefault(); saveForm(); }}>
-    <select bind:value={form.provider}>
+    <select bind:value={form.provider} onchange={onProviderChange}>
       <option value="" disabled>— Schnittstelle wählen —</option>
       {#each catalog as ic (ic.id)}<option value={ic.id}>{ic.label}</option>{/each}
     </select>
@@ -309,6 +334,10 @@
   .ki-root { padding: 8px; }
   .banner { display: flex; gap: 16px; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; background: var(--admin-surface, #f4f4f5); }
   .banner.err { background: #fde8e8; color: #9b1c1c; }
+  .banner.gpu { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.4rem; }
+  .gpu-pill { font-size: 0.78rem; padding: 0.2rem 0.6rem; border-radius: 99px; border: 1px solid; }
+  .gpu-pill.on { color: #4ade80; border-color: #16a34a44; background: #16a34a22; }
+  .gpu-pill.off { color: #a1a1aa; border-color: #52525b44; background: #52525b22; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .card { text-align: left; padding: 16px; border: 1px solid var(--admin-border, #e4e4e7); border-radius: 12px; background: var(--admin-bg, #fff); cursor: pointer; }
   .card-link { text-decoration: none; color: inherit; border-style: dashed; }

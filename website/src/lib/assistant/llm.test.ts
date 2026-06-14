@@ -14,12 +14,12 @@ vi.mock('@anthropic-ai/sdk', () => {
 });
 
 vi.mock('../provider-config', () => ({
-  getProviderConfig: vi.fn().mockResolvedValue({
+  getProviderConfig: vi.fn().mockImplementation(() => Promise.resolve({
     provider: 'anthropic',
     modelId: 'claude-sonnet-4-6',
     baseUrl: null,
     apiKey: process.env.ANTHROPIC_API_KEY || '',
-  }),
+  })),
 }));
 
 import { assistantChat } from './llm';

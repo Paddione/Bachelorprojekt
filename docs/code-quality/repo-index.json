@@ -472,7 +472,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1287,
+      "file_count": 1288,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -897,6 +897,7 @@
         "website/src/layouts/AdminLayout.astro",
         "website/src/layouts/Layout.astro",
         "website/src/layouts/PortalLayout.astro",
+        "website/src/layouts/admin-icons.ts",
         "website/src/lib/__tests__/admin-actions.test.ts",
         "website/src/lib/__tests__/caldav-crlf.test.ts",
         "website/src/lib/__tests__/caldav-move.test.ts",

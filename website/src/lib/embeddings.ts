@@ -34,6 +34,13 @@ const voyageKey = () => {
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
 const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
 
+function isNetworkError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const { message, name } = err as { message: string; name: string };
+  return name === 'AbortError' ||
+    /ECONNREFUSED|ETIMEDOUT|ECONNRESET|fetch failed/i.test(message);
+}
+
 async function callVoyageDirect(inputs: string[], inputType: 'query' | 'document', opts: EmbedOpts) {
   const max = opts.maxAttempts ?? 4;
   const base = opts.baseDelayMs ?? 250;
@@ -92,8 +99,21 @@ export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<Em
   const purpose: EmbeddingPurpose = opts.purpose ?? 'query';
   if (isLlmEnabled()) {
     const model: EmbeddingModel = opts.model ?? 'bge-m3';
-    const r = await callRouter([text], { ...opts, model, purpose });
-    return { embedding: r.embeddings[0], tokens: r.tokens };
+    try {
+      const r = await callRouter([text], { ...opts, model, purpose });
+      return { embedding: r.embeddings[0], tokens: r.tokens };
+    } catch (err) {
+      if (isNetworkError(err)) {
+        if (model === 'voyage-multilingual-2') {
+          console.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
+          const r = await callVoyageDirect([text], 'query', opts);
+          return { embedding: r.embeddings[0], tokens: r.tokens };
+        }
+        // bge-m3 and others: fail closed — re-wrap as EmbeddingQueryError
+        throw new EmbeddingQueryError(err instanceof Error ? err.message : 'GPU router unreachable');
+      }
+      throw err;
+    }
   }
   const r = await callVoyageDirect([text], 'query', opts);
   return { embedding: r.embeddings[0], tokens: r.tokens };
@@ -105,11 +125,32 @@ export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise
   let totalTokens = 0;
   for (let i = 0; i < texts.length; i += VOYAGE_BATCH) {
     const slice = texts.slice(i, i + VOYAGE_BATCH);
-    const r = isLlmEnabled()
-      ? await callRouter(slice, { ...opts, model: opts.model ?? 'bge-m3', purpose })
-      : await callVoyageDirect(slice, 'document', opts);
-    out.push(...r.embeddings);
-    totalTokens += r.tokens;
+    if (isLlmEnabled()) {
+      const model: EmbeddingModel = opts.model ?? 'bge-m3';
+      try {
+        const r = await callRouter(slice, { ...opts, model, purpose });
+        out.push(...r.embeddings);
+        totalTokens += r.tokens;
+      } catch (err) {
+        if (isNetworkError(err)) {
+          if (model === 'voyage-multilingual-2') {
+            console.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
+            const r = await callVoyageDirect(slice, 'document', opts);
+            out.push(...r.embeddings);
+            totalTokens += r.tokens;
+          } else {
+            // bge-m3 and others: fail closed — re-wrap as EmbeddingIndexError
+            throw new EmbeddingIndexError(err instanceof Error ? err.message : 'GPU router unreachable');
+          }
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      const r = await callVoyageDirect(slice, 'document', opts);
+      out.push(...r.embeddings);
+      totalTokens += r.tokens;
+    }
   }
   return { embeddings: out, tokens: totalTokens };
 }

@@ -770,17 +770,17 @@ secrets:
     description: "Hetzner Cloud API token for the cluster's project. Used for node provisioning and automation via the Hetzner Cloud API."
 
   - name: PUSHOVER_TOKEN
-    required: true
+    required: false
     generate: false
-    description: "Pushover API token for Alertmanager + deploy notifications."
+    description: "Pushover API token for Alertmanager + deploy notifications. Not deployed to prod (prod overlay deletes the alertmanager-pushover Secret); scripts/lib/notify.sh handles absence gracefully."
     extra_namespaces:
       - namespace: monitoring
         secret: alertmanager-pushover
 
   - name: PUSHOVER_USER
-    required: true
+    required: false
     generate: false
-    description: "Pushover user key for Alertmanager + deploy notifications."
+    description: "Pushover user key for Alertmanager + deploy notifications. Not deployed to prod (prod overlay deletes the alertmanager-pushover Secret); scripts/lib/notify.sh handles absence gracefully."
     extra_namespaces:
       - namespace: monitoring
         secret: alertmanager-pushover

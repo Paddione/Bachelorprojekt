@@ -497,6 +497,12 @@ PY
       done
     } > "$tmp_manifest"
 
+    if [[ -z "${dest_list}" ]]; then
+      echo "INFO: Skipping ${ns}/${sname} — no keys present in secrets file." >&2
+      rm -f "$tmp_manifest"
+      continue
+    fi
+
     info "Encrypting ${ns}/${sname} (keys:${dest_list}) with kubeseal..."
     {
       echo "---"

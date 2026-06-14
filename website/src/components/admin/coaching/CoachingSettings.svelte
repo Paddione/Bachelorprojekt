@@ -276,6 +276,11 @@
   </div>
 
   {#if activeTab === 'ki'}
+    <div class="ki-global-hint">
+      <span>Globales KI-Routing (Chat, Tickets, Meetings):</span>
+      <a href="/admin/ki-konfiguration" class="hint-link">KI-Konfiguration →</a>
+    </div>
+
     {#if editingProvider}
       <div class="edit-panel">
         <div class="edit-panel-header">
@@ -540,6 +545,9 @@
   .tab { padding: 0.5rem 1rem; background: none; border: none; color: var(--text-muted,#888); cursor: pointer; font-size: 0.9rem; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .tab.active { color: var(--gold,#c9a55c); border-bottom-color: var(--gold,#c9a55c); }
 
+  .ki-global-hint { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.9rem; margin-bottom: 1rem; background: var(--bg-2,#1a1a1a); border: 1px solid var(--line,#333); border-radius: 6px; font-size: 0.82rem; color: var(--text-muted,#888); }
+  .hint-link { color: var(--gold,#c9a55c); text-decoration: none; font-weight: 600; }
+  .hint-link:hover { text-decoration: underline; }
   .ki-grid-header { display: flex; justify-content: flex-end; margin-bottom: 0.75rem; }
   .ki-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
   .provider-card { padding: 1.2rem; border: 1px solid var(--line,#333); border-radius: 8px; background: var(--bg-2,#1a1a1a); display: flex; flex-direction: column; gap: 0.4rem; }

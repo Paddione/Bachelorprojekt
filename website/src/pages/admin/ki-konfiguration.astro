@@ -1,0 +1,13 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import KiKonfiguration from '../../components/admin/KiKonfiguration.svelte';
+import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+---
+
+<AdminLayout title="KI-Konfiguration">
+  <KiKonfiguration client:load />
+</AdminLayout>

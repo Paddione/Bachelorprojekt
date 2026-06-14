@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.69.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.68.0...website-v1.69.0) (2026-06-14)
+
+
+### Features
+
+* **factory:** implement token budget tracking and limit guard [T000720] ([#1665](https://github.com/Paddione/Bachelorprojekt/issues/1665)) ([33e47cd](https://github.com/Paddione/Bachelorprojekt/commit/33e47cd977f1eabf08ecc22b4f96fae7700e4907))
+
 ## [1.68.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.67.1...website-v1.68.0) (2026-06-14)
 
 

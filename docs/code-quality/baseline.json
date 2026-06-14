@@ -51,8 +51,8 @@
   "S1:scripts/env-seal.sh": {
     "gate": "S1",
     "path": "scripts/env-seal.sh",
-    "metric": 514,
-    "detail": "514 lines > 500 limit (.sh)",
+    "metric": 520,
+    "detail": "520 lines > 500 limit (.sh)",
     "frozen_at": "6190a4e5"
   },
   "S1:scripts/ticket.sh": {

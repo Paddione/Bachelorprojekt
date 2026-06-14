@@ -13,6 +13,15 @@ vi.mock('@anthropic-ai/sdk', () => {
   };
 });
 
+vi.mock('../provider-config', () => ({
+  getProviderConfig: vi.fn().mockResolvedValue({
+    provider: 'anthropic',
+    modelId: 'claude-sonnet-4-6',
+    baseUrl: null,
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+  }),
+}));
+
 import { assistantChat } from './llm';
 
 describe('assistantChat (no-LLM keyword fallback)', () => {

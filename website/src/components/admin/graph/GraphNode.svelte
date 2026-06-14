@@ -1,6 +1,5 @@
 <script lang="ts">
-  import type { GraphNode as GNode } from '../../../pages/api/admin/cluster/graph';
-  import type { NodeStatus } from '../../../pages/api/admin/cluster/graph';
+  import type { GraphNode as GNode, NodeStatus } from '../../../lib/graph-utils';
 
   interface Props {
     node: GNode & { x?: number; y?: number };

@@ -1,12 +1,12 @@
 import { Pool } from 'pg';
-import { resolve4 } from 'node:dns';
+import dns from 'node:dns';
 
 function nodeLookup(
   hostname: string,
   _opts: unknown,
   cb: (err: Error | null, addr: string, family: number) => void,
 ) {
-  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+  dns.resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
 }
 
 let _pool: Pool | null = null;

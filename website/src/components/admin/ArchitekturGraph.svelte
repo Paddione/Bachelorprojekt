@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { GraphNode, GraphEdge, PodEntry, NodeStatus } from '../../pages/api/admin/cluster/graph';
-  import { buildStatusMap } from '../../pages/api/admin/cluster/graph';
+  import type { GraphNode, GraphEdge, PodEntry, NodeStatus } from '../../lib/graph-utils';
+  import { buildStatusMap } from '../../lib/graph-utils';
   import GraphCanvas from './graph/GraphCanvas.svelte';
   import NodeDetailPanel from './graph/NodeDetailPanel.svelte';
 

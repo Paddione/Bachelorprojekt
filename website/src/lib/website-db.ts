@@ -3,7 +3,7 @@
 // Uses the 'pg' npm package for direct database access.
 
 import pg from 'pg';
-import { resolve4 } from 'dns';
+import dns from 'dns';
 import { initTicketsSchema } from './tickets-db';
 import { transitionTicket } from './tickets/transition';
 import { refFor } from './content-registry';
@@ -23,7 +23,7 @@ function nodeLookup(
   _opts: unknown,
   cb: (err: Error | null, addr: string, family: number) => void,
 ) {
-  resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
+  dns.resolve4(hostname, (err, addrs) => cb(err ?? null, addrs?.[0] ?? '', 4));
 }
 
 // pg's PoolConfig type doesn't declare `lookup`, but pg-pool passes it through

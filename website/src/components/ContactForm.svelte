@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { t, type Locale } from '../i18n/index';
+
+  let { locale = 'de' }: { locale?: Locale } = $props();
+
   let name = $state('');
   let email = $state('');
   let phone = $state('');
@@ -7,14 +11,15 @@
   let submitting = $state(false);
   let result = $state<{ success: boolean; message: string } | null>(null);
 
-  const types = [
-    { value: 'allgemein', label: 'Allgemeine Anfrage' },
-    { value: 'erstgespraech', label: 'Kostenloses Erstgespräch' },
-    { value: '50plus-digital', label: '50+ digital' },
-    { value: 'coaching', label: 'Führungskräfte-Coaching' },
-    { value: 'beratung', label: 'Unternehmensberatung' },
-    { value: 'support', label: 'Support' },
-    { value: 'feedback', label: 'Feedback' },
+  // Submission-Values bleiben stabil (API-Kontrakt); Labels kommen aus i18n.
+  const typeOptions = [
+    { value: 'allgemein', key: 'contact.type-allgemein' },
+    { value: 'erstgespraech', key: 'contact.type-erstgespraech' },
+    { value: '50plus-digital', key: 'contact.type-50plus' },
+    { value: 'coaching', key: 'contact.type-coaching' },
+    { value: 'beratung', key: 'contact.type-beratung' },
+    { value: 'support', key: 'contact.type-support' },
+    { value: 'feedback', key: 'contact.type-feedback' },
   ];
 
   async function handleSubmit(e: Event) {
@@ -54,8 +59,8 @@
   <div class="cf-field">
     <label for="cf-type" class="cf-label">{t(locale, 'contact.type-label')}</label>
     <select id="cf-type" bind:value={type} class="cf-input">
-      {#each getTypes(locale) as item}
-        <option value={item.value}>{item.label}</option>
+      {#each typeOptions as item}
+        <option value={item.value}>{t(locale, item.key)}</option>
       {/each}
     </select>
   </div>

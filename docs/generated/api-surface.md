@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-14T23:41:51.415Z
+> Generated at 2026-06-14T23:47:15.478Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -103,6 +103,7 @@
 | `/api/admin/content/versions` | GET | 🔐 admin | `website/src/pages/api/admin/content/versions.ts` |
 | `/api/admin/customers` | GET | 🔐 admin | `website/src/pages/api/admin/customers.ts` |
 | `/api/admin/customers-list` | GET | 🔐 admin | `website/src/pages/api/admin/customers-list.ts` |
+| `/api/admin/delivery-metrics` | GET | 🔐 admin | `website/src/pages/api/admin/delivery-metrics.ts` |
 | `/api/admin/deployments` | GET | 🔐 admin | `website/src/pages/api/admin/deployments.ts` |
 | `/api/admin/deployments/{name}/restart` | POST | 🔐 admin | `website/src/pages/api/admin/deployments/[name]/restart.ts` |
 | `/api/admin/deployments/{name}/scale` | POST | 🔐 admin | `website/src/pages/api/admin/deployments/[name]/scale.ts` |

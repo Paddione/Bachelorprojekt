@@ -28,7 +28,7 @@ Hinweis: `website/src/lib/factory-floor.ts` ist nicht baselined (baseline.json: 
 
 ---
 
-## Task 1 — DB-Query für Lieferhistorie entwerfen und validieren
+## Task 1 — DB-Query für Lieferhistorie entwerfen und validieren ✅
 
 **Dateien:** (kein Commit — nur Recherche + Entwurf)
 
@@ -82,7 +82,7 @@ kubectl --context fleet exec -n workspace deployment/shared-db -- \
 
 ---
 
-## Task 2 — `delivery-metrics.ts` erstellen (pure calculation module)
+## Task 2 — `delivery-metrics.ts` erstellen (pure calculation module) ✅
 
 **Datei:** `website/src/lib/delivery-metrics.ts` (NEU)
 
@@ -102,7 +102,7 @@ Inhalt:
 
 ---
 
-## Task 3 — GitHub Actions API-Integration im Endpoint
+## Task 3 — GitHub Actions API-Integration im Endpoint ✅
 
 **Datei:** `website/src/pages/api/admin/delivery-metrics.ts` (NEU)
 
@@ -133,7 +133,7 @@ Ziel: ≤ 80 Zeilen.
 
 ---
 
-## Task 4 — `DeliveryHistory.svelte` erstellen
+## Task 4 — `DeliveryHistory.svelte` erstellen ✅
 
 **Datei:** `website/src/components/DeliveryHistory.svelte` (NEU)
 
@@ -156,7 +156,7 @@ Ziel: ≤ 350 Zeilen.
 
 ---
 
-## Task 5 — `DevStatusTabs.svelte` erweitern
+## Task 5 — `DevStatusTabs.svelte` erweitern ✅
 
 **Datei:** `website/src/components/DevStatusTabs.svelte` (GEÄNDERT)
 
@@ -174,7 +174,7 @@ Keine anderen Änderungen. Budget: +2–3 Zeilen (197–198 → unter 200 → de
 
 ---
 
-## Task 6 — Vitest-Tests für `delivery-metrics.ts`
+## Task 6 — Vitest-Tests für `delivery-metrics.ts` ✅
 
 **Datei:** `website/src/lib/delivery-metrics.test.ts` (NEU)
 

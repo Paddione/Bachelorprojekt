@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getProviderConfig } from './provider-config';
+import { SOURCE } from './ki-services';
 import { getTicketDetail, addComment } from './tickets/admin';
 
 export interface TriageResult {
@@ -33,7 +34,7 @@ export async function runTriage(ticketId: string, brand: string): Promise<Triage
   const description = (detail.description ?? '').trim();
   if (!title && !description) return null;
 
-  const cfg = await getProviderConfig('ticket-triage', 'haiku');
+  const cfg = await getProviderConfig(SOURCE.ticketTriage, 'haiku');
   if (!cfg.apiKey) return null;
 
   const client = new Anthropic({

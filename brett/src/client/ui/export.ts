@@ -7,6 +7,8 @@
 // Ticket: T000466
 
 import type { Anchor, Zone, LineType, FigureAppearance } from '../../types/state';
+import { getScene } from '../state.js';
+import { showExportToast } from './export-toast.js';
 
 /** Client-seitiger Board-Snapshot für den Export. */
 export interface ClientBoardSnapshot {
@@ -86,25 +88,36 @@ export function getExportSnapshot(): ClientBoardSnapshot {
 
 // ── PNG-Export ───────────────────────────────────────────────────────────────
 
+export async function snapshot2x(): Promise<string> {
+  const { renderer, scene, camera } = getScene();
+  const original = renderer.getPixelRatio();
+  renderer.setPixelRatio(2);
+  renderer.render(scene, camera);
+  const dataUrl = renderer.domElement.toDataURL('image/png');
+  renderer.setPixelRatio(original);
+  renderer.render(scene, camera);
+  return dataUrl;
+}
+
+function _filename(ext: string): string {
+  const date = new Date().toISOString().slice(0, 10);
+  const code = _cache.sessionCode;
+  return code ? `brett-${date}-${code}.${ext}` : `brett-${date}.${ext}`;
+}
+
 /**
  * Exportiert den aktuellen Three.js-Canvas als PNG-Download.
  * Setzt `preserveDrawingBuffer: true` in scene.ts voraus.
- *
- * @param canvas - HTMLCanvasElement des Three.js-Renderers (renderer.domElement)
  */
-export function exportPng(canvas: HTMLCanvasElement): void {
-  const dataUrl = canvas.toDataURL('image/png');
+export async function exportPng(): Promise<void> {
+  const dataUrl = await snapshot2x();
   const a = document.createElement('a');
   a.href = dataUrl;
-  a.download = `brett-${_isoDate()}.png`;
+  a.download = _filename('png');
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-}
-
-/** ISO-Datumstring für Dateinamen (YYYY-MM-DD). */
-function _isoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  showExportToast('✓ PNG gespeichert');
 }
 
 // ── JSON-Export ──────────────────────────────────────────────────────────────
@@ -120,11 +133,12 @@ export function exportJson(): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `brett-${_isoDate()}.json`;
+  a.download = _filename('json');
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showExportToast('✓ JSON gespeichert');
 }
 
 // ── PDF-Export ───────────────────────────────────────────────────────────────
@@ -135,26 +149,23 @@ export function exportJson(): void {
  *
  * @param canvas - HTMLCanvasElement des Three.js-Renderers (renderer.domElement)
  */
-export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
+export async function exportPdf(): Promise<void> {
   const { jsPDF } = await import('jspdf');
   const snapshot = getExportSnapshot();
-  const imgData = canvas.toDataURL('image/png');
+  const imgData = await snapshot2x();
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  // ── Titel ─────────────────────────────────────────────────────────────────
   doc.setFontSize(14);
   doc.setTextColor(40);
   doc.text('Systemisches Brett — Aufstellung', 20, 14);
 
-  // ── Screenshot (250mm × 155mm, A4-Landscape ca. 297×210mm) ───────────────
   const IMG_X = 20;
   const IMG_Y = 20;
   const IMG_W = 255;
   const IMG_H = 155;
   doc.addImage(imgData, 'PNG', IMG_X, IMG_Y, IMG_W, IMG_H);
 
-  // ── Metadaten-Zeile ───────────────────────────────────────────────────────
   const META_Y = IMG_Y + IMG_H + 7;
   doc.setFontSize(8);
   doc.setTextColor(100);
@@ -164,47 +175,48 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
   }
   doc.text(`Phase: ${snapshot.phase} · Figuren: ${snapshot.figures.length} · Stiffness: ${snapshot.stiffness.toFixed(2)}`, 190, META_Y);
 
-  // ── Figurenliste (nur Figuren mit Label) ─────────────────────────────────
   const labelled = snapshot.figures.filter(f => f.label && f.label.trim());
   if (labelled.length > 0) {
-    const LIST_Y = META_Y + 7;
+    const LIST_START_Y = META_Y + 7;
     doc.setFontSize(7);
     doc.setTextColor(80);
-    doc.text('Figuren:', 20, LIST_Y);
-    labelled.forEach((f, i) => {
-      const col = Math.floor(i / 8);
-      const row = i % 8;
-      const x = 20 + col * 90;
-      const y = LIST_Y + 5 + row * 5;
+    doc.text('Figuren:', 20, LIST_START_Y);
+    let currentY = LIST_START_Y + 5;
+    const PAGE_BOTTOM = 185;
+    for (const f of labelled) {
+      if (currentY > PAGE_BOTTOM) {
+        doc.addPage();
+        currentY = 20;
+      }
       const typeStr = f.figureType ? ` [${f.figureType}]` : '';
-      doc.text(`• ${f.label}${typeStr}`, x, y);
-    });
+      doc.text(`• ${f.label}${typeStr}`, 20, currentY);
+      currentY += 5;
+    }
   }
 
-  // ── Beziehungslinien-Tabelle (T000605) ───────────────────────────────────
   if (snapshot.lines.length > 0) {
-    // Label-Lookup aus den Figuren (Fallback: figureId selbst)
     const labelOf = (id: string): string => {
       const f = snapshot.figures.find(fig => fig.id === id);
       return (f?.label && f.label.trim()) ? f.label : id;
     };
-    // Startposition: unterhalb der (max. 8-zeiligen) Figurenliste oder Metadaten
-    const labelledCount = snapshot.figures.filter(f => f.label && f.label.trim()).length;
-    const listRows = Math.min(labelledCount, 8);
-    const LINES_Y = META_Y + 7 + (labelledCount > 0 ? 5 + listRows * 5 : 0) + 4;
+    const linesStartY = labelled.length > 0 ? 20 : META_Y + 12;
     doc.setFontSize(7);
     doc.setTextColor(80);
-    doc.text('Beziehungen:', 20, LINES_Y);
-    snapshot.lines.forEach((l, i) => {
-      const col = Math.floor(i / 8);
-      const row = i % 8;
-      const x = 20 + col * 90;
-      const y = LINES_Y + 5 + row * 5;
-      doc.text(`• ${labelOf(l.fromId)} → ${labelOf(l.toId)}  [${l.lineType}]`, x, y);
-    });
+    doc.text('Beziehungen:', 20, linesStartY);
+    let currentY = linesStartY + 5;
+    const PAGE_BOTTOM = 185;
+    for (const l of snapshot.lines) {
+      if (currentY > PAGE_BOTTOM) {
+        doc.addPage();
+        currentY = 20;
+      }
+      doc.text(`• ${labelOf(l.fromId)} → ${labelOf(l.toId)}  [${l.lineType}]`, 20, currentY);
+      currentY += 5;
+    }
   }
 
-  doc.save(`brett-${_isoDate()}.pdf`);
+  doc.save(_filename('pdf'));
+  showExportToast('✓ PDF gespeichert');
 }
 
 // ── HUD-Integration ──────────────────────────────────────────────────────────
@@ -215,9 +227,7 @@ export async function exportPdf(canvas: HTMLCanvasElement): Promise<void> {
  *
  * @param canvas - HTMLCanvasElement des Three.js-Renderers (renderer.domElement)
  */
-export function initExportButtons(canvas: HTMLCanvasElement): void {
-  // T000605: Feature-Flag entfernt — Export ist permanent verfügbar.
-  // Die Gruppe ist im HTML initial display:none und wird hier eingeblendet.
+export function initExportButtons(_canvas?: HTMLCanvasElement): void {
   const group = document.getElementById('export-group');
   if (group) group.style.display = '';
 
@@ -226,7 +236,10 @@ export function initExportButtons(canvas: HTMLCanvasElement): void {
   const btnPdf = document.getElementById('btn-export-pdf') as HTMLButtonElement | null;
 
   btnPng?.addEventListener('click', () => {
-    exportPng(canvas);
+    exportPng().catch(err => {
+      console.error('[brett] PNG-Export fehlgeschlagen:', err);
+      showExportToast('PNG-Export fehlgeschlagen', 'error');
+    });
   });
 
   btnJson?.addEventListener('click', () => {
@@ -236,9 +249,10 @@ export function initExportButtons(canvas: HTMLCanvasElement): void {
   btnPdf?.addEventListener('click', () => {
     btnPdf.disabled = true;
     btnPdf.textContent = '⏳ PDF…';
-    exportPdf(canvas)
+    exportPdf()
       .catch(err => {
         console.error('[brett] PDF-Export fehlgeschlagen:', err);
+        showExportToast('PDF-Export fehlgeschlagen', 'error');
       })
       .finally(() => {
         btnPdf.disabled = false;

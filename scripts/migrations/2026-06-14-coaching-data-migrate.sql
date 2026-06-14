@@ -37,13 +37,19 @@ JOIN tickets.provider_config p
   ON p.source = 'coaching' AND p.brand = k.brand AND p.provider = k.provider
 ON CONFLICT (old_id) DO NOTHING;
 
--- 3) FK lösen (falls vorhanden) und Sessions remappen (overlap-sicher idempotent:
+-- 3) Alte FK (-> coaching.ki_config) lösen. Postgres-Default-Name = <table>_<col>_fkey =
+--    sessions_ki_config_id_fkey. Dann Sessions remappen (overlap-sicher idempotent:
 --    bereits auf eine new_id zeigende Sessions werden übersprungen).
-ALTER TABLE coaching.sessions DROP CONSTRAINT IF EXISTS coaching_sessions_ki_config_id_fkey;
+ALTER TABLE coaching.sessions DROP CONSTRAINT IF EXISTS sessions_ki_config_id_fkey;
 UPDATE coaching.sessions s
 SET ki_config_id = m.new_id
 FROM coaching.ki_config_id_map m
 WHERE s.ki_config_id = m.old_id
   AND NOT EXISTS (SELECT 1 FROM coaching.ki_config_id_map m2 WHERE m2.new_id = s.ki_config_id);
+
+-- 4) FK neu auf den vereinheitlichten Store setzen (gleicher Name, gleiches ON DELETE SET NULL).
+ALTER TABLE coaching.sessions
+  ADD CONSTRAINT sessions_ki_config_id_fkey
+  FOREIGN KEY (ki_config_id) REFERENCES tickets.provider_config(id) ON DELETE SET NULL;
 
 COMMIT;

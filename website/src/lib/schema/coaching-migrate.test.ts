@@ -17,7 +17,12 @@ async function setup(): Promise<Pool> {
       frequency_penalty NUMERIC, safe_prompt BOOLEAN, random_seed INT,
       organization_id TEXT, eu_endpoint BOOLEAN, enabled_fields JSONB
     );
-    CREATE TABLE coaching.sessions (id SERIAL PRIMARY KEY, ki_config_id INT);
+    CREATE TABLE coaching.sessions (
+      id SERIAL PRIMARY KEY,
+      ki_config_id INT,
+      CONSTRAINT sessions_ki_config_id_fkey FOREIGN KEY (ki_config_id)
+        REFERENCES coaching.ki_config(id) ON DELETE SET NULL
+    );
     INSERT INTO coaching.ki_config (brand,provider,is_active,model_name,display_name,api_key,temperature)
       VALUES ('mentolder','claude',true,'claude-haiku','Claude','sk-1',0.4),
              ('mentolder','openai',false,NULL,'GPT',NULL,NULL);

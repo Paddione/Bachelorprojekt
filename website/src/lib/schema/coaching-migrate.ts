@@ -49,8 +49,9 @@ export async function migrateCoachingKiConfig(c: PoolClient): Promise<{ migrated
     );
   }
 
-  // FK auf das alte coaching.ki_config lösen (falls vorhanden), dann Sessions remappen.
-  await c.query(`ALTER TABLE coaching.sessions DROP CONSTRAINT IF EXISTS coaching_sessions_ki_config_id_fkey`);
+  // Alte FK (-> coaching.ki_config) lösen. Postgres-Default-Name ist <table>_<col>_fkey
+  // = sessions_ki_config_id_fkey (NICHT coaching_sessions_…). Dann Sessions remappen.
+  await c.query(`ALTER TABLE coaching.sessions DROP CONSTRAINT IF EXISTS sessions_ki_config_id_fkey`);
 
   const { rows: maps } = await c.query(`SELECT old_id, new_id FROM coaching.ki_config_id_map`);
   const oldToNew = new Map<number, number>(maps.map((m: Record<string, unknown>) => [Number(m.old_id), Number(m.new_id)]));
@@ -67,6 +68,13 @@ export async function migrateCoachingKiConfig(c: PoolClient): Promise<{ migrated
       remapped++;
     }
   }
+
+  // FK neu auf den vereinheitlichten Store setzen (gleicher Name, gleiches ON DELETE SET NULL).
+  // Idempotent: der DROP oben entfernt sie vor dem erneuten Anlegen.
+  await c.query(
+    `ALTER TABLE coaching.sessions ADD CONSTRAINT sessions_ki_config_id_fkey
+       FOREIGN KEY (ki_config_id) REFERENCES tickets.provider_config(id) ON DELETE SET NULL`,
+  );
 
   return { migrated, remapped };
 }

@@ -25,18 +25,18 @@ Was **fehlt**:
 
 ## Was dieses Feature ändert
 
-1. **Neue Datei `scripts/factory/pipeline-decompose.js`** extrahiert die KI-Zerlegungslogik aus der SKILL.md-Beschreibung in ausführbaren Code:
+1. **Neue Datei `scripts/factory/pipeline-decompose.cjs`** extrahiert die KI-Zerlegungslogik aus der SKILL.md-Beschreibung in ausführbaren Code:
    - Funktion `decomposeFeature(description, apiBalance)` → Array von Sub-Features mit `{id, title, description, assignedFiles[]}`
    - file-assignment Logik: jedes Sub-Feature bekommt eine **disjunkte** Dateiliste; shared files (`configmap-domains.yaml`, `environments/schema.yaml`, `k3d/kustomization.yaml`) werden höchstens einem Sub-Feature zugewiesen
    - `apiBalance`-Parameter steuert die maximale Sub-Feature-Anzahl (nicht hardcoded)
 
 2. **`scripts/factory/pipeline.js` anpassen**:
-   - Zerlegungslogik aus pipeline.js in pipeline-decompose.js auslagern (Zeilenreduktion auf <600)
+   - Zerlegungslogik aus pipeline.js in pipeline-decompose.cjs auslagern (Zeilenreduktion auf <600)
    - batch-Modus: wenn `args.batch_mode === true` → `decomposeFeature` aufrufen → parallele Sub-Feature-Runs
    - Fehlerbehandlung: gescheitertes Sub-Feature wird geloggt + übersprungen, Rest läuft weiter
 
 3. **`.claude/skills/dev-flow-batch/SKILL.md` aktualisieren**:
-   - Modus 2 auf die neue pipeline-decompose.js verweisen
+   - Modus 2 auf die neue pipeline-decompose.cjs verweisen
    - Dynamische Branch-Anzahl dokumentieren
    - Beispiel-Aufrufe aktualisieren
 
@@ -45,7 +45,7 @@ Was **fehlt**:
 ```
 Major-Feature (Text oder .md-Pfad)
   → SKILL.md Modus 2 erkennt Feature
-  → pipeline-decompose.js: decomposeFeature(description, apiBalance)
+  → pipeline-decompose.cjs: decomposeFeature(description, apiBalance)
       → KI-Agent zerlegt in N Sub-Features (N ≤ min(6, apiBalance))
       → file-assignment: shared files → max. 1 Sub-Feature, Rest disjunkt
   → Für jedes Sub-Feature: paralleler Agent-Run (pipeline.js batch_mode)
@@ -81,8 +81,8 @@ Major-Feature (Text oder .md-Pfad)
 
 ## Technische Constraints
 
-- **S1-Limit**: `pipeline.js` hat 777 Zeilen (kein Baseline-Eintrag → Limit 600). Die Zerlegungslogik MUSS in `pipeline-decompose.js` (neue Datei, <600 Zeilen) extrahiert werden; `pipeline.js` wird durch die Extraktion auf <600 Zeilen gebracht.
-- **Workflow-Import-Verbot**: `pipeline.js` und `pipeline-decompose.js` sind Workflow-Skripte — `import` ist verboten. Hilfsfunktionen werden inline definiert oder (bei pipeline-decompose.js) als harness-injiziertes Modul behandelt.
+- **S1-Limit**: `pipeline.js` hat 777 Zeilen (kein Baseline-Eintrag → Limit 600). Die Zerlegungslogik MUSS in `pipeline-decompose.cjs` (neue Datei, <600 Zeilen) extrahiert werden; `pipeline.js` wird durch die Extraktion auf <600 Zeilen gebracht.
+- **Workflow-Import-Verbot**: `pipeline.js` und `pipeline-decompose.cjs` sind Workflow-Skripte — `import` ist verboten. Hilfsfunktionen werden inline definiert oder (bei pipeline-decompose.cjs) als harness-injiziertes Modul behandelt.
 - Kein `isolation: 'worktree'` im Agent-Tool (git-crypt smudge-filter-Fehler, T000426) — immer `scripts/worktree-create.sh`.
 
 ## Betroffene Dateien
@@ -90,6 +90,6 @@ Major-Feature (Text oder .md-Pfad)
 | Datei | Änderungstyp | Zeilenanzahl aktuell | Limit | Status |
 |-------|-------------|---------------------|-------|--------|
 | `scripts/factory/pipeline.js` | Modifiziert (Extraktion) | 777 | 600 | Über Limit → Extraktion nötig |
-| `scripts/factory/pipeline-decompose.js` | Neu erstellt | — | 600 | Neue Datei |
+| `scripts/factory/pipeline-decompose.cjs` | Neu erstellt | — | 600 | Neue Datei |
 | `.claude/skills/dev-flow-batch/SKILL.md` | Modifiziert | 225 | 600 | OK |
 | `scripts/batch-workflow-gen.sh` | Ggf. kleinere Anpassungen | ~155 | — | Optional |

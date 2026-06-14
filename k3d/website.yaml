@@ -409,6 +409,12 @@ spec:
                   name: website-secrets
                   key: DEEPSEEK_API_KEY
                   optional: true
+            - name: DEEPSEEK_API_KEY_PK
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: DEEPSEEK_API_KEY_PK
+                  optional: true
             - name: EVIDENCE_ROOT
               value: "/var/evidence"
             - name: COMFY_HOST_IP

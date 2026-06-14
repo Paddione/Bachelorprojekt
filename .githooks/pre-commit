@@ -38,6 +38,11 @@ _FRESHNESS_FILES=(
   docs/agent-guide/maps/danger-map.md
   website/src/lib/agent-guide.generated.json
   website/src/lib/platform-descriptions.generated.json
+  docs/generated/api-map.json
+  docs/generated/api-surface.md
+  docs/generated/blast-radius.md
+  docs/generated/graph.json
+  k3d/docs-content-built/architecture/index.html
 )
 if command -v task >/dev/null 2>&1 && task --version 2>&1 | grep -q "Task version"; then
   if (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then

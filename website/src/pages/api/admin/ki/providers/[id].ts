@@ -28,9 +28,13 @@ function parsePatch(body: Record<string, unknown>): { error: string } | { patch:
     if (k === 'tier') {
       if (!TIERS.includes(v as Tier)) return { error: 'tier muss sonnet oder haiku sein' };
       patch[k] = v;
-    } else if (k === 'priority' || k === 'max_concurrent') {
+    } else if (k === 'priority') {
       const n = Number(v);
-      if (!Number.isInteger(n) || n < 0) return { error: `${k} muss eine Ganzzahl sein` };
+      if (!Number.isInteger(n) || n < 0) return { error: 'priority muss eine Ganzzahl ≥ 0 sein' };
+      patch[k] = n;
+    } else if (k === 'max_concurrent') {
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 1) return { error: 'max_concurrent muss eine Ganzzahl ≥ 1 sein' };
       patch[k] = n;
     } else if (k === 'enabled') {
       patch[k] = Boolean(v);

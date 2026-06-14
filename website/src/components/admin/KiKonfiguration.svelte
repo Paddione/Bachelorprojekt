@@ -88,7 +88,7 @@
     editId = null;
     form = blankForm(CARDS.find((c) => c.key === card)!.sources[0] ?? '');
   }
-  function closeDrawer() { openCard = null; editId = null; }
+  function closeDrawer() { openCard = null; editId = null; confirmingDelete = null; }
 
   function startEdit(e: ProviderEntry) {
     editId = e.id;

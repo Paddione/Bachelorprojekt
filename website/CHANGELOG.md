@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.66.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.66.0...website-v1.66.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* **website:** Coaching-Migration FK-Name korrigieren + FK auf provider_config neu setzen [T000711] ([#1654](https://github.com/Paddione/Bachelorprojekt/issues/1654)) ([e4ee6a7](https://github.com/Paddione/Bachelorprojekt/commit/e4ee6a7e7e9f0bca17148a7f0ef39437d77c8cad))
+
 ## [1.66.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.65.0...website-v1.66.0) (2026-06-14)
 
 

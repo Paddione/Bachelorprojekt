@@ -195,7 +195,8 @@ export async function createKiProvider(
        (brand, source, tier, priority, provider, model_id, enabled, is_active, display_name, enabled_fields)
      VALUES ($1, $2, $3, $4, $5, '', true, false, $6, $7)
      RETURNING *`,
-    [brand, COACHING_SOURCE, COACHING_TIER, priority, data.provider, data.displayName, JSON.stringify(data.enabledFields)],
+    [brand, COACHING_SOURCE, COACHING_TIER, priority, data.provider, data.displayName,
+      data.enabledFields !== null ? JSON.stringify(data.enabledFields) : null],
   );
   return rowToKiConfig(r.rows[0]);
 }

@@ -28,9 +28,12 @@ export const GET: APIRoute = async ({ request }) => {
   if (!isAdmin(session)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
 
   const has = (k: string) => Boolean(process.env[k] && process.env[k]!.trim());
+  // When LLM_HOST_IP is set (cluster/prod), probe the GPU worker via its wg-mesh IP —
+  // the pod can reach it via the existing llm-gateway Services. Fallback: localhost (dev).
+  const gpuBase = process.env.LLM_HOST_IP?.trim() || 'localhost';
   const [lmstudio, ollama] = await Promise.all([
-    checkLocalEndpoint('http://localhost:1234/v1/models'),
-    checkLocalEndpoint('http://localhost:11434/v1/models'),
+    checkLocalEndpoint(`http://${gpuBase}:1234/v1/models`),
+    checkLocalEndpoint(`http://${gpuBase}:11434/v1/models`),
   ]);
   const body = {
     ANTHROPIC_API_KEY: has('ANTHROPIC_API_KEY'),

@@ -61,3 +61,17 @@ it('localGpu: non-2xx response counts as unreachable', async () => {
   expect(json.localGpu.lmstudio.reachable).toBe(false);
   expect(json.localGpu.ollama.reachable).toBe(false);
 });
+
+it('localGpu: uses LLM_HOST_IP as probe target when set (not localhost)', async () => {
+  getSession.mockResolvedValue(session); isAdmin.mockReturnValue(true);
+  process.env.LLM_HOST_IP = '10.20.0.5';
+  const fetchedUrls: string[] = [];
+  global.fetch = vi.fn().mockImplementation((url: string) => {
+    fetchedUrls.push(url);
+    return Promise.resolve(new Response(JSON.stringify({ data: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+  }) as never;
+  await GET({ request: req() } as never);
+  expect(fetchedUrls.some(u => u.includes('10.20.0.5:1234'))).toBe(true);
+  expect(fetchedUrls.some(u => u.includes('10.20.0.5:11434'))).toBe(true);
+  expect(fetchedUrls.every(u => !u.includes('localhost'))).toBe(true);
+});

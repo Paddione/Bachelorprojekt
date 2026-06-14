@@ -74,7 +74,7 @@ Centralize all `provider_config` / `provider_health` / embedding queries in one 
 - Create: `website/src/lib/ki-config-db.ts`
 - Test: `website/src/lib/ki-config-db.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Vitest + `pg-mem` is the existing pattern for `*-db.test.ts` (see other `website/src/lib/*.test.ts`). Use the shared in-memory pool helper if one exists; otherwise mock `pool`. Here we mock `pool.query` to keep the test pure and offline.
 
@@ -142,12 +142,12 @@ describe('ki-config-db', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/lib/ki-config-db.test.ts`
 Expected: FAIL — `Cannot find module './ki-config-db'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 ```ts
 // website/src/lib/ki-config-db.ts
@@ -303,12 +303,12 @@ function mapRow(r: Record<string, unknown>): ProviderConfigEntry {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/lib/ki-config-db.test.ts`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/ki-config-db.ts website/src/lib/ki-config-db.test.ts
@@ -323,7 +323,7 @@ git commit -m "feat(ki-config): pure DB module for provider_config + health + em
 - Create: `website/src/pages/api/admin/ki/providers.ts`
 - Test: `website/src/pages/api/admin/ki/providers.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // website/src/pages/api/admin/ki/providers.test.ts
@@ -412,12 +412,12 @@ describe('POST /api/admin/ki/providers', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/pages/api/admin/ki/providers.test.ts`
 Expected: FAIL — `Cannot find module './providers'`.
 
-- [ ] **Step 3: Write the endpoint**
+- [x] **Step 3: Write the endpoint**
 
 ```ts
 // website/src/pages/api/admin/ki/providers.ts
@@ -499,12 +499,12 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/pages/api/admin/ki/providers.test.ts`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/pages/api/admin/ki/providers.ts website/src/pages/api/admin/ki/providers.test.ts
@@ -521,7 +521,7 @@ Includes the **409 last-enabled-provider** guard and the **409 unique-priority**
 - Create: `website/src/pages/api/admin/ki/providers/[id].ts`
 - Test: `website/src/pages/api/admin/ki/providers/[id].test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // website/src/pages/api/admin/ki/providers/[id].test.ts
@@ -601,12 +601,12 @@ describe('DELETE [id]', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run "src/pages/api/admin/ki/providers/[id].test.ts"`
 Expected: FAIL — `Cannot find module './[id]'`.
 
-- [ ] **Step 3: Write the endpoint**
+- [x] **Step 3: Write the endpoint**
 
 ```ts
 // website/src/pages/api/admin/ki/providers/[id].ts
@@ -713,12 +713,12 @@ export const DELETE: APIRoute = async ({ request, params }) => {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run "src/pages/api/admin/ki/providers/[id].test.ts"`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add "website/src/pages/api/admin/ki/providers/[id].ts" "website/src/pages/api/admin/ki/providers/[id].test.ts"
@@ -735,7 +735,7 @@ Read-only report of which API keys / LLM env are set. **Never returns key values
 - Create: `website/src/pages/api/admin/ki/env-status.ts`
 - Test: `website/src/pages/api/admin/ki/env-status.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // website/src/pages/api/admin/ki/env-status.test.ts
@@ -777,12 +777,12 @@ it('reports booleans and host ip, never the secret value', async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/pages/api/admin/ki/env-status.test.ts`
 Expected: FAIL — `Cannot find module './env-status'`.
 
-- [ ] **Step 3: Write the endpoint**
+- [x] **Step 3: Write the endpoint**
 
 ```ts
 // website/src/pages/api/admin/ki/env-status.ts
@@ -807,12 +807,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/pages/api/admin/ki/env-status.test.ts`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/pages/api/admin/ki/env-status.ts website/src/pages/api/admin/ki/env-status.test.ts
@@ -829,7 +829,7 @@ Reads/writes `ki_embed_primary` / `ki_embed_fallback` in `site_settings` (per-br
 - Create: `website/src/pages/api/admin/ki/embeddings.ts`
 - Test: `website/src/pages/api/admin/ki/embeddings.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // website/src/pages/api/admin/ki/embeddings.test.ts
@@ -882,12 +882,12 @@ it('PUT writes both keys', async () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd website && pnpm vitest run src/pages/api/admin/ki/embeddings.test.ts`
 Expected: FAIL — `Cannot find module './embeddings'`.
 
-- [ ] **Step 3: Write the endpoint**
+- [x] **Step 3: Write the endpoint**
 
 ```ts
 // website/src/pages/api/admin/ki/embeddings.ts
@@ -953,12 +953,12 @@ export const PUT: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd website && pnpm vitest run src/pages/api/admin/ki/embeddings.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/pages/api/admin/ki/embeddings.ts website/src/pages/api/admin/ki/embeddings.test.ts
@@ -976,7 +976,7 @@ The interactive UI: 2×2 dashboard cards, key-status banner, and a right side-dr
 **Files:**
 - Create: `website/src/components/admin/KiKonfiguration.svelte`
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 ```svelte
 <!-- website/src/components/admin/KiKonfiguration.svelte -->
@@ -1284,7 +1284,7 @@ The interactive UI: 2×2 dashboard cards, key-status banner, and a right side-dr
 </style>
 ```
 
-- [ ] **Step 2: Type-check + lint the component**
+- [x] **Step 2: Type-check + lint the component**
 
 Run: `cd website && pnpm exec svelte-check --tsconfig ./tsconfig.json --threshold error 2>&1 | head -30`
 Expected: no errors referencing `KiKonfiguration.svelte`.
@@ -1292,7 +1292,7 @@ Expected: no errors referencing `KiKonfiguration.svelte`.
 Run: `wc -l website/src/components/admin/KiKonfiguration.svelte`
 Expected: under 500 (if over ~460, perform the KiDrawer.svelte extraction noted above).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/KiKonfiguration.svelte
@@ -1308,7 +1308,7 @@ Mounts the island behind the admin guard, mirroring `prompts.astro`.
 **Files:**
 - Create: `website/src/pages/admin/ki-konfiguration.astro`
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 ```astro
 ---
@@ -1326,12 +1326,12 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 </AdminLayout>
 ```
 
-- [ ] **Step 2: Verify build picks up the route**
+- [x] **Step 2: Verify build picks up the route**
 
 Run: `cd website && pnpm exec astro check 2>&1 | tail -20`
 Expected: no errors for `ki-konfiguration.astro`. (If `astro check` is slow/unavailable, `pnpm build` covers it in Task 9.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/pages/admin/ki-konfiguration.astro
@@ -1348,7 +1348,7 @@ Add one nav item to the `Kontrollzentrum` group. The file is already S1-baseline
 - Modify: `website/src/layouts/AdminLayout.astro` (the `Kontrollzentrum` items array, around line 150-154)
 - Modify: `docs/code-quality/baseline.json` (update metric for the existing AdminLayout key)
 
-- [ ] **Step 1: Add the nav item**
+- [x] **Step 1: Add the nav item**
 
 In `website/src/layouts/AdminLayout.astro`, inside the `Kontrollzentrum` group's `items: [ ... ]` array (currently lines ~150-154), add this entry directly after the `Architektur` line:
 
@@ -1358,12 +1358,12 @@ In `website/src/layouts/AdminLayout.astro`, inside the `Kontrollzentrum` group's
 
 (Reuses the existing `settings` icon already used in this group — no new icon asset needed.)
 
-- [ ] **Step 2: Confirm new line count**
+- [x] **Step 2: Confirm new line count**
 
 Run: `wc -l website/src/layouts/AdminLayout.astro`
 Expected: `444`.
 
-- [ ] **Step 3: Re-freeze the baseline metric**
+- [x] **Step 3: Re-freeze the baseline metric**
 
 The S1 ratchet compares the live metric against `docs/code-quality/baseline.json`. The existing entry reads `"metric": 443`. Update it to the new count so the ratchet passes without adding a baseline key:
 
@@ -1383,12 +1383,12 @@ to:
 
 Leave the `frozen_at` field unchanged (re-freezing the metric for an already-baselined file is allowed; the gate forbids *new* baseline keys, not metric updates to existing ones — confirm against `docs/code-quality/gates.yaml` if the ratchet still complains).
 
-- [ ] **Step 4: Verify the quality gate accepts it**
+- [x] **Step 4: Verify the quality gate accepts it**
 
 Run: `node scripts/code-quality/check.mjs 2>&1 | tail -20`
 Expected: no NEW S1 violation for `AdminLayout.astro`; exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/layouts/AdminLayout.astro docs/code-quality/baseline.json
@@ -1401,45 +1401,45 @@ git commit -m "feat(ki-config): add KI-Konfiguration sidebar entry + refreeze Ad
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Build the website (catches Astro/Svelte compile + route errors)**
+- [x] **Step 1: Build the website (catches Astro/Svelte compile + route errors)**
 
 Run: `cd website && pnpm build 2>&1 | tail -30`
 Expected: build succeeds; the new `/admin/ki-konfiguration` route and `ki/*` endpoints appear in the SSR output without errors.
 
-- [ ] **Step 2: Run the full website unit suite**
+- [x] **Step 2: Run the full website unit suite**
 
 Run: `cd website && pnpm vitest run src/lib/ki-config-db.test.ts src/pages/api/admin/ki 2>&1 | tail -30`
 Expected: all KI-config tests green.
 
-- [ ] **Step 3: Regenerate the test inventory (CI compares it against committed)**
+- [x] **Step 3: Regenerate the test inventory (CI compares it against committed)**
 
 Run: `task test:inventory`
 Then: `git add website/src/data/test-inventory.json` (only if it changed).
 
-- [ ] **Step 4: Run the full offline suite**
+- [x] **Step 4: Run the full offline suite**
 
 Run: `task test:all`
 Expected: PASS (includes `test:code-quality` unit tests + BATS + kustomize structure + Taskfile dry-run).
 
-- [ ] **Step 5: Regenerate freshness artifacts**
+- [x] **Step 5: Regenerate freshness artifacts**
 
 Run: `task freshness:regenerate`
 Then stage whatever it touched: `git add docs/generated docs/code-quality/repo-index.json k3d/docs-content-built 2>/dev/null || true`
 (Resolve any conflict on auto-generated files with `git checkout --ours <file>` per CLAUDE.md.)
 
-- [ ] **Step 6: Run the CI-equivalent freshness + quality check**
+- [x] **Step 6: Run the CI-equivalent freshness + quality check**
 
 Run: `task freshness:check`
 Expected: PASS — freshness + `quality:check` (S1–S4 ratchet) + baseline-assertion all green. In particular: no new S1 violation, baseline key count unchanged.
 
-- [ ] **Step 7: Commit any regenerated artifacts**
+- [x] **Step 7: Commit any regenerated artifacts**
 
 ```bash
 git add -A
 git commit -m "chore(ki-config): regenerate inventory + freshness artifacts" || echo "nothing to commit"
 ```
 
-- [ ] **Step 8: Push the branch**
+- [x] **Step 8: Push the branch**
 
 ```bash
 git push -u origin feature/ai-api-config

@@ -34,6 +34,11 @@ export function initUndoRedo(
 
   document.body.append(undoBtn, redoBtn);
 
+  if ((window as any).__brettIsZuschauer) {
+    undoBtn.disabled = true;
+    redoBtn.disabled = true;
+  }
+
   undoBtn.addEventListener('click', () => wsClient.sendUndo());
   redoBtn.addEventListener('click', () => wsClient.sendRedo());
 

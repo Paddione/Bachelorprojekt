@@ -20,7 +20,12 @@ import * as undoStack from './undo-stack';
 
 export function handleDisconnect(ws: any, deps: WsDeps): void {
   const room = deps.leaveRoom(ws);
-  if (room) deps.broadcastInfo(room);
+  if (room) {
+    if (ws._isZuschauer && ws._playerId) {
+      deps.broadcast(room, { type: 'presence_leave', userId: ws._playerId });
+    }
+    deps.broadcastInfo(room);
+  }
 }
 
 export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
@@ -36,6 +41,13 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
         if (!roomToken) { ws.close(4403, 'invalid_share_token'); return; }
         ws._shareRoom = roomToken;
         ws._isGuest = true;
+      }
+      const zuschauerToken = wsUrl.searchParams.get('zuschauer_token');
+      if (zuschauerToken && deps.resolveZuschauerToken) {
+        const roomToken = await deps.resolveZuschauerToken(zuschauerToken);
+        if (!roomToken) { ws.close(4403, 'invalid_zuschauer_token'); return; }
+        ws._shareRoom = roomToken;
+        ws._isZuschauer = true;
       }
     } catch (err) {
       console.error('[brett] share-token resolve error:', err);
@@ -105,6 +117,15 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
             if (playerId && playerId !== 'anon') {
               deps.trackPlayerInRoom(room, playerId);
             }
+          }
+
+          if (ws._isZuschauer) {
+            const pid = ws._session?.userId ?? `zuschauer-${Math.random().toString(36).slice(2)}`;
+            ws._playerId = pid;
+            deps.broadcast(room, {
+              type: 'presence_join',
+              participant: { userId: pid, name: ws._session?.name ?? 'Zuschauer', role: 'zuschauer' },
+            });
           }
 
           if (ws._session?.isAdmin) {

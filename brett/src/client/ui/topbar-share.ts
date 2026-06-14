@@ -50,6 +50,25 @@ export function mountShareButton(slot: HTMLElement | null, opts: ShareMountOptio
     }
   });
   slot.appendChild(btn);
+
+  const zuschauerBtn = document.createElement('button');
+  zuschauerBtn.id = 'zuschauer-btn';
+  zuschauerBtn.className = 'brett-share-btn';
+  zuschauerBtn.title = 'Zuschauer-Link erstellen';
+  zuschauerBtn.setAttribute('aria-label', 'Zuschauer-Link teilen');
+  zuschauerBtn.textContent = '\u{1F441} Zuschauer';
+  zuschauerBtn.addEventListener('click', async () => {
+    try {
+      const resp = await fetcher(`/api/rooms/${encodeURIComponent(opts.roomToken)}/zuschauer-share`, { method: 'POST' });
+      if (!resp.ok) { toast('Zuschauer-Link fehlgeschlagen.'); return; }
+      const { url } = await resp.json();
+      await clip(url);
+      toast('Zuschauer-Link kopiert!');
+    } catch {
+      toast('Zuschauer-Link fehlgeschlagen.');
+    }
+  });
+  slot.appendChild(zuschauerBtn);
 }
 
 function defaultToast(msg: string): void {

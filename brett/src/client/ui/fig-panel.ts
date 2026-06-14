@@ -78,6 +78,11 @@ export function cancelDragFor(figureId: string): void {
 }
 
 export function initFigPanel(): void {
+  if ((window as any).__brettIsZuschauer) {
+    const panel = document.getElementById('fig-panel');
+    if (panel) panel.querySelectorAll('button[data-action]').forEach(b => (b as HTMLButtonElement).disabled = true);
+  }
+
   figPanelBtn.addEventListener('click', () => {
     figPanel.hidden ? openFigPanel() : closeFigPanel();
   });

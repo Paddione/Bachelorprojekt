@@ -11,6 +11,7 @@ export function setMessageHandler(fn: (evt: MessageEvent) => void): void {
 }
 
 function send(msg: ClientMessage): void {
+  if ((window as any).__brettIsZuschauer) return;
   const ws = getWs();
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(msg));
@@ -83,6 +84,8 @@ export function buildSyncUrl(search: string, host: string, protocol: string, use
   const params = new URLSearchParams({ room: src.get('room') || 'default' });
   const shareToken = src.get('share_token');
   if (shareToken) params.set('share_token', shareToken);
+  const zuschauerToken = src.get('zuschauer_token');
+  if (zuschauerToken) params.set('zuschauer_token', zuschauerToken);
   if (userId && userId !== 'anon') params.set('playerId', userId);
   const scheme = protocol === 'https:' ? 'wss:' : 'ws:';
   return `${scheme}//${host}/sync?${params.toString()}`;

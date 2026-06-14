@@ -36,6 +36,7 @@ const ROLE_LABEL: Record<Role, string> = {
   stellvertreter: 'Stellvertreter',
   beobachter: 'Beobachter',
   gast: 'Gast',
+  zuschauer: '👁 Zuschauer',
 };
 
 /** Pure: build the admin_assign_role message a dropdown change emits. */
@@ -120,7 +121,7 @@ export function mountParticipantsButton(
       name.className = 'brett-parts-name';
       name.textContent = row.name;
       rowEl.append(dot, name);
-      if (isLeiter && row.role !== 'leiter') {
+      if (isLeiter && row.role !== 'leiter' && row.role !== 'zuschauer') {
         const sel = document.createElement('select');
         sel.className = 'brett-parts-select';
         for (const opt of ROLE_OPTIONS) {

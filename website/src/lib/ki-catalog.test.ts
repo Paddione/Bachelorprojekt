@@ -5,8 +5,29 @@ describe('KI_CATALOG (kuratierte angebotene Schnittstellen)', () => {
   it('enthält die angebotenen Provider', () => {
     const ids = KI_CATALOG.map((i) => i.id);
     expect(ids).toEqual(
-      expect.arrayContaining(['anthropic', 'deepseek', 'local-llm', 'openai', 'mistral', 'voyage', 'custom']),
+      expect.arrayContaining([
+        'anthropic', 'deepseek', 'local-cluster', 'local-lmstudio', 'local-ollama',
+        'openai', 'mistral', 'voyage', 'custom',
+      ]),
     );
+  });
+
+  it('hat KEINEN alten local-llm-Eintrag mehr (umbenannt zu local-cluster)', () => {
+    expect(interfaceById('local-llm')).toBeUndefined();
+    expect(interfaceById('local-cluster')).toBeDefined();
+  });
+
+  it('GPU-Worker-Provider zeigen auf localhost und brauchen keinen API-Key', () => {
+    const lm = interfaceById('local-lmstudio')!;
+    const ol = interfaceById('local-ollama')!;
+    expect(lm.defaultBaseUrl).toBe('http://localhost:1234/v1');
+    expect(ol.defaultBaseUrl).toBe('http://localhost:11434/v1');
+    expect(lm.apiKeyEnv).toBeUndefined();
+    expect(ol.apiKeyEnv).toBeUndefined();
+    expect(lm.perRowApiKey).toBeFalsy();
+    expect(ol.perRowApiKey).toBeFalsy();
+    expect(lm.kinds).toContain('chat');
+    expect(ol.kinds).toContain('chat');
   });
 
   it('hat eindeutige ids und nicht-leere kinds', () => {

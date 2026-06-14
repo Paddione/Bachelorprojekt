@@ -68,14 +68,40 @@ export const KI_CATALOG: InterfaceDef[] = [
     supportsParams: COMMON_PARAMS,
   },
   {
-    id: 'local-llm',
-    label: 'Lokales LLM (llm-router / Ollama)',
+    id: 'local-cluster',
+    label: 'Lokales LLM — Cluster (llm-router)',
     kinds: ['chat'],
     suggestedModels: [
       { id: 'qwen2.5', label: 'Qwen 2.5' },
       { id: 'llama3.1', label: 'Llama 3.1' },
     ],
     defaultBaseUrl: 'http://llm-gateway-chat.workspace.svc.cluster.local:11434/v1',
+    supportsParams: COMMON_PARAMS,
+  },
+  {
+    id: 'local-lmstudio',
+    label: 'LM Studio (GPU-Worker localhost:1234)',
+    kinds: ['chat'],
+    suggestedModels: [
+      { id: 'qwen2.5-7b', label: 'Qwen 2.5 7B' },
+      { id: 'deepseek-r1-7b', label: 'DeepSeek R1 7B' },
+      { id: 'llama-3.1-8b', label: 'Llama 3.1 8B' },
+      { id: 'mistral-7b', label: 'Mistral 7B' },
+    ],
+    defaultBaseUrl: 'http://localhost:1234/v1',
+    supportsParams: COMMON_PARAMS,
+  },
+  {
+    id: 'local-ollama',
+    label: 'Ollama (GPU-Worker localhost:11434)',
+    kinds: ['chat'],
+    suggestedModels: [
+      { id: 'qwen2.5', label: 'Qwen 2.5' },
+      { id: 'llama3.1', label: 'Llama 3.1' },
+      { id: 'mistral', label: 'Mistral' },
+      { id: 'deepseek-r1', label: 'DeepSeek R1' },
+    ],
+    defaultBaseUrl: 'http://localhost:11434/v1',
     supportsParams: COMMON_PARAMS,
   },
   {

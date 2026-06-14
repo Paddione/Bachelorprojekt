@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { listKiProviders, createKiProvider } from '../../../../../lib/coaching-ki-config-db';
+import { KI_CATALOG } from '../../../../../lib/ki-catalog';
 import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;
@@ -34,9 +35,17 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'displayName darf nicht leer sein' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
 
+  // Catalog-Provider-Pfad: wenn catalogId übergeben, direkt ohne custom_-Prefix einfügen.
+  const catalogId = typeof body.catalogId === 'string' ? body.catalogId.trim() : '';
+  const catalogEntry = catalogId ? KI_CATALOG.find(c => c.id === catalogId && c.kinds.includes('chat')) : null;
+
   const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') : '';
-  if (!slug) {
-    return new Response(JSON.stringify({ error: 'slug darf nicht leer sein' }), { status: 400, headers: { 'content-type': 'application/json' } });
+
+  if (!catalogEntry && !slug) {
+    return new Response(JSON.stringify({ error: 'catalogId oder slug darf nicht leer sein' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+  if (catalogId && !catalogEntry) {
+    return new Response(JSON.stringify({ error: `Unbekannter Katalog-Provider: ${catalogId}` }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
 
   const rawFields = Array.isArray(body.enabledFields) ? body.enabledFields as string[] : [];
@@ -44,10 +53,12 @@ export const POST: APIRoute = async ({ request }) => {
 
   const brand = process.env.BRAND || 'mentolder';
   try {
+    const providerSlug = catalogEntry ? catalogEntry.id : `custom_${slug}`;
+    const providerLabel = catalogEntry ? (catalogEntry.label) : displayName;
     const provider = await createKiProvider(pool, brand, {
-      displayName,
-      provider: `custom_${slug}`,
-      enabledFields,
+      displayName: displayName || providerLabel,
+      provider: providerSlug,
+      enabledFields: catalogEntry ? null : enabledFields,
     });
     return new Response(JSON.stringify({ provider }), { status: 201, headers: { 'content-type': 'application/json' } });
   } catch (e: unknown) {

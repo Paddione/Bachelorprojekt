@@ -8,7 +8,10 @@ import type { Pool } from 'pg';
 
 const COACHING_SOURCE = 'coaching';
 const COACHING_TIER = 'coaching';
-const KNOWN_PROVIDERS = new Set(['openai', 'mistral', 'lumo', 'claude', 'custom_lmstudio']);
+const KNOWN_PROVIDERS = new Set([
+  'openai', 'mistral', 'lumo', 'claude', 'custom_lmstudio',
+  'deepseek', 'anthropic', 'local-cluster', 'local-lmstudio', 'local-ollama',
+]);
 
 export interface KiConfig {
   id: number;
@@ -171,7 +174,7 @@ export async function updateKiProvider(
 export async function createKiProvider(
   pool: Pool,
   brand: string,
-  data: { displayName: string; provider: string; enabledFields: string[] },
+  data: { displayName: string; provider: string; enabledFields: string[] | null },
 ): Promise<KiConfig> {
   // Explizite Eindeutigkeits-Prüfung (brand, provider) — robust unabhängig von Index-Enforcement.
   const dup = await pool.query(
@@ -192,7 +195,8 @@ export async function createKiProvider(
        (brand, source, tier, priority, provider, model_id, enabled, is_active, display_name, enabled_fields)
      VALUES ($1, $2, $3, $4, $5, '', true, false, $6, $7)
      RETURNING *`,
-    [brand, COACHING_SOURCE, COACHING_TIER, priority, data.provider, data.displayName, JSON.stringify(data.enabledFields)],
+    [brand, COACHING_SOURCE, COACHING_TIER, priority, data.provider, data.displayName,
+      data.enabledFields !== null ? JSON.stringify(data.enabledFields) : null],
   );
   return rowToKiConfig(r.rows[0]);
 }

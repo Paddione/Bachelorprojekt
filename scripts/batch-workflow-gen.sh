@@ -30,11 +30,10 @@ const RESULT_SCHEMA = {
   }
 }
 
-const tickets    = args.tickets     || []
-const gapContext = args.gap_context || {}
-const repoRoot   = args.repo_root   || '/home/patrick/Bachelorprojekt'
-
-;(async () => {
+const parsedArgs = (typeof args === 'string') ? JSON.parse(args) : (args || {})
+const tickets    = parsedArgs.tickets     || []
+const gapContext = parsedArgs.gap_context || {}
+const repoRoot   = parsedArgs.repo_root   || '/home/patrick/Bachelorprojekt'
 
 if (!tickets.length) {
   log('Keine Tickets übergeben — Workflow beendet.')
@@ -51,7 +50,7 @@ const results = await pipeline(
     const ctx    = gapContext[ticket.external_id] || ''
     const slug   = ticket.external_id.toLowerCase()
     const branch = `feature/${slug}`
-    const today  = args.today || '2026-01-01'
+    const today  = parsedArgs.today || '2026-01-01'
 
     return await agent(
       `Du bist ein Spec+Plan-Schreib-Agent im Bachelorprojekt-Repo. Arbeite ausschließlich im Worktree den du anlegst.

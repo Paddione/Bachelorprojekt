@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.63.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.3...website-v1.63.0) (2026-06-14)
+
+
+### Features
+
+* **ki-config:** Admin-UI für KI-Provider-Konfiguration [T000707] ([#1640](https://github.com/Paddione/Bachelorprojekt/issues/1640)) ([d269185](https://github.com/Paddione/Bachelorprojekt/commit/d269185e8b35c8f06ff99126e651a49897e27d17))
+
 ## [1.62.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.62.2...website-v1.62.3) (2026-06-13)
 
 

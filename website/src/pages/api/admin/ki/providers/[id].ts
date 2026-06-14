@@ -17,7 +17,7 @@ async function guard(request: Request): Promise<Response | null> {
 }
 
 const TIERS: Tier[] = ['sonnet', 'haiku'];
-const PATCHABLE = ['source', 'tier', 'priority', 'provider', 'model_id', 'base_url', 'max_concurrent', 'enabled'];
+const PATCHABLE = ['source', 'tier', 'priority', 'provider', 'model_id', 'base_url', 'max_concurrent', 'enabled', 'api_key'];
 
 /** Whitelist + coerce an inbound PATCH body. Returns error string or a clean patch object. */
 function parsePatch(body: Record<string, unknown>): { error: string } | { patch: Record<string, unknown> } {
@@ -38,7 +38,8 @@ function parsePatch(body: Record<string, unknown>): { error: string } | { patch:
       patch[k] = n;
     } else if (k === 'enabled') {
       patch[k] = Boolean(v);
-    } else if (k === 'base_url') {
+    } else if (k === 'base_url' || k === 'api_key') {
+      // nullable string fields: empty string → clear to null
       const s = typeof v === 'string' ? v.trim() : '';
       patch[k] = s || null;
     } else {

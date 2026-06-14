@@ -31,12 +31,14 @@ function parseNew(body: Record<string, unknown>): { error: string } | { value: N
   const baseUrlRaw = typeof body.base_url === 'string' ? body.base_url.trim() : '';
   const max_concurrent = body.max_concurrent == null ? 3 : Number(body.max_concurrent);
   if (!Number.isInteger(max_concurrent) || max_concurrent < 1) return { error: 'max_concurrent muss >= 1 sein' };
+  const apiKeyRaw = typeof body.api_key === 'string' ? body.api_key.trim() : '';
   return {
     value: {
       source, tier: body.tier as Tier, priority, provider, model_id,
       base_url: baseUrlRaw || null,
       max_concurrent,
       enabled: body.enabled === undefined ? true : Boolean(body.enabled),
+      api_key: apiKeyRaw || null,
     },
   };
 }

@@ -31,7 +31,7 @@ tasks:
       - |
         source scripts/env-resolve.sh "{{.ENV}}"
         : "${LLM_HOST_IP:?LLM_HOST_IP unset — configure in environments/{{.ENV}}.yaml}"
-        envsubst '$LLM_HOST_IP' < prod/llm-gpu.yaml \
+        envsubst '$LLM_HOST_IP' < k3d/llm-gpu.yaml \
           | kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f -
         kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f prod/llm-router.yaml
         kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" rollout status deployment/llm-router --timeout=120s

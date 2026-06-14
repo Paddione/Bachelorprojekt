@@ -695,14 +695,22 @@ bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
 
 Nach Brainstorm oder Rücklauf, wenn eines oder mehrere Features als nächstes gebaut werden sollen:
 
-**Ein Feature:** Rufe `dev-flow-plan` direkt auf, übergib Titel + Kern-Nutzen + Priorität als Kontext.
+**Ein Feature:** Rufe `dev-flow-plan` direkt auf und übergib die bestehende Ticket-ID, damit kein Duplikat erstellt wird:
+
+```bash
+# TICKET_EXT_ID aus dem feature-intake Schritt übernehmen
+export TICKET_EXT_ID="<external_id>"
+
+# dev-flow-plan aufrufen — es erkennt die Variable und wiederverwendet das Ticket
+# (dev-flow-plan prüft: if [[ -z "${TICKET_EXT_ID:-}" ]]; then ... create ... fi)
+```
 
 **Mehrere Features:** Präsentiere eine sortierte Liste und lass den User wählen oder bestätige die Reihenfolge:
 ```
 Nächste Features (sortiert: Priorität ↓, Aufwand ↑):
-1. [hoch/klein]  <Titel A> — <Kern-Nutzen>
-2. [hoch/mittel] <Titel B> — <Kern-Nutzen>
-3. [mittel/groß] <Titel C> — <Kern-Nutzen>
+1. [hoch/klein]  T000xxx <Titel A> — <Kern-Nutzen>
+2. [hoch/mittel] T000yyy <Titel B> — <Kern-Nutzen>
+3. [mittel/groß] T000zzz <Titel C> — <Kern-Nutzen>
 
 → Mit welchem soll dev-flow-plan starten?
   (Standard: Nummer 1 — bestätige oder nenne eine andere Nummer)

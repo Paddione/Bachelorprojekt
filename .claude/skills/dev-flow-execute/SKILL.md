@@ -1,6 +1,6 @@
 ---
 name: dev-flow-execute
-description: Use when on a feature/* or fix/* branch that has a staged plan in docs/superpowers/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch.
+description: Use when on a feature/* or fix/* branch that has a staged plan in docs/superpowers/plans/ ready to implement. Invoke after dev-flow-plan has committed and pushed the plan to the branch. Also supports batch orchestration of multiple staged plans.
 ---
 
 # dev-flow-execute — Plan-Ausführung & PR
@@ -9,7 +9,160 @@ description: Use when on a feature/* or fix/* branch that has a staged plan in d
 
 Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.
 
+**ODER:** Du willst mehrere staged plans als Batch orchestrieren (Batch-Modus).
+
 **Sage zu Beginn:** "Ich nutze dev-flow-execute zur Plan-Ausführung."
+
+---
+
+## Modus-Erkennung: Single vs Batch
+
+Prüfe ob ein einzelner Plan oder mehrere Pläne ausgeführt werden sollen:
+
+```bash
+# Wenn TICKET_ID bereits gesetzt ist → direkt Single-Modus, kein Query nötig
+STAGED_PLANS=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, priority, COALESCE(value_prop,'')
+   FROM tickets.tickets WHERE status='plan_staged'
+   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null)
+
+STAGED_COUNT=$(echo "$STAGED_PLANS" | grep -c '|' 2>/dev/null || echo 0)
+```
+
+**Entscheidungslogik (kein interaktives `read` — nutze AskUserQuestion-Tool):**
+
+- **TICKET_ID bereits im Kontext gesetzt** (z.B. von dev-flow-plan oder User-Angabe) → `EXECUTE_MODE="single"`, weiter zu Single-Modus.
+- **STAGED_COUNT == 1** → automatisch Single-Modus; `TICKET_ID` aus erster Zeile von `$STAGED_PLANS` extrahieren.
+- **STAGED_COUNT == 0** → keine staged plans. Frage den User via `AskUserQuestion`-Tool nach der Ticket-ID, oder weise darauf hin, erst `dev-flow-plan` auszuführen.
+- **STAGED_COUNT > 1** → Frage den User via `AskUserQuestion`-Tool:
+  - Frage: „Mehrere staged plans gefunden — wie soll vorgegangen werden?"
+  - Zeige die Liste (`$STAGED_PLANS`) im Text vor der Frage.
+  - Option A: „Single-Modus — einen bestimmten Plan implementieren" → dann konkrete Ticket-ID erfragen.
+  - Option B: „Batch-Modus — alle staged plans parallel orchestrieren" → `EXECUTE_MODE="batch"`.
+
+---
+
+## Batch-Modus: Mehrere Pläne parallel orchestrieren
+
+Wenn `EXECUTE_MODE="batch"`:
+
+### Batch-Schritt 1: Alle staged plans laden
+
+```bash
+# Alle staged plans mit Plan-Referenzen laden
+BATCH_PLANS_JSON=$(kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -t -A -F '|' -c \
+  "SELECT external_id, title, priority, COALESCE(value_prop,''), COALESCE(effort,''),
+   array_to_string(areas,','),
+   (SELECT c.body FROM tickets.ticket_comments c
+    WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
+    ORDER BY c.created_at DESC LIMIT 1)
+   FROM tickets.tickets t WHERE status='plan_staged'
+   ORDER BY planning_rank ASC NULLS LAST, created_at DESC;" 2>/dev/null)
+
+# In JSON-Array konvertieren
+BATCH_ITEMS=()
+while IFS='|' read -r ext_id title priority value_prop effort areas plan_ref; do
+  [[ -z "$ext_id" ]] && continue
+
+  # Plan-Referenz parsen
+  BRANCH=$(echo "$plan_ref" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
+  PLAN_FILE=$(echo "$plan_ref" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
+
+  BATCH_ITEMS+=("{
+    \"ticket_id\": \"$ext_id\",
+    \"title\": \"$title\",
+    \"priority\": \"$priority\",
+    \"branch\": \"$BRANCH\",
+    \"plan_file\": \"$PLAN_FILE\"
+  }")
+done <<< "$BATCH_PLANS_JSON"
+
+BATCH_JSON=$(printf '%s\n' "${BATCH_ITEMS[@]}" | jq -s '.')
+BATCH_COUNT=$(echo "$BATCH_JSON" | jq 'length')
+
+echo "📋 Batch-Orchestrierung: $BATCH_COUNT Pläne"
+echo "$BATCH_JSON" | jq -r '.[] | "  • \(.ticket_id) [\(.priority)] \(.title) → \(.branch)"'
+```
+
+### Batch-Schritt 2: Worktrees für alle Pläne vorbereiten
+
+```bash
+MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
+WORKTREE_DIR="/tmp/wt-batch-execute-$(date +%s)"
+
+# Für jeden Plan: Worktree erstellen und Plan-Datei validieren
+echo "$BATCH_JSON" | jq -c '.[]' | while read -r item; do
+  TICKET_ID=$(echo "$item" | jq -r '.ticket_id')
+  BRANCH=$(echo "$item" | jq -r '.branch')
+  PLAN_FILE=$(echo "$item" | jq -r '.plan_file')
+
+  WT_PATH="/tmp/wt-execute-$TICKET_ID"
+
+  # Worktree erstellen (falls nicht vorhanden)
+  if [[ ! -d "$WT_PATH" ]]; then
+    bash scripts/worktree-create.sh "$BRANCH" "$WT_PATH" 2>/dev/null || {
+      echo "⚠️  Worktree für $TICKET_ID ($BRANCH) konnte nicht erstellt werden — übersprungen"
+      continue
+    }
+  fi
+
+  # Plan-Datei prüfen
+  if [[ ! -f "$WT_PATH/$PLAN_FILE" ]]; then
+    echo "⚠️  Plan-Datei $PLAN_FILE fehlt in $WT_PATH — übersprungen"
+    continue
+  fi
+
+  echo "✅ Worktree bereit: $TICKET_ID → $WT_PATH"
+done
+```
+
+### Batch-Schritt 3: Parallele Implementierung orchestrieren
+
+Setze alle Tickets auf `in_progress` und spawne für jeden Plan **einen separaten Implementer-Subagenten** via `Agent`-Tool — alle parallel (d.h. in einer einzigen Antwort mehrere `Agent`-Tool-Calls ohne auf das Ergebnis des vorherigen zu warten):
+
+```bash
+# Tickets auf in_progress setzen (sequentiell, schnell)
+echo "$BATCH_JSON" | jq -r '.[].ticket_id' | while read -r tid; do
+  ./scripts/ticket.sh update-status --id "$tid" --status in_progress || true
+done
+```
+
+Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten via `Agent`-Tool mit:
+- `model`: gemäß Plan-Charakter wählen (wie Single-Modus Schritt 2 — Standard `sonnet`)
+- `run_in_background: true` für alle Subagenten (echte Parallelität)
+- `subagent_type: general-purpose`
+- **Prompt** (Kontext-Injektion, da der Subagent KEINEN Kontext hat):
+  ```
+  Du implementierst Ticket <TICKET_ID> im Worktree <WT_PATH> (Branch: <BRANCH>).
+  Plan-Datei: <WT_PATH>/<PLAN_FILE>.
+  
+  Führe aus: Schritt 1.4 bis Schritt 7.5 aus dev-flow-execute (Single-Modus) —
+  d.h. Doppelarbeit-Guard, Ticket in_progress, Implementierung via superpowers:executing-plans,
+  lokale Verifikation (task test:all + freshness:check), Code-Review-Gate,
+  PR öffnen, CI-Fix-Schleife, Auto-Merge, Ticket abschließen, Plan archivieren,
+  Worktree bereinigen.
+  
+  Erstelle KEINEN weiteren Batch-Modus. TICKET_ID=$<TICKET_ID>.
+  Hauptrepo: <MAIN_REPO>.
+  ```
+
+Nach dem Spawnen aller Subagenten:
+```
+✅ Batch-Orchestrierung gestartet: $BATCH_COUNT Implementierungen laufen parallel
+
+📊 Fortschritt verfolgen:
+kubectl exec -n workspace deploy/shared-db -- psql -U postgres -d website -c \
+  "SELECT external_id, status, title FROM tickets.tickets
+   WHERE external_id IN (<kommagetrennte TICKET_IDs>) ORDER BY status;"
+```
+
+**STOPP** nach Batch-Start. Die Implementierungen laufen parallel. Warte auf die Subagenten-Ergebnisse (du wirst benachrichtigt wenn `run_in_background`-Agenten fertig sind) oder verfolge den Fortschritt über die DB-Query.
+
+---
+
+## Single-Modus: Einzelnen Plan implementieren
+
+Wenn `EXECUTE_MODE="single"`:
 
 ---
 
@@ -50,13 +203,38 @@ git submodule update --init --recursive
 
 ---
 
-## Schritt 1: Plan finden & Ticket ID extrahieren
+## Schritt 1: Plan-Pfad aus der Datenbank laden (Single Source of Truth)
 
-Finde den neuesten Plan in `docs/superpowers/plans/*.md` und extrahiere die Ticket-ID:
+Der Plan-Pfad wird von `dev-flow-plan` via `ticket.sh stage-plan` in der Datenbank gespeichert
+(als `FACTORY-PLAN-REF branch=<branch> plan=<plan_path>` Kommentar). **Niemals** per Glob raten —
+immer die DB als Quelle nutzen, genau wie der Factory-Dispatcher.
 
 ```bash
-PLAN_FILE="docs/superpowers/plans/<slug>.md"
-TICKET_ID=$(awk '/^ticket_id:/{print $2; exit}' "$PLAN_FILE")
+# TICKET_ID muss bekannt sein (aus Branch-Name, User-Input, oder ticket.sh get --branch <branch>)
+TICKET_ID="<T-######>"
+
+# Plan-Metadaten aus der Datenbank laden
+TICKET_JSON=$(./scripts/ticket.sh get --id "$TICKET_ID")
+PLAN_REF=$(echo "$TICKET_JSON" | jq -r '.plan_ref // empty')
+
+if [[ -z "$PLAN_REF" ]]; then
+  echo "🛑 Kein FACTORY-PLAN-REF für Ticket $TICKET_ID gefunden."
+  echo "   → dev-flow-plan wurde nicht ausgeführt oder stage-plan fehlgeschlagen."
+  exit 1
+fi
+
+# Branch und Plan-Pfad aus dem FACTORY-PLAN-REF parsen
+# Format: "FACTORY-PLAN-REF branch=<branch> plan=<plan_path>"
+BRANCH=$(echo "$PLAN_REF" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
+PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
+
+if [[ -z "$PLAN_FILE" || ! -f "$PLAN_FILE" ]]; then
+  echo "🛑 Plan-Datei '$PLAN_FILE' existiert nicht (Branch: $BRANCH)."
+  echo "   → Worktree prüfen: git worktree list"
+  exit 1
+fi
+
+echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
 ```
 
 ---
@@ -143,7 +321,7 @@ Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß**
 - `subagent_type: general-purpose`.
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit):
   - Absoluter Worktree-Pfad + Branch-Name; er arbeitet NUR relativ dazu.
-  - Plan-Datei `docs/superpowers/plans/<slug>.md` + Ticket-ID.
+  - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
 - **⚠️ BATS-Pflicht (kein neues File ohne Prüfung):**
   Bevor du eine neue `.bats`-Datei erstellst, suche erst in `tests/unit/` nach einer thematisch passenden bestehenden Datei und erweitere diese stattdessen:

@@ -19,6 +19,8 @@ export interface ProviderConfigEntry {
   max_concurrent: number;
   enabled: boolean;
   updated_at: string | null;
+  /** Masked key shown in admin UI (e.g. "sk-...abcd"). Null when no key stored. */
+  api_key_hint: string | null;
 }
 
 export interface ProviderHealth {
@@ -38,10 +40,11 @@ export interface NewProvider {
   base_url: string | null;
   max_concurrent: number;
   enabled: boolean;
+  api_key?: string | null;
 }
 
 const COLS =
-  'id, source, tier, priority, provider, model_id, base_url, max_concurrent, enabled, updated_at';
+  'id, source, tier, priority, provider, model_id, base_url, max_concurrent, enabled, updated_at, api_key';
 
 export async function listProviders(): Promise<ProviderConfigEntry[]> {
   // Coaching-Rows (source='coaching') leben im selben Store, werden aber über die
@@ -87,16 +90,16 @@ export async function countEnabledForSource(
 export async function createProvider(p: NewProvider): Promise<number> {
   const { rows } = await pool.query(
     `INSERT INTO tickets.provider_config
-       (source, tier, priority, provider, model_id, base_url, max_concurrent, enabled, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8, now())
+       (source, tier, priority, provider, model_id, base_url, max_concurrent, enabled, api_key, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, now())
      RETURNING id`,
-    [p.source, p.tier, p.priority, p.provider, p.model_id, p.base_url, p.max_concurrent, p.enabled],
+    [p.source, p.tier, p.priority, p.provider, p.model_id, p.base_url, p.max_concurrent, p.enabled, p.api_key ?? null],
   );
   return Number(rows[0].id);
 }
 
 const UPDATABLE = [
-  'source', 'tier', 'priority', 'provider', 'model_id', 'base_url', 'max_concurrent', 'enabled',
+  'source', 'tier', 'priority', 'provider', 'model_id', 'base_url', 'max_concurrent', 'enabled', 'api_key',
 ] as const;
 type Updatable = (typeof UPDATABLE)[number];
 
@@ -136,6 +139,11 @@ export async function getProvider(id: number): Promise<ProviderConfigEntry | nul
   return rows.length ? mapRow(rows[0]) : null;
 }
 
+function maskKey(key: unknown): string | null {
+  if (typeof key !== 'string' || !key) return null;
+  return key.length <= 8 ? '••••••••' : `••••••••${key.slice(-4)}`;
+}
+
 function mapRow(r: Record<string, unknown>): ProviderConfigEntry {
   return {
     id: Number(r.id),
@@ -148,5 +156,6 @@ function mapRow(r: Record<string, unknown>): ProviderConfigEntry {
     max_concurrent: Number(r.max_concurrent),
     enabled: Boolean(r.enabled),
     updated_at: r.updated_at ? new Date(r.updated_at as string).toISOString() : null,
+    api_key_hint: maskKey(r.api_key),
   };
 }

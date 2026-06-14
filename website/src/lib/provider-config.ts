@@ -26,7 +26,7 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
   }
   try {
     const { rows } = await pool.query(
-      `SELECT pc.provider, pc.model_id, pc.base_url
+      `SELECT pc.provider, pc.model_id, pc.base_url, pc.api_key
          FROM tickets.provider_config pc
          LEFT JOIN tickets.provider_health ph ON ph.provider = pc.provider
         WHERE (pc.source = $1 OR pc.source = '*') AND pc.tier = $2 AND pc.enabled = true
@@ -36,8 +36,9 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
       [source, tier],
     );
     if (rows.length) {
-      const { provider, model_id, base_url } = rows[0];
-      return { provider, modelId: model_id, baseUrl: base_url ?? null, apiKey: apiKeyForProvider(provider) };
+      const { provider, model_id, base_url, api_key } = rows[0];
+      const apiKey = (typeof api_key === 'string' && api_key) ? api_key : apiKeyForProvider(provider);
+      return { provider, modelId: model_id, baseUrl: base_url ?? null, apiKey };
     }
   } catch (err) {
     console.error('[provider-config] DB lookup failed, falling back to anthropic:', err);

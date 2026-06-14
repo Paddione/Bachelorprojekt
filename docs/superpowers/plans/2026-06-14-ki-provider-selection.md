@@ -1,6 +1,6 @@
 ---
 title: KI-Provider-Auswahl pro Sektion + GPU-Worker-Integration Implementation Plan
-ticket_id: null
+ticket_id: T000716
 domains: [website, infra, db, test, security]
 status: active
 pr_number: null

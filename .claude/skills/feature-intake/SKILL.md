@@ -142,17 +142,103 @@ bash scripts/ticket.sh add-comment \
 - <frage>: <antwort>"
 ```
 
-#### 5b — Readiness-Flags aktualisieren
+#### 5b — Vollständigkeits-Check (Vorbedingung für Spec-Generierung)
+
+Prüfe den Rücklauf auf Vollständigkeit bevor die Spec generiert wird:
+
+| Block | Prüfung | BLOCK wenn |
+|-------|---------|------------|
+| Block 1 — Ablauf | Textarea-Länge | < 20 Zeichen |
+| Block 1 — Nutzergruppe | Feld vorhanden + nicht leer | Fehlt |
+| Block 2 — Nicht-Scope | ≥1 Checkbox ODER Freitext | Beides leer |
+| Block 3 — Edge Cases | ≥1 Checkbox ODER Freitext | Beides leer |
+| Block 5 — Fehlerfall | Radio ausgewählt | Nicht gesetzt |
+| Block 6 — Erfolgsmetrik | Radio ODER Freitext | Beides leer |
+
+**Bei unvollständigem Rücklauf:**
+
+Gib aus:
+```
+⛔ Spec-Generierung blockiert — folgende Blöcke fehlen oder sind leer:
+  • [Liste der fehlenden Blöcke]
+
+→ Bitte das Grilling-Formular erneut öffnen und die markierten Felder ausfüllen:
+  /tmp/grilling-<TICKET_EXT_ID>-<DATUM>.html
+```
+
+Stoppe hier — führe Schritt 5c NICHT aus.
+
+**Bei vollständigem Rücklauf:** Fahre direkt mit Schritt 5c fort.
+
+#### 5c — Spec-Datei generieren und schreiben
+
+Destilliere die Grilling-Antworten in eine vollständige Spec. Dateiname:
+
+```bash
+SPEC_SLUG=$(echo "<Ticket-Titel>" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+SPEC_FILE="docs/superpowers/specs/$(date +%F)-${SPEC_SLUG}.md"
+# Bei Kollision: SPEC_FILE mit -v2 Suffix
+```
+
+Schreibe die Datei mit dem `Write`-Tool nach folgendem Schema (auf Deutsch):
+
+```markdown
+---
+ticket_id: <TICKET_EXT_ID>
+plan_ref: docs/superpowers/plans/<DATUM>-<SPEC_SLUG>.md
+status: active
+date: <DATUM>
+---
+
+# Spec: <Ticket-Titel>
+
+## Kern-Nutzerflow
+[Prosa aus Block 1 — Schritt-für-Schritt destilliert]
+
+## Akzeptanzkriterien
+[Testbar formuliert aus Blocks 1/3/5/6 — z.B. "Wenn User X tut, erscheint Y"]
+
+## Edge Cases
+[Liste aus Block 3]
+
+## Fehlerfall-Behandlung
+[Aus Block 5]
+
+## Erfolgsmetrik
+[Aus Block 6 — messbar oder beobachtbar]
+
+## Technische Constraints
+[Aus Ticket-Areas + domain-spezifischen Blöcken + depends_on]
+
+## Betroffene Dateien
+[Aus areas abgeleitet — grobe Hinweise]
+```
+
+Danach den Spec-Inhalt auch als Ticket-Kommentar schreiben:
+
+```bash
+bash scripts/ticket.sh add-comment \
+  --id <TICKET_EXT_ID> \
+  --author "feature-intake/spec-generator" \
+  --body "## Auto-generierte Spec $(date +%F)
+
+[vollständiger Spec-Inhalt]
+
+---
+*Generiert aus Grilling-Rücklauf via feature-intake/spec-generator*"
+```
+
+#### 5d — Readiness-Flags aktualisieren
 
 Setze einen Flag auf `true` nur wenn die zugehörige Frage tatsächlich beantwortet wurde:
 
 ```bash
 bash scripts/ticket.sh plan-meta set \
   --id <external_id> \
-  --readiness offene_fragen_geklaert=true,abhaengigkeiten_klar=true
+  --readiness offene_fragen_geklaert=true,abhaengigkeiten_klar=true,spec_skizziert=true
 ```
 
-#### 5c — Abhängigkeiten eintragen (wenn konkrete IDs genannt)
+#### 5e — Abhängigkeiten eintragen (wenn konkrete IDs genannt)
 
 ```bash
 bash scripts/ticket.sh plan-meta set \
@@ -160,9 +246,39 @@ bash scripts/ticket.sh plan-meta set \
   --depends-on T000571,T000573
 ```
 
-#### 5d — Status-Report ausgeben
+#### 5f — Automatischer Handoff zu dev-flow-plan
 
-Kurze Zusammenfassung: welche Tickets sind jetzt vollständig readiness-ready (alle 4 Flags true), welche bleiben offen. Tickets mit allen Flags auf `true` → proaktiv vorschlagen: „T000xxx ist plan-ready → `dev-flow-plan` starten?"
+Nach vollständiger Spec-Generierung übergib direkt an dev-flow-plan — kein STOP, kein manueller Eingriff:
+
+```bash
+export TICKET_EXT_ID="<TICKET_EXT_ID>"
+# dev-flow-plan erkennt TICKET_EXT_ID und überspringt Ticket-Erstellung
+```
+
+Sage: "Spec generiert ✓ — übergebe direkt an dev-flow-plan für die Implementierungsplanung."
+
+Rufe dann `dev-flow-plan` auf.
+
+#### 5g — Abschluss-Report
+
+Gib folgende Zusammenfassung aus:
+
+```
+Grilling + Spec-Generierung abgeschlossen für <TICKET_EXT_ID>:
+
+✓ Spec-Material als Kommentar hinterlegt (author: feature-intake/grilling)
+✓ Auto-Spec generiert: docs/superpowers/specs/<dateiname>
+✓ Spec als Ticket-Kommentar hinterlegt (author: feature-intake/spec-generator)
+✓ Readiness-Flags aktualisiert: spec_skizziert=true, offene_fragen_geklaert=true, abhaengigkeiten_klar=true
+✓ Handoff zu dev-flow-plan eingeleitet
+
+[nur wenn noch Flags fehlen:]
+Verbleibende offene Flags:
+  🔴 abhaengigkeiten_klar — noch ausstehend
+  🔴 aufwand_geschaetzt — noch ausstehend
+```
+
+Zeige welche Tickets jetzt vollständig readiness-ready sind (alle 4 Flags true).
 
 ---
 

@@ -35,7 +35,7 @@ bleibt (Kernlogik: curl-Aufruf + Auto-Fix-Loop + Backup/Restore bei kaputtem Fro
 
 ## Tasks
 
-### Task A — DeepSeek-Aufrufmechanismus klären
+### Task A — DeepSeek-Aufrufmechanismus klären [✓]
 
 **Ziel:** Bestätigen, wie das neue Bash-Skript DeepSeek erreicht.
 
@@ -58,7 +58,7 @@ bleibt (Kernlogik: curl-Aufruf + Auto-Fix-Loop + Backup/Restore bei kaputtem Fro
 
 ---
 
-### Task B — Qualitätskriterien-Checklist als Prompt definieren
+### Task B — Qualitätskriterien-Checklist als Prompt definieren [✓]
 
 **Ziel:** Den System-Prompt für DeepSeek als Here-Doc im Skript festlegen.
 
@@ -84,7 +84,7 @@ bleibt (Kernlogik: curl-Aufruf + Auto-Fix-Loop + Backup/Restore bei kaputtem Fro
 
 ---
 
-### Task C — `scripts/plan-qa-check.sh` schreiben
+### Task C — `scripts/plan-qa-check.sh` schreiben [✓]
 
 **Datei:** `scripts/plan-qa-check.sh` (neu, ~200 Z, Limit 500 — Budget +300)
 
@@ -120,7 +120,7 @@ Commit.
 
 ---
 
-### Task D — `dev-flow-plan/SKILL.md` erweitern
+### Task D — `dev-flow-plan/SKILL.md` erweitern [✓]
 
 **Datei:** `.claude/skills/dev-flow-plan/SKILL.md` (258 Z → ~273 Z, kein S1-Gate für .md)
 
@@ -147,7 +147,7 @@ bash scripts/plan-qa-check.sh docs/superpowers/plans/<date>-<slug>.md
 
 ---
 
-### Task E — `task plan:qa` in Taskfile eintragen (S4-Gate)
+### Task E — `task plan:qa` in Taskfile eintragen (S4-Gate) [✓]
 
 **Datei:** `Taskfile.yml` (4500 Z → ~4510 Z, kein S1-Gate für `.yml`)
 

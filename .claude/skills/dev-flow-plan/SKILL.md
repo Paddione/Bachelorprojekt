@@ -126,6 +126,21 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
      - **CI-/Quality-Gates:** [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md) — der Subagent MUSS die Datei lesen und den Plan dagegen schreiben: pro zu ändernder Datei `wc -l` UND den Baseline-Wert (`jq -r '."S1:<pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json`) ermitteln und das S1-Budget gegen die **wirksame Schwelle** notieren — bei schon gebaselineten (gewachsenen) Dateien ist das Budget oft **0** (jede Netto-Zeile trippt das CI-Ratchet), dann zeilenneutral planen oder die Datei in dieser PR **echt verkleinern**; bei >~80 % der Schwelle echten Modul-Split einplanen (kein kosmetisches Zusammenziehen). Dazu: keine Brand-Domain-Literale in Code-Snippets (S3), Helper als pure Module ohne Import-Zyklen (S2), neue Manifeste/Skripte referenzieren statt verwaisen lassen (S4).
    - **Auftrag:** „Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan nach `docs/superpowers/plans/<date>-<slug>.md`. Der finale Verifikations-Task des Plans MUSS `task test:all`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Führe danach `bash scripts/plan-frontmatter-hook.sh docs/superpowers/plans/<date>-<slug>.md` aus. Gib den Plan-Pfad und eine 3-Zeilen-Zusammenfassung zurück."
 
+### Schritt 3.8: Plan-Qualitäts-Check (DeepSeek QA)
+
+Führe den automatischen QA-Check auf den Plan-Pfad aus, den der Subagent zurückgegeben hat:
+
+```bash
+bash scripts/plan-qa-check.sh docs/superpowers/plans/<date>-<slug>.md
+```
+
+- **PASS (Exit 0):** Weiter zu Schritt 4.
+- **FAIL (Exit 1):** DeepSeek hat bis zu 2 Auto-Fix-Versuche unternommen. Lies die
+  Fehlermeldung (konkrete Lücken), delegiere erneut an einen Plan-Subagenten (Schritt 3.7)
+  mit den fehlenden Punkten als Korrektur-Hinweis — oder bessere den Plan manuell nach.
+- **Kein API-Key (Exit 0 + Warnung):** Advisory — QA wurde übersprungen. Weiter zu Schritt 4,
+  aber prüfe den Plan manuell gegen `.claude/skills/references/plan-quality-gates.md`.
+
 ### Schritt 4: Plan prüfen & übernehmen
 Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in [plan-quality-gates.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)): S1-Budgets gegen die **wirksame Schwelle** (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält `task test:all` + `task freshness:regenerate` + `task freshness:check`? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.
 

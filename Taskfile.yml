@@ -2745,6 +2745,18 @@ tasks:
     cmds:
       - node scripts/code-quality/baseline-refresh.mjs
 
+  plan:qa:
+    desc: "DeepSeek-QA-Check for an implementation plan (PLAN=<path>)"
+    vars:
+      PLAN: '{{.PLAN | default ""}}'
+    cmds:
+      - |
+        if [[ -z "{{.PLAN}}" ]]; then
+          echo "Usage: task plan:qa PLAN=docs/superpowers/plans/<file>.md" >&2
+          exit 1
+        fi
+        bash scripts/plan-qa-check.sh "{{.PLAN}}"
+
   quality:loop:
     desc: "Enqueue ≤MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."
     cmds:

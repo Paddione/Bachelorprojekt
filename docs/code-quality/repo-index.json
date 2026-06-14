@@ -2186,7 +2186,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 295,
+      "file_count": 296,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2443,6 +2443,7 @@
         "scripts/oracle-bench.sh",
         "scripts/plan-context.sh",
         "scripts/plan-frontmatter-hook.sh",
+        "scripts/plan-qa-check.sh",
         "scripts/post-deploy-watch.sh",
         "scripts/pre-deploy-check.sh",
         "scripts/provision-dev-vm.sh",

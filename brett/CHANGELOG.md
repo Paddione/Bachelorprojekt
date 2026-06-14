@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.32.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.31.0...brett-v0.32.0) (2026-06-14)
+
+
+### Features
+
+* **brett:** Board-Export PNG/PDF — HiDPI, toast, session-code filename, PDF page break (T000704) ([#1637](https://github.com/Paddione/Bachelorprojekt/issues/1637)) ([64a70c8](https://github.com/Paddione/Bachelorprojekt/commit/64a70c8b11e2e03a105ad5e3847b7e2a8c26c792))
+
 ## [0.31.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.30.0...brett-v0.31.0) (2026-06-14)
 
 

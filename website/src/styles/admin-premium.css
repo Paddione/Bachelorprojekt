@@ -232,3 +232,42 @@ html.sidebar-collapsed #icon-expand   { display: block; }
     justify-content: center;
   }
 }
+
+/* Layout vars (AdminLayout) */
+:root {
+  --admin-sidebar-w: var(--sidebar-width);
+  --admin-sidebar-h: 100vh;
+}
+html.sidebar-collapsed {
+  --admin-sidebar-w: var(--sidebar-collapsed-width);
+}
+
+#admin-sidebar {
+  z-index: 50;
+}
+
+.sidebar-label {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+html.sidebar-collapsed .sidebar-label {
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+}
+
+#admin-main {
+  margin-left: 0;
+  transition: padding-left 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  #admin-main {
+    padding-left: var(--admin-sidebar-w);
+  }
+}
+
+#admin-sidebar,
+#admin-main {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

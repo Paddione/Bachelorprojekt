@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.31.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.30.0...brett-v0.31.0) (2026-06-14)
+
+
+### Features
+
+* **brett:** Board-Templates für Aufstellungs-Szenarien (T000705) ([#1638](https://github.com/Paddione/Bachelorprojekt/issues/1638)) ([7b9abc1](https://github.com/Paddione/Bachelorprojekt/commit/7b9abc135644f3c406ba687a6f6fdcf35aed9d2d))
+
 ## [0.30.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.29.1...brett-v0.30.0) (2026-06-14)
 
 

@@ -1,5 +1,5 @@
 # Blast-Radius-Report
-> Generated: 2026-06-14T11:59:32.086Z
+> Generated: 2026-06-14T13:19:59.666Z
 > Nodes: 74 | Edges: 1385 | Isolated: 2
 
 ## Ranking (transitive Abhängige)

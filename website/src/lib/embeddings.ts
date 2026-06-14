@@ -34,11 +34,11 @@ const voyageKey = () => {
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
 const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
 
-function isNetworkError(err: unknown): boolean {
+function isNetworkError(err: unknown, signal?: AbortSignal): boolean {
   if (!(err instanceof Error)) return false;
-  const { message, name } = err as { message: string; name: string };
-  return name === 'AbortError' ||
-    /ECONNREFUSED|ETIMEDOUT|ECONNRESET|fetch failed/i.test(message);
+  if (err.name === 'AbortError' && signal?.aborted) return false;
+  return err.name === 'AbortError' ||
+    /ECONNREFUSED|ETIMEDOUT|ECONNRESET|fetch failed/i.test(err.message);
 }
 
 async function callVoyageDirect(inputs: string[], inputType: 'query' | 'document', opts: EmbedOpts) {
@@ -103,7 +103,7 @@ export async function embedQuery(text: string, opts: EmbedOpts = {}): Promise<Em
       const r = await callRouter([text], { ...opts, model, purpose });
       return { embedding: r.embeddings[0], tokens: r.tokens };
     } catch (err) {
-      if (isNetworkError(err)) {
+      if (isNetworkError(err, opts.signal)) {
         if (model === 'voyage-multilingual-2') {
           console.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
           const r = await callVoyageDirect([text], 'query', opts);
@@ -132,7 +132,7 @@ export async function embedBatch(texts: string[], opts: EmbedOpts = {}): Promise
         out.push(...r.embeddings);
         totalTokens += r.tokens;
       } catch (err) {
-        if (isNetworkError(err)) {
+        if (isNetworkError(err, opts.signal)) {
           if (model === 'voyage-multilingual-2') {
             console.warn('[embeddings] GPU router unreachable, falling back to Voyage for voyage-multilingual-2');
             const r = await callVoyageDirect(slice, 'document', opts);

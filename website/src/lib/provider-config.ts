@@ -56,6 +56,9 @@ export async function setProviderCooldown(
   provider: string,
   minutesFromNow: number,
 ): Promise<void> {
+  const minutes = Number.isFinite(minutesFromNow) && minutesFromNow > 0
+    ? Math.floor(minutesFromNow)
+    : 5;
   try {
     await dbPool.query(
       `INSERT INTO tickets.provider_health (provider, failure_count, last_failure, cooldown_until)
@@ -64,9 +67,9 @@ export async function setProviderCooldown(
          SET failure_count  = tickets.provider_health.failure_count + 1,
              last_failure   = now(),
              cooldown_until = now() + ($2 || ' minutes')::interval`,
-      [provider, minutesFromNow],
+      [provider, minutes],
     );
-    console.warn(`[provider-config] ${source}: provider '${provider}' put on cooldown for ${minutesFromNow}m`);
+    console.warn(`[provider-config] ${source}: provider '${provider}' put on cooldown for ${minutes}m`);
   } catch (err) {
     console.error('[provider-config] setProviderCooldown failed (non-fatal):', err);
   }

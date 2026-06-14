@@ -14,7 +14,7 @@ BEGIN;
 INSERT INTO tickets.provider_config (source, tier, priority, provider, model_id, base_url, enabled)
 VALUES
   ('assistant-chat', 'sonnet', 1, 'deepseek',      'deepseek-chat', 'https://api.deepseek.com/v1', true),
-  ('assistant-chat', 'sonnet', 2, 'local-cluster', 'mistral',       NULL,                          true)
+  ('assistant-chat', 'sonnet', 2, 'local-cluster', 'mistral',       NULL,                          false)
 ON CONFLICT (source, tier, priority) DO UPDATE
   SET provider   = EXCLUDED.provider,
       model_id   = EXCLUDED.model_id,
@@ -22,17 +22,17 @@ ON CONFLICT (source, tier, priority) DO UPDATE
       enabled    = EXCLUDED.enabled,
       updated_at = now();
 
--- For local-cluster: base_url defaults to NULL; update after migration if GPU worker is available:
+-- local-cluster rows are seeded as enabled=false (base_url=NULL would produce 401s).
+-- Activate via /admin/ki-konfiguration UI after setting the cluster chat URL:
 -- UPDATE tickets.provider_config
---   SET base_url = 'http://llm-gateway-chat.workspace.svc.cluster.local:11434/v1'
---   WHERE source = 'assistant-chat' AND provider = 'local-cluster';
--- Or use the /admin/ki-konfiguration UI.
+--   SET base_url = 'http://llm-gateway-chat.workspace.svc.cluster.local:11434/v1', enabled = true
+--   WHERE provider = 'local-cluster';
 
 -- ── ticket-triage: DeepSeek priority 1, local-cluster priority 2 ─────────────
 INSERT INTO tickets.provider_config (source, tier, priority, provider, model_id, base_url, enabled)
 VALUES
   ('ticket-triage', 'haiku', 1, 'deepseek',      'deepseek-chat', 'https://api.deepseek.com/v1', true),
-  ('ticket-triage', 'haiku', 2, 'local-cluster', 'mistral',       NULL,                          true)
+  ('ticket-triage', 'haiku', 2, 'local-cluster', 'mistral',       NULL,                          false)
 ON CONFLICT (source, tier, priority) DO UPDATE
   SET provider   = EXCLUDED.provider,
       model_id   = EXCLUDED.model_id,

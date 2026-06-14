@@ -63,8 +63,8 @@ Rules:
         break;
       }
     } catch (err) {
-      await setProviderCooldown(pool, SOURCE.ticketTriage, cfg.provider, 5);
       if (attempt === 1) {
+        await setProviderCooldown(pool, SOURCE.ticketTriage, cfg.provider, 5);
         return new Response(JSON.stringify({ error: 'LLM nicht erreichbar' }), { status: 503 });
       }
     }

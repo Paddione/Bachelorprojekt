@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { KiConfig } from '../../../lib/coaching-ki-config-db';
   import type { StepTemplate } from '../../../lib/coaching-templates-db';
+  import { interfaceById, type InterfaceDef, type ParamKey } from '../../../lib/ki-catalog';
 
   let {
     initialProviders,
@@ -83,23 +84,20 @@
     return isNaN(v) ? null : v;
   }
 
-  const KNOWN_FIELD_MAP: Record<string, string[]> = {
-    openai:  ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'presencePenalty', 'frequencyPenalty', 'organizationId', 'systemPrompt', 'notes'],
-    mistral: ['apiKey', 'apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'topK', 'safePrompt', 'randomSeed', 'euEndpoint', 'systemPrompt', 'notes'],
-    lumo:    ['apiEndpoint', 'modelName', 'temperature', 'maxTokens', 'topP', 'systemPrompt', 'notes'],
-  };
+  // Coaching-Feldliste aus dem Katalog ableiten (SSOT statt hardcodierter Map).
+  function fieldsForCatalog(def: InterfaceDef | undefined): string[] {
+    const out = ['apiEndpoint', 'modelName', ...(def?.supportsParams ?? ['temperature', 'maxTokens', 'topP', 'systemPrompt'] as ParamKey[]), 'notes'];
+    if (!def || def.apiKeyEnv || def.perRowApiKey || def.custom) out.push('apiKey');
+    return out;
+  }
 
   function showField(p: KiConfig, field: string): boolean {
     if (p.enabledFields !== null) return p.enabledFields.includes(field);
-    return (KNOWN_FIELD_MAP[p.provider] ?? []).includes(field);
+    return fieldsForCatalog(interfaceById(p.provider)).includes(field);
   }
 
-  const PROVIDER_BADGE: Record<string, string> = {
-    openai: 'OpenAI', mistral: 'Mistral AI', lumo: 'Lumo',
-  };
-
   function providerBadgeLabel(p: KiConfig): string {
-    return PROVIDER_BADGE[p.provider] ?? (p.displayName || p.provider);
+    return interfaceById(p.provider)?.label ?? (p.displayName || p.provider);
   }
 
   function isCustom(p: KiConfig): boolean {

@@ -1,6 +1,6 @@
 ---
-ticket_id: null
-plan_ref: null
+ticket_id: T000707
+plan_ref: docs/superpowers/plans/2026-06-14-ki-api-konfiguration.md
 status: active
 date: 2026-06-14
 ---

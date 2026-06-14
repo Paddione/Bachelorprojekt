@@ -270,6 +270,17 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.schedulePersist(adminRoom);
       break;
     }
+    case 'admin_set_board_template': {
+      if (typeof msg.boardTemplateId !== 'string') return;
+      const { getBoardTemplate } = await import('./board-templates');
+      const { getPool } = await import('./db');
+      const tpl = await getBoardTemplate(getPool(), msg.boardTemplateId);
+      if (tpl?.state && deps.applyTemplateToRoom) {
+        deps.applyTemplateToRoom(adminRoom, tpl.state, (m: any) => deps.broadcast(adminRoom, m));
+      }
+      deps.schedulePersist(adminRoom);
+      break;
+    }
     case 'admin_spotlight_set': {
       // figureId: string|null — null deaktiviert den Spotlight
       const figureId = (typeof msg.figureId === 'string') ? msg.figureId : null;

@@ -28,8 +28,10 @@ import { maybeStartReplayMode } from './replay-board';
 export { maybeStartReplayMode, applyReplayStateToScene } from './replay-board';
 import { mountInviteButton } from './ui/topbar-invite';
 import { mountShareButton } from './ui/topbar-share';
+import { mountTemplateSaveButton } from './ui/board-template-save';
 import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
+import { initExportToast } from './ui/export-toast';
 import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topbar-filter';
 
 export async function bootBoard(): Promise<void> {
@@ -49,6 +51,7 @@ export async function bootBoard(): Promise<void> {
 
   // ── Export-UI (T000466) ────────────────────────────────────────────────────
   exportUi.initExportButtons(renderer.domElement);
+  initExportToast();
 
   // ── Import-UI (00899a42) ────────────────────────────────────────────────────
   importUi.initImportButton();
@@ -101,6 +104,13 @@ export async function bootBoard(): Promise<void> {
     role: myRole(),
     isAdmin: _isAdmin,
   });
+  const topbarShareSlot = document.getElementById('topbar-share-slot');
+  if (topbarShareSlot && myRole() === 'leiter') {
+    mountTemplateSaveButton(topbarShareSlot.parentElement!, {
+      getState: () => ({ figures: STATE.figures.map(f => ({ id: f.id, label: f.label, x: f.root.position.x, z: f.root.position.z, facingY: f.facingY })) }),
+      onSaved: () => {},
+    });
+  }
 
   wsClient.setLateJoinHandler((name) => {
     if (myRole() === 'leiter') showLateJoinToast(name);

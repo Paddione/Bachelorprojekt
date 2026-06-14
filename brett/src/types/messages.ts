@@ -26,6 +26,7 @@ export type ClientMessage =
   | { type: 'admin_assign_role'; targetPlayerId: string; role: Role }
   | { type: 'admin_assign_figure'; figureId: string; toPlayerId: string | null }
   | { type: 'admin_set_template'; templateId: string }
+  | { type: 'admin_set_board_template'; boardTemplateId: string }
   | { type: 'admin_set_optik'; settings: OptikSettings }
   | { type: 'lobby_set_ready'; ready: boolean }
   | { type: 'figure_possess'; figureId: string }

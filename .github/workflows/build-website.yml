@@ -68,11 +68,71 @@ jobs:
       - name: Deploy to mentolder
         env:
           KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+          BRAND_ID: mentolder
+          PROD_DOMAIN: mentolder.de
+          BRAND_NAME: Mentolder
+          CONTACT_EMAIL: info@mentolder.de
+          CONTACT_PHONE: ${{ secrets.CONTACT_PHONE }}
+          CONTACT_CITY: "Lüneburg, Hamburg und Umgebung"
+          CONTACT_NAME: Gerald Korczewski
+          LEGAL_STREET: ${{ secrets.LEGAL_STREET }}
+          LEGAL_ZIP: ${{ secrets.LEGAL_ZIP }}
+          LEGAL_JOBTITLE: Coach und digitaler Begleiter
+          LEGAL_UST_ID: ${{ secrets.LEGAL_UST_ID }}
+          LEGAL_WEBSITE: mentolder.de
+          SMTP_USER: mentolder@mailbox.org
+          SMTP_HOST: smtp.mailbox.org
+          SMTP_PORT: "587"
+          SMTP_SECURE: "false"
+          SMTP_FROM: info@mentolder.de
+          AUTH_EXTERNAL_URL: https://auth.mentolder.de
+          NEXTCLOUD_EXTERNAL_URL: https://files.mentolder.de
+          DOCS_URL: https://docs.mentolder.de
+          VAULT_EXTERNAL_URL: https://vault.mentolder.de
+          WHITEBOARD_EXTERNAL_URL: https://files.mentolder.de/apps/files
+          TRAEFIK_EXTERNAL_URL: https://traefik.mentolder.de
+          MAIL_EXTERNAL_URL: https://mail.mentolder.de
+          BRETT_DOMAIN: brett.mentolder.de
+          LIVEKIT_DOMAIN: livekit.mentolder.de
+          STREAM_DOMAIN: stream.mentolder.de
+          CLUSTER_ENV: fleet-mentolder
+          ARENA_WS_URL: https://arena-ws.mentolder.de
+          LLM_ENABLED: "true"
+          LLM_RERANK_ENABLED: "false"
+          LLM_ROUTER_URL: http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234
+          LLM_EMBED_URL: http://llm-gateway-embed.workspace.svc.cluster.local:8081
+          WEBSITE_IMAGE: mentolder-website
+          WEBSITE_NAMESPACE: website
+          WORKSPACE_NAMESPACE: workspace
+          SYSTEMTEST_LOOP_ENABLED: "false"
+          COMFY_HOST_IP: ""
+          COMFY_PORT: ""
+          RIGGER_PORT: "8190"
         run: |
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
+            | bash -s -- 5.4.3 /usr/local/bin
           mkdir -p ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+
+          # Derived vars
+          WEBSITE_HOST="web.${PROD_DOMAIN}"
+          WEBSITE_SITE_URL="https://web.${PROD_DOMAIN}"
+          KEYCLOAK_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
+          RIGGER_HOST_IP="${COMFY_HOST_IP}"
+          export WEBSITE_HOST WEBSITE_SITE_URL KEYCLOAK_FRONTEND_URL RIGGER_HOST_IP
+
+          # Apply full website overlay (ConfigMap + networking + Deployment with :latest).
+          # The sed step adds YAML string quotes around unquoted ${VAR} placeholders so
+          # server-side apply doesn't reject boolean/integer fields as wrong types.
+          kustomize build prod-fleet/website-mentolder --load-restrictor=LoadRestrictionsNone \
+            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
+            | envsubst '$WEBSITE_IMAGE $BRAND_ID $BRAND_NAME $CONTACT_EMAIL $CONTACT_NAME $CONTACT_PHONE $CONTACT_CITY $LEGAL_STREET $LEGAL_ZIP $LEGAL_JOBTITLE $LEGAL_UST_ID $LEGAL_WEBSITE $SMTP_FROM $SMTP_USER $SMTP_HOST $SMTP_PORT $SMTP_SECURE $WEBSITE_HOST $WEBSITE_SITE_URL $KEYCLOAK_FRONTEND_URL $NEXTCLOUD_EXTERNAL_URL $DOCS_URL $AUTH_EXTERNAL_URL $VAULT_EXTERNAL_URL $WHITEBOARD_EXTERNAL_URL $TRAEFIK_EXTERNAL_URL $MAIL_EXTERNAL_URL $BRETT_DOMAIN $LIVEKIT_DOMAIN $STREAM_DOMAIN $PROD_DOMAIN $CLUSTER_ENV $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE $SYSTEMTEST_LOOP_ENABLED $ARENA_WS_URL $LLM_ENABLED $LLM_RERANK_ENABLED $LLM_ROUTER_URL $LLM_EMBED_URL $COMFY_HOST_IP $COMFY_PORT $RIGGER_HOST_IP $RIGGER_PORT' \
+            | sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' \
+            | kubectl apply --server-side --force-conflicts -f -
+
+          # Pin to the exact SHA-tagged image to guarantee the freshly built version rolls out.
           kubectl set image deployment/website website="${IMAGE}:${SHA_TAG}" -n website
           kubectl rollout status deployment/website -n website --timeout=120s

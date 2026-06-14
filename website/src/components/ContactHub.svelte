@@ -1,8 +1,10 @@
 <script lang="ts">
   import ContactForm from './ContactForm.svelte';
   import BookingForm from './BookingForm.svelte';
+  import { type Locale } from '../i18n/index';
 
   interface Props {
+    locale?: Locale;
     initialMode?: 'message' | 'termin' | 'callback' | null;
     initialServiceKey?: string;
     initialDate?: string;
@@ -19,6 +21,7 @@
   }
 
   let {
+    locale = 'de',
     initialMode = null,
     initialServiceKey,
     initialDate = '',
@@ -95,7 +98,7 @@
             <BookingForm initialType="erstgespraech" serviceKey={initialServiceKey}
               {initialDate} {initialStart} {initialEnd} />
           {:else if activeMode === 'message'}
-            <ContactForm />
+            <ContactForm {locale} />
           {:else}
             <BookingForm initialType="callback" serviceKey={initialServiceKey} />
           {/if}

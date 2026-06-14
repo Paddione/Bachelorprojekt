@@ -5,7 +5,9 @@ import BookingForm from '../components/BookingForm.svelte';
 import { config } from '../config/index';
 import { getEffectiveKontakt, getEffectiveStammdaten } from '../lib/content';
 import { getSiteSetting, getSeoOgImage } from '../lib/website-db';
+import { getLocaleFromUrl, type Locale } from '../i18n/index';
 
+const locale: Locale = (Astro.locals.locale as Locale) ?? getLocaleFromUrl(Astro.url);
 const BRAND_ID = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const isKore = BRAND_ID === 'korczewski';
 const layoutBrand = isKore ? 'korczewski-kore' : undefined;
@@ -68,6 +70,7 @@ const seoOgImage = await getSeoOgImage(BRAND_ID, 'kontakt').catch(() => null);
   <!-- ContactHub now owns the mode switcher + booking grid + sidebar -->
   <ContactHub
     client:load
+    {locale}
     initialMode={initialMode}
     initialServiceKey={initialServiceKey}
     {initialDate} {initialStart} {initialEnd}

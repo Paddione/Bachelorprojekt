@@ -12,8 +12,12 @@ export function createSessionAgent(kiConfig: KiConfig): SessionAgent {
     return new ClaudeSessionAgent();
   }
 
-  // OpenAI-compatible local/custom endpoints → RAG injection from pgvector
-  if (provider.startsWith('custom_') || provider === 'lumo') {
+  // OpenAI-compatible: custom local, DeepSeek external API, cluster-local gateways
+  const OAI_COMPAT = new Set([
+    'lumo', 'deepseek', 'anthropic',
+    'local-cluster', 'local-lmstudio', 'local-ollama',
+  ]);
+  if (provider.startsWith('custom_') || OAI_COMPAT.has(provider)) {
     return new OpenAICompatibleSessionAgent();
   }
 

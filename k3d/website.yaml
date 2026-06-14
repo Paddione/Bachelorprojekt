@@ -403,6 +403,12 @@ spec:
                   name: website-secrets
                   key: LLM_ROUTER_API_KEY
                   optional: true
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: DEEPSEEK_API_KEY
+                  optional: true
             - name: EVIDENCE_ROOT
               value: "/var/evidence"
             - name: COMFY_HOST_IP

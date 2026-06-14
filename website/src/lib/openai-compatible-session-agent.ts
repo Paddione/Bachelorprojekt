@@ -1,5 +1,38 @@
 import type { SessionAgent, GenerateOptions, GenerateResult } from './session-agent';
+import type { KiConfig } from './coaching-ki-config-db';
 import { searchCoachingKnowledgeTool } from './session-tools';
+
+function resolveEndpoint(kiConfig: KiConfig): string {
+  if (kiConfig.apiEndpoint) return kiConfig.apiEndpoint;
+  const gpuBase = process.env.LLM_HOST_IP?.trim() || 'localhost';
+  const defaults: Record<string, string> = {
+    'deepseek': 'https://api.deepseek.com/v1',
+    'anthropic': 'http://llm-gateway-chat.workspace.svc.cluster.local:11434/v1',
+    'local-cluster': process.env.LLM_ROUTER_URL ?? `http://${gpuBase}:11434/v1`,
+    'local-lmstudio': `http://${gpuBase}:1234/v1`,
+    'local-ollama': `http://${gpuBase}:11434/v1`,
+  };
+  const url = defaults[kiConfig.provider];
+  if (!url) throw new Error(`OpenAICompatibleSessionAgent: apiEndpoint fehlt für provider '${kiConfig.provider}'`);
+  return url;
+}
+
+function resolveApiKey(kiConfig: KiConfig): string {
+  if (kiConfig.apiKey) return kiConfig.apiKey;
+  if (kiConfig.provider === 'deepseek') return process.env.DEEPSEEK_API_KEY ?? 'not-required';
+  if (kiConfig.provider === 'anthropic') return process.env.ANTHROPIC_API_KEY ?? 'not-required';
+  return 'not-required';
+}
+
+function resolveModel(kiConfig: KiConfig): string {
+  if (kiConfig.modelName) return kiConfig.modelName;
+  const defaults: Record<string, string> = {
+    'deepseek': 'deepseek-chat',
+    'local-lmstudio': 'qwen2.5-7b',
+    'local-ollama': 'qwen2.5',
+  };
+  return defaults[kiConfig.provider] ?? 'llama3';
+}
 
 async function buildEnrichedSystemPrompt(
   basePrompt: string,
@@ -23,17 +56,11 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
     const startMs = Date.now();
 
-    if (!kiConfig.apiEndpoint) {
-      throw new Error(`OpenAICompatibleSessionAgent: apiEndpoint fehlt für provider '${kiConfig.provider}'`);
-    }
-
+    const endpoint = resolveEndpoint(kiConfig);
     const enrichedSystem = await buildEnrichedSystemPrompt(effectiveSystemPrompt, assembledUserPrompt);
 
     const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({
-      apiKey: kiConfig.apiKey ?? 'not-required',
-      baseURL: kiConfig.apiEndpoint,
-    });
+    const client = new OpenAI({ apiKey: resolveApiKey(kiConfig), baseURL: endpoint });
 
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: enrichedSystem },
@@ -41,8 +68,9 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
       { role: 'user', content: assembledUserPrompt },
     ];
 
+    const model = resolveModel(kiConfig);
     const resp = await client.chat.completions.create({
-      model: kiConfig.modelName ?? 'llama3',
+      model,
       max_tokens: kiConfig.maxTokens ?? 800,
       temperature: kiConfig.temperature ?? undefined,
       top_p: kiConfig.topP ?? undefined,
@@ -50,28 +78,17 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     });
 
     const aiResponse = resp.choices[0]?.message.content ?? '';
-    return {
-      aiResponse,
-      provider: kiConfig.provider,
-      model: kiConfig.modelName ?? 'unknown',
-      durationMs: Date.now() - startMs,
-    };
+    return { aiResponse, provider: kiConfig.provider, model, durationMs: Date.now() - startMs };
   }
 
   async *stream(options: GenerateOptions): AsyncIterable<string> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
 
-    if (!kiConfig.apiEndpoint) {
-      throw new Error(`OpenAICompatibleSessionAgent: apiEndpoint fehlt für provider '${kiConfig.provider}'`);
-    }
-
+    const endpoint = resolveEndpoint(kiConfig);
     const enrichedSystem = await buildEnrichedSystemPrompt(effectiveSystemPrompt, assembledUserPrompt);
 
     const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({
-      apiKey: kiConfig.apiKey ?? 'not-required',
-      baseURL: kiConfig.apiEndpoint,
-    });
+    const client = new OpenAI({ apiKey: resolveApiKey(kiConfig), baseURL: endpoint });
 
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: enrichedSystem },
@@ -80,7 +97,7 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     ];
 
     const stream = await client.chat.completions.create({
-      model: kiConfig.modelName ?? 'llama3',
+      model: resolveModel(kiConfig),
       max_tokens: kiConfig.maxTokens ?? 800,
       temperature: kiConfig.temperature ?? undefined,
       top_p: kiConfig.topP ?? undefined,

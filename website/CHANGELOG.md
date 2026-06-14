@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.68.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.67.1...website-v1.68.0) (2026-06-14)
+
+
+### Features
+
+* **llm-routing:** dynamic DeepSeek/GPU-Worker routing for assistant-chat, ticket-triage & embeddings [T000718] ([#1660](https://github.com/Paddione/Bachelorprojekt/issues/1660)) ([4b8952c](https://github.com/Paddione/Bachelorprojekt/commit/4b8952c922fc0d42dfc010499b9ccd3694d505e0))
+
 ## [1.67.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.67.0...website-v1.67.1) (2026-06-14)
 
 

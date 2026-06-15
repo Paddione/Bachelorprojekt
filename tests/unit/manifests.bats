@@ -151,9 +151,13 @@ all_images() {
 # ── Image Pinning ────────────────────────────────────────────────
 
 @test "no core service images use :latest tag" {
-  # MCP sidecar images may use :latest (upstream-controlled); skip those
+  # MCP sidecar images may use :latest (upstream-controlled); skip those.
+  # website (paddione/bachelorprojekt build), workspace-brett, docs and videovault
+  # use :latest intentionally — each is rebuilt and re-imported/pushed on every
+  # release (see CLAUDE.md "Website, Brett, and Docs images use :latest"); videovault
+  # joined that set with its migration into k3d/ base.
   local latest_images
-  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|talk-transcriber|paddione/bachelorprojekt|workspace-brett|docs)' || true)
+  latest_images=$(all_images | grep ':latest$' | grep -ivE '(mcp|openapi-mcp|github-mcp|keycloak-mcp|nextcloud-mcp|curlimages/curl|talk-transcriber|paddione/bachelorprojekt|workspace-brett|docs|videovault)' || true)
   if [[ -n "$latest_images" ]]; then
     echo "Core images using :latest: ${latest_images}"
     return 1

@@ -1,16 +1,11 @@
 import { writable, derived, get } from 'svelte/store';
 
-export type Lens = 'ueberblick' | 'werkbank';
-export type Mode = 'karten' | 'tabelle';
-
 export interface OptimisticEdit {
   ticketId: string; field: string; oldValue: unknown; newValue: unknown;
 }
 export interface CockpitState {
-  lens: Lens;
-  mode: Mode;
-  currentProduct: string | null;
-  currentFeature: string | null;
+  selectedFeature: string | null;
+  activeTicket: string | null;
   selectedTickets: Set<string>;
   optimistic: Record<string, OptimisticEdit>;
   error: string | null;
@@ -25,10 +20,8 @@ const setLs = (k: string, v: string | null): void => {
 };
 
 const initial: CockpitState = {
-  lens: (ls('cockpit:lens') as Lens) ?? 'ueberblick',
-  mode: (ls('cockpit:mode') as Mode) ?? 'karten',
-  currentProduct: ls('cockpit:produkt'),
-  currentFeature: null,
+  selectedFeature: ls('cockpit:feature'),
+  activeTicket: null,
   selectedTickets: new Set<string>(),
   optimistic: {},
   error: null,
@@ -41,36 +34,29 @@ export const selectedCount = derived(cockpitStore, ($s) => $s.selectedTickets.si
 function syncUrl(s: CockpitState): void {
   if (typeof window === 'undefined') return;
   const u = new URL(window.location.href);
-  u.searchParams.set('lens', s.lens);
-  u.searchParams.set('mode', s.mode);
-  if (s.currentProduct) u.searchParams.set('produkt', s.currentProduct);
-  else u.searchParams.delete('produkt');
+  if (s.selectedFeature) u.searchParams.set('feature', s.selectedFeature);
+  else u.searchParams.delete('feature');
+  u.searchParams.delete('lens');
+  u.searchParams.delete('mode');
+  u.searchParams.delete('produkt');
   window.history.replaceState({}, '', u);
 }
 
 export function initStoreFromUrl(p: URLSearchParams): void {
   cockpitStore.update((s) => ({
     ...s,
-    lens: (p.get('lens') as Lens) ?? s.lens,
-    mode: (p.get('mode') as Mode) ?? s.mode,
-    currentProduct: p.get('produkt') ?? s.currentProduct,
+    selectedFeature: p.get('feature') ?? s.selectedFeature,
   }));
 }
 
-export function setLens(lens: Lens): void {
-  cockpitStore.update((s) => { const n = { ...s, lens }; setLs('cockpit:lens', lens); syncUrl(n); return n; });
-}
-export function setMode(mode: Mode): void {
-  cockpitStore.update((s) => { const n = { ...s, mode }; setLs('cockpit:mode', mode); syncUrl(n); return n; });
-}
-export function selectProduct(extId: string | null): void {
+export function selectFeature(extId: string | null): void {
   cockpitStore.update((s) => {
-    const n = { ...s, currentProduct: extId, currentFeature: null };
-    setLs('cockpit:produkt', extId); syncUrl(n); return n;
+    const n = { ...s, selectedFeature: extId, selectedTickets: new Set<string>() };
+    setLs('cockpit:feature', extId); syncUrl(n); return n;
   });
 }
-export function selectFeature(extId: string | null): void {
-  cockpitStore.update((s) => ({ ...s, currentFeature: extId }));
+export function setActiveTicket(id: string | null): void {
+  cockpitStore.update((s) => ({ ...s, activeTicket: id }));
 }
 export function toggleTicketSelection(id: string): void {
   cockpitStore.update((s) => {

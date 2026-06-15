@@ -53,7 +53,7 @@ Ships the data layer first: the recursive view, its dated migration, the contrac
 
 > **Why a separate module (S1):** `tickets-db.ts` is **baselined at 1106**, current **1094** → only **12 lines headroom**. The ~55-line view appended inline would push it past 1106 → **S1 ratchet FAIL**. So the DDL lives in a new module and `tickets-db.ts` only gains the import + a one-line call.
 
-- [ ] **Step 1: Write the failing test (asserts the exported SQL constant)**
+- [x] **Step 1: Write the failing test (asserts the exported SQL constant)**
 
 Create `website/src/lib/tickets/cockpit-schema.test.ts`:
 
@@ -89,12 +89,12 @@ describe('COCKPIT_ROLLUP_VIEW_SQL', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and verify it fails**
+- [x] **Step 2: Run it and verify it fails**
 
 Run: `cd website && pnpm test -- cockpit-schema.test.ts`
 Expected: FAIL — the module/constant does not exist yet.
 
-- [ ] **Step 3: Implement `cockpit-schema.ts` (correct SQL, no placeholder)**
+- [x] **Step 3: Implement `cockpit-schema.ts` (correct SQL, no placeholder)**
 
 Create `website/src/lib/tickets/cockpit-schema.ts` — the view DDL as an exported constant (single source of truth, reused verbatim by the Task 2 migration):
 
@@ -164,7 +164,7 @@ export async function ensureCockpitViews(pool: import('pg').Pool): Promise<void>
 
 > The `LEFT JOIN agg a ON a.container_id = c.id` sits **before** the `WHERE` (valid SQL order) so the final `SELECT`'s `a.*` columns resolve. No placeholder, no `.replace()` trap. This DDL string is the single source of truth — Task 2's migration mirrors it verbatim.
 
-- [ ] **Step 4: Wire into the schema bootstrap (≤ 2 net lines; keep tickets-db.ts ≤ 1106)**
+- [x] **Step 4: Wire into the schema bootstrap (≤ 2 net lines; keep tickets-db.ts ≤ 1106)**
 
 In `website/src/lib/tickets-db.ts`: add the import next to the other `tickets/*` imports, and call it inside `initTicketsSchema()` right after the `v_active_features` block:
 
@@ -176,12 +176,12 @@ await ensureCockpitViews(pool);
 
 Verify: `wc -l website/src/lib/tickets-db.ts` → **≤ 1106** (baseline; expect ~1096).
 
-- [ ] **Step 5: Run the test and verify it passes**
+- [x] **Step 5: Run the test and verify it passes**
 
 Run: `cd website && pnpm test -- cockpit-schema.test.ts`
 Expected: PASS (all four cases green).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/lib/tickets/cockpit-schema.ts website/src/lib/tickets/cockpit-schema.test.ts website/src/lib/tickets-db.ts
@@ -195,7 +195,7 @@ git commit -m "feat(cockpit): v_cockpit_rollup in cockpit-schema module (S1-safe
 **Files:**
 - Create: `scripts/migrations/2026-06-15-cockpit-rollup-view.sql`
 
-- [ ] **Step 1: Write the migration file**
+- [x] **Step 1: Write the migration file**
 
 Create `scripts/migrations/2026-06-15-cockpit-rollup-view.sql` with the **verbatim** body of `COCKPIT_ROLLUP_VIEW_SQL` (from `website/src/lib/tickets/cockpit-schema.ts`, Task 1) — single source of truth, mirrored here for explicit prod application:
 
@@ -251,12 +251,12 @@ LEFT JOIN agg a ON a.container_id = c.id
 WHERE c.type IN ('project', 'feature');
 ```
 
-- [ ] **Step 2: Verify the file exists and the SQL is well-formed**
+- [x] **Step 2: Verify the file exists and the SQL is well-formed**
 
 Run: `ls -la scripts/migrations/2026-06-15-cockpit-rollup-view.sql && head -5 scripts/migrations/2026-06-15-cockpit-rollup-view.sql`
 Expected: file present; comment header reads "Cockpit Rollup View".
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/migrations/2026-06-15-cockpit-rollup-view.sql

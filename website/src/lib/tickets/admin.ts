@@ -9,6 +9,7 @@
 
 import { pool, type Customer } from '../website-db';
 import { initTicketsSchema } from '../tickets-db';
+import type { GrillingAnswers } from './grilling';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -47,8 +48,7 @@ export interface ListedTicket {
   tagNames: string[];
   createdAt: Date;
   updatedAt: Date;
-  aiQuestion:   string | null;
-  humanAnswer:  string | null;
+  aiQuestion: string | null; humanAnswer: string | null;
 }
 
 export interface TicketDetail extends ListedTicket {
@@ -67,6 +67,7 @@ export interface TicketDetail extends ListedTicket {
   children: ListedTicket[];
   links: TicketLinkRow[];
   attachments: TicketAttachmentRow[];
+  grillingAnswers: GrillingAnswers | null;
 }
 
 export interface TicketLinkRow {
@@ -148,7 +149,7 @@ const LIST_COLS = `
         WHERE tt.ticket_id = t.id), ARRAY[]::text[]
     ) AS "tagNames",
     t.created_at AS "createdAt", t.updated_at AS "updatedAt",
-    t.ai_question AS "aiQuestion", t.human_answer AS "humanAnswer"
+    t.ai_question AS "aiQuestion", t.human_answer AS "humanAnswer", t.grilling_answers AS "grillingAnswers"
 `;
 const LIST_FROM = `
   FROM tickets.tickets t
@@ -478,8 +479,8 @@ export async function patchAdminTicket(p: {
   startDate?: string | null;
   dueDate?: string | null;
   estimateMinutes?: number | null;
-  aiQuestion?:   string | null;
-  humanAnswer?:  string | null;
+  aiQuestion?: string | null; humanAnswer?: string | null;
+  grillingAnswers?: GrillingAnswers | null;
   actor: { id?: string; label: string };
 }): Promise<void> {
   await initTicketsSchema();
@@ -504,9 +505,8 @@ export async function patchAdminTicket(p: {
   if (p.startDate   !== undefined) push('start_date',      p.startDate);
   if (p.dueDate     !== undefined) push('due_date',        p.dueDate);
   if (p.estimateMinutes !== undefined) push('estimate_minutes', p.estimateMinutes);
-  if (p.aiQuestion   !== undefined) push('ai_question',  p.aiQuestion);
-  if (p.humanAnswer  !== undefined) push('human_answer', p.humanAnswer);
-
+  if (p.aiQuestion !== undefined) push('ai_question', p.aiQuestion); if (p.humanAnswer !== undefined) push('human_answer', p.humanAnswer);
+  if (p.grillingAnswers !== undefined) push('grilling_answers', p.grillingAnswers);
   if (sets.length === 0) return;
 
   const client = await pool.connect();

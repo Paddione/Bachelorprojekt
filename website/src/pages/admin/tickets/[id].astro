@@ -12,6 +12,7 @@ import {
 } from '../../../lib/questionnaire-db';
 import { getDisplayScores } from '../../../lib/compute-scores';
 import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
+import GrillingAnswersPanel from '../../../components/admin/GrillingAnswersPanel.svelte';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
@@ -147,6 +148,12 @@ function fmtDateTime(d: Date | string | null): string {
               </p>
             )}
           </div>
+
+          <GrillingAnswersPanel
+            client:load
+            ticketId={ticket.id}
+            grillingAnswers={ticket.grillingAnswers ?? null}
+          />
 
           <ProjectQuestionnairesPanel assignments={questionnaireBundles} />
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { PortfolioPayload, FeatureTickets, TicketRow } from '../../lib/tickets/cockpit-types';
+  import type { PortfolioPayload, FeatureTickets, TicketRow, FeatureNode } from '../../lib/tickets/cockpit-types';
   import { cockpitStore, selectFeature, setActiveTicket, initStoreFromUrl, setLoading, setError }
     from '../../lib/stores/cockpitStore';
   import CockpitSidebar from './CockpitSidebar.svelte';
@@ -21,9 +21,22 @@
   $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
 
+  // Pick a sensible default feature so the cockpit lands on a populated
+  // ticket list instead of an empty table. Prefer the first non-discarded
+  // feature that actually has tickets; fall back to the first feature.
+  function pickDefaultFeature(): FeatureNode | null {
+    const feats = allFeatures.filter((f) => !f.discarded);
+    return feats.find((f) => (f.rollup?.total ?? 0) > 0) ?? feats[0] ?? allFeatures[0] ?? null;
+  }
+
   onMount(async () => {
     if (typeof window !== 'undefined') initStoreFromUrl(new URL(window.location.href).searchParams);
     if (!portfolio) await loadPortfolio();
+    // No feature from URL/localStorage → auto-select one so tickets show on open.
+    if (!$cockpitStore.selectedFeature) {
+      const def = pickDefaultFeature();
+      if (def) selectFeature(def.extId);
+    }
     if ($cockpitStore.selectedFeature) await loadFeature($cockpitStore.selectedFeature);
   });
 

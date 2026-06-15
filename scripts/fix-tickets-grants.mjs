@@ -98,7 +98,16 @@ async function reownSchemas(client) {
 }
 
 async function applyGrants(client) {
+  const existingSchemas = (await client.query(
+    `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ANY($1)`,
+    [SCHEMAS]
+  )).rows.map(r => r.schema_name);
+
   for (const schema of SCHEMAS) {
+    if (!existingSchemas.includes(schema)) {
+      console.log(`  Skipping grants for non-existent schema: ${schema}`);
+      continue;
+    }
     const { tablePrivs, seqPrivs } = SCHEMA_GRANTS[schema];
 
     await client.query(`GRANT USAGE ON SCHEMA ${schema} TO website`);

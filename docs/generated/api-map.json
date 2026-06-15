@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T13:00:32.431Z",
+  "generatedAt": "2026-06-15T13:14:13.067Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -772,6 +772,14 @@
       "file": "website/src/pages/api/admin/cockpit/feature.ts"
     },
     {
+      "path": "/api/admin/cockpit/feature-action",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/feature-action.ts"
+    },
+    {
       "path": "/api/admin/cockpit/portfolio",
       "methods": [
         "GET"
@@ -794,6 +802,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/cockpit/reparent.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/suggest",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/suggest.ts"
     },
     {
       "path": "/api/admin/components",

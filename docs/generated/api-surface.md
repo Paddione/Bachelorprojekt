@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-06-15T13:00:32.431Z
+> Generated at 2026-06-15T13:14:13.067Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -98,9 +98,11 @@
 | `/api/admin/coaching/templates/{id}/versions` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/templates/[id]/versions.ts` |
 | `/api/admin/cockpit/batch` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/batch.ts` |
 | `/api/admin/cockpit/feature` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/feature.ts` |
+| `/api/admin/cockpit/feature-action` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-action.ts` |
 | `/api/admin/cockpit/portfolio` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/portfolio.ts` |
 | `/api/admin/cockpit/reorder` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reorder.ts` |
 | `/api/admin/cockpit/reparent` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/reparent.ts` |
+| `/api/admin/cockpit/suggest` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/suggest.ts` |
 | `/api/admin/components` | GET, POST | 🔐 admin | `website/src/pages/api/admin/components/index.ts` |
 | `/api/admin/components/{id}` | PATCH, DELETE | 🔐 admin | `website/src/pages/api/admin/components/[id].ts` |
 | `/api/admin/content/restore` | POST | 🔐 admin | `website/src/pages/api/admin/content/restore.ts` |

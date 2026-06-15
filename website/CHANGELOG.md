@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.70.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.70.1...website-v1.70.2) (2026-06-15)
+
+
+### Bug Fixes
+
+* **dev-status:** ReferenceError: Buffer is not defined — alle Tabs nicht interaktiv ([#1679](https://github.com/Paddione/Bachelorprojekt/issues/1679)) ([ed83aba](https://github.com/Paddione/Bachelorprojekt/commit/ed83aba14119684275cabed51694f6e838f73fb4))
+
 ## [1.70.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.70.0...website-v1.70.1) (2026-06-15)
 
 

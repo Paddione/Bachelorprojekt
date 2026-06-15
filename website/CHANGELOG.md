@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.75.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.74.0...website-v1.75.0) (2026-06-15)
+
+
+### Features
+
+* **cockpit:** cutover /admin/tickets → Projekt-Cockpit [T000752] ([#1703](https://github.com/Paddione/Bachelorprojekt/issues/1703)) ([34483e0](https://github.com/Paddione/Bachelorprojekt/commit/34483e08961ba3982a05a8510a6ce809952b1bbf))
+
 ## [1.74.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.73.0...website-v1.74.0) (2026-06-15)
 
 

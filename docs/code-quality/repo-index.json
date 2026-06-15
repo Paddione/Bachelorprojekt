@@ -2208,7 +2208,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 307,
+      "file_count": 308,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2312,6 +2312,7 @@
         "scripts/code-quality/loop.sh",
         "scripts/code-quality/scan.mjs",
         "scripts/code-quality/scan.test.mjs",
+        "scripts/code-quality/tighten.mjs",
         "scripts/code-quality/validate.mjs",
         "scripts/code-quality/validate.test.mjs",
         "scripts/db-schema-diagram.py",

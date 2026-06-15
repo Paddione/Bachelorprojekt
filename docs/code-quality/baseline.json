@@ -13,13 +13,6 @@
     "detail": "3629 lines > 600 limit (.js)",
     "frozen_at": "6190a4e5"
   },
-  "S1:brett/src/client/board-boot.ts": {
-    "gate": "S1",
-    "path": "brett/src/client/board-boot.ts",
-    "metric": 603,
-    "detail": "603 lines > 600 limit (.ts)",
-    "frozen_at": "6190a4e5"
-  },
   "S1:k3d/talk-transcriber/app.py": {
     "gate": "S1",
     "path": "k3d/talk-transcriber/app.py",
@@ -76,6 +69,13 @@
     "detail": "719 lines > 500 limit (.svelte)",
     "frozen_at": "6190a4e5"
   },
+  "S1:website/src/components/admin/NewsletterAdmin.svelte": {
+    "gate": "S1",
+    "path": "website/src/components/admin/NewsletterAdmin.svelte",
+    "metric": 556,
+    "detail": "556 lines > 500 limit (.svelte)",
+    "frozen_at": "6190a4e5"
+  },
   "S1:website/src/components/admin/TicketsTab.svelte": {
     "gate": "S1",
     "path": "website/src/components/admin/TicketsTab.svelte",
@@ -86,8 +86,8 @@
   "S1:website/src/components/admin/coaching/CoachingSettings.svelte": {
     "gate": "S1",
     "path": "website/src/components/admin/coaching/CoachingSettings.svelte",
-    "metric": 600,
-    "detail": "600 lines > 500 limit (.svelte)",
+    "metric": 598,
+    "detail": "598 lines > 500 limit (.svelte)",
     "frozen_at": "6190a4e5"
   },
   "S1:website/src/components/assistant/QuestionnaireView.svelte": {
@@ -125,13 +125,6 @@
     "detail": "677 lines > 500 limit (.svelte)",
     "frozen_at": "6190a4e5"
   },
-  "S1:website/src/layouts/AdminLayout.astro": {
-    "gate": "S1",
-    "path": "website/src/layouts/AdminLayout.astro",
-    "metric": 444,
-    "detail": "444 lines > 400 limit (.astro)",
-    "frozen_at": "6190a4e5"
-  },
   "S1:website/src/lib/coaching-db.ts": {
     "gate": "S1",
     "path": "website/src/lib/coaching-db.ts",
@@ -156,8 +149,8 @@
   "S1:website/src/lib/tickets-db.ts": {
     "gate": "S1",
     "path": "website/src/lib/tickets-db.ts",
-    "metric": 1106,
-    "detail": "1106 lines > 600 limit (.ts)",
+    "metric": 1094,
+    "detail": "1094 lines > 600 limit (.ts)",
     "frozen_at": "6190a4e5"
   },
   "S1:website/src/lib/tickets/admin.ts": {
@@ -307,6 +300,20 @@
     "detail": "hardcoded host: brainstorm.mentolder.de",
     "frozen_at": "6190a4e5"
   },
+  "S3:k3d/realm-workspace-dev.json:grafana.korczewski.de": {
+    "gate": "S3",
+    "path": "k3d/realm-workspace-dev.json",
+    "metric": 1,
+    "detail": "hardcoded host: grafana.korczewski.de",
+    "frozen_at": "c69a1ae4"
+  },
+  "S3:k3d/realm-workspace-dev.json:grafana.mentolder.de": {
+    "gate": "S3",
+    "path": "k3d/realm-workspace-dev.json",
+    "metric": 1,
+    "detail": "hardcoded host: grafana.mentolder.de",
+    "frozen_at": "c69a1ae4"
+  },
   "S3:prod-fleet/website-mentolder/website-ingress-web.yaml:web.mentolder.de": {
     "gate": "S3",
     "path": "prod-fleet/website-mentolder/website-ingress-web.yaml",
@@ -432,6 +439,13 @@
     "metric": 1,
     "detail": "hardcoded host: signaling.mentolder.de",
     "frozen_at": "6190a4e5"
+  },
+  "S3:prod/monitoring/grafana-oidc-patch.yaml:auth.mentolder.de": {
+    "gate": "S3",
+    "path": "prod/monitoring/grafana-oidc-patch.yaml",
+    "metric": 1,
+    "detail": "hardcoded host: auth.mentolder.de",
+    "frozen_at": "c69a1ae4"
   },
   "S3:prod/realm-workspace-prod.json:files.korczewski.de": {
     "gate": "S3",
@@ -580,6 +594,13 @@
     "detail": "no reference to 'enroll-korczewski.sh' in any configured source",
     "frozen_at": "6190a4e5"
   },
+  "S4:scripts/migrate-content-hub-ssot.mjs": {
+    "gate": "S4",
+    "path": "scripts/migrate-content-hub-ssot.mjs",
+    "metric": 1,
+    "detail": "no reference to 'migrate-content-hub-ssot.mjs' in any configured source",
+    "frozen_at": "61680229"
+  },
   "S4:scripts/migrate-content-versions.mjs": {
     "gate": "S4",
     "path": "scripts/migrate-content-versions.mjs",
@@ -600,68 +621,5 @@
     "metric": 1,
     "detail": "no reference to 'skill-orchestrator.sh' in any configured source",
     "frozen_at": "6190a4e5"
-  },
-  "S1:brett/src/client/mannequin.ts": {
-    "gate": "S1",
-    "path": "brett/src/client/mannequin.ts",
-    "metric": 622,
-    "detail": "622 lines > 600 limit (.ts)",
-    "frozen_at": "58d80484"
-  },
-  "S1:brett/src/client/ws-client.ts": {
-    "gate": "S1",
-    "path": "brett/src/client/ws-client.ts",
-    "metric": 601,
-    "detail": "601 lines > 600 limit (.ts)",
-    "frozen_at": "58d80484"
-  },
-  "S1:brett/src/server/ws-handler.ts": {
-    "gate": "S1",
-    "path": "brett/src/server/ws-handler.ts",
-    "metric": 601,
-    "detail": "601 lines > 600 limit (.ts)",
-    "frozen_at": "58d80484"
-  },
-  "S1:website/src/components/admin/NewsletterAdmin.svelte": {
-    "gate": "S1",
-    "path": "website/src/components/admin/NewsletterAdmin.svelte",
-    "metric": 556,
-    "detail": "556 lines > 500 limit (.svelte)",
-    "frozen_at": "6190a4e5"
-  },
-  "S3:k3d/realm-workspace-dev.json:grafana.korczewski.de": {
-    "gate": "S3",
-    "path": "k3d/realm-workspace-dev.json",
-    "metric": 1,
-    "detail": "hardcoded host: grafana.korczewski.de",
-    "frozen_at": "c69a1ae4"
-  },
-  "S3:k3d/realm-workspace-dev.json:grafana.mentolder.de": {
-    "gate": "S3",
-    "path": "k3d/realm-workspace-dev.json",
-    "metric": 1,
-    "detail": "hardcoded host: grafana.mentolder.de",
-    "frozen_at": "c69a1ae4"
-  },
-  "S3:prod/monitoring/grafana-oidc-patch.yaml:auth.mentolder.de": {
-    "gate": "S3",
-    "path": "prod/monitoring/grafana-oidc-patch.yaml",
-    "metric": 1,
-    "detail": "hardcoded host: auth.mentolder.de",
-    "frozen_at": "c69a1ae4"
-  },
-  "S3:website/src/lib/platform-links.test.ts:auth.mentolder.de": {
-    "gate": "S3",
-    "path": "website/src/lib/platform-links.test.ts",
-    "metric": 1,
-    "detail": "hardcoded host: auth.mentolder.de",
-    "frozen_at": "c69a1ae4"
-  },
-  "S4:scripts/migrate-content-hub-ssot.mjs": {
-    "gate": "S4",
-    "path": "scripts/migrate-content-hub-ssot.mjs",
-    "metric": 1,
-    "detail": "no reference to 'migrate-content-hub-ssot.mjs' in any configured source",
-    "frozen_at": "61680229"
   }
 }

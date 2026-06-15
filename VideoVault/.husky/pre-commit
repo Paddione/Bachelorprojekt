@@ -1,0 +1,2 @@
+echo "[pre-commit] Running lint-staged (ESLint + Prettier)"
+npx lint-staged

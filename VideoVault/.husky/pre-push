@@ -1,0 +1,25 @@
+echo "[pre-push] 1/4 Verify Playwright version/image match"
+node scripts/ensure-playwright-match.mjs || {
+  echo "[pre-push] FAIL: Playwright version mismatch. Fix docker-compose.yml image tag or @playwright/test before pushing."
+  exit 1
+}
+
+echo "[pre-push] 2/4 Type check (tsc)"
+npm run -s check || {
+  echo "[pre-push] FAIL: TypeScript errors."
+  exit 1
+}
+
+echo "[pre-push] 3/4 Unit tests (Vitest)"
+npm test --silent || {
+  echo "[pre-push] FAIL: Unit tests failing."
+  exit 1
+}
+
+echo "[pre-push] 4/4 Server e2e tests (Vitest e2e)"
+npm run -s test:e2e || {
+  echo "[pre-push] FAIL: Server e2e tests failing."
+  exit 1
+}
+
+echo "[pre-push] All checks passed. Proceeding with push."

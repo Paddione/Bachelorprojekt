@@ -1,0 +1,60 @@
+# Production Dockerfile for VideoVault
+
+FROM node:20-bookworm-slim AS build
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  ca-certificates \
+  curl \
+  python3 \
+  build-essential \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copy shared modules (local to VideoVault)
+COPY VideoVault/shared/ /app/shared/
+
+COPY VideoVault/package*.json ./
+COPY VideoVault/tsconfig.json ./
+COPY VideoVault/vite.config.ts ./
+COPY VideoVault/tailwind.config.cjs ./
+COPY VideoVault/postcss.config.js ./
+
+RUN npm install -g npm@11 && npm install --legacy-peer-deps
+
+COPY VideoVault/.env.production ./
+COPY VideoVault/client/ ./client/
+COPY VideoVault/server/ ./server/
+COPY VideoVault/scripts/ ./scripts/
+
+RUN npm run build
+
+FROM node:20-bookworm-slim AS runtime
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  ca-certificates \
+  curl \
+  ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/shared/ /app/shared/
+
+COPY VideoVault/package*.json ./
+RUN npm install -g npm@11 && npm install --legacy-peer-deps --omit=dev
+
+COPY --from=build /app/dist /app/dist
+COPY VideoVault/migrations/ ./migrations/
+COPY VideoVault/scripts/ ./scripts/
+
+EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -fsS http://localhost:5000/api/health || exit 1
+
+CMD ["npm", "run", "start"]

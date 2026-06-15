@@ -1,0 +1,220 @@
+services:
+  videovault:
+    build:
+      context: ..
+      dockerfile: VideoVault/Dockerfile.prod
+    container_name: videovault
+    profiles:
+      - prod
+    expose:
+      - "${VIDEO_PORT:-5000}"
+    volumes:
+      # Mount media directory
+      - ${VIDEO_MEDIA_ROOT:-//PK-DESKTOP/e}:/app/media
+      # Mount processed thumbnails (separate share)
+      - ${THUMBNAILS_ROOT:-//PK-DESKTOP/Processed/Thumbnails}:/app/media/Processed/Thumbnails
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=${VIDEO_NODE_ENV:-production}
+      - PORT=${VIDEO_PORT:-5000}
+      - DATABASE_URL=${VIDEO_DATABASE_URL}
+      - SESSION_SECRET=${VIDEO_SESSION_SECRET}
+      - ADMIN_USER=${VIDEO_ADMIN_USER}
+      - ADMIN_PASS=${VIDEO_ADMIN_PASS}
+      - MEDIA_ROOT=/app/media
+      - PROCESSED_MEDIA_PATH=/app/media/Processed
+      - INBOX_DIR=/app/media/Inbox
+      - PROCESSED_DIR=/app/media/Processed
+      - THUMBNAILS_DIR=/app/media/Processed/Thumbnails
+      - CORS_ORIGINS=${VIDEO_CORS_ORIGINS}
+      - TRUST_PROXY=${VIDEO_TRUST_PROXY}
+    restart: unless-stopped
+    networks:
+      - l2p-network
+      - traefik-public
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+
+      # HTTP Router
+      - "traefik.http.routers.videovault.rule=Host(`videovault.korczewski.de`) || Host(`video.korczewski.de`)"
+      - "traefik.http.routers.videovault.priority=10"
+      - "traefik.http.routers.videovault.entrypoints=websecure"
+      - "traefik.http.routers.videovault.tls=true"
+
+      # Service configuration
+      - "traefik.http.services.videovault.loadbalancer.server.port=${VIDEO_PORT:-5000}"
+
+      # Middlewares
+      - "traefik.http.routers.videovault.middlewares=default-chain@file"
+    external_links:
+      - shared-postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:${VIDEO_PORT:-5000}/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 6
+
+  videovault-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: videovault-dev
+    expose:
+      - "${VIDEO_PORT:-5000}"
+    ports:
+      - "${VIDEO_PORT:-5000}:${VIDEO_PORT:-5000}"
+    volumes:
+      # Mount source code for hot reload
+      - ./client:/app/client:cached
+      - ./server:/app/server:cached
+      - ./shared:/app/shared:cached
+      - ./docs:/app/docs:cached
+      - ./scripts:/app/scripts:cached
+
+      # Mount config files
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./vite.config.ts:/app/vite.config.ts:ro
+      - ./tailwind.config.cjs:/app/tailwind.config.cjs:ro
+      - ./postcss.config.js:/app/postcss.config.js:ro
+
+      # Mount media directory (use local path for dev)
+      - ${MEDIA_ROOT:-./Processed}:/app/media
+      # Mount processed thumbnails (separate share)
+      - ${THUMBNAILS_ROOT:-./Processed/Thumbnails}:/app/media/Processed/Thumbnails
+      # Mount fixtures for testing
+      - ./fixtures:/app/fixtures:cached
+
+      # Preserve node_modules in container (don't mount host node_modules)
+      - /app/node_modules
+    env_file:
+      - ../.env
+    environment:
+      - NODE_ENV=development
+      - PORT=${VIDEO_PORT:-5000}
+      - DATABASE_URL=${VIDEO_DATABASE_URL}
+      - SESSION_SECRET=${VIDEO_SESSION_SECRET}
+      - SESSION_MAX_AGE=${VIDEO_SESSION_MAX_AGE:-2592000000}
+      - ADMIN_USER=${VIDEO_ADMIN_USER}
+      - ADMIN_PASS=${VIDEO_ADMIN_PASS}
+      - CORS_ORIGINS=${VIDEO_CORS_ORIGINS}
+      - TRUST_PROXY=${VIDEO_TRUST_PROXY}
+      - MEDIA_ROOT=/app/media
+      - PROCESSED_MEDIA_PATH=/app/media/Processed
+      - INBOX_DIR=/app/media/Inbox
+      - PROCESSED_DIR=/app/media/Processed
+      - THUMBNAILS_DIR=/app/media/Processed/Thumbnails
+    stdin_open: true
+    tty: true
+    command: sh -lc "npm install --legacy-peer-deps && npm run dev"
+    restart: unless-stopped
+    networks:
+      - l2p-network
+    external_links:
+      - shared-postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:${VIDEO_PORT:-5000}/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    # Docker Compose watch mode for automatic file sync
+    develop:
+      watch:
+        - action: sync
+          path: ./client
+          target: /app/client
+          ignore:
+            - "**/*.test.ts"
+            - "**/*.test.tsx"
+            - "**/__tests__"
+        - action: sync
+          path: ./server
+          target: /app/server
+          ignore:
+            - "**/*.test.ts"
+        - action: sync
+          path: ./shared/videovault
+          target: /app/shared/videovault
+        - action: rebuild
+          path: ./package.json
+        - action: sync+restart
+          path: ./vite.config.ts
+          target: /app/vite.config.ts
+
+  # Optional PostgreSQL for future server persistence
+  # NOW USING CENTRALIZED POSTGRES INSTANCE
+  # The shared-postgres instance is managed in /shared-infrastructure
+  # This service definition is removed - using shared-postgres instead
+  # postgres:
+  #   image: postgres:16-alpine
+  #   ... (removed, using shared-postgres instead)
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    container_name: videovault-playwright
+    profiles:
+      - playwright
+    working_dir: /work
+    networks:
+      - l2p-network
+    env_file:
+      - ../.env
+    depends_on:
+      videovault-dev:
+        condition: service_healthy
+    external_links:
+      - shared-postgres
+    shm_size: 1g
+    environment:
+      - CI=1
+      - PW_SKIP_WEB_SERVER=1
+      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+      - BASE_URL=http://videovault-dev:${VIDEO_PORT:-5000}
+      - NODE_ENV=development
+    volumes:
+      - ./:/work:cached
+      - /work/node_modules
+    # Install deps and run Playwright tests
+    command: bash -lc "npm install --legacy-peer-deps && npm run test:pw"
+
+  playwright-ui:
+    image: mcr.microsoft.com/playwright:v1.57.0-jammy
+    container_name: videovault-playwright-ui
+    profiles:
+      - playwright
+    working_dir: /work
+    networks:
+      - l2p-network
+    env_file:
+      - ../.env
+    depends_on:
+      videovault-dev:
+        condition: service_healthy
+    external_links:
+      - shared-postgres
+    shm_size: 1g
+    environment:
+      - CI=1
+      - PW_SKIP_WEB_SERVER=1
+      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+      - BASE_URL=http://videovault-dev:${VIDEO_PORT:-5000}
+      - NODE_ENV=development
+    ports:
+      - '0.0.0.0:9323:9323'
+    volumes:
+      - ./:/work:cached
+      - /work/node_modules
+    command: bash -lc "npm install --legacy-peer-deps && npm run test:pw:ui -- --ui-host 0.0.0.0 --ui-port 9323"
+
+networks:
+  l2p-network:
+    external: true
+    name: l2p-network
+  traefik-public:
+    external: true
+    name: traefik-public
+# Volumes removed - using centralized postgres instance

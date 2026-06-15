@@ -1,0 +1,602 @@
+/**
+ * CYBERVAULT DESIGN SYSTEM
+ * Unified design tokens for the Korczewski monorepo
+ * Based on the dashboard aesthetic
+ *
+ * Projects: l2p, VideoVault, payment, auth
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ═══════════════════════════════════════════════════════════
+     CORE COLORS - Dark Matter Foundation
+     ═══════════════════════════════════════════════════════════ */
+  --cv-void: #030408;
+  --cv-void-light: #0a0e14;
+  --cv-void-lighter: #111822;
+
+  /* Glassmorphic surfaces */
+  --cv-glass-1: rgba(255, 255, 255, 0.02);
+  --cv-glass-2: rgba(255, 255, 255, 0.03);
+  --cv-glass-3: rgba(255, 255, 255, 0.04);
+  --cv-glass-4: rgba(255, 255, 255, 0.05);
+  --cv-glass-5: rgba(255, 255, 255, 0.08);
+  --cv-glass-strong: rgba(255, 255, 255, 0.06);
+
+  /* Borders */
+  --cv-border-1: rgba(255, 255, 255, 0.05);
+  --cv-border-2: rgba(255, 255, 255, 0.08);
+  --cv-border-3: rgba(255, 255, 255, 0.1);
+  --cv-border-glow: rgba(255, 255, 255, 0.15);
+
+  /* ═══════════════════════════════════════════════════════════
+     ACCENT COLORS - Neon Energy
+     ═══════════════════════════════════════════════════════════ */
+  --cv-cyan: #00f2ff;
+  --cv-cyan-dim: #00d9e6;
+  --cv-cyan-glow: rgba(0, 242, 255, 0.4);
+  --cv-cyan-subtle: rgba(0, 242, 255, 0.12);
+  --cv-cyan-border: rgba(0, 242, 255, 0.2);
+  --cv-cyan-bg: rgba(0, 242, 255, 0.05);
+
+  --cv-purple: #bc13fe;
+  --cv-purple-dim: #a610e6;
+  --cv-purple-glow: rgba(188, 19, 254, 0.4);
+  --cv-purple-subtle: rgba(188, 19, 254, 0.12);
+  --cv-purple-border: rgba(188, 19, 254, 0.2);
+  --cv-purple-bg: rgba(188, 19, 254, 0.05);
+
+  /* ═══════════════════════════════════════════════════════════
+     STATE COLORS - Semantic Signals
+     ═══════════════════════════════════════════════════════════ */
+  --cv-success: #3eff8b;
+  --cv-success-dim: #35e67a;
+  --cv-success-glow: rgba(62, 255, 139, 0.3);
+  --cv-success-subtle: rgba(62, 255, 139, 0.1);
+  --cv-success-border: rgba(62, 255, 139, 0.2);
+
+  --cv-danger: #ff3e3e;
+  --cv-danger-dim: #e63535;
+  --cv-danger-glow: rgba(255, 62, 62, 0.3);
+  --cv-danger-subtle: rgba(255, 62, 62, 0.1);
+  --cv-danger-border: rgba(255, 62, 62, 0.2);
+
+  --cv-warning: #ffa500;
+  --cv-warning-dim: #e69400;
+  --cv-warning-glow: rgba(255, 165, 0, 0.3);
+  --cv-warning-subtle: rgba(255, 165, 0, 0.15);
+  --cv-warning-border: rgba(255, 165, 0, 0.3);
+
+  --cv-info: #64b5f6;
+  --cv-info-glow: rgba(100, 181, 246, 0.3);
+  --cv-info-subtle: rgba(100, 181, 246, 0.1);
+
+  /* ═══════════════════════════════════════════════════════════
+     TEXT COLORS - Luminosity Hierarchy
+     ═══════════════════════════════════════════════════════════ */
+  --cv-text: #ffffff;
+  --cv-text-bright: #f8fafc;
+  --cv-text-dim: #94a3b8;
+  --cv-text-muted: #64748b;
+  --cv-text-subtle: #475569;
+
+  /* ═══════════════════════════════════════════════════════════
+     TYPOGRAPHY - Futuristic Hierarchy
+     ═══════════════════════════════════════════════════════════ */
+  --cv-font-display: 'Orbitron', 'Space Grotesk', system-ui, sans-serif;
+  --cv-font-body: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --cv-font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* Font sizes - Fluid scale */
+  --cv-text-xs: clamp(0.65rem, 0.6rem + 0.25vw, 0.75rem);
+  --cv-text-sm: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --cv-text-base: clamp(0.875rem, 0.85rem + 0.125vw, 1rem);
+  --cv-text-md: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --cv-text-lg: clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem);
+  --cv-text-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --cv-text-2xl: clamp(1.5rem, 1.35rem + 0.75vw, 2rem);
+  --cv-text-3xl: clamp(1.875rem, 1.65rem + 1.125vw, 2.5rem);
+  --cv-text-4xl: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
+
+  /* Font weights */
+  --cv-weight-light: 300;
+  --cv-weight-normal: 400;
+  --cv-weight-medium: 500;
+  --cv-weight-semibold: 600;
+  --cv-weight-bold: 700;
+  --cv-weight-extrabold: 800;
+  --cv-weight-black: 900;
+
+  /* Letter spacing */
+  --cv-tracking-tight: -0.04em;
+  --cv-tracking-normal: 0;
+  --cv-tracking-wide: 0.05em;
+  --cv-tracking-wider: 0.08em;
+  --cv-tracking-widest: 0.15em;
+
+  /* ═══════════════════════════════════════════════════════════
+     SPACING - Consistent Rhythm
+     ═══════════════════════════════════════════════════════════ */
+  --cv-space-1: 0.25rem;   /* 4px */
+  --cv-space-2: 0.5rem;    /* 8px */
+  --cv-space-3: 0.75rem;   /* 12px */
+  --cv-space-4: 1rem;      /* 16px */
+  --cv-space-5: 1.25rem;   /* 20px */
+  --cv-space-6: 1.5rem;    /* 24px */
+  --cv-space-8: 2rem;      /* 32px */
+  --cv-space-10: 2.5rem;   /* 40px */
+  --cv-space-12: 3rem;     /* 48px */
+  --cv-space-16: 4rem;     /* 64px */
+  --cv-space-20: 5rem;     /* 80px */
+  --cv-space-24: 6rem;     /* 96px */
+
+  /* ═══════════════════════════════════════════════════════════
+     BORDERS & RADIUS - Rounded Futurism
+     ═══════════════════════════════════════════════════════════ */
+  --cv-radius-sm: 8px;
+  --cv-radius-md: 12px;
+  --cv-radius-lg: 16px;
+  --cv-radius-xl: 20px;
+  --cv-radius-2xl: 24px;
+  --cv-radius-full: 9999px;
+
+  --cv-border-width: 1px;
+  --cv-border-width-2: 2px;
+
+  /* ═══════════════════════════════════════════════════════════
+     SHADOWS & GLOWS - Depth & Energy
+     ═══════════════════════════════════════════════════════════ */
+  --cv-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --cv-shadow-md: 0 8px 20px rgba(0, 0, 0, 0.25);
+  --cv-shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.3);
+  --cv-shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.4);
+
+  --cv-glow-cyan-sm: 0 0 10px var(--cv-cyan-glow);
+  --cv-glow-cyan-md: 0 0 20px var(--cv-cyan-glow);
+  --cv-glow-cyan-lg: 0 0 30px var(--cv-cyan-glow);
+
+  --cv-glow-purple-sm: 0 0 10px var(--cv-purple-glow);
+  --cv-glow-purple-md: 0 0 20px var(--cv-purple-glow);
+  --cv-glow-purple-lg: 0 0 30px var(--cv-purple-glow);
+
+  --cv-glow-success: 0 0 15px var(--cv-success-glow);
+  --cv-glow-danger: 0 0 15px var(--cv-danger-glow);
+
+  /* ═══════════════════════════════════════════════════════════
+     ANIMATIONS - Smooth Motion
+     ═══════════════════════════════════════════════════════════ */
+  --cv-duration-fast: 150ms;
+  --cv-duration-base: 200ms;
+  --cv-duration-slow: 300ms;
+  --cv-duration-slower: 400ms;
+
+  --cv-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --cv-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --cv-ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ═══════════════════════════════════════════════════════════
+     BLUR & EFFECTS
+     ═══════════════════════════════════════════════════════════ */
+  --cv-blur-sm: blur(8px);
+  --cv-blur-md: blur(16px);
+  --cv-blur-lg: blur(24px);
+  --cv-blur-xl: blur(40px);
+
+  /* ═══════════════════════════════════════════════════════════
+     GRADIENTS - Signature Blends
+     ═══════════════════════════════════════════════════════════ */
+  --cv-gradient-primary: linear-gradient(135deg, var(--cv-cyan) 0%, var(--cv-purple) 100%);
+  --cv-gradient-primary-vertical: linear-gradient(180deg, var(--cv-cyan) 0%, var(--cv-purple) 100%);
+  --cv-gradient-glow: linear-gradient(90deg, var(--cv-cyan), var(--cv-purple), var(--cv-cyan));
+  --cv-gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --cv-gradient-text: linear-gradient(135deg, #fff 0%, var(--cv-cyan) 100%);
+
+  /* Background radial gradients */
+  --cv-radial-cyan: radial-gradient(circle at 10% 10%, rgba(0, 242, 255, 0.1) 0%, transparent 40%);
+  --cv-radial-purple: radial-gradient(circle at 90% 90%, rgba(188, 19, 254, 0.1) 0%, transparent 40%);
+  --cv-radial-center: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 1) 0%, transparent 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL RESET & BASE STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--cv-font-body);
+  font-size: var(--cv-text-base);
+  color: var(--cv-text);
+  background: var(--cv-void);
+  background-image: var(--cv-radial-cyan), var(--cv-radial-purple), var(--cv-radial-center);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITY CLASSES - Reusable Patterns
+   ═══════════════════════════════════════════════════════════ */
+
+/* Glass Cards */
+.cv-glass {
+  background: var(--cv-glass-2);
+  border: var(--cv-border-width) solid var(--cv-border-2);
+  border-radius: var(--cv-radius-xl);
+  backdrop-filter: var(--cv-blur-md);
+}
+
+.cv-glass-strong {
+  background: var(--cv-glass-strong);
+  border: var(--cv-border-width) solid var(--cv-border-3);
+  border-radius: var(--cv-radius-2xl);
+  backdrop-filter: var(--cv-blur-lg);
+}
+
+/* Gradient overlays */
+.cv-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--cv-gradient-glass);
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Buttons */
+.cv-btn {
+  font-family: var(--cv-font-body);
+  font-weight: var(--cv-weight-bold);
+  font-size: var(--cv-text-sm);
+  letter-spacing: var(--cv-tracking-wide);
+  text-transform: uppercase;
+  padding: var(--cv-space-3) var(--cv-space-6);
+  border-radius: var(--cv-radius-md);
+  border: var(--cv-border-width) solid transparent;
+  cursor: pointer;
+  transition: all var(--cv-duration-base) var(--cv-ease-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.cv-btn-primary {
+  background: var(--cv-cyan-subtle);
+  color: var(--cv-cyan);
+  border-color: var(--cv-cyan-border);
+}
+
+.cv-btn-primary:hover {
+  background: var(--cv-cyan-bg);
+  box-shadow: var(--cv-glow-cyan-md);
+  transform: translateY(-2px);
+}
+
+.cv-btn-secondary {
+  background: var(--cv-purple-subtle);
+  color: var(--cv-purple);
+  border-color: var(--cv-purple-border);
+}
+
+.cv-btn-secondary:hover {
+  background: var(--cv-purple-bg);
+  box-shadow: var(--cv-glow-purple-md);
+  transform: translateY(-2px);
+}
+
+.cv-btn-ghost {
+  background: var(--cv-glass-2);
+  color: var(--cv-text-dim);
+  border-color: var(--cv-border-2);
+}
+
+.cv-btn-ghost:hover {
+  background: var(--cv-glass-4);
+  color: var(--cv-text);
+  border-color: var(--cv-border-3);
+}
+
+.cv-btn-success {
+  background: var(--cv-success-subtle);
+  color: var(--cv-success);
+  border-color: var(--cv-success-border);
+}
+
+.cv-btn-success:hover {
+  box-shadow: var(--cv-glow-success);
+  transform: translateY(-2px);
+}
+
+.cv-btn-danger {
+  background: var(--cv-danger-subtle);
+  color: var(--cv-danger);
+  border-color: var(--cv-danger-border);
+}
+
+.cv-btn-danger:hover {
+  box-shadow: var(--cv-glow-danger);
+  transform: translateY(-2px);
+}
+
+/* Badges & Pills */
+.cv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cv-space-2);
+  padding: var(--cv-space-2) var(--cv-space-3);
+  border-radius: var(--cv-radius-full);
+  font-size: var(--cv-text-xs);
+  font-weight: var(--cv-weight-bold);
+  letter-spacing: var(--cv-tracking-wider);
+  text-transform: uppercase;
+  border: var(--cv-border-width) solid;
+}
+
+.cv-badge-cyan {
+  background: var(--cv-cyan-subtle);
+  color: var(--cv-cyan);
+  border-color: var(--cv-cyan-border);
+}
+
+.cv-badge-purple {
+  background: var(--cv-purple-subtle);
+  color: var(--cv-purple);
+  border-color: var(--cv-purple-border);
+}
+
+.cv-badge-success {
+  background: var(--cv-success-subtle);
+  color: var(--cv-success);
+  border-color: var(--cv-success-border);
+}
+
+.cv-badge-danger {
+  background: var(--cv-danger-subtle);
+  color: var(--cv-danger);
+  border-color: var(--cv-danger-border);
+}
+
+.cv-badge-warning {
+  background: var(--cv-warning-subtle);
+  color: var(--cv-warning);
+  border-color: var(--cv-warning-border);
+}
+
+/* Typography Classes */
+.cv-display {
+  font-family: var(--cv-font-display);
+  font-weight: var(--cv-weight-extrabold);
+  letter-spacing: var(--cv-tracking-tight);
+  background: var(--cv-gradient-text);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px var(--cv-cyan-glow));
+}
+
+.cv-mono {
+  font-family: var(--cv-font-mono);
+}
+
+.cv-glow-text {
+  text-shadow: 0 0 20px currentColor;
+}
+
+/* Inputs */
+.cv-input {
+  font-family: var(--cv-font-mono);
+  font-size: var(--cv-text-sm);
+  color: var(--cv-text);
+  background: var(--cv-glass-2);
+  border: var(--cv-border-width) solid var(--cv-border-2);
+  border-radius: var(--cv-radius-md);
+  padding: var(--cv-space-3) var(--cv-space-4);
+  transition: all var(--cv-duration-base) var(--cv-ease-smooth);
+  outline: none;
+}
+
+.cv-input:focus {
+  background: var(--cv-glass-3);
+  border-color: var(--cv-cyan-border);
+  box-shadow: 0 0 0 3px var(--cv-cyan-subtle);
+}
+
+.cv-input::placeholder {
+  color: var(--cv-text-muted);
+}
+
+/* Native Select & Option - ensure contrast in dark theme */
+select {
+  background-color: var(--cv-void-light);
+  color: var(--cv-text);
+  border: var(--cv-border-width) solid var(--cv-border-2);
+  border-radius: var(--cv-radius-sm);
+  padding: var(--cv-space-2) var(--cv-space-3);
+  font-family: var(--cv-font-body);
+  font-size: var(--cv-text-sm);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--cv-duration-base) var(--cv-ease-smooth);
+}
+
+select:focus {
+  border-color: var(--cv-cyan-border);
+  box-shadow: 0 0 0 3px var(--cv-cyan-subtle);
+}
+
+select option {
+  background-color: var(--cv-void-light);
+  color: var(--cv-text);
+}
+
+/* Status Indicators */
+.cv-pulse {
+  animation: cv-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes cv-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.cv-pulse-glow {
+  animation: cv-pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes cv-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 25px currentColor;
+  }
+}
+
+/* Gradient animation */
+.cv-gradient-flow {
+  background-size: 200% 100%;
+  animation: cv-gradient-flow 3s linear infinite;
+}
+
+@keyframes cv-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* Fade-in animations */
+.cv-fade-in {
+  animation: cv-fade-in 0.5s var(--cv-ease-smooth);
+}
+
+@keyframes cv-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cv-slide-in-right {
+  animation: cv-slide-in-right 0.4s var(--cv-ease-smooth);
+}
+
+@keyframes cv-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Hover lift effect */
+.cv-lift {
+  transition: transform var(--cv-duration-base) var(--cv-ease-smooth);
+}
+
+.cv-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Cyberpunk scan lines (optional decorative effect) */
+.cv-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 242, 255, 0.03) 0px,
+    rgba(0, 242, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Grid pattern background (optional) */
+.cv-grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  :root {
+    --cv-space-8: 1.5rem;
+    --cv-space-12: 2rem;
+    --cv-space-16: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --cv-space-6: 1rem;
+    --cv-space-8: 1.25rem;
+    --cv-space-10: 1.5rem;
+    --cv-space-12: 1.75rem;
+    --cv-space-16: 2.5rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--cv-cyan);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --cv-border-2: rgba(255, 255, 255, 0.15);
+    --cv-border-3: rgba(255, 255, 255, 0.2);
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "client/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
+  ],
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "node",
+      "vite/client",
+      "@testing-library/jest-dom",
+      "vitest/globals"
+    ]
+  }
+}

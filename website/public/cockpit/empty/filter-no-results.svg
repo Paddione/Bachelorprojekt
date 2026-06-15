@@ -1,0 +1,20 @@
+<svg viewBox="0 0 240 160" role="img" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color: var(--cockpit-fg, #c8ad7a)">
+  <title>Keine Treffer: eine Lupe über gepunkteten, leeren Listenzeilen mit einem Hinweis, den Filter zurückzusetzen.</title>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="64" y1="130" x2="176" y2="130" stroke="currentColor" stroke-width="1" stroke-opacity="0.22"/>
+    <g stroke="currentColor" stroke-width="1.5" stroke-opacity="0.3" stroke-dasharray="4 6">
+      <line x1="74" y1="62" x2="166" y2="62"/>
+      <line x1="74" y1="78" x2="166" y2="78"/>
+      <line x1="74" y1="94" x2="166" y2="94"/>
+      <line x1="74" y1="110" x2="138" y2="110"/>
+    </g>
+    <g stroke="currentColor" stroke-width="2">
+      <circle cx="116" cy="80" r="26"/>
+      <line x1="135" y1="99" x2="156" y2="120"/>
+    </g>
+    <g stroke="var(--cockpit-accent, currentColor)" stroke-width="2">
+      <line x1="108" y1="72" x2="124" y2="88"/>
+      <line x1="124" y1="72" x2="108" y2="88"/>
+    </g>
+  </g>
+</svg>

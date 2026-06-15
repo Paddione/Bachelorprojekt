@@ -1,0 +1,16 @@
+<svg viewBox="0 0 240 160" role="img" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color: var(--cockpit-fg, #c8ad7a)">
+  <title>Produkt ohne Features: ein geöffneter, leerer Behälter mit gepunkteten Innenlinien und einem aufsteigenden Plus-Symbol.</title>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="64" y1="128" x2="176" y2="128" stroke="currentColor" stroke-width="1" stroke-opacity="0.22"/>
+    <path d="M82 80 V112 a6 6 0 0 0 6 6 H152 a6 6 0 0 0 6 -6 V80" stroke="currentColor" stroke-width="2"/>
+    <rect x="78" y="64" width="84" height="9" rx="3.5" transform="rotate(-5 120 68)" stroke="currentColor" stroke-width="2"/>
+    <g stroke="currentColor" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="4 6">
+      <line x1="96" y1="92" x2="144" y2="92"/>
+      <line x1="96" y1="103" x2="130" y2="103"/>
+    </g>
+    <g stroke="var(--cockpit-accent, currentColor)" stroke-width="2">
+      <line x1="174" y1="52" x2="174" y2="66"/>
+      <line x1="167" y1="59" x2="181" y2="59"/>
+    </g>
+  </g>
+</svg>

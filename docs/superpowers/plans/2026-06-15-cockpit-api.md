@@ -50,7 +50,7 @@ Five thin routes wrapping Stage A helpers. After Stage B, the full contract is r
 - Create: `website/src/pages/api/admin/cockpit/portfolio.ts`
 - Test: `website/src/lib/tickets/__tests__/cockpit-api.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `website/src/lib/tickets/__tests__/cockpit-api.test.ts`. Mock `../../auth` (`getSession`, `isAdmin`) and `../cockpit-db` with `vi.mock`, then import and invoke the route's `GET`:
 
@@ -89,12 +89,12 @@ describe('GET /cockpit/portfolio', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and verify it fails**
+- [x] **Step 2: Run it and verify it fails**
 
 Run: `cd website && pnpm test -- cockpit-api.test.ts`
 Expected: FAIL — route module does not exist.
 
-- [ ] **Step 3: Implement the route**
+- [x] **Step 3: Implement the route**
 
 Create `website/src/pages/api/admin/cockpit/portfolio.ts`:
 
@@ -118,12 +118,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: Run the test and verify it passes**
+- [x] **Step 4: Run the test and verify it passes**
 
 Run: `cd website && pnpm test -- cockpit-api.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/pages/api/admin/cockpit/portfolio.ts website/src/lib/tickets/__tests__/cockpit-api.test.ts
@@ -138,7 +138,7 @@ git commit -m "feat(cockpit): GET /api/admin/cockpit/portfolio"
 - Create: `website/src/pages/api/admin/cockpit/feature.ts`
 - Test: append to `website/src/lib/tickets/__tests__/cockpit-api.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append:
 
@@ -179,12 +179,12 @@ describe('GET /cockpit/feature', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and verify it fails**
+- [x] **Step 2: Run it and verify it fails**
 
 Run: `cd website && pnpm test -- cockpit-api.test.ts`
 Expected: FAIL — `feature.ts` missing.
 
-- [ ] **Step 3: Implement the route**
+- [x] **Step 3: Implement the route**
 
 Create `website/src/pages/api/admin/cockpit/feature.ts`:
 
@@ -213,7 +213,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 };
 ```
 
-- [ ] **Step 4: Run + Step 5: Commit**
+- [x] **Step 4: Run + Step 5: Commit**
 
 Run: `cd website && pnpm test -- cockpit-api.test.ts` → PASS.
 ```bash
@@ -229,7 +229,7 @@ git commit -m "feat(cockpit): GET /api/admin/cockpit/feature"
 - Create: `website/src/pages/api/admin/cockpit/reorder.ts`
 - Test: append to `cockpit-api.test.ts`
 
-- [ ] **Step 1: Failing test** (append)
+- [x] **Step 1: Failing test** (append)
 
 ```typescript
 const reorderMocks = vi.hoisted(() => ({ updatePlanningRanks: vi.fn() }));
@@ -256,9 +256,9 @@ describe('POST /cockpit/reorder', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.** Run: `cd website && pnpm test -- cockpit-api.test.ts` → FAIL.
+- [x] **Step 2: Verify FAIL.** Run: `cd website && pnpm test -- cockpit-api.test.ts` → FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/pages/api/admin/cockpit/reorder.ts`:
 
@@ -289,7 +289,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 Run → PASS.
 ```bash
@@ -305,7 +305,7 @@ git commit -m "feat(cockpit): POST /api/admin/cockpit/reorder"
 - Create: `website/src/pages/api/admin/cockpit/reparent.ts`
 - Test: append to `cockpit-api.test.ts`
 
-- [ ] **Step 1: Failing test** (append)
+- [x] **Step 1: Failing test** (append)
 
 ```typescript
 const reparentMocks = vi.hoisted(() => ({ reparentTicket: vi.fn() }));
@@ -334,9 +334,9 @@ describe('POST /cockpit/reparent', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/pages/api/admin/cockpit/reparent.ts`:
 
@@ -370,7 +370,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/pages/api/admin/cockpit/reparent.ts website/src/lib/tickets/__tests__/cockpit-api.test.ts
@@ -385,7 +385,7 @@ git commit -m "feat(cockpit): POST /api/admin/cockpit/reparent (cycle-guarded)"
 - Create: `website/src/pages/api/admin/cockpit/batch.ts`
 - Test: append to `cockpit-api.test.ts`
 
-- [ ] **Step 1: Failing test** (append)
+- [x] **Step 1: Failing test** (append)
 
 ```typescript
 const batchMocks = vi.hoisted(() => ({ batchMutate: vi.fn() }));
@@ -410,9 +410,9 @@ describe('POST /cockpit/batch', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/pages/api/admin/cockpit/batch.ts`:
 
@@ -444,7 +444,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/pages/api/admin/cockpit/batch.ts website/src/lib/tickets/__tests__/cockpit-api.test.ts
@@ -455,7 +455,7 @@ git commit -m "feat(cockpit): POST /api/admin/cockpit/batch"
 
 ### Task 12: Stage B gate check
 
-- [ ] **Step 1:** Run all cockpit unit tests + size check.
+- [x] **Step 1:** Run all cockpit unit tests + size check.
 
 Run:
 ```bash
@@ -464,7 +464,7 @@ for f in portfolio feature reorder reparent batch; do wc -l "src/pages/api/admin
 ```
 Expected: all green; each route well under 400 lines.
 
-- [ ] **Step 2: Commit** any incidental changes (else skip).
+- [x] **Step 2: Commit** any incidental changes (else skip).
 
 ```bash
 git add -A && git commit -m "chore(cockpit): stage B gate" || echo "nothing to commit"
@@ -479,7 +479,7 @@ git add -A && git commit -m "chore(cockpit): stage B gate" || echo "nothing to c
 
 This sub-plan merges independently — it must be green on its own.
 
-- [ ] Scoped unit tests: `cd website && pnpm test -- "cockpit"`
+- [x] Scoped unit tests: `cd website && pnpm test -- "cockpit"`
 - [ ] `task test:all` → exit 0
 - [ ] `task freshness:regenerate` then `task freshness:check` → exit 0 (S1–S4 ratchet incl. `tickets-db.ts` ≤ 1106, `admin.ts` = 677)
 - [ ] If test files were added: `task test:inventory` + commit `website/src/data/test-inventory.json`

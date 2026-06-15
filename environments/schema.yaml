@@ -184,6 +184,11 @@ env_vars:
     default_dev: "mediaviewer.localhost"
     description: "Public host of the mediaviewer widget (e.g. mediaviewer.korczewski.de)"
 
+  - name: VIDEOVAULT_DOMAIN
+    required: true
+    default_dev: "videovault.localhost"
+    description: "Public host of the VideoVault service (e.g. videovault.korczewski.de)"
+
   - name: RECOVER_DOMAIN
     required: true
     default_dev: "recover.localhost"
@@ -604,6 +609,18 @@ secrets:
     generate: true
     length: 48
     description: "Keycloak client secret for oauth2-proxy-mediaviewer"
+
+  - name: VIDEOVAULT_DB_PASSWORD
+    required: true
+    generate: true
+    length: 48
+    description: "Password for the videovault PostgreSQL role in shared-db"
+
+  - name: VIDEOVAULT_OIDC_SECRET
+    required: true
+    generate: true
+    length: 48
+    description: "Keycloak OIDC client secret for the videovault oauth2-proxy"
 
   - name: COMFY_OIDC_SECRET
     required: true

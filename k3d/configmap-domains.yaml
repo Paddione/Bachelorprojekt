@@ -33,3 +33,4 @@ data:
   LIVEKIT_DOMAIN: "livekit.localhost"
   STREAM_DOMAIN: "stream.localhost"
   MEDIAVIEWER_HOST: "mediaviewer.localhost"
+  VIDEOVAULT_DOMAIN: "videovault.localhost"

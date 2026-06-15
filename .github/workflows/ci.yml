@@ -196,6 +196,43 @@ jobs:
             ci
             perf
             revert
+          scopes: |
+            website
+            brett
+            arena
+            infra
+            db
+            security
+            ops
+            docs
+            deps
+            plans
+            ci
+            test
+            factory
+            e2e
+            coaching
+            assistant
+            admin
+            billing
+            talk
+            collabora
+            secrets
+            janus
+            keycloak
+            portal
+            livekit
+            whiteboard
+            nextcloud
+            openclaw
+            scripts
+            agent-guide
+            fleet
+            mcp
+            dev-flow
+            prompt-library
+            tickets
+            recovery
           # Ticket references like [T000436] can extend subject length
           subjectPattern: ^.{1,200}$
           subjectPatternError: |

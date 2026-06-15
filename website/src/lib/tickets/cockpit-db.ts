@@ -20,6 +20,7 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
   const { rows } = await pool.query(
     `SELECT t.id, t.external_id, t.type, t.title, t.value_prop, t.priority,
             t.parent_id, t.planning_rank,
+            t.next_step, t.discarded, t.major_feature, t.suggestion_comment,
             r.total_leaves, r.done_leaves, r.blocked_leaves,
             r.in_progress_leaves, r.open_leaves, r.pct_done, r.health
        FROM tickets.tickets t
@@ -50,6 +51,10 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
       valueProp: row.value_prop ?? undefined,
       priority: row.priority, health: (row.health ?? 'amber') as HealthStatus,
       rollup: toRollup(row),
+      nextStep: Boolean(row.next_step),
+      discarded: Boolean(row.discarded),
+      majorFeature: Boolean(row.major_feature),
+      suggestionComment: row.suggestion_comment ?? undefined,
     };
     const parent = row.parent_id ? byId.get(row.parent_id) : undefined;
     if (parent) parent.features.push(feature);
@@ -80,6 +85,7 @@ export class NotFoundError extends Error {}
 export async function getFeatureTickets(brand: string, extId: string): Promise<FeatureTickets> {
   const fr = await pool.query(
     `SELECT t.id, t.external_id, t.type, t.title, t.value_prop, t.priority,
+            t.next_step, t.discarded, t.major_feature, t.suggestion_comment,
             r.total_leaves, r.done_leaves, r.blocked_leaves,
             r.in_progress_leaves, r.open_leaves, r.pct_done, r.health
        FROM tickets.tickets t
@@ -93,6 +99,9 @@ export async function getFeatureTickets(brand: string, extId: string): Promise<F
     id: f.id, extId: f.external_id, title: f.title,
     valueProp: f.value_prop ?? undefined, priority: f.priority,
     health: (f.health ?? 'amber') as HealthStatus, rollup: toRollup(f),
+    nextStep: Boolean(f.next_step), discarded: Boolean(f.discarded),
+    majorFeature: Boolean(f.major_feature),
+    suggestionComment: f.suggestion_comment ?? undefined,
   };
 
   // Two-hop flat union covers the expected hierarchy depth (feature → task/bug).
@@ -219,6 +228,35 @@ export async function batchMutate(
     await audit(id, 'batch_mutate', mutation);
   }
   return { ok: true, results };
+}
+
+export async function setFeatureAction(
+  brand: string,
+  featureId: string,
+  action: string,
+  value?: boolean | string,
+): Promise<{ ok: true }> {
+  await assertSameBrand(brand, [featureId]);
+  let column: string;
+  let newValue: unknown;
+  if (action === 'next_step') {
+    column = 'next_step'; newValue = value ?? true;
+  } else if (action === 'discard') {
+    column = 'discarded'; newValue = value ?? true;
+  } else if (action === 'major') {
+    column = 'major_feature'; newValue = value ?? true;
+  } else if (action === 'comment') {
+    column = 'suggestion_comment'; newValue = value ?? '';
+  } else {
+    throw new Error(`unknown action: ${action}`);
+  }
+  await pool.query(
+    `UPDATE tickets.tickets SET ${column} = $1, updated_at = now()
+      WHERE id = $2 AND brand = $3`,
+    [newValue, featureId, brand],
+  );
+  await audit(featureId, column, newValue);
+  return { ok: true };
 }
 
 /** Best-effort audit — one row per affected ticket.

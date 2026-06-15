@@ -17,6 +17,7 @@
   let drawerTicket: TicketRow | null = null;
   let drawerOpen = false;
   let createOpen = false;
+  let isRolling = false;
 
   $: allFeatures = portfolio?.products.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
@@ -61,6 +62,17 @@
     drawerTicket = detail.ticket; drawerOpen = true; setActiveTicket(detail.ticket.id);
   }
   function closeDrawer() { drawerOpen = false; setActiveTicket(null); }
+
+  async function featureAction(featureId: string, action: string, value?: boolean | string) {
+    try {
+      const res = await fetch('/api/admin/cockpit/feature-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featureId, action, value }),
+      });
+      if (!res.ok) throw new Error(`feature-action ${res.status}`);
+      await loadPortfolio();
+    } catch (e) { setError(String((e as Error).message)); }
+  }
 </script>
 
 <div class="cockpit-shell" data-brand={brand}>
@@ -71,7 +83,7 @@
   {:else if portfolio}
     <div class="layout">
       <CockpitSidebar {portfolio} selectedFeature={$cockpitStore.selectedFeature}
-        onSelectFeature={pickFeature} />
+        onSelectFeature={pickFeature} onFeatureAction={featureAction} {isRolling} />
       <main class="main">
         {#if $cockpitStore.isLoading}<div class="loading">Lädt …</div>{/if}
         <CockpitTable

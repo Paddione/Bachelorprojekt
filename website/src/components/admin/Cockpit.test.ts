@@ -6,7 +6,8 @@ const portfolioWithFeature = { products: [{
   id: 'p1', extId: 'p1', title: 'P',
   rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 },
   features: [{ id: 'f1', extId: 'F1', title: 'F1', priority: 'mittel', health: 'amber' as const,
-    rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 } }],
+    rollup: { total: 1, done: 0, blocked: 0, inProgress: 0, open: 1, pctDone: 0 },
+    nextStep: false, discarded: false, majorFeature: false }],
 }]};
 
 beforeEach(() => localStorage.clear());

@@ -109,6 +109,10 @@ async function createSchema() {
       id text PRIMARY KEY, external_id text, brand text, type text,
       title text, value_prop text, priority text, status text,
       parent_id text, planning_rank int,
+      next_step boolean NOT NULL DEFAULT false,
+      discarded boolean NOT NULL DEFAULT false,
+      major_feature boolean NOT NULL DEFAULT false,
+      suggestion_comment text,
       updated_at timestamptz DEFAULT now(),
       created_at timestamptz DEFAULT now()
     )`);

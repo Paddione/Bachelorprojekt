@@ -20,6 +20,10 @@ export interface FeatureNode {
   priority: string;
   health: HealthStatus;
   rollup: RollupMetrics;
+  nextStep: boolean;
+  discarded: boolean;
+  majorFeature: boolean;
+  suggestionComment?: string;
 }
 
 export interface ProductNode {
@@ -66,4 +70,24 @@ export interface BatchResult {
   ticketId: string;
   success: boolean;
   error?: string;
+}
+
+export interface FeatureActionRequest {
+  featureId: string;
+  action: 'next_step' | 'discard' | 'major' | 'comment';
+  value?: boolean | string;
+}
+
+export interface SuggestRequest {
+  distribution?: 'equal' | 'manual';
+  provider?: string;
+  model?: string;
+}
+
+export interface SuggestResponse {
+  suggestions: Array<{
+    featureId: string;
+    nextStep: boolean;
+    reason: string;
+  }>;
 }

@@ -176,8 +176,8 @@ export async function initTicketsSchema(): Promise<void> {
       ADD COLUMN IF NOT EXISTS areas         TEXT[],
       ADD COLUMN IF NOT EXISTS depends_on    TEXT[],
       ADD COLUMN IF NOT EXISTS planning_rank INTEGER,
-      ADD COLUMN IF NOT EXISTS readiness     JSONB,
-      ADD COLUMN IF NOT EXISTS pinned        BOOLEAN NOT NULL DEFAULT false
+      ADD COLUMN IF NOT EXISTS readiness         JSONB,
+      ADD COLUMN IF NOT EXISTS pinned            BOOLEAN NOT NULL DEFAULT false
   `);
   await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_effort_check`);
   await pool.query(`

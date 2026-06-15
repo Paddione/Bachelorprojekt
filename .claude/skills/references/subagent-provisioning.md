@@ -28,7 +28,7 @@ Im Zweifel **eine Stufe höher**. Wenn unsicher, ob ein Spezial-Modell überhaup
 
 ## 2. Effort (per Prompt-Direktive)
 
-Das `Agent`/`Task`-Tool kennt **nur `model`, keinen Effort-Regler** — Effort wird über die Prompt-Einleitung vermittelt:
+Das `task`-Tool kennt **`subagent_type` und `description`**, keinen separaten Effort-Regler — Effort wird über die Prompt-Einleitung vermittelt. Für reine Read-only-Arbeiten (Recherche, Analyse) verwende `delegate(prompt, agent)` mit agent `"researcher"` oder `"explore"` — Effort wird über die Prompt-Einleitung vermittelt:
 
 | Stufe | Prompt-Einleitung | Wann |
 |---|---|---|

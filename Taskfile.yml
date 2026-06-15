@@ -2771,6 +2771,18 @@ tasks:
     cmds:
       - node scripts/code-quality/baseline-refresh.mjs
 
+  quality:tighten:
+    desc: "Lower baseline.json entries where current metric improved; commit if --commit passed (COMMIT=1)"
+    cmds:
+      - |
+        if [[ "{{.COMMIT}}" == "1" ]]; then
+          node scripts/code-quality/tighten.mjs --commit
+        else
+          node scripts/code-quality/tighten.mjs
+        fi
+    vars:
+      COMMIT: '{{.COMMIT | default "0"}}'
+
   plan:qa:
     desc: "DeepSeek-QA-Check for an implementation plan (PLAN=<path>)"
     vars:
@@ -2783,8 +2795,66 @@ tasks:
         fi
         bash scripts/plan-qa-check.sh "{{.PLAN}}"
 
+  ci:local:
+    desc: |
+      Run all CI steps locally (mirrors .github/workflows/ci.yml offline-tests job).
+      Flags: FAST=1 (only test:all + quality:check, ~3s), SKIP_NETWORK=1 (skip api-auth + freshness:check).
+    vars:
+      FAST:         '{{.FAST         | default "0"}}'
+      SKIP_NETWORK: '{{.SKIP_NETWORK | default "0"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        PASS=0; FAIL=0
+        _step() { echo; echo "=== CI:LOCAL: $* ==="; }
+        _ok()   { echo "  PASS: $*"; PASS=$((PASS+1)); }
+        _fail() { echo "  FAIL: $*"; FAIL=$((FAIL+1)); }
+        _run()  {
+          local label="$1"; shift
+          if "$@"; then _ok "$label"; else _fail "$label"; fi
+        }
+
+        if [[ "{{.FAST}}" == "1" ]]; then
+          _step "FAST mode: test:all + quality:check"
+          _run "task test:all"           task test:all
+          _run "task quality:check"      task quality:check
+          echo
+          echo "ci:local FAST: ${PASS} passed, ${FAIL} failed"
+          [[ $FAIL -eq 0 ]]
+          exit $?
+        fi
+
+        _step "1/5: Offline tests (task test:all)"
+        _run "task test:all" task test:all
+
+        if [[ "{{.SKIP_NETWORK}}" != "1" ]]; then
+          _step "2/5: API auth regression gate"
+          git fetch origin main --depth=1 2>/dev/null || true
+          git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null \
+            || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json
+          _run "api-auth-check" node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
+
+          _step "3/5: Freshness + quality ratchet (task freshness:check)"
+          _run "task freshness:check" task freshness:check
+        else
+          echo "  SKIP: api-auth regression (SKIP_NETWORK=1)"
+          echo "  SKIP: freshness:check (SKIP_NETWORK=1)"
+        fi
+
+        _step "4/5: Learning-assets build test"
+        _run "build-learning-assets.test" node --test scripts/build-learning-assets.test.mjs
+
+        _step "5/5: Systembrett template validation"
+        _run "systembrett-template.test.sh" ./scripts/tests/systembrett-template.test.sh
+
+        echo
+        echo "========================================"
+        echo "ci:local summary: ${PASS} passed, ${FAIL} failed"
+        echo "========================================"
+        [[ $FAIL -eq 0 ]]
+
   quality:loop:
-    desc: "Enqueue ≤MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."
+    desc: "Enqueue \u2264MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."
     cmds:
       - bash scripts/code-quality/loop.sh
 

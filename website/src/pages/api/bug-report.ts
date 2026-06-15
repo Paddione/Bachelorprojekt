@@ -74,6 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
       screenshotDataUrls.push(`data:${file.type};base64,${base64}`);
     }
 
+    const isTestData = isE2ETestRequest(request);
     const inserted = await insertBugTicket({
       category,
       reporterEmail: email,
@@ -81,6 +82,7 @@ export const POST: APIRoute = async ({ request }) => {
       url,
       brand: BRAND,
       screenshots: screenshotDataUrls.length > 0 ? screenshotDataUrls : undefined,
+      isTestData,
     });
     if (!inserted) {
       return jsonError('Ticket konnte nicht erstellt werden.', 500);
@@ -104,7 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
         url,
         brand: BRAND,
       },
-      isTestData: isE2ETestRequest(request),
+      isTestData,
     });
 
     return new Response(

@@ -673,16 +673,18 @@ export async function insertBugTicket(params: {
   url?: string;
   brand: string;
   screenshots?: string[];
+  isTestData?: boolean;
 }): Promise<{ id: string; ticketId: string } | null> {
   await initTicketsSchema();
   const { rows } = await pool.query<{ id: string; external_id: string }>(
     `INSERT INTO tickets.tickets
-       (type, brand, title, description, url, reporter_email, status)
-     VALUES ('bug', $1, $2, $3, $4, $5, 'triage')
+       (type, brand, title, description, url, reporter_email, status, is_test_data)
+     VALUES ('bug', $1, $2, $3, $4, $5, 'triage', $6)
      RETURNING id, external_id`,
     [params.brand,
      params.description.slice(0, 200),
-     params.description, params.url ?? null, params.reporterEmail]
+     params.description, params.url ?? null, params.reporterEmail,
+     params.isTestData ?? false]
   );
   if (rows.length === 0) return null;
   const newId = rows[0].id;

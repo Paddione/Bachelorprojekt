@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.76.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.75.0...website-v1.76.0) (2026-06-15)
+
+
+### Features
+
+* **cockpit:** add feature suggestion manager with AI-powered roll [T000784] ([#1706](https://github.com/Paddione/Bachelorprojekt/issues/1706)) ([e2e66c1](https://github.com/Paddione/Bachelorprojekt/commit/e2e66c1dcb96b66b382980f1c06745758d4e1788))
+* **website:** cockpit UX redesign — table-first, sidebar tree, mobile-responsive [T000786] ([#1709](https://github.com/Paddione/Bachelorprojekt/issues/1709)) ([b6acbea](https://github.com/Paddione/Bachelorprojekt/commit/b6acbea8fbac6628005a2f55865ce97e794b353c))
+
+
+### Bug Fixes
+
+* **bug-report:** stamp is_test_data on tickets created by E2E tests [T000760] ([#1713](https://github.com/Paddione/Bachelorprojekt/issues/1713)) ([6c3cbbb](https://github.com/Paddione/Bachelorprojekt/commit/6c3cbbba48d8e85da9034dd43e27c93990c96698))
+
 ## [1.75.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.74.0...website-v1.75.0) (2026-06-15)
 
 

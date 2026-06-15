@@ -78,7 +78,14 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
+          # HEAD_REF is attacker-controllable (fork PR branch name). Bind it to an
+          # env var (above) so bash quoting applies, and validate it before use.
+          if ! [[ "$HEAD_REF" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "❌ Refusing to operate on unsafe head ref: $HEAD_REF"
+            exit 1
+          fi
           task freshness:regenerate
           if git diff --quiet; then
             echo "✅ Freshness artifacts are up to date"
@@ -88,14 +95,14 @@ jobs:
           # Use GH_PAT for git push so the push triggers a new CI run
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git stash
-          git fetch origin "${{ github.head_ref }}"
-          git checkout "${{ github.head_ref }}"
+          git fetch origin "$HEAD_REF"
+          git checkout "$HEAD_REF"
           if git stash pop; then
             git add -A
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "chore: regenerate freshness artifacts"
-            git push origin "HEAD:${{ github.head_ref }}" 2>/dev/null || true
+            git push origin "HEAD:$HEAD_REF" 2>/dev/null || true
             echo "✅ Freshness fix pushed — new CI run will validate"
           else
             echo "⚠️ Could not auto-fix (fork PR or no permission). Fix manually: task freshness:regenerate"
@@ -222,9 +229,13 @@ jobs:
             The subject must be between 1 and 200 characters.
             If your PR title includes ticket references like [T000436], that counts toward the limit.
       - name: Validate ticket tag [T000XXX] in PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          echo "PR title: ${{ github.event.pull_request.title }}"
-          if echo "${{ github.event.pull_request.title }}" | grep -qP '\[T\d+\]'; then
+          # PR_TITLE is attacker-controllable — bind to env (above) so it is never
+          # interpolated into the shell command; bash quoting then applies.
+          echo "PR title: $PR_TITLE"
+          if echo "$PR_TITLE" | grep -qP '\[T\d+\]'; then
             echo "✅ Ticket tag found"
           else
             echo "❌ PR title must contain a ticket tag like [T000123]"

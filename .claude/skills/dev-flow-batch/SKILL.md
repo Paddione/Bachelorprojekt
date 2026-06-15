@@ -130,7 +130,9 @@ Workflow({
     tickets: <TICKETS_JSON als Objekt>,
     gap_context: <Map von ticket_id → Inhalt der .gaps-Datei>,
     repo_root: "/home/patrick/Bachelorprojekt",
-    today: <BATCH_DATE>
+    today: <BATCH_DATE>,
+    batch_mode: true,                // aktiviert Parallel-Verarbeitung
+    apiBalance: 4                    // max. Sub-Features (default 4, max 6)
   }
 })
 ```
@@ -193,6 +195,22 @@ Regeln:
 - Gib einen parent_feature slug (kebab-case, kurz) zurück
 ```
 
+### Schritt 2.5: (Optional) Nutze pipeline-decompose.js für KI-Zerlegung
+
+Anstatt einen Decompose-Subagenten manuell zu spawne, kann die Factory-Funktion
+`decomposeFeature(description, apiBalance)` aus `scripts/factory/pipeline-decompose.cjs`
+die Zerlegung plus Datei-Isolierung automatisch durchführen:
+
+```javascript
+const D = require('./pipeline-decompose.cjs');
+const subFeatures = await D.decomposeFeature(featureDescription, apiBalance);
+```
+
+- `apiBalance` (number, default 4, max 6): maximale Anzahl Sub-Features
+- Jedes Sub-Feature erhält eine **disjunkte Dateiliste** (kein Overlap)
+- Shared files (`configmap-domains.yaml`, `environments/schema.yaml`) werden max. 1 Feature zugewiesen
+- Ergibt Zerlegung nur 1 Feature: kein Batch-Modus, direkt single-Feature-Run
+
 ### Schritt 3: Sub-Features als Tickets-Array formatieren
 
 Wandle die Sub-Features in das Ticket-Format um das der Workflow erwartet:
@@ -214,6 +232,8 @@ Füge `depends_on` und `parent_feature` in den `gap_context` pro Sub-Feature ein
 
 Identisch zu Modus 1 Schritt 5 — `batch-workflow-gen.sh` + `Workflow({scriptPath, args})`.
 
+Das `Workflow`-Objekt kann zusätzlich `batch_mode: true` und `apiBalance: <N>` enthalten (siehe Modus 1 Schritt 5). Bei `batch_mode: true` führt `pipeline.js` die Sub-Features parallel aus und überspringt fehlgeschlagene Sub-Features.
+
 ---
 
 ## Abgrenzung
@@ -222,3 +242,7 @@ Identisch zu Modus 1 Schritt 5 — `batch-workflow-gen.sh` + `Workflow({scriptPa
 - Fertige Pläne landen in `status=plan_staged` in der Kommissionierung
 - Factory-Übergabe: `/dev-status` → "→ Factory" Knopf, oder:
   `bash scripts/ticket.sh enqueue --id <ext-id> --branch <branch> --plan <plan>`
+- **Factory-Integration**: Die Zerlegungs- und Batch-Logik ist in
+  `scripts/factory/pipeline-decompose.cjs` (Helper + `assignFiles`) und
+  `scripts/factory/pipeline.js` (Batch-Modus) implementiert. Der Skill beschreibt
+  das Workflow-Ochestrierungsmuster; die Factory führt es aus.

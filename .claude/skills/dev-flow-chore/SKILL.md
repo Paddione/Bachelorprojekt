@@ -61,7 +61,7 @@ provisionierten Subagenten delegieren (siehe [subagent-provisioning.md](file:///
 
 ```bash
 task workspace:validate
-task test:all
+task test:changed
 task freshness:regenerate   # generierte Artefakte aktuell halten, sonst CI rot
 task freshness:check        # CI-Äquivalent: S1–S4-Ratchet (Zeilenlimits!) gegen baseline.json — fängt das Gate VOR dem Push
 ```

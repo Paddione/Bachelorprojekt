@@ -68,8 +68,8 @@ cd website && pnpm build
 cd brett && npm run build 2>/dev/null || true
 cd arena-server && pnpm build 2>/dev/null || true
 
-# Tests (vollständig)
-task test:all
+# Tests (gezielt auf geänderte Domains)
+task test:changed
 
 # Kustomize
 task workspace:validate

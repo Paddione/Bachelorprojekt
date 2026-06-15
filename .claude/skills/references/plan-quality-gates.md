@@ -69,7 +69,7 @@ Jedes neue `k3d/*.yaml` muss in einer `kustomization.yaml` referenziert sein, je
 Der letzte Task jedes Plans MUSS diese Kommandos als Steps enthalten:
 
 ```bash
-task test:all              # Offline-Gesamtsuite (inkl. test:code-quality Unit-Tests)
+task test:changed          # Gezielte Tests für geänderte Domains (vitest --changed + BATS-Selection + quality)
 task freshness:regenerate  # generierte Artefakte aktualisieren (test-inventory, repo-index, …)
 task freshness:check       # CI-Äquivalent: Freshness + quality:check (S1–S4-Ratchet) + Baseline-Assertion
 ```

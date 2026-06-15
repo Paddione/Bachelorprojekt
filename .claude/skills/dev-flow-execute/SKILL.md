@@ -138,7 +138,7 @@ Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten via `Age
   
   Führe aus: Schritt 1.4 bis Schritt 7.5 aus dev-flow-execute (Single-Modus) —
   d.h. Doppelarbeit-Guard, Ticket in_progress, Implementierung via superpowers:executing-plans,
-  lokale Verifikation (task test:all + freshness:check), Code-Review-Gate,
+  lokale Verifikation (task test:changed + freshness:check), Code-Review-Gate,
   PR öffnen, CI-Fix-Schleife, Auto-Merge, Ticket abschließen, Plan archivieren,
   Worktree bereinigen.
   
@@ -349,10 +349,10 @@ Rufe das Skill **`verification-before-completion`** auf, um die Verifikation str
 ```bash
 # Live-Floor-Telemetrie (best-effort; --driver devflow; darf den Flow nie stoppen)
 ./scripts/ticket.sh phase "$TICKET_ID" implement done --driver devflow --detail "Implementierung fertig" || true
-./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:all + freshness" || true
+./scripts/ticket.sh phase "$TICKET_ID" verify entered --driver devflow --detail "task test:changed + freshness" || true
 task workspace:validate
 ./tests/runner.sh local <FA-XX oder SA-XX>
-task test:all
+task test:changed
 task freshness:regenerate
 task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–S4-Ratchet + Baseline-Assertion)
 ./scripts/ticket.sh phase "$TICKET_ID" verify done --driver devflow --detail "Tests grün · freshness OK" || true
@@ -360,7 +360,7 @@ task freshness:check        # CI-Äquivalent — failt lokal GENAU wie CI (S1–
 
 **Wichtig — beide Befehle sind nötig:**
 - `task freshness:regenerate` aktualisiert die generierten Artefakte (test-inventory.json, route-manifest.json, agent-guide docs/maps, learning-assets, repo-index.json), sonst CI rot.
-- `task freshness:check` ist das **CI-Äquivalent** und failt lokal genauso wie CI — insbesondere am **S1-Zeilen-Ratchet** (`quality:check` gegen `docs/code-quality/baseline.json`) sowie der Baseline-Key-Count-Assertion. **`task test:all` fängt S1 NICHT** (sein `test:code-quality` läuft nur die Gate-Unit-Tests, nicht das Ratchet über deine Dateien). Ohne `freshness:check` lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.
+- `task freshness:check` ist das **CI-Äquivalent** und failt lokal genauso wie CI — insbesondere am **S1-Zeilen-Ratchet** (`quality:check` gegen `docs/code-quality/baseline.json`) sowie der Baseline-Key-Count-Assertion. Ohne `freshness:check` lokal wird eine Zeilen-Limit-Überschreitung erst nach dem Push in CI sichtbar — und du landest im Firefight-Modus.
 
 Siehe [dev-flow-gotchas.md](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für TypeScript/pnpm Gotchas in Worktrees.
 

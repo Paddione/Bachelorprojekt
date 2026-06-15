@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.76.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.76.0...website-v1.76.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **admin:** fix 5 bugs from AI review — null-crash, race, missing type, modal reset, retry [T000792] ([#1721](https://github.com/Paddione/Bachelorprojekt/issues/1721)) ([7213314](https://github.com/Paddione/Bachelorprojekt/commit/72133143f3ec9c42563e81ccc1fb789d8e0707bc))
+
 ## [1.76.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.75.0...website-v1.76.0) (2026-06-15)
 
 

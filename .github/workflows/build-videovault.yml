@@ -1,0 +1,70 @@
+name: Build & Deploy VideoVault
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'VideoVault/**'
+      - 'packages/videovault-player/**'
+      - '.github/workflows/build-videovault.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy VideoVault (both brands)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: VideoVault/package-lock.json
+
+      - name: Test gate (types + client unit)
+        working-directory: VideoVault
+        run: |
+          npm install --legacy-peer-deps
+          npm run check
+          npm run test:client
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Build & push Docker image
+        run: |
+          IMAGE="ghcr.io/paddione/videovault"
+          SHA_TAG="sha-$(date +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+          docker build --no-cache \
+            -t "${IMAGE}:${SHA_TAG}" \
+            -t "${IMAGE}:latest" \
+            -f VideoVault/Dockerfile \
+            .
+          docker push "${IMAGE}:${SHA_TAG}"
+          docker push "${IMAGE}:latest"
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+          echo "SHA_TAG=${SHA_TAG}" >> $GITHUB_ENV
+
+      - name: Deploy to both brands
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          for NS in workspace workspace-korczewski; do
+            kubectl set image deployment/videovault videovault="${IMAGE}:${SHA_TAG}" -n "$NS"
+            kubectl rollout status deployment/videovault -n "$NS" --timeout=180s
+          done

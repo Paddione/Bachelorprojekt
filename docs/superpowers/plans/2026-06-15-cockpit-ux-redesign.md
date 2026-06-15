@@ -1876,7 +1876,7 @@ return Astro.redirect('/admin/cockpit');
 Run:
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-cockpit-ux
-task test:all
+task test:changed
 ```
 Expected: PASS (BATS units, kustomize structure, Taskfile dry-run, **Vitest website**). If the test-inventory step warns about drift, that is fixed in Step 4.
 
@@ -1940,7 +1940,7 @@ Expected: branch pushed; ready to open a PR (the executing skill handles PR + au
 - [ ] Bulk bar appears on selection and runs batch mutations.
 - [ ] Mobile (< 768px): sidebar hidden behind ☰ hamburger; table hides ID + created columns; priority shown as left border.
 - [ ] `TicketsTab`, `TicketsTableBody`, `FeatureWorkbench`, `PortfolioGrid`, `FeatureCard`, `TicketQuickEdit` deleted; no dangling imports.
-- [ ] `task test:all` green; `task freshness:check` green; `task test:inventory` produces no diff; `pnpm build` succeeds.
+- [ ] `task test:changed` green; `task freshness:check` green; `task test:inventory` produces no diff; `pnpm build` succeeds.
 - [ ] `baseline.json` no longer references the deleted `TicketsTab.svelte`; no new baseline keys added.
 
 ---

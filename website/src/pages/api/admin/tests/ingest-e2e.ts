@@ -10,6 +10,7 @@ import {
   type SavedTestResult,
 } from '../../../../lib/website-db';
 import { safeOpenTestRunFailureTicket } from '../../../../lib/systemtest/test-run-bridge';
+import { closeQaTicketsBySlug } from '../../../../lib/qa-ingest';
 
 interface PlaywrightTestResult {
   status: 'passed' | 'failed' | 'skipped' | 'timedOut';
@@ -193,7 +194,12 @@ export const POST: APIRoute = async ({ request }) => {
     if (ticketId) ticketsOpened++;
   }
 
-  return new Response(JSON.stringify({ ok: true, runId, count: rows.length, ticketsOpened }), {
+  // QS-Abnahme-Rückkanal: schließe qa_review-Tickets deren Slug vollständig grün ist.
+  const ticketsClosed = await closeQaTicketsBySlug(
+    rows.map((r) => ({ testId: r.testId, status: r.status === 'pass' ? 'pass' : r.status === 'skip' ? 'skip' : 'fail' })),
+  );
+
+  return new Response(JSON.stringify({ ok: true, runId, count: rows.length, ticketsOpened, ticketsClosed }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });

@@ -135,7 +135,7 @@ Expected: `{"metric":615,...}` and `feature/cockpit-ux-redesign`. No commit in t
 - Modify: `website/src/lib/stores/cockpitStore.ts`
 - Test: `website/src/lib/stores/cockpitStore.test.ts`
 
-- [ ] **Step 1: Rewrite the store test for the new shape**
+- [x] **Step 1: Rewrite the store test for the new shape**
 
 Replace the entire contents of `website/src/lib/stores/cockpitStore.test.ts`:
 
@@ -193,110 +193,13 @@ describe('cockpitStore', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test, verify it fails**
+- [x] **Step 2: Run the test, verify it fails** — skipped (wrote new test + impl together)
 
-Run: `cd website && pnpm vitest run src/lib/stores/cockpitStore.test.ts`
-Expected: FAIL — `selectFeature`/`setActiveTicket` undefined or `selectedFeature` not present.
+- [x] **Step 3: Rewrite `cockpitStore.ts`** — done
 
-- [ ] **Step 3: Rewrite `cockpitStore.ts`**
+- [x] **Step 4: Run the test, verify it passes** — PASS (6 tests)
 
-Replace the entire contents of `website/src/lib/stores/cockpitStore.ts`:
-
-```ts
-import { writable, derived, get } from 'svelte/store';
-
-export interface OptimisticEdit {
-  ticketId: string; field: string; oldValue: unknown; newValue: unknown;
-}
-export interface CockpitState {
-  selectedFeature: string | null;
-  activeTicket: string | null;
-  selectedTickets: Set<string>;
-  optimistic: Record<string, OptimisticEdit>;
-  error: string | null;
-  isLoading: boolean;
-}
-
-const ls = (k: string): string | null =>
-  typeof localStorage !== 'undefined' ? localStorage.getItem(k) : null;
-const setLs = (k: string, v: string | null): void => {
-  if (typeof localStorage === 'undefined') return;
-  if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v);
-};
-
-const initial: CockpitState = {
-  selectedFeature: ls('cockpit:feature'),
-  activeTicket: null,
-  selectedTickets: new Set<string>(),
-  optimistic: {},
-  error: null,
-  isLoading: false,
-};
-
-export const cockpitStore = writable<CockpitState>(initial);
-export const selectedCount = derived(cockpitStore, ($s) => $s.selectedTickets.size);
-
-function syncUrl(s: CockpitState): void {
-  if (typeof window === 'undefined') return;
-  const u = new URL(window.location.href);
-  if (s.selectedFeature) u.searchParams.set('feature', s.selectedFeature);
-  else u.searchParams.delete('feature');
-  // legacy 4-tab params are dropped so old links normalise cleanly
-  u.searchParams.delete('lens');
-  u.searchParams.delete('mode');
-  u.searchParams.delete('produkt');
-  window.history.replaceState({}, '', u);
-}
-
-export function initStoreFromUrl(p: URLSearchParams): void {
-  cockpitStore.update((s) => ({
-    ...s,
-    selectedFeature: p.get('feature') ?? s.selectedFeature,
-  }));
-}
-
-export function selectFeature(extId: string | null): void {
-  cockpitStore.update((s) => {
-    const n = { ...s, selectedFeature: extId, selectedTickets: new Set<string>() };
-    setLs('cockpit:feature', extId); syncUrl(n); return n;
-  });
-}
-export function setActiveTicket(id: string | null): void {
-  cockpitStore.update((s) => ({ ...s, activeTicket: id }));
-}
-export function toggleTicketSelection(id: string): void {
-  cockpitStore.update((s) => {
-    const next = new Set(s.selectedTickets);
-    next.has(id) ? next.delete(id) : next.add(id);
-    return { ...s, selectedTickets: next };
-  });
-}
-export function clearSelection(): void {
-  cockpitStore.update((s) => ({ ...s, selectedTickets: new Set<string>() }));
-}
-export function applyOptimistic(ticketId: string, field: string, newValue: unknown, oldValue: unknown): () => void {
-  const key = `${ticketId}:${field}`;
-  cockpitStore.update((s) => ({
-    ...s, optimistic: { ...s.optimistic, [key]: { ticketId, field, oldValue, newValue } },
-  }));
-  return () => rollbackOptimistic(ticketId, field);
-}
-export function rollbackOptimistic(ticketId: string, field: string): void {
-  const key = `${ticketId}:${field}`;
-  cockpitStore.update((s) => { const { [key]: _drop, ...rest } = s.optimistic; return { ...s, optimistic: rest }; });
-}
-export function clearOptimistic(ticketId: string, field: string): void { rollbackOptimistic(ticketId, field); }
-export function setError(error: string | null): void { cockpitStore.update((s) => ({ ...s, error })); }
-export function setLoading(isLoading: boolean): void { cockpitStore.update((s) => ({ ...s, isLoading })); }
-export { get };
-```
-
-- [ ] **Step 4: Run the test, verify it passes**
-
-Run: `cd website && pnpm vitest run src/lib/stores/cockpitStore.test.ts`
-Expected: PASS (6 tests).
-
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/stores/cockpitStore.ts website/src/lib/stores/cockpitStore.test.ts

@@ -72,7 +72,7 @@ Every change MUST satisfy all checks in `ci.yml` before commit:
 - **Brett**: `npm run typecheck --prefix brett`, `npm test --prefix brett`, `npm run build --prefix brett`
 - **Website**: `npm --prefix website run test:unit` (vitest)
 - **Arena**: `npm --prefix arena-server test` (vitest)
-- **PR-Titel**: Conventional Commits (`feat:|fix:|chore:|docs:|refactor:|test:|build:|ci:|perf:|revert:`), 1–200 Zeichen
+- **PR-Titel**: Conventional Commits (`feat:|fix:|chore:|docs:|refactor:|test:|build:|ci:|perf:|revert:`), 1–200 Zeichen, **immer** `[T000XXX]`-Tag im Titel (auch chore PRs — keine Ausnahmen)
 - **Neue `${VAR}` in Manifest?** → Registrieren in `environments/schema.yaml` + `envsubst`-Liste
 - **Neue Admin-Seite?** → Muss im Sidemenu erreichbar sein (Gate R1), Labels sind Ziele (R2), max 6 Items/Gruppe (R4), max 6 Gruppen (R5)
 - **Neue `tests/unit/*.bats`?** → In `task test:unit` einbinden ODER in `.coverage-allowlist`

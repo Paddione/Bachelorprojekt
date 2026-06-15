@@ -2954,7 +2954,7 @@
       "id": "arena-server",
       "name": "Arena WebSocket game server (TS)",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 55,
+      "file_count": 56,
       "files": [
         "arena-server/.dockerignore",
         "arena-server/.gitignore",
@@ -2964,6 +2964,7 @@
         "arena-server/package-lock.json",
         "arena-server/package.json",
         "arena-server/pnpm-lock.yaml",
+        "arena-server/pnpm-workspace.yaml",
         "arena-server/src/auth/jwks.ts",
         "arena-server/src/auth/jwt.test.ts",
         "arena-server/src/auth/jwt.ts",

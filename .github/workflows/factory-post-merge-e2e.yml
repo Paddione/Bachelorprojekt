@@ -1,0 +1,47 @@
+# .github/workflows/factory-post-merge-e2e.yml
+# Lücke 6.1: E2E-Trigger nach Factory-PR-Merge. [T000730]
+# Triggert auf push zu main wenn der Merge-Commit einen T###### Ticket-Bezeichner enthält.
+# Das schließt normale chore/fix Commits aus (die kein Ticket im Titel tragen).
+name: Factory Post-Merge E2E
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  trigger-e2e:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write   # gh workflow run braucht write auf actions
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 1
+
+      - name: Check if this is a Factory merge commit
+        id: factory-check
+        run: |
+          set -euo pipefail
+          COMMIT_MSG="$(git log -1 --pretty=%B)"
+          TICKET_ID="$(echo "$COMMIT_MSG" | grep -oE 'T[0-9]{6}' | head -1 || true)"
+          if [[ -z "$TICKET_ID" ]]; then
+            echo "No T###### in merge commit — skipping E2E trigger."
+            echo "is_factory=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Factory merge detected: $TICKET_ID — triggering E2E."
+            echo "is_factory=true" >> "$GITHUB_OUTPUT"
+            echo "ticket_id=$TICKET_ID" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger E2E workflow
+        if: steps.factory-check.outputs.is_factory == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TICKET_ID: ${{ steps.factory-check.outputs.ticket_id }}
+        run: |
+          echo "Triggering e2e.yml for ticket $TICKET_ID (cluster=both)"
+          gh workflow run e2e.yml \
+            --ref main \
+            --field cluster=both
+          echo "E2E workflow dispatched."

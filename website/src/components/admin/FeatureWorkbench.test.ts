@@ -49,3 +49,14 @@ it('reorders via keyboard Shift+ArrowDown and POSTs reorder', async () => {
   await waitFor(() => expect(spy).toHaveBeenCalledWith(
     '/api/admin/cockpit/reorder', expect.objectContaining({ method: 'POST' })));
 });
+
+it('bulk-changes status via batch endpoint', async () => {
+  const spy = vi.spyOn(global, 'fetch').mockResolvedValue(
+    new Response('{"ok":true,"results":[]}', { status: 200 }));
+  const { getAllByTestId, getByTestId } = render(FeatureWorkbench, { feature, tickets: [...tickets] });
+  await fireEvent.click(getAllByTestId('row-checkbox')[0]);
+  await fireEvent.click(getAllByTestId('row-checkbox')[1]);
+  await fireEvent.change(getByTestId('bulk-status'), { target: { value: 'done' } });
+  await waitFor(() => expect(spy).toHaveBeenCalledWith(
+    '/api/admin/cockpit/batch', expect.objectContaining({ method: 'POST' })));
+});

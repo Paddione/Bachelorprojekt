@@ -1,0 +1,23 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Cockpit from '../../components/admin/Cockpit.svelte';
+import { getSession, isAdmin } from '../../lib/auth';
+import { getPortfolio } from '../../lib/tickets/cockpit-db';
+
+const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session || !isAdmin(session)) return Astro.redirect('/login');
+
+const brand = BRAND();
+let portfolioInitial: Awaited<ReturnType<typeof getPortfolio>> | null = null;
+try {
+  portfolioInitial = await getPortfolio(brand);
+} catch {
+  portfolioInitial = null;
+}
+---
+
+<AdminLayout title="Projekt-Cockpit">
+  <Cockpit {portfolioInitial} {brand} client:load />
+</AdminLayout>

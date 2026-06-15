@@ -49,7 +49,7 @@ After Stage F, `cockpit.astro` is the landing page (SSR auth + brand guard + pre
 **Files:**
 - Create: `website/src/pages/admin/cockpit.astro` (target ~80 lines; limit 400)
 
-- [ ] **Step 1: Write the page**
+- [x] **Step 1: Write the page**
 
 Create `website/src/pages/admin/cockpit.astro` (mirror the island pattern at `website/src/pages/admin/inhalte.astro`; use the real `AdminLayout` import path found there):
 
@@ -81,7 +81,7 @@ try {
 
 > Executor note: verify the exact `AdminLayout` import path and prop name used by `website/src/pages/admin/inhalte.astro` and match it. Calling `getPortfolio()` directly server-side avoids an HTTP self-fetch (no hardcoded host → S3-safe).
 
-- [ ] **Step 2: Verify it builds**
+- [x] **Step 2: Verify it builds**
 
 Run: `cd website && pnpm build 2>&1 | grep -i "cockpit\|error" | head` 
 Expected: no errors referencing cockpit.astro. `wc -l src/pages/admin/cockpit.astro` → <400.
@@ -93,6 +93,8 @@ git add website/src/pages/admin/cockpit.astro
 git commit -m "feat(cockpit): SSR cockpit.astro page (auth + brand guard + portfolio preload)"
 ```
 
+- [x] **Step 3: Commit**
+
 ---
 
 ### Task 28: Redirect `/admin/tickets` → `/admin/cockpit?mode=tabelle`
@@ -101,7 +103,7 @@ git commit -m "feat(cockpit): SSR cockpit.astro page (auth + brand guard + portf
 - Modify: `website/src/pages/admin/tickets.astro` (Ist 359 · Budget 41 — redirect only)
 - Test: `website/src/pages/admin/tickets.redirect.test.ts` (or extend the existing admin-tickets E2E in Stage G)
 
-- [ ] **Step 1: Add the redirect at the very top of the frontmatter**
+- [x] **Step 1: Add the redirect at the very top of the frontmatter**
 
 In `website/src/pages/admin/tickets.astro`, immediately after the existing auth resolution (before any heavy data loading), insert a redirect. The minimal change (preserves auth, ≤3 net lines):
 
@@ -115,7 +117,7 @@ return Astro.redirect('/admin/cockpit?mode=tabelle');
 
 > This makes the rest of the page dead code. If the build complains about unused imports, delete the now-unused frontmatter/body **net-reducing** the file (which only helps S1). Confirm `wc -l website/src/pages/admin/tickets.astro` did not grow past 359.
 
-- [ ] **Step 2: Verify line budget + redirect**
+- [x] **Step 2: Verify line budget + redirect**
 
 Run: `wc -l website/src/pages/admin/tickets.astro` (≤ 359). Build: `cd website && pnpm build 2>&1 | grep -i error | head` (none).
 
@@ -126,6 +128,8 @@ git add website/src/pages/admin/tickets.astro
 git commit -m "feat(cockpit): redirect /admin/tickets to cockpit Tabelle mode"
 ```
 
+- [x] **Step 3: Commit**
+
 ---
 
 ### Task 29: Wire the existing power-table into the Tabelle mode
@@ -134,12 +138,12 @@ git commit -m "feat(cockpit): redirect /admin/tickets to cockpit Tabelle mode"
 - Modify: `website/src/components/admin/Cockpit.svelte` (replace `table-mode-placeholder`)
 - Test: append a render assertion to `website/src/components/admin/Cockpit.test.ts`
 
-- [ ] **Step 1: Locate the existing table component**
+- [x] **Step 1: Locate the existing table component**
 
 Run: `grep -rln "saved view\|gespeicherte\|TicketTable\|admin/tickets" website/src/components/admin/ | head`
 Identify the Svelte component that `/admin/tickets` rendered for the flat power table (filters/saved views/quick-edit). Note its path + required props.
 
-- [ ] **Step 2: Failing test** (append to Cockpit.test.ts)
+- [x] **Step 2: Failing test** (append to Cockpit.test.ts)
 
 ```typescript
 it('renders table mode placeholder swapped for the table component', async () => {
@@ -151,7 +155,7 @@ it('renders table mode placeholder swapped for the table component', async () =>
 });
 ```
 
-- [ ] **Step 3: Implement** — in `Cockpit.svelte` import the located table component and replace the placeholder branch:
+- [x] **Step 3: Implement** — in `Cockpit.svelte` import the located table component and replace the placeholder branch:
 
 ```svelte
     {#if $cockpitStore.mode === 'tabelle'}
@@ -160,7 +164,7 @@ it('renders table mode placeholder swapped for the table component', async () =>
 
 If the table component needs SSR-loaded data, pass it down via a new prop on `Cockpit` populated in `cockpit.astro` (keep the payload lean). If it self-loads from `/api/admin/tickets`, no prop is needed.
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/Cockpit.svelte website/src/components/admin/Cockpit.test.ts
@@ -210,12 +214,12 @@ After Stage G, the cockpit has Playwright coverage in the `website` project, the
 **Files:**
 - Create: `tests/e2e/fa-29-cockpit.spec.ts` (the `website` project's `testMatch` already includes `**/fa-29-*.spec.ts` via the `fa-*` patterns — confirm in Step 1; if not, add the glob)
 
-- [ ] **Step 1: Confirm project glob coverage**
+- [x] **Step 1: Confirm project glob coverage**
 
 Run: `grep -n "fa-29\|fa-\*\|fa-28" tests/e2e/playwright.config.ts | head`
 If the `website` project's `testMatch` does not already pick up `fa-29-*`, add `'**/fa-29-*.spec.ts',` to the `website` project's `testMatch` array (single-line edit).
 
-- [ ] **Step 2: Write the spec (5 cases)**
+- [x] **Step 2: Write the spec (5 cases)**
 
 Create `tests/e2e/fa-29-cockpit.spec.ts` following the structure of `tests/e2e/factory-qs-abnahme.spec.ts` (auth setup + `page.goto`). Cover: (1) cockpit loads & renders portfolio cards; (2) lens toggle Überblick↔Werkbank; (3) one inline status edit (optimistic); (4) one bulk status edit; (5) one drag-reparent. Use explicit `await expect(locator).toBeVisible()` waits and `page.waitForResponse(/\/api\/admin\/cockpit\//)` — no fixed sleeps:
 
@@ -269,12 +273,12 @@ test.describe('FA-29 Projekt-Cockpit', () => {
 
 > Note: these run against a seeded environment with at least one Produkt → Feature → tickets; if the live brand has none, mark the data-dependent cases `test.skip` guarded on portfolio emptiness rather than letting them flake.
 
-- [ ] **Step 3: List the specs are discoverable**
+- [x] **Step 3: List the specs are discoverable**
 
 Run: `cd website && pnpm exec playwright test --list --config=../tests/e2e/playwright.config.ts --project=website 2>/dev/null | grep -ci "FA-29" || true`
 Expected: ≥1 (5 cases).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/e2e/fa-29-cockpit.spec.ts tests/e2e/playwright.config.ts

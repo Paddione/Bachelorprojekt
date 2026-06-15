@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.74.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.73.0...website-v1.74.0) (2026-06-15)
+
+
+### Features
+
+* **cockpit:** P2 API endpoints (cockpit/*) [T000750] ([#1695](https://github.com/Paddione/Bachelorprojekt/issues/1695)) ([102b61a](https://github.com/Paddione/Bachelorprojekt/commit/102b61a71984421b5f570eba617f382fc2c264c7))
+* **cockpit:** P3 Frontend — Shell, Karten, Linsen, Editieren [T000751] ([#1697](https://github.com/Paddione/Bachelorprojekt/issues/1697)) ([945c69b](https://github.com/Paddione/Bachelorprojekt/commit/945c69bbf155016c9435257cae692e49601f532d))
+
 ## [1.73.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.72.0...website-v1.73.0) (2026-06-15)
 
 

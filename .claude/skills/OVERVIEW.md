@@ -189,3 +189,13 @@ graph TD
 | DB-Migration | `database-ops` → `dev-flow-execute` (Schema-Change) | Gemergte Migration |
 | Secret rotieren | `secret-rotation` → `fleet-ops` (Deploy) | Rotierte Secrets |
 | Abhängigkeiten updaten | `update-dependencies` → `cluster-deployment` (Test-Deploy) | Aktualisierte Packages |
+
+## Cross-Cutting: Grilling → Ticket
+
+Jede Grilling-Session (Q/A-Interview: Coaching, Deep-Grilling, Klärung, Incident-Befragung)
+lässt sich mit **einem** geteilten Helper an ein Ticket senden:
+`scripts/ticket.sh grill --id <ext-id> (--json | --answers-file | --answer qid=text ...)`.
+Schreibt akkumulierend in `tickets.tickets.grilling_answers` (forward-kompatibel mit dem
+T000737-Panel) + optionalem Timeline-Kommentar. Vollständige How-to:
+`.claude/skills/references/grilling-to-ticket.md`. Skill-Autoren: NICHT pro SKILL.md
+neu erfinden — die Referenz verlinken.

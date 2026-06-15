@@ -507,6 +507,10 @@ bash scripts/ticket.sh plan-meta set --id "$TICKET_EXT_ID" \
 # aufwand_geschaetzt=false (muss geschätzt werden, es sei denn Zitat gibt Hinweis)
 ```
 
+> **Zusätzlich strukturiert ablegen:** Neben dem Klärungs-Kommentar die Antworten mit
+> `scripts/ticket.sh grill --id <ext-id> …` ans Ticket senden (akkumulierend, panel-fähig).
+> Siehe `.claude/skills/references/grilling-to-ticket.md`.
+
 ### Schritt 5 — Abschluss-Report
 
 Nach dem Anlegen:

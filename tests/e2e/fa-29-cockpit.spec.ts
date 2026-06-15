@@ -1,8 +1,7 @@
-// tests/e2e/fa-29-cockpit.spec.ts [T000752]
-// Projekt-Cockpit E2E — Verifiziert, dass /admin/cockpit lädt, Linsen wechselt,
-// Status inline editiert, Bulk-Edits und Drag-Reparent funktionieren.
-// Benötigt E2E_ADMIN_USER + E2E_ADMIN_PASS (Keycloak-Admin).
-// Läuft nur gegen Live-Prod (WEBSITE_URL env var).
+// tests/e2e/fa-29-cockpit.spec.ts [T000752 → cockpit-ux-redesign]
+// Projekt-Cockpit E2E — verifies /admin/cockpit loads (sidebar + table),
+// feature selection filters tickets, inline status edit + bulk edit work.
+// Requires E2E_ADMIN_USER + E2E_ADMIN_PASS. Runs against live prod (WEBSITE_URL).
 import { test, expect } from '@playwright/test';
 
 const WEBSITE_URL = process.env.WEBSITE_URL ?? 'http://localhost:4321';
@@ -14,47 +13,44 @@ test.describe('FA-29 Projekt-Cockpit', () => {
 
   async function login(page: any) {
     await page.goto(`${WEBSITE_URL}/admin/cockpit`);
-    // Keycloak redirects to auth before rendering the login form.
-    // Wait for the username field to appear (up to 10s) before filling.
     const userField = page.locator('input[name="username"]');
     if (await userField.isVisible({ timeout: 10_000 }).catch(() => false)) {
       await userField.fill(ADMIN_USER);
       await page.fill('input[name="password"]', ADMIN_PASS);
       await page.click('input[type="submit"]');
-      await page.waitForURL(`${WEBSITE_URL}/admin/cockpit`);
+      await page.waitForURL(/\/admin\/cockpit/);
     }
   }
 
-  test('loads portfolio cards', async ({ page }) => {
+  test('loads sidebar and table', async ({ page }) => {
     await login(page);
-    await expect(page.locator('[data-testid="portfolio-grid"]')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('[data-testid="cockpit-sidebar"]')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('[data-testid="cockpit-table"]')).toBeVisible({ timeout: 15_000 });
   });
 
-  test('redirects /admin/tickets to cockpit table mode', async ({ page }) => {
+  test('redirects /admin/tickets to cockpit', async ({ page }) => {
     await login(page);
     await page.goto(`${WEBSITE_URL}/admin/tickets`);
-    await page.waitForURL(/cockpit\?mode=tabelle/);
-    await expect(page).toHaveURL(/\/admin\/cockpit\?mode=tabelle/);
+    await page.waitForURL(/\/admin\/cockpit/);
+    await expect(page).toHaveURL(/\/admin\/cockpit/);
   });
 
-  test('toggles lens to Werkbank', async ({ page }) => {
+  test('opens the create modal', async ({ page }) => {
     await login(page);
-    await expect(page.getByRole('button', { name: /werkbank/i })).toBeVisible();
-    await page.getByRole('button', { name: /werkbank/i }).click();
-    await expect(page).toHaveURL(/lens=werkbank/);
+    await page.locator('[data-testid="open-create"]').click();
+    await expect(page.locator('[data-testid="create-modal"]')).toBeVisible({ timeout: 10_000 });
   });
 
   test.describe('data-dependent (requires seeded portfolio)', () => {
-    async function hasCards(page: any) {
-      const cards = page.locator('[data-testid="feature-card"]');
-      return (await cards.count()) > 0;
+    async function hasFeatures(page: any) {
+      return (await page.locator('[data-testid="sidebar-feature"]').count()) > 0;
     }
 
-    test('inline-edits a ticket status', async ({ page }) => {
+    test('selecting a feature filters the table + inline-edits a status', async ({ page }) => {
       await login(page);
-      if (!(await hasCards(page))) { test.skip(true, 'Keine Feature-Karten im Portfolio — überspringe'); return; }
-      await page.locator('[data-testid="feature-card"]').first().click();
-      await expect(page.locator('[data-testid="feature-workbench"]')).toBeVisible({ timeout: 10_000 });
+      if (!(await hasFeatures(page))) { test.skip(true, 'Keine Features — überspringe'); return; }
+      await page.locator('[data-testid="sidebar-feature"]').first().click();
+      await expect(page.locator('[data-testid="cockpit-table"]')).toBeVisible({ timeout: 10_000 });
       const statusSelect = page.locator('[data-testid="status-select"]').first();
       if (!(await statusSelect.count())) { test.skip(true, 'Kein Status-Select — überspringe'); return; }
       const resp = page.waitForResponse(/\/api\/admin\/tickets\/.+\/transition/);
@@ -64,32 +60,14 @@ test.describe('FA-29 Projekt-Cockpit', () => {
 
     test('bulk-edits status', async ({ page }) => {
       await login(page);
-      if (!(await hasCards(page))) { test.skip(true, 'Keine Feature-Karten im Portfolio — überspringe'); return; }
-      await page.locator('[data-testid="feature-card"]').first().click();
-      await expect(page.locator('[data-testid="feature-workbench"]')).toBeVisible({ timeout: 10_000 });
+      if (!(await hasFeatures(page))) { test.skip(true, 'Keine Features — überspringe'); return; }
+      await page.locator('[data-testid="sidebar-feature"]').first().click();
       const checkboxes = page.locator('[data-testid="row-checkbox"]');
       if (!(await checkboxes.count())) { test.skip(true, 'Keine Row-Checkboxes — überspringe'); return; }
       await checkboxes.first().check();
       const resp = page.waitForResponse(/\/api\/admin\/cockpit\/batch/);
       const bulkStatus = page.locator('[data-testid="bulk-status"]');
-      if (await bulkStatus.count()) {
-        await bulkStatus.selectOption('done');
-        await resp;
-      }
-    });
-
-    test('drag-reparents a ticket', async ({ page }) => {
-      await login(page);
-      if (!(await hasCards(page))) { test.skip(true, 'Keine Feature-Karten im Portfolio — überspringe'); return; }
-      await page.locator('[data-testid="feature-card"]').first().click();
-      await expect(page.locator('[data-testid="feature-workbench"]')).toBeVisible({ timeout: 10_000 });
-      const draggable = page.locator('[data-testid="feature-workbench"] [draggable="true"]').first();
-      if (!(await draggable.count())) { test.skip(true, 'Keine draggable rows — überspringe'); return; }
-      const target = page.locator('[data-testid="feature-card"]').nth(1);
-      if (!(await target.count())) { test.skip(true, 'Nur eine Feature-Karte — kann nicht reparenten'); return; }
-      const resp = page.waitForResponse(/\/api\/admin\/cockpit\/reparent/);
-      await draggable.dragTo(target);
-      await resp;
+      if (await bulkStatus.count()) { await bulkStatus.selectOption('done'); await resp; }
     });
   });
 });

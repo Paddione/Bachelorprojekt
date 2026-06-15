@@ -45,6 +45,9 @@ export interface TicketRow {
   planningRank?: number;
   estimateMinutes?: number;
   timeLoggedMinutes?: number;
+  description?: string;
+  component?: string;
+  createdAt?: string;
 }
 
 export interface FeatureTickets {

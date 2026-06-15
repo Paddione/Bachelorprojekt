@@ -30,3 +30,23 @@ describe('TicketRow', () => {
     expect(handler).toHaveBeenCalled();
   });
 });
+
+describe('TicketRow responsive', () => {
+  const base = { id: 't1', extId: 'T000412', title: 'OIDC Token', status: 'open',
+    priority: 'hoch', type: 'task', createdAt: '2026-06-10T00:00:00Z' };
+
+  it('renders the ext id inside a .ticket-col-id element', () => {
+    const { container } = render(TicketRow, { ticket: base });
+    const idCol = container.querySelector('.ticket-col-id');
+    expect(idCol).toBeTruthy();
+    expect(idCol!.textContent).toContain('T000412');
+  });
+  it('applies a priority class for the left border', () => {
+    const { container } = render(TicketRow, { ticket: base });
+    expect(container.querySelector('.row.prio-hoch')).toBeTruthy();
+  });
+  it('renders created date inside a .ticket-col-created element', () => {
+    const { container } = render(TicketRow, { ticket: base });
+    expect(container.querySelector('.ticket-col-created')).toBeTruthy();
+  });
+});

@@ -7,25 +7,32 @@ beforeEach(() => {
 });
 
 describe('cockpitStore', () => {
-  it('defaults to ueberblick/karten', async () => {
+  it('starts with no selected feature and no active ticket', async () => {
     const m = await import('./cockpitStore');
     const s = get(m.cockpitStore);
-    expect(s.lens).toBe('ueberblick');
-    expect(s.mode).toBe('karten');
+    expect(s.selectedFeature).toBeNull();
+    expect(s.activeTicket).toBeNull();
+    expect(s.selectedTickets.size).toBe(0);
   });
-  it('setLens persists to localStorage', async () => {
+  it('selectFeature sets selectedFeature and persists to localStorage', async () => {
     const m = await import('./cockpitStore');
-    m.setLens('werkbank');
-    expect(get(m.cockpitStore).lens).toBe('werkbank');
-    expect(localStorage.getItem('cockpit:lens')).toBe('werkbank');
+    m.selectFeature('F-AUTH');
+    expect(get(m.cockpitStore).selectedFeature).toBe('F-AUTH');
+    expect(localStorage.getItem('cockpit:feature')).toBe('F-AUTH');
   });
-  it('hydrates from URL params', async () => {
+  it('selectFeature(null) clears the persisted value', async () => {
     const m = await import('./cockpitStore');
-    m.initStoreFromUrl(new URLSearchParams('lens=werkbank&mode=tabelle&produkt=ABC'));
-    const s = get(m.cockpitStore);
-    expect(s.lens).toBe('werkbank');
-    expect(s.mode).toBe('tabelle');
-    expect(s.currentProduct).toBe('ABC');
+    m.selectFeature('F-AUTH');
+    m.selectFeature(null);
+    expect(get(m.cockpitStore).selectedFeature).toBeNull();
+    expect(localStorage.getItem('cockpit:feature')).toBeNull();
+  });
+  it('setActiveTicket sets and clears the drawer target', async () => {
+    const m = await import('./cockpitStore');
+    m.setActiveTicket('t1');
+    expect(get(m.cockpitStore).activeTicket).toBe('t1');
+    m.setActiveTicket(null);
+    expect(get(m.cockpitStore).activeTicket).toBeNull();
   });
   it('toggles ticket selection', async () => {
     const m = await import('./cockpitStore');

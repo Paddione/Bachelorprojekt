@@ -1,37 +1,46 @@
 <script lang="ts">
   import type { FeatureNode, TicketRow as TicketRowT } from '../../lib/tickets/cockpit-types';
   import { cockpitStore, toggleTicketSelection, applyOptimistic, clearSelection } from '../../lib/stores/cockpitStore';
+  import * as actions from '../../lib/tickets/cockpit-table-actions';
   import TicketRow from './TicketRow.svelte';
   import BulkBar from './BulkBar.svelte';
 
-  export let feature: FeatureNode;
-  export let tickets: TicketRowT[];
+  export let feature: FeatureNode | null = null;
+  export let tickets: TicketRowT[] = [];
   export let features: FeatureNode[] = [];
-  // Callback props (Svelte 5 compatible)
-  export let onBack: (() => void) | undefined = undefined;
-  export let onMutated: ((detail: { featureExtId: string }) => void) | undefined = undefined;
+  export let onMutated: (() => void) | undefined = undefined;
   export let onOpenDrawer: ((detail: { ticket: TicketRowT }) => void) | undefined = undefined;
+  export let onOpenCreate: (() => void) | undefined = undefined;
 
   let busy: Record<string, boolean> = {};
   let dragId: string | null = null;
+  let search = '';
+  let statusFilter = '';
+
+  const CHIPS: { label: string; value: string }[] = [
+    { label: 'Alle', value: '' },
+    { label: 'Offen', value: 'open' },
+    { label: 'In Arbeit', value: 'in_progress' },
+    { label: 'Review', value: 'in_review' },
+    { label: 'Blockiert', value: 'blocked' },
+    { label: 'Erledigt', value: 'done' },
+  ];
 
   $: selectedIds = [...$cockpitStore.selectedTickets];
+  $: visible = tickets.filter((t) => {
+    const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = !statusFilter || t.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
 
   async function patchStatus(id: string, status: string) {
     const t = tickets.find((x) => x.id === id); if (!t) return;
     const old = t.status; t.status = status; tickets = [...tickets];
     busy[id] = true; busy = { ...busy };
     const rollback = applyOptimistic(id, 'status', status, old);
-    try {
-      const res = await fetch(`/api/admin/tickets/${id}/transition`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newStatus: status }),
-      });
-      if (!res.ok) throw new Error(`transition ${res.status}`);
-      onMutated?.({ featureExtId: feature.extId });
-    } catch {
-      t.status = old; tickets = [...tickets]; rollback();
-    } finally { busy[id] = false; busy = { ...busy }; }
+    if (await actions.transitionTicket(id, status)) { onMutated?.(); }
+    else { t.status = old; tickets = [...tickets]; rollback(); }
+    busy[id] = false; busy = { ...busy };
   }
 
   async function patchPriority(id: string, priority: string) {
@@ -39,31 +48,16 @@
     const old = t.priority; t.priority = priority; tickets = [...tickets];
     busy[id] = true; busy = { ...busy };
     const rollback = applyOptimistic(id, 'priority', priority, old);
-    try {
-      const res = await fetch(`/api/admin/tickets/${id}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priority }),
-      });
-      if (!res.ok) throw new Error(`patch ${res.status}`);
-      onMutated?.({ featureExtId: feature.extId });
-    } catch {
-      t.priority = old; tickets = [...tickets]; rollback();
-    } finally { busy[id] = false; busy = { ...busy }; }
+    if (await actions.patchPriority(id, priority)) { onMutated?.(); }
+    else { t.priority = old; tickets = [...tickets]; rollback(); }
+    busy[id] = false; busy = { ...busy };
   }
 
   async function persistOrder() {
-    const updates = tickets.map((t, i) => ({ ticketId: t.id, planningRank: i }));
     const snapshot = [...tickets];
-    try {
-      const res = await fetch('/api/admin/cockpit/reorder', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ updates }),
-      });
-      if (!res.ok) throw new Error(`reorder ${res.status}`);
-      onMutated?.({ featureExtId: feature.extId });
-    } catch { tickets = snapshot; }
+    if (await actions.reorderTickets(tickets)) { onMutated?.(); }
+    else { tickets = snapshot; }
   }
-
   function moveBy(id: string, delta: number) {
     const i = tickets.findIndex((t) => t.id === id);
     const j = i + delta;
@@ -72,13 +66,11 @@
     tickets = [...tickets];
     persistOrder();
   }
-
   function onRowKey(e: KeyboardEvent, id: string) {
     if (!e.shiftKey) return;
     if (e.key === 'ArrowUp') { e.preventDefault(); moveBy(id, -1); }
     if (e.key === 'ArrowDown') { e.preventDefault(); moveBy(id, 1); }
   }
-
   function onDragStart(id: string) { dragId = id; }
   function onDrop(targetId: string) {
     if (!dragId || dragId === targetId) return;
@@ -88,27 +80,26 @@
     tickets.splice(to, 0, moved);
     tickets = [...tickets]; dragId = null; persistOrder();
   }
-
   async function runBatch(mutation: Record<string, unknown>, ids: string[]) {
-    try {
-      const res = await fetch('/api/admin/cockpit/batch', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketIds: ids, mutation }),
-      });
-      if (res.ok) { clearSelection(); onMutated?.({ featureExtId: feature.extId }); }
-    } catch { /* batch errors are non-critical; selection stays for retry */ }
+    if (await actions.runBatch(ids, mutation)) { clearSelection(); onMutated?.(); }
   }
 </script>
 
-<section class="workbench" data-testid="feature-workbench">
-  <header class="head">
-    <button class="back" on:click={() => onBack?.()}>← Zurück</button>
-    <h3>{feature.title}</h3>
-    <span class={`health-dot health-${feature.health}`}></span>
-    {#if feature.rollup.blocked > 0}<span class="warn">⚠ {feature.rollup.blocked} blockiert</span>{/if}
-  </header>
-  <div class="list">
-    {#each tickets as t (t.id)}
+<section class="cockpit-table" data-testid="cockpit-table">
+  <div class="toolbar">
+    <input class="search" data-testid="table-search" type="search"
+      placeholder="Suche…" bind:value={search} aria-label="Tickets durchsuchen" />
+    <div class="chips" role="group" aria-label="Status-Filter">
+      {#each CHIPS as c}
+        <button class="chip" class:active={statusFilter === c.value}
+          data-testid="status-chip" on:click={() => (statusFilter = c.value)}>{c.label}</button>
+      {/each}
+    </div>
+    <button class="create" data-testid="open-create" on:click={() => onOpenCreate?.()}>+ Ticket</button>
+  </div>
+
+  <div class="rows">
+    {#each visible as t (t.id)}
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <div role="listitem" on:keydown={(e) => onRowKey(e, t.id)}
            on:dragover|preventDefault on:drop={() => onDrop(t.id)}>
@@ -121,8 +112,9 @@
           onOpenDrawer={(d) => onOpenDrawer?.(d)} />
       </div>
     {/each}
-    {#if tickets.length === 0}<p class="empty">Keine Tickets</p>{/if}
+    {#if visible.length === 0}<p class="empty">Keine Tickets</p>{/if}
   </div>
+
   <BulkBar selectedIds={selectedIds} {features}
     onBulkStatus={(d) => runBatch({ status: d.status }, d.ids)}
     onBulkPriority={(d) => runBatch({ priority: d.priority }, d.ids)}
@@ -132,10 +124,17 @@
 </section>
 
 <style>
-  .head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
-  .back { background: none; border: none; color: inherit; cursor: pointer; }
-  .health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .health-green { background: #10b981; } .health-amber { background: #f59e0b; } .health-red { background: #ef4444; }
-  .warn { color: #ef4444; font-size: 0.8rem; }
-  .empty { opacity: 0.6; }
+  .cockpit-table { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; }
+  .toolbar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .search { flex: 1 1 180px; min-width: 140px; background: var(--admin-bg, #1c1f26);
+    border: 1px solid var(--admin-border, #2a2e37); color: inherit; border-radius: 6px; padding: 0.4rem 0.6rem; }
+  .chips { display: flex; gap: 0.25rem; overflow-x: auto; }
+  .chip { background: transparent; border: 1px solid var(--admin-border, #2a2e37);
+    color: var(--admin-text-mute, #9ca3af); border-radius: 999px; padding: 0.25rem 0.65rem;
+    font-size: 0.78rem; cursor: pointer; white-space: nowrap; }
+  .chip.active { background: var(--admin-primary, #6ea8fe); color: var(--admin-bg, #0b0d12); border-color: transparent; font-weight: 600; }
+  .create { background: var(--admin-primary, #6ea8fe); color: var(--admin-bg, #0b0d12);
+    border: none; border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; font-weight: 600; white-space: nowrap; }
+  .rows { display: flex; flex-direction: column; }
+  .empty { opacity: 0.6; padding: 0.5rem; }
 </style>

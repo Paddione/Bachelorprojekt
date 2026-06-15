@@ -380,13 +380,16 @@ Bulk-archive/remove for the selected-rows action bar: a stack of two offset row-
 
 ## Liefer-Status (PR `feature/cockpit-assets`, T000756)
 
-**Eingespielt (18/23)** — via Claude Design, gegen den Kontrakt oben verifiziert (currentColor, keine Brand-Literale, kein festes width/height, ein `<svg>`-Root, < 1.5 KB je Datei):
+**Eingespielt (23/23 — komplett)** — gegen den Kontrakt oben verifiziert (currentColor, keine Brand-Literale, kein festes width/height, ein `<svg>`-Root, < 1.5 KB je Datei):
 
-- Control-Icons (9): `lens-ueberblick`, `lens-werkbank`, `mode-karten`, `mode-tabelle`, `drag-handle`, `bulk-select`, `reparent`, `enqueue-factory`, `drawer-open` → `icons/`
-- Health/Status (6): `health-green/amber/red`, `chip-done/blocked/open`
-- `progress-ring.svg` (Template; JS überschreibt `stroke-dasharray`/`-dashoffset` pro Karte)
-- `empty/empty-portfolio.svg` (Empty-State 1/4; setzt `style="color:var(--cockpit-fg,#c8ad7a)"` als sichtbaren Fallback statt Schwarz)
+- Control-Icons (9): `lens-ueberblick`, `lens-werkbank`, `mode-karten`, `mode-tabelle`, `drag-handle`, `bulk-select`, `reparent`, `enqueue-factory`, `drawer-open` → `icons/` *(via Claude Design)*
+- Health/Status (6): `health-green/amber/red`, `chip-done/blocked/open` *(via Claude Design)*
+- `progress-ring.svg` (Template; JS überschreibt `stroke-dasharray`/`-dashoffset` pro Karte) *(via Claude Design)*
+- Empty-States (4): `empty/empty-portfolio` *(via Claude Design)* + `empty/product-no-features`, `empty/feature-no-tickets`, `empty/filter-no-results` *(hand-authored im exakten Stil von `empty-portfolio`, da das Bundle nur `empty-portfolio` exportierte)*
+- Lücken-Glyphen (2): `icons/drawer-close` (Spiegel von `drawer-open`, Chevron ←), `icons/bulk-remove` (Row-Stack von `bulk-select` + Diagonal-Strike) *(hand-authored, Familien-konform)*
 - `header-backdrop.svg` (CSS-Mask-Stencil; `<style>`-Luminanzstufen + Contract-Kommentar ergänzt, da im Handoff fehlend; OUT-OF-MVP)
+
+> Die 5 hand-authored SVGs sind über die stabilen Pfade jederzeit gegen Claude-Design-Versionen tauschbar (reiner Asset-Swap, kein Code).
 
 **Brand-Theming-Tokens (P3 auf einem Brand-Vorfahren setzen, lt. Handoff-Readme):**
 ```css
@@ -400,8 +403,6 @@ Beim **mehrfachen** Inline-Injizieren (progress-ring = 1×/Karte) entstünden do
 muss beim Inlinen `<title>`/`id`/`aria-labelledby` strippen und der Host-Wrapper setzt `role="img"` + `aria-label`.
 Die 9 Control-Icons haben bereits kein `<title>`/`id` und brauchen keine Behandlung.
 
-**Noch offen (5)** — über Claude Design nachziehen (Prompts im Manifest):
-- 3 Empty-States (`empty/product-no-features`, `empty/feature-no-tickets`, `empty/filter-no-results`) — Prompt 1. Das Design-Bundle spezifizierte alle 4, exportierte aber nur `empty-portfolio.svg`; die übrigen 3 sind nur als `<span data-src=…>`-Platzhalter in der Preview enthalten, nicht als Datei → erneut exportieren.
-- `icons/drawer-close.svg`, `icons/bulk-remove.svg` — die 2 Lücken-Seeds (Set 5)
+**Noch offen:** keine — Asset-Set vollständig (23/23).
 
 **Nicht eingespielt:** Preview-/Test-HTML aus den Bundles (`icons.card.html`, `_backdrop_test.html`, `_geom_check.html`) — Design-Harness, würde aus `public/` öffentlich ausgeliefert.

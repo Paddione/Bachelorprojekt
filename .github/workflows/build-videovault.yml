@@ -25,7 +25,13 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: VideoVault/package-lock.json
+          cache-dependency-path: |
+            VideoVault/package-lock.json
+            packages/videovault-player/package-lock.json
+
+      - name: Install videovault-player deps
+        working-directory: packages/videovault-player
+        run: npm install
 
       - name: Test gate (types + client unit)
         working-directory: VideoVault

@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-06-15T19:44:10.901Z
-> Nodes: 78 | Edges: 1610 | Isolated: 2
+> Generated: 2026-06-15T19:57:48.136Z
+> Nodes: 78 | Edges: 1613 | Isolated: 2
 
 ## Ranking (transitive Abhängige)
 
@@ -52,7 +52,7 @@
 | 44 | dev-db-refresh | 37 | 53 | 37 |
 | 45 | ddns-updater | 37 | 53 | 37 |
 | 46 | website | 23 | 53 | 23 |
-| 47 | traefik | 6 | 53 | 6 |
+| 47 | traefik | 7 | 53 | 7 |
 | 48 | livekit | 6 | 53 | 6 |
 | 49 | shared-db-dev | 4 | 53 | 4 |
 | 50 | systemtest-cleanup | 3 | 53 | 3 |
@@ -311,9 +311,9 @@
 **Upstream (In-Degree):** 23
 
 ### traefik
-**Direkte Abhängige:** 6 — keycloak, mcp-auth-proxy-dev, nextcloud, oauth2-proxy-dev, oauth2-proxy-traefik, vaultwarden
+**Direkte Abhängige:** 7 — keycloak, mcp-auth-proxy-dev, nextcloud, oauth2-proxy-dev, oauth2-proxy-traefik, vaultwarden, website
 **Transitive Abhängige:** 53 — admin-actions-cleanup, admin-actions-prune, arena-server, billing-dunning-detection, brett, claude-code-mcp-auth, claude-code-mcp-monolith, claude-code-mcp-ops, db-backup, ddns-updater, dev-db-refresh, keycloak, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, livekit-egress, livekit-ingress, livekit-server, mcp-auth-proxy-dev, mcp-github, monitoring-grafana, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-traefik, oauth2-proxy-videovault, pvc-backup, scheduled-publish, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
-**Upstream (In-Degree):** 6
+**Upstream (In-Degree):** 7
 
 ### livekit
 **Direkte Abhängige:** 6 — ddns-updater, keycloak, livekit-server, nextcloud, vaultwarden, website

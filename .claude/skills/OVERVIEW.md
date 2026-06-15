@@ -26,6 +26,14 @@
 
 ---
 
+## Migration (Fremdcode → Plattform)
+
+| Skill | When to use |
+|---|---|
+| `migrate-foreign-code` | Eine bestehende, externe App ins Bachelorprojekt übernehmen — 6-Phasen-Reise (entkoppeln → vendoren → containerisieren → server-side → integrieren) über `dev-flow`, mit Pattern-Katalog. Operator-getrieben; sequenziert dev-flow, ersetzt es nicht. |
+
+---
+
 ## Schicht-Kontrakt: dev-flow orchestriert, superpowers liefert Disziplin
 
 Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Sie rufen die generischen

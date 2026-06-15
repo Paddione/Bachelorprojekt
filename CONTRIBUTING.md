@@ -10,7 +10,8 @@ Alle Änderungen gehen durch Pull Requests. Direkte Pushes auf `main` sind nicht
 |--------------|----------------------------------|
 | `feature/*`  | Neue Funktionalität              |
 | `fix/*`      | Fehlerbehebungen                 |
-| `chore/*`    | Refactoring, Doku, Dependencies, CI/CD |
+| `chore/*`    | Refactoring, Dependencies, CI/CD |
+| `docs/*`     | Reine Dokumentations-Änderungen  |
 
 ### Standard-Workflow (`dev-flow`)
 
@@ -36,6 +37,11 @@ task workspace:validate    # Dry-Run der Manifeste falls relevant
 task test:all              # Offline-Suite
 git push -u origin feature/mein-feature
 gh pr create --fill
+```
+
+**Pre-Push-Gate umgehen** (nur im Notfall):
+```bash
+SKIP_CI_CHECK=1 git push   # überspringt task quality:check
 ```
 
 ### Lokale Entwicklung

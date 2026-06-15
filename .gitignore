@@ -63,6 +63,7 @@ website/.astro/
 
 # ── Worktrees ───────────────────────────────────
 .worktrees/
+tmp/
 
 # ── Claude Code local state (settings + hookify rules) ──
 .claude/*.local.md

@@ -180,6 +180,14 @@ cmd_reap() {
   git worktree prune 2>/dev/null || true
   # 2b) prune stale remote-tracking refs (branches deleted on GitHub after merge)
   git fetch --prune origin 2>/dev/null || true
+  # 2c) delete local branches that were squash-merged into main (upstream gone)
+  for br in $(git branch --merged main 2>/dev/null | sed 's/^[* ]*//' | grep -v '^main$'); do
+    # only delete if the upstream tracking branch is gone
+    upstream="$(git rev-parse --abbrev-ref "$br@{upstream}" 2>/dev/null)" || true
+    if [ -z "$upstream" ] || ! git show-ref --verify --quiet "refs/remotes/$upstream" 2>/dev/null; then
+      git branch -d "$br" 2>/dev/null || true
+    fi
+  done
   # 3) drop reapable (clearly dead) locks
   if [ -d "$d" ]; then
     local f

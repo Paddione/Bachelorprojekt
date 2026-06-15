@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.73.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.72.0...website-v1.73.0) (2026-06-15)
+
+
+### Features
+
+* **cockpit:** P1 Foundation — Rollup-View, cockpit-db, Contract-Typen [T000749] ([#1691](https://github.com/Paddione/Bachelorprojekt/issues/1691)) ([dcee3bf](https://github.com/Paddione/Bachelorprojekt/commit/dcee3bf90240bf3ef2ab4bd9b56fd84783052fce))
+
 ## [1.72.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.71.0...website-v1.72.0) (2026-06-15)
 
 

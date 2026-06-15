@@ -10,6 +10,13 @@ const features = [
 beforeEach(() => vi.restoreAllMocks());
 
 describe('TicketCreateModal', () => {
+  it('has a "bug" option in the type dropdown', () => {
+    const { getByTestId } = render(TicketCreateModal,
+      { open: true, features, onClose: () => {} });
+    const typeSelect = getByTestId('type-select') as HTMLSelectElement;
+    const values = Array.from(typeSelect.options).map((o) => o.value);
+    expect(values).toContain('bug');
+  });
   it('renders nothing when open=false', () => {
     const { queryByTestId } = render(TicketCreateModal,
       { open: false, features, onClose: () => {} });

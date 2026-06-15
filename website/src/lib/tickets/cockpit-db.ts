@@ -180,6 +180,9 @@ export async function batchMutate(
   ticketIds: string[],
   mutation: BatchMutation,
 ): Promise<{ ok: true; results: BatchResult[] }> {
+  if (mutation.enqueue === true) {
+    throw new Error('enqueue_not_implemented: Factory enqueue via batch is not yet supported');
+  }
   await assertSameBrand(brand, ticketIds);
   const results: BatchResult[] = [];
   for (const id of ticketIds) {

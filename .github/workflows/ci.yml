@@ -76,42 +76,15 @@ jobs:
 
       - name: Ensure freshness artifacts are up to date
         if: github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-          HEAD_REF: ${{ github.head_ref }}
         run: |
-          # HEAD_REF is attacker-controllable (fork PR branch name). Bind it to an
-          # env var (above) so bash quoting applies, and validate it before use.
-          if ! [[ "$HEAD_REF" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-            echo "❌ Refusing to operate on unsafe head ref: $HEAD_REF"
+          if ! task freshness:check; then
+            echo ""
+            echo "❌ Freshness artifacts are stale."
+            echo "   Run locally:  task freshness:regenerate"
+            echo "   Then commit and push the regenerated files."
             exit 1
           fi
-          task freshness:regenerate
-          if git diff --quiet; then
-            echo "✅ Freshness artifacts are up to date"
-            exit 0
-          fi
-          echo "⚠️ Freshness artifacts were stale — auto-regenerating and pushing to PR branch"
-          # Use GH_PAT for git push so the push triggers a new CI run
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git stash
-          git fetch origin "$HEAD_REF"
-          git checkout "$HEAD_REF"
-          if git stash pop; then
-            git add -A
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: regenerate freshness artifacts"
-            git push origin "HEAD:$HEAD_REF" 2>/dev/null || true
-            echo "✅ Freshness fix pushed — new CI run will validate"
-          else
-            echo "⚠️ Could not auto-fix (fork PR or no permission). Fix manually: task freshness:regenerate"
-          fi
-        # Fall through so freshness:check below still validates.
-        # On successful push above, this CI run gets cancelled by concurrency;
-        # the new run on the updated PR head will pass freshness:check.
-      - name: Verify generated artifacts are fresh
-        run: task freshness:check
+          echo "✅ Freshness artifacts are up to date"
 
       - name: Verify learning-assets build script (unit test)
         run: node --test scripts/build-learning-assets.test.mjs

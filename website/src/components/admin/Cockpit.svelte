@@ -5,6 +5,8 @@
     from '../../lib/stores/cockpitStore';
   import PortfolioGrid from './PortfolioGrid.svelte';
   import EmptyStateCockpit from './EmptyStateCockpit.svelte';
+  import FeatureWorkbench from './FeatureWorkbench.svelte';
+  import TicketDrawer from './TicketDrawer.svelte';
 
   export let portfolioInitial: PortfolioPayload | null = null;
   export let brand: string;
@@ -44,6 +46,8 @@
     if (featureData) await openFeature(featureData.feature.extId);
     await loadPortfolio();
   }
+
+  $: allFeatures = portfolio?.products.flatMap(p => p.features) ?? [];
 </script>
 
 <div class="cockpit-shell" data-brand={brand}>
@@ -68,8 +72,11 @@
       <!-- Table mode wiring added in Stage F (Task 27). -->
       <div data-testid="table-mode-placeholder"></div>
     {:else if $cockpitStore.lens === 'werkbank' && $cockpitStore.currentFeature && featureData}
-      <!-- FeatureWorkbench wired in Task 22 -->
-      <div data-testid="workbench-placeholder"></div>
+      <FeatureWorkbench feature={featureData.feature} tickets={featureData.tickets}
+        features={allFeatures}
+        on:back={() => { selectFeature(null); setLens('ueberblick'); }}
+        on:mutated={refetchFeature}
+        on:openDrawer={(e) => { drawerTicket = e.detail.ticket; drawerOpen = true; }} />
     {:else}
       <PortfolioGrid {portfolio} onSelectFeature={openFeature}
         onReparent={async (ticketId, newParentId) => {
@@ -80,6 +87,9 @@
         }} />
     {/if}
   {/if}
+
+  <TicketDrawer ticket={drawerTicket} open={drawerOpen}
+    onClose={() => (drawerOpen = false)} onMutated={refetchFeature} />
 </div>
 
 <style>

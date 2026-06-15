@@ -420,6 +420,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/mishap-tracker.bats
 
+  mishap:categorize:
+    desc: "Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback"
+    cmds:
+      - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
+
   test:unit:ticket-add-pr-link:
     internal: true
     cmds:
@@ -2759,6 +2764,18 @@ tasks:
     desc: "Remove FIXED entries and lower improved metrics in docs/code-quality/baseline.json"
     cmds:
       - node scripts/code-quality/baseline-refresh.mjs
+
+  plan:qa:
+    desc: "DeepSeek-QA-Check for an implementation plan (PLAN=<path>)"
+    vars:
+      PLAN: '{{.PLAN | default ""}}'
+    cmds:
+      - |
+        if [[ -z "{{.PLAN}}" ]]; then
+          echo "Usage: task plan:qa PLAN=docs/superpowers/plans/<file>.md" >&2
+          exit 1
+        fi
+        bash scripts/plan-qa-check.sh "{{.PLAN}}"
 
   quality:loop:
     desc: "Enqueue ≤MAX_NEW new CQ-GATE Factory tickets (throttled + deduped). DRY_RUN=1 to preview."

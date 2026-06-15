@@ -1,0 +1,9 @@
+{
+  "CI-Konflikt": ["merge conflict", "CONFLICTING", "rebase", "conflict marker", "<<<<<<", "resolve conflict"],
+  "Gate-Fehler": ["S1-Gate", "S2-Gate", "S3-Gate", "S4-Gate", "baseline", "ratchet", "line limit", "violation", "freshness:check"],
+  "API-Fehler": ["402", "429", "timeout", "rate limit", "connection refused", "ECONNREFUSED", "503", "upstream", "unreachable"],
+  "Scout-Qualität": ["touched_files", "scout", "0 files", "no files changed", "low quality", "0 touched", "empty plan"],
+  "Deploy-Fehler": ["rollout", "CrashLoopBackOff", "ImagePullBackOff", "deploy", "kubectl", "ErrImagePull", "OOMKilled"],
+  "Spec-Lücke": ["spec", "missing requirement", "undefined behavior", "undocumented", "no spec", "unspecified", "assumption"],
+  "Test-Lücke": ["test", "BATS", "assertion", "test:all", "coverage", "playwright", "failing test", "no test"]
+}

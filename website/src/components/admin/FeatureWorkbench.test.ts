@@ -40,3 +40,12 @@ describe('FeatureWorkbench', () => {
     expect((selects[0] as HTMLSelectElement).disabled).toBe(false);
   });
 });
+
+it('reorders via keyboard Shift+ArrowDown and POSTs reorder', async () => {
+  const spy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response('{"ok":true}', { status: 200 }));
+  const { getAllByTestId } = render(FeatureWorkbench, { feature, tickets: [...tickets] });
+  const rows = getAllByTestId('row-checkbox');
+  await fireEvent.keyDown(rows[0], { key: 'ArrowDown', shiftKey: true });
+  await waitFor(() => expect(spy).toHaveBeenCalledWith(
+    '/api/admin/cockpit/reorder', expect.objectContaining({ method: 'POST' })));
+});

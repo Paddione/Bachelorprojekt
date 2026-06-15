@@ -1,0 +1,23 @@
+<svg viewBox="0 0 240 160" role="img" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="color: var(--cockpit-fg, #c8ad7a)">
+  <title>Leeres Portfolio: drei gepunktete Projektkartenumrisse mit einem Plus-Symbol als Hinweis, das erste Projekt anzulegen.</title>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="28" y1="120" x2="212" y2="120" stroke="currentColor" stroke-width="1" stroke-opacity="0.22"></line>
+    <g stroke="currentColor" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="4 6">
+      <rect x="29" y="48" width="50" height="58" rx="6"></rect>
+      <rect x="95" y="48" width="50" height="58" rx="6"></rect>
+      <rect x="161" y="48" width="50" height="58" rx="6"></rect>
+    </g>
+    <g stroke="currentColor" stroke-width="1.5" stroke-opacity="0.3" stroke-dasharray="2 4">
+      <line x1="37" y1="64" x2="63" y2="64"></line>
+      <line x1="37" y1="74" x2="55" y2="74"></line>
+      <line x1="103" y1="64" x2="129" y2="64"></line>
+      <line x1="103" y1="74" x2="121" y2="74"></line>
+      <line x1="169" y1="64" x2="195" y2="64"></line>
+      <line x1="169" y1="74" x2="187" y2="74"></line>
+    </g>
+    <g stroke="var(--cockpit-accent, currentColor)" stroke-width="2">
+      <line x1="47" y1="90" x2="61" y2="90"></line>
+      <line x1="54" y1="83" x2="54" y2="97"></line>
+    </g>
+  </g>
+</svg>

@@ -278,7 +278,7 @@ git commit -m "feat(cockpit): dated migration for v_cockpit_rollup (both brand D
 **Files:**
 - Create: `website/src/lib/tickets/cockpit-types.ts` (~120 lines; limit 600)
 
-- [ ] **Step 1: Write the type module (no runtime code)**
+- [x] **Step 1: Write the type module (no runtime code)**
 
 Create `website/src/lib/tickets/cockpit-types.ts`:
 
@@ -351,12 +351,12 @@ export interface BatchResult {
 }
 ```
 
-- [ ] **Step 2: Verify it type-checks**
+- [x] **Step 2: Verify it type-checks**
 
 Run: `cd website && pnpm exec tsc --noEmit -p tsconfig.json 2>&1 | grep cockpit-types || echo "OK no type errors in cockpit-types"`
 Expected: `OK no type errors in cockpit-types`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/lib/tickets/cockpit-types.ts

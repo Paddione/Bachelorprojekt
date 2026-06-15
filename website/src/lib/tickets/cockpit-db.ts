@@ -16,6 +16,73 @@ function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
   };
 }
 
+// Synthetic feature that collects parentless task/bug leaves. The cockpit only
+// renders tickets nested under a feature, so without this bucket every leaf with
+// parent_id IS NULL is invisible (root cause of T000848 on live). Mirrors the
+// existing "__no_product__" pattern for parentless features.
+export const NO_FEATURE_ID = '__no_feature__';
+
+function rollupHealth(r: RollupMetrics): HealthStatus {
+  if (r.blocked > 0) return 'red';
+  if (r.total > 0 && r.pctDone === 100) return 'green';
+  return 'amber';
+}
+
+// Rollup over brand-scoped task/bug leaves that have no parent. Bucket logic
+// mirrors tickets.v_cockpit_rollup (archived excluded; qa_review counts as
+// in-progress) so the synthetic bucket reads consistently with real features.
+async function fetchOrphanRollup(brand: string): Promise<RollupMetrics> {
+  const { rows } = await pool.query(
+    `SELECT
+       SUM(CASE WHEN status <> 'archived' THEN 1 ELSE 0 END) AS total_leaves,
+       SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) AS done_leaves,
+       SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END) AS blocked_leaves,
+       SUM(CASE WHEN status IN ('in_progress','in_review','qa_review') THEN 1 ELSE 0 END) AS in_progress_leaves,
+       SUM(CASE WHEN status IN ('triage','backlog','planning','plan_staged') THEN 1 ELSE 0 END) AS open_leaves
+     FROM tickets.tickets
+     WHERE brand = $1 AND type IN ('task', 'bug') AND parent_id IS NULL`,
+    [brand],
+  );
+  const r = rows[0] ?? {};
+  const total = Number(r.total_leaves ?? 0);
+  const done = Number(r.done_leaves ?? 0);
+  return {
+    total, done,
+    blocked: Number(r.blocked_leaves ?? 0),
+    inProgress: Number(r.in_progress_leaves ?? 0),
+    open: Number(r.open_leaves ?? 0),
+    pctDone: total ? Math.round((100 * done) / total) : 0,
+  };
+}
+
+function syntheticNoFeature(rollup: RollupMetrics): FeatureNode {
+  return {
+    id: NO_FEATURE_ID, extId: NO_FEATURE_ID, title: 'Ohne Feature',
+    priority: 'mittel', health: rollupHealth(rollup), rollup,
+    nextStep: false, discarded: false, majorFeature: false,
+  };
+}
+
+async function getOrphanTickets(brand: string): Promise<FeatureTickets> {
+  const feature = syntheticNoFeature(await fetchOrphanRollup(brand));
+  const tr = await pool.query(
+    `SELECT t.id, t.external_id, t.type, t.title, t.status, t.priority,
+            t.parent_id, t.planning_rank
+       FROM tickets.tickets t
+      WHERE t.brand = $1 AND t.type IN ('task', 'bug')
+        AND t.parent_id IS NULL AND t.status <> 'archived'
+      ORDER BY COALESCE(t.planning_rank, 2147483647), t.external_id`,
+    [brand],
+  );
+  const tickets: TicketRow[] = tr.rows.map((t: Record<string, unknown>) => ({
+    id: String(t.id), extId: String(t.external_id), title: String(t.title),
+    status: String(t.status), priority: String(t.priority), type: String(t.type),
+    parentId: t.parent_id ? String(t.parent_id) : undefined,
+    planningRank: t.planning_rank != null ? Number(t.planning_rank) : undefined,
+  }));
+  return { feature, tickets };
+}
+
 export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
   const { rows } = await pool.query(
     `SELECT t.id, t.external_id, t.type, t.title, t.value_prop, t.priority,
@@ -67,6 +134,17 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
       rollup: aggregate(looseFeatures), features: looseFeatures,
     });
   }
+
+  // Surface parentless task/bug leaves under a synthetic "Ohne Feature" bucket
+  // so they are visible in the cockpit (T000848). Omitted when there are none.
+  const orphanRollup = await fetchOrphanRollup(brand);
+  if (orphanRollup.total > 0) {
+    const orphanFeature = syntheticNoFeature(orphanRollup);
+    products.push({
+      id: NO_FEATURE_ID, extId: NO_FEATURE_ID, title: 'Ohne Feature',
+      rollup: orphanRollup, features: [orphanFeature],
+    });
+  }
   return { products };
 }
 
@@ -83,6 +161,7 @@ function aggregate(features: FeatureNode[]): RollupMetrics {
 export class NotFoundError extends Error {}
 
 export async function getFeatureTickets(brand: string, extId: string): Promise<FeatureTickets> {
+  if (extId === NO_FEATURE_ID) return getOrphanTickets(brand);
   const fr = await pool.query(
     `SELECT t.id, t.external_id, t.type, t.title, t.value_prop, t.priority,
             t.next_step, t.discarded, t.major_feature, t.suggestion_comment,

@@ -1,0 +1,485 @@
+/* ============================================================
+   VideoVault Mediaviewer Widget — design system
+   "Editing-suite control surface": precise, quiet, themeable.
+
+   Everything lives under .mv-root and reads from --mv-* tokens.
+   A host themes the widget by overriding these on .mv-root (or any
+   ancestor). Dark-first; [data-theme="light"] flips the surface set.
+   ============================================================ */
+
+/* ---- Default tokens live on :root so a HOST can override them on any
+   ancestor of .mv-root (the brief's "host injects tokens" contract).
+   They are inert custom properties — no visual bleed. .mv-root only
+   *consumes* them, it does not redeclare them. ---- */
+:root {
+  /* Accent (the one filmic signal color) */
+  --mv-accent: #f5a623;
+  --mv-accent-ink: #1a1205;
+
+  /* Panel surfaces (dark default) */
+  --mv-surface: #0d0f13;
+  --mv-surface-2: #14171d;
+  --mv-surface-3: #1b1f27;
+  --mv-stage: #050608;
+  --mv-control-bg: rgba(18, 20, 26, 0.72);
+
+  /* Ink */
+  --mv-ink: #f4f5f7;
+  --mv-ink-dim: rgba(244, 245, 247, 0.6);
+  --mv-ink-faint: rgba(244, 245, 247, 0.4);
+  --mv-on-stage: #f4f5f7;
+  --mv-on-stage-dim: rgba(244, 245, 247, 0.62);
+
+  /* Lines & radius */
+  --mv-line: rgba(255, 255, 255, 0.09);
+  --mv-line-strong: rgba(255, 255, 255, 0.16);
+  --mv-stage-line: rgba(255, 255, 255, 0.12);
+  --mv-radius: 12px;
+  --mv-radius-sm: 8px;
+
+  /* Type */
+  --mv-font-sans: var(--mv-host-font, "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif);
+  --mv-font-display: "Bricolage Grotesque", var(--mv-font-sans);
+  --mv-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.mv-root {
+  /* layout container — consumes tokens, never redeclares them */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  color: var(--mv-ink);
+  background: var(--mv-surface);
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius);
+  overflow: hidden;
+  font-family: var(--mv-font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.7);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* No CSS bleed in: reset box model for our subtree */
+.mv-root *,
+.mv-root *::before,
+.mv-root *::after {
+  box-sizing: border-box;
+}
+
+/* ---- Light theme token overrides ----
+   Matches when data-theme="light" is set on .mv-root itself OR on any host
+   ancestor — the override cascades into .mv-root because .mv-root does not
+   redeclare these tokens. ---- */
+[data-theme="light"] {
+  --mv-surface: #f6f5f2;
+  --mv-surface-2: #ffffff;
+  --mv-surface-3: #eceae4;
+  --mv-stage: #0a0b0d;
+  --mv-ink: #16181d;
+  --mv-ink-dim: rgba(22, 24, 29, 0.62);
+  --mv-ink-faint: rgba(22, 24, 29, 0.42);
+  --mv-line: rgba(20, 22, 28, 0.1);
+  --mv-line-strong: rgba(20, 22, 28, 0.18);
+  --mv-accent-ink: #2a1c02;
+}
+.mv-root[data-theme="light"],
+[data-theme="light"] .mv-root {
+  box-shadow: 0 24px 60px -34px rgba(40, 35, 20, 0.4);
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+.mv-widget__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--mv-line);
+  background: linear-gradient(to bottom, var(--mv-surface-2), var(--mv-surface));
+  flex: none;
+}
+.mv-widget__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mv-font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  letter-spacing: -0.02em;
+}
+.mv-widget__brand::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--mv-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mv-accent) 22%, transparent);
+  transform: rotate(45deg);
+}
+.mv-widget__brand small {
+  font-family: var(--mv-font-mono);
+  font-weight: 500;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mv-ink-faint);
+}
+.mv-widget__count {
+  margin-left: auto;
+  font-family: var(--mv-font-mono);
+  font-size: 0.6875rem;
+  color: var(--mv-ink-dim);
+  padding: 3px 9px;
+  border: 1px solid var(--mv-line);
+  border-radius: 999px;
+}
+
+/* ============================================================
+   Stage (player or full-panel state)
+   ============================================================ */
+.mv-widget__stage {
+  position: relative;
+  flex: none;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  background: var(--mv-stage);
+  display: flex;
+  min-height: 0;
+}
+.mv-widget__stage .mv-player {
+  border-radius: 0;
+}
+
+/* loading / error overlay sitting on top of the player */
+.mv-widget__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--mv-stage) 78%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+/* ============================================================
+   States (empty / loading / buffering / error)
+   ============================================================ */
+.mv-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  color: var(--mv-on-stage-dim);
+}
+.mv-state__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  color: var(--mv-on-stage);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--mv-stage-line);
+}
+.mv-state__icon svg {
+  width: 26px;
+  height: 26px;
+}
+.mv-state__title {
+  font-family: var(--mv-font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mv-on-stage);
+  letter-spacing: -0.01em;
+}
+.mv-state__hint {
+  font-size: 0.8125rem;
+  max-width: 32ch;
+  color: var(--mv-on-stage-dim);
+}
+.mv-state--error .mv-state__icon {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  border-color: rgba(255, 107, 107, 0.3);
+}
+.mv-state__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  padding: 8px 14px;
+  font-family: var(--mv-font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--mv-accent-ink);
+  background: var(--mv-accent);
+  border: none;
+  border-radius: var(--mv-radius-sm);
+  cursor: pointer;
+  transition: filter 0.16s ease, transform 0.12s ease;
+}
+.mv-state__action:hover {
+  filter: brightness(1.08);
+}
+.mv-state__action:active {
+  transform: scale(0.96);
+}
+.mv-state__action:focus-visible {
+  outline: 2px solid var(--mv-accent);
+  outline-offset: 2px;
+}
+
+/* Spinner — concentric arc */
+.mv-spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  border-top-color: var(--mv-accent);
+  animation: mv-spin 0.8s linear infinite;
+}
+.mv-spinner--sm {
+  width: 22px;
+  height: 22px;
+  border-width: 2px;
+}
+@keyframes mv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* shimmering buffering bar */
+.mv-buffering {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.mv-buffering__bar {
+  width: 140px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  position: relative;
+}
+.mv-buffering__bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--mv-accent);
+  animation: mv-slide 1.1s ease-in-out infinite;
+}
+@keyframes mv-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ============================================================
+   Help-video picker
+   ============================================================ */
+.mv-picker {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--mv-surface);
+}
+.mv-picker__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 16px 8px;
+  flex: none;
+}
+.mv-picker__label {
+  font-family: var(--mv-font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mv-ink-faint);
+}
+.mv-picker__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--mv-line);
+}
+.mv-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 4px 16px 16px;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mv-line-strong) transparent;
+}
+.mv-picker__grid::-webkit-scrollbar {
+  width: 8px;
+}
+.mv-picker__grid::-webkit-scrollbar-thumb {
+  background: var(--mv-line-strong);
+  border-radius: 999px;
+}
+
+.mv-picker__item {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  border: 1px solid var(--mv-line);
+  border-radius: var(--mv-radius-sm);
+  background: var(--mv-surface-2);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
+}
+.mv-picker__item:hover {
+  border-color: var(--mv-line-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.7);
+}
+.mv-picker__item:focus-visible {
+  outline: 2px solid var(--mv-accent);
+  outline-offset: 2px;
+}
+.mv-picker__item[aria-current="true"] {
+  border-color: var(--mv-accent);
+  box-shadow: 0 0 0 1px var(--mv-accent), 0 10px 22px -14px color-mix(in srgb, var(--mv-accent) 60%, transparent);
+}
+
+.mv-picker__thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--mv-surface-3);
+  overflow: hidden;
+}
+.mv-picker__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* poster placeholder — filmstrip texture + center glyph */
+.mv-poster-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--mv-ink-faint);
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0 10px, transparent 10px 20px),
+    linear-gradient(135deg, var(--mv-surface-3), var(--mv-surface-2));
+}
+.mv-poster-fallback svg {
+  width: 30px;
+  height: 30px;
+  opacity: 0.55;
+}
+/* play badge appears on hover */
+.mv-picker__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.32);
+  transition: opacity 0.18s ease;
+}
+.mv-picker__play svg {
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  transform: scale(0.85);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mv-picker__item:hover .mv-picker__play,
+.mv-picker__item:focus-visible .mv-picker__play {
+  opacity: 1;
+}
+.mv-picker__item:hover .mv-picker__play svg {
+  transform: scale(1);
+}
+.mv-picker__dur {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-family: var(--mv-font-mono);
+  font-size: 0.625rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+}
+.mv-picker__dur svg {
+  width: 11px;
+  height: 11px;
+}
+
+.mv-picker__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px 11px;
+}
+.mv-picker__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--mv-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mv-picker__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.mv-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--mv-ink-dim);
+  background: var(--mv-surface-3);
+  border: 1px solid var(--mv-line);
+  border-radius: 999px;
+}
+.mv-tag svg {
+  width: 9px;
+  height: 9px;
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-root *,
+  .mv-root *::before,
+  .mv-root *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,361 @@
+/* ============================================================
+   VideoVault Player — "Editing-suite control surface"
+   Token-driven, scoped under .mv-player. All visible values read
+   from --mv-* custom properties (with fallbacks) so a host can theme.
+   ============================================================ */
+
+.mv-player {
+  --_bg: var(--mv-stage, #050608);
+  --_accent: var(--mv-accent, #f5a623);
+  --_accent-ink: var(--mv-accent-ink, #1a1205);
+  --_ctrl-bg: var(--mv-control-bg, rgba(18, 20, 26, 0.72));
+  --_ink: var(--mv-on-stage, #f4f5f7);
+  --_ink-dim: var(--mv-on-stage-dim, rgba(244, 245, 247, 0.62));
+  --_line: var(--mv-stage-line, rgba(255, 255, 255, 0.12));
+  --_radius: var(--mv-radius, 10px);
+  --_mono: var(--mv-font-mono, ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  background: var(--_bg);
+  color: var(--_ink);
+  border-radius: var(--_radius);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ---- Stage ------------------------------------------------- */
+.mv-player__stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
+    var(--_bg);
+}
+
+.mv-player__video {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+/* Title chip — fades with the control overlay */
+.mv-player__title {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 28px);
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--_ink);
+  background: var(--_ctrl-bg);
+  border: 1px solid var(--_line);
+  border-radius: 999px;
+  backdrop-filter: blur(10px) saturate(1.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.32s ease, transform 0.32s ease;
+}
+.mv-player__title::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--_accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--_accent) 28%, transparent);
+  flex: none;
+}
+.mv-player[data-overlay="hidden"] .mv-player__title {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ---- Controls --------------------------------------------- */
+.mv-player__controls {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 16px 14px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 10%, rgba(0, 0, 0, 0.4) 55%, transparent);
+  transition: opacity 0.32s ease;
+}
+.mv-player[data-overlay="hidden"] .mv-player__controls {
+  opacity: 0;
+}
+
+/* ---- Scrub bar (custom track + transparent native input) --- */
+.mv-player__scrub {
+  --_played: 0%;
+  --_buffered: 0%;
+  position: relative;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.mv-player__scrub-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  transition: height 0.16s ease;
+}
+.mv-player__scrub:hover .mv-player__scrub-track {
+  height: 6px;
+}
+.mv-player__scrub-buffered {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--_buffered);
+  background: rgba(255, 255, 255, 0.26);
+}
+.mv-player__scrub-played {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--_played);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--_accent) 75%, #fff), var(--_accent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--_accent) 55%, transparent);
+}
+.mv-player__scrub-thumb {
+  position: absolute;
+  top: 50%;
+  left: var(--_played);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--_accent);
+  border: 2px solid #fff;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.mv-player__scrub:hover .mv-player__scrub-thumb,
+.mv-player__scrub:focus-within .mv-player__scrub-thumb {
+  transform: translate(-50%, -50%) scale(1);
+}
+/* native range sits on top, invisible, for interaction + a11y */
+.mv-player__scrub-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.mv-player__scrub-input:focus-visible {
+  outline: none;
+}
+.mv-player__scrub:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--_accent) 60%, transparent);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+/* ---- Frame-preview tooltip -------------------------------- */
+.mv-player__preview {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  transform: translateX(-50%);
+  left: var(--_played);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
+}
+.mv-player__preview-frame {
+  width: 168px;
+  height: 94px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--_line);
+  background: #000;
+}
+.mv-player__preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mv-player__preview-frame--empty {
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 8px, transparent 8px 16px),
+    rgba(255, 255, 255, 0.04);
+}
+.mv-player__preview-time {
+  margin-top: 6px;
+  padding: 2px 8px;
+  font-family: var(--_mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--_ink);
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 5px;
+}
+
+/* ---- Transport row ---------------------------------------- */
+.mv-player__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mv-player__group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mv-player__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--_ink);
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.12s ease;
+}
+.mv-player__btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.mv-player__btn:active {
+  transform: scale(0.92);
+}
+.mv-player__btn:focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 2px;
+}
+.mv-player__btn--primary {
+  width: 42px;
+  height: 42px;
+  background: var(--_accent);
+  color: var(--_accent-ink);
+}
+.mv-player__btn--primary:hover {
+  background: color-mix(in srgb, var(--_accent) 88%, #fff);
+}
+.mv-player__btn--active {
+  color: var(--_accent);
+}
+
+/* Timecode */
+.mv-player__time {
+  font-family: var(--_mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  color: var(--_ink-dim);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.mv-player__time b {
+  color: var(--_ink);
+  font-weight: 600;
+}
+
+/* Speed select */
+.mv-player__speed {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--_mono);
+  font-size: 0.6875rem;
+  color: var(--_ink);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--_line);
+  border-radius: 7px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+.mv-player__speed:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.mv-player__speed:focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 1px;
+}
+.mv-player__speed option {
+  color: #000;
+}
+
+/* Volume — slim custom range */
+.mv-player__volume {
+  width: 84px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(
+    90deg,
+    var(--_accent) 0 var(--_vol, 100%),
+    rgba(255, 255, 255, 0.18) var(--_vol, 100%) 100%
+  );
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mv-player__volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+.mv-player__volume::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+.mv-player__volume:focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 4px;
+}
+
+@media (max-width: 420px) {
+  .mv-player__time,
+  .mv-player__volume {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-player *,
+  .mv-player {
+    transition-duration: 0.01ms !important;
+  }
+}

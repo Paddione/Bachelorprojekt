@@ -11,7 +11,7 @@
   let drawerOpen = false;
   let isRolling = false;
 
-  $: allFeatures = portfolio.products.flatMap((p) => p.features);
+  $: allFeatures = portfolio.products?.flatMap((p) => p.features) ?? [];
 
   function pick(extId: string) {
     onSelectFeature(extId);

@@ -14,6 +14,25 @@ beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 
 describe('Cockpit shell', () => {
+  it('does not crash when portfolioInitial has no products field', () => {
+    expect(() =>
+      render(Cockpit, { portfolioInitial: { error: 'db_error' } as any, brand: 'mentolder' })
+    ).not.toThrow();
+  });
+
+  it('shows a retry button when portfolio fetch fails', async () => {
+    vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(new Response('Internal Server Error', { status: 500 }))
+      .mockResolvedValue(new Response(JSON.stringify(portfolioWithFeature), { status: 200 }));
+
+    const { findByRole } = render(Cockpit, { brand: 'mentolder' });
+    const retryBtn = await findByRole('button', { name: /wiederholen|retry/i });
+    expect(retryBtn).toBeTruthy();
+
+    // Click retry — should reload portfolio successfully
+    await fireEvent.click(retryBtn);
+    await waitFor(() => expect(document.querySelector('[data-testid="cockpit-sidebar"]')).toBeTruthy());
+  });
   it('renders the sidebar and table (no lens/mode toggles)', () => {
     const { getByTestId, queryByRole } = render(Cockpit,
       { portfolioInitial: portfolioWithFeature, brand: 'mentolder' });

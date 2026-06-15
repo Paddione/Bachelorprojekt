@@ -64,7 +64,7 @@
   <select data-testid="status-select" value={ticket.status} on:change={handleStatus} disabled={busy}>
     {#each STATUSES as s}<option value={s}>{s}</option>{/each}
   </select>
-  <select data-testid="priority-select" value={ticket.priority} on:change={handlePriority} disabled={busy}>
+  <select class="priority-select" data-testid="priority-select" value={ticket.priority} on:change={handlePriority} disabled={busy}>
     {#each PRIORITIES as p}<option value={p}>{p}</option>{/each}
   </select>
   <span class="created ticket-col-created">{relDate(ticket.createdAt)}</span>
@@ -73,7 +73,7 @@
 <style>
   .row { display: grid;
     grid-template-columns: auto auto auto 1fr auto auto auto; gap: 0.5rem;
-    align-items: center; padding: 0.4rem 0.5rem; border-bottom: 1px solid #2a2e37;
+    align-items: center; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--admin-border, #2a2e37);
     border-left: 3px solid transparent; }
   .row.selected { background: rgba(110,168,254,0.12); }
   .row.prio-niedrig { border-left-color: #10b981; }
@@ -88,6 +88,6 @@
   @media (max-width: 767px) {
     .row { grid-template-columns: auto auto 1fr auto; }
     .ticket-col-id, .ticket-col-created { display: none; }
-    .row :global([data-testid="priority-select"]) { display: none; }
+    .priority-select { display: none; }
   }
 </style>

@@ -58,7 +58,6 @@
       <label>Typ
         <select bind:value={type}>
           <option value="task">Aufgabe</option>
-          <option value="bug">Bug</option>
           <option value="feature">Feature</option>
           <option value="project">Projekt</option>
         </select>

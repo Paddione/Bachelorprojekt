@@ -8,6 +8,7 @@
   import FactoryPhaseHeatmap from './factory/FactoryPhaseHeatmap.svelte';
   import FactoryShippedBar from './factory/FactoryShippedBar.svelte';
   import DependencyGraph from './DependencyGraph.svelte';
+  import DeliveryHistory from './DeliveryHistory.svelte';
   import type { FloorPayload } from '../lib/factory-floor';
 
   type Tab = 'factory' | 'planung' | 'control' | 'analytics' | 'abhaengigkeiten';
@@ -114,6 +115,7 @@
   <ControlPanel />
 {:else if activeTab === 'analytics'}
   <div class="analytics-tab-wrap">
+    <DeliveryHistory />
     <FactoryKpiGrid />
     <FactoryThroughputChart />
     <FactoryPhaseHeatmap />

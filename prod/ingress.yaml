@@ -266,3 +266,27 @@ spec:
                 name: oauth2-proxy-mediaviewer
                 port:
                   number: 4180
+---
+# ── VideoVault — SSO via oauth2-proxy ──────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: workspace-ingress-videovault
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "${WORKSPACE_NAMESPACE}-redirect-https@kubernetescrd,${WORKSPACE_NAMESPACE}-hsts-headers@kubernetescrd,${WORKSPACE_NAMESPACE}-security-headers@kubernetescrd"
+spec:
+  tls:
+    - hosts:
+        - videovault.${PROD_DOMAIN}
+      secretName: ${TLS_SECRET_NAME}
+  rules:
+    - host: videovault.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-videovault
+                port:
+                  number: 4180

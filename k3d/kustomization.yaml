@@ -54,6 +54,10 @@ resources:
   # Mediaviewer Widget
   - mediaviewer-widget.yaml
   - oauth2-proxy-mediaviewer.yaml
+  # VideoVault
+  - videovault-uploads-pvc.yaml
+  - videovault.yaml
+  - oauth2-proxy-videovault.yaml
   # Dev-Werkzeuge
   - mailpit.yaml
   # Dokumentation

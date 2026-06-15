@@ -125,3 +125,13 @@ spec:
                 name: oauth2-proxy-mediaviewer
                 port:
                   number: 4180
+    - host: videovault.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: oauth2-proxy-videovault
+                port:
+                  number: 4180

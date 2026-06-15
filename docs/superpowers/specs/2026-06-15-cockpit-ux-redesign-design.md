@@ -3,7 +3,7 @@ title: "Cockpit UX Redesign"
 date: 2026-06-15
 slug: cockpit-ux-redesign
 status: staged
-ticket_id: null
+ticket_id: T000786
 plan_ref: null
 areas:
   - website

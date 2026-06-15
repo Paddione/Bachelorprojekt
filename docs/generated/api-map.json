@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T07:09:39.957Z",
+  "generatedAt": "2026-06-15T07:12:31.350Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -754,6 +754,46 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/coaching/templates/[id]/versions.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/batch",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/batch.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/feature",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/feature.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/portfolio",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/portfolio.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/reorder",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/reorder.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/reparent",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/reparent.ts"
     },
     {
       "path": "/api/admin/components",

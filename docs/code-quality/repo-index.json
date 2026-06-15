@@ -2194,7 +2194,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 300,
+      "file_count": 303,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2439,6 +2439,9 @@
         "scripts/migrate-projects-to-tickets.mjs",
         "scripts/migrate-superpowers.sql",
         "scripts/migrate.sh",
+        "scripts/migration/005-add-category-to-tickets.sql",
+        "scripts/mishap-categorize.sh",
+        "scripts/mishap-keywords.json",
         "scripts/one-shot/20260524-billing-invoices-pdf-blob.sql",
         "scripts/one-shot/20260524-korczewski-muster-seed.sql",
         "scripts/one-shot/archive/2026-05-08-flag-systemtest-stragglers.sql",

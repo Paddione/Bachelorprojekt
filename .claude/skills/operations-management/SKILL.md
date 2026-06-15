@@ -215,6 +215,10 @@ If the database is unreachable, output the formatting log messages to the consol
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.
 
+> **Incident-Befragung ans Ticket:** Antworten aus der Triage/Befragung mit
+> `scripts/ticket.sh grill --id <ext-id> …` persistieren. Siehe
+> `.claude/skills/references/grilling-to-ticket.md`.
+
 ## Verwandte Skills
 
 | Skill | Beziehung |

@@ -105,6 +105,10 @@ Warte auf Antworten. Speichere Antworten als `docs/superpowers/specs/.gaps/<tick
 
 Tickets mit `can_proceed: false` nach der Q&A-Runde (Beschreibung zu vage, keine Antwort gegeben): markiere als SKIPPED — schließe sie aus `TICKETS_JSON` aus.
 
+> **Batch-Klärung:** Pro Ticket die geklärten Q/A mit `scripts/ticket.sh grill --id <ext-id> …`
+> ablegen, bevor die Specs/Pläne generiert werden. Siehe
+> `.claude/skills/references/grilling-to-ticket.md`.
+
 ### Schritt 4: Worktree für Batch anlegen
 
 ```bash

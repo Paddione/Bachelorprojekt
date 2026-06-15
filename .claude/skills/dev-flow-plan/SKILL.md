@@ -32,6 +32,11 @@ export GRILLING_TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 
 Hänge Dateien mit `bash scripts/ticket-attach.sh "$GRILLING_TICKET_UUID" <pfade>` an.
 
+> **Strukturierte Q/A persistieren:** Nach dem Deep-Grilling die Antworten zusätzlich
+> ans Ticket senden — `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …`
+> (akkumulierend, erscheint später im T000737-Panel). Siehe
+> `.claude/skills/references/grilling-to-ticket.md`.
+
 ---
 
 ## Schritt −2: Main-Branch sync (Pull-First)

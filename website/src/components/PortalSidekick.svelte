@@ -8,16 +8,19 @@
   import TicketSidekickView from './assistant/TicketSidekickView.svelte';
   import InboxSidekickView from './assistant/InboxSidekickView.svelte';
   import AgentGuideView from './assistant/AgentGuideView.svelte';
+  import MediaviewerPanel from './MediaviewerPanel.svelte';
   import { parseNavigateEvent, shouldShowLearnDot } from '../lib/assistant/sidekick-nudge';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'tickets' | 'inbox' | 'agent-guide' | 'mediaviewer';
 
   let {
     helpSection = '',
     helpContext = 'portal' as HelpContext,
+    mediaviewerHost = 'mediaviewer.localhost',
   }: {
     helpSection?: string;
     helpContext?: HelpContext;
+    mediaviewerHost?: string;
   } = $props();
 
   let open = $state(false);
@@ -62,6 +65,7 @@
     tickets: 'Anfragen',
     inbox: 'Postfach',
     'agent-guide': 'Agent-Anleitung',
+    mediaviewer: 'Mediaviewer',
   };
 
   $effect(() => {
@@ -253,6 +257,8 @@
       <TicketSidekickView onClose={closeDrawer} />
     {:else if view === 'inbox'}
       <InboxSidekickView onClose={closeDrawer} />
+    {:else if view === 'mediaviewer'}
+      <MediaviewerPanel {mediaviewerHost} />
     {/if}
   </div>
 </div>

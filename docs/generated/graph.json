@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T19:44:10.786Z",
+  "generatedAt": "2026-06-15T19:58:07.190Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1087,6 +1087,24 @@
       "from": "website",
       "to": "livekit",
       "via": "configmap:website-config",
+      "kind": "configmap"
+    },
+    {
+      "from": "website",
+      "to": "brett",
+      "via": "configmap:domain-config",
+      "kind": "configmap"
+    },
+    {
+      "from": "website",
+      "to": "livekit",
+      "via": "configmap:domain-config",
+      "kind": "configmap"
+    },
+    {
+      "from": "website",
+      "to": "traefik",
+      "via": "configmap:domain-config",
       "kind": "configmap"
     },
     {

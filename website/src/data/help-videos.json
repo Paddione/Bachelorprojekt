@@ -1,0 +1,16 @@
+[
+  {
+    "id": "onboarding-portal",
+    "url": "https://videovault.localhost/media/help/onboarding-portal.mp4",
+    "title": "Erste Schritte im Portal",
+    "duration": 96,
+    "tags": ["onboarding", "portal"]
+  },
+  {
+    "id": "tickets-anlegen",
+    "url": "https://videovault.localhost/media/help/tickets-anlegen.mp4",
+    "title": "Anfragen & Tickets anlegen",
+    "duration": 73,
+    "tags": ["tickets"]
+  }
+]

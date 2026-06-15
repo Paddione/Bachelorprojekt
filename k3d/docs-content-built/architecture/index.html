@@ -178,7 +178,7 @@
 <body>
   <div class="header">
     <h1>⬡ Architektur — Living Docs</h1>
-    <span class="meta">Generiert: 2026-06-15T19:44:10.865Z</span>
+    <span class="meta">Generiert: 2026-06-15T19:58:05.262Z</span>
   </div>
 
   <div class="stats">
@@ -187,7 +187,7 @@
       <span class="stat-label">Services</span>
     </div>
     <div class="stat">
-      <span class="stat-value">1610</span>
+      <span class="stat-value">1613</span>
       <span class="stat-label">Abhängigkeiten</span>
     </div>
     <div class="stat">
@@ -377,6 +377,7 @@ flowchart LR
   website -->|"configmap:website-…"| nextcloud
   website -->|"configmap:website-…"| brett
   website -->|"configmap:website-…"| livekit
+  website -->|"configmap:domain-c…"| traefik
   whiteboard -->|"NEXTCLOUD_URL"| nextcloud
   monitoring_grafana -->|"GF_AUTH_GENERIC_OA…"| keycloak
   tls_sync -->|"command"| coturn
@@ -1829,7 +1830,7 @@ flowchart LR
   website -->|"secret:staging-db-…"| shared_db_staging
       </div>
     </div>
-    <p class="diagram-caption">Alle 78 K8s-Services und ihre 1610 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
+    <p class="diagram-caption">Alle 78 K8s-Services und ihre 1613 Abhängigkeitskanten (env-Refs, initContainer-Waits, Ingress-Backends)</p>
   </div>
 
   <!-- K8s Topology Tab -->

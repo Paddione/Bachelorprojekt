@@ -26,4 +26,11 @@ describe('FeatureCard', () => {
     await fireEvent.click(getByTestId('feature-card'));
     expect(onClick).toHaveBeenCalled();
   });
+  it('dispatches reparent on drop', async () => {
+    const onReparent = vi.fn();
+    const { getByTestId } = render(FeatureCard, { feature, onClick: () => {}, onReparent });
+    await fireEvent.drop(getByTestId('feature-card'),
+      { dataTransfer: { getData: () => 't9' } });
+    expect(onReparent.mock.calls[0][0]).toEqual({ ticketId: 't9', newParentId: 'f1' });
+  });
 });

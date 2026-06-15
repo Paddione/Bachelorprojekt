@@ -3,11 +3,23 @@
   import type { FeatureNode } from '../../lib/tickets/cockpit-types';
   export let feature: FeatureNode;
   export let onClick: () => void;
+  // Callback prop for reparent (Svelte 5 compatible, also dispatches event for parent use)
+  export let onReparent: ((detail: { ticketId: string; newParentId: string }) => void) | undefined = undefined;
   const dispatch = createEventDispatcher();
   $: r = feature.rollup;
   function activate(e: KeyboardEvent | MouseEvent) {
     if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return;
     onClick();
+  }
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    const ticketId = e.dataTransfer?.getData('text/plain') ||
+      (e.dataTransfer as any)?.getData?.('') || '';
+    if (ticketId) {
+      const detail = { ticketId, newParentId: feature.id };
+      onReparent?.(detail);
+      dispatch('reparent', detail);
+    }
   }
 </script>
 
@@ -16,6 +28,8 @@
   data-testid="feature-card"
   role="button" tabindex="0"
   on:click={onClick} on:keydown={activate}
+  on:dragover|preventDefault
+  on:drop|preventDefault={handleDrop}
 >
   <h4 class="title">{feature.title}</h4>
   {#if feature.valueProp}<p class="value-prop">{feature.valueProp}</p>{/if}

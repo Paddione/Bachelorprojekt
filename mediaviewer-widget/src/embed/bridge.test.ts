@@ -9,7 +9,7 @@ function makeHandle(): MediaviewerHandle {
     play: vi.fn(),
     pause: vi.fn(),
     seek: vi.fn(),
-    getState: vi.fn(() => ({ current: null, state: 'idle', currentTime: 0 })),
+    getState: vi.fn(() => ({ current: null, state: 'idle' as const, currentTime: 0 })),
   };
 }
 

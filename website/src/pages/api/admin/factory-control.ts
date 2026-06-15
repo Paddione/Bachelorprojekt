@@ -25,15 +25,15 @@ async function readControl(key: string, fallback: string): Promise<{ value: stri
 }
 
 async function getControlState(): Promise<ControlState> {
-  const [kill, dry, slotCapEnv, daily, dailyCapRow] = await Promise.all([
+  const envSlotCap = process.env.FACTORY_GLOBAL_CAP ?? '4';
+  const [kill, dry, daily, slotCapDb] = await Promise.all([
     readControl('killswitch', 'off'),
     readControl('dry-run', 'off'),
-    Promise.resolve(process.env.FACTORY_GLOBAL_CAP ?? '4'),
     readControl('daily-cap', '20'),
-    readControl('killswitch', 'off'),
+    readControl('slot-cap', envSlotCap),
   ]);
 
-  const latestUpdate = [kill.updated_at, dry.updated_at, daily.updated_at]
+  const latestUpdate = [kill.updated_at, dry.updated_at, daily.updated_at, slotCapDb.updated_at]
     .filter(Boolean)
     .sort()
     .pop() ?? null;
@@ -41,7 +41,7 @@ async function getControlState(): Promise<ControlState> {
   return {
     killSwitch: kill.value === 'on',
     dryRun: dry.value === 'on',
-    slotCap: parseInt(slotCapEnv, 10) || 4,
+    slotCap: parseInt(slotCapDb.value, 10) || parseInt(envSlotCap, 10) || 4,
     dailyCap: parseInt(daily.value, 10) || 20,
     updatedAt: latestUpdate,
   };

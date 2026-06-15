@@ -126,6 +126,11 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
+  @media (max-width: 900px) {
+    .kpi-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
   @media (max-width: 640px) {
     .kpi-grid {
       grid-template-columns: repeat(2, 1fr);

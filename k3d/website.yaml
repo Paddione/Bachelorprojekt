@@ -430,6 +430,11 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: BRETT_OIDC_SECRET
+            - name: MEDIAVIEWER_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: domain-config
+                  key: MEDIAVIEWER_HOST
           volumeMounts:
             - name: evidence
               mountPath: /var/evidence

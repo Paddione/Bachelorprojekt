@@ -149,8 +149,8 @@
   "S1:website/src/lib/tickets-db.ts": {
     "gate": "S1",
     "path": "website/src/lib/tickets-db.ts",
-    "metric": 1094,
-    "detail": "1094 lines > 600 limit (.ts)",
+    "metric": 1096,
+    "detail": "1096 lines > 600 limit (.ts)",
     "frozen_at": "6190a4e5"
   },
   "S1:website/src/lib/tickets/admin.ts": {

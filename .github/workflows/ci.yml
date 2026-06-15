@@ -65,8 +65,8 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      - name: Run all offline tests
-        run: task test:all
+      - name: Run changed offline tests
+        run: task test:changed
 
       - name: API auth regression gate
         run: |

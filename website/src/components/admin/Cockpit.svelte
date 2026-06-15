@@ -7,6 +7,7 @@
   import EmptyStateCockpit from './EmptyStateCockpit.svelte';
   import FeatureWorkbench from './FeatureWorkbench.svelte';
   import TicketDrawer from './TicketDrawer.svelte';
+  import TicketsTab from './TicketsTab.svelte';
 
   export let portfolioInitial: PortfolioPayload | null = null;
   export let brand: string;
@@ -69,8 +70,7 @@
     <EmptyStateCockpit />
   {:else if portfolio}
     {#if $cockpitStore.mode === 'tabelle'}
-      <!-- Table mode wiring added in Stage F (Task 27). -->
-      <div data-testid="table-mode-placeholder"></div>
+      <TicketsTab />
     {:else if $cockpitStore.lens === 'werkbank' && $cockpitStore.currentFeature && featureData}
       <FeatureWorkbench feature={featureData.feature} tickets={featureData.tickets}
         features={allFeatures}

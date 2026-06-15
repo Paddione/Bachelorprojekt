@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 430,
+      "file_count": 431,
       "files": [
         "tests/.gitignore",
         "tests/batch/batch-gap-analysis.bats",
@@ -407,6 +407,7 @@
         "tests/unit/ticket-add-pr-link.bats",
         "tests/unit/ticket-external-id-sequence.bats",
         "tests/unit/ticket-graph.bats",
+        "tests/unit/ticket-grill.bats",
         "tests/unit/ticket-triage.bats",
         "tests/unit/tickets-migration.bats",
         "tests/unit/tickets-plan-staged-migration.bats",
@@ -2207,7 +2208,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 306,
+      "file_count": 307,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2439,6 +2440,7 @@
         "scripts/lib/route-manifest.test.mjs",
         "scripts/lib/scan.sh",
         "scripts/lib/teams-import.sh",
+        "scripts/lib/ticket-grill.sh",
         "scripts/lib/ticket-links.sh",
         "scripts/llm-host-setup.sh",
         "scripts/llm-pull-models.sh",

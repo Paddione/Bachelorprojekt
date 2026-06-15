@@ -36,7 +36,7 @@ task feature:deploy                # fan-out to both brands
 
 ## Workflow
 
-- Branch naming: `feature/*`, `fix/*`, `chore/*`
+- Branch naming: `feature/*`, `fix/*`, `chore/*`, `docs/*`
 - All changes via PRs → squash-and-merge. No direct pushes to `main`.
 - For structured work: invoke `dev-flow-plan` skill (plan → push) then `dev-flow-execute` (implement → PR → deploy).
 - CI must be green: `task test:all` before commit.

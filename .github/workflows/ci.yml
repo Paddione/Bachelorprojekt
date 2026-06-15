@@ -34,6 +34,9 @@ jobs:
     name: Offline Tests (Manifests, Configs, Unit)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: read
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
@@ -71,6 +74,35 @@ jobs:
           git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json
           node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
 
+      - name: Ensure freshness artifacts are up to date
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          task freshness:regenerate
+          if git diff --quiet; then
+            echo "✅ Freshness artifacts are up to date"
+            exit 0
+          fi
+          echo "⚠️ Freshness artifacts were stale — auto-regenerating and pushing to PR branch"
+          # Use GH_PAT for git push so the push triggers a new CI run
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git stash
+          git fetch origin "${{ github.head_ref }}"
+          git checkout "${{ github.head_ref }}"
+          if git stash pop; then
+            git add -A
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: regenerate freshness artifacts"
+            git push origin "HEAD:${{ github.head_ref }}" 2>/dev/null || true
+            echo "✅ Freshness fix pushed — new CI run will validate"
+          else
+            echo "⚠️ Could not auto-fix (fork PR or no permission). Fix manually: task freshness:regenerate"
+          fi
+        # Fall through so freshness:check below still validates.
+        # On successful push above, this CI run gets cancelled by concurrency;
+        # the new run on the updated PR head will pass freshness:check.
       - name: Verify generated artifacts are fresh
         run: task freshness:check
 
@@ -189,3 +221,13 @@ jobs:
           subjectPatternError: |
             The subject must be between 1 and 200 characters.
             If your PR title includes ticket references like [T000436], that counts toward the limit.
+      - name: Validate ticket tag [T000XXX] in PR title
+        run: |
+          echo "PR title: ${{ github.event.pull_request.title }}"
+          if echo "${{ github.event.pull_request.title }}" | grep -qP '\[T\d+\]'; then
+            echo "✅ Ticket tag found"
+          else
+            echo "❌ PR title must contain a ticket tag like [T000123]"
+            echo "   Example: feat(scope): add feature X [T000123]"
+            exit 1
+          fi

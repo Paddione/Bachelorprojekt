@@ -258,3 +258,54 @@ describe('rollup bucket invariant: done+blocked+inProgress+open === total', () =
     expect(open).toBe(0);
   });
 });
+
+describe('orphan tickets bucket (Ohne Feature)', () => {
+  // Regression for T000848: on live every ticket had parent_id=NULL, so the
+  // cockpit (which only shows tickets nested under a feature) rendered empty.
+  // getPortfolio must surface parentless task/bug leaves under a synthetic
+  // "Ohne Feature" bucket and getFeatureTickets must load them.
+  async function insertOrphans() {
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ('o1','o1','mentolder','task','Orphan A',null,'mittel','backlog',null,10)`);
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ('o2','o2','mentolder','bug','Orphan B',null,'mittel','done',null,11)`);
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ('o3','o3','mentolder','task','Orphan archived',null,'mittel','archived',null,12)`);
+  }
+
+  it('surfaces parentless leaves under a synthetic __no_feature__ feature', async () => {
+    await insertOrphans();
+    const out = await getPortfolio('mentolder');
+    const noFeat = out.products.flatMap(p => p.features).find(f => f.extId === '__no_feature__');
+    expect(noFeat).toBeTruthy();
+    expect(noFeat!.rollup.total).toBe(2); // o1 + o2; archived o3 excluded
+    expect(noFeat!.rollup.done).toBe(1);  // o2
+  });
+
+  it('loads the orphan leaves via getFeatureTickets(__no_feature__)', async () => {
+    await insertOrphans();
+    const out = await getFeatureTickets('mentolder', '__no_feature__');
+    expect(out.feature.extId).toBe('__no_feature__');
+    expect(out.tickets.map(t => t.extId).sort()).toEqual(['o1', 'o2']); // archived excluded
+    expect(out.tickets.every(t => ['task', 'bug'].includes(t.type))).toBe(true);
+  });
+
+  it('omits the synthetic bucket when every leaf is parented', async () => {
+    const out = await getPortfolio('mentolder'); // base fixture: all leaves parented
+    const noFeat = out.products.flatMap(p => p.features).find(f => f.extId === '__no_feature__');
+    expect(noFeat).toBeUndefined();
+  });
+
+  it('scopes the orphan bucket to brand', async () => {
+    await insertOrphans(); // mentolder orphans only
+    const out = await getPortfolio('korczewski');
+    const noFeat = out.products.flatMap(p => p.features).find(f => f.extId === '__no_feature__');
+    expect(noFeat).toBeUndefined();
+  });
+});

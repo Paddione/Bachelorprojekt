@@ -13,7 +13,7 @@ depends_on_plans: []
 
 # Local CI Mirror + Baseline Auto-Tighten — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Drei Verbesserungen am lokalen Entwickler-Feedback-Loop: (1) `task ci:local` als exaktes CI-Spiegelbild, (2) `task quality:tighten` zum automatischen Senken verbesserter Baseline-Werte, (3) blockierender `quality:check` im pre-push Hook mit `SKIP_CI_CHECK=1` Bypass.
 
@@ -41,7 +41,7 @@ depends_on_plans: []
 - Create: `scripts/code-quality/tighten.mjs`
 - Reference: `scripts/code-quality/baseline-refresh.mjs` (bestehend, nicht modifizieren)
 
-- [ ] **Step 1: Datei anlegen**
+- [x] **Step 1: Datei anlegen**
 
 ```javascript
 // scripts/code-quality/tighten.mjs
@@ -100,7 +100,7 @@ if (doCommit) {
 }
 ```
 
-- [ ] **Step 2: Script testen (manuell)**
+- [x] **Step 2: Script testen (manuell)**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -120,7 +120,7 @@ oder (wenn Einträge verbessert wurden):
 
 Exit code immer 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -135,7 +135,7 @@ git commit -m "feat(quality): add tighten.mjs CLI for baseline auto-tighten"
 **Files:**
 - Modify: `Taskfile.yml` (nach Zeile 2763 — nach `quality:check`, `quality:baseline:freeze`, `quality:baseline:refresh`)
 
-- [ ] **Step 1: `quality:tighten` Task nach `quality:baseline:refresh` einfügen**
+- [x] **Step 1: `quality:tighten` Task nach `quality:baseline:refresh` einfügen**
 
 Suche den Block:
 ```yaml
@@ -165,7 +165,7 @@ Ersetze ihn durch (füge `quality:tighten` direkt danach ein):
       COMMIT: '{{.COMMIT | default "0"}}'
 ```
 
-- [ ] **Step 2: `ci:local` Task am Ende der Qualitäts-Gruppe einfügen**
+- [x] **Step 2: `ci:local` Task am Ende der Qualitäts-Gruppe einfügen**
 
 Suche den Block:
 ```yaml
@@ -237,7 +237,7 @@ Füge **vor** `quality:loop` ein:
 
 ```
 
-- [ ] **Step 3: Syntax prüfen**
+- [x] **Step 3: Syntax prüfen**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -250,7 +250,7 @@ Erwartetes Ergebnis:
 * quality:tighten: Lower baseline.json entries ...
 ```
 
-- [ ] **Step 4: Smoke-Test `ci:local --fast`**
+- [x] **Step 4: Smoke-Test `ci:local --fast`**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -259,7 +259,7 @@ task ci:local FAST=1
 
 Erwartetes Ergebnis: Beide Steps Pass, Exit 0.
 
-- [ ] **Step 5: Smoke-Test `quality:tighten`**
+- [x] **Step 5: Smoke-Test `quality:tighten`**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -268,7 +268,7 @@ task quality:tighten
 
 Erwartetes Ergebnis: Exit 0, kein Fehler.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -283,7 +283,7 @@ git commit -m "feat(ci): add ci:local mirror task and quality:tighten baseline t
 **Files:**
 - Modify: `.githooks/pre-push`
 
-- [ ] **Step 1: Hook-Datei ersetzen**
+- [x] **Step 1: Hook-Datei ersetzen**
 
 Aktuelle Datei (32 Zeilen, advisory-only). Neue Version mit blockierendem `quality:check` vor dem Advisory-Block:
 
@@ -343,7 +343,7 @@ exit 0
 
 Neue Datei hat 50 Zeilen (war 32). S1-Budget: 500 - 50 = **450 verbleibend**. Kein Problem.
 
-- [ ] **Step 2: Datei schreiben und ausführbar machen**
+- [x] **Step 2: Datei schreiben und ausführbar machen**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -351,7 +351,7 @@ cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
 chmod +x .githooks/pre-push
 ```
 
-- [ ] **Step 3: Hook testen — normaler Fall (quality:check soll passen)**
+- [x] **Step 3: Hook testen — normaler Fall (quality:check soll passen)**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -361,7 +361,7 @@ echo "refs/heads/test abc123 refs/heads/test def456" | bash .githooks/pre-push o
 
 Erwartetes Ergebnis: `task quality:check` läuft, Exit 0.
 
-- [ ] **Step 4: Hook testen — SKIP_CI_CHECK Bypass**
+- [x] **Step 4: Hook testen — SKIP_CI_CHECK Bypass**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -370,7 +370,7 @@ echo "" | SKIP_CI_CHECK=1 bash .githooks/pre-push origin git@github.com:test/tes
 
 Erwartetes Ergebnis: Warnung `SKIP_CI_CHECK=1 — quality:check bypassed`, dann normaler Ablauf, Exit 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -385,7 +385,7 @@ git commit -m "feat(hooks): strengthen pre-push with blocking quality:check gate
 **Files:**
 - Verify: `scripts/code-quality/tighten.mjs` ist via Taskfile erreichbar (bereits in Task 2 gewährleistet)
 
-- [ ] **Step 1: S4 explizit prüfen**
+- [x] **Step 1: S4 explizit prüfen**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -400,7 +400,7 @@ Hinweis: Falls S4 `tighten.mjs` trotzdem als Orphan flaggt (S4-Scanner greift au
 cat /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync/docs/code-quality/gates.yaml | grep -A5 "s4"
 ```
 
-- [ ] **Step 2: Commit wenn Anpassung nötig**
+- [x] **Step 2: Commit wenn Anpassung nötig**
 
 Nur wenn S4 eine Violation zeigt. Dann Anpassung gemäß Ausgabe, dann:
 ```bash
@@ -414,7 +414,7 @@ git commit -m "fix(quality): resolve S4 orphan for tighten.mjs"
 
 **Files:** keine neuen Änderungen
 
-- [ ] **Step 1: Full offline test suite**
+- [x] **Step 1: Full offline test suite**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -423,7 +423,7 @@ task test:all
 
 Erwartetes Ergebnis: Alle Tests grün, Exit 0.
 
-- [ ] **Step 2: Regenerate generated artifacts**
+- [x] **Step 2: Regenerate generated artifacts**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -432,7 +432,7 @@ task freshness:regenerate
 
 Erwartetes Ergebnis: Alle Artefakte regeneriert, keine Fehler.
 
-- [ ] **Step 3: CI-Äquivalent-Check**
+- [x] **Step 3: CI-Äquivalent-Check**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -444,7 +444,7 @@ Erwartetes Ergebnis:
 - `✓ no new or worsened violations`
 - `✓ baseline key-count is stable or shrinking`
 
-- [ ] **Step 4: Neuen `ci:local` Task als Smoke-Test**
+- [x] **Step 4: Neuen `ci:local` Task als Smoke-Test**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -453,7 +453,7 @@ task ci:local SKIP_NETWORK=1
 
 Erwartetes Ergebnis: 3/5 Steps Pass (test:all + learning-assets + systembrett), 2 Skipped (network-Steps), Exit 0.
 
-- [ ] **Step 5: Stale Artefakte committen falls nötig**
+- [x] **Step 5: Stale Artefakte committen falls nötig**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync
@@ -463,7 +463,7 @@ git add docs/code-quality/repo-index.json website/src/data/test-inventory.json
 git commit -m "chore: regenerate freshness artifacts after ci:local addition"
 ```
 
-- [ ] **Step 6: Push**
+- [x] **Step 6: Push**
 
 ```bash
 cd /home/patrick/Bachelorprojekt/tmp/wt-local-ci-baseline-sync

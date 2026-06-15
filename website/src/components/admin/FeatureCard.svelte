@@ -13,8 +13,7 @@
   }
   function handleDrop(e: DragEvent) {
     e.preventDefault();
-    const ticketId = e.dataTransfer?.getData('text/plain') ||
-      (e.dataTransfer as any)?.getData?.('') || '';
+    const ticketId = e.dataTransfer?.getData('text/plain') ?? '';
     if (ticketId) {
       const detail = { ticketId, newParentId: feature.id };
       onReparent?.(detail);

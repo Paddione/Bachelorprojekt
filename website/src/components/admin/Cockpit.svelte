@@ -74,9 +74,9 @@
     {:else if $cockpitStore.lens === 'werkbank' && $cockpitStore.currentFeature && featureData}
       <FeatureWorkbench feature={featureData.feature} tickets={featureData.tickets}
         features={allFeatures}
-        on:back={() => { selectFeature(null); setLens('ueberblick'); }}
-        on:mutated={refetchFeature}
-        on:openDrawer={(e) => { drawerTicket = e.detail.ticket; drawerOpen = true; }} />
+        onBack={() => { selectFeature(null); setLens('ueberblick'); }}
+        onMutated={refetchFeature}
+        onOpenDrawer={(d) => { drawerTicket = d.ticket; drawerOpen = true; }} />
     {:else}
       <PortfolioGrid {portfolio} onSelectFeature={openFeature}
         onReparent={async (ticketId, newParentId) => {

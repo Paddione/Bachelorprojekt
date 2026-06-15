@@ -19,7 +19,7 @@
       <div class="cards">
         {#each product.features as f (f.id)}
           <FeatureCard feature={f} onClick={() => onSelectFeature(f.extId)}
-            on:reparent={(e) => onReparent?.(e.detail.ticketId, e.detail.newParentId)} />
+            onReparent={onReparent ? (d) => onReparent(d.ticketId, d.newParentId) : undefined} />
         {/each}
         {#if product.features.length === 0}
           <p class="empty">Keine Features</p>

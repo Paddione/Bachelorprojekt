@@ -25,10 +25,11 @@
         body: JSON.stringify({ title }),
       });
       if (!res.ok) throw new Error(`save ${res.status}`);
+      ticket = { ...ticket, title };
       const detail = { ticketId: ticket.id };
       onMutated?.(detail);
       dispatch('mutated', detail);
-    } catch (e) { title = old; error = String((e as Error).message); }
+    } catch (e) { title = old; ticket = { ...ticket, title: old }; error = String((e as Error).message); }
     finally { saving = false; }
   }
 

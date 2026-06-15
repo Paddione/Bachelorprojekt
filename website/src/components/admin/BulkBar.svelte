@@ -56,7 +56,7 @@
       <option value="" selected>Verschieben nach …</option>
       {#each features as f}<option value={f.id}>{f.title}</option>{/each}
     </select>
-    <button on:click={handleEnqueue}>Zur Fabrik</button>
+    <button on:click={handleEnqueue} disabled title="Factory-Enqueue noch nicht implementiert (kommt in T000752)">Zur Fabrik</button>
     <button class="clear" on:click={handleClear}>Auswahl aufheben</button>
   </div>
 {/if}

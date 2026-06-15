@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
   import type { FeatureNode, TicketRow as TicketRowT } from '../../lib/tickets/cockpit-types';
   import { cockpitStore, toggleTicketSelection, applyOptimistic, clearSelection } from '../../lib/stores/cockpitStore';
   import TicketRow from './TicketRow.svelte';
@@ -8,8 +7,11 @@
   export let feature: FeatureNode;
   export let tickets: TicketRowT[];
   export let features: FeatureNode[] = [];
+  // Callback props (Svelte 5 compatible)
+  export let onBack: (() => void) | undefined = undefined;
+  export let onMutated: ((detail: { featureExtId: string }) => void) | undefined = undefined;
+  export let onOpenDrawer: ((detail: { ticket: TicketRowT }) => void) | undefined = undefined;
 
-  const dispatch = createEventDispatcher();
   let busy: Record<string, boolean> = {};
   let dragId: string | null = null;
 
@@ -26,7 +28,7 @@
         body: JSON.stringify({ newStatus: status }),
       });
       if (!res.ok) throw new Error(`transition ${res.status}`);
-      dispatch('mutated', { featureExtId: feature.extId });
+      onMutated?.({ featureExtId: feature.extId });
     } catch {
       t.status = old; tickets = [...tickets]; rollback();
     } finally { busy[id] = false; busy = { ...busy }; }
@@ -43,7 +45,7 @@
         body: JSON.stringify({ priority }),
       });
       if (!res.ok) throw new Error(`patch ${res.status}`);
-      dispatch('mutated', { featureExtId: feature.extId });
+      onMutated?.({ featureExtId: feature.extId });
     } catch {
       t.priority = old; tickets = [...tickets]; rollback();
     } finally { busy[id] = false; busy = { ...busy }; }
@@ -58,7 +60,7 @@
         body: JSON.stringify({ updates }),
       });
       if (!res.ok) throw new Error(`reorder ${res.status}`);
-      dispatch('mutated', { featureExtId: feature.extId });
+      onMutated?.({ featureExtId: feature.extId });
     } catch { tickets = snapshot; }
   }
 
@@ -88,17 +90,19 @@
   }
 
   async function runBatch(mutation: Record<string, unknown>, ids: string[]) {
-    const res = await fetch('/api/admin/cockpit/batch', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticketIds: ids, mutation }),
-    });
-    if (res.ok) { clearSelection(); dispatch('mutated', { featureExtId: feature.extId }); }
+    try {
+      const res = await fetch('/api/admin/cockpit/batch', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketIds: ids, mutation }),
+      });
+      if (res.ok) { clearSelection(); onMutated?.({ featureExtId: feature.extId }); }
+    } catch { /* batch errors are non-critical; selection stays for retry */ }
   }
 </script>
 
 <section class="workbench" data-testid="feature-workbench">
   <header class="head">
-    <button class="back" on:click={() => dispatch('back')}>← Zurück</button>
+    <button class="back" on:click={() => onBack?.()}>← Zurück</button>
     <h3>{feature.title}</h3>
     <span class={`health-dot health-${feature.health}`}></span>
     {#if feature.rollup.blocked > 0}<span class="warn">⚠ {feature.rollup.blocked} blockiert</span>{/if}
@@ -114,17 +118,17 @@
           onPriorityChange={(d) => patchPriority(d.id, d.priority)}
           onSelectToggle={(d) => toggleTicketSelection(d.id)}
           onDragStart={(d) => onDragStart(d.id)}
-          onOpenDrawer={(d) => dispatch('openDrawer', d)} />
+          onOpenDrawer={(d) => onOpenDrawer?.(d)} />
       </div>
     {/each}
     {#if tickets.length === 0}<p class="empty">Keine Tickets</p>{/if}
   </div>
   <BulkBar selectedIds={selectedIds} {features}
-    on:bulkStatus={(e) => runBatch({ status: e.detail.status }, e.detail.ids)}
-    on:bulkPriority={(e) => runBatch({ priority: e.detail.priority }, e.detail.ids)}
-    on:bulkReparent={(e) => runBatch({ parentId: e.detail.parentId }, e.detail.ids)}
-    on:bulkEnqueue={(e) => runBatch({ enqueue: true }, e.detail.ids)}
-    on:clear={clearSelection} />
+    onBulkStatus={(d) => runBatch({ status: d.status }, d.ids)}
+    onBulkPriority={(d) => runBatch({ priority: d.priority }, d.ids)}
+    onBulkReparent={(d) => runBatch({ parentId: d.parentId }, d.ids)}
+    onBulkEnqueue={(d) => runBatch({ enqueue: true }, d.ids)}
+    onClear={clearSelection} />
 </section>
 
 <style>

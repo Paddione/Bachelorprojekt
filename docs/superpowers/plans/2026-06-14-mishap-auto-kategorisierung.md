@@ -1,7 +1,7 @@
 ---
 ticket_id: T000725
 spec_ref: docs/superpowers/specs/2026-06-14-mishap-auto-kategorisierung.md
-status: active
+status: completed
 date: 2026-06-14
 domains: [scripts, database]
 file_locks: []

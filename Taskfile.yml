@@ -420,6 +420,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/mishap-tracker.bats
 
+  mishap:categorize:
+    desc: "Kategorisiert ein Mishap-Ticket via Keyword-Matching + DeepSeek-Fallback"
+    cmds:
+      - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
+
   test:unit:ticket-add-pr-link:
     internal: true
     cmds:

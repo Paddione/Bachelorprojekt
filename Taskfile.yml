@@ -588,19 +588,9 @@ tasks:
       - ./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-*.bats
 
   test:all:
-    desc: "Run all offline tests: unit + factory + agent-lock + manifests + art-library + menu-gate + dry-run + docs-gen + api-auth"
-    deps:
-      - test:unit
-      - test:factory
-      - test:agent-lock
-      - test:manifests
-      - test:art-library
-      - test:menu-gate
-      - test:dry-run
-      - test:docs-gen
-      - test:agent-guide
-      - test:code-quality
-      - test:api-auth
+    desc: "Run tests for changed files only (smart selection) — delegates to test:changed"
+    cmds:
+      - task: test:changed
 
   test:changed:
     desc: "Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)"

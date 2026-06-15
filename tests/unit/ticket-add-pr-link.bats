@@ -41,6 +41,9 @@ teardown() { rm -rf "$MOCKDIR"; }
   grep -q "INSERT INTO tickets.ticket_links" "$CAP"
   grep -q "kind" "$CAP"
   grep -qi "pr_number" "$CAP"
+  # to_id is NOT NULL (FK) — the INSERT MUST set it (self-link to_id = from_id),
+  # otherwise it violates the not-null constraint at runtime.
+  grep -q "to_id" "$CAP"
   # MUST NOT reference the non-existent columns from the spec snippet
   ! grep -qE "\bref\b|\burl\b" "$CAP"
 }

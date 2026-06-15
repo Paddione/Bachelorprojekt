@@ -2,9 +2,11 @@
 # scripts/lib/ticket-links.sh
 # Pure helper sourced by ticket.sh — declares cmd_add_pr_link only.
 # No top-level side effects, no back-imports.
-# Schema: tickets.ticket_links (from_id text, kind text, pr_number int, ...)
-# getShipped() in factory-floor.ts reads: WHERE kind = 'pr' AND pr_number IS NOT NULL
-#   and joins l.from_id = t.id
+# Schema: tickets.ticket_links (from_id uuid NOT NULL, to_id uuid NOT NULL,
+#   kind text, pr_number int, UNIQUE(from_id, to_id, kind)). A PR has no target
+#   ticket, so we self-link (to_id = from_id) to satisfy the NOT NULL FK.
+# Readers (delivery-metrics, getShipped) filter WHERE kind = 'pr'
+#   AND pr_number IS NOT NULL and join l.from_id = t.id (to_id is ignored).
 
 cmd_add_pr_link() {
   local id="" pr=""
@@ -37,16 +39,16 @@ EOF
     exit 1
   fi
 
-  # Idempotent: skip if a pr-link for this ticket+pr already exists.
+  # Idempotent: to_id is NOT NULL (FK to tickets), and a PR has no target
+  # ticket, so we self-link (to_id = from_id) — same pattern as transition.ts.
+  # ON CONFLICT (from_id, to_id, kind) keeps one 'pr' link per ticket, updated
+  # to the latest PR number.
   _exec_sql "$pod" \
     -v uuid="$uuid" \
     -v pr="$pr" <<'EOF' >/dev/null
-INSERT INTO tickets.ticket_links (from_id, kind, pr_number)
-SELECT :'uuid', 'pr', :'pr'::integer
-WHERE NOT EXISTS (
-  SELECT 1 FROM tickets.ticket_links
-   WHERE from_id = :'uuid' AND kind = 'pr' AND pr_number = :'pr'::integer
-);
+INSERT INTO tickets.ticket_links (from_id, to_id, kind, pr_number)
+VALUES (:'uuid', :'uuid', 'pr', :'pr'::integer)
+ON CONFLICT (from_id, to_id, kind) DO UPDATE SET pr_number = EXCLUDED.pr_number;
 EOF
 
   echo "PR link #$pr recorded for ticket $id"

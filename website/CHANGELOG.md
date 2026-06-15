@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.77.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.1...website-v1.77.2) (2026-06-15)
+
+
+### Bug Fixes
+
+* **website:** auto-select a default feature in the cockpit ([#1736](https://github.com/Paddione/Bachelorprojekt/issues/1736)) ([42e0763](https://github.com/Paddione/Bachelorprojekt/commit/42e07631795fd07b2c6debb5ef4025f20fe1f381))
+
 ## [1.77.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.0...website-v1.77.1) (2026-06-15)
 
 

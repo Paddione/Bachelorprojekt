@@ -50,7 +50,7 @@ The overview UI and state management. After Stage C, the page loads, renders por
 - Create: `website/src/lib/stores/cockpitStore.ts` (target ~350 lines; limit 500)
 - Test: `website/src/lib/stores/cockpitStore.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `website/src/lib/stores/cockpitStore.test.ts`:
 
@@ -101,9 +101,9 @@ describe('cockpitStore', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.** Run: `cd website && pnpm test -- cockpitStore.test.ts` → FAIL.
+- [x] **Step 2: Verify FAIL.** Run: `cd website && pnpm test -- cockpitStore.test.ts` → FAIL.
 
-- [ ] **Step 3: Implement the store**
+- [x] **Step 3: Implement the store**
 
 Create `website/src/lib/stores/cockpitStore.ts`:
 
@@ -209,9 +209,9 @@ export function setLoading(isLoading: boolean): void { cockpitStore.update((s) =
 export { get };
 ```
 
-- [ ] **Step 4: PASS.** Run: `cd website && pnpm test -- cockpitStore.test.ts` → PASS. `wc -l website/src/lib/stores/cockpitStore.ts` → <500.
+- [x] **Step 4: PASS.** Run: `cd website && pnpm test -- cockpitStore.test.ts` → PASS. `wc -l website/src/lib/stores/cockpitStore.ts` → <500.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/stores/cockpitStore.ts website/src/lib/stores/cockpitStore.test.ts
@@ -226,7 +226,7 @@ git commit -m "feat(cockpit): pure cockpitStore (lens/mode/selection/optimistic)
 - Create: `website/src/components/admin/FeatureCard.svelte` (target ~250 lines; limit 500)
 - Test: `website/src/components/admin/FeatureCard.test.ts`
 
-- [ ] **Step 1: Failing component tests**
+- [x] **Step 1: Failing component tests**
 
 Create `website/src/components/admin/FeatureCard.test.ts` (Vitest + @testing-library/svelte; follow the render/fireEvent pattern already used by existing admin component tests):
 
@@ -262,9 +262,9 @@ describe('FeatureCard', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.** Run: `cd website && pnpm test -- FeatureCard.test.ts` → FAIL.
+- [x] **Step 2: Verify FAIL.** Run: `cd website && pnpm test -- FeatureCard.test.ts` → FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/FeatureCard.svelte`:
 
@@ -315,7 +315,7 @@ Create `website/src/components/admin/FeatureCard.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 Run → PASS.
 ```bash
@@ -331,7 +331,7 @@ git commit -m "feat(cockpit): FeatureCard component (progress, chips, health bor
 - Create: `website/src/components/admin/PortfolioGrid.svelte` (target ~280 lines; limit 500)
 - Test: `website/src/components/admin/PortfolioGrid.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `website/src/components/admin/PortfolioGrid.test.ts`:
 
@@ -368,9 +368,9 @@ describe('PortfolioGrid', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/PortfolioGrid.svelte`:
 
@@ -415,7 +415,7 @@ Create `website/src/components/admin/PortfolioGrid.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/PortfolioGrid.svelte website/src/components/admin/PortfolioGrid.test.ts
@@ -430,7 +430,7 @@ git commit -m "feat(cockpit): PortfolioGrid with product groups + aggregate head
 - Create: `website/src/components/admin/EmptyStateCockpit.svelte` (~80 lines; limit 500)
 - Test: `website/src/components/admin/EmptyStateCockpit.test.ts`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 Create `website/src/components/admin/EmptyStateCockpit.test.ts`:
 
@@ -447,9 +447,9 @@ describe('EmptyStateCockpit', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/EmptyStateCockpit.svelte`:
 
@@ -466,7 +466,7 @@ Create `website/src/components/admin/EmptyStateCockpit.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/EmptyStateCockpit.svelte website/src/components/admin/EmptyStateCockpit.test.ts
@@ -481,7 +481,7 @@ git commit -m "feat(cockpit): empty-state component"
 - Create: `website/src/components/admin/Cockpit.svelte` (target ~300 lines now; grows in Stages D/E; limit 500 — split if it nears 80 %)
 - Test: `website/src/components/admin/Cockpit.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `website/src/components/admin/Cockpit.test.ts`:
 
@@ -525,9 +525,9 @@ describe('Cockpit', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/Cockpit.svelte`:
 
@@ -608,7 +608,7 @@ Create `website/src/components/admin/Cockpit.svelte`:
 
 > Executor note: Stage D replaces `workbench-placeholder` with `<FeatureWorkbench>` and Stage F replaces `table-mode-placeholder` with the existing table component. Keep those as named placeholders so the wiring tasks have a clear seam.
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 Run: `cd website && pnpm test -- Cockpit.test.ts` → PASS.
 ```bash
@@ -623,7 +623,7 @@ git commit -m "feat(cockpit): Cockpit shell (lens/mode toggles + portfolio loade
 **Files:**
 - Create: `website/src/components/admin/CockpitShell.integration.test.ts`
 
-- [ ] **Step 1: Write the integration test**
+- [x] **Step 1: Write the integration test**
 
 Create the file:
 
@@ -648,9 +648,9 @@ describe('Cockpit persistence', () => {
 });
 ```
 
-- [ ] **Step 2: Run + verify pass.** Run: `cd website && pnpm test -- CockpitShell.integration.test.ts` → PASS.
+- [x] **Step 2: Run + verify pass.** Run: `cd website && pnpm test -- CockpitShell.integration.test.ts` → PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add website/src/components/admin/CockpitShell.integration.test.ts
@@ -669,7 +669,7 @@ After Stage D, opening a feature shows a ticket list with inline status/priority
 - Create: `website/src/components/admin/TicketRow.svelte` (target ~250 lines; limit 500)
 - Test: `website/src/components/admin/TicketRow.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `website/src/components/admin/TicketRow.test.ts`:
 
@@ -708,9 +708,9 @@ describe('TicketRow', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/TicketRow.svelte`:
 
@@ -759,7 +759,7 @@ Create `website/src/components/admin/TicketRow.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/TicketRow.svelte website/src/components/admin/TicketRow.test.ts
@@ -774,7 +774,7 @@ git commit -m "feat(cockpit): TicketRow with inline status/priority, checkbox, d
 - Create: `website/src/components/admin/FeatureWorkbench.svelte` (target ~320 lines; limit 500)
 - Test: `website/src/components/admin/FeatureWorkbench.test.ts`
 
-- [ ] **Step 1: Failing tests** (mock `fetch`)
+- [x] **Step 1: Failing tests** (mock `fetch`)
 
 Create `website/src/components/admin/FeatureWorkbench.test.ts`:
 
@@ -815,9 +815,9 @@ describe('FeatureWorkbench', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/FeatureWorkbench.svelte`:
 
@@ -897,7 +897,7 @@ Create `website/src/components/admin/FeatureWorkbench.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/FeatureWorkbench.svelte website/src/components/admin/FeatureWorkbench.test.ts
@@ -912,7 +912,7 @@ git commit -m "feat(cockpit): FeatureWorkbench drill-in with optimistic inline e
 - Create: `website/src/components/admin/TicketDrawer.svelte` (target ~350 lines; limit 500 — if comment/link/attachment forms push it near 80 %, extract `CommentForm.svelte` etc.)
 - Test: `website/src/components/admin/TicketDrawer.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `website/src/components/admin/TicketDrawer.test.ts`:
 
@@ -950,9 +950,9 @@ describe('TicketDrawer', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/TicketDrawer.svelte`:
 
@@ -1018,7 +1018,7 @@ Create `website/src/components/admin/TicketDrawer.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/TicketDrawer.svelte website/src/components/admin/TicketDrawer.test.ts
@@ -1033,7 +1033,7 @@ git commit -m "feat(cockpit): TicketDrawer full-field panel (reuses existing edi
 - Modify: `website/src/components/admin/Cockpit.svelte` (replace the `workbench-placeholder`; add drawer + feature loader)
 - Test: append to `website/src/components/admin/Cockpit.test.ts`
 
-- [ ] **Step 1: Failing test** (append)
+- [x] **Step 1: Failing test** (append)
 
 ```typescript
 import { waitFor } from '@testing-library/svelte';
@@ -1057,9 +1057,9 @@ describe('Cockpit drill-in', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement the wiring**
+- [x] **Step 3: Implement the wiring**
 
 In `website/src/components/admin/Cockpit.svelte`:
 1. Import `FeatureWorkbench` and `TicketDrawer`, plus `selectFeature` (already imported) and types.
@@ -1109,7 +1109,7 @@ In `website/src/components/admin/Cockpit.svelte`:
 
 5. Keep `wc -l` under 500 — if it exceeds, extract the loader functions into a small `cockpit-actions.ts` helper imported by the component.
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 Run: `cd website && pnpm test -- Cockpit.test.ts` → PASS. `wc -l website/src/components/admin/Cockpit.svelte` → <500.
 ```bash
@@ -1129,7 +1129,7 @@ After Stage E, tickets reorder via drag/keyboard, reparent onto feature cards, a
 - Create: `website/src/components/admin/BulkBar.svelte` (target ~180 lines; limit 500)
 - Test: `website/src/components/admin/BulkBar.test.ts`
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 Create `website/src/components/admin/BulkBar.test.ts`:
 
@@ -1162,9 +1162,9 @@ describe('BulkBar', () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `website/src/components/admin/BulkBar.svelte`:
 
@@ -1211,7 +1211,7 @@ Create `website/src/components/admin/BulkBar.svelte`:
 </style>
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/BulkBar.svelte website/src/components/admin/BulkBar.test.ts
@@ -1226,7 +1226,7 @@ git commit -m "feat(cockpit): BulkBar multi-select action bar"
 - Modify: `website/src/components/admin/FeatureWorkbench.svelte` (drop handlers + Shift+Up/Down + reorder fetch)
 - Test: append to `website/src/components/admin/FeatureWorkbench.test.ts`
 
-- [ ] **Step 1: Failing test** (append)
+- [x] **Step 1: Failing test** (append)
 
 ```typescript
 import { waitFor as wf } from '@testing-library/svelte';
@@ -1241,9 +1241,9 @@ it('reorders via keyboard Shift+ArrowDown and POSTs reorder', async () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement** — add to `FeatureWorkbench.svelte`:
+- [x] **Step 3: Implement** — add to `FeatureWorkbench.svelte`:
 
 ```svelte
   async function persistOrder() {
@@ -1301,7 +1301,7 @@ Bind in the `{#each}` (wrap each `TicketRow` in a keydown/drop handler):
     {/each}
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/FeatureWorkbench.svelte website/src/components/admin/FeatureWorkbench.test.ts
@@ -1317,7 +1317,7 @@ git commit -m "feat(cockpit): reorder via drag + Shift+Arrow keyboard (POST reor
 - Modify: `website/src/components/admin/PortfolioGrid.svelte` (forward reparent event)
 - Test: append to `website/src/components/admin/FeatureCard.test.ts`
 
-- [ ] **Step 1: Failing test** (append to FeatureCard.test.ts)
+- [x] **Step 1: Failing test** (append to FeatureCard.test.ts)
 
 ```typescript
 it('dispatches reparent on drop', async () => {
@@ -1329,9 +1329,9 @@ it('dispatches reparent on drop', async () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement** — in `FeatureCard.svelte` add to `<script>` and the card element:
+- [x] **Step 3: Implement** — in `FeatureCard.svelte` add to `<script>` and the card element:
 
 ```svelte
   import { createEventDispatcher } from 'svelte';
@@ -1357,7 +1357,7 @@ In `Cockpit.svelte`, pass `onReparent` to `PortfolioGrid`:
         }} />
 ```
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 ```bash
 git add website/src/components/admin/FeatureCard.svelte website/src/components/admin/PortfolioGrid.svelte website/src/components/admin/Cockpit.svelte website/src/components/admin/FeatureCard.test.ts
@@ -1372,7 +1372,7 @@ git commit -m "feat(cockpit): reparent drag-drop onto feature cards (POST repare
 - Modify: `website/src/components/admin/FeatureWorkbench.svelte` (mount BulkBar; batch handlers)
 - Test: append to `website/src/components/admin/FeatureWorkbench.test.ts`
 
-- [ ] **Step 1: Failing test** (append)
+- [x] **Step 1: Failing test** (append)
 
 ```typescript
 it('bulk-changes status via batch endpoint', async () => {
@@ -1387,9 +1387,9 @@ it('bulk-changes status via batch endpoint', async () => {
 });
 ```
 
-- [ ] **Step 2: Verify FAIL.**
+- [x] **Step 2: Verify FAIL.**
 
-- [ ] **Step 3: Implement** — in `FeatureWorkbench.svelte`:
+- [x] **Step 3: Implement** — in `FeatureWorkbench.svelte`:
 
 ```svelte
   import BulkBar from './BulkBar.svelte';
@@ -1420,7 +1420,7 @@ Mount at the bottom of the `<section>`:
 
 In `Cockpit.svelte`, pass sibling features to the workbench: compute `features` from `featureData.feature`'s product (or pass the flattened feature list from `portfolio`).
 
-- [ ] **Step 4: PASS + Step 5: Commit**
+- [x] **Step 4: PASS + Step 5: Commit**
 
 Run → PASS. `wc -l website/src/components/admin/FeatureWorkbench.svelte` → <500 (split helpers if needed).
 ```bash
@@ -1437,8 +1437,8 @@ git commit -m "feat(cockpit): wire BulkBar to batch endpoint with optimistic cle
 
 This sub-plan merges independently — it must be green on its own.
 
-- [ ] Scoped unit tests: `cd website && pnpm test -- "Cockpit|FeatureCard|PortfolioGrid|cockpitStore|TicketRow|FeatureWorkbench|TicketDrawer|BulkBar"`
-- [ ] `task test:all` → exit 0
-- [ ] `task freshness:regenerate` then `task freshness:check` → exit 0 (S1–S4 ratchet incl. `tickets-db.ts` ≤ 1106, `admin.ts` = 677)
-- [ ] If test files were added: `task test:inventory` + commit `website/src/data/test-inventory.json`
-- [ ] Confirm only this sub-plan's `file_locks` files changed
+- [x] Scoped unit tests: `cd website && pnpm test -- "Cockpit|FeatureCard|PortfolioGrid|cockpitStore|TicketRow|FeatureWorkbench|TicketDrawer|BulkBar"`
+- [x] `task test:all` → exit 0
+- [x] `task freshness:regenerate` then `task freshness:check` → exit 0 (S1–S4 ratchet incl. `tickets-db.ts` ≤ 1106, `admin.ts` = 677)
+- [x] If test files were added: `task test:inventory` + commit `website/src/data/test-inventory.json`
+- [x] Confirm only this sub-plan's `file_locks` files changed

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.71.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.70.2...website-v1.71.0) (2026-06-15)
+
+
+### Features
+
+* **tickets:** add Grilling QA Panel to ticket detail [T000738] ([#1682](https://github.com/Paddione/Bachelorprojekt/issues/1682)) ([119eba7](https://github.com/Paddione/Bachelorprojekt/commit/119eba76db7714cef181f9b8080bfc38910c037b))
+
 ## [1.70.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.70.1...website-v1.70.2) (2026-06-15)
 
 

@@ -17,7 +17,6 @@
   let drawerTicket: TicketRow | null = null;
   let drawerOpen = false;
   let createOpen = false;
-  let isRolling = false;
 
   $: allFeatures = portfolio?.products.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
@@ -83,7 +82,8 @@
   {:else if portfolio}
     <div class="layout">
       <CockpitSidebar {portfolio} selectedFeature={$cockpitStore.selectedFeature}
-        onSelectFeature={pickFeature} onFeatureAction={featureAction} {isRolling} />
+        onSelectFeature={pickFeature} onFeatureAction={featureAction}
+        onMutated={refetch} />
       <main class="main">
         {#if $cockpitStore.isLoading}<div class="loading">Lädt …</div>{/if}
         <CockpitTable

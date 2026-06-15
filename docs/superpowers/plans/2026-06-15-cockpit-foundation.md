@@ -371,7 +371,7 @@ git commit -m "feat(cockpit): API contract types (PortfolioPayload, FeatureTicke
 - Create: `website/src/lib/tickets/cockpit-db.ts` (read half now; target <350 lines after Task 5; limit 600)
 - Test: `website/src/lib/tickets/cockpit-db.test.ts`
 
-- [ ] **Step 1: Write the failing pg-mem test for reads**
+- [x] **Step 1: Write the failing pg-mem test for reads**
 
 Create `website/src/lib/tickets/cockpit-db.test.ts`. Use `vi.hoisted` to back `pool` with a pg-mem instance seeded with 1 Product → 2 Features → 5 leaf tickets (statuses: 1 done, 1 blocked, 2 in_progress, 1 backlog):
 
@@ -467,12 +467,12 @@ describe('getFeatureTickets', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and verify it fails**
+- [x] **Step 2: Run it and verify it fails**
 
 Run: `cd website && pnpm test -- cockpit-db.test.ts`
 Expected: FAIL — `cockpit-db.ts` does not export `getPortfolio`/`getFeatureTickets`.
 
-- [ ] **Step 3: Implement the read functions**
+- [x] **Step 3: Implement the read functions**
 
 Create `website/src/lib/tickets/cockpit-db.ts`:
 
@@ -600,12 +600,12 @@ export async function getFeatureTickets(brand: string, extId: string): Promise<F
 }
 ```
 
-- [ ] **Step 4: Run the test and verify it passes**
+- [x] **Step 4: Run the test and verify it passes**
 
 Run: `cd website && pnpm test -- cockpit-db.test.ts`
 Expected: PASS (4 read-side cases).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/tickets/cockpit-db.ts website/src/lib/tickets/cockpit-db.test.ts
@@ -620,7 +620,7 @@ git commit -m "feat(cockpit): cockpit-db read functions (portfolio + feature dri
 - Modify: `website/src/lib/tickets/cockpit-db.ts` (append helpers; keep <500 lines total — if it approaches the limit, split mutations into `cockpit-db-mutations.ts`)
 - Test: `website/src/lib/tickets/cockpit-db.test.ts` (append)
 
-- [ ] **Step 1: Write the failing mutation tests**
+- [x] **Step 1: Write the failing mutation tests**
 
 Append to `website/src/lib/tickets/cockpit-db.test.ts`:
 
@@ -671,12 +671,12 @@ describe('batchMutate', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and verify it fails**
+- [x] **Step 2: Run it and verify it fails**
 
 Run: `cd website && pnpm test -- cockpit-db.test.ts`
 Expected: FAIL — `updatePlanningRanks`/`reparentTicket`/`batchMutate` not exported.
 
-- [ ] **Step 3: Implement the mutation helpers**
+- [x] **Step 3: Implement the mutation helpers**
 
 Append to `website/src/lib/tickets/cockpit-db.ts`:
 
@@ -779,14 +779,14 @@ async function audit(brand: string, action: string, changes: unknown): Promise<v
 
 > Executor note: confirm the real `tickets.ticket_activity` column names against the existing `admin.ts` audit calls and align `audit()` to them. If `admin.ts` exposes an audit helper that is exportable without growing it, prefer importing that (type-only/function import — do NOT modify `admin.ts`). The unit test tolerates a missing/divergent activity table via the try/catch.
 
-- [ ] **Step 4: Run the test and verify it passes**
+- [x] **Step 4: Run the test and verify it passes**
 
 Run: `cd website && pnpm test -- cockpit-db.test.ts`
 Expected: PASS (all read + mutation cases). Then check size:
 Run: `wc -l website/src/lib/tickets/cockpit-db.ts`
 Expected: <500 (if ≥500, split mutations into `cockpit-db-mutations.ts` and re-import).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add website/src/lib/tickets/cockpit-db.ts website/src/lib/tickets/cockpit-db.test.ts
@@ -799,7 +799,7 @@ git commit -m "feat(cockpit): cockpit-db mutation helpers (reorder, reparent, ba
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Assert frozen files did not grow**
+- [x] **Step 1: Assert frozen files did not grow**
 
 Run:
 ```bash
@@ -809,12 +809,12 @@ wc -l website/src/lib/tickets/cockpit-types.ts  # ~120
 ```
 Expected: `admin.ts` exactly 677; cockpit files under budget.
 
-- [ ] **Step 2: Run unit + quality**
+- [x] **Step 2: Run unit + quality**
 
 Run: `cd website && pnpm test -- "cockpit-db|tickets-db" && cd .. && task quality:check`
 Expected: tests pass; no S1 violation for the new files.
 
-- [ ] **Step 3: Commit if quality:check produced regenerated artifacts (else skip)**
+- [x] **Step 3: Commit if quality:check produced regenerated artifacts (else skip)**
 
 ```bash
 git add -A && git commit -m "chore(cockpit): stage A quality gate" || echo "nothing to commit"
@@ -829,8 +829,8 @@ git add -A && git commit -m "chore(cockpit): stage A quality gate" || echo "noth
 
 This sub-plan merges independently — it must be green on its own.
 
-- [ ] Scoped unit tests: `cd website && pnpm test -- "cockpit-schema|cockpit-db"`
+- [x] Scoped unit tests: `cd website && pnpm test -- "cockpit-schema|cockpit-db"`
 - [ ] `task test:all` → exit 0
 - [ ] `task freshness:regenerate` then `task freshness:check` → exit 0 (S1–S4 ratchet incl. `tickets-db.ts` ≤ 1106, `admin.ts` = 677)
-- [ ] If test files were added: `task test:inventory` + commit `website/src/data/test-inventory.json`
-- [ ] Confirm only this sub-plan's `file_locks` files changed
+- [x] If test files were added: `task test:inventory` + commit `website/src/data/test-inventory.json`
+- [x] Confirm only this sub-plan's `file_locks` files changed

@@ -134,10 +134,10 @@ kubectl logs -l app=brett -n $NS_DEV --context $CTX_DEV --tail=50 2>/dev/null
 ### 3d: Playwright MCP (nur wenn Pods Running)
 
 ```
-browser_navigate         → { url: "$DEV_URL" }
-browser_snapshot         → {}
-browser_take_screenshot  → { filename: "/tmp/dev-iterate-<CYCLE>.png" }
-browser_console_messages → {}
+mcp-browser_browser_navigate         → { url: "$DEV_URL" }
+mcp-browser_browser_snapshot         → {}
+mcp-browser_browser_take_screenshot  → { filename: "/tmp/dev-iterate-<CYCLE>.png" }
+mcp-browser_browser_console_messages → {}
 ```
 
 ### 3e: Synthese

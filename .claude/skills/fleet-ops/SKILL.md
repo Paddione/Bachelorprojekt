@@ -278,5 +278,6 @@ kubectl --context fleet -n workspace-korczewski get deploy  # korczewski
 |-------|-----------|
 | `cluster-deployment` | Voraussetzung — initiales Deployment |
 | `secret-rotation` | Querschnitt — Cross-Brand Secret-Rotation |
+| `keycloak-realm-sync` | Querschnitt — Realm-Sync auf beiden Brands |
 | `database-ops` | Querschnitt — Cross-Brand DB-Operationen |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

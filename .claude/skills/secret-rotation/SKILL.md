@@ -181,6 +181,37 @@ Do not assume a mentolder-sealed file works on the fleet cluster's korczewski br
 
 ---
 
+## Secrets Sync Reference (`task secrets:sync`)
+
+`task secrets:sync` applies all SealedSecrets to the cluster. It is the delivery step after `env:seal` creates them.
+
+**What it does:**
+```bash
+# Equivalent to:
+kubectl apply -f environments/sealed-secrets/<env>.yaml --context <ctx>
+```
+
+**When to run:**
+- After `task env:seal ENV=<env>` — makes new secrets available to pods
+- Before `task workspace:deploy ENV=<env>` — ensures secrets exist before services start
+- After cluster reset + re-seal — re-applies all sealed files
+
+**Cross-brand:** Works for the currently active `ENV`. Run for each brand:
+```bash
+task secrets:sync        # applies to ENV=mentolder (default)
+task secrets:sync ENV=korczewski
+```
+
+**Troubleshooting:**
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `secrets/xxx not found` | SealedSecret not yet decrypted | `kubectl get sealedsecret -n <ns>` — controller may be behind; check controller logs |
+| `adoption refused` | Plain Secret already exists | Delete the plain secret first: `kubectl delete secret <name> -n <ns>` |
+| Decryption fails | Wrong sealing cert | Re-run `task env:fetch-cert ENV=<env>` → `task env:seal ENV=<env>` → `task secrets:sync` |
+
+---
+
 ## Verification
 
 After any rotation, confirm:

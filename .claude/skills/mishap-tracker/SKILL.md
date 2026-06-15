@@ -40,18 +40,26 @@ Before inserting any ticket, verify the claim with a concrete check. Each mishap
 
 ---
 
-## Step 1: Severity Mapping
+## Step 1: Triage Mapping
 
-| Mishap type | Ticket type | Ticket severity |
-|---|---|---|
-| `broken` | `bug` | `major` |
-| `security` | `bug` | `critical` |
-| `degraded` | `bug` | `minor` |
-| `suspicious` | `task` | `minor` |
-| `drift` | `task` | `trivial` |
-| `process` | `task` | `trivial` |
+Each mishap type maps to a ticket type, severity, priority, and attention mode — so the ticket arrives pre-triaged:
 
-For `process` mishaps, set `component = 'skills/<skill-name>'` and `attention_mode = 'ai_ready'`.
+| Mishap type | Ticket type | Severity | Priority | Attention mode |
+|---|---|---|---|---|
+| `broken` | `bug` | `major` | `hoch` | `needs_human` |
+| `security` | `bug` | `critical` | `hoch` | `needs_human` |
+| `degraded` | `bug` | `minor` | `mittel` | `needs_human` |
+| `suspicious` | `task` | `minor` | `mittel` | `ai_ready` |
+| `drift` | `task` | `trivial` | `niedrig` | `ai_ready` |
+| `process` | `task` | `trivial` | `niedrig` | `ai_ready` |
+
+For `process` mishaps, always set `component = 'skills/<skill-name>'`.
+
+### Rationale
+
+- `broken` / `security` / `degraded`: Concrete defects requiring human judgment — flagged `hoch`/`mittel` priority and `needs_human` so they land in the human review queue.
+- `suspicious` / `drift`: AI-investigatable anomalies — set `ai_ready` so dev-flow or the factory can pick them up autonomously.
+- `process`: Observations about friction in skill execution — `ai_ready` + component pinned to the skill that reported it.
 
 ---
 
@@ -62,12 +70,13 @@ For each entry, attempt to insert into the Postgres tracker on mentolder:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, severity, status, component${ATTN:+, attention_mode})
-   VALUES ('<ticket_type>', 'mentolder', '<title>', '<description>', '<severity>', 'triage', '<component>'${ATTN:+, '$ATTN'})
+  "INSERT INTO tickets.tickets (type, brand, title, description, severity, priority, attention_mode, status, component)
+   VALUES ('<ticket_type>', 'mentolder', '<title>', '<description>', '<severity>', '<priority>', '<attention_mode>', 'triage', '<component>')
    RETURNING external_id;"
 ```
 
 - Escape single quotes in title/description with `''`.
+- After insert, auto-categorization (via `scripts/mishap-categorize.sh`) sets the `category` column based on keyword matching or LLM fallback — the ticket arrives fully classified.
 - If the DB is unreachable (no pod, wrong context, connection refused), fall through to Step 3.
 
 ---
@@ -78,7 +87,7 @@ If the database is unreachable, output each ticket as a formatted block for manu
 
 ```
   [<type>] <title>
-  Severity: <severity> | Component: <component>
+  Severity: <severity> | Priority: <priority> | Attention: <attention_mode> | Component: <component>
   <description>
 ```
 

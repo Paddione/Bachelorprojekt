@@ -56,17 +56,18 @@ _exec_sql() {
 }
 
 cmd_create() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" is_test="false"
+  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false"
   while [[ $# -gt 0 ]]; do case "$1" in
-      --type)        type="$2"; shift 2 ;;
-      --title)       title="$2"; shift 2 ;;
-      --description) desc="$2"; shift 2 ;;
-      --brand)       brand="$2"; shift 2 ;;
-      --severity)    severity="$2"; shift 2 ;;
-      --priority)    priority="$2"; shift 2 ;;
-      --status)      status="$2"; shift 2 ;;
-      --is-test-data) is_test="true"; shift ;;
-      *)             echo "Unknown create option: $1" >&2; exit 2 ;;
+      --type)           type="$2"; shift 2 ;;
+      --title)          title="$2"; shift 2 ;;
+      --description)    desc="$2"; shift 2 ;;
+      --brand)          brand="$2"; shift 2 ;;
+      --severity)       severity="$2"; shift 2 ;;
+      --priority)       priority="$2"; shift 2 ;;
+      --status)         status="$2"; shift 2 ;;
+      --attention-mode) attention_mode="$2"; shift 2 ;;
+      --is-test-data)   is_test="true"; shift ;;
+      *)                echo "Unknown create option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
     echo "ERROR: --type, --title, and --description are required." >&2
@@ -82,9 +83,10 @@ cmd_create() {
     -v status="$status" \
     -v sev="$severity" \
     -v prio="$priority" \
+    -v attn="$attention_mode" \
     -v is_test="$is_test" <<'EOF'
-INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, is_test_data)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', :'is_test'::boolean)
+INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data)
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', NULLIF(:'attn', ''), :'is_test'::boolean)
 RETURNING external_id || '|' || id;
 EOF
 )

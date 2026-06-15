@@ -7,7 +7,7 @@ description: Use to write and run Playwright E2E tests against the live environm
 
 ## Wann diese Skill greift
 
-`dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (`mcp__plugin_playwright_playwright__browser_*`).
+`dev-flow-execute` hat fertig implementiert und gemergt. Jetzt soll die implementierte Funktion mit echten Browser-E2E-Tests abgesichert werden. Du brauchst Zugriff auf die Playwright MCP Tools (`mcp-browser_browser_*`).
 
 **Sage zu Beginn:** "Ich nutze dev-flow-e2e für Playwright E2E Tests."
 
@@ -36,12 +36,16 @@ Ermittle daraus:
 ## Schritt 1: Ziel-URL bestimmen
 
 | Geänderte Dateien | Live-URL | Playwright project |
-|---|---|---|
+|---|---|---|---|
 | `website/src/**` | `https://web.mentolder.de` | `website` |
-| `brett/**` | `https://brett.mentolder.de` | `services` |
+| `brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
 | `k3d/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
 | `k3d/livekit*.yaml` | `https://livekit.mentolder.de` | `services` |
 | korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` |
+| Übergreifender Smoke-Test | — | `smoke` |
+| System-Test (DB, Config, API) | — | `systemtest` |
+| Unit-Tests | — | `unit` |
+| Mobile/Responsive | — | `ios`, `android` |
 
 ```bash
 # Live-URL für spätere Schritte festlegen
@@ -61,9 +65,9 @@ unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert. Siehe details in [dev-flow-
 Navigiere mit den MCP-Browser-Tools zur implementierten Funktion und verschaffe dir ein vollständiges Bild: welche Seiten, welche API-Endpunkte, welche Auth-Anforderungen.
 
 ```
-mcp__plugin_playwright_playwright__browser_navigate → { url: "$BASE_URL/<pfad>" }
-mcp__plugin_playwright_playwright__browser_snapshot  → {}
-mcp__plugin_playwright_playwright__browser_take_screenshot → { filename: "/tmp/e2e-explore-01.png" }
+mcp-browser_browser_navigate → { url: "$BASE_URL/<pfad>" }
+mcp-browser_browser_snapshot  → {}
+mcp-browser_browser_take_screenshot → { filename: "/tmp/e2e-explore-01.png" }
 ```
 
 ---

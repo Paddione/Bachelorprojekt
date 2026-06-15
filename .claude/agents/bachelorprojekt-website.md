@@ -27,6 +27,10 @@ You are a frontend specialist for the Bachelorprojekt website — an Astro + Sve
 ## Deploy rule (CRITICAL)
 Every change to `website/src/` or `website/public/` requires a push to `main` (via PR). In prod, the `build-website.yml` / `build-website-korczewski.yml` Actions rebuild the brand image and roll it out automatically (push-based via `FLEET_KUBECONFIG`; no Flux). For manual rollout/rebuild:
 ```bash
+# Fan-out to both brands (recommended):
+task feature:website
+
+# Per-brand redeploy:
 task website:redeploy ENV=mentolder
 task website:redeploy ENV=korczewski
 ```

@@ -1219,7 +1219,19 @@
   },
   {
     "id": "FA-SF-51",
-    "file": "tests/local/FA-SF-51-decompose.bats",
+    "file": "tests/local/FA-SF-51-auto-enqueue.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-52",
+    "file": "tests/local/FA-SF-52-qa-notify.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
+    "id": "FA-SF-53",
+    "file": "tests/local/FA-SF-53-decompose.bats",
     "category": "FA",
     "kind": "shell"
   },

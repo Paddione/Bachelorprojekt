@@ -178,16 +178,16 @@ git commit -m "feat(cockpit): embed existing power-table as Tabelle mode (no fea
 **Files:**
 - Modify (CSS-only): `website/src/components/admin/FeatureCard.svelte`, `PortfolioGrid.svelte`, `Cockpit.svelte`, `EmptyStateCockpit.svelte`
 
-- [ ] **Step 1: Invoke the skill with a CSS-only scope**
+- [x] **Step 1: Invoke the skill with a CSS-only scope**
 
 Use the `frontend-design` skill with the spec §12 prompt. **Constraint to the skill:** scoped CSS / class-name polish only — **do not change component props, DOM `data-testid`s, dispatched event names, or structure** (those are test-load-bearing). Dark theme, Kore tokens for korczewski, health-colored left border, progress bar/ring, status chips, two-lens segmented toggles, responsive grid, keyboard-accessible focus rings, empty states.
 
-- [ ] **Step 2: Re-run component tests (must stay green)**
+- [x] **Step 2: Re-run component tests (must stay green)**
 
 Run: `cd website && pnpm test -- "FeatureCard|PortfolioGrid|Cockpit|EmptyState"`
 Expected: PASS (design changes must not break the existing assertions). If any `data-testid`/event name changed, revert that part.
 
-- [ ] **Step 3: Check S1 budgets after CSS injection**
+- [x] **Step 3: Check S1 budgets after CSS injection**
 
 Run:
 ```bash
@@ -195,7 +195,7 @@ for f in FeatureCard PortfolioGrid Cockpit EmptyStateCockpit; do wc -l "website/
 ```
 Expected: each <500. If any exceeds ~80 %, extract a sub-component (e.g., `FeatureCardHeader.svelte`) rather than compress.
 
-- [ ] **Step 4: Build + Step 5: Commit**
+- [x] **Step 4: Build + Step 5: Commit**
 
 Run: `cd website && pnpm build 2>&1 | grep -i error | head` (none).
 ```bash
@@ -292,22 +292,22 @@ git commit -m "test(cockpit): FA-29 Playwright E2E (load, lens, inline, bulk, re
 **Files:**
 - Modify (regenerated): `website/src/data/test-inventory.json` and any freshness artifacts
 
-- [ ] **Step 1: Regenerate the test inventory (new test files added)**
+- [x] **Step 1: Regenerate the test inventory (new test files added)**
 
 Run: `task test:inventory`
 Then: `git diff --stat website/src/data/test-inventory.json` (expect new cockpit entries).
 
-- [ ] **Step 2: Run the full offline suite**
+- [x] **Step 2: Run the full offline suite**
 
 Run: `task test:all`
 Expected: exit 0 (BATS + Vitest incl. `cockpit-db`, `cockpit-api`, `cockpitStore`, all cockpit components + integration + Taskfile dry-run + manifest structure).
 
-- [ ] **Step 3: Regenerate freshness artifacts**
+- [x] **Step 3: Regenerate freshness artifacts**
 
 Run: `task freshness:regenerate`
 Then: `git status` (review regenerated `docs/generated/**`, `docs/code-quality/repo-index.json`, etc.).
 
-- [ ] **Step 4: Run the CI-equivalent gate (S1–S4 + freshness + baseline assertion)**
+- [x] **Step 4: Run the CI-equivalent gate (S1–S4 + freshness + baseline assertion)**
 
 Run: `task freshness:check`
 Expected: exit 0. Spot-checks:
@@ -318,7 +318,7 @@ wc -l website/src/pages/admin/tickets.astro   # ≤ 359
 ```
 If S1 trips on a new file: split it (extract a sub-component/helper), re-run — **never** hand-edit `docs/code-quality/baseline.json`.
 
-- [ ] **Step 5: Commit the regenerated inventory + freshness artifacts**
+- [x] **Step 5: Commit the regenerated inventory + freshness artifacts**
 
 ```bash
 git add website/src/data/test-inventory.json docs/code-quality/repo-index.json docs/generated 2>/dev/null
@@ -326,7 +326,7 @@ git add -A
 git commit -m "chore(cockpit): regenerate test inventory + freshness artifacts"
 ```
 
-- [ ] **Step 6: Final assertion before PR**
+- [x] **Step 6: Final assertion before PR**
 
 Run: `task test:all && task freshness:check`
 Expected: both exit 0 → cockpit is ready for PR.

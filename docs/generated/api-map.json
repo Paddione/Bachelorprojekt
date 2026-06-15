@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T02:23:21.848Z",
+  "generatedAt": "2026-06-15T02:27:31.880Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",

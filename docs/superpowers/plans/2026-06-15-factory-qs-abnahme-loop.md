@@ -2,7 +2,7 @@
 title: Factory QS-Abnahme-Loop Implementation Plan
 ticket_id: T000730
 domains: [website, db, ops, test, security]
-status: active
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

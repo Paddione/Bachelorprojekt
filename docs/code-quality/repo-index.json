@@ -2197,7 +2197,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 297,
+      "file_count": 298,
       "files": [
         "scripts/add-whiteboard-library.py",
         "scripts/admin-menu-gate.sh",
@@ -2388,6 +2388,7 @@
         "scripts/fix-tickets-grants.mjs",
         "scripts/fleet-dns-cutover.sh",
         "scripts/gen-platform-descriptions.mjs",
+        "scripts/gh-branch-protection.sh",
         "scripts/git-crypt-guard.sh",
         "scripts/hetzner/cloud-init-server.yaml.tmpl",
         "scripts/hetzner/cloud-init.yaml.tmpl",

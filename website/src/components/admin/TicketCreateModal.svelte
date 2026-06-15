@@ -18,9 +18,15 @@
   let error: string | null = null;
 
   $: if (open && defaultFeatureId && !parentId) parentId = defaultFeatureId;
+  $: if (!open) { parentId = ''; title = ''; description = ''; component = ''; error = null; }
   $: canCreate = title.trim().length > 0 && !creating;
 
   function close() {
+    parentId = '';
+    title = '';
+    description = '';
+    component = '';
+    error = null;
     onClose();
   }
 
@@ -50,7 +56,7 @@
 
     <form on:submit={submit}>
       <label>Feature
-        <select bind:value={parentId}>
+        <select data-testid="feature-select" bind:value={parentId}>
           <option value="">— kein Feature —</option>
           {#each features as f (f.id)}<option value={f.id}>{f.title}</option>{/each}
         </select>

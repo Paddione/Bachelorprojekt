@@ -163,6 +163,7 @@ EOF
   echo "Comment added to ticket $id"
 }
 source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-links.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-grill.sh"
 cmd_archive_plan() {
   local id="" slug="" branch="" plan_file="" pr=""
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -759,7 +760,7 @@ _readiness_to_json() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, add-comment, add-pr-link, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta" >&2
+  echo "Commands: create, update-status, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -768,6 +769,7 @@ case "$cmd" in
   update-status)     cmd_update_status "$@" ;;
   add-comment)       cmd_add_comment "$@" ;;
   add-pr-link)       cmd_add_pr_link "$@" ;;
+  grill)             cmd_grill "$@" ;;
   archive-plan)      cmd_archive_plan "$@" ;;
   get-attachments)   cmd_get_attachments "$@" ;;
   get)               cmd_get "$@" ;;
@@ -788,6 +790,4 @@ case "$cmd" in
   plan-meta)         cmd_plan_meta "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
-
-
 

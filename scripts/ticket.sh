@@ -86,7 +86,7 @@ cmd_create() {
     -v attn="$attention_mode" \
     -v is_test="$is_test" <<'EOF'
 INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', NULLIF(:'attn', ''), :'is_test'::boolean)
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean)
 RETURNING external_id || '|' || id;
 EOF
 )

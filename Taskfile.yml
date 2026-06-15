@@ -266,6 +266,7 @@ tasks:
       - task: test:unit:plan-frontmatter-hook
       - task: test:unit:mishap-tracker
       - task: test:unit:ticket-add-pr-link
+      - task: test:unit:ticket-create
       - task: test:unit:ticket-grill
       - task: test:unit:worktree-create
       - task: test:unit:test-tasks-node-deps
@@ -430,6 +431,11 @@ tasks:
     internal: true
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-add-pr-link.bats
+
+  test:unit:ticket-create:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/ticket-create.bats
 
   test:unit:ticket-grill:
     internal: true

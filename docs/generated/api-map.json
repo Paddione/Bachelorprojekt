@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-15T00:07:25.508Z",
+  "generatedAt": "2026-06-15T00:13:06.460Z",
   "endpoints": [
     {
       "path": "/api/admin/angebote/save",
@@ -812,6 +812,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/customers-list.ts"
+    },
+    {
+      "path": "/api/admin/delivery-metrics",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/delivery-metrics.ts"
     },
     {
       "path": "/api/admin/deployments",

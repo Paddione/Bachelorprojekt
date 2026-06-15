@@ -41,6 +41,12 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist/app',
       emptyOutDir: true,
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          embed: path.resolve(__dirname, 'embed.html'),
+        },
+      },
     },
   };
 });

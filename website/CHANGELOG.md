@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.77.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.77.0...website-v1.77.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **tickets:** surface parentless cockpit tickets under an "Ohne Feature" bucket [T000848] ([#1733](https://github.com/Paddione/Bachelorprojekt/issues/1733)) ([4c67a5c](https://github.com/Paddione/Bachelorprojekt/commit/4c67a5c310b4ad6bcf5d8cb805e140844b241312))
+
 ## [1.77.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.76.1...website-v1.77.0) (2026-06-15)
 
 

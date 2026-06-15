@@ -13,7 +13,7 @@ depends_on_plans: []
 
 # Cockpit Bug Fixes — T000792 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix 6 bugs in the Cockpit-Redesign (PR #1709) — 1 critical null-crash, 1 high race condition, and 4 medium/low UX bugs.
 
@@ -38,7 +38,7 @@ depends_on_plans: []
 
 ## Task 0: Baseline — verify all existing tests pass
 
-- [ ] **Step 1: Run full Vitest suite to confirm green baseline**
+- [x] **Step 1: Run full Vitest suite to confirm green baseline**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run --reporter=verbose 2>&1 | tail -20
@@ -56,7 +56,7 @@ Expected: all tests PASS. If any fail, investigate before continuing (the codeba
 - Modify: `website/src/components/admin/Cockpit.svelte:21`
 - Test: `website/src/components/admin/Cockpit.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `Cockpit.test.ts` inside `describe('Cockpit shell', ...)`:
 
@@ -69,7 +69,7 @@ Add to `Cockpit.test.ts` inside `describe('Cockpit shell', ...)`:
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error"
@@ -77,7 +77,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.
 
 Expected: FAIL — `TypeError: Cannot read properties of undefined (reading 'flatMap')`
 
-- [ ] **Step 3: Fix the reactive statement in Cockpit.svelte:21**
+- [x] **Step 3: Fix the reactive statement in Cockpit.svelte:21**
 
 Change line 21 from:
 ```svelte
@@ -90,7 +90,7 @@ $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
 
 The second `?.` makes `portfolio.products` safely return `undefined` if products is absent, which then falls through to `?? []`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error"
@@ -98,7 +98,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.
 
 Expected: all 4+1 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-t000792
@@ -122,7 +122,7 @@ git commit -m "fix(cockpit): null-safe products?.flatMap — guard against malfo
 - Modify: `website/src/components/admin/CockpitTable.svelte:36,46`
 - Test: `website/src/components/admin/CockpitTable.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `CockpitTable.test.ts` inside `describe('CockpitTable', ...)`:
 
@@ -154,7 +154,7 @@ Add to `CockpitTable.test.ts` inside `describe('CockpitTable', ...)`:
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/CockpitTable.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error|concurrent"
@@ -162,7 +162,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/CockpitT
 
 Expected: FAIL — `spy` is called 2 times instead of 1 (second mutation is NOT blocked currently)
 
-- [ ] **Step 3: Fix patchStatus and patchPriority in CockpitTable.svelte**
+- [x] **Step 3: Fix patchStatus and patchPriority in CockpitTable.svelte**
 
 In `patchStatus` (line 36), add early-return as the first line:
 ```svelte
@@ -192,7 +192,7 @@ Apply the same guard to `patchPriority` (line 46):
   }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/CockpitTable.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error"
@@ -200,7 +200,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/CockpitT
 
 Expected: all 7+1 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-t000792
@@ -218,7 +218,7 @@ git commit -m "fix(cockpit): guard patchStatus/patchPriority against concurrent 
 - Modify: `website/src/components/admin/TicketCreateModal.svelte:58-63`
 - Test: `website/src/components/admin/TicketCreateModal.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `TicketCreateModal.test.ts` inside `describe('TicketCreateModal', ...)`:
 
@@ -232,7 +232,7 @@ Add to `TicketCreateModal.test.ts` inside `describe('TicketCreateModal', ...)`:
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCreateModal.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error|bug"
@@ -240,7 +240,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCr
 
 Expected: FAIL — `Unable to find an element by: [data-testid="type-select"]` (testid doesn't exist yet)
 
-- [ ] **Step 3: Add data-testid + bug option to the type select in TicketCreateModal.svelte**
+- [x] **Step 3: Add data-testid + bug option to the type select in TicketCreateModal.svelte**
 
 Replace the type `<select>` block (lines 58–63):
 ```svelte
@@ -264,7 +264,7 @@ With:
       </label>
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCreateModal.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error"
@@ -272,7 +272,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCr
 
 Expected: all 5+1 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-t000792
@@ -294,7 +294,7 @@ git commit -m "fix(cockpit): add 'bug' type to TicketCreateModal dropdown [T0007
 - Modify: `website/src/components/admin/TicketCreateModal.svelte:23-25`
 - Test: `website/src/components/admin/TicketCreateModal.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `TicketCreateModal.test.ts` inside `describe('TicketCreateModal', ...)`:
 
@@ -337,7 +337,7 @@ Add to `TicketCreateModal.test.ts` inside `describe('TicketCreateModal', ...)`:
 
 Note: The `defaultFeatureId` test also requires a `data-testid="feature-select"` on the feature select (see Step 3).
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCreateModal.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error|parentId|feature"
@@ -345,7 +345,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCr
 
 Expected: 2 new tests FAIL
 
-- [ ] **Step 3: Fix TicketCreateModal.svelte — add data-testid to feature select + fix close()**
+- [x] **Step 3: Fix TicketCreateModal.svelte — add data-testid to feature select + fix close()**
 
 Add `data-testid="feature-select"` to the feature select (lines 52–56):
 ```svelte
@@ -371,7 +371,7 @@ Replace `close()` function (lines 23–25):
 
 The existing reactive statement `$: if (open && defaultFeatureId && !parentId) parentId = defaultFeatureId;` now works correctly: after `close()` resets `parentId = ''`, the NEXT open sees `!parentId` as true and picks up the new `defaultFeatureId`.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCreateModal.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error"
@@ -379,7 +379,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/TicketCr
 
 Expected: all 5+3 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-t000792
@@ -399,7 +399,7 @@ git commit -m "fix(cockpit): reset modal state on close — fixes defaultFeature
 - Modify: `website/src/components/admin/Cockpit.svelte:67`
 - Test: `website/src/components/admin/Cockpit.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `Cockpit.test.ts` inside `describe('Cockpit shell', ...)`:
 
@@ -419,7 +419,7 @@ Add to `Cockpit.test.ts` inside `describe('Cockpit shell', ...)`:
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error|retry|Retry"
@@ -427,7 +427,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.
 
 Expected: FAIL — no retry button found
 
-- [ ] **Step 3: Add retry button to Cockpit.svelte template**
+- [x] **Step 3: Add retry button to Cockpit.svelte template**
 
 Replace the error toast block (line 67):
 ```svelte
@@ -453,7 +453,7 @@ Add retry button style to the `<style>` block:
     color: #fff; border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.test.ts --reporter=verbose 2>&1 | grep -E "FAIL|PASS|Error"
@@ -461,7 +461,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run src/components/admin/Cockpit.
 
 Expected: all 5+2 tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd /tmp/wt-t000792
@@ -473,7 +473,7 @@ git commit -m "fix(cockpit): show retry button when portfolio fetch fails [T0007
 
 ## Task 6: Final verification
 
-- [ ] **Step 1: Run full Vitest suite**
+- [x] **Step 1: Run full Vitest suite**
 
 ```bash
 cd /tmp/wt-t000792/website && pnpm exec vitest run --reporter=verbose 2>&1 | tail -30
@@ -481,7 +481,7 @@ cd /tmp/wt-t000792/website && pnpm exec vitest run --reporter=verbose 2>&1 | tai
 
 Expected: all tests PASS (no regressions in other components)
 
-- [ ] **Step 2: Update test inventory**
+- [x] **Step 2: Update test inventory**
 
 ```bash
 cd /tmp/wt-t000792 && task test:inventory 2>&1 | tail -5
@@ -495,7 +495,7 @@ git commit -m "chore(tests): regenerate test-inventory after cockpit bug-fix tes
   -- website/src/data/test-inventory.json 2>/dev/null || echo "Inventory unchanged"
 ```
 
-- [ ] **Step 3: Freshness regenerate + check**
+- [x] **Step 3: Freshness regenerate + check**
 
 ```bash
 cd /tmp/wt-t000792 && task freshness:regenerate 2>&1 | tail -5
@@ -532,11 +532,11 @@ gh pr create \
 
 ## Test plan
 
-- [ ] Run `cd website && pnpm exec vitest run` — all tests pass
-- [ ] Open `/admin/cockpit`, force a 500 on the portfolio endpoint (DevTools) → retry button appears
-- [ ] Create a Bug ticket via the modal — `Bug` option should appear in type dropdown
-- [ ] Select Feature A, open create modal, close, select Feature B, open modal → Feature B pre-selected
-- [ ] Rapid-click a status dropdown twice — only one fetch fires (check Network tab)
+- [x] Run `cd website && pnpm exec vitest run` — all tests pass
+- [x] Open `/admin/cockpit`, force a 500 on the portfolio endpoint (DevTools) → retry button appears
+- [x] Create a Bug ticket via the modal — `Bug` option should appear in type dropdown
+- [x] Select Feature A, open create modal, close, select Feature B, open modal → Feature B pre-selected
+- [x] Rapid-click a status dropdown twice — only one fetch fires (check Network tab)
 
 Closes T000792
 

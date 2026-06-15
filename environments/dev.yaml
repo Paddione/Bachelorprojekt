@@ -16,6 +16,7 @@ env_vars:
   LLM_RERANK_ENABLED: "false"
   LLM_HOST_IP: "172.17.0.1"
   ARENA_WS_URL: http://arena.localhost
+  MEDIAVIEWER_HOST: mediaviewer.localhost
 
 # Dev secrets: generated from schema defaults at deploy time.
 secrets_mode: plaintext

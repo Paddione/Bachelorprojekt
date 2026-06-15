@@ -179,6 +179,11 @@ env_vars:
     required: true
     default_dev: "brett.localhost"
 
+  - name: MEDIAVIEWER_HOST
+    required: true
+    default_dev: "mediaviewer.localhost"
+    description: "Public host of the mediaviewer widget (e.g. mediaviewer.korczewski.de)"
+
   - name: RECOVER_DOMAIN
     required: true
     default_dev: "recover.localhost"
@@ -593,6 +598,12 @@ secrets:
     extra_namespaces:
       - namespace: website
         secret: website-secrets
+
+  - name: MEDIAVIEWER_OIDC_CLIENT_SECRET
+    required: true
+    generate: true
+    length: 48
+    description: "Keycloak client secret for oauth2-proxy-mediaviewer"
 
   - name: COMFY_OIDC_SECRET
     required: true

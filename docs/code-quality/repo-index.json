@@ -443,7 +443,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 30,
+      "file_count": 31,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -474,14 +474,15 @@
         "scripts/migrations/2026-06-14-coaching-deepseek-seed.sql",
         "scripts/migrations/2026-06-14-factory-run-budget.sql",
         "scripts/migrations/2026-06-14-llm-availability-seed.sql",
-        "scripts/migrations/2026-06-14-provider-config-unify.sql"
+        "scripts/migrations/2026-06-14-provider-config-unify.sql",
+        "scripts/migrations/2026-06-15-grilling-answers.sql"
       ]
     },
     {
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1314,
+      "file_count": 1316,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -666,6 +667,7 @@
         "website/src/components/admin/DokumenteAdmin.svelte",
         "website/src/components/admin/DraftsInbox.svelte",
         "website/src/components/admin/EurReport.svelte",
+        "website/src/components/admin/GrillingAnswersPanel.svelte",
         "website/src/components/admin/HtmlEditor.svelte",
         "website/src/components/admin/InhalteEditor.svelte",
         "website/src/components/admin/KiKonfiguration.svelte",
@@ -1231,6 +1233,7 @@
         "website/src/lib/tickets-embed.ts",
         "website/src/lib/tickets/admin.ts",
         "website/src/lib/tickets/email-templates.ts",
+        "website/src/lib/tickets/grilling.ts",
         "website/src/lib/tickets/reporter-link.ts",
         "website/src/lib/tickets/transition.ts",
         "website/src/lib/vat-id-validation.test.ts",

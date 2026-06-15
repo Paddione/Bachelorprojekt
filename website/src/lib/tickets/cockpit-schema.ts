@@ -15,11 +15,13 @@ export const COCKPIT_ROLLUP_VIEW_SQL = `
       JOIN tickets.tickets c ON c.parent_id = d.node_id
     ),
     leaves AS (
-      -- a leaf = task|bug with no children of its own
+      -- a leaf = task|bug with no children of its own; archived leaves are excluded
+      -- (archived = cancelled/obsolete; must not count toward feature progress math)
       SELECT d.container_id, d.node_id, d.status
       FROM descendants d
       WHERE d.node_id <> d.container_id
         AND d.type IN ('task', 'bug')
+        AND d.status <> 'archived'
         AND NOT EXISTS (
           SELECT 1 FROM tickets.tickets ch WHERE ch.parent_id = d.node_id
         )
@@ -30,7 +32,7 @@ export const COCKPIT_ROLLUP_VIEW_SQL = `
         COUNT(*)::int AS total_leaves,
         COUNT(*) FILTER (WHERE status = 'done')::int AS done_leaves,
         COUNT(*) FILTER (WHERE status = 'blocked')::int AS blocked_leaves,
-        COUNT(*) FILTER (WHERE status IN ('in_progress', 'in_review'))::int AS in_progress_leaves,
+        COUNT(*) FILTER (WHERE status IN ('in_progress', 'in_review', 'qa_review'))::int AS in_progress_leaves,
         COUNT(*) FILTER (WHERE status IN ('triage', 'backlog', 'planning', 'plan_staged'))::int AS open_leaves
       FROM leaves
       GROUP BY container_id

@@ -13,10 +13,12 @@ WITH RECURSIVE descendants AS (
   JOIN tickets.tickets c ON c.parent_id = d.node_id
 ),
 leaves AS (
+  -- archived leaves excluded: cancelled/obsolete tasks must not affect progress math
   SELECT d.container_id, d.node_id, d.status
   FROM descendants d
   WHERE d.node_id <> d.container_id
     AND d.type IN ('task', 'bug')
+    AND d.status <> 'archived'
     AND NOT EXISTS (SELECT 1 FROM tickets.tickets ch WHERE ch.parent_id = d.node_id)
 ),
 agg AS (
@@ -25,7 +27,7 @@ agg AS (
     COUNT(*)::int AS total_leaves,
     COUNT(*) FILTER (WHERE status = 'done')::int AS done_leaves,
     COUNT(*) FILTER (WHERE status = 'blocked')::int AS blocked_leaves,
-    COUNT(*) FILTER (WHERE status IN ('in_progress', 'in_review'))::int AS in_progress_leaves,
+    COUNT(*) FILTER (WHERE status IN ('in_progress', 'in_review', 'qa_review'))::int AS in_progress_leaves,
     COUNT(*) FILTER (WHERE status IN ('triage', 'backlog', 'planning', 'plan_staged'))::int AS open_leaves
   FROM leaves
   GROUP BY container_id

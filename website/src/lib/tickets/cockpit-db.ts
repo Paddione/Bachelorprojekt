@@ -150,8 +150,8 @@ export async function updatePlanningRanks(
         WHERE id = $2 AND brand = $3`,
       [u.planningRank, u.ticketId, brand],
     );
+    await audit(u.ticketId, 'planning_rank', u.planningRank);
   }
-  await audit('reorder', brand, { updates });
   return { ok: true };
 }
 
@@ -171,7 +171,7 @@ export async function reparentTicket(
     if (/cycle/i.test(String((e as Error).message))) throw new CycleError('would create a cycle');
     throw e;
   }
-  await audit('reparent', brand, { ticketId, newParentId });
+  await audit(ticketId, 'parent_id', newParentId);
   return { ok: true };
 }
 
@@ -183,43 +183,49 @@ export async function batchMutate(
   await assertSameBrand(brand, ticketIds);
   const results: BatchResult[] = [];
   for (const id of ticketIds) {
+    const client = await pool.connect();
     try {
+      await client.query('BEGIN');
       if (mutation.status != null) {
-        await pool.query(
+        await client.query(
           `UPDATE tickets.tickets SET status = $1, updated_at = now() WHERE id = $2 AND brand = $3`,
           [mutation.status, id, brand],
         );
       }
       if (mutation.priority != null) {
-        await pool.query(
+        await client.query(
           `UPDATE tickets.tickets SET priority = $1, updated_at = now() WHERE id = $2 AND brand = $3`,
           [mutation.priority, id, brand],
         );
       }
       if (mutation.parentId !== undefined) {
-        await pool.query(
+        await client.query(
           `UPDATE tickets.tickets SET parent_id = $1, updated_at = now() WHERE id = $2 AND brand = $3`,
           [mutation.parentId, id, brand],
         );
       }
+      await client.query('COMMIT');
       results.push({ ticketId: id, success: true });
     } catch (e) {
+      await client.query('ROLLBACK');
       results.push({ ticketId: id, success: false, error: String((e as Error).message) });
+    } finally {
+      client.release();
     }
+    // best-effort audit outside the ticket transaction so it never rolls back business logic
+    await audit(id, 'batch_mutate', mutation);
   }
-  await audit('batch_mutate', brand, { ticketIds, mutation });
   return { ok: true, results };
 }
 
-/** Best-effort audit using the real ticket_activity schema.
- *  Bulk cockpit mutations don't carry a single ticket_id, so we log to _updated field.
+/** Best-effort audit — one row per affected ticket.
  *  Never throws — audit failure must not roll back business logic. */
-async function audit(action: string, brand: string, changes: unknown): Promise<void> {
+async function audit(ticketId: string, field: string, newValue: unknown): Promise<void> {
   try {
     await pool.query(
       `INSERT INTO tickets.ticket_activity (ticket_id, actor_label, field, new_value)
-       VALUES (NULL, $1, $2, $3)`,
-      [brand, action, JSON.stringify(changes)],
+       VALUES ($1, 'cockpit', $2, $3::jsonb)`,
+      [ticketId, field, JSON.stringify(newValue)],
     );
-  } catch { /* table may differ in unit DB or ticket_id may be NOT NULL; audit is non-fatal */ }
+  } catch { /* best-effort; activity table may differ in unit DB */ }
 }

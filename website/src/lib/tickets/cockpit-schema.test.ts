@@ -27,4 +27,23 @@ describe('COCKPIT_ROLLUP_VIEW_SQL', () => {
     expect(COCKPIT_ROLLUP_VIEW_SQL.indexOf('LEFT JOIN agg'))
       .toBeLessThan(COCKPIT_ROLLUP_VIEW_SQL.indexOf("WHERE c.type IN ('project', 'feature')"));
   });
+
+  it('excludes archived leaves from total_leaves count (leaves CTE filters archived)', () => {
+    // archived tickets are cancelled/obsolete and must not contribute to progress math
+    expect(COCKPIT_ROLLUP_VIEW_SQL).toContain("d.status <> 'archived'");
+  });
+
+  it('includes qa_review in in_progress_leaves bucket', () => {
+    // qa_review must fall into exactly one bucket so done+blocked+inProgress+open == total
+    // Verify qa_review is in the FILTER for in_progress_leaves (same FILTER expression as in_review)
+    expect(COCKPIT_ROLLUP_VIEW_SQL).toMatch(
+      /FILTER\s*\(WHERE status IN\s*\([^)]*'in_review'[^)]*'qa_review'[^)]*\)\)/,
+    );
+    // qa_review must NOT appear in the open_leaves bucket
+    const openLeavesLine = COCKPIT_ROLLUP_VIEW_SQL
+      .split('\n')
+      .find(l => l.includes('open_leaves') && l.includes('FILTER'));
+    expect(openLeavesLine).toBeDefined();
+    expect(openLeavesLine).not.toContain('qa_review');
+  });
 });

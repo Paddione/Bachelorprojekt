@@ -55,18 +55,22 @@ const rows: [string, string, string, string, string | null, string][] = [
 /** pg-mem-compatible 2-hop view approximating v_cockpit_rollup for the test fixture.
  *  The UNION ALL covers: (1) direct leaf children of containers; (2) grandchild
  *  leaves accessed through one intermediate feature node. This matches the
- *  test fixture depth. NOT used in production — production runs the RECURSIVE CTE. */
+ *  test fixture depth. NOT used in production — production runs the RECURSIVE CTE.
+ *
+ *  Mirrors the production view logic exactly:
+ *  - archived leaves excluded from total_leaves (cancelled/obsolete)
+ *  - qa_review counted in in_progress_leaves so every non-archived leaf falls in exactly one bucket */
 const PG_MEM_COMPAT_VIEW_SQL = `
   CREATE VIEW tickets.v_cockpit_rollup AS
   WITH all_leaves AS (
     SELECT l.parent_id AS container_id, l.status
     FROM tickets.tickets l
-    WHERE l.type IN ('task','bug')
+    WHERE l.type IN ('task','bug') AND l.status <> 'archived'
     UNION ALL
     SELECT mid.parent_id AS container_id, l2.status
     FROM tickets.tickets mid
     JOIN tickets.tickets l2 ON l2.parent_id = mid.id
-    WHERE l2.type IN ('task','bug') AND mid.type IN ('feature')
+    WHERE l2.type IN ('task','bug') AND l2.status <> 'archived' AND mid.type IN ('feature')
   ),
   agg AS (
     SELECT
@@ -74,7 +78,7 @@ const PG_MEM_COMPAT_VIEW_SQL = `
       COUNT(*)::int AS total_leaves,
       SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END)::int AS done_leaves,
       SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END)::int AS blocked_leaves,
-      SUM(CASE WHEN status IN ('in_progress','in_review') THEN 1 ELSE 0 END)::int AS in_progress_leaves,
+      SUM(CASE WHEN status IN ('in_progress','in_review','qa_review') THEN 1 ELSE 0 END)::int AS in_progress_leaves,
       SUM(CASE WHEN status IN ('triage','backlog','planning','plan_staged') THEN 1 ELSE 0 END)::int AS open_leaves
     FROM all_leaves
     GROUP BY container_id
@@ -206,5 +210,47 @@ describe('batchMutate', () => {
     const out = await getFeatureTickets('mentolder', 'f2');
     expect(out.tickets.filter(t => t.status === 'done').map(t => t.extId).sort())
       .toEqual(['t4', 't5']);
+  });
+});
+
+describe('rollup bucket invariant: done+blocked+inProgress+open === total', () => {
+  it('qa_review leaf counts in inProgress, archived leaf excluded from total', async () => {
+    // Add a qa_review leaf under f1 and an archived leaf under f1
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ($1,$1,'mentolder','task','QA task',null,'mittel','qa_review','f1',99)`,
+      ['tqa'],
+    );
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ($1,$1,'mentolder','task','Archived task',null,'mittel','archived','f1',100)`,
+      ['tarch'],
+    );
+
+    // Query the view directly for feature f1
+    const { rows } = await pool.query(
+      `SELECT total_leaves, done_leaves, blocked_leaves, in_progress_leaves, open_leaves
+         FROM tickets.v_cockpit_rollup WHERE container_id = 'f1'`,
+    );
+    expect(rows).toHaveLength(1);
+    const r = rows[0];
+    const total = Number(r.total_leaves);
+    const done = Number(r.done_leaves);
+    const blocked = Number(r.blocked_leaves);
+    const inProgress = Number(r.in_progress_leaves);
+    const open = Number(r.open_leaves);
+
+    // Invariant: buckets sum to total (archived tarch must NOT be in total)
+    expect(done + blocked + inProgress + open).toBe(total);
+
+    // Original f1 leaves: t1=done, t2=blocked → plus tqa=qa_review (inProgress)
+    // tarch=archived → excluded from total
+    expect(total).toBe(3);       // t1 + t2 + tqa (tarch excluded)
+    expect(done).toBe(1);        // t1
+    expect(blocked).toBe(1);     // t2
+    expect(inProgress).toBe(1);  // tqa (qa_review → inProgress bucket)
+    expect(open).toBe(0);
   });
 });

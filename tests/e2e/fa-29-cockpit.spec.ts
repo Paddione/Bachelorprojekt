@@ -14,8 +14,11 @@ test.describe('FA-29 Projekt-Cockpit', () => {
 
   async function login(page: any) {
     await page.goto(`${WEBSITE_URL}/admin/cockpit`);
-    if (page.url().includes('/auth/') || page.url().includes('/login')) {
-      await page.fill('input[name="username"]', ADMIN_USER);
+    // Keycloak redirects to auth before rendering the login form.
+    // Wait for the username field to appear (up to 10s) before filling.
+    const userField = page.locator('input[name="username"]');
+    if (await userField.isVisible({ timeout: 10_000 }).catch(() => false)) {
+      await userField.fill(ADMIN_USER);
       await page.fill('input[name="password"]', ADMIN_PASS);
       await page.click('input[type="submit"]');
       await page.waitForURL(`${WEBSITE_URL}/admin/cockpit`);
@@ -38,10 +41,7 @@ test.describe('FA-29 Projekt-Cockpit', () => {
     await login(page);
     await expect(page.getByRole('button', { name: /werkbank/i })).toBeVisible();
     await page.getByRole('button', { name: /werkbank/i }).click();
-    // Lens toggle updates URL param
-    await page.waitForTimeout(500);
-    const url = page.url();
-    expect(url).toContain('lens=werkbank');
+    await expect(page).toHaveURL(/lens=werkbank/);
   });
 
   test.describe('data-dependent (requires seeded portfolio)', () => {

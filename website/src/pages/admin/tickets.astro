@@ -1,10 +1,5 @@
 ---
-import { getSession, getLoginUrl, isAdmin } from '../../lib/auth';
-
-const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname + Astro.url.search));
-if (!isAdmin(session)) return Astro.redirect('/admin');
-
-// Cockpit cutover: /admin/tickets redirects to cockpit Tabelle mode
+// Cockpit cutover: /admin/tickets redirects to cockpit Tabelle mode.
+// Auth is handled by cockpit.astro — no redundant session check here.
 return Astro.redirect('/admin/cockpit?mode=tabelle');
 ---

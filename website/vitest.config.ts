@@ -7,6 +7,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [svelte()],
+  resolve: {
+    conditions: ['browser'],
+  },
   test: {
     root: __dirname,
     environment: 'jsdom',

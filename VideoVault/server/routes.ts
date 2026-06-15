@@ -51,6 +51,7 @@ import scanStateRoutes from './routes/scan-state';
 import jobsRoutes from './routes/jobs';
 import processingRoutes from './routes/processing';
 import browseRoutes from './routes/browse';
+import splitRoutes from './routes/split';
 import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { db } from './db';
@@ -259,6 +260,8 @@ export function registerRoutes(app: Express): Server {
   app.post('/api/videos/compute-hashes', asyncHandler(computeHashes));
   app.get('/api/videos/duplicates', asyncHandler(getDuplicates));
   app.post('/api/videos/duplicates/ignore', asyncHandler(ignoreDuplicateRoute));
+
+  app.use('/api/videos', splitRoutes);
 
   app.post('/api/tags/:id/rename', asyncHandler(renameTagRoute));
   app.post('/api/tags/merge', asyncHandler(mergeTagsRoute));

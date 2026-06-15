@@ -133,15 +133,17 @@ Starte danach **für jedes Element aus `$BATCH_JSON`** einen Subagenten via `Age
 - `subagent_type: general-purpose`
 - **Prompt** (Kontext-Injektion, da der Subagent KEINEN Kontext hat):
   ```
+  /goal Finish dev-flow-execute and merge the PR cleanly.
+
   Du implementierst Ticket <TICKET_ID> im Worktree <WT_PATH> (Branch: <BRANCH>).
   Plan-Datei: <WT_PATH>/<PLAN_FILE>.
-  
+
   Führe aus: Schritt 1.4 bis Schritt 7.5 aus dev-flow-execute (Single-Modus) —
   d.h. Doppelarbeit-Guard, Ticket in_progress, Implementierung via superpowers:executing-plans,
   lokale Verifikation (task test:changed + freshness:check), Code-Review-Gate,
   PR öffnen, CI-Fix-Schleife, Auto-Merge, Ticket abschließen, Plan archivieren,
   Worktree bereinigen.
-  
+
   Erstelle KEINEN weiteren Batch-Modus. TICKET_ID=$<TICKET_ID>.
   Hauptrepo: <MAIN_REPO>.
   ```
@@ -332,13 +334,14 @@ Spawne über das `Agent`/`Task`-Tool einen Subagenten, **provisioniert gemäß**
   **Neue `.bats`-Datei nur wenn:** das zu testende Modul hat bisher NULL Testabdeckung UND kein thematisch verwandter Dateiname existiert. In allen anderen Fällen: `@test`-Block in die passende bestehende Datei einfügen. Ziel: die Gesamtzahl der `.bats`-Dateien in `tests/unit/` sinkt oder bleibt konstant.
 
 - **Auftrag:**
+  - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
   - *Feature:* Rufe `superpowers:executing-plans` (in-context, KEIN weiterer Agenten-Fan-out) + `test-driven-development` auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
-  - Falls Delegations-Tools `finishing-a-development-branch` aufrufen: Menü mit `--no-menu` / `MENU=skip` unterdrücken.
-  - Erstelle KEINEN PR und merge nicht — stoppe nach grünen Tests und gib eine Zusammenfassung zurück (geänderte Dateien, Test-Status, offene Punkte).
+  - Erstelle einen PR, durchlaufe die CI-Fix-Schleife bis grün, und merge via Auto-Merge.
+  - Schließe das Ticket ab und archiviere den Plan.
 
-Nimm das Ergebnis entgegen und mach bei Schritt 3 (unabhängige Verifikation) weiter.
+Der Subagent führt den gesamten dev-flow-execute-Pipeline selbstständig bis zum Merge durch. Du wirst per `<task-notification>` benachrichtigt, wenn er fertig ist. Fahre dann mit Schritt 8 (Post-Merge Deploy & Verify) fort.
 
 ---
 

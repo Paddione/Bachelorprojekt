@@ -30,7 +30,7 @@ import {
   type SplitVideoOptions,
   type SplitVideoResult,
 } from '@/services/video-splitter';
-import { activeSplitterBackend } from '@/services/video-splitter-backend';
+import { selectSplitterBackend } from '@/services/video-splitter-backend';
 import { LibraryMetadataService } from '@/services/library-metadata';
 import { WatchStateService, type WatchStatesByRoot } from '@/services/watch-state-service';
 import { AppSettingsService } from '@/services/app-settings';
@@ -1484,7 +1484,7 @@ export function useVideoManager(): UseVideoManagerReturn {
       if (!source) {
         return { success: false, message: 'Video not found' };
       }
-      const result = await activeSplitterBackend.split(source, options);
+      const result = await selectSplitterBackend(source).split(source, options);
       if (result.success) {
         setState((prev) => {
           const updated = VideoDatabase.addVideos(prev.videos, result.segments);

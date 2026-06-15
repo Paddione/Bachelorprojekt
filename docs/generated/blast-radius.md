@@ -1,4 +1,5 @@
 # Blast-Radius-Report
+> Generated: 2026-06-15T16:51:30.331Z
 > Generated: 2026-06-15T17:43:01.898Z
 > Nodes: 74 | Edges: 1385 | Isolated: 2
 

@@ -1,11 +1,30 @@
 #!/usr/bin/env bash
-# Warn if .bats files changed but repo-index.json is not part of this push. [T000553]
-# Fail-open: only prints a warning, never blocks the push.
+# pre-push: fast quality gate (blockierend) + BATS-Konsistenz-Advisory (warn-only).
+#
+# Blockierend (exit 1):
+#   task quality:check (S1-S4 Ratchet, ~3s)
+#   Bypass: SKIP_CI_CHECK=1 git push
+#
+# Advisory (exit 0, nur Warnung):
+#   BATS-Dateien geändert aber repo-index.json/test-inventory.json fehlen im Push
 set -uo pipefail
 
 warn() { printf '⚠  pre-push: %s\n' "$*" >&2; }
+err()  { printf '✗  pre-push: %s\n' "$*" >&2; }
 
-# Determine range of commits being pushed
+# ── 1. Blocking quality gate ──────────────────────────────────────────────────
+if [[ "${SKIP_CI_CHECK:-0}" == "1" ]]; then
+  warn "SKIP_CI_CHECK=1 — quality:check bypassed"
+else
+  if ! task quality:check; then
+    err "quality:check failed — push blocked"
+    err "Fix the violations above, then push again."
+    err "To bypass (emergency only): SKIP_CI_CHECK=1 git push"
+    exit 1
+  fi
+fi
+
+# ── 2. Advisory: BATS changed without repo-index/test-inventory update ───────
 REMOTE="$1"
 URL="$2"
 while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do

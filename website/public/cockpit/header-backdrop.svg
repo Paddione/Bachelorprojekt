@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 220" preserveAspectRatio="xMidYMid slice" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Projekt-Cockpit header backdrop — CSS MASK STENCIL, not a colored image.
+    Consume via:  .cockpit-header::before {
+      mask-image: url('/cockpit/header-backdrop.svg'); -webkit-mask-image: url('/cockpit/header-backdrop.svg');
+      mask-size: cover; mask-position: center; mask-repeat: repeat-x;
+      background-color: var(--cockpit-backdrop-ink, currentColor);
+      opacity: var(--cockpit-backdrop-opacity, 0.07);
+    }
+    Brand drives --cockpit-backdrop-ink (mentolder brass / korczewski sage). White = revealed,
+    transparent = hidden (luminance mask). Do NOT load as <img> or background-image — that re-breaks
+    dual-brand theming. Absent file → host paints nothing (graceful, no onerror needed).
+  -->
+  <style>
+    .minor { stroke-opacity: .42; stroke-width: 1; }
+    .major { stroke-opacity: .70; stroke-width: 1.1; }
+    .axis  { stroke-opacity: .85; stroke-width: 1.2; }
+    .tick  { stroke-opacity: .90; stroke-width: 1.4; }
+    .card  { stroke-opacity: 1;   stroke-width: 1.4; }
+  </style>
+
+  <defs>
+    <pattern id="pc-minor" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path class="minor" d="M40 0V40M0 40H40"></path>
+    </pattern>
+    <pattern id="pc-major" width="160" height="160" patternUnits="userSpaceOnUse">
+      <path class="major" d="M160 0V160M0 160H160"></path>
+    </pattern>
+  </defs>
+  <rect width="1280" height="220" fill="url(#pc-minor)"></rect>
+  <rect width="1280" height="220" fill="url(#pc-major)"></rect>
+
+  <g class="axis">
+    <path d="M0 46H1280"></path>
+    <path d="M0 200H1280"></path>
+    <circle cx="1232" cy="50" r="9"></circle>
+    <path d="M1232 36v28M1218 50h28"></path>
+  </g>
+
+  <g class="tick">
+    <path d="M22 74h14M22 112h14M22 150h14M22 188h14"></path>
+  </g>
+
+  <g class="card">
+    <rect x="132" y="116" width="176" height="74" rx="9"></rect>
+    <path d="M150 140h70M150 158h112"></path>
+    <circle cx="288" cy="136" r="8"></circle>
+
+    <rect x="352" y="106" width="150" height="86" rx="9"></rect>
+    <path d="M370 130h60M370 150h96"></path>
+    <circle cx="482" cy="128" r="8"></circle>
+
+    <rect x="548" y="120" width="214" height="70" rx="9"></rect>
+    <path d="M566 144h84M566 162h150"></path>
+    <circle cx="742" cy="142" r="8"></circle>
+
+    <rect x="806" y="110" width="172" height="82" rx="9"></rect>
+    <path d="M824 134h66M824 154h104"></path>
+    <circle cx="958" cy="132" r="8"></circle>
+
+    <rect x="1018" y="124" width="132" height="64" rx="9"></rect>
+    <path d="M1036 146h54M1036 163h84"></path>
+    <circle cx="1130" cy="144" r="7"></circle>
+  </g>
+</svg>

@@ -45,15 +45,22 @@
 
 <style>
   .feature-card { border-left: 4px solid var(--health, #888); border-radius: 8px;
-    padding: 0.75rem 1rem; background: var(--admin-card-bg, #1c1f26); cursor: pointer; }
-  .feature-card:focus-visible { outline: 2px solid #6ea8fe; }
+    padding: 0.75rem 1rem; background: var(--admin-card-bg, #1c1f26); cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.2s ease; }
+  .feature-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+  .feature-card:focus-visible { outline: 2px solid #6ea8fe; outline-offset: 2px; }
   .health-green { --health: #10b981; }
   .health-amber { --health: #f59e0b; }
   .health-red   { --health: #ef4444; }
   .title { margin: 0 0 0.25rem; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .value-prop { margin: 0 0 0.5rem; font-size: 0.8rem; opacity: 0.7; }
-  .bar { display: flex; height: 6px; border-radius: 3px; background: #2a2e37; overflow: hidden; }
-  .seg.done { background: #10b981; } .seg.blocked { background: #ef4444; }
-  .chips { display: flex; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.72rem; }
-  .chip { padding: 0.05rem 0.4rem; border-radius: 4px; background: #2a2e37; }
+  .value-prop { margin: 0 0 0.5rem; font-size: 0.8rem; opacity: 0.65; line-height: 1.35; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .bar { display: flex; height: 6px; border-radius: 3px; background: #2a2e37; overflow: hidden; margin-bottom: 0.35rem; }
+  .seg.done { background: linear-gradient(90deg, #059669, #10b981); }
+  .seg.blocked { background: linear-gradient(90deg, #dc2626, #ef4444); }
+  .chips { display: flex; gap: 0.3rem; margin-top: 0.5rem; font-size: 0.7rem; }
+  .chip { padding: 0.1rem 0.45rem; border-radius: 999px; background: #2a2e37; font-weight: 500; }
+  .chip.done { background: rgba(16,185,129,.15); color: #34d399; }
+  .chip.blocked { background: rgba(239,68,68,.15); color: #f87171; }
+  .chip.open { background: rgba(148,163,184,.12); color: #94a3b8; }
 </style>

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.77.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.76.1...website-v1.77.0) (2026-06-15)
+
+
+### Features
+
+* **videovault:** Phase 2d — mediaviewer companion panel in portal ([#1729](https://github.com/Paddione/Bachelorprojekt/issues/1729)) ([3cee127](https://github.com/Paddione/Bachelorprojekt/commit/3cee1275619abb402c621cdb8ab52cbfe409ff51))
+
 ## [1.76.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.76.0...website-v1.76.1) (2026-06-15)
 
 

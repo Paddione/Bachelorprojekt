@@ -9,15 +9,19 @@ file_locks: []
 shared_changes: false
 batch_id: null
 parent_feature: null
-depends_on_plans: []
+depends_on_plans: [2026-06-15-cockpit-ux-redesign]
 ---
 
 # Plan: Cockpit Feature Suggestion Manager
 
 ## Ziel
 
-Die Überblick-Linse des `/admin/cockpit` um Feature-Portfolio-Management erweitern:
-Features für nächsten Schritt wählen, verwerfen, zu Major upgraden, KI-gestütztes Rerollen mit Deepseek.
+Feature-Portfolio-Management im neuen Cockpit (T000786): Features als nächsten Schritt wählen,
+verwerfen, zu Major upgraden, KI-gestütztes Rerollen mit DeepSeek. Integration in CockpitSidebar
+(Hover-Aktionen auf Baum-Knoten + SuggestionBar am Sidebar-Ende).
+
+**Voraussetzung:** T000786 (Cockpit UX Redesign) muss gemergt sein. Dieser Branch muss auf main
+rebased werden, bevor die Frontend-Steps ausgeführt werden.
 
 ## Datei-Änderungen (S1-Budget)
 
@@ -26,12 +30,15 @@ Features für nächsten Schritt wählen, verwerfen, zu Major upgraden, KI-gestü
 | `website/src/lib/tickets/cockpit-types.ts` | 66 | 150 | Erweitern (+~30) |
 | `website/src/lib/tickets/cockpit-db.ts` | 234 | 350 | Neue Funktionen (+~60) |
 | `website/src/lib/tickets-db.ts` | ~1100 | 1200 | ALTER TABLE (+~15) |
-| `website/src/components/admin/FeatureCard.svelte` | 66 | 150 | Action-Buttons (+~60) |
-| `website/src/components/admin/PortfolioGrid.svelte` | 42 | 120 | Props durchreichen (+~10) |
-| `website/src/components/admin/Cockpit.svelte` | 106 | 180 | SuggestionBar integrieren (+~20) |
+| `website/src/components/admin/CockpitSidebar.svelte` | 0→~230 | 300 | Hover-Buttons + SuggestionBar (+~60) |
 | Neu: `website/src/components/admin/SuggestionBar.svelte` | 0 | 130 | Neue Komponente (~100) |
 | Neu: `website/src/pages/api/admin/cockpit/suggest.ts` | 0 | 80 | API-Route (~50) |
 | Neu: `website/src/pages/api/admin/cockpit/feature-action.ts` | 0 | 60 | API-Route (~40) |
+
+**Entfällt (von T000786 gelöscht):**
+- `FeatureCard.svelte` — T000786 löscht diese Datei
+- `PortfolioGrid.svelte` — T000786 löscht diese Datei
+- Integration in `Cockpit.svelte` via Überblick-Linse — Lens-Konzept entfällt
 
 ## Steps
 
@@ -118,65 +125,73 @@ export interface SuggestResponse {
 - Status-Anzeige: "X Features für nächsten Schritt | Y verworfen | Z Major"
 - Verteilungs-Modus: "Gleichverteilung" Toggle
 
-### Step 6: FeatureCard erweitern
+### Step 6: CockpitSidebar erweitern — Hover-Aktionen
 
-**Datei:** `website/src/components/admin/FeatureCard.svelte`
+**Datei:** `website/src/components/admin/CockpitSidebar.svelte`
 
-Zusätzliche Props und Events:
-- `onNextStep`, `onDiscard`, `onMajor`, `onComment` callbacks
-- Visual States:
-  - `nextStep`: grüner Left-Border-Streifen + "Nächster Schritt" Badge
-  - `discarded`: ausgegraut (opacity: 0.4), durchgestrichener Titel, unten sortiert
-  - `majorFeature`: goldener Left-Border-Streifen + "Major" Badge
-- Action-Buttons (nur sichtbar bei Hover/Fokus):
-  - [▶] Nächster Schritt toggle
-  - [🗑] Verwerfen toggle
-  - [★] Major Feature toggle
-- Kommentar-Feld:
-  - Kleiner "💬" Button → klappt Textarea aus
-  - Textarea mit Placeholder "Kontext für Reroll..."
-  - Save-On-Blur oder dedizierter Save-Button
+Voraussetzung: T000786 muss gemergt und dieser Branch auf main rebased sein.
 
-### Step 7: PortfolioGrid + Cockpit integrieren
+Props erweitern:
+```ts
+onFeatureAction?: (featureId: string, action: 'next_step'|'discard'|'major'|'comment', value?: boolean|string) => void
+```
 
-**Datei:** `website/src/components/admin/PortfolioGrid.svelte`
-- Neue Props: `onFeatureAction(featureId, action, value)`, `onFeatureComment(featureId, comment)`
-- An FeatureCard durchreichen
+Feature-Knoten im Baum erhalten einen Hover-Overlay mit drei Buttons:
+- `[▶]` — next_step toggle (grüner Akzent wenn aktiv)
+- `[🗑]` — discard toggle (rot wenn aktiv, Text durchgestrichen)
+- `[★]` — major toggle (gold wenn aktiv)
 
-**Datei:** `website/src/components/admin/Cockpit.svelte`
-- SuggestionBar über dem PortfolioGrid einbinden
-- Handler für feature-action API calls
-- Handler für suggest API call
-- Portfolio nach Aktionen neu laden
+Visual States per Feature-Knoten:
+- `nextStep`: 3px grüner Left-Border, zarter `rgba(34,197,94,0.08)` Hintergrund
+- `discarded`: `opacity: 0.45`, `text-decoration: line-through`
+- `majorFeature`: 3px goldener `#f59e0b` Left-Border
 
-### Step 8: Sortierung
+Kommentar-Inline-Edit:
+- `[💬]`-Button klappt eine einzeilige Textarea direkt unter dem Knoten aus
+- Save-on-blur → `onFeatureAction(id, 'comment', text)`
 
-Discarded Features ans Ende der Feature-Liste sortieren.
-Next-Step Features nach oben (optional, per Konfiguration).
+Sortierung innerhalb eines Produkts:
+1. `majorFeature = true` (oben)
+2. normale Features
+3. `discarded = true` (ganz unten)
 
-### Step 9: Tests
+SuggestionBar einbinden (unter dem Baum, über der Sidebar-Footer-Linie):
+```svelte
+<SuggestionBar features={allFeatures} {isRolling}
+  on:roll={handleRoll} on:apply={handleApply} on:reset={handleReset} />
+```
 
-- `cockpit-types.test.ts`: Neue Typen prüfen (structure check)
+Handler in CockpitSidebar (nicht in Cockpit.svelte):
+- `handleRoll`: POST `/api/admin/cockpit/suggest` → batch featureAction calls → reload portfolio
+- `handleApply`: reload portfolio
+- `handleReset`: alle next_step flags clearen via batch feature-action calls
+
+### Step 7: Cockpit.svelte anpassen
+
+**Datei:** `website/src/components/admin/Cockpit.svelte` (aus T000786)
+
+`featureAction(id, action, value)` als Callback an `CockpitSidebar` übergeben, damit dieser seine
+eigenen Handlers verdrahten kann. Cockpit hält den `portfolio`-State und reloaded nach Mutationen.
+
+### Step 8: Tests
+
 - `cockpit-db.test.ts`: `setFeatureAction()` + erweiterte Portfolio-Query testen
-- `FeatureCard.test.ts`: Neue Props + visuelle States testen
-- `PortfolioGrid.test.ts`: Neue Props-Durchreichung testen
 - `SuggestionBar.test.ts` (neu): Render, Provider-Wechsel, Roll-Button
+- `CockpitSidebar.test.ts`: Hover-Buttons sichtbar, Visual-States korrekt (next/discard/major)
 - `cockpit-api.test.ts`: Neue Endpunkte testen
 
-### Step 10: Finale Verifikation
+**Entfällt:**
+- `FeatureCard.test.ts` — Datei wird gelöscht
+- `PortfolioGrid.test.ts` — Datei wird gelöscht
+
+### Step 9: Finale Verifikation
 
 ```bash
-# Im Worktree
-cd /tmp/wt-cockpit-feature-suggest/website
-npm run test:unit              # Alle Vitest-Tests
-npm run typecheck              # TypeScript-Prüfung
-npm run build                  # Build-Prüfung
-
-# Im Haupt-Repo
+task test:all
 task freshness:regenerate
 task freshness:check
-task test:changed
-task test:all
+task test:inventory
+pnpm build
 ```
 
 ## Deepseek Integration

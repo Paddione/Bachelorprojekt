@@ -38,7 +38,7 @@ The platform operates across stands of physical servers and local workstations c
 Interactive flow for provisioning a new server or resetting an existing server in Rescue Mode.
 
 > [!NOTE]
-> For provisioning/enrolling local bare-metal or LAN nodes using Proxmox Automated Installation (e.g., dev1, dev2, dev3), refer to **Step 1.0b** of the [cluster-deployment skill](file:///home/patrick/Bachelorprojekt/.agents/skills/cluster-deployment/SKILL.md#step-10b-enroll--provision-proxmox-nodes-bare-metal--lan). Config files and prepare scripts are stored in the [.proxmox/](file:///home/patrick/Bachelorprojekt/.proxmox/) directory in the project root.
+> For provisioning/enrolling local bare-metal or LAN nodes using Proxmox Automated Installation, refer to **Step 1.0b** of the [cluster-deployment skill](file:///home/patrick/Bachelorprojekt/.claude/skills/cluster-deployment/SKILL.md#step-10b-enroll--provision-proxmox-nodes-bare-metal--lan).
 
 
 ### Step 1.0: Authenticate hcloud CLI
@@ -231,11 +231,37 @@ task openclaw:configure  # Writes config pointing to Ollama at 10.10.0.3
 task openclaw:start      # Starts daemon
 ```
 
-### Step 4.2: Backup, Restore & Reset
+### Step 4.2: Operations — Status & Logs
+
+```bash
+# Check daemon status
+task openclaw:status
+# Shows: running / stopped, PID, uptime, connected GPU worker, last heartbeat
+
+# View logs (OpenClaw daemon)
+task openclaw:logs
+# Tail: journalctl -u openclaw --since "10 min ago" --no-pager
+
+# Quick connectivity check
+curl -s http://10.10.0.3:11434/api/tags | head -5   # Ollama erreichbar?
+ping -c 2 10.10.0.3                                    # WireGuard-Tunnel aktiv?
+```
+
+### Step 4.3: Backup, Restore & Reset
 
 * **Backup:** `task openclaw:backup` (snapshots configuration to `~/.openclaw` archive).
-* **Restore:** `task openclaw:restore` (restores config).
+* **Restore:** `task openclaw:restore` (restores config from latest backup).
 * **Wipe:** `task openclaw:wipe CONFIRM=yes` (destructive reset, requires explicit confirmation).
+
+### Step 4.4: Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `Connection refused` | WireGuard tunnel down | `sudo wg show` — check handshake; `ping 10.10.0.3` — if unreachable, restart WireGuard |
+| `503 Service Unavailable` | Ollama not running on GPU host | SSH to GPU worker: `systemctl status ollama`; restart: `sudo systemctl restart ollama` |
+| `no route to host` | GPU host offline or mesh IP changed | Check WireGuard mesh config in `wireguard/wg-mesh-nodes.yaml` |
+| Daemon won't start | Port conflict or stale PID | `task openclaw:wipe CONFIRM=yes && task openclaw:install && task openclaw:start` |
+| Ollama slow / OOM | GPU memory exhausted | `ssh 10.10.0.3 nvidia-smi` — check VRAM; reduce model size or restart Ollama |
 
 ---
 

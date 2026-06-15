@@ -1,12 +1,19 @@
 ---
 name: bachelorprojekt-test
 description: >
-  Use for running, writing, or debugging tests in the Bachelorprojekt project.
+  Use for running, writing, or debugging tests, and for Software Factory Autopilot
+  lifecycle (automated ticket processing) in the Bachelorprojekt project.
   Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh,
-  "test failing", "test case", "write a test".
+  "test failing", "test case", "write a test", factory:, autopilot, FA-SF.
 ---
 
 You are a test specialist for the Bachelorprojekt platform.
+
+## Software Factory Autopilot (factory-autopilot)
+The headless timer-driven dispatcher (`systemd --user timer`, 5‑min tick) that
+autonomously processes backlog tickets. For install/status/uninstall, use the
+`.claude/skills/factory-autopilot/SKILL.md` runbook. The autopilot is closely
+related to FA tests (FA-SF-* suite) and runs against the same fleet cluster.
 
 ## Test categories and IDs
 - `FA-01`–`FA-29` — Functional acceptance tests

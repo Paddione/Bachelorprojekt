@@ -148,15 +148,31 @@ kubectl --context <ctx> get nodes -w
 
 ### Step 1.0b: Enroll / Provision Proxmox Nodes (Bare-metal / LAN)
 
-For bare-metal or LAN environments (like dev1, dev2, dev3), we use Proxmox Automated Installation via an embedded `answer.toml` to provision nodes cleanly. 
-
-The configuration templates and preparation scripts live in the `.proxmox/` directory in the project root.
+For bare-metal or LAN environments, we use Proxmox Automated Installation via an embedded `answer.toml` to provision nodes cleanly.
 
 #### Provisioning Workflow
 
-1. **Scaffold config**: Copy [.proxmox/template.toml](file:///home/patrick/Bachelorprojekt/.proxmox/template.toml) to `answer.toml` inside the same directory:
-   ```bash
-   cp .proxmox/template.toml .proxmox/answer.toml
+1. **Scaffold config**: Create an `answer.toml` with the following structure:
+   ```toml
+   [global]
+   keyboard = "de"
+   country = "de"
+   timezone = "Europe/Berlin"
+   root-password = "CHANGEME"
+   root-ssh-keys = ["ssh-ed25519 AAAA... your-key-here"]
+   
+   [disk-setup]
+   filesystem = "ext4"
+   disk-list = ["nvme0n1"]
+   
+   [network]
+   source = "from-answer"
+   cidr = "192.168.100.100/24"
+   gateway = "192.168.100.1"
+   dns = "192.168.100.1"
+   
+   [network.filter]
+   interface-name = "en*"
    ```
 2. **Customize config**: Edit `answer.toml` and configure the following:
    * **Root password**: Replace the default `root-password = "CHANGEME"` placeholder with your desired password.
@@ -165,46 +181,22 @@ The configuration templates and preparation scripts live in the `.proxmox/` dire
      * *Warning*: For `ext4` or `xfs` filesystems, you can only install on **one disk**. Listed extra disks will not be auto-configured as storage; add them post-install. For multi-disk OS installations (e.g., mirrors/RAID), configure `ZFS` in `[disk-setup]`.
    * **Network configuration**: Set `source = "from-answer"` and configure `cidr`, `gateway`, and `dns`.
      * *Warning*: You must provide a matcher under `[network.filter]` or the installer will fail with `No filter defined`. Use `interface-name = "en*"` to match any modern ethernet interface.
-3. **Build the Custom ISO**: Execute the preparation script in your WSL environment:
+3. **Build the Custom ISO**: Use the `proxmox-auto-install-assistant` to prepare a custom ISO:
    ```bash
-   ./.proxmox/prepare-iso.sh
+   # Install required tools
+   sudo apt install -y proxmox-auto-install-assistant xorriso curl
+   
+   # Download the latest Proxmox VE ISO
+   curl -LO https://enterprise.proxmox.com/iso/proxmox-ve_9.2-1.iso
+   
+   # Validate ISO and embed answer.toml
+   proxmox-auto-install-assistant validate answer.toml
+   proxmox-auto-install-assistant prepare-proxmox-iso proxmox-ve_9.2-1.iso --answer-file answer.toml
    ```
-   This script will:
-   * Install any missing tools (`proxmox-auto-install-assistant`, `xorriso`, `curl`) if not present.
-   * Download the latest Proxmox VE 9.2-1 ISO (`proxmox-ve_9.2-1.iso`) and verify its SHA256.
-   * Validate the `answer.toml` format.
-   * Embed `answer.toml` into a new `proxmox-ve_9.2-1-auto.iso`.
 4. **Flash the USB Drive**:
-   * Open File Explorer in Windows and browse to the WSL network share: `\\wsl.localhost\Ubuntu\home\patrick\Bachelorprojekt\.proxmox\`
-   * Insert your USB drive and launch **Rufus**.
-   * Select the USB drive, select the generated `proxmox-ve_9.2-1-auto.iso`, and click **Start**.
+   * Insert your USB drive and use **Rufus** (Windows) or `dd` (Linux).
    * **CRITICAL**: When prompted by Rufus, choose **DD Image mode** (not ISO mode) to write the image.
    * Boot the target hardware from the USB drive to perform a fully unattended installation.
-
-#### Clean Node Removal & Cluster Dissolution
-
-If you are reinstalling/replacing a node (e.g., `dev3`) that was part of an existing corosync cluster, the cluster must be dissolved on the remaining nodes before the new node can join:
-
-1. **Dissolve cluster on surviving nodes** (e.g. `dev1` and `dev2`):
-   ```bash
-   # Stop cluster services
-   systemctl stop pve-cluster corosync
-   
-   # Start cluster filesystem in local/standalone mode to edit
-   pmxcfs -l
-   
-   # Remove corosync configuration
-   rm -f /etc/pve/corosync.conf
-   rm -rf /etc/corosync/*
-   
-   # Kill local pmxcfs process to release locks before restarting service
-   pkill -9 pmxcfs || true
-   rm -f /var/lib/pve-cluster/.pmxcfs.lockfile || true
-   
-   # Restart cluster filesystem in normal mode
-   systemctl start pve-cluster
-   ```
-2. **Re-cluster**: Create a fresh cluster from the fresh node, and join the standalone nodes back via the web UI (Datacenter → Cluster → Join) or via CLI (`pvecm add`).
 
 #### Outgoing Mail Rewrite (Postfix canonical maps)
 

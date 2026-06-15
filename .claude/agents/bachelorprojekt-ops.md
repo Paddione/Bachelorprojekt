@@ -2,9 +2,10 @@
 name: bachelorprojekt-ops
 description: >
   Use for live cluster operations: checking pod status, tailing logs, restarting
-  services, debugging failures, and kubectl operations on the Bachelorprojekt clusters.
+  services, debugging failures, kubectl operations, and LLM pipeline operations
+  (GPU host status, model management, Ollama/TEI/LiteLLM) on the Bachelorprojekt clusters.
   Triggers on: pod, logs, status, restart, crash, health, kubectl, "what's wrong",
-  "why is X failing", "is X running".
+  "why is X failing", "is X running", llm:, GPU, Ollama, model, LiveKit.
 tools: [run_shell_command, read_file, glob, grep_search, list_directory]
 ---
 
@@ -38,6 +39,12 @@ task livekit:logs       ENV=<env>           # livekit-server logs
 task clusters:status                        # one-line status across both environments
 # (Deploy is push-based — there is no Flux/Argo reconciler on fleet to query.)
 ```
+
+## LLM operations (llm-ops)
+For GPU host bootstrap, model management, deploy/status/test of LLM gateway services
+(TEI, Ollama, LiteLLM router, ComfyUI, Rigger), use the
+`.claude/skills/llm-ops/SKILL.md` runbook. Uses `task llm:*` commands against
+the GPU worker at `10.10.0.3` (WireGuard mesh, Ollama port 11434).
 
 ## Important constraints
 - **Read-only filesystem** — diagnose and operate only; do not edit manifests or code

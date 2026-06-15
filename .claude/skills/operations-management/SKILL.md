@@ -190,21 +190,27 @@ This repo tracks issues in Postgres, not GitHub. If `gh issue list --state open`
 
 Convert local execution `MISHAP_LOG` entries into tickets.
 
-### Step 4.1: Severity Mapping
-* `broken` ──► bug / major
-* `security` ──► bug / critical
-* `degraded` ──► bug / minor
-* `suspicious` ──► task / minor
-* `drift` ──► task / trivial
-* `process` ──► task / trivial (`component` = `skills/<skill-name>`, `attention_mode` = `ai_ready`)
+### Step 4.1: Triage Mapping
+Each mishap type maps to full triage fields so tickets arrive pre-triaged:
+
+| Mishap type | Ticket type | Severity | Priority | Attention mode |
+|---|---|---|---|---|
+| `broken` | `bug` | `major` | `hoch` | `needs_human` |
+| `security` | `bug` | `critical` | `hoch` | `needs_human` |
+| `degraded` | `bug` | `minor` | `mittel` | `needs_human` |
+| `suspicious` | `task` | `minor` | `mittel` | `ai_ready` |
+| `drift` | `task` | `trivial` | `niedrig` | `ai_ready` |
+| `process` | `task` | `trivial` | `niedrig` | `ai_ready` |
+
+For `process` mishaps, always set `component = 'skills/<skill-name>'`.
 
 ### Step 4.2: Insert Tickets
 For each entry in the log:
 ```bash
 PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
 kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website -At -c \
-  "INSERT INTO tickets.tickets (type, brand, title, description, severity, status, component)
-   VALUES ('<type>', 'mentolder', '<title>', '<description>', '<severity>', 'triage', '<component>')
+  "INSERT INTO tickets.tickets (type, brand, title, description, severity, priority, attention_mode, status, component)
+   VALUES ('<type>', 'mentolder', '<title>', '<description>', '<severity>', '<priority>', '<attention_mode>', 'triage', '<component>')
    RETURNING external_id;"
 ```
 If the database is unreachable, output the formatting log messages to the console for the user to create manually at `https://web.mentolder.de/admin/bugs`.

@@ -117,4 +117,4 @@ Nur wenn die Chore deploybare Pfade berührt — Mapping in
 ## Nachbereitung & Mishap Report
 
 Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über `mishap-tracker`
-(`bash scripts/hooks/mishap-tracker.sh`).
+(Invoke `mishap-tracker` with your accumulated MISHAP_LOG).

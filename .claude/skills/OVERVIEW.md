@@ -41,7 +41,7 @@ Der dev-flow-Skill ruft diese zur richtigen Zeit selbst auf.
 | `dev-flow-plan` Schritt 3 | `brainstorming` |
 | `dev-flow-plan` Schritt 3.7 (Subagent) | `writing-plans` |
 | `dev-flow-execute` Schritt 2 (Implementer) | `executing-plans` (in-context) + `test-driven-development` |
-| `dev-flow-execute` bei Fehlern | `systematic-debugging` |
+| `dev-flow-execute` bei Fehlern | *(Implementer diagnostiziert selbst — Logs, Hypothese, Fix, Re-Test)* |
 | `dev-flow-execute` Schritt 3 | `verification-before-completion` |
 | `dev-flow-execute` Schritt 3.8 | `requesting-code-review` |
 
@@ -86,6 +86,8 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | Skill | When to use |
 |---|---|
 | `arena-brett-deploy` | Build, push, and deploy arena-server (korczewski brand on fleet only) or brett (both brands on the fleet cluster). Covers proto-drift copy step. |
+| `workspace-deploy` | Full-stack workspace platform deployment — umbrella `workspace:setup`, post-setup, talk/recording/transcriber setup, optional admin-users and vaultwarden seed. Every service that doesn't ship via base kustomize alone. |
+| `llm-ops` | LLM pipeline operations — GPU host bootstrap, model management, deploy/status/test of LLM gateway services (TEI, Ollama, LiteLLM router, ComfyUI, Rigger). |
 
 ---
 
@@ -104,6 +106,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 |---|---|
 | `operations-management` | Production incident response triage (scope, diagnose, rollback/fix), DB ticket management (triage, AI-fixes, routing), repository hygiene (pruning stale worktrees/branches), PR reviews, and mishap tracking. |
 | `update-dependencies` | Update workspace packages, fix deprecation warnings, and handle security audits/Major version bumps across all directories. |
+| `factory-autopilot` | Software Factory Autopilot lifecycle — install, status, uninstall the headless timer-driven dispatcher that autonomously processes backlog tickets. |
 
 ---
 
@@ -146,6 +149,9 @@ graph TD
         KM[knowledge-management]
         AD[arena-brett-deploy]
         UD[update-dependencies]
+        WD[workspace-deploy]
+        LO[llm-ops]
+        FA[factory-autopilot]
     end
 
     subgraph "Support"
@@ -159,6 +165,7 @@ graph TD
     DE --> SR
     DE --> KR
     DE --> AD
+    DE --> WD
     DI --> DO
     DI --> HN
     DEE --> FO
@@ -170,6 +177,8 @@ graph TD
     DO -.-> OM
     SR -.-> OM
     KR -.-> OM
+    LO -.-> HN
+    WD -.-> LO
 
     UD -.-> CD
     UD -.-> FO

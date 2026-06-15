@@ -1,39 +1,65 @@
-# Development Dockerfile with hot reload support
-FROM node:20-bookworm-slim
+# VideoVault — Library (Vite-Client + Express-Server) for the Fleet platform.
+# Build-Context = Repo-Root (~/Bachelorprojekt), so that @videovault-player alias
+# can reach the vendored packages/videovault-player.
+# Base: node:20-bookworm-slim (native ffprobe + build-essential for canvas).
 
-# Set working directory
+# ── Build stage ───────────────────────────────────────────────
+FROM node:20-bookworm-slim AS build
 WORKDIR /app
 
-# Install dependencies for native modules and tools
-# Add curl for healthchecks and tooling for native modules
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-  ca-certificates \
-  curl \
-  python3 \
-  build-essential \
-  ffmpeg \
+     ca-certificates curl python3 build-essential \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy package files first for better caching
-COPY package*.json ./
-COPY tsconfig.json ./
-COPY vite.config.ts ./
+# Shared player package first (source-only, consumed via alias)
+COPY packages/videovault-player/ /packages/videovault-player/
 
-# Install dependencies (upgrade npm to avoid 404 tarball issues)
-# Ensure devDependencies are installed by not setting NODE_ENV=production
-RUN npm install -g npm@11 && NODE_ENV=development npm install --legacy-peer-deps
+# Dependency manifests + build configs
+COPY VideoVault/package*.json ./
+COPY VideoVault/tsconfig.json ./
+COPY VideoVault/vite.config.ts ./
+COPY VideoVault/tailwind.config.cjs ./
+COPY VideoVault/postcss.config.js ./
 
-# Create directories that will be mounted as volumes
-RUN mkdir -p client server docs /app/shared/videovault
+RUN npm install -g npm@11 && npm install --legacy-peer-deps
 
-# Copy initial source code (will be overridden by volume mounts in development)
-COPY client/ ./client/
-COPY server/ ./server/
-COPY scripts/ ./scripts/
+# Sources
+COPY VideoVault/shared/ ./shared/
+COPY VideoVault/client/ ./client/
+COPY VideoVault/server/ ./server/
+COPY VideoVault/scripts/ ./scripts/
+COPY VideoVault/drizzle.config.ts ./
 
-# Expose port for development server
+# prebuild copies ffmpeg-core to client/public/ffmpeg, then vite+esbuild
+RUN npm run build
+
+# ── Runtime stage ─────────────────────────────────────────────
+FROM node:20-bookworm-slim AS runtime
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+     ca-certificates curl ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/shared/ ./shared/
+COPY VideoVault/package*.json ./
+RUN npm install -g npm@11 && npm install --legacy-peer-deps --omit=dev
+
+COPY --from=build /app/dist ./dist
+COPY VideoVault/migrations/ ./migrations/
+COPY VideoVault/scripts/ ./scripts/
+COPY VideoVault/drizzle.config.ts ./
+
+RUN mkdir -p /app/uploads && chown node:node /app/uploads
+
 EXPOSE 5000
+USER node
 
-# Development command with hot reload
-CMD ["npm", "run", "dev"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD curl -fsS http://localhost:5000/api/health || exit 1
+
+CMD ["npm", "run", "start"]

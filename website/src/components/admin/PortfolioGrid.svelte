@@ -31,10 +31,12 @@
 
 <style>
   .portfolio { display: flex; flex-direction: column; gap: 1.5rem; }
-  .product-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
-  .product-header h3 { margin: 0; font-size: 1.05rem; }
-  .pill { font-size: 0.8rem; padding: 0.1rem 0.5rem; border-radius: 999px; background: #2a2e37; }
-  .warn { font-size: 0.8rem; color: #ef4444; }
+  .product-group { background: rgba(28,31,38,.4); border-radius: 10px; padding: 1rem; }
+  .product-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .product-header h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .pill { font-size: 0.78rem; padding: 0.15rem 0.55rem; border-radius: 999px; background: #2a2e37;
+    font-weight: 500; }
+  .warn { font-size: 0.78rem; color: #f87171; }
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
-  .empty { opacity: 0.6; font-size: 0.85rem; }
+  .empty { opacity: 0.5; font-size: 0.85rem; padding: 0.5rem 0; }
 </style>

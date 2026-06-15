@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import Cockpit from './Cockpit.svelte';
-import { setLens } from '../../lib/stores/cockpitStore';
+import { setLens, setMode } from '../../lib/stores/cockpitStore';
 
 vi.mock('../../lib/stores/cockpitStore', async (orig) => {
   const mod = await (orig as any)();
@@ -36,7 +36,18 @@ describe('Cockpit', () => {
   });
 });
 
+describe('Cockpit table mode', () => {
+  it('renders table mode with TicketsTab (no placeholder)', async () => {
+    const portfolio = { products: [{ id: 'p1', extId: 'p1', title: 'P',
+      rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 }, features: [] }] };
+    const { getByRole, queryByTestId } = render(Cockpit, { portfolioInitial: portfolio, brand: 'mentolder' });
+    await fireEvent.click(getByRole('button', { name: /tabelle/i }));
+    expect(queryByTestId('table-mode-placeholder')).toBeNull();
+  });
+});
+
 describe('Cockpit drill-in', () => {
+  beforeEach(() => { setMode('karten'); });
   it('loads feature tickets and mounts workbench in werkbank lens', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       feature: { id: 'f1', extId: 'f1', title: 'F1', priority: 'mittel', health: 'amber',

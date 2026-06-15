@@ -783,8 +783,8 @@ tasks:
           if (!Array.isArray(m.routes)) {
             errs.push("routes must be an array");
           }
-          if (m.count !== 130) {
-            errs.push(`expected count===129, got ${m.count}`);
+          if (m.count !== 131) {
+            errs.push(`expected count===131, got ${m.count}`);
           }
           for (const r of (m.routes || [])) {
             const isAdmin = r.route.startsWith("/admin");

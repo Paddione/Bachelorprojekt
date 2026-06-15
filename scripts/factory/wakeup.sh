@@ -94,6 +94,12 @@ The dispatcher reads all guards (kill-switch, daily-cap, dry-run-first) fresh pe
 Report only the dispatcher's final JSON result. Do not improvise scheduling."
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
+  # Lücke 3.1: plan_staged → backlog auto-enqueue (vor Dispatcher-Tick, damit schedule.sh
+  # die frisch-enqueueten Tickets in diesem Tick sieht). Best-effort: Fehler nicht fatal.
+  for _ae_brand in mentolder korczewski; do
+    BRAND="$_ae_brand" bash "${REPO}/scripts/factory/auto-enqueue.sh" 2>&1 \
+      | sed "s/^/[auto-enqueue:${_ae_brand}] /" >&2 || true
+  done
   "${CLAUDE_BIN}" -p "${PROMPT}" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),ToolSearch,PushNotification" \
     --permission-mode acceptEdits

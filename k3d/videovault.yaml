@@ -1,0 +1,105 @@
+# ═══════════════════════════════════════════════════════════════════
+# VideoVault — Library (Vite-Client + Express-Server, one port).
+# Persisted to shared-db (DB videovault). Single replica (Recreate),
+# Upload-PVC RWO for editing intermediate data. Client-first: FSAA in browser.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: videovault
+  labels:
+    app: videovault
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: videovault
+  template:
+    metadata:
+      labels:
+        app: videovault
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: videovault
+          image: ghcr.io/paddione/videovault:latest
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "5000"
+            - name: TRUST_PROXY
+              value: "1"
+            - name: VIDEOVAULT_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: VIDEOVAULT_DB_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://videovault:$(VIDEOVAULT_DB_PASSWORD)@shared-db:5432/videovault?sslmode=disable"
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: VIDEOVAULT_OIDC_SECRET
+            - name: PROCESSED_MEDIA_PATH
+              value: "/app/uploads/processed"
+          ports:
+            - containerPort: 5000
+          readinessProbe:
+            httpGet: { path: /api/health, port: 5000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /api/health, port: 5000 }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: "200m"
+            limits:
+              memory: 1Gi
+              cpu: "1"
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: videovault-uploads-pvc
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: videovault
+  labels:
+    app: videovault
+spec:
+  selector:
+    app: videovault
+  ports:
+    - port: 80
+      targetPort: 5000

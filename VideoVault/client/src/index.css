@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Core Foundation - Shared Design System Integration */
+  --background: var(--cv-void);
+  --foreground: var(--cv-text);
+  
+  /* Surface Tokens */
+  --card: var(--cv-glass-2);
+  --card-foreground: var(--cv-text-bright);
+  --popover: var(--cv-void-light);
+  --popover-foreground: var(--cv-text);
+  
+  /* Action Tokens */
+  --primary: var(--cv-cyan);
+  --primary-foreground: var(--cv-void);
+  --secondary: var(--cv-purple);
+  --secondary-foreground: var(--cv-text-bright);
+  
+  /* State & Utility Tokens */
+  --muted: var(--cv-glass-1);
+  --muted-foreground: var(--cv-text-dim);
+  --accent: var(--cv-cyan-subtle);
+  --accent-foreground: var(--cv-cyan);
+  --destructive: var(--cv-danger);
+  --destructive-foreground: var(--cv-text-bright);
+  
+  /* Input & Border Tokens */
+  --border: var(--cv-border-2);
+  --input: var(--cv-border-2);
+  --ring: var(--cv-cyan-glow);
+  
+  /* Typography & Layout */
+  --font-sans: var(--cv-font-body);
+  --font-serif: Georgia, serif;
+  --font-mono: var(--cv-font-mono);
+  --radius: var(--cv-radius-md);
+  
+  /* Legacy/Custom Variables Mapping */
+  --background-light: var(--cv-void-light);
+  --text-main: var(--cv-text);
+  --accent-emerald: var(--cv-success);
+  --border-light: var(--cv-border-1);
+}
+
+.dark {
+  /* In Cybervault, dark is the primary mode, but we maintain compatibility */
+  --background: var(--cv-void);
+  --foreground: var(--cv-text);
+  --card: var(--cv-glass-3);
+  --card-foreground: var(--cv-text-bright);
+  --popover: var(--cv-void-lighter);
+  --popover-foreground: var(--cv-text);
+  --primary: var(--cv-cyan);
+  --primary-foreground: var(--cv-void);
+  --secondary: var(--cv-purple);
+  --secondary-foreground: var(--cv-text-bright);
+  --muted: var(--cv-glass-2);
+  --muted-foreground: var(--cv-text-dim);
+  --accent: var(--cv-cyan-bg);
+  --accent-foreground: var(--cv-cyan);
+  --destructive: var(--cv-danger);
+  --destructive-foreground: var(--cv-text-bright);
+  --border: var(--cv-border-3);
+  --input: var(--cv-border-3);
+  --ring: var(--cv-cyan-glow);
+  
+  --background-light: var(--cv-void-light);
+  --text-main: var(--cv-text-bright);
+  --accent-emerald: var(--cv-success);
+  --border-light: var(--cv-border-2);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background);
+    color: var(--foreground);
+    transition: color 0.2s, background-color 0.2s;
+  }
+}
+
+@layer utilities {
+  .video-card-hover {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .video-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  }
+  
+  .category-chip {
+    transition: all 0.15s ease;
+  }
+  
+  .category-chip:hover {
+    transform: scale(1.02);
+  }
+  
+  .progress-bar {
+    background: linear-gradient(90deg, var(--primary) 0%, hsl(216, 82%, 56%) 100%);
+  }
+  
+  .video-thumbnail {
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, var(--muted) 0%, var(--border) 100%);
+  }
+  
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--muted);
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

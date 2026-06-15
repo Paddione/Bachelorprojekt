@@ -1,4 +1,6 @@
 {
+  "generatedAt": "2026-06-15T18:31:51.717Z",
+  "generatedAt": "2026-06-15T18:24:43.635Z",
   "generatedAt": "2026-06-15T19:09:16.479Z",
   "nodes": [
     {
@@ -212,6 +214,12 @@
       "name": "mailpit"
     },
     {
+      "id": "mediaviewer-widget",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "mediaviewer-widget"
+    },
+    {
       "id": "monitoring-grafana",
       "namespace": "monitoring",
       "type": "Deployment",
@@ -272,10 +280,22 @@
       "name": "oauth2-proxy-mailpit"
     },
     {
+      "id": "oauth2-proxy-mediaviewer",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-mediaviewer"
+    },
+    {
       "id": "oauth2-proxy-traefik",
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "oauth2-proxy-traefik"
+    },
+    {
+      "id": "oauth2-proxy-videovault",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "oauth2-proxy-videovault"
     },
     {
       "id": "collabora",
@@ -348,6 +368,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "vaultwarden"
+    },
+    {
+      "id": "videovault",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "videovault"
     },
     {
       "id": "whiteboard",
@@ -838,6 +864,12 @@
       "kind": "command"
     },
     {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "keycloak",
+      "via": "command",
+      "kind": "command"
+    },
+    {
       "from": "oauth2-proxy-traefik",
       "to": "keycloak",
       "via": "command",
@@ -846,6 +878,12 @@
     {
       "from": "oauth2-proxy-traefik",
       "to": "traefik",
+      "via": "command",
+      "kind": "command"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "keycloak",
       "via": "command",
       "kind": "command"
     },
@@ -1010,6 +1048,12 @@
       "to": "shared-db",
       "via": "initContainer:wait",
       "kind": "initContainer"
+    },
+    {
+      "from": "videovault",
+      "to": "shared-db",
+      "via": "env:DATABASE_URL",
+      "kind": "env"
     },
     {
       "from": "website",
@@ -1205,6 +1249,18 @@
     },
     {
       "from": "traefik",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
+      "to": "oauth2-proxy-videovault",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "livekit-server",
       "via": "ingress",
       "kind": "ingress"
@@ -1372,6 +1428,12 @@
       "kind": "selector"
     },
     {
+      "from": "mediaviewer-widget",
+      "to": "mediaviewer-widget",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
       "from": "monitoring-kube-state-metrics",
       "to": "monitoring-kube-state-metrics",
       "via": "selector",
@@ -1386,6 +1448,18 @@
     {
       "from": "nextcloud-redis",
       "to": "nextcloud-redis",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-videovault",
       "via": "selector",
       "kind": "selector"
     },
@@ -1434,6 +1508,12 @@
     {
       "from": "talk-recording",
       "to": "talk-recording",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "videovault",
+      "to": "videovault",
       "via": "selector",
       "kind": "selector"
     },
@@ -1739,12 +1819,36 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "admin-actions-cleanup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -1811,6 +1915,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2135,12 +2251,36 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "admin-actions-prune",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2207,6 +2347,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2519,12 +2671,36 @@
     },
     {
       "from": "db-backup",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2591,6 +2767,18 @@
     },
     {
       "from": "db-backup",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2891,12 +3079,36 @@
     },
     {
       "from": "brett",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "brett",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2963,6 +3175,18 @@
     },
     {
       "from": "brett",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3251,12 +3475,36 @@
     },
     {
       "from": "mcp-github",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "mcp-github",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-github",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "mcp-github",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-github",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "mcp-github",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3323,6 +3571,18 @@
     },
     {
       "from": "mcp-github",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "mcp-github",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "mcp-github",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3599,12 +3859,36 @@
     },
     {
       "from": "claude-code-mcp-ops",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "claude-code-mcp-ops",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-ops",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "claude-code-mcp-ops",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-ops",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "claude-code-mcp-ops",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3671,6 +3955,18 @@
     },
     {
       "from": "claude-code-mcp-ops",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "claude-code-mcp-ops",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "claude-code-mcp-ops",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3935,12 +4231,36 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "billing-dunning-detection",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4007,6 +4327,18 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4259,12 +4591,36 @@
     },
     {
       "from": "monthly-billing",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "monthly-billing",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4331,6 +4687,18 @@
     },
     {
       "from": "monthly-billing",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4571,12 +4939,36 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "scheduled-publish",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4643,6 +5035,18 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4871,12 +5275,36 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "oauth2-proxy-brainstorm",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4943,6 +5371,18 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5159,12 +5599,36 @@
     },
     {
       "from": "oauth2-proxy-dev",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "oauth2-proxy-dev",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5231,6 +5695,18 @@
     },
     {
       "from": "oauth2-proxy-dev",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5435,12 +5911,36 @@
     },
     {
       "from": "keycloak",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "keycloak",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "keycloak",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "keycloak",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "keycloak",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "keycloak",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5507,6 +6007,18 @@
     },
     {
       "from": "keycloak",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "keycloak",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "keycloak",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5699,12 +6211,36 @@
     },
     {
       "from": "knowledge-ingest-prs",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5771,6 +6307,18 @@
     },
     {
       "from": "knowledge-ingest-prs",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5951,12 +6499,36 @@
     },
     {
       "from": "knowledge-ingest-bugs",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "knowledge-ingest-bugs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6023,6 +6595,18 @@
     },
     {
       "from": "knowledge-ingest-bugs",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6191,12 +6775,36 @@
     },
     {
       "from": "knowledge-reindex-all",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "knowledge-reindex-all",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6263,6 +6871,18 @@
     },
     {
       "from": "knowledge-reindex-all",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6419,12 +7039,36 @@
     },
     {
       "from": "livekit-server",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "livekit-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-server",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "livekit-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-server",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "livekit-server",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6491,6 +7135,18 @@
     },
     {
       "from": "livekit-server",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "livekit-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-server",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6635,12 +7291,36 @@
     },
     {
       "from": "livekit-ingress",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "livekit-ingress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-ingress",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "livekit-ingress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-ingress",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "livekit-ingress",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6707,6 +7387,18 @@
     },
     {
       "from": "livekit-ingress",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "livekit-ingress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-ingress",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6839,12 +7531,36 @@
     },
     {
       "from": "livekit-egress",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "livekit-egress",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6911,6 +7627,18 @@
     },
     {
       "from": "livekit-egress",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7031,12 +7759,36 @@
     },
     {
       "from": "nextcloud",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7103,6 +7855,18 @@
     },
     {
       "from": "nextcloud",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7211,12 +7975,36 @@
     },
     {
       "from": "notify-unread",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "notify-unread",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7283,6 +8071,18 @@
     },
     {
       "from": "notify-unread",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7379,12 +8179,36 @@
     },
     {
       "from": "oauth2-proxy-brett",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "oauth2-proxy-brett",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7445,6 +8269,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
       "to": "oauth2-proxy-brett",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7535,12 +8371,36 @@
     },
     {
       "from": "oauth2-proxy-comfy",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "oauth2-proxy-comfy",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7601,6 +8461,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
       "to": "oauth2-proxy-comfy",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7679,12 +8551,36 @@
     },
     {
       "from": "oauth2-proxy-docs",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "oauth2-proxy-docs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7745,6 +8641,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
       "to": "oauth2-proxy-docs",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7811,12 +8719,36 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "oauth2-proxy-mailpit",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7877,6 +8809,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
       "to": "oauth2-proxy-mailpit",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7942,6 +8886,174 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "arena-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "arena-server",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-traefik",
       "to": "oauth2-proxy-recovery",
       "via": "secret:workspace-secrets",
@@ -7997,6 +9109,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8062,6 +9186,138 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-videovault",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "arena-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "arena-server",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-recovery",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
@@ -8105,6 +9361,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
       "to": "oauth2-proxy-recovery",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8207,6 +9475,18 @@
     },
     {
       "from": "shared-db",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8291,6 +9571,18 @@
     },
     {
       "from": "spreed-signaling",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8363,6 +9655,18 @@
     },
     {
       "from": "talk-recording",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8423,6 +9727,18 @@
     },
     {
       "from": "vaultwarden",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8478,6 +9794,66 @@
     {
       "from": "ddns-updater",
       "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "arena-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "arena-server",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "videovault",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

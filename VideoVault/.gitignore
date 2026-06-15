@@ -1,0 +1,4 @@
+logs/*.log
+coverage/
+movies_index.json
+client/public/ffmpeg/

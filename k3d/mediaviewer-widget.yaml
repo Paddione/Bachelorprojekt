@@ -1,0 +1,72 @@
+# ═══════════════════════════════════════════════════════════════════
+# Mediaviewer Widget — static SPA + embed, served by static-web-server.
+# Built from mediaviewer-widget/Dockerfile with build-context repo root.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mediaviewer-widget
+  labels:
+    app: mediaviewer-widget
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mediaviewer-widget
+  template:
+    metadata:
+      labels:
+        app: mediaviewer-widget
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mediaviewer-widget
+          image: ghcr.io/paddione/mediaviewer-widget:latest
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mediaviewer-widget
+  labels:
+    app: mediaviewer-widget
+spec:
+  selector:
+    app: mediaviewer-widget
+  ports:
+    - port: 80
+      targetPort: 8080

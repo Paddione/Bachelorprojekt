@@ -1,0 +1,45 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: Warm up phase
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: Ramp up load
+    - duration: 300
+      arrivalRate: 50
+      name: Sustained load
+  plugins:
+    expect: {}
+  defaults:
+    headers:
+      X-Requested-With: XMLHttpRequest
+
+scenarios:
+  - name: "Health check and public info"
+    flow:
+      - get:
+          url: "/api/health/public"
+      - get:
+          url: "/api/auth/status"
+
+  - name: "Authenticated flow (Simulated)"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            username: "admin"
+            password: "your_password"
+          capture:
+            - json: "$.tokens.accessToken"
+              as: "token"
+      - get:
+          url: "/api/videos"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      - get:
+          url: "/api/roots"
+          headers:
+            Authorization: "Bearer {{ token }}"

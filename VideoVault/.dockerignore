@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.git
+client/public/ffmpeg
+**/*.test.ts
+**/*.test.tsx
+e2e
+playwright-report
+.env*

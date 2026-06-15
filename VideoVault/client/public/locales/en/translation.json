@@ -1,0 +1,443 @@
+{
+    "app": {
+        "title": "MediaVault",
+        "description": "Your personal media library for videos, audiobooks, and ebooks"
+    },
+    "common": {
+        "scan": "Scan",
+        "import": "Import",
+        "export": "Export",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "close": "Close",
+        "search": "Search",
+        "loading": "Loading...",
+        "success": "Success",
+        "error": "Error",
+        "back": "Back",
+        "retry": "Retry",
+        "apply": "Apply",
+        "select": "Select",
+        "rename": "Rename",
+        "merge": "Merge",
+        "login": "Login",
+        "logout": "Logout",
+        "prev": "Prev",
+        "next": "Next",
+        "discard": "Discard",
+        "confirm": "Confirm"
+    },
+    "header": {
+        "scanDirectory": "Scan Directory",
+        "importData": "Import Data",
+        "exportLibrary": "Export Library",
+        "exportPlaylist": "Export Playlist",
+        "batchRename": "Batch Rename",
+        "duplicates": "Duplicates",
+        "tags": "Tags",
+        "analytics": "Analytics",
+        "presets": "Presets",
+        "backup": "Backup",
+        "newFolder": "New Folder",
+        "deleteFolder": "Delete Folder",
+        "filters": "Filters",
+        "adminLogin": "Admin Login",
+        "adminLogout": "Logout admin",
+        "settings": "Settings",
+        "toggleTheme": "Toggle theme",
+        "browse": "Browse",
+        "browseHdd": "Browse HDD",
+        "scanningFiles": "Scanning files...",
+        "moreActions": "More actions"
+    },
+    "sidebar": {
+        "searchPlaceholder": "Search media...",
+        "categories": "Categories",
+        "dateRange": "Date Range",
+        "clearAll": "Clear All",
+        "savePreset": "Save Preset",
+        "loadPreset": "Load Preset",
+        "noCategories": "No categories found",
+        "filters": "Filters",
+        "active": "active",
+        "apply": "Apply",
+        "clear": "Clear",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "expandSection": "Expand {{label}} section",
+        "collapseSection": "Collapse {{label}} section"
+    },
+    "categories": {
+        "age": "Age",
+        "physical": "Physical",
+        "ethnicity": "Ethnicity",
+        "relationship": "Relationship",
+        "acts": "Acts",
+        "setting": "Setting",
+        "quality": "Quality",
+        "performer": "Performer",
+        "custom": "Custom"
+    },
+    "actions": {
+        "rename": "Rename",
+        "move": "Move",
+        "split": "Split",
+        "play": "Play"
+    },
+    "login": {
+        "title": "VideoVault Admin",
+        "description": "Enter your credentials to access administrative features.",
+        "username": "Username",
+        "password": "Password",
+        "signIn": "Sign In",
+        "loggingIn": "Logging in...",
+        "failed": "Login failed. Please check your credentials.",
+        "unexpectedError": "An unexpected error occurred. Please try again.",
+        "invalidCredentials": "Invalid credentials"
+    },
+    "analytics": {
+        "title": "Library Analytics",
+        "filterByRoot": "Filter by Root",
+        "allRoots": "All Roots",
+        "totalVideos": "Total Videos",
+        "totalSize": "Total Size",
+        "totalDuration": "Total Duration",
+        "topCategories": "Top Categories",
+        "topCategoriesDesc": "Most frequently used tags and categories",
+        "fileSizeDistribution": "File Size Distribution",
+        "fileSizeDistributionDesc": "Count of videos by file size",
+        "durationDistribution": "Duration Distribution",
+        "durationDistributionDesc": "Count of videos by duration"
+    },
+    "tags": {
+        "title": "Tag Taxonomy",
+        "searchPlaceholder": "Search tags...",
+        "tabTags": "Tags",
+        "tabSynonyms": "Synonyms",
+        "tabImport": "Import",
+        "videos": "videos",
+        "renameTag": "Rename Tag",
+        "newName": "New Name",
+        "mergeTag": "Merge Tag",
+        "selectTarget": "Select target tag...",
+        "mergeDescription": "This will update all videos using \"{{name}}\" to use the selected tag, and delete \"{{name}}\".",
+        "mergeInto": "Merge <1>{{name}}</1> into:",
+        "tagRenamed": "Tag Renamed",
+        "tagsMerged": "Tags Merged",
+        "updatedVideos": "Updated {{count}} videos.",
+        "addSynonym": "Add Synonym",
+        "sourceLabel": "Source (e.g. \"sci-fi\")",
+        "targetLabel": "Target (e.g. \"Science Fiction\")",
+        "synonymAdded": "Synonym Added",
+        "synonymDeleted": "Synonym Deleted"
+    },
+    "duplicates": {
+        "title": "Duplicate Detection",
+        "computeHashes": "Compute Hashes",
+        "exactDuplicates": "Exact Duplicates (Fast Hash)",
+        "noExactDuplicates": "No exact duplicates found.",
+        "perceptualDuplicates": "Potential Duplicates (Perceptual Hash)",
+        "noPerceptualDuplicates": "No perceptual duplicates found.",
+        "ignorePair": "Ignore Pair",
+        "copies": "{{count}} copies",
+        "computationComplete": "Computation Complete",
+        "processed": "Processed {{processed}} videos. Remaining: {{remaining}}",
+        "computationFailed": "Computation Failed",
+        "duplicateIgnored": "Duplicate Ignored",
+        "confirmDelete": "Delete {{name}}?"
+    },
+    "focusMode": {
+        "unsavedChanges": "Unsaved changes",
+        "unsavedChangesDesc": "You have unsaved changes. What would you like to do?",
+        "videoNotFound": "Video not found",
+        "videoNotFoundDesc": "The requested video could not be found",
+        "saved": "Saved",
+        "savedDesc": "Changes saved successfully",
+        "saveFailed": "Save failed",
+        "couldNotSave": "Could not save changes"
+    },
+    "browse": {
+        "title": "HDD-ext Browser",
+        "root": "HDD-ext",
+        "directoryEmpty": "This directory is empty",
+        "folders": "folders",
+        "videos": "videos",
+        "otherFiles": "other files",
+        "importToLibrary": "Import to Library",
+        "processingQueued": "Processing queued",
+        "processingQueuedDesc": "{{name}} has been queued for processing",
+        "importFailed": "Import failed"
+    },
+    "adminErrors": {
+        "title": "Client Error Logs",
+        "code": "Code",
+        "codePlaceholder": "e.g. NETWORK_ERROR",
+        "severity": "Severity",
+        "severityAny": "(any)",
+        "from": "From",
+        "to": "To",
+        "limit": "Limit",
+        "bulkDelete": "Bulk Delete",
+        "showing": "Showing {{count}} of ~{{total}}",
+        "time": "Time",
+        "message": "Message",
+        "id": "ID",
+        "noResults": "No results",
+        "errorDetails": "Error Details",
+        "confirmDelete": "Delete this error log?",
+        "confirmBulkDelete": "Bulk delete matching logs? This cannot be undone."
+    },
+    "notFound": {
+        "title": "404 Page Not Found",
+        "description": "Did you forget to add the page to the router?"
+    },
+    "settings": {
+        "title": "Settings",
+        "description": "Configure VideoVault preferences and behavior",
+        "loggedInAsAdmin": "Logged in as admin",
+        "adminLocked": "Admin features locked. Login required.",
+        "fileScanning": "File Scanning",
+        "supportedExtensions": "Supported File Extensions",
+        "extensionsPlaceholder": "mp4, avi, mkv, mov, wmv, webm, m4v",
+        "extensionsHelp": "Comma-separated list of video file extensions (without dots)",
+        "maxConcurrency": "Max Scan Concurrency",
+        "concurrencyFiles": "{{count}} files at once",
+        "concurrencyHelp": "Higher values scan faster but may impact system performance",
+        "language": "Language",
+        "displayLanguage": "Display Language",
+        "langEnglish": "English",
+        "langGerman": "Deutsch",
+        "interface": "Interface",
+        "defaultSort": "Default Sort",
+        "sortName": "Name",
+        "sortDateModified": "Date Modified",
+        "sortFileSize": "File Size",
+        "sortPath": "Path",
+        "sortCategoryCount": "Category Count",
+        "sortDirection": "Sort Direction",
+        "sortAscending": "Ascending",
+        "sortDescending": "Descending",
+        "uiDensity": "UI Density",
+        "densityCompact": "Compact",
+        "densityComfortable": "Comfortable",
+        "densitySpacious": "Spacious",
+        "showThumbnails": "Show Thumbnails",
+        "showHoverPreviews": "Show Hover Previews",
+        "keyboardNavigation": "Keyboard Navigation",
+        "enableArrowKeys": "Enable Arrow Key Navigation",
+        "enableShortcuts": "Enable Keyboard Shortcuts",
+        "availableShortcuts": "Available Shortcuts:",
+        "shortcutEditTags": "Edit tags",
+        "shortcutRename": "Rename",
+        "shortcutMove": "Move",
+        "shortcutDelete": "Delete",
+        "shortcutPlay": "Play",
+        "shortcutClearFocus": "Clear focus",
+        "performance": "Performance",
+        "enableVirtualization": "Enable Virtualization",
+        "virtualizationThreshold": "Virtualization Threshold",
+        "videosThreshold": "{{count}} videos",
+        "virtualizationHelp": "Enable virtualization when library exceeds this number",
+        "thumbnailQuality": "Thumbnail Quality",
+        "qualityLow": "Low (faster generation)",
+        "qualityMedium": "Medium (balanced)",
+        "qualityHigh": "High (slower generation)",
+        "enableSpriteThumbnails": "Enable Sprite Thumbnails (hover preview)",
+        "spriteThumbnailsHelp": "Disable on low-power devices to reduce CPU/memory during hover previews.",
+        "maintenance": "Maintenance",
+        "databaseCleanup": "Database Cleanup",
+        "cleanupHelp": "Remove entries for files that no longer exist on disk. Use this if you have moved or deleted files outside of VideoVault.",
+        "clearMissingEntries": "Clear Missing Entries",
+        "adminRequiredCleanup": "Admin login required for cleanup",
+        "rescanMovies": "Rescan Movies",
+        "rescanMoviesHelp": "Force a fresh scan of the movies directory. Queues any files missing thumbnails for processing.",
+        "indexHddExt": "Index HDD-ext",
+        "indexHddExtHelp": "Index all videos on the external HDD share into the library grid. Uses existing thumbnails — no ffmpeg processing needed.",
+        "resetToDefaults": "Reset to Defaults",
+        "saveChanges": "Save Changes",
+        "confirmCleanup": "This will remove all database entries that do not have a corresponding file on disk. Continue?",
+        "cleanupComplete": "Cleanup complete! Removed {{count}} missing entries.",
+        "cleanupFailed": "Cleanup failed: {{message}}",
+        "rescanFailed": "Rescan failed: {{message}}",
+        "indexComplete": "HDD-ext index complete — {{indexed}} indexed, {{skipped}} skipped, {{errors}} errors ({{total}} total)",
+        "indexFailed": "HDD-ext indexing failed: {{message}}",
+        "unsavedChanges": "You have unsaved changes. Are you sure you want to close?"
+    },
+    "player": {
+        "videoUnavailable": "Video source unavailable. Try rescanning or re-importing the file.",
+        "path": "Path: {{path}}",
+        "rescanRoot": "Rescan root to restore playback",
+        "seekForward": "Seek +{{seconds}}s",
+        "seekBackward": "Seek -{{seconds}}s",
+        "paused": "Paused",
+        "playing": "Playing",
+        "forward10m": "+10m",
+        "seek": "Seek",
+        "volume": "Volume",
+        "editTags": "Edit Tags",
+        "openFocusMode": "Open in Focus Mode",
+        "splitVideo": "Split Video",
+        "shuffle": "Shuffle",
+        "pictureInPicture": "Picture in Picture",
+        "closePanel": "Close panel",
+        "playerDescription": "Video player with playback controls and navigation",
+        "forward10min": "Forward 10 minutes"
+    },
+    "presets": {
+        "title": "Filter Preset Manager",
+        "description": "Save, load, and manage your filter presets for quick access to common filter combinations.",
+        "newPresetPlaceholder": "New preset name",
+        "noPresets": "No presets saved yet. Create your first preset above.",
+        "categories": "categories",
+        "dateRange": "Date range",
+        "fileSize": "File size",
+        "duration": "Duration",
+        "load": "Load",
+        "importExport": "Import/Export",
+        "importSuccess": "Imported {{count}} presets successfully!",
+        "importFailed": "Failed to import presets: {{message}}"
+    },
+    "rename": {
+        "title": "Rename Video",
+        "description": "Update the display name and optionally the file name on disk.",
+        "placeholder": "New name",
+        "emptyError": "Name cannot be empty",
+        "fromCategories": "From Categories"
+    },
+    "directoryPicker": {
+        "title": "Select Target Directory",
+        "description": "Pick a destination folder from the scanned root",
+        "root": "Root: {{name}}",
+        "noRoot": "No scanned root in this session. Scan a directory first.",
+        "filterPlaceholder": "Filter directories...",
+        "noDirectories": "No directories found.",
+        "collapse": "Collapse",
+        "expand": "Expand"
+    },
+    "playlistExport": {
+        "title": "Export Playlist",
+        "description": "Create a playlist from the current {{count}} filtered videos.",
+        "filename": "Filename",
+        "format": "Format",
+        "m3u": "M3U (Standard Playlist)",
+        "json": "JSON (Metadata)",
+        "pathType": "Path Type",
+        "absolutePaths": "Absolute Paths",
+        "relativePaths": "Relative Paths (Experimental)"
+    },
+    "errorBoundary": {
+        "title": "Something went wrong",
+        "description": "An unexpected error occurred. Don't worry, your data is safe.",
+        "errorId": "Error ID:",
+        "devDetails": "Error details (development only)",
+        "tryAgain": "Try Again",
+        "goHome": "Go Home",
+        "stillHavingIssues": "Still having issues? Try refreshing the page or clearing browser data.",
+        "copyError": "Copy Error Details",
+        "reportIssue": "Report Issue"
+    },
+    "help": {
+        "title": "Help Guide",
+        "sections": {
+            "gettingStarted": {
+                "title": "Getting Started",
+                "items": [
+                    "MediaVault is your personal media library for videos, audiobooks, and ebooks.",
+                    "Start by scanning a directory to import your media files.",
+                    "Use the sidebar to filter and search through your library.",
+                    "Click any media item to view details, play, or edit metadata."
+                ]
+            },
+            "scanning": {
+                "title": "Scanning & Importing",
+                "items": [
+                    "Click 'Scan Directory' in the header to select a folder to scan.",
+                    "Scanning detects video, audio, and ebook files automatically.",
+                    "Large directories are scanned progressively — you can browse while scanning.",
+                    "Rescan anytime to pick up new or changed files.",
+                    "Import data from external sources using the Import button."
+                ]
+            },
+            "browsing": {
+                "title": "Browsing Your Library",
+                "items": [
+                    "Your media appears in a grid view with thumbnail previews.",
+                    "Click a video to open the player, or right-click for more options.",
+                    "Use the search bar to find media by filename or metadata.",
+                    "Sort by name, date, size, or duration using the toolbar.",
+                    "The library uses virtual scrolling for smooth performance with large collections."
+                ]
+            },
+            "filtering": {
+                "title": "Filtering & Search",
+                "items": [
+                    "Open the Filters panel from the sidebar to apply advanced filters.",
+                    "Filter by file type, duration, file size, quality, and date.",
+                    "Combine multiple filters for precise results.",
+                    "Save filter combinations as presets for quick access.",
+                    "Use the Presets manager to create, edit, and apply saved presets."
+                ]
+            },
+            "tagging": {
+                "title": "Tags & Categories",
+                "items": [
+                    "Add tags to any media item for easy organization.",
+                    "Browse all tags on the Tags page (accessible from the header).",
+                    "Use bulk operations to tag multiple items at once.",
+                    "Categories are extracted from file paths and can be customized.",
+                    "Import tags from external sources using the tag importer."
+                ]
+            },
+            "focusMode": {
+                "title": "Focus Mode",
+                "items": [
+                    "Focus Mode provides a dedicated interface for organizing a single video.",
+                    "Preview the video, edit categories, and batch rename from one screen.",
+                    "Access Focus Mode by clicking the focus icon on any video card.",
+                    "Use the category editor to assign and customize categories.",
+                    "Batch rename files with pattern-based rules."
+                ]
+            },
+            "duplicates": {
+                "title": "Duplicate Detection",
+                "items": [
+                    "Access the Duplicates page from the header to find duplicate files.",
+                    "Duplicates are detected by file hash, name similarity, and file size.",
+                    "Compare duplicates side-by-side to decide which to keep.",
+                    "Use batch operations to clean up multiple duplicates at once."
+                ]
+            },
+            "mediaTypes": {
+                "title": "Media Types",
+                "items": [
+                    "VideoVault supports videos, audiobooks, and ebooks.",
+                    "Videos play in a built-in player with full controls.",
+                    "Audiobooks have a dedicated player with chapter navigation.",
+                    "Ebooks (EPUB/PDF) open in a built-in reader with page navigation.",
+                    "Switch between media types using the tabs in the library view."
+                ]
+            },
+            "analytics": {
+                "title": "Analytics & Stats",
+                "items": [
+                    "View library statistics on the Analytics page.",
+                    "See format distribution, storage usage, and library growth.",
+                    "Track your most-watched content and watch time.",
+                    "Monitor your library size and composition over time."
+                ]
+            },
+            "settings": {
+                "title": "Settings",
+                "items": [
+                    "Access settings from the gear icon in the header.",
+                    "Configure scan preferences and thumbnail quality.",
+                    "Set display preferences and default sort order.",
+                    "Manage library paths and auto-scan scheduling.",
+                    "Toggle between light and dark themes."
+                ]
+            }
+        }
+    }
+}

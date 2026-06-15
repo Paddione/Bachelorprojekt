@@ -248,35 +248,35 @@
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/questionnaire-db.ts → src/lib/compute-scores.ts",
+    "detail": "cycle in website: src/lib/questionnaire-db.ts \u2192 src/lib/compute-scores.ts",
     "frozen_at": "9de24a8b"
   },
   "S2:website:src/lib/invoice-pdf.ts|src/lib/native-billing.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/invoice-pdf.ts → src/lib/native-billing.ts",
+    "detail": "cycle in website: src/lib/invoice-pdf.ts \u2192 src/lib/native-billing.ts",
     "frozen_at": "9de24a8b"
   },
   "S2:website:src/lib/tickets-db.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/tickets-db.ts → src/lib/website-db.ts",
+    "detail": "cycle in website: src/lib/tickets-db.ts \u2192 src/lib/website-db.ts",
     "frozen_at": "9de24a8b"
   },
   "S2:website:src/lib/tickets/reporter-link.ts|src/lib/tickets/transition.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 3,
-    "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts → src/lib/tickets/reporter-link.ts",
+    "detail": "cycle in website: src/lib/website-db.ts \u2192 src/lib/tickets/transition.ts \u2192 src/lib/tickets/reporter-link.ts",
     "frozen_at": "9de24a8b"
   },
   "S2:website:src/lib/tickets/transition.ts|src/lib/website-db.ts": {
     "gate": "S2",
     "path": "website",
     "metric": 2,
-    "detail": "cycle in website: src/lib/website-db.ts → src/lib/tickets/transition.ts",
+    "detail": "cycle in website: src/lib/website-db.ts \u2192 src/lib/tickets/transition.ts",
     "frozen_at": "9de24a8b"
   },
   "S3:k3d/dev-stack/oauth2-proxy-dev.yaml:brainstorm.mentolder.de": {
@@ -621,5 +621,29 @@
     "metric": 1,
     "detail": "no reference to 'skill-orchestrator.sh' in any configured source",
     "frozen_at": "9de24a8b"
+  },
+  "S3:prod-korczewski/realm-workspace-korczewski.json:mediaviewer.korczewski.de": {
+    "gate": "S3",
+    "path": "prod-korczewski/realm-workspace-korczewski.json",
+    "metric": 1,
+    "detail": "hardcoded host: mediaviewer.korczewski.de"
+  },
+  "S3:prod-korczewski/realm-workspace-korczewski.json:videovault.korczewski.de": {
+    "gate": "S3",
+    "path": "prod-korczewski/realm-workspace-korczewski.json",
+    "metric": 1,
+    "detail": "hardcoded host: videovault.korczewski.de"
+  },
+  "S3:prod-mentolder/realm-workspace-mentolder.json:mediaviewer.mentolder.de": {
+    "gate": "S3",
+    "path": "prod-mentolder/realm-workspace-mentolder.json",
+    "metric": 1,
+    "detail": "hardcoded host: mediaviewer.mentolder.de"
+  },
+  "S3:prod-mentolder/realm-workspace-mentolder.json:videovault.mentolder.de": {
+    "gate": "S3",
+    "path": "prod-mentolder/realm-workspace-mentolder.json",
+    "metric": 1,
+    "detail": "hardcoded host: videovault.mentolder.de"
   }
 }

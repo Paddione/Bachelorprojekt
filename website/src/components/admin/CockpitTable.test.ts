@@ -12,6 +12,31 @@ const tickets = [
 beforeEach(() => vi.restoreAllMocks());
 
 describe('CockpitTable', () => {
+  it('blocks concurrent patchStatus mutations on the same ticket (busy guard)', async () => {
+    let resolveFirst!: (v: Response) => void;
+    const hangingFetch = new Promise<Response>((r) => { resolveFirst = r; });
+    const spy = vi.spyOn(global, 'fetch')
+      .mockReturnValueOnce(hangingFetch)
+      .mockResolvedValue(new Response('{}', { status: 200 }));
+
+    const { getAllByTestId } = render(CockpitTable,
+      { feature, tickets: tickets.map((t) => ({ ...t })), features: [feature] });
+    const selects = getAllByTestId('status-select');
+
+    // Fire first mutation — will hang because fetch is unresolved
+    fireEvent.change(selects[0], { target: { value: 'done' } });
+    // Fire second mutation on the same ticket immediately
+    fireEvent.change(selects[0], { target: { value: 'in_review' } });
+
+    // Only ONE fetch should have been called (second blocked by busy guard)
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
+
+    // Resolve the first fetch
+    resolveFirst(new Response('{}', { status: 200 }));
+    // After the first fetch resolves, the second should still not fire (it returned early)
+    await waitFor(() => {});
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
   it('renders a row per ticket', () => {
     const { getAllByTestId } = render(CockpitTable, { feature, tickets, features: [feature] });
     expect(getAllByTestId('row-checkbox')).toHaveLength(2);

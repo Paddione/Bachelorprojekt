@@ -18,7 +18,7 @@
   let drawerOpen = false;
   let createOpen = false;
 
-  $: allFeatures = portfolio?.products.flatMap((p) => p.features) ?? [];
+  $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
 
   onMount(async () => {
@@ -75,9 +75,18 @@
 </script>
 
 <div class="cockpit-shell" data-brand={brand}>
-  {#if $cockpitStore.error}<div class="toast error">{$cockpitStore.error}</div>{/if}
+  {#if $cockpitStore.error}
+    <div class="toast error">
+      {$cockpitStore.error}
+      {#if !portfolio}
+        <button class="retry" on:click={loadPortfolio} aria-label="Wiederholen">
+          Wiederholen
+        </button>
+      {/if}
+    </div>
+  {/if}
 
-  {#if portfolio && portfolio.products.length === 0}
+  {#if portfolio && portfolio.products?.length === 0}
     <EmptyStateCockpit />
   {:else if portfolio}
     <div class="layout">
@@ -110,7 +119,9 @@
   .cockpit-shell { display: flex; flex-direction: column; gap: 0.75rem; }
   .layout { display: flex; gap: 1rem; align-items: flex-start; min-height: 60vh; }
   .main { flex: 1 1 auto; min-width: 0; }
-  .toast.error { background: #ef4444; color: #fff; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+  .toast.error { background: #ef4444; color: #fff; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+  .retry { margin-left: auto; background: rgba(255,255,255,0.2); border: none;
+    color: #fff; border-radius: 4px; padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
   .loading { opacity: 0.7; font-size: 0.85rem; margin-bottom: 0.5rem; }
 
   @media (max-width: 767px) {

@@ -34,6 +34,7 @@
   });
 
   async function patchStatus(id: string, status: string) {
+    if (busy[id]) return;
     const t = tickets.find((x) => x.id === id); if (!t) return;
     const old = t.status; t.status = status; tickets = [...tickets];
     busy[id] = true; busy = { ...busy };
@@ -44,6 +45,7 @@
   }
 
   async function patchPriority(id: string, priority: string) {
+    if (busy[id]) return;
     const t = tickets.find((x) => x.id === id); if (!t) return;
     const old = t.priority; t.priority = priority; tickets = [...tickets];
     busy[id] = true; busy = { ...busy };

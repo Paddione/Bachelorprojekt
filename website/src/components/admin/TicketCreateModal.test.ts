@@ -10,6 +10,48 @@ const features = [
 beforeEach(() => vi.restoreAllMocks());
 
 describe('TicketCreateModal', () => {
+  it('has a "bug" option in the type dropdown', () => {
+    const { getByTestId } = render(TicketCreateModal,
+      { open: true, features, onClose: () => {} });
+    const typeSelect = getByTestId('type-select') as HTMLSelectElement;
+    const values = Array.from(typeSelect.options).map((o) => o.value);
+    expect(values).toContain('bug');
+  });
+
+  it('updates parentId when modal is reopened with a different defaultFeatureId', async () => {
+    const features2 = [
+      ...features,
+      { id: 'f2', extId: 'F2', title: 'Billing', priority: 'hoch', health: 'green' as const,
+        rollup: { total: 0, done: 0, blocked: 0, inProgress: 0, open: 0, pctDone: 0 } },
+    ];
+    const onClose = vi.fn();
+    const { getByTestId, rerender } = render(TicketCreateModal,
+      { open: true, features: features2, onClose, defaultFeatureId: 'f1' });
+    expect((getByTestId('feature-select') as HTMLSelectElement).value).toBe('f1');
+
+    // Close the modal (simulates onClose -> parent sets open=false)
+    await rerender({ open: false, features: features2, onClose, defaultFeatureId: 'f1' });
+    // Reopen with a different feature selected in the parent
+    await rerender({ open: true, features: features2, onClose, defaultFeatureId: 'f2' });
+    expect((getByTestId('feature-select') as HTMLSelectElement).value).toBe('f2');
+  });
+
+  it('clears the error when the modal is closed and reopened', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: 'server error' }), { status: 400 }));
+    const onClose = vi.fn();
+    const { getByTestId, queryByText, rerender } = render(TicketCreateModal,
+      { open: true, features, onClose });
+    await fireEvent.input(getByTestId('create-title'), { target: { value: 'X' } });
+    await fireEvent.click(getByTestId('create-submit'));
+    await waitFor(() => expect(queryByText('server error')).toBeTruthy());
+
+    // Close and reopen
+    await rerender({ open: false, features, onClose });
+    await rerender({ open: true, features, onClose });
+    expect(queryByText('server error')).toBeNull();
+  });
+
   it('renders nothing when open=false', () => {
     const { queryByTestId } = render(TicketCreateModal,
       { open: false, features, onClose: () => {} });

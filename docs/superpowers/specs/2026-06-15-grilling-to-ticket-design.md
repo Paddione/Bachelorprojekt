@@ -1,8 +1,8 @@
 ---
 title: Grilling-Sessions an Tickets senden — skill-weite Fähigkeit
 status: draft
-ticket_id: null
-plan_ref: null
+ticket_id: T000739
+plan_ref: docs/superpowers/plans/2026-06-15-grilling-to-ticket.md
 domains: [db, website, ops]
 ---
 

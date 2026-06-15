@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { TicketDetail, Phase, InjectionKind } from '../../lib/factory-floor';
-  import { phaseDurations } from '../../lib/factory-floor';
+  import { phaseDurations } from '../../lib/factory-floor-client';
   import type { CiCheck, CiRollup } from '../../lib/factory-ci';
   import SuggestedFiles from './SuggestedFiles.svelte';
 

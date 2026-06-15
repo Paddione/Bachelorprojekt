@@ -481,7 +481,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1313,
+      "file_count": 1314,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -1072,6 +1072,7 @@
         "website/src/lib/factory-ci.test.ts",
         "website/src/lib/factory-ci.ts",
         "website/src/lib/factory-constants.ts",
+        "website/src/lib/factory-floor-client.ts",
         "website/src/lib/factory-floor.test.ts",
         "website/src/lib/factory-floor.ts",
         "website/src/lib/factory-metrics.test.ts",

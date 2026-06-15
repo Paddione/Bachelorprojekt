@@ -1,25 +1,3 @@
-/**
- * scripts/factory/dispatcher.js
- *
- * Software Factory Phase-2 Dispatcher (Tier 1) — Claude Code Workflow script.
- *
- * Model A: ONE bounded Workflow run per /loop tick that nests pipeline.js runs.
- * The harness injects agent/parallel/phase/log/workflow/args as TOP-LEVEL globals.
- * Run by the Workflow tool, NOT `node scripts/factory/dispatcher.js`.
- *
- * Offline lint:   node --check scripts/factory/dispatcher.js
- * Contract tests: ./tests/runner.sh local FA-SF-30
- *
- * Trigger: /loop self-paced (ScheduleWakeup) — the next wake is scheduled only
- * after this run ends, giving natural single-flight. Over-scheduling is
- * additionally bounded by schedule.sh's global cap + the atomic slot-claim
- * (a pg advisory lock would NOT survive separate kubectl-exec psql sessions).
- *
- * Usage (Workflow tool): args = { timestamp }  // ISO8601 passed in
- */
-
-import { execFileSync } from 'node:child_process'
-
 export const meta = {
   name: 'software-factory-dispatcher',
   description:
@@ -131,61 +109,51 @@ async function main() {
     return
   }
 
-  // Run budget guards and estimates
-  const launches = []
-  const blockedLaunches = []
-  for (const f of prep.launch) {
-    try {
-      execFileSync('bash', [`${REPO}/scripts/factory/budget-guard.sh`, f.brand], {
-        env: { ...process.env, BRAND: f.brand }
-      })
-
-      // Guard OK: Run estimate (best-effort)
-      try {
-        log(`Dispatcher: running budget estimate for ticket ${f.external_id} (${f.brand})`)
-        const estJson = execFileSync('bash', [`${REPO}/scripts/factory/budget-estimate.sh`, f.external_id, f.brand], {
-          encoding: 'utf8',
-          env: { ...process.env, BRAND: f.brand }
-        })
-        log(`Dispatcher: budget estimate result: ${estJson.trim()}`)
-      } catch (estErr) {
-        log(`Dispatcher: budget-estimate failed for ${f.external_id} (non-fatal): ${estErr.message}`)
-      }
-
-      launches.push(f)
-    } catch (guardErr) {
-      log(`Dispatcher: budget guard failed/tripped for ${f.external_id} (${f.brand}): ${guardErr.message}`)
-
-      // 1. Set ticket status to blocked
-      try {
-        execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'update-status', '--id', f.external_id, '--status', 'blocked'], {
-          env: { ...process.env, BRAND: f.brand }
-        })
-      } catch (err) {
-        log(`Dispatcher: failed to set ticket ${f.external_id} status: ${err.message}`)
-      }
-
-      // 2. Log blocked phase event
-      try {
-        execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'phase', f.external_id, 'scout', 'blocked', '--detail', 'daily budget exceeded'], {
-          env: { ...process.env, BRAND: f.brand }
-        })
-      } catch (err) {
-        log(`Dispatcher: failed to log phase event for ${f.external_id}: ${err.message}`)
-      }
-
-      // 3. Release slot
-      try {
-        execFileSync('bash', [`${REPO}/scripts/ticket.sh`, 'release-slot', '--id', f.external_id], {
-          env: { ...process.env, BRAND: f.brand }
-        })
-      } catch (err) {
-        log(`Dispatcher: failed to release slot for ticket ${f.external_id}: ${err.message}`)
-      }
-
-      blockedLaunches.push(f)
-    }
+  // Run budget guards and estimates (agent-based — Workflow scripts cannot execFileSync)
+  const BUDGET_RESULT_SCHEMA = {
+    type: 'object',
+    required: ['ok', 'blocked'],
+    properties: {
+      ok: { type: 'array', items: { type: 'object', properties: { external_id: { type: 'string' }, brand: { type: 'string' } } } },
+      blocked: { type: 'array', items: { type: 'object', properties: { external_id: { type: 'string' }, brand: { type: 'string' }, reason: { type: 'string' } } } },
+      estimates: { type: 'array' },
+    },
   }
+
+  const budgetResult = await agent(
+    `You are the Software Factory budget guard. Process ONLY the features listed below.
+     REPO=${REPO}
+
+     For EACH feature in this list:
+     ${JSON.stringify(prep.launch.map(f => ({ external_id: f.external_id, brand: f.brand })))}
+
+     Step 1 — Budget guard (fail-closed):
+       BRAND=<brand> bash ${REPO}/scripts/factory/budget-guard.sh <brand>
+       If this exits non-zero: the feature is BLOCKED. Proceed to cleanup steps (2-4).
+       If this exits zero: the feature is OK. Proceed to estimate then next feature.
+
+     Step 2 — Estimate (best-effort, only for OK features):
+       BRAND=<brand> bash ${REPO}/scripts/factory/budget-estimate.sh <external_id> <brand>
+       Capture stdout; if it fails log the error but do NOT block the feature.
+
+     For BLOCKED features, run these cleanup steps:
+     Step 3 — Set ticket status to blocked:
+       BRAND=<brand> bash ${REPO}/scripts/ticket.sh update-status --id <external_id> --status blocked
+     Step 4 — Log phase event:
+       BRAND=<brand> bash ${REPO}/scripts/ticket.sh phase <external_id> scout blocked --detail 'daily budget exceeded'
+     Step 5 — Release slot:
+       BRAND=<brand> bash ${REPO}/scripts/ticket.sh release-slot --id <external_id>
+
+     Return JSON: { ok: [{external_id, brand}, ...], blocked: [{external_id, brand, reason}, ...], estimates: [...] }`,
+    { label: 'budget-guard', phase: 'Launch', schema: BUDGET_RESULT_SCHEMA },
+  )
+
+  const okIds = new Set((budgetResult?.ok ?? []).map(f => f.external_id))
+  const launches = (prep.launch ?? []).filter(f => okIds.has(f.external_id))
+  const blockedLaunches = (budgetResult?.blocked ?? []).map(b => ({
+    external_id: b.external_id,
+    brand: b.brand,
+  }))
 
   // ── ② Launch: nest one pipeline workflow per scheduled feature (Model A) ──────
   phase('Launch')

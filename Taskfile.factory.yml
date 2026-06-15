@@ -112,3 +112,13 @@ tasks:
       ENV: '{{.ENV | default "dev"}}'
     cmds:
       - bash scripts/factory/budget-guard.sh "{{.ENV}}"
+
+  disp:korczewski:
+    desc: "Run Software Factory schedule for korczewski brand (convenience wrapper for disp-korczewski.sh)"
+    cmds:
+      - bash scripts/disp-korczewski.sh
+
+  disp:mentolder:
+    desc: "Run Software Factory schedule for mentolder brand (convenience wrapper for disp-mentolder.sh)"
+    cmds:
+      - bash scripts/disp-mentolder.sh

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.70.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.70.0...website-v1.70.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* **dev-status:** slotCap persists from DB + KpiGrid responsive breakpoint ([#1677](https://github.com/Paddione/Bachelorprojekt/issues/1677)) ([4dfa0cf](https://github.com/Paddione/Bachelorprojekt/commit/4dfa0cfa9072f5ecc86d8c59ef3f190978d73052))
+
 ## [1.70.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.69.0...website-v1.70.0) (2026-06-15)
 
 

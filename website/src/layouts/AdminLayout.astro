@@ -68,7 +68,7 @@ const navGroups: { label: string; iconClass: string; items: NavItem[] }[] = [
     iconClass: 'nav-icon-kern',
     items: [
       { href: '/admin/termine',     label: 'Kalender',     icon: 'calendar' },
-      { href: '/admin/tickets',     label: 'Anfragen',     icon: 'tag' },
+      { href: '/admin/cockpit',    label: 'Cockpit',      icon: 'tag',     matches: ['/admin/cockpit', '/admin/tickets'] },
       { href: '/admin/inbox',       label: 'Postfach',     icon: 'inbox',     badge: inboxPending },
       { href: '/admin/live',        label: 'Live-Stream',  icon: 'broadcast' },
     ],

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.72.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.71.0...website-v1.72.0) (2026-06-15)
+
+
+### Features
+
+* **cockpit:** Claude-Design SVG asset set (18/23) [T000756] ([#1688](https://github.com/Paddione/Bachelorprojekt/issues/1688)) ([63f4654](https://github.com/Paddione/Bachelorprojekt/commit/63f46544bfbfc2528335ceb88d729515c7b04535))
+
 ## [1.71.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.70.2...website-v1.71.0) (2026-06-15)
 
 

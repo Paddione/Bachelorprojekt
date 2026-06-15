@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.70.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.69.0...website-v1.70.0) (2026-06-15)
+
+
+### Features
+
+* dev-flow-batch dynamic parallelisation (T000721) ([#1673](https://github.com/Paddione/Bachelorprojekt/issues/1673)) ([35bb825](https://github.com/Paddione/Bachelorprojekt/commit/35bb825f3da489d0b82159f4170f255a1952abd4))
+* **factory:** Lieferhistorie im /dev-status Dashboard [T000726] ([#1670](https://github.com/Paddione/Bachelorprojekt/issues/1670)) ([9311a17](https://github.com/Paddione/Bachelorprojekt/commit/9311a170dd999963e60842acbcb2171c9482fbc4))
+* **factory:** QS-Abnahme-Loop — E2E→Ticket-Rückkanal + Auto-Enqueue [T000730] ([#1675](https://github.com/Paddione/Bachelorprojekt/issues/1675)) ([696b8e0](https://github.com/Paddione/Bachelorprojekt/commit/696b8e0e8957c77cdb7a8ef49a2f10bea18bac88))
+
 ## [1.69.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.68.0...website-v1.69.0) (2026-06-14)
 
 

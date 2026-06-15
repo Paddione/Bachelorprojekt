@@ -76,6 +76,7 @@ export default defineConfig({
         '**/fa-admin-inbox.spec.ts',            // /admin/inbox two-pane rework (spec 2026-05-08)
         '**/fa-admin-inbox-delete.spec.ts',     // Löschen escape hatch (2026-05-09)
         '**/fa-admin-live.spec.ts',  // unified live cockpit
+        '**/fa-29-*.spec.ts',                   // Projekt-Cockpit E2E (T000752)
         '**/fa-30-systemtest-failure-loop.spec.ts',  // system-test failure kanban (Task 7)
         '**/fa-39-coaching-sessions.spec.ts',        // coaching session wizard + auth gates (PR #826)
         '**/fa-39-lmstudio-integration.spec.ts',     // LM Studio / local-first LLM generate smoke test

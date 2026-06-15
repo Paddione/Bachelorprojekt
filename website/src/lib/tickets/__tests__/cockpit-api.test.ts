@@ -150,4 +150,11 @@ describe('POST /cockpit/batch', () => {
     const body = await res.json();
     expect(body.results).toHaveLength(2);
   });
+  it('400 on brand mismatch', async () => {
+    const err = new Error('cross-brand'); err.name = 'BrandMismatchError';
+    mocks.batchMutate.mockRejectedValue(err);
+    const res = await post(BATCH, { ticketIds: ['a'], mutation: { status: 'done' } });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/cross-brand/i);
+  });
 });

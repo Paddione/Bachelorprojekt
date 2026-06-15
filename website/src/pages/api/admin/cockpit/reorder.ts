@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
     await updatePlanningRanks(BRAND(), updates);
     return json({ ok: true, updated: updates.length });
   } catch (e) {
-    if (e instanceof BrandMismatchError) return json({ error: 'cross-brand' }, 400);
+    if (e instanceof BrandMismatchError || (e as Error).name === 'BrandMismatchError') return json({ error: 'cross-brand' }, 400);
     return json({ error: String((e as Error).message) }, 500);
   }
 };

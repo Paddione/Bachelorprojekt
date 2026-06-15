@@ -830,7 +830,7 @@ git add -A && git commit -m "chore(cockpit): stage A quality gate" || echo "noth
 This sub-plan merges independently — it must be green on its own.
 
 - [x] Scoped unit tests: `cd website && pnpm test -- "cockpit-schema|cockpit-db"`
-- [ ] `task test:all` → exit 0
-- [ ] `task freshness:regenerate` then `task freshness:check` → exit 0 (S1–S4 ratchet incl. `tickets-db.ts` ≤ 1106, `admin.ts` = 677)
+- [x] `task test:all` → exit 0
+- [x] `task freshness:regenerate` then `task freshness:check` → exit 0 (S1–S4 ratchet incl. `tickets-db.ts` ≤ 1106, `admin.ts` = 677)
 - [x] If test files were added: `task test:inventory` + commit `website/src/data/test-inventory.json`
 - [x] Confirm only this sub-plan's `file_locks` files changed

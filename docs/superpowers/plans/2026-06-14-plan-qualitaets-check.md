@@ -1,7 +1,7 @@
 ---
 ticket_id: T000724
 spec_ref: docs/superpowers/specs/2026-06-14-plan-qualitaets-check.md
-status: active
+status: completed
 date: 2026-06-14
 domains: [skills, scripts]
 file_locks: []

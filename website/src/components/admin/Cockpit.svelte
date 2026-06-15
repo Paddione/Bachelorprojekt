@@ -18,7 +18,7 @@
   let drawerOpen = false;
   let createOpen = false;
 
-  $: allFeatures = portfolio?.products.flatMap((p) => p.features) ?? [];
+  $: allFeatures = portfolio?.products?.flatMap((p) => p.features) ?? [];
   $: currentFeatureNode = allFeatures.find((f) => f.extId === $cockpitStore.selectedFeature) ?? null;
 
   onMount(async () => {
@@ -77,7 +77,7 @@
 <div class="cockpit-shell" data-brand={brand}>
   {#if $cockpitStore.error}<div class="toast error">{$cockpitStore.error}</div>{/if}
 
-  {#if portfolio && portfolio.products.length === 0}
+  {#if portfolio && portfolio.products?.length === 0}
     <EmptyStateCockpit />
   {:else if portfolio}
     <div class="layout">

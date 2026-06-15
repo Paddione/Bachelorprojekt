@@ -14,6 +14,11 @@ beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 
 describe('Cockpit shell', () => {
+  it('does not crash when portfolioInitial has no products field', () => {
+    expect(() =>
+      render(Cockpit, { portfolioInitial: { error: 'db_error' } as any, brand: 'mentolder' })
+    ).not.toThrow();
+  });
   it('renders the sidebar and table (no lens/mode toggles)', () => {
     const { getByTestId, queryByRole } = render(Cockpit,
       { portfolioInitial: portfolioWithFeature, brand: 'mentolder' });

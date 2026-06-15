@@ -3,6 +3,7 @@ import { pool, ensureSchemaOnce } from './website-db';
 import { MixedEmbeddingModelError } from './knowledge-db';
 import type { EmbeddingModel } from './embeddings';
 import { initProviderConfigSchema } from './schema/provider-config-schema';
+import { ensureCockpitViews } from './tickets/cockpit-schema';
 
 export { MixedEmbeddingModelError };
 
@@ -634,6 +635,7 @@ export async function initTicketsSchema(): Promise<void> {
       created_at
   `);
 
+  await ensureCockpitViews(pool);
 
   // DEPRECATED (T000402): tickets.ticket_counters was a PER-BRAND monotonic
   // counter that fed the external_id trigger. external_id is GLOBALLY unique

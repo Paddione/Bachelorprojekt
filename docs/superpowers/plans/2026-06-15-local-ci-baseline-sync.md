@@ -1,6 +1,6 @@
 ---
 title: Local CI Mirror + Baseline Auto-Tighten — Implementation Plan
-ticket_id: null
+ticket_id: T000741
 domains: [website, infra, test]
 status: active
 pr_number: null

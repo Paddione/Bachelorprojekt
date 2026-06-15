@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   updatePlanningRanks: vi.fn(),
   reparentTicket: vi.fn(),
   batchMutate: vi.fn(),
+  setFeatureAction: vi.fn(),
 }));
 
 vi.mock('../../../lib/auth', () => ({
@@ -24,6 +25,7 @@ vi.mock('../../../lib/tickets/cockpit-db', () => ({
   updatePlanningRanks: mocks.updatePlanningRanks,
   reparentTicket: mocks.reparentTicket,
   batchMutate: mocks.batchMutate,
+  setFeatureAction: mocks.setFeatureAction,
   // Error classes used in route code — use real class shapes so instanceof works
   NotFoundError: class NotFoundError extends Error { constructor(m?: string) { super(m); this.name = 'NotFoundError'; } },
   BrandMismatchError: class BrandMismatchError extends Error { constructor(m?: string) { super(m); this.name = 'BrandMismatchError'; } },
@@ -35,6 +37,7 @@ import { GET as FEATURE_GET } from '../../../pages/api/admin/cockpit/feature';
 import { POST as REORDER } from '../../../pages/api/admin/cockpit/reorder';
 import { POST as REPARENT } from '../../../pages/api/admin/cockpit/reparent';
 import { POST as BATCH } from '../../../pages/api/admin/cockpit/batch';
+import { POST as FEATURE_ACTION } from '../../../pages/api/admin/cockpit/feature-action';
 
 const req = () => new Request('http://x/api/admin/cockpit/portfolio',
   { headers: { cookie: 'sid=1' } });
@@ -156,5 +159,59 @@ describe('POST /cockpit/batch', () => {
     const res = await post(BATCH, { ticketIds: ['a'], mutation: { status: 'done' } });
     expect(res.status).toBe(400);
     expect((await res.json()).error).toMatch(/cross-brand/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /cockpit/feature-action
+// ---------------------------------------------------------------------------
+describe('POST /cockpit/feature-action', () => {
+  beforeEach(() => { mocks.getSession.mockResolvedValue({ user: {} }); mocks.isAdmin.mockReturnValue(true); });
+  it('403 when not admin', async () => {
+    mocks.isAdmin.mockReturnValue(false);
+    const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'next_step' });
+    expect(res.status).toBe(403);
+  });
+  it('400 when featureId missing', async () => {
+    const res = await post(FEATURE_ACTION, { action: 'next_step' });
+    expect(res.status).toBe(400);
+  });
+  it('400 when action missing', async () => {
+    const res = await post(FEATURE_ACTION, { featureId: 'f1' });
+    expect(res.status).toBe(400);
+  });
+  it('400 when action is invalid', async () => {
+    const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'bogus' });
+    expect(res.status).toBe(400);
+  });
+  it('200 sets next_step', async () => {
+    mocks.setFeatureAction.mockResolvedValue({ ok: true });
+    const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'next_step', value: true });
+    expect(res.status).toBe(200);
+    expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f1', 'next_step', true);
+  });
+  it('200 sets discard', async () => {
+    mocks.setFeatureAction.mockResolvedValue({ ok: true });
+    const res = await post(FEATURE_ACTION, { featureId: 'f2', action: 'discard', value: true });
+    expect(res.status).toBe(200);
+    expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f2', 'discard', true);
+  });
+  it('200 sets major', async () => {
+    mocks.setFeatureAction.mockResolvedValue({ ok: true });
+    const res = await post(FEATURE_ACTION, { featureId: 'f3', action: 'major', value: false });
+    expect(res.status).toBe(200);
+    expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f3', 'major', false);
+  });
+  it('200 sets comment', async () => {
+    mocks.setFeatureAction.mockResolvedValue({ ok: true });
+    const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'comment', value: 'needs review' });
+    expect(res.status).toBe(200);
+    expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f1', 'comment', 'needs review');
+  });
+  it('400 on brand mismatch', async () => {
+    const { BrandMismatchError } = await import('../../../lib/tickets/cockpit-db');
+    mocks.setFeatureAction.mockRejectedValue(new BrandMismatchError('wrong brand'));
+    const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'next_step' });
+    expect(res.status).toBe(400);
   });
 });

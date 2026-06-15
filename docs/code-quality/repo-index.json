@@ -446,7 +446,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 32,
+      "file_count": 33,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -478,6 +478,7 @@
         "scripts/migrations/2026-06-14-factory-run-budget.sql",
         "scripts/migrations/2026-06-14-llm-availability-seed.sql",
         "scripts/migrations/2026-06-14-provider-config-unify.sql",
+        "scripts/migrations/2026-06-15-cockpit-feature-suggest.sql",
         "scripts/migrations/2026-06-15-cockpit-rollup-view.sql",
         "scripts/migrations/2026-06-15-grilling-answers.sql"
       ]
@@ -486,7 +487,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1372,
+      "file_count": 1376,
       "files": [
         "website/.build-trigger",
         "website/.dockerignore",
@@ -723,6 +724,8 @@
         "website/src/components/admin/QuestionnaireTemplateEditor.svelte",
         "website/src/components/admin/RecordPaymentModal.svelte",
         "website/src/components/admin/SeoEditor.svelte",
+        "website/src/components/admin/SuggestionBar.svelte",
+        "website/src/components/admin/SuggestionBar.test.ts",
         "website/src/components/admin/TaxMonitorWidget.svelte",
         "website/src/components/admin/TestResultsPanel.svelte",
         "website/src/components/admin/TicketActionBar.svelte",
@@ -1483,10 +1486,12 @@
         "website/src/pages/api/admin/coaching/templates/[id]/versions.ts",
         "website/src/pages/api/admin/coaching/templates/index.ts",
         "website/src/pages/api/admin/cockpit/batch.ts",
+        "website/src/pages/api/admin/cockpit/feature-action.ts",
         "website/src/pages/api/admin/cockpit/feature.ts",
         "website/src/pages/api/admin/cockpit/portfolio.ts",
         "website/src/pages/api/admin/cockpit/reorder.ts",
         "website/src/pages/api/admin/cockpit/reparent.ts",
+        "website/src/pages/api/admin/cockpit/suggest.ts",
         "website/src/pages/api/admin/components/[id].ts",
         "website/src/pages/api/admin/components/index.ts",
         "website/src/pages/api/admin/content-sections-save.test.ts",

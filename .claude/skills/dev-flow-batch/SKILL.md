@@ -148,71 +148,79 @@ Nach Workflow-Abschluss: berichte dem User wie viele Specs+Pläne erfolgreich er
 - Wenn Argument ein `.md`-Pfad: lese Datei ein als `SPEC_CONTENT`
 - Wenn freier Text: nutze Text direkt als `FEATURE_DESCRIPTION`
 
-### Schritt 2: Decompose-Subagent
+### Schritt 2: Decompose über `pipeline-decompose.js`
 
-Spawne einen Decompose-Subagenten mit Schema:
+Nutze `scripts/factory/pipeline-decompose.js:decomposeFeature(description, apiBalance)` statt manuellem Subagenten:
+
+```javascript
+// Harness-Kontext (Workflow-Tool oder agent() mit inline require):
+const { decomposeFeature, assignFiles } = require('./scripts/factory/pipeline-decompose.js')
+
+const apiBalance = 4  // konfigurierbar: max sub-features = Math.min(6, Math.max(1, apiBalance))
+const subFeatures = await decomposeFeature(FEATURE_DESCRIPTION, apiBalance)
+```
+
+`decomposeFeature` ruft `agent()` intern mit JSON-Schema auf (äquivalent zu 4.5+ Modellen).  
+`apiBalance` steuert die maximale Sub-Feature-Anzahl:  
+- `apiBalance = 0` → leeres Array (keine Parallelisierung möglich → STOPP mit Meldung)  
+- `apiBalance = 1` → Single-Element-Array (kein Batch nötig, direktes single-Feature)  
+- `apiBalance ≥ 6` → maximal 6 Sub-Features
+
+Wenn `subFeatures.length < 2`: kein Batch-Modus — Feature direkt als single-Feature an pipeline.js übergeben.
+
+### Schritt 3: File-Assignment via `assignFiles`
+
+Nach der Zerlegung weise jedem Sub-Feature eine disjunkte Dateiliste zu:
+
+```javascript
+const SHARED = ['k3d/configmap-domains.yaml', 'environments/schema.yaml', 'k3d/kustomization.yaml']
+const assigned = assignFiles(subFeatures, touchedFiles, SHARED)
+// assigned[N].assignedFiles → string[] (disjunkt, kein overlap)
+// assigned[N].shared_changes → true wenn shared files benötigt
+```
+
+Shared files (`configmap-domains.yaml`, `schema.yaml`, `kustomization.yaml`) werden maximal dem **ersten** Sub-Feature zugewiesen, das sie anfordert. Alle weiteren erhalten `shared_changes: true` ohne konkrete Datei-Zuweisung.
+
+Nicht-Shared-Files werden round-robin über die Sub-Features verteilt. Ergebnis: jedes Sub-Feature hat `assignedFiles: string[]` — garantiert pairwise disjunkt.
+
+### Schritt 4: Batch-Workflow mit `pipeline.js batch_mode`
+
+Starte einen Workflow mit `batch_mode: true` und den vorbereiteten Sub-Features.  
+Rufe `pipeline.js` mit `args.batch_mode=true` auf — es führt alle Sub-Features parallel via `parallel()` aus:
 
 ```json
 {
-  "type": "object",
-  "required": ["parent_feature", "sub_features"],
-  "properties": {
-    "parent_feature": { "type": "string" },
-    "sub_features": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["slug", "title", "description", "domains", "depends_on", "shared_changes"],
-        "properties": {
-          "slug":           { "type": "string" },
-          "title":          { "type": "string" },
-          "description":    { "type": "string" },
-          "domains":        { "type": "array", "items": { "type": "string" } },
-          "depends_on":     { "type": "array", "items": { "type": "string" } },
-          "shared_changes": { "type": "boolean" }
-        }
+  "scriptPath": "scripts/factory/pipeline.js",
+  "args": {
+    "batch_mode": true,
+    "sub_features": [
+      {
+        "id": "sub-parent-1",
+        "title": "Sub-Feature 1",
+        "description": "...",
+        "assignedFiles": ["path/to/file1.ts", "path/to/file2.ts"],
+        "depends_on": [],
+        "slug": "sub-parent-1"
       }
-    }
+    ]
   }
 }
 ```
 
-**Prompt:**
-```
-Zerlege dieses Feature in unabhängige Sub-Features die parallel implementiert werden können.
+Bei Fehlschlag eines Sub-Features (Agent return null/undefined): geloggt + übersprungen, restliche Sub-Features laufen weiter.  
+Return: `{ succeeded: N, skipped: M, results: [...] }`
 
-FEATURE:
-<SPEC_CONTENT oder FEATURE_DESCRIPTION>
+---
 
-Regeln:
-- Jedes Sub-Feature muss für sich allein testbar und deploybar sein
-- depends_on listet slugs von Sub-Features die zuerst fertig sein müssen
-- shared_changes: true wenn das Sub-Feature k3d/configmap-domains.yaml oder
-  environments/schema.yaml ändern muss
-- Maximal 6 Sub-Features — wenn das Feature größer ist, fasse verwandte Teile zusammen
-- Gib einen parent_feature slug (kebab-case, kurz) zurück
-```
+## Edge Cases
 
-### Schritt 3: Sub-Features als Tickets-Array formatieren
-
-Wandle die Sub-Features in das Ticket-Format um das der Workflow erwartet:
-```json
-[
-  {
-    "external_id": "sub-<parent>-<slug>",
-    "title": "<title>",
-    "description": "<description>",
-    "brand": "mentolder",
-    "priority": "mittel"
-  }
-]
-```
-
-Füge `depends_on` und `parent_feature` in den `gap_context` pro Sub-Feature ein.
-
-### Schritt 4: Workflow starten
-
-Identisch zu Modus 1 Schritt 5 — `batch-workflow-gen.sh` + `Workflow({scriptPath, args})`.
+| Edge Case | Verhalten |
+|-----------|-----------|
+| `apiBalance = 0` | `decomposeFeature` gibt `[]` zurück → Skill meldet "Keine Parallelisierung möglich" und stoppt |
+| Zerlegung ergibt 1 Sub-Feature | Kein Batch-Modus; Feature direkt als single-Feature an pipeline.js übergeben |
+| Shared file von zwei Sub-Features benötigt | Erstes Sub-Feature erhält die Datei; zweites erhält `shared_changes: true` ohne Datei-Zuweisung |
+| Sub-Feature-Agent returnt null | pipeline.js batch_mode filtert null-Ergebnisse; skipped zählt hoch, restliche laufen weiter |
+| `touchedFiles` leer | `assignFiles` gibt Sub-Features mit `assignedFiles: []` zurück (kein Fehler) |
 
 ---
 

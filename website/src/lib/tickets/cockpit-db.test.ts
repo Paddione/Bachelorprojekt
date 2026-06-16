@@ -143,9 +143,10 @@ beforeEach(async () => {
 describe('getPortfolio', () => {
   it('returns products with nested features and rollups', async () => {
     const out = await getPortfolio('mentolder');
-    expect(out.products).toHaveLength(1);
-    const p = out.products[0];
-    expect(p.extId).toBe('p1');
+    // Besides the real product p1, getPortfolio now prepends a synthetic
+    // "Alle Tickets" bucket (see the dedicated describe block below).
+    const p = out.products.find((x) => x.extId === 'p1')!;
+    expect(p).toBeTruthy();
     expect(p.features).toHaveLength(2);
     // Product rollup across all 5 leaves: 1 done / 5 total = 20%, blocked>0 => red
     expect(p.rollup.total).toBe(5);
@@ -307,5 +308,77 @@ describe('orphan tickets bucket (Ohne Feature)', () => {
     const out = await getPortfolio('korczewski');
     const noFeat = out.products.flatMap(p => p.features).find(f => f.extId === '__no_feature__');
     expect(noFeat).toBeUndefined();
+  });
+});
+
+describe('Alle Tickets bucket (flat all-tickets view)', () => {
+  // T000877 follow-up: on mentolder every work ticket is parentless and every
+  // feature is empty, so the feature-centric cockpit surfaces nothing but the
+  // "Ohne Feature" catch-all. The PM asked for a flat "Alle Tickets" view that
+  // lists EVERY task/bug leaf across all features, regardless of parent linkage.
+  async function insertOrphans() {
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ('o1','o1','mentolder','task','Orphan A',null,'mittel','backlog',null,10)`);
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ('o2','o2','mentolder','bug','Orphan B',null,'mittel','done',null,11)`);
+    await pool.query(
+      `INSERT INTO tickets.tickets
+         (id, external_id, brand, type, title, value_prop, priority, status, parent_id, planning_rank)
+       VALUES ('o3','o3','mentolder','task','Orphan archived',null,'mittel','archived',null,12)`);
+  }
+
+  it('surfaces a synthetic __all_tickets__ bucket covering ALL non-archived leaves', async () => {
+    // base fixture: t1..t5 all parented under f1/f2 (no orphans)
+    const out = await getPortfolio('mentolder');
+    const all = out.products.flatMap(p => p.features).find(f => f.extId === '__all_tickets__');
+    expect(all).toBeTruthy();
+    expect(all!.synthetic).toBe(true);
+    expect(all!.rollup.total).toBe(5);   // t1..t5
+    expect(all!.rollup.done).toBe(1);     // t1
+    expect(all!.rollup.blocked).toBe(1);  // t2
+  });
+
+  it('appears as the FIRST product so the cockpit can default to it', async () => {
+    const out = await getPortfolio('mentolder');
+    expect(out.products[0].extId).toBe('__all_tickets__');
+  });
+
+  it('loads every task/bug leaf (parented + orphan) via getFeatureTickets(__all_tickets__)', async () => {
+    await insertOrphans();
+    const out = await getFeatureTickets('mentolder', '__all_tickets__');
+    expect(out.feature.extId).toBe('__all_tickets__');
+    expect(out.feature.synthetic).toBe(true);
+    // t1..t5 (parented) + o1,o2 (orphan); archived o3 excluded
+    expect(out.tickets.map(t => t.extId).sort()).toEqual(['o1', 'o2', 't1', 't2', 't3', 't4', 't5']);
+    expect(out.tickets.every(t => ['task', 'bug'].includes(t.type))).toBe(true);
+  });
+
+  it('omits the redundant Ohne Feature bucket when EVERY leaf is orphan', async () => {
+    await pool.query('DELETE FROM tickets.tickets'); // drop the parented base fixture
+    await insertOrphans();                            // only orphan leaves remain
+    const out = await getPortfolio('mentolder');
+    const all = out.products.flatMap(p => p.features).find(f => f.extId === '__all_tickets__');
+    const noFeat = out.products.flatMap(p => p.features).find(f => f.extId === '__no_feature__');
+    expect(all!.rollup.total).toBe(2);   // o1 + o2 (archived o3 excluded)
+    expect(noFeat).toBeUndefined();       // identical to Alle Tickets → not shown twice
+  });
+
+  it('still shows Ohne Feature when orphans are a genuine subset of all tickets', async () => {
+    await insertOrphans(); // base parented fixture + 2 orphans → orphan(2) < all(7)
+    const out = await getPortfolio('mentolder');
+    const all = out.products.flatMap(p => p.features).find(f => f.extId === '__all_tickets__');
+    const noFeat = out.products.flatMap(p => p.features).find(f => f.extId === '__no_feature__');
+    expect(all!.rollup.total).toBe(7);
+    expect(noFeat).toBeTruthy();
+    expect(noFeat!.rollup.total).toBe(2);
+  });
+
+  it('omits Alle Tickets entirely for a brand with no tickets', async () => {
+    const out = await getPortfolio('korczewski');
+    expect(out.products).toHaveLength(0);
   });
 });

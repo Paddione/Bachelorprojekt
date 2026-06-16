@@ -24,6 +24,10 @@ export interface FeatureNode {
   discarded: boolean;
   majorFeature: boolean;
   suggestionComment?: string;
+  /** True for synthetic aggregate buckets (Alle Tickets / Ohne Feature) that do
+   *  not map to a real ticket row — the UI hides feature-actions for these and
+   *  keeps them visible regardless of the "only open work" filter. */
+  synthetic?: boolean;
 }
 
 export interface ProductNode {

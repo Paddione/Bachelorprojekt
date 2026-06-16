@@ -5,7 +5,8 @@ export const meta = {
   phases: [{ title: 'Prep' }, { title: 'Launch' }, { title: 'Metrics' }],
 }
 
-const _msgBridge = require('./agent-msg-bridge.cjs')
+let _msgBridge
+try { _msgBridge = require('./agent-msg-bridge.cjs') } catch (_) { _msgBridge = { broadcast: (msg, label) => log(`[broadcast:${label}] ${msg}`) } }
 
 async function main() {
   const A = args ?? {}

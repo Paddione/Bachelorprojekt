@@ -28,6 +28,7 @@ agg AS (
     COUNT(*) FILTER (WHERE status = 'done')::int AS done_leaves,
     COUNT(*) FILTER (WHERE status = 'blocked')::int AS blocked_leaves,
     COUNT(*) FILTER (WHERE status IN ('in_progress', 'in_review', 'qa_review'))::int AS in_progress_leaves,
+    COUNT(*) FILTER (WHERE status = 'awaiting_deploy')::int AS awaiting_deploy_leaves,
     COUNT(*) FILTER (WHERE status IN ('triage', 'backlog', 'planning', 'plan_staged'))::int AS open_leaves
   FROM leaves
   GROUP BY container_id
@@ -38,6 +39,7 @@ SELECT
   COALESCE(a.done_leaves, 0)        AS done_leaves,
   COALESCE(a.blocked_leaves, 0)     AS blocked_leaves,
   COALESCE(a.in_progress_leaves, 0) AS in_progress_leaves,
+  COALESCE(a.awaiting_deploy_leaves, 0) AS awaiting_deploy_leaves,
   COALESCE(a.open_leaves, 0)        AS open_leaves,
   COALESCE(ROUND(100.0 * a.done_leaves / NULLIF(a.total_leaves, 0))::int, 0) AS pct_done,
   CASE

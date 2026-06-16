@@ -12,6 +12,7 @@ function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {
     done: Number(r?.done_leaves ?? 0),
     blocked: Number(r?.blocked_leaves ?? 0),
     inProgress: Number(r?.in_progress_leaves ?? 0),
+    awaitingDeploy: Number(r?.awaiting_deploy_leaves ?? 0),
     open: Number(r?.open_leaves ?? 0),
     pctDone: Number(r?.pct_done ?? 0),
   };
@@ -43,6 +44,7 @@ async function fetchLeafRollup(brand: string, orphanOnly: boolean): Promise<Roll
        SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) AS done_leaves,
        SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END) AS blocked_leaves,
        SUM(CASE WHEN status IN ('in_progress','in_review','qa_review') THEN 1 ELSE 0 END) AS in_progress_leaves,
+       SUM(CASE WHEN status = 'awaiting_deploy' THEN 1 ELSE 0 END) AS awaiting_deploy_leaves,
        SUM(CASE WHEN status IN ('triage','backlog','planning','plan_staged') THEN 1 ELSE 0 END) AS open_leaves
      FROM tickets.tickets
      WHERE brand = $1 AND type IN ('task', 'bug')${orphanOnly ? ' AND parent_id IS NULL' : ''}`,
@@ -55,6 +57,7 @@ async function fetchLeafRollup(brand: string, orphanOnly: boolean): Promise<Roll
     total, done,
     blocked: Number(r.blocked_leaves ?? 0),
     inProgress: Number(r.in_progress_leaves ?? 0),
+    awaitingDeploy: Number(r.awaiting_deploy_leaves ?? 0),
     open: Number(r.open_leaves ?? 0),
     pctDone: total ? Math.round((100 * done) / total) : 0,
   };

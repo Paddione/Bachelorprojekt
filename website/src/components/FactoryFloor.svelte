@@ -1,10 +1,10 @@
 <script module lang="ts">
   import { PHASE_ORDER } from '../lib/factory-floor';
   import type { Phase } from '../lib/factory-floor';
+  import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
+  export { MOBILE_COL_INDEX };
   export const STATIONS: { key: Phase; label: string }[] =
     PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
-  export const MOBILE_COL_INDEX: Record<string, number> =
-    { staged: 0, backlog: 1, scout: 2, design: 3, plan: 4, implement: 5, verify: 6, deploy: 7, qs: 8, done: 9 };
 </script>
 
 <script lang="ts">
@@ -19,6 +19,7 @@
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
   import ShippedColumn from './factory/ShippedColumn.svelte';
+  import AwaitingDeployLane from './factory/AwaitingDeployLane.svelte';
   import PhaseStepper from './factory/PhaseStepper.svelte';
   import CiBadge from './factory/CiBadge.svelte';
   import AttentionStrip from './factory/AttentionStrip.svelte';
@@ -28,7 +29,7 @@
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
-  const MOBILE_COL_COUNT = 10;
+  const MOBILE_COL_COUNT = 11;
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
   let isMobile = $state(false);
@@ -389,6 +390,8 @@
           </div>
         {/if}
       </div>
+
+      <AwaitingDeployLane items={data.awaitingDeploy ?? []} {mobileColIndex} />
 
       <ShippedColumn
         shipped={data.shipped}

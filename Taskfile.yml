@@ -286,6 +286,7 @@ tasks:
       - task: test:unit:build-graph
       - task: test:unit:freshness-graph
       - task: test:unit:scs-index
+      - task: test:unit:openspec
       - task: test:unit:scs-search
       - task: test:unit:ticket-graph
       - task: test:unit:T000668-graph-api
@@ -642,6 +643,33 @@ tasks:
     cmds:
       - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
+
+  test:openspec:
+    desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate)."
+    cmds:
+      - bash scripts/openspec.sh validate
+
+  test:unit:openspec:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/openspec.bats
+
+  openspec:propose:
+    desc: "Create an openspec change skeleton. Usage: task openspec:propose -- <slug> --ticket <ext-id>"
+    cmds:
+      - bash scripts/openspec.sh propose {{.CLI_ARGS}}
+  openspec:apply:
+    desc: "Mark an openspec change implementable. Usage: task openspec:apply -- <slug>"
+    cmds:
+      - bash scripts/openspec.sh apply {{.CLI_ARGS}}
+  openspec:archive:
+    desc: "Archive a done change + merge its delta into the SSOT. Usage: task openspec:archive -- <slug>"
+    cmds:
+      - bash scripts/openspec.sh archive {{.CLI_ARGS}}
+  openspec:validate:
+    desc: "Validate the openspec/ tree (same as test:openspec)."
+    cmds:
+      - bash scripts/openspec.sh validate
 
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."

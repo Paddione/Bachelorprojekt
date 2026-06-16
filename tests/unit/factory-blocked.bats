@@ -51,3 +51,10 @@ setup() {
 @test "static: schedule.sh has global cap enforcement" {
   grep -q "GLOBAL_CAP" "$SCHEDULE"
 }
+
+@test "queue.sh only schedules backlog features (excludes awaiting_deploy)" {
+  run grep -E "status\s*=\s*'backlog'" "$QUEUE"
+  [ "$status" -eq 0 ]
+  run grep "awaiting_deploy" "$QUEUE"
+  [ "$status" -ne 0 ]
+}

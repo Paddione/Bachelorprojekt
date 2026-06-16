@@ -9,12 +9,12 @@
 // preserved for backward compatibility — lane order lives in PIPELINE_LANES below.
 export const ALL_TICKET_STATUSES = [
   'triage', 'planning', 'plan_staged', 'backlog', 'in_progress',
-  'in_review', 'blocked', 'qa_review', 'done', 'archived',
+  'in_review', 'blocked', 'qa_review', 'awaiting_deploy', 'done', 'archived',
 ] as const;
 export type TicketStatus = (typeof ALL_TICKET_STATUSES)[number];
 
 export type LaneKey =
-  | 'planning' | 'staged' | 'loadingDock' | 'hall' | 'qa' | 'shipped'
+  | 'planning' | 'staged' | 'loadingDock' | 'hall' | 'qa' | 'awaitingDeploy' | 'shipped'
   | 'attention' | 'archive';
 
 export interface PipelineLane {
@@ -31,6 +31,7 @@ export const PIPELINE_LANES: readonly PipelineLane[] = [
   { key: 'loadingDock', label: 'Laderampe',      statuses: ['backlog'],            side: false },
   { key: 'hall',        label: 'In Arbeit',      statuses: ['in_progress', 'in_review'], side: false },
   { key: 'qa',          label: 'QS-Abnahme',     statuses: ['qa_review'],          side: false },
+  { key: 'awaitingDeploy', label: 'Wartet auf Deploy', statuses: ['awaiting_deploy'], side: false },
   { key: 'shipped',     label: 'Fertig',         statuses: ['done'],               side: false },
   { key: 'attention',   label: 'Blockiert',      statuses: ['blocked'],            side: true },
   { key: 'archive',     label: 'Archiv',         statuses: ['archived'],           side: true },

@@ -91,6 +91,7 @@ export interface HallItem {
   phaseProgress: PhaseProgressSegment[];
 }
 export interface ShippedItem { extId: string; title: string; doneAt: string | null; prNumber: number | null; }
+export interface AwaitingDeployItem { extId: string; title: string; mergedAt: string | null; prNumber: number | null; }
 export interface StagedItem {
   extId: string; title: string; priority: string;
   branch: string | null; planPath: string | null; createdAt: string | null;
@@ -109,6 +110,7 @@ export interface FloorPayload {
   loadingDock: LoadingDockItem[];
   hall: HallItem[];
   shipped: ShippedItem[];
+  awaitingDeploy: AwaitingDeployItem[];
   staged: StagedItem[];
   providerHealth: ProviderStatus[];
   officeWaiting: number;
@@ -240,6 +242,7 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
   // Latest 'pr' link per ticket via DISTINCT ON + LEFT JOIN (pg-mem cannot run
   // a correlated scalar subquery referencing the outer alias t.id). LIMIT is cast
   // to int so a string-bound param works under both pg-mem and real Postgres.
+  // The nested subquery is constrained to done tickets to avoid unbounded scans.
   const r = await pool.query(
     `SELECT t.external_id, t.title, t.done_at, l.pr_number
        FROM tickets.tickets t
@@ -247,6 +250,9 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
          SELECT DISTINCT ON (from_id) from_id, pr_number
            FROM tickets.ticket_links
           WHERE kind = 'pr' AND pr_number IS NOT NULL
+            AND from_id IN (
+              SELECT id FROM tickets.tickets WHERE status = 'done'
+            )
           ORDER BY from_id, created_at DESC
        ) l ON l.from_id = t.id
       WHERE t.status = 'done'
@@ -258,6 +264,34 @@ export async function getShipped(limit = 8): Promise<ShippedItem[]> {
     extId: row.external_id,
     title: row.title,
     doneAt: row.done_at ? new Date(row.done_at).toISOString() : null,
+    prNumber: row.pr_number ?? null,
+  }));
+}
+
+/** Tickets merged to main but not yet deployed to fleet (the "merge ≠ prod" lane). */
+export async function getAwaitingDeploy(limit = 12): Promise<AwaitingDeployItem[]> {
+  // Bounded query targeting only awaiting_deploy tickets for performance.
+  const r = await pool.query(
+    `SELECT t.external_id, t.title, t.updated_at, l.pr_number
+       FROM tickets.tickets t
+       LEFT JOIN (
+         SELECT DISTINCT ON (from_id) from_id, pr_number
+           FROM tickets.ticket_links
+          WHERE kind = 'pr' AND pr_number IS NOT NULL
+            AND from_id IN (
+              SELECT id FROM tickets.tickets WHERE status = 'awaiting_deploy'
+            )
+          ORDER BY from_id, created_at DESC
+       ) l ON l.from_id = t.id
+      WHERE t.status = 'awaiting_deploy'
+      ORDER BY t.updated_at DESC NULLS LAST
+      LIMIT $1::int`,
+    [limit],
+  );
+  return r.rows.map((row: any) => ({
+    extId: row.external_id,
+    title: row.title,
+    mergedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null,
     prNumber: row.pr_number ?? null,
   }));
 }
@@ -367,18 +401,19 @@ export async function getProviderHealth(): Promise<ProviderStatus[]> {
 /** Assemble the full floor payload. slotsCap from FACTORY_GLOBAL_CAP. */
 export async function getFloor(slotsCap: number): Promise<FloorPayload> {
   const control = await getControl(slotsCap);
-  const [metrics, loadingDock, hall, shipped, staged, officeWaiting, planningCount, providerHealth] = await Promise.all([
+  const [metrics, loadingDock, hall, shipped, awaitingDeploy, staged, officeWaiting, planningCount, providerHealth] = await Promise.all([
     getMetrics(),
     getLoadingDock(control.slotsUsed, control.slotsCap),
     getHall(),
     getShipped(),
+    getAwaitingDeploy(),
     getStaged(),
     officeCount(),
     getPlanningCount(),
     getProviderHealth(),
   ]);
   return {
-    control, metrics, loadingDock, hall, shipped, staged, providerHealth,
+    control, metrics, loadingDock, hall, shipped, awaitingDeploy, staged, providerHealth,
     officeWaiting, stagedWaiting: staged.length,
     planningCount,
     attention: buildAttention(hall, providerHealth),

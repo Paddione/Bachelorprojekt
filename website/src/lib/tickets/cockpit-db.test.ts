@@ -79,6 +79,7 @@ const PG_MEM_COMPAT_VIEW_SQL = `
       SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END)::int AS done_leaves,
       SUM(CASE WHEN status = 'blocked' THEN 1 ELSE 0 END)::int AS blocked_leaves,
       SUM(CASE WHEN status IN ('in_progress','in_review','qa_review') THEN 1 ELSE 0 END)::int AS in_progress_leaves,
+      SUM(CASE WHEN status = 'awaiting_deploy' THEN 1 ELSE 0 END)::int AS awaiting_deploy_leaves,
       SUM(CASE WHEN status IN ('triage','backlog','planning','plan_staged') THEN 1 ELSE 0 END)::int AS open_leaves
     FROM all_leaves
     GROUP BY container_id
@@ -89,6 +90,7 @@ const PG_MEM_COMPAT_VIEW_SQL = `
     COALESCE(a.done_leaves, 0) AS done_leaves,
     COALESCE(a.blocked_leaves, 0) AS blocked_leaves,
     COALESCE(a.in_progress_leaves, 0) AS in_progress_leaves,
+    COALESCE(a.awaiting_deploy_leaves, 0) AS awaiting_deploy_leaves,
     COALESCE(a.open_leaves, 0) AS open_leaves,
     COALESCE(ROUND(100.0 * a.done_leaves / NULLIF(a.total_leaves, 0))::int, 0) AS pct_done,
     CASE

@@ -304,3 +304,37 @@ EOF
   [ "$status" -eq 0 ]
   [ "$before" = "$(cat "$TMP/j-undeterminable.md")" ]
 }
+
+@test "--validate auto-fills a missing title from the first H1" {
+  cat > "$TMP/v-no-title.md" <<'EOF'
+---
+ticket_id: T000910
+domains: [infra]
+status: active
+---
+
+# Derived Title Plan
+
+Touches k3d/ manifests.
+EOF
+  run bash "$HOOK" --validate "$TMP/v-no-title.md"
+  [ "$status" -eq 0 ]
+  grep -q '^title: Derived Title Plan$' "$TMP/v-no-title.md"
+}
+
+@test "--validate exits 1 when domains is missing and cannot be derived to non-empty" {
+  cat > "$TMP/v-no-domains.md" <<'EOF'
+---
+title: Has Title
+ticket_id: T000910
+status: active
+domains: []
+---
+
+# Has Title
+
+Prose with no routing signals whatsoever zzz.
+EOF
+  run bash "$HOOK" --validate "$TMP/v-no-domains.md"
+  [ "$status" -eq 1 ]
+}

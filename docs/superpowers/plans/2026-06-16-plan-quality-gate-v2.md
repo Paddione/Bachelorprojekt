@@ -824,7 +824,7 @@ Repair the silent `plan-context.sh` empty-`title:` injection at the source: `scr
 - Create: `tests/unit/fixtures/plan-lint/fm-no-title.md` (reuse the existing `frontmatter` bats? — add to `plan-frontmatter-hook.bats` instead, see below)
 - Modify: `tests/unit/plan-frontmatter-hook.bats`
 
-- [ ] **Step 1: Write the failing BATS tests**
+- [x] **Step 1: Write the failing BATS tests**
 
 Append to `tests/unit/plan-frontmatter-hook.bats` (the existing suite already exercises `frontmatter.sh` via the `plan-frontmatter-hook.sh` shim, so reuse `$HOOK`):
 
@@ -864,12 +864,12 @@ EOF
 }
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-frontmatter-hook.bats`
 Expected: FAIL — `--validate` is not a recognised flag yet (it would be treated as the file path → "file not found").
 
-- [ ] **Step 3: Add `--validate` mode to `scripts/vda/frontmatter.sh`**
+- [x] **Step 3: Add `--validate` mode to `scripts/vda/frontmatter.sh`**
 
 After the existing `--activate`/`--spec` flag parsing (around line 16-18), add:
 
@@ -909,12 +909,12 @@ fi
 
 > `ticket_id: null` is explicitly allowed (a slug-less plan deliberately keeps it null) — only `title`/`domains`/`status` must be non-empty/non-`[]`.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `./tests/unit/lib/bats-core/bin/bats tests/unit/plan-frontmatter-hook.bats`
 Expected: PASS — including all pre-existing tests (the `--validate` branch is additive and short-circuits before the existing logic).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/vda/frontmatter.sh tests/unit/plan-frontmatter-hook.bats

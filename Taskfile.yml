@@ -336,6 +336,7 @@ tasks:
   test:unit:factory-mcp:
     internal: true
     cmds:
+      - '[ -d scripts/factory/node_modules ] || npm install --prefix scripts/factory --silent'
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/factory/mcp-server.bats
 
   test:unit:readiness-webhook:
